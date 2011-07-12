@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.7.2.14 2011/07/12 14:45:47 klarson1 Exp $
+#   $Id: glideinFrontendInterface.py,v 1.47.2.7.2.15 2011/07/12 19:58:04 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -556,14 +556,16 @@ class MultiAdvertizeWork:
                     data_fd.close()
                     glidein_params_to_encrypt[cred_el.file_id(cred_el.filename)]=cred_data
                     if (hasattr(cred_el,'security_class')):
-                        glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(cred_el.filename)]=cred_el.security_class
+                        # Convert the sec class to a string so the Factory can interpret the value correctly
+                        glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(cred_el.filename)]=str(cred_el.security_class)
                 if (hasattr(cred_el,'key_fname')):
                     data_fd=open(cred_el.key_fname)
                     cred_data=data_fd.read()
                     data_fd.close()
                     glidein_params_to_encrypt[cred_el.file_id(cred_el.key_fname)]=cred_data
                     if (hasattr(cred_el,'security_class')):
-                        glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(cred_el.key_fname)]=cred_el.security_class
+                        # Convert the sec class to a string so the Factory can interpret the value correctly
+                        glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(cred_el.key_fname)]=str(cred_el.security_class)
             if (factory_pool in self.global_key):
                 key_obj=self.global_key[factory_pool]
             if key_obj!=None:
@@ -650,7 +652,8 @@ class MultiAdvertizeWork:
                         if (credential_el.trust_domain!=factory_trust) and (factory_trust!="Any"):
                             logSupport.log.debug("Credential %s does not match %s (for %s) domain, skipping..."%(credential_el.trust_domain,factory_trust,params_obj.request_name))
                             continue
-                    glidein_params_to_encrypt['SecurityClass']=credential_el.security_class
+                    # Convert the sec class to a string so the Factory can interpret the value correctly
+                    glidein_params_to_encrypt['SecurityClass']=str(credential_el.security_class)
                     classad_name=credential_el.file_id(credential_el.filename)+"_"+classad_name
                     if (credential_el.type.startswith("username_password")):
                         glidein_params_to_encrypt['Username']=credential_el.file_id(credential_el.filename);
