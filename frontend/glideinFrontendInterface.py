@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.7.2.13 2011/07/11 22:34:33 dstrain Exp $
+#   $Id: glideinFrontendInterface.py,v 1.47.2.7.2.14 2011/07/12 14:45:47 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -545,6 +545,9 @@ class MultiAdvertizeWork:
             fd.write('GlideinMyType = "%s"\n'%frontendConfig.client_global)
             fd.write('GlideinWMSVersion = "%s"\n'%frontendConfig.glideinwms_version)
             fd.write('Name = "%s"\n'%classad_name)
+            fd.write('FrontendName = "%s"\n'%self.descript_obj.frontend_name)
+            fd.write('GroupName = "%s"\n'%self.descript_obj.group_name)
+            fd.write('ClientName = "%s"\n'%self.descript_obj.my_name)
             for i in range(nr_credentials):
                 cred_el=self.descript_obj.x509_proxies_data[i]
                 if (hasattr(cred_el,'filename')):
@@ -653,7 +656,7 @@ class MultiAdvertizeWork:
                         glidein_params_to_encrypt['Username']=credential_el.file_id(credential_el.filename);
                         glidein_params_to_encrypt['Password']=credential_el.file_id(credential_el.key_fname);
                     if (credential_el.type.startswith("grid_proxy")):
-                        glidein_params_to_encrypt['x509SubmitProxy']=credential_el.file_id(credential_el.filename);
+                        glidein_params_to_encrypt['SubmitProxy']=credential_el.file_id(credential_el.filename);
                     if (credential_el.type.startswith("cert_pair")):
                         glidein_params_to_encrypt['PublicCert']=credential_el.file_id(credential_el.filename);
                         glidein_params_to_encrypt['PrivateCert']=credential_el.file_id(credential_el.key_fname);
