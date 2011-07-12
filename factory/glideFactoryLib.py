@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryLib.py,v 1.55.2.8.4.14 2011/06/28 19:45:46 tiradani Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.8.4.15 2011/07/12 22:16:24 tiradani Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -1018,7 +1018,6 @@ def submitGlideins(entry_name, client_name, nr_glideins,
 
     # Need information from glidein.descript, job.descript, and signatures.sha1
     jobDescript = glideFactoryConfig.JobDescript(entry_name)
-
     schedd = jobDescript.data["Schedd"]
 
     # List of job ids that have been submitted - initialize to empty array
@@ -1029,7 +1028,13 @@ def submitGlideins(entry_name, client_name, nr_glideins,
     if nr_glideins > factoryConfig.max_submits:
         nr_glideins = factoryConfig.max_submits
 
-    exe_env = get_submit_environment(entry_name, client_name, submit_credentials, client_web, params)
+    try:
+        exe_env = get_submit_environment(entry_name, client_name, submit_credentials, client_web, params)
+    except Exception, e:
+        msg = "Failed to setup execution environment.  Error:" % str(e)
+        logSupport.log.error(msg)
+        raise RuntimeError, msg
+
     try:
         nr_submitted = 0
         while (nr_submitted < nr_glideins):
@@ -1055,10 +1060,14 @@ def submitGlideins(entry_name, client_name, nr_glideins,
                     submit_out = condorPrivsep.condor_execute(username, factoryConfig.submit_dir, "condor_submit", args, env=exe_env)
                 except condorPrivsep.ExeError, e:
                     submit_out = []
-                    raise RuntimeError, "%s failed (user %s): %s" % (factoryConfig.submit_fname, username, e)
+                    msg = "condor_submit failed (user %s): %s" % (username, str(e))
+                    logSupport.log.error(msg)
+                    raise RuntimeError, msg
                 except:
                     submit_out = []
-                    raise RuntimeError, "%s failed (user %s): Unknown privsep error" % (factoryConfig.submit_fname, username)
+                    msg = "condor_submit failed (user %s): Unknown privsep error" % username
+                    logSupport.log.error(msg)
+                    raise RuntimeError, msg
             else:
                 # avoid using privsep, if possible
                 try:
@@ -1066,12 +1075,12 @@ def submitGlideins(entry_name, client_name, nr_glideins,
                     submit_out = condorExe.iexe_cmd("%s; condor_submit -name %s entry_%s/job.condor" % (env, schedd, entry_name))
                 except condorExe.ExeError, e:
                     submit_out = []
-                    msg = "condor_submit failed: %s" % e
+                    msg = "condor_submit failed: %s" % str(e)
                     logSupport.log.error(msg)
                     raise RuntimeError, msg
                 except Exception, e:
                     submit_out = []
-                    msg = "condor_submit failed: Unknown error: %s" % e
+                    msg = "condor_submit failed: Unknown error: %s" % str(e)
                     logSupport.log.error(msg)
                     raise RuntimeError, msg
 
@@ -1153,113 +1162,119 @@ def releaseGlideins(schedd_name, jid_list):
     logSupport.log.info("Released %i glideins on %s: %s" % (len(released_jids), schedd_name, released_jids))
 
 def get_submit_environment(entry_name, client_name, submit_credentials, client_web, params):
-    # Need information from glidein.descript, job.descript, and signatures.sha1
-    glideinDescript = glideFactoryConfig.GlideinDescript()
-    jobDescript = glideFactoryConfig.JobDescript(entry_name)
-    signatures = glideFactoryConfig.SignatureFile()
+    try:
+        # Need information from glidein.descript, job.descript, and signatures.sha1
+        glideinDescript = glideFactoryConfig.GlideinDescript()
+        jobDescript = glideFactoryConfig.JobDescript(entry_name)
+        signatures = glideFactoryConfig.SignatureFile()
 
-    # this is the parameter list that will be added to the arguments for glidein_startup.sh
-    params_str = ""
-    # if client_web has been provided, get the arguments and add them to the string
-    if client_web != None:
-        params_str = "".join(client_web.get_glidein_args())
-    # add all the params to the argument string
-    for k in params.keys():
-        params_str += " -param_%s %s" % (k, params[k])
+        # this is the parameter list that will be added to the arguments for glidein_startup.sh
+        params_str = ""
+        # if client_web has been provided, get the arguments and add them to the string
+        if client_web != None:
+            params_str = "".join(client_web.get_glidein_args())
+        # add all the params to the argument string
+        for k in params.keys():
+            params_str += " -param_%s %s" % (k, params[k])
 
+        exe_env = ['X509_USER_PROXY=%s' % submit_credentials.security_credentials["SubmitProxy"]]
+        exe_env.append('GLIDEIN_ENTRY_NAME=%s' % entry_name)
+        exe_env.append('GLIDEIN_CLIENT=%s' % client_name)
+        exe_env.append('GLIDEIN_SEC_CLASS=%s' % submit_credentials.security_class)
 
-    exe_env = ['X509_USER_PROXY=%s' % submit_credentials.security_credentials["SubmitProxy"]]
-    exe_env.append('GLIDEIN_ENTRY_NAME=%s' % entry_name)
-    exe_env.append('GLIDEIN_CLIENT=%s' % client_name)
-    exe_env.append('GLIDEIN_SEC_CLASS=%s' % submit_credentials.security_class)
+        # Entry Params (job.descript)
+        schedd = jobDescript.data["Schedd"]
+        verbosity = jobDescript.data["Verbosity"]
+        startup_dir = jobDescript.data["StartupDir"]
 
-    # Entry Params (job.descript)
-    schedd = jobDescript.data["Schedd"]
-    verbosity = jobDescript.data["Verbosity"]
-    startup_dir = jobDescript.data["StartupDir"]
+        exe_env.append('GLIDEIN_SCHEDD=%s' % schedd)
+        exe_env.append('GLIDEIN_VERBOSITY=%s' % verbosity)
+        exe_env.append('GLIDEIN_STARTUP_DIR=%s' % startup_dir)
 
-    exe_env.append('GLIDEIN_SCHEDD=%s' % schedd)
-    exe_env.append('GLIDEIN_VERBOSITY=%s' % verbosity)
-    exe_env.append('GLIDEIN_STARTUP_DIR=%s' % startup_dir)
+        # Main Params (glidein.descript
+        glidein_name = glideinDescript.data["GlideinName"]
+        factory_name = glideinDescript.data["FactoryName"]
+        web_url = glideinDescript.data["WebURL"]
 
-    # Main Params (glidein.descript
-    glidein_name = glideinDescript.data["GlideinName"]
-    factory_name = glideinDescript.data["FactoryName"]
-    web_url = glideinDescript.data["WebURL"]
-    exe_env.append('GLIDEIN_NAME=%s' % glidein_name)
-    exe_env.append('FACTORY_NAME=%s' % factory_name)
-    exe_env.append('WEB_URL=%s' % web_url)
+        exe_env.append('GLIDEIN_NAME=%s' % glidein_name)
+        exe_env.append('FACTORY_NAME=%s' % factory_name)
+        exe_env.append('WEB_URL=%s' % web_url)
+    
+        # Security Params (signatures.sha1)
+        # sign_type has always been hardcoded... we can change in the future if need be
+        sign_type = "sha1"
+        exe_env.append('SIGN_TYPE=%s' % sign_type)
+    
+        main_descript = signatures.data["main_descript"]
+        main_sign = signatures.data["main_sign"]
 
-    # Security Params (signatures.sha1)
-    # sign_type has always been hardcoded... we can change in the future if need be
-    sign_type = "sha1"
-    exe_env.append('SIGN_TYPE=%s' % sign_type)
+        entry_descript = signatures.data["entry_%s_descript" % entry_name]
+        entry_sign = signatures.data["entry_%s_sign" % entry_name]
 
-    main_descript = signatures.data["main_descript"]
-    main_sign = signatures.data["main_sign"]
-    entry_descript = signatures.data["%s_descript" % entry_name]
-    entry_sign = signatures.data["%s_sign" % entry_name]
-    exe_env.append('MAIN_DESCRIPT=%s' % main_descript)
-    exe_env.append('MAIN_SIGN=%s' % main_sign)
-    exe_env.append('ENTRY_DESCRIPT=%s' % entry_descript)
-    exe_env.append('ENTRY_SIGN=%s' % entry_sign)
+        exe_env.append('MAIN_DESCRIPT=%s' % main_descript)
+        exe_env.append('MAIN_SIGN=%s' % main_sign)
+        exe_env.append('ENTRY_DESCRIPT=%s' % entry_descript)
+        exe_env.append('ENTRY_SIGN=%s' % entry_sign)
+    
+        # Build the glidein pilot arguments
+        glidein_arguments = "-v %s -name %s -entry %s -clientname %s -schedd %s " \
+                            "-factory %s -web %s -sign %s -signentry %s -signtype %s " \
+                            "-descript %s -descriptentry %s -dir %s -param_GLIDEIN_Client %s %s" % \
+                            (verbosity, glidein_name, entry_name, client_name,
+                             schedd, factory_name, web_url, main_sign, entry_sign,
+                             sign_type, main_descript, entry_descript, startup_dir,
+                             client_name, params_str)
 
-    # Build the glidein pilot arguments
-    glidein_arguments = "-v %s -name %s -entry %s -clientname %s -schedd %s " \
-                        "-factory %s -web %s -sign %s -signentry %s -signtype %s " \
-                        "-descript %s -descriptentry %s -dir %s -param_GLIDEIN_Client %s %s" % \
-                        (verbosity, glidein_name, entry_name, client_name,
-                         schedd, factory_name, web_url, main_sign, entry_sign,
-                         sign_type, main_descript, entry_descript, startup_dir,
-                         client_name, params_str)
-
-    # get my (entry) type
-    grid_type = jobDescript.data["GridType"]
-    if grid_type == "ec2":
-        exe_env.append('AMI_ID=%s' % params["AmiId"])
-        exe_env.append('INSTANCE_TYPE=%s' % params["InstanceType"])
-        exe_env.append('ACCESS_KEY_FILE=%s' % submit_credentials.security_credentials["PublicKey"])
-        exe_env.append('SECRET_KEY_FILE=%s' % submit_credentials.security_credentials["PrivateKey"])
-
-        # get the proxy
-        full_path_to_proxy = submit_credentials.security_credentials["SubmitProxy"]
-        proxy_file = os.path.basename(full_path_to_proxy)
-        proxy_dir = os.path.dirname(full_path_to_proxy)
-
-        cat_cmd = "/bin/cat"
-        args = [cat_cmd, proxy_file]
-        proxy_contents = condorPrivsep.execute(submit_credentials.username, proxy_dir, cat_cmd, args)
-
-        ini_template = "[glidein_startup]\n" \
-                        "args = %s\n" \
-                        "webbase = %s\n" \
-                        "proxy_file_name = pilot_proxy\n"
-
-        if jobDescript.has_key("shutdownVM"):
-            disable_shutdown = jobDescript["shutdownVM"]
-            if disable_shutdown: ini_template += "disable_shutdown = True"
-        ini = ini_template % (glidein_arguments, web_url)
-
-        tarball = GlideinTar()
-        tarball.add_string("glidein_userdata", ini)
-        tarball.add_string("pilot_proxy", proxy_contents)
-        binary_string = tarball.create_tar_blob()
-        encoded_tarball = base64.b64encode(binary_string)
-        exe_env.append('USER_DATA=%s' % encoded_tarball)
-
-    else:
-        exe_env.append("GLIDEIN_ARGUMENTS=%s" % glidein_arguments)
-        # RSL is definitely not for cloud entries
-        glidein_rsl = "none"
-        if jobDescript.data.has_key('GlobusRSL'):
-            glidein_rsl = jobDescript.data['GlobusRSL']
-            # Replace placeholder for project id
-            if params.has_key('ProjectId') and 'TG_PROJECT_ID' in glidein_rsl:
-                glidein_rsl = glidein_rsl.replace('TG_PROJECT_ID', params['ProjectId'])
-        if not (glidein_rsl == "none"):
-            exe_env.append('GLIDEIN_RSL=%s' % glidein_rsl)
-
-    return exe_env
+        # get my (entry) type
+        grid_type = jobDescript.data["GridType"]
+        if grid_type == "ec2":
+            exe_env.append('AMI_ID=%s' % params["AmiId"])
+            exe_env.append('INSTANCE_TYPE=%s' % params["InstanceType"])
+            exe_env.append('ACCESS_KEY_FILE=%s' % submit_credentials.security_credentials["PublicKey"])
+            exe_env.append('SECRET_KEY_FILE=%s' % submit_credentials.security_credentials["PrivateKey"])
+    
+            # get the proxy
+            full_path_to_proxy = submit_credentials.security_credentials["SubmitProxy"]
+            proxy_file = os.path.basename(full_path_to_proxy)
+            proxy_dir = os.path.dirname(full_path_to_proxy)
+    
+            cat_cmd = "/bin/cat"
+            args = [cat_cmd, proxy_file]
+            proxy_contents = condorPrivsep.execute(submit_credentials.username, proxy_dir, cat_cmd, args)
+    
+            ini_template = "[glidein_startup]\n" \
+                            "args = %s\n" \
+                            "webbase = %s\n" \
+                            "proxy_file_name = pilot_proxy\n"
+    
+            if jobDescript.has_key("shutdownVM"):
+                disable_shutdown = jobDescript["shutdownVM"]
+                if disable_shutdown: ini_template += "disable_shutdown = True"
+            ini = ini_template % (glidein_arguments, web_url)
+    
+            tarball = GlideinTar()
+            tarball.add_string("glidein_userdata", ini)
+            tarball.add_string("pilot_proxy", proxy_contents)
+            binary_string = tarball.create_tar_blob()
+            encoded_tarball = base64.b64encode(binary_string)
+            exe_env.append('USER_DATA=%s' % encoded_tarball)
+    
+        else:
+            exe_env.append("GLIDEIN_ARGUMENTS=%s" % glidein_arguments)
+            # RSL is definitely not for cloud entries
+            glidein_rsl = "none"
+            if jobDescript.data.has_key('GlobusRSL'):
+                glidein_rsl = jobDescript.data['GlobusRSL']
+                # Replace placeholder for project id
+                if params.has_key('ProjectId') and 'TG_PROJECT_ID' in glidein_rsl:
+                    glidein_rsl = glidein_rsl.replace('TG_PROJECT_ID', params['ProjectId'])
+            if not (glidein_rsl == "none"):
+                exe_env.append('GLIDEIN_RSL=%s' % glidein_rsl)
+    
+        return exe_env
+    except Exception, e:
+        msg = "   Error setting up submission environment: %s" % str(e)
+        logSupport.log.debug(msg)
 
 # Get list of CondorG job status for held jobs that are not recoverable
 def isGlideinUnrecoverable(jobInfo):
