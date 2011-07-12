@@ -320,7 +320,11 @@ def get_gsi_dn(type,filename,real_user=None):
   if type == "proxy":
     arg = "-issuer"
     if not os.path.isfile(filename):
-      logerr("Proxy (%s)\nnot found or has wrong permissions/ownership.\nThe proxy has to be owned by %s and have 600 permissions" % (filename,install_user))
+      logerr("""Proxy (%(filename)s)
+not found or has wrong permissions/ownership.
+The proxy has to be owned by %(user)s and have 600 permissions.
+Or you could be trying to perform this as the wrong user.
+""" % { "filename" : filename, "user" : install_user,} )
   elif type == "cert":
     arg = "-subject"
   else:
@@ -329,7 +333,10 @@ def get_gsi_dn(type,filename,real_user=None):
   if not os.path.isfile(filename):
     logerr("%s '%s' not found" % (type,filename))
   if os.stat(filename).st_uid <> pwd.getpwnam(install_user)[2]:
-    logerr("The %s specified (%s)\nhas to be owned by %s user" % (type,filename,install_user))
+    logerr("""The %(type)s specified (%(filename)s)
+has to be owned by user %(user)s  
+Or you could be  trying to perform this as the wrong user.
+""" % { "type" : type, "filename" : filename, "user" : install_user,})
 
   #-- read the cert/proxy --
   dn_fd   = os.popen("openssl x509 %s -noout -in %s 2>/dev/null" % (arg,filename))
