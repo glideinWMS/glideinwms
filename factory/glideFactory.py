@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactory.py,v 1.89.2.10.2.11 2011/07/11 21:25:56 tiradani Exp $
+#   $Id: glideFactory.py,v 1.89.2.10.2.12 2011/07/12 19:30:37 tiradani Exp $
 #
 # Description:
 #   This is the main of the glideinFactory
@@ -328,6 +328,12 @@ def main(startup_dir):
     glideFactoryConfig.factoryConfig.glidein_descript_file = os.path.join(startup_dir, glideFactoryConfig.factoryConfig.glidein_descript_file)
     glideinDescript = glideFactoryConfig.GlideinDescript()
     frontendDescript = glideFactoryConfig.FrontendDescript()
+
+    # Setup the glideFactoryLib.factoryConfig so that we can process the globals classads
+    glideFactoryLib.factoryConfig.config_whoamI(glideinDescript.data['FactoryName'], glideinDescript.data['GlideinName'])
+    glideFactoryLib.factoryConfig.config_dirs(startup_dir, glideinDescript.data['LogDir'],
+                                              glideinDescript.data['ClientLogBaseDir'],
+                                              glideinDescript.data['ClientProxiesBaseDir'])
 
     write_descript(glideinDescript, frontendDescript, os.path.join(startup_dir, 'monitor/'))
 
