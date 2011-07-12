@@ -144,7 +144,7 @@ def rpm(service,action,inifile):
 #--------------------------------
 def factory(service,action,inifile):
   obj = Factory.Factory(inifile)
-  if action in ["install","validate","create-entries"]:
+  if action in ["install","validate","configure","create-entries"]:
     process_action(obj,action)
     return
   cmd = "cd %s;source factory.sh;cd %s" % (obj.install_location(),obj.glidein_dir())

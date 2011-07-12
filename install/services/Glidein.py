@@ -140,10 +140,11 @@ class Glidein(Configuration):
   def validate_web_location(self):
     dir = self.web_location()
     common.logit("... validating web_location: %s" % dir)
-    if not os.path.isdir(dir):
-      common.logerr("web location (%s) does not exist.\n       It needs to be owned and writable by user(%s)" % (dir,self.username()))
-    if common.not_writeable(dir):
-      common.logerr("web location (%s) has wrong\n       ownership/permissions. It needs to be owned and writable by user(%s)" % (dir,self.username()))
+    common.make_directory(dir,self.username(),0755)
+    for sdir_name in ("stage","monitor"):
+      sdir_fullpath=os.path.join(self.web_location(),sdir_name)
+      common.make_directory(sdir_fullpath,self.username(),0755)
+
 
   #---------------------
   def validate_software_requirements(self):
@@ -176,15 +177,6 @@ Did you install the correct javascriptrrd rpm?
     msg +="available"
     common.logit(msg)
     return dir
-
-  #---------------------
-  def create_web_directories(self):
-    common.logit("\nCreating monitoring web directories in %s" % self.web_location())
-    for sdir_name in ("stage","monitor"):
-      sdir_fullpath=os.path.join(self.web_location(),sdir_name)
-      common.logit("... checking: %s" % sdir_fullpath)
-      common.make_directory(sdir_fullpath,self.username(),0755,empty_required=True)
-    common.logit("Creating monitoring web directories completed\n")
 
 #---------------------------
 def show_line():

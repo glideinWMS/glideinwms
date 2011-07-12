@@ -57,8 +57,6 @@ submit_options        = []
 
 frontend_options = [ 
 ]
-## "glidein_proxy_files", 
-## "glidein_proxy_dns", 
 
 valid_options = { "Factory"       : factory_options,
                   "WMSCollector"  : wmscollector_options,
@@ -77,8 +75,6 @@ class Factory(Condor):
     if optionsDict != None:
       valid_options = optionsDict
     Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
-    ##   Configuration.__init__(self,inifile)
-    ##  self.validate_section(self.ini_section,valid_options[self.ini_section])
     self.glidein = Glidein(self.inifile,self.ini_section,valid_options[self.ini_section])
     self.config_entries_list = {} # Config file entries elements
     self.wms      = None
@@ -147,6 +143,24 @@ class Factory(Condor):
     filename = "%s/new_entries.%s" % (self.glidein.config_dir(),common.time_suffix())
     common.write_file("w",0644,filename,self.config_entries_data())
 
+  #-----------------------
+  def validate(self):
+    if self.not_validated:
+      common.logit( "Verifying Factory options")
+      if os.getuid() <> pwd.getpwnam(self.username())[2]:
+        common.logerr("""You need to install this as the Factory unix acct (%s) so
+files and directories can be created correctly""" % self.username())
+      self.install_vdtclient()
+      self.install_certificates()
+      common.logit( "\nVerifying Factory options")
+      common.validate_hostname(self.hostname())
+      common.validate_user(self.username())
+      common.validate_installer_user(self.username())
+      self.validate_use_vofrontend_proxy()
+      self.glidein.validate_software_requirements()
+      self.validate_needed_directories()
+      common.logit( "Verification complete\n")
+    self.not_validated = False
 
   #---------------------
   def install(self):
@@ -155,40 +169,63 @@ class Factory(Condor):
     self.get_frontend()
     common.ask_continue("Continue")
     self.validate()
-    self.glidein.create_web_directories()
-    common.make_directory(self.install_location(),self.username(),0755,empty_required=True)
-    self.create_factory_dirs(self.username(),0755)
-    if self.wms.privilege_separation() <> "y":
-      #-- done in WMS collector install if privilege separation is used --
-      self.create_factory_client_dirs(self.username(),0755)
+    self.verify_directories_empty()
     self.configure()
     common.logit ("\n======== %s install complete ==========\n" % self.ini_section)
     self.create_glideins()
     if os.path.isdir(self.glidein_dir()): #indicates the glideins have been created
       common.start_service(self.glideinwms_location(),self.ini_section,self.inifile)
- 
-  #-----------------------
-  def validate(self):
-    if self.not_validated:
-      common.logit( "Verifying Factory options")
-      if os.getuid() <> pwd.getpwnam(self.username())[2]:
-        common.logerr("You need to install this as the Factory unix acct (%s) so\nfiles and directories can be created correctly" % self.username())
-      # check to see if there will be a problem with client files during the
-      # create factory step.
-      self.install_vdtclient()
-      self.install_certificates()
-      common.logit( "\nVerifying Factory options")
-      common.validate_hostname(self.hostname())
-      common.validate_user(self.username())
-      common.validate_installer_user(self.username())
-      self.glidein.validate_web_location()
-      self.glidein.validate_software_requirements()
-      self.validate_logs_dir()
-      self.validate_use_vofrontend_proxy()
-      ## common.validate_install_location(self.install_location())
-      common.logit( "Verification complete\n")
-    self.not_validated = False
 
+  #-----------------------------
+  def validate_needed_directories(self):
+    self.glidein.validate_web_location()
+    self.validate_logs_dir()
+    self.validate_client_log_dir()
+    self.validate_client_proxy_dir()
+    common.validate_install_location(self.install_location())
+
+  #-----------------------------
+  def verify_directories_empty(self):
+    dirs = {}
+    if len(os.listdir(self.client_log_dir())) > 0:
+      dirs["client_log_dir"] = self.client_log_dir()
+    if len(os.listdir(self.client_proxy_dir())) > 0:
+      dirs["client_proxy_dir"] = self.client_proxy_dir()
+    if len(os.listdir(self.logs_dir())) > 0:
+      dirs["logs_dir"] = self.logs_dir()
+    for dir in ["monitor","stage"]:
+      subdir = os.path.join(self.glidein.web_location(),dir)
+      if os.path.isdir(subdir) and len(os.listdir(subdir)) > 0:
+        dirs["web_location/%s" % dir] = subdir
+    if len(os.listdir(self.install_location())) > 0:
+      if len(os.listdir(self.install_location())) > self.nbr_of_nested_dirs():
+        dirs["install_location"] = self.install_location()
+    if len(dirs) == 0:
+      return  # all directories are empty
+    common.logit("""The following directories must be empty for the install to succeed: """)
+    for option in dirs.keys():
+      common.logit("""  %(option)s: %(dir)s""" % \
+                        { "option" : option, "dir" : dirs[option] })
+    common.ask_continue("... can we remove their contents")
+    for option in dirs.keys():
+      common.remove_dir_contents(dirs[option])
+    # this re-validation is performed to resolve problem of nesting some dirs
+    self.validate_needed_directories()
+
+  #-----------------------------
+  def nbr_of_nested_dirs(self):
+    # Determines if any of the directories are subdirectories of the install 
+    # location.  We are trying to avoid deleting teh contents if we do not have to.
+    cnt = 0
+    for dir in  [self.logs_dir(), 
+                 self.client_log_dir(),
+                 self.client_proxy_dir(),
+                 self.glidein.web_location() ]:
+      if dir.find(self.install_location()) == 0:
+        cnt = cnt + 1
+    return cnt
+    
+ 
   #----------------------------
   def configure(self):
     self.validate()
@@ -208,12 +245,6 @@ class Factory(Condor):
         common.logerr("""You have said you want to use the Frontend proxies only.
 The x509_proxy and x509_gsi_dn option must be empty.""")
 
-##--- take out if I don't care... waffling on this ---
-##      if len(self.frontend.glidein_proxy_files())  == 0:
-##        common.logerr("""You have said you want to use the Frontend proxies only.
-##The VOFrontend glidein_proxy_dns is not populated.""")
-
-      
     else:  # use factory proxy if no vofrontend proxy provided
       self.validate_factory_proxy()
 
@@ -250,22 +281,31 @@ Are you sure this is a proxy and not a certificate?""" % \
   #---------------------------------
   def validate_logs_dir(self):
     common.logit("... validating logs_dir: %s" % self.logs_dir())
-    common.make_directory(self.logs_dir(),self.username(),0755,empty_required=True)
+    common.make_directory(self.logs_dir(),self.username(),0755)
 
-  #--------------------------------
-  def create_factory_dirs(self,owner,perm):
-    common.logit("Creating factory directory: %s" % self.install_location())
-    common.make_directory(self.install_location(),owner,perm,empty_required=True)
-    common.logit("Creating factory log directory: %s" % self.logs_dir())
-    common.make_directory(self.logs_dir(),owner,perm,empty_required=True)
+  #---------------------------------
+  def validate_client_log_dir(self):
+    common.logit("... validating client_log_dir: %s" % self.client_log_dir())
+    if self.wms.privilege_separation() == "y":
+      #-- done in WMS collector install if privilege separation is used --
+      if not os.path.isdir(self.client_log_dir()):
+        common.logerr("""Privilege separation is in effect. This should have been
+created by the WMS Collector installation or you did not start the service 
+or you changed the ini file and did not reinstall that service.""")
+    else:
+      common.make_directory(self.client_log_dir(),self.username(),0755)
 
-  #--------------------------------
-  def create_factory_client_dirs(self,owner,perm):
-    common.logit("Creating client logs directory: %s" % self.client_log_dir())
-    common.make_directory(self.client_log_dir(),owner,perm,empty_required=True)
-    common.logit("Creating client proxies directory: %s" % self.client_proxy_dir())
-    common.make_directory(self.client_proxy_dir(),owner,perm,empty_required=True)
-
+  #---------------------------------
+  def validate_client_proxy_dir(self):
+    common.logit("... validating client_proxy_dir: %s" % self.client_proxy_dir())
+    if self.wms.privilege_separation() == "y":
+      #-- done in WMS collector install if privilege separation is used --
+      if not os.path.isdir(self.client_proxy_dir()):
+        common.logerr("""Privilege separation is in effect. This should have been
+created by the WMS Collector installation or you did not start the service 
+or you changed the ini file and did not reinstall that service.""")
+    else:
+      common.make_directory(self.client_proxy_dir(),self.username(),0755)
 
   #-----------------------
   def create_env_script(self):
@@ -307,7 +347,7 @@ source %(condor_location)s/condor.sh
   def create_config(self):
     config_xml = self.config_data()
     common.logit("\nCreating configuration file: %s" % self.glidein.config_file())
-    common.make_directory(self.glidein.config_dir(),self.username(),0755,empty_required=True)
+    common.make_directory(self.glidein.config_dir(),self.username(),0755)
     common.write_file("w",0644,self.glidein.config_file(),config_xml)
 
   #-------------------------

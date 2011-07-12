@@ -228,19 +228,60 @@ class VOFrontend(Condor):
     common.logit ("======== %s install starting ==========" % self.ini_section)
     common.ask_continue("Continue")
     self.validate()
-    if self.install_type() == "tarball":
+#    if self.install_type() == "tarball":
 ##      if len(self.colocated_services) == 0 or \
 ##         self.condor_is_installed() is False:
-        self.__install_condor__()
+#      self.__install_condor__()
     if self.install_type() == "tarball":
-      self.create_logs_dir()
-      self.glidein.create_web_directories()
-      common.validate_install_location(self.install_location())
+      self.verify_directories_empty()
     self.configure()
     common.logit ("\n======== %s install complete ==========\n" % self.ini_section)
     self.create_frontend()
     self.start()
 
+  #-----------------------------
+  def validate_needed_directories(self):
+    self.glidein.validate_web_location()
+    self.validate_logs_dir()
+    common.validate_install_location(self.install_location())
+
+  #-----------------------------
+  def verify_directories_empty(self):
+    if self.install_type == "rpm":
+      return  # For RPM install we don't want to clean anything
+    dirs = {}
+    if len(os.listdir(self.logs_dir())) > 0:
+      dirs["logs_dir"] = self.logs_dir()
+    for dir in ["monitor","stage"]:
+      subdir = os.path.join(self.glidein.web_location(),dir)
+      if os.path.isdir(subdir) and len(os.listdir(subdir)) > 0:
+        dirs["web_location/%s" % dir] = subdir
+    if len(os.listdir(self.install_location())) > 0:
+      if len(os.listdir(self.install_location())) > self.nbr_of_nested_dirs():
+        dirs["install_location"] = self.install_location()
+    if len(dirs) == 0:
+      return  # all directories are empty
+    common.logit("""The following directories must be empty for the install to succeed: """)
+    for option in dirs.keys():
+      common.logit("""  %(option)s: %(dir)s""" % \
+                        { "option" : option, "dir" : dirs[option] })
+    common.ask_continue("... can we remove their contents")
+    for option in dirs.keys():
+      common.remove_dir_contents(dirs[option])
+    self.validate_needed_directories()
+
+  #-----------------------------
+  def nbr_of_nested_dirs(self):
+    # Determines if any of the directories are subdirectories of the install
+    # location.  We are trying to avoid deleting teh contents if we do not have to.
+    cnt = 0
+    for dir in  [self.logs_dir(),
+                 self.glidein.web_location() ]:
+      if dir.find(self.install_location()) == 0:
+        cnt = cnt + 1
+    return cnt
+
+    
   #-----------------------------
   def validate(self):
     if self.not_validated:
@@ -265,12 +306,9 @@ class VOFrontend(Condor):
     common.validate_gsi_for_proxy(self.x509_gsi_dn(),self.x509_proxy(),self.username())
     self.validate_glidein_proxies()
     self.validate_glexec_use()
-    self.glidein.validate_web_location()
     self.glidein.validate_software_requirements()
     if self.install_type() == "tarball":
-      self.validate_logs_dir()
-      self.glidein.validate_web_location()
-      ## common.validate_install_location(self.install_location())
+      self.validate_needed_directories()
     common.logit( "Verification complete\n")
 
   #-----------------------------
@@ -337,43 +375,37 @@ class VOFrontend(Condor):
     """
     if self.install_type() == "rpm":
       return # Not needed for RPM install
-    common.logit("\nChecking for co-located services")
+    services = ""
     # -- if not on same node, we don't have any co-located
-    if self.hostname() <> self.usercollector.hostname() and \
-       self.hostname() <> self.submit.hostname():
-      common.logit("... no services are co-located on this host")
+    if self.hostname()           == self.usercollector.hostname(): 
+      if  self.condor_location() == self.usercollector.condor_location():
+        self.daemon_list += " %s" % self.usercollector.daemon_list
+        self.colocated_services.append("usercollector")
+      else:
+        services += "User Collector "
+
+    if self.hostname()          == self.submit.hostname():
+      if self.condor_location() == self.submit.condor_location():
+        self.daemon_list += ", %s" % self.submit.daemon_list
+        self.colocated_services.append("submit")
+      else:
+        services += "Submit "
+
+    # -- determine services which are collocated ---
+    if len(self.colocated_services) == 0:
       self.client_only_install = True
-      return
-    common.logit("""
-The VOFrontend, Submit and/or the User Collector service are being installed on 
-the same host and can share the same Condor instance, as well as certificates 
-and VDT client instances.""")
-    #--- Condor ---
-    common.logit("...... VOFrontend Condor: %s" % self.condor_location())
-    common.logit(".......... Submit Condor: %s" % self.submit.condor_location())
-    common.logit("... UserCollector Condor: %s" % self.usercollector.condor_location())
-    if self.condor_location() == self.usercollector.condor_location():
-      self.colocated_services.append("usercollector")
-    else:
-      common.ask_continue("""
-The condor_location for UserCollector service is different. 
-Do you really want to keep them separate?  
-If not, stop and fix your ini file condor_location.
-Do you want to continue""")
+    if len(services) > 0:
+      common.ask_continue("""These services are on the same node yet have different condor_locations:
+  %s
+Do you really want to continue.""" % services)
+    if len(self.colocated_services) > 0:
+      common.ask_continue("""These services are on the same node and share condor_locations:
+  %(services)s
+You will need the options from that service included in the %(section)s
+of your ini file.
+Do you want to continue.""" % { "services" : self.colocated_services,
+                                "section"  : self.ini_section} )
 
-    if self.condor_location() == self.submit.condor_location():
-      self.colocated_services.append("submit")
-    else:
-      common.ask_continue("""
-The condor_location for Submit service is different. 
-Do you really want to keep them separate?  
-If not, stop and fix your ini file condor_location.
-Do you want to continue""")
-
-    if "usercollector" in self.colocated_services:
-      self.daemon_list += " %s" % self.usercollector.daemon_list
-    if "submit" in self.colocated_services:
-      self.daemon_list += ", %s" % self.submit.daemon_list
 
   #---------------------------------
   def validate_glidein_proxies(self):
@@ -431,12 +463,8 @@ option: %(option_dn)s
   #---------------------------------
   def validate_logs_dir(self):
     common.logit("... validating logs_dir: %s" % self.logs_dir())
-    common.make_directory(self.logs_dir(),self.username(),0755,empty_required=False)
+    common.make_directory(self.logs_dir(),self.username(),0755)
 
-  #---------------------------------
-  def create_logs_dir(self):
-    common.logit("... validating logs_dir: %s" % self.logs_dir())
-    common.make_directory(self.logs_dir(),self.username(),0755,empty_required=True)
   #---------------------------------
   def get_config_data(self):
     common.logit("\nCollecting  configuration file data. It will be question/answer time.")
@@ -499,7 +527,7 @@ The following DNs are in your grid_mapfile:"""
   def create_config(self,config_xml):
     common.logit("\nCreating configuration files")
     common.logit("   %s" % self.config_file())
-    common.make_directory(self.config_dir(),self.username(),0755,empty_required=False)
+    common.make_directory(self.config_dir(),self.username(),0755)
     common.write_file("w",0644,self.config_file(),config_xml,SILENT=True)
 
   #-----------------------
@@ -821,8 +849,18 @@ please verify and correct if needed.
 }
   #---------------------------
   def config_stage_data(self):
-    return """
-%(indent1)s<stage web_base_url="%(web_url)s/%(web_dir)s/stage" 
+    if self.install_type == "tarball":
+      return """
+%(indent1)s<stage web_base_url="%(web_url)s/%(web_dir)s/stage"
+%(indent1)s       base_dir="%(web_location)s/stage"/>""" % \
+{ "indent1"      : common.indent(1),
+  "web_url"      : self.glidein.web_url(),
+  "web_dir"      : os.path.basename(self.glidein.web_location()),
+  "web_location" : self.glidein.web_location(),
+}
+    else:  # rpm install
+      return """
+%(indent1)s<stage web_base_url="%(web_url)s/stage"
 %(indent1)s       base_dir="%(web_location)s/stage"/>""" % \
 { "indent1"      : common.indent(1),
   "web_url"      : self.glidein.web_url(),

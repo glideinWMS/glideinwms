@@ -263,6 +263,7 @@ class Condor(Configuration):
   def validate_condor_install(self):
     common.logit( "\nVerifying Condor options")
     common.validate_install_type(self.install_type())
+    self.__validate_tarball__(self.condor_tarball())
     common.validate_hostname(self.hostname())
     common.validate_user(self.username())
     common.validate_email(self.admin_email())
@@ -274,7 +275,14 @@ class Condor(Configuration):
     self.__validate_secondary_collectors__()
     self.__validate_schedds__()
     self.__validate_schedd_shared_port__()
+    self.__validate_needed_directories__()
     common.logit( "Verification complete\n")
+
+  #--------------------------------
+  def __validate_condor_location__(self):
+    common.logit("... validating condor_location: %s" % self.condor_location())
+    if self.install_type() == "tarball":
+      common.make_directory(self.condor_location(),self.username(),0755)
 
   #--------------------------------
   def validate_condor_installation(self):
@@ -341,7 +349,7 @@ Check the condor_location ini option for correctness.""" % version_script)
 You can only use the '--configure/--validate' options for this type.
 """)
     self.__validate_tarball__(self.condor_tarball())
-    common.validate_install_location(self.condor_location())
+    self.__validate_needed_directories__()
     common.logit("\nCondor installation starting\n")
     common.logit("... install location: %s" % (self.condor_location()))
     try:
@@ -398,6 +406,28 @@ You can only use the '--configure/--validate' options for this type.
            }
     common.run_script(cmd)
     common.logit("\nCondor installation complete")
+
+  #-----------------------------
+  def __validate_needed_directories__(self):
+    self.__validate_condor_location__()
+
+  #-----------------------------
+  def __verify_directories_empty__(self):
+    if self.install_type() == "rpm":
+      return  # For RPM install we don't want to clean anything
+    dirs = {}
+    if len(os.listdir(self.condor_location())) > 0:
+      dirs["condor_location"] = self.condor_location()
+    if len(dirs) == 0:
+      return  # all directories are empty
+    common.logit("""The following directories must be empty for the install to succeed: """)
+    for option in dirs.keys():
+      common.logit("""  %(option)s: %(dir)s""" % \
+                        { "option" : option, "dir" : dirs[option] })
+    common.ask_continue("... can we remove their contents")
+    for option in dirs.keys(): 
+      common.remove_dir_contents(dirs[option])
+    self.validate_needed_directories()
 
   #--------------------------------
   def __validate_schedds__(self):
@@ -514,7 +544,7 @@ You can only use the '--configure/--validate' options for this type.
     filename = self.condor_mapfile()
     common.logit("... creating Condor mapfile")
     common.logit("    %s" % filename)
-    common.make_directory(os.path.dirname(filename),pwd.getpwuid(os.getuid())[0],0755,empty_required=False)
+    common.make_directory(os.path.dirname(filename),pwd.getpwuid(os.getuid())[0],0755)
     mapfile_entries += """GSI (.*) anonymous
 FS (.*) \\1
 """ 
@@ -555,7 +585,7 @@ LOCAL_CONFIG_DIR  = %s
 
     common.logit("\nCreating GWMS condor_config files in:")
     common.logit("%s" % self.local_config_dir())
-    common.make_directory(self.local_config_dir(),self.username(),0755,empty_required=False)
+    common.make_directory(self.local_config_dir(),self.username(),0755)
     types =  self.condor_config_data.keys()
     types.sort()
     for type in types:

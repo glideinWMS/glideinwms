@@ -100,10 +100,9 @@ class Submit(Condor):
     if self.not_validated:
       self.get_frontend()
       self.get_usercollector() 
-      ##  self.validate_install_location()
+      self.determine_colocated_services()
       self.install_vdtclient()
       self.install_certificates() 
-      self.determine_colocated_services()
       self.validate_condor_install()
     self.not_validated = False
 
@@ -124,27 +123,32 @@ class Submit(Condor):
         this is the case.  We will skip the installation of Condor and just
         perform the configuration of the condor_config file.
     """
-    common.logit("\nChecking for co-located services")
+    if self.install_type() == "rpm":
+      return # Not needed for RPM install
+    services = ""
     # -- if not on same host, we don't have any co-located
-    if self.hostname() <> self.usercollector.hostname():
-      common.logit("... no services are co-located on this host")
-      return 
-    common.logit("""
-The Submit service and the User Collector service are being installed on the
-same host and can share the same Condor instance, as well as certificates and
-VDT client instances.""")
-    #--- Condor ---
-    common.logit(".......... Submit Condor: %s" % self.condor_location())
-    common.logit("... UserCollector Condor: %s" % self.usercollector.condor_location())
+    if self.hostname()           == self.usercollector.hostname():
+      if  self.condor_location() == self.usercollector.condor_location():
+        self.daemon_list += " %s" % self.usercollector.daemon_list
+        self.colocated_services.append("usercollector")
+      else:
+        services += "User Collector "
 
-    if self.condor_location() == self.usercollector.condor_location():
-      self.colocated_services.append("usercollector") 
-    else:
-      common.ask_continue("""
-The condor_location for UserCollector service is different. 
-Do you really want to keep them separate?  
-If not, stop and fix your ini file condor_location.
-Do you want to continue""")
+    # -- determine services which are collocated ---
+    if len(services) > 0:
+      common.ask_continue("""These services are on the same node yet have different condor_locations:
+  %s
+Do you really want to continue.""" % services)
+    if len(self.colocated_services) > 0:
+      common.ask_continue("""These services are on the same node and share condor_locations:
+  %(services)s
+You will need the options from that service included in the %(section)s
+of your ini file.
+Do you want to continue.""" % { "services" : self.colocated_services,
+                                "section"  : self.ini_section} )
+
+
+
 
   #--------------------------------
   def condor_mapfile_users(self):

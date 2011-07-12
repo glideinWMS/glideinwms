@@ -119,7 +119,6 @@ class UserCollector(Condor):
       self.get_submit() 
       self.get_frontend()
       self.verify_no_conflicts()
-      ##  self.validate_install_location()
       self.install_vdtclient()
       self.install_certificates()   
       self.validate_condor_install()
@@ -134,10 +133,6 @@ class UserCollector(Condor):
     self.__create_condor_config__()
     self.__create_initd_script__()
     common.logit("Configuration complete")
-
-  #-----------------------------
-  def validate_install_location(self):
-    common.validate_install_location(self.condor_location())
 
   #--------------------------------
   def condor_mapfile_users(self):
