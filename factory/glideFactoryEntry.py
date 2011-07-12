@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.37 2011/07/12 17:39:42 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.38 2011/07/12 21:02:02 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -846,8 +846,8 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                     logSupport.log.info("Unknown RemoveExcess '%s', assuming 'NO'" % remove_excess)
                 
                 # Should log here or in perform_work
-                glideFactoryLib.logWorkRequest(client_int_name, client_security_name, x509_proxy_security_class,
-                                                   idle_glideins, max_running, work[work_key], x509_proxy_frac)
+                glideFactoryLib.logWorkRequest(client_int_name, client_security_name, credential_security_class,
+                                                   idle_glideins, max_running, work[work_key])
     
                 all_security_names.add((client_security_name, credential_security_class))
                 entry_condorQ = glideFactoryLib.getQProxSecClass(condorQ, client_int_name, credential_security_class)
