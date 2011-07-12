@@ -82,9 +82,8 @@ def update_credential_file(username, client_id, proxy_data):
     """
     Updates the credential file.
     """
-    factoryConfig = glideFactoryLib.FactoryConfig()
 
-    proxy_dir = factoryConfig.get_client_proxies_dir(username)
+    proxy_dir = glideFactoryLib.factoryConfig.get_client_proxies_dir(username)
     fname_short = 'credential_%s' % glideFactoryLib.escapeParam(client_id)
     fname = os.path.join(proxy_dir, fname_short)
 
@@ -97,7 +96,7 @@ def update_credential_file(username, client_id, proxy_data):
                 update_credential_env.append('%s=%s' % (var, os.environ[var]))
 
         try:
-            condorPrivsep.execute(username, factoryConfig.submit_dir, os.path.join(factoryConfig.submit_dir, 'update_proxy.py'), ['update_proxy.py'], update_credential_env)
+            condorPrivsep.execute(username, glideFactoryLib.factoryConfig.submit_dir, os.path.join(glideFactoryLib.factoryConfig.submit_dir, 'update_proxy.py'), ['update_proxy.py'], update_credential_env)
         except condorPrivsep.ExeError, e:
             raise RuntimeError, "Failed to update credential %s in %s (user %s): %s" % (client_id, proxy_dir, username, e)
         except:
