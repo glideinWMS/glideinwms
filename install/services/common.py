@@ -41,27 +41,12 @@ def write_file(mode,perm,filename,data,SILENT=False):
   os.chmod(filename,perm) 
 
 #--------------------------
-def make_directory(dirname,owner,perm,empty_required=True):
-  ## logit("... checking directory: %s" % dirname)
+def make_directory(dirname,owner,perm):
   if os.path.isdir(dirname):
     if not_writeable(dirname):
       logerr("Directory (%s) exists but is not writable by user %s" % (dirname,owner))
-    if not empty_required:
-      return # we done.. does not have to be empty
-
-    if len(os.listdir(dirname)) == 0:
-      return  # we done.. its empty
-
-    if ask_yn( "... directory (%s) already exists and must be empty.\n... can the contents be removed (y/n>" % dirname) == "n":
-      logerr("Terminating at your request")
-    #if not_writeable(os.path.dirname(dirname)): #not removing in case correct
-    if not_writeable(dirname):
-      logerr("Cannot empty %s because of permissions/ownership of parent dir" % dirname)
-    remove_dir_contents(dirname)
     return  # we done.. all is ok
-
   #-- create it but check entire path ---
-  ## ask_continue("... directory does not exist. Is it OK to create it")
   logit("... creating directory: %s" % dirname)
   dirs = [dirname,]  # directories we need to create
   dir = dirname
@@ -74,7 +59,8 @@ def make_directory(dirname,owner,perm,empty_required=True):
   dirs.reverse()
   for dir in dirs:
     if not_writeable(parent_dir):
-      logerr("Cannot create %s because of permissions/ownership\n       of parent dir(%s)" % (dirname,parent_dir))
+      logerr("""Cannot create directory because of permissions/ownership of parent dir:
+  %(parent_dir)s""" % { "parent_dir" : parent_dir})
     try:
       os.makedirs(dir)
       os.chmod(dir,perm)
@@ -82,9 +68,8 @@ def make_directory(dirname,owner,perm,empty_required=True):
       gid = pwd.getpwnam(owner)[3]
       os.chown(dir,uid,gid)
     except:
-      logit("... trying to create directory: %s" % dirname)
-      logerr("Failed to create or set permissions/ownership(%s) on directory: %s" % (owner,dir))
-    logit( "... directory created: %s" % dir)
+      logerr("""Failed to create or set permissions/ownership(%(owner)s) on directory: 
+  %(dir)s""" % { "owner" : owner, "dir" :dir})
   return
   
 #--------------------------
@@ -92,7 +77,7 @@ def remove_dir_contents(dirname):
   err = os.system("rm -rf %s/*" % dirname)
   if err != 0:
     logerr("Problem deleting files in %s" % dirname)
-  logit("Files in %s  deleted\n" % dirname)
+  logit("Files in %s  deleted" % dirname)
   
 #--------------------------
 def not_writeable(dirname):
@@ -220,7 +205,7 @@ def validate_email(email):
 def validate_install_location(dir):
   logit("... validating install_location: %s" % dir)
   install_user = pwd.getpwuid(os.getuid())[0]
-  make_directory(dir,install_user,0755,empty_required=True)
+  make_directory(dir,install_user,0755)
 
 #--------------------------------
 def ask_yn(question):
@@ -443,14 +428,14 @@ if __name__ == '__main__':
     perm = 0755
     testdir = "/opt/testdir/testdir1/testdir2/testdir3"
     print "... %s" % testdir
-    make_directory(testdir,owner,perm,empty_required=True)
+    make_directory(testdir,owner,perm=True)
     if not os.path.isdir(testdir):
       print "FAILED"
     print "PASSED"
     os.rmdir(testdir)
 
     print "Testing make_backup"
-    make_directory(testdir,owner,perm,empty_required=True)
+    make_directory(testdir,owner,perm)
     filename = "%s/%s" % (testdir,__file__)
     shutil.copy(__file__,filename)
     make_backup(filename)

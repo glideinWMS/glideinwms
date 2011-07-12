@@ -28,7 +28,7 @@ function validate {
   fi
 
   CONFIG_VAL="condor_config_val -h $(hostname -s)"
-  OWNER=$($CONFIG_VAL -owner 2>/dev/null)
+  OWNER=$($CONFIG_VAL CONDOR_IDS 2>/dev/null)
   if [ ! -n "$OWNER" ]; then
     logerr "Error determining who should own the Condor-related directories.
 Either create a "condor" account, or set the CONDOR_IDS environment
@@ -49,20 +49,20 @@ function create_dirs {
   local name=$1
   local dir=$($CONFIG_VAL $name)
   logit "  $name: $dir "
-  if [ -d "$dir" ];then
+  if [  -d "$dir" ];then
     logit "  ... already exists"
-    return
+  else  
+    mkdir $dir;rtn=$?
+    if [ "$rtn" != "0" ];then
+      logerr "Permissions problem creating directory as owner: $OWNER"
+    fi 
+    logit "  ... created"
   fi
-  mkdir $dir;rtn=$?
-  if [ "$rtn" != "0" ];then
-    logerr "Permissions problem creating directory as owner: $OWNER"
-  fi 
   chown $OWNER $dir;rtn=$?
   if [ "$rtn" != "0" ];then
     logerr "Permissions problem changing ownership to owner: $OWNER"
   fi 
   chmod 755 $dir
-  logit "  ... created"
 }
 #-------------------------
 function validate_all {

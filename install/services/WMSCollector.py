@@ -134,7 +134,6 @@ class WMSCollector(Condor):
     self.get_frontend()
     self.get_privsep()
     self.verify_no_conflicts()
-    ##  self.validate_install_location()
     self.install_vdtclient()
     self.install_certificates()
     self.validate_condor_install()
@@ -150,10 +149,6 @@ class WMSCollector(Condor):
     if self.privsep <> None:
       self.privsep.update()
     common.logit("Configuration complete")
-
-  #-----------------------------
-  def validate_install_location(self):
-    common.validate_install_location(self.condor_location())
 
   #--------------------------------
   def condor_mapfile_users(self):
