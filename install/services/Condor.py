@@ -470,8 +470,6 @@ You can only use the '--configure/--validate' options for this type.
     if self.daemon_list.find("SCHEDD") < 0:
       common.logit("... no SCHEDD daemon")
       return # no schedd deamons
-    if self.ini_section != "Submit":
-      return # only submit service 
     if self.schedd_shared_port() == 0:
       common.logit("... validating schedd_shared_port: %s" % "not used")
       return
@@ -954,7 +952,7 @@ SHADOW.GLEXEC = /bin/false
 #--  Enable shared_port_daemon 
 SHADOW.USE_SHARED_PORT = True
 SCHEDD.USE_SHARED_PORT = True
-SCHEDD.SHARED_PORT_ARGS = -p %(port)s
+SHARED_PORT_ARGS = -p %(port)s
 DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT
 """ % { "port" : self.schedd_shared_port(), }
 
