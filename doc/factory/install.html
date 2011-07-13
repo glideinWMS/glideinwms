@@ -230,7 +230,7 @@ Install as: <b>root</b>(collector), <b>Factory user</b> (factory)
     </tr>
     <tr>
         <td>The <a target="_blank" href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD</a> package</td>
-        <td>v0.5 or later with flot (see <a href="#software_javascriptRRD">below</a>)</td>
+        <td>v0.6 or later with flot (see <a href="#software_javascriptRRD">below</a>)</td>
 
         <td class="checked"> X </td>
     </tr>
@@ -321,9 +321,9 @@ Install as: <b>root</b>(collector), <b>Factory user</b> (factory)
         <td>The Factory will always be installed as a non-prvileged user, whether or not privilege separation is being used.</td>
     </tr>
     <tr>
-        <td>One user per VO Fontent (See notes)</td>
+        <td>One user per Fontend (See notes)</td>
         <td>
-            If you are using privilege separation, you will need a user for each VO frontend that will be communicating with the Factory.  Otherwise,
+            If you are using privilege separation, you will need a user for each frontend that will be communicating with the Factory.  Otherwise,
             no new users need to be created for the frontends.
         </td>
     </tr>
@@ -452,14 +452,14 @@ Where will the web data be hosted?: [/var/www/html/glidefactory] /var/www/html/g
     List the usernames the factroy will use to separate frontends from one another.<br/>
     </i></td>
     <td>
-        The glideinWMS currently only supports the factory and the glideinWMS collector installed on the same machine.  You must specify the user for the factory here to be a valid caller uid.    You must specify each username needed for VO frontends to be a valid target uid.  This will also populate the /etc/condor/privsep_config file for Condor privilege separation with the following values:
+        The glideinWMS currently only supports the factory and the glideinWMS collector installed on the same machine.  You must specify the user for the factory here to be a valid caller uid.    You must specify each username needed for frontends to be a valid target uid.  This will also populate the /etc/condor/privsep_config file for Condor privilege separation with the following values:
     <ul>
     <li> valid-caller-uids and valid-caller-gids. These lists specify users and groups that will be allowed to request action from the PrivSep Kernel. The list typically will contain the UID and primary GID that the Condor daemons will run as.</li>
 
     <li>valid-target-uids and valid-target-gids. These lists specify the users and groups that Condor will be allowed to act on behalf of. The list will need to include IDs of all users and groups that Condor jobs may use on the given execute machine. </li>
     </ul>
-    Condor's <i>PrivSep kernel</i> prevents users than the above from calling or executing condor jobs, so the
-    factory and VO users need to be explicitly authorized.
+    Condor's <i>PrivSep kernel</i> prevents users than the above from calling or executing Condor jobs, so the
+    factory and frontend users need to be explicitly authorized.
     </td>
     </tr>
     <tr>
@@ -709,13 +709,6 @@ How many secondary schedds do you want?: [9] <b>9</b>
     </td>
     </tr>
     <tr>
-    <td>GSI Proxy</td>
-
-    <td><i>Do you want to use such a proxy?</i></td>
-    <td>The Glidein Factory can be configured to use a default GSI proxy for submission.
-        However, this operation mode is not recommended.
-    </td>
-    </tr>
     <tr>
     <td>Factory Locations</td>
     <td><i>Where will you host your config files?<br/>
@@ -857,7 +850,7 @@ How many secondary schedds do you want?: [9] <b>9</b>
     </table>
 
         the GSI security; you will need to provide the DN of the glidein factory (if different from the collector one) and the DN
-        of the VO frontend.
+        of the frontend.
     </p>
 
 <p>
@@ -890,11 +883,6 @@ Installing Glidein Factory
 
 Do you have already a javascriptRRD installation?: (y/n) <b>y</b>
 Where is javascriptRRD installed?: <b>/home/gfactory/javascriptrrd-0.5.0</b>
-The Glidein Factory can be configured to use a default GSI proxy for submission.
-
-However, this operation mode is not recommended.
-
-Do you want to use such a proxy?: (y/n) [n] <b>n</b>
 
 As you probably know, privilege separation
 is needed to securely support multiple frontends.
@@ -1207,7 +1195,7 @@ including a valid proxy, as the glidein needs it in order to work.</p>
             </blockquote>
             The condor_q commands query any jobs in the WMS pool (-global is needed to show grid jobs).
             The condor_status will show all daemons and jobs in the condor pool.  Eventually, the 
-            factory and VO frontend should show up in a listing like this:
+            factory and frontend should show up in a listing like this:
             <pre>
 MyType               TargetType           Name                          
 

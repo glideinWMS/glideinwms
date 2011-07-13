@@ -128,7 +128,7 @@ for a more detailed description.
     <a href="#attrs">&lt;/attrs&gt;</a><br/>
     <a href="#entry">&lt;entries&gt;</a><br/>
     <blockquote>
-        <a href="#entry">&lt;entry name="EXAMPLE_ENTRY" enabled="True" gatekeeper="gatewayname.fnal.gov/jobmanager-condor" gridtype="gt2" rsl="(queue=default)(jobtype=single)" schedd_name="wmscollector.fnal.gov" verbosity="std" work_dir="OSG"&gt;</a><br/>
+        <a href="#entry">&lt;entry name="EXAMPLE_ENTRY" enabled="True" auth_method="grid_proxy" trust_domain="OSG" gatekeeper="gatewayname.fnal.gov/jobmanager-condor" gridtype="gt2" rsl="(queue=default)(jobtype=single)" schedd_name="wmscollector.fnal.gov" verbosity="std" work_dir="OSG"&gt;</a><br/>
         <blockquote>
             <a href="#">&lt;config&gt;</a><br/>
             <blockquote>
@@ -515,6 +515,29 @@ override the global arguments if present.
         name=&quot;<I>entry name</I>&quot;&gt;
         </div>
     <b>Required</b> Specify an easy to remember name that will identify this entry for display purposes and for specifying using command line tools.
+    </li>
+    <LI>
+        <div class="xml">
+        &lt;glidein&gt;&lt;entries&gt;&lt;entry
+        name=&quot;<I>entry name</I>&quot; auth_method=&quot;<I>grid_proxy</I>&quot;&gt;
+        </div>
+    <b>Required</b> The authentication method this entry supports.  It is advertised to the Frontends to show which credentials are required for 
+    submission.  <br/>
+    If the authentication method is a credential pair (key_pair, cert_pair, username_password), then the VM id and type must be specified.<br/>
+    These can be additional entry values: &lt; entry vm_type="vmtype" or vm_id="vmid" &gt; <br/>
+    OR <br/>
+    added to the authentication method so the Frontend is required to pass them: &lt;entry auth_method="key_pair+vm_id+vm_type" &gt; <br/>
+    If the entry is for a TeraGrid site, it requires a project id from the Corral Frontend (not supported by VO Frontends).  The authentication 
+    method then must be &lt;entry auth_method="grid_proxy+project_id" &gt;
+    </li>
+    <LI>
+        <div class="xml">
+        &lt;glidein&gt;&lt;entries&gt;&lt;entry
+        name=&quot;<I>entry name</I>&quot; trust_domain=&quot;<I>OSG</I>&quot;&gt;
+        </div>
+    <b>Required</b> The trust domain for the entry.  This is not interpreted by the Factory code, only used to show what credentials are valid.  For example,
+    there may be two ec2-type entries for two different clouds with the authentication method of "key-pair".  This shows allows the Frontend to map a key pair
+    to a particular cloud.
     </li>
     <LI>
         <div class="xml">
