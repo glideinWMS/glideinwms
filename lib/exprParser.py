@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: exprParser.py,v 1.1 2011/07/12 12:04:31 sfiligoi Exp $
+#   $Id: exprParser.py,v 1.2 2011/07/13 14:16:55 burt Exp $
 #
 # Description: general purpose python expression parser and unparser
 #
@@ -20,7 +20,9 @@ from compiler.ast import Name,Const,Keyword,List,Tuple,And,Or,Not,UnaryAdd,Unary
 
 # convert an expression string into an ast object
 def parse(str):
+    # pylint: disable=E1103
     return compiler.pycodegen.Expression(str,'<string>')._get_tree().node
+    # pylint: enable=E1103
 
 # convert an ast object into a code object
 def compile(obj):
