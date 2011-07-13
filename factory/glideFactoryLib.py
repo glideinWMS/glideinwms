@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryLib.py,v 1.55.2.8.4.15 2011/07/12 22:16:24 tiradani Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.8.4.16 2011/07/13 20:47:25 tiradani Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -26,6 +26,7 @@ import condorMonitor
 import glideFactoryConfig
 import base64
 import string
+import timeConversion
 
 from tarSupport import GlideinTar
 
@@ -1172,7 +1173,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
         params_str = ""
         # if client_web has been provided, get the arguments and add them to the string
         if client_web != None:
-            params_str = "".join(client_web.get_glidein_args())
+            params_str = " ".join(client_web.get_glidein_args())
         # add all the params to the argument string
         for k in params.keys():
             params_str += " -param_%s %s" % (k, params[k])
@@ -1182,6 +1183,9 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
         exe_env.append('GLIDEIN_CLIENT=%s' % client_name)
         exe_env.append('GLIDEIN_SEC_CLASS=%s' % submit_credentials.security_class)
 
+        # Glidein username (for client logs)
+        exe_env.append('GLIDEIN_USER=%s' % submit_credentials.username)
+
         # Entry Params (job.descript)
         schedd = jobDescript.data["Schedd"]
         verbosity = jobDescript.data["Verbosity"]
@@ -1190,6 +1194,9 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
         exe_env.append('GLIDEIN_SCHEDD=%s' % schedd)
         exe_env.append('GLIDEIN_VERBOSITY=%s' % verbosity)
         exe_env.append('GLIDEIN_STARTUP_DIR=%s' % startup_dir)
+
+        submit_time = timeConversion.get_time_in_format(time_format="%Y%m%d")
+        exe_env.append('GLIDEIN_LOGNR=%s' % str(submit_time))
 
         # Main Params (glidein.descript
         glidein_name = glideinDescript.data["GlideinName"]
@@ -1260,7 +1267,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
             exe_env.append('USER_DATA=%s' % encoded_tarball)
     
         else:
-            exe_env.append("GLIDEIN_ARGUMENTS=%s" % glidein_arguments)
+            exe_env.append('GLIDEIN_ARGUMENTS="%s"' % glidein_arguments)
             # RSL is definitely not for cloud entries
             glidein_rsl = "none"
             if jobDescript.data.has_key('GlobusRSL'):
@@ -1269,7 +1276,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
                 if params.has_key('ProjectId') and 'TG_PROJECT_ID' in glidein_rsl:
                     glidein_rsl = glidein_rsl.replace('TG_PROJECT_ID', params['ProjectId'])
             if not (glidein_rsl == "none"):
-                exe_env.append('GLIDEIN_RSL=%s' % glidein_rsl)
+                exe_env.append('GLIDEIN_RSL="%s"' % glidein_rsl)
     
         return exe_env
     except Exception, e:
