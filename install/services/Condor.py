@@ -25,6 +25,8 @@ class Condor(Configuration):
     Configuration.__init__(self,inifile)
     self.validate_section(self.ini_section,self.ini_options)
 
+    self.use_gridmanager           = False
+    self.userjob_classads_required = False
     self.daemon_list = None
     self.schedd_name_suffix = "jobs"
    
@@ -147,6 +149,9 @@ class Condor(Configuration):
   #---------------------
   def initd_script(self):
     return  "%s/condor" % (self.condor_location())
+  #---------------------
+  def activate_userjob_classads(self):
+    self.userjob_classads_required = True
   #---------------------
   def privilege_separation(self):
     if self.has_option(self.ini_section,"privilege_separation"):
@@ -311,10 +316,7 @@ class Condor(Configuration):
     self.__condor_config_secondary_collector_data__()
     self.__condor_config_schedd_data__()
     self.__condor_config_secondary_schedd_data__()
-    if self.ini_section == "WMSCollector":
-      self.__condor_config_condor_g_data__()
-    if self.ini_section == "Submit":
-      self.__condor_config_userjob_default_attributes_data__()
+    self.__condor_config_userjob_default_attributes_data__()
 
   #-------------------------------
   def __check_condor_version__(self):
@@ -946,6 +948,14 @@ ENABLE_USERLOG_FSYNC = False
 SHADOW.GLEXEC_STARTER = True
 SHADOW.GLEXEC = /bin/false
 """
+    if self.use_gridmanager:
+      self.condor_config_data[type] +=  """
+#-- Condor-G tuning -----
+GRIDMANAGER_MAX_SUBMITTED_JOBS_PER_RESOURCE=5000
+GRIDMANAGER_MAX_PENDING_SUBMITS_PER_RESOURCE=5000
+GRIDMANAGER_MAX_PENDING_REQUESTS=500
+SCHEDD_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridmanagerLog.$(USERNAME)"
+"""
     
     if self.condor_version >= "7.5.3" and self.schedd_shared_port() > 0:
       self.condor_config_data[type] +=  """
@@ -977,35 +987,15 @@ SHADOW_WORKLIFE = 0
 RESERVED_SWAP = 0
 """
 
-  #-----------------------------
-  def __condor_config_userjob_default_attributes_data__(self):
-    if self.daemon_list.find("SCHEDD") < 0:
-      return  # no schedds
-    type = "02_gwms_schedds"
-    self.condor_config_data[type] +=  """ 
-#-- Default user job classad attributes --
-JOB_Site               = "$$(GLIDEIN_Site:Unknown)"
-JOB_GLIDEIN_Entry_Name = "$$(GLIDEIN_Entry_Name:Unknown)"
-JOB_GLIDEIN_Name       = "$$(GLIDEIN_Name:Unknown)"
-JOB_GLIDEIN_Factory    = "$$(GLIDEIN_Factory:Unknown)"
-JOB_GLIDEIN_Schedd     = "$$(GLIDEIN_Schedd:Unknown)"
-JOB_GLIDEIN_ClusterId  = "$$(GLIDEIN_ClusterId:Unknown)"
-JOB_GLIDEIN_ProcId     = "$$(GLIDEIN_ProcId:Unknown)"
-JOB_GLIDEIN_Site       = "$$(GLIDEIN_Site:Unknown)"
-
-SUBMIT_EXPRS = $(SUBMIT_EXPRS) JOB_Site JOB_GLIDEIN_Entry_Name JOB_GLIDEIN_Name JOB_GLIDEIN_Factory JOB_GLIDEIN_Schedd JOB_GLIDEIN_Schedd JOB_GLIDEIN_ClusterId JOB_GLIDEIN_ProcId JOB_GLIDEIN_Site
-"""
-
-
   #----------------------------------
   def __condor_config_secondary_schedd_data__(self):
+    type = "02_gwms_schedds"
     if self.daemon_list.find("SCHEDD") < 0:
       return  # no schedds
     common.logit("\nConfiguring secondary schedd support.")
     if self.number_of_schedds() == 1:
       common.logit("... no secondary schedds to configure")
       return
-    type = "02_gwms_schedds"
     dc_daemon_list = "DC_DAEMON_LIST = + "
     self.condor_config_data[type] +=  """
 #--- Secondary SCHEDDs ----"""
@@ -1023,8 +1013,8 @@ SUBMIT_EXPRS = $(SUBMIT_EXPRS) JOB_Site JOB_GLIDEIN_Entry_Name JOB_GLIDEIN_Name 
                     { "nbr"    : i  ,
                       "suffix" : self.schedd_name_suffix, }
       self.condor_config_data[type] +=  """
-%(upper_name)s                      = $(SCHEDD)
-%(upper_name)s_ARGS                 = -local-name %(lower_name)s
+%(upper_name)s       = $(SCHEDD)
+%(upper_name)s_ARGS  = -local-name %(lower_name)s
 SCHEDD.%(upper_name)s.SCHEDD_NAME   = %(name)s
 SCHEDD.%(upper_name)s.SCHEDD_LOG    = $(LOG)/SchedLog.$(SCHEDD.%(upper_name)s.SCHEDD_NAME)
 SCHEDD.%(upper_name)s.LOCAL_DIR     = %(schedd_dir)s/$(SCHEDD.%(upper_name)s.SCHEDD_NAME)
@@ -1033,12 +1023,20 @@ SCHEDD.%(upper_name)s.LOCK          = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/lock
 SCHEDD.%(upper_name)s.PROCD_ADDRESS = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/procd_pipe
 SCHEDD.%(upper_name)s.SPOOL         = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/spool
 SCHEDD.%(upper_name)s.SCHEDD_ADDRESS_FILE   = $(SCHEDD.%(upper_name)s.SPOOL)/.schedd_address
-SCHEDD.%(upper_name)s.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.%(upper_name)s.SPOOL)/.schedd_classad
-DAEMON_LIST = $(DAEMON_LIST), %(upper_name)s
-""" % { "name"       : name,
+SCHEDD.%(upper_name)s.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.%(upper_name)s.SPOOL)/.schedd_classad """ % \
+      { "name"       : name,
         "upper_name" : local_name.upper(),
         "lower_name" : local_name.lower(),
         "schedd_dir" : schedd_dir, }
+
+      if self.use_gridmanager:
+        self.condor_config_data[type] +=  """
+%(upper_name)s_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridManagerLog.$(SCHEDD.%(upper_name)s.SCHEDD_NAME).$(USERNAME)" """ % { "upper_name" : local_name.upper(),}
+
+      self.condor_config_data[type] +=  """
+DAEMON_LIST = $(DAEMON_LIST), %(upper_name)s
+""" % { "upper_name" : local_name.upper(),}
+
       dc_daemon_list += " %(upper_name)s" % { "upper_name" : local_name.upper()}
     #--- end of for loop --
     self.condor_config_data[type] +=  """
@@ -1059,6 +1057,26 @@ DAEMON_LIST = $(DAEMON_LIST), %(upper_name)s
     cmd += "%s/install/services/init_schedd.sh" % self.glideinwms_location()
     common.run_script(cmd)
     common.logit("")
+
+  #-----------------------------
+  def __condor_config_userjob_default_attributes_data__(self):
+    type = "02_gwms_schedds"
+    if self.daemon_list.find("SCHEDD") < 0:
+      return  # no schedds
+    if self.userjob_classads_required:
+      self.condor_config_data[type] +=  """ 
+#-- Default user job classad attributes --
+JOB_Site               = "$$(GLIDEIN_Site:Unknown)"
+JOB_GLIDEIN_Entry_Name = "$$(GLIDEIN_Entry_Name:Unknown)"
+JOB_GLIDEIN_Name       = "$$(GLIDEIN_Name:Unknown)"
+JOB_GLIDEIN_Factory    = "$$(GLIDEIN_Factory:Unknown)"
+JOB_GLIDEIN_Schedd     = "$$(GLIDEIN_Schedd:Unknown)"
+JOB_GLIDEIN_ClusterId  = "$$(GLIDEIN_ClusterId:Unknown)"
+JOB_GLIDEIN_ProcId     = "$$(GLIDEIN_ProcId:Unknown)"
+JOB_GLIDEIN_Site       = "$$(GLIDEIN_Site:Unknown)"
+
+SUBMIT_EXPRS = $(SUBMIT_EXPRS) JOB_Site JOB_GLIDEIN_Entry_Name JOB_GLIDEIN_Name JOB_GLIDEIN_Factory JOB_GLIDEIN_Schedd JOB_GLIDEIN_Schedd JOB_GLIDEIN_ClusterId JOB_GLIDEIN_ProcId JOB_GLIDEIN_Site
+"""
 
   #-----------------------------
   def __condor_config_negotiator_data__(self):
@@ -1154,19 +1172,6 @@ COLLECTOR%(nbr)i_ARGS = -f -p %(port)i
 DAEMON_LIST = $(DAEMON_LIST), COLLECTOR%(nbr)i
 """ % { "nbr" : nbr }
 
-
-  #-----------------------------
-  def __condor_config_condor_g_data__(self):
-    type = "00_gwms_general"
-    self.condor_config_data[type]  += """
-######################################################
-## Condor-G tuning
-######################################################
-GRIDMANAGER_LOG = /tmp/GridmanagerLog.$(SCHEDD_NAME).$(USERNAME)
-GRIDMANAGER_MAX_SUBMITTED_JOBS_PER_RESOURCE=5000
-GRIDMANAGER_MAX_PENDING_SUBMITS_PER_RESOURCE=5000
-GRIDMANAGER_MAX_PENDING_REQUESTS=500
-"""
 
 #--- end of Condor class ---------
 ####################################

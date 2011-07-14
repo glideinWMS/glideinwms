@@ -72,8 +72,7 @@ class WMSCollector(Condor):
     if optionsDict != None:
       valid_options = optionsDict
     Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
-    #self.certificates = self.option_value(self.ini_section,"certificates")
-    #self.certificates = None
+    self.use_gridmanager = True
     self.schedd_name_suffix = "glideins"
     self.daemon_list = "COLLECTOR, NEGOTIATOR, SCHEDD"
     self.colocated_services = []

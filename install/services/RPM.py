@@ -94,6 +94,8 @@ class RPM(VOFrontend):
 ##    #-- instances of other services ---
     self.condor        = None
     self.get_condor()
+    self.condor.set_daemon_list(self.daemon_list)
+    self.condor.activate_userjob_classads()
     self.colocated_services = []
 
   #-- get service instances --------
@@ -105,7 +107,6 @@ class RPM(VOFrontend):
     if self.condor == None:
       #self.condor = Condor.Condor(self.inifile,self.ini_section,valid_options["UserCollector"])
       self.condor = Condor.Condor(self.inifile,"UserCollector",valid_options["UserCollector"])
-      self.condor.set_daemon_list(self.daemon_list)
 
   #########################################################
   # NEW methods

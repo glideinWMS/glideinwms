@@ -63,6 +63,7 @@ class Submit(Condor):
     if optionsDict != None:
       valid_options = optionsDict
     Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
+    self.userjob_classads_required = True
     self.schedd_name_suffix = "jobs"
     self.daemon_list = "SCHEDD"
     self.frontend      = None     # VOFrontend object
