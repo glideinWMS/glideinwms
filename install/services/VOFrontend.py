@@ -231,7 +231,7 @@ class VOFrontend(Condor):
 #    if self.install_type() == "tarball":
 ##      if len(self.colocated_services) == 0 or \
 ##         self.condor_is_installed() is False:
-#      self.__install_condor__()
+    self.__install_condor__()
     if self.install_type() == "tarball":
       self.verify_directories_empty()
     self.configure()
