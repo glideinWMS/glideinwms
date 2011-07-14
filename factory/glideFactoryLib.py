@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryLib.py,v 1.55.2.8.4.16 2011/07/13 20:47:25 tiradani Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.8.4.17 2011/07/14 20:53:43 tiradani Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -1058,6 +1058,16 @@ def submitGlideins(entry_name, client_name, nr_glideins,
                             exe_env.append('%s=%s' % (var, os.environ[var]))
                 try:
                     args = ["condor_submit", "-name", schedd, "entry_%s/job.condor" % entry_name]
+
+                    msg = "About to submit using condorPrivsep::\n" \
+                          "   username: %s\n" \
+                          "   submit directory: %s\n" \
+                          "   command: condor_submit\n" \
+                          "   args: %s\n" \
+                          "   exe_env: %s\n" \
+                          "" % (username, factoryConfig.submit_dir, str(args), str(exe_env))
+                    logSupport.log.debug(msg)
+
                     submit_out = condorPrivsep.condor_execute(username, factoryConfig.submit_dir, "condor_submit", args, env=exe_env)
                 except condorPrivsep.ExeError, e:
                     submit_out = []
@@ -1267,6 +1277,10 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
             exe_env.append('USER_DATA=%s' % encoded_tarball)
     
         else:
+            # we add this here because the macros will be expanded when used in the gt2 submission
+            # we don't add the macros to the arguments for the EC2 submission since condor will never 
+            # see the macros
+            glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
             exe_env.append('GLIDEIN_ARGUMENTS="%s"' % glidein_arguments)
             # RSL is definitely not for cloud entries
             glidein_rsl = "none"
@@ -1275,8 +1289,9 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
                 # Replace placeholder for project id
                 if params.has_key('ProjectId') and 'TG_PROJECT_ID' in glidein_rsl:
                     glidein_rsl = glidein_rsl.replace('TG_PROJECT_ID', params['ProjectId'])
+
             if not (glidein_rsl == "none"):
-                exe_env.append('GLIDEIN_RSL="%s"' % glidein_rsl)
+                exe_env.append('GLIDEIN_RSL=%s' % glidein_rsl)
     
         return exe_env
     except Exception, e:
