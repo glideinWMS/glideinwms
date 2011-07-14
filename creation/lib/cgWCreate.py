@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: cgWCreate.py,v 1.49.2.7.2.3 2011/05/31 21:40:54 tiradani Exp $
+#   $Id: cgWCreate.py,v 1.49.2.7.2.4 2011/07/14 21:28:09 tiradani Exp $
 #
 # Description:
 #   Functions needed to create files used by the glidein entry points
@@ -104,13 +104,13 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
 
     def populate_standard_grid(self, rsl):
-        # the complete rsl line including the rsl attribute name will be in the RSL environment variable.
-        self.add("$ENV(GLIDEIN_RSL)", "##PRINT_KEY_ONLY##")
+        if rsl != None:
+            self.add("globus_rsl", "$ENV(GLIDEIN_RSL)")
 
         # Force the copy to spool to prevent caching at the CE side
         self.add("copy_to_spool", "True")
 
-        self.add("Arguments", "$ENV(GLIDEIN_ARGUMENTS) -cluster $(Cluster) -subcluster $(Process)")
+        self.add("Arguments", "$ENV(GLIDEIN_ARGUMENTS)")
 
         self.add("Transfer_Executable", "True")
         self.add("transfer_Input_files", "")
