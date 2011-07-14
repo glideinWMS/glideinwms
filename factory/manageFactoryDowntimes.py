@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: manageFactoryDowntimes.py,v 1.39.2.8 2011/01/20 22:15:48 dstrain Exp $
+#   $Id: manageFactoryDowntimes.py,v 1.39.2.9 2011/07/14 22:06:42 dstrain Exp $
 #
 # Description:
 #  This program allows to add announced downtimes
@@ -390,7 +390,7 @@ def get_args(argv):
         if (arg == "-end"):
             opt_dict["end"]=argv[index+1]
         if (arg == "-delay"):
-            opt_dict["end"]=argv[index+1]
+            opt_dict["delay"]=argv[index+1]
         if (arg == "-ISinfo"):
             opt_dict["ISinfo"]=argv[index+1]
         if (arg == "-security"):
