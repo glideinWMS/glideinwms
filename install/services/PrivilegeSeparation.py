@@ -175,8 +175,20 @@ those in your frontend_users attribute of the WMSCollector ini file:
     #-- create factory directories ---
     #-- factory dirs done in Factory install --
     # self.factory.create_factory_dirs(self.factory.username(),0755)
-    self.factory.create_factory_client_dirs('root',0755)
+    self.create_factory_client_dirs('root',0755)
     common.logit("--- End of updates for Privilege Separation.--- ")
+
+  #--------------------------------
+  def create_factory_client_dirs(self,owner,perm):
+    dirs = [self.factory.client_log_dir(),self.factory.client_proxy_dir(),]
+    for dir in dirs:
+      common.logit("... checking factory client directory: %s" % dir)
+      if len(os.listdir(dir)) > 0:
+        common.ask_continue("This directory must be empty.  Can we delete the contents")
+        common.remove_dir_contents(dir)
+      else:
+        common.make_directory(self.factory.client_log_dir(),owner,perm)
+
 
   #--------------------------------
   def remove(self):
