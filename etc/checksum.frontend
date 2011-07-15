@@ -94,4 +94,3 @@ fc85533988f4fa29238e832e2d8ce453  ./install/services/WMSCollector.py
 e4293e1155ce1c3f383569167df018ea  ./install/services/Condor.py
 01c7514b0f616b4c274914aa2c528c32  ./install/glideinWMS_install
 058473e6cfccb7eb94d947b50efb1e4d  ./install/glidecondor_addDN
-ccd7cdc104e135d0b49fe3bcf6be0cb1  ./etc/.checksum.frontend.swp
