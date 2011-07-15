@@ -28,8 +28,7 @@ class Certificates(VDT):
   def x509_cert_dir(self):
     """ Returns the full path the X509 certificates directory.  """
     cert_dir = self.option_value(self.ini_section,self.option)
-    if len(cert_dir) == 0:
-      common.logerr("""The %s option was empty and required.""" % self.option)  
+    common.check_for_value("x509_cert_dir",cert_dir)
     return cert_dir
 
     ## ---------------------------------------------------------------------
@@ -57,22 +56,37 @@ class Certificates(VDT):
         exist. 
     """
     common.logit("\nVerifying CA Certificates installation")
+    common.logit("... validating %(option)s: %(dir)s" % \
+                       { "option" : self.option,
+                         "dir"    : self.x509_cert_dir()})
     if self.certificates_exist():
-      common.logit("... CA Certificates (%(option)s) exist: %(dir)s" % \
-       { "option" : self.option,
-         "dir"    : self.x509_cert_dir()})
+      common.logit("... CA Certificates exist with *.0 and *.r0 files")
       return
-    common.ask_continue("""... CA Certificates (%(option)s) not found: 
-  %(dir)s
-This script is checking for the presence of CA (*.0) and CRL (*.r0) files.
-Is it OK to install it in this location""" % \
-       { "option" : self.option,
-         "dir"    : self.x509_cert_dir(),})
-    if common.not_writeable(os.path.dirname(self.x509_cert_dir())):
-      common.logerr("""You do not have permissions to write in the directory specified 
-by the %(option)s: %(dir)s""" % \
-       { "option" : self.option,
-         "dir"    : self.x509_cert_dir(),})
+    common.ask_continue("""There were no certificate (*.0) or CRL (*.r0) files found.
+These can be installed from the VDT using pacman.  
+If you want to do this, these options must be set:
+  vdt_location  pacman_url  pacman_location
+Additionally your %(option)s should specify this location: 
+   vdt_location/globus/TRUSTED_CA 
+Is it OK to proceed with the installation of certificates with these settings.
+If not, stop and correct the %(option)s""" % { "option"       : self.option, })
+
+    common.logit("... verifying vdt_location: %s" % self.vdt_location())
+    common.check_for_value("vdt_location",self.vdt_location())
+    common.logit("... verifying pacman_location: %s" % self.pacman_location())
+    common.check_for_value("pacman_location",self.pacman_location())
+    common.logit("... verifying pacman_url: %s" % self.pacman_url())
+    common.check_for_value("pacman_url",self.pacman_url())
+
+    expected_x509_cert_dir = "%s/globus/TRUSTED_CA" % self.vdt_location()
+    if self.x509_cert_dir() != expected_x509_cert_dir:
+      common.logerr("""Sorry but the %(option)s must be set to %(expected)s""" % \
+                       { "option"  : self.option,
+                         "expected" : expected_x509_cert_dir,} )
+
+    if common.not_writeable(os.path.dirname(self.vdt_location())):
+      common.logerr("""You do not have permissions to create the vdt_location 
+option specified: %(dir)s""" %  { "dir"    : self.vdt_location(),})
     common.logit(""" CA certificates install starting. The packages that will be installed are:
    %(package)s""" % { "package" : self.package,})
     self.install_vdt_package(self.package)

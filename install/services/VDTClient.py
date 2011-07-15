@@ -20,6 +20,8 @@ class VDTClient(VDT):
   #-------------------
   def install(self):
     common.logit("\nVerifying VDT client installation")
+    common.logit("... validating vdt_location: %s" % self.vdt_location())
+    common.check_for_value("vdt_location",self.vdt_location())
     if self.client_exists():
       common.logit("... installed in: %s" % self.vdt_location())
       return
