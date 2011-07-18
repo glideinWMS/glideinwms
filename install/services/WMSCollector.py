@@ -72,6 +72,7 @@ class WMSCollector(Condor):
     if optionsDict != None:
       valid_options = optionsDict
     Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
+    self.not_validated = True
     self.use_gridmanager = True
     self.schedd_name_suffix = "glideins"
     self.daemon_list = "COLLECTOR, NEGOTIATOR, SCHEDD"
@@ -129,13 +130,15 @@ class WMSCollector(Condor):
 
   #-----------------------------
   def validate(self):
-    self.get_factory()
-    self.get_frontend()
-    self.get_privsep()
-    self.verify_no_conflicts()
-    self.install_vdtclient()
-    self.install_certificates()
-    self.validate_condor_install()
+    if self.not_validated:
+      self.get_factory()
+      self.get_frontend()
+      self.get_privsep()
+      self.verify_no_conflicts()
+      self.install_vdtclient()
+      self.install_certificates()
+      self.validate_condor_install()
+    self.not_validated = False
     
   #-----------------------------
   def configure(self):
