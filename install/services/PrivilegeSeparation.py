@@ -183,11 +183,11 @@ those in your frontend_users attribute of the WMSCollector ini file:
     dirs = [self.factory.client_log_dir(),self.factory.client_proxy_dir(),]
     for dir in dirs:
       common.logit("... checking factory client directory: %s" % dir)
-      if len(os.listdir(dir)) > 0:
-        common.ask_continue("This directory must be empty.  Can we delete the contents")
-        common.remove_dir_contents(dir)
-      else:
-        common.make_directory(self.factory.client_log_dir(),owner,perm)
+      if os.path.isdir(dir):
+        if len(os.listdir(dir)) > 0:
+          common.ask_continue("This directory must be empty.  Can we delete the contents")
+          common.remove_dir_contents(dir)
+      common.make_directory(dir,owner,perm)
 
 
   #--------------------------------
