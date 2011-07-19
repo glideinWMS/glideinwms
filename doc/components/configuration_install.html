@@ -322,7 +322,13 @@ See below for the ini file attributes that installing/running WMS collector requ
         <td>condor_location</td>
         <td>/path/to/condor-location</td>
         <td>Directory in which the condor software will be installed. </td>
-        <td>.</td>
+        <td>
+           <b>IMPORTANT:</b> 
+              The WMS Collector and Factory are always installed on the same node.
+              The <b>condor_location</b> must not be a subdirectory of the Factory's 
+              <b>install_location</b>, <b>logs_dir</b> or <b>client_log(proxy)_dir</b>.  
+              They may share the same parent, however.
+        </td>
         </tr>
 
         <tr>
@@ -526,7 +532,9 @@ requires:<br/><br/>
             exist in this directory:<br/>
             * factory.sh - environment script<br/>
             * glidein_[instance_name].cfg - the factory configuration file<br/>
-            * glidein_[instance_name] - directory containing the factory files
+            * glidein_[instance_name] - directory containing the factory files<br/>
+             <br/>
+             The install script will create this directory if it does not exist. 
         </td>
         </tr>
 
@@ -537,6 +545,8 @@ requires:<br/><br/>
             <td>Beneath this location there will be multiple sets of logs:</br> 
                 * for the factory as a whole</li</br>
                 * for each entry point the factory utilizes</br>
+             <br/>
+             The install script will create this directory if it does not exist. 
             </td>
         </tr>
 
@@ -547,8 +557,19 @@ requires:<br/><br/>
                 /path/to/client/proxy_location</td>
             <td>User settable location for all client (VOFrontend) log and 
                 proxy files.</td>
-            <td><b><a href="#privilege_separation">If privilege separation is used</a>, then the entire path (inclusive of this directory) must be root-writable-only (0755 and owned by root).</br>
-                <a href="#privilege_separation">If privilege separation is not used</a>, then the directory will be created by the install script assuming the factory user has write permissions to the parent directory.
+    <td>
+         <b><a href="#privilege_separation">If privilege separation is used</a>,</b><br/>
+              * then the entire path (inclusive of this directory) must be 
+                 root-writable-only (0755 and owned by root).<br/>
+              * these directories cannot be sub-directories of the Factory's 
+                <b>install_location</b> or <b>logs_dir</b>.<br/>
+            <br/>
+        <b><a href="#privilege_separation">If privilege separation is not used</a>,</b><br/>
+              * then the directory can be independent, or nested as a subdirectory, of the Factory's
+                <b>install_location</b> or <b>logs_dir</b>.<br/>
+            <br/>
+              If the above requirements are satisfied, the install script will create
+              the necessary directories.  If not, a permissions error will likely result.
            </td>
         </tr>
 
@@ -703,25 +724,16 @@ be empty/blank.</br>
         <td>This software is used for both the installation and during the actual running of this glidein service.</td>
         </tr>
 
-        <tr>
-        <td>web_url     </td>
-        <td>http://%(hostname)s:port     </td>
-        <td>Identifies the url used by the glidein pilots to download
-            necessary software and to record monitoring data.
-        </td>
-        <td><b>Important:</b>
-            It may be a good idea to verify that the port specified is 
-            accessible from off-site as some sites restrict off-site access to
-            some ports.
-        </td>
-        </tr>
 
         <tr>
         <td>web_location    </td>
         <td>/var/www/html/factory</td>
         <td>
           Specifies the location for the monitoring and staging data that must
-          be accessible by web services.
+          be accessible by web services. The installer will create the 
+          following directories in this location:<br/>
+          1. <b>web_location/monitor</b><br/>
+          2. <b>web_location/stage</b><br/>
         </td>
         <td><b>Important:</b>
            This should be created before installing this service as the
@@ -732,11 +744,30 @@ be empty/blank.</br>
         </tr>
 
         <tr>
+        <td>web_url     </td>
+        <td>http://%(hostname)s:port     </td>
+        <td>Identifies the url used by the glidein pilots to download
+            necessary software and to record monitoring data.<br/>
+            In order to insure consistency, the installer will take the 
+            unix basename of the <b>web_location</b> and append it to the 
+            <b>web_url</b> value.
+            So, for the value shown below in the <b>web_location</b>, the actual value
+            used by the glidein pilots, will be <b>web_url/factory/stage(monitor)</b>.
+          
+        </td>
+        <td><b>Important:</b>
+            It may be a good idea to verify that the port specified is 
+            accessible from off-site as some sites restrict off-site access to
+            some ports.
+        </td>
+        </tr>
+
+        <tr>
             <td>javascriptrrd_location</td>
-            <td>/path/to/javascriptrrd-0.5.0</td>
+            <td>/path/to/javascriptrrd</td>
             <td>Identifies the location of the javascript rrd software. </td>
             <td>This installation must include the <i>flot</i> processes in the
-                parent directory.
+                parent directory.<br/>
             </td>
         </tr>
 
@@ -796,14 +827,20 @@ ires:<br/><br/>
             <td>service_name</td>
             <td>    userpool    </td>
             <td>Used as the 'nickname' for the GSI DN in the condor_mapfile of other services.  </td>
-            <td></td>
+            <td>.</td>
             </tr>
 
         <tr>
             <td>condor_location     </td>
             <td>/path/to/condor-userpool   </td>
             <td>Directory in which the condor software will be installed.    </td>
-            <td>.</td>
+        <td>
+           <b>IMPORTANT:</b> 
+              The User Collector can share the same instance of Condor as the Frontend.
+              The <b>condor_location</b> must not be a subdirectory of the Frontend's
+              <b>install_location</b> or <b>logs_dir</b>.  
+              They may share the same parent, however.
+        </td>
             </tr>
 
         <tr>
@@ -985,7 +1022,13 @@ requires:
         <td>condor_location     </td>
         <td>/path/to/condor-submit     </td>
         <td>Directory in which the condor software will be installed.    </td>
-        <td>.</td>
+        <td>
+           <b>IMPORTANT:</b> 
+              The Submit can share the same instance of Condor as the Frontend.
+              The <b>condor_location</b> must not be a subdirectory of the Frontend's
+              <b>install_location</b> or <b>logs_dir</b>.  
+              They may share the same parent, however.
+        </td>
         </tr>
 
         <tr>
@@ -1174,7 +1217,7 @@ glideinWMS frontend requires:<br/><br/>
         <td>hostname     </td>
         <td>vofrontend.domain.name      </td>
         <td>hostname for VOFrontend.    </td>
-        <td>   </td>
+        <td>.  </td>
         </tr>
 
         <tr>
@@ -1199,20 +1242,27 @@ glideinWMS frontend requires:<br/><br/>
         <td>install_location    </td>
         <td>/path/to/vofrontend   </td>
         <td>HOME directory for the frontend software.   </td>
-        <td>When the frontend is created the following files/directories will 
+        <td>
+            When the frontend is created the following files/directories will 
             exist in this directory:<br/>
             * frontend.sh - environment script<br/>
             * frontend_[instance_name].cfg - directory containing the frontend configuration file<br/>
-            * frontend_[instance_name] - directory containing the frontend files</td>
+            * frontend_[instance_name] - directory containing the frontend files</br>
+           <br/>
+           The install script will create this directory if it does exist.
+          </td>
         </tr>
 
         <tr>
         <td>logs_dir   </td>
         <td>/path/to/vofrontend/logs  </td>
         <td>User settable location for all Frontend log files.</td>
-        <td>Beneath this location there will be multiple sets of logs:</br>
+        <td>
+            Beneath this location there will be multiple sets of logs:</br>
             * for the frontend as a whole</br>
             * for each group the frontend utilizes</br>
+           <br/>
+           The install script will create this directory if it does exist.
         </td>
         </tr>
 
@@ -1227,7 +1277,16 @@ glideinWMS frontend requires:<br/><br/>
         <td>condor_location     </td>
         <td>/path/to/condor-submit     </td>
         <td>Directory in which the condor software will be installed.   </td>
-        <td>Note: The Frontend never runs any Condor daemons. It only uses the Condor client tools.</td>
+        <td>
+           Note: The Frontend never runs any Condor daemons. 
+           It only uses the Condor client tools.<br/><br/>
+           <b>IMPORTANT:</b> 
+              The Frontend can share the same instance of Condor as the User Collector
+              and /or Submit.
+              The <b>condor_location</b> must not be a subdirectory of the Frontend's
+              <b>install_location</b> or <b>logs_dir</b>.  
+              They may share the same parent, however.
+        </td>
         </tr>
 
         <tr>
@@ -1442,36 +1501,45 @@ be empty/blank.</br>
         </tr>
 
         <tr>
+        <td>web_location    </td>
+        <td>/var/www/html/factory</td>
+        <td>
+          Specifies the location for the monitoring and staging data that must
+          be accessible by web services. The installer will create the 
+          following directories in this location:<br/>
+          1. <b>web_location/monitor</b><br/>
+          2. <b>web_location/stage</b><br/>
+        </td>
+        <td><b>Important:</b>
+           This should be created before installing this service as the
+           service's <b>username</b> and the web server user are generally
+           different.  This script will not be able to create this directory
+           with proper ownership.
+        </td>
+        </tr>
+
+        <tr>
         <td>web_url     </td>
         <td>http://%(hostname)s:port     </td>
-        <td>Identifies the url used by the glidein pilots to download 
-            necessary software and to record monitoring data.      
+        <td>Identifies the url used by the glidein pilots to download
+            necessary software and to record monitoring data.<br/>
+            In order to insure consistency, the installer will take the 
+            unix basename of the <b>web_location</b> and append it to the 
+            <b>web_url</b> value.
+            So, for the value shown below in the <b>web_location</b>, the actual value
+            used by the glidein pilots, will be <b>web_url/factory/stage(monitor)</b>.
+          
         </td>
-        <td><b>Important:</b> 
-            It may be a good idea to verify that the port specified is
+        <td><b>Important:</b>
+            It may be a good idea to verify that the port specified is 
             accessible from off-site as some sites restrict off-site access to
             some ports.
         </td>
         </tr>
 
         <tr>
-        <td>web_location    </td>
-        <td>/var/www/html/cms_frontend  </td>
-        <td>
-          Specifies the location for the monitoring and staging data that must
-          be accessible by web services.   
-        </td>
-        <td><b>Important:</b> 
-           This should be created before installing this service as the 
-           service's <b>username</b> and the web server user are generally 
-           different.  This script will not be able to create this directory 
-           with proper ownership.
-        </td>
-        </tr>
-
-        <tr>
             <td>javascriptrrd_location</td>
-            <td>/path/to/javascriptrrd-0.5.0</td>
+            <td>/path/to/javascriptrrd</td>
             <td>Identifies the location of the javascript rrd software. </td>
             <td>This installation must include the <i>flot</i> processes in the
                 parent directory.
@@ -1510,7 +1578,7 @@ version = v2_5_1
 instance_name = all_four_node
 install_dir = /opt/no-vdt-glideinWMS
 glideinwms_location = %(install_dir)s/glideinWMS
-javascriptrrd_location = %(install_dir)s/javascriptrrd-0.5.0
+javascriptrrd_location = %(install_dir)s/javascriptrrd
 
 tarballs = /opt/install_packages
 condor_tarball = %(tarballs)s/condor-7.5.5-x86_rhap_5-stripped.tar.gz
@@ -1624,7 +1692,7 @@ version = v2.5.1
 instance_name = v2.5.1-cream-cloud
 install_dir = /opt/glideinWMS-v2plus
 glideinwms_location = %(install_dir)s/glideinWMS
-javascriptrrd_location = %(install_dir)s/javascriptrrd-0.5.0
+javascriptrrd_location = %(install_dir)s/javascriptrrd
 
 tarballs = /opt/install_packages
 condor_tarball = %(tarballs)s/condor-7.5.5-x86_rhap_5-stripped.tar.gz
@@ -1802,7 +1870,7 @@ entry_vos = dzero
 entry_filters = (int(GlueCEPolicyMaxCPUTime)<(25*60))
 web_location = /var/www/html/glidefactory-v2.5.1
 web_url = http://%(hostname)s:8000
-javascriptrrd_location = /home/gfactoryuser/javascriptrrd-0.5.0
+javascriptrrd_location = /home/gfactoryuser/javascriptrrd
 x509_proxy =
 x509_gsi_dn =
 
@@ -2013,7 +2081,7 @@ userjob_constraints = (JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_M
 match_string = glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")
 web_url = http://cmssrv99.fnal.gov:8000
 web_location = /var/www/html/vofrontend-v2.5.1
-javascriptrrd_location = /home/frontenduser/javascriptrrd-0.5.0
+javascriptrrd_location = /home/frontenduser/javascriptrrd
 
 ;--------------------------------------------------
 [UserCollector]
