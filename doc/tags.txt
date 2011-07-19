@@ -1,23 +1,35 @@
-vNext	Frontend published glideresource classad to the pool collector. This
+v2_5_2	Frontend publishes glideresource classad to the pool collector. This
 	  is useful for the users to do match making for their jobs.
+	Useful job info like JOB_Site, JOB_GLIDEIN_Entry_Name, JOB_GLIDEIN_Name
+	  JOB_GLIDEIN_Factory, JOB_GLIDEIN_Schedd, JOB_GLIDEIN_ClusterId,
+	  JOB_GLIDEIN_ProcId, JOB_GLIDEIN_Site is now added to SUBMIT_EXPRS
 	Default GLEXEC_JOB = True when GLEXEC_BIN is set to use glexec
 	Factory can now resue old public key after startup to decrypt
 	  frontend requests. Grace time for old public key is configurable.
 	The frontend now can set global limits on number of glideins.
 	The frontend now can use more than a single CPU.
 	glexec now tested during initial validation.
-	Bug fix frontend: Do not double count glideins when using multiple groups.
+	Bug fix frontend: Do not double count glideins when using multiple
+	  groups.
 	Bug fix frontend: Respect per-entry running limits.
-	Bug fix factory: The factory was not properly checking the security classes and setting downtimes.
+	Bug fix factory: The factory was not properly checking the security
+	  classes and setting downtimes.
+	Bug fix factory: Improper termination of glideins because of
+	  SIGHUP is handled correctly
+	Bug fix factory: Daylight savings is now correctly accounted for.
+	Bug fix factory: GLIDEIN_Max_Walltime is now used correctly.
 	Major improvements in the factory and frontend monitoring.
 	  Now requires javascriptRRD 0.6.0+.
-	Added tools for comparing the Factory configuration file with what is published in information systems.
+	Added tools for comparing the Factory configuration file with what
+	  is published in information systems.
 	Limit the max number of glideins per frontend
 	Use DAEMON_SHUTDOWN to shutdown glidein daemons
 	Allow factory to specify if an entry point (CE) requires voms proxies 
 	  only for pilot and user jobs
         Documentation added:
-          - Secondary WMS/User Collector documentation added to Advanced Condor Configuration
+          - Secondary WMS/User Collector documentation added to Advanced
+	  Condor Configuration
+	  - Documented the internal communication protocol through classads
 
 v2_5_1	Factory now can remove excessive glideins
 	  New ClassAd attribute - RemoveExcess

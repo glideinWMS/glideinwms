@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v2_5_2_rc4
+# GLIDEINWMS_VERSION v2_5_2
 ###################################################################
 537eeb6e2176abae742fb71a47be9e0c  ./creation/create_frontend
 792ce8799cdb6923e6e3b8c9bb3019b3  ./creation/web_base/frontendGroupGraphStatusNow.html

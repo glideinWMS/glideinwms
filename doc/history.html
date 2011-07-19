@@ -84,6 +84,32 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
+        <b>v2_5_2</b> released on July 20, 2011 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_2/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_2/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_2.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Frontend publishes glideresource classad to the pool collector. This is useful for the users to do match making for their jobs.
+          <li>Useful job info like JOB_Site, JOB_GLIDEIN_Entry_Name, JOB_GLIDEIN_Name JOB_GLIDEIN_Factory, JOB_GLIDEIN_Schedd, JOB_GLIDEIN_ClusterId, JOB_GLIDEIN_ProcId, JOB_GLIDEIN_Site is now added to SUBMIT_EXPRS
+          <li>Default GLEXEC_JOB = True when GLEXEC_BIN is set to use glexec
+          <li>Factory can now resue old public key after startup to decrypt frontend requests. Grace time for old public key is configurable.
+          <li>The frontend now can set global limits on number of glideins.
+          <li>The frontend now can use more than a single CPU.
+          <li>glexec now tested during initial validation.
+          <li>Bug fix frontend: Do not double count glideins when using multiple groups.
+          <li>Bug fix frontend: Respect per-entry running limits.
+          <li>Bug fix factory: The factory was not properly checking the security classes and setting downtimes.
+          <li>Bug fix factory: Improper termination of glideins because of SIGHUP is handled correctly
+          <li>Bug fix factory: Daylight savings is now correctly accounted for.
+          <li>Bug fix factory: GLIDEIN_Max_Walltime is now used correctly.
+          <li>Major improvements in the factory and frontend monitoring.  Now requires javascriptRRD 0.6.0+.
+          <li>Added tools for comparing the Factory configuration file with what is published in information systems.
+          <li>Limit the max number of glideins per frontend
+          <li>Use DAEMON_SHUTDOWN to shutdown glidein daemons
+          <li>Allow factory to specify if an entry point (CE) requires voms proxies only for pilot and user jobs
+          <li>Documentation Improvements:<br>
+          - Secondary WMS/User Collector documentation added to Advanced Condor Configuration<br>
+          - Documented the internal communication protocol through classads
+        </ul>
+      </li>
+      <li>
         <b>v2_5_1</b> released on March 02, 2011 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_1.tgz">Tarball</a>)<br>
         <ul>
           <li>Factory now can remove excessive glideins. New ClassAd attribute - RemoveExcess
