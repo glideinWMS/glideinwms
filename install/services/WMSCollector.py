@@ -145,6 +145,7 @@ class WMSCollector(Condor):
     self.validate()
     common.logit("Configuring Condor")
     self.get_condor_config_data()
+    self.condor_config_privsep_data()
     self.__create_condor_mapfile__(self.condor_mapfile_users())
     self.__create_condor_config__()
     self.__create_initd_script__()
@@ -173,9 +174,8 @@ class WMSCollector(Condor):
     if self.privsep == None:
       common.logerr("""System error: privilege separation is in effect but there
 the PrivilegeSeparation class has not been instantiated""")
-    type = "03_gwms_privsep"
-    self.condor_config_data[type] = self.privsep.condor_config_data()
-
+    type = "00_gwms_general"
+    self.condor_config_data[type] += self.privsep.condor_config_data()
 
 
   #--------------------------------
