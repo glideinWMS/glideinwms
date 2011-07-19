@@ -7,6 +7,9 @@ from Condor        import Condor
 from Glidein       import Glidein
 from Configuration import Configuration
 from Configuration import ConfigurationError
+import condorPrivsep
+import condorMonitor
+import condorExe
 
 import traceback
 import sys,os,pwd,string,time
@@ -186,6 +189,16 @@ files and directories can be created correctly""" % self.username())
 
   #-----------------------------
   def verify_directories_empty(self):
+    """ This method attempts to clean up all directories so a fresh install
+        can be accomplished successfully.  
+        It is consoldiated in a single check so as to only ask once and
+        not for each directory.
+        It also (attempts) to insure that if directories are nested, it 
+        does not create a problem.  Not an easy task.
+        When privilege separation is in effect, the condor_root_switchboard
+        must be used to clean out the client log and proxy files 
+        as the owners are different and permissions problems will occur.
+    """
     dirs = {}
     if len(os.listdir(self.client_log_dir())) > 0:
       dirs["client_log_dir"] = self.client_log_dir()
@@ -208,7 +221,22 @@ files and directories can be created correctly""" % self.username())
                         { "option" : option, "dir" : dirs[option] })
     common.ask_continue("... can we remove their contents")
     for option in dirs.keys():
-      common.remove_dir_contents(dirs[option])
+      if self.wms.privilege_separation() == "y":
+        if option in ["client_log_dir","client_proxy_dir",]:
+          #-- Factory create requires these directories be empty
+          #-- when privspep is in effect
+          condor_sbin = "%s/sbin" % self.wms.condor_location()
+          condor_bin  = "%s/bin" % self.wms.condor_location()
+          condorExe.set_path(condor_bin,condor_sbin)
+          parent_dir = dirs[option]
+          subdirs = os.listdir(parent_dir)
+          for base_dir in subdirs:
+            if os.path.isdir("%s/%s" % (parent_dir,base_dir)): 
+              condorPrivsep.rmtree(parent_dir,base_dir)
+        else: 
+          common.remove_dir_contents(dirs[option])
+      else: 
+        common.remove_dir_contents(dirs[option])
     # this re-validation is performed to resolve problem of nesting some dirs
     self.validate_needed_directories()
 
@@ -900,12 +928,14 @@ source %(condor_location)s/condor.sh
 
   #----------------------------
   def get_ress_data(self):
-    import condorMonitor
     common.logit("ReSS host: %s" % self.glidein.ress_host())
     #-- validate host ---
     if not common.url_is_valid(self.glidein.ress_host()):
       common.logerr("ReSS server (%s) in ress_host option is not valid or inaccssible." % self.glidein.ress_host())
 
+    condor_sbin = "%s/sbin" % self.wms.condor_location()
+    condor_bin  = "%s/bin" % self.wms.condor_location()
+    condorExe.set_path(condor_bin,condor_sbin)
     #-- get gatekeeper data from ReSS --
     common.logit("Supported VOs: %s" % self.glidein.entry_vos())
     constraint = self.glidein.ress_vo_constraint()
