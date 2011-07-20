@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: cgWCreate.py,v 1.49.2.7.2.4 2011/07/14 21:28:09 tiradani Exp $
+#   $Id: cgWCreate.py,v 1.49.2.7.2.5 2011/07/20 15:04:41 klarson1 Exp $
 #
 # Description:
 #   Functions needed to create files used by the glidein entry points
@@ -182,9 +182,15 @@ def copy_file(infile,outfile):
 
 #####################################
 # Copy an executable between two dirs
-def copy_exe(filename,work_dir,org_dir):
-    copy_file(os.path.join(org_dir,filename),work_dir)
-    os.chmod(os.path.join(work_dir,filename),0555)
+def copy_exe(filename, work_dir, org_dir, overwrite=False):
+    """
+    Copies a file from one dir to another and changes the permissions to 0555.  Can overwrite an existing file.
+    """
+    if overwrite and os.path.exists(os.path.join(work_dir, filename)):
+        # Remove file if already exists
+        os.remove(os.path.join(work_dir, filename))
+    copy_file(os.path.join(org_dir, filename), work_dir)
+    os.chmod(os.path.join(org_dir, filename), 0555)
 
 def get_template(template_name, glideinWMS_dir):
     template_fd = open("%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r")
