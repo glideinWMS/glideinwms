@@ -92,9 +92,41 @@ Related Links:
     Unless explicity mentioned, all operations are to be done by the user that 
     you installed Condor as.
     </p>
-    <h3>Using the condor_shared_port feature</h3>
+
+<h3>Increase the number of available file descriptors</h3>
+   <p>
+  When using multiple schedds, you may want to consider increasing the available
+  file descriptors. 
+  This can be done by issuing a "ulimit -n" command as well as changing the 
+  values in the /etc/security/limits.conf file</p>
+   </p>
+
+<h3>Using the condor_shared_port feature</h3>
     <p>
     The Condor shared_port_daemon is available in Condor 7.5.3+.
+    
+    <!-- Shared port V2.5.2+ ----- -->
+    <h4>glideinWMS V2.5.2+ </h4>
+    Additional information on this daemon can be found here:<ul>
+    <a href="http://www.cs.wisc.edu/condor/manual/v7.5/3_1Introduction.html#8153">Condor manual 3.1.2 The Condor Daemons</a></br>
+    <a href="http://www.cs.wisc.edu/condor/manual/v7.5/3_7Networking_includes.html#31365">Condor manuel 3.7.2 Reducing Port Usage with the condor_shared_port Daemon</a><br></ul> 
+    </p>
+    <p>
+    Your <b>/opt/glidecondor/condor_config.d/02_gwms_schedds.config</b> 
+    will need to contain the following attributes. Port 9615 is the default port
+    for the schedds.
+    <blockquote>
+         #--  Enable shared_port_daemon<br>
+         SHADOW.USE_SHARED_PORT = True<br>
+         SCHEDD.USE_SHARED_PORT = True<br>
+         SCHEDD.SHARED_PORT_ARGS = -p 9615<br>
+         DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT<br>
+    </blockquote>
+    Note: Both the SCHEDD and SHADOW processes need to specify the shared port option is in effect.
+    </p>
+
+    <!-- Shared port V2.5.1 ----- -->
+    <h4>glideinWMS V2.5.1 and earlier</h4>
     Additional information on this daemon can be found here:<ul>
     <a href="http://www.cs.wisc.edu/condor/manual/v7.5/3_1Introduction.html#8153">Condor manual 3.1.2 The Condor Daemons</a></br>
     <a href="http://www.cs.wisc.edu/condor/manual/v7.5/3_7Networking_includes.html#31365">Condor manuel 3.7.2 Reducing Port Usage with the condor_shared_port Daemon</a><br></ul> 
@@ -120,8 +152,95 @@ Related Links:
     </blockquote>
     Note: Both the SCHEDD and SHADOW processes need to specify the shared port option is in effect.
     </p>
-    <a name="new_schedd_setup"/>
-    <h3>Create setup files</h3>
+
+
+<!-- Multiple Schedds ---- -->
+<a name="new_schedd_setup"/>
+<h3>Multiple Schedds in glideinWMS V2.5.2+</h3>
+The following needs to be added to your Condor config file for each additional 
+schedd desired.  
+Note the <b><font color="red">numeric</font></b> suffix used to distinguish each schedd.
+<br/> <br/>
+If the multiple schedds are being used on your WMS Collector, Condor-G is used
+to submit the glidein pilot jobs and the 
+<font color="green"><b>SCHEDD(GLIDEINS/JOBS)2_ENVIRONMENT attribute</font></b> shown
+below is required.  If not, then it shuold be omitted.
+<br/> <br/>
+<blockquote>
+<p>
+<b><u>For the WMS Collector:</u></b><br/>
+SCHEDDGLIDEINS<b><font color="red">2</font></b> = $(SCHEDD)<br/>
+SCHEDDGLIDEINS<b><font color="red">2</font></b>_ARGS  = -local-name scheddglideins<b><font color="red">2</font></b><br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_NAME   = schedd_glideins<b><font color="red">2</font></b><br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_LOG    = $(LOG)/SchedLog.$(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_NAME)<br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR     = $(LOCAL_DIR)/$(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_NAME)<br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.EXECUTE       = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR)/execute<br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCK          = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR)/lock<br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.PROCD_ADDRESS = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR)/procd_pipe<br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL         = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR)/spool<br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_ADDRESS_FILE   = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/.schedd_address<br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/.schedd_classad<br/>
+<font color="green"><b>SCHEDDGLIDEINS<b><font color="red">2</font></b>_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridManagerLog.$(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_NAME).$(USERNAME)"</font></b><br/>
+DAEMON_LIST = $(DAEMON_LIST), SCHEDDGLIDEINS<b><font color="red">2</font></b><br/>
+</p>
+<p>
+<b><u>For the Submit:</u></b><br/>
+SCHEDDJOBS<b><font color="red">2</font></b> = $(SCHEDD)<br/>
+SCHEDDJOBS<b><font color="red">2</font></b>_ARGS  = -local-name scheddglideins<b><font color="red">2</font></b><br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_NAME   = schedd_glideins<b><font color="red">2</font></b><br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_LOG    = $(LOG)/SchedLog.$(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_NAME)<br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR     = $(LOCAL_DIR)/$(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_NAME)<br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.EXECUTE       = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR)/execute<br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCK          = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR)/lock<br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.PROCD_ADDRESS = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR)/procd_pipe<br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL         = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR)/spool<br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_ADDRESS_FILE   = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/.schedd_address<br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/.schedd_classad<br/>
+<font color="green"><b>SCHEDDJOBS<b><font color="red">2</font></b>_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridManagerLog.$(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_NAME).$(USERNAME)"</font></b><br/>
+DAEMON_LIST = $(DAEMON_LIST), SCHEDDJOBS<b><font color="red">2</font></b><br/>
+</p>
+</blockquote>
+<p>
+The directories files will need to be created for the attributes by these attribtues defined above:<br/>
+<blockquote>
+  LOCAL_DIR<br/>
+  EXECUTE<br/>
+  SPOOL<br/>
+  LOCK<br/>
+</blockquote>
+</p>
+<p>
+A script is available to do this for you given the attributes are defined 
+with the naming convention shown.  If they already exist it will verify their 
+existance and ownership.  If they do not exist, they will be created.
+<blockquote>
+ source /opt/glidecondor/condor.sh<br/>
+ GLIDEINWMS_LOCATION/install/services/init_schedd.sh<br/>
+(sample output)<br/>
+Validating schedd: SCHEDDJOBS2<br/>
+Processing schedd: SCHEDDJOBS2<br/>
+  SCHEDD.SCHEDDJOBS2.LOCAL_DIR: /opt/glidecondor/condor_local/schedd_jobs2 <br/>
+  ... created<br/>
+  SCHEDD.SCHEDDJOBS2.EXECUTE: /opt/glidecondor/condor_local/schedd_jobs2/execute <br/>
+  ... created<br/>
+  SCHEDD.SCHEDDJOBS2.SPOOL: /opt/glidecondor/condor_local/schedd_jobs2/spool <br/>
+  ... created<br/>
+  SCHEDD.SCHEDDJOBS2.LOCK: /opt/glidecondor/condor_local/schedd_jobs2/lock <br/>
+  ... created<br/>
+
+
+</blockquote>
+</p>
+<p>
+
+
+</p>
+<p>
+</p>
+
+
+<h3>Multiple Schedds in glideinWMS V2.5.1</h3>
+<h4>Create setup files</h4>
     If not already created during installation, you will need to create
     a set of files to support multiple schedds.  This describes the
     steps necessary.
@@ -214,7 +333,7 @@ Related Links:
     <a href="../install/example-config/multi_schedd/start_master_schedd.sh" title="example-config/multi_schedd/start_master_schedd.sh">
         example-config/multi_schedd/start_master_schedd.sh
     </a>.
-<h3>Initialize schedds</h3>
+<h4>Initialize schedds</h4>
     <p>
     To initialize the secondary schedds, use
     <b>/opt/glidecondor/init_schedd.sh</b> created above.
@@ -231,7 +350,7 @@ Related Links:
       /opt/glidecondor/init_schedd.sh jobs2<br>
       /opt/glidecondor/init_schedd.sh glideins1<br>
     </blockquote>
-<h3><a name="starting">Starting up schedds</a></h3>
+<h4><a name="starting">Starting up schedds</a></h4>
     <p>
 
     If you came to this document as part of another installation, go back and follow
@@ -250,7 +369,7 @@ those instructions.
       /opt/glidecondor/start_master_schedd.sh glideins1
     </blockquote>
     <b>Note:</b> Always start them after you have started the Collector.
-<h3><a name="submission">Submission and monitoring</a></h3>
+<h4><a name="submission">Submission and monitoring</a></h4>
     <p>
 
     The secondary schedds can be seen by issuing
@@ -264,12 +383,10 @@ those instructions.
       condor_q -name schedd_jobs1@
     </blockquote>
 
-<h4>Increase the number of available file descriptors</h4>
-
-    <p>When using multiple schedds, you may want to consider increasing the avaiable file descriptors. 
-    This can be done by issuing a "ulimit -n" command as well as changing the values in the /etc/security/limits.conf file</p>
-
 </div>
+
+
+<!---  Multiple Collectors -------- -->
 <div class="section">
 <hr width="90%"><hr width="90%">
 <a name="collectors"><h2>Multiple Collectors</h2></a>

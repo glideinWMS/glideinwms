@@ -294,7 +294,7 @@
 
 <!--  Schedd -->
 <tr>
-  <td rowspan="13" align="center" valign="top">
+  <td rowspan="14" align="center" valign="top">
       <b>
       WMS Collector<br/>
       Submit
@@ -403,14 +403,24 @@
   DAEMON_LIST = $(DAEMON_LIST), SCHEDDGLIDEINS2<br/>
   DC_DAEMON_LIST = +  SCHEDDGLIDEINS2
   </td>
-  <td valign="top">
+  <td valign="top" rowspan="2">
     Atttributes for defining multiple schedds.<br/><br/>
     The capability to define multiple SCHEDD daemons as a Condor attribute is 
-    available in Condor 7.5+.<br/><br/>
-    The execute, lock and spool directories for each schedd must be created manually.<br/<br/>
+    available in Condor 7.5+.<br/>
+    <br/>
+    The execute, lock and spool directories for each schedd must be created manually.<br/>
+     <br/>
      For more detailed information on this, refer to the 
-    <a href="./condor.html#schedds">Advanced Condor Configuration - Mulitple Schedds document</a>
+    <a href="./condor.html#schedds">Advanced Condor Configuration - Mulitple Schedds document</a><br/>
+     <br/>
+     The <b>SCHEDDGLIDEINS2_ENVIRONMENT</b> attribute only applies to the
+     WMS Collector and is not required for the Submit service.<br/>
   </td>
+  </tr>
+  <tr>
+    <td>
+       SCHEDDGLIDEINS2_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridManagerLog.$(SCHEDD.SCHEDDGLIDEINS2.SCHEDD_NAME).$(USERNAME)"
+    </td>
   </tr>
 
 <!--  Shared schedd ports -->
@@ -436,10 +446,10 @@
       </b>
    </td>
    <td>
-     GRIDMANAGER_LOG = /tmp/GridmanagerLog.$(SCHEDD_NAME).$(USERNAME)<br/>
      GRIDMANAGER_MAX_SUBMITTED_JOBS_PER_RESOURCE=5000<br/>
      GRIDMANAGER_MAX_PENDING_SUBMITS_PER_RESOURCE=5000<br/>
      GRIDMANAGER_MAX_PENDING_REQUESTS=500
+     SCHEDD_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridmanagerLog.$(USERNAME)"
   </td>
   <td valign="top">Condor-G attributes
   </td>
