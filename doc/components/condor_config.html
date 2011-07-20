@@ -430,7 +430,7 @@
 
 <!--  Condor-G -->
 <tr>
-   <td  align="center" valign="top">
+   <td  align="center" rowspan="2" valign="top">
       <b>
       WMS Collector
       </b>
@@ -442,6 +442,16 @@
      GRIDMANAGER_MAX_PENDING_REQUESTS=500
   </td>
   <td valign="top">Condor-G attributes
+  </td>
+</tr>
+<tr>
+  <td>
+     QUEUE_SUPER_USERS = $(QUEUE_SUPER_USERS), <i>factory_user</i>
+  </td>
+  <td>
+     Only required when privilege separation is in effect.
+     Allows the Factory user to bypass privilege separation making
+     administration simpler without compromising security.
   </td>
 </tr>
 
