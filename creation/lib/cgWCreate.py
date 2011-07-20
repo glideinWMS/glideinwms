@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWCreate.py,v 1.49.2.14 2011/06/16 19:46:58 parag Exp $
+#   $Id: cgWCreate.py,v 1.49.2.15 2011/07/20 19:25:30 klarson1 Exp $
 #
 # Description:
 #   Functions needed to create files used by the glidein entry points
@@ -313,7 +313,14 @@ def copy_file(infile,outfile):
         
 #####################################
 # Copy an executable between two dirs
-def copy_exe(filename,work_dir,org_dir):
-    copy_file(os.path.join(org_dir,filename),work_dir)
-    os.chmod(os.path.join(work_dir,filename),0555)
+def copy_exe(filename, work_dir, org_dir, overwrite=False):
+    """
+    Copies a file from one dir to another and changes the permissions to 0555.  Can overwrite an existing file.
+    """
+    if overwrite and os.path.exists(os.path.join(work_dir, filename)):
+        # Remove file if already exists
+        os.remove(os.path.join(work_dir, filename))
+    copy_file(os.path.join(org_dir, filename), work_dir)
+    os.chmod(os.path.join(org_dir, filename), 0555)
+    
     
