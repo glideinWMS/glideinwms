@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: job_submit.sh,v 1.6.8.4 2011/04/26 16:12:57 klarson1 Exp $
 #
 
 export GLIDEIN_USER=`id -u -n`

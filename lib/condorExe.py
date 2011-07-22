@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: condorExe.py,v 1.6.12.6 2011/05/27 19:40:26 tiradani Exp $
 #
 # Description:
 #   This module implements the functions to execute condor commands

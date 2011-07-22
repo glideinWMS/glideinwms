@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinCmd.py,v 1.14.12.1 2010/09/08 03:09:36 parag Exp $
 #
 # Description:
 #  Helper module for all glideinWMS pseudo-interactive commands

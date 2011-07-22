@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.44.4.8 2011/05/12 15:32:48 parag Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize

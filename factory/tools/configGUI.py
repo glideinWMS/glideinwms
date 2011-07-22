@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: configGUI.py,v 1.1.2.2 2010/09/24 15:30:36 parag Exp $
 #
 # Description:
 #   This program implements a GUI

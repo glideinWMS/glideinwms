@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glidein_status.py,v 1.32.8.2 2010/09/24 15:30:37 parag Exp $
 #
 # Description:
 #   Equivalent to condor_status, but with glidein specific info

@@ -3,7 +3,6 @@
  *   glideinWMS
  *
  * File Version: 
- *   $Id: factory_support.js,v 1.3.8.6 2011/06/10 19:33:27 sfiligoi Exp $
  *
  * Support javascript module for the gfactroy monitoring
  * Part of the gldieinWMS package

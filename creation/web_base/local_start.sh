@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: local_start.sh,v 1.4.10.3 2011/01/26 19:03:32 parag Exp $
 #
 
 export GLIDEIN_USER=`id -u -n`

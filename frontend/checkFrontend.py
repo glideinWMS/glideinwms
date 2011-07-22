@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: checkFrontend.py,v 1.3.8.2 2010/09/24 15:30:36 parag Exp $
 #
 # Description:
 #   Check if a glideinFrontend is running

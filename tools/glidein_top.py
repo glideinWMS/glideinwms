@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glidein_top.py,v 1.3.12.2 2010/09/24 15:30:37 parag Exp $
 #
 # Description:
 #   Execute a top command on a condor job

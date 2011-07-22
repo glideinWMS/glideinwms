@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: gWftArgsHelper.py,v 1.1.12.1 2010/09/08 03:22:59 parag Exp $
 #
 # Description:
 #   Argument parser helper

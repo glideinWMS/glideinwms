@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: checkFactory.py,v 1.4.8.2 2010/09/24 15:30:36 parag Exp $
 #
 # Description:
 #   Check if a glideinFactory is running

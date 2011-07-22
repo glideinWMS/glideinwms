@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: condorLogParser.py,v 1.22.8.12 2011/05/05 20:01:30 dstrain Exp $
 #
 # Description:
 #   This module implements classes and functions to parse

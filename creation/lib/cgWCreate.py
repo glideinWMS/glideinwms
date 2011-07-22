@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWCreate.py,v 1.49.2.15 2011/07/20 19:25:30 klarson1 Exp $
 #
 # Description:
 #   Functions needed to create files used by the glidein entry points
