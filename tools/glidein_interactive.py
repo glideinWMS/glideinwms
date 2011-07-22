@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glidein_interactive.py,v 1.1.12.2 2010/09/24 15:30:37 parag Exp $
 #
 # Description:
 #   Execute an arbitrary command on a condor job working directory

@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: condorLogParser.py,v 1.22.8.10 2011/01/27 19:27:53 parag Exp $
 #
 # Description:
 #   This module implements classes and functions to parse

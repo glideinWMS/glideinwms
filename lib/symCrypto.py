@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: symCrypto.py,v 1.6.2.1 2010/09/08 03:10:47 parag Exp $
 #
 # Description:
 #   This module defines classes to perform symmetric key cryptography

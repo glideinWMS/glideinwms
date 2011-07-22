@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cat_logs.py,v 1.2.8.2 2010/09/24 15:30:36 parag Exp $
 #
 # Description:
 #   Print out the logs for a certain date

@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: setup_x509.sh,v 1.12.2.1 2010/09/08 03:30:00 parag Exp $
 #
 # Description;
 #   This is an include file for glidein_startup.sh

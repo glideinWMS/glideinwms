@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glidein_cat.py,v 1.2.12.2 2010/09/24 15:30:37 parag Exp $
 #
 # Description:
 #   Execute a cat command on a condor job working directory

@@ -5,7 +5,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: create_glidein,v 1.144.6.3 2010/09/24 15:30:36 parag Exp $
 #
 # Description:
 #  This program creates a glidein factory directory structure

@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontend.py,v 1.77.4.6 2010/11/05 17:08:14 parag Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend

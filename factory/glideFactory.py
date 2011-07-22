@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactory.py,v 1.89.2.10.16.3 2011/05/26 20:57:29 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactory

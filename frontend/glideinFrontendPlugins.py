@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendPlugins.py,v 1.14.8.1 2010/09/08 03:12:32 parag Exp $
 #
 # Description:
 #  This module implements plugins for the VO frontend

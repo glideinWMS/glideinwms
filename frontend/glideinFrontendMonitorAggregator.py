@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendMonitorAggregator.py,v 1.10.8.3.12.9 2011/07/07 16:53:27 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed

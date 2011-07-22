@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: condorMonitor.py,v 1.10.8.5 2010/12/03 18:30:15 burt Exp $
 #
 # Description:
 #   This module implements classes to query the condor daemons

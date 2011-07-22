@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLogParser.py,v 1.15.12.5.4.1 2011/04/08 21:42:18 sfiligoi Exp $
 #
 # Description:
 #   This module implements classes to track

@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWDictFile.py,v 1.105.8.5 2010/09/08 03:29:59 parag Exp $
 #
 # Description:
 #   Glidein creation module Classes and functions needed to

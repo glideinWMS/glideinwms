@@ -5,7 +5,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: clone_glidein,v 1.1.2.1 2011/07/08 23:46:02 sfiligoi Exp $
 #
 # Description:
 #  This program clones (a subset of) entries

@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryPidLib.py,v 1.10.8.1 2010/09/08 03:22:59 parag Exp $
 #
 # Description:
 #  Handle factory pids

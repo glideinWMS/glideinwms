@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWConsts.py,v 1.23.6.3 2010/09/08 03:29:59 parag Exp $
 #
 # Description:
 #   Keep all the constants used to create glidein entries in this module
