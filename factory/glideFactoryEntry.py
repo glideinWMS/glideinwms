@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.38 2011/07/12 21:02:02 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry

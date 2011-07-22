@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: logSupport.py,v 1.21.10.2.4.5 2011/06/09 16:04:09 tiradani Exp $
 #
 # Description: log support module
 #

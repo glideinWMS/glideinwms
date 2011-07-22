@@ -3,7 +3,6 @@
  *   glideinWMS
  * 
  * File Version: 
- *   $Id: frontend_support.js,v 1.2.8.1 2010/09/08 03:30:00 parag Exp $
  *
  * Support javascript module for the frontend monitoring
  * Part of the gldieinWMS package

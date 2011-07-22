@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParams.py,v 1.63.2.7.4.5 2011/06/27 18:37:20 klarson1 Exp $
 #
 # Desscription:
 #   This module contains the create_glidein params class

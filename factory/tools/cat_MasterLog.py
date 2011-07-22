@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cat_MasterLog.py,v 1.3.12.2 2010/09/24 15:30:36 parag Exp $
 #
 # Description:
 #   Print out the MasterLog for a glidein output file

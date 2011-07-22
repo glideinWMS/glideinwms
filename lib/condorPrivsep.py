@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: condorPrivsep.py,v 1.1.2.2.4.2 2011/06/01 21:47:19 tiradani Exp $
 #
 # Description:
 #   This module implements Condor PrivSep-related functions

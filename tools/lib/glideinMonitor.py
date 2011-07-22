@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinMonitor.py,v 1.20.8.1 2010/09/08 03:09:36 parag Exp $
 #
 # Description:
 #   This module implements helper functions

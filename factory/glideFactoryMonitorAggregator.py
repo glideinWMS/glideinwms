@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryMonitorAggregator.py,v 1.84.8.7.2.2 2011/06/06 18:35:42 tiradani Exp $
 #
 # Description:
 #   This module implements the functions needed

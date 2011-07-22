@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendPidLib.py,v 1.2.8.1.4.1 2011/06/08 18:07:53 tiradani Exp $
 #
 # Description:
 #  Handle frontend pids

@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryLib.py,v 1.55.2.8.4.17 2011/07/14 20:53:43 tiradani Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the

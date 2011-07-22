@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cvWParams.py,v 1.40.2.6.2.2 2011/06/23 15:53:34 dstrain Exp $
 #
 # Description:
 #   This module contains the create_frontend params class

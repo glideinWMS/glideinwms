@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: stopFrontend.py,v 1.7.8.3.4.1 2011/06/08 18:07:53 tiradani Exp $
 #
 # Description:
 #   Stop a running glideinFrontend

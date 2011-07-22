@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: gWftLogParser.py,v 1.9.12.1 2010/09/08 03:22:59 parag Exp $
 #
 # Description:
 #   factory/tool specific condorLogs helper

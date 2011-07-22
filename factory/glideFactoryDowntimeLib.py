@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryDowntimeLib.py,v 1.3.12.2.4.1 2011/04/19 15:22:58 tiradani Exp $
 #
 # Description:
 #   This module implements the functions needed to

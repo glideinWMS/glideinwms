@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: cWDictFile.py,v 1.26.2.4.4.2 2011/05/13 21:15:41 tiradani Exp $
 #
 # Description:
 #   Classes needed to handle dictionary files

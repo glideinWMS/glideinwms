@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.7.2.15 2011/07/12 19:58:04 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize

@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: find_StartdLogs.py,v 1.4.8.2 2010/09/24 15:30:36 parag Exp $
 #
 # Description:
 #   Print out the StartdLogs for a certain date

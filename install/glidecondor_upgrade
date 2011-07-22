@@ -5,7 +5,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideincondor_upgrade,v 1.0 2011/03/17 17:48:49 sfiligoi Exp $
 #
 # Description:
 #   Helper script for upgrading Condor binaries

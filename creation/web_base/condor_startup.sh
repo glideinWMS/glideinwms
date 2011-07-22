@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: condor_startup.sh,v 1.48.2.6.2.3 2011/04/19 16:38:44 tiradani Exp $
 #
 # Description:
 # This script starts the condor daemons expects a config file as a parameter

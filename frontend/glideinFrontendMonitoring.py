@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendMonitoring.py,v 1.8.8.1.4.2 2011/06/08 18:07:53 tiradani Exp $
 #
 # Description:
 #   This module implements the functions needed

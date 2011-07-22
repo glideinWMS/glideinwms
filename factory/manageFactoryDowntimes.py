@@ -5,7 +5,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: manageFactoryDowntimes.py,v 1.39.2.3.4.1 2011/04/19 15:22:58 tiradani Exp $
 #
 # Description:
 #  This program allows to add announced downtimes

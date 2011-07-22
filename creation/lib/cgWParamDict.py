@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParamDict.py,v 1.123.2.14.4.6 2011/06/27 18:37:20 klarson1 Exp $
 #
 # Description:
 #   Glidein creation module

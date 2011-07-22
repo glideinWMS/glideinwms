@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryConfig.py,v 1.21.10.4.4.7 2011/07/12 21:34:47 tiradani Exp $
 #
 
 import string

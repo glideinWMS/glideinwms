@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: timeConversion.py,v 1.6.12.1.4.1 2011/07/13 20:45:30 tiradani Exp $
 #
 # Description:
 #   This module implements time2string functions
