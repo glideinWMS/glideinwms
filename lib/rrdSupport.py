@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: rrdSupport.py,v 1.15 2011/06/06 15:03:36 parag Exp $
 #
 # Description:
 #   This module implements the basic functions needed

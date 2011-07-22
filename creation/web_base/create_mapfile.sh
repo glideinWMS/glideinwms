@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: create_mapfile.sh,v 1.3 2011/02/10 21:35:30 parag Exp $
 #
 # Description:
 #   This is an include file for glidein_startup.sh

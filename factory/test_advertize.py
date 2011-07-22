@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: test_advertize.py,v 1.2 2011/02/10 21:35:30 parag Exp $
 #
 
 import os,sys,time

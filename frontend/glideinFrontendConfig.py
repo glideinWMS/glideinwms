@@ -6,7 +6,6 @@ import os.path
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendConfig.py,v 1.22 2011/02/10 21:35:31 parag Exp $
 #
 # Description:
 #   Frontend config related classes

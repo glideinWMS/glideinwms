@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: condorManager.py,v 1.4 2011/02/10 21:35:31 parag Exp $
 #
 # Description:
 #   This module implements functions that will act on Condor

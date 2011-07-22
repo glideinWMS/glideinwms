@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cWConsts.py,v 1.5 2011/02/10 21:35:30 parag Exp $
 #
 # Description:
 #   Keep all the constants used in the glideinWMS

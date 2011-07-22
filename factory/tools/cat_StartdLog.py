@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cat_StartdLog.py,v 1.9 2011/02/10 21:35:31 parag Exp $
 #
 # Description:
 #   Print out the StartdLog for a glidein output file

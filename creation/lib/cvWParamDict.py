@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cvWParamDict.py,v 1.54 2011/07/05 19:13:02 tiradani Exp $
 #
 # Description: 
 #   Frontend creation module

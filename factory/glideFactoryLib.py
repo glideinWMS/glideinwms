@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.67 2011/04/27 14:22:25 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the

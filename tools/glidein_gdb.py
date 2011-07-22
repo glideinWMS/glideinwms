@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glidein_gdb.py,v 1.9 2011/02/10 21:35:31 parag Exp $
 #
 # Description:
 #   Execute a ls command on a condor job working directory

@@ -5,7 +5,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: java_setup.sh,v 1.1.6.1 2011/01/26 19:03:32 parag Exp $
 #
 # Description:
 #   This script will setup the java parameters

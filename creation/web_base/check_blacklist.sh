@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: check_blacklist.sh,v 1.2 2011/02/10 21:35:30 parag Exp $
 #
 # Description:
 #   This script checks that the node is not in a blacklist

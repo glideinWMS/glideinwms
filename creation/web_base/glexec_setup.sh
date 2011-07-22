@@ -5,7 +5,6 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glexec_setup.sh,v 1.23 2011/05/18 23:40:54 sfiligoi Exp $
 #
 # Description:
 #   This script will setup the gLExec parameters

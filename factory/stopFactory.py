@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: stopFactory.py,v 1.9 2011/02/10 21:35:30 parag Exp $
 #
 # Description:
 #   Stop a running glideinFactory

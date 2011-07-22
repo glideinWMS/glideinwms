@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: frontend_match_ana,v 1.1 2011/07/12 12:06:53 sfiligoi Exp $
 #
 # Description:
 #   This tool analyzes the matches between jobs and factory entries

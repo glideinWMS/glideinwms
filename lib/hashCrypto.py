@@ -2,7 +2,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: hashCrypto.py,v 1.8 2011/02/10 21:35:31 parag Exp $
 #
 # Description:
 #   This module defines classes to perform hash based cryptography

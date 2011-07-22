@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glidein_ps.py,v 1.4 2011/02/10 21:35:31 parag Exp $
 #
 # Description:
 #   Execute a ps command on a condor job

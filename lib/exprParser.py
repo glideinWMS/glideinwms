@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: exprParser.py,v 1.2 2011/07/13 14:16:55 burt Exp $
 #
 # Description: general purpose python expression parser and unparser
 #

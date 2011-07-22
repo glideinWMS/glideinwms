@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: ldapMonitor.py,v 1.7 2011/05/27 21:19:35 klarson1 Exp $
 #
 # Description:
 #   This module implements classes to query the ldap server

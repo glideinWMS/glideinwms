@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: test_gfi.py,v 1.3 2011/06/15 22:06:26 klarson1 Exp $
 #
 
 import os,sys,glideFactoryInterface

@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cvWDictFile.py,v 1.18 2011/02/10 21:35:30 parag Exp $
 #
 # Description:
 #   VO Frontend creation module

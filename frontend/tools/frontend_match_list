@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: frontend_match_list,v 1.1 2011/07/09 03:41:27 sfiligoi Exp $
 #
 # Description:
 #   This tool print outs the matches between jobs and factory entries

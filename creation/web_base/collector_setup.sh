@@ -5,7 +5,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: collector_setup.sh,v 1.6 2011/02/10 21:35:30 parag Exp $
 #
 # Description:
 #   This script will setup the Collector parameters

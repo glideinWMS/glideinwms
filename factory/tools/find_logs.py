@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: find_logs.py,v 1.4 2011/02/10 21:35:31 parag Exp $
 #
 # Description:
 #   Find the logs for a certain date
