@@ -108,6 +108,40 @@ function googleReady() {
     gready = 1; 
     drawChart(); 
     /* timeout = setTimeout("reloadAll()", reloadTime); */ 
+
+
+	$("#entrysearch").autocomplete({
+        minLength: 0,
+        delay: 0,
+	    search: function(event, ui) {
+            var filter = this.value.toLowerCase();
+            var filter_re = new RegExp(filter);
+            var dataview = new google.visualization.DataView(data);
+            if (filter == "") {
+                table.draw(dataview);
+                return false;
+            }
+
+	        // For loop through table looking for something that matches
+	        var i = 0;
+            var showRows = [];
+            for(var i = 0; i < dataview.getNumberOfRows(); i++) {
+                entry_name = dataview.getValue(i, 0).toLowerCase();
+                if (filter_re.test(entry_name)) {
+                    showRows.push(i);
+                }
+            }
+	
+	        // Tell the table what to display
+            dataview.setRows(showRows);
+            table.draw(dataview);
+            // Always return false, don't pop anything up
+            return false;
+	    }
+	
+	});
+	
+
 }
 
 
@@ -242,11 +276,15 @@ function normalize(input_array) {
     return toReturn;
 }
 
+// The google table
+var table;
+var data;
+
 // Main Data Function.  Will update the group information, including:
 // table & charts
 // group_obj: object (pointer) to the xml position of the group to update
 function UpdateGroup(group_obj) {
-    var data = new google.visualization.DataTable();
+    data = new google.visualization.DataTable();
     var running = [];
     var idle = [];
     var factories = [];
@@ -382,8 +420,9 @@ function UpdateGroup(group_obj) {
     $(group_selector).find("#Requested").find("#running").append(img);
     MakeChart(factories.slice(), requested_running, "Requested Running", img);
 
-    var table = new google.visualization.Table(document.getElementById('group_table'));
-    table.draw(data);
+    table = new google.visualization.Table(document.getElementById('group_table'));
+    var dataview = new google.visualization.DataView(data);
+    table.draw(dataview);
 
 
 }
@@ -521,6 +560,8 @@ function HideDialog() {
 </td>
 <tr>
 <td colspan="2">
+<p><input type="button" value="Refresh Data" onclick="reloadAll()"/></p>
+Entry Search: <input type='text' id='entrysearch' onkeypress='FilterTable()'/>
 <div id="group_table">
 </div>
 </td>
