@@ -140,7 +140,15 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
 #########################################
 # Create init.d compatible startup file
-def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
+def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, overwrite=False):
+    """
+    Creates the factory startup file and changes the permissions.  Can overwrite an existing file.
+    """    
+    
+    if overwrite and os.path.exists(os.path.join(factory_dir, startup_fname)):
+        # Remove file if already exists
+        os.remove(os.path.join(factory_dir, startup_fname))
+        
     fd=open(startup_fname,"w")
     try:
         fd.write("#!/bin/bash\n")

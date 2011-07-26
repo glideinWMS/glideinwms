@@ -54,6 +54,11 @@ def main(params,old_params):
     # make two copies, the second one should have a unique name, so it does not get overwritten on further reconfig
     cfgfile=cWConsts.insert_timestr(cfgfile)
     params.save_into_file(cfgfile,set_ro=True)
+    
+    # create the init.d startup file
+    cvWCreate.create_initd_startup(os.path.join(frontend_dicts_obj.main_dicts.work_dir,cvWConsts.INITD_STARTUP_FILE),
+                                       frontend_dicts_obj.main_dicts.work_dir,
+                                       os.path.realpath(os.path.join(STARTUP_DIR,'..')), True)
 
     print "Reconfigured frontend '%s'"%params.frontend_name
     print "Active entries are:"
