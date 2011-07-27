@@ -2,8 +2,6 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
-#
 # Description:
 #  This module implements plugins for the VO frontend
 #
@@ -16,6 +14,7 @@ import time
 import sets
 import pickle
 import glideinFrontendLib
+import glideinFrontendInterface
 
 
 ################################################################################
@@ -29,11 +28,15 @@ import glideinFrontendLib
 #     Return the list of required condor_q attributes                          #
 #   get_required_classad_attributes()                                          #
 #     Return the list of required condor_status attributes                     #
-#   get_proxies(condorq_dict,condorq_dict_types,status_dict,status_dict_types) #
+#   get_credentials(condorq_dict,condorq_dict_types,                           #
+#           status_dict,status_dict_types,                                     #
+#           credential_type=None, trust_domain=None)                           #
 #     Return a list of proxies that match the input criteria                   #
 #     Each element is a (index, value) pair                                    #
 #     If called multiple time, it is guaranteed that                           #
 #        if the index is the same, the proxy is (logicaly) the same            #
+#     credential_type will limit the returned credentials to a particular type #
+#     trust_domain will limit the returned credentials to a particular domain  #
 #                                                                              #
 ################################################################################
 
@@ -45,7 +48,7 @@ import glideinFrontendLib
 #
 class ProxyFirst:
     def __init__(self, config_dir, proxy_list):
-        self.proxy_list = list2ilist(proxy_list)
+        self.cred_list = proxy_list
 
     # what job attributes are used by this plugin
     def get_required_job_attributes(self):
@@ -56,9 +59,15 @@ class ProxyFirst:
         return []
 
     # get the proxies, given the condor_q and condor_status data
-    def get_proxies(self, condorq_dict, condorq_dict_types,
-                    status_dict, status_dict_types):
-        return [self.proxy_list[0]]
+    def get_credentials(self, condorq_dict, condorq_dict_types,
+                    status_dict, status_dict_types, 
+                    credential_type=None, trust_domain=None):
+        for cred in self.cred_list:
+            if (trust_domain != None) and (cred.trust_domain!=trust_domain):
+                continue
+            if (credential_type != None) and (cred.credential_type!=credential_type):
+                continue
+            return list2ilist([cred])
 
 ############################################
 #
@@ -67,7 +76,7 @@ class ProxyFirst:
 #
 class ProxyAll:
     def __init__(self, config_dir, proxy_list):
-        self.proxy_list = list2ilist(proxy_list)
+        self.cred_list = proxy_list
 
     # what job attributes are used by this plugin
     def get_required_job_attributes(self):
@@ -78,9 +87,17 @@ class ProxyAll:
         return []
 
     # get the proxies, given the condor_q and condor_status data
-    def get_proxies(self, condorq_dict, condorq_dict_types,
-                    status_dict, status_dict_types):
-        return self.proxy_list
+    def get_credentials(self, condorq_dict, condorq_dict_types,
+                    status_dict, status_dict_types,
+                    credential_type=None, trust_domain=None):
+        rtnlist=[]
+        for cred in self.cred_list:
+            if (trust_domain != None) and (cred.trust_domain!=trust_domain):
+                continue
+            if (credential_type != None) and (cred.credential_type!=credential_type):
+                continue
+            rtnlist.append(cred)
+        return list2ilist(rtnlist)
 
 ##########################################################
 #
@@ -93,7 +110,7 @@ class ProxyAll:
 #
 class ProxyUserCardinality:
     def __init__(self, config_dir, proxy_list):
-        self.proxy_list = list2ilist(proxy_list)
+        self.cred_list = proxy_list
 
     # what job attributes are used by this plugin
     def get_required_job_attributes(self):
@@ -104,8 +121,9 @@ class ProxyUserCardinality:
         return []
 
     # get the proxies, given the condor_q and condor_status data
-    def get_proxies(self, condorq_dict, condorq_dict_types,
-                    status_dict, status_dict_types):
+    def get_credentials(self, condorq_dict, condorq_dict_types,
+                    status_dict, status_dict_types,
+                    credential_type=None, trust_domain=None):
         users_set = glideinFrontendLib.getCondorQUsers(condorq_dict)
         return self.get_proxies_from_cardinality(len(users_set))
 
@@ -115,17 +133,15 @@ class ProxyUserCardinality:
 
     # return the proxies based on data held by the class
     def get_proxies_from_cardinality(self, nr_requested_proxies):
-        nr_proxies = len(self.proxy_list)
-
-        if nr_requested_proxies >= nr_proxies:
-            # wants all of them, no need to select
-            return self.proxy_list
-
-        out_proxies = []
-        for i in range(nr_requested_proxies):
-            out_proxies.append(self.proxy_list[i])
-
-        return out_proxies
+        rtnlist=[]
+        for cred in self.cred_list:
+            if (trust_domain != None) and (cred.trust_domain!=trust_domain):
+                continue
+            if (credential_type != None) and (cred.credential_type!=credential_type):
+                continue
+            if len(rtnlist)<nr_requested_proxies:
+                rtnlist.append(cred)
+        return list2ilist(rtnlist)
 
 ######################################################################
 #
@@ -151,8 +167,9 @@ class ProxyUserRR:
         return []
 
     # get the proxies, given the condor_q and condor_status data
-    def get_proxies(self, condorq_dict, condorq_dict_types,
-                    status_dict, status_dict_types):
+    def get_credentials(self, condorq_dict, condorq_dict_types,
+                    status_dict, status_dict_types,
+                    credential_type=None, trust_domain=None):
         new_users_set = glideinFrontendLib.getCondorQUsers(condorq_dict)
         old_users_set = self.config_data['users_set']
         if old_users_set == new_users_set:
@@ -273,9 +290,9 @@ class ProxyUserRR:
         for i in index_range:
             real_i = i % nr_proxies
             proxy = self.proxy_list[i]
-            out_proxies.append(("urr_%i" % proxy_indexes[proxy], proxy))
+            out_proxies.append(proxy)
 
-        return out_proxies
+        return list2ilist(out_proxies)
 
 ######################################################################
 #
@@ -303,8 +320,9 @@ class ProxyUserMapWRecycling:
         return []
 
     # get the proxies, given the condor_q and condor_status data
-    def get_proxies(self, condorq_dict, condorq_dict_types,
-                    status_dict, status_dict_types):
+    def get_credentials(self, condorq_dict, condorq_dict_types,
+                    status_dict, status_dict_types,
+                    credential_type=None, trust_domain=None):
         users = list(glideinFrontendLib.getCondorQUsers(condorq_dict))
         out_proxies = []
 
@@ -331,7 +349,7 @@ class ProxyUserMapWRecycling:
                 # else the user is already in the cache... just use that
 
                 cel = user_map[user]
-                out_proxies.append(("umrw_%i" % cel['proxy_index'], cel['proxy']))
+                out_proxies.append(cel['proxy'])
                 # save that you have indeed seen the user 
                 cel['last_seen'] = time.time()
         else:
@@ -345,7 +363,7 @@ class ProxyUserMapWRecycling:
                 if (k in users):
                     # the user in the cache is still present, use it
                     cel = user_map[k]
-                    out_proxies.append(("umrw_%i" % cel['proxy_index'], cel['proxy']))
+                    out_proxies.append(cel['proxy'])
                     # save that you have indeed seen the user 
                     cel['last_seen'] = time.time()
                     uncovered_users.remove(k)
@@ -360,7 +378,7 @@ class ProxyUserMapWRecycling:
                 del user_map[k]
 
                 cel = user_map[user]
-                out_proxies.append(("umrw_%i" % cel['proxy_index'], cel['proxy']))
+                out_proxies.append(cel['proxy'])
                 # save that you have indeed seen the user 
                 cel['last_seen'] = time.time()
 
@@ -368,7 +386,7 @@ class ProxyUserMapWRecycling:
         # save changes
         self.save()
 
-        return out_proxies
+        return list2ilist(out_proxies)
 
     #############################
     # INTERNAL
@@ -457,11 +475,18 @@ class ProxyUserMapWRecycling:
 
 def list2ilist(lst):
     out = []
-    for i in range(len(lst)):
-        out.append((i, lst[i]))
+    for cred in lst:
+        out.append((cred.proxy_id, cred.filename))
     return out
 
-
+def createCredentialList(elementDescript):
+    """ Creates a list of Credentials for a proxy plugin """
+    credential_list=[]
+    num=0
+    for proxy in elementDescript.merged_data['Proxies']:
+        credential_list.append(glideinFrontendInterface.Credential(num,proxy,elementDescript))
+        num=num+1
+    return credential_list
 
 ###################################################################
 
@@ -473,4 +498,6 @@ proxy_plugins = {'ProxyAll':ProxyAll,
                'ProxyFirst':ProxyFirst,
                'ProxyUserCardinality':ProxyUserCardinality,
                'ProxyUserMapWRecycling':ProxyUserMapWRecycling}
+
+
 
