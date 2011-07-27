@@ -226,7 +226,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     x509_proxies_data = None
     if x509_proxy_plugin != None:
         proxy_security_classes = elementDescript.merged_data['ProxySecurityClasses']
-        x509_proxy_list = x509_proxy_plugin.get_proxies(condorq_dict, condorq_dict_types,
+        x509_proxy_list = x509_proxy_plugin.get_credentials(condorq_dict, condorq_dict_types,
                                                       status_dict, status_dict_types)
         logSupport.log.info("Using %i proxies" % len(x509_proxy_list))
 
@@ -638,7 +638,7 @@ def main(parent_pid, work_dir, group_name):
         if not glideinFrontendPlugins.proxy_plugins.has_key(elementDescript.merged_data['ProxySelectionPlugin']):
             logSupport.log.warning("Invalid ProxySelectionPlugin '%s', supported plugins are %s" % (elementDescript.merged_data['ProxySelectionPlugin']), glideinFrontendPlugins.proxy_plugins.keys())
             return 1
-        x509_proxy_plugin = glideinFrontendPlugins.proxy_plugins[elementDescript.merged_data['ProxySelectionPlugin']](os.path.join(work_dir, "group_%s" % group_name), elementDescript.merged_data['Proxies'])
+        x509_proxy_plugin = glideinFrontendPlugins.proxy_plugins[elementDescript.merged_data['ProxySelectionPlugin']](os.path.join(work_dir, "group_%s" % group_name), glideinFrontendPlugins.createCredentialList(elementDescript))
     else:
         # no proxies, will try to use the factory one
         x509_proxy_plugin = None
