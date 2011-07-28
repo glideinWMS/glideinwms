@@ -419,23 +419,7 @@ def deadvertizeGlobal(factory_name, glidein_name):
     finally:
         os.remove(tmpnam)
     
-def deadvertizeFactory(factory_name,glidein_name):
-    # get a 9 digit number that will stay 9 digit for the next 25 years
-    short_time = time.time()-1.05e9
-    tmpnam="/tmp/gfi_ag_%li_%li"%(short_time,os.getpid())
-    fd=file(tmpnam,"w")
-    try:
-        try:
-            fd.write('MyType = "Query"\n')
-            fd.write('TargetType = "%s"\n'%factoryConfig.factory_id)
-            fd.write('Requirements = (FactoryName=?="%s")&&(GlideinName=?="%s")'%(factory_name,glidein_name))
-        finally:
-            fd.close()
 
-        exe_condor_advertise(tmpnam,"INVALIDATE_MASTER_ADS")
-    finally:
-        os.remove(tmpnam)
-    
 def deadvertizeFactory(factory_name,glidein_name):
     # get a 9 digit number that will stay 9 digit for the next 25 years
     short_time = time.time()-1.05e9

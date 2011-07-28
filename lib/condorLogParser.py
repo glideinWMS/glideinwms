@@ -1015,14 +1015,7 @@ def rawJobId2Nr(str):
     else:
         return (-1, -1) #invalid
 
-def rawTime2cTime(instr, year):
-    """
-    Convert the log representation into ctime
-
-    @return: ctime or -1 in case of error
-    """
-
-def rawTime2cTime(str,year):
+def rawTime2cTime(instr,year):
     """
     Convert the log representation into ctime
 
@@ -1034,7 +1027,7 @@ def rawTime2cTime(str,year):
         return -1 #invalid
     return ctime
 
-def rawTime2cTimeLastYear(str):
+def rawTime2cTimeLastYear(instr):
     """
     Convert the log representation into ctime,
     works only for the past year
@@ -1043,7 +1036,7 @@ def rawTime2cTimeLastYear(str):
     """
     now=time.time()
     current_year=time.localtime(now)[0]
-    ctime=rawTime2cTime(str,current_year)
+    ctime=rawTime2cTime(instr,current_year)
     if ctime<=now:
         return ctime
     else: # cannot be in the future... it must have been in the past year
@@ -1061,12 +1054,6 @@ def diffTimes(start_time,end_time,year):
         return -1 #invalid
     
     return int(end_ctime) - int(start_ctime)
-
-def diffTimeswWrap(start_time, end_time, year, wrap_time):
-    """
-    Get two condor time strings and compute the difference
-    The start_time must be before the end_time
-    """
 
 def diffTimeswWrap(start_time,end_time,year,wrap_time):
     """
@@ -1089,12 +1076,6 @@ def diffTimeswWrap(start_time,end_time,year,wrap_time):
         return -1 #invalid
 
     return int(end_ctime) - int(start_ctime)
-
-def interpretStatus(status, default_status='Idle'):
-    """
-    Transform a integer globus status to 
-    either Wait, Idle, Running, Held, Completed or Removed
-    """
 
 def interpretStatus(status,default_status='Idle'):
     """

@@ -145,6 +145,8 @@ def perform_work(entry_name,
         glideFactoryLib.log_files.logActivity("Unknown RemoveExcess '%s', assuming 'NO'"%remove_excess)
         pass # nothing to do
 
+    submit_attrs=[]
+
     # use the extended params for submission
     proxy_fraction=1.0/len(x509_proxy_keys)
 
@@ -429,6 +431,10 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             if (frontend_whitelist=="On"):
                 prev_downtime=in_downtime
                 in_downtime=True
+
+            # Set security class downtime flag
+            security_class_downtime_found = False
+
             for i in range(nr_x509_proxies):
                 if decrypted_params['x509_proxy_%i'%i]==None:
                     glideFactoryLib.log_files.logWarning("Could not decrypt x509_proxy_%i for %s, skipping and trying the others"%(i,client_int_name))
@@ -448,7 +454,15 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                     x509_proxy_security_class=decrypted_params['x509_proxy_%i_security_class'%i]
                 else:
                     x509_proxy_security_class=x509_proxy_identifier
-
+                
+                # Check security class for downtime
+                glideFactoryLib.log_files.logActivity("Checking downtime for frontend %s security class: %s (entry %s)."%(client_security_name, x509_proxy_security_class,jobDescript.data['EntryName']))
+                in_sec_downtime=(factory_downtimes.checkDowntime(entry="factory",frontend=client_security_name,security_class=x509_proxy_security_class) or factory_downtimes.checkDowntime(entry=jobDescript.data['EntryName'],frontend=client_security_name,security_class=x509_proxy_security_class))
+                if (in_sec_downtime):
+                    glideFactoryLib.log_files.logWarning("Security Class %s is currently in a downtime window for Entry: %s. Skipping proxy %s."%(x509_proxy_security_class,jobDescript.data['EntryName'], x509_proxy_identifier))
+                    security_class_downtime_found = True
+                    continue # cannot use proxy for submission but entry is not in downtime since other proxies may map to valid security classes
+                    
                 # Deny Frontend from entering glideins if the whitelist
                 # does not have its security class (or "All" for everyone)
                 if (frontend_whitelist == "On") and (security_list.has_key(client_security_name)):
@@ -479,10 +493,16 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 x509_proxies.add_fname(x509_proxy_security_class,x509_proxy_identifier,x509_proxy_fname)
 
             if x509_proxies.count_fnames<1:
-                glideFactoryLib.log_files.logWarning("No good proxies for %s, skipping request"%client_int_name)
-                continue #skip request
+                if security_class_downtime_found:
+                    glideFactoryLib.log_files.logWarning("Found proxies for client %s but the security class was in downtime, setting entry into downtime for advertising" % client_int_name)
+                    in_downtime = True
+                else:
+                    glideFactoryLib.log_files.logWarning("No good proxies for %s, skipping request"%client_int_name)
+                    continue #skip request
         else:
             # no proxy passed, use factory one
+            # Cannot check against a security class downtime since will 
+            # never exist in the config
             x509_proxy_security_class="factory"
             
             x509_proxy_username=x509_proxies.get_username(x509_proxy_security_class)

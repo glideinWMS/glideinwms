@@ -679,6 +679,18 @@ def populate_frontend_descript(frontend_dict,     # will be modified
         frontend_dict.add(fe,{'ident':ident,'usermap':maps})
 
     
+#################################
+# Check that it is a string list
+# containing only valid entries
+def validate_job_proxy_source(allow_proxy):
+    recognized_sources=('factory','frontend')
+    ap_list=allow_proxy.split(',')
+    for source in ap_list:
+        if not (source in recognized_sources):
+            raise RuntimeError, "'%s' not a valid proxy source (valid list = %s)"%(source,recognized_sources)
+    return
+
+
 #####################
 # Simply copy a file
 def copy_file(infile,outfile):
