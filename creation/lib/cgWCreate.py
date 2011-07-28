@@ -241,7 +241,7 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, overwrite=F
 
         fd.write('downtime() {\n')
         fd.write('       if [ -z "$3" ]; then\n')
-        fd.write('           echo $"Usage: factory_startup $1 -entry \'factory\'|\'entries\'|entry_name [-delay delay] [-frontend sec_name] [-security sec_class|\'All\'] [-comment comment]"\n')
+        fd.write('           echo $"Usage: factory_startup $1 -entry \'factory\'|\'entries\'|entry_name [-delay delay] [-frontend sec_name|\'All\'] [-security sec_class|\'All\'] [-comment comment]"\n')
         fd.write('           exit 1\n')
         fd.write('       fi\n\n')
         fd.write('	 if [ "$1" == "down" ]; then\n')
@@ -329,4 +329,3 @@ def copy_exe(filename, work_dir, org_dir, overwrite=False):
         os.remove(os.path.join(work_dir, filename))
     copy_file(os.path.join(org_dir, filename), work_dir)
     os.chmod(os.path.join(org_dir, filename), 0555)
-    

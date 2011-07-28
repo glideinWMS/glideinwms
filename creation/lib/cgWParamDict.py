@@ -290,9 +290,12 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         #load system files
         self.dicts['vars'].load(params.src_dir,'condor_vars.lst.entry',change_self=False,set_not_changed=False)
         
+        
         # put user files in stage
         for file in sub_params.files:
             add_file_unparsed(file,self.dicts)
+
+        # Add attribute for voms
 
         # put user attributes into config files
         for attr_name in sub_params.attrs.keys():
@@ -303,8 +306,12 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         for dtype in ('attrs','consts'):
             self.dicts[dtype].add("GLIDEIN_Gatekeeper",sub_params.gatekeeper,allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_GridType",sub_params.gridtype,allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS",sub_params.config.restrictions.require_voms_proxy,allow_overwrite=True)
             if sub_params.rsl!=None:
                 self.dicts[dtype].add('GLIDEIN_GlobusRSL',sub_params.rsl,allow_overwrite=True)
+
+
+        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_VOMS","boolean",sub_params.config.restrictions.require_voms_proxy,None,False,True,True)
 
         # populate infosys
         for infosys_ref in sub_params.infosys_refs:
@@ -565,6 +572,8 @@ def populate_factory_descript(work_dir,
         glidein_dict.add('RestartAttempts',params.restart_attempts)
         glidein_dict.add('RestartInterval',params.restart_interval)
         glidein_dict.add('AdvertiseDelay',params.advertise_delay)
+        validate_job_proxy_source(params.security.allow_proxy)
+        glidein_dict.add('AllowedJobProxySource',params.security.allow_proxy)
         glidein_dict.add('LogDir',params.log_dir)
         glidein_dict.add('ClientLogBaseDir',params.submit.base_client_log_dir)
         glidein_dict.add('ClientProxiesBaseDir',params.submit.base_client_proxies_dir)
@@ -619,7 +628,24 @@ def populate_job_descript(work_dir, job_descript_dict,
     job_descript_dict.add('RemoveSleep',sub_params.config.remove.sleep)
     job_descript_dict.add('MaxReleaseRate',sub_params.config.release.max_per_cycle)
     job_descript_dict.add('ReleaseSleep',sub_params.config.release.sleep)
-
+    job_descript_dict.add('RequireVomsProxy',sub_params.config.restrictions.require_voms_proxy)
+   
+    # Add the frontend specific job limits to the job.descript file
+    max_job_frontends=""
+    max_held_frontends=""
+    max_idle_frontends=""
+    max_running_frontends=""
+    for X in sub_params.config.max_jobs.max_job_frontends.keys():
+        el=sub_params.config.max_jobs.max_job_frontends[X]
+        frontend_name=X+":"+el.security_class+";"
+        max_held_frontends=frontend_name+el.held+","
+        max_idle_frontends=frontend_name+el.idle+","
+        max_running_frontends=frontend_name+el.running+","
+    job_descript_dict.add("MaxRunningFrontends",max_running_frontends[:-1]);
+    job_descript_dict.add("MaxHeldFrontends",max_held_frontends[:-1]);
+    job_descript_dict.add("MaxIdleFrontends",max_idle_frontends[:-1]);
+    
+    
     #  If the configuration has a non-empty frontend_allowlist
     #  then create a white list and add all the frontends:security_classes
     #  to it.

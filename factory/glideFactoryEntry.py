@@ -34,6 +34,7 @@ import glideFactoryMonitoring
 import glideFactoryInterface
 import glideFactoryLogParser
 import glideFactoryDowntimeLib
+import logSupport
 import glideinWMSVersion
 
 ############################################################
@@ -126,7 +127,6 @@ def perform_work(entry_name,
     client_log_name=glideFactoryLib.secClass2Name(client_security_name,x509_proxy_security_class)
     glideFactoryLib.factoryConfig.log_stats.logSummary(client_log_name,log_stats)
         
-
     remove_excess_wait=False
     remove_excess_idle=False
     remove_excess_run=False
@@ -144,8 +144,6 @@ def perform_work(entry_name,
     else:
         glideFactoryLib.log_files.logActivity("Unknown RemoveExcess '%s', assuming 'NO'"%remove_excess)
         pass # nothing to do
-
-    submit_attrs=[]
 
     # use the extended params for submission
     proxy_fraction=1.0/len(x509_proxy_keys)
@@ -218,18 +216,18 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
     Finds work requests from the WMS collector, validates security credentials, and requests glideins.  If an entry is 
     in downtime, requested glideins is zero.
     
-    @type in_downtime: boolean
-    @param in_downtime: True if entry is in downtime
-    @type glideinDescript:  
-    @param glideinDescript: 
-    @type frontendDescript:  
-    @param frontendDescript: 
-    @type jobDescript:  
-    @param jobDescript: 
-    @type jobAttributes:  
-    @param jobAttributes: 
-    @type jobParams:  
-    @param jobParams: 
+    @type in_downtime:  boolean
+    @param in_downtime:  True if entry is in downtime
+    @type glideinDescript:  dict
+    @param glideinDescript:  factory glidein config values
+    @type frontendDescript:  dict 
+    @param frontendDescript:  security mappings for frontend identities, security classes, and usernames for privsep
+    @type jobDescript:  dict
+    @param jobDescript:  entry config values
+    @type jobAttributes:  dict  
+    @param jobAttributes:  entry attributes that are published in the classad
+    @type jobParams:  dict
+    @param jobParams:  entry parameters that are passed to the glideins
     
     @return: returns a value greater than zero if work was done.
     """
@@ -255,13 +253,14 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             else:
                 security_list[entry_part[0]]=[entry_part[1]];
    
+    allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
     glideFactoryLib.factoryConfig.client_stats.set_downtime(in_downtime)
     glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime)
     
     #glideFactoryLib.log_files.logActivity("Find work")
     work = glideFactoryInterface.findWork(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
                                           glideFactoryLib.factoryConfig.supported_signtypes,
-                                          pub_key_obj)
+                                          pub_key_obj,allowed_proxy_source)
     
     if (len(work.keys())==0) and (old_pub_key_obj != None):
         # Could not find work to do using pub key and we do have a valid old 
@@ -272,10 +271,11 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                    glideFactoryLib.factoryConfig.factory_name,
                    glideFactoryLib.factoryConfig.glidein_name, entry_name,
                    glideFactoryLib.factoryConfig.supported_signtypes,
-                   old_pub_key_obj)
+                   old_pub_key_obj, allowed_proxy_source)
         if len(work.keys())>0:
             glideFactoryLib.log_files.logActivity("Found work to do using old factory key.")
     if len(work.keys())==0:
+        glideFactoryLib.log_files.logActivity("No work found.")
         return 0 # nothing to be done
 
     #glideFactoryLib.log_files.logActivity("Perform work")
@@ -284,6 +284,32 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
     factory_max_running=int(jobDescript.data['MaxRunning'])
     factory_max_idle=int(jobDescript.data['MaxIdle'])
     factory_max_held=int(jobDescript.data['MaxHeld'])
+
+    frontend_max_running={}
+    frontend_max_idle={}
+    frontend_max_held={}
+
+    # Get factory parameters for frontend-specific limits
+    # they are in the format:
+    # frontend1:sec_class1:number,frontend2:sec_class2:number
+    # we will turn them into a dictionary
+    # frontend_max_held['frontend1:sec_class1']=number
+    fe_running_param=jobDescript.data['MaxRunningFrontends']
+    fe_idle_param=jobDescript.data['MaxIdleFrontends']
+    fe_held_param=jobDescript.data['MaxHeldFrontends']
+    if (fe_running_param.find(";")!=-1):
+        for el in fe_running_param.split(","):
+            el_list=el.split(";")
+            frontend_max_running[el_list[0]]=int(el_list[1])
+    if (fe_idle_param.find(";")!=-1):
+        for el in fe_idle_param.split(","):
+            el_list=el.split(";")
+            frontend_max_idle[el_list[0]]=int(el_list[1])
+    if (fe_held_param.find(";")!=-1):
+        for el in fe_held_param.split(","):
+            el_list=el.split(";")
+            frontend_max_held[el_list[0]]=int(el_list[1])
+
 
     try:
         condorQ=glideFactoryLib.getCondorQData(entry_name,None,schedd_name)
@@ -341,6 +367,9 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
         if ((frontend_whitelist == "On") and (not security_list.has_key(client_security_name))):
             glideFactoryLib.log_files.logWarning("Client name '%s' not in whitelist. Preventing glideins from %s "% (client_security_name,client_int_name))
             in_downtime=True
+
+        # Get factory, entry, and security class downtimes
+        factory_downtimes=glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
         # Check if proxy passing is compatible with auth method
         if decrypted_params.has_key('x509_proxy') or decrypted_params.has_key('x509_proxy_0'):
             if not ('grid_proxy' in auth_method):
@@ -508,6 +537,25 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             else:
                 max_running=factory_max_running
 
+            # If there is a frontend specific limit for this entry on max_jobs
+            # then reduce idle,max_jobs and held_jobs based on frontend specific limits
+            s_id=client_security_name+":"+x509_proxy_security_class
+            s_all=client_security_name+":All"
+            #glideFactoryLib.log_files.logActivity("Before check: %i %i %i"% (max_running,idle_glideins,factory_max_held))
+            if (frontend_max_running.has_key(s_id) and (max_running>frontend_max_running[s_id])):
+                max_running=frontend_max_running[s_id]
+            if (frontend_max_running.has_key(s_all) and (max_running>frontend_max_running[s_all])):
+                max_running=frontend_max_running[s_all]
+            if (frontend_max_idle.has_key(s_id) and (idle_glideins>frontend_max_idle[s_id])):
+                idle_glideins=frontend_max_idle[s_id]
+            if (frontend_max_idle.has_key(s_all) and (idle_glideins>frontend_max_idle[s_all])):
+                idle_glideins=frontend_max_idle[s_all]
+            if (frontend_max_held.has_key(s_id) and (factory_max_held>frontend_max_held[s_id])):
+                factory_max_held=frontend_max_held[s_id]
+            if (frontend_max_held.has_key(s_all) and (factory_max_held>frontend_max_held[s_all])):
+                factory_max_held=frontend_max_held[s_all]
+            #glideFactoryLib.log_files.logActivity("After check: %i %i %i"% (max_running,idle_glideins,factory_max_held))
+
             # Validate that project id is supplied when required (as specified in the rsl string)
             if jobDescript.data.has_key('GlobusRSL'):
                 if 'TG_PROJECT_ID' in jobDescript.data['GlobusRSL']:
@@ -524,7 +572,6 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             if in_downtime:
                 # we are in downtime... no new submissions
                 idle_glideins=0
-            
 
             if work[work_key]['web'].has_key('URL'):
                 try:
@@ -587,7 +634,8 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                                              idle_glideins_pc,max_running_pc,factory_max_held,
                                              jobDescript,x509_proxies.fnames[x509_proxy_security_class],x509_proxies.get_username(x509_proxy_security_class),
                                              client_web,params)
-        #else, it is malformed and should be skipped
+        else: # it is malformed and should be skipped
+            glideFactoryLib.log_files.logWarning("Malformed classad for client %s, skipping"%work_key)
 
     for sec_el in all_security_names:
         try:
@@ -659,8 +707,20 @@ def write_descript(entry_name,entryDescript,entryAttributes,entryParams,monitor_
 ############################################################
 def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobParams):
     """
-    Advertise the glidefactory and glidefactoryclient classads
+    Advertises the entry (glidefactory) and the monitoring (glidefactoryclient) Classads.
+    
+    @type in_downtime:  boolean
+    @param in_downtime:  setting of the entry (or factory) in the downtimes file
+    @type glideinDescript:  dict
+    @param glideinDescript:  factory glidein config values
+    @type jobDescript:  dict
+    @param jobDescript:  entry config values
+    @type jobAttributes:  dict  
+    @param jobAttributes:  entry attributes to be published in the classad
+    @type jobParams:  dict
+    @param jobParams:  entry parameters to be passed to the glideins
     """
+    
     entry_name=jobDescript.data['EntryName']
     trust_domain=jobDescript.data['TrustDomain']
     auth_method=jobDescript.data['AuthMethod']
@@ -675,6 +735,7 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
         for a in current_qc_total[w].keys():
             glidein_monitors['Total%s%s'%(w,a)]=current_qc_total[w][a]
     try:
+        # Make copy of job attributes so can override the validation downtime setting with the true setting of the entry (not from validation)
         myJobAttributes=jobAttributes.data.copy()
         myJobAttributes['GLIDEIN_In_Downtime']=in_downtime
         glideFactoryInterface.advertizeGlidein(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
@@ -685,9 +746,10 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     except:
         glideFactoryLib.log_files.logWarning("Advertize failed")
 
-    # Advertise the monitoring
+    # Advertise the monitoring, use the downtime found in validation of the credentials
+    monitor_job_attrs = jobAttributes.data.copy()
     advertizer=glideFactoryInterface.MultiAdvertizeGlideinClientMonitoring(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
-                                                                           jobAttributes.data.copy())
+                                                                           monitor_job_attrs)
 
     current_qc_data=glideFactoryLib.factoryConfig.client_stats.get_data()
     for client_name in current_qc_data.keys():

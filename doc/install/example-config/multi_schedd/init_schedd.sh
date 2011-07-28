@@ -1,7 +1,12 @@
 #!/bin/sh
-source /opt/glidecondor/new_schedd_setup.sh $1
+CONDOR_LOCATION=/opt/glidecondor
+script=$CONDOR_LOCATION/new_schedd_setup.sh
+source $script $1
+if [ "$?" != "0" ];then
+  echo "ERROR in $script"
+  exit 1
+fi
 # add whatever other config you need
 # create needed directories
-/opt/glidecondor/sbin/condor_init
-# copy Quill writer passwd
-cp -p $_CONDOR_LOCAL_DIR/../spool/.quillwritepassword $_CONDOR_LOCAL_DIR/spool/ 
+$CONDOR_LOCATION/sbin/condor_init
+exit 0

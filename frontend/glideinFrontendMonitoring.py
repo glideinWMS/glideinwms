@@ -16,7 +16,6 @@ import os,os.path
 import re,time,copy,string,math,random,fcntl
 import xmlFormat,timeConversion
 import rrdSupport
-
 ############################################################
 #
 # Configuration
@@ -121,7 +120,7 @@ class groupStats:
 
         for k in self.attributes['Jobs']:
             if jobs_data.has_key(k):
-                el[k]=jobs_data[k]
+                el[k]=int(jobs_data[k])
         self.updated=time.time()
 
     def logGlideins(self,slots_data):
@@ -130,7 +129,7 @@ class groupStats:
 
         for k in self.attributes['Glideins']:
             if slots_data.has_key(k):
-                el[k]=slots_data[k]
+                el[k]=int(slots_data[k])
         self.updated=time.time()
 
 
@@ -139,12 +138,12 @@ class groupStats:
         if not factory in factories:
             factories[factory] = {}
 
-        factories[factory]['MatchedJobs'] = {self.attributes['MatchedJobs'][0]: idle,
-                                        self.attributes['MatchedJobs'][1]: effIdle,
-                                        self.attributes['MatchedJobs'][2]: oldIdle,
-                                        self.attributes['MatchedJobs'][3]: running,
-                                        self.attributes['MatchedJobs'][4]: realRunning
-                                        }
+        factories[factory]['MatchedJobs'] = {self.attributes['MatchedJobs'][0]: int(idle),
+                                             self.attributes['MatchedJobs'][1]: int(effIdle),
+                                             self.attributes['MatchedJobs'][2]: int(oldIdle),
+                                             self.attributes['MatchedJobs'][3]: int(running),
+                                             self.attributes['MatchedJobs'][4]: int(realRunning)
+                                            }
 
         self.update=time.time()
 
@@ -165,10 +164,10 @@ class groupStats:
         if not factory in factories:
             factories[factory] = {}
 
-        factories[factory]['MatchedGlideins'] = {self.attributes['MatchedGlideins'][0]: total,
-                                        self.attributes['MatchedGlideins'][1]: idle,
-                                        self.attributes['MatchedGlideins'][2]: running
-                                        }
+        factories[factory]['MatchedGlideins'] = {self.attributes['MatchedGlideins'][0]: int(total),
+                                                 self.attributes['MatchedGlideins'][1]: int(idle),
+                                                 self.attributes['MatchedGlideins'][2]: int(running)
+                                                }
 
         self.update=time.time()
             
@@ -190,8 +189,8 @@ class groupStats:
             factories[factory] = {}
         
 
-        factories[factory]['Requested'] = {self.attributes['Requested'][0]: reqIdle,
-                                           self.attributes['Requested'][1]: reqMaxRun,
+        factories[factory]['Requested'] = {self.attributes['Requested'][0]: int(reqIdle),
+                                           self.attributes['Requested'][1]: int(reqMaxRun),
                                            'Parameters': copy.deepcopy(params)
                                            }
 
@@ -227,6 +226,7 @@ class groupStats:
 
     def get_total(self):
         total={'MatchedJobs':None,'Requested':None,'MatchedGlideins':None}
+        numtypes=(type(1),type(1L),type(1.0))
 
         for f in self.data['factories'].keys():
             fa=self.data['factories'][f]
@@ -240,12 +240,12 @@ class groupStats:
                         total[w]={}
                         tel=total[w]
                         for a in el.keys():
-                            if type(el[a])==type(1): # copy only numbers
+                            if type(el[a]) in numtypes: # copy only numbers
                                 tel[a]=el[a]
                     else:
                         # successive, sum 
                         for a in el.keys():
-                            if type(el[a])==type(1): # consider only numbers
+                            if type(el[a]) in numtypes: # consider only numbers
                                 if tel.has_key(a):
                                     tel[a]+=el[a]
                             # if other frontends did't have this attribute, ignore
@@ -253,7 +253,7 @@ class groupStats:
                         for a in tel.keys():
                             if not el.has_key(a):
                                 del tel[a]
-                            elif type(el[a])!=type(1):
+                            elif not (type(el[a]) in numtypes):
                                 del tel[a]
         
         for w in total.keys():
@@ -290,40 +290,60 @@ class groupStats:
 
         total_el = self.get_total()
         # update RRDs
+        total_el = self.get_total()
+        self.write_one_rrd("total",total_el)
+
+        data = self.get_data()
+        for fact in data.keys():
+            self.write_one_rrd("factory_%s"%sanitize(fact),data[fact],1)
+
+        self.files_updated=self.updated        
+        return
+
+    ###############################
+    # PRIVATE - Used by write_file
+    # Write one RRD
+    def write_one_rrd(self,name,data,fact=0):
+        global monitoringConfig
+
         val_dict={}
-        type_strings={'Jobs':'Jobs','Glideins':'Glidein','MatchedJobs':'MatchJob',
+        if fact==0:
+            type_strings={'Jobs':'Jobs','Glideins':'Glidein','MatchedJobs':'MatchJob',
+                 'MatchedGlideins':'MatchGlidein','Requested':'Req'}
+        else:
+            type_strings={'MatchedJobs':'MatchJob',
                       'MatchedGlideins':'MatchGlidein','Requested':'Req'}
 
-        #init, so tha all get created properly
+        #init, so that all get created properly
         for tp in self.attributes.keys():
-            tp_str=type_strings[tp]
-            attributes_tp=self.attributes[tp]
-            for a in attributes_tp:
-                val_dict["%s%s"%(tp_str,a)]=None
+            if tp in type_strings.keys():
+                tp_str=type_strings[tp]
+                attributes_tp=self.attributes[tp]
+                for a in attributes_tp:
+                    val_dict["%s%s"%(tp_str,a)]=None
             
         
-        for tp in total_el:
+        for tp in data:
             # type - Jobs,Slots
             if not (tp in self.attributes.keys()):
+                continue
+            if not (tp in type_strings.keys()):
                 continue
 
             tp_str=type_strings[tp]
 
             attributes_tp=self.attributes[tp]
                 
-            fe_el_tp=total_el[tp]
+            fe_el_tp=data[tp]
             for a in fe_el_tp.keys():
                 if a in attributes_tp:
                     a_el=fe_el_tp[a]
                     if type(a_el)!=type({}): # ignore subdictionaries
                         val_dict["%s%s"%(tp_str,a)]=a_el
 
-        monitoringConfig.establish_dir("total")
-        monitoringConfig.write_rrd_multi("total/Status_Attributes",
+        monitoringConfig.establish_dir("%s"%name)
+        monitoringConfig.write_rrd_multi("%s/Status_Attributes"%name,
                                          "GAUGE",self.updated,val_dict)
-
-        self.files_updated=self.updated        
-        return
 
 ########################################################################
     
@@ -353,7 +373,7 @@ class factoryStats:
         for p in status_pairs:
             nr,str=p
             if qc_status.has_key(nr):
-                el[str]=qc_status[nr]
+                el[str]=int(qc_status[nr])
             else:
                 el[str]=0
         self.updated=time.time()
@@ -377,9 +397,9 @@ class factoryStats:
         t_el['Requested']=el
 
         if requests.has_key('IdleGlideins'):
-            el['Idle']=requests['IdleGlideins']
+            el['Idle']=int(requests['IdleGlideins'])
         if requests.has_key('MaxRunningGlideins'):
-            el['MaxRun']=requests['MaxRunningGlideins']
+            el['MaxRun']=int(requests['MaxRunningGlideins'])
 
         el['Parameters']=copy.deepcopy(params)
 
@@ -410,7 +430,7 @@ class factoryStats:
         for karr in (('Idle','JobsIdle'),('Running','JobsRunning'),('GlideinsIdle','GlideIdle'),('GlideinsRunning','GlideRunning'),('GlideinsTotal','GlideTotal')):
             ck,ek=karr
             if client_monitor.has_key(ck):
-                el[ek]=client_monitor[ck]
+                el[ek]=int(client_monitor[ck])
 
         if client_internals.has_key('LastHeardFrom'):
             el['InfoAge']=int(time.time()-long(client_internals['LastHeardFrom']))
@@ -439,6 +459,7 @@ class factoryStats:
 
     def get_total(self):
         total={'Status':None,'Requested':None,'ClientMonitor':None}
+        numtypes=(type(1),type(1L),type(1.0))
 
         for f in self.data.keys():
             fe=self.data[f]
@@ -452,12 +473,12 @@ class factoryStats:
                         total[w]={}
                         tel=total[w]
                         for a in el.keys():
-                            if type(el[a])==type(1): # copy only numbers
+                            if type(el[a]) in numtypes: # copy only numbers
                                 tel[a]=el[a]
                     else:
                         # successive, sum 
                         for a in el.keys():
-                            if type(el[a])==type(1): # consider only numbers
+                            if type(el[a]) in numtypes: # consider only numbers
                                 if tel.has_key(a):
                                     tel[a]+=el[a]
                             # if other frontends did't have this attribute, ignore
@@ -465,7 +486,7 @@ class factoryStats:
                         for a in tel.keys():
                             if not el.has_key(a):
                                 del tel[a]
-                            elif type(el[a])!=type(1):
+                            elif not (type(el[a]) in numtypes):
                                 del tel[a]
         
         for w in total.keys():
@@ -588,6 +609,17 @@ def tmp2final(fname):
       print "Failed renaming %s.tmp into %s"%(fname,fname)
     return
 
+
+##################################################
+def sanitize(name):
+    good_chars=string.ascii_letters+string.digits+".-"
+    outarr=[]
+    for i in range(len(name)):
+        if name[i] in good_chars:
+            outarr.append(name[i])
+        else:
+            outarr.append("_")
+    return string.join(outarr,"")
 
 ##################################################
 

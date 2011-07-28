@@ -1,5 +1,9 @@
 #!/usr/bin/env python
-#####################################################
+#
+# Project:
+#   glideinWMS
+#
+# File Version:
 #
 # Description:
 #   This program implements a GUI
@@ -8,7 +12,6 @@
 # Author:
 #   Robert Chen @UCSD
 #
-#####################################################
 
 #import wxWidgets
 import wx

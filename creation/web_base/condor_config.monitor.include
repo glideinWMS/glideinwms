@@ -13,8 +13,8 @@ JOB_RENICE_INCREMENT = 20
 
 # force a single CPU (the WN could have many)
 NUM_CPUS = 1
-VIRTUAL_MACHINE_TYPE_1 = cpus=1, memory=10%, swap=10%, disk=10%
-NUM_VIRTUAL_MACHINES_TYPE_1 = 1
+SLOT_TYPE_1 = cpus=1, memory=10%, swap=10%, disk=10%
+NUM_SLOTS_TYPE_1 = 1
 
 HAS_MONITOR_VM=True
 IS_MONITOR_VM=True

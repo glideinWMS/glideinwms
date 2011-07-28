@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>glideinWMS</title>
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="./index.html">Components</a></li>
+        <li>Tools</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+            <li> <a href="../corral.html">Corral Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <div id="cse-search-form" style="width: 100%;">Loading</div>
+            <script src="http://www.google.com/jsapi" type="text/javascript"></script>
+            <script src="../common/glidein.js" type="text/javascript"></script>
+            <script type="text/javascript">
+            google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+            google.setOnLoadCallback(onLoad);
+            </script>
+        </div>
+    </div>
+    <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
+<div class="content">
+    <div class="heading">
+    <h2>Components</h2>
+	<ul class="subcomponents">
+	     <li> Overview</li>
+	     <li> <a href="./prerequisites.html">Prerequisites</a></li>
+	     <li> <a href="./collector_install.html">User Collector</a></li>
+	     <li> <a href="./pool_install.html">User Schedd</a></li>
+         <li> <a href="./gsi.html">GSI</a></li>
+	     <li class="last"> <a href="./condor.html">Condor</a></li>
+	</ul>
+        <h3>Tools</h3>
+    
+	</div>
+<div class="section">
+<h4><b>glidecondor_addDN</b></h4>
+<p>
+The <tt>glidecondor_addDN</tt> script (found in the ./install directory of 
+the glideinWMS tree) can help manage Condor mapfiles.  The management of 
+DNs and authorization to specific users can be confusing and this utility
+can help.
+</p>
+<blockquote>
+glidecondor_addDN [-daemon] <i>/OU=YOUR/OU=DN/CN=HERE</i> <i>Mapped_to_User</i>
+</blockquote>
+<p>
+    This script will use the condor_config in your path (from "<tt>condor_config_val BIN</tt>") so make sure  your path and config is pointing to the correct condor if you have multiple services installed on the same machine.</p>
+<p>
+    This script will modify the certs/condor_mapfile of your condor_mapfile 
+in order to correctly add the DN to Condor's authorization scheme.
+</p>
+<p>
+    If <tt>-daemon</tt> is specified, then, in addition, this will modify
+the <tt>condor_config.local</tt> to include this DN as a daemon.
+</p>
+
+
+</div>
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br>
+Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glid%0AeinWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
+glideinWMS email support: glideinwms-support at fnal.gov
+</div>
+</div>
+</body>
+</html>

@@ -194,6 +194,9 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             if x509_proxy_plugin!=None:
                 condorq_format_list=list(condorq_format_list)+list(x509_proxy_plugin.get_required_job_attributes())
 
+            ### Add in elements to help in determining if jobs have voms creds
+            condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN','s'),))
+            condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN','s'),))
             condorq_dict=glideinFrontendLib.getCondorQ(elementDescript.merged_data['JobSchedds'],
                                                        elementDescript.merged_data['JobQueryExpr'],
                                                        condorq_format_list)
@@ -219,7 +222,10 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             if x509_proxy_plugin!=None:
                 status_format_list=list(status_format_list)+list(x509_proxy_plugin.get_required_classad_attributes())
 
-            status_dict=glideinFrontendLib.getCondorStatus([None],'GLIDECLIENT_Name=?="%s.%s"'%(frontend_name,group_name),status_format_list) # use the main collector... all adds must go there
+            # use the main collector... all adds must go there
+            status_dict=glideinFrontendLib.getCondorStatus([None],
+                                                           'GLIDECLIENT_Name=?="%s.%s"'%(frontend_name,group_name),
+                                                           status_format_list)
 
             os.write(w,cPickle.dumps(status_dict))
         finally:
@@ -245,12 +251,14 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     condorq_dict=pipe_out['jobs']
     status_dict=pipe_out['startds']
 
+    condorq_dict_voms=glideinFrontendLib.getIdleVomsCondorQ(condorq_dict)
     condorq_dict_idle=glideinFrontendLib.getIdleCondorQ(condorq_dict)
     condorq_dict_old_idle=glideinFrontendLib.getOldCondorQ(condorq_dict_idle,600)
     condorq_dict_running=glideinFrontendLib.getRunningCondorQ(condorq_dict)
 
     condorq_dict_types={'Idle':{'dict':condorq_dict_idle,'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle)},
                         'OldIdle':{'dict':condorq_dict_old_idle,'abs':glideinFrontendLib.countCondorQ(condorq_dict_old_idle)},
+                        'VomsIdle':{'dict':condorq_dict_voms,'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
                         'Running':{'dict':condorq_dict_running,'abs':glideinFrontendLib.countCondorQ(condorq_dict_running)}}
     condorq_dict_abs=glideinFrontendLib.countCondorQ(condorq_dict);
     
@@ -260,8 +268,9 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                             'OldIdle':condorq_dict_types['OldIdle']['abs'],
                             'Running':condorq_dict_types['Running']['abs']})
 
-    glideinFrontendLib.log_files.logActivity("Jobs found total %i idle %i (old %i) running %i"%(condorq_dict_abs,
+    glideinFrontendLib.log_files.logActivity("Jobs found total %i idle %i (old %i, voms %i) running %i"%(condorq_dict_abs,
                                                                                                 condorq_dict_types['Idle']['abs'],
+                                                                                                condorq_dict_types['VomsIdle']['abs'],
                                                                                                 condorq_dict_types['OldIdle']['abs'],
                                                                                                 condorq_dict_types['Running']['abs']))
 
@@ -455,6 +464,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         if glidein_el['attrs'].has_key('GLIDEIN_In_Downtime'):
             glidein_in_downtime=(glidein_el['attrs']['GLIDEIN_In_Downtime']=='True')
 
+
         count_jobs={}     # straight match
         prop_jobs={}      # proportional subset for this entry
         hereonly_jobs={}  # can only run on this site
@@ -465,11 +475,23 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
 
         count_status=count_status_multi[request_name]
 
+        #If the glidein requires a voms proxy, only match voms idle jobs
+        if glidein_el['attrs'].has_key('GLIDEIN_REQUIRE_VOMS'):
+            #glideinFrontendLib.log_files.logActivity("Require VOMS found: %s" % glidein_el['attrs']['GLIDEIN_REQUIRE_VOMS'])
+            if (glidein_el['attrs']['GLIDEIN_REQUIRE_VOMS']=="True"):
+                prop_jobs['Idle']=prop_jobs['VomsIdle']
+                glideinFrontendLib.log_files.logActivity("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
+
         # effective idle is how much more we need
         # if there are idle slots, subtract them, they should match soon
         effective_idle=prop_jobs['Idle']-count_status['Idle']
+
         if effective_idle<0:
             effective_idle=0
+
+        effective_oldidle=prop_jobs['OldIdle']-count_status['Idle']
+        if effective_oldidle<0:
+            effective_oldidle=0
 
         if count_status['Total']>=max_running:
             # have all the running jobs I wanted
@@ -483,7 +505,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         elif (effective_idle>0):
             glidein_min_idle = effective_idle
             glidein_min_idle=glidein_min_idle/3 # since it takes a few cycles to stabilize, ask for only one third
-            glidein_idle_reserve=prop_jobs['OldIdle']/3 # do not reserve any more than the number of old idles for reserve (/3)
+            glidein_idle_reserve=effective_oldidle/3 # do not reserve any more than the number of old idles for reserve (/3)
             if glidein_idle_reserve>reserve_idle:
                 glidein_idle_reserve=reserve_idle
 
@@ -506,6 +528,8 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         else:
             # no idle, make sure the glideins know it
             glidein_min_idle=0 
+
+        glidein_min_idle=int(glidein_min_idle)
 
         # we don't need more slots than number of jobs in the queue (unless the fraction is positive)
         if (prop_jobs['Idle']+count_jobs['Running'])>0:
@@ -661,6 +685,16 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     unmatched_idle=condorq_dict_types['Idle']['count'][(None,None,None)]
     unmatched_oldidle=condorq_dict_types['OldIdle']['count'][(None,None,None)]
     unmatched_running=condorq_dict_types['Running']['count'][(None,None,None)]
+
+    stats['group'].logMatchedJobs(
+        'Unmatched', unmatched_idle, unmatched_idle, unmatched_oldidle,
+        unmatched_running, 0)
+    
+    stats['group'].logMatchedGlideins('Unmatched', 0,0,0) # Nothing running
+    stats['group'].logFactAttrs('Unmatched', [], ()) # just for completeness
+    stats['group'].logFactDown('Unmatched', True)
+    stats['group'].logFactReq('Unmatched', 0, 0, {})
+
     this_stats_arr=(unmatched_idle,unmatched_idle,unmatched_idle,unmatched_oldidle,unmatched_idle,unmatched_running,0,0,
                     0,0,0, # glideins... none, since no matching
                     0,0)   # requested... none, since not matching

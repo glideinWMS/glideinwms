@@ -17,7 +17,6 @@ import timeConversion
 import xmlParse,xmlFormat
 import glideinFrontendMonitoring
 
-
 ############################################################
 #
 # Configuration
@@ -56,6 +55,48 @@ status_attributes={'Jobs':("Idle","OldIdle","Running","Total"),
                    'MatchedGlideins':("Total","Idle","Running"),
                    'Requested':("Idle","MaxRun")}
 
+####################################
+# PRIVATE - Used by aggregateStatus
+# Write one RRD
+def write_one_rrd(name,updated,data,fact=0):
+    if fact==0:
+        type_strings={'Jobs':'Jobs','Glideins':'Glidein','MatchedJobs':'MatchJob',
+                      'MatchedGlideins':'MatchGlidein','Requested':'Req'}
+    else:
+        type_strings={'MatchedJobs':'MatchJob',
+                      'MatchedGlideins':'MatchGlidein','Requested':'Req'}
+
+    # initialize the RRD dictionary, so it gets created properly
+    val_dict={}
+    for tp in status_attributes.keys():
+        if tp in type_strings.keys():
+            tp_str=type_strings[tp]
+            attributes_tp=status_attributes[tp]
+            for a in attributes_tp:
+                val_dict["%s%s"%(tp_str,a)]=None
+
+    for tp in data.keys():
+        # type - status or requested
+        if not (tp in status_attributes.keys()):
+            continue
+        if not (tp in type_strings.keys()):
+            continue
+
+        tp_str=type_strings[tp]
+        attributes_tp=status_attributes[tp]
+                
+        tp_el=data[tp]
+
+        for a in tp_el.keys():
+            if a in attributes_tp:
+                a_el=int(tp_el[a])
+                if type(a_el)!=type({}): # ignore subdictionaries
+                    val_dict["%s%s"%(tp_str,a)]=a_el
+                
+    glideinFrontendMonitoring.monitoringConfig.establish_dir("%s"%name)
+    glideinFrontendMonitoring.monitoringConfig.write_rrd_multi("%s"%name,
+                                                               "GAUGE",updated,val_dict)
+
 ##############################################################################
 # create an aggregate of status files, write it in an aggregate status file
 # end return the values
@@ -66,19 +107,7 @@ def aggregateStatus():
                   'MatchedGlideins':'MatchGlidein','Requested':'Req'}
     global_total={'Jobs':None,'Glideins':None,'MatchedJobs':None,'Requested':None,'MatchedGlideins':None}
     status={'groups':{},'total':global_total}
-
-    # initialize the RRD dictionary, so it gets created properly
-    val_dict={}
-    for tp in global_total.keys():
-        # type - status or requested
-        if not (tp in status_attributes.keys()):
-            continue
-
-        tp_str=type_strings[tp]
-
-        attributes_tp=status_attributes[tp]
-        for a in attributes_tp:
-            val_dict["%s%s"%(tp_str,a)]=None
+    global_fact_totals={}
 
     nr_groups=0
     for group in monitorAggregatorConfig.groups:
@@ -97,6 +126,35 @@ def aggregateStatus():
           # first time after upgrade factories may not be defined
           status['groups'][group]={'factories':{}}
 
+        this_group=status['groups'][group]
+        for fact in this_group['factories'].keys():
+            this_fact=this_group['factories'][fact]
+            if not fact in global_fact_totals.keys():
+                # first iteration through, set fact totals equal to the first group's fact totals
+                global_fact_totals[fact]={}
+                for attribute in type_strings.keys():
+                    if attribute in this_fact.keys():
+                        global_fact_totals[fact][attribute]={}
+                        for type_attribute in this_fact[attribute].keys():
+                            this_type_attribute=this_fact[attribute][type_attribute]
+                            try:
+                                global_fact_totals[fact][attribute][type_attribute]=int(this_type_attribute)
+                            except:
+                                pass
+            else:
+                # next iterations, factory already present in global fact totals, add the new factory values to the previous ones
+                for attribute in type_strings.keys():
+                    if attribute in this_fact.keys():
+                        for type_attribute in this_fact[attribute].keys():
+                            this_type_attribute=this_fact[attribute][type_attribute]
+                            if type(this_type_attribute)==type(global_fact_totals):
+                                # dict, do nothing
+                                pass
+                            else:
+                                if type_attribute in global_fact_totals[fact][attribute].keys(): 
+                                   global_fact_totals[fact][attribute][type_attribute]+=int(this_type_attribute)
+                                else:
+                                   global_fact_totals[fact][attribute][type_attribute]=int(this_type_attribute)
         #nr_groups+=1
         #status['groups'][group]={}
 
@@ -132,6 +190,8 @@ def aggregateStatus():
             del global_total[w] # remove group if not defined
 
     # Write xml files
+
+
     updated=time.time()
     xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
              '<VOFrontendStats>\n'+
@@ -142,29 +202,25 @@ def aggregateStatus():
                                                                                                                                                                                     "subtypes_params":{"class":{}}}}}}}}}}}},
                                    leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              xmlFormat.class2string(status["total"],inst_name="total",leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+
+             xmlFormat.dict2string(global_fact_totals,dict_name="factories",el_name="factory",
+                                   subtypes_params={"class":{"subclass_params":{"Requested":{"dicts_params":{"Parameters":{"el_name":"Parameter",
+
+       "subtypes_params":{"class":{}}}}}}}},
+                                   leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              "</VOFrontendStats>\n")
+
     glideinFrontendMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.status_relname,xml_str)
-
+                
     # Write rrds
+
     glideinFrontendMonitoring.monitoringConfig.establish_dir("total")
-
-    for tp in global_total.keys():
-        # type - status or requested
-        if not (tp in status_attributes.keys()):
-            continue
-
-        tp_str=type_strings[tp]
-        attributes_tp=status_attributes[tp]
+    write_one_rrd("total/Status_Attributes",updated,global_total,0)
                 
-        tp_el=global_total[tp]
-
-        for a in tp_el.keys():
-            if a in attributes_tp:
-                a_el=int(tp_el[a])
-                val_dict["%s%s"%(tp_str,a)]=a_el
-                
-    glideinFrontendMonitoring.monitoringConfig.write_rrd_multi("total/Status_Attributes",
-                                                               "GAUGE",updated,val_dict)
+    for fact in global_fact_totals.keys():
+        fe_dir="total/factory_%s"%glideinFrontendMonitoring.sanitize(fact)
+        glideinFrontendMonitoring.monitoringConfig.establish_dir(fe_dir)
+        write_one_rrd("%s/Status_Attributes"%fe_dir,updated,global_fact_totals[fact],1)
 
     return status
 

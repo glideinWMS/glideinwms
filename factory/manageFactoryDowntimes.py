@@ -389,7 +389,7 @@ def get_args(argv):
         if (arg == "-end"):
             opt_dict["end"]=argv[index+1]
         if (arg == "-delay"):
-            opt_dict["end"]=argv[index+1]
+            opt_dict["delay"]=argv[index+1]
         if (arg == "-ISinfo"):
             opt_dict["ISinfo"]=argv[index+1]
         if (arg == "-security"):

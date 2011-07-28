@@ -562,7 +562,6 @@ def populate_common_descript(descript_dict,        # will be modified
         match_expr = '(%s) and (glidein["attrs"]["GLEXEC_BIN"] != "NONE")' % match_expr
     descript_dict.add('MatchExpr', match_expr)
 
-
 #####################################################
 # Returns a string usable for GLIDEIN_Collector
 def calc_glidein_collectors(collectors):
@@ -596,7 +595,23 @@ def populate_gridmap(params,gridmap_dict):
     if params.security.proxy_DN!=None:
         if not (params.security.proxy_DN in collector_dns):
             gridmap_dict.add(params.security.proxy_DN,'frontend')
-            
+
+#####################################################
+# Returns a string usable for GLIDEIN_Collector
+def calc_glidein_collectors(collectors):
+    collector_nodes=[]
+    for el in collectors:
+        is_secondary=eval(el.secondary)
+        if not is_secondary:
+            continue # only consider secondary collectors here
+        collector_nodes.append(el.node)
+    if len(collector_nodes)!=0:
+        return string.join(collector_nodes,",")
+
+    # no secondard nodes, will have to use the primary ones
+    for el in collectors:
+        collector_nodes.append(el.node)
+    return string.join(collector_nodes,",")
 
 #####################################################
 # Populate security values

@@ -43,6 +43,14 @@ class GlideinParams(cWParams.CommonParams):
         self.allow_defaults["name"] = (None, "string", "frontend name", None)
         self.allow_defaults["security_class"] = ("All", "string", "security class", None)
 
+        self.max_job_frontend_defaults=cWParams.commentedOrderedDict()
+        self.max_job_frontend_defaults["name"]=(None,"string","frontend name",None)
+        self.max_job_frontend_defaults["security_class"]=("All","string","security class",None)
+        self.max_job_frontend_defaults["held"]=('1000',"nr","Maximum number of held glideins (for this frontend) before forcing the cleanup.",None)
+        self.max_job_frontend_defaults["idle"]=('2000',"nr","Maximum number of idle glideins (for this frontend) allowed.",None)
+        self.max_job_frontend_defaults["running"]=('10000',"nr","Maximum number of concurrent glideins (per frontend) that can be submitted",None)
+    
+
         # publishing specific to factory
         self.attr_defaults["publish"]=("True","Bool","Should it be published by the factory?",None)
         self.attr_defaults["const"]=("True","Bool","Should it be constant? (Else it can be overriden by the frontend. Used only if parameter is True.)",None)
@@ -58,11 +66,18 @@ class GlideinParams(cWParams.CommonParams):
 
         entry_config_defaults=cWParams.commentedOrderedDict()
 
+
+
         entry_config_max_jobs_defaults=cWParams.commentedOrderedDict()
         entry_config_max_jobs_defaults["running"]=('10000',"nr","Maximum number of concurrent glideins (per frontend) that can be submitted.",None)
         entry_config_max_jobs_defaults["idle"]=('2000',"nr","Maximum number of idle glideins (per frontend) allowed.",None)
         entry_config_max_jobs_defaults["held"]=('1000',"nr","Maximum number of held glideins (per frontend) before forcing the cleanup.",None)
+        entry_config_max_jobs_defaults["max_job_frontends"]=(xmlParse.OrderedDict(),'Dictionary of frontends',"Each frontend entry contains",self.max_job_frontend_defaults)
         entry_config_defaults['max_jobs']=entry_config_max_jobs_defaults
+
+        entry_config_restrictions_defaults=cWParams.commentedOrderedDict()
+        entry_config_restrictions_defaults["require_voms_proxy"]=("False","Bool","Whether this entry point requires a voms proxy",None)
+        entry_config_defaults['restrictions']=entry_config_restrictions_defaults
 
         
         entry_config_queue_defaults=cWParams.commentedOrderedDict()
@@ -157,6 +172,7 @@ class GlideinParams(cWParams.CommonParams):
         security_default["pub_key"]=("RSA","None|RSA","Type of public key system used for secure message passing",None)
         security_default["reuse_oldkey_onstartup_gracetime"]=("900","seconds","Time in sec old key can be used to decrypt requests from frontend",None)
         security_default["key_length"]=("2048","bits","Key length in bits",None)
+        security_default["allow_proxy"]=("frontend","list","What proxies can be used for glidein submission? (list combination of factory,frontend)",None)
         security_default["frontends"]=(xmlParse.OrderedDict(),"Dictionary of frontend","Each frontend contains",self.frontend_defaults)
         
         self.defaults["security"]=security_default
@@ -232,6 +248,7 @@ class GlideinParams(cWParams.CommonParams):
                                 'monitorgroups':{'el_name':'monitorgroup','subtypes_params':{'class':{}}},
                                 'infosys_refs':{'el_name':'infosys_ref','subtypes_params':{'class':{}}}},
                 'dicts_params':{'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},
+                                'max_job_frontends':{'el_name':'max_job_frontend','subtypes_params':{'class':{}}},
                                 'entries':{'el_name':'entry','subtypes_params':{'class':{}}},
                                 'allow_frontends':{'el_name':'allow_frontend','subtypes_params':{'class':{}}},
                                 'frontends':{'el_name':'frontend','subtypes_params':{'class':{}}},'security_classes':{'el_name':'security_class','subtypes_params':{'class':{}}}}}

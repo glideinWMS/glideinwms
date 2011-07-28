@@ -45,6 +45,9 @@ class FactoryConfig:
         #Default the glideinWMS version string
         self.glideinwms_version = "glideinWMS UNKNOWN"
 
+        #Default the glideinWMS version string
+        self.glideinwms_version = "glideinWMS UNKNOWN"
+
         # String to prefix for the attributes
         self.glidein_attr_prefix = ""
 
@@ -105,7 +108,7 @@ class MultiExeError(condorExe.ExeError):
 
 def findWork(factory_name, glidein_name, entry_name,
              supported_signtypes,
-             pub_key_obj=None, 
+             pub_key_obj=None, allowed_proxy_source=('factory','frontend'),
              get_only_matching=True,
              additional_constraints=None):
     """
@@ -121,6 +124,8 @@ def findWork(factory_name, glidein_name, entry_name,
     @param supported_signtypes: only support one kind of signtype, 'sha1', default is None
     @type pub_key_obj: string
     @param pub_key_obj: only support 'RSA'
+    @type allowed_proxy_source: list
+    @param allowed_proxy_source: types of sources the proxy is allowed to come from
     @type get_only_matching: boolean
     @param get_only_matching: if this is false, return also glideins I cannot use
     @type additional_constraints: string
@@ -142,6 +147,12 @@ def findWork(factory_name, glidein_name, entry_name,
             # get only classads that have my key or no key at all
             # any other key will not work
             status_constraint+=' && (((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined) && (ReqEncIdentity=!=Undefined)) || (ReqPubKeyID=?=Undefined))'%pub_key_obj.get_pub_key_id()
+            if not ('factory' in allowed_proxy_source):
+                # the proxy is required, so look for it 
+                status_constraint+=' && ((GlideinEncParamx509_proxy =!= UNDEFINED) || (GlideinEncParamx509_proxy_0 =!= UNDEFINED))'
+            if not ('frontend' in allowed_proxy_source):
+                # the proxy is not allowed, so ignore such requests 
+                status_constraint+=' && (GlideinEncParamx509_proxy =?= UNDEFINED) && (GlideinEncParamx509_proxy_0 =?= UNDEFINED)'
 
     if additional_constraints!=None:
         status_constraint="(%s)&&(%s)"%(status_constraint,additional_constraints)
@@ -425,6 +436,25 @@ def deadvertizeFactory(factory_name,glidein_name):
     finally:
         os.remove(tmpnam)
     
+def deadvertizeFactory(factory_name,glidein_name):
+    # get a 9 digit number that will stay 9 digit for the next 25 years
+    short_time = time.time()-1.05e9
+    tmpnam="/tmp/gfi_ag_%li_%li"%(short_time,os.getpid())
+    fd=file(tmpnam,"w")
+    try:
+        try:
+            fd.write('MyType = "Query"\n')
+            fd.write('TargetType = "%s"\n'%factoryConfig.factory_id)
+            fd.write('Requirements = (FactoryName=?="%s")&&(GlideinName=?="%s")'%(factory_name,glidein_name))
+        finally:
+            fd.close()
+
+        exe_condor_advertise(tmpnam,"INVALIDATE_MASTER_ADS")
+    finally:
+        os.remove(tmpnam)
+    
+
+############################################################
 
 ############################################################
 
