@@ -73,7 +73,7 @@ def main(params):
 ############################################################
 
 if __name__ == '__main__':
-    usage_prefix="create_frontend [-writeback yes|no] [-debug]"
+    usage = "create_frontend [-writeback yes|no] [-debug] cfg_fname | -help"
     argv=sys.argv
     writeback='yes'
     debug=False
@@ -99,7 +99,7 @@ if __name__ == '__main__':
         sys.exit(1)
         
     if not (writeback in ('yes','no')):
-        print params.usage()
+        print usage
         print ""
         print "-writeback must be yes or no, found '%s'"%writeback
         sys.exit(1)
@@ -112,7 +112,7 @@ if __name__ == '__main__':
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
             print string.join(tb,'\n')
-        print params.usage()
+        print usage
         print ""
         print e
         sys.exit(1)

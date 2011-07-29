@@ -60,7 +60,7 @@ def main(params,flags):
 ############################################################
 
 def parse_args(argv):
-    usage_prefix="info_glidein [-dirs] [-entries [-all|*-enabled*] [-schedd] [-CE]]"
+    usage = "info_glidein [-dirs] [-entries [-all|*-enabled*] [-schedd] [-CE]]  cfg_fname | -help"
     single_flags=('dirs','entries','all','enabled','up','CE','schedd')
     flags=[]
     while len(argv)>1:
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     try:
         main(params,flags)
     except RuntimeError, e:
-        print params.usage()
+        print usage
         print ""
         print e
 
