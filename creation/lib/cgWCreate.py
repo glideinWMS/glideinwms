@@ -140,15 +140,10 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
 #########################################
 # Create init.d compatible startup file
-def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, overwrite=False):
+def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir):
     """
     Creates the factory startup file and changes the permissions.  Can overwrite an existing file.
     """    
-    
-    if overwrite and os.path.exists(os.path.join(factory_dir, startup_fname)):
-        # Remove file if already exists
-        os.remove(os.path.join(factory_dir, startup_fname))
-        
     fd=open(startup_fname,"w")
     try:
         fd.write("#!/bin/bash\n")
@@ -204,11 +199,56 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, overwrite=F
         fd.write("}\n\n")
 
         fd.write("reconfig() {\n")
+        fd.write('        if [ -f "$2" ]; then\n')
+        fd.write("           has_arg=1\n")
+        fd.write("        else\n")
+        fd.write("           has_arg=0\n")
+        fd.write('           echo $"Usage: factory_startup reconfig <fname> <writeback yes|no>"\n')
+        fd.write('           echo "ERROR: configuration file does not exist: $2"\n')
+        fd.write("           exit 1\n")
+        fd.write("        fi\n")
+        fd.write('        if [ -z "$3" ]; then\n')
+        fd.write("           if [ -z $GLIDEIN_WRITEBACK ]; then\n")
+        fd.write('              writeback="no"\n')
+        fd.write("           else\n")
+        fd.write('              writeback=$GLIDEIN_WRITEBACK\n')
+        fd.write("           fi\n")
+        fd.write("        else\n")
+        fd.write("           writeback=$3\n")
+        fd.write("        fi\n")
+        fd.write('        "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir" >/dev/null 2>&1 </dev/null\n')
+        fd.write("        notrun=$?\n")
+        fd.write("        if [ $notrun -eq 0 ]; then\n")
+        fd.write("          stop\n")
+        fd.write("          if [ $RETVAL -ne 0 ]; then\n")
+        fd.write("            exit $RETVAL\n")
+        fd.write("          fi\n")
+        fd.write("        fi\n")
+        fd.write('        "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" -writeback "$writeback" -update_scripts "no" -xml $2\n')
+        fd.write("        reconfig_failed=$?\n")
+        fd.write('        echo -n "Reconfiguring the factory"\n')
+        fd.write("        test $reconfig_failed -eq 0 && success || failure\n")
+        fd.write('        RETVAL=$?\n')
+        fd.write("        echo\n")
+        fd.write("        if [ $notrun -eq 0 ]; then\n")
+        fd.write('          if [ $reconfig_failed -ne 0 ];then\n')
+        fd.write('            echo ".. starting factory with old configuration file"\n')
+        fd.write('          fi\n')
+        fd.write("          start\n")
+        fd.write('          if [ $RETVAL -eq 0 ] && [ $reconfig_failed -eq 0 ]; then\n')
+        fd.write('            RETVAL=0\n')
+        fd.write('          else\n')
+        fd.write('            RETVAL=1\n')
+        fd.write('          fi\n')
+        fd.write("        fi\n")
+        fd.write("}\n\n")
+
+        fd.write("upgrade() {\n")
         fd.write('        if [ -f "$1" ]; then\n')
         fd.write("           has_arg=1\n")
         fd.write("        else\n")
         fd.write("           has_arg=0\n")
-        fd.write('           echo $"Usage: factory_startup reconfig <fname>"\n')
+        fd.write('           echo $"Usage: factory_startup update <fname>"\n')
         fd.write('           echo "ERROR: configuration file does not exist: $1"\n')
         fd.write("           exit 1\n")
         fd.write("        fi\n")
@@ -220,7 +260,7 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, overwrite=F
         fd.write("            exit $RETVAL\n")
         fd.write("          fi\n")
         fd.write("        fi\n")
-        fd.write('        "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" $1\n')
+        fd.write('        "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" -writeback "yes" -update_scripts "yes" -xml $1\n')
         fd.write("        reconfig_failed=$?\n")
         fd.write('        echo -n "Reconfiguring the factory"\n')
         fd.write("        test $reconfig_failed -eq 0 && success || failure\n")
@@ -276,7 +316,10 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, overwrite=F
         fd.write('	         RETVAL=$?\n')
         fd.write("        ;;\n")
         fd.write("        reconfig)\n")
-        fd.write("                reconfig $2\n")
+        fd.write('                reconfig "$@"\n')
+        fd.write("        ;;\n")
+        fd.write("        upgrade)\n")
+        fd.write("                upgrade $2\n")
         fd.write("        ;;\n")
         fd.write("	  down)\n")
         fd.write("		  downtime down \"$@\"\n")
@@ -296,7 +339,7 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, overwrite=F
         fd.write('            RETVAL=$?\n')
         fd.write("	  ;;\n")
         fd.write("        *)\n")
-        fd.write('        echo $"Usage: factory_startup {start|stop|restart|status|info|reconfig|down|up|infosysdown|statusdown}"\n')
+        fd.write('        echo $"Usage: factory_startup {start|stop|restart|status|info|reconfig|upgrade|down|up|infosysdown|statusdown}"\n')
         fd.write("        exit 1\n")
         fd.write("esac\n\n")
 
