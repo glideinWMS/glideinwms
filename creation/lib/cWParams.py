@@ -189,7 +189,7 @@ class Params:
             # create derived values
             self.derive()
         except RuntimeError, e:
-            raise RuntimeError,"%s\n\n%s"%(self.usage(),e)
+            raise RuntimeError,"Unexpected error occurred loading the configuration file.\n\n%s" % e
         pass
 
     def derive(self):

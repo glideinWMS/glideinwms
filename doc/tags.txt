@@ -1,3 +1,10 @@
+vNext
+	Added 'upgrade' option to factory startup script so that all the  
+	  files in the glidein submit directory are updated.  Did the same for
+	  the frontend startup script.  'reconfig' only updates the files 
+	  populated with information from the configuration files (no scripts).
+	
+
 v2_5_2	Frontend publishes glideresource classad to the pool collector. This
 	  is useful for the users to do match making for their jobs.
 	Useful job info like JOB_Site, JOB_GLIDEIN_Entry_Name, JOB_GLIDEIN_Name

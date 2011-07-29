@@ -32,7 +32,7 @@ import cvWParamDict
 
 ################################################################################
 
-def main(params,old_params):
+def main(params, old_params, update_scripts, writeback):
     # load old files
     old_frontend_dicts_obj=cvWParamDict.frontendDicts(old_params)
     old_frontend_dicts_obj.load()
@@ -47,10 +47,26 @@ def main(params,old_params):
     # write to disk
     frontend_dicts_obj.save()
     frontend_dicts_obj.set_readonly(True)
-
-    # save config into file (with backup, since the old one already exists)
+    
+    if update_scripts == 'yes':
+        # recreate the init.d startup file
+        startup_fname = os.path.join(frontend_dicts_obj.main_dicts.work_dir,cvWConsts.INITD_STARTUP_FILE)
+        frontend_dir = frontend_dicts_obj.main_dicts.work_dir
+        
+        # Remove startup file if already exists
+        if os.path.exists(os.path.join(frontend_dir, startup_fname)):
+            os.remove(os.path.join(frontend_dir, startup_fname))
+	        
+        cvWCreate.create_initd_startup(startup_fname,
+                                       frontend_dir,
+                                       os.path.realpath(os.path.join(STARTUP_DIR,'..')))
+	
     cfgfile=os.path.join(frontend_dicts_obj.main_dicts.work_dir,cvWConsts.XML_CONFIG_FILE)
-    params.save_into_file_wbackup(cfgfile,set_ro=True)
+    
+    if writeback == 'yes':  
+    	# save config into file (with backup, since the old one already exists)
+    	params.save_into_file_wbackup(cfgfile,set_ro=True)
+    	
     # make two copies, the second one should have a unique name, so it does not get overwritten on further reconfig
     cfgfile=cWConsts.insert_timestr(cfgfile)
     params.save_into_file(cfgfile,set_ro=True)
@@ -69,35 +85,42 @@ def main(params,old_params):
 ############################################################
 
 if __name__ == '__main__':
-    usage_prefix="reconfig_frontend [-force_name name] [-writeback yes|no]"
-    argv=sys.argv
-    force_name=None
-    writeback='yes'
-    while len(argv)>2:
-        if argv[1]=='-force_name':
-            force_name=argv[2]
-            argv=argv[0:1]+argv[3:]
-        elif argv[1]=='-writeback':
-            writeback=argv[2]
-            argv=argv[0:1]+argv[3:]
-        else:
-            break
-            
+    usage = "{ -force_name name -writeback yes|no -update_scripts yes|no -xml xml | -help }"
+    argv = sys.argv
+    force_name = None
+    writeback = 'no'
+    update_scripts = 'no'
+    xml = ''
+    for i in range(len(argv)):
+    	if argv[i] == '-force_name':
+    	    force_name = argv[i+1]
+    	if argv[i] == '-writeback':
+    	    writeback = argv[i+1]
+    	if argv[i] == '-update_scripts':
+    	    update_scripts = argv[i+1]
+    	if argv[i] == '-xml':
+    	    xml = argv[i+1]
+        if argv[i] == '-help':
+			print usage
+			sys.exit(1)
+		
+    args = [argv[0], xml] 
+           
     try:
-        params=cvWParams.VOFrontendParams(usage_prefix,os.path.join(STARTUP_DIR,"web_base"),argv)
+        params=cvWParams.VOFrontendParams(usage, os.path.join(STARTUP_DIR,"web_base"), args)
     except RuntimeError,e:
         print e
         sys.exit(1)
 
     if force_name!=None:
         if params.frontend_name!=force_name:
-           print params.usage()
+           print usage
            print ""
            print "This is not a '%s' config file ('%s' found)"%(force_name,params.frontend_name)
            sys.exit(1)
         
     if not (writeback in ('yes','no')):
-        print params.usage()
+        print usage
         print ""
         print "-writeback must be yes or no, found '%s'"%writeback
         sys.exit(1)
@@ -106,23 +129,19 @@ if __name__ == '__main__':
         old_config_file=os.path.join(params.work_dir,cvWConsts.XML_CONFIG_FILE)
         if os.path.exists(old_config_file):
             try:
-                old_params=cvWParams.VOFrontendParams(usage_prefix,os.path.join(STARTUP_DIR,"web_base"),[argv[0],old_config_file])
+                old_params=cvWParams.VOFrontendParams(usage,os.path.join(STARTUP_DIR,"web_base"),[argv[0],old_config_file])
             except RuntimeError, e:
                 raise RuntimeError,"Failed to load %s"%old_config_file
         else:
             raise RuntimeError,"Cannot find %s"%old_config_file
-        main(params,old_params)
+            
+        main(params, old_params, update_scripts, writeback)
+        
     except RuntimeError, e:
-        print params.usage()
+        print usage
         print ""
         print e
         sys.exit(1)
 
-    try:
-        if writeback=='yes':
-            params.save_into_file_wbackup(params.cfg_name)
-    except:
-        print "Writing back config file failed"
-        sys.exit(1)
         
 

@@ -91,7 +91,7 @@
             <li>Download the glideinWMS tarball and replace the old version with it.</li>
             <li>Make sure you have correct condor in your path. This is important!</li>
             <li>cd frontstage/frontend_Frontenddir. this is the directory where you have frontend_startup script</li>
-            <li>./frontend_startup reconfig ../instance_v1_0.cfg/frontend.xml</li>
+            <li>./frontend_startup upgrade ../instance_v1_0.cfg/frontend.xml</li>
 </ol>
 <p>
         <i>Note that the path name (instance_v1_0 may be slightly different in each case based on existing configuration).</i><br/>
@@ -122,10 +122,13 @@ Upgrading a factory configuration tree to a new version of glideinWMS can be don
     The configuration file (glideinWMS.xml) of the existing configuration tree can be used as a
     base for the new one; only the <i>glidein_ name</i> needs to be changed.
     See the <a href="factory/configuration.html">configuration page</a> for more defaults.
-</li><li>Overwrite the glideinWMS installation and <a href="#run_daemon">reconfig</a>.<br>
+</li><li>Overwrite the glideinWMS installation and run: factory_startup upgrade config.xml.<br>
     If getting the code from CVS, a cvs update -r <i>version</i> will update the code.<br>
+    Running 'upgrade' overwrites all files in the glidein submit directories including rewriting the configuration file.  
+    If you use 'reconfig', this will only upgrade the files with factory configuration information so
+    some of the scripts may not get updated.
 
-    <b>Warining:</b> Check the revision history before doing this. Not all versions are compatible.
+    <b>Warning:</b> Check the revision history before doing this. Not all versions are compatible.
 </li></ul>
 <p></p>
 <p>
