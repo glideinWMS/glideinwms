@@ -125,14 +125,14 @@ class ProxyUserCardinality:
                     status_dict, status_dict_types,
                     credential_type=None, trust_domain=None):
         users_set = glideinFrontendLib.getCondorQUsers(condorq_dict)
-        return self.get_proxies_from_cardinality(len(users_set))
+        return self.get_proxies_from_cardinality(len(users_set),credential_type,trust_domain)
 
     #############################
     # INTERNAL
     #############################
 
     # return the proxies based on data held by the class
-    def get_proxies_from_cardinality(self, nr_requested_proxies):
+    def get_proxies_from_cardinality(self, nr_requested_proxies,credential_type=None, trust_domain=None):
         rtnlist=[]
         for cred in self.cred_list:
             if (trust_domain != None) and (cred.trust_domain!=trust_domain):
