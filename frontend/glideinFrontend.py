@@ -29,6 +29,7 @@ import string
 import logging
 sys.path.append(os.path.join(STARTUP_DIR, "../lib"))
 
+import glideinFrontendLib
 import glideinFrontendPidLib
 import glideinFrontendConfig
 import glideinFrontendMonitorAggregator

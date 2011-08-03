@@ -1155,19 +1155,9 @@ class ResourceClassadAdvertiser:
 #
 ############################################################
 
-def exe_condor_advertise(fname,command,
-                         factory_pool,
-                         is_multi=False):
-    return condorManager.condorAdvertise(fname,command,frontendConfig.advertise_use_tcp,is_multi,factory_pool)
-
 def exe_condor_advertise(fname,command, pool, is_multi=False):
+    logSupport.log.debug("CONDOR ADVERTISE %s %s %s %s" % (fname, command,
+                                                           pool, is_multi))
     return condorManager.condorAdvertise(fname, command, 
                                          frontendConfig.advertise_use_tcp,
                                          is_multi, pool)
-def exe_condor_advertise(fname, command,
-                         factory_pool,
-                         is_multi=False):
-    logSupport.log.debug("CONDOR ADVERTISE %s %s %s %s" % (fname, command, factory_pool, is_multi))
-    return condorManager.condorAdvertise(fname, command, frontendConfig.advertise_use_tcp, is_multi, factory_pool)
-
-

@@ -55,8 +55,6 @@ def getRFC2822_UTC(now=None):
         now = time.time()
     return time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime(now))
 
-def extractRFC2822_UTC(sec):
-    return calendar.timegm(time.strptime(sec, "%a, %d %b %Y %H:%M:%S +0000"))
 def extractRFC2822_UTC(time_str):
     return calendar.timegm(time.strptime(time_str, "%a, %d %b %Y %H:%M:%S +0000"))
 

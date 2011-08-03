@@ -89,9 +89,6 @@ def check_parent(parent_pid, glideinDescript, jobDescript):
     except:
         logSupport.log.warning("Failed to deadvertize my monitoring")
     
-    try:
-    except:
-        glideFactoryLib.log_files.logWarning("Failed to deadvertize my monitoring")
         
     try:
         glideFactoryInterface.deadvertizeGlobal(glideinDescript.data['FactoryName'],     

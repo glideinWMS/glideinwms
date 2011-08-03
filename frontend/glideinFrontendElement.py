@@ -168,26 +168,26 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
                         glideinFrontendLib.log_files.logDebug("Failed to talk to factory_pool: %s"%e)
                     # failed to talk, like empty... maybe the next factory will have something
                     factory_glidein_dict={}
-					factory_globals_dict= {}
+                    factory_globals_dict= {}
 
-				# ********
-				for globalid in factory_globals_dict:
-					globals_el=factory_globals_dict[globalid]
-					if not globals_el['attrs'].has_key('PubKeyType'): # no pub key at all
-						pass # no public key, nothing to do
-					elif globals_el['attrs']['PubKeyType'] == 'RSA': # only trust RSA for now
-						try:
-							globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(str(string.replace(globals_el['attrs']['PubKeyValue'], '\\n', '\n')))
-	   	                	globals_el['attrs']['FactoryPoolNode'] = factory_pool_node
-	   	                	globals_el['attrs']['FactoryPoolId'] = my_identity_at_factory_pool
-						except:
-	   	                	# if no valid key, just notify...
-	   	                	# if key needed, will handle the error later on
-							logSupport.log.warning("Factory Globals '%s': invalid RSA key" % globalid)
-	   	        	else:
-	   	            	# don't know what to do with this key, notify the admin
-	   	            	# if key needed, will handle the error later on
-	   	            	logSupport.log.info("Factory '%s@%s': unsupported pub key type '%s'" % (globalid[1], globalid[0], globals_el['attrs']['PubKeyType']))
+                # ********
+                for globalid in factory_globals_dict:
+                    globals_el=factory_globals_dict[globalid]
+                    if not globals_el['attrs'].has_key('PubKeyType'): # no pub key at all
+                        pass # no public key, nothing to do
+                    elif globals_el['attrs']['PubKeyType'] == 'RSA': # only trust RSA for now
+                        try:
+                            globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(str(string.replace(globals_el['attrs']['PubKeyValue'], '\\n', '\n')))
+                               globals_el['attrs']['FactoryPoolNode'] = factory_pool_node
+                               globals_el['attrs']['FactoryPoolId'] = my_identity_at_factory_pool
+                        except:
+                               # if no valid key, just notify...
+                               # if key needed, will handle the error later on
+                            logSupport.log.warning("Factory Globals '%s': invalid RSA key" % globalid)
+                       else:
+                           # don't know what to do with this key, notify the admin
+                           # if key needed, will handle the error later on
+                           logSupport.log.info("Factory '%s@%s': unsupported pub key type '%s'" % (globalid[1], globalid[0], globals_el['attrs']['PubKeyType']))
 
                 for glidename in factory_glidein_dict.keys():
                     if (not factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity')) or (factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity']!=factory_identity):
@@ -293,7 +293,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
                             'OldIdle':condorq_dict_types['OldIdle']['abs'],
                             'Running':condorq_dict_types['Running']['abs']})
 
-	logSupport.log.info("Jobs found total %i idle %i (old %i, voms %i) running %i"%(condorq_dict_abs,
+    logSupport.log.info("Jobs found total %i idle %i (old %i, voms %i) running %i"%(condorq_dict_abs,
                                                                                                 condorq_dict_types['Idle']['abs'],
                                                                                                 condorq_dict_types['VomsIdle']['abs'],
                                                                                                 condorq_dict_types['OldIdle']['abs'],

@@ -25,7 +25,7 @@ import condorMonitor
 import glideFactoryConfig
 import base64
 import string
-import timeConversion$
+import timeConversion
 
 from tarSupport import GlideinTar
 
