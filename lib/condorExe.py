@@ -102,7 +102,6 @@ def iexe_cmd(cmd, stdin_data=None):
         outfd = stdout.fileno()
         errfd = stderr.fileno()
 
-        outeof = erreof = 0
         outdata = cStringIO.StringIO()
         errdata = cStringIO.StringIO()
 

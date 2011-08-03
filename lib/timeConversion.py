@@ -42,7 +42,7 @@ def getISO8601_Local(now=None):
     if now == None:
         now = time.time()
     tzval = getTZval()
-    return time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(now)) + ("%+03i:%02i" % ((-tzval/3600), (-tzval%3600/60)))
+    return time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(now)) + ("%+03i:%02i" % ((-tzval / 3600), (-tzval % 3600 / 60)))
 
 def extractISO8601_Local(sec):
     timestr = sec[:-6]
@@ -57,6 +57,8 @@ def getRFC2822_UTC(now=None):
 
 def extractRFC2822_UTC(sec):
     return calendar.timegm(time.strptime(sec, "%a, %d %b %Y %H:%M:%S +0000"))
+def extractRFC2822_UTC(time_str):
+    return calendar.timegm(time.strptime(time_str, "%a, %d %b %Y %H:%M:%S +0000"))
 
 def getRFC2822_Local(now=None):
     if now == None:

@@ -129,7 +129,7 @@ for glidein in glideins:
         else:
             raise RuntimeError, "Invalid frontend name; more than one dot found"
 
-    clients_obj=glideFactoryInterface.findWork(factory_name,glidein_name,entry_name,None,key_obj,get_only_matching=False,additional_constraints=frontend_constraints)
+    clients_obj=glideFactoryInterface.findWork(factory_name,glidein_name,entry_name,None,key_obj,additional_constraints=frontend_constraints)
     glidein_el['clients']=clients_obj
     clients=clients_obj.keys()
 

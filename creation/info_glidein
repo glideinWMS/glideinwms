@@ -71,7 +71,7 @@ def parse_args(argv):
             break
             
     try:
-        params=cgWParams.GlideinParams(usage_prefix,os.path.join(STARTUP_DIR,"web_base"),argv)
+        params=cgWParams.GlideinParams(usage,os.path.join(STARTUP_DIR,"web_base"),argv)
     except RuntimeError,e:
         print e
         sys.exit(1)

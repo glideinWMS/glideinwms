@@ -2,6 +2,9 @@
 
 import os
 import sys
+import tempfile
+import random
+import string
 import unittest
 
 # We assume that this module is in the unittest directory

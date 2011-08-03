@@ -113,6 +113,9 @@ def vofrontend(service,action,inifile):
     process_action(obj,action)
     return
   cmd = "cd %s;source frontend.sh;cd %s" % (obj.install_location(),obj.frontend_dir())
+  if action == "create-group":
+     obj.get_new_config_group()
+     return
   if action == "start":
     cmd += "; ./frontend_startup %s"  % action
   elif action == "stop":

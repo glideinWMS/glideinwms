@@ -3,7 +3,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version:
+# File Version: 
 #
 # Description:
 #   This program implements a GUI

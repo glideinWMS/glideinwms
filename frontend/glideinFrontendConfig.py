@@ -228,6 +228,31 @@ class ElementMergedDescript:
                 for k in dprs.keys():
                     proxy_security_classes[k]=dprs[k]
         self.merged_data['ProxySecurityClasses']=proxy_security_classes
+        
+        proxy_trust_domains={}
+        for data in (self.frontend_data,self.element_data):
+            if data.has_key('ProxyTrustDomains'):
+                dprs=eval(data['ProxyTrustDomains'])
+                for k in dprs.keys():
+                    proxy_trust_domains[k]=dprs[k]
+        self.merged_data['ProxyTrustDomains']=proxy_trust_domains
+
+        proxy_types={}
+        for data in (self.frontend_data,self.element_data):
+            if data.has_key('ProxyTypes'):
+                dprs=eval(data['ProxyTypes'])
+                for k in dprs.keys():
+                    proxy_types[k]=dprs[k]
+        self.merged_data['ProxyTypes']=proxy_types
+
+        proxy_key_files={}
+        for data in (self.frontend_data,self.element_data):
+            if data.has_key('ProxyKeyFiles'):
+                dprs=eval(data['ProxyKeyFiles'])
+                for k in dprs.keys():
+                    proxy_key_files[k]=dprs[k]
+        self.merged_data['ProxyKeyFiles']=proxy_key_files
+
 
         return
 

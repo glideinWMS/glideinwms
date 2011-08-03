@@ -1151,21 +1151,6 @@ def gfactory_install():
             print "Please answer y or n"
             continue 
         break
-    
-    # Security setup
-    if proxy_fname!=None:
-        while 1:
-            voproxy_yn=raw_input("Force VO frontend to provide its own proxy?: (y/n) [y] ")
-            if voproxy_yn=="":
-                voproxy_yn="y"
-                break
-            if (voproxy_yn!="y") and (voproxy_yn!="n"):
-                print "Please answer y or n"
-                continue 
-            break
-    else:
-        # no factory proxy, so I must use the VO proxy; no choice
-        voproxy_yn="y"
 
     # entries
     entries_list={}
@@ -1303,15 +1288,10 @@ def gfactory_install():
             fd.write('       <condor_tarball arch="default" os="default" base_dir="%s"/>\n'%condor_base_dir)
             fd.write('   </condor_tarballs>\n')
 
-            # Reminder to self(Igor)
+            # Reminder to self(Igor) 
             # Add factory proxy in the config file... not reliable to use the ENV(X509_USER_PROXY)
+            fd.write('   <security key_length="2048" pub_key="RSA">\n')
 
-            if voproxy_yn=="y":
-                # disable factory proxy
-                fd.write('   <security allow_proxy="frontend" key_length="2048" pub_key="RSA">\n')
-            else:
-                # allow both factory proxy and VO proxy
-                fd.write('   <security allow_proxy="factory,frontend" key_length="2048" pub_key="RSA">\n')
             fd.write('    <frontends>\n')
             for fe_name in frontends.keys():
                 fd.write('     <frontend name="%s" identity="%s">\n'%(fe_name,frontends[fe_name]['id']))
@@ -1749,6 +1729,10 @@ def vofrontend_install():
 
     glidein_proxies=[]
     glidein_proxies_dns=[]
+    glidein_proxies_trust={}
+    glidein_proxies_sec={}
+    glidein_proxies_type={}
+    glidein_proxies_key={}
     
     # Security setup
     while 1:
@@ -1762,33 +1746,75 @@ def vofrontend_install():
 
         break
     if (yn=='y'):
+        trust=raw_input("What trust domain should this be enabled for? [OSG]")
+        if trust=="":
+            trust="OSG"
+        sec=raw_input("What security class is this proxy? [frontend] ")
+        if sec=="":
+            sec="frontend"
         glidein_proxies.append(proxy_fname)
+        glidein_proxies_type[proxy_fname]="grid_proxy"
+        glidein_proxies_sec[proxy_fname]=sec
+        glidein_proxies_trust[proxy_fname]=sec
         glidein_proxies_dns.append(my_dn)
         
 
 
-    print "You may want to use other proxies"
-    print "Please add all the proxies that this glidein will use"
+    print "You may want to use other credentials to submit"
+    print "Please add all the credentials that this glidein will use"
     print
-    print "An empty entry means you are done."
     while 1:
-        a_fname=raw_input("proxy fname: ")
-        if a_fname=="":
-            break # done
+        trust_domain="" 
+        sec_class="" 
+        key_fname="" 
+        print "0) Done"
+        print "1) x509 Grid Proxy"
+        print "2) x509 Certificate Pair"
+        print "3) Public Private Key Pair"
+        print "4) Username Password Pair"
+        choice=raw_input("What type of credential? ");
+        if choice == "0":
+            break;
+        if choice not in ["1","2","3","4"]:
+            continue;
+        if choice=="1":
+            a_fname=raw_input("Proxy filename: ")
+            type="grid_proxy"
+            try:
+                a_dn=get_proxy_dn(a_fname)
+            except RuntimeError,e:
+                print e
+                continue
+        if choice=="2":
+            a_fname=raw_input("Public cert filename: ")
+            key_fname=raw_input("Private cert filename: ")
+            type="cert_pair"
+        if choice=="3":
+            a_fname=raw_input("Public key filename: ")
+            key_fname=raw_input("Private key filename: ")
+            type="key_pair"
+        if choice=="4":
+            a_fname=raw_input("Text file with username: ")
+            key_fname=raw_input("Text file with password: ")
+            type="username_password"
+        trust_domain=raw_input("Trust Domain: ")
+        sec_class=raw_input("Security Class: ")
 
         a_fname=os.path.abspath(a_fname)
         if not os.path.isfile(a_fname):
             print "File not found: '%s'"%a_fname
             continue
-
-        try:
-            a_dn=get_proxy_dn(a_fname)
-        except RuntimeError,e:
-            print e
-            continue
+        
 
         glidein_proxies.append(a_fname)
         glidein_proxies_dns.append(a_dn)
+        glidein_proxies_type[proxy_fname]=type
+        if trust_domain!="": 
+            glidein_proxies_trust[a_fname]=trust_domain
+        if sec_class!="": 
+            glidein_proxies_sec[a_fname]=sec
+        if key_fname!="": 
+            glidein_proxies_key[a_fname]=key_fname
 
     # Default the use of glexec to be optional
     glexec_use = ""
@@ -1840,10 +1866,17 @@ def vofrontend_install():
                 fd.write('     <collector node=%s DN=%s secondary="True"/>\n'%(xmlFormat.xml_quoteattr(c),xmlFormat.xml_quoteattr(secondary_local_dns[c])))
             fd.write('   </collectors>\n')
             fd.write('   <security security_name="%s" proxy_selection_plugin="ProxyAll" classad_proxy=%s proxy_DN=%s>\n'%(frontend_name,xmlFormat.xml_quoteattr(proxy_fname),xmlFormat.xml_quoteattr(my_dn)))
-            fd.write('      <proxies>\n')
+            fd.write('      <credentials>\n')
             for a_fname in glidein_proxies:
-                fd.write('         <proxy absfname=%s/>\n'%xmlFormat.xml_quoteattr(a_fname))
-            fd.write('      </proxies>\n')
+                cred_attr_str="absfname=%s "%xmlFormat.xml_quoteattr(a_fname)
+                if a_fname in glidein_proxies_trust:
+                    cred_attr_str=cred_attr_str+("trust_domain=%s "%xmlFormat.xml_quoteattr(glidein_proxies_trust[a_fname])) 
+                if a_fname in glidein_proxies_sec:
+                    cred_attr_str=cred_attr_str+("security_class=%s "%xmlFormat.xml_quoteattr(glidein_proxies_sec[a_fname])) 
+                if a_fname in glidein_proxies_key:
+                    cred_attr_str=cred_attr_str+("keyabsfname=%s "%xmlFormat.xml_quoteattr(glidein_proxies_key[a_fname])) 
+                fd.write('         <credential %s/>\n'%cred_attr_str)
+            fd.write('      </credentials>\n')
             fd.write('   </security>\n')
             fd.write('   <match>\n')
             fd.write('      <factory>\n')

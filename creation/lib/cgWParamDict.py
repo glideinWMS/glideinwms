@@ -306,7 +306,13 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         for dtype in ('attrs','consts'):
             self.dicts[dtype].add("GLIDEIN_Gatekeeper",sub_params.gatekeeper,allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_GridType",sub_params.gridtype,allow_overwrite=True)
+			# MERGENOTE:
+			# GLIDEIN_REQUIRE_VOMS publishes an attribute so that users without VOMS proxies
+			#   can avoid sites that require VOMS proxies (using the normal Condor Requirements
+			#   string. 
             self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS",sub_params.config.restrictions.require_voms_proxy,allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_TrustDomain",sub_params.trust_domain,allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_SupportedAuthenticationMethod",sub_params.auth_method,allow_overwrite=True)
             if sub_params.rsl!=None:
                 self.dicts[dtype].add('GLIDEIN_GlobusRSL',sub_params.rsl,allow_overwrite=True)
 
@@ -572,8 +578,6 @@ def populate_factory_descript(work_dir,
         glidein_dict.add('RestartAttempts',params.restart_attempts)
         glidein_dict.add('RestartInterval',params.restart_interval)
         glidein_dict.add('AdvertiseDelay',params.advertise_delay)
-        validate_job_proxy_source(params.security.allow_proxy)
-        glidein_dict.add('AllowedJobProxySource',params.security.allow_proxy)
         glidein_dict.add('LogDir',params.log_dir)
         glidein_dict.add('ClientLogBaseDir',params.submit.base_client_log_dir)
         glidein_dict.add('ClientProxiesBaseDir',params.submit.base_client_proxies_dir)
@@ -601,33 +605,37 @@ def populate_job_descript(work_dir, job_descript_dict,
     @param sub_params: entry parameters
     """
     # if a user does not provide a file name, use the default one
-    down_fname=sub_params.downtimes.absfname
-    if down_fname==None:
-        down_fname=os.path.join(work_dir,'entry.downtimes')
+    down_fname = sub_params.downtimes.absfname
+    if down_fname == None:
+        down_fname = os.path.join(work_dir, 'entry.downtimes')
 
-    job_descript_dict.add('EntryName',sub_name)
-    job_descript_dict.add('GridType',sub_params.gridtype)
-    job_descript_dict.add('Gatekeeper',sub_params.gatekeeper)
-    if sub_params.rsl!=None:
-        job_descript_dict.add('GlobusRSL',sub_params.rsl)
+    job_descript_dict.add('EntryName', sub_name)
+    job_descript_dict.add('GridType', sub_params.gridtype)
+    job_descript_dict.add('Gatekeeper', sub_params.gatekeeper)
     job_descript_dict.add('AuthMethod', sub_params.auth_method)
     job_descript_dict.add('TrustDomain', sub_params.trust_domain)
-    job_descript_dict.add('Schedd',sub_params.schedd_name)
-    job_descript_dict.add('StartupDir',sub_params.work_dir)
-    if sub_params.proxy_url!=None:
-        job_descript_dict.add('ProxyURL',sub_params.proxy_url)
-    job_descript_dict.add('Verbosity',sub_params.verbosity)
-    job_descript_dict.add('DowntimesFile',down_fname)
-    job_descript_dict.add('MaxRunning',sub_params.config.max_jobs.running)
-    job_descript_dict.add('MaxIdle',sub_params.config.max_jobs.idle)
-    job_descript_dict.add('MaxHeld',sub_params.config.max_jobs.held)
-    job_descript_dict.add('MaxSubmitRate',sub_params.config.submit.max_per_cycle)
-    job_descript_dict.add('SubmitCluster',sub_params.config.submit.cluster_size)
-    job_descript_dict.add('SubmitSleep',sub_params.config.submit.sleep)
-    job_descript_dict.add('MaxRemoveRate',sub_params.config.remove.max_per_cycle)
-    job_descript_dict.add('RemoveSleep',sub_params.config.remove.sleep)
-    job_descript_dict.add('MaxReleaseRate',sub_params.config.release.max_per_cycle)
-    job_descript_dict.add('ReleaseSleep',sub_params.config.release.sleep)
+    if sub_params.vm_id != None:
+        job_descript_dict.add('EntryVMId', sub_params.vm_id)
+    if sub_params.vm_type != None:
+        job_descript_dict.add('EntryVMType', sub_params.vm_type)
+    if sub_params.rsl != None:
+        job_descript_dict.add('GlobusRSL', sub_params.rsl)
+    job_descript_dict.add('Schedd', sub_params.schedd_name)
+    job_descript_dict.add('StartupDir', sub_params.work_dir)
+    if sub_params.proxy_url != None:
+        job_descript_dict.add('ProxyURL', sub_params.proxy_url)
+    job_descript_dict.add('Verbosity', sub_params.verbosity)
+    job_descript_dict.add('DowntimesFile', down_fname)
+    job_descript_dict.add('MaxRunning', sub_params.config.max_jobs.running)
+    job_descript_dict.add('MaxIdle', sub_params.config.max_jobs.idle)
+    job_descript_dict.add('MaxHeld', sub_params.config.max_jobs.held)
+    job_descript_dict.add('MaxSubmitRate', sub_params.config.submit.max_per_cycle)
+    job_descript_dict.add('SubmitCluster', sub_params.config.submit.cluster_size)
+    job_descript_dict.add('SubmitSleep', sub_params.config.submit.sleep)
+    job_descript_dict.add('MaxRemoveRate', sub_params.config.remove.max_per_cycle)
+    job_descript_dict.add('RemoveSleep', sub_params.config.remove.sleep)
+    job_descript_dict.add('MaxReleaseRate', sub_params.config.release.max_per_cycle)
+    job_descript_dict.add('ReleaseSleep', sub_params.config.release.sleep)
     job_descript_dict.add('RequireVomsProxy',sub_params.config.restrictions.require_voms_proxy)
    
     # Add the frontend specific job limits to the job.descript file
@@ -649,13 +657,14 @@ def populate_job_descript(work_dir, job_descript_dict,
     #  If the configuration has a non-empty frontend_allowlist
     #  then create a white list and add all the frontends:security_classes
     #  to it.
-    white_mode="Off";
-    allowed_vos="";
+    white_mode = "Off";
+    allowed_vos = "";
     for X in sub_params.allow_frontends.keys():
-        white_mode="On";
-        allowed_vos=allowed_vos+X+":"+sub_params.allow_frontends[X].security_class+",";
-    job_descript_dict.add("WhitelistMode",white_mode);
-    job_descript_dict.add("AllowedVOs",allowed_vos[:-1]);
+        white_mode = "On";
+        allowed_vos = allowed_vos + X + ":" + sub_params.allow_frontends[X].security_class + ",";
+    job_descript_dict.add("WhitelistMode", white_mode);
+    job_descript_dict.add("AllowedVOs", allowed_vos[:-1]);
+
 
 ###################################
 # Create the frontend descript file
@@ -678,17 +687,6 @@ def populate_frontend_descript(frontend_dict,     # will be modified
         
         frontend_dict.add(fe,{'ident':ident,'usermap':maps})
 
-    
-#################################
-# Check that it is a string list
-# containing only valid entries
-def validate_job_proxy_source(allow_proxy):
-    recognized_sources=('factory','frontend')
-    ap_list=allow_proxy.split(',')
-    for source in ap_list:
-        if not (source in recognized_sources):
-            raise RuntimeError, "'%s' not a valid proxy source (valid list = %s)"%(source,recognized_sources)
-    return
 
 
 #####################

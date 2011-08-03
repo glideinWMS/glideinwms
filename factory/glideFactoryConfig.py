@@ -2,7 +2,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 
 import string
@@ -28,6 +28,7 @@ class FactoryConfig:
         self.job_attrs_file = "attributes.cfg"
         self.job_params_file = "params.cfg"
         self.frontend_descript_file = "frontend.descript"
+        self.signatures_file = "signatures.sha1"
 
 # global configuration of the module
 factoryConfig=FactoryConfig()
@@ -70,6 +71,15 @@ class ConfigFile:
                 exec("self.data['%s']=%s"%(lname,convert_function(lval)))
         finally:
             fd.close()
+
+    def has_key(self, key_name):
+        return self.data.has_key(key_name)
+    
+    def __str__(self):
+        output = '\n'
+        for key in self.data.keys():
+            output += '%s = %s, (%s)\n' % (key, str(self.data[key]), type(self.data[key]))
+        return output
 
 # load from the entry subdir
 class EntryConfigFile(ConfigFile):
@@ -148,7 +158,7 @@ class GlideinKey:
             sym_key_code=self.rsa_key.decrypt_hex(enc_sym_key)
             return self.sym_class(sym_key_code)
         else:
-            raise RuntimeError, 'Invalid pub key type value(%s), only RSA supported'%self.pub_key_type        
+            raise RuntimeError, 'Invalid pub key type value(%s), only RSA supported'%self.pub_key_type
 
 class GlideinDescript(ConfigFile):
     def __init__(self):
@@ -253,40 +263,107 @@ class JobParams(JoinConfigFile):
                                 lambda s:s) # values are in python format
 
 
-# Data format:
-#  obj.data[frontend]['ident']=identity
-#  obj.data[frontend]['usermap'][sec_class]=username
 class FrontendDescript(ConfigFile):
+    """
+    Contains the security identity and username mappings for the Frontends that are authorized to
+    use this factory.
+
+    Contains dictionary of dictionaries:
+    obj.data[frontend]['ident']=identity
+    obj.data[frontend]['usermap'][sec_class]=username
+    """
     def __init__(self):
         global factoryConfig
-        ConfigFile.__init__(self,factoryConfig.frontend_descript_file,
+        ConfigFile.__init__(self, factoryConfig.frontend_descript_file,
                             lambda s:s) # values are in python format
 
-    # returns None if the frontend is unknown
-    def get_identity(self,frontend):
+    def get_identity(self, frontend):
+        """
+        Gets the identity for the given frontend.  If the Frontend is unknown, returns None.
+
+        @type frontend: string
+        @param frontend: frontend name
+
+        @return identity
+        """
         if self.data.has_key(frontend):
-            fe=self.data[frontend]
+            fe = self.data[frontend]
             return fe['ident']
         else:
             return None
 
-    # return None, if not found/not authorized
-    def get_username(self,frontend,sec_class):
+    def get_username(self, frontend, sec_class):
+        """
+        Gets the security name mapping for the given frontend and security class.  If not found or not authorized, returns None.
+
+        @type frontend: string
+        @param frontend: frontend name
+        @type sec_class: string
+        @param sec_class: security class name
+
+        @return security name
+        """
         if self.data.has_key(frontend):
-            fe=self.data[frontend]['usermap']
+            fe = self.data[frontend]['usermap']
             if fe.has_key(sec_class):
                 return fe[sec_class]
 
         return None
 
-    # returns a list of all the usernames assigned to the frontends
     def get_all_usernames(self):
-        usernames={}
+        """
+        Gets all the usernames assigned to all the frontends.
+
+        @return list of usernames
+        """
+        usernames = {}
         for frontend in self.data.keys():
-            fe=self.data[frontend]['usermap']
+            fe = self.data[frontend]['usermap']
             for sec_class in fe.keys():
-                username=fe[sec_class]
-                usernames[username]=True
+                username = fe[sec_class]
+                usernames[username] = True
         return usernames.keys()
-    
-        
+
+
+# Signatures File
+## File: signatures.sha1
+##
+#6e3565a9a0f39e0641d7e3e777b8f22d7ebc8b0f  description.a92arS.cfg  entry_AmazonEC2
+#51b01a3c38589a41fb7a44936e12b31fe506ec7b  description.a92aqM.cfg  main
+class SignatureFile(ConfigFile):
+    def __init__(self):
+        global factoryConfig
+        ConfigFile.__init__(self, factoryConfig.signatures_file, lambda s:s) # values are in python format
+
+    def load(self, fname, convert_function):
+        """ Load the signatures.sha1 file into the class as a dictionary.  The
+        convert_function is completely ignored here.  The line format is different
+        from all the other class in that there are three values with the key being
+        the last value.  The internal dictionary has the following structure:
+            where:
+                line[0] is the sign for the line
+                line[1] is the descript file for the line
+                line[2] is the key for the line
+
+            for each line:
+                line[2]_sign = line[0]
+                line[2]_descript = line[1]
+
+        """
+        self.data = {}
+        fd = open(fname,"r")
+        try:
+            lines = fd.readlines()
+            for line in lines:
+                if line[0] == "#":
+                    continue # comment
+                if len(string.strip(line)) == 0:
+                    continue # empty line
+                larr = string.split(line, None)
+                lsign = larr[0]
+                ldescript = larr[1]
+                lname = larr[2]
+                self.data["%s_sign" % str(lname)] = str(lsign)
+                self.data["%s_descript" % str(lname)] = str(ldescript)
+        finally:
+            fd.close()

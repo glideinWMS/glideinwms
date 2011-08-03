@@ -77,7 +77,7 @@ class TestInfosysLib(unittest.TestCase):
         condorExe.init()
         self.assertTrue(condorExe.condor_bin_path != None and condorExe.condor_sbin_path != None)
         condorExe.set_path(condorExe.condor_bin_path, condorExe.condor_sbin_path)
-        
+                           
         # Test that information is retrieved and is populated correctly
         infosys_entries = query_ress("osg-ress-1.fnal.gov", "engage")
         self.assertNotEqual(infosys_entries, {})

@@ -174,6 +174,10 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
             return outdata
 
 
+    # diff self data with other info
+    # add glidein log data to Entered/Completed
+    # return data[status]['Entered'|'Exited'] - list of jobs
+    # completed jobs are augmented with data from the log
     def diff(self,other):
         """
         Diff self.data with other for use in comparing current
