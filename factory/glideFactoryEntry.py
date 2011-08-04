@@ -292,7 +292,6 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
     entry_name = jobDescript.data['EntryName']
     pub_key_obj = glideinDescript.data['PubKeyObj']
     auth_method = jobDescript.data['AuthMethod']
-    trust_domain = jobDescript.data['TrustDomain']
     old_pub_key_obj = glideinDescript.data['OldPubKeyObj']
 
     # Get the factory and entry downtimes
@@ -345,8 +344,6 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
     if len(work.keys())==0:
         logSupport.log.info("No work found.")
         return 0 # nothing to be done
-
-
 
     frontend_max_running={}
     frontend_max_idle={}
@@ -924,7 +921,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 entry_condorQ = glideFactoryLib.getQProxSecClass(condorQ, client_int_name, credential_security_class)
 
                 logSupport.log.info("Requesting glideins using v3+ protocol, using credential %s" % submit_credentials.id)
-                nr_submitted = glideFactoryLib.keepIdleGlideins(entry_condorQ, client_int_name, in_downtime,
+                done_something = glideFactoryLib.keepIdleGlideins(entry_condorQ, client_int_name, in_downtime,
                                                              remove_excess_wait, remove_excess_idle, remove_excess_run,
                                                              idle_glideins, max_running, factory_max_held,
                                                              submit_credentials, 
@@ -1021,8 +1018,6 @@ def advertize_myself(in_downtime, glideinDescript, jobDescript, jobAttributes, j
     trust_domain = jobDescript.data['TrustDomain']
     auth_method = jobDescript.data['AuthMethod']
     pub_key_obj = glideinDescript.data['PubKeyObj']
-    trust_domain=jobDescript.data['TrustDomain']
-    auth_method=jobDescript.data['AuthMethod']
 
     glideFactoryLib.factoryConfig.client_stats.finalizeClientMonitor() #@UndefinedVariable
 
@@ -1141,9 +1136,6 @@ def iterate(parent_pid, sleep_time, advertize_rate,
     @param jobParams: Object that encapsulates params.cfg in the entry directory
     """
 
-
-
-    """
     is_first = 1
     count = 0
 
@@ -1191,6 +1183,7 @@ def iterate(parent_pid, sleep_time, advertize_rate,
             glideFactoryLib.factoryConfig.client_internals = {}
 
             # actually do some work now that we have everything setup (hopefully)
+            # KEL do we need to acknowledge that work was done?  this variable is currently unused
             done_something = iterate_one(count == 0, in_downtime, glideinDescript, frontendDescript,
                                          jobDescript, jobAttributes, jobParams)
 
@@ -1242,22 +1235,7 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     @type entry_name: string
     @param entry_name: The name of the entry as specified in the config file
     """
-
-
-    Setup logging, monitoring, and configuration information.  Starts the Entry
-    main loop and handles cleanup at shutdown.
-
-    @type parent_pid: int
-    @param parent_pid: The pid for the Factory daemon
-    @type sleep_time: int
-    @param sleep_time: The number of seconds to sleep between iterations
-    @type advertise_rate: int
-    @param advertise_rate: The rate at which advertising should occur (CHANGE ME... THIS IS NOT HELPFUL)
-    @type startup_dir: string
-    @param startup_dir: The "home" directory for the entry.
-    @type entry_name: string
-    @param entry_name: The name of the entry as specified in the config file
-    """
+    # KEL should we use this startup time somewhere?  this is currently unused
     startup_time = time.time()
     os.chdir(startup_dir)
 

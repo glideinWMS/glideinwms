@@ -307,7 +307,7 @@ def extractLogData(fname):
                     validation_duration=int(validate_re.group('secs'))
                 except:
                     validation_duration=None
-                
+                # KEL unused variable - do we need to use this?
                 bux_idx=validate_re.end()+1
             
             start_re=ELD_RC_CONDOR_START.search(buf,buf_idx)
@@ -358,6 +358,7 @@ def extractLogData(fname):
                     glidein_duration=int(glidein_end_re.group('secs'))
                 except:
                     glidein_duration=None
+                # KEL - unused variable - do we need to use this?
                 bux_idx=glidein_end_re.end()+1
             else:
                 glidein_duration=None

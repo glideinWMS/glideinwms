@@ -44,9 +44,6 @@ class FactoryConfig:
         #Default the glideinWMS version string
         self.glideinwms_version = "glideinWMS UNKNOWN"
 
-        #Default the glideinWMS version string
-        self.glideinwms_version = "glideinWMS UNKNOWN"
-
         # String to prefix for the attributes
         self.glidein_attr_prefix = ""
 
@@ -357,9 +354,6 @@ def advertizeGlobal(factory_name, glidein_name, supported_signtypes, pub_key_obj
         os.remove(tmpnam)
 
 
-
-
-# remove ad from Collector
 def deadvertizeGlidein(factory_name, glidein_name, entry_name):
     """
     Removes the glidefactory classad advertising the entry from the WMS Collector.
@@ -418,8 +412,6 @@ def deadvertizeFactory(factory_name, glidein_name):
     finally:
         os.remove(tmpnam)
     
-
-############################################################
 
 ############################################################
 

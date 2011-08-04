@@ -270,6 +270,7 @@ def aggregateLogSummary():
     global_total['CompletedCounts']['JobsNr']=el
 
     el={}
+    # KEL - why is the same el used twice (see above)
     for t in glideFactoryMonitoring.getAllTimeRanges():
         el[t]=0
     global_total['CompletedCounts']['JobsDuration']=el

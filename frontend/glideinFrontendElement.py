@@ -161,11 +161,11 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
                     factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,None,signatureDescript.signature_type,factory_constraint,x509_proxy_plugin!=None,get_only_matching=True)
                 except RuntimeError,e:
                     if factory_pool_node!=None:
-                        glideinFrontendLib.log_files.logWarning("Failed to talk to factory_pool %s. See debug log for more details."%factory_pool_node)
-                        glideinFrontendLib.log_files.logDebug("Failed to talk to factory_pool %s: %s"%(factory_pool_node, e))
+                        logSupport.log.warning("Failed to talk to factory_pool %s. See debug log for more details."%factory_pool_node)
+                        logSupport.log.debug("Failed to talk to factory_pool %s: %s"%(factory_pool_node, e))
                     else:
-                        glideinFrontendLib.log_files.logWarning("Failed to talk to factory_pool. See debug log for more details.")
-                        glideinFrontendLib.log_files.logDebug("Failed to talk to factory_pool: %s"%e)
+                        logSupport.log.warning("Failed to talk to factory_pool. See debug log for more details.")
+                        logSupport.log.debug("Failed to talk to factory_pool: %s"%e)
                     # failed to talk, like empty... maybe the next factory will have something
                     factory_glidein_dict={}
                     factory_globals_dict= {}
@@ -178,22 +178,22 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
                     elif globals_el['attrs']['PubKeyType'] == 'RSA': # only trust RSA for now
                         try:
                             globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(str(string.replace(globals_el['attrs']['PubKeyValue'], '\\n', '\n')))
-                               globals_el['attrs']['FactoryPoolNode'] = factory_pool_node
-                               globals_el['attrs']['FactoryPoolId'] = my_identity_at_factory_pool
+                            globals_el['attrs']['FactoryPoolNode'] = factory_pool_node
+                            globals_el['attrs']['FactoryPoolId'] = my_identity_at_factory_pool
                         except:
-                               # if no valid key, just notify...
-                               # if key needed, will handle the error later on
+                            # if no valid key, just notify...
+                            # if key needed, will handle the error later on
                             logSupport.log.warning("Factory Globals '%s': invalid RSA key" % globalid)
-                       else:
-                           # don't know what to do with this key, notify the admin
-                           # if key needed, will handle the error later on
-                           logSupport.log.info("Factory '%s@%s': unsupported pub key type '%s'" % (globalid[1], globalid[0], globals_el['attrs']['PubKeyType']))
+                    else:
+                        # don't know what to do with this key, notify the admin
+                        # if key needed, will handle the error later on
+                        logSupport.log.info("Factory '%s@%s': unsupported pub key type '%s'" % (globalid[1], globalid[0], globals_el['attrs']['PubKeyType']))
 
                 for glidename in factory_glidein_dict.keys():
                     if (not factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity')) or (factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity']!=factory_identity):
-                        glideinFrontendLib.log_files.logWarning("Found an untrusted factory %s at %s; ignoring."%(glidename,factory_pool_node))
+                        logSupport.log.warning("Found an untrusted factory %s at %s; ignoring."%(glidename,factory_pool_node))
                         if factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity'):
-                            glideinFrontendLib.log_files.logDebug("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'"%(glidename,factory_pool_node,factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'],factory_identity))
+                            logSupport.log.debug("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'"%(glidename,factory_pool_node,factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'],factory_identity))
                     else:
                         glidein_dict[(factory_pool_node,glidename,my_identity_at_factory_pool)]=factory_glidein_dict[glidename]
 
@@ -263,14 +263,14 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         os.close(w)
         pipe_ids['startds']={'r':r,'pid':pid} 
  
-    glideinFrontendLib.log_files.logActivity("Child processes created")
+    logSupport.log.info("Child processes created")
     try:
         pipe_out=fetch_fork_result_list(pipe_ids)
     except RuntimeError, e:
         # expect all errors logged already
-        glideinFrontendLib.log_files.logActivity("Terminating iteration due to errors")
+        logSupport.log.info("Terminating iteration due to errors")
         return
-    glideinFrontendLib.log_files.logActivity("All children terminated")
+    logSupport.log.info("All children terminated")
 
     glidein_dict=pipe_out['entries']
     condorq_dict=pipe_out['jobs']
@@ -302,11 +302,11 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     status_dict_idle = glideinFrontendLib.getIdleCondorStatus(status_dict)
     status_dict_running = glideinFrontendLib.getRunningCondorStatus(status_dict)
 
-    #glideinFrontendLib.log_files.logDebug("condor stat: %s\n\n" % status_dict_running[None].fetchStored())
+    #logSupport.log.debug("condor stat: %s\n\n" % status_dict_running[None].fetchStored())
 
     glideinFrontendLib.appendRealRunning(condorq_dict_running, status_dict_running)
 
-    #glideinFrontendLib.log_files.logDebug("condorq running: %s\n\n" % condorq_dict_running['devg-1.t2.ucsd.edu'].fetchStored())
+    #logSupport.log.debug("condorq running: %s\n\n" % condorq_dict_running['devg-1.t2.ucsd.edu'].fetchStored())
 
     status_dict_types = {'Total':{'dict':status_dict, 'abs':glideinFrontendLib.countCondorStatus(status_dict)},
                        'Idle':{'dict':status_dict_idle, 'abs':glideinFrontendLib.countCondorStatus(status_dict_idle)},
@@ -387,9 +387,9 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     key_builder = glideinFrontendInterface.Key4AdvertizeBuilder()
 
 
-    #glideinFrontendLib.log_files.logDebug("realcount: %s\n\n" % glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict))
+    #logSupport.log.debug("realcount: %s\n\n" % glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict))
 
-    glideinFrontendLib.log_files.logActivity("Counting")
+    logSupport.log.info("Counting")
     pipe_ids={}
     for dt in condorq_dict_types.keys()+['Real','Glidein']:
         # will make calculations in parallel,using multiple processes
@@ -453,7 +453,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     curb_vms_idle=int(elementDescript.element_data['CurbIdleVMsPerEntry'])
     
     total_running=condorq_dict_types['Running']['total']
-    glideinFrontendLib.log_files.logActivity("Total matching idle %i (old %i) running %i"%(condorq_dict_types['Idle']['total'],condorq_dict_types['OldIdle']['total'],total_running))
+    logSupport.log.info("Total matching idle %i (old %i) running %i"%(condorq_dict_types['Idle']['total'],condorq_dict_types['OldIdle']['total'],total_running))
 
 
     glideid_list=glidein_dict.keys()
@@ -500,10 +500,10 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
 
         #If the glidein requires a voms proxy, only match voms idle jobs
         if glidein_el['attrs'].has_key('GLIDEIN_REQUIRE_VOMS'):
-            #glideinFrontendLib.log_files.logActivity("Require VOMS found: %s" % glidein_el['attrs']['GLIDEIN_REQUIRE_VOMS'])
+            #logSupport.log.info("Require VOMS found: %s" % glidein_el['attrs']['GLIDEIN_REQUIRE_VOMS'])
             if (glidein_el['attrs']['GLIDEIN_REQUIRE_VOMS']=="True"):
                 prop_jobs['Idle']=prop_jobs['VomsIdle']
-                glideinFrontendLib.log_files.logActivity("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
+                logSupport.log.info("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
 
         # effective idle is how much more we need
         # if there are idle slots, subtract them, they should match soon
@@ -687,8 +687,8 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         try:
             resource_classad.setGlideClientMonitorInfo(this_stats_arr)
         except RuntimeError, e:
-            glideinFrontendLib.log_files.logWarning("Error populating GlideClientMonitor info in the resource classad. See debug log for more details.")
-            glideinFrontendLib.log_files.logDebug("Populating GlideClientMonitor info in resource classad failed: %s"%e)
+            logSupport.log.warning("Error populating GlideClientMonitor info in the resource classad. See debug log for more details.")
+            logSupport.log.debug("Populating GlideClientMonitor info in resource classad failed: %s"%e)
                     
         resource_advertiser.addClassad(resource_classad.adParams['Name'], resource_classad)
 
@@ -730,23 +730,23 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     except glideinFrontendInterface.MultiExeError, e:
         logSupport.log.warning("Advertizing failed for %i requests. See debug log for more details." % len(e.arr))
         for ee in e.arr:
-            glideinFrontendLib.log_files.logDebug("Advertizing failed: %s"%ee)
+            logSupport.log.debug("Advertizing failed: %s"%ee)
     except RuntimeError, e:
-        glideinFrontendLib.log_files.logWarning("Advertizing failed. See debug log for more details.")
-        glideinFrontendLib.log_files.logDebug("Advertizing failed: %s"%e)
+        logSupport.log.warning("Advertizing failed. See debug log for more details.")
+        logSupport.log.debug("Advertizing failed: %s"%e)
     except:
-        glideinFrontendLib.log_files.logWarning("Advertizing failed: Reason unknown")
+        logSupport.log.warning("Advertizing failed: Reason unknown")
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])
-        glideinFrontendLib.log_files.logDebug("Advertizing failed: %s" % tb)
+        logSupport.log.debug("Advertizing failed: %s" % tb)
 
 
     # Advertise glideresource classads
     try:
-        glideinFrontendLib.log_files.logActivity("Advertising %i glideresource classads to the user pool" %  len(resource_advertiser.classads))
-        #glideinFrontendLib.log_files.logActivity("glideresource classads to advertise -\n%s" % resource_advertiser.getAllClassads())
+        logSupport.log.info("Advertising %i glideresource classads to the user pool" %  len(resource_advertiser.classads))
+        #logSupport.log.info("glideresource classads to advertise -\n%s" % resource_advertiser.getAllClassads())
         resource_advertiser.advertiseAllClassads()
-        glideinFrontendLib.log_files.logActivity("Done advertising glideresource classads")
+        logSupport.log.info("Done advertising glideresource classads")
     except RuntimeError, e:
         logSupport.log.warning("Advertizing failed. See debug log for more details.")
         logSupport.log.debug("Advertizing failed: %s" % e)
