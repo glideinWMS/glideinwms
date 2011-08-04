@@ -85,6 +85,10 @@
     you have sourced the correct Condor installation.
     <br/>
     <br/>
+    <b>NOTE:</b>  It is recommended that you always provide a voms proxy in the user job submission.  This will allow you to run on a site
+    whether or not gLExec is enabled.  A proxy may also be required for other reasons, such as the job staging data.
+    <br/>
+    <br/>
     The glideinWMS environment looks almost exactly like a regular, local Condor pool.  It just does not have any 
     resources attached unless you ask for them; try
     <pre>$ condor_status</pre>
@@ -182,6 +186,10 @@ $ condor_q `id -un` -const 'JobStatus==2' -format '%d.' ClusterId -format '%d ' 
     <h2>Submitting with a Corral Frontend</h2>
     This example assumes you have glideinWMS installation running and as a user you have access to submit jobs.  You must also have Corral and Pegasus
     installed with the input data files.
+    <br/>
+    <br/>
+    <b>NOTE:</b>  It is recommended that you always provide a voms proxy in the user job submission.  This will allow you to run on a site
+    whether or not gLExec is enabled.  A proxy may also be required for other reasons, such as the job staging data.
     <br/>
     <br/>
     <h4>Using Pegasus with glideinWMS and Corral</h4>

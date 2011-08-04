@@ -65,6 +65,9 @@
 <u>Jump to:</u>
 <ol>
 <li> <a href="#process">Installation Process</a></li>
+<li> <a href="#osg">Using the OSG Factory</a></li>
+<li> <a href="#configuration_based">Configuration-based Installer</a></li>
+<li> <a href="#process">Installation Process</a></li>
 <li> <a href="#documents">Additional documents</a></li>
 <li> <a href="#configuration">Possible Configurations</a></li>
 <li> <a href="#osg">Connecting to OSG Factory</a></li>
@@ -79,9 +82,7 @@ Installation at a glance:
       <li><a href="./components/pool_install.html">User Pool Schedd</a> </li>
       <li><a href="./frontend/install.html">Glidein Frontend</a> </li>
     </ol>
-<!-- Commenting this out as it will not be available until next version.
-    <a href="components/configuration_install.html">Configuration based installer.</a><br/>
--->
+    <a href="components/configuration_install.html">Configuration based installer</a><br/>
     <a href="upgrade.html">Upgrade Guide</a><br/>
 </div>
 <div class="section">
@@ -90,8 +91,7 @@ Installation at a glance:
     <p>Installation of glideinWMS is
         a multi-step process:</p>
         <ol>
-      <li><a href="components/prerequisites.html">Components and Pre-requisites</a>: 
-        Includes a consolidated table of requirements for each server.
+      <li><a href="components/prerequisites.html">Components and Pre-requisites</a> and set up <a href="components/gsi.html#reference">GSI certificates</a>.
     </li>
           <li><a href="factory/install.html">The glidein WMS Collector and
             collocated glidein Factory node</a> </li>
@@ -101,12 +101,31 @@ Installation at a glance:
           <li><a href="components/pool_install.html">One or more scheduler nodes for
             user submission</a> </li>
           <li><a href="frontend/install.html">The Glidein Frontend</a> </li>
+          <li><a href="./tutorials.html">Submitting a job</a> </li>
         </ol>
 <p>
-The above process should suffice for typical installs.  More information can be found below.</p>
-<!-- Commenting this section out as it will not be available until the 
-next version
+The above process should suffice for typical installs.  For OSG sites connecting
+to the UCSD OSG factory, see the following section.  More information can be found below.</p>
+
+<h3>Using the OSG Factory</h3>
+<a name="osg"/>
+<p>
+    Members of the Open Science Grid can use the OSG factory at UCSD.
+    In this case, you should install only a partial sub-set of services
+    (the factory will be provided for you.  Follow these steps (in order):
+    <ol>
+    <li><a href="components/collector_install.html">glidein pool Collector</a></li>
+    <li><a href="components/pool_install.html">scheduler for user submissions</a></li>
+    <li><a href="frontend/install.html">Glidein Frontend</a></li>
+    </ol>
+</p>
+<p>
+    You will also need access to (at least) two proxies for the frontend and glideinsi, which will need to be sent to the factory operators.  See <a target="_blank" href="http://hepuser.ucsd.edu/twiki2/bin/view/UCSDTier2/OSGgfactory">OSG Glidein Factory</a> for more details on how to use this setup.
+</p>
+
+
 <h3>Configuration based installer</h3>
+<a name="configuration_based" />
 <p>
 Alternatively, you can use the <a href="components/configuration_install.html">Configuration based installer.</a>  This approach requires filling out a
 configuration file (ini file) with all the required fields up front.  Once 
@@ -118,7 +137,6 @@ in case of errors.</p>
 Also, note that both installers assume you are performing a full installation of all components.  For upgrades, see the <a href="upgrade.html">upgrade guide</a>
 or contact glidein support.
 </p>
--->
 </div>
 <div class="section">
 <a name="documents" />
