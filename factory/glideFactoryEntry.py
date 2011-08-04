@@ -450,7 +450,8 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             
             if not ('grid_proxy' in auth_method):
                 logSupport.log.warning("Client %s provided proxy, but a client supplied proxy is not allowed. Skipping bad request" % client_int_name)
-    
+                continue #skip request
+        
             # Check if project id is required    
             if 'project_id' in auth_method:
                 # Validate project id exists
@@ -492,17 +493,6 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 logSupport.log.warning("Invalid number of proxies for %s, skipping request" % client_int_name)
                 continue # skip request
                 
-            
-            x509_proxies.add_fname(x509_proxy_security_class,'main',x509_proxy_fname)
-        elif decrypted_params.has_key('x509_proxy_0'):
-            if not decrypted_params.has_key('nr_x509_proxies'):
-                glideFactoryLib.log_files.logWarning("Could not determine number of proxies for %s, skipping request"%client_int_name)
-                continue #skip request
-            try:
-                nr_x509_proxies=int(decrypted_params['nr_x509_proxies'])
-            except:
-                glideFactoryLib.log_files.logWarning("Invalid number of proxies for %s, skipping request"%client_int_name)
-                continue # skip request
             # If the whitelist mode is on, then set downtime to true
             # We will set it to false in the loop if a security class passes the test
             if frontend_whitelist == "On":
@@ -576,7 +566,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                     continue 
                         
                 x509_proxies.add_fname(x509_proxy_security_class, x509_proxy_identifier, x509_proxy_fname)
-    
+
             if x509_proxies.count_fnames < 1:
                 if security_class_downtime_found:
                     logSupport.log.warning("Found proxies for client %s but the security class was in downtime, setting entry into downtime for advertising" % client_int_name)
@@ -781,13 +771,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
         jobAttributes.data['GLIDEIN_In_Downtime'] = in_downtime
         glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime)#@UndefinedVariable
 
-            if x509_proxies.count_fnames<1:
-                if security_class_downtime_found:
-                    glideFactoryLib.log_files.logWarning("Found proxies for client %s but the security class was in downtime, setting entry into downtime for advertising" % client_int_name)
-                    in_downtime = True
-                else:
-                    glideFactoryLib.log_files.logWarning("No good proxies for %s, skipping request"%client_int_name)
-                    continue #skip request
+
         if work[work_key]['requests'].has_key('RemoveExcess'):
             remove_excess = work[work_key]['requests']['RemoveExcess']
         else:
@@ -833,20 +817,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             if (frontend_max_held.has_key(s_all) and (factory_max_held>frontend_max_held[s_all])):
                 factory_max_held=frontend_max_held[s_all]
             #glideFactoryLib.log_files.logActivity("After check: %i %i %i"% (max_running,idle_glideins,factory_max_held))
-
-            # Validate that project id is supplied when required (as specified in the rsl string)
-            if jobDescript.data.has_key('GlobusRSL'):
-                if 'TG_PROJECT_ID' in jobDescript.data['GlobusRSL']:
-                    if decrypted_params.has_key('ProjectId'):
-                        project_id = decrypted_params['ProjectId']
-                        # just add to params for now, not a security issue
-                        # this may change when we implement the new protocol with the auth types and trust domains
-                        params['ProjectId'] = project_id
-                    else:
-                        # project id is required, cannot service request
-                        glideFactoryLib.log_files.logActivity("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
-                        continue                
-            
+           
             if in_downtime:
                 # we are in downtime... no new submissions
                 idle_glideins = 0
@@ -1029,8 +1000,8 @@ def write_descript(entry_name, entryDescript, entryAttributes, entryParams, moni
 
 
 ############################################################
-def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobParams):
-def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobParams):
+    
+def advertize_myself(in_downtime, glideinDescript, jobDescript, jobAttributes, jobParams):
     """
     Advertises the entry (glidefactory) and the monitoring (glidefactoryclient) Classads.
     
@@ -1046,7 +1017,6 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     @param jobParams:  entry parameters to be passed to the glideins
     """
     
-def advertize_myself(in_downtime, glideinDescript, jobDescript, jobAttributes, jobParams):
     entry_name = jobDescript.data['EntryName']
     trust_domain = jobDescript.data['TrustDomain']
     auth_method = jobDescript.data['AuthMethod']
@@ -1199,8 +1169,8 @@ def iterate(parent_pid, sleep_time, advertize_rate,
         if ( (time.time() > oldkey_eoltime) and 
              (glideinDescript.data['OldPubKeyObj'] != None) ):
             # Invalidate the use of factory's old key
-            glideFactoryLib.log_files.logActivity("Retiring use of old key.")
-            glideFactoryLib.log_files.logActivity("Old key was valid from %s to %s ie grace of ~%s sec" % (starttime,oldkey_eoltime,oldkey_gracetime))
+            logSupport.log.info("Retiring use of old key.")
+            logSupport.log.info("Old key was valid from %s to %s ie grace of ~%s sec" % (starttime,oldkey_eoltime,oldkey_gracetime))
             glideinDescript.data['OldPubKeyType'] = None
             glideinDescript.data['OldPubKeyObj'] = None
 
