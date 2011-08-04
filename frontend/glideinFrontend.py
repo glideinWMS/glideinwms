@@ -96,15 +96,13 @@ def spawn(sleep_time, advertize_rate, work_dir,
                 try:
                     tempOut = child.fromchild.read()
                     if len(tempOut) != 0:
-                        glideinFrontendLib.log_files.logActivity(
-                            "[%s]: %s" % (child, tempOut))
+                        logSupport.log.info("[%s]: %s" % (child, tempOut))
                 except IOError:
                     pass # ignore
                 try:
                     tempErr = child.childerr.read()
                     if len(tempErr) != 0:
-                        glideinFrontendLib.log_files.logWarning(
-                            "[%s]: %s" % (child, tempErr))
+                        logSupport.log.warning("[%s]: %s" % (child, tempErr))
                 except IOError:
                     pass # ignore
 

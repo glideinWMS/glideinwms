@@ -496,12 +496,12 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             x509_proxies.add_fname(x509_proxy_security_class,'main',x509_proxy_fname)
         elif decrypted_params.has_key('x509_proxy_0'):
             if not decrypted_params.has_key('nr_x509_proxies'):
-                glideFactoryLib.log_files.logWarning("Could not determine number of proxies for %s, skipping request"%client_int_name)
+                logSupport.log.warning("Could not determine number of proxies for %s, skipping request"%client_int_name)
                 continue #skip request
             try:
                 nr_x509_proxies=int(decrypted_params['nr_x509_proxies'])
             except:
-                glideFactoryLib.log_files.logWarning("Invalid number of proxies for %s, skipping request"%client_int_name)
+                logSupport.log.warning("Invalid number of proxies for %s, skipping request"%client_int_name)
                 continue # skip request
             # If the whitelist mode is on, then set downtime to true
             # We will set it to false in the loop if a security class passes the test
@@ -781,13 +781,13 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
         jobAttributes.data['GLIDEIN_In_Downtime'] = in_downtime
         glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime)#@UndefinedVariable
 
-            if x509_proxies.count_fnames<1:
-                if security_class_downtime_found:
-                    glideFactoryLib.log_files.logWarning("Found proxies for client %s but the security class was in downtime, setting entry into downtime for advertising" % client_int_name)
-                    in_downtime = True
-                else:
-                    glideFactoryLib.log_files.logWarning("No good proxies for %s, skipping request"%client_int_name)
-                    continue #skip request
+        if x509_proxies.count_fnames<1:
+            if security_class_downtime_found:
+                logSupport.log.warning("Found proxies for client %s but the security class was in downtime, setting entry into downtime for advertising" % client_int_name)
+                in_downtime = True
+            else:
+                logSupport.log.warning("No good proxies for %s, skipping request"%client_int_name)
+                continue #skip request
         if work[work_key]['requests'].has_key('RemoveExcess'):
             remove_excess = work[work_key]['requests']['RemoveExcess']
         else:
@@ -844,7 +844,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                         params['ProjectId'] = project_id
                     else:
                         # project id is required, cannot service request
-                        glideFactoryLib.log_files.logActivity("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
+                        logSupport.log.info("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
                         continue                
             
             if in_downtime:
