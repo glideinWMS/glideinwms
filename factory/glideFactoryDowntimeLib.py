@@ -309,7 +309,7 @@ def endDowntime(fname,end_time=None,entry="All",frontend="All",security_class="A
     
         try:
             fd=open(fname,'r+')
-        except IOError, e:
+        except IOError:
             return 0 # no file -> nothing to end
 
         try:

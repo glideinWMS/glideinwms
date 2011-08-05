@@ -28,8 +28,7 @@ factory_options = [ "hostname",
 "logs_dir",
 "client_log_dir", 
 "client_proxy_dir", 
-"instance_name",
-"use_vofrontend_proxy", 
+"instance_name", 
 "x509_proxy", 
 "x509_gsi_dn", 
 "use_glexec", 
@@ -114,9 +113,6 @@ class Factory(Condor):
   def hostname(self):
     return self.glidein.hostname()
   #---------------------
-  def use_vofrontend_proxy(self):
-    return self.option_value(self.ini_section,"use_vofrontend_proxy")
-  #---------------------
   def x509_proxy(self):
     return self.option_value(self.ini_section,"x509_proxy")
   #---------------------
@@ -159,7 +155,6 @@ files and directories can be created correctly""" % self.username())
       common.validate_hostname(self.hostname())
       common.validate_user(self.username())
       common.validate_installer_user(self.username())
-      self.validate_use_vofrontend_proxy()
       self.glidein.validate_software_requirements()
       self.validate_needed_directories()
       common.logit( "Verification complete\n")
@@ -262,26 +257,11 @@ files and directories can be created correctly""" % self.username())
     self.create_config()
 
   #---------------------------------
-  def validate_use_vofrontend_proxy(self):
-    option =  self.use_vofrontend_proxy()
-    common.logit("... validating use_vofrontend_proxy: %s" % option)
-    if option not in ("y",):
-      common.logerr("use_vofrontend_proxy must be 'y'.  This option will be depreated fully in V3.")
-    if option == "y":  # using vofrontend 
-      if len(self.x509_proxy())  > 0 or \
-         len(self.x509_gsi_dn()) > 0:
-        common.logerr("""You have said you want to use the Frontend proxies only.
-The x509_proxy and x509_gsi_dn option must be empty.""")
-
-    else:  # use factory proxy if no vofrontend proxy provided
-      self.validate_factory_proxy()
-
-  #---------------------------------
   def validate_factory_proxy(self):
     #--- using factory and vofrontend ---
     if len(self.x509_proxy())  == 0 or \
        len(self.x509_gsi_dn()) == 0:
-      common.logerr("""You have said you want to use a Frontend and Factory proxies.
+      common.logerr("""You must use a Frontend proxy.
 The x509_proxy and x509_gsi_dn option must be populated.""")
     proxy_file = self.x509_proxy()
     common.logit("... validating x509_proxy: %s" % proxy_file)
@@ -346,8 +326,6 @@ export X509_CERT_DIR=%(x509_cert_dir)s
 source %(condor_location)s/condor.sh
 """ % { "x509_cert_dir"   : self.wms.x509_cert_dir(), 
         "condor_location" : self.wms.condor_location(),}
-    if self.use_vofrontend_proxy() == "n":
-      data += "export X509_USER_PROXY=%s" % self.x509_proxy()
     common.write_file("w",0644,self.env_script(),data)
     common.logit("%s\n" % data)
 
@@ -465,17 +443,12 @@ source %(condor_location)s/condor.sh
 
   #---------------
   def config_security_data(self): 
-    if self.use_vofrontend_proxy() == "y": # disable factory proxy
-      allow_proxy = "frontend"
-    else: # allow both factory proxy and VO proxy
-      allow_proxy = "factory,frontend"
 
     data = """
-%(indent1)s<security allow_proxy="%(allow_proxy)s" key_length="2048" pub_key="RSA" >
+%(indent1)s<security key_length="2048" pub_key="RSA" >
 %(indent2)s<frontends>""" % \
 { "indent1":common.indent(1),
   "indent2":common.indent(2),
-  "allow_proxy": allow_proxy,
 }
 
     frontend_users_dict =  self.wms.frontend_users()
@@ -491,13 +464,6 @@ source %(condor_location)s/condor.sh
   "frontend": frontend,
   "hostname"      : self.hostname(),
   "frontend_user" : frontend_users_dict[frontend],
-}
-      if self.use_vofrontend_proxy() == "n":
-        data = data + """\
-%(indent5)s<security_class name="factory"  username="%(factory_user)s"/>
-""" % \
-{ "indent5"       : common.indent(5),
-  "factory_user"  : self.username(),
 }
 
       data = data + """

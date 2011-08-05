@@ -95,7 +95,7 @@ if __name__ == '__main__':
             break
             
     try:
-        params=cgWParams.GlideinParams(usage_prefix,os.path.join(STARTUP_DIR,"web_base"),argv)
+        params=cgWParams.GlideinParams(usage,os.path.join(STARTUP_DIR,"web_base"),argv)
     except RuntimeError,e:
         if debug:
             import traceback

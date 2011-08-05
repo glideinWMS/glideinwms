@@ -639,7 +639,6 @@ def populate_job_descript(work_dir, job_descript_dict,
     job_descript_dict.add('RequireVomsProxy',sub_params.config.restrictions.require_voms_proxy)
    
     # Add the frontend specific job limits to the job.descript file
-    max_job_frontends=""
     max_held_frontends=""
     max_idle_frontends=""
     max_running_frontends=""

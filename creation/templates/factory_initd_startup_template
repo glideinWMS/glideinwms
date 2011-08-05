@@ -57,42 +57,86 @@ restart()
     start
 }
 
-reconfig()
-{
-    if [ -f "$1" ]; then
-        has_arg=1
-    else
-        has_arg=0
-        echo $"Usage: factory_startup reconfig <fname>"
-        echo "ERROR: configuration file does not exist: $1"
-        exit 1
-    fi
-
-    "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir" >/dev/null 2>&1 </dev/null
-    notrun=$?
-    if [ $notrun -eq 0 ]; then
-        stop
-        if [ $RETVAL -ne 0 ]; then
-            exit $RETVAL
-        fi
-    fi
-    "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" $1
-    reconfig_failed=$?
-    echo -n "Reconfiguring the factory"
-    test $reconfig_failed -eq 0 && success || failure
-    RETVAL=$?
-    echo
-    if [ $notrun -eq 0 ]; then
-        if [ $reconfig_failed -ne 0 ];then
-            echo ".. starting factory with old configuration file"
-        fi
-        start
-        if [ $RETVAL -eq 0 ] && [ $reconfig_failed -eq 0 ]; then
-            RETVAL=0
+reconfig() {
+        if [ -f "$2" ]; then
+           has_arg=1
         else
-            RETVAL=1
+           has_arg=0
+           echo $"Usage: factory_startup reconfig <fname> <writeback yes|no>"
+           echo "ERROR: configuration file does not exist: $2"
+           exit 1
         fi
-    fi
+        if [ -z "$3" ]; then
+           if [ -z $GLIDEIN_WRITEBACK ]; then
+              writeback="no"
+           else
+              writeback=$GLIDEIN_WRITEBACK
+           fi
+        else
+           writeback=$3
+        fi
+        "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir" >/dev/null 2>&1 </dev/null
+        notrun=$?
+        if [ $notrun -eq 0 ]; then
+          stop
+          if [ $RETVAL -ne 0 ]; then
+            exit $RETVAL
+          fi
+        fi
+        "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" -writeback "$writeback" -update_scripts "no" -xml $2
+        reconfig_failed=$?
+        echo -n "Reconfiguring the factory"
+        test $reconfig_failed -eq 0 && success || failure
+        RETVAL=$?
+        echo
+        if [ $notrun -eq 0 ]; then
+          if [ $reconfig_failed -ne 0 ];then
+            echo ".. starting factory with old configuration file"
+          fi
+          start
+          if [ $RETVAL -eq 0 ] && [ $reconfig_failed -eq 0 ]; then
+            RETVAL=0
+          else
+            RETVAL=1
+          fi
+        fi
+}
+
+
+upgrade() {
+        if [ -f "$1" ]; then
+           has_arg=1
+        else
+           has_arg=0
+           echo $"Usage: factory_startup update <fname>"
+           echo "ERROR: configuration file does not exist: $1"
+           exit 1
+        fi
+        "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir" >/dev/null 2>&1 </dev/null
+        notrun=$?
+        if [ $notrun -eq 0 ]; then
+          stop
+          if [ $RETVAL -ne 0 ]; then
+            exit $RETVAL
+          fi
+        fi
+        "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" -writeback "yes" -update_scripts "yes" -xml $1
+        reconfig_failed=$?
+        echo -n "Reconfiguring the factory"
+        test $reconfig_failed -eq 0 && success || failure
+        RETVAL=$?
+        echo
+        if [ $notrun -eq 0 ]; then
+          if [ $reconfig_failed -ne 0 ];then
+            echo ".. starting factory with old configuration file"
+          fi
+          start
+          if [ $RETVAL -eq 0 ] && [ $reconfig_failed -eq 0 ]; then
+            RETVAL=0
+          else
+            RETVAL=1
+          fi
+        fi
 }
 
 downtime()
@@ -134,8 +178,11 @@ case $1 in
         $glideinWMS_dir/creation/info_glidein" $@ "$factory_dir/glideinWMS.xml"
         RETVAL=$?
         ;;
-    reconfig)
-        reconfig $2
+	reconfig)
+        reconfig "$@"
+        ;;
+    upgrade)
+        upgrade $2
         ;;
     down)
         downtime down "$@"

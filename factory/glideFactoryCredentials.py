@@ -100,7 +100,7 @@ def update_credential_file(username, client_id, proxy_data):
         except condorPrivsep.ExeError, e:
             raise RuntimeError, "Failed to update credential %s in %s (user %s): %s" % (client_id, proxy_dir, username, e)
         except:
-            raise RuntimeError, "Failed to update credenital %s in %s (user %s): Unknown privsep error" % (client_id, proxy_dir, username)
+            raise RuntimeError, "Failed to update credential %s in %s (user %s): Unknown privsep error" % (client_id, proxy_dir, username)
         return fname
     else:
         # do it natively when you can

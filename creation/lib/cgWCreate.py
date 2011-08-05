@@ -164,7 +164,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 #########################################
 # Create init.d compatible startup file
 def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir):
-    template = get_template("initd_startup_template", glideinWMS_dir)
+    template = get_template("factory_initd_startup_template", glideinWMS_dir)
     fd = open(startup_fname,"w")
     try:
         template = template % {"factory_dir": factory_dir, "glideinWMS_dir": glideinWMS_dir}

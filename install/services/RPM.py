@@ -51,7 +51,6 @@ wmscollector_options = [
 factory_options = [ 
 "hostname",
 "username",
-"use_vofrontend_proxy",
 ]
 
 submit_options = [ 

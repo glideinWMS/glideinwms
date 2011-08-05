@@ -8,8 +8,6 @@
 import string
 import os
 import os.path
-import sys
-import time
 import shutil
 
 ############################################################

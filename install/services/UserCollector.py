@@ -39,8 +39,7 @@ wmscollector_options = [ "hostname",
 "collector_port",
 ]
 
-factory_options = [ "use_vofrontend_proxy",
-"x509_gsi_dn",
+factory_options = [ "x509_gsi_dn",
 "service_name",
 ]
 

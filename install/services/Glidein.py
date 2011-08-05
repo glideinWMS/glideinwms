@@ -68,9 +68,6 @@ class Glidein(Configuration):
   def x509_gsi_dn(self):
     return self.option_value(self.ini_section,"x509_gsi_dn")
   #---------------------
-  def use_vofrontend_proxy(self):
-    return self.option_value(self.ini_section,"use_vofrontend_proxy")
-  #---------------------
   def use_glexec(self):
     return self.option_value(self.ini_section,"use_glexec")
   #---------------------

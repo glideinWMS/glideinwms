@@ -581,47 +581,6 @@ requires:<br/><br/>
         </tr>
 
         <tr>
-            <td> <a name="use_vofrontend_proxy"/a> use_vofrontend_proxy</td>
-            <td align="center">y</td>
-            <td>Specifies if the VO Frontend or Factory proxy should be used on the glidein pilot jobs submitted to the entry points.
-            </td>
-            <td>Valid values:</br>
-             * <b>y</b> - only VO Frontend proxies will be used</br>
-             * <b>n</b> - VO Frontend proxies will be used if available otherwise the Factory 
-                  will provide the proxy. 
-            </td>
-        </tr>
-
-        <tr>
-          <td>x509_proxy</td>
-          <td>/path-to-proxy/x509_proxyfile </td>
-          <td>The location of factory pilot proxy.</td>
-          <td>If the Factory <b>use_vofrontend_proxy</b> option is:</br>
-              * <b>y</b> - this must be empty</br>
-              * <b>n</b> - this must be populated</br>
-             An X509_USER_PROXY variable using this value 
-             will set be in the factory environment script that is created 
-             during the installation.
-          </td>
-        </tr>
-
-        <tr>
-          <td>x509_gsi_dn</td>
-          <td>dn-issuer-of-x509_proxy-using-openssl</td>
-          <td>The issuer of the Factory pilot proxy specified by the 
-              Factory <b>x509_proxy</b> option</td>
-          <td>If the Factory <b>use_vofrontend_proxy</b> option is:</br>
-              * <b>y</b> - this must be empty</br>
-              * <b>n</b> - this must be populated</br>
-              To obtain the issuer, use:
-              <blockquote>openssl x509 -issuer -noout -in [x509_proxy]</blockquote>
-              This is used in the UserCollector condor_mapfile and 
-              condor_config.local so the glidein pilot can communicate with the 
-              UserCollector.
-         </td>
-        </tr>
-
-        <tr>
             <td> use_glexec</td>
             <td align="center">y</td>
             <td>Used to specify how user submitted jobs (not glidein pilots) are authorized on the WN nodes for an entry point<br/>
@@ -1354,10 +1313,8 @@ It must be a zipped tarball with a *.tg.tz name.
         <td>Identifies the proxy(s) to be used to submit the glidein pilot jobs.
         </td>
         <td>
-        If the Factory (<a href="#use_vofrontend_proxy">use_vofrontend_proxy</a>
-        option) is expecting the VOFrontend to provide the glidein pilot
+        The Factory is expecting the VOFrontend to provide the glidein pilot
         proxies, at least one proxy must be specified.<br/>
-        If not, then this should be empty.<br/><br/>
         When specifying multiple proxies, whitespace is the delimiter.  
         </tr>
 
@@ -1615,7 +1572,6 @@ logs_dir         = %(install_dir)s/factory-logs
 client_log_dir   = %(install_dir)s/client-logs
 client_proxy_dir = %(install_dir)s/client-proxies
 
-use_vofrontend_proxy = y
 x509_proxy  =
 x509_gsi_dn =
 
@@ -1735,7 +1691,6 @@ logs_dir = %(install_dir)s/factory-logs
 client_log_dir = %(install_dir)s/client-logs
 client_proxy_dir = %(install_dir)s/client-proxies
 
-use_vofrontend_proxy = y
 x509_proxy =
 x509_gsi_dn =
 use_glexec = n
@@ -1861,7 +1816,6 @@ logs_dir = /var/gfactory/v2.5.1/glideinlogs
 client_log_dir = /var/gfactory/v2.5.1/clientlogs
 client_proxy_dir = /var/gfactory/v2.5.1/clientproxies
 instance_name = v1_0
-use_vofrontend_proxy = y
 use_glexec = y
 use_ccb = y
 match_authentication = y
@@ -1927,7 +1881,6 @@ x509_gsi_dn =
 ;--------------------------------------------------
 [Factory]
 
-use_vofrontend_proxy =
 x509_gsi_dn =
 service_name =
 username =
@@ -2055,7 +2008,6 @@ condor_location =
 
 hostname = cmssrv97.fnal.gov
 username = gfactoryuser
-use_vofrontend_proxy = y
 
 ;--------------------------------------------------
 [VOFrontend]
