@@ -23,6 +23,7 @@ import os
 import copy
 import traceback
 import time,string,cPickle,signal
+import logging
 sys.path.append(os.path.join(sys.path[0],"../lib"))
 
 import pubCrypto
@@ -621,13 +622,15 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
             remove_excess_str = "NO"
 
         this_stats_arr=(prop_jobs['Idle'],count_jobs['Idle'],effective_idle,prop_jobs['OldIdle'],hereonly_jobs['Idle'],count_jobs['Running'],count_real[glideid],max_running,
-
-        stats['group'].logMatchedJobs(
-            glideid_str, prop_jobs['Idle'],effective_idle, prop_jobs['OldIdle'],
+                        count_status['Total'],count_status['Idle'],count_status['Running'],
+                        glidein_min_idle,glidein_max_run)
+        
+        stats['group'].logMatchedJobs(glideid_str, 
+            prop_jobs['Idle'], effective_idle, prop_jobs['OldIdle'],
             count_jobs['Running'], count_real[glideid])
 
-        stats['group'].logMatchedGlideins(
-            glideid_str, count_status['Total'],count_status['Idle'],
+        stats['group'].logMatchedGlideins(glideid_str, 
+            count_status['Total'], count_status['Idle'],
             count_status['Running'])
 
         stats['group'].logFactAttrs(glideid_str, glidein_el['attrs'], ('PubKeyValue','PubKeyObj'))

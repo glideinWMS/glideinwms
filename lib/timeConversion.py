@@ -19,24 +19,24 @@ def getSeconds(now=None):
         now = time.time()
     return "%li" % long(now)
 
-def extractSeconds(sec):
-    return long(sec)
+def extractSeconds(time_str):
+    return long(time_str)
 
 def getHuman(now=None):
     if now == None:
         now = time.time()
     return time.strftime("%c", time.localtime(now))
 
-def extractHuman(sec):
-    return time.mktime(time.strptime(sec, "%c"))
+def extractHuman(time_str):
+    return time.mktime(time.strptime(time_str, "%c"))
 
 def getISO8601_UTC(now=None):
     if now == None:
         now = time.time()
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now))
 
-def extractISO8601_UTC(sec):
-    return calendar.timegm(time.strptime(sec, "%Y-%m-%dT%H:%M:%SZ"))
+def extractISO8601_UTC(time_str):
+    return calendar.timegm(time.strptime(time_str, "%Y-%m-%dT%H:%M:%SZ"))
 
 def getISO8601_Local(now=None):
     if now == None:
@@ -44,9 +44,9 @@ def getISO8601_Local(now=None):
     tzval = getTZval()
     return time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(now)) + ("%+03i:%02i" % ((-tzval / 3600), (-tzval % 3600 / 60)))
 
-def extractISO8601_Local(sec):
-    timestr = sec[:-6]
-    tzstr = sec[-6:]
+def extractISO8601_Local(time_str):
+    timestr = time_str[:-6]
+    tzstr = time_str[-6:]
     tzval = (long(tzstr[:3]) * 60 + long(tzstr[4:])) * 60
     return calendar.timegm(time.strptime(timestr, "%Y-%m-%dT%H:%M:%S")) - tzval
 
@@ -62,13 +62,22 @@ def getRFC2822_Local(now=None):
     if now == None:
         now = time.time()
     tzval = getTZval()
-    return time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime(now)) + ("%+03i%02i" % ((-tzval/3600), (-tzval%3600/60)))
+    return time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime(now)) + ("%+03i%02i" % ((-tzval / 3600), (-tzval % 3600 / 60)))
 
-def extractRFC2822_Local(sec):
-    timestr = sec[:-6]
-    tzstr = sec[-5:]
+def extractRFC2822_Local(time_str):
+    timestr = time_str[:-6]
+    tzstr = time_str[-5:]
     tzval = (long(tzstr[:3]) * 60 + long(tzstr[3:])) * 60
     return calendar.timegm(time.strptime(timestr, "%a, %d %b %Y %H:%M:%S")) - tzval
+
+def get_time_in_format(now=None, time_format=None):
+    if now == None:
+        now = time.time()
+    if time_format == None:
+        time_str = getHuman()
+    else:
+        time_str = time.strftime(time_format, time.localtime(now))
+    return time_str
 
 #########################
 # Internal

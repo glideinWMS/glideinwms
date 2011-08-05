@@ -336,9 +336,10 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
         logSupport.log.info("Could not find work to do using the existing key. Trying to find work using old factory key.")
         work = glideFactoryInterface.findWork(
                    glideFactoryLib.factoryConfig.factory_name,
-                   glideFactoryLib.factoryConfig.glidein_name, entry_name,
+                   glideFactoryLib.factoryConfig.glidein_name, 
+                   entry_name,
                    glideFactoryLib.factoryConfig.supported_signtypes,
-                   old_pub_key_obj, allowed_proxy_source)
+                   old_pub_key_obj)
         if len(work.keys())>0:
             logSupport.log.info("Found work to do using old factory key.")
     if len(work.keys())==0:
