@@ -239,11 +239,11 @@ def spawn(sleep_time, advertize_rate, startup_dir,
                 glideinDescript.data['OldPubKeyType'] = None
                 try:
                     glideinDescript.remove_old_key()
-                    logSupport.log.info("Removed the old public key after it's grace time of %s seconds" % oldkey_gracetime)
+                    logSupport.log.info("Removed the old public key after its grace time of %s seconds" % oldkey_gracetime)
                 except:
                     # Do not crash if delete fails. Just log it.
-                    logSupport.log.info("Failed to remove the old public key after it's grace time")
-                    logSupport.log.warning("Failed to remove the old public key after it's grace time")
+                    logSupport.log.info("Failed to remove the old public key after its grace time")
+                    logSupport.log.warning("Failed to remove the old public key after its grace time")
             logSupport.log.info("Checking for credentials %s" % entries)
             try:
                 # read in the frontend globals classad
