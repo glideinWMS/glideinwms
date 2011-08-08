@@ -566,11 +566,6 @@ def keepIdleGlideins(client_condorq, client_int_name,
         # no glideins desired, remove all held
         # (only held should be left at this point... idle and running addressed above)
 
-            removeGlideins(condorq.schedd_name,rm_list)
-            return 1 # exit, even if no submitted
-    elif remove_excess_running and (max_nr_running==0) and (held_glideins>0):
-        # no glideins desired, remove all held
-        # (only held should be left at this point... idle and running addressed above)
         # Check if there are held glideins that are not recoverable
         unrecoverable_held_list = extractUnrecoverableHeldSimple(condorq)
         if len(unrecoverable_held_list) > 0:
@@ -1052,10 +1047,6 @@ def submitGlideins(entry_name, client_name, nr_glideins,
         logSupport.log.error(msg)
         raise RuntimeError, msg
 
-    # Allows for retrieving any entry description values
-    jobDescript=glideFactoryConfig.JobDescript(entry_name)
-
-    
     try:
         nr_submitted = 0
         while (nr_submitted < nr_glideins):
@@ -1067,15 +1058,7 @@ def submitGlideins(entry_name, client_name, nr_glideins,
                 nr_to_submit = factoryConfig.max_cluster_size
 
             exe_env.append('GLIDEIN_COUNT=%s' % nr_to_submit)
-            
-#            if jobDescript.data.has_key('GlobusRSL'):   
-#                glidein_rsl = jobDescript.data['GlobusRSL']
-#                # Replace placeholder for project id 
-#                if params.has_key('ProjectId') and 'TG_PROJECT_ID' in glidein_rsl:
-#                    glidein_rsl = glidein_rsl.replace('TG_PROJECT_ID', params['ProjectId'])
-#            else:
-#                glidein_rsl = "none"
-            
+
             # check to see if the username for the proxy is the same as the factory username
             if username != MY_USERNAME:
                 # no? use privsep
@@ -1085,18 +1068,6 @@ def submitGlideins(entry_name, client_name, nr_glideins,
                         if os.environ.has_key(var):
                             exe_env.append('%s=%s' % (var, os.environ[var]))
                 try:
-#                    submit_out=condorPrivsep.execute(username,factoryConfig.submit_dir,
-#                                                     os.path.join(factoryConfig.submit_dir,factoryConfig.submit_fname),
-#                                                     [factoryConfig.submit_fname,entry_name,client_name,x509_proxy_identifier,"%i"%nr_to_submit,]+
-#                                                     client_web_arr+submit_attrs+
-#                                                     ['--']+params_arr,
-#                                                     exe_env)
-#                    submit_out=condorPrivsep.execute(username,factoryConfig.submit_dir,
-#                                                     os.path.join(factoryConfig.submit_dir,factoryConfig.submit_fname),
-#                                                     [factoryConfig.submit_fname,entry_name,client_name,x509_proxy_security_class,x509_proxy_identifier,"%i"%nr_to_submit,glidein_rsl,]+
-#                                                     client_web_arr+submit_attrs+
-#                                                     ['--']+params_arr,
-#                                                     exe_env)
                     args = ["condor_submit", "-name", schedd, "entry_%s/job.condor" % entry_name]
 
                     msg = "About to submit using condorPrivsep::\n" \
