@@ -1298,8 +1298,8 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
             if jobDescript.data.has_key('GlobusRSL'):
                 glidein_rsl = jobDescript.data['GlobusRSL']
                 # Replace placeholder for project id
-                if params.has_key('ProjectId') and 'TG_PROJECT_ID' in glidein_rsl:
-                    glidein_rsl = glidein_rsl.replace('TG_PROJECT_ID', params['ProjectId'])
+                if 'TG_PROJECT_ID' in glidein_rsl:
+                    glidein_rsl = glidein_rsl.replace('TG_PROJECT_ID', submit_credentials.identity_credentials['ProjectId'])
 
             if not (glidein_rsl == "none"):
                 exe_env.append('GLIDEIN_RSL=%s' % glidein_rsl)

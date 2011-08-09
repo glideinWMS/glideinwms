@@ -455,7 +455,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 # Validate project id exists
                 if decrypted_params.has_key('ProjectId'):
                     # just add to params for now, not a security issue
-                    identity_credentials = decrypted_params['ProjectId']
+                    identity_credentials['ProjectId'] = decrypted_params['ProjectId']
                 else:
                     # project id is required, cannot service request
                     logSupport.log.info("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
