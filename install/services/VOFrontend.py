@@ -905,11 +905,8 @@ please verify and correct if needed.
   #--------------------------
   def config_security_data(self):
     data = """
-%(indent1)s<security security_name="%(service_name)s" 
-%(indent1)s          proxy_selection_plugin="ProxyAll" 
-%(indent1)s          classad_proxy="%(x509_proxy)s" 
-%(indent1)s          proxy_DN="%(x509_gsi_dn)s">
-%(indent2)s<proxies>""" % \
+%(indent1)s<security security_name="%(service_name)s" proxy_selection_plugin="ProxyAll" classad_proxy="%(x509_proxy)s" proxy_DN="%(x509_gsi_dn)s">
+%(indent2)s<credentials>""" % \
 { "indent1"      : common.indent(1), 
   "indent2"      : common.indent(2), 
   "service_name" : self.service_name(), 
@@ -919,12 +916,12 @@ please verify and correct if needed.
     proxies = self.glidein_proxy_files()
     for proxy in proxies.split(" "):
       data = data + """
-%(indent3)s<proxy security_class="frontend" absfname="%(proxy)s"/>""" % \
+%(indent3)s<credential security_class="frontend" absfname="%(proxy)s"/>""" % \
 { "indent3" : common.indent(3),
   "proxy"   : proxy
 }
     data = data + """
-%(indent2)s</proxies>
+%(indent2)s</credentials>
 %(indent1)s</security>""" % \
 { "indent1" : common.indent(1), 
   "indent2" : common.indent(2), 

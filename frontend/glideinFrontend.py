@@ -29,7 +29,6 @@ import string
 import logging
 sys.path.append(os.path.join(STARTUP_DIR, "../lib"))
 
-import glideinFrontendLib
 import glideinFrontendPidLib
 import glideinFrontendConfig
 import glideinFrontendMonitorAggregator
@@ -37,6 +36,7 @@ import logSupport
 import cleanupSupport
 
 ############################################################
+# KEL remove this method and just call the monitor aggregator method directly below?  we don't use the results
 def aggregate_stats():
     status = glideinFrontendMonitorAggregator.aggregateStatus()
 
@@ -130,6 +130,7 @@ def spawn(sleep_time, advertize_rate, work_dir,
                             fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
                         logSupport.log.warning("Group's startup/restart times: %s" % childs_uptime)
             logSupport.log.info("Aggregate monitoring data")
+            # KEL - can we just call the monitor aggregator method directly?  see above
             aggregate_stats()
 
             # do it just before the sleep
@@ -206,7 +207,7 @@ def main(work_dir):
         try:
             spawn(sleep_time, advertize_rate, work_dir,
                   frontendDescript, groups, restart_attempts, restart_interval)
-        except KeyboardInterrupt, e:
+        except KeyboardInterrupt:
             logSupport.log.info("Received signal...exit")
         except:
             tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],

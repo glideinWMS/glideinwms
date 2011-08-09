@@ -88,7 +88,7 @@ if __name__ == '__main__':
             break
             
     try:
-        params=cvWParams.VOFrontendParams(usage_prefix,os.path.join(STARTUP_DIR,"web_base"),argv)
+        params=cvWParams.VOFrontendParams(usage,os.path.join(STARTUP_DIR,"web_base"),argv)
     except RuntimeError,e:
         if debug:
             import traceback
