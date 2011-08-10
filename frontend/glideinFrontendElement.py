@@ -22,9 +22,11 @@ import sys
 import os
 import copy
 import traceback
-import time,string,cPickle,signal
+import time
+import string
 import logging
-sys.path.append(os.path.join(sys.path[0],"../lib"))
+import cPickle
+sys.path.append(os.path.join(sys.path[0], "../lib"))
 
 import pubCrypto
 
@@ -80,10 +82,6 @@ def log_and_sum_factory_line(factory, is_down, factory_stat_arr, old_factory_sta
     return new_arr
 
 def init_factory_stats_arr():
-    #new_arr = []
-    #for i in range(13):
-    #    new_arr.append(0)
-    #return new_arr
     return [0] * 13
 
 def log_factory_header():
@@ -141,39 +139,35 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
 
     web_url = elementDescript.frontend_data['WebURL']
 
-    # query condor
-    logSupport.log.info("Query condor")
-
     pipe_ids={}
+
+    factory_constraint = elementDescript.merged_data['FactoryQueryExpr']
+    factory_pools = elementDescript.merged_data['FactoryCollectors']
+    
+    # query globals
     r,w=os.pipe()
     pid=os.fork()
     if pid==0:
         # this is the child... return output as a pickled object via the pipe
         os.close(r)
         try:
-            glidein_dict={}
-            factory_constraint=elementDescript.merged_data['FactoryQueryExpr']
-            factory_pools=elementDescript.merged_data['FactoryCollectors']
+            factory_globals_dict = {}
             for factory_pool in factory_pools:
-                factory_pool_node=factory_pool[0]
-                factory_identity=factory_pool[1]
-                my_identity_at_factory_pool=factory_pool[2]
+                factory_pool_node = factory_pool[0]
+                my_identity_at_factory_pool = factory_pool[2]
                 try:
-                    factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,None,signatureDescript.signature_type,factory_constraint,x509_proxy_plugin!=None,get_only_matching=True)
-                except RuntimeError,e:
-                    if factory_pool_node!=None:
-                        logSupport.log.warning("Failed to talk to factory_pool %s. See debug log for more details."%factory_pool_node)
-                        logSupport.log.debug("Failed to talk to factory_pool %s: %s"%(factory_pool_node, e))
+                    factory_globals_dict = glideinFrontendInterface.findGlobals(factory_pool_node, None, None)
+                except RuntimeError, e:
+                    # failed to talk, like empty... maybe the next factory will have something
+                    if factory_pool_node != None:
+                        logSupport.log.warning("Failed to talk to factory_pool %s. See debug log for more details." % factory_pool_node)
+                        logSupport.log.debug("Failed to talk to factory_pool %s: %s" % (factory_pool_node, e))
                     else:
                         logSupport.log.warning("Failed to talk to factory_pool. See debug log for more details.")
-                        logSupport.log.debug("Failed to talk to factory_pool: %s"%e)
-                    # failed to talk, like empty... maybe the next factory will have something
-                    factory_glidein_dict={}
-                    factory_globals_dict= {}
-
-                # ********
+                        logSupport.log.debug("Failed to talk to factory_pool: %s" % e)
+                
                 for globalid in factory_globals_dict:
-                    globals_el=factory_globals_dict[globalid]
+                    globals_el = factory_globals_dict[globalid]
                     if not globals_el['attrs'].has_key('PubKeyType'): # no pub key at all
                         pass # no public key, nothing to do
                     elif globals_el['attrs']['PubKeyType'] == 'RSA': # only trust RSA for now
@@ -189,15 +183,51 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
                         # don't know what to do with this key, notify the admin
                         # if key needed, will handle the error later on
                         logSupport.log.info("Factory '%s@%s': unsupported pub key type '%s'" % (globalid[1], globalid[0], globals_el['attrs']['PubKeyType']))
-
-                for glidename in factory_glidein_dict.keys():
-                    if (not factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity')) or (factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity']!=factory_identity):
-                        logSupport.log.warning("Found an untrusted factory %s at %s; ignoring."%(glidename,factory_pool_node))
-                        if factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity'):
-                            logSupport.log.debug("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'"%(glidename,factory_pool_node,factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'],factory_identity))
+  
+            os.write(w, cPickle.dumps(factory_globals_dict))
+        finally:
+            os.close(w)
+            # hard kill myself... don't want any cleanup, since i was created just for this calculation
+            os.kill(os.getpid(), signal.SIGKILL) 
+    else:
+        # this is the original
+        # just remember what you did for now
+        os.close(w)
+        pipe_ids['globals']={'r':r,'pid':pid}
+              
+    # query entries
+    r,w=os.pipe()
+    pid=os.fork()
+    if pid==0:
+        # this is the child... return output as a pickled object via the pipe
+        os.close(r)
+        try:
+            glidein_dict = {}
+            #factory_constraint = elementDescript.merged_data['FactoryQueryExpr']
+            #factory_pools = elementDescript.merged_data['FactoryCollectors']
+            for factory_pool in factory_pools:
+                factory_pool_node = factory_pool[0]
+                factory_identity = factory_pool[1]
+                my_identity_at_factory_pool = factory_pool[2]
+                try:
+                    factory_glidein_dict = glideinFrontendInterface.findGlideins(factory_pool_node, None, signatureDescript.signature_type, factory_constraint, x509_proxy_plugin != None, get_only_matching=True)
+                except RuntimeError, e:
+                    # failed to talk, like empty... maybe the next factory will have something
+                    if factory_pool_node != None:
+                        logSupport.log.warning("Failed to talk to factory_pool %s. See debug log for more details." % factory_pool_node)
+                        logSupport.log.debug("Failed to talk to factory_pool %s: %s" % (factory_pool_node, e))
                     else:
-                        glidein_dict[(factory_pool_node,glidename,my_identity_at_factory_pool)]=factory_glidein_dict[glidename]
-
+                        logSupport.log.warning("Failed to talk to factory_pool. See debug log for more details.")
+                        logSupport.log.debug("Failed to talk to factory_pool: %s" % e)
+        
+                for glidename in factory_glidein_dict.keys():
+                    if (not factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity')) or (factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'] != factory_identity):
+                        logSupport.log.warning("Found an untrusted factory %s at %s; ignoring." % (glidename, factory_pool_node))
+                        if factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity'):
+                            logSupport.log.debug("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'" % (glidename, factory_pool_node, factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'], factory_identity))
+                    else:
+                        glidein_dict[(factory_pool_node, glidename, my_identity_at_factory_pool)] = factory_glidein_dict[glidename]
+    
             os.write(w,cPickle.dumps(glidein_dict))
         finally:
             os.close(w)
@@ -207,8 +237,8 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         # this is the original
         # just remember what you did for now
         os.close(w)
-        pipe_ids['entries']={'r':r,'pid':pid} 
-
+        pipe_ids['entries']={'r':r,'pid':pid}
+    
     ## schedd
     r,w=os.pipe()
     pid=os.fork()
@@ -216,17 +246,17 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         # this is the child... return output as a pickled object via the pipe
         os.close(r)
         try:
-            condorq_format_list=elementDescript.merged_data['JobMatchAttrs']
-            if x509_proxy_plugin!=None:
-                condorq_format_list=list(condorq_format_list)+list(x509_proxy_plugin.get_required_job_attributes())
-
+            condorq_format_list = elementDescript.merged_data['JobMatchAttrs']
+            if x509_proxy_plugin != None:
+                condorq_format_list = list(condorq_format_list) + list(x509_proxy_plugin.get_required_job_attributes())
+        
             ### Add in elements to help in determining if jobs have voms creds
             condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN','s'),))
             condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN','s'),))
-            condorq_dict=glideinFrontendLib.getCondorQ(elementDescript.merged_data['JobSchedds'],
+            condorq_dict = glideinFrontendLib.getCondorQ(elementDescript.merged_data['JobSchedds'],
                                                        elementDescript.merged_data['JobQueryExpr'],
                                                        condorq_format_list)
-
+        
             os.write(w,cPickle.dumps(condorq_dict))
         finally:
             os.close(w)
@@ -238,6 +268,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         os.close(w)
         pipe_ids['jobs']={'r':r,'pid':pid} 
 
+    ## resource
     r,w=os.pipe()
     pid=os.fork()
     if pid==0:
@@ -273,28 +304,29 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         return
     logSupport.log.info("All children terminated")
 
+    globals_dict = pipe_out['globals']
     glidein_dict=pipe_out['entries']
     condorq_dict=pipe_out['jobs']
     status_dict=pipe_out['startds']
 
     condorq_dict_voms=glideinFrontendLib.getIdleVomsCondorQ(condorq_dict)
-    condorq_dict_idle=glideinFrontendLib.getIdleCondorQ(condorq_dict)
-    condorq_dict_old_idle=glideinFrontendLib.getOldCondorQ(condorq_dict_idle,600)
-    condorq_dict_running=glideinFrontendLib.getRunningCondorQ(condorq_dict)
+    condorq_dict_idle = glideinFrontendLib.getIdleCondorQ(condorq_dict)
+    condorq_dict_old_idle = glideinFrontendLib.getOldCondorQ(condorq_dict_idle, 600)
+    condorq_dict_running = glideinFrontendLib.getRunningCondorQ(condorq_dict)
 
-    condorq_dict_types={'Idle':{'dict':condorq_dict_idle,'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle)},
-                        'OldIdle':{'dict':condorq_dict_old_idle,'abs':glideinFrontendLib.countCondorQ(condorq_dict_old_idle)},
-                        'VomsIdle':{'dict':condorq_dict_voms,'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
-                        'Running':{'dict':condorq_dict_running,'abs':glideinFrontendLib.countCondorQ(condorq_dict_running)}}
-    condorq_dict_abs=glideinFrontendLib.countCondorQ(condorq_dict);
-    
+    condorq_dict_types = {'Idle':{'dict':condorq_dict_idle, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle)},
+                          'OldIdle':{'dict':condorq_dict_old_idle, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_old_idle)},
+                          'VomsIdle':{'dict':condorq_dict_voms, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
+                          'Running':{'dict':condorq_dict_running, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_running)}}
+    condorq_dict_abs = glideinFrontendLib.countCondorQ(condorq_dict);
+
 
     stats['group'].logJobs({'Total':condorq_dict_abs,
                             'Idle':condorq_dict_types['Idle']['abs'],
                             'OldIdle':condorq_dict_types['OldIdle']['abs'],
                             'Running':condorq_dict_types['Running']['abs']})
 
-    logSupport.log.info("Jobs found total %i idle %i (old %i, voms %i) running %i"%(condorq_dict_abs,
+    logSupport.log.info("Jobs found total %i idle %i (old %i, voms %i) running %i" % (condorq_dict_abs,
                                                                                                 condorq_dict_types['Idle']['abs'],
                                                                                                 condorq_dict_types['VomsIdle']['abs'],
                                                                                                 condorq_dict_types['OldIdle']['abs'],
@@ -320,7 +352,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     total_max_glideins=int(elementDescript.element_data['MaxRunningTotal'])
     total_curb_glideins=int(elementDescript.element_data['CurbRunningTotal'])
     total_glideins=status_dict_types['Total']['abs']
-    
+
     logSupport.log.info("Glideins found total %i idle %i running %i limit %i curb %i"%
                                              (total_glideins,
                                               status_dict_types['Idle']['abs'],
@@ -328,7 +360,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
                                               total_max_glideins,total_curb_glideins)
                                              )
 
-
+    # TODO: PM check if it is commented out because of globals section
     # extract the public key, if present
     #for glideid in glidein_dict.keys():
     #    glidein_el = glidein_dict[glideid]
@@ -349,6 +381,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     # get the proxy
     x509_proxies_data = None
     if x509_proxy_plugin != None:
+        # KEL - proxy sec class is not used - should it be?
         proxy_security_classes = elementDescript.merged_data['ProxySecurityClasses']
         x509_proxy_list = x509_proxy_plugin.get_credentials(condorq_dict, condorq_dict_types,
                                                       status_dict, status_dict_types)
@@ -371,11 +404,15 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
 
         # ignore glidein factories that do not have a public key
         # have no way to give them the proxy
-        for glideid in glidein_dict.keys():
-            glidein_el = glidein_dict[glideid]
-            if not globals_el['attrs'].has_key('PubKeyObj'):
-                logSupport.log.info("Ignoring factory '%s@%s': did not provide a valid global key, but x509_proxy specified" % (glideid[1], glideid[0]))
-                del glidein_dict[glideid]
+        
+        # KEL this doesn't work and I'm not sure what goes here.  
+        #  Commented out to get the code running for now, since it is just a check.
+        #  also, we only advertise globals if the key exists.  maybe this should be done right after getting the globals classads?
+        #for glideid in glidein_dict.keys():
+        #    glidein_el = glidein_dict[glideid]
+        #    if not globals_el['attrs'].has_key('PubKeyObj'):
+        #        logSupport.log.info("Ignoring factory '%s@%s': did not provide a valid global key, but x509_proxy specified" % (glideid[1], glideid[0]))
+        #        del glidein_dict[glideid]
 
 
     # here we have all the data needed to build a GroupAdvertizeType object
@@ -387,6 +424,9 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     # reuse between loops might be a good idea, but this will work for now
     key_builder = glideinFrontendInterface.Key4AdvertizeBuilder()
 
+
+
+    logSupport.log.info("Match")
 
     #logSupport.log.debug("realcount: %s\n\n" % glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict))
 
@@ -439,6 +479,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         return
     logSupport.log.info("All children terminated")
 
+    # TODO: PM Need to check if we are counting correctly after the merge
     for dt in condorq_dict_types.keys():
         el=condorq_dict_types[dt]
         (el['count'], el['prop'], el['hereonly'], el['total'])=pipe_out[dt]
@@ -446,30 +487,30 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     count_real=pipe_out['Real']
     count_status_multi=pipe_out['Glidein']
 
-    max_running=int(elementDescript.element_data['MaxRunningPerEntry'])
-    fraction_running=float(elementDescript.element_data['FracRunningPerEntry'])
-    max_idle=int(elementDescript.element_data['MaxIdlePerEntry'])
-    reserve_idle=int(elementDescript.element_data['ReserveIdlePerEntry'])
-    max_vms_idle=int(elementDescript.element_data['MaxIdleVMsPerEntry'])
-    curb_vms_idle=int(elementDescript.element_data['CurbIdleVMsPerEntry'])
-    
-    total_running=condorq_dict_types['Running']['total']
-    logSupport.log.info("Total matching idle %i (old %i) running %i"%(condorq_dict_types['Idle']['total'],condorq_dict_types['OldIdle']['total'],total_running))
+    max_running = int(elementDescript.element_data['MaxRunningPerEntry'])
+    fraction_running = float(elementDescript.element_data['FracRunningPerEntry'])
+    max_idle = int(elementDescript.element_data['MaxIdlePerEntry'])
+    reserve_idle = int(elementDescript.element_data['ReserveIdlePerEntry'])
+    max_vms_idle = int(elementDescript.element_data['MaxIdleVMsPerEntry'])
+    curb_vms_idle = int(elementDescript.element_data['CurbIdleVMsPerEntry'])
 
-
-    glideid_list=glidein_dict.keys()
-    glideid_list.sort() # sort for the sake of monitoring
+    total_running = condorq_dict_types['Running']['total']
+    logSupport.log.info("Total matching idle %i (old %i) running %i limit %i" % (condorq_dict_types['Idle']['total'], condorq_dict_types['OldIdle']['total'], total_running, max_running))
 
     advertizer=glideinFrontendInterface.MultiAdvertizeWork(descript_obj)
     resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser(multi_support=glideinFrontendInterface.frontendConfig.advertise_use_multi)
     
-
     # Add globals
-    for globalid in factory_globals_dict:
-        globals_el=factory_globals_dict[globalid]
+    for globalid in globals_dict:
+        globals_el = globals_dict[globalid]
         if globals_el['attrs'].has_key('PubKeyObj'):
             key_obj = key_builder.get_key_obj(globals_el['attrs']['FactoryPoolId'], globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
             advertizer.add_global(globals_el['attrs']['FactoryPoolNode'],globalid,security_name,key_obj)
+
+    glideid_list = condorq_dict_types['Idle']['count'].keys()
+    # TODO: PM Following shows up in branch_v2plus. Which is correct?
+    # glideid_list=glidein_dict.keys()
+    glideid_list.sort() # sort for the sake of monitoring
 
     log_factory_header()
     total_up_stats_arr=init_factory_stats_arr()
@@ -487,11 +528,9 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         if glidein_el['attrs'].has_key('GLIDEIN_In_Downtime'):
             glidein_in_downtime = (glidein_el['attrs']['GLIDEIN_In_Downtime'] == 'True')
 
-
         count_jobs={}     # straight match
         prop_jobs={}      # proportional subset for this entry
         hereonly_jobs={}  # can only run on this site
-
         for dt in condorq_dict_types.keys():
             count_jobs[dt] = condorq_dict_types[dt]['count'][glideid]
             prop_jobs[dt] = condorq_dict_types[dt]['prop'][glideid]
@@ -508,7 +547,9 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
 
         # effective idle is how much more we need
         # if there are idle slots, subtract them, they should match soon
-        effective_idle=prop_jobs['Idle']-count_status['Idle']
+        effective_idle = prop_jobs['Idle'] - count_status['Idle']
+        if effective_idle < 0:
+            effective_idle = 0
 
 
         effective_oldidle=prop_jobs['OldIdle']-count_status['Idle']
@@ -517,11 +558,14 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
 
         if count_status['Total']>=max_running:
             # have all the running jobs I wanted
+            glidein_min_idle=0
+        elif count_status['Idle']>=max_vms_idle:
             # enough idle vms, do not ask for more
             glidein_min_idle=0
         elif total_glideins>=total_max_glideins:
             # reached the system-wide limit
             glidein_min_idle=0
+        elif (effective_idle>0):
             glidein_min_idle = effective_idle
             glidein_min_idle=glidein_min_idle/3 # since it takes a few cycles to stabilize, ask for only one third
             glidein_idle_reserve=effective_oldidle/3 # do not reserve any more than the number of old idles for reserve (/3)
@@ -546,13 +590,13 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
                 glidein_min_idle=1
         else:
             # no idle, make sure the glideins know it
-            glidein_min_idle=0 
+            glidein_min_idle = 0
 
         glidein_min_idle=int(glidein_min_idle)
 
         # we don't need more slots than number of jobs in the queue (unless the fraction is positive)
-        if (prop_jobs['Idle']+count_jobs['Running'])>0:
-            glidein_max_run=int((prop_jobs['Idle']+count_jobs['Running'])*fraction_running+1)
+        if (prop_jobs['Idle'] + count_jobs['Running']) > 0:
+            glidein_max_run = int((prop_jobs['Idle'] + count_jobs['Running']) * fraction_running + 1)
         else:
             # the above calculation is always >0, but should be 0 if nothing in the user queue
             glidein_max_run = 0
@@ -621,19 +665,19 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         else:
             remove_excess_str = "NO"
 
-        this_stats_arr=(prop_jobs['Idle'],count_jobs['Idle'],effective_idle,prop_jobs['OldIdle'],hereonly_jobs['Idle'],count_jobs['Running'],count_real[glideid],max_running,
-                        count_status['Total'],count_status['Idle'],count_status['Running'],
-                        glidein_min_idle,glidein_max_run)
-        
-        stats['group'].logMatchedJobs(glideid_str, 
-            prop_jobs['Idle'], effective_idle, prop_jobs['OldIdle'],
+        this_stats_arr = (prop_jobs['Idle'], count_jobs['Idle'], effective_idle, prop_jobs['OldIdle'], hereonly_jobs['Idle'], count_jobs['Running'], count_real[glideid], max_running,
+                        count_status['Total'], count_status['Idle'], count_status['Running'],
+                        glidein_min_idle, glidein_max_run)
+
+        stats['group'].logMatchedJobs(
+            glideid_str, prop_jobs['Idle'], effective_idle, prop_jobs['OldIdle'],
             count_jobs['Running'], count_real[glideid])
 
-        stats['group'].logMatchedGlideins(glideid_str, 
-            count_status['Total'], count_status['Idle'],
+        stats['group'].logMatchedGlideins(
+            glideid_str, count_status['Total'], count_status['Idle'],
             count_status['Running'])
 
-        stats['group'].logFactAttrs(glideid_str, glidein_el['attrs'], ('PubKeyValue','PubKeyObj'))
+        stats['group'].logFactAttrs(glideid_str, glidein_el['attrs'], ('PubKeyValue', 'PubKeyObj'))
 
         stats['group'].logFactDown(glideid_str, glidein_in_downtime)
 
@@ -660,28 +704,37 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
 
         for t in count_status.keys():
             glidein_monitors['Glideins%s' % t] = count_status[t]
-        
-        if (globals_el['attrs'].has_key('PubKeyObj') and globals_el['attrs'].has_key('PubKeyID')):
-                key_obj = key_builder.get_key_obj(my_identity, globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
-        else:
-                key_obj = None
+            
+        key_obj = None
+        logSupport.log.debug("KEL before for loop for getting keys")
+        logSupport.log.debug("KEL globals_dict = %s" % str(globals_dict))
+        for globalid in globals_dict.keys():
+            logSupport.log.debug("KEL globalid = %s, glideid = %s" % (globalid, glideid))
+            if globalid in glideid:
+                logSupport.log.debug("KEL found match global and glide ids")
+                globals_el = globals_dict[globalid]
+                if (globals_el['attrs'].has_key('PubKeyObj') and globals_el['attrs'].has_key('PubKeyID')):
+                    key_obj = key_builder.get_key_obj(my_identity, globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
+                    logSupport.log.debug("KEL udpate key obj")
+                break            
 
-        if glidein_el['attrs'].has_key('GlideinTrustDomain'):
-            trust_domain=glidein_el['attrs']['GlideinTrustDomain']
+        if glidein_el['attrs'].has_key('GLIDEIN_TrustDomain'):
+            trust_domain=glidein_el['attrs']['GLIDEIN_TrustDomain']
         else:
             trust_domain="Grid"
-        if glidein_el['attrs'].has_key('GlideinSupportedAuthenticationMethods'):
-            auth_method=glidein_el['attrs']['GlideinSupportedAuthenticationMethod']
+        if glidein_el['attrs'].has_key('GLIDEIN_SupportedAuthenticationMethods'):
+            auth_method=glidein_el['attrs']['GLIDEIN_SupportedAuthenticationMethod']
         else:
             auth_method="grid_proxy"
 
         advertizer.add(factory_pool_node,
-                       request_name,request_name,
-                       glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors,
+                       request_name, request_name,
+                       glidein_min_idle, glidein_max_run, glidein_params, glidein_monitors,
                        remove_excess_str=remove_excess_str,
                        key_obj=key_obj,glidein_params_to_encrypt=None,security_name=security_name,
                        trust_domain=trust_domain,auth_method=auth_method)
-        
+
+
         # Create the resource classad and populate the required information
         resource_classad = glideinFrontendInterface.ResourceClassad(request_name, client_name)
         resource_classad.setInDownTime(glidein_in_downtime)
@@ -704,9 +757,9 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     log_and_sum_factory_line('Sum of down factories', True, tuple(total_down_stats_arr), total_up_stats_arr)
 
     # Print unmatched... Ignore the resulting sum
-    unmatched_idle=condorq_dict_types['Idle']['count'][(None,None,None)]
-    unmatched_oldidle=condorq_dict_types['OldIdle']['count'][(None,None,None)]
-    unmatched_running=condorq_dict_types['Running']['count'][(None,None,None)]
+    unmatched_idle = condorq_dict_types['Idle']['count'][(None, None, None)]
+    unmatched_oldidle = condorq_dict_types['OldIdle']['count'][(None, None, None)]
+    unmatched_running = condorq_dict_types['Running']['count'][(None, None, None)]
 
     stats['group'].logMatchedJobs(
         'Unmatched', unmatched_idle, unmatched_idle, unmatched_oldidle,
@@ -717,32 +770,22 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     stats['group'].logFactDown('Unmatched', True)
     stats['group'].logFactReq('Unmatched', 0, 0, {})
 
-        
-    this_stats_arr=(unmatched_idle,unmatched_idle,unmatched_idle,unmatched_oldidle,unmatched_idle,unmatched_running,0,0,
-                    0,0,0, # glideins... none, since no matching
-                    0,0)   # requested... none, since not matching
-    log_and_sum_factory_line('Unmatched',True,this_stats_arr,total_down_stats_arr)
-        
-    # Advertise glideclient classads
-    try:
-        logSupport.log.info("Advertizing global requests")
-        advertizer.do_global_advertize()
-        logSupport.log.info("Advertizing %i requests" % advertizer.get_queue_len())
-        advertizer.do_advertize()
-        logSupport.log.info("Done advertizing")
-    except glideinFrontendInterface.MultiExeError, e:
-        logSupport.log.warning("Advertizing failed for %i requests. See debug log for more details." % len(e.arr))
-        for ee in e.arr:
-            logSupport.log.debug("Advertizing failed: %s"%ee)
-    except RuntimeError, e:
-        logSupport.log.warning("Advertizing failed. See debug log for more details.")
-        logSupport.log.debug("Advertizing failed: %s"%e)
-    except:
-        logSupport.log.warning("Advertizing failed: Reason unknown")
-        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
-                                        sys.exc_info()[2])
-        logSupport.log.debug("Advertizing failed: %s" % tb)
+    this_stats_arr = (unmatched_idle, unmatched_idle, unmatched_idle, unmatched_oldidle, unmatched_idle, unmatched_running, 0, 0,
+                    0, 0, 0, # glideins... none, since no matching
+                    0, 0)   # requested... none, since not matching
+    log_and_sum_factory_line('Unmatched', True, this_stats_arr, total_down_stats_arr)
 
+    # Advertise glideclient and glideclient global classads
+    try:
+        logSupport.log.info("Advertising global requests")
+        advertizer.do_global_advertize()
+        logSupport.log.info("Advertising %i requests" % advertizer.get_queue_len())
+        advertizer.do_advertize()
+        logSupport.log.info("Done advertising")
+    except glideinFrontendInterface.MultiExeError, e:
+        logSupport.log.warning("Advertising failed for %i requests. See debug log for more details." % len(e.arr))
+        for ee in e.arr:
+            logSupport.log.debug("Advertising failed: %s" % ee)
 
     # Advertise glideresource classads
     try:
@@ -751,12 +794,12 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         resource_advertiser.advertiseAllClassads()
         logSupport.log.info("Done advertising glideresource classads")
     except RuntimeError, e:
-        logSupport.log.warning("Advertizing failed. See debug log for more details.")
-        logSupport.log.debug("Advertizing failed: %s" % e)
+        logSupport.log.warning("Advertising failed. See debug log for more details.")
+        logSupport.log.debug("Advertising failed: %s" % e)
     except:
-        logSupport.log.warning("Advertizing failed: Reason unknown")
+        logSupport.log.warning("Advertising failed: Reason unknown")
         tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-        logSupport.log.debug("Advertizing failed: %s" % tb)
+        logSupport.log.debug("Advertising failed: %s" % tb)
 
     return
 
@@ -837,7 +880,7 @@ def iterate(parent_pid, elementDescript, paramsDescript, signatureDescript, x509
         except:
             # Ignore all errors
             pass
-            
+
 
 ############################################################
 def main(parent_pid, work_dir, group_name):
