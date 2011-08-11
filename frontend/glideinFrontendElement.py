@@ -97,7 +97,6 @@ def fetch_fork_result(r,pid):
     try:
         rin=""
         s=os.read(r,1024*1024)
-        if s=="":
         while (s!=""): # "" means EOF
             rin+=s
             s=os.read(r,1024*1024) 
@@ -146,7 +145,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     factory_pools = elementDescript.merged_data['FactoryCollectors']
     
     # query globals
-    # We can't fork this since the M2Crypto key objects are not pickle-able
+    # We can't fork this since the M2Crypto key objects are not pickle-able.  Not much to gain by forking anyway.
     globals_dict = {}
     for factory_pool in factory_pools:
         factory_pool_node = factory_pool[0]
@@ -173,8 +172,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
                     globals_el['attrs']['FactoryPoolId'] = my_identity_at_factory_pool
                             
                     # KEL ok to put here?  do we want all globals even if there is no key?  may resolve other issues with checking later on
-                    #   (see other KEL comments in this file)
-                    #globals_dict[globalid] = copy.deepcopy(globals_el)
+                    globals_dict[globalid] = globals_el
                 except:
                     # if no valid key, just notify...
                     # if key needed, will handle the error later on
@@ -185,12 +183,6 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
                 # KEL I think this log message is wrong, globalid is not a tuple?  or should it be?
                 logSupport.log.info("Factory '%s@%s': unsupported pub key type '%s'" % (globalid[1], globalid[0], globals_el['attrs']['PubKeyType']))
                         
-            globals_dict[globalid] = globals_el
-                   
-    # KEL should we add a check here that if no glidefactoryglobal classads were usable and just exit?
-    # (and not always add the globals to the dict above)
-    # there is no point in going forward if we can't encrypt anything, right?  just log a message and skip?
-    
                 
     # query entries
     r,w=os.pipe()
@@ -395,19 +387,6 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         if len(x509_proxies_data)==0:
             logSupport.log.warning("All proxies failed, not advertizing")
             return
-
-        # ignore glidein factories that do not have a public key
-        # have no way to give them the proxy
-        
-        # KEL this doesn't work and I'm not sure what goes here.  
-        #  Commented out to get the code running for now, since it is just a check.
-        #  also, we only advertise globals if the key exists.  maybe this should be done right after getting the globals classads?
-        #for glideid in glidein_dict.keys():
-        #    glidein_el = glidein_dict[glideid]
-        #    if not globals_el['attrs'].has_key('PubKeyObj'):
-        #        logSupport.log.info("Ignoring factory '%s@%s': did not provide a valid global key, but x509_proxy specified" % (glideid[1], glideid[0]))
-        #        del glidein_dict[glideid]
-
 
     # here we have all the data needed to build a GroupAdvertizeType object
     descript_obj = glideinFrontendInterface.FrontendDescript(client_name, frontend_name, group_name,
@@ -716,12 +695,16 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         else:
             auth_method="grid_proxy"
 
-        advertizer.add(factory_pool_node,
-                       request_name, request_name,
-                       glidein_min_idle, glidein_max_run, glidein_params, glidein_monitors,
-                       remove_excess_str=remove_excess_str,
-                       key_obj=key_obj,glidein_params_to_encrypt=None,security_name=security_name,
-                       trust_domain=trust_domain,auth_method=auth_method)
+        # Only advertize if there is a valid key for encryption
+        if key_obj != None:
+            advertizer.add(factory_pool_node,
+                           request_name, request_name,
+                           glidein_min_idle, glidein_max_run, glidein_params, glidein_monitors,
+                           remove_excess_str=remove_excess_str,
+                           key_obj=key_obj,glidein_params_to_encrypt=None,security_name=security_name,
+                           trust_domain=trust_domain,auth_method=auth_method)
+        else:
+            logSupport.log.warning("Cannot advertise requests for %s because no factory %s key was found"% (request_name, factory_pool_node))
 
 
         # Create the resource classad and populate the required information
