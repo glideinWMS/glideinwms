@@ -11,13 +11,10 @@
 #
 ####################################
 
-import os,os.path,shutil
+import os, shutil
 import stat
-import string
-import traceback
 import tarfile
 import cStringIO
-import cgWConsts
 import cgWDictFile
 
 ##############################
@@ -164,6 +161,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 #########################################
 # Create init.d compatible startup file
 def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir):
+    """
+    Creates the factory startup script from the template.
+    """
     template = get_template("factory_initd_startup_template", glideinWMS_dir)
     fd = open(startup_fname,"w")
     try:

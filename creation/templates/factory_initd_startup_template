@@ -85,7 +85,7 @@ reconfig() {
         fi
         "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" -writeback "$writeback" -update_scripts "no" -xml $2
         reconfig_failed=$?
-        echo -n "Reconfiguring the factory"
+        echo -n "Upgrading the factory"
         test $reconfig_failed -eq 0 && success || failure
         RETVAL=$?
         echo
