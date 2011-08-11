@@ -796,24 +796,26 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                     max_running = factory_max_running
             else:
                 max_running = factory_max_running
-
+            
+            # KEL I commented all this out because it doesn't belong here so it doesn't work
+            #  - we need to add this functionality back but in the right place
             # If there is a frontend specific limit for this entry on max_jobs
             # then reduce idle,max_jobs and held_jobs based on frontend specific limits
-            s_id=client_security_name+":"+x509_proxy_security_class
-            s_all=client_security_name+":All"
+            #s_id=client_security_name+":"+x509_proxy_security_class
+            #s_all=client_security_name+":All"
             #glideFactoryLib.log_files.logActivity("Before check: %i %i %i"% (max_running,idle_glideins,factory_max_held))
-            if (frontend_max_running.has_key(s_id) and (max_running>frontend_max_running[s_id])):
-                max_running=frontend_max_running[s_id]
-            if (frontend_max_running.has_key(s_all) and (max_running>frontend_max_running[s_all])):
-                max_running=frontend_max_running[s_all]
-            if (frontend_max_idle.has_key(s_id) and (idle_glideins>frontend_max_idle[s_id])):
-                idle_glideins=frontend_max_idle[s_id]
-            if (frontend_max_idle.has_key(s_all) and (idle_glideins>frontend_max_idle[s_all])):
-                idle_glideins=frontend_max_idle[s_all]
-            if (frontend_max_held.has_key(s_id) and (factory_max_held>frontend_max_held[s_id])):
-                factory_max_held=frontend_max_held[s_id]
-            if (frontend_max_held.has_key(s_all) and (factory_max_held>frontend_max_held[s_all])):
-                factory_max_held=frontend_max_held[s_all]
+            #if (frontend_max_running.has_key(s_id) and (max_running>frontend_max_running[s_id])):
+            #    max_running=frontend_max_running[s_id]
+            #if (frontend_max_running.has_key(s_all) and (max_running>frontend_max_running[s_all])):
+            #    max_running=frontend_max_running[s_all]
+            #if (frontend_max_idle.has_key(s_id) and (idle_glideins>frontend_max_idle[s_id])):
+            #    idle_glideins=frontend_max_idle[s_id]
+            #if (frontend_max_idle.has_key(s_all) and (idle_glideins>frontend_max_idle[s_all])):
+            #    idle_glideins=frontend_max_idle[s_all]
+            #if (frontend_max_held.has_key(s_id) and (factory_max_held>frontend_max_held[s_id])):
+            #    factory_max_held=frontend_max_held[s_id]
+            #if (frontend_max_held.has_key(s_all) and (factory_max_held>frontend_max_held[s_all])):
+            #    factory_max_held=frontend_max_held[s_all]
             #glideFactoryLib.log_files.logActivity("After check: %i %i %i"% (max_running,idle_glideins,factory_max_held))
            
             if in_downtime:

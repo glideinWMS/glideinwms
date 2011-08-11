@@ -1,7 +1,7 @@
 #!/bin/bash
 # condor   This is the glideinWMS factory startup script
 # chkconfig: 35 90 30
-# description: Starts and stops a glideinWMS factory\n
+# description: Starts and stops a glideinWMS factory
 
 # Emulate function library.
 success()

@@ -97,6 +97,7 @@ def fetch_fork_result(r,pid):
     try:
         rin=""
         s=os.read(r,1024*1024)
+        if s=="":
         while (s!=""): # "" means EOF
             rin+=s
             s=os.read(r,1024*1024) 
@@ -145,56 +146,52 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     factory_pools = elementDescript.merged_data['FactoryCollectors']
     
     # query globals
-    r,w=os.pipe()
-    pid=os.fork()
-    if pid==0:
-        # this is the child... return output as a pickled object via the pipe
-        os.close(r)
+    # We can't fork this since the M2Crypto key objects are not pickle-able
+    globals_dict = {}
+    for factory_pool in factory_pools:
+        factory_pool_node = factory_pool[0]
+        my_identity_at_factory_pool = factory_pool[2]
         try:
-            factory_globals_dict = {}
-            for factory_pool in factory_pools:
-                factory_pool_node = factory_pool[0]
-                my_identity_at_factory_pool = factory_pool[2]
-                try:
-                    factory_globals_dict = glideinFrontendInterface.findGlobals(factory_pool_node, None, None)
-                except RuntimeError, e:
-                    # failed to talk, like empty... maybe the next factory will have something
-                    if factory_pool_node != None:
-                        logSupport.log.warning("Failed to talk to factory_pool %s. See debug log for more details." % factory_pool_node)
-                        logSupport.log.debug("Failed to talk to factory_pool %s: %s" % (factory_pool_node, e))
-                    else:
-                        logSupport.log.warning("Failed to talk to factory_pool. See debug log for more details.")
-                        logSupport.log.debug("Failed to talk to factory_pool: %s" % e)
+            factory_globals_dict = glideinFrontendInterface.findGlobals(factory_pool_node, None, None)
+        except RuntimeError, e:
+            # failed to talk, like empty... maybe the next factory will have something
+            if factory_pool_node != None:
+                logSupport.log.warning("Failed to talk to factory_pool %s. See debug log for more details." % factory_pool_node)
+                logSupport.log.debug("Failed to talk to factory_pool %s: %s" % (factory_pool_node, e))
+            else:
+                logSupport.log.warning("Failed to talk to factory_pool. See debug log for more details.")
+                logSupport.log.debug("Failed to talk to factory_pool: %s" % e)
                 
-                for globalid in factory_globals_dict:
-                    globals_el = factory_globals_dict[globalid]
-                    if not globals_el['attrs'].has_key('PubKeyType'): # no pub key at all
-                        pass # no public key, nothing to do
-                    elif globals_el['attrs']['PubKeyType'] == 'RSA': # only trust RSA for now
-                        try:
-                            globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(str(string.replace(globals_el['attrs']['PubKeyValue'], '\\n', '\n')))
-                            globals_el['attrs']['FactoryPoolNode'] = factory_pool_node
-                            globals_el['attrs']['FactoryPoolId'] = my_identity_at_factory_pool
-                        except:
-                            # if no valid key, just notify...
-                            # if key needed, will handle the error later on
-                            logSupport.log.warning("Factory Globals '%s': invalid RSA key" % globalid)
-                    else:
-                        # don't know what to do with this key, notify the admin
-                        # if key needed, will handle the error later on
-                        logSupport.log.info("Factory '%s@%s': unsupported pub key type '%s'" % (globalid[1], globalid[0], globals_el['attrs']['PubKeyType']))
-  
-            os.write(w, cPickle.dumps(factory_globals_dict))
-        finally:
-            os.close(w)
-            # hard kill myself... don't want any cleanup, since i was created just for this calculation
-            os.kill(os.getpid(), signal.SIGKILL) 
-    else:
-        # this is the original
-        # just remember what you did for now
-        os.close(w)
-        pipe_ids['globals']={'r':r,'pid':pid}
-              
+        for globalid in factory_globals_dict:
+            globals_el = factory_globals_dict[globalid]
+            if not globals_el['attrs'].has_key('PubKeyType'): # no pub key at all
+                pass # no public key, nothing to do
+            elif globals_el['attrs']['PubKeyType'] == 'RSA': # only trust RSA for now
+                try:
+                    globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(str(string.replace(globals_el['attrs']['PubKeyValue'], '\\n', '\n')))
+                    globals_el['attrs']['FactoryPoolNode'] = factory_pool_node
+                    globals_el['attrs']['FactoryPoolId'] = my_identity_at_factory_pool
+                            
+                    # KEL ok to put here?  do we want all globals even if there is no key?  may resolve other issues with checking later on
+                    #   (see other KEL comments in this file)
+                    #globals_dict[globalid] = copy.deepcopy(globals_el)
+                except:
+                    # if no valid key, just notify...
+                    # if key needed, will handle the error later on
+                    logSupport.log.warning("Factory Globals '%s': invalid RSA key" % globalid)
+            else:
+                # don't know what to do with this key, notify the admin
+                # if key needed, will handle the error later on
+                # KEL I think this log message is wrong, globalid is not a tuple?  or should it be?
+                logSupport.log.info("Factory '%s@%s': unsupported pub key type '%s'" % (globalid[1], globalid[0], globals_el['attrs']['PubKeyType']))
+                        
+            globals_dict[globalid] = globals_el
+                   
+    # KEL should we add a check here that if no glidefactoryglobal classads were usable and just exit?
+    # (and not always add the globals to the dict above)
+    # there is no point in going forward if we can't encrypt anything, right?  just log a message and skip?
+    
+                
     # query entries
     r,w=os.pipe()
     pid=os.fork()
@@ -203,8 +200,6 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         os.close(r)
         try:
             glidein_dict = {}
-            #factory_constraint = elementDescript.merged_data['FactoryQueryExpr']
-            #factory_pools = elementDescript.merged_data['FactoryCollectors']
             for factory_pool in factory_pools:
                 factory_pool_node = factory_pool[0]
                 factory_identity = factory_pool[1]
@@ -304,7 +299,6 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         return
     logSupport.log.info("All children terminated")
 
-    globals_dict = pipe_out['globals']
     glidein_dict=pipe_out['entries']
     condorq_dict=pipe_out['jobs']
     status_dict=pipe_out['startds']
@@ -706,16 +700,11 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
             glidein_monitors['Glideins%s' % t] = count_status[t]
             
         key_obj = None
-        logSupport.log.debug("KEL before for loop for getting keys")
-        logSupport.log.debug("KEL globals_dict = %s" % str(globals_dict))
         for globalid in globals_dict.keys():
-            logSupport.log.debug("KEL globalid = %s, glideid = %s" % (globalid, glideid))
-            if globalid in glideid:
-                logSupport.log.debug("KEL found match global and glide ids")
+            if glideid[1].endswith(globalid):
                 globals_el = globals_dict[globalid]
                 if (globals_el['attrs'].has_key('PubKeyObj') and globals_el['attrs'].has_key('PubKeyID')):
                     key_obj = key_builder.get_key_obj(my_identity, globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
-                    logSupport.log.debug("KEL udpate key obj")
                 break            
 
         if glidein_el['attrs'].has_key('GLIDEIN_TrustDomain'):

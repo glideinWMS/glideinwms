@@ -626,8 +626,7 @@ class MultiAdvertizeWork:
             raise MultiExeError, error_arr
 
 
-    def createAdvertizeWorkFile(self, factory_pool, params_obj, key_obj=None):
-        logSupport.log.debug("KEL beginning of createAdWkFile  key_obj %s" % str(key_obj))    
+    def createAdvertizeWorkFile(self, factory_pool, params_obj, key_obj=None):  
         global frontendConfig
         descript_obj=self.descript_obj
 
@@ -648,7 +647,6 @@ class MultiAdvertizeWork:
                 classad_name="%s@%s"%(params_obj.request_name,descript_obj.my_name)
                 
                 if descript_obj.x509_proxies_data!=None:
-                    logSupport.log.debug("KEL found proxies data")
                     credential_el=descript_obj.x509_proxies_data[i]
                     if (params_obj.request_name in self.factory_constraint):
                         factory_trust,factory_auth=self.factory_constraint[params_obj.request_name]
@@ -661,12 +659,10 @@ class MultiAdvertizeWork:
                     # Convert the sec class to a string so the Factory can interpret the value correctly
                     glidein_params_to_encrypt['SecurityClass']=str(credential_el.security_class)
                     classad_name=credential_el.file_id(credential_el.filename)+"_"+classad_name
-                    logSupport.log.debug("KEL credential_el.type %s" % credential_el.type)
                     if (credential_el.type.startswith("username_password")):
                         glidein_params_to_encrypt['Username']=credential_el.file_id(credential_el.filename);
                         glidein_params_to_encrypt['Password']=credential_el.file_id(credential_el.key_fname);
                     if (credential_el.type.startswith("grid_proxy")):
-                        logSupport.log.debug("KEL got to SubmitProxy")
                         glidein_params_to_encrypt['SubmitProxy']=credential_el.file_id(credential_el.filename);
                     if (credential_el.type.startswith("cert_pair")):
                         glidein_params_to_encrypt['PublicCert']=credential_el.file_id(credential_el.filename);
@@ -696,21 +692,16 @@ class MultiAdvertizeWork:
 
                 if params_obj.security_name!=None:
                     glidein_params_to_encrypt['SecurityName']=params_obj.security_name
-                           
-                logSupport.log.debug("KEL  key_obj %s" % str(key_obj))         
+                                  
                 if key_obj!=None:
-                    logSupport.log.debug("KEL in key_obj!=None")
                     fd.write(string.join(key_obj.get_key_attrs(),'\n')+"\n")
                     for attr in glidein_params_to_encrypt.keys():
                         encrypted_params[attr]=key_obj.encrypt_hex(glidein_params_to_encrypt["%s"%attr])
-                    logSupport.log.debug("KEL past key_obj!=None")
                     
                 fd.write('ReqIdleGlideins = %i\n'%params_obj.min_nr_glideins)
                 fd.write('ReqMaxRunningGlideins = %i\n'%params_obj.max_run_glideins)
                 fd.write('ReqRemoveExcess = "%s"\n'%params_obj.remove_excess_str)
                          
-                logSupport.log.debug("KEL glidein_params_to_encrypt %s" % str(glidein_params_to_encrypt))
-                logSupport.log.debug("KEL encrypted_params %s" % str(encrypted_params))
                 # write out both the params and monitors
                 for (prefix, data) in ((frontendConfig.glidein_param_prefix, params_obj.glidein_params),
                                   (frontendConfig.glidein_monitor_prefix, params_obj.glidein_monitors),
