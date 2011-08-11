@@ -113,38 +113,9 @@ def findGlobals(factory_pool,factory_identity,
     status=condorMonitor.CondorStatus("any",pool_name=factory_pool)
     status.require_integrity(True) #important, especially for proxy passing
     status.load(status_constraint)
+    
     data=status.fetchStored()
-
-    reserved_names=frontendConfig.condor_reserved_names
-    for k in reserved_names:
-        if data.has_key(k):
-            del data[k]
-
-    out={}
-    # copy over requests and parameters
-    for k in data.keys():
-        kel=data[k].copy()
-        el={"params":{},"monitor":{}}
-
-        # first remove reserved anmes
-        for attr in reserved_names:
-            if kel.has_key(attr):
-                del kel[attr]
-
-        # then move the parameters and monitoring
-        for (prefix,eldata) in ((frontendConfig.glidein_param_prefix,el["params"]), (frontendConfig.glidein_monitor_prefix,el["monitor"])):
-            plen=len(prefix)
-            for attr in kel.keys():
-                if attr[:plen]==prefix:
-                    eldata[attr[plen:]]=kel[attr]
-                    del kel[attr]
-
-        # what is left are glidein attributes
-        el["attrs"]=kel
-
-        out[k]=el
-
-    return out
+    return format_condor_dict(data)
     
 
 # can throw condorExe.ExeError
@@ -175,44 +146,11 @@ def findGlideins(factory_pool, factory_identity,
         status_constraint = "%s && (%s)" % (status_constraint, additional_constraint)
     status = condorMonitor.CondorStatus("any", pool_name=factory_pool)
     status.require_integrity(True) #important, especially for proxy passing
-
     status.load(status_constraint)
 
-    data = status.fetchStored()
+    data = status.fetchStored()    
+    return format_condor_dict(data)
 
-    reserved_names = frontendConfig.condor_reserved_names
-    for k in reserved_names:
-        if data.has_key(k):
-            del data[k]
-
-    out = {}
-
-    # copy over requests and parameters
-    for k in data.keys():
-        kel = data[k].copy()
-
-        el = {"params":{}, "monitor":{}}
-
-        # first remove reserved anmes
-        for attr in reserved_names:
-            if kel.has_key(attr):
-                del kel[attr]
-
-        # then move the parameters and monitoring
-        for (prefix, eldata) in ((frontendConfig.glidein_param_prefix, el["params"]),
-                              (frontendConfig.glidein_monitor_prefix, el["monitor"])):
-            plen = len(prefix)
-            for attr in kel.keys():
-                if attr[:plen] == prefix:
-                    eldata[attr[plen:]] = kel[attr]
-                    del kel[attr]
-
-        # what is left are glidein attributes
-        el["attrs"] = kel
-
-        out[k] = el
-
-    return out
 
 def findGlideinClientMonitoring(factory_pool, my_name,
                                 additional_constraint=None):
@@ -227,15 +165,20 @@ def findGlideinClientMonitoring(factory_pool, my_name,
     status.load(status_constraint)
 
     data = status.fetchStored()
+    return format_condor_dict(data)
 
+def format_condor_dict(data):
+    """
+    Formats the data from the condor call.
+    """    
+    
     reserved_names = frontendConfig.condor_reserved_names
     for k in reserved_names:
         if data.has_key(k):
             del data[k]
-
+    
     out = {}
-
-    # copy over requests and parameters
+    
     for k in data.keys():
         kel = data[k].copy()
 
