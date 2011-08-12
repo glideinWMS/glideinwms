@@ -484,7 +484,6 @@ class TestInfosysLib(unittest.TestCase):
             <remove max_per_cycle="5" sleep="0.2"/>\n\
             <submit cluster_size="10" max_per_cycle="100" sleep="0.2"/>\n\
          </config>\n\
-         <downtimes/>\n\
          <attrs>\n\
             <attr name="CONDOR_OS" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="default"/>\n\
             <attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="NONE"/>\n\
