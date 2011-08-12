@@ -14,8 +14,11 @@ import sys
 import timeConversion
 import time
 import logging
-from logging import config
 from logging.handlers import TimedRotatingFileHandler
+
+log = None # create a place holder for a global logger, individual modules can create their own loggers if necessary
+log_dir = None
+debug_on = True
 
 # this class can be used instead of a file for writing
 class DayLogFile:
@@ -69,8 +72,7 @@ class DayLogFile:
 # Note:  We may need to create a custom class later if we need to handle
 #        logging with privilege separation
 
-log = None # create a place holder for a global logger, individual modules can create their own loggers if necessary
-log_dir = None
+
 
 class GlideinHandler(TimedRotatingFileHandler):
     """
@@ -160,10 +162,9 @@ def add_glideinlog_handler(logger_name, log_dir, maxDays, maxBytes):
     @param maxBytes: Maximum size in bytes of the logfile before it will be rotated
 
     """
-    log_conf_file = "%s/logging.conf" % os.path.join(sys.path[0], "../lib")
-    config.fileConfig(log_conf_file)
 
     mylog = logging.getLogger(logger_name)
+    mylog.setLevel(logging.INFO)
 
     formatter = logging.Formatter('[%(asctime)s] %(levelname)s:  %(message)s')
 
@@ -179,12 +180,22 @@ def add_glideinlog_handler(logger_name, log_dir, maxDays, maxBytes):
     handler = GlideinHandler(logfile, maxDays, maxBytes, backupCount=5)
     handler.setFormatter(formatter)
     handler.setLevel(logging.INFO)
+    handler.addFilter(InfoFilter())
     mylog.addHandler(handler)
 
     # DEBUG Logger
-    formatter = logging.Formatter('[%(asctime)s] %(levelname)s:::%(module)s::%(lineno)d: %(message)s ')
-    logfile = os.path.expandvars("%s/%s.debug.log" % (log_dir, logger_name))
-    handler = GlideinHandler(logfile, maxDays, maxBytes, backupCount=5)
-    handler.setFormatter(formatter)
-    handler.setLevel(logging.DEBUG)
-    mylog.addHandler(handler)
+    if debug_on:
+        formatter = logging.Formatter('[%(asctime)s] %(levelname)s:::%(module)s::%(lineno)d: %(message)s ')
+        logfile = os.path.expandvars("%s/%s.debug.log" % (log_dir, logger_name))
+        handler = GlideinHandler(logfile, maxDays, maxBytes, backupCount=5)
+        handler.setFormatter(formatter)
+        handler.setLevel(logging.DEBUG)
+        mylog.addHandler(handler)
+    
+class InfoFilter(logging.Filter):
+    """
+    Filter used in handling records for the info logs.
+    """
+    def filter(self, rec):
+        return rec.levelno == logging.INFO or rec.levelno == logging.WARNING or rec.levelno == logging.WARN
+    
