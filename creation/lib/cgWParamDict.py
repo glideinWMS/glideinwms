@@ -552,10 +552,8 @@ def add_attr_unparsed_real(attr_name,params,dicts):
 def populate_factory_descript(work_dir,
                               glidein_dict,active_sub_list,        # will be modified
                               params):
-        # if a user does not provide a file name, use the default one
-        down_fname=params.downtimes.absfname
-        if down_fname==None:
-            down_fname=os.path.join(work_dir,'glideinWMS.downtimes')
+        
+        down_fname=os.path.join(work_dir,'glideinWMS.downtimes')
 
         glidein_dict.add('FactoryName',params.factory_name)
         glidein_dict.add('GlideinName',params.glidein_name)
@@ -604,10 +602,8 @@ def populate_job_descript(work_dir, job_descript_dict,
     @type sub_params: dict
     @param sub_params: entry parameters
     """
-    # if a user does not provide a file name, use the default one
-    down_fname = sub_params.downtimes.absfname
-    if down_fname == None:
-        down_fname = os.path.join(work_dir, 'entry.downtimes')
+    
+    down_fname = os.path.join(work_dir, 'glideinWMS.downtimes')
 
     job_descript_dict.add('EntryName', sub_name)
     job_descript_dict.add('GridType', sub_params.gridtype)

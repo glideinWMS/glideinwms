@@ -113,7 +113,6 @@ class GlideinParams(cWParams.CommonParams):
         self.entry_defaults["attrs"] = sub_defaults['attrs']
         self.entry_defaults["files"] = sub_defaults['files']
         self.entry_defaults["infosys_refs"] = sub_defaults['infosys_refs']
-        self.entry_defaults["downtimes"] = self.downtimes_defaults
         self.entry_defaults["monitorgroups"] = copy.deepcopy(sub_defaults['monitorgroups'])
         self.entry_defaults["allow_frontends"] = (xmlParse.OrderedDict(), 'Dictionary of frontends', "Each frontend entry contains", self.allow_defaults);
 
@@ -185,7 +184,6 @@ class GlideinParams(cWParams.CommonParams):
 
         self.defaults["condor_tarballs"] = ([], 'List of condor tarballs', "Each entry contains", condor_defaults)
 
-        self.defaults["downtimes"] = self.downtimes_defaults
         self.defaults["attrs"] = sub_defaults['attrs']
         self.defaults["files"] = copy.deepcopy(sub_defaults['files'])
         # ordering is specific to global section of factory

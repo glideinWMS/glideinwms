@@ -349,8 +349,6 @@ class CommonParams(Params):
         untar_defaults["absdir_outattr"]=(None,"attrname",'Attribute to be set to the abs dir name where the tarball was unpacked. Will be defined only if untar effectively done. (Not defined if None)',None)
         self.file_defaults["untar_options"]=untar_defaults
 
-        self.downtimes_defaults=commentedOrderedDict({"absfname":(None,"fname","File containing downtime information",None)})
-
         self.monitor_defaults=commentedOrderedDict()
         self.monitor_defaults["javascriptRRD_dir"]=(os.path.join(self.src_dir,"../../externals/flot"),"base_dir","Location of the javascriptRRD library.",None)
         self.monitor_defaults["flot_dir"]=(os.path.join(self.src_dir,"../../externals/flot"),"base_dir","Location of the flot library.",None)

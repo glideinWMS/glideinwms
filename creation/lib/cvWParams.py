@@ -118,7 +118,6 @@ class VOFrontendParams(cWParams.CommonParams):
         self.group_defaults["config"]=group_config_defaults
         self.group_defaults["attrs"]=sub_defaults['attrs']
         self.group_defaults["files"]=sub_defaults['files']
-        self.group_defaults["downtimes"]=self.downtimes_defaults
         self.group_defaults["security"]=copy.deepcopy(security_defaults)
         
 
@@ -169,8 +168,6 @@ class VOFrontendParams(cWParams.CommonParams):
         # change default match value
         # by default we want to look only for vanilla universe jobs that are not monitoring jobs
         self.defaults["match"]["job"]["query_expr"][0]='(JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)'
-
-        self.defaults["downtimes"]=self.downtimes_defaults
 
         self.defaults["attrs"]=sub_defaults['attrs']
         self.defaults["files"]=copy.deepcopy(sub_defaults['files'])

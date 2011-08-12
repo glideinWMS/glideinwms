@@ -77,7 +77,7 @@ def add_entry(params,other_params, entry_name):
 def merge_entry(params,other_params, entry_name,preserve_enable):
     org_entry=params.subparams.data['entries'][entry_name]
     params.subparams.data['entries'][entry_name]=copy.deepcopy(other_params.subparams.data['entries'][entry_name])
-    preserve_els=['schedd_name','allow_frontends','downtimes']
+    preserve_els=['schedd_name','allow_frontends']
     if preserve_enable:
         preserve_els.append('enable')
     for e in preserve_els:

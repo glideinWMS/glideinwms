@@ -415,11 +415,7 @@ def add_attr_unparsed_real(attr_name,params,dicts):
 def populate_frontend_descript(work_dir,
                                frontend_dict,active_sub_list,        # will be modified
                                params):
-        # if a user does not provide a file name, use the default one
-        down_fname=params.downtimes.absfname
-        if down_fname==None:
-            down_fname=os.path.join(work_dir,'frontend.downtimes')
-
+        
         frontend_dict.add('FrontendName',params.frontend_name)
         frontend_dict.add('WebURL',params.web_url)
 
@@ -448,7 +444,6 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('CondorConfig',os.path.join(work_dir,cvWConsts.FRONTEND_CONDOR_CONFIG_FILE))
 
         frontend_dict.add('LogDir',params.log_dir)
-        frontend_dict.add('DowntimesFile',down_fname)
         for tel in (("max_days",'MaxDays'),("min_days",'MinDays'),("max_mbytes",'MaxMBs')):
             param_tname,str_tname=tel
             frontend_dict.add('LogRetention%s'%str_tname,params.log_retention[param_tname])
@@ -457,16 +452,11 @@ def populate_frontend_descript(work_dir,
 # Populate group descript
 def populate_group_descript(work_dir,group_descript_dict,        # will be modified
                             sub_name,sub_params):
-    # if a user does not provide a file name, use the default one
-    down_fname=sub_params.downtimes.absfname
-    if down_fname==None:
-        down_fname=os.path.join(work_dir,'group.downtimes')
 
     group_descript_dict.add('GroupName',sub_name)
 
     group_descript_dict.add('MapFile',os.path.join(work_dir,cvWConsts.GROUP_MAP_FILE))
 
-    group_descript_dict.add('DowntimesFile',down_fname)
     group_descript_dict.add('MaxRunningPerEntry',sub_params.config.running_glideins_per_entry.max)
     group_descript_dict.add('FracRunningPerEntry',sub_params.config.running_glideins_per_entry.relative_to_queue)
     group_descript_dict.add('MaxIdlePerEntry',sub_params.config.idle_glideins_per_entry.max)
