@@ -31,7 +31,7 @@ import cgWParamDict
 
 ################################################################################
 
-def main(params, old_params, update_scripts, writeback):
+def main(params, old_params, update_scripts):
     # load old files
     old_glidein_dicts_obj=cgWParamDict.glideinDicts(old_params)
     old_glidein_dicts_obj.load()
@@ -70,9 +70,8 @@ def main(params, old_params, update_scripts, writeback):
                                        
     cfgfile=os.path.join(glidein_dicts_obj.main_dicts.work_dir,cgWConsts.XML_CONFIG_FILE)
     
-    if writeback == 'yes':                     
-        # save config into file (with backup, since the old one already exists)
-        params.save_into_file_wbackup(cfgfile,set_ro=True)
+    # save config into file (with backup, since the old one already exists)
+    params.save_into_file_wbackup(cfgfile,set_ro=True)
     
     # make backup copy that does not get overwritten on further reconfig
     cfgfile=cWConsts.insert_timestr(cfgfile)
@@ -142,12 +141,19 @@ if __name__ == '__main__':
         else:
             raise RuntimeError,"Cannot find %s"%old_config_file
         
-        main(params, old_params, update_scripts, writeback)
+        main(params, old_params, update_scripts)
     	        
     except RuntimeError, e:
         print usage
         print ""
         print e
+        sys.exit(1)
+
+    try:
+        if writeback=='yes':
+            params.save_into_file_wbackup(params.cfg_name)
+    except:
+        print "Writing back config file failed"
         sys.exit(1)
 
 
