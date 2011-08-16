@@ -142,7 +142,7 @@ if __name__ == '__main__':
         print e
         sys.exit(1)
 
-     try:
+    try:
         if writeback=='yes':
             params.save_into_file_wbackup(params.cfg_name)
     except:
