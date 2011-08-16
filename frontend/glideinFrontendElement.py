@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.32 2011/07/05 23:11:06 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -442,6 +441,8 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     total_running=condorq_dict_types['Running']['total']
     glideinFrontendLib.log_files.logActivity("Total matching idle %i (old %i) running %i"%(condorq_dict_types['Idle']['total'],condorq_dict_types['OldIdle']['total'],total_running))
 
+    glideid_list=glidein_dict.keys()
+    glideid_list.sort() # sort for the sake of monitoring
 
     glideid_list=glidein_dict.keys()
     glideid_list.sort() # sort for the sake of monitoring

@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.17 2011/05/04 20:57:09 dstrain Exp $
 #
 # Description:
 #   This module implements the functions needed

@@ -5,7 +5,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glidecondor_addDN,v 1.1.2.3 2010/09/24 15:30:36 parag Exp $
 #
 # Description:
 #   This tool adds a DN to the Condor security configuration

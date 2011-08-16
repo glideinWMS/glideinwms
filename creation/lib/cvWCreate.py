@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: cvWCreate.py,v 1.7.8.10 2011/06/24 15:06:25 parag Exp $
 #
 # Description:
 #   Functions needed to create files used by the VO Frontend

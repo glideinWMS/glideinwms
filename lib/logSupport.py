@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: logSupport.py,v 1.21.10.2 2010/09/08 03:10:47 parag Exp $
 #
 # Description: log support module
 #

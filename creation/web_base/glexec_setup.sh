@@ -5,7 +5,6 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glexec_setup.sh,v 1.17.2.7 2011/05/18 23:40:21 sfiligoi Exp $
 #
 # Description:
 #   This script will setup the gLExec parameters
@@ -124,6 +123,9 @@ add_condor_vars_line "GLEXEC_USER_DIR" "C" "-" "+" "Y" "N" "-"
 if [ "$glexec_bin" == "OSG" ]; then
     echo "GLEXEC_BIN was OSG, expand to '$OSG_GLEXEC_LOCATION'" 1>&2
     glexec_bin="$OSG_GLEXEC_LOCATION"
+elif [ "$glexec_bin" == "glite" ]; then
+    echo "GLEXEC_BIN was glite, expand to '/opt/glite/sbin/glexec'" 1>&2
+    glexec_bin=/opt/glite/sbin/glexec
 fi
 
 # but first test it does exist and is executable

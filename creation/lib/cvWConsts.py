@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cvWConsts.py,v 1.3.8.3 2010/09/08 03:29:59 parag Exp $
 #
 # Description:
 #   Keep all the constants used to create frontend entries in this module

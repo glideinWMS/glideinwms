@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryConfig.py,v 1.21.10.5 2011/05/19 19:52:10 parag Exp $
 #
 
 import string

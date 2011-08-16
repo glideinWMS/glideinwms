@@ -5,7 +5,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: validate_node.sh,v 1.6.8.1 2010/09/08 03:30:00 parag Exp $
 #
 # Description:
 #   This script checks that the node is in good shape

@@ -5,7 +5,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: condor_platform_select.sh,v 1.2.6.2 2010/09/08 03:30:00 parag Exp $
 #
 # Description:
 #   This script will select the appropriate condor tarball

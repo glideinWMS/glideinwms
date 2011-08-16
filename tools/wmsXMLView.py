@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: wmsXMLView.py,v 1.16.2.7 2010/09/24 15:30:37 parag Exp $
 #
 # Description:
 #   This tool displays the status of the glideinWMS pool

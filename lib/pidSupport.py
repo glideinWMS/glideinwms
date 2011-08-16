@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: pidSupport.py,v 1.5.2.1 2010/09/08 03:10:47 parag Exp $
 #
 # Description:
 #  Handle pid lock files

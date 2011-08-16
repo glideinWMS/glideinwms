@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: xmlFormat.py,v 1.15.10.2 2010/10/05 21:55:03 parag Exp $
 #
 # Description: general purpose XML formatter
 #

@@ -4,7 +4,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glidein_startup.sh,v 1.85.2.9 2011/06/16 19:08:29 parag Exp $
 #
 
 export LANG=C
