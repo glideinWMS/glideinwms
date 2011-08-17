@@ -237,19 +237,11 @@ def spawn(sleep_time,advertize_rate,startup_dir,
                 glideinDescript.data['OldPubKeyType'] = None
                 try:
                     glideinDescript.remove_old_key()
-<<<<<<< HEAD
                     glideFactoryLib.log_files.logActivity("Removed the old public key after its grace time of %s seconds" % oldkey_gracetime)
                 except:
                     # Do not crash if delete fails. Just log it.
                     glideFactoryLib.log_files.logActivity("Failed to remove the old public key after its grace time")
                     glideFactoryLib.log_files.logWarning("Failed to remove the old public key after its grace time")
-=======
-                    glideFactoryLib.log_files.logActivity("Removed the old public key after it's grace time of %s seconds" % oldkey_gracetime)
-                except:
-                    # Do not crash if delete fails. Just log it.
-                    glideFactoryLib.log_files.logActivity("Failed to remove the old public key after it's grace time")
-                    glideFactoryLib.log_files.logWarning("Failed to remove the old public key after it's grace time")
->>>>>>> branch_v2_5_1plus_ucsd1
 
             glideFactoryLib.log_files.logActivity("Checking entries %s"%entries)
             for entry_name in childs.keys():
