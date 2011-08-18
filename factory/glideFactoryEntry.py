@@ -207,7 +207,7 @@ def perform_work(entry_name, condorQ,
         submit_credentials.id = x509_proxy_id
         submit_credentials.security_credentials = security_credentials
         submit_credentials.identity_credentials = identity_credentials
-        logSupport.log.info("Requesting glideins using v2+ protocol, using credential %s" % submit_credentials.id)
+        logSupport.log.info("Using v2+ protocol and credential %s" % submit_credentials.id)
         nr_submitted += glideFactoryLib.keepIdleGlideins(condorQ, client_int_name, in_downtime,
                                                          remove_excess_wait, remove_excess_idle, remove_excess_run,
                                                          idle_glideins_pproxy, max_running_pproxy, max_held,
@@ -923,7 +923,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 all_security_names.add((client_security_name, credential_security_class))
                 entry_condorQ = glideFactoryLib.getQProxSecClass(condorQ, client_int_name, credential_security_class)
 
-                logSupport.log.info("Requesting glideins using v3+ protocol, using credential %s" % submit_credentials.id)
+                logSupport.log.info("Using v3+ protocol and credential %s" % submit_credentials.id)
                 done_something = glideFactoryLib.keepIdleGlideins(entry_condorQ, client_int_name, in_downtime,
                                                              remove_excess_wait, remove_excess_idle, remove_excess_run,
                                                              idle_glideins, max_running, factory_max_held,

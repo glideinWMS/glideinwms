@@ -50,7 +50,7 @@ class FactoryConfig:
         #self.x509id_schedd_attribute = "GlideinX509Identifier"
         self.credential_id_schedd_attribute = "GlideinCredentialIdentifier"
         #self.x509secclass_schedd_attribute = "GlideinX509SecurityClass"
-        self.credential_secclass_schedd_attribute = "GlideinCredentialSecurityClass"
+        self.credential_secclass_schedd_attribute = "GlideinSecurityClass"
 
         self.factory_startd_attribute = "GLIDEIN_Factory"
         self.glidein_startd_attribute = "GLIDEIN_Name"
@@ -460,6 +460,15 @@ def keepIdleGlideins(client_condorq, client_int_name,
     else:
         running_glideins = 0
 
+    logSupport.log.debug("Before submission, the queue contains:")
+    logSupport.log.debug("   %i idle glideins")
+    logSupport.log.debug("   %i running glideins")
+    logSupport.log.debug("   %i held glideins")
+    logSupport.log.debug("Before submission, the request contains:")
+    logSupport.log.debug("   %i min nr idle glideins")
+    logSupport.log.debug("   %i max nr running glideins")
+    logSupport.log.debug("   %i max held glideins")
+        
     # if idle is < min idle and (either no max specified or running + idle is < max)
     if ((idle_glideins < min_nr_idle) and ((max_nr_running == None) or ((running_glideins + idle_glideins) < max_nr_running))):
         # need more glideins, submit
@@ -482,6 +491,7 @@ def keepIdleGlideins(client_condorq, client_int_name,
             add_glideins = max_nr_running - (running_glideins + idle_glideins)
 
         try:
+            logSupport.log.debug("Submitting %i glideins" % add_glideins)
             submitGlideins(condorq.entry_name, client_int_name, add_glideins, submit_credentials, client_web, params)
             return add_glideins # exit, some submitted
         except RuntimeError, e:
@@ -1208,8 +1218,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
         exe_env.append('GLIDEIN_USER=%s' % submit_credentials.username)
         
         # Credential id, required for querying the condor q
-        exe_env.append('GLIDEIN_CREDENTIAL_ID=%s' % submit_credentials.id)
-        
+        exe_env.append('GLIDEIN_CREDENTIAL_ID=%s' % submit_credentials.id)        
 
         # Entry Params (job.descript)
         schedd = jobDescript.data["Schedd"]

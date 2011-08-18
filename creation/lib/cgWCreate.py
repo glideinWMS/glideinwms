@@ -86,8 +86,6 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("Grid_Resource", "%s %s" % (gridtype, gatekeeper))
         self.add("Executable", exe_fname)
                 
-        self.add('+GlideinCredentialIdentifier','"$ENV(GLIDEIN_CREDENTIAL_ID)"')
-
         # set up the grid specific attributes
         if gridtype == 'ec2':
             self.populate_ec2_grid()
@@ -146,6 +144,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add('+GlideinName', '"$ENV(GLIDEIN_NAME)"')
         self.add('+GlideinEntryName', '"$ENV(GLIDEIN_ENTRY_NAME)"')
         self.add('+GlideinClient', '"$ENV(GLIDEIN_CLIENT)"')
+        self.add('+GlideinCredentialIdentifier','"$ENV(GLIDEIN_CREDENTIAL_ID)"')
         self.add('+GlideinSecurityClass', '"$ENV(GLIDEIN_SEC_CLASS)"')
         self.add('+GlideinWebBase', '"$ENV(WEB_URL)"')
         self.add('+GlideinLogNr', '"$ENV(GLIDEIN_LOGNR)"')
