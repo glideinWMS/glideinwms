@@ -192,10 +192,10 @@ def getCondorQData(entry_name,
     else:
         client_constraint = ' && (%s =?= "%s")' % (csa_str, client_name)
 
-    x509id_str = factoryConfig.credential_id_schedd_attribute
+    cred_id_str = factoryConfig.credential_id_schedd_attribute
 
     q_glidein_constraint = '(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")%s && (%s =!= UNDEFINED)' % \
-        (fsa_str, factoryConfig.factory_name, gsa_str, factoryConfig.glidein_name, esa_str, entry_name, client_constraint, x509id_str)
+        (fsa_str, factoryConfig.factory_name, gsa_str, factoryConfig.glidein_name, esa_str, entry_name, client_constraint, cred_id_str)
     q_glidein_format_list = [("JobStatus", "i"), ("GridJobStatus", "s"), ("ServerTime", "i"), ("EnteredCurrentStatus", "i"),
                              (factoryConfig.credential_id_schedd_attribute, "s"), ("HoldReasonCode", "i"), ("HoldReasonSubCode", "i"),
                              (csa_str, "s"), (xsa_str, "s")]
@@ -1206,6 +1206,10 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
 
         # Glidein username (for client logs)
         exe_env.append('GLIDEIN_USER=%s' % submit_credentials.username)
+        
+        # Credential id, required for querying the condor q
+        exe_env.append('GLIDEIN_CREDENTIAL_ID=%s' % submit_credentials.id)
+        
 
         # Entry Params (job.descript)
         schedd = jobDescript.data["Schedd"]

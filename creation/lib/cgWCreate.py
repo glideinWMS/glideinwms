@@ -85,6 +85,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("Universe", "grid")
         self.add("Grid_Resource", "%s %s" % (gridtype, gatekeeper))
         self.add("Executable", exe_fname)
+                
+        self.add('+GlideinCredentialIdentifier','"$ENV(GLIDEIN_CREDENTIAL_ID)"')
 
         # set up the grid specific attributes
         if gridtype == 'ec2':
