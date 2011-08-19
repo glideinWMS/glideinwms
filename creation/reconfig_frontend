@@ -64,9 +64,11 @@ def main(params, old_params, update_scripts):
     cfgfile=os.path.join(frontend_dicts_obj.main_dicts.work_dir,cvWConsts.XML_CONFIG_FILE)
     
     # save config into file (with backup, since the old one already exists)
+    # This is the current working version of the frontend in the frontend instance dir
     params.save_into_file_wbackup(cfgfile,set_ro=True)
     	
     # make two copies, the second one should have a unique name, so it does not get overwritten on further reconfig
+    # This file is has a hash on the extension and is located in the frontend instance dir
     cfgfile=cWConsts.insert_timestr(cfgfile)
     params.save_into_file(cfgfile,set_ro=True)
 
@@ -142,8 +144,9 @@ if __name__ == '__main__':
         print e
         sys.exit(1)
 
-     try:
+    try:
         if writeback=='yes':
+            # Only writeback the config in the .cfg directly if explicitly asked to
             params.save_into_file_wbackup(params.cfg_name)
     except:
         print "Writing back config file failed"
