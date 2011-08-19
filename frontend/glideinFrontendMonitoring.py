@@ -229,6 +229,8 @@ class groupStats:
         numtypes=(type(1),type(1L),type(1.0))
 
         for f in self.data['factories'].keys():
+            if (f in ('MatchedUp','MatchedDown','Unmatched')):
+                continue # These three are special, do not count them
             fa=self.data['factories'][f]
             for w in fa.keys():
                 if total.has_key(w): # ignore eventual not supported classes
