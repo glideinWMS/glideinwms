@@ -152,7 +152,6 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         if proxy_url:
             self.add('+GlideinProxyURL', '"%s"' % proxy_url)
 
-
     def finalize(self, sign, entry_sign, descript, entry_descript):
         """
         Since the arguments will be built by the submit script now, just pass. Keeping the function here
@@ -197,7 +196,7 @@ def copy_exe(filename, work_dir, org_dir, overwrite=False):
         # Remove file if already exists
         os.remove(os.path.join(work_dir, filename))
     copy_file(os.path.join(org_dir, filename), work_dir)
-    os.chmod(os.path.join(org_dir, filename), 0555)
+    os.chmod(os.path.join(work_dir, filename), 0555)
 
 def get_template(template_name, glideinWMS_dir):
     template_fd = open("%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r")
