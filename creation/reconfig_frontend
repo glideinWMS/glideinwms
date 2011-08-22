@@ -34,16 +34,9 @@ import cvWParamDict
 ################################################################################
 
 def main(params,old_params):
-    # load old files
-    old_frontend_dicts_obj=cvWParamDict.frontendDicts(old_params)
-    old_frontend_dicts_obj.load()
-
     # create dictionaries for new params
     frontend_dicts_obj=cvWParamDict.frontendDicts(params)
     frontend_dicts_obj.populate()
-
-    # merge them together
-    frontend_dicts_obj.reuse(old_frontend_dicts_obj)
 
     # write to disk
     frontend_dicts_obj.save()

@@ -123,6 +123,7 @@ class VOFrontendParams(cWParams.CommonParams):
         ###############################
         # Start defining the defaults
         self.defaults["frontend_name"]=(socket.gethostname(),'ID', 'VO Frontend name',None)
+        self.defaults['frontend_versioning'] = ('True', 'Bool', 'Should we create versioned subdirectories of the type frontend_$frontend_name?', None)
 
         work_defaults=cWParams.commentedOrderedDict()
         work_defaults["base_dir"]=("%s/frontstage"%os.environ["HOME"],"base_dir","Frontend base dir",None)
@@ -189,13 +190,24 @@ class VOFrontendParams(cWParams.CommonParams):
             raise "No groups defined!"
             
         self.validate_names()
+        def buildDir(frontendVersioning, basedir):
+            # return either basedir or basedir/frontend_fename 
+            subdir = "frontend_%s" % self.frontend_name
+            if frontendVersioning:
+                return os.path.join(basedir, subdir)
+            else:
+                return basedir
 
-        frontend_subdir="frontend_%s"%self.frontend_name
-        self.stage_dir=os.path.join(self.stage.base_dir,frontend_subdir)
-        self.monitor_dir=os.path.join(self.monitor.base_dir,frontend_subdir)
-        self.work_dir=os.path.join(self.work.base_dir,frontend_subdir)
-        self.log_dir=os.path.join(self.work.base_log_dir,frontend_subdir)
-        self.web_url=os.path.join(self.stage.web_base_url,frontend_subdir)
+        frontendVersioning = False
+        if self.data.has_key('frontend_versioning') and \
+               self.data['frontend_versioning'].lower() == 'true':
+            frontendVersioning = True
+            
+        self.stage_dir=buildDir(frontendVersioning, self.stage.base_dir)
+        self.monitor_dir=buildDir(frontendVersioning, self.monitor.base_dir)
+        self.work_dir=buildDir(frontendVersioning, self.work.base_dir)
+        self.log_dir=buildDir(frontendVersioning, self.work.base_log_dir)
+        self.web_url=buildDir(frontendVersioning, self.stage.web_base_url)
 
         self.derive_match_attrs()
 
