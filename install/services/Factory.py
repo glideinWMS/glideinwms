@@ -232,7 +232,20 @@ files and directories can be created correctly""" % self.username())
           subdirs = os.listdir(parent_dir)
           for base_dir in subdirs:
             if os.path.isdir("%s/%s" % (parent_dir,base_dir)): 
-              condorPrivsep.rmtree(parent_dir,base_dir)
+              try:
+                condorPrivsep.rmtree(parent_dir,base_dir)
+              except Exception,e:
+                common.logerr("""Encountered a problem in executing condor_root_switchboard 
+to remove this client's sub-directories:
+  %(dir)s
+
+  %(error)s
+Check your /etc/condor/privsep.conf file to verify.
+You may need to condfigure/install your WMS Collector to resolve or correct
+the ini file for the %(option)s  attribute.  Be careful now.
+""" % { "dir"    : parent_dir,
+        "option" : option, 
+        "error"  : e, } )
         else: 
           common.remove_dir_contents(dirs[option])
       else: 
