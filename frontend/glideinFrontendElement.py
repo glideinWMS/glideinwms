@@ -364,36 +364,13 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     #        # if key needed, will handle the error later on
     #        logSupport.log.info("Factory '%s@%s': unsupported pub key type '%s'" % (glideid[1], glideid[0], glidein_el['attrs']['PubKeyType']))
 
-    # get the proxy
-    x509_proxies_data = None
+    # update x509 user map and give proxy plugin a chance to update based on condor stats
     if x509_proxy_plugin != None:
-        # KEL - proxy sec class is not used - should it be?
-        proxy_security_classes = elementDescript.merged_data['ProxySecurityClasses']
-        x509_proxy_list = x509_proxy_plugin.get_credentials(condorq_dict, condorq_dict_types,
+        logSupport.log.info("Updating usermap ");
+        x509_proxy_plugin.update_usermap(condorq_dict, condorq_dict_types,
                                                       status_dict, status_dict_types)
-        logSupport.log.info("Using %i proxies" % len(x509_proxy_list))
-
-        x509_proxies_data = []
-        for x509_proxy_list_el in x509_proxy_list:
-            proxy_idx, proxy_fname = x509_proxy_list_el
-
-            # should check if proxy has a refresh script, and call it
-            # elementDescript.merged_data['ProxyRefreshScripts']
-            # To be implemented
-
-            x509_proxies_data.append(glideinFrontendInterface.Credential(proxy_idx,proxy_fname,elementDescript))
-            logSupport.log.info("Adding credential '%s@%s'"%(proxy_idx,proxy_fname))
-
-        if len(x509_proxies_data)==0:
-            logSupport.log.warning("All proxies failed, not advertizing")
-            return
-
     # here we have all the data needed to build a GroupAdvertizeType object
-    descript_obj = glideinFrontendInterface.FrontendDescript(client_name, frontend_name, group_name,
-                                                           web_url,
-                                                           signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname,
-                                                           signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature,
-                                                           x509_proxies_data)
+    descript_obj = glideinFrontendInterface.FrontendDescript(client_name, frontend_name, group_name, web_url, signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname, signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature, x509_proxy_plugin)
     # reuse between loops might be a good idea, but this will work for now
     key_builder = glideinFrontendInterface.Key4AdvertizeBuilder()
 

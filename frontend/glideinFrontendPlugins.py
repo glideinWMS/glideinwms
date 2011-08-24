@@ -15,6 +15,7 @@ import os
 import time
 import sets
 import pickle
+import logSupport
 import glideinFrontendLib
 import glideinFrontendInterface
 
@@ -30,11 +31,16 @@ import glideinFrontendInterface
 #     Return the list of required condor_q attributes                          #
 #   get_required_classad_attributes()                                          #
 #     Return the list of required condor_status attributes                     #
-#   get_credentials(condorq_dict,condorq_dict_types,                           #
-#           status_dict,status_dict_types,                                     #
+#   update_usermap(condorq_dict,condorq_dict_types,                            #
+#           status_dict,status_dict_types)                                     #
+#     Update usermap.  This is called once per iteration                       #
+#   get_credentials(params_obj=None,
 #           credential_type=None, trust_domain=None)                           #
-#     Return a list of proxies that match the input criteria                   #
-#     Each element is a (index, value) pair                                    #
+#     Return a list of credenital that match the input criteria                #
+#     This is called in two places, once in globals to return all credentials  #
+#     and once when advertizing actual requests.
+#     If params_obj is NOT None, then this function is responsible for calling
+#     add_usage_details() for each returned credential to determine idle and max run
 #     If called multiple time, it is guaranteed that                           #
 #        if the index is the same, the proxy is (logicaly) the same            #
 #     credential_type will limit the returned credentials to a particular type #
@@ -60,16 +66,20 @@ class ProxyFirst:
     def get_required_classad_attributes(self):
         return []
 
+    def update_usermap(self, condorq_dict, condorq_dict_types,
+                    status_dict, status_dict_types):
+        return
+
     # get the proxies, given the condor_q and condor_status data
-    def get_credentials(self, condorq_dict, condorq_dict_types,
-                    status_dict, status_dict_types, 
-                    credential_type=None, trust_domain=None):
+    def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
         for cred in self.cred_list:
             if (trust_domain != None) and (cred.trust_domain!=trust_domain):
                 continue
             if (credential_type != None) and (cred.credential_type!=credential_type):
                 continue
-            return list2ilist([cred])
+            if (params_obj!=None):
+                cred.add_usage_details(params_obj.min_nr_glideins,params_obj.max_run_glideins)
+            return [cred]
 
 ############################################
 #
@@ -88,18 +98,24 @@ class ProxyAll:
     def get_required_classad_attributes(self):
         return []
 
+
+    def update_usermap(self, condorq_dict, condorq_dict_types,
+                    status_dict, status_dict_types):
+        return
+
+
     # get the proxies, given the condor_q and condor_status data
-    def get_credentials(self, condorq_dict, condorq_dict_types,
-                    status_dict, status_dict_types,
-                    credential_type=None, trust_domain=None):
+    def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
         rtnlist=[]
         for cred in self.cred_list:
             if (trust_domain != None) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type != None) and (cred.credential_type!=credential_type):
+            if (credential_type != None) and (cred.type!=credential_type):
                 continue
             rtnlist.append(cred)
-        return list2ilist(rtnlist)
+        if (params_obj!=None):
+            rtnlist=fair_assign(rtnlist,params_obj)
+        return rtnlist
 
 ##########################################################
 #
@@ -121,13 +137,19 @@ class ProxyUserCardinality:
     # what glidein attributes are used by this plugin
     def get_required_classad_attributes(self):
         return []
+    
+    def update_usermap(self, condorq_dict, condorq_dict_types,
+                    status_dict, status_dict_types):
+        self.users_set = glideinFrontendLib.getCondorQUsers(condorq_dict)
+        return
+
 
     # get the proxies, given the condor_q and condor_status data
-    def get_credentials(self, condorq_dict, condorq_dict_types,
-                    status_dict, status_dict_types,
-                    credential_type=None, trust_domain=None):
-        users_set = glideinFrontendLib.getCondorQUsers(condorq_dict)
-        return self.get_proxies_from_cardinality(len(users_set),credential_type,trust_domain)
+    def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
+        rtnlist=self.get_proxies_from_cardinality(len(self.users_set),credential_type,trust_domain)
+        if (params_obj!=None):
+            rtnlist=fair_assign(rtnlist,params_obj)
+        return rtnlist
 
     #############################
     # INTERNAL
@@ -143,7 +165,7 @@ class ProxyUserCardinality:
                 continue
             if len(rtnlist)<nr_requested_proxies:
                 rtnlist.append(cred)
-        return list2ilist(rtnlist)
+        return rtnlist
 
 ######################################################################
 #
@@ -167,12 +189,15 @@ class ProxyUserRR:
     # what glidein attributes are used by this plugin
     def get_required_classad_attributes(self):
         return []
+    
+    def update_usermap(self, condorq_dict, condorq_dict_types,
+                    status_dict, status_dict_types):
+        self.users_set = glideinFrontendLib.getCondorQUsers(condorq_dict)
+        return
 
     # get the proxies, given the condor_q and condor_status data
-    def get_credentials(self, condorq_dict, condorq_dict_types,
-                    status_dict, status_dict_types,
-                    credential_type=None, trust_domain=None):
-        new_users_set = glideinFrontendLib.getCondorQUsers(condorq_dict)
+    def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
+        new_users_set = self.users_set
         old_users_set = self.config_data['users_set']
         if old_users_set == new_users_set:
             return self.get_proxies_from_data()
@@ -189,6 +214,9 @@ class ProxyUserRR:
         self.config_data['users_set'] = new_users_set
         self.save()
 
+        rtnlist=self.get_proxies_from_data()
+        if (params_obj!=None):
+            rtnlist=fair_assign(rtnlist,params_obj)
         return self.get_proxies_from_data()
 
     #############################
@@ -294,7 +322,7 @@ class ProxyUserRR:
             proxy = self.proxy_list[i]
             out_proxies.append(proxy)
 
-        return list2ilist(out_proxies)
+        return out_proxies
 
 ######################################################################
 #
@@ -320,12 +348,15 @@ class ProxyUserMapWRecycling:
     # what glidein attributes are used by this plugin
     def get_required_classad_attributes(self):
         return []
+    
+    def update_usermap(self, condorq_dict, condorq_dict_types,
+                    status_dict, status_dict_types):
+        self.users_list = list(glideinFrontendLib.getCondorQUsers(condorq_dict))
+        return
 
     # get the proxies, given the condor_q and condor_status data
-    def get_credentials(self, condorq_dict, condorq_dict_types,
-                    status_dict, status_dict_types,
-                    credential_type=None, trust_domain=None):
-        users = list(glideinFrontendLib.getCondorQUsers(condorq_dict))
+    def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
+        users = self.users_list
         out_proxies = []
 
         # check if there are more users than proxies
@@ -387,8 +418,11 @@ class ProxyUserMapWRecycling:
 
         # save changes
         self.save()
+        
+        if (params_obj!=None):
+            out_proxies=fair_assign(out_proxies,params_obj)
 
-        return list2ilist(out_proxies)
+        return out_proxies
 
     #############################
     # INTERNAL
@@ -489,6 +523,31 @@ def createCredentialList(elementDescript):
         credential_list.append(glideinFrontendInterface.Credential(num,proxy,elementDescript))
         num=num+1
     return credential_list
+
+def fair_split(i,n,p):
+    """
+    Split n requests amongst p proxies 
+    Returns how many requests go to the i-th proxy
+    """
+    n1=int(n)
+    i1=int(i)
+    p1=int(p)
+    return ((n1*i1)/p1-(n1*(i1-1))/p1)
+
+def fair_assign(cred_list,params_obj):
+    """
+    Assigns requests to each credentials in cred_list
+    """
+    i=1
+    total_idle=params_obj.min_nr_glideins
+    total_max=params_obj.max_run_glideins
+    num_cred=len(cred_list)
+    for cred in cred_list:
+        cred.add_usage_details(fair_split(i,total_idle,num_cred),fair_split(i,total_max,num_cred))
+        i=i+1
+    return cred_list
+
+
 
 ###################################################################
 

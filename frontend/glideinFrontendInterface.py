@@ -209,6 +209,8 @@ def format_condor_dict(data):
 
 class Credential:
     def __init__(self,proxy_id,proxy_fname,elementDescript):
+        self.req_idle=0
+        self.req_max_run=0
         try:
             proxy_security_classes=elementDescript.merged_data['ProxySecurityClasses']
             proxy_trust_domains=elementDescript.merged_data['ProxyTrustDomains']
@@ -252,6 +254,11 @@ class Credential:
         except:
             logSupport.log.error("Could not read credential file '%s'"%proxy_fname)
             pass
+    def add_usage_details(self,req_idle=0,req_max_run=0):
+        self.req_idle=req_idle
+        self.req_max_run=req_max_run
+    def get_usage_details(self):
+        return (self.req_idle,self.req_max_run)
     def file_id(self,filename):
         return str(abs(hash(filename))%100000)
 
@@ -263,20 +270,20 @@ class FrontendDescript:
                  my_name,frontend_name,group_name,
                  web_url, main_descript, group_descript,
                  signtype, main_sign, group_sign,
-                 x509_proxies_data=None):
+                 x509_proxies_plugin=None):
         self.my_name=my_name
         self.frontend_name=frontend_name
         self.web_url=web_url
         self.main_descript=main_descript
         self.signtype=signtype
         self.main_sign=main_sign
-        self.x509_proxies_data=x509_proxies_data
+        self.x509_proxies_plugin=x509_proxies_plugin
         self.group_name=group_name
         self.group_descript=group_descript
         self.group_sign=group_sign
 
     def need_encryption(self):
-        return self.x509_proxies_data != None
+        return self.x509_proxies_plugin != None
 
     # return a list of strings
     def get_id_attrs(self):
@@ -479,8 +486,10 @@ class MultiAdvertizeWork:
             tmpname="/tmp/globaliad_%li_%li"%(short_time,os.getpid())
             glidein_params_to_encrypt={}
             fd=file(tmpname,"w")
-            if self.descript_obj.x509_proxies_data!=None:
-                nr_credentials=len(self.descript_obj.x509_proxies_data)
+            x509_proxies_data=[]
+            if self.descript_obj.x509_proxies_plugin!=None:
+                x509_proxies_data=self.descript_obj.x509_proxies_plugin.get_credentials()
+                nr_credentials=len(x509_proxies_data)
                 glidein_params_to_encrypt['NumberOfCredentials']="%s"%nr_credentials
             else:
                 nr_credentials=0
@@ -497,7 +506,7 @@ class MultiAdvertizeWork:
             fd.write('GroupName = "%s"\n'%self.descript_obj.group_name)
             fd.write('ClientName = "%s"\n'%self.descript_obj.my_name)
             for i in range(nr_credentials):
-                cred_el=self.descript_obj.x509_proxies_data[i]
+                cred_el=x509_proxies_data[i]
                 if (hasattr(cred_el,'filename')):
                     data_fd=open(cred_el.filename)
                     cred_data=data_fd.read()
@@ -572,9 +581,13 @@ class MultiAdvertizeWork:
     def createAdvertizeWorkFile(self, factory_pool, params_obj, key_obj=None):  
         global frontendConfig
         descript_obj=self.descript_obj
+        
+        logSupport.log.info("in create Advertize work");
 
-        if descript_obj.x509_proxies_data!=None:
-            nr_credentials=len(descript_obj.x509_proxies_data)
+        factory_trust,factory_auth=self.factory_constraint[params_obj.request_name]
+        if descript_obj.x509_proxies_plugin!=None:
+            x509_proxies_data=descript_obj.x509_proxies_plugin.get_credentials(params_obj=params_obj,credential_type=factory_auth,trust_domain=factory_trust)
+            nr_credentials=len(x509_proxies_data)
         else:
             nr_credentials=1
         cred_filename_arr=[]
@@ -588,11 +601,12 @@ class MultiAdvertizeWork:
                 else:
                     glidein_params_to_encrypt=copy.deepcopy(glidein_params_to_encrypt)
                 classad_name="%s@%s"%(params_obj.request_name,descript_obj.my_name)
-                
-                if descript_obj.x509_proxies_data!=None:
-                    credential_el=descript_obj.x509_proxies_data[i]
+               
+                req_idle=0
+                req_max_run=0
+                if x509_proxies_data!=None:
+                    credential_el=x509_proxies_data[i]
                     if (params_obj.request_name in self.factory_constraint):
-                        factory_trust,factory_auth=self.factory_constraint[params_obj.request_name]
                         if (credential_el.type!=factory_auth) and (factory_auth!="Any"):
                             logSupport.log.debug("Credential %s does not match auth method %s (for %s), skipping..."%(credential_el.type,factory_auth,params_obj.request_name))
                             continue
@@ -613,6 +627,8 @@ class MultiAdvertizeWork:
                     if (credential_el.type.startswith("key_pair")):
                         glidein_params_to_encrypt['PublicKey']=credential_el.file_id(credential_el.filename);
                         glidein_params_to_encrypt['PrivateKey']=credential_el.file_id(credential_el.key_fname);
+                    (req_idle,req_max_run)=credential_el.get_usage_details()
+                    logSupport.log.info("Advertizing credential %s with (%d idle, %d max run)"%(credential_el.filename,req_idle,req_max_run))
                 
                 if (frontendConfig.advertise_use_multi==True):
                     fname=self.adname
@@ -641,8 +657,9 @@ class MultiAdvertizeWork:
                     for attr in glidein_params_to_encrypt.keys():
                         encrypted_params[attr]=key_obj.encrypt_hex(glidein_params_to_encrypt["%s"%attr])
                     
-                fd.write('ReqIdleGlideins = %i\n'%params_obj.min_nr_glideins)
-                fd.write('ReqMaxRunningGlideins = %i\n'%params_obj.max_run_glideins)
+
+                fd.write('ReqIdleGlideins = %i\n'%req_idle)
+                fd.write('ReqMaxRunningGlideins = %i\n'%req_max_run)
                 fd.write('ReqRemoveExcess = "%s"\n'%params_obj.remove_excess_str)
                          
                 # write out both the params and monitors
