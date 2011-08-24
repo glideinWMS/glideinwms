@@ -11,6 +11,8 @@ vNext	Factory now can remove excessive glideins
 	  files in the glidein submit directory are updated.  Did the same for
 	  the frontend startup script.  'reconfig' only updates the files 
 	  populated with information from the configuration files (no scripts).
+        The option to have either the factory and/or the frontend provide the 
+          pilot proxy has been removed.  The frontend must always provide it.
 
 v2_5	Installer can now install gridFTP and VOMS certs needed by CREAM
 	glideinWMS release is now available in 3 different tarballs, frontend

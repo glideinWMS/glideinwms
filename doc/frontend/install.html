@@ -749,7 +749,6 @@ To create the Glidein Frontend instance, you need to run
 /home/frontend/glideinWMS/creation/create_frontend
 
 Configuration files are located in /home/frontend/frontstage/instance_v1.cfg
-Remember to set X509_USER_PROXY before starting the daemon
     </pre>
 
     <p>If you followed the example above, you ended up with a configuration file in</p>
@@ -762,9 +761,6 @@ Remember to set X509_USER_PROXY before starting the daemon
     <h3>6.1. Starting the Glidein Frontend</h3>
     <p>Use the startup script:</p>
     <blockquote>
-        source $VDT_LOCATION/setup.sh<br>
-        export X509_USER_PROXY=&lt;Proxy that this frontend instance should use&gt;<br>
-
         cd &lt;install dir&gt;<br>
         ./frontend_startup start
     </blockquote>

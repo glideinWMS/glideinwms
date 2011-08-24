@@ -29,8 +29,6 @@ factory_options = [ "hostname",
 "client_log_dir", 
 "client_proxy_dir", 
 "instance_name", 
-"x509_proxy", 
-"x509_gsi_dn", 
 "use_glexec", 
 "use_ccb", 
 "ress_host",
@@ -112,12 +110,6 @@ class Factory(Condor):
   #---------------------
   def hostname(self):
     return self.glidein.hostname()
-  #---------------------
-  def x509_proxy(self):
-    return self.option_value(self.ini_section,"x509_proxy")
-  #---------------------
-  def x509_gsi_dn(self):
-    return self.option_value(self.ini_section,"x509_gsi_dn")
   #---------------------
   def env_script(self):
     return "%s/factory.sh" % self.glidein.install_location()
@@ -269,36 +261,6 @@ the ini file for the %(option)s  attribute.  Be careful now.
     self.create_env_script()
     self.create_config()
 
-  #---------------------------------
-  def validate_factory_proxy(self):
-    #--- using factory and vofrontend ---
-    if len(self.x509_proxy())  == 0 or \
-       len(self.x509_gsi_dn()) == 0:
-      common.logerr("""You must use a Frontend proxy.
-The x509_proxy and x509_gsi_dn option must be populated.""")
-    proxy_file = self.x509_proxy()
-    common.logit("... validating x509_proxy: %s" % proxy_file)
-    if not os.path.exists(proxy_file):
-      common.logerr("""File specified does not exist.""")
-    common.logit("... validating x509_gsi_dn: %s" % self.x509_gsi_dn())
-    type = "proxy"
-    dn_to_validate = self.x509_gsi_dn()
-    dn_in_file = common.get_gsi_dn(type,proxy_file)
-    if dn_in_file <> dn_to_validate:
-      common.logerr("""The DN of the %(type)s in %(file)s 
-does not match the x509_gsi_dn attribute in your ini file:
-%(type)8s dn: %(file_dn)s
-%(ini)11s: %(ini_dn)s
-This may cause a problem in other services.
-Are you sure this is a proxy and not a certificate?""" % \
-              { "type"    : type,
-                "ini"     : "x509_gsi_dn",
-                "file"    : proxy_file,
-                "file_dn" : dn_in_file,
-                "ini_dn"  : dn_to_validate},)
-
-    
-      
   #---------------------------------
   def validate_logs_dir(self):
     common.logit("... validating logs_dir: %s" % self.logs_dir())

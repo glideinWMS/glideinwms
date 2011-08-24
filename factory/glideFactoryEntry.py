@@ -1349,13 +1349,6 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     os.environ['_CONDOR_SEC_WRITE_INTEGRITY'] = 'REQUIRED'
     logSupport.log.debug("Set Condor security environment")
 
-    # If authentication method is factory, verify that the environ is set
-    if 'factory' in jobDescript.data['AuthMethod']:
-        if not os.environ.has_key('X509_USER_PROXY'):
-            logSupport.log.warning("Factory is supposed to provide a proxy for this entry, but environment variable X509_USER_PROXY not set. Need X509_USER_PROXY to work!")
-            # KEL TODO - raise error or just log warning????
-            raise RuntimeError, "Factory is supposed to provide a proxy for this entry. Need X509_USER_PROXY to work!"
-
     # start
     pid_obj.register(parent_pid)
     try:

@@ -10,7 +10,6 @@ import common
 #from Certificates  import Certificates  
 from Condor        import Condor  
 import WMSCollector
-import Factory
 import VOFrontend
 import Submit
 from Configuration import ConfigurationError
@@ -39,10 +38,6 @@ wmscollector_options = [ "hostname",
 "collector_port",
 ]
 
-factory_options = [ "x509_gsi_dn",
-"service_name",
-]
-
 submit_options = [ "hostname",
 "service_name",
 "x509_gsi_dn",
@@ -56,7 +51,6 @@ frontend_options = [ "hostname",
 
 valid_options = { "UserCollector" : usercollector_options,
                   "WMSCollector"  : wmscollector_options,
-                  "Factory"       : factory_options,
                   "Submit"        : submit_options,
                   "VOFrontend"    : frontend_options,
 }
@@ -77,7 +71,6 @@ class UserCollector(Condor):
     self.colocated_services = []
 
     self.wmscollector = None  # WMS collector object
-    self.factory      = None  # Factory object
     self.submit       = None  # submit object
     self.frontend     = None  # VOFrontend object
 
@@ -87,10 +80,6 @@ class UserCollector(Condor):
   def get_wmscollector(self):
     if self.wmscollector == None:
       self.wmscollector = WMSCollector.WMSCollector(self.inifile,valid_options)
-  #--------------------------------
-  def get_factory(self):
-    if self.factory == None:
-      self.factory = Factory.Factory(self.inifile,valid_options)
   #--------------------------------
   def get_submit(self):
     if self.submit == None:
@@ -114,7 +103,6 @@ class UserCollector(Condor):
   def validate(self):
     if self.not_validated: 
       self.get_wmscollector() 
-      self.get_factory() 
       self.get_submit() 
       self.get_frontend()
       self.verify_no_conflicts()

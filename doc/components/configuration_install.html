@@ -1572,9 +1572,6 @@ logs_dir         = %(install_dir)s/factory-logs
 client_log_dir   = %(install_dir)s/client-logs
 client_proxy_dir = %(install_dir)s/client-proxies
 
-x509_proxy  =
-x509_gsi_dn =
-
 use_glexec = n
 use_ccb    = n
 match_authentication = y
@@ -1691,8 +1688,6 @@ logs_dir = %(install_dir)s/factory-logs
 client_log_dir = %(install_dir)s/client-logs
 client_proxy_dir = %(install_dir)s/client-proxies
 
-x509_proxy =
-x509_gsi_dn =
 use_glexec = n
 use_ccb    = y
 match_authentication = y
@@ -1825,8 +1820,6 @@ entry_filters = (int(GlueCEPolicyMaxCPUTime)<(25*60))
 web_location = /var/www/html/glidefactory-v2.5.1
 web_url = http://%(hostname)s:8000
 javascriptrrd_location = /home/gfactoryuser/javascriptrrd
-x509_proxy =
-x509_gsi_dn =
 
 ;--------------------------------------------------
 [UserCollector]
@@ -1881,7 +1874,6 @@ x509_gsi_dn =
 ;--------------------------------------------------
 [Factory]
 
-x509_gsi_dn =
 service_name =
 username =
 

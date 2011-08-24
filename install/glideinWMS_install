@@ -1288,8 +1288,6 @@ def gfactory_install():
             fd.write('       <condor_tarball arch="default" os="default" base_dir="%s"/>\n'%condor_base_dir)
             fd.write('   </condor_tarballs>\n')
 
-            # Reminder to self(Igor) 
-            # Add factory proxy in the config file... not reliable to use the ENV(X509_USER_PROXY)
             fd.write('   <security key_length="2048" pub_key="RSA">\n')
 
             fd.write('    <frontends>\n')
@@ -1375,9 +1373,6 @@ def gfactory_install():
 
     print
     print "Configuration files are located in %s/glidein_%s.cfg"%(submit_base_dir,glidein_name)
-    if proxy_fname!=None:
-        print "Remember to set X509_USER_PROXY before starting the daemon"
-    print
 
     return
 
