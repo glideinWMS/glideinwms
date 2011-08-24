@@ -164,7 +164,7 @@ def add_glideinlog_handler(logger_name, log_dir, maxDays, maxBytes):
     """
 
     mylog = logging.getLogger(logger_name)
-    mylog.setLevel(logging.INFO)
+    mylog.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter('[%(asctime)s] %(levelname)s:  %(message)s')
 
