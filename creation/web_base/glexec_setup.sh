@@ -40,6 +40,33 @@ function test_glexec {
   fi
 }
 
+function test_glexec2 {
+  cat > glexec_test2.sh << EOF
+#!/bin/sh
+id && echo "Hello World"
+EOF
+  chmod a+x glexec_test2.sh
+
+  tst=`env GLEXEC_CLIENT_CERT="$X509_USER_PROXY" "$glexec_bin"  "$PWD/glexec_test2.sh"`
+
+  res=$?
+  if [ $res -ne 0 ]; then
+    echo "glexec test2 failed, nonzero value $res" 1>&2
+    echo "result: $tst" 1>&2
+    exit 1
+  else
+    tst2=`echo "$tst" |tail -1`
+    if [ "$tst2" == "Hello World" ]; then
+      echo "glexec verified to work (test2)" 1>&2
+    else
+      echo "glexec broken (test2)!" 1>&2
+      echo "Expected 'Hello World', got '$tst2'" 1>&2
+      exit 1
+    fi
+  fi
+}
+
+
 glidein_config=$1
 tmp_fname=${glidein_config}.$$.tmp
 
@@ -92,14 +119,12 @@ esac
 
 echo "`date` making configuration changes to use glexec"
 # --------------------------------------------------
-# create a local copy of the shell
 # gLExec does not like symlinks and this way we are sure it is a file
-cp -p /bin/sh ./sh
+export ALTSH="`readlink -e /bin/sh`"
 if [ $? -ne 0 ]; then
-    echo "Failed to copy /bin/sh to . ($PWD)" 1>&2
+    echo "Failed to dereference /bin/sh" 1>&2
     exit 1
 fi
-export ALTSH="$PWD/sh"
 add_config_line "ALTERNATIVE_SHELL" "$ALTSH" 
 add_condor_vars_line "ALTERNATIVE_SHELL" "C" "-" "SH" "Y" "N" "-"
 
@@ -123,6 +148,26 @@ add_condor_vars_line "GLEXEC_USER_DIR" "C" "-" "+" "Y" "N" "-"
 if [ "$glexec_bin" == "OSG" ]; then
     echo "GLEXEC_BIN was OSG, expand to '$OSG_GLEXEC_LOCATION'" 1>&2
     glexec_bin="$OSG_GLEXEC_LOCATION"
+elif [ "$glexec_bin" == "glite" ]; then
+    echo "GLEXEC_BIN was glite, expand to '/opt/glite/sbin/glexec'" 1>&2
+    glexec_bin=/opt/glite/sbin/glexec
+elif [ "$glexec_bin" == "auto" ]; then
+    if [ -n "$OSG_GLEXEC_LOCATION" ]; then
+       if [ -f "$OSG_GLEXEC_LOCATION" ]; then
+         echo "GLEXEC_BIN was auto, found OSG, expand to '$OSG_GLEXEC_LOCATION'" 1>&2
+         glexec_bin="$OSG_GLEXEC_LOCATION"
+       fi
+    fi
+    if [ "$glexec_bin" == "auto" ]; then
+      if [ -f "/opt/glite/sbin/glexec" ]; then
+         echo "GLEXEC_BIN was auto, found glite, expand to '/opt/glite/sbin/glexec'" 1>&2
+         glexec_bin=/opt/glite/sbin/glexec
+      fi
+    fi
+    if [ "$glexec_bin" == "auto" ]; then
+       echo "GLEXEC_BIN was auto, but could not find it!" 1>&2
+       exit 1
+    fi
 fi
 
 # but first test it does exist and is executable
@@ -160,7 +205,22 @@ fi
 
 add_config_line "GLEXEC_BIN" "$glexec_bin"
 
+###################################################################
+# From mkgltempdir
+echo "Setting whole path permissions"
+
+# Setup tmpdir permissions
+opwd=$(pwd)
+while [ $(pwd) != / ];do
+    echo "Trying $(pwd): `ls -ld .`"
+    chmod a+x . 2> /dev/null || break
+    echo "Done $(pwd): `ls -ld .`"
+    cd ..
+done
+cd $opwd
+
 test_glexec
+test_glexec2
 
 ####################################################################
 # Add requirement that only jobs with X509 attributes can start here
