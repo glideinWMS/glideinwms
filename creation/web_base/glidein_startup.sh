@@ -495,7 +495,7 @@ if [ -z "$GLOBUS_PATH" ]; then
        warn "Looked in:" 1>&2
        warn ' /opt/globus/etc/globus-user-env.sh' 1>&2
        warn ' /osgroot/osgcore/globus/etc/globus-user-env.sh' 1>&2
-       glidein_exit 1
+       warn 'Continuing like nothing happened' 1>&2
     fi
   fi
 
@@ -503,7 +503,7 @@ if [ -z "$GLOBUS_PATH" ]; then
     . "$GLOBUS_LOCATION/etc/globus-user-env.sh"
   else
     warn "GLOBUS_PATH not defined and $GLOBUS_LOCATION/etc/globus-user-env.sh does not exist." 1>&2
-    glidein_exit 1
+    warn 'Continuing like nothing happened' 1>&2
   fi
 fi
 
