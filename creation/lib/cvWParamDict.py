@@ -85,6 +85,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
                       (javascriptrrd_dir,'binaryXHR.js'),
                       (params.monitor.flot_dir,'jquery.flot.js'),
                       (params.monitor.flot_dir,'jquery.flot.selection.js'),
+                      (params.monitor.flot_dir,'jquery.flot.tooltip.js'),
                       (params.monitor.flot_dir,'excanvas.js'),
                       (params.monitor.jquery_dir,'jquery.js')):
             mfdir,mfname=mfarr
