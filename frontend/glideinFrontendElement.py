@@ -675,6 +675,20 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
 
     # end for glideid in condorq_dict_types['Idle']['count'].keys()
 
+    # Log the totals
+    for el in (('MatchedUp',total_up_stats_arr, True),('MatchedDown',total_down_stats_arr, False)):
+        el_str,el_stats_arr,el_updown=el
+        stats['group'].logMatchedJobs(
+            el_str, el_stats_arr[0],el_stats_arr[2], el_stats_arr[3],
+            el_stats_arr[5], el_stats_arr[6])
+    
+        stats['group'].logMatchedGlideins(el_str,el_stats_arr[8],el_stats_arr[9], el_stats_arr[10])
+        stats['group'].logFactAttrs(el_str, [], ()) # just for completeness
+        stats['group'].logFactDown(el_str, el_updown)
+        stats['group'].logFactReq(el_str,el_stats_arr[11],el_stats_arr[12], {})
+
+
+
     # Print the totals
     # Ignore the resulting sum
     log_factory_header()
