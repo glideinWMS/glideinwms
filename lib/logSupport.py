@@ -18,7 +18,6 @@ from logging.handlers import TimedRotatingFileHandler
 
 log = None # create a place holder for a global logger, individual modules can create their own loggers if necessary
 log_dir = None
-debug_on = True
 
 # this class can be used instead of a file for writing
 class DayLogFile:
@@ -172,30 +171,45 @@ def add_glideinlog_handler(logger_name, log_dir, maxDays, maxBytes):
     logfile = os.path.expandvars("%s/%s.err.log" % (log_dir, logger_name))
     handler = GlideinHandler(logfile, maxDays, maxBytes, backupCount=5)
     handler.setFormatter(formatter)
-    handler.setLevel(logging.ERROR)
+    handler.setLevel(logging.DEBUG)
+    handler.addFilter(ErrorFilter())
     mylog.addHandler(handler)
 
     # INFO Logger
     logfile = os.path.expandvars("%s/%s.info.log" % (log_dir, logger_name))
     handler = GlideinHandler(logfile, maxDays, maxBytes, backupCount=5)
     handler.setFormatter(formatter)
-    handler.setLevel(logging.INFO)
+    handler.setLevel(logging.DEBUG)
     handler.addFilter(InfoFilter())
     mylog.addHandler(handler)
 
     # DEBUG Logger
-    if debug_on:
-        formatter = logging.Formatter('[%(asctime)s] %(levelname)s:::%(module)s::%(lineno)d: %(message)s ')
-        logfile = os.path.expandvars("%s/%s.debug.log" % (log_dir, logger_name))
-        handler = GlideinHandler(logfile, maxDays, maxBytes, backupCount=5)
-        handler.setFormatter(formatter)
-        handler.setLevel(logging.DEBUG)
-        mylog.addHandler(handler)
+    formatter = logging.Formatter('[%(asctime)s] %(levelname)s:::%(module)s::%(lineno)d: %(message)s ')
+    logfile = os.path.expandvars("%s/%s.debug.log" % (log_dir, logger_name))
+    handler = GlideinHandler(logfile, maxDays, maxBytes, backupCount=5)
+    handler.setFormatter(formatter)
+    handler.setLevel(logging.DEBUG)
+    handler.addFilter(DebugFilter())
+    mylog.addHandler(handler)
     
 class InfoFilter(logging.Filter):
     """
     Filter used in handling records for the info logs.
     """
     def filter(self, rec):
-        return rec.levelno == logging.INFO or rec.levelno == logging.WARNING or rec.levelno == logging.WARN
+        return rec.levelno == logging.INFO 
+
+class ErrorFilter(logging.Filter):
+    """
+    Filter used in handling records for the error logs.
+    """
+    def filter(self, rec):
+        return rec.levelno == logging.WARNING or rec.levelno == logging.WARN 
+    
+class DebugFilter(logging.Filter):
+    """
+    Filter used in handling records for the error logs.
+    """
+    def filter(self, rec):
+        return rec.levelno == logging.DEBUG or rec.levelno == logging.ERROR
     

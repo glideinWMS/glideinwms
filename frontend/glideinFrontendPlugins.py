@@ -15,6 +15,7 @@ import os
 import time
 import sets
 import pickle
+import random
 import logSupport
 import glideinFrontendLib
 import glideinFrontendInterface
@@ -532,18 +533,27 @@ def fair_split(i,n,p):
     n1=int(n)
     i1=int(i)
     p1=int(p)
-    return ((n1*i1)/p1-(n1*(i1-1))/p1)
+    return int((n1*i1)/p1)-int((n1*(i1-1))/p1)
+
+def random_split(n,p):
+    random_arr=map(lambda i: fair_split(i,n,p) ,range(p))
+    random.shuffle(random_arr)
+    return random_arr
+
 
 def fair_assign(cred_list,params_obj):
     """
     Assigns requests to each credentials in cred_list
+    max run will remain constant between iterations
+    req idle will be shuffled each iteration.
     """
     i=1
     total_idle=params_obj.min_nr_glideins
     total_max=params_obj.max_run_glideins
     num_cred=len(cred_list)
+    random_arr=random_split(total_idle,num_cred)
     for cred in cred_list:
-        cred.add_usage_details(fair_split(i,total_idle,num_cred),fair_split(i,total_max,num_cred))
+        cred.add_usage_details(random_arr[i-1],fair_split(i,total_max,num_cred))
         i=i+1
     return cred_list
 
