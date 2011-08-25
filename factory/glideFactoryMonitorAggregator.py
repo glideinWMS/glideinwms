@@ -214,7 +214,7 @@ def aggregateStatus(in_downtime):
 
     # Write rrds
     glideFactoryMonitoring.monitoringConfig.establish_dir("total")
-
+    # Total rrd across all frontends and factories
     for tp in global_total.keys():
         # type - status or requested
         if not (tp in status_attributes.keys()):
@@ -232,6 +232,28 @@ def aggregateStatus(in_downtime):
 
     glideFactoryMonitoring.monitoringConfig.write_rrd_multi("total/Status_Attributes",
                                                             "GAUGE",updated,val_dict)
+
+    # Frontend total rrds across all factories
+    fe_total={'Status':None,'Requested':None,'ClientMonitor':None}
+    for fe in status_fe['frontends'].keys():
+        glideFactoryMonitoring.monitoringConfig.establish_dir("total/%s"%("frontend_"+fe))
+        for tp in status_fe['frontends'][fe].keys():
+            # type - status or requested
+            if not (tp in type_strings.keys()):
+                continue
+            tp_str=type_strings[tp]
+            attributes_tp=status_attributes[tp]
+
+            tp_el=status_fe['frontends'][fe][tp]
+
+            for a in tp_el.keys():
+                if a in attributes_tp:
+                    a_el=int(tp_el[a])
+                    val_dict["%s%s"%(tp_str,a)]=a_el
+        glideFactoryMonitoring.monitoringConfig.write_rrd_multi("total/%s/Status_Attributes"%("frontend_"+fe),
+                                                            "GAUGE",updated,val_dict)
+
+
 
     return status
 

@@ -34,6 +34,11 @@ def run_attr_regexp(params,entry_name,attr,ro):
         return False
     return re.search(ro,params.entries[entry_name].attrs[attr].value)!=None
 
+def run_descr_regexp(params,entry_name,attr,ro):
+    if not params.subparams.data['entries'][entry_name].has_key(attr):
+        return False
+    return re.search(ro,params.subparams.data['entries'][entry_name][attr])!=None
+
 def run_name_regexp(params,entry_name,ro):
     return re.search(ro,entry_name)!=None
 
@@ -42,6 +47,8 @@ def create_filter(attr,regexp):
     ro=re.compile(regexp)
     if attr=="name":
         return lambda params,entry_name:run_name_regexp(params,entry_name,ro)
+    elif attr in ("gatekeeper","gridtype","rsl",'schedd_name',"work_dir",'proxy_url','verbosity',"enabled"):
+        return lambda params,entry_name:run_descr_regexp(params,entry_name,attr,ro)
     else:
         return lambda params,entry_name:run_attr_regexp(params,entry_name,attr,ro)
     
@@ -77,7 +84,7 @@ def add_entry(params,other_params, entry_name):
 def merge_entry(params,other_params, entry_name,preserve_enable):
     org_entry=params.subparams.data['entries'][entry_name]
     params.subparams.data['entries'][entry_name]=copy.deepcopy(other_params.subparams.data['entries'][entry_name])
-    preserve_els=['schedd_name','allow_frontends']
+    preserve_els=['schedd_name','allow_frontends','downtimes']
     if preserve_enable:
         preserve_els.append('enable')
     for e in preserve_els:

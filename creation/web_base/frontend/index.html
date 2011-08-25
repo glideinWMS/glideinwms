@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>
+GlideinWMS VO Frontend Monitoring
+</title>
+<style type="text/css"> 
+.rounded
+{
+border:2px solid #a1a1a1;
+padding:10px 40px; 
+background:#dddddd;
+width:350px;
+border-radius:25px;
+-moz-border-radius:25px; /* Firefox 3.6 and earlier */
+}
+div.rounded:hover
+{
+background:#eeeeee;
+
+}
+div.rounded
+{
+height:170px;
+}
+table.centered;
+{
+}
+a
+{
+color:black;
+}
+
+th.rounded
+{
+font-size:40px;
+}
+
+
+</style>
+</head>
+<body>
+<center>
+<table class="centered">
+   <tr><th COLSPAN=2 class="heading rounded">
+   GlideinWMS VO Frontend Monitoring
+   </th></td>
+   <tr>
+      <td class="pagesummary">
+         <a href="frontendStatus.html">
+            <center>
+               <div class="rounded">
+                  <table>
+                     <tr><th COLSPAN=2>
+                        Historical Status
+                     </th></tr>
+                     <tr><td>
+                        <img src="frontendStatus.small.png"/>
+                     </td><td>
+                        This page shows the historical usage plotted over time.
+                     </td></tr>
+                  </table>
+               </div>
+            </center>
+         </a>
+      </td>
+      <td class="pagesummary">
+         <a href="frontendGroupGraphStatusNow.html">
+            <center>
+               <div class="rounded">
+                  <table>
+                     <tr><th COLSPAN=2>
+                        Current Status by Group
+                     </th></tr>
+                     <tr><td>
+                        <img src="frontendGroupGraphsNow.small.png"/>
+                     </td><td>
+                        This page shows the current number of running jobs, by group, on the frontend.
+                     </td></tr>
+                  </table>
+               </div>
+            </center>
+         </a>
+      </td>
+   </tr>
+   <tr>
+      <td class="pagesummary">
+         <a href="frontendRRDBrowse.html">
+            <center>
+               <div class="rounded">
+                  <table>
+                     <tr><th COLSPAN=2>
+                        Browse RRD Statistics
+                     </th></tr>
+                     <tr><td>
+                        <img src="frontendRRDBrowse.small.png"/>
+                     </td><td>
+                        This page shows the historical frontend statistics plotted over time.
+                     </td></tr>
+                  </table>
+               </div>
+            </center>
+         </a>
+      </td>
+      <td class="pagesummary">
+         <a href="frontendRRDGroupMatrix.html">
+            <center>
+               <div class="rounded">
+                  <table>
+                     <tr><th COLSPAN=2>
+                        Historical Per-Group Statistics
+                     </th></tr>
+                     <tr><td>
+                        <img src="frontendRRDGroupMatix.small.png"/>
+                     </td><td>
+                        This page shows historical statistics for each group.
+                     </td></tr>
+                  </table>
+               </div>
+            </center>
+         </a>
+      </td>
+   </tr>
+</table>
+</center>
+</body>
+</html>
+
+
