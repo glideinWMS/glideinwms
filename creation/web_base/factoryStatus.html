@@ -152,6 +152,7 @@ Description:
 	   
       var entries_select=document.getElementById("entries");
       var frontends_select=document.getElementById("frontends");
+      setFrontendMenu('total');
       var sep1 = new Option("--------------------","-");
       var sep2 = new Option("--------------------","-");
       sep1.disabled = true;
@@ -415,7 +416,12 @@ Description:
         //if(frontend_name!="UCSDCMS_cmspilot" && frontend_name!="total") {frontend_name=frontend_name+"_frontend";}
 
         if (entry_name=="total") {
-          fname="total/"+rrd_fname+".rrd";
+          if (frontend_name=="total"){
+            fname="total/"+rrd_fname+".rrd";
+          }
+          else{
+            fname="total/frontend_"+frontend_name+"/"+rrd_fname+".rrd";
+          }
         } else if (frontend_name!="total"){
           fname="entry_"+entry_name+"/frontend_"+frontend_name+"/"+rrd_fname+".rrd";
         } else {
@@ -458,7 +464,6 @@ Description:
 	{
 		var url = window.location.search;
                 parameterArry = new Array("entry", "frontend", "infoGroup","elements","rra","window_min","window_max","timezone"); 
-		groups = new Array("CMST1", "CMS", "CMST2", "US", "CMST3", "HCC");
 		group = 0;  
 		var entrySpec; 
 		var infoGroupSpec;
@@ -489,33 +494,26 @@ Description:
 			{
 				for(entry in entries)
 				{
-					if(entry == paramSpecArry[0])
+					if(entry == paramSpecArry[0] || "total" == paramSpecArry[0])
 					{
 						ENTRY = paramSpecArry[0];
 						urlValid = 1; 
-						for(j = 0; j< groups.length; j++)
-						{
-							if(entry == groups[j])
-							{
-								document.getElementById("entries").selectedIndex = counter + 1; 
-                                                                setFrontendMenu(entry);
-								group = 1;
-								break;  
-							}	
-						}
-						if(!group)
-						{
-							document.getElementById("entries").selectedIndex = counter; 
-                                                        setFrontendMenu(entry);
-                                                        var frontend = paramSpecArry[1];
-                                                        var fe_list = document.getElementById("frontends").childNodes; 
-                                                        var fe_idx=0;
-                                                        for(var k=0;k<fe_list.length;k++) {
+
+                                                if (ENTRY=="total") {
+                                                    counter=0;
+                                                }
+
+						document.getElementById("entries").selectedIndex = counter; 
+                                                setFrontendMenu(entry);
+                                                var frontend = paramSpecArry[1];
+                                                var fe_list = document.getElementById("frontends").childNodes; 
+                                                var fe_idx=0;
+                                                for(var k=0;k<fe_list.length;k++) {
                                                            document.write(fe_list[k].innerHTML);
                                                            if(frontend==fe_list[k].innerHTML) {fe_idx=k;}
-                                                        }
-                                                        document.getElementById("frontends").selectedIndex = fe_idx; 
-						}
+                                                }
+                                                document.getElementById("frontends").selectedIndex = fe_idx; 
+
 						break;
 					} 
 					else if("total" == 	paramSpecArry[0])
