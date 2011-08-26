@@ -3,6 +3,10 @@ vNext
 	  files in the glidein submit directory are updated.  Did the same for
 	  the frontend startup script.  'reconfig' only updates the files 
 	  populated with information from the configuration files (no scripts).
+	The OSG rpm worker node client requires changes to glidein startup 
+	  scripts.  If you plan on using OSG sites that have used this rpm, you
+	  must "upgrade" your factory in order to get glideins.
+	  
 	
 
 v2_5_2	Frontend publishes glideresource classad to the pool collector. This
