@@ -561,7 +561,8 @@ class MultiAdvertizeWork:
                     params_obj, key_obj = el
                     filename_arr_el=self.createAdvertizeWorkFile(factory_pool,params_obj,key_obj)
                     for f in filename_arr_el:
-                        filename_arr.append(f)
+                        if f not in filename_arr:
+                            filename_arr.append(f)
                 
                 # Advertize all the files (if multi, should only be one) 
                 for filename in filename_arr:
@@ -632,6 +633,7 @@ class MultiAdvertizeWork:
                 
                 if (frontendConfig.advertise_use_multi==True):
                     fname=self.adname
+                    cred_filename_arr.append(fname)
                 else:
                     fname=self.adname+"_"+str(self.unique_id)
                     self.unique_id=self.unique_id+1
