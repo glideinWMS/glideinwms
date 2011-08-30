@@ -387,13 +387,27 @@ class glideinDicts(cgWDictFile.glideinDicts):
         # make sure all the schedds are defined
         # if not, define them, in place, so thet it get recorded
         global_schedd_names=string.split(params.schedd_name,',')
-        global_schedd_idx=0
+
+        # we will need to know how loaded are the schedds
+        # so we properly load balance
+        global_schedd_count={}
+        for n in global_schedd_names:
+            global_schedd_count[n]=0
+        for sub_name in self.sub_list:
+            if params.entries[sub_name].schedd_name!=None:
+                global_schedd_count[params.entries[sub_name].schedd_name]+=1
+                
+        # now actually check the schedds
         for sub_name in self.sub_list:
             if params.entries[sub_name].schedd_name==None:
-                # use one of the global ones if specific not provided
-                schedd_name=global_schedd_names[global_schedd_idx%len(global_schedd_names)]
-                global_schedd_idx=global_schedd_idx+1
-                params.subparams.data['entries'][sub_name]['schedd_name']=schedd_name
+                # now find the least used one
+                gs=global_schedd_count.keys()
+                gs.sort(key=global_schedd_count.__getitem__)
+                min_schedd=gs[0]
+                
+                params.subparams.data['entries'][sub_name]['schedd_name']=min_schedd
+                global_schedd_count[min_schedd]+=1
+        
         return
         
 
