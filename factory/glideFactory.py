@@ -251,8 +251,8 @@ def spawn(sleep_time, advertize_rate, startup_dir,
                 glideFactoryCredentials.process_globals(glideinDescript, frontendDescript)
             except:
                 tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-                error_str = "Error occurred processing the globals classads. \nTraceback: \n%s" % tb
-                logSupport.log.warning(error_str)
+                logSupport.log.warning("Error occurred processing the globals classads.")
+                logSupport.log.error("Error occurred processing the globals classads. \nTraceback: \n%s" % tb)
 
             
             logSupport.log.info("Checking entries %s" % entries)
@@ -389,13 +389,12 @@ def main(startup_dir):
     try:
         os.chdir(startup_dir)
     except:
-        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
-                                        sys.exc_info()[2])
-        logSupport.log.warning("Unable to change to startup_dir %s: %s" % (startup_dir,tb))
+        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
+        logSupport.log.warning("Unable to change to startup_dir")
+        logSupport.log.error("Unable to change to startup_dir %s: %s" % (startup_dir,tb))
         raise
 
-    try:
-        
+    try:        
         if (is_file_old(glideinDescript.default_rsakey_fname, 
                         int(glideinDescript.data['OldPubKeyGraceTime']))):
             # First back and load any existing key
@@ -411,30 +410,30 @@ def main(startup_dir):
             glideinDescript.load_pub_key(recreate=False)
             logSupport.log.info("Loading old key")
             glideinDescript.load_old_rsa_key()
-        
-        glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.my_name = "%s@%s" % (glideinDescript.data['GlideinName'], glideinDescript.data['FactoryName'])
-
-        # check that the GSI environment is properly set
-        if not os.environ.has_key('X509_CERT_DIR'):
-            logSupport.log.warning("Environment variable X509_CERT_DIR not set. Need X509_CERT_DIR to work!")
-            raise RuntimeError, "Need X509_CERT_DIR to work!"
-
-        glideFactoryInterface.factoryConfig.advertise_use_tcp = (glideinDescript.data['AdvertiseWithTCP'] in ('True', '1'))
-        glideFactoryInterface.factoryConfig.advertise_use_multi = (glideinDescript.data['AdvertiseWithMultiple'] in ('True', '1'))
-        sleep_time = int(glideinDescript.data['LoopDelay'])
-        advertize_rate = int(glideinDescript.data['AdvertiseDelay'])
-        restart_attempts = int(glideinDescript.data['RestartAttempts'])
-        restart_interval = int(glideinDescript.data['RestartInterval'])
-
-        entries = glideinDescript.data['Entries'].split(',')
-        entries.sort()
-
-        glideFactoryMonitorAggregator.monitorAggregatorConfig.config_factory(os.path.join(startup_dir, "monitor"), entries)
     except:
-        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
-                                        sys.exc_info()[2])
-        logSupport.log.warning("Exception occurred: %s" % tb)
-        raise
+        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
+        logSupport.log.warning("Exception occurred loading factory keys")
+        logSupport.log.error("Exception occurred loading factory keys: %s" % tb)
+        raise 
+        
+    glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.my_name = "%s@%s" % (glideinDescript.data['GlideinName'], glideinDescript.data['FactoryName'])
+
+    # check that the GSI environment is properly set
+    if not os.environ.has_key('X509_CERT_DIR'):
+        logSupport.log.warning("Environment variable X509_CERT_DIR not set. Need X509_CERT_DIR to work!")
+        raise RuntimeError, "Need X509_CERT_DIR to work!"
+
+    glideFactoryInterface.factoryConfig.advertise_use_tcp = (glideinDescript.data['AdvertiseWithTCP'] in ('True', '1'))
+    glideFactoryInterface.factoryConfig.advertise_use_multi = (glideinDescript.data['AdvertiseWithMultiple'] in ('True', '1'))
+    sleep_time = int(glideinDescript.data['LoopDelay'])
+    advertize_rate = int(glideinDescript.data['AdvertiseDelay'])
+    restart_attempts = int(glideinDescript.data['RestartAttempts'])
+    restart_interval = int(glideinDescript.data['RestartInterval'])
+
+    entries = glideinDescript.data['Entries'].split(',')
+    entries.sort()
+
+    glideFactoryMonitorAggregator.monitorAggregatorConfig.config_factory(os.path.join(startup_dir, "monitor"), entries)
 
     # create lock file
     pid_obj = glideFactoryPidLib.FactoryPidSupport(startup_dir)
@@ -449,7 +448,8 @@ def main(startup_dir):
             raise e
         except:
             tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-            logSupport.log.warning("Exception occurred: %s" % tb)
+            logSupport.log.warning("Exception occurred spawning the factory")
+            logSupport.log.error("Exception occurred spawning the factory: %s" % tb)
     finally:
         pid_obj.relinquish()
 
@@ -470,6 +470,4 @@ if __name__ == '__main__':
         main(sys.argv[1])
     except KeyboardInterrupt, e:
         logSupport.log.info("Terminating: %s" % e)
-    except KeyboardInterrupt, ki:
-        logSupport.log.info("Terminating: %s" % ki)
 

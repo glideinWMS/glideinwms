@@ -459,15 +459,6 @@ def keepIdleGlideins(client_condorq, client_int_name,
         running_glideins = qc_status[2]
     else:
         running_glideins = 0
-
-    logSupport.log.debug("Before submission, the queue contains:")
-    logSupport.log.debug("   %i idle glideins")
-    logSupport.log.debug("   %i running glideins")
-    logSupport.log.debug("   %i held glideins")
-    logSupport.log.debug("Before submission, the request contains:")
-    logSupport.log.debug("   %i min nr idle glideins")
-    logSupport.log.debug("   %i max nr running glideins")
-    logSupport.log.debug("   %i max held glideins")
         
     # if idle is < min idle and (either no max specified or running + idle is < max)
     if ((idle_glideins < min_nr_idle) and ((max_nr_running == None) or ((running_glideins + idle_glideins) < max_nr_running))):

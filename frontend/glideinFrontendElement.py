@@ -667,7 +667,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
             trust_domain=glidein_el['attrs']['GLIDEIN_TrustDomain']
         else:
             trust_domain="Grid"
-        if glidein_el['attrs'].has_key('GLIDEIN_SupportedAuthenticationMethods'):
+        if glidein_el['attrs'].has_key('GLIDEIN_SupportedAuthenticationMethod'):
             auth_method=glidein_el['attrs']['GLIDEIN_SupportedAuthenticationMethod']
         else:
             auth_method="grid_proxy"
