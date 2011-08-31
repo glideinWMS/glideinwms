@@ -76,7 +76,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
 
         # populate the monitor files
         javascriptrrd_dir = params.monitor.javascriptRRD_dir
-        for mfarr in ((params.src_dir,'frontend_support.js'),
+        for mfarr in ((params.work_dir,'frontend_support.js'),
                       (javascriptrrd_dir,'rrdFlot.js'),
                       (javascriptrrd_dir,'rrdFlotMatrix.js'),
                       (javascriptrrd_dir,'rrdFlotSupport.js'),
