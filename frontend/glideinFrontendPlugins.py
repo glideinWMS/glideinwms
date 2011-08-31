@@ -74,9 +74,9 @@ class ProxyFirst:
     # get the proxies, given the condor_q and condor_status data
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
         for cred in self.cred_list:
-            if (trust_domain != None) and (cred.trust_domain!=trust_domain):
+            if (trust_domain != None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type != None) and (cred.credential_type!=credential_type):
+            if (credential_type != None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
                 continue
             if (params_obj!=None):
                 cred.add_usage_details(params_obj.min_nr_glideins,params_obj.max_run_glideins)
@@ -109,9 +109,9 @@ class ProxyAll:
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
         rtnlist=[]
         for cred in self.cred_list:
-            if (trust_domain != None) and (cred.trust_domain!=trust_domain):
+            if (trust_domain != None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type != None) and (cred.type!=credential_type):
+            if (credential_type != None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
                 continue
             rtnlist.append(cred)
         if (params_obj!=None):
@@ -160,9 +160,9 @@ class ProxyUserCardinality:
     def get_proxies_from_cardinality(self, nr_requested_proxies,credential_type=None, trust_domain=None):
         rtnlist=[]
         for cred in self.cred_list:
-            if (trust_domain != None) and (cred.trust_domain!=trust_domain):
+            if (trust_domain != None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type != None) and (cred.credential_type!=credential_type):
+            if (credential_type != None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
                 continue
             if len(rtnlist)<nr_requested_proxies:
                 rtnlist.append(cred)

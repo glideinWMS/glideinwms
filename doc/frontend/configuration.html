@@ -291,6 +291,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         type=&quot;<i>grid_proxy</I>&quot;
         absfname=&quot;<I>proxyfile</I>&quot;
         [keyabsfname=&quot;<I>keyfile</I>&quot;]
+        [pilotabsfname=&quot;<I>proxyfile</I>&quot;]
         security_class=&quot;<I>frontend</I>&quot;
         trust_domain=&quot;<I>id</I>&quot;
         /&gt;
@@ -309,6 +310,13 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
     credential will be used on.  The credential will only be submitted to 
     sites that match this trust domain.  Coordinate with your factory operator
     in order to properly determine these values.
+    <br/>
+    The attribute <i>pilotabsfname</i> is required for non-grid types.  
+    This specifies a proxy (distinct from the credentials used to actually 
+    submit) that is used for the pilot to connect back to the user pool.
+    For instance, Amazon key pairs can be used to connect to cloud resources,
+    but an actual x509 proxy will be needed for the glidein on the cloud 
+    to connect to the Condor user pool.
     </P></li>
     <LI><P>
         <a name="stage" />

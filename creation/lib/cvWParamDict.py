@@ -541,6 +541,7 @@ def populate_common_descript(descript_dict,        # will be modified
         proxy_security_classes={}
         proxy_types={}
         proxy_key_files={}
+        proxy_pilot_files={}
         for pel in params.security.credentials:
             if pel['absfname']==None:
                 raise RuntimeError,"All proxies need a absfname!"
@@ -557,6 +558,8 @@ def populate_common_descript(descript_dict,        # will be modified
                     proxy_types[pel['absfname']]=pel['type']
                 if pel['keyabsfname']!=None:
                     proxy_key_files[pel['absfname']]=pel['keyabsfname']
+                if pel['pilotabsfname']!=None:
+                    proxy_pilot_files[pel['absfname']]=pel['pilotabsfname']
             else: #pool
                 pool_count=int(pel['pool_count'])
                 for i in range(pool_count):
@@ -572,6 +575,8 @@ def populate_common_descript(descript_dict,        # will be modified
                         proxy_types[pel['absfname']]=pel['type']
                     if pel['keyabsfname']!=None:
                         proxy_key_files[pel['absfname']]=pel['keyabsfname']
+                    if pel['pilotabsfname']!=None:
+                        proxy_pilot_files[pel['absfname']]=pel['pilotabsfname']
 
         descript_dict.add('Proxies',repr(proxies))
         if len(proxy_refresh_scripts.keys())>0:
@@ -584,6 +589,8 @@ def populate_common_descript(descript_dict,        # will be modified
              descript_dict.add('ProxyTypes',repr(proxy_types))
         if len(proxy_key_files.keys())>0:
              descript_dict.add('ProxyKeyFiles',repr(proxy_key_files))
+        if len(proxy_pilot_files.keys())>0:
+             descript_dict.add('ProxyPilotFiles',repr(proxy_pilot_files))
 
     match_expr = params.match.match_expr
     if ( (params.attrs.has_key('GLIDEIN_Glexec_Use')) and 

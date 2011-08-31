@@ -216,6 +216,7 @@ class Credential:
             proxy_trust_domains=elementDescript.merged_data['ProxyTrustDomains']
             proxy_types=elementDescript.merged_data['ProxyTypes']
             proxy_keyfiles=elementDescript.merged_data['ProxyKeyFiles']
+            proxy_pilotfiles=elementDescript.merged_data['ProxyPilotFiles']
             self.proxy_id=proxy_id
             self.filename=proxy_fname
             if proxy_types.has_key(proxy_fname):
@@ -231,25 +232,23 @@ class Credential:
             else:
                     self.trust_domain="None"
 
-            # All others have a file to read
-            if self.type!="username_password":
-                proxy_fd=open(proxy_fname,'r')
-                self.proxy_data=proxy_fd.read()
-                proxy_fd.close()
+            proxy_fd=open(proxy_fname,'r')
+            self.proxy_data=proxy_fd.read()
+            proxy_fd.close()
 
-            if self.type=="grid_proxy":
-                pass
-            if self.type=="grid_proxy+project_id":
-                pass
-            if self.type=="grid_proxy+voms_attr":
-                pass
-            ### Read second file for private key / password file
-            if (self.type=="cert_pair")or (self.type=="key_pair") or (self.type=="username_password"):
-                if proxy_keyfiles.has_key(proxy_fname):
-                    self.key_fname=proxy_keyfiles[proxy_fname]
-                    proxy_fd=open(self.key_fname,'r')
-                    self.key_data=proxy_fd.read()
-                    proxy_fd.close()
+            if proxy_keyfiles.has_key(proxy_fname):
+                self.key_fname=proxy_keyfiles[proxy_fname]
+                proxy_fd=open(self.key_fname,'r')
+                self.key_data=proxy_fd.read()
+                proxy_fd.close()
+            
+            if proxy_pilotfiles.has_key(proxy_fname):
+                logSupport.log.info("pilot")
+                logSupport.log.info(proxy_pilotfiles[proxy_fname])
+                self.pilot_fname=proxy_pilotfiles[proxy_fname]
+                proxy_fd=open(self.pilot_fname,'r')
+                self.pilot_data=proxy_fd.read()
+                proxy_fd.close()
                 
         except:
             logSupport.log.error("Could not read credential file '%s'"%proxy_fname)
@@ -523,6 +522,14 @@ class MultiAdvertizeWork:
                     if (hasattr(cred_el,'security_class')):
                         # Convert the sec class to a string so the Factory can interpret the value correctly
                         glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(cred_el.key_fname)]=str(cred_el.security_class)
+                if (hasattr(cred_el,'pilot_fname')):
+                    data_fd=open(cred_el.pilot_fname)
+                    cred_data=data_fd.read()
+                    data_fd.close()
+                    glidein_params_to_encrypt[cred_el.file_id(cred_el.pilot_fname)]=cred_data
+                    if (hasattr(cred_el,'security_class')):
+                        # Convert the sec class to a string so the Factory can interpret the value correctly
+                        glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(cred_el.pilot_fname)]=str(cred_el.security_class)
             if (factory_pool in self.global_key):
                 key_obj=self.global_key[factory_pool]
             if key_obj!=None:
@@ -628,6 +635,8 @@ class MultiAdvertizeWork:
                     if (credential_el.type.startswith("key_pair")):
                         glidein_params_to_encrypt['PublicKey']=credential_el.file_id(credential_el.filename);
                         glidein_params_to_encrypt['PrivateKey']=credential_el.file_id(credential_el.key_fname);
+                    if (hasattr(credential_el,'pilot_fname')):
+                        glidein_params_to_encrypt['GlideinProxy']=credential_el.file_id(credential_el.pilot_fname);
                     (req_idle,req_max_run)=credential_el.get_usage_details()
                     logSupport.log.info("Advertizing credential %s with (%d idle, %d max run)"%(credential_el.filename,req_idle,req_max_run))
                 
