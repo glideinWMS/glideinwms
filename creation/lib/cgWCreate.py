@@ -264,7 +264,7 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir):
         fd.write("        fi\n")
         fd.write('        "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" -writeback "yes" -update_scripts "yes" -xml $1\n')
         fd.write("        reconfig_failed=$?\n")
-        fd.write('        echo -n "Reconfiguring the factory"\n')
+        fd.write('        echo -n "Upgrading the factory"\n')
         fd.write("        test $reconfig_failed -eq 0 && success || failure\n")
         fd.write('        RETVAL=$?\n')
         fd.write("        echo\n")
