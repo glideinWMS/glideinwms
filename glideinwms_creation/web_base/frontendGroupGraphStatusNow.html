@@ -1,0 +1,537 @@
+
+
+
+<html>
+<head>
+<script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAAu0TL0A-Hx1fvzGI6gOofLxRdWR7O4-XcWvAQALHxHt_c1fTKOhSeYIt5K3vK4_YcuhTz3-irM0p_eQ"></script>
+<style type="text/css">
+.thumbnail {
+ width: 425px;
+ height: 175px;
+}
+img.graph {
+ width: inherit;
+ height: inherit;
+}
+
+div.page_links {
+ position: absolute;
+ top:50px;
+ left:800px;
+
+}
+
+div.updated {
+font-size:14px;
+}
+
+div.image_error {
+text-align:center;
+}
+
+</style>
+<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript">
+var gready = 0;
+
+// Reload every 2 minutes (DISABLED)
+var reloadTime = 1000*120;
+// Refresh the page every hour (DISABLED)
+var globalReload = 1000*60*60
+var timeout;
+
+// Google libraries to load
+google.load('visualization', '1', {packages:['table']});
+google.load("jquery", "1.5.0");
+google.load("jqueryui", "1.8.10");
+google.setOnLoadCallback(googleReady);
+
+//setTimeout("window.location.reload()", globalReload);
+
+
+
+// The next functions are from http://code.google.com/apis/chart/docs/data_formats.html
+// used to encode the data before sending off to google.
+// You would think they could host a js lib to do this.
+var simpleEncoding = 
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+// This function scales the submitted values so that
+// maxVal becomes the highest value.
+function simpleEncode(valueArray,maxValue) {
+  var chartData = ['s:'];
+  for (var i = 0; i < valueArray.length; i++) {
+    var currentValue = valueArray[i];
+    if (!isNaN(currentValue) && currentValue >= 0) {
+    chartData.push(simpleEncoding.charAt(Math.round((simpleEncoding.length-1) * 
+      currentValue / maxValue)));
+    }
+      else {
+      chartData.push('_');
+      }
+  }
+  return chartData.join('');
+}
+
+// Same as simple encoding, but for extended encoding.
+var EXTENDED_MAP=
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-.';
+var EXTENDED_MAP_LENGTH = EXTENDED_MAP.length;
+function extendedEncode(arrVals, maxVal) {
+  var chartData = '';
+
+  for(i = 0, len = arrVals.length; i < len; i++) {
+    // In case the array vals were translated to strings.
+    var numericVal = new Number(arrVals[i]);
+    // Scale the value to maxVal.
+    var scaledVal = Math.floor(EXTENDED_MAP_LENGTH * 
+        EXTENDED_MAP_LENGTH * numericVal / maxVal);
+
+    if(scaledVal > (EXTENDED_MAP_LENGTH * EXTENDED_MAP_LENGTH) - 1) {
+      chartData += "..";
+    } else if (scaledVal < 0) {
+      chartData += '__';
+    } else {
+      // Calculate first and second digits and add them to the output.
+      var quotient = Math.floor(scaledVal / EXTENDED_MAP_LENGTH);
+      var remainder = scaledVal - EXTENDED_MAP_LENGTH * quotient;
+      chartData += EXTENDED_MAP.charAt(quotient) + EXTENDED_MAP.charAt(remainder);
+    }
+  }
+
+  return chartData;
+}
+
+
+
+function googleReady() { 
+    gready = 1; 
+    drawChart(); 
+    /* timeout = setTimeout("reloadAll()", reloadTime); */ 
+}
+
+
+// Reload all the data, including pulling down new xml, reloading
+// Charts and table
+function reloadAll() {
+    drawChart();
+    /* Reload options
+    clearTimeout(timeout);
+    setTimeout("reloadAll()", reloadTime);
+    */
+}
+
+
+var firsttime = true;
+
+// Google is now ready, start grabbing the data
+function drawChart() {
+   if (gready == 1 && firsttime) {
+    $.ajax({type: "GET", url: "frontend_status.xml",  success: parseuserdata});
+    firsttime = false;
+    } else if (gready == 1) {
+
+    $.ajax({type: "GET", url: "frontend_status.xml",  success: updatedata});
+
+   }
+
+}
+
+
+
+
+var global_xml = ""
+var selected_group = ""
+
+function ChangeGroup(element) {
+    selected_group = element.value;
+    $("#graphtable").find("img").remove();
+    $("#graphtable").find("#image_load_fail").remove();
+    $("#group_display").html(selected_group);
+    $(global_xml).find("group").each(function() {
+        var group_name = $(this).attr('name');
+        if (group_name == selected_group) {
+            UpdateGroup($(this));
+        }
+    });
+}
+
+
+// Updated the data
+function updatedata(xml) {
+    global_xml = xml;
+    // Delete all the images
+    $("#graphtable").find("img").remove();
+    $("#graphtable").find("#image_load_fail").remove();
+
+    $("group_graphs").find("#idle").addClass("thumbnail");
+    $("group_graphs").find("#running").addClass("thumbnail");
+    
+    // Update the images
+    $(xml).find("group").each(function() {
+        var group_name = $(this).attr('name');
+        if (group_name == selected_group) {
+            UpdateGroup($(this));
+        }
+    });
+    UpdateXMLTime();
+
+}
+
+
+
+// This will be execute the first time only
+function parseuserdata(xml) {
+    global_xml = xml;
+    var first_group = true;
+    var groups = new Array()
+    $(xml).find("group").each(function() {
+        var group_name = $(this).attr('name');
+    
+        // Add to the group list
+        $("#groups_list").append("<option value='" + group_name + "'>" + group_name + "</option>");
+
+
+        if (first_group == true) {
+            first_group = false;
+            selected_group = group_name;
+            $("#group_display").html(selected_group);
+            UpdateGroup($(this));
+        }
+
+    }); // end each group
+    
+    UpdateXMLTime();
+
+}
+
+// Update the last update time of the XML
+function UpdateXMLTime() {
+    $(global_xml).find("updated").find("timezone").each(function() {
+        if ( $(this).attr('name') == "Local" ) {
+            $("#updated_display").html("Snapshot last updated: " + $(this).attr('human'));
+        }
+
+    });
+}
+
+// Enlarge the graphs
+function ToggleExpandGroup() {
+    var group_name =  selected_group;
+    $("#group_graphs").find("#idle").toggleClass("thumbnail");
+    $("#group_graphs").find("#running").toggleClass("thumbnail");
+    if ( $("#expandtoggle").attr('value') == "Enlarge Graphs") {
+        $("#expandtoggle").attr('value', 'Reduce Graphs');
+    } else {
+        $("#expandtoggle").attr('value', 'Enlarge Graphs');
+    }
+
+}
+
+// Convinence function to normalize integers in an array.  This is required
+// for google charts.  Values need to be percentage for google charts.
+function normalize(input_array) {
+    normalized_total = 0;
+    $(input_array).each(function() { normalized_total += parseFloat(this) });
+    toReturn = [];
+    if (normalized_total == 0) {
+        $(input_array).each(function() { toReturn.push(0) });
+    } else {
+        $(input_array).each(function() { toReturn.push((parseFloat(this) / parseFloat(normalized_total)) * 100.0) });
+    }
+    return toReturn;
+}
+
+// Main Data Function.  Will update the group information, including:
+// table & charts
+// group_obj: object (pointer) to the xml position of the group to update
+function UpdateGroup(group_obj) {
+    var data = new google.visualization.DataTable();
+    var running = [];
+    var idle = [];
+    var factories = [];
+    var matchedglideins_idle = [];
+    var matchedglideins_idlefra = [];
+    var matchedglideins_running = [];
+    var matchedjobs_idle = [];
+    var matchedjobs_running = [];
+    var requested_idle = [];
+    requested_running = [];
+    
+    // Convinence variables
+    var group_name = $(group_obj).attr('name');
+    var group_selector = "#group_graphs";
+
+    data.addColumn('string', 'Entry Name');
+    data.addColumn('number', 'Running Jobs');
+    data.addColumn('number', 'Idle Jobs');
+    data.addColumn('number', 'Glideins claimed by jobs');
+    data.addColumn('number', 'Glideins not matched');
+    data.addColumn('number', '% not matched');
+    data.addColumn('number', 'Requested Max Run');
+    data.addColumn('number', 'Requested Idle');
+    var counter = 0;
+
+    // For each factory (entry_point), grab attributes from the xml
+    $(group_obj).find("factory").each(function() {
+        data.addRows(1);
+        entry_name = $(this).find("Attributes").attr("EntryName");
+        factories.push(entry_name);
+        data.setCell(counter, 0, entry_name);
+
+        var matched_idle_glideins = parseFloat($(this).find("MatchedGlideins").attr('Idle'));
+        matchedglideins_idle.push(matched_idle_glideins);
+        var matched_running_glideins = parseFloat($(this).find("MatchedGlideins").attr('Running'));
+        matchedglideins_running.push(matched_running_glideins);
+        data.setCell(counter, 3, matched_running_glideins);
+
+        var matched_idle_glideins_fraction = 0;
+        if (matched_idle_glideins > 0) {
+         // make sure we don't have division by zero
+            matched_idle_glideins_fraction = 100.0 * matched_idle_glideins / (matched_idle_glideins + matched_running_glideins);
+            matched_idle_glideins_fraction = Math.round(matched_idle_glideins_fraction*100)/100.0;
+        }
+        matchedglideins_idlefra.push(matched_idle_glideins_fraction);
+        data.setCell(counter, 4,     matched_idle_glideins);
+        data.setCell(counter, 5,     matched_idle_glideins_fraction);
+
+
+        var mji=parseFloat($(this).find("MatchedJobs").attr('Idle'));
+        matchedjobs_idle.push(mji);
+        data.setCell(counter, 2, mji);
+
+        matchedjobs_running.push(parseFloat($(this).find("MatchedJobs").attr('RunningHere')));
+        data.setCell(counter, 1, parseFloat($(this).find("MatchedJobs").attr('RunningHere')));
+
+        requested_idle.push(parseFloat($(this).find("Requested").attr('Idle')));
+        data.setCell(counter, 7, parseFloat($(this).find("Requested").attr('Idle')));
+        requested_running.push(parseFloat($(this).find("Requested").attr('MaxRun')));
+        data.setCell(counter, 6, parseFloat($(this).find("Requested").attr('MaxRun')));
+
+        counter++;
+
+    });
+
+    // If there are no factories detected
+    if ( factories.length == 0 ){
+        $("#group_graphs").fadeTo(0, 0.5);
+        ShowDialog($(group_selector), "No Entry Points Detected",
+            "No entry points were detected in the group: " + group_name);
+    
+    // If no jobs are detected, idle or running
+    } else if ((SumElements(matchedjobs_running) == 0) &&
+               (SumElements(matchedjobs_idle) == 0) &&
+               (SumElements(matchedglideins_running) == 0) &&
+               (SumElements(matchedglideins_idle) == 0) &&
+               (SumElements(requested_running) == 0) &&
+               (SumElements(requested_idle) == 0)){
+
+        $("#group_graphs").fadeTo(0, 0.5);
+        ShowDialog($(group_selector), "No Jobs Detected",
+             "No jobs were detected, idle or running, in the group: " + group_name);
+
+    } else {
+        $("#group_graphs").fadeTo(0, 1.0);
+        HideDialog()
+    }
+
+    // Totals
+    function SumElements(sum_array) {
+        var sum = 0;
+        $(sum_array).each(function() {
+            sum += this;
+        });
+        return sum;
+    }
+
+    // Add the totals row in the table
+    data.addRows(1);
+    data.setCell(counter, 0, "Totals");
+    data.setCell(counter, 1, SumElements(matchedjobs_running));
+    data.setCell(counter, 2, SumElements(matchedjobs_idle));
+    data.setCell(counter, 3, SumElements(matchedglideins_running));
+    data.setCell(counter, 4, SumElements(matchedglideins_idle));
+    data.setCell(counter, 5, Math.round(SumElements(matchedglideins_idlefra)*100)/100.0);
+    data.setCell(counter, 6, SumElements(requested_running));
+    data.setCell(counter, 7, SumElements(requested_idle));
+
+
+    
+    // Generate the graphs
+    var img = CreateGraphImage();
+    $(group_selector).find("#MatchedGlideins").find("#idle").append(img);
+    MakeChart(factories.slice(), matchedglideins_idle, "Glideins not matched",  img);
+
+    img = CreateGraphImage();
+    $(group_selector).find("#MatchedGlideins").find("#running").append(img);
+    MakeChart(factories.slice(), matchedglideins_running, "Glideins claimed by jobs",  img);
+
+    img = CreateGraphImage();
+    $(group_selector).find("#MatchedJobs").find("#idle").append(img);
+    MakeChart(factories.slice(), matchedjobs_idle, "Jobs Idle",  img);
+
+    img = CreateGraphImage();
+    $(group_selector).find("#MatchedJobs").find("#running").append(img);
+    MakeChart(factories.slice(), matchedjobs_running, "Running jobs by Entry", img);
+
+    img = CreateGraphImage();
+    $(group_selector).find("#Requested").find("#idle").append(img);
+    MakeChart(factories.slice(), requested_idle, "Requested idle", img);
+
+    img = CreateGraphImage();
+    $(group_selector).find("#Requested").find("#running").append(img);
+    MakeChart(factories.slice(), requested_running, "Requested Running", img);
+
+    var table = new google.visualization.Table(document.getElementById('group_table'));
+    table.draw(data);
+
+
+}
+
+// Create the graphing image.  This is the place to add sytles
+// to be applied to the graph images.
+function CreateGraphImage() {
+    var img = new Image;
+    $(img).addClass("graph");
+    $(img).error(function(){
+        // Get the title from the url
+        var url = $(img).attr('src');
+        var start = url.indexOf("chtt=");
+        var end = url.indexOf("&", start);
+        var img_title = url.substring(start + 5, end);
+        $(img).parent().html("<div id=\"image_load_fail\" class=\"image_error\">Unable to load image: " + img_title + "<div>");
+    });
+    $(img).click(function() {ToggleExpandGroup()});
+    return img;
+
+}
+
+
+// Function to create the charts by querying google
+// users: array of entry_points
+// data: array of values for the entry_point
+// title: Title for the graph
+// image: an image object created with 'new Image()'
+function MakeChart(entry_points, data, title, image) {
+    var i = 0;
+    entry_limit = 25;
+
+    // Sort the entries
+    // entry_data = [<entry_name>, <number(str)>, <normalized>]
+    entry_data = Array();
+    for (i = 0; i < entry_points.length; i++) {
+        if (data[i] != 0) {
+            entry_data.push([entry_points[i], data[i]]);
+        }
+    }
+    entry_data.sort(function (a, b) {
+        return (a[1] - b[1]);
+    } );
+    entry_data.reverse()
+    // Limit the number of entries shown
+    if (entry_data.length > entry_limit) {
+        sum = 0;
+        for (i = entry_limit; i < entry_data.length; i++) {
+           sum += parseFloat(entry_data[i][1]);
+        }
+        entry_data.splice(entry_limit, entry_data.length - entry_limit);
+        entry_data.push(["Other", sum.toString()]);
+    }
+
+    // Normalize the data
+    var to_normalize = Array();
+    for (var i in entry_data) to_normalize.push(entry_data[i][1]);
+    var normal_data = normalize(to_normalize);
+    for (var i in entry_data) entry_data[i].push(normal_data[i]);
+
+    
+    
+    // Build the URL for the image
+    baseurl = "http://chart.apis.google.com/chart?cht=p&chf=bg,s,EFEFEF&chs=850x350&chtt=" + title + "&chco=FF0000,00FFFF&";
+    baseurl += "chd=e:"
+    baseurl += extendedEncode(normal_data, 100);
+    baseurl += "&chl=";
+    var formatted_entry_points = [];
+    for (var i in entry_data) {
+        formatted_entry_points.push(entry_data[i][0] + " (" + Math.round(entry_data[i][1]*10)/10.0 + ")");
+    }
+    baseurl += formatted_entry_points.join("|");
+    var img = image;
+    var g = new Date();
+    var url = baseurl + "|?" + g.getTime();
+    $(img).load(function() {
+        $(this).fadeIn();
+    })
+    .attr('src', url);
+}
+
+
+// Functions relating to the dialog box.
+// tocenter_object: Object to append the dialog box to, and to center within
+// title: Dialog box title
+// text: Text inside the dialog box
+function ShowDialog(tocenter_object, title, text) {
+    HideDialog();
+    $(tocenter_object).append("<div id='error_dialog' title=\"" + title + "\">" + text + "</div>");
+    $("#error_dialog").dialog({
+        close: HideDialog(),
+        width: 400
+        }).parent().position({ my: 'center', at: 'center', of: tocenter_object });
+
+}
+
+function HideDialog() {
+    $("#group_graphs").fadeTo(0, 1.0);   
+    $("#error_dialog").remove();
+
+}
+
+
+
+</script>
+
+<title>Current GlideinWMS Frontend Status</title>
+
+</head>
+<body>
+<div id="header"><h2>Current GlideinWMS Frontend Status</h2></div>
+<div class="page_links">
+[
+<a href="frontendRRDBrowse.html">Browse</a> |
+<a href="frontendRRDGroupMatrix.html">Group Matrix</a> |
+<a href="frontendStatus.html">Status</a>
+]
+</div>
+<div id="reloadbuttong"><input type="button" value="Refresh Data" onclick="reloadAll()"/> </div>
+<div class="updated" id="updated_display"> </div>
+<div id="graphs">
+<table cellpadding=10 id='graphtable' border=1>
+<tr><td valign=top align=center>
+<div id="groups_list_container">Groups: <br/> 
+<select id="groups_list" onchange="ChangeGroup(this)"></select></div>
+<!--<div id="group_display"> </div>--> <br/> 
+<input type='button' value='Enlarge Graphs' id='expandtoggle' onclick='ToggleExpandGroup()'/> 
+</td><td id="group_graphs">
+<table cellpadding='20px'> 
+<tr id='MatchedGlideins'> <td id='running' class='thumbnail'></td> <td id='idle' class='thumbnail'></td></tr> 
+<tr id='MatchedJobs'> <td id='running' class='thumbnail'></td> <td id='idle' class='thumbnail'></td></tr> 
+<tr id='Requested'> <td id='running' class='thumbnail'></td> <td id='idle' class='thumbnail'></td></tr> 
+</table>
+</td>
+<tr>
+<td colspan="2">
+<div id="group_table">
+</div>
+</td>
+</tr>
+</tr>
+</table>
+ </div>
+</body>
+
+</html>
+
+
+
+
+

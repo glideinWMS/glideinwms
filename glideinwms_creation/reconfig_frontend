@@ -1,0 +1,122 @@
+#!/usr/bin/env python
+
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: reconfig_frontend,v 1.2.10.2 2010/09/24 15:30:36 parag Exp $
+#
+# Description:
+#  This program updates a frontend directory structure
+#  based on a configuration file
+#
+
+import os
+import copy
+import sys
+
+STARTUP_DIR=sys.path[0]
+
+import os.path
+import string
+import shutil
+import traceback
+sys.path.append(os.path.join(STARTUP_DIR,"lib"))
+sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
+import cvWParams
+import cvWDictFile
+import cvWConsts,cWConsts
+import cvWCreate
+import cvWParamDict
+
+
+################################################################################
+
+def main(params,old_params):
+    # create dictionaries for new params
+    frontend_dicts_obj=cvWParamDict.frontendDicts(params)
+    frontend_dicts_obj.populate()
+
+    # write to disk
+    frontend_dicts_obj.save()
+    frontend_dicts_obj.set_readonly(True)
+
+    # save config into file (with backup, since the old one already exists)
+    cfgfile=os.path.join(frontend_dicts_obj.main_dicts.work_dir,cvWConsts.XML_CONFIG_FILE)
+    params.save_into_file_wbackup(cfgfile,set_ro=True)
+    # make two copies, the second one should have a unique name, so it does not get overwritten on further reconfig
+    cfgfile=cWConsts.insert_timestr(cfgfile)
+    params.save_into_file(cfgfile,set_ro=True)
+
+    print "Reconfigured frontend '%s'"%params.frontend_name
+    print "Active entries are:"
+    for entry in frontend_dicts_obj.active_sub_list:
+        print "  %s"%entry
+    print "Work files are in %s"%frontend_dicts_obj.main_dicts.work_dir
+
+
+############################################################
+#
+# S T A R T U P
+# 
+############################################################
+
+if __name__ == '__main__':
+    usage_prefix="reconfig_frontend [-force_name name] [-writeback yes|no]"
+    argv=sys.argv
+    force_name=None
+    writeback='yes'
+    while len(argv)>2:
+        if argv[1]=='-force_name':
+            force_name=argv[2]
+            argv=argv[0:1]+argv[3:]
+        elif argv[1]=='-writeback':
+            writeback=argv[2]
+            argv=argv[0:1]+argv[3:]
+        else:
+            break
+            
+    try:
+        params=cvWParams.VOFrontendParams(usage_prefix,os.path.join(STARTUP_DIR,"web_base"),argv)
+    except RuntimeError,e:
+        print e
+        sys.exit(1)
+
+    if force_name!=None:
+        if params.frontend_name!=force_name:
+           print params.usage()
+           print ""
+           print "This is not a '%s' config file ('%s' found)"%(force_name,params.frontend_name)
+           sys.exit(1)
+        
+    if not (writeback in ('yes','no')):
+        print params.usage()
+        print ""
+        print "-writeback must be yes or no, found '%s'"%writeback
+        sys.exit(1)
+        
+    try:
+        old_config_file=os.path.join(params.work_dir,cvWConsts.XML_CONFIG_FILE)
+        if os.path.exists(old_config_file):
+            try:
+                old_params=cvWParams.VOFrontendParams(usage_prefix,os.path.join(STARTUP_DIR,"web_base"),[argv[0],old_config_file])
+            except RuntimeError, e:
+                raise RuntimeError,"Failed to load %s"%old_config_file
+        else:
+            raise RuntimeError,"Cannot find %s"%old_config_file
+        main(params,old_params)
+    except RuntimeError, e:
+        print params.usage()
+        print ""
+        print e
+        sys.exit(1)
+
+    try:
+        if writeback=='yes':
+            params.save_into_file_wbackup(params.cfg_name)
+    except:
+        print "Writing back config file failed"
+        sys.exit(1)
+        
+

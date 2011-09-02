@@ -1,0 +1,44 @@
+# VarName		Type	Default		CondorName			Req.	Export 	UserJobEnvName
+#                       S=Quote - = No Default	+ = VarName				Condor	- = Do not export
+#												+ = Use VarName
+#												@ = Use CondorName
+#################################################################################################################
+
+# User modifiable variables
+GLIDEIN_Start		C	True		+				N	N	-
+GLIDEIN_Rank		C	1		+				N	N	-
+GLIDEIN_Max_Idle 	I 	1200 		+				N	Y	-
+GLIDEIN_Max_Walltime	I	-		+				N	Y	-
+GLIDEIN_Retire_Time 	I 	-		+				N	N	-
+GLIDEIN_Retire_Time_Spread 	I 	-	+				N	N	-
+GLEXEC_JOB		C	True		+				N	Y	-
+GLIDEIN_Use_PGroups	C	False		USE_PROCESS_GROUPS		N	N	-
+UPDATE_COLLECTOR_WITH_TCP	C	False	+				N	N	-
+WANT_UDP_COMMAND_SOCKET	C	False		+				N	N	-
+STARTD_SENDS_ALIVES	C	True		+				N	N	-
+SEC_DEFAULT_ENCRYPTION	C	OPTIONAL	+				N	N	-
+SEC_DEFAULT_INTEGRITY	C	REQUIRED	+				N	N	-
+USE_MATCH_AUTH		C	True     SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION	N	N	-
+MAX_MASTER_LOG		I	1000000		+				N	N	-
+MAX_STARTD_LOG		I	10000000	+				N	N	-
+MAX_STARTER_LOG		I	10000000	+				N	N	-
+MASTER_GCB_RECONNECT_TIMEOUT	I	1200	+				N	Y	-
+
+# VO frontend provided
+GLIDECLIENT_Name	S	-		+				N	Y	@
+GLIDECLIENT_Group	S	-		+				N	Y	@
+GLIDECLIENT_Signature	S	-		+				N	Y	@
+GLIDECLIENT_Group_Signature	S	-	+				N	Y	@
+GLIDEIN_Collector	C	-		HEAD_NODE			Y	N	-
+GLIDECLIENT_Start	C	True		+				N	N	-
+GLIDECLIENT_Group_Start	C	True		+				N	N	-
+GLIDECLIENT_Rank	C	1		+				N	N	-
+GLIDECLIENT_Group_Rank	C	1		+				N	N	-
+
+# Factory provided
+GLIDEIN_Factory		S	-		+				Y	Y	@
+GLIDEIN_Name		S	-		+				Y	Y	@
+GLIDEIN_Signature	S	-		+				Y	Y	@
+DESCRIPTION_FILE	S	-		GLIDEIN_Description_File	N	Y	-
+GLIDEIN_TORETIRE	I	-		+				N	Y	-
+#################################################################################################################

@@ -1,0 +1,139 @@
+#!/usr/bin/env python
+
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: create_glidein,v 1.144.6.3 2010/09/24 15:30:36 parag Exp $
+#
+# Description:
+#  This program creates a glidein factory directory structure
+#  based on a configuration file
+#
+
+import os
+import copy
+import sys
+STARTUP_DIR=sys.path[0]
+import os.path
+import string
+import traceback
+sys.path.append(os.path.join(STARTUP_DIR,"lib"))
+sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
+import cgWParams
+import cgWDictFile
+import cgWConsts,cWConsts
+import cgWCreate
+import cgWParamDict
+
+
+################################################################################
+
+def main(params):
+    #print params.__dict__
+    glidein_dicts_obj=cgWParamDict.glideinDicts(params)
+    glidein_dicts_obj.populate()
+
+    glidein_dicts_obj.create_dirs()
+    try:
+        # save files in dictionaries
+        glidein_dicts_obj.save()
+        glidein_dicts_obj.set_readonly(True)
+
+        # copy the submit files
+        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE,glidein_dicts_obj.main_dicts.work_dir,params.src_dir)
+        cgWCreate.copy_exe(cgWConsts.SUBMIT_WRAPPER,glidein_dicts_obj.main_dicts.work_dir,params.src_dir)
+        cgWCreate.copy_exe(cgWConsts.LOCAL_START_WRAPPER,glidein_dicts_obj.main_dicts.work_dir,params.src_dir)
+
+        # copy privsep helper executables
+        cgWCreate.copy_exe(cgWConsts.UPDATE_PROXY_FILE,glidein_dicts_obj.main_dicts.work_dir,params.src_dir)
+
+        # save config into file
+        cfgfile=os.path.join(glidein_dicts_obj.main_dicts.work_dir,cgWConsts.XML_CONFIG_FILE)
+        params.save_into_file(cfgfile,set_ro=True)
+        # make two copies, the second one should have a unique name, so it does not get overwritten on reconfig
+        cfgfile=cWConsts.insert_timestr(cfgfile)
+        params.save_into_file(cfgfile,set_ro=True)
+
+        # create the init.d starup file
+        cgWCreate.create_initd_startup(os.path.join(glidein_dicts_obj.main_dicts.work_dir,cgWConsts.INITD_STARTUP_FILE),
+                                       glidein_dicts_obj.main_dicts.work_dir,
+                                       os.path.realpath(os.path.join(STARTUP_DIR,'..')))
+    except:
+        glidein_dicts_obj.delete_dirs()
+        raise
+
+    print "Created glidein '%s'"%params.glidein_name
+    print "Active entries are:"
+    for entry in glidein_dicts_obj.active_sub_list:
+        print "  %s"%entry
+    print "Submit files can be found in %s"%glidein_dicts_obj.main_dicts.work_dir
+    print "Log files can be found in %s"%glidein_dicts_obj.main_dicts.log_dir
+    print "Support files are in %s"%glidein_dicts_obj.main_dicts.stage_dir
+    print "Monitoring files are in %s"%glidein_dicts_obj.main_dicts.monitor_dir
+
+
+############################################################
+#
+# S T A R T U P
+# 
+############################################################
+
+if __name__ == '__main__':
+    usage_prefix="create_glidein [-writeback yes|no] [-debug]"
+    argv=sys.argv
+    writeback='yes'
+    debug=False
+    while len(argv)>2:
+        if argv[1]=='-writeback':
+            writeback=argv[2]
+            argv=argv[0:1]+argv[3:]
+        elif argv[1]=='-debug':
+            debug=True
+            argv=argv[0:1]+argv[2:]
+        else:
+            break
+            
+    try:
+        params=cgWParams.GlideinParams(usage_prefix,os.path.join(STARTUP_DIR,"web_base"),argv)
+    except RuntimeError,e:
+        if debug:
+            import traceback
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            print string.join(tb,'\n')
+        print e
+        sys.exit(1)
+        
+    if not (writeback in ('yes','no')):
+        print params.usage()
+        print ""
+        print "-writeback must be yes or no, found '%s'"%writeback
+        sys.exit(1)
+        
+    try:
+        main(params)
+    except RuntimeError, e:
+        if debug:
+            import traceback
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            print string.join(tb,'\n')
+        print params.usage()
+        print ""
+        print e
+        sys.exit(1)
+
+    try:
+        if writeback=='yes':
+            params.save_into_file_wbackup(params.cfg_name)
+    except:
+        if debug:
+            import traceback
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            print string.join(tb,'\n')
+        print "Writing back config file failed"
+        sys.exit(1)
+

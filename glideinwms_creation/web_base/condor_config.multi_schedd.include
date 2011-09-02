@@ -1,0 +1,53 @@
+######################################################################
+##
+##  condor_config.multi_config.include
+##
+##  Condor include file for when the monitoring vm and the user vm 
+##  run under the same  startd
+##
+######################################################################
+
+WORK_DIR=$(LOCAL_DIR)
+
+# No need to be nice... I got the slot
+JOB_RENICE_INCREMENT = 0
+
+NUM_CPUS = $(GLIDEIN_CPUS)+1
+SLOT_TYPE_1 = cpus=1, memory=1%, swap=1%, disk=1%
+NUM_SLOTS_TYPE_1 = 1
+SLOT_TYPE_2 = cpus=$(GLIDEIN_CPUS), memory=99%, swap=99%, disk=99%
+NUM_SLOTS_TYPE_2 = 1
+
+STARTD_RESOURCE_PREFIX = vm
+
+# Allow cross-VM expressions
+STARTD_VM_EXPRS = RemoteUser, Name, GlobalJobId
+
+HAS_MONITOR_VM=True
+IS_MONITOR_VM = (VirtualMachineID == 1)
+USES_MONITOR_STARTD=False
+
+VM2_Monitoring_Name = VM1_Name
+# use plural names, since there may be more than one if multiple job VMs
+VM1_Monitored_Names = VM2_Name
+
+STARTD_ATTRS = $(STARTD_ATTRS), IS_MONITOR_VM, HAS_MONITOR_VM,USES_MONITOR_STARTD
+VM1_STARTD_ATTRS = Monitored_Names
+VM2_STARTD_ATTRS = Monitoring_Name
+
+VM1_START_CONDITION = ((GLIDEIN_Is_Monitor=?=True) || (JOB_Is_Monitor=?=True))
+VM2_START_CONDITION = $(GLIDEIN_START_CONDITION)
+START = ((VirtualMachineID == 1) && ($(VM1_START_CONDITION))) || ((VirtualMachineID == 2) && ($(VM2_START_CONDITION)))
+
+IsOwner = (VirtualMachineID == 1) && (START =?= False)
+
+# Max time a job is guaranteed to run in the glidein
+# set it to several months... i.e. infinity
+MaxJobRetirementTime=$(PREEMPT_GRACE_TIME)
+# How long does the job have after the startd enters retiring state
+SHUTDOWN_GRACEFUL_TIMEOUT=$(GLIDEIN_Job_Max_Time)
+
+# How long will it wait in an unclaimed state before exiting
+STARTD_NOCLAIM_SHUTDOWN = $(GLIDEIN_Max_Idle)
+
+

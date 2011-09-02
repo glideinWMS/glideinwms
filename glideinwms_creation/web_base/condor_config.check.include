@@ -1,0 +1,39 @@
+######################################################################
+##
+##  condor_config.check.include
+##
+##  Condor include file for testing purposes
+##
+######################################################################
+
+WORK_DIR=$(LOCAL_DIR)
+
+# No need to be nice... I got the slot
+JOB_RENICE_INCREMENT = 0
+
+# force a single CPU (the WN could have many)
+NUM_CPUS = 1
+SLOT_TYPE_1 = cpus=1, memory=100%, swap=100%, disk=100%
+NUM_SLOTS_TYPE_1 = 1
+
+HAS_MONITOR_VM=True
+IS_MONITOR_VM = False
+USES_MONITOR_STARTD = True
+
+STARTD_ATTRS = $(STARTD_ATTRS), IS_MONITOR_VM, HAS_MONITOR_VM, USES_MONITOR_STARTD, Monitoring_Name
+
+# don't start any jobs
+START=FALSE
+
+IsOwner = False
+
+# Max time a job is guaranteed to run in the glidein
+# set it to several months... i.e. infinity
+MaxJobRetirementTime=10000000
+# How long does the job have after the startd enters retiring state
+SHUTDOWN_GRACEFUL_TIMEOUT=$(GLIDEIN_Job_Max_Time)
+
+# How long will it wait in an unclaimed state before exiting
+STARTD_NOCLAIM_SHUTDOWN = $(GLIDEIN_Max_Idle)
+
+

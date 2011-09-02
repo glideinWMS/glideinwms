@@ -1,0 +1,124 @@
+#!/usr/bin/env python
+
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: create_frontend,v 1.3.6.3 2010/09/24 15:30:36 parag Exp $
+#
+# Description:
+#  This program creates a frontend directory structure
+#  based on a configuration file
+#
+
+import os
+import sys
+import string
+import cvWParams
+import cvWConsts,cWConsts
+import cvWCreate
+import cvWParamDict
+
+
+################################################################################
+
+def main(params):
+    #print params.__dict__
+    frontend_dicts_obj=cvWParamDict.frontendDicts(params)
+    frontend_dicts_obj.populate()
+
+    frontend_dicts_obj.create_dirs()
+    try:
+        # save files in dictionaries
+        frontend_dicts_obj.save()
+        frontend_dicts_obj.set_readonly(True)
+
+        # save config into file
+        cfgfile=os.path.join(frontend_dicts_obj.main_dicts.work_dir,cvWConsts.XML_CONFIG_FILE)
+        params.save_into_file(cfgfile,set_ro=True)
+        # make two copies, the second one should have a unique name, so it does not get overwritten on reconfig
+        cfgfile=cWConsts.insert_timestr(cfgfile)
+        params.save_into_file(cfgfile,set_ro=True)
+
+        # create the init.d starup file
+        cvWCreate.create_initd_startup(os.path.join(frontend_dicts_obj.main_dicts.work_dir,cvWConsts.INITD_STARTUP_FILE),
+                                       frontend_dicts_obj.main_dicts.work_dir,
+                                       os.path.realpath(os.path.join(STARTUP_DIR,'..')))
+    except:
+        frontend_dicts_obj.delete_dirs()
+        raise
+
+    print "Created frontend '%s'"%params.frontend_name
+    print "Active entries are:"
+    for entry in frontend_dicts_obj.active_sub_list:
+        print "  %s"%entry
+    print "Work files can be found in %s"%frontend_dicts_obj.main_dicts.work_dir
+    print "Log files can be found in %s"%frontend_dicts_obj.main_dicts.log_dir
+    print "Support files are in %s"%frontend_dicts_obj.main_dicts.stage_dir
+    print "Monitoring files are in %s"%frontend_dicts_obj.main_dicts.monitor_dir
+
+
+############################################################
+#
+# S T A R T U P
+# 
+############################################################
+
+if __name__ == '__main__':
+    usage_prefix="create_frontend [-writeback yes|no] [-debug]"
+    argv=sys.argv
+    writeback='yes'
+    debug=False
+    while len(argv)>2:
+        if argv[1]=='-writeback':
+            writeback=argv[2]
+            argv=argv[0:1]+argv[3:]
+        elif argv[1]=='-debug':
+            debug=True
+            argv=argv[0:1]+argv[2:]
+        else:
+            break
+            
+    try:
+        params=cvWParams.VOFrontendParams(usage_prefix,os.path.join(STARTUP_DIR,"web_base"),argv)
+    except RuntimeError,e:
+        if debug:
+            import traceback
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            print string.join(tb,'\n')
+        print e
+        sys.exit(1)
+        
+    if not (writeback in ('yes','no')):
+        print params.usage()
+        print ""
+        print "-writeback must be yes or no, found '%s'"%writeback
+        sys.exit(1)
+        
+    try:
+        main(params)
+    except RuntimeError, e:
+        if debug:
+            import traceback
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            print string.join(tb,'\n')
+        print params.usage()
+        print ""
+        print e
+        sys.exit(1)
+
+    try:
+        if writeback=='yes':
+            params.save_into_file_wbackup(params.cfg_name)
+    except:
+        if debug:
+            import traceback
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            print string.join(tb,'\n')
+        print "Writing back config file failed"
+        sys.exit(1)
+

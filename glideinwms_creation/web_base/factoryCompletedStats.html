@@ -1,0 +1,1012 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<!--
+Project:
+  glideinWMS
+
+File Version: 
+  $Id: factoryCompletedStats.html,v 1.10.8.7 2011/06/26 23:12:16 sfiligoi Exp $
+
+Description:
+  Browse the glideinWMS RRDs
+
+  Based on
+  javascriptrrd/src/lib/rrdJFlot.html 
+   Original repository: http://javascriptrrd.sourceforge.net/
+-->
+
+<html>
+  
+    <script type="text/javascript" src="jslibs/binaryXHR.js"></script>
+    <script type="text/javascript" src="jslibs/rrdFile.js"></script>
+    <script type="text/javascript" src="jslibs/rrdMultiFile.js"></script>
+    <script type="text/javascript" src="jslibs/rrdFilter.js"></script>
+
+    <!-- rrdFlot class needs the following four include files !-->
+    <script type="text/javascript" src="jslibs/rrdFlotSupport.js"></script>
+    <script type="text/javascript" src="jslibs/rrdFlot.js"></script>
+    <script type="text/javascript" src="jslibs/jquery.js"></script>
+    <script type="text/javascript" src="jslibs/jquery.flot.js"></script>
+    <script type="text/javascript" src="jslibs/jquery.flot.selection.js"></script>
+
+    <script type="text/javascript" src="jslibs/factory_support.js"></script>
+  <head>
+    <title>Completed glidein factory stats</title>
+  </head>
+
+  <body>
+    <table width="100%">
+    <tr>
+     <td><h1 id="title">Glidein factory status from logs</h1>
+     <td align="right">
+      <SELECT id="destination" style="float:right" onChange="goToDestination(this)" >
+<OPTION VALUE="" >Choose a Glidein destination...</OPTION>
+<OPTION VALUE="factoryEntryStatusNow.html"> Glidein entry. </OPTION>
+<OPTION VALUE="factoryStatusNow.html"> Glidein factory status now. </OPTION>
+<OPTION VALUE="factoryStatus.html"> Glidein factory status. </OPTION>
+<OPTION VALUE="factoryLogStatus.html"> Glidein factory log status. </OPTION>
+<OPTION VALUE="factoryRRDBrowse.html"> Glidein factory browse.</OPTION>
+<OPTION VALUE="factoryRRDEntryMatrix.html"> Glidein factory entry matrix. </OPTION>
+</SELECT>
+    </tr>
+    </table>
+
+    <table border=0>
+     <tr>
+       <th>Entry</th>
+       <td valing="middle">
+         <select id="entries" onchange="setFrontendMenu(document.getElementById('entries').options[document.getElementById('entries').selectedIndex].value);">
+	  <option value="total">total</option>
+	 </select>
+       </td>
+     </tr>
+     <tr>
+       <th>Frontend</th>
+       <td valing="middle">
+         <select id="frontends">
+          <option value="total">total</option>
+         </select>
+       </td>
+     </tr>
+     <tr>
+       <th>Info group</th>
+       <td valign="middle"><form id="gtypes">
+	<input type="radio" name="gtype" value="Lasted">Wallclock time per glidein
+	<input type="radio" name="gtype" value="JobsNr">User jobs per glidein
+	<input type="radio" name="gtype" value="JobsLasted">Wallclock time per user job
+	      <br>
+	<input type="radio" name="gtype" value="validation">Fraction wasted due to node validation
+	<input type="radio" name="gtype" value="idle">Fraction wasted because idle
+	      <br>
+	<input type="radio" name="gtype" value="nosuccess">Fraction wasted due to job failures
+	<input type="radio" name="gtype" value="badput" checked>Fraction not used by user jobs
+              <br>
+	<input type="radio" name="gtype" value="aggavg">Aggregated Averages(Stats)
+	<input type="radio" name="gtype" value="aggwsum">Aggregated Weighted Sums(Stats)
+              <br>
+	<input type="radio" name="gtype" value="aggavgf">Aggregated Averages(Fractions)
+	<input type="radio" name="gtype" value="aggwsumf">Aggregated Weighted Sums(Fractions)
+              <br>
+	<input type="radio" name="gtype" value="fail">Failing Glideins
+       </form></td>
+     </tr>
+     <tr>
+       <td colspan=2>
+         <button onClick="nonlink_update()">Update</button>
+         <button onClick="defaults()" style="float:right">Defaults</button>
+         <button onClick="unlink()" style="float:right">Unlink</button>
+         <button onClick="showLink()" style="float:right">Link</button>
+       </td>
+     </tr>
+    </table>
+    <hr>
+    <table id="infotable" border=1>
+        <tr><td colspan="21"><b>Javascript needed for this page to work</b></td></tr>
+	<tr><td><b>RRD file</b></td><td id="fname" colspan="5">None</td></tr>
+    </table>
+
+    <div id="mygraph"></div>
+
+   <hr>
+    <p>Powered by
+        <a href="http://oss.oetiker.ch/rrdtool/" target="_blank">RRDTool</a>,
+        <a href="https://sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and                                                              
+        <a href="http://code.google.com/p/flot/" target="_blank">Flot</a>.
+       </form></td>
+     </tr>
+     <script type="text/javascript">
+
+      var total_file_to_load=1;
+
+      //global variables to preserve things across updates
+      var graph_info;	             	//gotten from rrdFilter.getGraphInfo()
+      var specified_rra = 0;	        //gotten from checkUrl() (URL Link)	
+      var local_checked_DSs = [];       //checked elements from graphInfo
+      var link_checked_DSs = [];        //checked elements from URL Link
+      var windows = true;               //whether to use window parameters passed into rrdFlot 
+      var local_window_min=0;           //window params to pass into rrdFlot
+      var local_window_max=0;             
+      var coming_from_link = true;
+      var coming_from_defaults = false; 
+      var timezone_num=0;
+
+      var a =  document.getElementById("gtypes"); 
+      var infoGroupOptions = new Array("Lasted", "JobsNr", "JobsLasted", "validation", "idle", "nosuccess", "badput","aggavg","aggwsum","aggavgf","affwsumf","fail");
+      var ENTRY; 
+
+      // Remove the Javascript warning
+      document.getElementById("infotable").deleteRow(0);
+
+      // Load the status of the factory
+      var factoryQStats=loadFactoryQStats();
+
+      //load entry and frontend lists
+      var entries=getFactoryEntryGroups(factoryQStats);
+      var frontend_list=getFactoryFrontends(factoryQStats);
+      group_map = entries;
+      char_count=0;
+      groups_starting_idx = 0;
+      var entries_processed = 0;
+
+      var ordered_entries_groups = [];
+      for(entry in entries) {
+          var e = (entries[entry]).toString();
+          if (((e.split(",")).length == 1) && (e == entry.toString())){
+              ordered_entries_groups[entry] = entries[entry];
+              groups_starting_idx++;
+          }
+      }
+      for(entry in entries) {
+          var e = (entries[entry]).toString();
+          if (((e.split(",")).length > 1) || (e != entry.toString())){
+              ordered_entries_groups[entry] = entries[entry];
+          }
+      }
+      entries = ordered_entries_groups;
+
+      var entries_select=document.getElementById("entries");
+      var frontends_select=document.getElementById("frontends");
+      var sep1 = new Option("--------------------","-");
+      var sep2 = new Option("--------------------","-");
+      sep1.disabled = true;
+      sep2.disabled = true;
+      entries_select.appendChild(sep1);
+      var ec_added = 0;
+      for (var entry in entries) {
+          if (ec_added < groups_starting_idx) {
+              entries_select.appendChild(new Option(entries[entry],entries[entry]));
+              ec_added++;
+          } else {
+              if ((ec_added == groups_starting_idx) && (ec_added != 0)){ 
+                  entries_select.appendChild(sep2);
+              }
+              entries_select.appendChild(new Option(entry,entries[entry]));
+              ec_added++;
+          } 
+      }
+
+     // fname, gtype_id and rrd_data are the global variable used by all the functions below
+      rrd_data=undefined;
+      gtype_id=undefined;
+      rrd_group_data=[];
+      files_loaded = 0;
+      checkUrl(); 
+
+      //Applys an entry's frontends to the dropdown box
+      //below it once that entry has been selected
+      function setFrontendMenu(entry) {
+        var fes = document.getElementById("frontends");
+        //Remove frontends from previous entry choices, add back 'total'
+        // and then add this entry's frontends. 
+        while(fes.childNodes.length>0) {fes.removeChild(fes.firstChild);}
+        fes.appendChild(new Option('total','total'));
+        for(var frontend in frontend_list[entry]) {
+           frontends_select.appendChild(new Option(frontend_list[entry][frontend]));
+        }
+      }
+
+////////////////////////////////////////////////////////////////
+/////Filter Functions///////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
+      //RRA Filter - leaves it alone.
+      function RRADoNothing(rra_idx) {
+         this.getIdx = function() {return rra_idx;}
+         this.getStep = function() {return null;}
+      }
+      
+      /* RRA Filter - Creates a new RRA with a different step size (in seconds) 
+      / based on another RRA, whose data the new RRA averages. 
+      / rra_idx should be index of RRA with largest step size that doesn't exceed new step size.
+      */
+      function RRA_Avg(rra_idx,new_step_in_seconds) {
+         this.getIdx = function() {return rra_idx;}
+         this.getStep = function() {return new_step_in_seconds;}
+      }
+
+      //DS Filter - leaves it alone.
+      function DoNothing(ds) {
+        this.getName = function() {return ds;}
+        this.getDSNames = function() {return [ds];}
+        this.computeResult = function(val_list) {return val_list[0];}
+      }
+
+      //DS Filter - sums two DSs. 
+      function SumDS(ds1,ds2) {
+        this.getName = function() {return ds1+"+"+ds2;}
+        this.getDSNames = function() {return [ds1,ds2];}
+        this.computeResult = function(val_list) {return val_list[0]+val_list[1];}
+      }
+ 
+      //DS Filter - returns the fraction of ds1/ds2. 
+      function FractionDS(ds1,ds2) {
+        this.getName = function() {return ds1+"/"+ds2;}
+        this.getDSNames = function() {return [ds1,ds2];}
+        this.computeResult = function(val_list) {return val_list[0]/val_list[1];}
+      }
+
+      //DS Filter - shows the relative values of DSs by
+      //taking a list of all other DSs and returning one DS
+      // divided by the sum of all the rest. 
+      function RelativeDS(list, ds, ds_idx) {
+        // Should add to 100% without Unknown for JobsLasted. 
+        var flag=false;
+        if (/JobsLasted/.test(list[0].getName())) {flag=true}   
+        var i = 0, name_list=[];
+        for(i=0;i<list.length;i++) {
+           name_list.push(list[i].getName());
+        }
+        this.getName = function() {return ds+"%";}
+        this.getDSNames = function() {return name_list;}
+        this.computeResult = function(val_list) {
+           var i=0, sum=0, unknown_sum=0;
+           for(i=0;i<val_list.length;i++) {
+              if (flag && i==0) {continue;}
+              sum += val_list[i]; } 
+           return val_list[ds_idx]/sum;
+        }
+      }
+
+      //DS Filter - Used for Aggregated weighted sums groups.
+      function WeightedSumDS(list,name) {
+        // scaled by amount given by DS name
+        // example: "Lasted_5m" multiplied by 5
+        var i = 0;
+        var name_list=[];
+        for(i=0;i<list.length;i++){
+           name_list.push(list[i].getName());
+        }
+        this.getName = function() { return name; }
+        this.getDSNames = function() {
+           return name_list;}
+        this.computeResult = function(val_list) {
+           var val_sum=0;
+           var i=0;
+           for(i=0;i<val_list.length;i++){
+              val_sum += scale(name_list[i],val_list[i]);
+           }
+           return val_sum;
+        }
+      }
+
+      //DS Filter - Used for aggregated averages (stats and fractions). 
+      //Averages the DSs in those Info Groups.
+      function AvgSumDS(list,name) {
+        //Do not factor JobsLasted_Unknown into average
+        var flag=false;
+        if (/Lasted/.test(list[0].getName())) {flag=true}   
+        var i = 0;
+        var name_list=[];
+        for(i=0;i<list.length;i++) {
+           name_list.push(list[i].getName());
+        }
+        this.getName = function() { return name; }
+        this.getDSNames = function() {
+           return name_list;}
+        this.computeResult = function(val_list) {
+           var val_sum=0, scaled_val_sum=0;
+           var i=0;
+           for(i=0;i<val_list.length;i++){
+              if (flag && i==0) {continue;} //Don't include Lasted_Unknown or JobsLasted_Unknown
+              val_sum += val_list[i]; 
+              scaled_val_sum += scale(name_list[i],val_list[i]);
+           }
+           var result = scaled_val_sum/val_sum;
+           return result; //scaled value/value
+        }
+      }
+
+      //Used by WeightedSumDS and AvgSumDS. Multiplies a DS by it's name;
+      //For example, Lasted_5m is multiplied by 5. In most cases, multiplier increases 
+      //by 4 each time (use this for names without numbers, like "Many").
+      function scale(name, value) {
+         var multiplier = 0;
+         if (name.search(/Lasted/)>=0) { //if name contains 'Lasted' or 'JobsLasted'
+            word = name.replace(/Lasted_/,""); 
+            if (word.search(/Jobs/)>=0) {word = word.replace(/Jobs/,"");} 
+            if (word=="Unknown") {multiplier = 0;}
+            else if (word=="Minutes") {multiplier = 7.5*60;}
+            else if (word=="30mins") {multiplier = 30*60;}
+            else if (word=="2hours") {multiplier = 120*60;}
+            else if (word=="8hours") {multiplier = 480*60;}
+            else if (word=="32hours") {multiplier = 1920*60;}
+            else if (word=="Days") {multiplier = 7680*60;} 
+            else { }//document.write(name+word); }
+         }
+         else if (name.search(/JobsNr/)>=0) { //if name contains 'JobsNr'
+            word = name.replace(/JobsNr_/,""); 
+            if (word=="None") {multiplier = 0;}
+            else if (word=="1job") {multiplier = 1;}
+            else if (word=="2jobs") {multiplier = 2;}
+            else if (word=="4jobs") {multiplier = 4;}
+            else if (word=="16jobs") {multiplier = 16;}
+            else if (word=="Many") {multiplier = 64;}
+            else { document.write(name+word); }
+         }
+         else if (name.search(/validation/)>=0 || name.search(/idle/)>=0
+                  || name.search(/nosuccess/)>=0 || name.search(/badput/)>=0) { 
+            word = name.replace(/validation_/,""); 
+            word = word.replace(/idle_/,""); 
+            word = word.replace(/nosuccess_/,""); 
+            word = word.replace(/badput_/,""); 
+            if (word=="All") {multiplier = 1;}
+            else if (word=="Most") {multiplier = .75;} //approximate
+            else if (word=="500m") {multiplier = .5;} 
+            else if (word=="250m") {multiplier = .25;} 
+            else if (word=="100m") {multiplier = .1;} 
+            else if (word=="25m") {multiplier = .25;} 
+            else if (word=="5m") {multiplier = .05;} 
+            else if (word=="None") {multiplier = 0;} 
+            else { alarm("No match"); }
+         }
+         else { alarm("No match"); }
+         return value*multiplier;
+      }
+    
+      function entrylist2groupname(elist) {
+          var gname = elist;
+          for(var g in group_map) {
+              if ((group_map[g] == elist) && (g.toString() != elist)){
+                  gname = g;
+                  break;
+              }
+          }
+          return gname;
+      }
+
+//---------------------------------------------------------------------------------------
+////////////////////////////////////////////////////////////////
+/////Create Format Dictionary///////////////////////////////////
+////////////////////////////////////////////////////////////////
+
+      // This function updates the Web Page with the data from the RRD archive header
+      // when a new file is selected
+      function update_plot() {
+
+        var lengthGTypes=['Lasted','JobsLasted'];
+        var lengths=['Unknown','Minutes','30mins','2hours','8hours','32hours','Days'];
+        var lengths_colors=['999999',   // Unknown
+                            'ff8000',   // Minutes
+                            'ffff00',   // 30 mins
+                            '00c000',   // 2 hours
+                            '00ff00',   // 8 hours
+                            '0000ff',   // 32 hours
+                            'ff00ff'];  // Days
+
+        var jobGTypes=['JobsNr'];
+        var jobs=['None','1job','2jobs','4jobs','16jobs','Many'];
+        var jobs_colors=['ff0000',   // None
+                         'ffff00',   // 1 job
+                         '00ffff',   // 2 jobs
+                         '00ff00',   // 4 jobs
+                         '0000ff',   // 16 jobs
+                         'ff00ff'];  // Many
+
+        var fracGTypes=['validation','idle','nosuccess','badput'];
+        var fracs=['All','Most','500m','250m','100m','25m','5m','None'];
+        var fracs_colors=['c00000',   // All
+                          'ff2000',   // Most
+                          'ffd000',   // 500m
+                          'ffff00',   // 250m
+                          'd0ff00',   // 100m
+                          '40ff00',   // 25m
+                          '00e000',   // 5m
+                          '008000'];  // None
+
+
+        // Piece together elements, such as Lasted_Unknown
+        //    and JobsNr_4jobs
+
+        var gtype_DSs=new Object();
+        for (var lg in lengthGTypes) {
+          var lg_name=lengthGTypes[lg];
+          gtype_DSs[lg_name]=new Array();
+          for (var len in lengths) {
+            gtype_DSs[lg_name].push(lg_name+'_'+lengths[len]);
+          }
+        }
+        for (var jb in jobGTypes) {
+          var jb_name=jobGTypes[jb];
+          gtype_DSs[jb_name]=new Array();
+          for (var cnt in jobs) {
+            gtype_DSs[jb_name].push(jb_name+'_'+jobs[cnt]);
+          }
+        }
+        for (var fc in fracGTypes) {
+          var fc_name=fracGTypes[fc];
+          gtype_DSs[fc_name]=new Array();
+          for (var cnt in fracs) {
+            gtype_DSs[fc_name].push(fc_name+'_'+fracs[cnt]);
+          }
+        }
+
+        var gtype_formats=new Object();
+
+        // apply colors
+
+        for (var lg in lengthGTypes) {
+          var lg_name=lengthGTypes[lg];
+          gtype_formats[lg_name]={};
+          var check = true;
+          for (var len in lengths) {
+            if(lg_name=="JobsLasted") {check = (len!=0);}
+            gtype_formats[lg_name][lg_name+'_'+lengths[len]+"%"]={label:lengths[len]+"%",stack:'positive',checked:check,
+                    color:"#"+lengths_colors[len],lines: {show:true, fill:true,fillColor:"#"+lengths_colors[len]}};
+            gtype_formats[lg_name][lg_name+'_'+lengths[len]]={label:lengths[len],stack:'positive',checked:false,
+                    color:"#"+lengths_colors[len],lines: {show:true, fill:true,fillColor:"#"+lengths_colors[len]}};
+          }
+        }
+        for (var jb in jobGTypes) {
+          var jb_name=jobGTypes[jb];
+          gtype_formats[jb_name]={};
+          for (var cnt in jobs) {
+            gtype_formats[jb_name][jb_name+'_'+jobs[cnt]+"%"]={label:jobs[cnt]+"%",stack:'positive',checked:true,
+                    color:"#"+jobs_colors[cnt],lines: {show:true, fill:true,fillColor:"#"+jobs_colors[cnt]}};
+            gtype_formats[jb_name][jb_name+'_'+jobs[cnt]]={label:jobs[cnt],stack:'positive',checked:false,
+                color:"#"+jobs_colors[cnt],lines: {show:true, fill:true,fillColor:"#"+jobs_colors[cnt]}};
+          }
+        }
+        for (var fc in fracGTypes) {
+          var fc_name=fracGTypes[fc];
+          gtype_formats[fc_name]={};
+          for (var cnt in fracs) {
+            gtype_formats[fc_name][fc_name+'_'+fracs[cnt]+"%"]={label:fracs[cnt]+"%",stack:'positive',checked:true,
+                    color:"#"+fracs_colors[cnt],lines: {show:true, fill:true,fillColor:"#"+fracs_colors[cnt]}};
+            gtype_formats[fc_name][fc_name+'_'+fracs[cnt]]={label:fracs[cnt],stack:'positive',checked:false,
+                color:"#"+fracs_colors[cnt],lines: {show:true, fill:true,fillColor:"#"+fracs_colors[cnt]}};
+          }
+        }
+
+        //Formatting for Aggregated Groups
+        gtype_list = ['Lasted','JobsLasted','JobsNr','validation','idle','nosuccess','badput'];
+        for (var a in gtype_list) {
+           gtype_formats[gtype_list[a]]['WeightedSum'] = {stack:'negative', yaxis:2, color: '#990066', lines: {show:true, fill:true, fillColor: "rgba(255,255,255,0.3)"}}; 
+           gtype_formats[gtype_list[a]]['Average'] = {stack:'negative', yaxis:2, color: '#000000', lines: {show:true, fill:true, fillColor: "rgba(255,255,255,0.3)"}}; 
+        }
+        agg_name_list = ['aggavg','aggwsum'];
+        for (var a in agg_name_list) {
+           gtype_formats[agg_name_list[a]]={};
+           gtype_formats[agg_name_list[a]]['Wallclock_time_per_glidein'] = {label:"Wallclock time per glidein",yaxis:2, color: '#000000', checked:true, lines: {show:true, fill:false}}; 
+           gtype_formats[agg_name_list[a]]['User_jobs_per_glidein'] = {label: "User jobs per glidein", yaxis:1, color: '#6666FF', checked:true, lines: {show:true, fill:false}}; 
+           gtype_formats[agg_name_list[a]]['Wallclock_time_per_user_job'] = {label:"Wallclock time per user job", yaxis:2, color: '#FF00FF', checked:true, lines: {show:true, fill:false}}; 
+        }
+
+        agg_name_list = ['aggavgf','aggwsumf'];
+        for (var a in agg_name_list) {
+           gtype_formats[agg_name_list[a]]={};
+           gtype_formats[agg_name_list[a]]['Fraction_wasted_due_to_node_validation'] = {label: "Fraction wasted due to node validation", yaxis:1, color: '#000000',checked:true,lines: {show:true, fill:false}}; 
+           gtype_formats[agg_name_list[a]]['Fraction_wasted_because_idle'] = {label: "Fraction wasted because idle", yaxis:1, color: '#6666FF', checked:true, lines: {show:true, fill:false}}; 
+           gtype_formats[agg_name_list[a]]['Fraction_wasted_due_to_job_failures'] = {label: "Fraction wasted due to job failures", yaxis:1, color: '#FF00FF', checked:true, lines: {show:true, fill:false}}; 
+           gtype_formats[agg_name_list[a]]['Fraction_not_used_by_user_jobs'] = {label: "Fraction not used by user jobs", yaxis:1, color: '#FF6600', checked:true, lines: {show:true, fill:false}}; 
+        }
+        //Formatting for Failed Glideins InfoGroup
+        gtype_formats['fail']={}; 
+        gtype_formats['fail']['FailedNr'] = {yaxis:1, color: '#6666FF', checked:true, lines: {show:true, fill:false}}; 
+        gtype_formats['fail']['Glideins'] = {yaxis:1, color: '#FF00FF', checked:true, lines: {show:true, fill:false}}; 
+        gtype_formats['fail']['FailedNr/Glideins'] = {yaxis:2, color: '#FF6600', checked:true, lines: {show:true, fill:false}}; 
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+////// Preserve elements and window selection across updates, but only if not coming //////////
+////// from a URL link; in that case, use the link-specified elements and window selections. //
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+        graph_info = getGraphInfo();
+
+        //preserve window selection
+        if(!coming_from_link) { //get from graph
+           windows = true;
+           local_window_max = graph_info['window_max'];
+           local_window_min = graph_info['window_min'];
+        } //if coming from link, use link params (which are already set)
+
+        if(coming_from_defaults) {
+           windows=false;
+        }
+
+        //preserve rra
+        if(specified_rra==null || coming_from_defaults) {specified_rra=0;}
+        else if (!coming_from_link) {specified_rra = graph_info["rra"];}
+        
+        //check previously defined checked DSs, if any match this new gtype, then preserve them
+        local_checked_DSs = [];
+        //preserve same-named elements
+        var elem, link_elem, trunc1, trunc2;
+        for(var a in graph_info["dss"]) {
+           for(var b in gtype_formats[gtype_id]) {
+              elem = b;              
+              link_elem = graph_info["dss"][a];
+              //truncate names, only compare ends like "500m" to preserve checks across
+              //groups with same-named elements, like "Lasted_500m" and "JobsLasted_500m". 
+              var trunc1 = elem.split("_");
+              var trunc2 = link_elem.split("_");
+              if(elem=="Average") {if (link_elem=="Average") {local_checked_DSs.push(elem);}}
+              else if(elem=="WeightedSum") {if (link_elem=="WeightedSum") {local_checked_DSs.push(elem);}}
+              else {
+                 //for aggregated names, like Wallclock_time_per_glidien, disregard this truncation
+                 if(trunc2.length>2) {if (elem==link_elem) {local_checked_DSs.push(elem)}}
+                 else if(trunc1[1]==trunc2[1]) {
+                    local_checked_DSs.push(elem);
+                 }
+              }
+           } 
+        } 
+        //if coming from link, used DS elements provided in link
+        //else, use preserved elements across link
+        if(!coming_from_link) {
+           checklist = local_checked_DSs;
+        }
+        else { //if coming from link
+           checklist = link_checked_DSs;
+        }   
+
+        if (local_window_max==0 && local_window_min==0) {windows=false;} 
+
+////////////////////////////////////////////////////////////////
+/////Create Graph///////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
+        var rrd_data1 = undefined;
+        if (rrd_group_data.length == 0) { //if avgs, need all data, don't apply a filter
+            if(gtype_id=='aggavg'||gtype_id=='aggavgf'||gtype_id=='aggwsum'||gtype_id=='aggwsumf'||gtype_id=='fail')
+               {rrd_data1=rrd_data;}
+            else {rrd_data1=new RRDFilterDS(rrd_data,gtype_DSs[gtype_id]);}
+        } else {
+              var rrd_data_sum = new RRDFileSum(rrd_group_data, false);
+              rrd_data1=new RRDFilterDS(rrd_data_sum,gtype_DSs[gtype_id]);
+        }
+
+        ///////////////  Aggregate InfoGroups /////////////////////////////////////
+        var op_list = [];
+
+        if(gtype_id=='aggavg'||gtype_id=='aggavgf'||gtype_id=='aggwsum'||gtype_id=='aggwsumf') {
+          var rrd_filtered_data;
+          var gtype_filtered_list = [];
+
+          if(gtype_id=='aggavg' || gtype_id=='aggwsum') {
+            gtype_filtered_list = ["Lasted","JobsNr", "JobsLasted"];
+            name_list = ["Wallclock_time_per_glidein",'User_jobs_per_glidein','Wallclock_time_per_user_job'];
+          }
+          else {
+            gtype_filtered_list = ["badput","validation","nosuccess","idle"];
+            name_list=['Fraction_not_used_by_user_jobs','Fraction_wasted_due_to_node_validation','Fraction_wasted_due_to_job_failures','Fraction_wasted_because_idle'];
+          }
+          //get DS list, filter RRD data by it, and push average/weighted sum filters onto filter list; then plot
+          for(var i=0;i<gtype_filtered_list.length;i++) {
+             rrd_filtered_data=new RRDFilterDS(rrd_data1,gtype_DSs[gtype_filtered_list[i]]);
+             var DS_list = [];
+             for (var j=0;j<rrd_filtered_data.getNrDSs();j++) { 
+                DS_list.push(rrd_filtered_data.getDS(j));
+             }
+             if(gtype_id=="aggavg" || gtype_id=='aggavgf'){op_list.push(new AvgSumDS(DS_list,name_list[i]));}
+             else {op_list.push(new WeightedSumDS(DS_list,name_list[i]));}
+          }
+          rrd_data1 = new RRDFilterOp(rrd_data1,op_list);
+          x=null;
+        } 
+
+        // 'Failed Glideins' Info Group
+        else if(gtype_id=='fail') {
+          var DS_list = [];
+          failed_idx=0,glidein_idx=0;
+          for (var i=0;i<rrd_data1.getNrDSs();i++) {DS_list.push(rrd_data1.getDS(i));}
+          for (var i=0;i<rrd_data1.getNrDSs();i++) { 
+             if (rrd_data1.getDS(i).getName()=='FailedNr') {
+                failed_idx=i;
+                op_list.push(new DoNothing(rrd_data1.getDS(i).getName()));
+             }
+             if (rrd_data1.getDS(i).getName()=='Glideins') {
+                glidein_idx=i;
+                op_list.push(new DoNothing(rrd_data1.getDS(i).getName()));
+             }
+          }
+          //add fraction of failed/total glideins
+          op_list.push(new FractionDS(rrd_data1.getDS(failed_idx).getName(),rrd_data1.getDS(glidein_idx).getName()));
+          rrd_data1 = new RRDFilterOp(rrd_data1,op_list);
+          x=null;
+        }
+        //Non-Aggregated InfoGroups
+        else {
+          //create a new rrdlist, which contains all original elements 
+          //    plus an element which is a sum of the first two
+          var DS_list = [];
+          var sum=0;
+
+          for (var i=0;i<rrd_data1.getNrDSs();i++) { 
+             DS_list.push(rrd_data1.getDS(i));
+          } 
+          //Push Lasted_Unknown and JobsLasted_Unknown to bottom of respective lists
+          var flag=0;
+          for (var i=0;i<rrd_data1.getNrDSs();i++) { 
+             if ((/Lasted_Unknown/).test(rrd_data1.getDS(i).getName())) {flag=1; continue;}
+             op_list.push(new RelativeDS(DS_list, rrd_data1.getDS(i).getName(),i));
+          }
+          if(flag==1) {op_list.push(new RelativeDS(DS_list, rrd_data1.getDS(0).getName(),0));}
+ 
+          op_list.push(new AvgSumDS(DS_list,"Average"));
+          for (var i=0;i<rrd_data1.getNrDSs();i++) { 
+             if ((/Lasted_Unknown/).test(rrd_data1.getDS(i).getName())) {flag=1; continue;}
+             op_list.push(new DoNothing(rrd_data1.getDS(i).getName()));
+          }
+          if(flag==1) {op_list.push(new DoNothing(rrd_data1.getDS(0).getName()));}
+
+          op_list.push(new WeightedSumDS(DS_list,"WeightedSum"));
+
+          //Add RRA filters for longer averaged-out RRAs
+          var rra_op_list = [];
+          for(var i=0; i<rrd_data1.getNrRRAs();i++) {
+             if(i==2) {rra_op_list.push(new RRA_Avg(1,14400));} //4 hours, based on rra at idx 1 (added here for ordering)
+             rra_op_list.push(new RRADoNothing(i));
+          }
+          rra_op_list.push(new RRA_Avg(2,86400)); //24 hours - base off rra at index 2
+          rra_op_list.push(new RRA_Avg(2,604800)); //1 week
+ 
+          rrd_data1 = new RRDFilterOp(rrd_data1,op_list); //DS Filters (percentages, etc)
+          rrd_data1 = new RRDRRAFilterAvg(rrd_data1,rra_op_list); //Adds 2 extra RRAs (averaged)
+
+          //Choose number of rows for Graph Type
+          var x = 1;
+          if (gtype_id=="Lasted" || gtype_id=="JobsLasted") {x=8;}
+          else if (gtype_id=="JobsNr") {x=7;}
+          else if ((gtype_id=='validation')  || (gtype_id=='idle')|| (gtype_id=='nosuccess') || (gtype_id=='badput')) {x=9;}
+          else {x=12;}
+          }
+
+        var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id],{timezone: timezone_num, num_cb_rows:x, use_checked_DSs: true, checked_DSs: checklist,use_rra:true,rra:specified_rra, use_windows: windows, window_min:local_window_min, window_max: local_window_max, use_element_buttons:true});
+
+        // Finally, update the files loaded so far
+        files_loaded = files_loaded + 1;
+        //var total_file_to_load = fname.split(",").length
+        if (files_loaded < total_file_to_load) {
+            document.getElementById("fname").firstChild.data="Loaded files " + files_loaded + "/" + total_file_to_load;
+        }
+        else {
+            document.getElementById("fname").firstChild.data="Loaded files " + files_loaded + "/" + total_file_to_load + ": " + fname;
+        }
+
+        graph_info = getGraphInfo();
+        local_window_max = graph_info['window_max'];
+        local_window_min = graph_info['window_min'];
+        coming_from_defaults = false;
+      }
+
+////////////////////////////////////////////////////////////////
+/////Handlers///////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
+      // This is the callback function that,
+      // given a binary file object,
+      // verifies that it is a valid RRD archive
+      // and performs the update of the Web page
+      function update_plot_handler(bf) {
+          var i_rrd_data=undefined;
+          try {
+            var i_rrd_data=new RRDFile(bf);            
+          } catch(err) {
+            alert("File "+fname+" is not a valid RRD archive!");
+          }
+          if (i_rrd_data!=undefined) {
+            rrd_data=i_rrd_data;
+            update_plot()
+          }
+      }
+
+      function update_grouped_plot_handler(bf) {
+          var i_rrd_data=undefined;
+          var idx = 0;
+          if (rrd_group_data != undefined) {
+            idx = rrd_group_data.length;
+          } else {
+            rrd_group_data = [];
+          }
+
+          try {
+            var i_rrd_data=new RRDFile(bf);            
+          } catch(err) {
+            alert("File "+fname+" is not a valid RRD archive!");
+          }
+          if (i_rrd_data!=undefined) {
+            rrd_group_data[idx] = new Array(); 
+            rrd_group_data[idx] = i_rrd_data;
+            update_plot()
+          }
+      }
+
+      function nonlink_update() {
+         coming_from_link = false; 
+         fname_update();
+      }
+
+/////////////////////////////////////////////////////////////////////////////
+
+      // this function is invoked when the RRD file name changes
+      function fname_update() {
+
+        windows = true;
+
+        var entry_name="";
+        gtype_id=undefined;
+        rrd_group_data=[];
+        rrd_data=undefined;
+        files_loaded = 0;
+
+        var entries_obj=document.getElementById("entries");
+        entry_name=entries_obj.options[entries_obj.selectedIndex].value;
+        var frontend_obj=document.getElementById("frontends")
+        frontend_name=frontend_obj.options[frontend_obj.selectedIndex].value;
+
+        var gtypes_obj=document.getElementById("gtypes");
+        var gtype_idx;
+        for (var i in gtypes_obj.gtype) {
+         var gtype=gtypes_obj.gtype[i];
+         if (gtype.checked==true) {
+           gtype_idx=i;
+  	   gtype_id=gtype.value;
+         }
+        }
+
+        if ((gtype_id=='Lasted')  || (gtype_id=='JobsLasted')|| (gtype_id=='JobsNr') || (gtype_id=='aggavg') || (gtype_id=='aggwsum')) {
+          rrd_fname="Log_Completed_Stats";
+        } else if ((gtype_id=='validation')  || (gtype_id=='idle')|| (gtype_id=='nosuccess') || (gtype_id=='badput') || (gtype_id=='aggavgf') || (gtype_id=='aggwsumf')) {
+          rrd_fname="Log_Completed_WasteTime";
+        } else if (gtype_id=='fail') {
+          rrd_fname="Log_Completed";
+        } else {
+          alert("Unknown gtype_id "+gtype_id); // should never enter here
+          rrd_fname=none;
+        }
+
+        if (entry_name=="total") {
+          fname="total/"+rrd_fname+".rrd";
+        } else if (frontend_name!="total"){
+          fname="entry_"+entry_name+"/frontend_"+frontend_name+"/"+rrd_fname+".rrd";
+        } else {
+          fname="entry_"+entry_name+"/total/"+rrd_fname+".rrd";
+        }
+
+        if ( (entry_name == "total") || (((entry_name.split(",")).length == 1) && (entry_name == entrylist2groupname(entry_name.split(",")))) ){
+          //document.getElementById("fname").firstChild.data="Loading "+fname;
+          document.getElementById("fname").firstChild.data="Loaded files " + files_loaded + "/" + fname.split(",").length;
+          try {
+            FetchBinaryURLAsync(fname,update_plot_handler);
+          } catch (err) {
+             alert("Failed loading "+fname+"\n"+err);
+          }
+        } else {
+          var en_array = entry_name.split(",");
+          fname = "";
+          for (var i=0; i<en_array.length; i++) {
+              if (i == 0) {
+                  fname="entry_"+en_array[i]+"/total/"+rrd_fname+".rrd";
+              } else {
+                  fname=fname+",entry_"+en_array[i]+"/total/"+rrd_fname+".rrd";
+              }
+          }
+          document.getElementById("fname").firstChild.data="Loaded files " + files_loaded + "/" + fname.split(",").length;
+
+          for (var i=0; i<en_array.length; i++) {
+            var fn = "entry_"+en_array[i]+"/total/"+rrd_fname+".rrd"; 
+            try {
+              FetchBinaryURLAsync(fn,update_grouped_plot_handler);
+            } catch (err) {
+               alert("Failed loading "+fn+"\n"+err);
+            }
+          }
+        }
+      }
+////////////////////////////////////////////////////////////////
+
+	/* Function to read from the url any parameters the user has specified. */
+	function checkUrl()
+	{
+		var url = window.location.search;
+		parameterArry = new Array("entry", "frontend", "infoGroup","elements","rra","window_min","window_max","timezone"); 
+		groups = new Array("CMST1", "CMS", "CMST2", "US", "CMST3", "HCC");
+		group = 0;  
+		var entrySpec; 
+		var infoGroupSpec;
+                link_checked_DSs=[];
+                specified_rra = 0;
+		urlValid = 0; 
+		paramSpecArry = new Array(); 
+		if(url)
+		{
+			url = url.substring(1);
+			urlSplit = url.split('&'); 
+			i = 0; 
+			while(i < urlSplit.length)
+			{ 
+				equalSplit = urlSplit[i].split('='); 
+				if(equalSplit[0] == parameterArry[i])
+				{
+					paramSpecArry[i] = equalSplit[1];
+				}
+				i++; 
+			}
+		}
+		for(i = 0; i< paramSpecArry.length; i++)
+		{
+			counter = 2; 
+			if(i == 0)
+			{
+				for(entry in entries)
+				{
+					if(entry == paramSpecArry[0])
+					{
+						ENTRY = paramSpecArry[0]; 
+						urlValid = 1; 
+						for(j = 0; j< groups.length; j++)
+						{
+							if(entry == groups[j])
+							{
+								document.getElementById("entries").selectedIndex = counter + 1; 
+                                                                setFrontendMenu(entry);
+								group = 1;
+								break;  
+							}	
+						}
+						if(!group)
+						{
+							document.getElementById("entries").selectedIndex = counter; 
+                                                        setFrontendMenu(entry);
+                                                        var frontend = paramSpecArry[1];
+                                                        var fe_list = document.getElementById("frontends").childNodes; 
+                                                        var fe_idx=0;
+                                                        for(var k=0;k<fe_list.length;k++) {
+                                                           document.write(fe_list[k].innerHTML);
+                                                           if(frontend==fe_list[k].innerHTML) {fe_idx=k;}
+                                                        }
+                                                        document.getElementById("frontends").selectedIndex = fe_idx; 
+						}
+						break;
+					} 
+					else if("total" == 	paramSpecArry[0])
+					{
+						urlValid = 1; 
+						document.getElementById("entries").selectedIndex = 0; 
+                                                setFrontendMenu(entry);
+						break;  	
+					}
+					counter++; 
+				}
+			}
+			else if(i == 2)
+			{
+				child = 1; 
+				for(var k = 0; k< infoGroupOptions.length; k++)
+				{
+					if(infoGroupOptions[k] == paramSpecArry[2])
+					{
+						document.getElementById("gtypes").elements[k].checked = true;
+						urlValid = 1; 
+					}
+					child+=2;	
+				}
+			}
+                        else if(i==3) {
+			   var elems = paramSpecArry[i].split(",");
+                           for(var j=0;j<elems.length;j++){
+                              link_checked_DSs.push(elems[j]);
+                           } 
+                        }
+                        //Don't' forget to add checks!!
+                        else if(i==4) {specified_rra = paramSpecArry[i];}
+                        else if(i==5) {local_window_min = paramSpecArry[i];}
+                        else if(i==6) {local_window_max = paramSpecArry[i];}
+                        else if(i==7) {timezone_num = paramSpecArry[i];}
+		}
+		if(urlValid)
+		{
+			fname_update();
+		}
+	}
+
+//////////////////////////////////////////////////////////////////////////
+
+	/* Function to show link for current options. */
+	function showLink()
+	{
+		constructed = document.URL.split('?');
+		entriesTable = document.getElementById("entries"); 
+                frontendsTable = document.getElementById("frontends"); 
+		var specifiedEntry;
+		var specifiedFrontend;
+		var specifiedGOption; 
+
+                //Graph data from rrdFlot.js
+                graph_info = getGraphInfo();
+                var local_checked_DSs_input= graph_info["dss"];
+                specified_rra = graph_info["rra"];
+                var specified_timezone = graph_info["timezone"];
+                var specified_win_min = graph_info["window_min"];
+                var specified_win_max = graph_info["window_max"];
+                
+		/* Find the current entry specified. */
+		for(i = 0; i < entriesTable.options.length; i++)
+		{
+			if(entriesTable.options[i].selected == true)
+			{
+				specifiedEntry = entriesTable.options[i].text; 	
+			}
+		}
+                /* Find the current frontend specified. */
+                for(i = 0; i < frontendsTable.options.length; i++)
+                {
+                        if(frontendsTable.options[i].selected == true)
+                        {
+                                specifiedFrontend = frontendsTable.options[i].text;     
+                        }
+                }
+		gOptionTable = document.getElementById("gtypes");
+		j = 0;  
+		/* Find the current group option specified. */
+		for(i = 1; i< gOptionTable.childNodes.length; i+=2)
+		{
+			if(gOptionTable.childNodes[i].checked == true)
+			{
+				specifiedGOption = infoGroupOptions[j];
+			}
+			if(gOptionTable.childNodes[i].value)
+			{
+				j++;
+			}
+		}
+                var elem_string = "";
+                for(var i=0;i<local_checked_DSs_input.length;i++) {
+                   elem_string += local_checked_DSs_input[i]+",";
+                }
+                constructed = constructed[0]+"?entry="+specifiedEntry+"&frontend="+specifiedFrontend+"&infoGroup="+specifiedGOption+"&elements="+elem_string+"&rra="+specified_rra+"&window_min="+specified_win_min+"&window_max="+specified_win_max+"&timezone="+specified_timezone; 
+
+		document.location.href = constructed; 
+	}  
+
+/////////////////////////////////////////////////////////////////////////////////////////
+ 
+        function unlink() {
+           document.location.href= document.URL.split('?')[0];
+        }
+   
+        function defaults() {
+           local_checked_DSs = [];
+           link_checked_DSs = [];
+           specified_rra = null;
+           coming_from_defaults = true;
+           resetWindow();
+           update_plot();
+        }
+
+	/* Function to navigate to other glidein tools. */
+	function goToDestination(option)
+	{
+		if(option.value != "factoryStatusNow.html" && option.value != "factoryRRDEntryMatrix.html" && ENTRY)
+		{
+			document.location.href = option.value + "?entry=" + ENTRY; 
+		}
+		else
+		{
+			document.location.href = option.value; 
+		}
+		document.getElementById("destination").selectedIndex = 0; 
+	}
+    </script>
+  </body>
+</html>
