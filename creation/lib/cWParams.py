@@ -243,10 +243,6 @@ class Params:
     def __getattr__(self,name):
         return self.subparams.__getattr__(name)
 
-    # KEL removed this from the factory and frontend scripts
-    #def usage(self):
-    #    return "Usage: %s cfg_fname|-help"%self.usage_prefix
-
     #save into a file
     #The file should be usable for reload
     def save_into_file(self,fname,set_ro=False):
