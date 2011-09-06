@@ -533,6 +533,13 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;match&gt;&lt;factory query_expr=&quot;<I>expr</I>&quot; &gt;
         </div>
         A Python expression that specifies a factory constraint. 
+        <a href="#match_example">More on match expressions</a>.
+        Note that if you specify a factory constraint in the global 
+        default section as well as in the group factory tag
+        (such as <i> &lt;factory query_expr='EXPR1'&gt;...  
+            &lt;group&gt; &lt;factory query_expr='EXPR2'&gt; &lt;/group&gt;</i>)
+        then the frontend will "AND" the expressions to create a
+        combination (such as, <i>EXPR1 && EXPR2</i>).
     </P></li>
 
     <LI><P>
@@ -620,13 +627,23 @@ should report to as a available resource.  This is where the user jobs will be m
     </h2>
 <p>
     Several sections in the configuration allow a match expression.
-    This allows a white list by the frontend by where the glideins
-    should be submitted.  This can allow you to give a Condor expression
-    to specify where jobs can run.  This can allow user jobs to specify
+    This can allow user jobs to specify
     which glidein_sites can run their jobs.  See the example below.
+    For example, expressions allowing a white list by the frontend 
+    can be created in order to control where the glideins are submitted.
+    It can also allow you to give a Condor expression
+    to specify where jobs can run or to specify
+    which glidein_sites can run jobs.  <br />
     Note that matches can be scoped to either global scope 
     (&lt;frontend&gt;&lt;match&gt;) or to a group specific scope.
-</p>   
+    Each of these sections allows an expression to be evaluated to
+    determine where glideins and jobs should be matched.
+    You should take special care when specifying expresssions in 
+    both the global scope as well as the group-specific scope to make sure the
+    expressions are correct, as the expreesions are typically "AND"-ed
+    together.
+</p>
+<p>
         <div class="xml">
          &lt;match match_expr='glidein["attrs"]["GLIDEIN_Site"] in
 job["DESIRED_Sites"].split(",")'&gt;<br/>
