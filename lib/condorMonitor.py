@@ -127,12 +127,11 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
 
         full_xml=(format_list==None)
         if format_list!=None:
-            format_arr=["-format '<c>' ClusterId"] #clusterid is always there, so this will always be printed out
+            format_arr=[]
             for format_el in format_list:
                 attr_name,attr_type=format_el
                 attr_format={'s':'%s','i':'%i','r':'%f','b':'%i'}[attr_type]
-                format_arr.append('-format \'<a n="%s"><%s>%s</%s></a>\' %s'%(attr_name,attr_type,attr_format,attr_type,attr_name))
-            format_arr.append("-format '</c>' ClusterId") #clusterid is always there, so this will always be printed out
+                format_arr.append('-format "%s" "%s"'%(attr_format,attr_name))
             format_str=string.join(format_arr," ")
 
         # set environment for security settings
@@ -142,8 +141,7 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
         if full_xml:
             xml_data = condorExe.exe_cmd(self.exe_name, "%s -xml %s %s" % (self.resource_str, self.pool_str, constraint_str))
         else:
-            xml_data = condorExe.exe_cmd(self.exe_name, "%s %s %s %s" % (self.resource_str, format_str, self.pool_str, constraint_str))
-            xml_data = ['<?xml version="1.0"?><classads>'] + xml_data + ["</classads>"]
+            xml_data = condorExe.exe_cmd(self.exe_name,"%s %s -xml %s %s"%(self.resource_str,format_str,self.pool_str,constraint_str));
 
         # restore old values
         self.security_obj.restore_state()
