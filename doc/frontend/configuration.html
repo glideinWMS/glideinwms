@@ -627,23 +627,66 @@ should report to as a available resource.  This is where the user jobs will be m
     </h2>
 <p>
     Several sections in the configuration allow a match expression.
-    This can allow user jobs to specify
-    which glidein_sites can run their jobs.  See the example below.
-    For example, expressions allowing a white list by the frontend 
+    Each of these sections allows an expression to be evaluated to
+    determine where glideins and jobs should be matched.<br/>
+    For example, expressions allowing a white list by the frontend
     can be created in order to control where the glideins are submitted.
     It can also allow you to give a Condor expression
     to specify where jobs can run or to specify
     which glidein_sites can run jobs.  <br />
-    Note that matches can be scoped to either global scope 
-    (&lt;frontend&gt;&lt;match&gt;) or to a group specific scope.
-    Each of these sections allows an expression to be evaluated to
-    determine where glideins and jobs should be matched.
-    You should take special care when specifying expresssions in 
-    both the global scope as well as the group-specific scope to make sure the
+    Note that, for some tags (like
+    factory query_expr), you can specify expressions in both the
+    default global section as well as in individual group sections.
+    You should take special care before doing this to make sure the
     expressions are correct, as the expreesions are typically "AND"-ed
     together.
 </p>
 <p>
+    Each match expression is a python expression that will be evaluated.
+    Matches can be scoped to either global scope
+    (&lt;frontend&gt;&lt;match&gt;) or to a group specific scope.
+</p>
+<p>
+    Each python expression will typical be a series of boolean tests,
+    surrounded by parantheses and connected by the boolean expressions
+    "and", "or", and "not".  You can use several dictionaries in
+    these match expressions.  The "job" dictionary contains the
+    classad of the job being matched, and the "glidein" dictionary
+    contains information about the factory (entry point) classad.
+    While an extensive list of everything you can
+    in these expressions is out of scope, some examples are below:
+    <ul>
+    <li><b>(job.has_key("ImageSize"))</b>: Returns true if the job classad has the attribute "ImageSize".</li>
+    <li><b>(job["NumJobStarts"]>5)</b>: Returns true if the job classad attribute "NumJobStarts" is greater than 5.</li>
+    <li><b>(glidein["attrs"].has_key("GLIDEIN_Retire_Time"))</b>: Returns true if the factory entry classad has the attribute "GLIDEIN_Retire_Time".</li>
+    <li><b>(glidein["attrs"]["GLIDEIN_Retire_Time"]>21600)</b>: Returns true if the factory entry classad's "GLIDEIN_Retire_Time" is greater than 21600.</li>
+    </ul>
+</p>
+<p>
+    Each attribute used in a match expression should be declared in a
+    subsequent match_attrs section.  This makes classad variables
+    available to the match expression. Attributes can be made available
+    from the:</p>
+    <ol>
+    <li> Factory classad: (&lt;match&gt;&lt;factory&gt;&lt;match_attr&gt;)</li>
+    <li> Job classad: (&lt;match&gt;&lt;job&gt;&lt;match_attr&gt;)</li>
+    </ol>
+    <p>
+    Each <b>match_attr</b> tag must contain a <b>name</b>.
+    This is the name of the attribute
+    in the appropriate classad.  <br/>
+    It must also contain a <b>type</b> which can be
+    one of the following:
+    </p>
+    <ol>
+    <li>string: A constant string of letters, numbers, or characters.</li>
+    <li>int: An integer: a positive or negative number, or zero.</li>
+    <li>real: A real number that could have decimal places</li>
+    <li>bool: It can by "True" or "False"</li>
+    <li>Expr: A ClassAd expression</li>
+    </ol>
+</p>
+<p><B><u>Example</u></b></p>
         <div class="xml">
          &lt;match match_expr='glidein["attrs"]["GLIDEIN_Site"] in
 job["DESIRED_Sites"].split(",")'&gt;<br/>
@@ -663,7 +706,7 @@ job["DESIRED_Sites"].split(",")'&gt;<br/>
             &lt;/job&gt;<br/>
          &lt;/match&gt;<br/>
         </div>
- 
+
 
 </p>
 </div>
