@@ -274,7 +274,7 @@ class condorQStats:
 
         At the moment, it looks only for
           'IdleGlideins'
-          'MaxRunningGlideins'
+          'MaxGlideins'
         """
         if self.data.has_key(client_name):
             t_el = self.data[client_name]
@@ -289,7 +289,7 @@ class condorQStats:
             el = {}
             t_el['Requested'] = el
 
-        for reqpair in  (('IdleGlideins', 'Idle'), ('MaxRunningGlideins', 'MaxRun')):
+        for reqpair in  (('IdleGlideins', 'Idle'), ('MaxGlideins', 'MaxRun')):
             org, new = reqpair
             if not el.has_key(new):
                 el[new] = 0

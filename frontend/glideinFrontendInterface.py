@@ -638,7 +638,7 @@ class MultiAdvertizeWork:
                     if (hasattr(credential_el,'pilot_fname')):
                         glidein_params_to_encrypt['GlideinProxy']=credential_el.file_id(credential_el.pilot_fname);
                     (req_idle,req_max_run)=credential_el.get_usage_details()
-                    logSupport.log.info("Advertizing credential %s with (%d idle, %d max run)"%(credential_el.filename,req_idle,req_max_run))
+                    logSupport.log.info("Advertizing credential %s with (%d idle, %d max run) for request %s"%(credential_el.filename, req_idle, req_max_run, params_obj.request_name))
                 
                 if (frontendConfig.advertise_use_multi==True):
                     fname=self.adname
@@ -670,7 +670,7 @@ class MultiAdvertizeWork:
                     
 
                 fd.write('ReqIdleGlideins = %i\n'%req_idle)
-                fd.write('ReqMaxRunningGlideins = %i\n'%req_max_run)
+                fd.write('ReqMaxGlideins = %i\n'%req_max_run)
                 fd.write('ReqRemoveExcess = "%s"\n'%params_obj.remove_excess_str)
                          
                 # write out both the params and monitors

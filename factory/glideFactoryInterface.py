@@ -271,10 +271,10 @@ def advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain, auth_
             fd.write('GlideinName = "%s"\n' % glidein_name)
             fd.write('EntryName = "%s"\n' % entry_name)
             fd.write('%s = "%s"\n' % (factoryConfig.factory_signtype_id, string.join(supported_signtypes, ',')))
-            if pub_key_obj != None:
-                fd.write('PubKeyID = "%s"\n' % pub_key_obj.get_pub_key_id())
-                fd.write('PubKeyType = "%s"\n' % pub_key_obj.get_pub_key_type())
-                fd.write('PubKeyValue = "%s"\n' % string.replace(pub_key_obj.get_pub_key_value(), '\n', '\\n'))
+            # Must have a key to communicate
+            fd.write('PubKeyID = "%s"\n' % pub_key_obj.get_pub_key_id())
+            fd.write('PubKeyType = "%s"\n' % pub_key_obj.get_pub_key_type())
+            fd.write('PubKeyValue = "%s"\n' % string.replace(pub_key_obj.get_pub_key_value(), '\n', '\\n'))
             if 'grid_proxy' in auth_method:
                 fd.write('GlideinAllowx509_Proxy = %s\n' % True)
                 fd.write('GlideinRequirex509_Proxy = %s\n' % True)

@@ -144,6 +144,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add('+GlideinName', '"$ENV(GLIDEIN_NAME)"')
         self.add('+GlideinEntryName', '"$ENV(GLIDEIN_ENTRY_NAME)"')
         self.add('+GlideinClient', '"$ENV(GLIDEIN_CLIENT)"')
+        self.add('+GlideinFrontendName', '"$ENV(GLIDEIN_FRONTEND_NAME)"')
         self.add('+GlideinCredentialIdentifier','"$ENV(GLIDEIN_CREDENTIAL_ID)"')
         self.add('+GlideinSecurityClass', '"$ENV(GLIDEIN_SEC_CLASS)"')
         self.add('+GlideinWebBase', '"$ENV(WEB_URL)"')

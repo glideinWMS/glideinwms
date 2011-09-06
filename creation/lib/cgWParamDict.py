@@ -622,7 +622,7 @@ def populate_job_descript(work_dir, job_descript_dict,
         job_descript_dict.add('ProxyURL', sub_params.proxy_url)
     job_descript_dict.add('Verbosity', sub_params.verbosity)
     job_descript_dict.add('DowntimesFile', down_fname)
-    job_descript_dict.add('MaxRunning', sub_params.config.max_jobs.running)
+    job_descript_dict.add('MaxGlideins', sub_params.config.max_jobs.glideins)
     job_descript_dict.add('MaxIdle', sub_params.config.max_jobs.idle)
     job_descript_dict.add('MaxHeld', sub_params.config.max_jobs.held)
     job_descript_dict.add('MaxSubmitRate', sub_params.config.submit.max_per_cycle)
@@ -637,27 +637,27 @@ def populate_job_descript(work_dir, job_descript_dict,
     # Add the frontend specific job limits to the job.descript file
     max_held_frontends = ""
     max_idle_frontends = ""
-    max_running_frontends = ""
+    max_glideins_frontends = ""
     for X in sub_params.config.max_jobs.max_job_frontends.keys():
         el = sub_params.config.max_jobs.max_job_frontends[X]
         frontend_name = X + ":" + el.security_class + ";"
         max_held_frontends = frontend_name + el.held + ","
         max_idle_frontends = frontend_name + el.idle + ","
-        max_running_frontends = frontend_name + el.running + ","
-    job_descript_dict.add("MaxRunningFrontends", max_running_frontends[:-1]);
-    job_descript_dict.add("MaxHeldFrontends", max_held_frontends[:-1]);
-    job_descript_dict.add("MaxIdleFrontends", max_idle_frontends[:-1]);
+        max_glideins_frontends = frontend_name + el.glideins + ","
+    job_descript_dict.add("MaxGlideinsFrontends", max_glideins_frontends[:-1])
+    job_descript_dict.add("MaxHeldFrontends", max_held_frontends[:-1])
+    job_descript_dict.add("MaxIdleFrontends", max_idle_frontends[:-1])
     
     #  If the configuration has a non-empty frontend_allowlist
     #  then create a white list and add all the frontends:security_classes
     #  to it.
-    white_mode = "Off";
-    allowed_vos = "";
+    white_mode = "Off"
+    allowed_vos = ""
     for X in sub_params.allow_frontends.keys():
-        white_mode = "On";
-        allowed_vos = allowed_vos + X + ":" + sub_params.allow_frontends[X].security_class + ",";
-    job_descript_dict.add("WhitelistMode", white_mode);
-    job_descript_dict.add("AllowedVOs", allowed_vos[:-1]);
+        white_mode = "On"
+        allowed_vos = allowed_vos + X + ":" + sub_params.allow_frontends[X].security_class + ","
+    job_descript_dict.add("WhitelistMode", white_mode)
+    job_descript_dict.add("AllowedVOs", allowed_vos[:-1])
 
 
 ###################################

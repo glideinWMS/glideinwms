@@ -148,13 +148,6 @@ class CondorJDLDictFile(cWDictFile.DictFile):
                 self.jobs_in_cluster=arr[1]
             return
 
-        # should be a regular line
-        # KEL commented out since this foo=bar format no longer applies in v3+ factories
-        #if len(arr)<2:
-        #    raise RuntimeError,"Not a valid Condor JDL line, too short: '%s'"%line
-        #if arr[1]!='=':
-        #    raise RuntimeError,"Not a valid Condor JDL line, no =: '%s'"%line
-
         if len(arr) <= 2:
             return self.add(arr[0],"") # key = <empty> or placeholder for env variable
         else:

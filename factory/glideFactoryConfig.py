@@ -299,7 +299,7 @@ class FrontendDescript(ConfigFile):
         @type sec_class: string
         @param sec_class: security class name
 
-        @return security name
+        @return: security name
         """
         if self.data.has_key(frontend):
             fe = self.data[frontend]['usermap']
@@ -312,7 +312,7 @@ class FrontendDescript(ConfigFile):
         """
         Gets all the usernames assigned to all the frontends.
 
-        @return list of usernames
+        @return: list of usernames
         """
         usernames = {}
         for frontend in self.data.keys():
@@ -321,7 +321,26 @@ class FrontendDescript(ConfigFile):
                 username = fe[sec_class]
                 usernames[username] = True
         return usernames.keys()
-
+    
+    def get_all_frontend_sec_classes(self):
+        """
+        Get a list of all frontend:sec_class
+        """
+        frontend_sec_classes = []
+        for fe_name in self.data.keys():
+            for sec_class in self.data[fe_name]['usermap']:
+                frontend_sec_classes.append("%s:%s" % (fe_name, sec_class))
+        return frontend_sec_classes
+    
+    def get_frontend_name(self, identity):
+        """
+        Get the frontend:sec_class mapping for the given identity
+        """
+        for fe_name in self.data.keys():
+            if self.data[fe_name]['ident'] == identity:
+                return fe_name
+        
+            
 
 # Signatures File
 ## File: signatures.sha1
