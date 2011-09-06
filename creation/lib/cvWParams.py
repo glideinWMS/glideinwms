@@ -101,6 +101,7 @@ class VOFrontendParams(cWParams.CommonParams):
         proxy_defaults=cWParams.commentedOrderedDict()
         proxy_defaults["absfname"]=(None,"fname","x509 proxy file name (see also pool_count)",None)
         proxy_defaults["keyabsfname"]=(None,"fname","for key files, file name of the key pair",None)
+        proxy_defaults["pilotabsfname"]=(None,"fname","to specify a different pilot proxy instead of using submit proxy",None)
         proxy_defaults["type"]=("grid_proxy","proxy_type","Type of credential: grid_proxy,cert_pair,key_pair,username_password",None)
         proxy_defaults["trust_domain"]=("OSG","grid_type","Trust Domain",None)
         proxy_defaults["pool_count"]=(None,"count","If not None, there are count proxies involved. absfname must contain a printf modifier and the pool files will be from 1 to count",None)

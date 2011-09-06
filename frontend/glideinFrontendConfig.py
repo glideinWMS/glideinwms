@@ -253,6 +253,13 @@ class ElementMergedDescript:
                     proxy_key_files[k]=dprs[k]
         self.merged_data['ProxyKeyFiles']=proxy_key_files
 
+        proxy_pilot_files={}
+        for data in (self.frontend_data,self.element_data):
+            if data.has_key('ProxyPilotFiles'):
+                dprs=eval(data['ProxyPilotFiles'])
+                for k in dprs.keys():
+                    proxy_pilot_files[k]=dprs[k]
+        self.merged_data['ProxyPilotFiles']=proxy_pilot_files
 
         return
 
