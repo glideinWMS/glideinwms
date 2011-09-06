@@ -68,15 +68,18 @@ class GlideinWMSDistro:
                 for file in distroFileHash.keys():
                     fd = None
                     try:
-                        fd = open(os.path.join(dir,file), 'r')
+                        fd = open(os.path.join(dir,os.path.basename(file)), 'r')
                         chksum = md5.new(fd.read()).hexdigest()
                         if (chksum != distroFileHash[file]):
                             modifiedFiles.append(file)
-                            patch = 'PATCHED' 
-                    finally:
-                        if fd:
-                            fd.close()
-            
+                            patch = 'PATCHED'
+
+                    except: # ignore missing files
+                        pass
+
+                    if fd:
+                        fd.close()
+
             #if len(modifiedFiles) > 0:
             #    print "Modified files: %s" % string.join(modifiedFiles)
             

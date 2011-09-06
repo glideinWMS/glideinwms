@@ -839,8 +839,8 @@ def main(parent_pid, work_dir, group_name):
     glideinFrontendInterface.frontendConfig.advertise_use_multi=(elementDescript.frontend_data['AdvertiseWithMultiple'] in ('True','1'))
 
     try:
-        dir = os.path.dirname(os.path.dirname(sys.argv[0]))
-        glideinFrontendInterface.frontendConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(dir, os.path.join(dir,'etc/checksum.frontend')).version()
+        dir = '/usr/lib/python2.4/site-packages'
+        glideinFrontendInterface.frontendConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(dir, os.path.join(work_dir,'checksum.frontend')).version()
     except:
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])
