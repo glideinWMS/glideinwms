@@ -302,7 +302,7 @@ def spawn(sleep_time, advertize_rate, startup_dir,
             
             # Advertise the global classad with the factory keys
             try:
-                # KEL TODO need to add factory downtime?????
+                # KEL TODO need to add factory downtime?
                 glideFactoryInterface.advertizeGlobal(glideinDescript.data['FactoryName'],
                                                        glideinDescript.data['GlideinName'],
                                                        glideFactoryLib.factoryConfig.supported_signtypes,
