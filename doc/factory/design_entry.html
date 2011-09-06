@@ -221,25 +221,25 @@ dedicated tool.</A></P>
 tree are shared between all the Factory Entry Daemons.</P>
 <P>The following files are used:</P>
 <UL>
-    <LI><P><TT>glidein.descript</TT> – This file contains the factory
+    <LI><P><TT>glidein.descript</TT> &ndash; This file contains the factory
     description.<BR>Most of the elements are used. Follows the
     description of the most important ones:</P>
 
     <UL>
-        <LI>FactoryName and GlideinName – The factory name used when
+        <LI>FactoryName and GlideinName &ndash; The factory name used when
         advertising the Entry Daemon.</li>
-        <LI>WebURL – Where are the 
+        <LI>WebURL &ndash; Where are the 
         <A HREF="design_glidein.html">glidein support files</A> 
         located.</li>
-        <LI>PubKeyType – Should I use encrypted IPC and if so, using
+        <LI>PubKeyType &ndash; Should I use encrypted IPC and if so, using
         which algorithm.</li>
-        <LI>DowntimeFile – The name of the file containing all the factory
-        downtimes. Usually defaults to “glideinWMS.downtimes”.</li>
+        <LI>DowntimeFile &ndash; The name of the file containing all the factory
+        downtimes. Usually defaults to &ldquo;glideinWMS.downtimes&rdquo;.</li>
 
-        <LI>LoopDelay and AdvertiseDelay – How much should it sleep
+        <LI>LoopDelay and AdvertiseDelay &ndash; How much should it sleep
         between iterations, and the minimum collector update frequency.</li>
     </UL>
-    <LI><P><TT>params.cfg</TT> – This file contains the factory global
+    <LI><P><TT>params.cfg</TT> &ndash; This file contains the factory global
     default parameters.  These are for values the frontend will change, also published in the factory classad</P>
 </UL>
 </div>
@@ -252,37 +252,37 @@ tree are shared between all the Factory Entry Daemons.</P>
 used by only one Entry Daemon.</P>
 <P>The following files are used:</P>
 <UL>
-    <LI><P><TT>job.descript</TT> – This file contains the entry
+    <LI><P><TT>job.descript</TT> &ndash; This file contains the entry
     description.  It is used by the factory entry daemon in order to 
     decide how to do work.
     <BR>All the elements are used. Follows the description
     of the most important ones:</P>
     <UL>
-        <LI>EntryName – The entry name used when advertising the Entry
+        <LI>EntryName &ndash; The entry name used when advertising the Entry
         Daemon.</li>
-        <LI>ScheddName – The <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">Condor Schedd</A> 
+        <LI>ScheddName &ndash; The <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">Condor Schedd</A> 
         used to submit jobs.</li>
 
-        <LI>SubmitCluster – How many jobs should I submit in a single
+        <LI>SubmitCluster &ndash; How many jobs should I submit in a single
         submission.</li>
-        <LI>MaxIdle, MaxGlideins, MaxHeld – Limits on the number of
+        <LI>MaxIdle, MaxGlideins, MaxHeld &ndash; Limits on the number of
         jobs in the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">Condor Schedd</A> 
         queue.</li>
         <LI>MaxSubmitRate, MaxRemoveRate, MaxReleaseRate, SubmitSleep,
-        RemoveSleep, ReleaseSleep – Knobs to limit the interaction with
+        RemoveSleep, ReleaseSleep &ndash; Knobs to limit the interaction with
         the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">Condor Schedd.</A>
         </li>
-        <LI>DowntimeFile – The name of the file containing all the
-        factory downtimes. Usually defaults to “glideinWMS.downtimes”.
+        <LI>DowntimeFile &ndash; The name of the file containing all the
+        factory downtimes. Usually defaults to &ldquo;glideinWMS.downtimes&rdquo;.
         </li>
 
     </UL>
-    <LI><P><TT>job.condor</TT> – A condor description file that is
+    <LI><P><TT>job.condor</TT> &ndash; A condor description file that is
     used for submitting the jobs using <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/condor_submit.html">condor_submit</A>.</P>
-    <LI><P><TT>params.cfg</TT> – This file contains the entry-specific
+    <LI><P><TT>params.cfg</TT> &ndash; This file contains the entry-specific
     default parameters. These are for values the frontend will change, also published in the factory classad</P>
     <li><p><tt>attributes.cfg</tt> - This file contains fixed values; these are published in the factory classad
-    <LI><P><TT>infosys.descript</TT> – This file contains the
+    <LI><P><TT>infosys.descript</TT> &ndash; This file contains the
     reference to the information system that contains the information of
     this entry point.</P>
 
