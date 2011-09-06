@@ -14,18 +14,20 @@
 #   Igor Sfiligoi (Sept 7th 2006)
 #
 
-import os, sys
+import os
+import sys
 import time
-import string
 import re
 import traceback
 import pwd
 import binascii
+
+import glideFactoryConfig
+
 import glideinwms_libs.condorExe
 import glideinwms_libs.condorPrivsep
 import glideinwms_libs.logSupport
 import glideinwms_libs.condorMonitor
-import glideFactoryConfig
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
@@ -177,26 +179,26 @@ class LogFiles:
                                                       long(max_mbs * (1024.0 * 1024.0)),
                                                       self.activity_log, self.warning_log)]
 
-    def logActivity(self, str):
+    def logActivity(self, log_str):
         try:
-            self.activity_log.write(str)
+            self.activity_log.write(log_str)
         except:
             # logging must never throw an exception!
-            self.logWarning("logActivity failed, was logging: %s" % str, False)
+            self.logWarning("logActivity failed, was logging: %s" % log_str, False)
 
-    def logWarning(self, str, log_in_activity=True):
+    def logWarning(self, log_str, log_in_activity=True):
         try:
-            self.warning_log.write(str)
+            self.warning_log.write(log_str)
         except:
             # logging must throw an exception!
             # silently ignore
             pass
         if log_in_activity:
-            self.logActivity("WARNING: %s" % str)
+            self.logActivity("WARNING: %s" % log_str)
 
-    def logDebug(self, str):
+    def logDebug(self, log_str):
         try:
-            self.debug_log.write(str)
+            self.debug_log.write(log_str)
         except:
             # logging must never throw an exception!
             # silently ignore
@@ -211,7 +213,7 @@ class LogFiles:
                 tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
                                                 sys.exc_info()[2])
                 self.logWarning("%s cleanup failed." % cleanupObj.dirname)
-                self.logDebug("%s cleanup failed: Exception %s" % (cleanupObj.dirname, string.join(tb, '')))
+                self.logDebug("%s cleanup failed: Exception %s" % (cleanupObj.dirname, ''.join(tb)))
 
     #
     # Clients can add additional cleanup objects, if needed
@@ -1087,12 +1089,12 @@ def submitGlideins(entry_name, schedd_name, username, client_name, nr_glideins,
     for k in params.keys():
         params_arr.append(k)
         params_arr.append(escapeParam(str(params[k])))
-    params_str = string.join(params_arr, " ")
+    params_str = " ".join(params_arr)
 
     client_web_arr = []
     if client_web != None:
         client_web_arr = client_web.get_glidein_args()
-    client_web_str = string.join(client_web_arr, " ")
+    client_web_str = " ".join(client_web_arr)
 
     # Allows for retrieving any entry description values
     jobDescript = glideFactoryConfig.JobDescript(entry_name)

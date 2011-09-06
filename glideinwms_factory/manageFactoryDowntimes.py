@@ -94,13 +94,11 @@ def get_security_classes(factory_dir):
 
 # Create an array for each frontend in the frontend descript file
 def get_frontends(factory_dir):
-    fe_array = []
     frontendDescript = glideFactoryConfig.ConfigFile(factory_dir + "/frontend.descript", lambda s:s)
     return frontendDescript.data.keys()
 
 # Create an array for each entry in the glidein descript file
 def get_entries(factory_dir):
-    fe_array = []
     glideinDescript = glideFactoryConfig.GlideinDescript()
     #glideinDescript=glideFactoryConfig.ConfigFile(factory_dir+"/glidein.descript",lambda s:s)
     return string.split(glideinDescript.data['Entries'], ',')
@@ -113,7 +111,7 @@ def get_downtime_fd(entry_name, cmdname):
         config = glideFactoryConfig.GlideinDescript()
         #else:
         #    config=glideFactoryConfig.JobDescript(entry_name)
-    except IOError, e:
+    except IOError:
         raise RuntimeError, "Failed to load config for %s" % entry_name
 
     fd = glideFactoryDowntimeLib.DowntimeFile(config.data['DowntimesFile'])
@@ -209,7 +207,6 @@ def printtimes(entry_or_id, opt_dict):
 # only some security classes.
 def check(entry_or_id, opt_dict):
     config_els = get_downtime_fd_dict(entry_or_id, opt_dict["dir"], opt_dict)
-    when = 0
     when = delay2time(opt_dict["delay"])
     sec_name = opt_dict["sec"]
     when += long(time.time())
@@ -369,10 +366,10 @@ def get_args(argv):
         if (arg == "-factory"):
             opt_dict["entry"] = "factory"
         if (len(argv) <= index + 1):
-            continue;
+            continue
         #Change lowercase all to All so checks for "All" work
         if (argv[index + 1].lower() == "all"):
-            argv[index + 1] = "All";
+            argv[index + 1] = "All"
         if (arg == "-cmd"):
             opt_dict["cmd"] = argv[index + 1]
         if (arg == "-dir"):
@@ -394,7 +391,7 @@ def get_args(argv):
         if (arg == "-frontend"):
             opt_dict["frontend"] = argv[index + 1]
         index = index + 1
-    return opt_dict;
+    return opt_dict
 
 def main(argv):
     if len(argv) < 3:
@@ -419,22 +416,22 @@ def main(argv):
             if (comments == ""):
                 raise KeyError
     except KeyError, e:
-        usage();
+        usage()
         print "-cmd -dir and -entry arguments are required."
         if (mandatory_comments):
             print "Mandatory comments are enabled.  add -comment."
-        return 1;
+        return 1
     if (opt_dict["sec"] != "All"):
         if (not (opt_dict["sec"] in get_security_classes(factory_dir))):
-            print "Invalid security class";
-            print "Valid security classes are: ";
+            print "Invalid security class"
+            print "Valid security classes are: "
             for sec_class in get_security_classes(factory_dir):
                 print sec_class
             return 1
     if (opt_dict["frontend"] != "All"):
         if (not (opt_dict["frontend"] in get_frontends(factory_dir))):
-            print "Invalid frontend identity:";
-            print "Valid frontends are: ";
+            print "Invalid frontend identity:"
+            print "Valid frontends are: "
             for fe in get_frontends(factory_dir):
                 print fe
             return 1
@@ -449,13 +446,13 @@ def main(argv):
 
     #Verify Entry is an actual entry
     if (opt_dict["entry"].lower() == "entries"):
-        opt_dict["entries"] = "true";
-        opt_dict["entry"] = "All";
-        entry_name = "All";
+        opt_dict["entries"] = "true"
+        opt_dict["entry"] = "All"
+        entry_name = "All"
     if ((opt_dict["entry"] != "All")and(opt_dict["entry"] != "factory")):
         if (not (opt_dict["entry"] in get_entries(factory_dir))):
-            print "Invalid entry name";
-            print "Valid entries are:";
+            print "Invalid entry name"
+            print "Valid entries are:"
             for entry in get_entries(factory_dir):
                 print entry
             return 1

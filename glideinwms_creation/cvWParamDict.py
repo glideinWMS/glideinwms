@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cvWParamDict.py,v 1.47.2.11 2011/07/05 19:12:13 tiradani Exp $
 #
 # Description: 
 #   Frontend creation module
@@ -49,16 +48,16 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
 
         # follow by the blacklist file
         file_name = cWConsts.BLACKLIST_FILE
-        self.dicts['preentry_file_list'].add_from_file(file_name, (file_name, "nocache", "TRUE", 'BLACKLIST_FILE'), os.path.join(params.work.base_dir, file_name))
+        self.dicts['preentry_file_list'].add_from_file(file_name, (file_name, "nocache", "TRUE", 'BLACKLIST_FILE'), os.path.join(params.src_dir, file_name))
 
         # Load initial system scripts
         # These should be executed before the other scripts
         for script_name in ('cat_consts.sh', "check_blacklist.sh"):
-            self.dicts['preentry_file_list'].add_from_file(script_name, (cWConsts.insert_timestr(script_name), 'exec', 'TRUE', 'FALSE'), os.path.join(params.work.base_dir, script_name))
+            self.dicts['preentry_file_list'].add_from_file(script_name, (cWConsts.insert_timestr(script_name), 'exec', 'TRUE', 'FALSE'), os.path.join(params.src_dir, script_name))
 
         # put user files in stage
-        for ufile in params.files:
-            add_file_unparsed(ufile, self.dicts)
+        for user_file in params.files:
+            add_file_unparsed(user_file, self.dicts)
 
         # put user attributes into config files
         for attr_name in params.attrs.keys():
@@ -94,14 +93,32 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
             mfobj.load()
             self.monitor_jslibs.append(mfobj)
 
-        for mfarr in ((params.work.base_dir, 'frontendRRDBrowse.html'),
-                      (params.work.base_dir, 'frontendRRDGroupMatrix.html'),
-                      (params.work.base_dir, 'frontendGroupGraphStatusNow.html'),
-                      (params.work.base_dir, 'frontendStatus.html')):
+        for mfarr in ((params.src_dir, 'frontendRRDBrowse.html'),
+                      (params.src_dir, 'frontendRRDGroupMatrix.html'),
+                      (params.src_dir, 'frontendGroupGraphStatusNow.html'),
+                      (params.src_dir, 'frontendStatus.html')):
             mfdir, mfname = mfarr
             mfobj = cWDictFile.SimpleFile(mfdir, mfname)
             mfobj.load()
             self.monitor_htmls.append(mfobj)
+
+        spd = self.params.data
+        useMonitorIndexPage = True
+        if spd.has_key('frontend_monitor_index_page'):
+            useMonitorIndexPage = spd['frontend_monitor_index_page'] in ('True', 'true', '1')
+
+            if useMonitorIndexPage:
+                mfobj = cWDictFile.SimpleFile(params.src_dir + '/frontend', 'index.html')
+                mfobj.load()
+                self.monitor_htmls.append(mfobj)
+
+                for imgfil in ('frontendGroupGraphsNow.small.png',
+                               'frontendRRDBrowse.small.png',
+                               'frontendRRDGroupMatix.small.png',
+                               'frontendStatus.small.png'):
+                    mfobj = cWDictFile.SimpleFile(params.src_dir + '/frontend/images', imgfil)
+                    mfobj.load()
+                    self.monitor_htmls.append(mfobj)
 
         # populate security data
         populate_main_security(self.client_security, params)
@@ -113,8 +130,8 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
                      if not found, raises an Exception
         """
         for root, _, files in os.walk(search_path, topdown=True):
-            for ufile in files:
-                if ufile == name:
+            for search_file in files:
+                if search_file == name:
                     return root
         raise RuntimeError, "Unable to find %(file)s in %(dir)s path" % \
                            { "file" : name, "dir" : search_path, }
@@ -182,16 +199,16 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
 
         # follow by the blacklist file
         file_name = cWConsts.BLACKLIST_FILE
-        self.dicts['preentry_file_list'].add_from_file(file_name, (file_name, "nocache", "TRUE", 'BLACKLIST_FILE'), os.path.join(params.work.base_dir, file_name))
+        self.dicts['preentry_file_list'].add_from_file(file_name, (file_name, "nocache", "TRUE", 'BLACKLIST_FILE'), os.path.join(params.src_dir, file_name))
 
         # Load initial system scripts
         # These should be executed before the other scripts
         for script_name in ('cat_consts.sh', "check_blacklist.sh"):
-            self.dicts['preentry_file_list'].add_from_file(script_name, (cWConsts.insert_timestr(script_name), 'exec', 'TRUE', 'FALSE'), os.path.join(params.work.base_dir, script_name))
+            self.dicts['preentry_file_list'].add_from_file(script_name, (cWConsts.insert_timestr(script_name), 'exec', 'TRUE', 'FALSE'), os.path.join(params.src_dir, script_name))
 
         # put user files in stage
-        for ufile in sub_params.files:
-            add_file_unparsed(ufile, self.dicts)
+        for user_file in sub_params.files:
+            add_file_unparsed(user_file, self.dicts)
 
         # put user attributes into config files
         for attr_name in sub_params.attrs.keys():
@@ -417,10 +434,6 @@ def add_attr_unparsed_real(attr_name, params, dicts):
 def populate_frontend_descript(work_dir,
                                frontend_dict, active_sub_list, # will be modified
                                params):
-    # if a user does not provide a file name, use the default one
-    down_fname = params.downtimes.absfname
-    if down_fname == None:
-        down_fname = os.path.join(work_dir, 'frontend.downtimes')
 
     frontend_dict.add('FrontendName', params.frontend_name)
     frontend_dict.add('WebURL', params.web_url)
@@ -450,7 +463,6 @@ def populate_frontend_descript(work_dir,
     frontend_dict.add('CondorConfig', os.path.join(work_dir, cvWConsts.FRONTEND_CONDOR_CONFIG_FILE))
 
     frontend_dict.add('LogDir', params.log_dir)
-    frontend_dict.add('DowntimesFile', down_fname)
     for tel in (("max_days", 'MaxDays'), ("min_days", 'MinDays'), ("max_mbytes", 'MaxMBs')):
         param_tname, str_tname = tel
         frontend_dict.add('LogRetention%s' % str_tname, params.log_retention[param_tname])
@@ -459,16 +471,11 @@ def populate_frontend_descript(work_dir,
 # Populate group descript
 def populate_group_descript(work_dir, group_descript_dict, # will be modified
                             sub_name, sub_params):
-    # if a user does not provide a file name, use the default one
-    down_fname = sub_params.downtimes.absfname
-    if down_fname == None:
-        down_fname = os.path.join(work_dir, 'group.downtimes')
 
     group_descript_dict.add('GroupName', sub_name)
 
     group_descript_dict.add('MapFile', os.path.join(work_dir, cvWConsts.GROUP_MAP_FILE))
 
-    group_descript_dict.add('DowntimesFile', down_fname)
     group_descript_dict.add('MaxRunningPerEntry', sub_params.config.running_glideins_per_entry.max)
     group_descript_dict.add('FracRunningPerEntry', sub_params.config.running_glideins_per_entry.relative_to_queue)
     group_descript_dict.add('MaxIdlePerEntry', sub_params.config.idle_glideins_per_entry.max)
@@ -528,11 +535,15 @@ def populate_common_descript(descript_dict, # will be modified
     if params.security.proxy_selection_plugin != None:
         descript_dict.add('ProxySelectionPlugin', params.security.proxy_selection_plugin)
 
-    if len(params.security.proxies) > 0:
+    if len(params.security.credentials) > 0:
         proxies = []
         proxy_refresh_scripts = {}
+        proxy_trust_domains = {}
         proxy_security_classes = {}
-        for pel in params.security.proxies:
+        proxy_types = {}
+        proxy_key_files = {}
+        proxy_cloud_attrs = {}
+        for pel in params.security.credentials:
             if pel['absfname'] == None:
                 raise RuntimeError, "All proxies need a absfname!"
             if pel['pool_count'] == None:
@@ -542,6 +553,19 @@ def populate_common_descript(descript_dict, # will be modified
                     proxy_refresh_scripts[pel['absfname']] = pel['proxy_refresh_script']
                 if pel['security_class'] != None:
                     proxy_security_classes[pel['absfname']] = pel['security_class']
+                if pel['trust_domain'] != None:
+                    proxy_trust_domains[pel['absfname']] = pel['trust_domain']
+                if pel['type'] != None:
+                    proxy_types[pel['absfname']] = pel['type']
+                if pel['keyabsfname'] != None:
+                    proxy_key_files[pel['absfname']] = pel['keyabsfname']
+                # AT
+                try:
+                    if (pel['vm_id'] != None) and (pel['vm_type'] != None):
+                        proxy_cloud_attrs[pel['absfname']] = (pel['vm_id'], pel['vm_type'])
+                except:
+                    # this isn't an error... these attrs will only exist if these are cloud credentials
+                    pass
             else: #pool
                 pool_count = int(pel['pool_count'])
                 for i in range(pool_count):
@@ -551,19 +575,40 @@ def populate_common_descript(descript_dict, # will be modified
                         proxy_refresh_scripts[absfname] = pel['proxy_refresh_script']
                     if pel['security_class'] != None:
                         proxy_security_classes[absfname] = pel['security_class']
+                    if pel['trust_domain'] != None:
+                        proxy_trust_domains[pel['absfname']] = pel['trust_domain']
+                    if pel['type'] != None:
+                        proxy_types[pel['absfname']] = pel['type']
+                    if pel['keyabsfname'] != None:
+                        proxy_key_files[pel['absfname']] = pel['keyabsfname']
+                    # AT
+                    try:
+                        if (pel['vm_id'] != None) and (pel['vm_type'] != None):
+                            proxy_cloud_attrs[pel['absfname']] = (pel['vm_id'], pel['vm_type'])
+                    except:
+                        # this isn't an error... these attrs will only exist if these are cloud credentials
+                        pass
 
         descript_dict.add('Proxies', repr(proxies))
         if len(proxy_refresh_scripts.keys()) > 0:
             descript_dict.add('ProxyRefreshScripts', repr(proxy_refresh_scripts))
+        if len(proxy_trust_domains.keys()) > 0:
+            descript_dict.add('ProxyTrustDomains', repr(proxy_trust_domains))
         if len(proxy_security_classes.keys()) > 0:
             descript_dict.add('ProxySecurityClasses', repr(proxy_security_classes))
+        if len(proxy_types.keys()) > 0:
+            descript_dict.add('ProxyTypes', repr(proxy_types))
+        if len(proxy_key_files.keys()) > 0:
+            descript_dict.add('ProxyKeyFiles', repr(proxy_key_files))
+        # AT
+        if len(proxy_cloud_attrs.keys()) > 0:
+            descript_dict.add('ProxyCloudAttrs', repr(proxy_cloud_attrs))
 
     match_expr = params.match.match_expr
     if ((params.attrs.has_key('GLIDEIN_Glexec_Use')) and
          (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'REQUIRED')):
         match_expr = '(%s) and (glidein["attrs"]["GLEXEC_BIN"] != "NONE")' % match_expr
     descript_dict.add('MatchExpr', match_expr)
-
 
 #####################################################
 # Returns a string usable for GLIDEIN_Collector
@@ -598,7 +643,6 @@ def populate_gridmap(params, gridmap_dict):
     if params.security.proxy_DN != None:
         if not (params.security.proxy_DN in collector_dns):
             gridmap_dict.add(params.security.proxy_DN, 'frontend')
-
 
 #####################################################
 # Populate security values
@@ -651,5 +695,4 @@ def populate_group_security(client_security, params, sub_params):
         # don't worry about conflict... there is nothing wrong if the DN is listed twice
         schedd_dns.append(dn)
     client_security['schedd_DNs'] = schedd_dns
-
 

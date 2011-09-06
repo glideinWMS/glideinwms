@@ -3,7 +3,6 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cvWParams.py,v 1.40.2.7 2011/05/27 01:19:30 sfiligoi Exp $
 #
 # Description:
 #   This module contains the create_frontend params class
@@ -56,8 +55,8 @@ class VOFrontendParams(cWParams.CommonParams):
         group_config_defaults['idle_glideins_per_entry'] = group_config_idle_defaults
 
         group_config_vms_defaults = cWParams.commentedOrderedDict()
-        group_config_vms_defaults["max"] = ['100', "nr_jobs", "How many idle VMs should I tollerate, before stopping submitting glideins", None]
-        group_config_vms_defaults["curb"] = ['5', "nr_jobs", "How many idle VMs should I tollerate, before starting to curb submissions.", None]
+        group_config_vms_defaults["max"] = ['100', "nr_jobs", "How many idle VMs should I tolerate, before stopping submitting glideins", None]
+        group_config_vms_defaults["curb"] = ['5', "nr_jobs", "How many idle VMs should I tolerate, before starting to curb submissions.", None]
         group_config_defaults['idle_vms_per_entry'] = group_config_vms_defaults
 
         # not exported and order does not matter, can stay a regular dictionary
@@ -73,7 +72,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
         collector_defaults = cWParams.commentedOrderedDict()
         collector_defaults["node"] = (None, "nodename", "Factory collector node name (for example, fg2.my.org:9999)", None)
-        collector_defaults["DN"] = (None, "dn", "Factory collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=fg2.my.org)", None)
+        collector_defaults["DN"] = (None, "dn", "Factory collector distinguished name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=fg2.my.org)", None)
         collector_defaults["factory_identity"] = ("factory@fake.org", "authenticated_identity", "What is the AuthenticatedIdentity of the factory at the WMS collector", None)
         collector_defaults["my_identity"] = ("me@fake.org", "authenticated_identity", "What is the AuthenticatedIdentity of my proxy at the WMS collector", None)
 
@@ -95,13 +94,19 @@ class VOFrontendParams(cWParams.CommonParams):
 
         proxy_defaults = cWParams.commentedOrderedDict()
         proxy_defaults["absfname"] = (None, "fname", "x509 proxy file name (see also pool_count)", None)
+        proxy_defaults["keyabsfname"] = (None, "fname", "for key files, file name of the key pair", None)
+        proxy_defaults["type"] = ("grid_proxy", "proxy_type", "Type of credential: grid_proxy,cert_pair,key_pair,username_password", None)
+        proxy_defaults["trust_domain"] = ("OSG", "grid_type", "Trust Domain", None)
         proxy_defaults["pool_count"] = (None, "count", "If not None, there are count proxies involved. absfname must contain a printf modifier and the pool files will be from 1 to count", None)
         proxy_defaults["proxy_refresh_script"] = (None, "fname", "If not None, the script will be called every time before using a proxy", None)
         proxy_defaults["security_class"] = (None, "id", "Proxies in the same security class can potentially access each other (Default: proxy_nr)", None)
+        # AT
+        proxy_defaults["vm_id"] = (None, "vm_id", "What is the cloud id for the vm?", None)
+        proxy_defaults["vm_type"] = (None, "vm_type", "What is the type of cloud vm do you want?", None)
 
         security_defaults = cWParams.commentedOrderedDict()
         security_defaults["proxy_selection_plugin"] = (None, "proxy_name", "Which proxy selection plugin should I use (ProxyAll if None)", None)
-        security_defaults["proxies"] = ([], 'List of proxies', "Each proxy element contains", proxy_defaults)
+        security_defaults["credentials"] = ([], 'List of credentials', "Each proxy element contains", proxy_defaults)
         security_defaults["security_name"] = (None, "frontend_name", "What name will we advertize for security purposes?", None)
 
         self.group_defaults = cWParams.commentedOrderedDict()
@@ -110,14 +115,12 @@ class VOFrontendParams(cWParams.CommonParams):
         self.group_defaults["config"] = group_config_defaults
         self.group_defaults["attrs"] = sub_defaults['attrs']
         self.group_defaults["files"] = sub_defaults['files']
-        self.group_defaults["downtimes"] = self.downtimes_defaults
         self.group_defaults["security"] = copy.deepcopy(security_defaults)
-
 
         ###############################
         # Start defining the defaults
         self.defaults["frontend_name"] = (socket.gethostname(), 'ID', 'VO Frontend name', None)
-        self.defaults['frontend_versioning'] = ('True', 'Bool', 'Should we create versioned subdirectories of the type frontend_$frontend_name?', None)
+        self.defaults['frontend_monitor_index_page'] = ('True', 'Bool', 'Should we create an index.html in the monitoring web directory?', None)
 
         work_defaults = cWParams.commentedOrderedDict()
         work_defaults["base_dir"] = ("%s/frontstage" % os.environ["HOME"], "base_dir", "Frontend base dir", None)
@@ -163,8 +166,6 @@ class VOFrontendParams(cWParams.CommonParams):
         # by default we want to look only for vanilla universe jobs that are not monitoring jobs
         self.defaults["match"]["job"]["query_expr"][0] = '(JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)'
 
-        self.defaults["downtimes"] = self.downtimes_defaults
-
         self.defaults["attrs"] = sub_defaults['attrs']
         self.defaults["files"] = copy.deepcopy(sub_defaults['files'])
         # ordering is specific to global section of factory
@@ -184,24 +185,13 @@ class VOFrontendParams(cWParams.CommonParams):
             raise Exception, "No groups defined!"
 
         self.validate_names()
-        def buildDir(frontendVersioning, basedir):
-            # return either basedir or basedir/frontend_fename 
-            subdir = "frontend_%s" % self.frontend_name
-            if frontendVersioning:
-                return os.path.join(basedir, subdir)
-            else:
-                return basedir
 
-        frontendVersioning = False
-        if self.data.has_key('frontend_versioning') and \
-               self.data['frontend_versioning'].lower() == 'true':
-            frontendVersioning = True
-
-        self.stage_dir = buildDir(frontendVersioning, self.stage.base_dir)
-        self.monitor_dir = buildDir(frontendVersioning, self.monitor.base_dir)
-        self.work_dir = buildDir(frontendVersioning, self.work.base_dir)
-        self.log_dir = buildDir(frontendVersioning, self.work.base_log_dir)
-        self.web_url = buildDir(frontendVersioning, self.stage.web_base_url)
+        frontend_subdir = "frontend_%s" % self.frontend_name
+        self.stage_dir = os.path.join(self.stage.base_dir, frontend_subdir)
+        self.monitor_dir = os.path.join(self.monitor.base_dir, frontend_subdir)
+        self.work_dir = os.path.join(self.work.base_dir, frontend_subdir)
+        self.log_dir = os.path.join(self.work.base_log_dir, frontend_subdir)
+        self.web_url = os.path.join(self.stage.web_base_url, frontend_subdir)
 
         self.derive_match_attrs()
 
@@ -237,15 +227,15 @@ class VOFrontendParams(cWParams.CommonParams):
             self.data['security']['security_name'] = self.frontend_name
 
         ####################
-        for i in range(len(self.security.proxies)):
-            pel = self.subparams.data['security']['proxies'][i]
+        for i in range(len(self.security.credentials)):
+            pel = self.subparams.data['security']['credentials'][i]
             if pel['security_class'] == None:
                 # define an explicit security, so the admin is aware of it
                 pel['security_class'] = "frontend"
         group_names = self.groups.keys()
         for group_name in group_names:
-            for i in range(len(self.groups[group_name].security.proxies)):
-                pel = self.subparams.data['groups'][group_name]['security']['proxies'][i]
+            for i in range(len(self.groups[group_name].security.credentials)):
+                pel = self.subparams.data['groups'][group_name]['security']['credentials'][i]
                 if pel['security_class'] == None:
                     # define an explicit security, so the admin is aware of it
                     pel['security_class'] = "group_%s" % group_name
@@ -279,7 +269,7 @@ class VOFrontendParams(cWParams.CommonParams):
         return {'lists_params':{'files':{'el_name':'file', 'subtypes_params':{'class':{}}},
                                 'collectors':{'el_name':'collector', 'subtypes_params':{'class':{}}},
                                 'schedds':{'el_name':'schedd', 'subtypes_params':{'class':{}}},
-                                'proxies':{'el_name':'proxy', 'subtypes_params':{'class':{}}}},
+                                'credentials':{'el_name':'credential', 'subtypes_params':{'class':{}}}},
                 'dicts_params':{'attrs':{'el_name':'attr', 'subtypes_params':{'class':{}}},
                                 'groups':{'el_name':'group', 'subtypes_params':{'class':{}}},
                                 'match_attrs':{'el_name':'match_attr', 'subtypes_params':{'class':{}}}}}

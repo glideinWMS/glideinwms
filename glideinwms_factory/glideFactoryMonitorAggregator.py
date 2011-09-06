@@ -14,15 +14,14 @@
 #
 
 import os
-import copy
 import time
-import string
 import sets
-import glideinwms_libs.timeConversion
+
+import glideFactoryLib
+import glideFactoryMonitoring
+
 import glideinwms_libs.xmlParse
 import glideinwms_libs.xmlFormat
-import glideFactoryMonitoring
-import glideFactoryLib
 
 ############################################################
 #
@@ -381,7 +380,8 @@ def aggregateLogSummary():
     # Write rrds
     fe_dir = "total"
     sdata = status["total"]['Current']
-    sdiff = status["total"]
+    # AT Unused??
+    #sdiff = status["total"]
 
     glideFactoryMonitoring.monitoringConfig.establish_dir(fe_dir)
     val_dict_counts = {}
@@ -453,7 +453,8 @@ def aggregateLogSummary():
 
 def aggregateRRDStats():
     global monitorAggregatorConfig
-    factoryStatusData = glideFactoryMonitoring.FactoryStatusData()
+    # AT Unused??
+    #factoryStatusData = glideFactoryMonitoring.FactoryStatusData()
     rrdstats_relname = glideFactoryMonitoring.rrd_list
     tab = glideinwms_libs.xmlFormat.DEFAULT_TAB
 
@@ -533,7 +534,9 @@ def aggregateRRDStats():
             entry_str += 3 * tab + '<total>\n'
             try:
                 entry_str += (glideinwms_libs.xmlFormat.dict2string(stats[entry]['total']['periods'], dict_name='periods', el_name='period', subtypes_params={"class":{}}, indent_tab=tab, leading_tab=4 * tab) + "\n")
-            except NameError, UnboundLocalError:
+            except UnboundLocalError:
+                glideFactoryLib.log_files.logDebug("total_data, NameError or TypeError")
+            except NameError:
                 glideFactoryLib.log_files.logDebug("total_data, NameError or TypeError")
             entry_str += 3 * tab + '</total>\n'
 
@@ -560,7 +563,9 @@ def aggregateRRDStats():
         total_data = aggregate_output['total']
         try:
             total_xml_str += (glideinwms_libs.xmlFormat.dict2string(total_data, dict_name='periods', el_name='period', subtypes_params={"class":{}}, indent_tab=tab, leading_tab=4 * tab) + "\n")
-        except NameError, UnboundLocalError:
+        except UnboundLocalError:
+            glideFactoryLib.log_files.logDebug("total_data, NameError or TypeError")
+        except NameError:
             glideFactoryLib.log_files.logDebug("total_data, NameError or TypeError")
         total_xml_str += 2 * tab + '</total>\n'
 

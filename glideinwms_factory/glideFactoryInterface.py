@@ -13,12 +13,13 @@
 #   Igor Sfiligoi (Sept 7th 2006)
 #
 
-import glideinwms_libs.condorExe
-import glideinwms_libs.condorMonitor
-import glideinwms_libs.condorManager
 import os
 import time
 import string
+
+import glideinwms_libs.condorExe
+import glideinwms_libs.condorMonitor
+import glideinwms_libs.condorManager
 
 ############################################################
 #
@@ -27,7 +28,7 @@ import string
 ############################################################
 
 class FakeLog:
-    def write(self, str):
+    def write(self, log_str):
         pass
 
 class FactoryConfig:
@@ -90,9 +91,9 @@ class MultiExeError(glideinwms_libs.condorExe.ExeError):
         for e in arr:
             str_arr.append('%s' % e)
 
-        str = string.join(str_arr, '\\n')
+        err_str = string.join(str_arr, '\\n')
 
-        glideinwms_libs.condorExe.ExeError.__init__(self, str)
+        glideinwms_libs.condorExe.ExeError.__init__(self, err_str)
 
 ############################################################
 #

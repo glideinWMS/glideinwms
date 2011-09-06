@@ -19,7 +19,9 @@ import time
 import stat
 import sets
 import copy
-import mmap, re
+import mmap
+import re
+
 import glideinwms_libs.condorLogParser
 
 rawJobId2Nr = glideinwms_libs.condorLogParser.rawJobId2Nr

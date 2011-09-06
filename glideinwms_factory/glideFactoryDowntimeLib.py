@@ -14,7 +14,7 @@
 #
 
 import time
-import fcntl #@UnresolvedImport
+import fcntl
 import os.path
 import glideinwms_libs.timeConversion
 
@@ -318,10 +318,8 @@ def endDowntime(fname, end_time=None, entry="All", frontend="All", security_clas
         inlines = fd.readlines()
 
         outlines = []
-        lnr = 0
         closed_nr = 0
         for long_line in inlines:
-            lnr += 1
             line = long_line.strip()
             if len(line) == 0:
                 outlines.append(long_line)

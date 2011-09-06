@@ -12,47 +12,41 @@
 #  based on a configuration file
 #
 
-import os
 import sys
-STARTUP_DIR=sys.path[0]
-import os.path
-import string
-import traceback
-sys.path.append(os.path.join(STARTUP_DIR,"lib"))
-sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
-import cgWParams
-import cgWParamDict
+
+import glideinwms_creation.cgWParams
+import glideinwms_creation.cgWParamDict
 
 
 ################################################################################
 
-def main(params,flags):
-    print "Factory name: '%s'"%params.glidein_name
+def main(params, flags):
+    print "Factory name: '%s'" % params.glidein_name
     if "dirs" in flags:
-        glidein_dicts_obj=cgWParamDict.glideinDicts(params)
-        print "Submit dir    : %s"%glidein_dicts_obj.main_dicts.work_dir
-        print "Support dir   : %s"%glidein_dicts_obj.main_dicts.stage_dir
-        print "Monitoring dir: %s"%glidein_dicts_obj.main_dicts.monitor_dir
+        glidein_dicts_obj = glideinwms_creation.cgWParamDict.glideinDicts(params)
+        print "Submit dir    : %s" % glidein_dicts_obj.main_dicts.work_dir
+        print "Support dir   : %s" % glidein_dicts_obj.main_dicts.stage_dir
+        print "Monitoring dir: %s" % glidein_dicts_obj.main_dicts.monitor_dir
     if "entries" in flags:
         print "Entries:"
         for entry_name in  params.entries.data.keys():
-            entry_el=params.entries.data[entry_name]
-            if entry_el.data['enabled']!="True":
-                enable_str="disabled"
+            entry_el = params.entries.data[entry_name]
+            if entry_el.data['enabled'] != "True":
+                enable_str = "disabled"
             else:
-                enable_str="enabled"
+                enable_str = "enabled"
             if not ("all" in flags):
-                if enable_str!="enabled":
+                if enable_str != "enabled":
                     continue
-            outstr="%8s"%enable_str
+            outstr = "%8s" % enable_str
             if "schedd" in flags:
-                outstr+=" schedd: '%s'"%entry_el.data['schedd_name']
+                outstr += " schedd: '%s'" % entry_el.data['schedd_name']
             if "CE" in flags:
-                outstr+=" gridtype: '%s' gatekeeper: '%s'"%(entry_el.data['gridtype'],entry_el.data['gatekeeper'])
-                if entry_el.data['rsl']!=None:
-                    outstr+=" rsl: '%s'"%entry_el.data['gridtype']
-                
-            print "\tEntry '%s'\t%s"%(entry_name,outstr)
+                outstr += " gridtype: '%s' gatekeeper: '%s'" % (entry_el.data['gridtype'], entry_el.data['gatekeeper'])
+                if entry_el.data['rsl'] != None:
+                    outstr += " rsl: '%s'" % entry_el.data['gridtype']
+
+            print "\tEntry '%s'\t%s" % (entry_name, outstr)
 
 ############################################################
 #
@@ -61,31 +55,36 @@ def main(params,flags):
 ############################################################
 
 def parse_args(argv):
-    usage_prefix="info_glidein [-dirs] [-entries [-all|*-enabled*] [-schedd] [-CE]]"
-    single_flags=('dirs','entries','all','enabled','up','CE','schedd')
-    flags=[]
-    while len(argv)>1:
-        if (argv[1][0]=='-') and (argv[1][1:] in single_flags):
+    usage_prefix = "info_glidein [-dirs] [-entries [-all|*-enabled*] [-schedd] [-CE]]"
+    single_flags = ('dirs', 'entries', 'all', 'enabled', 'up', 'CE', 'schedd')
+    flags = []
+    web_base = sys.path[0]
+    while len(argv) > 1:
+        if (argv[1][0] == '-') and (argv[1][1:] in single_flags):
             flags.append(argv[1][1:])
-            argv=argv[0:1]+argv[2:]
+            argv = argv[0:1] + argv[2:]
+        elif argv[1] == '-web_base':
+            web_base = argv[2]
+            argv = argv[0:1] + argv[2:]
         else:
             break
-            
+
     try:
-        params=cgWParams.GlideinParams(usage_prefix,os.path.join(STARTUP_DIR,"web_base"),argv)
-    except RuntimeError,e:
+        params = glideinwms_creation.cgWParams.GlideinParams(usage_prefix, web_base, argv)
+    except RuntimeError, e:
         print e
         sys.exit(1)
-    return (params,flags)
+    return (params, flags)
 
 if __name__ == '__main__':
-    params,flags=parse_args(sys.argv)
+    params, flags = parse_args(sys.argv)
 
     try:
-        main(params,flags)
+        main(params, flags)
     except RuntimeError, e:
         print params.usage()
         print ""
         print e
 
 ###########################################################
+

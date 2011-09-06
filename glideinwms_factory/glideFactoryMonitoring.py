@@ -17,12 +17,13 @@ import os
 import time
 import copy
 import math
+
+import glideFactoryLib
+
 import glideinwms_libs.xmlFormat
 import glideinwms_libs.timeConversion
 import glideinwms_libs.rrdSupport
 
-import glideinwms_libs.logSupport
-import glideFactoryLib
 
 # list of rrd files that each site has
 rrd_list = ('Status_Attributes.rrd', 'Log_Completed.rrd', 'Log_Completed_Stats.rrd', 'Log_Completed_WasteTime.rrd', 'Log_Counts.rrd')
@@ -46,7 +47,6 @@ class MonitoringConfig:
                            ]
 
         self.monitor_dir = "monitor/"
-        """@ivar: The name of the attribute that identifies the glidein """
 
         self.log_dir = "log/"
         self.logCleanupObj = None
@@ -107,7 +107,7 @@ class MonitoringConfig:
         finally:
             fd.close()
 
-    def write_file(self, relative_fname, str):
+    def write_file(self, relative_fname, input_str):
         """ 
         Writes out a string to a file
         @param relative_fname: The relative path name to write out
@@ -117,7 +117,7 @@ class MonitoringConfig:
         #print "Writing "+fname
         fd = open(fname + ".tmp", "w")
         try:
-            fd.write(str + "\n")
+            fd.write(input_str + "\n")
         finally:
             fd.close()
 
@@ -161,7 +161,7 @@ class MonitoringConfig:
             #print "Updating RRD "+fname
             try:
                 self.rrd_obj.update_rrd_multi(fname, time, val_dict)
-            except Exception, e:
+            except Exception:
                 print "Failed to update %s" % fname
         return
 
@@ -201,7 +201,7 @@ class MonitoringConfig:
             #print "Updating RRD "+fname
             try:
                 self.rrd_obj.update_rrd_multi(fname, time, val_dict)
-            except Exception, e:
+            except Exception:
                 print "Failed to update %s" % fname
         return
 
@@ -745,7 +745,7 @@ class condorLogSummary:
         for enle_jobrange in getAllJobRanges():
             count_jobnrs[enle_jobrange] = 0 # make sure all are initialized
 
-        count_jobs_duration = {};
+        count_jobs_duration = {}
         for enle_jobs_duration_range in getAllTimeRanges():
             count_jobs_duration[enle_jobs_duration_range] = 0 # make sure all are intialized
 
@@ -1114,7 +1114,7 @@ class FactoryStatusData:
         """returns the time of last update"""
         return time2xml(self.updated, "updated", indent_tab=self.tab, leading_tab=self.tab)
 
-    def fetchData(self, file, pathway, res, start, end):
+    def fetchData(self, file_name, pathway, res, start, end):
         """Uses rrdtool to fetch data from the clients.  Returns a dictionary of lists of data.  There is a list for each element.
 
         rrdtool fetch returns 3 tuples: a[0], a[1], & a[2].
@@ -1125,10 +1125,10 @@ class FactoryStatusData:
         #use rrdtool to fetch data
         baseRRDSupport = glideinwms_libs.rrdSupport.rrdSupport()
         try:
-            fetched = baseRRDSupport.fetch_rrd(pathway + file, 'AVERAGE', resolution=res, start=start, end=end)
+            fetched = baseRRDSupport.fetch_rrd(pathway + file_name, 'AVERAGE', resolution=res, start=start, end=end)
         except:
             # probably not created yet
-            glideFactoryLib.log_files.logDebug("Failed to load %s" % (pathway + file))
+            glideFactoryLib.log_files.logDebug("Failed to load %s" % (pathway + file_name))
             return {}
 
         #converts fetched from tuples to lists
@@ -1159,10 +1159,10 @@ class FactoryStatusData:
         else:
             return data_sets
 
-    def average(self, list):
+    def average(self, a_list):
         try:
-            if len(list) > 0:
-                avg_list = sum(list) / len(list)
+            if len(a_list) > 0:
+                avg_list = sum(a_list) / len(a_list)
             else:
                 avg_list = 0
             return avg_list
@@ -1170,11 +1170,11 @@ class FactoryStatusData:
             glideFactoryLib.log_files.logDebug("average: TypeError")
             return
 
-    def getData(self, input):
+    def getData(self, data_input):
         """returns the data fetched by rrdtool in a xml readable format"""
         global monitoringConfig
 
-        folder = str(input)
+        folder = str(data_input)
         if folder == self.total:
             client = folder
         else:
@@ -1202,8 +1202,8 @@ class FactoryStatusData:
                 end = (int(time.time() / rrd_res) - 1) * rrd_res # round due to RRDTool requirements, -1 to avoid the last (partial) one
                 start = end - period
                 try:
-                    fetched_data = self.fetchData(file=rrd, pathway=self.base_dir + "/" + client,
-                                                  start=start, end=end, res=rrd_res)
+                    pathway = self.base_dir + "/" + client
+                    fetched_data = self.fetchData(rrd, pathway, rrd_res, start, end)
                     for data_set in fetched_data:
                         self.data[rrd][client][period][data_set] = self.average(fetched_data[data_set])
                 except TypeError:
@@ -1216,11 +1216,14 @@ class FactoryStatusData:
 
         # create a string containing the total data
         total_xml_str = self.tab + '<total>\n'
-        get_data_total = self.getData(self.total)
+        # AT Unused??
+        #get_data_total = self.getData(self.total)
         try:
             total_data = self.data[rrd][self.total]
             total_xml_str += (glideinwms_libs.xmlFormat.dict2string(total_data, dict_name='periods', el_name='period', subtypes_params={"class":{}}, indent_tab=self.tab, leading_tab=2 * self.tab) + "\n")
-        except NameError, UnboundLocalError:
+        except UnboundLocalError:
+            glideFactoryLib.log_files.logDebug("FactoryStatusData:total_data: NameError or UnboundLocalError")
+        except NameError:
             glideFactoryLib.log_files.logDebug("FactoryStatusData:total_data: NameError or UnboundLocalError")
         total_xml_str += self.tab + '</total>\n'
 
@@ -1233,8 +1236,10 @@ class FactoryStatusData:
             try:
                 frontend_data = self.data[rrd][frontend]
                 frontend_xml_str += (glideinwms_libs.xmlFormat.dict2string(frontend_data, dict_name='periods', el_name='period', subtypes_params={"class":{}}, indent_tab=self.tab, leading_tab=3 * self.tab) + "\n")
-            except NameError, UnboundLocalError:
-                glideFactoryLib.log_files.logDebug("FactoryStatusData:frontend_data: NameError or UnboundLocalError")
+            except UnboundLocalError:
+                glideFactoryLib.log_files.logDebug("FactoryStatusData:frontend_data: UnboundLocalError")
+            except NameError:
+                glideFactoryLib.log_files.logDebug("FactoryStatusData:frontend_data: NameError")
             frontend_xml_str += 2 * self.tab + '</frontend>'
         frontend_xml_str += self.tab + '</frontends>\n'
 
@@ -1272,54 +1277,57 @@ class Descript2XML:
                                   'FactoryName', 'GlideinName', 'LoopDelay',
                                   'PubKeyType', 'WebURL')
 
-    def frontendDescript(self, dict):
+    def frontendDescript(self, desc_dict):
         for key in self.frontend_blacklist:
             try:
-                for frontend in dict:
+                for frontend in desc_dict:
                     try:
-                        del dict[frontend][key]
+                        del desc_dict[frontend][key]
                     except KeyError:
                         continue
             except RuntimeError:
                 glideFactoryLib.log_files.logDebug("blacklist RuntimeError in frontendDescript")
         try:
-            str = glideinwms_libs.xmlFormat.dict2string(dict, dict_name="frontends", el_name="frontend", subtypes_params={"class":{}}, leading_tab=self.tab)
-            return str + "\n"
+            desc_str = glideinwms_libs.xmlFormat.dict2string(desc_dict, dict_name="frontends", el_name="frontend", subtypes_params={"class":{}}, leading_tab=self.tab)
+            return desc_str + "\n"
         except RuntimeError:
             glideFactoryLib.log_files.logDebug("xmlFormat RuntimeError in frontendDescript")
             return
 
-    def entryDescript(self, dict):
+    def entryDescript(self, desc_dict):
         for key in self.entry_descript_blacklist:
             try:
-                for entry in dict:
+                for entry in desc_dict:
                     try:
-                        del dict[entry]['descript'][key]
+                        del desc_dict[entry]['descript'][key]
                     except KeyError:
                         continue
             except RuntimeError:
                 glideFactoryLib.log_files.logDebug("blacklist RuntimeError in entryDescript")
         try:
-            str = glideinwms_libs.xmlFormat.dict2string(dict, dict_name="entries", el_name="entry", subtypes_params={"class":{'subclass_params':{}}}, leading_tab=self.tab)
-            return str + "\n"
+            desc_str = glideinwms_libs.xmlFormat.dict2string(desc_dict, dict_name="entries", el_name="entry", subtypes_params={"class":{'subclass_params':{}}}, leading_tab=self.tab)
+            return desc_str + "\n"
         except RuntimeError:
             glideFactoryLib.log_files.logDebug("xmlFormat RuntimeError in entryDescript")
             return
 
-    def glideinDescript(self, dict):
+    def glideinDescript(self, desc_dict):
         w_dict = {}
         for key in self.glidein_whitelist:
             try:
-                w_dict[key] = dict[key]
+                w_dict[key] = desc_dict[key]
             except KeyError:
                 continue
         try:
             a = glideinwms_libs.xmlFormat.dict2string({'':w_dict}, dict_name="glideins", el_name="factory", subtypes_params={"class":{}})
             b = a.split("\n")[1]
             c = b.split('name="" ')
-            str = "".join(c)
-            return str + "\n"
-        except SyntaxError, RuntimeError:
+            desc_str = "".join(c)
+            return desc_str + "\n"
+        except SyntaxError:
+            glideFactoryLib.log_files.logDebug("xmlFormat SyntaxError in glideinDescript")
+            return
+        except RuntimeError:
             glideFactoryLib.log_files.logDebug("xmlFormat RuntimeError in glideinDescript")
             return
 
@@ -1327,14 +1335,15 @@ class Descript2XML:
         """returns the time of last update"""
         return time2xml(time.time(), "updated", indent_tab=self.tab, leading_tab=self.tab)
 
-    def writeFile(self, path, str, singleEntry=False):
+    def writeFile(self, path, input_str, singleEntry=False):
         if singleEntry:
             root_el = 'glideFactoryEntryDescript'
         else:
             root_el = 'glideFactoryDescript'
-        xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
-                   '<' + root_el + '>\n' + self.getUpdated() + "\n" + str +
-                   '</' + root_el + '>')
+        xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n<%s>\n%s\n%s</%s>' % (root_el, self.getUpdated(), input_str, root_el))
+        #xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
+        #           '<' + root_el + '>\n' + self.getUpdated() + "\n" + input_str +
+        #           '</' + root_el + '>')
         fname = path + 'descript.xml'
         f = open(fname + '.tmp', 'wb')
         try:

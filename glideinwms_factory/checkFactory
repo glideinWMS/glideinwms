@@ -17,11 +17,11 @@
 #
 
 import sys
-import glideFactoryPidLib
+import glideinwms_factory.glideFactoryPidLib
 
 try:
     startup_dir = sys.argv[1]
-    factory_pid = glideFactoryPidLib.get_factory_pid(startup_dir)
+    factory_pid = glideinwms_factory.glideFactoryPidLib.get_factory_pid(startup_dir)
 except:
     print "Not running"
     sys.exit(1)

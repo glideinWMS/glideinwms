@@ -13,7 +13,7 @@ import shutil
 import tarfile
 import string
 import traceback
-import cgWCreate
+import glideinwms_creation.cgWCreate
 
 def usage():
     print "usage: create_condor_tarball <tarball_out_fname> <condor_dir_or_tar>"
@@ -59,7 +59,7 @@ def main(argv):
 
     try:
         try:
-            tar_fd = cgWCreate.create_condor_tar_fd(in_dir)
+            tar_fd = glideinwms_creation.cgWCreate.create_condor_tar_fd(in_dir)
         except RuntimeError, e:
             print "%s" % e
             sys.exit(2)
@@ -68,8 +68,7 @@ def main(argv):
             out_fd = open(out_fname, "w")
         except:
             usage()
-            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
-                                            sys.exc_info()[2])
+            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
             print string.join(tb, '\n')
             sys.exit(3)
 
