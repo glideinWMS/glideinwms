@@ -575,7 +575,13 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;match&gt;&lt;factory query_expr=&quot;<I>expr</I>&quot; &gt;
         </div>
         A Python expression that specifies a factory constraint. 
-        <a href="#match_example">More on match expressions</a>
+        <a href="#match_example">More on match expressions</a>.
+        Note that if you specify a factory constraint in the global 
+        default section as well as in the group factory tag
+        (such as <i> &lt;factory query_expr='EXPR1'&gt;...  
+            &lt;group&gt; &lt;factory query_expr='EXPR2'&gt; &lt;/group&gt;</i>)
+        then the frontend will "AND" the expressions to create a
+        combination (such as, <i>EXPR1 && EXPR2</i>).
     </P></li>
 
     <LI><P>
@@ -678,7 +684,13 @@ should report to as a available resource.  This is where the user jobs will be m
     can be created in order to control where the glideins are submitted.
     It can also allow you to give a Condor expression
     to specify where jobs can run or to specify
-    which glidein_sites can run jobs.  
+    which glidein_sites can run jobs.  <br />
+    Note that, for some tags (like
+    factory query_expr), you can specify expressions in both the
+    default global section as well as in individual group sections.  
+    You should take special care before doing this to make sure the
+    expressions are correct, as the expreesions are typically "AND"-ed
+    together.
 </p>
 <p>
     Each match expression is a python expression that will be evaluated.
