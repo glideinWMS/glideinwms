@@ -393,9 +393,8 @@ def keepIdleGlideins(client_condorq, client_int_name,
 
     Can throw a condorExe.ExeError
     """
-
-    global factoryConfig        
-    
+    global factoryConfig      
+        
     # Filter out everything but the proper credential identifier.  Need to determine how many more glideins are needed to match this
     #    request min_idle and max_glidiens
     condorq = condorMonitor.SubQuery(client_condorq, lambda d:(d[factoryConfig.credential_id_schedd_attribute] == submit_credentials.id))
@@ -473,7 +472,7 @@ def keepIdleGlideins(client_condorq, client_int_name,
     except:
         logSupport.log.warning("Unexpected error in glideFactoryLib.submitGlideins")
         return 0 # something is wrong... assume 0 and exit
-           
+
     return 0
        
         

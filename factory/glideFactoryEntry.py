@@ -751,11 +751,18 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 logSupport.log.warning("Client %s provided an invalid ReqIdleGlideins: '%s' not a number. Skipping request" % (client_int_name, work[work_key]['requests']['IdleGlideins']))
                 continue #skip request
 
-            try:
-                max_glideins = int(work[work_key]['requests']['MaxGlideins'])
-            except ValueError, e:
-                logSupport.log.warning("Client %s provided an invalid ReqMaxGlideins: '%s' not a number. Skipping request" % (client_int_name, work[work_key]['requests']['MaxGlideins']))
-                continue #skip request
+            if work[work_key]['requests'].has_key('MaxGlideins'):
+                try:
+                    max_glideins = int(work[work_key]['requests']['MaxGlideins'])
+                except ValueError, e:
+                    logSupport.log.warning("Client %s provided an invalid ReqMaxGlideins: '%s' not a number. Skipping request" % (client_int_name, work[work_key]['requests']['MaxGlideins']))
+                    continue #skip request
+            else:
+                try:
+                    max_glideins = int(work[work_key]['requests']['MaxRunningGlideins'])
+                except ValueError, e:
+                    logSupport.log.warning("Client %s provided an invalid ReqMaxRunningGlideins: '%s' not a number. Skipping request" % (client_int_name, work[work_key]['requests']['MaxRunningGlideins']))
+                    continue #skip request
                        
             if in_downtime:
                 # we are in downtime... no new submissions
