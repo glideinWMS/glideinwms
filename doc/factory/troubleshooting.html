@@ -103,8 +103,8 @@ Factory troubleshooting:
 
     <p>
     Once the frontend identifies potential entry points that can run your job, it will reflect this information in the glideclient classad in WMS collector for that corresponding entry point. 
-    You can find this information by running “condor_status -any -pool &lt;wms collector&gt;” Glidein factory looks up the glideclient classad, queries the wms collector to find out distribution of existing glideins in the glidein queues and submits additional glideins as required. 
-Once the factory has submitted the required glideins, you can see them by queering glideins queue using command, “condor_q -g -pool &lt;wms collector&gt;” 
+    You can find this information by running &ldquo;condor_status -any -pool &lt;wms collector&gt;&rdquo; Glidein factory looks up the glideclient classad, queries the wms collector to find out distribution of existing glideins in the glidein queues and submits additional glideins as required. 
+Once the factory has submitted the required glideins, you can see them by queering glideins queue using command, &ldquo;condor_q -g -pool &lt;wms collector&gt;&rdquo; 
     </p>
     <p>
     If you do not see any glideins corresponding to your job, 
@@ -114,7 +114,7 @@ Once the factory has submitted the required glideins, you can see them by queeri
 
         <li>Check if the entry point is enabled in the factory, configuration file, GLIDEINWMS_GFACTORY_HOME/glideinWMS.xml</li>
         <li>Check for error messages in logs located in GLIDEINWMS_GFACTORY_HOME/&lt;entry&gt;/log</li>
-        <li>Look for possible error messages in the glideins queue (condor_schedd). Based on the actual condor scheduler, you can find scheduler logfile, SchedLog, in one of the sub directories of directory listed by “condor_config_val local_dir”</li>
+        <li>Look for possible error messages in the glideins queue (condor_schedd). Based on the actual condor scheduler, you can find scheduler logfile, SchedLog, in one of the sub directories of directory listed by &ldquo;condor_config_val local_dir&rdquo;</li>
         <li>  Check security settings.  The WMS factory will drop requests from the VO frontends if settings do not match correctly. There will usually be lines in the vofrontend that useful factories exist, but the factory logs will have warnings/errors related to security settings.</li>
         <li>The first line in frontend.xml must match the name in security-frontends-frontend in the factory's glideinWMS:
         <blockquote>
@@ -182,7 +182,7 @@ the factory config's security_class element name attribute. </li>
     If the glideins stay idle for quite some time, 
     <ul>
     <li>
-        Check if the glidein has been submitted to the remote site. You can find this information either from the condor_activity log found in the GLIDEINWMS_GFACTORY_HOME/&lt;entry&gt;/log or by queering glideins queue using “condor_q -globus -g -pool &lt;wms collector&gt;”. If the glidein job was submitted to the remote site, its quite possible that it is waiting for a worker node to be available to run it.
+        Check if the glidein has been submitted to the remote site. You can find this information either from the condor_activity log found in the GLIDEINWMS_GFACTORY_HOME/&lt;entry&gt;/log or by queering glideins queue using &ldquo;condor_q -globus -g -pool &lt;wms collector&gt;&rdquo;. If the glidein job was submitted to the remote site, its quite possible that it is waiting for a worker node to be available to run it.
     </li>
     <li>
         Check condor logs in GLIDEINWMS_WMSCOLLECTOR_HOME/condor_local/logs.  
@@ -229,7 +229,7 @@ the factory config's security_class element name attribute. </li>
     </blockquote>
     </li>
     <li>
-        If you expect that the worker nodes are available, check if the glidein is getting periodically held. You can find this information either from the condor_activity log found in the GLIDEINWMS_GFACTORY_HOME/&lt;entry&gt;/log or by queering glideins queue using “condor_q  -pool &lt;wms collector&gt; -name &lt;scheddname&gt; &lt;jobid&gt; -format NumGlobusSubmits” Check for error messages in condor_activity logs if your glidein job is being periodically held.
+        If you expect that the worker nodes are available, check if the glidein is getting periodically held. You can find this information either from the condor_activity log found in the GLIDEINWMS_GFACTORY_HOME/&lt;entry&gt;/log or by queering glideins queue using &ldquo;condor_q  -pool &lt;wms collector&gt; -name &lt;scheddname&gt; &lt;jobid&gt; -format NumGlobusSubmits&rdquo; Check for error messages in condor_activity logs if your glidein job is being periodically held.
     </li>
 
     </ul>
@@ -238,7 +238,7 @@ the factory config's security_class element name attribute. </li>
     <div class="section">
     <h2><a name="no_resource">Resource is not registered in user collector.</a></h2>
     <b>Symptoms:</b>
-        glidein start running but “condor_status -pool &lt;user collector&gt;” does not show any new resource.<br/>
+        glidein start running but &ldquo;condor_status -pool &lt;user collector&gt;&rdquo; does not show any new resource.<br/>
 
     <b>Useful Files:</b><br/>
         GLIDEINWMS_GFACTORY_HOME/&lt;entry&gt;/log/&lt;glidein jobid&gt;.out<br/>
