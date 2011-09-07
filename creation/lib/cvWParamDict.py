@@ -560,18 +560,18 @@ def populate_common_descript(descript_dict,        # will be modified
             else: #pool
                 pool_count=int(pel['pool_count'])
                 for i in range(pool_count):
-                    absfname=pel['absfname']%(i+1)
+                    absfname="%s%s" % (pel['absfname'], str(i+1))
                     proxies.append(absfname)
                     if pel['security_class']!=None:
                         proxy_security_classes[absfname]=pel['security_class']
                     if pel['trust_domain']!=None:
-                        proxy_trust_domains[pel['absfname']]=pel['trust_domain']
+                        proxy_trust_domains[absfname]=pel['trust_domain']
                     if pel['type']!=None:
-                        proxy_types[pel['absfname']]=pel['type']
+                        proxy_types[absfname]=pel['type']
                     if pel['keyabsfname']!=None:
-                        proxy_key_files[pel['absfname']]=pel['keyabsfname']
+                        proxy_key_files[absfname]=pel['keyabsfname']
                     if pel['pilotabsfname']!=None:
-                        proxy_pilot_files[pel['absfname']]=pel['pilotabsfname']
+                        proxy_pilot_files[absfname]=pel['pilotabsfname']
 
         descript_dict.add('Proxies',repr(proxies))
         if len(proxy_trust_domains.keys())>0:
