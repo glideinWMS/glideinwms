@@ -562,7 +562,7 @@ def populate_common_descript(descript_dict,        # will be modified
             else: #pool
                 pool_count=int(pel['pool_count'])
                 for i in range(pool_count):
-                    absfname=pel['absfname']%(i+1)
+                    absfname="%s%s" % (pel['absfname'], str(i+1))
                     proxies.append(absfname)
                     if pel['proxy_refresh_script']!=None:
                         proxy_refresh_scripts[absfname]=pel['proxy_refresh_script']
@@ -571,9 +571,9 @@ def populate_common_descript(descript_dict,        # will be modified
 
         descript_dict.add('Proxies',repr(proxies))
         if len(proxy_refresh_scripts.keys())>0:
-             descript_dict.add('ProxyRefreshScripts',repr(proxy_refresh_scripts))
+            descript_dict.add('ProxyRefreshScripts',repr(proxy_refresh_scripts))
         if len(proxy_security_classes.keys())>0:
-             descript_dict.add('ProxySecurityClasses',repr(proxy_security_classes))
+            descript_dict.add('ProxySecurityClasses',repr(proxy_security_classes))
 
     match_expr = params.match.match_expr
     if ( (params.attrs.has_key('GLIDEIN_Glexec_Use')) and 
