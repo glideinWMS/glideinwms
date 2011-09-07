@@ -46,7 +46,8 @@ def create_condor_tar_fd(condor_base_dir):
                   'libexec/condor_ssh_to_job_shell_setup',
                   'lib/condor_ssh_to_job_sshd_config_template',
                   'lib/CondorJavaInfo.class','lib/CondorJavaWrapper.class',
-                  'lib/scimark2lib.jar','libexec/condor_kflops']:
+                  'lib/scimark2lib.jar','libexec/condor_kflops',
+                  'libexec/condor_mips']:
             if os.path.isfile(os.path.join(condor_base_dir,f)):
                 condor_bins.append(f)
         

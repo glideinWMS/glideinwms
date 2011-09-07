@@ -23,6 +23,7 @@ import binascii
 import condorExe,condorPrivsep
 import logSupport
 import condorMonitor
+import condorManager
 import glideFactoryConfig
 
 MY_USERNAME=pwd.getpwuid(os.getuid())[0]
@@ -1180,14 +1181,14 @@ def removeGlideins(schedd_name,jid_list,force=False):
             is_not_first=1
             time.sleep(factoryConfig.remove_sleep)
         try:
-            condorExe.exe_cmd("condor_rm","%s %li.%li"%(schedd_str,jid[0],jid[1]))
+            condorManager.condorRemoveOne("%li.%li"%(jid[0],jid[1]),schedd_name)
             removed_jids.append(jid)
 
             # Force the removal if requested
             if force == True:
                 try:
                     log_files.logActivity("Forcing the removal of glideins in X state")
-                    condorExe.exe_cmd("condor_rm","-forcex %s %li.%li"%(schedd_str,jid[0],jid[1]))
+                    condorManager.condorRemoveOne("%li.%li"%(jid[0],jid[1]),schedd_name,do_forcex=True)
                 except condorExe.ExeError, e:
                     log_files.logWarning("Forcing the removal of glideins in %s.%s state failed" % (jid[0],jid[1]))
 
@@ -1220,7 +1221,7 @@ def releaseGlideins(schedd_name,jid_list):
             is_not_first=1
             time.sleep(factoryConfig.release_sleep)
         try:
-            condorExe.exe_cmd("condor_release","%s %li.%li"%(schedd_str,jid[0],jid[1]))
+            condorManager.condorReleaseOne("%li.%li"%(jid[0],jid[1]),schedd_name)
             released_jids.append(jid)
         except condorExe.ExeError, e:
             log_files.logWarning("releaseGlidein(%s,%li.%li): %s"%(schedd_name,jid[0],jid[1],e))
