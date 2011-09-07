@@ -213,14 +213,6 @@ class ElementMergedDescript:
                 proxies+=eval(data['Proxies'])
         self.merged_data['Proxies']=proxies
 
-        proxy_refresh_scripts={}
-        for data in (self.frontend_data,self.element_data):
-            if data.has_key('ProxyRefreshScripts'):
-                dprs=eval(data['ProxyRefreshScripts'])
-                for k in dprs.keys():
-                    proxy_refresh_scripts[k]=dprs[k]
-        self.merged_data['ProxyRefreshScripts']=proxy_refresh_scripts
-
         proxy_security_classes={}
         for data in (self.frontend_data,self.element_data):
             if data.has_key('ProxySecurityClasses'):

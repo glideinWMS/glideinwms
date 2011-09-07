@@ -536,7 +536,6 @@ def populate_common_descript(descript_dict,        # will be modified
 
     if len(params.security.credentials)>0:
         proxies=[]
-        proxy_refresh_scripts={}
         proxy_trust_domains={}
         proxy_security_classes={}
         proxy_types={}
@@ -548,8 +547,6 @@ def populate_common_descript(descript_dict,        # will be modified
             if pel['pool_count']==None:
                 # only one
                 proxies.append(pel['absfname'])
-                if pel['proxy_refresh_script']!=None:
-                    proxy_refresh_scripts[pel['absfname']]=pel['proxy_refresh_script']
                 if pel['security_class']!=None:
                     proxy_security_classes[pel['absfname']]=pel['security_class']
                 if pel['trust_domain']!=None:
@@ -565,8 +562,6 @@ def populate_common_descript(descript_dict,        # will be modified
                 for i in range(pool_count):
                     absfname=pel['absfname']%(i+1)
                     proxies.append(absfname)
-                    if pel['proxy_refresh_script']!=None:
-                        proxy_refresh_scripts[absfname]=pel['proxy_refresh_script']
                     if pel['security_class']!=None:
                         proxy_security_classes[absfname]=pel['security_class']
                     if pel['trust_domain']!=None:
@@ -579,18 +574,16 @@ def populate_common_descript(descript_dict,        # will be modified
                         proxy_pilot_files[pel['absfname']]=pel['pilotabsfname']
 
         descript_dict.add('Proxies',repr(proxies))
-        if len(proxy_refresh_scripts.keys())>0:
-             descript_dict.add('ProxyRefreshScripts',repr(proxy_refresh_scripts))
         if len(proxy_trust_domains.keys())>0:
-             descript_dict.add('ProxyTrustDomains',repr(proxy_trust_domains))
+            descript_dict.add('ProxyTrustDomains',repr(proxy_trust_domains))
         if len(proxy_security_classes.keys())>0:
-             descript_dict.add('ProxySecurityClasses',repr(proxy_security_classes))
+            descript_dict.add('ProxySecurityClasses',repr(proxy_security_classes))
         if len(proxy_types.keys())>0:
-             descript_dict.add('ProxyTypes',repr(proxy_types))
+            descript_dict.add('ProxyTypes',repr(proxy_types))
         if len(proxy_key_files.keys())>0:
-             descript_dict.add('ProxyKeyFiles',repr(proxy_key_files))
+            descript_dict.add('ProxyKeyFiles',repr(proxy_key_files))
         if len(proxy_pilot_files.keys())>0:
-             descript_dict.add('ProxyPilotFiles',repr(proxy_pilot_files))
+            descript_dict.add('ProxyPilotFiles',repr(proxy_pilot_files))
 
     match_expr = params.match.match_expr
     if ( (params.attrs.has_key('GLIDEIN_Glexec_Use')) and 
