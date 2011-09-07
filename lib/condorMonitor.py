@@ -17,6 +17,7 @@ import condorExe
 import condorSecurity
 import os,string
 import copy
+import socket
 import xml.parsers.expat
 
 #
@@ -28,6 +29,99 @@ def set_path(new_condor_bin_path):
     global condor_bin_path
     condor_bin_path=new_condor_bin_path
 
+#
+# Caching classes
+#
+
+# dummy caching class, when you don't want caching
+# used as base class below, too
+class NoneScheddCache:
+    #returns (cms arg schedd string,LOCAL_DIR)
+    def getScheddId(self,schedd_name,pool_name):
+        return (self.iGetCmdScheddStr(schedd_name),{})
+
+    # INTERNAL and for inheritance
+    def iGetCmdScheddStr(self,schedd_name):
+        if schedd_name==None:
+            schedd_str=""
+        else:
+            schedd_str = "-name %s " % schedd_name
+
+        return schedd_str
+
+
+# The schedd can be found either through -name attr
+# or through the local disk lookup
+# Remember which one to use
+class LocalScheddCache(NoneScheddCache):
+    def __init__(self):
+        self.enabled=True
+        # dictionary of
+        #   (schedd_name,pool_name)=>(cms arg schedd string,env)
+        self.cache={}
+
+        self.my_ips=socket.gethostbyname_ex(socket.gethostname())[2]
+        try:
+            self.my_ips+=socket.gethostbyname_ex('localhost')[2]
+        except socket.gaierror,e:
+            pass # localhost not defined, ignore
+            
+                
+
+    def enable(self):
+        self.enabled=True
+
+    def disable(self):
+        self.enabled=False
+
+    #returns (cms arg schedd string,env)
+    def getScheddId(self,schedd_name,pool_name):
+        if schedd_name==None: # special case, do not cache
+            return ("",{})
+
+        if self.enabled:
+            k=(schedd_name,pool_name)
+            if not self.cache.has_key(k): # not in cache, discover it
+                env=self.iGetEnv(schedd_name, pool_name)
+                if env==None: #
+                    self.cache[k]=(self.iGetCmdScheddStr(schedd_name),{})
+                else:
+                    self.cache[k]=("",env)
+            return self.cache[k]
+        else: # not enabled, just return the str
+            return (self.iGetCmdScheddStr(schedd_name),{})
+
+    #
+    # PRIVATE
+    #
+
+    # return None if not found
+    # Can raise exceptions
+    def iGetEnv(self,schedd_name, pool_name):
+        cs=CondorStatus('schedd',pool_name)
+        data=cs.fetch(constraint='Name=?="%s"'%schedd_name,format_list=[('ScheddIpAddr','s'),('LOCAL_DIR_STRING','s')])
+        if not data.has_key(schedd_name):
+            raise RuntimeError, "Schedd '%s' not found"%schedd_name
+
+        el=data[schedd_name]
+        if not el.has_key('LOCAL_DIR_STRING'): # not advertising, cannot use disk optimization
+            return None
+        if not el.has_key('ScheddIpAddr'): # This should never happen
+            raise RuntimeError, "Schedd '%s' is not advertising ScheddIpAddr"%schedd_name
+
+        schedd_ip=el['ScheddIpAddr'][1:].split(':')[0]
+        if schedd_ip in self.my_ips: #seems local, go for the dir
+            l=el['LOCAL_DIR_STRING']
+            if os.path.isdir(l): # making sure the directory exists
+                return {'_CONDOR_LOCAL_DIR':l}
+            else: #dir does not exist, likely not relevant, revert to standard behaviour
+                return None
+        else: # not local
+            return None
+
+# default global object
+local_schedd_cache=LocalScheddCache()
+        
 #
 # Condor monitoring classes
 #
@@ -67,8 +161,9 @@ class StoredQuery(AbstractQuery): # still virtual, only fetchStored defined
 #
 # security_obj, if defined, should be a child of condorSecurity.ProtoRequest
 class QueryExe(StoredQuery): # first fully implemented one, execute commands 
-    def __init__(self,exe_name,resource_str,group_attribute,pool_name=None,security_obj=None):
+    def __init__(self,exe_name,resource_str,group_attribute,pool_name=None,security_obj=None,env={}):
         self.exe_name=exe_name
+        self.env=env
         self.resource_str=resource_str
         self.group_attribute=group_attribute
         self.pool_name=pool_name
@@ -138,9 +233,9 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
         self.security_obj.enforce_requests()
 
         if full_xml:
-            xml_data=condorExe.exe_cmd(self.exe_name,"%s -xml %s %s"%(self.resource_str,self.pool_str,constraint_str));
+            xml_data=condorExe.exe_cmd(self.exe_name,"%s -xml %s %s"%(self.resource_str,self.pool_str,constraint_str),env=self.env);
         else:
-            xml_data=condorExe.exe_cmd(self.exe_name,"%s %s -xml %s %s"%(self.resource_str,format_str,self.pool_str,constraint_str));
+            xml_data=condorExe.exe_cmd(self.exe_name,"%s %s -xml %s %s"%(self.resource_str,format_str,self.pool_str,constraint_str),env=self.env);
 
         # restore old values
         self.security_obj.restore_state()
@@ -160,14 +255,15 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
 
 # condor_q 
 class CondorQ(QueryExe):
-    def __init__(self,schedd_name=None,pool_name=None,security_obj=None):
+    def __init__(self,schedd_name=None,pool_name=None,security_obj=None,schedd_lookup_cache=local_schedd_cache):
         self.schedd_name=schedd_name
-        if schedd_name==None:
-            schedd_str=""
-        else:
-            schedd_str="-name %s"%schedd_name
 
-        QueryExe.__init__(self,"condor_q",schedd_str,["ClusterId","ProcId"],pool_name,security_obj)
+        if schedd_lookup_cache==None:
+            schedd_lookup_cache=NoneScheddCache()
+
+        schedd_str,env=schedd_lookup_cache.getScheddId(schedd_name, pool_name)
+
+        QueryExe.__init__(self,"condor_q",schedd_str,["ClusterId","ProcId"],pool_name,security_obj,env)
 
     def fetch(self,constraint=None,format_list=None):
         if format_list!=None:
@@ -178,14 +274,15 @@ class CondorQ(QueryExe):
 
 # condor_q, where we have only one ProcId x ClusterId
 class CondorQLite(QueryExe):
-    def __init__(self,schedd_name=None,pool_name=None,security_obj=None):
+    def __init__(self,schedd_name=None,pool_name=None,security_obj=None,schedd_lookup_cache=local_schedd_cache):
         self.schedd_name=schedd_name
-        if schedd_name==None:
-            schedd_str=""
-        else:
-            schedd_str="-name %s"%schedd_name
 
-        QueryExe.__init__(self,"condor_q",schedd_str,"ClusterId",pool_name,security_obj)
+        if schedd_lookup_cache==None:
+            schedd_lookup_cache=NoneScheddCache()
+
+        schedd_str,env=schedd_lookup_cache.getScheddId(schedd_name, pool_name)
+
+        QueryExe.__init__(self,"condor_q",schedd_str,"ClusterId",pool_name,security_obj,env)
 
     def fetch(self,constraint=None,format_list=None):
         if format_list!=None:
@@ -201,7 +298,7 @@ class CondorStatus(QueryExe):
         else:
             subsystem_str="-%s"%subsystem_name
 
-        QueryExe.__init__(self,"condor_status",subsystem_str,"Name",pool_name,security_obj)
+        QueryExe.__init__(self,"condor_status",subsystem_str,"Name",pool_name,security_obj,{})
 
     def fetch(self,constraint=None,format_list=None):
         if format_list!=None:
