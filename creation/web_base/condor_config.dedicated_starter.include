@@ -38,3 +38,16 @@ SHUTDOWN_GRACEFUL_TIMEOUT=$(GLIDEIN_Job_Max_Time)
 STARTD_NOCLAIM_SHUTDOWN = $(GLIDEIN_Max_Idle)
 
 
+# Set to shutdown if total idle exceeds max idle, or if the age
+# exceeds the retire time or the max walltime
+STARTD.DAEMON_SHUTDOWN = (Activity=="Idle") && (\
+    ((TotalTimeUnclaimedIdle =!= UNDEFINED) && (GLIDEIN_Max_Idle =!= UNDEFINED)&& (TotalTimeUnclaimedIdle > GLIDEIN_Max_Idle))||\
+    ((GLIDEIN_Retire_Time =!= UNDEFINED) && (CurrentTime - DaemonStartTime > GLIDEIN_Retire_Time)) || \
+    ((GLIDEIN_Max_Walltime =!= UNDEFINED) && (CurrentTime - DaemonStartTime > GLIDEIN_Max_Walltime)) )
+
+#
+# Shutdown the master if the startd exits.  Note that if
+# STARTD_StartTime is zero, that the startd is not currently running.
+#
+MASTER.DAEMON_SHUTDOWN = (STARTD_StartTime =?= 0)
+
