@@ -104,6 +104,8 @@ class VOFrontendParams(cWParams.CommonParams):
         proxy_defaults["pilotabsfname"]=(None,"fname","to specify a different pilot proxy instead of using submit proxy",None)
         proxy_defaults["type"]=("grid_proxy","proxy_type","Type of credential: grid_proxy,cert_pair,key_pair,username_password",None)
         proxy_defaults["trust_domain"]=("OSG","grid_type","Trust Domain",None)
+        proxy_defaults["vm_id"]=(None,"vm_id","VM Id",None)
+        proxy_defaults["vm_type"]=(None,"vm_type","VM Type",None)
         proxy_defaults["pool_count"]=(None,"count","If not None, there are count proxies involved. absfname must contain a printf modifier and the pool files will be from 1 to count",None)
         proxy_defaults["security_class"]=(None,"id","Proxies in the same security class can potentially access each other (Default: proxy_nr)",None)
 

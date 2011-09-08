@@ -217,6 +217,8 @@ class Credential:
             proxy_types=elementDescript.merged_data['ProxyTypes']
             proxy_keyfiles=elementDescript.merged_data['ProxyKeyFiles']
             proxy_pilotfiles=elementDescript.merged_data['ProxyPilotFiles']
+            proxy_vm_ids = elementDescript.merged_data['ProxyVMIds']
+            proxy_vm_types = elementDescript.merged_data['ProxyVMTypes']
             self.proxy_id=proxy_id
             self.filename=proxy_fname
             if proxy_types.has_key(proxy_fname):
@@ -249,19 +251,50 @@ class Credential:
                 proxy_fd=open(self.pilot_fname,'r')
                 self.pilot_data=proxy_fd.read()
                 proxy_fd.close()
+            
+            self.vm_id = None    
+            if proxy_vm_ids.has_key(proxy_fname):
+                self.vm_id = proxy_vm_ids[proxy_fname]
+            
+            self.vm_type = None
+            if proxy_vm_types.has_key(proxy_fname):
+                self.vm_type = proxy_vm_types[proxy_fname]
                 
         except:
             logSupport.log.error("Could not read credential file '%s'"%proxy_fname)
             pass
+        
     def add_usage_details(self,req_idle=0,req_max_run=0):
         self.req_idle=req_idle
         self.req_max_run=req_max_run
+        
     def get_usage_details(self):
         return (self.req_idle,self.req_max_run)
+    
     def file_id(self,filename):
         return str(abs(hash(filename))%100000)
 
-
+    def __str__(self):
+        output = ""
+        output += "req_idle = %s\n" % self.req_idle
+        output += "req_max_run = %s\n" % self.req_max_run
+        output += "proxy_id = %s\n" % self.proxy_id
+        output += "filename = %s\n" % self.filename
+        output += "type = %s\n" % self.type
+        output += "security_class = %s\n" % self.security_class
+        output += "trust_domain = %s\n" % self.trust_domain
+        #output += "proxy_data = %s\n" % self.proxy_data
+        try:
+            output += "key_fname = %s\n" % self.key_fname
+            #output += "key_data = %s\n" % self.key_data
+            output += "pilot_fname = %s\n" % self.pilot_fname
+            #output += "pilot_data = %s\n" % self.pilot_data
+        except:
+            pass
+        output += "vm_id = %s\n" % self.vm_id
+        output += "vm_type = %s\n" % self.vm_type        
+        
+        return output
 
 
 class FrontendDescript:
@@ -411,7 +444,19 @@ class AdvertizeParams:
         self.glidein_params_to_encrypt = glidein_params_to_encrypt
         self.security_name = security_name
 
-
+    def __str__(self):
+        output = "\nAdvertizeParams\n"        
+        output += "request_name = %s\n" % self.request_name
+        output += "glidein_name = %s\n" % self.glidein_name
+        output += "min_nr_glideins = %s\n" % self.min_nr_glideins
+        output += "max_run_glideins = %s\n" % self.max_run_glideins
+        output += "remove_excess_str = %s\n" % self.remove_excess_str
+        output += "glidein_params = %s\n" % self.glidein_params
+        output += "glidein_monitors = %s\n" % self.glidein_monitors
+        output += "glidein_params_to_encrypt = %s\n" % self.glidein_params_to_encrypt
+        output += "security_name = %s\n" % self.security_name
+        
+        return output
 
 # Given a file, advertize
 # Can throw a CondorExe/ExeError exception
@@ -459,6 +504,7 @@ class MultiAdvertizeWork:
                                    glidein_params,glidein_monitors,
                                    glidein_params_to_encrypt,security_name,
                                    remove_excess_str)
+
         if not self.factory_queue.has_key(factory_pool):
             self.factory_queue[factory_pool] = []
         self.factory_queue[factory_pool].append((params_obj, key_obj))
@@ -586,7 +632,7 @@ class MultiAdvertizeWork:
             raise MultiExeError, error_arr
 
 
-    def createAdvertizeWorkFile(self, factory_pool, params_obj, key_obj=None):  
+    def createAdvertizeWorkFile(self, factory_pool, params_obj, key_obj=None): 
         global frontendConfig
         descript_obj=self.descript_obj
         
@@ -624,19 +670,25 @@ class MultiAdvertizeWork:
                     # Convert the sec class to a string so the Factory can interpret the value correctly
                     glidein_params_to_encrypt['SecurityClass']=str(credential_el.security_class)
                     classad_name=credential_el.file_id(credential_el.filename)+"_"+classad_name
-                    if (credential_el.type.startswith("username_password")):
-                        glidein_params_to_encrypt['Username']=credential_el.file_id(credential_el.filename);
-                        glidein_params_to_encrypt['Password']=credential_el.file_id(credential_el.key_fname);
-                    if (credential_el.type.startswith("grid_proxy")):
-                        glidein_params_to_encrypt['SubmitProxy']=credential_el.file_id(credential_el.filename);
-                    if (credential_el.type.startswith("cert_pair")):
-                        glidein_params_to_encrypt['PublicCert']=credential_el.file_id(credential_el.filename);
-                        glidein_params_to_encrypt['PrivateCert']=credential_el.file_id(credential_el.key_fname);
-                    if (credential_el.type.startswith("key_pair")):
-                        glidein_params_to_encrypt['PublicKey']=credential_el.file_id(credential_el.filename);
-                        glidein_params_to_encrypt['PrivateKey']=credential_el.file_id(credential_el.key_fname);
-                    if (hasattr(credential_el,'pilot_fname')):
-                        glidein_params_to_encrypt['GlideinProxy']=credential_el.file_id(credential_el.pilot_fname);
+                    if "username_password"in credential_el.type:
+                        glidein_params_to_encrypt['Username']=credential_el.file_id(credential_el.filename)
+                        glidein_params_to_encrypt['Password']=credential_el.file_id(credential_el.key_fname)
+                    if "grid_proxy" in credential_el.type:
+                        glidein_params_to_encrypt['SubmitProxy']=credential_el.file_id(credential_el.filename)
+                    if "cert_pair" in credential_el.type:
+                        glidein_params_to_encrypt['PublicCert']=credential_el.file_id(credential_el.filename)
+                        glidein_params_to_encrypt['PrivateCert']=credential_el.file_id(credential_el.key_fname)
+                    if "key_pair" in credential_el.type:
+                        glidein_params_to_encrypt['PublicKey']=credential_el.file_id(credential_el.filename)
+                        glidein_params_to_encrypt['PrivateKey']=credential_el.file_id(credential_el.key_fname)
+                    if hasattr(credential_el,'pilot_fname'):
+                        glidein_params_to_encrypt['GlideinProxy']=credential_el.file_id(credential_el.pilot_fname)
+                    
+                    if "vm_id" in credential_el.type:
+                        glidein_params_to_encrypt['VMId']=credential_el.file_id(credential_el.vm_id)
+                    if "vm_type" in credential_el.type:
+                        glidein_params_to_encrypt['VMType']=credential_el.file_id(credential_el.vm_type)
+                        
                     (req_idle,req_max_run)=credential_el.get_usage_details()
                     logSupport.log.info("Advertizing credential %s with (%d idle, %d max run) for request %s"%(credential_el.filename, req_idle, req_max_run, params_obj.request_name))
                 

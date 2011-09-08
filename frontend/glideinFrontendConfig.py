@@ -253,6 +253,22 @@ class ElementMergedDescript:
                     proxy_pilot_files[k]=dprs[k]
         self.merged_data['ProxyPilotFiles']=proxy_pilot_files
 
+        proxy_vm_ids={}
+        for data in (self.frontend_data,self.element_data):
+            if data.has_key('ProxyVMIds'):
+                dprs=eval(data['ProxyVMIds'])
+                for k in dprs.keys():
+                    proxy_vm_ids[k]=dprs[k]
+        self.merged_data['ProxyVMIds']=proxy_vm_ids
+
+        proxy_vm_types={}
+        for data in (self.frontend_data,self.element_data):
+            if data.has_key('ProxyVMTypes'):
+                dprs=eval(data['ProxyVMTypes'])
+                for k in dprs.keys():
+                    proxy_vm_types[k]=dprs[k]
+        self.merged_data['ProxyVMTypes']=proxy_vm_types
+        
         return
 
     def split_list(self,val):

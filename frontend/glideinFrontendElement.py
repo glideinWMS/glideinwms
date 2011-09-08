@@ -143,7 +143,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
 
     factory_constraint = elementDescript.merged_data['FactoryQueryExpr']
     factory_pools = elementDescript.merged_data['FactoryCollectors']
-    
+        
     # query globals
     # We can't fork this since the M2Crypto key objects are not pickle-able.  Not much to gain by forking anyway.
     globals_dict = {}
@@ -294,7 +294,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     glidein_dict=pipe_out['entries']
     condorq_dict=pipe_out['jobs']
     status_dict=pipe_out['startds']
-
+    
     condorq_dict_voms=glideinFrontendLib.getIdleVomsCondorQ(condorq_dict)
     condorq_dict_idle = glideinFrontendLib.getIdleCondorQ(condorq_dict)
     condorq_dict_old_idle = glideinFrontendLib.getOldCondorQ(condorq_dict_idle, 600)
@@ -363,7 +363,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     #        # don't know what to do with this key, notify the admin
     #        # if key needed, will handle the error later on
     #        logSupport.log.info("Factory '%s@%s': unsupported pub key type '%s'" % (glideid[1], glideid[0], glidein_el['attrs']['PubKeyType']))
-
+    
     # update x509 user map and give proxy plugin a chance to update based on condor stats
     if x509_proxy_plugin != None:
         logSupport.log.info("Updating usermap ");
@@ -447,7 +447,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     total_running = condorq_dict_types['Running']['total']
     logSupport.log.info("Total matching idle %i (old %i) running %i limit %i" % (condorq_dict_types['Idle']['total'], condorq_dict_types['OldIdle']['total'], total_running, max_running))
 
-    advertizer=glideinFrontendInterface.MultiAdvertizeWork(descript_obj)
+    advertizer = glideinFrontendInterface.MultiAdvertizeWork(descript_obj)
     resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser(multi_support=glideinFrontendInterface.frontendConfig.advertise_use_multi)
     
     # Add globals
@@ -667,6 +667,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
             trust_domain=glidein_el['attrs']['GLIDEIN_TrustDomain']
         else:
             trust_domain="Grid"
+            
         if glidein_el['attrs'].has_key('GLIDEIN_SupportedAuthenticationMethod'):
             auth_method=glidein_el['attrs']['GLIDEIN_SupportedAuthenticationMethod']
         else:
@@ -728,7 +729,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     try:
         logSupport.log.info("Advertising global requests")
         advertizer.do_global_advertize()
-        logSupport.log.info("Advertising %i requests" % advertizer.get_queue_len())
+        logSupport.log.info("Advertising glidein requests") # cannot advertise len of queue since has both global and glidein requests
         advertizer.do_advertize()
         logSupport.log.info("Done advertising")
     except glideinFrontendInterface.MultiExeError, e:

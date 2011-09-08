@@ -534,56 +534,68 @@ def populate_common_descript(descript_dict,        # will be modified
     if params.security.proxy_selection_plugin!=None:
         descript_dict.add('ProxySelectionPlugin',params.security.proxy_selection_plugin)
 
-    if len(params.security.credentials)>0:
-        proxies=[]
-        proxy_trust_domains={}
-        proxy_security_classes={}
-        proxy_types={}
-        proxy_key_files={}
-        proxy_pilot_files={}
+    if len(params.security.credentials) > 0:
+        proxies = []
+        proxy_trust_domains = {}
+        proxy_security_classes = {}
+        proxy_types = {}
+        proxy_key_files = {}
+        proxy_pilot_files = {}
+        proxy_vm_ids = {}
+        proxy_vm_types = {}
         for pel in params.security.credentials:
-            if pel['absfname']==None:
-                raise RuntimeError,"All proxies need a absfname!"
-            if pel['pool_count']==None:
+            if pel['absfname'] == None:
+                raise RuntimeError, "All proxies need a absfname!"
+            if pel['pool_count'] == None:
                 # only one
                 proxies.append(pel['absfname'])
-                if pel['security_class']!=None:
-                    proxy_security_classes[pel['absfname']]=pel['security_class']
-                if pel['trust_domain']!=None:
-                    proxy_trust_domains[pel['absfname']]=pel['trust_domain']
-                if pel['type']!=None:
-                    proxy_types[pel['absfname']]=pel['type']
-                if pel['keyabsfname']!=None:
-                    proxy_key_files[pel['absfname']]=pel['keyabsfname']
-                if pel['pilotabsfname']!=None:
-                    proxy_pilot_files[pel['absfname']]=pel['pilotabsfname']
+                if pel['security_class'] != None:
+                    proxy_security_classes[pel['absfname']] = pel['security_class']
+                if pel['trust_domain'] != None:
+                    proxy_trust_domains[pel['absfname']] = pel['trust_domain']
+                if pel['type'] != None:
+                    proxy_types[pel['absfname']] = pel['type']
+                if pel['keyabsfname'] != None:
+                    proxy_key_files[pel['absfname']] = pel['keyabsfname']
+                if pel['vm_id'] != None:
+                    proxy_vm_ids[pel['absfname']] = pel['vm_id']
+                if pel['vm_type'] != None:
+                    proxy_vm_types[pel['absfname']] = pel['vm_type']
             else: #pool
-                pool_count=int(pel['pool_count'])
+                pool_count = int(pel['pool_count'])
                 for i in range(pool_count):
-                    absfname="%s%s" % (pel['absfname'], str(i+1))
+                    absfname = "%s%s" % (pel['absfname'], str(i + 1))
                     proxies.append(absfname)
-                    if pel['security_class']!=None:
-                        proxy_security_classes[absfname]=pel['security_class']
-                    if pel['trust_domain']!=None:
-                        proxy_trust_domains[absfname]=pel['trust_domain']
-                    if pel['type']!=None:
-                        proxy_types[absfname]=pel['type']
-                    if pel['keyabsfname']!=None:
-                        proxy_key_files[absfname]=pel['keyabsfname']
-                    if pel['pilotabsfname']!=None:
-                        proxy_pilot_files[absfname]=pel['pilotabsfname']
+                    if pel['security_class'] != None:
+                        proxy_security_classes[absfname] = pel['security_class']
+                    if pel['trust_domain'] != None:
+                        proxy_trust_domains[absfname] = pel['trust_domain']
+                    if pel['type'] != None:
+                        proxy_types[absfname] = pel['type']
+                    if pel['keyabsfname'] != None:
+                        proxy_key_files[absfname] = pel['keyabsfname']
+                    if pel['pilotabsfname'] != None:
+                        proxy_pilot_files[absfname] = pel['pilotabsfname']
+                    if pel['vm_id'] != None:
+                        proxy_vm_ids[absfname] = pel['vm_id']
+                    if pel['vm_type'] != None:
+                        proxy_vm_types[absfname] = pel['vm_type']
 
-        descript_dict.add('Proxies',repr(proxies))
-        if len(proxy_trust_domains.keys())>0:
-            descript_dict.add('ProxyTrustDomains',repr(proxy_trust_domains))
-        if len(proxy_security_classes.keys())>0:
-            descript_dict.add('ProxySecurityClasses',repr(proxy_security_classes))
-        if len(proxy_types.keys())>0:
-            descript_dict.add('ProxyTypes',repr(proxy_types))
-        if len(proxy_key_files.keys())>0:
-            descript_dict.add('ProxyKeyFiles',repr(proxy_key_files))
-        if len(proxy_pilot_files.keys())>0:
-            descript_dict.add('ProxyPilotFiles',repr(proxy_pilot_files))
+        descript_dict.add('Proxies', repr(proxies))
+        if len(proxy_trust_domains.keys()) > 0:
+            descript_dict.add('ProxyTrustDomains', repr(proxy_trust_domains))
+        if len(proxy_security_classes.keys()) > 0:
+            descript_dict.add('ProxySecurityClasses', repr(proxy_security_classes))
+        if len(proxy_types.keys()) > 0:
+            descript_dict.add('ProxyTypes', repr(proxy_types))
+        if len(proxy_key_files.keys()) > 0:
+            descript_dict.add('ProxyKeyFiles', repr(proxy_key_files))
+        if len(proxy_pilot_files.keys()) > 0:
+            descript_dict.add('ProxyPilotFiles', repr(proxy_pilot_files))
+        if len(proxy_vm_ids.keys()) > 0:
+            descript_dict.add('ProxyVMIds', repr(proxy_vm_ids))
+        if len(proxy_vm_types.keys()) > 0:
+            descript_dict.add('ProxyVMTypes', repr(proxy_vm_types))
 
     match_expr = params.match.match_expr
     if ( (params.attrs.has_key('GLIDEIN_Glexec_Use')) and 

@@ -121,7 +121,7 @@ Click on any piece for a more detailed description.
         <blockquote>
         <a href="#proxies">&lt;credentials&gt;</a><br/>
         <blockquote>
-            <a href="#proxies">&lt;credential absfname="/tmp/x509up_u" security_class="frontend" trust_domain="OSG" type="grid_proxy" &gt;</a><br/>
+            <a href="#proxies">&lt;credential absfname="/tmp/x509up_u" security_class="frontend" trust_domain="OSG" auth_method="grid_proxy" vm_id="123" vm_type="type1" pool_count="20" &gt;</a><br/>
         </blockquote>
         <a href="#proxies">&lt;/credentials&gt;</a><br/>
     </blockquote>
@@ -288,29 +288,40 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         <a name="proxies" />
         <div class="xml">
         &lt;frontend&gt;&lt;security&gt;&lt;credentials&gt;&lt;credential
-        type=&quot;<i>grid_proxy</I>&quot;
+        auth_method=&quot;<i>grid_proxy</I>&quot;
         absfname=&quot;<I>proxyfile</I>&quot;
         [keyabsfname=&quot;<I>keyfile</I>&quot;]
         [pilotabsfname=&quot;<I>proxyfile</I>&quot;]
         security_class=&quot;<I>frontend</I>&quot;
         trust_domain=&quot;<I>id</I>&quot;
+        [vm_id=&quot;<I>id</I>&quot;]
+        [vm_type=&quot;<I>type</I>&quot;]
+        [pool_count=&quot;<I>20</I>&quot;]
         /&gt;
         </div>
     This section lists credentials used by the whole frontend.  You can
     have multiple credentials listed here and they are used by all groups.
-    The type can be one of the following:
+    The authentication method can be one of the following:
     <ul>
         <li><b>grid_proxy</b>: A x509 proxy stored in the <i>absfname</i> location.</li>
         <li><b>cert_pair</b>: A x509 certificate pair with the cert in the <i>absfname</i> location and the certkey in the <i>keyabsfname</i> location.</li>
         <li><b>key_pair</b>: A key pair stored with the public key in <i>absfname</i> location and the private key in <i>keyabsfname</i> location.</li>
         <li><b>username_password</b>: A username/password combination with the username stored in a text at the <i>absfname</i> location and a password stored in a text file in the <i>keyabsfname</i> location.</li>
     </ul>
+    In addition, if you have a cloud (non-grid type) entry, you may also be required to specify the identity credentials VM id and VM type.  
+    If these either of these are specified, &quot+vm_id&quot or &quot+vm_type&quot will be added to one of the authentication methods above.  For example, 
+    auth_method="cert_pair+vm_id+vm_type".
+    <br/><br/>
+    Pool count allows the admin to configure a list of credentials without having to list each one of them.  The files must all be identical except
+    for the sequentional numbers at the end.  For example, if you have: absfname=&quotpath/foo&quot keyabsfname=&quotpath/bar&quot pilotabsfname=&quotpath/blah&quot pool_count=&quot10&quot  
+    then you should have files foo1 - foo10, bar1 - bar10, and blah1 - blah10 for a total of 30 files in path/.
+    <br/><br/>
     Security class determines what user the credential is associated with
     on the factory side.  The trust domain determines which entries this
     credential will be used on.  The credential will only be submitted to 
     sites that match this trust domain.  Coordinate with your factory operator
     in order to properly determine these values.
-    <br/>
+    <br/><br/>
     The attribute <i>pilotabsfname</i> is required for non-grid types.  
     This specifies a proxy (distinct from the credentials used to actually 
     submit) that is used for the pilot to connect back to the user pool.
@@ -575,12 +586,15 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         type=&quot;<i>grid_proxy</i>&quot;
         absfname=&quot;<I>proxyfile</I>&quot;
         [keyabsfname=&quot;<I>keyfile</I>&quot;]
+        [pilotabsfname=&quot;<I>proxyfile</I>&quot;]
         security_class=&quot;<I>classname</I>&quot; 
         trust_domain=&quot;<I>id</I>&quot; 
+        [vm_id=&quot;<I>id</I>&quot;]
+        [vm_type=&quot;<I>type</I>&quot;]
         /&gt;
 
         </div>
-        Group-specific credentials (e.g. proxies) for submitting glideins can be defined that will be passed to the factory in addition to any <a href="#proxies">globally defined credentials</a>.
+        Group-specific credentials can be defined that will be passed to the factory in addition to any <a href="#proxies">globally defined credentials</a>.
     </P></li>
     <LI><P>
         <a name="collectors" />
