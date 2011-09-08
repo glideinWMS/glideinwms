@@ -136,7 +136,7 @@ Factory troubleshooting:
     source $GLIDEINWMS_USERSCHEDD_HOME/condor.sh
     </blockquote>
     
-    Based on the actual condor scheduler, you can find scheduler logfile, SchedLog, in one of the sub directories of directory listed by “condor_config_val local_dir”
+    Based on the actual condor scheduler, you can find scheduler logfile, SchedLog, in one of the sub directories of directory listed by &ldquo;condor_config_val local_dir&rdquo;
     </p>
 
     <p>
@@ -165,10 +165,10 @@ Factory troubleshooting:
     <p>
     Check if the VO frontend is running. If not start it.
     </p><p>
-    Glidein Frontend processes periodically query for user jobs in the user schedd. Once you have submitted the job, VO frontend should notice it during its next queering cycle. Once the frontend identifies potential entry points that can run your job, it will reflect this information in the glideclient classad in WMS collector for that corresponding entry point. You can find this information by running “condor_status -any -pool &lt;wms collector fqdn&gt;”
+    Glidein Frontend processes periodically query for user jobs in the user schedd. Once you have submitted the job, VO frontend should notice it during its next queering cycle. Once the frontend identifies potential entry points that can run your job, it will reflect this information in the glideclient classad in WMS collector for that corresponding entry point. You can find this information by running &ldquo;condor_status -any -pool &lt;wms collector fqdn&gt;&rdquo;
     </p><p>
 
-    Check for error messages in logs located in GLIDEINWMS_VOFRONTEND_HOME/log.  Assuming that you have named frontend main group as “main”, check the log files in GLIDEINWMS_VOFRONTEND_HOME/group_main/log. 
+    Check for error messages in logs located in GLIDEINWMS_VOFRONTEND_HOME/log.  Assuming that you have named frontend main group as &ldquo;main&rdquo;, check the log files in GLIDEINWMS_VOFRONTEND_HOME/group_main/log. 
         <blockquote>
         [2009-12-07T15:16:25-05:00 12398] For ress_GRATIA_TEST_31@v1_0@mySites-cmssrv97@cmssrv97.fnal.gov Idle 19 (effective 19 old 19) Running 0 (max 10000)<br/>
         [2009-12-07T15:16:25-05:00 12398] Glideins for ress_GRATIA_TEST_31@v1_0@mySites-cmssrv97@cmssrv97.fnal.gov Total 0 Idle 0 Running 0<br/>

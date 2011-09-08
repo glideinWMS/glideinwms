@@ -124,12 +124,12 @@ specific meaning:</P>
 
     <LI>Attribute type
     <UL>
-        <LI>I – integer</li>
-        <LI>S – quoted string</li>
-        <LI>C – unquoted string (i.e. Condor keyword or expression)</li>
+        <LI>I &ndash; integer</li>
+        <LI>S &ndash; quoted string</li>
+        <LI>C &ndash; unquoted string (i.e. Condor keyword or expression)</li>
     </UL>
     </li>
-    <LI>Default value, use – if no default</li>
+    <LI>Default value, use &ndash; if no default</li>
 
     <LI>Condor name, i.e. under which name should this attributed be
     known in the configuration used by Condor daemons</li>
@@ -197,9 +197,9 @@ glideins are Condor based; see the <A target="_blank" HREF="http://www.cs.wisc.e
 changed by a Glidein Factory administrator using attr tags in the
 factory configuration XML using the following tags:</P>
 <BLOCKQUOTE>
-    <B>&lt;attr name</B>=”<I>name</I>” <B>value</B>=”<I>val</I>”
+    <B>&lt;attr name</B>=&ldquo;<I>name</I>&rdquo; <B>value</B>=&ldquo;<I>val</I>&rdquo;
 
-<B>type</B>=”<I>type</I>” ...<B>/&gt;</B>
+<B>type</B>=&ldquo;<I>type</I>&rdquo; ...<B>/&gt;</B>
 </BLOCKQUOTE>
 <P>More information on the XML format can be found in 
 <A HREF="configuration.html#args">Glidein Factory configuration</A> section.
@@ -553,7 +553,7 @@ They cannot be changed by an administrator in any other way.
         </TD>
         <TD>
             <P>Logical name of the Glidein Factory machine 
-            (like “osg1”).</P>
+            (like &ldquo;osg1&rdquo;).</P>
 
         </TD>
     </TR>
@@ -566,7 +566,7 @@ They cannot be changed by an administrator in any other way.
         </TD>
         <TD>
             <P>Identification name of the Glidein Factory 
-            instance (like “v1_0”).</P>
+            instance (like &ldquo;v1_0&rdquo;).</P>
         </TD>
     </TR>
         <TR>
@@ -574,12 +574,12 @@ They cannot be changed by an administrator in any other way.
             <td> <b>GLIDEIN_Entry_Name</b> </td>
             <TD> String </TD>
             <TD>
-                ...&lt;entries&gt;&lt;entry name=”<B>value</B>”&gt;
+                ...&lt;entries&gt;&lt;entry name=&rdquo;<B>value</B>&rdquo;&gt;
 
             </TD>
             <TD>
                 <P>Identification name of the entry point 
-                (like “ucsd5”).</P>
+                (like &ldquo;ucsd5&rdquo;).</P>
             </TD>
         </TR>
         <TR>
@@ -587,11 +587,11 @@ They cannot be changed by an administrator in any other way.
 
             <TD> String </TD>
             <TD>
-                ...&lt;entries&gt;&lt;entry gridtype=”<B>value</B>”&gt;
+                ...&lt;entries&gt;&lt;entry gridtype=&ldquo;<B>value</B>&rdquo;&gt;
             </TD>
             <TD>
 
-                <P>Type of Grid resource (like “gt2”).</P>
+                <P>Type of Grid resource (like &ldquo;gt2&rdquo;).</P>
             </TD>
         </TR>
         <TR>
@@ -599,11 +599,11 @@ They cannot be changed by an administrator in any other way.
             <TD> String </TD>
 
             <TD>
-                ...&lt;entries&gt;&lt;entry gatekeeper=”<B>value</B>”&gt;</P>
+                ...&lt;entries&gt;&lt;entry gatekeeper=&ldquo;<B>value</B>&rdquo;&gt;</P>
             </TD>
             <TD>
                 <P>URI of the Grid gatekeeper (like
-                “osg1.ucsd.edu/jobmanager-pbs”)</P>
+                &ldquo;osg1.ucsd.edu/jobmanager-pbs&rdquo;)</P>
             </TD>
 
         </TR>
@@ -611,7 +611,7 @@ They cannot be changed by an administrator in any other way.
             <td> <b>GLIDEIN_GlobusRSL</b> </td>
             <TD> String </TD>
             <TD>
-                ...&lt;entries&gt;&lt;entry rsl=”<B>value</B>”&gt;
+                ...&lt;entries&gt;&lt;entry rsl=&ldquo;<B>value</B>&rdquo;&gt;
 
             </TD>
             <TD>
@@ -625,12 +625,12 @@ They cannot be changed by an administrator in any other way.
 
             <TD> String </TD>
             <TD>
-                ...&lt;entries&gt;&lt;entry proxy_url=”<B>value</B>”&gt;
+                ...&lt;entries&gt;&lt;entry proxy_url=&ldquo;<B>value</B>&rdquo;&gt;
             </TD>
             <TD>
 
                 <P>Optional URL of the site Web proxy.</P>
-                <P>A special value “OSG” can be used to automatically
+                <P>A special value &ldquo;OSG&rdquo; can be used to automatically
                 discover the local Web proxy on OSG worker nodes.</P>
                 <P>This variable is exported as <B>GLIDEIN_Proxy_URL</B> to the
                 use job environment.</P>
@@ -641,21 +641,21 @@ They cannot be changed by an administrator in any other way.
             <td> <b>DEBUG_MODE</b> </td>
             <TD> String </TD>
             <TD>
-                ...&lt;entries&gt;&lt;entry verbosity=”<B>value</B>”&gt;
+                ...&lt;entries&gt;&lt;entry verbosity=&ldquo;<B>value</B>&rdquo;&gt;
 
             </TD>
             <TD>
                 <P>This setting can be either:</P>
                 <UL>
-                    <LI><P>“std” - Default mode, where all interesting debug
+                    <LI><P>&ldquo;std&rdquo; - Default mode, where all interesting debug
                     information is reported back to the Glidein Factory and the
                     glidein will wait 20 minutes on a worker node that failed
                     validation to minimize the black hole effect.</P>
-                    <LI><P>“nodebug” - Disable most diagnostic messages. This
+                    <LI><P>&ldquo;nodebug&rdquo; - Disable most diagnostic messages. This
                     can be useful for very stable setups. The glidein still waits 20
                     minutes on a worker node that failed validation to minimize the
                     black hole effect.</P>
-                    <LI><P>Fast – All debugging is enabled and the glidein waits
+                    <LI><P>Fast &ndash; All debugging is enabled and the glidein waits
                     only 2 minutes on a worker node that failed validation. This
                     mode is useful when debugging a misbehaving Grid site.</P>
 
@@ -682,7 +682,7 @@ described below ar the most often used.</P>
         <TD> String </TD>
         <TD>
             <P>Identification name of the VO frontend request (like
-            “ucsd5@v1_0@osg1@cms4”).</P>
+            &ldquo;ucsd5@v1_0@osg1@cms4&rdquo;).</P>
         </TD>
     </TR>
     <TR>
@@ -691,7 +691,7 @@ described below ar the most often used.</P>
         <TD> List </TD>
         <TD>
             <P>List of Collector URIs used by the VO Condor pool (like
-                “cc.cms.edu:9620,cc.cms.edu:9621”).</P>
+                &ldquo;cc.cms.edu:9620,cc.cms.edu:9621&rdquo;).</P>
                 <P>One of the URIs in the list will be selected and used as
                 <B>HEAD_NODE</B> in the condor_config.</P>
         </TD>
@@ -816,7 +816,7 @@ cannot directly change them.</P>
 downloaded or created by the glidein. Most of them are located under
 the working directory specified by</P>
 <BLOCKQUOTE>
-    &lt;entry work_dir=”value”&gt;
+    &lt;entry work_dir=&ldquo;value&rdquo;&gt;
 
 </BLOCKQUOTE>
 <TABLE class="attributes">
