@@ -6,12 +6,11 @@ Library for the information system comparisons.
 """
 
 from xml.dom import minidom
-import socket
+#import socket
 import urllib2
 
 import glideinwms_libs.ldapMonitor
 import glideinwms_libs.condorMonitor
-import glideinwms_libs.condorExe
 
 
 def query_bdii(bdii_source, vo_name=''):
@@ -192,30 +191,30 @@ def siteType(ceList, Bdii):
     return ceType
 
 def parseGridType(siteDescr, siteInfo):
-    ''' Given a GlueSiteDescription and GlueSiteOtherInfo, determine the grid type '''
-    ''' https://wiki.egi.eu/wiki/MAN1_How_to_publish_Site_Information '''
-    
+    """ Given a GlueSiteDescription and GlueSiteOtherInfo, determine the grid type 
+        https://wiki.egi.eu/wiki/MAN1_How_to_publish_Site_Information """
+
     if 'OSG' in siteDescr:
         return 'OSG'
-    
+
     if 'GRID=NDGF' in siteInfo:
         return 'Nordugrid'
-    
+
     if 'GRID=EGI' in siteInfo or 'GRID=EGEE' in siteInfo:
         return 'EGI'
-    
+
     if 'GRID=EELA' in siteInfo:
         return 'EELA'
-    
+
     if 'GRID=UKNGS' in siteInfo:
         return 'UKNGS'
-    
+
     if 'GRID=SCOTGRID' in siteInfo:
         return 'SCOTGRID'
-    
+
     if 'GRID=WLCG' in siteInfo:
         return 'WLCG-Unknown'
-    
+
     return 'Unknown'
 
 
@@ -236,7 +235,8 @@ def query_ress(ress_source, vo=''):
     if vo != '':
         ress_constraint = '(GlueCEInfoContactString=!=UNDEFINED)&&(StringlistMember("VO:%s",GlueCEAccessControlBaseRule))' % vo
 
-    ress_ip = socket.gethostbyname(ress_source)
+    # AT - Unused???
+    #ress_ip = socket.gethostbyname(ress_source)
 
     # Get RESS info
     condor_obj = glideinwms_libs.condorMonitor.CondorStatus(pool_name=ress_source)

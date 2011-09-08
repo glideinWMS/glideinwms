@@ -1,0 +1,30 @@
+The layout of the code has changed significantly.  Now instead of doing crazy 
+imports, you only need to add the root directory to PYTHONPATH (preferably in 
+the startup scripts for non-rpm installed systems).  For FHS compliant installs
+you don't even need to do that.  The python packages are already in the system
+path.
+
+Development is easier as well.  For those using an IDE, merely add the root 
+directory to the python path and all the context sensitive features of the IDE
+will find the packages.  Pylint will be much happier since we now can point it 
+at the packages rather than individual files.
+
+
+Directory layout mappings for FHS compliant systems:
+
++--------------------------+-----------------------------------------------------------+
+| Source Directory         | FHS Directory                                             |
++--------------------------+-----------------------------------------------------------+
+| bin                      | /usr/bin                                                  |
+| etc                      | /etc/glideinwms                                           |
+| web_base                 | /usr/share/glideinwms                                     |
+| doc                      | /usr/share/glideinwms/doc                                 |
+| glideinwms_configure     | /usr/lib/python2.x/site-packages/glideinwms_configure     |
+| glideinwms_creation      | /usr/lib/python2.x/site-packages/glideinwms_creation      |
+| glideinwms_factory       | /usr/lib/python2.x/site-packages/glideinwms_factory       |
+| glideinwms_factory_tools | /usr/lib/python2.x/site-packages/glideinwms_factory_tools |
+| glideinwms_frontend      | /usr/lib/python2.x/site-packages/glideinwms_frontend      |
+| glideinwms_libs          | /usr/lib/python2.x/site-packages/glideinwms_libs          |
+| glideinwms_tools         | /usr/lib/python2.x/site-packages/glideinwms_tools         |
++--------------------------+-----------------------------------------------------------+
+

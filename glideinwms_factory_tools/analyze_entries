@@ -8,7 +8,7 @@ import datetime
 import urllib
 
 import glideinwms_libs.xmlParse
-import analyze
+import glideinwms_factory_tools.analyze
 
 def frontend_print(frontend, fe_mode, d, div, to_be_printed, fe_sorting, fe_attr_list, fe_sort_attribute):
     fdiv = 1
@@ -26,14 +26,14 @@ def frontend_print(frontend, fe_mode, d, div, to_be_printed, fe_sorting, fe_attr
     to_be_printed.append((sorter,
       "%-25s %6s|%6s %3d%%|%6s %3d%%|%6s %3d%%|%6s %3d%%|%9.2f %7.2f" %
       (frontend.lstrip("frontend_"),
-      analyze.km(float(d['total_time']) / float(div)),
-      analyze.km(float(d['used']) / float(div)),
+      glideinwms_factory_tools.analyze.km(float(d['total_time']) / float(div)),
+      glideinwms_factory_tools.analyze.km(float(d['used']) / float(div)),
       (float(d['used']) / float(div)) / (float(d['total_time']) / float(div)) * 100.0,
-      analyze.km(float(d['validation']) / float(div)),
+      glideinwms_factory_tools.analyze.km(float(d['validation']) / float(div)),
       (float(d['validation']) / float(div)) / (float(d['total_time']) / float(div)) * 100.0,
-      analyze.km(float(d['idle']) / float(div)),
+      glideinwms_factory_tools.analyze.km(float(d['idle']) / float(div)),
       (float(d['idle']) / float(div)) / (float(d['total_time']) / float(div)) * 100.0,
-      analyze.km(float(d['waste']) / float(div)),
+      glideinwms_factory_tools.analyze.km(float(d['waste']) / float(div)),
       (float(d['waste']) / float(div)) / (float(d['total_time']) / float(div)) * 100.0,
       float(d['used']) / float(d['waste']),
       float(d['used']) / float(d['used'] + d['waste']))))
@@ -65,11 +65,11 @@ Time efficiency: %.2f
         t, d['glideins'], s,
         t, d['jobs'],
         float(d['jobs']) / float(d['glideins']),
-        t, analyze.printline(d['total_time'], 1, p),
-        t, analyze.printline(d['used'], d['total_time'], p),
-        t, analyze.printline(d['validation'], d['total_time'], p),
-        t, analyze.printline(d['idle'], d['total_time'], p),
-        t, analyze.printline(d['waste'], d['total_time'], p),
+        t, glideinwms_factory_tools.analyze.printline(d['total_time'], 1, p),
+        t, glideinwms_factory_tools.analyze.printline(d['used'], d['total_time'], p),
+        t, glideinwms_factory_tools.analyze.printline(d['validation'], d['total_time'], p),
+        t, glideinwms_factory_tools.analyze.printline(d['idle'], d['total_time'], p),
+        t, glideinwms_factory_tools.analyze.printline(d['waste'], d['total_time'], p),
         float(d['used']) / float(d['waste']),
         float(d['used']) / float(d['waste'] + d['used'])))
 

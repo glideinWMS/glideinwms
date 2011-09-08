@@ -9,7 +9,7 @@ import datetime
 import urllib
 
 import glideinwms_libs.xmlParse
-import analyze
+import glideinwms_factory_tools.analyze
 
 def list_print(frontend, zero_supp, entry_data, sorting, attr_list, sort_attribute, div):
     to_be_printed = []
@@ -39,14 +39,14 @@ def list_print(frontend, zero_supp, entry_data, sorting, attr_list, sort_attribu
         to_be_printed.append((entry[attr_list[sort_attribute]],
               ("%-40s %7s %7s %7s | %7s | %7s %7s %7s | %7s %4d%% %4d%%"
              % (entry_name.lstrip("entry_"),
-               analyze.km(float(entry['ClientGlideTotal']) / div),
-               analyze.km(float(entry['ClientGlideRunning']) / div),
-               analyze.km(float(entry['ClientGlideIdle']) / div),
-               analyze.km(float(entry['ReqIdle']) / div),
-               analyze.km(float(entry['ClientJobsRunning']) / div),
-               analyze.km(float(entry['ClientJobsRunHere']) / div),
-               analyze.km(float(entry['ClientJobsIdle']) / div),
-               analyze.km(float(entry['RunDiff']) / div),
+               glideinwms_factory_tools.analyze.km(float(entry['ClientGlideTotal']) / div),
+               glideinwms_factory_tools.analyze.km(float(entry['ClientGlideRunning']) / div),
+               glideinwms_factory_tools.analyze.km(float(entry['ClientGlideIdle']) / div),
+               glideinwms_factory_tools.analyze.km(float(entry['ReqIdle']) / div),
+               glideinwms_factory_tools.analyze.km(float(entry['ClientJobsRunning']) / div),
+               glideinwms_factory_tools.analyze.km(float(entry['ClientJobsRunHere']) / div),
+               glideinwms_factory_tools.analyze.km(float(entry['ClientJobsIdle']) / div),
+               glideinwms_factory_tools.analyze.km(float(entry['RunDiff']) / div),
                entry['UM'],
                entry['RD']))))
     
@@ -320,17 +320,17 @@ Jobs Idle:      %s
 RunDiff (Running-ClientRegistered): %s
 """
      % (title,
-       analyze.printline(period_data[period]['ClientGlideTotal'], 1, period),
-       analyze.printline(period_data[period]['ClientGlideRunning'], period_data[period]['ClientGlideTotal'], period),
-       analyze.printline(period_data[period]['ClientGlideIdle'], period_data[period]['ClientGlideTotal'], period),
+       glideinwms_factory_tools.analyze.printline(period_data[period]['ClientGlideTotal'], 1, period),
+       glideinwms_factory_tools.analyze.printline(period_data[period]['ClientGlideRunning'], period_data[period]['ClientGlideTotal'], period),
+       glideinwms_factory_tools.analyze.printline(period_data[period]['ClientGlideIdle'], period_data[period]['ClientGlideTotal'], period),
 
-       analyze.printline(period_data[period]['ReqIdle'], 1, period),
+       glideinwms_factory_tools.analyze.printline(period_data[period]['ReqIdle'], 1, period),
 
-       analyze.printline(period_data[period]['ClientJobsRunning'], 1, period),
-       analyze.printline(period_data[period]['ClientJobsRunHere'], 1, period),
-       analyze.printline(period_data[period]['ClientJobsIdle'], 1, period),
+       glideinwms_factory_tools.analyze.printline(period_data[period]['ClientJobsRunning'], 1, period),
+       glideinwms_factory_tools.analyze.printline(period_data[period]['ClientJobsRunHere'], 1, period),
+       glideinwms_factory_tools.analyze.printline(period_data[period]['ClientJobsIdle'], 1, period),
 
-       analyze.printline(period_data[period]['StatusRunning'] - period_data[period]['ClientGlideTotal'], period_data[period]['StatusRunning'], period)))
+       glideinwms_factory_tools.analyze.printline(period_data[period]['StatusRunning'] - period_data[period]['ClientGlideTotal'], period_data[period]['StatusRunning'], period)))
 
 
 ################################################################################
