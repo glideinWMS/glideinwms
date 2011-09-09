@@ -48,10 +48,10 @@ class DowntimeFile:
 
     # start a downtime that we don't know when it will end
     # if start_time==None, use current time
-    def startDowntime(self,start_time=None,entry="All",frontend="All",security_class="All",comment="",create_if_empty=True):
+    def startDowntime(self,start_time=None,end_time=None,entry="All",frontend="All",security_class="All",comment="",create_if_empty=True):
         if start_time==None:
             start_time=long(time.time())
-        return self.addPeriod(start_time,None,entry,frontend, security_class, comment,create_if_empty)
+        return self.addPeriod(start_time,end_time,entry,frontend, security_class, comment,create_if_empty)
 
     # end a downtime (not a scheduled one)
     # if end_time==None, use current time
