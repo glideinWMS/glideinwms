@@ -60,14 +60,13 @@ def strtxt2time(timeStr):
         if len(darr)>2:
             month=long(darr[-3])
             if len(darr)>3:
-                month=long(darr[-4])
+                year=long(darr[-4])
 
     tarr=timeStr.split(':')
     hours=long(tarr[0])
     minutes=long(tarr[1])
     if len(tarr)>2:
         seconds=long(tarr[2])
-
     outtime=time.mktime((year, month, day, hours, minutes, seconds, 0, 0, -1))
     return outtime
 
@@ -168,12 +167,20 @@ def delay2time(delayStr):
 
 def down(entry_name,opt_dict):
     down_fd=get_downtime_fd(entry_name,opt_dict["dir"])
-    when=delay2time(opt_dict["delay"])+long(time.time())
+    when=delay2time(opt_dict["delay"])
+    if (opt_dict["start"]=="None"):
+        when+=long(time.time())
+    else:
+        when+=str2time(opt_dict["start"]);
+    if (opt_dict["end"]=="None"):
+        end_time=None
+    else:
+        end_time=str2time(opt_dict["end"])
     frontend=opt_dict["frontend"]
     sec_name=opt_dict["sec"]
     if not down_fd.checkDowntime(entry=entry_name, frontend=frontend, security_class=sec_name, check_time=when): 
         #only add a new line if not in downtime at that time
-        return down_fd.startDowntime(start_time=when,frontend=frontend,security_class=sec_name,entry=entry_name,comment=opt_dict["comment"])
+        return down_fd.startDowntime(start_time=when,end_time=end_time,frontend=frontend,security_class=sec_name,entry=entry_name,comment=opt_dict["comment"])
     return 0
 
 def up(entry_name,opt_dict):
@@ -182,7 +189,10 @@ def up(entry_name,opt_dict):
     sec_name=opt_dict["sec"]
     frontend=opt_dict["frontend"]
     comment=opt_dict["comment"]
-    when+=long(time.time())
+    if (opt_dict["end"]=="None"):
+        when+=long(time.time())
+    else:
+        when+=str2time(opt_dict["end"]);
     # commenting this check out since we could be in a downtime
     # for certain security_classes/frontend, but if we specify
     # -cmd up and -security All, etc, it should clear out all downtimes
