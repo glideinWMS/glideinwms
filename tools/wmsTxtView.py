@@ -93,7 +93,7 @@ for glidein in glideins:
     if txt_data.has_key(key):
         key_el=txt_data[key]
     else:
-        key_el={'RequestedIdle':0,'Idle':0,'Running':0,'MaxRunning':0}
+        key_el={'RequestedIdle':0,'Idle':0,'Running':0,'MaxGlideins':0}
         txt_data[key]=key_el
 
     if glidein_el.has_key('monitor'):
@@ -101,16 +101,16 @@ for glidein in glideins:
             key_el['RequestedIdle']+=glidein_el['monitor']['TotalRequestedIdle']
             key_el['Idle']+=glidein_el['monitor']['TotalStatusIdle']
             key_el['Running']+=glidein_el['monitor']['TotalStatusRunning']
-            key_el['MaxRunning']+=glidein_el['monitor']['TotalRequestedMaxRun']
+            key_el['MaxGlideins']+=glidein_el['monitor']['TotalRequestedMaxGlideins']
 
 #print data
 txt_keys=txt_data.keys()
 txt_keys.sort()
 
-print '%s ReqIdle  Idle   Running  MaxRun'%string.ljust('Entry',48)
+print '%s ReqIdle  Idle   Running  MaxGlideins'%string.ljust('Entry',48)
 print '================================================-=======-=======-=======-======='
 for key in txt_keys:
     key_el=txt_data[key]
-    print "%s %7i %7i %7i %7i"%(string.ljust(key,48),key_el['RequestedIdle'],key_el['Idle'],key_el['Running'],key_el['MaxRunning'])
+    print "%s %7i %7i %7i %7i"%(string.ljust(key,48),key_el['RequestedIdle'],key_el['Idle'],key_el['Running'],key_el['MaxGlideins'])
 
 
