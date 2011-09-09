@@ -80,12 +80,12 @@ var exactColumnsTR = new Array("Entry Name", "Downtime: Status", "Status: Runnin
 							   
 							   
 var xmlAttPeriodArry = new Array("EntryName", "StatusRunning", "StatusIdle", "StatusWait", "StatusPending", "StatusStageIn", "StatusStageOut","StatusIdleOther", 
-								 "StatusHeld", "ReqMaxRun", "ReqIdle", "ClientGlideRunning", "ClientJobsRunHere", "ClientJobsRunning", "ClientGlideIdle", 
+								 "StatusHeld", "ReqMaxGlideins", "ReqIdle", "ClientGlideRunning", "ClientJobsRunHere", "ClientJobsRunning", "ClientGlideIdle", 
 								 "ClientJobsIdle", "ClientGlideTotal",  "ClientInfoAge"); /* ONE LESS ATT THAN DEFAULT */ 
 								 
 var xmlAttDTArry = new Array("Status"); 						 					
 var xmlAttStatusArry = new Array("Running", "Idle", "Wait", "Pending", "StageIn", "StageOut", "IdleOther", "Held");
-var xmlAttReqArry = new Array("MaxRun", "Idle"); 
+var xmlAttReqArry = new Array("MaxGlideins", "Idle"); 
 var xmlAttCMArry = new Array("GlideRunning", "JobsRunHere", "JobsRunning", "GlideIdle", "JobsIdle", "GlideTotal", "InfoAge");
 var xmlAttStatNumArry = new Array(); 
 var xmlAttReqNumArry = new Array(); 
@@ -2920,7 +2920,7 @@ function selectActive()
 				currChild = totReqChild;
 			for(k = 0; k < total[i].childNodes[currChild].attributes.length; k++)
 			{
-				if(total[i].childNodes[currChild].attributes[k].nodeName == "MaxRun")
+				if(total[i].childNodes[currChild].attributes[k].nodeName == "MaxGlideins")
 				{
 					continue; 	
 				}

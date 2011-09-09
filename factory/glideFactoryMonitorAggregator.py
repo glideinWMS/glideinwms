@@ -58,7 +58,7 @@ def rrd_site(name):
 ###########################################################
 
 status_attributes={'Status':("Idle","Running","Held","Wait","Pending","StageIn","IdleOther","StageOut"),
-                   'Requested':("Idle","MaxRun"),
+                   'Requested':("Idle","MaxGlideins"),
                    'ClientMonitor':("InfoAge","JobsIdle","JobsRunning","JobsRunHere","GlideIdle","GlideRunning","GlideTotal")}
 
 ##############################################################################

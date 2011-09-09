@@ -236,7 +236,7 @@ class condorQStats:
 
         self.files_updated = None
         self.attributes = {'Status':("Idle", "Running", "Held", "Wait", "Pending", "StageIn", "IdleOther", "StageOut"),
-                         'Requested':("Idle", "MaxRun"),
+                         'Requested':("Idle", "MaxGlideins"),
                          'ClientMonitor':("InfoAge", "JobsIdle", "JobsRunning", "JobsRunHere", "GlideIdle", "GlideRunning", "GlideTotal")}
         # create a global downtime field since we want to propagate it in various places
         self.downtime = 'True'
@@ -289,7 +289,7 @@ class condorQStats:
             el = {}
             t_el['Requested'] = el
 
-        for reqpair in  (('IdleGlideins', 'Idle'), ('MaxGlideins', 'MaxRun')):
+        for reqpair in  (('IdleGlideins', 'Idle'), ('MaxGlideins', 'MaxGlideins')):
             org, new = reqpair
             if not el.has_key(new):
                 el[new] = 0

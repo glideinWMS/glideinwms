@@ -343,8 +343,8 @@ function UpdateGroup(group_obj) {
 
         requested_idle.push(parseFloat($(this).find("Requested").attr('Idle')));
         data.setCell(counter, 7, parseFloat($(this).find("Requested").attr('Idle')));
-        requested_running.push(parseFloat($(this).find("Requested").attr('MaxRun')));
-        data.setCell(counter, 6, parseFloat($(this).find("Requested").attr('MaxRun')));
+        requested_running.push(parseFloat($(this).find("Requested").attr('MaxGlideins')));
+        data.setCell(counter, 6, parseFloat($(this).find("Requested").attr('MaxGlideins')));
 
         counter++;
 
