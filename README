@@ -28,3 +28,17 @@ Directory layout mappings for FHS compliant systems:
 | glideinwms_tools         | /usr/lib/python2.x/site-packages/glideinwms_tools         |
 +--------------------------+-----------------------------------------------------------+
 
++--------------------------+-----------------------------------------------------------+
+| Derived Directories      | FHS Directory                                             |
++--------------------------+-----------------------------------------------------------+
+| www                      | /usr/share/glideinwms/www/<factory | frontend>            |
+| <factory | frontend>logs | /var/log/glideinwms/<factory | frontend>                  |
+| client-logs              | /var/log/glideinwms/client-logs                           |
+| lock                     | /usr/share/glideinwms/<factory | frontend>/lock           |
+|                          | /usr/share/glideinwms/<entry | group>/lock                |
+| <entry | group>logs      | /var/log/glideinwms/<entry | group>                       |
+| Condor configs           | /etc/condor/config.d                                      |
+| Apache conifg            | /etc/httpd/conf.d                                         |
+| client-proxies           | /usr/share/glideinwms/client-proxies                      |
+| glideinwms xml directory | /etc/glideinwms                                           |
++--------------------------+-----------------------------------------------------------+
