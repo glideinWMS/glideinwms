@@ -15,9 +15,9 @@
 
 import condorExe
 import condorSecurity
-import os
-import string
+import os,string
 import copy
+import socket
 import xml.parsers.expat
 
 #
@@ -27,8 +27,101 @@ import xml.parsers.expat
 # Set path to condor binaries
 def set_path(new_condor_bin_path):
     global condor_bin_path
-    condor_bin_path = new_condor_bin_path
+    condor_bin_path=new_condor_bin_path
 
+#
+# Caching classes
+#
+
+# dummy caching class, when you don't want caching
+# used as base class below, too
+class NoneScheddCache:
+    #returns (cms arg schedd string,LOCAL_DIR)
+    def getScheddId(self,schedd_name,pool_name):
+        return (self.iGetCmdScheddStr(schedd_name),{})
+
+    # INTERNAL and for inheritance
+    def iGetCmdScheddStr(self,schedd_name):
+        if schedd_name==None:
+            schedd_str=""
+        else:
+            schedd_str = "-name %s " % schedd_name
+
+        return schedd_str
+
+
+# The schedd can be found either through -name attr
+# or through the local disk lookup
+# Remember which one to use
+class LocalScheddCache(NoneScheddCache):
+    def __init__(self):
+        self.enabled=True
+        # dictionary of
+        #   (schedd_name,pool_name)=>(cms arg schedd string,env)
+        self.cache={}
+
+        self.my_ips=socket.gethostbyname_ex(socket.gethostname())[2]
+        try:
+            self.my_ips+=socket.gethostbyname_ex('localhost')[2]
+        except socket.gaierror,e:
+            pass # localhost not defined, ignore
+            
+                
+
+    def enable(self):
+        self.enabled=True
+
+    def disable(self):
+        self.enabled=False
+
+    #returns (cms arg schedd string,env)
+    def getScheddId(self,schedd_name,pool_name):
+        if schedd_name==None: # special case, do not cache
+            return ("",{})
+
+        if self.enabled:
+            k=(schedd_name,pool_name)
+            if not self.cache.has_key(k): # not in cache, discover it
+                env=self.iGetEnv(schedd_name, pool_name)
+                if env==None: #
+                    self.cache[k]=(self.iGetCmdScheddStr(schedd_name),{})
+                else:
+                    self.cache[k]=("",env)
+            return self.cache[k]
+        else: # not enabled, just return the str
+            return (self.iGetCmdScheddStr(schedd_name),{})
+
+    #
+    # PRIVATE
+    #
+
+    # return None if not found
+    # Can raise exceptions
+    def iGetEnv(self,schedd_name, pool_name):
+        cs=CondorStatus('schedd',pool_name)
+        data=cs.fetch(constraint='Name=?="%s"'%schedd_name,format_list=[('ScheddIpAddr','s'),('LOCAL_DIR_STRING','s')])
+        if not data.has_key(schedd_name):
+            raise RuntimeError, "Schedd '%s' not found"%schedd_name
+
+        el=data[schedd_name]
+        if not el.has_key('LOCAL_DIR_STRING'): # not advertising, cannot use disk optimization
+            return None
+        if not el.has_key('ScheddIpAddr'): # This should never happen
+            raise RuntimeError, "Schedd '%s' is not advertising ScheddIpAddr"%schedd_name
+
+        schedd_ip=el['ScheddIpAddr'][1:].split(':')[0]
+        if schedd_ip in self.my_ips: #seems local, go for the dir
+            l=el['LOCAL_DIR_STRING']
+            if os.path.isdir(l): # making sure the directory exists
+                return {'_CONDOR_LOCAL_DIR':l}
+            else: #dir does not exist, likely not relevant, revert to standard behaviour
+                return None
+        else: # not local
+            return None
+
+# default global object
+local_schedd_cache=LocalScheddCache()
+        
 #
 # Condor monitoring classes
 #
@@ -68,15 +161,16 @@ class StoredQuery(AbstractQuery): # still virtual, only fetchStored defined
 #
 # security_obj, if defined, should be a child of condorSecurity.ProtoRequest
 class QueryExe(StoredQuery): # first fully implemented one, execute commands 
-    def __init__(self,exe_name,resource_str,group_attribute,pool_name=None,security_obj=None):
+    def __init__(self,exe_name,resource_str,group_attribute,pool_name=None,security_obj=None,env={}):
         self.exe_name=exe_name
+        self.env=env
         self.resource_str=resource_str
         self.group_attribute=group_attribute
         self.pool_name=pool_name
         if pool_name==None:
             self.pool_str=""
         else:
-            self.pool_str = "-pool %s" % pool_name
+            self.pool_str="-pool %s"%pool_name
 
         if security_obj!=None:
             if security_obj.has_saved_state():
@@ -127,12 +221,11 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
 
         full_xml=(format_list==None)
         if format_list!=None:
-            format_arr=["-format '<c>' ClusterId"] #clusterid is always there, so this will always be printed out
+            format_arr=[]
             for format_el in format_list:
                 attr_name,attr_type=format_el
                 attr_format={'s':'%s','i':'%i','r':'%f','b':'%i'}[attr_type]
-                format_arr.append('-format \'<a n="%s"><%s>%s</%s></a>\' %s'%(attr_name,attr_type,attr_format,attr_type,attr_name))
-            format_arr.append("-format '</c>' ClusterId") #clusterid is always there, so this will always be printed out
+                format_arr.append('-format "%s" "%s"'%(attr_format,attr_name))
             format_str=string.join(format_arr," ")
 
         # set environment for security settings
@@ -140,21 +233,20 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
         self.security_obj.enforce_requests()
 
         if full_xml:
-            xml_data = condorExe.exe_cmd(self.exe_name, "%s -xml %s %s" % (self.resource_str, self.pool_str, constraint_str))
+            xml_data=condorExe.exe_cmd(self.exe_name,"%s -xml %s %s"%(self.resource_str,self.pool_str,constraint_str),env=self.env);
         else:
-            xml_data = condorExe.exe_cmd(self.exe_name, "%s %s %s %s" % (self.resource_str, format_str, self.pool_str, constraint_str))
-            xml_data = ['<?xml version="1.0"?><classads>'] + xml_data + ["</classads>"]
+            xml_data=condorExe.exe_cmd(self.exe_name,"%s %s -xml %s %s"%(self.resource_str,format_str,self.pool_str,constraint_str),env=self.env);
 
         # restore old values
         self.security_obj.restore_state()
 
-        list_data = xml2list(xml_data)
+        list_data=xml2list(xml_data)
         del xml_data
-        dict_data = list2dict(list_data, self.group_attribute)
+        dict_data=list2dict(list_data,self.group_attribute)
         return dict_data
 
-    def load(self, constraint=None, format_list=None):
-        self.stored_data = self.fetch(constraint, format_list)
+    def load(self,constraint=None,format_list=None):
+        self.stored_data=self.fetch(constraint,format_list)
 
 
 #
@@ -163,38 +255,40 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
 
 # condor_q 
 class CondorQ(QueryExe):
-    def __init__(self,schedd_name=None,pool_name=None,security_obj=None):
+    def __init__(self,schedd_name=None,pool_name=None,security_obj=None,schedd_lookup_cache=local_schedd_cache):
         self.schedd_name=schedd_name
-        if schedd_name==None:
-            schedd_str=""
-        else:
-            schedd_str = "-name %s" % schedd_name
 
-        QueryExe.__init__(self,"condor_q",schedd_str,["ClusterId","ProcId"],pool_name,security_obj)
+        if schedd_lookup_cache==None:
+            schedd_lookup_cache=NoneScheddCache()
 
-    def fetch(self, constraint=None, format_list=None):
-        if format_list != None:
+        schedd_str,env=schedd_lookup_cache.getScheddId(schedd_name, pool_name)
+
+        QueryExe.__init__(self,"condor_q",schedd_str,["ClusterId","ProcId"],pool_name,security_obj,env)
+
+    def fetch(self,constraint=None,format_list=None):
+        if format_list!=None:
             # check that ClusterId and ProcId are present, and if not add them
-            format_list = complete_format_list(format_list, [("ClusterId", 'i'), ("ProcId", 'i')])
-        return QueryExe.fetch(self, constraint=constraint, format_list=format_list)
+            format_list=complete_format_list(format_list, [("ClusterId",'i'),("ProcId",'i')])
+        return QueryExe.fetch(self,constraint=constraint,format_list=format_list)
 
 
 # condor_q, where we have only one ProcId x ClusterId
 class CondorQLite(QueryExe):
-    def __init__(self,schedd_name=None,pool_name=None,security_obj=None):
+    def __init__(self,schedd_name=None,pool_name=None,security_obj=None,schedd_lookup_cache=local_schedd_cache):
         self.schedd_name=schedd_name
-        if schedd_name==None:
-            schedd_str=""
-        else:
-            schedd_str = "-name %s" % schedd_name
 
-        QueryExe.__init__(self,"condor_q",schedd_str,"ClusterId",pool_name,security_obj)
+        if schedd_lookup_cache==None:
+            schedd_lookup_cache=NoneScheddCache()
 
-    def fetch(self, constraint=None, format_list=None):
-        if format_list != None:
+        schedd_str,env=schedd_lookup_cache.getScheddId(schedd_name, pool_name)
+
+        QueryExe.__init__(self,"condor_q",schedd_str,"ClusterId",pool_name,security_obj,env)
+
+    def fetch(self,constraint=None,format_list=None):
+        if format_list!=None:
             # check that ClusterId is present, and if not add it
-            format_list = complete_format_list(format_list, [("ClusterId", 'i')])
-        return QueryExe.fetch(self, constraint=constraint, format_list=format_list)
+            format_list=complete_format_list(format_list, [("ClusterId",'i')])
+        return QueryExe.fetch(self,constraint=constraint,format_list=format_list)
 
 # condor_status
 class CondorStatus(QueryExe):
@@ -202,15 +296,15 @@ class CondorStatus(QueryExe):
         if subsystem_name==None:
             subsystem_str=""
         else:
-            subsystem_str = "-%s" % subsystem_name
+            subsystem_str="-%s"%subsystem_name
 
-        QueryExe.__init__(self,"condor_status",subsystem_str,"Name",pool_name,security_obj)
+        QueryExe.__init__(self,"condor_status",subsystem_str,"Name",pool_name,security_obj,{})
 
-    def fetch(self, constraint=None, format_list=None):
-        if format_list != None:
+    def fetch(self,constraint=None,format_list=None):
+        if format_list!=None:
             # check that Name present and if not, add it
-            format_list = complete_format_list(format_list, [("Name",'s')])
-        return QueryExe.fetch(self, constraint=constraint, format_list=format_list)
+            format_list=complete_format_list(format_list, [("Name",'s')])
+        return QueryExe.fetch(self,constraint=constraint,format_list=format_list)
 
 #
 # Subquery classes
@@ -218,21 +312,21 @@ class CondorStatus(QueryExe):
 
 # Generic, you most probably don't want to use this
 class BaseSubQuery(StoredQuery):
-    def __init__(self, query, subquery_func):
-        self.query = query
-        self.subquery_func = subquery_func
+    def __init__(self,query,subquery_func):
+        self.query=query
+        self.subquery_func=subquery_func
 
-    def fetch(self, constraint=None):
-        indata = self.query.fetch(constraint)
-        return self.subquery_func(self, indata)
+    def fetch(self,constraint=None):
+        indata=self.query.fetch(constraint)
+        return self.subquery_func(self,indata)
 
 
     #
     # NOTE: You need to call load on the SubQuery object to use fetchStored
     #       and had query.load issued before
     #
-    def load(self, constraint=None):
-        indata = self.query.fetchStored(constraint)
+    def load(self,constraint=None):
+        indata=self.query.fetchStored(constraint)
         self.stored_data = self.subquery_func(indata)
 
 #
@@ -240,8 +334,8 @@ class BaseSubQuery(StoredQuery):
 #
 
 class SubQuery(BaseSubQuery):
-    def __init__(self, query, constraint_func=None):
-        BaseSubQuery.__init__(self, query, lambda d:applyConstraint(d, constraint_func))
+    def __init__(self,query,constraint_func=None):
+        BaseSubQuery.__init__(self,query,lambda d:applyConstraint(d,constraint_func))
 
 class Group(BaseSubQuery):
     #  group_key_func  - Key extraction function
@@ -250,8 +344,8 @@ class Group(BaseSubQuery):
     #  group_data_func - Key extraction function
     #                      One argument: list of classad dictionaries
     #                      Returns: a summary classad dictionary
-    def __init__(self, query, group_key_func, group_data_func):
-        BaseSubQuery.__init__(self, query, lambda d:doGroup(d, group_key_func, group_data_func))
+    def __init__(self,query,group_key_func,group_data_func):
+        BaseSubQuery.__init__(self,query,lambda d:doGroup(d,group_key_func,group_data_func))
 
 #
 # Summarizing classes
@@ -263,31 +357,31 @@ class Summarize:
     #                Returns: hash value
     #                          if None, will not be counted
     #                          if a list, all elements will be used
-    def __init__(self, query, hash_func=lambda x:1):
-        self.query = query
-        self.hash_func = hash_func
+    def __init__(self,query,hash_func=lambda x:1):
+        self.query=query
+        self.hash_func=hash_func
 
     # Parameters:
     #    constraint - string to be passed to query.fetch()
     #    hash_func  - if !=None, use this instead of the main one
     # Returns a dictionary of hash values
     #    Elements are counts (or more dictionaries if hash returns lists)
-    def count(self, constraint=None, hash_func=None):
-        data = self.query.fetch(constraint)
-        return fetch2count(data, self.getHash(hash_func))
+    def count(self,constraint=None,hash_func=None):
+        data=self.query.fetch(constraint)
+        return fetch2count(data,self.getHash(hash_func))
 
     # Use data pre-stored in query
     # Same output as count
-    def countStored(self, constraint_func=None, hash_func=None):
-        data = self.query.fetchStored(constraint_func)
-        return fetch2count(data, self.getHash(hash_func))
+    def countStored(self,constraint_func=None,hash_func=None):
+        data=self.query.fetchStored(constraint_func)
+        return fetch2count(data,self.getHash(hash_func))
 
     # Parameters, same as count
     # Returns a dictionary of hash values
     #    Elements are lists of keys (or more dictionaries if hash returns lists)
-    def list(self, constraint=None, hash_func=None):
-        data = self.query.fetch(constraint)
-        return fetch2list(data, self.getHash(hash_func))
+    def list(self,constraint=None,hash_func=None):
+        data=self.query.fetch(constraint)
+        return fetch2list(data,self.getHash(hash_func))
 
     # Use data pre-stored in query
     # Same output as list
@@ -296,36 +390,36 @@ class Summarize:
         return fetch2list(data,self.getHash(hash_func))
 
     ### Internal
-    def getHash(self, hash_func):
-        if hash_func == None:
+    def getHash(self,hash_func):
+        if hash_func==None:
             return self.hash_func
         else:
             return hash_func
 
 class SummarizeMulti:
-    def __init__(self, queries, hash_func=lambda x:1):
-        self.counts = []
+    def __init__(self,queries,hash_func=lambda x:1):
+        self.counts=[]
         for query in queries:
             self.counts.append(self.count(query,hash_func))
         self.hash_func=hash_func
 
     # see Count for description
-    def count(self, constraint=None, hash_func=None):
-        out = {}
+    def count(self,constraint=None,hash_func=None):
+        out={}
         
         for c in self.counts:
-            data = c.count(constraint, hash_func)
-            addDict(out, data)
+            data=c.count(constraint,hash_func)
+            addDict(out,data)
 
         return out
 
     # see Count for description
-    def countStored(self, constraint_func=None, hash_func=None):
-        out = {}
+    def countStored(self,constraint_func=None,hash_func=None):
+        out={}
         
         for c in self.counts:
-            data = c.countStored(constraint_func, hash_func)
-            addDict(out, data)
+            data=c.countStored(constraint_func,hash_func)
+            addDict(out,data)
 
         return out
 
@@ -341,12 +435,12 @@ class SummarizeMulti:
 # check that req_format_els are present in in_format_list, and if not add them
 # return a new format_list
 def complete_format_list(in_format_list, req_format_els):
-    out_format_list = in_format_list[0:]
+    out_format_list=in_format_list[0:]
     for req_format_el in req_format_els:
-        found = False
+        found=False
         for format_el in in_format_list:
-            if format_el[0] == req_format_el[0]:
-                found = True
+            if format_el[0]==req_format_el[0]:
+                found=True
                 break
         if not found:
             out_format_list.append(req_format_el)
@@ -380,91 +474,87 @@ def complete_format_list(in_format_list, req_format_els):
 
 # 3 xml2list XML handler functions
 def xml2list_start_element(name, attrs):
-    global xml2list_data, xml2list_inclassad, xml2list_inattr, xml2list_intype
-    if name == "c":
+    global xml2list_data,xml2list_inclassad,xml2list_inattr,xml2list_intype
+    if name=="c":
         xml2list_inclassad = {}
-    elif name == "a":
-        xml2list_inattr = {"name": attrs["n"], "val": ""}
-        xml2list_intype = "s"
-    elif name == "i":
-        xml2list_intype = "i"
-    elif name == "r":
-        xml2list_intype = "r"
-    elif name == "b":
-        xml2list_intype = "b"
+    elif name=="a":
+        xml2list_inattr={"name":attrs["n"],"val":""}
+        xml2list_intype="s"
+    elif name=="i":
+        xml2list_intype="i"
+    elif name=="r":
+        xml2list_intype="r"
+    elif name=="b":
+        xml2list_intype="b"
         if attrs.has_key('v'):
-            xml2list_inattr["val"] = (attrs["v"] in ('T', 't', '1'))
+            xml2list_inattr["val"] = (attrs["v"] in ('T','t','1'))
         else:
-            # extended syntax... value in text area
-            xml2list_inattr["val"] = None
-    elif name == "un":
-        xml2list_intype = "un"
+            xml2list_inattr["val"] = None # extended syntax... value in text area
+    elif name=="un":
+        xml2list_intype="un"
         xml2list_inattr["val"] = None
-    elif name in ("s", "e"):
+    elif name in ("s","e"):
         pass # nothing to do
-    elif name == "classads":
+    elif name=="classads":
         pass # top element, nothing to do
     else:
-        raise TypeError, "Unsupported type: %s" % name
+        raise TypeError,"Unsupported type: %s"%name
         
 def xml2list_end_element(name):
-    global xml2list_data, xml2list_inclassad, xml2list_inattr, xml2list_intype
-    if name == "c":
+    global xml2list_data,xml2list_inclassad,xml2list_inattr,xml2list_intype
+    if name=="c":
         xml2list_data.append(xml2list_inclassad)
         xml2list_inclassad = None
-    elif name == "a":
-        xml2list_inclassad[xml2list_inattr["name"]] = xml2list_inattr["val"]
+    elif name=="a":
+        xml2list_inclassad[xml2list_inattr["name"]]=xml2list_inattr["val"]
         xml2list_inattr = None
-    elif name in ("i", "b", "un", "r"):
-        xml2list_intype = "s"
-    elif name in ("s", "e"):
+    elif name in ("i","b","un","r"):
+        xml2list_intype="s"
+    elif name in ("s","e"):
         pass # nothing to do
-    elif name == "classads":
+    elif name=="classads":
         pass # top element, nothing to do
     else:
-        raise TypeError, "Unexpected type: %s" % name
+        raise TypeError,"Unexpected type: %s"%name
     
 def xml2list_char_data(data):
-    global xml2list_data, xml2list_inclassad, xml2list_inattr, xml2list_intype
-    if xml2list_inattr == None:
-        # only process when in attribute
-        return
+    global xml2list_data,xml2list_inclassad,xml2list_inattr,xml2list_intype
+    if xml2list_inattr==None:
+        return # only process when in attribute
 
-    if xml2list_intype == "i":
-        xml2list_inattr["val"] = int(data)
-    elif xml2list_intype == "r":
-        xml2list_inattr["val"] = float(data)
-    elif xml2list_intype == "b":
-        if xml2list_inattr["val"] != None:
-            #nothing to do, value was in attribute
-            pass
+    if xml2list_intype=="i":
+        xml2list_inattr["val"]= int(data)
+    elif xml2list_intype=="r":
+        xml2list_inattr["val"]= float(data)
+    elif xml2list_intype=="b":
+        if xml2list_inattr["val"]!=None:
+            pass #nothing to do, value was in attribute
         else:
-            xml2list_inattr["val"] = (data[0] in ('T', 't', '1'))
-    elif xml2list_intype == "un":
-        #nothing to do, value was in attribute
-        pass
+            xml2list_inattr["val"]=(data[0] in ('T','t','1'))
+    elif xml2list_intype=="un":
+        pass #nothing to do, value was in attribute
     else:
-        unescaped_data = string.replace(data, '\\"', '"')
-        xml2list_inattr["val"] += unescaped_data
+        unescaped_data=string.replace(data,'\\"','"')
+        xml2list_inattr["val"]+= unescaped_data
 
 def xml2list(xml_data):
-    global xml2list_data, xml2list_inclassad, xml2list_inattr, xml2list_intype
+    global xml2list_data,xml2list_inclassad,xml2list_inattr,xml2list_intype
 
-    xml2list_data = []
-    xml2list_inclassad = None
-    xml2list_inattr = None
-    xml2list_intype = None
+    xml2list_data=[]
+    xml2list_inclassad=None
+    xml2list_inattr=None
+    xml2list_intype=None
     
     p = xml.parsers.expat.ParserCreate()
     p.StartElementHandler = xml2list_start_element
     p.EndElementHandler = xml2list_end_element
     p.CharacterDataHandler = xml2list_char_data
 
-    found_xml = -1
+    found_xml=-1
     for line in range(len(xml_data)):
         # look for the xml header
-        if xml_data[line][:5] == "<?xml":
-            found_xml = line
+        if xml_data[line][:5]=="<?xml":
+            found_xml=line
             break
 
     if found_xml>=0:
@@ -481,54 +571,54 @@ def xml2list(xml_data):
 #
 # Convert a list to a dictionary
 #
-def list2dict(list_data, attr_name):
-    if type(attr_name) in (type([]), type((1, 2))):
-        attr_list = attr_name
+def list2dict(list_data,attr_name):
+    if type(attr_name) in (type([]),type((1,2))):
+        attr_list=attr_name
     else:
-        attr_list = [attr_name]
+        attr_list=[attr_name]
     
-    dict_data = {}
+    dict_data={}
     for list_el in list_data:
-        if type(attr_name) in (type([]), type((1, 2))):
-            dict_name = []
+        if type(attr_name) in (type([]),type((1,2))):
+            dict_name=[]
             for an in attr_name:
                 dict_name.append(list_el[an])
-            dict_name = tuple(dict_name)
+            dict_name=tuple(dict_name)
         else:
-            dict_name = list_el[attr_name]
+            dict_name=list_el[attr_name]
         # dict_el will have all the elements but those in attr_list
-        dict_el = {}
+        dict_el={}
         for a in list_el:
             if not (a in attr_list):
-                dict_el[a] = list_el[a]
-        dict_data[dict_name] = dict_el
+                dict_el[a]=list_el[a]
+        dict_data[dict_name]=dict_el
     return dict_data
 
 
-def applyConstraint(data, constraint_func):
-    if constraint_func == None:
+def applyConstraint(data,constraint_func):
+    if constraint_func==None:
         return data
     else:
-        outdata = {}
+        outdata={}
         for key in data.keys():
             if constraint_func(data[key]):
-                outdata[key] = data[key]
+                outdata[key]=data[key]
     return outdata
 
 
-def doGroup(indata, group_key_func, group_data_func):
-    gdata = {}
+def doGroup(indata,group_key_func,group_data_func):
+    gdata={}
     for k in indata.keys():
-        inel = indata[k]
-        gkey = group_key_func(inel)
+        inel=indata[k]
+        gkey=group_key_func(inel)
         if gdata.has_key(gkey):
             gdata[gkey].append(inel)
         else:
-            gdata[gkey] = [inel]
+            gdata[gkey]=[inel]
 
-    outdata = {}
+    outdata={}
     for k in gdata.keys():
-        outdata[k] = group_data_func(gdata[k])
+        outdata[k]=group_data_func(gdata[k])
         
     return outdata
 
@@ -544,33 +634,32 @@ def doGroup(indata, group_key_func, group_data_func):
 # Returns a dictionary of hash values
 #    Elements are counts (or more dictionaries if hash returns lists)
 #
-def fetch2count(data, hash_func):
-    count = {}
+def fetch2count(data,hash_func):
+    count={}
     for k in data.keys():
-        el = data[k]
+        el=data[k]
 
-        hid = hash_func(el)
-        if hid == None:
-            # hash tells us it does not want to count this
-            continue
+        hid=hash_func(el)
+        if hid==None:
+            continue # hash tells us it does not want to count this
 
         # cel will point to the real counter
-        cel = count
+        cel=count
 
         # check if it is a list
-        if (type(hid) == type([])):
+        if (type(hid)==type([])):
             # have to create structure inside count
             for h in hid[:-1]:
                 if not cel.has_key(h):
-                    cel[h] = {}
-                cel = cel[h]
-            hid = hid[-1]
+                    cel[h]={}
+                cel=cel[h]
+            hid=hid[-1]
 
         if cel.has_key(hid):
-            count_el = cel[hid] + 1
+            count_el=cel[hid]+1
         else:
-            count_el = 1
-        cel[hid] = count_el
+            count_el=1
+        cel[hid]=count_el
             
     return count
 
@@ -586,50 +675,48 @@ def fetch2count(data, hash_func):
 # Returns a dictionary of hash values
 #    Elements are lists of keys (or more dictionaries if hash returns lists)
 #
-def fetch2list(data, hash_func):
-    return_list = {}
+def fetch2list(data,hash_func):
+    list={}
     for k in data.keys():
-        el = data[k]
+        el=data[k]
 
-        hid = hash_func(el)
-        if hid == None:
-            # hash tells us it does not want to list this
-            continue
+        hid=hash_func(el)
+        if hid==None:
+            continue # hash tells us it does not want to list this
 
         # lel will point to the real list
-        lel = return_list
+        lel=list
 
         # check if it is a list
-        if (type(hid) == type([])):
+        if (type(hid)==type([])):
             # have to create structure inside list
             for h in hid[:-1]:
                 if not lel.has_key(h):
-                    lel[h] = {}
-                lel = lel[h]
-            hid = hid[-1]
+                    lel[h]={}
+                lel=lel[h]
+            hid=hid[-1]
 
         if lel.has_key(hid):
-            list_el = lel[hid].append[k]
+            list_el=lel[hid].append[k]
         else:
-            list_el = [k]
-        lel[hid] = list_el
+            list_el=[k]
+        lel[hid]=list_el
         
-    return return_list
+    return list
 
 #
 # Recursivelly add two dictionaries
 # Do it in place, using the first one
 #
-def addDict(base_dict, new_dict):
+def addDict(base_dict,new_dict):
     for k in new_dict.keys():
-        new_el = new_dict[k]
+        new_el=new_dict[k]
         if not base_dict.has_key(k):
             # nothing there?, just copy
-            base_dict[k] = new_el
+            base_dict[k]=new_el
         else:
-            if type(new_el) == type({}):
-                #another dictionary, recourse
-                addDict(base_dict[k], new_el)
+            if type(new_el)==type({}): #another dictionary, recourse
+                addDict(base_dict[k],new_el)
             else:
-                base_dict[k] += new_el
+                base_dict[k]+=new_el
 
