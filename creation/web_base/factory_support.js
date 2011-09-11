@@ -58,16 +58,6 @@ function getFactoryFrontends(factoryQStats){
   groups=new Array();
   for (var elc=0; elc<factoryQStats.childNodes.length; elc++) {
     var el=factoryQStats.childNodes[elc];
-    if (el.nodeName=="frontends"){
-        groups["total"]=new Array();
-        for (var sei=0; sei<el.childNodes.length; sei++){
-            var thisval=el.childNodes[sei];
-            if (thisval.nodeName=="frontend"){
-                var front_name=thisval.attributes[0].nodeValue.toString();
-                groups["total"].push(front_name);
-            }
-        }
-    }
     if (el.nodeName=="entries") {
       for (var etc=0; etc<el.childNodes.length; etc++) {
 	var entry=el.childNodes[etc];
