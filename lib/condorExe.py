@@ -47,7 +47,7 @@ def set_path(new_condor_bin_path,new_condor_sbin_path=None):
 #
 
 # can throw UnconfigError or ExeError
-def exe_cmd(condor_exe,args,stdin_data=None,env={}):
+def exe_cmd(condor_exe,args,stdin_data=None):
     global condor_bin_path
 
     if condor_bin_path==None:
@@ -56,9 +56,9 @@ def exe_cmd(condor_exe,args,stdin_data=None,env={}):
 
     cmd="%s %s" % (condor_exe_path,args)
 
-    return iexe_cmd(cmd,stdin_data,env)
+    return iexe_cmd(cmd,stdin_data)
 
-def exe_cmd_sbin(condor_exe,args,stdin_data=None,env={}):
+def exe_cmd_sbin(condor_exe,args,stdin_data=None):
     global condor_sbin_path
 
     if condor_sbin_path==None:
@@ -67,7 +67,7 @@ def exe_cmd_sbin(condor_exe,args,stdin_data=None,env={}):
 
     cmd="%s %s" % (condor_exe_path,args)
 
-    return iexe_cmd(cmd,stdin_data,env)
+    return iexe_cmd(cmd,stdin_data)
 
 ############################################################
 #
@@ -76,7 +76,7 @@ def exe_cmd_sbin(condor_exe,args,stdin_data=None,env={}):
 ############################################################
 
 # can throw ExeError
-def iexe_cmd(cmd, stdin_data=None,env={}):
+def iexe_cmd(cmd, stdin_data=None):
     """Fork a process and execute cmd - rewritten to use select to avoid filling
     up stderr and stdout queues.
 
@@ -84,36 +84,13 @@ def iexe_cmd(cmd, stdin_data=None,env={}):
     @param cmd: Sting containing the entire command including all arguments
     @type stdin_data: string
     @param stdin_data: Data that will be fed to the command via stdin
-    @type env: dict
-    @param env: Environment to be set before execution
     """
     output_lines = None
     error_lines = None
     exitStatus = 0
     try:
-        saved_env={}
-        try:
-            # save and set the environment
-            for k in env.keys():
-                if os.environ.has_key(k):
-                    saved_env[k]=os.environ[k]
-                    if env[k]==None:
-                        del os.environ[k]
-                else:
-                    saved_env[k]=None
-                if env[k]!=None:
-                    os.environ[k]=env[k]
+        child = popen2.Popen3(cmd, capturestderr=True)
 
-            # launch process
-            child = popen2.Popen3(cmd, capturestderr=True)
-        finally:
-            # restore the environemnt
-            for k in saved_env.keys():
-                if saved_env[k]==None:
-                    del os.environ[k]
-                else:
-                    os.environ[k]=saved_env[k]
-            
         if stdin_data != None:
             child.tochild.write(stdin_data)
 
