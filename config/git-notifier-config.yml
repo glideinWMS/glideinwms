@@ -1,0 +1,86 @@
+# set to true if you want to ignore empty merge messages
+ignore_merge: false 
+
+# Optional parameter for the subject-line of the mail 
+#emailprefix: GIT
+
+# Limit lines per diff (default = no limit)
+ines_per_diff: 300
+
+# The recipient for the commit:
+mailinglist: glideinwms-commit@listserv.fnal.gov
+
+
+# The from address. If not defined it will use 
+# the address that is configured in git
+#from: sender@example.com
+
+# stylesheet file (embedded template/styles.css by default)
+# stylesheet: /absolute/path/to/readable/stylesheet.css
+
+# select the delivery method: smtp or sendmail 
+delivery_method: smtp
+
+# Optionally group email by push: don't send an email for each commit when true.
+# group_email_by_push: false
+
+# settings for the smtp server
+smtp_server:
+  address: smtp
+  port: 25
+  domain: fnal.gov
+  user_name: 
+  password: 
+  authentication: plain
+  enable_tls: false
+
+# settings for sendmail
+sendmail_options:
+  location: /usr/sbin/sendmail
+  arguments: -i -t
+
+# Decorate files and commit ids with link to a webview. Possible values: none, gitweb, gitorious, cgit or trac
+link_files: none 
+
+# If link_files is set to "gitweb", you need to configure the path to your gitweb
+# instance and the project name.
+gitweb:
+  path: http://developerserver/path_to_gitweb
+  project: test.git
+
+# If link_files is set to "gitorious", you need to configure the path to your gitorious
+# instance, the project name and the repository name.
+gitorious:
+  path: http://example.com/path_to_gitorious
+  project: backend
+  repository: sql-scripts
+
+# if link_files is set to "cgit", you need to configure the path to your cgit
+cgit:
+  path: http://example.com/path_to_cgit
+  project: backend
+
+# If link_files is set to "trac", you need to configure the path to your trac
+# instance
+trac:
+  path: http://example.com/changeset
+
+# commit message URL map
+message_map:
+  '\brefs\s*\#(\d+)': 'http://example.com/redmine/issues/show/\1'
+
+# Uncomment if you want to create links in your commit text
+message_integration:
+#  mediawiki: http://example.com/wiki # will rework [[text]] to MediaWiki pages
+  redmine: https://cdcvs.fnal.gov/redmine # will rework refs #123 to Redmine issues
+#  bugzilla: http://bz.example.com # will rework BUG 123 to Bugzilla bugs
+#  fogbugz: http://yourondemand.fogbugz.com/? # will rework BugzId: 123 to FogBugz cases
+
+# Track unique commits per branch?
+unique_commits_per_branch: false
+
+# This is developer debugging options. Do not uncomment it if You aren't Jedi
+# debug:
+#   enable: true
+#   log_directory: /path/to/log/directory
+
