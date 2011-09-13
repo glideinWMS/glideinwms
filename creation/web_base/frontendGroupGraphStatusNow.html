@@ -294,7 +294,7 @@ function UpdateGroup(group_obj) {
     var matchedjobs_idle = [];
     var matchedjobs_running = [];
     var requested_idle = [];
-    requested_running = [];
+    requested_max_running = [];
     
     // Convinence variables
     var group_name = $(group_obj).attr('name');
@@ -343,7 +343,7 @@ function UpdateGroup(group_obj) {
 
         requested_idle.push(parseFloat($(this).find("Requested").attr('Idle')));
         data.setCell(counter, 7, parseFloat($(this).find("Requested").attr('Idle')));
-        requested_running.push(parseFloat($(this).find("Requested").attr('MaxGlideins')));
+        requested_max_running.push(parseFloat($(this).find("Requested").attr('MaxGlideins')));
         data.setCell(counter, 6, parseFloat($(this).find("Requested").attr('MaxGlideins')));
 
         counter++;
@@ -361,7 +361,7 @@ function UpdateGroup(group_obj) {
                (SumElements(matchedjobs_idle) == 0) &&
                (SumElements(matchedglideins_running) == 0) &&
                (SumElements(matchedglideins_idle) == 0) &&
-               (SumElements(requested_running) == 0) &&
+               (SumElements(requested_max_running) == 0) &&
                (SumElements(requested_idle) == 0)){
 
         $("#group_graphs").fadeTo(0, 0.5);
@@ -390,7 +390,7 @@ function UpdateGroup(group_obj) {
     data.setCell(counter, 3, SumElements(matchedglideins_running));
     data.setCell(counter, 4, SumElements(matchedglideins_idle));
     data.setCell(counter, 5, Math.round(SumElements(matchedglideins_idlefra)*100)/100.0);
-    data.setCell(counter, 6, SumElements(requested_running));
+    data.setCell(counter, 6, SumElements(requested_max_running));
     data.setCell(counter, 7, SumElements(requested_idle));
 
 
@@ -418,7 +418,7 @@ function UpdateGroup(group_obj) {
 
     img = CreateGraphImage();
     $(group_selector).find("#Requested").find("#running").append(img);
-    MakeChart(factories.slice(), requested_running, "Requested Running", img);
+    MakeChart(factories.slice(), requested_max_running, "Requested Max Running", img);
 
     table = new google.visualization.Table(document.getElementById('group_table'));
     var dataview = new google.visualization.DataView(data);
