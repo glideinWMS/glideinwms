@@ -830,12 +830,11 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             
                 # find out the users it is using
                 log_stats = {}
-                log_stats[credential_username] = glideFactoryLogParser.dirSummaryTimingsOut(glideFactoryLib.factoryConfig.get_client_log_dir(entry_name, credential_username),
+                log_stats[credential_username + ":" + client_int_name] = glideFactoryLogParser.dirSummaryTimingsOut(glideFactoryLib.factoryConfig.get_client_log_dir(entry_name, credential_username),
                                                                                           logSupport.log_dir, client_int_name, credential_username)
                 # should not need privsep for reading logs
-                log_stats[credential_username].load()
-                                       
-                
+                log_stats[credential_username + ":" + client_int_name].load()
+                                         
                 # Should log here or in perform_work
                 glideFactoryLib.logWorkRequest(client_int_name, client_security_name, submit_credentials.security_class,
                                                    idle_glideins, max_glideins, work[work_key])
