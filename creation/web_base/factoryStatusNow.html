@@ -52,11 +52,11 @@ var feChild; var feStatChild; var feReqChild; var feCMChild; var totChild; var d
 var trChildArry = new Array(); var trFEChildArry = new Array();
 
 var headColArry = new Array("Entry Name", "Status", "Running", "Idle", "Waiting", "Pending", "Staging in", "Staging out", "Unknown", "Held",
-							"Max run", "Idle", 
+							"Max glideins", "Idle", 
 							"Claimed", "User run here", "User running","Unmatched", "User idle", "Registered", "Info age");
 
 var headColArryPR = new Array("Entry Name", "Running", "Idle", "Waiting", "Pending", "Staging in", "Staging out", "Unknown", "Held",
-							  "Max run", "Idle", 
+							  "Max glideins", "Idle", 
 							  "Claimed", "User run here", "User running", "Unmatched", "User idle", "Registered", "Info age");		
 												
 var headColArryTR = new Array("Entry Name", "Downtime: Status", "Status: Running", "Client: Registered", "Diff(Status: Running, Client: Registered)", "Status: Idle", 
@@ -71,7 +71,7 @@ var columnArray = new Array("entryName", "downtimeStatus","statusRunning", "stat
 							"cmGlideinJobsIdle", "cmGlideinTotal", "cmGlideinInfoAge");
 		
 var exactColumns = new Array("Entry Name", "Downtime: Status", "Status: Running", "Status: Idle", "Status: Waiting", "Status: Pending", "Status: Stage in",
-						     "Status: Stage out", "Status: Unknown", "Status: Held", "Requested: Max run", "Requested : Idle", "Client Monitor: Claimed", 
+						     "Status: Stage out", "Status: Unknown", "Status: Held", "Requested: Max glideins", "Requested : Idle", "Client Monitor: Claimed", 
 							 "Client Monitor: User Run Here", "Client Monitor: User Running", "Client Monitor: Unmatched", "Client Monitor: User idle",
 							 "Client Monitor: Registered", "Client Monitor: Info age");  
 							 
