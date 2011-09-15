@@ -12,7 +12,8 @@
 #  Igor Sfiligoi  (since Mar 31st 2009)
 #
 
-import os,os.path,time
+import os
+import time
 import sets
 import pickle
 import glideinFrontendLib
@@ -44,8 +45,8 @@ import glideinFrontendLib
 # or for testing
 #
 class ProxyFirst:
-    def __init__(self,config_dir,proxy_list):
-        self.proxy_list=list2ilist(proxy_list)
+    def __init__(self, config_dir, proxy_list):
+        self.proxy_list = list2ilist(proxy_list)
 
     # what job attributes are used by this plugin
     def get_required_job_attributes(self):
@@ -56,8 +57,7 @@ class ProxyFirst:
         return []
 
     # get the proxies, given the condor_q and condor_status data
-    def get_proxies(self,condorq_dict,condorq_dict_types,
-                    status_dict,status_dict_types):
+    def get_proxies(self, condorq_dict, condorq_dict_types, status_dict, status_dict_types):
         return [self.proxy_list[0]]
 
 ############################################
@@ -66,8 +66,8 @@ class ProxyFirst:
 # This is can be a very useful default policy
 #
 class ProxyAll:
-    def __init__(self,config_dir,proxy_list):
-        self.proxy_list=list2ilist(proxy_list)
+    def __init__(self, config_dir, proxy_list):
+        self.proxy_list = list2ilist(proxy_list)
 
     # what job attributes are used by this plugin
     def get_required_job_attributes(self):
@@ -78,8 +78,7 @@ class ProxyAll:
         return []
 
     # get the proxies, given the condor_q and condor_status data
-    def get_proxies(self,condorq_dict,condorq_dict_types,
-                    status_dict,status_dict_types):
+    def get_proxies(self, condorq_dict, condorq_dict_types, status_dict, status_dict_types):
         return self.proxy_list
 
 ##########################################################
@@ -92,21 +91,20 @@ class ProxyAll:
 # Also good for testing
 #
 class ProxyUserCardinality:
-    def __init__(self,config_dir,proxy_list):
-        self.proxy_list=list2ilist(proxy_list)
+    def __init__(self, config_dir, proxy_list):
+        self.proxy_list = list2ilist(proxy_list)
 
     # what job attributes are used by this plugin
     def get_required_job_attributes(self):
-        return (('User','s'),)
+        return (('User', 's'),)
 
     # what glidein attributes are used by this plugin
     def get_required_classad_attributes(self):
         return []
 
     # get the proxies, given the condor_q and condor_status data
-    def get_proxies(self,condorq_dict,condorq_dict_types,
-                    status_dict,status_dict_types):
-        users_set=glideinFrontendLib.getCondorQUsers(condorq_dict)
+    def get_proxies(self, condorq_dict, condorq_dict_types, status_dict, status_dict_types):
+        users_set = glideinFrontendLib.getCondorQUsers(condorq_dict)
         return self.get_proxies_from_cardinality(len(users_set))
 
     #############################
@@ -114,14 +112,14 @@ class ProxyUserCardinality:
     #############################
 
     # return the proxies based on data held by the class
-    def get_proxies_from_cardinality(self,nr_requested_proxies):
-        nr_proxies=len(self.proxy_list)
+    def get_proxies_from_cardinality(self, nr_requested_proxies):
+        nr_proxies = len(self.proxy_list)
 
-        if nr_requested_proxies>=nr_proxies:
+        if nr_requested_proxies >= nr_proxies:
             # wants all of them, no need to select
             return self.proxy_list
-        
-        out_proxies=[]
+
+        out_proxies = []
         for i in range(nr_requested_proxies):
             out_proxies.append(self.proxy_list[i])
 
@@ -136,38 +134,37 @@ class ProxyUserCardinality:
 # If a new user joins, the least used proxy is obtained from the pool
 #
 class ProxyUserRR:
-    def __init__(self,config_dir,proxy_list):
-        self.proxy_list=proxy_list
-        self.config_dir=config_dir
-        self.config_fname="%s/proxy_user_rr.dat"%self.config_dir
+    def __init__(self, config_dir, proxy_list):
+        self.proxy_list = proxy_list
+        self.config_dir = config_dir
+        self.config_fname = "%s/proxy_user_rr.dat" % self.config_dir
         self.load()
 
     # what job attributes are used by this plugin
     def get_required_job_attributes(self):
-        return (('User','s'),)
+        return (('User', 's'),)
 
     # what glidein attributes are used by this plugin
     def get_required_classad_attributes(self):
         return []
 
     # get the proxies, given the condor_q and condor_status data
-    def get_proxies(self,condorq_dict,condorq_dict_types,
-                    status_dict,status_dict_types):
-        new_users_set=glideinFrontendLib.getCondorQUsers(condorq_dict)
-        old_users_set=self.config_data['users_set']
-        if old_users_set==new_users_set:
+    def get_proxies(self, condorq_dict, condorq_dict_types, status_dict, status_dict_types):
+        new_users_set = glideinFrontendLib.getCondorQUsers(condorq_dict)
+        old_users_set = self.config_data['users_set']
+        if old_users_set == new_users_set:
             return self.get_proxies_from_data()
 
         # users changed
-        removed_users=old_users_set-new_users_set
-        added_users=new_users_set-old_users_set
+        removed_users = old_users_set - new_users_set
+        added_users = new_users_set - old_users_set
 
-        if len(removed_users)>0:
+        if len(removed_users) > 0:
             self.shrink_proxies(len(removed_users))
-        if len(added_users)>0:
+        if len(added_users) > 0:
             self.expand_proxies(len(added_users))
 
-        self.config_data['users_set']=new_users_set
+        self.config_data['users_set'] = new_users_set
         self.save()
 
         return self.get_proxies_from_data()
@@ -180,100 +177,100 @@ class ProxyUserRR:
     # if the file does not exist, create a new config_data
     def load(self):
         if not os.path.isfile(self.config_fname):
-            proxy_indexes={}
-            nr_proxies=len(self.proxy_list)
+            proxy_indexes = {}
+            nr_proxies = len(self.proxy_list)
             for i in range(nr_proxies):
-                proxy_indexes[self.proxy_list[i]]=i
-            self.config_data={'users_set':sets.Set(),
-                              'proxies_range':{'min':0,'max':0},
+                proxy_indexes[self.proxy_list[i]] = i
+            self.config_data = {'users_set':sets.Set(),
+                              'proxies_range':{'min':0, 'max':0},
                               'proxy_indexes':proxy_indexes,
                               'first_free_index':nr_proxies}
         else:
-            fd=open(self.config_fname,"r")
+            fd = open(self.config_fname, "r")
             try:
-                self.config_data=pickle.load(fd)
+                self.config_data = pickle.load(fd)
             finally:
                 fd.close()
 
             # proxies may have changed... make sure you have them all indexed
-            proxy_indexes=self.config_data['proxy_indexes']
-            added_proxies=sets.Set(self.proxy_list)-sets.Set(proxy_indexes.keys())
+            proxy_indexes = self.config_data['proxy_indexes']
+            added_proxies = sets.Set(self.proxy_list) - sets.Set(proxy_indexes.keys())
             for proxy in added_proxies:
-                idx=self.config_data['first_free_index']
-                proxy_indexes[self.proxy_list[i]]=idx
-                self.config_data['first_free_index']=idx+1
+                idx = self.config_data['first_free_index']
+                proxy_indexes[self.proxy_list[i]] = idx
+                self.config_data['first_free_index'] = idx + 1
 
         return
 
     # save self.config_data into self.config_fname
     def save(self):
         # fist save in a tmpfile
-        tmpname="%s~"%self.config_fname
+        tmpname = "%s~" % self.config_fname
         try:
             os.unlink(tmpname)
         except:
             pass # just trying
-        fd=open(tmpname,"w")
+        fd = open(tmpname, "w")
         try:
-            pickle.dump(self.config_data,fd,0) # use ASCII version of protocol
+            pickle.dump(self.config_data, fd, 0) # use ASCII version of protocol
         finally:
             fd.close()
 
         # then atomicly move it in place
-        os.rename(tmpname,self.config_fname)
+        os.rename(tmpname, self.config_fname)
 
         return
 
     # remove a number of proxies from the internal data
-    def shrink_proxies(self,nr):
-        proxies_range=self.config_data['proxies_range']
-        min_proxy_range=proxies_range['min']
-        max_proxy_range=proxies_range['max']
+    def shrink_proxies(self, nr):
+        proxies_range = self.config_data['proxies_range']
+        min_proxy_range = proxies_range['min']
+        max_proxy_range = proxies_range['max']
 
-        min_proxy_range+=nr
-        if min_proxy_range>max_proxy_range:
-            raise RuntimeError,"Cannot shrink so much: %i requested, %i available"%(nr, max_proxy_range-proxies_range['min'])
-        
-        proxies_range['min']=min_proxy_range
+        min_proxy_range += nr
+        if min_proxy_range > max_proxy_range:
+            raise RuntimeError, "Cannot shrink so much: %i requested, %i available" % (nr, max_proxy_range - proxies_range['min'])
+
+        proxies_range['min'] = min_proxy_range
 
         return
 
     # add a number of proxies from the internal data
-    def expand_proxies(self,nr):
-        proxies_range=self.config_data['proxies_range']
-        min_proxy_range=proxies_range['min']
-        max_proxy_range=proxies_range['max']
+    def expand_proxies(self, nr):
+        proxies_range = self.config_data['proxies_range']
+        min_proxy_range = proxies_range['min']
+        max_proxy_range = proxies_range['max']
 
-        max_proxy_range+=nr
-        if min_proxy_range>max_proxy_range:
-            raise RuntimeError,"Did we hit wraparound after the requested exansion of %i? min %i> max %i"%(nr, min_proxy_range,max_proxy_range)
+        max_proxy_range += nr
+        if min_proxy_range > max_proxy_range:
+            raise RuntimeError, "Did we hit wraparound after the requested exansion of %i? min %i> max %i" % (nr, min_proxy_range, max_proxy_range)
 
-        proxies_range['max']=max_proxy_range
+        proxies_range['max'] = max_proxy_range
 
         return
 
     # return the proxies based on data held by the class
     def get_proxies_from_data(self):
-        nr_proxies=len(self.proxy_list)
+        nr_proxies = len(self.proxy_list)
 
-        proxies_range=self.config_data['proxies_range']
-        min_proxy_range=proxies_range['min']
-        max_proxy_range=proxies_range['max']
-        nr_requested_proxies=max_proxy_range-min_proxy_range;
+        proxies_range = self.config_data['proxies_range']
+        min_proxy_range = proxies_range['min']
+        max_proxy_range = proxies_range['max']
+        nr_requested_proxies = max_proxy_range - min_proxy_range
 
-        proxy_indexes=self.config_data['proxy_indexes']
+        proxy_indexes = self.config_data['proxy_indexes']
 
-        out_proxies=[]
-        if nr_requested_proxies>=nr_proxies:
+        out_proxies = []
+        if nr_requested_proxies >= nr_proxies:
             # wants all of them, no need to select
-            index_range=range(nr_proxies)
+            index_range = range(nr_proxies)
         else:
-            index_range=range(min_proxy_range,max_proxy_range)
-        
+            index_range = range(min_proxy_range, max_proxy_range)
+
         for i in index_range:
-            real_i=i%nr_proxies
-            proxy=self.proxy_list[i]
-            out_proxies.append(("urr_%i"%proxy_indexes[proxy],proxy))
+            real_i = i % nr_proxies
+            proxy = self.proxy_list[i]
+            out_proxies.append(("urr_%i" % proxy_indexes[proxy], proxy))
 
         return out_proxies
 
@@ -288,66 +285,65 @@ class ProxyUserRR:
 #    yet recycled, else it is treated as a new user
 #
 class ProxyUserMapWRecycling:
-    def __init__(self,config_dir,proxy_list):
-        self.proxy_list=proxy_list
-        self.config_dir=config_dir
-        self.config_fname="%s/proxy_usermap_wr.dat"%self.config_dir
+    def __init__(self, config_dir, proxy_list):
+        self.proxy_list = proxy_list
+        self.config_dir = config_dir
+        self.config_fname = "%s/proxy_usermap_wr.dat" % self.config_dir
         self.load()
 
     # what job attributes are used by this plugin
     def get_required_job_attributes(self):
-        return (('User','s'),)
+        return (('User', 's'),)
 
     # what glidein attributes are used by this plugin
     def get_required_classad_attributes(self):
         return []
 
     # get the proxies, given the condor_q and condor_status data
-    def get_proxies(self,condorq_dict,condorq_dict_types,
-                    status_dict,status_dict_types):
-        users=list(glideinFrontendLib.getCondorQUsers(condorq_dict))
-        out_proxies=[]
+    def get_proxies(self, condorq_dict, condorq_dict_types, status_dict, status_dict_types):
+        users = list(glideinFrontendLib.getCondorQUsers(condorq_dict))
+        out_proxies = []
 
         # check if there are more users than proxies
 
-        user_map=self.config_data['user_map']
+        user_map = self.config_data['user_map']
 
-        if len(users)<len(user_map.keys()):
+        if len(users) < len(user_map.keys()):
             # regular algorithm, find in cache
             for user in users:
                 if not user_map.has_key(user):
                     # user not in cache, get the oldest unused entry
                     # not ordered, need to loop over the whole cache
-                    keys=user_map.keys()
+                    keys = user_map.keys()
                     keys.sort()
-                    min_key=keys[0] # will compare all others to the first
+                    min_key = keys[0] # will compare all others to the first
                     for k in keys[1:]:
-                        if user_map[k]['last_seen']<user_map[min_key]['last_seen']:
-                            min_key=k
+                        if user_map[k]['last_seen'] < user_map[min_key]['last_seen']:
+                            min_key = k
 
                     # replace min_key with the current user
-                    user_map[user]=user_map[min_key]
+                    user_map[user] = user_map[min_key]
                     del user_map[min_key]
                 # else the user is already in the cache... just use that
-            
-                cel=user_map[user]
-                out_proxies.append(("umrw_%i"%cel['proxy_index'],cel['proxy']))
+
+                cel = user_map[user]
+                out_proxies.append(("umrw_%i" % cel['proxy_index'], cel['proxy']))
                 # save that you have indeed seen the user 
-                cel['last_seen']=time.time()
+                cel['last_seen'] = time.time()
         else:
             # more users than proxies, use all proxies
-            keys=user_map.keys()
+            keys = user_map.keys()
             keys.sort()
-            uncovered_users=users[0:]
-            uncovered_keys=[]
+            uncovered_users = users[0:]
+            uncovered_keys = []
             # first get the covered keys
             for k in keys:
                 if (k in users):
                     # the user in the cache is still present, use it
-                    cel=user_map[k]
-                    out_proxies.append(("umrw_%i"%cel['proxy_index'],cel['proxy']))
+                    cel = user_map[k]
+                    out_proxies.append(("umrw_%i" % cel['proxy_index'], cel['proxy']))
                     # save that you have indeed seen the user 
-                    cel['last_seen']=time.time()
+                    cel['last_seen'] = time.time()
                     uncovered_users.remove(k)
                 else:
                     # this cache entry need to be updated
@@ -355,15 +351,15 @@ class ProxyUserMapWRecycling:
             # now add uncovered keys
             for k in uncovered_keys:
                 # change key value with an uncovered user
-                user=uncovered_users.pop()
-                user_map[user]=user_map[k]
+                user = uncovered_users.pop()
+                user_map[user] = user_map[k]
                 del user_map[k]
-            
-                cel=user_map[user]
-                out_proxies.append(("umrw_%i"%cel['proxy_index'],cel['proxy']))
+
+                cel = user_map[user]
+                out_proxies.append(("umrw_%i" % cel['proxy_index'], cel['proxy']))
                 # save that you have indeed seen the user 
-                cel['last_seen']=time.time()
-                
+                cel['last_seen'] = time.time()
+
 
         # save changes
         self.save()
@@ -379,35 +375,35 @@ class ProxyUserMapWRecycling:
     def load(self):
         if not os.path.exists(self.config_fname):
             # no cache, create new cache structure from scratch
-            self.config_data={}
-            user_map={}
-            nr_proxies=len(self.proxy_list)
+            self.config_data = {}
+            user_map = {}
+            nr_proxies = len(self.proxy_list)
             for i in range(nr_proxies):
                 # use numbers for keys, so we are sure will not match to any user string
-                user_map[i]={'proxy':self.proxy_list[i],
+                user_map[i] = {'proxy':self.proxy_list[i],
                              'proxy_index':i,
                              'last_seen':0} #0 is the oldest UNIX have ever seen ;)
-            self.config_data['user_map']=user_map
-            self.config_data['first_free_index']=nr_proxies # this will be used for future updates
+            self.config_data['user_map'] = user_map
+            self.config_data['first_free_index'] = nr_proxies # this will be used for future updates
         else:
             # load cache
-            fd=open(self.config_fname,"r")
+            fd = open(self.config_fname, "r")
             try:
-                self.config_data=pickle.load(fd)
+                self.config_data = pickle.load(fd)
             finally:
                 fd.close()
 
             # if proxies changed, remove old ones and insert the new ones
-            new_proxies=sets.Set(self.proxy_list)
-            cached_proxies=sets.Set() # here we will store the list of proxies in the cache
+            new_proxies = sets.Set(self.proxy_list)
+            cached_proxies = sets.Set() # here we will store the list of proxies in the cache
 
-            user_map=self.config_data['user_map']
-            
+            user_map = self.config_data['user_map']
+
             # need to iterate, since not indexed by proxy name
-            keys=user_map.keys()
+            keys = user_map.keys()
             for k in keys:
-                el=user_map[k]
-                el_proxy=el['proxy']
+                el = user_map[k]
+                el_proxy = el['proxy']
                 if not (el_proxy in new_proxies):
                     # cached proxy not used anymore... remove from cache
                     del user_map[k]
@@ -415,34 +411,34 @@ class ProxyUserMapWRecycling:
                     # add to the list, will process later
                     cached_proxies.add(el_proxy)
 
-            added_proxies=new_proxies-cached_proxies
+            added_proxies = new_proxies - cached_proxies
             # now that we know what proxies have been added, put them in cache
             for proxy in added_proxies:
-                idx=self.config_data['first_free_index']
+                idx = self.config_data['first_free_index']
                 # use numbers for keys, so we are user will not mutch to any user string
-                user_map[idx]={'proxy':proxy,
+                user_map[idx] = {'proxy':proxy,
                                'proxy_index':idx,
                                'last_seen':0} #0 is the oldest UNIX have ever seen ;)
-                self.config_data['first_free_index']=idx+1            
+                self.config_data['first_free_index'] = idx + 1
 
         return
 
     # save self.config_data into self.config_fname
     def save(self):
         # fist save in a tmpfile
-        tmpname="%s~"%self.config_fname
+        tmpname = "%s~" % self.config_fname
         try:
             os.unlink(tmpname)
         except:
             pass # just trying
-        fd=open(tmpname,"w")
+        fd = open(tmpname, "w")
         try:
-            pickle.dump(self.config_data,fd,0) # use ASCII version of protocol
+            pickle.dump(self.config_data, fd, 0) # use ASCII version of protocol
         finally:
             fd.close()
 
         # then atomicly move it in place
-        os.rename(tmpname,self.config_fname)
+        os.rename(tmpname, self.config_fname)
 
         return
 
@@ -456,19 +452,19 @@ class ProxyUserMapWRecycling:
 #
 
 def list2ilist(lst):
-    out=[]
+    out = []
     for i in range(len(lst)):
-        out.append((i,lst[i]))
+        out.append((i, lst[i]))
     return out
 
 
-    
+
 ###################################################################
 
 # Being plugins, users are not expected to directly reference the classes
 # They should go throug the dictionaries below to find the appropriate plugin
 
-proxy_plugins={'ProxyAll':ProxyAll,
+proxy_plugins = {'ProxyAll':ProxyAll,
                'ProxyUserRR':ProxyUserRR,
                'ProxyFirst':ProxyFirst,
                'ProxyUserCardinality':ProxyUserCardinality,
