@@ -121,9 +121,7 @@ def findGlobals(factory_pool,factory_identity,
 # can throw condorExe.ExeError
 def findGlideins(factory_pool, factory_identity,
                  signtype,
-                 additional_constraint=None,
-                 have_proxy=False,
-                 get_only_matching=True): # if this is false, return also glideins I cannot use
+                 additional_constraint=None):
     global frontendConfig
 
     status_constraint = '(GlideinMyType=?="%s")' % frontendConfig.factory_id
@@ -134,13 +132,8 @@ def findGlideins(factory_pool, factory_identity,
     if signtype != None:
         status_constraint += ' && stringListMember("%s",%s)' % (signtype, frontendConfig.factory_signtype_id)
 
-    if get_only_matching:
-        if have_proxy:
-            # must support secure message passing and must allow proxies
-            status_constraint += '&& (PubKeyType=?="RSA") && (GlideinAllowx509_Proxy=!=False)'
-        else:
-            # cannot use factories that require a proxy
-            status_constraint += '&& (GlideinRequirex509_Proxy=!=True)'
+    # Note that Require and Allow x509_Proxy has been replaced by credential
+    # type and trust domain
 
     if additional_constraint != None:
         status_constraint = "%s && (%s)" % (status_constraint, additional_constraint)

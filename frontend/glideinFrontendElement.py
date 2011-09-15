@@ -197,7 +197,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
                 factory_identity = factory_pool[1]
                 my_identity_at_factory_pool = factory_pool[2]
                 try:
-                    factory_glidein_dict = glideinFrontendInterface.findGlideins(factory_pool_node, None, signatureDescript.signature_type, factory_constraint, x509_proxy_plugin != None, get_only_matching=True)
+                    factory_glidein_dict = glideinFrontendInterface.findGlideins(factory_pool_node, None, signatureDescript.signature_type, factory_constraint)
                 except RuntimeError, e:
                     # failed to talk, like empty... maybe the next factory will have something
                     if factory_pool_node != None:
