@@ -11,6 +11,7 @@
 #
 
 import os,os.path,shutil,string
+import sys
 import cWParams
 import cgWDictFile,cWDictFile
 import cgWCreate
@@ -407,15 +408,40 @@ class glideinDicts(cgWDictFile.glideinDicts):
         for sub_name in self.sub_list:
             if params.entries[sub_name].schedd_name==None:
                 # now find the least used one
-                gs=global_schedd_count.keys()
-                gs.sort(key=global_schedd_count.__getitem__)
+                # NOTE: The self.sortit method should be removed, when SL4 and
+                #       python 2.3.4 are no longer supported
+                if sys.version_info < (2,4): # python 2.3.4 /SL4
+                  gs = self.sortit(global_schedd_count)
+                else:  # python 2.4+ / SL5
+                  gs = global_schedd_count.keys()
+                  gs.sort(key=global_schedd_count.__getitem__)
                 min_schedd=gs[0]
-                
                 params.subparams.data['entries'][sub_name]['schedd_name']=min_schedd
                 global_schedd_count[min_schedd]+=1
-        
         return
         
+    ######################################
+    def sortit(self,dict):
+        """ A temporary method for sorting a dictionary based on
+            the value of the dictionary item.  In python 2.4+,
+            a 'key' arguement can be used in the 'sort' and 'sorted'
+            functions.  This is not available in python 2.3.4/SL4
+            platforms.
+            Returns a sorted list of the dictionary items based on
+            their value.
+        """
+        d = {}
+        i = 0
+        for key in dict.keys():
+            d[i] = (key,dict[key])
+            i = i + 1
+        temp_list = [ (x[1][1], x[0]) for x in d.items() ]
+        temp_list.sort()
+        sortedList = []
+        for (tmp, key) in temp_list:
+            sortedList.append(d[key][0])
+        return sortedList
+
 
     ######################################
     # Redefine methods needed by parent
