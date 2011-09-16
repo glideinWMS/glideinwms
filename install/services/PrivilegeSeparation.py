@@ -192,7 +192,7 @@ those in your frontend_users attribute of the WMSCollector ini file:
 
   #--------------------------------
   def remove(self):
-    if not os.path.isfile(self.config_file()):
+    if not os.path.isfile(self.config_file):
       return 
     if os.getuid() != 0:
       common.logit("\nA privilege separation config file exists but you are not root user\n so we cannot remove it at this time.")

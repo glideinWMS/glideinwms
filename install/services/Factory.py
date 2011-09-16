@@ -955,7 +955,6 @@ def main(argv):
     #create_template()
     options = validate_args(argv)
     factory = Factory(options.inifile)
-    factory.validate_glidein_proxy()
     #factory.get_new_config_entries()
     #factory.install()
     #factory.install()
