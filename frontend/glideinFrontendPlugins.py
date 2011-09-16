@@ -546,6 +546,12 @@ def fair_assign(cred_list,params_obj):
     Assigns requests to each credentials in cred_list
     max run will remain constant between iterations
     req idle will be shuffled each iteration.
+
+    Note that shuffling will tend towards 
+    rounding up ReqIdle over the long run,
+    but that, since this is partially a throttling
+    mechanism, it is okay to slow this down a little
+    bit with shuffling.
     """
     i=1
     total_idle=params_obj.min_nr_glideins
@@ -553,7 +559,12 @@ def fair_assign(cred_list,params_obj):
     num_cred=len(cred_list)
     random_arr=random_split(total_idle,num_cred)
     for cred in cred_list:
-        cred.add_usage_details(random_arr[i-1],fair_split(i,total_max,num_cred))
+        this_idle=random_arr[i-1]
+        this_max=fair_split(i,total_max,num_cred)
+        # Never send more idle than max running
+        if this_idle>this_max:
+            this_idle=this_max
+        cred.add_usage_details(this_idle,this_max)
         i=i+1
     return cred_list
 
