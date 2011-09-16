@@ -120,11 +120,13 @@ esac
 echo "`date` making configuration changes to use glexec"
 # --------------------------------------------------
 # gLExec does not like symlinks and this way we are sure it is a file
-export ALTSH="`readlink -e /bin/sh`"
-if [ $? -ne 0 ]; then
-    echo "Failed to dereference /bin/sh" 1>&2
+# Note: the -e test performs the same function as readlink -e and allows
+#       for SL4/SL5 compatibility (readlink -e does not exist in SL4).
+if [ ! -e /bin/sh ];then
+    echo "gLExec does not like symlinks. Failed to dereference /bin/sh" 1>&2
     exit 1
 fi
+export ALTSH="`readlink -f /bin/sh`"
 add_config_line "ALTERNATIVE_SHELL" "$ALTSH" 
 add_condor_vars_line "ALTERNATIVE_SHELL" "C" "-" "SH" "Y" "N" "-"
 
