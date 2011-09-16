@@ -109,12 +109,6 @@ class RPM(VOFrontend):
       self.condor = Condor.Condor(self.inifile,"UserCollector",valid_options["UserCollector"])
 
   #########################################################
-  # NEW methods
-  #########################################################
-  def client_only_install(self):
-    return False
-
-  #########################################################
   #--------------------------------
   def config_dir(self):
     return "/etc/gwms-frontend"
@@ -253,8 +247,6 @@ def main(argv):
   except EOFError:
     common.logit("\n... looks like you aborted this script... bye.");
     return 1
-  except ConfigurationError, e:
-    print;print "ConfigurationError ERROR(should not get these): %s"%e;return 1
   except common.WMSerror:
     print;return 1
   return 0

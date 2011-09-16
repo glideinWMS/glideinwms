@@ -56,6 +56,30 @@ class Condor(Configuration):
     if self.certs == None:
       self.certs = Certificates.Certificates(self.inifile,self.ini_section)
 
+  #-----------------------------------------------------------
+  # abstract methods that must be defined in a parent class
+  #-----------------------------------------------------------
+  def condor_config_daemon_users(self):
+    """ Abstract method that must be defined in the parent class. """
+    common.logerr("""System error: A condor_config_daemon_users method must
+be defined in the parent class.  This method returns a nested list of users
+authorized to access Condor's daemon functions based on the service being
+provided.  It is used to populate the Condor GSI_DAEMON_NAME attribute.
+
+The format of the list is:
+[["SERVICE 1","GSI_DN_1","NICKNAME_1"],["SERVICE 2","GSI_DN_2","NICKNAME_2"],]
+
+This is an example of the result in the condor config file:
+###################################
+# Whitelist of condor daemon DNs
+###################################
+# --- SERVICE 1: NICKNAME_1
+GSI_DAEMON_NAME=GSI_DN_1
+# --- SERVICE 2: NICKNAME_2
+GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),GSI_DN_2
+
+If no specific entries are needed, an empty list should be returned.
+""")
   #----------------------------------
   # methods for returning attributes
   #----------------------------------
@@ -137,6 +161,11 @@ class Condor(Configuration):
   #---------------------
   def x509_cert_dir(self):
     return self.certs.x509_cert_dir()
+  #---------------------
+  def x509_proxy(self):
+    if self.has_option(self.ini_section,"x509_proxy"):
+      return self.option_value(self.ini_section,"x509_proxy")
+    common.logerr("The x509_proxy option is required for this service.")
   #---------------------
   def x509_cert(self):
     return self.option_value(self.ini_section,"x509_cert")
@@ -524,7 +553,7 @@ You can only use the '--configure/--validate' options for this type.
             self.condor_first_dir = first_entry.split('/')[0]+'/'
             
             if ( self.condor_first_dir[:7] != "condor-"):
-              common.logerr("File '%s' is not a condor tarball! (found '%s', expected 'condor-*/'" % (condor_tarball, self.condor_first_dir))
+              common.logerr("File '%s' is not a condor tarball! (found '%s', expected 'condor-*/'" % (tarball, self.condor_first_dir))
 
             self.condor_version = re.sub("/","",first_entry.split('-')[1])
             common.logit( "... condor version: %s" % (self.condor_version))
