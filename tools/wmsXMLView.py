@@ -81,7 +81,7 @@ if factory_name!=None:
     else:
         raise RuntimeError, "Invalid factory name; more than 2 @'s found"
 
-glideins_obj=glideinFrontendInterface.findGlideins(pool_name,None,None,factory_constraints,get_only_matching=False)
+glideins_obj=glideinFrontendInterface.findGlideins(pool_name,None,None,factory_constraints)
 
 factoryclient_constraints=None
 if factory_name!=None:
