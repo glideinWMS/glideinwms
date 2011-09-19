@@ -558,6 +558,8 @@ def populate_common_descript(descript_dict,        # will be modified
                     proxy_types[pel['absfname']] = pel['type']
                 if pel['keyabsfname'] != None:
                     proxy_key_files[pel['absfname']] = pel['keyabsfname']
+                if pel['pilotabsfname'] != None:
+                    proxy_pilot_files[pel['absfname']] = pel['pilotabsfname']
                 if pel['vm_id'] != None:
                     proxy_vm_ids[pel['absfname']] = pel['vm_id']
                 if pel['vm_type'] != None:

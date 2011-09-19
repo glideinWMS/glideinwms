@@ -678,9 +678,9 @@ class MultiAdvertizeWork:
                         glidein_params_to_encrypt['GlideinProxy']=credential_el.file_id(credential_el.pilot_fname)
                     
                     if "vm_id" in credential_el.type:
-                        glidein_params_to_encrypt['VMId']=credential_el.file_id(credential_el.vm_id)
+                        glidein_params_to_encrypt['VMId']=str(credential_el.file_id(credential_el.vm_id))
                     if "vm_type" in credential_el.type:
-                        glidein_params_to_encrypt['VMType']=credential_el.file_id(credential_el.vm_type)
+                        glidein_params_to_encrypt['VMType']=str(credential_el.file_id(credential_el.vm_type))
                         
                     (req_idle,req_max_run)=credential_el.get_usage_details()
                     logSupport.log.info("Advertizing credential %s with (%d idle, %d max run) for request %s"%(credential_el.filename, req_idle, req_max_run, params_obj.request_name))
