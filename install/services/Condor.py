@@ -1082,7 +1082,7 @@ DAEMON_LIST = $(DAEMON_LIST), %(upper_name)s
     common.logit("Creating secondary schedd directories")
     cmd = ""
     if self.install_type() == "tarball":
-      cmd = "source %s/condor.sh ;" % self.condor_location()
+      cmd = ". %s/condor.sh ;" % self.condor_location()
     cmd += "%s/install/services/init_schedd.sh" % self.glideinwms_location()
     common.run_script(cmd)
     common.logit("")

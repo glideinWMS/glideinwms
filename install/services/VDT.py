@@ -83,9 +83,9 @@ class VDT(Configuration):
     #-- install vdt packages ---
     self.messagesDict["packages"] = packages
     common.logit("... installing VDT packages")
-    common.run_script("export VDTSETUP_AGREE_TO_LICENSES=y; source %(pacman_location)s/setup.sh && cd %(vdt_location)s && pacman -trust-all-caches -get %(packages)s" % self.messagesDict)
+    common.run_script("export VDTSETUP_AGREE_TO_LICENSES=y; . %(pacman_location)s/setup.sh && cd %(vdt_location)s && pacman -trust-all-caches -get %(packages)s" % self.messagesDict)
     #--- vdt-post-install --
-    common.run_script("source %(vdt_location)s/setup.sh && vdt-post-install" % self.messagesDict)
+    common.run_script(". %(vdt_location)s/setup.sh && vdt-post-install" % self.messagesDict)
 
   #-------------------------
   def install_pacman(self):
@@ -120,7 +120,7 @@ pacman_location  is incorrect.  Please verify.""")
       common.logerr("Pacman install failed. No setup.sh file exists in: %(pacman_location)s" % self.messagesDict)
     common.logit("""... pacman requires the setup script to be sourced to initialize 
     some variables in it for subsequent use.""")
-    common.run_script("cd %(pacman_location)s && source setup.sh" % self.messagesDict)
+    common.run_script("cd %(pacman_location)s && . setup.sh" % self.messagesDict)
     common.logit("\nPacman successfully installed: %(pacman_location)s" % self.messagesDict)
     common.logit("======== pacman install complete ==========\n")
     os.system("sleep 2")

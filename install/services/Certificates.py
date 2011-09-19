@@ -91,7 +91,7 @@ option specified: %(dir)s""" %  { "dir"    : self.vdt_location(),})
    %(package)s""" % { "package" : self.package,})
     self.install_vdt_package(self.package)
     common.logit("... retrieving certificates") 
-    common.run_script("source %(vdt_location)s/setup.sh; %(vdt_location)s/vdt/bin/vdt-ca-manage setupca --location %(dir)s --url osg" % \
+    common.run_script(". %(vdt_location)s/setup.sh; %(vdt_location)s/vdt/bin/vdt-ca-manage setupca --location %(dir)s --url osg" % \
        { "vdt_location" : self.vdt_location(),
          "dir"          : os.path.dirname(self.x509_cert_dir())})
     self.create_crontab()
@@ -113,12 +113,12 @@ option specified: %(dir)s""" %  { "dir"    : self.vdt_location(),})
 
     for service in self.vdt_services:
       common.logit("\n...... %(service)s" % { "service" :service,})
-      common.run_script("source %(vdt_location)s/setup.sh;vdt-control %(non_root_arg)s --enable %(service)s;vdt-control %(non_root_arg)s --on %(service)s" % \
+      common.run_script(". %(vdt_location)s/setup.sh;vdt-control %(non_root_arg)s --enable %(service)s;vdt-control %(non_root_arg)s --on %(service)s" % \
            { "vdt_location" : self.vdt_location(),
              "non_root_arg" : non_root_arg,
              "service"      : service,} )
     common.logit("\nvdt-control --list")
-    os.system("source %(vdt_location)s/setup.sh;vdt-control --list" % \
+    os.system(". %(vdt_location)s/setup.sh;vdt-control --list" % \
            { "vdt_location" : self.vdt_location(),})
 
     #-- show the cron entries added - extract the lines put in cron
@@ -186,7 +186,7 @@ Suggest you check this out before proceeding:
     cert_dir = ""
     vdt_script = "%s/setp.sh" % self.vdt_location()
     if os.path.exists(vdt_script):
-      (status, cert_dir) = commands.getstatusoutput("source %s;echo $X509_CERT_DIR" % vdt_script)
+      (status, cert_dir) = commands.getstatusoutput(". %s;echo $X509_CERT_DIR" % vdt_script)
       if status > 0:
         cert_dir = ""
     return cert_dir
