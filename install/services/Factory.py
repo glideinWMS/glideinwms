@@ -356,7 +356,7 @@ or you changed the ini file and did not reinstall that service.""")
     common.logit("Creating environment script...")
     data = """#!/bin/bash
 export X509_CERT_DIR=%(x509_cert_dir)s
-source %(condor_location)s/condor.sh
+.  %(condor_location)s/condor.sh
 """ % { "x509_cert_dir"   : self.wms.x509_cert_dir(), 
         "condor_location" : self.wms.condor_location(),}
     if self.use_vofrontend_proxy() == "n":
@@ -368,7 +368,7 @@ source %(condor_location)s/condor.sh
   #-----------------------
   def create_glideins(self):
     yn=raw_input("\nDo you want to create the glideins now? (y/n) [n]: ")
-    cmd1 = "source %s" % self.env_script()
+    cmd1 = ".  %s" % self.env_script()
     cmd2 = "%s/creation/create_glidein %s" % (self.glidein.glideinwms_location(),self.glidein.config_file())
     if yn=='y':
       common.run_script("%s;%s" % (cmd1,cmd2))

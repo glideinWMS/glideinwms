@@ -559,7 +559,7 @@ The following DNs are in your grid_mapfile:"""
   def create_env_script(self):
     common.logit("\nCreating VO frontend env script.")
     data = """#!/bin/bash
-source %(condor_location)s/condor.sh
+. %(condor_location)s/condor.sh
 """ % { "condor_location" : self.condor_location(),}
     common.write_file("w",0644,self.env_script(),data)
     common.logit("VO frontend env script created: %s" % self.env_script() )
@@ -568,7 +568,7 @@ source %(condor_location)s/condor.sh
   #---------------------------------
   def create_frontend(self):
     yn=raw_input("Do you want to create the frontend now? (y/n) [n]: ")
-    cmd1 = "source %s" % self.env_script()
+    cmd1 = ". %s" % self.env_script()
     cmd2 = "%s/creation/create_frontend %s" % (self.glidein.glideinwms_location(),self.config_file())
     if yn=='y':
       common.run_script("%s;%s" % (cmd1,cmd2))
@@ -587,7 +587,7 @@ source %(condor_location)s/condor.sh
   def get_schedds_via_condor_config_val(self):
     cmd = ""
     if self.install_type() != "rpm":
-      cmd += "source %s/condor.sh;" % self.condor_location()
+      cmd += ". %s/condor.sh;" % self.condor_location()
     cmd += "condor_config_val -dump |grep _jobs |awk '{print $3}'"
     fd = os.popen(cmd)
     lines = fd.readlines()
@@ -607,7 +607,7 @@ source %(condor_location)s/condor.sh
   def get_schedds_via_condor_status(self):
     cmd = ""
     if self.install_type() != "rpm":
-      cmd += "source %s/condor.sh;" % self.condor_location()
+      cmd += ". %s/condor.sh;" % self.condor_location()
     cmd += "condor_status -schedd -format '%s\n' Name "
     fd = os.popen(cmd)
     lines = fd.readlines()

@@ -59,7 +59,7 @@ def wmscollector(service,action,inifile):
   if action in ["install","validate","configure",]:
     process_action(obj,action)
     return
-  cmd = "source %s/condor.sh" % obj.condor_location()
+  cmd = ". %s/condor.sh" % obj.condor_location()
   if action == "start":
     cmd += "; %s %s" % (obj.initd_script(),action)
   elif action == "stop":
@@ -77,7 +77,7 @@ def usercollector(service,action,inifile):
   if action in ["install","validate","configure",]:
     process_action(obj,action)
     return
-  cmd = "source %s/condor.sh" % obj.condor_location()
+  cmd = ". %s/condor.sh" % obj.condor_location()
   if action == "start":
     cmd += "; %s %s" % (obj.initd_script(),action)
   elif action == "stop":
@@ -94,7 +94,7 @@ def submit(service,action,inifile):
   if action in ["install","validate","configure",]:
     process_action(obj,action)
     return
-  cmd = "source %s/condor.sh" % obj.condor_location()
+  cmd = ". %s/condor.sh" % obj.condor_location()
   if action == "start":
     cmd += "; %s %s" % (obj.initd_script(),action)
   elif action == "stop":
@@ -112,7 +112,7 @@ def vofrontend(service,action,inifile):
   if action in ["install","validate","configure","create-group"]:
     process_action(obj,action)
     return
-  cmd = "cd %s;source frontend.sh;cd %s" % (obj.install_location(),obj.frontend_dir())
+  cmd = "cd %s;. frontend.sh;cd %s" % (obj.install_location(),obj.frontend_dir())
   if action == "start":
     cmd += "; ./frontend_startup %s"  % action
   elif action == "stop":
@@ -129,7 +129,7 @@ def rpm(service,action,inifile):
   if action in ["install","validate","configure",]:
     process_action(obj,action)
     return
-  cmd = "cd %s;source frontend.sh;cd %s" % (obj.install_location(),obj.frontend_dir())
+  cmd = "cd %s;. frontend.sh;cd %s" % (obj.install_location(),obj.frontend_dir())
 #  if action == "start":
 #    cmd += "; ./frontend_startup %s"  % action
 #  elif action == "stop":
@@ -147,7 +147,7 @@ def factory(service,action,inifile):
   if action in ["install","validate","configure","create-entries"]:
     process_action(obj,action)
     return
-  cmd = "cd %s;source factory.sh;cd %s" % (obj.install_location(),obj.glidein_dir())
+  cmd = "cd %s;. factory.sh;cd %s" % (obj.install_location(),obj.glidein_dir())
   if action == "start":
     cmd += "; ./factory_startup %s"  % action
   elif action == "stop":
