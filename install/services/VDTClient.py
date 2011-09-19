@@ -49,7 +49,7 @@ Is it OK to install it in this location""" % self.vdt_location())
   def client_exists(self):
     if not self.vdt_exists():
       return False
-    err = os.system("source %s/setup.sh && type voms-proxy-init >/dev/null 2>&1" % self.vdt_location())
+    err = os.system(". %s/setup.sh && type voms-proxy-init >/dev/null 2>&1" % self.vdt_location())
     if err == 0:
       return True
     return False
