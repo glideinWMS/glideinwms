@@ -146,8 +146,10 @@ contains the credentials that are mapped to that Factory and are categorized by 
 	</li>	
 		
 	<li><a name="credential"></a><b>Credentials allowed for this frontend group for this factory.  </b> The credentials are 
-	identified by an ID, which is based on a hash of the filename (credential ids are not based on the type or content of the 
-	credential).  All these attributes are encrypted with the Frontend-generated symmetric key.
+	identified by an ID, which needs to be unique and must stay the same for the lifetime of the requests that use it (a renewed proxy
+	will have the same ID as the expired proxy with the same subject).  Credential ids should not based on the type or content of the 
+	credential.  An example would be to base the ID on a hash of the filename.  All these attributes are encrypted with the 
+	Frontend-generated symmetric key.
 		<ol type="a">
 			<li>Credential and associated security class.  
 				<ul>
