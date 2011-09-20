@@ -106,6 +106,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add('+GlideinName','"%s"'%glidein_name)
         self.add('+GlideinEntryName','"%s"'%entry_name)
         self.add('+GlideinClient','"$ENV(GLIDEIN_CLIENT)"')
+        self.add('+GlideinFrontendName', '"$ENV(GLIDEIN_FRONTEND_NAME)"')
         self.add('+GlideinX509Identifier','"$ENV(GLIDEIN_X509_ID)"')
         self.add('+GlideinX509SecurityClass','"$ENV(GLIDEIN_X509_SEC_CLASS)"')
         self.add('+GlideinWebBase','"%s"'%web_base)

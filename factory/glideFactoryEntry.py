@@ -80,11 +80,13 @@ def perform_work(entry_name,
                  condorQ,
                  client_name,client_int_name,client_security_name,x509_proxy_security_class,client_int_req,
                  in_downtime,remove_excess,
-                 idle_glideins,max_running,max_held,
+                 idle_glideins,max_running,
                  jobDescript,
                  x509_proxy_fnames,x509_proxy_username,
+                 glidein_totals, frontend_name,
                  client_web,
                  params):
+            
     glideFactoryLib.factoryConfig.client_internals[client_int_name]={"CompleteName":client_name,"ReqName":client_int_req}
 
     if params.has_key("GLIDEIN_Collector"):
@@ -118,38 +120,20 @@ def perform_work(entry_name,
     glideFactoryLib.logStats(condorQ,condorStatus,client_int_name,client_security_name,x509_proxy_security_class)
     client_log_name=glideFactoryLib.secClass2Name(client_security_name,x509_proxy_security_class)
     glideFactoryLib.factoryConfig.log_stats.logSummary(client_log_name,log_stats)
-        
-    remove_excess_wait=False
-    remove_excess_idle=False
-    remove_excess_run=False
-    if remove_excess=='NO':
-        pass # nothing to do
-    elif remove_excess=='WAIT':
-        remove_excess_wait=True
-    elif remove_excess=='IDLE':
-        remove_excess_wait=True
-        remove_excess_idle=True
-    elif remove_excess=='ALL':
-        remove_excess_wait=True
-        remove_excess_idle=True
-        remove_excess_run=True
-    else:
-        glideFactoryLib.log_files.logActivity("Unknown RemoveExcess '%s', assuming 'NO'"%remove_excess)
-        pass # nothing to do
 
     # use the extended params for submission
     proxy_fraction=1.0/len(x509_proxy_keys)
 
     # I will shuffle proxies around, so I may as well round up all of them
     idle_glideins_pproxy=int(math.ceil(idle_glideins*proxy_fraction))
-    max_running_pproxy=int(math.ceil(max_running*proxy_fraction))
+    max_glideins_pproxy=int(math.ceil(max_running*proxy_fraction))
 
     # not reducing the held, as that is effectively per proxy, not per request
     nr_submitted=0
     for x509_proxy_id in x509_proxy_keys:
         nr_submitted+=glideFactoryLib.keepIdleGlideins(condorQ,client_int_name,
-                                                       in_downtime,remove_excess_wait,remove_excess_idle,remove_excess_run,
-                                                       idle_glideins_pproxy,max_running_pproxy,max_held,
+                                                       in_downtime, remove_excess,
+                                                       idle_glideins_pproxy, max_glideins_pproxy, glidein_totals, frontend_name,
                                                        x509_proxy_id,x509_proxy_fnames[x509_proxy_id],x509_proxy_username,x509_proxy_security_class,
                                                        client_web,params)
     
@@ -271,36 +255,6 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
     #glideFactoryLib.log_files.logActivity("Perform work")
     schedd_name=jobDescript.data['Schedd']
 
-    factory_max_running=int(jobDescript.data['MaxRunning'])
-    factory_max_idle=int(jobDescript.data['MaxIdle'])
-    factory_max_held=int(jobDescript.data['MaxHeld'])
-    
-    frontend_max_running={}
-    frontend_max_idle={}
-    frontend_max_held={}
-
-    # Get factory parameters for frontend-specific limits
-    # they are in the format:
-    # frontend1:sec_class1:number,frontend2:sec_class2:number
-    # we will turn them into a dictionary
-    # frontend_max_held['frontend1:sec_class1']=number
-    fe_running_param=jobDescript.data['MaxRunningFrontends']
-    fe_idle_param=jobDescript.data['MaxIdleFrontends']
-    fe_held_param=jobDescript.data['MaxHeldFrontends']
-    if (fe_running_param.find(";")!=-1):
-        for el in fe_running_param.split(","):
-            el_list=el.split(";")
-            frontend_max_running[el_list[0]]=int(el_list[1])
-    if (fe_idle_param.find(";")!=-1):
-        for el in fe_idle_param.split(","):
-            el_list=el.split(";")
-            frontend_max_idle[el_list[0]]=int(el_list[1])
-    if (fe_held_param.find(";")!=-1):
-        for el in fe_held_param.split(","):
-            el_list=el.split(";")
-            frontend_max_held[el_list[0]]=int(el_list[1])
-
-
     try:
         condorQ=glideFactoryLib.getCondorQData(entry_name,None,schedd_name)
     except glideFactoryLib.condorExe.ExeError,e:
@@ -314,6 +268,21 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                                         sys.exc_info()[2])
         glideFactoryLib.log_files.logWarning("getCondorQData failed, traceback: %s"%string.join(tb,''))
         # protect and exit
+        return 0
+    
+    # ===========  Check current state of the queue and initialize all entry limits  ==========
+    
+    # Initialize entry and frontend limit dicts
+    glidein_totals = glideFactoryLib.GlideinTotals(entry_name, frontendDescript, jobDescript, condorQ)  
+    
+    if glidein_totals.has_entry_exceeded_max_idle():
+        glideFactoryLib.log_files.logWarning("Entry %s has hit the limit for idle glideins, cannot submit any more, skipping all requests" % entry_name)
+        return 0
+    if glidein_totals.has_entry_exceeded_max_glideins():
+        glideFactoryLib.log_files.logWarning("Entry %s has hit the limit for total glideins, cannot submit any more, skipping all requests" % entry_name)
+        return 0
+    if glidein_totals.has_entry_exceeded_max_held():
+        glideFactoryLib.log_files.logWarning("Entry %s has hit the limit for held glideins, cannot submit any more, skipping all requests" % entry_name)
         return 0
 
     all_security_names=sets.Set()
@@ -373,7 +342,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 continue #skip request
             
             client_authenticated_identity=work[work_key]['internals']["AuthenticatedIdentity"]
-	
+
             if client_authenticated_identity!=client_expected_identity:
                 # silently drop... like if we never read it in the first place
                 # this is compatible with what the frontend does
@@ -524,8 +493,6 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             except ValueError, e:
                 glideFactoryLib.log_files.logWarning("Client %s provided an invalid ReqIdleGlideins: '%s' not a number. Skipping request"%(client_int_name,work[work_key]['requests']['IdleGlideins']))
                 continue #skip request
-            if idle_glideins>factory_max_idle:
-                idle_glideins=factory_max_idle
             
             if work[work_key]['requests'].has_key('MaxRunningGlideins'):
                 try:
@@ -533,30 +500,9 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 except ValueError, e:
                     glideFactoryLib.log_files.logWarning("Client %s provided an invalid ReqMaxRunningGlideins: '%s' not a number. Skipping request"%(client_int_name,work[work_key]['requests']['MaxRunningGlideins']))
                     continue #skip request
-                if max_running>factory_max_running:
-                    max_running=factory_max_running
             else:
-                max_running=factory_max_running
+                max_running=int(jobDescript.data['MaxRunning'])
             
-            # If there is a frontend specific limit for this entry on max_jobs
-            # then reduce idle,max_jobs and held_jobs based on frontend specific limits
-            s_id=client_security_name+":"+x509_proxy_security_class
-            s_all=client_security_name+":All"
-            #glideFactoryLib.log_files.logActivity("Before check: %i %i %i"% (max_running,idle_glideins,factory_max_held))
-            if (frontend_max_running.has_key(s_id) and (max_running>frontend_max_running[s_id])):
-                max_running=frontend_max_running[s_id]
-            if (frontend_max_running.has_key(s_all) and (max_running>frontend_max_running[s_all])):
-                max_running=frontend_max_running[s_all]
-            if (frontend_max_idle.has_key(s_id) and (idle_glideins>frontend_max_idle[s_id])):
-                idle_glideins=frontend_max_idle[s_id]
-            if (frontend_max_idle.has_key(s_all) and (idle_glideins>frontend_max_idle[s_all])):
-                idle_glideins=frontend_max_idle[s_all]
-            if (frontend_max_held.has_key(s_id) and (factory_max_held>frontend_max_held[s_id])):
-                factory_max_held=frontend_max_held[s_id]
-            if (frontend_max_held.has_key(s_all) and (factory_max_held>frontend_max_held[s_all])):
-                factory_max_held=frontend_max_held[s_all]
-            #glideFactoryLib.log_files.logActivity("After check: %i %i %i"% (max_running,idle_glideins,factory_max_held))
-
             # Validate that project id is supplied when required (as specified in the rsl string)
             if jobDescript.data.has_key('GlobusRSL'):
                 if 'TG_PROJECT_ID' in jobDescript.data['GlobusRSL']:
@@ -629,11 +575,16 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 all_security_names.add((client_security_name,x509_proxy_security_class))
 
                 entry_condorQ=glideFactoryLib.getQProxSecClass(condorQ,client_int_name,x509_proxy_security_class)
+                
+                # Map the above identity to a frontend:sec_class for tracking totals
+                frontend_name = "%s:%s" % (frontendDescript.get_frontend_name(client_expected_identity), x509_proxy_security_class)
+
                 done_something+=perform_work(entry_name,entry_condorQ,
                                              work_key,client_int_name,client_security_name,x509_proxy_security_class,client_int_req,
                                              in_downtime,remove_excess,
-                                             idle_glideins_pc,max_running_pc,factory_max_held,
+                                             idle_glideins_pc,max_running_pc,
                                              jobDescript,x509_proxies.fnames[x509_proxy_security_class],x509_proxies.get_username(x509_proxy_security_class),
+                                             glidein_totals, frontend_name,
                                              client_web,params)
         else: # it is malformed and should be skipped
             glideFactoryLib.log_files.logWarning("Malformed classad for client %s, skipping"%work_key)
