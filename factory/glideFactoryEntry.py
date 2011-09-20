@@ -248,25 +248,42 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
     glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime)
     
     #glideFactoryLib.log_files.logActivity("Find work")
-    work = glideFactoryInterface.findWork(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
-                                          glideFactoryLib.factoryConfig.supported_signtypes,
-                                          pub_key_obj,allowed_proxy_source)
+    work = glideFactoryInterface.findWork(
+               glideFactoryLib.factoryConfig.factory_name,
+               glideFactoryLib.factoryConfig.glidein_name,
+               entry_name,
+               glideFactoryLib.factoryConfig.supported_signtypes,
+               pub_key_obj,allowed_proxy_source)
     
-    if (len(work.keys())==0) and (old_pub_key_obj != None):
-        # Could not find work to do using pub key and we do have a valid old 
-        # pub key object. Either there is really no work or the frontend is 
+    glideFactoryLib.log_files.logActivity("Found %s tasks to work on using existing factory key." % len(work))
+
+    # If old key is valid, find the work using old key as well and append it
+    # to existing work dictionary
+    if (old_pub_key_obj != None):
+        work_oldkey = {}
         # still using the old key in this cycle
-        glideFactoryLib.log_files.logActivity("Could not find work to do using the existing key. Trying to find work using old factory key.")
-        work = glideFactoryInterface.findWork(
+        glideFactoryLib.log_files.logActivity("Old factory key is still valid. Trying to find work using old factory key.")
+        work_oldkey = glideFactoryInterface.findWork(
                    glideFactoryLib.factoryConfig.factory_name,
                    glideFactoryLib.factoryConfig.glidein_name, entry_name,
                    glideFactoryLib.factoryConfig.supported_signtypes,
                    old_pub_key_obj, allowed_proxy_source)
-        if len(work.keys())>0:
-            glideFactoryLib.log_files.logActivity("Found work to do using old factory key.")
+        glideFactoryLib.log_files.logActivity("Found %s tasks to work on using old factory key" % len(work_oldkey))
+
+        # Merge the work_oldkey with work
+        for w in work_oldkey.keys():
+            if work.has_key(w):
+                # This should not happen but still as a safegaurd warn
+                glideFactoryLib.log_files.logActivity("Work task for %s exists using existing key and old key. Ignoring the work from old key." % w)
+                glideFactoryLib.log_files.logError("Work task for %s exists using existing key and old key. Ignoring the work from old key." % w)
+                continue
+            work[w] = work_oldkey[w]
+
     if len(work.keys())==0:
-        glideFactoryLib.log_files.logActivity("No work found.")
+        glideFactoryLib.log_files.logActivity("No work found")
         return 0 # nothing to be done
+
+    glideFactoryLib.log_files.logActivity("Found %s total tasks to work on" % len(work))
 
     #glideFactoryLib.log_files.logActivity("Perform work")
     schedd_name=jobDescript.data['Schedd']
