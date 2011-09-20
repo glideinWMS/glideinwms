@@ -289,4 +289,21 @@ class FrontendDescript(ConfigFile):
                 usernames[username]=True
         return usernames.keys()
     
-        
+    def get_all_frontend_sec_classes(self):
+        """
+        Get a list of all frontend:sec_class
+        """
+        frontend_sec_classes = []
+        for fe_name in self.data.keys():
+            fe = self.data[fe_name]['usermap']
+            for sec_class in fe.keys():
+                frontend_sec_classes.append("%s:%s" % (fe_name, sec_class))
+        return frontend_sec_classes        
+
+    def get_frontend_name(self, identity):
+        """
+        Get the frontend:sec_class mapping for the given identity
+        """
+        for fe_name in self.data.keys():
+            if self.data[fe_name]['ident'] == identity:
+                return fe_name
