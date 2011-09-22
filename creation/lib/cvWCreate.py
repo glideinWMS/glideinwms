@@ -82,7 +82,7 @@ def create_initd_startup(startup_fname,frontend_dir,glideinWMS_dir):
         fd.write("        fi\n")
         fd.write('        if [ -z "$3" ]; then\n')
         fd.write("           if [ -z $FRONTEND_WRITEBACK ]; then\n")
-        fd.write('              writeback="no"\n')
+        fd.write('              writeback="yes"\n')
         fd.write("           else\n")
         fd.write('              writeback=$FRONTEND_WRITEBACK\n')
         fd.write("           fi\n")
