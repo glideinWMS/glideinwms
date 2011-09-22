@@ -57,7 +57,7 @@ reconfig() {
         fi
         if [ -z "$3" ]; then
            if [ -z $FRONTEND_WRITEBACK ]; then
-              writeback="no"
+              writeback="yes"
            else
               writeback=$FRONTEND_WRITEBACK
            fi

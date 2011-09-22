@@ -68,7 +68,7 @@ reconfig() {
         fi
         if [ -z "$3" ]; then
            if [ -z $GLIDEIN_WRITEBACK ]; then
-              writeback="no"
+              writeback="yes"
            else
               writeback=$GLIDEIN_WRITEBACK
            fi
