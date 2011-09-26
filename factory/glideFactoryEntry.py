@@ -328,29 +328,45 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
     logSupport.log.debug("Finding work")
     # Find requests that we have the key to decrypt
     additional_constraints = '((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined) && (ReqEncIdentity=!=Undefined))' % pub_key_obj.get_pub_key_id() 
-    work = glideFactoryInterface.findWork(glideFactoryLib.factoryConfig.factory_name,
-                                          glideFactoryLib.factoryConfig.glidein_name,
-                                          entry_name,
-                                          glideFactoryLib.factoryConfig.supported_signtypes,
-                                          pub_key_obj,
-                                          additional_constraints)
+    #logSupport.log.info("Find work")
+    work = glideFactoryInterface.findWork(
+               glideFactoryLib.factoryConfig.factory_name,
+               glideFactoryLib.factoryConfig.glidein_name,
+               entry_name,
+               glideFactoryLib.factoryConfig.supported_signtypes,
+               pub_key_obj,additional_constraints)
     
-    if (len(work.keys())==0) and (old_pub_key_obj != None):
-        # Could not find work to do using pub key and we do have a valid old 
-        # pub key object. Either there is really no work or the frontend is 
+    logSupport.log.info("Found %s tasks to work on using existing factory key." % len(work))
+
+    # If old key is valid, find the work using old key as well and append it
+    # to existing work dictionary
+    if (old_pub_key_obj != None):
+        work_oldkey = {}
         # still using the old key in this cycle
-        logSupport.log.info("Could not find work to do using the existing key. Trying to find work using old factory key.")
-        work = glideFactoryInterface.findWork(
+        logSupport.log.info("Old factory key is still valid. Trying to find work using old factory key.")
+        additional_constraints = '((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined) && (ReqEncIdentity=!=Undefined))' % old_pub_key_obj.get_pub_key_id() 
+        work_oldkey = glideFactoryInterface.findWork(
                    glideFactoryLib.factoryConfig.factory_name,
                    glideFactoryLib.factoryConfig.glidein_name, 
                    entry_name,
                    glideFactoryLib.factoryConfig.supported_signtypes,
-                   old_pub_key_obj)
-        if len(work.keys())>0:
-            logSupport.log.info("Found work to do using old factory key.")
+                   old_pub_key_obj,additional_constraints)
+        logSupport.log.info("Found %s tasks to work on using old factory key" % len(work_oldkey))
+
+        # Merge the work_oldkey with work
+        for w in work_oldkey.keys():
+            if work.has_key(w):
+                # This should not happen but still as a safegaurd warn
+                logSupport.log.info("Work task for %s exists using existing key and old key. Ignoring the work from old key." % w)
+                logSupport.log.error("Work task for %s exists using existing key and old key. Ignoring the work from old key." % w)
+                continue
+            work[w] = work_oldkey[w]
+
     if len(work.keys())==0:
-        logSupport.log.info("No work found.")
+        logSupport.log.info("No work found")
         return 0 # nothing to be done
+
+    logSupport.log.info("Found %s total tasks to work on" % len(work))
 
     all_security_names=sets.Set()
 

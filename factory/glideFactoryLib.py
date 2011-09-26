@@ -154,13 +154,13 @@ def secClass2Name(client_security_name, proxy_security_class):
 
 def getCondorQData(entry_name,
                    client_name, # if None, return all clients
-                   schedd_name): 
-    
+                   schedd_name):
+
     """ 
     Get Condor data, given the glidein name
     To be passed to the main functions
     """
-    
+
     global factoryConfig
 
     if client_name == None:
@@ -169,18 +169,18 @@ def getCondorQData(entry_name,
         client_constraint = ' && (%s =?= "%s")' % (factoryConfig.client_schedd_attribute, client_name)
 
     q_glidein_constraint = '(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")%s && (%s =!= UNDEFINED)' % \
-        (factoryConfig.factory_schedd_attribute, 
-         factoryConfig.factory_name, 
-         factoryConfig.glidein_schedd_attribute, 
-         factoryConfig.glidein_name, 
-         factoryConfig.entry_schedd_attribute, 
-         entry_name, 
-         client_constraint, 
+        (factoryConfig.factory_schedd_attribute,
+         factoryConfig.factory_name,
+         factoryConfig.glidein_schedd_attribute,
+         factoryConfig.glidein_name,
+         factoryConfig.entry_schedd_attribute,
+         entry_name,
+         client_constraint,
          factoryConfig.credential_id_schedd_attribute)
     q_glidein_format_list = [("JobStatus", "i"), ("GridJobStatus", "s"), ("ServerTime", "i"), ("EnteredCurrentStatus", "i"),
                              (factoryConfig.credential_id_schedd_attribute, "s"), ("HoldReasonCode", "i"), ("HoldReasonSubCode", "i"),
-                             (factoryConfig.frontend_name_attribute, "s"), 
-                             (factoryConfig.client_schedd_attribute, "s"), 
+                             (factoryConfig.frontend_name_attribute, "s"),
+                             (factoryConfig.client_schedd_attribute, "s"),
                              (factoryConfig.credential_secclass_schedd_attribute, "s")]
 
     q = condorMonitor.CondorQ(schedd_name)
@@ -348,12 +348,12 @@ class ClientWeb:
 
         if not (client_signtype in factoryConfig.supported_signtypes):
             raise ValueError, "Signtype '%s' not supported!" % client_signtype
-        
+
         self.url = client_web_url
         self.signtype = client_signtype
         self.descript = client_descript
         self.sign = client_sign
-        
+
         self.group_name = client_group
         self.group_url = client_group_web_url
         self.group_descript = client_group_descript
@@ -361,7 +361,7 @@ class ClientWeb:
 
     def get_glidein_args(self):
         return ["-clientweb", self.url, "-clientsign", self.sign, "-clientsigntype",
-                self.signtype, "-clientdescript", self.descript, 
+                self.signtype, "-clientdescript", self.descript,
                 "-clientgroup", self.group_name, "-clientwebgroup", self.group_url, "-clientsigngroup",
                  self.group_sign, "-clientdescriptgroup", self.group_descript]
 
@@ -397,8 +397,8 @@ def keepIdleGlideins(client_condorq, client_int_name,
 
     Can throw a condorExe.ExeError
     """
-    global factoryConfig      
-        
+    global factoryConfig
+
     # Filter out everything but the proper credential identifier.  Need to determine how many more glideins are needed to match this
     #    request min_idle and max_glidiens
     condorq = condorMonitor.SubQuery(client_condorq, lambda d:(d[factoryConfig.credential_id_schedd_attribute] == submit_credentials.id))
@@ -408,8 +408,8 @@ def keepIdleGlideins(client_condorq, client_int_name,
     condorq.entry_name = client_condorq.entry_name
     condorq.client_name = client_condorq.client_name
     condorq.credentials_id = submit_credentials.id
-    condorq.load() 
-    
+    condorq.load()
+
     # Check that have not exceeded max held for this security class
     if glidein_totals.has_sec_class_exceeded_max_held(frontend_name):
         # Too many held, don't submit
@@ -421,7 +421,7 @@ def keepIdleGlideins(client_condorq, client_int_name,
 
     # Held==JobStatus(5)
     q_held_glideins = 0
-    if qc_status.has_key(5): 
+    if qc_status.has_key(5):
         q_held_glideins = qc_status[5]
     # Idle==Jobstatus(1)
     sum_idle_count(qc_status)
@@ -430,27 +430,27 @@ def keepIdleGlideins(client_condorq, client_int_name,
     q_running_glideins = 0
     if qc_status.has_key(2):
         q_running_glideins = qc_status[2]
-    
+
     # Determine how many more idle glideins we need in requested idle (we may already have some)
-    add_glideins = req_min_idle - q_idle_glideins  
-    
+    add_glideins = req_min_idle - q_idle_glideins
+
     if add_glideins <= 0:
         # Have enough idle, don't submit
         logSupport.log.info("Have enough glideins: %i=idle %i=req_idle, not submitting" % (q_idle_glideins, req_min_idle))
         return clean_glidein_queue(remove_excess, glidein_totals, condorq, req_min_idle, req_max_glideins, frontend_name)
     else:
         # Need more idle
-        
+
         # Check that adding more idle doesn't exceed request max_glideins
         if q_idle_glideins + q_held_glideins + q_running_glideins + add_glideins >= req_max_glideins:
             # Exceeded limit, try to adjust
-            add_glideins = req_max_glideins - q_idle_glideins -  q_held_glideins - q_running_glideins
-            
+            add_glideins = req_max_glideins - q_idle_glideins - q_held_glideins - q_running_glideins
+
             if add_glideins <= 0:
                 # Have hit request limit, cannot submit
                 logSupport.log.info("Additional idle glideins %s needed exceeds request max_glideins limits %s, not submitting" % (add_glideins, req_max_glideins))
                 return clean_glidein_queue(remove_excess, glidein_totals, condorq, req_min_idle, req_max_glideins, frontend_name)
-        
+
     # Have a valid idle number to request
     # Check that adding more doesn't exceed frontend:sec_class and entry limits
     add_glideins = glidein_totals.can_add_idle_glideins(add_glideins, frontend_name)
@@ -462,9 +462,9 @@ def keepIdleGlideins(client_condorq, client_int_name,
         # If we are requesting more than the maximum glideins that we can submit at one time, then set to the max submit number
         #   this helps to keep one frontend/request from getting all the glideins
         if add_glideins > factoryConfig.max_submits:
-            add_glideins = factoryConfig.max_submits  
-            logSupport.log.debug("Additional idle glideins exceeded entry max submit limits %s, adjusted add_glideins to entry max submit rate" % factoryConfig.max_submits)  
-    
+            add_glideins = factoryConfig.max_submits
+            logSupport.log.debug("Additional idle glideins exceeded entry max submit limits %s, adjusted add_glideins to entry max submit rate" % factoryConfig.max_submits)
+
     try:
         logSupport.log.debug("Submitting %i glideins" % add_glideins)
         submitGlideins(condorq.entry_name, client_int_name, add_glideins, frontend_name, submit_credentials, client_web, params)
@@ -478,8 +478,8 @@ def keepIdleGlideins(client_condorq, client_int_name,
         return 0 # something is wrong... assume 0 and exit
 
     return 0
-       
-        
+
+
 def clean_glidein_queue(remove_excess, glidein_totals, condorQ, req_min_idle, req_max_glideins, frontend_name):
     """
     Cleans up the glideins queue (removes any excesses) per the frontend request.
@@ -487,12 +487,12 @@ def clean_glidein_queue(remove_excess, glidein_totals, condorQ, req_min_idle, re
     We are not adjusting the glidein totals with what has been removed from the queue.  It may take a cycle (or more)
     for these totals to occur so it would be difficult to reflect the true state of the system.   
     """
-    
+
     # KEL passed the whole glidein totals obj in case we want to adjust entry/fe:sec_class totals?
     sec_class_idle = glidein_totals.frontend_limits[frontend_name]['idle']
     sec_class_held = glidein_totals.frontend_limits[frontend_name]['held']
     sec_class_running = glidein_totals.frontend_limits[frontend_name]['running']
-        
+
     remove_excess_wait = False
     remove_excess_idle = False
     remove_excess_running = False
@@ -508,7 +508,7 @@ def clean_glidein_queue(remove_excess, glidein_totals, condorQ, req_min_idle, re
     else:
         if remove_excess != 'NO':
             logSupport.log.info("Unknown RemoveExcess provided in the request '%s', assuming 'NO'" % remove_excess)
-        
+
     if (((remove_excess_wait or remove_excess_idle) and (sec_class_idle > req_min_idle)) or
           (remove_excess_running and ((sec_class_running + sec_class_idle) > req_max_glideins))):
         # too many glideins, remove
@@ -590,7 +590,7 @@ def clean_glidein_queue(remove_excess, glidein_totals, condorQ, req_min_idle, re
 
         removeGlideins(condorQ.schedd_name, unrecoverable_held_list + held_list)
         return 1 # exit, even if no submitted
-    
+
     return 0
 
 
@@ -749,8 +749,8 @@ def hash_status(el):
     if job_status == 1:
         # idle jobs, look of GridJobStatus
         if el.has_key("GridJobStatus"):
-            grid_status=el["GridJobStatus"]
-            if grid_status in ("PENDING","INLRMS: Q","PREPARED","SUBMITTING","IDLE","SUSPENDED","REGISTERED"):
+            grid_status = str(el["GridJobStatus"]).upper()
+            if grid_status in ("PENDING", "INLRMS: Q", "PREPARED", "SUBMITTING", "IDLE", "SUSPENDED", "REGISTERED"):
                 return 1002
             elif grid_status in ("STAGE_IN", "PREPARING", "ACCEPTING"):
                 return 1010
@@ -761,8 +761,8 @@ def hash_status(el):
     elif job_status == 2:
         # count only real running, all others become Other
         if el.has_key("GridJobStatus"):
-            grid_status=el["GridJobStatus"]
-            if grid_status in ("ACTIVE","REALLY-RUNNING","INLRMS: R","RUNNING"):
+            grid_status = str(el["GridJobStatus"]).upper()
+            if grid_status in ("ACTIVE", "REALLY-RUNNING", "INLRMS: R", "RUNNING"):
                 return 2
             elif grid_status in ("STAGE_OUT", "INLRMS: E", "EXECUTED", "FINISHING", "DONE"):
                 return 4010
@@ -1142,14 +1142,14 @@ def removeGlideins(schedd_name, jid_list, force=False):
             is_not_first = 1
             time.sleep(factoryConfig.remove_sleep)
         try:
-            condorManager.condorRemoveOne("%li.%li"%(jid[0],jid[1]),schedd_name)
+            condorManager.condorRemoveOne("%li.%li" % (jid[0], jid[1]), schedd_name)
             removed_jids.append(jid)
 
             # Force the removal if requested
             if force == True:
                 try:
                     logSupport.log.info("Forcing the removal of glideins in X state")
-                    condorManager.condorRemoveOne("%li.%li"%(jid[0],jid[1]),schedd_name,do_forcex=True)
+                    condorManager.condorRemoveOne("%li.%li" % (jid[0], jid[1]), schedd_name, do_forcex=True)
                 except condorExe.ExeError, e:
                     logSupport.log.warning("Forcing the removal of glideins in %s.%s state failed" % (jid[0], jid[1]))
 
@@ -1182,7 +1182,7 @@ def releaseGlideins(schedd_name, jid_list):
             is_not_first = 1
             time.sleep(factoryConfig.release_sleep)
         try:
-            condorManager.condorReleaseOne("%li.%li"%(jid[0],jid[1]),schedd_name)
+            condorManager.condorReleaseOne("%li.%li" % (jid[0], jid[1]), schedd_name)
             released_jids.append(jid)
         except condorExe.ExeError, e:
             logSupport.log.warning("releaseGlidein(%s,%li.%li): %s" % (schedd_name, jid[0], jid[1], e))
@@ -1213,9 +1213,9 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
 
         # Glidein username (for client logs)
         exe_env.append('GLIDEIN_USER=%s' % submit_credentials.username)
-        
+
         # Credential id, required for querying the condor q
-        exe_env.append('GLIDEIN_CREDENTIAL_ID=%s' % submit_credentials.id)        
+        exe_env.append('GLIDEIN_CREDENTIAL_ID=%s' % submit_credentials.id)
 
         # Entry Params (job.descript)
         schedd = jobDescript.data["Schedd"]
@@ -1237,12 +1237,12 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
         exe_env.append('GLIDEIN_NAME=%s' % glidein_name)
         exe_env.append('FACTORY_NAME=%s' % factory_name)
         exe_env.append('WEB_URL=%s' % web_url)
-    
+
         # Security Params (signatures.sha1)
         # sign_type has always been hardcoded... we can change in the future if need be
         sign_type = "sha1"
         exe_env.append('SIGN_TYPE=%s' % sign_type)
-    
+
         main_descript = signatures.data["main_descript"]
         main_sign = signatures.data["main_sign"]
 
@@ -1253,7 +1253,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
         exe_env.append('MAIN_SIGN=%s' % main_sign)
         exe_env.append('ENTRY_DESCRIPT=%s' % entry_descript)
         exe_env.append('ENTRY_SIGN=%s' % entry_sign)
-    
+
         # Build the glidein pilot arguments
         glidein_arguments = "-v %s -name %s -entry %s -clientname %s -schedd %s " \
                             "-factory %s -web %s -sign %s -signentry %s -signtype %s " \
@@ -1333,7 +1333,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
 
             if not (glidein_rsl == "none"):
                 exe_env.append('GLIDEIN_RSL=%s' % glidein_rsl)
-    
+
         return exe_env
     except Exception, e:
         msg = "   Error setting up submission environment: %s" % str(e)
@@ -1403,17 +1403,17 @@ class GlideinTotals:
     Keeps track of all glidein totals.  
     """
     def __init__(self, entry_name, frontendDescript, jobDescript, entry_condorQ):
-        
+
         # Initialize entry limits
         self.entry_name = entry_name
         self.entry_max_glideins = int(jobDescript.data['MaxGlideins'])
         self.entry_max_held = int(jobDescript.data['MaxHeld'])
         self.entry_max_idle = int(jobDescript.data['MaxIdle'])
-                            
+
         # Count glideins by status
         # Initialized since the held and running won't ever change
         # To simplify idle requests, this variable is updated at the same time the frontend count is updated
-        qc_status = getQStatus(entry_condorQ)        
+        qc_status = getQStatus(entry_condorQ)
         self.entry_running = 0
         self.entry_held = 0
         self.entry_idle = 0
@@ -1424,14 +1424,14 @@ class GlideinTotals:
         sum_idle_count(qc_status)
         if qc_status.has_key(1):  # Idle==Jobstatus(1)
             self.entry_idle = qc_status[1]
-                
+
         all_frontends = frontendDescript.get_all_frontend_sec_classes()
-        
+
         # Initialize frontend security class limits
         self.frontend_limits = {}
         for fe_sec_class in all_frontends:
             self.frontend_limits[fe_sec_class] = {'max_glideins':-1, 'max_held':-1, 'max_idle':-1}
-                                    
+
         # Get factory parameters for frontend-specific limits
         # they are in the format  frontend1:sec_class1:number,frontend2:sec_class2:number
         fe_glideins_param = jobDescript.data['MaxGlideinsFrontends']
@@ -1449,9 +1449,9 @@ class GlideinTotals:
             for el in fe_held_param.split(","):
                 el_list = el.split(";")
                 self.frontend_limits[el_list[0]]['max_held'] = int(el_list[1])
-                        
+
         # Initialize frontend totals
-        for fe_sec_class in self.frontend_limits:            
+        for fe_sec_class in self.frontend_limits:
             # Filter the queue for all glideins for this frontend:security_class (GLIDEIN_FRONTEND_NAME)
             fe_condorQ = condorMonitor.SubQuery(entry_condorQ, lambda d:(d[factoryConfig.frontend_name_attribute] == fe_sec_class))
             fe_condorQ.schedd_name = entry_condorQ.schedd_name
@@ -1459,9 +1459,9 @@ class GlideinTotals:
             fe_condorQ.glidein_name = entry_condorQ.glidein_name
             fe_condorQ.entry_name = entry_condorQ.entry_name
             fe_condorQ.load()
-            
+
             # Count glideins by status
-            qc_status = getQStatus(fe_condorQ)        
+            qc_status = getQStatus(fe_condorQ)
             fe_running = 0
             fe_held = 0
             fe_idle = 0
@@ -1472,40 +1472,40 @@ class GlideinTotals:
             sum_idle_count(qc_status)
             if qc_status.has_key(1):  # Idle==Jobstatus(1)
                 fe_idle = qc_status[1]
-            
+
             self.frontend_limits[fe_sec_class]['running'] = fe_running
             self.frontend_limits[fe_sec_class]['held'] = fe_held
             self.frontend_limits[fe_sec_class]['idle'] = fe_idle
-            
-                    
+
+
     def can_add_idle_glideins(self, nr_glideins, frontend_name):
         """
         Determines how many more glideins can be added.  Does not compare against request max_glideins.  Does not update totals.
         """
         nr_allowed = nr_glideins
-        
+
         # Check entry idle limit
         if self.entry_idle + nr_allowed > self.entry_max_idle:
             # adjust to under the limit
             nr_allowed = self.entry_max_idle - self.entry_idle
-        
+
         # Check entry total glideins 
         if self.entry_idle + nr_allowed + self.entry_running + self.entry_held > self.entry_max_glideins:
-            nr_allowed = self.entry_max_glideins - self.entry_idle - self.entry_running 
-        
+            nr_allowed = self.entry_max_glideins - self.entry_idle - self.entry_running
+
         fe_limit = self.frontend_limits[frontend_name]
-        
+
         # Check frontend:sec_class idle limit
         if fe_limit['max_idle'] != -1 and (fe_limit['idle'] + nr_allowed > fe_limit['max_idle']):
-            nr_allowed = fe_limit['max_idle'] - fe_limit['idle']   
-        
+            nr_allowed = fe_limit['max_idle'] - fe_limit['idle']
+
         # Check frontend:sec_class total glideins
         if  fe_limit['max_glideins'] != -1 and (fe_limit['idle'] + fe_limit['held'] + nr_allowed + fe_limit['running'] > fe_limit['max_glideins']):
             nr_allowed = fe_limit['max_glideins'] - fe_limit['idle'] - fe_limit['held'] - fe_limit['running']
-        
+
         # Return
-        return nr_allowed  
-    
+        return nr_allowed
+
     def add_idle_glideins(self, nr_glideins, frontend_name):
         """
         Updates the totals with the additional glideins.
@@ -1528,22 +1528,22 @@ class GlideinTotals:
             return self.frontend_limits[frontend_name]['held'] >= self.frontend_limits[frontend_name]['max_held']
         else:
             return False
-    
+
     def has_entry_exceeded_max_held(self):
         return self.entry_held >= self.entry_max_held
 
     def has_entry_exceeded_max_idle(self):
         return self.entry_idle >= self.entry_max_idle
-    
+
     def has_entry_exceeded_max_glideins(self):
         # max_glideins=total glidens for an entry.  Total is defined as idle+running+held
         return self.entry_idle + self.entry_running + self.entry_held >= self.entry_max_glideins
-        
 
-    def __str__(self):  
+
+    def __str__(self):
         """
         for testing purposes 
-        """  
+        """
         output = ""
         output += "GlideinTotals ENTRY NAME = %s\n" % self.entry_name
         output += "GlideinTotals ENTRY VALUES\n"
@@ -1551,10 +1551,10 @@ class GlideinTotals:
         output += "     held=%s\n" % self.entry_held
         output += "     running=%s\n" % self.entry_running
         output += "GlideinTotals ENTRY MAX VALUES\n"
-        output += "     max_idle=%s\n" % self.entry_max_idle 
-        output += "     max_held=%s\n" % self.entry_max_held   
-        output += "     max_glideins=%s\n" % self.entry_max_glideins 
-        
+        output += "     max_idle=%s\n" % self.entry_max_idle
+        output += "     max_held=%s\n" % self.entry_max_held
+        output += "     max_glideins=%s\n" % self.entry_max_glideins
+
         for frontend in self.frontend_limits.keys():
             fe_limit = self.frontend_limits[frontend]
             output += "GlideinTotals FRONTEND NAME = %s\n" % frontend
@@ -1564,6 +1564,6 @@ class GlideinTotals:
             output += "     max_held = %s\n" % fe_limit['max_held']
             output += "     running = %s\n" % fe_limit['running']
             output += "     max_glideins = %s\n" % fe_limit['max_glideins']
-                    
+
         return output
-        
+
