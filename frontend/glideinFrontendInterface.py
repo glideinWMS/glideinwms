@@ -678,9 +678,9 @@ class MultiAdvertizeWork:
                         glidein_params_to_encrypt['GlideinProxy']=credential_el.file_id(credential_el.pilot_fname)
                     
                     if "vm_id" in credential_el.type:
-                        glidein_params_to_encrypt['VMId']=str(credential_el.file_id(credential_el.vm_id))
+                        glidein_params_to_encrypt['VMId']=str(credential_el.vm_id)
                     if "vm_type" in credential_el.type:
-                        glidein_params_to_encrypt['VMType']=str(credential_el.file_id(credential_el.vm_type))
+                        glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
                         
                     (req_idle,req_max_run)=credential_el.get_usage_details()
                     logSupport.log.info("Advertizing credential %s with (%d idle, %d max run) for request %s"%(credential_el.filename, req_idle, req_max_run, params_obj.request_name))
@@ -711,7 +711,7 @@ class MultiAdvertizeWork:
                 if key_obj!=None:
                     fd.write(string.join(key_obj.get_key_attrs(),'\n')+"\n")
                     for attr in glidein_params_to_encrypt.keys():
-                        encrypted_params[attr]=key_obj.encrypt_hex(glidein_params_to_encrypt["%s"%attr])
+                        encrypted_params[attr]=key_obj.encrypt_hex(glidein_params_to_encrypt[attr])
                     
 
                 fd.write('ReqIdleGlideins = %i\n'%req_idle)
