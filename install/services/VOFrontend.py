@@ -343,6 +343,7 @@ class VOFrontend(Condor):
     if self.client_only_install == True:
       return users  # no mapfile users when client only frontend
     if "usercollector" in self.colocated_services:
+      users.append(["VOFrontend",self.x509_gsi_dn(),self.service_name()])
       for user in self.pilot_proxy_users():
         users.append(user)
     return users
