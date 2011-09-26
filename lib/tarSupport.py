@@ -1,5 +1,5 @@
 import os
-import tarfile
+import glideinwms_tarfile
 import cStringIO
 
 class FileDoesNotExist(Exception):
@@ -76,10 +76,10 @@ class GlideinTar:
         for filename, string in self.strings.items():
             fd_str = cStringIO.StringIO(string)
             fd_str.seek(0)
-            ti = tarfile.TarInfo()
+            ti = glideinwms_tarfile.TarInfo()
             ti.size = len(string)
             ti.name = filename
-            ti.type = tarfile.REGTYPE
+            ti.type = glideinwms_tarfile.REGTYPE
             tf.addfile(ti, fd_str)
 
     def create_tar_file(self, archive_full_path, compression="gz"):
@@ -91,11 +91,11 @@ class GlideinTar:
         @param fd: The file that the tarball will be written to
         @param compression: The type of compression that should be used
 
-        @raise tarfile.CompressionError: This exception can be raised is an
+        @raise glideinwms_tarfile.CompressionError: This exception can be raised is an
             invalid compression type has been passed in
         """
         tar_mode = "w:%s" % compression
-        tf = tarfile.open(archive_full_path, mode=tar_mode)
+        tf = glideinwms_tarfile.open(archive_full_path, mode=tar_mode)
         self.create_tar(tf)
         tf.close()
 
@@ -108,13 +108,13 @@ class GlideinTar:
         @param fd: The file that the tarball will be written to
         @param compression: The type of compression that should be used
 
-        @raise tarfile.CompressionError: This exception can be raised is an
+        @raise glideinwms_tarfile.CompressionError: This exception can be raised is an
             invalid compression type has been passed in
         """
         from cStringIO import StringIO
         tar_mode = "w:%s" % compression
         file_out = StringIO()
-        tf = tarfile.open(fileobj=file_out, mode=tar_mode)
+        tf = glideinwms_tarfile.open(fileobj=file_out, mode=tar_mode)
         self.create_tar(tf)
         tf.close()
         return file_out.getvalue()
@@ -128,4 +128,4 @@ class GlideinTar:
 
         @return: True/False
         """
-        return tarfile.is_tarfile(full_path)
+        return glideinwms_tarfile.is_tarfile(full_path)
