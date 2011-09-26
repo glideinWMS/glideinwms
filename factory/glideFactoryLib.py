@@ -14,6 +14,7 @@
 #
 
 import os
+import sys
 import time
 import re
 import pwd
@@ -27,6 +28,8 @@ import glideFactoryConfig
 import base64
 import string
 import timeConversion
+import traceback
+
 
 from tarSupport import GlideinTar
 
@@ -1204,8 +1207,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
         for k in params.keys():
             params_str += " -param_%s %s" % (k, params[k])
 
-        exe_env = ['X509_USER_PROXY=%s' % submit_credentials.security_credentials["SubmitProxy"]]
-        exe_env.append('GLIDEIN_ENTRY_NAME=%s' % entry_name)
+        exe_env = ['GLIDEIN_ENTRY_NAME=%s' % entry_name]
         exe_env.append('GLIDEIN_CLIENT=%s' % client_name)
         exe_env.append('GLIDEIN_SEC_CLASS=%s' % submit_credentials.security_class)
 
@@ -1264,38 +1266,58 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
         # get my (entry) type
         grid_type = jobDescript.data["GridType"]
         if grid_type == "ec2":
-            exe_env.append('AMI_ID=%s' % params["AmiId"])
-            exe_env.append('INSTANCE_TYPE=%s' % params["InstanceType"])
-            exe_env.append('ACCESS_KEY_FILE=%s' % submit_credentials.security_credentials["PublicKey"])
-            exe_env.append('SECRET_KEY_FILE=%s' % submit_credentials.security_credentials["PrivateKey"])
-    
-            # get the proxy
-            full_path_to_proxy = submit_credentials.security_credentials["SubmitProxy"]
-            proxy_file = os.path.basename(full_path_to_proxy)
-            proxy_dir = os.path.dirname(full_path_to_proxy)
-    
-            cat_cmd = "/bin/cat"
-            args = [cat_cmd, proxy_file]
-            proxy_contents = condorPrivsep.execute(submit_credentials.username, proxy_dir, cat_cmd, args)
-    
-            ini_template = "[glidein_startup]\n" \
-                            "args = %s\n" \
-                            "webbase = %s\n" \
-                            "proxy_file_name = pilot_proxy\n"
-    
-            if jobDescript.has_key("shutdownVM"):
-                disable_shutdown = jobDescript["shutdownVM"]
-                if disable_shutdown: ini_template += "disable_shutdown = True"
-            ini = ini_template % (glidein_arguments, web_url)
-    
-            tarball = GlideinTar()
-            tarball.add_string("glidein_userdata", ini)
-            tarball.add_string("pilot_proxy", proxy_contents)
-            binary_string = tarball.create_tar_blob()
-            encoded_tarball = base64.b64encode(binary_string)
-            exe_env.append('USER_DATA=%s' % encoded_tarball)
-    
+            logSupport.log.debug("params: %s" % str(params))
+            logSupport.log.debug("submit_credentials.security_credentials: %s" % str(submit_credentials.security_credentials))
+            logSupport.log.debug("submit_credentials.identity_credentials: %s" % str(submit_credentials.identity_credentials))
+
+            try:
+                exe_env.append('X509_USER_PROXY=%s' % submit_credentials.security_credentials["GlideinProxy"])
+
+                exe_env.append('AMI_ID=%s' % submit_credentials.identity_credentials["VMId"])
+                exe_env.append('INSTANCE_TYPE=%s' % submit_credentials.identity_credentials["VMType"])
+                exe_env.append('ACCESS_KEY_FILE=%s' % submit_credentials.security_credentials["PublicKey"])
+                exe_env.append('SECRET_KEY_FILE=%s' % submit_credentials.security_credentials["PrivateKey"])
+
+                # get the proxy
+                full_path_to_proxy = submit_credentials.security_credentials["GlideinProxy"]
+                proxy_file = os.path.basename(full_path_to_proxy)
+                proxy_dir = os.path.dirname(full_path_to_proxy)
+
+                cat_cmd = "/bin/cat"
+                args = [cat_cmd, proxy_file]
+                proxy_contents = condorPrivsep.execute(submit_credentials.username, proxy_dir, cat_cmd, args)
+                proxy_contents = "".join(proxy_contents)
+
+                ini_template = "[glidein_startup]\n" \
+                                "args = %s\n" \
+                                "webbase = %s\n" \
+                                "proxy_file_name = pilot_proxy\n"
+
+                if jobDescript.has_key("shutdownVM"):
+                    disable_shutdown = jobDescript["shutdownVM"]
+                    if disable_shutdown: ini_template += "disable_shutdown = True"
+                ini = ini_template % (glidein_arguments, web_url)
+
+                tarball = GlideinTar()
+                tarball.add_string("glidein_userdata", ini)
+                tarball.add_string("pilot_proxy", proxy_contents)
+                binary_string = tarball.create_tar_blob()
+                encoded_tarball = base64.b64encode(binary_string)
+                exe_env.append('USER_DATA=%s' % encoded_tarball)
+
+            except KeyError:
+                tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
+                msg = "   Error setting up submission environment (bad key): %s" % str(tb)
+                logSupport.log.debug(msg)
+            except Exception:
+                tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
+                msg = "   Error setting up submission environment (in ec2 section): %s" % str(tb)
+                logSupport.log.debug(msg)
+                raise
+
         else:
+            exe_env.append('X509_USER_PROXY=%s' % submit_credentials.security_credentials["SubmitProxy"])
+
             # we add this here because the macros will be expanded when used in the gt2 submission
             # we don't add the macros to the arguments for the EC2 submission since condor will never 
             # see the macros
