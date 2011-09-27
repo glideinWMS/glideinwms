@@ -31,13 +31,19 @@ Description:
 
     <script type="text/javascript" src="jslibs/factory_support.js"></script>
   <head>
-    <title>Glidein factory status</title>
+    <title id="brtitle">Glidein factory status</title>
+    
+    <script type="text/javascript">
+	  var browser_title = "Glidein factory status";
+	  var page_title = "Glidein factory status";
+	</script>
   </head>
 
   <body>
+    <script type = "text/javascript"> set_title(browser_title, page_title)  </script>
     <table width="100%">
     <tr>
-     <td><h1 id="title">Glidein factory status</h1>
+     <td><h1 id="pgtitle">Glidein factory status</h1>
      <td align="right">
      <SELECT id="destination" style="float:right" onChange="goToDestination(this)" >
 	<OPTION VALUE="">Choose a Glidein destination...</OPTION>
@@ -221,14 +227,14 @@ Description:
       // when a new file is selected
       function update_plot() {
         var gtype_DSs=new Object();
-        gtype_DSs['running']=new Array('StatusRunning','ReqMaxRun','ClientGlideTotal','ClientGlideRunning','ClientGlideIdle','ClientJobsRunning','ClientJobsIdle','ReqIdle','StatusIdle','ClientInfoAge');
+        gtype_DSs['running']=new Array('StatusRunning','ReqMaxGlideins','ClientGlideTotal','ClientGlideRunning','ClientGlideIdle','ClientJobsRunning','ClientJobsIdle','ReqIdle','StatusIdle','ClientInfoAge');
         gtype_DSs['idle']=new Array('ReqIdle','StatusIdle','StatusWait','StatusPending','ClientJobsIdle','ClientInfoAge');
         gtype_DSs['other']=new Array('StatusHeld','StatusStageIn','StatusStageOut','StatusIdleOther','StatusIdle');
 
         gtype_formats=new Object();
         gtype_formats['running']={'StatusRunning':{ title: 'Running glidein jobs', label:'Running',color: "#00f800", checked:true, 
                                                     lines: { show: true, fill: true, fillColor:"#00ff00"} },
-                                  'ReqMaxRun':{title: 'Max requested glideins', label:'Max requested', color: "#c00000"},
+                                  'ReqMaxGlideins':{title: 'Max requested glideins', label:'Max requested', color: "#c00000"},
                                   'ClientGlideTotal':{title: 'Glideins at Collector', label:'Registered', color: "#000000"},
                                   'ClientGlideRunning':{title: 'Glideins claimed by user jobs', label:'Claimed', color: "#8000ff", checked:true},
                                   'ClientGlideIdle':{title: 'Glideins not matched', label:'Unmatched', color: "#ffff00", checked:true},

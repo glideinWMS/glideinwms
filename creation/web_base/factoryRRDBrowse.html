@@ -30,13 +30,19 @@ Description:
 
     <script type="text/javascript" src="jslibs/factory_support.js"></script>
   <head>
-    <title>Browse gfactory RRDs</title>
+    <title id="brtitle">Browse gfactory RRDs</title>
+    
+    <script type="text/javascript">
+	  var browser_title = "Browse gfactory RRDs";
+	  var page_title = "Browse gfactory RRDs";
+	</script>
   </head>
 
   <body>
+    <script type = "text/javascript"> set_title(browser_title, page_title)  </script>
     <table width="100%">
     <tr>
-     <td><h1 id="title">Browse gfactory RRDs</h1>
+     <td><h1 id="pgtitle">Browse gfactory RRDs</h1>
      <td align="right">
      <SELECT id="destination" style="float:right" onChange="goToDestination(this)" >
 <OPTION VALUE="" >Choose a Glidein destination...</OPTION>
