@@ -1277,6 +1277,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
                 exe_env.append('INSTANCE_TYPE=%s' % submit_credentials.identity_credentials["VMType"])
                 exe_env.append('ACCESS_KEY_FILE=%s' % submit_credentials.security_credentials["PublicKey"])
                 exe_env.append('SECRET_KEY_FILE=%s' % submit_credentials.security_credentials["PrivateKey"])
+                exe_env.append('CREDENTIAL_DIR=%s' % os.path.dirname(submit_credentials.security_credentials["PublicKey"]))
 
                 # get the proxy
                 full_path_to_proxy = submit_credentials.security_credentials["GlideinProxy"]

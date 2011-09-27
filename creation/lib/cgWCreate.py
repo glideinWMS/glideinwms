@@ -129,7 +129,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("ec2_instance_type", "$ENV(INSTANCE_TYPE)")
         self.add("ec2_access_key_id", "$ENV(ACCESS_KEY_FILE)")
         self.add("ec2_secret_access_key", "$ENV(SECRET_KEY_FILE)")
-        self.add("ec2_keypair_file", "ssh_key_pair.$(Cluster).$(Process).pem")
+        self.add("ec2_keypair_file", "$ENV(CREDENTIAL_DIR)/ssh_key_pair.$(Cluster).$(Process).pem")
         # We do not add the entire argument list to the userdata directly since we want to be able
         # to change the argument list without having to modify every piece of code under the sun
         # this way only the submit_glideins function has to change (and of course glidein_startup.sh)
