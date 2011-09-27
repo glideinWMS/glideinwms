@@ -2,4 +2,4 @@
 
 job_nbr=$1
 
-condor_q -l $job_nbr | grep EC2RemoteVirtualMachineName | cut -d'=' -f2 | sed -e's/ //g' -e 's/"//g'
+condor_q -l $job_nbr -format '%s\n' EC2RemoteVirtualMachineName
