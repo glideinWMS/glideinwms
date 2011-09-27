@@ -2,4 +2,4 @@
 
 job_nbr=$1
 
-condor_q -l $job_nbr -format '%s\n' EC2RemoteVirtualMachineName
+condor_q $job_nbr -format '%s\n' EC2RemoteVirtualMachineName
