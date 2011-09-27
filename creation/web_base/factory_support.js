@@ -128,3 +128,35 @@ function getFactoryEntryGroups(factoryQStats) {
   }
   return groups;
 }
+
+
+/* LOAD DESCRIPT FOR FACTORY AND GLIDEIN NAME */
+function set_title(browser_title, page_title)
+{
+	var xmlhttp_descript;
+	var factory_name;
+	var glidein_name;
+	
+	if(window.XMLHttpRequest)
+	{
+		xmlhttp_descript=new XMLHttpRequest();
+	}
+	else
+	{
+		xmlhttp_descript=new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	  
+	xmlhttp_descript.onreadystatechange=function()
+	{	
+		if (xmlhttp_descript.readyState == 4) //4 == READY
+    	{
+			factory_info = xmlhttp_descript.responseXML.documentElement.getElementsByTagName("factory");
+			factory_name = factory_info[0].attributes[1].value;
+			glidein_name = factory_info[0].attributes[2].value;
+			document.getElementById("pgtitle").innerHTML= page_title + " - " + glidein_name + "@" + factory_name; 
+			document.getElementById("brtitle").innerHTML= browser_title + " - " + glidein_name + "@" + factory_name;	
+		} 	 
+	}
+	xmlhttp_descript.open("GET", "descript.xml",true);
+	xmlhttp_descript.send(null);
+}
