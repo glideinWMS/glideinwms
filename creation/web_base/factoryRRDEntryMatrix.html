@@ -30,13 +30,18 @@ Description:
 
     <script type="text/javascript" src="jslibs/factory_support.js"></script>
   <head>
-    <title>RRD matrix by gfactory entries</title>
+    <title id="brtitle">RRD matrix by gfactory entries</title>
+    <script type="text/javascript">
+	  var browser_title = "RRD matrix by gfactory entries";
+	  var page_title = "RRD matrix by gfactory entries";
+	</script>
   </head>
 
   <body>
+    <script type = "text/javascript"> set_title(browser_title, page_title)  </script>
     <table width="100%">
     <tr>
-     <td><h1 id="title">RRD matrix by gfactory entries</h1>
+     <td><h1 id="pgtitle">RRD matrix by gfactory entries</h1>
      <td align="right">
       <SELECT id="destination" style="float:right" onChange="goToDestination(this)" >
 <OPTION VALUE="" >Choose a Glidein destination...</OPTION>
@@ -274,10 +279,10 @@ Description:
       // this function is invoked when the RRD file name changes
       function fname_update() {
  
-	fnames=[];
-	rrd_data=[];
+	    fnames=[];
+		rrd_data=[];
         rrd_group_data=[];
-	entry_names=[];
+		entry_names=[];
         rrd_name=""; 
         entry_names_groups_start_idx = 0;
         rrds_loaded = 0;

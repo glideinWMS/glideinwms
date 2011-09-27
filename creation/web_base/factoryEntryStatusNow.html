@@ -1,10 +1,16 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
+
+<script type="text/javascript" src="jslibs/factory_support.js"></script>
+
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Glidein Entry</title>
+<title id="brtitle">Glidein Entry</title>
 
 <script type = "text/javascript">
+
+var browser_title = "Glidein Entry";
+var page_title = "Glidein Factory Status";
 
 var note; 
 var periodV; 
@@ -208,7 +214,7 @@ function loadXMLDocPeriod()
 					break; 
 				}
 			}
-			loadXMLDoc(); 		
+			loadXMLDoc();		
 		} 	 
 	}
 	xmlhttp.open("GET", "rrd_Status_Attributes.xml",true);
@@ -1903,13 +1909,6 @@ function showPr()
 	text-align:center;
 	background-color:#C1C1C1; 
 }
-#title
-{
-	color: #000; 	
-	font: bold 330%/100% "Times New Roman";
-	text-decoration:none;
-	left:50%; 
-}
 #thead
 {
 	table-layout: fixed;
@@ -1933,7 +1932,7 @@ td
 	table-layout: fixed; 
 	background-color:#F2F2F2; 
 }
-#current 
+#current
 {
 	color:#D00;
 	font-size:12px;
@@ -2020,8 +2019,8 @@ td
 
 </head>
 <body>
-<a id = "title"  style="font-size: 40px" > Glidein Factory Status </a>
-
+<div id="pgtitle"  style="font-size: 40px;color: #000;font-weight: bold; font-family: "Times New Roman";text-decoration:none;left:50%;" ></div>
+ 
 <!-- GLIDEIN DESTINATIONS -->
 <SELECT id="destination" style="float:right" onchange="goToDestination(this)" >
 <OPTION VALUE="" >Choose a Glidein destination...</OPTION>
@@ -2034,8 +2033,10 @@ td
 </SELECT>
 
 <script type = "text/javascript"> loadXMLDocPeriod()  </script>
+<script type = "text/javascript"> set_title(browser_title, page_title)  </script>
 
-<br /><br />
+<br />
+
 <div id = "current"> Current view: </div>
 <br />
 <div id = "select"> Select an entry: </div>

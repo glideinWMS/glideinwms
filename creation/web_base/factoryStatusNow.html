@@ -1,10 +1,14 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
+<script type="text/javascript" src="jslibs/factory_support.js"></script>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Glidein</title>
+<title id="brtitle">Glidein</title>
 
 <script type="text/javascript">
+
+var browser_title = "Glidein Factory Status";
+var page_title = "Glidein Factory Status";
 
 var trColumnId; 
 var prTr;        
@@ -4669,7 +4673,7 @@ td
 	font-size:12px;
 	padding:5px;
 }
-#title
+#pgtitle
 {
 	color: #000; 	
 	font: bold 330%/100% "Times New Roman";
@@ -4769,7 +4773,8 @@ td
 
 <!-- BEGIN SCRIPTING BY LOADING RRD XML -->
 <script type = "text/javascript"> loadXMLRRD()  </script>
-<a id = "title"  style="font-size: 40px" > Glidein Factory Status </a>
+<script type = "text/javascript"> set_title(browser_title, page_title)  </script>
+<div id = "pgtitle"  style="font-size: 40px" > Glidein Factory Status </div>
 
 <!-- GLIDIEN DESTINATION LIST -->
 <SELECT id="destination" style="float:right" onchange="goToDestination(this)" >

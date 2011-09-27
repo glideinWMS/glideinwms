@@ -31,13 +31,19 @@ Description:
 
     <script type="text/javascript" src="jslibs/factory_support.js"></script>
   <head>
-    <title>Completed glidein factory stats</title>
+    <title id="brtitle">Completed glidein factory stats</title>
+    
+    <script type="text/javascript">
+	  var browser_title = "Completed glidein factory stats";
+	  var page_title = "Glidein factory status from logs";
+	</script>
   </head>
 
   <body>
+    <script type = "text/javascript"> set_title(browser_title, page_title)  </script>
     <table width="100%">
     <tr>
-     <td><h1 id="title">Glidein factory status from logs</h1>
+     <td><h1 id="pgtitle">Glidein factory status from logs</h1>
      <td align="right">
       <SELECT id="destination" style="float:right" onChange="goToDestination(this)" >
 <OPTION VALUE="" >Choose a Glidein destination...</OPTION>
@@ -134,6 +140,7 @@ Description:
       var infoGroupOptions = new Array("Lasted", "JobsNr", "JobsLasted", "validation", "idle", "nosuccess", "badput","aggavg","aggwsum","aggavgf","affwsumf","fail");
       var ENTRY; 
 
+	  
       // Remove the Javascript warning
       document.getElementById("infotable").deleteRow(0);
 
