@@ -1249,9 +1249,6 @@ class FactoryStatusData:
 #############################################################################
 
 class Descript2XML:
-    """
-    KEL have a similar class in the frontend - should these be moved to xmlFormat.py?
-    """
     def __init__(self):
         self.tab = xmlFormat.DEFAULT_TAB
         self.entry_descript_blacklist = ('DowntimesFile', 'EntryName',

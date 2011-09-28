@@ -74,6 +74,12 @@ class ConfigFile:
 
     def derive(self):
         return # by default, do nothing
+    
+    def __str__(self):
+        output = '\n'
+        for key in self.data.keys():
+            output += '%s = %s, (%s)\n' % (key, str(self.data[key]), type(self.data[key]))
+        return output
 
 # load from the group subdir
 class GroupConfigFile(ConfigFile):

@@ -589,6 +589,7 @@ def tmp2final(fname):
         os.rename(fname+".tmp",fname)
     except:
         print "Failed renaming %s.tmp into %s"%(fname,fname)
+        logSupport.log.debug("Failed renaming %s.tmp into %s"%(fname,fname))
     return
 
 
@@ -608,3 +609,38 @@ def sanitize(name):
 # global configuration of the module
 monitoringConfig=MonitoringConfig()
 
+def write_frontend_descript_xml(frontendDescript, monitor_dir):
+    """
+    Writes out the frontend descript.xml file in the monitor web area.
+    
+    @type frontendDescript: FrontendDescript
+    @param frontendDescript: contains the data in the frontend.descript file in the frontend instance dir
+    @type monitor_dir: string
+    @param monitor_dir: filepath the the monitor dir in the frontend instance dir
+    """
+    
+    frontend_data = copy.deepcopy(frontendDescript.data)
+    
+    xml_str = xmlFormat.DEFAULT_TAB + '<frontend FrontendName="%s"' % frontend_data['FrontendName'] + '/>\n'
+    
+    output = '<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' + \
+                   '<glideinFrontendDescript>\n' \
+                   + xmlFormat.time2xml(time.time(), "updated", indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" \
+                   + xml_str + \
+                   '</glideinFrontendDescript>'
+
+    fname = os.path.join(monitor_dir, 'descript.xml')
+    
+    try:
+        f = open(fname + '.tmp', 'wb')
+        try:
+            f.write(output)
+        finally:
+            f.close()
+
+        tmp2final(fname)
+    
+    except IOError:
+        logSupport.log.debug("Error writing out the frontend descript.xml")
+        
+        

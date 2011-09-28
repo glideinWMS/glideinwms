@@ -284,7 +284,7 @@ def complete_dict_params(dict_params):
 
 # Convert a dictionary into an XML string
 # all elements should be of the same type, although this is not enforced
-def dict2string(dict, dict_name, el_name, dict_attr_name="name",
+def dict2string(dict_data, dict_name, el_name, dict_attr_name="name",
                 el_attr_name=None, params={}, subtypes_params={},
                 indent_tab=DEFAULT_TAB, leading_tab="", debug_str=""):
     if el_attr_name == None:
@@ -312,17 +312,15 @@ def dict2string(dict, dict_name, el_name, dict_attr_name="name",
     res_arr.append(head_str)
     #print head_str
 
-    if type(dict) == types.DictType:
-        keys = dict.keys()
+    if type(dict_data) == types.DictType:
+        keys = dict_data.keys()
         keys.sort()
     else:
-        keys = range(len(dict)) # allow lists to be used as dictionaries
-    
+        keys = range(len(dict_data)) # allow lists to be used as dictionaries  
     
     for idx in keys:
-        el = dict[idx]
-        if ((type(el) in SIMPLE_TYPES) or
-            (el == None)):
+        el = dict_data[idx]
+        if (type(el) in SIMPLE_TYPES) or (el == None):
             if el == None:
                 if DEFAULT_IGNORE_NONES:
                     continue # ignore nones
@@ -365,7 +363,7 @@ def dict2string(dict, dict_name, el_name, dict_attr_name="name",
 
 # Write a dictionary formatted as XML into an open file
 # all elements should be of the same type, although this is not enforced
-def dict2file(fd, dict, dict_name, el_name, dict_attr_name="name",
+def dict2file(fd, dict_data, dict_name, el_name, dict_attr_name="name",
               el_attr_name=None, params={}, subtypes_params={},
               indent_tab=DEFAULT_TAB, leading_tab="", debug_str=""):
     if el_attr_name == None:
@@ -391,15 +389,15 @@ def dict2file(fd, dict, dict_name, el_name, dict_attr_name="name",
     fd.write(head_str)
     #print head_str
 
-    if type(dict) == types.DictType:
-        keys = dict.keys()
+    if type(dict_data) == types.DictType:
+        keys = dict_data.keys()
         keys.sort()
     else:
-        keys = range(len(dict)) # allow lists to be used as dictionaries
+        keys = range(len(dict_data)) # allow lists to be used as dictionaries
     
     
     for idx in keys:
-        el = dict[idx]
+        el = dict_data[idx]
         if ((type(el) in SIMPLE_TYPES) or
             (el == None)):
             if el == None:
@@ -455,7 +453,7 @@ def complete_list_params(list_params):
 # Convert a list into an XML string
 # Do not show the indexes, use dict2string if that is needed
 # all elements should be of the same type, although this is not enforced
-def list2string(list, list_name, el_name, el_attr_name=None,
+def list2string(list_data, list_name, el_name, el_attr_name=None,
                 params={}, subtypes_params={}, indent_tab=DEFAULT_TAB,
                 leading_tab="", debug_str=""):
     if el_attr_name == None:
@@ -484,11 +482,11 @@ def list2string(list, list_name, el_name, el_attr_name=None,
 
     #print head_str
     
-    if type(list) == types.DictType:
-        els = list.keys() # Use only the keys of the dictionary
+    if type(list_data) == types.DictType:
+        els = list_data.keys() # Use only the keys of the dictionary
         els.sort()
     else:
-        els = list
+        els = list_data
 
     for el in els:
         if ((type(el) in SIMPLE_TYPES) or
@@ -535,7 +533,7 @@ def list2string(list, list_name, el_name, el_attr_name=None,
 # Write a list formatted as XML in an open file
 # Do not show the indexes, use dict2file if that is needed
 # all elements should be of the same type, although this is not enforced
-def list2file(fd, list, list_name, el_name, el_attr_name=None,
+def list2file(fd, list_data, list_name, el_name, el_attr_name=None,
               params={}, subtypes_params={}, indent_tab=DEFAULT_TAB,
               leading_tab="", debug_str=""):
     if el_attr_name == None:
@@ -562,11 +560,11 @@ def list2file(fd, list, list_name, el_name, el_attr_name=None,
 
     #print head_str
     
-    if type(list) == types.DictType:
-        els = list.keys() # Use only the keys of the dictionary
+    if type(list_data) == types.DictType:
+        els = list_data.keys() # Use only the keys of the dictionary
         els.sort()
     else:
-        els = list
+        els = list_data
 
     for el in els:
         if ((type(el) in SIMPLE_TYPES) or

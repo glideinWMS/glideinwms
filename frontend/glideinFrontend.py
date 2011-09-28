@@ -29,11 +29,12 @@ import string
 import logging
 sys.path.append(os.path.join(STARTUP_DIR, "../lib"))
 
+import logSupport
+import cleanupSupport
 import glideinFrontendPidLib
 import glideinFrontendConfig
 import glideinFrontendMonitorAggregator
-import logSupport
-import cleanupSupport
+import glideinFrontendMonitoring
 
 ############################################################
 # KEL remove this method and just call the monitor aggregator method directly below?  we don't use the results
@@ -198,6 +199,8 @@ def main(work_dir):
         logSupport.log.warning("Exception occurred: %s" % tb)
         raise
 
+    glideinFrontendMonitoring.write_frontend_descript_xml(frontendDescript, os.path.join(work_dir, 'monitor/'))
+    
     # create lock file
     pid_obj = glideinFrontendPidLib.FrontendPidSupport(work_dir)
 

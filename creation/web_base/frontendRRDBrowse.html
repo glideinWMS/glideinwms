@@ -29,13 +29,18 @@ Description:
 
     <script type="text/javascript" src="jslibs/frontend_support.js"></script>
   <head>
-    <title>Browse VO Frontend RRDs</title>
+    <title id="brtitle">Browse VO Frontend RRDs</title>
+    <script type="text/javascript">
+	  var browser_title = "Browse VO Frontend RRDs";
+	  var page_title = "Browse VO Frontend RRDs";
+	</script>
   </head>
 
   <body>
+    <script type = "text/javascript"> set_title(browser_title, page_title)  </script>
     <table width="100%">
     <tr>
-     <td><h1 id="title"><h1 id="title">Browse VO Frontend RRDs</h1>
+     <td><h1 id="pgtitle">Browse VO Frontend RRDs</h1>
      <td align="right">[ 
 	    <a href="frontendStatus.html">Status</a> |
 	    <a href="frontendRRDGroupMatrix.html">Group Matrix</a> |

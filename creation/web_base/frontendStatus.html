@@ -30,13 +30,18 @@ Description:
 
     <script type="text/javascript" src="jslibs/frontend_support.js"></script>
   <head>
-    <title>VO frontend status</title>
+    <title id="brtitle">VO frontend status</title>
+    <script type="text/javascript">
+	  var browser_title = "VO frontend status";
+	  var page_title = "VO frontend status";
+	</script>
   </head>
 
   <body>
+    <script type = "text/javascript"> set_title(browser_title, page_title)  </script>
     <table width="100%">
     <tr>
-     <td><h1 id="title">VO frontend status</h1>
+     <td><h1 id="pgtitle">VO frontend status</h1>
      <td align="right">[ 
 	    <a href="frontendRRDBrowse.html">Browse</a> |
 	    <a href="frontendRRDGroupMatrix.html">Group Matrix</a> | 

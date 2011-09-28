@@ -121,10 +121,10 @@ def aggregateStatus():
 
         # update group
         try:
-          status['groups'][group]={'factories':group_data['factories']}
+            status['groups'][group]={'factories':group_data['factories']}
         except KeyError, e:
-          # first time after upgrade factories may not be defined
-          status['groups'][group]={'factories':{}}
+            # first time after upgrade factories may not be defined
+            status['groups'][group]={'factories':{}}
 
         this_group=status['groups'][group]
         for fact in this_group['factories'].keys():
@@ -152,38 +152,40 @@ def aggregateStatus():
                                 pass
                             else:
                                 if type_attribute in global_fact_totals[fact][attribute].keys(): 
-                                   global_fact_totals[fact][attribute][type_attribute]+=int(this_type_attribute)
+                                    global_fact_totals[fact][attribute][type_attribute]+=int(this_type_attribute)
                                 else:
-                                   global_fact_totals[fact][attribute][type_attribute]=int(this_type_attribute)
+                                    global_fact_totals[fact][attribute][type_attribute]=int(this_type_attribute)
         #nr_groups+=1
         #status['groups'][group]={}
 
         if group_data.has_key('total'):
-          nr_groups+=1
-          status['groups'][group]['total']=group_data['total']
+            nr_groups += 1
+            status['groups'][group]['total'] = group_data['total']
 
-          for w in global_total.keys():
-              tel=global_total[w]
-              if not group_data['total'].has_key(w):
-                  continue
-              #status['groups'][group][w]=group_data[w]
-              el=group_data['total'][w]
-              if tel==None:
-                  # new one, just copy over
-                  global_total[w]={}
-                  tel=global_total[w]
-                  for a in el.keys():
-                      tel[a]=int(el[a]) #coming from XML, everything is a string
-              else:                
-                  # successive, sum 
-                  for a in el.keys():
-                      if tel.has_key(a):
-                          tel[a]+=int(el[a])
+            for w in global_total.keys():
+                tel = global_total[w]
+                if not group_data['total'].has_key(w):
+                    continue
+                #status['groups'][group][w]=group_data[w]
+                el = group_data['total'][w]
+                if tel == None:
+                    # new one, just copy over
+                    global_total[w] = {}
+                    tel = global_total[w]
+                    for a in el.keys():
+                        tel[a] = int(el[a]) #coming from XML, everything is a string
+                else:                
+                    # successive, sum 
+                    for a in el.keys():
+                        if tel.has_key(a):
+                            tel[a] += int(el[a])
                               
-                  # if any attribute from prev. factories are not in the current one, remove from total
-                  for a in tel.keys():
-                      if not el.has_key(a):
-                          del tel[a]
+                    # if any attribute from prev. factories are not in the current one, remove from total
+                    for a in tel.keys():
+                        if not el.has_key(a):
+                            del tel[a]
+
+
         
     for w in global_total.keys():
         if global_total[w]==None:
