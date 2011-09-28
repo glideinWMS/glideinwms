@@ -16,6 +16,8 @@ import os,os.path
 import re,time,copy,string,math,random,fcntl
 import xmlFormat,timeConversion
 import rrdSupport
+import logSupport
+
 ############################################################
 #
 # Configuration
@@ -40,12 +42,12 @@ class MonitoringConfig:
 
         self.my_name="Unknown"
 
-    def write_file(self,relative_fname,str):
+    def write_file(self,relative_fname,output_str):
         fname=os.path.join(self.monitor_dir,relative_fname)
         #print "Writing "+fname
         fd=open(fname+".tmp","w")
         try:
-            fd.write(str+"\n")
+            fd.write(output_str+"\n")
         finally:
             fd.close()
 
@@ -58,7 +60,7 @@ class MonitoringConfig:
             os.mkdir(dname)
         return
 
-    def write_rrd_multi(self,relative_fname,ds_type,time,val_dict,min=None,max=None):
+    def write_rrd_multi(self,relative_fname,ds_type,time,val_dict,min_val=None,max_val=None):
         """
         Create a RRD file, using rrdtool.
         """
@@ -72,16 +74,16 @@ class MonitoringConfig:
         
             if not os.path.isfile(fname):
                 #print "Create RRD "+fname
-                if min==None:
-                    min='U'
-                if max==None:
-                    max='U'
+                if min_val==None:
+                    min_val='U'
+                if max_val==None:
+                    max_val='U'
                 ds_names=val_dict.keys()
                 ds_names.sort()
 
                 ds_arr=[]
                 for ds_name in ds_names:
-                    ds_arr.append((ds_name,ds_type,self.rrd_heartbeat,min,max))
+                    ds_arr.append((ds_name,ds_type,self.rrd_heartbeat,min_val,max_val))
                 self.rrd_obj.create_rrd_multi(fname,
                                               self.rrd_step,rrd_archives,
                                               ds_arr)
@@ -209,20 +211,8 @@ class groupStats:
         #return xmlFormat.class2string(self.data,'<VOFrontendGroupStats>',
         #                             indent_tab=indent_tab,leading_tab=leading_tab)
 
-    def get_updated(self):
-        return self.updated
-
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
-        xml_updated={"UTC":{"unixtime":timeConversion.getSeconds(self.updated),
-                            "ISO8601":timeConversion.getISO8601_UTC(self.updated),
-                            "RFC2822":timeConversion.getRFC2822_UTC(self.updated)},
-                     "Local":{"ISO8601":timeConversion.getISO8601_Local(self.updated),
-                              "RFC2822":timeConversion.getRFC2822_Local(self.updated),
-                              "human":timeConversion.getHuman(self.updated)}}
-        return xmlFormat.dict2string(xml_updated,
-                                     dict_name="updated",el_name="timezone",
-                                     subtypes_params={"class":{}},
-                                     indent_tab=indent_tab,leading_tab=leading_tab)
+        return xmlFormat.time2xml(self.updated, "updated", indent_tab=xmlFormat.DEFAULT_TAB, leading_tab="")
 
     def get_total(self):
         total={'MatchedJobs':None,'Requested':None,'MatchedGlideins':None}
@@ -373,11 +363,11 @@ class factoryStats:
 
         status_pairs=((1,"Idle"), (2,"Running"), (5,"Held"), (1001,"Wait"),(1002,"Pending"),(1010,"StageIn"),(1100,"IdleOther"),(4010,"StageOut"))
         for p in status_pairs:
-            nr,str=p
+            nr, status=p
             if qc_status.has_key(nr):
-                el[str]=int(qc_status[nr])
+                el[status]=int(qc_status[nr])
             else:
-                el[str]=0
+                el[status]=0
         self.updated=time.time()
 
     def logRequest(self,client_name,requests,params):
@@ -513,22 +503,9 @@ class factoryStats:
                                       inst_name="total",
                                       indent_tab=indent_tab,leading_tab=leading_tab)
 
-    def get_updated(self):
-        return self.updated
-
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
-        xml_updated={"UTC":{"unixtime":timeConversion.getSeconds(self.updated),
-                            "ISO8601":timeConversion.getISO8601_UTC(self.updated),
-                            "RFC2822":timeConversion.getRFC2822_UTC(self.updated)},
-                     "Local":{"ISO8601":timeConversion.getISO8601_Local(self.updated),
-                              "RFC2822":timeConversion.getRFC2822_Local(self.updated),
-                              "human":timeConversion.getHuman(self.updated)}}
-        return xmlFormat.dict2string(xml_updated,
-                                     dict_name="updated",el_name="timezone",
-                                     subtypes_params={"class":{}},
-                                     indent_tab=indent_tab,leading_tab=leading_tab)
-
-
+        return xmlFormat.time2xml(self.updated, "updated", indent_tab=xmlFormat.DEFAULT_TAB,leading_tab="")
+    
     def write_file(self):
         global monitoringConfig
 
@@ -595,6 +572,9 @@ class factoryStats:
 
 ##################################################
 def tmp2final(fname):
+    """
+    This exact method is also in glideFactoryMonitoring.py
+    """
     try:
         os.remove(fname+"~")
     except:
@@ -606,9 +586,9 @@ def tmp2final(fname):
         pass
 
     try:
-      os.rename(fname+".tmp",fname)
+        os.rename(fname+".tmp",fname)
     except:
-      print "Failed renaming %s.tmp into %s"%(fname,fname)
+        print "Failed renaming %s.tmp into %s"%(fname,fname)
     return
 
 

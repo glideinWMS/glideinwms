@@ -195,7 +195,7 @@ def aggregateStatus():
     updated=time.time()
     xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
              '<VOFrontendStats>\n'+
-             get_xml_updated(updated,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+             xmlFormat.time2xml(updated, "updated", indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              xmlFormat.dict2string(status["groups"],dict_name="groups",el_name="group",
                                    subtypes_params={"class":{"dicts_params":{"factories":{"el_name":"factory",
                                                                                           "subtypes_params":{"class":{"subclass_params":{"Requested":{"dicts_params":{"Parameters":{"el_name":"Parameter",
@@ -223,19 +223,5 @@ def aggregateStatus():
         write_one_rrd("%s/Status_Attributes"%fe_dir,updated,global_fact_totals[fact],1)
 
     return status
-
-#################        PRIVATE      #####################
-
-def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
-    xml_updated={"UTC":{"unixtime":timeConversion.getSeconds(when),
-                        "ISO8601":timeConversion.getISO8601_UTC(when),
-                        "RFC2822":timeConversion.getRFC2822_UTC(when)},
-                 "Local":{"ISO8601":timeConversion.getISO8601_Local(when),
-                          "RFC2822":timeConversion.getRFC2822_Local(when),
-                          "human":timeConversion.getHuman(when)}}
-    return xmlFormat.dict2string(xml_updated,
-                                 dict_name="updated",el_name="timezone",
-                                 subtypes_params={"class":{}},
-                                 indent_tab=indent_tab,leading_tab=leading_tab)
 
 

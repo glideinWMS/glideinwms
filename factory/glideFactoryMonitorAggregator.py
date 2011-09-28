@@ -197,7 +197,7 @@ def aggregateStatus(in_downtime):
     updated=time.time()
     xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
              '<glideFactoryQStats>\n'+
-             get_xml_updated(updated,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+             xmlFormat.time2xml(updated,"updated", indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              xml_downtime + "\n" +
              xmlFormat.dict2string(status["entries"],dict_name="entries",el_name="entry",
                                    subtypes_params={"class":{"dicts_params":{"frontends":{"el_name":"frontend",
@@ -385,7 +385,7 @@ def aggregateLogSummary():
     updated=time.time()
     xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
              '<glideFactoryLogSummary>\n'+
-             get_xml_updated(updated,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+             xmlFormat.time2xml(updated,"updated", indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              xmlFormat.dict2string(status["entries"],dict_name="entries",el_name="entry",
                                    subtypes_params={"class":{"dicts_params":{"frontends":{"el_name":"frontend",
                                                                                           "subtypes_params":{"class":{'subclass_params':{'CompletedCounts':glideFactoryMonitoring.get_completed_stats_xml_desc()}}}}},
@@ -602,7 +602,7 @@ def aggregateRRDStats():
         updated = time.time()
         xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
                    '<glideFactoryRRDStats>\n' +
-                   get_xml_updated(updated, indent_tab = xmlFormat.DEFAULT_TAB, leading_tab = xmlFormat.DEFAULT_TAB) + "\n" + entry_str +
+                   xmlFormat.time2xml(updated,"updated", indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" + entry_str +
                    data_str + '</glideFactoryRRDStats>')
 
         try:
@@ -611,12 +611,6 @@ def aggregateRRDStats():
             logSupport.log.debug("write_file %s, IOError"%rrd_site(rrd))
 
     return
-
-
-#################        PRIVATE      #####################
-
-def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
-    return xmlFormat.time2xml(when,"updated",indent_tab,leading_tab)
 
 
 

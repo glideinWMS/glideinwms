@@ -425,9 +425,6 @@ class condorQStats:
                                       inst_name="total",
                                       indent_tab=indent_tab, leading_tab=leading_tab)
 
-    def get_updated(self):
-        return self.updated
-
     def get_xml_updated(self, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
         return xmlFormat.time2xml(self.updated, "updated", indent_tab, leading_tab)
 
@@ -961,9 +958,6 @@ class condorLogSummary:
                                       subclass_params={'CompletedCounts':get_completed_stats_xml_desc()},
                                       indent_tab=indent_tab, leading_tab=leading_tab)
 
-    def get_updated(self):
-        return self.updated
-
     def get_xml_updated(self, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
         return xmlFormat.time2xml(self.updated, "updated", indent_tab, leading_tab)
 
@@ -1094,6 +1088,7 @@ class FactoryStatusData:
         self.data = {}
         for rrd in rrd_list:
             self.data[rrd] = {}
+        # KEL why are we setting time here and not just getting the current time (like in Descript2XML)
         self.updated = time.time()
         self.tab = xmlFormat.DEFAULT_TAB
         self.resolution = (7200, 86400, 604800) # 2hr, 1 day, 1 week
@@ -1254,6 +1249,9 @@ class FactoryStatusData:
 #############################################################################
 
 class Descript2XML:
+    """
+    KEL have a similar class in the frontend - should these be moved to xmlFormat.py?
+    """
     def __init__(self):
         self.tab = xmlFormat.DEFAULT_TAB
         self.entry_descript_blacklist = ('DowntimesFile', 'EntryName',
@@ -1416,6 +1414,9 @@ def get_completed_stats_xml_desc():
 
 ##################################################
 def tmp2final(fname):
+    """
+    KEL this exact method is also in glideinFrontendMonitoring.py
+    """
     try:
         os.remove(fname + "~")
     except:
