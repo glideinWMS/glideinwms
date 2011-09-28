@@ -109,7 +109,7 @@ class MonitoringConfig:
         finally:
             fd.close()
 
-    def write_file(self,relative_fname,str):
+    def write_file(self, relative_fname, output_str):
         """ 
         Writes out a string to a file
         @param relative_fname: The relative path name to write out
@@ -119,7 +119,7 @@ class MonitoringConfig:
         #print "Writing "+fname
         fd = open(fname + ".tmp", "w")
         try:
-            fd.write(str + "\n")
+            fd.write(output_str + "\n")
         finally:
             fd.close()
 
@@ -132,7 +132,7 @@ class MonitoringConfig:
             os.mkdir(dname)
         return
 
-    def write_rrd_multi(self, relative_fname, ds_type, time, val_dict, min=None, max=None):
+    def write_rrd_multi(self, relative_fname, ds_type, time, val_dict, min_val=None, max_val=None):
         """
         Create a RRD file, using rrdtool.
         """
@@ -146,16 +146,16 @@ class MonitoringConfig:
 
             if not os.path.isfile(fname):
                 #print "Create RRD "+fname
-                if min == None:
-                    min = 'U'
-                if max == None:
-                    max = 'U'
+                if min_val == None:
+                    min_val = 'U'
+                if max_val == None:
+                    max_val = 'U'
                 ds_names = val_dict.keys()
                 ds_names.sort()
 
                 ds_arr = []
                 for ds_name in ds_names:
-                    ds_arr.append((ds_name, ds_type, self.rrd_heartbeat, min, max))
+                    ds_arr.append((ds_name, ds_type, self.rrd_heartbeat, min_val, max_val))
                 self.rrd_obj.create_rrd_multi(fname,
                                               self.rrd_step, rrd_archives,
                                               ds_arr)
@@ -259,11 +259,11 @@ class condorQStats:
 
         status_pairs = ((1, "Idle"), (2, "Running"), (5, "Held"), (1001, "Wait"), (1002, "Pending"), (1010, "StageIn"), (1100, "IdleOther"), (4010, "StageOut"))
         for p in status_pairs:
-            nr, str = p
-            if not el.has_key(str):
-                el[str] = 0
+            nr, status = p
+            if not el.has_key(status):
+                el[status] = 0
             if qc_status.has_key(nr):
-                el[str] += qc_status[nr]
+                el[status] += qc_status[nr]
 
         self.updated = time.time()
 
@@ -1117,7 +1117,7 @@ class FactoryStatusData:
         """returns the time of last update"""
         return time2xml(self.updated, "updated", indent_tab=self.tab, leading_tab=self.tab)
 
-    def fetchData(self, file, pathway, res, start, end):
+    def fetchData(self, rrd_file, pathway, res, start, end):
         """Uses rrdtool to fetch data from the clients.  Returns a dictionary of lists of data.  There is a list for each element.
 
         rrdtool fetch returns 3 tuples: a[0], a[1], & a[2].
@@ -1128,10 +1128,10 @@ class FactoryStatusData:
         #use rrdtool to fetch data
         baseRRDSupport = rrdSupport.rrdSupport()
         try:
-            fetched = baseRRDSupport.fetch_rrd(pathway + file, 'AVERAGE', resolution=res, start=start, end=end)
+            fetched = baseRRDSupport.fetch_rrd(pathway + rrd_file, 'AVERAGE', resolution=res, start=start, end=end)
         except:
             # probably not created yet
-            logSupport.log.debug("Failed to load %s" % (pathway + file))
+            logSupport.log.debug("Failed to load %s" % (pathway + rrd_file))
             return {}
 
         #converts fetched from tuples to lists
@@ -1162,10 +1162,10 @@ class FactoryStatusData:
         else:
             return data_sets
 
-    def average(self, list):
+    def average(self, input_list):
         try:
-            if len(list) > 0:
-                avg_list = sum(list) / len(list)
+            if len(input_list) > 0:
+                avg_list = sum(input_list) / len(input_list)
             else:
                 avg_list = 0
             return avg_list
@@ -1173,11 +1173,11 @@ class FactoryStatusData:
             logSupport.log.debug("average: TypeError")
             return
 
-    def getData(self, input):
+    def getData(self, input_val):
         """returns the data fetched by rrdtool in a xml readable format"""
         global monitoringConfig
 
-        folder = str(input)
+        folder = str(input_val)
         if folder == self.total:
             client = folder
         else:
@@ -1205,7 +1205,7 @@ class FactoryStatusData:
                 end = (int(time.time() / rrd_res) - 1) * rrd_res # round due to RRDTool requirements, -1 to avoid the last (partial) one
                 start = end - period
                 try:
-                    fetched_data = self.fetchData(file=rrd, pathway=self.base_dir + "/" + client,
+                    fetched_data = self.fetchData(rrd_file=rrd, pathway=self.base_dir + "/" + client,
                                                   start=start, end=end, res=rrd_res)
                     for data_set in fetched_data:
                         self.data[rrd][client][period][data_set] = self.average(fetched_data[data_set])
@@ -1275,53 +1275,53 @@ class Descript2XML:
                                   'FactoryName', 'GlideinName', 'LoopDelay',
                                   'PubKeyType', 'WebURL')
 
-    def frontendDescript(self, dict):
+    def frontendDescript(self, fe_dict):
         for key in self.frontend_blacklist:
             try:
-                for frontend in dict:
+                for frontend in fe_dict:
                     try:
-                        del dict[frontend][key]
+                        del fe_dict[frontend][key]
                     except KeyError:
                         continue
             except RuntimeError:
                 logSupport.log.debug("blacklist RuntimeError in frontendDescript")
         try:
-            str = xmlFormat.dict2string(dict, dict_name="frontends", el_name="frontend", subtypes_params={"class":{}}, leading_tab=self.tab)
-            return str + "\n"
+            xml_str = xmlFormat.dict2string(fe_dict, dict_name="frontends", el_name="frontend", subtypes_params={"class":{}}, leading_tab=self.tab)
+            return xml_str + "\n"
         except RuntimeError:
             logSupport.log.debug("xmlFormat RuntimeError in frontendDescript")
             return
 
-    def entryDescript(self, dict):
+    def entryDescript(self, e_dict):
         for key in self.entry_descript_blacklist:
             try:
-                for entry in dict:
+                for entry in e_dict:
                     try:
-                        del dict[entry]['descript'][key]
+                        del e_dict[entry]['descript'][key]
                     except KeyError:
                         continue
             except RuntimeError:
                 logSupport.log.debug("blacklist RuntimeError in entryDescript")
         try:
-            str = xmlFormat.dict2string(dict, dict_name="entries", el_name="entry", subtypes_params={"class":{'subclass_params':{}}}, leading_tab=self.tab)
-            return str + "\n"
+            xml_str = xmlFormat.dict2string(e_dict, dict_name="entries", el_name="entry", subtypes_params={"class":{'subclass_params':{}}}, leading_tab=self.tab)
+            return xml_str + "\n"
         except RuntimeError:
             logSupport.log.debug("xmlFormat RuntimeError in entryDescript")
             return
 
-    def glideinDescript(self, dict):
+    def glideinDescript(self, g_dict):
         w_dict = {}
         for key in self.glidein_whitelist:
             try:
-                w_dict[key] = dict[key]
+                w_dict[key] = g_dict[key]
             except KeyError:
                 continue
         try:
             a = xmlFormat.dict2string({'':w_dict}, dict_name="glideins", el_name="factory", subtypes_params={"class":{}})
             b = a.split("\n")[1]
             c = b.split('name="" ')
-            str = "".join(c)
-            return str + "\n"
+            xml_str = "".join(c)
+            return xml_str + "\n"
         except SyntaxError, RuntimeError:
             logSupport.log.debug("xmlFormat RuntimeError in glideinDescript")
             return
@@ -1330,18 +1330,18 @@ class Descript2XML:
         """returns the time of last update"""
         return time2xml(time.time(), "updated", indent_tab=self.tab, leading_tab=self.tab)
 
-    def writeFile(self, path, str, singleEntry=False):
+    def writeFile(self, path, xml_str, singleEntry=False):
         if singleEntry:
             root_el = 'glideFactoryEntryDescript'
         else:
             root_el = 'glideFactoryDescript'
-        xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
-                   '<' + root_el + '>\n' + self.getUpdated() + "\n" + str +
+        output = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
+                   '<' + root_el + '>\n' + self.getUpdated() + "\n" + xml_str +
                    '</' + root_el + '>')
         fname = path + 'descript.xml'
         f = open(fname + '.tmp', 'wb')
         try:
-            f.write(xml_str)
+            f.write(output)
         finally:
             f.close()
 
