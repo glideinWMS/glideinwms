@@ -14,6 +14,7 @@
 import types
 import xml.sax.saxutils
 import string
+import timeConversion
 
 #########################################################################################
 #
@@ -666,3 +667,15 @@ def tree2file(fd, tree, tree_name, child_element, indent_tab=DEFAULT_TAB,
         fd.write(line + "/>\n")
     
     return fd
+
+def time2xml(the_time, outer_tag, indent_tab=DEFAULT_TAB, leading_tab=""):
+    xml_data = {"UTC":{"unixtime":timeConversion.getSeconds(the_time),
+                     "ISO8601":timeConversion.getISO8601_UTC(the_time),
+                     "RFC2822":timeConversion.getRFC2822_UTC(the_time)},
+              "Local":{"ISO8601":timeConversion.getISO8601_Local(the_time),
+                       "RFC2822":timeConversion.getRFC2822_Local(the_time),
+                       "human":timeConversion.getHuman(the_time)}}
+    return dict2string(xml_data,
+                                 dict_name=outer_tag, el_name="timezone",
+                                 subtypes_params={"class":{}},
+                                 indent_tab=indent_tab, leading_tab=leading_tab)

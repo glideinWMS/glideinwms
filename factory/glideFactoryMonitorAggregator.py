@@ -616,7 +616,7 @@ def aggregateRRDStats():
 #################        PRIVATE      #####################
 
 def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
-    return glideFactoryMonitoring.time2xml(when,"updated",indent_tab,leading_tab)
+    return xmlFormat.time2xml(when,"updated",indent_tab,leading_tab)
 
 
 
