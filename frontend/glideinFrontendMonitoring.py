@@ -104,7 +104,7 @@ class MonitoringConfig:
 
 class groupStats:
     def __init__(self):
-        self.data={'factories':{},'totals':{}}
+        self.data={'factories':{},'states':{},'totals':{}}
         self.updated=time.time()
 
         self.files_updated=None
@@ -113,6 +113,8 @@ class groupStats:
                          'MatchedJobs':("Idle","EffIdle","OldIdle","Running","RunningHere"),
                          'MatchedGlideins':("Total","Idle","Running"),
                          'Requested':("Idle","MaxRun")}
+        # only these will be states, all other names are assumed to be factories
+        self.states_names=('Unmatched','MatchedUp','MatchedDown')
 
     def logJobs(self,jobs_data):
         el={}
@@ -134,11 +136,9 @@ class groupStats:
 
 
     def logMatchedJobs(self, factory, idle, effIdle, oldIdle, running, realRunning):
-        factories = self.data['factories']
-        if not factory in factories:
-            factories[factory] = {}
+        factory_or_state_d = self.get_factory_dict(factory)
 
-        factories[factory]['MatchedJobs'] = {self.attributes['MatchedJobs'][0]: int(idle),
+        factory_or_state_d['MatchedJobs'] = {self.attributes['MatchedJobs'][0]: int(idle),
                                              self.attributes['MatchedJobs'][1]: int(effIdle),
                                              self.attributes['MatchedJobs'][2]: int(oldIdle),
                                              self.attributes['MatchedJobs'][3]: int(running),
@@ -148,23 +148,19 @@ class groupStats:
         self.update=time.time()
 
     def logFactDown(self, factory, isDown):
-        factories = self.data['factories']
-        if not factory in factories:
-            factories[factory] = {}
+        factory_or_state_d = self.get_factory_dict(factory)
 
         if isDown:
-            factories[factory]['Down'] = 'Down'
+            factory_or_state_d['Down'] = 'Down'
         else:
-            factories[factory]['Down'] = 'Up'
+            factory_or_state_d['Down'] = 'Up'
 
         self.updated = time.time()
 
     def logMatchedGlideins(self, factory, total, idle, running):
-        factories = self.data['factories']
-        if not factory in factories:
-            factories[factory] = {}
+        factory_or_state_d = self.get_factory_dict(factory)
 
-        factories[factory]['MatchedGlideins'] = {self.attributes['MatchedGlideins'][0]: int(total),
+        factory_or_state_d['MatchedGlideins'] = {self.attributes['MatchedGlideins'][0]: int(total),
                                                  self.attributes['MatchedGlideins'][1]: int(idle),
                                                  self.attributes['MatchedGlideins'][2]: int(running)
                                                 }
@@ -172,42 +168,45 @@ class groupStats:
         self.update=time.time()
             
     def logFactAttrs(self, factory, attrs, blacklist):
-        factories = self.data['factories']
-        if not factory in factories:
-            factories[factory] = {}
+        factory_or_state_d = self.get_factory_dict(factory)
 
-        factories[factory]['Attributes'] = {}
+        factory_or_state_d['Attributes'] = {}
         for attr in attrs:
             if not attr in blacklist:
-                factories[factory]['Attributes'][attr] = attrs[attr]
+                factory_or_state_d['Attributes'][attr] = attrs[attr]
 
         self.update=time.time()
         
     def logFactReq(self, factory, reqIdle, reqMaxRun, params):
-        factories = self.data['factories']
-        if not factory in factories:
-            factories[factory] = {}
-        
+        factory_or_state_d = self.get_factory_dict(factory)
 
-        factories[factory]['Requested'] = {self.attributes['Requested'][0]: int(reqIdle),
+        factory_or_state_d['Requested'] = {self.attributes['Requested'][0]: int(reqIdle),
                                            self.attributes['Requested'][1]: int(reqMaxRun),
                                            'Parameters': copy.deepcopy(params)
                                            }
 
         self.updated = time.time()
 
-    def get_data(self):
+    def get_factories_data(self):
         return copy.deepcopy(self.data['factories'])
 
-    def get_xml_data(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
-        data=self.get_data()
+    def get_xml_factories_data(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
+        data=self.get_factories_data()
         return xmlFormat.dict2string(data,
                                      dict_name='factories', el_name='factory',
                                      subtypes_params={"class":{'subclass_params':{'Requested':{'dicts_params':{'Parameters':{'el_name':'Parameter'}}}}}},
                                        indent_tab=indent_tab,leading_tab=leading_tab)
 
-        #return xmlFormat.class2string(self.data,'<VOFrontendGroupStats>',
-        #                             indent_tab=indent_tab,leading_tab=leading_tab)
+    def get_states_data(self):
+        return copy.deepcopy(self.data['states'])
+
+    def get_xml_states_data(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
+        data=self.get_states_data()
+        return xmlFormat.dict2string(data,
+                                     dict_name='states', el_name='state',
+                                     subtypes_params={"class":{'subclass_params':{'Requested':{'dicts_params':{'Parameters':{'el_name':'Parameter'}}}}}},
+                                       indent_tab=indent_tab,leading_tab=leading_tab)
+
 
     def get_updated(self):
         return self.updated
@@ -229,8 +228,6 @@ class groupStats:
         numtypes=(type(1),type(1L),type(1.0))
 
         for f in self.data['factories'].keys():
-            if (f in ('MatchedUp','MatchedDown','Unmatched')):
-                continue # These three are special, do not count them
             fa=self.data['factories'][f]
             for w in fa.keys():
                 if total.has_key(w): # ignore eventual not supported classes
@@ -284,7 +281,8 @@ class groupStats:
         xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
                  '<VOFrontendGroupStats>\n'+
                  self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
-                 self.get_xml_data(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+                 self.get_xml_factories_data(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+                 self.get_xml_states_data(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  self.get_xml_total(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  "</VOFrontendGroupStats>\n")
 
@@ -294,12 +292,27 @@ class groupStats:
         total_el = self.get_total()
         self.write_one_rrd("total",total_el)
 
-        data = self.get_data()
+        data = self.get_factories_data()
         for fact in data.keys():
             self.write_one_rrd("factory_%s"%sanitize(fact),data[fact],1)
 
+        data = self.get_states_data()
+        for fact in data.keys():
+            self.write_one_rrd("state_%s"%sanitize(fact),data[fact],1)
+
         self.files_updated=self.updated        
         return
+
+    ################################################
+    # PRIVATE - Used to select the right disctionary
+    def get_factory_dict(self,factory):
+        if factory in self.states_names:
+            factories = self.data['states']
+        else:
+            factories = self.data['factories']
+        if not factory in factories:
+            factories[factory] = {}
+        return factories[factory]
 
     ###############################
     # PRIVATE - Used by write_file

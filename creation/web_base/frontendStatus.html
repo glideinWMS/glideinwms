@@ -143,6 +143,15 @@ Description:
         //Remove factories from previous group choice
         while(fac.childNodes.length>0) {fac.removeChild(fac.firstChild);}
         fac.appendChild(new Option('total','total'));  //add back 'total', 
+
+        // add this groups's states 
+        var states = getFrontendGroupStates(frontendStats, group);
+        
+        for(var state in states) {
+           state_name = states[state];
+           fac.appendChild(new Option(state_name, state_name));
+	}
+
         // and then add this groups's factories. 
         var factories = getFrontendGroupFactories(frontendStats, group);
         
@@ -319,15 +328,7 @@ Description:
          }
         }
 
-        if (group_name=="total" && factory_name=="total") {
-          fname="total/"+rrd_fname+".rrd";
-        } else if(group_name=="total" && factory_name!="total") {
-          fname="total/factory_"+sanitize(factory_name)+"/"+rrd_fname+".rrd";
-        } else if(group_name!="total" && factory_name=="total") {
-          fname="group_"+group_name+"/total/"+rrd_fname+".rrd";
-        } else if(group_name!="total" && factory_name!="total") {
-          fname="group_"+group_name+"/factory_"+sanitize(factory_name)+"/"+rrd_fname+".rrd";
-        }
+	fname=getRRDName(rrd_fname,group_name,factory_name,frontendStats);
 
         document.getElementById("fname").firstChild.data="Loading "+fname;
         try {
