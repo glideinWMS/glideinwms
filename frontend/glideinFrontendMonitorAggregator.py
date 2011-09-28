@@ -109,6 +109,9 @@ def aggregateStatus():
     status={'groups':{},'total':global_total}
     global_fact_totals={}
 
+    for fos in ('factories','states'):
+        global_fact_totals[fos]={}
+    
     nr_groups=0
     for group in monitorAggregatorConfig.groups:
         # load group status file
@@ -120,25 +123,28 @@ def aggregateStatus():
             continue # file not found, ignore
 
         # update group
-        try:
-            status['groups'][group]={'factories':group_data['factories']}
-        except KeyError, e:
-            # first time after upgrade factories may not be defined
-            status['groups'][group]={'factories':{}}
+        status['groups'][group]={}
+        for fos in ('factories','states'):
+            try:
+                status['groups'][group][fos]=group_data[fos]
+            except KeyError, e:
+                # first time after upgrade factories may not be defined
+                status['groups'][group][fos]={}
 
         this_group=status['groups'][group]
-        for fact in this_group['factories'].keys():
-            this_fact=this_group['factories'][fact]
-            if not fact in global_fact_totals.keys():
+        for fos in ('factories','states'):
+          for fact in this_group[fos].keys():
+            this_fact=this_group[fos][fact]
+            if not fact in global_fact_totals[fos].keys():
                 # first iteration through, set fact totals equal to the first group's fact totals
-                global_fact_totals[fact]={}
+                global_fact_totals[fos][fact]={}
                 for attribute in type_strings.keys():
                     if attribute in this_fact.keys():
-                        global_fact_totals[fact][attribute]={}
+                        global_fact_totals[fos][fact][attribute]={}
                         for type_attribute in this_fact[attribute].keys():
                             this_type_attribute=this_fact[attribute][type_attribute]
                             try:
-                                global_fact_totals[fact][attribute][type_attribute]=int(this_type_attribute)
+                                global_fact_totals[fos][fact][attribute][type_attribute]=int(this_type_attribute)
                             except:
                                 pass
             else:
@@ -147,14 +153,14 @@ def aggregateStatus():
                     if attribute in this_fact.keys():
                         for type_attribute in this_fact[attribute].keys():
                             this_type_attribute=this_fact[attribute][type_attribute]
-                            if type(this_type_attribute)==type(global_fact_totals):
+                            if type(this_type_attribute)==type(global_fact_totals[fos]):
                                 # dict, do nothing
                                 pass
                             else:
-                                if type_attribute in global_fact_totals[fact][attribute].keys(): 
-                                    global_fact_totals[fact][attribute][type_attribute]+=int(this_type_attribute)
+                                if type_attribute in global_fact_totals[fos][fact][attribute].keys(): 
+                                   global_fact_totals[fos][fact][attribute][type_attribute]+=int(this_type_attribute)
                                 else:
-                                    global_fact_totals[fact][attribute][type_attribute]=int(this_type_attribute)
+                                   global_fact_totals[fos][fact][attribute][type_attribute]=int(this_type_attribute)
         #nr_groups+=1
         #status['groups'][group]={}
 
@@ -201,11 +207,20 @@ def aggregateStatus():
              xmlFormat.dict2string(status["groups"],dict_name="groups",el_name="group",
                                    subtypes_params={"class":{"dicts_params":{"factories":{"el_name":"factory",
                                                                                           "subtypes_params":{"class":{"subclass_params":{"Requested":{"dicts_params":{"Parameters":{"el_name":"Parameter",
-                                                                                                                                                                                    "subtypes_params":{"class":{}}}}}}}}}}}},
+                                                                                                                                                                                    "subtypes_params":{"class":{}}}}}}}}},
+                                                                             "states":{"el_name":"state",
+                                                                                          "subtypes_params":{"class":{"subclass_params":{"Requested":{"dicts_params":{"Parameters":{"el_name":"Parameter",
+                                                                                                                                                                                    "subtypes_params":{"class":{}}}}}}}}}
+                                                                             }}},
                                    leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              xmlFormat.class2string(status["total"],inst_name="total",leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
 
-             xmlFormat.dict2string(global_fact_totals,dict_name="factories",el_name="factory",
+             xmlFormat.dict2string(global_fact_totals['factories'],dict_name="factories",el_name="factory",
+                                   subtypes_params={"class":{"subclass_params":{"Requested":{"dicts_params":{"Parameters":{"el_name":"Parameter",
+
+       "subtypes_params":{"class":{}}}}}}}},
+                                   leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+             xmlFormat.dict2string(global_fact_totals['states'],dict_name="states",el_name="state",
                                    subtypes_params={"class":{"subclass_params":{"Requested":{"dicts_params":{"Parameters":{"el_name":"Parameter",
 
        "subtypes_params":{"class":{}}}}}}}},
@@ -218,11 +233,15 @@ def aggregateStatus():
 
     glideinFrontendMonitoring.monitoringConfig.establish_dir("total")
     write_one_rrd("total/Status_Attributes",updated,global_total,0)
-                
-    for fact in global_fact_totals.keys():
+
+    for fact in global_fact_totals['factories'].keys():
         fe_dir="total/factory_%s"%glideinFrontendMonitoring.sanitize(fact)
         glideinFrontendMonitoring.monitoringConfig.establish_dir(fe_dir)
-        write_one_rrd("%s/Status_Attributes"%fe_dir,updated,global_fact_totals[fact],1)
+        write_one_rrd("%s/Status_Attributes"%fe_dir,updated,global_fact_totals['factories'][fact],1)
+    for fact in global_fact_totals['states'].keys():
+        fe_dir="total/state_%s"%glideinFrontendMonitoring.sanitize(fact)
+        glideinFrontendMonitoring.monitoringConfig.establish_dir(fe_dir)
+        write_one_rrd("%s/Status_Attributes"%fe_dir,updated,global_fact_totals['states'][fact],1)
 
     return status
 

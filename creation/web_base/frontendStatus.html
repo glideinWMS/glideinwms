@@ -106,6 +106,49 @@ Description:
      // fname, gtype_id and rrd_data are the global variable used by all the functions below
       rrd_data=undefined;
       gtype_id=undefined;
+ 
+      //checkUrl();
+
+      //Applys an groups's factories to the dropdown box
+      //below it once that group has been selected
+      function setFactoryMenu(group) {
+        var fac = document.getElementById("factory");
+        //Remove factories from previous group choice
+        while(fac.childNodes.length>0) {fac.removeChild(fac.firstChild);}
+        fac.appendChild(new Option('total','total'));  //add back 'total', 
+
+        // add this groups's states 
+        var states = getFrontendGroupStates(frontendStats, group);
+        
+        for(var state in states) {
+           state_name = states[state];
+           fac.appendChild(new Option(state_name, state_name));
+	}
+
+        // and then add this groups's factories. 
+        var factories = getFrontendGroupFactories(frontendStats, group);
+        
+        for(var factory in factories) {
+           factory_name = factories[factory];
+           fac.appendChild(new Option(factory_name, factory_name));
+        }
+      }
+
+      //RRA Filter - leaves it alone.
+      function RRADoNothing(rra_idx) {
+         this.getIdx = function() {return rra_idx;}
+         this.getStep = function() {return null;}
+      }
+      
+      /* RRA Filter - Creates a new RRA with a different step size (in seconds) 
+      / based on another RRA, whose data the new RRA averages. 
+      / rra_idx should be index of RRA with largest step size that doesn't exceed new step size.
+      */
+      function RRA_Avg(rra_idx,new_step_in_seconds) {
+         this.getIdx = function() {return rra_idx;}
+         this.getStep = function() {return new_step_in_seconds;}
+      }
+
 
       // This function updates the Web Page with the data from the RRD archive header
       // when a new file is selected
@@ -176,11 +219,7 @@ Description:
          }
         }
 
-        if (group_name=="total") {
-          fname="total/"+rrd_fname+".rrd";
-        } else {
-          fname="group_"+group_name+"/total/"+rrd_fname+".rrd";
-        }
+	fname=getRRDName(rrd_fname,group_name,factory_name,frontendStats);
 
         document.getElementById("fname").firstChild.data="Loading "+fname;
         try {

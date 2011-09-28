@@ -40,17 +40,17 @@ function getFrontendGroups(frontendStats) {
   return groups;
 }
 
-//Extract factory names from frontendStats XML obj
-function getFrontendGroupFactories(frontendStats, group_name) {
+//Extract factory or state names from frontendStats XML obj
+function getFrontendGroupFoS(frontendStats, group_name, fos_tag_top, fos_tag_one) {
   factories=new Array();
 
   if(group_name=="total") {
     for (var i=0; i<frontendStats.childNodes.length; i++) {
       var el=frontendStats.childNodes[i];
-      if ((el.nodeType==1) && (el.nodeName=="factories")) {
+      if ((el.nodeType==1) && (el.nodeName==fos_tag_top)) {
         for (var j=0; j<el.childNodes.length; j++) {
   	  var group=el.childNodes[j];
-            if ((group.nodeType==1)&&(group.nodeName=="factory")) {
+            if ((group.nodeType==1)&&(group.nodeName==fos_tag_one)) {
               var group_name=group.attributes.getNamedItem("name");
 	      factories.push(group_name.value);
 	    }
@@ -70,10 +70,10 @@ function getFrontendGroupFactories(frontendStats, group_name) {
           if(group_name1==group_name) {
              for(var k=0; k<group.childNodes.length; k++) { 
                var el2 = group.childNodes[k];
-               if (el2.nodeName=="factories") {
+               if (el2.nodeName==fos_tag_top) {
                   for(var m=0; m<el2.childNodes.length; m++) { 
                      var factory = el2.childNodes[m];
-                     if(factory.nodeName=="factory") {
+                     if(factory.nodeName==fos_tag_one) {
                         factory_name=factory.attributes.getNamedItem("name");
 	                factories.push(factory_name.value);
                      }
@@ -86,6 +86,16 @@ function getFrontendGroupFactories(frontendStats, group_name) {
     }
   }
   return factories;
+}
+
+//Extract factory names from frontendStats XML obj
+function getFrontendGroupFactories(frontendStats, group_name) {
+  return getFrontendGroupFoS(frontendStats, group_name, "factories", "factory")
+}
+
+//Extract state names from frontendStats XML obj
+function getFrontendGroupStates(frontendStats, group_name) {
+  return getFrontendGroupFoS(frontendStats, group_name, "states", "state")
 }
 
 function sanitize(name) {
@@ -129,4 +139,35 @@ function set_title(browser_title, page_title)
 	}
 	xmlhttp_descript.open("GET", "descript.xml",true);
 	xmlhttp_descript.send(null);
+}
+
+function getRRDName(rrd_fname,group_name,factory_name,frontendStats) {
+  if (factory_name=="total") {
+    if (group_name=="total") {
+      fname="total/"+rrd_fname+".rrd";
+    } else {
+      fname="group_"+group_name+"/total/"+rrd_fname+".rrd";
+    }
+  } else {
+    var states = getFrontendGroupStates(frontendStats, group_name);
+
+    fos_prefix="factory_";
+    // seach through the array
+    // quick hack, could be optimized
+    for(var state in states) {
+      state_name = states[state];
+      if (state_name==factory_name) {
+	// it is a state, not a factory
+	fos_prefix="state_";
+	break;
+      }
+    }
+
+    if(group_name=="total") {
+      fname="total/"+fos_prefix+sanitize(factory_name)+"/"+rrd_fname+".rrd";
+    } else {
+      fname="group_"+group_name+"/"+fos_prefix+sanitize(factory_name)+"/"+rrd_fname+".rrd";
+    }
+  }
+  return fname;
 }
