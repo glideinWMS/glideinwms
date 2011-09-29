@@ -12,7 +12,6 @@
 
 import os,os.path,shutil,string
 import sys
-import cWParams
 import cgWDictFile,cWDictFile
 import cgWCreate
 import cgWConsts,cWConsts
@@ -62,8 +61,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.dicts['vars'].load(params.src_dir,'condor_vars.lst',change_self=False,set_not_changed=False)
 
         # put user files in stage
-        for file in params.files:
-            add_file_unparsed(file,self.dicts)
+        for user_file in params.files:
+            add_file_unparsed(user_file,self.dicts)
 
         # put user attributes into config files
         for attr_name in params.attrs.keys():
@@ -154,8 +153,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                      if not found, raises an Exception
         """
         for root, dirs, files in os.walk(search_path,topdown=True):
-            for file in files:
-                if file == name:
+            for file_name in files:
+                if file_name == name:
                     return root
         raise RuntimeError,"Unable to find %(file)s in %(dir)s path" % \
                            { "file" : name,  "dir" : search_path, } 
@@ -216,25 +215,25 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         monitor_config_line.append("<monitor_config>")
         monitor_config_line.append("  <entries>")
         try:
-          try:
-            for sub in params.entries.keys():
-                if eval(params.entries[sub].enabled,{},{}):
-                    monitor_config_line.append("    <entry name=\"%s\">" % sub)
-                    monitor_config_line.append("      <monitorgroups>")                
-                    for group in params.entries[sub].monitorgroups:
-                        monitor_config_line.append("        <monitorgroup group_name=\"%s\">" % group['group_name'])
-                        monitor_config_line.append("        </monitorgroup>")
-                    
-                    monitor_config_line.append("      </monitorgroups>")
-                    monitor_config_line.append("    </entry>")
-    
-            monitor_config_line.append("  </entries>")
-            monitor_config_line.append("</monitor_config>")
-    
-            for line in monitor_config_line:
-                monitor_config_fd.write(line + "\n")
-          except IOError,e:
-            raise RuntimeError,"Error writing into file %s"%monitor_config_file
+            try:
+                for sub in params.entries.keys():
+                    if eval(params.entries[sub].enabled,{},{}):
+                        monitor_config_line.append("    <entry name=\"%s\">" % sub)
+                        monitor_config_line.append("      <monitorgroups>")                
+                        for group in params.entries[sub].monitorgroups:
+                            monitor_config_line.append("        <monitorgroup group_name=\"%s\">" % group['group_name'])
+                            monitor_config_line.append("        </monitorgroup>")
+                        
+                        monitor_config_line.append("      </monitorgroups>")
+                        monitor_config_line.append("    </entry>")
+        
+                monitor_config_line.append("  </entries>")
+                monitor_config_line.append("</monitor_config>")
+        
+                for line in monitor_config_line:
+                    monitor_config_fd.write(line + "\n")
+            except IOError,e:
+                raise RuntimeError,"Error writing into file %s"%monitor_config_file
         finally:
             monitor_config_fd.close()
     
@@ -294,8 +293,8 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         
         
         # put user files in stage
-        for file in sub_params.files:
-            add_file_unparsed(file,self.dicts)
+        for user_file in sub_params.files:
+            add_file_unparsed(user_file,self.dicts)
 
         # Add attribute for voms
 
@@ -308,10 +307,10 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         for dtype in ('attrs','consts'):
             self.dicts[dtype].add("GLIDEIN_Gatekeeper",sub_params.gatekeeper,allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_GridType",sub_params.gridtype,allow_overwrite=True)
-			# MERGENOTE:
-			# GLIDEIN_REQUIRE_VOMS publishes an attribute so that users without VOMS proxies
-			#   can avoid sites that require VOMS proxies (using the normal Condor Requirements
-			#   string. 
+            # MERGENOTE:
+            # GLIDEIN_REQUIRE_VOMS publishes an attribute so that users without VOMS proxies
+            #   can avoid sites that require VOMS proxies (using the normal Condor Requirements
+            #   string. 
             self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS",sub_params.config.restrictions.require_voms_proxy,allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_TrustDomain",sub_params.trust_domain,allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_SupportedAuthenticationMethod",sub_params.auth_method,allow_overwrite=True)
@@ -411,17 +410,17 @@ class glideinDicts(cgWDictFile.glideinDicts):
                 # NOTE: The self.sortit method should be removed, when SL4 and
                 #       python 2.3.4 are no longer supported
                 if sys.version_info < (2,4): # python 2.3.4 /SL4
-                  gs = self.sortit(global_schedd_count)
+                    gs = self.sortit(global_schedd_count)
                 else:  # python 2.4+ / SL5
-                  gs = global_schedd_count.keys()
-                  gs.sort(key=global_schedd_count.__getitem__)
+                    gs = global_schedd_count.keys()
+                    gs.sort(key=global_schedd_count.__getitem__)
                 min_schedd=gs[0]
                 params.subparams.data['entries'][sub_name]['schedd_name']=min_schedd
                 global_schedd_count[min_schedd]+=1
         return
         
     ######################################
-    def sortit(self,dict):
+    def sortit(self, unsorted_dict):
         """ A temporary method for sorting a dictionary based on
             the value of the dictionary item.  In python 2.4+,
             a 'key' arguement can be used in the 'sort' and 'sorted'
@@ -432,8 +431,8 @@ class glideinDicts(cgWDictFile.glideinDicts):
         """
         d = {}
         i = 0
-        for key in dict.keys():
-            d[i] = (key,dict[key])
+        for key in unsorted_dict.keys():
+            d[i] = (key,unsorted_dict[key])
             i = i + 1
         temp_list = [ (x[1][1], x[0]) for x in d.items() ]
         temp_list.sort()
@@ -451,7 +450,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
     def new_SubDicts(self,sub_name):
         return glideinEntryDicts(self.params,sub_name,
                                  self.main_dicts.get_summary_signature(),self.workdir_name)
-
+        
 ############################################################
 #
 # P R I V A T E - Do not use
@@ -461,58 +460,58 @@ class glideinDicts(cgWDictFile.glideinDicts):
 #############################################
 # Add a user file residing in the stage area
 # file as described by Params.file_defaults
-def add_file_unparsed(file,dicts):
-    absfname=file.absfname
+def add_file_unparsed(user_file,dicts):
+    absfname=user_file.absfname
     if absfname==None:
-        raise RuntimeError, "Found a file element without an absname: %s"%file
+        raise RuntimeError, "Found a file element without an absname: %s"%user_file
     
-    relfname=file.relfname
+    relfname=user_file.relfname
     if relfname==None:
         relfname=os.path.basename(absfname) # defualt is the final part of absfname
     if len(relfname)<1:
-        raise RuntimeError, "Found a file element with an empty relfname: %s"%file
+        raise RuntimeError, "Found a file element with an empty relfname: %s"%user_file
 
-    is_const=eval(file.const,{},{})
-    is_executable=eval(file.executable,{},{})
-    is_wrapper=eval(file.wrapper,{},{})
-    do_untar=eval(file.untar,{},{})
+    is_const=eval(user_file.const,{},{})
+    is_executable=eval(user_file.executable,{},{})
+    is_wrapper=eval(user_file.wrapper,{},{})
+    do_untar=eval(user_file.untar,{},{})
 
     file_list_idx='file_list'
-    if file.has_key('after_entry'):
-        if eval(file.after_entry,{},{}):
+    if user_file.has_key('after_entry'):
+        if eval(user_file.after_entry,{},{}):
             file_list_idx='after_file_list'
 
     if is_executable: # a script
         if not is_const:
-            raise RuntimeError, "A file cannot be executable if it is not constant: %s"%file
+            raise RuntimeError, "A file cannot be executable if it is not constant: %s"%user_file
     
         if do_untar:
-            raise RuntimeError, "A tar file cannot be executable: %s"%file
+            raise RuntimeError, "A tar file cannot be executable: %s"%user_file
 
         if is_wrapper:
-            raise RuntimeError, "A wrapper file cannot be executable: %s"%file
+            raise RuntimeError, "A wrapper file cannot be executable: %s"%user_file
 
         dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"exec","TRUE",'FALSE'),absfname)
     elif is_wrapper: # a sourceable script for the wrapper
         if not is_const:
-            raise RuntimeError, "A file cannot be a wrapper if it is not constant: %s"%file
+            raise RuntimeError, "A file cannot be a wrapper if it is not constant: %s"%user_file
     
         if do_untar:
-            raise RuntimeError, "A tar file cannot be a wrapper: %s"%file
+            raise RuntimeError, "A tar file cannot be a wrapper: %s"%user_file
 
         dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"wrapper","TRUE",'FALSE'),absfname)
     elif do_untar: # a tarball
         if not is_const:
-            raise RuntimeError, "A file cannot be untarred if it is not constant: %s"%file
+            raise RuntimeError, "A file cannot be untarred if it is not constant: %s"%user_file
 
-        wnsubdir=file.untar_options.dir
+        wnsubdir=user_file.untar_options.dir
         if wnsubdir==None:
             wnsubdir=string.split(relfname,'.',1)[0] # deafult is relfname up to the first .
 
-        config_out=file.untar_options.absdir_outattr
+        config_out=user_file.untar_options.absdir_outattr
         if config_out==None:
             config_out="FALSE"
-        cond_attr=file.untar_options.cond_attr
+        cond_attr=user_file.untar_options.cond_attr
 
 
         dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"untar",cond_attr,config_out),absfname)
@@ -788,7 +787,7 @@ def validate_condor_tarball_attrs(params):
                 match_found = True
 
         if match_found == False:
-             raise RuntimeError, "Condor (version=%s, os=%s, arch=%s) for entry %s could not be resolved from <glidein><condor_tarballs>...</condor_tarballs></glidein> configuration." % (my_version, my_os, my_arch, entry)
+            raise RuntimeError, "Condor (version=%s, os=%s, arch=%s) for entry %s could not be resolved from <glidein><condor_tarballs>...</condor_tarballs></glidein> configuration." % (my_version, my_os, my_arch, entry)
 
 
 
