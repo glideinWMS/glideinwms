@@ -17,9 +17,6 @@ import sys
 STARTUP_DIR=sys.path[0]
 
 import os.path
-import string
-import shutil
-import traceback
 sys.path.append(os.path.join(STARTUP_DIR,"lib"))
 sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
 import cgWParams
@@ -42,7 +39,14 @@ def main(params, old_params, update_scripts):
 
     # merge them together
     glidein_dicts_obj.reuse(old_glidein_dicts_obj)
-
+    
+    # Make sure we preserve old schedd names
+    entries = glidein_dicts_obj.params.entries
+    old_entries = old_glidein_dicts_obj.params.entries
+    for entry in entries.keys():
+        if entry in old_entries.keys():
+            entries[entry].data['schedd_name'] = old_entries[entry].schedd_name
+                
     # write to disk
     glidein_dicts_obj.save()
     glidein_dicts_obj.set_readonly(True)
@@ -52,8 +56,8 @@ def main(params, old_params, update_scripts):
         cgWCreate.copy_exe(cgWConsts.STARTUP_FILE,glidein_dicts_obj.main_dicts.work_dir,params.src_dir, True)
         cgWCreate.copy_exe(cgWConsts.SUBMIT_WRAPPER,glidein_dicts_obj.main_dicts.work_dir,params.src_dir, True)
         cgWCreate.copy_exe(cgWConsts.LOCAL_START_WRAPPER,glidein_dicts_obj.main_dicts.work_dir,params.src_dir, True)
-	
-	    # copy privsep helper executables
+    
+        # copy privsep helper executables
         cgWCreate.copy_exe(cgWConsts.UPDATE_PROXY_FILE,glidein_dicts_obj.main_dicts.work_dir,params.src_dir, True)
 
         # recreate the init.d starup file
@@ -101,18 +105,18 @@ if __name__ == '__main__':
     update_scripts = 'no'
     xml = ''
     for i in range(len(argv)):
-    	if argv[i] == '-force_name':
-    	    force_name = argv[i+1]
-    	if argv[i] == '-writeback':
-    	    writeback = argv[i+1]
-    	if argv[i] == '-update_scripts':
-    	    update_scripts = argv[i+1]
-    	if argv[i] == '-xml':
-    	    xml = argv[i+1]
+        if argv[i] == '-force_name':
+            force_name = argv[i+1]
+        if argv[i] == '-writeback':
+            writeback = argv[i+1]
+        if argv[i] == '-update_scripts':
+            update_scripts = argv[i+1]
+        if argv[i] == '-xml':
+            xml = argv[i+1]
         if argv[i] == '-help':
-			print usage
-			sys.exit(1)
-		
+            print usage
+            sys.exit(1)
+
     args = [argv[0], xml]     
                 
     try:
@@ -123,10 +127,10 @@ if __name__ == '__main__':
 
     if force_name!=None:
         if params.glidein_name!=force_name:
-           print usage
-           print ""
-           print "This is not a '%s' config file ('%s' found)"%(force_name,params.glidein_name)
-           sys.exit(1)
+            print usage
+            print ""
+            print "This is not a '%s' config file ('%s' found)"%(force_name,params.glidein_name)
+            sys.exit(1)
         
     if not (writeback in ('yes','no')):
         print usage
@@ -145,7 +149,7 @@ if __name__ == '__main__':
             raise RuntimeError,"Cannot find %s"%old_config_file
         
         main(params, old_params, update_scripts)
-    	        
+      
     except RuntimeError, e:
         print usage
         print ""
