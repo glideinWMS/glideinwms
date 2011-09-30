@@ -278,7 +278,6 @@ class groupStats:
 
         monitoringConfig.write_file("frontend_status.xml",xml_str)
 
-        total_el = self.get_total()
         # update RRDs
         total_el = self.get_total()
         self.write_one_rrd("total",total_el)
