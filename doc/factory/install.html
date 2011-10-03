@@ -381,7 +381,10 @@ Where will the web data be hosted?: [/var/www/html/glidefactory] /var/www/html/g
 
         When asked if you want OSG_VDT_BASE defined globally? Answer 'y' unless you want to force your users to find and hard code the location.
     </p>
-    <p>When asked if you want to enable Match authentication, if you are using Condor 7.1.3 or later, answer 'y' unless you have a reason not to.</p>
+    <p>By default, match authentication will be used. 
+       If you have a reason not to use it, be sure to set to False the USE_MATCH_AUTH 
+       attribute in both in both the Factory and Frontend configuration files.
+    </p>
 
     </div>
 
@@ -933,7 +936,9 @@ Do you want to fetch entries from BDII?: (y/n) [n]<b>n</b>
 Please list all additional glidein entry points,
 
 Entry name (leave empty when finished):
+<!-- (Weigand 9/29/11 Bug 1902)
 Should glideins use the more efficient Match authentication (works for Condor v7.1.3 and later)?: (y/n) [y] <b>y</b>
+-->
 
 For security reasons, we want to whitelist all the frontends that we will be serving.
 Each frontend should be segregated to its own (set of) username(s).
