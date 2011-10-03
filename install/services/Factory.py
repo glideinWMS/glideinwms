@@ -40,7 +40,6 @@ factory_options = [ "hostname",
 "web_location",
 "web_url",
 "javascriptrrd_location",
-"match_authentication",
 "install_vdt_client",
 "glideinwms_location",
 "vdt_location",
@@ -542,13 +541,12 @@ export X509_CERT_DIR=%(x509_cert_dir)s
     # -- glexec --
     data = data + """
 %(indent2)s<attr name="GLEXEC_JOB" value="True" const="True" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>
-%(indent2)s<attr name="USE_MATCH_AUTH" value="%(match_authentication)s" const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>
+%(indent2)s<attr name="USE_MATCH_AUTH" value="True" const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>
 %(indent2)s<attr name="CONDOR_VERSION" value="default" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>
 %(indent1)s</attrs>
 """ % \
 { "indent1" : common.indent(1),
   "indent2" : common.indent(2),
-  "match_authentication" : self.glidein.match_authentication() == "y",
 }
     return data
 

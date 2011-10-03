@@ -41,7 +41,6 @@ frontend_options = [ "install_type",
 "userjob_constraints",
 "web_location",
 "web_url",
-"match_authentication",
 "expose_grid_env",
 "glideinwms_location",
 "javascriptrrd_location",
@@ -981,7 +980,7 @@ please verify and correct if needed.
 %(indent1)s<attrs>
 %(indent2)s<attr name="GLIDEIN_Glexec_Use"      value="%(glexec_use)s"      glidein_publish="True"  job_publish="True"  parameter="False" type="string"/>
 %(indent2)s<attr name="GLIDEIN_Expose_Grid_Env" value="%(expose_grid_env)s" glidein_publish="True"  job_publish="True"  parameter="False" type="string"/>
-%(indent2)s<attr name="USE_MATCH_AUTH"          value="%(use_match_auth)s"  glidein_publish="False" job_publish="False" parameter="True" type="string"/> 
+%(indent2)s<attr name="USE_MATCH_AUTH"          value="True"              glidein_publish="False" job_publish="False" parameter="True" type="string"/> 
 %(indent2)s<attr name="GLIDECLIENT_Start"     value="%(entry_start)s"     glidein_publish="False" job_publish="False" parameter="True" type="string"/>
 %(indent2)s<attr name="GLIDECLIENT_Rank"      value="%(entry_rank)s"      glidein_publish="False" job_publish="False" parameter="True" type="string"/>
 %(indent1)s</attrs> 
@@ -991,7 +990,6 @@ please verify and correct if needed.
   "indent3"          : common.indent(3), 
   "glexec_use"       : self.glexec_use(),
   "expose_grid_env"  : self.expose_grid_env(),
-  "use_match_auth"   : self.glidein.match_authentication() == "y",
   "entry_start"       : "True",
   "entry_rank"       : "1",
 }

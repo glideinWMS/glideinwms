@@ -648,20 +648,6 @@ requires:<br/><br/>
 
         <tr>
 
-            <td>match_authentication</td>
-            <td align="center">y</td>
-            <td>
-                Match authentication is a more efficient means of matching user jobs to resources (entry points) i
-                and used in newer versions of Condor. 
-                Its use is recommended unless you are using an older version of Condor.</td>
-            <td>   Valid values:<br/>
-                * <b>y</b> - uses it<br/>
-                * <b>n</b> - does not use it
-            </td>
-        </tr>
-
-        <tr>
-
             <td> ress_host</td>
             <td>osg-ress-4.fnal.gov</td>
             <td>Identifies the ReSS server to be used to select entry points (CEs) to submit glidein pilot jobs to.
@@ -1127,21 +1113,6 @@ It must be a zipped tarball with a *.tg.tz name.
         </tr>
 
         <tr>
-        <td>match_authentication</td>
-        <td align="center">y</td>
-        <td>
-            Match authentication is more efficient and used in newer versions 
-            of Condor. 
-        </td>
-        <td>
-            This is recommended if you are using Condor 7.1.3+<br/>
-            Valid values:<br/>
-            * <b>y</b> - uses it<br/>
-            * <b>n</b> - does not use it<br/>   
-        </td>
-        </tr>
-
-        <tr>
           <td>install_vdt_client</td>
           <td align="center">y</td>
           <td>Indicates if an OSG/VDT client should be installed if it is not already present in the <b>vdt_location</b> option location.
@@ -1409,21 +1380,6 @@ It must be a zipped tarball with a *.tg.tz name.
         </tr>
 
         <tr>
-        <td>match_authentication</td>
-        <td align="center">y</td>
-        <td>
-            Match authentication is more efficient and used in newer versions 
-            of Condor. 
-        </td>
-        <td>
-            This is recommended if you are using Condor 7.1.3+<br/>
-            Valid values:<br/>
-            * <b>y</b> - uses it<br/>
-            * <b>n</b> - does not use it<br/>   
-        </td>
-        </tr>
-
-        <tr>
         <!-- --- group matching criteria ----------------------- -->
         <td>group_name</td>
         <td align="center">main</td>
@@ -1621,7 +1577,6 @@ x509_gsi_dn =
 
 use_glexec = n
 use_ccb    = n
-match_authentication = y
 
 ress_host = osg-ress-4.fnal.gov
 entry_vos = cms
@@ -1646,7 +1601,6 @@ number_of_secondary_collectors = 5
 service_name = submit_service
 number_of_schedds = 5
 schedd_shared_port =
-match_authentication = y
 
 condor_location = %(install_dir)s/condor-therest
 
@@ -1671,7 +1625,6 @@ userjob_constraints = (JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_M
 match_string = glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")
 
 glexec_use = never
-match_authentication = y
 expose_grid_env = True
 
 web_location  = /var/www/html/frontend
@@ -1740,7 +1693,6 @@ x509_proxy =
 x509_gsi_dn =
 use_glexec = n
 use_ccb    = y
-match_authentication = y
 
 ress_host       = osg-ress-4.fnal.gov
 entry_vos = cms
@@ -1780,7 +1732,6 @@ x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=glideinsubmittercms/cms-xen8.fn
 
 number_of_schedds = 5
 schedd_shared_port = 9615
-match_authentication = y
 
 ;--------------------------------------------------
 [VOFrontend]
@@ -1808,7 +1759,6 @@ userjob_constraints = (JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_M
 match_string = glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")
 
 glexec_use = never
-match_authentication = y
 expose_grid_env = True
 
 web_url       = http://%(hostname)s:8319
@@ -1864,7 +1814,6 @@ instance_name = v1_0
 use_vofrontend_proxy = y
 use_glexec = y
 use_ccb = y
-match_authentication = y
 ress_host = osg-ress-4.fnal.gov
 entry_vos = dzero
 entry_filters = (int(GlueCEPolicyMaxCPUTime)<(25*60))
@@ -2023,7 +1972,6 @@ condor_tarball = /home/frontenduser/installers/condor-7.5.5-x86_64_rhap_5-stripp
 condor_admin_email = condor-admin@fnal.gov
 number_of_schedds = 2
 schedd_shared_port = 4444
-match_authentication = y
 
 </pre>
 
@@ -2075,7 +2023,6 @@ glidein_proxy_files = %(x509_proxy)s
 glidein_proxy_dns = %(x509_gsi_dn)s
 glexec_use = optional
 expose_grid_env = True
-match_authentication = y
 group_name = main
 userjob_constraints = (JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)
 match_string = glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")

@@ -1134,24 +1134,26 @@ shared password for authentication between these daemons. Since using
 a shared secret is much cheaper that using GSI authentication, this
 should be used every time it is feasible.</P>
 
-<P>To enable this option, you need to set an attribute using the
+<P>This option is enabled by default.
 <tt><B>&lt;attr /&gt;</B></tt> option:</P>
     <blockquote>
-    <B>USE_MATCH_AUTH</B>=True
+    &lt;attr name=<B>USE_MATCH_AUTH</B> ... value=<b>True</b>.. /&gt;
+       ... <font color="blue"><b>enabled</b></font>
+   <br/>
+    &lt;attr name=<B>USE_MATCH_AUTH</B> ... value=<b>False</b>.. /&gt;
+       ... <font color="red"><b>disabled</b></font>
     </blockquote>
 <p>
-    You will also need to enable this on the <B>submit machin</B>e, by
-    adding 
+    When enabled, this condor attribute <b>must</b> be set in the
+    <B>condor_config</B> of the <B>submit machine</B>.<br/>
+    This option is not used by the Condor negotiator or collector and therefore
+    not needed if they are installed separately.
 </p>
 
 <p>
     <blockquote>
     <b>SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION</b> = True
     </blockquote>
-    to the <B>schedd condor_config</B>. Do not add this option to either
-    the negotiator or collector as it will not work. 
-</p><p>
-    Obviously, this will only work with Condor versions 7.1.3 and above.
 </p>
 </div>
 

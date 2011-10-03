@@ -124,9 +124,6 @@ class Glidein(Configuration):
     if len(location) == 0:
       location = default
     return location
-  #---------------------
-  def match_authentication(self):
-    return self.option_value(self.ini_section,"match_authentication")
 
   #--------------------------------
   def __install_vdt_client__(self):

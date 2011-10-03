@@ -331,7 +331,11 @@ Where will the web data be hosted?: [/var/www/html/glidefactory] /var/www/html/g
 
         When asked if you want OSG_VDT_BASE defined globally? Answer 'y' unless you want to force your users to find and hard code the location.
     </p>
-    <p>When asked if you want to enable Match authentication, if you are using Condor 7.1.3 or later, answer 'y' unless you have a reason not to.</p>
+    <p>
+     By default, match authentication will be used. 
+     If you have a reason not to use it, be sure to set to False the USE_MATCH_AUTH 
+     attribute in both in both the Factory and Frontend configuration files. 
+    </p>
     </div>
 
 
@@ -610,13 +614,10 @@ to make sure all ports are open on any firewalls for these machines.
     </tr>
     <tr>
     <td>Final Config</td>
-    <td><i>Do you want to use the more efficient Match authentication?<br/>
-
+    <td><i> 
         Do you want to expose the Grid env. to the user jobs?<br/>
         Do you want to create the Glidein Frontend instance?</i></td>
-    <td>
-        Match authentication is more efficient and used in newer versions of Condor.  
-        This is recommended unless using an older version of Condor.<br/>
+    <td> 
         Exposing the grid environment to user jobs will export shell variables to the user job
         running on the glidein.  Saying 'n' will keep the environment cleaner.  Most configurations
         use 'y' so the user jobs can use those variables if needed.<br/>
@@ -755,9 +756,6 @@ DN: <b>/DC=org/DC=doegrids/OU=Services/CN=schedd1.my.org</b>
 nickname: [condor002] <b>schedd1</b>
 
 DN (leave empty when finished):
-Do you want to use the more efficient Match authentication (works for Condor v7.3.0 and later)?: (y/n) <b>y</b>
-
-Make sure you use Match authentication in the schedds, too
 
 Do you want to expose the Grid env. to the user jobs?: (y/n) <b>y</b>
 Do you want to create the Glidein Frontend instance (as opposed to just the config file)?: (y/n) [n] <b>n</b>
