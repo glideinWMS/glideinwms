@@ -79,6 +79,8 @@ class FactoryConfig:
         self.submit_sleep = 0.2
         self.remove_sleep = 0.2
         self.release_sleep = 0.2
+        
+        self.whole_node = False
 
         # Max commands per cycle
         self.max_submits = 100
@@ -444,13 +446,17 @@ def keepIdleGlideins(client_condorq, client_int_name,
         # Check that adding more idle doesn't exceed request max_glideins
         if q_idle_glideins + q_held_glideins + q_running_glideins + add_glideins >= req_max_glideins:
             # Exceeded limit, try to adjust
-            add_glideins = req_max_glideins - q_idle_glideins - q_held_glideins - q_running_glideins
 
-            if add_glideins <= 0:
-                # Have hit request limit, cannot submit
+            add_glideins = req_max_glideins - q_idle_glideins - q_held_glideins - q_running_glideins 
+            
+            # Have hit request limit, cannot submit
+            if add_glideins < 0:
                 logSupport.log.info("Additional idle glideins %s needed exceeds request max_glideins limits %s, not submitting" % (add_glideins, req_max_glideins))
                 return clean_glidein_queue(remove_excess, glidein_totals, condorq, req_min_idle, req_max_glideins, frontend_name)
-
+            elif add_glideins == 0:
+                logSupport.log.info("Additional idle glideins not needed, have met request max_glideins limits %s, not submitting" % req_max_glideins)
+                return clean_glidein_queue(remove_excess, glidein_totals, condorq, req_min_idle, req_max_glideins, frontend_name)
+        
     # Have a valid idle number to request
     # Check that adding more doesn't exceed frontend:sec_class and entry limits
     add_glideins = glidein_totals.can_add_idle_glideins(add_glideins, frontend_name)
@@ -1135,7 +1141,6 @@ def removeGlideins(schedd_name, jid_list, force=False):
 
     removed_jids = []
 
-    schedd_str = schedd_name2str(schedd_name)
     is_not_first = 0
     for jid in jid_list:
         if is_not_first:
@@ -1175,7 +1180,6 @@ def releaseGlideins(schedd_name, jid_list):
 
     released_jids = []
 
-    schedd_str = schedd_name2str(schedd_name)
     is_not_first = 0
     for jid in jid_list:
         if is_not_first:
@@ -1254,14 +1258,16 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
         exe_env.append('ENTRY_DESCRIPT=%s' % entry_descript)
         exe_env.append('ENTRY_SIGN=%s' % entry_sign)
 
+        # Specify if it is a whole node glidein (one condor per node)
+        whole_node = jobDescript.data['SubmitWholeNode']
         # Build the glidein pilot arguments
         glidein_arguments = "-v %s -name %s -entry %s -clientname %s -schedd %s " \
                             "-factory %s -web %s -sign %s -signentry %s -signtype %s " \
-                            "-descript %s -descriptentry %s -dir %s -param_GLIDEIN_Client %s %s" % \
+                            "-descript %s -descriptentry %s -dir %s -param_GLIDEIN_Client %s -whole_node %s %s" % \
                             (verbosity, glidein_name, entry_name, client_name,
                              schedd, factory_name, web_url, main_sign, entry_sign,
                              sign_type, main_descript, entry_descript, startup_dir,
-                             client_name, params_str)
+                             client_name, whole_node, params_str)
 
         # get my (entry) type
         grid_type = jobDescript.data["GridType"]

@@ -84,6 +84,7 @@ class GlideinParams(cWParams.CommonParams):
 
         entry_config_defaults['submit'] = copy.deepcopy(entry_config_queue_defaults)
         entry_config_defaults['submit']['cluster_size'] = ['10', "nr", "Max number of jobs submitted in a single transaction.", None]
+        entry_config_defaults['submit']['whole_node'] = ['False', "boolean", "Should there be one condor per node?", None]
         entry_config_defaults['remove'] = copy.deepcopy(entry_config_queue_defaults)
         entry_config_defaults['remove']['max_per_cycle'][0] = '5'
         entry_config_defaults['release'] = copy.deepcopy(entry_config_queue_defaults)

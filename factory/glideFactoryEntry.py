@@ -643,9 +643,9 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                     logSupport.log.warning("Glidein proxy cannot be found for client %s, skipping request" % client_int_name)
                 
                 # VM id and type are required for cloud sites
-                if 'vm_id' in auth_method:                  
+                if 'vm_id' in auth_method:                 
                     # Otherwise the Frontend should supply it
-                    if decrypted_params.has_key('VMId'):   
+                    if decrypted_params.has_key('VMId'):     
                         submit_credentials.add_identity_credential('VMId', decrypted_params['VMId'])
                     else:
                         logSupport.log.info("Client '%s' did not specify a VM Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
@@ -1234,6 +1234,7 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
 
     glideFactoryLib.factoryConfig.max_submits = int(jobDescript.data['MaxSubmitRate'])
     glideFactoryLib.factoryConfig.max_cluster_size = int(jobDescript.data['SubmitCluster'])
+    glideFactoryLib.factoryConfig.whole_node = jobDescript.data['SubmitWholeNode'] 
     glideFactoryLib.factoryConfig.submit_sleep = float(jobDescript.data['SubmitSleep'])
     glideFactoryLib.factoryConfig.max_removes = int(jobDescript.data['MaxRemoveRate'])
     glideFactoryLib.factoryConfig.remove_sleep = float(jobDescript.data['RemoveSleep'])
