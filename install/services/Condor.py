@@ -187,11 +187,6 @@ If no specific entries are needed, an empty list should be returned.
       return self.option_value(self.ini_section,"privilege_separation")
     return "n"
   #---------------------
-  def match_authentication(self):
-    if self.has_option(self.ini_section,"match_authentication"):
-      return self.option_value(self.ini_section,"match_authentication")
-    return "n"
-  #---------------------
   def number_of_schedds(self):
     option = "number_of_schedds"
     if self.daemon_list.find("SCHEDD") > 0:
@@ -966,6 +961,9 @@ APPEND_REQ_VANILLA = (Memory>=1) && (Disk>=1)
 #--  Prevent preemption
 MAXJOBRETIREMENTTIME = $(HOUR) * 24 * 7
 
+#-- Enable match authentication
+SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION = TRUE
+
 #-- GCB optimization
 SCHEDD_SEND_VACATE_VIA_TCP = True
 STARTD_SENDS_ALIVES = True
@@ -995,12 +993,6 @@ SHARED_PORT_ARGS = -p %(port)s
 DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT
 """ % { "port" : self.schedd_shared_port(), }
 
-    #-- match authentication attribrutes
-    if self.match_authentication() == "y":
-      self.condor_config_data[type] += """
-#-- Enable match authentication
-SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION = TRUE
-""" 
       if self.condor_version <= "7.5.3":
         self.condor_config_data[type] += """
 #-- Enable match authentication workaround for Condor ticket

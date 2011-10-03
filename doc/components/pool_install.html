@@ -187,7 +187,7 @@ Install as: root
     <p></p>
     
     <h3><a name="before_install_misc">4.2 Miscellaneous Notes</a></h3>
-    <p>When asked if you want to enable Match authentication, if you are using Condor 7.1.3 or later, answer 'y' unless you have a reason not to.</p>
+     By default, match authentication will be used. 
                        
     </div>
 
@@ -253,7 +253,7 @@ What do you want to install?
     </td>
     </tr>
     <tr>
-    <td rowspan=3>GSI Security</td>
+    <td rowspan=2>GSI Security</td>
     <td><i>Where can I find the directory with the trusted CAs? </i></td>
 
     <td>
@@ -266,17 +266,28 @@ What do you want to install?
     <td><i>Please insert all such DNs, together with a user nickname.</i></td>
 
     <td>
-        You will need to provide the DN of the pool collector and the DN of the glidein factory.
         This will populate the condor_mapfile with the dns and nicknames.
         See <a href="../components/gsi.html">GSI Reference</a> for more information.
-    </td>
-    </tr>
-    <tr>
-    <td><i>Do you want to enable Match authentication?</i></td>
-    <td>
-        This changes the Condor security model to rely more on the Collector.
-        If you do not enable this, you will need to list the DNs of all the glideins both in the Collector and in the Schedd. If enabled, only the Colelctor needs to know them.<br>
-	Technically, this turns on the <a href="http://www.cs.wisc.edu/condor/manual/v7.4/3_3Configuration.html#param:SecEnableMatchPasswordAuthentication">SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION</a>.
+        <br/><br/>
+        You will need to provide the DN of the pool collector and the DN of the 
+        glidein factory.  
+         Match authentication is enabled by default. 
+        <br/><br/>
+         This changes the Condor security model to rely more on the Collector.<br/>
+     When enabled,<br/> 
+      * only the Collector needs to know the DNs of all glidein proxies.<br/>
+      * and the 
+      <a href="http://www.cs.wisc.edu/condor/manual/v7.4/3_3Configuration.html#param:SecEnableMatchPasswordAuthentication">SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION.</a>  
+        attribute is set to True in the condor_config of the Schedd service.
+        <br/><br/>
+     If you have a reason not to use it,<br/>
+      * be sure to set to False the USE_MATCH_AUTH attribute in both in both the Factory 
+        and Frontend configuration files.<br/> 
+      * you will need to list the DNs of all glidein proxies  both in the Collector 
+        and in the Schedd. <br/>
+      * you will need the DN of the glidein startd as well. 
+        <br/><br/>
+      Any other DNs you list will be put into the condor_mapfile for authentication.
     </td>
     </tr>
     <tr>
@@ -416,14 +427,6 @@ nickname: [condor002] <b>pilot</b>
 
 Is this a trusted Condor daemon?: (y/n) <b>y</b>
 DN: <i>enter</i>
-
-Condor supports a more efficient Match authentication that is also more secure.
-Newer versions of the VO Frontend will not work if you don't enable it,
-but you may still be able to use this schedd for other purposes.
-Do you want to enable Match authentication?: (y/n) <b>y</b>
-
-Make sure you use Match authentication in the glideins, too
-
 
 Condor 7.5.3 and up support the use of a shared_port_daemon
 that drastically reduces the number of ports used
