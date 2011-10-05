@@ -623,7 +623,8 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                           
                 # Determine identifier for file name and add to credentials to be passed to submit
                 proxy_id = decrypted_params['SubmitProxy']
-                if not submit_credentials.add_security_credential('SubmitProxy', proxy_id):
+                # KEL need to change call to frontendname_frontendgroup_proxy_id (and all other ref to call add_security_cred)
+                if not submit_credentials.add_security_credential('SubmitProxy', "%s_%s" % (client_int_name, proxy_id)):
                     logSupport.log.warning("Credential %s for the submit proxy cannot be found for client %s, skipping request" % (proxy_id, client_int_name))
                     continue #skip proxy
                     
@@ -636,7 +637,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 # Verify that the glidein proxy was provided for the non-proxy auth methods
                 if decrypted_params.has_key('GlideinProxy'):
                     proxy_id = decrypted_params['GlideinProxy']
-                    if not submit_credentials.add_security_credential('GlideinProxy', proxy_id):
+                    if not submit_credentials.add_security_credential('GlideinProxy', "%s_%s" % (client_int_name, proxy_id)):
                         logSupport.log.warning("Credential %s for the glidein proxy cannot be found for client %s, skipping request" % (proxy_id, client_int_name))
                         continue  
                 else:  
@@ -676,36 +677,36 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 if 'cert_pair' in auth_method :
                     public_cert_id = decrypted_params['PublicCert']
                     submit_credentials.id = public_cert_id
-                    if not submit_credentials.add_security_credential('PublicCert', public_cert_id):
+                    if not submit_credentials.add_security_credential('PublicCert', "%s_%s" % (client_int_name, public_cert_id)):
                         logSupport.log.warning("Credential %s for the public certificate is not safe for client %s, skipping request" % (public_cert_id, client_int_name))
                         continue #skip   
                         
                     private_cert_id = decrypted_params['PrivateCert']
-                    if not submit_credentials.add_security_credential('PrivateCert', private_cert_id):
+                    if not submit_credentials.add_security_credential('PrivateCert', "%s_%s" % (client_int_name, private_cert_id)):
                         logSupport.log.warning("Credential %s for the private certificate is not safe for client %s, skipping request" % (private_cert_id, client_int_name))
                         continue #skip   
                         
                 elif 'key_pair' in auth_method:
                     public_key_id = decrypted_params['PublicKey']
                     submit_credentials.id = public_key_id
-                    if not submit_credentials.add_security_credential('PublicKey', public_key_id):
+                    if not submit_credentials.add_security_credential('PublicKey', "%s_%s" % (client_int_name, public_key_id)):
                         logSupport.log.warning("Credential %s for the public key is not safe for client %s, skipping request" % (public_key_id, client_int_name))
                         continue #skip   
                         
                     private_key_id = decrypted_params['PrivateKey']
-                    if not submit_credentials.add_security_credential('PrivateKey', private_key_id):
+                    if not submit_credentials.add_security_credential('PrivateKey', "%s_%s" % (client_int_name, private_key_id)):
                         logSupport.log.warning("Credential %s for the private key is not safe for client %s, skipping request" % (private_key_id, client_int_name))
                         continue #skip 
                     
                 elif 'username_password' in auth_method:
                     username_id = decrypted_params['Username']
                     submit_credentials.id = username_id
-                    if not submit_credentials.add_security_credential('Username', username_id):
+                    if not submit_credentials.add_security_credential('Username', "%s_%s" % (client_int_name, username_id)):
                         logSupport.log.warning("Credential %s for the username is not safe for client %s, skipping request" % (username_id, client_int_name))
                         continue    
                         
                     password_id = decrypted_params['Password']
-                    if not submit_credentials.add_security_credential('Password', password_id):
+                    if not submit_credentials.add_security_credential('Password', "%s_%s" % (client_int_name, password_id)):
                         logSupport.log.warning("Credential %s for the password is not safe for client %s, skipping request" % (password_id, client_int_name))
                         continue    
                                             
@@ -926,9 +927,9 @@ def write_descript(entry_name, entryDescript, entryAttributes, entryParams, moni
     entry_data[entry_name]['params'] = copy.deepcopy(entryParams.data)
 
     descript2XML = glideFactoryMonitoring.Descript2XML()
-    str = descript2XML.entryDescript(entry_data)
+    entry_str = descript2XML.entryDescript(entry_data)
     xml_str = ""
-    for line in str.split("\n")[1:-2]:
+    for line in entry_str.split("\n")[1:-2]:
         line = line[3:] + "\n" # remove the extra tab
         xml_str += line
 
