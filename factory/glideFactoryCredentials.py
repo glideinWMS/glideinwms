@@ -78,13 +78,13 @@ class SubmitCredentials:
             output += "    %s : %s" % (ic, self.identity_credentials[ic])
         return output
 
-def update_credential_file(username, client_id, proxy_data):
+def update_credential_file(username, client_id, proxy_data, request_clientname):
     """
     Updates the credential file.
     """
 
     proxy_dir = glideFactoryLib.factoryConfig.get_client_proxies_dir(username)
-    fname_short = 'credential_%s' % glideFactoryLib.escapeParam(client_id)
+    fname_short = 'credential_%s_%s' % (request_clientname, glideFactoryLib.escapeParam(client_id))
     fname = os.path.join(proxy_dir, fname_short)
 
     if username != MY_USERNAME:
@@ -172,6 +172,8 @@ def process_globals(glidein_descript, frontend_descript):
 
             # Get the frontend security name so that we can look up the username
             sym_key_obj, frontend_sec_name = validate_frontend(classad, frontend_descript, pub_key_obj)
+            
+            request_clientname = classad['ClientName']
 
             # get all the credential ids by filtering keys by regex
             # this makes looking up specific values in the dict easier
@@ -184,7 +186,7 @@ def process_globals(glidein_descript, frontend_descript):
                 security_class = sym_key_obj.decrypt_hex(classad[key])
                 username = frontend_descript.get_username(frontend_sec_name, security_class)
 
-                update_credential_file(username, cred_id, cred_data)
+                update_credential_file(username, cred_id, cred_data, request_clientname)
     except:
         tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
         error_str = "Error occurred processing the globals classads. \nTraceback: \n%s" % tb
