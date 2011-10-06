@@ -96,7 +96,6 @@ a75d08b0539e9661c7778ec7a42ef80a  ./factory/tools/lib/analyze.py
 e33900c0e05dc5ed4ee7a1830acf89bc  ./factory/tools/lib/gWftArgsHelper.py
 378e33b8f6064affcd04a2ce51b06e8b  ./factory/tools/lib/gWftLogParser.py
 c3f88bb3df6ee9f4532885ab0584cbfb  ./factory/tools/proxy_info
-6b93b74c3478e85444d2df7cd9934819  ./factory/.glideFactoryEntry.py.swp
 4d78e6a1f1775f6095dc240f7dde0fee  ./frontend/checkFrontend.py
 01380cbb07b77119f5711de3e998ac7c  ./frontend/glideinFrontend.py
 66040003e303a5314ad76fdd6ecc30d7  ./frontend/glideinFrontendConfig.py
