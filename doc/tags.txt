@@ -7,7 +7,10 @@ vNext
 	  scripts.  If you plan on using OSG sites that have used this rpm, you
 	  must "upgrade" your factory in order to get glideins.
 	  
-	
+v2_5_2_1Bug fix: Fixed a bug creation of START expression when VOMS proxy is
+	  set be required.
+	Bug Fix: Revert the glidein shutdown behavior introduced in v2_5_2
+	Bug Fix: Add condor_glexec_update_proxy to Condor tarball if available
 
 v2_5_2	Frontend publishes glideresource classad to the pool collector. This
 	  is useful for the users to do match making for their jobs.
