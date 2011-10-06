@@ -871,6 +871,16 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                                                              idle_glideins, max_glideins, remove_excess,
                                                              submit_credentials, glidein_totals, frontend_name,
                                                              client_web, params)
+                if done_something > 0:
+                    return 1 # we submitted something, return immediately
+                
+                if condorStatus != None: # temporary glitch, no sanitization this round
+                    # KEL - condor status is always set to None.  are we supposed to query here??
+                    glideFactoryLib.sanitizeGlideins(condorQ, condorStatus)
+                else:
+                    glideFactoryLib.sanitizeGlideinsSimple(condorQ)
+            
+                return 0
                 # ======= end of v3+ protocol =============
     
     logSupport.log.debug("Updating statistics")
