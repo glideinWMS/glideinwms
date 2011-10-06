@@ -83,7 +83,6 @@ a75d08b0539e9661c7778ec7a42ef80a  ./factory/tools/lib/analyze.py
 e33900c0e05dc5ed4ee7a1830acf89bc  ./factory/tools/lib/gWftArgsHelper.py
 378e33b8f6064affcd04a2ce51b06e8b  ./factory/tools/lib/gWftLogParser.py
 c3f88bb3df6ee9f4532885ab0584cbfb  ./factory/tools/proxy_info
-6b93b74c3478e85444d2df7cd9934819  ./factory/.glideFactoryEntry.py.swp
 058473e6cfccb7eb94d947b50efb1e4d  ./install/glidecondor_addDN
 e2cae61b61f7203a35655eb028dc9b3c  ./install/glideinWMS.ini
 01c7514b0f616b4c274914aa2c528c32  ./install/glideinWMS_install

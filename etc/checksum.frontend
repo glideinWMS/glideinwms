@@ -35,7 +35,6 @@ ed35ca2289553f4e671d985bedd0ccef  ./creation/web_base/parse_starterlog.awk
 681b715ce05b64ba1be2f9e06b3676c5  ./creation/web_base/update_proxy.py
 53c068c3f91e81d7f49285ad5abbe12f  ./factory/glideFactoryConfig.py
 6000356bba3c07b53ca463f7281da45d  ./factory/glideFactoryInterface.py
-6b93b74c3478e85444d2df7cd9934819  ./factory/.glideFactoryEntry.py.swp
 4d78e6a1f1775f6095dc240f7dde0fee  ./frontend/checkFrontend.py
 01380cbb07b77119f5711de3e998ac7c  ./frontend/glideinFrontend.py
 66040003e303a5314ad76fdd6ecc30d7  ./frontend/glideinFrontendConfig.py
