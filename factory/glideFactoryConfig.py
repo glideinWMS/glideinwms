@@ -328,7 +328,8 @@ class FrontendDescript(ConfigFile):
         """
         frontend_sec_classes = []
         for fe_name in self.data.keys():
-            for sec_class in self.data[fe_name]['usermap']:
+            fe = self.data[fe_name]['usermap']
+            for sec_class in fe.keys():
                 frontend_sec_classes.append("%s:%s" % (fe_name, sec_class))
         return frontend_sec_classes
     

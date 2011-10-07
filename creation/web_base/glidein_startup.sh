@@ -48,6 +48,7 @@ function usage {
     echo "  -clientsigngroup <sign>     : signature of the client group signature file"
     echo "  -clientdescript <fname>     : client description file name"
     echo "  -clientdescriptgroup <fname>: client description file name for group"
+    echo "  -whole_node <true|false>	: will this glidein have one condor per node"
     echo "  -v <id>                     : operation mode (std, nodebug, fast, check supported)"
     echo "  -param_* <arg>              : user specified parameters"
     exit 1
@@ -83,6 +84,7 @@ do case "$1" in
     -clientsigngroup)       client_sign_group_id="$2";;
     -clientdescript)        client_descript_file="$2";;
     -clientdescriptgroup)   client_descript_group_file="$2";;
+    -whole_node)			whole_node="$2";;
     -v)          operation_mode="$2";;
     -param_*)    params="$params `echo $1 | awk '{print substr($0,8)}'` $2";;
     *)  (warn "Unknown option $1"; usage) 1>&2; exit 1
