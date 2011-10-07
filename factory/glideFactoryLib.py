@@ -1255,7 +1255,7 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins, fron
             else:
                 # avoid using privsep, if possible
                 try:
-                    submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./%s "%s" "%s" "%s" "%s" %i "%s" %s -- %s'%(x509_proxy_fname,factoryConfig.submit_fname,entry_name,client_name,x509_proxy_security_class,x509_proxy_identifier,nr_to_submit,glidein_rsl,client_web_str,params_str))
+                    submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;export GLIDEIN_FRONTEND_NAME=%s;./%s "%s" "%s" "%s" "%s" %i "%s" %s -- %s'%(x509_proxy_fname, frontend_name, factoryConfig.submit_fname,entry_name,client_name,x509_proxy_security_class,x509_proxy_identifier,nr_to_submit,glidein_rsl,client_web_str,params_str))
                 except condorExe.ExeError,e:
                     submit_out=[]
                     raise RuntimeError, "condor_submit failed: %s"%e
