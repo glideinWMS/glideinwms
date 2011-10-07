@@ -600,51 +600,7 @@ def clean_glidein_queue(remove_excess, glidein_totals, condorQ, req_min_idle, re
     return 0
 
 
-# Sanitizing function
-#   Can be used if we the glidein connect to a reachable Collector
-def sanitizeGlideins(condorq, status):
-    global factoryConfig
-
-    # Check if some glideins have been in idle state for too long
-    stale_list = extractStale(condorq, status)
-    if len(stale_list) > 0:
-        logSupport.log.warning("Found %i stale glideins" % len(stale_list))
-        removeGlideins(condorq.schedd_name, stale_list)
-
-    # Check if some glideins have been in running state for too long
-    runstale_list = extractRunStale(condorq)
-    if len(runstale_list) > 0:
-        logSupport.log.warning("Found %i stale (>%ih) running glideins" % (len(runstale_list), factoryConfig.stale_maxage[2] / 3600))
-        removeGlideins(condorq.schedd_name, runstale_list)
-
-    # Check if there are held glideins that are not recoverable
-    unrecoverable_held_list = extractUnrecoverableHeld(condorq, status)
-    if len(unrecoverable_held_list) > 0:
-        logSupport.log.warning("Found %i unrecoverable held glideins" % len(unrecoverable_held_list))
-        removeGlideins(condorq.schedd_name, unrecoverable_held_list, force=False)
-
-    # Check if there are held glideins
-    held_list = extractRecoverableHeld(condorq, status)
-    if len(held_list) > 0:
-        logSupport.log.warning("Found %i held glideins" % len(held_list))
-        releaseGlideins(condorq.schedd_name, held_list)
-
-    # Now look for VMs that have not been claimed for a long time
-    staleunclaimed_list = extractStaleUnclaimed(condorq, status)
-    if len(staleunclaimed_list) > 0:
-        logSupport.log.warning("Found %i stale unclaimed glideins" % len(staleunclaimed_list))
-        removeGlideins(condorq.schedd_name, staleunclaimed_list)
-
-    #
-    # A check of glideins in "Running" state but not in status
-    # should be implemented, too
-    # However, it needs some sort of history to account for
-    # temporary network outages
-    #
-
-    return
-
-def sanitizeGlideinsSimple(condorq):
+def sanitizeGlideins(condorq):
     global factoryConfig
 
     # Check if some glideins have been in idle state for too long
@@ -673,7 +629,7 @@ def sanitizeGlideinsSimple(condorq):
 
     return
 
-def logStats(condorq, condorstatus, client_int_name, client_security_name, proxy_security_class):
+def logStats(condorq, client_int_name, client_security_name, proxy_security_class):
     global factoryConfig
     #
     # First check if we have enough glideins in the queue
@@ -682,28 +638,16 @@ def logStats(condorq, condorstatus, client_int_name, client_security_name, proxy
     # Count glideins by status
     qc_status = getQStatus(condorq)
     sum_idle_count(qc_status)
-    if condorstatus != None:
-        s_running_str = " collector running %s" % len(condorstatus.fetchStored().keys())
-    else:
-        s_running_str = "" # not monitored
-
-    logSupport.log.info("Client %s (secid: %s_%s) schedd status %s%s" % (client_int_name, client_security_name,
-                                                                         proxy_security_class, qc_status, s_running_str))
+    
+    
+    logSupport.log.info("Client %s (secid: %s_%s) schedd status %s" % (client_int_name, client_security_name,
+                                                                         proxy_security_class, qc_status))
     if factoryConfig.qc_stats != None:
         client_log_name = secClass2Name(client_security_name, proxy_security_class)
         factoryConfig.client_stats.logSchedd(client_int_name, qc_status)
         factoryConfig.qc_stats.logSchedd(client_log_name, qc_status)
 
     return
-
-#def logWorkRequests(work):
-#    for work_key in work.keys():
-#        if work[work_key]['requests'].has_key('IdleGlideins'):
-#            log_files.logActivity(Support.log.infoesting %i glideins"%(work[work_key]['internals']["ClientName"],work[work_key]['requests']['IdleGlideins']))
-#            log_files.logActivilogSupport.log.infok[work_key]['params'])
-#            log_files.logActivilogSupport.log.info Names: %s"%work[work_key]['params_decrypted'].keys()) # cannot log decrypted ones... they are most likely sensitive
-#            factoryConfig.qc_stats.logRequest(work[work_key]['internals']["ClientName"],work[work_key]['requests'],work[work_key]['params'])
-#            factoryConfig.qc_stats.logClientMonitor(work[work_key]['internals']["ClientName"],work[work_key]['monitor'],work[work_key]['internals'])
 
 def logWorkRequest(client_int_name, client_security_name, proxy_security_class,
                    req_idle, req_max_run, work_el, fraction=1.0):
@@ -803,7 +747,6 @@ def hash_statusStale(el):
 #
 # diffList == base_list - subtract_list
 #
-
 def diffList(base_list, subtract_list):
     if len(subtract_list) == 0:
         return base_list # nothing to do
@@ -820,32 +763,6 @@ def diffList(base_list, subtract_list):
 # Will compare with the status info to make sure it does not show good ones
 #
 
-# return list of glidein clusters within the search list
-def extractRegistered(q, status, search_list):
-    global factoryConfig
-    sdata = status.fetchStored(lambda el:(el[factoryConfig.schedd_startd_attribute] == q.schedd_name) and (get_status_glideidx(el) in search_list))
-
-    out_list = []
-    for vm in sdata.keys():
-        el = sdata[vm]
-        i = get_status_glideidx(el)
-        if not (i in out_list): # prevent duplicates from multiple VMs
-            out_list.append(i)
-
-    return out_list
-
-
-def extractStale(q, status):
-    # first find out the stale idle jids
-    #  hash: (Idle==1, Stale==1)
-    qstale = q.fetchStored(lambda el:(hash_statusStale(el) == [1, 1]))
-    qstale_list = qstale.keys()
-
-    # find out if any "Idle" glidein is running instead (in condor_status)
-    sstale_list = extractRegistered(q, status, qstale_list)
-
-    return diffList(qstale_list, sstale_list)
-
 def extractStaleSimple(q):
     # first find out the stale idle jids
     #  hash: (Idle==1, Stale==1)
@@ -854,17 +771,6 @@ def extractStaleSimple(q):
 
     return qstale_list
 
-def extractUnrecoverableHeld(q, status):
-    # first find out the held jids that are not recoverable
-    #  Held==5 and glideins are not recoverable
-    #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
-    qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and isGlideinUnrecoverable(el)))
-    qheld_list = qheld.keys()
-
-    # find out if any "Held" glidein is running instead (in condor_status)
-    sheld_list = extractRegistered(q, status, qheld_list)
-    return diffList(qheld_list, sheld_list)
-
 def extractUnrecoverableHeldSimple(q):
     #  Held==5 and glideins are not recoverable
     #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
@@ -872,36 +778,12 @@ def extractUnrecoverableHeldSimple(q):
     qheld_list = qheld.keys()
     return qheld_list
 
-def extractRecoverableHeld(q, status):
-    # first find out the held jids
-    #  Held==5 and glideins are recoverable
-    #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
-    qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and not isGlideinUnrecoverable(el)))
-    qheld_list = qheld.keys()
-
-    # find out if any "Held" glidein is running instead (in condor_status)
-    sheld_list = extractRegistered(q, status, qheld_list)
-
-    return diffList(qheld_list, sheld_list)
-
 def extractRecoverableHeldSimple(q):
     #  Held==5 and glideins are recoverable
     #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
     qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and not isGlideinUnrecoverable(el)))
     qheld_list = qheld.keys()
     return qheld_list
-
-def extractHeld(q, status):
-
-    # first find out the held jids
-    #  Held==5
-    qheld = q.fetchStored(lambda el:el["JobStatus"] == 5)
-    qheld_list = qheld.keys()
-
-    # find out if any "Held" glidein is running instead (in condor_status)
-    sheld_list = extractRegistered(q, status, qheld_list)
-
-    return diffList(qheld_list, sheld_list)
 
 def extractHeldSimple(q):
     #  Held==5
@@ -945,7 +827,6 @@ def extractRunStale(q):
     qstale = q.fetchStored(lambda el:(hash_statusStale(el) == [2, 1]))
     qstale_list = qstale.keys()
 
-    # no need to check with condor_status
     # these glideins were running for too long, period!
     return qstale_list
 
@@ -961,20 +842,6 @@ def group_unclaimed(el_list):
                 out["min_unclaimed_time"] = unclaimed_time
     return out
 
-def extractStaleUnclaimed(q, status):
-    global factoryConfig
-    # first find out the active running jids
-    #  hash: (Running==2, Stale==0)
-    qsearch = q.fetchStored(lambda el:(hash_statusStale(el) == [2, 0]))
-    search_list = qsearch.keys()
-
-    # find out if any "Idle" glidein is running instead (in condor_status)
-    global factoryConfig
-    sgroup = condorMonitor.Group(status, lambda el:get_status_glideidx(el), group_unclaimed)
-    sgroup.load(lambda el:(el[factoryConfig.schedd_startd_attribute] == q.schedd_name) and (get_status_glideidx(el) in search_list))
-    sdata = sgroup.fetchStored(lambda el:(el["nr_unclaimed"] > 0) and (el["min_unclaimed_time"] > factoryConfig.stale_maxage[-1]))
-
-    return sdata.keys()
 
 ############################################################
 #
