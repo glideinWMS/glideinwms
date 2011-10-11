@@ -150,15 +150,6 @@ def perform_work(entry_name, condorQ,
 
     glideFactoryLib.factoryConfig.client_internals[client_int_name] = {"CompleteName":client_name, "ReqName":client_int_req}
 
-    #MERGENOTE: should be able to delete the commented out code
-    #if params.has_key("GLIDEIN_Collector"):
-    #    condor_pool = params["GLIDEIN_Collector"]
-    #else:
-    #    condor_pool = None
-
-    # not used in original code but need to pass it to the functions anyway
-    condorStatus = None
-
     x509_proxy_keys = x509_proxy_fnames.keys() 
     random.shuffle(x509_proxy_keys) # randomize so I don't favour any proxy over another, only matters if prob occurs mid-iteration
 
@@ -168,7 +159,7 @@ def perform_work(entry_name, condorQ,
                                                                               logSupport.log_dir, client_int_name, credential_username)
     # should not need privsep for reading logs
     log_stats[credential_username+":"+client_int_name].load()
-    glideFactoryLib.logStats(condorQ, condorStatus, client_int_name, client_security_name, credential_security_class)
+    glideFactoryLib.logStats(condorQ, client_int_name, client_security_name, credential_security_class)
     client_log_name = glideFactoryLib.secClass2Name(client_security_name, credential_security_class)
     glideFactoryLib.factoryConfig.log_stats.logSummary(client_log_name, log_stats) #@UndefinedVariable
 
@@ -197,10 +188,7 @@ def perform_work(entry_name, condorQ,
     if nr_submitted > 0:
         return 1 # we submitted something, return immediately
 
-    if condorStatus != None: # temporary glitch, no sanitization this round
-        glideFactoryLib.sanitizeGlideins(condorQ, condorStatus)
-    else:
-        glideFactoryLib.sanitizeGlideinsSimple(condorQ)
+    glideFactoryLib.sanitizeGlideins(condorQ)
 
     return 0
 
@@ -843,8 +831,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 
                 # do one iteration for the credential set (maps to a single security class)
                 glideFactoryLib.factoryConfig.client_internals[client_int_name] = {"CompleteName":client_int_name, "ReqName":client_int_req}
-                condorStatus = None       
-            
+                
                 # find out the users it is using
                 log_stats = {}
                 log_stats[credential_username + ":" + client_int_name] = glideFactoryLogParser.dirSummaryTimingsOut(glideFactoryLib.factoryConfig.get_client_log_dir(entry_name, credential_username),
@@ -859,7 +846,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 all_security_names.add((client_security_name, credential_security_class))
                 entry_condorQ = glideFactoryLib.getQProxSecClass(condorQ, client_int_name, submit_credentials.security_class)
                 
-                glideFactoryLib.logStats(entry_condorQ, condorStatus, client_int_name, client_security_name, submit_credentials.security_class) 
+                glideFactoryLib.logStats(entry_condorQ, client_int_name, client_security_name, submit_credentials.security_class) 
                 client_log_name = glideFactoryLib.secClass2Name(client_security_name, submit_credentials.security_class)
                 glideFactoryLib.factoryConfig.log_stats.logSummary(client_log_name, log_stats) #@UndefinedVariable
 
@@ -874,11 +861,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 if done_something > 0:
                     return 1 # we submitted something, return immediately
                 
-                if condorStatus != None: # temporary glitch, no sanitization this round
-                    # KEL - condor status is always set to None.  are we supposed to query here??
-                    glideFactoryLib.sanitizeGlideins(condorQ, condorStatus)
-                else:
-                    glideFactoryLib.sanitizeGlideinsSimple(condorQ)
+                glideFactoryLib.sanitizeGlideins(condorQ)
             
                 return 0
                 # ======= end of v3+ protocol =============
@@ -1282,8 +1265,8 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
 
     logSupport.log.debug("Get glideinWMS version")
     try:
-        dir = os.path.dirname(os.path.dirname(sys.argv[0]))
-        glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(dir, os.path.join(dir, 'etc/checksum.factory')).version()
+        gwms_dirname = os.path.dirname(os.path.dirname(sys.argv[0]))
+        glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(gwms_dirname, os.path.join(gwms_dirname, 'etc/checksum.factory')).version()
     except:
         tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
         logSupport.log.warning("Exception occured while trying to retrieve the glideinwms version. See debug log for more details.")

@@ -167,6 +167,12 @@ elif [ "$glexec_bin" == "auto" ]; then
       fi
     fi
     if [ "$glexec_bin" == "auto" ]; then
+      if [ -f "/usr/sbin/glexec" ]; then
+         echo "GLEXEC_BIN was auto, found OSG RPM, expand to '/usr/sbin/glexec'" 1>&2
+         glexec_bin=/usr/sbin/glexec
+      fi
+    fi
+    if [ "$glexec_bin" == "auto" ]; then
        echo "GLEXEC_BIN was auto, but could not find it!" 1>&2
        exit 1
     fi

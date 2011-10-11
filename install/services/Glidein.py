@@ -143,7 +143,7 @@ class Glidein(Configuration):
   #---------------------
   def validate_software_requirements(self):
     self.javascriptrrd_dir = self.set_javascriptrrd_dir("rrdMultiFile.js")
-    self.jquery_dir        = self.set_javascriptrrd_dir("jquery.flot.js")
+    self.jquery_dir        = self.set_javascriptrrd_dir("jquery.flot.tooltip.js")
     self.flot_dir          = self.set_javascriptrrd_dir("flot")
     self.verify_python_module("rrdtool")
     self.verify_python_module("M2Crypto")

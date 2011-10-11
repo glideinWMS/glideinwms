@@ -180,7 +180,8 @@ def process_globals(glidein_descript, frontend_descript):
             r = re.compile("^GlideinEncParamSecurityClass")
             mkeys = filter(r.match, classad.keys())
             for key in mkeys:
-                cred_id = key.lstrip("GlideinEncParamSecurityClass")
+                prefix_len = len("GlideinEncParamSecurityClass")
+                cred_id = key[prefix_len:]
                 
                 cred_data = sym_key_obj.decrypt_hex(classad["GlideinEncParam%s" % cred_id])
                 security_class = sym_key_obj.decrypt_hex(classad[key])
