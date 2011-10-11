@@ -168,7 +168,8 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         # group, so frontend daemons will need to point to the real one at runtime
         cvWCreate.create_client_condor_config(os.path.join(self.work_dir,cvWConsts.FRONTEND_CONDOR_CONFIG_FILE),
                                               os.path.join(self.work_dir,cvWConsts.FRONTEND_MAP_FILE),
-                                              self.client_security['collector_nodes'])
+                                              self.client_security['collector_nodes'],
+                                              self.params.security['classad_proxy'])
         return
 
 ################################################

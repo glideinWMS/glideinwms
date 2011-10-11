@@ -58,7 +58,7 @@ def create_client_mapfile(mapfile_fname,my_DN,factory_DNs,schedd_DNs,collector_D
 
 #########################################
 # Create frontend-specific condor_config
-def create_client_condor_config(config_fname,mapfile_fname,collector_nodes):
+def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, classad_proxy):
     attrs = condorExe.exe_cmd('condor_config_val','-dump')
     def_attrs = filter_unwanted_config_attrs(attrs)
 
@@ -133,6 +133,13 @@ def create_client_condor_config(config_fname,mapfile_fname,collector_nodes):
         fd.write("## map COLLECTOR DN to anonymous. Just disable it.\n")
         fd.write("######################################################\n")
         fd.write("USE_VOMS_ATTRIBUTES = False\n")
+        
+        fd.write("\n######################################################\n")
+        fd.write("## Add GSI DAEMON PROXY based on the frontend config and \n")
+        fd.write("## not what is in the condor configs from install \n")
+        fd.write("########################################################\n")
+        fd.write("GSI_DAEMON_PROXY = %s\n" % classad_proxy)
+
     finally:
         fd.close()
         
@@ -154,6 +161,8 @@ def filter_unwanted_config_attrs(attrs):
 
     unwanted_attrs.append('GRIDMAP')
     unwanted_attrs.append('GSI_DAEMON_NAME')
+    unwanted_attrs.append('GSI_DAEMON_PROXY')
+
 
     for context in condorSecurity.CONDOR_CONTEXT_LIST:
         unwanted_attrs.append('TOOL.DENY_%s' % context)
