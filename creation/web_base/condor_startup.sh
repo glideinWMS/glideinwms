@@ -235,6 +235,10 @@ done < condor_vars.lst.tmp
 
 #let "max_job_time=$job_max_hours * 3600"
 
+now=`date +%s`
+#add some safety margin
+let "x509_duration=$X509_EXPIRE - $now - 300"
+
 # calculate retire time if wall time is defined (undefined=-1)
 max_walltime=`grep -i "^GLIDEIN_Max_Walltime " $config_file | awk '{print $2}'`
 if [ -z "$max_walltime" ]; then
@@ -253,6 +257,15 @@ else
   GLIDEIN_Retire_Time=$retire_time
   echo "calculated retire time, $retire_time" 1>&2
 fi
+
+# make sure the glidein goes away before the proxy expires
+let "calc_max_walltime=$retire_time + $job_maxtime"
+if [ "$calc_max_walltime" -gt "$x509_duration" ]; then
+  calc_max_walltime=$x509_duration
+  let "retire_time=$calc_max_walltime - $job_maxtime"
+  echo "Proxy not long lived enough ($x509_duration s left), shortened retire time to $retire_time" 1>&2
+fi
+
 org_GLIDEIN_Retire_Time=$retire_time
 # randomize the retire time, to smooth starts and terminations
 retire_spread=`grep -i "^GLIDEIN_Retire_Time_Spread " $config_file | awk '{print $2}'`
@@ -268,24 +281,19 @@ let "retire_time=$retire_time - $retire_spread * $random100 / 100"
 
 # but protect from going too low
 if [ "$retire_time" -lt "600" ]; then
-  retire_time=600
+  echo "Retire time after spread too low ($retire_time), remove spread"
+  retire_time=$org_GLIDEIN_Retire_Time
+fi
+if [ "$retire_time" -lt "600" ]; then  
+  echo "Retire time still too low ($retire_time), aborting"
+  exit 1
 fi
 echo "Retire time set to $retire_time" 1>&2
 
-now=`date +%s`
-let "x509_duration=$X509_EXPIRE - $now - 1"
-
-#if [ $max_proxy_time -lt $max_job_time ]; then
-#    max_job_time=$max_proxy_time
-#    glidein_expire=$x509_expire
-#else
-#    let "glidein_expire=$now + $max_job_time"
-#fi
-
 let "glidein_toretire=$now + $retire_time"
 
-# put some safety margin
-let "session_duration=$x509_duration + 300"
+# minimize re-authentications, by asking for a session lenght to be the same as proxy lifetime, if possible
+let "session_duration=$x509_duration"
 
 # if in test mode, don't ever start any jobs
 START_JOBS="TRUE"
