@@ -1128,13 +1128,15 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
         # Specify if it is a whole node glidein (one condor per node)
         whole_node = jobDescript.data['SubmitWholeNode']
         # Build the glidein pilot arguments
-        glidein_arguments = "-v %s -name %s -entry %s -clientname %s -schedd %s " \
+        glidein_arguments = str("-v %s -name %s -entry %s -clientname %s -schedd %s " \
                             "-factory %s -web %s -sign %s -signentry %s -signtype %s " \
                             "-descript %s -descriptentry %s -dir %s -param_GLIDEIN_Client %s -whole_node %s %s" % \
                             (verbosity, glidein_name, entry_name, client_name,
                              schedd, factory_name, web_url, main_sign, entry_sign,
                              sign_type, main_descript, entry_descript, startup_dir,
-                             client_name, whole_node, params_str)
+                             client_name, whole_node, params_str))
+
+        logSupport.log.debug("glidein_arguments: %s" % glidein_arguments)
 
         # get my (entry) type
         grid_type = jobDescript.data["GridType"]
@@ -1163,9 +1165,10 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
                 proxy_contents = "".join(proxy_contents)
 
                 ini_template = "[glidein_startup]\n" \
-                                "args = %s\n" \
                                 "webbase = %s\n" \
-                                "proxy_file_name = pilot_proxy\n"
+                                "proxy_file_name = pilot_proxy\n" \
+                                "disable_shutdown=False" \
+                                "args = %s\n"
 
                 if jobDescript.has_key("shutdownVM"):
                     disable_shutdown = jobDescript["shutdownVM"]
