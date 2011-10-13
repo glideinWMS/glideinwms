@@ -10,7 +10,7 @@
 #   created out of the parameter object
 #
 
-import os,os.path,shutil,string
+import os,os.path,string
 import cWParams
 import cvWDictFile,cWDictFile
 import cvWConsts,cWConsts
@@ -55,8 +55,8 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
             self.dicts['preentry_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
 
         # put user files in stage
-        for file in params.files:
-            add_file_unparsed(file,self.dicts)
+        for user_file in params.files:
+            add_file_unparsed(user_file,self.dicts)
 
         # put user attributes into config files
         for attr_name in params.attrs.keys():
@@ -130,8 +130,8 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
                      if not found, raises an Exception
         """
         for root, dirs, files in os.walk(search_path,topdown=True):
-            for file in files:
-                if file == name:
+            for filename in files:
+                if filename == name:
                     return root
         raise RuntimeError,"Unable to find %(file)s in %(dir)s path" % \
                            { "file" : name,  "dir" : search_path, }
@@ -168,7 +168,8 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         # group, so frontend daemons will need to point to the real one at runtime
         cvWCreate.create_client_condor_config(os.path.join(self.work_dir,cvWConsts.FRONTEND_CONDOR_CONFIG_FILE),
                                               os.path.join(self.work_dir,cvWConsts.FRONTEND_MAP_FILE),
-                                              self.client_security['collector_nodes'])
+                                              self.client_security['collector_nodes'],
+                                              self.params.security['classad_proxy'])
         return
 
 ################################################
@@ -207,8 +208,8 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
             self.dicts['preentry_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
 
         # put user files in stage
-        for file in sub_params.files:
-            add_file_unparsed(file,self.dicts)
+        for user_file in sub_params.files:
+            add_file_unparsed(user_file,self.dicts)
 
         # put user attributes into config files
         for attr_name in sub_params.attrs.keys():
@@ -312,62 +313,62 @@ class frontendDicts(cvWDictFile.frontendDicts):
 #############################################
 # Add a user file residing in the stage area
 # file as described by Params.file_defaults
-def add_file_unparsed(file,dicts):
-    absfname=file.absfname
+def add_file_unparsed(user_file,dicts):
+    absfname=user_file.absfname
     if absfname==None:
-        raise RuntimeError, "Found a file element without an absname: %s"%file
+        raise RuntimeError, "Found a file element without an absname: %s"%user_file
     
-    relfname=file.relfname
+    relfname=user_file.relfname
     if relfname==None:
         relfname=os.path.basename(absfname) # defualt is the final part of absfname
     if len(relfname)<1:
-        raise RuntimeError, "Found a file element with an empty relfname: %s"%file
+        raise RuntimeError, "Found a file element with an empty relfname: %s"%user_file
 
-    is_const=eval(file.const,{},{})
-    is_executable=eval(file.executable,{},{})
-    is_wrapper=eval(file.wrapper,{},{})
-    do_untar=eval(file.untar,{},{})
+    is_const=eval(user_file.const,{},{})
+    is_executable=eval(user_file.executable,{},{})
+    is_wrapper=eval(user_file.wrapper,{},{})
+    do_untar=eval(user_file.untar,{},{})
 
-    if eval(file.after_entry,{},{}):
+    if eval(user_file.after_entry,{},{}):
         file_list_idx='file_list'
     else:
         file_list_idx='preentry_file_list'
 
-    if file.has_key('after_group'):
-        if eval(file.after_group,{},{}):
+    if user_file.has_key('after_group'):
+        if eval(user_file.after_group,{},{}):
             file_list_idx='aftergroup_%s'%file_list_idx
 
     if is_executable: # a script
         if not is_const:
-            raise RuntimeError, "A file cannot be executable if it is not constant: %s"%file
+            raise RuntimeError, "A file cannot be executable if it is not constant: %s"%user_file
     
         if do_untar:
-            raise RuntimeError, "A tar file cannot be executable: %s"%file
+            raise RuntimeError, "A tar file cannot be executable: %s"%user_file
 
         if is_wrapper:
-            raise RuntimeError, "A wrapper file cannot be executable: %s"%file
+            raise RuntimeError, "A wrapper file cannot be executable: %s"%user_file
 
         dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"exec","TRUE",'FALSE'),absfname)
     elif is_wrapper: # a sourceable script for the wrapper
         if not is_const:
-            raise RuntimeError, "A file cannot be a wrapper if it is not constant: %s"%file
+            raise RuntimeError, "A file cannot be a wrapper if it is not constant: %s"%user_file
     
         if do_untar:
-            raise RuntimeError, "A tar file cannot be a wrapper: %s"%file
+            raise RuntimeError, "A tar file cannot be a wrapper: %s"%user_file
 
         dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"wrapper","TRUE",'FALSE'),absfname)
     elif do_untar: # a tarball
         if not is_const:
-            raise RuntimeError, "A file cannot be untarred if it is not constant: %s"%file
+            raise RuntimeError, "A file cannot be untarred if it is not constant: %s"%user_file
 
-        wnsubdir=file.untar_options.dir
+        wnsubdir=user_file.untar_options.dir
         if wnsubdir==None:
             wnsubdir=string.split(relfname,'.',1)[0] # deafult is relfname up to the first .
 
-        config_out=file.untar_options.absdir_outattr
+        config_out=user_file.untar_options.absdir_outattr
         if config_out==None:
             config_out="FALSE"
-        cond_attr=file.untar_options.cond_attr
+        cond_attr=user_file.untar_options.cond_attr
 
 
         dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"untar",cond_attr,config_out),absfname)

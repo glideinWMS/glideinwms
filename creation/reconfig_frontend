@@ -50,23 +50,23 @@ def main(params, old_params, update_scripts):
     
     if update_scripts == 'yes':
         # recreate the init.d startup file
-        startup_fname = os.path.join(frontend_dicts_obj.main_dicts.work_dir,cvWConsts.INITD_STARTUP_FILE)
         frontend_dir = frontend_dicts_obj.main_dicts.work_dir
+        startup_fname = os.path.join(frontend_dicts_obj.main_dicts.work_dir,cvWConsts.INITD_STARTUP_FILE)
         
         # Remove startup file if already exists
         if os.path.exists(os.path.join(frontend_dir, startup_fname)):
             os.remove(os.path.join(frontend_dir, startup_fname))
-	        
+       
         cvWCreate.create_initd_startup(startup_fname,
                                        frontend_dir,
                                        os.path.realpath(os.path.join(STARTUP_DIR,'..')))
-	
+
     cfgfile=os.path.join(frontend_dicts_obj.main_dicts.work_dir,cvWConsts.XML_CONFIG_FILE)
     
     # save config into file (with backup, since the old one already exists)
     # This is the current working version of the frontend in the frontend instance dir
     params.save_into_file_wbackup(cfgfile,set_ro=True)
-    	
+
     # make backup copy that does not get overwritten on further reconfig
     # This file is has a hash on the extension and is located in the frontend instance dir
     cfgfile=cWConsts.insert_timestr(cfgfile)
