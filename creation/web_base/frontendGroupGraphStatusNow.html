@@ -2,9 +2,11 @@
 
 
 <html>
+    <script type="text/javascript" src="jslibs/frontend_support.js"></script>
 <head>
 <script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAAu0TL0A-Hx1fvzGI6gOofLxRdWR7O4-XcWvAQALHxHt_c1fTKOhSeYIt5K3vK4_YcuhTz3-irM0p_eQ"></script>
 <style type="text/css">
+    <title id="brtitle">Current GlideinWMS Frontend Status</title>
 .thumbnail {
  width: 425px;
  height: 175px;
@@ -526,35 +528,6 @@ function HideDialog() {
 
 }
 
-/* LOAD DESCRIPT FOR FRONTEND NAME */
-function set_title(browser_title)
-{
-	var xmlhttp_descript;
-	var frontend_name;
-	
-	if(window.XMLHttpRequest)
-	{
-		xmlhttp_descript=new XMLHttpRequest();
-	}
-	else
-	{
-		xmlhttp_descript=new ActiveXObject("Microsoft.XMLHTTP");
-	}
-	  
-	xmlhttp_descript.onreadystatechange=function()
-	{	
-		if (xmlhttp_descript.readyState == 4) //4 == READY
-    	{
-			frontend_info = xmlhttp_descript.responseXML.documentElement.getElementsByTagName("frontend");
-			frontend_name = frontend_info[0].attributes[0].value;
-			//document.getElementById("pgtitle").innerHTML= page_title + " - " + frontend_name; 
-			document.getElementById("brtitle").innerHTML= browser_title + " - " + frontend_name;	
-		} 	 
-	}
-	xmlhttp_descript.open("GET", "descript.xml",true);
-	xmlhttp_descript.send(null);
-}
-
 
 </script>
 
@@ -562,11 +535,11 @@ function set_title(browser_title)
     <script type="text/javascript">
 	  var browser_title = "Current GlideinWMS Frontend Status";
 	  var page_title = "Current GlideinWMS Frontend Status";
+	  set_title_and_footer(browser_title, page_title);
 	</script>
 </head>
 <body>
-    <script type = "text/javascript"> set_title(browser_title)  </script>
-<div id="header"><h2>Current GlideinWMS Frontend Status</h2></div>
+<h2 id="pgtitle">Current GlideinWMS Frontend Status</h2>
 <div class="page_links">
 [
 <a href="frontendRRDBrowse.html">Browse</a> |
@@ -601,6 +574,8 @@ Entry Search: <input type='text' id='entrysearch' onkeypress='FilterTable()'/>
 </tr>
 </table>
  </div>
+
+<div id="config_footer"></div>
 </body>
 
 </html>

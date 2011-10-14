@@ -272,7 +272,9 @@ def getCondorStatusData(entry_name, client_name, pool_name=None,
 # returns the proxy fname
 def update_x509_proxy_file(entry_name, username, client_id, proxy_data):
 
-    proxy_dir = factoryConfig.get_client_proxies_dir(username)
+    #proxy_dir = factoryConfig.get_client_proxies_dir(username)
+    # Have to hack this since the above code was modified to support v3plus going forward
+    proxy_dir = os.path.join(factoryConfig.client_proxies_base_dir, "user_%s/glidein_%s/entry_%s" % (username, factoryConfig.glidein_name, entry_name))
     fname_short = 'x509_%s.proxy' % escapeParam(client_id)
     fname = os.path.join(proxy_dir, fname_short)
 

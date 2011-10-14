@@ -139,6 +139,11 @@ class VOFrontendParams(cWParams.CommonParams):
         log_retention_defaults["max_mbytes"]=["100.0","Mbytes","Max number of Mbytes the logs can use",None]
         self.defaults["log_retention"]=log_retention_defaults
 
+        monitor_footer_defaults=cWParams.commentedOrderedDict()
+        monitor_footer_defaults["display_txt"] = ["", "string", "what will be displayed at the bottom of the monitoring page", None]
+        monitor_footer_defaults["href_link"] = ["", "string", "where to link to", None]
+        self.defaults["monitor_footer"] = monitor_footer_defaults
+
         self.defaults['loop_delay']=('60','seconds', 'Number of seconds between iterations',None)
         self.defaults['advertise_delay']=('5','NR', 'Advertize evert NR loops',None)
         self.defaults['advertise_with_tcp']=('False','Bool', 'Should condor_advertise use TCP connections?',None)

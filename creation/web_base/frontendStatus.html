@@ -40,19 +40,19 @@ Description:
     <script type="text/javascript">
 	  var browser_title = "VO frontend status";
 	  var page_title = "VO frontend status";
+	  set_title_and_footer(browser_title, page_title);
 	</script>
   </head>
 
   <body>
-    <script type = "text/javascript"> set_title(browser_title, page_title)  </script>
     <table width="100%">
     <tr>
-     <td><h1 id="pgtitle">VO frontend status</h1>
+     <td><h1 id="pgtitle">VO frontend status</h1></td>
      <td align="right">[ 
 	    <a href="frontendRRDBrowse.html">Browse</a> |
 	    <a href="frontendRRDGroupMatrix.html">Group Matrix</a> | 
         <a href="frontendGroupGraphStatusNow.html">Group Graphs</a>
-	    ]
+	    ]</td>
     </tr>
     </table>
  
@@ -77,9 +77,10 @@ Description:
      <tr>
        <th>Info group</th>
        <td><form id="gtypes">
-	<input type="radio" name="gtype" value="running" checked>Running
-	<input type="radio" name="gtype" value="idle"           >Idle
-       </form></td>
+	     <input type="radio" name="gtype" value="running" checked>Running
+	     <input type="radio" name="gtype" value="idle"           >Idle
+           </form>
+       </td>
      </tr>
      <tr>
       <td colspan=2><button onclick="nonlink_update()">Update</button>
@@ -94,7 +95,7 @@ Description:
 
     <table id="infotable" border=1>
         <tr><td colspan="21"><b>Javascript needed for this page to work</b></td></tr>
-	<tr><td><b>RRD file</b></td><td id="fname" colspan="5">None</td></tr>
+	    <tr><td><b>RRD file</b></td><td id="fname" colspan="5">None</td></tr>
     </table>
 
     <div id="mygraph"></div>
@@ -102,8 +103,13 @@ Description:
    <hr>
     <p>Powered by
         <a href="http://oss.oetiker.ch/rrdtool/" target="_blank">RRDTool</a>,
-        <a href="https://sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and                                                                 <a href="http://code.google.com/p/flot/" target="_blank">Flot</a>.
- 
+        <a href="https://sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and 
+        <a href="http://code.google.com/p/flot/" target="_blank">Flot</a>.
+    </p>
+    
+    <div id="config_footer"></div>
+
+    
     <script type="text/javascript">
 
       // Remove the Javascript warning
@@ -529,5 +535,7 @@ Description:
 
 
     </script>
+    
   </body>
+  
 </html>

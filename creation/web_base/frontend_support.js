@@ -113,7 +113,7 @@ function sanitize(name) {
 
 
 /* LOAD DESCRIPT FOR FRONTEND NAME */
-function set_title(browser_title, page_title)
+function set_title_and_footer(browser_title, page_title)
 {
 	var xmlhttp_descript;
 	var frontend_name;
@@ -134,10 +134,20 @@ function set_title(browser_title, page_title)
 			frontend_info = xmlhttp_descript.responseXML.documentElement.getElementsByTagName("frontend");
 			frontend_name = frontend_info[0].attributes[0].value;
 			document.getElementById("pgtitle").innerHTML= page_title + " - " + frontend_name; 
-			document.getElementById("brtitle").innerHTML= browser_title + " - " + frontend_name;	
+			document.getElementById("brtitle").innerHTML= browser_title + " - " + frontend_name;
+			
+			footer_info = xmlhttp_descript.responseXML.documentElement.getElementsByTagName("config_footer");
+			footer_text = footer_info[0].attributes[0].value;
+			footer_link = footer_info[0].attributes[1].value;
+			//document.getElementById("config_footer").innerHTML = "<a href='" + footer_link + "'>" + footer_text + "</a>";
+			
+        	var a_tag = document.createElement('a');
+        	a_tag.appendChild(document.createTextNode(footer_text));
+        	a_tag.setAttribute("href", footer_link);
+        	document.getElementById("config_footer").appendChild(a_tag);    	
 		} 	 
 	}
-	xmlhttp_descript.open("GET", "descript.xml",true);
+	xmlhttp_descript.open("GET", "descript.xml", true);
 	xmlhttp_descript.send(null);
 }
 

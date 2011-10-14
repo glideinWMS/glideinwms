@@ -633,13 +633,17 @@ def write_frontend_descript_xml(frontendDescript, monitor_dir):
     
     frontend_data = copy.deepcopy(frontendDescript.data)
     
-    xml_str = xmlFormat.DEFAULT_TAB + '<frontend FrontendName="%s"' % frontend_data['FrontendName'] + '/>\n'
+    frontend_str = '<frontend FrontendName="%s"' % frontend_data['FrontendName'] + '/>'
+
+    dis_link_txt = 'display_txt="%s"  href_link="%s"' % (frontend_data['MonitorDisplayText'], frontend_data['MonitorLink'])
+    footer_str = '<config_footer ' + dis_link_txt + '/>'
     
     output = '<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' + \
                    '<glideinFrontendDescript>\n' \
                    + xmlFormat.time2xml(time.time(), "updated", indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" \
-                   + xml_str + \
-                   '</glideinFrontendDescript>'
+                   + xmlFormat.DEFAULT_TAB + frontend_str + "\n" \
+                   + xmlFormat.DEFAULT_TAB + footer_str + "\n" \
+                   + '</glideinFrontendDescript>'
 
     fname = os.path.join(monitor_dir, 'descript.xml')
     
