@@ -136,14 +136,14 @@ function set_title_and_footer(browser_title, page_title)
 			document.getElementById("pgtitle").innerHTML= page_title + " - " + frontend_name; 
 			document.getElementById("brtitle").innerHTML= browser_title + " - " + frontend_name;
 			
-			footer_info = xmlhttp_descript.responseXML.documentElement.getElementsByTagName("config_footer");
+			footer_info = xmlhttp_descript.responseXML.documentElement.getElementsByTagName("monitor_footer");
 			footer_text = footer_info[0].attributes[0].value;
 			footer_link = footer_info[0].attributes[1].value;
 			
         	var a_tag = document.createElement('a');
         	a_tag.appendChild(document.createTextNode(footer_text));
         	a_tag.setAttribute("href", footer_link);
-        	document.getElementById("config_footer").appendChild(a_tag);    	
+        	document.getElementById("monitor_footer").appendChild(a_tag);    	
 		} 	 
 	}
 	xmlhttp_descript.open("GET", "descript.xml", true);

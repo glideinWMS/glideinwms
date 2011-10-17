@@ -636,7 +636,7 @@ def write_frontend_descript_xml(frontendDescript, monitor_dir):
     frontend_str = '<frontend FrontendName="%s"' % frontend_data['FrontendName'] + '/>'
 
     dis_link_txt = 'display_txt="%s"  href_link="%s"' % (frontend_data['MonitorDisplayText'], frontend_data['MonitorLink'])
-    footer_str = '<config_footer ' + dis_link_txt + '/>'
+    footer_str = '<monitor_footer ' + dis_link_txt + '/>'
     
     output = '<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' + \
                    '<glideinFrontendDescript>\n' \
