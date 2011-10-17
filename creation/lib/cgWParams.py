@@ -145,6 +145,11 @@ class GlideinParams(cWParams.CommonParams):
         log_retention_defaults["condor_logs"]["max_days"][0]="14.0"
         self.defaults["log_retention"]=log_retention_defaults
 
+        monitor_footer_defaults=cWParams.commentedOrderedDict()
+        monitor_footer_defaults["display_txt"] = ["", "string", "what will be displayed at the bottom of the monitoring page", None]
+        monitor_footer_defaults["href_link"] = ["", "string", "where to link to", None]
+        self.defaults["monitor_footer"] = monitor_footer_defaults
+        
         self.defaults['loop_delay']=('60','seconds', 'Number of seconds between iterations',None)
         self.defaults['advertise_delay']=('5','NR', 'Advertize evert NR loops',None)
         self.defaults['restart_attempts']=('3','NR', 'Max allowed NR restarts every restart_interval before shutting down',None)
@@ -166,7 +171,6 @@ class GlideinParams(cWParams.CommonParams):
         self.frontend_defaults=cWParams.commentedOrderedDict()
         self.frontend_defaults["identity"]=(None,'identity','Authenticated Identity',None)
         self.frontend_defaults["security_classes"]=(xmlParse.OrderedDict(),"Dictionary of security class maps","Each mapping contains",self.frontend_sec_class_defaults)
-
         
         security_default=cWParams.commentedOrderedDict()
         security_default["pub_key"]=("RSA","None|RSA","Type of public key system used for secure message passing",None)
