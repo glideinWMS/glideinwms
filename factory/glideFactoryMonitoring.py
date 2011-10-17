@@ -1256,7 +1256,7 @@ class Descript2XML:
         self.frontend_blacklist = ('usermap',)
         self.glidein_whitelist = ('AdvertiseDelay',
                                   'FactoryName', 'GlideinName', 'LoopDelay',
-                                  'PubKeyType', 'WebURL')
+                                  'PubKeyType', 'WebURL', 'MonitorDisplayText', 'MonitorLink')
 
     def frontendDescript(self, fe_dict):
         for key in self.frontend_blacklist:

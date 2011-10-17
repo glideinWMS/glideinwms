@@ -131,7 +131,7 @@ function getFactoryEntryGroups(factoryQStats) {
 
 
 /* LOAD DESCRIPT FOR FACTORY AND GLIDEIN NAME */
-function set_title(browser_title, page_title)
+function set_title_and_footer(browser_title, page_title)
 {
 	var xmlhttp_descript;
 	var factory_name;
@@ -154,7 +154,15 @@ function set_title(browser_title, page_title)
 			factory_name = factory_info[0].attributes[1].value;
 			glidein_name = factory_info[0].attributes[2].value;
 			document.getElementById("pgtitle").innerHTML= page_title + " - " + glidein_name + "@" + factory_name; 
-			document.getElementById("brtitle").innerHTML= browser_title + " - " + glidein_name + "@" + factory_name;	
+			document.getElementById("brtitle").innerHTML= browser_title + " - " + glidein_name + "@" + factory_name;
+				
+			footer_text = factory_info[0].attributes[4].value;
+			footer_link = factory_info[0].attributes[5].value;
+			
+        	var a_tag = document.createElement('a');
+        	a_tag.appendChild(document.createTextNode(footer_text));
+        	a_tag.setAttribute("href", footer_link);
+        	document.getElementById("monitor_footer").appendChild(a_tag);    
 		} 	 
 	}
 	xmlhttp_descript.open("GET", "descript.xml",true);

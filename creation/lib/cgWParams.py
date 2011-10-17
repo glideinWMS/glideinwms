@@ -135,6 +135,11 @@ class GlideinParams(cWParams.CommonParams):
         one_log_retention_defaults["max_days"] = ["7.0", "days", "Max number of days the logs should be preserved", None]
         one_log_retention_defaults["max_mbytes"] = ["100.0", "Mbytes", "Max number of Mbytes the logs can use", None]
 
+        monitor_footer_defaults=cWParams.commentedOrderedDict()
+        monitor_footer_defaults["display_txt"] = ["", "string", "what will be displayed at the bottom of the monitoring page", None]
+        monitor_footer_defaults["href_link"] = ["", "string", "where to link to", None]
+        self.defaults["monitor_footer"] = monitor_footer_defaults
+        
         log_retention_defaults = cWParams.commentedOrderedDict()
         log_retention_defaults["logs"] = copy.deepcopy(one_log_retention_defaults)
         log_retention_defaults["job_logs"] = copy.deepcopy(one_log_retention_defaults)

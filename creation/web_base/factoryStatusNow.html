@@ -9,6 +9,7 @@
 
 var browser_title = "Glidein Factory Status";
 var page_title = "Glidein Factory Status";
+set_title_and_footer(browser_title, page_title);
 
 var trColumnId; 
 var prTr;        
@@ -4773,7 +4774,6 @@ td
 
 <!-- BEGIN SCRIPTING BY LOADING RRD XML -->
 <script type = "text/javascript"> loadXMLRRD()  </script>
-<script type = "text/javascript"> set_title(browser_title, page_title)  </script>
 <div id = "pgtitle"  style="font-size: 40px" > Glidein Factory Status </div>
 
 <!-- GLIDIEN DESTINATION LIST -->
@@ -4809,6 +4809,7 @@ td
 <div id = "header" > </div>
 <div id = "scroll"></div> 
 <div id = "hoverpopup"></div>
+<div id = "monitor_footer"></div>
 
 </body>
 </html>

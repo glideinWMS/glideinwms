@@ -139,7 +139,6 @@ function set_title_and_footer(browser_title, page_title)
 			footer_info = xmlhttp_descript.responseXML.documentElement.getElementsByTagName("config_footer");
 			footer_text = footer_info[0].attributes[0].value;
 			footer_link = footer_info[0].attributes[1].value;
-			//document.getElementById("config_footer").innerHTML = "<a href='" + footer_link + "'>" + footer_text + "</a>";
 			
         	var a_tag = document.createElement('a');
         	a_tag.appendChild(document.createTextNode(footer_text));
