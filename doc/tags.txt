@@ -1,3 +1,8 @@
+v2_5_2_1Bug fix: Fixed a bug creation of START expression when VOMS proxy is
+	  set be required.
+	Bug Fix: Revert the glidein shutdown behavior introduced in v2_5_2
+	Bug Fix: Add condor_glexec_update_proxy to Condor tarball if available
+
 v2_5_2	Frontend publishes glideresource classad to the pool collector. This
 	  is useful for the users to do match making for their jobs.
 	Useful job info like JOB_Site, JOB_GLIDEIN_Entry_Name, JOB_GLIDEIN_Name
