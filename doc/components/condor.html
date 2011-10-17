@@ -180,8 +180,11 @@ SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.PROCD_ADDRESS = $(SCHEDD.
 SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL         = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR)/spool<br/>
 SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_ADDRESS_FILE   = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/.schedd_address<br/>
 SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/.schedd_classad<br/>
+SCHEDDGLIDEINS<b><font color="red">2</font></b>_LOCAL_DIR_STRING = "$(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR)"<br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_EXPRS = LOCAL_DIR_STRING<br/>
 <font color="green"><b>SCHEDDGLIDEINS<b><font color="red">2</font></b>_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridManagerLog.$(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_NAME).$(USERNAME)"</font></b><br/>
 DAEMON_LIST = $(DAEMON_LIST), SCHEDDGLIDEINS<b><font color="red">2</font></b><br/>
+DC_DAEMON_LIST = + SCHEDDGLIDEINS<b><font color="red">2</font></b><br/>
 </p>
 <p>
 <b><u>For the Submit:</u></b><br/>
@@ -196,8 +199,10 @@ SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.PROCD_ADDRESS = $(SCHEDD.SCHE
 SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL         = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR)/spool<br/>
 SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_ADDRESS_FILE   = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/.schedd_address<br/>
 SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/.schedd_classad<br/>
-<font color="green"><b>SCHEDDJOBS<b><font color="red">2</font></b>_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridManagerLog.$(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_NAME).$(USERNAME)"</font></b><br/>
+SCHEDDJOBS<b><font color="red">2</font></b>_LOCAL_DIR_STRING = "$(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR)"<br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_EXPRS = LOCAL_DIR_STRING<br/>
 DAEMON_LIST = $(DAEMON_LIST), SCHEDDJOBS<b><font color="red">2</font></b><br/>
+DC_DAEMON_LIST = + SCHEDDJOBS<b><font color="red">2</font></b><br/>
 </p>
 </blockquote>
 <p>

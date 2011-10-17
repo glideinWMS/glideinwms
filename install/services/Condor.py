@@ -974,7 +974,12 @@ ENABLE_USERLOG_FSYNC = False
 #-- Prepare the Shadow for use with glexec-enabled glideins
 SHADOW.GLEXEC_STARTER = True
 SHADOW.GLEXEC = /bin/false
+
+#-- Publish LOCAL_DIR so it is available in the schedd classads as needed
+LOCAL_DIR_STRING="$(LOCAL_DIR)"
+SCHEDD_EXPRS = $(SCHEDD_EXPRS) LOCAL_DIR_STRING
 """
+
     if self.use_gridmanager:
       self.condor_config_data[type] +=  """
 #-- Condor-G tuning -----
@@ -1044,7 +1049,10 @@ SCHEDD.%(upper_name)s.LOCK          = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/lock
 SCHEDD.%(upper_name)s.PROCD_ADDRESS = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/procd_pipe
 SCHEDD.%(upper_name)s.SPOOL         = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/spool
 SCHEDD.%(upper_name)s.SCHEDD_ADDRESS_FILE   = $(SCHEDD.%(upper_name)s.SPOOL)/.schedd_address
-SCHEDD.%(upper_name)s.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.%(upper_name)s.SPOOL)/.schedd_classad """ % \
+SCHEDD.%(upper_name)s.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.%(upper_name)s.SPOOL)/.schedd_classad 
+%(upper_name)s_LOCAL_DIR_STRING     = "$(SCHEDD.%(upper_name)s.LOCAL_DIR)"
+SCHEDD.%(upper_name)s.SCHEDD_EXPRS  = LOCAL_DIR_STRING
+""" % \
       { "name"       : name,
         "upper_name" : local_name.upper(),
         "lower_name" : local_name.lower(),
@@ -1054,12 +1062,14 @@ SCHEDD.%(upper_name)s.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.%(upper_name)s.SPOOL)/.sc
         self.condor_config_data[type] +=  """
 %(upper_name)s_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridManagerLog.$(SCHEDD.%(upper_name)s.SCHEDD_NAME).$(USERNAME)" """ % { "upper_name" : local_name.upper(),}
 
+
       self.condor_config_data[type] +=  """
 DAEMON_LIST = $(DAEMON_LIST), %(upper_name)s
 """ % { "upper_name" : local_name.upper(),}
 
       dc_daemon_list += " %(upper_name)s" % { "upper_name" : local_name.upper()}
     #--- end of for loop --
+
     self.condor_config_data[type] +=  """
 %s
 """ % dc_daemon_list
