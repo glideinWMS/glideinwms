@@ -96,8 +96,8 @@ for a more detailed description.
         <a href="#">&lt; summary_logs max_days="31.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
     </blockquote>
     <a href="#">&lt;/log_retention &gt;</a><br/>
-    <a href="#monitor">&lt;monitor base_dir="/var/www/html/glidefactory/monitor" flot_dir="/opt/javascriptrrd-0.5.0/flot" javascriptRRD_dir="/opt/javascriptrrd-0.5.0" jquery_dir="/opt/javascriptrrd-0.5.0/flot" /&gt;</a><br/>
-    <a href="#security">&lt;security key_length="2048" pub_key="RSA"&gt;</a><br/>
+    <a href="#monitor">&lt;monitor base_dir="/var/www/html/glidefactory/monitor" flot_dir="/opt/javascriptrrd-0.6.1/flot" javascriptRRD_dir="/opt/javascriptrrd-0.6.1/src/lib" jquery_dir="/opt/javascriptrrd-0.6.1/flot" /&gt;</a><br/>
+    <a href="#security">&lt;security key_length="2048" pub_key="RSA" reuse_oldkey_onstartup_gracetime="900"&gt;</a><br/>
     <blockquote>
         <a href="#security">&lt;frontends &gt;</a><br/>
         <blockquote>
@@ -332,6 +332,7 @@ individual entry point configuration.
         <a name="security" />
         <div class="xml">
         &lt;glidein&gt;&lt;security 
+        reuse_oldkey_onstartup_gracetime=&quot;<I>900</I>&quot;
         pub_key=&quot;<I>RSA</I>&quot;/&gt;
 
         </div>
