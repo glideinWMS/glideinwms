@@ -275,16 +275,6 @@ def schedd_node_install():
 
     config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
     try:
-        config_fd.write('\n############################################\n')
-        config_fd.write('# Publish LOCAL_DIR to enable optimizations \n')
-        config_fd.write('############################################\n')
-        config_fd.write('LOCAL_DIR_STRING="$(LOCAL_DIR)"\n')
-        config_fd.write('SCHEDD_EXPRS = $(SCHEDD_EXPRS) LOCAL_DIR_STRING\n')
-    finally:
-        config_fd.close()
-
-    config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
-    try:
         config_fd.write('\n#####################################\n')
         config_fd.write('# Enable Job/glidein information \n')
         config_fd.write('#####################################\n')
@@ -3593,8 +3583,14 @@ def setup_main_schedd():
         config_fd.write("STARTD_SENDS_ALIVES = True\n")
         config_fd.write("#Reduce disk IO - paranoid fsyncs are usully not needed\n")
         config_fd.write("ENABLE_USERLOG_FSYNC = False\n")
+        config_fd.write('\n############################################\n')
+        config_fd.write('# Publish LOCAL_DIR to enable optimizations \n')
+        config_fd.write('############################################\n')
+        config_fd.write('LOCAL_DIR_STRING="$(LOCAL_DIR)"\n')
+        config_fd.write('SCHEDD_EXPRS = $(SCHEDD_EXPRS) LOCAL_DIR_STRING\n')
     finally:
         config_fd.close()
+
 
     MAIN_SCHEDD_INSTALLED=1
     return

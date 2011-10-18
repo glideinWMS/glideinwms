@@ -294,7 +294,7 @@
 
 <!--  Schedd -->
 <tr>
-  <td rowspan="14" align="center" valign="top">
+  <td rowspan="12" align="center" valign="top">
       <b>
       WMS Collector<br/>
       Submit
@@ -385,44 +385,6 @@
      <a href="https://condor-wiki.cs.wisc.edu/index.cgi/tktview?tn=1481">1481</a>
   </td>
   </tr>
-
-<!--  Multiple Schedds -->
-<tr>
-  <td>SCHEDDGLIDEINS2                      = $(SCHEDD)<br/>
-  SCHEDDGLIDEINS2_ARGS                 = -local-name scheddglideins2<br/>
-  SCHEDD.SCHEDDGLIDEINS2.SCHEDD_NAME   = schedd_glideins2<br/>
-  SCHEDD.SCHEDDGLIDEINS2.SCHEDD_LOG    = $(LOG)/SchedLog.$(SCHEDD.SCHEDDGLIDEINS2.SCHEDD_NAME)<br/>
-  SCHEDD.SCHEDDGLIDEINS2.LOCAL_DIR     = $(LOCAL_DIR)/$(SCHEDD.SCHEDDGLIDEINS2.SCHEDD_NAME)<br/>
-  SCHEDD.SCHEDDGLIDEINS2.EXECUTE       = $(SCHEDD.SCHEDDGLIDEINS2.LOCAL_DIR)/execute<br/>
-  SCHEDD.SCHEDDGLIDEINS2.LOCK          = $(SCHEDD.SCHEDDGLIDEINS2.LOCAL_DIR)/lock<br/>
-  SCHEDD.SCHEDDGLIDEINS2.PROCD_ADDRESS = $(SCHEDD.SCHEDDGLIDEINS2.LOCAL_DIR)/procd_pipe<br/>
-  SCHEDD.SCHEDDGLIDEINS2.SPOOL         = $(SCHEDD.SCHEDDGLIDEINS2.LOCAL_DIR)/spool<br/>
-  SCHEDD.SCHEDDGLIDEINS2.SCHEDD_ADDRESS_FILE   = $(SCHEDD.SCHEDDGLIDEINS2.SPOOL)/.schedd_address<br/>
-  SCHEDD.SCHEDDGLIDEINS2.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.SCHEDDGLIDEINS2.SPOOL)/.schedd_classad<br/>
-  <br/>
-  DAEMON_LIST = $(DAEMON_LIST), SCHEDDGLIDEINS2<br/>
-  DC_DAEMON_LIST = +  SCHEDDGLIDEINS2
-  </td>
-  <td valign="top" rowspan="2">
-    Atttributes for defining multiple schedds.<br/><br/>
-    The capability to define multiple SCHEDD daemons as a Condor attribute is 
-    available in Condor 7.5+.<br/>
-    <br/>
-    The execute, lock and spool directories for each schedd must be created manually.<br/>
-     <br/>
-     For more detailed information on this, refer to the 
-    <a href="./condor.html#schedds">Advanced Condor Configuration - Mulitple Schedds document</a><br/>
-     <br/>
-     The <b>SCHEDDGLIDEINS2_ENVIRONMENT</b> attribute only applies to the
-     WMS Collector and is not required for the Submit service.<br/>
-  </td>
-  </tr>
-  <tr>
-    <td>
-       SCHEDDGLIDEINS2_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridManagerLog.$(SCHEDD.SCHEDDGLIDEINS2.SCHEDD_NAME).$(USERNAME)"
-    </td>
-  </tr>
-
 <!--  Shared schedd ports -->
 <tr>
   <td>
@@ -436,8 +398,102 @@
    Available only in Condor 7.5.3+.
    </td>
   </tr>
-<tr class="head"><td colspan="3"></td></tr>
 
+
+<!--  WMS Collector Multiple Schedds -->
+<tr>
+  <td rowspan="2" align="center" valign="top">
+      <b>
+      WMS Collector<br/>
+      </b>
+  </td>
+  <td>SCHEDDGLIDEINS2                  = $(SCHEDD)<br/>
+  SCHEDDGLIDEINS2_ARGS                 = -local-name scheddglideins2<br/>
+  SCHEDD.SCHEDDGLIDEINS2.SCHEDD_NAME   = schedd_glideins2<br/>
+  SCHEDD.SCHEDDGLIDEINS2.SCHEDD_LOG    = $(LOG)/SchedLog.$(SCHEDD.SCHEDDGLIDEINS2.SCHEDD_NAME)<br/>
+  SCHEDD.SCHEDDGLIDEINS2.LOCAL_DIR     = $(LOCAL_DIR)/$(SCHEDD.SCHEDDGLIDEINS2.SCHEDD_NAME)<br/>
+  SCHEDD.SCHEDDGLIDEINS2.EXECUTE       = $(SCHEDD.SCHEDDGLIDEINS2.LOCAL_DIR)/execute<br/>
+  SCHEDD.SCHEDDGLIDEINS2.LOCK          = $(SCHEDD.SCHEDDGLIDEINS2.LOCAL_DIR)/lock<br/>
+  SCHEDD.SCHEDDGLIDEINS2.PROCD_ADDRESS = $(SCHEDD.SCHEDDGLIDEINS2.LOCAL_DIR)/procd_pipe<br/>
+  SCHEDD.SCHEDDGLIDEINS2.SPOOL         = $(SCHEDD.SCHEDDGLIDEINS2.LOCAL_DIR)/spool<br/>
+  SCHEDD.SCHEDDGLIDEINS2.SCHEDD_ADDRESS_FILE   = $(SCHEDD.SCHEDDGLIDEINS2.SPOOL)/.schedd_address<br/>
+  SCHEDD.SCHEDDGLIDEINS2.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.SCHEDDGLIDEINS2.SPOOL)/.schedd_classad<br/>
+  SCHEDDGLIDEINS2_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridManagerLog.$(SCHEDD.SCHEDDGLIDEINS2.SCHEDD_NAME).$(USERNAME)"<br/>
+  <br/>
+  DAEMON_LIST = $(DAEMON_LIST), SCHEDDGLIDEINS2<br/>
+  DC_DAEMON_LIST = +  SCHEDDGLIDEINS2<br/>
+  </td>
+  <td valign="top" rowspan="1">
+    Atttributes for defining multiple schedds.<br/><br/>
+    The capability to define multiple SCHEDD daemons as a Condor attribute is 
+    available in Condor 7.5+.<br/>
+    <br/>
+    The execute, lock and spool directories for each schedd must be created manually.<br/>
+     <br/>
+     For more detailed information on this, refer to the 
+    <a href="./condor.html#schedds">Advanced Condor Configuration - Mulitple Schedds document</a><br/>
+     <br/>
+  </td>
+  </tr>
+  <tr>
+  <td>
+  SCHEDDGLIDEINS2_LOCAL_DIR_STRING     = "$(SCHEDD.SCHEDDGLIDEINS2.LOCAL_DIR)"<br/>
+  SCHEDD.SCHEDDGLIDEINS2.SCHEDD_EXPRS  = LOCAL_DIR_STRING<br/>
+  </td>
+  <td>
+    Allows the Factory to query the schedds directly bypassing the collector
+    and thus improving performance.
+  </td>
+  </tr>
+
+<tr>
+<!--  Submit Multiple Schedds -->
+  <td rowspan="2" align="center" valign="top">
+      <b>
+      Submit <br/>
+      </b>
+  </td>
+  <td>SCHEDDJOBS2                  = $(SCHEDD)<br/>
+  SCHEDDJOBS2_ARGS                 = -local-name scheddjobs2<br/>
+  SCHEDD.SCHEDDJOBS2.SCHEDD_NAME   = schedd_jobs2<br/>
+  SCHEDD.SCHEDDJOBS2.SCHEDD_LOG    = $(LOG)/SchedLog.$(SCHEDD.SCHEDDJOBS2.SCHEDD_NAME)<br/>
+  SCHEDD.SCHEDDJOBS2.LOCAL_DIR     = $(LOCAL_DIR)/$(SCHEDD.SCHEDDJOBS2.SCHEDD_NAME)<br/>
+  SCHEDD.SCHEDDJOBS2.EXECUTE       = $(SCHEDD.SCHEDDJOBS2.LOCAL_DIR)/execute<br/>
+  SCHEDD.SCHEDDJOBS2.LOCK          = $(SCHEDD.SCHEDDJOBS2.LOCAL_DIR)/lock<br/>
+  SCHEDD.SCHEDDJOBS2.PROCD_ADDRESS = $(SCHEDD.SCHEDDJOBS2.LOCAL_DIR)/procd_pipe<br/>
+  SCHEDD.SCHEDDJOBS2.SPOOL         = $(SCHEDD.SCHEDDJOBS2.LOCAL_DIR)/spool<br/>
+  SCHEDD.SCHEDDJOBS2.SCHEDD_ADDRESS_FILE   = $(SCHEDD.SCHEDDJOBS2.SPOOL)/.schedd_address<br/>
+  SCHEDD.SCHEDDJOBS2.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.SCHEDDJOBS2.SPOOL)/.schedd_classad<br/>
+  <br/> 
+  DAEMON_LIST = $(DAEMON_LIST), SCHEDDJOBS2<br/>
+  DC_DAEMON_LIST = +  SCHEDDJOBS2<br/>
+  </td>
+  <td valign="top" rowspan="1">
+    Atttributes for defining multiple schedds.<br/><br/>
+    The capability to define multiple SCHEDD daemons as a Condor attribute is 
+    available in Condor 7.5+.<br/>
+    <br/>
+    The execute, lock and spool directories for each schedd must be created manually.<br/>
+     <br/>
+     For more detailed information on this, refer to the 
+    <a href="./condor.html#schedds">Advanced Condor Configuration - Mulitple Schedds document</a><br/>
+     <br/>
+  </td>
+  </tr>
+  <tr>
+  <td>
+  SCHEDDJOBS2_LOCAL_DIR_STRING     = "$(SCHEDD.SCHEDDJOBS2.LOCAL_DIR)"<br/>
+  SCHEDD.SCHEDDJOBS2.SCHEDD_EXPRS  = LOCAL_DIR_STRING<br/>
+  </td>
+  <td>
+    Allows for queries against the schedds directly bypassing the collector
+    and thus improving performance.<br/>
+    <b>Nothing has been implemented at this time to utilize this. 
+    Only Factory/WMS Collector communication uses this.</b>
+  </td>
+  </tr>
+
+<tr class="head"><td colspan="3"></td></tr>
 <!--  Condor-G -->
 <tr>
    <td  align="center" rowspan="2" valign="top">
