@@ -640,3 +640,52 @@ def sanitize(name):
 # global configuration of the module
 monitoringConfig=MonitoringConfig()
 
+def write_frontend_descript_xml(frontendDescript, monitor_dir):
+    """
+    Writes out the frontend descript.xml file in the monitor web area.
+    
+    @type frontendDescript: FrontendDescript
+    @param frontendDescript: contains the data in the frontend.descript file in the frontend instance dir
+    @type monitor_dir: string
+    @param monitor_dir: filepath the the monitor dir in the frontend instance dir
+    """
+
+    frontend_data = copy.deepcopy(frontendDescript.data)
+    
+    frontend_str = '<frontend FrontendName="%s"' % frontend_data['FrontendName'] + '/>'
+
+    dis_link_txt = 'display_txt="%s"  href_link="%s"' % (frontend_data['MonitorDisplayText'], frontend_data['MonitorLink'])
+    footer_str = '<monitor_footer ' + dis_link_txt + '/>'
+    
+    output = '<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' + \
+                   '<glideinFrontendDescript>\n' \
+                   + time2xml(time.time(), "updated", indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) + "\n" \
+                   + xmlFormat.DEFAULT_TAB + frontend_str + "\n" \
+                   + xmlFormat.DEFAULT_TAB + footer_str + "\n" \
+                   + '</glideinFrontendDescript>'
+
+    fname = os.path.join(monitor_dir, 'descript.xml')
+
+    try:
+        f = open(fname + '.tmp', 'wb')
+        try:
+            f.write(output)
+        finally:
+            f.close()
+
+        tmp2final(fname)
+    
+    except IOError:
+        print "Error writing out the frontend descript.xml"
+
+def time2xml(the_time, outer_tag, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
+    xml_data = {"UTC":{"unixtime":timeConversion.getSeconds(the_time),
+                     "ISO8601":timeConversion.getISO8601_UTC(the_time),
+                     "RFC2822":timeConversion.getRFC2822_UTC(the_time)},
+              "Local":{"ISO8601":timeConversion.getISO8601_Local(the_time),
+                       "RFC2822":timeConversion.getRFC2822_Local(the_time),
+                       "human":timeConversion.getHuman(the_time)}}
+    return xmlFormat.dict2string(xml_data,
+                                 dict_name=outer_tag, el_name="timezone",
+                                 subtypes_params={"class":{}},
+                                 indent_tab=indent_tab, leading_tab=leading_tab)

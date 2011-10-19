@@ -29,13 +29,18 @@ Description:
 
     <script type="text/javascript" src="jslibs/frontend_support.js"></script>
   <head>
-    <title>RRD matrix by frontend groups</title>
+    <title id="brtitle">RRD matrix by frontend groups</title>
+    <script type="text/javascript">
+	  var browser_title = "Browse VO Frontend RRDs";	
+	  var page_title = "Browse VO Frontend RRDs";	
+	  set_title_and_footer(browser_title, page_title);
+	</script>
   </head>
 
   <body>
     <table width="100%">
     <tr>
-     <td><h1 id="title">RRD matrix by frontend groups</h1>
+     <td><h1 id="pgtitle">RRD matrix by frontend groups</h1>
      <td align="right">[ 
 	    <a href="frontendStatus.html">Status</a> |
 	    <a href="frontendRRDBrowse.html">Browse</a> |
@@ -73,8 +78,10 @@ Description:
    <hr>
     <p>Powered by
         <a href="http://oss.oetiker.ch/rrdtool/" target="_blank">RRDTool</a>,
-        <a href="https://sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and                                                                 <a href="http://code.google.com/p/flot/" target="_blank">Flot</a>.
- 
+        <a href="https://sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and 
+        <a href="http://code.google.com/p/flot/" target="_blank">Flot</a>.
+    </p>
+    <div id="monitor_footer"></div>
     <script type="text/javascript">
 
       // Remove the Javascript warning

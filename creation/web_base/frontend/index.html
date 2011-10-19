@@ -1,9 +1,14 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
+    <script type="text/javascript" src="jslibs/frontend_support.js"></script>
 <head>
-<title>
-GlideinWMS VO Frontend Monitoring
-</title>
+    <title id="brtitle">GlideinWMS VO Frontend Monitoring</title>
+    <script type="text/javascript">
+	  var browser_title = "GlideinWMS VO Frontend Monitoring";
+	  var page_title = "GlideinWMS VO Frontend Monitoring";
+	  set_title_and_footer(browser_title, page_title);
+	</script>
+
 <style type="text/css"> 
 .rounded
 {
@@ -33,7 +38,7 @@ color:black;
 
 th.rounded
 {
-font-size:40px;
+font-size:35px;
 }
 
 
@@ -42,7 +47,7 @@ font-size:40px;
 <body>
 <center>
 <table class="centered">
-   <tr><th COLSPAN=2 class="heading rounded">
+   <tr><th COLSPAN=2 class="heading rounded" id="pgtitle">
    GlideinWMS VO Frontend Monitoring
    </th></td>
    <tr>
@@ -122,7 +127,8 @@ font-size:40px;
       </td>
    </tr>
 </table>
-</center>
+</center>   
+<div id="monitor_footer"></div>
 </body>
 </html>
 

@@ -35,7 +35,7 @@ import glideinFrontendPidLib
 import glideinFrontendConfig
 import glideinFrontendLib
 import glideinFrontendMonitorAggregator
-import logSupport
+import glideinFrontendMonitoring
 
 
 ############################################################
@@ -199,6 +199,8 @@ def main(work_dir):
                                         sys.exc_info()[2])
         glideinFrontendLib.log_files.logWarning("Exception occurred: %s" % tb)
         raise
+    
+    glideinFrontendMonitoring.write_frontend_descript_xml(frontendDescript, os.path.join(work_dir, 'monitor/'))
 
     # create lock file
     pid_obj=glideinFrontendPidLib.FrontendPidSupport(work_dir)

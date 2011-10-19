@@ -2,6 +2,7 @@
 
 
 <html>
+    <script type="text/javascript" src="jslibs/frontend_support.js"></script>
 <head>
 <script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAAu0TL0A-Hx1fvzGI6gOofLxRdWR7O4-XcWvAQALHxHt_c1fTKOhSeYIt5K3vK4_YcuhTz3-irM0p_eQ"></script>
 <style type="text/css">
@@ -526,14 +527,19 @@ function HideDialog() {
 }
 
 
-
 </script>
 
-<title>Current GlideinWMS Frontend Status</title>
+    <title id="brtitle">Current GlideinWMS Frontend Status</title>
+    <script type="text/javascript">
+	  var browser_title = "Current GlideinWMS Frontend Status";
+	  var page_title = "Current GlideinWMS Frontend Status";
+	  set_title_and_footer(browser_title, page_title);
+	</script>
+
 
 </head>
 <body>
-<div id="header"><h2>Current GlideinWMS Frontend Status</h2></div>
+<div id="header"><h2 id="pgtitle">Current GlideinWMS Frontend Status</h2></div>
 <div class="page_links">
 [
 <a href="frontendRRDBrowse.html">Browse</a> |
@@ -567,7 +573,8 @@ Entry Search: <input type='text' id='entrysearch' onkeypress='FilterTable()'/>
 </tr>
 </tr>
 </table>
- </div>
+ </div>   
+<div id="monitor_footer"></div>
 </body>
 
 </html>

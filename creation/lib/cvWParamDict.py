@@ -465,6 +465,9 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('AdvertiseWithTCP',params.advertise_with_tcp)
         frontend_dict.add('AdvertiseWithMultiple',params.advertise_with_multiple)
 
+        frontend_dict.add('MonitorDisplayText',params.monitor_footer.display_txt)
+        frontend_dict.add('MonitorLink',params.monitor_footer.href_link)
+
         frontend_dict.add('CondorConfig',os.path.join(work_dir,cvWConsts.FRONTEND_CONDOR_CONFIG_FILE))
 
         frontend_dict.add('LogDir',params.log_dir)
