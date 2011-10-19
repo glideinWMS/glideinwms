@@ -243,6 +243,7 @@ let "x509_duration=$X509_EXPIRE - $now - 300"
 max_walltime=`grep -i "^GLIDEIN_Max_Walltime " $config_file | awk '{print $2}'`
 if [ -z "$max_walltime" ]; then
   retire_time=`grep -i "^GLIDEIN_Retire_Time " $config_file | awk '{print $2}'`
+  let "die_time=$retire_time"
   if [ -z "$retire_time" ]; then
     retire_time=21600
     echo "used default retire time, $retire_time" 1>&2
@@ -252,7 +253,12 @@ if [ -z "$max_walltime" ]; then
 else
   echo "max wall time, $max_walltime" 1>&2
   job_maxtime=`grep -i "^GLIDEIN_Job_Max_Time " $config_file | awk '{print $2}'`
+  if [ -z "$job_maxtime" ]; then
+     echo "job max time not defined, using 0" 1>&2
+     job_maxtime=0
+  fi
   echo "job max time, $job_maxtime" 1>&2
+  let "die_time=$max_walltime"
   let "retire_time=$max_walltime - $job_maxtime"
   GLIDEIN_Retire_Time=$retire_time
   echo "calculated retire time, $retire_time" 1>&2
@@ -262,6 +268,7 @@ fi
 let "calc_max_walltime=$retire_time + $job_maxtime"
 if [ "$calc_max_walltime" -gt "$x509_duration" ]; then
   calc_max_walltime=$x509_duration
+  let "die_time=$calc_max_walltime"
   let "retire_time=$calc_max_walltime - $job_maxtime"
   echo "Proxy not long lived enough ($x509_duration s left), shortened retire time to $retire_time" 1>&2
 fi
@@ -278,19 +285,23 @@ fi
 
 let "random100=$RANDOM%100"
 let "retire_time=$retire_time - $retire_spread * $random100 / 100"
+let "die_time=$die_time - $retire_spread * $random100 / 100"
 
 # but protect from going too low
 if [ "$retire_time" -lt "600" ]; then
   echo "Retire time after spread too low ($retire_time), remove spread"
   retire_time=$org_GLIDEIN_Retire_Time
+  let "die_time=$die_time + $retire_spread * $random100 / 100"
 fi
 if [ "$retire_time" -lt "600" ]; then  
   echo "Retire time still too low ($retire_time), aborting"
   exit 1
 fi
 echo "Retire time set to $retire_time" 1>&2
+echo "Die time set to $die_time" 1>&2
 
 let "glidein_toretire=$now + $retire_time"
+let "glidein_todie=$now + $die_time"
 
 # minimize re-authentications, by asking for a session lenght to be the same as proxy lifetime, if possible
 let "session_duration=$x509_duration"
@@ -312,6 +323,7 @@ LOCAL_DIR = $PWD
 
 #GLIDEIN_EXPIRE = $glidein_expire
 GLIDEIN_TORETIRE = $glidein_toretire
+GLIDEIN_ToDie = $glidein_todie
 GLIDEIN_START_TIME = $now
 
 STARTER_JOB_ENVIRONMENT = $job_env
