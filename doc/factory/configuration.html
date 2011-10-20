@@ -98,6 +98,7 @@ for a more detailed description.
     </blockquote>
     <a href="#">&lt;/log_retention &gt;</a><br/>
     <a href="#monitor">&lt;monitor base_dir="/var/www/html/glidefactory/monitor" flot_dir="/opt/javascriptrrd-0.6.1/flot" javascriptRRD_dir="/opt/javascriptrrd-0.6.1/src/lib" jquery_dir="/opt/javascriptrrd-0.6.1/flot" /&gt;</a><br/>
+    <a href="#monitor_footer">&lt;monitor_footer display_txt="Legal Disclaimer" href_link="/site/disclaimer.html"  /&gt;</a><br/>
     <a href="#security">&lt;security allow_proxy="frontend" key_length="2048" pub_key="RSA" reuse_oldkey_onstartup_gracetime="900"&gt;</a><br/>
     <blockquote>
         <a href="#security">&lt;frontends &gt;</a><br/>
@@ -331,6 +332,14 @@ individual entry point configuration.
     <p><b>Recommended</b> The <STRONG>base_dir</STRONG> defines where the monitoring web are
     is.<BR/>The other entries point to where javascriptRRD, Flot and
     JQuery libraries are.</P>
+    <LI>
+        <a name="monitor_footer" />
+        <div class="xml">
+        &lt;glidein&gt;&lt;monitor_footer display_txt=&quot;<I>Legal Disclaimer</I>&quot; 
+        href_link=&quot;<I>/site/disclaimer.html</I>&quot;  &gt;
+        </div>
+    <p>OPTIONAL:  If the display text and link are configured, the monitoring pages will display the text/link at the 
+    bottom of the page.</P>
     <LI>
         <a name="security" />
         <div class="xml">
