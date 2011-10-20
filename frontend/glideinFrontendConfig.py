@@ -240,7 +240,7 @@ class ElementMergedDescript:
                 raise RuntimeError,"Found empty %s!"%t
         for t in ('FactoryQueryExpr','JobQueryExpr'):
             self.merged_data[t]="(%s) && (%s)"%(self.frontend_data[t],self.element_data[t])
-        for t in ('FactoryMatchAttrs','JobMatchAttrs'):
+        for t in ('JobMatchAttrs',):
             attributes=[]
             names=[]
             for el in eval(self.frontend_data[t])+eval(self.element_data[t]):
