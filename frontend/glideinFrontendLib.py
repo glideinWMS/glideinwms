@@ -18,6 +18,8 @@ import sets,string,math
 import condorMonitor,condorExe
 import logSupport
 
+import sys, traceback
+
 class LogFiles:
     def __init__(self,log_dir,max_days,min_days,max_mbs):
         self.log_dir=log_dir
@@ -410,21 +412,23 @@ def getCondorQConstrained(schedd_names,type_constraint,constraint=None,format_li
         if schedd=='':
             log_files.logWarning("Skipping empty schedd name")
             continue
-        condorq=condorMonitor.CondorQ(schedd)
+        
         full_constraint=type_constraint[0:] #make copy
         if constraint!=None:
             full_constraint="(%s) && (%s)"%(full_constraint,constraint)
 
         try:
+            condorq=condorMonitor.CondorQ(schedd)
             condorq.load(full_constraint,format_list)
         except condorExe.ExeError, e:
-            if schedd!=None:
-                log_files.logWarning("Failed to talk to schedd %s. See debug log for more details."%schedd)
-                log_files.logDebug("Failed to talk to schedd %s: %s"%(schedd, e))
-            else:
-                log_files.logWarning("Failed to talk to schedd. See debug log for more details.")
-                log_files.logDebug("Failed to talk to schedd: %s"%e)
+            log_files.logWarning("Failed to talk to schedd. See debug log for more details.")
+            log_files.logDebug("Failed to talk to schedd: %s"%e)
             continue # if schedd not found it is equivalent to no jobs in the queue
+        except RuntimeError, e:
+            log_files.logWarning("Failed to talk to schedd. See debug log for more details.")
+            log_files.logDebug("Failed to talk to schedd: %s"%e)
+            continue
+            
         if len(condorq.fetchStored())>0:
             out_condorq_dict[schedd]=condorq
     return out_condorq_dict
@@ -439,21 +443,22 @@ def getCondorQConstrained(schedd_names,type_constraint,constraint=None,format_li
 def getCondorStatusConstrained(collector_names,type_constraint,constraint=None,format_list=None):
     out_status_dict={}
     for collector in collector_names:
-        status=condorMonitor.CondorStatus(pool_name=collector)
         full_constraint=type_constraint[0:] #make copy
         if constraint!=None:
             full_constraint="(%s) && (%s)"%(full_constraint,constraint)
 
         try:
+            status=condorMonitor.CondorStatus(pool_name=collector)
             status.load(full_constraint,format_list)
         except condorExe.ExeError, e:
-            if collector!=None:
-                log_files.logWarning("Failed to talk to collector %s. See debug log for more details."%collector)
-                log_files.logDebug("Failed to talk to collector %s: %s"%(collector, e))
-            else:
-                log_files.logWarning("Failed to talk to collector. See debug log for more details.")
-                log_files.logDebug("Failed to talk to collector: %s"%e)
+            log_files.logWarning("Failed to talk to collector. See debug log for more details.")
+            log_files.logDebug("Failed to talk to collector: %s"%e)
             continue # if collector not found it is equivalent to no classads
+        except RuntimeError, e:
+            log_files.logWarning("Failed to talk to collector. See debug log for more details.")
+            log_files.logDebug("Failed to talk to collector: %s"%e)
+            continue
+        
         if len(status.fetchStored())>0:
             out_status_dict[collector]=status
     return out_status_dict

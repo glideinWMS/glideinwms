@@ -99,7 +99,7 @@ def fetch_fork_result(r,pid):
     finally:
         os.close(r)
         os.waitpid(pid,0)
-
+        
     out=cPickle.loads(rin)
     return out
 
@@ -113,19 +113,16 @@ def fetch_fork_result_list(pipe_ids):
             # now collect the results
             rin=fetch_fork_result(pipe_ids[k]['r'],pipe_ids[k]['pid'])
             out[k]=rin
-        except:
-            # protect the loop, so we do all of them
-            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
-                                            sys.exc_info()[2])
-            glideinFrontendLib.log_files.logWarning("Exception in %s. See debug log for more details."%k)
-            glideinFrontendLib.log_files.logDebug("Exception in %s occurred: %s" % (k,tb))
+        except Exception, e:
+            glideinFrontendLib.log_files.logWarning("Failed to retrieve %s state information from the subprocess. " % k)
+            glideinFrontendLib.log_files.logDebug("Failed to retrieve %s state from the subprocess: %s" % (k, e))
             failures+=1
         
     if failures>0:
         raise RuntimeError, "Found %i errors"%failures
 
     return out
-        
+
 
 ############################################################
 def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin,stats,history_obj):
@@ -136,7 +133,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     web_url=elementDescript.frontend_data['WebURL']
 
     # query condor
-    glideinFrontendLib.log_files.logActivity("Query condor")
+    glideinFrontendLib.log_files.logActivity("Querying schedd, entry, and glidein status using child processes.")
 
     pipe_ids={}
     r,w=os.pipe()
@@ -162,6 +159,10 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                         glideinFrontendLib.log_files.logWarning("Failed to talk to factory_pool. See debug log for more details.")
                         glideinFrontendLib.log_files.logDebug("Failed to talk to factory_pool: %s"%e)
                     # failed to talk, like empty... maybe the next factory will have something
+                    factory_glidein_dict={}
+                except Exception, e:
+                    glideinFrontendLib.log_files.logWarning("Failed to talk to factory_pool. See debug log for more details.")
+                    glideinFrontendLib.log_files.logDebug("Failed to talk to factory_pool: %s"%e)
                     factory_glidein_dict={}
 
                 for glidename in factory_glidein_dict.keys():
@@ -238,12 +239,12 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         os.close(w)
         pipe_ids['startds']={'r':r,'pid':pid} 
  
-    glideinFrontendLib.log_files.logActivity("Child processes created")
     try:
         pipe_out=fetch_fork_result_list(pipe_ids)
-    except RuntimeError, e:
+    except RuntimeError:
         # expect all errors logged already
-        glideinFrontendLib.log_files.logActivity("Terminating iteration due to errors")
+        glideinFrontendLib.log_files.logWarning("Missing schedd, factory entry, and/or current glidein state information. " \
+                                                "Unable to calculate required glideins, terminating loop.")
         return
     glideinFrontendLib.log_files.logActivity("All children terminated")
 
@@ -375,7 +376,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
 
     #glideinFrontendLib.log_files.logDebug("realcount: %s\n\n" % glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict))
 
-    glideinFrontendLib.log_files.logActivity("Counting")
+    glideinFrontendLib.log_files.logActivity("Counting subprocess created")
     pipe_ids={}
     for dt in condorq_dict_types.keys()+['Real','Glidein']:
         # will make calculations in parallel,using multiple processes
@@ -413,9 +414,6 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             os.close(w)
             pipe_ids[dt]={'r':r,'pid':pid} 
 
-    
-
-    glideinFrontendLib.log_files.logActivity("Child processes created")
     try:
         pipe_out=fetch_fork_result_list(pipe_ids)
     except RuntimeError, e:
