@@ -45,7 +45,6 @@ import cleanupSupport
 def aggregate_stats(in_downtime):
     try:
         status = glideFactoryMonitorAggregator.aggregateStatus(in_downtime)
-        logSupport.log.debug("aggregateStatus status: %s" % str(status))
     except:
         # protect and report
         tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
@@ -53,7 +52,6 @@ def aggregate_stats(in_downtime):
 
     try:
         status = glideFactoryMonitorAggregator.aggregateLogSummary()
-        logSupport.log.debug("aggregateLogSummary status: %s" % str(status))
     except:
         # protect and report
         tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
@@ -61,7 +59,6 @@ def aggregate_stats(in_downtime):
 
     try:
         status = glideFactoryMonitorAggregator.aggregateRRDStats()
-        logSupport.log.debug("aggregateRRDStats status: %s" % str(status))
     except:
         # protect and report
         tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
