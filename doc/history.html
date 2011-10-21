@@ -84,6 +84,54 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
+        <b>v2_5_3</b> released on October ??, 2011 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_3/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_3/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_3.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Updated the license to reflect current Fermitools license Factory 
+          does a better job at respecting frontend limits Admins can add custom
+          html to the monitoring pages
+	  <li>Monitoring now displays additional information about the Factory 
+          and Frontend names
+	  <li>Improved documentation
+	  <li>Enable Match Authentication configuration by default
+	  <li>Made quering of schedds efficient where ever possible.
+	  <li>Add autocomplete/search to table in frontendGroupGraphStatusNow.html
+	  <li>Added 'upgrade' option to factory startup script so that all the  
+	  files in the glidein submit directory are updated.  Did the same for
+	  the frontend startup script. 'reconfig' only updates the files 
+	  populated with information from the configuration files (no scripts).
+	  <li>The OSG rpm worker node client requires changes to glidein startup
+	  scripts. If you plan on using OSG sites that have used this rpm, you
+	  must "upgrade" your factory in order to get glideins.
+	  <li>Bug fix: If there is no GLOBUS_LOCATION available to glidein,
+          it will not exit
+	  <li>Bug fix: Fixed a bug where factory would not advertise the entry
+          under certain conditions when it was put in downtime.
+	  <li>Bug fix: Fixed a bug where glidein_reconfig would not properly
+          validate schedd_name
+	  <li>Bug fix: Fixed a ug where frontend reconfig was not populating 
+	  GSI_DAEMON_PROXY correctly in frontend.condor_config
+	  <li>Bug fix: Writeback of config files on reconfig is now enable by
+          default
+	  <li>Bug fix: Frontend does better error reporting when quering user
+          pool or the schedd fails
+	  <li>Bug fix: Fixed a bug in condor log parsing when we encounter
+          event 400 (Job was evicted)
+	  <li>Bug fix: Fixed a bug where factory would not correctly accept
+          requests from frontends that were still using old keys
+	  <li>Bug fix: Fixed a bug where glidein pilot proxy lifetime was not
+          taken into account vs GLIDEIN_Max_Walltime 
+	  <li>Bug fix: Fixed a bug where expired/renewed proxy created error in 
+	  completed_jobs accounting
+	  <li>Bug fix: Fixed a bug where running_glideins_per_entry was not
+          treating the limits correctly
+	  <li>Bug fix: Fixed a bug in DAEMON_SHUTDOWN
+	  <li>Bug fix: Fixed a bug where voms requirements were not treated
+          correctly
+	  <li>Bug fix: condor_glexec_update_proxy is now correctly packaged
+          in the condor tarball
+        </ul>
+      </li>
+      <li>
         <b>v2_5_2_1</b> released on October 07, 2011 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_2_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_2_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_2_1.tgz">Tarball</a>)<br>
         <ul>
           <li>Bug fix: Fixed a bug creation of START expression when VOMS proxy is set be required.
