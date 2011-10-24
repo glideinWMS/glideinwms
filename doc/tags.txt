@@ -20,7 +20,7 @@ v2_5_3	Updated the license to reflect current Fermitools license
 	  certain conditions when it was put in downtime.
 	Bug fix: Fixed a bug where glidein_reconfig would not properly validate
 	  schedd_name
-	Bug fix: Fixed a ug where frontend reconfig was not populating 
+	Bug fix: Fixed a bug where frontend reconfig was not populating 
 	  GSI_DAEMON_PROXY correctly in frontend.condor_config
 	Bug fix: Writeback of config files on reconfig is now enable by default
 	Bug fix: Frontend does better error reporting when quering user pool or
@@ -37,9 +37,7 @@ v2_5_3	Updated the license to reflect current Fermitools license
 	  the limits correctly
 	Bug fix: Fixed a bug in DAEMON_SHUTDOWN
 	Bug fix: Fixed a bug where voms requirements were not treated correctly
-	Bug fix: condor_glexec_update_proxy is now correctly packaged in the
-	  condor tarball
-	  
+
 v2_5_2_1Bug fix: Fixed a bug creation of START expression when VOMS proxy is
 	  set be required.
 	Bug Fix: Revert the glidein shutdown behavior introduced in v2_5_2
