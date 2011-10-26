@@ -316,7 +316,9 @@ class _LowLevelFile:
             "w": os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
         }[mode]
         if hasattr(os, "O_BINARY"):
+            # pylint: disable=E1101
             mode |= os.O_BINARY
+            # pylint: enable=E1101
         self.fd = os.open(name, mode)
 
     def close(self):
@@ -561,9 +563,11 @@ class _StreamProxy(object):
         self.fileobj = fileobj
         self.buf = self.fileobj.read(BLOCKSIZE)
 
+# pylint: disable=E0202
     def read(self, size):
         self.read = self.fileobj.read
         return self.buf
+# pylint: enable=E0202
 
     def getcomptype(self):
         if self.buf.startswith("\037\213\010"):

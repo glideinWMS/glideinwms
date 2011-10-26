@@ -232,13 +232,14 @@ test_glexec2
 
 ####################################################################
 # Add requirement that only jobs with X509 attributes can start here
+# Also add requirement that voms proxies exist
 ####################################################################
 
 start_condition=`grep '^GLIDEIN_Entry_Start ' $glidein_config | awk '{print $2}'`
 if [ -z "$start_condition" ]; then
-    add_config_line "GLIDEIN_Entry_Start" "x509userproxysubject=!=UNDEFINED"
+    add_config_line "GLIDEIN_Entry_Start" "(x509userproxysubject=!=UNDEFINED)&&((GLIDEIN_REQUIRE_VOMS=?=UNDEFINED)||(GLIDEIN_REQUIRE_VOMS=?=False)||(TARGET.x509userproxyfirstfqan=!=UNDEFINED))"
 else
-    add_config_line "GLIDEIN_Entry_Start" "(x509userproxysubject=!=UNDEFINED)&&($start_condition)"
+    add_config_line "GLIDEIN_Entry_Start" "(x509userproxysubject=!=UNDEFINED)&&((GLIDEIN_REQUIRE_VOMS=?=UNDEFINED)||(GLIDEIN_REQUIRE_VOMS=?=False)||(TARGET.x509userproxyfirstfqan=!=UNDEFINED))&&($start_condition)"
 fi
 
 exit 0
