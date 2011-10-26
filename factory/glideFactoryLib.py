@@ -555,7 +555,6 @@ def keepIdleGlideins(client_condorq, client_int_name,
             log_files.logDebug("Additional idle glideins exceeded entry max submit limits %s, adjusted add_glideins to entry max submit rate" % factoryConfig.max_submits)  
     
     try:
-        log_files.logDebug("Submitting %i glideins" % add_glideins)
         submitGlideins(condorq.entry_name,condorq.schedd_name,x509_proxy_username,
                        client_int_name,add_glideins, frontend_name,
                        x509_proxy_identifier,x509_proxy_security_class,x509_proxy_fname,
