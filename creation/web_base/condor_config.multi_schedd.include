@@ -40,6 +40,8 @@ GLIDEIN_REQUIREMENTS = ((GLIDEIN_ToRetire =?= UNDEFINED) || (CurrentTime < GLIDE
 # and replaced with SlotID
 SLOT_1 = ((VirtualMachineID =?= 1) || (SlotID =?= 1)) 
 SLOT_2 = ((VirtualMachineID =?= 2) || (SlotID =?= 2)) 
+SLOT_2_RETIRED = ($(SLOT_1))&&((Activity=="Idle") && (GLIDEIN_ToRetire =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToRetire )) 
+
 
 IS_MONITOR_VM = ($(SLOT_1))
 VM1_START_CONDITION = ((GLIDEIN_Is_Monitor=?=True) || (JOB_Is_Monitor=?=True))
@@ -59,7 +61,7 @@ STARTD_NOCLAIM_SHUTDOWN = $(GLIDEIN_Max_Idle)
 
 # Set to shutdown if total idle exceeds max idle, or if the age
 # exceeds the retire time or the max walltime
-STARTD.DAEMON_SHUTDOWN = ((GLIDEIN_ToDie =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToDie ))
+STARTD.DAEMON_SHUTDOWN = ((GLIDEIN_ToDie =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToDie )) || ($(SLOT_2_RETIRED) )
 
 
 #
