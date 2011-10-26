@@ -168,7 +168,7 @@ class Glidein(Configuration):
     if fullpath == None:
       common.logit(msg)
       common.logerr("""%s not found in %s path
-Did you install the correct javascriptrrd rpm?
+Did you install the correct javascriptrrd package?
 """ % (filename,self.javascriptrrd_location()))
     dir = os.path.dirname(fullpath)
     msg +="available"
