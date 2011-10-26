@@ -237,13 +237,13 @@ let "x509_duration=$X509_EXPIRE - $now - 300"
 max_walltime=`grep -i "^GLIDEIN_Max_Walltime " $config_file | awk '{print $2}'`
 if [ -z "$max_walltime" ]; then
   retire_time=`grep -i "^GLIDEIN_Retire_Time " $config_file | awk '{print $2}'`
-  let "die_time=$retire_time"
   if [ -z "$retire_time" ]; then
     retire_time=21600
     echo "used default retire time, $retire_time" 1>&2
   else
     echo "used param defined retire time, $retire_time" 1>&2
   fi
+  let "die_time=$retire_time"
 else
   echo "max wall time, $max_walltime" 1>&2
   job_maxtime=`grep -i "^GLIDEIN_Job_Max_Time " $config_file | awk '{print $2}'`
