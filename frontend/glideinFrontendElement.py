@@ -117,12 +117,9 @@ def fetch_fork_result_list(pipe_ids):
             # now collect the results
             rin=fetch_fork_result(pipe_ids[k]['r'],pipe_ids[k]['pid'])
             out[k]=rin
-        except:
-            # protect the loop, so we do all of them
-            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
-                                            sys.exc_info()[2])
+        except Exception, e:
             logSupport.log.warning("Exception in %s. See debug log for more details."%k)
-            logSupport.log.debug("Exception in %s occurred: %s" % (k,tb))
+            logSupport.log.debug("Exception in %s occurred: %s" % (k,e))
             failures+=1
         
     if failures>0:
@@ -143,7 +140,9 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
 
     factory_constraint = elementDescript.merged_data['FactoryQueryExpr']
     factory_pools = elementDescript.merged_data['FactoryCollectors']
-        
+    
+    logSupport.log.info("Querying schedd, entry, and glidein status using child processes.") 
+          
     # query globals
     # We can't fork this since the M2Crypto key objects are not pickle-able.  Not much to gain by forking anyway.
     globals_dict = {}
@@ -155,11 +154,12 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         except RuntimeError, e:
             # failed to talk, like empty... maybe the next factory will have something
             if factory_pool_node != None:
-                logSupport.log.warning("Failed to talk to factory_pool %s. See debug log for more details." % factory_pool_node)
-                logSupport.log.debug("Failed to talk to factory_pool %s: %s" % (factory_pool_node, e))
+                logSupport.log.warning("Failed to talk to factory_pool %s for global info. See debug log for more details." % factory_pool_node)
+                logSupport.log.debug("Failed to talk to factory_pool %s for global info: %s" % (factory_pool_node, e))
             else:
-                logSupport.log.warning("Failed to talk to factory_pool. See debug log for more details.")
-                logSupport.log.debug("Failed to talk to factory_pool: %s" % e)
+                logSupport.log.warning("Failed to talk to factory_pool for global info. See debug log for more details.")
+                logSupport.log.debug("Failed to talk to factory_pool for global info: %s" % e)
+            factory_globals_dict = {}
                 
         for globalid in factory_globals_dict:
             globals_el = factory_globals_dict[globalid]
@@ -201,11 +201,12 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
                 except RuntimeError, e:
                     # failed to talk, like empty... maybe the next factory will have something
                     if factory_pool_node != None:
-                        logSupport.log.warning("Failed to talk to factory_pool %s. See debug log for more details." % factory_pool_node)
-                        logSupport.log.debug("Failed to talk to factory_pool %s: %s" % (factory_pool_node, e))
+                        logSupport.log.warning("Failed to talk to factory_pool %s for entry info. See debug log for more details." % factory_pool_node)
+                        logSupport.log.debug("Failed to talk to factory_pool %s for entry info: %s" % (factory_pool_node, e))
                     else:
-                        logSupport.log.warning("Failed to talk to factory_pool. See debug log for more details.")
-                        logSupport.log.debug("Failed to talk to factory_pool: %s" % e)
+                        logSupport.log.warning("Failed to talk to factory_pool for entry info. See debug log for more details.")
+                        logSupport.log.debug("Failed to talk to factory_pool for entry info: %s" % e)
+                    factory_glidein_dict = {}
         
                 for glidename in factory_glidein_dict.keys():
                     if (not factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity')) or (factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'] != factory_identity):
@@ -233,16 +234,30 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         # this is the child... return output as a pickled object via the pipe
         os.close(r)
         try:
-            condorq_format_list = elementDescript.merged_data['JobMatchAttrs']
-            if x509_proxy_plugin != None:
-                condorq_format_list = list(condorq_format_list) + list(x509_proxy_plugin.get_required_job_attributes())
+            #condorq_format_list = elementDescript.merged_data['JobMatchAttrs']
+            #if x509_proxy_plugin != None:
+            #    condorq_format_list = list(condorq_format_list) + list(x509_proxy_plugin.get_required_job_attributes())
         
             ### Add in elements to help in determining if jobs have voms creds
-            condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN','s'),))
-            condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN','s'),))
-            condorq_dict = glideinFrontendLib.getCondorQ(elementDescript.merged_data['JobSchedds'],
+            #condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN','s'),))
+            #condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN','s'),))
+            #condorq_dict = glideinFrontendLib.getCondorQ(elementDescript.merged_data['JobSchedds'],
+            #                                           elementDescript.merged_data['JobQueryExpr'],
+            #                                           condorq_format_list)
+            try:
+                condorq_format_list = elementDescript.merged_data['JobMatchAttrs']
+                if x509_proxy_plugin != None:
+                    condorq_format_list = list(condorq_format_list) + list(x509_proxy_plugin.get_required_job_attributes())
+            
+                ### Add in elements to help in determining if jobs have voms creds
+                condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN','s'),))
+                condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN','s'),))
+                condorq_dict = glideinFrontendLib.getCondorQ(elementDescript.merged_data['JobSchedds'],
                                                        elementDescript.merged_data['JobQueryExpr'],
                                                        condorq_format_list)
+            except Exception, e:
+                logSupport.log.info("KEL in query schedd child, exception %s" % e)
+                
         
             os.write(w,cPickle.dumps(condorq_dict))
         finally:
@@ -282,12 +297,13 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         os.close(w)
         pipe_ids['startds']={'r':r,'pid':pid} 
  
-    logSupport.log.info("Child processes created")
+    
     try:
         pipe_out=fetch_fork_result_list(pipe_ids)
     except RuntimeError, e:
         # expect all errors logged already
-        logSupport.log.info("Terminating iteration due to errors")
+        logSupport.log.info("Missing schedd, factory entry, and/or current glidein state information. " \
+                            "Unable to calculate required glideins, terminating loop.")
         return
     logSupport.log.info("All children terminated")
 
@@ -380,7 +396,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
 
     #logSupport.log.debug("realcount: %s\n\n" % glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict))
 
-    logSupport.log.info("Counting")
+    logSupport.log.info("Counting subprocess created")
     pipe_ids={}
     for dt in condorq_dict_types.keys()+['Real','Glidein']:
         # will make calculations in parallel,using multiple processes
@@ -418,9 +434,6 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
             os.close(w)
             pipe_ids[dt]={'r':r,'pid':pid} 
 
-    
-
-    logSupport.log.info("Child processes created")
     try:
         pipe_out=fetch_fork_result_list(pipe_ids)
     except RuntimeError, e:
