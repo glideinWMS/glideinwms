@@ -580,14 +580,18 @@ class MultiAdvertizeWork:
                     fd.write('%s%s = "%s"\n' % (frontendConfig.encrypted_param_prefix, attr, escaped_el))
  
             fd.close()
-            advertizeWorkFromFile(factory_pool, tmpname, remove_file=True)
+            
+            try:
+                advertizeWorkFromFile(factory_pool, tmpname, remove_file=True)
+            except condorExe.ExeError, e:
+                logSupport.log.debug("Advertising globals failed for factory pool %s: %s" % (factory_pool, e))
+                logSupport.log.warning("Advertising globals failed for factory pool %s: %s" % (factory_pool, e))
+                
 
     def do_advertize(self):
         """
         Do the actual advertizing
-        Can throw MultiExeError
         """
-        error_arr=[]
 
         # get a 9 digit number that will stay 9 digit for the next 25 years
         short_time = time.time() - 1.05e9
@@ -598,31 +602,29 @@ class MultiAdvertizeWork:
             self.adname = "/tmp/gfi_aw_%li_%li_%li" % (short_time, os.getpid(), idx)
 
             # this should be done in parallel, but keep it serial for now
-            try:
-                error_arr=[]
-                filename_arr=[]
-                if (frontendConfig.advertise_use_multi==True):
-                    filename_arr.append(self.adname)
-                for el in self.factory_queue[factory_pool]:
-                    params_obj, key_obj = el
+            filename_arr=[]
+            if (frontendConfig.advertise_use_multi==True):
+                filename_arr.append(self.adname)
+            for el in self.factory_queue[factory_pool]:
+                params_obj, key_obj = el
+                try:
                     filename_arr_el=self.createAdvertizeWorkFile(factory_pool,params_obj,key_obj)
                     for f in filename_arr_el:
                         if f not in filename_arr:
                             filename_arr.append(f)
+                except condorExe.ExeError, e:
+                    logSupport.log.debug("Error creating request files for factory pool %s, unable to advertise: %s" % (factory_pool, e))
+                    logSupport.log.warning("Error creating request files for factory pool %s, unable to advertise: %s" % (factory_pool, e))
                 
                 # Advertize all the files (if multi, should only be one) 
                 for filename in filename_arr:
-                    advertizeWorkFromFile(factory_pool, filename, remove_file=True, is_multi=frontendConfig.advertise_use_multi)
+                    try:
+                        advertizeWorkFromFile(factory_pool, filename, remove_file=True, is_multi=frontendConfig.advertise_use_multi)
+                    except condorExe.ExeError, e:
+                        logSupport.log.debug("Advertising request failed for factory pool %s: %s" % (factory_pool, e))
+                        logSupport.log.warning("Advertising request failed for factory pool %s: %s" % (factory_pool, e))
 
-                if len(error_arr)>0:
-                    raise MultiExeError, error_arr
-
-            except condorExe.ExeError, e:
-                error_arr.append(e)
         self.factory_queue = {} # clean queue
-
-        if len(error_arr) > 0:
-            raise MultiExeError, error_arr
 
 
     def createAdvertizeWorkFile(self, factory_pool, params_obj, key_obj=None): 

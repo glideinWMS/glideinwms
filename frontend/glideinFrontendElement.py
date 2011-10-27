@@ -756,13 +756,17 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     try:
         logSupport.log.info("Advertising global requests")
         advertizer.do_global_advertize()
+    except Exception, e:
+        logSupport.log.warning("Unknown error advertising global requests. See debug log for more details." )
+        logSupport.log.debug("Unknown error advertising global requests: %s" % e)
+    try:
         logSupport.log.info("Advertising glidein requests") # cannot advertise len of queue since has both global and glidein requests
         advertizer.do_advertize()
-        logSupport.log.info("Done advertising")
-    except glideinFrontendInterface.MultiExeError, e:
-        logSupport.log.warning("Advertising failed for %i requests. See debug log for more details." % len(e.arr))
-        for ee in e.arr:
-            logSupport.log.debug("Advertising failed: %s" % ee)
+    except Exception, e:
+        logSupport.log.warning("Unknown error advertising glidein requests. See debug log for more details." )
+        logSupport.log.debug("Unknown error advertising glidein requests: %s" % e)
+        
+    logSupport.log.info("Done advertising requests")
 
     # Advertise glideresource classads
     try:
