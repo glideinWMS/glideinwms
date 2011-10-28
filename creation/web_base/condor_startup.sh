@@ -266,6 +266,9 @@ fi
 # make sure max_walltime is respected
 update_interval=370
 
+#Minimum amount retire time can be
+min_glidein=600
+
 # Take into account GLIDEIN_Max_Walltime
 # GLIDEIN_Max_Walltime = Max allowed time for the glidein.
 #   If you specify this variable, then Condor startup scripts will calculate the 
@@ -286,7 +289,9 @@ else
   echo "max wall time, $max_walltime" 1>&2
 
   if [ -z "$retire_spread" ]; then
-	let "default_spread=34"
+        # Make sure that the default spread is enough so that we
+        # dont drop below min_glidein (ie 600 seconds)
+	let "default_spread=($min_glidein * 11) / 100"
   else
 	let "default_spread=$retire_spread"
   fi
@@ -295,9 +300,9 @@ else
   # (since job max default is set to 36hours, this can happen)
   # total_grace=max total time to end glidein after DAEMON_SHUTDOWN occurs
   let "total_grace= $graceful_shutdown + $default_spread + $update_interval"
-  let "total_job_allotment= $total_grace + $job_maxtime+300"
+  let "total_job_allotment= $total_grace + $job_maxtime+$min_glidein"
   if [ "$total_job_allotment" -gt "$max_walltime" ]; then  
-     let "job_maxtime= $max_walltime - $total_grace - 300"
+     let "job_maxtime= $max_walltime - $total_grace - $min_glidein"
      if [ "$job_maxtime" -lt "0" ]; then  
         let "job_maxtime=0"
      fi
@@ -316,7 +321,7 @@ if [ "$die_time" -gt "$x509_duration" ]; then
   # Subtract both die time and retire time by the difference
   let "reduce_time=$die_time-$x509_duration"
   let "die_time=$x509_duration"
-  let "retire_time=$die_time - $reduce_time"
+  let "retire_time=$retire_time - $reduce_time"
   echo "Proxy not long lived enough ($x509_duration s left), shortened retire time to $retire_time" 1>&2
 fi
 
@@ -334,14 +339,14 @@ let "retire_time=$retire_time - $retire_spread * $random100 / 100"
 let "die_time=$die_time - $retire_spread * $random100 / 100"
 
 # but protect from going too low
-if [ "$retire_time" -lt "300" ]; then
+if [ "$retire_time" -lt "$min_glidein" ]; then
   echo "Retire time after spread too low ($retire_time), remove spread" 1>&2
   # With the various calculations going on now with walltime
   # Safer to add spread rather than to revert to previous value
   let "retire_time=$retire_time + $retire_spread * $random100 / 100"
   let "die_time=$die_time + $retire_spread * $random100 / 100"
 fi
-if [ "$retire_time" -lt "300" ]; then  
+if [ "$retire_time" -lt "$min_glidein" ]; then  
   echo "Retire time still too low ($retire_time), aborting" 1>&2
   exit 1
 fi
