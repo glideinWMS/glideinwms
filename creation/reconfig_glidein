@@ -54,7 +54,6 @@ def main(params, old_params, update_scripts):
     if update_scripts == 'yes':
         # copy the submit files
         cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.work_dir, params.src_dir, True)
-        cgWCreate.copy_exe(cgWConsts.SUBMIT_WRAPPER, glidein_dicts_obj.main_dicts.work_dir, params.src_dir, True)
         cgWCreate.copy_exe(cgWConsts.LOCAL_START_WRAPPER, glidein_dicts_obj.main_dicts.work_dir, params.src_dir, True)
 
         # copy glidein_startup.sh to the stage area for cloud entries
