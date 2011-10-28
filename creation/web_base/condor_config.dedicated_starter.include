@@ -32,7 +32,7 @@ IsOwner = False
 # set it to several months... i.e. infinity
 MaxJobRetirementTime=$(PREEMPT_GRACE_TIME)
 # How long does the job have after the startd enters retiring state
-SHUTDOWN_GRACEFUL_TIMEOUT=$(GLIDEIN_Job_Max_Time)
+SHUTDOWN_GRACEFUL_TIMEOUT=$(GLIDEIN_Graceful_Shutdown)
 
 # How long will it wait in an unclaimed state before exiting
 STARTD_NOCLAIM_SHUTDOWN = $(GLIDEIN_Max_Idle)

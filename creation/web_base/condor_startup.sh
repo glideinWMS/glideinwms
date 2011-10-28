@@ -233,43 +233,94 @@ now=`date +%s`
 #add some safety margin
 let "x509_duration=$X509_EXPIRE - $now - 300"
 
-# calculate retire time if wall time is defined (undefined=-1)
+# Get relevant attributes from glidein_config if they exist
+# if they do not, check condor config from vars population above
 max_walltime=`grep -i "^GLIDEIN_Max_Walltime " $config_file | awk '{print $2}'`
+job_maxtime=`grep -i "^GLIDEIN_Job_Max_Time " $config_file | awk '{print $2}'`
+graceful_shutdown=`grep -i "^GLIDEIN_Graceful_Shutdown " $config_file | awk '{print $2}'`
+# randomize the retire time, to smooth starts and terminations
+retire_spread=`grep -i "^GLIDEIN_Retire_Time_Spread " $config_file | awk '{print $2}'`
+
+
+if [ -z "$graceful_shutdown" ]; then
+	graceful_shutdown=`grep -i "^GLIDEIN_Graceful_Shutdown=" $CONDOR_CONFIG | awk -F"=" '{print $2}'`
+	if [ -z "$graceful_shutdown" ]; then
+    		echo "WARNING: graceful shutdown not defined in vars or glidein_config, using 120!" 1>&2
+		graceful_shutdown=120
+	fi
+fi
+if [ -z "$job_maxtime" ]; then
+	job_maxtime=`grep -i "^GLIDEIN_Job_Max_Time=" $CONDOR_CONFIG | awk -F"=" '{print $2}'`
+	if [ -z "$job_maxtime" ]; then
+    		echo "WARNING: job max time not defined in vars or glidein_config, using 192600!" 1>&2
+		job_maxtime=192600
+	fi
+fi
+
+# At this point, we need to define two times:
+#  die_time = time that glidein will enter graceful shutdown
+#  retire_time = time that glidein will stop accepting jobs
+
+# DAEMON_SHUTDOWN is only updated when the classad is sent to the Collector
+# Since update interval is randomized, hardcode a grace period here to 
+# make sure max_walltime is respected
+update_interval=370
+
+# Take into account GLIDEIN_Max_Walltime
+# GLIDEIN_Max_Walltime = Max allowed time for the glidein.
+#   If you specify this variable, then Condor startup scripts will calculate the 
+#   GLIDEIN_Retire_Time for the glidein as 
+#    (GLIDEIN_MAX_Walltime - GLIDEIN_Job_Max_Time)
+#   If GLIDEIN_Retire_Time is also specified, 
+#   it will be ignored and only the calculated value is used. 
 if [ -z "$max_walltime" ]; then
   retire_time=`grep -i "^GLIDEIN_Retire_Time " $config_file | awk '{print $2}'`
-  let "die_time=$retire_time"
   if [ -z "$retire_time" ]; then
     retire_time=21600
     echo "used default retire time, $retire_time" 1>&2
   else
     echo "used param defined retire time, $retire_time" 1>&2
   fi
+  let "die_time=$retire_time + $job_maxtime"
 else
   echo "max wall time, $max_walltime" 1>&2
-  job_maxtime=`grep -i "^GLIDEIN_Job_Max_Time " $config_file | awk '{print $2}'`
-  if [ -z "$job_maxtime" ]; then
-     echo "job max time not defined, using 0" 1>&2
-     job_maxtime=0
+
+  if [ -z "$retire_spread" ]; then
+	let "default_spread=34"
+  else
+	let "default_spread=$retire_spread"
+  fi
+
+  # Make sure retire time is not set to less than 300 plus default spread
+  # (since job max default is set to 36hours, this can happen)
+  # total_grace=max total time to end glidein after DAEMON_SHUTDOWN occurs
+  let "total_grace= $graceful_shutdown + $default_spread + $update_interval"
+  let "total_job_allotment= $total_grace + $job_maxtime+300"
+  if [ "$total_job_allotment" -gt "$max_walltime" ]; then  
+     let "job_maxtime= $max_walltime - $total_grace - 300"
+     if [ "$job_maxtime" -lt "0" ]; then  
+        let "job_maxtime=0"
+     fi
+     echo "WARNING: job max time is bigger than max_walltime, lowering it.  " 1>&2
   fi
   echo "job max time, $job_maxtime" 1>&2
-  let "die_time=$max_walltime"
-  let "retire_time=$max_walltime - $job_maxtime"
+  
+  let "die_time=$max_walltime - $update_interval - $graceful_shutdown"
+  let "retire_time=$die_time - $job_maxtime"
   GLIDEIN_Retire_Time=$retire_time
   echo "calculated retire time, $retire_time" 1>&2
 fi
 
 # make sure the glidein goes away before the proxy expires
-let "calc_max_walltime=$retire_time + $job_maxtime"
-if [ "$calc_max_walltime" -gt "$x509_duration" ]; then
-  calc_max_walltime=$x509_duration
-  let "die_time=$calc_max_walltime"
-  let "retire_time=$calc_max_walltime - $job_maxtime"
+if [ "$die_time" -gt "$x509_duration" ]; then
+  # Subtract both die time and retire time by the difference
+  let "reduce_time=$die_time-$x509_duration"
+  let "die_time=$x509_duration"
+  let "retire_time=$die_time - $reduce_time"
   echo "Proxy not long lived enough ($x509_duration s left), shortened retire time to $retire_time" 1>&2
 fi
 
-org_GLIDEIN_Retire_Time=$retire_time
-# randomize the retire time, to smooth starts and terminations
-retire_spread=`grep -i "^GLIDEIN_Retire_Time_Spread " $config_file | awk '{print $2}'`
+
 if [ -z "$retire_spread" ]; then
   let "retire_spread=$retire_time / 10"
   echo "using default retire spread, $retire_spread" 1>&2
@@ -277,18 +328,21 @@ else
   echo "used param retire spead, $retire_spread" 1>&2
 fi
 
+
 let "random100=$RANDOM%100"
 let "retire_time=$retire_time - $retire_spread * $random100 / 100"
 let "die_time=$die_time - $retire_spread * $random100 / 100"
 
 # but protect from going too low
-if [ "$retire_time" -lt "600" ]; then
-  echo "Retire time after spread too low ($retire_time), remove spread"
-  retire_time=$org_GLIDEIN_Retire_Time
+if [ "$retire_time" -lt "300" ]; then
+  echo "Retire time after spread too low ($retire_time), remove spread" 1>&2
+  # With the various calculations going on now with walltime
+  # Safer to add spread rather than to revert to previous value
+  let "retire_time=$retire_time + $retire_spread * $random100 / 100"
   let "die_time=$die_time + $retire_spread * $random100 / 100"
 fi
-if [ "$retire_time" -lt "600" ]; then  
-  echo "Retire time still too low ($retire_time), aborting"
+if [ "$retire_time" -lt "300" ]; then  
+  echo "Retire time still too low ($retire_time), aborting" 1>&2
   exit 1
 fi
 echo "Retire time set to $retire_time" 1>&2
