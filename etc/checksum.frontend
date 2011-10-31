@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v2_5_3_rc1
+# GLIDEINWMS_VERSION v2_5_3_rc2
 ###################################################################
 c4e9c1f360b685b8a49c62e32e6a3498  ./LICENSE.txt
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
@@ -19,11 +19,11 @@ f64c1f27b927ec6680e9c9928f2b415b  ./creation/web_base/cat_consts.sh
 1c168eb03bd763973ee21ec75fd5e19b  ./creation/web_base/check_blacklist.sh
 940889873ad7c2291abace9ef72aab98  ./creation/web_base/condor_config
 94c12461c96eacd9e28346f6a0f54df0  ./creation/web_base/condor_config.check.include
-1744bccd1830946cc3c3f4bffec03e89  ./creation/web_base/condor_config.dedicated_starter.include
+8bf335368dac3937d31a53a461bbbe09  ./creation/web_base/condor_config.dedicated_starter.include
 eaccc571ca7350619b0ed024e0adabb1  ./creation/web_base/condor_config.monitor.include
-d8c10b78d65140192aea9f346848b152  ./creation/web_base/condor_config.multi_schedd.include
+28a373796a6f9de8121e40f51df895a7  ./creation/web_base/condor_config.multi_schedd.include
 69f6c2b5989cf93e7ea1b6b79d5c400a  ./creation/web_base/condor_vars.lst
-a6101956201383677e29268b6260240d  ./creation/web_base/condor_vars.lst.entry
+2c99de7cec3e4099834848a4fbc9f8ea  ./creation/web_base/condor_vars.lst.entry
 253f1da3c556b7d362c70ad149282194  ./creation/web_base/factory_support.js
 383a6d6fdebb2e89f0dbe10b4c9ac4b5  ./creation/web_base/frontendGroupGraphStatusNow.html
 41de5230524a65120c016f90b305b243  ./creation/web_base/frontendRRDBrowse.html
@@ -60,7 +60,7 @@ ac0a334763d78ab1abe1148209625a94  ./install/glideinWMS.ini
 1d391e6df93bb48fbf57018c3d7bdbda  ./install/services/Condor.py
 2815d4e3a344ae0c202c598c51d418f6  ./install/services/Configuration.py
 2998a859e4140b0cbae48ea77fec1bb4  ./install/services/Factory.py
-3f26258e1698a5429b3d9ce0127db65f  ./install/services/Glidein.py
+b62368547dcc255e6b9972a13bb59aeb  ./install/services/Glidein.py
 a6f3291cba44beba303de6f5f0fb8f4a  ./install/services/PrivilegeSeparation.py
 d046e17350bb27dc1a1188e9e5f12767  ./install/services/RPM.py
 6537a24021846ff093d1a897e458a860  ./install/services/Submit.py
