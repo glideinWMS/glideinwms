@@ -721,7 +721,7 @@ def populate_frontend_descript(frontend_dict,     # will be modified
             sc_el=fe_el['security_classes'][sc]
             username=sc_el['username']
             if username==None:
-                raise RuntimeError, 'security.frontends[%s].security_sclasses[%s][username] not defined, but required'%(fe,sc)
+                raise RuntimeError, 'security.frontends[%s].security_classes[%s][username] not defined, but required'%(fe,sc)
             maps[sc]=username
         
         frontend_dict.add(fe,{'ident':ident,'usermap':maps})
