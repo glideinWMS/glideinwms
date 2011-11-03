@@ -366,7 +366,7 @@ def deadvertizeGlidein(factory_name, glidein_name, entry_name):
         try:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % factoryConfig.factory_id)
-            fd.write('Requirements = Name == "%s@%s@%s"\n' % (entry_name, glidein_name, factory_name))
+            fd.write('Requirements = (Name == "%s@%s@%s")&&(GlideinMyType == "%s")\n' % (entry_name, glidein_name, factory_name, factoryConfig.factory_id))
         finally:
             fd.close()
 
@@ -386,8 +386,8 @@ def deadvertizeGlobal(factory_name, glidein_name):
     try:
         try:
             fd.write('MyType = "Query"\n')
-            fd.write('TargetType = "%s"\n' % factoryConfig.factory_id)
-            fd.write('Requirements = Name == "%s@%s"\n' % (glidein_name, factory_name))
+            fd.write('TargetType = "%s"\n' % factoryConfig.factory_global)
+            fd.write('Requirements = (Name == "%s@%s")&&(GlideinMyType == "%s")\n' % (glidein_name, factory_name, factoryConfig.factory_id))
         finally:
             fd.close()
 
@@ -396,6 +396,9 @@ def deadvertizeGlobal(factory_name, glidein_name):
         os.remove(tmpnam)
 
 def deadvertizeFactory(factory_name, glidein_name):
+    """
+    Deadvertize all entry and global classads for this factory.
+    """
     # get a 9 digit number that will stay 9 digit for the next 25 years
     short_time = time.time() - 1.05e9
     tmpnam = "/tmp/gfi_ag_%li_%li" % (short_time, os.getpid())
@@ -404,7 +407,7 @@ def deadvertizeFactory(factory_name, glidein_name):
         try:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % factoryConfig.factory_id)
-            fd.write('Requirements = (FactoryName=?="%s")&&(GlideinName=?="%s")' % (factory_name, glidein_name))
+            fd.write('Requirements = (FactoryName =?= "%s")&&(GlideinName =?= "%s")\n' % (factory_name, glidein_name))
         finally:
             fd.close()
 
@@ -578,26 +581,11 @@ def advertizeGlideinClientMonitoringFromFile(fname,
 # End INTERNAL
 ###########################################
 
-# remove add from Collector
-def deadvertizeGlideinClientMonitoring(factory_name, glidein_name, entry_name, client_name):
-    # get a 9 digit number that will stay 9 digit for the next 25 years
-    short_time = time.time() - 1.05e9
-    tmpnam = "/tmp/gfi_ag_%li_%li" % (short_time, os.getpid())
-    fd = file(tmpnam, "w")
-    try:
-        try:
-            fd.write('MyType = "Query"\n')
-            fd.write('TargetType = "%s"\n' % factoryConfig.factoryclient_id)
-            fd.write('Requirements = Name == "%s"\n' % client_name)
-        finally:
-            fd.close()
-
-        exe_condor_advertise(tmpnam, "INVALIDATE_LICENSE_ADS")
-    finally:
-        os.remove(tmpnam)
-
 # remove adds from Collector
 def deadvertizeAllGlideinClientMonitoring(factory_name, glidein_name, entry_name):
+    """
+    Deadvertize  monitoring classads for the given entry.
+    """
     # get a 9 digit number that will stay 9 digit for the next 25 years
     short_time = time.time() - 1.05e9
     tmpnam = "/tmp/gfi_ag_%li_%li" % (short_time, os.getpid())
@@ -606,7 +594,7 @@ def deadvertizeAllGlideinClientMonitoring(factory_name, glidein_name, entry_name
         try:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % factoryConfig.factoryclient_id)
-            fd.write('Requirements = ReqGlidein == "%s@%s@%s"\n' % (entry_name, glidein_name, factory_name))
+            fd.write('Requirements = (ReqGlidein == "%s@%s@%s")&&(GlideinMyType == "%s")\n' % (entry_name, glidein_name, factory_name, factoryConfig.factoryclient_id))
         finally:
             fd.close()
 
@@ -616,6 +604,9 @@ def deadvertizeAllGlideinClientMonitoring(factory_name, glidein_name, entry_name
 
 
 def deadvertizeFactoryClientMonitoring(factory_name, glidein_name):
+    """
+    Deadvertize all monitoring classads for this factory.
+    """
     # get a 9 digit number that will stay 9 digit for the next 25 years
     short_time = time.time() - 1.05e9
     tmpnam = "/tmp/gfi_ag_%li_%li" % (short_time, os.getpid())
@@ -624,7 +615,7 @@ def deadvertizeFactoryClientMonitoring(factory_name, glidein_name):
         try:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % factoryConfig.factoryclient_id)
-            fd.write('Requirements = (ReqFactoryName=?="%s")&&(ReqGlideinName=?="%s")' % (factory_name, glidein_name))
+            fd.write('Requirements = (ReqFactoryName=?="%s")&&(ReqGlideinName=?="%s")&&(GlideinMyType == "%s")' % (factory_name, glidein_name, factoryConfig.factoryclient_id))
         finally:
             fd.close()
 
