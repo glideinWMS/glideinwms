@@ -117,6 +117,45 @@ function glidein_exit {
   exit $1
 }
 
+####################################################
+# automatically determine and setup work directories
+function automatic_work_dir {
+    targets="$_CONDOR_SCRATCH_DIR $OSG_WN_TMP $TG_NODE_SCRATCH $TG_CLUSTER_SCRATCH $SCRATCH $TMPDIR $TMP $PWD"
+    unset TMPDIR
+
+    # kb
+    disk_required=1000000
+
+    for d in $targets; do
+
+        echo "Checking $d for potential use as work space... " 1>&2
+
+        # does the target exist?
+        if [ ! -e $d ]; then
+            echo "  Workdir: $d does not exist" 1>&2
+            continue
+        fi
+
+        # make sure there is enough available diskspace
+        cd $d
+        free=`df -kP . | awk '{if (NR==2) print $4}'`
+        if [ "x$free" == "x" -o $free -lt $disk_required ]; then
+            echo "  Workdir: not enough disk space available in $d" 1>&2
+            continue
+        fi
+
+        if touch $d/.dirtest.$$ >/dev/null 2>&1; then
+            echo "  Workdir: $d selected" 1>&2
+            rm -f $d/.dirtest.$$ >/dev/null 2>&1
+            work_dir=$d
+            return 0
+        fi
+        echo "  Workdir: not allowed to write to $d" 1>&2
+    done
+    return 1
+}
+
+
 # Create a script that defines add_config_line
 #   and add_condor_vars_line
 # This way other depending scripts can use it
@@ -519,8 +558,8 @@ elif [ "$work_dir" == "OSG" ]; then
     work_dir="$OSG_WN_TMP"
 elif [ "$work_dir" == "TMPDIR" ]; then
     work_dir="$TMPDIR"
-elif [ "$work_dir" == "TERAGRID" ]; then
-    work_dir="$TG_NODE_SCRATCH"
+elif [ "$work_dir" == "AUTO" ]; then
+    automatic_work_dir
 elif [ "$work_dir" == "." ]; then
     work_dir=`pwd`
 elif [ -z "$work_dir" ]; then
