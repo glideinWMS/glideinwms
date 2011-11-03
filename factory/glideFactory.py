@@ -242,14 +242,18 @@ def spawn(sleep_time, advertize_rate, startup_dir,
                     logSupport.log.info("Failed to remove the old public key after its grace time")
                     logSupport.log.warning("Failed to remove the old public key after its grace time")
             logSupport.log.info("Checking for credentials %s" % entries)
-            try:
-                # read in the frontend globals classad
-                # Do this first so that the credentials are immediately available when the Entries startup
-                glideFactoryCredentials.process_globals(glideinDescript, frontendDescript)
-            except:
-                tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-                logSupport.log.warning("Error occurred processing the globals classads.")
-                logSupport.log.error("Error occurred processing the globals classads. \nTraceback: \n%s" % tb)
+    
+            # read in the frontend globals classad
+            # Do this first so that the credentials are immediately available when the Entries startup
+            classads = glideFactoryCredentials.get_globals_classads()
+            for classad_key in classads.keys():
+                classad = classads[classad_key]
+                try:
+                    glideFactoryCredentials.process_global(classad, glideinDescript, frontendDescript)
+                except:
+                    tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
+                    logSupport.log.warning("Error occurred processing a global classads (%s)." % classad_key)
+                    logSupport.log.error("Error occurred processing the globals classads. \nTraceback: \n%s" % tb)
 
             
             logSupport.log.info("Checking entries %s" % entries)
