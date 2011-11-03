@@ -1199,16 +1199,17 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
             # see the macros
             glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
             exe_env.append('GLIDEIN_ARGUMENTS="%s"' % glidein_arguments)
+            
             # RSL is definitely not for cloud entries
-            glidein_rsl = "none"
+            glidein_rsl = ""
             if jobDescript.data.has_key('GlobusRSL'):
                 glidein_rsl = jobDescript.data['GlobusRSL']
-                # Replace placeholder for project id
-                if 'TG_PROJECT_ID' in glidein_rsl:
-                    glidein_rsl = glidein_rsl.replace('TG_PROJECT_ID', submit_credentials.identity_credentials['ProjectId'])
+            
+            if 'project_id' in jobDescript.data['AuthMethod']:
+                # Append project id to the rsl
+                glidein_rsl = '%s(project=%s)' % (glidein_rsl, submit_credentials.identity_credentials['ProjectId'])
 
-            if not (glidein_rsl == "none"):
-                exe_env.append('GLIDEIN_RSL=%s' % glidein_rsl)
+            exe_env.append('GLIDEIN_RSL=%s' % glidein_rsl)
 
         return exe_env
     except Exception, e:

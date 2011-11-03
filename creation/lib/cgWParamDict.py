@@ -334,7 +334,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE,
                                           params.factory_name,params.glidein_name,self.sub_name,
-                                          sub_params.gridtype,sub_params.gatekeeper,sub_params.rsl,
+                                          sub_params.gridtype,sub_params.gatekeeper, sub_params.rsl, sub_params.auth_method,
                                           params.web_url,sub_params.proxy_url,sub_params.work_dir,
                                           params.submit.base_client_log_dir)
 
@@ -721,7 +721,7 @@ def populate_frontend_descript(frontend_dict,     # will be modified
             sc_el=fe_el['security_classes'][sc]
             username=sc_el['username']
             if username==None:
-                raise RuntimeError, 'security.frontends[%s].security_sclasses[%s][username] not defined, but required'%(fe,sc)
+                raise RuntimeError, 'security.frontends[%s].security_classes[%s][username] not defined, but required'%(fe,sc)
             maps[sc]=username
         
         frontend_dict.add(fe,{'ident':ident,'usermap':maps})
