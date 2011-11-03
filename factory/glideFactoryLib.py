@@ -67,9 +67,6 @@ class FactoryConfig:
 
         self.count_env = 'GLIDEIN_COUNT'
 
-        self.submit_fname = "job_submit.sh"
-
-
         # Stale value settings, in seconds
         self.stale_maxage = { 1:7 * 24 * 3600, # 1 week for idle
                             2:31 * 24 * 3600, # 1 month for running

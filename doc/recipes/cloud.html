@@ -1,0 +1,372 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+    <title>glideinWMS - Glidein Recipes</title>
+    <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+    <style type="text/css">
+    </style>
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+        <span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="./index.html">Glidein Recipes</a></li>
+        <li>Overview</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+            <li> <a href="../index.html">Home</a></li>
+            <li> <a href="../download.html">Download</a></li>
+            <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+            <li> <a href="../corral.html">Corral Frontend</a></li>
+            <li> <a href="../factory/index.html">WMS Factory</a></li>
+            <li> <a href="../components/index.html" >Components</a></li>
+            <li> <a href="../recipes/index.html">Recipes</a></li>
+            <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <div id="cse-search-form" style="width: 100%;">Loading</div>
+            <script src="http://www.google.com/jsapi" type="text/javascript"></script>
+            <script src="../common/glidein.js" type="text/javascript"></script>
+            <script type="text/javascript">
+                google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+                google.setOnLoadCallback(onLoad);
+            </script>
+        </div>
+    </div>
+    <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
+    <div class="content">
+        <div class="heading">
+            <img align="right" width="280px" border="0px" src="../images/simple_diagram.png" usemap="#rightimage">
+            <map name="rightimage">
+                <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+                <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+                <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+                <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
+            </map>
+
+            <h2>Glidein Recipes</h2>
+            <ul class="subcomponents">
+                <li> Overview</li>
+                <li class="last"> <a href="./cloud.html">Cloud Recipes</a></li>
+            </ul>
+            <h3>Overview</h3>
+        </div>
+        <div class="jump">
+            <u>Jump to:</u>
+            <ol>
+                <li><a href="#Overview">Overview</a> </li>
+            </ol>
+        </div>
+        <div class="related">
+            Related Information:
+            <ul>
+                <li> <a href="./install.html">Install</a></li>
+                <li> <a href="./troubleshooting.html">Troubleshooting</a></li>
+            </ul>
+        </div>
+        <div class="section">
+            <h2 class="western">Description</h2>
+            <p>
+                This recipe is designed to give an example on how to configure a factory and frontend to submit user jobs on Amazon EC2.
+            </p>
+            <table summary="Requirements for EC2 Submission" class="requirements">
+                <tbody>
+                    <tr class="head">
+                        <td scope="col">Requirement</td>
+                        <td scope="col">Description</td>
+                    </tr>
+                    <tr>
+                        <td>A functioning glideinwms factory</td>
+                        <td>
+                            The factory should be completely configured and functioning for Grid submissions.  The main reason for this is to be
+                            able to be assured that the factory is running and works before we do any configuration for cloud.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>A functioning glideinwms frontend</td>
+                        <td>
+                            The frontend should be completely configured and functioning for Grid submissions.  The same reasoning for the factory 
+                            applies here.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><nobr>Valid, current, enabled Amazon EC2 credentials</nobr></td>
+                        <td>
+                            Specifically, the AccessKey and SecretKey are needed for submission.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="section">
+            <h2 class="western">Example EC2 Factory Entry</h2>
+            <pre>
+&lt;entry name="Amazon_Vandy" 
+    auth_method="key_pair+vm_id+vm_type" 
+    enabled="True" 
+    gatekeeper="https://us-east-1.ec2.amazonaws.com"
+    gridtype="ec2" 
+    schedd_name="cms-xen6.fnal.gov" 
+    trust_domain="Cloud" 
+    verbosity="std" 
+    work_dir="."&gt;
+
+    &lt;config&gt;
+        &lt;max_jobs glideins="3" held="2" idle="1"&gt;
+            &lt;max_job_frontends&gt;&lt;/max_job_frontends&gt;
+        &lt;/max_jobs&gt;
+        &lt;release max_per_cycle="20" sleep="0.2"/&gt;
+        &lt;remove max_per_cycle="5" sleep="0.2"/&gt;
+        &lt;restrictions require_voms_proxy="False"/&gt;
+        &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2"/&gt;
+    &lt;/config&gt;
+    &lt;allow_frontends&gt;&lt;/allow_frontends&gt;
+
+    &lt;attrs&gt;
+        &lt;attr name="CONDOR_ARCH" const="True" glidein_publish="False" job_publish="False"
+              parameter="True" publish="False" type="string" value="default"/&gt;
+        &lt;attr name="CONDOR_OS" const="True" glidein_publish="False"  job_publish="False" 
+              parameter="True" publish="False" type="string" value="default"/&gt;
+        &lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" 
+              parameter="True" publish="True" type="string" value="NONE"/&gt;
+        &lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" 
+              parameter="True" publish="True" type="string" value="Amazon_EC2"/&gt;
+        &lt;attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" 
+              parameter="True" publish="True" type="string" value="True"/&gt;
+    &lt;/attrs&gt;
+
+    &lt;files&gt;&lt;/files&gt;
+    &lt;infosys_refs&gt;&lt;/infosys_refs&gt;
+    &lt;monitorgroups&gt;&lt;/monitorgroups&gt;
+&lt;/entry&gt;
+            </pre>
+            <p> The important pieces of the entry stanza listed above are listed below:</p>
+            <table summary="Important sections of the example factory entry" class="requirements">
+                <tbody>
+                    <tr class="head">
+                        <td scope="col">Name</td>
+                        <td scope="col">Type</td>
+                        <td scope="col">Value</td>
+                        <td scope="col">Description</td>
+                    </tr>
+                    <tr>
+                        <td>auth_method</td>
+                        <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
+                        <td><nobr>"key_pair+vm_id+vm_type"</nobr></td>
+                        <td>
+                            <p>The key pair in this case refers to the AccessKey and SecretKey that EC2-like cloud providers give for their
+                            REST interface.  The vm_id and vm_type correspond to EC2's AMI_ID and AMI_TYPE descriptors.  Each cloud implementation
+                            will have their own definitions for what these descriptors mean.  In this example, the actual values will be configured
+                            by the frontend.</p>
+                            <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>gatekeeper</td>
+                        <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
+                        <td><nobr>"https://us-east-1.ec2.amazonaws.com"</nobr></td>
+                        <td>
+                            <p>The gatekeeper attribute in the cloud case is similar enough to a grid gatekeeper that there is no function
+                            difference as far as the glideinWMS factory admin is concerned.  EC2 has regional gatekeepers, so choose the 
+                            gatekeeper for the region in which you would like to run in.  In this example, the US-EAST region has bee selected.</p>
+                            <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>gridtype</td>
+                        <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
+                        <td>"ec2"</td>
+                        <td>
+                            <p>To submit to EC2-like clouds, this attribute must be set to "ec2".</p>
+                            <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>trust_domain</td>
+                        <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
+                        <td>"Cloud"</td>
+                        <td>
+                            <p>The trust domain can be any arbitrary value.  The only caveat is that both the factory and the frontend
+                            must be configured to use the same value.  In this example, "Cloud" is the arbitrary value.</p>
+                            <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>work_dir</td>
+                        <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
+                        <td>"."</td>
+                        <td>
+                            <p>The working directory that the pilot starts up in must be "." for this example.  The reason is that the 
+                            VM that the example is pointing to makes specific use of the scratch space Amazon provides.  This is in a 
+                            non-standard location.  For all intents and practical purposes, it will be the VOs responsibility to define
+                            the working directory on the VM and have the contextualization scripts handle the setup of where the pilot
+                            starts.</p>
+                            <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>glideins</td>
+                        <td><nobr>Element attribute for &lt;max_jobs&gt;</nobr></td>
+                        <td>"3"</td>
+                        <td>
+                            <p>This attribute is very important for cloud use.  Even more so when real money is being used to pay for the 
+                            computing cycles.  This is a hard limit for the number of VMs that the factory will start.  For testing purposes
+                            this example was restricted to 3 running VMs.</p>
+                            <p>See <a href="../factory/configuration.html">Factory Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>held</td>
+                        <td><nobr>Element attribute for &lt;max_jobs&gt;</nobr></td>
+                        <td>"1"</td>
+                        <td>
+                            <p>This is a limit for the number of VM requests that can be in held state.  If the number of held requests match
+                            this number, the factory will stop asking for more.  For purposes of testing, this number was set extremely low.</p>
+                            <p>See <a href="../factory/configuration.html">Factory Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>idle</td>
+                        <td><nobr>Element attribute for &lt;max_jobs&gt;</nobr></td>
+                        <td>"1"</td>
+                        <td>
+                            <p>This is a limit for the number of VM requests that can be in idle state.  Ordinarily, this attribute is used to 
+                            determine "pressure" at a grid site.  However, the cloud use case is different considering that most cloud 
+                            implementations do not operate on "allocations" or something similare, but are operated on a "pay-as-you-go" 
+                            principle.  Therefore, real money is exchanged for actual usage.  By setting this value to "1", we basically
+                            turn off the "pressure" and ask for as many VMs as there are jobs up to the max set by the <strong>glideins</strong>
+                            attribute.</p>
+                            <p>See <a href="../factory/configuration.html">Factory Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="section">
+            <h2 class="western">Example EC2 Frontend Configuration</h2>
+            <p>This only configuration for the frontend in this example is for the credential setup.  The credential setup can be included 
+            in the group credential definition or in the global credential definition.
+            <pre>
+&lt;credential absfname="/path/to/Cloud_AccessKey"
+            keyabsfname="/path/to/Cloud_SecretKey"
+            security_class="Security Class"
+            trust_domain="Cloud"
+            type="key_pair+vm_id+vm_type"
+            vm_id="ami-7bf43812"
+            vm_type="m1.large"
+            pilotabsfname="/path/to/pilot_proxy"/&gt;
+            </pre>
+            <p> The important pieces of the credential stanza listed above are listed below:</p>
+            <table summary="Important sections of the example factory entry" class="requirements">
+                <tbody>
+                    <tr class="head">
+                        <td scope="col">Name</td>
+                        <td scope="col">Type</td>
+                        <td scope="col">Value</td>
+                        <td scope="col">Description</td>
+                    </tr>
+                    <tr>
+                        <td>absfname</td>
+                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
+                        <td>"/path/to/Cloud_AccessKey"</td>
+                        <td>
+                            <p>This is the full path to the file containing the AccessKey for the account that will be used to submit 
+                            the VM request</p>
+                            <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>keyabsfname</td>
+                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
+                        <td>"/path/to/Cloud_SecretKey"</td>
+                        <td>
+                            </p>This is the full path to the file containing the SectretKey for the account that will be used to submit 
+                            the VM request</p>
+                            <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>security_class</td>
+                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
+                        <td>"Security Class"</td>
+                        <td>
+                            <p>This is the security class that is defined for the other credentials on this frontend</p>
+                            <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>trust_domain</td>
+                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
+                        <td>"Cloud"</td>
+                        <td>
+                            <p>The trust domain can be any arbitrary value.  The only caveat is that both the factory and the frontend
+                            must be configured to use the same value.  In this example, "Cloud" is the arbitrary value.</p>
+                            <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>type</td>
+                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
+                        <td>"key_pair+vm_id+vm_type"</td>
+                        <td>
+                            <p>The key pair in this case refers to the AccessKey and SecretKey that EC2-like cloud providers give for their
+                            REST interface.  The vm_id and vm_type correspond to EC2's AMI_ID and AMI_TYPE descriptors.  Each cloud implementation
+                            will have their own definitions for what these descriptors mean.  In this example, the actual values will be configured
+                            by the frontend.</p>
+                            <p>This must match the value specified in the factory for the credentials to be matched properly</p>
+                            <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>vm_id</td>
+                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
+                        <td>"ami-7bf43812"</td>
+                        <td>
+                            <p>Since the <strong>&lt;type&gt;</strong> attribute contains vm_id, it must be specified here. See the specific 
+                            cloud implementation for the correct vm_id value.  In this example, a generic VM has been uploaded
+                            to Amazon EC2 and is ready for use.</p>
+                            <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>vm_type</td>
+                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
+                        <td>"m1.large"</td>
+                        <td>
+                            <p>Since the <strong>&lt;type&gt;</strong> attribute contains vm_type, it must be specified here.  See the specific 
+                            cloud implementation for the correct vm_type value.  In this example, a generic VM has been uploaded
+                            to Amazon EC2 and is ready for use.</p>
+                            <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>pilotabsfname</td>
+                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
+                        <td>"/path/to/pilot_proxy"</td>
+                        <td>
+                            <p>A proxy for the pilot is required in all cases, even if proxies are not used to authenticate on the gatekeeper. 
+                            This is because the proxy is used to establish secure communication between the pilot and the user collector.</p>
+                            <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="footer">
+            Banner image by
+            <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+            used under Creative Commons license.
+            <br>
+            Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glid%0AeinWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
+            glideinWMS email support: glideinwms-support at fnal.gov
+        </div>
+    </div>
+</body>
+</html>
