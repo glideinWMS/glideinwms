@@ -77,7 +77,7 @@ class FactoryConfig:
         self.remove_sleep = 0.2
         self.release_sleep = 0.2
         
-        self.whole_node = False
+        self.slots_layout = "single_slot"
 
         # Max commands per cycle
         self.max_submits = 100
@@ -1124,16 +1124,16 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
         exe_env.append('ENTRY_DESCRIPT=%s' % entry_descript)
         exe_env.append('ENTRY_SIGN=%s' % entry_sign)
 
-        # Specify if it is a whole node glidein (one condor per node)
-        whole_node = jobDescript.data['SubmitWholeNode']
+        # Specify how the slots should be layed out
+        slots_layout = jobDescript.data['SubmitSlotsLayout']
         # Build the glidein pilot arguments
         glidein_arguments = str("-v %s -name %s -entry %s -clientname %s -schedd %s " \
                             "-factory %s -web %s -sign %s -signentry %s -signtype %s " \
-                            "-descript %s -descriptentry %s -dir %s -param_GLIDEIN_Client %s -whole_node %s %s" % \
+                            "-descript %s -descriptentry %s -dir %s -param_GLIDEIN_Client %s -slotslayout %s %s" % \
                             (verbosity, glidein_name, entry_name, client_name,
                              schedd, factory_name, web_url, main_sign, entry_sign,
                              sign_type, main_descript, entry_descript, startup_dir,
-                             client_name, whole_node, params_str))
+                             client_name, slots_layout, params_str))
 
         logSupport.log.debug("glidein_arguments: %s" % glidein_arguments)
 

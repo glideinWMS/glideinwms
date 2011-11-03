@@ -10,6 +10,9 @@ export LANG=C
 
 function on_die {
         echo "Received kill signal... shutting down child processes" 1>&2
+        if [ "x$lock_file" != "x" ]; then
+            rm -f $lock_file
+        fi
         ON_DIE=1
         kill %1
 }
@@ -32,7 +35,7 @@ function usage {
     echo "  -clientgroup <name>         : group name of the requesting client"
     echo "  -web <baseURL>              : base URL from where to fetch"
     echo "  -proxy <proxyURL>           : URL of the local proxy"
-    echo "  -dir <dirID>                : directory ID (supports ., Condor, CONDOR, OSG, TMPDIR, TERAGRID)"
+    echo "  -dir <dirID>                : directory ID (supports ., Condor, CONDOR, OSG, TMPDIR, AUTO)"
     echo "  -sign <sign>                : signature of the signature file"
     echo "  -signtype <id>              : type of signature (only sha1 supported for now)"
     echo "  -signentry <sign>           : signature of the entry signature file"
@@ -48,7 +51,8 @@ function usage {
     echo "  -clientsigngroup <sign>     : signature of the client group signature file"
     echo "  -clientdescript <fname>     : client description file name"
     echo "  -clientdescriptgroup <fname>: client description file name for group"
-    echo "  -whole_node <true|false>	: will this glidein have one condor per node"
+    echo "  -slotslayout <type>         : how Condor will set up slots (single_slot, whole_node_n_slots,"
+    echo "                              : whole_node_htpc, whole_node_dynamic)"
     echo "  -v <id>                     : operation mode (std, nodebug, fast, check supported)"
     echo "  -param_* <arg>              : user specified parameters"
     exit 1
@@ -58,7 +62,7 @@ function usage {
 # params will contain the full list of parameters
 # -param_XXX YYY will become "XXX YYY"
 params=""
-
+/
 while [ $# -gt 0 ]
 do case "$1" in
     -factory)    glidein_factory="$2";;
@@ -84,7 +88,7 @@ do case "$1" in
     -clientsigngroup)       client_sign_group_id="$2";;
     -clientdescript)        client_descript_file="$2";;
     -clientdescriptgroup)   client_descript_group_file="$2";;
-    -whole_node)			whole_node="$2";;
+    -slotslayout)			slots_layout="$2";;
     -v)          operation_mode="$2";;
     -param_*)    params="$params `echo $1 | awk '{print substr($0,8)}'` $2";;
     *)  (warn "Unknown option $1"; usage) 1>&2; exit 1
@@ -92,6 +96,20 @@ esac
 shift
 shift
 done
+
+# before creating workdirs and such, check if we are being asked for a
+# whole machine and if we are the only/first one to start up
+if (echo "x$slots_layout" | grep whole_node) >/dev/null 2>&1 ; then
+    lock_file=/tmp/glideinwms.$condorg_cluster.$condorg_subcluster.$sign_id
+    if ! ( set -o noclobber; echo "$$" > "$lock_file") 2>/dev/null ; then
+        # lock already exists - should we exit or wait here?
+        warn "whole node requested, and lock file already exists. Exiting..."
+        exit 0
+   fi
+    # we have the lock - ok to continue
+else
+    slots_layout="single_slot"
+fi
 
 ####################################
 # Cleaup, print out message and exit
@@ -104,6 +122,10 @@ function glidein_exit {
       # note: exit code 99 means DAEMON_SHUTDOWN encountered
       # This should be considered a normal shutdown
     fi
+  fi
+  # lock file for whole machine 
+  if [ "x$lock_file" != "x" ]; then
+    rm -f $lock_file
   fi
   cd "$start_dir"
   if [ "$work_dir_created" -eq "1" ]; then
@@ -710,6 +732,7 @@ fi
 echo "ADD_CONFIG_LINE_SOURCE $PWD/add_config_line.source" >> glidein_config
 echo "GET_ID_SELECTORS_SOURCE $PWD/get_id_selectors.source" >> glidein_config
 echo "WRAPPER_LIST $wrapper_list" >> glidein_config
+echo "SLOTS_LAYOUT $slots_layout" >> glidein_config
 echo "# --- User Parameters ---" >> glidein_config
 params2file $params
 
