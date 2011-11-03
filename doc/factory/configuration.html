@@ -562,13 +562,12 @@ override the global arguments if present.
         name=&quot;<I>entry name</I>&quot; 
         rsl=&quot;<I>rsl</I>&quot;&gt;
         </div>
-    <b>Required</b> Please check the Grid site documentation and/or ask the Grid
+    Please check the Grid site documentation and/or ask the Grid
     site administrator for the proper rsl and queue name for the site.<br/>
-    (example: '<tt>(condorsubmit=(universe
-    vanilla)(requirements \&quot;(ISMINOSAFS=?=True)\&quot;))</tt>'). <br/>
-    NOTE:  If a Corral Frontend is using a TeraGrid entry, a placeholder can be 
-    specified in the rsl (project=TG_PROJECT_ID) and the Factory will replace this 
-    with the project id passed by Corral.  This does not apply to VO Frontends.
+    (example: '<tt>(condorsubmit=(universe vanilla)(requirements \&quot;(ISMINOSAFS=?=True)\&quot;))</tt>'). <br/>
+    NOTE:  If the auth_method contains "+project_id" for a TeraGrid entry, the string "(project=TG_PROJECT_ID)" 
+    will be added by the Factory and populated with the project id passed in the Corral request.  Only Corral Frontends can use
+    these entries since we currently do not support a VO Frontend passing the project id.
     </li>
     <li>
         <div class="xml">
