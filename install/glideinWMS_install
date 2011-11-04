@@ -3576,7 +3576,7 @@ def setup_collector(default_poolname,nr_secondary_collectors,secondary_collector
         config_fd.write("COLLECTOR.USE_VOMS_ATTRIBUTES = False\n")
         config_fd.write("NEGOTIATOR.USE_VOMS_ATTRIBUTES = False\n")
         config_fd.write("\n#--- allow more file descriptors (only works if Condor is started as root)\n")
-        config_fd.write("COLLECTOR_MAX_FILE_DESCRIPTORS=20000\n")
+        config_fd.write("##COLLECTOR_MAX_FILE_DESCRIPTORS=20000\n")
     finally:
         config_fd.close()
 
