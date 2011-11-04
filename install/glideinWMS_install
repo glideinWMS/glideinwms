@@ -3240,6 +3240,8 @@ def configure_gsi_security(gsi_setup=None):
         config_fd.write("##########################################################\n")
         config_fd.write("SHADOW.GLEXEC_STARTER = True\n")
         config_fd.write("SHADOW.GLEXEC = /bin/false\n\n")
+        config_fd.write("#-- limit size of shadow logs\n")
+        config_fd.write("MAX_SHADOW_LOG = 100000000\n\n")
     finally:
         config_fd.close()
 
@@ -3459,7 +3461,7 @@ def setup_collector(default_poolname,nr_secondary_collectors,secondary_collector
         config_fd.write("NEGOTIATOR_POST_JOB_RANK = MY.LastHeardFrom\n")
         config_fd.write("# Increase negotiation frequency, as new glideins do not trigger a reschedule \n")
         config_fd.write("NEGOTIATOR_INTERVAL = 60\n")
-        config_fd.write("NEGOTIATOR_MAX_TIME_PER_SUBMITTER=40\n")
+        config_fd.write("NEGOTIATOR_MAX_TIME_PER_SUBMITTER=60\n")
         config_fd.write("NEGOTIATOR_MAX_TIME_PER_PIESPIN=20\n")
         config_fd.write("# Prevent preemption\n")
         config_fd.write("PREEMPTION_REQUIREMENTS = False\n")
@@ -3470,6 +3472,12 @@ def setup_collector(default_poolname,nr_secondary_collectors,secondary_collector
             config_fd.write("# Causes Negotiator to run faster. PREEMPTION_REQUIREMENTS and all condor_startd rank expressions must be False for NEGOTIATOR_CONSIDER_PREEMPTION to be False\n")
             config_fd.write("NEGOTIATOR_CONSIDER_PREEMPTION = False\n")
 
+        config_fd.write("###########################################################\n")
+        config_fd.write("# Event logging (if desired)\n")
+        config_fd.write("###########################################################\n")
+        config_fd.write("## EVENT_LOG=$(LOG)/EventLog\n")
+        config_fd.write("## EVENT_LOG_JOB_AD_INFORMATION_ATTRS=Owner,CurrentHosts,x509userproxysubject,AccountingGroup,GlobalJobId,QDate,JobStartDate,JobCurrentStartDate,JobFinishedHookDone,MATCH_EXP_JOBGLIDEIN_Site,RemoteHost\n")
+        config_fd.write("## EVENT_LOG_MAX_SIZE = 1000000000\n")
 
         if nr_secondary_collectors>0:
             config_fd.write("\n################################################\n")
@@ -3495,6 +3503,8 @@ def setup_collector(default_poolname,nr_secondary_collectors,secondary_collector
         config_fd.write("######################################################\n\n")
         config_fd.write("COLLECTOR.USE_VOMS_ATTRIBUTES = False\n")
         config_fd.write("NEGOTIATOR.USE_VOMS_ATTRIBUTES = False\n")
+        config_fd.write("\n#--- allow more file descriptors (only works if Condor is started as root)\n")
+        config_fd.write("COLLECTOR_MAX_FILE_DESCRIPTORS=20000\n")
     finally:
         config_fd.close()
 
@@ -3571,7 +3581,7 @@ def setup_main_schedd():
         config_fd.write("JOB_STOP_COUNT = 30\n\n")
         config_fd.write("# Raise file transfer limits\n")
         config_fd.write("# no upload limits, since JOB_START_DELAY limits that\n")
-        config_fd.write("MAX_CONCURRENT_UPLOADS = 0\n")
+        config_fd.write("MAX_CONCURRENT_UPLOADS = 100\n")
         config_fd.write("# but do limit downloads, as they are asyncronous\n")
         config_fd.write("MAX_CONCURRENT_DOWNLOADS = 100\n\n")
         config_fd.write("# Prevent checking on ImageSize\n")
