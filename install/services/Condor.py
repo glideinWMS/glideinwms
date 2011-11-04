@@ -1178,7 +1178,7 @@ COLLECTOR_HOST = $(CONDOR_HOST):%(port)s
 COLLECTOR.USE_VOMS_ATTRIBUTES = False
 
 #-- allow more file descriptors (only works if Condor is started as root)
-COLLECTOR_MAX_FILE_DESCRIPTORS=20000
+##COLLECTOR_MAX_FILE_DESCRIPTORS=20000
 """ % { "name" : self.service_name(), 
         "port" : self.collector_port()
       }
