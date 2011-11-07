@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v2_5_3_rc2
+# GLIDEINWMS_VERSION v2_5_3_rc3
 ###################################################################
 c4e9c1f360b685b8a49c62e32e6a3498  ./LICENSE.txt
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
@@ -54,10 +54,10 @@ e4af09612ab29dcce04161d43b7e85db  ./frontend/glideinFrontendLib.py
 c4530b350154f975e49557515436fd34  ./frontend/stopFrontend.py
 f89e65327579b013cb899b416ebdaff9  ./install/glidecondor_addDN
 ac0a334763d78ab1abe1148209625a94  ./install/glideinWMS.ini
-694236e8ec20c5d755c7017d38522674  ./install/glideinWMS_install
+d1b6e26d6b2086d130163066aafb2d0f  ./install/glideinWMS_install
 5c3fd63c819e5a0e5a24be6c172a77ea  ./install/manage-glideins
 929c16abb887f6148b93b1b2d500ba19  ./install/services/Certificates.py
-1d391e6df93bb48fbf57018c3d7bdbda  ./install/services/Condor.py
+84efb2541b4709e0257910f89aeaee2f  ./install/services/Condor.py
 2815d4e3a344ae0c202c598c51d418f6  ./install/services/Configuration.py
 2998a859e4140b0cbae48ea77fec1bb4  ./install/services/Factory.py
 b62368547dcc255e6b9972a13bb59aeb  ./install/services/Glidein.py
