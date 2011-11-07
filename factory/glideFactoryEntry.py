@@ -1228,7 +1228,7 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
 
     glideFactoryLib.factoryConfig.max_submits = int(jobDescript.data['MaxSubmitRate'])
     glideFactoryLib.factoryConfig.max_cluster_size = int(jobDescript.data['SubmitCluster'])
-    glideFactoryLib.factoryConfig.whole_node = jobDescript.data['SubmitWholeNode'] 
+    glideFactoryLib.factoryConfig.slots_layout = jobDescript.data['SubmitSlotsLayout'] 
     glideFactoryLib.factoryConfig.submit_sleep = float(jobDescript.data['SubmitSleep'])
     glideFactoryLib.factoryConfig.max_removes = int(jobDescript.data['MaxRemoveRate'])
     glideFactoryLib.factoryConfig.remove_sleep = float(jobDescript.data['RemoveSleep'])

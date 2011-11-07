@@ -671,7 +671,7 @@ def populate_job_descript(work_dir, job_descript_dict,
     job_descript_dict.add('MaxHeld', sub_params.config.max_jobs.held)
     job_descript_dict.add('MaxSubmitRate', sub_params.config.submit.max_per_cycle)
     job_descript_dict.add('SubmitCluster', sub_params.config.submit.cluster_size)
-    job_descript_dict.add('SubmitWholeNode', sub_params.config.submit.whole_node)
+    job_descript_dict.add('SubmitSlotsLayout', sub_params.config.submit.slots_layout)
     job_descript_dict.add('SubmitSleep', sub_params.config.submit.sleep)
     job_descript_dict.add('MaxRemoveRate', sub_params.config.remove.max_per_cycle)
     job_descript_dict.add('RemoveSleep', sub_params.config.remove.sleep)

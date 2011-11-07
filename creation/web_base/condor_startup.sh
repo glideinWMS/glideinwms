@@ -460,6 +460,22 @@ Monitored_Names = "glidein_$$@\$(FULL_HOSTNAME)"
 EOF
     fi
 
+    # set up the slots based on the slots_layout entry parameter
+    slots_layout=`grep -i "^SLOTS_LAYOUT " $config_file | awk '{print $2}'`
+    if [ "X$slots_layout" = "Xwhole_node_n_slots" ]; then
+        echo "# NUM_CPUS - not defined - let condor figure it out" >> "$CONDOR_CONFIG"
+    elif [ "X$slots_layout" = "Xwhole_node_dynamic" ]; then
+        echo "NUM_SLOTS = 1" >> "$CONDOR_CONFIG"
+        echo "SLOT_TYPE_1 = cpus=auto" >> "$CONDOR_CONFIG"
+        echo "NUM_SLOTS_TYPE_1 = 1" >> "$CONDOR_CONFIG"
+        echo "SLOT_TYPE_1_PARTITIONABLE = True" >> "$CONDOR_CONFIG"
+    else
+        # single slot / htpc 
+        echo "NUM_CPUS = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
+        echo "SLOT_TYPE_1 = cpus=\$(GLIDEIN_CPUS), memory=100%, swap=100%, disk=100%" >> "$CONDOR_CONFIG"
+        echo "NUM_SLOTS_TYPE_1 = 1" >> "$CONDOR_CONFIG"
+    fi
+
     cat $condor_config_main_include >> "$CONDOR_CONFIG"
     if [ $? -ne 0 ]; then
     echo "Error appending main_include to condor_config" 1>&2
