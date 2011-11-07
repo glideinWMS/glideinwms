@@ -245,7 +245,12 @@ def spawn(sleep_time, advertize_rate, startup_dir,
     
             # read in the frontend globals classad
             # Do this first so that the credentials are immediately available when the Entries startup
-            classads = glideFactoryCredentials.get_globals_classads()
+            try:
+                classads = glideFactoryCredentials.get_globals_classads()
+            except Exception, e:
+                logSupport.log.warning("Error occurred processing global classads.")
+                logSupport.log.debug("Error occurred processing global classads: %s" % e)
+                
             for classad_key in classads.keys():
                 classad = classads[classad_key]
                 try:
