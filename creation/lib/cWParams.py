@@ -123,7 +123,6 @@ class SubParams:
                         self.data[k]=[] # no elements yet, set and empty list
                     else:
                         # need to set defaults on all elements in the list
-                        mylist=self[k]
                         for data_el in self[k]:
                             data_el.use_defaults(subdef)
                 else:
@@ -419,7 +418,7 @@ def shorten_text(text,width):
     idx=0
     for c in text:
         if count>=width:
-             return (text[:idx],c)
+            return (text[:idx],c)
         if c=='\t':
             count=((count+8)/8)*8 #round to neares mult of 8
             if count>width:
