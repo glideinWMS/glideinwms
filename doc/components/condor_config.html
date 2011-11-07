@@ -218,7 +218,7 @@
 
 <!--  Negotiator -->
 <tr>
-  <td rowspan="10" align="center" valign="top">
+  <td rowspan="12" align="center" valign="top">
      <b>
       WMS Collector<br/>
       User Collector
@@ -231,7 +231,7 @@
   </tr>
 <tr>
   <td>NEGOTIATOR_INTERVAL = 60<br/>
-    NEGOTIATOR_MAX_TIME_PER_SUBMITTER=40<br/>
+    NEGOTIATOR_MAX_TIME_PER_SUBMITTER=60<br/>
     NEGOTIATOR_MAX_TIME_PER_PIESPIN=20
   </td>
   <td>Increase negotiation frequency, as new glideins do not trigger a reschedule
@@ -276,6 +276,23 @@
   <td>Disable checking for VOMS extended attributes (FQAN)</td>
   </tr>
 
+<tr>
+  <td>##EVENT_LOG=$(LOG)/EventLog<br/>
+      ##EVENT_LOG_JOB_AD_INFORMATION_ATTRS=Owner,CurrentHosts,x509userproxysubject,
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+AccountingGroup,GlobalJobId,QDate,JobStartDate,JobCurrentStartDate,
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+JobFinishedHookDone,MATCH_EXP_JOBGLIDEIN_Site,RemoteHost<br/>
+      ##EVENT_LOG_MAX_SIZE = 100000000<br/>
+  </td>
+  <td>Event logging, if desired
+  </td>
+  </tr>
+
+<tr>
+  <td>##COLLECTOR_MAX_FILE_DESCRIPTORS = 20000</td>
+  <td>Allow more file descriptors (only works if Condor is started as root)</td>
+
 <!--  Secondary Collectors -->
 <tr>
   <td>COLLECTOR0 = $(COLLECTOR)<br/>
@@ -294,7 +311,7 @@
 
 <!--  Schedd -->
 <tr>
-  <td rowspan="12" align="center" valign="top">
+  <td rowspan="13" align="center" valign="top">
       <b>
       WMS Collector<br/>
       Submit
@@ -325,7 +342,7 @@
   </tr>
 
 <tr>
-  <td>MAX_CONCURRENT_UPLOADS = 0<br/>
+  <td>MAX_CONCURRENT_UPLOADS = 100<br/>
       MAX_CONCURRENT_DOWNLOADS = 100
   </td>
   <td>Raise file transfer limits.<br/>
@@ -368,6 +385,12 @@
   <td>Prepare the Shadow for use with glexec-enabled glideins
   </td>
   </tr>
+
+<tr>
+  <td>MAX_SHADOW_LOG = 1000000000</td>
+  <td>Limits size of shadow logs </td>
+  </tr>
+
 <tr>
   <td>SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION = TRUE
   </td>

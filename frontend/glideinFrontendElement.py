@@ -853,6 +853,11 @@ def iterate(parent_pid, elementDescript, paramsDescript, signatureDescript, x509
                 glideinFrontendInterface.deadvertizeAllWork(factory_pool_node, published_frontend_name)
             except:
                 pass # just ignore errors... this was cleanup
+            
+            try:
+                glideinFrontendInterface.deadvertizeAllGlobals(factory_pool_node, published_frontend_name)
+            except:
+                pass # just ignore errors... this was cleanup
 
         # Invalidate all resource classads
         try:

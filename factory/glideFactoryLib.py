@@ -67,9 +67,6 @@ class FactoryConfig:
 
         self.count_env = 'GLIDEIN_COUNT'
 
-        self.submit_fname = "job_submit.sh"
-
-
         # Stale value settings, in seconds
         self.stale_maxage = { 1:7 * 24 * 3600, # 1 week for idle
                             2:31 * 24 * 3600, # 1 month for running
@@ -80,7 +77,7 @@ class FactoryConfig:
         self.remove_sleep = 0.2
         self.release_sleep = 0.2
         
-        self.whole_node = False
+        self.slots_layout = "single_slot"
 
         # Max commands per cycle
         self.max_submits = 100
@@ -1094,10 +1091,12 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
         schedd = jobDescript.data["Schedd"]
         verbosity = jobDescript.data["Verbosity"]
         startup_dir = jobDescript.data["StartupDir"]
+        slots_layout = jobDescript.data["SubmitSlotsLayout"]
 
         exe_env.append('GLIDEIN_SCHEDD=%s' % schedd)
         exe_env.append('GLIDEIN_VERBOSITY=%s' % verbosity)
         exe_env.append('GLIDEIN_STARTUP_DIR=%s' % startup_dir)
+        exe_env.append('GLIDEIN_SLOTS_LAYOUT=%s' % slots_layout)
 
         submit_time = timeConversion.get_time_in_format(time_format="%Y%m%d")
         exe_env.append('GLIDEIN_LOGNR=%s' % str(submit_time))
@@ -1127,16 +1126,16 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
         exe_env.append('ENTRY_DESCRIPT=%s' % entry_descript)
         exe_env.append('ENTRY_SIGN=%s' % entry_sign)
 
-        # Specify if it is a whole node glidein (one condor per node)
-        whole_node = jobDescript.data['SubmitWholeNode']
+        # Specify how the slots should be layed out
+        slots_layout = jobDescript.data['SubmitSlotsLayout']
         # Build the glidein pilot arguments
         glidein_arguments = str("-v %s -name %s -entry %s -clientname %s -schedd %s " \
                             "-factory %s -web %s -sign %s -signentry %s -signtype %s " \
-                            "-descript %s -descriptentry %s -dir %s -param_GLIDEIN_Client %s -whole_node %s %s" % \
+                            "-descript %s -descriptentry %s -dir %s -param_GLIDEIN_Client %s -slotslayout %s %s" % \
                             (verbosity, glidein_name, entry_name, client_name,
                              schedd, factory_name, web_url, main_sign, entry_sign,
                              sign_type, main_descript, entry_descript, startup_dir,
-                             client_name, whole_node, params_str))
+                             client_name, slots_layout, params_str))
 
         logSupport.log.debug("glidein_arguments: %s" % glidein_arguments)
 
@@ -1202,16 +1201,17 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
             # see the macros
             glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
             exe_env.append('GLIDEIN_ARGUMENTS="%s"' % glidein_arguments)
+            
             # RSL is definitely not for cloud entries
-            glidein_rsl = "none"
+            glidein_rsl = ""
             if jobDescript.data.has_key('GlobusRSL'):
                 glidein_rsl = jobDescript.data['GlobusRSL']
-                # Replace placeholder for project id
-                if 'TG_PROJECT_ID' in glidein_rsl:
-                    glidein_rsl = glidein_rsl.replace('TG_PROJECT_ID', submit_credentials.identity_credentials['ProjectId'])
+            
+            if 'project_id' in jobDescript.data['AuthMethod']:
+                # Append project id to the rsl
+                glidein_rsl = '%s(project=%s)' % (glidein_rsl, submit_credentials.identity_credentials['ProjectId'])
 
-            if not (glidein_rsl == "none"):
-                exe_env.append('GLIDEIN_RSL=%s' % glidein_rsl)
+            exe_env.append('GLIDEIN_RSL=%s' % glidein_rsl)
 
         return exe_env
     except Exception, e:

@@ -65,7 +65,7 @@ def create_condor_tar_fd(condor_base_dir):
 # Condor submit file dictionary
 class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
     def populate(self, exe_fname, factory_name, glidein_name,
-                 entry_name, gridtype, gatekeeper, rsl, web_base,
+                 entry_name, gridtype, gatekeeper, rsl, auth_method, web_base,
                  proxy_url, work_dir, client_log_base_dir):
         """
         Many of these arguments are no longer needed, but keeping here for the moment
@@ -91,7 +91,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         if gridtype == 'ec2':
             self.populate_ec2_grid()
         else:
-            self.populate_standard_grid(rsl)
+            self.populate_standard_grid(rsl, auth_method)
 
         self.populate_glidein_classad(proxy_url)
 
@@ -107,8 +107,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.jobs_in_cluster = "$ENV(GLIDEIN_COUNT)"
 
 
-    def populate_standard_grid(self, rsl):
-        if rsl != None:
+    def populate_standard_grid(self, rsl, auth_method):
+        if "project_id" in auth_method or rsl != None or rsl !="":
             self.add("globus_rsl", "$ENV(GLIDEIN_RSL)")
 
         # Force the copy to spool to prevent caching at the CE side
@@ -151,6 +151,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add('+GlideinWebBase', '"$ENV(WEB_URL)"')
         self.add('+GlideinLogNr', '"$ENV(GLIDEIN_LOGNR)"')
         self.add('+GlideinWorkDir', '"$ENV(GLIDEIN_STARTUP_DIR)"')
+        self.add('+GlideinSlotsLayout', '"$ENV(GLIDEIN_SLOTS_LAYOUT)"')
         if proxy_url:
             self.add('+GlideinProxyURL', '"%s"' % proxy_url)
 
@@ -160,7 +161,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         because the code is so obtuse, if I remove the function, I may create unintended effects.
         """
         pass
-
+       
 #########################################
 # Create init.d compatible startup file
 def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir):

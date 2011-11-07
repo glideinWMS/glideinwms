@@ -159,35 +159,31 @@ def get_globals_classads():
     data = status.fetchStored()
     return data
 
-def process_globals(glidein_descript, frontend_descript):
+def process_global(classad, glidein_descript, frontend_descript):
     # Factory public key must exist for decryption 
     pub_key_obj = glidein_descript.data['PubKeyObj']
     if pub_key_obj == None:
         raise CredentialError("Factory has no public key.  We cannot decrypt.")
 
     try:
-        classads = get_globals_classads()
-        for classad_key in classads.keys():
-            classad = classads[classad_key]
+        # Get the frontend security name so that we can look up the username
+        sym_key_obj, frontend_sec_name = validate_frontend(classad, frontend_descript, pub_key_obj)
+        
+        request_clientname = classad['ClientName']
 
-            # Get the frontend security name so that we can look up the username
-            sym_key_obj, frontend_sec_name = validate_frontend(classad, frontend_descript, pub_key_obj)
+        # get all the credential ids by filtering keys by regex
+        # this makes looking up specific values in the dict easier
+        r = re.compile("^GlideinEncParamSecurityClass")
+        mkeys = filter(r.match, classad.keys())
+        for key in mkeys:
+            prefix_len = len("GlideinEncParamSecurityClass")
+            cred_id = key[prefix_len:]
             
-            request_clientname = classad['ClientName']
+            cred_data = sym_key_obj.decrypt_hex(classad["GlideinEncParam%s" % cred_id])
+            security_class = sym_key_obj.decrypt_hex(classad[key])
+            username = frontend_descript.get_username(frontend_sec_name, security_class)
 
-            # get all the credential ids by filtering keys by regex
-            # this makes looking up specific values in the dict easier
-            r = re.compile("^GlideinEncParamSecurityClass")
-            mkeys = filter(r.match, classad.keys())
-            for key in mkeys:
-                prefix_len = len("GlideinEncParamSecurityClass")
-                cred_id = key[prefix_len:]
-                
-                cred_data = sym_key_obj.decrypt_hex(classad["GlideinEncParam%s" % cred_id])
-                security_class = sym_key_obj.decrypt_hex(classad[key])
-                username = frontend_descript.get_username(frontend_sec_name, security_class)
-
-                update_credential_file(username, cred_id, cred_data, request_clientname)
+            update_credential_file(username, cred_id, cred_data, request_clientname)
     except:
         tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
         error_str = "Error occurred processing the globals classads. \nTraceback: \n%s" % tb

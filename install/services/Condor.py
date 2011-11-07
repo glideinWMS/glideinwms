@@ -45,6 +45,7 @@ class Condor(Configuration):
     self.condor_config_data = { "00_gwms_general"     : "",
                                 "01_gwms_collectors"  : "",
                                 "02_gwms_schedds"     : "",
+                                "03_gwms_local"       : "",
                               }
 
     #-- classes used ---
@@ -787,15 +788,21 @@ exit $RETVAL
 
   #-----------------------------
   def __condor_config_gwms_data__(self):
+    type = "03_gwms_local"
+    self.condor_config_data[type] +=  """
+#-- Condor user: %(user)s
+CONDOR_IDS = %(condor_ids)s
+#--  Contact (via email) when problems occur
+CONDOR_ADMIN = %(admin_email)s
+""" % { "admin_email" : self.admin_email(), 
+        "condor_ids"  : self.condor_ids(), 
+        "user"        : self.username(), }
+
     type = "00_gwms_general"
     self.condor_config_data[type] +=  """
 ######################################################
 # Base configuration values for glideinWMS
 ######################################################
-#-- Condor user: %(user)s
-CONDOR_IDS = %(condor_ids)s
-#--  Contact (via email) when problems occur
-CONDOR_ADMIN = %(admin_email)s
 
 #--  With glideins, there is nothing shared
 UID_DOMAIN=$(FULL_HOSTNAME)
@@ -804,9 +811,7 @@ FILESYSTEM_DOMAIN=$(FULL_HOSTNAME)
 #-- Condor lock files to synchronize access to  various 
 #-- log files.  Using the log directory so they are collocated
 LOCK = $(LOG)
-""" % { "admin_email" : self.admin_email(), 
-        "condor_ids"  : self.condor_ids(), 
-        "user"        : self.username(), }
+""" 
 
   #-----------------------------
   def __condor_config_gsi_data__(self,users):
@@ -833,7 +838,10 @@ SEC_READ_INTEGRITY = OPTIONAL
 SEC_CLIENT_INTEGRITY = OPTIONAL
 SEC_READ_ENCRYPTION = OPTIONAL
 SEC_CLIENT_ENCRYPTION = OPTIONAL
+"""
 
+    type ="03_gwms_local"
+    self.condor_config_data[type] += """
 ############################
 # GSI Security config
 ############################
@@ -842,6 +850,7 @@ GSI_DAEMON_TRUSTED_CA_DIR=%(x509_cert_dir)s
 """ % { "x509_cert_dir"   : self.x509_cert_dir(),
       }
 
+    type ="03_gwms_local"
     if self.client_only_install == True:
       self.condor_config_data[type] += """
 #-- Credentials
@@ -865,6 +874,7 @@ CERTIFICATE_MAPFILE=%(mapfile)s
         "mapfile"        : self.condor_mapfile()
       }
 
+    type ="00_gwms_general"
     if self.condor_version >= "7.4":
       self.condor_config_data[type] += """
 #-- With strong security, do not use IP based controls
@@ -876,6 +886,7 @@ ALLOW_WRITE = $(HOSTALLOW_WRITE)
 #-- With strong security, do not use IP based controls
 HOSTALLOW_WRITE = *
 """
+    type ="03_gwms_local"
     if self.client_only_install == True:
       self.condor_config_data[type] += """
 ############################################
@@ -951,7 +962,7 @@ JOB_STOP_COUNT = 30
 
 #--  Raise file transfer limits
 #--  no upload limits, since JOB_START_DELAY limits that
-MAX_CONCURRENT_UPLOADS = 0
+MAX_CONCURRENT_UPLOADS = 100
 #--  but do limit downloads, as they are asyncronous
 MAX_CONCURRENT_DOWNLOADS = 100
 
@@ -974,6 +985,9 @@ ENABLE_USERLOG_FSYNC = False
 #-- Prepare the Shadow for use with glexec-enabled glideins
 SHADOW.GLEXEC_STARTER = True
 SHADOW.GLEXEC = /bin/false
+
+#-- limit size of shadow logs
+MAX_SHADOW_LOG = 100000000
 
 #-- Publish LOCAL_DIR so it is available in the schedd classads as needed
 LOCAL_DIR_STRING="$(LOCAL_DIR)"
@@ -1124,7 +1138,7 @@ NEGOTIATOR_POST_JOB_RANK = MY.LastHeardFrom
 
 #-- Increase negotiation frequency, as new glideins do not trigger a reschedule
 NEGOTIATOR_INTERVAL = 60
-NEGOTIATOR_MAX_TIME_PER_SUBMITTER=40
+NEGOTIATOR_MAX_TIME_PER_SUBMITTER=60
 NEGOTIATOR_MAX_TIME_PER_PIESPIN=20
 
 #-- Prevent preemption
@@ -1140,6 +1154,13 @@ NEGOTIATOR.USE_VOMS_ATTRIBUTES = False
 #-- condor_startd rank expressions must be False for 
 #-- NEGOTIATOR_CONSIDER_PREEMPTION to be False
 NEGOTIATOR_CONSIDER_PREEMPTION = False
+
+###########################################################
+# Event logging (if desired) 
+###########################################################
+## EVENT_LOG=$(LOG)/EventLog
+## EVENT_LOG_JOB_AD_INFORMATION_ATTRS=Owner,CurrentHosts,x509userproxysubject,AccountingGroup,GlobalJobId,QDate,JobStartDate,JobCurrentStartDate,JobFinishedHookDone,MATCH_EXP_JOBGLIDEIN_Site,RemoteHost
+## EVENT_LOG_MAX_SIZE = 100000000 
 """
 
   #-----------------------------
@@ -1155,6 +1176,9 @@ COLLECTOR_HOST = $(CONDOR_HOST):%(port)s
 
 #-- disable VOMS checking
 COLLECTOR.USE_VOMS_ATTRIBUTES = False
+
+#-- allow more file descriptors (only works if Condor is started as root)
+##COLLECTOR_MAX_FILE_DESCRIPTORS=20000
 """ % { "name" : self.service_name(), 
         "port" : self.collector_port()
       }

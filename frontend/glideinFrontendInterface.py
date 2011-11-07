@@ -746,8 +746,10 @@ class MultiAdvertizeWork:
 
 
 # Remove ClassAd from Collector
-def deadvertizeAllWork(factory_pool,
-                       my_name):
+def deadvertizeAllWork(factory_pool, my_name):
+    """
+    Removes all work requests for the client in the factory.
+    """
     global frontendConfig
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
@@ -758,7 +760,7 @@ def deadvertizeAllWork(factory_pool,
         try:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % frontendConfig.client_id)
-            fd.write('Requirements = ClientName == "%s"\n' % my_name)
+            fd.write('Requirements = (ClientName == "%s") && (GlideinMyType == "%s")\n' % (my_name, frontendConfig.client_id))
         finally:
             fd.close()
 
@@ -766,6 +768,27 @@ def deadvertizeAllWork(factory_pool,
     finally:
         os.remove(tmpnam)
 
+def deadvertizeAllGlobals(factory_pool, my_name):
+    """
+    Removes all globals classads for the client in the factory.
+    """
+    global frontendConfig
+
+    # get a 9 digit number that will stay 9 digit for the next 25 years
+    short_time = time.time() - 1.05e9
+    tmpnam = "/tmp/gfi_aw_%li_%li" % (short_time, os.getpid())
+    fd = file(tmpnam, "w")
+    try:
+        try:
+            fd.write('MyType = "Query"\n')
+            fd.write('TargetType = "%s"\n' % frontendConfig.client_global)
+            fd.write('Requirements = (ClientName == "%s") && (GlideinMyType == "%s")\n' % (my_name, frontendConfig.client_global))
+        finally:
+            fd.close()
+
+        exe_condor_advertise(tmpnam, "INVALIDATE_MASTER_ADS", factory_pool)
+    finally:
+        os.remove(tmpnam)
 
 ###############################################################################
 # Code to advertise glideresource classads to the User Pool

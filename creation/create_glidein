@@ -43,7 +43,6 @@ def main(params):
 
         # copy the submit files
         cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.work_dir, params.src_dir)
-        cgWCreate.copy_exe(cgWConsts.SUBMIT_WRAPPER, glidein_dicts_obj.main_dicts.work_dir, params.src_dir)
         cgWCreate.copy_exe(cgWConsts.LOCAL_START_WRAPPER, glidein_dicts_obj.main_dicts.work_dir, params.src_dir)
 
         # copy glidein_startup.sh to the stage area for cloud entries

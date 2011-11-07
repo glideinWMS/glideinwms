@@ -316,6 +316,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             self.dicts[dtype].add("GLIDEIN_SupportedAuthenticationMethod",sub_params.auth_method,allow_overwrite=True)
             if sub_params.rsl!=None:
                 self.dicts[dtype].add('GLIDEIN_GlobusRSL',sub_params.rsl,allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_SlotsLayout", sub_params.config.submit.slots_layout, allow_overwrite=True)
 
 
         self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_VOMS","boolean",sub_params.config.restrictions.require_voms_proxy,None,False,True,True)
@@ -334,7 +335,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE,
                                           params.factory_name,params.glidein_name,self.sub_name,
-                                          sub_params.gridtype,sub_params.gatekeeper,sub_params.rsl,
+                                          sub_params.gridtype,sub_params.gatekeeper, sub_params.rsl, sub_params.auth_method,
                                           params.web_url,sub_params.proxy_url,sub_params.work_dir,
                                           params.submit.base_client_log_dir)
 
@@ -671,7 +672,7 @@ def populate_job_descript(work_dir, job_descript_dict,
     job_descript_dict.add('MaxHeld', sub_params.config.max_jobs.held)
     job_descript_dict.add('MaxSubmitRate', sub_params.config.submit.max_per_cycle)
     job_descript_dict.add('SubmitCluster', sub_params.config.submit.cluster_size)
-    job_descript_dict.add('SubmitWholeNode', sub_params.config.submit.whole_node)
+    job_descript_dict.add('SubmitSlotsLayout', sub_params.config.submit.slots_layout)
     job_descript_dict.add('SubmitSleep', sub_params.config.submit.sleep)
     job_descript_dict.add('MaxRemoveRate', sub_params.config.remove.max_per_cycle)
     job_descript_dict.add('RemoveSleep', sub_params.config.remove.sleep)
@@ -721,7 +722,7 @@ def populate_frontend_descript(frontend_dict,     # will be modified
             sc_el=fe_el['security_classes'][sc]
             username=sc_el['username']
             if username==None:
-                raise RuntimeError, 'security.frontends[%s].security_sclasses[%s][username] not defined, but required'%(fe,sc)
+                raise RuntimeError, 'security.frontends[%s].security_classes[%s][username] not defined, but required'%(fe,sc)
             maps[sc]=username
         
         frontend_dict.add(fe,{'ident':ident,'usermap':maps})
