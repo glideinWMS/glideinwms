@@ -151,6 +151,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add('+GlideinWebBase', '"$ENV(WEB_URL)"')
         self.add('+GlideinLogNr', '"$ENV(GLIDEIN_LOGNR)"')
         self.add('+GlideinWorkDir', '"$ENV(GLIDEIN_STARTUP_DIR)"')
+        self.add('+GlideinSlotsLayout', '"$ENV(GLIDEIN_SLOTS_LAYOUT)"')
         if proxy_url:
             self.add('+GlideinProxyURL', '"%s"' % proxy_url)
 

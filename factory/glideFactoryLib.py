@@ -1091,10 +1091,12 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
         schedd = jobDescript.data["Schedd"]
         verbosity = jobDescript.data["Verbosity"]
         startup_dir = jobDescript.data["StartupDir"]
+        slots_layout = jobDescript.data["SubmitSlotsLayout"]
 
         exe_env.append('GLIDEIN_SCHEDD=%s' % schedd)
         exe_env.append('GLIDEIN_VERBOSITY=%s' % verbosity)
         exe_env.append('GLIDEIN_STARTUP_DIR=%s' % startup_dir)
+        exe_env.append('GLIDEIN_SLOTS_LAYOUT=%s' % slots_layout)
 
         submit_time = timeConversion.get_time_in_format(time_format="%Y%m%d")
         exe_env.append('GLIDEIN_LOGNR=%s' % str(submit_time))
