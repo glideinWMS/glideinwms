@@ -264,8 +264,16 @@ class Credential:
     def get_usage_details(self):
         return (self.req_idle,self.req_max_run)
     
-    def file_id(self,filename):
-        return str(abs(hash(filename))%100000)
+    def file_id(self,filename,ignoredn=False):
+        if (("grid_proxy" in self.type)and not ignoredn):
+            dn_fd = os.popen("openssl x509 -subject -in %s -noout" % (filename))
+            dn = dn_fd.read()
+            err = dn_fd.close()
+            hash_str=filename+dn
+        else:
+            hash_str=filename
+        #logSupport.log.debug("Using hash_str=%s (%d)"%(hash_str,abs(hash(hash_str))%1000000))
+        return str(abs(hash(hash_str))%1000000)
 
     def __str__(self):
         output = ""
@@ -664,7 +672,7 @@ class MultiAdvertizeWork:
                             continue
                     # Convert the sec class to a string so the Factory can interpret the value correctly
                     glidein_params_to_encrypt['SecurityClass']=str(credential_el.security_class)
-                    classad_name=credential_el.file_id(credential_el.filename)+"_"+classad_name
+                    classad_name=credential_el.file_id(credential_el.filename,ignoredn=True)+"_"+classad_name
                     if "username_password"in credential_el.type:
                         glidein_params_to_encrypt['Username']=credential_el.file_id(credential_el.filename)
                         glidein_params_to_encrypt['Password']=credential_el.file_id(credential_el.key_fname)
