@@ -130,12 +130,12 @@ for a more detailed description.
     <blockquote>
         <a href="#entry">&lt;entry name="EXAMPLE_ENTRY" enabled="True" auth_method="grid_proxy" trust_domain="OSG" gatekeeper="gatewayname.fnal.gov/jobmanager-condor" gridtype="gt2" rsl="(queue=default)(jobtype=single)" schedd_name="wmscollector.fnal.gov" verbosity="std" work_dir="OSG"&gt;</a><br/>
         <blockquote>
-            <a href="#">&lt;config&gt;</a><br/>
+            <a href="#config">&lt;config&gt;</a><br/>
             <blockquote>
-                <a href="#">&lt;max_jobs held="1000" idle="2000" glideins="10000"&gt;</a><br/>
-                <a href="#">&lt;release max_per_cycle="20" sleep="0.2"&gt;</a><br/>
-                <a href="#">&lt;remove max_per_cycle="5" sleep="0.2"&gt;</a><br/>
-                <a href="#">&lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2"&gt;</a><br/>
+                <a href="#config">&lt;max_jobs held="1000" idle="2000" glideins="10000"&gt;</a><br/>
+                <a href="#config">&lt;release max_per_cycle="20" sleep="0.2"&gt;</a><br/>
+                <a href="#config">&lt;remove max_per_cycle="5" sleep="0.2"&gt;</a><br/>
+                <a href="#config">&lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="single_slot"&gt;</a><br/>
             </blockquote>
             <a href="#">&lt;/config&gt;</a><br/>
             <a href="#allow_frontend">&lt;allow_frontends /&gt;</a><br/>
@@ -654,6 +654,23 @@ override the global arguments if present.
     </UL>
     </li>
     </ul>
+    </li>
+    <li>
+        <a name="config" />
+        <div class="xml">
+            &lt;glidein&gt;&lt;entries&gt;&lt;entry name=&quot;<I>entry name</I>&quot;&gt;<br/>
+            &lt;config&gt;<br/>
+            &lt;max_jobs held="1000" idle="2000" glideins="10000"&gt;<br/>
+            &lt;release max_per_cycle="20" sleep="0.2"&gt;<br/>
+            &lt;remove max_per_cycle="5" sleep="0.2"&gt;<br/>
+            &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="single_slot"&gt;<br/>
+            &lt;config/&gt;
+        </div>
+        <p>
+        The values in the config section are limits for the entry.  Max_jobs limits the number of held, idle, and total (including running) for an entry.
+        Release and remove regulate how many glideins are affected per cycle.  Submit values limit the number of glideins submitted, how long 
+        to wait to submit, and what kinds of glideins the entry supports - single slot or whole node glideins.
+        </p>
     </li>
         <LI>
         <a name="entry_attrs" />
