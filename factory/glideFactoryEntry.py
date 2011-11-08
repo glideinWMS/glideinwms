@@ -858,12 +858,6 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                                                              idle_glideins, max_glideins, remove_excess,
                                                              submit_credentials, glidein_totals, frontend_name,
                                                              client_web, params)
-                if done_something > 0:
-                    return 1 # we submitted something, return immediately
-                
-                glideFactoryLib.sanitizeGlideins(condorQ)
-            
-                return 0
                 # ======= end of v3+ protocol =============
     
     logSupport.log.debug("Updating statistics")
@@ -877,8 +871,14 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             # never fail for monitoring... just log
             logSupport.log.warning("get_RRD_data failed: error unknown")
 
+    if done_something > 0:
+        return 1 # we submitted something, return immediately
+                
+    glideFactoryLib.sanitizeGlideins(condorQ)
+            
+    return 0
 
-    return done_something
+    #return done_something
 
 
 ############################################################
