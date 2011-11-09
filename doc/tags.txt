@@ -37,6 +37,8 @@ v2_5_3	Updated the license to reflect current Fermitools license
 	  the limits correctly
 	Bug fix: Fixed a bug in DAEMON_SHUTDOWN
 	Bug fix: Fixed a bug where voms requirements were not treated correctly
+	Bug fix: Added glidecondor_upgrade back to the install dir. This file
+          was missing in v2_5_2_1 release
 
 v2_5_2_1Bug fix: Fixed a bug creation of START expression when VOMS proxy is
 	  set be required.
