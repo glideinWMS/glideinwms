@@ -91,7 +91,7 @@ class GlideinHandler(TimedRotatingFileHandler):
     @type backupCount: int
     @ivar backupCount: How many backups to keep
     """
-    def __init__(self, filename, interval=1, maxBytes=0, backupCount=0):
+    def __init__(self, filename, interval=1, maxMBytes=10, backupCount=5):
         """
         Initialize the Handler.  We assume the following:
 
@@ -104,15 +104,17 @@ class GlideinHandler(TimedRotatingFileHandler):
         @param filename: The full path of the log file
         @type interval: int
         @param interval: Number of days before file rotation
-        @type maxBytes: int
-        @param maxBytes: Maximum size of the logfile bytes before file rotatation
+        @type maxMBytes: int
+        @param maxMBytes: Maximum size of the logfile in MB before file rotation
         @type backupCount: int
         @param backupCount: Number of backups to keep
 
         """
         when = 'D'
         TimedRotatingFileHandler.__init__(self, filename, when, interval, backupCount, encoding=None)
-        self.maxBytes = maxBytes * 1024.0 * 1024.0
+        
+        # Convert the MB to bytes as needed by the base class
+        self.maxBytes = maxMBytes * 1024.0 * 1024.0
 
     def shouldRollover(self, record):
         """
@@ -134,7 +136,7 @@ class GlideinHandler(TimedRotatingFileHandler):
         return do_timed_rollover or do_size_rollover
 
 
-def add_glideinlog_handler(logger_name, log_dir, maxDays, maxBytes):
+def add_glideinlog_handler(logger_name, log_dir, maxDays, maxMBytes):
     """
     Setup python's built-in logging module.  This is designed to mimic the
     original logging in GlideinWMS, but allow logging in every module.
@@ -157,8 +159,8 @@ def add_glideinlog_handler(logger_name, log_dir, maxDays, maxBytes):
     @param log_dir: The directory where the log files will be placed
     @type MaxDays: int
     @param MaxDays: Maximum age of the logfile in days before it will be rotated
-    @type maxBytes: int
-    @param maxBytes: Maximum size in bytes of the logfile before it will be rotated
+    @type maxMBytes: int
+    @param maxMBytes: Maximum size in bytes of the logfile before it will be rotated
 
     """
 
@@ -169,7 +171,7 @@ def add_glideinlog_handler(logger_name, log_dir, maxDays, maxBytes):
 
     # Error Logger
     logfile = os.path.expandvars("%s/%s.err.log" % (log_dir, logger_name))
-    handler = GlideinHandler(logfile, maxDays, maxBytes, backupCount=5)
+    handler = GlideinHandler(logfile, maxDays, maxMBytes, backupCount=5)
     handler.setFormatter(formatter)
     handler.setLevel(logging.DEBUG)
     handler.addFilter(ErrorFilter())
@@ -177,7 +179,7 @@ def add_glideinlog_handler(logger_name, log_dir, maxDays, maxBytes):
 
     # INFO Logger
     logfile = os.path.expandvars("%s/%s.info.log" % (log_dir, logger_name))
-    handler = GlideinHandler(logfile, maxDays, maxBytes, backupCount=5)
+    handler = GlideinHandler(logfile, maxDays, maxMBytes, backupCount=5)
     handler.setFormatter(formatter)
     handler.setLevel(logging.DEBUG)
     handler.addFilter(InfoFilter())
@@ -186,7 +188,7 @@ def add_glideinlog_handler(logger_name, log_dir, maxDays, maxBytes):
     # DEBUG Logger
     formatter = logging.Formatter('[%(asctime)s] %(levelname)s:::%(module)s::%(lineno)d: %(message)s ')
     logfile = os.path.expandvars("%s/%s.debug.log" % (log_dir, logger_name))
-    handler = GlideinHandler(logfile, maxDays, maxBytes, backupCount=5)
+    handler = GlideinHandler(logfile, maxDays, maxMBytes, backupCount=5)
     handler.setFormatter(formatter)
     handler.setLevel(logging.DEBUG)
     handler.addFilter(DebugFilter())
