@@ -197,5 +197,3 @@ def domel2dict(doc, use_ord_dict=False, always_singular_list=[]):
     return data
 
 
-#x=xmlfile2dict("../creation/config_examples/simple_test1.xml")
-#print x
