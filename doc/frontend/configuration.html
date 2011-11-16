@@ -764,14 +764,14 @@ fungus01 is decreased significantly.
 Bob comes along and submits 1000 jobs via glideinWMS, while Charlie
 submits 1000 jobs under his own proxy and not using glideinWMS.  The
 glideinWMS pilots launch for Bob, and map to fungus01. Charlie launches
-his own jobs that get mapped to fungus73.  Relative to fungus02,
+his own jobs that get mapped to fungus02.  Relative to fungus02,
 fungus01 priority is terrible, and Bob's jobs sit around waiting for
 Charlie -- even though Bob didn't occupy the FNAL resources, Alice did!
 </p>
 <p>
 The solution: have a pool of pilot proxies.  We then spread the
 fairshare penalty amongst fungus01, fungus02, and fungus03, and Bob now
-can compete on a more equal footing with Charlie.
+can compete on a more equal footing with Charlie and Alice.
 </p>
 <p>
 <b>Using multiple proxies</b>
