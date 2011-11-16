@@ -173,9 +173,9 @@ class ProxyUserCardinality:
 # This plugin implements a user-based round-robin policy
 # The same proxies are used as long as the users don't change
 #  (we keep a disk-based memory for this purpose)
-# Once any user leaves, the most used proxy is returned to the pool
-# If a new user joins, the least used proxy is obtained from the pool
-#
+# Once any user leaves, the most used credential is rotated to the back of the list
+# If more users enter, they will reach farther down the list to access
+#   less used credentials
 class ProxyUserRR:
     def __init__(self, config_dir, proxy_list):
         self.proxy_list = proxy_list
@@ -208,14 +208,20 @@ class ProxyUserRR:
         added_users = new_users_set - old_users_set
 
         if len(removed_users) > 0:
-            self.shrink_proxies(len(removed_users))
-        if len(added_users) > 0:
-            self.expand_proxies(len(added_users))
+            self.shuffle_proxies(len(removed_users))
 
         self.config_data['users_set'] = new_users_set
         self.save()
 
-        rtnlist=self.get_proxies_from_data()
+        rtnlist=[]
+        for cred in self.config_data['proxy_list']:
+            if (trust_domain != None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
+                continue
+            if (credential_type != None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+                continue
+            if len(rtnlist)<nr_requested_proxies:
+                rtnlist.append(cred)
+
         if (params_obj!=None):
             rtnlist=fair_assign(rtnlist,params_obj)
         return self.get_proxies_from_data()
@@ -228,14 +234,9 @@ class ProxyUserRR:
     # if the file does not exist, create a new config_data
     def load(self):
         if not os.path.isfile(self.config_fname):
-            proxy_indexes = {}
             nr_proxies = len(self.proxy_list)
-            for i in range(nr_proxies):
-                proxy_indexes[self.proxy_list[i]] = i
             self.config_data = {'users_set':sets.Set(),
-                              'proxies_range':{'min':0, 'max':0},
-                              'proxy_indexes':proxy_indexes,
-                              'first_free_index':nr_proxies}
+                              'proxy_list':proxy_list}
         else:
             fd = open(self.config_fname, "r")
             try:
@@ -244,12 +245,9 @@ class ProxyUserRR:
                 fd.close()
 
             # proxies may have changed... make sure you have them all indexed
-            proxy_indexes = self.config_data['proxy_indexes']
-            added_proxies = sets.Set(self.proxy_list) - sets.Set(proxy_indexes.keys())
+            added_proxies = sets.Set(self.proxy_list) - sets.Set(self.config_data['proxy_list'])
             for proxy in added_proxies:
-                idx = self.config_data['first_free_index']
-                proxy_indexes[self.proxy_list[i]] = idx
-                self.config_data['first_free_index'] = idx + 1
+                self.config_data['proxy_list'].append(proxy)
 
         return
 
@@ -272,58 +270,12 @@ class ProxyUserRR:
 
         return
 
-    # remove a number of proxies from the internal data
-    def shrink_proxies(self, nr):
-        proxies_range = self.config_data['proxies_range']
-        min_proxy_range = proxies_range['min']
-        max_proxy_range = proxies_range['max']
-
-        min_proxy_range += nr
-        if min_proxy_range > max_proxy_range:
-            raise RuntimeError, "Cannot shrink so much: %i requested, %i available" % (nr, max_proxy_range - proxies_range['min'])
-
-        proxies_range['min'] = min_proxy_range
-
+    # shuffle a number of proxies from the internal data
+    def shuffle_proxies(self, nr):
+        list=self.config_data['proxy_list']
+        for t in range(nr):
+            list.append(list.pop(0))
         return
-
-    # add a number of proxies from the internal data
-    def expand_proxies(self, nr):
-        proxies_range = self.config_data['proxies_range']
-        min_proxy_range = proxies_range['min']
-        max_proxy_range = proxies_range['max']
-
-        max_proxy_range += nr
-        if min_proxy_range > max_proxy_range:
-            raise RuntimeError, "Did we hit wraparound after the requested exansion of %i? min %i> max %i" % (nr, min_proxy_range, max_proxy_range)
-
-        proxies_range['max'] = max_proxy_range
-
-        return
-
-    # return the proxies based on data held by the class
-    def get_proxies_from_data(self):
-        nr_proxies = len(self.proxy_list)
-
-        proxies_range = self.config_data['proxies_range']
-        min_proxy_range = proxies_range['min']
-        max_proxy_range = proxies_range['max']
-        nr_requested_proxies = max_proxy_range - min_proxy_range;
-
-        proxy_indexes = self.config_data['proxy_indexes']
-
-        out_proxies = []
-        if nr_requested_proxies >= nr_proxies:
-            # wants all of them, no need to select
-            index_range = range(nr_proxies)
-        else:
-            index_range = range(min_proxy_range, max_proxy_range)
-
-        for i in index_range:
-            real_i = i % nr_proxies
-            proxy = self.proxy_list[i]
-            out_proxies.append(proxy)
-
-        return out_proxies
 
 ######################################################################
 #
@@ -364,58 +316,44 @@ class ProxyUserMapWRecycling:
 
         user_map = self.config_data['user_map']
 
-        if len(users) < len(user_map.keys()):
-            # regular algorithm, find in cache
-            for user in users:
-                if not user_map.has_key(user):
-                    # user not in cache, get the oldest unused entry
-                    # not ordered, need to loop over the whole cache
-                    keys = user_map.keys()
-                    keys.sort()
-                    min_key = keys[0] # will compare all others to the first
-                    for k in keys[1:]:
-                        if user_map[k]['last_seen'] < user_map[min_key]['last_seen']:
-                            min_key = k
 
-                    # replace min_key with the current user
+
+        for user in users:
+            # If the user is not already mapped,
+            # find an appropriate credential
+            # skip all that do not match auth method or trust_domain
+            if not user_map.has_key(user):
+                keys = user_map.keys()
+                found=False
+                new_key=""
+                for k in keys:
+                    cred=user_map[k]['proxy']
+                    if (trust_domain!=None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
+                        continue
+                    if (credential_type != None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+                        continue
+                    #Someone is already using this credential
+                    if (k in users):
+                        continue
+                    if (not found):
+                        #This is the first non-matching credential, use it
+                        new_key=k;
+                        continue
+                    # At this point, we have already have a credential,
+                    # so switch to a new one only if this one is less used.
+                    if (user_map[k]['last_seen'] < user_map[new_key]['last_seen']):
+                        new_key = k
+                        found=True
+                if found:
                     user_map[user] = user_map[min_key]
                     del user_map[min_key]
-                # else the user is already in the cache... just use that
-
-                cel = user_map[user]
-                out_proxies.append(cel['proxy'])
-                # save that you have indeed seen the user 
-                cel['last_seen'] = time.time()
-        else:
-            # more users than proxies, use all proxies
-            keys = user_map.keys()
-            keys.sort()
-            uncovered_users = users[0:]
-            uncovered_keys = []
-            # first get the covered keys
-            for k in keys:
-                if (k in users):
-                    # the user in the cache is still present, use it
-                    cel = user_map[k]
-                    out_proxies.append(cel['proxy'])
-                    # save that you have indeed seen the user 
-                    cel['last_seen'] = time.time()
-                    uncovered_users.remove(k)
                 else:
-                    # this cache entry need to be updated
-                    uncovered_keys.append(k)
-            # now add uncovered keys
-            for k in uncovered_keys:
-                # change key value with an uncovered user
-                user = uncovered_users.pop()
-                user_map[user] = user_map[k]
-                del user_map[k]
-
+                    #We could not find a suitable credential!
+                    pass
                 cel = user_map[user]
                 out_proxies.append(cel['proxy'])
                 # save that you have indeed seen the user 
                 cel['last_seen'] = time.time()
-
 
         # save changes
         self.save()
