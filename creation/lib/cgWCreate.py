@@ -91,7 +91,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         if gridtype == 'ec2':
             self.populate_ec2_grid()
         else:
-            self.populate_standard_grid(rsl, auth_method)
+            self.populate_standard_grid(rsl, auth_method, gridtype)
 
         self.populate_glidein_classad(proxy_url)
 
@@ -107,9 +107,15 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.jobs_in_cluster = "$ENV(GLIDEIN_COUNT)"
 
 
-    def populate_standard_grid(self, rsl, auth_method):
-        if "project_id" in auth_method or rsl != None or rsl !="":
-            self.add("globus_rsl", "$ENV(GLIDEIN_RSL)")
+    def populate_standard_grid(self, rsl, auth_method, gridtype):
+        if gridtype == 'gt2' or gridtype =='gt5':
+            if "project_id" in auth_method or (rsl != None and rsl !=""):
+                self.add("globus_rsl", "$ENV(GLIDEIN_RSL)")
+        elif gridtype == 'cream' and (rsl != None and rsl !=""):
+            self.add("cream_attributes", "$ENV(GLIDEIN_RSL)")
+        else:
+            pass
+            # do we want to raise an error here?  we do in v2+
 
         # Force the copy to spool to prevent caching at the CE side
         self.add("copy_to_spool", "True")
