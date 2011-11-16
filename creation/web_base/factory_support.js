@@ -150,6 +150,8 @@ function set_title_and_footer(browser_title, page_title)
 	{	
 		if (xmlhttp_descript.readyState == 4) //4 == READY
     	{
+    	    factory_info = xmlhttp_descript.responseXML.documentElement.getElementsByTagName("factory");
+    	    
 			for (var i=0; i<factory_info[0].attributes.length; i++) {
 				if (factory_info[0].attributes[i].name == "FactoryName") {
 					factory_name = factory_info[0].attributes[i].value;
