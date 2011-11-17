@@ -200,8 +200,6 @@ class ProxyUserRR:
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
         new_users_set = self.users_set
         old_users_set = self.config_data['users_set']
-        if old_users_set == new_users_set:
-            return self.get_proxies_from_data()
 
         # users changed
         removed_users = old_users_set - new_users_set
@@ -219,12 +217,11 @@ class ProxyUserRR:
                 continue
             if (credential_type != None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
                 continue
-            if len(rtnlist)<nr_requested_proxies:
-                rtnlist.append(cred)
+            rtnlist.append(cred)
 
         if (params_obj!=None):
             rtnlist=fair_assign(rtnlist,params_obj)
-        return self.get_proxies_from_data()
+        return rtnlist
 
     #############################
     # INTERNAL
@@ -236,7 +233,7 @@ class ProxyUserRR:
         if not os.path.isfile(self.config_fname):
             nr_proxies = len(self.proxy_list)
             self.config_data = {'users_set':sets.Set(),
-                              'proxy_list':proxy_list}
+                              'proxy_list':self.proxy_list}
         else:
             fd = open(self.config_fname, "r")
             try:
@@ -345,8 +342,8 @@ class ProxyUserMapWRecycling:
                         new_key = k
                         found=True
                 if found:
-                    user_map[user] = user_map[min_key]
-                    del user_map[min_key]
+                    user_map[user] = user_map[new_key]
+                    del user_map[new_key]
                 else:
                     #We could not find a suitable credential!
                     pass
