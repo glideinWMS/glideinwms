@@ -851,7 +851,7 @@ def main(parent_pid, work_dir, group_name):
 
     try:
         dir = os.path.dirname(os.path.dirname(sys.argv[0]))
-        glideinFrontendInterface.frontendConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(dir, os.path.join(dir,'etc/checksum.frontend')).version()
+        glideinFrontendInterface.frontendConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(dir, 'checksum.frontend').version()
     except:
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])
