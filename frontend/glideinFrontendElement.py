@@ -1009,8 +1009,8 @@ def main(parent_pid, work_dir, group_name):
     glideinFrontendInterface.frontendConfig.advertise_use_multi = (elementDescript.frontend_data['AdvertiseWithMultiple'] in ('True', '1'))
 
     try:
-        dir = os.path.dirname(os.path.dirname(sys.argv[0]))
-        glideinFrontendInterface.frontendConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(dir, os.path.join(dir, 'etc/checksum.frontend')).version()
+        glideinwms_dir = os.path.dirname(os.path.dirname(sys.argv[0]))
+        glideinFrontendInterface.frontendConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(glideinwms_dir, 'checksum.frontend').version()
     except:
         logSupport.log.exception("Exception occurred while trying to retrieve the glideinwms version: ")
 

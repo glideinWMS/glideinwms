@@ -1270,7 +1270,7 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     logSupport.log.debug("Get glideinWMS version")
     try:
         gwms_dirname = os.path.dirname(os.path.dirname(sys.argv[0]))
-        glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(gwms_dirname, os.path.join(gwms_dirname, 'etc/checksum.factory')).version()
+        glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(gwms_dirname, gwms_dirname, 'checksum.factory').version()
     except:
         logSupport.log.exception("Exception occured while trying to retrieve the glideinwms version: ")
 
