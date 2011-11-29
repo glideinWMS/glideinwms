@@ -122,8 +122,7 @@ class VOFrontendParams(cWParams.CommonParams):
         ###############################
         # Start defining the defaults
         self.defaults["frontend_name"]=(socket.gethostname(),'ID', 'VO Frontend name',None)
-        self.defaults['frontend_versioning'] = ('True', 'Bool', 'Should we crea
-te versioned subdirectories of the type frontend_$frontend_name?', None)
+        self.defaults['frontend_versioning'] = ('True', 'Bool', 'Should we create versioned subdirectories of the type frontend_$frontend_name?', None)
         self.defaults['frontend_monitor_index_page'] = ('True', 'Bool', 'Should we create an index.html in the monitoring web directory?',None)
         
         work_defaults=cWParams.commentedOrderedDict()
@@ -190,7 +189,7 @@ te versioned subdirectories of the type frontend_$frontend_name?', None)
     def get_top_element(self):
         return "frontend"
 
-    def buildDir(frontendVersioning, basedir):
+    def buildDir(self,frontendVersioning, basedir):
     # return either basedir or basedir/frontend_fename
         subdir = "frontend_%s" % self.frontend_name
         if frontendVersioning:
@@ -210,11 +209,11 @@ te versioned subdirectories of the type frontend_$frontend_name?', None)
                self.data['frontend_versioning'].lower() == 'true':
             frontendVersioning = True
 
-        self.stage_dir=buildDir(frontendVersioning, self.stage.base_dir)
-        self.monitor_dir=buildDir(frontendVersioning, self.monitor.base_dir)
-        self.work_dir=buildDir(frontendVersioning, self.work.base_dir)
-        self.log_dir=buildDir(frontendVersioning, self.work.base_log_dir)
-        self.web_url=buildDir(frontendVersioning, self.stage.web_base_url)
+        self.stage_dir=self.buildDir(frontendVersioning, self.stage.base_dir)
+        self.monitor_dir=self.buildDir(frontendVersioning, self.monitor.base_dir)
+        self.work_dir=self.buildDir(frontendVersioning, self.work.base_dir)
+        self.log_dir=self.buildDir(frontendVersioning, self.work.base_log_dir)
+        self.web_url=self.buildDir(frontendVersioning, self.stage.web_base_url)
 
         self.derive_match_attrs()
 
