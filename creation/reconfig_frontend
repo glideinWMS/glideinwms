@@ -38,15 +38,17 @@ import cvWParamDict
 
 def main(params, old_params, update_scripts):
     # load old files
-    old_frontend_dicts_obj=cvWParamDict.frontendDicts(old_params)
-    old_frontend_dicts_obj.load()
+    if old_params!=None:
+        old_frontend_dicts_obj=cvWParamDict.frontendDicts(old_params)
+        old_frontend_dicts_obj.load()
 
     # create dictionaries for new params
     frontend_dicts_obj=cvWParamDict.frontendDicts(params)
     frontend_dicts_obj.populate()
 
     # merge them together
-    frontend_dicts_obj.reuse(old_frontend_dicts_obj)
+    if old_params!=None:
+        frontend_dicts_obj.reuse(old_frontend_dicts_obj)
 
     # write to disk
     frontend_dicts_obj.save()
@@ -132,13 +134,16 @@ if __name__ == '__main__':
         
     try:
         old_config_file=os.path.join(params.work_dir,cvWConsts.XML_CONFIG_FILE)
+	print old_config_file
         if os.path.exists(old_config_file):
             try:
                 old_params=cvWParams.VOFrontendParams(usage,WEB_BASE_DIR,[argv[0],old_config_file])
             except RuntimeError, e:
                 raise RuntimeError,"Failed to load %s"%old_config_file
         else:
-            raise RuntimeError,"Cannot find %s"%old_config_file
+            print "Warning: Cannot find %s"%old_config_file
+            print "If this is the first reconfig, you can ignore this message."
+            old_params=None
             
         main(params, old_params, update_scripts)
         
