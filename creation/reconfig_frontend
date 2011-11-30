@@ -38,7 +38,7 @@ import cvWParamDict
 
 def main(params, old_params, update_scripts):
     # load old files
-    if old_params!=None:
+    if not old_params is None:
         old_frontend_dicts_obj=cvWParamDict.frontendDicts(old_params)
         old_frontend_dicts_obj.load()
 
@@ -47,7 +47,7 @@ def main(params, old_params, update_scripts):
     frontend_dicts_obj.populate()
 
     # merge them together
-    if old_params!=None:
+    if not old_params is None:
         frontend_dicts_obj.reuse(old_frontend_dicts_obj)
 
     # write to disk
