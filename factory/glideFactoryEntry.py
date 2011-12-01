@@ -854,7 +854,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 frontend_name = "%s:%s" % (frontendDescript.get_frontend_name(client_expected_identity), submit_credentials.security_class)  
                 
                 logSupport.log.info("Using v3+ protocol and credential %s" % submit_credentials.id)
-                done_something = glideFactoryLib.keepIdleGlideins(entry_condorQ, client_int_name, 
+                done_something += glideFactoryLib.keepIdleGlideins(entry_condorQ, client_int_name, 
                                                              idle_glideins, max_glideins, remove_excess,
                                                              submit_credentials, glidein_totals, frontend_name,
                                                              client_web, params)
@@ -871,14 +871,23 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             # never fail for monitoring... just log
             logSupport.log.warning("get_RRD_data failed: error unknown")
 
-    if done_something > 0:
-        return 1 # we submitted something, return immediately
+    # If v3+ protocol, sanitize here.  v2+ does sanitize in perform work()
+    if not security_credentials.has_key('x509_proxy_list'):
+        if done_something > 0:
+            # We submitted something, return immediately.  It is more important to 
+            # submit glideins than cleanup.
+            return 1 
+        
+        # Only sanitize once per iteration since we only query condor once per iteration.
+        # Sanitizing only depends on the entry (not request or VO) so it is the entry's 
+        # responsibility to clean up after itself.
+        # To do this anywhere else or at any other time would keep us from having the best
+        # accounting as possible.
+        glideFactoryLib.sanitizeGlideins(condorQ)
                 
-    glideFactoryLib.sanitizeGlideins(condorQ)
-            
-    return 0
+        return 0
 
-    #return done_something
+    return done_something
 
 
 ############################################################
