@@ -154,7 +154,7 @@ case $1 in
                 upgrade $2
         ;;
         *)
-        echo $"Usage: frontend_startup {start|stop|restart|status|reconfig}"
+        echo $"Usage: frontend_startup {start|stop|restart|status|reconfig|upgrade}"
         exit 1
 esac
 
