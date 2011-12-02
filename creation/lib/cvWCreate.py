@@ -199,7 +199,7 @@ def create_initd_startup(startup_fname,frontend_dir,glideinWMS_dir):
         #fd.write("	  ;;\n")
         fd.write("        *)\n")
         #fd.write('        echo $"Usage: frontend_startup {start|stop|restart|status|info|reconfig|down|up|statusdown}"\n')
-        fd.write('        echo $"Usage: frontend_startup {start|stop|restart|status|reconfig}"\n')
+        fd.write('        echo $"Usage: frontend_startup {start|stop|restart|status|reconfig|upgrade}"\n')
         fd.write("        exit 1\n")
         fd.write("esac\n\n")
 
