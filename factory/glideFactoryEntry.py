@@ -189,8 +189,8 @@ class X509Proxies:
 ###
 def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDescript, jobAttributes, jobParams):
     """
-    Finds work requests from the WMS collector, validates security credentials, and requests glideins.  If an entry is 
-    in downtime, requested glideins is zero.
+    Finds work requests from the WMS collector, validates credentials, and
+    requests glideins. If an entry is in downtime, requested glideins is zero.
     
     @type in_downtime:  boolean
     @param in_downtime:  True if entry is in downtime
