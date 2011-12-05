@@ -37,7 +37,7 @@ class FrontendConfig:
         self.factory_id = "glidefactory"
         self.client_id = "glideclient"
         self.factoryclient_id = "glidefactoryclient"
-        
+
         #Default the glideinWMS version string
         self.glideinwms_version = "glideinWMS UNKNOWN"
 
@@ -81,10 +81,22 @@ class MultiExeError(condorExe.ExeError):
         str_arr=[]
         for e in arr:
             str_arr.append('%s'%e)
-        
+
         str=string.join(str_arr,'\\n')
-        
+
         condorExe.ExeError.__init__(self,str)
+
+############################################################
+#
+# Global Variables
+#
+############################################################
+
+# Advertize counter for glideclient
+advertizeGCCounter = {}
+
+# Advertize counter for glideresource
+advertizeGRCounter = {}
 
 ############################################################
 #
@@ -99,7 +111,7 @@ def findGlideins(factory_pool,factory_identity,
                  have_proxy=False,
                  get_only_matching=True): # if this is false, return also glideins I cannot use
     global frontendConfig
-    
+
     status_constraint='(GlideinMyType=?="%s")'%frontendConfig.factory_id
     if not ((factory_identity==None) or (factory_identity=='*')): # identity checking can be disabled, if really wanted
         # filter based on AuthenticatedIdentity
@@ -374,24 +386,41 @@ class AdvertizeParams:
         self.glidein_params_to_encrypt=glidein_params_to_encrypt
         self.security_name=security_name
 
-# Create file needed by advertize Work
-def createAdvertizeWorkFile(fname,
-                            descript_obj,            # must be of type FrontendDescriptNoGroup (or child)
-                            params_obj,              # must be of type AdvertizeParams
-                            key_obj=None,            # must be of type FactoryKeys4Advertize
-                            do_append=False):
+def createAdvertizeWorkFile(fname, descript_obj, params_obj,
+                            key_obj=None, do_append=False):
+
+    """
+    Create file needed by advertize Work
+
+    @type fname: string
+    @param fname: Filename for the classad
+
+    @type descript_obj: FrontendDescriptNoGroup (or child)
+    @param descript_obj: Description object
+
+    @type params_obj: AdvertizeParams
+    @param params_obj: Params object
+
+    @type key_obj: FactoryKeys4Advertize
+    @param key_obj: Factory Keys to advertize object
+
+    @type do_append: bool
+    @param do_append: True in case of multiclassad file else False
+    """
+
     global frontendConfig
+    global advertizeGCCounter
 
     if do_append:
         open_type="a"
     else:
         open_type="w"
-        
+
     fd=file(fname,open_type)
     try:
         try:
             classad_name="%s@%s"%(params_obj.request_name,descript_obj.my_name)
-            
+
             fd.write('MyType = "%s"\n'%frontendConfig.client_id)
             fd.write('GlideinMyType = "%s"\n'%frontendConfig.client_id)
             fd.write('GlideinWMSVersion = "%s"\n'%frontendConfig.glideinwms_version)
@@ -413,7 +442,7 @@ def createAdvertizeWorkFile(fname,
                     glidein_params_to_encrypt=copy.deepcopy(glidein_params_to_encrypt)
                 if params_obj.security_name!=None:
                     glidein_params_to_encrypt['SecurityName']=params_obj.security_name
-                
+
                 if descript_obj.x509_proxies_data!=None:
                     nr_proxies=len(descript_obj.x509_proxies_data)
                     glidein_params_to_encrypt['nr_x509_proxies']="%s"%nr_proxies
@@ -429,11 +458,11 @@ def createAdvertizeWorkFile(fname,
 
                 for attr in glidein_params_to_encrypt.keys():
                     encrypted_params[attr]=key_obj.encrypt_hex(glidein_params_to_encrypt["%s"%attr])
-                        
+
             fd.write('ReqIdleGlideins = %i\n'%params_obj.min_nr_glideins)
             fd.write('ReqMaxRunningGlideins = %i\n'%params_obj.max_run_glideins)
             fd.write('ReqRemoveExcess = "%s"\n'%params_obj.remove_excess_str)
-                     
+
             # write out both the params and monitors
             for (prefix,data) in ((frontendConfig.glidein_param_prefix,params_obj.glidein_params),
                                   (frontendConfig.glidein_monitor_prefix,params_obj.glidein_monitors),
@@ -446,6 +475,13 @@ def createAdvertizeWorkFile(fname,
                     else:
                         escaped_el=string.replace(string.replace(str(el),'"','\\"'),'\n','\\n')
                         fd.write('%s%s = "%s"\n'%(prefix,attr,escaped_el))
+
+            # Update Sequence number information
+            if advertizeGCCounter.has_key(classad_name):
+                advertizeGCCounter[classad_name] += 1
+            else:
+                advertizeGCCounter[classad_name] = 0
+            fd.write('UpdateSequenceNumber = "%s"\n' % advertizeGCCounter[classad_name])
             # add a final empty line... useful when appending
             fd.write('\n')
         finally:
@@ -721,6 +757,8 @@ class ResourceClassad(Classad):
         @param type: Name of the resource in the glideclient classad
         """
 
+        global advertizeGRCounter
+
         Classad.__init__(self, 'glideresource', 'UPDATE_AD_GENERIC',
                          'INVALIDATE_ADS_GENERIC')
         
@@ -728,7 +766,14 @@ class ResourceClassad(Classad):
         self.adParams['GlideClientName'] = "%s" % frontend_ref
         self.adParams['Name'] = "%s@%s" % (factory_ref, frontend_ref)
         self.adParams['GLIDEIN_In_Downtime'] = 'False'
-       
+
+        if advertizeGRCounter.has_key(self.adParams['Name']):
+            advertizeGRCounter[self.adParams['Name']] += 1
+        else:       
+            advertizeGRCounter[self.adParams['Name']] = 0
+        self.adParams['UpdateSequenceNumber'] = advertizeGRCounter[self.adParams['Name']]
+
+
     def setInDownTime(self, downtime):
         """
         Set the downtime flag for the resource in the classad
