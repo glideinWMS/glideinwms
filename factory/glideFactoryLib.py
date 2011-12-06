@@ -479,14 +479,20 @@ class ClientWeb(ClientWebNoGroup):
         return (ClientWebNoGroup.get_glidein_args(self)+
                 ["-clientgroup",self.group_name,"-clientwebgroup",self.group_url,"-clientsigngroup",self.group_sign,"-clientdescriptgroup",self.group_descript])
 
-# Returns number of newely submitted glideins
-# Can throw a condorExe.ExeError exception
+
 def keepIdleGlideins(client_condorq, client_int_name,
                      in_downtime, remove_excess,
                      req_min_idle, req_max_glideins, glidein_totals, frontend_name,
                      x509_proxy_identifier, x509_proxy_fname,x509_proxy_username, x509_proxy_security_class,
                      client_web, # None means client did not pass one, backwards compatibility
                      params):
+    """ 
+    Submits more glideins if needed, else, clean up the queue.
+    
+    Returns number of newly submitted glideins
+    Can throw a condorExe.ExeError exception
+    """
+    
     global factoryConfig
 
     # filter out everything but the proper x509_proxy_identifier
@@ -570,62 +576,7 @@ def keepIdleGlideins(client_condorq, client_int_name,
 
     return 0
 
-"""
-    #
-    # First check if we have enough glideins in the queue
-    #
-
-    # Count glideins by status
-    qc_status=getQStatus(condorq)
-
-    #   Held==JobStatus(5)
-    held_glideins=0
-    if qc_status.has_key(5):
-        held_glideins=qc_status[5]
-
-    #   Idle==Jobstatus(1)
-    sum_idle_count(qc_status)
-    idle_glideins=qc_status[1]
-
-    #   Running==Jobstatus(2)
-    if qc_status.has_key(2):
-        running_glideins=qc_status[2]
-    else:
-        running_glideins=0
-
-    if ((idle_glideins<min_nr_idle) and
-        ((max_nr_running==None) or  #no max
-         ((running_glideins+idle_glideins)<max_nr_running))):
-        # need more glideins, submit
-        stat_str="min_idle=%i, idle=%i, running=%i"%(min_nr_idle,idle_glideins,running_glideins)
-        if max_nr_running!=None:
-            stat_str="%s, max_running=%i"%(stat_str,max_nr_running)
-        log_files.logActivity("Need more glideins: %s"%stat_str)
-        if in_downtime:
-            log_files.logActivity("In downtime, not submitting")
-            return 0
-        if held_glideins>max_held:
-            log_files.logActivity("Too many held (%s>%s), not submitting"%(held_glideins,max_held))
-            return 0
-
-        add_glideins=min_nr_idle-idle_glideins
-        if ((max_nr_running!=None) and
-            ((running_glideins+idle_glideins+add_glideins)>max_nr_running)):
-            # never exceed max_nr_running
-            add_glideins=max_nr_running-(running_glideins+idle_glideins)
-        try:
-            submitGlideins(condorq.entry_name,condorq.schedd_name,x509_proxy_username,
-                           client_int_name,add_glideins,
-                           x509_proxy_identifier,x509_proxy_security_class,x509_proxy_fname,
-                           client_web,params)
-            return add_glideins # exit, some submitted
-        except RuntimeError, e:
-            log_files.logWarning("%s"%e)
-            return 0 # something is wrong... assume 0 and exit
-        except:
-            log_files.logWarning("Unexpected error in glideFactoryLib.submitGlideins")
-            return 0 # something is wrong... assume 0 and exit
-"""        
+     
 def clean_glidein_queue(remove_excess, glidein_totals, condorQ, req_min_idle, req_max_glideins, frontend_name):
     """
     Cleans up the glideins queue (removes any excesses) per the frontend request.
@@ -749,8 +700,7 @@ def clean_glidein_queue(remove_excess, glidein_totals, condorQ, req_min_idle, re
 #
 # Sanitizing function
 #   Can be used if we the glidein connect to a reachable Collector
-#
-
+#  This method is currently not used anywhere 
 def sanitizeGlideins(condorq,status):
     global factoryConfig
 
