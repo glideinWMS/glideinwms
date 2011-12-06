@@ -139,14 +139,8 @@ def perform_work(entry_name,
     
     if nr_submitted>0:
         #glideFactoryLib.log_files.logActivity("Submitted")
-        return 1 # we submitted something, return immediately
-
-    if condorStatus!=None: # temporary glitch, no sanitization this round
-        #glideFactoryLib.log_files.logActivity("Sanitize")
-        glideFactoryLib.sanitizeGlideins(condorQ,condorStatus)
-    else:
-        glideFactoryLib.sanitizeGlideinsSimple(condorQ)
-    
+        return 1 # we submitted something
+   
     #glideFactoryLib.log_files.logActivity("Work done")
     return 0
     
@@ -289,18 +283,23 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
     
     # ===========  Check current state of the queue and initialize all entry limits  ==========
     
+    # Set a flag that says whether or not we can submit any more (we still need to update credentials)
+    can_submit_glideins = True
+    
     # Initialize entry and frontend limit dicts
     glidein_totals = glideFactoryLib.GlideinTotals(entry_name, frontendDescript, jobDescript, condorQ)  
     
     if glidein_totals.has_entry_exceeded_max_idle():
-        glideFactoryLib.log_files.logWarning("Entry %s has hit the limit for idle glideins, cannot submit any more, skipping all requests" % entry_name)
-        return 0
-    if glidein_totals.has_entry_exceeded_max_glideins():
-        glideFactoryLib.log_files.logWarning("Entry %s has hit the limit for total glideins, cannot submit any more, skipping all requests" % entry_name)
-        return 0
-    if glidein_totals.has_entry_exceeded_max_held():
-        glideFactoryLib.log_files.logWarning("Entry %s has hit the limit for held glideins, cannot submit any more, skipping all requests" % entry_name)
-        return 0
+        glideFactoryLib.log_files.logWarning("Entry %s has hit the limit for idle glideins, cannot submit any more" % entry_name)
+        can_submit_glideins = False
+        
+    if can_submit_glideins and glidein_totals.has_entry_exceeded_max_glideins():
+        glideFactoryLib.log_files.logWarning("Entry %s has hit the limit for total glideins, cannot submit any more" % entry_name)
+        can_submit_glideins = False
+        
+    if can_submit_glideins and glidein_totals.has_entry_exceeded_max_held():
+        glideFactoryLib.log_files.logWarning("Entry %s has hit the limit for held glideins, cannot submit any more" % entry_name)
+        can_submit_glideins = False
 
     all_security_names=sets.Set()
 
@@ -497,7 +496,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
 
         jobAttributes.data['GLIDEIN_In_Downtime']=in_downtime
         glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime)
-
+       
         if work[work_key]['requests'].has_key('RemoveExcess'):
             remove_excess=work[work_key]['requests']['RemoveExcess']
         else:
@@ -531,10 +530,13 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                     else:
                         # project id is required, cannot service request
                         glideFactoryLib.log_files.logActivity("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
-                        continue                
-            
-            if in_downtime:
-                # we are in downtime... no new submissions
+                        continue      
+                              
+            # If we got this far, it was because we were able to successfully update all the proxies in the request
+            # If we already have hit our maximums (checked at beginning of this method and logged there), we can't submit.  
+            # We still need to check/update all the other request credentials and do cleanup.
+            # We'll set idle glideins to zero if hit max or in downtime. 
+            if in_downtime or not can_submit_glideins:
                 idle_glideins=0          
 
             if work[work_key]['web'].has_key('URL'):
@@ -584,7 +586,6 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 #
                 # Should log here or in perform_work
                 #
-
                 glideFactoryLib.logWorkRequest(client_int_name,client_security_name,x509_proxy_security_class,
                                                idle_glideins, max_running,
                                                work[work_key],x509_proxy_frac)
@@ -596,15 +597,21 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 # Map the above identity to a frontend:sec_class for tracking totals
                 frontend_name = "%s:%s" % (frontendDescript.get_frontend_name(client_expected_identity), x509_proxy_security_class)
 
-                done_something+=perform_work(entry_name,entry_condorQ,
+                done_something += perform_work(entry_name,entry_condorQ,
                                              work_key,client_int_name,client_security_name,x509_proxy_security_class,client_int_req,
                                              in_downtime,remove_excess,
                                              idle_glideins_pc,max_running_pc,
                                              jobDescript,x509_proxies.fnames[x509_proxy_security_class],x509_proxies.get_username(x509_proxy_security_class),
                                              glidein_totals, frontend_name,
                                              client_web,params)
+                
         else: # it is malformed and should be skipped
             glideFactoryLib.log_files.logWarning("Malformed classad for client %s, skipping"%work_key)
+        
+    # Only do cleanup when no work (submit new glideins or remove excess) was done, work is the priority
+    if done_something == 0: 
+        glideFactoryLib.log_files.logActivity("Sanitizing glideins for entry %s" % entry_name)
+        glideFactoryLib.sanitizeGlideinsSimple(condorQ)
 
     for sec_el in all_security_names:
         try:
