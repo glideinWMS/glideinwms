@@ -733,9 +733,11 @@ class Classad:
         ad = ""
         for param in self.adParams.keys():
             if isinstance(self.adParams[param], str):
-                ad += '%s = "%s"\n' % (param, self.adParams[param])
+                escaped_str=self.adParams[param].replace("\"","\\\"")
+                ad += '%s = "%s"\n' % (param, escaped_str)
             elif isinstance(self.adParams[param], unicode):
-                ad += '%s = "%s"\n' % (param, self.adParams[param])
+                escaped_str=self.adParams[param].replace("\"","\\\"")
+                ad += '%s = "%s"\n' % (param, escaped_str)
             else:
                 ad += '%s = %s\n' % (param, self.adParams[param])  
         return ad
