@@ -183,8 +183,8 @@ class X509Proxies:
 ###
 def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDescript, jobAttributes, jobParams):
     """
-    Finds work requests from the WMS collector, validates security credentials, and requests glideins.  If an entry is 
-    in downtime, requested glideins is zero.
+    Finds work requests from the WMS collector, validates credentials, and
+    requests glideins. If an entry is in downtime, requested glideins is zero.
     
     @type in_downtime:  boolean
     @param in_downtime:  True if entry is in downtime
@@ -964,7 +964,7 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     
     try:
         dir = os.path.dirname(os.path.dirname(sys.argv[0]))
-        glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(dir, os.path.join(dir,'etc/checksum.factory')).version()
+        glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(dir, 'checksum.factory').version()
     except:
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])

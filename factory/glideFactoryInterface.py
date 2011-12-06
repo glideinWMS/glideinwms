@@ -236,6 +236,8 @@ def findWork(factory_name, glidein_name, entry_name,
 #
 start_time=time.time()
 advertizeGlideinCounter=0
+advertizeGFCCounter = {}
+
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
@@ -440,7 +442,7 @@ class MultiAdvertizeGlideinClientMonitoring:
 
             if len(error_arr)>0:
                 raise MultiExeError, error_arr
-        
+
 
 
 ##############################
@@ -455,13 +457,13 @@ def createGlideinClientMonitoringFile(fname,
                                       glidein_attrs={},client_params={},client_monitors={},
                                       do_append=False):
     global factoryConfig
-    #global advertizeGlideinCounter
+    global advertizeGFCCounter
 
     if do_append:
         open_type="a"
     else:
         open_type="w"
-        
+
     fd=file(fname,open_type)
     try:
         try:
@@ -476,8 +478,11 @@ def createGlideinClientMonitoringFile(fname,
             fd.write('ReqClientName = "%s"\n'%client_int_name)
             fd.write('ReqClientReqName = "%s"\n'%client_int_req)
             #fd.write('DaemonStartTime = %li\n'%start_time)
-            #fd.write('UpdateSequenceNumber = %i\n'%advertizeGlideinCounter)
-            #advertizeGlideinCounter+=1
+            if advertizeGFCCounter.has_key(client_name):
+                advertizeGFCCounter[client_name] += 1
+            else:
+                advertizeGFCCounter[client_name] = 0
+            fd.write('UpdateSequenceNumber = %i\n'%advertizeGFCCounter[client_name])
 
             # write out both the attributes, params and monitors
             for (prefix,data) in ((factoryConfig.glidein_attr_prefix,glidein_attrs),
