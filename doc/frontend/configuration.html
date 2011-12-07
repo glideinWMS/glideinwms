@@ -122,7 +122,7 @@ Click on any piece for a more detailed description.
         <blockquote>
         <a href="#proxies">&lt;credentials&gt;</a><br/>
         <blockquote>
-            <a href="#proxies">&lt;credential absfname="/tmp/x509up_u" security_class="frontend" trust_domain="OSG" auth_method="grid_proxy" vm_id="123" vm_type="type1" pool_count="20" &gt;</a><br/>
+            <a href="#proxies">&lt;credential absfname="/tmp/x509up_u" security_class="frontend" trust_domain="OSG" auth_method="grid_proxy" vm_id="123" vm_type="type1" pool_idx_len="5" pool_idx_list="2,4-6,10" &gt;</a><br/>
         </blockquote>
         <a href="#proxies">&lt;/credentials&gt;</a><br/>
     </blockquote>
@@ -305,7 +305,8 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         trust_domain=&quot;<I>id</I>&quot;
         [vm_id=&quot;<I>id</I>&quot;]
         [vm_type=&quot;<I>type</I>&quot;]
-        [pool_count=&quot;<I>20</I>&quot;]
+        [pool_idx_len=&quot;<I>5</I>&quot;]
+        [pool_idx_list=&quot;<I>2,4-6,10</I>&quot;]
         /&gt;
         </div>
     This section lists credentials used by the whole frontend.  You can
@@ -321,9 +322,9 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
     If these either of these are specified, &quot+vm_id&quot or &quot+vm_type&quot will be added to one of the authentication methods above.  For example, 
     auth_method="cert_pair+vm_id+vm_type".
     <br/><br/>
-    Pool count allows the admin to configure a list of credentials without having to list each one of them.  The files must all be identical except
-    for the sequentional numbers at the end.  For example, if you have: absfname=&quotpath/foo&quot keyabsfname=&quotpath/bar&quot pilotabsfname=&quotpath/blah&quot pool_count=&quot10&quot  
-    then you should have files foo1 - foo10, bar1 - bar10, and blah1 - blah10 for a total of 30 files in path/.
+    Pool index length and list allows the admin to configure a list of credentials without having to list each one of them.  The files must all be identical except
+    for the numbers at the end.  The index length value adds leading zeros.  For example, if you have: absfname=&quotpath/foo&quot pool_idx_len=&quot4&quot  pool_idx_list=&quot2,4-6&quot
+    then you should have files foo0002, foo0004, foo0005, foo0006 in path/.
     <br/><br/>
     Security class determines what user the credential is associated with
     on the factory side.  The trust domain determines which entries this
