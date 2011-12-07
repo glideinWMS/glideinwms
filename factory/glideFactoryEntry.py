@@ -108,7 +108,7 @@ def perform_work(entry_name, condorQ,
                  identity_credentials, glidein_totals, frontend_name,
                  client_web, params):
     """
-    Logs stats.  Determines how many idle glideins are needed per proxy.
+    Logs stats.  Determines how many idle glideins are needed per proxy.  Only used in the v2+ protocol.
 
     @type entry_name:  string
     @param entry_name:  name of the entry
@@ -187,8 +187,6 @@ def perform_work(entry_name, condorQ,
 
     if nr_submitted > 0:
         return 1 # we submitted something, return immediately
-
-    glideFactoryLib.sanitizeGlideins(condorQ)
 
     return 0
 
@@ -299,18 +297,23 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                                 
     # ===========  Check current state of the queue and initialize all entry limits  ==========
     
+    # Set a flag that says whether or not we can submit any more (we still need to update credentials)
+    can_submit_glideins = True
+    
     # Initialize entry and frontend limit dicts
     glidein_totals = glideFactoryLib.GlideinTotals(entry_name, frontendDescript, jobDescript, condorQ)
     
     if glidein_totals.has_entry_exceeded_max_idle():
-        logSupport.log.warning("Entry %s has hit the limit for idle glideins, cannot submit any more, skipping all requests" % entry_name)
-        return 0
-    if glidein_totals.has_entry_exceeded_max_glideins():
-        logSupport.log.warning("Entry %s has hit the limit for total glideins, cannot submit any more, skipping all requests" % entry_name)
-        return 0
-    if glidein_totals.has_entry_exceeded_max_held():
-        logSupport.log.warning("Entry %s has hit the limit for held glideins, cannot submit any more, skipping all requests" % entry_name)
-        return 0
+        logSupport.log.warning("Entry %s has hit the limit for idle glideins, cannot submit any more" % entry_name)
+        can_submit_glideins = False
+        
+    if can_submit_glideins and glidein_totals.has_entry_exceeded_max_glideins():
+        logSupport.log.warning("Entry %s has hit the limit for total glideins, cannot submit any more" % entry_name)
+        can_submit_glideins = False
+        
+    if can_submit_glideins and glidein_totals.has_entry_exceeded_max_held():
+        logSupport.log.warning("Entry %s has hit the limit for held glideins, cannot submit any more" % entry_name)
+        can_submit_glideins = False
         
     # ===========  Finding work requests  ==========
     logSupport.log.debug("Finding work")
@@ -768,12 +771,15 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 except ValueError, e:
                     logSupport.log.warning("Client %s provided an invalid ReqMaxRunningGlideins: '%s' not a number. Skipping request" % (client_int_name, work[work_key]['requests']['MaxRunningGlideins']))
                     continue #skip request
-                       
-            if in_downtime:
-                # we are in downtime... no new submissions
-                # cannot exit here, need to get to keepIdleGlideins() because logging/monitoring is done there
-                idle_glideins = 0
-
+                
+            # If we got this far, it was because we were able to successfully update all the credentials 
+            # in the request even if we can't submit glideins.
+            # If we already have hit our maximums (checked at beginning of this method and logged there), we can't submit.  
+            # We still need to check/update all the other requests and do cleanup.
+            # We'll set idle glideins to zero if hit max or in downtime. 
+            if in_downtime or not can_submit_glideins:
+                idle_glideins=0          
+                      
             try:
                 client_web_url = work[work_key]['web']['URL']
                 client_signtype = work[work_key]['web']['SignType']
@@ -871,22 +877,11 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             # never fail for monitoring... just log
             logSupport.log.warning("get_RRD_data failed: error unknown")
 
-    # If v3+ protocol, sanitize here.  v2+ does sanitize in perform work()
-    if not security_credentials.has_key('x509_proxy_list'):
-        if done_something > 0:
-            # We submitted something, return immediately.  It is more important to 
-            # submit glideins than cleanup.
-            return 1 
-        
-        # Only sanitize once per iteration since we only query condor once per iteration.
-        # Sanitizing only depends on the entry (not request or VO) so it is the entry's 
-        # responsibility to clean up after itself.
-        # To do this anywhere else or at any other time would keep us from having the best
-        # accounting as possible.
+    # Only do cleanup when no work (submit new glideins or remove excess) was done, work is the priority
+    if done_something == 0: 
+        logSupport.log.info("Sanitizing glideins for entry %s" % entry_name)
         glideFactoryLib.sanitizeGlideins(condorQ)
-                
-        return 0
-
+        
     return done_something
 
 
