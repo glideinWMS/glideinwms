@@ -551,7 +551,7 @@ def populate_common_descript(descript_dict,        # will be modified
         for pel in params.security.credentials:
             if pel['absfname'] == None:
                 raise RuntimeError, "All proxies need a absfname!"
-            if pel['pool_count'] == None:
+            if pel['pool_idx_len'] == None and pel['pool_idx_list'] == None:
                 # only one
                 proxies.append(pel['absfname'])
                 if pel['security_class'] != None:
@@ -569,9 +569,25 @@ def populate_common_descript(descript_dict,        # will be modified
                 if pel['vm_type'] != None:
                     proxy_vm_types[pel['absfname']] = pel['vm_type']
             else: #pool
-                pool_count = int(pel['pool_count'])
-                for i in range(pool_count):
-                    absfname = "%s%s" % (pel['absfname'], str(i + 1))
+                pool_idx_len = pel['pool_idx_len']
+                if pool_idx_len == None:
+                    pool_idx_len = 0
+                else:
+                    pool_idx_len = int(pool_idx_len)
+                pool_idx_list_unexpanded = pel['pool_idx_list'].split(',')
+                pool_idx_list_expanded = []
+                
+                # Expand ranges in pool list
+                for idx in pool_idx_list_unexpanded:
+                    if '-' in idx:
+                        idx_range = idx.split('-')
+                        for i in range(int(idx_range[0]), int(idx_range[1])+1):
+                            pool_idx_list_expanded.append(str(i))                                                        
+                    else:
+                        pool_idx_list_expanded.append(idx)
+       
+                for idx in pool_idx_list_expanded:
+                    absfname = "%s%s" % (pel['absfname'], idx.zfill(pool_idx_len))
                     proxies.append(absfname)
                     if pel['security_class'] != None:
                         proxy_security_classes[absfname] = pel['security_class']
