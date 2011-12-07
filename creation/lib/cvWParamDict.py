@@ -584,7 +584,7 @@ def populate_common_descript(descript_dict,        # will be modified
                         for i in range(int(idx_range[0]), int(idx_range[1])+1):
                             pool_idx_list_expanded.append(str(i))                                                        
                     else:
-                        pool_idx_list_expanded.append(idx)
+                        pool_idx_list_expanded.append(idx.strip())
        
                 for idx in pool_idx_list_expanded:
                     absfname = "%s%s" % (pel['absfname'], idx.zfill(pool_idx_len))
