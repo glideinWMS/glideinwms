@@ -136,7 +136,7 @@ for a more detailed description.
                 <a href="#">&lt;max_jobs held="1000" idle="2000" running="10000"&gt;</a><br/>
                 <a href="#">&lt;release max_per_cycle="20" sleep="0.2"&gt;</a><br/>
                 <a href="#">&lt;remove max_per_cycle="5" sleep="0.2"&gt;</a><br/>
-                <a href="#require_voms">&lt;restrictions require_voms="False"&gt;</a><br/>
+                <a href="#require_voms">&lt;restrictions require_voms_proxy="False"&gt;</a><br/>
                 <a href="#">&lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2"&gt;</a><br/>
             </blockquote>
             <a href="#">&lt;/config&gt;</a><br/>
@@ -753,7 +753,7 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=”My
          &lt;glidein&gt;&lt;entries&gt;&lt;entry
          name=&quot;<I>entry name</I>&quot;&gt;
          &lt;config&gt;
-         &lt;restrictions require_voms="<i>True</i>" /&gt;
+         &lt;restrictions require_voms_proxy="<i>True</i>" /&gt;
         </div>
         <p>
             <b>Recommended</b> This value defines whether a VOMS proxy
@@ -762,7 +762,8 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=”My
             (classad attribute x509userproxyfirstfqan) from being 
             submitted or running at this entry point.
             This attribute is usually only needed if glExec is 
-            being utilized.
+            being utilized.  If glExec is not used on this entry point,
+            this value has no effect.
         </p>
         </li>
         <li>
