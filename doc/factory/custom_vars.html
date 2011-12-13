@@ -786,6 +786,19 @@ described below ar the most often used.</P>
             <P>See <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:JobInheritsStarterEnvironment">JOB_INHERITS_STARTER_ENVIRONMENT documentation</A> for more details.</P>
         </TD>
     </TR>
+    <TR>
+        <td> <b>GLIDEIN_Expose_X509</b> </td>
+        <td> Exp (Bool) </TD>
+
+        <TD>
+            <p>By default, the glidein will unset the variable 
+            X509_USER_PROXY for security reasons to prevent the user
+            jobs from accessing the pilot proxy.  Setting this
+            to true will override this behavior and keep the X509_USER_PROXY
+            in the environment.
+        </TD>
+    </TR>
+
 
 </TABLE>
 </div>
