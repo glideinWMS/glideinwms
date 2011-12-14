@@ -98,6 +98,21 @@ class MultiExeError(condorExe.ExeError):
 
 ############################################################
 #
+# Global Variables
+#
+############################################################
+
+# Advertize counter for glideclient
+advertizeGCCounter = {}
+
+# Advertize counter for glideresource
+advertizeGRCounter = {}
+
+# Advertize counter for glideclientglobal
+advertizeGCGounter = {}
+
+############################################################
+#
 # User functions
 #
 ############################################################
@@ -527,6 +542,8 @@ class MultiAdvertizeWork:
         """
         Advertize globals with credentials
         """
+        global advertizeGCGounter
+        
         for factory_pool in self.global_pool:
             short_time = time.time()-1.05e9
             tmpname="/tmp/globaliad_%li_%li"%(short_time,os.getpid())
@@ -586,6 +603,13 @@ class MultiAdvertizeWork:
                     el = key_obj.encrypt_hex(glidein_params_to_encrypt[attr])
                     escaped_el = string.replace(string.replace(str(el), '"', '\\"'), '\n', '\\n')
                     fd.write('%s%s = "%s"\n' % (frontendConfig.encrypted_param_prefix, attr, escaped_el))
+
+            # Update Sequence number information
+            if advertizeGCGounter.has_key(classad_name):
+                advertizeGCGounter[classad_name] += 1
+            else:
+                advertizeGCGounter[classad_name] = 0
+            fd.write('UpdateSequenceNumber = %s\n' % advertizeGCGounter[classad_name]) 
  
             fd.close()
             
@@ -637,6 +661,8 @@ class MultiAdvertizeWork:
 
     def createAdvertizeWorkFile(self, factory_pool, params_obj, key_obj=None): 
         global frontendConfig
+        global advertizeGCCounter
+        
         descript_obj=self.descript_obj
         
         logSupport.log.info("in create Advertize work");
@@ -740,6 +766,14 @@ class MultiAdvertizeWork:
                         else:
                             escaped_el = string.replace(string.replace(str(el), '"', '\\"'), '\n', '\\n')
                             fd.write('%s%s = "%s"\n' % (prefix, attr, escaped_el))
+                            
+                # Update Sequence number information
+                if advertizeGCCounter.has_key(classad_name):
+                    advertizeGCCounter[classad_name] += 1
+                else:
+                    advertizeGCCounter[classad_name] = 0
+                fd.write('UpdateSequenceNumber = %s\n' % advertizeGCCounter[classad_name])
+                            
                 # add a final empty line... useful when appending
                 fd.write('\n')
                 fd.close()
@@ -819,6 +853,8 @@ class ResourceClassad(classadSupport.Classad):
         @param type: Name of the resource in the glideclient classad
         """
 
+        global advertizeGRCounter
+        
         classadSupport.Classad.__init__(self, 'glideresource',
                                         'UPDATE_AD_GENERIC',
                                         'INVALIDATE_ADS_GENERIC')
@@ -828,7 +864,12 @@ class ResourceClassad(classadSupport.Classad):
         self.adParams['GlideClientName'] = "%s" % frontend_ref
         self.adParams['Name'] = "%s@%s" % (factory_ref, frontend_ref)
         self.adParams['GLIDEIN_In_Downtime'] = 'False'
-
+        
+        if advertizeGRCounter.has_key(self.adParams['Name']):
+            advertizeGRCounter[self.adParams['Name']] += 1
+        else:       
+            advertizeGRCounter[self.adParams['Name']] = 0
+        self.adParams['UpdateSequenceNumber'] = advertizeGRCounter[self.adParams['Name']]
 
     def setInDownTime(self, downtime):
         """

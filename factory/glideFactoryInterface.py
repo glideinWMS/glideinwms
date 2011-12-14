@@ -223,6 +223,7 @@ def findWork(factory_name, glidein_name, entry_name,
 start_time = time.time()
 advertizeGlideinCounter = 0
 advertizeGlobalCounter = 0
+advertizeGFCCounter = {}
 
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
@@ -323,7 +324,8 @@ def advertizeGlobal(factory_name, glidein_name, supported_signtypes, pub_key_obj
     @todo add factory downtime?
     """
     
-    global factoryConfig, advertizeGlobalCounter
+    global factoryConfig
+    global advertizeGlobalCounter
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
     short_time = time.time() - 1.05e9
@@ -522,7 +524,7 @@ def createGlideinClientMonitoringFile(fname,
                                       glidein_attrs={}, client_params={}, client_monitors={},
                                       do_append=False):
     global factoryConfig
-    #global advertizeGlideinCounter
+    global advertizeGFCCounter
 
     if do_append:
         open_type = "a"
@@ -543,8 +545,11 @@ def createGlideinClientMonitoringFile(fname,
             fd.write('ReqClientName = "%s"\n' % client_int_name)
             fd.write('ReqClientReqName = "%s"\n' % client_int_req)
             #fd.write('DaemonStartTime = %li\n'%start_time)
-            #fd.write('UpdateSequenceNumber = %i\n'%advertizeGlideinCounter)
-            #advertizeGlideinCounter+=1
+            if advertizeGFCCounter.has_key(client_name):
+                advertizeGFCCounter[client_name] += 1
+            else:
+                advertizeGFCCounter[client_name] = 0
+            fd.write('UpdateSequenceNumber = %i\n'%advertizeGFCCounter[client_name])            
 
             # write out both the attributes, params and monitors
             for (prefix, data) in ((factoryConfig.glidein_attr_prefix, glidein_attrs),
