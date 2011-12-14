@@ -2580,7 +2580,7 @@ def create_condor_initd(fname='/etc/init.d/condor',user_condor_base_dir=None):
         
         fd.write("stop() {\n")
         fd.write('        echo -n "Shutting down condor: "\n')
-        fd.write("        killall -q -9 condor_master condor_schedd condor_shadow condor_collector condor_negotiator condor_procd condor_gridmanager gahp_server 2>/dev/null 1>&2\n")
+        fd.write("        killall -q -9 condor_master condor_schedd condor_shadow condor_collector condor_negotiator condor_procd condor_shared_port condor_gridmanager gahp_server 2>/dev/null 1>&2\n")
         fd.write("        sleep 1\n")
         fd.write("        # If a master is still alive, we have a problem\n")
         fd.write("        killall condor_master 2>/dev/null 1>&2 && failure || success\n")
