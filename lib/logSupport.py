@@ -214,4 +214,19 @@ class DebugFilter(logging.Filter):
     """
     def filter(self, rec):
         return rec.levelno == logging.DEBUG or rec.levelno == logging.ERROR
+
+def format_dict(unformated_dict, log_format="   %-25s : %s\n"):
+    """
+    Convenience function used to format a dictionary for the logs to make it 
+    human readable.
     
+    @type unformated_dict: dict
+    @param unformated_dict: The dictionary to be formatted for logging
+    @type log_format: string
+    @param log_format: format string for logging
+    """
+    formatted_string = ""
+    for key in unformated_dict:
+        formatted_string += log_format % (key, unformated_dict[key])
+
+    return formatted_string

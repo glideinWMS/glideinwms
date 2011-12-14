@@ -1,0 +1,89 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import ConfigParser
+
+STARTUP_DIR = sys.path[0]
+sys.path.append(os.path.join(STARTUP_DIR,".."))
+sys.path.append(os.path.join(STARTUP_DIR,"../../lib"))
+
+from glideFactoryCredentials import SubmitCredentials
+from glideFactoryLib import submitGlideins
+from glideFactoryLib import ClientWeb
+from iniSupport import IniError
+from iniSupport import load_ini
+from iniSupport import cp_get
+
+class ArgumentError(Exception): pass
+
+def usage():
+    msg = """
+Usage: manual_glidein_submit <ini_file> 
+
+  ini_file: (REQUIRED) This file contains all the required information for a 
+            glidein to be submitted and run on a remote site.
+"""
+    print sys.stderr, msg
+
+def check_args():
+    if len(sys.argv) > 1:
+        raise ArgumentError, "Too many arguments!"
+    if len(sys.argv) < 1:
+        raise ArgumentError, "You must specify an ini file!"
+
+def main():
+    try:
+        check_args()
+    except ArgumentError, ae:
+        print sys.stderr, ae
+        usage()
+
+    try:
+        ini_path = sys.argv[1]
+        cp = load_ini(ini_path)
+
+        # get all the required elements and create the required objects
+        entry_name = cp_get("entry", "entry_name", "", throw_exception=True)
+        client_name = cp_get("entry", "client_name", "", throw_exception=True)
+        nr_glideins = cp_get("entry", "nr_glideins", "", throw_exception=True)
+        frontend_name = cp_get("entry", "frontend_name", "", throw_exception=True)
+        user_name = cp_get("submit_credentials", "UserName", "", throw_exception=True)
+        security_class = cp_get("submit_credentials", "SecurityClass", "", throw_exception=True)
+
+        # create the params object
+        params = {}
+        for option in cp.options("params"):
+            params[option] = cp_get("params", option, "", throw_exception=True)
+
+        # create the client_web object
+        client_web_url = cp_get("client_web", "clientweb", "", throw_exception=True)
+        client_signtype = cp_get("client_web", "clientsigntype", "", throw_exception=True)
+        client_descript = cp_get("client_web", "clientdescript", "", throw_exception=True)
+        client_sign = cp_get("client_web", "clientsign", "", throw_exception=True)
+        client_group = cp_get("client_web", "clientgroup", "", throw_exception=True)
+        client_group_web_url = cp_get("client_web", "clientwebgroup", "", throw_exception=True)
+        client_group_descript = cp_get("client_web", "clientdescriptgroup", "", throw_exception=True)
+        client_group_sign = cp_get("client_web", "clientsigngroup", "", throw_exception=True)
+
+        client_web = ClientWeb(client_web_url, client_signtype, client_descript, client_sign,
+                               client_group, client_group_web_url, client_group_descript, client_group_sign)
+
+        # create the submit_credentials object
+        credentials = SubmitCredentials(user_name, security_class)
+        for option in cp.options("security_credentials"):
+            credentials.add_security_credential(option, cp_get("security_credentials", option, "", throw_exception=True))
+
+        for option in cp.options("identity_credentials"):
+            credentials.add_identity_credential(option, cp_get("identity_credentials", option, "", throw_exception=True))
+
+        # call the submit
+        submitGlideins(entry_name, client_name, nr_glideins, frontend_name, credentials, client_web, params)
+
+    except IniError, ie:
+        print sys.stderr, "ini file error make this message better"
+    except Exception, ex:
+        print sys.stderr, "general error make this message better"
+
+if __name__ == "__main__":
+    sys.exit(main())

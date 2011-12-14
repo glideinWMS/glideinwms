@@ -1165,16 +1165,34 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
                 proxy_contents = condorPrivsep.execute(submit_credentials.username, proxy_dir, cat_cmd, args)
                 proxy_contents = "".join(proxy_contents)
 
-                ini_template = "[glidein_startup]\n" \
-                                "webbase = %s\n" \
-                                "proxy_file_name = pilot_proxy\n" \
-                                "disable_shutdown=False" \
-                                "args = %s\n"
+                try:
+                    vm_max_lifetime = str(params["VM_MAX_LIFETIME"])
+                except Exception, ex:
+                    # if no lifetime is specified, then default to 12 hours
+                    # we can change this to a more "sane" default if we can 
+                    # agree to what is "sane"
+                    vm_max_lifetime = str(43200)
 
-                if jobDescript.has_key("shutdownVM"):
-                    disable_shutdown = jobDescript["shutdownVM"]
-                    if disable_shutdown: ini_template += "disable_shutdown = True"
-                ini = ini_template % (glidein_arguments, web_url)
+                try:
+                    vm_disable_shutdown = str(params["VM_DISABLE_SHUTDOWN"])
+                except Exception:
+                    # By default assume we don't want to debug the VM
+                    vm_disable_shutdown = "False"
+
+                ini_template ="""[glidein_startup]
+args = %s
+proxy_file_name = pilot_proxy
+webbase= %s
+
+[vm_properties]
+max_lifetime = %s
+contextualization_type = "EC2"
+disable_shutdown = %s
+admin_email = "UNSUPPORTED"
+email_logs = False
+"""
+
+                ini = ini_template % (glidein_arguments, web_url, vm_max_lifetime, vm_disable_shutdown)
 
                 tarball = GlideinTar()
                 tarball.add_string("glidein_userdata", ini)
