@@ -2044,9 +2044,18 @@ def query_vdt():
             if not os.path.isfile("%s/setup.sh"%user_dir):
                 print "Directory '%s' not a VDT area (does not contain setup.sh)"%user_dir
                 continue
-            if not os.path.isfile("%s/globus/bin/grid-proxy-info"%user_dir):
-                print "Directory '%s' not a Grid VDT area (does not contain globus/bin/grid-proxy-info)"%user_dir
-                continue
+
+            tmpcadir="%s/globus/TRUSTED_CA"%VDT_BASE_PATH
+            if os.path.isdir(tmpcadir):
+                GSI_TRUSTED_CA_DIR=tmpcadir
+            else:
+                tmpcadir="/etc/grid-security/certificates"
+                if os.path.isdir(tmpcadir):
+                    GSI_TRUSTED_CA_DIR=tmpcadir
+                else:
+                    print "Cannot find certificates... looked in %s/globus/TRUSTED_CA and /etc/grid-security/certificates"%VDT_BASE_PATH
+                    continue
+
             # found and verified the installation
             print "Using VDT installation in %s"%user_dir
             print
@@ -2087,8 +2096,6 @@ def query_vdt():
                 continue # ask again
               break
 
-    GSI_TRUSTED_CA_DIR="%s/globus/TRUSTED_CA"%VDT_BASE_PATH
-
     ###################################
     # find out where is voms-proxy-info
     fd=os.popen(". %s/setup.sh;which voms-proxy-info"%VDT_BASE_PATH)
@@ -2123,6 +2130,7 @@ MINIMAL_VDT_PACKAGES=['PPDG-Cert-Scripts','Globus-Client','VOMS-Client','MyProxy
 def install_vdt(minimal):
     global VDT_BASE_PATH
     global VOMS_CERTS_DIR
+    global GSI_TRUSTED_CA_DIR
     
     if os.getuid()==0:
         def_vdt_base_path="/opt/vdt"
@@ -2299,6 +2307,8 @@ def install_vdt(minimal):
             finally:
                 fd.close()
 
+    GSI_TRUSTED_CA_DIR="%s/globus/TRUSTED_CA"%VDT_BASE_PATH
+        
     # everything went well, register
     print
     print "VDT client installed"
