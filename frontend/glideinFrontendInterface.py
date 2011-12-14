@@ -481,7 +481,7 @@ def createAdvertizeWorkFile(fname, descript_obj, params_obj,
                 advertizeGCCounter[classad_name] += 1
             else:
                 advertizeGCCounter[classad_name] = 0
-            fd.write('UpdateSequenceNumber = "%s"\n' % advertizeGCCounter[classad_name])
+            fd.write('UpdateSequenceNumber = %s\n' % advertizeGCCounter[classad_name])
             # add a final empty line... useful when appending
             fd.write('\n')
         finally:
