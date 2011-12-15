@@ -247,12 +247,6 @@ if [ -z "$expose_x509" ]; then
 	fi
 fi
 expose_x509=`echo $expose_x509 | tr '[:upper:]' '[:lower:]'`
-if [ "$expose_x509" != "true" ]; then
-        echo "Unsetting X509_USER_PROXY in job environment" 1>&2
-	job_env="$job_env;X509_USER_PROXY="
-fi
-
-
 
 if [ -z "$graceful_shutdown" ]; then
 	graceful_shutdown=`grep -i "^GLIDEIN_Graceful_Shutdown=" $CONDOR_CONFIG | awk -F"=" '{print $2}'`
@@ -510,7 +504,7 @@ X509_BACKUP=$X509_USER_PROXY
 if [ "$expose_x509" == "true" ]; then
 	echo "Exposing X509_USER_PROXY $X509_USER_PROXY" 1>&2
 else
-	echo "Unsetting X509_USER_PROXY from $X509_USER_PROXY" 1>&2
+	echo "Unsetting X509_USER_PROXY" 1>&2
 	unset X509_USER_PROXY
 fi
 
