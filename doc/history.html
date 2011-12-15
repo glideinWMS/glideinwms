@@ -84,6 +84,22 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
+        <b>v2_5_4</b> released on December 19, 2011 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_4/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_4/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_4.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Addded support for VDT pre installed via rpm. While using
+          ini-installer set vdt_location to empty and
+          x509_cert_dir=/etc/grid-security/certificates
+          <li>Consolidated some of the frontend rpm related patches
+          <li>Bug Fix: Factory now correctly renews the proxies if the limits
+          are hit
+          <li>Bug Fix: frontend_startup does not show "upgrade" in help
+          <li>Bug Fix: glideclient, glidefactoryclient & glideresource classads           now correctly show UpdateSequenceNumber to help condor track
+          potentially lost updates
+          <li>Bug Fix: Fixed a bug where condor_shared_port daemon was not
+          correctly stopped under certain conditions
+        </ul>
+      </li>
+      <li>
         <b>v2_5_3</b> released on November 11, 2011 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_3/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_3/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_3.tgz">Tarball</a>)<br>
         <ul>
           <li>Updated the license to reflect current Fermitools license Factory 

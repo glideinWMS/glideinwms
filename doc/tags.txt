@@ -1,3 +1,16 @@
+v2_5_4	Addded support for VDT pre installed via rpm. While using 
+          ini-installer set vdt_location to empty and 
+          x509_cert_dir=/etc/grid-security/certificates
+	Consolidated some of the frontend rpm related patches
+	Bug Fix: Factory now correctly renews the proxies if the limits are hit
+	Bug Fix: frontend_startup does not show "upgrade" in help
+	Bug Fix: glideclient, glidefactoryclient & glideresource classads now 
+	  correctly show UpdateSequenceNumber to help condor track potentially
+	  lost updates
+	Bug Fix: Fixed a bug where condor_shared_port daemon was not correctly
+	  stopped under certain conditions
+	
+
 v2_5_3	Updated the license to reflect current Fermitools license
 	Factory does a better job at respecting frontend limits
 	Admins can add custom html to the monitoring pages
