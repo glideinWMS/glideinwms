@@ -184,7 +184,7 @@ Suggest you check this out before proceeding:
   def get_x509_cert_dir_value(self):
     """ Returns the X509_CERT_DIR variable from an OSG/VDT CA install.""" 
     cert_dir = ""
-    vdt_script = "%s/setp.sh" % self.vdt_location()
+    vdt_script = "%s/setup.sh" % self.vdt_location()
     if os.path.exists(vdt_script):
       (status, cert_dir) = commands.getstatusoutput(". %s;echo $X509_CERT_DIR" % vdt_script)
       if status > 0:
