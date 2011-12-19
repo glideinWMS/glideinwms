@@ -90,10 +90,13 @@ Related Pages:
           ini-installer set vdt_location to empty and
           x509_cert_dir=/etc/grid-security/certificates
           <li>Consolidated some of the frontend rpm related patches
+          <li>Added support for rsl in glideinWMS.xml to map to
+          cream_attributes in the jdf
           <li>Bug Fix: Factory now correctly renews the proxies if the limits
           are hit
           <li>Bug Fix: frontend_startup does not show "upgrade" in help
-          <li>Bug Fix: glideclient, glidefactoryclient & glideresource classads           now correctly show UpdateSequenceNumber to help condor track
+          <li>Bug Fix: glideclient, glidefactoryclient and glideresource 
+          classads now correctly show UpdateSequenceNumber to help condor track
           potentially lost updates
           <li>Bug Fix: Fixed a bug where condor_shared_port daemon was not
           correctly stopped under certain conditions

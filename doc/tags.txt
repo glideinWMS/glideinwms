@@ -2,6 +2,8 @@ v2_5_4	Addded support for VDT pre installed via rpm. While using
           ini-installer set vdt_location to empty and 
           x509_cert_dir=/etc/grid-security/certificates
 	Consolidated some of the frontend rpm related patches
+	Added support for rsl in glideinWMS.xml to map to cream_attributes
+	  in the jdf
 	Bug Fix: Factory now correctly renews the proxies if the limits are hit
 	Bug Fix: frontend_startup does not show "upgrade" in help
 	Bug Fix: glideclient, glidefactoryclient & glideresource classads now 
