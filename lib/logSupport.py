@@ -19,59 +19,16 @@ from logging.handlers import TimedRotatingFileHandler
 log = None # create a place holder for a global logger, individual modules can create their own loggers if necessary
 log_dir = None
 
-# this class can be used instead of a file for writing
-class DayLogFile:
-    def __init__(self, base_fname, extension="log"):
-        self.base_fname = base_fname
-        self.extension = extension
-        return
+KEL_test_log = None
 
-    def close(self):
-        return # nothing to do, just a placeholder
-
-    def write(self, msg):
-        now = time.time()
-        fname = self.get_fname(now)
-        try:
-            fd = open(fname, "a")
-        except:
-            self.write_on_exception("Cannot open %s" % fname, msg)
-            raise
-        try:
-            try:
-                fd.write(self.format_msg(now, msg) + "\n")
-            except:
-                self.write_on_exception("Cannot open %s" % fname, msg)
-                raise
-        finally:
-            fd.close()
-
-        return
-
-    ##########################
-    # these can be customized
-    ##########################
-
-    def write_on_exception(self, exception_msg, msg):
-        print "%s: %s" % (exception_msg, msg)
-        return
-
-    def get_fname(self, timestamp):
-        return "%s.%s.%s" % (self.base_fname, time.strftime("%Y%m%d", time.localtime(timestamp)), self.extension)
-
-    def format_msg(self, timestamp, msg):
-        return "[%s %s] %s" % (self.format_time(timestamp), os.getpid(), msg)
-
-    def format_time(self, timestamp):
-        return timeConversion.getISO8601_Local(timestamp)
+DEFAULT_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s:  %(message)s')
+DEBUG_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s:::%(module)s::%(lineno)d: %(message)s ')
 
 # Adding in the capability to use the built in Python logging Module
 # This will allow us to log anything, anywhere
 #
 # Note:  We may need to create a custom class later if we need to handle
 #        logging with privilege separation
-
-
 
 class GlideinHandler(TimedRotatingFileHandler):
     """
@@ -167,12 +124,10 @@ def add_glideinlog_handler(logger_name, log_dir, maxDays, maxMBytes):
     mylog = logging.getLogger(logger_name)
     mylog.setLevel(logging.DEBUG)
 
-    formatter = logging.Formatter('[%(asctime)s] %(levelname)s:  %(message)s')
-
     # Error Logger
     logfile = os.path.expandvars("%s/%s.err.log" % (log_dir, logger_name))
     handler = GlideinHandler(logfile, maxDays, maxMBytes, backupCount=5)
-    handler.setFormatter(formatter)
+    handler.setFormatter(DEFAULT_FORMATTER)
     handler.setLevel(logging.DEBUG)
     handler.addFilter(ErrorFilter())
     mylog.addHandler(handler)
@@ -180,16 +135,15 @@ def add_glideinlog_handler(logger_name, log_dir, maxDays, maxMBytes):
     # INFO Logger
     logfile = os.path.expandvars("%s/%s.info.log" % (log_dir, logger_name))
     handler = GlideinHandler(logfile, maxDays, maxMBytes, backupCount=5)
-    handler.setFormatter(formatter)
+    handler.setFormatter(DEFAULT_FORMATTER)
     handler.setLevel(logging.DEBUG)
     handler.addFilter(InfoFilter())
     mylog.addHandler(handler)
 
     # DEBUG Logger
-    formatter = logging.Formatter('[%(asctime)s] %(levelname)s:::%(module)s::%(lineno)d: %(message)s ')
     logfile = os.path.expandvars("%s/%s.debug.log" % (log_dir, logger_name))
     handler = GlideinHandler(logfile, maxDays, maxMBytes, backupCount=5)
-    handler.setFormatter(formatter)
+    handler.setFormatter(DEBUG_FORMATTER)
     handler.setLevel(logging.DEBUG)
     handler.addFilter(DebugFilter())
     mylog.addHandler(handler)
