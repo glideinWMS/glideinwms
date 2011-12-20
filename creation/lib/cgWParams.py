@@ -115,7 +115,7 @@ class GlideinParams(cWParams.CommonParams):
         self.entry_defaults["files"] = sub_defaults['files']
         self.entry_defaults["infosys_refs"] = sub_defaults['infosys_refs']
         self.entry_defaults["monitorgroups"] = copy.deepcopy(sub_defaults['monitorgroups'])
-        self.entry_defaults["allow_frontends"] = (xmlParse.OrderedDict(), 'Dictionary of frontends', "Each frontend entry contains", self.allow_defaults);
+        self.entry_defaults["allow_frontends"] = (xmlParse.OrderedDict(), 'Dictionary of frontends', "Each frontend entry contains", self.allow_defaults)
 
         ###############################
         # Start defining the defaults
@@ -140,8 +140,12 @@ class GlideinParams(cWParams.CommonParams):
         monitor_footer_defaults["href_link"] = ["", "string", "where to link to", None]
         self.defaults["monitor_footer"] = monitor_footer_defaults
         
+        process_log_defaults = copy.deepcopy(one_log_retention_defaults)
+        process_log_defaults['type'] = ["ALL", "log type", "Type of log", None]
+        
         log_retention_defaults = cWParams.commentedOrderedDict()
         log_retention_defaults["logs"] = copy.deepcopy(one_log_retention_defaults)
+        log_retention_defaults["process_logs"] = ([], 'Dictionary of log types', "Each log corresponds to a log file", copy.deepcopy(process_log_defaults))
         log_retention_defaults["job_logs"] = copy.deepcopy(one_log_retention_defaults)
         log_retention_defaults["job_logs"]["min_days"][0] = "2.0"
         self.defaults['advertise_with_tcp'] = ('False', 'Bool', 'Should condor_advertise use TCP connections?', None)
@@ -248,6 +252,7 @@ class GlideinParams(cWParams.CommonParams):
     def get_xml_format(self):
         return {'lists_params':{'condor_tarballs':{'el_name':'condor_tarball','subtypes_params':{'class':{}}},
                                 'files':{'el_name':'file','subtypes_params':{'class':{}}},
+                                'process_logs':{'el_name':'process_log','subtypes_params':{'class':{}}},
                                 'monitorgroups':{'el_name':'monitorgroup','subtypes_params':{'class':{}}},
                                 'infosys_refs':{'el_name':'infosys_ref','subtypes_params':{'class':{}}}},
                 'dicts_params':{'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},

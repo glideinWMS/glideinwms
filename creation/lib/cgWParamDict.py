@@ -631,6 +631,7 @@ def populate_factory_descript(work_dir,
                 param_tname,str_tname=tel
                 glidein_dict.add('%sRetention%s'%(str_lname,str_tname),params.log_retention[param_lname][param_tname])
 
+        glidein_dict.add('ProcessLogs', str(params.log_retention['process_logs']))
 
 #######################
 def populate_job_descript(work_dir, job_descript_dict, 
