@@ -11,7 +11,6 @@
 #
 import os
 import sys
-import timeConversion
 import time
 import logging
 from logging.handlers import TimedRotatingFileHandler
@@ -29,6 +28,7 @@ DEBUG_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s:::%(module)s::%
 #
 # Note:  We may need to create a custom class later if we need to handle
 #        logging with privilege separation
+
 
 class GlideinHandler(TimedRotatingFileHandler):
     """
@@ -99,7 +99,7 @@ class GlideinHandler(TimedRotatingFileHandler):
         return do_timed_rollover or do_size_rollover
 
 
-def add_glideinlog_handler(logger_name, log_dir, maxDays, maxMBytes):
+def add_glideinlog_handler(logger_name, log_dir, maxDays, minDays, maxMBytes):
     """
     Setup python's built-in logging module.  This is designed to mimic the
     original logging in GlideinWMS, but allow logging in every module.
@@ -122,8 +122,10 @@ def add_glideinlog_handler(logger_name, log_dir, maxDays, maxMBytes):
     @param log_dir: The directory where the log files will be placed
     @type MaxDays: int
     @param MaxDays: Maximum age of the logfile in days before it will be rotated
+    @type MinDays: int
+    @param MinDays: Min number of days before will be rotated (used with mas bytes)
     @type maxMBytes: int
-    @param maxMBytes: Maximum size in bytes of the logfile before it will be rotated
+    @param maxMBytes: Maximum size in bytes of the logfile before it will be rotated (used with min days)
 
     """
 
@@ -132,7 +134,7 @@ def add_glideinlog_handler(logger_name, log_dir, maxDays, maxMBytes):
 
     # Error Logger
     logfile = os.path.expandvars("%s/%s.err.log" % (log_dir, logger_name))
-    handler = GlideinHandler(logfile, maxDays, maxMBytes, backupCount=5)
+    handler = GlideinHandler(logfile, maxDays, minDays, maxMBytes, backupCount=5)
     handler.setFormatter(DEFAULT_FORMATTER)
     handler.setLevel(logging.DEBUG)
     handler.addFilter(ErrorFilter())
@@ -140,7 +142,7 @@ def add_glideinlog_handler(logger_name, log_dir, maxDays, maxMBytes):
 
     # INFO Logger
     logfile = os.path.expandvars("%s/%s.info.log" % (log_dir, logger_name))
-    handler = GlideinHandler(logfile, maxDays, maxMBytes, backupCount=5)
+    handler = GlideinHandler(logfile, maxDays, minDays, maxMBytes, backupCount=5)
     handler.setFormatter(DEFAULT_FORMATTER)
     handler.setLevel(logging.DEBUG)
     handler.addFilter(InfoFilter())
@@ -148,12 +150,12 @@ def add_glideinlog_handler(logger_name, log_dir, maxDays, maxMBytes):
 
     # DEBUG Logger
     logfile = os.path.expandvars("%s/%s.debug.log" % (log_dir, logger_name))
-    handler = GlideinHandler(logfile, maxDays, maxMBytes, backupCount=5)
+    handler = GlideinHandler(logfile, maxDays, minDays, maxMBytes, backupCount=5)
     handler.setFormatter(DEBUG_FORMATTER)
     handler.setLevel(logging.DEBUG)
     handler.addFilter(DebugFilter())
     mylog.addHandler(handler)
-    
+
 class InfoFilter(logging.Filter):
     """
     Filter used in handling records for the info logs.

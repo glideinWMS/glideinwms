@@ -1196,6 +1196,7 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     # Configure the process to use the proper LogDir as soon as you get the info
     logSupport.add_glideinlog_handler(entry_name, logSupport.log_dir,
                                       int(float(glideinDescript.data['LogRetentionMaxDays'])),
+                                      int(float(glideinDescript.data['LogRetentionMinDays'])),
                                       int(float(glideinDescript.data['LogRetentionMaxMBs'])))
     logSupport.log = logging.getLogger(entry_name)
     logSupport.log.debug("Logging initialized")
