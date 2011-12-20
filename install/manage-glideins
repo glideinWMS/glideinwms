@@ -25,12 +25,16 @@ from Configuration import ConfigurationError
 global gProgramName
 global gAction
 global gSSH
+global gSSHuser
 global methods
 
 #--------------------------------
 def run_command(service,user,node,command):
   global gAction
   global gSSH
+  global gSSHuser
+  if user <> "root" and len(gSSHuser) > 0:
+    user = gSSHuser
   cmd = ""
   if gSSH:
     cmd = """ssh -l %s %s "%s" """ % (user,node,command)
@@ -41,7 +45,9 @@ def run_command(service,user,node,command):
   common.logit("\n############################################################")
   common.logit("## %s " % hdr)
   common.logit("Commands: %s" % cmd)
-  os.system(cmd)
+  rtn = os.system(cmd)
+  if rtn <> 0:
+    common.logerr("Requested action failed.")
   common.logit("## %s " % hdr)
   common.logit("############################################################\n")
   os.system("sleep 3")
@@ -215,7 +221,7 @@ def usage(services):
   for service in services:
     valid_services = valid_services + " " + service 
   msg = """
-Usage: %(program)s --<action> <service>  --ini <ini_file> [--ssh]
+Usage: %(program)s --<action> <service>  --ini <ini_file> [--ssh [user]]
 
   action: validate, install, configure, start, stop, status
   services: %(services)s  
@@ -235,7 +241,8 @@ and vofrontend, it will update the respective xml config files.
 
 The '--ssh' argument allows the start/stop/status actions to be performed 
 remotely providing the user has valid access to the other service's node via 
-'ssh -l' using the service's username.
+'ssh -l' using the service's username.  The '--ssh' will use the ini file
+specified username attribute unless an optional 'user' is specified.
 
 The install/install-node/create-entries can only be used on the node for that
 service. 
@@ -284,19 +291,47 @@ def check_python_version():
     common.logerr("python version must be at least %s. Your python is %s" % \
       (min_python,this_python)) 
 
+#------------------
+def check_for_optional_arg_values(argv,optional_arg):
+  """ The getopt python functions do not support having a command line 
+      argument with an optional value.  This method attempts to do just that
+      for a specified argument.
+      If the next value on the command line (argv) has a "-" associated with it,      it assumes there is no value.
+      If the next value in the argv does not have a "-" associated with it,
+      it assumes there must be a value.
+      The result is to return the correct value for appending to the long 
+      options list in the getopt call.
+  """
+  opt =  "--" + optional_arg
+  try:
+    idx = argv.index(opt)
+    if idx == len(argv) - 1 or argv[idx + 1][0] == "-":
+      return optional_arg
+    else:
+      optional_arg += "="
+  except ValueError:
+    pass 
+  return optional_arg
+
+
 ##########################################
 def main(argv):
   try:
     global gProgramName
     global gAction
     global gSSH
+    global gSSHuser
 
     gProgramName = argv[0]
     check_python_version()
-    gAction = None
-    gSSH    = False
-    inifile = ""
-    arglist = [ "help", "start=", "stop=", "status=", "install=","validate=","configure=","ini=","show-ini=","create-entries","create-group","install-node","ssh" ]
+    gAction  = None
+    gSSH     = False
+    gSSHuser = ""
+    inifile  = ""
+
+    arglist = [ "help", "start=", "stop=", "status=", "install=","validate=","configure=","ini=","show-ini=","create-entries","create-group","install-node",]
+    arglist.append(check_for_optional_arg_values(argv,"ssh"))
+
     services = ["wmscollector","usercollector","factory","submit","vofrontend","rpm"]
     start_order = ["wmscollector","usercollector","factory","submit","vofrontend",]
     stop_order = ["vofrontend","submit","factory","usercollector","wmscollector"]
@@ -329,6 +364,8 @@ def main(argv):
 
       if o == "--ssh":
         gSSH = True
+        if len(a) > 0:
+          gSSHuser = a
         continue
 
       if o == "--create-entries":
