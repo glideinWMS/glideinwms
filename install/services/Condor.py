@@ -732,20 +732,20 @@ start () {
 stop () { 
    validate_user
    condor_status
-   [ "$RETVAL" != "0" ] && { return
+   [ "$RETVAL" != "0" ] && { RETVAL=0; return
 }
    echo -n "Shutting down condor: "
    killall -q -15 -exact $CONDOR_MASTER && success || failure
    sleep 3
    condor_status
-   [ "$RETVAL" != "0" ] && { return  # the stop worked
+   [ "$RETVAL" != "0" ] && { RETVAL=0; return  # the stop worked
 }
    echo -n "Shutting down condor with SIGKILL: "
    # If a master is still alive, we have a problem
    killall -q -9 -exact $CONDOR_MASTER && success || failure
    condor_status
    RETVAL=$?
-   [ "$RETVAL" != "0" ] && { return  # the stop worked
+   [ "$RETVAL" != "0" ] && { RETVAL=0; return  # the stop worked
 }
 }
 #-- restart --
