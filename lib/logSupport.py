@@ -44,11 +44,13 @@ class GlideinHandler(TimedRotatingFileHandler):
     @type interval: int
     @ivar interval: Number of days to keep log file before rotating
     @type maxBytes: int
-    @ivar maxBytes: Maximum file size before rotating the log file
+    @param maxMBytes: Maximum size of the logfile in MB before file rotation (used with min days)
+    @type minDays: int
+    @param minDays: Minimum number of days (used with max bytes)
     @type backupCount: int
     @ivar backupCount: How many backups to keep
     """
-    def __init__(self, filename, interval=1, maxMBytes=10, backupCount=5):
+    def __init__(self, filename, interval=1, maxMBytes=10, minDays=0, backupCount=5):
         """
         Initialize the Handler.  We assume the following:
 
@@ -72,6 +74,9 @@ class GlideinHandler(TimedRotatingFileHandler):
         
         # Convert the MB to bytes as needed by the base class
         self.maxBytes = maxMBytes * 1024.0 * 1024.0
+        
+        # Convert min days to seconds
+        self.minDays = minDays * 24 * 60 * 60
 
     def shouldRollover(self, record):
         """
@@ -83,11 +88,12 @@ class GlideinHandler(TimedRotatingFileHandler):
         @param record: The message that will be logged.
         """
         do_timed_rollover = logging.handlers.TimedRotatingFileHandler.shouldRollover(self, record)
+        min_day_time = self.rolloverAt - self.interval + int(time.time())
         do_size_rollover = 0
         if self.maxBytes > 0:                   # are we rolling over?
             msg = "%s\n" % self.format(record)
             self.stream.seek(0, 2)  #due to non-posix-compliant Windows feature
-            if self.stream.tell() + len(msg) >= self.maxBytes:
+            if (self.stream.tell() + len(msg) >= self.maxBytes) and (min_day_time > self.minDays):
                 do_size_rollover = 1
 
         return do_timed_rollover or do_size_rollover
