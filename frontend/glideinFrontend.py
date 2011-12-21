@@ -171,12 +171,16 @@ def main(work_dir):
 
     # the log dir is shared between the frontend main and the groups, so use a subdir
     logSupport.log_dir = os.path.join(frontendDescript.data['LogDir'], "frontend")
-    # Configure the process to use the proper LogDir as soon as you get the info
-    logSupport.add_processlog_handler("frontend", logSupport.log_dir,
-                                      int(float(frontendDescript.data['LogRetentionMaxDays'])),
-                                      int(float(frontendDescript.data['LogRetentionMinDays'])),
-                                      int(float(frontendDescript.data['LogRetentionMaxMBs'])))
+
+    # Configure frontend process logging
+    process_logs = eval(frontendDescript.data['ProcessLogs']) 
+    for plog in process_logs:
+        logSupport.add_processlog_handler("frontend", logSupport.log_dir, plog['type'],
+                                      int(float(plog['max_days'])),
+                                      int(float(plog['min_days'])),
+                                      int(float(plog['max_mbytes'])))
     logSupport.log = logging.getLogger("frontend")
+    logSupport.log.info("Logging initialized")
     logSupport.log.debug("Logging initialized")
     logSupport.log.debug("Frontend startup time: %s" % str(startup_time))
 

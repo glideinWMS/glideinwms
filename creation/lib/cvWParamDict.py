@@ -467,9 +467,8 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('CondorConfig',os.path.join(work_dir,cvWConsts.FRONTEND_CONDOR_CONFIG_FILE))
 
         frontend_dict.add('LogDir',params.log_dir)
-        for tel in (("max_days",'MaxDays'),("min_days",'MinDays'),("max_mbytes",'MaxMBs')):
-            param_tname,str_tname=tel
-            frontend_dict.add('LogRetention%s'%str_tname,params.log_retention[param_tname])
+        frontend_dict.add('ProcessLogs', str(params.log_retention['process_logs']))
+        
 
 #######################
 # Populate group descript

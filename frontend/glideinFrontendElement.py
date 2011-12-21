@@ -256,7 +256,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
                                                        elementDescript.merged_data['JobQueryExpr'],
                                                        condorq_format_list)
             except Exception, e:
-                logSupport.log.info("KEL in query schedd child, exception %s" % e)
+                logSupport.log.info("In query schedd child, exception %s" % e)
                 
         
             os.write(w,cPickle.dumps(condorq_dict))
@@ -876,13 +876,16 @@ def main(parent_pid, work_dir, group_name):
 
     # the log dir is shared between the frontend main and the groups, so use a subdir
     logSupport.log_dir = os.path.join(elementDescript.frontend_data['LogDir'], "group_%s" % group_name)
-    # Set the Log directory
-    # Configure the process to use the proper LogDir as soon as you get the info
-    logSupport.add_glideinlog_handler("group_%s" % group_name, logSupport.log_dir,
-                                      int(float(elementDescript.frontend_data['LogRetentionMaxDays'])),
-                                      int(float(elementDescript.frontend_data['LogRetentionMinDays'])),
-                                      int(float(elementDescript.frontend_data['LogRetentionMaxMBs'])))
-    logSupport.log = logging.getLogger("group_%s" % group_name)
+    
+    # Configure frontend group process logging
+    process_logs = eval(elementDescript.frontend_data['ProcessLogs']) 
+    for plog in process_logs:
+        logSupport.add_processlog_handler(group_name, logSupport.log_dir, plog['type'],
+                                      int(float(plog['max_days'])),
+                                      int(float(plog['min_days'])),
+                                      int(float(plog['max_mbytes'])))
+    logSupport.log = logging.getLogger(group_name)
+    logSupport.log.info("Logging initialized")
     logSupport.log.debug("Logging initialized")
     logSupport.log.debug("Frontend Element startup time: %s" % str(startup_time))
 

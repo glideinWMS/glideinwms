@@ -134,12 +134,16 @@ class VOFrontendParams(cWParams.CommonParams):
         work_defaults["base_log_dir"]=("%s/frontlogs"%os.environ["HOME"],"log_dir","Frontend base log dir",None)
         self.defaults["work"]=work_defaults
 
-        log_retention_defaults=cWParams.commentedOrderedDict()
-        log_retention_defaults["min_days"]=["3.0","days","Min number of days the logs must be preserved (even if they use too much space)",None]
-        log_retention_defaults["max_days"]=["7.0","days","Max number of days the logs should be preserved",None]
-        log_retention_defaults["max_mbytes"]=["100.0","Mbytes","Max number of Mbytes the logs can use",None]
-        self.defaults["log_retention"]=log_retention_defaults
+        one_log_retention_defaults=cWParams.commentedOrderedDict()
+        one_log_retention_defaults["min_days"] = ["3.0","days","Min number of days the logs must be preserved (even if they use too much space)",None]
+        one_log_retention_defaults["max_days"] = ["7.0","days","Max number of days the logs should be preserved",None]
+        one_log_retention_defaults["max_mbytes"] = ["100.0","Mbytes","Max number of Mbytes the logs can use",None]
+        one_log_retention_defaults['type'] = ["ALL", "log type", "Type of log", None]
 
+        log_retention_defaults = cWParams.commentedOrderedDict()
+        log_retention_defaults["process_logs"] = ([], 'Dictionary of log types', "Each log corresponds to a log file", copy.deepcopy(one_log_retention_defaults))
+        self.defaults["log_retention"] = log_retention_defaults
+        
         monitor_footer_defaults=cWParams.commentedOrderedDict()
         monitor_footer_defaults["display_txt"] = ["", "string", "what will be displayed at the bottom of the monitoring page", None]
         monitor_footer_defaults["href_link"] = ["", "string", "where to link to", None]
@@ -279,6 +283,7 @@ class VOFrontendParams(cWParams.CommonParams):
     # return xml formatting
     def get_xml_format(self):
         return {'lists_params':{'files':{'el_name':'file','subtypes_params':{'class':{}}},
+                                'process_logs':{'el_name':'process_log','subtypes_params':{'class':{}}},
                                 'collectors':{'el_name':'collector','subtypes_params':{'class':{}}},
                                 'schedds':{'el_name':'schedd','subtypes_params':{'class':{}}},
                                 'credentials':{'el_name':'credential','subtypes_params':{'class':{}}}},
