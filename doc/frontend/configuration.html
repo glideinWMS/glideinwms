@@ -89,6 +89,16 @@ Click on any piece for a more detailed description.
 <div class="config">
     <a href="#frontend">&lt;frontend advertise_delay="5" frontend_name="vofrontend-v2_4" loop_delay="60"&gt;</a><br/>
     <blockquote>
+    <a href="#">&lt;log_retention &gt;</a><br/>
+    <blockquote>
+        <a href="#">&lt; process_logs &gt;</a><br/>
+        <blockquote>
+            <a href="#process_logs">&lt; process_log max_days="7.0" max_mbytes="100.0" min_days="3.0" type="ALL" /&gt;</a><br/>
+            <a href="#process_logs">&lt; process_log max_days="7.0" max_mbytes="100.0" min_days="3.0" type="DEBUG" /&gt;</a><br/>
+        </blockquote>
+        <a href="#">&lt; /process_logs &gt;</a><br/>
+    </blockquote>
+    <a href="#">&lt;/log_retention &gt;</a><br/>
         <a href="#match">&lt;match match_expr="True"&gt;</a><br/>
         <blockquote>
             <a href="#match">&lt;factory query_expr="True"&gt;</a><br/>
@@ -215,6 +225,26 @@ be defined:</P>
     parameters define how active the Glidein Frontend should be. 
 Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassAds to the factory, and advertise_with_multiple can enable the condor_advertise -multiple option present in Condor 7.5.4 and up. 
     </P></li>
+    <LI>
+        <a name="process_logs" />
+        <div class="xml">
+            &lt;glidein&gt;&lt;log_retention&gt;&lt;process_logs&gt;&lt;process_log 
+            max_days=&quot;<I>max days</I>&quot;
+            min_days=&quot;<I>min days</I>&quot;
+            max_bytes=&quot;<I>max bytes</I>&quot;
+            type=&quot;<I>ALL</I>&quot;/&gt;
+        </div>
+    <p>
+    The admin can configure one or more logs of type: 
+    <ul>
+    <li>INFO:  Informational messages only. </li>
+    <li>DEBUG:  Debug and error messages, including tracebacks. </li>
+    <li>ERR:  Warning messages. </li>
+    <li>ALL:  All messages in one log. </li>
+    </ul>
+    </p>
+    </li>
+    
     <LI><P>
         <a name="collector" />
         <div class="xml">

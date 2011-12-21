@@ -92,7 +92,12 @@ for a more detailed description.
     <blockquote>
         <a href="#">&lt; condor_logs max_days="14.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
         <a href="#">&lt; job_logs max_days="7.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
-        <a href="#">&lt; logs max_days="7.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
+        <a href="#">&lt; process_logs &gt;</a><br/>
+        <blockquote>
+            <a href="#process_logs">&lt; process_log max_days="7.0" max_mbytes="100.0" min_days="3.0" type="ALL" /&gt;</a><br/>
+            <a href="#process_logs">&lt; process_log max_days="7.0" max_mbytes="100.0" min_days="3.0" type="DEBUG" /&gt;</a><br/>
+        </blockquote>
+        <a href="#">&lt; /process_logs &gt;</a><br/>
         <a href="#">&lt; summary_logs max_days="31.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
     </blockquote>
     <a href="#">&lt;/log_retention &gt;</a><br/>
@@ -272,6 +277,25 @@ individual entry point configuration.
         <b>Optional</b> Defines if the factory should use -multiple to advertise its classads (requires Condor 7.5.4+).  
     </li>
     </ul>
+    </li>
+    <LI>
+        <a name="process_logs" />
+        <div class="xml">
+            &lt;glidein&gt;&lt;log_retention&gt;&lt;process_logs&gt;&lt;process_log 
+            max_days=&quot;<I>max days</I>&quot;
+            min_days=&quot;<I>min days</I>&quot;
+            max_bytes=&quot;<I>max bytes</I>&quot;
+            type=&quot;<I>ALL</I>&quot;/&gt;
+        </div>
+    <p>
+    The admin can configure one or more logs of type: 
+    <ul>
+    <li>INFO:  Informational messages only. </li>
+    <li>DEBUG:  Debug and error messages, including tracebacks. </li>
+    <li>ERR:  Warning messages. </li>
+    <li>ALL:  All messages in one log. </li>
+    </ul>
+    </p>
     </li>
     <LI>
         <a name="condor_tarball" />
