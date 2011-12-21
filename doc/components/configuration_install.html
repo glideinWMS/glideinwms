@@ -116,7 +116,7 @@ option on all nodes to resolve any errors affecting dependencies.
 The script used to perform the installations is <i>glideinWMS/install/manage-glideins</i>.  
 <p></p>
 
-<b>./manage-glideins --OPTION SERVICE --ini INIFILE [--ssh]  [--debug]</b><br/>
+<b>./manage-glideins --OPTION SERVICE --ini INIFILE [--ssh [user]]  [--debug]</b><br/>
 <ul>
 This usage can be used to install, start, stop or check the status of
 the glidein services based on the configuration in the specified ini file.
@@ -145,7 +145,8 @@ the glidein services based on the configuration in the specified ini file.
 </p><p>
 <b>--ssh</b>: allows the start/stop/status actions to be performed 
 remotely providing the user has valid access to the other service's node via 
-'ssh -l' using the service's username.
+'ssh -l' using the service's username.  The '--ssh' will use the ini file
+specified username attribute unless an optional 'user' is specified.
 </p><p>
 <p>
 <b>--debug</b>: When used with start/stop/status actions, it will
