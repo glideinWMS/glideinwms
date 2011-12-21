@@ -383,16 +383,18 @@ def main(startup_dir):
 
     # Set the Log directory
     logSupport.log_dir = os.path.join(glideinDescript.data['LogDir'], "factory")
-
-    # Configure the process to use the proper LogDir as soon as you get the info
-    logSupport.add_glideinlog_handler("factory", logSupport.log_dir,
-                                      int(float(glideinDescript.data['LogRetentionMaxDays'])),
-                                      int(float(glideinDescript.data['LogRetentionMinDays'])),
-                                      int(float(glideinDescript.data['LogRetentionMaxMBs'])))
+   
+    # Configure factory process logging
+    process_logs = eval(glideinDescript.data['ProcessLogs']) 
+    for plog in process_logs:
+        logSupport.add_processlog_handler("factory", logSupport.log_dir, plog['type'],
+                                      int(float(plog['max_days'])),
+                                      int(float(plog['min_days'])),
+                                      int(float(plog['max_mbytes'])))
     logSupport.log = logging.getLogger("factory")
+    logSupport.log.info("Logging initialized")
     logSupport.log.debug("Logging initialized")
-    logSupport.log.debug("Daemon start time: %s" % str(startup_time))
-
+    
     try:
         os.chdir(startup_dir)
     except:

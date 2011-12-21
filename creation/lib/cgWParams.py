@@ -144,7 +144,6 @@ class GlideinParams(cWParams.CommonParams):
         process_log_defaults['type'] = ["ALL", "log type", "Type of log", None]
         
         log_retention_defaults = cWParams.commentedOrderedDict()
-        log_retention_defaults["logs"] = copy.deepcopy(one_log_retention_defaults)
         log_retention_defaults["process_logs"] = ([], 'Dictionary of log types', "Each log corresponds to a log file", copy.deepcopy(process_log_defaults))
         log_retention_defaults["job_logs"] = copy.deepcopy(one_log_retention_defaults)
         log_retention_defaults["job_logs"]["min_days"][0] = "2.0"

@@ -345,6 +345,17 @@ export X509_CERT_DIR=%(x509_cert_dir)s
   "instance_name" : self.glidein.instance_name(), 
   "schedds"       : string.join(self.schedds(),',')
 }
+
+    data += """\
+      <log_retention>
+         <process_logs>
+            <process_log max_days="7.0" max_mbytes="100.0" min_days="3.0" type="INFO"/>
+            <process_log max_days="7.0" max_mbytes="100.0" min_days="3.0" type="ERR"/>
+            <process_log max_days="7.0" max_mbytes="100.0" min_days="3.0" type="DEBUG"/>
+         </process_logs>
+      </log_retention>
+    """
+    
     data = data + """\
 %(condor)s
 %(submit)s

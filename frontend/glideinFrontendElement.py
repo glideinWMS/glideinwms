@@ -880,6 +880,7 @@ def main(parent_pid, work_dir, group_name):
     # Configure the process to use the proper LogDir as soon as you get the info
     logSupport.add_glideinlog_handler("group_%s" % group_name, logSupport.log_dir,
                                       int(float(elementDescript.frontend_data['LogRetentionMaxDays'])),
+                                      int(float(elementDescript.frontend_data['LogRetentionMinDays'])),
                                       int(float(elementDescript.frontend_data['LogRetentionMaxMBs'])))
     logSupport.log = logging.getLogger("group_%s" % group_name)
     logSupport.log.debug("Logging initialized")

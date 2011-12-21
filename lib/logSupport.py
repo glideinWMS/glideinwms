@@ -29,7 +29,6 @@ DEBUG_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s:::%(module)s::%
 # Note:  We may need to create a custom class later if we need to handle
 #        logging with privilege separation
 
-
 class GlideinHandler(TimedRotatingFileHandler):
     """
     Custom logging handler class for glideinWMS.  It combines the decision tree
@@ -50,6 +49,7 @@ class GlideinHandler(TimedRotatingFileHandler):
     @type backupCount: int
     @ivar backupCount: How many backups to keep
     """
+    
     def __init__(self, filename, interval=1, maxMBytes=10, minDays=0, backupCount=5):
         """
         Initialize the Handler.  We assume the following:
@@ -132,12 +132,12 @@ def add_glideinlog_handler(logger_name, log_dir, maxDays, minDays, maxMBytes):
     mylog = logging.getLogger(logger_name)
     mylog.setLevel(logging.DEBUG)
 
-    # Error Logger
+    # Error Logger (warning messages)
     logfile = os.path.expandvars("%s/%s.err.log" % (log_dir, logger_name))
     handler = GlideinHandler(logfile, maxDays, minDays, maxMBytes, backupCount=5)
     handler.setFormatter(DEFAULT_FORMATTER)
     handler.setLevel(logging.DEBUG)
-    handler.addFilter(ErrorFilter())
+    handler.addFilter(WarningFilter())
     mylog.addHandler(handler)
 
     # INFO Logger
@@ -156,6 +156,33 @@ def add_glideinlog_handler(logger_name, log_dir, maxDays, minDays, maxMBytes):
     handler.addFilter(DebugFilter())
     mylog.addHandler(handler)
 
+
+def add_processlog_handler(logger_name, log_dir, log_type, maxDays, minDays, maxMBytes):
+    """
+    Adds a handler to the GlideinLogger logger referenced by logger_name.
+    """
+    logfile = os.path.expandvars("%s/%s.%s.log" % (log_dir, logger_name, log_type.lower()))
+     
+    mylog = logging.getLogger(logger_name)
+    mylog.setLevel(logging.DEBUG)
+    
+    handler = GlideinHandler(logfile, maxDays, minDays, maxMBytes, backupCount=5)
+    handler.setFormatter(DEFAULT_FORMATTER)
+    handler.setLevel(logging.DEBUG)
+    if log_type.upper() == "ALL":
+        # don't add any filters
+        pass
+    elif log_type.upper() == "INFO":
+        handler.addFilter(InfoFilter())
+    elif log_type.upper() == "DEBUG":
+        handler.addFilter(DebugFilter())
+        handler.setFormatter(DEBUG_FORMATTER)
+    elif log_type.upper() == "ERR":
+        handler.addFilter(WarningFilter())
+        
+    mylog.addHandler(handler)
+    
+
 class InfoFilter(logging.Filter):
     """
     Filter used in handling records for the info logs.
@@ -163,7 +190,7 @@ class InfoFilter(logging.Filter):
     def filter(self, rec):
         return rec.levelno == logging.INFO 
 
-class ErrorFilter(logging.Filter):
+class WarningFilter(logging.Filter):
     """
     Filter used in handling records for the error logs.
     """

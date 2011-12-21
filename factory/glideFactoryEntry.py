@@ -1193,14 +1193,17 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     # Set the Log directory
     logSupport.log_dir = os.path.join(glideinDescript.data['LogDir'], "entry_%s" % entry_name)
 
-    # Configure the process to use the proper LogDir as soon as you get the info
-    logSupport.add_glideinlog_handler(entry_name, logSupport.log_dir,
-                                      int(float(glideinDescript.data['LogRetentionMaxDays'])),
-                                      int(float(glideinDescript.data['LogRetentionMinDays'])),
-                                      int(float(glideinDescript.data['LogRetentionMaxMBs'])))
+    # Configure entry process logging
+    process_logs = eval(glideinDescript.data['ProcessLogs']) 
+    for plog in process_logs:
+        logSupport.add_processlog_handler(entry_name, logSupport.log_dir, plog['type'],
+                                      int(float(plog['max_days'])),
+                                      int(float(plog['min_days'])),
+                                      int(float(plog['max_mbytes'])))
     logSupport.log = logging.getLogger(entry_name)
+    logSupport.log.info("Logging initialized")
     logSupport.log.debug("Logging initialized")
-
+ 
     ## Not touching the monitoring logging.  Don't know how that works yet
     logSupport.log.debug("Setting up the monitoring")
     glideFactoryMonitoring.monitoringConfig.monitor_dir = os.path.join(startup_dir, "monitor/entry_%s" % entry_name)

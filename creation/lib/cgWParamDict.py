@@ -625,7 +625,7 @@ def populate_factory_descript(work_dir,
         glidein_dict.add('MonitorDisplayText',params.monitor_footer.display_txt)
         glidein_dict.add('MonitorLink',params.monitor_footer.href_link)
         
-        for lel in (("logs",'Log'),("job_logs",'JobLog'),("summary_logs",'SummaryLog'),("condor_logs",'CondorLog')):
+        for lel in (("job_logs",'JobLog'),("summary_logs",'SummaryLog'),("condor_logs",'CondorLog')):
             param_lname,str_lname=lel
             for tel in (("max_days",'MaxDays'),("min_days",'MinDays'),("max_mbytes",'MaxMBs')):
                 param_tname,str_tname=tel
