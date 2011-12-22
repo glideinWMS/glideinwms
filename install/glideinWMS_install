@@ -2117,7 +2117,7 @@ def query_vdt():
                 print "Directory '%s' not a VDT area (does not contain setup.sh)"%user_dir
                 continue
 
-            tmpcadir="%s/globus/TRUSTED_CA"%VDT_BASE_PATH
+            tmpcadir="%s/globus/TRUSTED_CA"%user_dir
             if os.path.isdir(tmpcadir):
                 GSI_TRUSTED_CA_DIR=tmpcadir
             else:
@@ -2125,7 +2125,7 @@ def query_vdt():
                 if os.path.isdir(tmpcadir):
                     GSI_TRUSTED_CA_DIR=tmpcadir
                 else:
-                    print "Cannot find certificates... looked in %s/globus/TRUSTED_CA and /etc/grid-security/certificates"%VDT_BASE_PATH
+                    print "Cannot find certificates... looked in %s/globus/TRUSTED_CA and /etc/grid-security/certificates"%user_dir
                     continue
 
             # found and verified the installation
