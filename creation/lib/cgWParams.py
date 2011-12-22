@@ -179,6 +179,8 @@ class GlideinParams(cWParams.CommonParams):
         security_default=cWParams.commentedOrderedDict()
         security_default["pub_key"]=("RSA","None|RSA","Type of public key system used for secure message passing",None)
         security_default["reuse_oldkey_onstartup_gracetime"]=("900","seconds","Time in sec old key can be used to decrypt requests from frontend",None)
+        security_default["remove_old_cred_freq"] = ("24", "hours", "Frequency in hrs for cleaning unused credentials", None)
+        security_default["remove_old_cred_age"] = ("30", "days", "Credentials older than this should be removed", None)
         security_default["key_length"]=("2048","bits","Key length in bits",None)
         security_default["frontends"]=(xmlParse.OrderedDict(),"Dictionary of frontend","Each frontend contains",self.frontend_defaults)
         
