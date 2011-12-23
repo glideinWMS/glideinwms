@@ -80,7 +80,7 @@ def add_entry(params,other_params, entry_name):
             else:
                 params.subparams.data['entries'][entry_name][e]=copy.deepcopy(params.entry_defaults[e])
 
-def merge_entry(params,other_params, entry_name,preserve_enable):
+def merge_entry(params,other_params, entry_name,preserve_enable,preserve_comments):
     org_entry=params.subparams.data['entries'][entry_name]
     params.subparams.data['entries'][entry_name]=copy.deepcopy(other_params.subparams.data['entries'][entry_name])
     preserve_els=['schedd_name','allow_frontends','downtimes']
@@ -115,7 +115,7 @@ def main(params,other_params,
         if params.entries.has_key(e):
             if merge_opt in ('yes','only'):
                 print "Merging %s"%e
-                merge_entry(params,other_params,e,preserve_enable,preserver_comments)
+                merge_entry(params,other_params,e,preserve_enable,preserve_comments)
         else:
             if merge_opt in ('yes','no'):
                 print "Adding %s"%e
