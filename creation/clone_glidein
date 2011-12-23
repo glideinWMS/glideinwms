@@ -177,7 +177,7 @@ def load():
             preserve_enable=True
             argv=argv[0:1]+argv[2:]
         elif argv[1]=='-preserve_comments':
-            preserve_enable=True
+            preserve_comments=True
             argv=argv[0:1]+argv[2:]
         else:
             break
