@@ -68,6 +68,23 @@ def match_list(params,entry_name,include_list,exclude_list):
     return True #not in blacklist
 
 
+def preserve_el_comments(new_arr, old_arr):
+    for k in new_arr.keys():
+        if old_arr.has_key(k):
+            if k=="comment":
+                new_arr[k]=copy.deepcopy(old_arr[k])
+            else:
+                try:
+                    dummy=new_arr[k].keys()
+                    # dictionary-like, climb the tree, recurse
+                    preserve_el_comments(new_arr[k],old_arr[k])
+                except:
+                    pass # not a dictionary-like object
+        else:
+            if  k=="comment":
+                # old version did not have a comment, so the new one should not either
+                del new_arr[k]
+
 ################################################################################
 
 def add_entry(params,other_params, entry_name):
@@ -83,15 +100,18 @@ def add_entry(params,other_params, entry_name):
 def merge_entry(params,other_params, entry_name,preserve_enable,preserve_comments):
     org_entry=params.subparams.data['entries'][entry_name]
     params.subparams.data['entries'][entry_name]=copy.deepcopy(other_params.subparams.data['entries'][entry_name])
+    new_entry=params.subparams.data['entries'][entry_name]
+    
     preserve_els=['schedd_name','allow_frontends','downtimes']
     if preserve_enable:
         preserve_els.append('enable')
-    if preserve_comments:
-        preserve_els.append('comment')
     for e in preserve_els:
         # preserve these, since they are instance specific
         if org_entry.has_key(e):
-            params.subparams.data['entries'][entry_name][e]=org_entry[e]
+            new_entry[e]=org_entry[e]
+
+    if preserve_comments:
+        preserve_el_comments(new_entry,org_entry)
 
 def disable_entry(params,entry_name):
     eel=params.subparams.data['entries'][entry_name]
