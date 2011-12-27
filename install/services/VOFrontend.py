@@ -246,40 +246,51 @@ class VOFrontend(Condor):
 
   #-----------------------------
   def verify_directories_empty(self):
+    """ This method attempts to clean up all directories so a fresh install
+        can be accomplished successfully.
+        It is consoldiated in a single check so as to only ask once and
+        not for each directory.
+    """
     if self.install_type == "rpm":
       return  # For RPM install we don't want to clean anything
+
+    instance_dir = "frontend_%(service)s-%(instance)s" % \
+                     { "service" : self.service_name(), 
+                       "instance" : self.glidein.instance_name(), }
+    #-- directories to check ---
     dirs = {}
-    if len(os.listdir(self.logs_dir())) > 0:
-      dirs["logs_dir"] = self.logs_dir()
-    for dir in ["monitor","stage"]:
-      subdir = os.path.join(self.glidein.web_location(),dir)
-      if os.path.isdir(subdir) and len(os.listdir(subdir)) > 0:
-        dirs["web_location/%s" % dir] = subdir
-    if len(os.listdir(self.install_location())) > 0:
-      if len(os.listdir(self.install_location())) > self.nbr_of_nested_dirs():
-        dirs["install_location"] = self.install_location()
+    dirs["logs........"] = os.path.join(self.logs_dir(),instance_dir)
+    dirs["install....."] = os.path.join(self.install_location(),instance_dir) 
+    dirs["config......"] = self.config_dir()
+    for subdir in ["monitor","stage"]:
+      dirs["web %s " % subdir] = os.path.join(self.glidein.web_location(),subdir,instance_dir)
+    #--- check them --
+    for type in dirs.keys():
+      if os.path.isdir(dirs[type]): 
+        if len(os.listdir(dirs[type])) == 0:
+          os.rmdir(dirs[type])
+          del dirs[type]  # remove from dict
+      else:
+        del dirs[type]  # it does not exist, remove from dict
+
+    #--- if all are empty, return      
     if len(dirs) == 0:
+      os.system("sleep 3")
       return  # all directories are empty
+
+    #--- See if we can remove them --- 
     common.logit("""The following directories must be empty for the install to succeed: """)
-    for option in dirs.keys():
-      common.logit("""  %(option)s: %(dir)s""" % \
-                        { "option" : option, "dir" : dirs[option] })
+    types = dirs.keys()
+    types.sort()
+    for type in types:
+      common.logit("""  %(type)s: %(dir)s""" % \
+                        { "type" : type, "dir" : dirs[type] })
     common.ask_continue("... can we remove their contents")
-    for option in dirs.keys():
-      common.remove_dir_contents(dirs[option])
-    self.validate_needed_directories()
-
-  #-----------------------------
-  def nbr_of_nested_dirs(self):
-    # Determines if any of the directories are subdirectories of the install
-    # location.  We are trying to avoid deleting teh contents if we do not have to.
-    cnt = 0
-    for dir in  [self.logs_dir(),
-                 self.glidein.web_location() ]:
-      if dir.find(self.install_location()) == 0:
-        cnt = cnt + 1
-    return cnt
-
+    for type in dirs.keys():
+      common.remove_dir_contents(dirs[type])
+      os.rmdir(dirs[type])
+    os.system("sleep 3")
+    return
     
   #-----------------------------
   def validate(self):
@@ -309,6 +320,7 @@ class VOFrontend(Condor):
     if self.install_type() == "tarball":
       self.validate_needed_directories()
     common.logit( "Verification complete\n")
+    os.system("sleep 2")
 
   #-----------------------------
   def configure(self):
@@ -325,16 +337,18 @@ class VOFrontend(Condor):
     self.__create_condor_mapfile__(self.condor_mapfile_users())
     self.__create_condor_config__()
     self.__create_initd_script__()
-    common.logit("Configuration complete")
+    common.logit("Condor configuration complete")
+    os.system("sleep 2")
 
   #---------------------------------
   def configure_frontend(self):
-    common.logit ("Configuring VOFrontend")
+    common.logit ("\nConfiguring VOFrontend")
     config_data  = self.get_config_data()
     self.create_config(config_data)
     if self.install_type() == "tarball":
       self.create_env_script()
-    common.logit ("Configuration complete")
+    common.logit ("VOFrontend configuration complete")
+    os.system("sleep 2")
 
   #--------------------------------
   def condor_mapfile_users(self):
@@ -1097,7 +1111,7 @@ specified.
 def create_template():
   global valid_options
   print "; ------------------------------------------"
-  print "; Submit minimal ini options template"
+  print "; VOFrontend minimal ini options template"
   for section in valid_options.keys():
     print "; ------------------------------------------"
     print "[%s]" % section
@@ -1108,10 +1122,10 @@ def create_template():
 ##########################################
 def main(argv):
   try:
-    #create_template()
-    options = validate_args(argv)
-    vo = VOFrontend(options.inifile)
-    vo.get_new_config_group()
+    create_template()
+    #options = validate_args(argv)
+    #vo = VOFrontend(options.inifile)
+    #vo.get_new_config_group()
     #vo.validate_glidein_proxies()
     #vo.install()
     #vo.get_usercollector()

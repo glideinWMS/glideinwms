@@ -56,12 +56,6 @@ class Glidein(Configuration):
   def service_dir(self):
     return "%s/glidein_%s" % (self.install_location(),self.instance_name())
   #---------------------
-  def config_dir(self):
-    return "%s/glidein_%s.cfg" % (self.install_location(),self.instance_name())
-  #---------------------
-  def config_file(self):
-    return "%s/glideinWMS.xml" % (self.config_dir())
-  #---------------------
   def hostname(self):
     return self.option_value(self.ini_section,"hostname")
   #---------------------
