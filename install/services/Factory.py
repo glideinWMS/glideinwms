@@ -210,9 +210,11 @@ files and directories can be created correctly""" % self.username())
     dirs["install......."] = os.path.join(self.install_location(),instance_dir)
     dirs["config........"] = self.config_dir()
     for frontend in self.wms.frontend_users().keys():
-      user = "user_" + self.wms.frontend_users()[frontend]
-      dirs["%s client logs..." % user] = os.path.join(self.client_log_dir(),user,instance_dir)
-      dirs["%s client proxies" % user] = os.path.join(self.client_proxy_dir(),user,instance_dir)
+      ## user = "user_" + self.wms.frontend_users()[frontend]
+      ## dirs["%s client logs..." % user] = os.path.join(self.client_log_dir(),user,instance_dir)
+      ## dirs["%s client proxies" % user] = os.path.join(self.client_proxy_dir(),user,instance_dir)
+      dirs["client logs"]    = self.client_log_dir()
+      dirs["client proxies"] = self.client_proxy_dir()
     for subdir in ["monitor","stage"]:
       dirs["web %s " % subdir] = os.path.join(self.glidein.web_location(),subdir,instance_dir)
 
@@ -220,10 +222,17 @@ files and directories can be created correctly""" % self.username())
     for type in dirs.keys():
       if os.path.isdir(dirs[type]):
         if len(os.listdir(dirs[type])) == 0:
-          os.rmdir(dirs[type])
-          del dirs[type]  # remove from dict
-      else:
-        del dirs[type]  # it does not exist, remove from dict
+          if self.wms.privilege_separation() == "y":
+            if type in ["client logs", "client proxies",]:
+              del dirs[type]  # remove from dict
+            else: # will have permission to delete it
+              # os.rmdir(dirs[type])
+              del dirs[type]  # remove from dict
+          else: # will have permission to delete it
+            os.rmdir(dirs[type])
+            del dirs[type]  # remove from dict
+      else: # it does not exist, remove from dict
+        del dirs[type]  
 
     #--- if all are empty, return 
     if len(dirs) == 0:
@@ -240,7 +249,7 @@ files and directories can be created correctly""" % self.username())
     common.ask_continue("... can we remove their contents")
     for type in dirs.keys():
       if self.wms.privilege_separation() == "y":
-        if type in ["client_log_dir","client_proxy_dir",]:
+        if type in ["client logs", "client proxies",]:
           #-- Factory create requires these directories be empty
           #-- when privspep is in effect
           condor_sbin = "%s/sbin" % self.wms.condor_location()
@@ -264,11 +273,11 @@ the ini file for the %(type)s attribute.  Be careful now.
 """ % { "dir"    : parent_dir,
         "type" : type, 
         "error"  : e, } )
-        else: 
+          common.logit("Files in %s deleted" % parent_dir) 
+        else:  # not client logs or proxies
           common.remove_dir_contents(dirs[type])
           os.rmdir(dirs[type])
-      else: 
-        print dirs[type]
+      else: #no privsep in effect
         common.remove_dir_contents(dirs[type])
         os.rmdir(dirs[type])
     os.system("sleep 3")
