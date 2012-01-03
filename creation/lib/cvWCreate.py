@@ -87,7 +87,7 @@ def create_initd_startup(startup_fname,frontend_dir,glideinWMS_dir):
         fd.write('              writeback=$FRONTEND_WRITEBACK\n')
         fd.write("           fi\n")
         fd.write("        else\n")
-        fd.write("           writeback=$3\n")
+        fd.write("           writeback=$4\n")
         fd.write("        fi\n")
         fd.write('        "$glideinWMS_dir/frontend/checkFrontend.py" "$frontend_dir" >/dev/null 2>&1 </dev/null\n')
         fd.write("        notrun=$?\n")
