@@ -86,25 +86,25 @@ def main(params, old_params, update_scripts):
 ############################################################
 
 if __name__ == '__main__':
-    usage = "{ -force_name name -writeback yes|no -update_scripts yes|no -xml xml | -help }"
+    usage = "{reconfig_frontend -force_name name -writeback yes|no -update_scripts yes|no -xml xml | -help }"
     argv = sys.argv
     force_name = None
     writeback = 'no'
     update_scripts = 'no'
     xml = ''
     for i in range(len(argv)):
-    	if argv[i] == '-force_name':
-    	    force_name = argv[i+1]
-    	if argv[i] == '-writeback':
-    	    writeback = argv[i+1]
-    	if argv[i] == '-update_scripts':
-    	    update_scripts = argv[i+1]
-    	if argv[i] == '-xml':
-    	    xml = argv[i+1]
+        if argv[i] == '-force_name':
+            force_name = argv[i+1]
+        if argv[i] == '-writeback':
+            writeback = argv[i+1]
+        if argv[i] == '-update_scripts':
+            update_scripts = argv[i+1]
+        if argv[i] == '-xml':
+            xml = argv[i+1]
         if argv[i] == '-help':
-			print usage
-			sys.exit(1)
-		
+            print usage
+            sys.exit(1)
+
     args = [argv[0], xml] 
            
     try:
@@ -115,10 +115,10 @@ if __name__ == '__main__':
 
     if force_name!=None:
         if params.frontend_name!=force_name:
-           print usage
-           print ""
-           print "This is not a '%s' config file ('%s' found)"%(force_name,params.frontend_name)
-           sys.exit(1)
+            print usage
+            print ""
+            print "This is not a '%s' config file ('%s' found)"%(force_name,params.frontend_name)
+            sys.exit(1)
         
     if not (writeback in ('yes','no')):
         print usage
