@@ -648,13 +648,13 @@ class MultiAdvertizeWork:
                     logSupport.log.debug("Error creating request files for factory pool %s, unable to advertise: %s" % (factory_pool, e))
                     logSupport.log.warning("Error creating request files for factory pool %s, unable to advertise: %s" % (factory_pool, e))
                 
-                # Advertize all the files (if multi, should only be one) 
-                for filename in filename_arr:
-                    try:
-                        advertizeWorkFromFile(factory_pool, filename, remove_file=True, is_multi=frontendConfig.advertise_use_multi)
-                    except condorExe.ExeError, e:
-                        logSupport.log.debug("Advertising request failed for factory pool %s: %s" % (factory_pool, e))
-                        logSupport.log.warning("Advertising request failed for factory pool %s: %s" % (factory_pool, e))
+            # Advertize all the files (if multi, should only be one) 
+            for filename in filename_arr:
+                try:
+                    advertizeWorkFromFile(factory_pool, filename, remove_file=True, is_multi=frontendConfig.advertise_use_multi)
+                except condorExe.ExeError, e:
+                    logSupport.log.debug("Advertising request failed for factory pool %s: %s" % (factory_pool, e))
+                    logSupport.log.warning("Advertising request failed for factory pool %s: %s" % (factory_pool, e))
 
         self.factory_queue = {} # clean queue
 
