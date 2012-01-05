@@ -97,6 +97,12 @@ class Factory(Condor):
   def install_location(self):
     return self.glidein.install_location()
   #---------------------
+  def config_dir(self):
+    return "%s/glidein_%s.cfg" % (self.install_location(),self.glidein.instance_name())
+  #---------------------
+  def config_file(self):
+    return "%s/glideinWMS.xml" % (self.config_dir())
+  #---------------------
   def logs_dir(self):
      return self.option_value(self.ini_section,"logs_dir")
   #---------------------
@@ -130,7 +136,7 @@ class Factory(Condor):
        merged into the existing Factory configuration file.
     """
     self.get_config_entries_data()
-    filename = "%s/new_entries.%s" % (self.glidein.config_dir(),common.time_suffix())
+    filename = "%s/new_entries.%s" % (self.config_dir(),common.time_suffix())
     common.write_file("w",0644,filename,self.config_entries_data())
 
   #-----------------------
@@ -148,7 +154,8 @@ files and directories can be created correctly""" % self.username())
       common.validate_installer_user(self.username())
       self.glidein.validate_software_requirements()
       self.validate_needed_directories()
-      common.logit( "Verification complete\n")
+      common.logit( "Factory verification complete\n")
+      os.system("sleep 3")
     self.not_validated = False
 
   #---------------------
@@ -179,42 +186,63 @@ files and directories can be created correctly""" % self.username())
         can be accomplished successfully.  
         It is consoldiated in a single check so as to only ask once and
         not for each directory.
-        It also (attempts) to insure that if directories are nested, it 
-        does not create a problem.  Not an easy task.
         When privilege separation is in effect, the condor_root_switchboard
         must be used to clean out the client log and proxy files 
         as the owners are different and permissions problems will occur.
     """
+    instance_dir = "glidein_%(instance)s" % \
+                     { "instance" : self.glidein.instance_name(), }
     dirs = {}
-    if len(os.listdir(self.client_log_dir())) > 0:
-      dirs["client_log_dir"] = self.client_log_dir()
-    if len(os.listdir(self.client_proxy_dir())) > 0:
-      dirs["client_proxy_dir"] = self.client_proxy_dir()
-    if len(os.listdir(self.logs_dir())) > 0:
-      dirs["logs_dir"] = self.logs_dir()
-    for dir in ["monitor","stage"]:
-      subdir = os.path.join(self.glidein.web_location(),dir)
-      if os.path.isdir(subdir) and len(os.listdir(subdir)) > 0:
-        dirs["web_location/%s" % dir] = subdir
-    if len(os.listdir(self.install_location())) > 0:
-      if len(os.listdir(self.install_location())) > self.nbr_of_nested_dirs():
-        dirs["install_location"] = self.install_location()
+    dirs["logs.........."] = os.path.join(self.logs_dir(),instance_dir)
+    dirs["install......."] = os.path.join(self.install_location(),instance_dir)
+    dirs["config........"] = self.config_dir()
+    for frontend in self.wms.frontend_users().keys():
+      ## user = "user_" + self.wms.frontend_users()[frontend]
+      ## dirs["%s client logs..." % user] = os.path.join(self.client_log_dir(),user,instance_dir)
+      ## dirs["%s client proxies" % user] = os.path.join(self.client_proxy_dir(),user,instance_dir)
+      dirs["client logs"]    = self.client_log_dir()
+      dirs["client proxies"] = self.client_proxy_dir()
+    for subdir in ["monitor","stage"]:
+      dirs["web %s " % subdir] = os.path.join(self.glidein.web_location(),subdir,instance_dir)
+
+    #--- check them --
+    for type in dirs.keys():
+      if os.path.isdir(dirs[type]):
+        if len(os.listdir(dirs[type])) == 0:
+          if self.wms.privilege_separation() == "y":
+            if type in ["client logs", "client proxies",]:
+              del dirs[type]  # remove from dict
+            else: # will have permission to delete it
+              # os.rmdir(dirs[type])
+              del dirs[type]  # remove from dict
+          else: # will have permission to delete it
+            os.rmdir(dirs[type])
+            del dirs[type]  # remove from dict
+      else: # it does not exist, remove from dict
+        del dirs[type]  
+
+    #--- if all are empty, return 
     if len(dirs) == 0:
+      os.system("sleep 3")
       return  # all directories are empty
+
+    #--- See if we can remove them ---
     common.logit("""The following directories must be empty for the install to succeed: """)
-    for option in dirs.keys():
-      common.logit("""  %(option)s: %(dir)s""" % \
-                        { "option" : option, "dir" : dirs[option] })
+    types = dirs.keys()
+    types.sort()
+    for type in types:
+      common.logit("""  %(type)s: %(dir)s""" % \
+                        { "type" : type, "dir" : dirs[type] })
     common.ask_continue("... can we remove their contents")
-    for option in dirs.keys():
+    for type in dirs.keys():
       if self.wms.privilege_separation() == "y":
-        if option in ["client_log_dir","client_proxy_dir",]:
+        if type in ["client logs", "client proxies",]:
           #-- Factory create requires these directories be empty
           #-- when privspep is in effect
           condor_sbin = "%s/sbin" % self.wms.condor_location()
           condor_bin  = "%s/bin" % self.wms.condor_location()
           condorExe.set_path(condor_bin,condor_sbin)
-          parent_dir = dirs[option]
+          parent_dir = dirs[type]
           subdirs = os.listdir(parent_dir)
           for base_dir in subdirs:
             if os.path.isdir("%s/%s" % (parent_dir,base_dir)): 
@@ -227,17 +255,19 @@ to remove this client's sub-directories:
 
   %(error)s
 Check your /etc/condor/privsep.conf file to verify.
-You may need to condfigure/install your WMS Collector to resolve or correct
-the ini file for the %(option)s  attribute.  Be careful now.
+You may need to configure/install your WMS Collector to resolve or correct
+the ini file for the %(type)s attribute.  Be careful now.
 """ % { "dir"    : parent_dir,
-        "option" : option, 
+        "type" : type, 
         "error"  : e, } )
-        else: 
-          common.remove_dir_contents(dirs[option])
-      else: 
-        common.remove_dir_contents(dirs[option])
-    # this re-validation is performed to resolve problem of nesting some dirs
-    self.validate_needed_directories()
+          common.logit("Files in %s deleted" % parent_dir) 
+        else:  # not client logs or proxies
+          common.remove_dir_contents(dirs[type])
+          os.rmdir(dirs[type])
+      else: #no privsep in effect
+        common.remove_dir_contents(dirs[type])
+        os.rmdir(dirs[type])
+    os.system("sleep 3")
 
   #-----------------------------
   def nbr_of_nested_dirs(self):
@@ -308,7 +338,7 @@ export X509_CERT_DIR=%(x509_cert_dir)s
   def create_glideins(self):
     yn=raw_input("\nDo you want to create the glideins now? (y/n) [n]: ")
     cmd1 = ".  %s" % self.env_script()
-    cmd2 = "%s/creation/create_glidein %s" % (self.glidein.glideinwms_location(),self.glidein.config_file())
+    cmd2 = "%s/creation/create_glidein %s" % (self.glidein.glideinwms_location(),self.config_file())
     if yn=='y':
       common.run_script("%s;%s" % (cmd1,cmd2))
     else:
@@ -326,9 +356,9 @@ export X509_CERT_DIR=%(x509_cert_dir)s
   #-------------------------
   def create_config(self):
     config_xml = self.config_data()
-    common.logit("\nCreating configuration file: %s" % self.glidein.config_file())
-    common.make_directory(self.glidein.config_dir(),self.username(),0755)
-    common.write_file("w",0644,self.glidein.config_file(),config_xml)
+    common.logit("\nCreating configuration file: %s" % self.config_file())
+    common.make_directory(self.config_dir(),self.username(),0755)
+    common.write_file("w",0644,self.config_file(),config_xml)
 
   #-------------------------
   def config_data(self):

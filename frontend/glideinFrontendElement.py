@@ -558,8 +558,12 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         glidein_min_idle=int(glidein_min_idle)
 
         # we don't need more slots than number of jobs in the queue (unless the fraction is positive)
-        if (prop_jobs['Idle'] + count_jobs['Running']) > 0:
-            glidein_max_run = int((prop_jobs['Idle'] + count_jobs['Running']) * fraction_running + 1)
+        if (prop_jobs['Idle'] + count_real[glideid]) > 0:
+            if prop_jobs['Idle']>0:
+                glidein_max_run = int((prop_jobs['Idle'] + count_real[glideid]) * fraction_running + 1)
+            else:
+                # no good reason for a delta when we don't need more than we have
+                glidein_max_run = int(count_real[glideid])
         else:
             # the above calculation is always >0, but should be 0 if nothing in the user queue
             glidein_max_run = 0

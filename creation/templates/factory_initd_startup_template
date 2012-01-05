@@ -73,7 +73,7 @@ reconfig() {
               writeback=$GLIDEIN_WRITEBACK
            fi
         else
-           writeback=$3
+           writeback=$4
         fi
         "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir" >/dev/null 2>&1 </dev/null
         notrun=$?
