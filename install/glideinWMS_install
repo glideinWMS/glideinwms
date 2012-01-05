@@ -267,50 +267,6 @@ def schedd_node_install():
         finally:
             config_fd.close()
 
-    # USE SHARED PORT
-    print
-    print "Condor 7.5.3 and up support the use of a shared_port_daemon"
-    print "that drastically reduces the number of ports used"
-    print "and thus also improves the pool scalability."
-    while 1:
-        print ""
-        sport_yn=raw_input("Do you want to enable the shared_port_daemon?: (y/n) ")
-        if sport_yn=="":
-            sport_yn="y"
-        if (sport_yn!="y") and (sport_yn!="n"):
-            print "Please answer y or n"
-            continue 
-        break
-    if sport_yn=='y':
-        default_sport_nr=9615
-        while 1:
-            sport_nr_str=raw_input("What port should it use?: [%i] "%default_sport_nr)
-            if sport_nr_str=="":
-                sport_nr=default_sport_nr
-                break
-            try:
-                sport_nr=int(sport_nr_str)
-                break
-            except:
-                print "%s not a number, please correct"
-                continue
-            
-
-        print
-        print "Make sure you use Condor 7.5.3 and up in glideins, too"
-        print
-        
-        config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
-        try:
-            config_fd.write("\n#####################################\n")
-            config_fd.write("# Enable shared_port_daemon \n")
-            config_fd.write("#####################################\n")
-            config_fd.write("USE_SHARED_PORT = True\n")
-            config_fd.write("SHARED_PORT_ARGS = -p %i\n"%sport_nr)
-            config_fd.write("DAEMON_LIST = $(DAEMON_LIST) SHARED_PORT\n")
-        finally:
-            config_fd.close()
-
     # Don't even ask... nobody uses 6.8.X anymore
     #if not QUILL_CONFIG_DONE:
     #    yn=raw_input("Do you want to Use Quill (works for 6.8.X only)?: (y/n) [n]")
