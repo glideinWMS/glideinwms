@@ -91,6 +91,8 @@ class VOFrontend(Condor):
     global valid_options
     self.inifile = inifile
     self.ini_section = "VOFrontend"
+    if inifile == "template":  # for creating actions not requiring ini file
+      return
     if optionsDict != None:
       valid_options = optionsDict
     Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
@@ -1076,6 +1078,20 @@ please verify and correct if needed.
     condor_entries += common.mapfile_entry(self.usercollector.x509_gsi_dn(), self.usercollector.service_name())
     self.__create_condor_mapfile__(condor_entries)
 
+  #-------------------------
+  def create_template(self):
+    global valid_options
+    print "; ------------------------------------------"
+    print "; %s minimal ini options template" % self.ini_section
+    for section in valid_options.keys():
+      print "; ------------------------------------------"
+      print "[%s]" % section
+      for option in valid_options[section]:
+        print "%-25s =" % option
+      print
+
+### END OF CLASS ###
+
 #---------------------------
 def show_line():
     x = traceback.extract_tb(sys.exc_info()[2])
@@ -1100,18 +1116,6 @@ specified.
       raise common.logerr("inifile does not exist: %s" % options.inifile)
     common.logit("Using ini file: %s" % options.inifile)
     return options
-
-#-------------------------
-def create_template():
-  global valid_options
-  print "; ------------------------------------------"
-  print "; VOFrontend minimal ini options template"
-  for section in valid_options.keys():
-    print "; ------------------------------------------"
-    print "[%s]" % section
-    for option in valid_options[section]:
-      print "%-25s =" % option
-    print
 
 ##########################################
 def main(argv):

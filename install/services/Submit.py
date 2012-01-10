@@ -59,6 +59,8 @@ class Submit(Condor):
     global valid_options
     self.inifile = inifile
     self.ini_section = "Submit"
+    if inifile == "template":  # for creating actions not requiring ini file
+      return
     if optionsDict != None:
       valid_options = optionsDict
     Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
@@ -172,6 +174,20 @@ Do you want to continue.""" % { "services" : self.colocated_services,
     users.append(["VOFrontend",    self.frontend.x509_gsi_dn(),      self.frontend.service_name()])
     return users
 
+  #-------------------------
+  def create_template(self):
+    global valid_options
+    print "; ------------------------------------------"
+    print "; Submit  minimal ini options template"
+    for section in valid_options.keys():
+      print "; ------------------------------------------"
+      print "[%s]" % section
+      for option in valid_options[section]:
+        print "%-25s =" % option
+      print
+
+### END OF CLASS ###
+
 #---------------------------
 def show_line():
     x = traceback.extract_tb(sys.exc_info()[2])
@@ -196,18 +212,6 @@ specified.
       raise common.logerr("inifile does not exist: %s" % options.inifile)
     common.logit("Using ini file: %s" % options.inifile)
     return options
-
-#-------------------------
-def create_template():
-  global valid_options
-  print "; ------------------------------------------"
-  print "; Submit  minimal ini options template"
-  for section in valid_options.keys():
-    print "; ------------------------------------------"
-    print "[%s]" % section
-    for option in valid_options[section]:
-      print "%-25s =" % option
-    print
 
 ##########################################
 def main(argv):

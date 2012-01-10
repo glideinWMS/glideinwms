@@ -69,6 +69,8 @@ class WMSCollector(Condor):
     global valid_options
     self.inifile = inifile
     self.ini_section = "WMSCollector"
+    if inifile == "template":  # for creating actions not requiring ini file
+      return
     if optionsDict != None:
       valid_options = optionsDict
     Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
@@ -188,6 +190,18 @@ the PrivilegeSeparation class has not been instantiated""")
     if int(self.collector_port()) in self.usercollector.secondary_collector_ports():
       common.logerr("The WMS collector and User collector are being installed \non the same node. The WMS collector port (%s) conflicts with one of the\nsecondary User collector ports that will be assigned: %s." % (self.collector_port(),self.usercollector.secondary_collector_ports()))
 
+  #-------------------------
+  def create_template(self):
+    global valid_options
+    print "; ------------------------------------------"
+    print "; %s minimal ini options template" % self.ini_section
+    for section in valid_options.keys():
+      print "; ------------------------------------------"
+      print "[%s]" % section
+      for option in valid_options[section]:
+        print "%-25s =" % option
+      print
+
 #### end of class ####
 
 #---------------------------
@@ -213,18 +227,6 @@ specified.
       raise common.logerr("inifile does not exist: %s" % options.inifile)
     common.logit("Using ini file: %s" % options.inifile)
     return options
-
-#-------------------------
-def create_template():
-  global valid_options
-  print "; ------------------------------------------"
-  print "; WMSCollector minimal ini options template"
-  for section in valid_options.keys():
-    print "; ------------------------------------------"
-    print "[%s]" % section
-    for option in valid_options[section]:
-      print "%-25s =" % option
-    print
 
 
 ##########################################

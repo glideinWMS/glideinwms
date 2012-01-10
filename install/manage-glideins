@@ -59,10 +59,7 @@ def apache(action):
 #--------------------------------
 def wmscollector(service,action,inifile):
   obj = WMSCollector.WMSCollector(inifile)
-  user = obj.username()
-  if obj.privilege_separation() == "y":
-    user = 'root'
-  if action in ["install","validate","configure",]:
+  if action in ["install","validate","configure","create-template"]:
     process_action(obj,action)
     return
   cmd = ". %s/condor.sh" % obj.condor_location()
@@ -75,12 +72,15 @@ def wmscollector(service,action,inifile):
     cmd += "; condor_q &>/dev/null && (echo;condor_q | tail -1;echo)" 
   else:
     common.logerr("Invalid command line option for this service: %s" % action)
+  user = obj.username()
+  if obj.privilege_separation() == "y":
+    user = 'root'
   run_command(service,user,obj.hostname(),cmd)
 
 #--------------------------------
 def usercollector(service,action,inifile):
   obj = UserCollector.UserCollector(inifile)
-  if action in ["install","validate","configure",]:
+  if action in ["install","validate","configure","create-template"]:
     process_action(obj,action)
     return
   cmd = ". %s/condor.sh" % obj.condor_location()
@@ -97,7 +97,7 @@ def usercollector(service,action,inifile):
 #--------------------------------
 def submit(service,action,inifile):
   obj = Submit.Submit(inifile)
-  if action in ["install","validate","configure",]:
+  if action in ["install","validate","configure","create-template"]:
     process_action(obj,action)
     return
   cmd = ". %s/condor.sh" % obj.condor_location()
@@ -115,7 +115,7 @@ def submit(service,action,inifile):
 #--------------------------------
 def vofrontend(service,action,inifile):
   obj = VOFrontend.VOFrontend(inifile)
-  if action in ["install","validate","configure","create-group"]:
+  if action in ["install","validate","configure","create-group","create-template"]:
     process_action(obj,action)
     return
   cmd = "cd %s;. frontend.sh;cd %s" % (obj.install_location(),obj.frontend_dir())
@@ -132,7 +132,7 @@ def vofrontend(service,action,inifile):
 #--------------------------------
 def rpm(service,action,inifile):
   obj = RPM.RPM(inifile)
-  if action in ["install","validate","configure",]:
+  if action in ["install","validate","configure","create-template"]:
     process_action(obj,action)
     return
   cmd = "cd %s;. frontend.sh;cd %s" % (obj.install_location(),obj.frontend_dir())
@@ -150,7 +150,7 @@ def rpm(service,action,inifile):
 #--------------------------------
 def factory(service,action,inifile):
   obj = Factory.Factory(inifile)
-  if action in ["install","validate","configure","create-entries"]:
+  if action in ["install","validate","configure","create-entries","create-template"]:
     process_action(obj,action)
     return
   cmd = "cd %s;. factory.sh;cd %s" % (obj.install_location(),obj.glidein_dir())
@@ -210,9 +210,10 @@ def process_action(obj,action):
     obj.configure()
   elif action == "create-entries": 
     obj.get_new_config_entries()
-  elif action == "create_group":
+  elif action == "create-group":
      obj.get_new_config_group()
-    
+  elif action == "create-template":
+     obj.create_template()
 
 #----------------
 def usage(services):
@@ -244,8 +245,8 @@ remotely providing the user has valid access to the other service's node via
 'ssh -l' using the service's username.  The '--ssh' will use the ini file
 specified username attribute unless an optional 'user' is specified.
 
-The install/install-node/create-entries can only be used on the node for that
-service. 
+The install/install-node/create-entries can only be used on the node for the
+factory service. 
 
  %(program)s --install-node --ini <ini_file>
 
@@ -277,6 +278,15 @@ ini file only
 This option allows you to view the ini file options/values. 
 This is especially useful when the DEFAULT section is used to apply values to 
 all sections/services.
+
+creating a template 
+---------------------
+ %(program)s --create-template <service>
+This option allows you to create an ini file template for installing a single 
+service.  It contains all the required attributes for that service.  It should
+be understood that many of the validations that would normally insure a
+working installation are bypassed since those validations are normally 
+performed on the node for those services.
 """ % \
 { "program"  : os.path.basename(gProgramName),
   "services" : valid_services,
@@ -329,7 +339,7 @@ def main(argv):
     gSSHuser = ""
     inifile  = ""
 
-    arglist = [ "help", "start=", "stop=", "status=", "install=","validate=","configure=","ini=","show-ini=","create-entries","create-group","install-node",]
+    arglist = [ "help", "start=", "stop=", "status=", "install=","validate=","configure=","ini=","show-ini=","create-entries","create-group","create-template=","install-node",]
     arglist.append(check_for_optional_arg_values(argv,"ssh"))
 
     services = ["wmscollector","usercollector","factory","submit","vofrontend","rpm"]
@@ -376,7 +386,11 @@ def main(argv):
         gAction = o[2:]
         continue
 
-      if o in ("--start","--stop","--status","--install","--validate","--configure"):
+      if o == "--create-template":
+        gAction = o[2:]
+        inifile = "template"
+
+      if o in ("--start","--stop","--status","--install","--validate","--configure","--create-template",):
         gAction = o[2:]
         if a == "all":
           if o == "--stop":
