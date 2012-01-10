@@ -1,4 +1,3 @@
-#
 # Project:
 #   glideinWMS
 #
@@ -82,23 +81,57 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         #load condor tarballs
         for condor_idx in range(len(params.condor_tarballs)):
             condor_el=params.condor_tarballs[condor_idx]
-            condor_platform="%s-%s-%s"%(condor_el.version,condor_el.os,condor_el.arch)
-            cond_name="CONDOR_PLATFORM_%s"%condor_platform
-            condor_fname=cgWConsts.CONDOR_FILE%condor_platform
-            # register the tarball, but make the download conditional to cond_name
-            if condor_el.tar_file!=None: # condor tarball available
-                self.dicts['after_file_list'].add_from_file(condor_fname,(cWConsts.insert_timestr(condor_fname),"untar",cond_name,cgWConsts.CONDOR_ATTR),condor_el.tar_file)
-            else: # create a new tarball
-                condor_fd=cgWCreate.create_condor_tar_fd(condor_el.base_dir)
-                condor_fname=cWConsts.insert_timestr(condor_fname)
-                self.dicts['after_file_list'].add_from_fd(condor_fname,(condor_fname,"untar",cond_name,cgWConsts.CONDOR_ATTR),condor_fd)
-                condor_fd.close()
+
+            # condor_el now is a combination of csv version+os+arch
+            # Get list of valid tarballs for this condor_el
+            # Register the tarball, but make download conditional to cond_name
+
+            condor_el_valid_tarballs = get_valid_condor_tarballs([condor_el])
+            condor_fname = cWConsts.insert_timestr(cgWConsts.CONDOR_TAR_FILE)
+            condor_tarfile = ""
+            condor_fd = None
+
+            if condor_el.tar_file != None:
+                # Condor tarball available. Just add it to the list of tarballs
+                # with every possible condor_platform string
+                condor_tarfile = condor_el.tar_file
+            else:
+                # Create a new tarball as usual
+                condor_fd = cgWCreate.create_condor_tar_fd(condor_el.base_dir)
+                condor_tarfile = os.path.join(self.dicts['file_list'].dir,
+                                              condor_fname)
                 # insert the newly created tarball fname back into the config
-                params.subparams.data['condor_tarballs'][condor_idx]['tar_file']=os.path.join(self.dicts['file_list'].dir,condor_fname)
-            # add cond_name in the config, so that it is known it is there
-            # but leave it disabled by default
-            self.dicts['consts'].add(cond_name,"0",allow_overwrite=False)
-            self.dicts['untar_cfg'].add(condor_fname,cgWConsts.CONDOR_DIR)
+                params.subparams.data['condor_tarballs'][condor_idx]['tar_file'] = condor_tarfile
+
+            for tar in condor_el_valid_tarballs:
+                condor_platform = "%s-%s-%s" % (tar['version'], tar['os'],
+                                                tar['arch'])
+                cond_name = "CONDOR_PLATFORM_%s" % condor_platform
+                condor_platform_fname = cgWConsts.CONDOR_FILE % condor_platform
+
+                if condor_fd == None:
+                    # tar file exists. Just use it
+                    self.dicts['after_file_list'].add_from_file(
+                        condor_platform_fname, 
+                            (condor_fname,"untar",cond_name,cgWConsts.CONDOR_ATTR),
+                        condor_el.tar_file)
+                else:
+                    # This is addition of new tarfile
+                    # Need to rewind fd everytime
+                    condor_fd.seek(0)
+                    self.dicts['after_file_list'].add_from_fd(
+                        condor_platform_fname,
+                        (condor_fname,"untar",cond_name,cgWConsts.CONDOR_ATTR),
+                        condor_fd)
+
+                self.dicts['untar_cfg'].add(condor_platform_fname,
+                                            cgWConsts.CONDOR_DIR)
+                # Add cond_name in the config, so that it is known 
+                # But leave it disabled by default
+                self.dicts['consts'].add(cond_name, "0",
+                                         allow_overwrite=False)
+            if condor_fd != None:
+                condor_fd.close()
 
         # add additional system scripts
         for script_name in ('create_mapfile.sh','collector_setup.sh','gcb_setup.sh','glexec_setup.sh','java_setup.sh','glidein_memory_setup.sh'):
@@ -754,7 +787,7 @@ def copy_file(infile,outfile):
 # Validate CONDOR_OS CONDOR_ARCH CONDOR_VERSION
 
 def validate_condor_tarball_attrs(params):
-    valid_tarballs = get_valid_condor_tarballs(params)
+    valid_tarballs = get_valid_condor_tarballs(params.condor_tarballs)
 
     common_version = "default"
     common_os = "default"
@@ -812,12 +845,50 @@ def validate_condor_tarball_attrs(params):
 ####################################################
 # Extract valid CONDOR_OS CONDOR_ARCH CONDOR_VERSION
 
-def get_valid_condor_tarballs(params):
+def old_get_valid_condor_tarballs(params):
     valid_tarballs = []
+
     for t in params.condor_tarballs:
-        tarball = { 'version': t['version'], 
-                    'os'     : t['os'], 
+        tarball = { 'version': t['version'],
+                    'os'     : t['os'],
                     'arch'   : t['arch']
                   }
-        valid_tarballs.append(tarball)    
+        valid_tarballs.append(tarball)
     return valid_tarballs
+
+
+def get_valid_condor_tarballs(condor_tarballs):
+    valid_tarballs = []
+    tarball_matrix = []
+
+    for tar in condor_tarballs:
+        # Each condor_tarball entry is a comma-separated list of possible
+        # version, os, arch this tarball can be used
+        version = tar['version'].split(',')
+        os = tar['os'].split(',')
+        arch = tar['arch'].split(',')
+
+        # Generate the combinations (version x os x arch)
+        matrix = list(itertools_product(version, os, arch))
+
+        for tup in matrix:
+            tarball = { 'version': tup[0].strip(),
+                        'os'     : tup[1].strip(),
+                        'arch'   : tup[2].strip()
+                      }
+            valid_tarballs.append(tarball)
+    return valid_tarballs
+
+
+def itertools_product(*args, **kwds):
+    """
+    itertools.product() from Python 2.6
+    """
+
+    pools = map(tuple, args) * kwds.get('repeat', 1)
+    result = [[]]
+    for pool in pools:
+        result = [x+[y] for x in result for y in pool]
+    for prod in result:
+        yield tuple(prod)
+
