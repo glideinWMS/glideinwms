@@ -71,6 +71,8 @@ class Factory(Condor):
     global valid_options
     self.inifile = inifile
     self.ini_section = "Factory"
+    if inifile == "template":  # for creating actions not requiring ini file
+      return
     if optionsDict != None:
       valid_options = optionsDict
     Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
@@ -950,6 +952,19 @@ export X509_CERT_DIR=%(x509_cert_dir)s
     del bdii_obj
     return bdii_data
 
+  #-------------------------
+  def create_template(self):
+    global valid_options
+    print "; ------------------------------------------"
+    print "; Factory minimal ini options template"
+    for section in valid_options.keys():
+      print "; ------------------------------------------"
+      print "[%s]" % section
+      for option in valid_options[section]:
+        print "%-25s =" % option
+      print 
+
+### END OF CLASS ###
 
 #---------------------------
 def show_line():
@@ -975,18 +990,6 @@ specified.
       raise common.logerr("inifile does not exist: %s" % options.inifile)
     common.logit("Using ini file: %s" % options.inifile)
     return options
-
-#-------------------------
-def create_template():
-  global valid_options
-  print "; ------------------------------------------"
-  print "; Factory minimal ini options template"
-  for section in valid_options.keys():
-    print "; ------------------------------------------"
-    print "[%s]" % section
-    for option in valid_options[section]:
-      print "%-25s =" % option
-    print#-------------------------
 
 ##################################################
 def main(argv):
