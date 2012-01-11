@@ -18,7 +18,6 @@ from logging.handlers import TimedRotatingFileHandler
 log = None # create a place holder for a global logger, individual modules can create their own loggers if necessary
 log_dir = None
 
-KEL_test_log = None
 
 DEFAULT_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s:  %(message)s')
 DEBUG_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s:::%(module)s::%(lineno)d: %(message)s ')
