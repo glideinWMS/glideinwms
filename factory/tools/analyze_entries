@@ -156,7 +156,7 @@ USAGE:
     min_limit={}
  
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'x:hwfl:pms:', ['source=','ms','mh','msort=','nb'])
+        opts, args = getopt.getopt(sys.argv[1:], 'x:hwf:l:pms:', ['source=','ms','mh','msort=','nb'])
     except getopt.GetoptError:
         print("\n Option not recognized or missing parameters.")
         print(" Use -h for usage.\n")
