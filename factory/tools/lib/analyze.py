@@ -53,7 +53,10 @@ def printline(x,div,period):
    if div==1:
       sp = ""
    else:
-      sp = " - %2d%%" % ((float(x)/float(div))*100)
+      try:
+         sp = " - %2d%%" % ((float(x)/float(div))*100)
+      except:
+         sp = " - NA%"
    return ("%6s (%6s hours - %5s slots%s)"
       % (km(x),
          km(float(x)/3600.0),
