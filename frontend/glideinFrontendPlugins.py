@@ -150,6 +150,10 @@ class ProxyUserCardinality:
         rtnlist=self.get_proxies_from_cardinality(len(self.users_set),credential_type,trust_domain)
         if (params_obj!=None):
             rtnlist=fair_assign(rtnlist,params_obj)
+
+        #Uncomment to print out assigned proxy allocations
+        #print_list(rtnlist)
+        #logSupport.log.debug("Total: %d %d" % (params_obj.min_nr_glideins,params_obj.max_run_glideins))
         return rtnlist
 
     #############################
@@ -212,13 +216,17 @@ class ProxyUserRR:
         self.save()
 
         rtnlist=[]
+        num_cred=0
         for cred in self.config_data['proxy_list']:
             if (trust_domain != None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
             if (credential_type != None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
                 continue
             rtnlist.append(cred)
-
+            num_cred=num_cred+1
+            if (num_cred >= len(new_users_set)):
+                break
+                
         if (params_obj!=None):
             rtnlist=fair_assign(rtnlist,params_obj)
         return rtnlist
@@ -301,7 +309,20 @@ class ProxyUserMapWRecycling:
     
     def update_usermap(self, condorq_dict, condorq_dict_types,
                     status_dict, status_dict_types):
-        self.users_list = list(glideinFrontendLib.getCondorQUsers(condorq_dict))
+        self.num_user_jobs={}
+        self.total_jobs=0
+        # Get both set of users and number of jobs for each user
+        for schedd_name in condorq_dict.keys():
+            condorq_data = condorq_dict[schedd_name].fetchStored()
+            for jid in condorq_data.keys():
+                job = condorq_data[jid]
+                if job['JobStatus']==1:
+                    if job['User'] in self.num_user_jobs:
+                        self.num_user_jobs[job['User']]=self.num_user_jobs[job['User']]+1
+                    else:
+                        self.num_user_jobs[job['User']]=1
+                    self.total_jobs=self.total_jobs+1
+        self.users_list = self.num_user_jobs.keys()
         return
 
     # get the proxies, given the condor_q and condor_status data
@@ -335,6 +356,7 @@ class ProxyUserMapWRecycling:
                     if (not found):
                         #This is the first non-matching credential, use it
                         new_key=k;
+                        found=True
                         continue
                     # At this point, we have already have a credential,
                     # so switch to a new one only if this one is less used.
@@ -345,18 +367,32 @@ class ProxyUserMapWRecycling:
                     user_map[user] = user_map[new_key]
                     del user_map[new_key]
                 else:
+                    logSupport.log.error("Could not find a suitable credential for user %s!" % user)
                     #We could not find a suitable credential!
                     pass
-                cel = user_map[user]
-                out_proxies.append(cel['proxy'])
-                # save that you have indeed seen the user 
-                cel['last_seen'] = time.time()
+            cel = user_map[user]
+
+            # Out of the max_run glideins,
+            # Allocate proportionally out of the total jobs
+            if (params_obj!=None):
+                this_max=self.num_user_jobs[user]*params_obj.max_run_glideins/self.total_jobs
+                this_idle=self.num_user_jobs[user]*params_obj.min_nr_glideins/self.total_jobs
+                if (this_max<=0):
+                    this_max=1
+                if (this_idle<=0):
+                    this_idle=1
+                cel['proxy'].add_usage_details(this_idle,this_max)
+            out_proxies.append(cel['proxy'])
+            # save that you have indeed seen the user 
+            cel['last_seen'] = time.time()
+                
 
         # save changes
         self.save()
         
-        if (params_obj!=None):
-            out_proxies=fair_assign(out_proxies,params_obj)
+        #Uncomment to print out proxy allocations 
+        #print_list(out_proxies)
+        #logSupport.log.debug("Total: %d %d" % (params_obj.min_nr_glideins,params_obj.max_run_glideins))
 
         return out_proxies
 
@@ -475,6 +511,9 @@ def random_split(n,p):
     random.shuffle(random_arr)
     return random_arr
 
+def print_list(cred_list):
+    for c in cred_list:
+        logSupport.log.debug("Cred: %s %d %d" % (c.filename,c.req_idle,c.req_max_run))
 
 def fair_assign(cred_list,params_obj):
     """
