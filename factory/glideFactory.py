@@ -225,24 +225,28 @@ def spawn(sleep_time, advertize_rate, startup_dir,
                 fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
-        # Convert credential removal frequency from hours to seconds
-        remove_old_cred_freq = int(glideinDescript.data['RemoveOldCredFreq']) * 60 * 60
-        curr_time = time.time()
-        update_time = curr_time + remove_old_cred_freq
-        
-        # Convert credential removal age from days to seconds
-        remove_old_cred_age =  int(glideinDescript.data['RemoveOldCredAge']) * 24 * 60 * 60
-        
-        # Create cleaners for old credential files
-        logSupport.log.info("Adding cleaners for old credentials")
-        cred_base_dir = glideinDescript.data['ClientProxiesBaseDir']
-        for username in frontendDescript.get_all_usernames():
-            cred_base_user = os.path.join(cred_base_dir, "user_%s" % username)
-            cred_user_instance_dirname = os.path.join(cred_base_user, "glidein_%s" % glideinDescript.data['GlideinName'])
-            cred_cleaner = cleanupSupport.PrivsepDirCleanupCredentials(username, cred_user_instance_dirname,
-                                                                       "(credential_*)",
-                                                                       remove_old_cred_age)
-            cleanupSupport.cred_cleaners.add_cleaner(cred_cleaner)
+        # Check if freq is greater than zero.  If negative, do not do credential cleanup.
+        if int(glideinDescript.data['RemoveOldCredFreq']) > 0:
+            # Convert credential removal frequency from hours to seconds
+            #remove_old_cred_freq = int(glideinDescript.data['RemoveOldCredFreq']) * 60 * 60
+            remove_old_cred_freq = int(glideinDescript.data['RemoveOldCredFreq']) * 60 
+            curr_time = time.time()
+            update_time = curr_time + remove_old_cred_freq
+            
+            # Convert credential removal age from days to seconds
+            #remove_old_cred_age =  int(glideinDescript.data['RemoveOldCredAge']) * 24 * 60 * 60
+            remove_old_cred_age =  int(glideinDescript.data['RemoveOldCredAge']) * 60
+            
+            # Create cleaners for old credential files
+            logSupport.log.info("Adding cleaners for old credentials")
+            cred_base_dir = glideinDescript.data['ClientProxiesBaseDir']
+            for username in frontendDescript.get_all_usernames():
+                cred_base_user = os.path.join(cred_base_dir, "user_%s" % username)
+                cred_user_instance_dirname = os.path.join(cred_base_user, "glidein_%s" % glideinDescript.data['GlideinName'])
+                cred_cleaner = cleanupSupport.PrivsepDirCleanupCredentials(username, cred_user_instance_dirname,
+                                                                           "(credential_*)",
+                                                                           remove_old_cred_age)
+                cleanupSupport.cred_cleaners.add_cleaner(cred_cleaner)
         
         while 1:
             # THIS IS FOR SECURITY
@@ -264,7 +268,8 @@ def spawn(sleep_time, advertize_rate, startup_dir,
             
             # Only removing credentials in the v3+ protocol
             # This is because it mainly matters for Corral Frontends, which only support the v3+ protocol.
-            if curr_time >= update_time:
+            # IF freq < zero, do not do cleanup.
+            if int(glideinDescript.data['RemoveOldCredFreq']) > 0 and curr_time >= update_time:
                 logSupport.log.info("Checking credentials for cleanup")  
                 
                 # Query queue for glideins.  We don't want to remove proxies that are currently in use.
