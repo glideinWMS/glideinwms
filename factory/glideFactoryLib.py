@@ -190,6 +190,38 @@ def getCondorQData(entry_name,
     q.load(q_glidein_constraint, q_glidein_format_list)
     return q
 
+def getCondorQCredentialList():
+    """ 
+    Returns a list of all currently used proxies based on the glideins in the queue.
+    """
+
+    global factoryConfig
+
+    q_glidein_constraint = '(%s =?= "%s") && (%s =?= "%s") ' % \
+        (factoryConfig.factory_schedd_attribute,
+         factoryConfig.factory_name,
+         factoryConfig.glidein_schedd_attribute,
+         factoryConfig.glidein_name,
+         )
+    
+    cred_list = []
+    
+    try:
+        q_cred_list = condorMonitor.condorq_attrs(q_glidein_constraint, ["x509userproxy", "EC2AccessKeyId", "EC2SecretAccessKey"])
+    except:
+        msg = "Unable to query condor for credential list.  The queue may just be empty (Condor bug)."
+        logSupport.log.warning(msg)
+        logSupport.log.exception(msg)
+        q_cred_list = [] # no results found
+        
+    for cred_dict in q_cred_list:
+        for key in cred_dict:
+            cred_fpath = cred_dict[key]
+            if cred_fpath not in cred_list:
+                cred_list.append(cred_fpath)
+                
+    return cred_list
+
 
 def getQProxSecClass(condorq, client_name, proxy_security_class,
                      client_schedd_attribute=None, # if None, use the global one

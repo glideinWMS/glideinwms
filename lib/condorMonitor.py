@@ -122,7 +122,36 @@ class LocalScheddCache(NoneScheddCache):
 
 # default global object
 local_schedd_cache=LocalScheddCache()
-        
+      
+      
+def condorq_attrs(q_constraint, attribute_list):  
+    """
+    Retrieves a list of a single item from the all the factory queues.
+    """
+    attr_str = ""
+    for attr in attribute_list:
+        attr_str += " -attr %s" % attr
+
+    xml_data = condorExe.exe_cmd("condor_q","-g -l %s -xml -constraint '%s'" % (attr_str, q_constraint))
+    
+    
+    classads_xml = []
+    tmp_list = []
+    for line in xml_data:
+        # look for the xml header
+        if line[:5] == "<?xml":
+            if len(tmp_list) > 0:
+                classads_xml.append(tmp_list)
+            tmp_list = []
+        tmp_list.append(line)
+    
+    q_proxy_list = []
+    for ad_xml in classads_xml:
+        cred_list = xml2list(ad_xml)
+        q_proxy_list.extend(cred_list) 
+                            
+    return q_proxy_list
+    
 #
 # Condor monitoring classes
 #
@@ -290,6 +319,7 @@ class CondorQLite(QueryExe):
             # check that ClusterId is present, and if not add it
             format_list = complete_format_list(format_list, [("ClusterId", 'i')])
         return QueryExe.fetch(self, constraint=constraint, format_list=format_list)
+
 
 # condor_status
 class CondorStatus(QueryExe):
@@ -562,13 +592,13 @@ def xml2list(xml_data):
             found_xml = line
             break
 
-    if found_xml>=0:
-      try:
-        p.Parse(string.join(xml_data[found_xml:]),1)
-      except TypeError, e:
-        raise RuntimeError, "Failed to parse XML data, TypeError: %s"%e
-      except:
-        raise RuntimeError, "Failed to parse XML data, generic error"
+    if found_xml >= 0:
+        try:
+            p.Parse(string.join(xml_data[found_xml:]), 1)
+        except TypeError, e:
+            raise RuntimeError, "Failed to parse XML data, TypeError: %s" % e
+        except:
+            raise RuntimeError, "Failed to parse XML data, generic error"
     # else no xml, so return an empty list
     
     return xml2list_data

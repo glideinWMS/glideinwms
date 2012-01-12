@@ -21,6 +21,17 @@ class Cleanup:
 
 cleaners = Cleanup()
 
+class CredCleanup(Cleanup):
+    """
+    Cleans up old credential files.
+    """
+            
+    def cleanup(self, in_use_proxies):
+        for cleaner in self.cleanup_objects:
+            cleaner.cleanup(in_use_proxies)
+            
+cred_cleaners = CredCleanup()
+
 # this class is used for cleanup
 class DirCleanup:
     def __init__(self, dirname, fname_expression, # regular expression, used with re.match
@@ -55,7 +66,7 @@ class DirCleanup:
                 logSupport.log.info("Removed %i files." % count_removes)
 
     # INTERNAL
-    # return a dictionary of fpaths each havinf the os.lstat output
+    # return a dictionary of fpaths each having the os.lstat output
     def get_files_wstats(self):
         out_data = {}
 
@@ -150,3 +161,49 @@ class PrivsepDirCleanupWSpace(DirCleanupWSpace):
             # use the native method, if possible
             os.unlink(fpath)
 
+
+class PrivsepDirCleanupCredentials(DirCleanup):
+    """
+    Used to cleanup old credential files saved to disk by the factory for glidein submission (based on ctime).
+    """
+    def __init__(self,
+                 username, 
+                 dirname,
+                 fname_expression, # regular expression, used with re.match
+                 maxlife): # max lifetime after which it is deleted
+        DirCleanup.__init__(self, dirname, fname_expression, maxlife, should_log=True, should_log_warnings=True)
+        self.username = username
+        
+    def cleanup(self, in_use_creds):
+        count_removes = 0
+        curr_time = time.time()
+
+        threshold_time = curr_time - self.maxlife
+
+        files_wstats = self.get_files_wstats()
+        fpaths = files_wstats.keys()
+
+        for fpath in fpaths:            
+            fstat = files_wstats[fpath]
+            last_access_time = fstat[stat.ST_MTIME]
+
+            if last_access_time < threshold_time and fpath not in in_use_creds:
+                try:
+                    self.delete_file(fpath)
+                    count_removes += 1
+                except:
+                    logSupport.log.warning("Could not remove credential %s" % fpath)
+
+        if count_removes > 0:
+            logSupport.log.info("Removed %i credential files." % count_removes)
+        else:            
+            logSupport.log.info("No old credential files were removed.")
+
+    def delete_file(self, fpath):
+        if (self.username != None) and (self.username != MY_USERNAME):
+            # use privsep
+            # do not use rmtree as we do not want root privileges
+            condorPrivsep.execute(self.username, os.path.dirname(fpath), '/bin/rm', ['rm', "-f", fpath], stdout_fname=None)
+        else:
+            # use the native method, if possible
+            os.unlink(fpath)
