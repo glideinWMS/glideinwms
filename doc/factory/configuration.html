@@ -103,7 +103,7 @@ for a more detailed description.
     <a href="#">&lt;/log_retention &gt;</a><br/>
     <a href="#monitor">&lt;monitor base_dir="/var/www/html/glidefactory/monitor" flot_dir="/opt/javascriptrrd-0.6.1/flot" javascriptRRD_dir="/opt/javascriptrrd-0.6.1/src/lib" jquery_dir="/opt/javascriptrrd-0.6.1/flot" /&gt;</a><br/>
     <a href="#monitor_footer">&lt;monitor_footer display_txt="Legal Disclaimer" href_link="/site/disclaimer.html"  /&gt;</a><br/>
-    <a href="#security">&lt;security key_length="2048" pub_key="RSA" reuse_oldkey_onstartup_gracetime="900"&gt;</a><br/>
+    <a href="#security">&lt;security key_length="2048" pub_key="RSA" reuse_oldkey_onstartup_gracetime="900" remove_old_cred_freq="24" remove_old_cred_age="30"&gt;</a><br/>
     <blockquote>
         <a href="#security">&lt;frontends &gt;</a><br/>
         <blockquote>
@@ -366,9 +366,16 @@ individual entry point configuration.
         <div class="xml">
         &lt;glidein&gt;&lt;security 
         reuse_oldkey_onstartup_gracetime=&quot;<I>900</I>&quot;
+        remove_old_cred_age=&quot;<I>30</I>&quot;
+        remove_old_cred_freq=&quot;<I>24</I>&quot;
         pub_key=&quot;<I>RSA</I>&quot;/&gt;
 
         </div>
+        <p>
+        The factory can remove old credential files saved on disk.  You can set the min age (in days) the credential needs to be 
+        before it can be deleted and the frequency (in hours) to perform the removal.  If you set the frequency to less than zero,
+        the clean up functionality is disabled.
+        </p>
     </li>
     <LI>
         <a name="security_frontend" />
