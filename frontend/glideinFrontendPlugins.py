@@ -330,16 +330,31 @@ class ProxyUserMapWRecycling:
         users = self.users_list
         out_proxies = []
 
+        total_user_map = self.config_data['user_map']
+
         # check if there are more users than proxies
-
-        user_map = self.config_data['user_map']
-
-
+        if (credential_type==None) or (trust_domain==None):
+            # if no type or trust_domain is returned
+            # then we return the full list for the 
+            # global advertisement
+            rtnlist=[]
+            for type in total_user_map.keys():
+                for trust_domain in total_user_map[type].keys():
+                    for k in total_user_map[type][trust_domain].keys():
+                        rtnlist.append(total_user_map[type][trust_domain][k]['proxy'])
+            return rtnlist
+        else:
+            if (not total_user_map.has_key(credential_type)):
+                return []
+            if (not total_user_map[credential_type].has_key(trust_domain)):
+                return []
+            user_map=total_user_map[credential_type][trust_domain]
 
         for user in users:
             # If the user is not already mapped,
             # find an appropriate credential
             # skip all that do not match auth method or trust_domain
+                
             if not user_map.has_key(user):
                 keys = user_map.keys()
                 found=False
@@ -369,7 +384,8 @@ class ProxyUserMapWRecycling:
                 else:
                     logSupport.log.error("Could not find a suitable credential for user %s!" % user)
                     #We could not find a suitable credential!
-                    pass
+                    continue
+            
             cel = user_map[user]
 
             # Out of the max_run glideins,
@@ -392,13 +408,26 @@ class ProxyUserMapWRecycling:
         
         #Uncomment to print out proxy allocations 
         #print_list(out_proxies)
-        #logSupport.log.debug("Total: %d %d" % (params_obj.min_nr_glideins,params_obj.max_run_glideins))
+        #if params_obj!=None:
+        #    logSupport.log.debug("Total: %d %d" % (params_obj.min_nr_glideins,params_obj.max_run_glideins))
 
         return out_proxies
 
     #############################
     # INTERNAL
     #############################
+    def add_proxy(self,user_map,proxy):
+        type=proxy.type
+        trust=proxy.trust_domain
+        if (not user_map.has_key(type)):
+            user_map[type]={}
+        if (not user_map[type].has_key(trust)):
+            user_map[type][trust]={}
+        idx=self.config_data['first_free_index']
+        user_map[type][trust][idx] = {'proxy':proxy,
+                     'proxy_index':idx,
+                     'last_seen':0} #0 is the oldest UNIX have ever seen ;)
+        self.config_data['first_free_index'] = idx + 1   
 
     # load from self.config_fname into self.config_data
     # if the file does not exist, create a new config_data
@@ -407,14 +436,12 @@ class ProxyUserMapWRecycling:
             # no cache, create new cache structure from scratch
             self.config_data = {}
             user_map = {}
+            self.config_data['first_free_index'] = 0
             nr_proxies = len(self.proxy_list)
             for i in range(nr_proxies):
                 # use numbers for keys, so we are sure will not match to any user string
-                user_map[i] = {'proxy':self.proxy_list[i],
-                             'proxy_index':i,
-                             'last_seen':0} #0 is the oldest UNIX have ever seen ;)
+                self.add_proxy(user_map,self.proxy_list[i]) 
             self.config_data['user_map'] = user_map
-            self.config_data['first_free_index'] = nr_proxies # this will be used for future updates
         else:
             # load cache
             fd = open(self.config_fname, "r")
@@ -424,33 +451,29 @@ class ProxyUserMapWRecycling:
                 fd.close()
 
             # if proxies changed, remove old ones and insert the new ones
-            new_proxies = sets.Set(self.proxy_list)
             cached_proxies = sets.Set() # here we will store the list of proxies in the cache
 
             user_map = self.config_data['user_map']
 
             # need to iterate, since not indexed by proxy name
             keys = user_map.keys()
-            for k in keys:
-                el = user_map[k]
-                el_proxy = el['proxy']
-                if not (el_proxy in new_proxies):
-                    # cached proxy not used anymore... remove from cache
-                    del user_map[k]
-                else:
-                    # add to the list, will process later
-                    cached_proxies.add(el_proxy)
-
-            added_proxies = new_proxies - cached_proxies
-            # now that we know what proxies have been added, put them in cache
-            for proxy in added_proxies:
-                idx = self.config_data['first_free_index']
-                # use numbers for keys, so we are user will not mutch to any user string
-                user_map[idx] = {'proxy':proxy,
-                               'proxy_index':idx,
-                               'last_seen':0} #0 is the oldest UNIX have ever seen ;)
-                self.config_data['first_free_index'] = idx + 1
-
+            for type in user_map.keys():
+                for trust_domain in user_map[type].keys():
+                    for k in user_map[type][trust_domain].keys():
+                        el = user_map[type][trust_domain][k]
+                        el_proxy = el['proxy']
+                        el_proxyname = el['proxy'].filename
+                        found=False
+                        for p in self.proxy_list:
+                            if (p.filename == el_proxyname):
+                                cached_proxies.add(el_proxyname)
+                                found=True
+                        if not found:
+                            # cached proxy not used anymore... remove from cache
+                            del user_map[type][trust_domain][k]
+            for proxy in self.proxy_list:
+                if proxy.filename not in cached_proxies:
+                    self.add_proxy(user_map,proxy) 
         return
 
     # save self.config_data into self.config_fname
