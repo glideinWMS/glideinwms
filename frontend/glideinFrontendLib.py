@@ -217,11 +217,21 @@ def countMatch(match_obj,condorq_dict,glidein_dict):
     new_out_counts={}
     glideindex=0
 
+    # dict of job clusters
+    # group together those that have the same attributes
+    cq_dict_clusters={}
+    # set of all jobs
     cq_jobs=sets.Set()
     for schedd in condorq_dict.keys():
+        cq_dict_clusters[schedd]={}
+        cq_dict_clusters_el=cq_dict_clusters[schedd]
         condorq=condorq_dict[schedd]
         condorq_data=condorq.fetchStored()
         for jid in condorq_data.keys():
+            jh=hashJob(condorq_data[jid])
+            if not cq_dict_clusters_el.has_key(jh):
+                cq_dict_clusters_el[jh]=[]
+            cq_dict_clusters_el[jh].append(jid)
             t=(schedd,jid)
             cq_jobs.add(t)
 
@@ -232,15 +242,20 @@ def countMatch(match_obj,condorq_dict,glidein_dict):
         glidein_count=0
         jobs=sets.Set()
         for schedd in condorq_dict.keys():
+            cq_dict_clusters_el=cq_dict_clusters[schedd]
             condorq=condorq_dict[schedd]
             condorq_data=condorq.fetchStored()
             schedd_count=0
-            for jid in condorq_data.keys():
-                job=condorq_data[jid]
+            for jh in cq_dict_clusters_el.keys():
+                # get the first job... they are all the same
+                first_jid=cq_dict_clusters_el[jh][0]
+                job=condorq_data[first_jid]
                 if eval(match_obj):
-                    t=(schedd,jid)
-                    jobs.add(t)
-                    schedd_count+=1
+                    # the first matched... add all jobs in the cluster
+                    for jid in cq_dict_clusters_el[jh]:
+                        t=(schedd,jid)
+                        jobs.add(t)
+                        schedd_count+=1
                 pass
             glidein_count+=schedd_count
             pass    
@@ -551,3 +566,11 @@ def uniqueSets(in_sets):
     for i in range(len(index_list)-1): # last one contains all the values
         outvals.append((sets.Set(index_list[i]),sorted_sets[i]))
     return (outvals,sorted_sets[-1])
+
+def hashJob(condorq_el):
+    out=[]
+    keys=condorq_el.keys()
+    keys.sort()
+    for k in keys:
+        out.append((k,condorq_el[k]))
+    return tuple(out)
