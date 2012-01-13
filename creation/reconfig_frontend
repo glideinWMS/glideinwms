@@ -111,6 +111,11 @@ if __name__ == '__main__':
             print usage
             sys.exit(1)
 
+    if xml == '':
+        # to support upgrading from versions older than v2.5.3
+        # the last arg is always the xml file
+        xml = argv[len(argv)-1]
+        
     args = [argv[0], xml] 
            
     try:

@@ -106,15 +106,20 @@ if __name__ == '__main__':
     for i in range(len(argv)):
         if argv[i] == '-force_name':
             force_name = argv[i+1]
-        if argv[i] == '-writeback':
+        elif argv[i] == '-writeback':
             writeback = argv[i+1]
-        if argv[i] == '-update_scripts':
+        elif argv[i] == '-update_scripts':
             update_scripts = argv[i+1]
-        if argv[i] == '-xml':
+        elif argv[i] == '-xml':
             xml = argv[i+1]
-        if argv[i] == '-help':
+        elif argv[i] == '-help':
             print usage
             sys.exit(1)
+    
+    if xml == '':
+        # to support upgrading from versions older than v2.5.3
+        # the last arg is always the xml file
+        xml = argv[len(argv)-1]
 
     args = [argv[0], xml]     
                 
