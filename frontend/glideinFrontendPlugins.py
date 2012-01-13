@@ -249,10 +249,13 @@ class ProxyUserRR:
             finally:
                 fd.close()
 
-            # proxies may have changed... make sure you have them all indexed
-            added_proxies = sets.Set(self.proxy_list) - sets.Set(self.config_data['proxy_list'])
-            for proxy in added_proxies:
-                self.config_data['proxy_list'].append(proxy)
+            for p in self.proxy_list:
+                found=False
+                for c in self.config_data['proxy_list']:
+                    if p.filename==c.filename:
+                        found=True
+                if not found:
+                    self.config_data['proxy_list'].append(p)
 
         return
 
