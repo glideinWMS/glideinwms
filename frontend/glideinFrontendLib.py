@@ -208,7 +208,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, condorq_match_list=None):
         glidein=glidein_dict[glidename]
         glidein_count=0
         jobs_arr=[]
-        for scheddIdx in range(len(schedds)):
+        for scheddIdx in range(nr_schedds):
             schedd=schedds[scheddIdx]
             cq_dict_clusters_el=cq_dict_clusters[scheddIdx]
             condorq=condorq_dict[schedd]
@@ -288,21 +288,47 @@ def countMatch(match_obj, condorq_dict, glidein_dict, condorq_match_list=None):
     final_unique[(None,None,None)]=count_unmatched
     return (out_glidein_counts,final_out_counts,final_unique)
 
-def countRealRunning(match_obj,condorq_dict,glidein_dict):
+def countRealRunning(match_obj,condorq_dict,glidein_dict,condorq_match_list=None):
     out_glidein_counts={}
+
+    if condorq_match_list!=None:
+        condorq_match_list=condorq_match_list+['RunningOn']
+
+    schedds=condorq_dict.keys()
+    nr_schedds=len(schedds)
+
+    # dict of job clusters
+    # group together those that have the same attributes
+    cq_dict_clusters={}
+    for scheddIdx in range(nr_schedds):
+        schedd=schedds[scheddIdx]
+        cq_dict_clusters[scheddIdx]={}
+        cq_dict_clusters_el=cq_dict_clusters[scheddIdx]
+        condorq=condorq_dict[schedd]
+        condorq_data=condorq.fetchStored()
+        for jid in condorq_data.keys():
+            jh=hashJob(condorq_data[jid],condorq_match_list)
+            if not cq_dict_clusters_el.has_key(jh):
+                cq_dict_clusters_el[jh]=[]
+            cq_dict_clusters_el[jh].append(jid)
+
     for glidename in glidein_dict:
         # split by : to remove port number if there
         glide_str = "%s@%s" % (glidename[1],glidename[0].split(':')[0])
         glidein=glidein_dict[glidename]
         glidein_count=0
-        for schedd in condorq_dict.keys():
+        for scheddIdx in range(nr_schedds):
+            schedd=schedds[scheddIdx]
+            cq_dict_clusters_el=cq_dict_clusters[scheddIdx]
             condorq=condorq_dict[schedd]
             condorq_data=condorq.fetchStored()
             schedd_count=0
-            for jid in condorq_data.keys():
-                job=condorq_data[jid]
+            for jh in cq_dict_clusters_el.keys():
+                # get the first job... they are all the same
+                first_jid=cq_dict_clusters_el[jh][0]
+                job=condorq_data[first_jid]
                 if eval(match_obj) and job['RunningOn'] == glide_str:
-                    schedd_count+=1
+                    schedd_count+=len(cq_dict_clusters_el[jh])
                 pass
             glidein_count+=schedd_count
             pass
