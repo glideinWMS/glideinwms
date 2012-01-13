@@ -1075,6 +1075,9 @@ echo
 if [ $ret -ne 0 ]; then
   if [ $ret -eq 99 ]; then
     warn "Normal DAEMON_SHUTDOWN encountered while '$last_script'" 1>&2
+    # DAEMON_SHUTDOWN is a normal outcome, so should return 0
+    #  instead of 99 to indicate normal termination
+    glidein_exit 0
   else
     warn "Error running '$last_script'" 1>&2
   fi
