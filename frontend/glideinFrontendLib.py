@@ -217,14 +217,30 @@ def countMatch(match_obj,condorq_dict,glidein_dict):
     new_out_counts={}
     glideindex=0
 
+    schedds=condorq_dict.keys()
+    nr_schedds=len(schedds)
+
+    # find max ProcId
+    max_procid=0
+    for scheddIdx in range(nr_schedds):
+        schedd=schedds[scheddIdx]
+        condorq=condorq_dict[schedd]
+        condorq_data=condorq.fetchStored()
+        for jid in condorq_data.keys():
+          procid=jid[1]
+          if procid>max_procid:
+           max_procid=procid
+    procid_mul=long(max_procid+1)
+
     # dict of job clusters
     # group together those that have the same attributes
     cq_dict_clusters={}
     # set of all jobs
     cq_jobs=sets.Set()
-    for schedd in condorq_dict.keys():
-        cq_dict_clusters[schedd]={}
-        cq_dict_clusters_el=cq_dict_clusters[schedd]
+    for scheddIdx in range(nr_schedds):
+        schedd=schedds[scheddIdx]
+        cq_dict_clusters[scheddIdx]={}
+        cq_dict_clusters_el=cq_dict_clusters[scheddIdx]
         condorq=condorq_dict[schedd]
         condorq_data=condorq.fetchStored()
         for jid in condorq_data.keys():
@@ -232,7 +248,7 @@ def countMatch(match_obj,condorq_dict,glidein_dict):
             if not cq_dict_clusters_el.has_key(jh):
                 cq_dict_clusters_el[jh]=[]
             cq_dict_clusters_el[jh].append(jid)
-            t=(schedd,jid)
+            t=(jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
             cq_jobs.add(t)
 
     list_of_all_jobs=[]
@@ -240,30 +256,43 @@ def countMatch(match_obj,condorq_dict,glidein_dict):
     for glidename in glidein_dict:
         glidein=glidein_dict[glidename]
         glidein_count=0
-        jobs=sets.Set()
-        for schedd in condorq_dict.keys():
-            cq_dict_clusters_el=cq_dict_clusters[schedd]
+        jobs_arr=[]
+        for scheddIdx in range(len(schedds)):
+            schedd=schedds[scheddIdx]
+            cq_dict_clusters_el=cq_dict_clusters[scheddIdx]
             condorq=condorq_dict[schedd]
             condorq_data=condorq.fetchStored()
             schedd_count=0
+            sjobs_arr=[]
             for jh in cq_dict_clusters_el.keys():
                 # get the first job... they are all the same
                 first_jid=cq_dict_clusters_el[jh][0]
                 job=condorq_data[first_jid]
                 if eval(match_obj):
                     # the first matched... add all jobs in the cluster
+                    cluster_arr=[]
                     for jid in cq_dict_clusters_el[jh]:
-                        t=(schedd,jid)
-                        jobs.add(t)
+                        t=(jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
+                        cluster_arr.append(t)
                         schedd_count+=1
+                    # adding a whole cluster much faster
+                    sjobs_arr+=cluster_arr
+                    del cluster_arr
+                    pass
                 pass
+            jobs_arr+=sjobs_arr
+            del sjobs_arr
             glidein_count+=schedd_count
             pass    
+        jobs=sets.Set(jobs_arr)
+        del jobs_arr
         list_of_all_jobs.append(jobs)
         out_glidein_counts[glidename]=glidein_count
         pass
-    (outvals,range) = uniqueSets(list_of_all_jobs)
-    count_unmatched=len(cq_jobs-range)
+
+    (outvals,jrange) = uniqueSets(list_of_all_jobs)
+    del list_of_all_jobs
+    count_unmatched=len(cq_jobs-jrange)
 
     #unique_to_site: keys are sites, elements are num of unique jobs
     unique_to_site = {}
