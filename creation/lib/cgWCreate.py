@@ -11,21 +11,46 @@
 #
 ####################################
 
-import os,os.path,shutil
+import os
+import shutil
+import subprocess
 import stat
 import string
-import traceback
 import tarfile
 import cStringIO
-import cgWConsts
 import cgWDictFile
 
 ##############################
 # Create condor tarball and store it into a StringIO
 def create_condor_tar_fd(condor_base_dir):
     try:
-        condor_bins=['sbin/condor_master','sbin/condor_startd','sbin/condor_starter']
+        condor_bins = [
+            'sbin/condor_master', 'sbin/condor_startd', 'sbin/condor_starter'
+                      ]
 
+        condor_opt_bins = [
+            'sbin/condor_procd', 'sbin/gcb_broker_query', 'sbin/condor_fetchlog'
+                          ]
+
+        condor_opt_libs = [
+            'lib/condor_ssh_to_job_sshd_config_template',
+            'lib/CondorJavaInfo.class', 'lib/CondorJavaWrapper.class',
+            'lib/scimark2lib.jar',
+                          ]
+        condor_opt_libexecs = [
+                  'libexec/glexec_starter_setup.sh',
+                  'libexec/condor_glexec_wrapper',
+                  'libexec/condor_glexec_cleanup',
+                  'libexec/condor_glexec_job_wrapper',
+                  'libexec/condor_glexec_kill',
+                  'libexec/condor_glexec_run',
+                  'libexec/condor_glexec_update_proxy',
+                  'libexec/condor_glexec_setup',
+                  'libexec/condor_ssh_to_job_sshd_setup',
+                  'libexec/condor_ssh_to_job_shell_setup',
+                  'libexec/condor_kflops',
+                  'libexec/condor_mips'
+                              ]
         # check that dir and files exist
         if not os.path.isdir(condor_base_dir):
             raise RuntimeError, "%s is not a directory"%condor_base_dir
@@ -33,24 +58,15 @@ def create_condor_tar_fd(condor_base_dir):
             if not os.path.isfile(os.path.join(condor_base_dir,f)):
                 raise RuntimeError, "Cannot find %s"%os.path.join(condor_base_dir,f)
 
-        # check if optional binaries exist, if they do, include
-        for f in ['sbin/condor_procd','sbin/gcb_broker_query',
-                  'libexec/glexec_starter_setup.sh',
-                  'libexec/condor_glexec_wrapper',
-                  'libexec/condor_glexec_cleanup',
-                  'libexec/condor_glexec_job_wrapper',
-                  'libexec/condor_glexec_kill','libexec/condor_glexec_run',
-                  'libexec/condor_glexec_update_proxy',
-                  'libexec/condor_glexec_setup','sbin/condor_fetchlog',
-                  'libexec/condor_ssh_to_job_sshd_setup',
-                  'libexec/condor_ssh_to_job_shell_setup',
-                  'lib/condor_ssh_to_job_sshd_config_template',
-                  'lib/CondorJavaInfo.class','lib/CondorJavaWrapper.class',
-                  'lib/scimark2lib.jar','libexec/condor_kflops',
-                  'libexec/condor_mips']:
+        # Get the list of dlls required
+        dlls = get_condor_dlls(condor_base_dir,
+                               condor_opt_bins + condor_opt_libexecs)
+
+        # check if optional files and their libs exist, if they do, include
+        for f in (condor_opt_bins+condor_opt_libs+condor_opt_libexecs+dlls):
             if os.path.isfile(os.path.join(condor_base_dir,f)):
                 condor_bins.append(f)
-        
+
         # tar
         fd=cStringIO.StringIO()
         tf=tarfile.open("dummy.tgz",'w:gz',fd)
@@ -379,4 +395,114 @@ def copy_exe(filename, work_dir, org_dir, overwrite=False):
     copy_file(os.path.join(org_dir, filename), work_dir)
     os.chmod(os.path.join(work_dir, filename), 0555)
     
-    
+
+def get_link_chain(link):
+    """
+    Given a filepath, checks if it is a link and processes all the links until
+    the actual file is found
+
+    @type link: string
+    @param link: Full path to the file/link
+
+    @return: List containing links in the chain
+    @rtype: list
+    """
+
+    rlist = set()
+    l = link
+    while os.path.islink(l):
+        if l in rlist:
+            # Cycle detected. Break
+            break
+        rlist.add(l)
+        l = os.path.join(os.path.dirname(l), os.readlink(l))
+    rlist.add(l)
+    return list(rlist)
+
+
+def ldd(file):
+    """
+    Given a file return all the libraries referenced by the file
+
+    @type file: string
+    @param file: Full path to the file
+
+    @return: List containing linked libraries required by the file
+    @rtype: list
+    """
+
+    rlist = []
+    if os.path.exists(file):
+        process = subprocess.Popen(['ldd', file], shell=False,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE)
+        for line in process.stdout.readlines():
+            tokens = line.split('=>')
+            if len(tokens) == 2:
+                lib_loc = ((tokens[1].strip()).split(' '))[0].strip()
+                if os.path.exists(lib_loc):
+                    rlist.append(os.path.abspath(lib_loc))
+    return rlist
+
+
+def get_condor_dlls(condor_dir, files=[], libdirs=['lib', 'lib/condor']):
+    """
+    Given list of condor files return all the libraries referenced by the files
+
+    @type condor_dir: string
+    @param condor_dir: Location containing condor binaries
+    @type files: list
+    @param files: List of files relative to condor_dir
+    @type libdirs: list
+    @param libdirs: List of dirs relative to condor_dir that contain libs
+
+    @return: List containing linked libraries required by all the files. 
+             Paths a relative to the condor_dir
+    @rtype: list
+    """
+
+    fileset = set()
+    libstodo = set()
+    libsdone = set()
+    rlist = []
+
+    for file in files:
+        libstodo.update(ldd(os.path.join(condor_dir, file)))
+
+    while len(libstodo) > 0:
+        lib = libstodo.pop()
+        libname = os.path.basename(lib)
+
+        if lib in libsdone:
+            # This lib has been processes already
+            continue
+
+        if not lib.startswith(condor_dir):
+            # Check if the library is provided by condor
+            # If so, add the condor provided lib to process
+            for libdir in libdirs:
+                if os.path.exists(os.path.join(condor_dir, libdir, libname)):
+                    new_lib = os.path.join(condor_dir, libdir, libname)
+                    if new_lib not in libsdone:
+                        libstodo.add(new_lib)
+                        libsdone.add(lib)
+        else:
+            new_libstodo = set(ldd(lib))
+            libstodo.update(new_libstodo - libsdone)
+            # This could be a link chain
+            links = get_link_chain(lib)
+            # Consider the system links for further processing
+            # Add the links in the condor_dir as processed
+            for link in links:
+                if link.startswith(condor_dir):
+                    fileset.add(link)
+                    libsdone.add(link)
+                else:
+                    libstodo.add(link)
+
+    # Return the list of files relative to condor_dir
+    for lib in fileset:
+        tokens = lib.split('%s/' % os.path.normpath(condor_dir))
+        rlist.append(tokens[1])
+
+    return rlist
