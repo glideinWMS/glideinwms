@@ -376,6 +376,11 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
 
     #glideinFrontendLib.log_files.logDebug("realcount: %s\n\n" % glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict))
 
+    # extract only the attribute names from format list
+    condorq_match_list=[]
+    for f in elementDescript.merged_data['JobMatchAttrs']:
+        condorq_match_list.append(f[0])
+
     glideinFrontendLib.log_files.logActivity("Counting subprocess created")
     pipe_ids={}
     for dt in condorq_dict_types.keys()+['Real','Glidein']:
@@ -399,7 +404,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                             count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
                     out=count_status_multi
                 else:
-                    c,p,h=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict)
+                    c,p,h=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict,condorq_match_list)
                     t=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
                     out=(c,p,h,t)
 

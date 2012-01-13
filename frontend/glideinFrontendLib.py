@@ -209,7 +209,7 @@ def getCondorQUsers(condorq_dict):
 #  A special "glidein name" of (None, None, None) is used for jobs 
 #   that don't match any "real glidein name"
 
-def countMatch(match_obj,condorq_dict,glidein_dict):
+def countMatch(match_obj,condorq_dict,glidein_dict,condorq_match_list=None):
     out_glidein_counts={}
     #new_out_counts: keys are site indexes(numbers), 
     #elements will be the number of real
@@ -244,7 +244,7 @@ def countMatch(match_obj,condorq_dict,glidein_dict):
         condorq=condorq_dict[schedd]
         condorq_data=condorq.fetchStored()
         for jid in condorq_data.keys():
-            jh=hashJob(condorq_data[jid])
+            jh=hashJob(condorq_data[jid],condorq_match_list)
             if not cq_dict_clusters_el.has_key(jh):
                 cq_dict_clusters_el[jh]=[]
             cq_dict_clusters_el[jh].append(jid)
@@ -596,10 +596,17 @@ def uniqueSets(in_sets):
         outvals.append((sets.Set(index_list[i]),sorted_sets[i]))
     return (outvals,sorted_sets[-1])
 
-def hashJob(condorq_el):
+def hashJob(condorq_el,condorq_match_list=None):
     out=[]
     keys=condorq_el.keys()
     keys.sort()
+    if condorq_match_list!=None:
+        # whitelist... keep only the ones listed
+        allkeys=keys
+        keys=[]
+        for k in allkeys:
+            if k in condorq_match_list:
+                keys.append(k)
     for k in keys:
         out.append((k,condorq_el[k]))
     return tuple(out)
