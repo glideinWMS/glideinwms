@@ -165,5 +165,3 @@ if __name__ == '__main__':
     except:
         print "Writing back config file failed"
         sys.exit(1)
-        
-
