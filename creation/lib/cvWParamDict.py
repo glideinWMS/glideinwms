@@ -487,6 +487,8 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
     group_descript_dict.add('CurbIdleVMsPerEntry',sub_params.config.idle_vms_per_entry.curb)
     group_descript_dict.add('MaxRunningTotal',sub_params.config.running_glideins_total.max)
     group_descript_dict.add('CurbRunningTotal',sub_params.config.running_glideins_total.curb)
+    if (sub_params.attrs.has_key('GLIDEIN_Glexec_Use')):
+        descript_dict.add('GLIDEIN_Glexec_Use',sub_params.attrs['GLIDEIN_Glexec_Use']['value'])
 
 
 #####################################################
@@ -618,6 +620,8 @@ def populate_common_descript(descript_dict,        # will be modified
             descript_dict.add('ProxyVMIds', repr(proxy_vm_ids))
         if len(proxy_vm_types.keys()) > 0:
             descript_dict.add('ProxyVMTypes', repr(proxy_vm_types))
+    if (params.attrs.has_key('GLIDEIN_Glexec_Use')):
+       descript_dict.add('GLIDEIN_Glexec_Use',params.attrs['GLIDEIN_Glexec_Use']['value'])
 
     match_expr = params.match.match_expr
     if ( (params.attrs.has_key('GLIDEIN_Glexec_Use')) and 
