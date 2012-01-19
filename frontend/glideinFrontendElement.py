@@ -440,7 +440,12 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     reserve_idle=int(elementDescript.element_data['ReserveIdlePerEntry'])
     max_vms_idle=int(elementDescript.element_data['MaxIdleVMsPerEntry'])
     curb_vms_idle=int(elementDescript.element_data['CurbIdleVMsPerEntry'])
-    
+    glexec='UNDEFINED'
+    if 'GLIDEIN_Glexec_Use' in elementDescript.frontend_data:
+         glexec=elementDescript.frontend_data['GLIDEIN_Glexec_Use']
+    if 'GLIDEIN_Glexec_Use' in elementDescript.merged_data:
+         glexec=elementDescript.merged_data['GLIDEIN_Glexec_Use']
+ 
     total_running=condorq_dict_types['Running']['total']
     glideinFrontendLib.log_files.logActivity("Total matching idle %i (old %i) running %i"%(condorq_dict_types['Idle']['total'],condorq_dict_types['OldIdle']['total'],total_running))
 
@@ -479,11 +484,13 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         count_status=count_status_multi[request_name]
 
         #If the glidein requires a voms proxy, only match voms idle jobs
-        if glidein_el['attrs'].has_key('GLIDEIN_REQUIRE_VOMS'):
-            #glideinFrontendLib.log_files.logActivity("Require VOMS found: %s" % glidein_el['attrs']['GLIDEIN_REQUIRE_VOMS'])
-            if (glidein_el['attrs']['GLIDEIN_REQUIRE_VOMS']=="True"):
-                prop_jobs['Idle']=prop_jobs['VomsIdle']
-                glideinFrontendLib.log_files.logActivity("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
+	# Note: if GLEXEC is set to NEVER, the site will never see the proxy, 
+	# so it can be avoided.
+	if (glexec != 'NEVER'):
+            if glidein_el['attrs'].has_key('GLIDEIN_REQUIRE_VOMS'):
+                if (glidein_el['attrs']['GLIDEIN_REQUIRE_VOMS']=="True"):
+                    prop_jobs['Idle']=prop_jobs['VomsIdle']
+                    glideinFrontendLib.log_files.logActivity("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
 
         # effective idle is how much more we need
         # if there are idle slots, subtract them, they should match soon
