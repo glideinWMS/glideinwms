@@ -519,7 +519,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
             if glidein_el['attrs'].has_key('GLIDEIN_REQUIRE_VOMS'):
                 if (glidein_el['attrs']['GLIDEIN_REQUIRE_VOMS']=="True"):
                     prop_jobs['Idle']=prop_jobs['VomsIdle']
-                    glideinFrontendLib.log_files.logActivity("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
+                    logSupport.log.info("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
 
         # effective idle is how much more we need
         # if there are idle slots, subtract them, they should match soon
