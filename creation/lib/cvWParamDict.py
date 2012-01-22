@@ -488,7 +488,7 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
     group_descript_dict.add('MaxRunningTotal',sub_params.config.running_glideins_total.max)
     group_descript_dict.add('CurbRunningTotal',sub_params.config.running_glideins_total.curb)
     if (sub_params.attrs.has_key('GLIDEIN_Glexec_Use')):
-        descript_dict.add('GLIDEIN_Glexec_Use',sub_params.attrs['GLIDEIN_Glexec_Use']['value'])
+        group_descript_dict.add('GLIDEIN_Glexec_Use',sub_params.attrs['GLIDEIN_Glexec_Use']['value'])
 
 
 #####################################################
