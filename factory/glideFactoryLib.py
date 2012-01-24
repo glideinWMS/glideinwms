@@ -1041,9 +1041,15 @@ def removeGlideins(schedd_name, jid_list, force=False):
 
     is_not_first = 0
     for jid in jid_list:
+
+        # Respect the max_removes limit and exit right away if required
+        if len(removed_jids) >= factoryConfig.max_removes:
+            break # limit reached, stop
+
         if is_not_first:
             is_not_first = 1
             time.sleep(factoryConfig.remove_sleep)
+
         try:
             condorManager.condorRemoveOne("%li.%li" % (jid[0], jid[1]), schedd_name)
             removed_jids.append(jid)
@@ -1059,9 +1065,6 @@ def removeGlideins(schedd_name, jid_list, force=False):
         except condorExe.ExeError, e:
             # silently ignore errors, and try next one
             logSupport.log.warning("removeGlidein(%s,%li.%li): %s" % (schedd_name, jid[0], jid[1], e))
-
-        if len(removed_jids) >= factoryConfig.max_removes:
-            break # limit reached, stop
 
 
     logSupport.log.info("Removed %i glideins on %s: %s" % (len(removed_jids), schedd_name, removed_jids))
