@@ -513,6 +513,7 @@ Description:
 		for(i = 0; i< paramSpecArry.length; i++)
 		{
 			counter = 2; 
+			group_sep_idx = groups_starting_idx + 2
 			if(i == 0)
 			{
 				for(entry in entries)
@@ -553,6 +554,9 @@ Description:
                                                 setFrontendMenu(entry);
 						break;  	
 					}
+                                        if (counter == group_sep_idx) {
+                                                counter++;
+                                        }
 					counter++; 
 				}
 			}
