@@ -903,7 +903,7 @@ function fetch_file_base {
 	env http_proxy=$proxy_url wget --user-agent="wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name" $ffb_nocache_str -q  -O "$ffb_tmp_outname" "$ffb_repository/$ffb_real_fname" 
 	if [ $? -ne 0 ]; then
 	    # if Squid fails exit, because real jobs can try to use it too
-	    warn "Failed to load file '$ffb_real_fname' from '$repository_url' using proxy '$proxy_url'" 1>&2
+	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'" 1>&2
 	    return 1
 	fi
     fi
