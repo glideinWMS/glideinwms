@@ -34,10 +34,10 @@ Description:
     <title id="brtitle">Glidein factory status</title>
     
     <script type="text/javascript">
-	  var browser_title = "Glidein factory status";
-	  var page_title = "Glidein factory status";
-	  set_title_and_footer(browser_title, page_title);
-	</script>
+      var browser_title = "Glidein factory status";
+      var page_title = "Glidein factory status";
+      set_title_and_footer(browser_title, page_title);
+    </script>
   </head>
 
   <body>
@@ -467,184 +467,178 @@ Description:
           }
         }
       }
-	/* Function to read from the url any parameters the user has specified. */
-	function checkUrl()
-	{
-		var url = window.location.search;
-                parameterArry = new Array("entry", "frontend", "infoGroup","elements","rra","window_min","window_max","timezone"); 
-		group = 0;  
-		var entrySpec; 
-		var infoGroupSpec;
-                link_checked_DSs=[];
-                specified_rra = 0;
-		urlValid = 0; 
-		paramSpecArry = new Array(); 
-		if(url)
-		{
-			url = url.substring(1);
+      
+      /* Function to read from the url any parameters the user has specified. */
+      function checkUrl() {
+        var url = window.location.search;
+        parameterArry = new Array("entry", "frontend", "infoGroup", "elements", "rra", "window_min", "window_max", "timezone"); 
+        group = 0;  
+        var entrySpec; 
+        var infoGroupSpec;
+        link_checked_DSs=[];
+        specified_rra = 0;
+        urlValid = 0; 
+        paramSpecArry = new Array(); 
+        if(url) {
+          url = url.substring(1);
+          urlSplit = url.split('&'); 
+          i = 0; 
+          while(i < urlSplit.length) { 
+            equalSplit = urlSplit[i].split('='); 
+            if(equalSplit[0] == parameterArry[i]) {
+              paramSpecArry[i] = equalSplit[1];
+            }
+            i++; 
+          }
+        }
 
-			urlSplit = url.split('&'); 
-			i = 0; 
-			while(i < urlSplit.length)
-			{ 
-				equalSplit = urlSplit[i].split('='); 
-				if(equalSplit[0] == parameterArry[i])
-				{
-					paramSpecArry[i] = equalSplit[1];
-				}
-				i++; 
-			}
-		}
-		for(i = 0; i< paramSpecArry.length; i++)
-		{
-			counter = 2; 
-			if(i == 0)
-			{
-				for(entry in entries)
-				{
-					if(entry == paramSpecArry[0] || "total" == paramSpecArry[0])
-					{
-						ENTRY = paramSpecArry[0];
-						urlValid = 1; 
+        for(i = 0; i< paramSpecArry.length; i++) {
+          counter = 2; 
+          group_sep_idx = groups_starting_idx + 2
+          if(i == 0) {
+            //alert("Entries: " + entries.join().toString())
+            for(entry in entries) {
+              //alert("Now on \n Entry: " + entry.toString() + "\n" + "paramSpecArry[0]: " + paramSpecArry[0] + "\n" + "groups_starting_idx: " + groups_starting_idx)
+              if(entry == paramSpecArry[0] || "total" == paramSpecArry[0]) {
+                ENTRY = paramSpecArry[0];
+                urlValid = 1; 
 
-                                                if (ENTRY=="total") {
-                                                    counter=0;
-                                                }
-
-						document.getElementById("entries").selectedIndex = counter; 
-                                                setFrontendMenu(entry);
-                                                var frontend = paramSpecArry[1];
-                                                var fe_list = document.getElementById("frontends").childNodes; 
-                                                var fe_idx=0;
-                                                for(var k=0;k<fe_list.length;k++) {
-                                                           document.write(fe_list[k].innerHTML);
-                                                           if(frontend==fe_list[k].innerHTML) {fe_idx=k;}
-                                                }
-                                                document.getElementById("frontends").selectedIndex = fe_idx; 
-
-						break;
-					} 
-					else if("total" == 	paramSpecArry[0])
-					{
-						urlValid = 1; 
-						document.getElementById("entries").selectedIndex = 0; 
-                                                setFrontendMenu(entry);
-						break;  	
-					}
-					counter++; 
-				}
-			}
-			else if(i == 2)
-			{
-				child = 1; 
-				for(var k = 0; k< infoGroupOptions.length; k++)
-				{
-					if(infoGroupOptions[k] == paramSpecArry[2])
-					{
-						document.getElementById("gtypes").childNodes[child].checked = true;
-						urlValid = 1; 
-					}
-					child+=2;	
-				}
-			}
-                        else if(i==3) {
-                           var elems = paramSpecArry[i].split(",");
-                           for(var j=0;j<elems.length;j++){
-                              link_checked_DSs.push(elems[j]);
-                           } 
-                        }
-                        else if(i==4) {specified_rra = paramSpecArry[i];}
-                        else if(i==5) {local_window_min = paramSpecArry[i];}
-                        else if(i==6) {local_window_max = paramSpecArry[i];}
-                        else if(i==7) {timezone_num = paramSpecArry[i];}
-		}
-		if(urlValid)
-		{
-			fname_update();
-		}
-	}
-	/* Function to show link for current options. */
-	function showLink()
-	{
-		constructed = document.URL.split('?');
-		entriesTable = document.getElementById("entries"); 
-		frontendsTable = document.getElementById("frontends"); 
-		var specifiedEntry;
-		var specifiedFrontend; 
-		var specifiedGOption; 
-                var specified_win_max; 
-                var specified_win_min; 
-
-                //Graph data from rrdFlot.js
-                graph_info = getGraphInfo();
-                var local_checked_DSs_input= graph_info["dss"];
-                specified_rra = graph_info["rra"];
-                var specified_timezone = graph_info["timezone"];
-                specified_win_min = graph_info["window_min"];
-                specified_win_max = graph_info["window_max"];
-
-		/* Find the current entry specified. */
-		for(i = 0; i < entriesTable.options.length; i++)
-		{
-			if(entriesTable.options[i].selected == true)
-			{
-				specifiedEntry = entriesTable.options[i].text; 	
-			}
-		}
-		/* Find the current frontend specified. */
-		for(i = 0; i < frontendsTable.options.length; i++)
-		{
-			if(frontendsTable.options[i].selected == true)
-			{
-				specifiedFrontend = frontendsTable.options[i].text; 	
-			}
-		}
-		gOptionTable = document.getElementById("gtypes");
-		j = 0;  
-		/* Find the current group option specified. */
-		for(i = 1; i< gOptionTable.childNodes.length; i+=2)
-		{
-			if(gOptionTable.childNodes[i].checked == true)
-			{
-				specifiedGOption = infoGroupOptions[j];
-			}
-			j++; 	
-		}
-                var elem_string = "";
-                for(var i=0;i<local_checked_DSs_input.length;i++) {
-                   elem_string += local_checked_DSs_input[i]+",";
+                if (ENTRY=="total") {
+                  counter=0;
                 }
-                constructed = constructed[0]+"?entry="+specifiedEntry+"&frontend="+specifiedFrontend+"&infoGroup="+specifiedGOption+"&elements="+elem_string+"&rra="+specified_rra+"&window_min="+specified_win_min+"&window_max="+specified_win_max+"&timezone="+specified_timezone; 
 
-		document.location.href = constructed; 
-	}
-
-        function unlink() {
-           document.location.href= document.URL.split('?')[0];
+                document.getElementById("entries").selectedIndex = counter; 
+                setFrontendMenu(entry);
+                var frontend = paramSpecArry[1];
+                var fe_list = document.getElementById("frontends").childNodes; 
+                var fe_idx=0;
+                for(var k=0;k<fe_list.length;k++) {
+                  document.write(fe_list[k].innerHTML);
+                  if(frontend==fe_list[k].innerHTML) {
+                    fe_idx=k;
+                  }
+                }
+                document.getElementById("frontends").selectedIndex = fe_idx; 
+                break;
+              } 
+              else if("total" == paramSpecArry[0]) {
+                urlValid = 1; 
+                document.getElementById("entries").selectedIndex = 0; 
+                setFrontendMenu(entry);
+                break;  	
+              }
+              counter++; 
+              if (counter == group_sep_idx) {
+                counter++;
+              }
+            }
+          }
+          else if(i == 2) {
+            child = 1; 
+            for(var k = 0; k< infoGroupOptions.length; k++) {
+              if(infoGroupOptions[k] == paramSpecArry[2]) {
+                document.getElementById("gtypes").childNodes[child].checked = true;
+                urlValid = 1; 
+              }
+              child+=2;	
+            }
+          }
+          else if(i==3) {
+            var elems = paramSpecArry[i].split(",");
+            for(var j=0;j<elems.length;j++){
+              link_checked_DSs.push(elems[j]);
+            } 
+          }
+          else if(i==4) {
+            specified_rra = paramSpecArry[i];
+          }
+          else if(i==5) {
+            local_window_min = paramSpecArry[i];
+          }
+          else if(i==6) {
+            local_window_max = paramSpecArry[i];
+          }
+          else if(i==7) {
+            timezone_num = paramSpecArry[i];
+          }
         }
+        if(urlValid) {
+          fname_update();
+        }
+      }
+
+      /* Function to show link for current options. */
+      function showLink() {
+        constructed = document.URL.split('?');
+        entriesTable = document.getElementById("entries"); 
+        frontendsTable = document.getElementById("frontends"); 
+        var specifiedEntry;
+        var specifiedFrontend; 
+        var specifiedGOption; 
+        var specified_win_max; 
+        var specified_win_min; 
+
+        //Graph data from rrdFlot.js
+        graph_info = getGraphInfo();
+        var local_checked_DSs_input= graph_info["dss"];
+        specified_rra = graph_info["rra"];
+        var specified_timezone = graph_info["timezone"];
+        specified_win_min = graph_info["window_min"];
+        specified_win_max = graph_info["window_max"];
+
+        /* Find the current entry specified. */
+        for(i = 0; i < entriesTable.options.length; i++) {
+          if(entriesTable.options[i].selected == true) {
+            specifiedEntry = entriesTable.options[i].text; 	
+          }
+        }
+        /* Find the current frontend specified. */
+        for(i = 0; i < frontendsTable.options.length; i++) {
+          if(frontendsTable.options[i].selected == true) {
+            specifiedFrontend = frontendsTable.options[i].text; 	
+          }
+        }
+        gOptionTable = document.getElementById("gtypes");
+        j = 0;  
+        /* Find the current group option specified. */
+        for(i = 1; i< gOptionTable.childNodes.length; i+=2) {
+          if(gOptionTable.childNodes[i].checked == true) {
+            specifiedGOption = infoGroupOptions[j];
+          }
+          j++; 	
+        }
+        var elem_string = "";
+        for(var i=0;i<local_checked_DSs_input.length;i++) {
+          elem_string += local_checked_DSs_input[i]+",";
+        }
+        constructed = constructed[0]+"?entry="+specifiedEntry+"&frontend="+specifiedFrontend+"&infoGroup="+specifiedGOption+"&elements="+elem_string+"&rra="+specified_rra+"&window_min="+specified_win_min+"&window_max="+specified_win_max+"&timezone="+specified_timezone; 
+
+        document.location.href = constructed; 
+      }
+
+      function unlink() {
+        document.location.href= document.URL.split('?')[0];
+      }
    
-        function defaults() {
-           local_checked_DSs = [];
-           link_checked_DSs = [];
-           specified_rra = null;
-           coming_from_defaults = true;
-           resetWindow();
-           update_plot();
-        }
+      function defaults() {
+        local_checked_DSs = [];
+        link_checked_DSs = [];
+        specified_rra = null;
+        coming_from_defaults = true;
+        resetWindow();
+        update_plot();
+      }
 
-	/* Function to handle changing Glidein tools. */
-	function goToDestination(option)
-	{
-		if(option.value != "factoryStatusNow.html" && option.value != "factoryRRDEntryMatrix.html" && ENTRY)
-		{
-			document.location.href = option.value + "?entry=" + ENTRY; 
-		}
-		else
-		{
-			document.location.href = option.value; 
-		}
-		document.getElementById("destination").selectedIndex = 0; 
-	}
+      /* Function to handle changing Glidein tools. */
+      function goToDestination(option) {
+        if(option.value != "factoryStatusNow.html" && option.value != "factoryRRDEntryMatrix.html" && ENTRY) {
+          document.location.href = option.value + "?entry=" + ENTRY; 
+        }
+        else {
+          document.location.href = option.value; 
+        }
+        document.getElementById("destination").selectedIndex = 0; 
+      }
     </script>
   </body>
 </html>
