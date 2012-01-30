@@ -81,6 +81,7 @@ class ProxyFirst:
             if (params_obj!=None):
                 cred.add_usage_details(params_obj.min_nr_glideins,params_obj.max_run_glideins)
             return [cred]
+        return []
 
 ############################################
 #

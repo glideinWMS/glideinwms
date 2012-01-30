@@ -375,148 +375,128 @@ Description:
           }
         }
       }
-	/* Function to read from the url any parameters the user has specified. */
-	function checkUrl()
-	{
-		var url = window.location.search;
-		parameterArry = new Array("entry", "frontend", "infoGroup"); 
-		groups = new Array("CMST1", "CMS", "CMST2", "US", "CMST3", "HCC");
-		group = 0;  
-		var entrySpec; 
-		var infoGroupSpec;
-		urlValid = 0; 
-		paramSpecArry = new Array(); 
-		if(url)
-		{
-			url = url.substring(1);
-			urlSplit = url.split('&'); 
-			i = 0; 
-			while(i < urlSplit.length)
-			{ 
-				equalSplit = urlSplit[i].split('='); 
-				if(equalSplit[0] == parameterArry[i])
-				{
-					paramSpecArry[i] = equalSplit[1];
-				}
-				i++; 
-			}
-		}
-		for(i = 0; i< paramSpecArry.length; i++)
-		{
-			counter = 2; 
-			if(i == 0)
-			{
-				for(entry in entries)
-				{
-					if(entry == paramSpecArry[0])
-					{
-						ENTRY = paramSpecArry[0]; 
-						urlValid = 1; 
-						for(j = 0; j< groups.length; j++)
-						{
-							if(entry == groups[j])
-							{
-								document.getElementById("entries").selectedIndex = counter + 1; 
-                                                                setOptions(entry);
-								group = 1;
-								break;  
-							}	
-						}
-                                                if(!group)
-                                                {
-                                                        document.getElementById("entries").selectedIndex = counter; 
-                                                        setOptions(entry);
-                                                        var frontend = paramSpecArry[1];
-                                                        var fe_list = document.getElementById("frontends").childNodes; 
-                                                        var fe_idx=0;
-                                                        for(var k=0;k<fe_list.length;k++) {
-                                                           document.write(fe_list[k].innerHTML);
-                                                           if(frontend==fe_list[k].innerHTML) {fe_idx=k;}
-                                                        }
-                                                        document.getElementById("frontends").selectedIndex = fe_idx; 
-                                                }
-                                                break;
-					} 
-					else if("total" == 	paramSpecArry[0])
-					{
-						urlValid = 1; 
-						document.getElementById("entries").selectedIndex = 0; 
-                                                setOptions(entry);
-						break;  	
-					}
-					counter++; 
-				}
-			}
-			else if(i == 2)
-			{
-				child = 1; 
-				for(i = 0; i< infoGroupOptions.length; i++)
-				{
-					if(infoGroupOptions[i] == paramSpecArry[2])
-					{
-						document.getElementById("gtypes").childNodes[child].checked = true;
-						urlValid = 1; 
-					}
-					child+=2;	
-				}
-			}
-		}
-		if(urlValid)
-		{
-			fname_update();
-		}
-	}
-	/* Function to show link for current options. */
-	function showLink()
-	{
-		constructed = document.URL.split('?');
-		entriesTable = document.getElementById("entries"); 
-		frontendsTable = document.getElementById("frontends"); 
-		var specifiedEntry;
-                var specifiedFrontend;
-		var specifiedGOption; 
-		/* Find the current entry specified. */
-		for(i = 0; i < entriesTable.options.length; i++)
-		{
-			if(entriesTable.options[i].selected == true)
-			{
-				specifiedEntry = entriesTable.options[i].text; 	
-			}
-		}
-                /* Find the current frontend specified. */
-                for(i = 0; i < frontendsTable.options.length; i++)
-                {
-                        if(frontendsTable.options[i].selected == true)
-                        {
-                                specifiedFrontend = frontendsTable.options[i].text;     
-                        }
+      /* Function to read from the url any parameters the user has specified. */
+      function checkUrl() {
+        var url = window.location.search;
+        parameterArry = new Array("entry", "frontend", "infoGroup"); 
+        groups = new Array("CMST1", "CMS", "CMST2", "US", "CMST3", "HCC");
+        group = 0;  
+        var entrySpec; 
+        var infoGroupSpec;
+        urlValid = 0; 
+        paramSpecArry = new Array(); 
+        if(url) {
+          url = url.substring(1);
+          urlSplit = url.split('&'); 
+          i = 0; 
+          while(i < urlSplit.length) { 
+            equalSplit = urlSplit[i].split('='); 
+            if(equalSplit[0] == parameterArry[i]) {
+              paramSpecArry[i] = equalSplit[1];
+            }
+            i++; 
+          }
+        }
+        for(i = 0; i< paramSpecArry.length; i++) {
+          counter = 2; 
+          group_sep_idx = groups_starting_idx + 2
+          if(i == 0) {
+            for(entry in entries) {
+              if(entry == paramSpecArry[0]) {
+                ENTRY = paramSpecArry[0]; 
+                urlValid = 1; 
+                for(j = 0; j< groups.length; j++) {
+                  if(entry == groups[j]) {
+                    document.getElementById("entries").selectedIndex = counter + 1; 
+                    setOptions(entry);
+                    group = 1;
+                    break;  
+                  }	
                 }
-		gOptionTable = document.getElementById("gtypes");
-		j = 0;  
-		/* Find the current group option specified. */
-		for(i = 1; i< gOptionTable.childNodes.length; i+=2)
-		{
-			if(gOptionTable.childNodes[i].checked == true)
-			{
-				specifiedGOption = infoGroupOptions[j];
-			}
-			j++; 	
-		}
-                constructed = constructed[0]+"?entry="+specifiedEntry+"&frontend="+specifiedFrontend+"&infoGroup="+specifiedGOption; 
-		document.location.href = constructed; 
-	}
-	function goToDestination(option)
-	{
-		if(option.value != "factoryStatusNow.html" && option.value != "factoryRRDEntryMatrix.html" && ENTRY)
-		{
-			document.location.href = option.value + "?entry=" + ENTRY; 
-		}
-		else
-		{
-			document.location.href = option.value; 
-		}
-		document.getElementById("destination").selectedIndex = 0; 
-	}
+                if(!group) {
+                  document.getElementById("entries").selectedIndex = counter; 
+                   setOptions(entry);
+                   var frontend = paramSpecArry[1];
+                   var fe_list = document.getElementById("frontends").childNodes; 
+                   var fe_idx=0;
+                   for(var k=0;k<fe_list.length;k++) {
+                     document.write(fe_list[k].innerHTML);
+                     if(frontend==fe_list[k].innerHTML) {
+                       fe_idx=k;
+                     }
+                   }
+                   document.getElementById("frontends").selectedIndex = fe_idx; 
+                 }
+                 break;
+               } 
+               else if("total" == paramSpecArry[0]) {
+                 urlValid = 1; 
+                 document.getElementById("entries").selectedIndex = 0; 
+                 setOptions(entry);
+                 break;  	
+               }
+               counter++; 
+               if (counter == group_sep_idx) {
+                 counter++;
+               }
+             }
+           }
+           else if(i == 2) {
+             child = 1; 
+             for(i = 0; i< infoGroupOptions.length; i++) {
+               if(infoGroupOptions[i] == paramSpecArry[2]) {
+                 document.getElementById("gtypes").childNodes[child].checked = true;
+                 urlValid = 1; 
+               }
+               child+=2;	
+             }
+           }
+         }
+         if(urlValid) {
+           fname_update();
+         }
+       }
+       /* Function to show link for current options. */
+       function showLink() {
+         constructed = document.URL.split('?');
+         entriesTable = document.getElementById("entries"); 
+         frontendsTable = document.getElementById("frontends"); 
+         var specifiedEntry;
+         var specifiedFrontend;
+         var specifiedGOption; 
+         /* Find the current entry specified. */
+         for(i = 0; i < entriesTable.options.length; i++) {
+           if(entriesTable.options[i].selected == true) {
+             specifiedEntry = entriesTable.options[i].text; 	
+           }
+         }
+         /* Find the current frontend specified. */
+         for(i = 0; i < frontendsTable.options.length; i++) {
+           if(frontendsTable.options[i].selected == true) {
+             specifiedFrontend = frontendsTable.options[i].text;     
+           }
+         }
+         gOptionTable = document.getElementById("gtypes");
+         j = 0;  
+         /* Find the current group option specified. */
+         for(i = 1; i< gOptionTable.childNodes.length; i+=2) {
+           if(gOptionTable.childNodes[i].checked == true) {
+             specifiedGOption = infoGroupOptions[j];
+           }
+           j++; 	
+         }
+         constructed = constructed[0]+"?entry="+specifiedEntry+"&frontend="+specifiedFrontend+"&infoGroup="+specifiedGOption; 
+         document.location.href = constructed; 
+       }
+       function goToDestination(option) {
+         if(option.value != "factoryStatusNow.html" && option.value != "factoryRRDEntryMatrix.html" && ENTRY) {
+           document.location.href = option.value + "?entry=" + ENTRY; 
+         }
+         else {
+           document.location.href = option.value; 
+         }
+         document.getElementById("destination").selectedIndex = 0; 
+       }
     </script>
   </body>
 </html>

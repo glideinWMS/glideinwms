@@ -17,6 +17,10 @@ import sys
 
 STARTUP_DIR=sys.path[0]
 
+# Change this if you have changed the source for the 
+# For instance, in the frontend RPM
+WEB_BASE_DIR=os.path.join(STARTUP_DIR,"web_base")
+
 import os.path
 import string
 import shutil
@@ -34,15 +38,17 @@ import cvWParamDict
 
 def main(params, old_params, update_scripts):
     # load old files
-    old_frontend_dicts_obj=cvWParamDict.frontendDicts(old_params)
-    old_frontend_dicts_obj.load()
+    if not old_params is None:
+        old_frontend_dicts_obj=cvWParamDict.frontendDicts(old_params)
+        old_frontend_dicts_obj.load()
 
     # create dictionaries for new params
     frontend_dicts_obj=cvWParamDict.frontendDicts(params)
     frontend_dicts_obj.populate()
 
     # merge them together
-    frontend_dicts_obj.reuse(old_frontend_dicts_obj)
+    if not old_params is None:
+        frontend_dicts_obj.reuse(old_frontend_dicts_obj)
 
     # write to disk
     frontend_dicts_obj.save()
@@ -71,7 +77,7 @@ def main(params, old_params, update_scripts):
     # This file is has a hash on the extension and is located in the frontend instance dir
     cfgfile=cWConsts.insert_timestr(cfgfile)
     params.save_into_file(cfgfile,set_ro=True)
-    
+
     print "Reconfigured frontend '%s'"%params.frontend_name
     print "Active entries are:"
     for entry in frontend_dicts_obj.active_sub_list:
@@ -86,7 +92,7 @@ def main(params, old_params, update_scripts):
 ############################################################
 
 if __name__ == '__main__':
-    usage = "{reconfig_frontend -force_name name -writeback yes|no -update_scripts yes|no -xml xml | -help }"
+    usage = "{ -force_name name -writeback yes|no -update_scripts yes|no -xml xml | -help }"
     argv = sys.argv
     force_name = None
     writeback = 'no'
@@ -105,10 +111,15 @@ if __name__ == '__main__':
             print usage
             sys.exit(1)
 
+    if xml == '':
+        # to support upgrading from versions older than v2.5.3
+        # the last arg is always the xml file
+        xml = argv[len(argv)-1]
+        
     args = [argv[0], xml] 
            
     try:
-        params=cvWParams.VOFrontendParams(usage, os.path.join(STARTUP_DIR,"web_base"), args)
+        params=cvWParams.VOFrontendParams(usage, WEB_BASE_DIR, args)
     except RuntimeError,e:
         print e
         sys.exit(1)
@@ -128,13 +139,16 @@ if __name__ == '__main__':
         
     try:
         old_config_file=os.path.join(params.work_dir,cvWConsts.XML_CONFIG_FILE)
+        #print old_config_file
         if os.path.exists(old_config_file):
             try:
-                old_params=cvWParams.VOFrontendParams(usage,os.path.join(STARTUP_DIR,"web_base"),[argv[0],old_config_file])
+                old_params=cvWParams.VOFrontendParams(usage,WEB_BASE_DIR,[argv[0],old_config_file])
             except RuntimeError, e:
                 raise RuntimeError,"Failed to load %s"%old_config_file
         else:
-            raise RuntimeError,"Cannot find %s"%old_config_file
+            print "Warning: Cannot find %s"%old_config_file
+            print "If this is the first reconfig, you can ignore this message."
+            old_params=None
             
         main(params, old_params, update_scripts)
         
