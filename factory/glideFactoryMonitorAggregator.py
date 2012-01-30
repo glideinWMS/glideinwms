@@ -522,6 +522,8 @@ def aggregateRRDStats():
                     aggregate_output[client][res][data_set] = 0
 
         # assign the aggregate data to 'aggregate_output'
+        missing_total_data = False
+        missing_client_data = False
         for client in aggregate_output:
             for res in aggregate_output[client]:
                 for data_set in aggregate_output[client][res]:
@@ -530,8 +532,9 @@ def aggregateRRDStats():
                             try:
                                 aggregate_output[client][res][data_set] += float(stats[entry][client]['periods'][res][data_set])
                             except KeyError:
+                                missing_total_data = True
                                 # well, some may be just missing.. can happen
-                                logSupport.log.debug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s]"%(entry,client,'periods',res,data_set))
+                                #logSupport.log.debug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s]"%(entry,client,'periods',res,data_set))
 
                         else:
                             if stats[entry]['frontends'].has_key(client):
@@ -539,8 +542,17 @@ def aggregateRRDStats():
                                 try:
                                     aggregate_output[client][res][data_set] += float(stats[entry]['frontends'][client]['periods'][res][data_set])
                                 except KeyError:
+                                    missing_client_data = True
                                     # well, some may be just missing.. can happen
-                                    logSupport.log.debug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s][%s]" %(entry,'frontends',client,'periods',res,data_set))
+                                    #logSupport.log.debug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s][%s]" %(entry,'frontends',client,'periods',res,data_set))
+        
+        #  We still need to determine what is causing these missing data in case it is a real issue
+        # but using this flags will at least reduce the number of messages in the logs (see commented out messages above)
+        if missing_total_data:
+            logSupport.log.debug("aggregate_data, missing total data from file %s" % rrd_site(rrd))
+        if missing_client_data:
+            logSupport.log.debug("aggregate_data, missing client data from file %s" % rrd_site(rrd))
+            
 
         # write an aggregate XML file
 
