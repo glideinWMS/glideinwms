@@ -1,20 +1,20 @@
 ###################################################################
-# GLIDEINWMS_VERSION v2_5_4
+# GLIDEINWMS_VERSION v2_5_5_rc1
 ###################################################################
 c4e9c1f360b685b8a49c62e32e6a3498  ./LICENSE.txt
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 e926347866649e8d2aa1f2b586fb096d  ./creation/create_frontend
 c9e6d02139e234416e1f3ea9c85204da  ./creation/create_condor_tarball
-b3fff3610d0335615b9c4a8de8b36e20  ./creation/clone_glidein
+7f4ef822dd5eeb8dd8f9fce05868b46b  ./creation/clone_glidein
 e59bb78a8aba36d0d8691b5f9e4ebf4f  ./creation/lib/cWConsts.py
 dc915fdf81d8a712db7b9f78d6152799  ./creation/lib/cWDictFile.py
 4ff8a7f99ec32f42e298dbaf14661463  ./creation/lib/cWParams.py
 78ba0d4bfebca9147f615a0243a511a0  ./creation/lib/cvWConsts.py
-dfa3c97447893ba350f1552f771a95f9  ./creation/lib/cvWCreate.py
+2ec5c6ea8de9b4483003ba9f2dd1c7ea  ./creation/lib/cvWCreate.py
 7f4b6598c11200b48afeb94ffe134101  ./creation/lib/cvWDictFile.py
-29d57cfb21ad4a418e74ecd9aa75bf22  ./creation/lib/cvWParamDict.py
+65e64db7a9ccc70deb723027557431a1  ./creation/lib/cvWParamDict.py
 5441891769f6673c9de19c3ca4338c1e  ./creation/lib/cvWParams.py
-768c2c673931660ff91f17924a2c1788  ./creation/reconfig_frontend
+50d0cc09ccb15b4b4d5057cb2bc57234  ./creation/reconfig_frontend
 f64c1f27b927ec6680e9c9928f2b415b  ./creation/web_base/cat_consts.sh
 1c168eb03bd763973ee21ec75fd5e19b  ./creation/web_base/check_blacklist.sh
 940889873ad7c2291abace9ef72aab98  ./creation/web_base/condor_config
@@ -44,9 +44,9 @@ d0026b1e7937b27142a7488668d9b177  ./creation/web_base/java_setup.sh
 c01bff7ad130e0eeb2222b73f4b87173  ./frontend/checkFrontend.py
 dd841616a45852e40f3142314c49fa17  ./frontend/glideinFrontend.py
 b872b1000a594e3930c1b5264ab22ada  ./frontend/glideinFrontendConfig.py
-3475e14b883ebe109f721d61a07a9fe4  ./frontend/glideinFrontendElement.py
+ffc76e732a9c4a83e3e947d3ce8bfdc6  ./frontend/glideinFrontendElement.py
 b1ace12fe89292a92a31b18bb3595af9  ./frontend/glideinFrontendInterface.py
-e4af09612ab29dcce04161d43b7e85db  ./frontend/glideinFrontendLib.py
+f690da6ef71578a9c598920a069e449f  ./frontend/glideinFrontendLib.py
 80e64e6691cc781664a0584b952ed413  ./frontend/glideinFrontendMonitorAggregator.py
 4492809aaf0baaadee345335a4349e2e  ./frontend/glideinFrontendMonitoring.py
 1cedf9b275688ecbb48ad2634f534423  ./frontend/glideinFrontendPidLib.py
@@ -54,21 +54,21 @@ e4af09612ab29dcce04161d43b7e85db  ./frontend/glideinFrontendLib.py
 c4530b350154f975e49557515436fd34  ./frontend/stopFrontend.py
 f89e65327579b013cb899b416ebdaff9  ./install/glidecondor_addDN
 ac0a334763d78ab1abe1148209625a94  ./install/glideinWMS.ini
-0b7b1b23d328bc837582524bbc375e13  ./install/glideinWMS_install
-5c3fd63c819e5a0e5a24be6c172a77ea  ./install/manage-glideins
+6f8d256b66fe7aae870ba5b129d69331  ./install/glideinWMS_install
+21843e2dda1860c37a83c275334f3e15  ./install/manage-glideins
 14348bd468664cec9c8632407842604b  ./install/glidecondor_upgrade
 c28500eff80118aea9681aed5f8b318f  ./install/services/Certificates.py
-84efb2541b4709e0257910f89aeaee2f  ./install/services/Condor.py
+ec377e1cfd8bf0b95e00a280841b13a0  ./install/services/Condor.py
 2815d4e3a344ae0c202c598c51d418f6  ./install/services/Configuration.py
-2998a859e4140b0cbae48ea77fec1bb4  ./install/services/Factory.py
-b62368547dcc255e6b9972a13bb59aeb  ./install/services/Glidein.py
+855614fef1235b21ad2a73940bc6629c  ./install/services/Factory.py
+b83383c6b13480374888523c1b2e1b7c  ./install/services/Glidein.py
 a6f3291cba44beba303de6f5f0fb8f4a  ./install/services/PrivilegeSeparation.py
-6537a24021846ff093d1a897e458a860  ./install/services/Submit.py
-425059bcb313a4ef3422cba12bdc3683  ./install/services/UserCollector.py
+91b0251bce17436e8a015f74261a4985  ./install/services/Submit.py
+d74a81c4541c6598afe9a613a9a5113f  ./install/services/UserCollector.py
 5284e8e355325d4c0f0f51c8b4cf8b51  ./install/services/VDT.py
 f02bbd2a0f9f91e1783b3410ddae3e3a  ./install/services/VDTClient.py
-cdbab9d77465469f051b6fc24390dcf6  ./install/services/VOFrontend.py
-6e59432cc7042ff99013f159e2ccdcea  ./install/services/WMSCollector.py
+184eea33c19c3240ffc01cce614c5313  ./install/services/VOFrontend.py
+c914170f14d482a89ea300c80772d289  ./install/services/WMSCollector.py
 6966d0ea38f24a3c5a617738374bd0b0  ./install/services/common.py
 d046e17350bb27dc1a1188e9e5f12767  ./install/services/RPM.py
 e11d30b85bc8ee174418de14c2210257  ./install/services/init_schedd.sh

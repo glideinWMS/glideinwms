@@ -1,7 +1,23 @@
-        Added filtering to analyze_entries/
-        Bug fix: ReqMaxIdle was grossly overestimated before.
+v2_5_5	Added filtering to analyze_entries
+	Reduced the number of debug log messages when entry becomes inactive.
+	Frontend match making uses autoclusters, greatly increasing the
+	  performance for busy frontends
+	Package the list of shared libraries required by Condor 7.7.3+ for 
+	  glidein tarballs
+	Pilot proxy is not available in the user job environment any more
+	  reducing the chance for user job using it.
+	Ini Installer caan now create a tmeplate for single service installs
+	Bug Fix: Fixed several issues with the frontend rpm
+	Bug Fix: GLIDEIN_Glexec_Use=NEVER setting now correctly works with the
+	 setting require_voms_proxy=True
+	Bug Fix: Installer now correctly works with the RPM OSG client
+        Bug Fix: ReqMaxIdle was grossly overestimated before.
+	Bug Fix: Fixed bug in factory monitoring web pages where the link
+	  generation was off by one for monitoring groups
+	Bug Fix: Correctly respect the remove max_per_cycle=0 glideins in the
+	  factory
 
-v2_5_4	Addded support for VDT pre installed via rpm. While using 
+v2_5_4	Added support for VDT pre installed via rpm. While using 
           ini-installer set vdt_location to empty and 
           x509_cert_dir=/etc/grid-security/certificates
 	Consolidated some of the frontend rpm related patches

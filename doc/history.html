@@ -79,16 +79,39 @@ Related Pages:
 </ul>
 </div>
 <div class="section">
-
 <a name="stable"></a>
     <h3>Stable Series</h3>
     <ul>
+      <li>
+        <b>v2_5_5</b> released on February xx, 2012 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_5/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_5/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_5.tgz">Tarball</a>)<br>
+        <ul>
+	  <li>Added filtering to analyze_entries
+          <li>Reduced the number of debug log messages when entry becomes inactive.
+          <li>Frontend match making uses autoclusters, greatly increasing the
+          performance for busy frontends
+          <li>Package the list of shared libraries required by Condor 7.7.3+ for
+          glidein tarballs
+          <li>Pilot proxy is not available in the user job environment any more
+          reducing the chance for user job using it.
+          <li>Ini Installer caan now create a tmeplate for single service installs
+          <li>Bug Fix: Fixed several issues with the frontend rpm
+          <li>Bug Fix: GLIDEIN_Glexec_Use=NEVER setting now correctly works with the
+         setting require_voms_proxy=True
+          <li>Bug Fix: Installer now correctly works with the RPM OSG client
+          <li>Bug Fix: ReqMaxIdle was grossly overestimated before.
+          <li>Bug Fix: Fixed bug in factory monitoring web pages where the link
+          generation was off by one for monitoring groups
+          <li>Bug Fix: Correctly respect the remove max_per_cycle=0 glideins in the
+          factory
+        </ul>
+      </li>
+
       <li>
         <b>v2_5_4</b> released on December 19, 2011 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_4/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_4/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_4.tgz">Tarball</a>)<br>
         <ul>
           <b>NOTE:  To upgrade to this version from anything earlier than v2.5.3, please see the instructions 
           <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_4/upgrade.html">here</a>.</b>
-          <li>Addded support for VDT pre installed via rpm. While using
+          <li>Added support for VDT pre installed via rpm. While using
           ini-installer set vdt_location to empty and
           x509_cert_dir=/etc/grid-security/certificates
           <li>Consolidated some of the frontend rpm related patches
@@ -125,37 +148,37 @@ Related Pages:
 	  <li>The OSG rpm worker node client requires changes to glidein startup
 	  scripts. If you plan on using OSG sites that have used this rpm, you
 	  must "upgrade" your factory in order to get glideins.
-	  <li>Bug fix: If there is no GLOBUS_LOCATION available to glidein,
+	  <li>Bug Fix: If there is no GLOBUS_LOCATION available to glidein,
           it will not exit
-	  <li>Bug fix: Fixed a bug where factory would not advertise the entry
+	  <li>Bug Fix: Fixed a bug where factory would not advertise the entry
           under certain conditions when it was put in downtime.
-	  <li>Bug fix: Fixed a bug where glidein_reconfig would not properly
+	  <li>Bug Fix: Fixed a bug where glidein_reconfig would not properly
           validate schedd_name
-	  <li>Bug fix: Fixed a bug where frontend reconfig was not populating 
+	  <li>Bug Fix: Fixed a bug where frontend reconfig was not populating 
 	  GSI_DAEMON_PROXY correctly in frontend.condor_config
-	  <li>Bug fix: Writeback of config files on reconfig is now enable by
+	  <li>Bug Fix: Writeback of config files on reconfig is now enable by
           default
-	  <li>Bug fix: Frontend does better error reporting when quering user
+	  <li>Bug Fix: Frontend does better error reporting when quering user
           pool or the schedd fails
-	  <li>Bug fix: Fixed a bug in condor log parsing when we encounter
+	  <li>Bug Fix: Fixed a bug in condor log parsing when we encounter
           event 400 (Job was evicted)
-	  <li>Bug fix: Fixed a bug where factory would not correctly accept
+	  <li>Bug Fix: Fixed a bug where factory would not correctly accept
           requests from frontends that were still using old keys
-	  <li>Bug fix: Fixed a bug where glidein pilot proxy lifetime was not
+	  <li>Bug Fix: Fixed a bug where glidein pilot proxy lifetime was not
           taken into account vs GLIDEIN_Max_Walltime 
-	  <li>Bug fix: Fixed a bug where expired/renewed proxy created error in 
+	  <li>Bug Fix: Fixed a bug where expired/renewed proxy created error in 
 	  completed_jobs accounting
-	  <li>Bug fix: Fixed a bug where running_glideins_per_entry was not
+	  <li>Bug Fix: Fixed a bug where running_glideins_per_entry was not
           treating the limits correctly
-	  <li>Bug fix: Fixed a bug in DAEMON_SHUTDOWN
-	  <li>Bug fix: Fixed a bug where voms requirements were not treated correctly
-          <li>Bug fix: Added glidecondor_upgrade back to the install dir. This file was missing in v2_5_2_1 release
+	  <li>Bug Fix: Fixed a bug in DAEMON_SHUTDOWN
+	  <li>Bug Fix: Fixed a bug where voms requirements were not treated correctly
+          <li>Bug Fix: Added glidecondor_upgrade back to the install dir. This file was missing in v2_5_2_1 release
         </ul>
       </li>
       <li>
         <b>v2_5_2_1</b> released on October 07, 2011 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_2_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_2_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_2_1.tgz">Tarball</a>)<br>
         <ul>
-          <li>Bug fix: Fixed a bug creation of START expression when VOMS proxy is set be required.
+          <li>Bug Fix: Fixed a bug creation of START expression when VOMS proxy is set be required.
           <li>Bug Fix: Revert the glidein shutdown behavior introduced in v2_5_2
           <li>Bug Fix: Add condor_glexec_update_proxy to Condor tarball if available
         </ul>
@@ -170,12 +193,12 @@ Related Pages:
           <li>The frontend now can set global limits on number of glideins.
           <li>The frontend now can use more than a single CPU.
           <li>glexec now tested during initial validation.
-          <li>Bug fix frontend: Do not double count glideins when using multiple groups.
-          <li>Bug fix frontend: Respect per-entry running limits.
-          <li>Bug fix factory: The factory was not properly checking the security classes and setting downtimes.
-          <li>Bug fix factory: Improper termination of glideins because of SIGHUP is handled correctly
-          <li>Bug fix factory: Daylight savings is now correctly accounted for.
-          <li>Bug fix factory: GLIDEIN_Max_Walltime is now used correctly.
+          <li>Bug Fix frontend: Do not double count glideins when using multiple groups.
+          <li>Bug Fix frontend: Respect per-entry running limits.
+          <li>Bug Fix factory: The factory was not properly checking the security classes and setting downtimes.
+          <li>Bug Fix factory: Improper termination of glideins because of SIGHUP is handled correctly
+          <li>Bug Fix factory: Daylight savings is now correctly accounted for.
+          <li>Bug Fix factory: GLIDEIN_Max_Walltime is now used correctly.
           <li>Major improvements in the factory and frontend monitoring.  Now requires javascriptRRD 0.6.0+.
           <li>Added tools for comparing the Factory configuration file with what is published in information systems.
           <li>Limit the max number of glideins per frontend
@@ -200,8 +223,8 @@ Related Pages:
           <li>Added support of shared port configuration for condor daemons
           <li>SIGHUP signals to glideins are ignored correctly.
           <li>Improved documentation
-          <li>BUG FIX: Fixed a bug introduced in v2_5 release where reconfiguring the factory would fail because of monitoring groups
-          <li>BUG FIX: Fixed a typo in one of the links in frontendRRDBrowse.html
+          <li>Bug Fix: Fixed a bug introduced in v2_5 release where reconfiguring the factory would fail because of monitoring groups
+          <li>Bug Fix: Fixed a typo in one of the links in frontendRRDBrowse.html
         </ul>
       </li>
       <li>
@@ -222,10 +245,10 @@ Related Pages:
           <li>Add XML monitoring files of RRD files on both factory and frontend
           <li>Add JobsRunningHere attribute - CANNOT SIMPLY UPGRADE, NEEDS NEW INSTANCE FOR BOTH FACTORY AND FRONTEND
           <li>Graceful shutdown of the glidein by trapping signals in glidein_startup
-          <li>BUG FIX: Fixed a bug where factory would create a malformed glideinWMS.xml config file when configured to use a default proxy for glideins from the factory.
-          <li>BUG FIX: Factory entry sometimes stops reporting when it gets an exception for any reason
-          <li>BUG FIX: Top-level schedd_status.xml malformed Total data
-          <li>BUG FIX: Fixed a bug where the LogCounts.rrd was created with wrong data types.
+          <li>Bug Fix: Fixed a bug where factory would create a malformed glideinWMS.xml config file when configured to use a default proxy for glideins from the factory.
+          <li>Bug Fix: Factory entry sometimes stops reporting when it gets an exception for any reason
+          <li>Bug Fix: Top-level schedd_status.xml malformed Total data
+          <li>Bug Fix: Fixed a bug where the LogCounts.rrd was created with wrong data types.
           <li><b>KNOWN ISSUE:</b> Automatic release of held glideins for CREAM CEs with issues could result in factory submitting more than required glideins to the CE. As a workaround, disable release of held glideins for CREAM CE.
         </ul>
       </li>
@@ -340,10 +363,10 @@ Related Pages:
           distros
           <li>Better exception handling and error reporting
           <li>Fixed how voms_proxy_init is looked for after VDT install
-          <li>BUG FIX: Fixed a bug where Summarize.listStored() in CondorMonitor.py returned the wrong value
-          <li>BUG FIX: Fixed a bug in factory monitoring that prevented proper aggregation of sites
-          <li>BUG FIX: Correctly interpret DN from a voms proxy generated from a service certificate.
-          <li>BUG FIX: Generate frontend's condor_config without empty values for certain configuration options. Empty values is not the right way to reset the configuration options.
+          <li>Bug Fix: Fixed a bug where Summarize.listStored() in CondorMonitor.py returned the wrong value
+          <li>Bug Fix: Fixed a bug in factory monitoring that prevented proper aggregation of sites
+          <li>Bug Fix: Correctly interpret DN from a voms proxy generated from a service certificate.
+          <li>Bug Fix: Generate frontend's condor_config without empty values for certain configuration options. Empty values is not the right way to reset the configuration options.
         </ul>
 
       </li>
@@ -364,8 +387,8 @@ Related Pages:
           <li>Monitoring enhancement to make selection/deselection of groups/entries easier
           <li>Support GLIDEIN_Glexec_Use in frontend config attrs. Frontend can mandate or make the use of GLEXEC optional. Used in conjunction with GLEXEC_BIN in factory config. If GLEXEC_BIN in set to NONE for an entry in factory config, it is assumed that the entry doesn't have GLEXEC configured on site.
           <li>Improvements to documentation
-          <li>BUG FIX: Allow the use of the same DN for both the security and the collector
-          <li>BUG FIX: Returning invalid variable during proxy creation
+          <li>Bug Fix: Allow the use of the same DN for both the security and the collector
+          <li>Bug Fix: Returning invalid variable during proxy creation
           <li><b>KNOWN ISSUE:</b> Running glideinWMS v2_4_1 with Condor 7.5.3 has not been tested. Altough, most of the things may work, security changes in Condor may affect your installation.
       <li><b>KNOWN ISSUE</b>: Installer is not always able to get the correct DN from the certificates/proxies. It does not correctly strip the CN=<blah> bit of the DN in certain cases. If the DN guessed is not correct, make the required changes in the configurations and/or condor_mapfile.
         </ul>
