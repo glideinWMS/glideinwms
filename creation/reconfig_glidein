@@ -25,6 +25,7 @@ import cWConsts
 import cgWCreate
 import cgWParamDict
 
+WEB_BASE_DIR=os.path.join(STARTUP_DIR,"web_base")
 
 ################################################################################
 
@@ -124,8 +125,8 @@ if __name__ == '__main__':
     args = [argv[0], xml]
 
     try:
-        params = cgWParams.GlideinParams(usage, os.path.join(STARTUP_DIR, "web_base"), args)
-    except RuntimeError, e:
+        params=cgWParams.GlideinParams(usage, WEB_BASE_DIR, args)
+    except RuntimeError,e:
         print e
         sys.exit(1)
 
@@ -146,7 +147,7 @@ if __name__ == '__main__':
         old_config_file = os.path.join(params.submit_dir, cgWConsts.XML_CONFIG_FILE)
         if os.path.exists(old_config_file):
             try:
-                old_params = cgWParams.GlideinParams(usage, os.path.join(STARTUP_DIR, "web_base"), [argv[0], old_config_file])
+                old_params=cgWParams.GlideinParams(usage,WEB_BASE_DIR,[argv[0],old_config_file])
             except RuntimeError, e:
                 raise RuntimeError, "Failed to load %s" % old_config_file
         else:
