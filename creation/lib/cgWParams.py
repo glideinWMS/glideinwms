@@ -120,6 +120,7 @@ class GlideinParams(cWParams.CommonParams):
         self.defaults["factory_name"]=(socket.gethostname(),'ID', 'Factory name',None)
         self.defaults["glidein_name"]=(None,'ID', 'Glidein name',None)
         self.defaults['schedd_name']=("schedd_glideins@%s"%socket.gethostname(),"ScheddName","Which schedd to use, can be a comma separated list",None)
+        self.defaults['factory_versioning'] = ('True', 'Bool', 'Should we create versioned subdirectories?', None)
 
         submit_defaults=cWParams.commentedOrderedDict()
         submit_defaults["base_dir"]=("%s/glideinsubmit"%os.environ["HOME"],"base_dir","Submit base dir",None)
@@ -204,6 +205,14 @@ class GlideinParams(cWParams.CommonParams):
     def get_top_element(self):
         return "glidein"
 
+    def buildDir(factoryVersioning, basedir):
+        # return either basedir or basedir/frontend_fename
+        glidein_subdir="glidein_%s"%self.glidein_name
+        if factoryVersioning:
+            return os.path.join(basedir, glidein_subdir)
+        else:
+            return basedir
+
     # validate data and add additional attributes if needed
     def derive(self):
         # glidein name does not have a reasonable default
@@ -212,12 +221,16 @@ class GlideinParams(cWParams.CommonParams):
         if not cWParams.is_valid_name(self.glidein_name):
             raise RuntimeError, "Invalid glidein name '%s'"%self.glidein_name
 
-        glidein_subdir="glidein_%s"%self.glidein_name
-        self.stage_dir=os.path.join(self.stage.base_dir,glidein_subdir)
-        self.monitor_dir=os.path.join(self.monitor.base_dir,glidein_subdir)
-        self.submit_dir=os.path.join(self.submit.base_dir,glidein_subdir)
-        self.log_dir=os.path.join(self.submit.base_log_dir,glidein_subdir)
-        self.web_url=os.path.join(self.stage.web_base_url,glidein_subdir)
+        factoryVersioning = False
+        if self.data.has_key('factory_versioning') and \
+               self.data['factory_versioning'].lower() == 'true':
+            factoryVersioning = True
+
+        self.stage_dir=buildDir(factoryVersioning, self.stage.base_dir)
+        self.monitor_dir=buildDir(factoryVersioning, self.monitor.base_dir)
+        self.work_dir=buildDir(factoryVersioning, self.work.base_dir)
+        self.log_dir=buildDir(factoryVersioning, self.work.base_log_dir)
+        self.web_url=buildDir(factoryVersioning, self.stage.web_base_url)
 
         self.client_log_dirs={}
         self.client_proxies_dirs={}
