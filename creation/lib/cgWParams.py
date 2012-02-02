@@ -226,11 +226,11 @@ class GlideinParams(cWParams.CommonParams):
                self.data['factory_versioning'].lower() == 'true':
             factoryVersioning = True
 
-        self.stage_dir=buildDir(factoryVersioning, self.stage.base_dir)
-        self.monitor_dir=buildDir(factoryVersioning, self.monitor.base_dir)
-        self.work_dir=buildDir(factoryVersioning, self.work.base_dir)
-        self.log_dir=buildDir(factoryVersioning, self.work.base_log_dir)
-        self.web_url=buildDir(factoryVersioning, self.stage.web_base_url)
+        self.stage_dir=self.buildDir(factoryVersioning, self.stage.base_dir)
+        self.monitor_dir=self.buildDir(factoryVersioning, self.monitor.base_dir)
+        self.work_dir=self.buildDir(factoryVersioning, self.work.base_dir)
+        self.log_dir=self.buildDir(factoryVersioning, self.work.base_log_dir)
+        self.web_url=self.buildDir(factoryVersioning, self.stage.web_base_url)
 
         self.client_log_dirs={}
         self.client_proxies_dirs={}
