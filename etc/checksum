@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v2_5_5_rc1
+# GLIDEINWMS_VERSION v2_5_5_rc2
 ###################################################################
 c4e9c1f360b685b8a49c62e32e6a3498  ./LICENSE.txt
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
@@ -36,12 +36,12 @@ eaccc571ca7350619b0ed024e0adabb1  ./creation/web_base/condor_config.monitor.incl
 69f6c2b5989cf93e7ea1b6b79d5c400a  ./creation/web_base/condor_vars.lst
 2c99de7cec3e4099834848a4fbc9f8ea  ./creation/web_base/condor_vars.lst.entry
 12d9e737bf2f234db76759aa9d6db248  ./creation/web_base/create_mapfile.sh
-9a3fb45559579a899736bc32c2c351c4  ./creation/web_base/glidein_startup.sh
-856a102d5709be27529786171e959b76  ./creation/web_base/factoryEntryStatusNow.html
 429690d9f5bd93b6e0e233f8720fa8d4  ./creation/web_base/factoryCompletedStats.html
+856a102d5709be27529786171e959b76  ./creation/web_base/factoryEntryStatusNow.html
+62babbafcf57be828c56604154eefca3  ./creation/web_base/factoryLogStatus.html
 ca43573320e9e28dee55a239f0b57f2f  ./creation/web_base/factoryRRDBrowse.html
 dc8182dff02e5c70b88168c44aef52dd  ./creation/web_base/factoryRRDEntryMatrix.html
-62babbafcf57be828c56604154eefca3  ./creation/web_base/factoryLogStatus.html
+191165d014079fae07dae0e28a90dcb3  ./creation/web_base/factoryStatus.html
 e4b17e35e7a524bbd03527353315f64c  ./creation/web_base/factoryStatusNow.html
 253f1da3c556b7d362c70ad149282194  ./creation/web_base/factory_support.js
 41de5230524a65120c016f90b305b243  ./creation/web_base/frontendRRDBrowse.html
@@ -49,8 +49,8 @@ e4b17e35e7a524bbd03527353315f64c  ./creation/web_base/factoryStatusNow.html
 b5f6269704006a8f26b0dc5f237d3f31  ./creation/web_base/frontendStatus.html
 62fdfe89dc6e6135fd11729ee876e397  ./creation/web_base/frontend_support.js
 c1527cf661115760242852c0421921bd  ./creation/web_base/gcb_setup.sh
-dc0ff0445e115438039f2a230e2ff438  ./creation/web_base/glexec_setup.sh
-191165d014079fae07dae0e28a90dcb3  ./creation/web_base/factoryStatus.html
+5f350f835ffaf66e1088e685af23c2e8  ./creation/web_base/glexec_setup.sh
+9a3fb45559579a899736bc32c2c351c4  ./creation/web_base/glidein_startup.sh
 34b11133ee1c9125bed5a00f2b3c3fa8  ./creation/web_base/job_submit.sh
 78d344f14e5e2144227c564f2d90401e  ./creation/web_base/local_start.sh
 cd098176968938a2febf44a32de00a78  ./creation/web_base/setup_x509.sh

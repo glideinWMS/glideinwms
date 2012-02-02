@@ -16,6 +16,7 @@ v2_5_5	Added filtering to analyze_entries
 	  generation was off by one for monitoring groups
 	Bug Fix: Correctly respect the remove max_per_cycle=0 glideins in the
 	  factory
+	Bug Fix: glexec_setup.sh now uses correct proxy for its tests
 
 v2_5_4	Added support for VDT pre installed via rpm. While using 
           ini-installer set vdt_location to empty and 
