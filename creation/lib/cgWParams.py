@@ -205,7 +205,7 @@ class GlideinParams(cWParams.CommonParams):
     def get_top_element(self):
         return "glidein"
 
-    def buildDir(factoryVersioning, basedir):
+    def buildDir(self, factoryVersioning, basedir):
         # return either basedir or basedir/frontend_fename
         glidein_subdir="glidein_%s"%self.glidein_name
         if factoryVersioning:
