@@ -38,7 +38,8 @@ def main(params, old_params, update_scripts):
     glidein_dicts_obj.populate()
 
     # merge them together
-    glidein_dicts_obj.reuse(old_glidein_dicts_obj)
+    if not old_params is None:
+        glidein_dicts_obj.reuse(old_glidein_dicts_obj)
     
     # Make sure we preserve old schedd names
     entries = glidein_dicts_obj.params.entries
@@ -150,7 +151,9 @@ if __name__ == '__main__':
             except RuntimeError, e:
                 raise RuntimeError,"Failed to load %s"%old_config_file
         else:
-            raise RuntimeError,"Cannot find %s"%old_config_file
+            print "Warning: Cannot find %s"%old_config_file
+            print "If this is the first reconfig, you can ignore this message."
+            old_params=None
         
         main(params, old_params, update_scripts)
       
