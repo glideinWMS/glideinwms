@@ -43,12 +43,12 @@ def main(params, old_params, update_scripts):
     if not old_params is None:
         glidein_dicts_obj.reuse(old_glidein_dicts_obj)
     
-    # Make sure we preserve old schedd names
-    entries = glidein_dicts_obj.params.entries
-    old_entries = old_glidein_dicts_obj.params.entries
-    for entry in entries.keys():
-        if entry in old_entries.keys():
-            entries[entry].data['schedd_name'] = old_entries[entry].schedd_name
+        # Make sure we preserve old schedd names
+        entries = glidein_dicts_obj.params.entries
+        old_entries = old_glidein_dicts_obj.params.entries
+        for entry in entries.keys():
+            if entry in old_entries.keys():
+                entries[entry].data['schedd_name'] = old_entries[entry].schedd_name
                 
     # write to disk
     glidein_dicts_obj.save()
