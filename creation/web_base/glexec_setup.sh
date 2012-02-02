@@ -117,6 +117,16 @@ case "$use_glexec" in
         ;;
 esac 
 
+# We should use the copy of the proxy created by setup_x509.sh
+x509_user_proxy=`grep "^X509_USER_PROXY " $glidein_config | awk '{print $2}'`
+if [ -f "$x509_user_proxy" ]; then
+  export X509_USER_PROXY=$x509_user_proxy
+else
+   # should never happen, but let's be safe
+   echo "`date` X509_USER_PROXY not defined in config file."
+   exit 1
+fi
+
 echo "`date` making configuration changes to use glexec"
 # --------------------------------------------------
 # gLExec does not like symlinks and this way we are sure it is a file
