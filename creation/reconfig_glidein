@@ -30,8 +30,9 @@ import cgWParamDict
 
 def main(params, old_params, update_scripts):
     # load old files
-    old_glidein_dicts_obj=cgWParamDict.glideinDicts(old_params)
-    old_glidein_dicts_obj.load()
+    if not old_params is None:
+        old_glidein_dicts_obj=cgWParamDict.glideinDicts(old_params)
+        old_glidein_dicts_obj.load()
 
     # create dictionaries for new params
     glidein_dicts_obj=cgWParamDict.glideinDicts(params)
