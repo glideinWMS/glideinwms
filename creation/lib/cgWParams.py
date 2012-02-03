@@ -228,8 +228,8 @@ class GlideinParams(cWParams.CommonParams):
 
         self.stage_dir=self.buildDir(factoryVersioning, self.stage.base_dir)
         self.monitor_dir=self.buildDir(factoryVersioning, self.monitor.base_dir)
-        self.work_dir=self.buildDir(factoryVersioning, self.work.base_dir)
-        self.log_dir=self.buildDir(factoryVersioning, self.work.base_log_dir)
+        self.work_dir=self.buildDir(factoryVersioning, self.submit.base_dir)
+        self.log_dir=self.buildDir(factoryVersioning, self.submit.base_log_dir)
         self.web_url=self.buildDir(factoryVersioning, self.stage.web_base_url)
 
         self.client_log_dirs={}
