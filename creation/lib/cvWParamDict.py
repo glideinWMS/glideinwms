@@ -518,7 +518,7 @@ def populate_common_descript(descript_dict,        # will be modified
              (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'REQUIRED') and
              (param_tname == 'factory') ):
             ma_arr.append(('GLEXEC_BIN', 's'))
-            qry_expr = "(%s) && (GLEXEC_BIN=!=UNDEFINED)" % qry_expr
+            qry_expr = '(%s) && (GLEXEC_BIN=!=UNDEFINED) && (GLEXEC_BIN=!="NONE")' % qry_expr
 
         descript_dict.add('%sQueryExpr'%str_tname,qry_expr)
 
