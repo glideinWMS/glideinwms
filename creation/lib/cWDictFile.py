@@ -107,7 +107,8 @@ class DictFile:
         if sort_keys==None:
             sort_keys=self.sort_keys
 
-
+        if not os.path.exists(dir):
+            os.makedirs(dir)
         filepath=os.path.join(dir,fname)
         try:
             fd=open(filepath,"w")
