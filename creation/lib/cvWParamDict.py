@@ -58,10 +58,32 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         for user_file in params.files:
             add_file_unparsed(user_file,self.dicts)
 
+        # start expr is special
+        start_expr=None
+
         # put user attributes into config files
         for attr_name in params.attrs.keys():
-            add_attr_unparsed(attr_name, params,self.dicts,"main")
+            if attr_name in ('GLIDECLIENT_Start','GLIDECLIENT_Group_Start'):
+                if start_expr==None:
+                    start_expr=params.attrs[attr_name].value
+                elif not (params.attrs[attr_name].value in (None,'True')):
+                    start_expr="(%s)&&(%s)"%(start_expr,params.attrs[attr_name].value)
+                # delete from the internal structure... will use it in match section
+                del params.data['attrs'][attr_name]
+            else:
+                add_attr_unparsed(attr_name, params,self.dicts,"main")
 
+        real_start_expr=params.match.start_expr
+        if start_expr!=None:
+            if real_start_expr!='True':
+                real_start_expr="(%s)&&(%s)"%(real_start_expr,start_expr)
+            else:
+                real_start_expr=start_expr
+            # since I removed the attributes, roll back into the match.start_expr
+            params.data['match']['start_expr']=real_start_expr
+        
+        self.dicts['consts'].add('GLIDECLIENT_Start',real_start_expr)
+        
         # create GLIDEIN_Collector attribute
         self.dicts['params'].add_extended('GLIDEIN_Collector',False,str(calc_glidein_collectors(params.collectors)))
         populate_gridmap(params,self.dicts['gridmap'])
@@ -211,9 +233,31 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         for user_file in sub_params.files:
             add_file_unparsed(user_file,self.dicts)
 
+        # start expr is special
+        start_expr=None
+
         # put user attributes into config files
         for attr_name in sub_params.attrs.keys():
-            add_attr_unparsed(attr_name, sub_params,self.dicts,self.sub_name)
+            if attr_name in ('GLIDECLIENT_Group_Start','GLIDECLIENT_Start'):
+                if start_expr==None:
+                    start_expr=sub_params.attrs[attr_name].value
+                elif sub_params.attrs[attr_name].value!=None:
+                    start_expr="(%s)&&(%s)"%(start_expr,sub_params.attrs[attr_name].value)
+                # delete from the internal structure... will use it in match section
+                del sub_params.data['attrs'][attr_name]
+            else:
+                add_attr_unparsed(attr_name, sub_params,self.dicts,self.sub_name)
+
+        real_start_expr=sub_params.match.start_expr
+        if start_expr!=None:
+            if real_start_expr!='True':
+                real_start_expr="(%s)&&(%s)"%(real_start_expr,start_expr)
+            else:
+                real_start_expr=start_expr
+            # since I removed the attributes, roll back into the match.start_expr
+            sub_params.data['match']['start_expr']=real_start_expr
+        
+        self.dicts['consts'].add('GLIDECLIENT_Group_Start',real_start_expr)
 
         # populate complex files
         populate_group_descript(self.work_dir,self.dicts['group_descript'],
