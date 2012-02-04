@@ -96,6 +96,7 @@ class VOFrontendParams(cWParams.CommonParams):
         match_defaults["factory"]=factory_match_defaults
         match_defaults["job"]=job_match_defaults
         match_defaults["match_expr"]=('True','PythonExpr', 'Python expression for matching jobs to factory entries with access to job and glidein dictionaries',None)
+        match_defaults["start_expr"]=('True','CondorExpr', 'Condor expression for matching jobs to glideins at runtime',None)
 
 
         proxy_defaults=cWParams.commentedOrderedDict()
