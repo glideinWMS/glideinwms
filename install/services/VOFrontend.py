@@ -738,7 +738,7 @@ please verify and correct if needed.
     #--- create xml ----
     data  = """
 %(indent2)s<group name="%(group_name)s" enabled="True">
-%(indent3)s<match match_expr=%(match_string)s>
+%(indent3)s<match match_expr=%(match_string)s start_expr="True">
 %(factory_attributes)s
 %(job_attributes)s
 %(indent3)s</match>
@@ -952,7 +952,7 @@ please verify and correct if needed.
   #--------------------------
   def config_match_data(self,schedds):
     data = """
-%(indent1)s<match>
+%(indent1)s<match match_expr="True" start_expr="True">
 %(indent2)s<factory>
 %(indent3)s<collectors>
 %(indent4)s<collector node="%(wms_node)s:%(wms_collector_port)s" DN="%(wms_gsi_gn)s" factory_identity="%(factory_username)s@%(wms_node)s" my_identity="%(frontend_identity)s@%(wms_node)s" comment="Define factory collectors globally for simplicity"/>
@@ -997,7 +997,6 @@ please verify and correct if needed.
 %(indent2)s<attr name="GLIDEIN_Glexec_Use"      value="%(glexec_use)s"      glidein_publish="True"  job_publish="True"  parameter="False" type="string"/>
 %(indent2)s<attr name="GLIDEIN_Expose_Grid_Env" value="%(expose_grid_env)s" glidein_publish="True"  job_publish="True"  parameter="False" type="string"/>
 %(indent2)s<attr name="USE_MATCH_AUTH"          value="True"              glidein_publish="False" job_publish="False" parameter="True" type="string"/> 
-%(indent2)s<attr name="GLIDECLIENT_Start"     value="%(entry_start)s"     glidein_publish="False" job_publish="False" parameter="True" type="string"/>
 %(indent2)s<attr name="GLIDECLIENT_Rank"      value="%(entry_rank)s"      glidein_publish="False" job_publish="False" parameter="True" type="string"/>
 %(indent1)s</attrs> 
 """ % \
