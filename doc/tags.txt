@@ -1,3 +1,4 @@
+	New feature: The start_expr is now a native part of match
 v2_5_5	Added filtering to analyze_entries
 	Reduced the number of debug log messages when entry becomes inactive.
 	Frontend match making uses autoclusters, greatly increasing the
