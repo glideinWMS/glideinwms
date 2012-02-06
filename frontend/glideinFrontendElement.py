@@ -135,7 +135,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,constsDescript,signat
     attr_dict={}
     # there should be no conflicts, so does not matter in which order I put them together
     for k in paramsDescript.data.keys():
-        attr_dict[k]=copy.deepcopy(paramsDescript.data[k])
+        attr_dict[k]=copy.deepcopy(paramsDescript.data[k][1])
     for k in constsDescript.data.keys():
         attr_dict[k]=copy.deepcopy(constsDescript.data[k])
 
