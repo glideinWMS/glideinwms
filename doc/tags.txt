@@ -1,3 +1,5 @@
+	Add attr_dict in the environemnt of the frontend match_expr
+	New feature: The start_expr is now a native part of match
 v3_0	Support for new API for factory - frontend communication
 	Improved logging using standard Python logging APIs
         The option to have either the factory and/or the frontend provide the 
