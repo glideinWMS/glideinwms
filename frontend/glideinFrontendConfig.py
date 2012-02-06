@@ -46,6 +46,8 @@ frontendConfig=FrontendConfig()
 #   self.data[NAME]=VAL
 # It also defines:
 #   self.config_file="name of file"
+# If validate is defined, also defines
+#   self.hash_value
 class ConfigFile:
     def __init__(self,config_dir,config_file,convert_function=repr,
                  validate=None): # if defined, must be (hash_algo,value)
@@ -68,7 +70,8 @@ class ConfigFile:
         if validate!=None:
             import hashCrypto
             vhash=hashCrypto.get_hash(validate[0],data)
-            if vhash!=validate[1]:
+            self.hash_value=vhash
+            if (validate[1]!=None) and (vhash!=validate[1]):
                 raise IOError, "Failed validation of '%s'. Hash %s computed to '%s', expected '%s'"%(fname,validate[0],vhash,validate[1])
 
     def load(self,fname,convert_function,
@@ -95,7 +98,7 @@ class ConfigFile:
         if len(larr)==1:
             lval=""
         else:
-            lval=larr[1][:-1] #strip newline
+            lval=larr[1]
         exec("self.data['%s']=%s"%(lname,convert_function(lval)))
 
     def derive(self):
@@ -116,12 +119,16 @@ class GroupConfigFile(ConfigFile):
 
 # load both the main and group subdir config file
 # and join the results
+# Also defines:
+#   self.group_hash_value, if group_validate defined
 class JoinConfigFile(ConfigFile):
     def __init__(self,base_dir,group_name,config_file,convert_function=repr,
                  main_validate=None,group_validate=None): # if defined, must be (hash_algo,value)
         ConfigFile.__init__(self,base_dir,config_file,convert_function,main_validate)
         self.group_name=group_name
         group_obj=GroupConfigFile(base_dir,group_name,config_file,convert_function,group_validate)
+        if group_validate!=None:
+            self.group_hash_value=group_obj.hash_value
         #merge by overriding whatever is found in the subdir
         for k in group_obj.data.keys():
             self.data[k]=group_obj.data[k]
