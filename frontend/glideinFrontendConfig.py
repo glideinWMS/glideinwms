@@ -47,10 +47,11 @@ frontendConfig=FrontendConfig()
 # It also defines:
 #   self.config_file="name of file"
 class ConfigFile:
-    def __init__(self,config_dir,config_file,convert_function=repr):
+    def __init__(self,config_dir,config_file,convert_function=repr,
+                 validate=None): # if defined, must be (hash_algo,value)
         self.config_dir=config_dir
         self.config_file=config_file
-        self.load(os.path.join(config_dir,config_file),convert_function)
+        self.load(os.path.join(config_dir,config_file),convert_function,validate)
         self.derive()
 
     def open(self,fname):
@@ -101,17 +102,19 @@ class ConfigFile:
 
 # load from the group subdir
 class GroupConfigFile(ConfigFile):
-    def __init__(self,base_dir,group_name,config_file,convert_function=repr):
-        ConfigFile.__init__(self,os.path.join(base_dir,"group_"+group_name),config_file,convert_function)
+    def __init__(self,base_dir,group_name,config_file,convert_function=repr,
+                 validate=None): # if defined, must be (hash_algo,value)
+        ConfigFile.__init__(self,os.path.join(base_dir,"group_"+group_name),config_file,convert_function,validate)
         self.group_name=group_name
 
 # load both the main and group subdir config file
 # and join the results
 class JoinConfigFile(ConfigFile):
-    def __init__(self,base_dir,group_name,config_file,convert_function=repr):
-        ConfigFile.__init__(self,base_dir,config_file,convert_function)
+    def __init__(self,base_dir,group_name,config_file,convert_function=repr,
+                 main_validate=None,group_validate=None): # if defined, must be (hash_algo,value)
+        ConfigFile.__init__(self,base_dir,config_file,convert_function,main_validate)
         self.group_name=group_name
-        group_obj=GroupConfigFile(base_dir,group_name,config_file,convert_function)
+        group_obj=GroupConfigFile(base_dir,group_name,config_file,convert_function,group_validate)
         #merge by overriding whatever is found in the subdir
         for k in group_obj.data.keys():
             self.data[k]=group_obj.data[k]
