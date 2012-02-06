@@ -51,6 +51,7 @@ class ConfigFile:
                  validate=None): # if defined, must be (hash_algo,value)
         self.config_dir=config_dir
         self.config_file=config_file
+        self.data={}
         self.load(os.path.join(config_dir,config_file),convert_function,validate)
         self.derive()
 
@@ -63,17 +64,20 @@ class ConfigFile:
             return open(fname,"r")
         
 
+    def validate_func(self,data,validate,fname):
+        if validate!=None:
+            import hashCrypto
+            vhash=hashCrypto.get_hash(validate[0],data)
+            if vhash!=validate[1]:
+                raise IOError, "Failed validation of '%s'. Hash %s computed to '%s', expected '%s'"%(fname,validate[0],vhash,validate[1])
+
     def load(self,fname,convert_function,
              validate=None): # if defined, must be (hash_algo,value)
         self.data={}
         fd=self.open(fname)
         try:
             data=fd.read()
-            if validate!=None:
-                import hashCrypto
-                vhash=hashCrypto.get_hash(validate[0],data)
-                if vhash!=validate[1]:
-                    raise IOError, "Failed validation of '%s'. Hash %s computed to '%s', expected '%s'"%(fname,validate[0],vhash,validate[1])
+            self.validate_func(data,validate,fname)
             lines=data.splitlines()
             del data
             for line in lines:
@@ -81,15 +85,18 @@ class ConfigFile:
                     continue # comment
                 if len(string.strip(line))==0:
                     continue # empty line
-                larr=string.split(line,None,1)
-                lname=larr[0]
-                if len(larr)==1:
-                    lval=""
-                else:
-                    lval=larr[1][:-1] #strip newline
-                exec("self.data['%s']=%s"%(lname,convert_function(lval)))
+                self.split_func(line,convert_function)
         finally:
             fd.close()
+
+    def split_func(self,line,convert_function):
+        larr=string.split(line,None,1)
+        lname=larr[0]
+        if len(larr)==1:
+            lval=""
+        else:
+            lval=larr[1][:-1] #strip newline
+        exec("self.data['%s']=%s"%(lname,convert_function(lval)))
 
     def derive(self):
         return # by default, do nothing
@@ -156,30 +163,18 @@ class ParamsDescript(JoinConfigFile):
             else:
                 raise RuntimeError, "Unknown parameter type '%s' for '%s'!"%(type_str,k)
 
-class SignatureDescript:
+class SignatureDescript(ConfigFile):
     def __init__(self,config_dir):
         global frontendConfig
-        self.config_dir=config_dir
-        self.config_file=frontendConfig.signature_descript_file
-        self.load(os.path.join(self.config_dir,self.config_file))
+        ConfigFile.__init__(self,config_dir,frontendConfig.signature_descript_file,
+                            None) # Not used, redefining split_func
         self.signature_type=frontendConfig.signature_type
 
-    def load(self,fname):
-        self.data={}
-        fd=open(fname,"r")
-        try:
-            lines=fd.readlines()
-            for line in lines:
-                if line[0]=="#":
-                    continue # comment
-                if len(string.strip(line))==0:
-                    continue # empty line
-                larr=string.split(line,None)
-                if len(larr)!=3:
-                    raise RuntimeError, "Invalid line (expected 3 elements, found %i)"%len(larr)
-                self.data[larr[2]]=(larr[0],larr[1])
-        finally:
-            fd.close()
+    def split_func(self,line,convert_function):
+        larr=string.split(line,None)
+        if len(larr)!=3:
+            raise RuntimeError, "Invalid line (expected 3 elements, found %i)"%len(larr)
+        self.data[larr[2]]=(larr[0],larr[1])
 
 ############################################################
 #
