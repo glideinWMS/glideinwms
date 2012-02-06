@@ -170,6 +170,7 @@ class ParamsDescript(JoinConfigFile):
             else:
                 raise RuntimeError, "Unknown parameter type '%s' for '%s'!"%(type_str,k)
 
+# this one is the special frontend work dir signature file
 class SignatureDescript(ConfigFile):
     def __init__(self,config_dir):
         global frontendConfig
@@ -182,6 +183,21 @@ class SignatureDescript(ConfigFile):
         if len(larr)!=3:
             raise RuntimeError, "Invalid line (expected 3 elements, found %i)"%len(larr)
         self.data[larr[2]]=(larr[0],larr[1])
+
+# this one is the generic hash descript file
+class BaseSignatureDescript(ConfigFile):
+    def __init__(self,config_dir,signature_fname,signature_type,validate=None):
+        ConfigFile.__init__(self,config_dir,signature_fname,
+                            None, # Not used, redefining split_func
+                            validate)
+        self.signature_type=signature_type
+
+    def split_func(self,line,convert_function):
+        larr=string.split(line,None,1)
+        if len(larr)!=2:
+            raise RuntimeError, "Invalid line (expected 2 elements, found %i)"%len(larr)
+        lval=larr[1]
+        self.data[lval]=larr[0]
 
 ############################################################
 #
@@ -324,3 +340,26 @@ class GroupSignatureDescript:
         self.group_descript_fname=gd[1]
         self.group_descript_signature=gd[0]
 
+class StageFiles:
+    def __init__(self,base_URL,descript_fname,validate_algo,signature_hash):
+        self.base_URL=base_URL
+        self.validate_algo=validate_algo
+        self.stage_descript=ConfigFile(base_URL, descript_fname, repr,
+                                       (validate_algo,None)) # just get the hash value... will validate later
+
+        self.signature_descript=BaseSignatureDescript(base_URL,self.stage_descript.data['signature'],validate_algo,(validate_algo,signature_hash))
+        
+        if self.stage_descript.hash_value!=self.signature_descript.data[descript_fname]:
+            raise IOError, "Descript file %s signature invalid, expected'%s' got '%s'"%(descript_fname,self.signature_descript.data[descript_fname],self.stage_descript.hash_value)
+
+    def get_stage_file(self,fname,repr):
+        return ConfigFile(self.base_URL,fname,repr,
+                          (self.validate_algo,self.signature_descript.data[fname]))
+
+    def get_file_list(self,list_type): # example list_type == 'preentry_file_list'
+        if not self.stage_descript.data.has_key(list_type):
+            raise KeyError,"Unknown list type '%s'; valid typtes are %s"%(list_type,self.stage_descript.data.keys())
+
+        list_fname=self.stage_descript.data[list_type]
+        return self.get_stage_file(self.stage_descript.data[list_type],
+                                   lambda x:string.split(x,None,4))
