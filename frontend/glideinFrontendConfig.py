@@ -317,3 +317,19 @@ class StageFiles:
         list_fname=self.stage_descript.data[list_type]
         return self.get_stage_file(self.stage_descript.data[list_type],
                                    lambda x:string.split(x,None,4))
+
+# this class knows how to interpret some of the files in the Stage area
+class ExtStageFiles(StageFiles):
+    def __init__(self,base_URL,descript_fname,validate_algo,signature_hash):
+        StageFiles.__init__(self,base_URL,descript_fname,validate_algo,signature_hash)
+        self.preentry_file_list=None
+
+    def get_constants(self):
+        self.load_preentry_file_list()
+        return self.get_stage_file(self.preentry_file_list.data['constants.cfg'][0],repr)
+
+    # internal
+    def load_preentry_file_list(self):
+        if self.preentry_file_list==None:
+            self.preentry_file_list=self.get_file_list('preentry_file_list')
+        # else, nothing to do
