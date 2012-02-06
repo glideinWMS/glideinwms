@@ -336,8 +336,8 @@ class VOFrontendParams(cWParams.CommonParams):
         return
 
     def validate_match(self,loc_str,
-                       match_str,factory_attrs,job_attrs,attrs_dict):
-        env={'glidein':{'attrs':{}},'job':{},'attrs_dict':{}}
+                       match_str,factory_attrs,job_attrs,attr_dict):
+        env={'glidein':{'attrs':{}},'job':{},'attr_dict':{}}
         for attr_name in factory_attrs.keys():
             attr_type=factory_attrs[attr_name]['type']
             if attr_type=='string':
@@ -364,9 +364,9 @@ class VOFrontendParams(cWParams.CommonParams):
             else:
                 raise RuntimeError, "Invalid %s job attr type '%s'"%(loc_str,attr_type)
             env['job'][attr_name]=attr_val
-        for attr_name in attrs_dict.keys():
+        for attr_name in attr_dict.keys():
             attr_val='a'
-            env['attrs_dict'][attr_name]=attr_val
+            env['attr_dict'][attr_name]=attr_val
         try:
             match_obj=compile(match_str,"<string>","eval")
             eval(match_obj,env)
