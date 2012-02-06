@@ -1,5 +1,6 @@
 import string
 import os.path
+import urllib
 
 #
 # Project:
@@ -39,7 +40,7 @@ frontendConfig=FrontendConfig()
 #
 ############################################################
 
-# loads a file composed of
+# loads a file or URL composed of
 #   NAME VAL
 # and creates
 #   self.data[NAME]=VAL
@@ -52,11 +53,28 @@ class ConfigFile:
         self.load(os.path.join(config_dir,config_file),convert_function)
         self.derive()
 
-    def load(self,fname,convert_function):
+    def open(self,fname):
+        if (fname[:5]=="http:") or (fname[:6]=="https:") or (fname[:4]=="ftp:"):
+            # one of the supported URLs
+            return urllib.urlopen(fname)
+        else:
+            # local file
+            return open(fname,"r")
+        
+
+    def load(self,fname,convert_function,
+             validate=None): # if defined, must be (hash_algo,value)
         self.data={}
-        fd=open(fname,"r")
+        fd=self.open(fname)
         try:
-            lines=fd.readlines()
+            data=fd.read()
+            if validate!=None:
+                import hashCrypto
+                vhash=hashCrypto.get_hash(validate[0],data)
+                if vhash!=validate[1]:
+                    raise IOError, "Failed validation of '%s'. Hash %s computed to '%s', expected '%s'"%(fname,validate[0],vhash,validate[1])
+            lines=data.splitlines()
+            del data
             for line in lines:
                 if line[0]=="#":
                     continue # comment
