@@ -333,3 +333,25 @@ class ExtStageFiles(StageFiles):
         if self.preentry_file_list==None:
             self.preentry_file_list=self.get_file_list('preentry_file_list')
         # else, nothing to do
+
+# this class knows how to interpret some of the files in the Stage area
+# Will parrpopriately merge the main and the group ones
+class MergeStageFiles:
+    def __init__(self,base_URL,validate_algo,
+                 main_descript_fname,main_signature_hash,
+                 group_name,group_descript_fname,group_signature_hash):
+        self.group_name=group_name
+        self.main_stage=ExtStageFiles(base_URL,main_descript_fname,validate_algo,main_signature_hash)
+        self.group_stage=ExtStageFiles(os.path.join(base_URL,"group_"+group_name),group_descript_fname,validate_algo,group_signature_hash)
+
+    def get_constants(self):
+        main_consts=self.main_stage.get_constants()
+        group_consts=self.group_stage.get_constants()
+        # group constants override the main ones
+        for k in group_consts.data.keys():
+            main_consts.data[k]=group_consts.data[k]
+        main_consts.group_name=self.group_name
+        main_consts.group_hash_value=group_consts.hash_value
+
+        return main_consts
+    
