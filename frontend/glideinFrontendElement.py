@@ -125,12 +125,19 @@ def fetch_fork_result_list(pipe_ids):
 
 
 ############################################################
-def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin,stats,history_obj):
+def iterate_one(client_name,elementDescript,paramsDescript,constsDescript,signatureDescript,x509_proxy_plugin,stats,history_obj):
     frontend_name=elementDescript.frontend_data['FrontendName']
     group_name=elementDescript.element_data['GroupName']
     security_name=elementDescript.merged_data['SecurityName']
 
     web_url=elementDescript.frontend_data['WebURL']
+
+    attr_dict={}
+    # there should be no conflicts, so does not matter in which order I put them together
+    for k in paramsDescript.data.keys():
+        attr_dict[k]=copy.deepcopy(paramsDescript.data[k])
+    for k in constsDescript.data.keys():
+        attr_dict[k]=copy.deepcopy(constsDescript.data[k])
 
     # query condor
     glideinFrontendLib.log_files.logActivity("Querying schedd, entry, and glidein status using child processes.")
@@ -404,7 +411,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                             count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
                     out=count_status_multi
                 else:
-                    c,p,h=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict,condorq_match_list)
+                    c,p,h=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict,attr_dict,condorq_match_list)
                     t=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
                     out=(c,p,h,t)
 
@@ -765,7 +772,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     return
 
 ############################################################
-def iterate(parent_pid,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin):
+def iterate(parent_pid,elementDescript,paramsDescript,constsDescript,signatureDescript,x509_proxy_plugin):
     sleep_time=int(elementDescript.frontend_data['LoopDelay'])
     
     factory_pools=elementDescript.merged_data['FactoryCollectors']
@@ -793,7 +800,7 @@ def iterate(parent_pid,elementDescript,paramsDescript,signatureDescript,x509_pro
                 # recreate every time (an easy way to start from a clean state)
                 stats['group']=glideinFrontendMonitoring.groupStats()
                 
-                done_something=iterate_one(published_frontend_name,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin,stats,history_obj)
+                done_something=iterate_one(published_frontend_name,elementDescript,paramsDescript,constsDescript,signatureDescript,x509_proxy_plugin,stats,history_obj)
                 
                 glideinFrontendLib.log_files.logActivity("Writing stats")
                 try:
@@ -859,6 +866,12 @@ def main(parent_pid, work_dir, group_name):
 
     paramsDescript=glideinFrontendConfig.ParamsDescript(work_dir,group_name)
     signatureDescript=glideinFrontendConfig.GroupSignatureDescript(work_dir,group_name)
+    stageArea=glideinFrontendConfig.MergeStageFiles(elementDescript.frontend_data['WebURL'],
+                                                    signatureDescript.signature_type,
+                                                    signatureDescript.frontend_descript_fname,signatureDescript.frontend_descript_signature,
+                                                    group_name,
+                                                    signatureDescript.group_descript_fname,signatureDescript.group_descript_signature)
+    constsDescript=stageArea.get_constants()
 
     glideinFrontendMonitoring.monitoringConfig.monitor_dir=os.path.join(work_dir,"monitor/group_%s"%group_name)
 
@@ -895,7 +908,7 @@ def main(parent_pid, work_dir, group_name):
     try:
         try:
             glideinFrontendLib.log_files.logActivity("Starting up")
-            iterate(parent_pid,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin)
+            iterate(parent_pid,elementDescript,paramsDescript,constsDescript,signatureDescript,x509_proxy_plugin)
         except KeyboardInterrupt:
             glideinFrontendLib.log_files.logActivity("Received signal...exit")
         except:
