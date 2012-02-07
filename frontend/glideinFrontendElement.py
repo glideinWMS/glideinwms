@@ -399,7 +399,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,constsDescript,signat
             os.close(r)
             try:
                 if dt=='Real':
-                    out=glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict,condorq_match_list)
+                    out=glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict,attr_dict,condorq_match_list)
                 elif dt=='Glidein':
                     count_status_multi={}
                     for glideid in glidein_dict.keys():
