@@ -288,7 +288,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, condorq_match_l
     final_unique[(None,None,None)]=count_unmatched
     return (out_glidein_counts,final_out_counts,final_unique)
 
-def countRealRunning(match_obj,condorq_dict,glidein_dict,condorq_match_list=None):
+def countRealRunning(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match_list=None):
     out_glidein_counts={}
 
     if condorq_match_list!=None:
