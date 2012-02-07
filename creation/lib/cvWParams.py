@@ -136,14 +136,15 @@ class VOFrontendParams(cWParams.CommonParams):
         work_defaults["base_log_dir"]=("%s/frontlogs"%os.environ["HOME"],"log_dir","Frontend base log dir",None)
         self.defaults["work"]=work_defaults
 
-        one_log_retention_defaults=cWParams.commentedOrderedDict()
-        one_log_retention_defaults["min_days"] = ["3.0","days","Min number of days the logs must be preserved (even if they use too much space)",None]
-        one_log_retention_defaults["max_days"] = ["7.0","days","Max number of days the logs should be preserved",None]
-        one_log_retention_defaults["max_mbytes"] = ["100.0","Mbytes","Max number of Mbytes the logs can use",None]
-        one_log_retention_defaults['type'] = ["ALL", "log type", "Type of log", None]
-
+        process_log_defaults=cWParams.commentedOrderedDict()
+        process_log_defaults["min_days"] = ["3.0","days","Min number of days the logs must be preserved (even if they use too much space)",None]
+        process_log_defaults["max_days"] = ["7.0","days","Max number of days the logs should be preserved",None]
+        process_log_defaults["max_mbytes"] = ["100.0","Mbytes","Max number of Mbytes the logs can use",None]
+        process_log_defaults['extension'] = ["all", "string", "name of the log extention", None]
+        process_log_defaults['msg_types'] = ["INFO, WARN, ERR", "string", "types of log messages", None]
+        
         log_retention_defaults = cWParams.commentedOrderedDict()
-        log_retention_defaults["process_logs"] = ([], 'Dictionary of log types', "Each log corresponds to a log file", copy.deepcopy(one_log_retention_defaults))
+        log_retention_defaults["process_logs"] = ([], 'Dictionary of log types', "Each log corresponds to a log file", copy.deepcopy(process_log_defaults))
         self.defaults["log_retention"] = log_retention_defaults
         
         monitor_footer_defaults=cWParams.commentedOrderedDict()
@@ -231,7 +232,7 @@ class VOFrontendParams(cWParams.CommonParams):
             # collector not defined at global level, must be defined in every group
             has_collector=True
             for  group_name in self.groups.keys():
-               has_collector&=self.groups[group_name].attrs.has_key('GLIDEIN_Collector')
+                has_collector&=self.groups[group_name].attrs.has_key('GLIDEIN_Collector')
 
         if has_collector:
             raise RuntimeError, "Attribute GLIDEIN_Collector cannot be defined by the user"
@@ -249,7 +250,7 @@ class VOFrontendParams(cWParams.CommonParams):
             # security_name not defined at global level, look if defined in every group
             has_security_name=True
             for  group_name in self.groups.keys():
-               has_security_name&=(self.groups[group_name].security.security_name!=None)
+                has_security_name&=(self.groups[group_name].security.security_name!=None)
 
         if not has_security_name:
             # explicity define one, so it will not change if config copied

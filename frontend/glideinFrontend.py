@@ -175,7 +175,7 @@ def main(work_dir):
     # Configure frontend process logging
     process_logs = eval(frontendDescript.data['ProcessLogs']) 
     for plog in process_logs:
-        logSupport.add_processlog_handler("frontend", logSupport.log_dir, plog['type'],
+        logSupport.add_processlog_handler("frontend", logSupport.log_dir, plog['msg_types'], plog['extension'],
                                       int(float(plog['max_days'])),
                                       int(float(plog['min_days'])),
                                       int(float(plog['max_mbytes'])))

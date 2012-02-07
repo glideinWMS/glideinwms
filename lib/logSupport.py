@@ -98,11 +98,11 @@ class GlideinHandler(TimedRotatingFileHandler):
         return do_timed_rollover or do_size_rollover
 
 
-def add_processlog_handler(logger_name, log_dir, log_type, maxDays, minDays, maxMBytes):
+def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, minDays, maxMBytes):
     """
     Adds a handler to the GlideinLogger logger referenced by logger_name.
     """
-    logfile = os.path.expandvars("%s/%s.%s.log" % (log_dir, logger_name, log_type.lower()))
+    logfile = os.path.expandvars("%s/%s.%s.log" % (log_dir, logger_name, extension.lower()))
      
     mylog = logging.getLogger(logger_name)
     mylog.setLevel(logging.DEBUG)
@@ -110,41 +110,47 @@ def add_processlog_handler(logger_name, log_dir, log_type, maxDays, minDays, max
     handler = GlideinHandler(logfile, maxDays, minDays, maxMBytes, backupCount=5)
     handler.setFormatter(DEFAULT_FORMATTER)
     handler.setLevel(logging.DEBUG)
-    if log_type.upper() == "ALL":
-        # don't add any filters
-        pass
-    elif log_type.upper() == "INFO":
-        handler.addFilter(InfoFilter())
-    elif log_type.upper() == "DEBUG":
-        handler.addFilter(DebugFilter())
-        handler.setFormatter(DEBUG_FORMATTER)
-    elif log_type.upper() == "ERR":
-        handler.addFilter(WarningFilter())
+    
+    has_debug = False
+    msg_type_list = [] 
+    for msg_type in msg_types.split(","):
+        msg_type = msg_type.upper().strip()
+        if msg_type == "INFO":
+            msg_type_list.append(logging.INFO)
+        elif msg_type == "WARN":
+            msg_type_list.append(logging.WARN)
+            msg_type_list.append(logging.WARNING)
+        if msg_type == "ERR":
+            msg_type_list.append(logging.ERROR)
+            msg_type_list.append(logging.CRITICAL)
+        if msg_type == "DEBUG":
+            msg_type_list.append(logging.DEBUG)
+            has_debug = True        
+        
+    if has_debug:
+        handler.setFormatter(DEBUG_FORMATTER)  
+    else:
+        handler.setFormatter(DEFAULT_FORMATTER)
+        
+    handler.addFilter(MsgFilter(msg_type_list)) 
         
     mylog.addHandler(handler)
     
 
-class InfoFilter(logging.Filter):
+class MsgFilter(logging.Filter):
     """
     Filter used in handling records for the info logs.
     """
-    def filter(self, rec):
-        return rec.levelno == logging.INFO 
-
-class WarningFilter(logging.Filter):
-    """
-    Filter used in handling records for the error logs.
-    """
-    def filter(self, rec):
-        return rec.levelno == logging.WARNING or rec.levelno == logging.WARN 
+    msg_type_list = [logging.INFO]
     
-class DebugFilter(logging.Filter):
-    """
-    Filter used in handling records for the error logs.
-    """
+    def __init__(self, msg_type_list):
+        logging.Filter.__init__(self)
+        self.msg_type_list = msg_type_list
+            
     def filter(self, rec):
-        return rec.levelno == logging.DEBUG or rec.levelno == logging.ERROR
+        return rec.levelno in self.msg_type_list 
 
+    
 def format_dict(unformated_dict, log_format="   %-25s : %s\n"):
     """
     Convenience function used to format a dictionary for the logs to make it 

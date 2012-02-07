@@ -1196,7 +1196,7 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     # Configure entry process logging
     process_logs = eval(glideinDescript.data['ProcessLogs']) 
     for plog in process_logs:
-        logSupport.add_processlog_handler(entry_name, logSupport.log_dir, plog['type'],
+        logSupport.add_processlog_handler(entry_name, logSupport.log_dir, plog['msg_types'], plog['extension'],
                                       int(float(plog['max_days'])),
                                       int(float(plog['min_days'])),
                                       int(float(plog['max_mbytes'])))
