@@ -192,143 +192,64 @@ Install as: various daemon users or as system rpms/packages
 
 <div class="section">
     <h2><a name="system_httpd">1. HTTP server</a></h2>
-  
-    <p>To use the installer, move into</p>
-
-    <blockquote>glideinWMS/install</blockquote>
-
-    <p>and execute (as root)</p>
-
-    <blockquote>./glideinWMS_install</blockquote>
-
-    <p>You will be presented with this screen:</p>
-
-    <blockquote>
-        What do you want to install?<br>
-
-        (May select several options at one, using a , separated list)<br>
-        [1] glideinWMS Collector<br>
-        [2] Glidein Factory<br>
-        [3] GCB<br>
-        [4] pool Collector<br>
-        [5] Schedd node<br>
-
-        [6] Condor for Glidein Frontend<br>
-        [7] Glidein Frontend<br>
-        [8] Components
-    </blockquote>
-
-    <p>Select <b>8</b>.</p>
-    <p>You will be given another menu:</p>
-
-    <blockquote>
-        What do you want to install?<br>
-        (May select several options at one, using a , separated list)<br>
-        [a] OSG VDT client<br>
-        [b] Base Condor installation<br>
-        [c] Web server<br>
-
-        [d] rrdtool graphics package<br>
-        [e] PostgreSQL database<br>
-        [f] Quill-specific PostgreSQL database
-    </blockquote>
-
-    <p>Select <b>c</b>.</p>
-    <p>Now follow the instructions.  Most of the questions should be fairly straightforward.</p>
-    <p>Make sure that you install this service on a port that can be accessed by the internet, as
-        worker nodes will need to be able to communicate with this port to download data.</p>
+    <p>
+    You will need to install an HTTP server as part of glideinWMS.  This needs to be installed on a port accessible to the outside.  
+    The web server is used for staging and monitoring.  In particular, the staging directory will need to be accessible 
+    to glideins so they can download appropriate software.
+    </p>
+    <p> 
+        The choice of web server is independent of glideinWMS, but this tutorial will only
+        show the example of Apache Web Server.  For most systems, this can be installed via
+        yum:
+        <pre>
+        yum install httpd </pre>
+        Other options are available from 
+        <a href="http://httpd.apache.org/download.cgi">http://httpd.apache.org/download.cgi</a>.
+    </p> 
+    <p>
+        There are several recommended tasks you may want to 
+        also do post-installation to secure and prepare your web server.
+        <ul>
+            <li>Disable all unneeded modules.  Glideinwms does not any
+            non-standard modules and many can be disabled.
+            A list of example modules to keep enabled is below:
+            <tt>'access_module','include_module','log_config_module',
+                    'mime_magic_module','expires_module','deflate_module',
+                    'headers_module','setenvif_module','mime_module',
+                    'status_module','autoindex_module','negotiation_module',
+                    'dir_module','imap_module','alias_module','rewrite_module',
+                    'cache_module','file_cache_module','mem_cache_module',
+                    'authz_host_module','authz_default_module'</tt>.
+            </li>
+            <li>Disable any (unneeded) extensions in /etc/httpd/conf.d </li>
+        </ul>
+    </p>
 </div>
 
 
 <div class="section">
     <h2><a name="system_vdt">2. OSG VDT Client</a></h2>
     <p>
-        At times the installer will give you the option to install the OSG VDT client.  Below is an example of an intall for reference.  It can also
-        be installed using the installer.  <br><br>
-        <strong>Notes:</strong>
-        </p><ul>
-
-            <li>Unless you know of a need to use a different version, accept the default pacman version listed by the installer</li>
-            <li>Allow the installer to auto-detect your platform unless you want to force a specific platform</li>
-            <li>Use the default OSG location, unless you have good reason to change it</li>
-            <li>
-                Unless you want your users to have to find and define the OSG VDT Client location themselves, when asked, answer 'y'
-                to defining OSG_VDT_BASE globally</li>
-        </ul>
-    <p></p>
-
-    <pre>Do you want to install the full OSG VDT client?: (y/n) <b>y</b>
-Where do you want the VDT installed?: [/opt/vdt] <b>/opt/vdt</b>
-Directory '/opt/vdt' does not exist, should I create it?: (y/n) <b>y</b>
-What pacman version should I use?: [3.28] <b>3.28</b>
-
---2010-05-06 13:34:52--  http://vdt.cs.wisc.edu/software/pacman/3.28/pacman-3.28.tar.gz
-Resolving vdt.cs.wisc.edu... 128.105.121.78
-Connecting to vdt.cs.wisc.edu|128.105.121.78|:80... connected.
-HTTP request sent, awaiting response... 200 OK
-Length: 856103 (836K) [application/x-gzip]
-Saving to: `pacman-3.28.tar.gz'
-
-100%[=====================================================================================================================================================================&gt;] 856,103     --.-K/s   in 0.09s   
-
-2010-05-06 13:34:52 (9.03 MB/s) - `pacman-3.28.tar.gz' saved [856103/856103]
-
-pacman-3.28/
-    </pre>
-
-    <p>
-        The contents of the tarball have been removed for space reasons.
+        The OSG Client is now available as a set of RPMs.  To install
+        the OSG Client, you will need to enable the EPEL and OSG
+        repositories.  It is also advisable to enable the yum priorities
+        module in order to guarantee the correct packages.
+        The following commands will enable the repositories:
+        <pre>
+        rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm
+        yum install yum-priorities
+        rpm -Uvh http://repo.grid.iu.edu/osg-release-latest.rpm </pre>
+        Next, you can install osg client:
+        <pre> yum install osg-client </pre>
+        You may also want to enable the fetch-crl service
+        to keep your certificate revocation lists up to date:
+        <pre>
+        fetch-crl
+        /sbin/service fetch-crl-boot start
+        /sbin/service fetch-crl-cron start
+        /sbin/chkconfig fetch-crl-boot on
+        /sbin/chkconfig fetch-crl-cron on </pre>
     </p>
-
-    <pre>pacman-3.28/bin/pacman
-
-VDT client installation tends to be very picky about the platforms it installs under
-Most of the time, one needs to pretent to be one of the tested platforms
-The platforms known to work are: linux-rhel-4,SL-4,linux-rhel-5,SL-5
-Which platform do you want to use (leave empty for autodetect): 
-
-The VDT installation will start in a moment.
-CA certificates are installed as part of this procedure; ignore the VDT warning message.
-Please do not enable Condor, as we will install it separatelly.
-
-Beginning VDT prerequisite checking script vdt-common/vdt-prereq-check...       
-
-All prerequisite checks are satisfied.
-
-
-
-========== IMPORTANT ==========
-Most of the software installed by the VDT *will not work* until you install
-certificates.  To complete your CA certificate installation, see the notes
-in the post-install/README file.
-
-
-
-
-The VDT version 2.0.0 has been installed.
-
-
-The OSG Client package OSG version 1.2.9 has been installed.
-VDT does not provide a default URL for CA fetching       
-You need to provide one
-The default OSG location is: http://software.grid.iu.edu/pacman/cadist/ca-certs-version
-Where should I fetch the CAs from?: [http://software.grid.iu.edu/pacman/cadist/ca-certs-version]<b>http://software.grid.iu.edu/pacman/cadist/ca-certs-version</b> 
-Setting CA Certificates for VDT installation at '/opt/vdt'
-
-Setup completed successfully.
-running 'vdt-register-service --name vdt-update-certs --enable'... ok
-running 'vdt-register-service --name fetch-crl --enable'... ok
-running 'vdt-register-service --name vdt-rotate-logs --enable'... ok
-enabling cron service fetch-crl... ok
-enabling cron service vdt-rotate-logs... ok
-enabling cron service vdt-update-certs... ok
-skipping init service 'condor' -- marked as disabled
-skipping init service 'globus-ws' -- marked as disabled
-Do you want OSG_VDT_BASE defined globally?: (y/n) <b>y</b>
-
-VDT client installed
-    </pre>
-
 </div>
 
 
@@ -343,18 +264,16 @@ VDT client installed
     <p>
         RPMs for Redhat/Scientific Linux distributions can be found at 
         <a target="_blank" href="http://dag.wieers.com/rpm/packages/rrdtool/">http://dag.wieers.com/rpm/packages/rrdtool/</a>
+        <br/>
+        However, if you have the OSG repositories enabled, you can install it via yum:
+        <pre> yum install rrdtool rrdtool-python </pre>
     </p>
-
-    <p>Install python-rrdtool*.rpm and related dependencies.</p>
 
     <p>
         If installing as root is not an option, you can build from the sources, as the <b>glidein factory</b>
 
         user, and put the python libraries into the PYTHON_PATH.<br>
         The source code can be downloaded from: <a target="_blank" href="http://oss.oetiker.ch/rrdtool/pub/">http://oss.oetiker.ch/rrdtool/pub/</a>
-    </p>
-
-    <p>
         Beware: The build process has several dependencies that make it complicated. Use this option only if you cannot install from RPMs 
         (or similar). 
     </p>
@@ -365,8 +284,9 @@ VDT client installed
     <h3><a name="system_m2crypto">4. M2Crypto</a></h3>
 
     <p>
-        You will need the <a target="_blank" href="http://freshmeat.net/projects/m2crypto">M2Crypto python library</a>. A few systems include it in the 
-        software distribution; if possible install the system one.
+        You will need the <a target="_blank" href="http://freshmeat.net/projects/m2crypto">M2Crypto python library</a>. 
+        However, if you have the OSG repositories enabled, you can install it via yum:
+        <pre> yum install m2crypto </pre>
     </p>
 
     <p>
@@ -400,7 +320,13 @@ VDT client installed
 
     <p>
         You will need the <a target="_blank" href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD package</a>.  It contains the 
-        javascript libraries needed by the monitoring.  Just download the tarball (with flot), and untar it.  You will need to 
+        javascript libraries needed by the monitoring.  
+        If you enabled the OSG repositories (above),
+        you can install it via yum:
+    </p>
+    <pre> yum install javascriptrrd </pre>
+    <p>
+        Otherwise, download the tarball (with flot), and untar it.  You will need to 
         point the installer to this directory.
     </p>
 
