@@ -328,6 +328,10 @@ class ExtStageFiles(StageFiles):
         self.load_preentry_file_list()
         return self.get_stage_file(self.preentry_file_list.data['constants.cfg'][0],repr)
 
+    def get_condor_vars(self):
+        self.load_preentry_file_list()
+        return self.get_stage_file(self.preentry_file_list.data['condor_vars.lst'][0],lambda x:string.split(x,None,6))
+
     # internal
     def load_preentry_file_list(self):
         if self.preentry_file_list==None:
@@ -355,3 +359,13 @@ class MergeStageFiles:
 
         return main_consts
     
+    def get_condor_vars(self):
+        main_cv=self.main_stage.get_condor_vars()
+        group_cv=self.group_stage.get_condor_vars()
+        # group condor_vars override the main ones
+        for k in group_cv.data.keys():
+            main_cv.data[k]=group_cv.data[k]
+        main_cv.group_name=self.group_name
+        main_cv.group_hash_value=group_cv.hash_value
+
+        return main_cv
