@@ -365,7 +365,15 @@ class VOFrontendParams(cWParams.CommonParams):
                 raise RuntimeError, "Invalid %s job attr type '%s'"%(loc_str,attr_type)
             env['job'][attr_name]=attr_val
         for attr_name in attr_dict.keys():
-            attr_val='a'
+            attr_type=attr_dict[attr_name]['type']
+            if attr_type=='string':
+                attr_val='a'
+            elif attr_type=='int':
+                attr_val=1
+            elif attr_type=='expr':
+                attr_val='a'
+            else:
+                raise RuntimeError, "Invalid %s attr type '%s'"%(loc_str,attr_type)
             env['attr_dict'][attr_name]=attr_val
         try:
             match_obj=compile(match_str,"<string>","eval")
