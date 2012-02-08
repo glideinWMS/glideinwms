@@ -1805,7 +1805,7 @@ def vofrontend_install():
                 fd.write('         <proxy absfname=%s/>\n'%xmlFormat.xml_quoteattr(a_fname))
             fd.write('      </proxies>\n')
             fd.write('   </security>\n')
-            fd.write('   <match>\n')
+            fd.write('   <match match_expr="True" start_expr="True">\n')
             fd.write('      <factory>\n')
             fd.write('        <collectors>\n')
             fd.write('          <collector node=%s DN=%s factory_identity=%s my_identity=%s comment="Define factory collector globally for simplicity"/>\n'%(xmlFormat.xml_quoteattr(pool_node),xmlFormat.xml_quoteattr(pool_dn),xmlFormat.xml_quoteattr(pool_identity),xmlFormat.xml_quoteattr(proxy_identity)))
@@ -1825,12 +1825,11 @@ def vofrontend_install():
             fd.write('      <attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"/>\n')
             # the following are just so admins know they exist
             # we put in the default values
-            fd.write('      <attr name="GLIDECLIENT_Start" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"/>\n')
             fd.write('      <attr name="GLIDECLIENT_Rank" glidein_publish="False" job_publish="False" parameter="True" type="string" value="1"/>\n')
             fd.write('   </attrs>\n')
             fd.write('   <groups>\n')
             fd.write('      <group name=%s enabled="True">\n'%xmlFormat.xml_quoteattr(group_name))
-            fd.write('         <match match_expr=%s>\n'%xmlFormat.xml_quoteattr(match_str))
+            fd.write('         <match match_expr=%s start_expr="True">\n'%xmlFormat.xml_quoteattr(match_str))
             if len(factory_attr_list)>0:
                 attr_query_arr=[]
                 for job_attr in factory_attr_list:
