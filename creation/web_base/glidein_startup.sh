@@ -183,6 +183,11 @@ function automatic_work_dir {
 # This way other depending scripts can use it
 function create_add_config_line {
     cat > "$1" << EOF
+
+function warn {
+ echo \`date\` \$@ 1>&2
+}
+
 ###################################
 # Add a line to the config file
 # Arg: line to add, first element is the id
