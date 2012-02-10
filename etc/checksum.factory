@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v2_5_5_rc2
+# GLIDEINWMS_VERSION v2_5_5
 ###################################################################
 c4e9c1f360b685b8a49c62e32e6a3498  ./LICENSE.txt
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
@@ -39,7 +39,7 @@ e4b17e35e7a524bbd03527353315f64c  ./creation/web_base/factoryStatusNow.html
 253f1da3c556b7d362c70ad149282194  ./creation/web_base/factory_support.js
 c1527cf661115760242852c0421921bd  ./creation/web_base/gcb_setup.sh
 5f350f835ffaf66e1088e685af23c2e8  ./creation/web_base/glexec_setup.sh
-9a3fb45559579a899736bc32c2c351c4  ./creation/web_base/glidein_startup.sh
+5804a3056937af400d47572542fb0efa  ./creation/web_base/glidein_startup.sh
 34b11133ee1c9125bed5a00f2b3c3fa8  ./creation/web_base/job_submit.sh
 78d344f14e5e2144227c564f2d90401e  ./creation/web_base/local_start.sh
 cd098176968938a2febf44a32de00a78  ./creation/web_base/setup_x509.sh
