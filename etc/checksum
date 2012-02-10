@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v2_5_5_rc2
+# GLIDEINWMS_VERSION v2_5_5
 ###################################################################
 c4e9c1f360b685b8a49c62e32e6a3498  ./LICENSE.txt
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
@@ -19,7 +19,7 @@ c3416d3f383075bbfb2be5c7d11e27e5  ./creation/lib/cgWParams.py
 78ba0d4bfebca9147f615a0243a511a0  ./creation/lib/cvWConsts.py
 2ec5c6ea8de9b4483003ba9f2dd1c7ea  ./creation/lib/cvWCreate.py
 7f4b6598c11200b48afeb94ffe134101  ./creation/lib/cvWDictFile.py
-65e64db7a9ccc70deb723027557431a1  ./creation/lib/cvWParamDict.py
+7bacb00edd38e0d9560eadb5874eb21b  ./creation/lib/cvWParamDict.py
 5441891769f6673c9de19c3ca4338c1e  ./creation/lib/cvWParams.py
 50d0cc09ccb15b4b4d5057cb2bc57234  ./creation/reconfig_frontend
 1a61ca98ad14f9dc907bdeea7d8b35ad  ./creation/reconfig_glidein
@@ -50,7 +50,7 @@ b5f6269704006a8f26b0dc5f237d3f31  ./creation/web_base/frontendStatus.html
 62fdfe89dc6e6135fd11729ee876e397  ./creation/web_base/frontend_support.js
 c1527cf661115760242852c0421921bd  ./creation/web_base/gcb_setup.sh
 5f350f835ffaf66e1088e685af23c2e8  ./creation/web_base/glexec_setup.sh
-9a3fb45559579a899736bc32c2c351c4  ./creation/web_base/glidein_startup.sh
+5804a3056937af400d47572542fb0efa  ./creation/web_base/glidein_startup.sh
 34b11133ee1c9125bed5a00f2b3c3fa8  ./creation/web_base/job_submit.sh
 78d344f14e5e2144227c564f2d90401e  ./creation/web_base/local_start.sh
 cd098176968938a2febf44a32de00a78  ./creation/web_base/setup_x509.sh
