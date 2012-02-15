@@ -237,8 +237,8 @@ class GlideinParams(cWParams.CommonParams):
         for fename in self.security.frontends.keys():
             for scname in self.security.frontends[fename].security_classes.keys():
                 username=self.security.frontends[fename].security_classes[scname].username
-                self.client_log_dirs[username]=self.buildDir(factoryVersioning, os.path.join(self.submit.base_client_log_dir,"user_%s"%username))
-                self.client_proxies_dirs[username]=self.buildDir(factoryVersioning, os.path.join(self.submit.base_client_proxies_dir,"user_%s"%username))
+                self.client_log_dirs[username]=self.buildDir(True, os.path.join(self.submit.base_client_log_dir,"user_%s"%username))
+                self.client_proxies_dirs[username]=self.buildDir(True, os.path.join(self.submit.base_client_proxies_dir,"user_%s"%username))
 
         if not cWParams.is_valid_name(self.factory_name):
             raise RuntimeError, "Invalid factory name '%s'"%self.factory_name
