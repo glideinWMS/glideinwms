@@ -65,9 +65,9 @@
     <div class="jump">
     <u>Jump to:</u>
     <ol>
-        <li><a href="#v20">Upgrade from v2.x</a></li>
-        <li><a href="#v16">Upgrade from v1.6</a></li>
-        <li><a href="#factory_upgrade">Upgrade from v1.6</a></li>
+        <li><a href="#v3plus">Upgrade to v3+</a></li>
+        <li><a href="#frontend">Upgrade a frontend</a></li>
+        <li><a href="#factory">Upgrade a factory</a></li>
     </ol>
     </div>
     <div class="related">
@@ -78,9 +78,25 @@
         </li>
     </ul>
     </div>
+    
+
 <div class="section">
-    <a name="v20" />
-    <h3>Upgrading frontend from Version 2.x</h3>
+    <a name="v3plus" />
+    <h3>Upgrading from v2+ to v3+</h3>
+    <p> There is no way to upgrade from a v2+ to a v3+ version.  We normally don't support major version upgrades and in this case
+    there have been significant changes to the configuration files and content in the working directories.  Please back up your 
+    configurations (they can be a reference for any customizations you have done) and reinstall all the services.
+    </p>
+    <p>The same applies to upgrading from v1+ to v3+.  There are too many changes between these versions and reinstallation of ALL
+    services is required.</p>
+    
+ 
+</div>
+
+
+<div class="section">
+    <a name="frontend" />
+    <h3>Upgrading a frontend </h3>
     <p> 
         These instructions assume that you are only upgrading the frontend.
         If you need to upgrade more components, it may involve additional
@@ -90,50 +106,51 @@
             <li>Back up your glideinWMS (binaries/source), frontstage area for the existing installation.</li>
             <li>Download the glideinWMS tarball and replace the old version with it.</li>
             <li>Make sure you have correct condor in your path. This is important!</li>
-            <li>cd frontstage/frontend_Frontenddir. this is the directory where you have frontend_startup script</li>
-            <li>./frontend_startup upgrade ../instance_v1_0.cfg/frontend.xml</li>
-</ol>
-<p>
-        <i>Note that the path name (instance_v1_0 may be slightly different in each case based on existing configuration).</i><br/>
-
-In case you have done any special configuration to glideinWMS/creation/web_base/condor_vars.lst, you need to redo them for the existing code base.
-For v2.4 to v2.4.x, there are not many changes to frontend.xml.
-</p>
-<p>
-    Alternatively, you can also try backing up files, untar-ing the new version, then copy the instance directory to the new version.  Make the required changes and run create_frontend to reconfigure.  Then, follow the post-installation tasks in the manual.
-</p>
+            <li>cd frontstage/frontend_Frontend_dir. this is the directory where you have frontend_startup script</li>
+            <li>./frontend_startup upgrade ../instance_v3_0.cfg/frontend.xml</li>
+		</ol>
+	<p>
+        <i>Note that the path names (instance_v3_0) may be slightly different in each case based on existing configuration.</i><br/>
+		In case you have done any special configuration to glideinWMS/creation/web_base/condor_vars.lst, you need to 
+		redo them for the existing code base.
+	</p>
+	<p>
+	    Alternatively, you can also try backing up files, untar-ing the new version, then copy the instance directory to the new 
+	    version.  Make the required changes and run create_frontend to reconfigure.  Then, follow the post-installation tasks in the manual.
+	</p>
+	<p>
+	    <b>Warning:</b> Check the revision history before doing this. Not all versions are compatible.
+	</p>
 </div>
-<div class="section">
-    <a name="factory_upgrade" />
-    <h3>Upgrading from Version 1.6 and older</h3>
 
-    No upgrading instructions exist for this version.  You will need to re-install glideinWMS and transfer your configuration specific changes over into the new installation.
-
-</div>
 <div class="section">
 
-<h3><a name="upgrade"></a>Upgrading a factory to a new version of glideinWMS</h3>
-<p>
-Upgrading a factory configuration tree to a new version of glideinWMS can be done in two ways:
-</p><ul>
-<li>Installing the new glideinWMS code in a separate directory, and create a new configuration
-    tree as explained <a href="#create_entry">above</a>.<br>
-
-    The configuration file (glieinWMS.xml) of the existing configuration tree can be used as a
-    base for the new one; only the <i>glidein_ name</i> needs to be changed.
-    See the <a href="factory/configuration.html">configuration page</a> for more defaults.
-</li><li>Overwrite the glideinWMS installation and run: factory_startup upgrade config.xml.<br>
-    If getting the code from CVS, a cvs update -r <i>version</i> will update the code.<br>
-    Running 'upgrade' overwrites all files in the glidein submit directories including rewriting the configuration file.  
-    If you use 'reconfig', this will only upgrade the files with factory configuration information so
-    some of the scripts may not get updated.
-
-    <b>Warning:</b> Check the revision history before doing this. Not all versions are compatible.
-</li></ul>
-<p></p>
-<p>
-Which option you choose is really up to you; the second one is easier, but the first one is cleaner and easier to revert back.
+	<h3><a name="factory"></a>Upgrading a factory</h3>
+	<p>
+		These instructions assume that you are only upgrading the factory.
+        If you need to upgrade more components, it may involve additional
+        steps.  Upgrading a factory can be done in two ways:
+	</p><ul>
+	<li>Installing the new glideinWMS code in a separate directory, and create a new configuration
+	    tree.<br/>	
+	    The configuration file (glieinWMS.xml) of the existing configuration tree may be used as a
+	    base for the new one; only the <i>glidein_ name</i> needs to be changed.
+	    See the <a href="factory/configuration.html">configuration page</a> for more defaults.
+	</li><li>Overwrite the glideinWMS installation and run: factory_startup upgrade config.xml.<br>
+	    If getting the code from CVS, a cvs update -r <i>version</i> will update the code.<br>
+	    Running 'upgrade' overwrites all files in the glidein submit directories including rewriting the configuration file.  
+	    If you use 'reconfig', this will only upgrade the files with factory configuration information so
+	    some of the scripts may not get updated.
+	</li></ul>
+	<p>Which option you choose is really up to you; the second one is easier, but the first one is cleaner and easier 
+	to revert back.</p>
+	
+	<p>
+	    <b>Warning:</b> Check the revision history before doing this. Not all versions are compatible.  For example, changes to a 
+	    factory configuration file may not allow you to reuse an old glideinWMS.xml.
+	</p>
 </div>
+
 <div class="footer">
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>

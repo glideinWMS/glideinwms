@@ -78,20 +78,17 @@ Install as: root
             <p><img src="../images/overview_schedd.png" name="Schedd Overview" align="right" border="0"></p>
             <p>
                 This node will be a 
-                <a target="_blank" href="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000">Condor Submit node</a>
-
+                <a target="_blank" href="http://www.cs.wisc.edu/condor/manual/v7.4/3_1Introduction.html#SECTION00411000000000000000">Condor Submit node</a>
                 for the user jobs.  You can install many such nodes to improve scalability of your system.
             </p>
     </div>
 
-
     <div class="section">
                         
             <h2><a name="hardware">2. Hardware requirements</a></h2>
-<a name="hardware">            </a><table class="requirements" style="width: 500px;">
+		<table class="requirements" style="width: 500px;">
             <tbody><tr class="head">
                 <td>CPUs</td>
-
                 <td>Memory</td>
                 <td>Disk</td>
             </tr>
@@ -99,71 +96,25 @@ Install as: root
                 <td>1</td>
                 <td>min 2GB (16GB recommended)</td>
                 <td>~5GB</td>
-
             </tr>
             </tbody></table>
-<a name="hardware">            
-            </a><p>
-<a name="hardware">                This machine needs <b>a reasonably recent CPUs</b> and <b>a large amount of memory</b> (min <b>2GB</b>, recommended <b>16GB</b>, 
+            
+           <p>
+                This machine needs <b>a reasonably recent CPUs</b> and <b>a large amount of memory</b> (min <b>2GB</b>, recommended <b>16GB</b>, 
                 <b>~1.5MB per running job</b>).  The amount of <b>disk</b> needed <b>depends on the user jobs</b>; Condor itself uses very little 
                 (5 GB should be enough for Condor alone)
-            </a></p>
-
-<a name="hardware">                        
-    </a></div>
-
-
-<a name="hardware">    </a><div class="section">
-
-<a name="hardware">    </a><h2><a name="software">3. Needed software</a></h2>
-    <table class="requirements">
-    <tbody><tr class="head">
-        <td>Software</td>
-
-        <td>Notes</td>
-        <td>Install Before glideinWMS</td>
-    </tr>
-    <tr>
-        <td>Linux OS</td>
-        <td>A reasonably recent Linux OS (RH/SL4 nad RH/SL5 tested at press time).</td>
-        <td class="checked"> X </td>
-
-    </tr>
-    <tr>
-        <td>The <a target="_blank" href="https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome">OSG client software</a>.</td>
-        <td>This can be installed prior to glideinWMS, but the installer can install it inline with the glideinWMS install</td>
-        <td> &nbsp; </td>
-    </tr>
-
-    <tr>
-        <td>The <a target="_blank" href="http://www.cs.wisc.edu/condor/downloads/">Condor distribution</a> as a tarball.</td>
-        <td>The installer will use the tarball to install and configure Condor inline</td>
-        <td> &nbsp; </td>
-    </tr>
-
-    <tr>
-        <td>The <a href="index.html">glideinWMS software</a>.</td>
-        <td>&nbsp;</td>
-        <td> &nbsp; </td>
-    </tr>
-    </tbody></table>
-
-    
-    <br>
-    <h4>NOTE:</h4>
-    <ul>
-        <li>Condor version v7.3.1 has a known issue with incorrect return/exit codes of condor_status and condor_q</li>
-        <li>
-            If you are using Condor version v7.3.2 disable VOMS checking in condor_config file used by Condor daemons other 
-            than that used by user schedd. VOMS checking adds unrequired overhead. To do so, set <br>
-            <blockquote>USE_VOMS_ATTRIBUTES = False </blockquote> 
-            or for individual condor daemons like collector<br>
-
-            <blockquote>COLLECTOR.USE_VOMS_ATTRIBUTES = False </blockquote> 
-        </li>
-    </ul>
-                   
+            </p>
+                       
     </div>
+
+
+   
+<div class="section">
+
+  <h2><a name="software">3. Needed software</a></h2>
+    <p>See the <a href="">prerequisites</a> page for a list of software requirements.
+                   
+</div>
 
 
     <div class="section">
@@ -181,9 +132,8 @@ Install as: root
             <li>Glidein Factory cert/proxy DN</li>
 
         </ul>
-        <strong>Note:</strong> In some places the installer will also ask for nicknames to go with the DNs.  For the most part the name given doesn't 
-        really matter.  There is one case where is does matter.  If you are using privilege separation, then, on the WMS Collector, the nickname for 
-        each Glidein Frontend must be the username that you created for the frontend. 
+        <strong>Note:</strong> In some places the installer will also ask for nicknames to go with the DNs.  These do not matter when installing
+        the user schedds. 
     <p></p>
     
     <h3><a name="before_install_misc">4.2 Miscellaneous Notes</a></h3>
@@ -197,7 +147,7 @@ Install as: root
     <h2><a name="condor">5. Installation instructions</a></h2>
     <p>
         The scheduler node software should be installed as root. While it is possible to run the schedds as a non-privileged user, it has some serious
-        security implications; see the <a target="_blank" href="http://www.cs.wisc.edu/condor/manual/v7.0/3_6Security.html#sec:Non-Root">Condor manual</a> for details.
+        security implications; see the <a target="_blank" href="http://www.cs.wisc.edu/condor/manual/v7.4/3_6Security.html#sec:Non-Root">Condor manual</a> for details.
         The whole process is managed by a install script described below.
     </p>
 
@@ -206,257 +156,204 @@ Install as: root
     <blockquote>glideinWMS/install</blockquote>
     
     <p>and execute</p>
-    <blockquote>./glideinWMS_install</blockquote>
-    
-    <p>You will be presented with this screen:</p>
-    <pre>Welcome to the glideinWMS Installation Helper
-
-What do you want to install?
-(May select several options at one, using a , separated list)
-[1] glideinWMS Schedds and Collector
-[2] Glidein Factory
-[3] GCB
-[4] User Pool Collector
-[5] User Schedd
-[6] Condor for Glidein Frontend
-[7] Glidein Frontend
-[8] Components
-    </pre>
-    
-    <p>Select <b>5</b>.</p>
+    <blockquote>./manage_glideins --install submit --ini <i>/path/to/glideinWMS.ini</i></blockquote>
 
     <p>
-        Now follow the instructions and install all the software components. Further detail and a walk-through is presented below:
-</p>
+    <table class="attributes">
+        <tbody><tr class="head">
+        <td>Attribute</td>
+        <td>Example</td>
+        <td>Description</td>
+        <td>Comments</td>
+        </tr>
 
-    <table class="requirements">
-    <tbody><tr class="head">
-    <td>Field</td>
-    <td>Installation Text</td>
-    <td>Description</td>
+        <tr>
+        <td>install_type</td>
+        <td>tarball or rpm</td>
+        <td>
+            If this is a VOFrontend RPM installation and you are doing a
+            '--configure', then rpm should be specified.<br/>
+            If this is a stand-alone Submit install, only tarball 
+            installations are supported.<br/>
+        </td>
+        <td>Valid values: tarball, rpm.<br/>
+        </td>
+        </tr>
 
-    </tr>
-    <tr>
-    <td>Condor</td>
-    <td><i>Where do you have the Condor tarball?<br>
-        Where do you want to install it?<br>
-        If something goes wrong with Condor, who should get email about it?</i></td>
-    <td>
+        <tr>
+        <td>hostname</td>
+        <td>submitnode.domain.name      </td>
+        <td>hostname for Submit node     </td>
+        <td>.</td>
+        </tr>
 
-        The user Schedd is part of the Condor pool that will actually run the user's jobs.
-        This will be the server that will schedule jobs from the users to the glidein pilots that 
-        will be running in the grid.  This piece of the install will configure 
-        the collector to work with the submitted glideins.<br>
-        For this, you will need a condor distribution and a location to install to.  It will also
-        prompt for a administrator email.<br>
-        Installing this into a user home directory is not recommended.
-    </td>
-    </tr>
-    <tr>
-    <td rowspan=2>GSI Security</td>
-    <td><i>Where can I find the directory with the trusted CAs? </i></td>
+        <tr>
+        <td>username</td>
+        <td>condor (non-root account)     </td>
+        <td>UNIX user account that this services will run under. DO NOT use "root". </td> 
+        <td> For security purposes, this value should always be a non-root user. </td>   
+        </tr>
 
-    <td>
-        GSI security is based on x509 certificates.  
-        You will next need a certificate or proxy for the WMS collector.  See <a href="#before_install_certs">the previous section</a> for more information on required certificates and proxies.
+        <tr>
+        <td>service_name    </td>
+        <td>submit  </td>
+        <td>Used as the 'nickname' for the GSI DN in the condor_mapfile of other services.   </td>
+        <td>.</td>
+        </tr>
 
-    </td>
-    </tr>
-    <tr>
-    <td><i>Please insert all such DNs, together with a user nickname.</i></td>
+        <tr>
+        <td>condor_location     </td>
+        <td>/path/to/condor-submit     </td>
+        <td>Directory in which the condor software will be installed.    </td>
+        <td>
+           <b>IMPORTANT:</b> 
+              The Submit can share the same instance of Condor as the Frontend.
+              The <b>condor_location</b> must not be a subdirectory of the Frontend's
+              <b>install_location</b> or <b>logs_dir</b>.  
+              They may share the same parent, however.
+        </td>
+        </tr>
 
-    <td>
-        This will populate the condor_mapfile with the dns and nicknames.
-        See <a href="../components/gsi.html">GSI Reference</a> for more information.
-        <br/><br/>
-        You will need to provide the DN of the pool collector and the DN of the 
-        glidein factory.  
-         Match authentication is enabled by default. 
-        <br/><br/>
-         This changes the Condor security model to rely more on the Collector.<br/>
-     When enabled,<br/> 
-      * only the Collector needs to know the DNs of all glidein proxies.<br/>
-      * and the 
-      <a href="http://www.cs.wisc.edu/condor/manual/v7.4/3_3Configuration.html#param:SecEnableMatchPasswordAuthentication">SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION.</a>  
-        attribute is set to True in the condor_config of the Schedd service.
-        <br/><br/>
-     If you have a reason not to use it,<br/>
-      * be sure to set to False the USE_MATCH_AUTH attribute in both in both the Factory 
-        and Frontend configuration files.<br/> 
-      * you will need to list the DNs of all glidein proxies  both in the Collector 
-        and in the Schedd. <br/>
-      * you will need the DN of the glidein startd as well. 
-        <br/><br/>
-      Any other DNs you list will be put into the condor_mapfile for authentication.
-    </td>
-    </tr>
-    <tr>
-    <td>Collector</td>
-    <td><i>What node is the collector running (i.e. CONDOR_HOST)?</i></td>
-    <td>
+        <tr>
+        <td>x509_cert_dir</td>
+        <td>/path/to/certificates-location </td>
+        <td>The directory where the CA certificates are maintained.
+        <td>The installer will validate for the precesence of *.0 and *.r0 files.
+            If the CAs are installed from the VDT distribution, this will be
+            the VDT_LOCATION/globus/TRUSTED_CA directory.</td>
+        </td>
+        </tr>
 
-        Here you will have to provide the host (and port if not default) of the
-        <a href="collector_install.html">User pool collector</a>.
-        
-    </td>
-    </tr>
-    <tr>
-    <td>GCB</td>
-    <td><i>Please list all the GCB servers you will be using</i></td>
-    <td>
+        <tr>
+        <td>x509_cert</td>
+        <td>/path-to-cert-location/cert.pm</td>
+        <td>The location of the certificate file being used.</td>
+        <td>
+           This file must be owned by the user installing (starting/stopping)
+           this service.  Permissions should be 644 or 600.
+        </td>
+        </tr>
 
-        If you are using GCB instead of CCB (now included with Condor), you will need to 
-        put the hostnames of the <a href="../components/condor.html#gcb">GCB nodes</a> here.
-        Note that GCB is not recommended unless you have network restrictions that prevent
-        you from using CCB.     
-    </td>
-    </tr>
-    <tr>
-    <td rowspan=2>Tuning</td>
-    <td><i>Do you want to enable the shared_port_daemon?: (y/n)</i><br>
-        <i>What port should it use?: [9615]</i></td>
-    <td>
-	The shared port daemon drastically reduces the number of ports used.<br>
-        <br>
-        Recommended for Condor versions 7.5.4 and above. (<b>Does not work with older versions of condor</b>)
-    </td>
-    </tr>
-    <tr>
-    <td><i>How many secondary schedds do you want?</i></td>
-    <td>
+        <tr>
+        <td>x509_key</td>
+        <td> /path-to-cert-location/key.pm </td>
+         <td>The location of the certificate key file being used and
+             associated with the certtificate defined by the <b>x509_cert</b>
+             option above.
+        </td>
+         <td>
+           This file must be owned by the user installing (starting/stopping)
+           this service.  Permissions should be 600 or 400.
+        </td>
+        </tr>
 
-        The proper value of this value depends on many factors, including the memory and CPU of the
-        server running it as well as the number of jobs submitted and the number of entry points.
-        This should be increased enough so that each schedd will not have to handle multiple 
-        glidein requests to different entry points from factories simultaneously.  
-        The default install of 10 schedds should be enough to handle a site with around 10000 jobs.
-        If you are only running hundreds of jobs, you may want to tune this down.  
-        Conversely, with higher amounts of jobs, this may need to be increased.
-        This value depends on your installation and can later be tuned 
-        based on load and average number of jobs.
-    </td>
-    </tr>
-    </tbody></table>
+        <tr>
+        <td>x509_gsi_dn</td>
+        <td>dn-subject-of-x509_cert-using-openssl</td>
+        <td>
+            This is the identity of the certificate used by this service to
+            contact the other Condor based glideinWMS services.
+        <td>
+            This is the <i>subject</i> of the certificate
+            (<b>x509_cert</b> option).
+            <blockquote>
+            openssl x509 -subject -noout -in [<b>x509_cert</b>]<br/>
+            </blockquote>
+            It is used to populate the condor_config file GSI_DAEMON_NAME and condor_mapfile entries of this and the other glideinWMS services as needed.
+        </td>
+        </td>
+        </tr>
 
-    
-    <p>Here a possible set of answers is presented; your setup will probably be slightly different:</p>
+        <tr>
+        <td>condor_tarball</td>
+        <td>/path/to/condor/tarballs/condor-7.5.0-linux-x86-rhel3-dynamic.tar.gz</td>
+        <td>Location of the condor tarball.</td>
+        <td>
+         The installation script will perform the installation of condor using this tarball.
+		 It must be a zipped tarball with a *.tg.tz name.
+        </td>
+        </tr>
 
-    <pre style="margin-left: 0.39in; margin-right: 0.39in; margin-bottom: 0.2in;">Welcome to the glideinWMS Installation Helper
+        <tr>
+        <td>condor_admin_email</td>
+        <td>whomever@email.com</td>
+        <td>The email address to get Condor notifications in the event of a problem.</td>
+        <td>Used in the condor_config.local only.    </td>
+        </tr>
 
-What do you want to install?
-(May select several options at one, using a , separated list)
-[1] glideinWMS Schedds and Collector
-[2] Glidein Factory
-[3] GCB
-[4] User Pool Collector
-[5] User Schedd
-[6] Condor for Glidein Frontend
-[7] Glidein Frontend
-[8] Components
-Please select: <b>5</b>
+        <tr>
+        <td>number_of_schedds   </td>
+        <td align="center">5   </td>
+        <td>The desired number of schedds to be used.    
+        <td>There must be at least 1 schedd.</td>
+        </tr>
 
-The following profiles will be installed:
-[5] User Schedd
+        <tr>
+        <td>schedd_shared_port</td>
+        <td align="center">9615</td>
+        <td>
+        Specifies the port number to be used by the shared port daemon
+        for schedds.
+        </td>
+        <td>
+        This is only available in Condor 7.5.3+.</br>
+        This can drastically reduce the number of ports used and thus improves
+        scalability.</br>
+        The default port is 9615.</br>
+        Leave this option blank if you do not wish to utilize this feature or
+        if is is not supported in the version of Condor being used.<br/>
+        For more information on use of the shared_port_daemon, see the
+        <a href="condor.html#schedds">GlideinWMS - Advanced Condor Configuration manual</a>.
+        </br>
+        </td>
+        </tr>
 
-Installing user submit schedds
+        <tr>
+          <td>install_vdt_client</td>
+          <td align="center">y</td>
+          <td>Indicates if an OSG/VDT client should be installed if it is not already present in the <b>vdt_location</b> option location.
+            </td>
+          <td>
+			Valid values:</br>
+			* <b>y</b> - installer will install a VDT client using the <b>vdt_location</b> and <b>pacman_location/_url</b> options specified.</br>
+			* <b>n</b> - will not attempt to install the VDT client<br/><br/>
+			This installer will not attempt to reinstall this software if it is already 
+			present.</br>
+          </td>
+        </tr>
 
-Installing condor
+        <tr>
+            <td>vdt_location</td>
+            <td>    /path/to/glidein/vdt</td>
+            <td>   The location of the OSG/VDT client software.</td> 
+            <td>
+			The installer looks for the existence of 2 files to verify if this is a valid 
+			OSG/VDT client installation:</br>
+			1. setup.sh</br>
+			2. existence of a voms-proxy-init executable.</br></br>
+			If the <b>install_vdt_client</b> option is 'n', then this option's value should 
+			be empty/blank.</br>
+        </tr> 
 
+        <tr>
+        <td>glideinwms_location     </td>
+        <td>/path/to/glideinWMS    </td>
+        <td>Directory of the glideinWMS software.   </td>
+        <td>Since this is a Condor service only, this software is only used during the installation process. </td>
+        </tr>
 
-You will now need the Condor tarball
-You can find it on http://www.cs.wisc.edu/condor/
-Versions v7.4.4 and 7.5.3 have been tested, but you
-should always use the latest one
-
-Where do you have the Condor tarball? <b>/root/condor-7.4.4-linux-x86_64-rhel5-dynamic.tar.gz</b>
-Checking...
-Seems condor version 7.4.4
-
-Where do you want to install it?: [/opt/glidecondor] <b>/opt/glidecondor</b>
-Directory '/opt/glidecondor' does not exist, should I create it?: (y/n) <b>y</b>
-Installing condor in '/opt/glidecondor'
-
-If something goes wrong with Condor, who should get email about it?: <b>admin@my.org</b>
-Extracting from tarball
-Running condor_configure
-Installing Condor from /opt/glidecondor/tar/condor-7.4.4 to /opt/glidecondor
-
-Condor has been installed into:
-    /opt/glidecondor
-
-Configured condor using these configuration files:
-  global: /opt/glidecondor/etc/condor_config
-  local:  /opt/glidecondor/condor_local/condor_config.local
-You should look inside the installation log for some details about how
-Condor was installed.
-Created scripts which can be sourced by users to setup their
-Condor environment variables.  These are:
-   sh: /opt/glidecondor/condor.sh
-  csh: /opt/glidecondor/condor.csh
-
-Do you want to split the config files between condor_config and condor_config.local?: (y/n) [y] <b>y</b>
-
-The Condor config has been put in your login files
-Please remember to exit and reenter the terminal after the install
-
-Condor installed
-
-Configuring GSI security
-
-To use the GSI security, you either need a valid GSI proxy or
-a valid x509 certificate and relative key
-The cert/proxy subject of User Schedd, Glidein Pool Collector and Glidein Frontend
-(used by glidein startd) will be added as the trusted daemon in GSI_DAEMON_NAME 
-in the condor configuration.
-Will you be using a proxy or a cert? (proxy/cert) <b>cert</b>
-
-Where is your certificate located?: <b>/etc/grid-security/hostcert.pem</b>
-Where is your certificate key located?: <b>/etc/grid-security/hostkey.pem</b>
-My DN = '/DC=org/DC=doegrids/OU=Services/CN=submit1.my.org'
-
-Glidein Pool Collector and Glidein Frontend and glidein startd will connect to and
-act as client to User Schedd. Subjects for these services should be in the 
-gridmap file of the User Schedd.
-Please insert all such DNs, together with a user nickname.
-An empty DN entry means you are done.
-DN: <b>/DC=org/DC=doegrids/OU=Services/CN=collector1.my.org</b>
-nickname: [condor001] <b>collector</b>
-Is this a trusted Condor daemon?: (y/n) y
-DN: <b>/DC=org/DC=doegrids/OU=Service/CN=gfactory/gfactory1.my.org</b>
-nickname: [condor002] <b>pilot</b>
-
-Is this a trusted Condor daemon?: (y/n) <b>y</b>
-DN: <i>enter</i>
-
-Condor 7.5.3 and up support the use of a shared_port_daemon
-that drastically reduces the number of ports used
-and thus also improves the pool scalability.
-
-Do you want to enable the shadred_port_daemon?: (y/n) <b>y</b>
-What port should it use?: [9615]  <i>enter</i>
-
-Make sure you use Condor 7.5.3 and up in glideins, too
-
-What node is the collector running (i.e. CONDOR_HOST)?: <b>collector1.my.org</b>
-Please list all the GCB servers you will be using
-Leave an empty line when finished
-GCB node:<i>enter</i>
-How many secondary schedds do you want?: [9] <b>4</b>
-
-    </pre>
-
-    <p>The installer will also start the Condor daemons.</p>
-    <p>The installer also created init.d scripts in:</p> 
-    <blockquote>/etc/init.d/condor</blockquote>
-        
-    <p>Use it to stop and restart the schedd(s)</p>
-    <p>
-
-        NOTE: Since Schedd node is installed as root, condor installer will create condor.sh and condor.csh files in /etc/profile.d so that you 
-        have correct environment setup. If this machine hosts another condor installation or you prefer not to have user PATH and CONDOR_CONFIG 
-        point to this condor setup automatically, you need to manually move these files out from the /etc/profile.d 
+	</tbody></table> 
     </p>
-                        
+	</p>
+	<p>For example configuration files, see <a href="configuration_install.html">here</a>.
+	</p>
+	   
+    <p>The installer allows you to automatically start the Condor daemons.  To start them on your own, source the condor env script and execute:</p>
+    <blockquote>/path/to/condor/location/condor start</blockquote>
+    
+    <p>To stop the Condor daemons, source the condor env script and execute:</p>
+    <blockquote>/path/to/condor/location/condor stop</blockquote>
+                       
     </div>
 
 
@@ -466,7 +363,7 @@ How many secondary schedds do you want?: [9] <b>4</b>
     <p>
         From the user point of view, this is just a regular Condor pool.<br><br>
 
-        However, since the resources potentially come from all over the world, users need to create more complex <b>Requirements</b>, 
+        However, since the resources potentially come from all over the world, users need to create more complex <b>Requirements</b> line in their JDL, 
         in order to prevent the jobs from landing on sites that cannot run their jobs.<br><br>
         Users will need to know which attributes the glideins publish and use them accordingly.
     </p>

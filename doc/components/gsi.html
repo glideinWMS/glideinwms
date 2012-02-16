@@ -181,39 +181,11 @@ The table below acts as a quick reference guide for configuring GSI in glideinWM
     <p>
     If you have not installed the OSG client in <b>/opt/vdt</b> already, do it now.<br/>
     <i>(Note: An EGEE/gLite Grid User Interface will work as well, but you need to
-replace /opt/vdt with whatever is appropriate for that installation)</i>
+	replace /opt/vdt with whatever is appropriate for that installation)</i>
     </p>
 
     <p>
-    To install OSG 0.6.0 client, as of the time of writing, you would execute the following as <b>root</b><br/>
-(please be aware that you will need gcc, g++ and python-devel installed, and that you may need <b>-pretend-platform</b> packman option on some systems):
-    <blockquote>
-        mkdir /opt/vdt<br/>
-        cd /opt/vdt<br/>
-
-        wget http://physics.bu.edu/pacman/sample_cache/tarballs/pacman-3.19.tar.gz<br/>
-        tar --no-same-owner -xzvf pacman-3.19.tar.gz<br/>
-        cd pacman-3.19<br/>
-        source setup.sh<br/>
-        cd ..<br/>
-        pacman -trust-all-caches -get OSG:client<br/>
-
-        #Do you agree to the licenses? [y/n] y<br/>
-        #Would you like to enable the Condor batch system to run automatically? n<br/>
-        #Would you like to setup daily rotation of VDT log files? y<br/>
-        #Do you want to update the CA certification revocation lists (CRLs)
-        automatically? [y/n] y<br/>
-        #Where would you like to install CA files? r<br/>
-        pacman -remove Condor<br/>
-
-        # ignore error messages<br/>
-        source setup.sh<br/>
-        vdt-control --on<br/>
-    </blockquote>
-    PS: The most up-to-date instructions can be found on
-    <a href=https://twiki.grid.iu.edu/twiki/bin/view/ReleaseDocumentation/ClientInstallationGuide title="OSG client installation guide">
-        https://twiki.grid.iu.edu/twiki/bin/view/ReleaseDocumentation/ClientInstallationGuide</a>.
-    </p>
+	See the prerequisites page for instructions on <a href="prerequisites.html#system_vdt">installing the OSG client</a>.
 
     <p>
     <i>(Please notice that those installation instructions tell you to install in ~/client_directory, 
