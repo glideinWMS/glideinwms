@@ -1354,8 +1354,13 @@ class GlideinTotals:
         self.entry_name = entry_name
         self.entry_max_glideins = int(jobDescript.data['MaxRunning'])
         self.entry_max_held = int(jobDescript.data['MaxHeld'])
-        self.entry_max_idle = int(jobDescript.data['MaxIdle'])
-                            
+        self.entry_max_idle = int(jobDescript.data['MaxIdle'])       
+
+        # Initialize default frontend-sec class limits
+        self.default_fesc_max_glideins = int(jobDescript.data['DefaultFESCMaxRunning'])
+        self.default_fesc_max_held = int(jobDescript.data['DefaultFESCMaxHeld'])
+        self.default_fesc_max_idle = int(jobDescript.data['DefaultFESCMaxIdle'])      
+                              
         # Count glideins by status
         # Initialized since the held and running won't ever change
         # To simplify idle requests, this variable is updated at the same time the frontend count is updated
@@ -1376,8 +1381,10 @@ class GlideinTotals:
         # Initialize frontend security class limits
         self.frontend_limits = {}
         for fe_sec_class in all_frontends:
-            self.frontend_limits[fe_sec_class] = {'max_glideins':-1, 'max_held':-1, 'max_idle':-1}
-                                    
+            self.frontend_limits[fe_sec_class] = {'max_glideins':self.default_fesc_max_glideins, 
+                                                  'max_held':self.default_fesc_max_held, 
+                                                  'max_idle':self.default_fesc_max_idle} 
+                                               
         # Get factory parameters for frontend-specific limits
         # they are in the format  frontend1:sec_class1:number,frontend2:sec_class2:number
         fe_glideins_param = jobDescript.data['MaxRunningFrontends']
@@ -1442,11 +1449,11 @@ class GlideinTotals:
         fe_limit = self.frontend_limits[frontend_name]
         
         # Check frontend:sec_class idle limit
-        if fe_limit['max_idle'] != -1 and (fe_limit['idle'] + nr_allowed > fe_limit['max_idle']):
+        if fe_limit['idle'] + nr_allowed > fe_limit['max_idle']:
             nr_allowed = fe_limit['max_idle'] - fe_limit['idle']   
         
         # Check frontend:sec_class total glideins
-        if  fe_limit['max_glideins'] != -1 and (fe_limit['idle'] + fe_limit['held'] + nr_allowed + fe_limit['running'] > fe_limit['max_glideins']):
+        if fe_limit['idle'] + fe_limit['held'] + nr_allowed + fe_limit['running'] > fe_limit['max_glideins']:
             nr_allowed = fe_limit['max_glideins'] - fe_limit['idle'] - fe_limit['held'] - fe_limit['running']
         
         # Return
@@ -1461,7 +1468,7 @@ class GlideinTotals:
 
     def get_max_held(self, frontend_name):
         """
-        Returns -1 if max held is undefined for the given frontend:sec_class
+        Returns max held for the given frontend:sec_class.
         """
         return self.frontend_limits[frontend_name]['max_held']
 
@@ -1469,11 +1476,7 @@ class GlideinTotals:
         """
         Compares the current held for a security class to the security class limit.
         """
-        if self.frontend_limits[frontend_name]['max_held'] != -1:
-            # security class limit is defined
-            return self.frontend_limits[frontend_name]['held'] >= self.frontend_limits[frontend_name]['max_held']
-        else:
-            return False
+        return self.frontend_limits[frontend_name]['held'] >= self.frontend_limits[frontend_name]['max_held']
     
     def has_entry_exceeded_max_held(self):
         return self.entry_held >= self.entry_max_held
@@ -1500,7 +1503,11 @@ class GlideinTotals:
         output += "     max_idle=%s\n" % self.entry_max_idle 
         output += "     max_held=%s\n" % self.entry_max_held   
         output += "     max_glideins=%s\n" % self.entry_max_glideins 
-        
+        output += "GlideinTotals DEFAULT FE-SC MAX VALUES\n"
+        output += "     default frontend-sec class max_idle=%s\n" % self.default_fesc_max_idle
+        output += "     default frontend-sec class max_held=%s\n" % self.default_fesc_max_held
+        output += "     default frontend-sec class max_glideins=%s\n" % self.default_fesc_max_glideins      
+          
         for frontend in self.frontend_limits.keys():
             fe_limit = self.frontend_limits[frontend]
             output += "GlideinTotals FRONTEND NAME = %s\n" % frontend
