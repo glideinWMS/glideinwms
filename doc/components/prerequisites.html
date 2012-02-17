@@ -72,9 +72,10 @@ Install as: various daemon users or as system rpms/packages
 </div>
 <div class="section">
 
-<h2 class="header">Installation of the WMS Components with the Installer</h2>
+<h2 class="header">Prerequisite components</h2>
     <p>        
-    Before you begin make sure the following software is either installed or available for installation.
+    The following is needed by glideinWMS.  The installer will install Condor but all others should be installed before you begin.  The javascriptRRD directory
+    will also need to be provided to the installer.
     </p>
     <table class="requirements">
         <tbody><tr class="head">
@@ -90,8 +91,8 @@ Install as: various daemon users or as system rpms/packages
 
         </tr>
         <tr>
-            <td> glideinWMS </td>
-            <td> v2.4 </td>
+            <td> <a href="index.html">glideinWMS</a> </td>
+            <td> v3.0+ </td>
             <td class="checked"> y </td>
             <td class="checked"> y </td>
 
@@ -102,7 +103,20 @@ Install as: various daemon users or as system rpms/packages
         </tr>
 
         <tr>
-            <td> Condor </td>
+            <td> Linux OS </td>
+            <td>  </td>
+            <td class="checked"> y </td>
+            <td class="checked"> y </td>
+
+            <td class="checked"> y </td>
+            <td class="checked"> y </td>
+            <td class="checked"> y </td>
+            <td> A reasonably recent <a target="_blank" href="http://www.cs.wisc.edu/condor/manual/v7.4/1_5Availability.html">Condor-supported</a>
+             Linux OS (RH/SL5 tested at press time).</td>
+        </tr>
+        
+        <tr>
+            <td> <a target="_blank" href="http://www.cs.wisc.edu/condor/downloads/">Condor</a> </td>
             <td> v7.2.+ </td>
             <td class="checked"> y </td>
             <td> &nbsp; </td>
@@ -110,12 +124,13 @@ Install as: various daemon users or as system rpms/packages
             <td class="checked"> y </td>
             <td class="checked"> y </td>
             <td class="checked"> y </td>
-            <td> SL3 x86 binaries should work everywhere. <br>For x86_64 OSG, you need to install 32 bit compatibility libraries. It is HIGHLY recommended that the SL3 x86 binaries be used. </td>
+            <td>The installer will use the tarball or rpm 
+            to install and configure Condor inline.  It is recommended to use v7.4 and above.</td>
 
         </tr>
 
         <tr>
-            <td> OSG client </td>
+            <td> <a target="_blank" href="https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome">OSG client</a> </td>
             <td> current version </td>
             <td class="checked"> y </td>
 
@@ -123,12 +138,12 @@ Install as: various daemon users or as system rpms/packages
             <td class="checked"> y </td>
             <td class="checked"> y </td>
             <td class="checked"> y </td>
-            <td> Needed to generate grid/voms proxies. </td>
+            <td> Needed to generate grid/voms proxies. See <a href="">below</a> for instructions.</td>
 
         </tr>
         <tr>
-            <td> Python </td>
-            <td> v2.3.4+ </td>
+            <td> <a target="_blank" href="http://www.python.org/">Python</a> </td>
+            <td> v2.4.3+ </td>
             <td class="checked"> y </td>
             <td class="checked"> y </td>
 
@@ -140,19 +155,20 @@ Install as: various daemon users or as system rpms/packages
 
         <tr>
             <td> HTTP server </td>
-            <td> latest version </td>
+            <td>  </td>
             <td> &nbsp; </td>
             <td class="checked"> y </td>
 
             <td> &nbsp; </td>
             <td> &nbsp; </td>
             <td class="checked"> y </td>
-            <td> Apache, TUX or server of choice. </td>
+            <td> <a target="_blank" href="http://www.apache.org/">Apache</a>, <a target="_blank" href="http://www.stllinux.org/meeting_notes/2001/0719/tux/intro.html">TUX</a>
+             or whatever server of choice. This port will need open access to the internet, so worker nodes can download data from this service.</td>
         </tr>
 
         <tr>
-            <td> RRDTool </td>
-            <td> V1.1.18+ </td>
+            <td> <a target="_blank" href="http://oss.oetiker.ch/rrdtool/">RRDTool</a> </td>
+            <td> V1.2.18+ </td>
             <td> &nbsp; </td>
             <td class="checked"> y </td>
 
@@ -160,12 +176,15 @@ Install as: various daemon users or as system rpms/packages
             <td> &nbsp; </td>
             <td class="checked"> y </td>
             <td> 
-                    <a target="_blank" href="http://dag.wieers.com/rpm/packages/rrdtool/rrdtool-1.2.18-1.el4.rf.i386.rpm" target="_top">http://dag.wieers.com/rpm/packages/rrdtool/rrdtool-1.2.18-1.el4.rf.i386.rpm</a> <br>http://dag.wieers.com/rpm/packages/rrdtool/perl-rrdtool-1.2.18-1.el4.rf.i386.rpm <br>http://dag.wieers.com/rpm/packages/rrdtool/python-rrdtool-1.2.18-1.el4.rf.i386.rpm 
+              The perl-Time-HiRes rpm is needed for this package.  Please verify all dependencies: 
+              <a href="http://dag.wieers.com/rpm/packages/rrdtool/rrdtool-1.2.18-1.el4.rf.i386.rpm" target="_top">rrdtool-1.2.18-1.el4.rf.i386.rpm</a> <br>
+              <a href="http://dag.wieers.com/rpm/packages/rrdtool/perl-rrdtool-1.2.18-1.el4.rf.i386.rpm" target="_top">perl-rrdtool-1.2.18-1.el4.rf.i386.rpm<br>
+              <a href="http://dag.wieers.com/rpm/packages/rrdtool/python-rrdtool-1.2.18-1.el4.rf.i386.rpm" target="_top">python-rrdtool-1.2.18-1.el4.rf.i386.rpm<br>
             </td>
 
         </tr>
         <tr>
-            <td> M2Crypto </td>
+            <td> <a target="_blank" href="http://freshmeat.net/projects/m2crypto">M2Crypto</a> </td>
             <td> v0.17+ </td>
             <td> &nbsp; </td>
             <td class="checked"> y </td>
@@ -173,28 +192,46 @@ Install as: various daemon users or as system rpms/packages
             <td> &nbsp; </td>
             <td> &nbsp; </td>
             <td> y </td>
-            <td> This can be installed using yum, if available. Or via a tarball from <a target="_blank" href="http://chandlerproject.org/Projects/MeTooCrypto#Downloads" target="_top">http://chandlerproject.org/Projects/MeTooCrypto#Downloads</a> </td>
+            <td> This can be installed using yum, if available. Or via 
+            <a target="_blank" href="http://chandlerproject.org/Projects/MeTooCrypto#Downloads" target="_top">tarball</a>. 
+            </td>
 
         </tr>
         <tr>
-            <td> javascriptRRD with Flot</td>
-            <td> v0.5.0 </td>
+            <td> <a target="_blank" href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD</a></td>
+            <td> v0.6.1+ </td>
             <td> &nbsp; </td>
 
             <td class="checked"> y </td>
             <td> &nbsp; </td>
             <td> &nbsp; </td>
             <td class="checked"> y </td>
-            <td> <a target="_blank" href="http://sourceforge.net/projects/javascriptrrd/files/javascriptrrd/" target="_top">http://sourceforge.net/projects/javascriptrrd/files/javascriptrrd/</a> <br><b>Note:</b> JavascriptRRD and flot, are available from different sources however they may not always work when installed for glideinWMS. We only support JavascriptRRD with Flot available from the sourceforge link above</td>
-
+            <td> <b>Note:</b> JavascriptRRD and flot, are available from different sources however they may not always work when installed 
+            separately for glideinWMS. We only support JavascriptRRD with Flot available from the sourceforge link provided.</td>
         </tr>
     </tbody></table>
+    <br/>
+    <h4>NOTE:</h4>
+    <ul>
+        <li>Condor version v7.3.1 has a known issue with incorrect return/exit codes of condor_status and condor_q</li>
+        <li>
+            If you are using Condor version v7.3.2 disable VOMS checking in condor_config file used by Condor daemons other 
+            than that used by user schedd. VOMS checking adds unrequired overhead. To do so, set <br>
+
+            <blockquote>USE_VOMS_ATTRIBUTES = False </blockquote> 
+            or for individual condor daemons like collector<br>
+            <blockquote>COLLECTOR.USE_VOMS_ATTRIBUTES = False </blockquote> 
+        </li>
+    </ul>
+</div>    
 
 <div class="section">
     <h2><a name="system_httpd">1. HTTP server</a></h2>
     <p>
-    You will need to install an HTTP server as part of glideinWMS.  This needs to be installed on a port accessible to the outside.  
-    The web server is used for staging and monitoring.  In particular, the staging directory will need to be accessible 
+    You will need to install an HTTP server for glideinWMS to be used for staging and monitoring.  This needs to be installed on a port 
+    accessible to the outside.  
+    The server should be installed on the same node, but a different node can be used as long as the web area is writable from this one.  
+    In particular, the staging directory will need to be accessible 
     to glideins so they can download appropriate software.
     </p>
     <p> 
@@ -203,8 +240,10 @@ Install as: various daemon users or as system rpms/packages
         yum:
         <pre>
         yum install httpd </pre>
-        Other options are available from 
-        <a href="http://httpd.apache.org/download.cgi">http://httpd.apache.org/download.cgi</a>.
+    </p>
+    <p>
+        Other options are available from Apache 
+        <a href="http://httpd.apache.org/download.cgi">here</a>.
     </p> 
     <p>
         There are several recommended tasks you may want to 
@@ -262,8 +301,8 @@ Install as: various daemon users or as system rpms/packages
     </p>
 
     <p>
-        RPMs for Redhat/Scientific Linux distributions can be found at 
-        <a target="_blank" href="http://dag.wieers.com/rpm/packages/rrdtool/">http://dag.wieers.com/rpm/packages/rrdtool/</a>
+        RPMs for Redhat/Scientific Linux distributions can be found  
+        <a target="_blank" href="http://dag.wieers.com/rpm/packages/rrdtool/">here</a>.
         <br/>
         However, if you have the OSG repositories enabled, you can install it via yum:
         <pre> yum install rrdtool rrdtool-python </pre>
@@ -273,7 +312,7 @@ Install as: various daemon users or as system rpms/packages
         If installing as root is not an option, you can build from the sources, as the <b>glidein factory</b>
 
         user, and put the python libraries into the PYTHON_PATH.<br>
-        The source code can be downloaded from: <a target="_blank" href="http://oss.oetiker.ch/rrdtool/pub/">http://oss.oetiker.ch/rrdtool/pub/</a>
+        The source code can be downloaded from <a target="_blank" href="http://oss.oetiker.ch/rrdtool/pub/">here</a>. 
         Beware: The build process has several dependencies that make it complicated. Use this option only if you cannot install from RPMs 
         (or similar). 
     </p>
@@ -292,8 +331,8 @@ Install as: various daemon users or as system rpms/packages
     <p>
 
         If your system does not come with m2crypto package, or you do not can/want install it as root, compile it from source as 
-        the <b>glidein factory</b> user.<br>  The source code can be downloaded from:  
-        <a target="_blank" href="http://chandlerproject.org/Projects/MeTooCrypto#Downloads">http://chandlerproject.org/Projects/MeTooCrypto#Downloads</a>
+        the <b>glidein factory</b> user.<br>  The source code can be downloaded from   
+        <a target="_blank" href="http://chandlerproject.org/Projects/MeTooCrypto#Downloads">here</a>.
     </p>
 
     <p>The build process is very easy:</p>

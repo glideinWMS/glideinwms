@@ -59,18 +59,18 @@
 	     <li> <a href="./history.html">History</a></li>
 	     <li class="last"> <a href="./license.html">License</a></li>
 	</ul>
-        <h3>Installation</h3>
+        <h3>Installation Overview</h3>
 	</div>
 <div class="jump">
 <u>Jump to:</u>
 <ol>
 <li> <a href="#process">Installation Process</a></li>
+<li> <a href="#configuration">Possible Configurations</a></li>
 <li> <a href="#osg">Using the OSG Factory</a></li>
 <li> <a href="#configuration_based">Configuration-based Installer</a></li>
-<li> <a href="#process">Installation Process</a></li>
+<li> <a href="#ini_file">glideinWMS ini file</a></li>
+<li> <a href="#manage_script">manage_glidens script</a></li>
 <li> <a href="#documents">Additional documents</a></li>
-<li> <a href="#configuration">Possible Configurations</a></li>
-<li> <a href="#osg">Connecting to OSG Factory</a></li>
 </ol>
 </div>
 <div class="related">
@@ -82,62 +82,309 @@ Installation at a glance:
       <li><a href="./components/pool_install.html">User Pool Schedd</a> </li>
       <li><a href="./frontend/install.html">Glidein Frontend</a> </li>
     </ol>
-    <a href="components/configuration_install.html">Configuration based installer</a><br/>
     <a href="upgrade.html">Upgrade Guide</a><br/>
 </div>
+
 <div class="section">
 <a name="process" />
-<h3>Installation Process</h3>
-    <p>Installation of glideinWMS is
-        a multi-step process:</p>
-        <ol>
-      <li><a href="components/prerequisites.html">Components and Pre-requisites</a> and set up <a href="components/gsi.html#reference">GSI certificates</a>.
-    </li>
+	<h3>Installation Process</h3>
+    <p>Installation of glideinWMS is a multi-step process and depending on your intended use, will require you installing 
+    several services.  The following must be installed in the correct sequence, follow the links for the details on how to
+    install:</p>
+      <ol>
+	      <li><a href="components/prerequisites.html">Components and Pre-requisites</a> and set up 
+	      <a href="components/gsi.html#reference">GSI certificates</a>.</li>
           <li><a href="factory/install.html">The glidein WMS Collector and
             collocated glidein Factory node</a> </li>
-
           <li><a href="components/collector_install.html">The glidein pool Collector
             node</a> </li>
           <li><a href="components/pool_install.html">One or more scheduler nodes for
             user submission</a> </li>
           <li><a href="frontend/install.html">The Glidein Frontend</a> </li>
           <li><a href="./tutorials.html">Submitting a job</a> </li>
-        </ol>
-<p>
-The above process should suffice for typical installs.  For OSG sites connecting
-to the UCSD OSG factory, see the following section.  More information can be found below.</p>
-
-<h3>Using the OSG Factory</h3>
-<a name="osg"/>
-<p>
-    Members of the Open Science Grid can use the OSG factory at UCSD.
-    In this case, you should install only a partial sub-set of services
-    (the factory will be provided for you.  Follow these steps (in order):
-    <ol>
-    <li><a href="components/collector_install.html">glidein pool Collector</a></li>
-    <li><a href="components/pool_install.html">scheduler for user submissions</a></li>
-    <li><a href="frontend/install.html">Glidein Frontend</a></li>
-    </ol>
-</p>
-<p>
-    You will also need access to (at least) two proxies for the frontend and glideinsi, which will need to be sent to the factory operators.  See <a target="_blank" href="http://hepuser.ucsd.edu/twiki2/bin/view/UCSDTier2/OSGgfactory">OSG Glidein Factory</a> for more details on how to use this setup.
-</p>
-
-
-<h3>Configuration based installer</h3>
-<a name="configuration_based" />
-<p>
-Alternatively, you can use the <a href="components/configuration_install.html">Configuration based installer.</a>  This approach requires filling out a
-configuration file (ini file) with all the required fields up front.  Once 
-this is done, you can install each component using the tool and this ini file.
-It prevents the frustration of running the Q&amp;A installer multiple times
-in case of errors.</p>
-<p>
-<b>Important Note:</b> You can only use either the Q&amp;A installer to install all components or the configuration based installer to install all components.  You cannot mix installations by installing partially with the Q&amp;A installer and partially with the configuration installer.  
-Also, note that both installers assume you are performing a full installation of all components.  For upgrades, see the <a href="upgrade.html">upgrade guide</a>
-or contact glidein support.
-</p>
+      </ol>
+    <p>
+	Services have dependencies between them.  
+	Prior to actually doing the install, it is suggested you use the 
+	<a href="#manage_script">manage_glideins script</a> to validate the configuration 
+	on all nodes to resolve any errors affecting dependencies.
+    </p>
+	<p>
+	The configuration based installer does NOT modify any scripts that set a user environment upon log in, e.g., .bashrc file, 
+	/etc/profile.d files, et al. Instead, an environment script is created for each service in its respective "home" location. If inclusion 
+	of these scripts is required at a location, it will need to be performed manually. The only exception to this is when privilege 
+	separation is in effect, in which case, the /etc/condor/privsep_config file is created. This location is hard-coded in Condor and 
+	cannot be changed. For each of the glideinsWMS services, the scripts for setting the environment are:
+	<ul>
+	<li><b>wmscollector, usercollector, submit</b>: condor_location/condor.sh</li>
+	<li><b>factory</b>: install_location/factory.sh</li>
+	<li><b>vofrontend</b>: install_location/frontend.sh</li>
+	</ul>
+	</p>
+    <p>
+	For glideinWMS services using Condor, the CONDOR_LOCATION/config.d directory
+	will contain the Condor attributes required for that service.
+	</p>
+    <p>If you are upgrading services already installed, please see <a href="upgrade.html">here</a>.
+    </p>
 </div>
+
+<div class="section">
+<a name="configurations" />
+    <h3>Possible Configurations</h3>
+     <p>The following are recommended configurations for installing 
+        glideinWMS.  If you are installing a Factory, note that
+        only configurations with the WMS collector and Factory on the 
+        same node are supported.  Also note that worker nodes must be able to 
+        access the web server on the factory and frontend nodes in order to
+        download necessary files.</p>
+    <p>   
+	    It should be noted that it is possible to install the glideinWMS
+	    across administrative boundaries (i.e. you will only install part
+	    of the glideinWMS infrastructure).  See the OSG section below for
+	    an example.</p>
+    <p>
+    Several possible configurations are below:  
+    </p> 
+    <p><b>Two Server configuration</b> (recommended minimum):
+	<ul>
+	  <li><a href="factory/install.html">The glidein WMS Collector and collocated
+	    glidein Factory node</a> </li>
+	
+	  <li>A node containing the <a href="frontend/install.html">Glidein Frontend</a>,
+	    the <a href="components/collector_install.html">glidein pool Collector</a> together with the <a href="components/pool_install.html">scheduler for user submissions</a>
+	  </li>
+	</ul>
+	</p>
+
+	<p><b>Three Server configuration</b> (recommended for 1000+ glideins)
+	<ul>
+	  <li><a href="factory/install.html">The glidein WMS Collector and collocated
+	    glidein Factory node</a> </li>
+	  <li>A node containing the <a href="components/collector_install.html">glidein pool Collector</a> together with the <a href="frontend/install.html">VO
+	    Frontend</a> </li>
+	  <li>A node containing the <a href="components/pool_install.html">scheduler for user
+	    submissions</a> </li>
+	</ul>
+	</p>
+
+	<p><b>One Server configuration</b> (Use only for test installs)
+	<ul>
+	  <li><a href="factory/install.html">The glidein WMS Collector and collocated
+	    glidein Factory node</a>, with the collector running on 8618.
+	    <a href="frontend/install.html">Glidein Frontend</a>,
+	    the <a href="components/collector_install.html">glidein pool Collector</a> 
+	    (running on 9618) together with the <a href="components/pool_install.html">scheduler for user submissions</a>.
+	    With this configuration, take special care of the ports assigned and of the condor.sh currently sourced
+	    when running commands.
+	   </li>
+	</ul>
+	</p>
+	<p><a name="osg"/><b>OSG Factory configuration</b>
+	<p>
+	    Members of the Open Science Grid can use the OSG factory at UCSD.    
+	    In this case, only the following services are necessary:
+	    <ul>
+	    <li><a href="components/collector_install.html">glidein pool Collector</a></li> 
+	    <li><a href="components/pool_install.html">scheduler for user submissions</a></li> 
+	    <li><a href="frontend/install.html">Glidein Frontend</a></li>
+	    </ul>
+	</p>
+	<p>
+	    An rpm is available to install these services and connect to the UCSD factory only.  See 
+	    <a target="_blank" href="http://hepuser.ucsd.edu/twiki2/bin/view/UCSDTier2/OSGgfactory">OSG Glidein Factory</a> 
+	    for more details on how to use this setup.
+	    You will also need a proxy for the frontend to communicate and (at least) one proxy for the glideins for submission.  
+	</p>
+	</p>
+</div>
+
+<div class="section">
+	<a name="configuration_based" />
+	<h3>Configuration based installer</h3>
+	<p>
+	GlideinWMS is installed with a configuration file (ini format) based installer.  All information needed by the services is 
+	listed in this file before installation, with a few exceptions. For example, the factory entry details 
+	are still provided in a Q&A format during the installation process.  You may also need to manually add configuration 
+	information after installation, just as you did with the Q&A version.</p>
+	<p> There are several advantages to this type of install.  In addition to having all the details documented, it performs the actual 
+	installation faster and allows for re-installs more quickly.  Since you have all the information in this file, you can also 
+	reproduce the same installation as needed.
+	</p>
+	<p>As of v3.0, the Q&A installer is no longer supported (but still available in v2+). Installation is done through the 
+	manage_glideins script, located in glideinWMS/install/, and uses the ini file described above.  This script offers several 
+	additional features as well, see <a href="#manage_script">below</a> for more information.</p>
+	<p><b>NOTE:</b> If you get an error during installation or validation that requires a change to 
+	the ini file, it is recommended that you go back and re-install ALL services.  You may affect one of the dependencies that will not 
+	be validated for the current node.</p>
+	
+</div>
+
+<div class="section">
+	<a name="ini_file" />
+	<h3>glideinWMS ini configuration file</h3>
+	<p>
+	The ini file determines the installation and configuration of the various services.  All ini file attributes are 
+	required. However, in several cases the value may be left empty.  See the service-specific documentation for the details for each 
+	attribute. 
+	</p>
+	<p><b>
+	The configuration based installer <b>requires</b> that the same ini file be used
+	for all service installations.  There are several areas where data is required
+	from other services.  Since most services can be installed on separate hosts, the installer can only validate 
+	data for the node being installed.
+	</p></b>
+	
+	<h4>Default Section</h4>
+	<p>
+	The attributes in this section apply to all subsequent sections in the ini file unless they are overridden specifically 
+	in that section.  So, if the location/value of any option in this section varies from host to host, you will need to 
+	override them in that section of the ini file. The only options in the <i>glideinWMS.ini</i> template will be the pacman 
+	options in the next section.
+	</p>
+	<h4>Pacman options</h4>
+	<p>
+	The 2 pacman related attributes are used to bring down the OSG/VDT client software 
+	and CA certificates if they are not already installed on the node. 
+	If you already have the OSG/VDT client and CA certificates installed on a host
+	or you have already installed the CA certificates and are using other non-VDT client software for proxy renewals, then:</p>
+	<ul>
+	<li>these options are still required but may be empty, i.e., contain no value.</li>
+	<li>the vdt_location option is still required but may be empty.</li>
+	<li>the install_vdt_client should be set to 'n'.</li>
+	</ul>
+	</p><p>
+	<b>These are parts of the pacman related options below that should not be 
+	changed unless advised to by glideinwms-support as there 
+	may be compatiblity issues between pacman and VDT distributions. 
+	Please see below for details.
+	</b>
+	</p>
+	<p>
+    <table class="attributes">
+        <tbody><tr class="head">
+        <td>Attribute</td>
+        <td>Example</td>
+        <td>Description</td>
+        <td>Comments</td>
+        </tr>
+        <tr>
+            <td>pacman_location</td>
+            <td>/path-to-pacman/pacman-3.28</td>
+            <td>This will be the directory in which pacman is installed.</td>
+            <td>
+             The base level (e.g., pacman-3.28) will be used to select the
+             pacman tarball from the pacman_url option.</br>
+             The format is pacman-version.tar.gz.</br>The tarball will be retrieved using the <b>pacman_url</b> option, 
+             extracted and then removed.</br></br>
+             You will need to specify the path to the directory, <b>pacman-3.28</b>.  
+             If you already have pacman-3.28 installed on your node, the installer
+             will not attempt to bring a new pacman down.  You may utitize that 
+             directory.<b>
+            </td>
+        </tr>
+        <tr>
+            <td>pacman_url</td>
+            <td>http://physics.bu.edu/pacman/sample_cache/tarballs</td>
+            <td>URL to retrieve pacman</td>
+            <td><b>This is the one pacman option you should not change.</b></td>
+        </tr>
+    </tbody></table>
+    </p>
+	<h4>Service options</h4>
+    <p>All service attributes are described in their respective install pages.  Each describes what is required for validating and
+    installing that service.  For example configuration files, see <a href="components/configuration_install.html">here</a>.
+	</p>
+</div>
+
+
+<div class="section">
+<a name="manage_script" />
+<h3>The manage-glideins script </h3>
+<p>
+This script is used to install and manage the glideinWMS services.  It is located in <i>glideinWMS/install/manage-glideins</i>.  
+</p>
+
+<b>./manage-glideins --OPTION SERVICE --ini INIFILE [--ssh [user]]  [--debug]</b><br/>
+<ul>
+This usage can be used to install, start, stop or check the status of
+the glidein services based on the configuration in the specified ini file.
+<p> 
+<b>OPTION</b> can be one of:</br>
+ - <b>validate</b>: Allows you to validate the ini file prior to installation</br>
+ - <b>install</b>: Install the service</br>
+ - <b>configure</b>: This allows  you to reconfigure your service based on 
+     changes to the ini file without re-installing condor.<br/>
+     For services using Condor, it will update the config.d local config files,<br/> 
+     For the factory and vofrontend, it will update the respective xml config files.</br>
+ - <b>start</b>: Start the service.  Remote starting of services is possible if remote access (via ssh) is allowed.</br>
+ - <b>stop</b>: Stop the service.  Remote starting of services is possible if remote access (via ssh) is allowed.</br>
+ - <b>status</b>: Return the status of the service.  Remote starting of services is possible if remote access (via ssh) is allowed.</br>
+</p>
+<p>
+<b>SERVICE</b> can be one of:</br>
+ - wmscollector</br>
+ - usercollector</br>
+ - factory</br>
+ - submit</br>
+ - vofrontend</br>
+ - rpm (Used for OSG Frontend RPM sites. Note: The 'install' action is not allowed for this service.)</br>
+ - all: can only be used with start/stop/status actions</br>
+</p>
+<p>
+<b>--ssh</b>: allows the start/stop/status actions to be performed 
+remotely providing the user has valid access to the other service's node via 
+'ssh -l' using the service's username.  The '--ssh' will use the ini file
+specified username attribute unless an optional 'user' is specified.
+</p>
+<p>
+<b>--debug</b>: When used with start/stop/status actions, it will
+display the series of commands used.
+</ul>
+
+<b>./manage-glideins --install-node --ini INIFILE</b>
+<ul>
+This usage allows you to install all services for the node you are installing
+on. There are some limitation to this.
+</ul>
+
+<b>./manage-glideins --create-entries --ini INIFILE</b>
+<ul>
+This usage can be used to select new glidein entry points after the
+initial installation of a factory service. If will walk you through the same
+question and answer process querying ReSS and allowing for manual entries.
+It will then create a file containing the entry elements for those selected. 
+This can then be merged with the existing Factory configuration file
+and a reconfiguration performed.. 
+</ul>
+
+<b>./manage-glideins --create-group --ini INIFILE</b>
+<ul>
+This usage can be used to select new group selection criteria after the
+initial installation of a frontend service. If will walk you through the same
+question and answer process as during the installation.
+It will then create a file containing the group element for the criteria selected.
+This can then be merged with the existing frontend configuration file
+and a reconfiguration performed.. 
+</ul>
+
+<b>./manage-glideins --show-ini INIFILE</b>
+<ul>
+This option allows you to view the ini file options/values. This is especially useful
+when the DEFAULT section is used to apply values to all sections/services.
+</ul>
+
+<b>./manage-glideins --create-template SERVICE</b>
+<ul>
+This option allows you to create an ini file template for installing a single 
+service.  It contains all the required attributes for that service.  It should
+be understood that many of the validations that would normally insure a
+working installation are bypassed since those validations are normally 
+performed on the node for those services.
+</p>
+</ul>
+</div>
+
 <div class="section">
 <a name="documents" />
 
@@ -172,85 +419,12 @@ or contact glidein support.
 </ul>
 </div>
     <img src="./images/glideinWMS_at_a_glance_medium.png">
-<div class="section">
-<a name="configurations" />
-    <h3>Possible Configurations</h3>
-        <p>While the documents presented here assume you will install each
-        component on a different machine, there is nothing preventing you
-        from installing all of them on fewer machines, or even on one machine
-        only (excluding GCB, but you should not use it anyhow).  Note that
-        only configurations with the WMS collector and factory on the 
-        same node are supported.  Also note that worker nodes must be
-        able to access the web server on the factory node in order to
-        download neccessary files.
-    It should be noted that it is possible to install the glideinWMS
-    across administrative boundaries (i.e. you will only install part
-    of the glideinWMS infrastructure).  See the OSG section below for
-    an example.</p>
-    <p>
-    Several possible configurations are below:  
-    </p> 
-    <p><b>Two Server configuration</b> (recommended minimum):
-<ul>
-  <li><a href="factory/install.html">The glidein WMS Collector and collocated
-    glidein Factory node</a> </li>
-
-  <li>A node containing the <a href="frontend/install.html">Glidein Frontend</a>,
-    the <a href="components/collector_install.html">glidein pool Collector</a> together with the <a href="components/pool_install.html">scheduler for user submissions</a>
-  </li>
-</ul>
-</p>
-
-<p><b>Three Server configuration</b> (recommended for 1000+ glideins)
-
-<ul>
-  <li><a href="factory/install.html">The glidein WMS Collector and collocated
-    glidein Factory node</a> </li>
-  <li>A node containing the <a href="components/collector_install.html">glidein pool Collector</a> together with the <a href="frontend/install.html">VO
-    Frontend</a> </li>
-  <li>A node containing the <a href="components/pool_install.html">scheduler for user
-    submissions</a> </li>
-
-</ul>
-
-<p><b>One Server configuration</b> (Use only for test installs)
-<ul>
-  <li><a href="factory/install.html">The glidein WMS Collector and collocated
-    glidein Factory node</a>, with the collector running on 8618.
-    <a href="frontend/install.html">Glidein Frontend</a>,
-    the <a href="components/collector_install.html">glidein pool Collector</a> 
-    (running on 9618) together with the <a href="components/pool_install.html">scheduler for user submissions</a>.
-    With this configuration, take special care of the ports assigned and of the condor.sh currently sourced
-    when running commands.
-   </li>
-</ul>
-<p><a name="osg"/><b>OSG Factory configuration</b></p>
-<p>
-    Members of the Open Science Grid can use the OSG factory at UCSD.  
-    In this case, only the following installation is necessary:
-    <ul>
-    <li><a href="components/collector_install.html">
-            glidein pool Collector
-    </a></li> 
-    <li><a href="components/pool_install.html">
-        scheduler for user submissions
-    </a></li> 
-    <li><a href="frontend/install.html">Glidein Frontend</a></li>
-    </ul>
-</p>
-<p>
-    See <a target="_blank" href="http://hepuser.ucsd.edu/twiki2/bin/view/UCSDTier2/OSGgfactory">OSG Glidein Factory</a> for more details on how to use this setup.
-</p>
-</p>
-
-
-
-</div>
+    
 <div class="footer">
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
-used under Creative Commons license.<br/>
-Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
+used under Creative Commons license.<br>
+Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glid%0AeinWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
 glideinWMS email support: glideinwms-support at fnal.gov
 </div>
 </body>
