@@ -169,6 +169,8 @@ class DictFile:
 
         filepath=os.path.join(dir,fname)
         try:
+            if not os.path.exists(dir):
+                os.makedirs(dir)
             fd=open(filepath,"r")
         except IOError,e:
             raise RuntimeError, "Error opening %s: %s"%(filepath,e)
