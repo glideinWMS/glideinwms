@@ -68,6 +68,10 @@ class GlideinHandler(TimedRotatingFileHandler):
         @param backupCount: Number of backups to keep
 
         """
+        #Make dirs if logging directory does not exist
+        if not os.path.exists(os.path.dirname(filename)):
+            os.makedirs(os.path.dirname(filename))
+
         when = 'D'
         TimedRotatingFileHandler.__init__(self, filename, when, interval, backupCount, encoding=None)
         
