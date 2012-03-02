@@ -824,6 +824,13 @@ It must be a zipped tarball with a *.tg.tz name.
 	script will throw an error and do nothing. If you executed the reconfig command while the facotry was running, it will revert to 
 	the last config file and restart with those settings.  As long as you use this tool, you should never corrupt the installation tree.
 	</p>
+	<p>The factory_startup script contains a default location for the factory configuration and is set to the location used for the initial
+	install.  This allows you to not have to specify the config location when doing a reconfig.  To change the default location in the file,
+	run the command:	
+	<blockquote>
+	    &lt;glidein working directory&gt;/factory_startup reconfig <i>config_copy_fname</i> update_default_cfg
+	</blockquote>
+	</p>
 	<p><b>NOTE</b>: The reconfig tool does not kill the factory in case of errors.
 	It is also recommended that you disable any entry points that will not be used.  Never remove them from the config file.</p>
 
