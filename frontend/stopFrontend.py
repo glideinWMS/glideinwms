@@ -41,7 +41,9 @@ def get_element_pids(work_dir,frontend_pid):
 
     return element_pids
 
-def main(work_dir):
+def main(work_dir, force=False):
+    retries_count = 100
+    sleep_in_retries = 0.2
     # get the pids
     try:
         frontend_pid=glideinFrontendPidLib.get_frontend_pid(work_dir)
@@ -50,53 +52,68 @@ def main(work_dir):
         return 1
     #print frontend_pid
 
-    element_pids=get_element_pids(work_dir,frontend_pid)
-    #print element_pids
-
-    element_keys=element_pids.keys()
-    element_keys.sort()
+    if not glideinFrontendPidLib.pidSupport.check_pid(frontend_pid):
+        # Frontend already dead
+        return 0
 
     # kill processes
-    # first soft kill the frontend (5s timeout)
-    os.kill(frontend_pid,signal.SIGTERM)
-    for retries in range(25):
-        if glideinFrontendPidLib.pidSupport.check_pid(frontend_pid):
-            time.sleep(0.2)
-        else:
-            break # frontend dead
+    # first soft kill the frontend (20s timeout)
+    try:
+        os.kill(frontend_pid, signal.SIGTERM)
+    except OSError:
+        pass # frontend likely already dead
 
-    # now check the elements (5s timeout)
-    elements_alive=False
+    for retries in range(retries_count):
+        if glideinFrontendPidLib.pidSupport.check_pid(frontend_pid):
+            time.sleep(sleep_in_retries)
+        else:
+            return 0 # frontend dead
+
+    if not force:
+        print "Frontend did not die after the timeout of %s sec" % (retries_count * sleep_in_retries)
+        return 1
+
+    # Retry soft kill the frontend ... should exit now
+    print "Frontend still alive ... retrying soft kill"
+    try:
+        os.kill(frontend_pid, signal.SIGTERM)
+    except OSError:
+        pass # frontend likely already dead
+
+    for retries in range(retries_count):
+        if glideinFrontendPidLib.pidSupport.check_pid(frontend_pid):
+            time.sleep(sleep_in_retries)
+        else:
+            return 0 # frontend dead
+
+    print "Frontend still alive ... sending hard kill"
+
+    element_pids = get_element_pids(work_dir, frontend_pid)
+    #print element_pids
+
+    element_keys = element_pids.keys()
+    element_keys.sort()
+
     for element in element_keys:
         if glideinFrontendPidLib.pidSupport.check_pid(element_pids[element]):
-            #print "Element '%s' still alive, sending SIGTERM"%element
-            os.kill(element_pids[element],signal.SIGTERM)
-            elements_alive=True
-    if elements_alive:
-        for retries in range(25):
-            elements_alive=False
-            for element in element_keys:
-                if glideinFrontendPidLib.pidSupport.check_pid(element_pids[element]):
-                    elements_alive=True
-            if elements_alive:
-                time.sleep(0.2)
-            else:
-                break # all elements dead
-        
-    # final check for processes
-    if glideinFrontendPidLib.pidSupport.check_pid(frontend_pid):
-        print "Hard killed frontend"
-        os.kill(frontend_pid,signal.SIGKILL)
-    for element in element_keys:
-        if glideinFrontendPidLib.pidSupport.check_pid(element_pids[element]):
-            print "Hard killed element '%s'"%element
-            os.kill(element_pids[element],signal.SIGKILL)
+            print "Hard killing element %s" % element
+            try:
+                os.kill(element_pids[element], signal.SIGKILL)
+            except OSError:
+                pass # ignore already dead processes
+
+    if not glideinFrontendPidLib.pidSupport.check_pid(frontend_pid):
+        return 0 # Frontend died
+
+    try:
+        os.kill(frontend_pid, signal.SIGKILL)
+    except OSError:
+        pass # ignore problems
     return 0
-        
 
 if __name__ == '__main__':
     if len(sys.argv)<2:
         print "Usage: stopFrontend.py work_dir"
         sys.exit(1)
 
-    sys.exit(main(sys.argv[1]))
+    sys.exit(main(sys.argv[1], force=True))
