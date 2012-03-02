@@ -73,15 +73,15 @@ def clean_exit(childs):
             count=0
             groups=childs.keys()
             groups.sort()
-            glideinFrontendLib.log_files.logActivity("Killing groups %s"%groups)
+            logSupport.log.info("Killing groups %s"%groups)
             for group_name in childs.keys():
                 try:
                     os.kill(childs[group_name].pid,signal.SIGTERM)
                 except OSError:
-                    glideinFrontendLib.log_files.logActivity("Group %s already dead"%group_name)  
+                    logSupport.log.info("Group %s already dead"%group_name)  
                     del childs[group_name] # already dead
         
-        glideinFrontendLib.log_files.logActivity("Sleep")
+        logSupport.log.info("Sleep")
         time.sleep(sleep_time)
         # exponentially increase, up to 5 secs
         sleep_time=sleep_time*2
@@ -91,7 +91,7 @@ def clean_exit(childs):
         groups=childs.keys()
         groups.sort()
         
-        glideinFrontendLib.log_files.logActivity("Checking dying groups %s"%groups)  
+        logSupport.log.info("Checking dying groups %s"%groups)  
         dead_groups=[]
         for group_name in childs.keys():
             child=childs[group_name]
@@ -100,13 +100,13 @@ def clean_exit(childs):
             try:
                 tempOut = child.fromchild.read()
                 if len(tempOut)!=0:
-                    glideinFrontendLib.log_files.logWarning("Child %s STDOUT: %s"%(group_name, tempOut))
+                    logSupport.log.warning("Child %s STDOUT: %s"%(group_name, tempOut))
             except IOError:
                 pass # ignore
             try:
                 tempErr = child.childerr.read()
                 if len(tempErr)!=0:
-                    glideinFrontendLib.log_files.logWarning("Child %s STDERR: %s"%(group_name, tempErr))
+                    logSupport.log.warning("Child %s STDERR: %s"%(group_name, tempErr))
             except IOError:
                 pass # ignore
 
@@ -118,9 +118,9 @@ def clean_exit(childs):
                 tempOut = child.fromchild.readlines()
                 tempErr = child.childerr.readlines()
         if len(dead_groups)>0:
-            glideinFrontendLib.log_files.logActivity("These groups died: %s"%dead_groups)
+            logSupport.log.info("These groups died: %s"%dead_groups)
 
-    glideinFrontendLib.log_files.logActivity("All groups dead")
+    logSupport.log.info("All groups dead")
 
 
 ############################################################
@@ -203,13 +203,13 @@ def spawn(sleep_time,advertize_rate,work_dir,
             time.sleep(sleep_time)
     finally:
         # cleanup at exit
-        glideinFrontendLib.log_files.logActivity("Received signal...exit")
+        logSupport.log.info("Received signal...exit")
         try:
             clean_exit(childs)
         except:
             # if anything goes wrong, hardkill the rest
             for group_name in childs.keys():
-                glideinFrontendLib.log_files.logActivity("Hard killing group %s" % group_name)
+                logSupport.log.info("Hard killing group %s" % group_name)
                 try:
                     os.kill(childs[group_name].pid,signal.SIGTERM)
                 except OSError:
