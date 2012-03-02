@@ -25,28 +25,31 @@ import cWConsts
 import cgWCreate
 import cgWParamDict
 
+WEB_BASE_DIR=os.path.join(STARTUP_DIR,"web_base")
 
 ################################################################################
 
 def main(params, old_params, update_scripts, update_def_cfg):
     # load old files
-    old_glidein_dicts_obj = cgWParamDict.glideinDicts(old_params)
-    old_glidein_dicts_obj.load()
+    if not old_params is None:
+        old_glidein_dicts_obj=cgWParamDict.glideinDicts(old_params)
+        old_glidein_dicts_obj.load()
 
     # create dictionaries for new params
     glidein_dicts_obj = cgWParamDict.glideinDicts(params)
     glidein_dicts_obj.populate()
 
     # merge them together
-    glidein_dicts_obj.reuse(old_glidein_dicts_obj)
-
-    # Make sure we preserve old schedd names
-    entries = glidein_dicts_obj.params.entries
-    old_entries = old_glidein_dicts_obj.params.entries
-    for entry in entries.keys():
-        if entry in old_entries.keys():
-            entries[entry].data['schedd_name'] = old_entries[entry].schedd_name
-
+    if not old_params is None:
+        glidein_dicts_obj.reuse(old_glidein_dicts_obj)
+    
+        # Make sure we preserve old schedd names
+        entries = glidein_dicts_obj.params.entries
+        old_entries = old_glidein_dicts_obj.params.entries
+        for entry in entries.keys():
+            if entry in old_entries.keys():
+                entries[entry].data['schedd_name'] = old_entries[entry].schedd_name
+                
     # write to disk
     glidein_dicts_obj.save()
     glidein_dicts_obj.set_readonly(True)
@@ -135,8 +138,8 @@ if __name__ == '__main__':
     args = [argv[0], xml]
 
     try:
-        params = cgWParams.GlideinParams(usage, os.path.join(STARTUP_DIR, "web_base"), args)
-    except RuntimeError, e:
+        params=cgWParams.GlideinParams(usage, WEB_BASE_DIR, args)
+    except RuntimeError,e:
         print e
         sys.exit(1)
 
@@ -164,12 +167,14 @@ if __name__ == '__main__':
         old_config_file = os.path.join(params.submit_dir, cgWConsts.XML_CONFIG_FILE)
         if os.path.exists(old_config_file):
             try:
-                old_params = cgWParams.GlideinParams(usage, os.path.join(STARTUP_DIR, "web_base"), [argv[0], old_config_file])
+                old_params=cgWParams.GlideinParams(usage,WEB_BASE_DIR,[argv[0],old_config_file])
             except RuntimeError, e:
                 raise RuntimeError, "Failed to load %s" % old_config_file
         else:
-            raise RuntimeError, "Cannot find %s" % old_config_file
-
+            print "Warning: Cannot find %s"%old_config_file
+            print "If this is the first reconfig, you can ignore this message."
+            old_params=None
+        
         main(params, old_params, update_scripts, update_def_cfg)
 
     except RuntimeError, e:
