@@ -160,7 +160,7 @@ class PidWParentSupport(PidSupport):
         if self.fd!=None:
             raise RuntimeError, "Cannot register two pids in the same object!"
 
-        self._parent_pid=parent_pid
+        self.parent_pid=parent_pid
         PidSupport.register(self,pid,started_time)
         
     ###############################

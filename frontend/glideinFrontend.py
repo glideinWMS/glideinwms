@@ -63,6 +63,68 @@ def is_crashing_often(startup_time, restart_interval, restart_attempts):
     return crashing_often
 
 ############################################################
+def clean_exit(childs):
+    count=100000000 # set it high, so it is triggered at the first iteration
+    sleep_time=0.1 # start with very little sleep
+    while len(childs.keys())>0:
+        count+=1
+        if count>4:
+            # Send a term signal to the childs
+            # May need to do it several times, in case there are in the middle of something
+            count=0
+            groups=childs.keys()
+            groups.sort()
+            glideinFrontendLib.log_files.logActivity("Killing groups %s"%groups)
+            for group_name in childs.keys():
+                try:
+                    os.kill(childs[group_name].pid,signal.SIGTERM)
+                except OSError:
+                    glideinFrontendLib.log_files.logActivity("Group %s already dead"%group_name)  
+                    del childs[group_name] # already dead
+        
+        glideinFrontendLib.log_files.logActivity("Sleep")
+        time.sleep(sleep_time)
+        # exponentially increase, up to 5 secs
+        sleep_time=sleep_time*2
+        if sleep_time>5:
+            sleep_time=5
+
+        groups=childs.keys()
+        groups.sort()
+        
+        glideinFrontendLib.log_files.logActivity("Checking dying groups %s"%groups)  
+        dead_groups=[]
+        for group_name in childs.keys():
+            child=childs[group_name]
+        
+            # empty stdout and stderr
+            try:
+                tempOut = child.fromchild.read()
+                if len(tempOut)!=0:
+                    glideinFrontendLib.log_files.logWarning("Child %s STDOUT: %s"%(group_name, tempOut))
+            except IOError:
+                pass # ignore
+            try:
+                tempErr = child.childerr.read()
+                if len(tempErr)!=0:
+                    glideinFrontendLib.log_files.logWarning("Child %s STDERR: %s"%(group_name, tempErr))
+            except IOError:
+                pass # ignore
+
+            # look for exited child
+            if child.poll()!=-1:
+                # the child exited
+                dead_groups.append(group_name)
+                del childs[group_name]
+                tempOut = child.fromchild.readlines()
+                tempErr = child.childerr.readlines()
+        if len(dead_groups)>0:
+            glideinFrontendLib.log_files.logActivity("These groups died: %s"%dead_groups)
+
+    glideinFrontendLib.log_files.logActivity("All groups dead")
+
+
+############################################################
 def spawn(sleep_time,advertize_rate,work_dir,
           frontendDescript,groups,restart_attempts,restart_interval):
 
@@ -143,11 +205,17 @@ def spawn(sleep_time,advertize_rate,work_dir,
             time.sleep(sleep_time)
     finally:        
         # cleanup at exit
-        for group_name in childs.keys():
-            try:
-                os.kill(childs[group_name].pid,signal.SIGTERM)
-            except OSError:
-                pass # ignore failed kills of non-existent processes
+        glideinFrontendLib.log_files.logActivity("Received signal...exit")
+        try:
+            clean_exit(childs)
+        except:
+            # if anything goes wrong, hardkill the rest
+            for group_name in childs.keys():
+                glideinFrontendLib.log_files.logActivity("Hard killing group %s" % group_name)
+                try:
+                    os.kill(childs[group_name].pid,signal.SIGTERM)
+                except OSError:
+                    pass # ignore failed kills of non-existent processes
         
         
 ############################################################
@@ -234,5 +302,6 @@ if __name__ == '__main__':
     signal.signal(signal.SIGQUIT,termsignal)
 
     main(sys.argv[1])
+
  
 
