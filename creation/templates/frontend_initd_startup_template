@@ -16,6 +16,7 @@ failure() {
         
 frontend_dir=%(frontend_dir)s
 glideinWMS_dir=%(glideinWMS_dir)s
+default_cfg_fpath=%(default_cfg_fpath)s
 
        
 frontend_name=`awk '/^FrontendName /{print $2}' ${frontend_dir}/frontend.descript`
@@ -50,20 +51,36 @@ restart() {
 reconfig() {
         if [ -f "$2" ]; then
            has_arg=1
+           echo "Using factory config file arg: $2"
+           cfg_loc=$2           
         else
            has_arg=0
-           echo $"Usage: frontend_startup reconfig <fname> <writeback yes|no>"
-           exit 1
+           echo "Using default factory config file: $default_cfg_fpath"
+           cfg_loc=$default_cfg_fpath
         fi
-        if [ -z "$3" ]; then
-           if [ -z $FRONTEND_WRITEBACK ]; then
-              writeback="yes"
-           else
-              writeback=$FRONTEND_WRITEBACK
-           fi
-        else
-           writeback=$4
-        fi
+        shift
+        update_def_cfg="no"
+        writeback="yes"
+
+		for var in "$@"
+           do
+           case "$var" in
+              yes | no) writeback="$var"
+              ;;
+              update_default_cfg) update_def_cfg="yes"
+              ;;
+              *) if [ "$cfg_loc" != "$var" ]; then
+                 echo "Unknown argument passed: $var"
+                 echo $"Usage: factory_startup {reconfig xml <update_default_cfg> <writeback yes|no>}"
+                 exit 1
+                 fi
+	  		  ;;
+			esac
+		done
+		if [ -n "$GLIDEIN_WRITEBACK" ]; then
+			writeback="$GLIDEIN_WRITEBACK"
+		fi
+
         "$glideinWMS_dir/frontend/checkFrontend.py" "$frontend_dir" >/dev/null 2>&1 </dev/null
         notrun=$?
         if [ $notrun -eq 0 ]; then
@@ -72,7 +89,7 @@ reconfig() {
             exit $RETVAL
           fi
         fi
-        "$glideinWMS_dir/creation/reconfig_frontend" -force_name "$frontend_name" -writeback "$writeback" -update_scripts "no" -xml $2
+        "$glideinWMS_dir/creation/reconfig_frontend" -force_name "$frontend_name" -writeback "$writeback" -update_scripts "no" -xml "$cfg_loc" -update_def_cfg "$update_def_cfg"
         RETVAL=$?
         reconfig_failed=$?
         echo -n "Reconfiguring the frontend"
@@ -86,11 +103,12 @@ reconfig() {
 upgrade() {
         if [ -f "$1" ]; then
            has_arg=1
+           echo "Using factory config file arg: $1"
+           cfg_loc=$1
         else
            has_arg=0
-           echo $"Usage: frontend_startup upgrade <fname>"
-           echo "ERROR: configuration file does not exist: $1"
-           exit 1
+           echo "Using default factory config file: $default_cfg_fpath"
+           cfg_loc=$default_cfg_fpath
         fi
         "$glideinWMS_dir/frontend/checkFrontend.py" "$frontend_dir" >/dev/null 2>&1 </dev/null
         notrun=$?
@@ -100,7 +118,7 @@ upgrade() {
             exit $RETVAL
           fi
         fi
-        "$glideinWMS_dir/creation/reconfig_frontend" -force_name "$frontend_name" -writeback "yes" -update_scripts "yes" -xml $1
+        "$glideinWMS_dir/creation/reconfig_frontend" -force_name "$frontend_name" -writeback "yes" -update_scripts "yes" -xml "$cfg_loc"
         reconfig_failed=$?
         echo -n "Upgrading the frontend"
         test $reconfig_failed -eq 0 && success || failure

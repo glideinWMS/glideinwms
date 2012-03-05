@@ -36,7 +36,7 @@ import cvWParamDict
 
 ################################################################################
 
-def main(params, old_params, update_scripts):
+def main(params, old_params, update_scripts, update_def_cfg):
     # load old files
     if not old_params is None:
         old_frontend_dicts_obj=cvWParamDict.frontendDicts(old_params)
@@ -54,7 +54,7 @@ def main(params, old_params, update_scripts):
     frontend_dicts_obj.save()
     frontend_dicts_obj.set_readonly(True)
     
-    if update_scripts == 'yes':
+    if update_def_cfg == 'yes' or update_scripts == 'yes':
         # recreate the init.d startup file
         frontend_dir = frontend_dicts_obj.main_dicts.work_dir
         startup_fname = os.path.join(frontend_dicts_obj.main_dicts.work_dir,cvWConsts.INITD_STARTUP_FILE)
@@ -65,24 +65,31 @@ def main(params, old_params, update_scripts):
        
         cvWCreate.create_initd_startup(startup_fname,
                                        frontend_dir,
-                                       os.path.realpath(os.path.join(STARTUP_DIR,'..')))
+                                       os.path.realpath(os.path.join(STARTUP_DIR,'..')),
+                                       params.cfg_name)
+        print "...Updated the frontend_startup script"
+        
+        if update_def_cfg == 'yes':
+            print "...Updated default config file location to: %s" % params.cfg_name
 
     cfgfile=os.path.join(frontend_dicts_obj.main_dicts.work_dir,cvWConsts.XML_CONFIG_FILE)
     
     # save config into file (with backup, since the old one already exists)
     # This is the current working version of the frontend in the frontend instance dir
     params.save_into_file_wbackup(cfgfile,set_ro=True)
+    print "...Saved the current config file into the working dir"
 
     # make backup copy that does not get overwritten on further reconfig
     # This file is has a hash on the extension and is located in the frontend instance dir
     cfgfile=cWConsts.insert_timestr(cfgfile)
     params.save_into_file(cfgfile,set_ro=True)
+    print "...Saved the backup config file into the working dir"
 
-    print "Reconfigured frontend '%s'"%params.frontend_name
-    print "Active entries are:"
+    print "...Reconfigured frontend '%s'"%params.frontend_name
+    print "...Active groups are:"
     for entry in frontend_dicts_obj.active_sub_list:
-        print "  %s"%entry
-    print "Work files are in %s"%frontend_dicts_obj.main_dicts.work_dir
+        print "     %s"%entry
+    print "...Work files are in %s"%frontend_dicts_obj.main_dicts.work_dir
 
 
 ############################################################
@@ -92,11 +99,12 @@ def main(params, old_params, update_scripts):
 ############################################################
 
 if __name__ == '__main__':
-    usage = "{ -force_name name -writeback yes|no -update_scripts yes|no -xml xml | -help }"
+    usage = "{ -force_name name -writeback yes|no -update_scripts yes|no -xml xml -update_def_cfg yes|no | -help }"
     argv = sys.argv
     force_name = None
     writeback = 'no'
     update_scripts = 'no'
+    update_def_cfg = 'no'
     xml = ''
     for i in range(len(argv)):
         if argv[i] == '-force_name':
@@ -107,6 +115,8 @@ if __name__ == '__main__':
             update_scripts = argv[i+1]
         if argv[i] == '-xml':
             xml = argv[i+1]
+        if argv[i] == '-update_def_cfg':
+            update_def_cfg = argv[i + 1]
         if argv[i] == '-help':
             print usage
             sys.exit(1)
@@ -114,10 +124,10 @@ if __name__ == '__main__':
     if xml == '':
         # to support upgrading from versions older than v2.5.3
         # the last arg is always the xml file
-        xml = argv[len(argv)-1]
+        xml = argv[len(argv)-1]      
         
     args = [argv[0], xml] 
-           
+        
     try:
         params=cvWParams.VOFrontendParams(usage, WEB_BASE_DIR, args)
     except RuntimeError,e:
@@ -136,8 +146,15 @@ if __name__ == '__main__':
         print ""
         print "-writeback must be yes or no, found '%s'"%writeback
         sys.exit(1)
-        
+
+    if not (update_def_cfg in ('yes', 'no')):
+        print usage
+        print ""
+        print "-update_def_cfg must be yes or no, found '%s'" % update_def_cfg
+        sys.exit(1)  
+                   
     try:
+        # This is the current running version, saved in the frontend work dir
         old_config_file=os.path.join(params.work_dir,cvWConsts.XML_CONFIG_FILE)
         #print old_config_file
         if os.path.exists(old_config_file):
@@ -150,7 +167,7 @@ if __name__ == '__main__':
             print "If this is the first reconfig, you can ignore this message."
             old_params=None
             
-        main(params, old_params, update_scripts)
+        main(params, old_params, update_scripts, update_def_cfg)
         
     except RuntimeError, e:
         print usage
@@ -162,6 +179,7 @@ if __name__ == '__main__':
         if writeback=='yes':
             # Only writeback the config in the .cfg directly if explicitly asked to
             params.save_into_file_wbackup(params.cfg_name)
+            print "...Overriding the frontend config file in %s to the current configuration " % params.cfg_name
     except:
         print "Writing back config file failed"
         sys.exit(1)

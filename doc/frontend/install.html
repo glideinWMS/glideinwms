@@ -608,15 +608,35 @@ Install as: <b>Vo Frontend User</b><br/>
     <p>The same script can be used to stop, reconfig and restart the Glidein Frontend.</p>
 
     <h3>6.2. Reconfiguring the Glidein Frontend</h3>
+    <p>The files in the frontend working directory must <b>never be changed by hand</b> after the directory structure has been created. </p>
     <p>
+	The proper procedure to update the frontend configuration is to make a copy of the official configuration file 
+	(i.e. <i>frontend.xml</i>) as a backup.  Then edit the config file and run
+	</p>
+	<blockquote>
+	    &lt;frontend working directory&gt;/frontend_startup reconfig <i>config_copy_fname</i>
+	</blockquote>
+	<p>
+	This will update the directory tree and restart the frontend and group dameons. (If the frontend wasn't running at the time of reconfig it
+	will only update the directory tree.)
+	</p>
+	
+	<p>
+	Please notice that if you make any errors in the new configuration file, the reconfig 
+	script will throw an error and do nothing. If you executed the reconfig command while the frontend was running, it will revert to 
+	the last config file and restart with those settings.  As long as you use this tool, you should never corrupt the installation tree.
+	</p>
+	<p>The frontend_startup script contains a default location for the frontend configuration and is set to the location used for the initial
+	install.  This allows you to not have to specify the config location when doing a reconfig.  To change the default location in the file,
+	run the command:	
+	<blockquote>
+	    &lt;frontend working directory&gt;/frontend_startup reconfig <i>config_copy_fname</i> update_default_cfg
+	</blockquote>
+	</p>
+	<p><b>NOTE</b>: The reconfig tool does not kill the frontend in case of errors.
+	It is also recommended that you disable any groups that will not be used.  Never remove them from the config file.</p>
 
-        If you make changes to the configuration file /home/frontend/frontstage/instance_v1.cfg/frontend.xml from above after creating
-        glidein, run reconfig_frontend tool to propagate the changes to the frontend configuration.
-    </p>
-    <blockquote>glideinWMS/creation/reconfig_frontend /home/frontend/frontstage/instance_v1.cfg/frontend.xml</blockquote>
 
-    <p>If you make changes to the frontend.xml configuration file in the &lt;install dir&gt; use following command to propagate the changes</p>
-    <blockquote> frontend_startup reconfig</blockquote>
 
     </div>
 <div class="footer">
