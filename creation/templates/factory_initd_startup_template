@@ -69,7 +69,6 @@ reconfig() {
            cfg_loc=$default_cfg_fpath
         fi
         shift
-        shift
         update_def_cfg="no"
         writeback="yes"
         for var in "$@"
@@ -79,9 +78,11 @@ reconfig() {
                  ;;
               update_default_cfg) update_def_cfg="yes"
                  ;;
-              *) echo "Unknown argument passed: $var"
+              *) if [ "$cfg_loc" != "$var" ]; then
+                 echo "Unknown argument passed: $var"
                  echo $"Usage: factory_startup {reconfig xml <update_default_cfg> <writeback yes|no>}"
                  exit 1
+                 fi
                  ;;
            esac
         done
