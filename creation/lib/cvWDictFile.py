@@ -148,7 +148,12 @@ def load_common_dicts(dicts,           # update in place
     if dicts.has_key('params'):
         dicts['params'].load()
     if dicts.has_key('attrs'):
-        dicts['attrs'].load()
+        try:
+            dicts['attrs'].load()
+        except RuntimeError,e:
+            # to allow for a smooth upgrade path from 2.5.5-, make this file optional
+            # in the future, we should remove this try...except block
+            dicts['attrs'].erase()
     # now the ones keyed in the description
     dicts['signature'].load(fname=description_el.vals2['signature'])
     dicts['file_list'].load(fname=description_el.vals2['file_list'])
