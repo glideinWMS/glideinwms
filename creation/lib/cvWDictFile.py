@@ -106,7 +106,7 @@ class GridMapDict(cWDictFile.DictFileTwoKeys):
 def get_common_dicts(work_dir,stage_dir,
                      simple_work_dir): # if True, do not create params
     common_dicts={'description':cWDictFile.DescriptionDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.DESCRIPTION_FILE),fname_idx=cWConsts.DESCRIPTION_FILE),
-                  'consts':cWDictFile.StrDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.CONSTS_FILE),fname_idx=cWConsts.CONSTS_FILE),
+                  'consts':cWDictFile.StrWWorkTypeDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.CONSTS_FILE),fname_idx=cWConsts.CONSTS_FILE),
                   'vars':cWDictFile.VarsDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.VARS_FILE),fname_idx=cWConsts.VARS_FILE),
                   'untar_cfg':cWDictFile.StrDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.UNTAR_CFG_FILE),fname_idx=cWConsts.UNTAR_CFG_FILE),
                   'file_list':cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.FILE_LISTFILE),fname_idx=cWConsts.FILE_LISTFILE),
@@ -114,7 +114,7 @@ def get_common_dicts(work_dir,stage_dir,
                   "signature":cWDictFile.SHA1DictFile(stage_dir,cWConsts.insert_timestr(cWConsts.SIGNATURE_FILE),fname_idx=cWConsts.SIGNATURE_FILE)}
     if not simple_work_dir:
         common_dicts['params']=ParamsDictFile(work_dir,cvWConsts.PARAMS_FILE)
-        common_dicts['attrs']=cWDictFile.StrWWorkTypeDictFile(work_dir,cvWConsts.ATTRS_FILE)
+        common_dicts['attrs']=cWDictFile.ReprDictFile(work_dir,cvWConsts.ATTRS_FILE)
 
     refresh_description(common_dicts)
     return common_dicts
