@@ -773,7 +773,7 @@ def populate_group_security(client_security,params,sub_params):
 def populate_common_attrs(dicts):
     # there should be no conflicts, so does not matter in which order I put them together
     for k in dicts['params'].keys:
-        dicts['attrs'].add(k,dicts['params'].get_true_val[k])
+        dicts['attrs'].add(k,dicts['params'].get_true_val(k))
     for k in dicts['consts'].keys:
         dicts['attrs'].add(k,dicts['consts'].get_typed_val(k))
     
