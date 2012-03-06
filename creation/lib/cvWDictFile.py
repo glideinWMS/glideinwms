@@ -23,6 +23,12 @@ class ParamsDictFile(cWDictFile.DictFile):
         else:
             return None
 
+    def get_val_type(self,key):
+        return self.vals[key][0]
+
+    def get_true_val(self,key):
+        return self.vals[key][1]
+
     def add(self,key,val,allow_overwrite=0):
         if not (type(val) in (type(()),type([]))):
             raise RuntimeError, "Values '%s' not a list or tuple"%val
@@ -108,6 +114,8 @@ def get_common_dicts(work_dir,stage_dir,
                   "signature":cWDictFile.SHA1DictFile(stage_dir,cWConsts.insert_timestr(cWConsts.SIGNATURE_FILE),fname_idx=cWConsts.SIGNATURE_FILE)}
     if not simple_work_dir:
         common_dicts['params']=ParamsDictFile(work_dir,cvWConsts.PARAMS_FILE)
+        common_dicts['attrs']=cWDictFile.StrWWorkTypeDictFile(work_dir,cvWConsts.ATTRS_FILE)
+
     refresh_description(common_dicts)
     return common_dicts
 
@@ -139,6 +147,8 @@ def load_common_dicts(dicts,           # update in place
     # first work dir ones (mutable)
     if dicts.has_key('params'):
         dicts['params'].load()
+    if dicts.has_key('attrs'):
+        dicts['attrs'].load()
     # now the ones keyed in the description
     dicts['signature'].load(fname=description_el.vals2['signature'])
     dicts['file_list'].load(fname=description_el.vals2['file_list'])
@@ -242,6 +252,8 @@ def save_common_dicts(dicts,     # will update in place, too
     #finally save the mutable one(s)
     if dicts.has_key('params'):
         dicts['params'].save(set_readonly=set_readonly)
+    if dicts.has_key('attrs'):
+        dicts['attrs'].save(set_readonly=set_readonly)
 
 # must be invoked after all the groups have been saved
 def save_main_dicts(main_dicts, # will update in place, too
@@ -302,7 +314,7 @@ def reuse_common_dicts(dicts, other_dicts,is_main,all_reused):
             dicts[k].set_readonly(True)
             
     # check the mutable ones
-    for k in ('params',):
+    for k in ('params','attrs'):
         if dicts.has_key(k):
             reuse_simple_dict(dicts,other_dicts,k)
 

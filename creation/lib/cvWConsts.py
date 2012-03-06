@@ -20,6 +20,7 @@ AFTERGROUP_PREENTRY_FILE_LISTFILE="aftergroup_%s"%PREENTRY_FILE_LISTFILE
 GRIDMAP_FILE="grid-mapfile"
 
 PARAMS_FILE="params.cfg"
+ATTRS_FILE="attrs.cfg"
 
 FRONTEND_DESCRIPT_FILE="frontend.descript"
 FRONTEND_MAP_FILE="frontend.mapfile"
