@@ -26,6 +26,7 @@ class FrontendConfig:
         self.frontend_descript_file = "frontend.descript"
         self.group_descript_file = "group.descript"
         self.params_descript_file = "params.cfg"
+        self.attrs_descript_file = "attrs.cfg"
         self.signature_descript_file = "signatures.sha1"
         self.signature_type = "sha1"
 
@@ -169,6 +170,12 @@ class ParamsDescript(JoinConfigFile):
                 self.const_data[k]=val
             else:
                 raise RuntimeError, "Unknown parameter type '%s' for '%s'!"%(type_str,k)
+
+class AttrsDescript(JoinConfigFile):
+    def __init__(self,base_dir,group_name):
+        global frontendConfig
+        JoinConfigFile.__init__(self,base_dir,group_name,frontendConfig.attrs_descript_file,
+                                repr) 
 
 # this one is the special frontend work dir signature file
 class SignatureDescript(ConfigFile):

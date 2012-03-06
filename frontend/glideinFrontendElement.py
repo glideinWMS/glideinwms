@@ -911,28 +911,6 @@ def iterate(parent_pid, elementDescript, paramsDescript, constsDescript, attr_di
             pass
 
 
-def derive_attr_dict(paramsDescript,stageArea):
-    attr_dict={}
-
-    constsDescript=stageArea.get_constants()
-    cvDescript=stageArea.get_condor_vars()
-
-    # there should be no conflicts, so does not matter in which order I put them together
-    for k in paramsDescript.data.keys():
-        attr_dict[k]=copy.deepcopy(paramsDescript.data[k][1])
-    for k in constsDescript.data.keys():
-        if cvDescript.data.has_key(k):
-            cvType=cvDescript.data[k][0]
-        else:
-            cvType="S" # default to string
-
-        if cvType=="I":
-            attr_dict[k]=int(constsDescript.data[k])
-        else:
-            attr_dict[k]=constsDescript.data[k]
-
-    return attr_dict
-
 ############################################################
 def main(parent_pid, work_dir, group_name):
     startup_time = time.time()
@@ -956,13 +934,20 @@ def main(parent_pid, work_dir, group_name):
 
     paramsDescript = glideinFrontendConfig.ParamsDescript(work_dir, group_name)
     signatureDescript = glideinFrontendConfig.GroupSignatureDescript(work_dir, group_name)
-    stageArea=glideinFrontendConfig.MergeStageFiles(elementDescript.frontend_data['WebURL'],
-                                                    signatureDescript.signature_type,
-                                                    signatureDescript.frontend_descript_fname,signatureDescript.frontend_descript_signature,
-                                                    group_name,
-                                                    signatureDescript.group_descript_fname,signatureDescript.group_descript_signature)
-    constsDescript=stageArea.get_constants()
-    attr_dict=derive_attr_dict(paramsDescript,stageArea)
+    #
+    # We decided we will not use the data from the stage area
+    # Leaving it commented in the code, in case we decide in the future
+    #  it was a good validation of the Web server health
+    #
+    #stageArea=glideinFrontendConfig.MergeStageFiles(elementDescript.frontend_data['WebURL'],
+    #                                                signatureDescript.signature_type,
+    #                                                signatureDescript.frontend_descript_fname,signatureDescript.frontend_descript_signature,
+    #                                                group_name,
+    #                                                signatureDescript.group_descript_fname,signatureDescript.group_descript_signature)
+    # constsDescript=stageArea.get_constants()
+    #
+
+    attr_dict=attrsDescript.data
 
     glideinFrontendMonitoring.monitoringConfig.monitor_dir = os.path.join(work_dir, "monitor/group_%s" % group_name)
 
