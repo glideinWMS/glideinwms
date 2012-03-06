@@ -624,7 +624,8 @@ class FileDictFile(SimpleFileDictFile):
         return
 
 # will convert values into python format before writing them out
-class ReprDictFile(DictFile):
+#   given that it does not call any parent methods, implement an interface first
+class ReprDictFileInterface:
     def format_val(self,key,want_comments):
         return "%s \t%s"%(key,repr(self.vals[key]))
 
@@ -643,6 +644,16 @@ class ReprDictFile(DictFile):
         else:
             val=arr[1]
         return self.add(key,eval(val))
+
+    # fake init to make pylint happy
+    def interface_fake_init(self):
+        self.vals={}
+        self.add=lambda x,y:True
+        raise NotImplementedError, "This function must never be called"
+
+#   this one actually has the full semantics
+class ReprDictFile(ReprDictFileInterface,DictFile):
+    pass
 
 # will hold only strings
 class StrDictFile(DictFile):
