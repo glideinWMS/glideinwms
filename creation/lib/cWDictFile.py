@@ -640,6 +640,31 @@ class StrDictFile(DictFile):
     def add(self,key,val,allow_overwrite=False):
         DictFile.add(self,key,str(val),allow_overwrite)
 
+# will save only strings
+# while populating, it may hold other types
+# not guaranteed to have typed values on (re-)load
+class StrWWorkTypeDictFile(StrDictFile):
+    def __init__(self,dir,fname,sort_keys=False,order_matters=False,
+                 fname_idx=None):      # if none, use fname
+        StrDictFile.__init__(self,dir,fname,sort_keys,order_matters,fname_idx)
+        self.typed_vals={}
+                             
+    def erase(self):
+        StrDictFile.erase(self)
+        self.typed_vals={}
+
+    def remove(self,key,fail_if_missing=False):
+        StrDictFile.remove(self,key,fail_if_missing)
+        if self.typed_vals.has_key(key):
+            del self.typed_vals[key]
+        
+    def get_typed_val(self,key):
+        return self.typed_vals[key]
+
+    def add(self,key,val,allow_overwrite=False):
+        StrDictFile.add(self,key,val,allow_overwrite)
+        self.typed_vals[key]=val
+
 # values are (Type,Default,CondorName,Required,Export,UserName)
 class VarsDictFile(DictFile):
     def is_compatible(self,old_val,new_val):
