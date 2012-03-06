@@ -15,9 +15,6 @@ import cWDictFile
 
 
 class ParamsDictFile(cWDictFile.DictFile):
-    def is_compatible(self,old_val,new_val):
-        return ((old_val[0]==new_val[0]) and (old_val[4]==new_val[4]))# at least the type and the export must be preserved
-    
     def file_header(self,want_comments):
         if want_comments:
             return (cWDictFile.DictFile.file_header(self,want_comments)+"\n"+
