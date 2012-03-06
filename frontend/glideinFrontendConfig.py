@@ -175,7 +175,7 @@ class AttrsDescript(JoinConfigFile):
     def __init__(self,base_dir,group_name):
         global frontendConfig
         JoinConfigFile.__init__(self,base_dir,group_name,frontendConfig.attrs_descript_file,
-                                repr) 
+                                str)  # they are already in python form
 
 # this one is the special frontend work dir signature file
 class SignatureDescript(ConfigFile):
