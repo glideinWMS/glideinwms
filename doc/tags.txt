@@ -1,18 +1,142 @@
-vNext	Factory now can remove excessive glideins
-	  New ClassAd attribute - RemoveExcess
-	Frontend will request removal of glideins when no user jobs in queue
-	Improved idle counting by the frontend when jobs match many factory
-	  entries.
-	Improved frontend logging.
-	Add Java support in the glideins.
-	Changed factory monitoring. It is now based on security names and not 
-	  plain frontend names
-	Added 'upgrade' option to factory startup script so that all the  
-	  files in the glidein submit directory are updated.  Did the same for
-	  the frontend startup script.  'reconfig' only updates the files 
-	  populated with information from the configuration files (no scripts).
+v3_0	Support for new API for factory - frontend communication
+	Improved logging using standard Python logging APIs
         The option to have either the factory and/or the frontend provide the 
-          pilot proxy has been removed.  The frontend must always provide it.
+	  pilot proxy has been removed.  The frontend must always provide it.
+	Added support to the Factory for EC2 Query API submissions to the Cloud
+	Consolidated the condor_tarball tag in glideinwms.xml to read in a list
+	  of os, arch, version
+
+v2_5_5  Added filtering to analyze_entries
+        Reduced the number of debug log messages when entry becomes inactive.
+        Frontend match making uses autoclusters, greatly increasing the
+          performance for busy frontends
+        Package the list of shared libraries required by Condor 7.7.3+ for
+          glidein tarballs
+        Pilot proxy is not available in the user job environment any more
+          reducing the chance for user job using it.
+        Ini Installer caan now create a tmeplate for single service installs
+        Bug Fix: Fixed several issues with the frontend rpm
+        Bug Fix: GLIDEIN_Glexec_Use=NEVER setting now correctly works with the
+         setting require_voms_proxy=True
+        Bug Fix: Installer now correctly works with the RPM OSG client
+        Bug Fix: ReqMaxIdle was grossly overestimated before.
+        Bug Fix: Fixed bug in factory monitoring web pages where the link
+          generation was off by one for monitoring groups
+        Bug Fix: Correctly respect the remove max_per_cycle=0 glideins in the
+          factory
+        Bug Fix: glexec_setup.sh now uses correct proxy for its tests
+
+v2_5_4  Added support for VDT pre installed via rpm. While using
+          ini-installer set vdt_location to empty and
+          x509_cert_dir=/etc/grid-security/certificates
+        Consolidated some of the frontend rpm related patches
+        Added support for rsl in glideinWMS.xml to map to cream_attributes
+          in the jdf
+        Bug Fix: Factory now correctly renews the proxies if the limits are hit
+        Bug Fix: frontend_startup does not show "upgrade" in help
+        Bug Fix: glideclient, glidefactoryclient & glideresource classads now
+          correctly show UpdateSequenceNumber to help condor track potentially
+          lost updates
+        Bug Fix: Fixed a bug where condor_shared_port daemon was not correctly
+          stopped under certain conditions
+
+v2_5_3  Updated the license to reflect current Fermitools license
+        Factory does a better job at respecting frontend limits
+        Admins can add custom html to the monitoring pages
+        Monitoring now displays additional information about the Factory and
+          Frontend names
+        Improved documentation
+        Enable Match Authentication configuration by default
+        Made quering of schedds efficient where ever possible.
+        Add autocomplete/search to table in frontendGroupGraphStatusNow.html
+        Added 'upgrade' option to factory startup script so that all the
+          files in the glidein submit directory are updated.  Did the same for
+          the frontend startup script. 'reconfig' only updates the files
+          populated with information from the configuration files (no scripts).
+        The OSG rpm worker node client requires changes to glidein startup
+          scripts. If you plan on using OSG sites that have used this rpm, you
+          must "upgrade" your factory in order to get glideins.
+        Bug fix: If there is no GLOBUS_LOCATION available to glidein, it will
+          not exit
+        Bug fix: Fixed a bug where factory would not advertise the entry under
+          certain conditions when it was put in downtime.
+        Bug fix: Fixed a bug where glidein_reconfig would not properly validate
+          schedd_name
+        Bug fix: Fixed a bug where frontend reconfig was not populating
+          GSI_DAEMON_PROXY correctly in frontend.condor_config
+        Bug fix: Writeback of config files on reconfig is now enable by default
+        Bug fix: Frontend does better error reporting when quering user pool or
+          the schedd fails
+        Bug fix: Fixed a bug in condor log parsing when we encounter event 400
+          (Job was evicted)
+        Bug fix: Fixed a bug where factory would not correctly accept requests
+          from frontends that were still using old keys
+        Bug fix: Fixed a bug where glidein pilot proxy lifetime was not taken
+          into account vs GLIDEIN_Max_Walltime 
+        Bug fix: Fixed a bug where expired/renewed proxy created error in
+          completed_jobs accounting
+        Bug fix: Fixed a bug where running_glideins_per_entry was not treating
+          the limits correctly
+        Bug fix: Fixed a bug in DAEMON_SHUTDOWN
+        Bug fix: Fixed a bug where voms requirements were not treated correctly
+        Bug fix: Added glidecondor_upgrade back to the install dir. This file
+          was missing in v2_5_2_1 release
+
+v2_5_2_1Bug fix: Fixed a bug creation of START expression when VOMS proxy is
+          set be required.
+        Bug Fix: Revert the glidein shutdown behavior introduced in v2_5_2
+        Bug Fix: Add condor_glexec_update_proxy to Condor tarball if available
+
+v2_5_2  Frontend publishes glideresource classad to the pool collector. This
+          is useful for the users to do match making for their jobs.
+        Useful job info like JOB_Site, JOB_GLIDEIN_Entry_Name, JOB_GLIDEIN_Name
+          JOB_GLIDEIN_Factory, JOB_GLIDEIN_Schedd, JOB_GLIDEIN_ClusterId,
+          JOB_GLIDEIN_ProcId, JOB_GLIDEIN_Site is now added to SUBMIT_EXPRS
+        Default GLEXEC_JOB = True when GLEXEC_BIN is set to use glexec
+        Factory can now resue old public key after startup to decrypt
+          frontend requests. Grace time for old public key is configurable.
+        The frontend now can set global limits on number of glideins.
+        The frontend now can use more than a single CPU.
+        glexec now tested during initial validation.
+        Bug fix frontend: Do not double count glideins when using multiple
+          groups.
+        Bug fix frontend: Respect per-entry running limits.
+        Bug fix factory: The factory was not properly checking the security
+          classes and setting downtimes.
+        Bug fix factory: Improper termination of glideins because of
+          SIGHUP is handled correctly
+        Bug fix factory: Daylight savings is now correctly accounted for.
+        Bug fix factory: GLIDEIN_Max_Walltime is now used correctly.
+        Major improvements in the factory and frontend monitoring.
+          Now requires javascriptRRD 0.6.0+.
+        Added tools for comparing the Factory configuration file with what
+          is published in information systems.
+        Limit the max number of glideins per frontend
+        Use DAEMON_SHUTDOWN to shutdown glidein daemons
+        Allow factory to specify if an entry point (CE) requires voms proxies
+          only for pilot and user jobs
+        Documentation added:
+          - Secondary WMS/User Collector documentation added to Advanced
+          Condor Configuration
+          - Documented the internal communication protocol through classads
+
+v2_5_1  Factory now can remove excessive glideins
+          New ClassAd attribute - RemoveExcess
+        Frontend will request removal of glideins when no user jobs in queue
+        Improved idle counting by the frontend when jobs match many factory
+          entries.
+        Improved frontend logging.
+        Add Java support in the glideins.
+        Changed factory monitoring. It is now based on security names and not
+          plain frontend names
+        Improved installation process using ini based installer.
+        glideinWMS tarball does not include CVS directories and files any more
+        Added support of shared port configuration for condor daemons
+        SIGHUP signals to glideins are ignored correctly.
+        Improved documentation
+        BUG FIX: Fixed a bug introduced in v2_5 release where reconfiguring the
+          factory would fail because of monitoring groups
+        BUG FIX: Fixed a typo in one of the links in frontendRRDBrowse.html
 
 v2_5	Installer can now install gridFTP and VOMS certs needed by CREAM
 	glideinWMS release is now available in 3 different tarballs, frontend

@@ -1,23 +1,23 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_0_rc1
+# GLIDEINWMS_VERSION v3_0_rc2
 ###################################################################
-c4e9c1f360b685b8a49c62e32e6a3498  ./LICENSE.txt
+ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 0a4e5a33f6dfdc6c64e0c07c7c034467  ./config/mailinglist.cfg
-53b5bd951cc9090ce3cccf33752f4de5  ./creation/create_glidein
+fc51e2fbe55e0bfcf7f2f08e487531dd  ./creation/create_glidein
 c9e6d02139e234416e1f3ea9c85204da  ./creation/create_condor_tarball
 2df897ee7090fc68b1f99190c44fbc3c  ./creation/info_glidein
 b3fff3610d0335615b9c4a8de8b36e20  ./creation/clone_glidein
-88c466773d029567914d8951128c3dfd  ./creation/templates/factory_initd_startup_template
+a0d1db2f9c6db8851a0d6ed2193c796a  ./creation/templates/factory_initd_startup_template
 e59bb78a8aba36d0d8691b5f9e4ebf4f  ./creation/lib/cWConsts.py
-d588606237c49920fa57377423b46d74  ./creation/lib/cWDictFile.py
+8fa107c0acee4d88673e5e000af3d379  ./creation/lib/cWDictFile.py
 3f7a3e32ef699fbb55bcd14e3a6bf305  ./creation/lib/cWParams.py
 1e4fdf37ce95463c629bf06e2882aa88  ./creation/lib/cgWConsts.py
-8957f85516ed16feb339c07448c6b76d  ./creation/lib/cgWCreate.py
+81f6902dd4912333c0b09c8dd55ed26b  ./creation/lib/cgWCreate.py
 aebdd8276a920c98496ef2b5d76812fc  ./creation/lib/cgWDictFile.py
 1e87212c88d4bfeea1627c243093e581  ./creation/lib/cgWParamDict.py
-5f3f91e91751296bef48045f1582e211  ./creation/lib/cgWParams.py
-2196201d5df7a4f6ea45f629bacb802a  ./creation/reconfig_glidein
+c73dda9c4e415f6798aaf95f750d9774  ./creation/lib/cgWParams.py
+19efe6d1c99b6aa6b6ff058ad4366d64  ./creation/reconfig_glidein
 f64c1f27b927ec6680e9c9928f2b415b  ./creation/web_base/cat_consts.sh
 1c168eb03bd763973ee21ec75fd5e19b  ./creation/web_base/check_blacklist.sh
 b68106e9099f368aad8b3ec6cf425125  ./creation/web_base/collector_setup.sh
@@ -141,20 +141,21 @@ a9338e8b72101366ea63b9761307976a  ./lib/condorManager.py
 ac7d5c93017e3887f1d44fcdee9a7237  ./lib/hashCrypto.py
 8f2a5749a999a23112ea6d294979b2ce  ./lib/glideinWMSVersion.py
 f8d386f77ee833fbc42f940349fb425e  ./lib/ldapMonitor.py
-17c1e91f1c1faeee6034e536a0199bb7  ./lib/logSupport.py
-025ea2591c24fc00db1dc70d81ccac3a  ./lib/pidSupport.py
+b5c96c8c481453fe2a612afc18181a1d  ./lib/logSupport.py
+e17e6efa7145ce36dae66e66684df85f  ./lib/exprParser.py
 afc12acfc94c41a6f7062db00ec27726  ./lib/pubCrypto.py
 c3ee88f6c8059322a14cd7d95d4b16e9  ./lib/rrdSupport.py
 ff4a12a8299eaa8bd2a5444d2d7283e4  ./lib/symCrypto.py
 74b4d180085dbffb27e3dab207110dac  ./lib/timeConversion.py
 fc45fbe31300af08c87d1d5be5f6aedb  ./lib/xmlFormat.py
 10c9784c6c21ac002d2cba9525a0358e  ./lib/xmlParse.py
-e17e6efa7145ce36dae66e66684df85f  ./lib/exprParser.py
+d6513c5dfaccf1441b19fc285a8f655f  ./lib/pidSupport.py
 aaac429c8396435a604650363daeaa45  ./lib/xmlFormat.pyc
 4d4c0681b811aa23b8cc92941cd81253  ./lib/condorPrivsep.pyc
 672243727ee590f8dbe7f6bbae5a3230  ./lib/condorExe.pyc
 9e91195107f307ea05c17373f6e421e7  ./lib/condorMonitor.pyc
 fd5a327b746cfc8061f56352e884ed1d  ./lib/condorSecurity.pyc
+6217825dc10d12fc53ac793978286e9e  ./lib/pidSupport.pyc
 1d438bed22df80946f076c07df508419  ./lib/classadSupport.py
 d11d15f18238ef184b98c903c3e97fdb  ./lib/cleanupSupport.py
 85810235f5f90736e8d2899acd2a2cc9  ./lib/encodingSupport.py

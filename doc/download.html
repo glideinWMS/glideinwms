@@ -92,37 +92,35 @@ Factory:
 
       <tr style="vertical-align:top;">
         <td>Stable Series</td>
-        <td>v2_5</td>
-        <td>January 25, 2011</td>
+        <td>v2_5_5</td>
+        <td>February 10, 2012</td>
         <td>
-          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_factory.tgz">glideinWMS Factory</a>]
-          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_frontend.tgz">glideinWMS Frontend</a>]
-          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5.tgz">glideinWMS full download</a>]
-          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/corral-2.5.0.tar.gz">Corral Frontend</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_5_factory.tgz">glideinWMS Factory</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_5_frontend.tgz">glideinWMS Frontend</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_5.tgz">glideinWMS full download</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/corral-2.5.5.tar.gz">Corral Frontend</a>]
         </td>
       </tr>
       <tr style="vertical-align:top;">
         <td>Development Series</td>
-        <td>-</td>
-        <td>-</td>
-        <td>Use Current Stable Series instead</td>
+        <td>v3_0</td>
+        <td>March xx, 2012</td>
+        <td>
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_0.tgz">glideinWMS Factory</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_0.tgz">glideinWMS Frontend</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_0.tgz">glideinWMS full download</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/corral-3.0.tar.gz">Corral Frontend</a>]
+        </td>
       </tr>
     </table>
-
+    <br/>
+    <h4>glideinWMS Frontend RPM</h4>
+    glideinWMS Frontend RPM is available for download from the OSG RPM repository. Refer to <a href="https://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFrontend">OSG glideinwms frontend installation guide</a> for details.
     <a name="download" />
-    <h2>Download instructions</h2>
-
-    The code is maintained in <a target="_blank" href="http://cdcvs0.fnal.gov/cgi-bin/public-cvs/cvsweb-public.cgi/glideinWMS/">CVS</a>.
+    <h2>Downloading from Repository </h2>
+    The code is maintained in <a target="_blank" href="https://cdcvs.fnal.gov/redmine/projects/glideinwms/repository">GIT</a>. To checkout the version from git, run following commands
     <br><br>
-
-    The code repository head is<br>
-    <div style="margin-left: 40px;"><span style="font-family: monospace;">:pserver:anonymous@cdcvs.fnal.gov:/cvs/cd_read_only</span></div>
-    and the package name is<br>
-    <div style="margin-left: 40px;"><span style="font-family: monospace;">glideinWMS</span></div>
-    <br>
-    So the complete BASH command would be:
-    <pre>cvs -d :pserver:anonymous@cdcvs.fnal.gov:/cvs/cd_read_only co -r v2_5 glideinWMS</pre>
-
+    <pre> git clone http://cdcvs.fnal.gov/projects/glideinwms<br> # Stable Series<br> git checkout v2_5_5<br> # Development Series<br> git checkout v3_0</pre>
 </div>
 <div class="footer">
 Banner image by
