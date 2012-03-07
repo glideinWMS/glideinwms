@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_0_rc2
+# GLIDEINWMS_VERSION v3_0_rc3
 ###################################################################
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
@@ -69,8 +69,6 @@ c01bff7ad130e0eeb2222b73f4b87173  ./frontend/checkFrontend.py
 4a8d33a8789778e2ceda159edf05123f  ./frontend/glideinFrontendPidLib.py
 4b19e979a057eec15a89fed00265e14b  ./frontend/glideinFrontendPlugins.py
 65031670c32b27ecb9f0c2673c2a85b3  ./frontend/stopFrontend.py
-9f4c169314e5a7c0b50e2955ae3d0c21  ./frontend/glideinFrontendPidLib.pyc
-977aab9e982c6bc78d326ff30b1fb9b0  ./frontend/glideinFrontendConfig.pyc
 5349d7f1b023464642727c352e40d627  ./frontend/tools/frontend_match_ana
 af7b05b8eb71b2952f1c4038fa23156a  ./frontend/tools/frontend_match_list
 f89e65327579b013cb899b416ebdaff9  ./install/glidecondor_addDN
@@ -92,19 +90,6 @@ c914170f14d482a89ea300c80772d289  ./install/services/WMSCollector.py
 6966d0ea38f24a3c5a617738374bd0b0  ./install/services/common.py
 e532d63046eeb7a2d255181c3947d4c9  ./install/services/RPM.py
 e11d30b85bc8ee174418de14c2210257  ./install/services/init_schedd.sh
-32623c97c1219cffc9d07266ff011228  ./install/services/common.pyc
-791eaef88500fdb6441cc5be6b9c8eef  ./install/services/Configuration.pyc
-089765357fea089ad0ac9fd4424773f7  ./install/services/WMSCollector.pyc
-264af1e6619c5e18fd5f209271be5e9a  ./install/services/Certificates.pyc
-f6147cc818a5560c9b3177f258297f81  ./install/services/VDT.pyc
-b3409edac861d3ee6ead9b2bbfb6d926  ./install/services/Condor.pyc
-4a5f4f2d54a91ee38e0824ed266295ba  ./install/services/VDTClient.pyc
-8985328e08d91bd1d2878d75edba8b89  ./install/services/VOFrontend.pyc
-d0824c934d3abfab7f02174f3c4bd7e6  ./install/services/Factory.pyc
-a5c1418c58d4cd874f500c5969011ad1  ./install/services/Glidein.pyc
-ee3018bdc62b4186ee687a1f62250675  ./install/services/Submit.pyc
-cc2d734568fb0a16d8803cac18f5e32c  ./install/services/UserCollector.pyc
-e4acce7305c2959eff1c4d80280e3d6d  ./install/services/RPM.pyc
 94a8d8cfb37f2f85df03b5eae2863627  ./lib/condorExe.py
 0468ba9313a413fcb78201faa6967f7e  ./lib/condorLogParser.py
 a9338e8b72101366ea63b9761307976a  ./lib/condorManager.py
@@ -115,20 +100,14 @@ ac7d5c93017e3887f1d44fcdee9a7237  ./lib/hashCrypto.py
 8f2a5749a999a23112ea6d294979b2ce  ./lib/glideinWMSVersion.py
 f8d386f77ee833fbc42f940349fb425e  ./lib/ldapMonitor.py
 b5c96c8c481453fe2a612afc18181a1d  ./lib/logSupport.py
-e17e6efa7145ce36dae66e66684df85f  ./lib/exprParser.py
+d6513c5dfaccf1441b19fc285a8f655f  ./lib/pidSupport.py
 afc12acfc94c41a6f7062db00ec27726  ./lib/pubCrypto.py
 c3ee88f6c8059322a14cd7d95d4b16e9  ./lib/rrdSupport.py
 ff4a12a8299eaa8bd2a5444d2d7283e4  ./lib/symCrypto.py
 74b4d180085dbffb27e3dab207110dac  ./lib/timeConversion.py
 fc45fbe31300af08c87d1d5be5f6aedb  ./lib/xmlFormat.py
 10c9784c6c21ac002d2cba9525a0358e  ./lib/xmlParse.py
-d6513c5dfaccf1441b19fc285a8f655f  ./lib/pidSupport.py
-aaac429c8396435a604650363daeaa45  ./lib/xmlFormat.pyc
-4d4c0681b811aa23b8cc92941cd81253  ./lib/condorPrivsep.pyc
-672243727ee590f8dbe7f6bbae5a3230  ./lib/condorExe.pyc
-9e91195107f307ea05c17373f6e421e7  ./lib/condorMonitor.pyc
-fd5a327b746cfc8061f56352e884ed1d  ./lib/condorSecurity.pyc
-6217825dc10d12fc53ac793978286e9e  ./lib/pidSupport.pyc
+e17e6efa7145ce36dae66e66684df85f  ./lib/exprParser.py
 1d438bed22df80946f076c07df508419  ./lib/classadSupport.py
 d11d15f18238ef184b98c903c3e97fdb  ./lib/cleanupSupport.py
 85810235f5f90736e8d2899acd2a2cc9  ./lib/encodingSupport.py
