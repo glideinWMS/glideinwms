@@ -17,6 +17,7 @@ import sys
 import copy
 import time
 import string
+import traceback
 from sets import Set
 
 STARTUP_DIR = sys.path[0]
@@ -570,26 +571,46 @@ class MultiAdvertizeWork:
             fd.write('ClientName = "%s"\n'%self.descript_obj.my_name)
             for i in range(nr_credentials):
                 cred_el=x509_proxies_data[i]
+                cred_el.advertize=True
                 if (hasattr(cred_el,'filename')):
-                    data_fd=open(cred_el.filename)
-                    cred_data=data_fd.read()
-                    data_fd.close()
+                    try:
+                        data_fd=open(cred_el.filename)
+                        cred_data=data_fd.read()
+                        data_fd.close()
+                    except:
+                        cred_el.advertize=False
+                        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
+                        logSupport.log.error("Advertising global credential %s failed: %s" % (cred_el.filename, tb))
+                        continue
                     glidein_params_to_encrypt[cred_el.file_id(cred_el.filename)]=cred_data
                     if (hasattr(cred_el,'security_class')):
                         # Convert the sec class to a string so the Factory can interpret the value correctly
                         glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(cred_el.filename)]=str(cred_el.security_class)
                 if (hasattr(cred_el,'key_fname')):
-                    data_fd=open(cred_el.key_fname)
-                    cred_data=data_fd.read()
-                    data_fd.close()
+                    try:
+                        data_fd=open(cred_el.key_fname)
+                        cred_data=data_fd.read()
+                        data_fd.close()
+                    except:
+                        cred_el.advertize=False
+                        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
+                        logSupport.log.error("Advertising global credential %s failed: %s" % (cred_el.filename, tb))
+                        continue
+                        
                     glidein_params_to_encrypt[cred_el.file_id(cred_el.key_fname)]=cred_data
                     if (hasattr(cred_el,'security_class')):
                         # Convert the sec class to a string so the Factory can interpret the value correctly
                         glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(cred_el.key_fname)]=str(cred_el.security_class)
                 if (hasattr(cred_el,'pilot_fname')):
-                    data_fd=open(cred_el.pilot_fname)
-                    cred_data=data_fd.read()
-                    data_fd.close()
+                    try:
+                        data_fd=open(cred_el.pilot_fname)
+                        cred_data=data_fd.read()
+                        data_fd.close()
+                    except:
+                        cred_el.advertize=False
+                        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
+                        logSupport.log.error("Advertising global credential %s failed: %s" % (cred_el.filename, tb))
+                        continue
                     glidein_params_to_encrypt[cred_el.file_id(cred_el.pilot_fname)]=cred_data
                     if (hasattr(cred_el,'security_class')):
                         # Convert the sec class to a string so the Factory can interpret the value correctly
@@ -689,6 +710,14 @@ class MultiAdvertizeWork:
                 req_max_run=0
                 if x509_proxies_data!=None:
                     credential_el=x509_proxies_data[i]
+                    logSupport.log.debug("Checking Credential file %s ..."%(credential_el.filename))
+                    if credential_el.advertize==False:
+                        filestr="(filename unknown)"
+                        if hasattr(credential_el,'filename'):
+                            filestr=credential_el.filename
+                        logSupport.log.warn("Credential file %s had some earlier problem in loading so not advertizing, skipping..."%(filestr))
+                        continue
+
                     if (params_obj.request_name in self.factory_constraint):
                         if (credential_el.type!=factory_auth) and (factory_auth!="Any"):
                             logSupport.log.debug("Credential %s does not match auth method %s (for %s), skipping..."%(credential_el.type,factory_auth,params_obj.request_name))
