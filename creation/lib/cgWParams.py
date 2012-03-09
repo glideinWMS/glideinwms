@@ -67,14 +67,19 @@ class GlideinParams(cWParams.CommonParams):
         entry_config_defaults=cWParams.commentedOrderedDict()
 
         entry_config_max_jobs_defaults=cWParams.commentedOrderedDict()
-        entry_config_max_jobs_defaults["running"]=('10000',"nr","Maximum number of concurrent glideins (per frontend) that can be submitted.",None)
-        entry_config_max_jobs_defaults["idle"]=('2000',"nr","Maximum number of idle glideins (per frontend) allowed.",None)
-        entry_config_max_jobs_defaults["held"]=('1000',"nr","Maximum number of held glideins (per frontend) before forcing the cleanup.",None)
-        entry_config_max_jobs_defaults["default_fesc_running"]=('10000',"nr","Maximum number of concurrent glideins (default per frontend) that can be submitted.",None)
-        entry_config_max_jobs_defaults["default_fesc_idle"]=('2000',"nr","Maximum number of idle glideins (default per frontend) allowed.",None)
-        entry_config_max_jobs_defaults["default_fesc_held"]=('1000',"nr","Maximum number of held glideins (default per frontend) before forcing the cleanup.",None)
+        entry_config_max_jobs_defaults["running"]=('10000',"nr","Maximum number of concurrent glideins that can be submitted.",None)
+        entry_config_max_jobs_defaults["idle"]=('2000',"nr","Maximum number of idle glideins allowed.",None)
+        entry_config_max_jobs_defaults["held"]=('1000',"nr","Maximum number of held glideins before forcing the cleanup.",None)
         entry_config_max_jobs_defaults["max_job_frontends"]=(xmlParse.OrderedDict(),'Dictionary of frontends',"Each frontend entry contains",self.max_job_frontend_defaults)
+        
+        default_max_jobs_frontend_defaults=cWParams.commentedOrderedDict()
+        default_max_jobs_frontend_defaults["running"]=('5000',"nr","Maximum number of concurrent glideins (default per frontend-security class) that can be submitted.",None)
+        default_max_jobs_frontend_defaults["idle"]=('100',"nr","Maximum number of idle glideins (default per frontend-security class) allowed.",None)
+        default_max_jobs_frontend_defaults["held"]=('50',"nr","Maximum number of held glideins (default per frontend-security class) before forcing the cleanup.",None)
+        entry_config_max_jobs_defaults["default_max_jobs_frontend"]=default_max_jobs_frontend_defaults
+        
         entry_config_defaults['max_jobs']=entry_config_max_jobs_defaults
+        
         
         entry_config_restrictions_defaults=cWParams.commentedOrderedDict()
         entry_config_restrictions_defaults["require_voms_proxy"]=("False","Bool","Whether this entry point requires a voms proxy",None)
