@@ -150,15 +150,12 @@ def expand_DD(qstr,attr_dict):
     
 
 ############################################################
-def iterate_one(client_name, elementDescript, paramsDescript, constsDescript, attr_dict, signatureDescript, x509_proxy_plugin, stats, history_obj):
+def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatureDescript, x509_proxy_plugin, stats, history_obj):
     frontend_name = elementDescript.frontend_data['FrontendName']
     group_name = elementDescript.element_data['GroupName']
     security_name = elementDescript.merged_data['SecurityName']
 
     web_url = elementDescript.frontend_data['WebURL']
-
-    # query condor
-    glideinFrontendLib.log_files.logActivity("Querying schedd, entry, and glidein status using child processes.")
 
     pipe_ids={}
 
@@ -828,7 +825,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, constsDescript, at
     return
 
 ############################################################
-def iterate(parent_pid, elementDescript, paramsDescript, constsDescript, attr_dict, signatureDescript, x509_proxy_plugin):
+def iterate(parent_pid, elementDescript, paramsDescript, attr_dict, signatureDescript, x509_proxy_plugin):
     sleep_time = int(elementDescript.frontend_data['LoopDelay'])
 
     factory_pools = elementDescript.merged_data['FactoryCollectors']
@@ -856,7 +853,7 @@ def iterate(parent_pid, elementDescript, paramsDescript, constsDescript, attr_di
                 # recreate every time (an easy way to start from a clean state)
                 stats['group'] = glideinFrontendMonitoring.groupStats()
 
-                done_something = iterate_one(published_frontend_name, elementDescript, paramsDescript, constsDescript, attr_dict, signatureDescript, x509_proxy_plugin, stats, history_obj)
+                done_something = iterate_one(published_frontend_name, elementDescript, paramsDescript, attr_dict, signatureDescript, x509_proxy_plugin, stats, history_obj)
                 logSupport.log.info("iterate_one status: %s" % str(done_something))
 
                 logSupport.log.info("Writing stats")
@@ -933,6 +930,7 @@ def main(parent_pid, work_dir, group_name):
     logSupport.log.debug("Frontend Element startup time: %s" % str(startup_time))
 
     paramsDescript = glideinFrontendConfig.ParamsDescript(work_dir, group_name)
+    attrsDescript = glideinFrontendConfig.AttrsDescript(work_dir,group_name)
     signatureDescript = glideinFrontendConfig.GroupSignatureDescript(work_dir, group_name)
     #
     # We decided we will not use the data from the stage area
@@ -984,7 +982,7 @@ def main(parent_pid, work_dir, group_name):
     try:
         try:
             logSupport.log.info("Starting up")
-            iterate(parent_pid, elementDescript, paramsDescript, constsDescript, attr_dict, signatureDescript, x509_proxy_plugin)
+            iterate(parent_pid, elementDescript, paramsDescript, attr_dict, signatureDescript, x509_proxy_plugin)
         except KeyboardInterrupt:
             logSupport.log.info("Received signal...exit")
         except:
