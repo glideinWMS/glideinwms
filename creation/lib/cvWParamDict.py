@@ -142,6 +142,9 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
                     mfobj.load()
                     self.monitor_htmls.append(mfobj)
 
+        # derive attributes
+        populate_common_attrs(self.dicts)
+
         # populate security data
         populate_main_security(self.client_security,params)
 
@@ -259,6 +262,9 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         
         self.dicts['consts'].add('GLIDECLIENT_Group_Start',real_start_expr)
 
+        # derive attributes
+        populate_common_attrs(self.dicts)
+
         # populate complex files
         populate_group_descript(self.work_dir,self.dicts['group_descript'],
                                 self.sub_name,sub_params)
@@ -267,6 +273,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         # populate security data
         populate_main_security(self.client_security,params)
         populate_group_security(self.client_security,params,sub_params)
+
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -721,4 +728,14 @@ def populate_group_security(client_security,params,sub_params):
         schedd_dns.append(dn)
     client_security['schedd_DNs']=schedd_dns
 
+#####################################################
+# Populate attrs
+# This is a digest of the other values
+
+def populate_common_attrs(dicts):
+    # there should be no conflicts, so does not matter in which order I put them together
+    for k in dicts['params'].keys:
+        dicts['attrs'].add(k,dicts['params'].get_true_val(k))
+    for k in dicts['consts'].keys:
+        dicts['attrs'].add(k,dicts['consts'].get_typed_val(k))
     
