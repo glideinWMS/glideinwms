@@ -96,13 +96,11 @@ def get_security_classes(factory_dir):
 
 # Create an array for each frontend in the frontend descript file
 def get_frontends(factory_dir):
-    fe_array=[];
     frontendDescript=glideFactoryConfig.ConfigFile(factory_dir+"/frontend.descript",lambda s:s)
     return frontendDescript.data.keys();
 
 # Create an array for each entry in the glidein descript file
 def get_entries(factory_dir):
-    fe_array=[];
     glideinDescript=glideFactoryConfig.GlideinDescript()
     #glideinDescript=glideFactoryConfig.ConfigFile(factory_dir+"/glidein.descript",lambda s:s)
     return string.split(glideinDescript.data['Entries'],',');
@@ -115,7 +113,7 @@ def get_downtime_fd(entry_name,cmdname):
         config=glideFactoryConfig.GlideinDescript()
         #else:
         #    config=glideFactoryConfig.JobDescript(entry_name)
-    except IOError, e:
+    except IOError:
         raise RuntimeError, "Failed to load config for %s"%entry_name
 
     fd=glideFactoryDowntimeLib.DowntimeFile(config.data['DowntimesFile'])
@@ -222,7 +220,6 @@ def printtimes(entry_or_id,opt_dict):
 # only some security classes.
 def check(entry_or_id,opt_dict):
     config_els=get_downtime_fd_dict(entry_or_id,opt_dict["dir"],opt_dict)
-    when=0
     when=delay2time(opt_dict["delay"])
     sec_name=opt_dict["sec"]
     when+=long(time.time())
@@ -298,7 +295,6 @@ def infosys_based(entry_name,opt_dict,infosys_types):
         for entry in entries:
             config_els[entry]={}
     else:
-        config_el={}
         config_els[entry_name]={}
 
     # load the infosys info
