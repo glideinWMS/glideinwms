@@ -1,3 +1,4 @@
+	Add attr_dict in the environemnt of the frontend match_expr
 	New feature: The start_expr is now a native part of match
 v2_5_5	Added filtering to analyze_entries
 	Reduced the number of debug log messages when entry becomes inactive.
