@@ -624,7 +624,8 @@ class FileDictFile(SimpleFileDictFile):
         return
 
 # will convert values into python format before writing them out
-class ReprDictFile(DictFile):
+#   given that it does not call any parent methods, implement an interface first
+class ReprDictFileInterface:
     def format_val(self,key,want_comments):
         return "%s \t%s"%(key,repr(self.vals[key]))
 
@@ -644,10 +645,45 @@ class ReprDictFile(DictFile):
             val=arr[1]
         return self.add(key,eval(val))
 
+    # fake init to make pylint happy
+    def interface_fake_init(self):
+        self.vals={}
+        self.add=lambda x,y:True
+        raise NotImplementedError, "This function must never be called"
+
+#   this one actually has the full semantics
+class ReprDictFile(ReprDictFileInterface,DictFile):
+    pass
+
 # will hold only strings
 class StrDictFile(DictFile):
     def add(self,key,val,allow_overwrite=False):
         DictFile.add(self,key,str(val),allow_overwrite)
+
+# will save only strings
+# while populating, it may hold other types
+# not guaranteed to have typed values on (re-)load
+class StrWWorkTypeDictFile(StrDictFile):
+    def __init__(self,dir,fname,sort_keys=False,order_matters=False,
+                 fname_idx=None):      # if none, use fname
+        StrDictFile.__init__(self,dir,fname,sort_keys,order_matters,fname_idx)
+        self.typed_vals={}
+                             
+    def erase(self):
+        StrDictFile.erase(self)
+        self.typed_vals={}
+
+    def remove(self,key,fail_if_missing=False):
+        StrDictFile.remove(self,key,fail_if_missing)
+        if self.typed_vals.has_key(key):
+            del self.typed_vals[key]
+        
+    def get_typed_val(self,key):
+        return self.typed_vals[key]
+
+    def add(self,key,val,allow_overwrite=False):
+        StrDictFile.add(self,key,val,allow_overwrite)
+        self.typed_vals[key]=val
 
 # values are (Type,Default,CondorName,Required,Export,UserName)
 class VarsDictFile(DictFile):

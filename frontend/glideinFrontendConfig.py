@@ -1,5 +1,6 @@
 import string
 import os.path
+import urllib
 
 #
 # Project:
@@ -25,6 +26,7 @@ class FrontendConfig:
         self.frontend_descript_file = "frontend.descript"
         self.group_descript_file = "group.descript"
         self.params_descript_file = "params.cfg"
+        self.attrs_descript_file = "attrs.cfg"
         self.signature_descript_file = "signatures.sha1"
         self.signature_type = "sha1"
 
@@ -39,38 +41,66 @@ frontendConfig=FrontendConfig()
 #
 ############################################################
 
-# loads a file composed of
+# loads a file or URL composed of
 #   NAME VAL
 # and creates
 #   self.data[NAME]=VAL
 # It also defines:
 #   self.config_file="name of file"
+# If validate is defined, also defines
+#   self.hash_value
 class ConfigFile:
-    def __init__(self,config_dir,config_file,convert_function=repr):
+    def __init__(self,config_dir,config_file,convert_function=repr,
+                 validate=None): # if defined, must be (hash_algo,value)
         self.config_dir=config_dir
         self.config_file=config_file
-        self.load(os.path.join(config_dir,config_file),convert_function)
+        self.data={}
+        self.load(os.path.join(config_dir,config_file),convert_function,validate)
         self.derive()
 
-    def load(self,fname,convert_function):
+    def open(self,fname):
+        if (fname[:5]=="http:") or (fname[:6]=="https:") or (fname[:4]=="ftp:"):
+            # one of the supported URLs
+            return urllib.urlopen(fname)
+        else:
+            # local file
+            return open(fname,"r")
+        
+
+    def validate_func(self,data,validate,fname):
+        if validate!=None:
+            import hashCrypto
+            vhash=hashCrypto.get_hash(validate[0],data)
+            self.hash_value=vhash
+            if (validate[1]!=None) and (vhash!=validate[1]):
+                raise IOError, "Failed validation of '%s'. Hash %s computed to '%s', expected '%s'"%(fname,validate[0],vhash,validate[1])
+
+    def load(self,fname,convert_function,
+             validate=None): # if defined, must be (hash_algo,value)
         self.data={}
-        fd=open(fname,"r")
+        fd=self.open(fname)
         try:
-            lines=fd.readlines()
+            data=fd.read()
+            self.validate_func(data,validate,fname)
+            lines=data.splitlines()
+            del data
             for line in lines:
                 if line[0]=="#":
                     continue # comment
                 if len(string.strip(line))==0:
                     continue # empty line
-                larr=string.split(line,None,1)
-                lname=larr[0]
-                if len(larr)==1:
-                    lval=""
-                else:
-                    lval=larr[1][:-1] #strip newline
-                exec("self.data['%s']=%s"%(lname,convert_function(lval)))
+                self.split_func(line,convert_function)
         finally:
             fd.close()
+
+    def split_func(self,line,convert_function):
+        larr=string.split(line,None,1)
+        lname=larr[0]
+        if len(larr)==1:
+            lval=""
+        else:
+            lval=larr[1]
+        exec("self.data['%s']=%s"%(lname,convert_function(lval)))
 
     def derive(self):
         return # by default, do nothing
@@ -83,17 +113,23 @@ class ConfigFile:
 
 # load from the group subdir
 class GroupConfigFile(ConfigFile):
-    def __init__(self,base_dir,group_name,config_file,convert_function=repr):
-        ConfigFile.__init__(self,os.path.join(base_dir,"group_"+group_name),config_file,convert_function)
+    def __init__(self,base_dir,group_name,config_file,convert_function=repr,
+                 validate=None): # if defined, must be (hash_algo,value)
+        ConfigFile.__init__(self,os.path.join(base_dir,"group_"+group_name),config_file,convert_function,validate)
         self.group_name=group_name
 
 # load both the main and group subdir config file
 # and join the results
+# Also defines:
+#   self.group_hash_value, if group_validate defined
 class JoinConfigFile(ConfigFile):
-    def __init__(self,base_dir,group_name,config_file,convert_function=repr):
-        ConfigFile.__init__(self,base_dir,config_file,convert_function)
+    def __init__(self,base_dir,group_name,config_file,convert_function=repr,
+                 main_validate=None,group_validate=None): # if defined, must be (hash_algo,value)
+        ConfigFile.__init__(self,base_dir,config_file,convert_function,main_validate)
         self.group_name=group_name
-        group_obj=GroupConfigFile(base_dir,group_name,config_file,convert_function)
+        group_obj=GroupConfigFile(base_dir,group_name,config_file,convert_function,group_validate)
+        if group_validate!=None:
+            self.group_hash_value=group_obj.hash_value
         #merge by overriding whatever is found in the subdir
         for k in group_obj.data.keys():
             self.data[k]=group_obj.data[k]
@@ -135,30 +171,40 @@ class ParamsDescript(JoinConfigFile):
             else:
                 raise RuntimeError, "Unknown parameter type '%s' for '%s'!"%(type_str,k)
 
-class SignatureDescript:
+class AttrsDescript(JoinConfigFile):
+    def __init__(self,base_dir,group_name):
+        global frontendConfig
+        JoinConfigFile.__init__(self,base_dir,group_name,frontendConfig.attrs_descript_file,
+                                str)  # they are already in python form
+
+# this one is the special frontend work dir signature file
+class SignatureDescript(ConfigFile):
     def __init__(self,config_dir):
         global frontendConfig
-        self.config_dir=config_dir
-        self.config_file=frontendConfig.signature_descript_file
-        self.load(os.path.join(self.config_dir,self.config_file))
+        ConfigFile.__init__(self,config_dir,frontendConfig.signature_descript_file,
+                            None) # Not used, redefining split_func
         self.signature_type=frontendConfig.signature_type
 
-    def load(self,fname):
-        self.data={}
-        fd=open(fname,"r")
-        try:
-            lines=fd.readlines()
-            for line in lines:
-                if line[0]=="#":
-                    continue # comment
-                if len(string.strip(line))==0:
-                    continue # empty line
-                larr=string.split(line,None)
-                if len(larr)!=3:
-                    raise RuntimeError, "Invalid line (expected 3 elements, found %i)"%len(larr)
-                self.data[larr[2]]=(larr[0],larr[1])
-        finally:
-            fd.close()
+    def split_func(self,line,convert_function):
+        larr=string.split(line,None)
+        if len(larr)!=3:
+            raise RuntimeError, "Invalid line (expected 3 elements, found %i)"%len(larr)
+        self.data[larr[2]]=(larr[0],larr[1])
+
+# this one is the generic hash descript file
+class BaseSignatureDescript(ConfigFile):
+    def __init__(self,config_dir,signature_fname,signature_type,validate=None):
+        ConfigFile.__init__(self,config_dir,signature_fname,
+                            None, # Not used, redefining split_func
+                            validate)
+        self.signature_type=signature_type
+
+    def split_func(self,line,convert_function):
+        larr=string.split(line,None,1)
+        if len(larr)!=2:
+            raise RuntimeError, "Invalid line (expected 2 elements, found %i)"%len(larr)
+        lval=larr[1]
+        self.data[lval]=larr[0]
 
 ############################################################
 #
@@ -301,3 +347,78 @@ class GroupSignatureDescript:
         self.group_descript_fname=gd[1]
         self.group_descript_signature=gd[0]
 
+class StageFiles:
+    def __init__(self,base_URL,descript_fname,validate_algo,signature_hash):
+        self.base_URL=base_URL
+        self.validate_algo=validate_algo
+        self.stage_descript=ConfigFile(base_URL, descript_fname, repr,
+                                       (validate_algo,None)) # just get the hash value... will validate later
+
+        self.signature_descript=BaseSignatureDescript(base_URL,self.stage_descript.data['signature'],validate_algo,(validate_algo,signature_hash))
+        
+        if self.stage_descript.hash_value!=self.signature_descript.data[descript_fname]:
+            raise IOError, "Descript file %s signature invalid, expected'%s' got '%s'"%(descript_fname,self.signature_descript.data[descript_fname],self.stage_descript.hash_value)
+
+    def get_stage_file(self,fname,repr):
+        return ConfigFile(self.base_URL,fname,repr,
+                          (self.validate_algo,self.signature_descript.data[fname]))
+
+    def get_file_list(self,list_type): # example list_type == 'preentry_file_list'
+        if not self.stage_descript.data.has_key(list_type):
+            raise KeyError,"Unknown list type '%s'; valid typtes are %s"%(list_type,self.stage_descript.data.keys())
+
+        list_fname=self.stage_descript.data[list_type]
+        return self.get_stage_file(self.stage_descript.data[list_type],
+                                   lambda x:string.split(x,None,4))
+
+# this class knows how to interpret some of the files in the Stage area
+class ExtStageFiles(StageFiles):
+    def __init__(self,base_URL,descript_fname,validate_algo,signature_hash):
+        StageFiles.__init__(self,base_URL,descript_fname,validate_algo,signature_hash)
+        self.preentry_file_list=None
+
+    def get_constants(self):
+        self.load_preentry_file_list()
+        return self.get_stage_file(self.preentry_file_list.data['constants.cfg'][0],repr)
+
+    def get_condor_vars(self):
+        self.load_preentry_file_list()
+        return self.get_stage_file(self.preentry_file_list.data['condor_vars.lst'][0],lambda x:string.split(x,None,6))
+
+    # internal
+    def load_preentry_file_list(self):
+        if self.preentry_file_list==None:
+            self.preentry_file_list=self.get_file_list('preentry_file_list')
+        # else, nothing to do
+
+# this class knows how to interpret some of the files in the Stage area
+# Will parrpopriately merge the main and the group ones
+class MergeStageFiles:
+    def __init__(self,base_URL,validate_algo,
+                 main_descript_fname,main_signature_hash,
+                 group_name,group_descript_fname,group_signature_hash):
+        self.group_name=group_name
+        self.main_stage=ExtStageFiles(base_URL,main_descript_fname,validate_algo,main_signature_hash)
+        self.group_stage=ExtStageFiles(os.path.join(base_URL,"group_"+group_name),group_descript_fname,validate_algo,group_signature_hash)
+
+    def get_constants(self):
+        main_consts=self.main_stage.get_constants()
+        group_consts=self.group_stage.get_constants()
+        # group constants override the main ones
+        for k in group_consts.data.keys():
+            main_consts.data[k]=group_consts.data[k]
+        main_consts.group_name=self.group_name
+        main_consts.group_hash_value=group_consts.hash_value
+
+        return main_consts
+    
+    def get_condor_vars(self):
+        main_cv=self.main_stage.get_condor_vars()
+        group_cv=self.group_stage.get_condor_vars()
+        # group condor_vars override the main ones
+        for k in group_cv.data.keys():
+            main_cv.data[k]=group_cv.data[k]
+        main_cv.group_name=self.group_name
+        main_cv.group_hash_value=group_cv.hash_value
+
+        return main_cv

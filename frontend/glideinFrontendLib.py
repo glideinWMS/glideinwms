@@ -160,7 +160,7 @@ def getCondorQUsers(condorq_dict):
 #  A special "glidein name" of (None, None, None) is used for jobs 
 #   that don't match any "real glidein name"
 
-def countMatch(match_obj, condorq_dict, glidein_dict, condorq_match_list=None):
+def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, condorq_match_list=None):
     out_glidein_counts = {}
     #new_out_counts: keys are site indexes(numbers), 
     #elements will be the number of real
@@ -288,7 +288,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, condorq_match_list=None):
     final_unique[(None,None,None)]=count_unmatched
     return (out_glidein_counts,final_out_counts,final_unique)
 
-def countRealRunning(match_obj,condorq_dict,glidein_dict,condorq_match_list=None):
+def countRealRunning(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match_list=None):
     out_glidein_counts={}
 
     if condorq_match_list!=None:

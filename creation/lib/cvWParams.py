@@ -275,11 +275,16 @@ class VOFrontendParams(cWParams.CommonParams):
     # verify match data and create the attributes if needed
     def derive_match_attrs(self):
         self.validate_match('frontend',self.match.match_expr,
-                            self.match.factory.match_attrs,self.match.job.match_attrs)
+                            self.match.factory.match_attrs,self.match.job.match_attrs,self.attrs)
 
         group_names=self.groups.keys()
         for group_name in group_names:
             # merge general and group matches
+            attrs_dict={}
+            for attr_name in self.attrs.keys():
+                attrs_dict[attr_name]=self.attrs[attr_name]
+            for attr_name in self.groups[group_name].attrs.keys():
+                attrs_dict[attr_name]=self.groups[group_name].attrs[attr_name]
             factory_attrs={}
             for attr_name in self.match.factory.match_attrs.keys():
                 factory_attrs[attr_name]=self.match.factory.match_attrs[attr_name]
@@ -292,7 +297,7 @@ class VOFrontendParams(cWParams.CommonParams):
                 job_attrs[attr_name]=self.groups[group_name].match.job.match_attrs[attr_name]
             match_expr="(%s) and (%s)"%(self.match.match_expr,self.groups[group_name].match.match_expr)
             self.validate_match('group %s'%group_name,match_expr,
-                                factory_attrs,job_attrs)
+                                factory_attrs,job_attrs,attrs_dict)
 
         return
 
@@ -341,8 +346,8 @@ class VOFrontendParams(cWParams.CommonParams):
         return
 
     def validate_match(self,loc_str,
-                       match_str,factory_attrs,job_attrs):
-        env={'glidein':{'attrs':{}},'job':{}}
+                       match_str,factory_attrs,job_attrs,attr_dict):
+        env={'glidein':{'attrs':{}},'job':{},'attr_dict':{}}
         for attr_name in factory_attrs.keys():
             attr_type=factory_attrs[attr_name]['type']
             if attr_type=='string':
@@ -369,6 +374,17 @@ class VOFrontendParams(cWParams.CommonParams):
             else:
                 raise RuntimeError, "Invalid %s job attr type '%s'"%(loc_str,attr_type)
             env['job'][attr_name]=attr_val
+        for attr_name in attr_dict.keys():
+            attr_type=attr_dict[attr_name]['type']
+            if attr_type=='string':
+                attr_val='a'
+            elif attr_type=='int':
+                attr_val=1
+            elif attr_type=='expr':
+                attr_val='a'
+            else:
+                raise RuntimeError, "Invalid %s attr type '%s'"%(loc_str,attr_type)
+            env['attr_dict'][attr_name]=attr_val
         try:
             match_obj=compile(match_str,"<string>","eval")
             eval(match_obj,env)

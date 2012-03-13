@@ -128,8 +128,29 @@ def fetch_fork_result_list(pipe_ids):
     return out
         
 
+######################
+# expand $$(attribute)
+def expand_DD(qstr,attr_dict):
+    import re
+    robj=re.compile("\$\$\((?P<attrname>[^\)]*)\)")
+    while 1:
+        m=robj.search(qstr)
+        if m==None:
+            break # no more substitutions to do
+        attr_name=m.group('attrname')
+        if not attr_dict.has_key(attr_name):
+            raise KeyError, "Missing attribute %s"%attr_name
+        attr_val=attr_dict[attr_name]
+        if type(attr_val)==type(1):
+            attr_str=str(attr_val)
+        else: # assume it is a string for all other purposes... quote and escape existing quotes
+            attr_str='"%s"'%attr_val.replace('"','\\"')
+        qstr="%s%s%s"%(qstr[:m.start()],attr_str,qstr[m.end():])
+    return qstr
+    
+
 ############################################################
-def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript, x509_proxy_plugin, stats, history_obj):
+def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatureDescript, x509_proxy_plugin, stats, history_obj):
     frontend_name = elementDescript.frontend_data['FrontendName']
     group_name = elementDescript.element_data['GroupName']
     security_name = elementDescript.merged_data['SecurityName']
@@ -192,6 +213,8 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         os.close(r)
         try:
             glidein_dict = {}
+            factory_constraint=expand_DD(elementDescript.merged_data['FactoryQueryExpr'],attr_dict)
+            factory_pools=elementDescript.merged_data['FactoryCollectors']
             for factory_pool in factory_pools:
                 factory_pool_node = factory_pool[0]
                 factory_identity = factory_pool[1]
@@ -253,7 +276,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
                 condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN','s'),))
                 condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN','s'),))
                 condorq_dict = glideinFrontendLib.getCondorQ(elementDescript.merged_data['JobSchedds'],
-                                                       elementDescript.merged_data['JobQueryExpr'],
+                                                       expand_DD(elementDescript.merged_data['JobQueryExpr'],attr_dict),
                                                        condorq_format_list)
             except Exception, e:
                 logSupport.log.info("In query schedd child, exception %s" % e)
@@ -412,7 +435,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
             os.close(r)
             try:
                 if dt=='Real':
-                    out=glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict,condorq_match_list)
+                    out=glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict,attr_dict,condorq_match_list)
                 elif dt=='Glidein':
                     count_status_multi={}
                     for glideid in glidein_dict.keys():
@@ -424,7 +447,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
                             count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
                     out=count_status_multi
                 else:
-                    c,p,h=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict,condorq_match_list)
+                    c,p,h=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict,attr_dict,condorq_match_list)
                     t=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
                     out=(c,p,h,t)
 
@@ -802,7 +825,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     return
 
 ############################################################
-def iterate(parent_pid, elementDescript, paramsDescript, signatureDescript, x509_proxy_plugin):
+def iterate(parent_pid, elementDescript, paramsDescript, attr_dict, signatureDescript, x509_proxy_plugin):
     sleep_time = int(elementDescript.frontend_data['LoopDelay'])
 
     factory_pools = elementDescript.merged_data['FactoryCollectors']
@@ -830,7 +853,7 @@ def iterate(parent_pid, elementDescript, paramsDescript, signatureDescript, x509
                 # recreate every time (an easy way to start from a clean state)
                 stats['group'] = glideinFrontendMonitoring.groupStats()
 
-                done_something = iterate_one(published_frontend_name, elementDescript, paramsDescript, signatureDescript, x509_proxy_plugin, stats, history_obj)
+                done_something = iterate_one(published_frontend_name, elementDescript, paramsDescript, attr_dict, signatureDescript, x509_proxy_plugin, stats, history_obj)
                 logSupport.log.info("iterate_one status: %s" % str(done_something))
 
                 logSupport.log.info("Writing stats")
@@ -907,7 +930,22 @@ def main(parent_pid, work_dir, group_name):
     logSupport.log.debug("Frontend Element startup time: %s" % str(startup_time))
 
     paramsDescript = glideinFrontendConfig.ParamsDescript(work_dir, group_name)
+    attrsDescript = glideinFrontendConfig.AttrsDescript(work_dir,group_name)
     signatureDescript = glideinFrontendConfig.GroupSignatureDescript(work_dir, group_name)
+    #
+    # We decided we will not use the data from the stage area
+    # Leaving it commented in the code, in case we decide in the future
+    #  it was a good validation of the Web server health
+    #
+    #stageArea=glideinFrontendConfig.MergeStageFiles(elementDescript.frontend_data['WebURL'],
+    #                                                signatureDescript.signature_type,
+    #                                                signatureDescript.frontend_descript_fname,signatureDescript.frontend_descript_signature,
+    #                                                group_name,
+    #                                                signatureDescript.group_descript_fname,signatureDescript.group_descript_signature)
+    # constsDescript=stageArea.get_constants()
+    #
+
+    attr_dict=attrsDescript.data
 
     glideinFrontendMonitoring.monitoringConfig.monitor_dir = os.path.join(work_dir, "monitor/group_%s" % group_name)
 
@@ -944,7 +982,7 @@ def main(parent_pid, work_dir, group_name):
     try:
         try:
             logSupport.log.info("Starting up")
-            iterate(parent_pid, elementDescript, paramsDescript, signatureDescript, x509_proxy_plugin)
+            iterate(parent_pid, elementDescript, paramsDescript, attr_dict, signatureDescript, x509_proxy_plugin)
         except KeyboardInterrupt:
             logSupport.log.info("Received signal...exit")
         except:
