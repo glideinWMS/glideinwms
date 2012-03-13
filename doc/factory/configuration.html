@@ -1195,17 +1195,19 @@ should be used every time it is feasible.</P>
     to communicate between the glideins and the Collector. While more
     efficient than TCP, UDP packets are often blocked at the firewall,
     or lost on the WAN. 
-</p><p>
-    To switch on TCP updates, please
-    specify, with the <tt>&lt;<B>attr</B>/&gt;</tt> option: 
+</p>
+<p>
+	To disable TCP updates, specify, with the <tt>&lt;<B>attr</B>/&gt;</tt> option: 
     <blockquote>
 
-    <B>UPDATE_COLLECTOR_WITH_TCP</B>=True
+    <B>UPDATE_COLLECTOR_WITH_TCP</B>=False
     </blockquote>
-<P>
+</p>
+<P>In glideinWMS, we enable the glideins to update the user collector using TCP by default.
 <BR>Please be aware that this will configure the glideins only; you
 still need to properly configure the Collector machine. See 
-<A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_7Networking_includes.html#SECTION00474000000000000000">Condor documentation</A> for more details.</P>
+<A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_7Networking_includes.html#SECTION00474000000000000000">Condor documentation</A>
+ for more details.</P>
 </div>
 
 <div class="section">
