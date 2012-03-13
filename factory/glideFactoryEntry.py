@@ -79,7 +79,7 @@ def check_parent(parent_pid, glideinDescript, jobDescript):
                                                  glideinDescript.data['GlideinName'],
                                                  jobDescript.data['EntryName'])
     except:
-        logSupport.log.warning("Failed to deadvertize myself")
+        logSupport.log.exception("Failed to deadvertize myself")
 
     # Attempt to deadvertise the entry monitoring classads
     try:
@@ -87,14 +87,14 @@ def check_parent(parent_pid, glideinDescript, jobDescript):
                                                                     glideinDescript.data['GlideinName'],
                                                                     jobDescript.data['EntryName'])
     except:
-        logSupport.log.warning("Failed to deadvertize my monitoring")
+        logSupport.log.exception("Failed to deadvertize my monitoring")
     
         
     try:
         glideFactoryInterface.deadvertizeGlobal(glideinDescript.data['FactoryName'],     
                                                  glideinDescript.data['GlideinName'])     
     except:
-        logSupport.log.warning("Failed to deadvertize my global")
+        logSupport.log.exception("Failed to deadvertize my global")
 
     raise KeyboardInterrupt, "Parent died"
 
@@ -269,14 +269,12 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
         condorQ = glideFactoryLib.getCondorQData(entry_name, None, schedd_name)
     except glideFactoryLib.condorExe.ExeError, e:
         logSupport.log.info("Schedd %s not responding, skipping" % schedd_name)
-        logSupport.log.warning("getCondorQData failed: %s" % e)
+        logSupport.log.exception("getCondorQData failed:" )
         # protect and exit
         return 0
     except:
-        logSupport.log.info("Skipping schedd %s because getCondorQData failed" % schedd_name)
-        logSupport.log.warning("Skipping schedd %s because getCondorQData failed" % schedd_name)
-        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-        logSupport.log.error("getCondorQData failed, traceback: %s" % string.join(tb, ''))
+        logSupport.log.info("Skipping schedd %s because unable to get queue data" % schedd_name)
+        logSupport.log.exception("getCondorQData failed: " )
         # protect and exit
         return 0
 
@@ -316,7 +314,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
         can_submit_glideins = False
         
     # ===========  Finding work requests  ==========
-    logSupport.log.debug("Finding work")
+    logSupport.log.info("Finding work")
     # Find requests that we have the key to decrypt
     additional_constraints = '((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined) && (ReqEncIdentity=!=Undefined))' % pub_key_obj.get_pub_key_id() 
     #logSupport.log.info("Find work")
@@ -347,9 +345,8 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
         # Merge the work_oldkey with work
         for w in work_oldkey.keys():
             if work.has_key(w):
-                # This should not happen but still as a safegaurd warn
-                logSupport.log.info("Work task for %s exists using existing key and old key. Ignoring the work from old key." % w)
-                logSupport.log.error("Work task for %s exists using existing key and old key. Ignoring the work from old key." % w)
+                # This should not happen but still as a safeguard warn
+                logSupport.log.warning("Work task for %s exists using existing key and old key. Ignoring the work from old key." % w)
                 continue
             work[w] = work_oldkey[w]
 
@@ -362,7 +359,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
     all_security_names=sets.Set()
 
     # ======= Process work requests ============
-    logSupport.log.debug("Validating requests and doing work")
+    logSupport.log.info("Validating requests and doing work")
     done_something = 0
     for work_key in work.keys():
             
@@ -397,9 +394,9 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
         try:
             logSupport.log.debug("Checking security credentials for client %s " % client_int_name)
             glideFactoryCredentials.check_security_credentials(auth_method, decrypted_params, client_int_name, jobDescript.data['EntryName'])
-        except glideFactoryCredentials.CredentialError, e:
+        except glideFactoryCredentials.CredentialError:
             # skip request
-            logSupport.log.warning("%s" % e)
+            logSupport.log.exception("Error checking credentials, skipping request: ")
             continue
             
         # ======== validate security and whitelist information ================
@@ -448,7 +445,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                     identity_credentials['ProjectId'] = decrypted_params['ProjectId']
                 else:
                     # project id is required, cannot service request
-                    logSupport.log.info("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
+                    logSupport.log.warning("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
                     continue  
                            
             # Check if voms_attr required
@@ -511,9 +508,9 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 if frontend_whitelist == "On" and security_list.has_key(client_security_name):
                     if x509_proxy_security_class in security_list[client_security_name] or "All" in security_list[client_security_name]:
                         in_downtime = prev_downtime
-                        logSupport.log.debug("Security test passed for : %s %s " % (jobDescript.data['EntryName'], x509_proxy_security_class))
+                        logSupport.log.info("Security test passed for : %s %s " % (jobDescript.data['EntryName'], x509_proxy_security_class))
                     else:
-                        logSupport.log.warning("Security class not in whitelist, skipping (%s %s) " % (client_security_name, x509_proxy_security_class))
+                        logSupport.log.warning("Security class not in whitelist, skipping request (%s %s) " % (client_security_name, x509_proxy_security_class))
                         continue
                 else:
                     pass
@@ -530,12 +527,9 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                     x509_proxy_fname = glideFactoryLib.update_x509_proxy_file(entry_name, x509_proxy_username, "%s_%s" % (work_key, x509_proxy_identifier), x509_proxy)
                 except RuntimeError,e:
                     logSupport.log.warning("Failed to update x509_proxy_%i using username %s for client %s, skipping request" % (i, x509_proxy_username, client_int_name))
-                    logSupport.log.debug("Failed to update x509_proxy_%i using username %s for client %s: %s" % (i, x509_proxy_username, client_int_name, e))
                     continue 
                 except:
-                    tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-                    logSupport.log.warning("Failed to update x509_proxy_%i using usename %s for client %s, skipping request" % (i, x509_proxy_username, client_int_name))
-                    logSupport.log.debug("Failed to update x509_proxy_%i using usename %s for client %s: Exception %s" % (i, x509_proxy_username, client_int_name, string.join(tb, '')))
+                    logSupport.log.exception("Failed to update x509_proxy_%i using usename %s for client %s, skipping request: " % (i, x509_proxy_username, client_int_name))
                     continue 
                         
                 x509_proxies.add_fname(x509_proxy_security_class, x509_proxy_identifier, x509_proxy_fname)
@@ -560,7 +554,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             if decrypted_params.has_key('SecurityClass'):
                 credential_security_class = decrypted_params['SecurityClass']
             else:
-                logSupport.log.warning("Client %s did not provide a security class. Skipping bad request" % client_int_name)
+                logSupport.log.warning("Client %s did not provide a security class. Skipping bad request." % client_int_name)
                 continue #skip request
                     
             # Check security class for downtime (in downtimes file)
@@ -568,16 +562,16 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             in_sec_downtime = (factory_downtimes.checkDowntime(entry="factory", frontend=client_security_name, security_class=credential_security_class) or
                                 factory_downtimes.checkDowntime(entry=jobDescript.data['EntryName'], frontend=client_security_name, security_class=credential_security_class))
             if in_sec_downtime:
-                logSupport.log.warning("Security Class %s is currently in a downtime window for Entry: %s. Ignoring request." % (credential_security_class, jobDescript.data['EntryName']))
+                logSupport.log.warning("Security class %s is currently in a downtime window for entry: %s. Ignoring request." % (credential_security_class, jobDescript.data['EntryName']))
                 continue # cannot use proxy for submission but entry is not in downtime since other proxies may map to valid security classes
             
             # Make sure security class in the request is allowed (in AllowedVOs)
             if frontend_whitelist == "On" and security_list.has_key(client_security_name):
                 if credential_security_class in security_list[client_security_name] or "All" in security_list[client_security_name]:
                     in_downtime = prev_downtime
-                    logSupport.log.debug("Security test passed for : %s %s " % (jobDescript.data['EntryName'], credential_security_class))
+                    logSupport.log.info("Security test passed for : %s %s " % (jobDescript.data['EntryName'], credential_security_class))
                 else:
-                    logSupport.log.warning("Security class not in whitelist, skipping (%s %s) " % (client_security_name, credential_security_class))
+                    logSupport.log.warning("Security class not in whitelist, skipping request (%s %s). " % (client_security_name, credential_security_class))
                     continue
             else:
                 pass # already checked security name      
@@ -585,7 +579,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             # Check that security class maps to a username for submission          
             credential_username = frontendDescript.get_username(client_security_name, credential_security_class)
             if credential_username == None:
-                logSupport.log.warning("No username mapping for security class %s of credential for %s (secid: %s), skipping " % (credential_security_class, client_int_name, client_security_name))
+                logSupport.log.warning("No username mapping for security class %s of credential for %s (secid: %s), skipping request." % (credential_security_class, client_int_name, client_security_name))
                 continue
             
             # Initialize submit credential object
@@ -604,7 +598,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                         submit_credentials.add_identity_credential('ProjectId', decrypted_params['ProjectId'])
                     else:
                         # project id is required, cannot service request
-                        logSupport.log.info("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
+                        logSupport.log.warning("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping request." % (client_int_name, jobDescript.data['EntryName']))
                         continue 
                                    
                 # Check if voms_attr required
@@ -616,7 +610,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 proxy_id = decrypted_params['SubmitProxy']
                 # KEL need to change call to frontendname_frontendgroup_proxy_id (and all other ref to call add_security_cred)
                 if not submit_credentials.add_security_credential('SubmitProxy', "%s_%s" % (client_int_name, proxy_id)):
-                    logSupport.log.warning("Credential %s for the submit proxy cannot be found for client %s, skipping request" % (proxy_id, client_int_name))
+                    logSupport.log.warning("Credential %s for the submit proxy cannot be found for client %s, skipping request." % (proxy_id, client_int_name))
                     continue #skip proxy
                     
                 # Set the id used for tracking what is in the factory queue       
@@ -629,7 +623,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 if decrypted_params.has_key('GlideinProxy'):
                     proxy_id = decrypted_params['GlideinProxy']
                     if not submit_credentials.add_security_credential('GlideinProxy', "%s_%s" % (client_int_name, proxy_id)):
-                        logSupport.log.warning("Credential %s for the glidein proxy cannot be found for client %s, skipping request" % (proxy_id, client_int_name))
+                        logSupport.log.warning("Credential %s for the glidein proxy cannot be found for client %s, skipping request." % (proxy_id, client_int_name))
                         continue  
                 else:  
                     logSupport.log.warning("Glidein proxy cannot be found for client %s, skipping request" % client_int_name)
@@ -640,14 +634,14 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                     if decrypted_params.has_key('VMId'):     
                         submit_credentials.add_identity_credential('VMId', decrypted_params['VMId'])
                     else:
-                        logSupport.log.info("Client '%s' did not specify a VM Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
+                        logSupport.log.warning("Client '%s' did not specify a VM Id in the request, this is required by entry %s, skipping request. " % (client_int_name, jobDescript.data['EntryName']))
                         continue  
                 else:
                     # Validate factory provided vm id exists
                     if jobDescript.data.has_key('EntryVMId'): 
                         submit_credentials.add_identity_credential('VMId', jobDescript.data['EntryVMId'])
                     else:
-                        logSupport.log.info("Entry does not specify a VM Id, this is required by entry %s, skipping "% jobDescript.data['EntryName'])
+                        logSupport.log.warning("Entry does not specify a VM Id, this is required by entry %s, skipping request." % jobDescript.data['EntryName'])
                         continue  
                     
                 if 'vm_type' in auth_method:                  
@@ -655,21 +649,21 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                     if decrypted_params.has_key('VMType'):
                         submit_credentials.add_identity_credential('VMType', decrypted_params['VMType'])
                     else:
-                        logSupport.log.info("Client '%s' did not specify a VM Type in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
+                        logSupport.log.warning("Client '%s' did not specify a VM Type in the request, this is required by entry %s, skipping request." % (client_int_name, jobDescript.data['EntryName']))
                         continue
                 else:
                     # Validate factory provided vm type exists
                     if jobDescript.data.has_key('EntryVMType'): 
                         submit_credentials.add_identity_credential('VMType', jobDescript.data['EntryVMType'])
                     else:
-                        logSupport.log.info("Entry does not specify a VM Type, this is required by entry %s, skipping "% jobDescript.data['EntryName'])
+                        logSupport.log.warning("Entry does not specify a VM Type, this is required by entry %s, skipping request." %  jobDescript.data['EntryName'])
                         continue
                 
                 if 'cert_pair' in auth_method :
                     public_cert_id = decrypted_params['PublicCert']
                     submit_credentials.id = public_cert_id
                     if not submit_credentials.add_security_credential('PublicCert', "%s_%s" % (client_int_name, public_cert_id)):
-                        logSupport.log.warning("Credential %s for the public certificate is not safe for client %s, skipping request" % (public_cert_id, client_int_name))
+                        logSupport.log.warning("Credential %s for the public certificate is not safe for client %s, skipping request." % (public_cert_id, client_int_name))
                         continue #skip   
                         
                     private_cert_id = decrypted_params['PrivateCert']
@@ -719,7 +713,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                     credential_username = frontendDescript[client_security_name]['usermap'][credential_security_class]
                     
                     if credential_username == None:
-                        logSupport.log.warning("No mapping for security class %s for %s (secid: %s), skipping " % (credential_security_class, client_int_name, client_security_name))
+                        logSupport.log.warning("No mapping for security class %s for %s (secid: %s), skipping request." % (credential_security_class, client_int_name, client_security_name))
                         continue # cannot map, frontend
                                 
                     if glideinDescript.has_key('FactoryProxy'):
@@ -730,7 +724,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                             continue                               
                     else: 
                         # project id is required, cannot service request
-                        logSupport.log.warning("The Factory did not specify the submit proxy in the config, this is required by entry %s, skipping " %jobDescript.data['EntryName'])
+                        logSupport.log.warning("The Factory did not specify the submit proxy in the config, this is required by entry %s, skipping request." %jobDescript.data['EntryName'])
                         continue        
                           
                     # Check if voms_attr is required
@@ -756,20 +750,20 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             try:
                 idle_glideins = int(work[work_key]['requests']['IdleGlideins'])
             except ValueError, e:
-                logSupport.log.warning("Client %s provided an invalid ReqIdleGlideins: '%s' not a number. Skipping request" % (client_int_name, work[work_key]['requests']['IdleGlideins']))
+                logSupport.log.warning("Client %s provided an invalid ReqIdleGlideins: '%s' not a number. Skipping request." % (client_int_name, work[work_key]['requests']['IdleGlideins']))
                 continue #skip request
 
             if work[work_key]['requests'].has_key('MaxGlideins'):
                 try:
                     max_glideins = int(work[work_key]['requests']['MaxGlideins'])
                 except ValueError, e:
-                    logSupport.log.warning("Client %s provided an invalid ReqMaxGlideins: '%s' not a number. Skipping request" % (client_int_name, work[work_key]['requests']['MaxGlideins']))
+                    logSupport.log.warning("Client %s provided an invalid ReqMaxGlideins: '%s' not a number. Skipping request." % (client_int_name, work[work_key]['requests']['MaxGlideins']))
                     continue #skip request
             else:
                 try:
                     max_glideins = int(work[work_key]['requests']['MaxRunningGlideins'])
                 except ValueError, e:
-                    logSupport.log.warning("Client %s provided an invalid ReqMaxRunningGlideins: '%s' not a number. Skipping request" % (client_int_name, work[work_key]['requests']['MaxRunningGlideins']))
+                    logSupport.log.warning("Client %s provided an invalid ReqMaxRunningGlideins: '%s' not a number. Skipping request." % (client_int_name, work[work_key]['requests']['MaxRunningGlideins']))
                     continue #skip request
                 
             # If we got this far, it was because we were able to successfully update all the credentials 
@@ -794,7 +788,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                                                     client_group, client_group_web_url, client_group_descript, client_group_sign)                
             except:
                 # malformed classad, skip
-                logSupport.log.warning("Malformed classad for client %s, missing web parameters, skipping" % work_key)
+                logSupport.log.warning("Malformed classad for client %s, missing web parameters, skipping request." % work_key)
                 continue
                                               
             if security_credentials.has_key('x509_proxy_list'):
@@ -866,16 +860,16 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                                                              client_web, params)
                 # ======= end of v3+ protocol =============
     
-    logSupport.log.debug("Updating statistics")
+    logSupport.log.info("Updating statistics")
     for sec_el in all_security_names:
         try:
             glideFactoryLib.factoryConfig.rrd_stats.getData("%s_%s" % sec_el) 
-        except glideFactoryLib.condorExe.ExeError, e:
+        except glideFactoryLib.condorExe.ExeError:
             # never fail for monitoring... just log
-            logSupport.log.warning("get_RRD_data failed: %s" % e)
+            logSupport.log.exception("get_RRD_data failed with Condor error: ")
         except:
             # never fail for monitoring... just log
-            logSupport.log.warning("get_RRD_data failed: error unknown")
+            logSupport.log.exception("get_RRD_data failed with unknown error: ")
 
     # Only do cleanup when no work (submit new glideins or remove excess) was done, work is the priority
     if done_something == 0: 
@@ -933,7 +927,7 @@ def write_descript(entry_name, entryDescript, entryAttributes, entryParams, moni
     try:
         descript2XML.writeFile(monitor_dir + "/", xml_str, singleEntry=True)
     except IOError:
-        logSupport.log.debug("IOError in writeFile in descript2XML")
+        logSupport.log.exception("Unable to write descript.xml file: ")
 
     return
 
@@ -983,7 +977,7 @@ def advertize_myself(in_downtime, glideinDescript, jobDescript, jobAttributes, j
                                                jobParams.data.copy(),
                                                glidein_monitors.copy())
     except:
-        logSupport.log.warning("Advertize failed")
+        logSupport.log.error("Advertize failed")
 
     advertizer = glideFactoryInterface.MultiAdvertizeGlideinClientMonitoring(glideFactoryLib.factoryConfig.factory_name,
                                                                              glideFactoryLib.factoryConfig.glidein_name,
@@ -1020,7 +1014,7 @@ def advertize_myself(in_downtime, glideinDescript, jobDescript, jobAttributes, j
     try:
         advertizer.do_advertize()
     except:
-        logSupport.log.warning("Advertize of monitoring failed")
+        logSupport.log.error("Advertize of monitoring failed")
 
     return
 
@@ -1038,9 +1032,8 @@ def iterate_one(do_advertize,in_downtime,
     # Process requests from the frontends
     try:
         done_something = find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDescript, jobAttributes, jobParams)
-    except Exception, e:
-        logSupport.log.warning("Error occurred while trying to find and do work")
-        logSupport.log.debug("Error occurred while trying to find and do work: %s" % e)
+    except Exception:
+        logSupport.log.exception("Error occurred while trying to find and do work: ")
 
     # Only advertise if work was done or if the nth iteration
     if do_advertize or done_something:
@@ -1136,8 +1129,7 @@ def iterate(parent_pid, sleep_time, advertize_rate,
                 raise # this is an exit signal, pass through
             except:
                 # never fail for stats reasons!
-                tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-                logSupport.log.warning("Exception occurred: %s" % tb)
+                logSupport.log.exception("Unable to write stats, but does not cause entry to fail: ")
         except KeyboardInterrupt:
             raise # this is an exit signal, pass through
         except:
@@ -1145,8 +1137,7 @@ def iterate(parent_pid, sleep_time, advertize_rate,
                 raise
             else:
                 # if not the first pass, just warn
-                tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-                logSupport.log.warning("Exception occurred: %s" % tb)
+                logSupport.log.exception("Exception occurred during an entry iteration, continue iterating: " )
 
         cleanupSupport.cleaners.cleanup()
 
@@ -1202,7 +1193,6 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
                                       int(float(plog['max_mbytes'])))
     logSupport.log = logging.getLogger(entry_name)
     logSupport.log.info("Logging initialized")
-    logSupport.log.debug("Logging initialized")
  
     ## Not touching the monitoring logging.  Don't know how that works yet
     logSupport.log.debug("Setting up the monitoring")
@@ -1276,9 +1266,7 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
         gwms_dirname = os.path.dirname(os.path.dirname(sys.argv[0]))
         glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(gwms_dirname, os.path.join(gwms_dirname, 'etc/checksum.factory')).version()
     except:
-        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-        logSupport.log.warning("Exception occured while trying to retrieve the glideinwms version. See debug log for more details.")
-        logSupport.log.debug("Exception occurred: %s" % tb)
+        logSupport.log.exception("Exception occured while trying to retrieve the glideinwms version: ")
 
 
     # create lock file
@@ -1304,8 +1292,7 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
             except KeyboardInterrupt:
                 logSupport.log.info("Received signal...exit")
             except:
-                tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-                logSupport.log.warning("Exception occurred: %s" % tb)
+                logSupport.log.exception("Exception occurred in the entry: ")
                 raise
         finally:
             # no need to cleanup.. the parent should be doing it

@@ -48,22 +48,19 @@ def aggregate_stats(in_downtime):
         status = glideFactoryMonitorAggregator.aggregateStatus(in_downtime)
     except:
         # protect and report
-        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-        logSupport.log.debug("aggregateStatus failed: %s" % "".join(tb))
+        logSupport.log.exception("aggregateStatus failed: ")
 
     try:
         status = glideFactoryMonitorAggregator.aggregateLogSummary()
     except:
         # protect and report
-        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-        logSupport.log.debug("aggregateLogStatus failed: %s" % "".join(tb))
+        logSupport.log.exception("aggregateLogStatus failed: ")
 
     try:
         status = glideFactoryMonitorAggregator.aggregateRRDStats()
     except:
         # protect and report
-        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-        logSupport.log.debug("aggregateRRDStats failed: %s" % "".join(tb))
+        logSupport.log.exception("aggregateRRDStats failed: ")
 
     return
 
@@ -92,7 +89,7 @@ def write_descript(glideinDescript, frontendDescript, monitor_dir):
     try:
         descript2XML.writeFile(monitor_dir, xml_str)
     except IOError:
-        logSupport.log.debug("IOError in writeFile in descript2XML")
+        logSupport.log.exception("Unable to write the descript.xml file: ")
     # end add
 
 
@@ -147,7 +144,7 @@ def clean_exit(childs):
                 try:
                     os.kill(childs[entry_name].pid, signal.SIGTERM)
                 except OSError:
-                    logSupport.log.info("Entry %s already dead" % entry_name)
+                    logSupport.log.warning("Entry %s already dead" % entry_name)
                     del childs[entry_name] # already dead
 
         logSupport.log.info("Sleep")
@@ -263,7 +260,6 @@ def spawn(sleep_time, advertize_rate, startup_dir,
                     logSupport.log.info("Removed the old public key after its grace time of %s seconds" % oldkey_gracetime)
                 except:
                     # Do not crash if delete fails. Just log it.
-                    logSupport.log.info("Failed to remove the old public key after its grace time")
                     logSupport.log.warning("Failed to remove the old public key after its grace time")
             
             # Only removing credentials in the v3+ protocol
@@ -277,9 +273,7 @@ def spawn(sleep_time, advertize_rate, startup_dir,
                     in_use_creds = glideFactoryLib.getCondorQCredentialList()                              
                     cleanupSupport.cred_cleaners.cleanup(in_use_creds)                         
                 except:
-                    msg = "Unable to cleanup old credentials"
-                    logSupport.log.warning(msg)    
-                    logSupport.log.exception(msg)                                  
+                    logSupport.log.exception("Unable to cleanup old credentials")                                  
                 
                 update_time = curr_time + remove_old_cred_freq
                 
@@ -291,18 +285,15 @@ def spawn(sleep_time, advertize_rate, startup_dir,
             # Do this first so that the credentials are immediately available when the Entries startup
             try:
                 classads = glideFactoryCredentials.get_globals_classads()
-            except Exception, e:
-                logSupport.log.warning("Error occurred processing global classads.")
-                logSupport.log.debug("Error occurred processing global classads: %s" % e)
+            except Exception:
+                logSupport.log.exception("Error occurred processing globals classads: ")
                 
             for classad_key in classads.keys():
                 classad = classads[classad_key]
                 try:
                     glideFactoryCredentials.process_global(classad, glideinDescript, frontendDescript)
                 except:
-                    tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-                    logSupport.log.warning("Error occurred processing a global classads (%s)." % classad_key)
-                    logSupport.log.error("Error occurred processing the globals classads. \nTraceback: \n%s" % tb)
+                    logSupport.log.exception("Error occurred processing the globals classads: ")
 
             
             logSupport.log.info("Checking entries %s" % entries)
@@ -386,12 +377,12 @@ def spawn(sleep_time, advertize_rate, startup_dir,
                 glideFactoryInterface.deadvertizeFactory(glideinDescript.data['FactoryName'], glideinDescript.data['GlideinName'])
             except:
                 # just warn
-                logSupport.log.warning("Factory deadvertize failed!")
+                logSupport.log.exception("Factory deadvertize failed!")
             try:
                 glideFactoryInterface.deadvertizeFactoryClientMonitoring(glideinDescript.data['FactoryName'], glideinDescript.data['GlideinName'])
             except:
                 # just warn
-                logSupport.log.warning("Factory Monitoring deadvertize failed!")
+                logSupport.log.exception("Factory Monitoring deadvertize failed!")
         logSupport.log.info("All entries should be terminated")
 
 
@@ -441,9 +432,7 @@ def main(startup_dir):
     try:
         os.chdir(startup_dir)
     except:
-        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-        logSupport.log.warning("Unable to change to startup_dir")
-        logSupport.log.error("Unable to change to startup_dir %s: %s" % (startup_dir,tb))
+        logSupport.log.exception("Unable to change to startup_dir: ")
         raise
 
     try:        
@@ -457,15 +446,12 @@ def main(startup_dir):
             glideinDescript.load_pub_key(recreate=True)
         else:
             # Key is recent enough. Just reuse them.
-            logSupport.log.info("Key is recent enough")
-            logSupport.log.info("Reusing key for this run")
+            logSupport.log.info("Key is recent enough, reusing for this run")
             glideinDescript.load_pub_key(recreate=False)
             logSupport.log.info("Loading old key")
             glideinDescript.load_old_rsa_key()
     except:
-        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-        logSupport.log.warning("Exception occurred loading factory keys")
-        logSupport.log.error("Exception occurred loading factory keys: %s" % tb)
+        logSupport.log.exception("Exception occurred loading factory keys: ")
         raise 
         
     glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.my_name = "%s@%s" % (glideinDescript.data['GlideinName'], glideinDescript.data['FactoryName'])
@@ -499,9 +485,7 @@ def main(startup_dir):
         except KeyboardInterrupt, e:
             raise e
         except:
-            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-            logSupport.log.warning("Exception occurred spawning the factory")
-            logSupport.log.error("Exception occurred spawning the factory: %s" % tb)
+            logSupport.log.exception("Exception occurred spawning the factory: "  )
     finally:
         pid_obj.relinquish()
 
