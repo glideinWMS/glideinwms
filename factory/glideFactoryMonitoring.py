@@ -1153,7 +1153,7 @@ class FactoryStatusData:
                 avg_list = 0
             return avg_list
         except TypeError:
-            logSupport.log.debug("average: TypeError")
+            logSupport.log.exception("glideFactoryMonitoring average: ")
             return
 
     def getData(self, input_val):
@@ -1193,7 +1193,7 @@ class FactoryStatusData:
                     for data_set in fetched_data:
                         self.data[rrd][client][period][data_set] = self.average(fetched_data[data_set])
                 except TypeError:
-                    logSupport.log.debug("FactoryStatusData:fetchData: TypeError")
+                    logSupport.log.exception("FactoryStatusData:fetchData: ")
 
         return self.data
 
@@ -1206,8 +1206,8 @@ class FactoryStatusData:
         try:
             total_data = self.data[rrd][self.total]
             total_xml_str += (xmlFormat.dict2string(total_data, dict_name='periods', el_name='period', subtypes_params={"class":{}}, indent_tab=self.tab, leading_tab=2 * self.tab) + "\n")
-        except NameError, UnboundLocalError:
-            logSupport.log.debug("FactoryStatusData:total_data: NameError or UnboundLocalError")
+        except (NameError, UnboundLocalError):
+            logSupport.log.exception("FactoryStatusData:total_data: ")
         total_xml_str += self.tab + '</total>\n'
 
         # create a string containing the frontend data
@@ -1219,8 +1219,8 @@ class FactoryStatusData:
             try:
                 frontend_data = self.data[rrd][frontend]
                 frontend_xml_str += (xmlFormat.dict2string(frontend_data, dict_name='periods', el_name='period', subtypes_params={"class":{}}, indent_tab=self.tab, leading_tab=3 * self.tab) + "\n")
-            except NameError, UnboundLocalError:
-                logSupport.log.debug("FactoryStatusData:frontend_data: NameError or UnboundLocalError")
+            except (NameError, UnboundLocalError):
+                logSupport.log.exception("FactoryStatusData:frontend_data: ")
             frontend_xml_str += 2 * self.tab + '</frontend>'
         frontend_xml_str += self.tab + '</frontends>\n'
 
@@ -1238,7 +1238,7 @@ class FactoryStatusData:
             try:
                 monitoringConfig.write_file(file_name, xml_str)
             except IOError:
-                logSupport.log.debug("FactoryStatusData:write_file: IOError")
+                logSupport.log.exception("FactoryStatusData:write_file: ")
         return
 
 ##############################################################################
@@ -1267,12 +1267,12 @@ class Descript2XML:
                     except KeyError:
                         continue
             except RuntimeError:
-                logSupport.log.debug("blacklist RuntimeError in frontendDescript")
+                logSupport.log.exception("blacklist error frontendDescript: ")
         try:
             xml_str = xmlFormat.dict2string(fe_dict, dict_name="frontends", el_name="frontend", subtypes_params={"class":{}}, leading_tab=self.tab)
             return xml_str + "\n"
         except RuntimeError:
-            logSupport.log.debug("xmlFormat RuntimeError in frontendDescript")
+            logSupport.log.exception("xmlFormat error in frontendDescript: ")
             return
 
     def entryDescript(self, e_dict):
@@ -1284,12 +1284,12 @@ class Descript2XML:
                     except KeyError:
                         continue
             except RuntimeError:
-                logSupport.log.debug("blacklist RuntimeError in entryDescript")
+                logSupport.log.exception("blacklist error in entryDescript: ")
         try:
             xml_str = xmlFormat.dict2string(e_dict, dict_name="entries", el_name="entry", subtypes_params={"class":{'subclass_params':{}}}, leading_tab=self.tab)
             return xml_str + "\n"
         except RuntimeError:
-            logSupport.log.debug("xmlFormat RuntimeError in entryDescript")
+            logSupport.log.exception("xmlFormat Error in entryDescript: ")
             return
 
     def glideinDescript(self, g_dict):
@@ -1305,8 +1305,8 @@ class Descript2XML:
             c = b.split('name="" ')
             xml_str = "".join(c)
             return xml_str + "\n"
-        except SyntaxError, RuntimeError:
-            logSupport.log.debug("xmlFormat RuntimeError in glideinDescript")
+        except (SyntaxError, RuntimeError):
+            logSupport.log.exception("xmlFormat error in glideinDescript: ")
             return
 
     def getUpdated(self):

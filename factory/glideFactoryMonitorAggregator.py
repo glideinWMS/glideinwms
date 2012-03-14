@@ -234,7 +234,6 @@ def aggregateStatus(in_downtime):
                                                             "GAUGE",updated,val_dict)
 
     # Frontend total rrds across all factories
-    fe_total={'Status':None,'Requested':None,'ClientMonitor':None}
     for fe in status_fe['frontends'].keys():
         glideFactoryMonitoring.monitoringConfig.establish_dir("total/%s"%("frontend_"+fe))
         for tp in status_fe['frontends'][fe].keys():
@@ -400,7 +399,6 @@ def aggregateLogSummary():
     # Write rrds
     fe_dir="total"
     sdata=status["total"]['Current']
-    sdiff=status["total"]
 
     glideFactoryMonitoring.monitoringConfig.establish_dir(fe_dir)
     val_dict_counts={}
@@ -564,7 +562,7 @@ def aggregateRRDStats():
             entry_str += 3 * tab + '<total>\n'
             try:
                 entry_str += (xmlFormat.dict2string(stats[entry]['total']['periods'], dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 4 * tab) + "\n")
-            except NameError, UnboundLocalError:
+            except (NameError, UnboundLocalError):
                 logSupport.log.debug("total_data, NameError or TypeError")
             entry_str += 3 * tab + '</total>\n'
 
@@ -591,7 +589,7 @@ def aggregateRRDStats():
         total_data = aggregate_output['total']
         try:
             total_xml_str += (xmlFormat.dict2string(total_data, dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 4 * tab) + "\n")
-        except NameError, UnboundLocalError:
+        except (NameError, UnboundLocalError):
             logSupport.log.debug("total_data, NameError or TypeError")
         total_xml_str += 2 * tab + '</total>\n'
 
