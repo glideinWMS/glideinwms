@@ -387,8 +387,12 @@ def main(startup_dir):
 
         # check that the GSI environment is properly set
         if not os.environ.has_key('X509_CERT_DIR'):
-            glideFactoryLib.log_files.logWarning("Environment variable X509_CERT_DIR not set. Need X509_CERT_DIR to work!")
-            raise RuntimeError, "Need X509_CERT_DIR to work!"
+            if os.path.isdir('/etc/grid-security/certificates'):
+               os.environ['X509_CERT_DIR']='/etc/grid-security/certificates'
+               glideFactoryLib.log_files.logActivity("Environment variable X509_CERT_DIR not set, defaulting to /etc/grid-security/certificates")
+            else:  
+                glideFactoryLib.log_files.logWarning("Environment variable X509_CERT_DIR not set and /etc/grid-security/certificates does not exist. Need X509_CERT_DIR to work!")
+                raise RuntimeError, "Need X509_CERT_DIR to work!"
 
         allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
         if 'factory' in allowed_proxy_source:
