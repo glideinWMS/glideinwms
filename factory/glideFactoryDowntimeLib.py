@@ -347,8 +347,12 @@ def endDowntime(fname,end_time=None,entry="All",frontend="All",security_class="A
                 if ((security_class!="All")and(len(arr)>4)and(security_class!=arr[4])):
                     outlines.append(long_line)
                     continue
-
-                if arr[1]=='None':
+                cur_start_time=0
+                if arr[0]!='None':
+                    cur_start_time=timeConversion.extractISO8601_Local(arr[0])
+                if arr[1]!='None':
+                    cur_end_time=timeConversion.extractISO8601_Local(arr[1])
+                if arr[1]=='None' or ((cur_start_time<long(time.time())) and (cur_end_time>end_time)):
                     # open period -> close
                     outlines.append("%-30s %-30s"%(arr[0],timeConversion.getISO8601_Local(end_time)))
                     if (len(arr)>2):
