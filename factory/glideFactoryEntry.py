@@ -825,7 +825,11 @@ def iterate(parent_pid, sleep_time, advertize_rate,
             glideFactoryLib.log_files.logActivity("Old key was valid from %s to %s ie grace of ~%s sec" % (starttime,oldkey_eoltime,oldkey_gracetime))
             glideinDescript.data['OldPubKeyType'] = None
             glideinDescript.data['OldPubKeyObj'] = None
+
         in_downtime=(factory_downtimes.checkDowntime(entry="factory") or factory_downtimes.checkDowntime(entry=jobDescript.data['EntryName']))
+        in_downtime_message=factory_downtimes.downtime_comment
+        jobAttributes.data['GLIDEIN_Downtime_Comment']=in_downtime_message
+
         if in_downtime:
             glideFactoryLib.log_files.logActivity("Downtime iteration at %s" % time.ctime())
         else:
