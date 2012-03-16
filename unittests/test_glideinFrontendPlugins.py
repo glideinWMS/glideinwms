@@ -45,7 +45,7 @@ class fakeDescript:
 
 class TestPlugins(unittest.TestCase):
     """
-    Test the cleaners to ensure that only the files that we want to be deleted are.
+    Test the proxy plugins
     """
     def getCredlist(self):
         # Create fake Credentials

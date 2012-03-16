@@ -17,7 +17,6 @@ import sys
 import copy
 import time
 import string
-import traceback
 from sets import Set
 
 STARTUP_DIR = sys.path[0]
@@ -579,8 +578,7 @@ class MultiAdvertizeWork:
                         data_fd.close()
                     except:
                         cred_el.advertize=False
-                        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-                        logSupport.log.error("Advertising global credential %s failed: %s" % (cred_el.filename, tb))
+                        logSupport.log.error("Advertising global credential %s failed" % (cred_el.filename),exc_info=True)
                         continue
                     glidein_params_to_encrypt[cred_el.file_id(cred_el.filename)]=cred_data
                     if (hasattr(cred_el,'security_class')):
