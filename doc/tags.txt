@@ -1,5 +1,6 @@
 v2_5_6  Factory supports per-frontend limits in the config
         Bug Fix: Fixed a bug where frontend would not stop cleanly
+	Bug Fix: Factory doesnot depend on the X509_CERT_DIR in the environment
 
 v2_5_5	Added filtering to analyze_entries
 	Reduced the number of debug log messages when entry becomes inactive.
