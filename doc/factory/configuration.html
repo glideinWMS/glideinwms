@@ -94,8 +94,8 @@ for a more detailed description.
         <a href="#">&lt; job_logs max_days="7.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
         <a href="#">&lt; process_logs &gt;</a><br/>
         <blockquote>
-            <a href="#process_logs">&lt; process_log max_days="7.0" max_mbytes="100.0" min_days="3.0" type="ALL" /&gt;</a><br/>
-            <a href="#process_logs">&lt; process_log max_days="7.0" max_mbytes="100.0" min_days="3.0" type="DEBUG" /&gt;</a><br/>
+            <a href="#process_logs">&lt; process_log extension="info" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="INFO" /&gt;</a><br/>
+            <a href="#process_logs">&lt; process_log extension="debug" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="DEBUG,ERR,WARN" /&gt;</a><br/>
         </blockquote>
         <a href="#">&lt; /process_logs &gt;</a><br/>
         <a href="#">&lt; summary_logs max_days="31.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
@@ -285,16 +285,17 @@ individual entry point configuration.
             max_days=&quot;<I>max days</I>&quot;
             min_days=&quot;<I>min days</I>&quot;
             max_bytes=&quot;<I>max bytes</I>&quot;
-            type=&quot;<I>ALL</I>&quot;/&gt;
+            type=&quot;<I>INFO</I>&quot;/&gt;
         </div>
     <p>
-    The admin can configure one or more logs of type: 
+    The admin can configure one or more logs with any combination of following log message types: 
     <ul>
-    <li>INFO:  Informational messages only. </li>
-    <li>DEBUG:  Debug and error messages, including tracebacks. </li>
-    <li>ERR:  Warning messages. </li>
-    <li>ALL:  All messages in one log. </li>
+    <li>INFO:  Informational messages about the state of the system. </li>
+    <li>DEBUG:  Debug message. These are additional informational messages that describe code execution in detail.</li>
+    <li>ERR:  Error messages. These may include tracebacks. </li>
+    <li>WARN:  Warning messages. These warn of conditions that were found that don't necessarily cause abnormal execution.</li>
     </ul>
+    The extension is added to the log name to create separate logs.
     </p>
     </li>
     <LI>
