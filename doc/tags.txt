@@ -1,5 +1,10 @@
 	Add attr_dict in the environemnt of the frontend match_expr
 	New feature: The start_expr is now a native part of match
+
+v2_5_6  Factory supports per-frontend limits in the config
+        Bug Fix: Fixed a bug where frontend would not stop cleanly
+	Bug Fix: Factory doesnot depend on the X509_CERT_DIR in the environment
+
 v2_5_5	Added filtering to analyze_entries
 	Reduced the number of debug log messages when entry becomes inactive.
 	Frontend match making uses autoclusters, greatly increasing the
@@ -34,7 +39,6 @@ v2_5_4	Added support for VDT pre installed via rpm. While using
 	  lost updates
 	Bug Fix: Fixed a bug where condor_shared_port daemon was not correctly
 	  stopped under certain conditions
-	
 
 v2_5_3	Updated the license to reflect current Fermitools license
 	Factory does a better job at respecting frontend limits
