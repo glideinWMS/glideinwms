@@ -1104,6 +1104,9 @@ def iterate(parent_pid, sleep_time, advertize_rate,
         # are we in downtime?  True/False
         in_downtime = (factory_downtimes.checkDowntime(entry="factory") or
                        factory_downtimes.checkDowntime(entry=jobDescript.data['EntryName']))
+        in_downtime_message=factory_downtimes.downtime_comment
+        jobAttributes.data['GLIDEIN_Downtime_Comment']=in_downtime_message
+
         if in_downtime:
             logSupport.log.info("Downtime iteration at %s" % time.ctime())
         else:

@@ -40,7 +40,10 @@ class DowntimeFile:
 
     # if check_time==None, use current time
     def checkDowntime(self,entry="Any",frontend="Any",security_class="Any",check_time=None):
-        return checkDowntime(self.fname,entry,frontend,security_class,check_time)
+        (msg,rtn)=checkDowntime(self.fname,entry,frontend,security_class,check_time)
+        self.downtime_comment=msg
+        return rtn
+
 
     # add a scheduled downtime
     def addPeriod(self,start_time,end_time,entry="All",frontend="All",security_class="All",comment="",create_if_empty=True):
@@ -198,12 +201,13 @@ def checkDowntime(fname,entry="Any",frontend="Any",security_class="Any",check_ti
                 continue
             if check_time<time_tuple[0]:
                 continue # check_time before start
+            comment= ' '.join(time_tuple[5][1:])
             if time_tuple[1] is None:
-                return True # downtime valid until the end of times, so here we go
+                return (comment, True) # downtime valid until the end of times, so here we go
             if check_time<=time_tuple[1]:
-                return True # within limit
+                return (comment, True) # within limit
 
-        return False # not found a downtime window
+        return ("",False) # not found a downtime window
         
 def addPeriod(fname,start_time,end_time,entry="All",frontend="All",security_class="All",comment="",create_if_empty=True):
         exists=os.path.isfile(fname)
