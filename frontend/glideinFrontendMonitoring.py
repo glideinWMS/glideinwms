@@ -601,7 +601,7 @@ def tmp2final(fname):
         os.rename(fname+".tmp",fname)
     except:
         print "Failed renaming %s.tmp into %s"%(fname,fname)
-        logSupport.log.debug("Failed renaming %s.tmp into %s"%(fname,fname))
+        logSupport.log.error("Failed renaming %s.tmp into %s" % (fname,fname))
     return
 
 
@@ -657,6 +657,6 @@ def write_frontend_descript_xml(frontendDescript, monitor_dir):
         tmp2final(fname)
     
     except IOError:
-        logSupport.log.debug("Error writing out the frontend descript.xml")
+        logSupport.log.exception("Error writing out the frontend descript.xml: ")
         
         

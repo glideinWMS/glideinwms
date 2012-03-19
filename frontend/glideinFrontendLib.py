@@ -440,17 +440,14 @@ def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format
         try:
             condorq = condorMonitor.CondorQ(schedd)
             condorq.load(full_constraint, format_list)
-        except condorExe.ExeError, e:
-            logSupport.log.warning("Failed to talk to schedd. See debug log for more details.")
-            logSupport.log.debug("Condor Error.  Failed to talk to schedd: %s" % e)
+        except condorExe.ExeError:
+            logSupport.log.exception("Condor Error.  Failed to talk to schedd: ")
             continue # if schedd not found it is equivalent to no jobs in the queue        
-        except RuntimeError, e:
-            logSupport.log.warning("Failed to talk to schedd. See debug log for more details.")
-            logSupport.log.debug("Runtime Error.  Failed to talk to schedd: %s" % e)
+        except RuntimeError:
+            logSupport.log.exception("Runtime Error.  Failed to talk to schedd: ")
             continue
-        except Exception, e:
-            logSupport.log.warning("Failed to talk to schedd. See debug log for more details.")
-            logSupport.log.debug("Unknown Exception.  Failed to talk to schedd: %s" % e)
+        except Exception:
+            logSupport.log.exception("Unknown Exception.  Failed to talk to schedd: ")
 
         if len(condorq.fetchStored()) > 0:
             out_condorq_dict[schedd] = condorq
@@ -474,17 +471,14 @@ def getCondorStatusConstrained(collector_names, type_constraint, constraint=None
         try:
             status = condorMonitor.CondorStatus(pool_name=collector)
             status.load(full_constraint, format_list)
-        except condorExe.ExeError, e:
+        except condorExe.ExeError:
             if collector != None:
-                logSupport.log.warning("Failed to talk to collector %s. See debug log for more details." % collector)
-                logSupport.log.debug("Failed to talk to collector %s: %s" % (collector, e))
+                logSupport.log.exception("Condor Error. Failed to talk to collector %s: " % collector)
             else:
-                logSupport.log.warning("Failed to talk to collector. See debug log for more details.")
-                logSupport.log.debug("Failed to talk to collector: %s" % e)
+                logSupport.log.exception("Condor Error. Failed to talk to collector: ")
             continue # if collector not found it is equivalent to no classads      
-        except RuntimeError, e:
-            logSupport.log.warning("Failed to talk to collector. See debug log for more details.")
-            logSupport.log.debug("Failed to talk to collector: %s"%e)
+        except RuntimeError:
+            logSupport.log.exception("Runtime error. Failed to talk to collector: ")
             continue
         
         if len(status.fetchStored()) > 0:

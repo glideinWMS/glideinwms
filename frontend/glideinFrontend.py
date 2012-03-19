@@ -249,7 +249,6 @@ def main(work_dir):
                                       int(float(plog['max_mbytes'])))
     logSupport.log = logging.getLogger("frontend")
     logSupport.log.info("Logging initialized")
-    logSupport.log.debug("Logging initialized")
     logSupport.log.debug("Frontend startup time: %s" % str(startup_time))
 
     try:
@@ -267,9 +266,7 @@ def main(work_dir):
 
         glideinFrontendMonitorAggregator.monitorAggregatorConfig.config_frontend(os.path.join(work_dir, "monitor"), groups)
     except:
-        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
-                                        sys.exc_info()[2])
-        logSupport.log.warning("Exception occurred: %s" % tb)
+        logSupport.log.exception("Exception occurred configuring monitoring: ")
         raise
 
     glideinFrontendMonitoring.write_frontend_descript_xml(frontendDescript, os.path.join(work_dir, 'monitor/'))
@@ -286,9 +283,7 @@ def main(work_dir):
         except KeyboardInterrupt:
             logSupport.log.info("Received signal...exit")
         except:
-            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
-                                            sys.exc_info()[2])
-            logSupport.log.warning("Exception occurred: %s" % tb)
+            logSupport.log.exception("Exception occurred trying to spawn: ")
     finally:
         pid_obj.relinquish()
 

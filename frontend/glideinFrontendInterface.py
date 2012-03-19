@@ -578,7 +578,7 @@ class MultiAdvertizeWork:
                         data_fd.close()
                     except:
                         cred_el.advertize=False
-                        logSupport.log.error("Advertising global credential %s failed" % (cred_el.filename),exc_info=True)
+                        logSupport.log.exception("Advertising global credential %s failed" % cred_el.filename)
                         continue
                     glidein_params_to_encrypt[cred_el.file_id(cred_el.filename)]=cred_data
                     if (hasattr(cred_el,'security_class')):
@@ -591,8 +591,7 @@ class MultiAdvertizeWork:
                         data_fd.close()
                     except:
                         cred_el.advertize=False
-                        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-                        logSupport.log.error("Advertising global credential %s failed: %s" % (cred_el.filename, tb))
+                        logSupport.log.exception("Advertising global credential %s failed: " % cred_el.filename)
                         continue
                         
                     glidein_params_to_encrypt[cred_el.file_id(cred_el.key_fname)]=cred_data
@@ -606,8 +605,7 @@ class MultiAdvertizeWork:
                         data_fd.close()
                     except:
                         cred_el.advertize=False
-                        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-                        logSupport.log.error("Advertising global credential %s failed: %s" % (cred_el.filename, tb))
+                        logSupport.log.exception("Advertising global credential %s failed: " % cred_el.filename)
                         continue
                     glidein_params_to_encrypt[cred_el.file_id(cred_el.pilot_fname)]=cred_data
                     if (hasattr(cred_el,'security_class')):
@@ -634,9 +632,8 @@ class MultiAdvertizeWork:
             
             try:
                 advertizeWorkFromFile(factory_pool, tmpname, remove_file=True)
-            except condorExe.ExeError, e:
-                logSupport.log.debug("Advertising globals failed for factory pool %s: %s" % (factory_pool, e))
-                logSupport.log.warning("Advertising globals failed for factory pool %s: %s" % (factory_pool, e))
+            except condorExe.ExeError:
+                logSupport.log.exception("Advertising globals failed for factory pool %s: " % factory_pool)
                 
 
     def do_advertize(self):
@@ -663,17 +660,15 @@ class MultiAdvertizeWork:
                     for f in filename_arr_el:
                         if f not in filename_arr:
                             filename_arr.append(f)
-                except condorExe.ExeError, e:
-                    logSupport.log.debug("Error creating request files for factory pool %s, unable to advertise: %s" % (factory_pool, e))
-                    logSupport.log.warning("Error creating request files for factory pool %s, unable to advertise: %s" % (factory_pool, e))
+                except condorExe.ExeError:
+                    logSupport.log.exception("Error creating request files for factory pool %s, unable to advertise: %s" % factory_pool)
                 
             # Advertize all the files (if multi, should only be one) 
             for filename in filename_arr:
                 try:
                     advertizeWorkFromFile(factory_pool, filename, remove_file=True, is_multi=frontendConfig.advertise_use_multi)
-                except condorExe.ExeError, e:
-                    logSupport.log.debug("Advertising request failed for factory pool %s: %s" % (factory_pool, e))
-                    logSupport.log.warning("Advertising request failed for factory pool %s: %s" % (factory_pool, e))
+                except condorExe.ExeError:
+                    logSupport.log.exception("Advertising request failed for factory pool %s: " % factory_pool)
 
         self.factory_queue = {} # clean queue
 
@@ -718,10 +713,10 @@ class MultiAdvertizeWork:
 
                     if (params_obj.request_name in self.factory_constraint):
                         if (credential_el.type!=factory_auth) and (factory_auth!="Any"):
-                            logSupport.log.debug("Credential %s does not match auth method %s (for %s), skipping..."%(credential_el.type,factory_auth,params_obj.request_name))
+                            logSupport.log.warning("Credential %s does not match auth method %s (for %s), skipping..."%(credential_el.type,factory_auth,params_obj.request_name))
                             continue
                         if (credential_el.trust_domain!=factory_trust) and (factory_trust!="Any"):
-                            logSupport.log.debug("Credential %s does not match %s (for %s) domain, skipping..."%(credential_el.trust_domain,factory_trust,params_obj.request_name))
+                            logSupport.log.warning("Credential %s does not match %s (for %s) domain, skipping..."%(credential_el.trust_domain,factory_trust,params_obj.request_name))
                             continue
                     # Convert the sec class to a string so the Factory can interpret the value correctly
                     glidein_params_to_encrypt['SecurityClass']=str(credential_el.security_class)
@@ -805,7 +800,7 @@ class MultiAdvertizeWork:
                 fd.write('\n')
                 fd.close()
             except:
-                logSupport.log.debug("Exception writing advertisement file")
+                logSupport.log.exception("Exception writing advertisement file: ")
                 # remove file in case of problems
                 if (fd!=None):
                     fd.close()

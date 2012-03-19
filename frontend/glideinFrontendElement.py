@@ -117,9 +117,8 @@ def fetch_fork_result_list(pipe_ids):
             # now collect the results
             rin=fetch_fork_result(pipe_ids[k]['r'],pipe_ids[k]['pid'])
             out[k]=rin
-        except Exception, e:
-            logSupport.log.warning("Exception in %s. See debug log for more details."%k)
-            logSupport.log.debug("Exception in %s occurred: %s" % (k,e))
+        except Exception:
+            logSupport.log.exception("Exception in %s occurred: " % k)
             failures+=1
         
     if failures>0:
@@ -172,14 +171,12 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
         my_identity_at_factory_pool = factory_pool[2]
         try:
             factory_globals_dict = glideinFrontendInterface.findGlobals(factory_pool_node, None, None)
-        except RuntimeError, e:
+        except RuntimeError:
             # failed to talk, like empty... maybe the next factory will have something
             if factory_pool_node != None:
-                logSupport.log.warning("Failed to talk to factory_pool %s for global info. See debug log for more details." % factory_pool_node)
-                logSupport.log.debug("Failed to talk to factory_pool %s for global info: %s" % (factory_pool_node, e))
+                logSupport.log.exception("Failed to talk to factory_pool %s for global info: " % factory_pool_node)
             else:
-                logSupport.log.warning("Failed to talk to factory_pool for global info. See debug log for more details.")
-                logSupport.log.debug("Failed to talk to factory_pool for global info: %s" % e)
+                logSupport.log.exception("Failed to talk to factory_pool for global info: " )
             factory_globals_dict = {}
                 
         for globalid in factory_globals_dict:
@@ -221,21 +218,19 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
                 my_identity_at_factory_pool = factory_pool[2]
                 try:
                     factory_glidein_dict = glideinFrontendInterface.findGlideins(factory_pool_node, None, signatureDescript.signature_type, factory_constraint)
-                except RuntimeError, e:
+                except RuntimeError:
                     # failed to talk, like empty... maybe the next factory will have something
                     if factory_pool_node != None:
-                        logSupport.log.warning("Failed to talk to factory_pool %s for entry info. See debug log for more details." % factory_pool_node)
-                        logSupport.log.debug("Failed to talk to factory_pool %s for entry info: %s" % (factory_pool_node, e))
+                        logSupport.log.exception("Failed to talk to factory_pool %s for entry info: %s" % factory_pool_node)
                     else:
-                        logSupport.log.warning("Failed to talk to factory_pool for entry info. See debug log for more details.")
-                        logSupport.log.debug("Failed to talk to factory_pool for entry info: %s" % e)
+                        logSupport.log.exception("Failed to talk to factory_pool for entry info: ")
                     factory_glidein_dict = {}
         
                 for glidename in factory_glidein_dict.keys():
                     if (not factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity')) or (factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'] != factory_identity):
                         logSupport.log.warning("Found an untrusted factory %s at %s; ignoring." % (glidename, factory_pool_node))
                         if factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity'):
-                            logSupport.log.debug("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'" % (glidename, factory_pool_node, factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'], factory_identity))
+                            logSupport.log.warning("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'" % (glidename, factory_pool_node, factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'], factory_identity))
                     else:
                         glidein_dict[(factory_pool_node, glidename, my_identity_at_factory_pool)] = factory_glidein_dict[glidename]
     
@@ -278,8 +273,8 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
                 condorq_dict = glideinFrontendLib.getCondorQ(elementDescript.merged_data['JobSchedds'],
                                                        expand_DD(elementDescript.merged_data['JobQueryExpr'],attr_dict),
                                                        condorq_format_list)
-            except Exception, e:
-                logSupport.log.info("In query schedd child, exception %s" % e)
+            except Exception:
+                logSupport.log.exception("In query schedd child, exception:")
                 
         
             os.write(w,cPickle.dumps(condorq_dict))
@@ -464,9 +459,9 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
 
     try:
         pipe_out=fetch_fork_result_list(pipe_ids)
-    except RuntimeError, e:
+    except RuntimeError:
         # expect all errors logged already
-        logSupport.log.info("Terminating iteration due to errors")
+        logSupport.log.exception("Terminating iteration due to errors:")
         return
     logSupport.log.info("All children terminated")
 
@@ -487,9 +482,9 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
 
     glexec='UNDEFINED'
     if 'GLIDEIN_Glexec_Use' in elementDescript.frontend_data:
-         glexec=elementDescript.frontend_data['GLIDEIN_Glexec_Use']
+        glexec=elementDescript.frontend_data['GLIDEIN_Glexec_Use']
     if 'GLIDEIN_Glexec_Use' in elementDescript.merged_data:
-         glexec=elementDescript.merged_data['GLIDEIN_Glexec_Use']
+        glexec=elementDescript.merged_data['GLIDEIN_Glexec_Use']
 
     total_running = condorq_dict_types['Running']['total']
     logSupport.log.info("Total matching idle %i (old %i) running %i limit %i" % (condorq_dict_types['Idle']['total'], condorq_dict_types['OldIdle']['total'], total_running, max_running))
@@ -536,9 +531,9 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
         count_status=count_status_multi[request_name]
 
         #If the glidein requires a voms proxy, only match voms idle jobs
-	    # Note: if GLEXEC is set to NEVER, the site will never see the proxy, 
-    	# so it can be avoided.
-    	if (glexec != 'NEVER'):
+        # Note: if GLEXEC is set to NEVER, the site will never see the proxy, 
+        # so it can be avoided.
+        if (glexec != 'NEVER'):
             if glidein_el['attrs'].has_key('GLIDEIN_REQUIRE_VOMS'):
                 if (glidein_el['attrs']['GLIDEIN_REQUIRE_VOMS']=="True"):
                     prop_jobs['Idle']=prop_jobs['VomsIdle']
@@ -745,9 +740,8 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
         resource_classad.setGlideFactoryMonitorInfo(glidein_el['monitor'])
         try:
             resource_classad.setGlideClientMonitorInfo(this_stats_arr)
-        except RuntimeError, e:
-            logSupport.log.warning("Error populating GlideClientMonitor info in the resource classad. See debug log for more details.")
-            logSupport.log.debug("Populating GlideClientMonitor info in resource classad failed: %s"%e)
+        except RuntimeError:
+            logSupport.log.exception("Populating GlideClientMonitor info in resource classad failed: ")
                     
         resource_advertiser.addClassad(resource_classad.adParams['Name'], resource_classad)
 
@@ -796,15 +790,13 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
     try:
         logSupport.log.info("Advertising global requests")
         advertizer.do_global_advertize()
-    except Exception, e:
-        logSupport.log.warning("Unknown error advertising global requests. See debug log for more details." )
-        logSupport.log.debug("Unknown error advertising global requests: %s" % e)
+    except Exception:
+        logSupport.log.exception("Unknown error advertising global requests: ")
     try:
         logSupport.log.info("Advertising glidein requests") # cannot advertise len of queue since has both global and glidein requests
         advertizer.do_advertize()
-    except Exception, e:
-        logSupport.log.warning("Unknown error advertising glidein requests. See debug log for more details." )
-        logSupport.log.debug("Unknown error advertising glidein requests: %s" % e)
+    except Exception:
+        logSupport.log.exception("Unknown error advertising glidein requests: ")
         
     logSupport.log.info("Done advertising requests")
 
@@ -814,13 +806,10 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
         #logSupport.log.info("glideresource classads to advertise -\n%s" % resource_advertiser.getAllClassads())
         resource_advertiser.advertiseAllClassads()
         logSupport.log.info("Done advertising glideresource classads")
-    except RuntimeError, e:
-        logSupport.log.warning("Advertising failed. See debug log for more details.")
-        logSupport.log.debug("Advertising failed: %s" % e)
+    except RuntimeError:
+        logSupport.log.exception("Advertising failed: ")
     except:
-        logSupport.log.warning("Advertising failed: Reason unknown")
-        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-        logSupport.log.debug("Advertising failed: %s" % tb)
+        logSupport.log.exception("Advertising failed: ")
 
     return
 
@@ -863,10 +852,7 @@ def iterate(parent_pid, elementDescript, paramsDescript, attr_dict, signatureDes
                     raise # this is an exit signal, pass through
                 except:
                     # never fail for stats reasons!
-                    tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
-                                                    sys.exc_info()[2])
-                    logSupport.log.warning("Unhandled exception, ignoring. See debug log for more details.")
-                    logSupport.log.debug("Exception occurred: %s" % tb)
+                    logSupport.log.exception("Exception occurred writing stats: " )
             except KeyboardInterrupt:
                 raise # this is an exit signal, pass trough
             except:
@@ -874,10 +860,7 @@ def iterate(parent_pid, elementDescript, paramsDescript, attr_dict, signatureDes
                     raise
                 else:
                     # if not the first pass, just warn
-                    tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
-                                                    sys.exc_info()[2])
-                    logSupport.log.warning("Unhandled exception, ignoring. See debug log for more details.")
-                    logSupport.log.debug("Exception occurred: %s" % tb)
+                    logSupport.log.exception("Exception occurred iteration: ")
             is_first = 0
 
             # do it just before the sleep
@@ -926,7 +909,6 @@ def main(parent_pid, work_dir, group_name):
                                       int(float(plog['max_mbytes'])))
     logSupport.log = logging.getLogger(group_name)
     logSupport.log.info("Logging initialized")
-    logSupport.log.debug("Logging initialized")
     logSupport.log.debug("Frontend Element startup time: %s" % str(startup_time))
 
     paramsDescript = glideinFrontendConfig.ParamsDescript(work_dir, group_name)
@@ -956,10 +938,7 @@ def main(parent_pid, work_dir, group_name):
         dir = os.path.dirname(os.path.dirname(sys.argv[0]))
         glideinFrontendInterface.frontendConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(dir, os.path.join(dir, 'etc/checksum.frontend')).version()
     except:
-        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
-                                        sys.exc_info()[2])
-        logSupport.log.warning("Exception occured while trying to retrieve the glideinwms version. See debug log for more details.")
-        logSupport.log.debug("Exception occurred: %s" % tb)
+        logSupport.log.exception("Exception occurred while trying to retrieve the glideinwms version: ")
 
     if len(elementDescript.merged_data['Proxies']) > 0:
         if not glideinFrontendPlugins.proxy_plugins.has_key(elementDescript.merged_data['ProxySelectionPlugin']):
@@ -986,10 +965,7 @@ def main(parent_pid, work_dir, group_name):
         except KeyboardInterrupt:
             logSupport.log.info("Received signal...exit")
         except:
-            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
-                                            sys.exc_info()[2])
-            logSupport.log.warning("Unhandled exception, dying. See debug log for more details.")
-            logSupport.log.debug("Exception occurred: %s" % tb)
+            logSupport.log.exception("Unhandled exception, dying: ")
     finally:
         pid_obj.relinquish()
 
