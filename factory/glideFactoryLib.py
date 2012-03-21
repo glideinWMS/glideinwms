@@ -446,7 +446,7 @@ def keepIdleGlideins(client_condorq, client_int_name,
     # Check that have not exceeded max held for this security class
     if glidein_totals.has_sec_class_exceeded_max_held(frontend_name):
         # Too many held, don't submit
-        logSupport.log.info("Too many held glideins for this security class: %i=held %i=max_held" % (glidein_totals.entry_held, glidein_totals.get_max_held(frontend_name)))
+        logSupport.log.info("Too many held glideins for this frontend-security class: %i=held %i=max_held" % (glidein_totals.frontend_limits[frontend_name]['held'], glidein_totals.frontend_limits[frontend_name]['max_held']))
         return clean_glidein_queue(remove_excess, glidein_totals, condorq, req_min_idle, req_max_glideins, frontend_name)
 
     # Count glideins for this request credential by status
