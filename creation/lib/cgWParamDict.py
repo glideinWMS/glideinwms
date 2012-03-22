@@ -590,6 +590,7 @@ def add_attr_unparsed_real(attr_name,params,dicts):
                 raise RuntimeError, "Published attribute '%s' must be either a parameter or constant: %s"%(attr_name,attr_obj)
             
             dicts['attrs'].add(attr_name,attr_val)
+            dicts['consts'].add(attr_name,attr_val)
     else: # do not publish, only to glidein
         if is_parameter:
             if is_const:
