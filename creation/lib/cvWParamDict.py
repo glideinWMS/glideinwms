@@ -558,11 +558,11 @@ def populate_common_descript(descript_dict,        # will be modified
         ma_arr=[]
         qry_expr = params.match[param_tname]['query_expr']
 
-        if ( (params.attrs.has_key('GLIDEIN_Glexec_Use')) and 
+        if ( (params.attrs.has_key('GLIDEIN_Glexec_Use')) and
              (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'REQUIRED') and
              (param_tname == 'factory') ):
             ma_arr.append(('GLEXEC_BIN', 's'))
-            qry_expr = "(%s) && (GLEXEC_BIN=!=UNDEFINED)" % qry_expr
+            qry_expr = '(%s) && (GLEXEC_BIN=!=UNDEFINED) && (GLEXEC_BIN=!="NONE")' % qry_expr
 
         descript_dict.add('%sQueryExpr'%str_tname,qry_expr)
 
@@ -628,16 +628,16 @@ def populate_common_descript(descript_dict,        # will be modified
                     pool_idx_len = int(pool_idx_len)
                 pool_idx_list_unexpanded = pel['pool_idx_list'].split(',')
                 pool_idx_list_expanded = []
-                
+
                 # Expand ranges in pool list
                 for idx in pool_idx_list_unexpanded:
                     if '-' in idx:
                         idx_range = idx.split('-')
                         for i in range(int(idx_range[0]), int(idx_range[1])+1):
-                            pool_idx_list_expanded.append(str(i))                                                        
+                            pool_idx_list_expanded.append(str(i))
                     else:
                         pool_idx_list_expanded.append(idx.strip())
-       
+
                 for idx in pool_idx_list_expanded:
                     absfname = "%s%s" % (pel['absfname'], idx.zfill(pool_idx_len))
                     proxies.append(absfname)
