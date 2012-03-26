@@ -19,6 +19,7 @@ import os
 import time
 import string
 import logSupport
+import fcntl
 
 ############################################################
 #
@@ -73,6 +74,9 @@ class FactoryConfig:
         # warning log files
         # default is FakeLog, any other value must implement the write(str) method
         #self.warning_log = FakeLog()
+
+        # Location of lock directory
+        self.lock_dir = "."
 
 
 # global configuration of the module
@@ -142,7 +146,26 @@ def findWork(factory_name, glidein_name, entry_name,
     status.glidein_name = glidein_name
     status.entry_name = entry_name
 
-    status.load(status_constraint)
+    # serialize access to the Collector accross all the processes
+    # these is a single Collector anyhow
+    lock_fname=os.path.join(factoryConfig.lock_dir,"gfi_status.lock")
+    if not os.path.exists(lock_fname): #create a lock file if needed
+        try:
+            fd=open(lock_fname,"w")
+            fd.close()
+        except:
+            # could be a race condition
+            pass
+    
+    fd=open(lock_fname,"r+")
+    try:
+        fcntl.flock(fd,fcntl.LOCK_EX)
+        try:
+            status.load(status_constraint)
+        finally:
+            fcntl.flock(fd,fcntl.LOCK_UN)
+    finally:
+        fd.close()
 
     data = status.fetchStored()
 
@@ -634,9 +657,31 @@ def deadvertizeFactoryClientMonitoring(factory_name, glidein_name):
 #
 ############################################################
 
+# serialize access to the Collector accross all the processes
+# these is a single Collector anyhow
 def exe_condor_advertise(fname, command,
                          is_multi=False):
-    return condorManager.condorAdvertise(fname, command, factoryConfig.advertise_use_tcp, is_multi)
+    global factoryConfig
 
+    lock_fname=os.path.join(factoryConfig.lock_dir,"gfi_advertize.lock")
+    if not os.path.exists(lock_fname): #create a lock file if needed
+        try:
+            fd=open(lock_fname,"w")
+            fd.close()
+        except:
+            # could be a race condition
+            pass
+    
+    fd=open(lock_fname,"r+")
+    try:
+        fcntl.flock(fd,fcntl.LOCK_EX)
+        try:
+            ret = condorManager.condorAdvertise(fname, command, factoryConfig.advertise_use_tcp, is_multi)
+        finally:
+            fcntl.flock(fd,fcntl.LOCK_UN)
+    finally:
+        fd.close()
+
+    return ret
     
 

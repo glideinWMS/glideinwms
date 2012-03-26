@@ -1173,6 +1173,9 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     """
     # KEL should we use this startup time somewhere?  this is currently unused
     startup_time = time.time()
+
+    glideFactoryInterface.factoryConfig.lock_dir=os.path.join(startup_dir,"lock")
+
     os.chdir(startup_dir)
 
     glideinDescript = glideFactoryConfig.GlideinDescript()
