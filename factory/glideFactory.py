@@ -342,6 +342,8 @@ def main(startup_dir):
     os.environ['_CONDOR_SEC_READ_INTEGRITY'] = 'REQUIRED'
     os.environ['_CONDOR_SEC_WRITE_INTEGRITY'] = 'REQUIRED'
 
+    glideFactoryInterface.factoryConfig.lock_dir=os.path.join(startup_dir,"lock")
+
     glideFactoryConfig.factoryConfig.glidein_descript_file=os.path.join(startup_dir,glideFactoryConfig.factoryConfig.glidein_descript_file)
     glideinDescript=glideFactoryConfig.GlideinDescript()
     frontendDescript = glideFactoryConfig.FrontendDescript()
