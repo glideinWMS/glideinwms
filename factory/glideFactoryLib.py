@@ -1338,14 +1338,14 @@ class GlideinTotals:
 
         # Initialize entry limits
         self.entry_name = entry_name
-        self.entry_max_glideins = int(jobDescript.data['MaxGlideins'])
-        self.entry_max_held = int(jobDescript.data['MaxHeld'])
-        self.entry_max_idle = int(jobDescript.data['MaxIdle'])
+        self.entry_max_glideins = int(jobDescript.data['PerEntryMaxGlideins'])
+        self.entry_max_held = int(jobDescript.data['PerEntryMaxHeld'])
+        self.entry_max_idle = int(jobDescript.data['PerEntryMaxIdle'])
         
         # Initialize default frontend-sec class limits
-        self.default_fesc_max_glideins = int(jobDescript.data['DefaultFESCMaxGlideins'])
-        self.default_fesc_max_held = int(jobDescript.data['DefaultFESCMaxHeld'])
-        self.default_fesc_max_idle = int(jobDescript.data['DefaultFESCMaxIdle'])
+        self.default_fesc_max_glideins = int(jobDescript.data['DefaultPerFrontendMaxGlideins'])
+        self.default_fesc_max_held = int(jobDescript.data['DefaultPerFrontendMaxHeld'])
+        self.default_fesc_max_idle = int(jobDescript.data['DefaultPerFrontendMaxIdle'])
 
         # Count glideins by status
         # Initialized since the held and running won't ever change
@@ -1373,17 +1373,17 @@ class GlideinTotals:
 
         # Get factory parameters for frontend-specific limits
         # they are in the format  frontend1:sec_class1:number,frontend2:sec_class2:number
-        fe_glideins_param = jobDescript.data['MaxGlideinsFrontends']
+        fe_glideins_param = jobDescript.data['PerFrontendMaxGlideins']
         if (fe_glideins_param.find(";") != -1):
             for el in fe_glideins_param.split(","):
                 el_list = el.split(";")
                 self.frontend_limits[el_list[0]]['max_glideins'] = int(el_list[1])
-        fe_idle_param = jobDescript.data['MaxIdleFrontends']
+        fe_idle_param = jobDescript.data['PerFrontendMaxIdle']
         if (fe_idle_param.find(";") != -1):
             for el in fe_idle_param.split(","):
                 el_list = el.split(";")
                 self.frontend_limits[el_list[0]]['max_idle'] = int(el_list[1])
-        fe_held_param = jobDescript.data['MaxHeldFrontends']
+        fe_held_param = jobDescript.data['PerFrontendMaxHeld']
         if (fe_held_param.find(";") != -1):
             for el in fe_held_param.split(","):
                 el_list = el.split(";")

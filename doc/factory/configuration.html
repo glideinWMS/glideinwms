@@ -137,7 +137,13 @@ for a more detailed description.
         <blockquote>
             <a href="#config">&lt;config&gt;</a><br/>
             <blockquote>
-                <a href="#config">&lt;max_jobs held="1000" idle="2000" glideins="10000"&gt;</a><br/>
+                <a href="#config">&lt;max_jobs&gt;</a><br/>
+                <blockquote>
+                    <a href="#config">&lt;per_entry held="1000" idle="2000" glideins="10000"&gt;</a><br/>
+                    <a href="#config">&lt;default_per_frontend held="50" idle="100" glideins="5000"&gt;/</a><br/>
+                    <a href="#config">&lt;per_frontends/&gt;</a><br/>
+                </blockquote>
+                <a href="#config">&lt;/max_jobs&gt;</a><br/>
                 <a href="#config">&lt;release max_per_cycle="20" sleep="0.2"&gt;</a><br/>
                 <a href="#config">&lt;remove max_per_cycle="5" sleep="0.2"&gt;</a><br/>
                 <a href="#config">&lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="single_slot"&gt;</a><br/>
@@ -692,16 +698,22 @@ override the global arguments if present.
         <div class="xml">
             &lt;glidein&gt;&lt;entries&gt;&lt;entry name=&quot;<I>entry name</I>&quot;&gt;<br/>
             &lt;config&gt;<br/>
-            &lt;max_jobs held="1000" idle="2000" glideins="10000"&gt;<br/>
+            &lt;max_jobs/&gt;<br/>
             &lt;release max_per_cycle="20" sleep="0.2"&gt;<br/>
             &lt;remove max_per_cycle="5" sleep="0.2"&gt;<br/>
             &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="single_slot"&gt;<br/>
             &lt;config/&gt;
         </div>
         <p>
-        The values in the config section are limits for the entry.  Max_jobs limits the number of held, idle, and total (including running) for an entry.
-        Release and remove regulate how many glideins are affected per cycle.  Submit values limit the number of glideins submitted, how long 
-        to wait to submit, and what kinds of glideins the entry supports - single slot or whole node glideins.
+        The values in the config section are limits for the entry.  <br/>
+        <ul>
+        <li>The max_jobs section limits the number of held, idle, and total (including running).  You can specify the limits per entry, a 
+        default per frontend-security class, or override a specific frontend-security class.</li>
+        <li>Release regulates how many glideins are released per cycle.</li>  
+        <li>Remove regulates how many glideins are removed per cycle.</li>  
+        <li>Submit values limit the number of glideins submitted, how long 
+        to wait to submit, and what kinds of glideins the entry supports - single slot or whole node glideins.</li>
+        </ul>
         </p>
     </li>
         <LI>

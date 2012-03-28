@@ -703,12 +703,12 @@ def populate_job_descript(work_dir, job_descript_dict,
         job_descript_dict.add('ProxyURL', sub_params.proxy_url)
     job_descript_dict.add('Verbosity', sub_params.verbosity)
     job_descript_dict.add('DowntimesFile', down_fname)
-    job_descript_dict.add('MaxGlideins', sub_params.config.max_jobs.entry_glideins)
-    job_descript_dict.add('MaxIdle', sub_params.config.max_jobs.entry_idle)
-    job_descript_dict.add('MaxHeld', sub_params.config.max_jobs.entry_held)
-    job_descript_dict.add('DefaultFESCMaxGlideins', sub_params.config.max_jobs.default_fesc_glideins)
-    job_descript_dict.add('DefaultFESCMaxIdle', sub_params.config.max_jobs.default_fesc_idle)
-    job_descript_dict.add('DefaultFESCMaxHeld', sub_params.config.max_jobs.default_fesc_held)
+    job_descript_dict.add('PerEntryMaxGlideins', sub_params.config.max_jobs.per_entry.glideins)
+    job_descript_dict.add('PerEntryMaxIdle', sub_params.config.max_jobs.per_entry.idle)
+    job_descript_dict.add('PerEntryMaxHeld', sub_params.config.max_jobs.per_entry.held)
+    job_descript_dict.add('DefaultPerFrontendMaxGlideins', sub_params.config.max_jobs.default_per_frontend.glideins)
+    job_descript_dict.add('DefaultPerFrontendMaxIdle', sub_params.config.max_jobs.default_per_frontend.idle)
+    job_descript_dict.add('DefaultPerFrontendMaxHeld', sub_params.config.max_jobs.default_per_frontend.held)
     job_descript_dict.add('MaxSubmitRate', sub_params.config.submit.max_per_cycle)
     job_descript_dict.add('SubmitCluster', sub_params.config.submit.cluster_size)
     job_descript_dict.add('SubmitSlotsLayout', sub_params.config.submit.slots_layout)
@@ -720,18 +720,18 @@ def populate_job_descript(work_dir, job_descript_dict,
     job_descript_dict.add('RequireVomsProxy',sub_params.config.restrictions.require_voms_proxy)
    
     # Add the frontend specific job limits to the job.descript file
-    max_held_frontends = ""
-    max_idle_frontends = ""
-    max_glideins_frontends = ""
-    for X in sub_params.config.max_jobs.max_job_frontends.keys():
-        el = sub_params.config.max_jobs.max_job_frontends[X]
+    max_held_frontend = ""
+    max_idle_frontend = ""
+    max_glideins_frontend = ""
+    for X in sub_params.config.max_jobs.per_frontends.keys():
+        el = sub_params.config.max_jobs.per_frontends[X]
         frontend_name = X + ":" + el.security_class + ";"
-        max_held_frontends = frontend_name + el.held + ","
-        max_idle_frontends = frontend_name + el.idle + ","
-        max_glideins_frontends = frontend_name + el.glideins + ","
-    job_descript_dict.add("MaxGlideinsFrontends", max_glideins_frontends[:-1])
-    job_descript_dict.add("MaxHeldFrontends", max_held_frontends[:-1])
-    job_descript_dict.add("MaxIdleFrontends", max_idle_frontends[:-1])
+        max_held_frontend = frontend_name + el.held + ","
+        max_idle_frontend = frontend_name + el.idle + ","
+        max_glideins_frontend = frontend_name + el.glideins + ","
+    job_descript_dict.add("PerFrontendMaxGlideins", max_glideins_frontend[:-1])
+    job_descript_dict.add("PerFrontendMaxHeld", max_held_frontend[:-1])
+    job_descript_dict.add("PerFrontendMaxIdle", max_idle_frontend[:-1])
     
     #  If the configuration has a non-empty frontend_allowlist
     #  then create a white list and add all the frontends:security_classes
