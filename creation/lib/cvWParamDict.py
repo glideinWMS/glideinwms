@@ -454,10 +454,7 @@ def add_attr_unparsed_real(attr_name,params,dicts):
     if is_parameter:
         dicts['params'].add_extended(attr_name,is_expr,attr_val)
     else:
-        if is_expr:
-            RuntimeError, "Expression '%s' is not a parameter!"%attr_name
-        else:
-            dicts['consts'].add(attr_name,attr_val)
+        dicts['consts'].add(attr_name,attr_val)
 
     do_glidein_publish=eval(attr_obj.glidein_publish,{},{})
     do_job_publish=eval(attr_obj.job_publish,{},{})
