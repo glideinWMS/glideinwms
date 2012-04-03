@@ -448,7 +448,7 @@ def keepIdleGlideins(client_condorq, client_int_name,
         # Too many held, don't submit
         logSupport.log.info("Too many held glideins for this frontend-security class: %i=held %i=max_held" % (glidein_totals.frontend_limits[frontend_name]['held'], glidein_totals.frontend_limits[frontend_name]['max_held']))
         # run sanitize... we have to get out of this mess
-        sanitizeGlideinsSimple(condorq)
+        sanitizeGlideins(condorq)
         # we have done something... return non-0 so sanitize is not called again
         return 1
     
@@ -570,8 +570,9 @@ def clean_glidein_queue(remove_excess, glidein_totals, condorQ, req_min_idle, re
             stat_str = "min_idle=%i, idle=%i, unsubmitted=%i" % (req_min_idle, sec_class_idle, len(idle_list))
             logSupport.log.info("Too many glideins: %s" % stat_str)
             logSupport.log.info("Removing %i unsubmitted idle glideins" % len(idle_list))
-            removeGlideins(condorQ.schedd_name, idle_list)
-            return 1 # stop here... the others will be retried in next round, if needed
+            if len(idle_list)>0:
+                removeGlideins(condorQ.schedd_name, idle_list)
+                return 1 # stop here... the others will be retried in next round, if needed
 
         idle_list = extractIdleQueued(condorQ)
         if remove_excess_idle and (len(idle_list) > 0):
@@ -581,8 +582,9 @@ def clean_glidein_queue(remove_excess, glidein_totals, condorQ, req_min_idle, re
             stat_str = "min_idle=%i, idle=%i, unsubmitted=%i" % (req_min_idle, sec_class_idle, 0)
             logSupport.log.info("Too many glideins: %s" % stat_str)
             logSupport.log.info("Removing %i idle glideins" % len(idle_list))
-            removeGlideins(condorQ.schedd_name, idle_list)
-            return 1 # exit, even if no submitted
+            if len(idle_list)>0:
+                removeGlideins(condorQ.schedd_name, idle_list)
+                return 1 # exit, even if no submitted
 
         if remove_excess_running:
             # no idle left, remove anything you can
@@ -611,9 +613,9 @@ def clean_glidein_queue(remove_excess, glidein_totals, condorQ, req_min_idle, re
                 logSupport.log.info("Removing %i held glideins" % len(held_list))
                 rm_list += held_list
 
-            removeGlideins(condorQ.schedd_name, rm_list)
-            return 1 # exit, even if no submitted
-
+            if len(rm_list)>0:
+                removeGlideins(condorQ.schedd_name, rm_list)
+                return 1 # exit, even if no submitted
     elif remove_excess_running and (req_max_glideins == 0) and (sec_class_held > 0):
         # no glideins desired, remove all held
         # (only held should be left at this point... idle and running addressed above) 
@@ -628,9 +630,10 @@ def clean_glidein_queue(remove_excess, glidein_totals, condorQ, req_min_idle, re
         if len(held_list) > 0:
             logSupport.log.info("Removing %i held glideins" % len(held_list))
 
-        removeGlideins(condorQ.schedd_name, unrecoverable_held_list + held_list)
-        return 1 # exit, even if no submitted
-
+        if (len(unrecoverable_held_list)+len(held_list))>0:
+            removeGlideins(condorQ.schedd_name, unrecoverable_held_list + held_list)
+            return 1 # exit, even if no submitted
+        
     return 0
 
 
