@@ -895,6 +895,8 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     """
     startup_time=time.time()
 
+    glideFactoryInterface.factoryConfig.lock_dir=os.path.join(startup_dir,"lock")
+
     glideFactoryMonitoring.monitoringConfig.monitor_dir=os.path.join(startup_dir,"monitor/entry_%s"%entry_name)
 
     os.chdir(startup_dir)
