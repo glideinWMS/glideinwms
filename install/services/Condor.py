@@ -544,9 +544,12 @@ You can only use the '--configure/--validate' options for this type.
     try:
         try:
             first_entry = fd.next().name
-            if ( len(first_entry.split('/')) < 2 ):
-              common.logerr("File (%s) is not a condor tarball! (found (%s), expected a subdirectory" % (tarball, first_entry))
-            self.condor_first_dir = first_entry.split('/')[0]+'/'
+            first_el=fd.getmember(first_entry)
+            if (not first_el.isdir()):
+              common.logwarn("File (%s) may not be a condor tarball! (found (%s), expected a subdirectory" % (tarball, first_entry))
+              self.condor_first_dir = first_entry+'/'
+            else:
+              self.condor_first_dir = first_entry.split('/')[0]+'/'
             
             if ( self.condor_first_dir[:7] != "condor-"):
               common.logerr("File '%s' is not a condor tarball! (found '%s', expected 'condor-*/'" % (tarball, self.condor_first_dir))
