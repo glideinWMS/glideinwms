@@ -118,7 +118,7 @@ def vofrontend(service,action,inifile):
   if action in ["install","validate","configure","create-group","create-template"]:
     process_action(obj,action)
     return
-  cmd = "cd %s;. frontend.sh;cd %s" % (obj.install_location(),obj.frontend_dir())
+  cmd = "cd %s;. ./frontend.sh;cd %s" % (obj.install_location(),obj.frontend_dir())
   if action == "create-group":
      obj.get_new_config_group()
      return
@@ -156,7 +156,7 @@ def factory(service,action,inifile):
   if action in ["install","validate","configure","create-entries","create-template"]:
     process_action(obj,action)
     return
-  cmd = "cd %s;. factory.sh;cd %s" % (obj.install_location(),obj.glidein_dir())
+  cmd = "cd %s;. ./factory.sh;cd %s" % (obj.install_location(),obj.glidein_dir())
   if action == "start":
     cmd += "; ./factory_startup %s"  % action
   elif action == "stop":
