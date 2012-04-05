@@ -263,13 +263,19 @@ Related Pages:
     But it is a good place to look for what is going on.<br>
     <ul>
       <li>
-        <b>v3_0</b> released on March xx, 2012 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_0/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_0/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_0.tgz">Tarball</a>)<br>
+        <b>v3_0</b> released on April 05, 2012 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_0/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_0/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_0.tgz">Tarball</a>)<br>
         <ul>
-          <li>Support for new API for factory - frontend communication Improved logging using standard Python logging APIs
+          <li>Support for new API for factory - frontend communication 
+          <li>Added support to the Factory for EC2 Query API submissions to the Cloud
+          <li>Change to max job limits to reflect more accurate names
+          <li>Add attr_dict in the environemnt of the frontend match_expr
+          <li>New feature: The start_expr is now a native part of match
+          <li>Improved logging using standard Python logging APIs
           <li>The option to have either the factory and/or the frontend provide the pilot proxy has been removed.  The frontend must always provide it.
           <li>Added support to the Factory for EC2 Query API submissions to the Cloud
           <li>Consolidated the condor_tarball tag in glideinwms.xml to read in a list of os, arch, version
-
+          <li>Added unittests for downtime, proxy plugins, and support functions
+          <li>Miscellaenous bug fixes
         </ul>
       </li>  
      </ul>
