@@ -81,7 +81,15 @@ Related Pages:
 <div class="section">
 <a name="stable"></a>
     <h3>Stable Series</h3>
+      <li>
+        <b>v2_5_7</b> released on April 5, 2012 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_7/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_7/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
     <ul>
+        <li>Patch of the clean_glidein_queue to return 1 only when something was really done
+        <li>Fix handling of held jobs when hitting the held limit
+        <li>Fix log messages that printed out wrong held limits
+        <li>Add locking when talking to the collector
+    </ul>
+    </li>
       <li>
         <b>v2_5_6</b> released on March 16, 2012 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_6/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_6/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_6.tgz">Tarball</a>)<br>
         <ul>
@@ -271,7 +279,23 @@ Related Pages:
     But it is a good place to look for what is going on.<br>
     <ul>
       <li>
+        <b>v3_0</b> released on April 05, 2012 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_0/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_0/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_0.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Support for new API for factory - frontend communication
+          </li><li>Added support to the Factory for EC2 Query API submissions to the Cloud
+          </li><li>Change to max job limits to reflect more accurate names
+          </li><li>Add attr_dict in the environemnt of the frontend match_expr
+          </li><li>New feature: The start_expr is now a native part of match
+          </li><li>Improved logging using standard Python logging APIs
+          </li><li>The option to have either the factory and/or the frontend provide the pilot proxy has been removed.  The frontend must always provide it.
+          </li><li>Added support to the Factory for EC2 Query API submissions to the Cloud
+          </li><li>Consolidated the condor_tarball tag in glideinwms.xml to read in a list of os, arch, version
+          </li><li>Added unittests for downtime, proxy plugins, and support functions
+          </li><li>Miscellaenous bug fixes
+        </li></ul>
 
+      </li>
+      <li>
         <b>v2_3_2</b>, released on April 06, 2010 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_3_2/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_3_2/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_3_2.tgz">Tarball</a>)<br>
         <ul>
           <li>Fixed a security bug in the way certificate/proxy DN(s) are handled. <b>If you are upgrading the installation rather than full install, you should patch the condor_mapfile used by Condor daemons in your installation using the convert_condormap tool available from the glideinWMS download page.</b> For additional security, users should add new DN to the condor_mapfile only by using the glidecondor_addDN tool available in the glideinWMS/install directory.
