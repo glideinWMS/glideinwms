@@ -134,16 +134,29 @@ def main(args):
 
         check_config(condor_mapfile)
         if params['is_daemon_dn']:
-            condor_config=os.path.join(condorExe.condor_bin_path,"../etc/condor_config.local")
+            try:
+                 condor_config=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_FILE")[0][:-1] # remove trailing newline
+            except condorExe.ExeError,e:
+                 # not found, see if it uses a config dir
+                 try:
+                    condor_config_dir=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_DIR")[0][:-1] # remove trailing newline
+                    # try the standard OSG RPM location
+                    condor_config=os.path.join(condor_config_dir,"03_gwms_local.config")
+                    if not os.path.isfile(condor_config):
+                       # ok, let's define a file of our own and expect the admins to use it
+                       condor_config=os.path.join(condor_config_dir,"90_gwms_dns.config")
+                       if not os.path.isfile(condor_config):
+                           print "Please create %s"%condor_config
+                 except condorExe.ExeError,e:
+                     # nope, go with the main config file
+                     try:
+                         condor_config=condorExe.iexe_cmd("condor_config_val -config")[1].strip() # it is in the second line, and it is indented
+                     except condorExe.ExeError,e:
+                         raise IOError, "No CONFIG_FILE found"
             try:
                 check_config(condor_config)
-            except IOError, e1:
-                # will use this if the other is not available
-                condor_config=os.path.join(condorExe.condor_bin_path,"../etc/condor_config")
-                try:
-                    check_config(condor_config)
-                except IOError, e2:
-                    raise IOError, "%s %s"%(e1,e2)
+            except IOError, e:
+                raise IOError, e
     except IOError, e:
         print e
         sys.exit(2)
