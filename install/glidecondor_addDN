@@ -127,7 +127,10 @@ def main(args):
 
     # make sure we can access the files to be changed
     try:
-        condor_mapfile=os.path.join(condorExe.condor_bin_path,"../certs/condor_mapfile")
+        try:
+             condor_mapfile=condorExe.iexe_cmd("condor_config_val CERTIFICATE_MAPFILE")[0][:-1] # remove trailing newline
+        except condorExe.ExeError,e:
+             raise IOError, "Path to CERTIFICATE_MAPFILE not found"
 
         check_config(condor_mapfile)
         if params['is_daemon_dn']:
