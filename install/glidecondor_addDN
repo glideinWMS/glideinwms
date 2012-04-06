@@ -69,19 +69,19 @@ def update_mapfile(mapfile,dn,user):
     lines=fd.readlines()
     fd.close()
 
-    if len(lines)<3:
-        # must have at least the GSI condor, GSI anon and FS anon
+    if len(lines)<2:
+        # must have at least the GSI anon and FS anon
         print "File '%s' is not a condor mapfile; too short!"%mapfile
         sys.exit(3)
 
-    if lines[0][:5]!='GSI "':
+    if lines[0][:4]!='GSI ':
         print "File '%s' is not a condor mapfile; first line is not a valid GSI mapping!"%mapfile
         sys.exit(3)
         
     # append GSI DN user
     # after the last line of that kind
     found=False
-    for i in range(1,len(lines)):
+    for i in range(0,len(lines)):
         line=lines[i]
         if line[:5]!='GSI "':
             lines.insert(i,'GSI "^%s$" %s\n'%(re.escape(dn),user))
