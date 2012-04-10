@@ -20,7 +20,7 @@
 
 import os
 import sys
-import md5
+import hashlib
 import string
 
 class GlideinWMSDistro:
@@ -77,7 +77,7 @@ class GlideinWMSDistro:
                         else:
                             # In the RPM, all files are in site-packages
                             fd = open(os.path.join(dir,os.path.basename(file)), 'r')
-                        chksum = md5.new(fd.read()).hexdigest()
+                        chksum = hashlib.md5(fd.read()).hexdigest()
                         if (chksum != distroFileHash[file]):
                             modifiedFiles.append(file)
                             patch = 'PATCHED' 
