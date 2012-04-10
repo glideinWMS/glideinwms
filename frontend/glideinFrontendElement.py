@@ -155,6 +155,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
     security_name = elementDescript.merged_data['SecurityName']
 
     web_url = elementDescript.frontend_data['WebURL']
+    monitoring_web_url=elementDescript.frontend_data['MonitoringWebURL']
 
     pipe_ids={}
 
@@ -404,7 +405,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
         x509_proxy_plugin.update_usermap(condorq_dict, condorq_dict_types,
                                                       status_dict, status_dict_types)
     # here we have all the data needed to build a GroupAdvertizeType object
-    descript_obj = glideinFrontendInterface.FrontendDescript(client_name, frontend_name, group_name, web_url, signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname, signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature, x509_proxy_plugin)
+    descript_obj = glideinFrontendInterface.FrontendDescript(client_name, frontend_name, group_name, web_url, monitoring_web_url, signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname, signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature, x509_proxy_plugin)
     # reuse between loops might be a good idea, but this will work for now
     key_builder = glideinFrontendInterface.Key4AdvertizeBuilder()
 
