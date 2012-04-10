@@ -316,13 +316,12 @@ class Credential:
 class FrontendDescript:
     def __init__(self,
                  my_name,frontend_name,group_name,
-                 web_url, monitoring_web_url, main_descript, group_descript,
+                 web_url, main_descript, group_descript,
                  signtype, main_sign, group_sign,
                  x509_proxies_plugin=None):
         self.my_name=my_name
         self.frontend_name=frontend_name
         self.web_url=web_url
-        self.monitoring_web_url=monitoring_web_url
         self.main_descript=main_descript
         self.signtype=signtype
         self.main_sign=main_sign
@@ -342,7 +341,6 @@ class FrontendDescript:
 
     def get_web_attrs(self):
         return ('WebURL = "%s"'%self.web_url,
-                'WebMonitoringURL = "%s"'%self.monitoring_web_url,
                 'WebSignType = "%s"'%self.signtype,
                 'WebDescriptFile = "%s"'%self.main_descript,
                 'WebDescriptSign = "%s"'%self.main_sign,
