@@ -152,6 +152,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
     security_name=elementDescript.merged_data['SecurityName']
 
     web_url=elementDescript.frontend_data['WebURL']
+    monitoring_web_url=elementDescript.frontend_data['MonitoringWebURL']
 
     # query condor
     glideinFrontendLib.log_files.logActivity("Querying schedd, entry, and glidein status using child processes.")
@@ -386,7 +387,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
 
     # here we have all the data needed to build a GroupAdvertizeType object
     descript_obj=glideinFrontendInterface.FrontendDescript(client_name,frontend_name,group_name,
-                                                           web_url,
+                                                           web_url, monitoring_web_url,
                                                            signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname,
                                                            signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature,
                                                            x509_proxies_data)

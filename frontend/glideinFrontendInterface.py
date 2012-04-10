@@ -223,12 +223,13 @@ def findGlideinClientMonitoring(factory_pool,my_name,
 class FrontendDescriptNoGroup:
     def __init__(self,
                  my_name,frontend_name,
-                 web_url, main_descript,
+                 web_url, monitoring_web_url, main_descript,
                  signtype, main_sign,
                  x509_proxies_data=None):
         self.my_name=my_name
         self.frontend_name=frontend_name
         self.web_url=web_url
+        self.monitoring_web_url=monitoring_web_url
         self.main_descript=main_descript
         self.signtype=signtype
         self.main_sign=main_sign
@@ -252,11 +253,11 @@ class FrontendDescriptNoGroup:
 class FrontendDescript(FrontendDescriptNoGroup):
     def __init__(self,
                  my_name,frontend_name,group_name,
-                 web_url, main_descript, group_descript,
+                 web_url, monitoring_web_url, main_descript, group_descript,
                  signtype, main_sign, group_sign,
                  x509_proxies_data=None):
         FrontendDescriptNoGroup.__init__(self,my_name,frontend_name,
-                                         web_url, main_descript,
+                                         web_url, monitoring_web_url, main_descript,
                                          signtype, main_sign,
                                          x509_proxies_data)
         self.group_name=group_name
@@ -462,6 +463,7 @@ def createAdvertizeWorkFile(fname, descript_obj, params_obj,
             fd.write('ReqIdleGlideins = %i\n'%params_obj.min_nr_glideins)
             fd.write('ReqMaxRunningGlideins = %i\n'%params_obj.max_run_glideins)
             fd.write('ReqRemoveExcess = "%s"\n'%params_obj.remove_excess_str)
+            fd.write('WebMonitoringURL = "%s"\n'%descript_obj.monitoring_web_url)
 
             # write out both the params and monitors
             for (prefix,data) in ((frontendConfig.glidein_param_prefix,params_obj.glidein_params),

@@ -156,6 +156,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults["stage"]=stage_defaults
 
         self.monitor_defaults["base_dir"]=("/var/www/html/vofrontend/monitor","base_dir","Monitoring base dir",None)
+        self.monitor_defaults["web_base_url"]=("http://%s/vofrontend/monitor"%socket.gethostname(),"web_base_dir","Monitoring base dir",None)
         self.defaults["monitor"]=self.monitor_defaults
         
         pool_collector_defaults=cWParams.commentedOrderedDict()
@@ -215,6 +216,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.work_dir=self.buildDir(frontendVersioning, self.work.base_dir)
         self.log_dir=self.buildDir(frontendVersioning, self.work.base_log_dir)
         self.web_url=self.buildDir(frontendVersioning, self.stage.web_base_url)
+        self.monitoring_web_url=self.monitor.web_base_url
 
         self.derive_match_attrs()
 
