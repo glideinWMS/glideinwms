@@ -156,7 +156,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults["stage"]=stage_defaults
 
         self.monitor_defaults["base_dir"]=("/var/www/html/vofrontend/monitor","base_dir","Monitoring base dir",None)
-        self.monitor_defaults["web_base_url"]=("http://%s/vofrontend/monitor"%socket.gethostname(),"web_base_dir","Monitoring base dir",None)
+        self.monitor_defaults["web_base_url"]=("http://%s/vofrontend/monitor"%socket.gethostname(),"web_base_url","Monitoring base dir",None)
         self.defaults["monitor"]=self.monitor_defaults
         
         pool_collector_defaults=cWParams.commentedOrderedDict()
