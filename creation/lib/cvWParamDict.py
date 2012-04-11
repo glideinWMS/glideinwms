@@ -672,13 +672,21 @@ def populate_common_descript(descript_dict,        # will be modified
             descript_dict.add('ProxyVMIds', repr(proxy_vm_ids))
         if len(proxy_vm_types.keys()) > 0:
             descript_dict.add('ProxyVMTypes', repr(proxy_vm_types))
-    if (params.attrs.has_key('GLIDEIN_Glexec_Use')):
-       descript_dict.add('GLIDEIN_Glexec_Use',params.attrs['GLIDEIN_Glexec_Use']['value'])
 
     match_expr = params.match.match_expr
-    if ( (params.attrs.has_key('GLIDEIN_Glexec_Use')) and 
-         (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'REQUIRED') ):
-        match_expr = '(%s) and (glidein["attrs"]["GLEXEC_BIN"] != "NONE")' % match_expr
+
+    if (params.attrs.has_key('GLIDEIN_Glexec_Use')):
+        descript_dict.add('GLIDEIN_Glexec_Use',
+                          params.attrs['GLIDEIN_Glexec_Use']['value'])
+        # Based on the value GLIDEIN_Glexec_Use consider the entries as follows
+        # REQUIRED: Entries with GLEXEC_BIN set
+        # OPTIONAL: Consider all entries irrespective of their GLEXEC config
+        # NEVER   : Consider entries that do not want glidein to use GLEXEC
+        if (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'REQUIRED'):
+            match_expr = '(%s) and (glidein["attrs"]["GLEXEC_BIN"] != "NONE")' % match_expr
+        elif (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'NEVER'):
+            match_expr = '(%s) and (glidein["attrs"]["GLIDEIN_REQUIRE_GLEXEC_USE"] == "False")' % match_expr
+
     descript_dict.add('MatchExpr', match_expr)
 
 #####################################################
