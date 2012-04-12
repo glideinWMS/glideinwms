@@ -1,6 +1,13 @@
 	Add attr_dict in the environemnt of the frontend match_expr
 	New feature: The start_expr is now a native part of match
 
+v2_5_7
+	Patch of the clean_glidein_queue to return 1 only when something was
+	  really done
+	Fix handling of held jobs when hitting the held limit
+	Fix log messages that printed out wrong held limits
+	Add locking when talking to the collector
+
 v2_5_6  Factory supports per-frontend limits in the config
         Bug Fix: Fixed a bug where frontend would not stop cleanly
 	Bug Fix: Factory doesnot depend on the X509_CERT_DIR in the environment
