@@ -217,7 +217,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.log_dir=self.buildDir(frontendVersioning, self.work.base_log_dir)
         self.web_url=self.buildDir(frontendVersioning, self.stage.web_base_url)
         if hasattr(self.monitor,"web_base_url") and (self.monitor.web_base_url is not None):
-            self.monitoring_web_url=self.monitor.web_base_url
+            self.monitoring_web_url=self.buildDir(frontendVersioning, self.monitor.web_base_url)
         else:
             self.monitoring_web_url=self.web_url.replace("stage","monitor")
 
