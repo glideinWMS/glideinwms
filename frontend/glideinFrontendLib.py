@@ -19,12 +19,6 @@ import condorMonitor,condorExe
 import logSupport
 import sys, traceback
 
-# sets is deprecated in Python 2.6 as set is a new builtin class
-try:
-    set
-except:
-    from sets import Set as set
-
 class LogFiles:
     def __init__(self,log_dir,max_days,min_days,max_mbs):
         self.log_dir=log_dir
