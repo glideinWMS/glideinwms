@@ -17,11 +17,6 @@ import os.path
 import string,math
 import condorMonitor,condorExe
 import logSupport
-# sets is deprecated in Python 2.6 as set is a new builtin class
-try:
-    set
-except:
-    from sets import Set as set
 
 #############################################################################################
 
