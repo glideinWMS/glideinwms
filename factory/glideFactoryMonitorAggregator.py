@@ -13,11 +13,16 @@
 #
 
 import copy,time,string,os.path
-import sets
 import timeConversion
 import xmlParse,xmlFormat
 import glideFactoryMonitoring
 import glideFactoryLib
+
+# sets is deprecated in Python 2.6 as set is a new builtin class
+try:
+    set
+except:
+    from sets import Set as set
 
 ############################################################
 #
@@ -491,9 +496,9 @@ def aggregateRRDStats():
         stats_entries.sort()
         
         # Get all the resolutions, data_sets and frontends... for totals
-        resolution = sets.Set([])
-        frontends = sets.Set([])
-        data_sets = sets.Set([])
+        resolution = set([])
+        frontends = set([])
+        data_sets = set([])
         for entry in stats_entries:
             entry_resolution = stats[entry]['total']['periods'].keys()
             if len(entry_resolution)==0:

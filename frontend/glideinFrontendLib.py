@@ -14,11 +14,16 @@
 #
 
 import os.path
-import sets,string,math
+import string,math
 import condorMonitor,condorExe
 import logSupport
-
 import sys, traceback
+
+# sets is deprecated in Python 2.6 as set is a new builtin class
+try:
+    set
+except:
+    from sets import Set as set
 
 class LogFiles:
     def __init__(self,log_dir,max_days,min_days,max_mbs):
@@ -183,7 +188,7 @@ def countCondorQ(condorq_dict):
 #
 
 def getCondorQUsers(condorq_dict):
-    users_set=sets.Set()
+    users_set=set()
     for schedd_name in condorq_dict.keys():
         condorq_data=condorq_dict[schedd_name].fetchStored()
         for jid in condorq_data.keys():
@@ -236,7 +241,7 @@ def countMatch(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match_list=
     # group together those that have the same attributes
     cq_dict_clusters={}
     # set of all jobs
-    cq_jobs=sets.Set()
+    cq_jobs=set()
     for scheddIdx in range(nr_schedds):
         schedd=schedds[scheddIdx]
         cq_dict_clusters[scheddIdx]={}
@@ -284,7 +289,7 @@ def countMatch(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match_list=
             del sjobs_arr
             glidein_count+=schedd_count
             pass    
-        jobs=sets.Set(jobs_arr)
+        jobs=set(jobs_arr)
         del jobs_arr
         list_of_all_jobs.append(jobs)
         out_glidein_counts[glidename]=glidein_count
@@ -559,10 +564,10 @@ def uniqueSets(in_sets):
     sorted_sets=[]
     for i in in_sets:
         common_list = []
-        common = sets.Set()
-        new_unique = sets.Set()
+        common = set()
+        new_unique = set()
         old_unique_list = []
-        old_unique = sets.Set()
+        old_unique = set()
         new = []
         #make a list of the elements common to i
         #(current iteration of sets) and the existing
@@ -596,7 +601,7 @@ def uniqueSets(in_sets):
         sorted_sets=new
 
     # set with all unique elements
-    sum_set = sets.Set()
+    sum_set = set()
     for s in sorted_sets:
         sum_set = sum_set | s
 
@@ -613,13 +618,13 @@ def uniqueSets(in_sets):
         for t in temp_sets:
             if s & t:
                 indexes.append(temp_sets.index(t))
-                temp_sets[temp_sets.index(t)]=sets.Set()
+                temp_sets[temp_sets.index(t)]=set()
         index_list.append(indexes)	
 
     # create output
     outvals=[]
     for i in range(len(index_list)-1): # last one contains all the values
-        outvals.append((sets.Set(index_list[i]),sorted_sets[i]))
+        outvals.append((set(index_list[i]),sorted_sets[i]))
     return (outvals,sorted_sets[-1])
 
 def hashJob(condorq_el,condorq_match_list=None):
