@@ -83,6 +83,7 @@ class GlideinParams(cWParams.CommonParams):
         
         entry_config_restrictions_defaults=cWParams.commentedOrderedDict()
         entry_config_restrictions_defaults["require_voms_proxy"]=("False","Bool","Whether this entry point requires a voms proxy",None)
+        entry_config_restrictions_defaults["require_glidein_glexec_use"]=("False","Bool","Whether this entry requires glidein to use glexec",None)
         entry_config_defaults['restrictions']=entry_config_restrictions_defaults
 
         

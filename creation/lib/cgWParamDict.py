@@ -309,11 +309,13 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             self.dicts[dtype].add("GLIDEIN_Gatekeeper",sub_params.gatekeeper,allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_GridType",sub_params.gridtype,allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS",sub_params.config.restrictions.require_voms_proxy,allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_REQUIRE_GLEXEC_USE",sub_params.config.restrictions.require_glidein_glexec_use,allow_overwrite=True)
             if sub_params.rsl!=None:
                 self.dicts[dtype].add('GLIDEIN_GlobusRSL',sub_params.rsl,allow_overwrite=True)
 
 
         self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_VOMS","boolean",sub_params.config.restrictions.require_voms_proxy,None,False,True,True)
+        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_GLEXEC_USE","boolean",sub_params.config.restrictions.require_glidein_glexec_use,None,False,True,True)
 
         # populate infosys
         for infosys_ref in sub_params.infosys_refs:
@@ -676,6 +678,7 @@ def populate_job_descript(work_dir, job_descript_dict,
     job_descript_dict.add('MaxReleaseRate',sub_params.config.release.max_per_cycle)
     job_descript_dict.add('ReleaseSleep',sub_params.config.release.sleep)
     job_descript_dict.add('RequireVomsProxy',sub_params.config.restrictions.require_voms_proxy)
+    job_descript_dict.add('RequireGlideinGlexecUse',sub_params.config.restrictions.require_glidein_glexec_use)
    
     # Add the frontend specific job limits to the job.descript file
     max_job_frontends=""

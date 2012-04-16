@@ -82,7 +82,7 @@ if [ -z "$glexec_bin" ]; then
     glexec_bin="NONE"
 fi
 
-# Does frontend wants to use glexec? 
+# Does frontend wants to use glexec?
 use_glexec=`grep '^GLIDEIN_Glexec_Use ' $glidein_config | awk '{print $2}'`
 if [ -z "$use_glexec" ]; then
     # Default to optional usage
@@ -90,18 +90,38 @@ if [ -z "$use_glexec" ]; then
     use_glexec="OPTIONAL"
 fi
 
+# Does entry require glidein to use glexec?
+require_glexec_use=`grep '^GLIDEIN_REQUIRE_GLEXEC_USE ' $glidein_config | awk '{print $2}'`
+if [ -z "$require_glexec_use" ]; then
+    # Default is False
+    echo "`date` GLIDEIN_Require_Glexec_Use not configured. Defaulting it to False"
+    require_glexec_use="False"
+fi
+
+echo "`date` Factory requires glidein to use glexec: $require_glexec_use"
 echo "`date` VO's desire to use glexec: $use_glexec"
 echo "`date` Entry configured with glexec: $glexec_bin"
 
 case "$use_glexec" in
     NEVER)
         echo "`date` VO does not want to use glexec"
+        if [ "$require_glexec_use" == "True" ]; then
+            echo "`date` Factory requires glidein to use glexec. Exiting."
+            exit 1
+        fi
         no_use_glexec_config
         ;;
     OPTIONAL)
-        if [ "$glexec_bin" == "NONE" ]; then
-            echo "`date` VO has set the use glexec to OPTIONAL but site is not configured with glexec"
-            no_use_glexec_config
+        if [ "$require_glexec_use" == "True" ]; then
+            if [ "$glexec_bin" == "NONE" ]; then
+                echo "`date` Factory requires glidein to use glexec but glexec_bin is NONE. Exiting."
+                exit 1
+            fi
+        else
+            if [ "$glexec_bin" == "NONE" ]; then
+                echo "`date` VO has set the use glexec to OPTIONAL but site is not configured with glexec"
+                no_use_glexec_config
+            fi
         fi
         # Default to secure mode using glexec
         ;;
@@ -115,7 +135,7 @@ case "$use_glexec" in
         echo "`date` USE_GLEXEC in VO Frontend configured to be $use_glexec. Accepted values are 'NEVER' or 'OPTIONAL' or 'REQUIRED'."
         exit 1
         ;;
-esac 
+esac
 
 # We should use the copy of the proxy created by setup_x509.sh
 x509_user_proxy=`grep "^X509_USER_PROXY " $glidein_config | awk '{print $2}'`
@@ -142,8 +162,8 @@ add_condor_vars_line "ALTERNATIVE_SHELL" "C" "-" "SH" "Y" "N" "-"
 
 # --------------------------------------------------
 # Set glidein working dir into the tmp dir
-# This is needes since the user will be changed and 
-# the tmo directory is world writtable
+# This is needed since the user will be changed and 
+# the tmp directory is world writtable
 glide_tmp_dir=`grep '^TMP_DIR ' $glidein_config | awk '{print $2}'`
 if [ -z "$glide_tmp_dir" ]; then
     echo "TMP_DIR not found!" 1>&2
