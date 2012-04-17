@@ -6,6 +6,8 @@
 
 # User modifiable variables
 GLIDEIN_Start		C	True		+				N	N	-
+GLIDEIN_Hold		C	False		+				N	N	-
+GLIDEIN_PREEMPT		C	False		+				N	N	-
 GLIDEIN_Rank		C	1		+				N	N	-
 GLIDEIN_Max_Idle 	I 	1200 		+				N	Y	-
 GLIDEIN_Max_Walltime	I	-		+				N	Y	-
@@ -31,7 +33,11 @@ GLIDECLIENT_Signature	S	-		+				N	Y	@
 GLIDECLIENT_Group_Signature	S	-	+				N	Y	@
 GLIDEIN_Collector	C	-		HEAD_NODE			Y	N	-
 GLIDECLIENT_Start	C	True		+				N	N	-
+GLIDECLIENT_Hold	C	False		+				N	N	-
+GLIDECLIENT_PREEMPT	C	False		+				N	N	-
 GLIDECLIENT_Group_Start	C	True		+				N	N	-
+GLIDECLIENT_Group_Hold	C	False		+				N	N	-
+GLIDECLIENT_Group_PREEMPT	C	False		+				N	N	-
 GLIDECLIENT_Rank	C	1		+				N	N	-
 GLIDECLIENT_Group_Rank	C	1		+				N	N	-
 
