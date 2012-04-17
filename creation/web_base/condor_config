@@ -46,9 +46,9 @@ PROCD_MAX_SNAPSHOT_INTERVAL = 60
 
 SUSPEND = False
 CONTINUE = True
-WANT_SUSPEND = True
+WANT_SUSPEND = False
 SUSPEND_VANILLA = False
-WANT_SUSPEND_VANILLA = True
+WANT_SUSPEND_VANILLA = False
 
 # if it ever enters the Preempting/Vacating state, get out of it in 5 minutes
 # should never happen, but it is a good precaution
@@ -88,6 +88,8 @@ DENY_NEGOTIATOR = anonymous@*
 LOCAL_CONFIG_FILE       = 
 
 GLIDEIN_START_CONDITION = ($(GLIDEIN_Start)) && ($(GLIDEIN_Entry_Start)) && ($(GLIDECLIENT_Start)) && ($(GLIDECLIENT_Group_Start))
+GLIDEIN_HOLD_CONDITION = ($(GLIDEIN_Hold)) && ($(GLIDEIN_Entry_Hold)) && ($(GLIDECLIENT_Hold)) && ($(GLIDECLIENT_Group_Hold))
+GLIDEIN_PREEMPT_CONDITION = ($(GLIDEIN_PREEMPT)) && ($(GLIDEIN_Entry_PREEMPT)) && ($(GLIDECLIENT_PREEMPT)) && ($(GLIDECLIENT_Group_PREEMPT))
 
 RANK = ($(GLIDEIN_Rank)) + ($(GLIDEIN_Entry_Rank)) + ($(GLIDECLIENT_Rank)) + ($(GLIDECLIENT_Group_Rank))
 

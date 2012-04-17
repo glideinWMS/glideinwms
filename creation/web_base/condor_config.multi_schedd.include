@@ -48,11 +48,17 @@ VM1_START_CONDITION = ((GLIDEIN_Is_Monitor=?=True) || (JOB_Is_Monitor=?=True))
 VM2_START_CONDITION = ($(GLIDEIN_START_CONDITION)) && ($(GLIDEIN_REQUIREMENTS))
 START = (($(SLOT_1)) && ($(VM1_START_CONDITION))) || (($(SLOT_2)) && ($(VM2_START_CONDITION)))
 
+WANT_HOLD = (($(SLOT_2)) && ($(GLIDEIN_HOLD_CONDITION)))
+PREEMPT = (($(SLOT_2)) && (($(GLIDEIN_HOLD_CONDITION)) || ($(GLIDEIN_PREEMPT_CONDITION))))
+
+
 IsOwner = ($(SLOT_1)) && (START =?= False)
 
 # Max time a job is guaranteed to run in the glidein
 # set it to several months... i.e. infinity
-MaxJobRetirementTime=$(PREEMPT_GRACE_TIME)
+# (unless we are vacating a held job then should be zero)
+MaxJobRetirementTime=ifthenelse(($(WANT_HOLD))=!=True,$(PREEMPT_GRACE_TIME),$(HOLD_GRACE_TIME))
+
 # How long does the job have after the startd enters retiring state
 SHUTDOWN_GRACEFUL_TIMEOUT=$(GLIDEIN_Job_Max_Time)
 
