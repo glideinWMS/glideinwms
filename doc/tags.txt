@@ -1,3 +1,9 @@
+	Support multiple user collectors in HA mode
+	Support in factory to specify glexec required vs provided by site
+	Add attr_dict in the environemnt of the frontend match_expr
+	The start_expr is now a native part of match
+	Bug Fix: Frontend correctly correctly supports <attr> properties
+
 v3_0_0
     Change to max job limits to reflect more accurate names
 	Add attr_dict in the environemnt of the frontend match_expr
@@ -12,19 +18,30 @@ v3_0_0
     Added unittests for downtime, proxy plugins, and support functions
     Miscellaenous bug fixes
 
-v2_5_5  Added filtering to analyze_entries
-        Reduced the number of debug log messages when entry becomes inactive.
-        Frontend match making uses autoclusters, greatly increasing the
-          performance for busy frontends
-        Package the list of shared libraries required by Condor 7.7.3+ for
-          glidein tarballs
-        Pilot proxy is not available in the user job environment any more
-          reducing the chance for user job using it.
-        Ini Installer caan now create a tmeplate for single service installs
-        Bug Fix: Fixed several issues with the frontend rpm
-        Bug Fix: GLIDEIN_Glexec_Use=NEVER setting now correctly works with the
-         setting require_voms_proxy=True
-        Bug Fix: Installer now correctly works with the RPM OSG client
+v2_5_7
+	Patch of the clean_glidein_queue to return 1 only when something was
+	  really done
+	Fix handling of held jobs when hitting the held limit
+	Fix log messages that printed out wrong held limits
+	Add locking when talking to the collector
+
+v2_5_6  Factory supports per-frontend limits in the config
+        Bug Fix: Fixed a bug where frontend would not stop cleanly
+	Bug Fix: Factory doesnot depend on the X509_CERT_DIR in the environment
+
+v2_5_5	Added filtering to analyze_entries
+	Reduced the number of debug log messages when entry becomes inactive.
+	Frontend match making uses autoclusters, greatly increasing the
+	  performance for busy frontends
+	Package the list of shared libraries required by Condor 7.7.3+ for 
+	  glidein tarballs
+	Pilot proxy is not available in the user job environment any more
+	  reducing the chance for user job using it.
+	Ini Installer caan now create a tmeplate for single service installs
+	Bug Fix: Fixed several issues with the frontend rpm
+	Bug Fix: GLIDEIN_Glexec_Use=NEVER setting now correctly works with the
+	 setting require_voms_proxy=True
+	Bug Fix: Installer now correctly works with the RPM OSG client
         Bug Fix: ReqMaxIdle was grossly overestimated before.
         Bug Fix: Fixed bug in factory monitoring web pages where the link
           generation was off by one for monitoring groups
