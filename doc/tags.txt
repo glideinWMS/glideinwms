@@ -1,5 +1,8 @@
+	Support multiple user collectors in HA mode
+	Support in factory to specify glexec required vs provided by site
 	Add attr_dict in the environemnt of the frontend match_expr
-	New feature: The start_expr is now a native part of match
+	The start_expr is now a native part of match
+	Bug Fix: Frontend correctly correctly supports <attr> properties
 
 v2_5_7
 	Patch of the clean_glidein_queue to return 1 only when something was

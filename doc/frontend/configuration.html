@@ -181,7 +181,8 @@ Click on any piece for a more detailed description.
      
     <a href="#collectors">&lt;collectors&gt;</a><br/>
     <blockquote>
-        <a href="#collectors">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False"&gt;</a><br/>
+        <a href="#collectors">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="default"&gt;</a><br/>
+        <a href="#collectors">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="ha"&gt;</a><br/>
     </blockquote>
     <a href="#collectors">&lt;/collectors&gt;</a><br/>
     <a href="#files">&lt;files /&gt;</a><br/>
@@ -644,14 +645,19 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     <LI><P>
         <a name="collectors" />
         <div class="xml">
-        &lt;collectors&gt;&lt;collector DN="<i>certificate DN</i>" node="<i>User Pool Collector</i>" secondary="<i>True/False</i>" &gt;
+        &lt;collectors&gt;&lt;collector DN="<i>certificate DN</i>" node="<i>User Pool Collector</i>" secondary="<i>True/False</i>" group="<i>Group Name</i>"&gt;
         </div>
         List of user pool collector(s) where condor_startd started by glideins
 should report to as a available resource.  This is where the user jobs will be matched with glidein resources.
     <br><br>
     If multiple (secondary) user pool collectors are being used, refer to the 
-    <a href="../components/condor.html#collectors">Advanced Condor Configuration Mulitple Collectors document</a> 
-    for details on the configuration.
+    <a href="../components/condor.html#collectors">Advanced Condor Configuration Mulitple Collectors document</a> for details on the configuration.
+    <br>
+    If the user pool is configured in High Availability mode, list all the 
+    condor collectors, primary as well as secondary, grouped by group name.
+    Condor daemons started by the glideins will report back to one of the
+    secondary collectors in each group. If a group has no secondary collector,
+    primary collector is selected for that group. 
     </li>
 </UL>
 </div>
