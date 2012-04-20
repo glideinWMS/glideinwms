@@ -162,6 +162,7 @@ class VOFrontendParams(cWParams.CommonParams):
         pool_collector_defaults["node"]=(None,"nodename","Pool collector node name (for example, col1.my.org:9999)",None)
         pool_collector_defaults["DN"]=(None,"dn","Factory collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=col1.my.org)",None)
         pool_collector_defaults["secondary"]=("False","Bool","Secondary nodes will be used by glideins, if present",None)
+        pool_collector_defaults["group"]=("default","string","Collector group name useful to group HA setup",None)
 
         self.defaults["collectors"]=([],'List of pool collectors',"Each proxy collector contains",pool_collector_defaults)
 

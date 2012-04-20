@@ -651,19 +651,24 @@ def populate_common_descript(descript_dict,        # will be modified
 #####################################################
 # Returns a string usable for GLIDEIN_Collector
 def calc_glidein_collectors(collectors):
-    collector_nodes=[]
-    for el in collectors:
-        is_secondary=eval(el.secondary)
-        if not is_secondary:
-            continue # only consider secondary collectors here
-        collector_nodes.append(el.node)
-    if len(collector_nodes)!=0:
-        return string.join(collector_nodes,",")
+    collector_nodes = {}
+    glidein_collectors = []
 
-    # no secondard nodes, will have to use the primary ones
     for el in collectors:
-        collector_nodes.append(el.node)
-    return string.join(collector_nodes,",")
+        if not collector_nodes.has_key(el.group):
+            collector_nodes[el.group] = {'primary': [], 'secondary': []}
+        if eval(el.secondary):
+            collector_nodes[el.group]['secondary'].append(el.node)
+        else:
+            collector_nodes[el.group]['primary'].append(el.node)
+
+    for group in collector_nodes.keys():
+        if len(collector_nodes[group]['secondary']) > 0:
+            glidein_collectors.append(string.join(collector_nodes[group]['secondary'], ","))
+        else:
+            glidein_collectors.append(string.join(collector_nodes[group]['primary'], ","))
+    return string.join(glidein_collectors, ";")
+
 
 #####################################################
 # Populate gridmap to be used by the glideins
@@ -745,4 +750,3 @@ def populate_common_attrs(dicts):
         dicts['attrs'].add(k,dicts['params'].get_true_val(k))
     for k in dicts['consts'].keys:
         dicts['attrs'].add(k,dicts['consts'].get_typed_val(k))
-    

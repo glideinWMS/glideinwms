@@ -31,31 +31,42 @@ if [ -z "$head_nodes" ]; then
     exit 1
 fi
 
+node_groups="`echo $head_nodes | awk '{split($0,g,";"); for (i in g) print g[i] }'`"
+
+collector_host=""
+
 ##########################################################
-# random order
+# Select one randomly per group
 ##########################################################
 
-# randomly select from the list of nodes 
-let random_seed=`date +%s`+$$
-head_node_wports=`echo "$head_nodes" | awk "BEGIN{srand($random_seed)}"'{split($0,g,","); for (i in g) print rand() "\t" g[i]}' | sort -n |awk '{print $2}'|tail -1`
+for group in $node_groups
+do
+    # randomly select from the list of nodes 
+    let random_seed=`date +%s`+$$
+    head_node_wports=`echo "$group" | awk "BEGIN{srand($random_seed)}"'{split($0,g,","); for (i in g) print rand() "\t" g[i]}' | sort -n |awk '{print $2}'|tail -1`
 
-#randomly select from the range of ports
-let random_seed=`date +%s`+$$'*'2 
-head_node=`echo "$head_node_wports" | awk "BEGIN{srand($random_seed)}"'{split($0,g,":"); if (g[2]=="") { print 0 "\t" $0} else {split(g[2],p,"-"); if (p[2]=="") {print 0 "\t" $0} else {for (i=p[1]; i<=p[2]; i++) {print rand() "\t" g[1] ":" i}}}}' | sort -n |awk '{print $2}'|tail -1`
+    #randomly select from the range of ports
+    let random_seed=`date +%s`+$$'*'2 
+    head_node=`echo "$head_node_wports" | awk "BEGIN{srand($random_seed)}"'{split($0,g,":"); if (g[2]=="") { print 0 "\t" $0} else {split(g[2],p,"-"); if (p[2]=="") {print 0 "\t" $0} else {for (i=p[1]; i<=p[2]; i++) {print rand() "\t" g[1] ":" i}}}}' | sort -n |awk '{print $2}'|tail -1`
 
+    if [ "$collector_host" = "" ]; then
+        collector_host=$head_node
+    else
+        collector_host="$collector_host,$head_node"
+    fi
+done
 
-add_config_line GLIDEIN_Collector $head_node
+add_config_line GLIDEIN_Collector $collector_host
 
 ##########################################################
 # check if it should use CCB
 ##########################################################
 use_ccb=`grep '^USE_CCB ' $glidein_config | awk '{print $2}'`
 if [ "$use_ccb" == "True" -o "$use_ccb" == "TRUE" -o "$use_ccb" == "T" -o "$use_ccb" == "Yes" -o "$use_ccb" == "Y" -o "$use_ccb" == "1" ]; then
-  # ok, we need to define CCB variable
-  add_config_line CCB_ADDRESS $head_node
-  # and export it to Condor
-  add_condor_vars_line CCB_ADDRESS C "-" "+" Y N "-"
+    # ok, we need to define CCB variable
+    add_config_line CCB_ADDRESS $collector_host
+    # and export it to Condor
+    add_condor_vars_line CCB_ADDRESS C "-" "+" Y N "-"
 fi
-
 
 exit 0
