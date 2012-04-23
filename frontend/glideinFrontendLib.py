@@ -515,7 +515,7 @@ def uniqueSets(in_sets):
         common = set()
         new_unique = set()
         old_unique_list = []
-        old_unique = sets()
+        old_unique = set()
         new = []
         #make a list of the elements common to i
         #(current iteration of sets) and the existing
