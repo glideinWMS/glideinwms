@@ -114,7 +114,10 @@ class GlideinKey:
         if self.pub_key_type=='RSA':
             import pubCrypto,symCrypto
             try:
+                # pylint: disable=E0611
+                #  (hashlib methods are called dynamically)
                 from hashlib import md5
+                # pylint: enable=E0611
             except ImportError:
                 from md5 import md5
 
