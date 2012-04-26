@@ -25,12 +25,16 @@ STARTD_ATTRS = $(STARTD_ATTRS), IS_MONITOR_VM, HAS_MONITOR_VM, USES_MONITOR_STAR
 GLIDEIN_REQUIREMENTS = ((GLIDEIN_ToRetire =?= UNDEFINED) || (CurrentTime < GLIDEIN_ToRetire))
 
 START = ($(GLIDEIN_START_CONDITION)) && ($(GLIDEIN_REQUIREMENTS))
+WANT_HOLD = ($(GLIDEIN_HOLD_CONDITION))
+PREEMPT = (($(GLIDEIN_HOLD_CONDITION)) || ($(GLIDEIN_PREEMPT_CONDITION)))
 
 IsOwner = False
 
 # Max time a job is guaranteed to run in the glidein
 # set it to several months... i.e. infinity
-MaxJobRetirementTime=$(PREEMPT_GRACE_TIME)
+# (unless we are vacating a held job then should be zero)
+MaxJobRetirementTime=ifthenelse(($(WANT_HOLD))=!=True,$(PREEMPT_GRACE_TIME),$(HOLD_GRACE_TIME))
+
 # How long does the job have after the startd enters retiring state
 SHUTDOWN_GRACEFUL_TIMEOUT=$(GLIDEIN_Graceful_Shutdown)
 

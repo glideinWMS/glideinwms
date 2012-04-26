@@ -251,6 +251,40 @@ by the VO factory clients.</P>
         <TD> Exp (Bool)</td>
         <TD>True </TD>
     </TR>
+    <TR>
+        <td> <b>GLIDEIN_Hold</b> </td>
+        <TD> Exp (Bool)</td>
+
+        <TD> True </TD>
+        <TD ROWSPAN=2>
+            <P>Condor expression to use to specify when a user job in the glideins should be held. 
+            If any expression is true, the glidein is held.  This is usually done to specify "bad"
+            jobs, such as those that claim too much memory.
+        </TD>
+
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_Entry_PREEMPT</b> </td>
+        <TD> Exp (Bool)</td>
+        <TD>True </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_PREEMPT</b> </td>
+        <TD> Exp (Bool)</td>
+
+        <TD> True </TD>
+        <TD ROWSPAN=2>
+            <P>Condor expression to use to specify when a user job in the glideins should be preempted. 
+            If any expression is true, the glidein is preempted.  This is usually done to specify 
+            custom preemption policies for user jobs.
+        </TD>
+
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_Entry_Start</b> </td>
+        <TD> Exp (Bool)</td>
+        <TD>True </TD>
+    </TR>
 
     <TR>
         <td> <b>GLIDEIN_Rank</b> </td>
@@ -365,6 +399,20 @@ by the VO factory clients.</P>
             This only affects behaviour if PREEMPT=True.
         </td>
     </tr>
+   <tr>
+        <td> <b>HOLD_GRACE_TIME</b></td>
+        <td> Int </td>
+        <td> 0 </td>
+        <td>
+            This value affects the condor value "MaxJobRetirementtime"
+            and is an integer value representing the number of seconds
+            a job that triggers WANT_HOLD will be allowed to run before being evicted.
+            This only affects behaviour if GLIDEIN_HOLD, GLIDEIN_Entry_HOLD,
+            GLIDECLIENT_HOLD, or GLIDECLIENT_Group_HOLD are specified and 
+            become true.  By default, these "bad" jobs are immediately evicted.
+        </td>
+    </tr>
+
     <TR>
         <td> <b>GLIDEIN_Monitoring_Enabled</b> </td>
         <TD> Bool </TD>
@@ -757,6 +805,43 @@ described below ar the most often used.</P>
         <td> <b>GLIDECLIENT_Group_Start</b> </td>
         <TD> Exp (Bool)</td>
     </TR>
+    <TR>
+        <td> <b>GLIDECLIENT_Hold</b> </td>
+        <TD> Exp (Bool)</td>
+
+        <TD ROWSPAN=2>
+            <P>Condor expression to use to specify when a user job in the glideins should be held. 
+            If any expression is true, the glidein is held.  This is usually done to specify "bad"
+            jobs, such as those that claim too much memory.
+        </TD>
+
+    </TR>
+    <TR>
+        <td> <b>GLIDECLIENT_Group_Hold</b> </td>
+        <TD> Exp (Bool)</td>
+    </TR>
+
+    <TR>
+        <td> <b>GLIDECLIENT_PREEMPT</b> </td>
+        <TD> Exp (Bool)</td>
+
+        <TD ROWSPAN=2>
+            <P>Condor expression to use to specify when a user job in the glideins should be preempted. 
+            If any expression is true, the glidein is preempted.  This is usually done to specify 
+            custom preemption policies.
+        </TD>
+
+    </TR>
+    <TR>
+        <td> <b>GLIDECLIENT_Group_PREEMPT</b> </td>
+        <TD> Exp (Bool)</td>
+    </TR>
+
+
+
+
+
+
 
     <TR>
         <td> <b>GLIDECLIENT_Rank</b> </td>
