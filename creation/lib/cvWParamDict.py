@@ -486,6 +486,10 @@ def populate_frontend_descript(work_dir,
         
         frontend_dict.add('FrontendName',params.frontend_name)
         frontend_dict.add('WebURL',params.web_url)
+        if hasattr(params,"monitoring_web_url") and (params.monitoring_web_url is not None):
+            frontend_dict.add('MonitoringWebURL',params.monitoring_web_url)
+        else:
+            frontend_dict.add('MonitoringWebURL',params.web_url.replace("stage","monitor"))
 
         if params.security.classad_proxy==None:
             raise RuntimeError, "Missing security.classad_proxy"

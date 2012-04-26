@@ -322,6 +322,7 @@ class FrontendDescript:
         self.my_name=my_name
         self.frontend_name=frontend_name
         self.web_url=web_url
+        self.monitoring_web_url=web_url.replace("stage","monitor")
         self.main_descript=main_descript
         self.signtype=signtype
         self.main_sign=main_sign
@@ -329,6 +330,10 @@ class FrontendDescript:
         self.group_name=group_name
         self.group_descript=group_descript
         self.group_sign=group_sign
+
+    # Accessor method for monitoring web url
+    def add_monitoring_url(self, monitoring_web_url):
+        self.monitoring_web_url=monitoring_web_url 
 
     def need_encryption(self):
         return self.x509_proxies_plugin != None
@@ -775,6 +780,7 @@ class MultiAdvertizeWork:
                 fd.write('ReqIdleGlideins = %i\n'%req_idle)
                 fd.write('ReqMaxGlideins = %i\n'%req_max_run)
                 fd.write('ReqRemoveExcess = "%s"\n'%params_obj.remove_excess_str)
+                fd.write('WebMonitoringURL = "%s"\n'%descript_obj.monitoring_web_url)
                          
                 # write out both the params and monitors
                 for (prefix, data) in ((frontendConfig.glidein_param_prefix, params_obj.glidein_params),
