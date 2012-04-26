@@ -229,10 +229,15 @@ class FrontendDescriptNoGroup:
         self.my_name=my_name
         self.frontend_name=frontend_name
         self.web_url=web_url
+        self.monitoring_web_url=web_url.replace("stage","monitor")
         self.main_descript=main_descript
         self.signtype=signtype
         self.main_sign=main_sign
         self.x509_proxies_data=x509_proxies_data
+    
+    # Accessor method for monitoring web url
+    def add_monitoring_url(self, monitoring_web_url):
+        self.monitoring_web_url=monitoring_web_url 
 
     # returns a boolean
     def need_encryption(self):
@@ -462,6 +467,7 @@ def createAdvertizeWorkFile(fname, descript_obj, params_obj,
             fd.write('ReqIdleGlideins = %i\n'%params_obj.min_nr_glideins)
             fd.write('ReqMaxRunningGlideins = %i\n'%params_obj.max_run_glideins)
             fd.write('ReqRemoveExcess = "%s"\n'%params_obj.remove_excess_str)
+            fd.write('WebMonitoringURL = "%s"\n'%descript_obj.monitoring_web_url)
 
             # write out both the params and monitors
             for (prefix,data) in ((frontendConfig.glidein_param_prefix,params_obj.glidein_params),
