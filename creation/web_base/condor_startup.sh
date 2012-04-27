@@ -373,8 +373,20 @@ if [ "$operation_mode" == "2" ]; then
   STARTD_NAME=glidein_$$
 fi
 
+#Add release and distribution information
+LSB_RELEASE="UNKNOWN"
+LSB_DISTRIBUTOR="UNKNOWN"
+command -v lsb_release >/dev/null
+if test $? = 0; then
+  LSB_RELEASE=`lsb_release -rs`
+  LSB_DISTRIBUTOR=`lsb_release -ds`
+fi
+
+
 cat >> "$CONDOR_CONFIG" <<EOF
 # ---- start of condor_startup fixed part ----
+LSB_DISTRIBUTOR = $LSB_DISTRIBUTOR
+LSB_RELEASE = $LSB_RELEASE
 
 SEC_DEFAULT_SESSION_DURATION = $session_duration
 
