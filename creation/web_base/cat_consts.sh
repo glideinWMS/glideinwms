@@ -12,7 +12,7 @@ tmp_fname=${glidein_config}.$$.tmp
 dir_id=$2
 
 function warn {
- echo `date` $@ 1>&2
+    echo `date` $@ 1>&2
 }
 
 # import add_config_line function
@@ -23,13 +23,18 @@ source $add_config_line_source
 get_id_selectors_source=`grep '^GET_ID_SELECTORS_SOURCE ' $glidein_config | awk '{print $2}'`
 source $get_id_selectors_source
 
+error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
+
 id_prefix=`get_prefix $dir_id`
 
 ###################################
 # Find file names
 consts_file=`grep "^${id_prefix}CONSTS_FILE " $glidein_config | awk '{print $2}'`
 if [ -z "$consts_file" ]; then
-    warn "Cannot find ${id_prefix}CONSTS_FILE in $glidein_config!"
+    #warn "Cannot find ${id_prefix}CONSTS_FILE in $glidein_config!"
+    STR="			Cannot find ${id_prefix}CONSTS_FILE in $glidein_config!"
+    echo -e $STR > string
+    "$error_gen" -error "cat_consts.sh" "Corruption" "file"
     exit 1
 fi
 
@@ -44,3 +49,5 @@ if [ -n "$consts_file" ]; then
     done < "$consts_file"
     echo "# --- End $dir_id constants       ---" >> $glidein_config
 fi
+
+"$error_gen" -ok "cat_consts.sh" "Config" "$glidein_config"
