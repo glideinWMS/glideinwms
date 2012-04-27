@@ -14,8 +14,7 @@ Description:
    Original repository: http://javascriptrrd.sourceforge.net/
 
   ****************
-  Note: At the moment, checkUrl doesn't work, has many small bugs.
-  Link button will still create correct link, but checkUrl has been disabled. 
+  Linking functional (hopefully). 
   ****************
 
 -->
@@ -26,22 +25,21 @@ Description:
     <script type="text/javascript" src="jslibs/rrdFile.js"></script>
     <script type="text/javascript" src="jslibs/rrdFilter.js"></script>
 
-    <!-- rrdFlot class needs the following four include files !-->
+    <!-- rrdFlot class needs the following include files !-->
     <script type="text/javascript" src="jslibs/rrdFlotSupport.js"></script>
     <script type="text/javascript" src="jslibs/rrdFlot.js"></script>
     <script type="text/javascript" src="jslibs/jquery.js"></script>
     <script type="text/javascript" src="jslibs/jquery.flot.js"></script>
     <script type="text/javascript" src="jslibs/jquery.flot.selection.js"></script>
     <script type="text/javascript" src="jslibs/jquery.flot.tooltip.js"></script>
-
     <script type="text/javascript" src="jslibs/frontend_support.js"></script>
   <head>
     <title id="brtitle">VO frontend status</title>
     <script type="text/javascript">
-	  var browser_title = "Browse VO Frontend RRDs";	
-	  var page_title = "Browse VO Frontend RRDs";	
-	  set_title_and_footer(browser_title, page_title);
-	</script>
+          var browser_title = "Browse VO Frontend RRDs";        
+          var page_title = "Browse VO Frontend RRDs";   
+          set_title_and_footer(browser_title, page_title);
+        </script>
   </head>
 
   <body>
@@ -82,10 +80,12 @@ Description:
        </form></td>
      </tr>
      <tr>
-      <td colspan=2><button onclick="nonlink_update()">Update</button>
-      <!-- <button onClick="unlink()" style="float:right">Unlink</button>
-      <button onClick="showLink()" style="float:right">Link</button> !-->
-      </td>
+       <td colspan=2>
+         <button onClick="nonlink_update()">Update</button>
+         <button onClick="defaults()" style="float:right">Defaults</button>
+         <button onClick="unlink()" style="float:right">Unlink</button>
+         <button onClick="showLink()" style="float:right">Link</button>
+       </td>
      </tr>
     </table>
 
@@ -103,7 +103,7 @@ Description:
     <p>Powered by
         <a href="http://oss.oetiker.ch/rrdtool/" target="_blank">RRDTool</a>,
         <a href="https://sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and 
-        <a href="http://code.google.com/p/flot/" target="_blank">Flot</a>. 
+        <a href="http://code.google.com/p/flot/" target="_blank">Flot</a>.
     </p>
     <div id="monitor_footer"></div>
     <script type="text/javascript">
@@ -141,7 +141,7 @@ Description:
       rrd_data=undefined;
       gtype_id=undefined;
  
-      //checkUrl();
+      checkUrl();
 
       //Applys an groups's factories to the dropdown box
       //below it once that group has been selected
@@ -151,13 +151,15 @@ Description:
         while(fac.childNodes.length>0) {fac.removeChild(fac.firstChild);}
         fac.appendChild(new Option('total','total'));  //add back 'total', 
 
-        // add this groups's states 
+        //add this groups's states 
+        //note that checkUrl also puts states before factories;
+        //    so if changing the order here (states after factories), also change the order in checkUrl().
         var states = getFrontendGroupStates(frontendStats, group);
         
         for(var state in states) {
            state_name = states[state];
            fac.appendChild(new Option(state_name, state_name));
-	}
+        }
 
         // and then add this groups's factories. 
         var factories = getFrontendGroupFactories(frontendStats, group);
@@ -189,8 +191,8 @@ Description:
       function update_plot() {
         // Finally, update the file name and enable the update button
         document.getElementById("fname").firstChild.data=fname;
-        
 
+        
         var gtype_DSs=new Object();
         gtype_DSs['running']=new Array('MatchJobRunningHere','MatchJobRunning','MatchGlideinTotal','MatchGlideinRunning','MatchGlideinIdle','MatchJobIdle','ReqIdle','ReqMaxRun');
 //                                       'JobsRunning',    'GlideinTotal',     'GlideinRunning',     'GlideinIdle',     'JobsIdle');
@@ -198,7 +200,7 @@ Description:
 
         var gtype_formats=new Object();
         gtype_formats['running']={'MatchJobRunningHere':{ title: 'Running jobs', label:'Running',color: "#00f800", checked:true, 
-							  lines: { show: true, fill: true, fillColor:"#00ff00"} },
+                                                          lines: { show: true, fill: true, fillColor:"#00ff00"} },
                                   'MatchJobRunning':{title: 'Matched running', label:'MatchRun', color: "#004000"},
                                   'MatchGlideinTotal':{title: 'Glideins at Collector', label:'Glideins', color: "#000000"},
                                   'MatchGlideinRunning':{title: 'Glideins claimed by jobs', label:'Claimed', color: "#8000ff",checked:true},
@@ -245,29 +247,8 @@ Description:
         if(specified_rra==null || coming_from_defaults) {specified_rra=0;}
         else if (!coming_from_link) {specified_rra = graph_info["rra"];}
         
-        //check previously defined checked DSs, if any match this new gtype, then preserve them
         local_checked_DSs = [];
-        //preserve same-named elements
-        var elem, link_elem, trunc1, trunc2;
-        for(var a in graph_info["dss"]) {
-           for(var b in gtype_formats[gtype_id]) {
-              elem = b;              
-              link_elem = graph_info["dss"][a];
-              //truncate names, only compare ends like "500m" to preserve checks across
-              //groups with same-named elements, like "Lasted_500m" and "JobsLasted_500m". 
-              var trunc1 = elem.split("_");
-              var trunc2 = link_elem.split("_");
-              if(elem=="Average") {if (link_elem=="Average") {local_checked_DSs.push(elem);}}
-              else if(elem=="WeightedSum") {if (link_elem=="WeightedSum") {local_checked_DSs.push(elem);}}
-              else {
-                 //for aggregated names, like Wallclock_time_per_glidien, disregard this truncation
-                 if(trunc2.length>2) {if (elem==link_elem) {local_checked_DSs.push(elem)}}
-                 else if(trunc1[1]==trunc2[1]) {
-                    local_checked_DSs.push(elem);
-                 }
-              }
-           } 
-        } 
+
         //if coming from link, used DS elements provided in link
         //else, use preserved elements across link
         if(!coming_from_link) {
@@ -293,9 +274,8 @@ Description:
         rrd_data1 = new RRDRRAFilterAvg(rrd_data1,rra_op_list); //Adds 2 extra RRAs (averaged)
 
         // the rrdFlot object creates and handles the graph -- below was being preped for link ability
-        //var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id],{timezone: timezone_num, checked_DSs: checklist,use_rra:true,rra:specified_rra, use_windows: windows, window_min:local_window_min, window_max: local_window_max, use_element_buttons:true});
+        var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id],{timezone: timezone_num, checked_DSs: checklist,use_rra:true,rra:specified_rra, use_windows: windows, window_min:local_window_min, window_max: local_window_max, use_checked_DSs:true,use_element_buttons:true});
 
-        var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id]);
       }
 
       // This is the callback function that,
@@ -327,15 +307,16 @@ Description:
 
         rrd_fname="Status_Attributes";
 
+        //info groups
         var gtypes_obj=document.getElementById("gtypes");
         for (var i in gtypes_obj.gtype) {
-         var gtype=gtypes_obj.gtype[i];
-         if (gtype.checked==true) {
-  	   gtype_id=gtype.value;
-         }
+          var gtype=gtypes_obj.gtype[i];
+          if (gtype.checked==true) {
+  	    gtype_id=gtype.value;
+          }
         }
 
-	fname=getRRDName(rrd_fname,group_name,factory_name,frontendStats);
+        fname=getRRDName(rrd_fname,group_name,factory_name,frontendStats);
 
         document.getElementById("fname").firstChild.data="Loading "+fname;
         try {
@@ -351,91 +332,101 @@ Description:
       }
 
         /* Function to read from the url any parameters the user has specified. */
-        //UNFINISHED - Still has problems
         function checkUrl()
         {
-                var url = window.location.search;
-                parameterArry = new Array("group", "factory", "infoGroup","elements","rra","window_min","window_max","timezone"); 
-                var groupSpec; 
-                var infoGroupSpec;
-                link_checked_DSs=[];
-                specified_rra = 0;
-                urlValid = 0; 
-                paramSpecArry = new Array(); 
-                if(url)
-                {
-                        url = url.substring(1);
-                        urlSplit = url.split('&'); 
-                        i = 0; 
-                        while(i < urlSplit.length)
-                        { 
-                                equalSplit = urlSplit[i].split('='); 
-                                if(equalSplit[0] == parameterArry[i])
-                                {
-                                        paramSpecArry[i] = equalSplit[1];
-                                }
-                                i++; 
-                        }
-                }
-                for(i = 0; i< paramSpecArry.length; i++)
-                {
-                        if(i == 0)
-                        {
-                                var groups =  getFrontendGroups(loadFrontendStats());
-                                for(group in groups)
-                                {
-                                        if(groups[group] == paramSpecArry[0])
-                                        {
-                                                GROUP = paramSpecArry[0]; 
-                                                groups_menu = document.getElementById("groups");
-                                                for(j = 0; j< groups_menu.options.length; j++)
-                                                {
-                                                        if(GROUP==groups_menu.options[j].value)
-                                                        {
-                                                                groups_menu.selectedIndex = j;
-                                                                setFactoryMenu(groups[group]);
-                                                                
-                                                                var fac = paramSpecArry[1];
-                                                                var fac_list = getFrontendGroupFactory(loadFrontendStats(), groups[group]); 
-                                                                var fac_idx=0;
-                                                                for(var k=0;k<fac_list.length;k++) {
-                                                                  if(fac==fac_list[k]) {fac_idx=k;}
-                                                                }
-                                                                document.getElementById("factory").selectedIndex = fac_idx; 
+           var url = window.location.search;
+           parameterArry = new Array("group", "factory", "infoGroup","elements","rra","window_min","window_max","timezone"); 
+           var groupSpec; 
+           var infoGroupSpec;
+           link_checked_DSs=[];
+           specified_rra = 0;
+           urlValid = 0; 
+           paramSpecArry = new Array(); 
+           if(url) //split URL
+           {
+              url = url.substring(1);
+              urlSplit = url.split('&'); 
+              i = 0; 
+              while(i < urlSplit.length)
+              { 
+                 equalSplit = urlSplit[i].split('='); 
+                 if(equalSplit[0] == parameterArry[i])
+                 {
+                    paramSpecArry[i] = equalSplit[1];
+                 }
+                 i++; 
+              }
+           }
+           //Read in link parameters
+           for(i = 0; i< paramSpecArry.length; i++)
+           {
+              if(i == 0) // group
+              {
+                 var groups =  getFrontendGroups(loadFrontendStats());
+                 groups.push("total");
+                 for(group in groups)
+                 {
+                    if(groups[group] == paramSpecArry[0])
+                    {
+                       GROUP = paramSpecArry[0]; 
+                       groups_menu = document.getElementById("groups");
+                       for(j = 0; j< groups_menu.options.length; j++)
+                       {
+                          if(GROUP==groups_menu.options[j].value)
+                          {
+                             groups_menu.selectedIndex = j;
+                             setFactoryMenu(groups[group]);
+                             var fac = paramSpecArry[1];
 
-                                                                break;  
-                                                        }       
-                                                }
-                                        } 
-                                        else if("total" ==      paramSpecArry[0])
-                                        {
-                                                document.getElementById("groups").selectedIndex = 0; 
-                                                setFactoryMenu('total');
-                                                break;          
-                                        }
-                                }
-                        }
-                        else if(i == 2)
-                        {
-                                for(var k = 0; k< infoGroupOptions.length; k++)
-                                {
-                                        if(infoGroupOptions[k] == paramSpecArry[2])
-                                        {
-                                                document.getElementById("gtypes").elements[k].checked = true;
-                                        }
-                                }
-                        }
-                        else if(i==3) {
-                           var elems = paramSpecArry[i].split(",");
-                           for(var j=0;j<elems.length;j++){
-                              link_checked_DSs.push(elems[j]);
-                           } 
-                        }
-                        else if(i==5) {local_window_min = paramSpecArry[i];}
-                        else if(i==6) {local_window_max = paramSpecArry[i];}
-                        else if(i==7) {timezone_num = paramSpecArry[i];}
-                }
-                fname_update();
+                             //make factory list the list of both states and factories,
+                             //   as seen in the factory menu.
+                             var state_list = getFrontendGroupStates(loadFrontendStats(), groups[group]); 
+                             var fac_list = getFrontendGroupFactories(loadFrontendStats(), groups[group]); 
+
+                             //states listed first in the Factory menu, so push factories onto state list
+                             state_list.push.apply(state_list,fac_list);
+                             fac_list = state_list;
+                             var fac_idx=0;
+                             for(var k=0;k<fac_list.length;k++) {
+                                if(fac==fac_list[k]) {fac_idx=k+1;} //+1 to avoid hitting total
+                             }
+                             document.getElementById("factory").selectedIndex = fac_idx; 
+
+                             break;  
+                          }       
+                       }
+                    } 
+                    //else if("total" ==      paramSpecArry[0])
+                    //{
+                    //   document.getElementById("groups").selectedIndex = 0; 
+                    //   setFactoryMenu('total');
+                    //   break;          
+                    //}
+                 }
+              }
+              else if(i == 2) //info groups
+              {
+                 for(var k = 0; k< infoGroupOptions.length; k++)
+                 {
+                    if(infoGroupOptions[k] == paramSpecArry[2])
+                    {
+                       document.getElementById("gtypes").elements[k].checked = true;
+                    }
+                 }
+              }
+              else if(i==3) {
+                 var elems = paramSpecArry[i].split(",");
+                 for(var j=0;j<elems.length;j++)
+                 {
+                    link_checked_DSs.push(elems[j]);
+                 } 
+              }
+              else if(i==4) {specified_rra = paramSpecArry[i];}
+              else if(i==5) {local_window_min = paramSpecArry[i];}
+              else if(i==6) {local_window_max = paramSpecArry[i];}
+              else if(i==7) {timezone_num = paramSpecArry[i];}
+           }
+           fname_update();
         }
 
 //////////////////////////////////////////////////////////////////////////
@@ -459,7 +450,6 @@ Description:
                 var specified_win_max = graph_info["window_max"];
                 
                 //specifiedGroup = entries_obj.options[entries_obj.selectedIndex].value;
-
 
                 /* Find the current group specified. */
                 for(i = 0; i < groupsTable.options.length; i++)
@@ -533,3 +523,4 @@ Description:
     </script>
   </body>
 </html>
+
