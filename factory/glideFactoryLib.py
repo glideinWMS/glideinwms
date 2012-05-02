@@ -24,7 +24,7 @@ import condorExe,condorPrivsep
 import logSupport
 import condorMonitor
 import condorManager
-
+import subprocess
 import glideFactoryConfig
 
 MY_USERNAME=pwd.getpwuid(os.getuid())[0]
