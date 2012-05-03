@@ -196,10 +196,15 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
                         glidein_dict[(factory_pool_node,glidename,my_identity_at_factory_pool)]=factory_glidein_dict[glidename]
 
             os.write(w,cPickle.dumps(glidein_dict))
-        finally:
-            os.close(w)
-            # hard kill myself... don't want any cleanup, since i was created just for this calculation
-            os.kill(os.getpid(),signal.SIGKILL) 
+        except Exception, ex:
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            glideinFrontendLib.log_files.logDebug("Error in talking to the factory pool: %s" % tb)
+
+        os.close(w)
+        # hard kill myself... don't want any cleanup, since i was created just for this calculation
+        os.kill(os.getpid(),signal.SIGKILL) 
+
     else:
         # this is the original
         # just remember what you did for now
@@ -225,10 +230,14 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
                                                        condorq_format_list)
 
             os.write(w,cPickle.dumps(condorq_dict))
-        finally:
-            os.close(w)
-            # hard kill myself... don't want any cleanup, since i was created just for this calculation
-            os.kill(os.getpid(),signal.SIGKILL) 
+        except Exception, ex:
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            glideinFrontendLib.log_files.logDebug("Error in retrieving information from schedd (condor_q): %s" % tb)
+        
+        os.close(w)
+        # hard kill myself... don't want any cleanup, since i was created just for this calculation
+        os.kill(os.getpid(),signal.SIGKILL) 
     else:
         # this is the original
         # just remember what you did for now
@@ -251,10 +260,16 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
                                                            status_format_list)
 
             os.write(w,cPickle.dumps(status_dict))
-        finally:
-            os.close(w)
-            # hard kill myself... don't want any cleanup, since i was created just for this calculation
-            os.kill(os.getpid(),signal.SIGKILL) 
+
+        except Exception, ex:
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            glideinFrontendLib.log_files.logDebug("Error in talking to the user pool (condor_status): %s" % tb)
+
+        os.close(w)
+        # hard kill myself... don't want any cleanup, since i was created just for this calculation
+        os.kill(os.getpid(),signal.SIGKILL) 
+
     else:
         # this is the original
         # just remember what you did for now
