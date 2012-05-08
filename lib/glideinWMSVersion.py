@@ -20,7 +20,14 @@
 
 import os
 import sys
-import md5
+try:
+    # pylint: disable=E0611
+    #  (hashlib methods are called dynamically)
+    from hashlib import md5
+    # pylint: enable=E0611
+except ImportError:
+    from md5 import md5
+
 import string
 
 class GlideinWMSDistro:
@@ -77,7 +84,7 @@ class GlideinWMSDistro:
                         else:
                             # In the RPM, all files are in site-packages
                             fd = open(os.path.join(dir,os.path.basename(file)), 'r')
-                        chksum = md5.new(fd.read()).hexdigest()
+                        chksum = md5(fd.read()).hexdigest()
                         if (chksum != distroFileHash[file]):
                             modifiedFiles.append(file)
                             patch = 'PATCHED' 
