@@ -120,7 +120,15 @@ class GlideinKey:
         """
         
         if self.pub_key_type=='RSA':
-            import pubCrypto,symCrypto,md5
+            import pubCrypto,symCrypto
+            try:
+                # pylint: disable=E0611
+                #  (hashlib methods are called dynamically)
+                from hashlib import md5
+                # pylint: enable=E0611
+            except ImportError:
+                from md5 import md5
+
             if key_fname==None:
                 key_fname='rsa.key'
 
@@ -132,7 +140,7 @@ class GlideinKey:
                 self.rsa_key.save(key_fname)
 
             self.pub_rsa_key=self.rsa_key.PubRSAKey()
-            self.pub_key_id=md5.new(string.join((self.pub_key_type,self.pub_rsa_key.get()))).hexdigest()
+            self.pub_key_id = md5(string.join((self.pub_key_type,self.pub_rsa_key.get()))).hexdigest()
             self.sym_class=symCrypto.AutoSymKey
         else:
             raise RuntimeError, 'Invalid pub key type value(%s), only RSA supported'%self.pub_key_type
