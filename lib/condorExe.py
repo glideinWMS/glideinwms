@@ -13,21 +13,17 @@
 
 
 import os
-import os.path
-import popen2
+import subprocess
+import shlex
 import string
-import select
-import cStringIO
-import fcntl
-import time
 
 class UnconfigError(RuntimeError):
-    def __init__(self,str):
-        RuntimeError.__init__(self,str)
+    def __init__(self, err_str):
+        RuntimeError.__init__(self, err_str)
 
 class ExeError(RuntimeError):
-    def __init__(self,str):
-        RuntimeError.__init__(self,str)
+    def __init__(self, err_str):
+        RuntimeError.__init__(self, err_str)
 
 #
 # Configuration
@@ -76,7 +72,7 @@ def exe_cmd_sbin(condor_exe,args,stdin_data=None,env={}):
 ############################################################
 
 # can throw ExeError
-def iexe_cmd(cmd, stdin_data=None,env={}):
+def iexe_cmd(cmd, stdin_data=None, child_env=None):
     """Fork a process and execute cmd - rewritten to use select to avoid filling
     up stderr and stdout queues.
 
@@ -87,84 +83,45 @@ def iexe_cmd(cmd, stdin_data=None,env={}):
     @type env: dict
     @param env: Environment to be set before execution
     """
-    output_lines = None
-    error_lines = None
+    stdoutdata = stderrdata = ""
     exitStatus = 0
+    
     try:
-        saved_env={}
-        try:
-            # save and set the environment
-            for k in env.keys():
-                if os.environ.has_key(k):
-                    saved_env[k]=os.environ[k]
-                    if env[k]==None:
-                        del os.environ[k]
-                else:
-                    saved_env[k]=None
-                if env[k]!=None:
-                    os.environ[k]=env[k]
+        # Add in parent process environment, make sure that env ovrrides parent 
+        if child_env:
+            for k in os.environ.keys():
+                if not child_env.has_key(k):
+                    child_env[k] = os.environ[k]
+        # otherwise just use the parent environment
+        else:
+            child_env = os.environ
 
-            # launch process
-            child = popen2.Popen3(cmd, capturestderr=True)
-        finally:
-            # restore the environemnt
-            for k in saved_env.keys():
-                if saved_env[k]==None:
-                    del os.environ[k]
-                else:
-                    os.environ[k]=saved_env[k]
-            
-        if stdin_data != None:
-            child.tochild.write(stdin_data)
+        # Hack to tokenize the commandline that should be executed.  We probably
+        # should "Do the Right Thing (tm)" at some point
+        command_list = shlex.split(cmd)
+        # launch process - Converted to using the subprocess module
+        process = subprocess.Popen(command_list, shell=False,
+                           stdin=subprocess.PIPE,
+                           stdout=subprocess.PIPE,
+                           stderr=subprocess.PIPE,
+                           env=child_env)
 
-        child.tochild.close()
+        if stdin_data:
+            stdoutdata, stderrdata = process.communicate(stdin_data)
+        else:
+            stdoutdata, stderrdata = process.communicate()
 
-        stdout = child.fromchild
-        stderr = child.childerr
-
-        outfd = stdout.fileno()
-        errfd = stderr.fileno()
-
-        outeof = erreof = 0
-        outdata = cStringIO.StringIO()
-        errdata = cStringIO.StringIO()
-
-        fdlist = [outfd, errfd]
-        for fd in fdlist: # make stdout/stderr nonblocking
-            fl = fcntl.fcntl(fd, fcntl.F_GETFL)
-            fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
-
-        while fdlist:
-            time.sleep(.001) # prevent 100% CPU spin
-            ready = select.select(fdlist, [], [])
-            if outfd in ready[0]:
-                outchunk = stdout.read()
-                if outchunk == '':
-                    fdlist.remove(outfd)
-                else:
-                    outdata.write(outchunk)
-
-            if errfd in ready[0]:
-                errchunk = stderr.read()
-                if errchunk == '':
-                    fdlist.remove(errfd)
-                else:
-                    errdata.write(errchunk)
-
-        exitStatus = child.wait()
-        outdata.seek(0)
-        errdata.seek(0)
-        output_lines = outdata.readlines()
-        error_lines = errdata.readlines()
+        exitStatus = process.returncode
 
     except Exception, ex:
         raise ExeError, "Unexpected Error running '%s'\nStdout:%s\nStderr:%s\n" \
-            "Exception OSError: %s" % (cmd, str(output_lines), str(error_lines), ex)
+            "Exception OSError: %s" % (cmd, str(stdoutdata), str(stderrdata), ex)
 
     if exitStatus:
-        raise ExeError, "Error running '%s'\ncode %i:%s" % (cmd, os.WEXITSTATUS(exitStatus), "".join(error_lines))
+        raise ExeError, "Error running '%s'\ncode %i:%s" % (cmd, os.WEXITSTATUS(exitStatus), 
+                                                            "".join(stderrdata))
 
-    return output_lines
+    return stdoutdata.split()
 
 
 #

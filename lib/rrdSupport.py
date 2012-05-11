@@ -12,7 +12,10 @@
 #   Igor Sfiligoi
 #
 
-import string,time
+import string
+import time
+import subprocess
+import shlex
 
 class BaseRRDSupport:
     #############################################################
@@ -490,8 +493,6 @@ def string_quote_join(arglist):
 # python module, if that one is not available
 class rrdtool_exe:
     def __init__(self):
-        import popen2
-        self.popen2_obj=popen2
         self.rrd_bin=self.iexe_cmd("which rrdtool")[0][:-1]
 
     def create(self,*args):
@@ -511,22 +512,25 @@ class rrdtool_exe:
 
     ##########################################
     def iexe_cmd(self, cmd):
-        child=self.popen2_obj.Popen3(cmd,True)
-        child.tochild.close()
-        tempOut = child.fromchild.readlines()
-        child.fromchild.close()
-        tempErr = child.childerr.readlines()
-        child.childerr.close()
+        stdoutdata, stderrdata = ""
+        exitStatus = 0
         try:
-            errcode=child.wait()
-        except OSError, e:
-            if len(tempOut)!=0:
-                # if there was some output, it is probably just a problem of timing
-                # have seen a lot of those when running very short processes
-                errcode=0
-            else:
-                raise RuntimeError, "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s"%(cmd,tempOut,tempErr,e)
-        if (errcode!=0):
-            raise RuntimeError, "Error running '%s'\ncode %i:%s"%(cmd,errcode,tempErr)
-        return tempOut
+            # Hack to tokenize the commandline that should be executed.  We probably
+            # should "Do the Right Thing (tm)" at some point
+            command_list = shlex.split(cmd)
+            # launch process - Converted to using the subprocess module
+            process = subprocess.Popen(command_list, shell=False,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
 
+            stdoutdata, stderrdata = process.communicate()
+
+            exitStatus = process.returncode
+        except OSError, e:
+            err_str = "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s"
+            raise RuntimeError, err_str % (cmd, stdoutdata, stderrdata, e)
+
+        if (exitStatus != 0):
+            raise RuntimeError, "Error running '%s'\ncode %i:%s" % (cmd, exitStatus, stderrdata)
+
+        return stdoutdata
