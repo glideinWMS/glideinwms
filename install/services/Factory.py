@@ -231,7 +231,10 @@ files and directories can be created correctly""" % self.username())
               # os.rmdir(dirs[type])
               del dirs[type]  # remove from dict
           else: # will have permission to delete it
-            os.rmdir(dirs[type])
+            #os.rmdir(dirs[type])
+            for rootdir, dirlist, filelist in os.walk(dirs[type],topdown=False):
+                for filename in filelist:
+                        os.remove(os.path.join(rootdir, filename))
             del dirs[type]  # remove from dict
       else: # it does not exist, remove from dict
         del dirs[type]  
