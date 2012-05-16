@@ -1337,7 +1337,7 @@ class fileDicts:
                 self.sub_dicts[k].reuse(other.sub_dicts[k])
             else:
                 # nothing to reuse, but must create dir
-                self.sub_dicts[k].create_dirs()
+                self.sub_dicts[k].create_dirs(fail_if_exists=False)
 
     ###########
     # PRIVATE

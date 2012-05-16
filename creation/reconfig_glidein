@@ -26,6 +26,7 @@ import cgWCreate
 import cgWParamDict
 
 WEB_BASE_DIR=os.path.join(STARTUP_DIR,"web_base")
+force_delete=False
 
 ################################################################################
 
@@ -41,14 +42,26 @@ def main(params, old_params, update_scripts, update_def_cfg):
 
     # merge them together
     if not old_params is None:
+        entries = glidein_dicts_obj.params.entries
+        old_entries = old_glidein_dicts_obj.params.entries
+        
+        for entry in old_entries.keys():
+            if entry not in entries.keys():
+                print "WARNING: entry %s is not found in new xml!" % entry
+                if not force_delete:
+                    print "Aborting reconfig since this is just too scary."
+                    print "Enable -force_delete if you really want to delete it."
+                    sys.exit(1)
+        
         glidein_dicts_obj.reuse(old_glidein_dicts_obj)
     
         # Make sure we preserve old schedd names
-        entries = glidein_dicts_obj.params.entries
-        old_entries = old_glidein_dicts_obj.params.entries
         for entry in entries.keys():
             if entry in old_entries.keys():
                 entries[entry].data['schedd_name'] = old_entries[entry].schedd_name
+
+
+
                 
     # write to disk
     glidein_dicts_obj.save()
@@ -109,7 +122,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
 ############################################################
 
 if __name__ == '__main__':
-    usage = "reconfig_glidein { -force_name name -writeback yes|no -update_scripts yes|no -xml xml -update_def_cfg yes|no | -help }"
+    usage = "reconfig_glidein { -force_name name -writeback yes|no -update_scripts yes|no -xml xml -update_def_cfg yes|no [-force_delete] | -help }"
     argv = sys.argv
     force_name = None
     writeback = 'no'
@@ -121,6 +134,8 @@ if __name__ == '__main__':
             force_name = argv[i+1]
         elif argv[i] == '-writeback':
             writeback = argv[i+1]
+        elif argv[i] == '-force_delete':
+            force_delete = True
         elif argv[i] == '-update_scripts':
             update_scripts = argv[i+1]
         elif argv[i] == '-xml':
