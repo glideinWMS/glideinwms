@@ -440,30 +440,30 @@ class BaseRRDSupport:
 
         return self.rrd_obj.fetch(*args)
         
-    def verify_rrd(self, filename, expected_dict)
-    """
-    Verifies that an rrd matches a dictionary of datastores.
-    This will return a tuple of arrays ([missing],[extra]) attributes
+    def verify_rrd(self, filename, expected_dict):
+        """
+        Verifies that an rrd matches a dictionary of datastores.
+        This will return a tuple of arrays ([missing],[extra]) attributes
     
-    @param filename: filename of the rrd to verify
-    @param expected_dict: dictionary of expected values
-    @return: A two-tuple of arrays ([missing attrs],[extra attrs])
+        @param filename: filename of the rrd to verify
+        @param expected_dict: dictionary of expected values
+        @return: A two-tuple of arrays ([missing attrs],[extra attrs])
     
-    """
-    rrd_info=self.rrd_obj.info(name)
-    rrd_dict={}
-    for key in rrd_info.keys():
-        if key[:3]=="ds[":
-            rrd_dict[key[3:].split("]")[0]]=None
-    missing=[]
-    extra=[]
-    for t in val_dict.keys():
-         if t not in rrd_dict.keys():
-             missing.append(t)
-    for t in rrd_dict.keys():
-         if t not in val_dict.keys():
-             extra.append(t)
-    return (missing,extra)
+        """
+        rrd_info=self.rrd_obj.info(filename)
+        rrd_dict={}
+        for key in rrd_info.keys():
+            if key[:3]=="ds[":
+                rrd_dict[key[3:].split("]")[0]]=None
+        missing=[]
+        extra=[]
+        for t in expected_dict.keys():
+            if t not in rrd_dict.keys():
+                missing.append(t)
+        for t in rrd_dict.keys():
+            if t not in expected_dict.keys():
+                extra.append(t)
+        return (missing,extra)
 
 # This class uses the rrdtool module for rrd_obj
 class ModuleRRDSupport(BaseRRDSupport):
