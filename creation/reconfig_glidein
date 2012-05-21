@@ -19,11 +19,13 @@ STARTUP_DIR=sys.path[0]
 import os.path
 sys.path.append(os.path.join(STARTUP_DIR,"lib"))
 sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
+sys.path.append(os.path.join(STARTUP_DIR,"../factory"))
 import cgWParams
 import cgWDictFile
 import cgWConsts,cWConsts
 import cgWCreate
 import cgWParamDict
+import glideFactoryMonitorAggregator
 
 WEB_BASE_DIR=os.path.join(STARTUP_DIR,"web_base")
 
@@ -99,6 +101,9 @@ def main(params, old_params, update_scripts, update_def_cfg):
     print "...Active entries are:"
     for entry in glidein_dicts_obj.active_sub_list:
         print "     %s"%entry
+    print "...Verifying rrd schema:"
+    if not glideFactoryMonitorAggregator.verifyRRD():
+        sys.exit(1)
     print "...Submit files are in %s"%glidein_dicts_obj.main_dicts.work_dir
 
 
