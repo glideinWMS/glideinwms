@@ -49,41 +49,44 @@ monitorAggregatorConfig=MonitorAggregatorConfig()
 #
 ###########################################################
 
-status_attributes={'Jobs':("Idle","OldIdle","Running","Total"),
+frontend_status_attributes={'Jobs':("Idle","OldIdle","Running","Total"),
                    'Glideins':("Idle","Running","Total"),
                    'MatchedJobs':("Idle","EffIdle","OldIdle","Running","RunningHere"),
                    'MatchedGlideins':("Total","Idle","Running"),
                    'Requested':("Idle","MaxRun")}
+
+frontend_total_type_strings={'Jobs':'Jobs','Glideins':'Glidein','MatchedJobs':'MatchJob',
+                      'MatchedGlideins':'MatchGlidein','Requested':'Req'}
+frontend_job_type_strings={'MatchedJobs':'MatchJob',
+                      'MatchedGlideins':'MatchGlidein','Requested':'Req'}
 
 ####################################
 # PRIVATE - Used by aggregateStatus
 # Write one RRD
 def write_one_rrd(name,updated,data,fact=0):
     if fact==0:
-        type_strings={'Jobs':'Jobs','Glideins':'Glidein','MatchedJobs':'MatchJob',
-                      'MatchedGlideins':'MatchGlidein','Requested':'Req'}
+        type_strings=frontend_total_type_strings
     else:
-        type_strings={'MatchedJobs':'MatchJob',
-                      'MatchedGlideins':'MatchGlidein','Requested':'Req'}
+        type_strings=frontend_job_type_strings
         
     # initialize the RRD dictionary, so it gets created properly
     val_dict={}
-    for tp in status_attributes.keys():
+    for tp in frontend_status_attributes.keys():
         if tp in type_strings.keys():
             tp_str=type_strings[tp]
-            attributes_tp=status_attributes[tp]
+            attributes_tp=frontend_status_attributes[tp]
             for a in attributes_tp:
                 val_dict["%s%s"%(tp_str,a)]=None
 
     for tp in data.keys():
         # type - status or requested
-        if not (tp in status_attributes.keys()):
+        if not (tp in frontend_status_attributes.keys()):
             continue
         if not (tp in type_strings.keys()):
             continue
 
         tp_str=type_strings[tp]
-        attributes_tp=status_attributes[tp]
+        attributes_tp=frontend_status_attributes[tp]
                 
         tp_el=data[tp]
 
