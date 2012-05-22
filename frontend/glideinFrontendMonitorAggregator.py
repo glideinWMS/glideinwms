@@ -16,6 +16,8 @@ import time,string,os.path,copy
 import timeConversion
 import xmlParse,xmlFormat
 import glideinFrontendMonitoring
+import rrdSupport
+import tempfile
 
 ############################################################
 #
@@ -59,6 +61,95 @@ frontend_total_type_strings={'Jobs':'Jobs','Glideins':'Glidein','MatchedJobs':'M
                       'MatchedGlideins':'MatchGlidein','Requested':'Req'}
 frontend_job_type_strings={'MatchedJobs':'MatchJob',
                       'MatchedGlideins':'MatchGlidein','Requested':'Req'}
+
+
+####################################
+rrd_problems_found=False
+def verifyHelper(filename,dict, fix_rrd=False):
+    """
+    Helper function for verifyRRD.  Checks one file,
+    prints out errors.  if fix_rrd, will attempt to 
+    dump out rrd to xml, add the missing attributes,
+    then restore.  Original file is obliterated.
+
+    @param filename: filename of rrd to check
+    @param dict: expected dictionary
+    @param fix_rrd: if true, will attempt to add missing attrs
+    """
+    global rrd_problems_found
+    rrd_obj=rrdSupport.rrdSupport()
+    (missing,extra)=rrd_obj.verify_rrd(filename,dict)
+    for attr in extra:
+        print "ERROR: %s has extra attribute %s" % (filename,attr)
+        if fix_rrd:
+            print "ERROR: fix_rrd cannot fix extra attributes"
+    if not fix_rrd:
+        for attr in missing:
+            print "ERROR: %s missing attribute %s" % (filename,attr)
+        if len(missing) > 0:
+            rrd_problems_found=True
+    if fix_rrd and (len(missing) > 0):
+        (f,tempfilename)=tempfile.mkstemp()
+        (out,tempfilename2)=tempfile.mkstemp()
+        print "Fixing %s..." % (filename)
+        os.close(out)
+        #Use exe version since dump, restore not available in rrdtool
+        dump_obj=rrdSupport.rrdtool_exe()
+        outstr=dump_obj.dump(filename)
+        for line in outstr:
+            os.write(f,line)
+        os.close(f)
+        rrdSupport.addDataStore(tempfilename,tempfilename2,missing)
+        os.unlink(filename)
+        outstr=dump_obj.restore(tempfilename2,filename)
+        os.unlink(tempfilename)
+        os.unlink(tempfilename2)
+    if len(extra) > 0:
+        rrd_problems_found=True
+
+def verifyRRD(fix_rrd=False):
+    """
+    Go through all known monitoring rrds and verify that they
+    match existing schema (could be different if an upgrade happened)
+    If fix_rrd is true, then also attempt to add any missing attributes.
+    """
+    global rrd_problems_found
+    global monitorAggregatorConfig
+    dir=monitorAggregatorConfig.monitor_dir
+    total_dir=os.path.join(dir,"total")
+
+    status_dict={}
+    status_total_dict={}
+    for tp in frontend_status_attributes.keys():
+        if tp in frontend_total_type_strings.keys():
+            tp_str=frontend_total_type_strings[tp]
+            attributes_tp=frontend_status_attributes[tp]
+            for a in attributes_tp:
+                status_total_dict["%s%s"%(tp_str,a)]=None
+        if tp in frontend_job_type_strings.keys():
+            tp_str=frontend_job_type_strings[tp]
+            attributes_tp=frontend_status_attributes[tp]
+            for a in attributes_tp:
+                status_dict["%s%s"%(tp_str,a)]=None
+
+    for filename in os.listdir(dir):
+        if (filename[:6]=="group_") or (filename=="total"):
+            current_dir=os.path.join(dir,filename)
+            if filename=="total":
+                verifyHelper(os.path.join(current_dir,
+                    "Status_Attributes.rrd"),status_total_dict, fix_rrd)
+            for dirname in os.listdir(current_dir):
+                current_subdir=os.path.join(current_dir,dirname)
+                if dirname[:6]=="state_":
+                    verifyHelper(os.path.join(current_subdir,
+                        "Status_Attributes.rrd"),status_dict, fix_rrd)
+                if dirname=="total":
+                    verifyHelper(os.path.join(current_subdir,
+                        "Status_Attributes.rrd"),status_total_dict, fix_rrd)
+    return not rrd_problems_found
+
+
+
 
 ####################################
 # PRIVATE - Used by aggregateStatus

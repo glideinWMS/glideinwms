@@ -530,7 +530,18 @@ class rrdtool_exe:
     def info(self,*args):
         cmdline='%s info %s'%(self.rrd_bin,string_quote_join(args))
         outstr=self.iexe_cmd(cmdline)
+        return outstr
+    
+    def dump(self,*args):
+        cmdline='%s dump %s'%(self.rrd_bin,string_quote_join(args))
+        outstr=self.iexe_cmd(cmdline)
+        return outstr
+    
+    def restore(self,*args):
+        cmdline='%s restore %s'%(self.rrd_bin,string_quote_join(args))
+        outstr=self.iexe_cmd(cmdline)
         return
+
 
     def graph(self,*args):
         cmdline='%s graph %s'%(self.rrd_bin,string_quote_join(args))
@@ -557,4 +568,49 @@ class rrdtool_exe:
         if (errcode!=0):
             raise RuntimeError, "Error running '%s'\ncode %i:%s"%(cmd,errcode,tempErr)
         return tempOut
+
+
+def addDataStore(filenamein, filenameout, attrlist):
+    """
+    Add a list of data stores to a rrd export file
+    This will essentially add attributes to the end of a rrd row
+
+    @param filenamein: filename path of a rrd exported with rrdtool dump
+    @param filenameout: filename path of output xml with datastores added
+    @param attrlist: array of datastores to add
+    """
+    f=open(filenamein,"r")
+    out=open(filenameout,"w")
+    parse=False
+    writenDS=False
+    for line in f:
+        if ("<rra>" in line) and (not writenDS):
+            for a in attrlist:
+                out.write("<ds>\n")
+                out.write("<name> %s </name>\n"%a)
+                out.write("<type> GAUGE </type>\n")
+                out.write("<minimal_heartbeat> 1800 </minimal_heartbeat>\n")
+                out.write("<min> NaN </min>\n")
+                out.write("<max> NaN </max>\n")
+                out.write("<!-- PDP Status -->\n")
+                out.write("<last_ds> UNKN </last_ds>\n")
+                out.write("<value> 0 </value>\n")
+                out.write("<unknown_sec> 0 </unknown_sec>\n")
+                out.write("</ds>\n")
+            writenDS=True
+        if "</cdp_prep>" in line:
+            for a in attrlist:
+                out.write("<ds><value> NaN </value>\n")
+                out.write("<unknown_datapoints> 0 </unknown_datapoints></ds>\n")
+        if "</database>" in line:
+            parse=False
+        if parse:
+            out.write(line[:-7])
+            for a in attrlist:
+                out.write("<v> NaN </v>")
+            out.write(line[-7:])
+        else:
+            out.write(line)
+        if "<database>" in line:
+            parse=True
 
