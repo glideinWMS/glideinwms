@@ -130,7 +130,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 condor_fd.close()
 
         # add additional system scripts
-        for script_name in ('create_mapfile.sh','collector_setup.sh','gcb_setup.sh','glexec_setup.sh','java_setup.sh'):
+        for script_name in ('create_mapfile.sh','collector_setup.sh','gcb_setup.sh','glexec_setup.sh','java_setup.sh','glidein_memory_setup.sh'):
             self.dicts['after_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
                 
         # this must be the last script in the list
