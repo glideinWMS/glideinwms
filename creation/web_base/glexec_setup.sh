@@ -195,11 +195,16 @@ elif [ "$glexec_bin" == "glite" ]; then
 
 elif [ "$glexec_bin" == "auto" ]; then
 
+    type="glite"
+
     if [ -n "$OSG_GLEXEC_LOCATION" ]; then
-       if [ -f "$OSG_GLEXEC_LOCATION" ]; then
-         echo "GLEXEC_BIN was auto, found OSG, expand to '$OSG_GLEXEC_LOCATION'" 1>&2
-         glexec_bin="$OSG_GLEXEC_LOCATION"
-       fi
+        if [ -f "$OSG_GLEXEC_LOCATION" ]; then
+            glexec_bin="$OSG_GLEXEC_LOCATION"
+            type="OSG"
+        elif [ -f "/usr/sbin/glexec" ]; then
+            glexec_bin=/usr/sbin/glexec
+            type="OSG RPM"
+        fi
     fi
 
     if [ "$glexec_bin" == "auto" ]; then
@@ -210,13 +215,13 @@ elif [ "$glexec_bin" == "auto" ]; then
         elif [ -f "/opt/glite/sbin/glexec" ]; then
             glexec_bin=/opt/glite/sbin/glexec
         fi
+    fi
 
-        if [ "$glexec_bin" == "auto" ]; then
-           echo "GLEXEC_BIN was auto, but could not find it!" 1>&2
-           exit 1
-        else
-           echo "GLEXEC_BIN was auto, found glite, expand to '$glexec_bin'" 1>&2
-        fi
+    if [ "$glexec_bin" == "auto" ]; then
+        echo "GLEXEC_BIN was auto, but could not find it!" 1>&2
+        exit 1
+    else
+        echo "GLEXEC_BIN was auto, found $type, expand to '$glexec_bin'" 1>&2
     fi
 fi
 
