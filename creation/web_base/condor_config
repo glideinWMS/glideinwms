@@ -106,3 +106,4 @@ USE_VOMS_ATTRIBUTES = False
 
 # Disable condor_preen for Condor > 7.5.0
 PREEN=
+JAVA=
