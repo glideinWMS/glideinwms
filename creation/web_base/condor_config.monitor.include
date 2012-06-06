@@ -32,4 +32,3 @@ MaxJobRetirementTime=120
 SHUTDOWN_GRACEFUL_TIMEOUT=10
 
 
-JAVA=

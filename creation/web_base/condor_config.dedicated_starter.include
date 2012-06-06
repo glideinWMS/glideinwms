@@ -58,4 +58,3 @@ STARTD.DAEMON_SHUTDOWN = ((Activity=="Idle") && \
 #
 MASTER.DAEMON_SHUTDOWN = (STARTD_StartTime =?= 0)
 
-JAVA=
