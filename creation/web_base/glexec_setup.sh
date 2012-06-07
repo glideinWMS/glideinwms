@@ -178,27 +178,50 @@ add_condor_vars_line "GLEXEC_USER_DIR" "C" "-" "+" "Y" "N" "-"
 # Tell Condor to actually use gLExec
 #
 if [ "$glexec_bin" == "OSG" ]; then
+
     echo "GLEXEC_BIN was OSG, expand to '$OSG_GLEXEC_LOCATION'" 1>&2
     glexec_bin="$OSG_GLEXEC_LOCATION"
+
 elif [ "$glexec_bin" == "glite" ]; then
-    echo "GLEXEC_BIN was glite, expand to '/opt/glite/sbin/glexec'" 1>&2
-    glexec_bin=/opt/glite/sbin/glexec
+
+    if [ -f "$GLEXEC_LOCATION/sbin/glexec" ]; then
+        glexec_bin="$GLEXEC_LOCATION/sbin/glexec"
+    elif [ -f "$GLITE_LOCATION/sbin/glexec" ]; then
+        glexec_bin="$GLITE_LOCATION/sbin/glexec"
+    else
+        glexec_bin=/opt/glite/sbin/glexec
+    fi
+    echo "GLEXEC_BIN was glite, expand to '$glexec_bin'" 1>&2
+
 elif [ "$glexec_bin" == "auto" ]; then
+
+    type="glite"
+
     if [ -n "$OSG_GLEXEC_LOCATION" ]; then
-       if [ -f "$OSG_GLEXEC_LOCATION" ]; then
-         echo "GLEXEC_BIN was auto, found OSG, expand to '$OSG_GLEXEC_LOCATION'" 1>&2
-         glexec_bin="$OSG_GLEXEC_LOCATION"
-       fi
+        if [ -f "$OSG_GLEXEC_LOCATION" ]; then
+            glexec_bin="$OSG_GLEXEC_LOCATION"
+            type="OSG"
+        elif [ -f "/usr/sbin/glexec" ]; then
+            glexec_bin=/usr/sbin/glexec
+            type="OSG RPM"
+        fi
     fi
+
     if [ "$glexec_bin" == "auto" ]; then
-      if [ -f "/opt/glite/sbin/glexec" ]; then
-         echo "GLEXEC_BIN was auto, found glite, expand to '/opt/glite/sbin/glexec'" 1>&2
-         glexec_bin=/opt/glite/sbin/glexec
-      fi
+        if [ -f "$GLEXEC_LOCATION/sbin/glexec" ]; then
+            glexec_bin="$GLEXEC_LOCATION/sbin/glexec"
+        elif [ -f "$GLITE_LOCATION/sbin/glexec" ]; then
+            glexec_bin="$GLITE_LOCATION/sbin/glexec"
+        elif [ -f "/opt/glite/sbin/glexec" ]; then
+            glexec_bin=/opt/glite/sbin/glexec
+        fi
     fi
+
     if [ "$glexec_bin" == "auto" ]; then
-       echo "GLEXEC_BIN was auto, but could not find it!" 1>&2
-       exit 1
+        echo "GLEXEC_BIN was auto, but could not find it!" 1>&2
+        exit 1
+    else
+        echo "GLEXEC_BIN was auto, found $type, expand to '$glexec_bin'" 1>&2
     fi
 fi
 
