@@ -19,7 +19,7 @@ condor_vars_file=`grep -i "^CONDOR_VARS_FILE " $glidein_config | awk '{print $2}
 add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
 source $add_config_line_source
 
-# Is site configured with glexec?
+# Is java required?
 need_java=`grep '^GLIDEIN_Java_Use ' $glidein_config | awk '{print $2}'`
 if [ -z "$need_java" ]; then
     echo "`date` GLIDEIN_Java_Use not configured. Defaulting it to NEVER"
