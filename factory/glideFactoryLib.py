@@ -1177,7 +1177,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials, client_w
                              schedd, factory_name, web_url, main_sign, entry_sign,
                              sign_type, main_descript, entry_descript, startup_dir,
                              client_name, slots_layout, params_str))
-
+        glidein_arguments = glidein_arguments.replace('"', '\\"') 
         logSupport.log.debug("glidein_arguments: %s" % glidein_arguments)
 
         # get my (entry) type
@@ -1227,9 +1227,9 @@ webbase= %s
 
 [vm_properties]
 max_lifetime = %s
-contextualization_type = "EC2"
+contextualization_type = EC2
 disable_shutdown = %s
-admin_email = "UNSUPPORTED"
+admin_email = UNSUPPORTED
 email_logs = False
 """
 
@@ -1259,7 +1259,7 @@ email_logs = False
             # we don't add the macros to the arguments for the EC2 submission since condor will never 
             # see the macros
             glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
-            exe_env.append('GLIDEIN_ARGUMENTS="%s"' % glidein_arguments)
+            exe_env.append("GLIDEIN_ARGUMENTS='%s'" % glidein_arguments)
             
             # RSL is definitely not for cloud entries
             glidein_rsl = ""
