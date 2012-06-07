@@ -142,8 +142,8 @@ add_condor_vars_line "ALTERNATIVE_SHELL" "C" "-" "SH" "Y" "N" "-"
 
 # --------------------------------------------------
 # Set glidein working dir into the tmp dir
-# This is needes since the user will be changed and 
-# the tmo directory is world writtable
+# This is needed since the user will be changed and 
+# the tmp directory is world writtable
 glide_tmp_dir=`grep '^TMP_DIR ' $glidein_config | awk '{print $2}'`
 if [ -z "$glide_tmp_dir" ]; then
     echo "TMP_DIR not found!" 1>&2
@@ -158,34 +158,52 @@ add_condor_vars_line "GLEXEC_USER_DIR" "C" "-" "+" "Y" "N" "-"
 # Tell Condor to actually use gLExec
 #
 if [ "$glexec_bin" == "OSG" ]; then
+
     echo "GLEXEC_BIN was OSG, expand to '$OSG_GLEXEC_LOCATION'" 1>&2
     glexec_bin="$OSG_GLEXEC_LOCATION"
+
 elif [ "$glexec_bin" == "glite" ]; then
-    echo "GLEXEC_BIN was glite, expand to '/opt/glite/sbin/glexec'" 1>&2
-    glexec_bin=/opt/glite/sbin/glexec
+
+    if [ -f "$GLEXEC_LOCATION/sbin/glexec" ]; then
+        glexec_bin="$GLEXEC_LOCATION/sbin/glexec"
+    elif [ -f "$GLITE_LOCATION/sbin/glexec" ]; then
+        glexec_bin="$GLITE_LOCATION/sbin/glexec"
+    else
+        glexec_bin=/opt/glite/sbin/glexec
+    fi
+    echo "GLEXEC_BIN was glite, expand to '$glexec_bin'" 1>&2
+
 elif [ "$glexec_bin" == "auto" ]; then
+
+    type="glite"
+
     if [ -n "$OSG_GLEXEC_LOCATION" ]; then
-       if [ -f "$OSG_GLEXEC_LOCATION" ]; then
-         echo "GLEXEC_BIN was auto, found OSG, expand to '$OSG_GLEXEC_LOCATION'" 1>&2
-         glexec_bin="$OSG_GLEXEC_LOCATION"
-       fi
+        if [ -f "$OSG_GLEXEC_LOCATION" ]; then
+            glexec_bin="$OSG_GLEXEC_LOCATION"
+            type="OSG"
+        elif [ -f "/usr/sbin/glexec" ]; then
+            glexec_bin=/usr/sbin/glexec
+            type="OSG RPM"
+        fi
     fi
+
     if [ "$glexec_bin" == "auto" ]; then
-      if [ -f "/opt/glite/sbin/glexec" ]; then
-         echo "GLEXEC_BIN was auto, found glite, expand to '/opt/glite/sbin/glexec'" 1>&2
-         glexec_bin=/opt/glite/sbin/glexec
-      fi
+        if [ -f "$GLEXEC_LOCATION/sbin/glexec" ]; then
+            glexec_bin="$GLEXEC_LOCATION/sbin/glexec"
+        elif [ -f "$GLITE_LOCATION/sbin/glexec" ]; then
+            glexec_bin="$GLITE_LOCATION/sbin/glexec"
+        elif [ -f "/opt/glite/sbin/glexec" ]; then
+            glexec_bin=/opt/glite/sbin/glexec
+        fi
     fi
+
     if [ "$glexec_bin" == "auto" ]; then
-      if [ -f "/usr/sbin/glexec" ]; then
-         echo "GLEXEC_BIN was auto, found OSG RPM, expand to '/usr/sbin/glexec'" 1>&2
-         glexec_bin=/usr/sbin/glexec
-      fi
+        echo "GLEXEC_BIN was auto, but could not find it!" 1>&2
+        exit 1
+    else
+        echo "GLEXEC_BIN was auto, found $type, expand to '$glexec_bin'" 1>&2
     fi
-    if [ "$glexec_bin" == "auto" ]; then
-       echo "GLEXEC_BIN was auto, but could not find it!" 1>&2
-       exit 1
-    fi
+
 fi
 
 # but first test it does exist and is executable
