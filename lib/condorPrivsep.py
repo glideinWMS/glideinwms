@@ -13,8 +13,8 @@
 
 import os.path
 import condorExe
-from condorExe import ExeError
 from condorExe import UnconfigError
+import logSupport
 
 # All the functions below can throw either ExeError or UnconfigError exceptions
 def mkdir(base_dir, subdir, target_user):
@@ -114,12 +114,23 @@ def execute(target_user, init_dir, exe, args=None, env=None, stdin_fname=None, s
     if stdout_fname != None:
         if stdout_fname == '-':
             # special case, pass through
-            other += "\nexec-keep-open-fd=1"
+            other += "\nexec-keep-open-fd=1:2"
         else:
             other += "\nexec-stdout=%s" % stdout_fname
 
     if stderr_fname != None:
         other += "\nexec-stderr=%s" % stderr_fname
+
+    try:
+        msg = "About to submit using condorPrivsep::\n" \
+              "user-uid=%s\n" \
+              "exec-init-dir=%s\n" \
+              "exec-path=%s" \
+              "%s" % (target_user, init_dir, exe, other)
+        logSupport.log.debug(msg)
+    except:
+        # logging hasn't been setup yet
+        pass
 
     return exe_privsep("exec", "user-uid=%s\nexec-init-dir=%s\nexec-path=%s%s" % (target_user, init_dir, exe, other))
 
@@ -177,4 +188,4 @@ def condor_execute(target_user, init_dir, condor_exe, args, env=None, stdin_fnam
 ##################################
 
 def exe_privsep(cmd, options):
-    return condorExe.exe_cmd("../sbin/condor_root_switchboard", "%s 0 2" % cmd, options)
+    return condorExe.exe_cmd("../sbin/condor_root_switchboard", "%s 0 3 3>&2" % cmd, options)
