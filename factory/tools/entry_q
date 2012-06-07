@@ -32,7 +32,13 @@ def main(argv):
       sys.exit(1)
 
     entry=argv[1]
-    gfactory_dir="."
+
+    # Try GLIDEIN_FACTORY_DIR env var first
+    if 'GLIDEIN_FACTORY_DIR' in os.environ:
+        gfactory_dir=os.environ['GLIDEIN_FACTORY_DIR']
+    else:
+        gfactory_dir="."
+
     want_schedd=False
     
     # parse arguments
