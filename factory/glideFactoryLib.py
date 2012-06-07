@@ -985,17 +985,8 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
                             exe_env.append('%s=%s' % (var, os.environ[var]))
                 try:
                     args = ["condor_submit", "-name", schedd, "entry_%s/job.condor" % entry_name]
-
-                    msg = "About to submit using condorPrivsep::\n" \
-                          "   username: %s\n" \
-                          "   submit directory: %s\n" \
-                          "   command: condor_submit\n" \
-                          "   args: %s\n" \
-                          "   exe_env: %s\n" \
-                          "" % (username, factoryConfig.submit_dir, str(args), str(exe_env))
-                    logSupport.log.debug(msg)
-
                     submit_out = condorPrivsep.condor_execute(username, factoryConfig.submit_dir, "condor_submit", args, env=exe_env)
+                    logSupport.log.debug(str(submit_out))
                 except condorPrivsep.ExeError, e:
                     submit_out = []
                     msg = "condor_submit failed (user %s): %s" % (username, str(e))
@@ -1011,7 +1002,12 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
             else:
                 # avoid using privsep, if possible
                 try:
-                    env = "; ".join(exe_env)
+                    env = "; export ".join(exe_env)
+                    env = "export %s" % env
+                    env = env.replace("$", "\$")
+                    env = env.replace("(", "\(")
+                    env = env.replace(")", "\)")
+
                     submit_out = condorExe.iexe_cmd("%s; condor_submit -name %s entry_%s/job.condor" % (env, schedd, entry_name))
                 except condorExe.ExeError, e:
                     submit_out = []
