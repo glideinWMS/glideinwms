@@ -13,20 +13,20 @@
 
 
 import os
-import os.path
 import popen2
 import string
 import select
 import cStringIO
 import fcntl
 import time
+import logSupport
 
 class UnconfigError(RuntimeError):
-    def __init__(self,str):
+    def __init__(self, err_str):
         RuntimeError.__init__(self,str)
 
 class ExeError(RuntimeError):
-    def __init__(self,str):
+    def __init__(self, err_str):
         RuntimeError.__init__(self,str)
 
 #
@@ -105,6 +105,13 @@ def iexe_cmd(cmd, stdin_data=None,env={}):
                     os.environ[k]=env[k]
 
             # launch process
+            try:
+                logSupport.log.debug("Environment: %s" % env)
+                logSupport.log.debug("Executing: %s" % cmd)
+            except:
+                pass
+
+            # launch process
             child = popen2.Popen3(cmd, capturestderr=True)
         finally:
             # restore the environemnt
@@ -175,7 +182,7 @@ def init1():
     # try using condor commands to find it out
     try:
         condor_bin_path=iexe_cmd("condor_config_val BIN")[0][:-1] # remove trailing newline
-    except ExeError,e:
+    except ExeError, e:
         # try to find the RELEASE_DIR, and append bin
         try:
             release_path=iexe_cmd("condor_config_val RELEASE_DIR")
