@@ -472,6 +472,16 @@ be defined:</P>
             will start on a resource.  It is used for resource management by
             Condor.
         </P></li>
+        <LI><P>
+        <a name="attr_maxmem_estimate" />
+            <div class="xml">
+            &lt;attr name=&quot;GLIDEIN_MaxMemMBs_Estimate&quot; &gt;
+            </div>
+            If set to TRUE, glidein will estimate the MEMORY that condor daemon
+            can use based on memory/core or memory/cpu. Estimation only
+            happens if the GLIDEIN_MaxMemMBs_Estimate is not configured by the
+            factory for the entry.
+        </P></li>
     </UL>
 </UL>
     <P>Other attributes can be specified as well. They are used by the
