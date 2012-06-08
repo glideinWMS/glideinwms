@@ -384,7 +384,9 @@ def update_x509_proxy_file(entry_name,username,client_id, proxy_data):
     
     try:
         voms_process = subprocess.Popen("voms-proxy-info -fqan", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        (voms,err_out)=voms_process.communicate(proxy_data)
+        (voms_out,err_out)=voms_process.communicate(proxy_data)
+        #sort output in case order of voms fqan changed
+        voms='\n'.join(sorted(str(voms_out).split("\n")))
     except:
         #If voms-proxy-info doesn't exist, just hash on dn
         voms=""
