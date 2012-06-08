@@ -18,6 +18,8 @@ import xmlParse,xmlFormat
 import glideinFrontendMonitoring
 import rrdSupport
 import tempfile
+import shutil
+import time
 
 ############################################################
 #
@@ -77,6 +79,9 @@ def verifyHelper(filename,dict, fix_rrd=False):
     @param fix_rrd: if true, will attempt to add missing attrs
     """
     global rrd_problems_found
+    if not os.path.exists(filename):
+        print "WARNING: %s missing, will be created on restart" % (filename)
+        return
     rrd_obj=rrdSupport.rrdSupport()
     (missing,extra)=rrd_obj.verify_rrd(filename,dict)
     for attr in extra:
@@ -91,8 +96,12 @@ def verifyHelper(filename,dict, fix_rrd=False):
     if fix_rrd and (len(missing) > 0):
         (f,tempfilename)=tempfile.mkstemp()
         (out,tempfilename2)=tempfile.mkstemp()
-        print "Fixing %s..." % (filename)
+        (restored,restoredfilename)=tempfile.mkstemp()
+        backup_str=str(int(time.time()))+".backup"
+        print "Fixing %s... (backed up to %s)" % (filename,filename+backup_str)
         os.close(out)
+        os.close(restored)
+        os.unlink(restoredfilename)
         #Use exe version since dump, restore not available in rrdtool
         dump_obj=rrdSupport.rrdtool_exe()
         outstr=dump_obj.dump(filename)
@@ -101,9 +110,10 @@ def verifyHelper(filename,dict, fix_rrd=False):
         os.close(f)
         rrdSupport.addDataStore(tempfilename,tempfilename2,missing)
         os.unlink(filename)
-        outstr=dump_obj.restore(tempfilename2,filename)
+        outstr=dump_obj.restore(tempfilename2,restoredfilename)
         os.unlink(tempfilename)
         os.unlink(tempfilename2)
+        shutil.move(restoredfilename,filename)
     if len(extra) > 0:
         rrd_problems_found=True
 
