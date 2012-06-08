@@ -153,6 +153,9 @@ def verifyRRD(fix_rrd=False):
                 if dirname[:6]=="state_":
                     verifyHelper(os.path.join(current_subdir,
                         "Status_Attributes.rrd"),status_dict, fix_rrd)
+                if dirname[:8]=="factory_":
+                    verifyHelper(os.path.join(current_subdir,
+                        "Status_Attributes.rrd"),status_dict, fix_rrd)
                 if dirname=="total":
                     verifyHelper(os.path.join(current_subdir,
                         "Status_Attributes.rrd"),status_total_dict, fix_rrd)
