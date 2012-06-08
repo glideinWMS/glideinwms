@@ -19,6 +19,7 @@ import glideFactoryMonitoring
 import glideFactoryLib
 import rrdSupport
 import tempfile
+import shutil
 
 ############################################################
 #
@@ -76,6 +77,9 @@ def verifyHelper(filename,dict, fix_rrd=False):
     @param fix_rrd: if true, will attempt to add missing attrs
     """
     global rrd_problems_found
+    if not os.path.exists(filename):
+        print "WARNING: %s missing, will be created on restart" % (filename)
+        return
     rrd_obj=rrdSupport.rrdSupport()
     (missing,extra)=rrd_obj.verify_rrd(filename,dict)
     for attr in extra:
@@ -90,19 +94,24 @@ def verifyHelper(filename,dict, fix_rrd=False):
     if fix_rrd and (len(missing) > 0):
         (f,tempfilename)=tempfile.mkstemp()
         (out,tempfilename2)=tempfile.mkstemp()
-        print "Fixing %s..." % (filename)
+        (restored,restoredfilename)=tempfile.mkstemp()
+        print "Fixing %s... (backed up to %s)" % (filename,filename+".backup")
         os.close(out)
+        os.close(restored)
+        os.unlink(restoredfilename)
         #Use exe version since dump, restore not available in rrdtool
         dump_obj=rrdSupport.rrdtool_exe()
         outstr=dump_obj.dump(filename)
         for line in outstr:
             os.write(f,line)
         os.close(f)
+        #Move file to backup location 
+        shutil.move(filename,filename+".backup")
         rrdSupport.addDataStore(tempfilename,tempfilename2,missing)
-        os.unlink(filename)
-        outstr=dump_obj.restore(tempfilename2,filename)
+        outstr=dump_obj.restore(tempfilename2,restoredfilename)
         os.unlink(tempfilename)
         os.unlink(tempfilename2)
+        shutil.move(restoredfilename,filename)
     if len(extra) > 0:
         rrd_problems_found=True
 
@@ -158,19 +167,23 @@ def verifyRRD(fix_rrd=False):
     verifyHelper(os.path.join(total_dir,
         "Log_Counts.rrd"),counts_dict, fix_rrd)
     for filename in os.listdir(dir):
-        if filename[:9]=="frontend_":
-            current_dir=os.path.join(dir,filename)
-            verifyHelper(os.path.join(current_dir,
-                "Status_Attributes.rrd"),status_dict, fix_rrd)
-            verifyHelper(os.path.join(current_dir,
-                "Log_Completed.rrd"),
-                glideFactoryMonitoring.log_completed_defaults,fix_rrd)
-            verifyHelper(os.path.join(current_dir,
-                "Log_Completed_Stats.rrd"),completed_stats_dict,fix_rrd)
-            verifyHelper(os.path.join(current_dir,
-                "Log_Completed_WasteTime.rrd"),completed_waste_dict,fix_rrd)
-            verifyHelper(os.path.join(current_dir,
-                "Log_Counts.rrd"),counts_dict,fix_rrd)
+        if filename[:6]=="entry_":
+            entrydir=os.path.join(dir,filename)
+            for subfilename in os.listdir(entrydir):
+                if subfilename[:9]=="frontend_":
+                    current_dir=os.path.join(entrydir,subfilename)
+                    verifyHelper(os.path.join(current_dir,
+                        "Status_Attributes.rrd"),status_dict, fix_rrd)
+                    verifyHelper(os.path.join(current_dir,
+                        "Log_Completed.rrd"),
+                        glideFactoryMonitoring.log_completed_defaults,fix_rrd)
+                    verifyHelper(os.path.join(current_dir,
+                        "Log_Completed_Stats.rrd"),completed_stats_dict,fix_rrd)
+                    verifyHelper(os.path.join(current_dir,
+                        "Log_Completed_WasteTime.rrd"),
+                        completed_waste_dict,fix_rrd)
+                    verifyHelper(os.path.join(current_dir,
+                        "Log_Counts.rrd"),counts_dict,fix_rrd)
     return not rrd_problems_found
 
 
