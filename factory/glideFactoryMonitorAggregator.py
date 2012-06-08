@@ -20,6 +20,7 @@ import glideFactoryLib
 import rrdSupport
 import tempfile
 import shutil
+import time
 
 ############################################################
 #
@@ -95,7 +96,8 @@ def verifyHelper(filename,dict, fix_rrd=False):
         (f,tempfilename)=tempfile.mkstemp()
         (out,tempfilename2)=tempfile.mkstemp()
         (restored,restoredfilename)=tempfile.mkstemp()
-        print "Fixing %s... (backed up to %s)" % (filename,filename+".backup")
+        backup_str=str(int(time.time()))+".backup"
+        print "Fixing %s... (backed up to %s)" % (filename,filename+backup_str)
         os.close(out)
         os.close(restored)
         os.unlink(restoredfilename)
@@ -106,7 +108,7 @@ def verifyHelper(filename,dict, fix_rrd=False):
             os.write(f,line)
         os.close(f)
         #Move file to backup location 
-        shutil.move(filename,filename+".backup")
+        shutil.move(filename,filename+backup_str)
         rrdSupport.addDataStore(tempfilename,tempfilename2,missing)
         outstr=dump_obj.restore(tempfilename2,restoredfilename)
         os.unlink(tempfilename)
