@@ -14,6 +14,7 @@
 import os.path
 import condorExe
 from condorExe import UnconfigError
+from condorExe import ExeError
 import logSupport
 
 # All the functions below can throw either ExeError or UnconfigError exceptions
