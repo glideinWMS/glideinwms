@@ -161,10 +161,13 @@ function set_var {
         var_user=$var_condor
     fi
 
+    condor_env_entry="$var_user=$var_val"
+    condor_env_entry=`echo "$condor_env_entry" | awk "{gsub(/\"/,\"\\\\\"\\\\\"\"); print}"`
+    condor_env_entry=`echo "$condor_env_entry" | awk "{gsub(/\'/,\"\'\'\"); print}"`
     if [ -z "$job_env" ]; then
-       job_env="$var_user=$var_val"
+       job_env="'$condor_env_entry'"
     else
-       job_env="$job_env;$var_user=$var_val"
+       job_env="$job_env '$condor_env_entry'"
     fi
     fi
 
@@ -403,7 +406,7 @@ GLIDEIN_TORETIRE = $glidein_toretire
 GLIDEIN_ToDie = $glidein_todie
 GLIDEIN_START_TIME = $now
 
-STARTER_JOB_ENVIRONMENT = $job_env
+STARTER_JOB_ENVIRONMENT = "$job_env"
 GLIDEIN_VARIABLES = $glidein_variables
 
 MASTER_NAME = glidein_$$
