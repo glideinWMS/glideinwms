@@ -18,6 +18,10 @@ import xmlParse,xmlFormat
 import glideFactoryMonitoring
 import glideFactoryLib
 import logSupport
+import rrdSupport
+import tempfile
+import shutil
+import time
 
 ############################################################
 #
@@ -59,6 +63,133 @@ def rrd_site(name):
 status_attributes={'Status':("Idle","Running","Held","Wait","Pending","StageIn","IdleOther","StageOut"),
                    'Requested':("Idle","MaxGlideins"),
                    'ClientMonitor':("InfoAge","JobsIdle","JobsRunning","JobsRunHere","GlideIdle","GlideRunning","GlideTotal")}
+type_strings={'Status':'Status','Requested':'Req','ClientMonitor':'Client'}
+
+##############################################################################
+rrd_problems_found=False
+def verifyHelper(filename,dict, fix_rrd=False):
+    """
+    Helper function for verifyRRD.  Checks one file,
+    prints out errors.  if fix_rrd, will attempt to
+    dump out rrd to xml, add the missing attributes,
+    then restore.  Original file is obliterated.
+
+    @param filename: filename of rrd to check
+    @param dict: expected dictionary
+    @param fix_rrd: if true, will attempt to add missing attrs
+    """
+    global rrd_problems_found
+    if not os.path.exists(filename):
+        print "WARNING: %s missing, will be created on restart" % (filename)
+        return
+    rrd_obj=rrdSupport.rrdSupport()
+    (missing,extra)=rrd_obj.verify_rrd(filename,dict)
+    for attr in extra:
+        print "ERROR: %s has extra attribute %s" % (filename,attr)
+        if fix_rrd:
+            print "ERROR: fix_rrd cannot fix extra attributes"
+    if not fix_rrd:
+        for attr in missing:
+            print "ERROR: %s missing attribute %s" % (filename,attr)
+        if len(missing) > 0:
+            rrd_problems_found=True
+    if fix_rrd and (len(missing) > 0):
+        (f,tempfilename)=tempfile.mkstemp()
+        (out,tempfilename2)=tempfile.mkstemp()
+        (restored,restoredfilename)=tempfile.mkstemp()
+        backup_str=str(int(time.time()))+".backup"
+        print "Fixing %s... (backed up to %s)" % (filename,filename+backup_str)
+        os.close(out)
+        os.close(restored)
+        os.unlink(restoredfilename)
+        #Use exe version since dump, restore not available in rrdtool
+        dump_obj=rrdSupport.rrdtool_exe()
+        outstr=dump_obj.dump(filename)
+        for line in outstr:
+            os.write(f,line)
+        os.close(f)
+        #Move file to backup location 
+        shutil.move(filename,filename+backup_str)
+        rrdSupport.addDataStore(tempfilename,tempfilename2,missing)
+        outstr=dump_obj.restore(tempfilename2,restoredfilename)
+        os.unlink(tempfilename)
+        os.unlink(tempfilename2)
+        shutil.move(restoredfilename,filename)
+    if len(extra) > 0:
+        rrd_problems_found=True
+
+def verifyRRD(fix_rrd=False):
+    """
+    Go through all known monitoring rrds and verify that they
+    match existing schema (could be different if an upgrade happened)
+    If fix_rrd is true, then also attempt to add any missing attributes.
+    """
+    global rrd_problems_found
+    global monitorAggregatorConfig
+    dir=monitorAggregatorConfig.monitor_dir
+    total_dir=os.path.join(dir,"total")
+   
+    status_dict={}
+    completed_stats_dict={}
+    completed_waste_dict={}
+    counts_dict={}
+ 
+    # initialize the RRD dictionaries to match the current schema for verification
+    for tp in status_attributes.keys():
+        if tp in type_strings.keys():
+            tp_str=type_strings[tp]
+            attributes_tp=status_attributes[tp]
+            for a in attributes_tp:
+                status_dict["%s%s"%(tp_str,a)]=None
+
+    for jobrange in glideFactoryMonitoring.getAllJobRanges():
+        completed_stats_dict["JobsNr_%s"%(jobrange)]=None
+    for timerange in glideFactoryMonitoring.getAllTimeRanges():
+        completed_stats_dict["Lasted_%s"%(timerange)]=None
+        completed_stats_dict["JobsLasted_%s"%(timerange)]=None
+
+    for jobtype in glideFactoryMonitoring.getAllJobTypes():
+        for timerange in glideFactoryMonitoring.getAllMillRanges():
+            completed_waste_dict["%s_%s"%(jobtype,timerange)]=None
+
+    for jobtype in ('Entered','Exited','Status'):
+        for jobstatus in ('Wait','Idle','Running','Held'):
+            counts_dict["%s%s"%(jobtype,jobstatus)]=None
+    for jobstatus in ('Completed','Removed'):
+            counts_dict["%s%s"%('Entered',jobstatus)]=None
+
+    verifyHelper(os.path.join(total_dir,
+        "Status_Attributes.rrd"),status_dict, fix_rrd)
+    verifyHelper(os.path.join(total_dir,
+        "Log_Completed.rrd"),
+        glideFactoryMonitoring.log_completed_defaults, fix_rrd)
+    verifyHelper(os.path.join(total_dir,
+        "Log_Completed_Stats.rrd"),completed_stats_dict, fix_rrd)
+    verifyHelper(os.path.join(total_dir,
+        "Log_Completed_WasteTime.rrd"),completed_waste_dict, fix_rrd)
+    verifyHelper(os.path.join(total_dir,
+        "Log_Counts.rrd"),counts_dict, fix_rrd)
+    for filename in os.listdir(dir):
+        if filename[:6]=="entry_":
+            entrydir=os.path.join(dir,filename)
+            for subfilename in os.listdir(entrydir):
+                if subfilename[:9]=="frontend_":
+                    current_dir=os.path.join(entrydir,subfilename)
+                    verifyHelper(os.path.join(current_dir,
+                        "Status_Attributes.rrd"),status_dict, fix_rrd)
+                    verifyHelper(os.path.join(current_dir,
+                        "Log_Completed.rrd"),
+                        glideFactoryMonitoring.log_completed_defaults,fix_rrd)
+                    verifyHelper(os.path.join(current_dir,
+                        "Log_Completed_Stats.rrd"),completed_stats_dict,fix_rrd)
+                    verifyHelper(os.path.join(current_dir,
+                        "Log_Completed_WasteTime.rrd"),
+                        completed_waste_dict,fix_rrd)
+                    verifyHelper(os.path.join(current_dir,
+                        "Log_Counts.rrd"),counts_dict,fix_rrd)
+    return not rrd_problems_found
+
+
 
 ##############################################################################
 # create an aggregate of status files, write it in an aggregate status file
@@ -68,7 +199,6 @@ def aggregateStatus(in_downtime):
 
     avgEntries=('InfoAge',)
 
-    type_strings={'Status':'Status','Requested':'Req','ClientMonitor':'Client'}
     global_total={'Status':None,'Requested':None,'ClientMonitor':None}
     status={'entries':{},'total':global_total}
     status_fe={'frontends':{}} #analogous to above but for frontend totals
@@ -272,7 +402,7 @@ def aggregateLogSummary():
         for k in ['Entered']:
             global_total[k][s]=0
 
-    for k in ['idle', 'validation', 'badput', 'nosuccess']:
+    for k in glideFactoryMonitoring.getAllJobTypes():
         for w in ("Waste","WasteTime"):
             el={}
             for t in glideFactoryMonitoring.getAllMillRanges():
@@ -328,7 +458,7 @@ def aggregateLogSummary():
             out_fe_el['CompletedCounts']={'Waste':{},'WasteTime':{},'Lasted':{},'JobsNr':{},'JobsDuration':{},'Sum':{}}
             for tkey in fe_el['CompletedCounts']['Sum'].keys():
                 out_fe_el['CompletedCounts']['Sum'][tkey]=int(fe_el['CompletedCounts']['Sum'][tkey])
-            for k in ['idle', 'validation', 'badput', 'nosuccess']:
+            for k in glideFactoryMonitoring.getAllJobTypes():
                 for w in ("Waste","WasteTime"):
                     out_fe_el['CompletedCounts'][w][k]={}
                     for t in glideFactoryMonitoring.getAllMillRanges():
@@ -358,7 +488,7 @@ def aggregateLogSummary():
             for tkey in entry_data['total']['CompletedCounts']['Sum'].keys():
                 local_total['CompletedCounts']['Sum'][tkey]=int(entry_data['total']['CompletedCounts']['Sum'][tkey])
                 global_total['CompletedCounts']['Sum'][tkey]+=int(entry_data['total']['CompletedCounts']['Sum'][tkey])
-            for k in ['idle', 'validation', 'badput', 'nosuccess']:
+            for k in glideFactoryMonitoring.getAllJobTypes():
                 for w in ("Waste","WasteTime"):
                     local_total['CompletedCounts'][w][k]={}
                     for t in glideFactoryMonitoring.getAllMillRanges():

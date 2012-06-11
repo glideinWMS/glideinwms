@@ -72,6 +72,8 @@ reconfig() {
         update_def_cfg="no"
         writeback="yes"
         force_delete=""
+        fix_rrd=""
+
         for var in "$@"
         do 
            case "$var" in
@@ -81,6 +83,8 @@ reconfig() {
                  ;;
               "-force_delete") force_delete="-force_delete"
                 ;;
+              "-fix_rrd") fix_rrd="-fix_rrd"
+                 ;;
               *) if [ "$cfg_loc" != "$var" ]; then
                  echo "Unknown argument passed: $var"
                  echo $"Usage: factory_startup {reconfig xml <update_default_cfg> <writeback yes|no>}"
@@ -102,7 +106,7 @@ reconfig() {
           fi
         fi
         
-        "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" -writeback "$writeback" -update_scripts "no" -xml "$cfg_loc" -update_def_cfg "$update_def_cfg" $force_delete
+        "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" -writeback "$writeback" -update_scripts "no" -xml "$cfg_loc" -update_def_cfg "$update_def_cfg" $force_delete $fix_rrd
         reconfig_failed=$?
         echo -n "Reconfiguring the factory"
         test $reconfig_failed -eq 0 && success || failure
