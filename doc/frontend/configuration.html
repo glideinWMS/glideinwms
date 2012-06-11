@@ -487,10 +487,11 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
             <div class="xml">
             &lt;attr name=&quot;GLIDEIN_MaxMemMBs_Estimate&quot; &gt;
             </div>
-            If set to TRUE, glidein will estimate the MEMORY that condor daemon
-            can use based on memory/core or memory/cpu. Estimation only
-            happens if the GLIDEIN_MaxMemMBs_Estimate is not configured by the
-            factory for the entry.
+            If GLIDEIN_MaxMemMBs is set to TRUE and the factory does not 
+	    explicitly configure a value for GLIDEIN_MaxMemMBs, the glidein 
+	    estimates the available MEMORY (based on memory/core or 
+	    memory/cpu) and publishes it as GLIDEIN_MaxMemMBs. The default is 
+	    FALSE.
         </P></li>
     </UL>
 </UL>
