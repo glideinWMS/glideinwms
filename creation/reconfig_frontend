@@ -20,6 +20,7 @@ STARTUP_DIR=sys.path[0]
 # Change this if you have changed the source for the 
 # For instance, in the frontend RPM
 WEB_BASE_DIR=os.path.join(STARTUP_DIR,"web_base")
+fix_rrd = False
 
 import os.path
 import string
@@ -27,12 +28,13 @@ import shutil
 import traceback
 sys.path.append(os.path.join(STARTUP_DIR,"lib"))
 sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
+sys.path.append(os.path.join(STARTUP_DIR,"../frontend"))
 import cvWParams
 import cvWDictFile
 import cvWConsts,cWConsts
 import cvWCreate
 import cvWParamDict
-
+import glideinFrontendMonitorAggregator
 
 ################################################################################
 
@@ -88,6 +90,12 @@ def main(params, old_params, update_scripts, update_def_cfg):
     print "...Active entries are:"
     for entry in frontend_dicts_obj.active_sub_list:
         print "     %s"%entry
+    print "...Verifying rrd schema"
+    if not glideinFrontendMonitorAggregator.verifyRRD(fix_rrd):
+        if not fix_rrd:
+            print "Run with -fix_rrd option to update errors"
+            print "WARNING: back up your existing rrds before auto-fixing rrds"
+        sys.exit(1)
     print "...Work files are in %s"%frontend_dicts_obj.main_dicts.work_dir
 
 
@@ -106,6 +114,8 @@ if __name__ == '__main__':
     update_def_cfg = 'no'
     xml = ''
     for i in range(len(argv)):
+        if argv[i] == '-fix_rrd':
+            fix_rrd = True
         if argv[i] == '-force_name':
             force_name = argv[i+1]
         if argv[i] == '-writeback':
