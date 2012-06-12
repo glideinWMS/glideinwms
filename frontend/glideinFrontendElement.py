@@ -239,7 +239,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
         except Exception, ex:
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
-            glideinFrontendLib.log_files.logDebug("Error in talking to the factory pool: %s" % tb)
+            logSupport.log.debug("Error in talking to the factory pool: %s" % tb)
 
         os.close(w)
         # hard kill myself... don't want any cleanup, since i was created just for this calculation
@@ -287,7 +287,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
         except Exception, ex:
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
-            glideinFrontendLib.log_files.logDebug("Error in retrieving information from schedd (condor_q): %s" % tb)
+            logSupport.log.debug("Error in retrieving information from schedd (condor_q): %s" % tb)
         
         os.close(w)
         # hard kill myself... don't want any cleanup, since i was created just for this calculation
@@ -319,7 +319,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
         except Exception, ex:
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
-            glideinFrontendLib.log_files.logDebug("Error in talking to the user pool (condor_status): %s" % tb)
+            logSupport.log.debug("Error in talking to the user pool (condor_status): %s" % tb)
 
         os.close(w)
         # hard kill myself... don't want any cleanup, since i was created just for this calculation
