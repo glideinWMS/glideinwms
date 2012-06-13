@@ -244,6 +244,7 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name):
         fd.write('              update_default_cfg) update_def_cfg="yes"\n')
         fd.write('                 ;;\n')
         fd.write('              "-force_delete") force_delete="-force_delete"\n')
+        fd.write('                 ;;\n')
         fd.write('              "-fix_rrd") fix_rrd="-fix_rrd"\n')
         fd.write('                 ;;\n')
         fd.write('              *) if [ "$cfg_loc" != "$var" ]; then\n')
