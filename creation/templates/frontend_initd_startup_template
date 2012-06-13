@@ -51,11 +51,11 @@ restart() {
 reconfig() {
         if [ -f "$2" ]; then
            has_arg=1
-           echo "Using factory config file arg: $2"
+           echo "Using frontend config file arg: $2"
            cfg_loc=$2           
         else
            has_arg=0
-           echo "Using default factory config file: $default_cfg_fpath"
+           echo "Using default frontend config file: $default_cfg_fpath"
            cfg_loc=$default_cfg_fpath
         fi
         shift
@@ -74,7 +74,7 @@ reconfig() {
               ;;
               *) if [ "$cfg_loc" != "$var" ]; then
                  echo "Unknown argument passed: $var"
-                 echo $"Usage: factory_startup {reconfig xml <update_default_cfg> <writeback yes|no>}"
+                 echo $"Usage: frontend_startup {reconfig xml <update_default_cfg> <writeback yes|no>}"
                  exit 1
                  fi
 	  		  ;;
@@ -106,11 +106,11 @@ reconfig() {
 upgrade() {
         if [ -f "$1" ]; then
            has_arg=1
-           echo "Using factory config file arg: $1"
+           echo "Using frontend config file arg: $1"
            cfg_loc=$1
         else
            has_arg=0
-           echo "Using default factory config file: $default_cfg_fpath"
+           echo "Using default frontend config file: $default_cfg_fpath"
            cfg_loc=$default_cfg_fpath
         fi
         "$glideinWMS_dir/frontend/checkFrontend.py" "$frontend_dir" >/dev/null 2>&1 </dev/null
