@@ -552,7 +552,7 @@ def keepIdleGlideins(client_condorq, client_int_name,
        
     if add_glideins <= 0:
         # Have enough idle, don't submit
-        log_files.logActivity("Have enough glideins: %i=idle %i=req_idle, not submitting" % (q_idle_glideins, req_min_idle))
+        log_files.logActivity("Have enough glideins: idle=%i req_idle=%i, not submitting" % (q_idle_glideins, req_min_idle))
         return clean_glidein_queue(remove_excess, glidein_totals, condorq, req_min_idle, req_max_glideins, frontend_name)
     else:
         # Need more idle
@@ -1409,25 +1409,24 @@ class GlideinTotals:
             self.frontend_limits[fe_sec_class] = {'max_glideins':self.default_fesc_max_glideins, 
                                                   'max_held':self.default_fesc_max_held, 
                                                   'max_idle':self.default_fesc_max_idle} 
-                                               
+
         # Get factory parameters for frontend-specific limits
-        # they are in the format  frontend1:sec_class1:number,frontend2:sec_class2:number
-        fe_glideins_param = jobDescript.data['MaxRunningFrontends']
-        if (fe_glideins_param.find(";") != -1):
-            for el in fe_glideins_param.split(","):
-                el_list = el.split(";")
-                self.frontend_limits[el_list[0]]['max_glideins'] = int(el_list[1])
-        fe_idle_param = jobDescript.data['MaxIdleFrontends']
-        if (fe_idle_param.find(";") != -1):
-            for el in fe_idle_param.split(","):
-                el_list = el.split(";")
-                self.frontend_limits[el_list[0]]['max_idle'] = int(el_list[1])
-        fe_held_param = jobDescript.data['MaxHeldFrontends']
-        if (fe_held_param.find(";") != -1):
-            for el in fe_held_param.split(","):
-                el_list = el.split(";")
-                self.frontend_limits[el_list[0]]['max_held'] = int(el_list[1])
-                        
+        # Format: frontend1:sec_class1:number,frontend2:sec_class2:number
+
+        limits_keynames = ( ('MaxRunningFrontends', 'max_glideins'),
+                            ('MaxIdleFrontends', 'max_idle'),
+                            ('MaxHeldFrontends', 'max_held') )
+
+        for (jd_key, max_glideinstatus_key) in limits_keynames:
+            fe_glideins_param = jobDescript.data[jd_key]
+            if (fe_glideins_param.find(";") != -1):
+                for el in fe_glideins_param.split(","):
+                    el_list = el.split(";")
+                    try:
+                        self.frontend_limits[el_list[0]][max_glideinstatus_key] = int(el_list[1])
+                    except:
+                        log_files.logWarning("Invalid FrontendName:SecurityClassName combo '%s' encountered while finding '%s' from max_job_frontend" % (el_list[0], max_glideinstatus_key))
+
         # Initialize frontend totals
         for fe_sec_class in self.frontend_limits:            
             # Filter the queue for all glideins for this frontend:security_class (GLIDEIN_FRONTEND_NAME)
