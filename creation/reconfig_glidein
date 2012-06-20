@@ -17,16 +17,18 @@ import sys
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "lib"))
 sys.path.append(os.path.join(STARTUP_DIR, "../lib"))
-
+sys.path.append(os.path.join(STARTUP_DIR,"../factory"))
 import cgWParams
 import cgWDictFile
 import cgWConsts
 import cWConsts
 import cgWCreate
 import cgWParamDict
+import glideFactoryMonitorAggregator
 
 WEB_BASE_DIR=os.path.join(STARTUP_DIR,"web_base")
 force_delete=False
+fix_rrd = False
 
 ################################################################################
 
@@ -115,8 +117,14 @@ def main(params, old_params, update_scripts, update_def_cfg):
     print "...Reconfigured glidein '%s' is complete" % params.glidein_name
     print "...Active entries are:"
     for entry in glidein_dicts_obj.active_sub_list:
-        print "     %s" % entry
-    print "...Submit files are in %s" % glidein_dicts_obj.main_dicts.work_dir
+        print "     %s"%entry
+    print "...Verifying rrd schema"
+    if not glideFactoryMonitorAggregator.verifyRRD(fix_rrd):
+        if not fix_rrd:
+            print "Run with -fix_rrd option to update errors"
+            print "WARNING: back up your existing rrds before auto-fixing rrds"
+        sys.exit(1)
+    print "...Submit files are in %s"%glidein_dicts_obj.main_dicts.work_dir
 
 
 ############################################################
@@ -134,6 +142,8 @@ if __name__ == '__main__':
     xml = ''
     update_def_cfg = 'no'
     for i in range(len(argv)):
+        if argv[i] == '-fix_rrd':
+            fix_rrd = True
         if argv[i] == '-force_name':
             force_name = argv[i + 1]
         if argv[i] == '-writeback':

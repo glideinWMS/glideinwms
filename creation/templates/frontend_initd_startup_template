@@ -51,16 +51,17 @@ restart() {
 reconfig() {
         if [ -f "$2" ]; then
            has_arg=1
-           echo "Using factory config file arg: $2"
+           echo "Using frontend config file arg: $2"
            cfg_loc=$2           
         else
            has_arg=0
-           echo "Using default factory config file: $default_cfg_fpath"
+           echo "Using default frontend config file: $default_cfg_fpath"
            cfg_loc=$default_cfg_fpath
         fi
         shift
         update_def_cfg="no"
         writeback="yes"
+        fix_rrd=""
 
 		for var in "$@"
            do
@@ -69,9 +70,11 @@ reconfig() {
               ;;
               update_default_cfg) update_def_cfg="yes"
               ;;
+              "-fix_rrd") fix_rrd="-fix_rrd"
+              ;;
               *) if [ "$cfg_loc" != "$var" ]; then
                  echo "Unknown argument passed: $var"
-                 echo $"Usage: factory_startup {reconfig xml <update_default_cfg> <writeback yes|no>}"
+                 echo $"Usage: frontend_startup {reconfig xml <update_default_cfg> <writeback yes|no>}"
                  exit 1
                  fi
 	  		  ;;
@@ -89,7 +92,7 @@ reconfig() {
             exit $RETVAL
           fi
         fi
-        "$glideinWMS_dir/creation/reconfig_frontend" -force_name "$frontend_name" -writeback "$writeback" -update_scripts "no" -xml "$cfg_loc" -update_def_cfg "$update_def_cfg"
+        "$glideinWMS_dir/creation/reconfig_frontend" -force_name "$frontend_name" -writeback "$writeback" -update_scripts "no" -xml "$cfg_loc" -update_def_cfg "$update_def_cfg" $fix_rrd
         RETVAL=$?
         reconfig_failed=$?
         echo -n "Reconfiguring the frontend"
@@ -103,11 +106,11 @@ reconfig() {
 upgrade() {
         if [ -f "$1" ]; then
            has_arg=1
-           echo "Using factory config file arg: $1"
+           echo "Using frontend config file arg: $1"
            cfg_loc=$1
         else
            has_arg=0
-           echo "Using default factory config file: $default_cfg_fpath"
+           echo "Using default frontend config file: $default_cfg_fpath"
            cfg_loc=$default_cfg_fpath
         fi
         "$glideinWMS_dir/frontend/checkFrontend.py" "$frontend_dir" >/dev/null 2>&1 </dev/null

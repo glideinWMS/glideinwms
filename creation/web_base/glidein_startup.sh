@@ -62,7 +62,7 @@ function usage {
 # params will contain the full list of parameters
 # -param_XXX YYY will become "XXX YYY"
 params=""
-/
+
 while [ $# -gt 0 ]
 do case "$1" in
     -factory)    glidein_factory="$2";;
