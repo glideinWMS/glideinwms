@@ -1255,7 +1255,13 @@ email_logs = False
             # we don't add the macros to the arguments for the EC2 submission since condor will never 
             # see the macros
             glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
-            exe_env.append("GLIDEIN_ARGUMENTS='%s'" % glidein_arguments)
+            if grid_type == "condor":
+                # condor_submit will swallow the " character in the string.
+                # condor_submit will include ' as a literal in the arguments string, causing breakage
+                # Hence, use " for now.
+                exe_env.append('GLIDEIN_ARGUMENTS=%s' % glidein_arguments)
+            else:
+                exe_env.append('GLIDEIN_ARGUMENTS="%s"' % glidein_arguments)
             
             # RSL is definitely not for cloud entries
             glidein_rsl = ""
