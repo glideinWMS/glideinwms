@@ -1411,7 +1411,7 @@ class GlideinTotals:
                                                   'max_idle':self.default_fesc_max_idle} 
 
         # Get factory parameters for frontend-specific limits
-        # Format: frontend1:sec_class1:number,frontend2:sec_class2:number
+        # Format: frontend1:sec_class1;number,frontend2:sec_class2;number
 
         limits_keynames = ( ('MaxRunningFrontends', 'max_glideins'),
                             ('MaxIdleFrontends', 'max_idle'),
