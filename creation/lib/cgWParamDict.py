@@ -688,14 +688,13 @@ def populate_job_descript(work_dir, job_descript_dict,
     for X in sub_params.config.max_jobs.max_job_frontends.keys():
         el=sub_params.config.max_jobs.max_job_frontends[X]
         frontend_name=X+":"+el.security_class+";"
-        max_held_frontends=frontend_name+el.held+","
-        max_idle_frontends=frontend_name+el.idle+","
-        max_running_frontends=frontend_name+el.running+","
+        max_held_frontends += frontend_name+el.held+","
+        max_idle_frontends += frontend_name+el.idle+","
+        max_running_frontends += frontend_name+el.running+","
     job_descript_dict.add("MaxRunningFrontends",max_running_frontends[:-1]);
     job_descript_dict.add("MaxHeldFrontends",max_held_frontends[:-1]);
     job_descript_dict.add("MaxIdleFrontends",max_idle_frontends[:-1]);
-    
-    
+
     #  If the configuration has a non-empty frontend_allowlist
     #  then create a white list and add all the frontends:security_classes
     #  to it.
