@@ -109,6 +109,12 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # set up the grid specific attributes
         if gridtype == 'ec2':
             self.populate_ec2_grid()
+        elif gridtype == 'condor':
+            # Condor-C is the same as normal grid with a few additions
+            # so we first do the normal population
+            self.populate_standard_grid(rsl, auth_method, gridtype)
+            # next we add the Condor-C additions
+            self.populate_condorc_grid()
         else:
             self.populate_standard_grid(rsl, auth_method, gridtype)
 
@@ -149,6 +155,10 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("stream_output", "False")
         self.add("stream_error ", "False")
 
+    def populate_condorc_grid(self):
+        self.add('+TransferOutput', '""')
+        self.add('x509userproxy', '$ENV(X509_USER_PROXY)')
+
     def populate_ec2_grid(self):
         self.add("ec2_ami_id", "$ENV(AMI_ID)")
         self.add("ec2_instance_type", "$ENV(INSTANCE_TYPE)")
@@ -159,10 +169,6 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # to change the argument list without having to modify every piece of code under the sun
         # this way only the submit_glideins function has to change (and of course glidein_startup.sh)
         self.add("ec2_user_data", "$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)")
-
-    def populate_condorc_grid(self):
-        """ This grid type is coming.  A lot of testing has to be completed first before we implement this. """
-        pass
 
     def populate_glidein_classad(self, proxy_url):
         # add in the classad attributes for the WMS collector
