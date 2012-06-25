@@ -530,7 +530,11 @@ class rrdtool_exe:
     def info(self,*args):
         cmdline='%s info %s'%(self.rrd_bin,string_quote_join(args))
         outstr=self.iexe_cmd(cmdline)
-        return outstr
+        outarr={}
+        for line in outstr:
+            linearr=line.split('=')
+            outarr[linearr[0]]=linearr[1]
+        return outarr
     
     def dump(self,*args):
         cmdline='%s dump %s'%(self.rrd_bin,string_quote_join(args))
