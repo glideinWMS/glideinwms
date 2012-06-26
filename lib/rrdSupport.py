@@ -447,8 +447,13 @@ class BaseRRDSupport:
         rrd_info=self.rrd_obj.info(filename)
         rrd_dict={}
         for key in rrd_info.keys():
+            #rrdtool 1.3
             if key[:3]=="ds[":
                 rrd_dict[key[3:].split("]")[0]]=None
+            #rrdtool 1.2
+            if key=="ds":
+                for dskey in rrd_info[key].keys():
+                    rrd_dict[dskey]=None
         missing=[]
         extra=[]
         for t in expected_dict.keys():
@@ -530,7 +535,11 @@ class rrdtool_exe:
     def info(self,*args):
         cmdline='%s info %s'%(self.rrd_bin,string_quote_join(args))
         outstr=self.iexe_cmd(cmdline)
-        return outstr
+        outarr={}
+        for line in outstr:
+            linearr=line.split('=')
+            outarr[linearr[0]]=linearr[1]
+        return outarr
     
     def dump(self,*args):
         cmdline='%s dump %s'%(self.rrd_bin,string_quote_join(args))
