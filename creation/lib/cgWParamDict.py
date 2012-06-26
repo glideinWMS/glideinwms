@@ -727,9 +727,9 @@ def populate_job_descript(work_dir, job_descript_dict,
     for X in sub_params.config.max_jobs.per_frontends.keys():
         el = sub_params.config.max_jobs.per_frontends[X]
         frontend_name = X + ":" + el.security_class + ";"
-        max_held_frontend = frontend_name + el.held + ","
-        max_idle_frontend = frontend_name + el.idle + ","
-        max_glideins_frontend = frontend_name + el.glideins + ","
+        max_held_frontend += frontend_name + el.held + ","
+        max_idle_frontend += frontend_name + el.idle + ","
+        max_glideins_frontend += frontend_name + el.glideins + ","
     job_descript_dict.add("PerFrontendMaxGlideins", max_glideins_frontend[:-1])
     job_descript_dict.add("PerFrontendMaxHeld", max_held_frontend[:-1])
     job_descript_dict.add("PerFrontendMaxIdle", max_idle_frontend[:-1])
