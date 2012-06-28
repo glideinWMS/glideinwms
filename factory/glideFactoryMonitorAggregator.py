@@ -432,10 +432,15 @@ def aggregateLogSummary():
                                             'JobsGoodput':0,
                                             'JobsTerminated':0,
                                             'CondorLasted':0}
+
+    fe_total=copy.deepcopy(global_total) # same as above but for frontend totals
     
     #
     status={'entries':{},'total':global_total}
+    status_fe={'frontends':{}} #analogous to above but for frontend totals
+
     nr_entries=0
+    nr_feentries={} #dictionary for nr entries per fe
     for entry in monitorAggregatorConfig.entries:
         # load entry log summary file
         status_fname=os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir,'entry_'+entry),
@@ -508,7 +513,21 @@ def aggregateLogSummary():
 
             status['entries'][entry]['total']=local_total
         
+        # update frontends
+        for fe in out_data.keys():
+            #compare each to the list of fe's accumulated so far
+            if not status_fe['frontends'].has_key(fe):
+                status_fe['frontends'][fe]={}
+            if not nr_feentries.has_key(fe):
+                nr_feentries[fe]=1 #already found one
+            else:
+                nr_feentries[fe]+=1
+
+            # sum them up
+            sumDictInt(out_data[fe],status_fe['frontends'][fe])
+
     # Write xml files
+    # To do - Igor: Consider adding status_fe to the XML file
     updated=time.time()
     xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
              '<glideFactoryLogSummary>\n'+
@@ -525,9 +544,32 @@ def aggregateLogSummary():
     glideFactoryMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.logsummary_relname,xml_str)
 
     # Write rrds
-    fe_dir="total"
-    sdata=status["total"]['Current']
-    sdiff=status["total"]
+    writeLogSummaryRRDs("total",status["total"])
+    
+    # Frontend total rrds across all factories
+    for fe in status_fe['frontends'].keys():
+        writeLogSummaryRRDs("total/%s"%("frontend_"+fe),status_fe['frontends'][fe])
+
+    return status
+
+def sumDictInt(indict,outdict):
+    for orgi in indict.keys():
+        i=str(orgi) # RRDs don't like unicode, so make sure we use strings
+        if type(indict[i])==type(1):
+            if not outdict.has_key(i):                    
+                outdict[i]=0
+            outdict[i]+=indict[i]
+        else:
+            # assume it is a dictionary
+            if not outdict.has_key(i):                    
+                outdict[i]={}
+
+            sumDictInt(indict[i],outdict[i])
+
+def writeLogSummaryRRDs(fe_dir,status_el):
+    updated=time.time()
+
+    sdata=status_el['Current']
 
     glideFactoryMonitoring.monitoringConfig.establish_dir(fe_dir)
     val_dict_counts={}
@@ -542,16 +584,16 @@ def aggregateLogSummary():
             val_dict_counts["Status%s"%s]=count
             val_dict_counts_desc["Status%s"%s]={'ds_type':'GAUGE'}
 
-            exited=-status["total"]['Exited'][s]
+            exited=-status_el['Exited'][s]
             val_dict_counts["Exited%s"%s]=exited
             val_dict_counts_desc["Exited%s"%s]={'ds_type':'ABSOLUTE'}
             
-        entered=status["total"]['Entered'][s]
+        entered=status_el['Entered'][s]
         val_dict_counts["Entered%s"%s]=entered
         val_dict_counts_desc["Entered%s"%s]={'ds_type':'ABSOLUTE'}
 
         if s=='Completed':
-            completed_counts=status["total"]['CompletedCounts']
+            completed_counts=status_el['CompletedCounts']
             count_entered_times=completed_counts['Lasted']
             count_jobnrs=completed_counts['JobsNr']
             count_jobs_duration=completed_counts['JobsDuration']
@@ -594,8 +636,6 @@ def aggregateLogSummary():
     #                                                        "ABSOLUTE",updated,val_dict_waste)
     glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_WasteTime"%fe_dir,
                                                             "ABSOLUTE",updated,val_dict_wastetime)
-    
-    return status
 
 def aggregateRRDStats():
     global monitorAggregatorConfig
