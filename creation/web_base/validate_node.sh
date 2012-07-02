@@ -19,10 +19,9 @@ function check_df {
     if [ $free -lt $chdf_reqkbs ]; then
         #echo "Space on '$chdf_dir' not enough." 1>&2
         #echo "At least $chdf_reqmbs MBs required, found $free KBs" 1>&2
-        STR="			Space on '$chdf_dir' not enough.\n"
-        STR=$STR"			At least $chdf_reqmbs MBs required, found $free KBs"
-        echo -e $STR > string
-        "$error_gen" -error "validate_node.sh" "WN_Resource" "space" "$chdf_dir"
+        STR="Space on '$chdf_dir' not enough.\n"
+        STR+="At least $chdf_reqmbs MBs required, found $free KBs"
+        "$error_gen" -error "validate_node.sh" "WN_Resource" "$STR" "space" "$chdf_dir"
         exit 1
     fi
     return 0
@@ -41,10 +40,9 @@ function check_quotas {
         if [ $myquota -lt $blocks ]; then
             #echo "Quota on '$chdf_dir' too small." 1>&2
             #echo "At least $chdf_reqmbs MBs required, found $myquota blocks" 1>&2
-            STR="			Quota on '$chdf_dir' too small.\n"
-            STR=$STR"			At least $chdf_reqmbs MBs required, found $myquota blocks"
-            echo -e $STR > string
-            "$error_gen" -error "validate_node.sh" "WN_Resource" "space" "$chdf_dir"
+            STR="Quota on '$chdf_dir' too small.\n"
+            STR+="At least $chdf_reqmbs MBs required, found $myquota blocks"
+            "$error_gen" -error "validate_node.sh" "WN_Resource" "$STR" "space" "$chdf_dir"
             exit 1
         fi
     fi
@@ -93,9 +91,8 @@ tmp_dir=`mktemp -d "/tmp/wmsglide_XXXXXX"`
 if [ $? -ne 0 ]; then
   if [ $myquota -lt $blocks ]; then
     #echo "Cannot create a dir in /tmp" 1>&2
-    STR="			Cannot create a dir in /tmp"
-    echo -e $STR > string
-    "$error_gen" -error "validate_node.sh" "WN_Resource" "space" "/tmp/wmsglide_XXXXXX"
+    STR="Cannot create a dir in /tmp"
+    "$error_gen" -error "validate_node.sh" "WN_Resource" "$STR" "space" "/tmp/wmsglide_XXXXXX"
     exit 1
    fi
 fi

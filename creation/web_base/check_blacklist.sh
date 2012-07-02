@@ -13,18 +13,16 @@ function check_blacklist {
     myname=`uname -n`
     if [ $? -ne 0 ]; then
         #echo "Cannot get my name!" 1>&2
-        STR="			Cannot get my name!"
-        echo -e $STR > string
-        "$error_gen" -error "check_blacklist.sh" "WN_Resource" "command" "uname"
+        STR="Cannot get my name!"
+        "$error_gen" -error "check_blacklist.sh" "WN_Resource" "$STR" "command" "uname"
         exit 1
     fi
     emyname=`echo $myname | sed 's/\./\\\./g'`
     grep -q -e "^'$emyname'" "$blacklist_file"
     if [ $? -eq 0 ]; then
         #echo "My name '$myname' is in blacklist! Exiting." 1>&2
-        STR="			My name '$myname' is in blacklist! Exiting."
-        echo -e $STR > string
-        "$error_gen" -error "check_blacklist.sh" "WN_Resource" "blacklist" "$myname"
+        STR="My name '$myname' is in blacklist! Exiting."
+        "$error_gen" -error "check_blacklist.sh" "WN_Resource" "$STR" "blacklist" "$myname"
         exit 1
     fi
 
@@ -37,9 +35,8 @@ function check_blacklist {
     grep -q -e "^'$emyip'" "$blacklist_file"
     if [ $? -eq 0 ]; then
         #echo "My ip '$myip' is in blacklist! Exiting." 1>&2
-        STR="			My ip '$myip' is in blacklist! Exiting."
-        echo -e $STR > string
-        "$error_gen" -error "check_blacklist.sh" "WN_Resource" "blacklist" "$myip"
+        STR="My ip '$myip' is in blacklist! Exiting."
+        "$error_gen" -error "check_blacklist.sh" "WN_Resource" "$STR" "blacklist" "$myip"
         exit 1
     fi
 

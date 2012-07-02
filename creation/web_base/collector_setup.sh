@@ -30,9 +30,8 @@ condor_vars_file=`grep -i "^CONDOR_VARS_FILE " $glidein_config | awk '{print $2}
 head_nodes=`grep '^GLIDEIN_Collector ' $glidein_config | awk '{print $2}'`
 if [ -z "$head_nodes" ]; then
     #echo "No GLIDEIN_Collector found!" 1>&2
-    STR="			No GLIDEIN_Collector found!"
-    echo -e $STR > string
-    "$error_gen" -error "collector_setup.sh" "Corruption" "file" "$glidein_config" "attribute" "GLIDEIN_Collector"
+    STR="No GLIDEIN_Collector found!"
+    "$error_gen" -error "collector_setup.sh" "Corruption" "$STR" "attribute" "GLIDEIN_Collector"
     exit 1
 fi
 

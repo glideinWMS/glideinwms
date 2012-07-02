@@ -16,11 +16,9 @@ function create_gridmapfile {
     if [ $? -ne 0 ]; then
         id=`voms-proxy-info -identity`
         if [ $? -ne 0 ]; then
-            echo "Cannot get user identity!" 1>&2
-            echo "Tried both grid-proxy-info and voms-proxy-info." 1>&2
-            STR="			Cannot add user identity to $X509_GRIDMAP!"
-            echo -e $STR > string
-            "$error_gen" -error "create_mapfile.sh" "WN_Resource" "command" "echo"
+            STR="Cannot get user identity!\n"
+            STR+="Tried both grid-proxy-info and voms-proxy-info."
+            "$error_gen" -error "create_mapfile.sh" "WN_Resource" "$STR" "command" "gird-proxy-info"
             exit 1
         fi
     fi
@@ -55,9 +53,8 @@ function create_gridmapfile {
         echo "\"$idp\"" condor >> "$X509_GRIDMAP"
     if [ $? -ne 0 ]; then
         #echo "Cannot add user identity to $X509_GRIDMAP!" 1>&2
-        STR="			Cannot add user identity to $X509_GRIDMAP!"
-        echo -e $STR > string
-        "$error_gen" -error "create_mapfile.sh" "WN_Resource" "command" "echo"
+        STR="Cannot add user identity to $X509_GRIDMAP!"
+        "$error_gen" -error "create_mapfile.sh" "WN_Resource" "$STR" "file" "$X509_GRIDMAP"
         exit 1
     fi
 

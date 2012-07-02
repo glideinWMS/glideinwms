@@ -18,13 +18,12 @@ function check_x509_certs {
     elif [ -e "/etc/grid-security/certificates/" ]; then
         export X509_CERT_DIR=/etc/grid-security/certificates/
     else
-        STR="			Could not find grid-certificates!\n"
-        STR=$STR"			Looked in:\n"
-        STR=$STR'				$X509_CERT_DIR\n'
-        STR=$STR'				$HOME/.globus/certificates/\n'
-        STR=$STR'				/etc/grid-security/certificates/\n'
-        echo -e $STR > string
-        "$error_gen" -error "setup_x509.sh" "WN_Resource" "directory" "$X509_CERT_DIR"
+        STR="Could not find grid-certificates!\n"
+        STR+="Looked in:\n"
+        STR+="	\$X509_CERT_DIR ($X509_CERT_DIR)\n"
+        STR+="	\$HOME/.globus/certificates/ ($HOME/.globus/certificates/)\n"
+        STR+="	/etc/grid-security/certificates/"
+        "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "directory" "$X509_CERT_DIR"
         exit 1
     fi
     return 0
@@ -34,11 +33,10 @@ function check_x509_proxy {
     if [ -a "$X509_USER_PROXY" ]; then
         export X509_USER_PROXY
     else
-        STR="			Could not find user proxy!\n"
-        STR=$STR"			Looked in X509_USER_PROXY='$X509_USER_PROXY'\n"
-        STR=$STR`ls -l "$X509_USER_PROXY"`"\n"
-        echo -e $STR > string
-        "$error_gen" -error "setup_x509.sh" "Corruption" "proxy" "$X509_USER_PROXY"
+        STR="Could not find user proxy!"
+        STR+="Looked in X509_USER_PROXY='$X509_USER_PROXY'\n"
+        STR+=`ls -la "$X509_USER_PROXY"`
+        "$error_gen" -error "setup_x509.sh" "Corruption" "$STR" "proxy" "$X509_USER_PROXY"
         exit 1
     fi
 
@@ -48,35 +46,31 @@ function check_x509_proxy {
     old_umask=`umask`
 
     if [ $? -ne 0 ]; then
-        STR="			Failed in reading old umask!\n"
-        echo -e $STR > string
-        "$error_gen" -error "setup_x509.sh" "Corruption" "file" "$X509_USER_PROXY"
+        STR="Failed in reading old umask!"
+        "$error_gen" -error "setup_x509.sh" "Corruption" "$STR" "file" "$X509_USER_PROXY"
         exit 1
     fi
 
     # make sure nobody else can read my proxy
     umask 0077
     if [ $? -ne 0 ]; then
-        STR="			Failed to set umask 0077!\n"
-        echo -e $STR > string
-        "$error_gen" -error "setup_x509.sh" "Corruption" "file" "$X509_USER_PROXY" "command" "umask"
+        STR="Failed to set umask 0077!"
+        "$error_gen" -error "setup_x509.sh" "Corruption" "$STR" "file" "$X509_USER_PROXY" "command" "umask"
         exit 1
     fi    
 
     local_proxy_dir=`pwd`/ticket
     mkdir "$local_proxy_dir"
     if [ $? -ne 0 ]; then
-        STR="			Failed in creating proxy dir $local_proxy_dir.\n"
-        echo -e $STR > string
-        "$error_gen" -error "setup_x509.sh" "Corruption" "directory" "$local_proxy_dir"
+        STR="Failed in creating proxy dir $local_proxy_dir."
+        "$error_gen" -error "setup_x509.sh" "Corruption" "$STR" "directory" "$local_proxy_dir"
         exit 1
     fi
 
     cp "$X509_USER_PROXY" "$local_proxy_dir/myproxy"
     if [ $? -ne 0 ]; then
-        STR="			Failed in copying proxy $X509_USER_PROXY.\n"
-        echo -e $STR > string
-        "$error_gen" -error "setup_x509.sh" "Corruption" "file" "$X509_USER_PROXY"
+        STR="Failed in copying proxy $X509_USER_PROXY."
+        "$error_gen" -error "setup_x509.sh" "Corruption" "$STR" "file" "$X509_USER_PROXY"
         exit 1
     fi
 
@@ -87,9 +81,8 @@ function check_x509_proxy {
 
     umask $old_umask
     if [ $? -ne 0 ]; then
-        STR="			Failed to set back umask!\n"
-        echo -e $STR > string
-        "$error_gen" -error "setup_x509.sh" "Corruption" "file" "$X509_USER_PROXY" "command" "umask"
+        STR="Failed to set back umask!"
+        "$error_gen" -error "setup_x509.sh" "Corruption" "$STR" "file" "$X509_USER_PROXY" "command" "umask"
         exit 1
     fi    
 
@@ -97,14 +90,13 @@ function check_x509_proxy {
     if [ $? -ne 0 ]; then
         voms-proxy-info -exists -valid 12:0
         if [ $? -ne 0 ]; then
-            STR="			Proxy not valid in 12 hours!\n"
-            STR=$STR"			Proxy shorter than 12 hours are not allowed\n"
-            STR=$STR"				grid-proxy-info:\n"
-            STR=$STR`grid-proxy-info`"\n"
-            STR=$STR"				voms-proxy-info:\n"
-            STR=$STR`voms-proxy-info -all`"\n"
-            echo -e $STR > string
-            "$error_gen" -error "setup_x509.sh" "VO_Proxy" "proxy" "$X509_USER_PROXY"
+            STR="Proxy not valid in 12 hours!\n"
+            STR+="Proxy shorter than 12 hours are not allowed\n"
+            STR+="grid-proxy-info:\n"
+            STR+=`grid-proxy-info`
+            STR+="\nvoms-proxy-info:\n"
+            STR+=`voms-proxy-info -all`
+            "$error_gen" -error "setup_x509.sh" "VO_Proxy" "$STR" "proxy" "$X509_USER_PROXY"
             exit 1
         fi
     fi
@@ -117,9 +109,8 @@ function check_x509_proxy {
 function get_x509_expiration {
     now=`date +%s`
     if [ $? -ne 0 ]; then
-        STR="			Date not found!\n"
-        echo -e $STR > string
-        "$error_gen" -error "setup_x509.sh" "WN_Resource" "command" "date"
+        STR="Date not found!"
+        "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "date"
         exit 1 # just to be sure
     fi
 
@@ -134,9 +125,8 @@ function get_x509_expiration {
         echo `/usr/bin/expr $now + $l`
     else
         #echo "Could not obtain -timeleft" 1>&2
-        STR="			Could not obtain -timeleft\n"
-        echo -e $STR > string
-        "$error_gen" -error "setup_x509.sh" "WN_Resource" "command" "voms_proxy_info"
+        STR="Could not obtain -timeleft"
+        "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "grid-proxy-info"
         exit 1
     fi
 

@@ -12,7 +12,9 @@ ERROR_FILE="error_output"
 # generate and append detail tag                            #
 # --------------------------------------------------------- #
 function detail() {
-    echo "    <detail>"`cat string`"</detail>" >> output
+    echo "    <detail>" >> output
+    echo -e "$1" | awk '{print "       " $0}' >> output
+    echo "    </detail>" >> output
     return
 }
 
@@ -75,12 +77,14 @@ function status_error(){
     echo "    <status>ERROR</status>" >> output
     write_metric "failure" "$1"
     shift
+    detstr=$1
+    shift
     while [ $# -gt 1 ]; do
       write_metric "$1" "$2"
       shift
       shift
     done
-    detail
+    detail "$detstr"
     close
     if [ -f $ERROR_FILE ]; then
 	cat output >> $ERROR_FILE
@@ -98,8 +102,8 @@ function status_error(){
 usage()
 {
 	echo "Usage: -error|-ok {params}"; 
-	echo "       -error id failstr {metricid metricval}+"; 
-	echo "       -ok    id         {metricid metricval}+"; 
+	echo "       -error id failstr detailfail {metricid metricval}+"; 
+	echo "       -ok    id                    {metricid metricval}+"; 
 	return
 }
 

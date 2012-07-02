@@ -51,9 +51,8 @@ if [ "$condor_os" == "auto" ]; then
         fi
     else 
         #echo "Not a RHEL not Debian compatible system. Autodetect not supported"  1>&2
-        STR="			Not a RHEL not Debian compatible system. Autodetect not supported"
-        echo -e $STR > string
-        "$error_gen" -error "condor_platform_select.sh" "Config" "OS" "`uname -v`"
+        STR="Not a RHEL not Debian compatible system. Autodetect not supported"
+        "$error_gen" -error "condor_platform_select.sh" "Config" "$STR" "OS" "`uname -v`"
         exit 1
     fi
 fi
@@ -71,9 +70,8 @@ if [ "$condor_arch" == "auto" ]; then
         condor_arch="x86"
     else
         #echo "Not a x86 compatible system. Autodetect not supported"  1>&2
-        STR="			Not a x86 compatible system. Autodetect not supported"
-        echo -e $STR > string
-        "$error_gen" -error "condor_platform_select.sh" "Config" "OS" "`uname -m`"
+        STR="Not a x86 compatible system. Autodetect not supported"
+        "$error_gen" -error "condor_platform_select.sh" "Config" "$STR" "OS" "`uname -m`"
         exit 1
     fi
 fi
@@ -112,13 +110,12 @@ if [ -z "$condor_platform_check" ]; then
     #echo "CONDOR_OS      '$condor_os'" 1>&2
     #echo "CONDOR_ARCH    '$condor_arch'" 1>&2
     #echo "Quitting" 1>&2
-    STR="			Cannot find a supported platform\n"
-    STR=$STR"			CONDOR_VERSION '$condor_version'\n"
-    STR=$STR"			CONDOR_OS      '$condor_os'\n"
-    STR=$STR"			CONDOR_ARCH    '$condor_arch'\n"
-    STR=$STR"			Quitting"
-    echo -e $STR > string
-    "$error_gen" -error "condor_platform_select.sh" "Config" "OS" "`uname -m`"
+    STR="Cannot find a supported platform\n"
+    STR+="CONDOR_VERSION '$condor_version'\n"
+    STR+="CONDOR_OS      '$condor_os'\n"
+    STR+="CONDOR_ARCH    '$condor_arch'\n"
+    STR+="Quitting"
+    "$error_gen" -error "condor_platform_select.sh" "Config" "$STR" "OS" "`uname -m`"
     exit 1
 fi
 

@@ -29,10 +29,9 @@ function test_glexec {
     if [ $res -ne 0 ]; then
         #echo "glexec test failed, nonzero value $res" 1>&2
         #echo "result: $tst" 1>&2
-        STR="			glexec test failed, nonzero value $res\n"
-        STR=$STR"			result: $tst"
-        echo -e $STR > string
-        "$error_gen" -error "glexec_setup.sh" "WN_Resource" "command" "$glexec_bin"
+        STR="glexec test failed, nonzero value $res\n"
+        STR+="result: $tst"
+        "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "$glexec_bin"
         exit 1
     else
         tst2=`echo "$tst" |tail -1`
@@ -41,10 +40,9 @@ function test_glexec {
         else
             #echo "glexec broken!" 1>&2
             #echo "Expected 'Hello World', got '$tst2'" 1>&2
-            STR="			glexec broken!\n"
-            STR=$STR"			Expected 'Hello World', got '$tst2'"
-            echo -e $STR > string
-            "$error_gen" -error "glexec_setup.sh" "WN_Resource" "command" "$glexec_bin"
+            STR="glexec broken!\n"
+            STR+="Expected 'Hello World', got '$tst2'"
+            "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "$glexec_bin"
             exit 1
         fi
     fi
@@ -63,10 +61,9 @@ EOF
     if [ $res -ne 0 ]; then
         #echo "glexec test2 failed, nonzero value $res" 1>&2
         #echo "result: $tst" 1>&2
-        STR="			glexec test2 failed, nonzero value $res\n"
-        STR=$STR"			result: $tst"
-        echo -e $STR > string
-        "$error_gen" -error "glexec_setup.sh" "WN_Resource" "command" "$glexec_bin"
+        STR="glexec test2 failed, nonzero value $res\n"
+        STR+="result: $tst"
+        "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "$glexec_bin"
         exit 1
     else
         tst2=`echo "$tst" |tail -1`
@@ -75,10 +72,9 @@ EOF
         else
             #echo "glexec broken (test2)!" 1>&2
             #echo "Expected 'Hello World', got '$tst2'" 1>&2
-            STR="			glexec broken (test2)!\n"
-            STR=$STR"			Expected 'Hello World', got '$tst2'"
-            echo -e $STR > string
-            "$error_gen" -error "glexec_setup.sh" "WN_Resource" "command" "$glexec_bin"
+            STR="glexec broken (test2)!\n"
+            STR+="Expected 'Hello World', got '$tst2'"
+            "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "$glexec_bin"
             exit 1
         fi
     fi
@@ -128,17 +124,15 @@ case "$use_glexec" in
     REQUIRED)
         if [ "$glexec_bin" == "NONE" ]; then
             #echo "`date` VO mandates the use of glexec but the site is not configured with glexec information."
-            STR="			`date` VO mandates the use of glexec but the site is not configured with glexec information"
-            echo -e $STR > string
-            "$error_gen" -error "glexec_setup.sh" "VO_Config" "attribute" "GLEXEC_BIN" "attribute" "GLIDEIN_Glexec_Use"
+            STR="VO mandates the use of glexec but the site is not configured with glexec information"
+            "$error_gen" -error "glexec_setup.sh" "VO_Config" "$STR" "attribute" "GLEXEC_BIN" "attribute" "GLIDEIN_Glexec_Use"
             exit 1
         fi
         ;;
     *)
         #echo "`date` USE_GLEXEC in VO Frontend configured to be $use_glexec. Accepted values are 'NEVER' or 'OPTIONAL' or 'REQUIRED'."
-        STR="			`date` USE_GLEXEC in VO Frontend configured to be $use_glexec. Accepted values are 'NEVER' or 'OPTIONAL' or 'REQUIRED'."
-        echo -e $STR > string
-        "$error_gen" -error "glexec_setup.sh" "VO_Config" "attribute" "GLIDEIN_Glexec_Use"
+        STR="USE_GLEXEC in VO Frontend configured to be $use_glexec.\nAccepted values are 'NEVER' or 'OPTIONAL' or 'REQUIRED'."
+        "$error_gen" -error "glexec_setup.sh" "VO_Config" "$STR" "attribute" "GLIDEIN_Glexec_Use"
         exit 1
         ;;
 esac 
@@ -160,9 +154,8 @@ echo "`date` making configuration changes to use glexec"
 #       for SL4/SL5 compatibility (readlink -e does not exist in SL4).
 if [ ! -e /bin/sh ];then
     #echo "gLExec does not like symlinks. Failed to dereference /bin/sh" 1>&2
-    STR="			gLExec does not like symlinks. Failed to dereference /bin/sh"
-    echo -e $STR > string
-    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "command" "ln"
+    STR="gLExec does not like symlinks. Failed to dereference /bin/sh"
+    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "ln"
     exit 1
 fi
 export ALTSH="`readlink -f /bin/sh`"
@@ -176,9 +169,8 @@ add_condor_vars_line "ALTERNATIVE_SHELL" "C" "-" "SH" "Y" "N" "-"
 glide_tmp_dir=`grep '^TMP_DIR ' $glidein_config | awk '{print $2}'`
 if [ -z "$glide_tmp_dir" ]; then
     #echo "TMP_DIR not found!" 1>&2
-    STR="			TMP_DIR not found!"
-    echo -e $STR > string
-    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "environment" "TMP_DIR"
+    STR="TMP_DIR not found!"
+    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "environment" "TMP_DIR"
     exit 1
 fi
 add_config_line "GLEXEC_USER_DIR" "$glide_tmp_dir"
@@ -210,9 +202,8 @@ elif [ "$glexec_bin" == "auto" ]; then
     fi
     if [ "$glexec_bin" == "auto" ]; then
         #echo "GLEXEC_BIN was auto, but could not find it!" 1>&2
-        STR="			GLEXEC_BIN was auto, but could not find it!"
-        echo -e $STR > string
-        "$error_gen" -error "glexec_setup.sh" "Factory_Config" "attribute" "GLEXEC_BIN"
+        STR="GLEXEC_BIN was auto, but could not find it!"
+        "$error_gen" -error "glexec_setup.sh" "Factory_Config" "$STR" "attribute" "GLEXEC_BIN"
         exit 1
     fi
 fi
@@ -224,16 +215,14 @@ if [ -f "$glexec_bin" ]; then
         echo "Using gLExec binary '$glexec_bin'"
     else
         #echo "gLExec binary '$glexec_bin' is not executable!" 1>&2
-        STR="			gLExec binary '$glexec_bin' is not executable!"
-        echo -e $STR > string
-        "$error_gen" -error "glexec_setup.sh" "WN_Resource" "file" "$glexec_bin"
+        STR="gLExec binary '$glexec_bin' is not executable!"
+        "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "file" "$glexec_bin"
         exit 1
     fi
 else
     #echo "gLExec binary '$glexec_bin' not found!" 1>&2
-    STR="			gLExec binary '$glexec_bin' not found!"
-    echo -e $STR > string
-    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "file" "$glexec_bin"
+    STR="gLExec binary '$glexec_bin' not found!"
+    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "file" "$glexec_bin"
     exit 1
 fi
 
