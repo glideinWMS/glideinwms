@@ -38,24 +38,10 @@ function close(){
 }
 
 # --------------------------------------------------------- #
-# metric_error ()                                           #
-# generate and append metric tag for errors                 #
+# write_metric ()                                           #
+# generate and append metric tag                            #
 # --------------------------------------------------------- #
-function metric_error(){
-    DATE=`date "+%Y-%m-%dT%H:%M:%S"`
-    echo "    <metric name=\"failure\" ts=\"${DATE}\" uri=\"local\">$1</metric>" >> output
-    echo "    <metric name=\"$2\" ts=\"${DATE}\" uri=\"local\">$3</metric>" >> output
-    if [ $# -eq 5 ]; then
-        echo "    <metric name=\"$4\" ts=\"${DATE}\" uri=\"local\">$5</metric>" >> output
-    fi
-    return
-}
-
-# --------------------------------------------------------- #
-# metric_ok ()                                              #
-# generate and append metric tag for OK jobs                #
-# --------------------------------------------------------- #
-function metric_ok(){
+function write_metric(){
     DATE=`date "+%Y-%m-%dT%H:%M:%S"`
     echo "    <metric name=\"$1\" ts=\"${DATE}\" uri=\"local\">$2</metric>" >> output
     return
@@ -67,7 +53,11 @@ function metric_ok(){
 # --------------------------------------------------------- #
 function status_ok(){
     echo "    <status>OK</status>" >> output
-    metric_ok "$@"
+    while [ $# -gt 1 ]; do
+      write_metric "$1" "$2"
+      shift
+      shift
+    done
     close
     if [ -f $OK_FILE ]; then
 	cat output >> $OK_FILE
@@ -83,7 +73,13 @@ function status_ok(){
 # --------------------------------------------------------- #
 function status_error(){
     echo "    <status>ERROR</status>" >> output
-    metric_error "$@"
+    write_metric "failure" "$1"
+    shift
+    while [ $# -gt 1 ]; do
+      write_metric "$1" "$2"
+      shift
+      shift
+    done
     detail
     close
     if [ -f $ERROR_FILE ]; then
@@ -101,7 +97,9 @@ function status_error(){
 # --------------------------------------------------------- #
 usage()
 {
-	echo "Usage: -error -ok {params}"; 
+	echo "Usage: -error|-ok {params}"; 
+	echo "       -error id failstr {metricid metricval}+"; 
+	echo "       -ok    id         {metricid metricval}+"; 
 	return
 }
 
@@ -112,7 +110,7 @@ usage()
 #
 ############################################################
 mycmd=$1
-header $2
+header "$2"
 
 shift
 shift
