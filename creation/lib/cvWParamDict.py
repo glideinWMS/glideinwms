@@ -645,9 +645,9 @@ def populate_common_descript(descript_dict,        # will be modified
         # OPTIONAL: Consider all entries irrespective of their GLEXEC config
         # NEVER   : Consider entries that do not want glidein to use GLEXEC
         if (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'REQUIRED'):
-            match_expr = '(%s) and (glidein["attrs"]["GLEXEC_BIN"] != "NONE")' % match_expr
+            match_expr = '(%s) and (glidein["attrs"].get("GLEXEC_BIN", "NONE") != "NONE")' % match_expr
         elif (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'NEVER'):
-            match_expr = '(%s) and (glidein["attrs"]["GLIDEIN_REQUIRE_GLEXEC_USE"] == "False")' % match_expr
+            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_REQUIRE_GLEXEC_USE", "False") == "False")' % match_expr
 
     descript_dict.add('MatchExpr', match_expr)
 
