@@ -114,61 +114,61 @@ function set_var {
     var_user=$7
 
     if [ -z "$var_name" ]; then
-    # empty line
-    return 0
+        # empty line
+        return 0
     fi
 
     var_val=`grep "^$var_name " $config_file | awk '{print substr($0,index($0,$2))}'`
     if [ -z "$var_val" ]; then
-    if [ "$var_req" == "Y" ]; then
-        # needed var, exit with error
-        echo "Cannot extract $var_name from '$config_file'" 1>&2
-        exit 1
-    elif [ "$var_def" == "-" ]; then
-        # no default, do not set
-        return 0
-    else
-        eval var_val=$var_def
-    fi
+        if [ "$var_req" == "Y" ]; then
+            # needed var, exit with error
+            echo "Cannot extract $var_name from '$config_file'" 1>&2
+            exit 1
+        elif [ "$var_def" == "-" ]; then
+            # no default, do not set
+            return 0
+        else
+            eval var_val=$var_def
+        fi
     fi
 
     if [ "$var_condor" == "+" ]; then
-    var_condor=$var_name
+        var_condor=$var_name
     fi
     if [ "$var_type" == "S" ]; then
-    var_val_str="${pstr}${var_val}${pstr}"
+        var_val_str="${pstr}${var_val}${pstr}"
     else
-    var_val_str="$var_val"
+        var_val_str="$var_val"
     fi
 
     # insert into condor_config
     echo "$var_condor=$var_val_str" >> $CONDOR_CONFIG
 
     if [ "$var_exportcondor" == "Y" ]; then
-    # register var_condor for export
-    if [ -z "$glidein_variables" ]; then
-       glidein_variables="$var_condor"
-    else
-       glidein_variables="$glidein_variables,$var_condor"
-    fi
+        # register var_condor for export
+        if [ -z "$glidein_variables" ]; then
+           glidein_variables="$var_condor"
+        else
+           glidein_variables="$glidein_variables,$var_condor"
+        fi
     fi
 
     if [ "$var_user" != "-" ]; then
-    # - means do not export
-    if [ "$var_user" == "+" ]; then
-        var_user=$var_name
-    elif [ "$var_user" == "@" ]; then
-        var_user=$var_condor
-    fi
+        # - means do not export
+        if [ "$var_user" == "+" ]; then
+            var_user=$var_name
+        elif [ "$var_user" == "@" ]; then
+            var_user=$var_condor
+        fi
 
-    condor_env_entry="$var_user=$var_val"
-    condor_env_entry=`echo "$condor_env_entry" | awk "{gsub(/\"/,\"\\\\\"\\\\\"\"); print}"`
-    condor_env_entry=`echo "$condor_env_entry" | awk "{gsub(/\'/,\"\'\'\"); print}"`
-    if [ -z "$job_env" ]; then
-       job_env="'$condor_env_entry'"
-    else
-       job_env="$job_env '$condor_env_entry'"
-    fi
+        condor_env_entry="$var_user=$var_val"
+        condor_env_entry=`echo "$condor_env_entry" | awk "{gsub(/\"/,\"\\\\\"\\\\\"\"); print}"`
+        condor_env_entry=`echo "$condor_env_entry" | awk "{gsub(/'/,\"''\"); print}"`
+        if [ -z "$job_env" ]; then
+           job_env="'$condor_env_entry'"
+        else
+           job_env="$job_env '$condor_env_entry'"
+        fi
     fi
 
     # define it for future use
