@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v2_6_rc1
+# GLIDEINWMS_VERSION v2_6_rc2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 c17183dd58915198f2082d2e7d0a70b4  ./creation/add_entry
@@ -7,9 +7,9 @@ c17183dd58915198f2082d2e7d0a70b4  ./creation/add_entry
 c9e6d02139e234416e1f3ea9c85204da  ./creation/create_condor_tarball
 885ccb5f5971779eab39009a7e539bba  ./creation/create_frontend
 ab37666bbf8d569a34974aea3dc29fa6  ./creation/lib/cvWConsts.py
-5c5a87f5b22c9f2ebfa8562a4d9c1fe9  ./creation/lib/cvWCreate.py
+52bec0fd97abc5b502b1998a2c42bf70  ./creation/lib/cvWCreate.py
 2c20708ff9c1b3b0385f5fcd3ff924b9  ./creation/lib/cvWDictFile.py
-e4f9bd425f25fb46cad72055648d1cd4  ./creation/lib/cvWParamDict.py
+5311d82a362108af4816401c0f68d9af  ./creation/lib/cvWParamDict.py
 10b19e6b7c79bfaba5dc49dae8272741  ./creation/lib/cvWParams.py
 e59bb78a8aba36d0d8691b5f9e4ebf4f  ./creation/lib/cWConsts.py
 716e69531475f1ae422b53543c9a7c26  ./creation/lib/cWDictFile.py
@@ -86,7 +86,7 @@ e0ea13ff3dc218dfc42f7361b47bb14f  ./lib/hashCrypto.py
 3119d5c5fe2d4a9a6c53eec6774a4f9c  ./lib/logSupport.py
 4e474038693fe84ebe96f5a6312ed248  ./lib/pidSupport.py
 ebd1d85b904930430573dd3cd9c3b6c4  ./lib/pubCrypto.py
-f7378603acbbcb8e6155a3cb8c201886  ./lib/rrdSupport.py
+42ddc2daded9a1c688aaef1a88957954  ./lib/rrdSupport.py
 5f1cbb9fd62877105a0b651846da952c  ./lib/symCrypto.py
 b14e2299bc10a49deaaecf106d1c1d4e  ./lib/timeConversion.py
 78fe08de58f7ecd63ea4a4e46740c479  ./lib/xmlFormat.py
