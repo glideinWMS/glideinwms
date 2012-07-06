@@ -157,7 +157,7 @@ function set_var {
 
 	condor_env_entry="$var_user=$var_val"
 	condor_env_entry=`echo "$condor_env_entry" | awk "{gsub(/\"/,\"\\\\\"\\\\\"\"); print}"`
-	condor_env_entry=`echo "$condor_env_entry" | awk "{gsub(/\'/,\"\'\'\"); print}"`
+	condor_env_entry=`echo "$condor_env_entry" | awk "{gsub(/'/,\"''\"); print}"`
 	if [ -z "$job_env" ]; then
 	   job_env="'$condor_env_entry'"
 	else
