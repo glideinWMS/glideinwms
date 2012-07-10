@@ -278,6 +278,9 @@ update_interval=370
 #Minimum amount retire time can be
 min_glidein=600
 
+#Set the LD_LIBRARY_PATH so condor uses dynamically linked libraries correctly
+export LD_LIBRARY_PATH=$CONDOR_DIR/lib:$CONDOR_DIR/lib/condor:$LD_LIBRARY_PATH
+
 # Take into account GLIDEIN_Max_Walltime
 # GLIDEIN_Max_Walltime = Max allowed time for the glidein.
 #   If you specify this variable, then Condor startup scripts will calculate the 

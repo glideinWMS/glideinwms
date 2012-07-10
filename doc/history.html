@@ -89,7 +89,7 @@ Related Pages:
           <li>Factory now supports deleting entries using --force_delete
           <li>Upgrading glideinwms with changes to the monitoring rrds is supported
           <li>Frontend advertises its monitoring url to the factory
-          <li>Misbehaving glidein can be put o hold using WANT_HOLD
+          <li>Misbehaving glidein can be put on hold using WANT_HOLD
           <li>The start_expr is now a native part of match
           <li>Startd now advertises per-slot memory when configured by the factory.  VO frontend can use GLIDEIN_MaxMemMBs_Estimate attr to make glidein estimate the available memory (based on memory/core or memory/cpu)
           <li>entry_q now reads GLIDEIN_FACTORY_DIR from env before checking cwd
@@ -98,6 +98,10 @@ Related Pages:
           <li>Providing config file locations for glideinwms.xml and frontend.xml is optional during reconfig
           <li>Entry downtime reason is now reported in the glidefactory classad
           <li>Improved support for RHEL 6 platform
+          <li>Added support for new ARC Gatekeeper 1.x
+          <li>Linux distro of the worker node is available in the glidein's classad
+          <li>Condor classad fields are now considered case insensitive
+
           <li>Bug Fix: Glidein correctly handles semicolons in STARTER_JOB_ENVIRONMENT
           <li>Bug Fix: Java is correctly disable by default preventing increase in the image size during condor daemon benchmarking
           <li>Bug Fix: Frontend correctly correctly supports <attr> properties
@@ -110,6 +114,7 @@ Related Pages:
           <li>Bug Fix: MaxJobRetirementTime and PREEMPT expressions now correctly work with WANT_HOLD
           <li>Bug Fix: Factory correctly deals with the situation when the frontend changes the proxy used
           <li>Bug Fix: It is possible to specify limits for different frontends for an entry in the factory config
+          <li>Bug Fix: Glidein sets the LD_LIBRARY_PATH so condor uses local shared libraries before those in system path
         </ul>
       </li>
       <li>
