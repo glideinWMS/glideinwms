@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v2_6_rc2
+# GLIDEINWMS_VERSION v2_6_rc3
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 c17183dd58915198f2082d2e7d0a70b4  ./creation/add_entry
@@ -29,10 +29,10 @@ f64c1f27b927ec6680e9c9928f2b415b  ./creation/web_base/cat_consts.sh
 424c4f84f62a1074af634bed2c143444  ./creation/web_base/condor_config
 94c12461c96eacd9e28346f6a0f54df0  ./creation/web_base/condor_config.check.include
 a9bf32580b5960dfb45e1eb4d246bda9  ./creation/web_base/condor_config.dedicated_starter.include
-eaccc571ca7350619b0ed024e0adabb1  ./creation/web_base/condor_config.monitor.include
+3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
 f9a71916006e1a7f7778966628b0b232  ./creation/web_base/condor_config.multi_schedd.include
 72f6b96af3ef3015ad6d01be3fd72a04  ./creation/web_base/condor_platform_select.sh
-439f8af5a78da2d9a0ea8a80d1adf016  ./creation/web_base/condor_startup.sh
+5c0b3f9e769b9db03a950b092a17d3a1  ./creation/web_base/condor_startup.sh
 1ec42944c94945d22467a71ef38984fc  ./creation/web_base/condor_vars.lst
 6ae698343398a7347acd5635dcc5a773  ./creation/web_base/condor_vars.lst.entry
 12d9e737bf2f234db76759aa9d6db248  ./creation/web_base/create_mapfile.sh
@@ -71,7 +71,7 @@ cd098176968938a2febf44a32de00a78  ./creation/web_base/setup_x509.sh
 0584599805c8e6ec7e6b4012b647819c  ./factory/glideFactoryDowntimeLib.py
 4822ecbef241886ae9fea59b9dd58720  ./factory/glideFactoryEntry.py
 5d33ba0230389035b40cde3e138d70c0  ./factory/glideFactoryInterface.py
-9ce9cd9f5ab4225b7c924896fa8e7aa9  ./factory/glideFactoryLib.py
+81fd14f509aa2695562cfa280f810670  ./factory/glideFactoryLib.py
 3482a189fb7828eee17d70d423eea31b  ./factory/glideFactoryLogParser.py
 d478f0e9a4d16c69fa1206d7b643fc07  ./factory/glideFactoryMonitorAggregator.py
 15ebb9c9f69e5d96e11275632ce2604d  ./factory/glideFactoryMonitoring.py
@@ -137,7 +137,7 @@ c914170f14d482a89ea300c80772d289  ./install/services/WMSCollector.py
 87db99f71920db38e1848d59d9e382b5  ./lib/condorExe.py
 d89439610ff41c2969891f451f31dbf1  ./lib/condorLogParser.py
 3b5e425265fdd8de9217157a46913023  ./lib/condorManager.py
-2cd6fcd458ce627a64d71adf6c644954  ./lib/condorMonitor.py
+18009c16dd5b35c63acfbb90fddb995b  ./lib/condorMonitor.py
 bffabaf5ec7748dc73c3a8d89373ec50  ./lib/condorPrivsep.py
 c9a0e6d20b955e7838175993b95c6778  ./lib/condorSecurity.py
 7d43ce556e057373bf3be3367832d726  ./lib/exprParser.py
