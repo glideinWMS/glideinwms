@@ -995,6 +995,10 @@ MAX_SHADOW_LOG = 100000000
 #-- Publish LOCAL_DIR so it is available in the schedd classads as needed
 LOCAL_DIR_STRING="$(LOCAL_DIR)"
 SCHEDD_EXPRS = $(SCHEDD_EXPRS) LOCAL_DIR_STRING
+
+#-- Condor-C requires that GSI be explicitly listed
+SCHEDD.SEC_CLIENT_AUTHENTICATION_METHODS = FS,GSI
+
 """
 
     if self.use_gridmanager:
