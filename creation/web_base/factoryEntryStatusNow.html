@@ -166,7 +166,7 @@ function makeFEArray()
 	{	
 		for(x = 1; x < totalEntries[optionIndex].childNodes[feChild].childNodes.length; x+=2)
 		{
-			if(feArry[y].attributes[0].nodeValue == totalEntries[optionIndex].childNodes[feChild].childNodes[x].attributes[0].nodeValue)
+			if(feArry[y].attributes[0].value == totalEntries[optionIndex].childNodes[feChild].childNodes[x].attributes[0].value)
 			{
 				feArryMaster.push(totalEntries[optionIndex].childNodes[feChild].childNodes[x]);	
 				feArryPMaster.push(totalEntriesP[optionIndex].childNodes[3].childNodes[x]);	
@@ -206,7 +206,7 @@ function loadXMLDocPeriod()
 					{
 						for(z = 0; z < totalP[i].childNodes[1].childNodes[1].attributes.length; z++)
 						{
-							if(xmlAttPeriodArry[j] == totalP[i].childNodes[1].childNodes[1].attributes[z].nodeName)
+							if(xmlAttPeriodArry[j] == totalP[i].childNodes[1].childNodes[1].attributes[z].name)
 							{
 								xmlAttPeriodNumArry.push(z); break;  	
 							}
@@ -290,7 +290,7 @@ function buildDescript()
 			try
 			{
 				cellsD[count] = document.createElement('td'); 
-				cellsD[count].appendChild(document.createTextNode(entryAttDescript[optionIndex].childNodes[1].attributes[i - 1].nodeName));
+				cellsD[count].appendChild(document.createTextNode(entryAttDescript[optionIndex].childNodes[1].attributes[i - 1].name));
 				cellsD[count].style.fontWeight = 'bold';
 				rowsD[i].appendChild(cellsD[count]); count++;
 				cellsD[count] = document.createElement('td'); 
@@ -316,7 +316,7 @@ function buildDescript()
 			try
 			{
 				cellsT[count2] = document.createElement('td'); 
-				cellsT[count2].appendChild(document.createTextNode(entryAttDescript[optionIndex].childNodes[3].attributes[i - 1].nodeName));
+				cellsT[count2].appendChild(document.createTextNode(entryAttDescript[optionIndex].childNodes[3].attributes[i - 1].name));
 				cellsT[count2].style.fontWeight = 'bold';
 				rowsD[i].appendChild(cellsT[count2]); count2++;
 				cellsT[count2] = document.createElement('td'); 
@@ -494,7 +494,7 @@ function loadXMLDoc()
 						 */
 						for(z = 0; z < total[i].childNodes[totStatChild].attributes.length; z++)
 						{
-							if(xmlAttStatusArry[j] == total[i].childNodes[totStatChild].attributes[z].nodeName)
+							if(xmlAttStatusArry[j] == total[i].childNodes[totStatChild].attributes[z].name)
 							{
 								xmlAttStatNumArry.push(z); xmlAttTotalNumArry.push(z); break;  	
 							}
@@ -507,7 +507,7 @@ function loadXMLDoc()
 						 */
 						for(z = 0; z < total[i].childNodes[totStatChild].attributes.length; z++)
 						{
-							if(xmlAttReqArry[j] == total[i].childNodes[totReqChild].attributes[z].nodeName)
+							if(xmlAttReqArry[j] == total[i].childNodes[totReqChild].attributes[z].name)
 							{
 								xmlAttReqNumArry.push(z); xmlAttTotalNumArry.push(z); break;  	
 							}
@@ -520,7 +520,7 @@ function loadXMLDoc()
 						 */
 						for(z = 0; z < total[i].childNodes[totCMChild].attributes.length; z++)
 						{
-							if(xmlAttCMArry[j] == total[i].childNodes[totCMChild].attributes[z].nodeName)
+							if(xmlAttCMArry[j] == total[i].childNodes[totCMChild].attributes[z].name)
 							{
 								xmlAttCMNumArry.push(z); xmlAttTotalNumArry.push(z); break;  	
 							}
@@ -587,7 +587,7 @@ function makeEntryList()
 /* DISPLAY TIME */
 function showTime()
 {
-	updated = updated[0].childNodes[1].attributes[3].firstChild.nodeValue;	
+	updated = updated[0].childNodes[1].attributes[3].firstChild.value;	
 	document.getElementById("update").innerHTML= "XML last update:   " + updated; 	
 }
 
@@ -629,7 +629,7 @@ function makeTotTable(option)
  		for(i = 0; i < paramTable.length; i++)
 		{
 			/* FIND APPROPRIATE INDEX */
-			while(document.getElementsByTagName("div")[index].attributes[0].nodeValue != "FETable"){index++;} 
+			while(document.getElementsByTagName("div")[index].attributes[0].value != "FETable"){index++;} 
 			/* REMOVE ALL CHILDNODES (FE TABLE) */
 			while(document.getElementsByTagName("div")[index].hasChildNodes())
 			{
@@ -661,7 +661,7 @@ function makeTotTable(option)
 		index = 0; 
  		for(i = 0; i < paramTable.length; i++)
 		{
-			while(document.getElementsByTagName("div")[index].attributes[0].nodeValue != "FETable"){index++;}
+			while(document.getElementsByTagName("div")[index].attributes[0].value != "FETable"){index++;}
 			/* REMOVE ALL CHILDNODES (FE TABLE) */
 			while(document.getElementsByTagName("div")[index].hasChildNodes())
 			{
@@ -792,7 +792,7 @@ function makeTotTable(option)
 			}
 			else if(c == 0 && (k != 1 - (cell_num - cell_numArry[c])) && k != 0 && (k != 2 - (cell_num - cell_numArry[c])))
 			{
-				cont = document.createTextNode(feArryMaster[k - 3].attributes[0].nodeValue);
+				cont = document.createTextNode(feArryMaster[k - 3].attributes[0].value);
 			}
 			else if(c == 0 && (k == 2 - (cell_num - cell_numArry[c])))
 			{
@@ -1081,16 +1081,16 @@ function fillTotInfoTable()
 			/* DIFF */
 			if(j == 6) 
 			{
-				try{a = totalEntries[optionIndex].childNodes[totChild].childNodes[totStatChild].attributes[xmlAttStatNumArry[0]].nodeValue;}catch(err){ a = 0;} 
-				try{b = totalEntries[optionIndex].childNodes[totChild].childNodes[totCMChild].attributes[xmlAttCMNumArry[5]].nodeValue;}catch(err){ b = 0;} 
+				try{a = totalEntries[optionIndex].childNodes[totChild].childNodes[totStatChild].attributes[xmlAttStatNumArry[0]].value;}catch(err){ a = 0;} 
+				try{b = totalEntries[optionIndex].childNodes[totChild].childNodes[totCMChild].attributes[xmlAttCMNumArry[5]].value;}catch(err){ b = 0;} 
 				totInfoTable.rows[row].cells[cell].innerHTML = a - b; 
 
 			}
 			/* DIFF */
 			else 
 			{
-				try{a = totalEntries[optionIndex].childNodes[totChild].childNodes[totStatChild].attributes[xmlAttStatNumArry[1]].nodeValue; }catch(err){ a = 0;} 
-				try{b = totalEntries[optionIndex].childNodes[totChild].childNodes[totReqChild].attributes[xmlAttReqNumArry[1]].nodeValue; }catch(err){ b = 0;}
+				try{a = totalEntries[optionIndex].childNodes[totChild].childNodes[totStatChild].attributes[xmlAttStatNumArry[1]].value; }catch(err){ a = 0;} 
+				try{b = totalEntries[optionIndex].childNodes[totChild].childNodes[totReqChild].attributes[xmlAttReqNumArry[1]].value; }catch(err){ b = 0;}
 				totInfoTable.rows[row].cells[cell].innerHTML = a - b; 
 			}
 		}
@@ -1098,7 +1098,7 @@ function fillTotInfoTable()
 		{
 			if(totalEntries[optionIndex].childNodes[totChild].childNodes.length >= 7 || indivChild[j] != totStatChild)
 			{
-				y = totalEntries[optionIndex].childNodes[totChild].childNodes[indivChild[j]].attributes[xmlAttTotalNumArry[indivAtts[j]]].nodeValue;
+				y = totalEntries[optionIndex].childNodes[totChild].childNodes[indivChild[j]].attributes[xmlAttTotalNumArry[indivAtts[j]]].value;
 			}
 			else
 				y = 0; 
@@ -1140,13 +1140,13 @@ function fillTotInfoTable()
 				{
 					try
 					{
-						a = totalP[optionIndex].childNodes[1].childNodes[prChild[pr]].attributes[xmlAttPeriodNumArry[0]].nodeValue;
+						a = totalP[optionIndex].childNodes[1].childNodes[prChild[pr]].attributes[xmlAttPeriodNumArry[0]].value;
 						a = Math.round(a * 100)/100;
 					}
 					catch(err){ a = 0;} 
 					try
 					{
-						b = totalP[optionIndex].childNodes[1].childNodes[prChild[pr]].attributes[xmlAttPeriodNumArry[15]].nodeValue;
+						b = totalP[optionIndex].childNodes[1].childNodes[prChild[pr]].attributes[xmlAttPeriodNumArry[15]].value;
 						b = Math.round(b * 100)/100;
 					}
 					catch(err){ b = 0;} 
@@ -1160,13 +1160,13 @@ function fillTotInfoTable()
 				{
 					try
 					{
-						a = totalP[optionIndex].childNodes[1].childNodes[prChild[pr]].attributes[xmlAttPeriodNumArry[1]].nodeValue;
+						a = totalP[optionIndex].childNodes[1].childNodes[prChild[pr]].attributes[xmlAttPeriodNumArry[1]].value;
 						a = Math.round(a * 100)/100;
 					}
 					catch(err){ a = 0;} 
 					try
 					{
-						b = totalP[optionIndex].childNodes[1].childNodes[prChild[pr]].attributes[xmlAttPeriodNumArry[9]].nodeValue;
+						b = totalP[optionIndex].childNodes[1].childNodes[prChild[pr]].attributes[xmlAttPeriodNumArry[9]].value;
 						b = Math.round(b * 100)/100;
 					}
 					catch(err){ b = 0;} 
@@ -1179,7 +1179,7 @@ function fillTotInfoTable()
 			{
 				if(totalEntries[optionIndex].childNodes[totChild].childNodes.length >= 7 || indivChild[j] != totStatChild)
 				{
-					y = totalP[optionIndex].childNodes[1].childNodes[prChild[pr]].attributes[xmlAttPeriodNumArry[indivAtts[j]]].nodeValue;
+					y = totalP[optionIndex].childNodes[1].childNodes[prChild[pr]].attributes[xmlAttPeriodNumArry[indivAtts[j]]].value;
 					y = Math.round(y * 100)/100;
 				}
 				else
@@ -1221,16 +1221,16 @@ function fillInFeTable()
 				/* DIFF */
 				if(j == 6) 
 				{
-					try{a = feArryMaster[x].childNodes[feStatChild].attributes[xmlAttStatNumArry[0]].nodeValue;}catch(err){ a = 0;} 
-					try{b = feArryMaster[x].childNodes[feCMChild].attributes[xmlAttCMNumArry[5]].nodeValue;}catch(err){ b = 0;} 
+					try{a = feArryMaster[x].childNodes[feStatChild].attributes[xmlAttStatNumArry[0]].value;}catch(err){ a = 0;} 
+					try{b = feArryMaster[x].childNodes[feCMChild].attributes[xmlAttCMNumArry[5]].value;}catch(err){ b = 0;} 
 					feTab.rows[row].cells[cell].innerHTML = a - b; 
 	
 				}
 				/* DIFF */
 				else 
 				{
-					try{a = feArryMaster[x].childNodes[feStatChild].attributes[xmlAttStatNumArry[1]].nodeValue;}catch(err){ a = 0;} 
-					try{b = feArryMaster[x].childNodes[feReqChild].attributes[xmlAttReqNumArry[1]].nodeValue;}catch(err){ b = 0;}
+					try{a = feArryMaster[x].childNodes[feStatChild].attributes[xmlAttStatNumArry[1]].value;}catch(err){ a = 0;} 
+					try{b = feArryMaster[x].childNodes[feReqChild].attributes[xmlAttReqNumArry[1]].value;}catch(err){ b = 0;}
 					feTab.rows[row].cells[cell].innerHTML = a - b; 
 				}
 			}
@@ -1238,7 +1238,7 @@ function fillInFeTable()
 			{
 				if(feArryMaster[x].childNodes.length >= 7 || indviChildFE[j] != feStatChild)
 				{
-					y = feArryMaster[x].childNodes[indivChildFE[j]].attributes[xmlAttTotalNumArry[indivAtts[j]]].nodeValue;; 
+					y = feArryMaster[x].childNodes[indivChildFE[j]].attributes[xmlAttTotalNumArry[indivAtts[j]]].value;; 
 				}
 				else
 					y = 0; 
@@ -1277,8 +1277,8 @@ function fillInFeTable()
 					/* DIFF */
 					if(j == 6) 
 					{
-						try{a = feArryPMaster[x].childNodes[1].childNodes[prChild[pr]].attributes[xmlAttPeriodNumArry[0]].nodeValue;}catch(err){ a = 0;} 
-						try{b = feArryPMaster[x].childNodes[1].childNodes[prChild[pr]].attributes[xmlAttPeriodNumArry[15]].nodeValue;}catch(err){ b = 0;}
+						try{a = feArryPMaster[x].childNodes[1].childNodes[prChild[pr]].attributes[xmlAttPeriodNumArry[0]].value;}catch(err){ a = 0;} 
+						try{b = feArryPMaster[x].childNodes[1].childNodes[prChild[pr]].attributes[xmlAttPeriodNumArry[15]].value;}catch(err){ b = 0;}
 						c = a - b; 
 						c = Math.round(c * 100)/100;
 						feTab.rows[row].cells[cell].innerHTML = c; 
@@ -1287,8 +1287,8 @@ function fillInFeTable()
 					/* DIFF */
 					else 
 					{
-						try{a = feArryPMaster[x].childNodes[1].childNodes[prChild[pr]].attributes[xmlAttPeriodNumArry[1]].nodeValue;}catch(err){ a = 0;} 
-						try{b = feArryPMaster[x].childNodes[1].childNodes[prChild[pr]].attributes[xmlAttPeriodNumArry[9]].nodeValue;}catch(err){ b = 0;}
+						try{a = feArryPMaster[x].childNodes[1].childNodes[prChild[pr]].attributes[xmlAttPeriodNumArry[1]].value;}catch(err){ a = 0;} 
+						try{b = feArryPMaster[x].childNodes[1].childNodes[prChild[pr]].attributes[xmlAttPeriodNumArry[9]].value;}catch(err){ b = 0;}
 						c = a - b; 
 						c = Math.round(c * 100)/100;
 						feTab.rows[row].cells[cell].innerHTML = c; 
@@ -1298,7 +1298,7 @@ function fillInFeTable()
 				{
 					if(totalEntries[optionIndex].childNodes[totChild].childNodes.length >= 7 || indivChild[j] != totStatChild)
 					{
-						y = feArryPMaster[x].childNodes[1].childNodes[prChild[pr]].attributes[xmlAttPeriodNumArry[indivAtts[j]]].nodeValue;
+						y = feArryPMaster[x].childNodes[1].childNodes[prChild[pr]].attributes[xmlAttPeriodNumArry[indivAtts[j]]].value;
 						y = Math.round(y * 100)/100;
 					}
 					else
@@ -1357,7 +1357,7 @@ function makeTablesFE()
 		feRowOneCell[i].setAttribute("colspan", feRowTwoTxt.length); 
 		feRowOneCell[i].setAttribute("id", "paramCell");  
 		feRowOneTxt[i] = document.createTextNode("Client Information:");
-		document.getElementsByTagName("h4")[i].innerHTML = feArryMaster[i].attributes[0].nodeValue + ":";  
+		document.getElementsByTagName("h4")[i].innerHTML = feArryMaster[i].attributes[0].value + ":";  
 		feRowOneCell[i].appendChild(feRowOneTxt[i]); 
 		feRowOneCell[i].style.color = "#B0171F"; 
 		feRowOne[i].appendChild(feRowOneCell[i]);
@@ -1570,7 +1570,7 @@ function makeTablesFE()
 				feRow[x] = document.createElement("tr"); 
 			}
 		}
-		while(document.getElementsByTagName("div")[index].attributes[0].nodeValue != "FETable"){index++; }
+		while(document.getElementsByTagName("div")[index].attributes[0].value != "FETable"){index++; }
 		//document.getElementsByTagName("div")[index].appendChild(document.createElement('br')); 	
 		document.getElementsByTagName("div")[index + 1].appendChild(feTable[i]); 
 		
@@ -1585,7 +1585,7 @@ function makeTablesFE()
 		paramCell = document.createElement("td"); 
 		
 		if(feArryMaster[i].childNodes[feReqChild].childNodes[1].childNodes.length <= 1)
-		{ paramTxtHead = document.createTextNode("(" + feArryMaster[i].attributes[0].nodeValue + ") No Parameters ");}
+		{ paramTxtHead = document.createTextNode("(" + feArryMaster[i].attributes[0].value + ") No Parameters ");}
 		else
 			paramTxtHead = document.createTextNode("Parameters: ");
 		paramCell.appendChild(paramTxtHead);
@@ -1601,8 +1601,8 @@ function makeTablesFE()
 			paramRow[y].setAttribute('onmouseout', "this.bgColor='#F2F2F2'"); 
 			paramCell[j - 1] = document.createElement('td'); 
 			paramCell[j] = document.createElement('td'); 
-			paramCellTxt[j - 1] = document.createTextNode(feArryMaster[i].childNodes[feReqChild].childNodes[1].childNodes[j].attributes[0].nodeValue);
-			paramCellTxt[j] = document.createTextNode(feArryMaster[i].childNodes[feReqChild].childNodes[1].childNodes[j].attributes[1].nodeValue);
+			paramCellTxt[j - 1] = document.createTextNode(feArryMaster[i].childNodes[feReqChild].childNodes[1].childNodes[j].attributes[0].value);
+			paramCellTxt[j] = document.createTextNode(feArryMaster[i].childNodes[feReqChild].childNodes[1].childNodes[j].attributes[1].value);
 			paramCell[j - 1].appendChild(paramCellTxt[j - 1]);
 			paramCell[j].appendChild(paramCellTxt[j]); 
 			paramRow[y].appendChild(paramCell[j - 1]); 
@@ -1645,7 +1645,7 @@ function fillTotal()
 	{
 		if(total[optionIndex].childNodes.length != 0 && total[optionIndex].childNodes.length >= 7)
 		{
-			item = total[optionIndex].childNodes[totStatChild].attributes[xmlAttStatusArry[counter - 1]].nodeValue;
+			item = total[optionIndex].childNodes[totStatChild].attributes[xmlAttStatusArry[counter - 1]].value;
 		}
 		else
 		{
@@ -1659,7 +1659,7 @@ function fillTotal()
 	{
 		if(total[optionIndex].childNodes.length != 0)
 		{
-			item = total[optionIndex].childNodes[totReqChild].attributes[xmlAttReqArry[counter - 9]].nodeValue;  
+			item = total[optionIndex].childNodes[totReqChild].attributes[xmlAttReqArry[counter - 9]].value;  
 		}
 		else
 		{
@@ -1673,7 +1673,7 @@ function fillTotal()
 	{	
 		if(total[optionIndex].childNodes.length != 0)
 		{
-			item = total[optionIndex].childNodes[totCMChild].attributes[xmlAttCMArry[counter - 11]].nodeValue;
+			item = total[optionIndex].childNodes[totCMChild].attributes[xmlAttCMArry[counter - 11]].value;
 		}
 		else
 		{
@@ -1687,14 +1687,14 @@ function fillTotal()
 	{	
 		if(counter == 18)
 		{
-			try{a = total[optionIndex].childNodes[totStatChild].attributes[xmlAttStatusArry[0]].nodeValue;}catch(err){a = 0;} 
-			try{b = total[optionIndex].childNodes[totCMChild].attributes[xmlAttCMArry[5]].nodeValue;}catch(err){b = 0;}
+			try{a = total[optionIndex].childNodes[totStatChild].attributes[xmlAttStatusArry[0]].value;}catch(err){a = 0;} 
+			try{b = total[optionIndex].childNodes[totCMChild].attributes[xmlAttCMArry[5]].value;}catch(err){b = 0;}
 			item = a - b; 
 		}
 		else
 		{
-			try{a = total[optionIndex].childNodes[totStatChild].attributes[xmlAttStatusArry[1]].nodeValue;}catch(err){a = 0;} 
-			try{b = total[optionIndex].childNodes[totReqChild].attributes[xmlAttReqArry[1]].nodeValue;}catch(err){b = 0;}
+			try{a = total[optionIndex].childNodes[totStatChild].attributes[xmlAttStatusArry[1]].value;}catch(err){a = 0;} 
+			try{b = total[optionIndex].childNodes[totReqChild].attributes[xmlAttReqArry[1]].value;}catch(err){b = 0;}
 			item = a - b;
 		}
 		if(counter != 18)
@@ -1730,7 +1730,7 @@ function fillTotal()
 		{
 			if(total[optionIndex].childNodes.length != 0 && total[optionIndex].childNodes.length >= 7)
 			{
-				item = feArryMaster[x].childNodes[feStatChild].attributes[xmlAttStatusArry[counter - 1]].nodeValue;
+				item = feArryMaster[x].childNodes[feStatChild].attributes[xmlAttStatusArry[counter - 1]].value;
 			}
 			else
 			{
@@ -1744,7 +1744,7 @@ function fillTotal()
 		{
 			if(total[optionIndex].childNodes.length != 0)
 			{
-				item = feArryMaster[x].childNodes[feReqChild].attributes[xmlAttReqArry[counter - 9]].nodeValue;  
+				item = feArryMaster[x].childNodes[feReqChild].attributes[xmlAttReqArry[counter - 9]].value;  
 			}
 			else
 			{
@@ -1758,7 +1758,7 @@ function fillTotal()
 		{	
 			if(total[optionIndex].childNodes.length != 0)
 			{
-				item = feArryMaster[x].childNodes[feCMChild].attributes[xmlAttCMArry[counter - 11]].nodeValue; 
+				item = feArryMaster[x].childNodes[feCMChild].attributes[xmlAttCMArry[counter - 11]].value; 
 			}
 			else
 			{
@@ -1772,14 +1772,14 @@ function fillTotal()
 		{	
 			if(counter == 18)
 			{
-				try{a = feArryMaster[x].childNodes[feStatChild].attributes[xmlAttStatusArry[0]].nodeValue;}catch(err){a = 0;} 
-				try{b = feArryMaster[x].childNodes[feCMChild].attributes[xmlAttCMArry[5]].nodeValue;}catch(err){b = 0;}
+				try{a = feArryMaster[x].childNodes[feStatChild].attributes[xmlAttStatusArry[0]].value;}catch(err){a = 0;} 
+				try{b = feArryMaster[x].childNodes[feCMChild].attributes[xmlAttCMArry[5]].value;}catch(err){b = 0;}
 				item = a - b; 
 			}
 			else
 			{
-				try{a = feArryMaster[x].childNodes[feStatChild].attributes[xmlAttStatusArry[1]].nodeValue;}catch(err){a = 0;} 
-				try{b = feArryMaster[x].childNodes[feReqChild].attributes[xmlAttReqArry[1]].nodeValue; }catch(err){b = 0;}
+				try{a = feArryMaster[x].childNodes[feStatChild].attributes[xmlAttStatusArry[1]].value;}catch(err){a = 0;} 
+				try{b = feArryMaster[x].childNodes[feReqChild].attributes[xmlAttReqArry[1]].value; }catch(err){b = 0;}
 				item = a - b;
 			}
 			if(counter != 18)

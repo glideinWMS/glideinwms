@@ -227,7 +227,7 @@ function showPopUp(hoveritem)
 	{
 		for(j = 0; j < unsortedFE.length; j++)
 		{
-			if(feArryMaster[i].attributes[0].nodeValue == unsortedFE[j].attributes[0].nodeValue)
+			if(feArryMaster[i].attributes[0].value == unsortedFE[j].attributes[0].value)
 				sortedFE.push(unsortedFE[j]); 	
 		}
 	} 
@@ -250,13 +250,13 @@ function showPopUp(hoveritem)
 		{ 
 			tr = document.createElement('tr'); 
 			td = document.createElement('td'); 
-			txt = document.createTextNode(sortedFE[i].attributes[0].nodeValue + ":");
+			txt = document.createTextNode(sortedFE[i].attributes[0].value + ":");
 			td2 = document.createElement('td');
 			
 			/* DOWNTIME FIELD */
 			if(column == 1)
 			{
-				y = sortedFE[i].childNodes[feDTChild].attributes[xmlAttDTNumArry[column - 1]].nodeValue; 
+				y = sortedFE[i].childNodes[feDTChild].attributes[xmlAttDTNumArry[column - 1]].value; 
 				if(y == "True"){ y = "&darr;"; table.rows[i].cells[1].style.color = "#B0171F";} /* DOWN ARROW*/
 				else {y = "&uarr;"; table.rows[i].cells[1].style.color = "#008B00";  }          /* UP ARROW */
 				txt2 = document.createTextNode("");
@@ -266,27 +266,27 @@ function showPopUp(hoveritem)
 			else if((column == 4 || column == 7) && troubleshoot)
 			{
 				val1 = 0; val2 = 0; diff = 0; 
-				try{ val1 = parseInt(sortedFE[i].childNodes[child1].attributes[att1].nodeValue); } catch(err){}
-				try{ val2 = parseInt(sortedFE[i].childNodes[child2].attributes[att2].nodeValue); } catch(err){}
+				try{ val1 = parseInt(sortedFE[i].childNodes[child1].attributes[att1].value); } catch(err){}
+				try{ val2 = parseInt(sortedFE[i].childNodes[child2].attributes[att2].value); } catch(err){}
 				diff = val1 - val2; 
 				txt2 = document.createTextNode(diff);
 			}
 			/* STATUS COLS */
 			else if(column > 1 && column < 10)
 			{
-				try{ txt2 = document.createTextNode(sortedFE[i].childNodes[feStatChild].attributes[xmlAttTotalNumArry[column - 1]].nodeValue);}
+				try{ txt2 = document.createTextNode(sortedFE[i].childNodes[feStatChild].attributes[xmlAttTotalNumArry[column - 1]].value);}
 				catch(err){ txt2 = document.createTextNode(0);}
 			} 
 			/* REQ COLS */
 			else if(column == 10 || column == 11)
 			{
-				try{ txt2 = document.createTextNode(sortedFE[i].childNodes[feReqChild].attributes[xmlAttTotalNumArry[column - 1]].nodeValue);}
+				try{ txt2 = document.createTextNode(sortedFE[i].childNodes[feReqChild].attributes[xmlAttTotalNumArry[column - 1]].value);}
 				catch(err){ txt2 = document.createTextNode(0); }
 			}
 			/* CM COLS */
 			else	
 			{
-				try{ txt2 = document.createTextNode(sortedFE[i].childNodes[feCMChild].attributes[xmlAttTotalNumArry[column - 1]].nodeValue);}
+				try{ txt2 = document.createTextNode(sortedFE[i].childNodes[feCMChild].attributes[xmlAttTotalNumArry[column - 1]].value);}
 				catch(err){ txt2 = document.createTextNode(0);}
 			}
  	
@@ -460,7 +460,7 @@ function showPopUpPeriod(hoveritem)
 	{
 		for(j = 0; j < unsortedFE.length; j++)
 		{
-			if(feArryMaster[i].attributes[0].nodeValue == unsortedFE[j].attributes[0].nodeValue)
+			if(feArryMaster[i].attributes[0].value == unsortedFE[j].attributes[0].value)
 			{
 				sortedFE.push(unsortedFE[j]); 	
 			}
@@ -486,7 +486,7 @@ function showPopUpPeriod(hoveritem)
 			{
 				for(j = 1; i < tempTotalEntriesP[row].childNodes[3].childNodes.length; j+=2)
 				{
-					if(tempTotalEntriesP[row].childNodes[3].childNodes[j].attributes[0].nodeValue == ("frontend_" + sortedFE[i].attributes[0].nodeValue))
+					if(tempTotalEntriesP[row].childNodes[3].childNodes[j].attributes[0].value == ("frontend_" + sortedFE[i].attributes[0].value))
 					{
 						prFEChild = j; break;  
 					}
@@ -494,13 +494,13 @@ function showPopUpPeriod(hoveritem)
 			}
 			tr = document.createElement('tr'); 
 			td = document.createElement('td'); 
-			txt = document.createTextNode(sortedFE[i].attributes[0].nodeValue + ":");
+			txt = document.createTextNode(sortedFE[i].attributes[0].value + ":");
 			td2 = document.createElement('td');
 
 			/* DOWNTIME */
 			if(column == 0)
 			{
-				y = sortedFE[i].childNodes[feDTChild].attributes[xmlAttDTNumArry[column]].nodeValue; 
+				y = sortedFE[i].childNodes[feDTChild].attributes[xmlAttDTNumArry[column]].value; 
 				/* DOWN ARROW*/
 				if(y == "True")
 				{
@@ -524,31 +524,31 @@ function showPopUpPeriod(hoveritem)
 					/* FIRST DIFF COL */
 					if(diffCol == 1)
 					{						
-						txt2 = document.createTextNode(sortedFE[i].childNodes[trFEChildArry[0]].attributes[xmlAttTotalNumArry[dCol]].nodeValue - 
-						sortedFE[i].childNodes[trFEChildArry[1]].attributes[xmlAttTotalNumArry[dCol2]].nodeValue);
+						txt2 = document.createTextNode(sortedFE[i].childNodes[trFEChildArry[0]].attributes[xmlAttTotalNumArry[dCol]].value - 
+						sortedFE[i].childNodes[trFEChildArry[1]].attributes[xmlAttTotalNumArry[dCol2]].value);
 					
 					}
 					/* 2ND DIFF COL */
 					else
 					{
-						txt2 = document.createTextNode(sortedFE[i].childNodes[trFEChildArry[3]].attributes[xmlAttTotalNumArry[dCol]].nodeValue - 
-						sortedFE[i].childNodes[trFEChildArry[4]].attributes[xmlAttTotalNumArry[dCol2]].nodeValue);
+						txt2 = document.createTextNode(sortedFE[i].childNodes[trFEChildArry[3]].attributes[xmlAttTotalNumArry[dCol]].value - 
+						sortedFE[i].childNodes[trFEChildArry[4]].attributes[xmlAttTotalNumArry[dCol2]].value);
 					}
 				}
 				else
 				{
 					txt2 = document.createTextNode(Math.round((tempTotalEntriesP[row].childNodes[3].childNodes[prFEChild].childNodes[1].childNodes[pr].
-					attributes[xmlAttPeriodNumArry[dCol - 1]].nodeValue - tempTotalEntriesP[row].childNodes[3].childNodes[prFEChild].childNodes[1].childNodes[pr].
-					attributes[xmlAttPeriodNumArry[dCol2 - 1]].nodeValue) * 100)/100);}
+					attributes[xmlAttPeriodNumArry[dCol - 1]].value - tempTotalEntriesP[row].childNodes[3].childNodes[prFEChild].childNodes[1].childNodes[pr].
+					attributes[xmlAttPeriodNumArry[dCol2 - 1]].value) * 100)/100);}
 				}
 			/* STATUS */
 			else if(column < 9)
 			{
 				if(sortedFE[i].childNodes.length >= 7)				 
 				{
-					if(!pr){txt2 = document.createTextNode(sortedFE[i].childNodes[feStatChild].attributes[xmlAttTotalNumArry[column]].nodeValue);}
+					if(!pr){txt2 = document.createTextNode(sortedFE[i].childNodes[feStatChild].attributes[xmlAttTotalNumArry[column]].value);}
 					else{txt2 = document.createTextNode(Math.round(tempTotalEntriesP[row].childNodes[3].childNodes[prFEChild].childNodes[1].childNodes[pr].
-					attributes[xmlAttPeriodNumArry[column - 1]].nodeValue * 100)/100);}
+					attributes[xmlAttPeriodNumArry[column - 1]].value * 100)/100);}
 				}
 				else
 					txt2 = document.createTextNode(0);
@@ -558,9 +558,9 @@ function showPopUpPeriod(hoveritem)
 			{
 				if(sortedFE[i].childNodes.length >= 5)
 				{
-					if(!pr){txt2 = document.createTextNode(sortedFE[i].childNodes[feReqChild].attributes[xmlAttTotalNumArry[column]].nodeValue);}
+					if(!pr){txt2 = document.createTextNode(sortedFE[i].childNodes[feReqChild].attributes[xmlAttTotalNumArry[column]].value);}
 					else{txt2 = document.createTextNode(Math.round(tempTotalEntriesP[row].childNodes[3].childNodes[prFEChild].childNodes[1].childNodes[pr].
-					attributes[xmlAttPeriodNumArry[column - 1]].nodeValue * 100)/100);}
+					attributes[xmlAttPeriodNumArry[column - 1]].value * 100)/100);}
 				}
 				else
 					txt2 = document.createTextNode(0);
@@ -570,9 +570,9 @@ function showPopUpPeriod(hoveritem)
 			{
 				if(sortedFE[i].childNodes.length >= 3)
 				{
-					if(!pr){txt2 = document.createTextNode(sortedFE[i].childNodes[feCMChild].attributes[xmlAttTotalNumArry[column]].nodeValue);}
+					if(!pr){txt2 = document.createTextNode(sortedFE[i].childNodes[feCMChild].attributes[xmlAttTotalNumArry[column]].value);}
 					else{txt2 = document.createTextNode(Math.round(tempTotalEntriesP[row].childNodes[3].childNodes[prFEChild].childNodes[1].childNodes[pr].
-					attributes[xmlAttPeriodNumArry[column - 1]].nodeValue * 100)/100);}
+					attributes[xmlAttPeriodNumArry[column - 1]].value * 100)/100);}
 				}
 				else
 					txt2 = document.createTextNode(0);
@@ -612,7 +612,7 @@ function hidePopUp()
 /* SHOW TIME DURING FILL IN TIME */
 function showTime()
 {
-	updated = updated[0].childNodes[1].attributes[3].firstChild.nodeValue;	
+	updated = updated[0].childNodes[1].attributes[3].firstChild.value;	
 	document.getElementById("update").innerHTML= "XML last update:   " + updated; 	
 }
 
@@ -1394,10 +1394,10 @@ function fillIn()
 	{
 		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 		{
-			var item = total[i].childNodes[feDTChild].attributes[xmlAttDTNumArry[0]].nodeValue;
+			var item = total[i].childNodes[feDTChild].attributes[xmlAttDTNumArry[0]].value;
 		}
 		else
-			var item = totalEntries[i].childNodes[dtChild].attributes[xmlAttDTNumArry[0]].nodeValue;
+			var item = totalEntries[i].childNodes[dtChild].attributes[xmlAttDTNumArry[0]].value;
 		
 		if(item == "True"){ item = "&darr;"; table.rows[i].cells[1].style.color = "#B0171F";} /* DOWN ARROW*/
 		else { item = "&uarr;"; table.rows[i].cells[1].style.color = "#008B00";  }            /* UP ARROW */
@@ -1415,10 +1415,10 @@ function fillIn()
 			{
 				if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 				{
-					var item = total[i].childNodes[feStatChild].attributes[xmlAttStatusArry[counter - 2]].nodeValue;
+					var item = total[i].childNodes[feStatChild].attributes[xmlAttStatusArry[counter - 2]].value;
 				}
 				else
-					var item = total[i].childNodes[totStatChild].attributes[xmlAttStatusArry[counter - 2]].nodeValue;
+					var item = total[i].childNodes[totStatChild].attributes[xmlAttStatusArry[counter - 2]].value;
 				table.rows[i].cells[counter].innerHTML = item; 
 			}
 			else
@@ -1439,10 +1439,10 @@ function fillIn()
 			{
 				if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 				{
-					var item = total[i].childNodes[feReqChild].attributes[xmlAttReqArry[counter - 10]].nodeValue; 
+					var item = total[i].childNodes[feReqChild].attributes[xmlAttReqArry[counter - 10]].value; 
 				}
 				else
-					var item = total[i].childNodes[totReqChild].attributes[xmlAttReqArry[counter - 10]].nodeValue; 
+					var item = total[i].childNodes[totReqChild].attributes[xmlAttReqArry[counter - 10]].value; 
 				table.rows[i].cells[counter].innerHTML = item; 
 			}
 			else
@@ -1463,10 +1463,10 @@ function fillIn()
 			{
 				if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 				{
-					item = total[i].childNodes[feCMChild].attributes[xmlAttCMArry[counter - 12]].nodeValue;
+					item = total[i].childNodes[feCMChild].attributes[xmlAttCMArry[counter - 12]].value;
 				}
 				else
-					item = total[i].childNodes[totCMChild].attributes[xmlAttCMArry[counter - 12]].nodeValue;
+					item = total[i].childNodes[totCMChild].attributes[xmlAttCMArry[counter - 12]].value;
 				table.rows[i].cells[counter].innerHTML = item; 
 			}
 			else
@@ -1523,7 +1523,7 @@ function loadXMLRRD()
 					{
 						for(z = 0; z < totalP[i].childNodes[1].childNodes[1].attributes.length; z++)
 						{
-							if(xmlAttPeriodArry[j] == totalP[i].childNodes[1].childNodes[1].attributes[z].nodeName)
+							if(xmlAttPeriodArry[j] == totalP[i].childNodes[1].childNodes[1].attributes[z].name)
 							{
 								xmlAttPeriodNumArry.push(z); break;  	
 							}
@@ -1665,7 +1665,7 @@ function loadXMLDoc()
 				{
 					for(z = 0; z < totalEntries[i].childNodes[dtChild].attributes.length; z++)
 					{
-						if(xmlAttDTArry[j].toLowerCase() == totalEntries[i].childNodes[dtChild].attributes[z].nodeName.toLowerCase())
+						if(xmlAttDTArry[j].toLowerCase() == totalEntries[i].childNodes[dtChild].attributes[z].name.toLowerCase())
 						{
 							xmlAttDTNumArry.push(z); xmlAttTotalNumArry.push(z); break;  	
 						}
@@ -1687,7 +1687,7 @@ function loadXMLDoc()
 						 */
 						for(z = 0; z < total[i].childNodes[totStatChild].attributes.length; z++)
 						{
-							if(xmlAttStatusArry[j] == total[i].childNodes[totStatChild].attributes[z].nodeName)
+							if(xmlAttStatusArry[j] == total[i].childNodes[totStatChild].attributes[z].name)
 							{
 								xmlAttStatNumArry.push(z); xmlAttTotalNumArry.push(z); break;  	
 							}
@@ -1700,7 +1700,7 @@ function loadXMLDoc()
 						 */
 						for(z = 0; z < total[i].childNodes[totStatChild].attributes.length; z++)
 						{
-							if(xmlAttReqArry[j] == total[i].childNodes[totReqChild].attributes[z].nodeName)
+							if(xmlAttReqArry[j] == total[i].childNodes[totReqChild].attributes[z].name)
 							{
 								xmlAttReqNumArry.push(z); xmlAttTotalNumArry.push(z); break;  	
 							}
@@ -1713,7 +1713,7 @@ function loadXMLDoc()
 						 */
 						for(z = 0; z < total[i].childNodes[totCMChild].attributes.length; z++)
 						{
-							if(xmlAttCMArry[j] == total[i].childNodes[totCMChild].attributes[z].nodeName)
+							if(xmlAttCMArry[j] == total[i].childNodes[totCMChild].attributes[z].name)
 							{
 								xmlAttCMNumArry.push(z); xmlAttTotalNumArry.push(z); break;  	
 							}
@@ -2316,7 +2316,7 @@ function sortTableDescending(column)
 	{
 		if(total[i].childNodes.length != 0 && total[i].childNodes.length >= length)
 		{
-		   if(total[i].childNodes[child].attributes[att].nodeValue > 0)
+		   if(total[i].childNodes[child].attributes[att].value > 0)
 		   {
 			   newTotal.push(total[i]); 
 			   newEntries.push(totalEntries[i]); 
@@ -2332,7 +2332,7 @@ function sortTableDescending(column)
 	{
    		for(var j = i + 1; j < newTotal.length; j++)   // rest of the elements
    	 	{
-			if(parseInt(newTotal[i].childNodes[child].attributes[att].nodeValue) <= parseInt(newTotal[j].childNodes[child].attributes[att].nodeValue))          
+			if(parseInt(newTotal[i].childNodes[child].attributes[att].value) <= parseInt(newTotal[j].childNodes[child].attributes[att].value))          
        		 {
        	    	temp = newTotal[i];              // swap
 				newTotal[i] = newTotal[j];
@@ -2356,7 +2356,7 @@ function sortTableDescending(column)
 	{	
 		if(total[i].childNodes.length != 0 && total[i].childNodes.length >= length)
 		{
-			if(parseInt(total[i].childNodes[child].attributes[att].nodeValue) == 0)
+			if(parseInt(total[i].childNodes[child].attributes[att].value) == 0)
 			{
 				newTotal.push(total[i]); 
 				newEntries.push(totalEntries[i]); 
@@ -2385,7 +2385,7 @@ function sortTableDescending(column)
 	{
 		if(newTotal[i].childNodes.length != 0 && newTotal[i].childNodes.length >= length)
 		{ 
-			if(newTotal[i].childNodes[child].attributes[att].nodeValue != 0)
+			if(newTotal[i].childNodes[child].attributes[att].value != 0)
 			{
 				break;
 			}
@@ -2899,7 +2899,7 @@ function selectActive()
 				currChild = totCMChild; 
 			for(j = 0; j < total[i].childNodes[currChild].attributes.length; j++)
 			{
-				if(total[i].childNodes[currChild].attributes[j].nodeName == "InfoAge")
+				if(total[i].childNodes[currChild].attributes[j].name == "InfoAge")
 				{
 					continue; 	
 				}
@@ -2925,7 +2925,7 @@ function selectActive()
 				currChild = totReqChild;
 			for(k = 0; k < total[i].childNodes[currChild].attributes.length; k++)
 			{
-				if(total[i].childNodes[currChild].attributes[k].nodeName == "MaxGlideins")
+				if(total[i].childNodes[currChild].attributes[k].name == "MaxGlideins")
 				{
 					continue; 	
 				}
@@ -3157,9 +3157,9 @@ function troubleshooting()
 						val = document.createTextNode("ARROW"); 
 						cols[j].setAttribute('width', '2%'); 
 						if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
-							item = tempTotalEntries[i - 1].childNodes[feChild].childNodes[childView].childNodes[feDTChild].attributes[xmlAttDTNumArry[0]].nodeValue;
+							item = tempTotalEntries[i - 1].childNodes[feChild].childNodes[childView].childNodes[feDTChild].attributes[xmlAttDTNumArry[0]].value;
 						else
-							item = tempTotalEntries[i - 1].childNodes[dtChild].attributes[xmlAttDTNumArry[0]].nodeValue;
+							item = tempTotalEntries[i - 1].childNodes[dtChild].attributes[xmlAttDTNumArry[0]].value;
 						
 						if(item == "True"){ item = "&darr;"; cols[j].style.color = "#B0171F";} /* DOWN ARROW*/
 						else { item = "&uarr;"; cols[j].style.color = "#008B00";  }            /* UP ARROW */
@@ -3931,10 +3931,10 @@ function periodTrView()
 		DISPLACE = 4*i;
 		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 		{
-			var item = total[i].childNodes[feDTChild].attributes[xmlAttDTNumArry[0]].nodeValue;
+			var item = total[i].childNodes[feDTChild].attributes[xmlAttDTNumArry[0]].value;
 		}
 		else
-			var item = totalEntries[i].childNodes[dtChild].attributes[xmlAttDTNumArry[0]].nodeValue;
+			var item = totalEntries[i].childNodes[dtChild].attributes[xmlAttDTNumArry[0]].value;
 		
 		if(item == "True"){ item = "&darr;"; trpr_Table.rows[DISPLACE].cells[1].style.color = "#B0171F";} /* DOWN ARROW*/
 		else { item = "&uarr;"; trpr_Table.rows[DISPLACE].cells[1].style.color = "#008B00";  }            /* UP ARROW */
@@ -4066,8 +4066,8 @@ function periodTrView()
 								try
 								{
 									trpr_Table.rows[count].cells[counter].innerHTML = tempTotal[i].childNodes[trFEChildArry[counter - 5]].
-									attributes[trAttArry[counter - 5]].nodeValue - 
-									tempTotal[i].childNodes[trFEChildArry[counter - 4]].attributes[trAttArry[counter - 4]].nodeValue;
+									attributes[trAttArry[counter - 5]].value - 
+									tempTotal[i].childNodes[trFEChildArry[counter - 4]].attributes[trAttArry[counter - 4]].value;
 								}
 								catch(err)
 								{
@@ -4079,7 +4079,7 @@ function periodTrView()
 								try
 								{
 									trpr_Table.rows[count].cells[counter].innerHTML = tempTotal[i].childNodes[trChildArry[counter - 5]].attributes[trAttArry[counter - 5]].
-									nodeValue - tempTotal[i].childNodes[trChildArry[counter - 4]].attributes[trAttArry[counter - 4]].nodeValue;
+									value - tempTotal[i].childNodes[trChildArry[counter - 4]].attributes[trAttArry[counter - 4]].value;
 								}
 								catch(err)
 								{
@@ -4096,10 +4096,10 @@ function periodTrView()
 					{
 						if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 							trpr_Table.rows[count].cells[counter].innerHTML = tempTotal[i].childNodes[trFEChildArry[counter - 3]].attributes[trAttArry[counter - 3]].
-							nodeValue;
+							value;
 						else 
 							trpr_Table.rows[count].cells[counter].innerHTML = tempTotal[i].childNodes[trChildArry[counter - 3]].
-							attributes[trAttArry[counter - 3]].nodeValue;
+							attributes[trAttArry[counter - 3]].value;
 					}
 					else
 					{
@@ -4112,13 +4112,13 @@ function periodTrView()
 					/* DIFFERENCES */
 					if(counter == 5 || counter == 8)
 					{
-						x = tempTotalP[i].childNodes[1].childNodes[childArry[j]].attributes[prAttArry[counter - 5]].nodeValue - 
-						tempTotalP[i].childNodes[1].childNodes[childArry[j]].attributes[prAttArry[counter - 4]].nodeValue;
+						x = tempTotalP[i].childNodes[1].childNodes[childArry[j]].attributes[prAttArry[counter - 5]].value - 
+						tempTotalP[i].childNodes[1].childNodes[childArry[j]].attributes[prAttArry[counter - 4]].value;
 						x = Math.round(x * 100)/100; 
 				   		trpr_Table.rows[count].cells[counter - 1].innerHTML = x; 
 						continue; 
 					}
-					x = tempTotalP[i].childNodes[1].childNodes[childArry[j]].attributes[prAttArry[counter - 3]].nodeValue; 
+					x = tempTotalP[i].childNodes[1].childNodes[childArry[j]].attributes[prAttArry[counter - 3]].value; 
 					x = Math.round(x * 100)/100; 
 				   	trpr_Table.rows[count].cells[counter - 1].innerHTML = x; 
 				}
@@ -4383,10 +4383,10 @@ function fillInPeriod()
 		DISPLACE = 4*i;
 		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 		{
-			var item = total[i].childNodes[feDTChild].attributes[xmlAttDTNumArry[0]].nodeValue;
+			var item = total[i].childNodes[feDTChild].attributes[xmlAttDTNumArry[0]].value;
 		}
 		else
-			var item = totalEntries[i].childNodes[dtChild].attributes[xmlAttDTNumArry[0]].nodeValue;
+			var item = totalEntries[i].childNodes[dtChild].attributes[xmlAttDTNumArry[0]].value;
 		
 		if(item == "True"){ item = "&darr;"; tableP.rows[DISPLACE].cells[1].style.color = "#B0171F";} /* DOWN ARROW*/
 		else { item = "&uarr;"; tableP.rows[DISPLACE].cells[1].style.color = "#008B00";  }            /* UP ARROW */
@@ -4518,10 +4518,10 @@ function fillInPeriod()
 					{
 						if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 						{	
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[feStatChild].attributes[xmlAttStatusArry[counter - 3]].nodeValue;
+							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[feStatChild].attributes[xmlAttStatusArry[counter - 3]].value;
 						}
 						else
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[totStatChild].attributes[xmlAttStatusArry[counter - 3]].nodeValue;
+							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[totStatChild].attributes[xmlAttStatusArry[counter - 3]].value;
 					}
 					else
 					{
@@ -4532,7 +4532,7 @@ function fillInPeriod()
 				}
 				try
 				{
-					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter - 3]].nodeValue; 
+					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter - 3]].value; 
 					x = Math.round(x * 100)/100; 
 				   	tableP.rows[count].cells[counter - 1].innerHTML = x; 
 					attCount++; 
@@ -4572,10 +4572,10 @@ function fillInPeriod()
 					{
 						if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 						{	
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[feReqChild].attributes[xmlAttReqArry[counter - 11]].nodeValue;
+							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[feReqChild].attributes[xmlAttReqArry[counter - 11]].value;
 						}
 						else
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[totReqChild].attributes[xmlAttReqArry[counter - 11]].nodeValue;					
+							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[totReqChild].attributes[xmlAttReqArry[counter - 11]].value;					
 					}
 					else
 					{
@@ -4586,7 +4586,7 @@ function fillInPeriod()
 				}
 				try
 				{
-					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter - 3]].nodeValue;
+					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter - 3]].value;
 					x = Math.round(x * 100)/100; 
 					tableP.rows[count].cells[counter - 1].innerHTML = x; 
 					attCount++; 
@@ -4627,10 +4627,10 @@ function fillInPeriod()
 					{
 						if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 						{	
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[feCMChild].attributes[xmlAttCMArry[counter - 13]].nodeValue;
+							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[feCMChild].attributes[xmlAttCMArry[counter - 13]].value;
 						}
 						else
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[totCMChild].attributes[xmlAttCMArry[counter - 13]].nodeValue;					
+							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[totCMChild].attributes[xmlAttCMArry[counter - 13]].value;					
 					}
 					else
 					{
@@ -4641,7 +4641,7 @@ function fillInPeriod()
 				}
 				try
 				{
-					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter - 3]].nodeValue;
+					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter - 3]].value;
 					x = Math.round(x * 100)/100; 
 					tableP.rows[count].cells[counter - 1].innerHTML = x; 
 					attCount++;
