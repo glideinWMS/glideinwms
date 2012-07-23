@@ -44,6 +44,8 @@ class MonitoringConfig:
 
     def write_file(self,relative_fname,output_str):
         fname=os.path.join(self.monitor_dir,relative_fname)
+        if not os.path.isdir(os.path.dirname(fname)):
+            os.makedirs(os.path.dirname(fname))
         #print "Writing "+fname
         fd=open(fname+".tmp","w")
         try:
@@ -658,5 +660,4 @@ def write_frontend_descript_xml(frontendDescript, monitor_dir):
     
     except IOError:
         logSupport.log.exception("Error writing out the frontend descript.xml: ")
-        
         
