@@ -42,6 +42,8 @@ class MonitoringConfig:
 
     def write_file(self,relative_fname,str):
         fname=os.path.join(self.monitor_dir,relative_fname)
+        if not os.path.isdir(os.path.dirname(fname)):
+            os.makedirs(os.path.dirname(fname))
         #print "Writing "+fname
         fd=open(fname+".tmp","w")
         try:
