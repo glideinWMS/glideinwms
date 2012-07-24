@@ -82,7 +82,7 @@ Related Pages:
 <a name="stable"></a>
     <h3>Stable Series</h3>
       <li>
-        <b>v2_6</b> released on xxxxx xx, 2012 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_6/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_6/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_6.tgz">Tarball</a>)<br>
+        <b>v2_6</b> released on July 24, 2012 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_6/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_6/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_6.tgz">Tarball</a>)<br>
         <ul>
 	  <li>Add attr_dict in the environment of the frontend match_expr
           <li>Config defined attributes are now available in match_expr
@@ -115,6 +115,14 @@ Related Pages:
           <li>Bug Fix: Factory correctly deals with the situation when the frontend changes the proxy used
           <li>Bug Fix: It is possible to specify limits for different frontends for an entry in the factory config
           <li>Bug Fix: Glidein sets the LD_LIBRARY_PATH so condor uses local shared libraries before those in system path
+          <li>KNOWN ISSUE: When the monitor work_dir is moved, reconfig/upgrade
+          will fail. Recommended work-around is to delete the xml configuration           in the work directory, change the work directory, then
+          reconfig/upgrade.
+          <li>KNOWN ISSUE: If the work directory has changed, frontend startup
+          upgrade will not create the group directories and then the frontend
+          will fail (silently). If you are changing directories (e.g. from a RPM
+          upgrade), you should copy the group directories manually.
+
         </ul>
       </li>
       <li>
