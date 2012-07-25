@@ -23,11 +23,15 @@ function warn {
 add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
 source $add_config_line_source
 
+error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
+
 condor_vars_file=`grep -i "^CONDOR_VARS_FILE " $glidein_config | awk '{print $2}'`
 
 head_nodes=`grep '^GLIDEIN_Collector ' $glidein_config | awk '{print $2}'`
 if [ -z "$head_nodes" ]; then
-    echo "No GLIDEIN_Collector found!" 1>&2
+    #echo "No GLIDEIN_Collector found!" 1>&2
+    STR="No GLIDEIN_Collector found!"
+    "$error_gen" -error "collector_setup.sh" "Corruption" "$STR" "attribute" "GLIDEIN_Collector"
     exit 1
 fi
 
@@ -57,5 +61,6 @@ if [ "$use_ccb" == "True" -o "$use_ccb" == "TRUE" -o "$use_ccb" == "T" -o "$use_
   add_condor_vars_line CCB_ADDRESS C "-" "+" Y N "-"
 fi
 
+"$error_gen" -ok "collector_setup.sh" "Collector" "$head_nodes"
 
 exit 0

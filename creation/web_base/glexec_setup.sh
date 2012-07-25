@@ -18,6 +18,8 @@ function no_use_glexec_config {
     add_config_line "GLEXEC_JOB" "False"
     add_condor_vars_line "GLEXEC_STARTER" "C" "False" "+" "Y" "Y" "-"
     add_condor_vars_line "GLEXEC_JOB"     "C" "False" "+" "Y" "Y" "-"
+
+    "$error_gen" -ok "glexec_setup.sh" "Glexec" "glexec"
     exit 0
 }
 
@@ -25,16 +27,22 @@ function test_glexec {
   tst=`env GLEXEC_CLIENT_CERT="$X509_USER_PROXY" "$glexec_bin"  "$ALTSH" -c "id && echo \"Hello World\""`
   res=$?
   if [ $res -ne 0 ]; then
-    echo "glexec test failed, nonzero value $res" 1>&2
-    echo "result: $tst" 1>&2
+    #echo "glexec test failed, nonzero value $res" 1>&2
+    #echo "result: $tst" 1>&2
+    STR="glexec test failed, nonzero value $res\n"
+    STR+="result: $tst"
+    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "$glexec_bin"
     exit 1
   else
     tst2=`echo "$tst" |tail -1`
     if [ "$tst2" == "Hello World" ]; then
       echo "glexec verified to work" 1>&2
     else
-      echo "glexec broken!" 1>&2
-      echo "Expected 'Hello World', got '$tst2'" 1>&2
+      #echo "glexec broken!" 1>&2
+      #echo "Expected 'Hello World', got '$tst2'" 1>&2
+      STR="glexec broken\n"
+      STR+="Expected 'Hello World', got '$tst2'"
+      "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "$glexec_bin"
       exit 1
     fi
   fi
@@ -51,16 +59,22 @@ EOF
 
   res=$?
   if [ $res -ne 0 ]; then
-    echo "glexec test2 failed, nonzero value $res" 1>&2
-    echo "result: $tst" 1>&2
+    #echo "glexec test2 failed, nonzero value $res" 1>&2
+    #echo "result: $tst" 1>&2
+    STR="glexec test2 failed, nonzero value $res\n"
+    STR+="result: $tst"
+    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "$glexec_bin"
     exit 1
   else
     tst2=`echo "$tst" |tail -1`
     if [ "$tst2" == "Hello World" ]; then
       echo "glexec verified to work (test2)" 1>&2
     else
-      echo "glexec broken (test2)!" 1>&2
-      echo "Expected 'Hello World', got '$tst2'" 1>&2
+      #echo "glexec broken (test2)!" 1>&2
+      #echo "Expected 'Hello World', got '$tst2'" 1>&2
+      STR="glexec broken (test2).\n"
+      STR+="Expected 'Hello World', got '$tst2'"
+      "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "$glexec_bin"
       exit 1
     fi
   fi
@@ -69,6 +83,8 @@ EOF
 
 glidein_config=$1
 tmp_fname=${glidein_config}.$$.tmp
+
+error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
 
 condor_vars_file=`grep -i "^CONDOR_VARS_FILE " $glidein_config | awk '{print $2}'`
 
@@ -107,12 +123,16 @@ case "$use_glexec" in
         ;;
     REQUIRED)
         if [ "$glexec_bin" == "NONE" ]; then
-            echo "`date` VO mandates the use of glexec but the site is not configured with glexec information."
+            #echo "`date` VO mandates the use of glexec but the site is not configured with glexec information."
+            STR="VO mandates the use of glexec but the site is not configured with glexec information"
+            "$error_gen" -error "glexec_setup.sh" "VO_Config" "$STR" "attribute" "GLEXEC_BIN" "attribute" "GLIDEIN_Glexec_Use"
             exit 1
         fi
         ;;
     *)
-        echo "`date` USE_GLEXEC in VO Frontend configured to be $use_glexec. Accepted values are 'NEVER' or 'OPTIONAL' or 'REQUIRED'."
+        #echo "`date` USE_GLEXEC in VO Frontend configured to be $use_glexec. Accepted values are 'NEVER' or 'OPTIONAL' or 'REQUIRED'."
+        STR="USE_GLEXEC in VO Frontend configured to be $use_glexec.\nAccepted values are 'NEVER' or 'OPTIONAL' or 'REQUIRED'."
+        "$error_gen" -error "glexec_setup.sh" "VO_Config" "$STR" "attribute" "GLIDEIN_Glexec_Use"
         exit 1
         ;;
 esac 
@@ -123,7 +143,9 @@ if [ -f "$x509_user_proxy" ]; then
   export X509_USER_PROXY=$x509_user_proxy
 else
    # should never happen, but let's be safe
-   echo "`date` X509_USER_PROXY not defined in config file."
+   #echo "`date` X509_USER_PROXY not defined in config file."
+   STR="X509_USER_PROXY not defined in config file."
+   "$error_gen" -error "glexec_setup.sh" "Config" "$STR" "attribute" "X509_USER_PROXY"
    exit 1
 fi
 
@@ -133,7 +155,9 @@ echo "`date` making configuration changes to use glexec"
 # Note: the -e test performs the same function as readlink -e and allows
 #       for SL4/SL5 compatibility (readlink -e does not exist in SL4).
 if [ ! -e /bin/sh ];then
-    echo "gLExec does not like symlinks. Failed to dereference /bin/sh" 1>&2
+    #echo "gLExec does not like symlinks. Failed to dereference /bin/sh" 1>&2
+    STR="gLExec does not like symlinks. Failed to dereference /bin/sh"
+    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "ln"
     exit 1
 fi
 export ALTSH="`readlink -f /bin/sh`"
@@ -146,7 +170,9 @@ add_condor_vars_line "ALTERNATIVE_SHELL" "C" "-" "SH" "Y" "N" "-"
 # the tmo directory is world writtable
 glide_tmp_dir=`grep '^TMP_DIR ' $glidein_config | awk '{print $2}'`
 if [ -z "$glide_tmp_dir" ]; then
-    echo "TMP_DIR not found!" 1>&2
+    #echo "TMP_DIR not found!" 1>&2
+    STR="TMP_DIR not found!"
+    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "environment" "TMP_DIR"
     exit 1
 fi
 add_config_line "GLEXEC_USER_DIR" "$glide_tmp_dir"
@@ -177,7 +203,9 @@ elif [ "$glexec_bin" == "auto" ]; then
       fi
     fi
     if [ "$glexec_bin" == "auto" ]; then
-       echo "GLEXEC_BIN was auto, but could not find it!" 1>&2
+       #echo "GLEXEC_BIN was auto, but could not find it!" 1>&2
+       STR="GLEXEC_BIN was auto, but could not find it."
+       "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "file" "glexec"
        exit 1
     fi
 fi
@@ -188,11 +216,15 @@ if [ -f "$glexec_bin" ]; then
     if [ -x "$glexec_bin" ]; then
         echo "Using gLExec binary '$glexec_bin'"
     else
-        echo "gLExec binary '$glexec_bin' is not executable!" 1>&2
+        #echo "gLExec binary '$glexec_bin' is not executable!" 1>&2
+        STR="gLExec binary '$glexec_bin' is not executable!"
+        "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "file" "$glexec_bin"
         exit 1
     fi
 else
-    echo "gLExec binary '$glexec_bin' not found!" 1>&2
+    #echo "gLExec binary '$glexec_bin' not found!" 1>&2
+    STR="gLExec binary '$glexec_bin' not found!"
+    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "file" "$glexec_bin"
     exit 1
 fi
 
@@ -245,5 +277,7 @@ if [ -z "$start_condition" ]; then
 else
     add_config_line "GLIDEIN_Entry_Start" "(x509userproxysubject=!=UNDEFINED)&&((GLIDEIN_REQUIRE_VOMS=?=UNDEFINED)||(GLIDEIN_REQUIRE_VOMS=?=False)||(TARGET.x509userproxyfirstfqan=!=UNDEFINED))&&($start_condition)"
 fi
+
+"$error_gen" -ok "glexec_setup.sh" "Glexec" "glexec"
 
 exit 0

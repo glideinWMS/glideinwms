@@ -874,8 +874,11 @@ function fetch_file_base {
 	    echo "Skipping last script $last_script" 1>&2
 	else
             echo "Executing $ffb_outname"
+            START=`date "+%Y-%m-%dT%H:%M:%S"`
 	    "$ffb_outname" glidein_config "$ffb_id"
 	    ret=$?
+            END=`date "+%Y-%m-%dT%H:%M:%S"`
+            $main_dir/xml_parse.sh  "glidein_startup.sh" "$ffb_outname" glidein_config "$ffb_id" $START $END #generating test result document
 	    if [ $ret -ne 0 ]; then
                 echo "=== Validation error in $ffb_outname ===" 1>&2
 		warn "Error running '$ffb_outname'" 1>&2

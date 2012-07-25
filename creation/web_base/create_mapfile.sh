@@ -14,12 +14,13 @@
 function create_gridmapfile {
     id=`grid-proxy-info -identity`
     if [ $? -ne 0 ]; then
-	id=`voms-proxy-info -identity`
-	if [ $? -ne 0 ]; then
-	    echo "Cannot get user identity!" 1>&2
-	    echo "Tried both grid-proxy-info and voms-proxy-info." 1>&2
-	    exit 1
-	fi
+        id=`voms-proxy-info -identity`
+        if [ $? -ne 0 ]; then
+            STR="Cannot get user identity!\n"
+            STR+="Tried both grid-proxy-info and voms-proxy-info."
+            "$error_gen" -error "create_mapfile.sh" "WN_Resource" "$STR" "command" "gird-proxy-info"
+            exit 1
+        fi
     fi
 
     idp=`echo $id |awk '{split($0,a,"/CN=proxy"); print a[1]}'`
@@ -51,8 +52,10 @@ function create_gridmapfile {
     fi
     echo "\"$idp\"" condor >> "$X509_GRIDMAP"
     if [ $? -ne 0 ]; then
-	echo "Cannot add user identity to $X509_GRIDMAP!" 1>&2
-	exit 1
+        #echo "Cannot add user identity to $X509_GRIDMAP!" 1>&2
+        STR="Cannot add user identity to $X509_GRIDMAP!"
+        "$error_gen" -error "create_mapfile.sh" "WN_Resource" "$STR" "file" "$X509_GRIDMAP"
+        exit 1
     fi
 
     return 0
@@ -111,6 +114,8 @@ function create_condormapfile {
 # Assume all functions exit on error
 config_file="$1"
 
+error_gen=`grep '^ERROR_GEN_PATH ' $config_file | awk '{print $2}'`
+
 EXPECTED_GRIDMAP_FNAME="grid-mapfile"
 
 X509_GRIDMAP="$PWD/$EXPECTED_GRIDMAP_FNAME"
@@ -135,5 +140,7 @@ X509_GRIDMAP_DNS         $X509_GRIDMAP_DNS
 X509_GRIDMAP_TRUSTED_DNS $X509_GRIDMAP_DNS
 ###############################
 EOF
+
+"$error_gen" -ok "create_mapfile.sh" "mapfile" "$CONDOR_CONFIG"
 
 exit 0
