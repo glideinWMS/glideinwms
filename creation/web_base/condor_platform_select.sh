@@ -30,25 +30,26 @@ fi
 
 if [ "$condor_os" == "auto" ]; then
     if [ -f "/etc/redhat-release" ]; then 
-        # rhel, now determine the version
-        strings /lib/libc.so.6  |grep -q GLIBC_2.4
-        if [ $? -ne 0 ]; then
-            # pre-RHEL5
-            condor_os='linux-rhel3'
-        else
-            # I am not aware of anything newer right now
-            condor_os='linux-rhel5'
-        fi
+	# rhel, now determine the version
+	strings /lib/libc.so.6  |grep -q GLIBC_2.4
+	if [ $? -ne 0 ]; then
+	    # pre-RHEL5
+	    condor_os='linux-rhel3'
+	else
+	    # I am not aware of anything newer right now
+	    condor_os='linux-rhel5'
+	fi
     elif [ -f "/etc/debian_version" ]; then 
-        # debian, now determine the version
-        grep -q '^5' /etc/debian_version
-        if [ $? -ne 0 ]; then
-            # pre-Debian 5
-            condor_os='linux-debian40'
-        else
-            # I am not aware of anything newer right now
-            condor_os='linux-debian50'
-        fi
+	# debian, now determine the version
+	grep -q '^5' /etc/debian_version
+	if [ $? -ne 0 ]; then
+	    # pre-Debian 5
+	    condor_os='linux-debian40'
+	else
+	    # I am not aware of anything newer right now
+	    condor_os='linux-debian50'
+	fi
+
     else 
         #echo "Not a RHEL not Debian compatible system. Autodetect not supported"  1>&2
         STR="Not a RHEL not Debian compatible system. Autodetect not supported"
@@ -65,9 +66,9 @@ fi
 if [ "$condor_arch" == "auto" ]; then
     condor_arch=`uname -m`
     if [ "$condor_arch" -eq "x86_64" ]; then
-        condor_arch="x86_64,x86"
+	condor_arch="x86_64,x86"
     elif [ "$condor_arch" == "i386" -o "$condor_arch" == "i486" -o "$condor_arch" == "i586" -o "$condor_arch" == "i686" ]; then
-        condor_arch="x86"
+	condor_arch="x86"
     else
         #echo "Not a x86 compatible system. Autodetect not supported"  1>&2
         STR="Not a x86 compatible system. Autodetect not supported"
