@@ -37,6 +37,8 @@ pstr='"'
 
 config_file=$1
 
+error_gen=`grep '^ERROR_GEN_PATH ' $config_file | awk '{print $2}'`
+
 # find out whether user wants to run job or run test
 operation_mode=`grep -i "^DEBUG_MODE " $config_file | awk '{print $2}'`
 
@@ -116,7 +118,9 @@ function set_var {
     if [ -z "$var_val" ]; then
 	if [ "$var_req" == "Y" ]; then
 	    # needed var, exit with error
-	    echo "Cannot extract $var_name from '$config_file'" 1>&2
+	    #echo "Cannot extract $var_name from '$config_file'" 1>&2
+        STR="Cannot extract $var_name from '$config_file'"
+        "$error_gen" -error "condor_startup.sh" "Corruption" "$STR" "attribute" "$var_name"
 	    exit 1
 	elif [ "$var_def" == "-" ]; then
 	    # no default, do not set
@@ -359,8 +363,10 @@ if [ "$retire_time" -lt "$min_glidein" ]; then
   let "die_time=$die_time + $retire_spread * $random100 / 100"
 fi
 if [ "$retire_time" -lt "$min_glidein" ]; then  
-  echo "Retire time still too low ($retire_time), aborting" 1>&2
-  exit 1
+    #echo "Retire time still too low ($retire_time), aborting" 1>&2
+    STR="Retire time still too low ($retire_time), aborting"
+    "$error_gen" -error "condor_startup.sh" "Config" "$STR" "attribute" "retire_time" 
+    exit 1
 fi
 echo "Retire time set to $retire_time" 1>&2
 echo "Die time set to $die_time" 1>&2
@@ -420,7 +426,9 @@ START = $START_JOBS
 EOF
 ####################################
 if [ $? -ne 0 ]; then
-    echo "Error customizing the condor_config" 1>&2
+    #echo "Error customizing the condor_config" 1>&2
+    STR="Error customizing the condor_config"
+    "$error_gen" -error "condor_startup.sh" "Corruption" "$STR" "file" "$CONDOR_CONFIG"
     exit 1
 fi
 
@@ -438,8 +446,10 @@ if [ "$operation_mode" == "2" ]; then
     echo "# ---- start of include part ----" >> "$CONDOR_CONFIG"
     cat "$condor_config_check_include" >> "$CONDOR_CONFIG"
     if [ $? -ne 0 ]; then
-	echo "Error appending check_include to condor_config" 1>&2
-	exit 1
+        #echo "Error appending check_include to condor_config" 1>&2
+        STR="Error appending check_include to condor_config"
+        "$error_gen" -error "condor_startup.sh" "Corruption" "$STR" "file" "$CONDOR_CONFIG" "file" "$condor_config_check_include"
+        exit 1
     fi
 fi
 
@@ -448,8 +458,10 @@ if [ "$use_multi_monitor" -eq 1 ]; then
     echo "# ---- start of include part ----" >> "$CONDOR_CONFIG"
     cat "$condor_config_multi_include" >> "$CONDOR_CONFIG"
     if [ $? -ne 0 ]; then
-	echo "Error appending multi_include to condor_config" 1>&2
-	exit 1
+        #echo "Error appending multi_include to condor_config" 1>&2
+        STR="Error appending multi_include to condor_config"
+        "$error_gen" -error "condor_startup.sh" "Corruption" "$STR" "file" "$CONDOR_CONFIG" "file" "$condor_config_multi_include"
+        exit 1
     fi
 else
     condor_config_main_include="${main_stage_dir}/`grep -i '^condor_config_main_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
@@ -462,13 +474,17 @@ else
       condor_config_monitor=${CONDOR_CONFIG}.monitor
       cp "$CONDOR_CONFIG" "$condor_config_monitor"
       if [ $? -ne 0 ]; then
-	  echo "Error copying condor_config into condor_config.monitor" 1>&2
-	  exit 1
+        #echo "Error copying condor_config into condor_config.monitor" 1>&2
+        STR="Error copying condor_config into condor_config.monitor"
+        "$error_gen" -error "condor_startup.sh" "Corruption" "$STR" "file" "$condor_config_monitor" "file" "$CONDOR_CONFIG"
+        exit 1
       fi
       cat "$condor_config_monitor_include" >> "$condor_config_monitor"
       if [ $? -ne 0 ]; then
-	  echo "Error appending monitor_include to condor_config.monitor" 1>&2
-	  exit 1
+        #echo "Error appending monitor_include to condor_config.monitor" 1>&2
+        STR="Error appending monitor_include to condor_config.monitor"
+        "$error_gen" -error "condor_startup.sh" "Corruption" "$STR" "file" "$condor_config_monitor" "file" "$condor_config_monitor_include"
+        exit 1
       fi
 
       cat >> "$condor_config_monitor" <<EOF
@@ -483,8 +499,10 @@ EOF
     
     cat $condor_config_main_include >> "$CONDOR_CONFIG"
     if [ $? -ne 0 ]; then
-	echo "Error appending main_include to condor_config" 1>&2
-	exit 1
+        #echo "Error appending main_include to condor_config" 1>&2
+        STR="Error appending main_include to condor_config"
+        "$error_gen" -error "condor_startup.sh" "Corruption" "$STR" "file" "$CONDOR_CONFIG" "file" "$condor_config_main_include"
+        exit 1
     fi
 
     if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
@@ -496,8 +514,10 @@ EOF
       # also needs to create "monitor" dir for log and execute dirs
       mkdir monitor monitor/log monitor/execute 
       if [ $? -ne 0 ]; then
-	  echo "Error creating monitor dirs" 1>&2
-	  exit 1
+        #echo "Error creating monitor dirs" 1>&2
+        STR="Error creating monitor dirs"
+        "$error_gen" -error "condor_startup.sh" "Corruption" "$STR" "direction" "$PWD/monitor_monitor/log_monitor/execute"
+        exit 1
       fi
     fi
 fi
@@ -505,7 +525,9 @@ fi
 
 mkdir log execute 
 if [ $? -ne 0 ]; then
-    echo "Error creating condor dirs" 1>&2
+    #echo "Error creating condor dirs" 1>&2
+    STR="Error creating monitor dirs"
+    "$error_gen" -error "condor_startup.sh" "Corruption" "$STR" "direction" "$PWD/log_execute"
     exit 1
 fi
 
@@ -698,10 +720,15 @@ if [ "$ON_DIE" -eq 1 ]; then
 	
 	#If we are explicitly killed, do not wait required time
 	echo "Explicitly killed, exiting with return code 0 instead of $condor_ret";
+
+    "$error_gen" -ok "condor_startup.sh" "Condor" "$CONDOR_CONFIG"
+
 	exit 0;
 fi
 
 ##
 ##########################################################
+
+"$error_gen" -ok "condor_startup.sh" "Condor" "$CONDOR_CONFIG"
 
 exit $condor_ret

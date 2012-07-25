@@ -17,9 +17,12 @@ function check_df {
     free=`df -kP $chdf_dir | awk '{if (NR==2) print $4}'`
     let "chdf_reqkbs=$chdf_reqmbs * 1024"
     if [ $free -lt $chdf_reqkbs ]; then
-	echo "Space on '$chdf_dir' not enough." 1>&2
-	echo "At least $chdf_reqmbs MBs required, found $free KBs" 1>&2
-	exit 1
+        #echo "Space on '$chdf_dir' not enough." 1>&2
+        #echo "At least $chdf_reqmbs MBs required, found $free KBs" 1>&2
+        STR="Space on '$chdf_dir' not enough.\n"
+        STR+="At least $chdf_reqmbs MBs required, found $free KBs"
+        "$error_gen" -error "validate_node.sh" "WN_Resource" "$STR" "space" "$chdf_dir"
+        exit 1
     fi
     return 0
 }
@@ -35,8 +38,11 @@ function check_quotas {
 	myquota=`echo $myquotastr|awk '{print $2}'`
 	let "blocks=$chdf_reqmbs * 1024 * 2"
 	if [ $myquota -lt $blocks ]; then
-	    echo "Quota on '$chdf_dir' too small." 1>&2
-	    echo "At least $chdf_reqmbs MBs required, found $myquota blocks" 1>&2
+            #echo "Quota on '$chdf_dir' too small." 1>&2
+            #echo "At least $chdf_reqmbs MBs required, found $myquota blocks" 1>&2
+            STR="Quota on '$chdf_dir' too small.\n"
+            STR+="At least $chdf_reqmbs MBs required, found $myquota blocks"
+            "$error_gen" -error "validate_node.sh" "WN_Resource" "$STR" "space" "$chdf_dir"
 	    exit 1
 	fi
     fi
@@ -52,6 +58,8 @@ function check_quotas {
 
 # Assume all functions exit on error
 config_file=$1
+
+error_gen=`grep '^ERROR_GEN_PATH ' $config_file | awk '{print $2}'`
 
 #
 # Check space on current directory
@@ -79,7 +87,9 @@ check_df /tmp 10
 # and that I can create a temo dir in it
 tmp_dir=`mktemp -d "/tmp/wmsglide_XXXXXX"`
 if [ $? -ne 0 ]; then
-    echo "Cannot create a dir in /tmp" 1>&2
+    #echo "Cannot create a dir in /tmp" 1>&2
+    STR="Cannot create a dir in /tmp"
+    "$error_gen" -error "validate_node.sh" "WN_Resource" "$STR" "space" "/tmp/wmsglide_XXXXXX"
     exit 1
 fi
 
