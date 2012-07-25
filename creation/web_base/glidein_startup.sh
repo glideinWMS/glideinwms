@@ -835,18 +835,18 @@ function fetch_file_base {
 
     # download file
     if [ "$proxy_url" == "None" ]; then # no Squid defined, use the defaults
-		wget --user-agent="wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name" $ffb_nocache_str -q  -O "$ffb_tmp_outname" "$ffb_repository/$ffb_real_fname"
-		if [ $? -ne 0 ]; then
-			warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'" 1>&2
-			return 1
-		fi
+	wget --user-agent="wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name" $ffb_nocache_str -q  -O "$ffb_tmp_outname" "$ffb_repository/$ffb_real_fname"
+	if [ $? -ne 0 ]; then
+	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'" 1>&2
+	    return 1
+	fi
     else  # I have a Squid
-		env http_proxy=$proxy_url wget --user-agent="wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name" $ffb_nocache_str -q  -O "$ffb_tmp_outname" "$ffb_repository/$ffb_real_fname" 
-		if [ $? -ne 0 ]; then
-			# if Squid fails exit, because real jobs can try to use it too
-			warn "Failed to load file '$ffb_real_fname' from '$repository_url' using proxy '$proxy_url'" 1>&2
-			return 1
-		fi
+	env http_proxy=$proxy_url wget --user-agent="wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name" $ffb_nocache_str -q  -O "$ffb_tmp_outname" "$ffb_repository/$ffb_real_fname" 
+	if [ $? -ne 0 ]; then
+	    # if Squid fails exit, because real jobs can try to use it too
+	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'" 1>&2
+	    return 1
+	fi
     fi
 
     # check signature
@@ -865,54 +865,53 @@ function fetch_file_base {
 
     # if executable, execute
     if [ "$ffb_file_type" == "exec" ]; then
-		chmod u+x "$ffb_outname"
-		if [ $? -ne 0 ]; then
-			warn "Error making '$ffb_outname' executable" 1>&2
-			return 1
-		fi
-		if [ "$ffb_id" == "main" -a "$ffb_target_fname" == "$last_script" ]; then # last_script global for simplicity
-			echo "Skipping last script $last_script" 1>&2
-		else
+	chmod u+x "$ffb_outname"
+	if [ $? -ne 0 ]; then
+	    warn "Error making '$ffb_outname' executable" 1>&2
+	    return 1
+	fi
+	if [ "$ffb_id" == "main" -a "$ffb_target_fname" == "$last_script" ]; then # last_script global for simplicity
+	    echo "Skipping last script $last_script" 1>&2
+	else
             echo "Executing $ffb_outname"
             START=`date "+%Y-%m-%dT%H:%M:%S"`
-			"$ffb_outname" glidein_config "$ffb_id"
+	    "$ffb_outname" glidein_config "$ffb_id"
+	    ret=$?
             END=`date "+%Y-%m-%dT%H:%M:%S"`
-			ret=$?
-            source $main_dir/xml_parse.sh
             $main_dir/xml_parse.sh  "glidein_startup.sh" "$ffb_outname" glidein_config "$ffb_id" $START $END #generating test result document
-			if [ $ret -ne 0 ]; then
+	    if [ $ret -ne 0 ]; then
                 echo "=== Validation error in $ffb_outname ===" 1>&2
-				warn "Error running '$ffb_outname'" 1>&2
-				return 1
-			fi
-		fi
+		warn "Error running '$ffb_outname'" 1>&2
+		return 1
+	    fi
+	fi
     elif [ "$ffb_file_type" == "wrapper" ]; then
-		echo "$ffb_outname" >> "$wrapper_list"
+	echo "$ffb_outname" >> "$wrapper_list"
     elif [ "$ffb_file_type" == "untar" ]; then
-		ffb_short_untar_dir=`get_untar_subdir "$ffb_id" "$ffb_target_fname"`
-		ffb_untar_dir="${ffb_work_dir}/${ffb_short_untar_dir}"
-		(mkdir "$ffb_untar_dir" && cd "$ffb_untar_dir" && tar -xmzf "$ffb_outname") 1>&2
-		ret=$?
-		if [ $ret -ne 0 ]; then
-			warn "Error untarring '$ffb_outname'" 1>&2
-			return 1
-		fi
+	ffb_short_untar_dir=`get_untar_subdir "$ffb_id" "$ffb_target_fname"`
+	ffb_untar_dir="${ffb_work_dir}/${ffb_short_untar_dir}"
+	(mkdir "$ffb_untar_dir" && cd "$ffb_untar_dir" && tar -xmzf "$ffb_outname") 1>&2
+	ret=$?
+	if [ $ret -ne 0 ]; then
+	    warn "Error untarring '$ffb_outname'" 1>&2
+	    return 1
+	fi
     fi
 
     if [ "$ffb_config_out" != "FALSE" ]; then
-		ffb_prefix=`get_prefix $ffb_id`
-		if [ "$ffb_file_type" == "untar" ]; then
-			# when untaring the original file is less interesting than the untar dir
-			add_config_line "${ffb_prefix}${ffb_config_out}" "$ffb_untar_dir"
-				if [ $? -ne 0 ]; then
-					glidein_exit 1
-				fi
-		else
-			add_config_line "${ffb_prefix}${ffb_config_out}" "$ffb_outname"
-			if [ $? -ne 0 ]; then
-				glidein_exit 1
-			fi
-		fi
+	ffb_prefix=`get_prefix $ffb_id`
+	if [ "$ffb_file_type" == "untar" ]; then
+	    # when untaring the original file is less interesting than the untar dir
+	    add_config_line "${ffb_prefix}${ffb_config_out}" "$ffb_untar_dir"
+	    if [ $? -ne 0 ]; then
+		glidein_exit 1
+	    fi
+	else
+	    add_config_line "${ffb_prefix}${ffb_config_out}" "$ffb_outname"
+	    if [ $? -ne 0 ]; then
+		glidein_exit 1
+	    fi
+	fi
 
     fi
 
@@ -1084,6 +1083,9 @@ echo
 if [ $ret -ne 0 ]; then
   if [ $ret -eq 99 ]; then
     warn "Normal DAEMON_SHUTDOWN encountered while '$last_script'" 1>&2
+    # DAEMON_SHUTDOWN is a normal outcome, so should return 0
+    #  instead of 99 to indicate normal termination
+    glidein_exit 0
   else
     warn "Error running '$last_script'" 1>&2
   fi
