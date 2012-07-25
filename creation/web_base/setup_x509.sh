@@ -12,11 +12,11 @@
 # check that x509 certificates exist and set the env variable if needed
 function check_x509_certs {
     if [ -e "$X509_CERT_DIR" ]; then
-        export X509_CERT_DIR
+	  export X509_CERT_DIR
     elif [ -e "$HOME/.globus/certificates/" ]; then
-        export X509_CERT_DIR=$HOME/.globus/certificates/
+	  export X509_CERT_DIR=$HOME/.globus/certificates/
     elif [ -e "/etc/grid-security/certificates/" ]; then
-        export X509_CERT_DIR=/etc/grid-security/certificates/
+	  export X509_CERT_DIR=/etc/grid-security/certificates/
     else
         STR="Could not find grid-certificates!\n"
         STR+="Looked in:\n"
@@ -31,7 +31,7 @@ function check_x509_certs {
 
 function check_x509_proxy {
     if [ -a "$X509_USER_PROXY" ]; then
-        export X509_USER_PROXY
+	export X509_USER_PROXY
     else
         STR="Could not find user proxy!"
         STR+="Looked in X509_USER_PROXY='$X509_USER_PROXY'\n"
@@ -117,12 +117,12 @@ function get_x509_expiration {
     l=`grid-proxy-info -timeleft`
     ret=$?
     if [ $ret -ne 0 ]; then
-        l=`voms-proxy-info -timeleft`
-        ret=$?
+	l=`voms-proxy-info -timeleft`
+	ret=$?
     fi
 
     if [ $ret -eq 0 ]; then
-        echo `/usr/bin/expr $now + $l`
+	echo `/usr/bin/expr $now + $l`
     else
         #echo "Could not obtain -timeleft" 1>&2
         STR="Could not obtain -timeleft"
@@ -139,10 +139,10 @@ function get_x509_expiration {
 #
 ############################################################
 
-error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
-
 # Assume all functions exit on error
 config_file="$1"
+
+error_gen=`grep '^ERROR_GEN_PATH ' $config_file | awk '{print $2}'`
 
 check_x509_certs
 check_x509_proxy
