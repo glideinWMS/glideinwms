@@ -24,60 +24,60 @@ function no_use_glexec_config {
 }
 
 function test_glexec {
-    tst=`env GLEXEC_CLIENT_CERT="$X509_USER_PROXY" "$glexec_bin"  "$ALTSH" -c "id && echo \"Hello World\""`
-    res=$?
-    if [ $res -ne 0 ]; then
-        #echo "glexec test failed, nonzero value $res" 1>&2
-        #echo "result: $tst" 1>&2
-        STR="glexec test failed, nonzero value $res\n"
-        STR+="result: $tst"
-        "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "$glexec_bin"
-        exit 1
+  tst=`env GLEXEC_CLIENT_CERT="$X509_USER_PROXY" "$glexec_bin"  "$ALTSH" -c "id && echo \"Hello World\""`
+  res=$?
+  if [ $res -ne 0 ]; then
+    #echo "glexec test failed, nonzero value $res" 1>&2
+    #echo "result: $tst" 1>&2
+    STR="glexec test failed, nonzero value $res\n"
+    STR+="result: $tst"
+    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "$glexec_bin"
+    exit 1
+  else
+    tst2=`echo "$tst" |tail -1`
+    if [ "$tst2" == "Hello World" ]; then
+      echo "glexec verified to work" 1>&2
     else
-        tst2=`echo "$tst" |tail -1`
-        if [ "$tst2" == "Hello World" ]; then
-            echo "glexec verified to work" 1>&2
-        else
-            #echo "glexec broken!" 1>&2
-            #echo "Expected 'Hello World', got '$tst2'" 1>&2
-            STR="glexec broken!\n"
-            STR+="Expected 'Hello World', got '$tst2'"
-            "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "$glexec_bin"
-            exit 1
-        fi
+      #echo "glexec broken!" 1>&2
+      #echo "Expected 'Hello World', got '$tst2'" 1>&2
+      STR="glexec broken\n"
+      STR+="Expected 'Hello World', got '$tst2'"
+      "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "$glexec_bin"
+      exit 1
     fi
+  fi
 }
 
 function test_glexec2 {
-    cat > glexec_test2.sh << EOF
+  cat > glexec_test2.sh << EOF
 #!/bin/sh
 id && echo "Hello World"
 EOF
-    chmod a+x glexec_test2.sh
+  chmod a+x glexec_test2.sh
 
-    tst=`env GLEXEC_CLIENT_CERT="$X509_USER_PROXY" "$glexec_bin"  "$PWD/glexec_test2.sh"`
+  tst=`env GLEXEC_CLIENT_CERT="$X509_USER_PROXY" "$glexec_bin"  "$PWD/glexec_test2.sh"`
 
-    res=$?
-    if [ $res -ne 0 ]; then
-        #echo "glexec test2 failed, nonzero value $res" 1>&2
-        #echo "result: $tst" 1>&2
-        STR="glexec test2 failed, nonzero value $res\n"
-        STR+="result: $tst"
-        "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "$glexec_bin"
-        exit 1
+  res=$?
+  if [ $res -ne 0 ]; then
+    #echo "glexec test2 failed, nonzero value $res" 1>&2
+    #echo "result: $tst" 1>&2
+    STR="glexec test2 failed, nonzero value $res\n"
+    STR+="result: $tst"
+    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "$glexec_bin"
+    exit 1
+  else
+    tst2=`echo "$tst" |tail -1`
+    if [ "$tst2" == "Hello World" ]; then
+      echo "glexec verified to work (test2)" 1>&2
     else
-        tst2=`echo "$tst" |tail -1`
-        if [ "$tst2" == "Hello World" ]; then
-            echo "glexec verified to work (test2)" 1>&2
-        else
-            #echo "glexec broken (test2)!" 1>&2
-            #echo "Expected 'Hello World', got '$tst2'" 1>&2
-            STR="glexec broken (test2)!\n"
-            STR+="Expected 'Hello World', got '$tst2'"
-            "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "$glexec_bin"
-            exit 1
-        fi
+      #echo "glexec broken (test2)!" 1>&2
+      #echo "Expected 'Hello World', got '$tst2'" 1>&2
+      STR="glexec broken (test2).\n"
+      STR+="Expected 'Hello World', got '$tst2'"
+      "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "$glexec_bin"
+      exit 1
     fi
+  fi
 }
 
 
@@ -140,11 +140,13 @@ esac
 # We should use the copy of the proxy created by setup_x509.sh
 x509_user_proxy=`grep "^X509_USER_PROXY " $glidein_config | awk '{print $2}'`
 if [ -f "$x509_user_proxy" ]; then
-    export X509_USER_PROXY=$x509_user_proxy
+  export X509_USER_PROXY=$x509_user_proxy
 else
-    # should never happen, but let's be safe
-    echo "`date` X509_USER_PROXY not defined in config file."
-    exit 1
+   # should never happen, but let's be safe
+   #echo "`date` X509_USER_PROXY not defined in config file."
+   STR="X509_USER_PROXY not defined in config file."
+   "$error_gen" -error "glexec_setup.sh" "Config" "$STR" "attribute" "X509_USER_PROXY"
+   exit 1
 fi
 
 echo "`date` making configuration changes to use glexec"
@@ -189,22 +191,22 @@ elif [ "$glexec_bin" == "glite" ]; then
     glexec_bin=/opt/glite/sbin/glexec
 elif [ "$glexec_bin" == "auto" ]; then
     if [ -n "$OSG_GLEXEC_LOCATION" ]; then
-        if [ -f "$OSG_GLEXEC_LOCATION" ]; then
-            echo "GLEXEC_BIN was auto, found OSG, expand to '$OSG_GLEXEC_LOCATION'" 1>&2
-            glexec_bin="$OSG_GLEXEC_LOCATION"
-        fi
+       if [ -f "$OSG_GLEXEC_LOCATION" ]; then
+         echo "GLEXEC_BIN was auto, found OSG, expand to '$OSG_GLEXEC_LOCATION'" 1>&2
+         glexec_bin="$OSG_GLEXEC_LOCATION"
+       fi
     fi
     if [ "$glexec_bin" == "auto" ]; then
-        if [ -f "/opt/glite/sbin/glexec" ]; then
-            echo "GLEXEC_BIN was auto, found glite, expand to '/opt/glite/sbin/glexec'" 1>&2
-            glexec_bin=/opt/glite/sbin/glexec
-        fi
+      if [ -f "/opt/glite/sbin/glexec" ]; then
+         echo "GLEXEC_BIN was auto, found glite, expand to '/opt/glite/sbin/glexec'" 1>&2
+         glexec_bin=/opt/glite/sbin/glexec
+      fi
     fi
     if [ "$glexec_bin" == "auto" ]; then
-        #echo "GLEXEC_BIN was auto, but could not find it!" 1>&2
-        STR="GLEXEC_BIN was auto, but could not find it!"
-        "$error_gen" -error "glexec_setup.sh" "Factory_Config" "$STR" "attribute" "GLEXEC_BIN"
-        exit 1
+       #echo "GLEXEC_BIN was auto, but could not find it!" 1>&2
+       STR="GLEXEC_BIN was auto, but could not find it."
+       "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "file" "glexec"
+       exit 1
     fi
 fi
 
