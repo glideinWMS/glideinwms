@@ -49,14 +49,11 @@ function check_blacklist {
 #
 ############################################################
 
-glidein_config=$1
-tmp_fname=${glidein_config}.$$.tmp
-
-error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
-
 # Assume all functions exit on error
 config_file=$1
 dir_id=$2
+
+error_gen=`grep '^ERROR_GEN_PATH ' $config_file | awk '{print $2}'`
 
 # import get_prefix function
 get_id_selectors_source=`grep '^GET_ID_SELECTORS_SOURCE ' $config_file | awk '{print $2}'`
