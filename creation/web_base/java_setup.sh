@@ -29,27 +29,25 @@ if [ -z "$need_java" ]; then
 fi
 
 if [ "$need_java" == "NEVER" ]; then
-    echo "`date` VO does not want to use Java"
-
+  echo "`date` VO does not want to use Java"
     "$error_gen" -ok "java_setup.sh" "Java_check" "java"
 
-    exit 0
+  exit 0
 fi
 
 java_bin=`which java`
 
 if [ -z "$java_bin" ]; then
-    if [ "$need_java" == "REQUIRED" ]; then
+   if [ "$need_java" == "REQUIRED" ]; then
         #echo "`date` VO mandates the use of Java but java not in the path." 1>&2
         STR="VO mandates the use of Java but java not in the path."
         "$error_gen" -error "java_setup.sh" "WN_Resource" "$STR" "attribute" "java"
-        exit 1
-    fi
-    echo "`date` Java not found, but it was OPTIONAL"
-
+     exit 1
+   fi
+   echo "`date` Java not found, but it was OPTIONAL"
     "$error_gen" -ok "java_setup.sh" "Java_check" "java"
 
-    exit 0
+   exit 0
 fi
 
 echo "`date` Using Java in $java_bin"
