@@ -20,10 +20,7 @@ function ignore_signal {
         echo "Condor startup received SIGHUP signal, ignoring..."
 }
 
-glidein_config=$1
-tmp_fname=${glidein_config}.$$.tmp
 
-error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
 
 # first of all, clean up any CONDOR variable
 condor_vars=`env |awk '/^_[Cc][Oo][Nn][Dd][Oo][Rr]_/{split($1,a,"=");print a[1]}'`
@@ -40,6 +37,8 @@ pstr='"'
 
 config_file=$1
 
+error_gen=`grep '^ERROR_GEN_PATH ' $config_file | awk '{print $2}'`
+
 # find out whether user wants to run job or run test
 operation_mode=`grep -i "^DEBUG_MODE " $config_file | awk '{print $2}'`
 
@@ -53,8 +52,6 @@ main_stage_dir=`grep -i "^GLIDEIN_WORK_DIR " $config_file | awk '{print $2}'`
 
 description_file=`grep -i "^DESCRIPTION_FILE " $config_file | awk '{print $2}'`
 
-# grab user proxy so we can authenticate ourselves to run condor_fetchlog
-X509_USER_PROXY=`grep -i "^X509_USER_PROXY " $config_file | awk '{print $2}'`
 
 in_condor_config="${main_stage_dir}/`grep -i '^condor_config ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
 
@@ -245,7 +242,15 @@ job_maxtime=`grep -i "^GLIDEIN_Job_Max_Time " $config_file | awk '{print $2}'`
 graceful_shutdown=`grep -i "^GLIDEIN_Graceful_Shutdown " $config_file | awk '{print $2}'`
 # randomize the retire time, to smooth starts and terminations
 retire_spread=`grep -i "^GLIDEIN_Retire_Time_Spread " $config_file | awk '{print $2}'`
+expose_x509=`grep -i "^GLIDEIN_Expose_X509 " $config_file | awk '{print $2}'`
 
+if [ -z "$expose_x509" ]; then
+	expose_x509=`grep -i "^GLIDEIN_Expose_X509=" $CONDOR_CONFIG | awk '{print $2}'`
+	if [ -z "$expose_x509" ]; then
+		expose_x509="false"
+	fi
+fi
+expose_x509=`echo $expose_x509 | tr '[:upper:]' '[:lower:]'`
 
 if [ -z "$graceful_shutdown" ]; then
 	graceful_shutdown=`grep -i "^GLIDEIN_Graceful_Shutdown=" $CONDOR_CONFIG | awk -F"=" '{print $2}'`
@@ -416,7 +421,7 @@ fi
 
 # get check_include file for testing
 if [ "$operation_mode" == "2" ]; then
-    condor_config_check_include="${main_stage_dir}/`grep -i '^condor_config_check_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
+	condor_config_check_include="${main_stage_dir}/`grep -i '^condor_config_check_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
     echo "# ---- start of include part ----" >> "$CONDOR_CONFIG"
     cat "$condor_config_check_include" >> "$CONDOR_CONFIG"
     if [ $? -ne 0 ]; then
@@ -517,6 +522,14 @@ if [ "$operation_mode" == "1" ] || [ "$operation_mode" == "2" ]; then
   #env 1>&2
 fi
 
+X509_BACKUP=$X509_USER_PROXY
+if [ "$expose_x509" == "true" ]; then
+	echo "Exposing X509_USER_PROXY $X509_USER_PROXY" 1>&2
+else
+	echo "Unsetting X509_USER_PROXY" 1>&2
+	unset X509_USER_PROXY
+fi
+
 ##	start the condor master
 if [ "$use_multi_monitor" -ne 1 ]; then
     # don't start if monitoring is disabled
@@ -601,8 +614,11 @@ if [ $operation_mode -eq 2 ]; then
   while [ "$fetch_curTime" -lt "$fetch_timeout" ]; do	
     sleep $fetch_sleeptime
 
+    # grab user proxy so we can authenticate ourselves to run condor_fetchlog
+    PROXY_FILE=`grep -i "^X509_USER_PROXY " $config_file | awk '{print $2}'`
+
     let "fetch_curTime  += $fetch_sleeptime" 
-	  FETCH_RESULTS=`$CONDOR_DIR/sbin/condor_fetchlog -startd $STARTD_NAME@$HOST STARTD`
+	  FETCH_RESULTS=`X509_USER_PROXY=$PROXY_FILE $CONDOR_DIR/sbin/condor_fetchlog -startd $STARTD_NAME@$HOST STARTD`
     fetch_exit_code=$?
     if [ $fetch_exit_code -eq 0 ]; then
       break
