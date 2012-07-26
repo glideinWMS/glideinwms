@@ -16,16 +16,18 @@ function create_gridmapfile {
     if [ $? -ne 0 ]; then
         id=`voms-proxy-info -identity`
         if [ $? -ne 0 ]; then
-            STR="Cannot get user identity!\n"
+            STR="Cannot get user identity.\n"
             STR+="Tried both grid-proxy-info and voms-proxy-info."
-            "$error_gen" -error "create_mapfile.sh" "WN_Resource" "$STR" "command" "gird-proxy-info"
+            "$error_gen" -error "create_mapfile.sh" "WN_Resource" "$STR" "command" "grid-proxy-info"
             exit 1
         fi
     fi
 
     idp=`echo $id |awk '{split($0,a,"/CN=proxy"); print a[1]}'`
     if [ $? -ne 0 ]; then
-	echo "Cannot remove proxy part from user identity!" 1>&2
+	#echo "Cannot remove proxy part from user identity!" 1>&2
+	STR="Cannot remove proxy part from user identity."
+	"$error_gen" -error "create_mapfile.sh" "WN_Resource" "$STR" "command" "grid-proxy-info"
 	exit 1
     fi
 
