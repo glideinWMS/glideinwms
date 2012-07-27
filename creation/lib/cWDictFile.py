@@ -179,7 +179,9 @@ class DictFile:
         try:
             fd=open(filepath,"r")
         except IOError,e:
-            raise RuntimeError, "Error opening %s: %s"%(filepath,e)
+            print "Error opening %s: %s"%(filepath,e)
+            print "Assuming blank, and re-creating..."
+            return
         try:
             try:
                 self.load_from_fd(fd,erase_first,set_not_changed)
