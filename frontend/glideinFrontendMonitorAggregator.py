@@ -142,6 +142,9 @@ def verifyRRD(fix_rrd=False):
             for a in attributes_tp:
                 status_dict["%s%s"%(tp_str,a)]=None
 
+    if not os.path.isdir(dir):
+        print "WARNING: monitor/ directory does not exist, skipping rrd verification."
+        return True
     for filename in os.listdir(dir):
         if (filename[:6]=="group_") or (filename=="total"):
             current_dir=os.path.join(dir,filename)
