@@ -163,7 +163,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
         if self.monitor_dir!=other.monitor_dir:
-            raise RuntimeError,"Cannot change main monitor base_dir! '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
+            print "WARNING: main monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
         
         return cgWDictFile.glideinMainDicts.reuse(self,other)
 
@@ -338,7 +338,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
         if self.monitor_dir!=other.monitor_dir:
-            raise RuntimeError,"Cannot change entry monitor base_dir! '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
+            print "WARNING: entry monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
         
         return cgWDictFile.glideinEntryDicts.reuse(self,other)
 
@@ -378,7 +378,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
         if self.monitor_dir!=other.monitor_dir:
-            raise RuntimeError,"Cannot change monitor base_dir! '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
+            print "WARNING: monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
         
         return cgWDictFile.glideinDicts.reuse(self,other)
 
