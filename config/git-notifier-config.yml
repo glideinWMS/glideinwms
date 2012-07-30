@@ -84,3 +84,4 @@ unique_commits_per_branch: false
 #   enable: true
 #   log_directory: /path/to/log/directory
 
+ignore_whitespace: false
