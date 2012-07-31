@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 
-<script type="text/javascript" src="jslibs/factory_support.js"></script>
+<script type="text/javascript" src="jslibs/factory_support-new.js"></script>
 
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -23,7 +23,6 @@ var table;
 var option; 
 var noOption = "No Entry Selected";
 var preOption;
-var optionIndex;  
 var updating = 0; 
 var currOption = 0;  
 var frontEndTable;
@@ -148,11 +147,11 @@ function makeFEArray()
 		}
 		for(j = 0; j< feArry.length; j++)
 		{
-			if(feArry[j].attributes.getNamedItem("name").firstChild.data == frontEnds[i].attributes.getNamedItem("name").firstChild.data)
+			if(feArry[j].getAttribute("name") == frontEnds[i].getAttribute("name"))
 			{
 				break; 	
 			}
-			if(j == (feArry.length - 1) && feArry[j].attributes.getNamedItem("name").firstChild.data != frontEnds[i].attributes.getNamedItem("name").firstChild.data)
+			if(j == (feArry.length - 1) && feArry[j].getAttribute("name") != frontEnds[i].getAttribute("name"))
 			{
 				feArry.push(frontEnds[i]);
 				feArryP.push(frontEndsP[i]);
@@ -190,13 +189,14 @@ function loadXMLDocPeriod()
 	xmlhttp.onreadystatechange=function()
 	{	
 		if (xmlhttp.readyState == 4) //4 == READY
-    	{
+    		{
 			totalEntriesPMaster = xmlhttp.responseXML.documentElement.getElementsByTagName("entry");
 			totalPMaster = xmlhttp.responseXML.documentElement.getElementsByTagName("total");     
 			frontEndsP = xmlhttp.responseXML.documentElement.getElementsByTagName("frontend"); 
 			totalEntriesP = xmlhttp.responseXML.documentElement.getElementsByTagName("entry");
 			totalP = xmlhttp.responseXML.documentElement.getElementsByTagName("total"); 
 			
+
 			/* Find all the corresponding attributes. */
 			for(i = 0; i < totalEntriesP.length; i++)
 			{	
@@ -573,9 +573,10 @@ function makeEntryList()
 	head.appendChild(txt0); 	
 	select.appendChild(head); 
 
+	
 	for(i = 0; i < totalEntries.length; i++)
 	{
-		x = totalEntries[i].attributes.getNamedItem("name").firstChild.data;
+		x = totalEntries[i].getAttribute("name");
 		txt[i] = document.createTextNode(x); 
 		option[i] = document.createElement('option'); 
 		option[i].appendChild(txt[i]); 
@@ -587,7 +588,7 @@ function makeEntryList()
 /* DISPLAY TIME */
 function showTime()
 {
-	updated = updated[0].childNodes[1].attributes[3].firstChild.value;	
+        updated = updated[0].childNodes[1].getAttribute("human");
 	document.getElementById("update").innerHTML= "XML last update:   " + updated; 	
 }
 
@@ -601,7 +602,7 @@ function makeTotTable(option)
 	/* GET INDEX OF ENTRY CHOICE */
 	for(i = 0; i< totalEntries.length; i++)
 	{
-		if(totalEntries[i].attributes.getNamedItem("name").firstChild.data == option)
+		if(totalEntries[i].getAttribute("name") == option)
 		{
 			optionIndex = i;
 			break; 	
@@ -1857,15 +1858,15 @@ function checkUrl()
 				{
 					for(q = 0; q < totalEntries.length; q++)
 					{
-						if(temp[j+1] == totalEntries[q].attributes.getNamedItem("name").firstChild.data)	
+						if(temp[j+1] == totalEntries[q].getAttribute("name"))	
 						{
 							makeTotTable(temp[j+1]);
 							select.selectedIndex = q + 1;
 						}
-						else if(temp[j+1] == totalEntries[q].attributes.getNamedItem("name").firstChild.data + "+period")	
+						else if(temp[j+1] == totalEntries[q].getAttribute("name") + "+period")	
 						{
 							document.getElementById("prOption").checked = true;
-							ENTRY = totalEntries[q].attributes.getNamedItem("name").firstChild.data;
+							ENTRY = totalEntries[q].getAttribute("name");
 							showPr(); 
 							select.selectedIndex = q + 1;
 						}
