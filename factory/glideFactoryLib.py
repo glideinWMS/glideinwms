@@ -24,6 +24,7 @@ import condorExe,condorPrivsep
 import logSupport
 import condorMonitor
 import condorManager
+import tempfile
 import glideFactoryConfig
 
 MY_USERNAME=pwd.getpwuid(os.getuid())[0]
@@ -377,16 +378,21 @@ def update_x509_proxy_file(entry_name,username,client_id, proxy_data):
     
     dn=""
     voms=""
+    (f,tempfilename)=tempfile.mkstemp()
+    os.write(f,proxy_data)
+    os.close(f)
     
     try:
         dn_list=condorExe.iexe_cmd("openssl x509 -subject -noout",stdin_data=proxy_data)
         dn=dn_list[0]
-        voms_list = condorExe.iexe_cmd("voms-proxy-info -fqan")
+        voms_list = condorExe.iexe_cmd("voms-proxy-info -fqan -file %s"% tempfilename)
         #sort output in case order of voms fqan changed
         voms='\n'.join(sorted(voms_list))
     except:
         #If voms-proxy-info doesn't exist, just hash on dn
         voms=""
+
+    os.unlink(tempfilename)
 
     hash_val=str(abs(hash(dn+voms))%1000000)
 
