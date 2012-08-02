@@ -145,8 +145,8 @@ class GlideinParams(cWParams.CommonParams):
         log_retention_defaults["logs"]=copy.deepcopy(one_log_retention_defaults)
         log_retention_defaults["job_logs"]=copy.deepcopy(one_log_retention_defaults)
         log_retention_defaults["job_logs"]["min_days"][0]="2.0"
-        self.defaults['advertise_with_tcp']=('False','Bool', 'Should condor_advertise use TCP connections?',None)
-        self.defaults['advertise_with_multiple']=('False','Bool', 'Should condor_advertise use -multiple?',None)
+        self.defaults['advertise_with_tcp']=('True','Bool', 'Should condor_advertise use TCP connections?',None)
+        self.defaults['advertise_with_multiple']=('True','Bool', 'Should condor_advertise use -multiple?',None)
         log_retention_defaults["summary_logs"]=copy.deepcopy(one_log_retention_defaults)
         log_retention_defaults["summary_logs"]["max_days"][0]="31.0"
         log_retention_defaults["condor_logs"]=copy.deepcopy(one_log_retention_defaults)
