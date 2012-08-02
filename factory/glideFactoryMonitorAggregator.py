@@ -161,7 +161,7 @@ def verifyRRD(fix_rrd=False):
         "Status_Attributes.rrd"),status_dict, fix_rrd)
     verifyHelper(os.path.join(total_dir,
         "Log_Completed.rrd"),
-        glideFactoryMonitoring.log_completed_defaults, fix_rrd)
+        glideFactoryMonitoring.getLogCompletedDefaults(), fix_rrd)
     verifyHelper(os.path.join(total_dir,
         "Log_Completed_Stats.rrd"),completed_stats_dict, fix_rrd)
     verifyHelper(os.path.join(total_dir,
@@ -178,7 +178,7 @@ def verifyRRD(fix_rrd=False):
                         "Status_Attributes.rrd"),status_dict, fix_rrd)
                     verifyHelper(os.path.join(current_dir,
                         "Log_Completed.rrd"),
-                        glideFactoryMonitoring.log_completed_defaults,fix_rrd)
+                        glideFactoryMonitoring.getLogCompletedDefaults(),fix_rrd)
                     verifyHelper(os.path.join(current_dir,
                         "Log_Completed_Stats.rrd"),completed_stats_dict,fix_rrd)
                     verifyHelper(os.path.join(current_dir,
