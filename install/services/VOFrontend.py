@@ -811,26 +811,18 @@ please verify and correct if needed.
 
   #--------------------------------
   def config_data(self,schedds,match_criteria): 
-    data = """<frontend frontend_name="%s" """ % (self.frontend_name())
+    data = """<frontend frontend_name="%s" 
+         advertise_delay="5" 
+         advertise_with_multiple="True" 
+         advertise_with_tcp="True" 
+         loop_delay="60" 
+         restart_attempts="3" 
+         restart_interval="1800" """ % (self.frontend_name())
+
     if self.install_type() == "rpm":
-      data += """
-         advertise_delay="5" 
-         advertise_with_multiple="False" 
-         advertise_with_tcp="False" 
-         frontend_versioning="False" 
-         loop_delay="60" 
-         restart_attempts="3" 
-         restart_interval="1800">
-""" 
+        data += ' frontend_versioning="False">'
     else:
-      data += """
-         advertise_delay="5" 
-         advertise_with_multiple="False" 
-         advertise_with_tcp="False" 
-         loop_delay="60" 
-         restart_attempts="3" 
-         restart_interval="1800">
-""" 
+        data += '>'
 
     data += """\
       <log_retention>
