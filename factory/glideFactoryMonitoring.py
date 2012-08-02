@@ -22,14 +22,7 @@ import glideFactoryLib
 
 # list of rrd files that each site has
 rrd_list = ('Status_Attributes.rrd', 'Log_Completed.rrd', 'Log_Completed_Stats.rrd', 'Log_Completed_WasteTime.rrd', 'Log_Counts.rrd')
-log_completed_defaults= {'Glideins':0,
-                     'Lasted':0,
-                     'FailedNr':0,
-                     'JobsNr':0,
-                     'JobsLasted':0,
-                     'JobsTerminated':0,
-                     'JobsGoodput':0,
-                     'CondorLasted':0}
+
 ############################################################
 #
 # Configuration
@@ -752,7 +745,7 @@ class condorLogSummary:
         for enle_jobs_duration_range in getAllTimeRanges():
             count_jobs_duration[enle_jobs_duration_range]=0 # make sure all are intialized
 
-        count_total=log_completed_defaults
+        count_total=getLogCompletedDefaults()
         
         count_waste_mill={'validation':{},
                           'idle':{},
@@ -1347,6 +1340,11 @@ class Descript2XML:
 ##################################################
 def getAllJobTypes():
         return ('validation','idle', 'badput', 'nosuccess')
+
+def getLogCompletedDefaults():
+        return {'Glideins':0, 'Lasted':0, 'FailedNr':0, 
+            'JobsNr':0, 'JobsLasted':0, 'JobsTerminated':0, 
+            'JobsGoodput':0, 'CondorLasted':0}
 
 def getTimeRange(absval):
         if absval<1:
