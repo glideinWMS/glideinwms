@@ -378,9 +378,12 @@ def update_x509_proxy_file(entry_name,username,client_id, proxy_data):
     
     dn=""
     voms=""
-    (f,tempfilename)=tempfile.mkstemp()
-    os.write(f,proxy_data)
-    os.close(f)
+    try:
+        (f,tempfilename)=tempfile.mkstemp()
+        os.write(f,proxy_data)
+        os.close(f)
+    except:
+        log_files.logError("Unable to create tempfile %s!" % tempfilename)
     
     try:
         dn_list=condorExe.iexe_cmd("openssl x509 -subject -noout",stdin_data=proxy_data)
@@ -392,7 +395,10 @@ def update_x509_proxy_file(entry_name,username,client_id, proxy_data):
         #If voms-proxy-info doesn't exist, just hash on dn
         voms=""
 
-    os.unlink(tempfilename)
+    try:
+        os.unlink(tempfilename)
+    except:
+        log_files.logError("Unable to delete tempfile %s!" % tempfilename)
 
     hash_val=str(abs(hash(dn+voms))%1000000)
 
