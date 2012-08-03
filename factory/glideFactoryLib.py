@@ -566,10 +566,11 @@ def keepIdleGlideins(client_condorq, client_int_name,
         
     # Have a valid idle number to request
     # Check that adding more doesn't exceed frontend:sec_class and entry limits
+    
     add_glideins = glidein_totals.can_add_idle_glideins(add_glideins, frontend_name)
     if add_glideins <= 0:
         # Have hit entry or frontend:sec_class limit, cannot submit
-        log_files.logActivity("Additional idle glideins %i needed exceeds entry and/or frontend security class limits, not submitting" % add_glideins)
+        log_files.logActivity("Additional %s idle glideins requested by %s exceeds frontend:security class limit for the entry, not submitting" % (req_min_idle, frontend_name))
         return clean_glidein_queue(remove_excess, glidein_totals, condorq, req_min_idle, req_max_glideins, frontend_name)
     else:
         # If we are requesting more than the maximum glideins that we can submit at one time, then set to the max submit number
@@ -1416,6 +1417,7 @@ class GlideinTotals:
 
         for (jd_key, max_glideinstatus_key) in limits_keynames:
             fe_glideins_param = jobDescript.data[jd_key]
+
             if (fe_glideins_param.find(";") != -1):
                 for el in fe_glideins_param.split(","):
                     el_list = el.split(";")
