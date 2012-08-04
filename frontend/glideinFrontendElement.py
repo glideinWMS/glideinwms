@@ -494,6 +494,8 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
     advertizer=glideinFrontendInterface.MultiAdvertizeWork(descript_obj)
     resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser(multi_support=glideinFrontendInterface.frontendConfig.advertise_use_multi)
     
+    processed_glideid_strs=[] # we will need this for faster lookup later
+
     log_factory_header()
     total_up_stats_arr=init_factory_stats_arr()
     total_down_stats_arr=init_factory_stats_arr()
@@ -504,6 +506,8 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
         request_name=glideid[1]
         my_identity=str(glideid[2]) # get rid of unicode
         glideid_str="%s@%s"%(request_name,factory_pool_node)
+        processed_glideid_strs.append(glideid_str)
+
         glidein_el=glidein_dict[glideid]
 
         glidein_in_downtime=False
@@ -681,6 +685,8 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
             kexpr=paramsDescript.expr_objs[k]
             # convert kexpr -> kval
             glidein_params[k]=glideinFrontendLib.evalParamExpr(kexpr,paramsDescript.const_data,glidein_el)
+        # we will need this param to monitor orphaned glideins
+        glidein_params['GLIDECLIENT_ReqNode']=factory_pool_node
 
         stats['group'].logFactReq(
             glideid_str, glidein_min_idle, glidein_max_run, glidein_params)
@@ -726,6 +732,41 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
         resource_advertiser.addClassad(resource_classad.adParams['Name'], resource_classad)
 
     # end for glideid in condorq_dict_types['Idle']['count'].keys()
+
+    ###
+    # Find out the Factory entries that are running, but for which
+    # Factory ClassAds don't exist
+    #
+    factory_entry_list=glideinFrontendLib.getFactoryEntryList(status_dict)
+    processed_glideid_str_set=frozenset(processed_glideid_strs)
+    
+    factory_entry_list.sort() # sort for the sake of monitoring
+    for a in factory_entry_list:
+        request_name,factory_pool_node=a
+        glideid_str="%s@%s"%(request_name,factory_pool_node)
+        if glideid_str in processed_glideid_str_set:
+            continue # already processed... ignore
+
+        count_status_multi[request_name]={}
+        for st in status_dict_types.keys():
+            c=glideinFrontendLib.getClientCondorStatus(status_dict_types[st]['dict'],frontend_name,group_name,request_name)
+            count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
+        count_status=count_status_multi[request_name]
+        
+        # ignore matching jobs
+        # since we don't have the entry classad, we have no clue how to match
+        this_stats_arr=(0,0,0,0,0,0,0,0,
+                        count_status['Total'],count_status['Idle'],count_status['Running'],
+                        0,0)
+
+        stats['group'].logMatchedGlideins(
+            glideid_str, count_status['Total'],count_status['Idle'],
+            count_status['Running'])
+
+        # since I don't see it in the factory anymore, mark it as down
+        stats['group'].logFactDown(glideid_str, True)
+        total_down_stats_arr=log_and_sum_factory_line(glideid_str,True,this_stats_arr,total_down_stats_arr)
+
 
     # Log the totals
     for el in (('MatchedUp',total_up_stats_arr, True),('MatchedDown',total_down_stats_arr, False)):

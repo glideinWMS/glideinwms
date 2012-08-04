@@ -142,6 +142,9 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
                     mfobj.load()
                     self.monitor_htmls.append(mfobj)
 
+        # Tell condor to advertise GLIDECLIENT_ReqNode
+        self.dicts['vars'].add_extended('GLIDECLIENT_ReqNode','string',None,None,False,True,False)
+
         # derive attributes
         populate_common_attrs(self.dicts)
 
