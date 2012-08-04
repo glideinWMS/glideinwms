@@ -357,7 +357,7 @@ def evalParamExpr(expr_obj, frontend, glidein):
 #
 def getCondorStatus(collector_names, constraint=None, format_list=None):
     if format_list != None:
-        format_list = condorMonitor.complete_format_list(format_list, [('State', 's'), ('Activity', 's'), ('EnteredCurrentState', 'i'), ('EnteredCurrentActivity', 'i'), ('LastHeardFrom', 'i'), ('GLIDEIN_Factory', 's'), ('GLIDEIN_Name', 's'), ('GLIDEIN_Entry_Name', 's'), ('GLIDECLIENT_Name', 's'), ('GLIDEIN_Schedd', 's')])
+        format_list = condorMonitor.complete_format_list(format_list, [('State', 's'), ('Activity', 's'), ('EnteredCurrentState', 'i'), ('EnteredCurrentActivity', 'i'), ('LastHeardFrom', 'i'), ('GLIDEIN_Factory', 's'), ('GLIDEIN_Name', 's'), ('GLIDEIN_Entry_Name', 's'), ('GLIDECLIENT_Name', 's'), ('GLIDECLIENT_ReqNode','s'), ('GLIDEIN_Schedd', 's')])
     return getCondorStatusConstrained(collector_names, '(IS_MONITOR_VM=!=True)&&(GLIDEIN_Factory=!=UNDEFINED)&&(GLIDEIN_Name=!=UNDEFINED)&&(GLIDEIN_Entry_Name=!=UNDEFINED)', constraint, format_list)
 
 #
@@ -414,6 +414,24 @@ def countCondorStatus(status_dict):
         count += len(status_dict[collector_name].fetchStored())
     return count
 
+#
+# Given startd classads, return the list of all the factory entries
+# Each element in the list is (req_name, node_name)
+#
+def getFactoryEntryList(status_dict):
+    out=set()
+    for c in status_dict.keys():
+        coll_status_dict=status_dict[c].fetchStored()
+        for n in coll_status_dict.keys():
+            el=coll_status_dict[n]
+            if not (el.has_key('GLIDEIN_Entry_Name') and el.has_key('GLIDEIN_Name') and el.has_key('GLIDEIN_Factory') and el.has_key('GLIDECLIENT_ReqNode')):
+                continue # ignore this glidein... no factory info
+            entry_str="%s@%s@%s"%(el['GLIDEIN_Entry_Name'],el['GLIDEIN_Name'],el['GLIDEIN_Factory'])
+            factory_pool=str(el['GLIDECLIENT_ReqNode'])
+            out.add((entry_str,factory_pool))
+
+    return list(out)
+        
 ############################################################
 #
 # I N T E R N A L - Do not use
