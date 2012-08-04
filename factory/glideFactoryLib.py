@@ -78,6 +78,10 @@ class FactoryConfig:
         self.max_removes = 5
         self.max_releases = 20
 
+        # release related limits
+        self.max_release_count = 10
+        self.min_release_time = 300
+
         # monitoring objects
         # create them for the logging to occur
         self.client_internals = None
@@ -287,6 +291,7 @@ def getCondorQData(entry_name,
     q_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")%s && (%s =!= UNDEFINED)'%(fsa_str,factoryConfig.factory_name,gsa_str,factoryConfig.glidein_name,esa_str,entry_name,client_constraint,x509id_str)
     q_glidein_format_list=[("JobStatus","i"), ("GridJobStatus","s"), ("ServerTime","i"), ("EnteredCurrentStatus","i"), 
                            (factoryConfig.x509id_schedd_attribute,"s"), ("HoldReasonCode","i"), ("HoldReasonSubCode","i"), 
+                           ("NumSystemHolds","i"),
                            (factoryConfig.frontend_name_attribute, "s"), 
                            (csa_str,"s"), (xsa_str,"s")]
 
@@ -760,8 +765,10 @@ def sanitizeGlideins(condorq,status):
     # Check if there are held glideins
     held_list=extractRecoverableHeld(condorq,status)
     if len(held_list)>0:
-        log_files.logWarning("Found %i held glideins"%len(held_list))
-        releaseGlideins(condorq.schedd_name,held_list)
+        limited_held_list=extractRecoverableHeldWithinLimits(condorq,status)
+        log_files.logWarning("Found %i held glideins, %i within limits"%(len(held_list),len(limited_held_list)))
+        if len(limited_held_list)>0:
+            releaseGlideins(condorq.schedd_name,limited_held_list)
 
     # Now look for VMs that have not been claimed for a long time
     staleunclaimed_list=extractStaleUnclaimed(condorq,status)
@@ -803,8 +810,10 @@ def sanitizeGlideinsSimple(condorq):
     # Check if there are held glideins
     held_list=extractRecoverableHeldSimple(condorq)
     if len(held_list)>0:
-        log_files.logWarning("Found %i held glideins"%len(held_list))
-        releaseGlideins(condorq.schedd_name,held_list)
+        limited_held_list = extractRecoverableHeldSimpleWithinLimits(condorq)
+        log_files.logWarning("Found %i held glideins, %i within limits"%(len(held_list),len(limited_held_list)))
+        if len(limited_held_list)>0:
+            releaseGlideins(condorq.schedd_name,limited_held_list)
 
     return
 
@@ -1011,10 +1020,27 @@ def extractRecoverableHeld(q,status):
 
     return diffList(qheld_list,sheld_list)
 
+def extractRecoverableHeldWithinLimits(q,status):
+    # first find out the held jids
+    #  Held==5 and glideins are recoverable
+    qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el) and isGlideinWithinHeldLimits(el)))
+    qheld_list=qheld.keys()
+    
+    # find out if any "Held" glidein is running instead (in condor_status)
+    sheld_list=extractRegistered(q,status,qheld_list)
+
+    return diffList(qheld_list,sheld_list)
+
 def extractRecoverableHeldSimple(q):
     #  Held==5 and glideins are recoverable
     #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
     qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el)))
+    qheld_list=qheld.keys()
+    return qheld_list
+
+def extractRecoverableHeldSimpleWithinLimits(q):
+    #  Held==5 and glideins are recoverable
+    qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el) and isGlideinWithinHeldLimits(el)))
     qheld_list=qheld.keys()
     return qheld_list
 
@@ -1329,6 +1355,45 @@ def releaseGlideins(schedd_name,jid_list):
     log_files.logActivity("Released %i glideins on %s: %s"%(len(released_jids),schedd_name,released_jids))
 
 
+def isGlideinWithinHeldLimits(jobInfo):
+    """
+    This function looks at the glidein job's information and returns if the
+    CondorG job can be released.
+
+    This is useful to limit how often held jobs are released.
+
+    @type jobInfo: dictionary
+    @param jobInfo: Dictionary containing glidein job's classad information
+
+    @rtype: bool
+    @return: True if job is within limits, False if it is not
+    """
+
+    global factoryConfig
+
+    # some basic sanity checks to start
+    if not jobInfo.has_key('JobStatus'):
+        return True
+    if jobInfo['JobStatus']!=5:
+        return True
+
+    # assume within limits, unless released recently or has been released too often
+    within_limits=True
+
+    num_holds=1
+    if jobInfo.has_key('NumSystemHolds'):
+        num_holds=jobInfo['NumSystemHolds']
+        
+    if num_holds>factoryConfig.max_release_count:
+        within_limits=False
+
+    if jobInfo.has_key('ServerTime') and jobInfo.has_key('EnteredCurrentStatus'):
+        held_period=jobInfo['ServerTime']-jobInfo['EnteredCurrentStatus']
+        if (held_period*num_holds)<factoryConfig.min_release_time: # slower for repeat offenders
+            within_limits=False
+
+    return within_limits
+
 # Get list of CondorG job status for held jobs that are not recoverable
 def isGlideinUnrecoverable(jobInfo):
     """
@@ -1365,6 +1430,8 @@ def isGlideinUnrecoverable(jobInfo):
     # 121 : the job state file doesn't exist 
     # 122 : could not read the job state file
 
+    global factoryConfig
+
     unrecoverable = False
     # Dictionary of {HeldReasonCode: HeldReasonSubCode}
     unrecoverableCodes = {2: [ 0, 2, 4, 5, 7, 8, 9, 10, 14, 17, 
@@ -1377,6 +1444,15 @@ def isGlideinUnrecoverable(jobInfo):
         subCode = jobInfo['HoldReasonSubCode']
         if (unrecoverableCodes.has_key(code) and (subCode in unrecoverableCodes[code])):
             unrecoverable = True
+
+    num_holds=1
+    if jobInfo.has_key('JobStatus') and jobInfo.has_key('NumSystemHolds'):
+        if jobInfo['JobStatus']==5:
+            num_holds=jobInfo['NumSystemHolds']
+
+    if num_holds>factoryConfig.max_release_count:
+        unrecoverable = True
+
     return unrecoverable
 
 class GlideinTotals:
