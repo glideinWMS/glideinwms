@@ -45,7 +45,7 @@ class GlideinParams(cWParams.CommonParams):
 
         self.max_job_frontend_defaults=cWParams.commentedOrderedDict()
         self.max_job_frontend_defaults["name"]=(None,"string","frontend name",None)
-        self.max_job_frontend_defaults["security_class"]=("All","string","security class",None)
+        #self.max_job_frontend_defaults["security_class"]=("All","string","security class",None)
         self.max_job_frontend_defaults["held"]=('1000',"nr","Maximum number of held glideins (for this frontend) before forcing the cleanup.",None)
         self.max_job_frontend_defaults["idle"]=('2000',"nr","Maximum number of idle glideins (for this frontend) allowed.",None)
         self.max_job_frontend_defaults["running"]=('10000',"nr","Maximum number of concurrent glideins (per frontend) that can be submitted",None)
