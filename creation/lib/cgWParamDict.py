@@ -690,8 +690,6 @@ def populate_job_descript(work_dir, job_descript_dict,
     max_running_frontends=""
     for frontend_name in sub_params.config.max_jobs.max_job_frontends.keys():
         el=sub_params.config.max_jobs.max_job_frontends[frontend_name]
-        #frontend_name=X+":"+el.security_class+";"
-        #frontend_name = X
         max_held_frontends += frontend_name+";"+el.held+","
         max_idle_frontends += frontend_name+";"+el.idle+","
         max_running_frontends += frontend_name+";"+el.running+","
