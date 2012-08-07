@@ -110,4 +110,9 @@ ALLOW_VM_CRUFT=True
 
 # Disable condor_preen for Condor > 7.5.0
 PREEN=
+
+# Unset java so we can explicitly set it if required
 JAVA=
+
+# Condor transfer plugins
+FILETRANSFER_PLUGINS = $(LIBEXEC)/curl_plugin, $(LIBEXEC)/data_plugin
