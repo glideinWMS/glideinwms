@@ -11,13 +11,7 @@ import os
 import sys
 STARTUP_DIR=sys.path[0]
 
-#sys.path.append(os.path.join(STARTUP_DIR,".."))
-# get source dir from env var until we push upstream to glideinWMS
-if 'GLIDEIN_SRC_DIR' in os.environ:
-    sys.path.append(os.path.join(os.environ['GLIDEIN_SRC_DIR'], "factory"))
-else:
-    print '"GLIDEIN_SRC_DIR" not defined. exiting.'
-    sys.exit(1)
+sys.path.append(os.path.join(STARTUP_DIR,".."))
 
 import glideFactoryConfig
 
