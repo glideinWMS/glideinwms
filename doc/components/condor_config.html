@@ -439,6 +439,7 @@ JobFinishedHookDone,MATCH_EXP_JOBGLIDEIN_Site,RemoteHost<br/>
   SCHEDD.SCHEDDGLIDEINS2.LOCK          = $(SCHEDD.SCHEDDGLIDEINS2.LOCAL_DIR)/lock<br/>
   SCHEDD.SCHEDDGLIDEINS2.PROCD_ADDRESS = $(SCHEDD.SCHEDDGLIDEINS2.LOCAL_DIR)/procd_pipe<br/>
   SCHEDD.SCHEDDGLIDEINS2.SPOOL         = $(SCHEDD.SCHEDDGLIDEINS2.LOCAL_DIR)/spool<br/>
+  SCHEDD.SCHEDDGLIDEINS2.JOB_QUEUE_LOG         = $(SCHEDD.SCHEDDGLIDEINS2.SPOOL)/job_queue.log<br/>
   SCHEDD.SCHEDDGLIDEINS2.SCHEDD_ADDRESS_FILE   = $(SCHEDD.SCHEDDGLIDEINS2.SPOOL)/.schedd_address<br/>
   SCHEDD.SCHEDDGLIDEINS2.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.SCHEDDGLIDEINS2.SPOOL)/.schedd_classad<br/>
   SCHEDDGLIDEINS2_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridManagerLog.$(SCHEDD.SCHEDDGLIDEINS2.SCHEDD_NAME).$(USERNAME)"<br/>
@@ -451,6 +452,9 @@ JobFinishedHookDone,MATCH_EXP_JOBGLIDEIN_Site,RemoteHost<br/>
     The capability to define multiple SCHEDD daemons as a Condor attribute is 
     available in Condor 7.5+.<br/>
     <br/>
+    Effective with Condor 7.7.5+, a JOB_QUEUE_LOG attribute was added.  When multiple schedds are used, each additional
+    schedd must specify the unique location for that file.<br/>
+     <br/>
     The execute, lock and spool directories for each schedd must be created manually.<br/>
      <br/>
      For more detailed information on this, refer to the 
@@ -485,6 +489,7 @@ JobFinishedHookDone,MATCH_EXP_JOBGLIDEIN_Site,RemoteHost<br/>
   SCHEDD.SCHEDDJOBS2.LOCK          = $(SCHEDD.SCHEDDJOBS2.LOCAL_DIR)/lock<br/>
   SCHEDD.SCHEDDJOBS2.PROCD_ADDRESS = $(SCHEDD.SCHEDDJOBS2.LOCAL_DIR)/procd_pipe<br/>
   SCHEDD.SCHEDDJOBS2.SPOOL         = $(SCHEDD.SCHEDDJOBS2.LOCAL_DIR)/spool<br/>
+  SCHEDD.SCHEDDJOBS2.JOB_QUEUE_LOG         = $(SCHEDD.SCHEDDJOBS2.SPOOL)/job_queue.log<br/>
   SCHEDD.SCHEDDJOBS2.SCHEDD_ADDRESS_FILE   = $(SCHEDD.SCHEDDJOBS2.SPOOL)/.schedd_address<br/>
   SCHEDD.SCHEDDJOBS2.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.SCHEDDJOBS2.SPOOL)/.schedd_classad<br/>
   <br/> 
@@ -495,6 +500,9 @@ JobFinishedHookDone,MATCH_EXP_JOBGLIDEIN_Site,RemoteHost<br/>
     Atttributes for defining multiple schedds.<br/><br/>
     The capability to define multiple SCHEDD daemons as a Condor attribute is 
     available in Condor 7.5+.<br/>
+    <br/>
+    Effective with Condor 7.7.5+, a JOB_QUEUE_LOG attribute was added.  When multiple schedds are used, each additional
+    schedd must specify the unique location for that file.<br/>
     <br/>
     The execute, lock and spool directories for each schedd must be created manually.<br/>
      <br/>
