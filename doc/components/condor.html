@@ -164,7 +164,9 @@ Note the <b><font color="red">numeric</font></b> suffix used to distinguish each
 If the multiple schedds are being used on your WMS Collector, Condor-G is used
 to submit the glidein pilot jobs and the 
 <font color="green"><b>SCHEDD(GLIDEINS/JOBS)2_ENVIRONMENT attribute</font></b> shown
-below is required.  If not, then it shuold be omitted.
+below is required.  If not, then it should be omitted.
+<br/> <br/>
+Effective with Condor 7.7.5+, the JOB_QUEUE_LOG attribute is required.
 <br/> <br/>
 <blockquote>
 <p>
@@ -178,6 +180,7 @@ SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.EXECUTE       = $(SCHEDD.
 SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCK          = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR)/lock<br/>
 SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.PROCD_ADDRESS = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR)/procd_pipe<br/>
 SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL         = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR)/spool<br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.JOB_QUEUE_LOG         = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/job_queue.log  <b>## Note: Required with Condor 7.7.5+</b><br/>
 SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_ADDRESS_FILE   = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/.schedd_address<br/>
 SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/.schedd_classad<br/>
 SCHEDDGLIDEINS<b><font color="red">2</font></b>_LOCAL_DIR_STRING = "$(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR)"<br/>
@@ -197,6 +200,7 @@ SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.EXECUTE       = $(SCHEDD.SCHE
 SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCK          = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR)/lock<br/>
 SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.PROCD_ADDRESS = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR)/procd_pipe<br/>
 SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL         = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR)/spool<br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.JOB_QUEUE_LOG         = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/job_queue.log  <b>## Note: Required with Condor 7.7.5+</b><br/>
 SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_ADDRESS_FILE   = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/.schedd_address<br/>
 SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/.schedd_classad<br/>
 SCHEDDJOBS<b><font color="red">2</font></b>_LOCAL_DIR_STRING = "$(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR)"<br/>

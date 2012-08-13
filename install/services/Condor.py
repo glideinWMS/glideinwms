@@ -1069,6 +1069,7 @@ SCHEDD.%(upper_name)s.EXECUTE       = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/execute
 SCHEDD.%(upper_name)s.LOCK          = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/lock
 SCHEDD.%(upper_name)s.PROCD_ADDRESS = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/procd_pipe
 SCHEDD.%(upper_name)s.SPOOL         = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/spool
+SCHEDD.%(upper_name)s.JOB_QUEUE_LOG         = $(SCHEDD.%(upper_name)s.SPOOL)/job_queue.log
 SCHEDD.%(upper_name)s.SCHEDD_ADDRESS_FILE   = $(SCHEDD.%(upper_name)s.SPOOL)/.schedd_address
 SCHEDD.%(upper_name)s.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.%(upper_name)s.SPOOL)/.schedd_classad 
 %(upper_name)s_LOCAL_DIR_STRING     = "$(SCHEDD.%(upper_name)s.LOCAL_DIR)"
