@@ -82,6 +82,32 @@ Related Pages:
 <a name="stable"></a>
     <h3>Stable Series</h3>
       <li>
+        <b>v2_6_1</b> released on August xx, 2012 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_6_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_6_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_6_1.tgz">Tarball</a>)<br>
+        <ul>
+	  <li>Factory now limits the speed at which it releases held glideins. After too many unrecoverable attempts, held glideins are removed.
+          <li>Added support for Condor 7.8+<br>
+          <b>KNOWN ISSUE:</b> Only applies if you upgrade condor binaries in place
+          without using the installer. Upgrading condor binaries for user pool
+          and the wms collector with multiple schedds should not be done without          corresponding changes to the condor configuration file. If the
+          JOB_QUEUE_LOG is not correctly configured for each sched, condor
+          queue will be corrupted for all the scheds
+          <li>Glideins now support curl & data file transfer plugins in condor
+          <li>New installations of factory and frontend services now communicate with
+          condor daemons using TCP by default.
+          <li>Bug Fix: Factory configuration now supports specifying limits for
+          different security classes of same frontend<br>
+          <b>KNOWN ISSUE:</b> If limits are configured in the factory, this change 
+          breaks backward compatibility. As a workaround, admin needs to remove
+          the limits and re-apply them after installation and initial configuration
+          <li>Bug Fix: Factory monitoring pages now correctly work in Firefox 14+
+          <li>Bug Fix: Frontend now monitors the glideins correctly when the
+          corresponding factory classad is missing
+          <li>Bug Fix: Fixed factory logging. Factory can now correctly extract info
+          from a voms proxy
+          <li>Bug Fix: Factory now correctly logs the Completed jobs info in rrd
+        </ul>
+      </li>
+      <li>
         <b>v2_6</b> released on July 24, 2012 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_6/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_6/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_6.tgz">Tarball</a>)<br>
         <ul>
 	  <li>Add attr_dict in the environment of the frontend match_expr

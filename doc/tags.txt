@@ -1,3 +1,27 @@
+v2_6_1	Factory now limits the speed at which it releases held glideins. After 
+	  too many unrecoverable attempts, held glideins are removed.
+	Added support for Condor 7.8+
+	  KNOWN ISSUE: Only applies if you upgrade condor binaries in place
+	  without using the installer. Upgrading condor binaries for user pool
+	  and the wms collector with multiple schedds should not be done without
+	  corresponding changes to the condor configuration file. If the
+	  JOB_QUEUE_LOG is not correctly configured for each sched, condor
+	  queue will be corrupted for all the scheds
+	Glideins now support curl & data file transfer plugins in condor
+	New installations of factory and frontend services now communicate with
+	  condor daemons using TCP by default.
+	Bug Fix: Factory configuration now supports specifying limits for 
+	  different security classes of same frontend
+	  KNOWN ISSUE: If limits are configured in the factory, this change
+	  breaks backward compatibility. As a workaround, admin needs to remove
+	  the limits and re-apply them.
+	Bug Fix: Factory monitoring pages now correctly work in Firefox 14+
+	Bug Fix: Frontend now monitors the glideins correctly when the 
+	  corresponding factory classad is missing
+	Bug Fix: Fixed factory logging. Factory can now correctly extract info
+	  from a voms proxy
+	Bug Fix: Factory now correctly logs the Completed jobs info in rrd
+
 v2_6	Add attr_dict in the environment of the frontend match_expr
 	Config defined attributes are now available in match_expr
 	Factory now supports deleting entries using --force_delete
