@@ -24,10 +24,12 @@ import cgWDictFile
 # Create condor tarball and store it into a StringIO
 def create_condor_tar_fd(condor_base_dir):
     try:
+        # List of required files
         condor_bins = [
             'sbin/condor_master', 'sbin/condor_startd', 'sbin/condor_starter'
                       ]
 
+        # List of optional files, included if found in condor distro
         condor_opt_bins = [
             'sbin/condor_procd', 'sbin/gcb_broker_query', 'sbin/condor_fetchlog'
                           ]
@@ -49,7 +51,9 @@ def create_condor_tar_fd(condor_base_dir):
                   'libexec/condor_ssh_to_job_sshd_setup',
                   'libexec/condor_ssh_to_job_shell_setup',
                   'libexec/condor_kflops',
-                  'libexec/condor_mips'
+                  'libexec/condor_mips',
+                  'libexec/curl_plugin',
+                  'libexec/data_plugin',
                               ]
         # check that dir and files exist
         if not os.path.isdir(condor_base_dir):
