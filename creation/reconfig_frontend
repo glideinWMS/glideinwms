@@ -48,6 +48,9 @@ def main(params, old_params, update_scripts, update_def_cfg):
     frontend_dicts_obj=cvWParamDict.frontendDicts(params)
     frontend_dicts_obj.populate()
 
+    if update_scripts == 'yes':
+        frontend_dicts_obj.create_dirs()
+
     # merge them together
     if not old_params is None:
         frontend_dicts_obj.reuse(old_frontend_dicts_obj)
