@@ -1389,7 +1389,7 @@ def isGlideinWithinHeldLimits(jobInfo):
 
     if jobInfo.has_key('ServerTime') and jobInfo.has_key('EnteredCurrentStatus'):
         held_period=jobInfo['ServerTime']-jobInfo['EnteredCurrentStatus']
-        if (held_period*num_holds)<factoryConfig.min_release_time: # slower for repeat offenders
+        if held_period<(num_holds*factoryConfig.min_release_time): # slower for repeat offenders
             within_limits=False
 
     return within_limits
