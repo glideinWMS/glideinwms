@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v2_6_1
+# GLIDEINWMS_VERSION v2_6_1_rc2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 c17183dd58915198f2082d2e7d0a70b4  ./creation/add_entry
@@ -74,7 +74,7 @@ c4d21d2648fe4923e526de833f35059b  ./creation/web_base/validate_node.sh
 0584599805c8e6ec7e6b4012b647819c  ./factory/glideFactoryDowntimeLib.py
 4822ecbef241886ae9fea59b9dd58720  ./factory/glideFactoryEntry.py
 5d33ba0230389035b40cde3e138d70c0  ./factory/glideFactoryInterface.py
-9cb7a866a63112ff96fcff4f1e226c10  ./factory/glideFactoryLib.py
+7cdc1fc411ee46c201660a9e0d14bc6e  ./factory/glideFactoryLib.py
 3482a189fb7828eee17d70d423eea31b  ./factory/glideFactoryLogParser.py
 aa646e974abcef59c6c02da8e158e814  ./factory/glideFactoryMonitorAggregator.py
 957ecfd32a5c81e82c06bb123a5f57ce  ./factory/glideFactoryMonitoring.py
