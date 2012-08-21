@@ -470,8 +470,13 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
 
             if x509_proxies.count_fnames<1:
                 if security_class_downtime_found:
-                    glideFactoryLib.log_files.logWarning("Found proxies for client %s but the security class was in downtime, setting entry into downtime for advertising" % client_int_name)
-                    in_downtime = True
+                    glideFactoryLib.log_files.logWarning("Found proxies for client %s but the security class was in downtime" % client_int_name)
+                    #Note: This used to set the entry into downtime.
+                    #      That is a mistake since it is only in downtime
+                    #       for that security class/frontend.
+                    #Future work: notify the frontend somehow though? 
+                    #in_downtime = True
+                    continue
                 else:
                     glideFactoryLib.log_files.logWarning("No good proxies for %s, skipping request"%client_int_name)
                     continue #skip request
