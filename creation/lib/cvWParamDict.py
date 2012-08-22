@@ -598,6 +598,7 @@ def populate_common_descript(descript_dict,        # will be modified
     if len(params.security.credentials) > 0:
         proxies = []
         proxy_trust_domains = {}
+        proxy_creation_scripts = {}
         proxy_security_classes = {}
         proxy_types = {}
         proxy_key_files = {}
@@ -624,6 +625,8 @@ def populate_common_descript(descript_dict,        # will be modified
                     proxy_vm_ids[pel['absfname']] = pel['vm_id']
                 if pel['vm_type'] != None:
                     proxy_vm_types[pel['absfname']] = pel['vm_type']
+                if pel['creation_script'] != None:
+                    proxy_creation_scripts[pel['absfname']] = pel['creation_script']
             else: #pool
                 pool_idx_len = pel['pool_idx_len']
                 if pool_idx_len == None:
@@ -659,10 +662,14 @@ def populate_common_descript(descript_dict,        # will be modified
                         proxy_vm_ids[absfname] = pel['vm_id']
                     if pel['vm_type'] != None:
                         proxy_vm_types[absfname] = pel['vm_type']
+                    if pel['creation_script'] != None:
+                        proxy_creation_scripts[absfname] = pel['creation_script']
 
         descript_dict.add('Proxies', repr(proxies))
         if len(proxy_trust_domains.keys()) > 0:
             descript_dict.add('ProxyTrustDomains', repr(proxy_trust_domains))
+        if len(proxy_creation_scripts.keys()) > 0:
+            descript_dict.add('ProxyCreationScripts', repr(proxy_creation_scripts))
         if len(proxy_security_classes.keys()) > 0:
             descript_dict.add('ProxySecurityClasses', repr(proxy_security_classes))
         if len(proxy_types.keys()) > 0:
