@@ -116,7 +116,8 @@ if [ -z "$condor_platform_check" ]; then
     STR+="CONDOR_OS      '$condor_os'\n"
     STR+="CONDOR_ARCH    '$condor_arch'\n"
     STR+="Quitting"
-    "$error_gen" -error "condor_platform_select.sh" "Config" "$STR" "OS" "`uname -m`"
+    STR1=`echo -e "$STR"`
+    "$error_gen" -error "condor_platform_select.sh" "Config" "$STR1" "OS" "`uname -m`"
     exit 1
 fi
 

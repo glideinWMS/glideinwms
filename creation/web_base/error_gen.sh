@@ -13,7 +13,7 @@ ERROR_FILE="error_output"
 # --------------------------------------------------------- #
 function detail() {
     echo "    <detail>" >> output
-    echo -e "$1" | awk '{print "       " $0}' >> output
+    echo "$1" | awk '{print "       " $0}' >> output
     echo "    </detail>" >> output
     return
 }

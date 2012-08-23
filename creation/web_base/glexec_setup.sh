@@ -31,7 +31,8 @@ function test_glexec {
     #echo "result: $tst" 1>&2
     STR="glexec test failed, nonzero value $res\n"
     STR+="result: $tst"
-    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "$glexec_bin"
+    STR1=`echo -e "$STR"`
+    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR1" "command" "$glexec_bin"
     exit 1
   else
     tst2=`echo "$tst" |tail -1`
@@ -42,7 +43,8 @@ function test_glexec {
       #echo "Expected 'Hello World', got '$tst2'" 1>&2
       STR="glexec broken\n"
       STR+="Expected 'Hello World', got '$tst2'"
-      "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "$glexec_bin"
+      STR1=`echo -e "$STR"`
+      "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR1" "command" "$glexec_bin"
       exit 1
     fi
   fi
@@ -63,7 +65,8 @@ EOF
     #echo "result: $tst" 1>&2
     STR="glexec test2 failed, nonzero value $res\n"
     STR+="result: $tst"
-    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "$glexec_bin"
+    STR1=`echo -e "$STR"`
+    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR1" "command" "$glexec_bin"
     exit 1
   else
     tst2=`echo "$tst" |tail -1`
@@ -74,7 +77,8 @@ EOF
       #echo "Expected 'Hello World', got '$tst2'" 1>&2
       STR="glexec broken (test2).\n"
       STR+="Expected 'Hello World', got '$tst2'"
-      "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "$glexec_bin"
+      STR1=`echo -e "$STR"`
+      "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR1" "command" "$glexec_bin"
       exit 1
     fi
   fi
@@ -156,7 +160,8 @@ case "$use_glexec" in
     *)
         #echo "`date` USE_GLEXEC in VO Frontend configured to be $use_glexec. Accepted values are 'NEVER' or 'OPTIONAL' or 'REQUIRED'."
         STR="USE_GLEXEC in VO Frontend configured to be $use_glexec.\nAccepted values are 'NEVER' or 'OPTIONAL' or 'REQUIRED'."
-        "$error_gen" -error "glexec_setup.sh" "VO_Config" "$STR" "attribute" "GLIDEIN_Glexec_Use"
+	STR1=`echo -e "$STR"`
+        "$error_gen" -error "glexec_setup.sh" "VO_Config" "$STR1" "attribute" "GLIDEIN_Glexec_Use"
         exit 1
         ;;
 esac

@@ -23,7 +23,8 @@ function check_x509_certs {
         STR+="	\$X509_CERT_DIR ($X509_CERT_DIR)\n"
         STR+="	\$HOME/.globus/certificates/ ($HOME/.globus/certificates/)\n"
         STR+="	/etc/grid-security/certificates/"
-        "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "directory" "$X509_CERT_DIR"
+	STR1=`echo -e "$STR"`
+        "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR1" "directory" "$X509_CERT_DIR"
         exit 1
     fi
     return 0
@@ -36,7 +37,8 @@ function check_x509_proxy {
         STR="Could not find user proxy!"
         STR+="Looked in X509_USER_PROXY='$X509_USER_PROXY'\n"
         STR+=`ls -la "$X509_USER_PROXY"`
-        "$error_gen" -error "setup_x509.sh" "Corruption" "$STR" "proxy" "$X509_USER_PROXY"
+	STR1=`echo -e "$STR"`
+        "$error_gen" -error "setup_x509.sh" "Corruption" "$STR1" "proxy" "$X509_USER_PROXY"
         exit 1
     fi
 
@@ -96,7 +98,8 @@ function check_x509_proxy {
             STR+=`grid-proxy-info`
             STR+="\nvoms-proxy-info:\n"
             STR+=`voms-proxy-info -all`
-            "$error_gen" -error "setup_x509.sh" "VO_Proxy" "$STR" "proxy" "$X509_USER_PROXY"
+	    STR1=`echo -e "$STR"`
+            "$error_gen" -error "setup_x509.sh" "VO_Proxy" "$STR1" "proxy" "$X509_USER_PROXY"
             exit 1
         fi
     fi

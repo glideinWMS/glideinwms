@@ -21,7 +21,8 @@ function check_df {
         #echo "At least $chdf_reqmbs MBs required, found $free KBs" 1>&2
         STR="Space on '$chdf_dir' not enough.\n"
         STR+="At least $chdf_reqmbs MBs required, found $free KBs"
-        "$error_gen" -error "validate_node.sh" "WN_Resource" "$STR" "space" "$chdf_dir"
+	STR1=`echo -e "$STR"`
+        "$error_gen" -error "validate_node.sh" "WN_Resource" "$STR1" "space" "$chdf_dir"
         exit 1
     fi
     return 0
@@ -42,7 +43,8 @@ function check_quotas {
             #echo "At least $chdf_reqmbs MBs required, found $myquota blocks" 1>&2
             STR="Quota on '$chdf_dir' too small.\n"
             STR+="At least $chdf_reqmbs MBs required, found $myquota blocks"
-            "$error_gen" -error "validate_node.sh" "WN_Resource" "$STR" "space" "$chdf_dir"
+	    STR1=`echo -e "$STR"`
+            "$error_gen" -error "validate_node.sh" "WN_Resource" "$STR1" "space" "$chdf_dir"
 	    exit 1
 	fi
     fi

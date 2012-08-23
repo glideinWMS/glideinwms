@@ -18,7 +18,8 @@ function create_gridmapfile {
         if [ $? -ne 0 ]; then
             STR="Cannot get user identity.\n"
             STR+="Tried both grid-proxy-info and voms-proxy-info."
-            "$error_gen" -error "create_mapfile.sh" "WN_Resource" "$STR" "command" "grid-proxy-info"
+	    STR1=`echo -e "$STR"`
+            "$error_gen" -error "create_mapfile.sh" "WN_Resource" "$STR1" "command" "grid-proxy-info"
             exit 1
         fi
     fi
