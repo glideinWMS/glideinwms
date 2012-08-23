@@ -608,6 +608,10 @@ fi
 
 condor_ret=$?
 
+if [ ${condor_ret} -eq 99 ]; then
+    echo "Normal DAEMON_SHUTDOWN encountered" 1>&2
+    condor_ret=0
+fi
 
 end_time=`date +%s`
 let elapsed_time=$end_time-$start_time
