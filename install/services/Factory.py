@@ -545,8 +545,8 @@ export X509_CERT_DIR=%(x509_cert_dir)s
 %(indent3)s</infosys_refs> 
 %(indent3)s<attrs>
 %(indent4)s<attr name="GLIDEIN_Site" value="%(site_name)s"   const="True" type="string" glidein_publish="True"  publish="True"  job_publish="True"  parameter="True"/>
-%(indent4)s<attr name="CONDOR_OS"    value="default"         const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>
-%(indent4)s<attr name="CONDOR_ARCH"  value="default"         const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>
+%(indent4)s<attr name="CONDOR_OS"    value="default"         const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>
+%(indent4)s<attr name="CONDOR_ARCH"  value="default"         const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>
 %(indent4)s<attr name="GLEXEC_BIN"   value="%(glexec_path)s" const="True" type="string" glidein_publish="False" publish="True"  job_publish="False" parameter="True"/>
 %(ccb_attr)s
 %(indent3)s</attrs>
