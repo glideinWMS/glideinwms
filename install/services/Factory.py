@@ -514,7 +514,7 @@ export X509_CERT_DIR=%(x509_cert_dir)s
     data = data + """
 %(indent2)s<attr name="GLEXEC_JOB" value="True" const="True" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>
 %(indent2)s<attr name="USE_MATCH_AUTH" value="True" const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>
-%(indent2)s<attr name="CONDOR_VERSION" value="default" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>
+%(indent2)s<attr name="CONDOR_VERSION" value="default" const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>
 %(indent1)s</attrs>
 """ % \
 { "indent1" : common.indent(1),
