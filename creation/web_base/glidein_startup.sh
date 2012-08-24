@@ -6,6 +6,8 @@
 # File Version: 
 #
 
+global_args="$@"
+
 export LANG=C
 
 function on_die {
@@ -99,15 +101,108 @@ function glidein_exit {
       sleep $sleep_time 
       # wait a bit in case of error, to reduce lost glideins
   fi
+
+  glidein_end_time=`date +%s`
+
+  global_result=""
+  if [ -f output.list ]; then
+      # get the last result, so we can propagate up, if needed
+      last_result=`cat output.ext`
+      
+      # if the file exists, I assume the helper functions exist as well
+      $main_dir/error_augment.sh -init
+      if [ $1 -eq 0 ]; then
+	  $main_dir/error_gen.sh -ok "glidein_startup.sh"
+      else
+	  last_script_name=`echo "$last_result" |awk '/<OSGTestResult /{split($0,a,"id=\""); split(a[2],b,"\""); print b[1];}'`
+
+	  last_script_reason=`echo "$last_result" | awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}'`
+	  my_reason="Validation failed in $last_script_name.
+
+$last_script_reason"
+
+	  $main_dir/error_gen.sh -error "glidein_startup.sh" "Validation" "$my_reason"
+	  # propagate metrics as well
+	  # easier to do it "the dirty way"
+	  rm -f output.tmp
+	  mv output output.tmp
+	  cat output.tmp | awk 'BEGIN{fr=1;}/<[/]result>/{fr=0;}{if (fr==1) print $0}' > output
+	  echo "$last_result" | grep '<metric ' >> output
+	  cat output.tmp | awk 'BEGIN{fr=0;}/<[/]result>/{fr=1;}{if (fr==1) print $0}' >> output
+      fi
+      $main_dir/error_augment.sh  -process $1 "glidein_startup.sh" "$start_dir" "$0 ${global_args}" "${startup_time}" "${glidein_end_time}"
+      
+      global_result=`cat output.list`
+      final_result=`cat output.ext`
+      chmod u+w output.list
+  fi
+
   cd "$start_dir"
   if [ "$work_dir_created" -eq "1" ]; then
     rm -fR "$work_dir"
   fi
 
-  glidein_end_time=`date +%s`
   let total_time=$glidein_end_time-$startup_time
   echo "=== Glidein ending `date` ($glidein_end_time) with code $1 after $total_time ==="
  
+  echo ""
+  echo "=== XML description of glidein activity ==="
+  if [ "${global_result}" != "" ]; then
+      echo '<?xml version="1.0"?>'
+      echo '<OSGTestResult id="glidein_startup.sh" version="4.3.1">'
+
+      # subtests first, since this is at the end of the file
+      # so having the summary at the bottom is better
+      echo '  <subtestlist>'
+      echo '    <OSGTestResults>'
+      echo "${global_result}" | awk '{print "      " $0}'
+      echo '    </OSGTestResults>'
+      echo '  </subtestlist>'
+
+      # print out the original header
+      echo "${final_result}" | awk 'BEGIN{fr=0;}/<[/]operatingenvironment>/{fr=0;}/<operatingenvironment>/{fr=1;}{if (fr==1) print $0}'
+
+      # add the node info
+      echo "    <env name=\"hostname\">`uname -n`</env>"
+      echo "    <env name=\"arch\">`uname -m`</env>"
+      if [ -e '/etc/redhat-release' ]; then
+	  echo "    <env name=\"os\">`cat /etc/redhat-release`</env>"
+      fi
+      echo "    <env name=\"user\">`id -un`</env>"
+
+      # print out the rest of the XML file
+      echo "${final_result}" | awk 'BEGIN{fr=0;}/<[/]operatingenvironment>/{fr=1;}{if (fr==1) print $0}'
+  else
+      # hopefully we never hit this branch
+      # but better be on the safe side
+      echo '<?xml version="1.0"?>'
+      echo '<OSGTestResult id="glidein_startup.sh" version="4.3.1">'
+      echo '  <operatingenvironment>'
+      echo "    <env name=\"hostname\">`uname -n`</env>"
+      echo "    <env name=\"arch\">`uname -m`</env>"
+      if [ -e '/etc/redhat-release' ]; then
+	  echo "    <env name=\"os\">`cat /etc/redhat-release`</env>"
+      fi
+      echo "    <env name=\"user\">`id -un`</env>"
+      echo "    <env name=\"cwd\">$start_dir</env>"
+      echo '  </operatingenvironment>'
+      echo '  <test>'
+      echo "    <cmd>$0 ${global_args}</cmd>"
+      echo "    <tStart>`date --date=@${startup_time} +%Y-%m-%dT%H:%M:%S%:z`</tStart>"
+      echo "    <tEnd>`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`</tEnd>"
+      echo '  </test>'
+      echo '  <result>'
+      if [ $1 -eq 0 ]; then
+	  echo '    <status>OK</status>'
+      else
+	  echo '    <status>ERROR</status>'
+      fi
+      echo '    <detail>No detail. Could not find source XML file.</detail>'
+      echo '  </result>'
+      echo '</OSGTestResult>'
+  fi
+  echo "=== End XML description of glidein activity ==="
+
   exit $1
 }
 
@@ -870,14 +965,19 @@ function fetch_file_base {
 	    echo "Skipping last script $last_script" 1>&2
 	else
             echo "Executing $ffb_outname"
-            START=`date "+%Y-%m-%dT%H:%M:%S"`
+	    # have to do it here, as this will be run before any other script
+            chmod u+rx $main_dir/error_augment.sh
+	    $main_dir/error_augment.sh -init
+            START=`date +%s`
 	    "$ffb_outname" glidein_config "$ffb_id"
 	    ret=$?
-            END=`date "+%Y-%m-%dT%H:%M:%S"`
-            $main_dir/xml_parse.sh  "glidein_startup.sh" "$ffb_outname" glidein_config "$ffb_id" $START $END #generating test result document
+            END=`date +%s`
+            $main_dir/error_augment.sh  -process $ret "$ffb_id/$ffb_target_fname" "$PWD" "$ffb_outname glidein_config" "$START" "$END" #generating test result document
+	    $main_dir/error_augment.sh -concat
 	    if [ $ret -ne 0 ]; then
                 echo "=== Validation error in $ffb_outname ===" 1>&2
 		warn "Error running '$ffb_outname'" 1>&2
+		cat output.ext | awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}' 1>&2
 		return 1
 	    fi
 	fi
@@ -1066,6 +1166,7 @@ trap 'ignore_signal' HUP
 trap 'on_die' TERM
 trap 'on_die' INT
 gs_id_work_dir=`get_work_dir main`
+$main_dir/error_augment.sh -init
 "${gs_id_work_dir}/$last_script" glidein_config &
 wait $!
 ret=$?
@@ -1073,6 +1174,9 @@ if [ $ON_DIE -eq 1 ]; then
         ret=0
 fi
 last_startup_end_time=`date +%s`
+$main_dir/error_augment.sh  -process $ret "$last_script" "$PWD" "${gs_id_work_dir}/$last_script glidein_config" "$last_startup_time" "$last_startup_end_time"
+$main_dir/error_augment.sh -concat
+
 let last_script_time=$last_startup_end_time-$last_startup_time
 echo "=== Last script ended `date` ($last_startup_end_time) with code $ret after $last_script_time ==="
 echo

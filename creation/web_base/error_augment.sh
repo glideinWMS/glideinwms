@@ -16,14 +16,14 @@
 function header() {
     DATEFMT="+%Y-%m-%dT%H:%M:%S%:z"
     echo '<?xml version="1.0"?>' > output.ext #NOTE: wipe previous output file
-    echo "<OSGTestResult id=\"$1\" version=\"1.2\">" >>output.ext
+    echo "<OSGTestResult id=\"$1\" version=\"4.3.1\">" >>output.ext
     echo "  <operatingenvironment>" >> output.ext
     echo "    <env name=\"cwd\">$2</env>" >> output.ext
     echo "  </operatingenvironment>" >> output.ext
     echo "  <test>" >> output.ext
     echo "    <cmd>$3</cmd>" >> output.ext
     echo "    <tStart>`date --date=@$4 $DATEFMT`</tStart>" >> output.ext
-    echo "    <tEnd>`date --date=@$4 $DATEFMT`</tEnd>" >> output.ext
+    echo "    <tEnd>`date --date=@$5 $DATEFMT`</tEnd>" >> output.ext
     echo "  </test>" >> output.ext
     echo "  <result>" >> output.ext
     return
@@ -74,9 +74,9 @@ function create_empty() {
     else
 	echo "    <status>ERROR</status>" >> output.ext
     fi
-    echo "    <detail>" >> output
+    echo "    <detail>" >> output.ext
     echo "       The test script did not produce an XML file. No further information available." >> output.ext
-    echo "    </detail>" >> output
+    echo "    </detail>" >> output.ext
     close
     return
 }
