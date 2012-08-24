@@ -93,6 +93,38 @@ shift
 shift
 done
 
+function python_b64uuencode {
+    echo "begin-base64 644 -"
+    python -c 'import binascii,sys;fd=sys.stdin;buf=fd.read();size=len(buf);idx=0
+while size>57:
+ print binascii.b2a_base64(buf[idx:idx+57]),;
+ idx+=57;
+ size-=57;
+print binascii.b2a_base64(buf[idx:]),'
+    echo "===="
+}
+
+function base64_b64uuencode {
+    echo "begin-base64 644 -"
+    base64 -
+    echo "===="
+}
+
+# not all WNs have all the tools installed
+function b64uuencode {
+    which uuencode >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+	uuencode -m -
+    else
+	which base64 >/dev/null 2>&1
+	if [ $? -eq 0 ]; then
+	    base64_b64uuencode
+	else
+	    python_b64uuencode
+	fi
+    fi
+}
+
 ####################################
 # Cleaup, print out message and exit
 work_dir_created=0
@@ -121,21 +153,89 @@ function glidein_exit {
 
 $last_script_reason"
 
-	  $main_dir/error_gen.sh -error "glidein_startup.sh" "Validation" "$my_reason"
+	  $main_dir/error_gen.sh -error "glidein_startup.sh" "Validation" "$my_reason" "TestID" "$last_script_name"
 	  # propagate metrics as well
 	  # easier to do it "the dirty way"
 	  rm -f output.tmp
 	  mv output output.tmp
-	  cat output.tmp | awk 'BEGIN{fr=1;}/<[/]result>/{fr=0;}{if (fr==1) print $0}' > output
+	  cat output.tmp | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<status>/{fr=0;}' > output
 	  echo "$last_result" | grep '<metric ' >> output
-	  cat output.tmp | awk 'BEGIN{fr=0;}/<[/]result>/{fr=1;}{if (fr==1) print $0}' >> output
+	  # we want to keep the failure field from the last failed script
+	  cat output.tmp | grep -v '<metric name="failure" ' | awk 'BEGIN{fr=0;}/<[/]result>/{fr=1;}{if (fr==1) print $0}/<status>/{fr=1;}' >> output
       fi
       $main_dir/error_augment.sh  -process $1 "glidein_startup.sh" "$start_dir" "$0 ${global_args}" "${startup_time}" "${glidein_end_time}"
       
       global_result=`cat output.list`
-      final_result=`cat output.ext`
       chmod u+w output.list
+  else
+      # create a minimal XML file, else
+      echo '<?xml version="1.0"?>
+<OSGTestResult id="glidein_startup.sh" version="4.3.1">
+  <operatingenvironment>' >output.ext
+      echo "    <env name=\"cwd\">$start_dir</env>
+  </operatingenvironment>
+  <test>
+    <cmd>$0 ${global_args}</cmd>
+    <tStart>`date --date=@${startup_time} +%Y-%m-%dT%H:%M:%S%:z`</tStart>
+    <tEnd>`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`</tEnd>
+  </test>
+  <result>" >>output.ext
+      if [ $1 -eq 0 ]; then
+	  echo '    <status>OK</status>' >>output.ext
+      else
+	  echo '    <status>ERROR</status>' >>output.ext
+      fi
+      echo '    <detail>
+      No detail. Could not find source XML file.
+    </detail>
+  </result>
+</OSGTestResult>'  >>output.ext
   fi
+
+
+  final_result=`cat output.ext`
+
+  # augment with node info
+  echo "${final_result}" | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<operatingenvironment>/{fr=0;}' > output.ext
+
+  echo "    <env name=\"client_name\">$client_name</env>" >> output.ext
+  echo "    <env name=\"client_group\">$client_group</env>" >> output.ext
+
+  echo "    <env name=\"user\">`id -un`</env>" >> output.ext
+  echo "    <env name=\"arch\">`uname -m`</env>" >> output.ext
+  if [ -e '/etc/redhat-release' ]; then
+      echo "    <env name=\"os\">`cat /etc/redhat-release`</env>" >> output.ext
+  fi
+  echo "    <env name=\"hostname\">`uname -n`</env>" >> output.ext
+
+  echo "${final_result}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<operatingenvironment>/{fr=1;}'  >> output.ext
+
+  final_result_simple=`cat output.ext`
+
+  # Create a richer version, too
+  echo "${final_result_simple}" | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<OSGTestResult /{fr=0;}' > output.ext
+
+  if [ "${global_result}" != "" ]; then
+      # subtests first, so it is more readable, when tailing
+      echo '  <subtestlist>' >> output.ext
+      echo '    <OSGTestResults>' >> output.ext
+      echo "${global_result}" | awk '{print "      " $0}' >> output.ext
+      echo '    </OSGTestResults>' >> output.ext
+      echo '  </subtestlist>' >> output.ext
+  fi
+
+  echo "${final_result_simple}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<OSGTestResult /{fr=1;}/<operatingenvironment>/{fr=0;}' >> output.ext
+
+  echo "    <env name=\"glidein_factory\">$glidein_factory</env>" >> output.ext
+  echo "    <env name=\"glidein_name\">$glidein_name</env>" >> output.ext
+  echo "    <env name=\"glidein_entry\">$glidein_entry</env>" >> output.ext
+  echo "    <env name=\"condorg_cluster\">$condorg_cluster</env>" >> output.ext
+  echo "    <env name=\"condorg_subcluster\">$condorg_subcluster</env>" >> output.ext
+  echo "    <env name=\"condorg_schedd\">$condorg_schedd</env>" >> output.ext
+
+  echo "${final_result_simple}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<operatingenvironment>/{fr=1;}'  >> output.ext
+
+  final_result_long=`cat output.ext`
 
   cd "$start_dir"
   if [ "$work_dir_created" -eq "1" ]; then
@@ -147,61 +247,13 @@ $last_script_reason"
  
   echo ""
   echo "=== XML description of glidein activity ==="
-  if [ "${global_result}" != "" ]; then
-      echo '<?xml version="1.0"?>'
-      echo '<OSGTestResult id="glidein_startup.sh" version="4.3.1">'
-
-      # subtests first, since this is at the end of the file
-      # so having the summary at the bottom is better
-      echo '  <subtestlist>'
-      echo '    <OSGTestResults>'
-      echo "${global_result}" | awk '{print "      " $0}'
-      echo '    </OSGTestResults>'
-      echo '  </subtestlist>'
-
-      # print out the original header
-      echo "${final_result}" | awk 'BEGIN{fr=0;}/<[/]operatingenvironment>/{fr=0;}/<operatingenvironment>/{fr=1;}{if (fr==1) print $0}'
-
-      # add the node info
-      echo "    <env name=\"hostname\">`uname -n`</env>"
-      echo "    <env name=\"arch\">`uname -m`</env>"
-      if [ -e '/etc/redhat-release' ]; then
-	  echo "    <env name=\"os\">`cat /etc/redhat-release`</env>"
-      fi
-      echo "    <env name=\"user\">`id -un`</env>"
-
-      # print out the rest of the XML file
-      echo "${final_result}" | awk 'BEGIN{fr=0;}/<[/]operatingenvironment>/{fr=1;}{if (fr==1) print $0}'
-  else
-      # hopefully we never hit this branch
-      # but better be on the safe side
-      echo '<?xml version="1.0"?>'
-      echo '<OSGTestResult id="glidein_startup.sh" version="4.3.1">'
-      echo '  <operatingenvironment>'
-      echo "    <env name=\"hostname\">`uname -n`</env>"
-      echo "    <env name=\"arch\">`uname -m`</env>"
-      if [ -e '/etc/redhat-release' ]; then
-	  echo "    <env name=\"os\">`cat /etc/redhat-release`</env>"
-      fi
-      echo "    <env name=\"user\">`id -un`</env>"
-      echo "    <env name=\"cwd\">$start_dir</env>"
-      echo '  </operatingenvironment>'
-      echo '  <test>'
-      echo "    <cmd>$0 ${global_args}</cmd>"
-      echo "    <tStart>`date --date=@${startup_time} +%Y-%m-%dT%H:%M:%S%:z`</tStart>"
-      echo "    <tEnd>`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`</tEnd>"
-      echo '  </test>'
-      echo '  <result>'
-      if [ $1 -eq 0 ]; then
-	  echo '    <status>OK</status>'
-      else
-	  echo '    <status>ERROR</status>'
-      fi
-      echo '    <detail>No detail. Could not find source XML file.</detail>'
-      echo '  </result>'
-      echo '</OSGTestResult>'
-  fi
+  echo  "${final_result_simple}" | grep -v "<cmd>"
   echo "=== End XML description of glidein activity ==="
+
+  echo "" 1>&2
+  echo "=== Encoded XML description of glidein activity ===" 1>&2
+  echo "${final_result_long}" | gzip --stdout - | b64uuencode 1>&2
+  echo "=== End encoded XML description of glidein activity ===" 1>&2
 
   exit $1
 }
