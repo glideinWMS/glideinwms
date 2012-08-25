@@ -159,6 +159,8 @@ function glidein_exit {
       # cannot use helper functions, as it may get here very early
       if [ $1 -eq 0 ]; then
 	  echo "    <status>OK</status>">>output.ext
+	  # propagate metrics as well
+	  echo "$last_result" | grep '<metric ' >> output.ext
       else
 	  last_script_name=`echo "$last_result" |awk '/<OSGTestResult /{split($0,a,"id=\""); split(a[2],b,"\""); print b[1];}'`
 
@@ -169,7 +171,7 @@ $last_script_reason"
 
 	  echo "    <status>ERROR</status>
     <metric name=\"TestID\" ts=\"`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$last_script_name</metric>" >> output.ext
-	  # propagate metrics as well
+	  # propagate metrics as well (will include the failure metric)
 	  echo "$last_result" | grep '<metric ' >> output.ext
 	  echo "    <detail>
 ${last_script_reason}
@@ -184,6 +186,7 @@ ${last_script_reason}
 	  status="OK"
       else
 	  status="ERROR"
+	  echo "    <metric name=\"failure\" ts=\"`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Unknown</metric>" >> output.ext
       fi
       echo "    <status>$status</status>
     <detail>
