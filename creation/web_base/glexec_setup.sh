@@ -19,7 +19,7 @@ function no_use_glexec_config {
     add_condor_vars_line "GLEXEC_STARTER" "C" "False" "+" "Y" "Y" "-"
     add_condor_vars_line "GLEXEC_JOB"     "C" "False" "+" "Y" "Y" "-"
 
-    "$error_gen" -ok "glexec_setup.sh" "Glexec" "glexec"
+    "$error_gen" -ok "glexec_setup.sh" "use_glexec" "False"
     exit 0
 }
 
@@ -330,6 +330,6 @@ else
     add_config_line "GLIDEIN_Entry_Start" "(x509userproxysubject=!=UNDEFINED)&&((GLIDEIN_REQUIRE_VOMS=?=UNDEFINED)||(GLIDEIN_REQUIRE_VOMS=?=False)||(TARGET.x509userproxyfirstfqan=!=UNDEFINED))&&($start_condition)"
 fi
 
-"$error_gen" -ok "glexec_setup.sh" "Glexec" "glexec"
+"$error_gen" -ok "glexec_setup.sh"  "use_glexec" "True" "glexec_bin" "$glexec_bin" "glexec_user_dir" "$glide_tmp_dir" "use_glexec_job" "$glexec_job"
 
 exit 0

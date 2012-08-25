@@ -160,6 +160,6 @@ X509_USER_PROXY          $X509_USER_PROXY
 ###############################
 EOF
 
-"$error_gen" -ok "setup_x509.sh" "proxy" "$X509_USER_PROXY"
+"$error_gen" -ok "setup_x509.sh" "proxy" "$X509_USER_PROXY" "proxy_expire" "`date --date=@$X509_EXPIRE +%Y-%m-%dT%H:%M:%S%:z`" "cert_dir" "$X509_CERT_DIR"
 
 exit 0
