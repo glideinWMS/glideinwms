@@ -137,14 +137,28 @@ function glidein_exit {
   glidein_end_time=`date +%s`
 
   global_result=""
-  if [ -f output.list ]; then
+
+  if [ -f output.ext ]; then
       # get the last result, so we can propagate up, if needed
       last_result=`cat output.ext`
-      
-      # if the file exists, I assume the helper functions exist as well
-      $main_dir/error_augment.sh -init
+  fi
+
+  echo "<?xml version=\"1.0\"?>
+<OSGTestResult id=\"glidein_startup.sh\" version=\"4.3.1\">
+  <operatingenvironment>
+    <env name=\"cwd\">$start_dir</env>
+  </operatingenvironment>
+  <test>
+    <cmd>$0 ${global_args}</cmd>
+    <tStart>`date --date=@${startup_time} +%Y-%m-%dT%H:%M:%S%:z`</tStart>
+    <tEnd>`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`</tEnd>
+  </test>
+  <result>">output.ext
+
+  if [ -f output.list ]; then
+      # cannot use helper functions, as it may get here very early
       if [ $1 -eq 0 ]; then
-	  $main_dir/error_gen.sh -ok "glidein_startup.sh"
+	  echo "    <status>OK</status>">>output.ext
       else
 	  last_script_name=`echo "$last_result" |awk '/<OSGTestResult /{split($0,a,"id=\""); split(a[2],b,"\""); print b[1];}'`
 
@@ -153,44 +167,32 @@ function glidein_exit {
 
 $last_script_reason"
 
-	  $main_dir/error_gen.sh -error "glidein_startup.sh" "Validation" "$my_reason" "TestID" "$last_script_name"
+	  echo "    <status>ERROR</status>
+    <metric name=\"TestID\" ts=\"`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$last_script_name</metric>" >> output.ext
 	  # propagate metrics as well
-	  # easier to do it "the dirty way"
-	  rm -f output.tmp
-	  mv output output.tmp
-	  cat output.tmp | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<status>/{fr=0;}' > output
-	  echo "$last_result" | grep '<metric ' >> output
-	  # we want to keep the failure field from the last failed script
-	  cat output.tmp | grep -v '<metric name="failure" ' | awk 'BEGIN{fr=0;}/<[/]result>/{fr=1;}{if (fr==1) print $0}/<status>/{fr=1;}' >> output
+	  echo "$last_result" | grep '<metric ' >> output.ext
+	  echo "    <detail>
+${last_script_reason}
+    </detail>" >>output.ext
       fi
-      $main_dir/error_augment.sh  -process $1 "glidein_startup.sh" "$start_dir" "$0 ${global_args}" "${startup_time}" "${glidein_end_time}"
-      
+
       global_result=`cat output.list`
       chmod u+w output.list
   else
       # create a minimal XML file, else
-      echo '<?xml version="1.0"?>
-<OSGTestResult id="glidein_startup.sh" version="4.3.1">
-  <operatingenvironment>' >output.ext
-      echo "    <env name=\"cwd\">$start_dir</env>
-  </operatingenvironment>
-  <test>
-    <cmd>$0 ${global_args}</cmd>
-    <tStart>`date --date=@${startup_time} +%Y-%m-%dT%H:%M:%S%:z`</tStart>
-    <tEnd>`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`</tEnd>
-  </test>
-  <result>" >>output.ext
       if [ $1 -eq 0 ]; then
-	  echo '    <status>OK</status>' >>output.ext
+	  status="OK"
       else
-	  echo '    <status>ERROR</status>' >>output.ext
+	  status="ERROR"
       fi
-      echo '    <detail>
+      echo "    <status>$status</status>
+    <detail>
       No detail. Could not find source XML file.
-    </detail>
-  </result>
-</OSGTestResult>'  >>output.ext
+    </detail>" >>output.ext
   fi
+
+  echo "</result>
+</OSGTestResult>"  >>output.ext
 
 
   final_result=`cat output.ext`
@@ -875,6 +877,10 @@ function check_file_signature {
 	    (cd "$cfs_work_dir" && sha1sum -c "$tmp_signname") 1>&2
 	    cfs_rc=$?
 	    if [ $cfs_rc -ne 0 ]; then
+		$main_dir/error_augment.sh -init
+		$main_dir/error_gen.sh -error "check_file_signature" "Corruption" "File $cfs_desc_fname is corrupted." "file" "$cfs_desc_fname" "source_type" "$cfs_id"
+		$main_dir/error_augment.sh  -process $cfs_rc "check_file_signature" "$PWD" "sha1sum -c $tmp_signname" "`date +%s`" "`date +%s`"
+		$main_dir/error_augment.sh -concat
 		warn "File $cfs_desc_fname is corrupted." 1>&2
 		rm -f $tmp_signname
 		return 1
@@ -976,18 +982,108 @@ function fetch_file_base {
           ffb_nocache_str="$wget_nocache_flag"
     fi
 
+    # Create a dummy default in case something goes wrong
+    # cannot use error_*.sh helper functions
+    # may not have been loaded yet
+    echo "<?xml version=\"1.0\"?>
+<OSGTestResult id=\"fetch_file_base\" version=\"4.3.1\">
+  <operatingenvironment>
+    <env name=\"cwd\">$PWD</env>
+  </operatingenvironment>
+  <test>
+    <cmd>Unknown</cmd>
+    <tStart>`date +%Y-%m-%dT%H:%M:%S%:z`</tStart>
+    <tEnd>`date +%Y-%m-%dT%H:%M:%S%:z`</tEnd>
+  </test>
+  <result>
+    <status>ERROR</status>
+    <metric name=\"failure\" ts=\"`date +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Unknown</metric>
+    <metric name=\"source_type\" ts=\"`date +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_id</metric>
+    <detail>
+       An unknown error occured.
+    </detail>
+  </result>
+</OSGTestResult>" > output.ext
+
     # download file
     if [ "$proxy_url" == "None" ]; then # no Squid defined, use the defaults
+	START=`date +%s`
 	wget --user-agent="wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name" $ffb_nocache_str -q  -O "$ffb_tmp_outname" "$ffb_repository/$ffb_real_fname"
 	if [ $? -ne 0 ]; then
-	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'" 1>&2
+	    # cannot use error_*.sh helper functions
+	    # may not have been loaded yet, and wget fails often
+	    echo "<OSGTestResult id=\"wget\" version=\"4.3.1\">
+  <operatingenvironment>
+    <env name=\"cwd\">$PWD</env>
+  </operatingenvironment>
+  <test>
+    <cmd>wget --user-agent=\"wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name\" $ffb_nocache_str -q  -O \"$ffb_tmp_outname\" \"$ffb_repository/$ffb_real_fname\"</cmd>
+    <tStart>`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`</tStart>
+    <tEnd>`date +%Y-%m-%dT%H:%M:%S%:z`</tEnd>
+  </test>
+  <result>
+    <status>ERROR</status>
+    <metric name=\"failure\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Network</metric>
+    <metric name=\"URL\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_repository/$ffb_real_fname</metric>
+    <metric name=\"source_type\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_id</metric>
+    <detail>
+       Failed to load file '$ffb_real_fname' from '$ffb_repository'.
+    </detail>
+  </result>
+</OSGTestResult>" > output
+	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'." 1>&2
+
+	    if [ -f output.list ]; then
+		chmod u+w output.list
+	    else
+		touch output.list
+	    fi
+	    cat output >> output.list
+	    echo "<?xml version=\"1.0\"?>
+`cat output`">output.ext
+	    rm -f output
+	    chmod a-w output.list
 	    return 1
 	fi
     else  # I have a Squid
+	START=`date +%s`
 	env http_proxy=$proxy_url wget --user-agent="wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name" $ffb_nocache_str -q  -O "$ffb_tmp_outname" "$ffb_repository/$ffb_real_fname" 
 	if [ $? -ne 0 ]; then
 	    # if Squid fails exit, because real jobs can try to use it too
-	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'" 1>&2
+	    # cannot use error_*.sh helper functions
+	    # may not have been loaded yet, and wget fails often
+	    echo "<OSGTestResult id=\"wget\" version=\"4.3.1\">
+  <operatingenvironment>
+    <env name=\"cwd\">$PWD</env>
+  </operatingenvironment>
+  <test>
+    <cmd>env http_proxy=$proxy_url wget --user-agent=\"wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name\" $ffb_nocache_str -q  -O \"$ffb_tmp_outname\" \"$ffb_repository/$ffb_real_fname\"</cmd>
+    <tStart>`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`</tStart>
+    <tEnd>`date +%Y-%m-%dT%H:%M:%S%:z`</tEnd>
+  </test>
+  <result>
+    <status>ERROR</status>
+    <metric name=\"failure\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Network</metric>
+    <metric name=\"URL\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_repository/$ffb_real_fname</metric>
+    <metric name=\"http_proxy\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$proxy_url</metric>
+    <metric name=\"source_type\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_id</metric>
+    <detail>
+      Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'.
+    </detail>
+  </result>
+</OSGTestResult>" > output
+	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'." 1>&2
+
+	    if [ -f output.list ]; then
+		chmod u+w output.list
+	    else
+		touch output.list
+	    fi
+	    cat output >> output.list
+	    echo "<?xml version=\"1.0\"?>
+`cat output`">output.ext
+	    rm -f output
+	    chmod a-w output.list
 	    return 1
 	fi
     fi
@@ -995,14 +1091,16 @@ function fetch_file_base {
     # check signature
     check_file_signature "$ffb_id" "$ffb_real_fname"
     if [ $? -ne 0 ]; then
-      return 1
+	# error already displayed inside the function
+	return 1
     fi
 
     # rename it to the correct final name, if needed
     if [ "$ffb_tmp_outname" != "$ffb_outname" ]; then
       mv "$ffb_tmp_outname" "$ffb_outname"
       if [ $? -ne 0 ]; then
-        return 1
+	  warn "Failed to rename $ffb_tmp_outname into $ffb_outname" 1>&2
+	  return 1
       fi
     fi
 
@@ -1038,9 +1136,14 @@ function fetch_file_base {
     elif [ "$ffb_file_type" == "untar" ]; then
 	ffb_short_untar_dir=`get_untar_subdir "$ffb_id" "$ffb_target_fname"`
 	ffb_untar_dir="${ffb_work_dir}/${ffb_short_untar_dir}"
+	START=`date +%s`
 	(mkdir "$ffb_untar_dir" && cd "$ffb_untar_dir" && tar -xmzf "$ffb_outname") 1>&2
 	ret=$?
 	if [ $ret -ne 0 ]; then
+	    $main_dir/error_augment.sh -init
+	    $main_dir/error_gen.sh -error "tar" "Corruption" "Error untarring '$ffb_outname'" "file" "$ffb_outname" "source_type" "$cfs_id"
+	    $main_dir/error_augment.sh  -process $cfs_rc "tar" "$PWD" "mkdir $ffb_untar_dir && cd $ffb_untar_dir && tar -xmzf $ffb_outname" "$START" "`date +%s`"
+	    $main_dir/error_augment.sh -concat
 	    warn "Error untarring '$ffb_outname'" 1>&2
 	    return 1
 	fi
