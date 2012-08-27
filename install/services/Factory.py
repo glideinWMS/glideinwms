@@ -180,7 +180,7 @@ files and directories can be created correctly""" % self.username())
     self.get_frontend()
     common.ask_continue("Continue")
     self.validate()
-    self.verify_directories_empty()
+    self.clean_directories()
     self.configure()
     common.logit ("\n======== %s install complete ==========\n" % self.ini_section)
     self.create_glideins()
@@ -196,7 +196,7 @@ files and directories can be created correctly""" % self.username())
     common.validate_install_location(self.install_location())
 
   #-----------------------------
-  def verify_directories_empty(self):
+  def clean_directories(self):
     """ This method attempts to clean up all directories so a fresh install
         can be accomplished successfully.  
         It is consoldiated in a single check so as to only ask once and
@@ -218,10 +218,7 @@ files and directories can be created correctly""" % self.username())
       dirs["web %s" % subdir] = os.path.join(self.glidein.web_location(),subdir,instance_dir)
 
     #--- check them --
-    if self.wms.privilege_separation() == "y":
-      dirs = self.verify_ps_directories_empty(dirs)
-    else:
-      dirs = self.verify_nps_directories_empty(dirs)
+    dirs = self.verify_directories_empty(dirs)
 
     #--- if all are empty, return 
     if len(dirs) == 0:
@@ -242,10 +239,7 @@ files and directories can be created correctly""" % self.username())
       self.delete_nps_directories(dirs)
 
     #--- double check them --
-    if self.wms.privilege_separation() == "y":
-      dirs = self.verify_ps_directories_empty(dirs)
-    else:
-      dirs = self.verify_nps_directories_empty(dirs)
+    dirs = self.verify_directories_empty(dirs)
     if len(dirs) > 0:
       common.logerr("""We seem to have had a problems deleting the contents of these directories:
 %s """ % dirs)
@@ -295,28 +289,7 @@ the ini file for the %(type)s attribute.  Be careful now.
       common.remove_dir_path(dirs[type])
 
   #-----------------------------
-  def verify_ps_directories_empty(self,dirs):
-    """ This method checks to see if certain directories are empty when
-        privilege separation is in effect. The condor_root_switchboard
-        must be used to clean out the client log and proxy files 
-        as the owners are different and permissions problems will occur.
-        Returns: a dictionary of directories to be deleted.
-    """
-    #--- check them --
-    for type in dirs.keys():
-      if type in ["client logs", "client proxies",]:
-        if len(os.listdir(dirs[type])) == 0: # it is empty
-          del dirs[type]  # remove from dict
-          continue
-      if not os.path.isdir(dirs[type]): # it does not exist
-        del dirs[type]  # remove from dict
-        continue
-      if os.path.isdir(dirs[type]): # it cannot exist so don't remove
-        continue
-    return dirs
-
-  #-----------------------------
-  def verify_nps_directories_empty(self,dirs):
+  def verify_directories_empty(self,dirs):
     """ This method checks to see if certain directories are empty when
         privilege separation is NOT in effect. 
         Returns: a dictionary of directories to be deleted.
