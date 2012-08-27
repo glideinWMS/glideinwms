@@ -39,14 +39,16 @@ fi
 
 ##################################
 # Merge constants with config file
+nr_lines=0
 if [ -n "$consts_file" ]; then
     echo "# --- Provided $dir_id constants  ---" >> $glidein_config
     # merge constants
     while read line
     do
 	add_config_line $line
+	let ++nr_lines
     done < "$consts_file"
     echo "# --- End $dir_id constants       ---" >> $glidein_config
 fi
 
-"$error_gen" -ok "cat_consts.sh" "Config" "$glidein_config"
+"$error_gen" -ok "cat_consts.sh" "NrAttributes" "$nr_lines"

@@ -6,6 +6,8 @@
 # File Version: 
 #
 
+global_args="$@"
+
 export LANG=C
 
 function on_die {
@@ -91,6 +93,38 @@ shift
 shift
 done
 
+function python_b64uuencode {
+    echo "begin-base64 644 -"
+    python -c 'import binascii,sys;fd=sys.stdin;buf=fd.read();size=len(buf);idx=0
+while size>57:
+ print binascii.b2a_base64(buf[idx:idx+57]),;
+ idx+=57;
+ size-=57;
+print binascii.b2a_base64(buf[idx:]),'
+    echo "===="
+}
+
+function base64_b64uuencode {
+    echo "begin-base64 644 -"
+    base64 -
+    echo "===="
+}
+
+# not all WNs have all the tools installed
+function b64uuencode {
+    which uuencode >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+	uuencode -m -
+    else
+	which base64 >/dev/null 2>&1
+	if [ $? -eq 0 ]; then
+	    base64_b64uuencode
+	else
+	    python_b64uuencode
+	fi
+    fi
+}
+
 ####################################
 # Cleaup, print out message and exit
 work_dir_created=0
@@ -99,15 +133,133 @@ function glidein_exit {
       sleep $sleep_time 
       # wait a bit in case of error, to reduce lost glideins
   fi
+
+  glidein_end_time=`date +%s`
+
+  global_result=""
+
+  if [ -f output.ext ]; then
+      # get the last result, so we can propagate up, if needed
+      last_result=`cat output.ext`
+  fi
+
+  echo "<?xml version=\"1.0\"?>
+<OSGTestResult id=\"glidein_startup.sh\" version=\"4.3.1\">
+  <operatingenvironment>
+    <env name=\"cwd\">$start_dir</env>
+  </operatingenvironment>
+  <test>
+    <cmd>$0 ${global_args}</cmd>
+    <tStart>`date --date=@${startup_time} +%Y-%m-%dT%H:%M:%S%:z`</tStart>
+    <tEnd>`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`</tEnd>
+  </test>
+  <result>">output.ext
+
+  if [ -f output.list ]; then
+      # cannot use helper functions, as it may get here very early
+      if [ $1 -eq 0 ]; then
+	  echo "    <status>OK</status>">>output.ext
+	  # propagate metrics as well
+	  echo "$last_result" | grep '<metric ' >> output.ext
+      else
+	  last_script_name=`echo "$last_result" |awk '/<OSGTestResult /{split($0,a,"id=\""); split(a[2],b,"\""); print b[1];}'`
+
+	  last_script_reason=`echo "$last_result" | awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}'`
+	  my_reason="Validation failed in $last_script_name.
+
+$last_script_reason"
+
+	  echo "    <status>ERROR</status>
+    <metric name=\"TestID\" ts=\"`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$last_script_name</metric>" >> output.ext
+	  # propagate metrics as well (will include the failure metric)
+	  echo "$last_result" | grep '<metric ' >> output.ext
+	  echo "    <detail>
+${last_script_reason}
+    </detail>" >>output.ext
+      fi
+
+      global_result=`cat output.list`
+      chmod u+w output.list
+  else
+      # create a minimal XML file, else
+      if [ $1 -eq 0 ]; then
+	  status="OK"
+      else
+	  status="ERROR"
+	  echo "    <metric name=\"failure\" ts=\"`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Unknown</metric>" >> output.ext
+      fi
+      echo "    <status>$status</status>
+    <detail>
+      No detail. Could not find source XML file.
+    </detail>" >>output.ext
+  fi
+
+  echo "</result>
+</OSGTestResult>"  >>output.ext
+
+
+  final_result=`cat output.ext`
+
+  # augment with node info
+  echo "${final_result}" | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<operatingenvironment>/{fr=0;}' > output.ext
+
+  echo "    <env name=\"client_name\">$client_name</env>" >> output.ext
+  echo "    <env name=\"client_group\">$client_group</env>" >> output.ext
+
+  echo "    <env name=\"user\">`id -un`</env>" >> output.ext
+  echo "    <env name=\"arch\">`uname -m`</env>" >> output.ext
+  if [ -e '/etc/redhat-release' ]; then
+      echo "    <env name=\"os\">`cat /etc/redhat-release`</env>" >> output.ext
+  fi
+  echo "    <env name=\"hostname\">`uname -n`</env>" >> output.ext
+
+  echo "${final_result}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<operatingenvironment>/{fr=1;}'  >> output.ext
+
+  final_result_simple=`cat output.ext`
+
+  # Create a richer version, too
+  echo "${final_result_simple}" | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<OSGTestResult /{fr=0;}' > output.ext
+
+  if [ "${global_result}" != "" ]; then
+      # subtests first, so it is more readable, when tailing
+      echo '  <subtestlist>' >> output.ext
+      echo '    <OSGTestResults>' >> output.ext
+      echo "${global_result}" | awk '{print "      " $0}' >> output.ext
+      echo '    </OSGTestResults>' >> output.ext
+      echo '  </subtestlist>' >> output.ext
+  fi
+
+  echo "${final_result_simple}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<OSGTestResult /{fr=1;}/<operatingenvironment>/{fr=0;}' >> output.ext
+
+  echo "    <env name=\"glidein_factory\">$glidein_factory</env>" >> output.ext
+  echo "    <env name=\"glidein_name\">$glidein_name</env>" >> output.ext
+  echo "    <env name=\"glidein_entry\">$glidein_entry</env>" >> output.ext
+  echo "    <env name=\"condorg_cluster\">$condorg_cluster</env>" >> output.ext
+  echo "    <env name=\"condorg_subcluster\">$condorg_subcluster</env>" >> output.ext
+  echo "    <env name=\"condorg_schedd\">$condorg_schedd</env>" >> output.ext
+
+  echo "${final_result_simple}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<operatingenvironment>/{fr=1;}'  >> output.ext
+
+  final_result_long=`cat output.ext`
+
   cd "$start_dir"
   if [ "$work_dir_created" -eq "1" ]; then
     rm -fR "$work_dir"
   fi
 
-  glidein_end_time=`date +%s`
   let total_time=$glidein_end_time-$startup_time
   echo "=== Glidein ending `date` ($glidein_end_time) with code $1 after $total_time ==="
  
+  echo ""
+  echo "=== XML description of glidein activity ==="
+  echo  "${final_result_simple}" | grep -v "<cmd>"
+  echo "=== End XML description of glidein activity ==="
+
+  echo "" 1>&2
+  echo "=== Encoded XML description of glidein activity ===" 1>&2
+  echo "${final_result_long}" | gzip --stdout - | b64uuencode 1>&2
+  echo "=== End encoded XML description of glidein activity ===" 1>&2
+
   exit $1
 }
 
@@ -728,6 +880,10 @@ function check_file_signature {
 	    (cd "$cfs_work_dir" && sha1sum -c "$tmp_signname") 1>&2
 	    cfs_rc=$?
 	    if [ $cfs_rc -ne 0 ]; then
+		$main_dir/error_augment.sh -init
+		$main_dir/error_gen.sh -error "check_file_signature" "Corruption" "File $cfs_desc_fname is corrupted." "file" "$cfs_desc_fname" "source_type" "$cfs_id"
+		$main_dir/error_augment.sh  -process $cfs_rc "check_file_signature" "$PWD" "sha1sum -c $tmp_signname" "`date +%s`" "`date +%s`"
+		$main_dir/error_augment.sh -concat
 		warn "File $cfs_desc_fname is corrupted." 1>&2
 		rm -f $tmp_signname
 		return 1
@@ -829,18 +985,108 @@ function fetch_file_base {
           ffb_nocache_str="$wget_nocache_flag"
     fi
 
+    # Create a dummy default in case something goes wrong
+    # cannot use error_*.sh helper functions
+    # may not have been loaded yet
+    echo "<?xml version=\"1.0\"?>
+<OSGTestResult id=\"fetch_file_base\" version=\"4.3.1\">
+  <operatingenvironment>
+    <env name=\"cwd\">$PWD</env>
+  </operatingenvironment>
+  <test>
+    <cmd>Unknown</cmd>
+    <tStart>`date +%Y-%m-%dT%H:%M:%S%:z`</tStart>
+    <tEnd>`date +%Y-%m-%dT%H:%M:%S%:z`</tEnd>
+  </test>
+  <result>
+    <status>ERROR</status>
+    <metric name=\"failure\" ts=\"`date +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Unknown</metric>
+    <metric name=\"source_type\" ts=\"`date +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_id</metric>
+    <detail>
+       An unknown error occured.
+    </detail>
+  </result>
+</OSGTestResult>" > output.ext
+
     # download file
     if [ "$proxy_url" == "None" ]; then # no Squid defined, use the defaults
+	START=`date +%s`
 	wget --user-agent="wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name" $ffb_nocache_str -q  -O "$ffb_tmp_outname" "$ffb_repository/$ffb_real_fname"
 	if [ $? -ne 0 ]; then
-	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'" 1>&2
+	    # cannot use error_*.sh helper functions
+	    # may not have been loaded yet, and wget fails often
+	    echo "<OSGTestResult id=\"wget\" version=\"4.3.1\">
+  <operatingenvironment>
+    <env name=\"cwd\">$PWD</env>
+  </operatingenvironment>
+  <test>
+    <cmd>wget --user-agent=\"wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name\" $ffb_nocache_str -q  -O \"$ffb_tmp_outname\" \"$ffb_repository/$ffb_real_fname\"</cmd>
+    <tStart>`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`</tStart>
+    <tEnd>`date +%Y-%m-%dT%H:%M:%S%:z`</tEnd>
+  </test>
+  <result>
+    <status>ERROR</status>
+    <metric name=\"failure\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Network</metric>
+    <metric name=\"URL\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_repository/$ffb_real_fname</metric>
+    <metric name=\"source_type\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_id</metric>
+    <detail>
+       Failed to load file '$ffb_real_fname' from '$ffb_repository'.
+    </detail>
+  </result>
+</OSGTestResult>" > output
+	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'." 1>&2
+
+	    if [ -f output.list ]; then
+		chmod u+w output.list
+	    else
+		touch output.list
+	    fi
+	    cat output >> output.list
+	    echo "<?xml version=\"1.0\"?>
+`cat output`">output.ext
+	    rm -f output
+	    chmod a-w output.list
 	    return 1
 	fi
     else  # I have a Squid
+	START=`date +%s`
 	env http_proxy=$proxy_url wget --user-agent="wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name" $ffb_nocache_str -q  -O "$ffb_tmp_outname" "$ffb_repository/$ffb_real_fname" 
 	if [ $? -ne 0 ]; then
 	    # if Squid fails exit, because real jobs can try to use it too
-	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'" 1>&2
+	    # cannot use error_*.sh helper functions
+	    # may not have been loaded yet, and wget fails often
+	    echo "<OSGTestResult id=\"wget\" version=\"4.3.1\">
+  <operatingenvironment>
+    <env name=\"cwd\">$PWD</env>
+  </operatingenvironment>
+  <test>
+    <cmd>env http_proxy=$proxy_url wget --user-agent=\"wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name\" $ffb_nocache_str -q  -O \"$ffb_tmp_outname\" \"$ffb_repository/$ffb_real_fname\"</cmd>
+    <tStart>`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`</tStart>
+    <tEnd>`date +%Y-%m-%dT%H:%M:%S%:z`</tEnd>
+  </test>
+  <result>
+    <status>ERROR</status>
+    <metric name=\"failure\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Network</metric>
+    <metric name=\"URL\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_repository/$ffb_real_fname</metric>
+    <metric name=\"http_proxy\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$proxy_url</metric>
+    <metric name=\"source_type\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_id</metric>
+    <detail>
+      Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'.
+    </detail>
+  </result>
+</OSGTestResult>" > output
+	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'." 1>&2
+
+	    if [ -f output.list ]; then
+		chmod u+w output.list
+	    else
+		touch output.list
+	    fi
+	    cat output >> output.list
+	    echo "<?xml version=\"1.0\"?>
+`cat output`">output.ext
+	    rm -f output
+	    chmod a-w output.list
 	    return 1
 	fi
     fi
@@ -848,14 +1094,16 @@ function fetch_file_base {
     # check signature
     check_file_signature "$ffb_id" "$ffb_real_fname"
     if [ $? -ne 0 ]; then
-      return 1
+	# error already displayed inside the function
+	return 1
     fi
 
     # rename it to the correct final name, if needed
     if [ "$ffb_tmp_outname" != "$ffb_outname" ]; then
       mv "$ffb_tmp_outname" "$ffb_outname"
       if [ $? -ne 0 ]; then
-        return 1
+	  warn "Failed to rename $ffb_tmp_outname into $ffb_outname" 1>&2
+	  return 1
       fi
     fi
 
@@ -870,14 +1118,19 @@ function fetch_file_base {
 	    echo "Skipping last script $last_script" 1>&2
 	else
             echo "Executing $ffb_outname"
-            START=`date "+%Y-%m-%dT%H:%M:%S"`
+	    # have to do it here, as this will be run before any other script
+            chmod u+rx $main_dir/error_augment.sh
+	    $main_dir/error_augment.sh -init
+            START=`date +%s`
 	    "$ffb_outname" glidein_config "$ffb_id"
 	    ret=$?
-            END=`date "+%Y-%m-%dT%H:%M:%S"`
-            $main_dir/xml_parse.sh  "glidein_startup.sh" "$ffb_outname" glidein_config "$ffb_id" $START $END #generating test result document
+            END=`date +%s`
+            $main_dir/error_augment.sh  -process $ret "$ffb_id/$ffb_target_fname" "$PWD" "$ffb_outname glidein_config" "$START" "$END" #generating test result document
+	    $main_dir/error_augment.sh -concat
 	    if [ $ret -ne 0 ]; then
                 echo "=== Validation error in $ffb_outname ===" 1>&2
 		warn "Error running '$ffb_outname'" 1>&2
+		cat output.ext | awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}' 1>&2
 		return 1
 	    fi
 	fi
@@ -886,9 +1139,14 @@ function fetch_file_base {
     elif [ "$ffb_file_type" == "untar" ]; then
 	ffb_short_untar_dir=`get_untar_subdir "$ffb_id" "$ffb_target_fname"`
 	ffb_untar_dir="${ffb_work_dir}/${ffb_short_untar_dir}"
+	START=`date +%s`
 	(mkdir "$ffb_untar_dir" && cd "$ffb_untar_dir" && tar -xmzf "$ffb_outname") 1>&2
 	ret=$?
 	if [ $ret -ne 0 ]; then
+	    $main_dir/error_augment.sh -init
+	    $main_dir/error_gen.sh -error "tar" "Corruption" "Error untarring '$ffb_outname'" "file" "$ffb_outname" "source_type" "$cfs_id"
+	    $main_dir/error_augment.sh  -process $cfs_rc "tar" "$PWD" "mkdir $ffb_untar_dir && cd $ffb_untar_dir && tar -xmzf $ffb_outname" "$START" "`date +%s`"
+	    $main_dir/error_augment.sh -concat
 	    warn "Error untarring '$ffb_outname'" 1>&2
 	    return 1
 	fi
@@ -1066,6 +1324,7 @@ trap 'ignore_signal' HUP
 trap 'on_die' TERM
 trap 'on_die' INT
 gs_id_work_dir=`get_work_dir main`
+$main_dir/error_augment.sh -init
 "${gs_id_work_dir}/$last_script" glidein_config &
 wait $!
 ret=$?
@@ -1073,6 +1332,9 @@ if [ $ON_DIE -eq 1 ]; then
         ret=0
 fi
 last_startup_end_time=`date +%s`
+$main_dir/error_augment.sh  -process $ret "$last_script" "$PWD" "${gs_id_work_dir}/$last_script glidein_config" "$last_startup_time" "$last_startup_end_time"
+$main_dir/error_augment.sh -concat
+
 let last_script_time=$last_startup_end_time-$last_startup_time
 echo "=== Last script ended `date` ($last_startup_end_time) with code $ret after $last_script_time ==="
 echo

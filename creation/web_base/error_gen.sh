@@ -1,11 +1,12 @@
 #!/bin/bash
-
-#############################################################
-# variables                                                 #
-#############################################################
-OK_FILE="ok_output"
-ERROR_FILE="error_output"
-
+#
+# Project:
+#   glideinWMS
+#
+# Description:
+#   Helper script to create the XML output file
+#   containing the result of the validation test
+#
 
 # --------------------------------------------------------- #
 # detail ()                                                 #
@@ -13,7 +14,7 @@ ERROR_FILE="error_output"
 # --------------------------------------------------------- #
 function detail() {
     echo "    <detail>" >> output
-    echo -e "$1" | awk '{print "       " $0}' >> output
+    echo "$1" | awk '{print "       " $0}' >> output
     echo "    </detail>" >> output
     return
 }
@@ -23,10 +24,11 @@ function detail() {
 # generate and append header tag                            #
 # --------------------------------------------------------- #
 function header() {
+    XML='<?xml version="1.0"?>'
     OSG="<OSGTestResult id=\""
-    OSGEnd="\" version=\"1.2\">"
+    OSGEnd="\" version=\"4.3.1\">"
     RES="<result>"
-    echo -e "${OSG}$1${OSGEnd}\n  ${RES}" > output #NOTE: wipe previous output file
+    echo -e "${XML}\n${OSG}$1${OSGEnd}\n  ${RES}" > output #NOTE: wipe previous output file
     return
 }
 
@@ -44,7 +46,7 @@ function close(){
 # generate and append metric tag                            #
 # --------------------------------------------------------- #
 function write_metric(){
-    DATE=`date "+%Y-%m-%dT%H:%M:%S"`
+    DATE=`date "+%Y-%m-%dT%H:%M:%S%:z"`
     echo "    <metric name=\"$1\" ts=\"${DATE}\" uri=\"local\">$2</metric>" >> output
     return
 }
@@ -61,11 +63,6 @@ function status_ok(){
       shift
     done
     close
-    if [ -f $OK_FILE ]; then
-	cat output >> $OK_FILE
-    else
-	cat output > $OK_FILE
-    fi
     return
 }
 
@@ -86,11 +83,6 @@ function status_error(){
     done
     detail "$detstr"
     close
-    if [ -f $ERROR_FILE ]; then
-	cat output >> $ERROR_FILE
-    else
-	cat output > $ERROR_FILE
-    fi
     return
 }
 
@@ -99,11 +91,10 @@ function status_error(){
 # usage ()                                                  #
 # print usage                                               #
 # --------------------------------------------------------- #
-usage()
-{
-	echo "Usage: -error|-ok {params}"; 
-	echo "       -error id failstr detailfail {metricid metricval}+"; 
-	echo "       -ok    id                    {metricid metricval}+"; 
+usage() {
+	echo "Usage: -error|-ok [params]"; 
+	echo "       -error id failstr detailfail [metricid metricval]+"; 
+	echo "       -ok    id                    [metricid metricval]+"; 
 	return
 }
 

@@ -48,13 +48,13 @@ if [ "${GLIDEIN_MaxMemMBs}" = "" ]; then
 
         if [ "$GLIDEIN_MaxMemMBs" = "" ]; then
             echo "`date` Error estimating mem/core. Using default memory value provided by Condor."
-	    "$error_gen" -ok "glidein_memory_setup.sh" "Config" "$glidein_config"
+	    "$error_gen" -ok "glidein_memory_setup.sh" "MaxMemMBs" "default"
             exit 0
         fi
 
     else
         echo "`date` VO does not want to estimate mem/core. Using default memory value provided by Condor."
-	"$error_gen" -ok "glidein_memory_setup.sh" "Config" "$glidein_config"
+	"$error_gen" -ok "glidein_memory_setup.sh"  "MaxMemMBs" "default"
         exit 0
     fi
 fi
@@ -65,5 +65,5 @@ echo "`date` Setting GLIDEIN_MaxMemMBs=$GLIDEIN_MaxMemMBs"
 add_config_line MEMORY "${GLIDEIN_MaxMemMBs}"
 add_condor_vars_line MEMORY "C" "-" "+" "N" "N" "-"
 
-"$error_gen" -ok "glidein_memory_setup.sh" "Config" "$glidein_config"
+"$error_gen" -ok "glidein_memory_setup.sh" "MaxMemMBs" "${GLIDEIN_MaxMemMBs}"
 exit 0
