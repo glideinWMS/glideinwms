@@ -469,8 +469,8 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 x509_proxies.add_fname(x509_proxy_security_class,x509_proxy_identifier,x509_proxy_fname)
 
             if x509_proxies.count_fnames<1:
-                    glideFactoryLib.log_files.logWarning("No good proxies for %s, skipping request"%client_int_name)
-                    continue #skip request
+                glideFactoryLib.log_files.logWarning("No good proxies for %s, skipping request"%client_int_name)
+                continue #skip request
         else:
             # no proxy passed, use factory one
             # Cannot check against a security class downtime since will never exist in the config
