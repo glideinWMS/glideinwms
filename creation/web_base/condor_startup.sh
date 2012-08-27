@@ -452,7 +452,10 @@ if [ "$operation_mode" == "2" ]; then
         "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "file" "$CONDOR_CONFIG" "infile" "$condor_config_check_include"
         exit 1
     fi
-fi
+    # fake a few variables, to make the rest work
+    use_multi_monitor=0
+    GLIDEIN_Monitoring_Enabled=False
+else
 
 if [ "$use_multi_monitor" -eq 1 ]; then
     condor_config_multi_include="${main_stage_dir}/`grep -i '^condor_config_multi_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
@@ -523,6 +526,7 @@ EOF
     fi
 fi
 
+fi # if mode==2
 
 mkdir log execute 
 if [ $? -ne 0 ]; then
