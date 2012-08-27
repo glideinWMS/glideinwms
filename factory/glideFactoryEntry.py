@@ -535,23 +535,9 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                         
                 x509_proxies.add_fname(x509_proxy_security_class, x509_proxy_identifier, x509_proxy_fname)
 
-            if x509_proxies.count_fnames < 1:
-                if security_class_downtime_found:
-                    logSupport.log.warning("Found proxies for client %s but the security class was in downtime" % client_int_name)
-                    #Note: This used to set the entry into downtime.
-                    #      That is a mistake since it is only in downtime
-                    #       for that security class/frontend.
-                    #Future work: notify the frontend somehow though? 
-                    #in_downtime = True
-                    continue
-                else:
-                    logSupport.log.warning("No good proxies for %s, skipping request" % client_int_name)
-                    continue
-            else:
-                security_credentials['x509_proxy_list'] = x509_proxies
- 
-            # ========== end v2+ protocol =============
-                 
+            if x509_proxies.count_fnames<1:
+                logSupport.log.warning("No good proxies for %s, skipping request"%client_int_name)
+                continue #skip request
         else:
             # ========== v3+ proxy protocol ===============
             
