@@ -61,6 +61,8 @@ QUILL_DB_PASSWDS=None
 QUILL_CONFIG_DONE=0
 # Has the secondary support files been installed yet?
 SECONDARY_SCHEDD_SUPPORT_FILES_INSTALLED=0
+# Is schedd shared port option being used
+USING_SCHEDD_SHARED_PORT=0
 
 # Was a condor collector installed on this machine?
 PRIVSEP_INSTALLED=0
@@ -223,6 +225,7 @@ def schedd_node_install():
     global COLLECTOR_INSTALLED
     global MAIN_SCHEDD_INSTALLED
     global CONDOR_UPD_CONFIG_FILE
+    global USING_SCHEDD_SHARED_PORT
 
     print "Installing user submit schedds"
     print
@@ -326,6 +329,7 @@ def schedd_node_install():
         print "Make sure you use Condor 7.5.3 and up in glideins, too"
         print
         
+        USING_SCHEDD_SHARED_PORT = 1
         config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
         try:
             config_fd.write("\n#####################################\n")
@@ -4059,6 +4063,7 @@ def create_secondary_schedd_support_files():
     global CONDOR_LOCAL_DIR
     global QUILL_CONFIG_DONE
     global SECONDARY_SCHEDD_SUPPORT_FILES_INSTALLED
+    global USING_SCHEDD_SHARED_PORT
 
     ##############################
     # Secondary schedd setup file
@@ -4077,6 +4082,11 @@ def create_secondary_schedd_support_files():
         fd.write("export _CONDOR_SCHEDD_NAME=schedd_$1\n")
         fd.write("export _CONDOR_MASTER_NAME=${_CONDOR_SCHEDD_NAME}\n")
         fd.write("# SCHEDD and MASTER names MUST be the same (Condor requirement)\n")
+        if USING_SCHEDD_SHARED_PORT:
+            fd.write("#-- condor shared port attributes --\n")
+            fd.write("export _CONDOR_USE_SHARED_PORT=True\n")
+            fd.write("export _CONDOR_SHARED_PORT_DAEMON_AD_FILE=$LD/log/shared_port_ad\n")
+            fd.write("export _CONDOR_DAEMON_SOCKET_DIR=$LD/log/daemon_sock\n")
         if QUILL_CONFIG_DONE:
             fd.write("export _CONDOR_QUILL_NAME=quill_$1@`uname -n`\n")
             fd.write("export _CONDOR_QUILL_DB_NAME=${QDB}_$1\n")
