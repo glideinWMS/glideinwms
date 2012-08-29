@@ -321,6 +321,21 @@ class ElementMergedDescript:
                     proxy_vm_types[k]=dprs[k]
         self.merged_data['ProxyVMTypes']=proxy_vm_types
         
+        proxy_creation_scripts={}
+        for data in (self.frontend_data,self.element_data):
+            if data.has_key('ProxyCreationScripts'):
+                dprs=eval(data['ProxyCreationScripts'])
+                for k in dprs.keys():
+                    proxy_creation_scripts[k]=dprs[k]
+        self.merged_data['ProxyCreationScripts']=proxy_creation_scripts
+        
+        proxy_update_frequency={}
+        for data in (self.frontend_data,self.element_data):
+            if data.has_key('ProxyUpdateFrequency'):
+                dprs=eval(data['ProxyUpdateFrequency'])
+                for k in dprs.keys():
+                    proxy_update_frequency[k]=dprs[k]
+        self.merged_data['ProxyUpdateFrequency']=proxy_update_frequency
         return
 
     def split_list(self,val):

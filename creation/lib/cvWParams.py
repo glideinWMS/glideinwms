@@ -106,6 +106,7 @@ class VOFrontendParams(cWParams.CommonParams):
         proxy_defaults["type"]=("grid_proxy","proxy_type","Type of credential: grid_proxy,cert_pair,key_pair,username_password",None)
         proxy_defaults["trust_domain"]=("OSG","grid_type","Trust Domain",None)
         proxy_defaults["creation_script"]=(None,"command","Script to re-create credential",None)
+        proxy_defaults["update_frequency"]=(None,"int","Update proxy when there is this much time left",None)
         proxy_defaults["vm_id"]=(None,"vm_id","VM Id",None)
         proxy_defaults["vm_type"]=(None,"vm_type","VM Type",None)
         proxy_defaults["pool_idx_len"]=(None,"boolean","Adds leading zeros to the suffix so all filenames the same length",None)

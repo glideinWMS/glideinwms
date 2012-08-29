@@ -15,6 +15,7 @@
 import os
 import sys
 import copy
+import calendar
 import time
 import string
 from sets import Set
@@ -227,6 +228,8 @@ class Credential:
             proxy_pilotfiles=elementDescript.merged_data['ProxyPilotFiles']
             proxy_vm_ids = elementDescript.merged_data['ProxyVMIds']
             proxy_vm_types = elementDescript.merged_data['ProxyVMTypes']
+            proxy_creation_scripts = elementDescript.merged_data['ProxyCreationScripts']
+            proxy_update_frequency = elementDescript.merged_data['ProxyUpdateFrequency']
             self.proxy_id=proxy_id
             self.filename=proxy_fname
             if proxy_types.has_key(proxy_fname):
@@ -267,7 +270,13 @@ class Credential:
             self.vm_type = None
             if proxy_vm_types.has_key(proxy_fname):
                 self.vm_type = proxy_vm_types[proxy_fname]
-                
+            
+            if proxy_creation_scripts.has_key(proxy_fname):
+                self.creation_script=proxy_creation_scripts[proxy_fname]
+            if proxy_update_frequency.has_key(proxy_fname):
+                self.update_frequency=int(proxy_update_frequency[proxy_fname])
+            else:
+                self.update_frequency=-1
         except:
             logSupport.log.error("Could not read credential file '%s'"%proxy_fname)
             pass
@@ -281,14 +290,23 @@ class Credential:
     
     def file_id(self,filename,ignoredn=False):
         if (("grid_proxy" in self.type)and not ignoredn):
-            dn_fd = os.popen("openssl x509 -subject -in %s -noout" % (filename))
-            dn = dn_fd.read()
-            err = dn_fd.close()
+            dn_list = condorExe.iexe_cmd("openssl x509 -subject -in %s -noout" % (filename))
+            dn = dn_list[0]
             hash_str=filename+dn
         else:
             hash_str=filename
         #logSupport.log.debug("Using hash_str=%s (%d)"%(hash_str,abs(hash(hash_str))%1000000))
         return str(abs(hash(hash_str))%1000000)
+
+    def time_left(self):
+        if ("grid_proxy" in self.type):
+            time_list=condorExe.iexe_cmd("openssl x509 -in %s -noout -enddate" % self.filename)
+            if "notAfter=" in time_list[0]:
+                time_str=time_list[0].split("=")[1][:-1]
+                timeleft=calendar.timegm(time.strptime(time_str,"%b %d %H:%M:%S %Y %Z"))-int(time.time())
+            return timeleft
+        else:
+            return -1
 
     def __str__(self):
         output = ""
@@ -575,9 +593,16 @@ class MultiAdvertizeWork:
             fd.write('ClientName = "%s"\n'%self.descript_obj.my_name)
             for i in range(nr_credentials):
                 cred_el=x509_proxies_data[i]
+                time_left=cred_el.time_left()
+                if (time_left !=-1) and (cred_el.update_frequency!=-1) and (time_left<cred_el.update_frequency) and (cred_el.creation_script is not None):
+                    logSupport.log.debug("Updating proxy %s with creation_script %s" % (cred_el.filename,cred_el.creation_script))
+                    condorExe.iexe_cmd(cred_el.creation_script)
                 cred_el.advertize=True
                 if (hasattr(cred_el,'filename')):
                     try:
+                        if (not os.path.exists(cred_el.filename)) and (cred_el.creation_script is not None):
+                            logSupport.log.debug("Proxy %s didn not exist, calling creation_script %s" % (cred_el.filename,cred_el.creation_script))
+                            condorExe.iexe_cmd(cred_el.creation_script)
                         data_fd=open(cred_el.filename)
                         cred_data=data_fd.read()
                         data_fd.close()
