@@ -96,6 +96,32 @@ def get_Compressed(log_fname,start_str):
         data=raw_data
     return data
 
+# extract the blob from a glidein log file
+def get_Simple(log_fname,start_str,end_str):
+    SL_START_RE=re.compile(start_str+"\n",re.M|re.DOTALL)
+    SL_END_RE=re.compile(end_str,re.M|re.DOTALL)
+    size = os.path.getsize(log_fname)
+    fd=open(log_fname)
+    try:
+        buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
+        try:
+            # first find the header that delimits the log in the file
+            start_re=SL_START_RE.search(buf,0)
+            if start_re==None:
+                return "" #no StartLog section
+            log_start_idx=start_re.end()
+
+            # find where it ends
+            log_end_idx=SL_END_RE.search(buf,log_start_idx)
+            if log_end_idx==None: # up to the end of the file
+                return buf[log_start_idx:]
+            else:
+                return buf[log_start_idx:log_end_idx.start()]
+        finally:
+            buf.close()
+    finally:
+        fd.close()
+
 # extract the Condor Log from a glidein log file
 # condor_log_id should be something like "StartdLog"
 def get_CondorLog(log_fname,condor_log_id):
@@ -105,5 +131,11 @@ def get_CondorLog(log_fname,condor_log_id):
 # extract the XML Result from a glidein log file
 def get_XMLResult(log_fname):
     start_str="^=== Encoded XML description of glidein activity ==="
-    return get_Compressed(log_fname,start_str)
+    s=get_Compressed(log_fname,start_str)
+    if s!="":
+        return s
+    # not found, try the uncompressed version
+    start_str="^=== XML description of glidein activity ==="
+    end_str="^=== End XML description of glidein activity ==="
+    return get_Simple(log_fname,start_str,end_str)
 
