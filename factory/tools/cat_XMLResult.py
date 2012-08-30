@@ -76,6 +76,7 @@ def main():
         if (len(xmls)==0):
             sys.stderr.write("Could not read a single file!")
             sys.exit(1)
+        sys.stdout.write('<?xml version="1.0"?>\n')
         sys.stdout.write("<OSGTestResultSet>\n")
         for l in xmls:
             sys.stdout.write(l+"\n")
