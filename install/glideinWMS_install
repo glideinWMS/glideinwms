@@ -4072,9 +4072,6 @@ def create_secondary_schedd_support_files():
         
         fd.write("#-- This is the global LOCAL_DIR at install time--\n")
         fd.write("LD=%s\n"%CONDOR_LOCAL_DIR)
-        fd.write("#-- This is the actual global LOG dir --\n")
-        fd.write("#-- Make sure it actually points to the current value --\n")
-        fd.write("GLOBAL_LOG=$LD/lib\n")
         if QUILL_CONFIG_DONE:
             fd.write("QDB=quill\n\n")
 
@@ -4090,10 +4087,13 @@ def create_secondary_schedd_support_files():
         fd.write("export _CONDOR_LOCAL_DIR=$LD/$_CONDOR_SCHEDD_NAME\n")
         fd.write("export _CONDOR_LOCK=$_CONDOR_LOCAL_DIR/lock\n\n")
         fd.write("#-- condor shared port attributes, in case you enable it (at install time or later) --\n")
+        fd.write("#-- This is the actual global LOG dir --\n")
+        fd.write("#-- Make sure it actually points to the current value --\n")
+        fd.write("GLOBAL_LOG=$LD/log\n")
         fd.write("#-- Basically, preserve the global values, since we do not run a private shared_port daemon --\n")
         fd.write("export _CONDOR_SHARED_PORT_DAEMON_AD_FILE=${GLOBAL_LOG}/shared_port_ad\n")
         fd.write("export _CONDOR_DAEMON_SOCKET_DIR=${GLOBAL_LOG}/daemon_sock\n\n")
-
+        fd.write("unset GLOBAL_LOG\n")
         fd.write("unset LD\n")
         if QUILL_CONFIG_DONE:
             fd.write("unset QDB\n")
