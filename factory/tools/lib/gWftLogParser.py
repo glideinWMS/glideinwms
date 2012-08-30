@@ -62,6 +62,8 @@ def get_glidein_logs(factory_dir,entries,date_arr,time_arr,ext="err"):
 def get_Compressed_raw(log_fname,start_str):
     SL_START_RE=re.compile("%s\nbegin-base64 644 -\n"%start_str,re.M|re.DOTALL)
     size = os.path.getsize(log_fname)
+    if size==0:
+        return "" # mmap would fail... and I know I will not find anything anyhow
     fd=open(log_fname)
     try:
         buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
@@ -101,6 +103,8 @@ def get_Simple(log_fname,start_str,end_str):
     SL_START_RE=re.compile(start_str+"\n",re.M|re.DOTALL)
     SL_END_RE=re.compile(end_str,re.M|re.DOTALL)
     size = os.path.getsize(log_fname)
+    if size==0:
+        return "" # mmap would fail... and I know I will not find anything anyhow
     fd=open(log_fname)
     try:
         buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
