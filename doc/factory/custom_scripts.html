@@ -292,7 +292,7 @@ you verified during your valudation run, if any.</P>
 <P>If the validation script instead failed, report the failure by using:</P>
 <BLOCKQUOTE>
     # Uh oh, we hit an error <BR>
-    &quot;$error_gen&quot; -error &lt;script name&gt; &lt;error type&gt; "&lt;detailed description&gt;"  [&lt;key&gt; &lt;value&gt;]*
+    &quot;$error_gen&quot; -error &lt;script name&gt; &lt;error type&gt; &quot;&lt;detailed description&gt;&quot;  [&lt;key&gt; &lt;value&gt;]*
 </BLOCKQUOTE>
 <P>The script should use one of the 
 <A HREF="validation_xml_output.html#error_types">standard <i>error types</i></A>.
@@ -342,32 +342,35 @@ Below are a few examples you can use as templates.</P>
 <H3>Test that a certain library exists</H3>
 <PRE>#!/bin/sh
 
-function warn {
- echo `date` $@ 1&gt;&amp;2
-}
+glidein_config=&quot;$1&quot;
+
+# find error reporting helper script
+error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
 
 if [ -z &quot;/usr/lib/libcrypto.so.0.9.8&quot; ]; then
-  warn &quot;Crypto library not found!\n&quot; 
+  &quot;$error_gen&quot; -error &quot;libtest.sh&quot; &quot;WN_Resource&quot; &quot;Crypto library not found.&quot; &quot;file&quot; &quot;/usr/lib/libcrypto.so.0.9.8&quot;
   exit 1
 fi
 echo &quot;Crypto library found&quot;
+&quot;$error_gen&quot; -ok  &quot;libtest.sh&quot; &quot;file&quot; &quot;/usr/lib/libcrypto.so.0.9.8&quot;
+exit 0
 </PRE><H3>
 Find, test and advertise a software distribution</H3>
 <PRE>#!/bin/sh
 
 glidein_config=&quot;$1&quot;
 
-function warn {
- echo `date` $@ 1&gt;&amp;2
-}
-
 ###############
 # Get the data
+
+# find error reporting helper script
+error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
 
 if [ -f &quot;$VO_SW_DIR/setup.sh&quot; ]; then
    source &quot;$VO_SW_DIR/setup.sh&quot;
 else
-   warn &quot;SW setup.sh not found!\n&quot;
+  &quot;$error_gen&quot; -error &quot;swfind.sh&quot; &quot;WN_Resource&quot; &quot;Could not find $VO_SW_DIR/setup.sh&quot; \ 
+              &quot;file&quot; &quot;$VO_SW_DIR/setup.sh&quot; &quot;base_dir_attr&quot; &quot;VO_SW_DIR&quot;
    exit 1
 fi
 
@@ -390,7 +393,8 @@ condor_vars_file=`grep -i &quot;^CONDOR_VARS_FILE &quot; $glidein_config | awk '
 sw_list=`cat $tmpname | awk '{if (length(a)!=0) {a=a &quot;,&quot; $0} else {a=$0}}END{print a}'`
 
 if [ -z &quot;$sw_list&quot; ]; then
-  warn &quot;No SW found!&quot;
+  &quot;$error_gen&quot; -error &quot;swfind.sh&quot; &quot;WN_Resource&quot; &quot;No SW found.&quot; \ 
+               &quot;source_file&quot; &quot;$VO_SW_DIR/setup.sh&quot;
 
   exit 1
 fi
@@ -401,6 +405,8 @@ fi
 add_config_line GLIDEIN_SW_LIST &quot;$sw_list&quot;
 add_condor_vars_line GLIDEIN_SW_LIST &quot;S&quot; &quot;-&quot; &quot;+&quot; &quot;Y&quot; &quot;Y&quot; &quot;+&quot;
 
+&quot;$error_gen&quot; -ok  &quot;swfind.sh&quot; &quot;sw_list&quot; &quot;$sw_list&quot;
+exit 0
 </PRE><H3>
 Change an existing value based on conditions found</H3>
 <PRE>#!/bin/bash
@@ -408,9 +414,8 @@ Change an existing value based on conditions found</H3>
 glidein_config=$1
 entry_dir=$2
 
-function warn {
- echo `date` $@
-}
+# find error reporting helper script
+error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
 
 # import add_config_line function, will use glidein_config
 add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
@@ -435,7 +440,11 @@ if [ &quot;$tot_mem&quot; -lt 500000 ]; then
 
   # write it back
   add_config_line VO_SCALABILITY $vo_scalability
+  &quot;$error_gen&quot; -ok  &quot;memset.sh&quot; &quot;vo_scalability&quot; &quot;$vo_scalability&quot;
+  exit 0
 fi 
+&quot;$error_gen&quot; -ok  &quot;memset.sh&quot;
+exit 0
 </PRE>
 </div>
 
