@@ -272,13 +272,16 @@ Processing schedd: SCHEDDJOBS2<br/>
       export _CONDOR_LOCAL_DIR=$LD/$_CONDOR_SCHEDD_NAME<br/>
       export _CONDOR_LOCK=$_CONDOR_LOCAL_DIR/lock<br/>
       <b>
+      #-- This is the actual global LOG dir --<br/>
+      #-- Make sure it actually points to the current value --<br/>
+      GLOBAL_LOG=$LD/log<br/>
       #-- condor_shared_port attributes ---<br/>
-      export _CONDOR_USE_SHARED_PORT=True<br/>
-      export _CONDOR_SHARED_PORT_DAEMON_AD_FILE=$LD/log/shared_port_ad<br/>
-      export _CONDOR_DAEMON_SOCKET_DIR=$LD/log/daemon_sock<br/>
+      export _CONDOR_SHARED_PORT_DAEMON_AD_FILE=$GLOBAL_LOG/log/shared_port_ad<br/>
+      export _CONDOR_DAEMON_SOCKET_DIR=$GLOBAL_LOG/log/daemon_sock<br/>
       #------------------------------------<br/>
       </b>
       unset LD<br/>
+      unset GLOBAL_LOG<br/>
     </blockquote>
     <p>
     The same file can be downloaded from
