@@ -87,13 +87,13 @@ Related Links: <br/>
 glidein. Glidein Factory administrators may want to write them to
 implement features specific to their clients. Two examples are worker
 node validation, and discovery and setup of VO-specific software.<BR><B>PS</B>:
-The “scripts” can also be compiled binaries.</P>
+The &quot;scripts&quot; can also be compiled binaries.</P>
 <H2><A NAME="config"></A>Script inclusion</H2>
 <P>A script is a file that was listed in the 
 
 <A HREF="configuration.html#args">Glidein Factory configuration</A> 
 file as being executable:</P>
-    <BLOCKQUOTE>executable=”True”</BLOCKQUOTE>
+    <BLOCKQUOTE>executable=&quot;True&quot;</BLOCKQUOTE>
 <P>By default the files listed are non executable, so an
 administrator needs explicitly list the executable ones.</P>
 <p>
@@ -141,12 +141,12 @@ spaces, the easiest way to extract a value in bash is:</P>
 <P>Several attributes are added by the default glidein scripts, the
 most interesting being:</P>
 <UL>
-    <LI>ADD_CONFIG_LINE_SOURCE – Script that can be used to add new
+    <LI>ADD_CONFIG_LINE_SOURCE - Script that can be used to add new
     attributes to the glidein configuration file (see below).</li>
-    <LI>GLIDEIN_Name – Name of the glidein branch</li>
-    <LI>GLIDEIN_Entry_Name – name of the glidein entry point</li>
-    <LI>TMP_DIR – The path to the temporary dir</li>
-    <LI>PROXY_URL – The URL of the Web proxy</li>
+    <LI>GLIDEIN_Name - Name of the glidein branch</li>
+    <LI>GLIDEIN_Entry_Name - name of the glidein entry point</li>
+    <LI>TMP_DIR - The path to the temporary dir</li>
+    <LI>PROXY_URL - The URL of the Web proxy</li>
 
 </UL>
 <P>All attributes of the glidein factory (both the common and the
@@ -192,12 +192,12 @@ must have 7 columns. Each column has a specific meaning:</P>
     <A HREF="#glidein_config">the glidein configuration file</A>)</li>
     <LI>Attribute type</li>
     <UL>
-        <LI>I – integer</li>
+        <LI>I - integer</li>
 
-        <LI>S – quoted string</li>
-        <LI>C – unquoted string (i.e. Condor keyword or expression)</li>
+        <LI>S - quoted string</li>
+        <LI>C - unquoted string (i.e. Condor keyword or expression)</li>
     </UL>
-    <LI>Default value, use – if no default</li>
+    <LI>Default value, use - if no default</li>
     <LI>Condor name, i.e. under which name should this attributed be
     known in the condor configuration</li>
     <LI>Is a value required for this attribute? <BR>Must be Y or N.
@@ -273,7 +273,7 @@ distinct stages involved:</P>
     executed.</P>
     <LI><P>The user provided global files are loaded and user scripts
     are executed (i.e. all the ones that have the default
-    <tt>after_entry=”False”</tt>)</P>
+    <tt>after_entry=&quot;False&quot;</tt>)</P>
 
     <LI><P>The entry specific attributes are loaded and entry specific
     system scripts executed.</P>
@@ -281,7 +281,7 @@ distinct stages involved:</P>
     specific user scripts are executed.</P>
     <LI><P>The after_entry user provided global files are loaded and
     after_entry user scripts are executed (i.e. all the ones that have
-    set <tt>after_entry=”True”</tt>)</P>
+    set <tt>after_entry=&quot;True&quot;</tt>)</P>
     <LI><P>Final global system scripts executed and the Condor daemons
     are launched.</P>
 </OL>
@@ -304,11 +304,11 @@ function warn {
  echo `date` $@ 1&gt;&amp;2
 }
 
-if [ -z “/usr/lib/libcrypto.so.0.9.8” ]; then
-  warn “Crypto library not found!\n” 
+if [ -z &quot;/usr/lib/libcrypto.so.0.9.8&quot; ]; then
+  warn &quot;Crypto library not found!\n&quot; 
   exit 1
 fi
-echo “Crypto library found”
+echo &quot;Crypto library found&quot;
 </PRE><H3>
 Find, test and advertise a software distribution</H3>
 <PRE>#!/bin/sh
@@ -376,17 +376,17 @@ source $add_config_line_source
 
 vo_scalability=`grep '^VO_SCALABILITY ' $glidein_config | awk '{print $2}'`
 
-if [ -z “$vo_scalability” ]; then
+if [ -z &quot;$vo_scalability&quot; ]; then
   # set a reasonable default
   vo_scalability=5000
 fi
 
 tot_mem=`grep MemTotal /proc/meminfo |awk '{print $2}'`
-if [ “$tot_mem” -lt 500000 ]; then
-  if [ “$entry_dir” == “main” ]; then
+if [ &quot;$tot_mem&quot; -lt 500000 ]; then
+  if [ &quot;$entry_dir&quot; == &quot;main&quot; ]; then
     # all glideins need to scale down if low on memory
     let vo_scalability=vo_scalability/2
-  elif [ “$entry_dir” == “florida23” ]; then
+  elif [ &quot;$entry_dir&quot; == &quot;florida23&quot; ]; then
     # but florida23 can use a little more
     let vo_scalability=vo_scalability*5/4
   fi
