@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS - Factory</title>
+  <title>glideinWMS Custom Scripts</title>
   <meta name="CREATED" content="0;0">
   <meta name="CHANGED" content="20100521;20081031;14115200">    
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
@@ -70,6 +70,7 @@
     <LI><A HREF="#api">Script API</A></li>
     <LI><A HREF="#glidein_config">Configuration file</A></li>
     <LI><A HREF="#condor_vars">Condor vars file</A></li>
+    <LI><A HREF="#xml_output">Reporting script exit status</A></li>
     <LI><A HREF="#order">Loading order</A></li>
     <LI><A HREF="#examples">Examples</A></li>
 </ol>
@@ -113,15 +114,16 @@ administrator needs explicitly list the executable ones.</P>
 <P>All other input comes from <A HREF="#glidein_config">the glidein
 configuration file</A> that is used as a dashboard between different
 scripts.</P>
-<P>The script must return with exit code 0 if successful; a non-zero
-return value will stop the execution of the glidein with a validation
-error.</P>
 <P>If the script provides any output to be used by other scripts, it
 should write it <A HREF="#glidein_config">the glidein configuration
 file</A>. If the values need to be published by the condor_startd or
-visible by the user jobs, the condor vars file should also be
-modified.</P>
-
+visible by the user jobs, the <A HREF="#condor_vars">condor vars</A>
+file should also be modified.</P>
+<P>The script must return with exit code 0 if successful; a non-zero
+return value will stop the execution of the glidein with a validation
+error.</P>
+<P>The script should also provide a reason of either success or failure,
+using the <A HREF="#xml_output">standard XML output</A>.</P>
 </div>
 
 <div class="section">
@@ -265,8 +267,48 @@ $glidein_config | awk '{print $2}'`<BR>
 </div>
 
 <div class="section">
+<H2><A NAME="xml_output"></A>Reporting script exit status</H2>
+<P>Since v2_6_2, the glideinWMS factory can receive and interpret a
+detailed exit status report, if provided by the validation script.</P>
+<P>The script should write the exit status report in the following file:</P>
+<BLOCKQUOTE>
+output
+</BLOCKQUOTE>
+<P>The factory provides a helper script to properly generate such a file.
+A detailed description of the format can be found in the dedicated
+<A HREF="validation_xml_output.html">description page</A>.</P>
+<P>To use the helper script, first discover its location with:</P>
+<BLOCKQUOTE>
+    # find error reporting helper script <BR>
+    error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
+</BLOCKQUOTE>
+<P>If the validation script succeeded, report the success by using:</P>
+<BLOCKQUOTE>
+    # Everything worked out fine <BR>
+    &quot;$error_gen&quot; -ok &lt;script name&gt;  [&lt;key&gt; &lt;value&gt;]*
+</BLOCKQUOTE>
+<P>You can specify any number of (key,value) pairs, representing any metrics
+you verified during your valudation run, if any.</P>
+<P>If the validation script instead failed, report the failure by using:</P>
+<BLOCKQUOTE>
+    # Uh oh, we hit an error <BR>
+    &quot;$error_gen&quot; -error &lt;script name&gt; &lt;error type&gt; "&lt;detailed description&gt;"  [&lt;key&gt; &lt;value&gt;]*
+</BLOCKQUOTE>
+<P>The script should use one of the 
+<A HREF="validation_xml_output.html#error_types">standard <i>error types</i></A>.
+<BR>It should also provide a human readable <i>detailed description</i>. 
+It is perfectly fine if it extends over multiple lines; 
+just make sure you properly pass it to the script.
+<BR>You can also specify any number of (key,value) pairs,
+representing any metrics that failed during the test.
+Proviind at least one metric is recommended, but not strictly necessary.</P>
+<P><b>Note:</B> The reported status MUST match the script exit code.
+E.g. if you claim the script succeeded, you must also exit with a 0 exit code.</P>
+</div>
+
+<P><div class="section">
 <H2><A NAME="order"></A>Loading order</H2>
-<P>Scripts are loaded and executed one at a time. There are six
+cripts are loaded and executed one at a time. There are six
 distinct stages involved:</P>
 <OL>
     <LI><P>Global attributes are loaded and global system scripts
