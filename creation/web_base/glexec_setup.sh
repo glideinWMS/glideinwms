@@ -24,15 +24,17 @@ function no_use_glexec_config {
 }
 
 function test_glexec {
-  tst=`env GLEXEC_CLIENT_CERT="$X509_USER_PROXY" "$glexec_bin"  "$ALTSH" -c "id && echo \"Hello World\""`
+  tst=`env GLEXEC_CLIENT_CERT="$X509_USER_PROXY" "$glexec_bin"  "$ALTSH" -c "id && echo \"Hello World\"" 2>glexec_test.err`
   res=$?
   if [ $res -ne 0 ]; then
     #echo "glexec test failed, nonzero value $res" 1>&2
     #echo "result: $tst" 1>&2
-    STR="glexec test failed, nonzero value $res\n"
-    STR+="result: $tst"
-    STR1=`echo -e "$STR"`
-    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR1" "command" "$glexec_bin"
+    STR="glexec test failed, nonzero value $res
+result:
+$tst
+stderr:
+`cat glexec_test.err`"
+    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "$glexec_bin"
     exit 1
   else
     tst2=`echo "$tst" |tail -1`
@@ -57,16 +59,18 @@ id && echo "Hello World"
 EOF
   chmod a+x glexec_test2.sh
 
-  tst=`env GLEXEC_CLIENT_CERT="$X509_USER_PROXY" "$glexec_bin"  "$PWD/glexec_test2.sh"`
+  tst=`env GLEXEC_CLIENT_CERT="$X509_USER_PROXY" "$glexec_bin"  "$PWD/glexec_test2.sh" 2>glexec_test.err`
 
   res=$?
   if [ $res -ne 0 ]; then
     #echo "glexec test2 failed, nonzero value $res" 1>&2
     #echo "result: $tst" 1>&2
-    STR="glexec test2 failed, nonzero value $res\n"
-    STR+="result: $tst"
-    STR1=`echo -e "$STR"`
-    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR1" "command" "$glexec_bin"
+    STR="glexec test2 failed, nonzero value $res
+result:
+$tst
+stderr:
+`cat glexec_test.err`"
+    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "$glexec_bin"
     exit 1
   else
     tst2=`echo "$tst" |tail -1`
