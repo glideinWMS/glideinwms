@@ -245,10 +245,6 @@ class Credential:
             else:
                     self.trust_domain="None"
 
-            proxy_fd=open(proxy_fname,'r')
-            self.proxy_data=proxy_fd.read()
-            proxy_fd.close()
-
             if proxy_keyfiles.has_key(proxy_fname):
                 self.key_fname=proxy_keyfiles[proxy_fname]
                 proxy_fd=open(self.key_fname,'r')
@@ -277,6 +273,10 @@ class Credential:
                 self.update_frequency=int(proxy_update_frequency[proxy_fname])
             else:
                 self.update_frequency=-1
+            
+            proxy_fd=open(proxy_fname,'r')
+            self.proxy_data=proxy_fd.read()
+            proxy_fd.close()
         except:
             logSupport.log.error("Could not read credential file '%s'"%proxy_fname)
             pass
@@ -299,6 +299,13 @@ class Credential:
         return str(abs(hash(hash_str))%1000000)
 
     def time_left(self):
+        """
+        Returns the time left if a grid proxy
+        If missing, returns 0
+        If not a grid proxy or other unidentified error, return -1
+        """
+        if (not os.path.exists(self.filename)):
+            return 0
         if ("grid_proxy" in self.type):
             time_list=condorExe.iexe_cmd("openssl x509 -in %s -noout -enddate" % self.filename)
             if "notAfter=" in time_list[0]:
@@ -307,6 +314,17 @@ class Credential:
             return timeleft
         else:
             return -1
+
+
+    def renew(self):
+        """
+        Renews credential if time_left()<update_frequency
+        Only works if type is grid_proxy 
+        """
+        remaining=self.time_left()
+        if (remaining !=-1) and (self.update_frequency!=-1) and (remaining<self.update_frequency) and (self.creation_script is not None):
+            logSupport.log.debug("Updating proxy %s with creation_script %s" % (self.filename,self.creation_script))
+            condorExe.iexe_cmd(self.creation_script)
 
     def __str__(self):
         output = ""
@@ -593,10 +611,7 @@ class MultiAdvertizeWork:
             fd.write('ClientName = "%s"\n'%self.descript_obj.my_name)
             for i in range(nr_credentials):
                 cred_el=x509_proxies_data[i]
-                time_left=cred_el.time_left()
-                if (time_left !=-1) and (cred_el.update_frequency!=-1) and (time_left<cred_el.update_frequency) and (cred_el.creation_script is not None):
-                    logSupport.log.debug("Updating proxy %s with creation_script %s" % (cred_el.filename,cred_el.creation_script))
-                    condorExe.iexe_cmd(cred_el.creation_script)
+                cred_el.renew()
                 cred_el.advertize=True
                 if (hasattr(cred_el,'filename')):
                     try:
