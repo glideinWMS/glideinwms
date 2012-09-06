@@ -138,9 +138,9 @@ function glidein_exit {
 
   global_result=""
 
-  if [ -f output.ext ]; then
+  if [ -f otrx_output.xml ]; then
       # get the last result, so we can propagate up, if needed
-      last_result=`cat output.ext`
+      last_result=`cat otrx_output.xml`
   fi
 
   echo "<?xml version=\"1.0\"?>
@@ -153,14 +153,14 @@ function glidein_exit {
     <tStart>`date --date=@${startup_time} +%Y-%m-%dT%H:%M:%S%:z`</tStart>
     <tEnd>`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`</tEnd>
   </test>
-  <result>">output.ext
+  <result>">otrx_output.xml
 
-  if [ -f output.list ]; then
+  if [ -f otr_outlist.list ]; then
       # cannot use helper functions, as it may get here very early
       if [ $1 -eq 0 ]; then
-	  echo "    <status>OK</status>">>output.ext
+	  echo "    <status>OK</status>">>otrx_output.xml
 	  # propagate metrics as well
-	  echo "$last_result" | grep '<metric ' >> output.ext
+	  echo "$last_result" | grep '<metric ' >> otrx_output.xml
       else
 	  last_script_name=`echo "$last_result" |awk '/<OSGTestResult /{split($0,a,"id=\""); split(a[2],b,"\""); print b[1];}'`
 
@@ -170,77 +170,77 @@ function glidein_exit {
 $last_script_reason"
 
 	  echo "    <status>ERROR</status>
-    <metric name=\"TestID\" ts=\"`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$last_script_name</metric>" >> output.ext
+    <metric name=\"TestID\" ts=\"`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$last_script_name</metric>" >> otrx_output.xml
 	  # propagate metrics as well (will include the failure metric)
-	  echo "$last_result" | grep '<metric ' >> output.ext
+	  echo "$last_result" | grep '<metric ' >> otrx_output.xml
 	  echo "    <detail>
 ${last_script_reason}
-    </detail>" >>output.ext
+    </detail>" >>otrx_output.xml
       fi
 
-      global_result=`cat output.list`
-      chmod u+w output.list
+      global_result=`cat otr_outlist.list`
+      chmod u+w otr_outlist.list
   else
       # create a minimal XML file, else
       if [ $1 -eq 0 ]; then
 	  status="OK"
       else
 	  status="ERROR"
-	  echo "    <metric name=\"failure\" ts=\"`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Unknown</metric>" >> output.ext
+	  echo "    <metric name=\"failure\" ts=\"`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Unknown</metric>" >> otrx_output.xml
       fi
       echo "    <status>$status</status>
     <detail>
       No detail. Could not find source XML file.
-    </detail>" >>output.ext
+    </detail>" >>otrx_output.xml
   fi
 
   echo "</result>
-</OSGTestResult>"  >>output.ext
+</OSGTestResult>"  >>otrx_output.xml
 
 
-  final_result=`cat output.ext`
+  final_result=`cat otrx_output.xml`
 
   # augment with node info
-  echo "${final_result}" | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<operatingenvironment>/{fr=0;}' > output.ext
+  echo "${final_result}" | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<operatingenvironment>/{fr=0;}' > otrx_output.xml
 
-  echo "    <env name=\"client_name\">$client_name</env>" >> output.ext
-  echo "    <env name=\"client_group\">$client_group</env>" >> output.ext
+  echo "    <env name=\"client_name\">$client_name</env>" >> otrx_output.xml
+  echo "    <env name=\"client_group\">$client_group</env>" >> otrx_output.xml
 
-  echo "    <env name=\"user\">`id -un`</env>" >> output.ext
-  echo "    <env name=\"arch\">`uname -m`</env>" >> output.ext
+  echo "    <env name=\"user\">`id -un`</env>" >> otrx_output.xml
+  echo "    <env name=\"arch\">`uname -m`</env>" >> otrx_output.xml
   if [ -e '/etc/redhat-release' ]; then
-      echo "    <env name=\"os\">`cat /etc/redhat-release`</env>" >> output.ext
+      echo "    <env name=\"os\">`cat /etc/redhat-release`</env>" >> otrx_output.xml
   fi
-  echo "    <env name=\"hostname\">`uname -n`</env>" >> output.ext
+  echo "    <env name=\"hostname\">`uname -n`</env>" >> otrx_output.xml
 
-  echo "${final_result}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<operatingenvironment>/{fr=1;}'  >> output.ext
+  echo "${final_result}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<operatingenvironment>/{fr=1;}'  >> otrx_output.xml
 
-  final_result_simple=`cat output.ext`
+  final_result_simple=`cat otrx_output.xml`
 
   # Create a richer version, too
-  echo "${final_result_simple}" | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<OSGTestResult /{fr=0;}' > output.ext
+  echo "${final_result_simple}" | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<OSGTestResult /{fr=0;}' > otrx_output.xml
 
   if [ "${global_result}" != "" ]; then
       # subtests first, so it is more readable, when tailing
-      echo '  <subtestlist>' >> output.ext
-      echo '    <OSGTestResults>' >> output.ext
-      echo "${global_result}" | awk '{print "      " $0}' >> output.ext
-      echo '    </OSGTestResults>' >> output.ext
-      echo '  </subtestlist>' >> output.ext
+      echo '  <subtestlist>' >> otrx_output.xml
+      echo '    <OSGTestResults>' >> otrx_output.xml
+      echo "${global_result}" | awk '{print "      " $0}' >> otrx_output.xml
+      echo '    </OSGTestResults>' >> otrx_output.xml
+      echo '  </subtestlist>' >> otrx_output.xml
   fi
 
-  echo "${final_result_simple}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<OSGTestResult /{fr=1;}/<operatingenvironment>/{fr=0;}' >> output.ext
+  echo "${final_result_simple}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<OSGTestResult /{fr=1;}/<operatingenvironment>/{fr=0;}' >> otrx_output.xml
 
-  echo "    <env name=\"glidein_factory\">$glidein_factory</env>" >> output.ext
-  echo "    <env name=\"glidein_name\">$glidein_name</env>" >> output.ext
-  echo "    <env name=\"glidein_entry\">$glidein_entry</env>" >> output.ext
-  echo "    <env name=\"condorg_cluster\">$condorg_cluster</env>" >> output.ext
-  echo "    <env name=\"condorg_subcluster\">$condorg_subcluster</env>" >> output.ext
-  echo "    <env name=\"condorg_schedd\">$condorg_schedd</env>" >> output.ext
+  echo "    <env name=\"glidein_factory\">$glidein_factory</env>" >> otrx_output.xml
+  echo "    <env name=\"glidein_name\">$glidein_name</env>" >> otrx_output.xml
+  echo "    <env name=\"glidein_entry\">$glidein_entry</env>" >> otrx_output.xml
+  echo "    <env name=\"condorg_cluster\">$condorg_cluster</env>" >> otrx_output.xml
+  echo "    <env name=\"condorg_subcluster\">$condorg_subcluster</env>" >> otrx_output.xml
+  echo "    <env name=\"condorg_schedd\">$condorg_schedd</env>" >> otrx_output.xml
 
-  echo "${final_result_simple}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<operatingenvironment>/{fr=1;}'  >> output.ext
+  echo "${final_result_simple}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<operatingenvironment>/{fr=1;}'  >> otrx_output.xml
 
-  final_result_long=`cat output.ext`
+  final_result_long=`cat otrx_output.xml`
 
   cd "$start_dir"
   if [ "$work_dir_created" -eq "1" ]; then
@@ -1006,7 +1006,7 @@ function fetch_file_base {
        An unknown error occured.
     </detail>
   </result>
-</OSGTestResult>" > output.ext
+</OSGTestResult>" > otrx_output.xml
 
     # download file
     if [ "$proxy_url" == "None" ]; then # no Squid defined, use the defaults
@@ -1033,19 +1033,19 @@ function fetch_file_base {
        Failed to load file '$ffb_real_fname' from '$ffb_repository'.
     </detail>
   </result>
-</OSGTestResult>" > output
+</OSGTestResult>" > otrb_output.xml
 	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'." 1>&2
 
-	    if [ -f output.list ]; then
-		chmod u+w output.list
+	    if [ -f otr_outlist.list ]; then
+		chmod u+w otr_outlist.list
 	    else
-		touch output.list
+		touch otr_outlist.list
 	    fi
-	    cat output >> output.list
+	    cat otrb_output.xml >> otr_outlist.list
 	    echo "<?xml version=\"1.0\"?>
-`cat output`">output.ext
-	    rm -f output
-	    chmod a-w output.list
+`cat otrb_output.xml`">otrx_output.xml
+	    rm -f otrb_output.xml
+	    chmod a-w otr_outlist.list
 	    return 1
 	fi
     else  # I have a Squid
@@ -1074,19 +1074,19 @@ function fetch_file_base {
       Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'.
     </detail>
   </result>
-</OSGTestResult>" > output
+</OSGTestResult>" > otrb_output.xml
 	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'." 1>&2
 
-	    if [ -f output.list ]; then
-		chmod u+w output.list
+	    if [ -f otr_outlist.list ]; then
+		chmod u+w otr_outlist.list
 	    else
-		touch output.list
+		touch otr_outlist.list
 	    fi
-	    cat output >> output.list
+	    cat otrb_output.xml >> otr_outlist.list
 	    echo "<?xml version=\"1.0\"?>
-`cat output`">output.ext
-	    rm -f output
-	    chmod a-w output.list
+`cat otrb_output.xml`">otrx_output.xml
+	    rm -f otrb_output.xml
+	    chmod a-w otr_outlist.list
 	    return 1
 	fi
     fi
@@ -1130,7 +1130,7 @@ function fetch_file_base {
 	    if [ $ret -ne 0 ]; then
                 echo "=== Validation error in $ffb_outname ===" 1>&2
 		warn "Error running '$ffb_outname'" 1>&2
-		cat output.ext | awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}' 1>&2
+		cat otrx_output.xml | awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}' 1>&2
 		return 1
 	    fi
 	fi
