@@ -306,7 +306,7 @@ class Credential:
         """
         if (not os.path.exists(self.filename)):
             return 0
-        if ("grid_proxy" in self.type):
+        if ("grid_proxy" in self.type) or ("cert_pair" in self.type):
             time_list=condorExe.iexe_cmd("openssl x509 -in %s -noout -enddate" % self.filename)
             if "notAfter=" in time_list[0]:
                 time_str=time_list[0].split("=")[1][:-1]
