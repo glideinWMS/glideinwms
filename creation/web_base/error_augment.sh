@@ -15,17 +15,17 @@
 # --------------------------------------------------------- #
 function header() {
     DATEFMT="+%Y-%m-%dT%H:%M:%S%:z"
-    echo '<?xml version="1.0"?>' > output.ext #NOTE: wipe previous output file
-    echo "<OSGTestResult id=\"$1\" version=\"4.3.1\">" >>output.ext
-    echo "  <operatingenvironment>" >> output.ext
-    echo "    <env name=\"cwd\">$2</env>" >> output.ext
-    echo "  </operatingenvironment>" >> output.ext
-    echo "  <test>" >> output.ext
-    echo "    <cmd>$3</cmd>" >> output.ext
-    echo "    <tStart>`date --date=@$4 $DATEFMT`</tStart>" >> output.ext
-    echo "    <tEnd>`date --date=@$5 $DATEFMT`</tEnd>" >> output.ext
-    echo "  </test>" >> output.ext
-    echo "  <result>" >> output.ext
+    echo '<?xml version="1.0"?>' > otrx_output.xml #NOTE: wipe previous output file
+    echo "<OSGTestResult id=\"$1\" version=\"4.3.1\">" >>otrx_output.xml
+    echo "  <operatingenvironment>" >> otrx_output.xml
+    echo "    <env name=\"cwd\">$2</env>" >> otrx_output.xml
+    echo "  </operatingenvironment>" >> otrx_output.xml
+    echo "  <test>" >> otrx_output.xml
+    echo "    <cmd>$3</cmd>" >> otrx_output.xml
+    echo "    <tStart>`date --date=@$4 $DATEFMT`</tStart>" >> otrx_output.xml
+    echo "    <tEnd>`date --date=@$5 $DATEFMT`</tEnd>" >> otrx_output.xml
+    echo "  </test>" >> otrx_output.xml
+    echo "  <result>" >> otrx_output.xml
     return
 }
 
@@ -34,7 +34,7 @@ function header() {
 # generate and append header close tags.                    #
 # --------------------------------------------------------- #
 function close(){
-    echo -e "  </result>\n</OSGTestResult>" >> output.ext
+    echo -e "  </result>\n</OSGTestResult>" >> otrx_output.xml
     return
 }
 
@@ -44,7 +44,7 @@ function close(){
 # --------------------------------------------------------- #
 function propagate_content(){
     #copy over only the part between <result> ... </result>
-    cat output | awk 'BEGIN{fr=0;}/<[/]result>/{fr=0;}{if (fr==1) print $0}/<result>$/{fr=1;}' >> output.ext
+    cat otrb_output.xml | awk 'BEGIN{fr=0;}/<[/]result>/{fr=0;}{if (fr==1) print $0}/<result>$/{fr=1;}' >> otrx_output.xml
     return
 }
 
@@ -70,13 +70,13 @@ function create_empty() {
     shift
     header "$@"
     if [ "$res" -eq 0 ]; then
-	echo "    <status>OK</status>" >> output.ext
+	echo "    <status>OK</status>" >> otrx_output.xml
     else
-	echo "    <status>ERROR</status>" >> output.ext
+	echo "    <status>ERROR</status>" >> otrx_output.xml
     fi
-    echo "    <detail>" >> output.ext
-    echo "       The test script did not produce an XML file. No further information available." >> output.ext
-    echo "    </detail>" >> output.ext
+    echo "    <detail>" >> otrx_output.xml
+    echo "       The test script did not produce an XML file. No further information available." >> otrx_output.xml
+    echo "    </detail>" >> otrx_output.xml
     close
     return
 }
@@ -90,31 +90,31 @@ function validate() {
     # do only basic testing
     # do not want to rely on external xml tools
 
-    h1=`cat output |head -2| grep '<OSGTestResult '`
+    h1=`cat otrb_output.xml |head -2| grep '<OSGTestResult '`
     if [ "$h1" == "" ]; then
 	# could not find header
 	return 1
     fi
 
-    h2=`cat output |head -3| grep '<result>'`
+    h2=`cat otrb_output.xml |head -3| grep '<result>'`
     if [ "$h2" == "" ]; then
 	# could not find header
 	return 1
     fi
 
-    f1=`cat output |tail -2| grep '</OSGTestResult>'`
+    f1=`cat otrb_output.xml |tail -2| grep '</OSGTestResult>'`
     if [ "$f1" == "" ]; then
 	# could not find footer
 	return 1
     fi
 
-    f2=`cat output |tail -3| grep '</result>'`
+    f2=`cat otrb_output.xml |tail -3| grep '</result>'`
     if [ "$f2" == "" ]; then
 	# could not find footer
 	return 1
     fi
 
-    s1=`cat output |grep '<status>'`
+    s1=`cat otrb_output.xml |grep '<status>'`
     if [ "$s1" == "" ]; then
 	# could not find status line
 	return 1
@@ -157,7 +157,7 @@ function process_file() {
 # initialize output file                                    #
 # --------------------------------------------------------- #
 function init_file() {
-    echo "" > output
+    echo "" > otrb_output.xml
 }
 
 # --------------------------------------------------------- #
@@ -165,15 +165,15 @@ function init_file() {
 # concatenate the augmented file to the list                #
 # --------------------------------------------------------- #
 function concat_file() {
-    if [ -f output.list ]; then
-      chmod u+w output.list
+    if [ -f otr_outlist.list ]; then
+      chmod u+w otr_outlist.list
     else
-      touch output.list
+      touch otr_outlist.list
     fi
     # strip out any spurious items
-    cat output.ext |awk 'BEGIN{fr=0;}/<OSGTestResult/{fr=1;}{if (fr==1) print $0}/<[/]OSGTestResult>/{fr=0;}' >> output.list
+    cat otrx_output.xml |awk 'BEGIN{fr=0;}/<OSGTestResult/{fr=1;}{if (fr==1) print $0}/<[/]OSGTestResult>/{fr=0;}' >> otr_outlist.list
     # make sure it is not modified by mistake by any test script
-    chmod a-w output.list
+    chmod a-w otr_outlist.list
     return
 }
 

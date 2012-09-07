@@ -13,9 +13,9 @@
 # generate and append detail tag                            #
 # --------------------------------------------------------- #
 function detail() {
-    echo "    <detail>" >> output
-    echo "$1" | awk '{print "       " $0}' >> output
-    echo "    </detail>" >> output
+    echo "    <detail>" >> otrb_output.xml
+    echo "$1" | awk '{print "       " $0}' >> otrb_output.xml
+    echo "    </detail>" >> otrb_output.xml
     return
 }
 
@@ -28,7 +28,7 @@ function header() {
     OSG="<OSGTestResult id=\""
     OSGEnd="\" version=\"4.3.1\">"
     RES="<result>"
-    echo -e "${XML}\n${OSG}$1${OSGEnd}\n  ${RES}" > output #NOTE: wipe previous output file
+    echo -e "${XML}\n${OSG}$1${OSGEnd}\n  ${RES}" > otrb_output.xml #NOTE: wipe previous otrb_output.xml file
     return
 }
 
@@ -37,7 +37,7 @@ function header() {
 # generate and append header close tags.                    #
 # --------------------------------------------------------- #
 function close(){
-    echo -e "  </result>\n</OSGTestResult>" >> output
+    echo -e "  </result>\n</OSGTestResult>" >> otrb_output.xml
     return
 }
 
@@ -47,7 +47,7 @@ function close(){
 # --------------------------------------------------------- #
 function write_metric(){
     DATE=`date "+%Y-%m-%dT%H:%M:%S%:z"`
-    echo "    <metric name=\"$1\" ts=\"${DATE}\" uri=\"local\">$2</metric>" >> output
+    echo "    <metric name=\"$1\" ts=\"${DATE}\" uri=\"local\">$2</metric>" >> otrb_output.xml
     return
 }
 
@@ -56,7 +56,7 @@ function write_metric(){
 # generate and append status tag for OK jobs                #
 # --------------------------------------------------------- #
 function status_ok(){
-    echo "    <status>OK</status>" >> output
+    echo "    <status>OK</status>" >> otrb_output.xml
     while [ $# -gt 1 ]; do
       write_metric "$1" "$2"
       shift
@@ -71,7 +71,7 @@ function status_ok(){
 # generate and append status tag for error jobs             #
 # --------------------------------------------------------- #
 function status_error(){
-    echo "    <status>ERROR</status>" >> output
+    echo "    <status>ERROR</status>" >> otrb_output.xml
     write_metric "failure" "$1"
     shift
     detstr=$1
