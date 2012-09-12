@@ -272,7 +272,7 @@ $glidein_config | awk '{print $2}'`<BR>
 detailed exit status report, if provided by the validation script.</P>
 <P>The script should write the exit status report in the following file:</P>
 <BLOCKQUOTE>
-output
+otrb_output.xml
 </BLOCKQUOTE>
 <P>The factory provides a helper script to properly generate such a file.
 A detailed description of the format can be found in the dedicated
@@ -393,7 +393,9 @@ condor_vars_file=`grep -i &quot;^CONDOR_VARS_FILE &quot; $glidein_config | awk '
 sw_list=`cat $tmpname | awk '{if (length(a)!=0) {a=a &quot;,&quot; $0} else {a=$0}}END{print a}'`
 
 if [ -z &quot;$sw_list&quot; ]; then
-  &quot;$error_gen&quot; -error &quot;swfind.sh&quot; &quot;WN_Resource&quot; &quot;No SW found.&quot; \ 
+  ERRSTR=&quot;No SW found.
+But the setup script was present at $VO_SW_DIR/setup.sh.&quot;
+  &quot;$error_gen&quot; -error &quot;swfind.sh&quot; &quot;WN_Resource&quot; &quot;$ERRSTR&quot; \ 
                &quot;source_file&quot; &quot;$VO_SW_DIR/setup.sh&quot;
 
   exit 1
