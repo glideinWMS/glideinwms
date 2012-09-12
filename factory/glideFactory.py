@@ -44,6 +44,13 @@ import cleanupSupport
 
 ############################################################
 def aggregate_stats(in_downtime):
+    """
+    Aggregate all the monitoring stats
+   
+    @type in_downtime: boolean
+    @param in_downtime: Entry downtime information
+    """
+
     try:
         status = glideFactoryMonitorAggregator.aggregateStatus(in_downtime)
     except:
@@ -66,6 +73,16 @@ def aggregate_stats(in_downtime):
 
 # added by C.W. Murphy to make descript.xml
 def write_descript(glideinDescript, frontendDescript, monitor_dir):
+    """
+    Write the descript.xml to the monitoring directory
+
+    @type glideinDescript: glideFactoryConfig.GlideinDescript 
+    @param glideinDescript: Factory config's glidein description object
+    @type frontendDescript: glideFactoryConfig.FrontendDescript 
+    @param frontendDescript: Factory config's frontend description object
+    @type monitor_dir: String 
+    @param monitor_dir: Path to monitoring directory
+    """
     glidein_data = copy.deepcopy(glideinDescript.data)
     frontend_data = copy.deepcopy(frontendDescript.data)
     entry_data = {}
@@ -95,6 +112,20 @@ def write_descript(glideinDescript, frontendDescript, monitor_dir):
 
 ############################################################
 def is_crashing_often(startup_time, restart_interval, restart_attempts):
+    """
+    Check if the entry is crashing/dieing often
+
+    @type startup_time: long
+    @param startup_time: Startup time of the entry process in second
+    @type restart_interval: long
+    @param restart_interval: Allowed restart interval in second
+    @type restart_attempts: long
+    @param restart_attempts: Number of allowed restart attempts in the interval
+    
+    @rtype: bool
+    @return: True if entry process is crashing/dieing often
+    """
+
     crashing_often = True
 
     if (len(startup_time) < restart_attempts):
@@ -118,7 +149,7 @@ def is_file_old(filename, allowed_time):
     @type filename: String 
     @param filename: Full path to the file
     @type allowed_time: long
-    @param allowed_time: Time is second
+    @param allowed_time: Time in second
     
     @rtype: bool
     @return: True if file is older than the given time, else False 
@@ -192,6 +223,27 @@ def clean_exit(childs):
 ############################################################
 def spawn(sleep_time, advertize_rate, startup_dir,
           glideinDescript, frontendDescript, entries, restart_attempts, restart_interval):
+    """
+    Spawn and keep track of the entry processes. Restart them if required.
+    Advertise glidefactoryglobal classad every iteration
+
+    @type sleep_time: long
+    @param sleep_time: Delay between every iteration
+    @type advertize_rate: long
+    @param advertize_rate: Rate at which entries advertise their classads
+    @type startup_dir: String 
+    @param startup_dir: Path to glideinsubmit directory
+    @type glideinDescript: glideFactoryConfig.GlideinDescript 
+    @param glideinDescript: Factory config's glidein description object
+    @type frontendDescript: glideFactoryConfig.FrontendDescript 
+    @param frontendDescript: Factory config's frontend description object
+    @type entries: list
+    @param entries: Sorted list of entry names
+    @type restart_interval: long
+    @param restart_interval: Allowed restart interval in second
+    @type restart_attempts: long
+    @param restart_attempts: Number of allowed restart attempts in the interval
+    """
 
     global STARTUP_DIR
     childs = {}

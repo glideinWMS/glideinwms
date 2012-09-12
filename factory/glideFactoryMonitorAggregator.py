@@ -192,9 +192,18 @@ def verifyRRD(fix_rrd=False):
 
 
 ##############################################################################
-# create an aggregate of status files, write it in an aggregate status file
-# end return the values
 def aggregateStatus(in_downtime):
+    """
+    Create an aggregate of status files, write it in an aggregate status file
+    and in the end return the values
+
+    @type in_downtime: boolean
+    @param in_downtime: Entry downtime information
+
+    @rtype: dict
+    @return: Dictionary of status information
+    """
+
     global monitorAggregatorConfig
 
     avgEntries=('InfoAge',)
@@ -386,9 +395,12 @@ def aggregateStatus(in_downtime):
     return status
 
 ######################################################################################
-# create an aggregate of log summary files, write it in an aggregate log summary file
-# end return the values
 def aggregateLogSummary():
+    """
+    Create an aggregate of log summary files, write it in an aggregate log 
+    summary file and in the end return the values
+    """
+
     global monitorAggregatorConfig
 
     # initialize global counters
@@ -598,6 +610,10 @@ def aggregateLogSummary():
     return status
 
 def aggregateRRDStats():
+    """
+    Create an aggregate of RRD stats, write it files
+    """
+
     global monitorAggregatorConfig
     factoryStatusData = glideFactoryMonitoring.FactoryStatusData()
     rrdstats_relname = glideFactoryMonitoring.rrd_list
@@ -673,7 +689,7 @@ def aggregateRRDStats():
                                     # well, some may be just missing.. can happen
                                     #logSupport.log.debug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s][%s]" %(entry,'frontends',client,'periods',res,data_set))
         
-        #  We still need to determine what is causing these missing data in case it is a real issue
+        # We still need to determine what is causing these missing data in case it is a real issue
         # but using this flags will at least reduce the number of messages in the logs (see commented out messages above)
         if missing_total_data:
             logSupport.log.debug("aggregate_data, missing total data from file %s" % rrd_site(rrd))

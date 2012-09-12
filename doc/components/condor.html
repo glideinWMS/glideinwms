@@ -325,12 +325,12 @@ Processing schedd: SCHEDDJOBS2<br/>
     1. This script is used to start the secondary schedds
        (see the <a href="#starting">starting up schedds section</a>)
     </p><blockquote>
-      #!/bin/sh
-      CONDOR_LOCATION=/opt/glidecondor/condor-submit
-      export CONDOR_CONFIG=$CONDOR_LOCATION/etc/condor_config
-      source $CONDOR_LOCATION/new_schedd_setup.sh $1
-      # add whatever other config you need
-      $CONDOR_LOCATION/sbin/condor_master
+      #!/bin/sh<br/>
+      CONDOR_LOCATION=/opt/glidecondor/condor-submit<br/>
+      export CONDOR_CONFIG=$CONDOR_LOCATION/etc/condor_config<br/>
+      source $CONDOR_LOCATION/new_schedd_setup.sh $1<br/>
+      # add whatever other config you need<br/>
+      $CONDOR_LOCATION/sbin/condor_master<br/>
     </blockquote>
 
     2.- This needs to be made executable by the user that installed Condor:<br>
@@ -342,6 +342,10 @@ Processing schedd: SCHEDDJOBS2<br/>
     <a href="../install/example-config/multi_schedd/start_master_schedd.sh" title="example-config/multi_schedd/start_master_schedd.sh">
         example-config/multi_schedd/start_master_schedd.sh
     </a>.
+    
+    <p>
+    </p>
+<a name="initialize_schedds"/>
 <h4>Initialize schedds</h4>
     <p>
     To initialize the secondary schedds, use
@@ -378,6 +382,8 @@ those instructions.
       /opt/glidecondor/start_master_schedd.sh glideins1
     </blockquote>
     <b>Note:</b> Always start them after you have started the Collector.
+    <p>
+    </p>
 <h4><a name="submission">Submission and monitoring</a></h4>
     <p>
 

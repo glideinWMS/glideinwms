@@ -116,12 +116,8 @@ fi
 work_dir_created=0
 function glidein_exit {
   if [ $1 -ne 0 ]; then
-    if [ $1 -ne 99 ]; then
       sleep $sleep_time 
       # wait a bit in case of error, to reduce lost glideins
-      # note: exit code 99 means DAEMON_SHUTDOWN encountered
-      # This should be considered a normal shutdown
-    fi
   fi
   # lock file for whole machine 
   if [ "x$lock_file" != "x" ]; then
@@ -1145,14 +1141,7 @@ let last_script_time=$last_startup_end_time-$last_startup_time
 echo "=== Last script ended `date` ($last_startup_end_time) with code $ret after $last_script_time ==="
 echo
 if [ $ret -ne 0 ]; then
-  if [ $ret -eq 99 ]; then
-    warn "Normal DAEMON_SHUTDOWN encountered while '$last_script'" 1>&2
-    # DAEMON_SHUTDOWN is a normal outcome, so should return 0
-    #  instead of 99 to indicate normal termination
-    glidein_exit 0
-  else
     warn "Error running '$last_script'" 1>&2
-  fi
 fi
 
 #########################
