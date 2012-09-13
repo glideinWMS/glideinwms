@@ -535,10 +535,14 @@ JobFinishedHookDone,MATCH_EXP_JOBGLIDEIN_Site,RemoteHost<br/>
    <td>
      GRIDMANAGER_MAX_SUBMITTED_JOBS_PER_RESOURCE=5000<br/>
      GRIDMANAGER_MAX_PENDING_SUBMITS_PER_RESOURCE=5000<br/>
-     GRIDMANAGER_MAX_PENDING_REQUESTS=500
-     SCHEDD_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridmanagerLog.$(USERNAME)"
+     GRIDMANAGER_MAX_PENDING_REQUESTS=500<br/>
+     GRIDMANAGER_PROXY_REFRESH_TIME=604800<br/>
+     SCHEDD_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridmanagerLog.$(USERNAME)"<br/>
   </td>
-  <td valign="top">Condor-G attributes
+  <td valign="top">Condor-G attributes<br/>
+    <br/>The GRIDMANAGER_PROXY_REFRESH_TIME attribute was introduced in Condor 7.7.5 as a
+         configurable attribute with a default of 6 hours.  
+         For glideinWMS purposes, the proxy lifetime remaining must be at least 12 hours.
   </td>
 </tr>
 <tr>
