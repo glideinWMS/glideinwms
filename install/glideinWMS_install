@@ -487,7 +487,8 @@ def wms_install():
         config_fd.write("GRIDMANAGER_MAX_SUBMITTED_JOBS_PER_RESOURCE=5000\n")
         config_fd.write("GRIDMANAGER_MAX_PENDING_SUBMITS_PER_RESOURCE=5000\n")
         config_fd.write("GRIDMANAGER_MAX_PENDING_REQUESTS=500\n")
-        config_fd.write("# glideinWMS requires a proxy refresh time of minimally 12 hours\n")
+        config_fd.write("# Force Condor-G to re-delegate the proxy as soon as the FE provides one\n")
+        config_fd.write("# Defaulting to 1 week, since we do not expect proxies with longer lifetimes\n")
         config_fd.write("GRIDMANAGER_PROXY_REFRESH_TIME=604800\n")
     finally:
         config_fd.close()
