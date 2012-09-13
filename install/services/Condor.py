@@ -1003,7 +1003,8 @@ SCHEDD_EXPRS = $(SCHEDD_EXPRS) LOCAL_DIR_STRING
 GRIDMANAGER_MAX_SUBMITTED_JOBS_PER_RESOURCE=5000
 GRIDMANAGER_MAX_PENDING_SUBMITS_PER_RESOURCE=5000
 GRIDMANAGER_MAX_PENDING_REQUESTS=500
-# glideinWMS requires a proxy refresh time of minimally 12 hours
+# Force Condor-G to re-delegate the proxy as soon as the FE provides one
+# Defaulting to 1 week, since we do not expect proxies with longer lifetimes 
 GRIDMANAGER_PROXY_REFRESH_TIME=604800
 SCHEDD_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridmanagerLog.$(USERNAME)"
 """
