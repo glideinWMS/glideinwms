@@ -107,4 +107,4 @@ rmdir $tmp_dir
 metrics+=" TmpWritable True"
 
 "$error_gen"  -ok "validate_node.sh" $metrics
-
+exit 0

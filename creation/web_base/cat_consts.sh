@@ -52,3 +52,4 @@ if [ -n "$consts_file" ]; then
 fi
 
 "$error_gen" -ok "cat_consts.sh" "NrAttributes" "$nr_lines"
+exit 0

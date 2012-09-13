@@ -65,4 +65,4 @@ add_config_line "JAVA_CLASSPATH_DEFAULT" '$(LIB),$(LIB)/scimark2lib.jar,.'
 add_condor_vars_line "JAVA_CLASSPATH_DEFAULT" "C" "-" "+" "Y" "N" "-"
 
 "$error_gen" -ok "java_setup.sh" "Java_check" "java"
-
+exit 0

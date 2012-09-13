@@ -67,3 +67,4 @@ if [ -n "$blacklist_file" ]; then
 fi
 
 "$error_gen" -ok "check_blacklist.sh"
+exit 0
