@@ -9,26 +9,35 @@
 #
 
 # --------------------------------------------------------- #
-# detail ()                                                 #
+# detail (str)                                              #
 # generate and append detail tag                            #
 # --------------------------------------------------------- #
 function detail() {
-    echo "    <detail>" >> otrb_output.xml
-    echo "$1" | awk '{print "       " $0}' >> otrb_output.xml
-    echo "    </detail>" >> otrb_output.xml
+    echo "  <detail>" >> otrb_output.xml
+    echo "$1" | awk '{print "    " $0}' >> otrb_output.xml
+    echo "  </detail>" >> otrb_output.xml
     return
 }
 
 # --------------------------------------------------------- #
-# header ()                                                 #
+# header (id,status)                                        #
 # generate and append header tag                            #
 # --------------------------------------------------------- #
 function header() {
     XML='<?xml version="1.0"?>'
     OSG="<OSGTestResult id=\""
     OSGEnd="\" version=\"4.3.1\">"
-    RES="<result>"
+    RES="<result>\n    <status>$2</status>"
     echo -e "${XML}\n${OSG}$1${OSGEnd}\n  ${RES}" > otrb_output.xml #NOTE: wipe previous otrb_output.xml file
+    return
+}
+
+# --------------------------------------------------------- #
+# midsection ()                                             #
+# generate and append result close tags.                    #
+# --------------------------------------------------------- #
+function midsection(){
+    echo "  </result>" >> otrb_output.xml
     return
 }
 
@@ -37,12 +46,12 @@ function header() {
 # generate and append header close tags.                    #
 # --------------------------------------------------------- #
 function close(){
-    echo -e "  </result>\n</OSGTestResult>" >> otrb_output.xml
+    echo "</OSGTestResult>" >> otrb_output.xml
     return
 }
 
 # --------------------------------------------------------- #
-# write_metric ()                                           #
+# write_metric (key,val)                                    #
 # generate and append metric tag                            #
 # --------------------------------------------------------- #
 function write_metric(){
@@ -56,12 +65,16 @@ function write_metric(){
 # generate and append status tag for OK jobs                #
 # --------------------------------------------------------- #
 function status_ok(){
-    echo "    <status>OK</status>" >> otrb_output.xml
+    myid="$1"
+    shift
+
+    header "$myid" OK
     while [ $# -gt 1 ]; do
       write_metric "$1" "$2"
       shift
       shift
     done
+    midsection
     close
     return
 }
@@ -71,7 +84,10 @@ function status_ok(){
 # generate and append status tag for error jobs             #
 # --------------------------------------------------------- #
 function status_error(){
-    echo "    <status>ERROR</status>" >> otrb_output.xml
+    myid="$1"
+    shift
+
+    header "$myid" ERROR
     write_metric "failure" "$1"
     shift
     detstr=$1
@@ -81,6 +97,7 @@ function status_error(){
       shift
       shift
     done
+    midsection
     detail "$detstr"
     close
     return
@@ -105,9 +122,7 @@ usage() {
 #
 ############################################################
 mycmd=$1
-header "$2"
 
-shift
 shift
 
 case "$mycmd" in

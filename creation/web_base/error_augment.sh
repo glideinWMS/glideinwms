@@ -25,7 +25,6 @@ function header() {
     echo "    <tStart>`date --date=@$4 $DATEFMT`</tStart>" >> otrx_output.xml
     echo "    <tEnd>`date --date=@$5 $DATEFMT`</tEnd>" >> otrx_output.xml
     echo "  </test>" >> otrx_output.xml
-    echo "  <result>" >> otrx_output.xml
     return
 }
 
@@ -34,7 +33,7 @@ function header() {
 # generate and append header close tags.                    #
 # --------------------------------------------------------- #
 function close(){
-    echo -e "  </result>\n</OSGTestResult>" >> otrx_output.xml
+    echo "</OSGTestResult>" >> otrx_output.xml
     return
 }
 
@@ -44,7 +43,7 @@ function close(){
 # --------------------------------------------------------- #
 function propagate_content(){
     #copy over only the part between <result> ... </result>
-    cat otrb_output.xml | awk 'BEGIN{fr=0;}/<[/]result>/{fr=0;}{if (fr==1) print $0}/<result>$/{fr=1;}' >> otrx_output.xml
+    cat otrb_output.xml | awk 'BEGIN{fr=0;}/<[/]OSGTestResult>/{fr=0;}{if (fr==1) print $0}/<OSGTestResult/{fr=1;}' >> otrx_output.xml
     return
 }
 
@@ -69,14 +68,16 @@ function create_empty() {
     res=$1
     shift
     header "$@"
+    echo "  <result>" >> otrx_output.xml
     if [ "$res" -eq 0 ]; then
 	echo "    <status>OK</status>" >> otrx_output.xml
     else
 	echo "    <status>ERROR</status>" >> otrx_output.xml
     fi
-    echo "    <detail>" >> otrx_output.xml
-    echo "       The test script did not produce an XML file. No further information available." >> otrx_output.xml
-    echo "    </detail>" >> otrx_output.xml
+    echo "  </result>" >> otrx_output.xml
+    echo "  <detail>" >> otrx_output.xml
+    echo "     The test script did not produce an XML file. No further information available." >> otrx_output.xml
+    echo "  </detail>" >> otrx_output.xml
     close
     return
 }
@@ -90,25 +91,25 @@ function validate() {
     # do only basic testing
     # do not want to rely on external xml tools
 
-    h1=`cat otrb_output.xml |head -2| grep '<OSGTestResult '`
+    h1=`cat otrb_output.xml |head -4| grep '<OSGTestResult '`
     if [ "$h1" == "" ]; then
 	# could not find header
 	return 1
     fi
 
-    h2=`cat otrb_output.xml |head -3| grep '<result>'`
+    h2=`cat otrb_output.xml |head -8| grep '<result>'`
     if [ "$h2" == "" ]; then
 	# could not find header
 	return 1
     fi
 
-    f1=`cat otrb_output.xml |tail -2| grep '</OSGTestResult>'`
+    f1=`cat otrb_output.xml |tail -4| grep '</OSGTestResult>'`
     if [ "$f1" == "" ]; then
 	# could not find footer
 	return 1
     fi
 
-    f2=`cat otrb_output.xml |tail -3| grep '</result>'`
+    f2=`cat otrb_output.xml |grep '</result>'`
     if [ "$f2" == "" ]; then
 	# could not find footer
 	return 1

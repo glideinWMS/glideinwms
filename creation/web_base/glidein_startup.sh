@@ -140,51 +140,56 @@ function construct_xml {
     <tStart>`date --date=@${startup_time} +%Y-%m-%dT%H:%M:%S%:z`</tStart>
     <tEnd>`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`</tEnd>
   </test>
-  <result>
 $result
-  </result>
 </OSGTestResult>"
 }
 
+
 function extract_parent_xml_detail {
+  exitcode=$1
   glidein_end_time=`date +%s`
 
   if [ -s otrx_output.xml ]; then
       # file exists and is not 0 size
       last_result=`cat otrx_output.xml`
  
-      if [ $1 -eq 0 ]; then
+      if [ "$exitcode" -eq 0 ]; then
+	  echo "  <result>"
 	  echo "    <status>OK</status>"
 	  # propagate metrics as well
 	  echo "$last_result" | grep '<metric '
+	  echo "  </result>"
       else
 	  last_script_name=`echo "$last_result" |awk '/<OSGTestResult /{split($0,a,"id=\""); split(a[2],b,"\""); print b[1];}'`
 
 	  last_script_reason=`echo "$last_result" | awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}'`
-	  my_reason="Validation failed in $last_script_name.
+	  my_reason="     Validation failed in $last_script_name.
 
 $last_script_reason"
 
+	  echo "  <result>"
 	  echo "    <status>ERROR</status>
     <metric name=\"TestID\" ts=\"`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$last_script_name</metric>"
 	  # propagate metrics as well (will include the failure metric)
 	  echo "$last_result" | grep '<metric '
-	  echo "    <detail>
-${last_script_reason}
-    </detail>"
+	  echo "  </result>"
+	  echo "  <detail>
+${my_reason}
+  </detail>"
       fi
   else
       # create a minimal XML file, else
-      if [ $1 -eq 0 ]; then
-	  status="OK"
+      echo "  <result>"
+      if [ "$exitcode" -eq 0 ]; then
+	  echo "    <status>OK</status>"
       else
-	  status="ERROR"
-	  echo "    <metric name=\"failure\" ts=\"`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Unknown</metric>" >> otrx_output.xml
+	  echo "    <status>ERROR</status>"
+	  echo "    <metric name=\"failure\" ts=\"`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Unknown</metric>"
       fi
-      echo "    <status>$status</status>
-    <detail>
-      No detail. Could not find source XML file.
-    </detail>"
+      echo "  </result>
+  <detail>
+    No detail. Could not find source XML file.
+  </detail>"
   fi
 }
 
@@ -1056,10 +1061,10 @@ function fetch_file_base {
     <status>ERROR</status>
     <metric name=\"failure\" ts=\"`date +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Unknown</metric>
     <metric name=\"source_type\" ts=\"`date +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_id</metric>
-    <detail>
-       An unknown error occured.
-    </detail>
   </result>
+  <detail>
+     An unknown error occured.
+  </detail>
 </OSGTestResult>" > otrx_output.xml
 
     # download file
@@ -1083,10 +1088,10 @@ function fetch_file_base {
     <metric name=\"failure\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Network</metric>
     <metric name=\"URL\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_repository/$ffb_real_fname</metric>
     <metric name=\"source_type\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_id</metric>
-    <detail>
-       Failed to load file '$ffb_real_fname' from '$ffb_repository'.
-    </detail>
   </result>
+  <detail>
+     Failed to load file '$ffb_real_fname' from '$ffb_repository'.
+  </detail>
 </OSGTestResult>" > otrb_output.xml
 	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'." 1>&2
 
@@ -1124,10 +1129,10 @@ function fetch_file_base {
     <metric name=\"URL\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_repository/$ffb_real_fname</metric>
     <metric name=\"http_proxy\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$proxy_url</metric>
     <metric name=\"source_type\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_id</metric>
-    <detail>
-      Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'.
-    </detail>
   </result>
+  <detail>
+    Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'.
+  </detail>
 </OSGTestResult>" > otrb_output.xml
 	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'." 1>&2
 
