@@ -1027,31 +1027,42 @@ please verify and correct if needed.
   #---------------------------------
   def extract_factory_attrs(self):
     glidein_attrs = []
-    attr_re = re.compile("glidein\[\"attrs\"\]\[['\"](?P<attr>[^'\"]+)['\"]\]")
-    idx = 0
-    while 1:
-      attr_obj = attr_re.search(self.match_string(),idx)
-      if attr_obj == None:
-        break # not found
-      attr_el = attr_obj.group('attr')
-      if not (attr_el in glidein_attrs):
-        glidein_attrs.append(attr_el)
-      idx = attr_obj.end()+1
+    regex = (
+      re.compile("glidein\[\"attrs\"\]\[['\"](?P<attr>[^'\"]+)['\"]\]"), 
+      re.compile("glidein\[\"attrs\"\]\.get\(['\"](?P<attr>[^'\"]+)['\"\)]")
+    )
+
+    for attr_re in regex:
+      idx = 0
+      while 1:
+        attr_obj = attr_re.search(self.match_string(),idx)
+        if attr_obj == None:
+          break # not found
+        attr_el = attr_obj.group('attr')
+        if not (attr_el in glidein_attrs):
+          glidein_attrs.append(attr_el)
+        idx = attr_obj.end()+1
     return glidein_attrs
 
   #---------------------------------
   def extract_job_attrs(self):
     job_attrs = []
-    attr_re = re.compile("job\[['\"](?P<attr>[^'\"]+)['\"]\]")
-    idx=0
-    while 1:
-      attr_obj = attr_re.search(self.match_string(),idx)
-      if attr_obj == None:
-        break # not found
-      attr_el=attr_obj.group('attr')
-      if not (attr_el in job_attrs):
-        job_attrs.append(attr_el)
-      idx = attr_obj.end()+1
+    regex = (
+      re.compile("job\.get\(['\"](?P<attr>[^'\"]+)['\"]\)"),
+      re.compile("job\[['\"](?P<attr>[^'\"]+)['\"]\]")
+    )
+
+
+    for attr_re in regex:
+      idx=0
+      while 1:
+        attr_obj = attr_re.search(self.match_string(),idx)
+        if attr_obj == None:
+          break # not found
+        attr_el=attr_obj.group('attr')
+        if not (attr_el in job_attrs):
+          job_attrs.append(attr_el)
+        idx = attr_obj.end()+1
     return job_attrs
 
   #--------------------------------

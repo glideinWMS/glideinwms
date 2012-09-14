@@ -610,9 +610,16 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         </div>
     A Python boolean expression is used to match glideins
     to jobs. The glidein and job dictionaries are used in the
-    expression, i.e. glidein[&quot;attrs&quot;][&quot;GLIDEIN_Site&quot;]
-    in job[&quot;DESIRED_Sites&quot;].split(&quot;,&quot;). If you want
-    to match all, just specify True. 
+    expression, i.e. glidein[&quot;attrs&quot;].get(&quot;GLIDEIN_Site&quot;)
+    in ((job.get(&quot;DESIRED_Sites&quot;) != None) and job.get(&quot;DESIRED_Sites&quot;).split(&quot;,&quot;)). If you want
+    to match all, just specify True.<br/>
+    Note that there are two expressions.  The "match_expr" will be 
+    evaluated when matching glidein (pilot) requests to entries.
+    This will determine which sites glideins are submitted to.
+    The "start_expr" is evaluated when jobs are matched to pilots.
+    This will determine, once glidein pilots are up and running,
+    which jobs will run on them.
+    <a href="#match_example">More on match expressions</a>
     </P></li>
 
     <LI><P>
@@ -828,8 +835,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
 </p>
 <p><B><u>Example</u></b></p>
         <div class="xml">
-         &lt;match match_expr='glidein["attrs"]["GLIDEIN_Site"] in
-job["DESIRED_Sites"].split(",")'&gt;<br/>
+         &lt;match match_expr='glidein[&quot;attrs&quot;].get(&quot;GLIDEIN_Site&quot;) in ((job.get(&quot;DESIRED_Sites&quot;) != None) and job.get(&quot;DESIRED_Sites&quot;).split(&quot;,&quot;))'&gt;<br/>
             &lt;factory query_expr="(GLIDEIN_Site=!=UNDEFINED)"&gt;<br/>
                &lt;match_attrs&gt;
                   &lt;match_attr name="GLIDEIN_Site" type="string"/&gt;
@@ -848,6 +854,17 @@ job["DESIRED_Sites"].split(",")'&gt;<br/>
         </div>
 
 
+<p><B><u>Example</u></b></p>
+        Glideins can also use "start_expr" to make sure
+        the correct jobs start on pilots.  Here is an example:
+        <div class="xml">
+              &lt; match match_expr='glidein[&quot;attrs&quot;].get(&quot;GLIDEIN_Site&quot;) in ((job.get(&quot;DESIRED_Sites&quot;) != None) and job.get(&quot;DESIRED_Sites&quot;).split(&quot;,&quot;))'
+            start_expr='(stringListMember(GLIDEIN_Site,DESIRED_Sites,",")=?=True)' &lt;
+            <br/>
+            ...
+            <br/>
+            &lt; /match &gt;
+        </div>
 </p>
 </div>
 <div class="section">
