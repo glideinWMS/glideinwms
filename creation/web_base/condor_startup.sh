@@ -20,6 +20,7 @@ function ignore_signal {
         echo "Condor startup received SIGHUP signal, ignoring..."
 }
 
+metrics=""
 
 
 # first of all, clean up any CONDOR variable
@@ -122,14 +123,14 @@ function set_var {
 
     var_val=`grep "^$var_name " $config_file | awk '{print substr($0,index($0,$2))}'`
     if [ -z "$var_val" ]; then
-        if [ "$var_req" == "Y" ]; then
-            # needed var, exit with error
-            #echo "Cannot extract $var_name from '$config_file'" 1>&2
-             STR="Cannot extract $var_name from '$config_file'"
-            "$error_gen" -error "condor_startup.sh" "Corruption" "$STR" "attribute" "$var_name"
-            exit 1
-        elif [ "$var_def" == "-" ]; then
-            # no default, do not set
+	if [ "$var_req" == "Y" ]; then
+	    # needed var, exit with error
+	    #echo "Cannot extract $var_name from '$config_file'" 1>&2
+	    STR="Cannot extract $var_name from '$config_file'"
+	    "$error_gen" -error "condor_startup.sh" "Config" "$STR" "MissingAttribute" "$var_name"
+	    exit 1
+	elif [ "$var_def" == "-" ]; then
+	    # no default, do not set
             return 0
         else
             eval var_val=$var_def
@@ -371,7 +372,7 @@ fi
 if [ "$retire_time" -lt "$min_glidein" ]; then  
     #echo "Retire time still too low ($retire_time), aborting" 1>&2
     STR="Retire time still too low ($retire_time), aborting"
-    "$error_gen" -error "condor_startup.sh" "Config" "$STR" "attribute" "retire_time" 
+    "$error_gen" -error "condor_startup.sh" "Config" "$STR" "retire_time" "$retire_time" "min_retire_time" "$min_glidein"
     exit 1
 fi
 echo "Retire time set to $retire_time" 1>&2
@@ -434,7 +435,7 @@ EOF
 if [ $? -ne 0 ]; then
     #echo "Error customizing the condor_config" 1>&2
     STR="Error customizing the condor_config"
-    "$error_gen" -error "condor_startup.sh" "Corruption" "$STR" "file" "$CONDOR_CONFIG"
+    "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "file" "$CONDOR_CONFIG"
     exit 1
 fi
 
@@ -454,7 +455,7 @@ if [ "$operation_mode" == "2" ]; then
     if [ $? -ne 0 ]; then
         #echo "Error appending check_include to condor_config" 1>&2
         STR="Error appending check_include to condor_config"
-        "$error_gen" -error "condor_startup.sh" "Corruption" "$STR" "file" "$CONDOR_CONFIG" "file" "$condor_config_check_include"
+        "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "file" "$CONDOR_CONFIG" "infile" "$condor_config_check_include"
         exit 1
     fi
     # fake a few variables, to make the rest work
@@ -469,7 +470,7 @@ if [ "$use_multi_monitor" -eq 1 ]; then
     if [ $? -ne 0 ]; then
         #echo "Error appending multi_include to condor_config" 1>&2
         STR="Error appending multi_include to condor_config"
-        "$error_gen" -error "condor_startup.sh" "Corruption" "$STR" "file" "$CONDOR_CONFIG" "file" "$condor_config_multi_include"
+        "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "file" "$CONDOR_CONFIG" "infile" "$condor_config_multi_include"
         exit 1
     fi
 else
@@ -485,14 +486,14 @@ else
       if [ $? -ne 0 ]; then
         #echo "Error copying condor_config into condor_config.monitor" 1>&2
         STR="Error copying condor_config into condor_config.monitor"
-        "$error_gen" -error "condor_startup.sh" "Corruption" "$STR" "file" "$condor_config_monitor" "file" "$CONDOR_CONFIG"
+        "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "infile" "$condor_config_monitor" "file" "$CONDOR_CONFIG"
         exit 1
       fi
       cat "$condor_config_monitor_include" >> "$condor_config_monitor"
       if [ $? -ne 0 ]; then
         #echo "Error appending monitor_include to condor_config.monitor" 1>&2
         STR="Error appending monitor_include to condor_config.monitor"
-        "$error_gen" -error "condor_startup.sh" "Corruption" "$STR" "file" "$condor_config_monitor" "file" "$condor_config_monitor_include"
+        "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "infile" "$condor_config_monitor" "file" "$condor_config_monitor_include"
         exit 1
       fi
 
@@ -526,7 +527,7 @@ EOF
     if [ $? -ne 0 ]; then
         #echo "Error appending main_include to condor_config" 1>&2
         STR="Error appending main_include to condor_config"
-        "$error_gen" -error "condor_startup.sh" "Corruption" "$STR" "file" "$CONDOR_CONFIG" "file" "$condor_config_main_include"
+        "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "file" "$CONDOR_CONFIG" "infile" "$condor_config_main_include"
         exit 1
     fi
 
@@ -541,7 +542,7 @@ EOF
       if [ $? -ne 0 ]; then
         #echo "Error creating monitor dirs" 1>&2
         STR="Error creating monitor dirs"
-        "$error_gen" -error "condor_startup.sh" "Corruption" "$STR" "direction" "$PWD/monitor_monitor/log_monitor/execute"
+        "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "directory" "$PWD/monitor_monitor/log_monitor/execute"
         exit 1
       fi
     fi
@@ -553,7 +554,7 @@ mkdir log execute
 if [ $? -ne 0 ]; then
     #echo "Error creating condor dirs" 1>&2
     STR="Error creating monitor dirs"
-    "$error_gen" -error "condor_startup.sh" "Corruption" "$STR" "direction" "$PWD/log_execute"
+    "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "directory" "$PWD/log_execute"
     exit 1
 fi
 
@@ -638,12 +639,18 @@ condor_ret=$?
 if [ ${condor_ret} -eq 99 ]; then
     echo "Normal DAEMON_SHUTDOWN encountered" 1>&2
     condor_ret=0
+    metrics+=" AutoShutdown True"
+else
+    metrics+=" AutoShutdown False"
 fi
 
 end_time=`date +%s`
 let elapsed_time=$end_time-$start_time
 echo "=== Condor ended `date` (`date +%s`) after $elapsed_time ==="
 echo
+
+metrics+=" CondorDuration $elapsed_time"
+
 
 ## perform a condor_fetchlog against the condor_startd
 ##    if fetch fails, sleep for 'fetch_sleeptime' amount
@@ -701,7 +708,12 @@ log_dir='log'
 
 echo ===   Stats of main   ===
 if [ -f "${main_starter_log}" ]; then
-  awk -f "${main_stage_dir}/parse_starterlog.awk" ${main_starter_log}
+  parsed_out=`awk -f "${main_stage_dir}/parse_starterlog.awk" ${main_starter_log}`
+  echo "$parsed_out"
+
+  parsed_metrics=`echo "$parsed_out" | awk 'BEGIN{p=0;}/^Total /{if (p==1) {if ($2=="jobs") {t="Total";n=$3;m=$5;} else {t=$2;n=$4;m=$7;} print t "JobsNr " n " " t "JobsTime " m;}}/^====/{p=1;}'`
+  # use echo to strip newlines
+  metrics+=`echo " " $parsed_metrics`
 fi
 echo === End Stats of main ===
 
@@ -751,15 +763,20 @@ if [ "$ON_DIE" -eq 1 ]; then
 	
 	#If we are explicitly killed, do not wait required time
 	echo "Explicitly killed, exiting with return code 0 instead of $condor_ret";
-
-	 "$error_gen" -ok "condor_startup.sh" "Condor" "$CONDOR_CONFIG"
-
-	exit 0;
+	
+	condor_ret=0
+	metrics+=" CondorKilled True"
+else
+    metrics+=" CondorKilled False"
 fi
 
 ##
 ##########################################################
 
-"$error_gen" -ok "condor_startup.sh" "Condor" "$CONDOR_CONFIG"
+if [ "$condor_ret" -eq "0" ]; then
+    "$error_gen" -ok "condor_startup.sh" $metrics
+else
+    "$error_gen" -error "condor_startup.sh" "Unknown" "See Condor logs for details" $metrics
+fi
 
 exit $condor_ret

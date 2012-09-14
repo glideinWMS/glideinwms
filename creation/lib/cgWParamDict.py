@@ -41,8 +41,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # put default files in place first       
         self.dicts['file_list'].add_placeholder('error_gen.sh',allow_overwrite=True)
+        self.dicts['file_list'].add_placeholder('error_augment.sh',allow_overwrite=True)
         self.dicts['file_list'].add_placeholder('setup_script.sh',allow_overwrite=True)
-        self.dicts['file_list'].add_placeholder('xml_parse.sh',allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cWConsts.CONSTS_FILE,allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cWConsts.VARS_FILE,allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE,allow_overwrite=True) # this one must be loaded before any tarball
@@ -53,7 +53,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
 
         #load system files
-        for file_name in ('error_gen.sh','xml_parse.sh','parse_starterlog.awk', "condor_config", "condor_config.multi_schedd.include", "condor_config.dedicated_starter.include", "condor_config.check.include", "condor_config.monitor.include"):
+        for file_name in ('error_gen.sh','error_augment.sh','parse_starterlog.awk', "condor_config", "condor_config.multi_schedd.include", "condor_config.dedicated_starter.include", "condor_config.check.include", "condor_config.monitor.include"):
             self.dicts['file_list'].add_from_file(file_name,(cWConsts.insert_timestr(file_name),"regular","TRUE",'FALSE'),os.path.join(params.src_dir,file_name))
         self.dicts['description'].add("condor_config","condor_config")
         self.dicts['description'].add("condor_config.multi_schedd.include","condor_config_multi_include")

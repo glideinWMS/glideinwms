@@ -18,7 +18,8 @@ function create_gridmapfile {
         if [ $? -ne 0 ]; then
             STR="Cannot get user identity.\n"
             STR+="Tried both grid-proxy-info and voms-proxy-info."
-            "$error_gen" -error "create_mapfile.sh" "WN_Resource" "$STR" "command" "grid-proxy-info"
+	    STR1=`echo -e "$STR"`
+            "$error_gen" -error "create_mapfile.sh" "WN_Resource" "$STR1" "command" "grid-proxy-info"
             exit 1
         fi
     fi
@@ -27,6 +28,7 @@ function create_gridmapfile {
     if [ $? -ne 0 ]; then
 	#echo "Cannot remove proxy part from user identity!" 1>&2
 	STR="Cannot remove proxy part from user identity."
+	# probably could be classified better... but short on ideas
 	"$error_gen" -error "create_mapfile.sh" "WN_Resource" "$STR" "command" "grid-proxy-info"
 	exit 1
     fi
@@ -143,6 +145,6 @@ X509_GRIDMAP_TRUSTED_DNS $X509_GRIDMAP_DNS
 ###############################
 EOF
 
-"$error_gen" -ok "create_mapfile.sh" "mapfile" "$CONDOR_CONFIG"
+"$error_gen" -ok "create_mapfile.sh" "DNs" "$X509_GRIDMAP_DNS" "TrustedDNs" "$X509_GRIDMAP_DNS"
 
 exit 0
