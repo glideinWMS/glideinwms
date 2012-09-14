@@ -1,0 +1,188 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>glideinWMS Custom Script Exit Status Output Format</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+	    <li> <a href="../index.html">Home</a></li>
+	    <li> <a href="./index.html">WMS Factory</a></li>
+	    <li> <a href="./configuration.html">Configuration</a></li>
+        <li>Custom script exit status output format</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+            <li> <a href="../corral.html">Corral Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <div id="cse-search-form" style="width: 100%;">Loading</div>
+            <script src="http://www.google.com/jsapi" type="text/javascript"></script>
+            <script src="../common/glidein.js" type="text/javascript"></script>
+            <script type="text/javascript">
+            google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+            google.setOnLoadCallback(onLoad);
+            </script>
+        </div>
+    </div>
+    <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
+    </map>
+
+    <h2>WMS Factory</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+         <li> <a href="./install.html">Install</a></li>
+	     <li> Configuration</li>
+	     <li> <a href="./design.html">Design</a></li>
+	     <li> <a href="./monitoring.html">Monitoring</a></li>
+	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
+	</ul>
+        <h3>Custom Script Exit Status Output Format</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+    <LI><A HREF="#basics">Script inclusion</A></li>
+    <LI><A HREF="#error_types">Loading order</A></li>
+    <LI><A HREF="#examples">Examples</A></li>
+</ol>
+</div>
+<div class="related">
+Related Links: <br/>
+<ul>
+        <LI><A HREF="./custom_vars.html">Custom Variables</A></li>
+</ul>
+</div>
+<div class="section">
+ 
+<H2>Description</H2>
+<P>
+This document describes syntax and semantics of the 
+custom script exit status output. 
+</P>
+<P>
+For information about custom scripts and 
+helper scripts for generating the output, 
+consult the <A HREF="custom_scripts.html">Custom Script page</A>.
+</P>
+</div>
+
+<div class="section">
+<H2><A NAME="basics"></A>Format basics</H2>
+<P>
+The custom script exit status is stored in a file called
+<BLOCKQUOTE>
+otrb_output.xml
+</BLOCKQUOTE>
+</P>
+<P>
+The output format is an
+<A HREF="http://en.wikipedia.org/wiki/XML">XML document</A>
+and is a subset of the 
+<A HREF="https://twiki.grid.iu.edu/bin/view/SoftwareTools/CommonTestFormat#Alain_s_proposal_Version_4_evolu">proposed common OSG test format, version 4</A>.
+</P>
+<P>
+The document is encapsulated in the <b>&lt;OSGTestResult&gt;</b> tag.
+</P>
+<P>
+The <b>&lt;OSGTestResult&gt;</b> tag must have two attributes:<UL>
+ <li><b>version</b> - Must be &quot;4.3.1&quot;.
+ <li><b>id</b> - The name of the testing script.
+</UL>
+</P>
+<P>
+There are two sections in the document:
+<ul>
+<li>The required <A HREF="#sec_result">result section</A>
+<li>An optional <A HREF="#sec_detail">detail section</A>
+</ul>
+</P>
+</div>
+
+<div class="subsection">
+<H3><A NAME="sec_result"></A>The result section</H3>
+<P>
+The result section is required and is encapsulated by the <b>&lt;result&gt;</b> tag.
+</P>
+<P>To be finished.</P>
+</div>
+
+<div class="subsection">
+<H3><A NAME="sec_detail"></A>The detail section</H3>
+<P>
+The detail section is optional, and when present, is encapsulated by the <b>&lt;detail&gt;</b> tag.
+</P>
+<P>It can contain arbitrary text and is meant to be human readable only.</P>
+<P>All machine readable information should have already been provided in the 
+ <A HREF="#sec_result">result section</A>.</P>
+</div>
+
+<div class="section">
+<H2><A NAME="error_types"></A>Standard error types</H2>
+<P>To be written.</P>
+</div>
+
+<H2><A NAME="examples"></A>Examples</H2>
+<P>This is an example of a successful invocation. As expected there is only the result section.</P>
+<PRE>
+ &lt;OSGTestResult id=&quot;cat_consts.sh&quot; version=&quot;4.3.1&quot;&gt;
+   &lt;result&gt;
+     &lt;status&gt;OK&lt;/status&gt;
+     &lt;metric name=&quot;NrAttributes&quot; ts=&quot;2012-09-13T14:34:36-07:00&quot; uri=&quot;local&quot;&gt;30&lt;/metric&gt;
+   &lt;/result&gt;
+ &lt;/OSGTestResult&gt;
+</PRE>
+<P>
+This instead is an example of a failed invocation and includes a result section.</P>
+<PRE>
+ &lt;OSGTestResult id=&quot;glexec_test.sh&quot; version=&quot;4.3.1&quot;&gt;
+   &lt;result&gt;
+     &lt;status&gt;ERROR&lt;/status&gt;
+     &lt;metric name=&quot;failure&quot; ts=&quot;2012-09-13T14:34:36-07:00&quot; uri=&quot;local&quot;&gt;WN_RESOURCE&lt;/metric&gt;
+     &lt;metric name=&quot;GLEXEC_BIN&quot; ts=&quot;2012-09-13T14:34:36-07:00&quot; uri=&quot;local&quot;&gt;/bin/glexec&lt;/metric&gt;
+   &lt;/result&gt;
+   &lt;detail&gt;
+     The glexec binary does not exist.
+
+     Looked in /bin/glexec.
+   &lt;/detail&gt;
+ &lt;/OSGTestResult&gt;
+</PRE>
+</div>
+
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br/>
+Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glid
+einWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
+glideinWMS email support: glideinwms-support at fnal.gov
+</div>
+
+</div>
+</body>
+</html>
