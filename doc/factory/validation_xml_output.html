@@ -143,7 +143,18 @@ The detail section is optional, and when present, is encapsulated by the <b>&lt;
 
 <div class="section">
 <H2><A NAME="error_types"></A>Standard error types</H2>
-<P>To be written.</P>
+<P>
+All failed scripts should have one of the following failure types:
+<ul>
+<LI> <B>WN_Resource</B> - Something is wrong with the worker node. Example reasons to use this failure mode is missing libraries, disk full, etc.
+<LI> <B>Network</B> - Something went wrong when I tried to use the network.
+<LI> <B>Config</B> - The glidein config file is missing an attribute that we expected was there.
+<LI> <B>VO_Config</B> - The glidein config file is missing an attribute that we expected were put there by one of the VO provided scripts that ran before.
+<LI> <B>Corruption</B> - Catch all cathegory for when things make no sense.
+<LI> <B>VO_Proxy</B> - The VO-provided proxy does not meet our requirements.
+</ul>
+</P>
+<P>To be finished.</P>
 </div>
 
 <H2><A NAME="examples"></A>Examples</H2>
