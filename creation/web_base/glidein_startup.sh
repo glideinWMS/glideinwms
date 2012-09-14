@@ -6,6 +6,8 @@
 # File Version: 
 #
 
+global_args="$@"
+
 export LANG=C
 
 function on_die {
@@ -91,23 +93,237 @@ shift
 shift
 done
 
+function python_b64uuencode {
+    echo "begin-base64 644 -"
+    python -c 'import binascii,sys;fd=sys.stdin;buf=fd.read();size=len(buf);idx=0
+while size>57:
+ print binascii.b2a_base64(buf[idx:idx+57]),;
+ idx+=57;
+ size-=57;
+print binascii.b2a_base64(buf[idx:]),'
+    echo "===="
+}
+
+function base64_b64uuencode {
+    echo "begin-base64 644 -"
+    base64 -
+    echo "===="
+}
+
+# not all WNs have all the tools installed
+function b64uuencode {
+    which uuencode >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+	uuencode -m -
+    else
+	which base64 >/dev/null 2>&1
+	if [ $? -eq 0 ]; then
+	    base64_b64uuencode
+	else
+	    python_b64uuencode
+	fi
+    fi
+}
+
+function construct_xml {
+  result="$1"
+
+  glidein_end_time=`date +%s`
+
+  echo "<?xml version=\"1.0\"?>
+<OSGTestResult id=\"glidein_startup.sh\" version=\"4.3.1\">
+  <operatingenvironment>
+    <env name=\"cwd\">$start_dir</env>
+  </operatingenvironment>
+  <test>
+    <cmd>$0 ${global_args}</cmd>
+    <tStart>`date --date=@${startup_time} +%Y-%m-%dT%H:%M:%S%:z`</tStart>
+    <tEnd>`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`</tEnd>
+  </test>
+$result
+</OSGTestResult>"
+}
+
+
+function extract_parent_xml_detail {
+  exitcode=$1
+  glidein_end_time=`date +%s`
+
+  if [ -s otrx_output.xml ]; then
+      # file exists and is not 0 size
+      last_result=`cat otrx_output.xml`
+ 
+      if [ "$exitcode" -eq 0 ]; then
+	  echo "  <result>"
+	  echo "    <status>OK</status>"
+	  # propagate metrics as well
+	  echo "$last_result" | grep '<metric '
+	  echo "  </result>"
+      else
+	  last_script_name=`echo "$last_result" |awk '/<OSGTestResult /{split($0,a,"id=\""); split(a[2],b,"\""); print b[1];}'`
+
+	  last_script_reason=`echo "$last_result" | awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}'`
+	  my_reason="     Validation failed in $last_script_name.
+
+$last_script_reason"
+
+	  echo "  <result>"
+	  echo "    <status>ERROR</status>
+    <metric name=\"TestID\" ts=\"`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$last_script_name</metric>"
+	  # propagate metrics as well (will include the failure metric)
+	  echo "$last_result" | grep '<metric '
+	  echo "  </result>"
+	  echo "  <detail>
+${my_reason}
+  </detail>"
+      fi
+  else
+      # create a minimal XML file, else
+      echo "  <result>"
+      if [ "$exitcode" -eq 0 ]; then
+	  echo "    <status>OK</status>"
+      else
+	  echo "    <status>ERROR</status>"
+	  echo "    <metric name=\"failure\" ts=\"`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Unknown</metric>"
+      fi
+      echo "  </result>
+  <detail>
+    No detail. Could not find source XML file.
+  </detail>"
+  fi
+}
+
+function basexml2simplexml {
+  final_result="$1"
+
+  # augment with node info
+  echo "${final_result}" | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<operatingenvironment>/{fr=0;}'
+
+  echo "    <env name=\"client_name\">$client_name</env>"
+  echo "    <env name=\"client_group\">$client_group</env>"
+
+  echo "    <env name=\"user\">`id -un`</env>"
+  echo "    <env name=\"arch\">`uname -m`</env>"
+  if [ -e '/etc/redhat-release' ]; then
+      echo "    <env name=\"os\">`cat /etc/redhat-release`</env>"
+  fi
+  echo "    <env name=\"hostname\">`uname -n`</env>"
+
+  echo "${final_result}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<operatingenvironment>/{fr=1;}'
+}
+
+function simplexml2longxml {
+  final_result_simple="$1"
+  global_result="$2"
+
+  echo "${final_result_simple}" | awk 'BEGIN{fr=1;}{if (fr==1) print $0}/<OSGTestResult /{fr=0;}'
+
+  if [ "${global_result}" != "" ]; then
+      # subtests first, so it is more readable, when tailing
+      echo '  <subtestlist>'
+      echo '    <OSGTestResults>'
+      echo "${global_result}" | awk '{print "      " $0}'
+      echo '    </OSGTestResults>'
+      echo '  </subtestlist>'
+  fi
+
+  echo "${final_result_simple}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<OSGTestResult /{fr=1;}/<operatingenvironment>/{fr=0;}'
+
+  echo "    <env name=\"glidein_factory\">$glidein_factory</env>"
+  echo "    <env name=\"glidein_name\">$glidein_name</env>"
+  echo "    <env name=\"glidein_entry\">$glidein_entry</env>"
+  echo "    <env name=\"condorg_cluster\">$condorg_cluster</env>"
+  echo "    <env name=\"condorg_subcluster\">$condorg_subcluster</env>"
+  echo "    <env name=\"condorg_schedd\">$condorg_schedd</env>"
+
+  echo "${final_result_simple}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<operatingenvironment>/{fr=1;}'
+}
+
+function print_tail {
+  exit_code=$1
+  final_result_simple="$2"
+  final_result_long="$3"
+
+  glidein_end_time=`date +%s`
+  let total_time=$glidein_end_time-$startup_time
+  echo "=== Glidein ending `date` ($glidein_end_time) with code ${exit_code} after $total_time ==="
+ 
+  echo ""
+  echo "=== XML description of glidein activity ==="
+  echo  "${final_result_simple}" | grep -v "<cmd>"
+  echo "=== End XML description of glidein activity ==="
+
+  echo "" 1>&2
+  echo "=== Encoded XML description of glidein activity ===" 1>&2
+  echo "${final_result_long}" | gzip --stdout - | b64uuencode 1>&2
+  echo "=== End encoded XML description of glidein activity ===" 1>&2
+}
+
 ####################################
 # Cleaup, print out message and exit
 work_dir_created=0
-function glidein_exit {
-  if [ $1 -ne 0 ]; then
-      sleep $sleep_time 
-      # wait a bit in case of error, to reduce lost glideins
-  fi
+
+# use this for early failures, when we cannot assume we can write to disk at all
+# too bad we end up with some repeated code, but difficult to do better
+function early_glidein_failure {
+  error_msg="$1"
+
+  warn "${error_msg}"
+
+  sleep $sleep_time 
+  # wait a bit in case of error, to reduce lost glideins
+
+  glidein_end_time=`date +%s`
+  result="    <metric name=\"failure\" ts=\"`date --date=@${glidein_end_time} +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">WN_RESOURCE</metric>
+    <status>ERROR</status>
+    <detail>
+     $error_msg
+    </detail>"
+
+  final_result=`construct_xml "$result"`
+  final_result_simple=`basexml2simplexml "${final_result}"`
+  # have no global section
+  final_result_long=`simplexml2longxml "${final_result_simple}" ""`
+  
   cd "$start_dir"
   if [ "$work_dir_created" -eq "1" ]; then
     rm -fR "$work_dir"
   fi
 
-  glidein_end_time=`date +%s`
-  let total_time=$glidein_end_time-$startup_time
-  echo "=== Glidein ending `date` ($glidein_end_time) with code $1 after $total_time ==="
- 
+  print_tail 1 "${final_result_simple}" "${final_result_long}"
+
+  exit 1
+}
+
+# use this one once the most basic ops have been done
+function glidein_exit {
+  if [ $1 -ne 0 ]; then
+      sleep $sleep_time 
+      # wait a bit in case of error, to reduce lost glideins
+  fi
+
+  global_result=""
+  if [ -f otr_outlist.list ]; then
+      global_result=`cat otr_outlist.list`
+      chmod u+w otr_outlist.list
+  fi
+
+  result=`extract_parent_xml_detail $1`
+  final_result=`construct_xml "$result"`
+
+  # augment with node info
+  final_result_simple=`basexml2simplexml "${final_result}"`
+
+  # Create a richer version, too
+  final_result_long=`simplexml2longxml "${final_result_simple}" "${global_result}"`
+
+  cd "$start_dir"
+  if [ "$work_dir_created" -eq "1" ]; then
+    rm -fR "$work_dir"
+  fi
+
+  print_tail $1 "${final_result_simple}" "${final_result_long}"
+
   exit $1
 }
 
@@ -470,8 +686,7 @@ fi
 # In the Grid world I cannot trust anybody
 umask 0022
 if [ $? -ne 0 ]; then
-    warn "Failed in umask 0022" 1>&2
-    glidein_exit 1
+    early_glidein_failure "Failed in umask 0022"
 fi
 
 ########################################
@@ -527,15 +742,13 @@ elif [ -z "$work_dir" ]; then
 fi
 
 if [ -z "$work_dir" ]; then
-    warn "Startup dir is empty." 1>&2
-    glidein_exit 1
+    early_glidein_failure "Startup dir is empty."
 fi
 
 if [ -e "$work_dir" ]; then
     echo >/dev/null
 else
-    warn "Startup dir $work_dir does not exist." 1>&2
-    glidein_exit 1
+    early_glidein_failure "Startup dir $work_dir does not exist."
 fi
 
 start_dir=`pwd`
@@ -544,13 +757,11 @@ echo "Started in $start_dir"
 def_work_dir="$work_dir/glide_XXXXXX"
 work_dir=`mktemp -d "$def_work_dir"`
 if [ $? -ne 0 ]; then
-    warn "Cannot create temp '$def_work_dir'" 1>&2
-    glidein_exit 1
+    early_glidein_failure "Cannot create temp '$def_work_dir'"
 else
     cd "$work_dir"
     if [ $? -ne 0 ]; then
-	warn "Dir '$work_dir' was created but I cannot cd into it." 1>&2
-	glidein_exit 1
+	early_glidein_failure "Dir '$work_dir' was created but I cannot cd into it."
     else
 	echo "Running in $work_dir"
     fi
@@ -560,45 +771,39 @@ work_dir_created=1
 # mktemp makes it user readable by definition (ignores umask)
 chmod a+rx "$work_dir"
 if [ $? -ne 0 ]; then
-    warn "Failed chmod '$work_dir'" 1>&2
-    glidein_exit 1
+    early_glidein_failure "Failed chmod '$work_dir'"
 fi
 
 glide_tmp_dir="${work_dir}/tmp"
 mkdir "$glide_tmp_dir"
 if [ $? -ne 0 ]; then
-    warn "Cannot create '$glide_tmp_dir'" 1>&2
-    glidein_exit 1
+    early_glidein_failure "Cannot create '$glide_tmp_dir'"
 fi
 # the tmpdir should be world readable
 # This way it will work even if the user spawned by the glidein is different
 # than the glidein user
 chmod a+rwx "$glide_tmp_dir"
 if [ $? -ne 0 ]; then
-    warn "Failed chmod '$glide_tmp_dir'" 1>&2
-    glidein_exit 1
+    early_glidein_failure "Failed chmod '$glide_tmp_dir'"
 fi
 # prevent others to remove or rename a file in tmp
 chmod o+t "$glide_tmp_dir"
 if [ $? -ne 0 ]; then
-    warn "Failed special chmod '$glide_tmp_dir'" 1>&2
-    glidein_exit 1
+    early_glidein_failure "Failed special chmod '$glide_tmp_dir'"
 fi
 
 short_main_dir=main
 main_dir="${work_dir}/${short_main_dir}"
 mkdir "$main_dir"
 if [ $? -ne 0 ]; then
-    warn "Cannot create '$main_dir'" 1>&2
-    glidein_exit 1
+    early_glidein_failure "Cannot create '$main_dir'"
 fi
 
 short_entry_dir=entry_${glidein_entry}
 entry_dir="${work_dir}/${short_entry_dir}"
 mkdir "$entry_dir"
 if [ $? -ne 0 ]; then
-    warn "Cannot create '$entry_dir'" 1>&2
-    glidein_exit 1
+    early_glidein_failure "Cannot create '$entry_dir'"
 fi
 
 if [ -n "$client_repository_url" ]; then
@@ -606,8 +811,7 @@ if [ -n "$client_repository_url" ]; then
     client_dir="${work_dir}/${short_client_dir}"
     mkdir "$client_dir"
     if [ $? -ne 0 ]; then
-	warn "Cannot create '$client_dir'" 1>&2
-	glidein_exit 1
+	early_glidein_failure "Cannot create '$client_dir'"
     fi
 
     if [ -n "$client_repository_group_url" ]; then
@@ -615,8 +819,7 @@ if [ -n "$client_repository_url" ]; then
 	client_group_dir="${work_dir}/${short_client_group_dir}"
 	mkdir "$client_group_dir"
 	if [ $? -ne 0 ]; then
-	    warn "Cannot create '$client_group_dir'" 1>&2
-	    glidein_exit 1
+	    early_glidein_failure "Cannot create '$client_group_dir'"
 	fi
     fi
 fi
@@ -633,6 +836,9 @@ touch $wrapper_list
 # create glidein_config
 glidein_config="$PWD/glidein_config"
 echo > glidein_config
+if [ $? -ne 0 ]; then
+    early_glidein_failure "Could not create '$glidein_config'"
+fi
 echo "# --- glidein_startup vals ---" >> glidein_config
 echo "GLIDEIN_Factory $glidein_factory" >> glidein_config
 echo "GLIDEIN_Name $glidein_name" >> glidein_config
@@ -671,6 +877,10 @@ echo "ADD_CONFIG_LINE_SOURCE $PWD/add_config_line.source" >> glidein_config
 echo "GET_ID_SELECTORS_SOURCE $PWD/get_id_selectors.source" >> glidein_config
 echo "WRAPPER_LIST $wrapper_list" >> glidein_config
 echo "# --- User Parameters ---" >> glidein_config
+if [ $? -ne 0 ]; then
+    # we should probably be testing all others as well, but this is better than nothing
+    early_glidein_failure "Failed in updating '$glidein_config'"
+fi
 params2file $params
 
 ###################################
@@ -728,6 +938,10 @@ function check_file_signature {
 	    (cd "$cfs_work_dir" && sha1sum -c "$tmp_signname") 1>&2
 	    cfs_rc=$?
 	    if [ $cfs_rc -ne 0 ]; then
+		$main_dir/error_augment.sh -init
+		$main_dir/error_gen.sh -error "check_file_signature" "Corruption" "File $cfs_desc_fname is corrupted." "file" "$cfs_desc_fname" "source_type" "$cfs_id"
+		$main_dir/error_augment.sh  -process $cfs_rc "check_file_signature" "$PWD" "sha1sum -c $tmp_signname" "`date +%s`" "`date +%s`"
+		$main_dir/error_augment.sh -concat
 		warn "File $cfs_desc_fname is corrupted." 1>&2
 		rm -f $tmp_signname
 		return 1
@@ -829,18 +1043,109 @@ function fetch_file_base {
           ffb_nocache_str="$wget_nocache_flag"
     fi
 
+    # Create a dummy default in case something goes wrong
+    # cannot use error_*.sh helper functions
+    # may not have been loaded yet
+    have_dummy_otrx=1
+    echo "<?xml version=\"1.0\"?>
+<OSGTestResult id=\"fetch_file_base\" version=\"4.3.1\">
+  <operatingenvironment>
+    <env name=\"cwd\">$PWD</env>
+  </operatingenvironment>
+  <test>
+    <cmd>Unknown</cmd>
+    <tStart>`date +%Y-%m-%dT%H:%M:%S%:z`</tStart>
+    <tEnd>`date +%Y-%m-%dT%H:%M:%S%:z`</tEnd>
+  </test>
+  <result>
+    <status>ERROR</status>
+    <metric name=\"failure\" ts=\"`date +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Unknown</metric>
+    <metric name=\"source_type\" ts=\"`date +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_id</metric>
+  </result>
+  <detail>
+     An unknown error occured.
+  </detail>
+</OSGTestResult>" > otrx_output.xml
+
     # download file
     if [ "$proxy_url" == "None" ]; then # no Squid defined, use the defaults
+	START=`date +%s`
 	wget --user-agent="wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name" $ffb_nocache_str -q  -O "$ffb_tmp_outname" "$ffb_repository/$ffb_real_fname"
 	if [ $? -ne 0 ]; then
-	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'" 1>&2
+	    # cannot use error_*.sh helper functions
+	    # may not have been loaded yet, and wget fails often
+	    echo "<OSGTestResult id=\"wget\" version=\"4.3.1\">
+  <operatingenvironment>
+    <env name=\"cwd\">$PWD</env>
+  </operatingenvironment>
+  <test>
+    <cmd>wget --user-agent=\"wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name\" $ffb_nocache_str -q  -O \"$ffb_tmp_outname\" \"$ffb_repository/$ffb_real_fname\"</cmd>
+    <tStart>`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`</tStart>
+    <tEnd>`date +%Y-%m-%dT%H:%M:%S%:z`</tEnd>
+  </test>
+  <result>
+    <status>ERROR</status>
+    <metric name=\"failure\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Network</metric>
+    <metric name=\"URL\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_repository/$ffb_real_fname</metric>
+    <metric name=\"source_type\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_id</metric>
+  </result>
+  <detail>
+     Failed to load file '$ffb_real_fname' from '$ffb_repository'.
+  </detail>
+</OSGTestResult>" > otrb_output.xml
+	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'." 1>&2
+
+	    if [ -f otr_outlist.list ]; then
+		chmod u+w otr_outlist.list
+	    else
+		touch otr_outlist.list
+	    fi
+	    cat otrb_output.xml >> otr_outlist.list
+	    echo "<?xml version=\"1.0\"?>
+`cat otrb_output.xml`">otrx_output.xml
+	    rm -f otrb_output.xml
+	    chmod a-w otr_outlist.list
 	    return 1
 	fi
     else  # I have a Squid
+	START=`date +%s`
 	env http_proxy=$proxy_url wget --user-agent="wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name" $ffb_nocache_str -q  -O "$ffb_tmp_outname" "$ffb_repository/$ffb_real_fname" 
 	if [ $? -ne 0 ]; then
 	    # if Squid fails exit, because real jobs can try to use it too
-	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'" 1>&2
+	    # cannot use error_*.sh helper functions
+	    # may not have been loaded yet, and wget fails often
+	    echo "<OSGTestResult id=\"wget\" version=\"4.3.1\">
+  <operatingenvironment>
+    <env name=\"cwd\">$PWD</env>
+  </operatingenvironment>
+  <test>
+    <cmd>env http_proxy=$proxy_url wget --user-agent=\"wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name\" $ffb_nocache_str -q  -O \"$ffb_tmp_outname\" \"$ffb_repository/$ffb_real_fname\"</cmd>
+    <tStart>`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`</tStart>
+    <tEnd>`date +%Y-%m-%dT%H:%M:%S%:z`</tEnd>
+  </test>
+  <result>
+    <status>ERROR</status>
+    <metric name=\"failure\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Network</metric>
+    <metric name=\"URL\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_repository/$ffb_real_fname</metric>
+    <metric name=\"http_proxy\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$proxy_url</metric>
+    <metric name=\"source_type\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_id</metric>
+  </result>
+  <detail>
+    Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'.
+  </detail>
+</OSGTestResult>" > otrb_output.xml
+	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'." 1>&2
+
+	    if [ -f otr_outlist.list ]; then
+		chmod u+w otr_outlist.list
+	    else
+		touch otr_outlist.list
+	    fi
+	    cat otrb_output.xml >> otr_outlist.list
+	    echo "<?xml version=\"1.0\"?>
+`cat otrb_output.xml`">otrx_output.xml
+	    rm -f otrb_output.xml
+	    chmod a-w otr_outlist.list
 	    return 1
 	fi
     fi
@@ -848,14 +1153,16 @@ function fetch_file_base {
     # check signature
     check_file_signature "$ffb_id" "$ffb_real_fname"
     if [ $? -ne 0 ]; then
-      return 1
+	# error already displayed inside the function
+	return 1
     fi
 
     # rename it to the correct final name, if needed
     if [ "$ffb_tmp_outname" != "$ffb_outname" ]; then
       mv "$ffb_tmp_outname" "$ffb_outname"
       if [ $? -ne 0 ]; then
-        return 1
+	  warn "Failed to rename $ffb_tmp_outname into $ffb_outname" 1>&2
+	  return 1
       fi
     fi
 
@@ -870,14 +1177,22 @@ function fetch_file_base {
 	    echo "Skipping last script $last_script" 1>&2
 	else
             echo "Executing $ffb_outname"
-            START=`date "+%Y-%m-%dT%H:%M:%S"`
+	    # have to do it here, as this will be run before any other script
+            chmod u+rx $main_dir/error_augment.sh
+
+	    # the XML file will be overwritten now, and hopefully not an error situation
+            have_dummy_otrx=0
+	    $main_dir/error_augment.sh -init
+            START=`date +%s`
 	    "$ffb_outname" glidein_config "$ffb_id"
 	    ret=$?
-            END=`date "+%Y-%m-%dT%H:%M:%S"`
-            $main_dir/xml_parse.sh  "glidein_startup.sh" "$ffb_outname" glidein_config "$ffb_id" $START $END #generating test result document
+            END=`date +%s`
+            $main_dir/error_augment.sh  -process $ret "$ffb_id/$ffb_target_fname" "$PWD" "$ffb_outname glidein_config" "$START" "$END" #generating test result document
+	    $main_dir/error_augment.sh -concat
 	    if [ $ret -ne 0 ]; then
                 echo "=== Validation error in $ffb_outname ===" 1>&2
 		warn "Error running '$ffb_outname'" 1>&2
+		cat otrx_output.xml | awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}' 1>&2
 		return 1
 	    fi
 	fi
@@ -886,9 +1201,14 @@ function fetch_file_base {
     elif [ "$ffb_file_type" == "untar" ]; then
 	ffb_short_untar_dir=`get_untar_subdir "$ffb_id" "$ffb_target_fname"`
 	ffb_untar_dir="${ffb_work_dir}/${ffb_short_untar_dir}"
+	START=`date +%s`
 	(mkdir "$ffb_untar_dir" && cd "$ffb_untar_dir" && tar -xmzf "$ffb_outname") 1>&2
 	ret=$?
 	if [ $ret -ne 0 ]; then
+	    $main_dir/error_augment.sh -init
+	    $main_dir/error_gen.sh -error "tar" "Corruption" "Error untarring '$ffb_outname'" "file" "$ffb_outname" "source_type" "$cfs_id"
+	    $main_dir/error_augment.sh  -process $cfs_rc "tar" "$PWD" "mkdir $ffb_untar_dir && cd $ffb_untar_dir && tar -xmzf $ffb_outname" "$START" "`date +%s`"
+	    $main_dir/error_augment.sh -concat
 	    warn "Error untarring '$ffb_outname'" 1>&2
 	    return 1
 	fi
@@ -911,7 +1231,25 @@ function fetch_file_base {
 
     fi
 
-    return 0
+    if [ "$have_dummy_otrx" -eq 1 ]; then
+        # noone should really look at this file, but just to avoid confusion
+	echo "<?xml version=\"1.0\"?>
+<OSGTestResult id=\"fetch_file_base\" version=\"4.3.1\">
+  <operatingenvironment>
+    <env name=\"cwd\">$PWD</env>
+  </operatingenvironment>
+  <test>
+    <cmd>Unknown</cmd>
+    <tStart>`date +%Y-%m-%dT%H:%M:%S%:z`</tStart>
+    <tEnd>`date +%Y-%m-%dT%H:%M:%S%:z`</tEnd>
+  </test>
+  <result>
+    <status>OK</status>
+  </result>
+</OSGTestResult>" > otrx_output.xml
+    fi
+
+   return 0
 }
 
 #####################################
@@ -1066,6 +1404,7 @@ trap 'ignore_signal' HUP
 trap 'on_die' TERM
 trap 'on_die' INT
 gs_id_work_dir=`get_work_dir main`
+$main_dir/error_augment.sh -init
 "${gs_id_work_dir}/$last_script" glidein_config &
 wait $!
 ret=$?
@@ -1073,6 +1412,9 @@ if [ $ON_DIE -eq 1 ]; then
         ret=0
 fi
 last_startup_end_time=`date +%s`
+$main_dir/error_augment.sh  -process $ret "$last_script" "$PWD" "${gs_id_work_dir}/$last_script glidein_config" "$last_startup_time" "$last_startup_end_time"
+$main_dir/error_augment.sh -concat
+
 let last_script_time=$last_startup_end_time-$last_startup_time
 echo "=== Last script ended `date` ($last_startup_end_time) with code $ret after $last_script_time ==="
 echo

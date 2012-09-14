@@ -22,7 +22,7 @@ function check_blacklist {
     if [ $? -eq 0 ]; then
         #echo "My name '$myname' is in blacklist! Exiting." 1>&2
         STR="My name '$myname' is in blacklist! Exiting."
-        "$error_gen" -error "check_blacklist.sh" "WN_Resource" "$STR" "blacklist" "$myname"
+        "$error_gen" -error "check_blacklist.sh" "WN_Resource" "$STR" "hostname" "$myname"
         exit 1
     fi
 
@@ -36,7 +36,7 @@ function check_blacklist {
     if [ $? -eq 0 ]; then
         #echo "My ip '$myip' is in blacklist! Exiting." 1>&2
         STR="My ip '$myip' is in blacklist! Exiting."
-        "$error_gen" -error "check_blacklist.sh" "WN_Resource" "$STR" "blacklist" "$myip"
+        "$error_gen" -error "check_blacklist.sh" "WN_Resource" "$STR" "IP" "$myip"
         exit 1
     fi
 
@@ -66,4 +66,5 @@ if [ -n "$blacklist_file" ]; then
   check_blacklist
 fi
 
-"$error_gen" -ok "check_blacklist.sh" "Blacklist" "${id_prefix}BLACKLIST_FILE"
+"$error_gen" -ok "check_blacklist.sh"
+exit 0
