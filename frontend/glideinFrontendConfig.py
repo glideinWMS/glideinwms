@@ -265,77 +265,19 @@ class ElementMergedDescript:
                 proxies+=eval(data['Proxies'])
         self.merged_data['Proxies']=proxies
 
-        proxy_security_classes={}
-        for data in (self.frontend_data,self.element_data):
-            if data.has_key('ProxySecurityClasses'):
-                dprs=eval(data['ProxySecurityClasses'])
-                for k in dprs.keys():
-                    proxy_security_classes[k]=dprs[k]
-        self.merged_data['ProxySecurityClasses']=proxy_security_classes
+        proxy_descript_attrs=['ProxySecurityClasses','ProxyTrustDomains',
+            'ProxyTypes','ProxyKeyFiles','ProxyPilotFiles','ProxyVMIds',
+            'ProxyVMTypes','ProxyCreationScripts','ProxyUpdateFrequency']
+
+        for attr in proxy_descript_attrs:
+            proxy_descript_data={}
+            for data in (self.frontend_data,self.element_data):
+                if data.has_key(attr):
+                    dprs=eval(data[attr])
+                    for k in dprs.keys():
+                        proxy_descript_data[k]=dprs[k]
+            self.merged_data[attr]=proxy_descript_data
         
-        proxy_trust_domains={}
-        for data in (self.frontend_data,self.element_data):
-            if data.has_key('ProxyTrustDomains'):
-                dprs=eval(data['ProxyTrustDomains'])
-                for k in dprs.keys():
-                    proxy_trust_domains[k]=dprs[k]
-        self.merged_data['ProxyTrustDomains']=proxy_trust_domains
-
-        proxy_types={}
-        for data in (self.frontend_data,self.element_data):
-            if data.has_key('ProxyTypes'):
-                dprs=eval(data['ProxyTypes'])
-                for k in dprs.keys():
-                    proxy_types[k]=dprs[k]
-        self.merged_data['ProxyTypes']=proxy_types
-
-        proxy_key_files={}
-        for data in (self.frontend_data,self.element_data):
-            if data.has_key('ProxyKeyFiles'):
-                dprs=eval(data['ProxyKeyFiles'])
-                for k in dprs.keys():
-                    proxy_key_files[k]=dprs[k]
-        self.merged_data['ProxyKeyFiles']=proxy_key_files
-
-        proxy_pilot_files={}
-        for data in (self.frontend_data,self.element_data):
-            if data.has_key('ProxyPilotFiles'):
-                dprs=eval(data['ProxyPilotFiles'])
-                for k in dprs.keys():
-                    proxy_pilot_files[k]=dprs[k]
-        self.merged_data['ProxyPilotFiles']=proxy_pilot_files
-
-        proxy_vm_ids={}
-        for data in (self.frontend_data,self.element_data):
-            if data.has_key('ProxyVMIds'):
-                dprs=eval(data['ProxyVMIds'])
-                for k in dprs.keys():
-                    proxy_vm_ids[k]=dprs[k]
-        self.merged_data['ProxyVMIds']=proxy_vm_ids
-
-        proxy_vm_types={}
-        for data in (self.frontend_data,self.element_data):
-            if data.has_key('ProxyVMTypes'):
-                dprs=eval(data['ProxyVMTypes'])
-                for k in dprs.keys():
-                    proxy_vm_types[k]=dprs[k]
-        self.merged_data['ProxyVMTypes']=proxy_vm_types
-        
-        proxy_creation_scripts={}
-        for data in (self.frontend_data,self.element_data):
-            if data.has_key('ProxyCreationScripts'):
-                dprs=eval(data['ProxyCreationScripts'])
-                for k in dprs.keys():
-                    proxy_creation_scripts[k]=dprs[k]
-        self.merged_data['ProxyCreationScripts']=proxy_creation_scripts
-        
-        proxy_update_frequency={}
-        for data in (self.frontend_data,self.element_data):
-            if data.has_key('ProxyUpdateFrequency'):
-                dprs=eval(data['ProxyUpdateFrequency'])
-                for k in dprs.keys():
-                    proxy_update_frequency[k]=dprs[k]
-        self.merged_data['ProxyUpdateFrequency']=proxy_update_frequency
         return
 
     def split_list(self,val):
