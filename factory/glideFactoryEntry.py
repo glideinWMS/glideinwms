@@ -427,12 +427,13 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                                                                     client_authenticated_identity, client_expected_identity))
             continue #skip request
                                  
-        # ========= v2+ protocol ==============
         # Initialize credentials for each request
         security_credentials = {}       
         identity_credentials = {}   
+
         if decrypted_params.has_key('x509_proxy_0'):            
-            
+            # ========= v2+ protocol ==============
+
             if not ('grid_proxy' in auth_method):
                 logSupport.log.warning("Client %s provided proxy, but a client supplied proxy is not allowed. Skipping bad request" % client_int_name)
                 continue #skip request
@@ -534,18 +535,9 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                         
                 x509_proxies.add_fname(x509_proxy_security_class, x509_proxy_identifier, x509_proxy_fname)
 
-            if x509_proxies.count_fnames < 1:
-                if security_class_downtime_found:
-                    logSupport.log.warning("Found proxies for client %s but the security class was in downtime, setting entry into downtime for advertising" % client_int_name)
-                    in_downtime = True
-                else:
-                    logSupport.log.warning("No good proxies for %s, skipping request" % client_int_name)
-                    continue
-            else:
-                security_credentials['x509_proxy_list'] = x509_proxies
- 
-            # ========== end v2+ protocol =============
-                 
+            if x509_proxies.count_fnames<1:
+                logSupport.log.warning("No good proxies for %s, skipping request"%client_int_name)
+                continue #skip request
         else:
             # ========== v3+ proxy protocol ===============
             
@@ -1076,14 +1068,14 @@ def iterate(parent_pid, sleep_time, advertize_rate,
 
     # Record the starttime so we know when to disable the use of old pub key
     starttime = time.time()
+
     # The grace period should be in the factory config. Use it to determine
     # the end of lifetime for the old key object. Hardcoded for now to 30 mins.
     oldkey_gracetime = int(glideinDescript.data['OldPubKeyGraceTime'])
     oldkey_eoltime = starttime + oldkey_gracetime
+
     # Set Monitoring logging
     glideFactoryLib.factoryConfig.log_stats = glideFactoryMonitoring.condorLogSummary()
-
-
     glideFactoryLib.factoryConfig.rrd_stats = glideFactoryMonitoring.FactoryStatusData()
 
     # Get downtimes
@@ -1093,6 +1085,7 @@ def iterate(parent_pid, sleep_time, advertize_rate,
     while 1:
         # check to see if we are orphaned - raises KeyboardInterrupt exception if we are
         check_parent(parent_pid,glideinDescript,jobDescript)
+
         if ( (time.time() > oldkey_eoltime) and 
              (glideinDescript.data['OldPubKeyObj'] != None) ):
             # Invalidate the use of factory's old key
@@ -1112,6 +1105,9 @@ def iterate(parent_pid, sleep_time, advertize_rate,
         else:
             logSupport.log.info("Iteration at %s" % time.ctime())
 
+        # PM: Shouldn't this be inside the else statement above?
+        # Why do we want to execute this if we are in downtime?
+        # Or do we want to execute only few steps here but code prevents us?
         try:
             glideFactoryLib.factoryConfig.log_stats.reset() #@UndefinedVariable
             # This one is used for stats advertized in the ClassAd
@@ -1171,7 +1167,7 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     @type entry_name: string
     @param entry_name: The name of the entry as specified in the config file
     """
-    # KEL should we use this startup time somewhere?  this is currently unused
+    # KEL should we use this startup time somewhere? This is currently unused
     startup_time = time.time()
 
     glideFactoryInterface.factoryConfig.lock_dir=os.path.join(startup_dir,"lock")
