@@ -1114,21 +1114,23 @@ a random spread GLIDEIN_Retire_Spread to smooth out glideins all ending
 simultaneously), jobs can start on the glidein pilot.  
 </li>
 <li><font color="f8d844"><i>Yellow</i></font>:
-Once this period is
-done, START will evauluate to FALSE, so no new jobs will start.  However,
+During the yellow period, START will evauluate to FALSE, 
+so no new jobs will start.  However,
 already running jobs will continue to run for GLIDEIN_Job_Max_Time.  
 </li>
 <li>
 Once this period is done, the DAEMON_SHUTDOWN variable will be true.</li>
 <li><font color="f8bb44"><i>Orange</i></font>:
-However, this will not be evaluated until the collector is updated, 
-implying a delay of up to UPDATE_INTERVAL (usually about 5 minutes).
+There can be a delay of up to UPDATE_INTERVAL (usually about 5 minutes)
+between when DAEMON_SHUTDOWN becomes true and when it is actually 
+updated in the collector.  This is because the collector only reevaluates
+this expression periodically.
 </li>
 <li><font color="c7484c"><i>Red</i></font>:
 Once DAEMON_SHUTDOWN is true, condor gives a short grace period of
 GLIDEIN_Graceful_Shutdown before forcefully terminating everything and 
-shutting down.  All of these are contained and calculated to fit
-within MAX_WALLTIME unless specified.
+shutting down.  All of these periods are totalled and calculated to fit
+within MAX_WALLTIME if specified.
 </li>
 </ul>
 </p>
