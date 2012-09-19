@@ -597,39 +597,29 @@ def populate_common_descript(descript_dict,        # will be modified
 
     if len(params.security.credentials) > 0:
         proxies = []
+        proxy_attrs=['security_class','trust_domain','type',
+            'keyabsfname','pilotabsfname','vm_id','vm_type',
+            'creation_script','update_frequency']
+        proxy_attr_names={'security_class':'ProxySecurityClasses',
+            'trust_domain':'ProxyTrustDomains',
+            'type':'ProxyTypes','keyabsfname':'ProxyKeyFiles',
+            'pilotabsfname':'ProxyPilotFiles',
+            'vm_id':'ProxyVMIds','vm_type':'ProxyVMTypes',
+            'creation_script':'ProxyCreationScripts',
+            'update_frequency':'ProxyUpdateFrequency'}
+        proxy_descript_values={}
+        for attr in proxy_attrs:
+            proxy_descript_values[attr]={}
         proxy_trust_domains = {}
-        proxy_creation_scripts = {}
-        proxy_update_frequency = {}
-        proxy_security_classes = {}
-        proxy_types = {}
-        proxy_key_files = {}
-        proxy_pilot_files = {}
-        proxy_vm_ids = {}
-        proxy_vm_types = {}
         for pel in params.security.credentials:
             if pel['absfname'] == None:
                 raise RuntimeError, "All proxies need a absfname!"
             if pel['pool_idx_len'] == None and pel['pool_idx_list'] == None:
                 # only one
                 proxies.append(pel['absfname'])
-                if pel['security_class'] != None:
-                    proxy_security_classes[pel['absfname']] = pel['security_class']
-                if pel['trust_domain'] != None:
-                    proxy_trust_domains[pel['absfname']] = pel['trust_domain']
-                if pel['type'] != None:
-                    proxy_types[pel['absfname']] = pel['type']
-                if pel['keyabsfname'] != None:
-                    proxy_key_files[pel['absfname']] = pel['keyabsfname']
-                if pel['pilotabsfname'] != None:
-                    proxy_pilot_files[pel['absfname']] = pel['pilotabsfname']
-                if pel['vm_id'] != None:
-                    proxy_vm_ids[pel['absfname']] = pel['vm_id']
-                if pel['vm_type'] != None:
-                    proxy_vm_types[pel['absfname']] = pel['vm_type']
-                if pel['creation_script'] != None:
-                    proxy_creation_scripts[pel['absfname']] = pel['creation_script']
-                if pel['update_frequency'] != None:
-                    proxy_update_frequency[pel['absfname']] = pel['update_frequency']
+                for attr in proxy_attrs:
+                    if pel[attr] != None:
+                        proxy_descript_values[attr][pel['absfname']]=pel[attr]
             else: #pool
                 pool_idx_len = pel['pool_idx_len']
                 if pool_idx_len == None:
@@ -651,44 +641,14 @@ def populate_common_descript(descript_dict,        # will be modified
                 for idx in pool_idx_list_expanded:
                     absfname = "%s%s" % (pel['absfname'], idx.zfill(pool_idx_len))
                     proxies.append(absfname)
-                    if pel['security_class'] != None:
-                        proxy_security_classes[absfname] = pel['security_class']
-                    if pel['trust_domain'] != None:
-                        proxy_trust_domains[absfname] = pel['trust_domain']
-                    if pel['type'] != None:
-                        proxy_types[absfname] = pel['type']
-                    if pel['keyabsfname'] != None:
-                        proxy_key_files[absfname] = pel['keyabsfname']
-                    if pel['pilotabsfname'] != None:
-                        proxy_pilot_files[absfname] = pel['pilotabsfname']
-                    if pel['vm_id'] != None:
-                        proxy_vm_ids[absfname] = pel['vm_id']
-                    if pel['vm_type'] != None:
-                        proxy_vm_types[absfname] = pel['vm_type']
-                    if pel['creation_script'] != None:
-                        proxy_creation_scripts[absfname] = pel['creation_script']
-                    if pel['update_frequency'] != None:
-                        proxy_update_frequency[absfname] = pel['update_frequency']
+                    for attr in proxy_attrs:
+                        if pel[attr] != None:
+                            proxy_descript_values[attr][pel['absfname']]=pel[attr]
 
         descript_dict.add('Proxies', repr(proxies))
-        if len(proxy_trust_domains.keys()) > 0:
-            descript_dict.add('ProxyTrustDomains', repr(proxy_trust_domains))
-        if len(proxy_creation_scripts.keys()) > 0:
-            descript_dict.add('ProxyCreationScripts', repr(proxy_creation_scripts))
-        if len(proxy_update_frequency.keys()) > 0:
-            descript_dict.add('ProxyUpdateFrequency', repr(proxy_update_frequency))
-        if len(proxy_security_classes.keys()) > 0:
-            descript_dict.add('ProxySecurityClasses', repr(proxy_security_classes))
-        if len(proxy_types.keys()) > 0:
-            descript_dict.add('ProxyTypes', repr(proxy_types))
-        if len(proxy_key_files.keys()) > 0:
-            descript_dict.add('ProxyKeyFiles', repr(proxy_key_files))
-        if len(proxy_pilot_files.keys()) > 0:
-            descript_dict.add('ProxyPilotFiles', repr(proxy_pilot_files))
-        if len(proxy_vm_ids.keys()) > 0:
-            descript_dict.add('ProxyVMIds', repr(proxy_vm_ids))
-        if len(proxy_vm_types.keys()) > 0:
-            descript_dict.add('ProxyVMTypes', repr(proxy_vm_types))
+        for attr in proxy_attrs:
+            if len(proxy_descript_values[attr].keys()) > 0:
+                descript_dict.add(proxy_attr_names[attr], repr(proxy_descript_values[attr]))
 
     match_expr = params.match.match_expr
 
