@@ -63,7 +63,7 @@ function getFactoryFrontends(factoryQStats){
         for (var sei=0; sei<el.childNodes.length; sei++){
             var thisval=el.childNodes[sei];
             if (thisval.nodeName=="frontend"){
-                var front_name=thisval.attributes[0].nodeValue.toString();
+                var front_name=thisval.attributes[0].value.toString();
                 groups["total"].push(front_name);
             }
         }
@@ -80,7 +80,7 @@ function getFactoryFrontends(factoryQStats){
                for (var b=0; b<el2.childNodes.length;b++) {
                  var el3=el2.childNodes[b];
                  if(el3.nodeName=="frontend") { 
-                   var frontend_name=el3.attributes[0].nodeValue.toString();
+                   var frontend_name=el3.attributes[0].value.toString();
                    groups[entry_name.value].push(frontend_name);
   }}}}}}}}
   return groups;
