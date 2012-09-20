@@ -50,7 +50,6 @@ frontend_options = [ "install_type",
 
 wmscollector_options = [ 
 "hostname",
-"collector_port",
 "service_name",
 "x509_gsi_dn",
 ]
@@ -71,7 +70,6 @@ usercollector_options = [
 "service_name",
 "x509_gsi_dn",
 "condor_location",
-"collector_port",
 "number_of_secondary_collectors",
 ]
 

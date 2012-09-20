@@ -23,7 +23,6 @@ usercollector_options = [ "install_type",
 "condor_tarball", 
 "condor_location", 
 "condor_admin_email", 
-"collector_port", 
 "number_of_secondary_collectors",
 "x509_cert_dir",
 "x509_cert", 
@@ -35,7 +34,6 @@ usercollector_options = [ "install_type",
 ]
 
 wmscollector_options = [ "hostname",
-"collector_port",
 ]
 
 submit_options = [ "hostname",
@@ -146,16 +144,22 @@ class UserCollector(Condor):
     if self.hostname() <> self.wmscollector.hostname():
       return  # -- no problem, on separate hosts --
     if self.collector_port() == self.wmscollector.collector_port():
-      common.logerr("""The WMS collector and User collector are being installed 
-on the same node. They both are trying to use the same port: %(port)s.
+      common.logerr("""The WMS and User collector are being installed on the same node. 
+They both are trying to use the same port: %(port)s.
+If not already specified, you may need to specifiy a 'collector_port' option 
+in your ini file for either the WMSCollector or UserCollector sections, or both.
+If present, are you really installing both services on the same node.
 """ %  { "port" : self.collector_port(),})
 
     if int(self.wmscollector.collector_port()) in self.secondary_collector_ports():
-      common.logerr("""The WMS collector and User collector are being installed 
-on the same node. The WMS collector port (%(wms_port)s) conflicts with one of the
-secondary User Collector ports that will be assigned: %(secondary_ports)s.
-""" % \
-      { "wms_port"        : self.wmscollector.collector_port(),
+      common.logerr("""The WMS and User collector are being installed on the same node. 
+The WMS collector port (%(wms_port)s) conflicts with one of the secondary 
+User Collector ports that will be assigned: 
+  %(secondary_ports)s.
+If not already specified, you may need to specifiy a 'collector_port' option 
+in your ini file for either the WMSCollector or UserCollector sections, or both.
+If present, are you really installing both services on the same node.
+""" % { "wms_port"        : self.wmscollector.collector_port(),
         "secondary_ports" : self.secondary_collector_ports(), })
 
   #-------------------------
