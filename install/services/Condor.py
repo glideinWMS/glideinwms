@@ -213,7 +213,7 @@ If no specific entries are needed, an empty list should be returned.
   def collector_port(self):
     option = "collector_port"
     if not self.has_option(self.ini_section,option):
-      return int(0)
+      return int(9618)
     value = self.option_value(self.ini_section,option)
     if common.not_an_integer(value):
       common.logerr("%s option is not a number: %s" % (option,value))
