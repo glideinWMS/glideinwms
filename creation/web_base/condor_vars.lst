@@ -10,6 +10,7 @@ GLIDEIN_Hold		C	False		+				N	N	-
 GLIDEIN_PREEMPT		C	False		+				N	N	-
 GLIDEIN_Rank		C	1		+				N	N	-
 GLIDEIN_Max_Idle 	I 	1200 		+				N	Y	-
+GLIDEIN_Max_Tail 	I 	400 		+				N	Y	-
 GLIDEIN_Max_Walltime	I	-		+				N	Y	-
 GLIDEIN_Retire_Time 	I 	-		+				N	N	-
 GLIDEIN_Retire_Time_Spread 	I 	-	+				N	N	-
