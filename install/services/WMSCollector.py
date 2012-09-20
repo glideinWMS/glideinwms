@@ -46,7 +46,6 @@ factory_options = [ "hostname",
 ]
 
 usercollector_options = [ "hostname",
-"number_of_secondary_collectors",
 ]
 
 submit_options = []
