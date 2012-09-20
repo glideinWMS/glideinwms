@@ -70,7 +70,6 @@ usercollector_options = [
 "service_name",
 "x509_gsi_dn",
 "condor_location",
-"number_of_secondary_collectors",
 ]
 
 valid_options = { 
