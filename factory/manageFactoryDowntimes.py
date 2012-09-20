@@ -179,6 +179,8 @@ def down(entry_name,opt_dict):
     if not down_fd.checkDowntime(entry=entry_name, frontend=frontend, security_class=sec_name, check_time=when): 
         #only add a new line if not in downtime at that time
         return down_fd.startDowntime(start_time=when,end_time=end_time,frontend=frontend,security_class=sec_name,entry=entry_name,comment=opt_dict["comment"])
+    else:
+        print "Entry is already down. (%s)" % down_fd.downtime_comment
     return 0
 
 def up(entry_name,opt_dict):
@@ -200,6 +202,7 @@ def up(entry_name,opt_dict):
     if (rtn>0):
         return 0
     else:
+        print "Entry is not in downtime."
         return 1
 
 # This function replaces "check", which does not take into account
