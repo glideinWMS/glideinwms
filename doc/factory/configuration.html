@@ -1401,12 +1401,19 @@ of time.
 
     <LI><P>If a glidein is not claimed within
     a configurable timeout, the glidein will exit.<BR>The timeout can be
-    set qith: 
+    set with: 
     </P>
     <blockquote>
         <B>GLIDEIN_Max_Idle</B>=<I>nr_of_seconds</I>
+        <B>GLIDEIN_Max_Tail</B>=<I>nr_of_seconds</I>
     </blockquote>
-    <P>The default is 20 minutes.  </P>
+    <P>There are two configurable
+       parameters for this timeout behavior.  The first, GLIDEIN_Max_Idle,
+       affects how long a glidein will wait for its first job.
+       The second parameter is how long a glidein will wait to get a 
+       subsequent job once its finished its job.  The defaults for these
+       are 1200 and 400 seconds, respectively.
+    </P>
 </OL>
 
 <p>
