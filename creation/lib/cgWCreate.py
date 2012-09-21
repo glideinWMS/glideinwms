@@ -338,7 +338,7 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name):
         fd.write('	 else\n')
         fd.write('	   echo -n "Infosys-based downtime management."\n')
         fd.write('	 fi\n\n')
-        fd.write('	 "$glideinWMS_dir/factory/manageFactoryDowntimes.py" -cmd $1 -dir "$factory_dir" "$@" 2>/dev/null 1>&2 </dev/null && success || failure\n')
+        fd.write('	 "$glideinWMS_dir/factory/manageFactoryDowntimes.py" -cmd $1 -dir "$factory_dir" "$@" </dev/null && success || failure\n')
         fd.write('	 RETVAL=$?\n')
         fd.write('	 echo\n')
         fd.write('}\n\n')
