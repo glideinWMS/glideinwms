@@ -178,7 +178,7 @@ downtime()
         echo -n "Infosys-based downtime management."
     fi
 
-    "$glideinWMS_dir/factory/manageFactoryDowntimes.py" -cmd $1 -dir "$factory_dir" "$@" 2>/dev/null 1>&2 </dev/null && success || failure
+    "$glideinWMS_dir/factory/manageFactoryDowntimes.py" -cmd $1 -dir "$factory_dir" "$@" </dev/null && success || failure
     RETVAL=$?
     echo
 }
