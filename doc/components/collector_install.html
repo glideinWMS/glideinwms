@@ -197,10 +197,23 @@ Install as: root or non-priveleged user.
 
         <tr>
             <td>collector_port</td>
-            <td>9618 (condor default)</td>
+            <td>9618 (Condor default)</td>
             <td>Defines the Condor Collector port.</td>
-            <td>Condor default is 9618. If multiple glidein services are installed on the same node, this should be unique of each service.</td>
+            <td>Optional: default is 9618 (Condor default)<br/>
+                If multiple glidein services are installed on the same node, 
+                this should be unique for each service.
+            </td>
             </tr>
+
+        <tr>
+            <td>number_of_secondary_collectors  </td>
+            <td align="center">5   </td>
+            <td>The desired number of secondary collectors to be used.  </td>
+            <td>Optional: default is 0 (zero)<br/>
+                A rough estimate is to use one collector per 100 glideins 
+                with a hard limit on 200 glideins per collector.
+           </td>
+        </tr>
 
         <tr>
 	        <td>x509_cert_dir</td>
@@ -265,14 +278,6 @@ Install as: root or non-priveleged user.
 	        <td>whomever@email.com</td>
 	        <td>The email address to get Condor notifications in the event of a problem.</td>
 	        <td>Used in the condor_config.local only.    </td>
-        </tr>
-
-        <tr>
-            <td>number_of_secondary_collectors  </td>
-            <td align="center">5   </td>
-            <td>The desired number of secondary collectors to be used.  </td>
-            <td>A rough estimate is to use one collector per 100 glideins 
-            with a hard limit on 200 glideins per collector.</td>
         </tr>
 
         <tr>
