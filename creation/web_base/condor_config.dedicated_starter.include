@@ -44,13 +44,20 @@ STARTD_NOCLAIM_SHUTDOWN = $(GLIDEIN_Max_Idle)
 
 # Set to shutdown if total idle exceeds max idle, or if the age
 # exceeds the retire time (and is idle) or is over the max walltime (todie)
-STARTD.DAEMON_SHUTDOWN = ((Activity=="Idle") && \
-    (TotalTimeUnclaimedIdle =!= UNDEFINED) && \
-    (GLIDEIN_Max_Idle =!= UNDEFINED)&& \
-    (TotalTimeUnclaimedIdle > GLIDEIN_Max_Idle))||\
+STARTD.DAEMON_SHUTDOWN = ( \
+    ((Activity=="Idle") && \
+     (TotalTimeUnclaimedIdle =!= UNDEFINED) && \
+     (GLIDEIN_Max_Idle =!= UNDEFINED)&& \
+     (TotalTimeUnclaimedIdle > GLIDEIN_Max_Idle))||\
     ((Activity=="Idle") && (GLIDEIN_ToRetire =!= UNDEFINED) && \
-    (CurrentTime > GLIDEIN_ToRetire )) || \
-    ((GLIDEIN_ToDie =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToDie )) 
+     (CurrentTime > GLIDEIN_ToRetire )) || \
+    ((GLIDEIN_ToDie =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToDie )) || \
+    ((Activity=="Idle") && \
+     (TotalTimeUnclaimedIdle=!= UNDEFINED) && \
+     (GLIDEIN_Max_Tail=!= UNDEFINED) && \
+     (TotalTimeUnclaimedIdle > GLIDEIN_Max_Tail)) )
+     
+   
 
 #
 # Shutdown the master if the startd exits.  Note that if
