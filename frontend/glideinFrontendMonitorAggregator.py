@@ -249,8 +249,8 @@ def aggregateStatus():
                 # first iteration through, set fact totals equal to the first group's fact totals
                 global_fact_totals[fos][fact]={}
                 for attribute in type_strings.keys():
+                    global_fact_totals[fos][fact][attribute]={}
                     if attribute in this_fact.keys():
-                        global_fact_totals[fos][fact][attribute]={}
                         for type_attribute in this_fact[attribute].keys():
                             this_type_attribute=this_fact[attribute][type_attribute]
                             try:
@@ -267,7 +267,7 @@ def aggregateStatus():
                                 # dict, do nothing
                                 pass
                             else:
-                                if type_attribute in global_fact_totals[fos][fact][attribute].keys(): 
+                                if type_attribute in global_fact_totals[fos][fact][attribute].keys() and attribute in global_fact_totals[fos][fact].keys(): 
                                    global_fact_totals[fos][fact][attribute][type_attribute]+=int(this_type_attribute)
                                 else:
                                    global_fact_totals[fos][fact][attribute][type_attribute]=int(this_type_attribute)
