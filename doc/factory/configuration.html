@@ -318,12 +318,13 @@ individual entry point configuration.
     You can list as many as you need,
     but at least one is required. This lets you configure glideins for
     different sites to use different version of condor binaries based on
-    architecture, os of the worker nodes that could be found on the
-    site.<br/>
+    architecture, os of the worker nodes that could be found on the site.<br/>
     It is recommended to have one default entry with
         <b>os=&quot;default&quot; arch=&quot;default&quot;
         version=&quot;default&quot;</b>.<br/>
-        See <a href="#tarballs">multiple tarballs</a> for more detailed instructions on supporting tarballs for multiple architectures.
+        To configure multiple tarballs, os, arch and version accept a commacw
+        separated list. See <a href="#tarballs">multiple tarballs</a> for more
+        detailed instructions on supporting tarballs for multiple architectures.
     </p>
     <LI>
         <a name="submit" />
@@ -1364,6 +1365,34 @@ For more information, see the <a href="design_entry.html#config">Entry Internals
     </li>
     <li>
         After reconfig, you can see the tar_file created from the condor distribution in the tarball line in the configuration.
+    </li>
+    <li>
+        Starting v2.6.2, to simplify the configuration, os, arch and version
+        support comma values. This can drastically reduce the number of 
+        condor_tarball entries needed in the configuration file.
+        <br><br>
+        Consider an example below for default os as rhel5 and default arch as
+        x86_64. If the factory admin also wants os and arch information
+        explicitly available the configuration needs following entries to cover
+        possible combinations.
+        <blockquote>
+        &lt;condor_tarball os="default" arch="default"
+                           base_dir="dir" version="default"/&gt;<br>
+        &lt;condor_tarball os="rhel5" arch="x86_64"
+                           base_dir="dir" version="default"/&gt;<br>
+        &lt;condor_tarball os="rhel5" arch="default"
+                           base_dir="dir" version="default"/&gt;<br>
+        &lt;condor_tarball os="default" arch="x86_64"
+                           base_dir="dir" version="default"/&gt;
+        </blockquote>
+        Above example can be easily consolidated into a single condor_tarball
+        entry as below and the factory reconfiguration process will 
+        internally consider all the combinations. This also applies to the
+        version.
+        <blockquote>
+        &lt;condor_tarball os="default,rhel5" arch="default,x86_64"
+                           base_dir="dir" version="default"/&gt;
+        </blockquote>
     </li>
 </ol>
 </div>
