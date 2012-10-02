@@ -87,13 +87,7 @@ do
   cat "$fname" >> $condor_job_wrapper
 done
 
-cat >> $condor_job_wrapper <<EOF
 
-# Condor job wrappers must replace its own image
-exec "\$@"
-EOF
-
-chmod a+x $condor_job_wrapper
 echo "USER_JOB_WRAPPER = \$(LOCAL_DIR)/$condor_job_wrapper" >> $CONDOR_CONFIG
 
 
@@ -238,6 +232,14 @@ while read line
 do
     set_var $line
 done < condor_vars.lst.tmp
+
+
+cat >> $condor_job_wrapper <<EOF
+
+# Condor job wrappers must replace its own image
+exec $GLIDEIN_WRAPPER_EXEC
+EOF
+chmod a+x $condor_job_wrapper
 
 #let "max_job_time=$job_max_hours * 3600"
 
