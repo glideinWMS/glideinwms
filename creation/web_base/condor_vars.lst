@@ -46,6 +46,7 @@ GLIDECLIENT_Group_Rank	C	1		+				N	N	-
 GLIDEIN_Factory		S	-		+				Y	Y	@
 GLIDEIN_Name		S	-		+				Y	Y	@
 GLIDEIN_Signature	S	-		+				Y	Y	@
+GLIDEIN_WRAPPER_EXEC		S	"\\\"\\\$@\\\"" 		+				N	N	-
 DESCRIPTION_FILE	S	-		GLIDEIN_Description_File	N	Y	-
 GLIDEIN_TORETIRE	I	-		+				N	Y	-
 #################################################################################################################
