@@ -82,6 +82,36 @@ Related Pages:
 <a name="stable"></a>
     <h3>Stable Series</h3>
       <li>
+        <b>v2_6_2</b> released on October xx, 2012 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_6_2/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_6_2/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_6_2.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Factory now supports glidein failure modes. This information is
+          propagated back to the factory.
+          <li>Glideins now have different idle timeouts for startup and tail.
+          The glideins now exit much faster after comleting jobs and they do not
+          have enough time left to run another job.
+          <li>Added support for javascriptRRD 2.6.2
+          <li>Consolidate the condor_tarball tag in glideinwms.xml to read in
+          a list of os, arch, version. See docs for details.
+          <li>Ini-installer will default collector_port to 9618 if not
+          specified in appropriate config sections.
+          <li>Installation now supports GRIDMANAGER_PROXY_REFRESH_TIME for
+          condorg services
+          <li>Improved logging when frontend fails to evaluate match expressions.
+          <li>Monitoring pages changed to be even more compliant with DOM4
+          <li>Improved documentation.
+          <li>Bug Fix: Better handling of monitor dir during upgrade
+          <li>Bug Fix: Factory correctlt handles frontend in downtime and now
+          it does not affect requests from other frontends
+          <li>Bug Fix: Putting entry in downtime multiple times now warns the
+          user
+          <li>Bug Fix: Fixed a bug where v2.6.1 frontend would crash under
+          certain
+          <li>Bug Fix: Installers do not set CONDOR_VERSION as constant by
+          default.  This will now enable frontends to override this attr.
+          <li>Bug Fix: Ini-installer now correctly cleans up files on re-install
+        </ul>
+      </li>
+      <li>
         <b>v2_6_1</b> released on August 21, 2012 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_6_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_6_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_6_1.tgz">Tarball</a>)<br>
         <br><b>NOTE:</b> Follow special instructions on <a href="download.html">downloads page</a> if upgrading to condor 7.8.2<br><br>
         <ul>
