@@ -18,7 +18,6 @@ import cWConsts
 AFTER_FILE_LISTFILE="after_%s"%cWConsts.FILE_LISTFILE
 
 CONDOR_FILE="condor_bin_%s.tgz"
-CONDOR_TAR_FILE="condor_bin.tgz"
 CONDOR_DIR="condor"
 CONDOR_ATTR="CONDOR_DIR"
 

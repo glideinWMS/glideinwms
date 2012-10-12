@@ -87,7 +87,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             # Register the tarball, but make download conditional to cond_name
 
             condor_el_valid_tarballs = get_valid_condor_tarballs([condor_el])
-            condor_fname = cWConsts.insert_timestr(cgWConsts.CONDOR_TAR_FILE)
+            condor_fname = cWConsts.insert_timestr(cgWConsts.CONDOR_FILE % condor_idx)
             condor_tarfile = ""
             condor_fd = None
 
@@ -112,8 +112,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 if condor_fd == None:
                     # tar file exists. Just use it
                     self.dicts['after_file_list'].add_from_file(
-                        condor_platform_fname, 
-                            (condor_fname,"untar",cond_name,cgWConsts.CONDOR_ATTR),
+                        condor_platform_fname, (condor_fname,
+                                                "untar", cond_name,
+                                                cgWConsts.CONDOR_ATTR),
                         condor_el.tar_file)
                 else:
                     # This is addition of new tarfile

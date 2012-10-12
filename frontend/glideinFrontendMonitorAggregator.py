@@ -266,7 +266,9 @@ def aggregateStatus():
                                 # dict, do nothing
                                 pass
                             else:
-                                if type_attribute in global_fact_totals[fos][fact][attribute].keys(): 
+                                if attribute not in global_fact_totals[fos][fact]:
+                                    global_fact_totals[fos][fact][attribute]={}
+                                if type_attribute in global_fact_totals[fos][fact][attribute]:
                                    global_fact_totals[fos][fact][attribute][type_attribute]+=int(this_type_attribute)
                                 else:
                                    global_fact_totals[fos][fact][attribute][type_attribute]=int(this_type_attribute)
