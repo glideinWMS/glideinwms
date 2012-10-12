@@ -46,3 +46,20 @@ def get_entry_pid(startup_dir,entry_name):
         raise RuntimeError, "Entry has no parent???"
     return (pid_obj.mypid,pid_obj.parent_pid)
 
+############################################################
+
+class EntryGroupPidSupport(pidSupport.PidWParentSupport):
+    def __init__(self, startup_dir, group_name):
+        lock_file = os.path.join(startup_dir,
+                                 "%s/%s/lock/factory.lock" % (startup_dir,
+                                                              group_name))
+        pidSupport.PidWParentSupport.__init__(self, lock_file)
+
+#raise an exception if not running
+def get_entrygroup_pid(startup_dir, group_name):
+    pid_obj = EntryGroupPidSupport(startup_dir, group_name)
+    pid_obj.load_registered()
+    if pid_obj.mypid==None:
+        raise RuntimeError, "Entry Group %s not running" % group_name
+    if pid_obj.parent_pid==None:
+        raise RuntimeError, "Entry Group %s has no parent" % group_name

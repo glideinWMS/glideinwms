@@ -29,6 +29,15 @@ import glideFactoryConfig
 
 MY_USERNAME=pwd.getpwuid(os.getuid())[0]
 
+# Someone needs to initialize following parameters
+
+# type LogFiles
+log_files = None
+group_log_files = None
+
+# Dictionary of log file objects for entries and groups
+log_files_dict = {'entry': {}, 'group': {}}
+
 ############################################################
 #
 # Configuration
@@ -230,10 +239,6 @@ class LogFiles:
                                                         long(max_mbs*(1024.0*1024.0)),
                                                         self.activity_log,self.warning_log))
         
-
-# someone needs to initialize this
-# type LogFiles
-log_files=None
 
 ############################################################
 #
@@ -1631,3 +1636,10 @@ class GlideinTotals:
                     
         return output
         
+
+def set_condor_integrity_checks():
+    os.environ['_CONDOR_SEC_DEFAULT_INTEGRITY'] = 'REQUIRED'
+    os.environ['_CONDOR_SEC_CLIENT_INTEGRITY'] = 'REQUIRED'
+    os.environ['_CONDOR_SEC_READ_INTEGRITY'] = 'REQUIRED'
+    os.environ['_CONDOR_SEC_WRITE_INTEGRITY'] = 'REQUIRED'
+

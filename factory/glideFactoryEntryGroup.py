@@ -176,19 +176,9 @@ def find_work(factory_in_downtime, glideinDescript,
                              my_entries.keys(),
                              gfl.factoryConfig.supported_signtypes,
                              pub_key_obj, allowed_proxy_source)
-    
+    log_work_info(work, key='existing')
 
 
-
-     ############ I AM HERE IMPLEMENTING ABOVE
-
-
-
-
-
-
-
-    gfl.log_files.logActivity("Found %s total tasks to work on using existing factory key." % len(work))
 
     # If old key is valid, find the work using old key as well and append it
     # to existing work dictionary
@@ -202,7 +192,7 @@ def find_work(factory_in_downtime, glideinDescript,
                                    gfl.factoryConfig.supported_signtypes,
                                    old_pub_key_obj,
                                    allowed_proxy_source)
-        gfl.log_files.logActivity("Found %s tasks to work on using old factory key" % len(work_oldkey))
+        log_work_info(work, key='old')
 
         # Merge the work_oldkey with work
         for w in work_oldkey.keys():
@@ -215,7 +205,20 @@ def find_work(factory_in_downtime, glideinDescript,
 
     return work
 
+
+def log_work_info(work, key=''):
+    keylogstr = ''
+    if key.strip() != '':
+        gfl.log_files.logActivity('Work grouped by entries using %s factory key' % (key))
+    else:
+        gfl.log_files.logActivity('Work grouped by entries')
+
+    for entry in work:
+        gfl.log_files.logActivity("Entry: %s (Tasks: %s)" % (entry,
+                                                             len(work[entry])))
 ###############################
+
+
 def find_and_perform_work(factory_in_downtime, glideinDescript,
                           frontendDescript, group_name, my_entries)
     """
@@ -241,7 +244,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     work = find_work(factory_in_downtime, glideinDescript,
                      frontendDescript, group_name, my_entries)   
 
-
+    # PM: So far got the work items grouped by entries
 
 
 
@@ -789,7 +792,8 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
             fparams={}
         params=jobParams.data.copy()
         for p in fparams.keys():
-            if p in params.keys(): # can only overwrite existing params, not create new ones
+            if p in params.keys():
+                # Can only overwrite existing params, not create new ones
                 params[p]=fparams[p]
         advertizer.add(client_internals["CompleteName"],client_name,client_internals["ReqName"],
                        params,client_monitors.copy())
@@ -827,7 +831,7 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
         
 
 
-
+    #PM: In middle of Fixing find_and_perform_work function
 
 
 

@@ -38,6 +38,177 @@ import logSupport
 import glideinWMSVersion
 
 ############################################################
+class Entry:
+
+    def __init__(self, name, startup_dir, glidein_descript, frontend_descript):
+        """
+        Class constructor
+        """
+
+        self.name = name
+        self.startupDir = startup_dir
+        self.glideinDescript = glidein_descript
+        self.frontendDescript = frontend_descript
+
+        self.jobDescript = glideFactoryConfig.JobDescript(name)
+        self.jobAttributes = glideFactoryConfig.JobAttributes(name)
+        self.jobParams = glideFactoryConfig.JobParams(name)
+
+        # glideFactoryMonitoring.monitoringConfig.monitor_dir
+        self.monitorDir = os.path.join(self.startupDir,
+                                       "monitor/entry_%s" % self.name)
+
+        # Dir where my logs are stored
+        self.logDir = os.path.join(self.glideinDescript.data['LogDir'],
+                                   "entry_%s" % self.name)
+
+        # glideFactoryLib.log_files
+        self.logFiles = glideFactoryLib.LogFiles(
+            self.logDir,
+            float(self.glideinDescript.data['LogRetentionMaxDays']),
+            float(self.glideinDescript.data['LogRetentionMinDays']),
+            float(self.glideinDescript.data['LogRetentionMaxMBs']))
+
+        self.logFiles.add_dir_to_cleanup(
+            None,
+            self.logDir,
+            "(condor_activity_.*\.log\..*\.ftstpk)",
+            float(self.glideinDescript.data['CondorLogRetentionMaxDays']),
+            float(self.glideinDescript.data['CondorLogRetentionMinDays']),
+            float(self.glideinDescript.data['CondorLogRetentionMaxMBs']))
+
+        self.monitoringConfig = glideFactoryMonitoring.MonitoringConfig()
+        self.monitoringConfig.monitor_dir = self.monitorDir
+        self.monitoringConfig.my_name = "%s@%s" % (name, self.glideinDescript.data['GlideinName'])
+
+        self.monitoringConfig.config_log(
+            self.logDir,
+            float(self.glideinDescript.data['SummaryLogRetentionMaxDays']),
+            float(self.glideinDescript.data['SummaryLogRetentionMinDays']),
+            float(self.glideinDescript.data['SummaryLogRetentionMaxMBs']))
+
+        # FactoryConfig object from glideFactoryInterface
+        self.gfiFactoryConfig = glideFactoryInterface.FactoryConfig()
+        self.gfiFactoryConfig.warning_log = self.logFiles.warning_log
+        self.gfiFactoryConfig.advertise_use_tcp = (
+            self.glideinDescript.data['AdvertiseWithTCP'] in ('True','1'))
+        self.gfiFactoryConfig.advertise_use_multi = (
+            self.glideinDescript.data['AdvertiseWithMultiple'] in ('True','1'))
+
+        try:
+            self.gfiFactoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(os.path.dirname(os.path.dirname(sys.argv[0])), 'checksum.factory').version()
+        except:
+            tb = traceback.format_exception(sys.exc_info()[0],
+                                            sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            self.logFiles.logWarning("Exception occured while trying to retrieve the glideinwms version. See debug log for more details.")
+            self.logFiles.logDebug("Exception occurred while trying to retrieve the glideinwms version: %s" % tb)
+
+
+        # FactoryConfig object from glideFactoryLib
+        self.gflFactoryConfig = glideFactoryLib.FactoryConfig()
+
+        self.gflFactoryConfig.config_whoamI(
+            self.glideinDescript.data['FactoryName'],
+            self.glideinDescript.data['GlideinName'])
+
+        self.gflFactoryConfig.config_dirs(
+            self.startupDir,
+            self.glideinDescript.data['LogDir'],
+            self.glideinDescript.data['ClientLogBaseDir'],
+            self.glideinDescript.data['ClientProxiesBaseDir'])
+
+        self.gflFactoryConfig.max_submits = int(self.jobDescript.data['MaxSubmitRate'])
+        self.gflFactoryConfig.max_cluster_size = int(self.jobDescript.data['SubmitCluster'])
+        self.gflFactoryConfig.submit_sleep = float(self.jobDescript.data['SubmitSleep'])
+        self.gflFactoryConfig.max_removes = int(self.jobDescript.data['MaxRemoveRate'])
+        self.gflFactoryConfig.remove_sleep = float(self.jobDescript.data['RemoveSleep'])
+        self.gflFactoryConfig.max_releases = int(self.jobDescript.data['MaxReleaseRate'])
+        self.gflFactoryConfig.release_sleep = float(self.jobDescript.data['ReleaseSleep'])
+        self.gflFactoryConfig.log_stats = glideFactoryMonitoring.condorLogSummary()
+        self.gflFactoryConfig.rrd_stats = glideFactoryMonitoring.FactoryStatusData()
+
+        
+        # Add cleaners for the user log directories
+        for username in self.frontendDescript.get_all_usernames():
+            user_log_dir = self.gflFactoryConfig.get_client_log_dir(self.name,
+                                                                    username)
+            self.logFiles.add_dir_to_cleanup(
+                username,
+                user_log_dir,
+                "(job\..*\.out)|(job\..*\.err)",
+                float(self.glideinDescript.data['JobLogRetentionMaxDays']),
+                float(self.glideinDescript.data['JobLogRetentionMinDays']),
+                float(self.glideinDescript.data['JobLogRetentionMaxMBs']))
+
+            self.logFiles.add_dir_to_cleanup(
+                username,
+                user_log_dir,
+                "(condor_activity_.*\.log)|(condor_activity_.*\.log.ftstpk)|(submit_.*\.log)",
+                float(self.glideinDescript.data['CondorLogRetentionMaxDays']),
+                float(self.glideinDescript.data['CondorLogRetentionMinDays']),
+                float(self.glideinDescript.data['CondorLogRetentionMaxMBs']))
+    
+
+
+
+
+
+        # Create entry specific descript files
+        write_descript(self.name, self.jobDescript, self.jobAttributes,
+                       self.jobParams, self.monitorDir)
+
+
+        self.downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
+        self.jobAttributes.data['GLIDEIN_Downtime_Comment'] = self.downtimes.downtime_comment
+
+
+    def loadContext(self):
+        """
+        Load context for this entry object so monitoring and logs are
+        writen correctly. This should be called in every method for now.
+        """
+
+        glideFactoryLib.log_files = self.logFiles
+        glideFactoryMonitoring.monitoringConfig = self.monitoringConfig
+        glideFactoryInterface.factoryConfig = self.gfiFactoryConfig
+        glideFactoryLib.factoryConfig = self.gflFactoryConfig
+
+
+    def isInDowntime(self):
+        """
+        Check the downtime file to find out if we are in downtime
+        """
+        return self.downtimes.checkDowntime(entry=self.name)
+
+
+    def setDowntime(self, factory_in_downtime):
+        """
+        Check if we are in downtime and set info accordingly
+        """
+
+        self.jobAttributes.data['GLIDEIN_In_Downtime'] = (factory_in_downtime or self.isInDowntime())
+           
+
+    def initIteration(self):
+        """
+        Perform the reseting of stats as required before every iteration
+        """
+
+        self.setDowntime(factory_in_downtime)
+
+        # This one is used for stats advertized in the ClassAd
+        self.gflFactoryConfig.client_stats = glideFactoryMonitoring.condorQStats()
+        # These two are used to write the history to disk
+        gflFactoryConfig.qc_stats = glideFactoryMonitoring.condorQStats()
+        glfFactoryConfig.client_internals = {}
+
+
+    def unsetInDowntime(self):
+        del self.jobAttributes.data['GLIDEIN_In_Downtime']
+
+
+############################################################
 def check_parent(parent_pid, glideinDescript, jobDescript):
     """Check to make sure that we aren't an orphaned process.  If Factory
     daemon has died, then clean up after ourselves and kill ourselves off.
@@ -977,12 +1148,8 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     # create lock file
     pid_obj=glideFactoryPidLib.EntryPidSupport(startup_dir,entry_name)
     
-    # force integrity checks on all the operations
-    # I need integrity checks also on reads, as I depend on them
-    os.environ['_CONDOR_SEC_DEFAULT_INTEGRITY'] = 'REQUIRED'
-    os.environ['_CONDOR_SEC_CLIENT_INTEGRITY'] = 'REQUIRED'
-    os.environ['_CONDOR_SEC_READ_INTEGRITY'] = 'REQUIRED'
-    os.environ['_CONDOR_SEC_WRITE_INTEGRITY'] = 'REQUIRED'
+    # Force integrity checks on all condor operations
+    glideFactoryLib.set_condor_integrity_checks()
 
     # start
     pid_obj.register(parent_pid)
