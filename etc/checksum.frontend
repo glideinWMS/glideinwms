@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v2_6_2_rc1
+# GLIDEINWMS_VERSION v2_6_2_rc2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 c17183dd58915198f2082d2e7d0a70b4  ./creation/add_entry
@@ -14,7 +14,7 @@ bcd01a688471cba6f5040270453c0f4b  ./creation/lib/cvWParams.py
 e59bb78a8aba36d0d8691b5f9e4ebf4f  ./creation/lib/cWConsts.py
 200d15c10e9207876f386e7714571ada  ./creation/lib/cWDictFile.py
 1877e4aa0cb013178902d6df7662845f  ./creation/lib/cWParams.py
-87191e839d74c7f77d1940fe1619f1fe  ./creation/reconfig_frontend
+503eef6c74cb38fc1a36a8f70dfa5eb1  ./creation/reconfig_frontend
 1a794306785cd9f0489ba1b484470af1  ./creation/web_base/cat_consts.sh
 40a2b85a853a072f65049c4efe64bc3a  ./creation/web_base/check_blacklist.sh
 15ddf1a62befe3f3e1fd4cd02a692b4b  ./creation/web_base/condor_config
