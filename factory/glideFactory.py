@@ -212,14 +212,14 @@ def spawn(sleep_time,advertize_rate,startup_dir,
             # Converted to using the subprocess module
             command_list = [sys.executable, 
                             os.path.join(STARTUP_DIR,"glideFactoryEntry.py"),
-                            os.getpid(),
-                            sleep_time,
-                            advertize_rate,
+                            str(os.getpid()),
+                            str(sleep_time),
+                            str(advertize_rate),
                             startup_dir,
                             entry_name]
             childs[entry_name] = subprocess.Popen(command_list, shell=False,
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
+                                                  stdout=subprocess.PIPE,
+                                                  stderr=subprocess.PIPE)
 
             # Get the startup time. Used to check if the entry is crashing
             # periodically and needs to be restarted.
@@ -277,7 +277,8 @@ def spawn(sleep_time,advertize_rate,startup_dir,
                     tempOut = child.stdout.readlines()
                     tempErr = child.stderr.readlines()
 
-                    if is_crashing_often(childs_uptime[entry_name], restart_interval, restart_attempts):
+                    if is_crashing_often(childs_uptime[entry_name],
+                                         restart_interval, restart_attempts):
                         del childs[entry_name]
                         raise RuntimeError,"Entry '%s' has been crashing too often, quit the whole factory:\n%s\n%s"%(entry_name,tempOut,tempErr)
                     else:
@@ -287,20 +288,23 @@ def spawn(sleep_time,advertize_rate,startup_dir,
 
                         # Converted to using the subprocess module
                         command_list = [sys.executable, 
-                                        os.path.join(STARTUP_DIR,"glideFactoryEntry.py"),
-                                        os.getpid(),
-                                        sleep_time,
-                                        advertize_rate,
+                                        os.path.join(STARTUP_DIR,
+                                                     "glideFactoryEntry.py"),
+                                        str(os.getpid()),
+                                        str(sleep_time),
+                                        str(advertize_rate),
                                         startup_dir,
                                         entry_name]
-                        childs[entry_name] = subprocess.Popen(command_list, shell=False,
-                                           stdout=subprocess.PIPE,
-                                           stderr=subprocess.PIPE)
+                        childs[entry_name] = subprocess.Popen(
+                                                 command_list, shell=False,
+                                                 stdout=subprocess.PIPE,
+                                                 stderr=subprocess.PIPE)
 
                         if len(childs_uptime[entry_name]) == restart_attempts:
                             childs_uptime[entry_name].pop(0)
                         childs_uptime[entry_name].append(time.time())
-                        for fd  in (childs[entry_name].stdout.fileno(),childs[entry_name].stderr.fileno()):
+                        for fd  in (childs[entry_name].stdout.fileno(),
+                                    childs[entry_name].stderr.fileno()):
                             fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                             fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
                         glideFactoryLib.log_files.logWarning("Entry startup/restart times: %s"%childs_uptime)

@@ -1019,6 +1019,7 @@ def termsignal(signr,frame):
 if __name__ == '__main__':
     signal.signal(signal.SIGTERM,termsignal)
     signal.signal(signal.SIGQUIT,termsignal)
-    main(sys.argv[1],int(sys.argv[2]),int(sys.argv[3]),sys.argv[4],sys.argv[5])
+    main(int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3]),
+         sys.argv[4], sys.argv[5])
  
 
