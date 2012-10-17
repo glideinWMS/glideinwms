@@ -24,10 +24,12 @@ import cgWDictFile
 # Create condor tarball and store it into a StringIO
 def create_condor_tar_fd(condor_base_dir):
     try:
+        # List of required files
         condor_bins = [
             'sbin/condor_master', 'sbin/condor_startd', 'sbin/condor_starter'
                       ]
 
+        # List of optional files, included if found in condor distro
         condor_opt_bins = [
             'sbin/condor_procd', 'sbin/gcb_broker_query', 'sbin/condor_fetchlog'
                           ]
@@ -49,7 +51,9 @@ def create_condor_tar_fd(condor_base_dir):
                   'libexec/condor_ssh_to_job_sshd_setup',
                   'libexec/condor_ssh_to_job_shell_setup',
                   'libexec/condor_kflops',
-                  'libexec/condor_mips'
+                  'libexec/condor_mips',
+                  'libexec/curl_plugin',
+                  'libexec/data_plugin',
                               ]
         # check that dir and files exist
         if not os.path.isdir(condor_base_dir):
@@ -235,6 +239,7 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name):
         fd.write('        update_def_cfg="no"\n')
         fd.write('        writeback="yes"\n')
         fd.write('        force_delete=""\n')
+        fd.write('        fix_rrd=""\n')
         fd.write('        for var in "$@"\n')
         fd.write("        do\n")
         fd.write('           case "$var" in\n')
@@ -243,6 +248,8 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name):
         fd.write('              update_default_cfg) update_def_cfg="yes"\n')
         fd.write('                 ;;\n')
         fd.write('              "-force_delete") force_delete="-force_delete"\n')
+        fd.write('                 ;;\n')
+        fd.write('              "-fix_rrd") fix_rrd="-fix_rrd"\n')
         fd.write('                 ;;\n')
         fd.write('              *) if [ "$cfg_loc" != "$var" ]; then\n')
         fd.write('                 echo "Unknown argument passed: $var"\n')
@@ -263,7 +270,7 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name):
         fd.write("            exit $RETVAL\n")
         fd.write("          fi\n")
         fd.write("        fi\n")
-        fd.write('        "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" -writeback "$writeback" -update_scripts "no" -xml "$cfg_loc" update_def_cfg "$update_def_cfg" $force_delete\n')
+        fd.write('        "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" -writeback "$writeback" -update_scripts "no" -xml "$cfg_loc" update_def_cfg "$update_def_cfg" $force_delete $fix_rrd\n')
         fd.write("        reconfig_failed=$?\n")
         fd.write('        echo -n "Reconfiguring the factory"\n')
         fd.write("        test $reconfig_failed -eq 0 && success || failure\n")
@@ -331,7 +338,7 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name):
         fd.write('	 else\n')
         fd.write('	   echo -n "Infosys-based downtime management."\n')
         fd.write('	 fi\n\n')
-        fd.write('	 "$glideinWMS_dir/factory/manageFactoryDowntimes.py" -cmd $1 -dir "$factory_dir" "$@" 2>/dev/null 1>&2 </dev/null && success || failure\n')
+        fd.write('	 "$glideinWMS_dir/factory/manageFactoryDowntimes.py" -cmd $1 -dir "$factory_dir" "$@" </dev/null && success || failure\n')
         fd.write('	 RETVAL=$?\n')
         fd.write('	 echo\n')
         fd.write('}\n\n')

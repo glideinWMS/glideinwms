@@ -487,6 +487,9 @@ def wms_install():
         config_fd.write("GRIDMANAGER_MAX_SUBMITTED_JOBS_PER_RESOURCE=5000\n")
         config_fd.write("GRIDMANAGER_MAX_PENDING_SUBMITS_PER_RESOURCE=5000\n")
         config_fd.write("GRIDMANAGER_MAX_PENDING_REQUESTS=500\n")
+        config_fd.write("# Force Condor-G to re-delegate the proxy as soon as the FE provides one\n")
+        config_fd.write("# Defaulting to 1 week, since we do not expect proxies with longer lifetimes\n")
+        config_fd.write("GRIDMANAGER_PROXY_REFRESH_TIME=604800\n")
     finally:
         config_fd.close()
 
@@ -1293,7 +1296,7 @@ def gfactory_install():
                 fd.write('      <attr name="GCB_ORDER" value="NONE" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>\n')
             fd.write('      <attr name="GLEXEC_JOB" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="True"/>\n')
             fd.write('      <attr name="USE_MATCH_AUTH" value="%s" const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>\n'%(match_yn=='y'))
-            fd.write('      <attr name="CONDOR_VERSION" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="default"/>\n')
+            fd.write('      <attr name="CONDOR_VERSION" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="default"/>\n')
             fd.write('   </attrs>\n')
             fd.write('   <entries>\n')
             sorted_entry_names=entries_list.keys()
@@ -1312,8 +1315,8 @@ def gfactory_install():
                 fd.write('         </infosys_refs>\n')
                 fd.write('         <attrs>\n')
                 fd.write('            <attr name="GLIDEIN_Site" value="%s" const="True" type="string" glidein_publish="True" publish="True" job_publish="True" parameter="True"/>\n'%entry_el['site_name'])
-                fd.write('            <attr name="CONDOR_OS" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="default"/>\n')
-                fd.write('            <attr name="CONDOR_ARCH" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="default"/>\n')
+                fd.write('            <attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="default"/>\n')
+                fd.write('            <attr name="CONDOR_ARCH" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="default"/>\n')
                 if ccb_yn=="y":
                     # Put USE_CCB in the entries so that it is easy to disable it selectively
                     fd.write('            <attr name="USE_CCB" value="True" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>\n')
@@ -1363,33 +1366,41 @@ def gfactory_install():
 #-------------------------------------------------------------------------------
 def extract_factory_attrs(match_str):
     glidein_attrs=[]
-    attr_re=re.compile("glidein\[\"attrs\"\]\[['\"](?P<attr>[^'\"]+)['\"]\]")
+    regex = (
+        re.compile("glidein\[\"attrs\"\]\[['\"](?P<attr>[^'\"]+)['\"]\]"), 
+        re.compile("glidein\[\"attrs\"\]\.get\(['\"](?P<attr>[^'\"]+)['\"\)]")
+    )
 
-    idx=0
-    while 1:
-        attr_obj=attr_re.search(match_str,idx)
-        if attr_obj==None:
-            break # not found
-        attr_el=attr_obj.group('attr')
-        if not (attr_el in glidein_attrs):
-            glidein_attrs.append(attr_el)
-        idx=attr_obj.end()+1
+    for attr_re in regex:
+        idx=0
+        while 1:
+            attr_obj=attr_re.search(match_str,idx)
+            if attr_obj==None:
+                break # not found
+            attr_el=attr_obj.group('attr')
+            if not (attr_el in glidein_attrs):
+                glidein_attrs.append(attr_el)
+            idx=attr_obj.end()+1
     return glidein_attrs
     
 #-------------------------------------------------------------------------------
 def extract_job_attrs(match_str):
     job_attrs=[]
-    attr_re=re.compile("job\[['\"](?P<attr>[^'\"]+)['\"]\]")
+    regex = (
+        re.compile("job\.get\(['\"](?P<attr>[^'\"]+)['\"]\)"),
+        re.compile("job\[['\"](?P<attr>[^'\"]+)['\"]\]")
+    )
 
-    idx=0
-    while 1:
-        attr_obj=attr_re.search(match_str,idx)
-        if attr_obj==None:
-            break # not found
-        attr_el=attr_obj.group('attr')
-        if not (attr_el in job_attrs):
-            job_attrs.append(attr_el)
-        idx=attr_obj.end()+1
+    for attr_re in regex:
+        idx=0
+        while 1:
+            attr_obj=attr_re.search(match_str,idx)
+            if attr_obj==None:
+                break # not found
+            attr_el=attr_obj.group('attr')
+            if not (attr_el in job_attrs):
+                job_attrs.append(attr_el)
+            idx=attr_obj.end()+1
     return job_attrs
     
 #-------------------------------------------------------------------------------
@@ -1664,7 +1675,7 @@ def vofrontend_install():
     print "It is an arbitrary python boolean expression using the dictionaries"
     print "  glidein and job"
     print "A simple example expression would be:"
-    print '  glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")'
+    print '  glidein["attrs"].get("GLIDEIN_Site") in ((job.get("DESIRED_Sites")!=None) and job.get("DESIRED_Sites").split(","))'
     print "If you want to match all (OK for simple setups),"
     print "  just specify True (the default)"
     
@@ -4070,6 +4081,7 @@ def create_secondary_schedd_support_files():
         fd.write(" return 1\n")
         fd.write("fi\n\n")
         
+        fd.write("#-- This is the global LOCAL_DIR at install time--\n")
         fd.write("LD=%s\n"%CONDOR_LOCAL_DIR)
         if QUILL_CONFIG_DONE:
             fd.write("QDB=quill\n\n")
@@ -4085,7 +4097,14 @@ def create_secondary_schedd_support_files():
             fd.write('export _CONDOR_DAEMON_LIST="MASTER,SCHEDD"\n')
         fd.write("export _CONDOR_LOCAL_DIR=$LD/$_CONDOR_SCHEDD_NAME\n")
         fd.write("export _CONDOR_LOCK=$_CONDOR_LOCAL_DIR/lock\n\n")
-
+        fd.write("#-- condor shared port attributes, in case you enable it (at install time or later) --\n")
+        fd.write("#-- This is the actual global LOG dir --\n")
+        fd.write("#-- Make sure it actually points to the current value --\n")
+        fd.write("GLOBAL_LOG=$LD/log\n")
+        fd.write("#-- Basically, preserve the global values, since we do not run a private shared_port daemon --\n")
+        fd.write("export _CONDOR_SHARED_PORT_DAEMON_AD_FILE=${GLOBAL_LOG}/shared_port_ad\n")
+        fd.write("export _CONDOR_DAEMON_SOCKET_DIR=${GLOBAL_LOG}/daemon_sock\n\n")
+        fd.write("unset GLOBAL_LOG\n")
         fd.write("unset LD\n")
         if QUILL_CONFIG_DONE:
             fd.write("unset QDB\n")

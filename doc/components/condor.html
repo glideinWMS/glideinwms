@@ -55,7 +55,9 @@
 <u>Jump to:</u>
 <ol>
     <li><a href="#schedds">Multiple Schedds</a></li>
-    <li><a href="#collectors">Multiple Collectors</a></li>
+    <li><a href="#schedds">Multiple Schedds / Shared Port</a></li>
+    <li><a href="#collectors">Multiple Collectors for Scalability</a></li>
+    <li><a href="#collectors_ha">Multiple Collectors for Reliability / Condor High Availability (HA) Feature</a></li>
     <li><a href="#gcb">Configuring GCB</a></li>
     <li><a href="#quill">Quill</a></li>
 </ol>
@@ -164,7 +166,9 @@ Note the <b><font color="red">numeric</font></b> suffix used to distinguish each
 If the multiple schedds are being used on your WMS Collector, Condor-G is used
 to submit the glidein pilot jobs and the 
 <font color="green"><b>SCHEDD(GLIDEINS/JOBS)2_ENVIRONMENT attribute</font></b> shown
-below is required.  If not, then it shuold be omitted.
+below is required.  If not, then it should be omitted.
+<br/> <br/>
+Effective with Condor 7.7.5+, the JOB_QUEUE_LOG attribute is required.
 <br/> <br/>
 <blockquote>
 <p>
@@ -178,6 +182,7 @@ SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.EXECUTE       = $(SCHEDD.
 SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCK          = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR)/lock<br/>
 SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.PROCD_ADDRESS = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR)/procd_pipe<br/>
 SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL         = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR)/spool<br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.JOB_QUEUE_LOG         = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/job_queue.log  <b>## Note: Required with Condor 7.7.5+</b><br/>
 SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_ADDRESS_FILE   = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/.schedd_address<br/>
 SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/.schedd_classad<br/>
 SCHEDDGLIDEINS<b><font color="red">2</font></b>_LOCAL_DIR_STRING = "$(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR)"<br/>
@@ -197,6 +202,7 @@ SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.EXECUTE       = $(SCHEDD.SCHE
 SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCK          = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR)/lock<br/>
 SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.PROCD_ADDRESS = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR)/procd_pipe<br/>
 SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL         = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR)/spool<br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.JOB_QUEUE_LOG         = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/job_queue.log  <b>## Note: Required with Condor 7.7.5+</b><br/>
 SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_ADDRESS_FILE   = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/.schedd_address<br/>
 SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/.schedd_classad<br/>
 SCHEDDJOBS<b><font color="red">2</font></b>_LOCAL_DIR_STRING = "$(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR)"<br/>
@@ -268,13 +274,16 @@ Processing schedd: SCHEDDJOBS2<br/>
       export _CONDOR_LOCAL_DIR=$LD/$_CONDOR_SCHEDD_NAME<br/>
       export _CONDOR_LOCK=$_CONDOR_LOCAL_DIR/lock<br/>
       <b>
+      #-- This is the actual global LOG dir --<br/>
+      #-- Make sure it actually points to the current value --<br/>
+      GLOBAL_LOG=$LD/log<br/>
       #-- condor_shared_port attributes ---<br/>
-      export _CONDOR_USE_SHARED_PORT=True<br/>
-      export _CONDOR_SHARED_PORT_DAEMON_AD_FILE=$LD/log/shared_port_ad<br/>
-      export _CONDOR_DAEMON_SOCKET_DIR=$LD/log/daemon_sock<br/>
+      export _CONDOR_SHARED_PORT_DAEMON_AD_FILE=$GLOBAL_LOG/log/shared_port_ad<br/>
+      export _CONDOR_DAEMON_SOCKET_DIR=$GLOBAL_LOG/log/daemon_sock<br/>
       #------------------------------------<br/>
       </b>
       unset LD<br/>
+      unset GLOBAL_LOG<br/>
     </blockquote>
     <p>
     The same file can be downloaded from
@@ -321,12 +330,12 @@ Processing schedd: SCHEDDJOBS2<br/>
     1. This script is used to start the secondary schedds
        (see the <a href="#starting">starting up schedds section</a>)
     </p><blockquote>
-      #!/bin/sh
-      CONDOR_LOCATION=/opt/glidecondor/condor-submit
-      export CONDOR_CONFIG=$CONDOR_LOCATION/etc/condor_config
-      source $CONDOR_LOCATION/new_schedd_setup.sh $1
-      # add whatever other config you need
-      $CONDOR_LOCATION/sbin/condor_master
+      #!/bin/sh<br/>
+      CONDOR_LOCATION=/opt/glidecondor/condor-submit<br/>
+      export CONDOR_CONFIG=$CONDOR_LOCATION/etc/condor_config<br/>
+      source $CONDOR_LOCATION/new_schedd_setup.sh $1<br/>
+      # add whatever other config you need<br/>
+      $CONDOR_LOCATION/sbin/condor_master<br/>
     </blockquote>
 
     2.- This needs to be made executable by the user that installed Condor:<br>
@@ -338,6 +347,10 @@ Processing schedd: SCHEDDJOBS2<br/>
     <a href="../install/example-config/multi_schedd/start_master_schedd.sh" title="example-config/multi_schedd/start_master_schedd.sh">
         example-config/multi_schedd/start_master_schedd.sh
     </a>.
+    
+    <p>
+    </p>
+<a name="initialize_schedds"/>
 <h4>Initialize schedds</h4>
     <p>
     To initialize the secondary schedds, use
@@ -374,6 +387,8 @@ those instructions.
       /opt/glidecondor/start_master_schedd.sh glideins1
     </blockquote>
     <b>Note:</b> Always start them after you have started the Collector.
+    <p>
+    </p>
 <h4><a name="submission">Submission and monitoring</a></h4>
     <p>
 
@@ -391,12 +406,12 @@ those instructions.
 </div>
 
 
-<!---  Multiple Collectors -------- -->
+<!---  Multiple Collectors for Scalability-------- -->
 <div class="section">
 <hr width="90%"><hr width="90%">
-<a name="collectors"><h2>Multiple Collectors</h2></a>
+<a name="collectors"><h2>Multiple Collectors for Scalability</h2></a>
     <p>
-     This section will describe the steps (configuration) necessary to add additional
+     For scalability purposes, this section will describe the steps (configuration) necessary to add additional
      (secondary) Condor collectors for the WMS and/or User Collectors.
     </p>
     <p>
@@ -408,7 +423,8 @@ those instructions.
     <p>
     <b>Important: </b>When secondary (additional) collectors are added to either 
        the WMS Collector or User Collector, changes must also be made to the 
-       VOFrontend configurations so they are made aware of them.
+       <a href="../frontend/configuration.html">Frontend configurations</a>  
+       so they are made aware of them.
     </p>
 <h3></a>Condor configuration changes</h3>
     <p>
@@ -440,99 +456,28 @@ user  17740 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9622 <font c
 user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font color="blue">secondary</font></br>
     </blockquote>
 
-<h3></a>VOFrontend configuration changes for additional WMS Collectors</h3>
-    <p>
-       For each additional collector added to the WMS Collector, a <b>collector</b> element
-       must be added to the <b>frontend.xml</b> configuration file.</br>
-       When complete, you must reconfigure the VOFrontend to effect the change.
-    </p>
-<div class="config">
-&lt;frontend ... &gt;</br>
-&lt;match ... &gt;</br>
-  <blockquote>
-  &lt;factory ... &gt;</br>
-    <blockquote>
-    &lt;collectors&gt;</br>
-
-      <blockquote>
-         &lt;collector DN="<i>WMS_COLLECTOR_DN</i>" comment="Primary WMS/Factory collector"</br> 
-        <blockquote>
-                  factory_identity=" "  my_identity=" "</br>
-                  node="WMS_COLLECTOR_NODE:<b>primary_port_number</b>"/&gt;</br>
-        </blockquote>
-      </blockquote>
-
-      <blockquote>
-         &lt;collector DN="<i>WMS_COLLECTOR_DN</i>" comment="Secondary WMS/Factory collector"</br> 
-         <blockquote>
-                  factory_identity=" " my_identity=" "</br>
-                  node="WMS_COLLECTOR_NODE:<b>secondary_port_number</b>"/&gt;</br>
-         </blockquote>
-     </blockquote>
-   <blockquote> : </blockquote>
-  &lt;/collectors&gt;
-  </blockquote>
-  &lt;/factory&gt;</br>
-       :</br>
-</blockquote>
-&lt;/match&gt;</br>
-   <blockquote> : </blockquote>
-&lt;/frontend&gt;</br>
-</div>
-
+<!---  Multiple Collectors for High Availability (HA)-------- -->
 <div class="section">
-<h3></a>VOFrontend configuration changes for additional User Collectors</h3>
+<hr width="90%"><hr width="90%">
+<a name="collectors_ha"><h2>Multiple Collectors for High Availability (HA)</h2></a>
     <p>
-       In the VOFrontend configuration, there are 2 ways of specifying the secondary User Collectors
-       depending on how the ports were assigned:
-       <ol>
-        <li>If the port numbers were assigned a contiguous range, only one additional <b>collector</b>
-            is required specifying the <i>port range</i> (e.g.- 9640:9645).
-        </li>
-        <li>If the port numbers were <b>not</b> assigned a contiguous range, then an additional
-            <b>collector</b> element is required for each secondary collector.
-        </li>
-       </ol>
-       When complete, you must reconfigure the VOFrontend to effect the change.
+     For reliability purposes, you may want to utilize Condor's High Availability (HA) feature for 
+     collectors.<br/>  
+     <b>Note:</b>This is only supported in glideinWMS for use with the User pool collector and frontend 
+                  with v2.6+.<br/>
+     <p/>
+     The Condor configuration of additional (secondary) collectors is the same as in the previous section, 
+     <a href="#collectors">Multiple Collectors for Scalability</a>.
+     Refer to the <a href="http://research.cs.wisc.edu/condor/manual/">Condor manual</a> section on 
+     High Availability of the Central Manager for additional configuration requirements.
+     <p> 
+    <b>Important: </b>When the Condor High Availability feature is used in the User Collector, 
+       changes must also be made to the 
+       <a href="../frontend/configuration.html">Frontend configurations</a>  
+       so it is made aware of them.
     </p>
-<div class="config">
-&lt;frontend ... &gt;</br>
-   <blockquote> : </blockquote>
-    <blockquote>
-    &lt;collectors&gt;</br>
+    <p/>
 
-      <blockquote>
-         &lt;collector DN="<i>USER_COLLECTOR_DN</i>"  secondary="<b>False</b>"</br>
-        <blockquote>
-                  node="USER_COLLECTOR_NODE:<b>primary_port_number</b>"/&gt;</br>
-        </blockquote>
-      </blockquote>
-
-      <blockquote>
-         <font color="blue"><i>If a contiguous range of ports was assigned, then just 1 collector
-         element is required specifying the range ....</i></font></br>
-         &lt;collector DN="<i>USER_COLLECTOR_DN</i>"  secondary="<b>True</b>"</br>
-         <blockquote>
-                  node="USER_COLLECTOR_NODE:<b>secondary_port_start:secondary_port_end</b>" 
-/&gt;</br>
-         </blockquote>
-      </blockquote>
-      <blockquote>
-         <font color="blue"><i>If a contiguous range of ports was <b>not</b> assigned, then a 
-         collector element is required for each secondary port ....</i></font></br>
-         &lt;collector DN="<i>USER_COLLECTOR_DN</i>"  secondary="<b>True</b>"</br>
-         <blockquote>
-                  node="USER_COLLECTOR_NODE:<b>secondary_port</b>"/&gt;</br>
-         </blockquote>
-      </blockquote>
-   <blockquote> : </blockquote>
-
-  &lt;/collectors&gt;</br>
-   <blockquote> : </blockquote>
-</blockquote>
-&lt;/frontend&gt;</br>
-</div>
-</div>
 
 
 <div class="section">

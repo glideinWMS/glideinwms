@@ -20,6 +20,7 @@ function ignore_signal {
         echo "Condor startup received SIGHUP signal, ignoring..."
 }
 
+metrics=""
 
 
 # first of all, clean up any CONDOR variable
@@ -36,6 +37,8 @@ export GSI_AUTHZ_CONF=/dev/null
 pstr='"'
 
 config_file=$1
+
+error_gen=`grep '^ERROR_GEN_PATH ' $config_file | awk '{print $2}'`
 
 # find out whether user wants to run job or run test
 operation_mode=`grep -i "^DEBUG_MODE " $config_file | awk '{print $2}'`
@@ -116,7 +119,9 @@ function set_var {
     if [ -z "$var_val" ]; then
 	if [ "$var_req" == "Y" ]; then
 	    # needed var, exit with error
-	    echo "Cannot extract $var_name from '$config_file'" 1>&2
+	    #echo "Cannot extract $var_name from '$config_file'" 1>&2
+	    STR="Cannot extract $var_name from '$config_file'"
+	    "$error_gen" -error "condor_startup.sh" "Config" "$STR" "MissingAttribute" "$var_name"
 	    exit 1
 	elif [ "$var_def" == "-" ]; then
 	    # no default, do not set
@@ -155,10 +160,13 @@ function set_var {
 	    var_user=$var_condor
 	fi
 
+	condor_env_entry="$var_user=$var_val"
+	condor_env_entry=`echo "$condor_env_entry" | awk "{gsub(/\"/,\"\\\\\"\\\\\"\"); print}"`
+	condor_env_entry=`echo "$condor_env_entry" | awk "{gsub(/'/,\"''\"); print}"`
 	if [ -z "$job_env" ]; then
-	   job_env="$var_user=$var_val"
+	   job_env="'$condor_env_entry'"
 	else
-	   job_env="$job_env;$var_user=$var_val"
+	   job_env="$job_env '$condor_env_entry'"
 	fi
     fi
 
@@ -275,6 +283,9 @@ update_interval=370
 #Minimum amount retire time can be
 min_glidein=600
 
+#Set the LD_LIBRARY_PATH so condor uses dynamically linked libraries correctly
+export LD_LIBRARY_PATH=$CONDOR_DIR/lib:$CONDOR_DIR/lib/condor:$LD_LIBRARY_PATH
+
 # Take into account GLIDEIN_Max_Walltime
 # GLIDEIN_Max_Walltime = Max allowed time for the glidein.
 #   If you specify this variable, then Condor startup scripts will calculate the 
@@ -353,8 +364,10 @@ if [ "$retire_time" -lt "$min_glidein" ]; then
   let "die_time=$die_time + $retire_spread * $random100 / 100"
 fi
 if [ "$retire_time" -lt "$min_glidein" ]; then  
-  echo "Retire time still too low ($retire_time), aborting" 1>&2
-  exit 1
+    #echo "Retire time still too low ($retire_time), aborting" 1>&2
+    STR="Retire time still too low ($retire_time), aborting"
+    "$error_gen" -error "condor_startup.sh" "Config" "$STR" "retire_time" "$retire_time" "min_retire_time" "$min_glidein"
+    exit 1
 fi
 echo "Retire time set to $retire_time" 1>&2
 echo "Die time set to $die_time" 1>&2
@@ -400,7 +413,7 @@ GLIDEIN_TORETIRE = $glidein_toretire
 GLIDEIN_ToDie = $glidein_todie
 GLIDEIN_START_TIME = $now
 
-STARTER_JOB_ENVIRONMENT = $job_env
+STARTER_JOB_ENVIRONMENT = "$job_env"
 GLIDEIN_VARIABLES = $glidein_variables
 
 MASTER_NAME = glidein_$$
@@ -414,7 +427,9 @@ START = $START_JOBS
 EOF
 ####################################
 if [ $? -ne 0 ]; then
-    echo "Error customizing the condor_config" 1>&2
+    #echo "Error customizing the condor_config" 1>&2
+    STR="Error customizing the condor_config"
+    "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "file" "$CONDOR_CONFIG"
     exit 1
 fi
 
@@ -432,18 +447,25 @@ if [ "$operation_mode" == "2" ]; then
     echo "# ---- start of include part ----" >> "$CONDOR_CONFIG"
     cat "$condor_config_check_include" >> "$CONDOR_CONFIG"
     if [ $? -ne 0 ]; then
-	echo "Error appending check_include to condor_config" 1>&2
-	exit 1
+        #echo "Error appending check_include to condor_config" 1>&2
+        STR="Error appending check_include to condor_config"
+        "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "file" "$CONDOR_CONFIG" "infile" "$condor_config_check_include"
+        exit 1
     fi
-fi
+    # fake a few variables, to make the rest work
+    use_multi_monitor=0
+    GLIDEIN_Monitoring_Enabled=False
+else
 
 if [ "$use_multi_monitor" -eq 1 ]; then
     condor_config_multi_include="${main_stage_dir}/`grep -i '^condor_config_multi_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
     echo "# ---- start of include part ----" >> "$CONDOR_CONFIG"
     cat "$condor_config_multi_include" >> "$CONDOR_CONFIG"
     if [ $? -ne 0 ]; then
-	echo "Error appending multi_include to condor_config" 1>&2
-	exit 1
+        #echo "Error appending multi_include to condor_config" 1>&2
+        STR="Error appending multi_include to condor_config"
+        "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "file" "$CONDOR_CONFIG" "infile" "$condor_config_multi_include"
+        exit 1
     fi
 else
     condor_config_main_include="${main_stage_dir}/`grep -i '^condor_config_main_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
@@ -456,13 +478,17 @@ else
       condor_config_monitor=${CONDOR_CONFIG}.monitor
       cp "$CONDOR_CONFIG" "$condor_config_monitor"
       if [ $? -ne 0 ]; then
-	  echo "Error copying condor_config into condor_config.monitor" 1>&2
-	  exit 1
+        #echo "Error copying condor_config into condor_config.monitor" 1>&2
+        STR="Error copying condor_config into condor_config.monitor"
+        "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "infile" "$condor_config_monitor" "file" "$CONDOR_CONFIG"
+        exit 1
       fi
       cat "$condor_config_monitor_include" >> "$condor_config_monitor"
       if [ $? -ne 0 ]; then
-	  echo "Error appending monitor_include to condor_config.monitor" 1>&2
-	  exit 1
+        #echo "Error appending monitor_include to condor_config.monitor" 1>&2
+        STR="Error appending monitor_include to condor_config.monitor"
+        "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "infile" "$condor_config_monitor" "file" "$condor_config_monitor_include"
+        exit 1
       fi
 
       cat >> "$condor_config_monitor" <<EOF
@@ -477,8 +503,10 @@ EOF
     
     cat $condor_config_main_include >> "$CONDOR_CONFIG"
     if [ $? -ne 0 ]; then
-	echo "Error appending main_include to condor_config" 1>&2
-	exit 1
+        #echo "Error appending main_include to condor_config" 1>&2
+        STR="Error appending main_include to condor_config"
+        "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "file" "$CONDOR_CONFIG" "infile" "$condor_config_main_include"
+        exit 1
     fi
 
     if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
@@ -490,16 +518,21 @@ EOF
       # also needs to create "monitor" dir for log and execute dirs
       mkdir monitor monitor/log monitor/execute 
       if [ $? -ne 0 ]; then
-	  echo "Error creating monitor dirs" 1>&2
-	  exit 1
+        #echo "Error creating monitor dirs" 1>&2
+        STR="Error creating monitor dirs"
+        "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "directory" "$PWD/monitor_monitor/log_monitor/execute"
+        exit 1
       fi
     fi
 fi
 
+fi # if mode==2
 
 mkdir log execute 
 if [ $? -ne 0 ]; then
-    echo "Error creating condor dirs" 1>&2
+    #echo "Error creating condor dirs" 1>&2
+    STR="Error creating monitor dirs"
+    "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "directory" "$PWD/log_execute"
     exit 1
 fi
 
@@ -580,11 +613,21 @@ fi
 
 condor_ret=$?
 
+if [ ${condor_ret} -eq 99 ]; then
+    echo "Normal DAEMON_SHUTDOWN encountered" 1>&2
+    condor_ret=0
+    metrics+=" AutoShutdown True"
+else
+    metrics+=" AutoShutdown False"
+fi
 
 end_time=`date +%s`
 let elapsed_time=$end_time-$start_time
 echo "=== Condor ended `date` (`date +%s`) after $elapsed_time ==="
 echo
+
+metrics+=" CondorDuration $elapsed_time"
+
 
 ## perform a condor_fetchlog against the condor_startd
 ##    if fetch fails, sleep for 'fetch_sleeptime' amount
@@ -642,7 +685,12 @@ log_dir='log'
 
 echo ===   Stats of main   ===
 if [ -f "${main_starter_log}" ]; then
-  awk -f "${main_stage_dir}/parse_starterlog.awk" ${main_starter_log}
+  parsed_out=`awk -f "${main_stage_dir}/parse_starterlog.awk" ${main_starter_log}`
+  echo "$parsed_out"
+
+  parsed_metrics=`echo "$parsed_out" | awk 'BEGIN{p=0;}/^Total /{if (p==1) {if ($2=="jobs") {t="Total";n=$3;m=$5;} else {t=$2;n=$4;m=$7;} print t "JobsNr " n " " t "JobsTime " m;}}/^====/{p=1;}'`
+  # use echo to strip newlines
+  metrics+=`echo " " $parsed_metrics`
 fi
 echo === End Stats of main ===
 
@@ -692,10 +740,20 @@ if [ "$ON_DIE" -eq 1 ]; then
 	
 	#If we are explicitly killed, do not wait required time
 	echo "Explicitly killed, exiting with return code 0 instead of $condor_ret";
-	exit 0;
+	
+	condor_ret=0
+	metrics+=" CondorKilled True"
+else
+    metrics+=" CondorKilled False"
 fi
 
 ##
 ##########################################################
+
+if [ "$condor_ret" -eq "0" ]; then
+    "$error_gen" -ok "condor_startup.sh" $metrics
+else
+    "$error_gen" -error "condor_startup.sh" "Unknown" "See Condor logs for details" $metrics
+fi
 
 exit $condor_ret

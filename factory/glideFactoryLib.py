@@ -24,7 +24,7 @@ import condorExe,condorPrivsep
 import logSupport
 import condorMonitor
 import condorManager
-
+import tempfile
 import glideFactoryConfig
 
 MY_USERNAME=pwd.getpwuid(os.getuid())[0]
@@ -77,6 +77,10 @@ class FactoryConfig:
         self.max_cluster_size=10
         self.max_removes = 5
         self.max_releases = 20
+
+        # release related limits
+        self.max_release_count = 10
+        self.min_release_time = 300
 
         # monitoring objects
         # create them for the logging to occur
@@ -287,6 +291,7 @@ def getCondorQData(entry_name,
     q_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")%s && (%s =!= UNDEFINED)'%(fsa_str,factoryConfig.factory_name,gsa_str,factoryConfig.glidein_name,esa_str,entry_name,client_constraint,x509id_str)
     q_glidein_format_list=[("JobStatus","i"), ("GridJobStatus","s"), ("ServerTime","i"), ("EnteredCurrentStatus","i"), 
                            (factoryConfig.x509id_schedd_attribute,"s"), ("HoldReasonCode","i"), ("HoldReasonSubCode","i"), 
+                           ("NumSystemHolds","i"),
                            (factoryConfig.frontend_name_attribute, "s"), 
                            (csa_str,"s"), (xsa_str,"s")]
 
@@ -375,7 +380,34 @@ def getCondorStatusData(entry_name,client_name,pool_name=None,
 # returns the proxy fname
 def update_x509_proxy_file(entry_name,username,client_id, proxy_data):
     proxy_dir=factoryConfig.get_client_proxies_dir(entry_name,username)
-    fname_short='x509_%s.proxy'%escapeParam(client_id)
+    
+    dn=""
+    voms=""
+    try:
+        (f,tempfilename)=tempfile.mkstemp()
+        os.write(f,proxy_data)
+        os.close(f)
+    except:
+        log_files.logError("Unable to create tempfile %s!" % tempfilename)
+    
+    try:
+        dn_list=condorExe.iexe_cmd("openssl x509 -subject -noout",stdin_data=proxy_data)
+        dn=dn_list[0]
+        voms_list = condorExe.iexe_cmd("voms-proxy-info -fqan -file %s"% tempfilename)
+        #sort output in case order of voms fqan changed
+        voms='\n'.join(sorted(voms_list))
+    except:
+        #If voms-proxy-info doesn't exist, just hash on dn
+        voms=""
+
+    try:
+        os.unlink(tempfilename)
+    except:
+        log_files.logError("Unable to delete tempfile %s!" % tempfilename)
+
+    hash_val=str(abs(hash(dn+voms))%1000000)
+
+    fname_short='x509_%s_%s.proxy'%(escapeParam(client_id),hash_val)
     fname=os.path.join(proxy_dir,fname_short)
     if username!=MY_USERNAME:
         # use privsep
@@ -534,7 +566,7 @@ def keepIdleGlideins(client_condorq, client_int_name,
        
     if add_glideins <= 0:
         # Have enough idle, don't submit
-        log_files.logActivity("Have enough glideins: %i=idle %i=req_idle, not submitting" % (q_idle_glideins, req_min_idle))
+        log_files.logActivity("Have enough glideins: idle=%i req_idle=%i, not submitting" % (q_idle_glideins, req_min_idle))
         return clean_glidein_queue(remove_excess, glidein_totals, condorq, req_min_idle, req_max_glideins, frontend_name)
     else:
         # Need more idle
@@ -551,10 +583,11 @@ def keepIdleGlideins(client_condorq, client_int_name,
         
     # Have a valid idle number to request
     # Check that adding more doesn't exceed frontend:sec_class and entry limits
+    
     add_glideins = glidein_totals.can_add_idle_glideins(add_glideins, frontend_name)
     if add_glideins <= 0:
         # Have hit entry or frontend:sec_class limit, cannot submit
-        log_files.logActivity("Additional idle glideins %i needed exceeds entry and/or frontend security class limits, not submitting" % add_glideins)
+        log_files.logActivity("Additional %s idle glideins requested by %s exceeds frontend:security class limit for the entry, not submitting" % (req_min_idle, frontend_name))
         return clean_glidein_queue(remove_excess, glidein_totals, condorq, req_min_idle, req_max_glideins, frontend_name)
     else:
         # If we are requesting more than the maximum glideins that we can submit at one time, then set to the max submit number
@@ -732,8 +765,10 @@ def sanitizeGlideins(condorq,status):
     # Check if there are held glideins
     held_list=extractRecoverableHeld(condorq,status)
     if len(held_list)>0:
-        log_files.logWarning("Found %i held glideins"%len(held_list))
-        releaseGlideins(condorq.schedd_name,held_list)
+        limited_held_list=extractRecoverableHeldWithinLimits(condorq,status)
+        log_files.logWarning("Found %i held glideins, %i within limits"%(len(held_list),len(limited_held_list)))
+        if len(limited_held_list)>0:
+            releaseGlideins(condorq.schedd_name,limited_held_list)
 
     # Now look for VMs that have not been claimed for a long time
     staleunclaimed_list=extractStaleUnclaimed(condorq,status)
@@ -775,8 +810,10 @@ def sanitizeGlideinsSimple(condorq):
     # Check if there are held glideins
     held_list=extractRecoverableHeldSimple(condorq)
     if len(held_list)>0:
-        log_files.logWarning("Found %i held glideins"%len(held_list))
-        releaseGlideins(condorq.schedd_name,held_list)
+        limited_held_list = extractRecoverableHeldSimpleWithinLimits(condorq)
+        log_files.logWarning("Found %i held glideins, %i within limits"%(len(held_list),len(limited_held_list)))
+        if len(limited_held_list)>0:
+            releaseGlideins(condorq.schedd_name,limited_held_list)
 
     return
 
@@ -854,7 +891,7 @@ def hash_status(el):
         # idle jobs, look of GridJobStatus
         if el.has_key("GridJobStatus"):
             grid_status=el["GridJobStatus"]
-            if grid_status in ("PENDING","INLRMS: Q","PREPARED","SUBMITTING","IDLE","SUSPENDED","REGISTERED"):
+            if grid_status in ("PENDING","INLRMS: Q","PREPARED","SUBMITTING","IDLE","SUSPENDED","REGISTERED","INLRMS:Q"):
                 return 1002
             elif grid_status in ("STAGE_IN","PREPARING","ACCEPTING"):
                 return 1010
@@ -866,9 +903,9 @@ def hash_status(el):
         # count only real running, all others become Other
         if el.has_key("GridJobStatus"):
             grid_status=el["GridJobStatus"]
-            if grid_status in ("ACTIVE","REALLY-RUNNING","INLRMS: R","RUNNING"):
+            if grid_status in ("ACTIVE","REALLY-RUNNING","INLRMS: R","RUNNING","INLRMS:R"):
                 return 2
-            elif grid_status in ("STAGE_OUT","INLRMS: E","EXECUTED","FINISHING","DONE"):
+            elif grid_status in ("STAGE_OUT","INLRMS: E","EXECUTED","FINISHING","DONE","INLRMS:E"):
                 return 4010
             else:
                 return 1100
@@ -983,10 +1020,27 @@ def extractRecoverableHeld(q,status):
 
     return diffList(qheld_list,sheld_list)
 
+def extractRecoverableHeldWithinLimits(q,status):
+    # first find out the held jids
+    #  Held==5 and glideins are recoverable
+    qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el) and isGlideinWithinHeldLimits(el)))
+    qheld_list=qheld.keys()
+    
+    # find out if any "Held" glidein is running instead (in condor_status)
+    sheld_list=extractRegistered(q,status,qheld_list)
+
+    return diffList(qheld_list,sheld_list)
+
 def extractRecoverableHeldSimple(q):
     #  Held==5 and glideins are recoverable
     #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
     qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el)))
+    qheld_list=qheld.keys()
+    return qheld_list
+
+def extractRecoverableHeldSimpleWithinLimits(q):
+    #  Held==5 and glideins are recoverable
+    qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el) and isGlideinWithinHeldLimits(el)))
     qheld_list=qheld.keys()
     return qheld_list
 
@@ -1301,6 +1355,45 @@ def releaseGlideins(schedd_name,jid_list):
     log_files.logActivity("Released %i glideins on %s: %s"%(len(released_jids),schedd_name,released_jids))
 
 
+def isGlideinWithinHeldLimits(jobInfo):
+    """
+    This function looks at the glidein job's information and returns if the
+    CondorG job can be released.
+
+    This is useful to limit how often held jobs are released.
+
+    @type jobInfo: dictionary
+    @param jobInfo: Dictionary containing glidein job's classad information
+
+    @rtype: bool
+    @return: True if job is within limits, False if it is not
+    """
+
+    global factoryConfig
+
+    # some basic sanity checks to start
+    if not jobInfo.has_key('JobStatus'):
+        return True
+    if jobInfo['JobStatus']!=5:
+        return True
+
+    # assume within limits, unless released recently or has been released too often
+    within_limits=True
+
+    num_holds=1
+    if jobInfo.has_key('NumSystemHolds'):
+        num_holds=jobInfo['NumSystemHolds']
+        
+    if num_holds>factoryConfig.max_release_count:
+        within_limits=False
+
+    if jobInfo.has_key('ServerTime') and jobInfo.has_key('EnteredCurrentStatus'):
+        held_period=jobInfo['ServerTime']-jobInfo['EnteredCurrentStatus']
+        if held_period<(num_holds*factoryConfig.min_release_time): # slower for repeat offenders
+            within_limits=False
+
+    return within_limits
+
 # Get list of CondorG job status for held jobs that are not recoverable
 def isGlideinUnrecoverable(jobInfo):
     """
@@ -1337,6 +1430,8 @@ def isGlideinUnrecoverable(jobInfo):
     # 121 : the job state file doesn't exist 
     # 122 : could not read the job state file
 
+    global factoryConfig
+
     unrecoverable = False
     # Dictionary of {HeldReasonCode: HeldReasonSubCode}
     unrecoverableCodes = {2: [ 0, 2, 4, 5, 7, 8, 9, 10, 14, 17, 
@@ -1349,6 +1444,15 @@ def isGlideinUnrecoverable(jobInfo):
         subCode = jobInfo['HoldReasonSubCode']
         if (unrecoverableCodes.has_key(code) and (subCode in unrecoverableCodes[code])):
             unrecoverable = True
+
+    num_holds=1
+    if jobInfo.has_key('JobStatus') and jobInfo.has_key('NumSystemHolds'):
+        if jobInfo['JobStatus']==5:
+            num_holds=jobInfo['NumSystemHolds']
+
+    if num_holds>factoryConfig.max_release_count:
+        unrecoverable = True
+
     return unrecoverable
 
 class GlideinTotals:
@@ -1391,25 +1495,25 @@ class GlideinTotals:
             self.frontend_limits[fe_sec_class] = {'max_glideins':self.default_fesc_max_glideins, 
                                                   'max_held':self.default_fesc_max_held, 
                                                   'max_idle':self.default_fesc_max_idle} 
-                                               
+
         # Get factory parameters for frontend-specific limits
-        # they are in the format  frontend1:sec_class1:number,frontend2:sec_class2:number
-        fe_glideins_param = jobDescript.data['MaxRunningFrontends']
-        if (fe_glideins_param.find(";") != -1):
-            for el in fe_glideins_param.split(","):
-                el_list = el.split(";")
-                self.frontend_limits[el_list[0]]['max_glideins'] = int(el_list[1])
-        fe_idle_param = jobDescript.data['MaxIdleFrontends']
-        if (fe_idle_param.find(";") != -1):
-            for el in fe_idle_param.split(","):
-                el_list = el.split(";")
-                self.frontend_limits[el_list[0]]['max_idle'] = int(el_list[1])
-        fe_held_param = jobDescript.data['MaxHeldFrontends']
-        if (fe_held_param.find(";") != -1):
-            for el in fe_held_param.split(","):
-                el_list = el.split(";")
-                self.frontend_limits[el_list[0]]['max_held'] = int(el_list[1])
-                        
+        # Format: frontend1:sec_class1;number,frontend2:sec_class2;number
+
+        limits_keynames = ( ('MaxRunningFrontends', 'max_glideins'),
+                            ('MaxIdleFrontends', 'max_idle'),
+                            ('MaxHeldFrontends', 'max_held') )
+
+        for (jd_key, max_glideinstatus_key) in limits_keynames:
+            fe_glideins_param = jobDescript.data[jd_key]
+
+            if (fe_glideins_param.find(";") != -1):
+                for el in fe_glideins_param.split(","):
+                    el_list = el.split(";")
+                    try:
+                        self.frontend_limits[el_list[0]][max_glideinstatus_key] = int(el_list[1])
+                    except:
+                        log_files.logWarning("Invalid FrontendName:SecurityClassName combo '%s' encountered while finding '%s' from max_job_frontend" % (el_list[0], max_glideinstatus_key))
+
         # Initialize frontend totals
         for fe_sec_class in self.frontend_limits:            
             # Filter the queue for all glideins for this frontend:security_class (GLIDEIN_FRONTEND_NAME)

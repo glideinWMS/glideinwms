@@ -581,8 +581,16 @@ def list2dict(list_data,attr_name):
     for list_el in list_data:
         if type(attr_name) in (type([]),type((1,2))):
             dict_name=[]
+            list_keys=list_el.keys()
             for an in attr_name:
-                dict_name.append(list_el[an])
+                if an in list_keys:
+                    dict_name.append(list_el[an])
+                else:
+                    # Try lower cases
+                    for k in list_keys:
+                        if an.lower()==k.lower():
+                            dict_name.append(list_el[k])
+                            break
             dict_name=tuple(dict_name)
         else:
             dict_name=list_el[attr_name]

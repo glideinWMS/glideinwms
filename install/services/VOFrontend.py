@@ -50,7 +50,6 @@ frontend_options = [ "install_type",
 
 wmscollector_options = [ 
 "hostname",
-"collector_port",
 "service_name",
 "x509_gsi_dn",
 ]
@@ -71,8 +70,6 @@ usercollector_options = [
 "service_name",
 "x509_gsi_dn",
 "condor_location",
-"collector_port",
-"number_of_secondary_collectors",
 ]
 
 valid_options = { 
@@ -813,26 +810,19 @@ please verify and correct if needed.
 
   #--------------------------------
   def config_data(self,schedds,match_criteria): 
-    data = """<frontend frontend_name="%s" """ % (self.frontend_name())
+    data = """<frontend frontend_name="%s"
+         advertise_delay="5"
+         advertise_with_multiple="True"
+         advertise_with_tcp="True"
+         loop_delay="60"
+         restart_attempts="3"
+         restart_interval="1800" """ % (self.frontend_name())
+
     if self.install_type() == "rpm":
-      data += """
-         advertise_delay="5" 
-         advertise_with_multiple="False" 
-         advertise_with_tcp="False" 
-         frontend_versioning="False" 
-         loop_delay="60" 
-         restart_attempts="3" 
-         restart_interval="1800">
-""" 
+      data += ' frontend_versioning="False">'
     else:
-      data += """
-         advertise_delay="5" 
-         advertise_with_multiple="False" 
-         advertise_with_tcp="False" 
-         loop_delay="60" 
-         restart_attempts="3" 
-         restart_interval="1800">
-""" 
+      data += '>'
+
     data += """\
 %(work)s
 %(stage)s
@@ -1034,31 +1024,42 @@ please verify and correct if needed.
   #---------------------------------
   def extract_factory_attrs(self):
     glidein_attrs = []
-    attr_re = re.compile("glidein\[\"attrs\"\]\[['\"](?P<attr>[^'\"]+)['\"]\]")
-    idx = 0
-    while 1:
-      attr_obj = attr_re.search(self.match_string(),idx)
-      if attr_obj == None:
-        break # not found
-      attr_el = attr_obj.group('attr')
-      if not (attr_el in glidein_attrs):
-        glidein_attrs.append(attr_el)
-      idx = attr_obj.end()+1
+    regex = (
+      re.compile("glidein\[\"attrs\"\]\[['\"](?P<attr>[^'\"]+)['\"]\]"), 
+      re.compile("glidein\[\"attrs\"\]\.get\(['\"](?P<attr>[^'\"]+)['\"\)]")
+    )
+
+    for attr_re in regex:
+      idx = 0
+      while 1:
+        attr_obj = attr_re.search(self.match_string(),idx)
+        if attr_obj == None:
+          break # not found
+        attr_el = attr_obj.group('attr')
+        if not (attr_el in glidein_attrs):
+          glidein_attrs.append(attr_el)
+        idx = attr_obj.end()+1
     return glidein_attrs
 
   #---------------------------------
   def extract_job_attrs(self):
     job_attrs = []
-    attr_re = re.compile("job\[['\"](?P<attr>[^'\"]+)['\"]\]")
-    idx=0
-    while 1:
-      attr_obj = attr_re.search(self.match_string(),idx)
-      if attr_obj == None:
-        break # not found
-      attr_el=attr_obj.group('attr')
-      if not (attr_el in job_attrs):
-        job_attrs.append(attr_el)
-      idx = attr_obj.end()+1
+    regex = (
+      re.compile("job\.get\(['\"](?P<attr>[^'\"]+)['\"]\)"),
+      re.compile("job\[['\"](?P<attr>[^'\"]+)['\"]\]")
+    )
+
+
+    for attr_re in regex:
+      idx=0
+      while 1:
+        attr_obj = attr_re.search(self.match_string(),idx)
+        if attr_obj == None:
+          break # not found
+        attr_el=attr_obj.group('attr')
+        if not (attr_el in job_attrs):
+          job_attrs.append(attr_el)
+        idx = attr_obj.end()+1
     return job_attrs
 
   #--------------------------------

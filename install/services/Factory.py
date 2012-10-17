@@ -180,7 +180,7 @@ files and directories can be created correctly""" % self.username())
     self.get_frontend()
     common.ask_continue("Continue")
     self.validate()
-    self.verify_directories_empty()
+    self.clean_directories()
     self.configure()
     common.logit ("\n======== %s install complete ==========\n" % self.ini_section)
     self.create_glideins()
@@ -196,7 +196,7 @@ files and directories can be created correctly""" % self.username())
     common.validate_install_location(self.install_location())
 
   #-----------------------------
-  def verify_directories_empty(self):
+  def clean_directories(self):
     """ This method attempts to clean up all directories so a fresh install
         can be accomplished successfully.  
         It is consoldiated in a single check so as to only ask once and
@@ -208,36 +208,17 @@ files and directories can be created correctly""" % self.username())
     instance_dir = "glidein_%(instance)s" % \
                      { "instance" : self.glidein.instance_name(), }
     dirs = {}
-    dirs["logs.........."] = os.path.join(self.logs_dir(),instance_dir)
-    dirs["install......."] = os.path.join(self.install_location(),instance_dir)
-    dirs["config........"] = self.config_dir()
+    dirs["logs"] = os.path.join(self.logs_dir(),instance_dir)
+    dirs["install"] = os.path.join(self.install_location(),instance_dir)
+#    dirs["config"] = self.config_dir()
     for frontend in self.wms.frontend_users().keys():
-      ## user = "user_" + self.wms.frontend_users()[frontend]
-      ## dirs["%s client logs..." % user] = os.path.join(self.client_log_dir(),user,instance_dir)
-      ## dirs["%s client proxies" % user] = os.path.join(self.client_proxy_dir(),user,instance_dir)
       dirs["client logs"]    = self.client_log_dir()
       dirs["client proxies"] = self.client_proxy_dir()
     for subdir in ["monitor","stage"]:
-      dirs["web %s " % subdir] = os.path.join(self.glidein.web_location(),subdir,instance_dir)
+      dirs["web %s" % subdir] = os.path.join(self.glidein.web_location(),subdir,instance_dir)
 
     #--- check them --
-    for type in dirs.keys():
-      if os.path.isdir(dirs[type]):
-        if len(os.listdir(dirs[type])) == 0:
-          if self.wms.privilege_separation() == "y":
-            if type in ["client logs", "client proxies",]:
-              del dirs[type]  # remove from dict
-            else: # will have permission to delete it
-              # os.rmdir(dirs[type])
-              del dirs[type]  # remove from dict
-          else: # will have permission to delete it
-            #os.rmdir(dirs[type])
-            for rootdir, dirlist, filelist in os.walk(dirs[type],topdown=False):
-                for filename in filelist:
-                        os.remove(os.path.join(rootdir, filename))
-            del dirs[type]  # remove from dict
-      else: # it does not exist, remove from dict
-        del dirs[type]  
+    dirs = self.verify_directories_empty(dirs)
 
     #--- if all are empty, return 
     if len(dirs) == 0:
@@ -252,22 +233,40 @@ files and directories can be created correctly""" % self.username())
       common.logit("""  %(type)s: %(dir)s""" % \
                         { "type" : type, "dir" : dirs[type] })
     common.ask_continue("... can we remove their contents")
+    if self.wms.privilege_separation() == "y":
+      self.delete_ps_directories(dirs)
+    else:
+      self.delete_nps_directories(dirs)
+
+    #--- double check them --
+    dirs = self.verify_directories_empty(dirs)
+    if len(dirs) > 0:
+      common.logerr("""We seem to have had a problems deleting the contents of these directories:
+%s """ % dirs)
+
+    os.system("sleep 3")
+    return  # all directories are empty
+
+  #------------------------------------
+  def delete_ps_directories(self,dirs):
+    """ Delete the contents of directories with privilege separation in effect."""
     for type in dirs.keys():
-      if self.wms.privilege_separation() == "y":
-        if type in ["client logs", "client proxies",]:
-          #-- Factory create requires these directories be empty
-          #-- when privspep is in effect
-          condor_sbin = "%s/sbin" % self.wms.condor_location()
-          condor_bin  = "%s/bin" % self.wms.condor_location()
-          condorExe.set_path(condor_bin,condor_sbin)
-          parent_dir = dirs[type]
-          subdirs = os.listdir(parent_dir)
-          for base_dir in subdirs:
-            if os.path.isdir("%s/%s" % (parent_dir,base_dir)): 
-              try:
-                condorPrivsep.rmtree(parent_dir,base_dir)
-              except Exception,e:
-                common.logerr("""Encountered a problem in executing condor_root_switchboard 
+      if type not in ["client logs", "client proxies",]: 
+        common.remove_dir_path(dirs[type])
+        continue
+      #-- Factory create requires client logs/proxies directories be empty
+      #-- when privspep is in effect
+      condor_sbin = "%s/sbin" % self.wms.condor_location()
+      condor_bin  = "%s/bin"  % self.wms.condor_location()
+      condorExe.set_path(condor_bin,condor_sbin)
+      parent_dir = dirs[type]
+      subdirs = os.listdir(parent_dir)
+      for base_dir in subdirs:
+        if os.path.isdir("%s/%s" % (parent_dir,base_dir)): 
+          try:
+            condorPrivsep.rmtree(parent_dir,base_dir)
+          except Exception,e:
+            common.logerr("""Encountered a problem in executing condor_root_switchboard 
 to remove this client's sub-directories:
   %(dir)s
 
@@ -279,18 +278,40 @@ the ini file for the %(type)s attribute.  Be careful now.
         "type" : type, 
         "error"  : e, } )
           common.logit("Files in %s deleted" % parent_dir) 
-        else:  # not client logs or proxies
-          common.remove_dir_contents(dirs[type])
-          os.rmdir(dirs[type])
-      else: #no privsep in effect
+
+  #------------------------------------
+  def delete_nps_directories(self,dirs):  
+    """ Delete the contents of directories with privilege separation NOT in effect."""
+    for type in dirs.keys():
+      if type in ["client logs", "client proxies",]: 
         common.remove_dir_contents(dirs[type])
-        os.rmdir(dirs[type])
-    os.system("sleep 3")
+        continue
+      common.remove_dir_path(dirs[type])
+
+  #-----------------------------
+  def verify_directories_empty(self,dirs):
+    """ This method checks to see if certain directories are empty when
+        privilege separation is NOT in effect. 
+        Returns: a dictionary of directories to be deleted.
+    """
+    #--- check them --
+    for type in dirs.keys():
+      if not os.path.isdir(dirs[type]): # it does not exist
+        del dirs[type]  # remove from dict
+        continue
+      if type in ["client logs", "client proxies",]:
+        if len(os.listdir(dirs[type])) == 0: # it is empty
+          del dirs[type]  # remove from dict
+          continue
+      if os.path.isdir(dirs[type]): # it cannot exist so don't remove
+        continue
+    return dirs
 
   #-----------------------------
   def nbr_of_nested_dirs(self):
-    # Determines if any of the directories are subdirectories of the install 
-    # location.  We are trying to avoid deleting teh contents if we do not have to.
+    """ Determines if any of the directories are subdirectories of the install 
+        location.  We are trying to avoid deleting the contents if we do not have to.
+    """
     cnt = 0
     for dir in  [self.logs_dir(), 
                  self.client_log_dir(),
@@ -577,7 +598,7 @@ export X509_CERT_DIR=%(x509_cert_dir)s
     data = data + """
 %(indent2)s<attr name="GLEXEC_JOB" value="True" const="True" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>
 %(indent2)s<attr name="USE_MATCH_AUTH" value="True" const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>
-%(indent2)s<attr name="CONDOR_VERSION" value="default" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>
+%(indent2)s<attr name="CONDOR_VERSION" value="default" const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>
 %(indent1)s</attrs>
 """ % \
 { "indent1" : common.indent(1),
@@ -608,8 +629,8 @@ export X509_CERT_DIR=%(x509_cert_dir)s
 %(indent3)s</infosys_refs> 
 %(indent3)s<attrs>
 %(indent4)s<attr name="GLIDEIN_Site" value="%(site_name)s"   const="True" type="string" glidein_publish="True"  publish="True"  job_publish="True"  parameter="True"/>
-%(indent4)s<attr name="CONDOR_OS"    value="default"         const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>
-%(indent4)s<attr name="CONDOR_ARCH"  value="default"         const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>
+%(indent4)s<attr name="CONDOR_OS"    value="default"         const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>
+%(indent4)s<attr name="CONDOR_ARCH"  value="default"         const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>
 %(indent4)s<attr name="GLEXEC_BIN"   value="%(glexec_path)s" const="True" type="string" glidein_publish="False" publish="True"  job_publish="False" parameter="True"/>
 %(ccb_attr)s
 %(indent3)s</attrs>

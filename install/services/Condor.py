@@ -213,7 +213,7 @@ If no specific entries are needed, an empty list should be returned.
   def collector_port(self):
     option = "collector_port"
     if not self.has_option(self.ini_section,option):
-      return int(0)
+      return int(9618)
     value = self.option_value(self.ini_section,option)
     if common.not_an_integer(value):
       common.logerr("%s option is not a number: %s" % (option,value))
@@ -1003,6 +1003,9 @@ SCHEDD_EXPRS = $(SCHEDD_EXPRS) LOCAL_DIR_STRING
 GRIDMANAGER_MAX_SUBMITTED_JOBS_PER_RESOURCE=5000
 GRIDMANAGER_MAX_PENDING_SUBMITS_PER_RESOURCE=5000
 GRIDMANAGER_MAX_PENDING_REQUESTS=500
+# Force Condor-G to re-delegate the proxy as soon as the FE provides one
+# Defaulting to 1 week, since we do not expect proxies with longer lifetimes 
+GRIDMANAGER_PROXY_REFRESH_TIME=604800
 SCHEDD_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridmanagerLog.$(USERNAME)"
 """
     
@@ -1065,6 +1068,7 @@ SCHEDD.%(upper_name)s.EXECUTE       = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/execute
 SCHEDD.%(upper_name)s.LOCK          = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/lock
 SCHEDD.%(upper_name)s.PROCD_ADDRESS = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/procd_pipe
 SCHEDD.%(upper_name)s.SPOOL         = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/spool
+SCHEDD.%(upper_name)s.JOB_QUEUE_LOG         = $(SCHEDD.%(upper_name)s.SPOOL)/job_queue.log
 SCHEDD.%(upper_name)s.SCHEDD_ADDRESS_FILE   = $(SCHEDD.%(upper_name)s.SPOOL)/.schedd_address
 SCHEDD.%(upper_name)s.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.%(upper_name)s.SPOOL)/.schedd_classad 
 %(upper_name)s_LOCAL_DIR_STRING     = "$(SCHEDD.%(upper_name)s.LOCAL_DIR)"

@@ -97,7 +97,7 @@ for a more detailed description.
         <a href="#">&lt; summary_logs max_days="31.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
     </blockquote>
     <a href="#">&lt;/log_retention &gt;</a><br/>
-    <a href="#monitor">&lt;monitor base_dir="/var/www/html/glidefactory/monitor" flot_dir="/opt/javascriptrrd-0.6.1/flot" javascriptRRD_dir="/opt/javascriptrrd-0.6.1/src/lib" jquery_dir="/opt/javascriptrrd-0.6.1/flot" /&gt;</a><br/>
+    <a href="#monitor">&lt;monitor base_dir="/var/www/html/glidefactory/monitor" flot_dir="/opt/javascriptrrd-0.6.3/flot" javascriptRRD_dir="/opt/javascriptrrd-0.6.3/src/lib" jquery_dir="/opt/javascriptrrd-0.6.3/flot" /&gt;</a><br/>
     <a href="#monitor_footer">&lt;monitor_footer display_txt="Legal Disclaimer" href_link="/site/disclaimer.html"  /&gt;</a><br/>
     <a href="#security">&lt;security allow_proxy="frontend" key_length="2048" pub_key="RSA" reuse_oldkey_onstartup_gracetime="900"&gt;</a><br/>
     <blockquote>
@@ -136,7 +136,7 @@ for a more detailed description.
                 <a href="#max_jobs">&lt;max_jobs held="1000" idle="2000" running="10000"&gt;</a><br/>
                 <a href="#">&lt;release max_per_cycle="20" sleep="0.2"&gt;</a><br/>
                 <a href="#">&lt;remove max_per_cycle="5" sleep="0.2"&gt;</a><br/>
-                <a href="#require_voms">&lt;restrictions require_voms_proxy="False"&gt;</a><br/>
+                <a href="#restrictions">&lt;restrictions require_voms_proxy="False" require_glidein_glexec_use="False"&gt;</a><br/>
                 <a href="#">&lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2"&gt;</a><br/>
             </blockquote>
             <a href="#">&lt;/config&gt;</a><br/>
@@ -290,12 +290,13 @@ individual entry point configuration.
     You can list as many as you need,
     but at least one is required. This lets you configure glideins for
     different sites to use different version of condor binaries based on
-    architecture, os of the worker nodes that could be found on the
-    site.<br/>
+    architecture, os of the worker nodes that could be found on the site.<br/>
     It is recommended to have one default entry with
         <b>os=&quot;default&quot; arch=&quot;default&quot;
         version=&quot;default&quot;</b>.<br/>
-        See <a href="#tarballs">multiple tarballs</a> for more detailed instructions on supporting tarballs for multiple architectures.
+        To configure multiple tarballs, os, arch and version accept a commacw
+        separated list. See <a href="#tarballs">multiple tarballs</a> for more
+        detailed instructions on supporting tarballs for multiple architectures.
     </p>
     <LI>
         <a name="submit" />
@@ -761,28 +762,31 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=”My
 			&lt;max_jobs held="1000" idle="2000" running="10000"&gt;<br/>
 			   &lt;default_max_jobs_frontend held="50" idle="100" running="5000"/&gt;<br/>
 			   &lt;max_job_frontends&gt;<br/>
-			      &lt;max_job_frontend held="50" idle="100" running="5000"/&gt;<br/>
+			      &lt;max_job_frontend name="Frontend Name" security_class="Security Class" held="50" idle="100" running="5000"/&gt;<br/>
 			   &lt;/max_job_frontends&gt;<br/>
 			&lt;/max_jobs&gt;<br/>
 			</blockquote>
         </p>
         </li>
         <li>
-        <a name="require_voms" />
+        <a name="restrictions" />
         <div class="xml">
          &lt;glidein&gt;&lt;entries&gt;&lt;entry
          name=&quot;<I>entry name</I>&quot;&gt;
          &lt;config&gt;
-         &lt;restrictions require_voms_proxy="<i>True</i>" /&gt;
+         &lt;restrictions require_voms_proxy="<i>True</i>" require_glidein_glexec_use="<i>False</i>"/&gt;
         </div>
         <p>
-            <b>Recommended</b> This value defines whether a VOMS proxy
+            The <i>restrictions</i> defines any constraints imposed by the entry. <br><br>
+            <i>require_glidein_glexec_use</i> defines if the entry wants 
+            glideins to use glexec to do uid switching.<br>
+            <i>require_voms_proxy</i> defines whether a VOMS proxy
             is required to submit and run at this entry point.
             This attribute will prevent glideins with a VOMS proxy
             (classad attribute x509userproxyfirstfqan) from being 
             submitted or running at this entry point.
             This attribute is usually only needed if glExec is 
-            being utilized.  If glExec is not used on this entry point,
+            being utilized. If glExec is not used on this entry point,
             this value has no effect.
         </p>
         </li>
@@ -1355,6 +1359,34 @@ For more information, see the <a href="design_entry.html#config">Entry Internals
     <li>
         After reconfig, you can see the tar_file created from the condor distribution in the tarball line in the configuration.
     </li>
+    <li>
+        Starting v2.6.2, to simplify the configuration, os, arch and version
+        support comma values. This can drastically reduce the number of 
+        condor_tarball entries needed in the configuration file.
+        <br><br>
+        Consider an example below for default os as rhel5 and default arch as
+        x86_64. If the factory admin also wants os and arch information
+        explicitly available the configuration needs following entries to cover
+        possible combinations.
+        <blockquote>
+        &lt;condor_tarball os="default" arch="default"
+                           base_dir="dir" version="default"/&gt;<br>
+        &lt;condor_tarball os="rhel5" arch="x86_64"
+                           base_dir="dir" version="default"/&gt;<br>
+        &lt;condor_tarball os="rhel5" arch="default"
+                           base_dir="dir" version="default"/&gt;<br>
+        &lt;condor_tarball os="default" arch="x86_64"
+                           base_dir="dir" version="default"/&gt;
+        </blockquote>
+        Above example can be easily consolidated into a single condor_tarball
+        entry as below and the factory reconfiguration process will 
+        internally consider all the combinations. This also applies to the
+        version.
+        <blockquote>
+        &lt;condor_tarball os="default,rhel5" arch="default,x86_64"
+                           base_dir="dir" version="default"/&gt;
+        </blockquote>
+    </li>
 </ol>
 </div>
 
@@ -1391,12 +1423,19 @@ of time.
 
     <LI><P>If a glidein is not claimed within
     a configurable timeout, the glidein will exit.<BR>The timeout can be
-    set qith: 
+    set with: 
     </P>
     <blockquote>
         <B>GLIDEIN_Max_Idle</B>=<I>nr_of_seconds</I>
+        <B>GLIDEIN_Max_Tail</B>=<I>nr_of_seconds</I>
     </blockquote>
-    <P>The default is 20 minutes.  </P>
+    <P>There are two configurable
+       parameters for this timeout behavior.  The first, GLIDEIN_Max_Idle,
+       affects how long a glidein will wait for its first job.
+       The second parameter is how long a glidein will wait to get a 
+       subsequent job once its finished its job.  The defaults for these
+       are 1200 and 400 seconds, respectively.
+    </P>
 </OL>
 
 <p>

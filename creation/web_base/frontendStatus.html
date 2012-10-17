@@ -124,6 +124,11 @@ Description:
       var coming_from_link = true;
       var coming_from_defaults = false; 
       var timezone_num=0;
+      {
+        // find the local time
+        var d= new Date();
+        timezone_num=-d.getTimezoneOffset()/60;
+      }
 
 
       // Load the status of the frontend

@@ -22,7 +22,6 @@ wmscollector_options = [
 "username", 
 "service_name", 
 "condor_location", 
-"collector_port", 
 "x509_cert_dir",
 "privilege_separation",
 "frontend_users",
@@ -47,8 +46,6 @@ factory_options = [ "hostname",
 ]
 
 usercollector_options = [ "hostname",
-"collector_port",
-"number_of_secondary_collectors",
 ]
 
 submit_options = []
@@ -186,9 +183,23 @@ the PrivilegeSeparation class has not been instantiated""")
     if self.hostname() <> self.usercollector.hostname():
       return  # -- no problem, on separate nodes --
     if self.collector_port() == self.usercollector.collector_port():
-      common.logerr("The WMS collector and User collector are being installed \non the same node. They both are trying to use the same port: %s." % self.collector_port())
+      common.logerr("""The WMS and User collector are being installed on the same node. 
+They both are trying to use the same port: %(port)s.
+If not already specified, you may need to specifiy a 'collector_port' option 
+in your ini file for either the WMSCollector or UserCollector sections, or both.
+If present, are you really installing both services on the same node.
+""" %  { "port" : self.collector_port(),})
+
     if int(self.collector_port()) in self.usercollector.secondary_collector_ports():
-      common.logerr("The WMS collector and User collector are being installed \non the same node. The WMS collector port (%s) conflicts with one of the\nsecondary User collector ports that will be assigned: %s." % (self.collector_port(),self.usercollector.secondary_collector_ports()))
+      common.logerr("""The WMS collector and User collector are being installed on the same node. 
+The WMS collector port (%(wms_port)s) conflicts with one of the secondary
+User Collector ports that will be assigned: 
+  %(secondary_ports)s.
+If not already specified, you may need to specifiy a 'collector_port' option
+in your ini file for either the WMSCollector or UserCollector sections, or both.
+If present, are you really installing both services on the same node.
+""" % { "wms_port"        : self.collector_port(),
+        "secondary_ports" : self.usercollector.secondary_collector_ports(), })
 
   #-------------------------
   def create_template(self):

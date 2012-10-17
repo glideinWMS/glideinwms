@@ -69,6 +69,8 @@
         <li><a href="#management">Frontend Configuration</a> </li>
         <li><a href="#custom_code">Customizing the glidein Startup</a> </li>
         <li><a href="#multiple_proxy">Using multiple proxies</a> </li>
+        <li><a href="#wmscollector">Using multiple wms collectors</a> </li>
+        <li><a href="#usercollector">Using multiple user pool collectors/Condor High Availability (HA) support</a> </li>
         <LI><A HREF="#run_daemon">Starting the Daemon</A> </li>
 </ol>
 </div>
@@ -97,11 +99,11 @@ Click on any piece for a more detailed description.
             <a href="#group_factory">&lt;factory query_expr="True"&gt;</a><br/>
             <blockquote>
                 <a href="#group_match_attr">&lt;match_attrs /&gt;</a><br/>
-                <a href="#collector">&lt;collectors&gt;</a><br/>
+                <a href="#wmscollector">&lt;collectors&gt;</a><br/>
                 <blockquote>
-                    <a href="#collector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=factory-server.fnal.gov" comment="" factory_identity="factoryuser@factory-server.fnal.gov" my_identity="frontenduser@frontend-server.fnal.gov" node="factory-server.fnal.gov:8618" /&gt;</a><br/>
+                    <a href="#wmscollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=factory-server.fnal.gov" comment="" factory_identity="factoryuser@factory-server.fnal.gov" my_identity="frontenduser@frontend-server.fnal.gov" node="factory-server.fnal.gov:8618" /&gt;</a><br/>
                 </blockquote>
-                <a href="#collector">&lt;/collectors&gt;</a><br/>
+                <a href="#wmscollector">&lt;/collectors&gt;</a><br/>
             </blockquote>
             <a href="#group_factory">&lt;/factory&gt;</a><br/>
             <a href="#job_query">&lt;job comment="" query_expr="(JobUniverse==5)&amp;&amp;(GLIDEIN_Is_Monitor =!= TRUE)&amp;&amp;(JOB_Is_Monitor =!= TRUE)"&gt;</a><br/>
@@ -119,7 +121,7 @@ Click on any piece for a more detailed description.
         </blockquote>
         <a href="#match_example">&lt;/match&gt;</a><br/>
         <br/>
-        <a href="#monitor">&lt;monitor base_dir="/var/www/html/vofrontend/monitor" flot_dir="/opt/javascriptrrd-0.6.1/flot" javascriptRRD_dir="/opt/javascriptrrd-0.6.1/src/lib" jquery_dir="/opt/javascriptrrd-0.6.1/flot"&gt;</a><br/>
+        <a href="#monitor">&lt;monitor base_dir="/var/www/html/vofrontend/monitor" flot_dir="/opt/javascriptrrd-0.6.3/flot" javascriptRRD_dir="/opt/javascriptrrd-0.6.3/src/lib" jquery_dir="/opt/javascriptrrd-0.6.3/flot"&gt;</a><br/>
         <a href="#monitor_footer">&lt;monitor_footer display_txt="Legal Disclaimer" href_link="/site/disclaimer.html"  /&gt;</a><br/><br/>
         <a href="#security">&lt;security classad_proxy="/etc/grid-security/vocert.pem" proxy_DN="/DC=org/DC=doegrids/OU=Services/CN=frontend-server.fnal.gov" proxy_selection_plugin="ProxyAll" security_name="frontenduser" sym_key="aes_256_cbc"&gt;</a><br/>
         <blockquote>
@@ -179,12 +181,12 @@ Click on any piece for a more detailed description.
     </blockquote>
     <a href="#">&lt;/groups&gt;</a><br/>
      
-    <a href="#collectors">&lt;collectors&gt;</a><br/>
+    <a href="#usercollector">&lt;collectors groups="default,ha"&gt;</a><br/>
     <blockquote>
-        <a href="#collectors">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="default"&gt;</a><br/>
-        <a href="#collectors">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="ha"&gt;</a><br/>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="default"&gt;</a><br/>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="ha"&gt;</a><br/>
     </blockquote>
-    <a href="#collectors">&lt;/collectors&gt;</a><br/>
+    <a href="#usercollector">&lt;/collectors&gt;</a><br/>
     <a href="#files">&lt;files /&gt;</a><br/>
     </blockquote>
     <a href="#">&lt;/frontend&gt;</a><br/>
@@ -229,7 +231,7 @@ be defined:</P>
     condor_advertise -multiple option present in Condor 7.5.4 and up. 
     </P></li>
     <LI><P>
-        <a name="collector" />
+        <a name="wmscollector" />
         <div class="xml">
         &lt;frontend&gt;&lt;match&gt;&lt;factory&gt;&lt;collectors&gt;&lt;collector
         my_identity=&quot;<I>joe@collector1.myorg.com</I>&quot; 
@@ -240,15 +242,33 @@ be defined:</P>
         </div>
     This shows what WMS Collector the Glidein Frontend will map to. It is the
     mapped name for the identity of the classad. It also tells what
-    should be the idetnity used by the frontend itself and the expected
+    should be the identity used by the frontend itself and the expected
     identity of the factory.  These attributes must be configured correctly,
     or else the factory will drop requests from the frontend, citing security
     concerns.
     <br><br>
-    If multiple (secondary) WMS collectors are being used, refer to the 
-    <a href="../components/condor.html#collectors">Advanced Condor Configuration Mulitple Collectors document</a> 
-    for details on the configuration.
-    </P></li>
+    To configure the WMS collector for multiple (secondary) ports, refer to the 
+    <a href="../components/condor.html#collectors">Advanced Condor Configuration Multiple Collectors document</a>.
+    <br/>
+    The configuration required for the frontend to communicate with the secondary WMS collectors is shown below:
+    <blockquote>
+         &lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=collector/collectory1.my.org" comment="Primary collector"<br/>
+        <ol>
+                  factory_identity="gfactory@gfactory1.my.org"  my_identity="joe@collector1.myorg.com"</br>
+                  node="collector1.myorg.com:<b>primary_port</b>"/&gt;</br>
+        </ol>
+         &lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=collector/collectory1.my.org" comment="Secondary collector(s)"</br>
+         <ol>
+                  factory_identity="gfactory@gfactory1.my.org" my_identity="joe@collector1.myorg.com"</br>
+                  node="collector1.myorg.com:<b>secondary_port</b>"/&gt;
+         </ol>
+            <font color="blue"><i>
+            If the secondary port numbers were assigned a contiguous range, only one additional <b>collector</b>
+            is required specifying the <i>port range</i> (e.g.- 9640:9645) otherwise you will need a collector
+            element for each secondary port.</i></font><br/>
+    </blockquote>
+
+    </li>
     <LI><P>
         <a name="job_query" />
         <div class="xml">
@@ -472,6 +492,16 @@ be defined:</P>
             will start on a resource.  It is used for resource management by
             Condor.
         </P></li>
+        <LI><P>
+        <a name="attr_maxmem_estimate" />
+            <div class="xml">
+            &lt;attr name=&quot;GLIDEIN_MaxMemMBs_Estimate&quot; &gt;
+            </div>
+            If set to TRUE, glidein will estimate the MEMORY that condor daemon
+            can use based on memory/core or memory/cpu. Estimation only
+            happens if the GLIDEIN_MaxMemMBs_Estimate is not configured by the
+            factory for the entry.
+        </P></li>
     </UL>
 </UL>
     <P>Other attributes can be specified as well. They are used by the
@@ -573,9 +603,9 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         </div>
     A Python boolean expression is used to match glideins
     to jobs. The glidein and job dictionaries are used in the
-    expression, i.e. glidein[&quot;attrs&quot;][&quot;GLIDEIN_Site&quot;]
-    in job[&quot;DESIRED_Sites&quot;].split(&quot;,&quot;). If you want
-    to match all, just specify True.  <br/>
+    expression, i.e. glidein[&quot;attrs&quot;].get(&quot;GLIDEIN_Site&quot;)
+    in ((job.get(&quot;DESIRED_Sites&quot;) != None) and job.get(&quot;DESIRED_Sites&quot;).split(&quot;,&quot;)). If you want
+    to match all, just specify True.<br/>
     Note that there are two expressions.  The "match_expr" will be 
     evaluated when matching glidein (pilot) requests to entries.
     This will determine which sites glideins are submitted to.
@@ -643,22 +673,58 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         about the proxy tags.
     </P></li>
     <LI><P>
-        <a name="collectors" />
+        <a name="usercollector" />
         <div class="xml">
-        &lt;collectors&gt;&lt;collector DN="<i>certificate DN</i>" node="<i>User Pool Collector</i>" secondary="<i>True/False</i>" group="<i>Group Name</i>"&gt;
+        &lt;collectors groups="<i>list of collector groups</i>"&gt;&lt;collector DN="<i>certificate DN</i>" node="<i>User Pool Collector</i>" secondary="<i>True/False</i>" group="<i>Group Name</i>"&gt;
         </div>
         List of user pool collector(s) where condor_startd started by glideins
-should report to as a available resource.  This is where the user jobs will be matched with glidein resources.
+        should report to as an available resource.  
+        This is where the user jobs will be matched with glidein resources.
     <br><br>
-    If multiple (secondary) user pool collectors are being used, refer to the 
-    <a href="../components/condor.html#collectors">Advanced Condor Configuration Mulitple Collectors document</a> for details on the configuration.
-    <br>
-    If the user pool is configured in High Availability mode, list all the 
-    condor collectors, primary as well as secondary, grouped by group name.
+    For <b>scalability</b> purposes, multiple (secondary) user pool collectors can be used. 
+    Refer to the 
+    <a href="../components/condor.html#collectors">Advanced Condor Configuration Multiple Collectors document</a> for details for the Condor configuration.<br/>
+    The configuration required for the frontend to communicate with the secondary user pool collectors is shown below:
+      <blockquote>
+         &lt;collectors>&gt;
+         &lt;collector DN="<i>certificate DN</i>"  secondary="<b>False</b>"
+                  node="User Pool Collector:<b>primary_port</b>"/&gt;</br>
+         &lt;collector DN="<i>certificate DN</i>" secondary="<b>True</b>"
+                  node="User Pool Collector:<b>secondary_port</b>"/&gt;</br>
+            <font color="blue"><i>
+            If the secondary port numbers were assigned a contiguous range, only one additional <b>collector</b>
+            is required specifying the <i>port range</i> (e.g.- 9640:9645) otherwise you will need a collector
+            element for each secondary port.</i></font><br/>
+      </blockquote>
+    For <b>redundancy</b> purposes, the user pool can be configured using the Condor High Availability feature. 
+    Refer to the 
+    <a href="../components/condor.html#collectors">Advanced Condor Configuration Multiple Collectors document</a> for details for the Condor configuration.  Support to utilize this Condor feature is available in v2.6+.<br/>
+    The requires listing all the condor collectors, primary as well as secondary, grouped by <b>group</b> name.
     Condor daemons started by the glideins will report back to one of the
-    secondary collectors in each group. If a group has no secondary collector,
-    primary collector is selected for that group. 
+    secondary collectors in each <b>group</b>. If a <b>group</b> has no secondary collector, 
+    the primary collector is selected for that group. 
+    The collector element <b>groups</b> attribute defines the set of collectors the frontend will use.
+      <blockquote>
+         &lt;collectors <b>groups="default,1"</b>&gt;
+        <ul>
+         &lt;collector DN="<i>certificate DN</i>"  secondary="False"
+                  node="<b>User Pool Collector 1</b>:primary_port" <b>group="default"</b>/&gt;</br>
+         &lt;collector DN="<i>certificate DN</i>" secondary="True"
+                  node="<b>User Pool Collector 1</b>:secondary_port" <b>group="default"</b>/&gt;</br>
+         &lt;collector DN="<i>certificate DN</i>"  secondary="False"
+                  node="<b>User Pool Collector 2</b>:primary_port" <b>group="1"</b>/&gt;</br>
+         &lt;collector DN="<i>certificate DN</i>" secondary="True"
+                  node="<b>User Pool Collector 2</b>:secondary_port" <b>group="1"</b>/&gt;</br>
+            <font color="blue"><i>
+            If the secondary port numbers were assigned a contiguous range, only one additional <b>collector</b>
+            is required specifying the <i>port range</i> (e.g.- 9640:9645) otherwise you will need a collector
+            element for each secondary port.</i></font><br/>
+       </ul>
+      </blockquote>
+
+
     </li>
+    
 </UL>
 </div>
 <div class="section">
@@ -764,8 +830,7 @@ should report to as a available resource.  This is where the user jobs will be m
 </p>   
 <p><B><u>Example</u></b></p>
         <div class="xml">
-         &lt;match match_expr='glidein["attrs"]["GLIDEIN_Site"] in
-job["DESIRED_Sites"].split(",")'&gt;<br/>
+         &lt;match match_expr='glidein[&quot;attrs&quot;].get(&quot;GLIDEIN_Site&quot;) in ((job.get(&quot;DESIRED_Sites&quot;) != None) and job.get(&quot;DESIRED_Sites&quot;).split(&quot;,&quot;))'&gt;<br/>
             &lt;factory query_expr="(GLIDEIN_Site=!=UNDEFINED)"&gt;<br/>
                &lt;match_attrs&gt;
                   &lt;match_attr name="GLIDEIN_Site" type="string"/&gt;
@@ -786,8 +851,7 @@ job["DESIRED_Sites"].split(",")'&gt;<br/>
         Glideins can also use "start_expr" to make sure
         the correct jobs start on pilots.  Here is an example:
         <div class="xml">
-              &lt; match match_expr='(job.has_key("DESIRED_Sites") and 
-            (glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")))'
+              &lt; match match_expr='glidein[&quot;attrs&quot;].get(&quot;GLIDEIN_Site&quot;) in ((job.get(&quot;DESIRED_Sites&quot;) != None) and job.get(&quot;DESIRED_Sites&quot;).split(&quot;,&quot;))'
             start_expr='(stringListMember(GLIDEIN_Site,DESIRED_Sites,",")=?=True)' &lt;
             <br/>
             ...
@@ -864,6 +928,7 @@ One example follows:
 </div>
 </p>
 </div>
+
 <div class="section">
 <H2 CLASS="western"><A NAME="run_daemon"></A>Starting a Glidein Frontend
 Daemon</H2>

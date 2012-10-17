@@ -45,7 +45,6 @@ class GlideinParams(cWParams.CommonParams):
 
         self.max_job_frontend_defaults=cWParams.commentedOrderedDict()
         self.max_job_frontend_defaults["name"]=(None,"string","frontend name",None)
-        self.max_job_frontend_defaults["security_class"]=("All","string","security class",None)
         self.max_job_frontend_defaults["held"]=('1000',"nr","Maximum number of held glideins (for this frontend) before forcing the cleanup.",None)
         self.max_job_frontend_defaults["idle"]=('2000',"nr","Maximum number of idle glideins (for this frontend) allowed.",None)
         self.max_job_frontend_defaults["running"]=('10000',"nr","Maximum number of concurrent glideins (per frontend) that can be submitted",None)
@@ -145,8 +144,8 @@ class GlideinParams(cWParams.CommonParams):
         log_retention_defaults["logs"]=copy.deepcopy(one_log_retention_defaults)
         log_retention_defaults["job_logs"]=copy.deepcopy(one_log_retention_defaults)
         log_retention_defaults["job_logs"]["min_days"][0]="2.0"
-        self.defaults['advertise_with_tcp']=('False','Bool', 'Should condor_advertise use TCP connections?',None)
-        self.defaults['advertise_with_multiple']=('False','Bool', 'Should condor_advertise use -multiple?',None)
+        self.defaults['advertise_with_tcp']=('True','Bool', 'Should condor_advertise use TCP connections?',None)
+        self.defaults['advertise_with_multiple']=('True','Bool', 'Should condor_advertise use -multiple?',None)
         log_retention_defaults["summary_logs"]=copy.deepcopy(one_log_retention_defaults)
         log_retention_defaults["summary_logs"]["max_days"][0]="31.0"
         log_retention_defaults["condor_logs"]=copy.deepcopy(one_log_retention_defaults)

@@ -176,7 +176,7 @@ class Params:
             if argv[1]=="-help":
                 raise RuntimeError,"\nA config file will contain:\n%s\n\nThe config file will be in XML format."%self.get_description("  ")
                 
-            self.cfg_name=argv[1]
+            self.cfg_name=os.path.abspath(argv[1])
             self.load_file(self.cfg_name)
 
             self.subparams.validate(self.defaults,self.get_top_element())
