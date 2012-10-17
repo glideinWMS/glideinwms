@@ -61,7 +61,9 @@ def main(params, old_params, update_scripts, update_def_cfg):
         for entry in entries.keys():
             if entry in old_entries.keys():
                 entries[entry].data['schedd_name'] = old_entries[entry].schedd_name
-
+    else:
+        # If no old params exist, make sure to create the new directory, (no reuse)
+        glidein_dicts_obj.create_dirs(fail_if_exists=False)
 
 
                 
