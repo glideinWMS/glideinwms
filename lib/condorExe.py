@@ -23,6 +23,7 @@ class ExeError(RuntimeError):
     def __init__(self, err_str):
         RuntimeError.__init__(self,str)
 import subprocess
+import subprocessSupport
 import shlex
 import string
 
@@ -82,7 +83,8 @@ def exe_cmd_sbin(condor_exe,args,stdin_data=None,env={}):
 
 # can throw ExeError
 def iexe_cmd(cmd, stdin_data=None, child_env=None):
-    """Fork a process and execute cmd - rewritten to use select to avoid filling
+    """
+    Fork a process and execute cmd - rewritten to use select to avoid filling
     up stderr and stdout queues.
 
     @type cmd: string
@@ -92,43 +94,12 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
     @type env: dict
     @param env: Environment to be set before execution
     """
-    stdoutdata = stderrdata = ""
-    exitStatus = 0
-    
+    stdoutdata = ""
     try:
-        # Add in parent process environment, make sure that env ovrrides parent 
-        if child_env:
-            for k in os.environ.keys():
-                if not child_env.has_key(k):
-                    child_env[k] = os.environ[k]
-        # otherwise just use the parent environment
-        else:
-            child_env = os.environ
-
-        # Hack to tokenize the commandline that should be executed.  We probably
-        # should "Do the Right Thing (tm)" at some point
-        command_list = shlex.split(cmd)
-        # launch process - Converted to using the subprocess module
-        process = subprocess.Popen(command_list, shell=False,
-                           stdin=subprocess.PIPE,
-                           stdout=subprocess.PIPE,
-                           stderr=subprocess.PIPE,
-                           env=child_env)
-
-        if stdin_data:
-            stdoutdata, stderrdata = process.communicate(stdin_data)
-        else:
-            stdoutdata, stderrdata = process.communicate()
-
-        exitStatus = process.returncode
-
+        stdoutdata = subprocessSupport.iexe_cmd(cmd, stdin_data=stdin_data,
+                                                child_env=child_env)
     except Exception, ex:
-        raise ExeError, "Unexpected Error running '%s'\nStdout:%s\nStderr:%s\n" \
-            "Exception OSError: %s" % (cmd, str(stdoutdata), str(stderrdata), ex)
-
-    if exitStatus:
-        raise ExeError, "Error running '%s'\ncode %i:%s" % (cmd, os.WEXITSTATUS(exitStatus), 
-                                                            "".join(stderrdata))
+        raise ExeError, "Unexpected Error running '%s'. See above for details" % (cmd)
 
     return stdoutdata.split()
 

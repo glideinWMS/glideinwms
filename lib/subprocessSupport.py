@@ -15,6 +15,60 @@ class CalledProcessError(Exception):
         return "Command '%s' returned non-zero exit status %d" % (self.cmd, self.returncode)
 
 
+def iexe_cmd(cmd, stdin_data=None, child_env=None):
+    """
+    Fork a process and execute cmd - rewritten to use select to avoid filling
+    up stderr and stdout queues.
+
+    @type cmd: string
+    @param cmd: Sting containing the entire command including all arguments
+    @type stdin_data: string
+    @param stdin_data: Data that will be fed to the command via stdin
+    @type env: dict
+    @param env: Environment to be set before execution
+    """
+    stdoutdata = stderrdata = ""
+    exitStatus = 0
+
+    try:
+        # Add in parent process environment, make sure that env ovrrides parent 
+        if child_env:
+            for k in os.environ:
+                if not k in child_env:
+                    child_env[k] = os.environ[k]
+        # otherwise just use the parent environment
+        else:
+            child_env = os.environ
+
+        # Hack to tokenize the commandline that should be executed.
+        # We probably should "Do the Right Thing (tm)" at some point
+        command_list = shlex.split(cmd)
+        # launch process - Converted to using the subprocess module
+        process = subprocess.Popen(command_list, shell=False,
+                                   stdin=subprocess.PIPE,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE,
+                                   env=child_env)
+
+        # GOTCHA: stdin should be buffered in memoryr. Python docs suggest
+        #         not to use this method if the data size is large or unlimited
+        #         What's safe to use in all cases?
+        stdoutdata, stderrdata = process.communicate(input=stdin_data)
+        exitStatus = process.returncode
+
+    except OSError, e:
+        err_str = "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError:%s"
+        raise RuntimeError, err_str % (cmd, stdoutdata, stderrdata, e)
+
+    if exitStatus:
+        raise ExeError, "Error running '%s'\ncode %i:%s" % \
+                        (cmd,os.WEXITSTATUS(exitStatus),"".join(stderrdata))
+    return stdoutdata
+
+
+
+
+
 def call(*popenargs, **kwargs):
     """Run command with arguments.  Wait for command to complete, then
     return the returncode attribute.
