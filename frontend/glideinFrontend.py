@@ -138,13 +138,14 @@ def spawn(sleep_time,advertize_rate,work_dir,
 
             # Converted to using the subprocess module
             command_list = [sys.executable,
-                            os.path.join(STARTUP_DIR,"glideinFrontendElement.py"),
-                            os.getpid(),
+                            os.path.join(STARTUP_DIR,
+                                         "glideinFrontendElement.py"),
+                            str(os.getpid()),
                             work_dir,
                             group_name]
             childs[group_name] = subprocess.Popen(command_list, shell=False,
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
+                                                  stdout=subprocess.PIPE,
+                                                  stderr=subprocess.PIPE)
 
             # Get the startup time. Used to check if the group is crashing
             # periodically and needs to be restarted.
@@ -195,13 +196,15 @@ def spawn(sleep_time,advertize_rate,work_dir,
 
                         # Converted to using the subprocess module
                         command_list = [sys.executable,
-                                        os.path.join(STARTUP_DIR,"glideinFrontendElement.py"),
-                                        os.getpid(),
+                                        os.path.join(STARTUP_DIR,
+                                                   "glideinFrontendElement.py"),
+                                        str(os.getpid()),
                                         work_dir,
                                         group_name]
-                        childs[group_name] = subprocess.Popen(command_list, shell=False,
-                                           stdout=subprocess.PIPE,
-                                           stderr=subprocess.PIPE)
+                        childs[group_name] = subprocess.Popen(
+                                                 command_list, shell=False,
+                                                 stdout=subprocess.PIPE,
+                                                 stderr=subprocess.PIPE)
 
                         if len(childs_uptime[group_name]) == restart_attempts:
                             childs_uptime[group_name].pop(0)
