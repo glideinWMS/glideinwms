@@ -16,6 +16,7 @@ import string
 import time
 import subprocess
 import shlex
+import subprocessSupport
 
 class BaseRRDSupport:
     #############################################################
@@ -521,67 +522,42 @@ def string_quote_join(arglist):
 # python module, if that one is not available
 class rrdtool_exe:
     def __init__(self):
-        self.rrd_bin=self.iexe_cmd("which rrdtool")[0][:-1]
+        self.rrd_bin = subprocessSupport.iexe_cmd("which rrdtool")[0][:-1]
 
     def create(self,*args):
-        cmdline='%s create %s'%(self.rrd_bin,string_quote_join(args))
-        outstr=self.iexe_cmd(cmdline)
+        cmdline = '%s create %s'%(self.rrd_bin,string_quote_join(args))
+        outstr = subprocessSupport.iexe_cmd(cmdline)
         return
 
     def update(self,*args):
-        cmdline='%s update %s'%(self.rrd_bin,string_quote_join(args))
-        outstr=self.iexe_cmd(cmdline)
+        cmdline = '%s update %s'%(self.rrd_bin,string_quote_join(args))
+        outstr = subprocessSupport.iexe_cmd(cmdline)
         return
     
     def info(self,*args):
-        cmdline='%s info %s'%(self.rrd_bin,string_quote_join(args))
-        outstr=self.iexe_cmd(cmdline)
-        outarr={}
+        cmdline = '%s info %s'%(self.rrd_bin,string_quote_join(args))
+        outstr = subprocessSupport.iexe_cmd(cmdline)
+        outarr = {}
         for line in outstr:
-            linearr=line.split('=')
-            outarr[linearr[0]]=linearr[1]
+            linearr = line.split('=')
+            outarr[linearr[0]] = linearr[1]
         return outarr
     
     def dump(self,*args):
-        cmdline='%s dump %s'%(self.rrd_bin,string_quote_join(args))
-        outstr=self.iexe_cmd(cmdline)
+        cmdline = '%s dump %s' % (self.rrd_bin, string_quote_join(args))
+        outstr = subprocessSupport.iexe_cmd(cmdline)
         return outstr
     
     def restore(self,*args):
-        cmdline='%s restore %s'%(self.rrd_bin,string_quote_join(args))
-        outstr=self.iexe_cmd(cmdline)
+        cmdline = '%s restore %s'%(self.rrd_bin,string_quote_join(args))
+        outstr = subprocessSupport.iexe_cmd(cmdline)
         return
 
 
     def graph(self,*args):
-        cmdline='%s graph %s'%(self.rrd_bin,string_quote_join(args))
-        outstr=self.iexe_cmd(cmdline)
+        cmdline = '%s graph %s'%(self.rrd_bin, string_quote_join(args))
+        outstr = subprocessSupport.iexe_cmd(cmdline)
         return
-
-    ##########################################
-    def iexe_cmd(self, cmd):
-        stdoutdata, stderrdata = ""
-        exitStatus = 0
-        try:
-            # Hack to tokenize the commandline that should be executed.  We probably
-            # should "Do the Right Thing (tm)" at some point
-            command_list = shlex.split(cmd)
-            # launch process - Converted to using the subprocess module
-            process = subprocess.Popen(command_list, shell=False,
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
-
-            stdoutdata, stderrdata = process.communicate()
-
-            exitStatus = process.returncode
-        except OSError, e:
-            err_str = "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s"
-            raise RuntimeError, err_str % (cmd, stdoutdata, stderrdata, e)
-
-        if (exitStatus != 0):
-            raise RuntimeError, "Error running '%s'\ncode %i:%s" % (cmd, exitStatus, stderrdata)
-
-        return stdoutdata
 
 def addDataStore(filenamein, filenameout, attrlist):
     """
