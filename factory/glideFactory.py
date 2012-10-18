@@ -179,7 +179,7 @@ def clean_exit(childs):
                 pass # ignore
 
             # look for exited child
-            if child.poll() != None:
+            if child.poll() is not None:
                 # the child exited
                 dead_entries.append(entry_name)
                 del childs[entry_name]
@@ -271,7 +271,7 @@ def spawn(sleep_time,advertize_rate,startup_dir,
                     pass # ignore
                 
                 # look for exited child
-                if child.poll() != None:
+                if child.poll() is not None:
                     # the child exited
                     glideFactoryLib.log_files.logWarning("Child %s exited. Checking if it should be restarted."%(entry_name))
                     tempOut = child.stdout.readlines()

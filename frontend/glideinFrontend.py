@@ -110,7 +110,7 @@ def clean_exit(childs):
                 pass # ignore
 
             # look for exited child
-            if child.poll() != None:
+            if child.poll() is not None:
                 # the child exited
                 dead_groups.append(group_name)
                 del childs[group_name]
@@ -181,7 +181,7 @@ def spawn(sleep_time,advertize_rate,work_dir,
                     pass # ignore
                 
                 # look for exited child
-                if child.poll() != None:
+                if child.poll() is not None:
                     # the child exited
                     glideinFrontendLib.log_files.logWarning("Child %s exited. Checking if it should be restarted."%(group_name))
                     tempOut = child.stdout.readlines()
