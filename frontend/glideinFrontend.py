@@ -111,7 +111,7 @@ def clean_exit(childs):
                 pass # ignore
 
             # look for exited child
-            if child.poll()!=-1:
+            if child.poll() != None:
                 # the child exited
                 dead_groups.append(group_name)
                 del childs[group_name]
@@ -180,7 +180,7 @@ def spawn(sleep_time,advertize_rate,work_dir,
                     pass # ignore
 
                 # look for exited child
-                if child.poll() != -1:
+                if child.poll():
                     # the child exited
                     logSupport.log.warning("Child %s exited. Checking if it should be restarted." % (group_name))
                     tempOut = child.stdout.readlines()
