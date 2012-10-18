@@ -111,7 +111,7 @@ def clean_exit(childs):
                 pass # ignore
 
             # look for exited child
-            if child.poll() != None:
+            if child.poll() is not None:
                 # the child exited
                 dead_groups.append(group_name)
                 del childs[group_name]
