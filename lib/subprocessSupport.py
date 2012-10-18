@@ -1,4 +1,6 @@
+import os
 import subprocess
+import shlex
 
 # Exception classes used by this module.
 class CalledProcessError(Exception):
@@ -61,13 +63,9 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
         raise RuntimeError, err_str % (cmd, stdoutdata, stderrdata, e)
 
     if exitStatus:
-        raise ExeError, "Error running '%s'\ncode %i:%s" % \
-                        (cmd,os.WEXITSTATUS(exitStatus),"".join(stderrdata))
+        raise CalledProcessError(os.WEXITSTATUS(exitStatus), cmd,
+                                 output="".join(stderrdata))
     return stdoutdata
-
-
-
-
 
 def call(*popenargs, **kwargs):
     """Run command with arguments.  Wait for command to complete, then
