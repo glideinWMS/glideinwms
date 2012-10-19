@@ -46,7 +46,11 @@ def extract_DN(fname):
     rc=p.wait()
     if rc!=0:
         raise IOError,"openssl failed while reading %s"%fname
-    return p.communicate()[0][9:-1] #strip additional chars openssl puts in
+    dn=p.communicate()[0][9:-1] #strip additional chars openssl puts in
+    while dn[-9:]=='/CN=proxy':
+        dn=dn[:-9]
+    return dn
+
 
 def parse_args(args):
     daemon_comment=None
@@ -75,6 +79,7 @@ def parse_args(args):
         # not a DN... it is really a file
         # extract the DN
         dn=extract_DN(dn)
+        print "Using DN '%s'"%dn
     
     return {'is_daemon_dn':(daemon_comment!=None),'daemon_comment':daemon_comment,'dn':dn,'user':user}
 
