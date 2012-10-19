@@ -24,7 +24,6 @@ class ExeError(RuntimeError):
         RuntimeError.__init__(self,str)
 import subprocess
 import subprocessSupport
-import shlex
 import string
 
 class UnconfigError(RuntimeError):
@@ -99,9 +98,9 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
         stdoutdata = subprocessSupport.iexe_cmd(cmd, stdin_data=stdin_data,
                                                 child_env=child_env)
     except Exception, ex:
-        raise ExeError, "Unexpected Error running '%s'. See above for details" % (cmd)
+        raise ExeError, "Unexpected Error running '%s'. Details: %s" % (cmd, ex)
 
-    return stdoutdata.split()
+    return stdoutdata.splitlines()
 
 
 #
@@ -189,6 +188,3 @@ condor_bin_path=None
 condor_sbin_path=None
 
 init()
-
-
-

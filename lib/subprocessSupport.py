@@ -44,7 +44,7 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
 
         # Hack to tokenize the commandline that should be executed.
         # We probably should "Do the Right Thing (tm)" at some point
-        command_list = shlex.split(cmd)
+        command_list = shlex.split(cmd.encode('utf8'))
         # launch process - Converted to using the subprocess module
         process = subprocess.Popen(command_list, shell=False,
                                    stdin=subprocess.PIPE,

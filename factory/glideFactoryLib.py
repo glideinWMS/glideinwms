@@ -320,9 +320,36 @@ def getCondorStatusData(entry_name, client_name, pool_name=None,
 # returns the proxy fname
 def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
                            factoryConfig=None):
-
     if factoryConfig is None:
         factoryConfig = globals()['factoryConfig']
+
+    dn=""
+    voms=""
+    try:
+        (f,tempfilename)=tempfile.mkstemp()
+        os.write(f,proxy_data)
+        os.close(f)
+    except:
+        log.error("Unable to create tempfile %s!" % tempfilename)
+    
+    try:
+        dn_list=condorExe.iexe_cmd("openssl x509 -subject -noout",stdin_data=proxy_data)
+        dn=dn_list[0]
+        voms_proxy_info = which('voms-proxy-info')
+        if voms_proxy_info is not None:
+            voms_list = condorExe.iexe_cmd("%s -fqan -file %s" % (voms_proxy_in
+            #sort output in case order of voms fqan changed
+            voms='\n'.join(sorted(voms_list))
+    except:
+        #If voms-proxy-info doesn't exist or errors out, just hash on dn
+        voms=""
+
+    try:
+        os.unlink(tempfilename)
+    except:
+        log.error("Unable to delete tempfile %s!" % tempfilename)
+
+    hash_val=str(abs(hash(dn+voms))%1000000)
 
     #proxy_dir = factoryConfig.get_client_proxies_dir(username)
     # Have to hack this since the above code was modified to support v3plus going forward
@@ -1004,9 +1031,9 @@ def schedd_name2str(schedd_name):
 extractJobId_recmp = re.compile("^(?P<count>[0-9]+) job\(s\) submitted to cluster (?P<cluster>[0-9]+)\.$")
 def extractJobId(submit_out):
     for line in submit_out:
-        found = extractJobId_recmp.search(line[:-1])
-        if found != None:
-            return (long(found.group("cluster")), int(found.group("count")))
+        found = extractJobId_recmp.search(line.strip())
+        if found:
+            return (long(found.group("cluster")),int(found.group("count")))
     raise condorExe.ExeError, "Could not find cluster info!"
 
 escape_table = {'.':'.dot,',
@@ -1121,26 +1148,24 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
             else:
                 # avoid using privsep, if possible
                 try:
-                    env = "; export ".join(exe_env)
-                    env = "export %s" % env
-                    env = env.replace("$", "\$")
-                    env = env.replace("(", "\(")
-                    env = env.replace(")", "\)")
-
-                    submit_out = condorExe.iexe_cmd("%s; condor_submit -name %s entry_%s/job.condor" % (env, schedd, entry_name))
-                except condorExe.ExeError, e:
-                    submit_out = []
+                    child_env = {
+                        'X509_USER_PROXY': x509_proxy_fname,
+                        'GLIDEIN_FRONTEND_NAME': frontend_name
+                    }
+                    submit_out=condorExe.iexe_cmd('./%s "%s" "%s" "%s" "%s" %i "%s" %s -- %s'%(factoryConfig.submit_fname,entry_name,client_name,x509_proxy_security_class,x509_proxy_identifier,nr_to_submit,glidein_rsl,client_web_str,params_str), child_env=child_env)
+                except condorExe.ExeError,e:
+                    submit_out=[]
                     msg = "condor_submit failed: %s" % str(e)
                     log.error(msg)
-                    raise RuntimeError, msg
-                except Exception, e:
-                    submit_out = []
+                    raise RuntimeError, "condor_submit failed: %s"%e
+                except:
+                    submit_out=[]
                     msg = "condor_submit failed: Unknown error: %s" % str(e)
                     log.error(msg)
-                    raise RuntimeError, msg
-
-
-            cluster, count = extractJobId(submit_out)
+                    raise RuntimeError, "condor_submit failed: Unknown error"
+                
+                
+            cluster,count=extractJobId(submit_out)
             for j in range(count):
                 submitted_jids.append((cluster, j))
             nr_submitted += count
@@ -1709,6 +1734,7 @@ class GlideinTotals:
 
         return output
 
+<<<<<<< HEAD
 
 #######################################################
 
@@ -1718,6 +1744,10 @@ def set_condor_integrity_checks():
     os.environ['_CONDOR_SEC_READ_INTEGRITY'] = 'REQUIRED'
     os.environ['_CONDOR_SEC_WRITE_INTEGRITY'] = 'REQUIRED'
 
+=======
+#######################################################
+
+>>>>>>> 0803ba5... Fixed a bunch of issues to accomodate subprocess
 def which(program):
     """
     Implementation of which command in python.
@@ -1725,8 +1755,15 @@ def which(program):
     @return: Path to the binary
     @rtype: string
     """
+<<<<<<< HEAD
     def is_exe(fpath):
         return os.path.exists(fpath) and os.access(fpath, os.X_OK)
+=======
+
+    def is_exe(fpath):
+        return os.path.exists(fpath) and os.access(fpath, os.X_OK)
+
+>>>>>>> 0803ba5... Fixed a bunch of issues to accomodate subprocess
     fpath, fname = os.path.split(program)
     if fpath:
         if is_exe(program):
@@ -1736,6 +1773,7 @@ def which(program):
             exe_file = os.path.join(path, program)
             if is_exe(exe_file):
                 return exe_file
+<<<<<<< HEAD
     return None
 
 def days2sec(days):
@@ -1743,3 +1781,7 @@ def days2sec(days):
 
 def hrs2sec(hrs):
     return int(hrs * 60 * 60)
+=======
+
+    return None
+>>>>>>> 0803ba5... Fixed a bunch of issues to accomodate subprocess
