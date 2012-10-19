@@ -395,7 +395,7 @@ def update_x509_proxy_file(entry_name,username,client_id, proxy_data):
         dn=dn_list[0]
         voms_proxy_info = which('voms-proxy-info')
         if voms_proxy_info is not None:
-            voms_list = condorExe.iexe_cmd("%s -fqan -file %s" % (voms_proxy_info, tempfilename)
+            voms_list = condorExe.iexe_cmd("%s -fqan -file %s" % (voms_proxy_info, tempfilename))
             #sort output in case order of voms fqan changed
             voms='\n'.join(sorted(voms_list))
     except:
