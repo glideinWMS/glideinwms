@@ -792,113 +792,39 @@ exit $RETVAL
   #-----------------------------
   def __condor_config_gwms_data__(self):
     type = "03_gwms_local"
-    self.condor_config_data[type] +=  """
-#-- Condor user: %(user)s
-CONDOR_IDS = %(condor_ids)s
-#--  Contact (via email) when problems occur
-CONDOR_ADMIN = %(admin_email)s
-""" % { "admin_email" : self.admin_email(), 
-        "condor_ids"  : self.condor_ids(), 
-        "user"        : self.username(), }
+    self.condor_config_data[type] +=  common.slurp_template(type+".config")
+    str=self.condor_config_data[type]
+    str=re.sub("^CONDOR_IDS\s*=\s*(.*)$","CONDOR_IDS = %s" % self.condor_ids(),str,re.MULTIILINE)
+    str=re.sub("^CONDOR_ADMIN\s*=\s*(.*)$","CONDOR_ADMIN = %s" % self.admin_email(),str,re.MULTIILINE)
+    self.condor_config_data[type]=str
 
     type = "00_gwms_general"
-    self.condor_config_data[type] +=  """
-######################################################
-# Base configuration values for glideinWMS
-######################################################
-
-#--  With glideins, there is nothing shared
-UID_DOMAIN=$(FULL_HOSTNAME)
-FILESYSTEM_DOMAIN=$(FULL_HOSTNAME)
-
-#-- Condor lock files to synchronize access to  various 
-#-- log files.  Using the log directory so they are collocated
-LOCK = $(LOG)
-""" 
+    self.condor_config_data[type] +=  common.slurp_template(type+".config")
 
   #-----------------------------
   def __condor_config_gsi_data__(self,users):
+    #00_gwms_general already done in __condor_config_gwms_data__
     type ="00_gwms_general"
-    self.condor_config_data[type] += """
-############################################################
-## Security config
-############################################################
-#-- Authentication settings
-SEC_DEFAULT_AUTHENTICATION = REQUIRED
-SEC_DEFAULT_AUTHENTICATION_METHODS = FS,GSI
-SEC_READ_AUTHENTICATION    = OPTIONAL
-SEC_CLIENT_AUTHENTICATION  = OPTIONAL
-DENY_WRITE         = anonymous@*
-DENY_ADMINISTRATOR = anonymous@*
-DENY_DAEMON        = anonymous@*
-DENY_NEGOTIATOR    = anonymous@*
-DENY_CLIENT        = anonymous@*
-
-#--  Privacy settings
-SEC_DEFAULT_ENCRYPTION = OPTIONAL
-SEC_DEFAULT_INTEGRITY = REQUIRED
-SEC_READ_INTEGRITY = OPTIONAL
-SEC_CLIENT_INTEGRITY = OPTIONAL
-SEC_READ_ENCRYPTION = OPTIONAL
-SEC_CLIENT_ENCRYPTION = OPTIONAL
-"""
+    if self.condor_version < "7.4":
+      self.condor_config_data[type] = re.sub("^ALLOW_WRITE\s*=\s*(.*)$","",self.condor_config_data[type],re.MULTIILINE)
 
     type ="03_gwms_local"
-    self.condor_config_data[type] += """
-############################
-# GSI Security config
-############################
-#-- Grid Certificate directory
-GSI_DAEMON_TRUSTED_CA_DIR=%(x509_cert_dir)s
-""" % { "x509_cert_dir"   : self.x509_cert_dir(),
-      }
-
-    type ="03_gwms_local"
+    str=self.condor_config_data[type]
+    str=re.sub("^GSI_DAEMON_TRUSTED_CA_DIR\s*=\s*(.*)$","GSI_DAEMON_TRUSTED_CA_DIR = %s" % self.x509_cert_dir(),str,re.MULTIILINE)
     if self.client_only_install == True:
-      self.condor_config_data[type] += """
-#-- Credentials
-GSI_DAEMON_PROXY = %(proxy)s
-
-#-- Condor mapfile
-# This configuration should run no daemons
-CERTIFICATE_MAPFILE=
-""" % { "proxy"           : self.x509_proxy(),
-      }
+        str=re.sub("^CERTIFICATE_MAPFILE\s*=\s*(.*)$","CERTIFICATE_MAPFILE = ",str,re.MULTIILINE)
+        str=re.sub("^GSI_DAEMON_CERT\s*=\s*(.*)$","GSI_DAEMON_PROXY = %s"%self.x509_proxy(),str,re.MULTIILINE)
+        str=re.sub("^GSI_DAEMON_KEY\s*=\s*(.*)$","",str,re.MULTIILINE)
     else:
-      self.condor_config_data[type] += """
-#-- Credentials
-GSI_DAEMON_CERT = %(cert)s
-GSI_DAEMON_KEY  = %(key)s
+        str=re.sub("^CERTIFICATE_MAPFILE\s*=\s*(.*)$","CERTIFICATE_MAPFILE = %s"% self.condor_mapfile(),str,re.MULTIILINE)
+        str=re.sub("^GSI_DAEMON_CERT\s*=\s*(.*)$","GSI_DAEMON_CERT = %s"% self.x509_cert(),str,re.MULTIILINE)
+        str=re.sub("^GSI_DAEMON_KEY\s*=\s*(.*)$","GSI_DAEMON_KEY = %s"% self.x509_key(),str,re.MULTIILINE)
 
-#-- Condor mapfile
-CERTIFICATE_MAPFILE=%(mapfile)s
-""" % { "cert"           : self.x509_cert(),
-        "key"            : self.x509_key(),
-        "mapfile"        : self.condor_mapfile()
-      }
+    self.condor_config_data[type]=str
+ 
 
-    type ="00_gwms_general"
-    if self.condor_version >= "7.4":
-      self.condor_config_data[type] += """
-#-- With strong security, do not use IP based controls
-HOSTALLOW_WRITE = *
-ALLOW_WRITE = $(HOSTALLOW_WRITE)
-"""
-    else:
-      self.condor_config_data[type] += """
-#-- With strong security, do not use IP based controls
-HOSTALLOW_WRITE = *
-"""
     type ="03_gwms_local"
-    if self.client_only_install == True:
-      self.condor_config_data[type] += """
-############################################
-# Whitelist of condor daemon DNs
-# This configuration should run no daemons
-############################################
-GSI_DAEMON_NAME =
-"""
-    else:
+    if self.client_only_install != True:
       self.condor_config_data[type] += """
 ###################################
 # Whitelist of condor daemon DNs
@@ -922,80 +848,17 @@ GSI_DAEMON_NAME =
   def __condor_config_daemon_list__(self):
     type = "00_gwms_general"
     if self.client_only_install == True:
-      self.condor_config_data[type] += """
-###########################################
-# Daemons
-# This configuration should run no daemons
-###########################################
-DAEMON_LIST =
-DAEMON_SHUTDOWN = True
-"""
+        self.condor_config_data[type]=re.sub("^DAEMON_LIST\s*=\s*(.*)$","DAEMON_LIST",self.condor_config_data[type],re.MULTIILINE)
+        self.condor_config_data[type]+="\nDAEMON_SHUTDOWN = True"
     else:
-      self.condor_config_data[type] += """
-########################
-## Daemons
-########################
-DAEMON_LIST   = MASTER
-DAEMON_LIST   = $(DAEMON_LIST), %(daemons)s
-#-- Limit session caching to ~12h
-SEC_DAEMON_SESSION_DURATION = 50000
-""" %  { "daemons" : self.daemon_list, }
+        self.condor_config_data[type]=re.sub("^DAEMON_LIST\s*=\s*(.*)$","DAEMON_LIST=MASTER,%s"%self.daemon_list,self.condor_config_data[type],re.MULTIILINE)
 
   #-----------------------------
   def __condor_config_schedd_data__(self):
     if self.daemon_list.find("SCHEDD") < 0:
       return  # no schedds
     type = "02_gwms_schedds"
-    self.condor_config_data[type] +=  """
-######################################################
-## Schedd tuning
-######################################################
-#--  Allow up to 6k concurrent running jobs
-MAX_JOBS_RUNNING        = 6000
-
-#--  Start max of 50 jobs every 2 seconds
-JOB_START_DELAY = 2
-JOB_START_COUNT = 50
-
-#--  Stop 30 jobs every seconds
-#--  This is needed to prevent glexec overload, when used
-#--  Works for Condor v7.3.1 and up only, but harmless for older versions
-JOB_STOP_DELAY = 1
-JOB_STOP_COUNT = 30
-
-#--  Raise file transfer limits
-#--  no upload limits, since JOB_START_DELAY limits that
-MAX_CONCURRENT_UPLOADS = 100
-#--  but do limit downloads, as they are asyncronous
-MAX_CONCURRENT_DOWNLOADS = 100
-
-#--  Prevent checking on ImageSize
-APPEND_REQ_VANILLA = (Memory>=1) && (Disk>=1)
-
-#--  Prevent preemption
-MAXJOBRETIREMENTTIME = $(HOUR) * 24 * 7
-
-#-- Enable match authentication
-SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION = TRUE
-
-#-- GCB optimization
-SCHEDD_SEND_VACATE_VIA_TCP = True
-STARTD_SENDS_ALIVES = True
-
-#-- Reduce disk IO - paranoid fsyncs are usully not needed
-ENABLE_USERLOG_FSYNC = False
-
-#-- Prepare the Shadow for use with glexec-enabled glideins
-SHADOW.GLEXEC_STARTER = True
-SHADOW.GLEXEC = /bin/false
-
-#-- limit size of shadow logs
-MAX_SHADOW_LOG = 100000000
-
-#-- Publish LOCAL_DIR so it is available in the schedd classads as needed
-LOCAL_DIR_STRING="$(LOCAL_DIR)"
-SCHEDD_EXPRS = $(SCHEDD_EXPRS) LOCAL_DIR_STRING
-"""
+    self.condor_config_data[type] +=  common.slurp_template(type+".config")
 
     if self.use_gridmanager:
       self.condor_config_data[type] +=  """
@@ -1132,63 +995,16 @@ SUBMIT_EXPRS = $(SUBMIT_EXPRS) JOB_Site JOB_GLIDEIN_Entry_Name JOB_GLIDEIN_Name 
 
   #-----------------------------
   def __condor_config_negotiator_data__(self):
-    type = "00_gwms_general"
-    if self.daemon_list.find("NEGOTIATOR") < 0:
-      return  # no negotiator
-    self.condor_config_data[type] += """
-
-###########################################################
-# Negotiator tuning
-###########################################################
-#-- Prefer newer claims as they are more likely to be alive
-NEGOTIATOR_POST_JOB_RANK = MY.LastHeardFrom
-
-#-- Increase negotiation frequency, as new glideins do not trigger a reschedule
-NEGOTIATOR_INTERVAL = 60
-NEGOTIATOR_MAX_TIME_PER_SUBMITTER=60
-NEGOTIATOR_MAX_TIME_PER_PIESPIN=20
-
-#-- Prevent preemption
-PREEMPTION_REQUIREMENTS = False
-
-#-- negotiator/GCB optimization
-NEGOTIATOR_INFORM_STARTD = False
-
-#-- Disable VOMS checking
-NEGOTIATOR.USE_VOMS_ATTRIBUTES = False
-
-#-- Causes Negotiator to run faster. PREEMPTION_REQUIREMENTS and all 
-#-- condor_startd rank expressions must be False for 
-#-- NEGOTIATOR_CONSIDER_PREEMPTION to be False
-NEGOTIATOR_CONSIDER_PREEMPTION = False
-
-###########################################################
-# Event logging (if desired) 
-###########################################################
-## EVENT_LOG=$(LOG)/EventLog
-## EVENT_LOG_JOB_AD_INFORMATION_ATTRS=Owner,CurrentHosts,x509userproxysubject,AccountingGroup,GlobalJobId,QDate,JobStartDate,JobCurrentStartDate,JobFinishedHookDone,MATCH_EXP_JOBGLIDEIN_Site,RemoteHost
-## EVENT_LOG_MAX_SIZE = 100000000 
-"""
+    #this should be done with collector
+    pass
 
   #-----------------------------
   def __condor_config_collector_data__(self):
     type = "01_gwms_collectors"
     if self.daemon_list.find("COLLECTOR") >= 0:
-      self.condor_config_data[type]  += """
-###########################################################
-# Collector Data
-###########################################################
-COLLECTOR_NAME = %(name)s
-COLLECTOR_HOST = $(CONDOR_HOST):%(port)s
-
-#-- disable VOMS checking
-COLLECTOR.USE_VOMS_ATTRIBUTES = False
-
-#-- allow more file descriptors (only works if Condor is started as root)
-##COLLECTOR_MAX_FILE_DESCRIPTORS=20000
-""" % { "name" : self.service_name(), 
-        "port" : self.collector_port()
-      }
+        self.condor_config_data[type] +=  common.slurp_template(type+".config")
+        self.condor_config_data[type]=re.sub("^COLLECTOR_NAME\s*=\s*(.*)$","COLLECTOR_NAME = %s" % self.service_name(),self.condor_config_data[type],re.MULTIILINE)
+        self.condor_config_data[type]=re.sub("^COLLECTOR_HOST\s*=\s*(.*)$","COLLECTOR_NAME = $(CONDOR_HOST):%s" % self.collector_port(),self.condor_config_data[type],re.MULTIILINE)
     else: # no collector, identifies one to use
       self.condor_config_data[type]  += """
 ####################################
@@ -1206,19 +1022,13 @@ COLLECTOR_HOST = $(CONDOR_HOST):%(port)s
       return  # no collector daemon
     if self.secondary_collectors() == 0:
       return   # no secondary collectors
-    type = "01_gwms_collectors"
-    self.condor_config_data[type]  += """
-#################################################
-# Secondary Collectors
-#################################################
-#-- Forward ads to the main collector
-#-- (this is ignored by the main collector, since the address matches itself)
-CONDOR_VIEW_HOST = $(COLLECTOR_HOST)
-"""
+    
+    num_collectors=self.secondary_collectors()
 
-    #-- define sub-collectors, ports and log files
-    for nbr in range(int(self.secondary_collectors())):
-      self.condor_config_data[type]  += """
+    if num_collectors>40:
+        #-- define sub-collectors, ports and log files
+        for nbr in range(41,int(self.secondary_collectors())):
+            self.condor_config_data[type]  += """
 COLLECTOR%(nbr)i = $(COLLECTOR)
 COLLECTOR%(nbr)i_ENVIRONMENT = _CONDOR_COLLECTOR_LOG=$(LOG)/Collector%(nbr)iLog
 COLLECTOR%(nbr)i_ARGS = -f -p %(port)i
@@ -1226,13 +1036,12 @@ COLLECTOR%(nbr)i_ARGS = -f -p %(port)i
         "port" : self.secondary_collector_ports()[nbr]
       }
 
-    self.condor_config_data[type]  += """
-#-- Subcollectors for  list of daemons to start
-"""
+    daemon_string="DAEMON_LIST = $(DAEMON_LIST)"
     for nbr in range(int(self.secondary_collectors())):
-      self.condor_config_data[type]  += """\
-DAEMON_LIST = $(DAEMON_LIST), COLLECTOR%(nbr)i
-""" % { "nbr" : nbr }
+        daemon_string += " COLLECTOR%i" % nbr
+
+    self.condor_config_data[type]=re.sub("^DAEMON_LIST\s*=\s*(.*)$",daemon_string,self.condor_config_data[type],re.MULTIILINE)
+
 
 
 #--- end of Condor class ---------

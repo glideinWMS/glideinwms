@@ -32,13 +32,28 @@ def write_file(mode,perm,filename,data,SILENT=False):
     logerr("Internal error in accessing write_file method: Invalid mode(%s)" % mode)
   fd = open(filename,mode)
   try:
-    try:    
+    try: 
       fd.write(data)
     except Exception,e:
       logerr("Problem writing %s: %s" % (filename,e))
   finally:
     fd.close()
   os.chmod(filename,perm) 
+#--------------------------
+def slurp_template(filename,dirname=None):
+    data=""
+    try: 
+        try: 
+            if dirname is not None:
+                f=open(os.path.join("templates",filename),"r")
+            else:
+                f=open(os.path.join(dirname,filename),"r")
+        except: Exception,e
+            logerr("Problem reading %s: %s" % (filename,e))
+        data=f.read()
+    finally:
+        f.close()
+    return data
 
 #--------------------------
 def make_directory(dirname,owner,perm):
