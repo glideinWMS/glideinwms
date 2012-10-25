@@ -185,15 +185,19 @@ fi
 echo "`date` making configuration changes to use glexec"
 # --------------------------------------------------
 # gLExec does not like symlinks and this way we are sure it is a file
-# Note: the -e test performs the same function as readlink -e and allows
-#       for SL4/SL5 compatibility (readlink -e does not exist in SL4).
-if [ ! -e /bin/sh ];then
-    #echo "gLExec does not like symlinks. Failed to dereference /bin/sh" 1>&2
-    STR="gLExec does not like symlinks. Failed to dereference /bin/sh"
-    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "ln"
+# Note: Many shells behave differently if the file name is changed
+#       so we make a copy instead of just dereferencing an
+#       eventual link
+#
+cp /bin/sh $PWD/sh
+rc=$?
+if [ $rc -ne 0 ]; then
+    STR="Failed to make a local copy of /bin/sh into $PWD"
+    "$error_gen" -error "glexec_setup.sh" "WN_Resource" "$STR" "command" "cp"
     exit 1
 fi
-export ALTSH="`readlink -f /bin/sh`"
+
+export ALTSH="$PWD/sh"
 add_config_line "ALTERNATIVE_SHELL" "$ALTSH" 
 add_condor_vars_line "ALTERNATIVE_SHELL" "C" "-" "SH" "Y" "N" "-"
 
