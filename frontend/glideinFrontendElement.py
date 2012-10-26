@@ -228,6 +228,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
             ### Add in elements to help in determining if jobs have voms creds
             condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN','s'),))
             condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN','s'),))
+            condorq_format_list=list(condorq_format_list)+list((('x509userproxy','s'),))
             condorq_dict=glideinFrontendLib.getCondorQ(elementDescript.merged_data['JobSchedds'],
                                                        expand_DD(elementDescript.merged_data['JobQueryExpr'],attr_dict),
                                                        condorq_format_list)
@@ -292,6 +293,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
     condorq_dict=pipe_out['jobs']
     status_dict=pipe_out['startds']
 
+    condorq_dict_proxy=glideinFrontendLib.getIdleProxyCondorQ(condorq_dict)
     condorq_dict_voms=glideinFrontendLib.getIdleVomsCondorQ(condorq_dict)
     condorq_dict_idle=glideinFrontendLib.getIdleCondorQ(condorq_dict)
     condorq_dict_old_idle=glideinFrontendLib.getOldCondorQ(condorq_dict_idle,600)
@@ -300,6 +302,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
     condorq_dict_types={'Idle':{'dict':condorq_dict_idle,'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle)},
                         'OldIdle':{'dict':condorq_dict_old_idle,'abs':glideinFrontendLib.countCondorQ(condorq_dict_old_idle)},
                         'VomsIdle':{'dict':condorq_dict_voms,'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
+                        'ProxyIdle':{'dict':condorq_dict_proxy,'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
                         'Running':{'dict':condorq_dict_running,'abs':glideinFrontendLib.countCondorQ(condorq_dict_running)}}
     condorq_dict_abs=glideinFrontendLib.countCondorQ(condorq_dict);
     
@@ -543,13 +546,18 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
         count_status=count_status_multi[request_name]
 
         #If the glidein requires a voms proxy, only match voms idle jobs
-	# Note: if GLEXEC is set to NEVER, the site will never see the proxy, 
-	# so it can be avoided.
-	if (glexec != 'NEVER'):
-            if glidein_el['attrs'].has_key('GLIDEIN_REQUIRE_VOMS'):
-                if (glidein_el['attrs']['GLIDEIN_REQUIRE_VOMS']=="True"):
+        # Note: if GLEXEC is set to NEVER, the site will never see the proxy, 
+        # so it can be avoided.
+        if (glexec != 'NEVER'):
+            if glidein_el['attrs'].has_key('GLIDEIN_REQUIRE_VOMS') and \
+                (glidein_el['attrs']['GLIDEIN_REQUIRE_VOMS']=="True"):
                     prop_jobs['Idle']=prop_jobs['VomsIdle']
-                    glideinFrontendLib.log_files.logActivity("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
+                    glideinFrontendLib.log_files.logDebug("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
+            elif glidein_el['attrs'].has_key('GLIDEIN_REQUIRE_GLEXEC_USE') and \
+                (glidein_el['attrs']['GLIDEIN_REQUIRE_GLEXEC_USE']=="True"):
+                    prop_jobs['Idle']=prop_jobs['ProxyIdle']
+                    glideinFrontendLib.log_files.logDebug("Proxy required (GLEXEC), limiting idle glideins to: %i" % prop_jobs['Idle'])
+
 
         # effective idle is how much more we need
         # if there are idle slots, subtract them, they should match soon
