@@ -51,6 +51,7 @@ STARTD.DAEMON_SHUTDOWN = ( \
     ((GLIDEIN_ToDie =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToDie )) || \
     ((Activity=="Idle") && \
      (TotalTimeUnclaimedIdle=!= UNDEFINED) && \
+     (TotalTimeClaimedBusy=!= UNDEFINED) && \
      (GLIDEIN_Max_Tail=!= UNDEFINED) && \
      (TotalTimeUnclaimedIdle > GLIDEIN_Max_Tail)) )
 
