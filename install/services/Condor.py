@@ -971,6 +971,9 @@ MAX_CONCURRENT_DOWNLOADS = 100
 
 #--  Prevent checking on ImageSize
 APPEND_REQ_VANILLA = (Memory>=1) && (Disk>=1)
+# New in 7.8.x
+JOB_DEFAULT_REQUESTMEMORY=1
+JOB_DEFAULT_REQUESTDISK=1
 
 #--  Prevent preemption
 MAXJOBRETIREMENTTIME = $(HOUR) * 24 * 7
