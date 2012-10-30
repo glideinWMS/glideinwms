@@ -352,9 +352,14 @@ JobFinishedHookDone,MATCH_EXP_JOBGLIDEIN_Site,RemoteHost<br/>
   </tr>
 
 <tr>
-  <td>APPEND_REQ_VANILLA = (Memory&gt;=1) && (Disk&gt;=1)
+  <td>APPEND_REQ_VANILLA = (Memory&gt;=1) && (Disk&gt;=1)<br/>
+      JOB_DEFAULT_REQUESTMEMORY=1<br/>
+      JOB_DEFAULT_REQUESTDISK=1<br/>
   </td>
-  <td>Prevent checking on ImageSize
+  <td>Prevent checking on ImageSize<br/>
+      With 7.8.+, the APPEND_REQ_VANILLA is replaced by the 
+      JOB_DEFAULT_REQUESTMEMORY/DISK attributes.<br/>
+      Having all 3 attributes defined does not present a problem.
   </td>
   </tr>
 
