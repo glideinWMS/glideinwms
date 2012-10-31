@@ -42,17 +42,19 @@ def write_file(mode,perm,filename,data,SILENT=False):
 #--------------------------
 def slurp_template(filename,dirname=None):
     data=""
+    f=None
     try: 
         try: 
             if dirname is not None:
-                f=open(os.path.join("templates",filename),"r")
-            else:
                 f=open(os.path.join(dirname,filename),"r")
-        except: Exception,e
+            else:
+                f=open(os.path.join("templates",filename),"r")
+        except Exception,e:
             logerr("Problem reading %s: %s" % (filename,e))
         data=f.read()
     finally:
-        f.close()
+        if f is not None:
+            f.close()
     return data
 
 #--------------------------
