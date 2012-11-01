@@ -1,0 +1,139 @@
+#!/usr/bin/env python
+
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#
+# Description:
+#   This tool creates symbolic links in the LSB standard places
+#   for all the relevant Condor files
+#
+# Author:
+#   Igor Sfiligoi @UCSD (Nov 2012)
+#
+# Part of the glideinWMS package
+#
+
+import sys,os
+
+def usage():
+    print "Usage:"
+    print " glidecondor_linkLSB condor_install_dir"
+    return
+
+def main(args):
+    if len(args)!=1:
+        usage()
+        sys.exit(1)
+
+    instdir=args[0]
+
+    if not os.path.isfile("%s/etc/condor_config"%instdir):
+        print "%s not a valid Condor installation directory"%instdir
+        print " Could not find %s/etc/condor_config\n"%instdir
+        usage()
+        sys.exit(1)
+
+    if not os.path.isfile("%s/condor.sh"%instdir):
+        print "%s not a valid Condor installation directory"%instdir
+        print " Could not find %s/condor.sh\n"%instdir
+        usage()
+        sys.exit(1)
+
+    if not os.path.isdir("%s/condor_local"%instdir):
+        print "%s not a valid Condor installation directory"%instdir
+        print " Could not find %s/condor_local\n"%instdir
+        usage()
+        sys.exit(1)
+
+    # Condor config will point to it, but not create it
+    for f in ("condor_local/config","certs"):
+        if not os.path.exists("%s/%s"%(instdir,f)):
+            try:
+                os.mkdir("%s/%s"%(instdir,f))
+            except OSError, e:
+                print "%s"%e
+                print "Aborting"
+                sys.exit(2)
+
+    # now, let's start linking the configs
+    if not os.path.exists("/etc/condor"):
+        try:
+            os.mkdir("/etc/condor")
+            print "Created /etc/condor"
+        except OSError, e:
+            print "%s"%e
+            print "Aborting"
+            sys.exit(2)
+            
+
+    # create config file links
+    for a in (("%s/etc/condor_config"%instdir,"/etc/condor/condor_config"),
+              ("%s/condor_local/config"%instdir,"/etc/condor/config.d"),
+              ("%s/certs"%instdir,"/etc/condor/certs")):
+        src,dst=a
+        if os.path.exists(dst):
+            # uhm... let's see if it is mine, else bail out
+            if not os.path.samefile(dst,src):
+                print "%s already exists, but not symlink to %s"%(dst,src)
+                print "Aborting!"
+                sys.exit(3)
+            else:
+                print "Found %s"%dst
+        else:
+            try:
+                os.symlink(src,dst)
+                print "Created %s"%dst
+            except OSError, e:
+                print "%s"%e
+                print "Aborting"
+                sys.exit(2)
+
+    src,dst=("%s/bin/condor_config_val"%instdir,"/usr/bin/condor_config_val")
+    if os.path.exists(dst):
+        if not os.path.samefile(dst,src):
+            # allow a different binary
+            # very likely it will still work, but issue a warning anyway"
+            print "Found %s but not our own copy - Warning: May not work properly"
+        else:
+            print "Found %s"%dst
+    else:
+        try:
+            os.symlink(src,dst)
+            print "Created %s"%dst
+        except OSError, e:
+            print "%s"%e
+            print "Aborting"
+            sys.exit(2)
+    
+                
+    # Allow the system to discover condor
+    for a in (("%s/etc/init.d/condor"%instdir,"/etc/init.d/condor"),
+              ("%s/condor.sh"%instdir,"/etc/profile.d/condor.sh"),
+              ("%s/condor.csh"%instdir,"/etc/profile.d/condor.csh")):
+        src,dst=a
+        if os.path.exists(dst):
+            # uhm... let's see if it is mine, else bail out
+            if not os.path.samefile(dst,src):
+                print "%s already exists, but not symlink to %s"%(dst,src)
+                print "Aborting!"
+                sys.exit(3)
+            else:
+                print "Found %s"%dst
+        else:
+            try:
+                os.symlink(src,dst)
+                print "Created %s"%dst
+            except OSError, e:
+                print "%s"%e
+                print "Aborting"
+                sys.exit(2)
+
+    # if we came here, things have worked fine
+    return
+        
+
+if __name__ == '__main__':
+    main(sys.argv[1:])

@@ -12,6 +12,8 @@ v2_6_2	Factory now supports glidein failure modes. This information is
 	  services
 	Improved logging when frontend fails to evaluate match expressions.
 	Monitoring pages changed to be even more compliant with DOM4
+	Improved the means for distributing condor config files for different
+	  condor services.
 	Improved documentation.
 	Bug Fix: Better handling of monitor dir during upgrade
 	Bug Fix: Factory correctlt handles frontend in downtime and now it does

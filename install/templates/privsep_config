@@ -1,0 +1,10 @@
+valid-caller-uids = gfactory
+valid-caller-gids = gfactory
+valid-target-uids = frontend
+valid-target-gids = frontend
+valid-dirs = /var/lib/gwms-factory/client-proxies
+valid-dirs = /var/lib/gwms-factory/client-logs
+valid-dirs = /var/log/gwms-factory/client
+valid-dirs = /var/lib/gwms-factory
+valid-dirs = /var/log/gwms-factory
+procd-executable = /usr/sbin/condor_procd
