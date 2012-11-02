@@ -794,8 +794,8 @@ exit $RETVAL
     type = "03_gwms_local"
     self.condor_config_data[type] +=  common.slurp_template(type+".config")
     str=self.condor_config_data[type]
-    str=re.sub("^CONDOR_IDS\s*=\s*(.*)$","CONDOR_IDS = %s" % self.condor_ids(),str,re.MULTIILINE)
-    str=re.sub("^CONDOR_ADMIN\s*=\s*(.*)$","CONDOR_ADMIN = %s" % self.admin_email(),str,re.MULTIILINE)
+    str=re.sub("\nCONDOR_IDS\s*=\s*(.*)\n","\nCONDOR_IDS = %s\n" % self.condor_ids(),str)
+    str=re.sub("\nCONDOR_ADMIN\s*=\s*(.*)\n","\nCONDOR_ADMIN = %s\n" % self.admin_email(),str)
     self.condor_config_data[type]=str
 
     type = "00_gwms_general"
@@ -806,19 +806,19 @@ exit $RETVAL
     #00_gwms_general already done in __condor_config_gwms_data__
     type ="00_gwms_general"
     if self.condor_version < "7.4":
-      self.condor_config_data[type] = re.sub("^ALLOW_WRITE\s*=\s*(.*)$","",self.condor_config_data[type],re.MULTIILINE)
+      self.condor_config_data[type] = re.sub("\nALLOW_WRITE\s*=\s*(.*)\n","",self.condor_config_data[type],str)
 
     type ="03_gwms_local"
     str=self.condor_config_data[type]
-    str=re.sub("^GSI_DAEMON_TRUSTED_CA_DIR\s*=\s*(.*)$","GSI_DAEMON_TRUSTED_CA_DIR = %s" % self.x509_cert_dir(),str,re.MULTIILINE)
+    str=re.sub("\nGSI_DAEMON_TRUSTED_CA_DIR\s*=\s*(.*)\n","\nGSI_DAEMON_TRUSTED_CA_DIR = %s\n" % self.x509_cert_dir(),str)
     if self.client_only_install == True:
-        str=re.sub("^CERTIFICATE_MAPFILE\s*=\s*(.*)$","CERTIFICATE_MAPFILE = ",str,re.MULTIILINE)
-        str=re.sub("^GSI_DAEMON_CERT\s*=\s*(.*)$","GSI_DAEMON_PROXY = %s"%self.x509_proxy(),str,re.MULTIILINE)
-        str=re.sub("^GSI_DAEMON_KEY\s*=\s*(.*)$","",str,re.MULTIILINE)
+        str=re.sub("\nCERTIFICATE_MAPFILE\s*=\s*(.*)\n","\nCERTIFICATE_MAPFILE = \n",str)
+        str=re.sub("\nGSI_DAEMON_CERT\s*=\s*(.*)\n","\nGSI_DAEMON_PROXY = %s\n"%self.x509_proxy(),str)
+        str=re.sub("\nGSI_DAEMON_KEY\s*=\s*(.*)\n","\n",str)
     else:
-        str=re.sub("^CERTIFICATE_MAPFILE\s*=\s*(.*)$","CERTIFICATE_MAPFILE = %s"% self.condor_mapfile(),str,re.MULTIILINE)
-        str=re.sub("^GSI_DAEMON_CERT\s*=\s*(.*)$","GSI_DAEMON_CERT = %s"% self.x509_cert(),str,re.MULTIILINE)
-        str=re.sub("^GSI_DAEMON_KEY\s*=\s*(.*)$","GSI_DAEMON_KEY = %s"% self.x509_key(),str,re.MULTIILINE)
+        str=re.sub("\nCERTIFICATE_MAPFILE\s*=\s*(.*)\n","\nCERTIFICATE_MAPFILE = %s\n"% self.condor_mapfile(),str)
+        str=re.sub("\nGSI_DAEMON_CERT\s*=\s*(.*)\n","\nGSI_DAEMON_CERT = %s\n"% self.x509_cert(),str)
+        str=re.sub("\nGSI_DAEMON_KEY\s*=\s*(.*)\n","\nGSI_DAEMON_KEY = %s\n"% self.x509_key(),str)
 
     self.condor_config_data[type]=str
  
@@ -848,10 +848,10 @@ exit $RETVAL
   def __condor_config_daemon_list__(self):
     type = "00_gwms_general"
     if self.client_only_install == True:
-        self.condor_config_data[type]=re.sub("^DAEMON_LIST\s*=\s*(.*)$","DAEMON_LIST",self.condor_config_data[type],re.MULTIILINE)
+        self.condor_config_data[type]=re.sub("\nDAEMON_LIST\s*=\s*(.*)\n","DAEMON_LIST",self.condor_config_data[type])
         self.condor_config_data[type]+="\nDAEMON_SHUTDOWN = True"
     else:
-        self.condor_config_data[type]=re.sub("^DAEMON_LIST\s*=\s*(.*)$","DAEMON_LIST=MASTER,%s"%self.daemon_list,self.condor_config_data[type],re.MULTIILINE)
+        self.condor_config_data[type]=re.sub("\nDAEMON_LIST\s*=\s*(.*)$","DAEMON_LIST=MASTER,%s\n"%self.daemon_list,self.condor_config_data[type])
 
   #-----------------------------
   def __condor_config_schedd_data__(self):
@@ -1003,8 +1003,8 @@ SUBMIT_EXPRS = $(SUBMIT_EXPRS) JOB_Site JOB_GLIDEIN_Entry_Name JOB_GLIDEIN_Name 
     type = "01_gwms_collectors"
     if self.daemon_list.find("COLLECTOR") >= 0:
         self.condor_config_data[type] +=  common.slurp_template(type+".config")
-        self.condor_config_data[type]=re.sub("^COLLECTOR_NAME\s*=\s*(.*)$","COLLECTOR_NAME = %s" % self.service_name(),self.condor_config_data[type],re.MULTIILINE)
-        self.condor_config_data[type]=re.sub("^COLLECTOR_HOST\s*=\s*(.*)$","COLLECTOR_NAME = $(CONDOR_HOST):%s" % self.collector_port(),self.condor_config_data[type],re.MULTIILINE)
+        self.condor_config_data[type]=re.sub("\nCOLLECTOR_NAME\s*=\s*(.*)\n","COLLECTOR_NAME = %s" % self.service_name(),self.condor_config_data[type])
+        self.condor_config_data[type]=re.sub("\nCOLLECTOR_HOST\s*=\s*(.*)\n","COLLECTOR_NAME = $(CONDOR_HOST):%s" % self.collector_port(),self.condor_config_data[type])
     else: # no collector, identifies one to use
       self.condor_config_data[type]  += """
 ####################################
@@ -1036,11 +1036,11 @@ COLLECTOR%(nbr)i_ARGS = -f -p %(port)i
         "port" : self.secondary_collector_ports()[nbr]
       }
 
-    daemon_string="DAEMON_LIST = $(DAEMON_LIST)"
+    daemon_string="\nDAEMON_LIST = $(DAEMON_LIST)"
     for nbr in range(int(self.secondary_collectors())):
         daemon_string += " COLLECTOR%i" % nbr
 
-    self.condor_config_data[type]=re.sub("^DAEMON_LIST\s*=\s*(.*)$",daemon_string,self.condor_config_data[type],re.MULTIILINE)
+    self.condor_config_data[type]=re.sub("\nDAEMON_LIST\s*=\s*(.*)\n",daemon_string+"\n",self.condor_config_data[type])
 
 
 
