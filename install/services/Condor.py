@@ -1003,8 +1003,8 @@ SUBMIT_EXPRS = $(SUBMIT_EXPRS) JOB_Site JOB_GLIDEIN_Entry_Name JOB_GLIDEIN_Name 
     type = "01_gwms_collectors"
     if self.daemon_list.find("COLLECTOR") >= 0:
         self.condor_config_data[type] +=  common.slurp_template(type+".config")
-        self.condor_config_data[type]=re.sub("\nCOLLECTOR_NAME\s*=\s*(.*)\n","COLLECTOR_NAME = %s" % self.service_name(),self.condor_config_data[type])
-        self.condor_config_data[type]=re.sub("\nCOLLECTOR_HOST\s*=\s*(.*)\n","COLLECTOR_NAME = $(CONDOR_HOST):%s" % self.collector_port(),self.condor_config_data[type])
+        self.condor_config_data[type]=re.sub("\nCOLLECTOR_NAME\s*=\s*(.*)\n","\nCOLLECTOR_NAME = %s\n" % self.service_name(),self.condor_config_data[type])
+        self.condor_config_data[type]=re.sub("\nCOLLECTOR_HOST\s*=\s*(.*)\n","\nCOLLECTOR_HOST = $(CONDOR_HOST):%s\n" % self.collector_port(),self.condor_config_data[type])
     else: # no collector, identifies one to use
       self.condor_config_data[type]  += """
 ####################################
@@ -1022,6 +1022,7 @@ COLLECTOR_HOST = $(CONDOR_HOST):%(port)s
       return  # no collector daemon
     if self.secondary_collectors() == 0:
       return   # no secondary collectors
+    type = "01_gwms_collectors"
     
     num_collectors=self.secondary_collectors()
 
@@ -1036,11 +1037,13 @@ COLLECTOR%(nbr)i_ARGS = -f -p %(port)i
         "port" : self.secondary_collector_ports()[nbr]
       }
 
-    daemon_string="\nDAEMON_LIST = $(DAEMON_LIST)"
+    daemon_string="\nDAEMON_LIST = $(DAEMON_LIST) COLLECTOR NEGOTIATOR"
     for nbr in range(int(self.secondary_collectors())):
         daemon_string += " COLLECTOR%i" % nbr
 
-    self.condor_config_data[type]=re.sub("\nDAEMON_LIST\s*=\s*(.*)\n",daemon_string+"\n",self.condor_config_data[type])
+    #Replace DAEMON_LIST strings with one at the end
+    self.condor_config_data[type]=re.sub("\nDAEMON_LIST\s*=\s*(.*)\n","\n",self.condor_config_data[type])
+    self.condor_config_data[type]+="\n"+daemon_string+"\n"
 
 
 
