@@ -16,6 +16,7 @@
 #
 
 import sys,os,os.path
+import subprocess
 import stat
 import time
 import re
@@ -27,8 +28,29 @@ import condorExe
 
 def usage():
     print "Usage:"
-    print " glidecondor_addDN [-daemon comment] DN user"
+    print " glidecondor_addDN [-daemon comment] DN|file user"
     return
+
+def extract_DN(fname):
+    oss_fname=None
+    oss_possibilities=['/usr/bin/openssl','/bin/openssl']
+    for f in oss_possibilities:
+        if os.path.isfile(f):
+            oss_fname=f
+            break
+        pass
+    if oss_fname is None:
+        raise IOError,"Could not find openssl... looked in %s"%str(oss_possibilities)
+    
+    p=subprocess.Popen([oss_fname,'x509','-in',fname,'-noout','-subject'],stdout=subprocess.PIPE)
+    rc=p.wait()
+    if rc!=0:
+        raise IOError,"openssl failed while reading %s"%fname
+    dn=p.communicate()[0][9:-1] #strip additional chars openssl puts in
+    while dn[-9:]=='/CN=proxy':
+        dn=dn[:-9]
+    return dn
+
 
 def parse_args(args):
     daemon_comment=None
@@ -52,6 +74,13 @@ def parse_args(args):
         sys.exit(1)
     dn=args[0]
     user=args[1]
+
+    if os.path.isfile(dn):
+        # not a DN... it is really a file
+        # extract the DN
+        dn=extract_DN(dn)
+        print "Using DN '%s'"%dn
+    
     return {'is_daemon_dn':(daemon_comment!=None),'daemon_comment':daemon_comment,'dn':dn,'user':user}
 
 def check_config(fname):
