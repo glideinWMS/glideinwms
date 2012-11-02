@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v2_6_2_rc2
+# GLIDEINWMS_VERSION v2_6_2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 c17183dd58915198f2082d2e7d0a70b4  ./creation/add_entry
@@ -27,8 +27,8 @@ e59bb78a8aba36d0d8691b5f9e4ebf4f  ./creation/lib/cWConsts.py
 40a2b85a853a072f65049c4efe64bc3a  ./creation/web_base/check_blacklist.sh
 63c09f1369fb7e7f6ef00e6aa418a6c5  ./creation/web_base/collector_setup.sh
 15ddf1a62befe3f3e1fd4cd02a692b4b  ./creation/web_base/condor_config
-77944d9746c7fb3711506d26fc7d8621  ./creation/web_base/condor_config.check.include
-350bd086b1f26119358194bbb196dff2  ./creation/web_base/condor_config.dedicated_starter.include
+a6c59391de9725d677a8ab096fb83332  ./creation/web_base/condor_config.check.include
+e10703fea90b6803c5d8ee15ed6f7cce  ./creation/web_base/condor_config.dedicated_starter.include
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
 f9a71916006e1a7f7778966628b0b232  ./creation/web_base/condor_config.multi_schedd.include
 e045ab0b0412b0e990c55e42d6b8fbe4  ./creation/web_base/condor_platform_select.sh
@@ -121,11 +121,11 @@ a9936d0fa9d7a379ece0a124c87abf70  ./frontend/stopFrontend.py
 f7cf8249a96ace18bcfab34cf294aefb  ./install/glidecondor_addDN
 14348bd468664cec9c8632407842604b  ./install/glidecondor_upgrade
 ac0a334763d78ab1abe1148209625a94  ./install/glideinWMS.ini
-61df691da0ada698d0393b5894135467  ./install/glideinWMS_install
+77ac6f38d202103c288fab35e09af219  ./install/glideinWMS_install
 78cfd20fffe0437fa98e8b62126529d8  ./install/manage-glideins
 c28500eff80118aea9681aed5f8b318f  ./install/services/Certificates.py
 6966d0ea38f24a3c5a617738374bd0b0  ./install/services/common.py
-52abd70995db66a578e5c6e39045ab75  ./install/services/Condor.py
+d4a68da3000d36dd2f844d80bc292dcf  ./install/services/Condor.py
 2815d4e3a344ae0c202c598c51d418f6  ./install/services/Configuration.py
 fa4bf4a1a1186aed2ed42d29ec73cf39  ./install/services/Factory.py
 b83383c6b13480374888523c1b2e1b7c  ./install/services/Glidein.py
