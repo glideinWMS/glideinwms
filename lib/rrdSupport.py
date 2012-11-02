@@ -529,7 +529,7 @@ def string_quote_join(arglist):
 # python module, if that one is not available
 class rrdtool_exe:
     def __init__(self):
-        self.rrd_bin = subprocessSupport.iexe_cmd("which rrdtool")[0][:-1]
+        self.rrd_bin = (subprocessSupport.iexe_cmd("which rrdtool")[0]).strip()
 
     def create(self,*args):
         cmdline = '%s create %s'%(self.rrd_bin,string_quote_join(args))
