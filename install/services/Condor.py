@@ -1015,6 +1015,11 @@ COLLECTOR_HOST = $(CONDOR_HOST):%(port)s
 """ % { "host" : self.option_value("UserCollector","hostname"),
         "port" : self.option_value("UserCollector","collector_port"),
       }
+    daemon_string="\nDAEMON_LIST = $(DAEMON_LIST) COLLECTOR NEGOTIATOR"
+
+    #Replace DAEMON_LIST strings with one at the end
+    self.condor_config_data[type]=re.sub("\nDAEMON_LIST\s*=\s*(.*)\n","\n",self.condor_config_data[type])
+    self.condor_config_data[type]+="\n"+daemon_string+"\n"
 
   #-----------------------------
   def __condor_config_secondary_collector_data__(self):
