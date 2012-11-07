@@ -55,6 +55,10 @@ def extract_condor_info():
     local_dir=get_config_val('LOCAL_DIR')
     global log_dir
     log_dir=get_config_val('LOG')
+    global schedlog
+    schedlog=get_config_val('SCHEDD_LOG')
+    global shadowlog
+    shadowlog=get_config_val('SHADOW_LOG')
 
     global shport_ad
     shport_ad=get_config_val('SHARED_PORT_DAEMON_AD_FILE')
@@ -77,15 +81,17 @@ def add_schedd(schedd,config_fd):
     env_arr.append(("_CONDOR_LOCK","%(localdir)s/%(schedd)s/lock"))
     global common_log
     if common_log:
-        env_arr.append(("_CONDOR_SCHEDD_LOG","%(logdir)s/SchedLog.%(schedd)s"))
-        env_arr.append(("_CONDOR_SHADOW_LOG","%(logdir)s/ShadowLog.%(schedd)s"))
+        env_arr.append(("_CONDOR_SCHEDD_LOG","%(schedlog)s.%(schedd)s"))
+        env_arr.append(("_CONDOR_SHADOW_LOG","%(shadowlog)s.%(schedd)s"))
 
     
     condor_env_arr=[]
     for a in env_arr:
         # convert in key=value pair
         # use Condor valriables in the value part
-        condor_env_arr.append("%s=%s"%(a[0],a[1]%{'schedd':schedd,'localdir':'$(LOCAL_DIR)','logdir':'$(LOG)'}))
+        condor_env_arr.append("%s=%s"%(a[0],a[1]%{'schedd':schedd,
+                                                  'localdir':'$(LOCAL_DIR)','logdir':'$(LOG)',
+                                                  'schedlog':'$(SCHEDD_LOG)','shadowlog':'$(SHADOW_LOG)'}))
 
     expenv_str='%(attrname)s_EXPENV = '%{'attrname':attrname}
     condor_env_str=string.join(condor_env_arr," \\\n"+(" "*len(expenv_str)))
@@ -102,14 +108,16 @@ def add_schedd(schedd,config_fd):
         # then run condor_init with the modified environment
         config_fd.flush() # let's just make sure we don't have a patial -> invalid file
 
-        global local_dir,log_dir
+        global local_dir,log_dir,schedlog,shadowlog
         # we must start with the old environemnt
         sp_env_dict=copy.deepcopy(os.environ)
         # and just add the new attributes to it
         for a in env_arr:
             # environment is a dictionary
             # use actual paths in the val part
-            sp_env_dict[a[0]]=a[1]%{'schedd':schedd,'localdir':local_dir,'logdir':log_dir}
+            sp_env_dict[a[0]]=a[1]%{'schedd':schedd,
+                                    'localdir':local_dir,'logdir':log_dir,
+                                    'schedlog':schedlog,'shadowlog':shadowlog}
         # then add the shport part
         global shport_ad,shport_sock
         sp_env_dict['_CONDOR_SHARED_PORT_DAEMON_AD_FILE']=shport_ad
@@ -156,20 +164,38 @@ def create_config(fname,schedds):
 
     fd.close()
 
-def main(args):
-    global common_log, create_dirs
-
-    if len(args)!=1:
-        usage()
-        sys.exit(1)
+def parse_args(args):
+    global common_log, create_dirs,schedds
 
     common_log=False
     create_dirs=True
 
+    if len(args)<1:
+        usage()
+        sys.exit(1)
+
+    if args[0]=='-h':
+        usage()
+        sys.exit(0)
+
+    while len(args)>1:
+        if args[0]=='-commonlog':
+            common_log=True
+        elif args[0]=='-nocreatedirs':
+            create_dirs=False
+        else:
+            print "Unknown option %s"%args[0]
+            usage()
+            sys.exit(1)
+        args=args[1:]
+        
     schedd_list_str=args[0]
     schedds=schedd_list_str.split(',')
 
-
+def main(args):
+    global common_log, create_dirs, schedds
+    parse_args(args)
+    
     extract_condor_info()
     global config_dir
     conf_fname=os.path.join(config_dir,"11_gwms_secondary_schedds.config")
