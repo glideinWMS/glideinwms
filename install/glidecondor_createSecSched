@@ -28,7 +28,7 @@ def usage():
     print "  glidecondor_createSecSched schedd_glideins1,schedd_glideins2"
     return
 
-def get_condir_val(attr, fail_if_missing=True):
+def get_config_val(attr, fail_if_missing=True):
     try:
         p=subprocess.Popen(['condor_config_val',attr],stdout=subprocess.PIPE)
     except OSError, e:
@@ -50,16 +50,16 @@ def get_condir_val(attr, fail_if_missing=True):
 
 def extract_condor_info():
     global config_dir
-    config_dir=get_condir_val('LOCAL_CONFIG_DIR')
+    config_dir=get_config_val('LOCAL_CONFIG_DIR')
     global local_dir
-    local_dir=get_condir_val('LOCAL_DIR')
+    local_dir=get_config_val('LOCAL_DIR')
     global log_dir
-    log_dir=get_condir_val('LOG')
+    log_dir=get_config_val('LOG')
 
     global shport_ad
-    shport_ad=get_condir_val('SHARED_PORT_DAEMON_AD_FILE')
+    shport_ad=get_config_val('SHARED_PORT_DAEMON_AD_FILE')
     global shport_sock
-    shport_sock=get_condir_val('DAEMON_SOCKET_DIR')
+    shport_sock=get_config_val('DAEMON_SOCKET_DIR')
 
 def add_schedd(schedd,config_fd):
     # first populate the config file
