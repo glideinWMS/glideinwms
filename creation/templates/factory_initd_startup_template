@@ -194,15 +194,15 @@ case $1 in
         restart
         ;;
     status)
-        $glideinWMS_dir/factory/checkFactory.py" "$factory_dir"
+        $glideinWMS_dir/factory/checkFactory.py $factory_dir
         RETVAL=$?
         ;;
     info)
         shift
-        $glideinWMS_dir/creation/info_glidein" $@ "$factory_dir/glideinWMS.xml"
+        $glideinWMS_dir/creation/info_glidein $@ $factory_dir/glideinWMS.xml
         RETVAL=$?
         ;;
-	reconfig)
+    reconfig)
         reconfig "$@"
         ;;
     upgrade)
