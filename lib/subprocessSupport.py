@@ -52,9 +52,15 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
                                    stderr=subprocess.PIPE,
                                    env=child_env)
 
-        # GOTCHA: stdin should be buffered in memoryr. Python docs suggest
-        #         not to use this method if the data size is large or unlimited
-        #         What's safe to use in all cases?
+        # GOTCHAS:
+        # 1) stdin should be buffered in memory.
+        # 2) Python docs suggest not to use communicate if the data size is 
+        #    large or unlimited. With large or unlimited stdout and stderr
+        #    communicate at best starts trashing. So far testing for 1000000
+        #    stdout/stderr lines are ok
+        # 3) Do not use communicate when you are dealing with multiple threads
+        #    or processes at same time. It will serialize the process voiding
+        #    any benefits from multiple processes
         stdoutdata, stderrdata = process.communicate(input=stdin_data)
         exitStatus = process.returncode
 
