@@ -137,11 +137,11 @@ def findWork(factory_name, glidein_name, entry_name,
     
     status_constraint='(GlideinMyType=?="%s") && (ReqGlidein=?="%s@%s@%s")'%(factoryConfig.client_id,entry_name,glidein_name,factory_name)
 
-    if supported_signtypes!=None:
+    if supported_signtypes is not None:
         status_constraint+=' && stringListMember(%s%s,"%s")'%(factoryConfig.client_web_prefix,factoryConfig.client_web_signtype_suffix,string.join(supported_signtypes,","))
 
     if get_only_matching:
-        if pub_key_obj!=None:
+        if pub_key_obj is not None:
             # get only classads that have my key or no key at all
             # any other key will not work
             status_constraint+=' && (((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined) && (ReqEncIdentity=!=Undefined)) || (ReqPubKeyID=?=Undefined))'%pub_key_obj.get_pub_key_id()
@@ -152,7 +152,7 @@ def findWork(factory_name, glidein_name, entry_name,
                 # the proxy is not allowed, so ignore such requests 
                 status_constraint+=' && (GlideinEncParamx509_proxy =?= UNDEFINED) && (GlideinEncParamx509_proxy_0 =?= UNDEFINED)'
 
-    if additional_constraints!=None:
+    if additional_constraints is not None:
         status_constraint="(%s)&&(%s)"%(status_constraint,additional_constraints)
 
     status=condorMonitor.CondorStatus("any")
@@ -202,7 +202,7 @@ def findWork(factory_name, glidein_name, entry_name,
                     continue # skip reserved names
                 if attr[:plen]==prefix:
                     el[key][attr[plen:]]=kel[attr]
-        if pub_key_obj!=None:
+        if pub_key_obj is not None:
             if kel.has_key('ReqPubKeyID'):
                 try:
                     sym_key_obj=pub_key_obj.extract_sym_key(kel['ReqEncKeyCode'])
@@ -216,7 +216,7 @@ def findWork(factory_name, glidein_name, entry_name,
         else:
             sym_key_obj=None # have no key, will not decrypt
 
-        if sym_key_obj!=None:
+        if sym_key_obj is not None:
             try:
                 enc_identity=sym_key_obj.decrypt_hex(kel['ReqEncIdentity'])
             except:
@@ -235,7 +235,7 @@ def findWork(factory_name, glidein_name, entry_name,
                     continue # skip reserved names
                 if attr[:plen]==prefix:
                     el[key][attr[plen:]]=None # define it even if I don't understand the content
-                    if sym_key_obj!=None:
+                    if sym_key_obj is not None:
                         try:
                             el[key][attr[plen:]]=sym_key_obj.decrypt_hex(kel[attr])
                         except:
@@ -310,11 +310,11 @@ def advertizeGlidein(factory_name, glidein_name, entry_name,
             fd.write('GlideinName = "%s"\n'%glidein_name)
             fd.write('EntryName = "%s"\n'%entry_name)
             fd.write('%s = "%s"\n'%(factoryConfig.factory_signtype_id,string.join(supported_signtypes,',')))
-            if pub_key_obj!=None:
+            if pub_key_obj is not None:
                 fd.write('PubKeyID = "%s"\n'%pub_key_obj.get_pub_key_id())
                 fd.write('PubKeyType = "%s"\n'%pub_key_obj.get_pub_key_type())
                 fd.write('PubKeyValue = "%s"\n'%string.replace(pub_key_obj.get_pub_key_value(),'\n','\\n'))
-                if allowed_proxy_source!=None:
+                if allowed_proxy_source is not None:
                     fd.write('GlideinAllowx509_Proxy = %s\n'%('frontend' in allowed_proxy_source))
                     fd.write('GlideinRequirex509_Proxy = %s\n'%(not ('factory' in allowed_proxy_source)))
             fd.write('DaemonStartTime = %li\n'%start_time)

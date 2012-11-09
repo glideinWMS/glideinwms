@@ -121,7 +121,7 @@ class GlideinKey:
             except ImportError:
                 from md5 import md5
 
-            if key_fname==None:
+            if key_fname is None:
                 key_fname='rsa.key'
 
             self.rsa_key=pubCrypto.RSAKey(key_fname=key_fname)
@@ -174,7 +174,7 @@ class GlideinDescript(ConfigFile):
         Backup existing key and load the key object
         """
  
-        if self.data['PubKeyType'] != None:
+        if self.data['PubKeyType'] is not None:
             self.backup_rsa_key()
         self.load_old_rsa_key()
                 
@@ -206,7 +206,7 @@ class GlideinDescript(ConfigFile):
         self.data['OldPubKeyType'] = self.data['PubKeyType']
         self.data['OldPubKeyObj'] = None
 
-        if self.data['OldPubKeyType'] != None:
+        if self.data['OldPubKeyType'] is not None:
             try:
                 self.data['OldPubKeyObj'] = GlideinKey(self.data['OldPubKeyType'],
                                                        key_fname=self.backup_rsakey_fname)
@@ -234,7 +234,7 @@ class GlideinDescript(ConfigFile):
         @param recreate: Create a new key overwriting the old one. Defaults to False
         """
         
-        if self.data['PubKeyType']!=None:
+        if self.data['PubKeyType']is not None:
             self.data['PubKeyObj']=GlideinKey(self.data['PubKeyType'], 
                                               key_fname=self.default_rsakey_fname,
                                               recreate=recreate)

@@ -73,23 +73,23 @@ def chowntree(base_dir,subdir,old_user,new_user):
 def execute(target_user,init_dir,exe,args=None,env=None,
             stdin_fname=None,stdout_fname="-",stderr_fname=None):
     other=""
-    if args!=None:
+    if args is not None:
         for arg in args:
             arg=str(arg) #get rid of unicode
             other+="\nexec-arg<%d>\n%s"%(len(arg),arg)
-    if env!=None:
+    if env is not None:
         for el in env:
             el=str(el) #get rid of unicode
             other+="\nexec-env<%d>\n%s"%(len(el),el)
     if stdin_fname!=None:
         other+="\nexec-stdin=%s"%stdin_fname
-    if stdout_fname!=None:
+    if stdout_fname is not None:
         if stdout_fname=='-':
             # special case, pass through
             other+="\nexec-keep-open-fd=1"
         else:
             other+="\nexec-stdout=%s"%stdout_fname
-    if stderr_fname!=None:
+    if stderr_fname is not None:
         other+="\nexec-stderr=%s"%stderr_fname
 
     return exe_privsep("exec","user-uid=%s\nexec-init-dir=%s\nexec-path=%s%s"%(target_user,init_dir,exe,other))
@@ -102,7 +102,7 @@ def execute(target_user,init_dir,exe,args=None,env=None,
 #  but stderr can only be redirected to a file (no way to pass it through)
 def condor_execute(target_user,init_dir,condor_exe,args,
                    stdin_fname=None,stdout_fname="-",stderr_fname=None):
-    if condorExe.condor_bin_path==None:
+    if condorExe.condor_bin_path is None:
         raise UnconfigError, "condor_bin_path is undefined!"
     condor_exe_path=os.path.join(condorExe.condor_bin_path,condor_exe)
 

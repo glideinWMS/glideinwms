@@ -70,7 +70,7 @@ def get_Compressed_raw(log_fname,start_str):
         try:
             # first find the header that delimits the log in the file
             start_re=SL_START_RE.search(buf,0)
-            if start_re==None:
+            if start_re is None:
                 return "" #no StartLog section
             log_start_idx=start_re.end()
 
@@ -111,13 +111,13 @@ def get_Simple(log_fname,start_str,end_str):
         try:
             # first find the header that delimits the log in the file
             start_re=SL_START_RE.search(buf,0)
-            if start_re==None:
+            if start_re is None:
                 return "" #no StartLog section
             log_start_idx=start_re.end()
 
             # find where it ends
             log_end_idx=SL_END_RE.search(buf,log_start_idx)
-            if log_end_idx==None: # up to the end of the file
+            if log_end_idx is None: # up to the end of the file
                 return buf[log_start_idx:]
             else:
                 return buf[log_start_idx:log_end_idx.start()]

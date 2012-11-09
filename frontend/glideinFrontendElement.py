@@ -134,7 +134,7 @@ def expand_DD(qstr,attr_dict):
     robj=re.compile("\$\$\((?P<attrname>[^\)]*)\)")
     while 1:
         m=robj.search(qstr)
-        if m==None:
+        if m is None:
             break # no more substitutions to do
         attr_name=m.group('attrname')
         if not attr_dict.has_key(attr_name):
@@ -175,9 +175,9 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
                 factory_identity=factory_pool[1]
                 my_identity_at_factory_pool=factory_pool[2]
                 try:
-                    factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,None,signatureDescript.signature_type,factory_constraint,x509_proxy_plugin!=None,get_only_matching=True)
+                    factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,None,signatureDescript.signature_type,factory_constraint,x509_proxy_plugin is not None,get_only_matching=True)
                 except RuntimeError,e:
-                    if factory_pool_node!=None:
+                    if factory_pool_node is not None:
                         glideinFrontendLib.log_files.logWarning("Failed to talk to factory_pool %s. See debug log for more details."%factory_pool_node)
                         glideinFrontendLib.log_files.logDebug("Failed to talk to factory_pool %s: %s"%(factory_pool_node, e))
                     else:
@@ -222,7 +222,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
         os.close(r)
         try:
             condorq_format_list=elementDescript.merged_data['JobMatchAttrs']
-            if x509_proxy_plugin!=None:
+            if x509_proxy_plugin is not None:
                 condorq_format_list=list(condorq_format_list)+list(x509_proxy_plugin.get_required_job_attributes())
 
             ### Add in elements to help in determining if jobs have voms creds
@@ -254,7 +254,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
         os.close(r)
         try:
             status_format_list=[]
-            if x509_proxy_plugin!=None:
+            if x509_proxy_plugin is not None:
                 status_format_list=list(status_format_list)+list(x509_proxy_plugin.get_required_classad_attributes())
 
             # use the main collector... all adds must go there
@@ -362,7 +362,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
 
     # get the proxy
     x509_proxies_data=None
-    if x509_proxy_plugin!=None:
+    if x509_proxy_plugin is not None:
         proxy_security_classes=elementDescript.merged_data['ProxySecurityClasses']
         x509_proxy_list=x509_proxy_plugin.get_proxies(condorq_dict,condorq_dict_types,
                                                       status_dict,status_dict_types)

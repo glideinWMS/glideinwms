@@ -48,7 +48,7 @@ def main(params,flags):
                 outstr+=" schedd: '%s'"%entry_el.data['schedd_name']
             if "CE" in flags:
                 outstr+=" gridtype: '%s' gatekeeper: '%s'"%(entry_el.data['gridtype'],entry_el.data['gatekeeper'])
-                if entry_el.data['rsl']!=None:
+                if entry_el.data['rsl'] is not None:
                     outstr+=" rsl: '%s'"%entry_el.data['gridtype']
                 
             print "\tEntry '%s'\t%s"%(entry_name,outstr)

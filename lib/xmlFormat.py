@@ -67,7 +67,7 @@ DEFAULT_IGNORE_NONES=False
 SIMPLE_TYPES=(types.IntType,types.LongType,types.FloatType,types.BooleanType)+types.StringTypes
 
 def xml_quoteattr(el):
-    if el==None:
+    if el is None:
         val = '"None"'
     elif type(el) in types.StringTypes:
         val = xml.sax.saxutils.quoteattr(el)
@@ -108,7 +108,7 @@ def class2head(inst,inst_name,params,dicts_params,lists_params,tree_params,text_
     params_keys.sort()
     for attr in params_keys:
         el = params[attr]
-        if el==None:
+        if el is None:
             if DEFAULT_IGNORE_NONES:
                 continue # ignore nones
             else:
@@ -126,7 +126,7 @@ def class2head(inst,inst_name,params,dicts_params,lists_params,tree_params,text_
         keys = dir(inst)
     for attr in keys:
         el = inst[attr]
-        if el==None:
+        if el is None:
             if DEFAULT_IGNORE_NONES:
                 continue # ignore nones
             else:
@@ -184,13 +184,13 @@ def class2string(inst,inst_name,params={},subclass_params={},dicts_params=None,l
         else: # if attr not explicitly specified, use default behaviour
             return complete_class_params({})
 
-    if dicts_params==None:
+    if dicts_params is None:
         dicts_params=DEFAULT_DICTS_PARAMS
-    if lists_params==None:
+    if lists_params is None:
         lists_params=DEFAULT_LISTS_PARAMS
-    if tree_params==None:
+    if tree_params is None:
         tree_params=DEFAULT_TREE_PARAMS
-    if text_params==None:
+    if text_params is None:
         text_params=DEFAULT_TEXT_PARAMS
 
     head_str,is_complete,inst_attrs,dict_attrs,list_attrs,tree_attrs,text_attrs = class2head(inst,inst_name,params,dicts_params,lists_params,tree_params,text_params,leading_tab,debug_str)
@@ -228,13 +228,13 @@ def class2file(fd,inst,inst_name,params={},subclass_params={},dicts_params=None,
         else: # if attr not explicitly specified, use default behaviour
             return complete_class_params({})
 
-    if dicts_params==None:
+    if dicts_params is None:
         dicts_params=DEFAULT_DICTS_PARAMS
-    if lists_params==None:
+    if lists_params is None:
         lists_params=DEFAULT_LISTS_PARAMS
-    if tree_params==None:
+    if tree_params is None:
         tree_params=DEFAULT_TREE_PARAMS
-    if text_params==None:
+    if text_params is None:
         text_params=DEFAULT_TEXT_PARAMS
         
     head_str,is_complete,inst_attrs,dict_attrs,list_attrs,tree_attrs,text_attrs = class2head(inst,inst_name,params,dicts_params,lists_params,tree_params,text_params,leading_tab,debug_str)
@@ -274,7 +274,7 @@ def complete_dict_params(dict_params):
 # Convert a dictionary into an XML string
 # all elements should be of the same type, although this is not enforced
 def dict2string(dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,params={},subtypes_params={},indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
-    if el_attr_name==None:
+    if el_attr_name is None:
         el_attr_name=DEFAULT_EL_ATTR_NAME
 
     res_arr= []
@@ -285,7 +285,7 @@ def dict2string(dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,p
     params_keys.sort()
     for attr in params_keys:
         el = params[attr]
-        if el==None:
+        if el is None:
             if DEFAULT_IGNORE_NONES:
                 continue # ignore nones
             else:
@@ -309,8 +309,8 @@ def dict2string(dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,p
     for idx in keys:
         el = dict[idx]
         if ((type(el) in SIMPLE_TYPES) or
-            (el==None)):
-            if el==None:
+            (el is None)):
+            if el is None:
                 if DEFAULT_IGNORE_NONES:
                     continue # ignore nones
             val=xml_quoteattr(el)
@@ -353,7 +353,7 @@ def dict2string(dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,p
 # Write a dictionary formatted as XML into an open file
 # all elements should be of the same type, although this is not enforced
 def dict2file(fd,dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,params={},subtypes_params={},indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
-    if el_attr_name==None:
+    if el_attr_name is None:
         el_attr_name=DEFAULT_EL_ATTR_NAME
 
     head_arr = []
@@ -362,7 +362,7 @@ def dict2file(fd,dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,
     params_keys.sort()
     for attr in params_keys:
         el = params[attr]
-        if el==None:
+        if el is None:
             if DEFAULT_IGNORE_NONES:
                 continue # ignore nones
             else:
@@ -386,8 +386,8 @@ def dict2file(fd,dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,
     for idx in keys:
         el = dict[idx]
         if ((type(el) in SIMPLE_TYPES) or
-            (el==None)):
-            if el==None:
+            (el is None)):
+            if el is None:
                 if DEFAULT_IGNORE_NONES:
                     continue # ignore nones
             val=xml_quoteattr(el)
@@ -441,7 +441,7 @@ def complete_list_params(list_params):
 # Do not show the indexes, use dict2string if that is needed
 # all elements should be of the same type, although this is not enforced
 def list2string(list,list_name,el_name,el_attr_name=None,params={},subtypes_params={},indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
-    if el_attr_name==None:
+    if el_attr_name is None:
         el_attr_name=DEFAULT_EL_ATTR_NAME
 
     res_arr= []
@@ -452,7 +452,7 @@ def list2string(list,list_name,el_name,el_attr_name=None,params={},subtypes_para
     params_keys.sort()
     for attr in params_keys:
         el = params[attr]
-        if el==None:
+        if el is None:
             if DEFAULT_IGNORE_NONES:
                 continue # ignore nones
             else:
@@ -475,8 +475,8 @@ def list2string(list,list_name,el_name,el_attr_name=None,params={},subtypes_para
 
     for el in els:
         if ((type(el) in SIMPLE_TYPES) or
-            (el==None)):
-            if el==None:
+            (el is None)):
+            if el is None:
                 if DEFAULT_IGNORE_NONES:
                     continue # ignore nones
             val=xml_quoteattr(el)
@@ -519,7 +519,7 @@ def list2string(list,list_name,el_name,el_attr_name=None,params={},subtypes_para
 # Do not show the indexes, use dict2file if that is needed
 # all elements should be of the same type, although this is not enforced
 def list2file(fd,list,list_name,el_name,el_attr_name=None,params={},subtypes_params={},indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
-    if el_attr_name==None:
+    if el_attr_name is None:
         el_attr_name=DEFAULT_EL_ATTR_NAME
 
     head_arr = []
@@ -528,7 +528,7 @@ def list2file(fd,list,list_name,el_name,el_attr_name=None,params={},subtypes_par
     params_keys.sort()
     for attr in params_keys:
         el = params[attr]
-        if el==None:
+        if el is None:
             if DEFAULT_IGNORE_NONES:
                 continue # ignore nones
             else:
@@ -551,8 +551,8 @@ def list2file(fd,list,list_name,el_name,el_attr_name=None,params={},subtypes_par
 
     for el in els:
         if ((type(el) in SIMPLE_TYPES) or
-            (el==None)):
-            if el==None:
+            (el is None)):
+            if el is None:
                 if DEFAULT_IGNORE_NONES:
                     continue # ignore nones
             val=xml_quoteattr(el)

@@ -36,7 +36,7 @@ class LDAPQuery:
     # load from LDAP and print out
     # do not store locally
     def fetch(self,additional_filter_str=None):
-        if additional_filter_str==None:
+        if additional_filter_str is None:
             additional_filter_str=""
 
         filter_str="(%s%s)"%(self.filter_str,additional_filter_str)
@@ -64,7 +64,7 @@ class BDIICEQuery(LDAPQuery):
     def __init__(self,
                  bdii_url,bdii_port=2170,     # where to find LDAP server
                  additional_filter_str=None,base_string="Mds-vo-name=local,o=grid"): # what to read
-        if additional_filter_str==None:
+        if additional_filter_str is None:
             additional_filter_str=""
             
         filter_str="&(GlueCEInfoContactString=*)%s"%additional_filter_str
@@ -82,7 +82,7 @@ class BDIICEQuery(LDAPQuery):
         
     def filterStatus(self, usable=True):
         old_data=self.stored_data
-        if old_data==None:
+        if old_data is None:
             raise RuntimeError, "No data loaded"
         new_data={}
         for k in old_data.keys():

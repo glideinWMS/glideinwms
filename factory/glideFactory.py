@@ -232,7 +232,7 @@ def spawn(sleep_time,advertize_rate,startup_dir,
             # trigger FactoryEntry process crash, we do not want the entry to pick up 
             # the old key again when factory auto restarts it.  
             if ( (time.time() > oldkey_eoltime) and 
-             (glideinDescript.data['OldPubKeyObj'] != None) ):
+             (glideinDescript.data['OldPubKeyObj'] is not None) ):
                 glideinDescript.data['OldPubKeyObj'] = None
                 glideinDescript.data['OldPubKeyType'] = None
                 try:

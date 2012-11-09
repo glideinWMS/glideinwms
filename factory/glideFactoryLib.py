@@ -162,7 +162,7 @@ class PrivsepDirCleanupWSpace(logSupport.DirCleanupWSpace):
         self.username=username
 
     def delete_file(self,fpath):
-        if (self.username!=None) and (self.username!=MY_USERNAME):
+        if (self.username is not None) and (self.username!=MY_USERNAME):
             # use privsep
             # do not use rmtree as we do not want root privileges
             condorPrivsep.execute(self.username,os.path.dirname(fpath),'/bin/rm',['rm',fpath],stdout_fname=None)
@@ -256,32 +256,32 @@ def getCondorQData(entry_name,
                    x509secclass_schedd_attribute=None): # if None, use the global one
     global factoryConfig
 
-    if factory_schedd_attribute==None:
+    if factory_schedd_attribute is None:
         fsa_str=factoryConfig.factory_schedd_attribute
     else:
         fsa_str=factory_schedd_attribute
 
-    if glidein_schedd_attribute==None:
+    if glidein_schedd_attribute is None:
         gsa_str=factoryConfig.glidein_schedd_attribute
     else:
         gsa_str=glidein_schedd_attribute
    
-    if entry_schedd_attribute==None:
+    if entry_schedd_attribute is None:
         esa_str=factoryConfig.entry_schedd_attribute
     else:
         esa_str=entry_schedd_attribute
 
-    if client_schedd_attribute==None:
+    if client_schedd_attribute is None:
         csa_str=factoryConfig.client_schedd_attribute
     else:
         csa_str=client_schedd_attribute
 
-    if x509secclass_schedd_attribute==None:
+    if x509secclass_schedd_attribute is None:
         xsa_str=factoryConfig.x509secclass_schedd_attribute
     else:
         xsa_str=x509secclass_schedd_attribute
 
-    if client_name==None:
+    if client_name is None:
         client_constraint=""
     else:
         client_constraint=' && (%s =?= "%s")'%(csa_str,client_name)
@@ -310,12 +310,12 @@ def getQProxSecClass(condorq,
                      client_schedd_attribute=None,  # if None, use the global one
                      x509secclass_schedd_attribute=None): # if None, use the global one
                      
-    if client_schedd_attribute==None:
+    if client_schedd_attribute is None:
         csa_str=factoryConfig.client_schedd_attribute
     else:
         csa_str=client_schedd_attribute
 
-    if x509secclass_schedd_attribute==None:
+    if x509secclass_schedd_attribute is None:
         xsa_str=factoryConfig.x509secclass_schedd_attribute
     else:
         xsa_str=x509secclass_schedd_attribute
@@ -345,22 +345,22 @@ def getCondorStatusData(entry_name,client_name,pool_name=None,
                         client_startd_attribute=None):  # if None, use the global one
     global factoryConfig
 
-    if factory_startd_attribute==None:
+    if factory_startd_attribute is None:
         fsa_str=factoryConfig.factory_startd_attribute
     else:
         fsa_str=factory_startd_attribute
 
-    if glidein_startd_attribute==None:
+    if glidein_startd_attribute is None:
         gsa_str=factoryConfig.glidein_startd_attribute
     else:
         gsa_str=glidein_startd_attribute
 
-    if entry_startd_attribute==None:
+    if entry_startd_attribute is None:
         esa_str=factoryConfig.entry_startd_attribute
     else:
         esa_str=entry_startd_attribute
 
-    if client_startd_attribute==None:
+    if client_startd_attribute is None:
         csa_str=factoryConfig.client_startd_attribute
     else:
         csa_str=client_startd_attribute
@@ -644,12 +644,12 @@ def clean_glidein_queue(remove_excess, glidein_totals, condorQ, req_min_idle, re
     if (((remove_excess_wait or remove_excess_idle) and
            (sec_class_idle > req_min_idle)) or
           (remove_excess_running and 
-           ((req_max_glideins != None) and  #make sure there is a max
+           ((req_max_glideins is not None) and  #make sure there is a max
             ((sec_class_running + sec_class_idle) > req_max_glideins)))):
         # too many glideins, remove
         remove_nr = sec_class_idle - req_min_idle
         if (remove_excess_running and 
-            ((req_max_glideins != None) and  #make sure there is a max
+            ((req_max_glideins is not None) and  #make sure there is a max
              ((sec_class_running + sec_class_idle) > req_max_glideins))):
             remove_all_nr = (sec_class_running + sec_class_idle) - req_max_glideins
             if remove_all_nr > remove_nr:
@@ -826,13 +826,13 @@ def logStats(condorq,condorstatus,client_int_name, client_security_name,proxy_se
     # Count glideins by status
     qc_status=getQStatus(condorq)
     sum_idle_count(qc_status)
-    if condorstatus!=None:
+    if condorstatus is not None:
         s_running_str=" collector running %s"%len(condorstatus.fetchStored().keys())
     else:
         s_running_str="" # not monitored
     
     log_files.logActivity("Client %s (secid: %s_%s) schedd status %s%s"%(client_int_name,client_security_name,proxy_security_class,qc_status,s_running_str))
-    if factoryConfig.qc_stats!=None:
+    if factoryConfig.qc_stats is not None:
         client_log_name=secClass2Name(client_security_name,proxy_security_class)
         factoryConfig.client_stats.logSchedd(client_int_name,qc_status)
         factoryConfig.qc_stats.logSchedd(client_log_name,qc_status)
@@ -1136,7 +1136,7 @@ def extractStaleUnclaimed(q,status):
 ############################################################
 
 def schedd_name2str(schedd_name):
-    if schedd_name==None:
+    if schedd_name is None:
         return ""
     else:
         return "-name %s"%schedd_name
@@ -1145,7 +1145,7 @@ extractJobId_recmp = re.compile("^(?P<count>[0-9]+) job\(s\) submitted to cluste
 def extractJobId(submit_out):
     for line in submit_out:
         found = extractJobId_recmp.search(line[:-1])
-        if found!=None:
+        if found is not None:
             return (long(found.group("cluster")),int(found.group("count")))
     raise condorExe.ExeError, "Could not find cluster info!"
 
@@ -1207,7 +1207,7 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins, fron
     params_str=string.join(params_arr," ")
 
     client_web_arr=[]
-    if client_web!=None:
+    if client_web is not None:
         client_web_arr=client_web.get_glidein_args()
     client_web_str=string.join(client_web_arr," ")
 

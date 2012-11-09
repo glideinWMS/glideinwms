@@ -102,14 +102,14 @@ def unparse(obj,raise_on_unknown=False):
         args=[]
         for a in obj.args:
             args.append("%s"%unparse(a,raise_on_unknown))
-        if (obj.star_args==None) and (obj.dstar_args==None):
+        if (obj.star_args is None) and (obj.dstar_args is None):
             return "%s(%s)"%(unparse(obj.node,raise_on_unknown),string.join(args,','))
         else:
             if raise_on_unknown:
-                if obj.star_args!=None:
-                    raise ValueError,"CallFunc.star_args!=None"
+                if obj.star_args is not None:
+                    raise ValueError,"CallFunc.star_args is not None"
                 else:
-                    raise ValueError,"CallFunc.dstar_args!=None"
+                    raise ValueError,"CallFunc.dstar_args is not None"
             else:
                 return "%s(%s,<unknown args>)"%(unparse(obj.node,raise_on_unknown),string.join(args,','))
     elif isinstance(obj, Getattr):
@@ -128,10 +128,10 @@ def unparse(obj,raise_on_unknown=False):
     elif isinstance(obj, Slice):
         if obj.flags=='OP_APPLY':
             l=""
-            if obj.lower!=None:
+            if obj.lower is not None:
                 l=unparse(obj.lower,raise_on_unknown)
             u=""
-            if obj.upper!=None:
+            if obj.upper is not None:
                 u=unparse(obj.upper,raise_on_unknown)
             return "%s[%s:%s]"%(unparse(obj.expr,raise_on_unknown),l,u)
         else:

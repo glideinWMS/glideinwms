@@ -36,7 +36,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         self.client_security={}
 
     def populate(self,params=None):
-        if params==None:
+        if params is None:
             params=self.params
 
         # put default files in place first
@@ -64,7 +64,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         # put user attributes into config files
         for attr_name in params.attrs.keys():
             if attr_name in ('GLIDECLIENT_Start','GLIDECLIENT_Group_Start'):
-                if start_expr==None:
+                if start_expr is None:
                     start_expr=params.attrs[attr_name].value
                 elif not (params.attrs[attr_name].value in (None,'True')):
                     start_expr="(%s)&&(%s)"%(start_expr,params.attrs[attr_name].value)
@@ -74,7 +74,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
                 add_attr_unparsed(attr_name, params,self.dicts,"main")
 
         real_start_expr=params.match.start_expr
-        if start_expr!=None:
+        if start_expr is not None:
             if real_start_expr!='True':
                 real_start_expr="(%s)&&(%s)"%(real_start_expr,start_expr)
             else:
@@ -216,7 +216,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         self.client_security={}
 
     def populate(self,params=None):
-        if params==None:
+        if params is None:
             params=self.params
 
         sub_params=params.groups[self.sub_name]
@@ -245,9 +245,9 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         # put user attributes into config files
         for attr_name in sub_params.attrs.keys():
             if attr_name in ('GLIDECLIENT_Group_Start','GLIDECLIENT_Start'):
-                if start_expr==None:
+                if start_expr is None:
                     start_expr=sub_params.attrs[attr_name].value
-                elif sub_params.attrs[attr_name].value!=None:
+                elif sub_params.attrs[attr_name].value is not None:
                     start_expr="(%s)&&(%s)"%(start_expr,sub_params.attrs[attr_name].value)
                 # delete from the internal structure... will use it in match section
                 del sub_params.data['attrs'][attr_name]
@@ -255,7 +255,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
                 add_attr_unparsed(attr_name, sub_params,self.dicts,self.sub_name)
 
         real_start_expr=sub_params.match.start_expr
-        if start_expr!=None:
+        if start_expr is not None:
             if real_start_expr!='True':
                 real_start_expr="(%s)&&(%s)"%(real_start_expr,start_expr)
             else:
@@ -313,7 +313,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
 class frontendDicts(cvWDictFile.frontendDicts):
     def __init__(self,params,
                  sub_list=None): # if None, get it from params
-        if sub_list==None:
+        if sub_list is None:
             sub_list=params.groups.keys()
 
         self.params=params
@@ -324,7 +324,7 @@ class frontendDicts(cvWDictFile.frontendDicts):
         return
 
     def populate(self,params=None): # will update params (or self.params)
-        if params==None:
+        if params is None:
             params=self.params
         
         self.main_dicts.populate(params)
@@ -369,11 +369,11 @@ class frontendDicts(cvWDictFile.frontendDicts):
 # file as described by Params.file_defaults
 def add_file_unparsed(file,dicts):
     absfname=file.absfname
-    if absfname==None:
+    if absfname is None:
         raise RuntimeError, "Found a file element without an absname: %s"%file
     
     relfname=file.relfname
-    if relfname==None:
+    if relfname is None:
         relfname=os.path.basename(absfname) # defualt is the final part of absfname
     if len(relfname)<1:
         raise RuntimeError, "Found a file element with an empty relfname: %s"%file
@@ -416,11 +416,11 @@ def add_file_unparsed(file,dicts):
             raise RuntimeError, "A file cannot be untarred if it is not constant: %s"%file
 
         wnsubdir=file.untar_options.dir
-        if wnsubdir==None:
+        if wnsubdir is None:
             wnsubdir=string.split(relfname,'.',1)[0] # deafult is relfname up to the first .
 
         config_out=file.untar_options.absdir_outattr
-        if config_out==None:
+        if config_out is None:
             config_out="FALSE"
         cond_attr=file.untar_options.cond_attr
 
@@ -447,7 +447,7 @@ def add_attr_unparsed(attr_name,params,dicts,description):
 def add_attr_unparsed_real(attr_name,params,dicts):
     attr_obj=params.attrs[attr_name]
     
-    if attr_obj.value==None:
+    if attr_obj.value is None:
         raise RuntimeError, "Attribute '%s' does not have a value: %s"%(attr_name,attr_obj)
 
     is_parameter=eval(attr_obj.parameter,{},{})
@@ -488,7 +488,7 @@ def populate_frontend_descript(work_dir,
                                params):
         # if a user does not provide a file name, use the default one
         down_fname=params.downtimes.absfname
-        if down_fname==None:
+        if down_fname is None:
             down_fname=os.path.join(work_dir,'frontend.downtimes')
 
         frontend_dict.add('FrontendName',params.frontend_name)
@@ -498,7 +498,7 @@ def populate_frontend_descript(work_dir,
         else:
             frontend_dict.add('MonitoringWebURL',params.web_url.replace("stage","monitor"))
 
-        if params.security.classad_proxy==None:
+        if params.security.classad_proxy is None:
             raise RuntimeError, "Missing security.classad_proxy"
         params.subparams.data['security']['classad_proxy']=os.path.abspath(params.security.classad_proxy)
         if not os.path.isfile(params.security.classad_proxy):
@@ -537,7 +537,7 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
                             sub_name,sub_params):
     # if a user does not provide a file name, use the default one
     down_fname=sub_params.downtimes.absfname
-    if down_fname==None:
+    if down_fname is None:
         down_fname=os.path.join(work_dir,'group.downtimes')
 
     group_descript_dict.add('GroupName',sub_name)
@@ -586,7 +586,7 @@ def populate_common_descript(descript_dict,        # will be modified
 
         descript_dict.add('%sMatchAttrs'%str_tname,repr(ma_arr))
 
-    if params.security.security_name!=None:
+    if params.security.security_name is not None:
         descript_dict.add('SecurityName',params.security.security_name)
 
     collectors=[]
@@ -603,7 +603,7 @@ def populate_common_descript(descript_dict,        # will be modified
         schedds.append(el['fullname'])
     descript_dict.add('JobSchedds',string.join(schedds,','))
 
-    if params.security.proxy_selection_plugin!=None:
+    if params.security.proxy_selection_plugin is not None:
         descript_dict.add('ProxySelectionPlugin',params.security.proxy_selection_plugin)
 
     if len(params.security.proxies)>0:
@@ -611,23 +611,23 @@ def populate_common_descript(descript_dict,        # will be modified
         proxy_refresh_scripts={}
         proxy_security_classes={}
         for pel in params.security.proxies:
-            if pel['absfname']==None:
+            if pel['absfname'] is None:
                 raise RuntimeError,"All proxies need a absfname!"
-            if pel['pool_count']==None:
+            if pel['pool_count'] is None:
                 # only one
                 proxies.append(pel['absfname'])
-                if pel['proxy_refresh_script']!=None:
+                if pel['proxy_refresh_script']is not None:
                     proxy_refresh_scripts[pel['absfname']]=pel['proxy_refresh_script']
-                if pel['security_class']!=None:
+                if pel['security_class']is not None:
                     proxy_security_classes[pel['absfname']]=pel['security_class']
             else: #pool
                 pool_count=int(pel['pool_count'])
                 for i in range(pool_count):
                     absfname="%s%s" % (pel['absfname'], str(i+1))
                     proxies.append(absfname)
-                    if pel['proxy_refresh_script']!=None:
+                    if pel['proxy_refresh_script']is not None:
                         proxy_refresh_scripts[absfname]=pel['proxy_refresh_script']
-                    if pel['security_class']!=None:
+                    if pel['security_class']is not None:
                         proxy_security_classes[absfname]=pel['security_class']
 
         descript_dict.add('Proxies',repr(proxies))
@@ -683,14 +683,14 @@ def populate_gridmap(params,gridmap_dict):
     collector_dns=[]
     for el in params.collectors:
         dn=el.DN
-        if dn==None:
+        if dn is None:
             raise RuntimeError,"DN not defined for pool collector %s"%el.node
         if not (dn in collector_dns): #skip duplicates
             collector_dns.append(dn)
             gridmap_dict.add(dn,'collector%i'%len(collector_dns))
 
     # Add also the frontend DN, so it is easier to debug
-    if params.security.proxy_DN!=None:
+    if params.security.proxy_DN is not None:
         if not (params.security.proxy_DN in collector_dns):
             gridmap_dict.add(params.security.proxy_DN,'frontend')
             
@@ -698,7 +698,7 @@ def populate_gridmap(params,gridmap_dict):
 #####################################################
 # Populate security values
 def populate_main_security(client_security,params):
-    if params.security.proxy_DN==None:
+    if params.security.proxy_DN is None:
         raise RuntimeError,"DN not defined for classad_proxy"    
     client_security['proxy_DN']=params.security.proxy_DN
     
@@ -706,7 +706,7 @@ def populate_main_security(client_security,params):
     collector_nodes=[]
     for el in params.collectors:
         dn=el.DN
-        if dn==None:
+        if dn is None:
             raise RuntimeError,"DN not defined for pool collector %s"%el.node
         is_secondary=eval(el.secondary)
         if is_secondary:
@@ -722,12 +722,12 @@ def populate_group_security(client_security,params,sub_params):
     factory_dns=[]
     for el in params.match.factory.collectors:
         dn=el.DN
-        if dn==None:
+        if dn is None:
             raise RuntimeError,"DN not defined for factory %s"%el.node
         factory_dns.append(dn)
     for el in sub_params.match.factory.collectors:
         dn=el.DN
-        if dn==None:
+        if dn is None:
             raise RuntimeError,"DN not defined for factory %s"%el.node
         # don't worry about conflict... there is nothing wrong if the DN is listed twice
         factory_dns.append(dn)
@@ -736,12 +736,12 @@ def populate_group_security(client_security,params,sub_params):
     schedd_dns=[]
     for el in params.match.job.schedds:
         dn=el.DN
-        if dn==None:
+        if dn is None:
             raise RuntimeError,"DN not defined for schedd %s"%el.fullname
         schedd_dns.append(dn)
     for el in sub_params.match.job.schedds:
         dn=el.DN
-        if dn==None:
+        if dn is None:
             raise RuntimeError,"DN not defined for schedd %s"%el.fullname
         # don't worry about conflict... there is nothing wrong if the DN is listed twice
         schedd_dns.append(dn)

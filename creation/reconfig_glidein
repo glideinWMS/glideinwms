@@ -170,7 +170,7 @@ if __name__ == '__main__':
         print e
         sys.exit(1)
 
-    if force_name!=None:
+    if force_name is not None:
         if params.glidein_name!=force_name:
             print usage
             print ""

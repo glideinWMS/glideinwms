@@ -19,20 +19,20 @@ import condorExe
 ##############################################
 # Helper functions
 def pool2str(pool_name):
-    if pool_name!=None:
+    if pool_name is not None:
         return "-pool %s "%pool_name
     else:
         return ""
 
 def schedd2str(schedd_name):
-    if schedd_name!=None:
+    if schedd_name is not None:
         return "-name %s "%schedd_name
     else:
         return ""
 
 def cached_exe_cmd(cmd, arg_str,
                    schedd_name, pool_name, schedd_lookup_cache):
-    if schedd_lookup_cache==None:
+    if schedd_lookup_cache is None:
         schedd_lookup_cache=condorMonitor.NoneScheddCache()
 
     schedd_str,env=schedd_lookup_cache.getScheddId(schedd_name, pool_name)

@@ -49,7 +49,7 @@ def main(params,bdii_data,bdii_srv,
     if bdii_el.has_key('GlueCEPolicyMaxCPUTime'):
         max_cputime=int(bdii_el['GlueCEPolicyMaxCPUTime'][0])*60-1800
     max_walltime=int(bdii_el['GlueCEPolicyMaxWallClockTime'][0])*60-1800
-    if not max_cputime is None and max_cputime < max_walltime:
+    if (max_cputime is not None) and (max_cputime < max_walltime):
         max_walltime = max_cputime
     
     entry=params.data['entries'][newname]
