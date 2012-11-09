@@ -81,7 +81,7 @@ def execute(target_user,init_dir,exe,args=None,env=None,
         for el in env:
             el=str(el) #get rid of unicode
             other+="\nexec-env<%d>\n%s"%(len(el),el)
-    if stdin_fname!=None:
+    if stdin_fname is not None:
         other+="\nexec-stdin=%s"%stdin_fname
     if stdout_fname is not None:
         if stdout_fname=='-':

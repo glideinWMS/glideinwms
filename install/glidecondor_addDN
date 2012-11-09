@@ -52,7 +52,7 @@ def parse_args(args):
         sys.exit(1)
     dn=args[0]
     user=args[1]
-    return {'is_daemon_dn':(daemon_comment!=None),'daemon_comment':daemon_comment,'dn':dn,'user':user}
+    return {'is_daemon_dn':(daemon_comment is not None),'daemon_comment':daemon_comment,'dn':dn,'user':user}
 
 def check_config(fname):
     if not os.path.isfile(fname):

@@ -61,7 +61,7 @@ class SymKey:
                 if len(iv_str)!=(self.iv_len*2):
                     raise ValueError, "Initialization vector must be exactly %i long, got %i"%(self.iv_len*2,len(iv_str))
                 iv_str=str(iv_str) # just in case it was unicode"
-        elif key_iv_code!=None:
+        elif key_iv_code is not None:
             key_iv_code=str(key_iv_code) # just in case it was unicode
             ki_arr=key_iv_code.split(',')
             if len(ki_arr)!=3:

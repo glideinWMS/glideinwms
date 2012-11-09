@@ -44,7 +44,7 @@ class PidSupport:
     def register(self,
                  pid=None,              # if none, will default to os.getpid()
                  started_time=None):    # if none, use time.time()
-        if self.fd!=None:
+        if self.fd is not None:
             raise RuntimeError, "Cannot register two pids in the same object!"
 
         

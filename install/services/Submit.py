@@ -61,7 +61,7 @@ class Submit(Condor):
     self.ini_section = "Submit"
     if inifile == "template":  # for creating actions not requiring ini file
       return
-    if optionsDict != None:
+    if optionsDict is not None:
       valid_options = optionsDict
     Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
     self.userjob_classads_required = True
@@ -75,11 +75,11 @@ class Submit(Condor):
 
   #--------------------------------
   def get_frontend(self):
-    if self.frontend == None:
+    if self.frontend is None:
       self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options)
   #--------------------------------
   def get_usercollector(self):
-    if self.usercollector == None:
+    if self.usercollector is None:
       self.usercollector = UserCollector.UserCollector(self.inifile,valid_options)
  
   #--------------------------------
@@ -206,7 +206,7 @@ specified.
     parser.add_option("-i", "--ini", dest="inifile",
                       help="ini file defining your configuration")
     (options, args) = parser.parse_args()
-    if options.inifile == None:
+    if options.inifile is None:
         parser.error("--ini argument required")
     if not os.path.isfile(options.inifile):
       raise common.logerr("inifile does not exist: %s" % options.inifile)

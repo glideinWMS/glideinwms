@@ -68,7 +68,7 @@ class WMSCollector(Condor):
     self.ini_section = "WMSCollector"
     if inifile == "template":  # for creating actions not requiring ini file
       return
-    if optionsDict != None:
+    if optionsDict is not None:
       valid_options = optionsDict
     Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
     self.not_validated = True
@@ -83,15 +83,15 @@ class WMSCollector(Condor):
 
   #--------------------------------
   def get_frontend(self):
-    if self.frontend == None:
+    if self.frontend is None:
       self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options)
   #--------------------------------
   def get_factory(self):
-    if self.factory == None:
+    if self.factory is None:
       self.factory = Factory.Factory(self.inifile,valid_options)
   #--------------------------------
   def get_usercollector(self):
-    if self.usercollector == None:
+    if self.usercollector is None:
       self.usercollector = UserCollector.UserCollector(self.inifile,valid_options)
   #--------------------------------
   def get_privsep(self):
@@ -170,7 +170,7 @@ class WMSCollector(Condor):
   def condor_config_privsep_data(self):
     if self.privilege_separation() == "n":
       return  # no privilege separation in effect
-    if self.privsep == None:
+    if self.privsep is None:
       common.logerr("""System error: privilege separation is in effect but there
 the PrivilegeSeparation class has not been instantiated""")
     type = "00_gwms_general"
@@ -232,7 +232,7 @@ specified.
     parser.add_option("-i", "--ini", dest="inifile",
                       help="ini file defining your configuration")
     (options, args) = parser.parse_args()
-    if options.inifile == None:
+    if options.inifile is None:
         parser.error("--ini argument required")
     if not os.path.isfile(options.inifile):
       raise common.logerr("inifile does not exist: %s" % options.inifile)

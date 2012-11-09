@@ -90,7 +90,7 @@ class VOFrontend(Condor):
     self.ini_section = "VOFrontend"
     if inifile == "template":  # for creating actions not requiring ini file
       return
-    if optionsDict != None:
+    if optionsDict is not None:
       valid_options = optionsDict
     Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
     self.daemon_list = "" 
@@ -106,19 +106,19 @@ class VOFrontend(Condor):
 
   #-- get service instances --------
   def get_wms(self):
-    if self.wms == None:
+    if self.wms is None:
       self.wms = WMSCollector.WMSCollector(self.inifile,valid_options)
   #--------------------------------
   def get_factory(self):
-    if self.factory == None:
+    if self.factory is None:
       self.factory = Factory.Factory(self.inifile,valid_options)
   #--------------------------------
   def get_usercollector(self):
-    if self.usercollector == None:
+    if self.usercollector is None:
       self.usercollector = UserCollector.UserCollector(self.inifile,valid_options)
   #--------------------------------
   def get_submit(self):
-    if self.submit == None:
+    if self.submit is None:
       self.submit = Submit.Submit(self.inifile,valid_options)
 
   #--------------------------------
@@ -605,7 +605,7 @@ The following DNs are in your grid_mapfile:"""
     fd = os.popen(cmd)
     lines = fd.readlines()
     err = fd.close()
-    if err != None: # condor_config_val not working 
+    if err is not None: # condor_config_val not working 
         common.logit("%s" % lines)
         common.logerr("""Failed to fetch list of schedds running condor_config_val.""")
     schedds = [self.hostname(),]
@@ -625,7 +625,7 @@ The following DNs are in your grid_mapfile:"""
     fd = os.popen(cmd)
     lines = fd.readlines()
     err = fd.close()
-    if err != None: # collector not accessible
+    if err is not None: # collector not accessible
         common.logit("%s" % lines)
         common.logerr("Failed to fetch list of schedds running condor_status -schedd\n       Your user pool collector and submit host condor need to be running.")
     if len(lines) == 0: # submit schedds not accessible
@@ -1033,7 +1033,7 @@ please verify and correct if needed.
       idx = 0
       while 1:
         attr_obj = attr_re.search(self.match_string(),idx)
-        if attr_obj == None:
+        if attr_obj is None:
           break # not found
         attr_el = attr_obj.group('attr')
         if not (attr_el in glidein_attrs):
@@ -1054,7 +1054,7 @@ please verify and correct if needed.
       idx=0
       while 1:
         attr_obj = attr_re.search(self.match_string(),idx)
-        if attr_obj == None:
+        if attr_obj is None:
           break # not found
         attr_el=attr_obj.group('attr')
         if not (attr_el in job_attrs):
@@ -1110,7 +1110,7 @@ specified.
     parser.add_option("-i", "--ini", dest="inifile",
                       help="ini file defining your configuration")
     (options, args) = parser.parse_args()
-    if options.inifile == None:
+    if options.inifile is None:
         parser.error("--ini argument required")
     if not os.path.isfile(options.inifile):
       raise common.logerr("inifile does not exist: %s" % options.inifile)

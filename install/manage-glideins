@@ -410,7 +410,7 @@ def main(argv):
         common.logerr("Invalid service: %s" % a)
     #--- end of options --
 
-    if gAction == None and len(inifile) == 0:
+    if (gAction is None) and (len(inifile) == 0):
       usage(services)
       common.logerr("Missing all command line  arguments")
 
@@ -418,7 +418,7 @@ def main(argv):
       usage(services)
       common.logerr("--ini argument is required")
 
-    if gAction == None:
+    if gAction is None:
       usage(services)
       common.logerr("Missing the 'action' argument")
 
