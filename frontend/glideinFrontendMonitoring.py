@@ -76,7 +76,7 @@ class MonitoringConfig:
                 #print "Create RRD "+fname
                 if min is None:
                     min='U'
-                if max==None:
+                if max is None:
                     max='U'
                 ds_names=val_dict.keys()
                 ds_names.sort()
