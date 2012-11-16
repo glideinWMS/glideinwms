@@ -1220,7 +1220,7 @@ def parseSubmitLogFastTimings(fname,year=None):
     """
     jobs_raw,first_time,last_time=parseSubmitLogFastRawTimings(fname)
 
-    if year==None:
+    if year is None:
         year=time.localtime()[0]
 
     # it wrapped over, dates really in previous year

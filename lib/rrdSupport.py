@@ -12,7 +12,11 @@
 #   Igor Sfiligoi
 #
 
-import string,time
+import string
+import time
+import subprocess
+import shlex
+import subprocessSupport
 
 class BaseRRDSupport:
     #############################################################
@@ -518,66 +522,42 @@ def string_quote_join(arglist):
 # python module, if that one is not available
 class rrdtool_exe:
     def __init__(self):
-        import popen2
-        self.popen2_obj=popen2
-        self.rrd_bin=self.iexe_cmd("which rrdtool")[0][:-1]
+        self.rrd_bin = (subprocessSupport.iexe_cmd("which rrdtool")[0]).strip()
 
     def create(self,*args):
-        cmdline='%s create %s'%(self.rrd_bin,string_quote_join(args))
-        outstr=self.iexe_cmd(cmdline)
+        cmdline = '%s create %s'%(self.rrd_bin,string_quote_join(args))
+        outstr = subprocessSupport.iexe_cmd(cmdline)
         return
 
     def update(self,*args):
-        cmdline='%s update %s'%(self.rrd_bin,string_quote_join(args))
-        outstr=self.iexe_cmd(cmdline)
+        cmdline = '%s update %s'%(self.rrd_bin,string_quote_join(args))
+        outstr = subprocessSupport.iexe_cmd(cmdline)
         return
     
     def info(self,*args):
-        cmdline='%s info %s'%(self.rrd_bin,string_quote_join(args))
-        outstr=self.iexe_cmd(cmdline)
-        outarr={}
+        cmdline = '%s info %s'%(self.rrd_bin,string_quote_join(args))
+        outstr = subprocessSupport.iexe_cmd(cmdline)
+        outarr = {}
         for line in outstr:
-            linearr=line.split('=')
-            outarr[linearr[0]]=linearr[1]
+            linearr = line.split('=')
+            outarr[linearr[0]] = linearr[1]
         return outarr
     
     def dump(self,*args):
-        cmdline='%s dump %s'%(self.rrd_bin,string_quote_join(args))
-        outstr=self.iexe_cmd(cmdline)
+        cmdline = '%s dump %s' % (self.rrd_bin, string_quote_join(args))
+        outstr = subprocessSupport.iexe_cmd(cmdline)
         return outstr
     
     def restore(self,*args):
-        cmdline='%s restore %s'%(self.rrd_bin,string_quote_join(args))
-        outstr=self.iexe_cmd(cmdline)
+        cmdline = '%s restore %s'%(self.rrd_bin,string_quote_join(args))
+        outstr = subprocessSupport.iexe_cmd(cmdline)
         return
 
 
     def graph(self,*args):
-        cmdline='%s graph %s'%(self.rrd_bin,string_quote_join(args))
-        outstr=self.iexe_cmd(cmdline)
+        cmdline = '%s graph %s'%(self.rrd_bin, string_quote_join(args))
+        outstr = subprocessSupport.iexe_cmd(cmdline)
         return
-
-    ##########################################
-    def iexe_cmd(self, cmd):
-        child=self.popen2_obj.Popen3(cmd,True)
-        child.tochild.close()
-        tempOut = child.fromchild.readlines()
-        child.fromchild.close()
-        tempErr = child.childerr.readlines()
-        child.childerr.close()
-        try:
-            errcode=child.wait()
-        except OSError, e:
-            if len(tempOut)!=0:
-                # if there was some output, it is probably just a problem of timing
-                # have seen a lot of those when running very short processes
-                errcode=0
-            else:
-                raise RuntimeError, "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s"%(cmd,tempOut,tempErr,e)
-        if (errcode!=0):
-            raise RuntimeError, "Error running '%s'\ncode %i:%s"%(cmd,errcode,tempErr)
-        return tempOut
-
 
 def addDataStore(filenamein, filenameout, attrlist):
     """
@@ -622,4 +602,3 @@ def addDataStore(filenamein, filenameout, attrlist):
             out.write(line)
         if "<database>" in line:
             parse=True
-

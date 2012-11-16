@@ -393,11 +393,13 @@ def update_x509_proxy_file(entry_name,username,client_id, proxy_data):
     try:
         dn_list=condorExe.iexe_cmd("openssl x509 -subject -noout",stdin_data=proxy_data)
         dn=dn_list[0]
-        voms_list = condorExe.iexe_cmd("voms-proxy-info -fqan -file %s"% tempfilename)
-        #sort output in case order of voms fqan changed
-        voms='\n'.join(sorted(voms_list))
+        voms_proxy_info = which('voms-proxy-info')
+        if voms_proxy_info is not None:
+            voms_list = condorExe.iexe_cmd("%s -fqan -file %s" % (voms_proxy_info, tempfilename))
+            #sort output in case order of voms fqan changed
+            voms='\n'.join(sorted(voms_list))
     except:
-        #If voms-proxy-info doesn't exist, just hash on dn
+        #If voms-proxy-info doesn't exist or errors out, just hash on dn
         voms=""
 
     try:
@@ -1144,7 +1146,7 @@ def schedd_name2str(schedd_name):
 extractJobId_recmp = re.compile("^(?P<count>[0-9]+) job\(s\) submitted to cluster (?P<cluster>[0-9]+)\.$")
 def extractJobId(submit_out):
     for line in submit_out:
-        found = extractJobId_recmp.search(line[:-1])
+        found = extractJobId_recmp.search(line.strip())
         if found is not None:
             return (long(found.group("cluster")),int(found.group("count")))
     raise condorExe.ExeError, "Could not find cluster info!"
@@ -1265,7 +1267,11 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins, fron
             else:
                 # avoid using privsep, if possible
                 try:
-                    submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;export GLIDEIN_FRONTEND_NAME=%s;./%s "%s" "%s" "%s" "%s" %i "%s" %s -- %s'%(x509_proxy_fname, frontend_name, factoryConfig.submit_fname,entry_name,client_name,x509_proxy_security_class,x509_proxy_identifier,nr_to_submit,glidein_rsl,client_web_str,params_str))
+                    child_env = {
+                        'X509_USER_PROXY': x509_proxy_fname,
+                        'GLIDEIN_FRONTEND_NAME': frontend_name
+                    }
+                    submit_out=condorExe.iexe_cmd('./%s "%s" "%s" "%s" "%s" %i "%s" %s -- %s'%(factoryConfig.submit_fname,entry_name,client_name,x509_proxy_security_class,x509_proxy_identifier,nr_to_submit,glidein_rsl,client_web_str,params_str), child_env=child_env)
                 except condorExe.ExeError,e:
                     submit_out=[]
                     raise RuntimeError, "condor_submit failed: %s"%e
@@ -1630,4 +1636,28 @@ class GlideinTotals:
             output += "     max_glideins = %s\n" % fe_limit['max_glideins']
                     
         return output
-        
+
+#######################################################
+
+def which(program):
+    """
+    Implementation of which command in python.
+
+    @return: Path to the binary
+    @rtype: string
+    """
+
+    def is_exe(fpath):
+        return os.path.exists(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
