@@ -1,3 +1,7 @@
+v2_6_3	Improved factory prerformance by migrated popen calls to use the 
+	  subprocess library
+	Created index.html for factory monitoring
+
 v2_6_2	Factory now supports glidein failure modes. This information is
 	  propagated back to the factory.
 	Glideins now have different idle timeouts for startup and tail. The
