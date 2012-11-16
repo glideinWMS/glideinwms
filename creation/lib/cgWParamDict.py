@@ -179,6 +179,21 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             mfdir,mfname=mfarr
             mfobj=cWDictFile.SimpleFile(mfdir,mfname)
             mfobj.load()
+            self.monitor_htmls.append(mfobj)            
+        
+        # add the index page and its images
+        mfobj=cWDictFile.SimpleFile(params.src_dir + '/factory/', 'index.html')
+        mfobj.load()
+        self.monitor_htmls.append(mfobj)
+        for imgfile in ('factoryCompletedStats.png',
+                        'factoryEntryStatusNow.png',
+                        'factoryLogStatus.png',
+                        'factoryRRDBrowse.png',
+                        'factoryRRDEntryMatrix.png',
+                        'factoryStatus.png',
+                        'factoryStatusNow.png'):
+            mfobj=cWDictFile.SimpleFile(params.src_dir + '/factory/images/', imgfile)
+            mfobj.load()
             self.monitor_htmls.append(mfobj)
 
         # populate the monitor configuration file
