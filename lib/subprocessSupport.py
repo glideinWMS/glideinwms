@@ -22,6 +22,9 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
     Fork a process and execute cmd - rewritten to use select to avoid filling
     up stderr and stdout queues.
 
+    One possible improvment would be to add a function to accept
+    an array instead of a command string.
+
     @type cmd: string
     @param cmd: Sting containing the entire command including all arguments
     @type stdin_data: string
@@ -42,8 +45,7 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
         else:
             child_env = os.environ
 
-        # Hack to tokenize the commandline that should be executed.
-        # We probably should "Do the Right Thing (tm)" at some point
+        # Tokenize the commandline that should be executed.
         command_list = shlex.split(cmd.encode('utf8'))
         # launch process - Converted to using the subprocess module
         process = subprocess.Popen(command_list, shell=False,
