@@ -228,8 +228,8 @@ def clean_exit(childs):
 
 
 ############################################################
-def spawn(sleep_time,advertize_rate,startup_dir,
-          glideinDescript,entries,restart_attempts,restart_interval):
+def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
+          entries, restart_attempts, restart_interval):
 
     global STARTUP_DIR
     childs={}
@@ -260,7 +260,12 @@ def spawn(sleep_time,advertize_rate,startup_dir,
     try:
         for group in range(len(entry_groups)):
             entry_names = string.join(entry_groups[group], ':')
-            childs[group]=popen2.Popen3("%s %s %s %s %s %s %s %s"%(sys.executable,os.path.join(STARTUP_DIR,"glideFactoryEntryGroup.py"),os.getpid(),sleep_time,advertize_rate,startup_dir,entry_names),True, group)
+            cmd = "%s %s %s %s %s %s %s %s" % (
+                      sys.executable,
+                      os.path.join(STARTUP_DIR, "glideFactoryEntryGroup.py"),
+                      os.getpid(), sleep_time, advertize_rate,
+                      startup_dir, entry_names, group)
+            childs[group]=popen2.Popen3(cmd, True)
             # Get the startup time. Used to check if the entry is crashing
             # periodically and needs to be restarted.
             childs_uptime[group]=list()
@@ -326,7 +331,13 @@ def spawn(sleep_time,advertize_rate,startup_dir,
                         # Restart the entry setting its restart time
                         glideFactoryLib.log_files.logWarning("Restarting child %s."%(group))
                         del childs[group]
-                        childs[group]=popen2.Popen3("%s %s %s %s %s %s %s %s"%(sys.executable,os.path.join(STARTUP_DIR,"glideFactoryEntryGroup.py"),os.getpid(),sleep_time,advertize_rate,startup_dir,entry_names),True, group)
+                        cmd = "%s %s %s %s %s %s %s %s" % (
+                                  sys.executable,
+                                  os.path.join(STARTUP_DIR,
+                                               "glideFactoryEntryGroup.py"),
+                                  os.getpid(), sleep_time, advertize_rate,
+                                  startup_dir, entry_names, group)
+                        childs[group]=popen2.Popen3(cmd, True)
                         if len(childs_uptime[group]) == restart_attempts:
                             childs_uptime[group].pop(0)
                         childs_uptime[group].append(time.time())
@@ -477,8 +488,8 @@ def main(startup_dir):
     pid_obj.register()
     try:
         try:
-            spawn(sleep_time,advertize_rate,startup_dir,
-                  glideinDescript,entries,restart_attempts,restart_interval)
+            spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
+                  entries, restart_attempts, restart_interval)
         except KeyboardInterrupt,e:
             raise e
         except:

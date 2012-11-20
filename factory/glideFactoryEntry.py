@@ -62,6 +62,9 @@ class Entry:
         self.logDir = os.path.join(self.glideinDescript.data['LogDir'],
                                    "entry_%s" % self.name)
 
+        # Schedd where my glideins will be submitted
+        self.scheddName = self.jobDescript.data['Schedd']
+
         # glideFactoryLib.log_files
         self.logFiles = glideFactoryLib.LogFiles(
             self.logDir,
@@ -149,18 +152,14 @@ class Entry:
                 float(self.glideinDescript.data['CondorLogRetentionMinDays']),
                 float(self.glideinDescript.data['CondorLogRetentionMaxMBs']))
     
-
-
-
-
+        # Load intial context for whitelist and downtimes
+        self.loadWhitelist()
+        self.loadDowntimes()
 
         # Create entry specific descript files
         write_descript(self.name, self.jobDescript, self.jobAttributes,
                        self.jobParams, self.monitorDir)
 
-
-        self.downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
-        self.jobAttributes.data['GLIDEIN_Downtime_Comment'] = self.downtimes.downtime_comment
 
 
     def loadContext(self):
@@ -175,6 +174,37 @@ class Entry:
         glideFactoryLib.factoryConfig = self.gflFactoryConfig
 
 
+    def loadWhitelist(self):
+        # Get information about which VOs to allow for this entry point.
+        # This will be a comma-delimited list of pairs
+        # vofrontendname:security_class,vofrontend:sec_class, ...
+        self.frontendWhitelist = self.jobDescript.data['WhitelistMode']
+        self.securityList = {};
+        if (self.frontendWhitelist == "On"):
+            frontend_allow_list = self.jobDescript.data['AllowedVOs'].split(',')
+            for entry in frontend_allow_list:
+                entry_part = entry.split(":");
+                if (entry_part[0] in self.securityList):
+                    self.securityList[entry_part[0]].append(entry_part[1]);
+                else:
+                    self.securityList[entry_part[0]] = [entry_part[1]];
+        self.allowedProxySource = self.glideinDescript.data['AllowedJobProxySource'].split(',')
+
+
+    def loadDowntimes(self):
+        self.downtimes = glideFactoryDowntimeLib.DowntimeFile(self.glideinDescript.data['DowntimesFile'])
+        self.jobAttributes.data['GLIDEIN_Downtime_Comment'] = self.downtimes.downtime_comment
+
+
+    def isClientInWhitelist(self, client_sec_name):
+        return (client_sec_name in self.securityList):
+
+
+    def isSecurityClassAllowed(self, client_sec_name, proxy_sec_class):
+        return ((proxy_sec_class in self.securityList[client_sec_name]) or 
+                ("All" in self.securityList[client_sec_name])):
+
+
     def isInDowntime(self):
         """
         Check the downtime file to find out if we are in downtime
@@ -182,15 +212,15 @@ class Entry:
         return self.downtimes.checkDowntime(entry=self.name)
 
 
-    def setDowntime(self, factory_in_downtime):
+    def setDowntime(self, downtime_flag):
         """
         Check if we are in downtime and set info accordingly
         """
 
-        self.jobAttributes.data['GLIDEIN_In_Downtime'] = (factory_in_downtime or self.isInDowntime())
+        self.jobAttributes.data['GLIDEIN_In_Downtime'] = (downtime_flag or self.isInDowntime())
            
 
-    def initIteration(self):
+    def initIteration(self, factory_in_downtime):
         """
         Perform the reseting of stats as required before every iteration
         """
@@ -200,12 +230,533 @@ class Entry:
         # This one is used for stats advertized in the ClassAd
         self.gflFactoryConfig.client_stats = glideFactoryMonitoring.condorQStats()
         # These two are used to write the history to disk
-        gflFactoryConfig.qc_stats = glideFactoryMonitoring.condorQStats()
-        glfFactoryConfig.client_internals = {}
+        self.gflFactoryConfig.qc_stats = glideFactoryMonitoring.condorQStats()
+        self.gflFactoryConfig.client_internals = {}
 
 
     def unsetInDowntime(self):
         del self.jobAttributes.data['GLIDEIN_In_Downtime']
+
+
+    def queryQueuedGlideins(self):
+        """
+        Query WMS schedd and get glideins info. Raise in case of failures.
+        """
+        try:
+            return glideFactoryLib.getCondorQData(self.name, None,
+                                                  self.scheddName)
+        except Exception, e:
+            self.logFiles.logActivity("Schedd %s not responding, skipping"%self.scheddName)
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            self.logFiles.logWarning("getCondorQData failed, traceback: %s"%string.join(tb,''))
+            raise e
+
+
+    def glideinsWithinLimits(self, condorQ):
+
+        # Check current state of the queue and initialize all entry limits
+
+        # Flag that says whether or not we can submit any more
+        can_submit_glideins = True
+
+        # Initialize entry and frontend limit dicts
+        self.glideinTotals = glideFactoryLib.GlideinTotals(
+                                 self.name, 
+                                 self.frontendDescript, 
+                                 self.jobDescript,
+                                 condorQ)
+
+        # Check if entry has exceeded max idle
+        if self.glideinTotals.has_entry_exceeded_max_idle():
+            self.logFiles.logWarning("Entry %s has hit the limit for idle glideins, cannot submit any more" % self.name)
+            can_submit_glideins = False
+
+        # Check if entry has exceeded max glideins
+        if can_submit_glideins and
+           self.glideinTotals.has_entry_exceeded_max_glideins():
+            self.logFiles.logWarning("Entry %s has hit the limit for total glideins, cannot submit any more" % self.name)
+            can_submit_glideins = False
+
+        # Check if entry has exceeded max held
+        if can_submit_glideins and
+           self.glideinTotals.has_entry_exceeded_max_held():
+            self.logFiles.logWarning("Entry %s has hit the limit for held glideins, cannot submit any more" % self.name)
+            can_submit_glideins = False
+
+        return can_submit_glideins
+    
+
+
+def check_and_perform_work(factory_in_downtime, group_name, entry, work):
+    """
+    Check if we need to do the work and then do the work
+    """
+ 
+    entry.loadContext()
+ 
+    # Query glidein queue
+    try:
+        condorQ = entry.queryQueuedGlideins()
+    except:
+        # Protect and exit
+        return 0
+
+    #
+    # STEP: CHECK THAT GLIDEINS ARE WITING ALLOWED LIMITS
+    #
+    can_submit_glideins = entry.glideinsWithinLimits(condorQ)
+
+    # Consider downtimes and see if we can submit glideins
+    all_security_names = sets.Set()
+    done_something = 0
+    entry.loadWhitelist()
+    entry.loadDowntimes()
+    # Variable to identify if frontend or sec_class is in downtime
+    in_downtime = factory_in_downtime
+
+    #
+    # STEP: Process every work one at a time
+    #
+
+    for work_key in work:
+        if not is_str_safe(work_key):
+            # may be used to write files... make sure it is reasonable
+            entry.logFiles.logWarning("Request name '%s' not safe. Skipping request"%work_key)
+            continue #skip request
+
+        # merge work and default params
+        params = work[work_key]['params']
+        decrypted_params = work[work_key]['params_decrypted']
+
+        # add default values if not defined
+        for k in entry.jobParams.data.keys():
+            if k not in params:
+                params[k] = entry.jobParams.data[k]
+
+        try:
+            client_int_name = work[work_key]['internals']["ClientName"]
+            client_int_req = work[work_key]['internals']["ReqName"]
+        except:
+            client_int_name = "DummyName"
+            client_int_req = "DummyReq"
+
+        if not is_str_safe(client_int_name):
+            # may be used to write files... make sure it is reasonable
+            entry.log_files.logWarning("Client name '%s' not safe. Skipping request"%client_int_name)
+            continue #skip request
+
+        #
+        # STEP: DOWNTIME AND FRONTEND/SECURITY_CLASS WHITELISTING CALCULATION
+        #
+
+        # Check whether the frontend is in the whitelist of the entry
+        client_security_name = decrypted_params.get('SecurityName',
+                                                    client_int_name)
+
+        if ( (entry.frontendWhitelist == "On") and 
+             (client_security_name not in entry.securityList) ):
+            entry.logFiles.logWarning("Client name '%s' not in whitelist. Preventing glideins from %s "% (client_security_name,client_int_name))
+            in_downtime=True
+            
+        # Check if proxy passing is compatible with allowed_proxy_source
+        if ('x509_proxy' in decrypted_params) or 
+           ('x509_proxy_0' in decrypted_params):
+            if 'frontend' not in allowed_proxy_source:
+                entry.logFiles.logWarning("Client %s provided proxy, but cannot use it. Skipping request"%client_int_name)
+                continue #skip request
+
+            client_expected_identity = entry.frontendDescript.get_identity(client_security_name)
+            if client_expected_identity is None:
+                entry.logFiles.logWarning("Client %s (secid: %s) not in white list. Skipping request"%(client_int_name,client_security_name))
+                continue #skip request
+            
+            client_authenticated_identity = work[work_key]['internals']["AuthenticatedIdentity"]
+            if client_authenticated_identity!=client_expected_identity:
+                # silently drop... like if we never read it in the first place
+                # this is compatible with what the frontend does
+                entry.logFiles.logWarning("Client %s (secid: %s) is not coming from a trusted source; AuthenticatedIdentity %s!=%s. Skipping for security reasons."%(client_int_name,client_security_name,client_authenticated_identity,client_expected_identity))
+                continue #skip request
+
+        else:
+            if 'factory' not in allowed_proxy_source:
+                entry.logFiles.logWarning("Client %s did not provide a proxy, but cannot use factory one. Skipping request"%client_int_name)
+                continue #skip request
+
+        x509_proxies = X509Proxies(entry.frontendDescript, client_security_name)
+
+        if 'x509_proxy' in decrypted_params:
+            if decrypted_params['x509_proxy'] is None:
+                entry.logFiles.logWarning("Could not decrypt x509_proxy for %s, skipping request"%client_int_name)
+                continue #skip request
+
+            # This old style protocol does not support SecurityName, use default
+            # Cannot check against a security class downtime since will never
+            # exist in the config
+            x509_proxy_security_class = "none"
+            
+            x509_proxy_username = x509_proxies.get_username(x509_proxy_security_class)
+            if x509_proxy_username is None:
+                entry.logFiles.logWarning("No mapping for security class %s of x509_proxy for %s, skipping and trying the others"%(x509_proxy_security_class,client_int_name))
+                continue # cannot map, skip proxy
+
+            try:
+                x509_proxy_fname = glideFactoryLib.update_x509_proxy_file(
+                                       entry_name, x509_proxy_username,
+                                       work_key, decrypted_params['x509_proxy'])
+            except:
+                entry.logFiles.logWarning("Failed to update x509_proxy using usename %s for client %s, skipping request"%(x509_proxy_username,client_int_name))
+                continue # skip request
+            
+            x509_proxies.add_fname(x509_proxy_security_class,
+                                   'main', x509_proxy_fname)
+            
+        elif 'x509_proxy_0' in decrypted_params:
+            if 'nr_x509_proxies' not in decrypted_params:
+                entry.logFiles.logWarning("Could not determine number of proxies for %s, skipping request"%client_int_name)
+                continue #skip request
+            try:
+                nr_x509_proxies = int(decrypted_params['nr_x509_proxies'])
+            except:
+                entry.logFiles.logWarning("Invalid number of proxies for %s, skipping request"%client_int_name)
+                continue # skip request
+            # If the whitelist mode is on, then set downtime to true
+            # We will set it to false in the loop if a security class passes the test
+            if (entry.frontendWhitelist == "On"):
+                prev_downtime = in_downtime
+                in_downtime = True
+            
+            # Set security class downtime flag
+            security_class_downtime_found = False
+            
+            for i in range(nr_x509_proxies):
+                if decrypted_params['x509_proxy_%i'%i] is None:
+                    entry.logFiles.logWarning("Could not decrypt x509_proxy_%i for %s, skipping and trying the others"%(i,client_int_name))
+                    continue #skip proxy
+                if 'x509_proxy_%i_identifier'%i not in decrypted_params:
+                    entry.logFiles.logWarning("No identifier for x509_proxy_%i for %s, skipping and trying the others"%(i,client_int_name))
+                    continue #skip proxy
+                x509_proxy = decrypted_params['x509_proxy_%i'%i]
+                x509_proxy_identifier = decrypted_params['x509_proxy_%i_identifier'%i]
+
+                if not is_str_safe(x509_proxy_identifier):
+                    # may be used to write files... make sure it is reasonable
+                    entry.logFiles.logWarning("Identifier for x509_proxy_%i for %s is not safe ('%s), skipping and trying the others"%(i,client_int_name,x509_proxy_identifier))
+                    continue #skip proxy
+
+                x509_proxy_security_class = decrypted_params.get(
+                                             'x509_proxy_%i_security_class'%i,
+                                              x509_proxy_identifier)
+                
+                # Check security class for downtime
+                entry.logFiles.logActivity("Checking downtime for frontend %s security class: %s (entry %s)."%(client_security_name, x509_proxy_security_class,entry.name))
+                in_sec_downtime = (entry.downtimes.checkDowntime(entry="factory", frontend=client_security_name, security_class=x509_proxy_security_class)) or 
+                                  (entry.downtimes.checkDowntime(entry=entry.name, frontend=client_security_name, security_class=x509_proxy_security_class))
+
+                if (in_sec_downtime):
+                    entry.logFiles.logWarning("Security Class %s is currently in a downtime window for Entry: %s. Skipping proxy %s."%(x509_proxy_security_class,entry.name, x509_proxy_identifier))
+                    security_class_downtime_found = True
+                    # Cannot use proxy for submission but entry is not in
+                    # downtime since other proxies may map to valid
+                    # security classes
+                    continue
+                    
+                # Deny Frontend from entering glideins if the whitelist
+                # does not have its security class (or "All" for everyone)
+                if (entry.frontendWhitelist == "On") and
+                   (entry.isClientInWhitelist(client_security_name)):
+                    if entry.isSecurityClassAllowed(client_security_name, 
+                                                    x509_proxy_security_class):
+                        in_downtime = prev_downtime
+                        entry.logFiles.logDebug("Security test passed for : %s %s "%(entry.name, x509_proxy_security_class))
+                    else:
+                        entry.logFiles.logWarning("Security class not in whitelist, skipping (%s %s) "%(client_security_name,x509_proxy_security_class))
+
+                x509_proxy_username = x509_proxies.get_username(x509_proxy_security_class)
+                if x509_proxy_username is None:
+                    entry.logFiles.logWarning("No mapping for security class %s of x509_proxy_%i for %s (secid: %s), skipping and trying the others"%(x509_proxy_security_class,i,client_int_name,client_security_name))
+                    # Cannot map, skip proxy
+                    continue
+
+                try:
+                    x509_proxy_fname = glideFactoryLib.update_x509_proxy_file(
+                                           entry.name, x509_proxy_username,
+                                           "%s_%s"%(work_key,
+                                                    x509_proxy_identifier),
+                                           x509_proxy)
+                except RuntimeError,e:
+                    entry.logFiles.logWarning("Failed to update x509_proxy_%i using usename %s for client %s, skipping request"%(i,x509_proxy_username,client_int_name))
+                    entry.logFiles.logDebug("Failed to update x509_proxy_%i using usename %s for client %s: %s"%(i,x509_proxy_username,client_int_name,e))
+                    continue # skip request
+                except:
+                    tb = traceback.format_exception(sys.exc_info()[0],
+                                                    sys.exc_info()[1],
+                                                    sys.exc_info()[2])
+                    entry.logFiles.logWarning("Failed to update x509_proxy_%i using usename %s for client %s, skipping request"%(i,x509_proxy_username,client_int_name))
+                    entry.logFiles.logDebug("Failed to update x509_proxy_%i using usename %s for client %s: Exception %s"%(i,x509_proxy_username,client_int_name,string.join(tb,'')))
+                    continue # skip request
+                
+                x509_proxies.add_fname(x509_proxy_security_class,
+                                       x509_proxy_identifier,
+                                       x509_proxy_fname)
+
+            if x509_proxies.count_fnames<1:
+                entry.logFiles.logWarning("No good proxies for %s, skipping request"%client_int_name)
+                continue #skip request
+        else:
+            # no proxy passed, use factory one
+            # Cannot check against a security class downtime since will never exist in the config
+            x509_proxy_security_class = "factory"
+            
+            x509_proxy_username = x509_proxies.get_username(x509_proxy_security_class)
+            if x509_proxy_username is None:
+                entry.logFiles.logWarning("No mapping for security class %s for %s (secid: %s), skipping frontend"%(x509_proxy_security_class,client_int_name,client_security_name))
+                continue # cannot map, frontend
+
+            x509_proxies.add_fname(x509_proxy_security_class,'factory',
+                                   os.environ['X509_USER_PROXY']) # use the factory one
+        
+            # Check if this entry point has a whitelist
+            # If it does, then make sure that this frontend is in it.
+            if (frontend_whitelist == "On") and 
+               (entry.isClientInWhiteList(client_security_name)) and 
+               (not entry.isSecurityClassAllowed(client_security_name,
+                                                 x509_proxy_security_class)):
+                entry.logFiles.logWarning("Client %s not allowed to use entry point. Marking as in downtime (security class %s) "%(client_security_name,x509_proxy_security_class))
+                in_downtime=True
+
+        entry.setDowntime(in_downtime):
+        entry.gflFactoryConfig.qc_stats.set_downtime(in_downtime)
+       
+        #
+        # STEP: CHECK IF CLEANUP OF IDLE GLIDEINS IS REQUIRED
+        #
+
+        remove_excess = work[work_key]['requests'].get('RemoveExcess', 'NO')
+
+        if 'IdleGlideins' in work[work_key]['requests']:
+            # malformed, if no IdleGlideins
+            try:
+                idle_glideins = int(work[work_key]['requests']['IdleGlideins'])
+            except ValueError, e:
+                entry.logFiles.logWarning("Client %s provided an invalid ReqIdleGlideins: '%s' not a number. Skipping request"%(client_int_name,work[work_key]['requests']['IdleGlideins']))
+                continue #skip request
+            
+            if 'MaxRunningGlideins' in work[work_key]['requests']:
+                try:
+                    max_running = int(work[work_key]['requests']['MaxRunningGlideins'])
+                except ValueError, e:
+                    entry.logFiles.logWarning("Client %s provided an invalid ReqMaxRunningGlideins: '%s' not a number. Skipping request"%(client_int_name,work[work_key]['requests']['MaxRunningGlideins']))
+                    continue #skip request
+            else:
+                max_running = int(entry.jobDescript.data['MaxRunning'])
+            
+            # Validate that project id is supplied when required
+            # (as specified in the rsl string)
+
+            if entry.jobDescript.data.has_key('GlobusRSL'):
+                if 'TG_PROJECT_ID' in jobDescript.data['GlobusRSL']:
+                    if 'ProjectId' in decrypted_params:
+                        project_id = decrypted_params['ProjectId']
+                        # just add to params for now, not a security issue
+                        # this may change when we implement the new protocol
+                        # with the auth types and trust domains
+                        params['ProjectId'] = project_id
+                    else:
+                        # project id is required, cannot service request
+                        entry.logFiles.logActivity("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
+                        continue      
+                              
+            # If we got this far, it was because we were able to
+            # successfully update all the proxies in the request
+            # If we already have hit our limits checked at beginning of this 
+            # method and logged there, we can't submit.  
+            # We still need to check/update all the other request credentials
+            # and do cleanup.
+            # We'll set idle glideins to zero if hit max or in downtime. 
+            if in_downtime or not can_submit_glideins:
+                idle_glideins=0          
+
+            if 'URL' in work[work_key]['web']:
+                try:
+                    client_web_url = work[work_key]['web']['URL']
+                    client_signtype = work[work_key]['web']['SignType']
+                    client_descript = work[work_key]['web']['DescriptFile']
+                    client_sign = work[work_key]['web']['DescriptSign']
+
+                    if 'GroupName' in work[work_key]['internals']:
+                        client_group = work[work_key]['internals']['GroupName']
+                        client_group_web_url = work[work_key]['web']['GroupURL']
+                        client_group_descript = work[work_key]['web']['GroupDescriptFile']
+                        client_group_sign = work[work_key]['web']['GroupDescriptSign']
+                        client_web = glideFactoryLib.ClientWeb(
+                                         client_web_url, client_signtype,
+                                         client_descript, client_sign,
+                                         client_group, client_group_web_url,
+                                         client_group_descript,
+                                         client_group_sign)
+                    else:
+                        # new style, but without a group (basic frontend)
+                        client_web = glideFactoryLib.ClientWebNoGroup(
+                                         client_web_url, client_signtype,
+                                         client_descript, client_sign)
+                except:
+                    # malformed classad, skip
+                    glideFactoryLib.log_files.logWarning("Malformed classad for client %s, skipping"%work_key)
+                    continue
+            else:
+                # old style
+                client_web = None
+
+            x509_proxy_security_classes = x509_proxies.fnames.keys()
+            # Sort to have consistent logging
+            x509_proxy_security_classes.sort() 
+            for x509_proxy_security_class in x509_proxy_security_classes:
+                # submit each security class independently
+                # split the request proportionally between them
+
+                x509_proxy_frac = 1.0*len(x509_proxies.fnames[x509_proxy_security_class])/x509_proxies.count_fnames
+
+                # Round up if a client requests a non splittable number,
+                # worse for him.
+                # Expect no issues in real world as the most reasonable
+                # use case has a single proxy_class per client name
+                idle_glideins_pc = int(math.ceil(idle_glideins*x509_proxy_frac))
+                max_running_pc = int(math.ceil(max_running*x509_proxy_frac))
+
+                # Should log here or in perform_work
+                glideFactoryLib.logWorkRequest(client_int_name, 
+                                               client_security_name,
+                                               x509_proxy_security_class,
+                                               idle_glideins, max_running,
+                                               work[work_key], x509_proxy_frac)
+            
+                all_security_names.add((client_security_name,
+                                        x509_proxy_security_class))
+
+                entry_condorQ = glideFactoryLib.getQProxSecClass(
+                                    condorQ, client_int_name,
+                                    x509_proxy_security_class)
+                
+                # Map the identity to a frontend:sec_class for tracking totals
+                frontend_name = "%s:%s" % (frontendDescript.get_frontend_name(client_expected_identity),
+                                           x509_proxy_security_class)
+
+                done_something += perform_work(
+                                      entry, entry_condorQ, work_key,
+                                      client_int_name, client_security_name, 
+                                      x509_proxy_security_class, client_int_req,
+                                      in_downtime, remove_excess,
+                                      idle_glideins_pc, max_running_pc,
+                                      x509_proxies.fnames[x509_proxy_security_class],
+                                      x509_proxies.get_username(x509_proxy_security_class),
+                                      glidein_totals, frontend_name,
+                                      client_web, params)
+                
+        else:
+            # It is malformed and should be skipped
+            entry.logFiles.logWarning("Malformed classad for client %s, skipping"%work_key)
+
+    if done_something == 0:
+        entry.logFiles.logActivity("Sanitizing glideins for entry %s" % entry.name)
+        glideFactoryLib.sanitizeGlideinsSimple(condorQ)
+
+    for sec_el in all_security_names:
+        try:
+            glideFactoryLib.factoryConfig.rrd_stats.getData("%s_%s" % sec_el)
+        except glideFactoryLib.condorExe.ExeError,e:
+            entry.logFiles.logWarning("get_RRD_data failed: %s" % e)
+            # Never fail for monitoring. Just log
+            pass
+        except:
+            entry.logFiles.logWarning("get_RRD_data failed: error unknown")
+            # Never fail for monitoring. Just log
+            pass
+
+    return done_something
+
+
+
+#############
+
+def perform_work(entry, condorQ, client_name, client_int_name,
+                 client_security_name, x509_proxy_security_class,
+                 client_int_req, in_downtime,remove_excess, idle_glideins,
+                 max_running, x509_proxy_fnames, x509_proxy_username,
+                 glidein_totals, frontend_name, client_web, params):
+    """
+    Perform the work (Submit glideins)
+    """
+            
+    glideFactoryLib.factoryConfig.client_internals[client_int_name]={"CompleteName":client_name,"ReqName":client_int_req}
+
+    condor_pool = params.get('GLIDEIN_Collector', None)
+    condorStatus = None
+
+    x509_proxy_keys = x509_proxy_fnames.keys()
+    # Randomize so I don't favour any proxy over another
+    random.shuffle(x509_proxy_keys)
+
+    # find out the users it is using
+    log_stats = {}
+    log_stats[x509_proxy_username+":"+client_int_name] = \
+        glideFactoryLogParser.dirSummaryTimingsOut(
+            glideFactoryLib.factoryConfig.get_client_log_dir(
+                entry.name, x509_proxy_username),
+            entry.logDir, client_int_name, x509_proxy_username)
+    # should not need privsep for reading logs
+    log_stats[x509_proxy_username+":"+client_int_name].load()
+
+    glideFactoryLib.logStats(condorQ, condorStatus, client_int_name,
+                             client_security_name, x509_proxy_security_class)
+    client_log_name = glideFactoryLib.secClass2Name(client_security_name,
+                                                    x509_proxy_security_class)
+    entry.gflFactoryConfig.log_stats.logSummary(client_log_name, log_stats)
+
+    # use the extended params for submission
+    proxy_fraction = 1.0/len(x509_proxy_keys)
+
+    # I will shuffle proxies around, so I may as well round up all of them
+    idle_glideins_pproxy = int(math.ceil(idle_glideins*proxy_fraction))
+    max_glideins_pproxy = int(math.ceil(max_running*proxy_fraction))
+
+    # not reducing the held, as that is effectively per proxy, not per request
+    nr_submitted=0
+    for x509_proxy_id in x509_proxy_keys:
+        nr_submitted + =glideFactoryLib.keepIdleGlideins(
+                            condorQ, client_int_name, in_downtime,
+                            remove_excess, idle_glideins_pproxy,
+                            max_glideins_pproxy, glidein_totals, frontend_name,
+                            x509_proxy_id, x509_proxy_fnames[x509_proxy_id],
+                            x509_proxy_username, x509_proxy_security_class,
+                            client_web, params)
+    
+    if nr_submitted>0:
+        entry.logFiles.logActivity("Submitted %s glideins" % nr_submitted)
+        # We submitted something
+        return 1
+   
+    #glideFactoryLib.log_files.logActivity("Work done")
+    return 0
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ############################################################
@@ -247,7 +798,7 @@ def check_parent(parent_pid, glideinDescript, jobDescript):
 
 
 ############################################################
-def perform_work(entry_name,
+def perform_work_old(entry_name,
                  condorQ,
                  client_name,client_int_name,client_security_name,x509_proxy_security_class,client_int_req,
                  in_downtime,remove_excess,

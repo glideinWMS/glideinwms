@@ -7,7 +7,7 @@
 #
 # Description:
 #   This is the glideinFactoryEntryGroup. Common Tasks like queering collector
-#   are done here
+#   and advertizing the work done by group are done here
 #
 # Arguments:
 #   $1 = poll period (in seconds)
@@ -20,11 +20,19 @@
 #
 
 import signal
-import os,os.path,sys,fcntl
+import os
+import os.path
+import sys
+import fcntl
 import traceback
-import time,string,math
-import copy,random
+import time
+import string
+import math
+import copy
+import random
 import sets
+import cPickle
+
 sys.path.append(os.path.join(sys.path[0],"../lib"))
 
 import glideFactoryPidLib
@@ -186,12 +194,11 @@ def find_work(factory_in_downtime, glideinDescript,
         work_oldkey = {}
         # still using the old key in this cycle
         gfl.log_files.logActivity("Old factory key is still valid. Trying to find work using old factory key.")
-        work_oldkey = gfi.findWork(gfl.factoryConfig.factory_name,
-                                   gfl.factoryConfig.glidein_name,
-                                   entry_name,
-                                   gfl.factoryConfig.supported_signtypes,
-                                   old_pub_key_obj,
-                                   allowed_proxy_source)
+        work_oldkey = gfi.findGroupWork(gfl.factoryConfig.factory_name,
+                                        gfl.factoryConfig.glidein_name,
+                                        my_entries.keys(),
+                                        gfl.factoryConfig.supported_signtypes,
+                                        old_pub_key_obj, allowed_proxy_source)
         log_work_info(work, key='old')
 
         # Merge the work_oldkey with work
@@ -209,18 +216,72 @@ def find_work(factory_in_downtime, glideinDescript,
 def log_work_info(work, key=''):
     keylogstr = ''
     if key.strip() != '':
-        gfl.log_files.logActivity('Work grouped by entries using %s factory key' % (key))
+        gfl.log_files.logActivity('Work tasks grouped by entries using %s factory key' % (key))
     else:
-        gfl.log_files.logActivity('Work grouped by entries')
+        gfl.log_files.logActivity('Work tasks grouped by entries')
 
     for entry in work:
-        gfl.log_files.logActivity("Entry: %s (Tasks: %s)" % (entry,
-                                                             len(work[entry])))
+        # Only log if there is work to do
+        if len(work[entry]) > 0:
+            gfl.log_files.logActivity("Entry: %s (Tasks: %s)" % (entry, len(work[entry])))
+
+
+def get_work_count(work):
+    count = 0
+    for entry in work:
+        count += len(work[entry])
+    return count
+
+###############################
+def fetch_fork_result(r, pid):
+    """
+    Used with fork clients
+    Args:
+     r    - input pipe
+     pid - pid of the child
+    """
+
+    try:
+        rin = ""
+        s = os.read(r, 1024*1024)
+        while (s != ""): # "" means EOF
+            rin += s
+            s = os.read(r,1024*1024)
+    finally:
+        os.close(r)
+        os.waitpid(pid, 0)
+
+    out = cPickle.loads(rin)
+    return out
+
+def fetch_fork_result_list(pipe_ids):
+    """
+       in: pipe_ids - dict, of {'r':r,'pid':pid} keyed on entry name
+       out: dictionary of fork_results
+    """
+
+    out = {}
+    failures = 0
+    for entry in pipe_ids:
+        try:
+            # Collect the results
+            out[entry] = fetch_fork_result(pipe_ids[entry]['r'],
+                                           pipe_ids[entry]['pid'])
+        except Exception, e:
+            gfl.log_files.logWarning("Failed to retrieve work done for entry subprocess." % entry)
+            gfl.log_files.logDebug("Failed to retrieve work done for entry subprocess: %s" % (entry, e))
+            failures += 1
+
+    if failures>0:
+        raise RuntimeError, "Found %i errors" % failures
+
+    return out
+
 ###############################
 
 
 def find_and_perform_work(factory_in_downtime, glideinDescript,
-                          frontendDescript, group_name, my_entries)
+                          frontendDescript, group_name, my_entries):
     """
     Finds work requests from the WMS collector, validates credentials, and
     requests glideins. If an entry is in downtime, requested glideins is zero.
@@ -241,10 +302,28 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     @return: returns a value greater than zero if work was done.
     """
     
+    # Step 1:
+    # Find work to perform. Work is a dict work[entry_name][frontend]
+    # We may or may not be able to perform all the work but that will be
+    # checked later per entry
+
+    work = {}
     work = find_work(factory_in_downtime, glideinDescript,
                      frontendDescript, group_name, my_entries)   
 
-    # PM: So far got the work items grouped by entries
+    work_count = get_work_count(work)
+    if (work_count == 0):
+        gfl.log_files.logActivity("No work found")
+        return 0
+
+    gfl.log_files.logActivity("Found %s total tasks to work on" % work_count)
+
+    # Got the work items grouped by entries
+    # Now fork a process per entry and wait for certain duration to get back
+    # the results. Kill processes if they take too long to get back with result
+
+
+    # PM: I AM HERE FIXING THREADED WORK
 
 
 
@@ -254,425 +333,88 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
 
 
 
+    # TODO: PM: Following should be multithreaded non-blocking
 
+    # Work done keyed by entry name
+    work_done = {}
+    # ids keyed by entry name
+    pipe_ids = {}
 
+    # Entry object changes after doing work. Just capture the entry object
+    # from the child process and use it for further processing
+    post_work_entries = {}
 
+    for entry in my_entries.values():
+        r,w = os.pipe()
+        pid = os.fork()
+        if pid != 0:
+            # This is the original process
+            glideFactoryLib.log_files.logActivity("In check_and_perform_work process with pid %s for entry %s" % (pid, entry.name))
+            os.close(w)
+            pipe_ids[entry.name] = {'r': r, 'pid': pid}
+        else:
+            # This is the child process
+            glideFactoryLib.log_files.logActivity("Forked check_and_perform_work process with pid %s for entry %s" % (pid, entry.name))
+            os.close(r)
 
+            try:
+                work_done = glideFactoryEntry.check_and_perform_work(
+                                factory_in_downtime, group_name,
+                                entry, work[entry.name])
+                return_dict = {entry.name: {'entry': entry,
+                                            'work_done': work_done}}
+                os.write(w,cPickle.dumps(return_dict))
+            except Exception, ex:
+                tb = traceback.format_exception(sys.exc_info()[0],
+                                                sys.exc_info()[1],
+                                                sys.exc_info()[2])
+                entry.logFiles.logDebug("Error in talking to the factory pool: %s" % tb)
 
+            os.close(w)
+            # Hard kill myself. Don't want any cleanup, since I was created
+            # just for doing check and perform work.
+            os.kill(os.getpid(),signal.SIGKILL)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    entry_name=jobDescript.data['EntryName']
-
-    # Get information about which VOs to allow for this entry point.
-    # This will be a comma-delimited list of pairs
-    # vofrontendname:security_class,vofrontend:sec_class, ...
-    frontend_whitelist=jobDescript.data['WhitelistMode']
-    security_list={};
-    if (frontend_whitelist == "On"):
-        frontend_allowed=jobDescript.data['AllowedVOs']
-        frontend_allow_list=frontend_allowed.split(',');
-        for entry in frontend_allow_list:
-            entry_part=entry.split(":");
-            if (security_list.has_key(entry_part[0])):
-                security_list[entry_part[0]].append(entry_part[1]);
-            else:
-                security_list[entry_part[0]]=[entry_part[1]];
-   
-    allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
-    glideFactoryLib.factoryConfig.client_stats.set_downtime(in_downtime)
-    glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime)
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-    if len(work.keys())==0:
-        glideFactoryLib.log_files.logActivity("No work found")
-        return 0 # nothing to be done
-
-    glideFactoryLib.log_files.logActivity("Found %s total tasks to work on" % len(work))
-
-    #glideFactoryLib.log_files.logActivity("Perform work")
-    schedd_name=jobDescript.data['Schedd']
-
+    # Gather results from the forked children
     try:
-        condorQ=glideFactoryLib.getCondorQData(entry_name,None,schedd_name)
-    except glideFactoryLib.condorExe.ExeError,e:
-        glideFactoryLib.log_files.logActivity("Schedd %s not responding, skipping"%schedd_name)
-        glideFactoryLib.log_files.logWarning("getCondorQData failed: %s"%e)
-        # protect and exit
-        return 0
-    except:
-        glideFactoryLib.log_files.logActivity("Schedd %s not responding, skipping"%schedd_name)
-        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
-                                        sys.exc_info()[2])
-        glideFactoryLib.log_files.logWarning("getCondorQData failed, traceback: %s"%string.join(tb,''))
-        # protect and exit
-        return 0
+        pipe_out = fetch_fork_result_list(pipe_ids)
+    except RuntimeError:
+        # Expect all errors logged already
+        gfl.log_files.logWarning("Unable to process response from check_and_perform_work")
+        # PM: TODO: Whats the best action? Ignore or return?
+
+    gfl.log_files.logActivity("All children terminated")
+
+
+
+
+
+    ##### PM: I AM HERE Nov 15
+
+
+
+
+
+
+    # PM: TODO: Got aggregated work_done. Refactor advertising
+            
     
-    # ===========  Check current state of the queue and initialize all entry limits  ==========
-    
-    # Set a flag that says whether or not we can submit any more (we still need to update credentials)
-    can_submit_glideins = True
-    
-    # Initialize entry and frontend limit dicts
-    glidein_totals = glideFactoryLib.GlideinTotals(entry_name, frontendDescript, jobDescript, condorQ)  
-    
-    if glidein_totals.has_entry_exceeded_max_idle():
-        glideFactoryLib.log_files.logWarning("Entry %s has hit the limit for idle glideins, cannot submit any more" % entry_name)
-        can_submit_glideins = False
-        
-    if can_submit_glideins and glidein_totals.has_entry_exceeded_max_glideins():
-        glideFactoryLib.log_files.logWarning("Entry %s has hit the limit for total glideins, cannot submit any more" % entry_name)
-        can_submit_glideins = False
-        
-    if can_submit_glideins and glidein_totals.has_entry_exceeded_max_held():
-        glideFactoryLib.log_files.logWarning("Entry %s has hit the limit for held glideins, cannot submit any more" % entry_name)
-        can_submit_glideins = False
 
-    all_security_names=sets.Set()
 
-    done_something=0
-    for work_key in work.keys():
-        if not is_str_safe(work_key):
-            # may be used to write files... make sure it is reasonable
-            glideFactoryLib.log_files.logWarning("Request name '%s' not safe. Skipping request"%work_key)
-            continue #skip request
 
-        # merge work and default params
-        params=work[work_key]['params']
-        decrypted_params=work[work_key]['params_decrypted']
 
-        # add default values if not defined
-        for k in jobParams.data.keys():
-            if not (k in params.keys()):
-                params[k]=jobParams.data[k]
 
-        try:
-            client_int_name=work[work_key]['internals']["ClientName"]
-            client_int_req=work[work_key]['internals']["ReqName"]
-        except:
-            client_int_name="DummyName"
-            client_int_req="DummyReq"
 
-        if not is_str_safe(client_int_name):
-            # may be used to write files... make sure it is reasonable
-            glideFactoryLib.log_files.logWarning("Client name '%s' not safe. Skipping request"%client_int_name)
-            continue #skip request
 
-        # Check whether the frontend is on the whitelist for the 
-        # Entry point.
-        if decrypted_params.has_key('SecurityName'):
-                client_security_name=decrypted_params['SecurityName']
-        else:
-                # backwards compatibility
-                client_security_name=client_int_name
 
-        if ((frontend_whitelist == "On") and (not security_list.has_key(client_security_name))):
-            glideFactoryLib.log_files.logWarning("Client name '%s' not in whitelist. Preventing glideins from %s "% (client_security_name,client_int_name))
-            in_downtime=True
-            
-        # Get factory, entry, and security class downtimes
-        factory_downtimes=glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
-        
-        # Check if proxy passing is compatible with allowed_proxy_source
-        if decrypted_params.has_key('x509_proxy') or decrypted_params.has_key('x509_proxy_0'):
-            if not ('frontend' in allowed_proxy_source):
-                glideFactoryLib.log_files.logWarning("Client %s provided proxy, but cannot use it. Skipping request"%client_int_name)
-                continue #skip request
 
-            client_expected_identity=frontendDescript.get_identity(client_security_name)
-            if client_expected_identity==None:
-                glideFactoryLib.log_files.logWarning("Client %s (secid: %s) not in white list. Skipping request"%(client_int_name,client_security_name))
-                continue #skip request
-            
-            client_authenticated_identity=work[work_key]['internals']["AuthenticatedIdentity"]
 
-            if client_authenticated_identity!=client_expected_identity:
-                # silently drop... like if we never read it in the first place
-                # this is compatible with what the frontend does
-                glideFactoryLib.log_files.logWarning("Client %s (secid: %s) is not coming from a trusted source; AuthenticatedIdentity %s!=%s. Skipping for security reasons."%(client_int_name,client_security_name,client_authenticated_identity,client_expected_identity))
-                continue #skip request
 
-        else:
-            if not ('factory' in allowed_proxy_source):
-                glideFactoryLib.log_files.logWarning("Client %s did not provide a proxy, but cannot use factory one. Skipping request"%client_int_name)
-                continue #skip request
 
-        x509_proxies=X509Proxies(frontendDescript,client_security_name)
-        if decrypted_params.has_key('x509_proxy'):
-            if decrypted_params['x509_proxy']==None:
-                glideFactoryLib.log_files.logWarning("Could not decrypt x509_proxy for %s, skipping request"%client_int_name)
-                continue #skip request
 
-            # This old style protocol does not support SecurityName, use default
-            # Cannot check against a security class downtime since will never exist in the config
-            x509_proxy_security_class="none"
-            
-            x509_proxy_username=x509_proxies.get_username(x509_proxy_security_class)
-            if x509_proxy_username==None:
-                glideFactoryLib.log_files.logWarning("No mapping for security class %s of x509_proxy for %s, skipping and trying the others"%(x509_proxy_security_class,client_int_name))
-                continue # cannot map, skip proxy
 
-            try:
-                x509_proxy_fname=glideFactoryLib.update_x509_proxy_file(entry_name,x509_proxy_username,work_key,decrypted_params['x509_proxy'])
-            except:
-                glideFactoryLib.log_files.logWarning("Failed to update x509_proxy using usename %s for client %s, skipping request"%(x509_proxy_username,client_int_name))
-                continue # skip request
-            
-            x509_proxies.add_fname(x509_proxy_security_class,'main',x509_proxy_fname)
-            
-        elif decrypted_params.has_key('x509_proxy_0'):
-            if not decrypted_params.has_key('nr_x509_proxies'):
-                glideFactoryLib.log_files.logWarning("Could not determine number of proxies for %s, skipping request"%client_int_name)
-                continue #skip request
-            try:
-                nr_x509_proxies=int(decrypted_params['nr_x509_proxies'])
-            except:
-                glideFactoryLib.log_files.logWarning("Invalid number of proxies for %s, skipping request"%client_int_name)
-                continue # skip request
-            # If the whitelist mode is on, then set downtime to true
-            # We will set it to false in the loop if a security class passes the test
-            if (frontend_whitelist=="On"):
-                prev_downtime=in_downtime
-                in_downtime=True
-            
-            # Set security class downtime flag
-            security_class_downtime_found = False
-            
-            for i in range(nr_x509_proxies):
-                if decrypted_params['x509_proxy_%i'%i]==None:
-                    glideFactoryLib.log_files.logWarning("Could not decrypt x509_proxy_%i for %s, skipping and trying the others"%(i,client_int_name))
-                    continue #skip proxy
-                if not decrypted_params.has_key('x509_proxy_%i_identifier'%i):
-                    glideFactoryLib.log_files.logWarning("No identifier for x509_proxy_%i for %s, skipping and trying the others"%(i,client_int_name))
-                    continue #skip proxy
-                x509_proxy=decrypted_params['x509_proxy_%i'%i]
-                x509_proxy_identifier=decrypted_params['x509_proxy_%i_identifier'%i]
 
-                if not is_str_safe(x509_proxy_identifier):
-                    # may be used to write files... make sure it is reasonable
-                    glideFactoryLib.log_files.logWarning("Identifier for x509_proxy_%i for %s is not safe ('%s), skipping and trying the others"%(i,client_int_name,x509_proxy_identifier))
-                    continue #skip proxy
-
-                if decrypted_params.has_key('x509_proxy_%i_security_class'%i):
-                    x509_proxy_security_class=decrypted_params['x509_proxy_%i_security_class'%i]
-                else:
-                    x509_proxy_security_class=x509_proxy_identifier
-                
-                # Check security class for downtime
-                glideFactoryLib.log_files.logActivity("Checking downtime for frontend %s security class: %s (entry %s)."%(client_security_name, x509_proxy_security_class,jobDescript.data['EntryName']))
-                in_sec_downtime=(factory_downtimes.checkDowntime(entry="factory",frontend=client_security_name,security_class=x509_proxy_security_class) or factory_downtimes.checkDowntime(entry=jobDescript.data['EntryName'],frontend=client_security_name,security_class=x509_proxy_security_class))
-                if (in_sec_downtime):
-                    glideFactoryLib.log_files.logWarning("Security Class %s is currently in a downtime window for Entry: %s. Skipping proxy %s."%(x509_proxy_security_class,jobDescript.data['EntryName'], x509_proxy_identifier))
-                    security_class_downtime_found = True
-                    continue # cannot use proxy for submission but entry is not in downtime since other proxies may map to valid security classes
-                    
-                # Deny Frontend from entering glideins if the whitelist
-                # does not have its security class (or "All" for everyone)
-                if (frontend_whitelist == "On") and (security_list.has_key(client_security_name)):
-                    if ((x509_proxy_security_class in security_list[client_security_name])or ("All" in security_list[client_security_name])):
-                        in_downtime=prev_downtime
-                        glideFactoryLib.log_files.logDebug("Security test passed for : %s %s "%(jobDescript.data['EntryName'],x509_proxy_security_class))
-                    else:
-                        glideFactoryLib.log_files.logWarning("Security class not in whitelist, skipping (%s %s) "%(client_security_name,x509_proxy_security_class))
-
-                x509_proxy_username=x509_proxies.get_username(x509_proxy_security_class)
-                if x509_proxy_username==None:
-                    glideFactoryLib.log_files.logWarning("No mapping for security class %s of x509_proxy_%i for %s (secid: %s), skipping and trying the others"%(x509_proxy_security_class,i,client_int_name,client_security_name))
-                    continue # cannot map, skip proxy
-
-                try:
-                    x509_proxy_fname=glideFactoryLib.update_x509_proxy_file(entry_name,x509_proxy_username,"%s_%s"%(work_key,x509_proxy_identifier),x509_proxy)
-                except RuntimeError,e:
-                    glideFactoryLib.log_files.logWarning("Failed to update x509_proxy_%i using usename %s for client %s, skipping request"%(i,x509_proxy_username,client_int_name))
-                    glideFactoryLib.log_files.logDebug("Failed to update x509_proxy_%i using usename %s for client %s: %s"%(i,x509_proxy_username,client_int_name,e))
-                    continue # skip request
-                except:
-                    tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
-                                                    sys.exc_info()[2])
-                    glideFactoryLib.log_files.logWarning("Failed to update x509_proxy_%i using usename %s for client %s, skipping request"%(i,x509_proxy_username,client_int_name))
-                    glideFactoryLib.log_files.logDebug("Failed to update x509_proxy_%i using usename %s for client %s: Exception %s"%(i,x509_proxy_username,client_int_name,string.join(tb,'')))
-                    continue # skip request
-                
-                x509_proxies.add_fname(x509_proxy_security_class,x509_proxy_identifier,x509_proxy_fname)
-
-            if x509_proxies.count_fnames<1:
-                glideFactoryLib.log_files.logWarning("No good proxies for %s, skipping request"%client_int_name)
-                continue #skip request
-        else:
-            # no proxy passed, use factory one
-            # Cannot check against a security class downtime since will never exist in the config
-            x509_proxy_security_class="factory"
-            
-            x509_proxy_username=x509_proxies.get_username(x509_proxy_security_class)
-            if x509_proxy_username==None:
-                glideFactoryLib.log_files.logWarning("No mapping for security class %s for %s (secid: %s), skipping frontend"%(x509_proxy_security_class,client_int_name,client_security_name))
-                continue # cannot map, frontend
-
-            x509_proxies.add_fname(x509_proxy_security_class,'factory',
-                                   os.environ['X509_USER_PROXY']) # use the factory one
-        
-            # Check if this entry point has a whitelist
-            # If it does, then make sure that this frontend is in it.
-            if (frontend_whitelist == "On")and (security_list.has_key(client_security_name))and(not x509_proxy_security_class in security_list[client_security_name])and (not "All" in security_list[client_security_name]):
-                glideFactoryLib.log_files.logWarning("Client %s not allowed to use entry point. Marking as in downtime (security class %s) "%(client_security_name,x509_proxy_security_class))
-                in_downtime=True
-
-        jobAttributes.data['GLIDEIN_In_Downtime']=in_downtime
-        glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime)
-       
-        if work[work_key]['requests'].has_key('RemoveExcess'):
-            remove_excess=work[work_key]['requests']['RemoveExcess']
-        else:
-            remove_excess='NO'            
-
-        if work[work_key]['requests'].has_key('IdleGlideins'):
-            # malformed, if no IdleGlideins
-            try:
-                idle_glideins=int(work[work_key]['requests']['IdleGlideins'])
-            except ValueError, e:
-                glideFactoryLib.log_files.logWarning("Client %s provided an invalid ReqIdleGlideins: '%s' not a number. Skipping request"%(client_int_name,work[work_key]['requests']['IdleGlideins']))
-                continue #skip request
-            
-            if work[work_key]['requests'].has_key('MaxRunningGlideins'):
-                try:
-                    max_running=int(work[work_key]['requests']['MaxRunningGlideins'])
-                except ValueError, e:
-                    glideFactoryLib.log_files.logWarning("Client %s provided an invalid ReqMaxRunningGlideins: '%s' not a number. Skipping request"%(client_int_name,work[work_key]['requests']['MaxRunningGlideins']))
-                    continue #skip request
-            else:
-                max_running=int(jobDescript.data['MaxRunning'])
-            
-            # Validate that project id is supplied when required (as specified in the rsl string)
-            if jobDescript.data.has_key('GlobusRSL'):
-                if 'TG_PROJECT_ID' in jobDescript.data['GlobusRSL']:
-                    if decrypted_params.has_key('ProjectId'):
-                        project_id = decrypted_params['ProjectId']
-                        # just add to params for now, not a security issue
-                        # this may change when we implement the new protocol with the auth types and trust domains
-                        params['ProjectId'] = project_id
-                    else:
-                        # project id is required, cannot service request
-                        glideFactoryLib.log_files.logActivity("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
-                        continue      
-                              
-            # If we got this far, it was because we were able to successfully update all the proxies in the request
-            # If we already have hit our maximums (checked at beginning of this method and logged there), we can't submit.  
-            # We still need to check/update all the other request credentials and do cleanup.
-            # We'll set idle glideins to zero if hit max or in downtime. 
-            if in_downtime or not can_submit_glideins:
-                idle_glideins=0          
-
-            if work[work_key]['web'].has_key('URL'):
-                try:
-                    client_web_url=work[work_key]['web']['URL']
-                    client_signtype=work[work_key]['web']['SignType']
-                    client_descript=work[work_key]['web']['DescriptFile']
-                    client_sign=work[work_key]['web']['DescriptSign']
-
-                    if work[work_key]['internals'].has_key('GroupName'):
-                        client_group=work[work_key]['internals']['GroupName']
-                        client_group_web_url=work[work_key]['web']['GroupURL']
-                        client_group_descript=work[work_key]['web']['GroupDescriptFile']
-                        client_group_sign=work[work_key]['web']['GroupDescriptSign']
-                        client_web=glideFactoryLib.ClientWeb(client_web_url,
-                                                             client_signtype,
-                                                             client_descript,client_sign,
-                                                             client_group,client_group_web_url,
-                                                             client_group_descript,client_group_sign)
-                    else:
-                        # new style, but without a group (basic frontend)
-                        client_web=glideFactoryLib.ClientWebNoGroup(client_web_url,
-                                                                    client_signtype,
-                                                                    client_descript,client_sign)
-                except:
-                    # malformed classad, skip
-                    glideFactoryLib.log_files.logWarning("Malformed classad for client %s, skipping"%work_key)
-                    continue
-            else:
-                # old style
-                client_web=None
-
-            x509_proxy_security_classes=x509_proxies.fnames.keys()
-            x509_proxy_security_classes.sort() # sort to have consistent logging
-            for x509_proxy_security_class in x509_proxy_security_classes:
-                # submit each security class independently
-                # split the request proportionally between them
-
-                x509_proxy_frac=1.0*len(x509_proxies.fnames[x509_proxy_security_class])/x509_proxies.count_fnames
-
-                # round up... if a client requests a non splittable number, worse for him
-                # expect to not be a problem in real world as
-                # the most reasonable use case has a single proxy_class per client name
-                idle_glideins_pc=int(math.ceil(idle_glideins*x509_proxy_frac))
-                max_running_pc=int(math.ceil(max_running*x509_proxy_frac))
-
-                #
-                # Should log here or in perform_work
-                #
-                glideFactoryLib.logWorkRequest(client_int_name,client_security_name,x509_proxy_security_class,
-                                               idle_glideins, max_running,
-                                               work[work_key],x509_proxy_frac)
-            
-                all_security_names.add((client_security_name,x509_proxy_security_class))
-
-                entry_condorQ=glideFactoryLib.getQProxSecClass(condorQ,client_int_name,x509_proxy_security_class)
-                
-                # Map the above identity to a frontend:sec_class for tracking totals
-                frontend_name = "%s:%s" % (frontendDescript.get_frontend_name(client_expected_identity), x509_proxy_security_class)
-
-                done_something += perform_work(entry_name,entry_condorQ,
-                                             work_key,client_int_name,client_security_name,x509_proxy_security_class,client_int_req,
-                                             in_downtime,remove_excess,
-                                             idle_glideins_pc,max_running_pc,
-                                             jobDescript,x509_proxies.fnames[x509_proxy_security_class],x509_proxies.get_username(x509_proxy_security_class),
-                                             glidein_totals, frontend_name,
-                                             client_web,params)
-                
-        else: # it is malformed and should be skipped
-            glideFactoryLib.log_files.logWarning("Malformed classad for client %s, skipping"%work_key)
-        
-    # Only do cleanup when no work (submit new glideins or remove excess) was done, work is the priority
-    if done_something == 0: 
-        glideFactoryLib.log_files.logActivity("Sanitizing glideins for entry %s" % entry_name)
-        glideFactoryLib.sanitizeGlideinsSimple(condorQ)
-
-    for sec_el in all_security_names:
-        try:
-            glideFactoryLib.factoryConfig.rrd_stats.getData("%s_%s"%sec_el)
-        except glideFactoryLib.condorExe.ExeError,e:
-            glideFactoryLib.log_files.logWarning("get_RRD_data failed: %s"%e)
-            pass # never fail for monitoring... just log
-        except:
-            glideFactoryLib.log_files.logWarning("get_RRD_data failed: error unknown")
-            pass # never fail for monitoring... just log
-        
-
-    return done_something
+    return work_done
 
 ############################################################
 def write_stats():
