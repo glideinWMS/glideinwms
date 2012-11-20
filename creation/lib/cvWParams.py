@@ -237,19 +237,19 @@ class VOFrontendParams(cWParams.CommonParams):
             raise RuntimeError, "Attribute GLIDEIN_Collector cannot be defined by the user"
 
         ####################
-        if self.security.proxy_DN==None:
+        if self.security.proxy_DN is None:
             raise RuntimeError, "security.proxy_DN not defined"
 
         if len(self.collectors)==0:
             raise RuntimeError, "At least one pool collector is needed"
 
         ####################
-        has_security_name=(self.security.security_name!=None)
+        has_security_name=(self.security.security_name is not None)
         if not has_security_name:
             # security_name not defined at global level, look if defined in every group
             has_security_name=True
             for  group_name in self.groups.keys():
-               has_security_name&=(self.groups[group_name].security.security_name!=None)
+               has_security_name&=(self.groups[group_name].security.security_name is not None)
 
         if not has_security_name:
             # explicity define one, so it will not change if config copied
@@ -259,14 +259,14 @@ class VOFrontendParams(cWParams.CommonParams):
         ####################
         for i in range(len(self.security.proxies)):
             pel=self.subparams.data['security']['proxies'][i]
-            if pel['security_class']==None:
+            if pel['security_class'] is None:
                 # define an explicit security, so the admin is aware of it
                 pel['security_class']="frontend"
         group_names=self.groups.keys()
         for group_name in group_names:
             for i in range(len(self.groups[group_name].security.proxies)):
                 pel=self.subparams.data['groups'][group_name]['security']['proxies'][i]
-                if pel['security_class']==None:
+                if pel['security_class'] is None:
                     # define an explicit security, so the admin is aware of it
                     pel['security_class']="group_%s"%group_name
 
@@ -311,7 +311,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
     def validate_names(self):
         # glidein name does not have a reasonable default
-        if self.frontend_name==None:
+        if self.frontend_name is None:
             raise RuntimeError, "Missing frontend name"
         if self.frontend_name.find(' ')!=-1:
             raise RuntimeError, "Invalid frontend name '%s', contains a space."%self.frontend_name

@@ -28,7 +28,7 @@ class Glidein(Configuration):
 
   #---------------------
   def get_vdt(self):
-    if self.vdt == None:
+    if self.vdt is None:
       self.vdt = VDTClient.VDTClient(self.ini_section,self.inifile)
   #---------------------
   def vdt_location(self):
@@ -159,7 +159,7 @@ class Glidein(Configuration):
   def set_javascriptrrd_dir(self,filename):
     msg =  "... validating javascriptrrd_location for %s: " % filename
     fullpath = common.find_fullpath(self.javascriptrrd_location(), filename)
-    if fullpath == None:
+    if fullpath is None:
       common.logit(msg)
       common.logerr("""%s not found in %s path
 Did you install the correct javascriptrrd package?
@@ -187,7 +187,7 @@ specified.
     parser.add_option("-i", "--ini", dest="inifile",
                       help="ini file defining your configuration")
     (options, args) = parser.parse_args()
-    if options.inifile == None:
+    if options.inifile is None:
         parser.error("--ini argument required")
     if not os.path.isfile(options.inifile):
       raise common.logerr("inifile does not exist: %s" % options.inifile)

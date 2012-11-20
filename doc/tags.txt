@@ -1,3 +1,33 @@
+v2_6_3	Improved factory prerformance by migrated popen calls to use the 
+	  subprocess library
+	Created index.html for factory monitoring
+
+v2_6_2	Factory now supports glidein failure modes. This information is
+	  propagated back to the factory.
+	Glideins now have different idle timeouts for startup and tail. The
+	  glideins now exit much faster after comleting jobs and they do not
+	  have enough time left to run another job.
+	Added support for javascriptRRD 2.6.2
+	Consolidate the condor_tarball tag in glideinwms.xml to read in a list
+	  of os, arch, version. See docs for details.
+	Ini-installer will default collector_port to 9618 if not specified in
+	  appropriate config sections.
+	Installation now supports GRIDMANAGER_PROXY_REFRESH_TIME for condorg
+	  services
+	Improved logging when frontend fails to evaluate match expressions.
+	Monitoring pages changed to be even more compliant with DOM4
+	Improved the means for distributing condor config files for different
+	  condor services.
+	Improved documentation.
+	Bug Fix: Better handling of monitor dir during upgrade
+	Bug Fix: Factory correctlt handles frontend in downtime and now it does
+	  not affect requests from other frontends
+	Bug Fix: Putting entry in downtime multiple times now warns the user
+	Bug Fix: Fixed a bug where v2.6.1 frontend would crash under certain
+	Bug Fix: Installers do not set CONDOR_VERSION as constant by default.
+	  This will now enable frontends to override this attr.
+	Bug Fix: Ini-installer now correctly cleans up files on re-install
+
 v2_6_1	Factory now limits the speed at which it releases held glideins. After 
 	  too many unrecoverable attempts, held glideins are removed.
 	Added support for Condor 7.8+

@@ -95,7 +95,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                  work_dir,client_log_base_dir):
         self.add("Universe","grid")
         self.add("Grid_Resource","%s %s"%(gridtype,gatekeeper))
-        if rsl!=None:
+        if rsl is not None:
             rsl = '$ENV(GLIDEIN_RSL)'
             if gridtype=='gt2' or gridtype=='gt5':
                 #rsl+='$ENV(GLIDEIN_ADDITIONAL_RSL)'
@@ -132,7 +132,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add('+GlideinX509Identifier','"$ENV(GLIDEIN_X509_ID)"')
         self.add('+GlideinX509SecurityClass','"$ENV(GLIDEIN_X509_SEC_CLASS)"')
         self.add('+GlideinWebBase','"%s"'%web_base)
-        if proxy_url!=None:
+        if proxy_url is not None:
             self.add('+GlideinProxyURL','"%s"'%proxy_url)
         self.add('+GlideinLogNr','"$ENV(GLIDEIN_LOGNR)"')
         self.add('+GlideinWorkDir','"%s"'%work_dir)

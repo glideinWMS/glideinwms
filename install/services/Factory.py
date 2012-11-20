@@ -76,7 +76,7 @@ class Factory(Condor):
     self.ini_section = "Factory"
     if inifile == "template":  # for creating actions not requiring ini file
       return
-    if optionsDict != None:
+    if optionsDict is not None:
       valid_options = optionsDict
     Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
     self.glidein = Glidein(self.inifile,self.ini_section,valid_options[self.ini_section])
@@ -88,11 +88,11 @@ class Factory(Condor):
 
   #-- get service instances --------
   def get_wms(self):
-    if self.wms == None:
+    if self.wms is None:
       self.wms = WMSCollector.WMSCollector(self.inifile,valid_options)
 
   def get_frontend(self):
-    if self.frontend == None:
+    if self.frontend is None:
       self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options)
 
   #---------------------
@@ -1069,7 +1069,7 @@ specified.
     parser.add_option("-i", "--ini", dest="inifile",
                       help="ini file defining your configuration")
     (options, args) = parser.parse_args()
-    if options.inifile == None:
+    if options.inifile is None:
         parser.error("--ini argument required")
     if not os.path.isfile(options.inifile):
       raise common.logerr("inifile does not exist: %s" % options.inifile)

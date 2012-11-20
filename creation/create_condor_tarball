@@ -90,7 +90,7 @@ def main(argv):
                     # never throw an error in the file deletion
                     pass 
     finally:
-        if tmpdir!=None:
+        if tmpdir is not None:
             # always remove the tmpdir before exiting
             shutil.rmtree(tmpdir)
 

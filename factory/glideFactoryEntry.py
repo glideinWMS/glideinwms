@@ -890,7 +890,7 @@ class X509Proxies:
         if not self.usernames.has_key(x509_proxy_security_class):
             # lookup only the first time
             x509_proxy_username=self.frontendDescript.get_username(self.client_security_name,x509_proxy_security_class)
-            if x509_proxy_username==None:
+            if x509_proxy_username is None:
                 # but don't cache misses
                 return None
             self.usernames[x509_proxy_security_class]=x509_proxy_username
@@ -959,7 +959,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
 
     # If old key is valid, find the work using old key as well and append it
     # to existing work dictionary
-    if (old_pub_key_obj != None):
+    if (old_pub_key_obj is not None):
         work_oldkey = {}
         # still using the old key in this cycle
         glideFactoryLib.log_files.logActivity("Old factory key is still valid. Trying to find work using old factory key.")
@@ -1075,7 +1075,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 continue #skip request
 
             client_expected_identity=frontendDescript.get_identity(client_security_name)
-            if client_expected_identity==None:
+            if client_expected_identity is None:
                 glideFactoryLib.log_files.logWarning("Client %s (secid: %s) not in white list. Skipping request"%(client_int_name,client_security_name))
                 continue #skip request
             
@@ -1094,7 +1094,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
 
         x509_proxies=X509Proxies(frontendDescript,client_security_name)
         if decrypted_params.has_key('x509_proxy'):
-            if decrypted_params['x509_proxy']==None:
+            if decrypted_params['x509_proxy'] is None:
                 glideFactoryLib.log_files.logWarning("Could not decrypt x509_proxy for %s, skipping request"%client_int_name)
                 continue #skip request
 
@@ -1103,7 +1103,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             x509_proxy_security_class="none"
             
             x509_proxy_username=x509_proxies.get_username(x509_proxy_security_class)
-            if x509_proxy_username==None:
+            if x509_proxy_username is None:
                 glideFactoryLib.log_files.logWarning("No mapping for security class %s of x509_proxy for %s, skipping and trying the others"%(x509_proxy_security_class,client_int_name))
                 continue # cannot map, skip proxy
 
@@ -1134,7 +1134,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             security_class_downtime_found = False
             
             for i in range(nr_x509_proxies):
-                if decrypted_params['x509_proxy_%i'%i]==None:
+                if decrypted_params['x509_proxy_%i'%i] is None:
                     glideFactoryLib.log_files.logWarning("Could not decrypt x509_proxy_%i for %s, skipping and trying the others"%(i,client_int_name))
                     continue #skip proxy
                 if not decrypted_params.has_key('x509_proxy_%i_identifier'%i):
@@ -1171,7 +1171,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                         glideFactoryLib.log_files.logWarning("Security class not in whitelist, skipping (%s %s) "%(client_security_name,x509_proxy_security_class))
 
                 x509_proxy_username=x509_proxies.get_username(x509_proxy_security_class)
-                if x509_proxy_username==None:
+                if x509_proxy_username is None:
                     glideFactoryLib.log_files.logWarning("No mapping for security class %s of x509_proxy_%i for %s (secid: %s), skipping and trying the others"%(x509_proxy_security_class,i,client_int_name,client_security_name))
                     continue # cannot map, skip proxy
 
@@ -1199,7 +1199,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             x509_proxy_security_class="factory"
             
             x509_proxy_username=x509_proxies.get_username(x509_proxy_security_class)
-            if x509_proxy_username==None:
+            if x509_proxy_username is None:
                 glideFactoryLib.log_files.logWarning("No mapping for security class %s for %s (secid: %s), skipping frontend"%(x509_proxy_security_class,client_int_name,client_security_name))
                 continue # cannot map, frontend
 
@@ -1537,7 +1537,7 @@ def iterate(parent_pid, sleep_time, advertize_rate,
     while 1:
         check_parent(parent_pid,glideinDescript,jobDescript)
         if ( (time.time() > oldkey_eoltime) and 
-             (glideinDescript.data['OldPubKeyObj'] != None) ):
+             (glideinDescript.data['OldPubKeyObj'] is not None) ):
             # Invalidate the use of factory's old key
             glideFactoryLib.log_files.logActivity("Retiring use of old key.")
             glideFactoryLib.log_files.logActivity("Old key was valid from %s to %s ie grace of ~%s sec" % (starttime,oldkey_eoltime,oldkey_gracetime))
@@ -1737,6 +1737,7 @@ def termsignal(signr,frame):
 if __name__ == '__main__':
     signal.signal(signal.SIGTERM,termsignal)
     signal.signal(signal.SIGQUIT,termsignal)
-    main(sys.argv[1],int(sys.argv[2]),int(sys.argv[3]),sys.argv[4],sys.argv[5])
+    main(int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3]),
+         sys.argv[4], sys.argv[5])
  
 

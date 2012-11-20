@@ -253,7 +253,7 @@ def validate_installer_user(user):
 
 #--------------------------------
 def validate_gsi_for_proxy(dn_to_validate,proxy,real_user=None):
-  if real_user == None:
+  if real_user is None:
     install_user = pwd.getpwuid(os.getuid())[0]
   else:
     install_user = real_user
@@ -313,7 +313,7 @@ def get_gsi_dn(type,filename,real_user=None):
       or proxy.  Using openssl, If it is a proxy, use the -issuer argument.
       If a certificate, use the -subject argument.
   """
-  if real_user == None:
+  if real_user is None:
     install_user = pwd.getpwuid(os.getuid())[0]
   else:
     install_user = real_user
@@ -342,7 +342,7 @@ Or you could be  trying to perform this as the wrong user.
   dn_fd   = os.popen("openssl x509 %s -noout -in %s 2>/dev/null" % (arg,filename))
   dn_blob = dn_fd.read()
   err = dn_fd.close()
-  if err != None:
+  if err is not None:
     logerr("Failed to read %s from %s" % (arg,filename))
   #-- parse out the DN --
   i = dn_blob.find("= ")

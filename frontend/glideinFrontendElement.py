@@ -114,7 +114,10 @@ def fetch_fork_result_list(pipe_ids):
             rin=fetch_fork_result(pipe_ids[k]['r'],pipe_ids[k]['pid'])
             out[k]=rin
         except Exception, e:
-            glideinFrontendLib.log_files.logWarning("Failed to retrieve %s state information from the subprocess. " % k)
+            #tb = traceback.format_exception(sys.exc_info()[0],
+            #                                sys.exc_info()[1],
+            #                                sys.exc_info()[2])
+            glideinFrontendLib.log_files.logWarning("Failed to retrieve %s state information from the subprocess." % k)
             glideinFrontendLib.log_files.logDebug("Failed to retrieve %s state from the subprocess: %s" % (k, e))
             failures+=1
         
@@ -131,7 +134,7 @@ def expand_DD(qstr,attr_dict):
     robj=re.compile("\$\$\((?P<attrname>[^\)]*)\)")
     while 1:
         m=robj.search(qstr)
-        if m==None:
+        if m is None:
             break # no more substitutions to do
         attr_name=m.group('attrname')
         if not attr_dict.has_key(attr_name):
@@ -172,9 +175,9 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
                 factory_identity=factory_pool[1]
                 my_identity_at_factory_pool=factory_pool[2]
                 try:
-                    factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,None,signatureDescript.signature_type,factory_constraint,x509_proxy_plugin!=None,get_only_matching=True)
+                    factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,None,signatureDescript.signature_type,factory_constraint,x509_proxy_plugin is not None,get_only_matching=True)
                 except RuntimeError,e:
-                    if factory_pool_node!=None:
+                    if factory_pool_node is not None:
                         glideinFrontendLib.log_files.logWarning("Failed to talk to factory_pool %s. See debug log for more details."%factory_pool_node)
                         glideinFrontendLib.log_files.logDebug("Failed to talk to factory_pool %s: %s"%(factory_pool_node, e))
                     else:
@@ -219,7 +222,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
         os.close(r)
         try:
             condorq_format_list=elementDescript.merged_data['JobMatchAttrs']
-            if x509_proxy_plugin!=None:
+            if x509_proxy_plugin is not None:
                 condorq_format_list=list(condorq_format_list)+list(x509_proxy_plugin.get_required_job_attributes())
 
             ### Add in elements to help in determining if jobs have voms creds
@@ -251,7 +254,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
         os.close(r)
         try:
             status_format_list=[]
-            if x509_proxy_plugin!=None:
+            if x509_proxy_plugin is not None:
                 status_format_list=list(status_format_list)+list(x509_proxy_plugin.get_required_classad_attributes())
 
             # use the main collector... all adds must go there
@@ -359,7 +362,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
 
     # get the proxy
     x509_proxies_data=None
-    if x509_proxy_plugin!=None:
+    if x509_proxy_plugin is not None:
         proxy_security_classes=elementDescript.merged_data['ProxySecurityClasses']
         x509_proxy_list=x509_proxy_plugin.get_proxies(condorq_dict,condorq_dict_types,
                                                       status_dict,status_dict_types)
@@ -429,22 +432,36 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
             # this is the child... return output as a pickled object via the pipe
             os.close(r)
             try:
-                if dt=='Real':
-                    out=glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict,attr_dict,condorq_match_list)
-                elif dt=='Glidein':
-                    count_status_multi={}
-                    for glideid in glidein_dict.keys():
-                        request_name=glideid[1]
-
-                        count_status_multi[request_name]={}
-                        for st in status_dict_types.keys():
-                            c=glideinFrontendLib.getClientCondorStatus(status_dict_types[st]['dict'],frontend_name,group_name,request_name)
-                            count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
-                    out=count_status_multi
-                else:
-                    c,p,h=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict,attr_dict,condorq_match_list)
-                    t=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
-                    out=(c,p,h,t)
+                try:
+                    if dt=='Real':
+                        out=glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict,attr_dict,condorq_match_list)
+                    elif dt=='Glidein':
+                        count_status_multi={}
+                        for glideid in glidein_dict.keys():
+                            request_name=glideid[1]
+    
+                            count_status_multi[request_name]={}
+                            for st in status_dict_types.keys():
+                                c=glideinFrontendLib.getClientCondorStatus(status_dict_types[st]['dict'],frontend_name,group_name,request_name)
+                                count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
+                        out=count_status_multi
+                    else:
+                        c,p,h=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict,attr_dict,condorq_match_list)
+                        t=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
+                        out=(c,p,h,t)
+                except KeyError, e:
+                    tb = traceback.format_exception(sys.exc_info()[0],
+                                                    sys.exc_info()[1],
+                                                    sys.exc_info()[2])
+                    key = ((tb[len(tb) - 1].split(':'))[1]).strip()
+                    glideinFrontendLib.log_files.logDebug("Failed to evaluate resource match for %s state. Possibly match_expr is buggy and trying to reference job or site attribute %s in an inappropriate way." % (dt,key))
+                    raise e
+                except Exception, e:
+                    tb = traceback.format_exception(sys.exc_info()[0],
+                                                    sys.exc_info()[1],
+                                                    sys.exc_info()[2])
+                    glideinFrontendLib.log_files.logDebug("Exception in counting subprocess for %s: %s " % (dt, tb))
+                    raise e
 
                 os.write(w,cPickle.dumps(out))
             finally:
@@ -1014,5 +1031,5 @@ def termsignal(signr,frame):
 if __name__ == '__main__':
     signal.signal(signal.SIGTERM,termsignal)
     signal.signal(signal.SIGQUIT,termsignal)
-    main(sys.argv[1],sys.argv[2],sys.argv[3])
+    main(int(sys.argv[1]),sys.argv[2],sys.argv[3])
  

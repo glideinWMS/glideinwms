@@ -85,7 +85,7 @@ class RPM(VOFrontend):
     global valid_options
     self.inifile = inifile
     self.ini_section = "VOFrontend"
-    if optionsDict != None:
+    if optionsDict is not None:
       valid_options = optionsDict 
     VOFrontend.__init__(self,self.inifile,valid_options)
     self.schedd_name_suffix = "jobs"
@@ -103,7 +103,7 @@ class RPM(VOFrontend):
   #       out into thinking this is a UserCollector/Schedd service and perform
   #       the necessary validations and configurations for Condor.
   def get_condor(self):
-    if self.condor == None:
+    if self.condor is None:
       #self.condor = Condor.Condor(self.inifile,self.ini_section,valid_options["UserCollector"])
       self.condor = Condor.Condor(self.inifile,"UserCollector",valid_options["UserCollector"])
 
@@ -209,7 +209,7 @@ specified.
     parser.add_option("-i", "--ini", dest="inifile",
                       help="ini file defining your configuration")
     (options, args) = parser.parse_args()
-    if options.inifile == None:
+    if options.inifile is None:
         parser.error("--ini argument required")
     if not os.path.isfile(options.inifile):
       raise common.logerr("inifile does not exist: %s" % options.inifile)

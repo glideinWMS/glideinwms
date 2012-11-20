@@ -277,7 +277,8 @@ def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, cl
         fd.write("# at config time.\n")
         fd.write("###########################\n\n")
 
-        fd.writelines(def_attrs)
+        for attr in def_attrs:
+            fd.writelines("%s\n" % attr)
 
         fd.write("\n##################################\n")
         fd.write("# Add Frontend specific attributes\n")

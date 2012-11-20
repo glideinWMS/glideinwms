@@ -266,7 +266,9 @@ def aggregateStatus():
                                 # dict, do nothing
                                 pass
                             else:
-                                if type_attribute in global_fact_totals[fos][fact][attribute].keys(): 
+                                if attribute not in global_fact_totals[fos][fact]:
+                                    global_fact_totals[fos][fact][attribute]={}
+                                if type_attribute in global_fact_totals[fos][fact][attribute]:
                                    global_fact_totals[fos][fact][attribute][type_attribute]+=int(this_type_attribute)
                                 else:
                                    global_fact_totals[fos][fact][attribute][type_attribute]=int(this_type_attribute)
@@ -283,7 +285,7 @@ def aggregateStatus():
                   continue
               #status['groups'][group][w]=group_data[w]
               el=group_data['total'][w]
-              if tel==None:
+              if tel is None:
                   # new one, just copy over
                   global_total[w]={}
                   tel=global_total[w]
@@ -301,7 +303,7 @@ def aggregateStatus():
                           del tel[a]
 
     for w in global_total.keys():
-        if global_total[w]==None:
+        if global_total[w] is None:
             del global_total[w] # remove group if not defined
 
     # Write xml files

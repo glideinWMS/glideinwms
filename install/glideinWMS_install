@@ -1366,33 +1366,41 @@ def gfactory_install():
 #-------------------------------------------------------------------------------
 def extract_factory_attrs(match_str):
     glidein_attrs=[]
-    attr_re=re.compile("glidein\[\"attrs\"\]\[['\"](?P<attr>[^'\"]+)['\"]\]")
+    regex = (
+        re.compile("glidein\[\"attrs\"\]\[['\"](?P<attr>[^'\"]+)['\"]\]"), 
+        re.compile("glidein\[\"attrs\"\]\.get\(['\"](?P<attr>[^'\"]+)['\"\)]")
+    )
 
-    idx=0
-    while 1:
-        attr_obj=attr_re.search(match_str,idx)
-        if attr_obj==None:
-            break # not found
-        attr_el=attr_obj.group('attr')
-        if not (attr_el in glidein_attrs):
-            glidein_attrs.append(attr_el)
-        idx=attr_obj.end()+1
+    for attr_re in regex:
+        idx=0
+        while 1:
+            attr_obj=attr_re.search(match_str,idx)
+            if attr_obj==None:
+                break # not found
+            attr_el=attr_obj.group('attr')
+            if not (attr_el in glidein_attrs):
+                glidein_attrs.append(attr_el)
+            idx=attr_obj.end()+1
     return glidein_attrs
     
 #-------------------------------------------------------------------------------
 def extract_job_attrs(match_str):
     job_attrs=[]
-    attr_re=re.compile("job\[['\"](?P<attr>[^'\"]+)['\"]\]")
+    regex = (
+        re.compile("job\.get\(['\"](?P<attr>[^'\"]+)['\"]\)"),
+        re.compile("job\[['\"](?P<attr>[^'\"]+)['\"]\]")
+    )
 
-    idx=0
-    while 1:
-        attr_obj=attr_re.search(match_str,idx)
-        if attr_obj==None:
-            break # not found
-        attr_el=attr_obj.group('attr')
-        if not (attr_el in job_attrs):
-            job_attrs.append(attr_el)
-        idx=attr_obj.end()+1
+    for attr_re in regex:
+        idx=0
+        while 1:
+            attr_obj=attr_re.search(match_str,idx)
+            if attr_obj==None:
+                break # not found
+            attr_el=attr_obj.group('attr')
+            if not (attr_el in job_attrs):
+                job_attrs.append(attr_el)
+            idx=attr_obj.end()+1
     return job_attrs
     
 #-------------------------------------------------------------------------------
@@ -1667,7 +1675,7 @@ def vofrontend_install():
     print "It is an arbitrary python boolean expression using the dictionaries"
     print "  glidein and job"
     print "A simple example expression would be:"
-    print '  glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")'
+    print '  glidein["attrs"].get("GLIDEIN_Site") in ((job.get("DESIRED_Sites")!=None) and job.get("DESIRED_Sites").split(","))'
     print "If you want to match all (OK for simple setups),"
     print "  just specify True (the default)"
     
@@ -3597,7 +3605,10 @@ def setup_main_schedd():
         config_fd.write("# but do limit downloads, as they are asyncronous\n")
         config_fd.write("MAX_CONCURRENT_DOWNLOADS = 100\n\n")
         config_fd.write("# Prevent checking on ImageSize\n")
-        config_fd.write("APPEND_REQ_VANILLA = (Memory>=1)&&(Disk>=1)\n\n")
+        config_fd.write("APPEND_REQ_VANILLA = (Memory>=1)&&(Disk>=1)\n")
+        config_fd.write("# New in v7.8.x\n")
+        config_fd.write("JOB_DEFAULT_REQUESTMEMORY=1\n")
+        config_fd.write("JOB_DEFAULT_REQUESTDISK=1\n\n")
         config_fd.write("# Prevent preemption\n")
         config_fd.write("MAXJOBRETIREMENTTIME = $(HOUR) * 24 * 7\n\n")
         config_fd.write("#GCB optimization\n")

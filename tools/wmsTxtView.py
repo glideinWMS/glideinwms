@@ -55,7 +55,7 @@ while (i<alen):
 
 # get data
 factory_constraints=None
-if factory_name!=None:
+if factory_name is not None:
     farr=factory_name.split('@')
     if len(farr)==1:
         # just the generic factory name

@@ -113,11 +113,11 @@ def findGlideins(factory_pool,factory_identity,
     global frontendConfig
 
     status_constraint='(GlideinMyType=?="%s")'%frontendConfig.factory_id
-    if not ((factory_identity==None) or (factory_identity=='*')): # identity checking can be disabled, if really wanted
+    if not ((factory_identity is None) or (factory_identity=='*')): # identity checking can be disabled, if really wanted
         # filter based on AuthenticatedIdentity
         status_constraint+=' && (AuthenticatedIdentity=?="%s")'%factory_identity
 
-    if signtype!=None:
+    if signtype is not None:
         status_constraint+=' && stringListMember("%s",%s)'%(signtype,frontendConfig.factory_signtype_id)
 
     if get_only_matching:
@@ -128,7 +128,7 @@ def findGlideins(factory_pool,factory_identity,
             # cannot use factories that require a proxy
             status_constraint+='&& (GlideinRequirex509_Proxy=!=True)'
 
-    if additional_constraint!=None:
+    if additional_constraint is not None:
         status_constraint="%s && (%s)"%(status_constraint,additional_constraint)
     status=condorMonitor.CondorStatus("any",pool_name=factory_pool)
     status.require_integrity(True) #important, especially for proxy passing
@@ -176,9 +176,9 @@ def findGlideinClientMonitoring(factory_pool,my_name,
     global frontendConfig
     
     status_constraint='(GlideinMyType=?="%s")'%frontendConfig.factoryclient_id
-    if my_name!=None:
+    if my_name is not None:
         status_constraint='%s && (ReqClientName=?="%s")'%my_name
-    if additional_constraint!=None:
+    if additional_constraint is not None:
         status_constraint="%s && (%s)"%(status_constraint,additional_constraint)
     status=condorMonitor.CondorStatus("any",pool_name=factory_pool)
     status.load(status_constraint)
@@ -241,7 +241,7 @@ class FrontendDescriptNoGroup:
 
     # returns a boolean
     def need_encryption(self):
-        return self.x509_proxies_data!=None
+        return self.x509_proxies_data is not None
 
     # return a list of strings
     def get_id_attrs(self):
@@ -288,7 +288,7 @@ class FactoryKeys4Advertize:
         self.factory_pub_key_id=factory_pub_key_id
         self.factory_pub_key=factory_pub_key
 
-        if glidein_symKey==None:
+        if glidein_symKey is None:
             glidein_symKey=symCrypto.SymAES256Key()
         if not glidein_symKey.is_valid():
             glidein_symKey=copy.deepcopy(glidein_symKey)
@@ -322,7 +322,7 @@ class Key4AdvertizeBuilder:
         # whoever can decrypt the pub key can anyhow get the symkey
         cache_id=factory_pub_key.get()
 
-        if glidein_symKey!=None:
+        if glidein_symKey is not None:
             # when a key is explicitly given, cannot reuse a cached one
             key_obj=FactoryKeys4Advertize(classad_identity,
                                         factory_pub_key_id,factory_pub_key,
@@ -348,7 +348,7 @@ class Key4AdvertizeBuilder:
     def clear(self,
               created_after=None,   # if not None, only clear entries older than this
               accessed_after=None): # if not None, only clear entries not accessed recently
-        if (created_after==None) and (accessed_after==None):
+        if (created_after is None) and (accessed_after is None):
             # just delete everything
             self.keys_cache={}
             return
@@ -357,10 +357,10 @@ class Key4AdvertizeBuilder:
             # if at least one criteria is not satisfied, delete the entry
             delete_entry=False
             
-            if created_after!=None:
+            if created_after is not None:
                 delete_entry = delete_entry or (self.keys_cache[cache_id][1]<created_after)
 
-            if accessed_after!=None:
+            if accessed_after is not None:
                 delete_entry = delete_entry or (self.keys_cache[cache_id][2]<accessed_after)
 
             if delete_entry:
@@ -381,7 +381,7 @@ class AdvertizeParams:
         self.glidein_name=glidein_name
         self.min_nr_glideins=min_nr_glideins
         self.max_run_glideins=max_run_glideins
-        if remove_excess_str==None:
+        if remove_excess_str is None:
             remove_excess_str="NO"
         elif not (remove_excess_str in ("NO","WAIT","IDLE","ALL","UNREG")):
             raise RuntimeError, 'Invalid remove_excess_str(%s), valid values are "NO","WAIT","IDLE","ALL","UNREG"'%remove_excess_str
@@ -437,18 +437,18 @@ def createAdvertizeWorkFile(fname, descript_obj, params_obj,
             fd.write(string.join(descript_obj.get_web_attrs(),'\n')+"\n")
 
             encrypted_params={} # none by default
-            if key_obj!=None:
+            if key_obj is not None:
                 fd.write(string.join(key_obj.get_key_attrs(),'\n')+"\n")
 
                 glidein_params_to_encrypt=params_obj.glidein_params_to_encrypt
-                if glidein_params_to_encrypt==None:
+                if glidein_params_to_encrypt is None:
                     glidein_params_to_encrypt={}
                 else:
                     glidein_params_to_encrypt=copy.deepcopy(glidein_params_to_encrypt)
-                if params_obj.security_name!=None:
+                if params_obj.security_name is not None:
                     glidein_params_to_encrypt['SecurityName']=params_obj.security_name
 
-                if descript_obj.x509_proxies_data!=None:
+                if descript_obj.x509_proxies_data is not None:
                     nr_proxies=len(descript_obj.x509_proxies_data)
                     glidein_params_to_encrypt['nr_x509_proxies']="%s"%nr_proxies
                     for i in range(nr_proxies):
@@ -981,7 +981,7 @@ class ResourceClassadAdvertiser:
         @param ads: classad names to advertise
         """
 
-        if (ads == None) or (len(ads) == 0) :
+        if (ads is None) or (len(ads) == 0) :
             return
 
         if self.multiAdvertiseSupport:

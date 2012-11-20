@@ -25,7 +25,7 @@ class FactoryPidSupport(pidSupport.PidSupport):
 def get_factory_pid(startup_dir):
     pid_obj=FactoryPidSupport(startup_dir)
     pid_obj.load_registered()
-    if pid_obj.mypid==None:
+    if pid_obj.mypid is None:
         raise RuntimeError, "Factory not running"
     return pid_obj.mypid
 
@@ -40,9 +40,9 @@ class EntryPidSupport(pidSupport.PidWParentSupport):
 def get_entry_pid(startup_dir,entry_name):
     pid_obj=EntryPidSupport(startup_dir,entry_name)
     pid_obj.load_registered()
-    if pid_obj.mypid==None:
+    if pid_obj.mypid is None:
         raise RuntimeError, "Entry not running"
-    if pid_obj.parent_pid==None:
+    if pid_obj.parent_pid is None:
         raise RuntimeError, "Entry has no parent???"
     return (pid_obj.mypid,pid_obj.parent_pid)
 

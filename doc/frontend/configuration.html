@@ -601,11 +601,18 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         &lt;frontend&gt;&lt;groups&gt;&lt;match
         match_expr=&quot;<I>expr</I>&quot; start_exp=&quot;<I>expr</I>&quot; &gt;
         </div>
-    A Python boolean expression is used to match glideins
+    The match_expr is Python boolean expression is used to match glideins
     to jobs. The glidein and job dictionaries are used in the
-    expression, i.e. glidein[&quot;attrs&quot;][&quot;GLIDEIN_Site&quot;]
-    in job[&quot;DESIRED_Sites&quot;].split(&quot;,&quot;). If you want
-    to match all, just specify True.  <br/>
+    expression, i.e. glidein[&quot;attrs&quot;].get(&quot;GLIDEIN_Site&quot;)
+    in ((job.get(&quot;DESIRED_Sites&quot;) != None) and job.get(&quot;DESIRED_Sites&quot;).split(&quot;,&quot;)). If you want
+    to match all, just specify True.  
+    All Condor attributes used in this expression should be listed
+    below in the match_attrs section.<br/>
+
+    The start_expr is a Condor expression that will be evaluated
+    to match glideins to jobs.  This should be a valid Condor ClassAd
+    expression.
+    <br/>
     Note that there are two expressions.  The "match_expr" will be 
     evaluated when matching glidein (pilot) requests to entries.
     This will determine which sites glideins are submitted to.
@@ -620,8 +627,12 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         <div class="xml">
         &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;match&gt;&lt;factory query_expr=&quot;<I>expr</I>&quot; &gt;
         </div>
-        A Python expression that specifies a factory constraint. 
-        <a href="#match_example">More on match expressions</a>.
+        This is a Condor ClassAd expression to select factory entry points.
+        The expression will be evaluated by Condor and should be a 
+        valid Condor expression.<br/>
+        One example to select from entries that list CMS as a supported VO 
+        could be <tt>query_expr='stringListMember("CMS",GLIDEIN_Supported_VOs) &amp;&amp; (GLIDEIN_Job_Max_Time=!=UNDEFINED)'</tt><br/>
+        See the condor manual for more on valid expressions and functions.<br/>
         Note that if you specify a factory constraint in the global 
         default section as well as in the group factory tag
         (such as <i> &lt;factory query_expr='EXPR1'&gt;...  
@@ -636,8 +647,10 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;match&gt;&lt;factory&gt;&lt;match attrs&gt;&lt;match attr name=&quot;<I>name</I>&quot; &gt;
         </div>
 
-    A list of glidein factory attributes used in the
-    factory match expression. 
+        A list of glidein factory attributes used in the
+        factory match expression.   Each match attribute
+        should be a Condor classad attribute that is listed 
+        in the above    match_expr.
         <a href="#match_example">More on match expressions</a>
     </P></li>
     <LI><P>
@@ -646,8 +659,12 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;match&gt;&lt;job
         query_expr=&quot;<I>expr</I>&quot; &gt;
         </div>
+        This is a Condor ClassAd expression to select valid user jobs
+        to find glideins for.  It will be evaluated by Condor and
+        should be a valid Condor expression.  
+        For instance, <tt>query_expr="(JobUniverse==5)"</tt> will
+        select only vanilla universe jobs.<br/>
 
-        A Python expression that specifies a job constraint. 
         <a href="#match_example">More on match expressions</a>
     </P></li>
     <LI><P>
@@ -656,7 +673,10 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;match&gt;&lt;job&gt;&lt;match attrs&gt;&lt;match attr name=&quot;<I>name</I>&quot; &gt;
 
         </div>
-        A list of job attributes used in the factory match expression. 
+        A list of glidein factory attributes used in the
+        factory match expression.   Each match attribute
+        should be a Condor classad attribute that is listed 
+        in the above match_expr.
         <a href="#match_example">More on match expressions</a>
     </P></li>
     <LI><P>
@@ -772,6 +792,14 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     It can also allow you to give a Condor expression
     to specify where jobs can run or to specify
     which glidein_sites can run jobs.  <br />
+    There are two ways to restrict matching in most cases.
+    Note that match_expr clauses, such as &lt;match match_expr&gt; 
+    will use python based expressions as explained below.  Others,
+    such as &lt;factory query_expr&gt; and &lt;job query_expr&gt;
+    use Condor ClassAd expressions.  For these, only valid Condor
+    expressions can be used.  Python expressions can not be
+    evaluated in these contexts.
+    <br/>
     Note that, for some tags (like
     factory query_expr), you can specify expressions in both the
     default global section as well as in individual group sections.  
@@ -830,8 +858,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
 </p>   
 <p><B><u>Example</u></b></p>
         <div class="xml">
-         &lt;match match_expr='glidein["attrs"]["GLIDEIN_Site"] in
-job["DESIRED_Sites"].split(",")'&gt;<br/>
+         &lt;match match_expr='glidein[&quot;attrs&quot;].get(&quot;GLIDEIN_Site&quot;) in ((job.get(&quot;DESIRED_Sites&quot;) != None) and job.get(&quot;DESIRED_Sites&quot;).split(&quot;,&quot;))'&gt;<br/>
             &lt;factory query_expr="(GLIDEIN_Site=!=UNDEFINED)"&gt;<br/>
                &lt;match_attrs&gt;
                   &lt;match_attr name="GLIDEIN_Site" type="string"/&gt;
@@ -850,10 +877,11 @@ job["DESIRED_Sites"].split(",")'&gt;<br/>
         </div>
 <p><B><u>Example</u></b></p>
         Glideins can also use "start_expr" to make sure
-        the correct jobs start on pilots.  Here is an example:
+        the correct jobs start on pilots.  This is a Condor 
+        expression run on the pilot startd daemon.
+        Here is an example:
         <div class="xml">
-              &lt; match match_expr='(job.has_key("DESIRED_Sites") and 
-            (glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")))'
+              &lt; match match_expr='glidein[&quot;attrs&quot;].get(&quot;GLIDEIN_Site&quot;) in ((job.get(&quot;DESIRED_Sites&quot;) != None) and job.get(&quot;DESIRED_Sites&quot;).split(&quot;,&quot;))'
             start_expr='(stringListMember(GLIDEIN_Site,DESIRED_Sites,",")=?=True)' &lt;
             <br/>
             ...

@@ -49,7 +49,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
     frontend_dicts_obj.populate()
 
     if update_scripts == 'yes':
-        frontend_dicts_obj.create_dirs()
+        frontend_dicts_obj.create_dirs(fail_if_exists=False)
 
     # merge them together
     if not old_params is None:
@@ -146,7 +146,7 @@ if __name__ == '__main__':
         print e
         sys.exit(1)
 
-    if force_name!=None:
+    if force_name is not None:
         if params.frontend_name!=force_name:
             print usage
             print ""

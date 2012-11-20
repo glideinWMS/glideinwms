@@ -54,7 +54,7 @@ class Condor(Configuration):
 
   #--- instantiate objects needed ----
   def get_certs(self):
-    if self.certs == None:
+    if self.certs is None:
       self.certs = Certificates.Certificates(self.inifile,self.ini_section)
 
   #-----------------------------------------------------------
@@ -365,7 +365,7 @@ Check the condor_location ini option for correctness.""" % version_script)
     if status > 0:
       common.logerr("""Unable to determine Condor version using:
   %s""" % version_script)
-    if self.condor_version == None:
+    if self.condor_version is None:
       common.logerr("Still unable to determine condor_version")
     common.logit("    Condor version: %s" % self.condor_version)
 
@@ -971,6 +971,9 @@ MAX_CONCURRENT_DOWNLOADS = 100
 
 #--  Prevent checking on ImageSize
 APPEND_REQ_VANILLA = (Memory>=1) && (Disk>=1)
+# New in 7.8.x
+JOB_DEFAULT_REQUESTMEMORY=1
+JOB_DEFAULT_REQUESTDISK=1
 
 #--  Prevent preemption
 MAXJOBRETIREMENTTIME = $(HOUR) * 24 * 7
