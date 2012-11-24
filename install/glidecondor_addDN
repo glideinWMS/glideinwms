@@ -134,19 +134,24 @@ def main(args):
 
         check_config(condor_mapfile)
         if params['is_daemon_dn']:
+            has_dir=False
             try:
-                 condor_config=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_FILE")[0][:-1] # remove trailing newline
+                 condor_config_dir=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_DIR")[0][:-1] # remove trailing newline
+                 has_dir=os.path.exists(condor_config_dir)
+                 condor_config=os.path.join(condor_config_dir,"90_gwms_dns.config")
+                 if not os.path.isfile(condor_config):
+                     print "Please create %s"%condor_config
             except condorExe.ExeError,e:
+                has_dir=False
+
+            if has_dir:
+                 condor_config=os.path.join(condor_config_dir,"90_gwms_dns.config")
+                 if not os.path.isfile(condor_config):
+                     raise IOError, "Please create %s"%condor_config
+            else:
                  # not found, see if it uses a config dir
                  try:
-                    condor_config_dir=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_DIR")[0][:-1] # remove trailing newline
-                    # try the standard OSG RPM location
-                    condor_config=os.path.join(condor_config_dir,"03_gwms_local.config")
-                    if not os.path.isfile(condor_config):
-                       # ok, let's define a file of our own and expect the admins to use it
-                       condor_config=os.path.join(condor_config_dir,"90_gwms_dns.config")
-                       if not os.path.isfile(condor_config):
-                           print "Please create %s"%condor_config
+                    condor_config=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_FILE")[0][:-1] # remove trailing newline
                  except condorExe.ExeError,e:
                      # nope, go with the main config file
                      try:
