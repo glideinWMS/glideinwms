@@ -52,7 +52,7 @@ def parse_args(args):
         sys.exit(1)
     dn=args[0]
     user=args[1]
-    return {'is_daemon_dn':(daemon_comment!=None),'daemon_comment':daemon_comment,'dn':dn,'user':user}
+    return {'is_daemon_dn':(daemon_comment is not None),'daemon_comment':daemon_comment,'dn':dn,'user':user}
 
 def check_config(fname):
     if not os.path.isfile(fname):
@@ -69,19 +69,19 @@ def update_mapfile(mapfile,dn,user):
     lines=fd.readlines()
     fd.close()
 
-    if len(lines)<3:
-        # must have at least the GSI condor, GSI anon and FS anon
+    if len(lines)<2:
+        # must have at least the GSI anon and FS anon
         print "File '%s' is not a condor mapfile; too short!"%mapfile
         sys.exit(3)
 
-    if lines[0][:5]!='GSI "':
+    if lines[0][:4]!='GSI ':
         print "File '%s' is not a condor mapfile; first line is not a valid GSI mapping!"%mapfile
         sys.exit(3)
         
     # append GSI DN user
     # after the last line of that kind
     found=False
-    for i in range(1,len(lines)):
+    for i in range(0,len(lines)):
         line=lines[i]
         if line[:5]!='GSI "':
             lines.insert(i,'GSI "^%s$" %s\n'%(re.escape(dn),user))
@@ -127,20 +127,41 @@ def main(args):
 
     # make sure we can access the files to be changed
     try:
-        condor_mapfile=os.path.join(condorExe.condor_bin_path,"../certs/condor_mapfile")
+        try:
+             condor_mapfile=condorExe.iexe_cmd("condor_config_val CERTIFICATE_MAPFILE")[0][:-1] # remove trailing newline
+        except condorExe.ExeError,e:
+             raise IOError, "Path to CERTIFICATE_MAPFILE not found"
 
         check_config(condor_mapfile)
         if params['is_daemon_dn']:
-            condor_config=os.path.join(condorExe.condor_bin_path,"../etc/condor_config.local")
+            has_dir=False
+            try:
+                 condor_config_dir=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_DIR")[0][:-1] # remove trailing newline
+                 has_dir=os.path.exists(condor_config_dir)
+                 condor_config=os.path.join(condor_config_dir,"90_gwms_dns.config")
+                 if not os.path.isfile(condor_config):
+                     print "Please create %s"%condor_config
+            except condorExe.ExeError,e:
+                has_dir=False
+
+            if has_dir:
+                 condor_config=os.path.join(condor_config_dir,"90_gwms_dns.config")
+                 if not os.path.isfile(condor_config):
+                     raise IOError, "Please create %s"%condor_config
+            else:
+                 # not found, see if it uses a config dir
+                 try:
+                    condor_config=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_FILE")[0][:-1] # remove trailing newline
+                 except condorExe.ExeError,e:
+                     # nope, go with the main config file
+                     try:
+                         condor_config=condorExe.iexe_cmd("condor_config_val -config")[1].strip() # it is in the second line, and it is indented
+                     except condorExe.ExeError,e:
+                         raise IOError, "No CONFIG_FILE found"
             try:
                 check_config(condor_config)
-            except IOError, e1:
-                # will use this if the other is not available
-                condor_config=os.path.join(condorExe.condor_bin_path,"../etc/condor_config")
-                try:
-                    check_config(condor_config)
-                except IOError, e2:
-                    raise IOError, "%s %s"%(e1,e2)
+            except IOError, e:
+                raise IOError, e
     except IOError, e:
         print e
         sys.exit(2)
