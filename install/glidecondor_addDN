@@ -58,7 +58,7 @@ def parse_args(args):
         usage()
         sys.exit(1)
 
-    if (args[0]=='-help') or (args[0]=='-h'):
+    if (args[0]=='-help') or (args[0]=='-h') or (args[0]=='--help'):
         usage()
         sys.exit(1)
 
@@ -157,7 +157,7 @@ def main(args):
     # make sure we can access the files to be changed
     try:
         try:
-             condor_mapfile=condorExe.iexe_cmd("condor_config_val CERTIFICATE_MAPFILE")[0][:-1] # remove trailing newline
+             condor_mapfile=condorExe.iexe_cmd("condor_config_val CERTIFICATE_MAPFILE")[0].rstrip('\n')
         except condorExe.ExeError,e:
              raise IOError, "Path to CERTIFICATE_MAPFILE not found"
 
@@ -165,7 +165,7 @@ def main(args):
         if params['is_daemon_dn']:
             has_dir=False
             try:
-                 condor_config_dir=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_DIR")[0][:-1] # remove trailing newline
+                 condor_config_dir=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_DIR")[0].rstrip('\n')
                  has_dir=os.path.exists(condor_config_dir)
                  condor_config=os.path.join(condor_config_dir,"90_gwms_dns.config")
                  if not os.path.isfile(condor_config):
@@ -180,7 +180,7 @@ def main(args):
             else:
                  # not found, see if it uses a config dir
                  try:
-                    condor_config=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_FILE")[0][:-1] # remove trailing newline
+                    condor_config=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_FILE")[0].rstrip('\n')
                  except condorExe.ExeError,e:
                      # nope, go with the main config file
                      try:
