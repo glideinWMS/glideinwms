@@ -20,6 +20,7 @@ import subprocess
 import stat
 import time
 import re
+import M2Crypto
 
 STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
@@ -32,25 +33,30 @@ def usage():
     return
 
 def extract_DN(fname):
-    oss_fname=None
-    oss_possibilities=['/usr/bin/openssl','/bin/openssl']
-    for f in oss_possibilities:
-        if os.path.isfile(f):
-            oss_fname=f
-            break
-        pass
-    if oss_fname is None:
-        raise IOError,"Could not find openssl... looked in %s"%str(oss_possibilities)
-    
-    p=subprocess.Popen([oss_fname,'x509','-in',fname,'-noout','-subject'],stdout=subprocess.PIPE)
-    rc=p.wait()
-    if rc!=0:
-        raise IOError,"openssl failed while reading %s"%fname
-    dn=p.communicate()[0][9:-1] #strip additional chars openssl puts in
-    while dn[-9:]=='/CN=proxy':
-        dn=dn[:-9]
-    return dn
+    fd=open(fname,"r")
+    try:
+        data=fd.read()
+    finally:
+        fd.close()
 
+    while 1:
+        try:
+            data_idx=data.rindex('-----BEGIN CERTIFICATE-----\n')
+            old_data=data[:data_idx]
+            data=data[data_idx:]       
+        except ValueError, e:
+            print "%s not a valid certificate file"%fname
+            sys.exit(3)
+        
+        m=M2Crypto.X509.load_cert_string(data)
+        if m.check_ca():
+            # ops, this is the CA part
+            # get the previous in the chain
+            data=old_data
+        else:
+            break #ok, found it, end the loop
+
+    return str(m.get_subject())
 
 def parse_args(args):
     daemon_comment=None
