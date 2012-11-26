@@ -273,7 +273,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                                              stdout=subprocess.PIPE,
             # Get the startup time. Used to check if the entry is crashing
             # periodically and needs to be restarted.
-            childs_uptime[group]=list()
+            childs_uptime[group] = list()
             childs_uptime[group].insert(0,time.time())
         glideFactoryLib.log_files.logActivity("Entry startup times: %s"%childs_uptime)
 

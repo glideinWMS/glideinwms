@@ -72,13 +72,13 @@ def check_parent(parent_pid, glideinDescript, jobDescript):
     if os.path.exists('/proc/%s'%parent_pid):
         return # parent still exists, we are fine
     
-    glideFactoryLib.log_files.logActivity("Parent died, exit.")    
+    gfl.log_files.logActivity("Parent died, exit.")    
 
     # there is nobody to clean up after ourselves... do it here
-    glideFactoryLib.log_files.logActivity("Deadvertize myself")
+    gfl.log_files.logActivity("Deadvertize myself")
     
     try:
-        glideFactoryInterface.deadvertizeGlidein(
+        gfi.deadvertizeGlidein(
             glideinDescript.data['FactoryName'],	 
             glideinDescript.data['GlideinName'],	 
             jobDescript.data['EntryName'])	 
@@ -87,12 +87,12 @@ def check_parent(parent_pid, glideinDescript, jobDescript):
 
 
     try:
-        glideFactoryInterface.deadvertizeAllGlideinClientMonitoring(
+        gfi.deadvertizeAllGlideinClientMonitoring(
             glideinDescript.data['FactoryName'],	 
             glideinDescript.data['GlideinName'],	 
             jobDescript.data['EntryName'])	 
     except:
-        glideFactoryLib.log_files.logWarning("Failed to deadvertize my monitoring")
+        gfl.log_files.logWarning("Failed to deadvertize my monitoring")
 
     raise KeyboardInterrupt,"Parent died. Quiting."
 
@@ -109,7 +109,7 @@ def perform_work(entry_name,
                  client_web,
                  params):
             
-    glideFactoryLib.factoryConfig.client_internals[client_int_name]={"CompleteName":client_name,"ReqName":client_int_req}
+    gfl.factoryConfig.client_internals[client_int_name]={"CompleteName":client_name,"ReqName":client_int_req}
 
     if params.has_key("GLIDEIN_Collector"):
         condor_pool=params["GLIDEIN_Collector"]
@@ -133,15 +133,15 @@ def perform_work(entry_name,
 
     # find out the users it is using
     log_stats={}
-    log_stats[x509_proxy_username+":"+client_int_name]=glideFactoryLogParser.dirSummaryTimingsOut(glideFactoryLib.factoryConfig.get_client_log_dir(entry_name,x509_proxy_username),
-                                                                              glideFactoryLib.log_files.log_dir,
+    log_stats[x509_proxy_username+":"+client_int_name]=glideFactoryLogParser.dirSummaryTimingsOut(gfl.factoryConfig.get_client_log_dir(entry_name,x509_proxy_username),
+                                                                              gfl.log_files.log_dir,
                                                                               client_int_name,x509_proxy_username)
     # should not need privsep for reading logs
     log_stats[x509_proxy_username+":"+client_int_name].load()
 
-    glideFactoryLib.logStats(condorQ,condorStatus,client_int_name,client_security_name,x509_proxy_security_class)
-    client_log_name=glideFactoryLib.secClass2Name(client_security_name,x509_proxy_security_class)
-    glideFactoryLib.factoryConfig.log_stats.logSummary(client_log_name,log_stats)
+    gfl.logStats(condorQ,condorStatus,client_int_name,client_security_name,x509_proxy_security_class)
+    client_log_name=gfl.secClass2Name(client_security_name,x509_proxy_security_class)
+    gfl.factoryConfig.log_stats.logSummary(client_log_name,log_stats)
 
     # use the extended params for submission
     proxy_fraction=1.0/len(x509_proxy_keys)
@@ -153,7 +153,7 @@ def perform_work(entry_name,
     # not reducing the held, as that is effectively per proxy, not per request
     nr_submitted=0
     for x509_proxy_id in x509_proxy_keys:
-        nr_submitted+=glideFactoryLib.keepIdleGlideins(condorQ,client_int_name,
+        nr_submitted+=gfl.keepIdleGlideins(condorQ,client_int_name,
                                                        in_downtime, remove_excess,
                                                        idle_glideins_pproxy, max_glideins_pproxy, glidein_totals, frontend_name,
                                                        x509_proxy_id,x509_proxy_fnames[x509_proxy_id],x509_proxy_username,x509_proxy_security_class,
@@ -268,8 +268,8 @@ def fetch_fork_result_list(pipe_ids):
             out[entry] = fetch_fork_result(pipe_ids[entry]['r'],
                                            pipe_ids[entry]['pid'])
         except Exception, e:
-            gfl.log_files.logWarning("Failed to retrieve work done for entry subprocess." % entry)
-            gfl.log_files.logDebug("Failed to retrieve work done for entry subprocess: %s" % (entry, e))
+            gfl.log_files.logWarning("Failed to retrieve work done for entry subprocess '%s'" % entry)
+            gfl.log_files.logDebug("Failed to retrieve work done for entry subprocess '%s': %s" % (entry, e))
             failures += 1
 
     if failures>0:
@@ -349,12 +349,12 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
         pid = os.fork()
         if pid != 0:
             # This is the original process
-            glideFactoryLib.log_files.logActivity("In check_and_perform_work process with pid %s for entry %s" % (pid, entry.name))
+            gfl.log_files.logActivity("In check_and_perform_work process with pid %s for entry %s" % (pid, entry.name))
             os.close(w)
             pipe_ids[entry.name] = {'r': r, 'pid': pid}
         else:
             # This is the child process
-            glideFactoryLib.log_files.logActivity("Forked check_and_perform_work process with pid %s for entry %s" % (pid, entry.name))
+            gfl.log_files.logActivity("Forked check_and_perform_work process with pid %s for entry %s" % (pid, entry.name))
             os.close(r)
 
             try:
@@ -435,14 +435,14 @@ def write_stats():
     """
     global log_rrd_thread,qc_rrd_thread
     
-    glideFactoryLib.factoryConfig.log_stats.computeDiff()
-    glideFactoryLib.factoryConfig.log_stats.write_file()
-    glideFactoryLib.log_files.logActivity("log_stats written")
-    glideFactoryLib.factoryConfig.qc_stats.finalizeClientMonitor()
-    glideFactoryLib.factoryConfig.qc_stats.write_file()
-    glideFactoryLib.log_files.logActivity("qc_stats written")
-    glideFactoryLib.factoryConfig.rrd_stats.writeFiles()
-    glideFactoryLib.log_files.logActivity("rrd_stats written")
+    gfl.factoryConfig.log_stats.computeDiff()
+    gfl.factoryConfig.log_stats.write_file()
+    gfl.log_files.logActivity("log_stats written")
+    gfl.factoryConfig.qc_stats.finalizeClientMonitor()
+    gfl.factoryConfig.qc_stats.write_file()
+    gfl.log_files.logActivity("qc_stats written")
+    gfl.factoryConfig.rrd_stats.writeFiles()
+    gfl.log_files.logActivity("rrd_stats written")
     
     return
 
@@ -464,7 +464,7 @@ def write_descript(entry_name,entryDescript,entryAttributes,entryParams,monitor_
         descript2XML.writeFile(monitor_dir + "/",
                                xml_str, singleEntry = True)
     except IOError:
-        glideFactoryLib.log_files.logDebug("IOError in writeFile in descript2XML")
+        gfl.log_files.logDebug("IOError in writeFile in descript2XML")
 
     return
 
@@ -490,9 +490,9 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
     pub_key_obj=glideinDescript.data['PubKeyObj']
 
-    glideFactoryLib.factoryConfig.client_stats.finalizeClientMonitor()
+    gfl.factoryConfig.client_stats.finalizeClientMonitor()
 
-    current_qc_total=glideFactoryLib.factoryConfig.client_stats.get_total()
+    current_qc_total=gfl.factoryConfig.client_stats.get_total()
 
     glidein_monitors={}
     for w in current_qc_total.keys():
@@ -502,25 +502,25 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
         # Make copy of job attributes so can override the validation downtime setting with the true setting of the entry (not from validation)
         myJobAttributes=jobAttributes.data.copy()
         myJobAttributes['GLIDEIN_In_Downtime']=in_downtime
-        glideFactoryInterface.advertizeGlidein(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
-                                               glideFactoryLib.factoryConfig.supported_signtypes,
+        gfi.advertizeGlidein(gfl.factoryConfig.factory_name,gfl.factoryConfig.glidein_name,entry_name,
+                                               gfl.factoryConfig.supported_signtypes,
                                                myJobAttributes,jobParams.data.copy(),glidein_monitors.copy(),
                                                pub_key_obj,allowed_proxy_source)
     except:
-        glideFactoryLib.log_files.logWarning("Advertize failed")
+        gfl.log_files.logWarning("Advertize failed")
 
     # Advertise the monitoring, use the downtime found in validation of the credentials
     monitor_job_attrs = jobAttributes.data.copy()
-    advertizer=glideFactoryInterface.MultiAdvertizeGlideinClientMonitoring(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
+    advertizer=gfi.MultiAdvertizeGlideinClientMonitoring(gfl.factoryConfig.factory_name,gfl.factoryConfig.glidein_name,entry_name,
                                                                            monitor_job_attrs)
 
-    current_qc_data=glideFactoryLib.factoryConfig.client_stats.get_data()
+    current_qc_data=gfl.factoryConfig.client_stats.get_data()
     for client_name in current_qc_data.keys():
         client_qc_data=current_qc_data[client_name]
-        if not glideFactoryLib.factoryConfig.client_internals.has_key(client_name):
-            glideFactoryLib.log_files.logWarning("Client '%s' has stats, but no classad! Ignoring."%client_name)
+        if not gfl.factoryConfig.client_internals.has_key(client_name):
+            gfl.log_files.logWarning("Client '%s' has stats, but no classad! Ignoring."%client_name)
             continue
-        client_internals=glideFactoryLib.factoryConfig.client_internals[client_name]
+        client_internals=gfl.factoryConfig.client_internals[client_name]
 
         client_monitors={}
         for w in client_qc_data.keys():
@@ -543,7 +543,7 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     try:
         advertizer.do_advertize()
     except:
-        glideFactoryLib.log_files.logWarning("Advertize of monitoring failed")
+        gfl.log_files.logWarning("Advertize of monitoring failed")
         
 
     return
@@ -709,14 +709,14 @@ def init_logs(name, entity, log_dir):
     # TODO: PM: What to do with warning_log.
     #       Is this correct? Or do we need warning logs for every entry?
     #       If so how to we instantiate it?
-    gfi.factoryConfig.warning_log=gfl.log_files_dict[entity][name].warning_log
+    gfi.factoryConfig.warning_log = gfl.log_files_dict[entity][name].warning_log
 
 def init_group_logs(name):
-    log_dir=os.path.join(glideinDescript.data['LogDir'],"factory")
+    log_dir = os.path.join(glideinDescript.data['LogDir'], 'factory')
     init_logs(name, 'group', log_dir)
 
 def init_entry_logs(name):
-    log_dir=os.path.join(glideinDescript.data['LogDir'],"entry_%s"%entry_name)
+    log_dir = os.path.join(glideinDescript.data['LogDir'], "entry_%s"%name)
     init_logs(name, 'entry', log_dir)
     glideFactoryMonitoring.monitoringConfig.config_log(
         log_dir,
@@ -842,7 +842,7 @@ if __name__ == '__main__':
     signal.signal(signal.SIGQUIT, termsignal)
 
     # Force integrity checks on all condor operations
-    glideFactoryLib.set_condor_integrity_checks()
+    gfl.set_condor_integrity_checks()
 
     main(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), 
          sys.argv[4], sys.argv[5], sys.argv[6])

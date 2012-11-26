@@ -197,12 +197,12 @@ class Entry:
 
 
     def isClientInWhitelist(self, client_sec_name):
-        return (client_sec_name in self.securityList):
+        return (client_sec_name in self.securityList)
 
 
     def isSecurityClassAllowed(self, client_sec_name, proxy_sec_class):
         return ((proxy_sec_class in self.securityList[client_sec_name]) or 
-                ("All" in self.securityList[client_sec_name])):
+                ("All" in self.securityList[client_sec_name]))
 
 
     def isInDowntime(self):
