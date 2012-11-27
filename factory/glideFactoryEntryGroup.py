@@ -39,6 +39,7 @@ import glideFactoryPidLib
 import glideFactoryMonitoring
 import glideFactoryLogParser
 import glideFactoryDowntimeLib
+import glideFactoryEntry
 import logSupport
 import glideinWMSVersion
 import glideFactoryInterface as gfi
@@ -83,7 +84,7 @@ def check_parent(parent_pid, glideinDescript, jobDescript):
             glideinDescript.data['GlideinName'],	 
             jobDescript.data['EntryName'])	 
     except:
-        glideFactoryLib.log_files.logWarning("Failed to deadvertize myself")
+        gfl.log_files.logWarning("Failed to deadvertize myself")
 
 
     try:
@@ -699,7 +700,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
 ############################################################
 # Initialize log_files for entries and groups
 
-def init_logs(name, entity, log_dir):
+def init_logs(name, entity, log_dir, glideinDescript):
     gfl.log_files_dict[entity][name] = gfl.LogFiles(
         log_dir,
         float(glideinDescript.data['LogRetentionMaxDays']),
@@ -711,13 +712,13 @@ def init_logs(name, entity, log_dir):
     #       If so how to we instantiate it?
     gfi.factoryConfig.warning_log = gfl.log_files_dict[entity][name].warning_log
 
-def init_group_logs(name):
+def init_group_logs(name, glideinDescript):
     log_dir = os.path.join(glideinDescript.data['LogDir'], 'factory')
-    init_logs(name, 'group', log_dir)
+    init_logs(name, 'group', log_dir, glideinDescript)
 
 def init_entry_logs(name):
     log_dir = os.path.join(glideinDescript.data['LogDir'], "entry_%s"%name)
-    init_logs(name, 'entry', log_dir)
+    init_logs(name, 'entry', log_dir, glideinDescript)
     glideFactoryMonitoring.monitoringConfig.config_log(
         log_dir,
         float(glideinDescript.data['SummaryLogRetentionMaxDays']),

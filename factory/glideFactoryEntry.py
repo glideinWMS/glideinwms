@@ -273,14 +273,12 @@ class Entry:
             can_submit_glideins = False
 
         # Check if entry has exceeded max glideins
-        if can_submit_glideins and
-           self.glideinTotals.has_entry_exceeded_max_glideins():
+        if can_submit_glideins and self.glideinTotals.has_entry_exceeded_max_glideins():
             self.logFiles.logWarning("Entry %s has hit the limit for total glideins, cannot submit any more" % self.name)
             can_submit_glideins = False
 
         # Check if entry has exceeded max held
-        if can_submit_glideins and
-           self.glideinTotals.has_entry_exceeded_max_held():
+        if can_submit_glideins and self.glideinTotals.has_entry_exceeded_max_held():
             self.logFiles.logWarning("Entry %s has hit the limit for held glideins, cannot submit any more" % self.name)
             can_submit_glideins = False
 
