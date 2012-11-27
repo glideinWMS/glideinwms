@@ -873,15 +873,14 @@ SCHEDD_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridmanagerLog.$(USERNAME)"
 """
     
     if self.condor_version >= "7.5.3" and self.schedd_shared_port() > 0:
-      self.condor_config_data[type] +=  """
-#--  Enable shared_port_daemon 
-SHADOW.USE_SHARED_PORT = True
-SCHEDD.USE_SHARED_PORT = True
-SHARED_PORT_ARGS = -p %(port)s
-DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT
-""" % { "port" : self.schedd_shared_port(), }
+        self.condor_config_data[type]=re.sub("\nSHARED_PORT_ARGS\s*=\s*-p .*\n","SHARED_PORT_ARGS = -p %s" % self.schedd_shared_port(),self.condor_config_data[type])
+    else:
+        self.condor_config_data[type]=re.sub("\nSHARED_PORT_ARGS\s*=","#SHARED_PORT_ARGS =" % self.schedd_shared_port(),self.condor_config_data[type])
+        self.condor_config_data[type]=re.sub("\nSHADOW.USE_SHARED_PORT\s*=","\n#SHADOW.USE_SHARED_PORT =" % self.schedd_shared_port(),self.condor_config_data[type])
+        self.condor_config_data[type]=re.sub("\nDAEMON_LIST = $(DAEMON_LIST), SHARED_PORT","#DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT" % self.schedd_shared_port(),self.condor_config_data[type])
+        
 
-      if self.condor_version <= "7.5.3":
+    if self.condor_version <= "7.5.3":
         self.condor_config_data[type] += """
 #-- Enable match authentication workaround for Condor ticket
 #-- https://condor-wiki.cs.wisc.edu/index.cgi/tktview?tn=1481
