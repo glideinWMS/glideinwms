@@ -132,7 +132,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
         float(glideinDescript.data['LogRetentionMaxDays']),
         float(glideinDescript.data['LogRetentionMinDays']),
         float(glideinDescript.data['LogRetentionMaxMBs']))
-    glideFactoryLib.log_files.logAdmin("Reconfiguring factory")
+    glideFactoryLib.log_files.logAdmin("Reconfiguring factory %s" % comment)
 
 
 ############################################################
@@ -148,10 +148,13 @@ if __name__ == '__main__':
     writeback = 'no'
     update_scripts = 'no'
     xml = ''
+    comment = ''
     update_def_cfg = 'no'
     for i in range(len(argv)):
         if argv[i] == '-fix_rrd':
             fix_rrd = True
+        if argv[i] == '-comment':
+            comment = "("+argv[i+1]+")"
         if argv[i] == '-force_name':
             force_name = argv[i+1]
         elif argv[i] == '-writeback':
