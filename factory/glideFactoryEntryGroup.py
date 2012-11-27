@@ -716,7 +716,7 @@ def init_group_logs(name, glideinDescript):
     log_dir = os.path.join(glideinDescript.data['LogDir'], 'factory')
     init_logs(name, 'group', log_dir, glideinDescript)
 
-def init_entry_logs(name):
+def init_entry_logs(name, glideinDescript):
     log_dir = os.path.join(glideinDescript.data['LogDir'], "entry_%s"%name)
     init_logs(name, 'entry', log_dir, glideinDescript)
     glideFactoryMonitoring.monitoringConfig.config_log(
