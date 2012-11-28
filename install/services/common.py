@@ -4,6 +4,7 @@ import sys,os.path,string,time,stat,shutil, getpass
 import pwd
 import socket
 import re
+import subprocessSupport
 
 #--------------------------
 class WMSerror(Exception):
@@ -74,9 +75,16 @@ def make_directory(dirname,owner,perm):
   
 #--------------------------
 def remove_dir_contents(dirname):
-  err = os.system("rm -rf %s/*" % dirname)
-  if err != 0:
-    logerr("Problem deleting files in %s" % dirname)
+  if len(dirname) == 0:
+    logerr("""System error: an empty argument was supplied to the 
+common.remove_dir_contents method.  This will result deleting all files on 
+this node.  Not something you really want to do""")
+  cmd = "rm -rf %s/*" % dirname
+  try:
+    stdout = subprocessSupport.iexe_cmd(cmd,useShell=True)
+  except subprocessSupport.CalledProcessError, e:
+    logerr("""Problem deleting files in %s
+%s""" % (dirname,e))
   logit("Files in %s  deleted" % dirname)
   
 #--------------------------
@@ -135,11 +143,13 @@ def day_suffix():
 
 #--------------------------------------
 def run_script(script):
-  """ Runs a script using os-system. """
+  """ Runs a script using subsystemSupport module. """
   logit("... running: %s" % script)
-  err = os.system(script)
-  if err != 0:
-    logerr("Script failed with non-zero return code")
+  try:
+    stdout = subprocessSupport.iexe_cmd(script,useShell=True)
+  except subprocessSupport.CalledProcessError, e:
+    logerr("""Script failed with non-zero return code
+%s """ % e )
 
 
 #--------------------------------------
@@ -148,15 +158,17 @@ def cron_append(lines,tmp_dir='/tmp'):
   logit("\n... adding %i lines to %s's crontab" % (len(lines),getpass.getuser()))
   tmp_fname="%s/tmp_%s_%s.tmp"%(tmp_dir,os.getpid(),time.time())
   try:
-    os.system("crontab -l >%s"%tmp_fname)
+    cmd = "crontab -l >%s" % tmp_fname
+    stdout = subprocessSupport.iexe_cmd(cmd, useShell=True)
     fd=open(tmp_fname,'a')
     try:
       for line in lines:
         fd.writelines(line)
     finally:
       fd.close()
-    os.system("cat %s" % tmp_fname)
-    os.system("crontab %s" % tmp_fname)
+    stdout = subprocessSupport.iexe_cmd("cat %s" % tmp_fname)
+    logit(stdout)
+    stdout = subprocessSupport.iexe_cmd("crontab %s" % tmp_fname)
   finally:
     if os.path.isfile(tmp_fname):
       os.unlink(tmp_fname)
@@ -182,8 +194,10 @@ def find_fullpath(search_path,name):
     
 #--------------------------------------
 def module_exists(module_name):
-  err = os.system("python -c 'import %s' >/dev/null 2>&1" % module_name)
-  if err != 0:
+  cmd = "python -c 'import %s' >/dev/null 2>&1" % module_name
+  try:
+    subprocessSupport.iexe_cmd(cmd, useShell=True)
+  except subprocessSupport.CalledProcessError, e:
     return False
   return True
 
@@ -339,10 +353,10 @@ Or you could be  trying to perform this as the wrong user.
 """ % { "type" : type, "filename" : filename, "user" : install_user,})
 
   #-- read the cert/proxy --
-  dn_fd   = os.popen("openssl x509 %s -noout -in %s 2>/dev/null" % (arg,filename))
-  dn_blob = dn_fd.read()
-  err = dn_fd.close()
-  if err is not None:
+  dn_blob   = subprocessSupport.iexe_cmd("openssl x509 %s -noout -in %s" % (arg,filename))
+  if dn_blob is None:
+    logerr("Failed to read %s from %s" % (arg,filename))
+  if len(dn_blob) == 0:
     logerr("Failed to read %s from %s" % (arg,filename))
   #-- parse out the DN --
   i = dn_blob.find("= ")
@@ -382,8 +396,10 @@ def url_is_valid(url):
 
 #----------------------------
 def wget_is_valid(location):
-  err = os.system("wget --quiet --spider %s" % location)
-  if err != 0:
+  cmd = "wget --quiet --spider %s" % location
+  try:
+    subprocessSupport.iexe_cmd(cmd,useShell=True)
+  except subprocessSupport.CalledProcessError, e:
     return False
   return True
 
@@ -411,7 +427,7 @@ def start_service(glidein_src, service, inifile):
              "service" : argDict[service],
              "glidein_src" : glidein_src, 
            }
-  os.system("sleep 3")
+  time.sleep(3)
   logit("")
   logit("You will need to have the %(service)s service running if you intend\nto install the other glideinWMS components." % { "service" : service })
   yn = ask_yn("... would you like to start it now")
@@ -446,7 +462,7 @@ if __name__ == '__main__':
     filename = "%s/%s" % (testdir,__file__)
     shutil.copy(__file__,filename)
     make_backup(filename)
-    os.system("rm -f %s*" % filename)
+    subprocessSupport.iexe_cmd("rm -f %s*" % filename,useShell=True)
     os.rmdir(testdir)
     os.rmdir(os.path.dirname(testdir))
     print "... PASSED"

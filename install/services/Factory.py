@@ -170,7 +170,7 @@ files and directories can be created correctly""" % self.username())
       self.glidein.validate_software_requirements()
       self.validate_needed_directories()
       common.logit( "Factory verification complete\n")
-      os.system("sleep 3")
+      time.sleep(3)
     self.not_validated = False
 
   #---------------------
@@ -222,7 +222,7 @@ files and directories can be created correctly""" % self.username())
 
     #--- if all are empty, return 
     if len(dirs) == 0:
-      os.system("sleep 3")
+      time.sleep(3)
       return  # all directories are empty
 
     #--- See if we can remove them ---
@@ -244,7 +244,7 @@ files and directories can be created correctly""" % self.username())
       common.logerr("""We seem to have had a problems deleting the contents of these directories:
 %s """ % dirs)
 
-    os.system("sleep 3")
+    time.sleep(3)
     return  # all directories are empty
 
   #------------------------------------

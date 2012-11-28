@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import common
+import subprocessSupport
 from VDT import VDT
 #---------------------
 import sys,os,os.path,string,time,glob
@@ -52,7 +53,8 @@ Is it OK to install it in this location""" % self.vdt_location())
 
     err = 0
     if self.vdt_install_type == 'pacman':
-      err = os.system(". %s/setup.sh && type voms-proxy-init >/dev/null 2>&1" % self.vdt_location())
+      cmd = ". %s/setup.sh; type voms-proxy-init >/dev/null 2>&1;echo $?" % self.vdt_location()
+      err = int(subprocessSupport.iexe_cmd(cmd,useShell=True))
     elif self.vdt_install_type == 'native':
       err = 0
     else:
