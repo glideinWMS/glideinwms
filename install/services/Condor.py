@@ -1,20 +1,23 @@
 #!/usr/bin/env python
 
-import common
-from Configuration import Configuration
-from Configuration import ConfigurationError
-import Certificates  
-import VDTClient
-#---------------------
-import sys,os,os.path,string,time,re
-import popen2
+import sys
+import os
+import os.path
+import string
+import time
+import re
 import tarfile
 import shutil
 import pwd
 import stat
-import commands
 import traceback
-
+#---------------------
+import glideinwms.lib.subprocessSupport
+import common
+import Certificates  
+import VDTClient
+from Configuration import Configuration
+from Configuration import ConfigurationError
 
 class Condor(Configuration):
 
@@ -360,12 +363,11 @@ If no specific entries are needed, an empty list should be returned.
 Is Condor really installed where you said it was or was it not successful?
 Check the condor_location ini option for correctness.""" % version_script)
     
-    cmds = "%s| awk '{print $2;exit}'" % version_script
-    (status, self.condor_version) = commands.getstatusoutput(cmds)
-    if status > 0:
-      common.logerr("""Unable to determine Condor version using:
-  %s""" % version_script)
-    if self.condor_version == None:
+    cmd = "%s| awk '{print $2;exit}'" % version_script
+    self.condor_version = glideinwms.lib.subprocessSupport.iexe_cmd(cmd,useShell=True)
+    if len(self.condor_version) == 0:
+      common.logerr("""Unable to determine Condor version using: %s""" % version_script)
+    if self.condor_version is None:
       common.logerr("Still unable to determine condor_version")
     common.logit("    Condor version: %s" % self.condor_version)
 
@@ -612,7 +614,8 @@ LOCAL_CONFIG_FILE =
 LOCAL_CONFIG_DIR  = %s
 """ % (self.local_config_dir())
     common.write_file("a",0644,self.condor_config(),cfg_data,SILENT=False)
-    common.os.system("tail -5 %s" % self.condor_config())
+    stdout = glideinwms.lib.subprocessSupport.iexe_cmd("tail -5 %s" % self.condor_config())
+    common.logit(stdout)
 
     common.logit("\nCreating GWMS condor_config files in:")
     common.logit("%s" % self.local_config_dir())
@@ -1033,8 +1036,9 @@ SHADOW_WORKLIFE = 0
 """ 
 
     #-- checking for zero swap space - affects schedd's only --
-    rtn = os.system("free | tail -1 |awk '{ if ( $2 == 0 ) {exit 0} else {exit 1} }'")
-    if rtn == 0:
+    cmd = "free | tail -1 |awk '{ print $2 }'" 
+    swap = glideinwms.lib.subprocessSupport.iexe_cmd(cmd,useShell=True)
+    if swap == 0:
       self.condor_config_data[type] +=  """
 #-- No swap space 
 RESERVED_SWAP = 0
