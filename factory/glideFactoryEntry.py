@@ -285,6 +285,122 @@ class Entry:
         return can_submit_glideins
     
 
+    #def advertize_myself(in_downtime,glideinDescript,jobDescript,
+    #                     jobAttributes,jobParams):
+    def advertise(self, factory_in_downtime):
+        """
+        Advertises the glidefactory and the glidefactoryclient classads.
+        
+        @type factory_in_downtime: boolean
+        @param factory_in_downtime: factory in the downtimes file
+        """
+
+        self.loadContext()
+        pub_key_obj = self.glideinDescript.data['PubKeyObj']
+    
+        self.gflFactoryConfig.client_stats.finalizeClientMonitor()
+    
+        current_qc_total = self.gflFactoryConfig.client_stats.get_total()
+    
+        glidein_monitors = {}
+        for w in current_qc_total:
+            for a in current_qc_total[w]:
+                glidein_monitors['Total%s%s'%(w,a)]=current_qc_total[w][a]
+        try:
+            # Make copy of job attributes so can override the validation
+            # downtime setting with the true setting of the entry 
+            # (not from validation)
+            myJobAttributes = jobAttributes.data.copy()
+            myJobAttributes['GLIDEIN_In_Downtime'] = factory_in_downtime
+            glideFactoryInterface.advertizeGlidein(
+                gflFactoryConfig.factory_name,
+                gflFactoryConfig.glidein_name,
+                self.name, gflFactoryConfig.supported_signtypes,
+                myJobAttributes, self.jobParams.data.copy(),
+                glidein_monitors.copy(), pub_key_obj, self.allowedProxySource)
+        except:
+            self.logFiles.logWarning("Advertize failed")
+    
+        # Advertise the monitoring, use the downtime found in
+        # validation of the credentials
+        monitor_job_attrs = self.jobAttributes.data.copy()
+        advertizer = \
+            glideFactoryInterface.MultiAdvertizeGlideinClientMonitoring(
+                gflFactoryConfig.factory_name,
+                gflFactoryConfig.glidein_name,
+                self.name, monitor_job_attrs)
+    
+        current_qc_data = gflFactoryConfig.client_stats.get_data()
+        for client_name in current_qc_data:
+            client_qc_data = current_qc_data[client_name]
+            if client_name not in gflFactoryConfig.client_internals:
+                self.logFiles.logWarning("Client '%s' has stats, but no classad! Ignoring." % client_name)
+                continue
+            client_internals = glfFactoryConfig.client_internals[client_name]
+    
+            client_monitors={}
+            for w in client_qc_data:
+                for a in client_qc_data[w]:
+                    # report only numbers
+                    if type(client_qc_data[w][a])==type(1):
+                        client_monitors['%s%s'%(w,a)] = client_qc_data[w][a]
+    
+            try:
+                fparams = current_qc_data[client_name]['Requested']['Parameters']
+            except:
+                fparams = {}
+
+            params = self.jobParams.data.copy()
+            for p in fparams.keys():
+                # Can only overwrite existing params, not create new ones
+                if p in params.keys():
+                    params[p] = fparams[p]
+
+            advertizer.add(client_internals["CompleteName"],
+                           client_name, client_internals["ReqName"],
+                           params, client_monitors.copy())
+            
+        try:
+            advertizer.do_advertize()
+        except:
+            self..logFiles.logWarning("Advertize of monitoring failed")
+
+        return
+        
+
+    def writeStats():
+        """
+        Calls the statistics functions to record and write
+        stats for this iteration.
+
+        There are several main types of statistics:
+
+        log stats: That come from parsing the condor_activity
+        and job logs.  This is computed every iteration 
+        (in perform_work()) and diff-ed to see any newly 
+        changed job statuses (ie. newly completed jobs)
+
+        qc stats: From condor_q data.
+        
+        rrd stats: Used in monitoring statistics for javascript rrd graphs.
+        """
+        global log_rrd_thread,qc_rrd_thread
+    
+        self.loadContext()
+        gflFactoryConfig.log_stats.computeDiff()
+        gflFactoryConfig.log_stats.write_file()
+        self.logFiles.logActivity("log_stats written")
+        gflFactoryConfig.qc_stats.finalizeClientMonitor()
+        gflFactoryConfig.qc_stats.write_file()
+        self.logFiles.logActivity("qc_stats written")
+        gflFactoryConfig.rrd_stats.writeFiles()
+        self.logFiles.logActivity("rrd_stats written")
+    
+        return
+
+# class Entry
+
+###############################################################################
 
 def check_and_perform_work(factory_in_downtime, group_name, entry, work):
     """
@@ -358,8 +474,8 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
             in_downtime=True
             
         # Check if proxy passing is compatible with allowed_proxy_source
-        if ('x509_proxy' in decrypted_params) or 
-           ('x509_proxy_0' in decrypted_params):
+        if ( ('x509_proxy' in decrypted_params) or 
+             ('x509_proxy_0' in decrypted_params) ):
             if 'frontend' not in allowed_proxy_source:
                 entry.logFiles.logWarning("Client %s provided proxy, but cannot use it. Skipping request"%client_int_name)
                 continue #skip request
@@ -663,12 +779,12 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
         try:
             glideFactoryLib.factoryConfig.rrd_stats.getData("%s_%s" % sec_el)
         except glideFactoryLib.condorExe.ExeError,e:
-            entry.logFiles.logWarning("get_RRD_data failed: %s" % e)
             # Never fail for monitoring. Just log
+            entry.logFiles.logWarning("get_RRD_data failed: %s" % e)
             pass
         except:
-            entry.logFiles.logWarning("get_RRD_data failed: error unknown")
             # Never fail for monitoring. Just log
+            entry.logFiles.logWarning("get_RRD_data failed: error unknown")
             pass
 
     return done_something
@@ -755,8 +871,9 @@ def perform_work(entry, condorQ, client_name, client_int_name,
 
 
 
-
-
+############################################################
+# TODO: PM: REMOVE ANYTHING THAT HAS _old in function name.
+# It is not required
 ############################################################
 def check_parent(parent_pid, glideinDescript, jobDescript):
     """Check to make sure that we aren't an orphaned process.  If Factory

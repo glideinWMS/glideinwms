@@ -323,27 +323,10 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     # Now fork a process per entry and wait for certain duration to get back
     # the results. Kill processes if they take too long to get back with result
 
-
-    # PM: I AM HERE FIXING THREADED WORK
-
-
-
-
-
-
-
-
-
     # TODO: PM: Following should be multithreaded non-blocking
 
-    # Work done keyed by entry name
-    work_done = {}
     # ids keyed by entry name
     pipe_ids = {}
-
-    # Entry object changes after doing work. Just capture the entry object
-    # from the child process and use it for further processing
-    post_work_entries = {}
 
     for entry in my_entries.values():
         r,w = os.pipe()
@@ -362,8 +345,12 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
                 work_done = glideFactoryEntry.check_and_perform_work(
                                 factory_in_downtime, group_name,
                                 entry, work[entry.name])
-                return_dict = {entry.name: {'entry': entry,
-                                            'work_done': work_done}}
+                # entry object now has updated info in the child process
+                # This info is required for monitoring and advertising
+                # return the updated entry object back to the parent
+                #return_dict = {entry.name: {'entry': entry,
+                #                            'work_done': work_done}}
+                return_dict = {'entry_obj': entry, 'work_done': work_done}
                 os.write(w,cPickle.dumps(return_dict))
             except Exception, ex:
                 tb = traceback.format_exception(sys.exc_info()[0],
@@ -373,49 +360,36 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
 
             os.close(w)
             # Hard kill myself. Don't want any cleanup, since I was created
-            # just for doing check and perform work.
+            # just for doing check and perform work for each entry
             os.kill(os.getpid(),signal.SIGKILL)
 
     # Gather results from the forked children
+    gfl.log_files.logActivity("All children terminated")
+    work_info_read_err = False
     try:
-        pipe_out = fetch_fork_result_list(pipe_ids)
+        post_work_info = fetch_fork_result_list(pipe_ids)
     except RuntimeError:
         # Expect all errors logged already
+        work_info_read_err = True
         gfl.log_files.logWarning("Unable to process response from check_and_perform_work")
         # PM: TODO: Whats the best action? Ignore or return?
-
-    gfl.log_files.logActivity("All children terminated")
-
-
-
-
-
-    ##### PM: I AM HERE Nov 15
+        #           We may have to ignore bad info and continue with the 
+        #           good info. How to update the monitoring and etc in this
+        #           case? We dont want errors in one entry to affect other
+        #           entries. Needs further discussion
 
 
+    # Work done by group keyed by entry name
+    groupwork_done = {}
 
-
-
-
-    # PM: TODO: Got aggregated work_done. Refactor advertising
-            
+    if not work_info_read_err:
+        # Entry object changes after doing work. Just capture the entry object
+        # from the child process and use it for further processing
+        for entry in my_entries = {}
+            my_entries[entry] = post_work_info[entry]['entry_obj']
+            groupwork_done[entry] = post_work_info[entry]['work_done']
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    return work_done
+    return groupwork_done
 
 ############################################################
 def write_stats():
@@ -559,13 +533,13 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
 def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
                 frontendDescript, group_name, my_entries):
     
-    done_something = 0
+    groupwork_done = {}
 
     for entry in my_entries.values():
         entry.initIteration(factory_in_downtime)
 
     try:
-        done_something = find_and_perform_work(factory_in_downtime, 
+        groupwork_done = find_and_perform_work(factory_in_downtime, 
                                                glideinDescript,
                                                frontendDescript,
                                                group_name, my_entries)
@@ -574,21 +548,18 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
         
 
 
-    #PM: In middle of Fixing find_and_perform_work function
-
-
-
-
-    if do_advertize or done_something:
-        gfl.log_files.logActivity("Advertize")
-        advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobParams)
-
-
-
-
 
 
     for entry in my_entries.values():
+        # Advertise if work was done or if advertise flag is set
+        # TODO: PM: Advertising can be optimized by grouping multiple entry
+        #           ads together. For now do it one at a time.
+        if ( (do_advertize) or 
+             ((groupwork_done.get(entry.name)).get('work_done')) ) :
+            gfl.log_files.logActivity("Advertising %s" % entry.name)
+
+            # PM: I AM HERE WRITING entry.advertise 30 Nov 2012
+            entry.advertise(factory_in_downtime)
         entry.unsetInDowntime()
     
     return done_something
@@ -655,20 +626,15 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
             gfl.log_files.logActivity("Iteration at %s" % time.ctime())
 
 
-
-
         try:
             done_something = iterate_one(count==0, factory_in_downtime,
                                          glideinDescript, frontendDescript,
                                          group_name, my_entries)
 
-
-       
-
-            
             gfl.log_files.logActivity("Writing stats")
             try:
-                write_stats()
+                for entry in my_entries.values():
+                    entry.writeStats()
             except KeyboardInterrupt:
                 raise # this is an exit signal, pass through
             except:
