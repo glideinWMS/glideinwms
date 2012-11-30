@@ -219,7 +219,8 @@ def spawn(sleep_time,advertize_rate,startup_dir,
                             entry_name]
             childs[entry_name] = subprocess.Popen(command_list, shell=False,
                                                   stdout=subprocess.PIPE,
-                                                  stderr=subprocess.PIPE)
+                                                  stderr=subprocess.PIPE,
+                                                  close_fds=True)
 
             # Get the startup time. Used to check if the entry is crashing
             # periodically and needs to be restarted.
