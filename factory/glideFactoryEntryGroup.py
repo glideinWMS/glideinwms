@@ -385,7 +385,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     if not work_info_read_err:
         # Entry object changes after doing work. Just capture the entry object
         # from the child process and use it for further processing
-        for entry in my_entries = {}
+        for entry in my_entries:
             my_entries[entry] = post_work_info[entry]['entry_obj']
             groupwork_done[entry] = post_work_info[entry]['work_done']
     

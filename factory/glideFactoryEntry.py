@@ -363,7 +363,7 @@ class Entry:
         try:
             advertizer.do_advertize()
         except:
-            self..logFiles.logWarning("Advertize of monitoring failed")
+            self.logFiles.logWarning("Advertize of monitoring failed")
 
         return
         
