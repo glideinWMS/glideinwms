@@ -166,13 +166,13 @@ def clean_exit(childs):
 
             # empty stdout and stderr
             try:
-                tempOut = child.fromchild.read()
+                tempOut = child.stdout.read()
                 if len(tempOut)!=0:
                     glideFactoryLib.log_files.logWarning("Child %s STDOUT: %s"%(entry_name, tempOut))
             except IOError:
                 pass # ignore
             try:
-                tempErr = child.childerr.read()
+                tempErr = child.stderr.read()
                 if len(tempErr)!=0:
                     glideFactoryLib.log_files.logWarning("Child %s STDERR: %s"%(entry_name, tempErr))
             except IOError:
@@ -183,8 +183,8 @@ def clean_exit(childs):
                 # the child exited
                 dead_entries.append(entry_name)
                 del childs[entry_name]
-                tempOut = child.fromchild.readlines()
-                tempErr = child.childerr.readlines()
+                tempOut = child.stdout.readlines()
+                tempErr = child.stderr.readlines()
         if len(dead_entries)>0:
             glideFactoryLib.log_files.logActivity("These entries died: %s"%dead_entries)
 
