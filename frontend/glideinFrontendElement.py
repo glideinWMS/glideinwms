@@ -264,7 +264,6 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
             #    condorq_format_list = list(condorq_format_list) + list(x509_proxy_plugin.get_required_job_attributes())
         
             ### Add in elements to help in determining if jobs have voms creds
-<<<<<<< HEAD
             #condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN','s'),))
             #condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN','s'),))
             #condorq_dict = glideinFrontendLib.getCondorQ(elementDescript.merged_data['JobSchedds'],
@@ -278,13 +277,8 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
                 ### Add in elements to help in determining if jobs have voms creds
                 condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN','s'),))
                 condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN','s'),))
+                condorq_format_list=list(condorq_format_list)+list((('x509userproxy','s'),))
                 condorq_dict = glideinFrontendLib.getCondorQ(elementDescript.merged_data['JobSchedds'],
-=======
-            condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN','s'),))
-            condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN','s'),))
-            condorq_format_list=list(condorq_format_list)+list((('x509userproxy','s'),))
-            condorq_dict=glideinFrontendLib.getCondorQ(elementDescript.merged_data['JobSchedds'],
->>>>>>> 81607fe... Bug #2892: frontend checks proxies vs GLIDEINS_REQUIRE_GLEXEC_USE
                                                        expand_DD(elementDescript.merged_data['JobQueryExpr'],attr_dict),
                                                        condorq_format_list)
             except Exception:
@@ -352,23 +346,8 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
     glidein_dict=pipe_out['entries']
     condorq_dict=pipe_out['jobs']
     status_dict=pipe_out['startds']
-<<<<<<< HEAD
-=======
-
+    
     condorq_dict_proxy=glideinFrontendLib.getIdleProxyCondorQ(condorq_dict)
-    condorq_dict_voms=glideinFrontendLib.getIdleVomsCondorQ(condorq_dict)
-    condorq_dict_idle=glideinFrontendLib.getIdleCondorQ(condorq_dict)
-    condorq_dict_old_idle=glideinFrontendLib.getOldCondorQ(condorq_dict_idle,600)
-    condorq_dict_running=glideinFrontendLib.getRunningCondorQ(condorq_dict)
-    
-    condorq_dict_types={'Idle':{'dict':condorq_dict_idle,'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle)},
-                        'OldIdle':{'dict':condorq_dict_old_idle,'abs':glideinFrontendLib.countCondorQ(condorq_dict_old_idle)},
-                        'VomsIdle':{'dict':condorq_dict_voms,'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
-                        'ProxyIdle':{'dict':condorq_dict_proxy,'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
-                        'Running':{'dict':condorq_dict_running,'abs':glideinFrontendLib.countCondorQ(condorq_dict_running)}}
-    condorq_dict_abs=glideinFrontendLib.countCondorQ(condorq_dict);
->>>>>>> 81607fe... Bug #2892: frontend checks proxies vs GLIDEINS_REQUIRE_GLEXEC_USE
-    
     condorq_dict_voms=glideinFrontendLib.getIdleVomsCondorQ(condorq_dict)
     condorq_dict_idle = glideinFrontendLib.getIdleCondorQ(condorq_dict)
     condorq_dict_old_idle = glideinFrontendLib.getOldCondorQ(condorq_dict_idle, 600)
@@ -377,6 +356,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
     condorq_dict_types = {'Idle':{'dict':condorq_dict_idle, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle)},
                           'OldIdle':{'dict':condorq_dict_old_idle, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_old_idle)},
                           'VomsIdle':{'dict':condorq_dict_voms, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
+                        'ProxyIdle':{'dict':condorq_dict_proxy,'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
                           'Running':{'dict':condorq_dict_running, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_running)}}
     condorq_dict_abs = glideinFrontendLib.countCondorQ(condorq_dict);
 
