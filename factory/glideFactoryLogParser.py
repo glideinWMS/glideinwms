@@ -13,10 +13,15 @@
 #
 
 
-import os, os.path,time,stat,sets
+import os, os.path,time,stat
 import copy
 import mmap,re
 import condorLogParser
+try:
+    set
+except:
+    from sets import Set as set
+
 
 rawJobId2Nr=condorLogParser.rawJobId2Nr
 rawTime2cTime=condorLogParser.rawTime2cTime
@@ -151,8 +156,8 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
                 outdata_s={'Entered':[],'Exited':[]}
                 outdata[s]=outdata_s
 
-                sset=sets.Set(sel)
-                oset=sets.Set(oel)
+                sset=set(sel)
+                oset=set(oel)
 
                 entered_set=sset.difference(oset)
                 entered=[]

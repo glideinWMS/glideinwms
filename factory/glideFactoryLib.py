@@ -393,7 +393,7 @@ def update_x509_proxy_file(entry_name,username,client_id, proxy_data):
         os.write(f,proxy_data)
         os.close(f)
     except:
-        log_files.logError("Unable to create tempfile %s!" % tempfilename)
+        log_files.logWarning("Unable to create tempfile %s!" % tempfilename)
     
     try:
         dn_list=condorExe.iexe_cmd("openssl x509 -subject -noout",stdin_data=proxy_data)
@@ -410,7 +410,7 @@ def update_x509_proxy_file(entry_name,username,client_id, proxy_data):
     try:
         os.unlink(tempfilename)
     except:
-        log_files.logError("Unable to delete tempfile %s!" % tempfilename)
+        log_files.logWarning("Unable to delete tempfile %s!" % tempfilename)
 
     hash_val=str(abs(hash(dn+voms))%1000000)
 

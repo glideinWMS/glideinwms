@@ -30,7 +30,6 @@ import string
 import math
 import copy
 import random
-import sets
 import cPickle
 
 sys.path.append(os.path.join(sys.path[0],"../lib"))
@@ -53,10 +52,8 @@ class EntryGroup:
         pass
 
 ############################################################
-def check_parent(parent_pid, glideinDescript, jobDescript):
+def check_parent(parent_pid, glideinDescript, my_entries):
     """
-    TODO: PM: Need to modify this for both Entry and EntryGroup
-
     Check to make sure that we aren't an orphaned process.  If Factory
     daemon has died, then clean up after ourselves and kill ourselves off.
 
@@ -78,22 +75,24 @@ def check_parent(parent_pid, glideinDescript, jobDescript):
     # there is nobody to clean up after ourselves... do it here
     gfl.log_files.logActivity("Deadvertize myself")
     
-    try:
-        gfi.deadvertizeGlidein(
-            glideinDescript.data['FactoryName'],	 
-            glideinDescript.data['GlideinName'],	 
-            jobDescript.data['EntryName'])	 
-    except:
-        gfl.log_files.logWarning("Failed to deadvertize myself")
+    for entry in my_entries.values():
+        # Deadvertise glidefactory classad
+        try:
+            gfi.deadvertizeGlidein(
+                glideinDescript.data['FactoryName'],	 
+                glideinDescript.data['GlideinName'],	 
+                entry.name)	 
+        except:
+            gfl.log_files.logWarning("Failed to deadvertize entry '%s'" % entry.name)
 
-
-    try:
-        gfi.deadvertizeAllGlideinClientMonitoring(
-            glideinDescript.data['FactoryName'],	 
-            glideinDescript.data['GlideinName'],	 
-            jobDescript.data['EntryName'])	 
-    except:
-        gfl.log_files.logWarning("Failed to deadvertize my monitoring")
+        # Deadvertise glidefactoryclient classad
+        try:
+            gfi.deadvertizeAllGlideinClientMonitoring(
+                glideinDescript.data['FactoryName'],	 
+                glideinDescript.data['GlideinName'],	 
+                entry.name)	 
+        except:
+            gfl.log_files.logWarning("Failed to deadvertize monitoring for entry '%s'" % entry.name)
 
     raise KeyboardInterrupt,"Parent died. Quiting."
 
@@ -207,7 +206,7 @@ def find_work(factory_in_downtime, glideinDescript,
             if work.has_key(w):
                 # This should not happen but still as a safegaurd warn
                 gfl.log_files.logActivity("Work task for %s exists using existing key and old key. Ignoring the work from old key." % w)
-                gfl.log_files.logError("Work task for %s exists using existing key and old key. Ignoring the work from old key." % w)
+                gfl.log_files.logWarning("Work task for %s exists using existing key and old key. Ignoring the work from old key." % w)
                 continue
             work[w] = work_oldkey[w]
 
@@ -303,6 +302,9 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     @return: returns a value greater than zero if work was done.
     """
     
+    # Work done by group keyed by entry name. This will be returned back
+    groupwork_done = {}
+
     # Step 1:
     # Find work to perform. Work is a dict work[entry_name][frontend]
     # We may or may not be able to perform all the work but that will be
@@ -315,7 +317,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     work_count = get_work_count(work)
     if (work_count == 0):
         gfl.log_files.logActivity("No work found")
-        return 0
+        return groupwork_done
 
     gfl.log_files.logActivity("Found %s total tasks to work on" % work_count)
 
@@ -379,9 +381,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
         #           entries. Needs further discussion
 
 
-    # Work done by group keyed by entry name
-    groupwork_done = {}
-
+    gfl.log_files.logActivity("----->%s" % my_entries)
     if not work_info_read_err:
         # Entry object changes after doing work. Just capture the entry object
         # from the child process and use it for further processing
@@ -483,6 +483,10 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
                                                pub_key_obj,allowed_proxy_source)
     except:
         gfl.log_files.logWarning("Advertize failed")
+        tb = traceback.format_exception(sys.exc_info()[0],
+                                        sys.exc_info()[1],
+                                        sys.exc_info()[2])
+        gfl.log_files.logWarning("Exception: %s" % tb)
 
     # Advertise the monitoring, use the downtime found in validation of the credentials
     monitor_job_attrs = jobAttributes.data.copy()
@@ -534,6 +538,7 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
                 frontendDescript, group_name, my_entries):
     
     groupwork_done = {}
+    done_something = 0
 
     for entry in my_entries.values():
         entry.initIteration(factory_in_downtime)
@@ -549,17 +554,20 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
 
 
 
-
+    gfl.log_files.logActivity("GROUPWORK: %s" % groupwork_done)
     for entry in my_entries.values():
         # Advertise if work was done or if advertise flag is set
         # TODO: PM: Advertising can be optimized by grouping multiple entry
         #           ads together. For now do it one at a time.
-        if ( (do_advertize) or 
-             ((groupwork_done.get(entry.name)).get('work_done')) ) :
-            gfl.log_files.logActivity("Advertising %s" % entry.name)
+        entrywork_done = 0
+        if ( (entry.name in groupwork_done) and 
+             ('work_done' in groupwork_done[entry.name]) ):
+            entrywork_done = groupwork_done[entry.name]['work_done']
 
-            # PM: I AM HERE WRITING entry.advertise 30 Nov 2012
+        if ( (do_advertize) or (entrywork_done > 0) ):
+            gfl.log_files.logActivity("Advertising entry: %s" % entry.name)
             entry.advertise(factory_in_downtime)
+            done_something += entrywork_done
         entry.unsetInDowntime()
     
     return done_something
@@ -605,7 +613,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
     while 1:
         
         # Check if parent is still active. If not cleanup and die.
-        check_parent(parent_pid, glideinDescript, jobDescript)
+        check_parent(parent_pid, glideinDescript, my_entries)
 
         # Check if its time to invalidate factory's old key
         if ( (time.time() > oldkey_eoltime) and 
@@ -759,10 +767,10 @@ def main(parent_pid, sleep_time, advertize_rate,
 
 
     # Check if all the entries in this group are valid
-    for entry in string.split(entry_names, ','):
+    for entry in string.split(entry_names, ':'):
         if not (entry in string.split(glidein_entries, ',')):
             msg = "Entry '%s' not configured: %s" % (entry, glidein_entries)
-            gfl.log_files.logError(msg)
+            gfl.log_files.logWarning(msg)
             raise RuntimeError, msg
 
         # Create entry objects
@@ -813,5 +821,3 @@ if __name__ == '__main__':
 
     main(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), 
          sys.argv[4], sys.argv[5], sys.argv[6])
- 
-

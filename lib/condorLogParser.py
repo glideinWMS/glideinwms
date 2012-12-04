@@ -20,7 +20,12 @@
 import os,os.path,stat
 import re,mmap
 import time
-import cPickle,sets
+import cPickle
+try:
+    set
+except:
+    from sets import Set as set
+
 
 # -------------- Single Log classes ------------------------
 
@@ -195,8 +200,8 @@ class logSummary(cachedLogClass):
                 outdata_s={'Entered':[],'Exited':[]}
                 outdata[s]=outdata_s
 
-                sset=sets.Set(sel)
-                oset=sets.Set(oel)
+                sset=set(sel)
+                oset=set(oel)
 
                 outdata_s['Entered']=list(sset.difference(oset))
                 outdata_s['Exited']=list(oset.difference(sset))
@@ -317,8 +322,8 @@ class logCompleted(cachedLogClass):
 
             sel=self.data['completed_jobs']
             oel=other['completed_jobs']
-            sset=sets.Set(sel)
-            oset=sets.Set(oel)
+            sset=set(sel)
+            oset=set(oel)
 
             outcj['Entered']=list(sset.difference(oset))
             outcj['Exited']=list(oset.difference(sset))
@@ -489,8 +494,8 @@ class logSummaryTimings(cachedLogClass):
                 outdata_s={'Entered':[],'Exited':[]}
                 outdata[s]=outdata_s
 
-                sset=sets.Set(sel)
-                oset=sets.Set(oel)
+                sset=set(sel)
+                oset=set(oel)
 
                 entered_set=sset.difference(oset)
                 entered=[]

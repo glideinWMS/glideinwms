@@ -168,20 +168,18 @@ def is_file_old(filename, allowed_time):
 def clean_exit(childs):
     count=100000000 # set it high, so it is triggered at the first iteration
     sleep_time=0.1 # start with very little sleep
-    while len(childs.keys())>0:
+    while len(childs)>0:
         count+=1
         if count>4:
             # Send a term signal to the childs
             # May need to do it several times, in case there are in the middle of something
-            count=0
-            entries=childs.keys()
-            entries.sort()
-            glideFactoryLib.log_files.logActivity("Killing entries %s"%entries)
+            count = 0
+            glideFactoryLib.log_files.logActivity("Killing EntryGroups %s" % childs.keys())
             for group in childs:
                 try:
                     os.kill(childs[group].pid,signal.SIGTERM)
                 except OSError:
-                    glideFactoryLib.log_files.logActivity("Entry Group %s already dead"%group)
+                    glideFactoryLib.log_files.logActivity("Already dead EntryGroup %s: %s" % (group,childs[group]))
                     del childs[group] # already dead
             
         glideFactoryLib.log_files.logActivity("Sleep")
@@ -191,25 +189,22 @@ def clean_exit(childs):
         if sleep_time>5:
             sleep_time=5
         
-        entries=childs.keys()
-        entries.sort()
-        
-        glideFactoryLib.log_files.logActivity("Checking dying entries %s"%entries)
+        glideFactoryLib.log_files.logActivity("Checking dying EntryGroups %s" % childs.keys())
         dead_entries=[]
         for group in childs:
             child=childs[group]
 
             # empty stdout and stderr
             try:
-                tempOut = child.fromchild.read()
+                tempOut = child.stdout.read()
                 if len(tempOut)!=0:
-                    glideFactoryLib.log_files.logWarning("Child %s STDOUT: %s"%(group, tempOut))
+                    glideFactoryLib.log_files.logWarning("EntryGroup %s STDOUT: %s"%(group, tempOut))
             except IOError:
                 pass # ignore
             try:
-                tempErr = child.childerr.read()
+                tempErr = child.stderr.read()
                 if len(tempErr)!=0:
-                    glideFactoryLib.log_files.logWarning("Child %s STDERR: %s"%(group, tempErr))
+                    glideFactoryLib.log_files.logWarning("EntryGroup %s STDERR: %s"%(group, tempErr))
             except IOError:
                 pass # ignore
 
@@ -218,12 +213,12 @@ def clean_exit(childs):
                 # the child exited
                 dead_entries.append(group)
                 del childs[group]
-                tempOut = child.fromchild.readlines()
-                tempErr = child.childerr.readlines()
+                tempOut = child.stdout.readlines()
+                tempErr = child.stderr.readlines()
         if len(dead_entries)>0:
-            glideFactoryLib.log_files.logActivity("These entry groups died: %s"%dead_entries)
+            glideFactoryLib.log_files.logActivity("These EntryGroups died: %s"%dead_entries)
 
-    glideFactoryLib.log_files.logActivity("All entries dead")
+    glideFactoryLib.log_files.logActivity("All EntryGroups dead")
 
 
 ############################################################
@@ -251,7 +246,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
 
     factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
 
-    glideFactoryLib.log_files.logActivity("Starting entries %s"%entries)
+    glideFactoryLib.log_files.logActivity("Starting entries %s" % entries)
 
     group_size = long(math.ceil(float(len(entries))/entry_process_count))
     entry_groups = entry_grouper(group_size, entries)
@@ -268,7 +263,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                             str(advertize_rate),
                             startup_dir,
                             entry_names,
-                            group]
+                            str(group)]
             childs[group] = subprocess.Popen(command_list, shell=False,
                                              stdout=subprocess.PIPE,
                                              stderr=subprocess.PIPE)
@@ -277,10 +272,10 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             childs_uptime[group] = list()
             childs_uptime[group].insert(0, time.time())
 
-        glideFactoryLib.log_files.logActivity("Entry startup times: %s"%childs_uptime)
+        glideFactoryLib.log_files.logActivity("EntryGroup startup times: %s"%childs_uptime)
 
         for group in childs:
-            childs[group].tochild.close()
+            #childs[group].tochild.close()
             # set it in non blocking mode
             # since we will run for a long time, we do not want to block
             for fd  in (childs[group].stdout.fileno(),
@@ -306,7 +301,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                     glideFactoryLib.log_files.logActivity("Failed to remove the old public key after its grace time")
                     glideFactoryLib.log_files.logWarning("Failed to remove the old public key after its grace time")
 
-            glideFactoryLib.log_files.logActivity("Checking entries %s"%entries)
+            glideFactoryLib.log_files.logActivity("Checking EntryGroups %s: %s" % (group, entry_groups[group]))
             for group in childs:
                 entry_names = string.join(entry_groups[group], ':')
                 child=childs[group]
@@ -315,30 +310,30 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                 try:
                     tempOut = child.stdout.read()
                     if len(tempOut)!=0:
-                        glideFactoryLib.log_files.logWarning("Child %s STDOUT: %s"%(group, tempOut))
+                        glideFactoryLib.log_files.logWarning("EntryGroup %s STDOUT: %s"%(group, tempOut))
                 except IOError:
                     pass # ignore
                 try:
                     tempErr = child.stderr.read()
                     if len(tempErr)!=0:
-                        glideFactoryLib.log_files.logWarning("Child %s STDERR: %s"%(group, tempErr))
+                        glideFactoryLib.log_files.logWarning("EntryGroup %s STDERR: %s"%(group, tempErr))
                 except IOError:
                     pass # ignore
                 
                 # look for exited child
                 if child.poll() is not None:
                     # the child exited
-                    glideFactoryLib.log_files.logWarning("Child %s exited. Checking if it should be restarted."%(group))
-                    tempOut = child.fromchild.readlines()
-                    tempErr = child.childerr.readlines()
+                    glideFactoryLib.log_files.logWarning("EntryGroup %s exited. Checking if it should be restarted."%(group))
+                    tempOut = child.stdout.readlines()
+                    tempErr = child.stderr.readlines()
 
                     if is_crashing_often(childs_uptime[group],
                                          restart_interval, restart_attempts):
                         del childs[group]
-                        raise RuntimeError,"Entry group '%s' has been crashing too often, quit the whole factory:\n%s\n%s"%(group,tempOut,tempErr)
+                        raise RuntimeError,"EntryGroup '%s' has been crashing too often, quit the whole factory:\n%s\n%s"%(group,tempOut,tempErr)
                     else:
                         # Restart the entry setting its restart time
-                        glideFactoryLib.log_files.logWarning("Restarting child %s."%(group))
+                        glideFactoryLib.log_files.logWarning("Restarting EntryGroup %s."%(group))
                         del childs[group]
 
                         command_list = [sys.executable,
@@ -349,7 +344,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                                         str(advertize_rate),
                                         startup_dir,
                                         entry_names,
-                                        group]
+                                        str(group)]
                         childs[group] = subprocess.Popen(
                                                  command_list, shell=False,
                                                  stdout=subprocess.PIPE,
@@ -362,7 +357,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                                     childs[group].stderr.fileno()):
                             fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                             fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
-                        glideFactoryLib.log_files.logWarning("Entry startup/restart times: %s"%childs_uptime)
+                        glideFactoryLib.log_files.logWarning("EntryGroup startup/restart times: %s"%childs_uptime)
 
             # Aggregate Monitoring data periodically
             glideFactoryLib.log_files.logActivity("Aggregate monitoring data")

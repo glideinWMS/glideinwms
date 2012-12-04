@@ -24,7 +24,11 @@ import os,os.path,sys,fcntl
 import traceback
 import time,string,math
 import copy,random
-import sets
+try:
+    set
+except:
+    from sets import Set as set
+
 sys.path.append(os.path.join(sys.path[0],"../lib"))
 
 import glideFactoryPidLib
@@ -36,6 +40,7 @@ import glideFactoryLogParser
 import glideFactoryDowntimeLib
 import logSupport
 import glideinWMSVersion
+
 
 ############################################################
 class Entry:
@@ -193,6 +198,7 @@ class Entry:
 
     def loadDowntimes(self):
         self.downtimes = glideFactoryDowntimeLib.DowntimeFile(self.glideinDescript.data['DowntimesFile'])
+        self.downtimes.checkDowntime(entry=self.name)
         self.jobAttributes.data['GLIDEIN_Downtime_Comment'] = self.downtimes.downtime_comment
 
 
@@ -310,33 +316,38 @@ class Entry:
             # Make copy of job attributes so can override the validation
             # downtime setting with the true setting of the entry 
             # (not from validation)
-            myJobAttributes = jobAttributes.data.copy()
+            myJobAttributes = self.jobAttributes.data.copy()
             myJobAttributes['GLIDEIN_In_Downtime'] = factory_in_downtime
             glideFactoryInterface.advertizeGlidein(
-                gflFactoryConfig.factory_name,
-                gflFactoryConfig.glidein_name,
-                self.name, gflFactoryConfig.supported_signtypes,
+                self.gflFactoryConfig.factory_name,
+                self.gflFactoryConfig.glidein_name,
+                self.name, self.gflFactoryConfig.supported_signtypes,
                 myJobAttributes, self.jobParams.data.copy(),
                 glidein_monitors.copy(), pub_key_obj, self.allowedProxySource)
         except:
-            self.logFiles.logWarning("Advertize failed")
+            self.logFiles.logWarning("Advertising entry '%s' failed"%self.name)
+            tb = traceback.format_exception(sys.exc_info()[0],
+                                            sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            self.logFiles.logWarning("Exception: %s" % tb)
+
     
         # Advertise the monitoring, use the downtime found in
         # validation of the credentials
         monitor_job_attrs = self.jobAttributes.data.copy()
         advertizer = \
             glideFactoryInterface.MultiAdvertizeGlideinClientMonitoring(
-                gflFactoryConfig.factory_name,
-                gflFactoryConfig.glidein_name,
+                self.gflFactoryConfig.factory_name,
+                self.gflFactoryConfig.glidein_name,
                 self.name, monitor_job_attrs)
     
-        current_qc_data = gflFactoryConfig.client_stats.get_data()
+        current_qc_data = self.gflFactoryConfig.client_stats.get_data()
         for client_name in current_qc_data:
             client_qc_data = current_qc_data[client_name]
-            if client_name not in gflFactoryConfig.client_internals:
+            if client_name not in self.gflFactoryConfig.client_internals:
                 self.logFiles.logWarning("Client '%s' has stats, but no classad! Ignoring." % client_name)
                 continue
-            client_internals = glfFactoryConfig.client_internals[client_name]
+            client_internals = self.glfFactoryConfig.client_internals[client_name]
     
             client_monitors={}
             for w in client_qc_data:
@@ -368,7 +379,7 @@ class Entry:
         return
         
 
-    def writeStats():
+    def writeStats(self):
         """
         Calls the statistics functions to record and write
         stats for this iteration.
@@ -387,13 +398,13 @@ class Entry:
         global log_rrd_thread,qc_rrd_thread
     
         self.loadContext()
-        gflFactoryConfig.log_stats.computeDiff()
-        gflFactoryConfig.log_stats.write_file()
+        self.gflFactoryConfig.log_stats.computeDiff()
+        self.gflFactoryConfig.log_stats.write_file()
         self.logFiles.logActivity("log_stats written")
-        gflFactoryConfig.qc_stats.finalizeClientMonitor()
-        gflFactoryConfig.qc_stats.write_file()
+        self.gflFactoryConfig.qc_stats.finalizeClientMonitor()
+        self.gflFactoryConfig.qc_stats.write_file()
         self.logFiles.logActivity("qc_stats written")
-        gflFactoryConfig.rrd_stats.writeFiles()
+        self.gflFactoryConfig.rrd_stats.writeFiles()
         self.logFiles.logActivity("rrd_stats written")
     
         return
@@ -422,7 +433,7 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
     can_submit_glideins = entry.glideinsWithinLimits(condorQ)
 
     # Consider downtimes and see if we can submit glideins
-    all_security_names = sets.Set()
+    all_security_names = set()
     done_something = 0
     entry.loadWhitelist()
     entry.loadDowntimes()
@@ -564,8 +575,14 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
                 
                 # Check security class for downtime
                 entry.logFiles.logActivity("Checking downtime for frontend %s security class: %s (entry %s)."%(client_security_name, x509_proxy_security_class,entry.name))
-                in_sec_downtime = (entry.downtimes.checkDowntime(entry="factory", frontend=client_security_name, security_class=x509_proxy_security_class)) or 
-                                  (entry.downtimes.checkDowntime(entry=entry.name, frontend=client_security_name, security_class=x509_proxy_security_class))
+                in_sec_downtime = ( (entry.downtimes.checkDowntime(
+                                        entry="factory",
+                                        frontend=client_security_name,
+                                        security_class=x509_proxy_security_class)) or 
+                                    (entry.downtimes.checkDowntime(
+                                         entry=entry.name,
+                                         frontend=client_security_name,
+                                         security_class=x509_proxy_security_class)) )
 
                 if (in_sec_downtime):
                     entry.logFiles.logWarning("Security Class %s is currently in a downtime window for Entry: %s. Skipping proxy %s."%(x509_proxy_security_class,entry.name, x509_proxy_identifier))
@@ -577,8 +594,8 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
                     
                 # Deny Frontend from entering glideins if the whitelist
                 # does not have its security class (or "All" for everyone)
-                if (entry.frontendWhitelist == "On") and
-                   (entry.isClientInWhitelist(client_security_name)):
+                if ( (entry.frontendWhitelist == "On") and
+                     (entry.isClientInWhitelist(client_security_name)) ):
                     if entry.isSecurityClassAllowed(client_security_name, 
                                                     x509_proxy_security_class):
                         in_downtime = prev_downtime
@@ -632,14 +649,14 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
         
             # Check if this entry point has a whitelist
             # If it does, then make sure that this frontend is in it.
-            if (frontend_whitelist == "On") and 
-               (entry.isClientInWhiteList(client_security_name)) and 
-               (not entry.isSecurityClassAllowed(client_security_name,
-                                                 x509_proxy_security_class)):
+            if ((frontend_whitelist == "On") and 
+                (entry.isClientInWhiteList(client_security_name)) and 
+                (not entry.isSecurityClassAllowed(client_security_name,
+                                                  x509_proxy_security_class))):
                 entry.logFiles.logWarning("Client %s not allowed to use entry point. Marking as in downtime (security class %s) "%(client_security_name,x509_proxy_security_class))
                 in_downtime=True
 
-        entry.setDowntime(in_downtime):
+        entry.setDowntime(in_downtime)
         entry.gflFactoryConfig.qc_stats.set_downtime(in_downtime)
        
         #
@@ -837,7 +854,7 @@ def perform_work(entry, condorQ, client_name, client_int_name,
     # not reducing the held, as that is effectively per proxy, not per request
     nr_submitted=0
     for x509_proxy_id in x509_proxy_keys:
-        nr_submitted + =glideFactoryLib.keepIdleGlideins(
+        nr_submitted += glideFactoryLib.keepIdleGlideins(
                             condorQ, client_int_name, in_downtime,
                             remove_excess, idle_glideins_pproxy,
                             max_glideins_pproxy, glidein_totals, frontend_name,
@@ -1018,7 +1035,7 @@ class X509Proxies:
         self.count_fnames+=1
 
 ###
-def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDescript, jobAttributes, jobParams):
+def find_and_perform_work_old(in_downtime, glideinDescript, frontendDescript, jobDescript, jobAttributes, jobParams):
     """
     Finds work requests from the WMS collector, validates credentials, and
     requests glideins. If an entry is in downtime, requested glideins is zero.
@@ -1090,7 +1107,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             if work.has_key(w):
                 # This should not happen but still as a safegaurd warn
                 glideFactoryLib.log_files.logActivity("Work task for %s exists using existing key and old key. Ignoring the work from old key." % w)
-                glideFactoryLib.log_files.logError("Work task for %s exists using existing key and old key. Ignoring the work from old key." % w)
+                glideFactoryLib.log_files.logWarning("Work task for %s exists using existing key and old key. Ignoring the work from old key." % w)
                 continue
             work[w] = work_oldkey[w]
 
@@ -1138,7 +1155,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
         glideFactoryLib.log_files.logWarning("Entry %s has hit the limit for held glideins, cannot submit any more" % entry_name)
         can_submit_glideins = False
 
-    all_security_names=sets.Set()
+    all_security_names=set()
 
     done_something=0
     for work_key in work.keys():
@@ -1598,7 +1615,7 @@ def iterate_one(do_advertize,in_downtime,
     jobAttributes.data['GLIDEIN_In_Downtime']=in_downtime
     
     try:
-        done_something = find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams)
+        done_something = find_and_perform_work_old(in_downtime,glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams)
     except:
         glideFactoryLib.log_files.logWarning("Error occurred while trying to find and do work.  ")
         
