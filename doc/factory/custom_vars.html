@@ -1048,6 +1048,28 @@ the working directory specified by</P>
             <P>File path to the list of wrapper scripts used by the glidein.</P>
         </TD>
     </TR>
+    <TR>
+        <td> <b>GLIDEIN_WRAPPER_EXEC</b> </td>
+        <TD>
+            <P>
+                This is the executable that glideins will run (ie what to 
+                put after "exec" in the condor job wrapper).  By default,
+                glideins will perform <tt>exec "\$@"</tt> to run the pilot.
+                For other modes of execution, you may need different 
+                arguments.  For example, to run a program under parrot, you 
+                may need 
+                <tt>exec "$GLIDEIN_PARROT/parrot_run" 
+                -t "$parrot_tmp" "$@" </tt>.<br/>
+                Note, the syntax of this command is very sensitiv
+                This needs to be double-escaped in order to function correctly.
+                For the two examples listed above, you would need:
+                <ul>
+                <li><tt>"\\\"\\\$@\\\""</tt></li>
+                <li><tt>"\\\"\\\$GLIDEIN_PARROT/parrot_run\\\" -t \\\"$parrot_tmp\\\" \\\"\\\$@\\\""</tt>
+                </ul>
+            </P>
+        </TD>
+    </TR>
 </TABLE>
 </div>
 <div class="section">
