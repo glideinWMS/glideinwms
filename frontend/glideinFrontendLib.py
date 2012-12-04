@@ -35,7 +35,7 @@ def getCondorQ(schedd_names, constraint=None, format_list=None):
 def getIdleVomsCondorQ(condorq_dict):
     out={}
     for schedd_name in condorq_dict.keys():
-        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:((el.get('JobStatus')==1) and (el.get('x509UserProxyFirstFQAN')!=None)))
+        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:((el.get('JobStatus')==1) and ('x509UserProxyFirstFQAN' in el)))
         sq.load()
         out[schedd_name]=sq
     return out
@@ -43,7 +43,7 @@ def getIdleVomsCondorQ(condorq_dict):
 def getIdleProxyCondorQ(condorq_dict):
     out={}
     for schedd_name in condorq_dict.keys():
-        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:((el.get('JobStatus')==1) and (el.get('x509userproxy')!=None)))
+        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:((el.get('JobStatus')==1) and ('x509userproxy' in el)))
         sq.load()
         out[schedd_name]=sq
     return out
