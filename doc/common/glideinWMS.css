@@ -105,7 +105,7 @@ ol { margin: 5px 0 15px 10px; padding-left: 20px; }
 
 blockquote
 {
-    background:    #bcd; 
+    background:    #dcb; 
     padding:       10px 10px;
     font-size:     100%;
     border:        1px solid #ddd;
@@ -122,7 +122,7 @@ pre
     margin-left:    0.39in;
     margin-right:   0.39in; 
     margin-bottom:  0.2in;
-    background:    #abc; 
+    background:    #cba; 
 }
 
 div#searchcontent
@@ -188,14 +188,14 @@ table.attributes tr.head td
 {
     font-weight:        bold;
     font-size:          1.3em;
-    background-color:   #8be; 
+    background-color:   #eb8; 
     padding: 5px;
     border-bottom:  2px solid #000;
 }
 
 table.attributes
 {
-    background-color: #e6f2ff;
+    background-color: #fff2e8;
 }
 
 table.attributes td
@@ -206,7 +206,7 @@ table.attributes td
 }
 table.attributes td:first-child
 {
-    background-color: #bdf;
+    background-color: #fdb;
     text-align: center;
     font-weight: bold;
     font-size:1.1em;
@@ -288,8 +288,8 @@ ul.components li a
 {
     float:left;
 	width:100%;
-#	background-color: #ccd;
-	background-color: #7ad;
+/* Change for master look and feel */
+	background-color: #e88;
 	border: 1px solid #458;
 	margin: 0px 0px 2px 0px;
 	padding: 10px 0px 10px 0px;
@@ -315,7 +315,8 @@ border-right:0px solid black;
 
 ul.subcomponents li a
 {
-color: #339;
+/* Change for master look and feel */
+color: #933;
 text-decoration: none;
 padding: 0px;
 }
@@ -330,7 +331,8 @@ padding: 5px 0px 0px 10px;
 border: 1px solid black;
 }
 div.jump ol { margin-left: 10px; }
-div.jump ol li a { text-decoration: none; color: #339;}
+/* Change for master look and feel */
+div.jump ol li a { text-decoration: none; color: #933;}
 div.jump ol ol {margin: 0px;list-style-type: lower-alpha}
 
 
@@ -343,7 +345,9 @@ margin-left: 20px;
 border: 1px solid black;
 }
 div.related ul {list-style-type: circle; }
-div.related ul li a {text-decoration:none; color: #339;}
+/* Change for master look and feel */
+div.related a {text-decoration:none; color: #933;}
+div.related ul li a {text-decoration:none; color: #933;}
 
 ol {
 margin-left: 40px;
@@ -359,7 +363,8 @@ div.xml i { font-weight: normal; }
 
 div.config {
     margin: 15px;
-    background-color: #cdf;
+/* Change for master look and feel */
+    background-color: #fdc;
     padding: 5px;
 }
 
@@ -367,7 +372,8 @@ div.config blockquote {
     padding: 3px 5px 3px 25px;
     margin: 0px;
     border: 0px;
-    background-color: #cdf;
+/* Change for master look and feel */
+    background-color: #fdc;
 }
 
 div.config a {
