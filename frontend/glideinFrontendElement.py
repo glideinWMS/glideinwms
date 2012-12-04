@@ -549,12 +549,10 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
         # Note: if GLEXEC is set to NEVER, the site will never see the proxy, 
         # so it can be avoided.
         if (glexec != 'NEVER'):
-            if glidein_el['attrs'].has_key('GLIDEIN_REQUIRE_VOMS') and \
-                (glidein_el['attrs']['GLIDEIN_REQUIRE_VOMS']=="True"):
+            if (glidein_el['attrs'].get('GLIDEIN_REQUIRE_VOMS')=="True"):
                     prop_jobs['Idle']=prop_jobs['VomsIdle']
                     glideinFrontendLib.log_files.logDebug("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
-            elif glidein_el['attrs'].has_key('GLIDEIN_REQUIRE_GLEXEC_USE') and \
-                (glidein_el['attrs']['GLIDEIN_REQUIRE_GLEXEC_USE']=="True"):
+            elif (glidein_el['attrs'].get('GLIDEIN_REQUIRE_GLEXEC_USE')=="True"):
                     prop_jobs['Idle']=prop_jobs['ProxyIdle']
                     glideinFrontendLib.log_files.logDebug("Proxy required (GLEXEC), limiting idle glideins to: %i" % prop_jobs['Idle'])
 
