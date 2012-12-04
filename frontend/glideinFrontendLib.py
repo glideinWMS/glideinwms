@@ -288,7 +288,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, condorq_match_l
         for ct in tuple[1]:
             cluster_arr=all_jobs_clusters[ct]
             jobs_arr+=cluster_arr
-        outvals.append((tuple[0],set(jobs_arr)))        
+        outvals.append((tuple[0],set(jobs_arr)))
     jobs_arr=[]
     for ct in jrange_cl:
         cluster_arr=all_jobs_clusters[ct]
