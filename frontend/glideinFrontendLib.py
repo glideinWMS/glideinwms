@@ -212,7 +212,8 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, condorq_match_l
             t=(jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
             cq_jobs.add(t)
 
-    list_of_all_jobs = []
+    list_of_all_jobs=[]
+    all_jobs_clusters={}
 
     for glidename in glidein_dict:
         glidein=glidein_dict[glidename]
@@ -243,12 +244,13 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, condorq_match_l
                             t=(jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
                             cluster_arr.append(t)
                             schedd_count+=1
-                        #first_t=(first_jid[0]*procid_mul+first_jid[1])*nr_schedds+scheddIdx
-                        #all_jobs_clusters[first_t]=cluster_arr
-                        #sjobs_arr+=[first_t]
+                        # PM: Added as part of #3150/#3196
+                        #sjobs_arr+=cluster_arr
+                        first_t=(first_jid[0]*procid_mul+first_jid[1])*nr_schedds+scheddIdx
+                        all_jobs_clusters[first_t]=cluster_arr
+                        sjobs_arr+=[first_t]
                         # adding a whole cluster much faster
-                        sjobs_arr+=cluster_arr
-                        del cluster_arr
+                        #del cluster_arr
 
                 except KeyError, e:
                     tb = traceback.format_exception(sys.exc_info()[0],
@@ -276,8 +278,23 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, condorq_match_l
         list_of_all_jobs.append(jobs)
         out_glidein_counts[glidename]=glidein_count
 
-    (outvals,jrange) = uniqueSets(list_of_all_jobs)
+    (outvals_cl,jrange_cl) = uniqueSets(list_of_all_jobs)
     del list_of_all_jobs
+
+    # convert from clusters back to jobs
+    outvals=[]
+    for tuple in outvals_cl:
+        jobs_arr=[]
+        for ct in tuple[1]:
+            cluster_arr=all_jobs_clusters[ct]
+            jobs_arr+=cluster_arr
+        outvals.append((tuple[0],set(jobs_arr)))        
+    jobs_arr=[]
+    for ct in jrange_cl:
+        cluster_arr=all_jobs_clusters[ct]
+        jobs_arr+=cluster_arr
+    jrange=set(jobs_arr)
+
     count_unmatched=len(cq_jobs-jrange)
 
     #unique_to_site: keys are sites, elements are num of unique jobs
