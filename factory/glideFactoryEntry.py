@@ -414,7 +414,8 @@ class Entry:
 
 def check_and_perform_work(factory_in_downtime, group_name, entry, work):
     """
-    Check if we need to do the work and then do the work
+    Check if we need to do the work and then do the work. Called by child
+    process per entry
     """
  
     entry.loadContext()
@@ -795,7 +796,7 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
 
     for sec_el in all_security_names:
         try:
-            glideFactoryLib.factoryConfig.rrd_stats.getData("%s_%s" % sec_el)
+            entry.gflFactoryConfig.rrd_stats.getData("%s_%s" % sec_el)
         except glideFactoryLib.condorExe.ExeError,e:
             # Never fail for monitoring. Just log
             entry.logFiles.logWarning("get_RRD_data failed: %s" % e)
@@ -803,7 +804,10 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
         except:
             # Never fail for monitoring. Just log
             entry.logFiles.logWarning("get_RRD_data failed: error unknown")
-            pass
+            tb = traceback.format_exception(sys.exc_info()[0],
+                                            sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            entry.logFiles.logWarning("Traceback: %s"%string.join(tb,''))
 
     return done_something
 
