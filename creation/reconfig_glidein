@@ -32,6 +32,23 @@ fix_rrd = False
 
 ################################################################################
 
+def logReconfig(msg):
+    # Set the Log directory    
+    logSupport.log_dir = os.path.join(glideinDescript.data['LogDir'], "factory")
+                                                                                    # Configure factory process logging
+    process_logs = eval(glideinDescript.data['ProcessLogs'])                        for plog in process_logs:
+        if 'ADMIN' in plog['msg_types']:                                                    logSupport.add_processlog_handler("factoryadmin", logSupport.log_dir
+, ['DEBUG','INFO','WARN','ERR'], plog['extension'],                                                                   int(float(plog['max_days'])),
+                                      int(float(plog['min_days'])),                                                   int(float(plog['max_mbytes'])))
+        else:                                                                               logSupport.add_processlog_handler("factory", logSupport.log_dir, plo
+g['msg_types'], plog['extension'],                                                                                    int(float(plog['max_days'])),
+                                      int(float(plog['min_days'])),
+                                      int(float(plog['max_mbytes'])))
+    logSupport.log = logging.getLogger("factoryadmin")
+    logSupport.log.info("Reconfiguring factory: %s" % msg)
+
+
+
 def main(params, old_params, update_scripts, update_def_cfg):
     # load old files
     if not old_params is None:
@@ -127,7 +144,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
             print "WARNING: back up your existing rrds before auto-fixing rrds"
         sys.exit(1)
     print "...Submit files are in %s"%glidein_dicts_obj.main_dicts.work_dir
-
+    logReconfig(comment)
 
 ############################################################
 #
@@ -142,10 +159,13 @@ if __name__ == '__main__':
     writeback = 'no'
     update_scripts = 'no'
     xml = ''
+    comment=''
     update_def_cfg = 'no'
     for i in range(len(argv)):
         if argv[i] == '-fix_rrd':
             fix_rrd = True
+        if argv[i] == '-comment':
+            comment = "("+argv[i + 1]+"0"
         if argv[i] == '-force_name':
             force_name = argv[i + 1]
         if argv[i] == '-writeback':

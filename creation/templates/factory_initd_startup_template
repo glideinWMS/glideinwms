@@ -72,16 +72,20 @@ reconfig() {
         update_def_cfg="no"
         writeback="yes"
         force_delete=""
+        comment=""
         fix_rrd=""
 
-        for var in "$@"
-        do 
+        while (( "$#" )); do
+           var=$1
            case "$var" in
               yes | no) writeback="$var"
                  ;;
               update_default_cfg) update_def_cfg="yes"
                  ;;
               "-force_delete") force_delete="-force_delete"
+                ;;
+              "-comment") comment=$2
+                shift
                 ;;
               "-fix_rrd") fix_rrd="-fix_rrd"
                  ;;
@@ -106,7 +110,7 @@ reconfig() {
           fi
         fi
         
-        "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" -writeback "$writeback" -update_scripts "no" -xml "$cfg_loc" -update_def_cfg "$update_def_cfg" $force_delete $fix_rrd
+        "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" -writeback "$writeback" -update_scripts "no" -xml "$cfg_loc" -update_def_cfg "$update_def_cfg" $force_delete $fix_rrd -comment "$comment"
         reconfig_failed=$?
         echo -n "Reconfiguring the factory"
         test $reconfig_failed -eq 0 && success || failure
