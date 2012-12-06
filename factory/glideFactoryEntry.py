@@ -347,7 +347,7 @@ class Entry:
             if client_name not in self.gflFactoryConfig.client_internals:
                 self.logFiles.logWarning("Client '%s' has stats, but no classad! Ignoring." % client_name)
                 continue
-            client_internals = self.glfFactoryConfig.client_internals[client_name]
+            client_internals = self.gflFactoryConfig.client_internals[client_name]
     
             client_monitors={}
             for w in client_qc_data:
@@ -487,7 +487,7 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
         # Check if proxy passing is compatible with allowed_proxy_source
         if ( ('x509_proxy' in decrypted_params) or 
              ('x509_proxy_0' in decrypted_params) ):
-            if 'frontend' not in allowed_proxy_source:
+            if 'frontend' not in entry.allowedProxySource:
                 entry.logFiles.logWarning("Client %s provided proxy, but cannot use it. Skipping request"%client_int_name)
                 continue #skip request
 
@@ -504,7 +504,7 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
                 continue #skip request
 
         else:
-            if 'factory' not in allowed_proxy_source:
+            if 'factory' not in entry.allowedProxySource:
                 entry.logFiles.logWarning("Client %s did not provide a proxy, but cannot use factory one. Skipping request"%client_int_name)
                 continue #skip request
 
@@ -527,7 +527,7 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
 
             try:
                 x509_proxy_fname = glideFactoryLib.update_x509_proxy_file(
-                                       entry_name, x509_proxy_username,
+                                       entry.name, x509_proxy_username,
                                        work_key, decrypted_params['x509_proxy'])
             except:
                 entry.logFiles.logWarning("Failed to update x509_proxy using usename %s for client %s, skipping request"%(x509_proxy_username,client_int_name))
@@ -649,7 +649,7 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
         
             # Check if this entry point has a whitelist
             # If it does, then make sure that this frontend is in it.
-            if ((frontend_whitelist == "On") and 
+            if ((entry.frontendWhitelist == "On") and 
                 (entry.isClientInWhiteList(client_security_name)) and 
                 (not entry.isSecurityClassAllowed(client_security_name,
                                                   x509_proxy_security_class))):
@@ -686,7 +686,7 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
             # (as specified in the rsl string)
 
             if entry.jobDescript.data.has_key('GlobusRSL'):
-                if 'TG_PROJECT_ID' in jobDescript.data['GlobusRSL']:
+                if 'TG_PROJECT_ID' in entry.jobDescript.data['GlobusRSL']:
                     if 'ProjectId' in decrypted_params:
                         project_id = decrypted_params['ProjectId']
                         # just add to params for now, not a security issue
@@ -695,7 +695,7 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
                         params['ProjectId'] = project_id
                     else:
                         # project id is required, cannot service request
-                        entry.logFiles.logActivity("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
+                        entry.logFiles.logActivity("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, entry.name))
                         continue      
                               
             # If we got this far, it was because we were able to
@@ -770,8 +770,8 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
                                     x509_proxy_security_class)
                 
                 # Map the identity to a frontend:sec_class for tracking totals
-                frontend_name = "%s:%s" % (frontendDescript.get_frontend_name(client_expected_identity),
-                                           x509_proxy_security_class)
+                frontend_name = "%s:%s" % \
+                    (entry.frontendDescript.get_frontend_name(client_expected_identity), x509_proxy_security_class)
 
                 done_something += perform_work(
                                       entry, entry_condorQ, work_key,
@@ -781,7 +781,7 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
                                       idle_glideins_pc, max_running_pc,
                                       x509_proxies.fnames[x509_proxy_security_class],
                                       x509_proxies.get_username(x509_proxy_security_class),
-                                      glidein_totals, frontend_name,
+                                      entry.glideinTotals, frontend_name,
                                       client_web, params)
                 
         else:
@@ -1447,13 +1447,14 @@ def find_and_perform_work_old(in_downtime, glideinDescript, frontendDescript, jo
                 # Map the above identity to a frontend:sec_class for tracking totals
                 frontend_name = "%s:%s" % (frontendDescript.get_frontend_name(client_expected_identity), x509_proxy_security_class)
 
-                done_something += perform_work(entry_name,entry_condorQ,
-                                             work_key,client_int_name,client_security_name,x509_proxy_security_class,client_int_req,
-                                             in_downtime,remove_excess,
-                                             idle_glideins_pc,max_running_pc,
-                                             jobDescript,x509_proxies.fnames[x509_proxy_security_class],x509_proxies.get_username(x509_proxy_security_class),
-                                             glidein_totals, frontend_name,
-                                             client_web,params)
+                done_something += perform_work_old(
+                    entry_name, entry_condorQ, work_key, client_int_name,
+                    client_security_name, x509_proxy_security_class,
+                    client_int_req, in_downtime, remove_excess,
+                    idle_glideins_pc, max_running_pc, jobDescript,
+                    x509_proxies.fnames[x509_proxy_security_class],
+                    x509_proxies.get_username(x509_proxy_security_class),
+                    glidein_totals, frontend_name, client_web, params)
                 
         else: # it is malformed and should be skipped
             glideFactoryLib.log_files.logWarning("Malformed classad for client %s, skipping"%work_key)

@@ -373,7 +373,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     except RuntimeError:
         # Expect all errors logged already
         work_info_read_err = True
-        gfl.log_files.logWarning("Unable to process response from check_and_perform_work")
+        gfl.log_files.logWarning("Unable to process response from check_and_perform_work. One or more forked processes may have failed.")
         # PM: TODO: Whats the best action? Ignore or return?
         #           We may have to ignore bad info and continue with the 
         #           good info. How to update the monitoring and etc in this
@@ -381,7 +381,6 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
         #           entries. Needs further discussion
 
 
-    gfl.log_files.logActivity("----->%s" % my_entries)
     if not work_info_read_err:
         # Entry object changes after doing work. Just capture the entry object
         # from the child process and use it for further processing
