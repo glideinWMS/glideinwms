@@ -383,7 +383,8 @@ def getCondorStatusData(entry_name,client_name,pool_name=None,
 #
 # Create/update the proxy file
 # returns the proxy fname
-def update_x509_proxy_file(entry_name,username,client_id, proxy_data):
+def update_x509_proxy_file(entry_name, username, client_id, 
+                           proxy_data, logfiles=log_files):
     proxy_dir=factoryConfig.get_client_proxies_dir(entry_name,username)
     
     dn=""
@@ -393,7 +394,7 @@ def update_x509_proxy_file(entry_name,username,client_id, proxy_data):
         os.write(f,proxy_data)
         os.close(f)
     except:
-        log_files.logWarning("Unable to create tempfile %s!" % tempfilename)
+        logfiles.logWarning("Unable to create tempfile %s!" % tempfilename)
     
     try:
         dn_list=condorExe.iexe_cmd("openssl x509 -subject -noout",stdin_data=proxy_data)
@@ -410,7 +411,7 @@ def update_x509_proxy_file(entry_name,username,client_id, proxy_data):
     try:
         os.unlink(tempfilename)
     except:
-        log_files.logWarning("Unable to delete tempfile %s!" % tempfilename)
+        logfiles.logWarning("Unable to delete tempfile %s!" % tempfilename)
 
     hash_val=str(abs(hash(dn+voms))%1000000)
 
@@ -519,14 +520,15 @@ class ClientWeb(ClientWebNoGroup):
                 ["-clientgroup",self.group_name,"-clientwebgroup",self.group_url,"-clientsigngroup",self.group_sign,"-clientdescriptgroup",self.group_descript])
 
 
-def keepIdleGlideins(client_condorq, client_int_name,
-                     in_downtime, remove_excess,
-                     req_min_idle, req_max_glideins, glidein_totals, frontend_name,
-                     x509_proxy_identifier, x509_proxy_fname,x509_proxy_username, x509_proxy_security_class,
-                     client_web, # None means client did not pass one, backwards compatibility
-                     params):
+def keepIdleGlideins(client_condorq, client_int_name, in_downtime,
+                     remove_excess, req_min_idle, req_max_glideins,
+                     glidein_totals, frontend_name, x509_proxy_identifier,
+                     x509_proxy_fname,x509_proxy_username,
+                     x509_proxy_security_class, client_web, params,
+                     logfiles=log_files):
     """ 
     Submits more glideins if needed, else, clean up the queue.
+    client_web = None means client did not pass one, backwards compatibility
     
     Returns number of newly submitted glideins
     Can throw a condorExe.ExeError exception
@@ -547,9 +549,9 @@ def keepIdleGlideins(client_condorq, client_int_name,
     # Check that have not exceeded max held for this security class
     if glidein_totals.has_sec_class_exceeded_max_held(frontend_name):
         # Too many held, don't submit
-        log_files.logActivity("Too many held glideins for this frontend-security class: %i=held %i=max_held" % (glidein_totals.frontend_limits[frontend_name]['held'], glidein_totals.frontend_limits[frontend_name]['max_held']))
+        logfiles.logActivity("Too many held glideins for this frontend-security class: %i=held %i=max_held" % (glidein_totals.frontend_limits[frontend_name]['held'], glidein_totals.frontend_limits[frontend_name]['max_held']))
         # run sanitize... we have to get out of this mess
-        sanitizeGlideinsSimple(condorq)
+        sanitizeGlideinsSimple(condorq, logfiles=logfiles)
         # we have done something... return non-0 so sanitize is not called again
         return 1
     
@@ -573,8 +575,10 @@ def keepIdleGlideins(client_condorq, client_int_name,
        
     if add_glideins <= 0:
         # Have enough idle, don't submit
-        log_files.logActivity("Have enough glideins: idle=%i req_idle=%i, not submitting" % (q_idle_glideins, req_min_idle))
-        return clean_glidein_queue(remove_excess, glidein_totals, condorq, req_min_idle, req_max_glideins, frontend_name)
+        logfiles.logActivity("Have enough glideins: idle=%i req_idle=%i, not submitting" % (q_idle_glideins, req_min_idle))
+        return clean_glidein_queue(remove_excess, glidein_totals, condorq,
+                                   req_min_idle, req_max_glideins, 
+                                   frontend_name, logfiles=logfiles)
     else:
         # Need more idle
         
@@ -585,8 +589,11 @@ def keepIdleGlideins(client_condorq, client_int_name,
             
             if add_glideins <= 0:
                 # Have hit request limit, cannot submit
-                log_files.logActivity("Additional idle glideins %s needed exceeds request max_glideins limits %s, not submitting" % (add_glideins, req_max_glideins))
-                return clean_glidein_queue(remove_excess, glidein_totals, condorq, req_min_idle, req_max_glideins, frontend_name)
+                logfiles.logActivity("Additional idle glideins %s needed exceeds request max_glideins limits %s, not submitting" % (add_glideins, req_max_glideins))
+                return clean_glidein_queue(remove_excess, glidein_totals,
+                                           condorq, req_min_idle, 
+                                           req_max_glideins, frontend_name,
+                                           logfiles=logfiles)
         
     # Have a valid idle number to request
     # Check that adding more doesn't exceed frontend:sec_class and entry limits
@@ -594,33 +601,37 @@ def keepIdleGlideins(client_condorq, client_int_name,
     add_glideins = glidein_totals.can_add_idle_glideins(add_glideins, frontend_name)
     if add_glideins <= 0:
         # Have hit entry or frontend:sec_class limit, cannot submit
-        log_files.logActivity("Additional %s idle glideins requested by %s exceeds frontend:security class limit for the entry, not submitting" % (req_min_idle, frontend_name))
-        return clean_glidein_queue(remove_excess, glidein_totals, condorq, req_min_idle, req_max_glideins, frontend_name)
+        logfiles.logActivity("Additional %s idle glideins requested by %s exceeds frontend:security class limit for the entry, not submitting" % (req_min_idle, frontend_name))
+        return clean_glidein_queue(remove_excess, glidein_totals, condorq,
+                                   req_min_idle, req_max_glideins, 
+                                   frontend_name, logfiles=logfiles)
     else:
         # If we are requesting more than the maximum glideins that we can submit at one time, then set to the max submit number
         #   this helps to keep one frontend/request from getting all the glideins
         if add_glideins > factoryConfig.max_submits:
             add_glideins = factoryConfig.max_submits  
-            log_files.logDebug("Additional idle glideins exceeded entry max submit limits %s, adjusted add_glideins to entry max submit rate" % factoryConfig.max_submits)  
+            logfiles.logDebug("Additional idle glideins exceeded entry max submit limits %s, adjusted add_glideins to entry max submit rate" % factoryConfig.max_submits)  
     
     try:
-        submitGlideins(condorq.entry_name,condorq.schedd_name,x509_proxy_username,
-                       client_int_name,add_glideins, frontend_name,
-                       x509_proxy_identifier,x509_proxy_security_class,x509_proxy_fname,
-                       client_web,params)
+        submitGlideins(condorq.entry_name, condorq.schedd_name,
+                       x509_proxy_username, client_int_name, add_glideins,
+                       frontend_name, x509_proxy_identifier,
+                       x509_proxy_security_class,x509_proxy_fname,
+                       client_web, params, logfiles=logfiles)
         glidein_totals.add_idle_glideins(add_glideins, frontend_name)
         return add_glideins # exit, some submitted
     except RuntimeError, e:
-        log_files.logWarning("%s" % e)
+        logfiles.logWarning("%s" % e)
         return 0 # something is wrong... assume 0 and exit
     except:
-        log_files.logWarning("Unexpected error in glideFactoryLib.submitGlideins")
+        logfiles.logWarning("Unexpected error in glideFactoryLib.submitGlideins")
         return 0 # something is wrong... assume 0 and exit
 
     return 0
 
      
-def clean_glidein_queue(remove_excess, glidein_totals, condorQ, req_min_idle, req_max_glideins, frontend_name):
+def clean_glidein_queue(remove_excess, glidein_totals, condorQ, req_min_idle,
+                        req_max_glideins, frontend_name, logfiles=log_files):
     """
     Cleans up the glideins queue (removes any excesses) per the frontend request.
     
@@ -646,7 +657,7 @@ def clean_glidein_queue(remove_excess, glidein_totals, condorQ, req_min_idle, re
         remove_excess_running = True
     else:
         if remove_excess != 'NO':
-            log_files.logActivity("Unknown RemoveExcess provided in the request '%s', assuming 'NO'" % remove_excess)
+            logfiles.logActivity("Unknown RemoveExcess provided in the request '%s', assuming 'NO'" % remove_excess)
         
     if (((remove_excess_wait or remove_excess_idle) and
            (sec_class_idle > req_min_idle)) or
@@ -670,10 +681,11 @@ def clean_glidein_queue(remove_excess, glidein_totals, condorQ, req_min_idle, re
             if len(idle_list) > remove_nr:                
                 idle_list = idle_list[:remove_nr] #shorten
             stat_str = "min_idle=%i, idle=%i, unsubmitted=%i" % (req_min_idle, sec_class_idle, len(idle_list))
-            log_files.logActivity("Too many glideins: %s" % stat_str)
-            log_files.logActivity("Removing %i unsubmitted idle glideins" % len(idle_list))
+            logfiles.logActivity("Too many glideins: %s" % stat_str)
+            logfiles.logActivity("Removing %i unsubmitted idle glideins" % len(idle_list))
             if len(idle_list)>0:
-                removeGlideins(condorQ.schedd_name, idle_list)
+                removeGlideins(condorQ.schedd_name, idle_list,
+                               logfiles=logfiles)
                 return 1 # stop here... the others will be retried in next round, if needed
 
         idle_list = extractIdleQueued(condorQ)
@@ -682,22 +694,23 @@ def clean_glidein_queue(remove_excess, glidein_totals, condorQ, req_min_idle, re
             if len(idle_list) > remove_nr:                
                 idle_list = idle_list[:remove_nr] #shorten
             stat_str = "min_idle=%i, idle=%i, unsubmitted=%i" % (req_min_idle, sec_class_idle, 0)
-            log_files.logActivity("Too many glideins: %s" % stat_str)
-            log_files.logActivity("Removing %i idle glideins" % len(idle_list))
+            logfiles.logActivity("Too many glideins: %s" % stat_str)
+            logfiles.logActivity("Removing %i idle glideins" % len(idle_list))
             if len(idle_list)>0:
-                removeGlideins(condorQ.schedd_name, idle_list)
+                removeGlideins(condorQ.schedd_name, idle_list,
+                               logfiles=logfiles)
                 return 1 # exit, even if no submitted
 
         if remove_excess_running:
             # no idle left, remove anything you can
 
             stat_str = "idle=%i, running=%i, max_running=%i" % (sec_class_idle, sec_class_running, req_max_glideins)
-            log_files.logActivity("Too many glideins: %s" % stat_str)
+            logfiles.logActivity("Too many glideins: %s" % stat_str)
 
             run_list = extractRunSimple(condorQ)
             if len(run_list) > remove_nr:                
                 run_list = run_list[:remove_nr] #shorten
-            log_files.logActivity("Removing %i running glideins" % len(run_list))
+            logfiles.logActivity("Removing %i running glideins" % len(run_list))
 
             rm_list = run_list
 
@@ -706,21 +719,21 @@ def clean_glidein_queue(remove_excess, glidein_totals, condorQ, req_min_idle, re
             # No reason to keep them alive if we are about to kill running glideins anyhow
             #
 
-            log_files.logActivity("No glideins requested.")
+            logfiles.logActivity("No glideins requested.")
             # Check if there are held glideins that are not recoverable
             unrecoverable_held_list = extractUnrecoverableHeldSimple(condorQ)
             if len(unrecoverable_held_list) > 0:
-                log_files.logActivity("Removing %i unrecoverable held glideins" % len(unrecoverable_held_list))
+                logfiles.logActivity("Removing %i unrecoverable held glideins" % len(unrecoverable_held_list))
                 rm_list += unrecoverable_held_list
 
             # Check if there are held glideins
             held_list = extractRecoverableHeldSimple(condorQ)
             if len(held_list) > 0:
-                log_files.logActivity("Removing %i held glideins" % len(held_list))
+                logfiles.logActivity("Removing %i held glideins" % len(held_list))
                 rm_list += held_list
 
             if len(rm_list)>0:
-                removeGlideins(condorQ.schedd_name, rm_list)
+                removeGlideins(condorQ.schedd_name, rm_list, logfiles=logfiles)
                 return 1 # exit, even if no submitted
     elif remove_excess_running and (req_max_glideins == 0) and (sec_class_held > 0):
         # no glideins desired, remove all held
@@ -729,15 +742,17 @@ def clean_glidein_queue(remove_excess, glidein_totals, condorQ, req_min_idle, re
         # Check if there are held glideins that are not recoverable
         unrecoverable_held_list = extractUnrecoverableHeldSimple(condorQ)
         if len(unrecoverable_held_list) > 0:
-            log_files.logActivity("Removing %i unrecoverable held glideins" % len(unrecoverable_held_list))
+            logfiles.logActivity("Removing %i unrecoverable held glideins" % len(unrecoverable_held_list))
 
         # Check if there are held glideins
         held_list = extractRecoverableHeldSimple(condorQ)
         if len(held_list) > 0:
-            log_files.logActivity("Removing %i held glideins" % len(held_list))
+            logfiles.logActivity("Removing %i held glideins" % len(held_list))
 
         if (len(unrecoverable_held_list)+len(held_list))>0:
-            removeGlideins(condorQ.schedd_name, unrecoverable_held_list + held_list)
+            removeGlideins(condorQ.schedd_name,
+                           unrecoverable_held_list + held_list,
+                           logfiles=logfiles)
             return 1 # exit, even if no submitted
         
         
@@ -748,40 +763,43 @@ def clean_glidein_queue(remove_excess, glidein_totals, condorQ, req_min_idle, re
 # Sanitizing function
 #   Can be used if we the glidein connect to a reachable Collector
 #  This method is currently not used anywhere 
-def sanitizeGlideins(condorq,status):
+def sanitizeGlideins(condorq, status, logfiles=log_files):
     global factoryConfig
 
     # Check if some glideins have been in idle state for too long
     stale_list=extractStale(condorq,status)
     if len(stale_list)>0:
-        log_files.logWarning("Found %i stale glideins"%len(stale_list))
-        removeGlideins(condorq.schedd_name,stale_list)
+        logfiles.logWarning("Found %i stale glideins"%len(stale_list))
+        removeGlideins(condorq.schedd_name, stale_list, logfiles=logfiles)
 
     # Check if some glideins have been in running state for too long
     runstale_list=extractRunStale(condorq)
     if len(runstale_list)>0:
-        log_files.logWarning("Found %i stale (>%ih) running glideins"%(len(runstale_list),factoryConfig.stale_maxage[2]/3600))
-        removeGlideins(condorq.schedd_name,runstale_list)
+        logfiles.logWarning("Found %i stale (>%ih) running glideins"%(len(runstale_list),factoryConfig.stale_maxage[2]/3600))
+        removeGlideins(condorq.schedd_name, runstale_list, logfiles=logfiles)
 
     # Check if there are held glideins that are not recoverable
     unrecoverable_held_list=extractUnrecoverableHeld(condorq,status)
     if len(unrecoverable_held_list)>0:
-        log_files.logWarning("Found %i unrecoverable held glideins"%len(unrecoverable_held_list))
-        removeGlideins(condorq.schedd_name,unrecoverable_held_list,force=False)
+        logfiles.logWarning("Found %i unrecoverable held glideins"%len(unrecoverable_held_list))
+        removeGlideins(condorq.schedd_name, unrecoverable_held_list,
+                       force=False, logfiles=logfiles)
 
     # Check if there are held glideins
     held_list=extractRecoverableHeld(condorq,status)
     if len(held_list)>0:
         limited_held_list=extractRecoverableHeldWithinLimits(condorq,status)
-        log_files.logWarning("Found %i held glideins, %i within limits"%(len(held_list),len(limited_held_list)))
+        logfiles.logWarning("Found %i held glideins, %i within limits"%(len(held_list),len(limited_held_list)))
         if len(limited_held_list)>0:
-            releaseGlideins(condorq.schedd_name,limited_held_list)
+            releaseGlideins(condorq.schedd_name, limited_held_list,
+                            logfiles=logfiles)
 
     # Now look for VMs that have not been claimed for a long time
     staleunclaimed_list=extractStaleUnclaimed(condorq,status)
     if len(staleunclaimed_list)>0:
-        log_files.logWarning("Found %i stale unclaimed glideins"%len(staleunclaimed_list))
-        removeGlideins(condorq.schedd_name,staleunclaimed_list)
+        logfiles.logWarning("Found %i stale unclaimed glideins"%len(staleunclaimed_list))
+        removeGlideins(condorq.schedd_name, staleunclaimed_list,
+                       logfiles=logfiles)
 
 
     #
@@ -793,38 +811,41 @@ def sanitizeGlideins(condorq,status):
 
     return
 
-def sanitizeGlideinsSimple(condorq):
+def sanitizeGlideinsSimple(condorq, logfiles=log_files):
     global factoryConfig
 
     # Check if some glideins have been in idle state for too long
     stale_list=extractStaleSimple(condorq)
     if len(stale_list)>0:
-        log_files.logWarning("Found %i stale glideins"%len(stale_list))
-        removeGlideins(condorq.schedd_name,stale_list)
+        logfiles.logWarning("Found %i stale glideins"%len(stale_list))
+        removeGlideins(condorq.schedd_name, stale_list, logfiles=logfiles)
 
     # Check if some glideins have been in running state for too long
     runstale_list=extractRunStale(condorq)
     if len(runstale_list)>0:
-        log_files.logWarning("Found %i stale (>%ih) running glideins"%(len(runstale_list),factoryConfig.stale_maxage[2]/3600))
-        removeGlideins(condorq.schedd_name,runstale_list)
+        logfiles.logWarning("Found %i stale (>%ih) running glideins"%(len(runstale_list),factoryConfig.stale_maxage[2]/3600))
+        removeGlideins(condorq.schedd_name, runstale_list, logfiles=logfiles)
 
     # Check if there are held glideins that are not recoverable
     unrecoverable_held_list=extractUnrecoverableHeldSimple(condorq)
     if len(unrecoverable_held_list)>0:
-        log_files.logWarning("Found %i unrecoverable held glideins"%len(unrecoverable_held_list))
-        removeGlideins(condorq.schedd_name,unrecoverable_held_list, force=False)
+        logfiles.logWarning("Found %i unrecoverable held glideins"%len(unrecoverable_held_list))
+        removeGlideins(condorq.schedd_name, unrecoverable_held_list,
+                       force=False, logfiles=logfiles)
 
     # Check if there are held glideins
     held_list=extractRecoverableHeldSimple(condorq)
     if len(held_list)>0:
         limited_held_list = extractRecoverableHeldSimpleWithinLimits(condorq)
-        log_files.logWarning("Found %i held glideins, %i within limits"%(len(held_list),len(limited_held_list)))
+        logfiles.logWarning("Found %i held glideins, %i within limits"%(len(held_list),len(limited_held_list)))
         if len(limited_held_list)>0:
-            releaseGlideins(condorq.schedd_name,limited_held_list)
+            releaseGlideins(condorq.schedd_name, limited_held_list,
+                            logfiles=logfiles)
 
     return
 
-def logStats(condorq,condorstatus,client_int_name, client_security_name,proxy_security_class):
+def logStats(condorq, condorstatus, client_int_name, client_security_name,
+             proxy_security_class, logfiles=log_files):
     global factoryConfig
     #
     # First check if we have enough glideins in the queue
@@ -838,7 +859,7 @@ def logStats(condorq,condorstatus,client_int_name, client_security_name,proxy_se
     else:
         s_running_str="" # not monitored
     
-    log_files.logActivity("Client %s (secid: %s_%s) schedd status %s%s"%(client_int_name,client_security_name,proxy_security_class,qc_status,s_running_str))
+    logfiles.logActivity("Client %s (secid: %s_%s) schedd status %s%s"%(client_int_name,client_security_name,proxy_security_class,qc_status,s_running_str))
     if factoryConfig.qc_stats is not None:
         client_log_name=secClass2Name(client_security_name,proxy_security_class)
         factoryConfig.client_stats.logSchedd(client_int_name,qc_status)
@@ -846,9 +867,9 @@ def logStats(condorq,condorstatus,client_int_name, client_security_name,proxy_se
     
     return
 
-def logWorkRequest(client_int_name, client_security_name,proxy_security_class,
-                   req_idle, req_max_run,
-                   work_el, fraction=1.0):
+def logWorkRequest(client_int_name, client_security_name,
+                   proxy_security_class, req_idle, req_max_run,
+                   work_el, fraction=1.0, logfiles=log_files):
     # temporary workaround; the requests should always be processed at the caller level
     if work_el['requests'].has_key('RemoveExcess'):
         remove_excess=work_el['requests']['RemoveExcess']
@@ -857,9 +878,9 @@ def logWorkRequest(client_int_name, client_security_name,proxy_security_class,
 
     client_log_name=secClass2Name(client_security_name,proxy_security_class)
 
-    log_files.logActivity("Client %s (secid: %s) requesting %i glideins, max running %i, remove excess '%s'"%(client_int_name,client_log_name,req_idle,req_max_run,remove_excess))
-    log_files.logActivity("  Params: %s"%work_el['params'])
-    log_files.logActivity("  Decrypted Param Names: %s"%work_el['params_decrypted'].keys()) # cannot log decrypted ones... they are most likely sensitive
+    logfiles.logActivity("Client %s (secid: %s) requesting %i glideins, max running %i, remove excess '%s'"%(client_int_name,client_log_name,req_idle,req_max_run,remove_excess))
+    logfiles.logActivity("  Params: %s"%work_el['params'])
+    logfiles.logActivity("  Decrypted Param Names: %s"%work_el['params_decrypted'].keys()) # cannot log decrypted ones... they are most likely sensitive
 
     reqs={'IdleGlideins':req_idle,'MaxRunningGlideins':req_max_run}
     factoryConfig.client_stats.logRequest(client_int_name,reqs)
@@ -1196,10 +1217,13 @@ def escapeParam(param_str):
     
 
 # submit N new glideins
-def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins, frontend_name,
-                   x509_proxy_identifier,x509_proxy_security_class,x509_proxy_fname,
-                   client_web, # None means client did not pass one, backwards compatibility
-                   params):
+def submitGlideins(entry_name, schedd_name, username, client_name,
+                   nr_glideins, frontend_name, x509_proxy_identifier,
+                   x509_proxy_security_class, x509_proxy_fname,
+                   client_web, params, logfiles=log_files):
+    """
+    client_web =  None means client did not pass one, backwards compatibility
+    """
     global factoryConfig
 
     submitted_jids=[]
@@ -1291,10 +1315,10 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins, fron
             nr_submitted+=count
     finally:
         # write out no matter what
-        log_files.logActivity("Submitted %i glideins to %s: %s"%(len(submitted_jids),schedd_name,submitted_jids))
+        logfiles.logActivity("Submitted %i glideins to %s: %s"%(len(submitted_jids),schedd_name,submitted_jids))
 
 # remove the glideins in the list
-def removeGlideins(schedd_name,jid_list,force=False):
+def removeGlideins(schedd_name, jid_list, force=False, logfiles=log_files):
     ####
     # We are assuming the gfactory to be
     # a condor superuser and thus does not need
@@ -1325,20 +1349,20 @@ def removeGlideins(schedd_name,jid_list,force=False):
             # Force the removal if requested
             if force == True:
                 try:
-                    log_files.logActivity("Forcing the removal of glideins in X state")
+                    logfiles.logActivity("Forcing the removal of glideins in X state")
                     condorManager.condorRemoveOne("%li.%li"%(jid[0],jid[1]),schedd_name,do_forcex=True)
                 except condorExe.ExeError, e:
-                    log_files.logWarning("Forcing the removal of glideins in %s.%s state failed" % (jid[0],jid[1]))
+                    logfiles.logWarning("Forcing the removal of glideins in %s.%s state failed" % (jid[0],jid[1]))
 
         except condorExe.ExeError, e:
             # silently ignore errors, and try next one
-            log_files.logWarning("removeGlidein(%s,%li.%li): %s"%(schedd_name,jid[0],jid[1],e))
+            logfiles.logWarning("removeGlidein(%s,%li.%li): %s"%(schedd_name,jid[0],jid[1],e))
 
 
-    log_files.logActivity("Removed %i glideins on %s: %s"%(len(removed_jids),schedd_name,removed_jids))
+    logfiles.logActivity("Removed %i glideins on %s: %s"%(len(removed_jids),schedd_name,removed_jids))
 
 # release the glideins in the list
-def releaseGlideins(schedd_name,jid_list):
+def releaseGlideins(schedd_name, jid_list, logfiles=log_files):
     ####
     # We are assuming the gfactory to be
     # a condor superuser and thus does not need
@@ -1359,11 +1383,11 @@ def releaseGlideins(schedd_name,jid_list):
             condorManager.condorReleaseOne("%li.%li"%(jid[0],jid[1]),schedd_name)
             released_jids.append(jid)
         except condorExe.ExeError, e:
-            log_files.logWarning("releaseGlidein(%s,%li.%li): %s"%(schedd_name,jid[0],jid[1],e))
+            logfiles.logWarning("releaseGlidein(%s,%li.%li): %s"%(schedd_name,jid[0],jid[1],e))
 
         if len(released_jids)>=factoryConfig.max_releases:
             break # limit reached, stop
-    log_files.logActivity("Released %i glideins on %s: %s"%(len(released_jids),schedd_name,released_jids))
+    logfiles.logActivity("Released %i glideins on %s: %s"%(len(released_jids),schedd_name,released_jids))
 
 
 def isGlideinWithinHeldLimits(jobInfo):
@@ -1470,7 +1494,8 @@ class GlideinTotals:
     """
     Keeps track of all glidein totals.  
     """
-    def __init__(self, entry_name, frontendDescript, jobDescript, entry_condorQ):
+    def __init__(self, entry_name, frontendDescript,
+                 jobDescript, entry_condorQ, logfiles=log_files):
                 
         # Initialize entry limits
         self.entry_name = entry_name
@@ -1482,7 +1507,8 @@ class GlideinTotals:
         self.default_fesc_max_glideins = int(jobDescript.data['DefaultFESCMaxRunning'])
         self.default_fesc_max_held = int(jobDescript.data['DefaultFESCMaxHeld'])
         self.default_fesc_max_idle = int(jobDescript.data['DefaultFESCMaxIdle'])      
-                              
+        self.logFiles = logfiles
+     
         # Count glideins by status
         # Initialized since the held and running won't ever change
         # To simplify idle requests, this variable is updated at the same time the frontend count is updated
@@ -1523,7 +1549,7 @@ class GlideinTotals:
                     try:
                         self.frontend_limits[el_list[0]][max_glideinstatus_key] = int(el_list[1])
                     except:
-                        log_files.logWarning("Invalid FrontendName:SecurityClassName combo '%s' encountered while finding '%s' from max_job_frontend" % (el_list[0], max_glideinstatus_key))
+                        self.logFiles.logWarning("Invalid FrontendName:SecurityClassName combo '%s' encountered while finding '%s' from max_job_frontend" % (el_list[0], max_glideinstatus_key))
 
         # Initialize frontend totals
         for fe_sec_class in self.frontend_limits:            

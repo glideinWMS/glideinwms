@@ -754,11 +754,11 @@ def main(parent_pid, sleep_time, advertize_rate,
         float(glideinDescript.data['LogRetentionMaxDays']),
         float(glideinDescript.data['LogRetentionMinDays']),
         float(glideinDescript.data['LogRetentionMaxMBs']))
-    glideFactoryMonitoring.monitoringConfig.config_log(
-        log_dir,
-        float(glideinDescript.data['SummaryLogRetentionMaxDays']),
-        float(glideinDescript.data['SummaryLogRetentionMinDays']),
-        float(glideinDescript.data['SummaryLogRetentionMaxMBs']))
+    #glideFactoryMonitoring.monitoringConfig.config_log(
+    #    log_dir,
+    #    float(glideinDescript.data['SummaryLogRetentionMaxDays']),
+    #    float(glideinDescript.data['SummaryLogRetentionMinDays']),
+    #    float(glideinDescript.data['SummaryLogRetentionMaxMBs']))
     gfi.factoryConfig.warning_log = gfl.log_files.warning_log
 
     gfl.log_files.logActivity("Starting up")

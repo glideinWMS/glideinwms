@@ -85,7 +85,7 @@ class Entry:
             float(self.glideinDescript.data['CondorLogRetentionMinDays']),
             float(self.glideinDescript.data['CondorLogRetentionMaxMBs']))
 
-        self.monitoringConfig = glideFactoryMonitoring.MonitoringConfig()
+        self.monitoringConfig = glideFactoryMonitoring.MonitoringConfig(logfiles=self.logFiles)
         self.monitoringConfig.monitor_dir = self.monitorDir
         self.monitoringConfig.my_name = "%s@%s" % (name, self.glideinDescript.data['GlideinName'])
 
@@ -134,7 +134,7 @@ class Entry:
         self.gflFactoryConfig.max_releases = int(self.jobDescript.data['MaxReleaseRate'])
         self.gflFactoryConfig.release_sleep = float(self.jobDescript.data['ReleaseSleep'])
         self.gflFactoryConfig.log_stats = glideFactoryMonitoring.condorLogSummary()
-        self.gflFactoryConfig.rrd_stats = glideFactoryMonitoring.FactoryStatusData()
+        self.gflFactoryConfig.rrd_stats = glideFactoryMonitoring.FactoryStatusData(logfiles=self.logFiles)
 
         
         # Add cleaners for the user log directories
@@ -173,7 +173,7 @@ class Entry:
         writen correctly. This should be called in every method for now.
         """
 
-        glideFactoryLib.log_files = self.logFiles
+        #glideFactoryLib.log_files = self.logFiles
         glideFactoryMonitoring.monitoringConfig = self.monitoringConfig
         glideFactoryInterface.factoryConfig = self.gfiFactoryConfig
         glideFactoryLib.factoryConfig = self.gflFactoryConfig
@@ -268,10 +268,9 @@ class Entry:
 
         # Initialize entry and frontend limit dicts
         self.glideinTotals = glideFactoryLib.GlideinTotals(
-                                 self.name, 
-                                 self.frontendDescript, 
-                                 self.jobDescript,
-                                 condorQ)
+                                 self.name, self.frontendDescript, 
+                                 self.jobDescript, condorQ,
+                                 logfiles=self.logFiles)
 
         # Check if entry has exceeded max idle
         if self.glideinTotals.has_entry_exceeded_max_idle():
@@ -528,7 +527,8 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
             try:
                 x509_proxy_fname = glideFactoryLib.update_x509_proxy_file(
                                        entry.name, x509_proxy_username,
-                                       work_key, decrypted_params['x509_proxy'])
+                                       work_key, decrypted_params['x509_proxy'],
+                                       logfiles=entry.logFiles)
             except:
                 entry.logFiles.logWarning("Failed to update x509_proxy using usename %s for client %s, skipping request"%(x509_proxy_username,client_int_name))
                 continue # skip request
@@ -614,7 +614,7 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
                                            entry.name, x509_proxy_username,
                                            "%s_%s"%(work_key,
                                                     x509_proxy_identifier),
-                                           x509_proxy)
+                                           x509_proxy, logfiles=entry.logFiles)
                 except RuntimeError,e:
                     entry.logFiles.logWarning("Failed to update x509_proxy_%i using usename %s for client %s, skipping request"%(i,x509_proxy_username,client_int_name))
                     entry.logFiles.logDebug("Failed to update x509_proxy_%i using usename %s for client %s: %s"%(i,x509_proxy_username,client_int_name,e))
@@ -760,7 +760,8 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
                                                client_security_name,
                                                x509_proxy_security_class,
                                                idle_glideins, max_running,
-                                               work[work_key], x509_proxy_frac)
+                                               work[work_key], x509_proxy_frac,
+                                               logfiles=entry.logFiles)
             
                 all_security_names.add((client_security_name,
                                         x509_proxy_security_class))
@@ -790,7 +791,7 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
 
     if done_something == 0:
         entry.logFiles.logActivity("Sanitizing glideins for entry %s" % entry.name)
-        glideFactoryLib.sanitizeGlideinsSimple(condorQ)
+        glideFactoryLib.sanitizeGlideinsSimple(condorQ, logfiles=entry.logFiles)
 
     for sec_el in all_security_names:
         try:
@@ -839,7 +840,8 @@ def perform_work(entry, condorQ, client_name, client_int_name,
     log_stats[x509_proxy_username+":"+client_int_name].load()
 
     glideFactoryLib.logStats(condorQ, condorStatus, client_int_name,
-                             client_security_name, x509_proxy_security_class)
+                             client_security_name, x509_proxy_security_class,
+                             logfiles=entry.logFiles)
     client_log_name = glideFactoryLib.secClass2Name(client_security_name,
                                                     x509_proxy_security_class)
     entry.gflFactoryConfig.log_stats.logSummary(client_log_name, log_stats)
@@ -860,7 +862,7 @@ def perform_work(entry, condorQ, client_name, client_int_name,
                             max_glideins_pproxy, glidein_totals, frontend_name,
                             x509_proxy_id, x509_proxy_fnames[x509_proxy_id],
                             x509_proxy_username, x509_proxy_security_class,
-                            client_web, params)
+                            client_web, params, entry.logFiles)
     
     if nr_submitted>0:
         entry.logFiles.logActivity("Submitted %s glideins" % nr_submitted)
