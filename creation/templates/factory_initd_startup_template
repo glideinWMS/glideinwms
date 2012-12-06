@@ -96,6 +96,7 @@ reconfig() {
                  fi
                  ;;
            esac
+           shift
         done
         if [ -n "$GLIDEIN_WRITEBACK" ]; then
            writeback="$GLIDEIN_WRITEBACK"

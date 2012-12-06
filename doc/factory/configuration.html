@@ -299,7 +299,8 @@ individual entry point configuration.
     <li>INFO:  Informational messages about the state of the system. </li>
     <li>DEBUG:  Debug message. These are additional informational messages that describe code execution in detail.</li>
     <li>ERR:  Error messages. These may include tracebacks. </li>
-    <li>WARN:  Warning messages. These warn of conditions that were found that don't necessarily cause abnormal execution.</li>
+    <li>WARN: Warning messages. These warn of conditions that were found that don't necessarily cause abnormal execution.</li>
+    <li>ADMIN: This is a special setting only applicable to factory logs (and not entry logs) that contains admin messages, such as reconfig comments.  This will create a new log called factoryadmin.extension.log.  Currently, it cannot be combined with other message types.</li>
     </ul>
     The extension is added to the log name to create separate logs.
     </p>
