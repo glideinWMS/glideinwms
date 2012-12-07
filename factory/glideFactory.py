@@ -17,6 +17,7 @@
 
 import os
 import sys
+import resource
 
 STARTUP_DIR=sys.path[0]
 
@@ -207,6 +208,9 @@ def spawn(sleep_time,advertize_rate,startup_dir,
     factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
 
     glideFactoryLib.log_files.logActivity("Starting entries %s"%entries)
+    def _set_rlimit():
+        resource.setrlimit(resource.RLIMIT_NOFILE, [1024, 1024])
+
     try:
         for entry_name in entries:
             # Converted to using the subprocess module
@@ -219,7 +223,9 @@ def spawn(sleep_time,advertize_rate,startup_dir,
                             entry_name]
             childs[entry_name] = subprocess.Popen(command_list, shell=False,
                                                   stdout=subprocess.PIPE,
-                                                  stderr=subprocess.PIPE)
+                                                  stderr=subprocess.PIPE,
+                                                  close_fds=True,
+                                                  preexec_fn=_set_rlimit)
 
             # Get the startup time. Used to check if the entry is crashing
             # periodically and needs to be restarted.
