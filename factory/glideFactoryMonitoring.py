@@ -1193,8 +1193,10 @@ class FactoryStatusData:
                 end = (int(time.time()/rrd_res)-1)*rrd_res # round due to RRDTool requirements, -1 to avoid the last (partial) one
                 start = end - period
                 try:
-                    fetched_data = self.fetchData(file = rrd, pathway = self.base_dir + "/" + client,
-                                                  start = start, end = end, res = rrd_res)
+                    fetched_data = self.fetchData(
+                                       file = rrd,
+                                       pathway=self.base_dir + "/" + client,
+                                       start = start, end = end, res = rrd_res)
                     for data_set in fetched_data:
                         self.data[rrd][client][period][data_set] = self.average(fetched_data[data_set])
                 except TypeError:

@@ -135,6 +135,7 @@ class Entry:
         self.gflFactoryConfig.release_sleep = float(self.jobDescript.data['ReleaseSleep'])
         self.gflFactoryConfig.log_stats = glideFactoryMonitoring.condorLogSummary()
         self.gflFactoryConfig.rrd_stats = glideFactoryMonitoring.FactoryStatusData(logfiles=self.logFiles)
+        self.gflFactoryConfig.rrd_stats.base_dir = self.monitorDir
 
         
         # Add cleaners for the user log directories
@@ -164,7 +165,6 @@ class Entry:
         # Create entry specific descript files
         write_descript(self.name, self.jobDescript, self.jobAttributes,
                        self.jobParams, self.monitorDir)
-
 
 
     def loadContext(self):
@@ -796,11 +796,15 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
 
     for sec_el in all_security_names:
         try:
+            #glideFactoryLib.factoryConfig.rrd_stats.getData("%s_%s" % sec_el)
             entry.gflFactoryConfig.rrd_stats.getData("%s_%s" % sec_el)
         except glideFactoryLib.condorExe.ExeError,e:
             # Never fail for monitoring. Just log
             entry.logFiles.logWarning("get_RRD_data failed: %s" % e)
-            pass
+            tb = traceback.format_exception(sys.exc_info()[0],
+                                            sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            entry.logFiles.logWarning("Traceback: %s"%string.join(tb,''))
         except:
             # Never fail for monitoring. Just log
             entry.logFiles.logWarning("get_RRD_data failed: error unknown")

@@ -283,7 +283,10 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
                 # return the updated entry object back to the parent
                 #return_dict = {entry.name: {'entry': entry,
                 #                            'work_done': work_done}}
-                return_dict = {'entry_obj': entry, 'work_done': work_done}
+
+                #return_dict = {'work_done': work_done}
+                #return_dict = {'entry_obj': entry, 'work_done': work_done}
+                return_dict = {'client_stats': entry.gflFactoryConfig.client_stats, 'work_done': work_done}
                 os.write(w,cPickle.dumps(return_dict))
             except Exception, ex:
                 tb = traceback.format_exception(sys.exc_info()[0],
@@ -316,7 +319,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
         # Entry object changes after doing work. Just capture the entry object
         # from the child process and use it for further processing
         for entry in my_entries:
-            my_entries[entry] = post_work_info[entry]['entry_obj']
+            (my_entries[entry]).gflFactoryConfig.client_stats = post_work_info[entry]['client_stats']
             groupwork_done[entry] = post_work_info[entry]['work_done']
     
     return groupwork_done
