@@ -185,7 +185,9 @@ class LogFiles:
         self.activity_log=logSupport.DayLogFile(os.path.join(log_dir,"factory"),"info.log")
         self.warning_log=logSupport.DayLogFile(os.path.join(log_dir,"factory"),"err.log")
         self.debug_log=logSupport.DayLogFile(os.path.join(log_dir,"factory"),"debug.log")
+        self.admin_log=logSupport.DayLogFile(os.path.join(log_dir,"factory"),"admin.log")
         # no need to use the privsep version
+        # Don't clean up admin log.  More important to have record
         self.cleanupObjs=[logSupport.DirCleanupWSpace(log_dir,"(factory\.[0-9]*\.info\.log)|(factory\.[0-9]*\.err\.log)|(factory\.[0-9]*\.debug\.log)",
                                                       int(max_days*24*3600),int(min_days*24*3600),
                                                       long(max_mbs*(1024.0*1024.0)),
@@ -211,6 +213,14 @@ class LogFiles:
     def logDebug(self,str):
         try:
             self.debug_log.write(str)
+        except:
+            # logging must never throw an exception!
+            # silently ignore
+            pass
+    
+    def logAdmin(self,str):
+        try:
+            self.admin_log.write(str)
         except:
             # logging must never throw an exception!
             # silently ignore
