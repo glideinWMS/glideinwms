@@ -341,6 +341,11 @@ class Entry:
                 self.name, monitor_job_attrs)
     
         current_qc_data = self.gflFactoryConfig.client_stats.get_data()
+        self.logFiles.logActivity("=======================================")
+        self.logFiles.logActivity(self.gflFactoryConfig.client_internals)
+        self.logFiles.logActivity("---------------------------------------")
+        self.logFiles.logActivity(current_qc_data)
+        self.logFiles.logActivity("=======================================")
         for client_name in current_qc_data:
             client_qc_data = current_qc_data[client_name]
             if client_name not in self.gflFactoryConfig.client_internals:
@@ -397,14 +402,31 @@ class Entry:
         global log_rrd_thread,qc_rrd_thread
     
         self.loadContext()
+
+        self.logFiles.logActivity("Computing log_stats diff for %s" % self.name)
+        self.logFiles.logDebug("Computing log_stats diff for %s" % self.name)
         self.gflFactoryConfig.log_stats.computeDiff()
+        self.logFiles.logActivity("log_stats diff computed")
+        self.logFiles.logDebug("log_stats diff computed")
+
+        self.logFiles.logActivity("Writing log_stats for %s" % self.name)
+        self.logFiles.logDebug("Writing log_stats for %s" % self.name)
         self.gflFactoryConfig.log_stats.write_file()
         self.logFiles.logActivity("log_stats written")
+        self.logFiles.logDebug("log_stats written")
+
         self.gflFactoryConfig.qc_stats.finalizeClientMonitor()
+        self.logFiles.logActivity("Writing qc_stats for %s" % self.name)
+        self.logFiles.logDebug("Writing qc_stats for %s" % self.name)
         self.gflFactoryConfig.qc_stats.write_file()
         self.logFiles.logActivity("qc_stats written")
+        self.logFiles.logDebug("qc_stats written")
+
+        self.logFiles.logActivity("Writing rrd_stats for %s" % self.name)
+        self.logFiles.logDebug("Writing rrd_stats for %s" % self.name)
         self.gflFactoryConfig.rrd_stats.writeFiles()
         self.logFiles.logActivity("rrd_stats written")
+        self.logFiles.logDebug("rrd_stats written")
     
         return
 
@@ -794,6 +816,8 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
         entry.logFiles.logActivity("Sanitizing glideins for entry %s" % entry.name)
         glideFactoryLib.sanitizeGlideinsSimple(condorQ, logfiles=entry.logFiles)
 
+    entry.logFiles.logActivity("all_security_names = %s" % all_security_names)
+
     for sec_el in all_security_names:
         try:
             #glideFactoryLib.factoryConfig.rrd_stats.getData("%s_%s" % sec_el)
@@ -827,8 +851,11 @@ def perform_work(entry, condorQ, client_name, client_int_name,
     """
     Perform the work (Submit glideins)
     """
-            
-    glideFactoryLib.factoryConfig.client_internals[client_int_name]={"CompleteName":client_name,"ReqName":client_int_req}
+
+    entry.loadContext()
+
+    entry.gflFactoryConfig.client_internals[client_int_name] = \
+        {"CompleteName":client_name, "ReqName":client_int_req}
 
     condor_pool = params.get('GLIDEIN_Collector', None)
     condorStatus = None
@@ -841,8 +868,8 @@ def perform_work(entry, condorQ, client_name, client_int_name,
     log_stats = {}
     log_stats[x509_proxy_username+":"+client_int_name] = \
         glideFactoryLogParser.dirSummaryTimingsOut(
-            glideFactoryLib.factoryConfig.get_client_log_dir(
-                entry.name, x509_proxy_username),
+            entry.gflFactoryConfig.get_client_log_dir(entry.name,
+                                                      x509_proxy_username),
             entry.logDir, client_int_name, x509_proxy_username)
     # should not need privsep for reading logs
     log_stats[x509_proxy_username+":"+client_int_name].load()

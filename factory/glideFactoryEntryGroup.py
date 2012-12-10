@@ -265,13 +265,13 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
         r,w = os.pipe()
         pid = os.fork()
         if pid != 0:
-            # This is the original process
+            # This is the parent process
             gfl.log_files.logActivity("In find_and_perform_work parent process with pid %s for entry %s" % (pid, entry.name))
             os.close(w)
             pipe_ids[entry.name] = {'r': r, 'pid': pid}
         else:
             # This is the child process
-            gfl.log_files.logActivity("In find_and_perform_work child process with pid %s for entry %s" % (pid, entry.name))
+            entry.logFiles.logActivity("In find_and_perform_work child process with pid %s for entry %s" % (pid, entry.name))
             os.close(r)
 
             try:
@@ -301,12 +301,18 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
 
     # Gather results from the forked children
     gfl.log_files.logActivity("All children terminated")
+    gfl.log_files.logDebug("All children terminated")
     work_info_read_err = False
     try:
+        gfl.log_files.logActivity("Processing work info from children")
+        gfl.log_files.logDebug("Processing work info from children")
         post_work_info = fetch_fork_result_list(pipe_ids)
+        gfl.log_files.logDebug("Work info from children processed")
+        gfl.log_files.logDebug(post_work_info)
     except RuntimeError:
         # Expect all errors logged already
         work_info_read_err = True
+        gfl.log_files.logDebug("Unable to process response from check_and_perform_work. One or more forked processes may have failed.")
         gfl.log_files.logWarning("Unable to process response from check_and_perform_work. One or more forked processes may have failed.")
         # PM: TODO: Whats the best action? Ignore or return?
         #           We may have to ignore bad info and continue with the 
@@ -320,7 +326,10 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
         # from the child process and use it for further processing
         for entry in my_entries:
             (my_entries[entry]).gflFactoryConfig.client_stats = post_work_info[entry]['client_stats']
-            groupwork_done[entry] = post_work_info[entry]['work_done']
+            groupwork_done[entry] = {'work_done': post_work_info[entry]['work_done']}
+    else:
+        gfl.log_files.logDebug("work_info_read_err is true, client_stats not updated.")
+        gfl.log_files.logWarning("work_info_read_err is true, client_stats not updated.")
     
     return groupwork_done
 
@@ -436,7 +445,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                                          glideinDescript, frontendDescript,
                                          group_name, my_entries)
 
-            gfl.log_files.logActivity("Writing stats")
+            gfl.log_files.logActivity("Writing stats for all entries")
             try:
                 for entry in my_entries.values():
                     entry.writeStats()
@@ -447,7 +456,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                 tb = traceback.format_exception(sys.exc_info()[0],
                                                 sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                gfl.log_files.logWarning("Exception occurred: %s" % tb)                
+                gfl.log_files.logWarning("Error writing stats for entry '%s': %s" % (entry.name, tb))                
         except KeyboardInterrupt:
             raise # this is an exit signal, pass through
         except:

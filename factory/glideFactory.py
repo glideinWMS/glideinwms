@@ -59,7 +59,7 @@ def aggregate_stats(in_downtime):
         glideFactoryLib.log_files.logDebug("aggregateLogStatus failed: %s" % string.join(tb,''))
     
     try:
-        _ = glideFactoryMonitorAggregator.aggregateRRDStats()
+        _ = glideFactoryMonitorAggregator.aggregateRRDStats(logfiles=glideFactoryLib.log_files)
     except:
         # protect and report
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
