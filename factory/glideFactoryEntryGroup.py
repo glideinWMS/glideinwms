@@ -570,12 +570,13 @@ def main(parent_pid, sleep_time, advertize_rate,
 
 
     # Initiate the log_files
-    log_dir = os.path.join(glideinDescript.data['LogDir'], group_name)
+    log_dir = os.path.join(glideinDescript.data['LogDir'], 'factory')
     gfl.log_files = gfl.LogFiles(
         log_dir,
         float(glideinDescript.data['LogRetentionMaxDays']),
         float(glideinDescript.data['LogRetentionMinDays']),
-        float(glideinDescript.data['LogRetentionMaxMBs']))
+        float(glideinDescript.data['LogRetentionMaxMBs']),
+        file_name=group_name)
     #glideFactoryMonitoring.monitoringConfig.config_log(
     #    log_dir,
     #    float(glideinDescript.data['SummaryLogRetentionMaxDays']),
@@ -583,6 +584,10 @@ def main(parent_pid, sleep_time, advertize_rate,
     #    float(glideinDescript.data['SummaryLogRetentionMaxMBs']))
     gfi.factoryConfig.warning_log = gfl.log_files.warning_log
 
+     
+    gfl.log_files.logActivity("=================")
+    gfl.log_files.logActivity(startup_dir)
+    gfl.log_files.logActivity("=================")
     gfl.log_files.logActivity("Starting up")
     gfl.log_files.logActivity("Entries processed by %s: %s " % (group_name, entry_names))
 

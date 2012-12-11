@@ -180,15 +180,15 @@ class PrivsepDirCleanupWSpace(logSupport.DirCleanupWSpace):
             os.unlink(fpath)
 
 class LogFiles:
-    def __init__(self,log_dir,max_days,min_days,max_mbs):
+    def __init__(self,log_dir,max_days,min_days,max_mbs,file_name='factory'):
         self.log_dir=log_dir
-        self.activity_log=logSupport.DayLogFile(os.path.join(log_dir,"factory"),"info.log")
-        self.warning_log=logSupport.DayLogFile(os.path.join(log_dir,"factory"),"err.log")
-        self.debug_log=logSupport.DayLogFile(os.path.join(log_dir,"factory"),"debug.log")
-        self.admin_log=logSupport.DayLogFile(os.path.join(log_dir,"factory"),"admin.log")
+        self.activity_log=logSupport.DayLogFile(os.path.join(log_dir,file_name),"info.log")
+        self.warning_log=logSupport.DayLogFile(os.path.join(log_dir,file_name),"err.log")
+        self.debug_log=logSupport.DayLogFile(os.path.join(log_dir,file_name),"debug.log")
+        self.admin_log=logSupport.DayLogFile(os.path.join(log_dir,file_name),"admin.log")
         # no need to use the privsep version
         # Don't clean up admin log.  More important to have record
-        self.cleanupObjs=[logSupport.DirCleanupWSpace(log_dir,"(factory\.[0-9]*\.info\.log)|(factory\.[0-9]*\.err\.log)|(factory\.[0-9]*\.debug\.log)",
+        self.cleanupObjs=[logSupport.DirCleanupWSpace(log_dir,"(%s\.[0-9]*\.info\.log)|(factory\.[0-9]*\.err\.log)|(factory\.[0-9]*\.debug\.log)"%file_name,
                                                       int(max_days*24*3600),int(min_days*24*3600),
                                                       long(max_mbs*(1024.0*1024.0)),
                                                       self.activity_log,self.warning_log)]
