@@ -90,11 +90,11 @@ class DirCleanup:
                     self.delete_file(fpath)
                     count_removes+=1
                 except:
-                   if self.warning_log!=None:
+                   if self.warning_log is not None:
                        self.warning_log.write("Could not remove %s"%fpath)
 
         if count_removes>0:
-            if self.activity_log!=None:
+            if self.activity_log is not None:
                 self.activity_log.write("Removed %i files."%count_removes)
 
         return
@@ -106,7 +106,7 @@ class DirCleanup:
 
         fnames=os.listdir(self.dirname)
         for fname in fnames:
-            if self.fname_expression_obj.match(fname)==None:
+            if self.fname_expression_obj.match(fname) is None:
                 continue # ignore files that do not match
             
             fpath=os.path.join(self.dirname,fname)
@@ -169,11 +169,11 @@ class DirCleanupWSpace(DirCleanup):
                     count_removes_bytes+=fsize
                     used_space-=fsize
                 except:
-                   if self.warning_log!=None:
+                   if self.warning_log is not None:
                        self.warning_log.write("Could not remove %s"%fpath)
                 
         if count_removes>0:
-            if self.activity_log!=None:
+            if self.activity_log is not None:
                 self.activity_log.write("Removed %i files for %.2fMB."%(count_removes,count_removes_bytes/(1024.0*1024.0)))
         return
 

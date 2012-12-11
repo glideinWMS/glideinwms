@@ -74,7 +74,9 @@ class Factory(Condor):
     global valid_options
     self.inifile = inifile
     self.ini_section = "Factory"
-    if optionsDict != None:
+    if inifile == "template":  # for creating actions not requiring ini file
+      return
+    if optionsDict is not None:
       valid_options = optionsDict
     Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
     self.glidein = Glidein(self.inifile,self.ini_section,valid_options[self.ini_section])
@@ -86,11 +88,11 @@ class Factory(Condor):
 
   #-- get service instances --------
   def get_wms(self):
-    if self.wms == None:
+    if self.wms is None:
       self.wms = WMSCollector.WMSCollector(self.inifile,valid_options)
 
   def get_frontend(self):
-    if self.frontend == None:
+    if self.frontend is None:
       self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options)
 
   #---------------------
@@ -99,6 +101,12 @@ class Factory(Condor):
   #---------------------
   def install_location(self):
     return self.glidein.install_location()
+  #---------------------
+  def config_dir(self):
+    return "%s/glidein_%s.cfg" % (self.install_location(),self.glidein.instance_name())
+  #---------------------
+  def config_file(self):
+    return "%s/glideinWMS.xml" % (self.config_dir())
   #---------------------
   def logs_dir(self):
      return self.option_value(self.ini_section,"logs_dir")
@@ -142,7 +150,7 @@ class Factory(Condor):
        merged into the existing Factory configuration file.
     """
     self.get_config_entries_data()
-    filename = "%s/new_entries.%s" % (self.glidein.config_dir(),common.time_suffix())
+    filename = "%s/new_entries.%s" % (self.config_dir(),common.time_suffix())
     common.write_file("w",0644,filename,self.config_entries_data())
 
   #-----------------------
@@ -161,7 +169,8 @@ files and directories can be created correctly""" % self.username())
       self.validate_use_vofrontend_proxy()
       self.glidein.validate_software_requirements()
       self.validate_needed_directories()
-      common.logit( "Verification complete\n")
+      common.logit( "Factory verification complete\n")
+      os.system("sleep 3")
     self.not_validated = False
 
   #---------------------
@@ -171,7 +180,7 @@ files and directories can be created correctly""" % self.username())
     self.get_frontend()
     common.ask_continue("Continue")
     self.validate()
-    self.verify_directories_empty()
+    self.clean_directories()
     self.configure()
     common.logit ("\n======== %s install complete ==========\n" % self.ini_section)
     self.create_glideins()
@@ -187,75 +196,122 @@ files and directories can be created correctly""" % self.username())
     common.validate_install_location(self.install_location())
 
   #-----------------------------
-  def verify_directories_empty(self):
+  def clean_directories(self):
     """ This method attempts to clean up all directories so a fresh install
         can be accomplished successfully.  
         It is consoldiated in a single check so as to only ask once and
         not for each directory.
-        It also (attempts) to insure that if directories are nested, it 
-        does not create a problem.  Not an easy task.
         When privilege separation is in effect, the condor_root_switchboard
         must be used to clean out the client log and proxy files 
         as the owners are different and permissions problems will occur.
     """
+    instance_dir = "glidein_%(instance)s" % \
+                     { "instance" : self.glidein.instance_name(), }
     dirs = {}
-    if len(os.listdir(self.client_log_dir())) > 0:
-      dirs["client_log_dir"] = self.client_log_dir()
-    if len(os.listdir(self.client_proxy_dir())) > 0:
-      dirs["client_proxy_dir"] = self.client_proxy_dir()
-    if len(os.listdir(self.logs_dir())) > 0:
-      dirs["logs_dir"] = self.logs_dir()
-    for dir in ["monitor","stage"]:
-      subdir = os.path.join(self.glidein.web_location(),dir)
-      if os.path.isdir(subdir) and len(os.listdir(subdir)) > 0:
-        dirs["web_location/%s" % dir] = subdir
-    if len(os.listdir(self.install_location())) > 0:
-      if len(os.listdir(self.install_location())) > self.nbr_of_nested_dirs():
-        dirs["install_location"] = self.install_location()
+    dirs["logs"] = os.path.join(self.logs_dir(),instance_dir)
+    dirs["install"] = os.path.join(self.install_location(),instance_dir)
+#    dirs["config"] = self.config_dir()
+    for frontend in self.wms.frontend_users().keys():
+      dirs["client logs"]    = self.client_log_dir()
+      dirs["client proxies"] = self.client_proxy_dir()
+    for subdir in ["monitor","stage"]:
+      dirs["web %s" % subdir] = os.path.join(self.glidein.web_location(),subdir,instance_dir)
+
+    #--- check them --
+    dirs = self.verify_directories_empty(dirs)
+
+    #--- if all are empty, return 
     if len(dirs) == 0:
+      os.system("sleep 3")
       return  # all directories are empty
+
+    #--- See if we can remove them ---
     common.logit("""The following directories must be empty for the install to succeed: """)
-    for option in dirs.keys():
-      common.logit("""  %(option)s: %(dir)s""" % \
-                        { "option" : option, "dir" : dirs[option] })
+    types = dirs.keys()
+    types.sort()
+    for type in types:
+      common.logit("""  %(type)s: %(dir)s""" % \
+                        { "type" : type, "dir" : dirs[type] })
     common.ask_continue("... can we remove their contents")
-    for option in dirs.keys():
-      if self.wms.privilege_separation() == "y":
-        if option in ["client_log_dir","client_proxy_dir",]:
-          #-- Factory create requires these directories be empty
-          #-- when privspep is in effect
-          condor_sbin = "%s/sbin" % self.wms.condor_location()
-          condor_bin  = "%s/bin" % self.wms.condor_location()
-          condorExe.set_path(condor_bin,condor_sbin)
-          parent_dir = dirs[option]
-          subdirs = os.listdir(parent_dir)
-          for base_dir in subdirs:
-            if os.path.isdir("%s/%s" % (parent_dir,base_dir)): 
-              try:
-                condorPrivsep.rmtree(parent_dir,base_dir)
-              except Exception,e:
-                common.logerr("""Encountered a problem in executing condor_root_switchboard 
+    if self.wms.privilege_separation() == "y":
+      self.delete_ps_directories(dirs)
+    else:
+      self.delete_nps_directories(dirs)
+
+    #--- double check them --
+    dirs = self.verify_directories_empty(dirs)
+    if len(dirs) > 0:
+      common.logerr("""We seem to have had a problems deleting the contents of these directories:
+%s """ % dirs)
+
+    os.system("sleep 3")
+    return  # all directories are empty
+
+  #------------------------------------
+  def delete_ps_directories(self,dirs):
+    """ Delete the contents of directories with privilege separation in effect."""
+    for type in dirs.keys():
+      if type not in ["client logs", "client proxies",]: 
+        common.remove_dir_path(dirs[type])
+        continue
+      #-- Factory create requires client logs/proxies directories be empty
+      #-- when privspep is in effect
+      condor_sbin = "%s/sbin" % self.wms.condor_location()
+      condor_bin  = "%s/bin"  % self.wms.condor_location()
+      condorExe.set_path(condor_bin,condor_sbin)
+      parent_dir = dirs[type]
+      subdirs = os.listdir(parent_dir)
+      for base_dir in subdirs:
+        if os.path.isdir("%s/%s" % (parent_dir,base_dir)): 
+          try:
+            condorPrivsep.rmtree(parent_dir,base_dir)
+          except Exception,e:
+            common.logerr("""Encountered a problem in executing condor_root_switchboard 
 to remove this client's sub-directories:
   %(dir)s
 
   %(error)s
 Check your /etc/condor/privsep.conf file to verify.
-You may need to condfigure/install your WMS Collector to resolve or correct
-the ini file for the %(option)s  attribute.  Be careful now.
+You may need to configure/install your WMS Collector to resolve or correct
+the ini file for the %(type)s attribute.  Be careful now.
 """ % { "dir"    : parent_dir,
-        "option" : option, 
+        "type" : type, 
         "error"  : e, } )
-        else: 
-          common.remove_dir_contents(dirs[option])
-      else: 
-        common.remove_dir_contents(dirs[option])
-    # this re-validation is performed to resolve problem of nesting some dirs
-    self.validate_needed_directories()
+          common.logit("Files in %s deleted" % parent_dir) 
+
+  #------------------------------------
+  def delete_nps_directories(self,dirs):  
+    """ Delete the contents of directories with privilege separation NOT in effect."""
+    for type in dirs.keys():
+      if type in ["client logs", "client proxies",]: 
+        common.remove_dir_contents(dirs[type])
+        continue
+      common.remove_dir_path(dirs[type])
+
+  #-----------------------------
+  def verify_directories_empty(self,dirs):
+    """ This method checks to see if certain directories are empty when
+        privilege separation is NOT in effect. 
+        Returns: a dictionary of directories to be deleted.
+    """
+    #--- check them --
+    for type in dirs.keys():
+      if not os.path.isdir(dirs[type]): # it does not exist
+        del dirs[type]  # remove from dict
+        continue
+      if type in ["client logs", "client proxies",]:
+        if len(os.listdir(dirs[type])) == 0: # it is empty
+          del dirs[type]  # remove from dict
+          continue
+      if os.path.isdir(dirs[type]): # it cannot exist so don't remove
+        continue
+    return dirs
 
   #-----------------------------
   def nbr_of_nested_dirs(self):
-    # Determines if any of the directories are subdirectories of the install 
-    # location.  We are trying to avoid deleting teh contents if we do not have to.
+    """ Determines if any of the directories are subdirectories of the install 
+        location.  We are trying to avoid deleting the contents if we do not have to.
+    """
     cnt = 0
     for dir in  [self.logs_dir(), 
                  self.client_log_dir(),
@@ -368,7 +424,7 @@ export X509_CERT_DIR=%(x509_cert_dir)s
   def create_glideins(self):
     yn=raw_input("\nDo you want to create the glideins now? (y/n) [n]: ")
     cmd1 = ".  %s" % self.env_script()
-    cmd2 = "%s/creation/create_glidein %s" % (self.glidein.glideinwms_location(),self.glidein.config_file())
+    cmd2 = "%s/creation/create_glidein %s" % (self.glidein.glideinwms_location(),self.config_file())
     if yn=='y':
       common.run_script("%s;%s" % (cmd1,cmd2))
     else:
@@ -386,9 +442,9 @@ export X509_CERT_DIR=%(x509_cert_dir)s
   #-------------------------
   def create_config(self):
     config_xml = self.config_data()
-    common.logit("\nCreating configuration file: %s" % self.glidein.config_file())
-    common.make_directory(self.glidein.config_dir(),self.username(),0755)
-    common.write_file("w",0644,self.glidein.config_file(),config_xml)
+    common.logit("\nCreating configuration file: %s" % self.config_file())
+    common.make_directory(self.config_dir(),self.username(),0755)
+    common.write_file("w",0644,self.config_file(),config_xml)
 
   #-------------------------
   def config_data(self):
@@ -542,7 +598,7 @@ export X509_CERT_DIR=%(x509_cert_dir)s
     data = data + """
 %(indent2)s<attr name="GLEXEC_JOB" value="True" const="True" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>
 %(indent2)s<attr name="USE_MATCH_AUTH" value="True" const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>
-%(indent2)s<attr name="CONDOR_VERSION" value="default" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>
+%(indent2)s<attr name="CONDOR_VERSION" value="default" const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>
 %(indent1)s</attrs>
 """ % \
 { "indent1" : common.indent(1),
@@ -573,8 +629,8 @@ export X509_CERT_DIR=%(x509_cert_dir)s
 %(indent3)s</infosys_refs> 
 %(indent3)s<attrs>
 %(indent4)s<attr name="GLIDEIN_Site" value="%(site_name)s"   const="True" type="string" glidein_publish="True"  publish="True"  job_publish="True"  parameter="True"/>
-%(indent4)s<attr name="CONDOR_OS"    value="default"         const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>
-%(indent4)s<attr name="CONDOR_ARCH"  value="default"         const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>
+%(indent4)s<attr name="CONDOR_OS"    value="default"         const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>
+%(indent4)s<attr name="CONDOR_ARCH"  value="default"         const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>
 %(indent4)s<attr name="GLEXEC_BIN"   value="%(glexec_path)s" const="True" type="string" glidein_publish="False" publish="True"  job_publish="False" parameter="True"/>
 %(ccb_attr)s
 %(indent3)s</attrs>
@@ -981,6 +1037,19 @@ export X509_CERT_DIR=%(x509_cert_dir)s
     del bdii_obj
     return bdii_data
 
+  #-------------------------
+  def create_template(self):
+    global valid_options
+    print "; ------------------------------------------"
+    print "; Factory minimal ini options template"
+    for section in valid_options.keys():
+      print "; ------------------------------------------"
+      print "[%s]" % section
+      for option in valid_options[section]:
+        print "%-25s =" % option
+      print 
+
+### END OF CLASS ###
 
 #---------------------------
 def show_line():
@@ -1000,24 +1069,12 @@ specified.
     parser.add_option("-i", "--ini", dest="inifile",
                       help="ini file defining your configuration")
     (options, args) = parser.parse_args()
-    if options.inifile == None:
+    if options.inifile is None:
         parser.error("--ini argument required")
     if not os.path.isfile(options.inifile):
       raise common.logerr("inifile does not exist: %s" % options.inifile)
     common.logit("Using ini file: %s" % options.inifile)
     return options
-
-#-------------------------
-def create_template():
-  global valid_options
-  print "; ------------------------------------------"
-  print "; Factory minimal ini options template"
-  for section in valid_options.keys():
-    print "; ------------------------------------------"
-    print "[%s]" % section
-    for option in valid_options[section]:
-      print "%-25s =" % option
-    print#-------------------------
 
 ##################################################
 def main(argv):

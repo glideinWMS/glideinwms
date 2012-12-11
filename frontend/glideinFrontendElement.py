@@ -99,7 +99,7 @@ def fetch_fork_result(r,pid):
     finally:
         os.close(r)
         os.waitpid(pid,0)
-
+        
     out=cPickle.loads(rin)
     return out
 
@@ -113,30 +113,52 @@ def fetch_fork_result_list(pipe_ids):
             # now collect the results
             rin=fetch_fork_result(pipe_ids[k]['r'],pipe_ids[k]['pid'])
             out[k]=rin
-        except:
-            # protect the loop, so we do all of them
-            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
-                                            sys.exc_info()[2])
-            glideinFrontendLib.log_files.logWarning("Exception in %s. See debug log for more details."%k)
-            glideinFrontendLib.log_files.logDebug("Exception in %s occurred: %s" % (k,tb))
+        except Exception, e:
+            #tb = traceback.format_exception(sys.exc_info()[0],
+            #                                sys.exc_info()[1],
+            #                                sys.exc_info()[2])
+            glideinFrontendLib.log_files.logWarning("Failed to retrieve %s state information from the subprocess." % k)
+            glideinFrontendLib.log_files.logDebug("Failed to retrieve %s state from the subprocess: %s" % (k, e))
             failures+=1
         
     if failures>0:
         raise RuntimeError, "Found %i errors"%failures
 
     return out
-        
+
+
+######################
+# expand $$(attribute)
+def expand_DD(qstr,attr_dict):
+    import re
+    robj=re.compile("\$\$\((?P<attrname>[^\)]*)\)")
+    while 1:
+        m=robj.search(qstr)
+        if m is None:
+            break # no more substitutions to do
+        attr_name=m.group('attrname')
+        if not attr_dict.has_key(attr_name):
+            raise KeyError, "Missing attribute %s"%attr_name
+        attr_val=attr_dict[attr_name]
+        if type(attr_val)==type(1):
+            attr_str=str(attr_val)
+        else: # assume it is a string for all other purposes... quote and escape existing quotes
+            attr_str='"%s"'%attr_val.replace('"','\\"')
+        qstr="%s%s%s"%(qstr[:m.start()],attr_str,qstr[m.end():])
+    return qstr
+    
 
 ############################################################
-def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin,stats,history_obj):
+def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDescript,x509_proxy_plugin,stats,history_obj):
     frontend_name=elementDescript.frontend_data['FrontendName']
     group_name=elementDescript.element_data['GroupName']
     security_name=elementDescript.merged_data['SecurityName']
 
     web_url=elementDescript.frontend_data['WebURL']
+    monitoring_web_url=elementDescript.frontend_data['MonitoringWebURL']
 
     # query condor
-    glideinFrontendLib.log_files.logActivity("Query condor")
+    glideinFrontendLib.log_files.logActivity("Querying schedd, entry, and glidein status using child processes.")
 
     pipe_ids={}
     r,w=os.pipe()
@@ -146,22 +168,26 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         os.close(r)
         try:
             glidein_dict={}
-            factory_constraint=elementDescript.merged_data['FactoryQueryExpr']
+            factory_constraint=expand_DD(elementDescript.merged_data['FactoryQueryExpr'],attr_dict)
             factory_pools=elementDescript.merged_data['FactoryCollectors']
             for factory_pool in factory_pools:
                 factory_pool_node=factory_pool[0]
                 factory_identity=factory_pool[1]
                 my_identity_at_factory_pool=factory_pool[2]
                 try:
-                    factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,None,signatureDescript.signature_type,factory_constraint,x509_proxy_plugin!=None,get_only_matching=True)
+                    factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,None,signatureDescript.signature_type,factory_constraint,x509_proxy_plugin is not None,get_only_matching=True)
                 except RuntimeError,e:
-                    if factory_pool_node!=None:
+                    if factory_pool_node is not None:
                         glideinFrontendLib.log_files.logWarning("Failed to talk to factory_pool %s. See debug log for more details."%factory_pool_node)
                         glideinFrontendLib.log_files.logDebug("Failed to talk to factory_pool %s: %s"%(factory_pool_node, e))
                     else:
                         glideinFrontendLib.log_files.logWarning("Failed to talk to factory_pool. See debug log for more details.")
                         glideinFrontendLib.log_files.logDebug("Failed to talk to factory_pool: %s"%e)
                     # failed to talk, like empty... maybe the next factory will have something
+                    factory_glidein_dict={}
+                except Exception, e:
+                    glideinFrontendLib.log_files.logWarning("Failed to talk to factory_pool. See debug log for more details.")
+                    glideinFrontendLib.log_files.logDebug("Failed to talk to factory_pool: %s"%e)
                     factory_glidein_dict={}
 
                 for glidename in factory_glidein_dict.keys():
@@ -173,10 +199,15 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                         glidein_dict[(factory_pool_node,glidename,my_identity_at_factory_pool)]=factory_glidein_dict[glidename]
 
             os.write(w,cPickle.dumps(glidein_dict))
-        finally:
-            os.close(w)
-            # hard kill myself... don't want any cleanup, since i was created just for this calculation
-            os.kill(os.getpid(),signal.SIGKILL) 
+        except Exception, ex:
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            glideinFrontendLib.log_files.logDebug("Error in talking to the factory pool: %s" % tb)
+
+        os.close(w)
+        # hard kill myself... don't want any cleanup, since i was created just for this calculation
+        os.kill(os.getpid(),signal.SIGKILL) 
+
     else:
         # this is the original
         # just remember what you did for now
@@ -191,21 +222,26 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         os.close(r)
         try:
             condorq_format_list=elementDescript.merged_data['JobMatchAttrs']
-            if x509_proxy_plugin!=None:
+            if x509_proxy_plugin is not None:
                 condorq_format_list=list(condorq_format_list)+list(x509_proxy_plugin.get_required_job_attributes())
 
             ### Add in elements to help in determining if jobs have voms creds
             condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN','s'),))
             condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN','s'),))
+            condorq_format_list=list(condorq_format_list)+list((('x509userproxy','s'),))
             condorq_dict=glideinFrontendLib.getCondorQ(elementDescript.merged_data['JobSchedds'],
-                                                       elementDescript.merged_data['JobQueryExpr'],
+                                                       expand_DD(elementDescript.merged_data['JobQueryExpr'],attr_dict),
                                                        condorq_format_list)
 
             os.write(w,cPickle.dumps(condorq_dict))
-        finally:
-            os.close(w)
-            # hard kill myself... don't want any cleanup, since i was created just for this calculation
-            os.kill(os.getpid(),signal.SIGKILL) 
+        except Exception, ex:
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            glideinFrontendLib.log_files.logDebug("Error in retrieving information from schedd (condor_q): %s" % tb)
+        
+        os.close(w)
+        # hard kill myself... don't want any cleanup, since i was created just for this calculation
+        os.kill(os.getpid(),signal.SIGKILL) 
     else:
         # this is the original
         # just remember what you did for now
@@ -219,7 +255,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         os.close(r)
         try:
             status_format_list=[]
-            if x509_proxy_plugin!=None:
+            if x509_proxy_plugin is not None:
                 status_format_list=list(status_format_list)+list(x509_proxy_plugin.get_required_classad_attributes())
 
             # use the main collector... all adds must go there
@@ -228,22 +264,28 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                                                            status_format_list)
 
             os.write(w,cPickle.dumps(status_dict))
-        finally:
-            os.close(w)
-            # hard kill myself... don't want any cleanup, since i was created just for this calculation
-            os.kill(os.getpid(),signal.SIGKILL) 
+
+        except Exception, ex:
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            glideinFrontendLib.log_files.logDebug("Error in talking to the user pool (condor_status): %s" % tb)
+
+        os.close(w)
+        # hard kill myself... don't want any cleanup, since i was created just for this calculation
+        os.kill(os.getpid(),signal.SIGKILL) 
+
     else:
         # this is the original
         # just remember what you did for now
         os.close(w)
         pipe_ids['startds']={'r':r,'pid':pid} 
  
-    glideinFrontendLib.log_files.logActivity("Child processes created")
     try:
         pipe_out=fetch_fork_result_list(pipe_ids)
-    except RuntimeError, e:
+    except RuntimeError:
         # expect all errors logged already
-        glideinFrontendLib.log_files.logActivity("Terminating iteration due to errors")
+        glideinFrontendLib.log_files.logWarning("Missing schedd, factory entry, and/or current glidein state information. " \
+                                                "Unable to calculate required glideins, terminating loop.")
         return
     glideinFrontendLib.log_files.logActivity("All children terminated")
 
@@ -251,6 +293,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     condorq_dict=pipe_out['jobs']
     status_dict=pipe_out['startds']
 
+    condorq_dict_proxy=glideinFrontendLib.getIdleProxyCondorQ(condorq_dict)
     condorq_dict_voms=glideinFrontendLib.getIdleVomsCondorQ(condorq_dict)
     condorq_dict_idle=glideinFrontendLib.getIdleCondorQ(condorq_dict)
     condorq_dict_old_idle=glideinFrontendLib.getOldCondorQ(condorq_dict_idle,600)
@@ -259,6 +302,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     condorq_dict_types={'Idle':{'dict':condorq_dict_idle,'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle)},
                         'OldIdle':{'dict':condorq_dict_old_idle,'abs':glideinFrontendLib.countCondorQ(condorq_dict_old_idle)},
                         'VomsIdle':{'dict':condorq_dict_voms,'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
+                        'ProxyIdle':{'dict':condorq_dict_proxy,'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
                         'Running':{'dict':condorq_dict_running,'abs':glideinFrontendLib.countCondorQ(condorq_dict_running)}}
     condorq_dict_abs=glideinFrontendLib.countCondorQ(condorq_dict);
     
@@ -321,7 +365,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
 
     # get the proxy
     x509_proxies_data=None
-    if x509_proxy_plugin!=None:
+    if x509_proxy_plugin is not None:
         proxy_security_classes=elementDescript.merged_data['ProxySecurityClasses']
         x509_proxy_list=x509_proxy_plugin.get_proxies(condorq_dict,condorq_dict_types,
                                                       status_dict,status_dict_types)
@@ -364,10 +408,11 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
 
     # here we have all the data needed to build a GroupAdvertizeType object
     descript_obj=glideinFrontendInterface.FrontendDescript(client_name,frontend_name,group_name,
-                                                           web_url,
+                                                           web_url, 
                                                            signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname,
                                                            signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature,
                                                            x509_proxies_data)
+    descript_obj.add_monitoring_url(monitoring_web_url)
     # reuse between loops might be a good idea, but this will work for now
     key_builder=glideinFrontendInterface.Key4AdvertizeBuilder()
 
@@ -375,7 +420,12 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
 
     #glideinFrontendLib.log_files.logDebug("realcount: %s\n\n" % glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict))
 
-    glideinFrontendLib.log_files.logActivity("Counting")
+    # extract only the attribute names from format list
+    condorq_match_list=[]
+    for f in elementDescript.merged_data['JobMatchAttrs']:
+        condorq_match_list.append(f[0])
+
+    glideinFrontendLib.log_files.logActivity("Counting subprocess created")
     pipe_ids={}
     for dt in condorq_dict_types.keys()+['Real','Glidein']:
         # will make calculations in parallel,using multiple processes
@@ -385,22 +435,36 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             # this is the child... return output as a pickled object via the pipe
             os.close(r)
             try:
-                if dt=='Real':
-                    out=glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict)
-                elif dt=='Glidein':
-                    count_status_multi={}
-                    for glideid in glidein_dict.keys():
-                        request_name=glideid[1]
-
-                        count_status_multi[request_name]={}
-                        for st in status_dict_types.keys():
-                            c=glideinFrontendLib.getClientCondorStatus(status_dict_types[st]['dict'],frontend_name,group_name,request_name)
-                            count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
-                    out=count_status_multi
-                else:
-                    c,p,h=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict)
-                    t=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
-                    out=(c,p,h,t)
+                try:
+                    if dt=='Real':
+                        out=glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict,attr_dict,condorq_match_list)
+                    elif dt=='Glidein':
+                        count_status_multi={}
+                        for glideid in glidein_dict.keys():
+                            request_name=glideid[1]
+    
+                            count_status_multi[request_name]={}
+                            for st in status_dict_types.keys():
+                                c=glideinFrontendLib.getClientCondorStatus(status_dict_types[st]['dict'],frontend_name,group_name,request_name)
+                                count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
+                        out=count_status_multi
+                    else:
+                        c,p,h=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict,attr_dict,condorq_match_list)
+                        t=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
+                        out=(c,p,h,t)
+                except KeyError, e:
+                    tb = traceback.format_exception(sys.exc_info()[0],
+                                                    sys.exc_info()[1],
+                                                    sys.exc_info()[2])
+                    key = ((tb[len(tb) - 1].split(':'))[1]).strip()
+                    glideinFrontendLib.log_files.logDebug("Failed to evaluate resource match for %s state. Possibly match_expr is buggy and trying to reference job or site attribute %s in an inappropriate way." % (dt,key))
+                    raise e
+                except Exception, e:
+                    tb = traceback.format_exception(sys.exc_info()[0],
+                                                    sys.exc_info()[1],
+                                                    sys.exc_info()[2])
+                    glideinFrontendLib.log_files.logDebug("Exception in counting subprocess for %s: %s " % (dt, tb))
+                    raise e
 
                 os.write(w,cPickle.dumps(out))
             finally:
@@ -413,9 +477,6 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             os.close(w)
             pipe_ids[dt]={'r':r,'pid':pid} 
 
-    
-
-    glideinFrontendLib.log_files.logActivity("Child processes created")
     try:
         pipe_out=fetch_fork_result_list(pipe_ids)
     except RuntimeError, e:
@@ -437,7 +498,12 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     reserve_idle=int(elementDescript.element_data['ReserveIdlePerEntry'])
     max_vms_idle=int(elementDescript.element_data['MaxIdleVMsPerEntry'])
     curb_vms_idle=int(elementDescript.element_data['CurbIdleVMsPerEntry'])
-    
+    glexec='UNDEFINED'
+    if 'GLIDEIN_Glexec_Use' in elementDescript.frontend_data:
+         glexec=elementDescript.frontend_data['GLIDEIN_Glexec_Use']
+    if 'GLIDEIN_Glexec_Use' in elementDescript.merged_data:
+         glexec=elementDescript.merged_data['GLIDEIN_Glexec_Use']
+ 
     total_running=condorq_dict_types['Running']['total']
     glideinFrontendLib.log_files.logActivity("Total matching idle %i (old %i) running %i"%(condorq_dict_types['Idle']['total'],condorq_dict_types['OldIdle']['total'],total_running))
 
@@ -448,6 +514,8 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     advertizer=glideinFrontendInterface.MultiAdvertizeWork(descript_obj)
     resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser(multi_support=glideinFrontendInterface.frontendConfig.advertise_use_multi)
     
+    processed_glideid_strs=[] # we will need this for faster lookup later
+
     log_factory_header()
     total_up_stats_arr=init_factory_stats_arr()
     total_down_stats_arr=init_factory_stats_arr()
@@ -458,6 +526,8 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         request_name=glideid[1]
         my_identity=str(glideid[2]) # get rid of unicode
         glideid_str="%s@%s"%(request_name,factory_pool_node)
+        processed_glideid_strs.append(glideid_str)
+
         glidein_el=glidein_dict[glideid]
 
         glidein_in_downtime=False
@@ -476,11 +546,16 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         count_status=count_status_multi[request_name]
 
         #If the glidein requires a voms proxy, only match voms idle jobs
-        if glidein_el['attrs'].has_key('GLIDEIN_REQUIRE_VOMS'):
-            #glideinFrontendLib.log_files.logActivity("Require VOMS found: %s" % glidein_el['attrs']['GLIDEIN_REQUIRE_VOMS'])
-            if (glidein_el['attrs']['GLIDEIN_REQUIRE_VOMS']=="True"):
-                prop_jobs['Idle']=prop_jobs['VomsIdle']
-                glideinFrontendLib.log_files.logActivity("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
+        # Note: if GLEXEC is set to NEVER, the site will never see the proxy, 
+        # so it can be avoided.
+        if (glexec != 'NEVER'):
+            if (glidein_el['attrs'].get('GLIDEIN_REQUIRE_VOMS')=="True"):
+                    prop_jobs['Idle']=prop_jobs['VomsIdle']
+                    glideinFrontendLib.log_files.logDebug("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
+            elif (glidein_el['attrs'].get('GLIDEIN_REQUIRE_GLEXEC_USE')=="True"):
+                    prop_jobs['Idle']=prop_jobs['ProxyIdle']
+                    glideinFrontendLib.log_files.logDebug("Proxy required (GLEXEC), limiting idle glideins to: %i" % prop_jobs['Idle'])
+
 
         # effective idle is how much more we need
         # if there are idle slots, subtract them, they should match soon
@@ -532,8 +607,12 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         glidein_min_idle=int(glidein_min_idle)
 
         # we don't need more slots than number of jobs in the queue (unless the fraction is positive)
-        if (prop_jobs['Idle']+count_jobs['Running'])>0:
-            glidein_max_run=int((prop_jobs['Idle']+count_jobs['Running'])*fraction_running+1)
+        if (prop_jobs['Idle']+count_real[glideid])>0:
+            if prop_jobs['Idle']>0:
+                glidein_max_run=int((prop_jobs['Idle']+count_real[glideid])*fraction_running+1)
+            else:
+                # no good reason for a delta when we don't need more than we have
+                glidein_max_run=int(count_real[glideid])
         else:
             # the above calculation is always >0, but should be 0 if nothing in the user queue
             glidein_max_run=0
@@ -629,6 +708,8 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             kexpr=paramsDescript.expr_objs[k]
             # convert kexpr -> kval
             glidein_params[k]=glideinFrontendLib.evalParamExpr(kexpr,paramsDescript.const_data,glidein_el)
+        # we will need this param to monitor orphaned glideins
+        glidein_params['GLIDECLIENT_ReqNode']=factory_pool_node
 
         stats['group'].logFactReq(
             glideid_str, glidein_min_idle, glidein_max_run, glidein_params)
@@ -674,6 +755,41 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         resource_advertiser.addClassad(resource_classad.adParams['Name'], resource_classad)
 
     # end for glideid in condorq_dict_types['Idle']['count'].keys()
+
+    ###
+    # Find out the Factory entries that are running, but for which
+    # Factory ClassAds don't exist
+    #
+    factory_entry_list=glideinFrontendLib.getFactoryEntryList(status_dict)
+    processed_glideid_str_set=frozenset(processed_glideid_strs)
+    
+    factory_entry_list.sort() # sort for the sake of monitoring
+    for a in factory_entry_list:
+        request_name,factory_pool_node=a
+        glideid_str="%s@%s"%(request_name,factory_pool_node)
+        if glideid_str in processed_glideid_str_set:
+            continue # already processed... ignore
+
+        count_status_multi[request_name]={}
+        for st in status_dict_types.keys():
+            c=glideinFrontendLib.getClientCondorStatus(status_dict_types[st]['dict'],frontend_name,group_name,request_name)
+            count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
+        count_status=count_status_multi[request_name]
+        
+        # ignore matching jobs
+        # since we don't have the entry classad, we have no clue how to match
+        this_stats_arr=(0,0,0,0,0,0,0,0,
+                        count_status['Total'],count_status['Idle'],count_status['Running'],
+                        0,0)
+
+        stats['group'].logMatchedGlideins(
+            glideid_str, count_status['Total'],count_status['Idle'],
+            count_status['Running'])
+
+        # since I don't see it in the factory anymore, mark it as down
+        stats['group'].logFactDown(glideid_str, True)
+        total_down_stats_arr=log_and_sum_factory_line(glideid_str,True,this_stats_arr,total_down_stats_arr)
+
 
     # Log the totals
     for el in (('MatchedUp',total_up_stats_arr, True),('MatchedDown',total_down_stats_arr, False)):
@@ -751,7 +867,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     return
 
 ############################################################
-def iterate(parent_pid,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin):
+def iterate(parent_pid,elementDescript,paramsDescript,attr_dict,signatureDescript,x509_proxy_plugin):
     sleep_time=int(elementDescript.frontend_data['LoopDelay'])
     
     factory_pools=elementDescript.merged_data['FactoryCollectors']
@@ -779,7 +895,7 @@ def iterate(parent_pid,elementDescript,paramsDescript,signatureDescript,x509_pro
                 # recreate every time (an easy way to start from a clean state)
                 stats['group']=glideinFrontendMonitoring.groupStats()
                 
-                done_something=iterate_one(published_frontend_name,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin,stats,history_obj)
+                done_something=iterate_one(published_frontend_name,elementDescript,paramsDescript,attr_dict,signatureDescript,x509_proxy_plugin,stats,history_obj)
                 
                 glideinFrontendLib.log_files.logActivity("Writing stats")
                 try:
@@ -844,8 +960,24 @@ def main(parent_pid, work_dir, group_name):
                                                              float(elementDescript.frontend_data['LogRetentionMaxMBs']))
 
     paramsDescript=glideinFrontendConfig.ParamsDescript(work_dir,group_name)
+    attrsDescript=glideinFrontendConfig.AttrsDescript(work_dir,group_name)
     signatureDescript=glideinFrontendConfig.GroupSignatureDescript(work_dir,group_name)
 
+    #
+    # We decided we will not use the data from the stage area
+    # Leaving it commented in the code, in case we decide in the future
+    #  it was a good validation of the Web server health
+    #
+    #stageArea=glideinFrontendConfig.MergeStageFiles(elementDescript.frontend_data['WebURL'],
+    #                                                signatureDescript.signature_type,
+    #                                                signatureDescript.frontend_descript_fname,signatureDescript.frontend_descript_signature,
+    #                                                group_name,
+    #                                                signatureDescript.group_descript_fname,signatureDescript.group_descript_signature)
+    # constsDescript=stageArea.get_constants()
+    #
+
+    attr_dict=attrsDescript.data
+    
     glideinFrontendMonitoring.monitoringConfig.monitor_dir=os.path.join(work_dir,"monitor/group_%s"%group_name)
 
     glideinFrontendInterface.frontendConfig.advertise_use_tcp=(elementDescript.frontend_data['AdvertiseWithTCP'] in ('True','1'))
@@ -853,7 +985,7 @@ def main(parent_pid, work_dir, group_name):
 
     try:
         dir = os.path.dirname(os.path.dirname(sys.argv[0]))
-        glideinFrontendInterface.frontendConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(dir, os.path.join(dir,'etc/checksum.frontend')).version()
+        glideinFrontendInterface.frontendConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(dir, 'checksum.frontend').version()
     except:
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])
@@ -881,7 +1013,7 @@ def main(parent_pid, work_dir, group_name):
     try:
         try:
             glideinFrontendLib.log_files.logActivity("Starting up")
-            iterate(parent_pid,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin)
+            iterate(parent_pid,elementDescript,paramsDescript,attr_dict,signatureDescript,x509_proxy_plugin)
         except KeyboardInterrupt:
             glideinFrontendLib.log_files.logActivity("Received signal...exit")
         except:
@@ -905,5 +1037,5 @@ def termsignal(signr,frame):
 if __name__ == '__main__':
     signal.signal(signal.SIGTERM,termsignal)
     signal.signal(signal.SIGQUIT,termsignal)
-    main(sys.argv[1],sys.argv[2],sys.argv[3])
+    main(int(sys.argv[1]),sys.argv[2],sys.argv[3])
  

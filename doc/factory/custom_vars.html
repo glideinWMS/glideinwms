@@ -69,6 +69,7 @@
     <LI><A HREF="#vars">Variables used</A> 
     <LI><A HREF="#admin_vars">Admin variables</A>
     <LI><A HREF="#dyn_vars">Dynamic variables </A>
+    <LI><A HREF="#lifetime">Lifetime of a glidein</A>
 </ol>
 </div>
 <div class="related">
@@ -250,6 +251,40 @@ by the VO factory clients.</P>
         <TD> Exp (Bool)</td>
         <TD>True </TD>
     </TR>
+    <TR>
+        <td> <b>GLIDEIN_Hold</b> </td>
+        <TD> Exp (Bool)</td>
+
+        <TD> True </TD>
+        <TD ROWSPAN=2>
+            <P>Condor expression to use to specify when a user job in the glideins should be held. 
+            If any expression is true, the glidein is held.  This is usually done to specify "bad"
+            jobs, such as those that claim too much memory.
+        </TD>
+
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_Entry_PREEMPT</b> </td>
+        <TD> Exp (Bool)</td>
+        <TD>True </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_PREEMPT</b> </td>
+        <TD> Exp (Bool)</td>
+
+        <TD> True </TD>
+        <TD ROWSPAN=2>
+            <P>Condor expression to use to specify when a user job in the glideins should be preempted. 
+            If any expression is true, the glidein is preempted.  This is usually done to specify 
+            custom preemption policies for user jobs.
+        </TD>
+
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_Entry_Start</b> </td>
+        <TD> Exp (Bool)</td>
+        <TD>True </TD>
+    </TR>
 
     <TR>
         <td> <b>GLIDEIN_Rank</b> </td>
@@ -280,13 +315,29 @@ by the VO factory clients.</P>
         </TD>
     </TR>
     <TR>
+        <td> <b>GLIDEIN_Max_Tail</b> </td>
+        <td> Int </td>
+        <td>400 <br/>(6 mins) </TD>
+        <TD>
+
+            <P>Max amount of time a condor_startd will wait
+            after having already completed a job to be matched again.
+            (i.e. the tail of a job).
+            </p>
+        </TD>
+    </TR>
+
+
+
+    <TR>
         <td> <b>GLIDEIN_Retire_Time</b> </td>
         <TD> Int </TD>
         <TD> 21600 <br/>(6 hours) </TD>
         <TD ROWSPAN=2>
-            <P>How long should the condor_startd be running before entering
-            into the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_5Policy_Configuration.html#SECTION00456000000000000000"><I>Retiring</I>
-            state</A> (thus not accepting any new jobs).<BR>The random spread
+            <P>How long the condor_startd be running before 
+            no longer accepting jobs.
+            <br/>
+            The random spread
             is used to improve the efficiencies, so the actual value used by
             Condor will be anywhere between GRT-GRTS and GRT.</P>
 
@@ -304,10 +355,16 @@ by the VO factory clients.</P>
         <TD> 360k<BR>(100 hours) </TD>
 
         <TD>
-            <P>Max allowed time for the job to end.<BR>This is used by the
-            condor_startd; once it enters the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_5Policy_Configuration.html#SECTION00456000000000000000"><I>Retiring</I>
-            state</A> it will wait at most this amount of time before killing
-            the job.</P>
+            <P>Max allowed time for the job to end.<BR>
+            This is used by the
+            condor_startd.  Once the GLIDEIN_Retire_Time expires, 
+            the glidein will allow the job to run for this amount
+            of time before activating DAEMON_SHUTDOWN and 
+            killing the job. 
+            Note that, if GLIDEIN_Max_Walltime is specified,
+            this variable could be reduced by the glidein in order 
+            to fit within Glidein_Max_Walltime.
+            See <a href="#lifetime">Lifetime of a glidein</a> for details.</P>
         </TD>
     </TR>
     <TR>
@@ -318,9 +375,25 @@ by the VO factory clients.</P>
         <TD>
             <P>Max allowed time for the glidein.<BR>This variable is optional.  If you specify this variable, 
             then Condor startup scripts will calculate the GLIDEIN_Retire_Time for the glidein as GLIDEIN_MAX_Walltime - GLIDEIN_Job_Max_Time.  
-            If GLIDEIN_Retire_Time is also specified, it will be ignored and only the calculated value is used. </P>
+            If GLIDEIN_Retire_Time is also specified, it will be ignored and only the calculated value is used.  Note that if GLIDEIN_Job_Max_Time is
+            specified but is greater than GLIDEIN_Max_Walltime or 
+            does not allow enough time for graceful shutdown, it will
+            be reduced by the glidein.  
+            See <a href="#lifetime">Lifetime of a glidein</a> for details.</P>
         </TD>
     </TR>
+    <TR>
+        <td> <b>GLIDEIN_Graceful_Shutdown</b> </td>
+        <TD> Int </TD>
+        <TD> 120 </TD>
+        <TD>
+            <P>Once DAEMON_SHUTDOWN is reached and the glidein pilot enters the 
+            <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_5Policy_Configuration.html#SECTION00456000000000000000"><I>Retiring</I> state</a>, 
+            this amount passes to allow the startd and job to gracefully shutdown before forcefully terminating the glidein.
+            See <a href="#lifetime">Lifetime of a glidein</a> for details.</P>
+        </TD>
+    </TR>
+
     <tr>
         <td> <b>PREEMPT</b></td>
         <td> Bool </td>
@@ -341,6 +414,20 @@ by the VO factory clients.</P>
             This only affects behaviour if PREEMPT=True.
         </td>
     </tr>
+   <tr>
+        <td> <b>HOLD_GRACE_TIME</b></td>
+        <td> Int </td>
+        <td> 0 </td>
+        <td>
+            This value affects the condor value "MaxJobRetirementtime"
+            and is an integer value representing the number of seconds
+            a job that triggers WANT_HOLD will be allowed to run before being evicted.
+            This only affects behaviour if GLIDEIN_HOLD, GLIDEIN_Entry_HOLD,
+            GLIDECLIENT_HOLD, or GLIDECLIENT_Group_HOLD are specified and 
+            become true.  By default, these "bad" jobs are immediately evicted.
+        </td>
+    </tr>
+
     <TR>
         <td> <b>GLIDEIN_Monitoring_Enabled</b> </td>
         <TD> Bool </TD>
@@ -399,7 +486,7 @@ by the VO factory clients.</P>
 
         <td> <b>UPDATE_COLLECTOR_WITH_TCP</b> </td>
         <td> Bool </td>
-        <td> False </TD>
+        <td> True </TD>
         <TD>
             <P>If True, forces the glidein to use <A HREF="configuration.html#tcp">TCP updates</A>.<BR>The collector must be configured in the same way
             for this to work.</P>
@@ -615,7 +702,7 @@ They cannot be changed by an administrator in any other way.
             </TD>
         </TR>
         <TR>
-            <td> <b>GLIDEIN_Glidekeeper</b> </td>
+            <td> <b>GLIDEIN_Gatekeeper</b> </td>
             <TD> String </TD>
 
             <TD>
@@ -733,6 +820,43 @@ described below ar the most often used.</P>
         <td> <b>GLIDECLIENT_Group_Start</b> </td>
         <TD> Exp (Bool)</td>
     </TR>
+    <TR>
+        <td> <b>GLIDECLIENT_Hold</b> </td>
+        <TD> Exp (Bool)</td>
+
+        <TD ROWSPAN=2>
+            <P>Condor expression to use to specify when a user job in the glideins should be held. 
+            If any expression is true, the glidein is held.  This is usually done to specify "bad"
+            jobs, such as those that claim too much memory.
+        </TD>
+
+    </TR>
+    <TR>
+        <td> <b>GLIDECLIENT_Group_Hold</b> </td>
+        <TD> Exp (Bool)</td>
+    </TR>
+
+    <TR>
+        <td> <b>GLIDECLIENT_PREEMPT</b> </td>
+        <TD> Exp (Bool)</td>
+
+        <TD ROWSPAN=2>
+            <P>Condor expression to use to specify when a user job in the glideins should be preempted. 
+            If any expression is true, the glidein is preempted.  This is usually done to specify 
+            custom preemption policies.
+        </TD>
+
+    </TR>
+    <TR>
+        <td> <b>GLIDECLIENT_Group_PREEMPT</b> </td>
+        <TD> Exp (Bool)</td>
+    </TR>
+
+
+
+
+
+
 
     <TR>
         <td> <b>GLIDECLIENT_Rank</b> </td>
@@ -762,6 +886,19 @@ described below ar the most often used.</P>
             <P>See <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:JobInheritsStarterEnvironment">JOB_INHERITS_STARTER_ENVIRONMENT documentation</A> for more details.</P>
         </TD>
     </TR>
+    <TR>
+        <td> <b>GLIDEIN_Expose_X509</b> </td>
+        <td> Exp (Bool) </TD>
+
+        <TD>
+            <p>By default, the glidein will unset the variable 
+            X509_USER_PROXY for security reasons to prevent the user
+            jobs from accessing the pilot proxy.  Setting this
+            to true will override this behavior and keep the X509_USER_PROXY
+            in the environment.
+        </TD>
+    </TR>
+
 
 </TABLE>
 </div>
@@ -911,6 +1048,28 @@ the working directory specified by</P>
             <P>File path to the list of wrapper scripts used by the glidein.</P>
         </TD>
     </TR>
+    <TR>
+        <td> <b>GLIDEIN_WRAPPER_EXEC</b> </td>
+        <TD>
+            <P>
+                This is the executable that glideins will run (ie what to 
+                put after "exec" in the condor job wrapper).  By default,
+                glideins will perform <tt>exec "\$@"</tt> to run the pilot.
+                For other modes of execution, you may need different 
+                arguments.  For example, to run a program under parrot, you 
+                may need 
+                <tt>exec "$GLIDEIN_PARROT/parrot_run" 
+                -t "$parrot_tmp" "$@" </tt>.<br/>
+                Note, the syntax of this command is very sensitiv
+                This needs to be double-escaped in order to function correctly.
+                For the two examples listed above, you would need:
+                <ul>
+                <li><tt>"\\\"\\\$@\\\""</tt></li>
+                <li><tt>"\\\"\\\$GLIDEIN_PARROT/parrot_run\\\" -t \\\"$parrot_tmp\\\" \\\"\\\$@\\\""</tt>
+                </ul>
+            </P>
+        </TD>
+    </TR>
 </TABLE>
 </div>
 <div class="section">
@@ -976,7 +1135,46 @@ startup scripts.</P>
         to retire.  Set to "now" + GLIDEIN_Retire_Time</td>
 </TABLE>
 </div>
+<div class="section">
+<a name="lifetime" />
+<h2>Lifetime of a Glidein</h2>
+<img src="../images/retire_times.png" />
+<p>
+All the various variables in the glidein configuration can be confusing.
+The above diagram illustrates the lifetime of a glidein pilot that has a
+long-running job.  
 
+<ul>
+<li><font color="499946"><i>Green</i></font>:
+For the first GLIDEIN_Retire_Time seconds (modified by
+a random spread GLIDEIN_Retire_Spread to smooth out glideins all ending
+simultaneously), jobs can start on the glidein pilot.  
+</li>
+<li><font color="f8d844"><i>Yellow</i></font>:
+During the yellow period, START will evauluate to FALSE, 
+so no new jobs will start.  However,
+already running jobs will continue to run for GLIDEIN_Job_Max_Time.  
+</li>
+<li>
+Once this period is done, the DAEMON_SHUTDOWN variable will be true.</li>
+<li><font color="f8bb44"><i>Orange</i></font>:
+There can be a delay of up to UPDATE_INTERVAL (usually about 5 minutes)
+between when DAEMON_SHUTDOWN becomes true and when it is actually 
+updated in the collector.  This is because the collector only reevaluates
+this expression periodically.
+</li>
+<li><font color="c7484c"><i>Red</i></font>:
+Once DAEMON_SHUTDOWN is true, condor gives a short grace period of
+GLIDEIN_Graceful_Shutdown before forcefully terminating everything and 
+shutting down.  All of these periods are totalled and calculated to fit
+within MAX_WALLTIME if specified.
+</li>
+</ul>
+</p>
+<p>Note that if a job ends early in the green period, a new job will start.
+If a job ends after this period, then the glidein will shut down and end
+early.</p>
+</div>
 <div class="footer">
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>

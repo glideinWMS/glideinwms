@@ -15,9 +15,6 @@ import cWDictFile
 
 
 class ParamsDictFile(cWDictFile.DictFile):
-    def is_compatible(self,old_val,new_val):
-        return ((old_val[0]==new_val[0]) and (old_val[4]==new_val[4]))# at least the type and the export must be preserved
-    
     def file_header(self,want_comments):
         if want_comments:
             return (cWDictFile.DictFile.file_header(self,want_comments)+"\n"+
@@ -25,6 +22,12 @@ class ParamsDictFile(cWDictFile.DictFile):
                     "#################################################")
         else:
             return None
+
+    def get_val_type(self,key):
+        return self.vals[key][0]
+
+    def get_true_val(self,key):
+        return self.vals[key][1]
 
     def add(self,key,val,allow_overwrite=0):
         if not (type(val) in (type(()),type([]))):
@@ -103,7 +106,7 @@ class GridMapDict(cWDictFile.DictFileTwoKeys):
 def get_common_dicts(work_dir,stage_dir,
                      simple_work_dir): # if True, do not create params
     common_dicts={'description':cWDictFile.DescriptionDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.DESCRIPTION_FILE),fname_idx=cWConsts.DESCRIPTION_FILE),
-                  'consts':cWDictFile.StrDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.CONSTS_FILE),fname_idx=cWConsts.CONSTS_FILE),
+                  'consts':cWDictFile.StrWWorkTypeDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.CONSTS_FILE),fname_idx=cWConsts.CONSTS_FILE),
                   'vars':cWDictFile.VarsDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.VARS_FILE),fname_idx=cWConsts.VARS_FILE),
                   'untar_cfg':cWDictFile.StrDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.UNTAR_CFG_FILE),fname_idx=cWConsts.UNTAR_CFG_FILE),
                   'file_list':cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.FILE_LISTFILE),fname_idx=cWConsts.FILE_LISTFILE),
@@ -111,6 +114,8 @@ def get_common_dicts(work_dir,stage_dir,
                   "signature":cWDictFile.SHA1DictFile(stage_dir,cWConsts.insert_timestr(cWConsts.SIGNATURE_FILE),fname_idx=cWConsts.SIGNATURE_FILE)}
     if not simple_work_dir:
         common_dicts['params']=ParamsDictFile(work_dir,cvWConsts.PARAMS_FILE)
+        common_dicts['attrs']=cWDictFile.ReprDictFile(work_dir,cvWConsts.ATTRS_FILE)
+
     refresh_description(common_dicts)
     return common_dicts
 
@@ -142,6 +147,13 @@ def load_common_dicts(dicts,           # update in place
     # first work dir ones (mutable)
     if dicts.has_key('params'):
         dicts['params'].load()
+    if dicts.has_key('attrs'):
+        try:
+            dicts['attrs'].load()
+        except RuntimeError,e:
+            # to allow for a smooth upgrade path from 2.5.5-, make this file optional
+            # in the future, we should remove this try...except block
+            dicts['attrs'].erase()
     # now the ones keyed in the description
     dicts['signature'].load(fname=description_el.vals2['signature'])
     dicts['file_list'].load(fname=description_el.vals2['file_list'])
@@ -245,6 +257,8 @@ def save_common_dicts(dicts,     # will update in place, too
     #finally save the mutable one(s)
     if dicts.has_key('params'):
         dicts['params'].save(set_readonly=set_readonly)
+    if dicts.has_key('attrs'):
+        dicts['attrs'].save(set_readonly=set_readonly)
 
 # must be invoked after all the groups have been saved
 def save_main_dicts(main_dicts, # will update in place, too
@@ -305,7 +319,7 @@ def reuse_common_dicts(dicts, other_dicts,is_main,all_reused):
             dicts[k].set_readonly(True)
             
     # check the mutable ones
-    for k in ('params',):
+    for k in ('params','attrs'):
         if dicts.has_key(k):
             reuse_simple_dict(dicts,other_dicts,k)
 

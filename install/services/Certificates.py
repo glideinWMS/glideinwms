@@ -146,7 +146,7 @@ option specified: %(dir)s""" %  { "dir"    : self.vdt_location(),})
         fetch_crl_script = els[5].rstrip()
     common.ask_continue("""\n... the glidein services require that CRL files (*.r0) be present
 in the certificates directory.  Is it OK to run the script now?""")
-    if fetch_crl_script == None:
+    if fetch_crl_script is None:
       common.logerr("We have a problem.  There does not appear to be a cron entry for the CRL retrieval")
     common.run_script(fetch_crl_script) 
     common.logit("")
@@ -184,7 +184,7 @@ Suggest you check this out before proceeding:
   def get_x509_cert_dir_value(self):
     """ Returns the X509_CERT_DIR variable from an OSG/VDT CA install.""" 
     cert_dir = ""
-    vdt_script = "%s/setp.sh" % self.vdt_location()
+    vdt_script = "%s/setup.sh" % self.vdt_location()
     if os.path.exists(vdt_script):
       (status, cert_dir) = commands.getstatusoutput(". %s;echo $X509_CERT_DIR" % vdt_script)
       if status > 0:

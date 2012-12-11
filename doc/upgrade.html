@@ -65,9 +65,10 @@
     <div class="jump">
     <u>Jump to:</u>
     <ol>
+        <li><a href="#b4v2.5.3">Upgrade to v2.5.3 or v2.5.4</a></li>
         <li><a href="#v20">Upgrade from v2.x</a></li>
         <li><a href="#v16">Upgrade from v1.6</a></li>
-        <li><a href="#factory_upgrade">Upgrade from v1.6</a></li>
+        <li><a href="#factory_upgrade">Upgrade a factory</a></li>
     </ol>
     </div>
     <div class="related">
@@ -78,6 +79,32 @@
         </li>
     </ul>
     </div>
+    
+<div class="section">
+    <a name="b4v2.5.3" />
+    <h3>Upgrading from versions earlier than v2.5.3 to versions 2.5.3 or 2.5.4 only</h3>
+    <p> 
+        Special steps need to be taken to upgrade a factory or frontend to v2.5.3 or v2.5.4.  This does not apply to 
+        any later versions.  <br/>  
+        NOTE:  You only need to follow this procedure if you are upgrading in-place.  If you are installing an entire 
+        new factory or frontend, you can just follow the normal install procedure.
+    </p>
+    <p>  To upgrade the factory:
+        <ol>
+            <li>Download this file:  <a href="./reconfig_glidein">reconfig_glidein</a> </li>
+            <li>Replace the reconfig_glidein script in the glideinWMS/creation/ directory with the downloaded file.</li>
+            <li>Follow the rest of the normal in-place upgrade procedure.</li>
+		</ol>
+ 	<p>
+    <p>  To upgrade the frontend:
+        <ol>
+            <li>Download this file:  <a href="./reconfig_frontend">reconfig_frontend</a> </li>
+            <li>Replace the reconfig_frontend script in the glideinWMS/creation/ directory with the downloaded file.</li>
+            <li>Follow the rest of the normal in-place upgrade procedure.</li>
+		</ol>
+ 	<p>
+</div>    
+
 <div class="section">
     <a name="v20" />
     <h3>Upgrading frontend from Version 2.x</h3>
@@ -103,13 +130,7 @@ For v2.4 to v2.4.x, there are not many changes to frontend.xml.
     Alternatively, you can also try backing up files, untar-ing the new version, then copy the instance directory to the new version.  Make the required changes and run create_frontend to reconfigure.  Then, follow the post-installation tasks in the manual.
 </p>
 </div>
-<div class="section">
-    <a name="factory_upgrade" />
-    <h3>Upgrading from Version 1.6 and older</h3>
 
-    No upgrading instructions exist for this version.  You will need to re-install glideinWMS and transfer your configuration specific changes over into the new installation.
-
-</div>
 <div class="section">
 
 <h3><a name="upgrade"></a>Upgrading a factory to a new version of glideinWMS</h3>

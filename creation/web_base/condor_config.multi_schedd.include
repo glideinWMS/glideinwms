@@ -24,7 +24,6 @@ STARTD_RESOURCE_PREFIX = vm
 STARTD_VM_EXPRS = RemoteUser, Name, GlobalJobId
 
 HAS_MONITOR_VM=True
-IS_MONITOR_VM = (VirtualMachineID == 1)
 USES_MONITOR_STARTD=False
 
 VM2_Monitoring_Name = VM1_Name
@@ -35,19 +34,31 @@ STARTD_ATTRS = $(STARTD_ATTRS), IS_MONITOR_VM, HAS_MONITOR_VM,USES_MONITOR_START
 VM1_STARTD_ATTRS = Monitored_Names
 VM2_STARTD_ATTRS = Monitoring_Name
 
-GLIDEIN_REQUIREMENTS = ((GLIDEIN_REQUIRE_VOMS=?=UNDEFINED)||(GLIDEIN_REQUIRE_VOMS=?=False)||(x509userproxyfirstfqan=!=UNDEFINED)) && \
-        ((GLIDEIN_ToRetire =?= UNDEFINED) || (CurrentTime < GLIDEIN_ToRetire ))
+GLIDEIN_REQUIREMENTS = ((GLIDEIN_ToRetire =?= UNDEFINED) || (CurrentTime < GLIDEIN_ToRetire ))
+
+#Since condor 6.9.3, VirtualMachineID has been deprecated
+# and replaced with SlotID
+SLOT_1 = ((VirtualMachineID =?= 1) || (SlotID =?= 1)) 
+SLOT_2 = ((VirtualMachineID =?= 2) || (SlotID =?= 2)) 
+SLOT_2_RETIRED = ($(SLOT_1))&&((Activity=="Idle") && (GLIDEIN_ToRetire =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToRetire )) 
 
 
+IS_MONITOR_VM = ($(SLOT_1))
 VM1_START_CONDITION = ((GLIDEIN_Is_Monitor=?=True) || (JOB_Is_Monitor=?=True))
 VM2_START_CONDITION = ($(GLIDEIN_START_CONDITION)) && ($(GLIDEIN_REQUIREMENTS))
-START = ((VirtualMachineID == 1) && ($(VM1_START_CONDITION))) || ((VirtualMachineID == 2) && ($(VM2_START_CONDITION)))
+START = (($(SLOT_1)) && ($(VM1_START_CONDITION))) || (($(SLOT_2)) && ($(VM2_START_CONDITION)))
 
-IsOwner = (VirtualMachineID == 1) && (START =?= False)
+WANT_HOLD = (($(SLOT_2)) && ($(GLIDEIN_HOLD_CONDITION)))
+PREEMPT = (($(SLOT_2)) && (($(GLIDEIN_HOLD_CONDITION)) || ($(GLIDEIN_PREEMPT_CONDITION))))
+
+
+IsOwner = ($(SLOT_1)) && (START =?= False)
 
 # Max time a job is guaranteed to run in the glidein
 # set it to several months... i.e. infinity
-MaxJobRetirementTime=$(PREEMPT_GRACE_TIME)
+# (unless we are vacating a held job then should be zero)
+MaxJobRetirementTime=ifthenelse(($(WANT_HOLD))=!=True,$(PREEMPT_GRACE_TIME),$(HOLD_GRACE_TIME))
+
 # How long does the job have after the startd enters retiring state
 SHUTDOWN_GRACEFUL_TIMEOUT=$(GLIDEIN_Job_Max_Time)
 
@@ -56,11 +67,13 @@ STARTD_NOCLAIM_SHUTDOWN = $(GLIDEIN_Max_Idle)
 
 # Set to shutdown if total idle exceeds max idle, or if the age
 # exceeds the retire time or the max walltime
-STARTD.DAEMON_SHUTDOWN = ((GLIDEIN_ToDie =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToDie )) )
+STARTD.DAEMON_SHUTDOWN = ((GLIDEIN_ToDie =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToDie )) || ($(SLOT_2_RETIRED) )
+
+
 #
 # Shutdown the master if the startd exits.  Note that if
 # STARTD_StartTime is zero, that the startd is not currently running.
 #
-MASTER.DAEMON_SHUTDOWN = (STARTD_StartTime =?= 0)
+MASTER.DAEMON_SHUTDOWN = (STARTD_StartTime =?= 0) 
 
 

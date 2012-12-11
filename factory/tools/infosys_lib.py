@@ -61,7 +61,7 @@ def query_bdii(bdii_source, vo_name=''):
             
             if 'GlueCEStateStatus' in bdii_entry:
                 ce_status = bdii_entry['GlueCEStateStatus'][0]            
-                if ce_status == '' or ce_status == None:
+                if (ce_status == '') or (ce_status is None):
                     ce_status = 'unknown'
             
             supported_vos = '' 

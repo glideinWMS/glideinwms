@@ -55,10 +55,11 @@ def main(params):
         cfgfile=cWConsts.insert_timestr(cfgfile)
         params.save_into_file(cfgfile,set_ro=True)
 
-        # create the init.d starup file
+        # create the init.d startup file
         cgWCreate.create_initd_startup(os.path.join(glidein_dicts_obj.main_dicts.work_dir,cgWConsts.INITD_STARTUP_FILE),
                                        glidein_dicts_obj.main_dicts.work_dir,
-                                       os.path.realpath(os.path.join(STARTUP_DIR,'..')))
+                                       os.path.realpath(os.path.join(STARTUP_DIR,'..')),
+                                       params.cfg_name)
     except:
         glidein_dicts_obj.delete_dirs()
         raise

@@ -115,13 +115,13 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
         @type other: dictionary of statuses -> jobs
         @return: data[status]['Entered'|'Exited'] - list of jobs
         """
-        if other==None:
+        if other is None:
             outdata={}
-            if self.data!=None:
+            if self.data is not None:
                 for k in self.data.keys():
                     outdata[k]={'Exited':[],'Entered':self.data[k]}
             return outdata
-        elif self.data==None:
+        elif self.data is None:
             outdata={}
             for k in other.keys():
                 outdata[k]={'Entered':[],'Exited':other[k]}
@@ -298,7 +298,7 @@ def extractLogData(fname):
         try:
             buf_idx=0
             validate_re=ELD_RC_VALIDATE_END.search(buf,buf_idx)
-            if validate_re!=None:
+            if validate_re is not None:
                 try:
                     validation_duration=int(validate_re.group('secs'))
                 except:
@@ -307,24 +307,24 @@ def extractLogData(fname):
                 bux_idx=validate_re.end()+1
             
             start_re=ELD_RC_CONDOR_START.search(buf,buf_idx)
-            if start_re!=None:
+            if start_re is not None:
                 condor_starting=1
                 buf_idx=start_re.end()+1
                 end_re=ELD_RC_CONDOR_END.search(buf,buf_idx)
-                if end_re!=None:
+                if end_re is not None:
                     try:
                         condor_duration=int(end_re.group('secs'))
                     except:
                         condor_duration=None
                     buf_idx=end_re.end()+1
                     slot_re=ELD_RC_CONDOR_SLOT.search(buf,buf_idx)
-                    while slot_re!=None:
+                    while slot_re is not None:
                         buf_idx=slot_re.end()+1
                         slot_name=slot_re.group('slot')
                         if slot_name[-1]!='1': # ignore slot 1, it is used for monitoring only
                             slot_buf=slot_re.group('content')
                             count_re=ELD_RC_CONDOR_SLOT_CONTENT_COUNT.search(slot_buf,0)
-                            while count_re!=None:
+                            while count_re is not None:
                                 count_name=count_re.group('name')
                                 # need to trim it, comes out with spaces
                                 if count_name==' ': # special case
@@ -338,7 +338,7 @@ def extractLogData(fname):
                                 except:
                                     jobsnr=None
                                     
-                                if jobsnr!=None: #check I had no errors in integer conversion
+                                if jobsnr is not None: #check I had no errors in integer conversion
                                     if not slot_stats.has_key(count_name):
                                         slot_stats[count_name]={'jobsnr':jobsnr,'secs':secs}
 
@@ -349,7 +349,7 @@ def extractLogData(fname):
                         # end while slot_re
                     
             glidein_end_re=ELD_RC_GLIDEIN_END.search(buf,buf_idx)
-            if glidein_end_re!=None:
+            if glidein_end_re is not None:
                 try:
                     glidein_duration=int(glidein_end_re.group('secs'))
                 except:
@@ -364,16 +364,16 @@ def extractLogData(fname):
         fd.close()
 
     out={'condor_started':condor_starting}
-    if validation_duration!=None:
+    if validation_duration is not None:
         out['validation_duration']=validation_duration
     #else:
     #   out['validation_duration']=1
-    if glidein_duration!=None:
+    if glidein_duration is not None:
         out['glidein_duration']=glidein_duration
     #else:
     #   out['glidein_duration']=2
     if condor_starting:
-        if condor_duration!=None:
+        if condor_duration is not None:
             out['condor_duration']=condor_duration
             out['stats']=slot_stats
 

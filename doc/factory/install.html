@@ -232,7 +232,7 @@ Install as: <b>root</b>(collector), <b>Factory user</b> (factory)<br><br>
     </tr>
     <tr>
         <td>The <a target="_blank" href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD</a> package</td>
-        <td>v0.6.1 or later with flot-0.7-tooltip-0.4.2 (see <a href="#software_javascriptRRD">below</a>)</td>
+        <td>v0.6.3 or later with flot (see <a href="#software_javascriptRRD">below</a>)</td>
 
         <td class="checked"> X </td>
     </tr>
@@ -912,7 +912,7 @@ The following profiles will be installed:
 Installing Glidein Factory
 
 Do you have already a javascriptRRD installation?: (y/n) <b>y</b>
-Where is javascriptRRD installed?: <b>/home/gfactory/javascriptrrd-0.6.1</b>
+Where is javascriptRRD installed?: <b>/home/gfactory/javascriptrrd-0.6.3</b>
 The Glidein Factory can be configured to use a default GSI proxy for submission.
 
 However, this operation mode is not recommended.
@@ -1135,7 +1135,14 @@ Hence is recommended that you disable any entry points that will not be used.
     <blockquote><i>&lt;install dir&gt;/</i>factory_startup reconfig <i>&lt;work config&gt;</i></blockquote>
 
     <p>If the factory was running, the procedure will stop the factory before reconfiguring it, and restart it afterwards.</p>
-
+    
+  <p>Starting with v2.5.6, the factory_startup script contains a default location for the factory configuration file which is set 
+  to the location used for the initial install.  This allows you to not have to specify the config location when doing a reconfig.  
+  To change the default location in the file, run the command:  
+  <blockquote>
+      &lt;glidein working directory&gt;/factory_startup reconfig <i>config_copy_fname</i> update_default_cfg
+  </blockquote>
+  </p>
 
 <h3><a name="downtimes"></a>7.4 Downtime handling</h3>
 <p>Starting with v1_3, the glidein factory supports the dynamic

@@ -31,7 +31,7 @@ class SubParams:
         self.data=data
 
     def __eq__(self,other):
-        if other==None:
+        if other is None:
             return False
         if not isinstance(other,self.__class__):
             return False
@@ -176,7 +176,7 @@ class Params:
             if argv[1]=="-help":
                 raise RuntimeError,"\nA config file will contain:\n%s\n\nThe config file will be in XML format."%self.get_description("  ")
                 
-            self.cfg_name=argv[1]
+            self.cfg_name=os.path.abspath(argv[1])
             self.load_file(self.cfg_name)
 
             self.subparams.validate(self.defaults,self.get_top_element())
@@ -234,7 +234,7 @@ class Params:
         return
 
     def __eq__(self,other):
-        if other==None:
+        if other is None:
             return False
         if not isinstance(other,Params):
             return False
@@ -373,7 +373,7 @@ VALID_NAME_CHARS=string.ascii_letters+string.digits+'._-'
 
 def is_valid_name(name):
     # empty name is not valid
-    if name==None:
+    if name is None:
         return False
     if name=="":
         return False
@@ -450,7 +450,7 @@ def defdict2string(defaults,indent,width=80):
         el=defaults[k]
         if not isinstance(el,xmlParse.OrderedDict):
             defvalue,ktype,txt,subdef=el
-            if subdef==None:
+            if subdef is None:
                 final_keys.append(k)
     # put simple elements first
     for k in keys:
@@ -459,7 +459,7 @@ def defdict2string(defaults,indent,width=80):
             final_keys.append(k)
         else:
             defvalue,ktype,txt,subdef=el
-            if subdef!=None:
+            if subdef is not None:
                 final_keys.append(k)
 
     for k in final_keys:
@@ -470,7 +470,7 @@ def defdict2string(defaults,indent,width=80):
             #print el
             defvalue,ktype,txt,subdef=el
             wrap_indent=indent+string.ljust("",len("%s(%s) - "%(k,ktype)))
-            if subdef!=None:
+            if subdef is not None:
                 if isinstance(defvalue,xmlParse.OrderedDict):
                     dict_subdef=copy.deepcopy(subdef)
                     dict_subdef["name"]=(None,"name","Name",None)

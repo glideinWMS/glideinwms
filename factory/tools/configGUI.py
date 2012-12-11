@@ -572,7 +572,7 @@ class GlideFrame(wx.Frame):
         
         # save config changes
         
-        if(event != None and event.GetId() == self.SAVEAS_COMMAND):
+        if((event is not None) and (event.GetId() == self.SAVEAS_COMMAND)):
             filename =  wx.FileSelector("Save As...", flags=wx.SAVE|wx.OVERWRITE_PROMPT);
             if(filename==""):
                 return

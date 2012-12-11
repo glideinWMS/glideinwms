@@ -37,7 +37,7 @@ class MonitorGroupDictFile(cWDictFile.DictFile):
         if len(val)!=1:
             raise RuntimeError, "Values '%s' not (group_name)"%str(val)
 
-        if key==None:
+        if key is None:
             key="%s"%val
         return cWDictFile.DictFile.add(self,key,val,allow_overwrite)
 
@@ -83,7 +83,7 @@ class InfoSysDictFile(cWDictFile.DictFile):
         if len(val)!=3:
             raise RuntimeError, "Values '%s' not (Type,System,Ref)"%str(val)
 
-        if key==None:
+        if key is None:
             key="%s://%s/%s"%val
         return cWDictFile.DictFile.add(self,key,val,allow_overwrite)
 
@@ -120,7 +120,7 @@ class CondorJDLDictFile(cWDictFile.DictFile):
         self.jobs_in_cluster=jobs_in_cluster
 
     def file_footer(self,want_comments):
-        if self.jobs_in_cluster==None:
+        if self.jobs_in_cluster is None:
             return "Queue"
         else:
             return "Queue %s"%self.jobs_in_cluster

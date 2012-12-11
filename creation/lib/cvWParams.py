@@ -96,6 +96,7 @@ class VOFrontendParams(cWParams.CommonParams):
         match_defaults["factory"]=factory_match_defaults
         match_defaults["job"]=job_match_defaults
         match_defaults["match_expr"]=('True','PythonExpr', 'Python expression for matching jobs to factory entries with access to job and glidein dictionaries',None)
+        match_defaults["start_expr"]=('True','CondorExpr', 'Condor expression for matching jobs to glideins at runtime',None)
 
 
         proxy_defaults=cWParams.commentedOrderedDict()
@@ -122,6 +123,7 @@ class VOFrontendParams(cWParams.CommonParams):
         ###############################
         # Start defining the defaults
         self.defaults["frontend_name"]=(socket.gethostname(),'ID', 'VO Frontend name',None)
+        self.defaults['frontend_versioning'] = ('True', 'Bool', 'Should we create versioned subdirectories of the type frontend_$frontend_name?', None)
         self.defaults['frontend_monitor_index_page'] = ('True', 'Bool', 'Should we create an index.html in the monitoring web directory?',None)
         
         work_defaults=cWParams.commentedOrderedDict()
@@ -142,8 +144,8 @@ class VOFrontendParams(cWParams.CommonParams):
         
         self.defaults['loop_delay']=('60','seconds', 'Number of seconds between iterations',None)
         self.defaults['advertise_delay']=('5','NR', 'Advertize evert NR loops',None)
-        self.defaults['advertise_with_tcp']=('False','Bool', 'Should condor_advertise use TCP connections?',None)
-        self.defaults['advertise_with_multiple']=('False','Bool', 'Should condor_advertise use -multiple?',None)
+        self.defaults['advertise_with_tcp']=('True','Bool', 'Should condor_advertise use TCP connections?',None)
+        self.defaults['advertise_with_multiple']=('True','Bool', 'Should condor_advertise use -multiple?',None)
         self.defaults['restart_attempts']=('3','NR', 'Max allowed NR restarts every restart_interval before shutting down',None)
         self.defaults['restart_interval']=('1800','NR', 'Time interval NR sec which allow max restart attempts',None)
 
@@ -154,12 +156,14 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults["stage"]=stage_defaults
 
         self.monitor_defaults["base_dir"]=("/var/www/html/vofrontend/monitor","base_dir","Monitoring base dir",None)
+        self.monitor_defaults["web_base_url"]=(None,"web_base_url","Monitoring base dir",None)
         self.defaults["monitor"]=self.monitor_defaults
         
         pool_collector_defaults=cWParams.commentedOrderedDict()
         pool_collector_defaults["node"]=(None,"nodename","Pool collector node name (for example, col1.my.org:9999)",None)
         pool_collector_defaults["DN"]=(None,"dn","Factory collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=col1.my.org)",None)
         pool_collector_defaults["secondary"]=("False","Bool","Secondary nodes will be used by glideins, if present",None)
+        pool_collector_defaults["group"]=("default","string","Collector group name useful to group HA setup",None)
 
         self.defaults["collectors"]=([],'List of pool collectors',"Each proxy collector contains",pool_collector_defaults)
 
@@ -188,6 +192,14 @@ class VOFrontendParams(cWParams.CommonParams):
     def get_top_element(self):
         return "frontend"
 
+    def buildDir(self,frontendVersioning, basedir):
+    # return either basedir or basedir/frontend_fename
+        subdir = "frontend_%s" % self.frontend_name
+        if frontendVersioning:
+            return os.path.join(basedir, subdir)
+        else:
+            return basedir
+
     # validate data and add additional attributes if needed
     def derive(self):
         if len(self.groups.keys())==0:
@@ -195,12 +207,21 @@ class VOFrontendParams(cWParams.CommonParams):
             
         self.validate_names()
 
-        frontend_subdir="frontend_%s"%self.frontend_name
-        self.stage_dir=os.path.join(self.stage.base_dir,frontend_subdir)
-        self.monitor_dir=os.path.join(self.monitor.base_dir,frontend_subdir)
-        self.work_dir=os.path.join(self.work.base_dir,frontend_subdir)
-        self.log_dir=os.path.join(self.work.base_log_dir,frontend_subdir)
-        self.web_url=os.path.join(self.stage.web_base_url,frontend_subdir)
+        frontendVersioning = False
+        if self.data.has_key('frontend_versioning') and \
+               self.data['frontend_versioning'].lower() == 'true':
+            frontendVersioning = True
+
+        self.stage_dir=self.buildDir(frontendVersioning, self.stage.base_dir)
+        self.monitor_dir=self.buildDir(frontendVersioning, self.monitor.base_dir)
+        self.work_dir=self.buildDir(frontendVersioning, self.work.base_dir)
+        self.log_dir=self.buildDir(frontendVersioning, self.work.base_log_dir)
+        self.web_url=self.buildDir(frontendVersioning, self.stage.web_base_url)
+        if hasattr(self.monitor,"web_base_url") and (self.monitor.web_base_url is not None):
+            self.monitoring_web_url=self.buildDir(frontendVersioning, self.monitor.web_base_url)
+        else:
+            self.monitoring_web_url=self.web_url.replace("stage","monitor")
+
 
         self.derive_match_attrs()
 
@@ -216,19 +237,19 @@ class VOFrontendParams(cWParams.CommonParams):
             raise RuntimeError, "Attribute GLIDEIN_Collector cannot be defined by the user"
 
         ####################
-        if self.security.proxy_DN==None:
+        if self.security.proxy_DN is None:
             raise RuntimeError, "security.proxy_DN not defined"
 
         if len(self.collectors)==0:
             raise RuntimeError, "At least one pool collector is needed"
 
         ####################
-        has_security_name=(self.security.security_name!=None)
+        has_security_name=(self.security.security_name is not None)
         if not has_security_name:
             # security_name not defined at global level, look if defined in every group
             has_security_name=True
             for  group_name in self.groups.keys():
-               has_security_name&=(self.groups[group_name].security.security_name!=None)
+               has_security_name&=(self.groups[group_name].security.security_name is not None)
 
         if not has_security_name:
             # explicity define one, so it will not change if config copied
@@ -238,25 +259,30 @@ class VOFrontendParams(cWParams.CommonParams):
         ####################
         for i in range(len(self.security.proxies)):
             pel=self.subparams.data['security']['proxies'][i]
-            if pel['security_class']==None:
+            if pel['security_class'] is None:
                 # define an explicit security, so the admin is aware of it
                 pel['security_class']="frontend"
         group_names=self.groups.keys()
         for group_name in group_names:
             for i in range(len(self.groups[group_name].security.proxies)):
                 pel=self.subparams.data['groups'][group_name]['security']['proxies'][i]
-                if pel['security_class']==None:
+                if pel['security_class'] is None:
                     # define an explicit security, so the admin is aware of it
                     pel['security_class']="group_%s"%group_name
 
     # verify match data and create the attributes if needed
     def derive_match_attrs(self):
         self.validate_match('frontend',self.match.match_expr,
-                            self.match.factory.match_attrs,self.match.job.match_attrs)
+                            self.match.factory.match_attrs,self.match.job.match_attrs,self.attrs)
 
         group_names=self.groups.keys()
         for group_name in group_names:
             # merge general and group matches
+            attrs_dict={}
+            for attr_name in self.attrs.keys():
+                attrs_dict[attr_name]=self.attrs[attr_name]
+            for attr_name in self.groups[group_name].attrs.keys():
+                attrs_dict[attr_name]=self.groups[group_name].attrs[attr_name]
             factory_attrs={}
             for attr_name in self.match.factory.match_attrs.keys():
                 factory_attrs[attr_name]=self.match.factory.match_attrs[attr_name]
@@ -269,7 +295,7 @@ class VOFrontendParams(cWParams.CommonParams):
                 job_attrs[attr_name]=self.groups[group_name].match.job.match_attrs[attr_name]
             match_expr="(%s) and (%s)"%(self.match.match_expr,self.groups[group_name].match.match_expr)
             self.validate_match('group %s'%group_name,match_expr,
-                                factory_attrs,job_attrs)
+                                factory_attrs,job_attrs,attrs_dict)
 
         return
 
@@ -285,7 +311,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
     def validate_names(self):
         # glidein name does not have a reasonable default
-        if self.frontend_name==None:
+        if self.frontend_name is None:
             raise RuntimeError, "Missing frontend name"
         if self.frontend_name.find(' ')!=-1:
             raise RuntimeError, "Invalid frontend name '%s', contains a space."%self.frontend_name
@@ -317,8 +343,8 @@ class VOFrontendParams(cWParams.CommonParams):
         return
 
     def validate_match(self,loc_str,
-                       match_str,factory_attrs,job_attrs):
-        env={'glidein':{'attrs':{}},'job':{}}
+                       match_str,factory_attrs,job_attrs,attr_dict):
+        env={'glidein':{'attrs':{}},'job':{},'attr_dict':{}}
         for attr_name in factory_attrs.keys():
             attr_type=factory_attrs[attr_name]['type']
             if attr_type=='string':
@@ -345,6 +371,17 @@ class VOFrontendParams(cWParams.CommonParams):
             else:
                 raise RuntimeError, "Invalid %s job attr type '%s'"%(loc_str,attr_type)
             env['job'][attr_name]=attr_val
+        for attr_name in attr_dict.keys():
+            attr_type=attr_dict[attr_name]['type']
+            if attr_type=='string':
+                attr_val='a'
+            elif attr_type=='int':
+                attr_val=1
+            elif attr_type=='expr':
+                attr_val='a'
+            else:
+                raise RuntimeError, "Invalid %s attr type '%s'"%(loc_str,attr_type)
+            env['attr_dict'][attr_name]=attr_val
         try:
             match_obj=compile(match_str,"<string>","eval")
             eval(match_obj,env)

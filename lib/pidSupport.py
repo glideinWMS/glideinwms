@@ -44,13 +44,13 @@ class PidSupport:
     def register(self,
                  pid=None,              # if none, will default to os.getpid()
                  started_time=None):    # if none, use time.time()
-        if self.fd!=None:
+        if self.fd is not None:
             raise RuntimeError, "Cannot register two pids in the same object!"
 
         
-        if pid==None:
+        if pid is None:
             pid=os.getpid()
-        if started_time==None:
+        if started_time is None:
             started_time=time.time()
 
         self.mypid=pid
@@ -86,7 +86,7 @@ class PidSupport:
         self.mypid=None
         
     def load_registered(self):
-        if self.fd!=None:
+        if self.fd is not None:
             return # we own it, so nothing to do
 
         # make sure it is initialized (to not registered)
@@ -157,10 +157,10 @@ class PidWParentSupport(PidSupport):
                  parent_pid,
                  pid=None,              # if none, will default to os.getpid()
                  started_time=None):    # if none, use time.time()
-        if self.fd!=None:
+        if self.fd is not None:
             raise RuntimeError, "Cannot register two pids in the same object!"
 
-        self._parent_pid=parent_pid
+        self.parent_pid=parent_pid
         PidSupport.register(self,pid,started_time)
         
     ###############################

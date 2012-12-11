@@ -42,6 +42,8 @@ class MonitoringConfig:
 
     def write_file(self,relative_fname,str):
         fname=os.path.join(self.monitor_dir,relative_fname)
+        if not os.path.isdir(os.path.dirname(fname)):
+            os.makedirs(os.path.dirname(fname))
         #print "Writing "+fname
         fd=open(fname+".tmp","w")
         try:
@@ -72,9 +74,9 @@ class MonitoringConfig:
         
             if not os.path.isfile(fname):
                 #print "Create RRD "+fname
-                if min==None:
+                if min is None:
                     min='U'
-                if max==None:
+                if max is None:
                     max='U'
                 ds_names=val_dict.keys()
                 ds_names.sort()
@@ -234,7 +236,7 @@ class groupStats:
                     el=fa[w]
                     tel=total[w]
 
-                    if tel==None:
+                    if tel is None:
                         # first one, just copy over
                         total[w]={}
                         tel=total[w]
@@ -256,7 +258,7 @@ class groupStats:
                                 del tel[a]
         
         for w in total.keys():
-            if total[w]==None:
+            if total[w] is None:
                 del total[w] # remove entry if not defined
 
         total.update(copy.deepcopy(self.data['totals']))
@@ -272,7 +274,7 @@ class groupStats:
     def write_file(self):
         global monitoringConfig
  
-        if (self.files_updated!=None) and ((self.updated-self.files_updated)<5):
+        if (self.files_updated is not None) and ((self.updated-self.files_updated)<5):
             # files updated recently, no need to redo it
             return 
         
@@ -482,7 +484,7 @@ class factoryStats:
                     el=fe[w]
                     tel=total[w]
 
-                    if tel==None:
+                    if tel is None:
                         # first one, just copy over
                         total[w]={}
                         tel=total[w]
@@ -504,7 +506,7 @@ class factoryStats:
                                 del tel[a]
         
         for w in total.keys():
-            if total[w]==None:
+            if total[w] is None:
                 del total[w] # remove entry if not defined
             else:
                 tel=total[w]
@@ -544,7 +546,7 @@ class factoryStats:
     def write_file(self):
         global monitoringConfig
 
-        if (self.files_updated!=None) and ((self.updated-self.files_updated)<5):
+        if (self.files_updated is not None) and ((self.updated-self.files_updated)<5):
             # files updated recently, no need to redo it
             return 
         
@@ -564,7 +566,7 @@ class factoryStats:
         # update RRDs
         type_strings={'Status':'Status','Requested':'Req','ClientMonitor':'Client'}
         for fe in [None]+data.keys():
-            if fe==None: # special key == Total
+            if fe is None: # special key == Total
                 fe_dir="total"
                 fe_el=total_el
             else:

@@ -49,9 +49,7 @@ def blockprint(title,d,p,pd):
         s=""
         t="Total "
     print(
-"""----------------------------------------
-%s:
-
+"""
 %sGlideins: %s%s
 %sJobs: %d (Average jobs/glidein: %.2f) 
 
@@ -63,7 +61,7 @@ def blockprint(title,d,p,pd):
 Time used/time wasted: %.1f
 Time efficiency: %.2f
 """
-      % (title, 
+      % ( 
         t,d['glideins'],s, 
         t,d['jobs'], 
         float(d['jobs'])/float(d['glideins']),
@@ -75,7 +73,7 @@ Time efficiency: %.2f
         float(d['used'])/float(d['waste']),
         float(d['used'])/float(d['waste']+d['used'])))
  
-def lineprint(entry_name, entry, g_entry,g,to_be_printed, attr_list, sort_attribute):  
+def lineprint(entry_name, entry, g_entry,g,to_be_printed, attr_list, sort_attribute,min_limit):  
     if g==1:
        s = 'Lasted'
     else: s = 'total_time'
@@ -89,21 +87,38 @@ def lineprint(entry_name, entry, g_entry,g,to_be_printed, attr_list, sort_attrib
         div=float(entry[s]) 
     if attr_list[sort_attribute]=='wst':
         sorter = int((float(list['waste'])/div)*100)
-    else: sorter = int((float(list[attr_list[sort_attribute]])/div)*100)
+    else:
+        sorter = int((float(list[attr_list[sort_attribute]])/div)*100)
 
-    to_be_printed.append((sorter, "%-40s %3d%% %3d%% %3d%% | %3d%% %3d%% %3d%% %3d%% | %6d  %6d  %1s %4d" 
+    p={} # pre-compute the values to print
+    p['strt'] = (float(entry['FailedNr'])/float(g_entry['glideins']))*100
+    p['fval'] = (float(entry['validation_All'])/float(entry[s]))*100
+    p['0job'] = (float(entry['JobsNr_None'])/float(g_entry['glideins']))*100
+    p['val'] =  (float(g_entry['validation'])/float(entry[s]))*100
+    p['idle'] = (float(g_entry['idle'])/float(entry[s]))*100
+    p['wst'] =  (float(g_entry['waste'])/float(entry[s]))*100
+    p['badp'] = (float(g_entry['badput'])/float(entry[s]))*100
+    p['waste']= g_entry['waste']/3600.0
+    p['time'] = entry['Lasted']/3600.0
+    p['total']= g_entry['glideins']
+
+    # see if it is failing all min limits
+    pass_limits=False
+    if len(min_limit.keys())==0:
+      pass_limits=True # no limits, so go ahead
+    else:
+      for k in p.keys():
+       if min_limit.has_key(k):
+         if p[k]>=min_limit[k]:
+           pass_limits=True
+           break
+
+    if not pass_limits:
+      return # did not reach the limit thresholds, do not print
+
+    to_be_printed.append((sorter, "%-40s %3d%% %3d%% %3d%% | %3d%% %3d%% %3d%% %3d%% | %6d  %6d  | %4d" 
       % (entry_name.lstrip("entry_"),
-        (float(entry['FailedNr'])/float(g_entry['glideins']))*100,
-        (float(entry['validation_All'])/float(entry[s]))*100,
-        (float(entry['JobsNr_None'])/float(g_entry['glideins']))*100,
-        (float(g_entry['validation'])/float(entry[s]))*100,
-        (float(g_entry['idle'])/float(entry[s]))*100,
-        (float(g_entry['waste'])/float(entry[s]))*100,
-        (float(g_entry['badput'])/float(entry[s]))*100,
-        g_entry['waste']/3600.0,
-        entry['Lasted']/3600.0,
-        "|",
-        g_entry['glideins'])))
+         p['strt'],p['fval'],p['0job'], p['val'],p['idle'],p['wst'],p['badp'], p['waste'],p['time'], p['total'])))
 
 def main():
 
@@ -122,6 +137,8 @@ USAGE:
     --mh : frontend mode, showing hours instead of slots.
     --msort [attribute]: frontend mode, sort by attribute.
            (--msort x to see list of choices)
+    --nb : Do not print out the top block
+    -l [field,nr] : do not print entries below the limit
     -h : this usage message
 """
 
@@ -135,9 +152,11 @@ USAGE:
     filter_frontend = 0
     show_all_periods = 0 
     frontend_mode = 0
+    show_block = True
+    min_limit={}
  
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'x:hwf:pms:', ['source=','ms','mh','msort='])
+        opts, args = getopt.getopt(sys.argv[1:], 'x:hwf:l:pms:', ['source=','ms','mh','msort=','nb'])
     except getopt.GetoptError:
         print("\n Option not recognized or missing parameters.")
         print(" Use -h for usage.\n")
@@ -168,6 +187,11 @@ USAGE:
             filter_frontend = a
             if 'frontend_' not in filter_frontend:
                 filter_frontend = 'frontend_' + filter_frontend
+        elif o == "--nb":
+            show_block = False
+        elif o == "-l":
+            min_a,min_v = a.split(',')
+            min_limit[min_a]=float(min_v)
 
     
     attributes = {'glideins':0,'jobs':0,'used':0,'waste':0,
@@ -391,7 +415,9 @@ Glidein log analysis for frontend %s - %s
         if period_data[p]['waste'] == 0:
             period_data[p]['waste'] = 1
 
-        blockprint(title, period_data[p], p, 0)
+        if show_block:
+          print "----------------------------------------\n%s:\n"%title
+          blockprint(title, period_data[p], p, 0)
 
 ################################################################################
 #    Print per entry stats (all frontends)
@@ -418,7 +444,7 @@ Per Entry (all frontends) stats for the past %s hours.\n""" % x
             if entry['validation'] == 0:
                 entry['validation'] = 1
             
-            lineprint(entry_name,entry,entry,0,to_be_printed,attr_list,sort_attribute) 
+            lineprint(entry_name,entry,entry,0,to_be_printed,attr_list,sort_attribute,min_limit) 
 
         if sorting == 1:
             to_be_printed.sort()
@@ -463,7 +489,10 @@ Frontend stats for the past %s hours.\n""" % (x)
             d['waste'] = 1
 
         if frontend_mode == 0:
-            blockprint(frontend,d,period,period_data[period])
+            print "----------------------------------------\n%s:\n"%frontend
+
+            if show_block:
+              blockprint(frontend,d,period,period_data[period])
             
             print("%-40s%5s %3s %4s | %4s %4s %4s %4s | %6s %7s %7s" % (
               "", "strt","fval","0job","val","idle","wst","badp","waste","time","total"))
@@ -477,7 +506,7 @@ Frontend stats for the past %s hours.\n""" % (x)
                 if en['validation'] == 0:
                     en['validation'] = 1
 
-                lineprint(entry, e, en, 1, to_be_printed,attr_list,sort_attribute) 
+                lineprint(entry, e, en, 1, to_be_printed,attr_list,sort_attribute,min_limit) 
 
             if sorting == 1:
                 to_be_printed.sort()

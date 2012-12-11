@@ -218,7 +218,7 @@
 
 <!--  Negotiator -->
 <tr>
-  <td rowspan="10" align="center" valign="top">
+  <td rowspan="12" align="center" valign="top">
      <b>
       WMS Collector<br/>
       User Collector
@@ -231,7 +231,7 @@
   </tr>
 <tr>
   <td>NEGOTIATOR_INTERVAL = 60<br/>
-    NEGOTIATOR_MAX_TIME_PER_SUBMITTER=40<br/>
+    NEGOTIATOR_MAX_TIME_PER_SUBMITTER=60<br/>
     NEGOTIATOR_MAX_TIME_PER_PIESPIN=20
   </td>
   <td>Increase negotiation frequency, as new glideins do not trigger a reschedule
@@ -276,6 +276,23 @@
   <td>Disable checking for VOMS extended attributes (FQAN)</td>
   </tr>
 
+<tr>
+  <td>##EVENT_LOG=$(LOG)/EventLog<br/>
+      ##EVENT_LOG_JOB_AD_INFORMATION_ATTRS=Owner,CurrentHosts,x509userproxysubject,
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+AccountingGroup,GlobalJobId,QDate,JobStartDate,JobCurrentStartDate,
+<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+JobFinishedHookDone,MATCH_EXP_JOBGLIDEIN_Site,RemoteHost<br/>
+      ##EVENT_LOG_MAX_SIZE = 100000000<br/>
+  </td>
+  <td>Event logging, if desired
+  </td>
+  </tr>
+
+<tr>
+  <td>##COLLECTOR_MAX_FILE_DESCRIPTORS = 20000</td>
+  <td>Allow more file descriptors (only works if Condor is started as root)</td>
+
 <!--  Secondary Collectors -->
 <tr>
   <td>COLLECTOR0 = $(COLLECTOR)<br/>
@@ -294,7 +311,7 @@
 
 <!--  Schedd -->
 <tr>
-  <td rowspan="12" align="center" valign="top">
+  <td rowspan="13" align="center" valign="top">
       <b>
       WMS Collector<br/>
       Submit
@@ -325,7 +342,7 @@
   </tr>
 
 <tr>
-  <td>MAX_CONCURRENT_UPLOADS = 0<br/>
+  <td>MAX_CONCURRENT_UPLOADS = 100<br/>
       MAX_CONCURRENT_DOWNLOADS = 100
   </td>
   <td>Raise file transfer limits.<br/>
@@ -335,9 +352,14 @@
   </tr>
 
 <tr>
-  <td>APPEND_REQ_VANILLA = (Memory&gt;=1) && (Disk&gt;=1)
+  <td>APPEND_REQ_VANILLA = (Memory&gt;=1) && (Disk&gt;=1)<br/>
+      JOB_DEFAULT_REQUESTMEMORY=1<br/>
+      JOB_DEFAULT_REQUESTDISK=1<br/>
   </td>
-  <td>Prevent checking on ImageSize
+  <td>Prevent checking on ImageSize<br/>
+      With 7.8.+, the APPEND_REQ_VANILLA is replaced by the 
+      JOB_DEFAULT_REQUESTMEMORY/DISK attributes.<br/>
+      Having all 3 attributes defined does not present a problem.
   </td>
   </tr>
 
@@ -368,6 +390,12 @@
   <td>Prepare the Shadow for use with glexec-enabled glideins
   </td>
   </tr>
+
+<tr>
+  <td>MAX_SHADOW_LOG = 1000000000</td>
+  <td>Limits size of shadow logs </td>
+  </tr>
+
 <tr>
   <td>SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION = TRUE
   </td>
@@ -416,6 +444,7 @@
   SCHEDD.SCHEDDGLIDEINS2.LOCK          = $(SCHEDD.SCHEDDGLIDEINS2.LOCAL_DIR)/lock<br/>
   SCHEDD.SCHEDDGLIDEINS2.PROCD_ADDRESS = $(SCHEDD.SCHEDDGLIDEINS2.LOCAL_DIR)/procd_pipe<br/>
   SCHEDD.SCHEDDGLIDEINS2.SPOOL         = $(SCHEDD.SCHEDDGLIDEINS2.LOCAL_DIR)/spool<br/>
+  SCHEDD.SCHEDDGLIDEINS2.JOB_QUEUE_LOG         = $(SCHEDD.SCHEDDGLIDEINS2.SPOOL)/job_queue.log<br/>
   SCHEDD.SCHEDDGLIDEINS2.SCHEDD_ADDRESS_FILE   = $(SCHEDD.SCHEDDGLIDEINS2.SPOOL)/.schedd_address<br/>
   SCHEDD.SCHEDDGLIDEINS2.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.SCHEDDGLIDEINS2.SPOOL)/.schedd_classad<br/>
   SCHEDDGLIDEINS2_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridManagerLog.$(SCHEDD.SCHEDDGLIDEINS2.SCHEDD_NAME).$(USERNAME)"<br/>
@@ -428,6 +457,9 @@
     The capability to define multiple SCHEDD daemons as a Condor attribute is 
     available in Condor 7.5+.<br/>
     <br/>
+    Effective with Condor 7.7.5+, a JOB_QUEUE_LOG attribute was added.  When multiple schedds are used, each additional
+    schedd must specify the unique location for that file.<br/>
+     <br/>
     The execute, lock and spool directories for each schedd must be created manually.<br/>
      <br/>
      For more detailed information on this, refer to the 
@@ -462,6 +494,7 @@
   SCHEDD.SCHEDDJOBS2.LOCK          = $(SCHEDD.SCHEDDJOBS2.LOCAL_DIR)/lock<br/>
   SCHEDD.SCHEDDJOBS2.PROCD_ADDRESS = $(SCHEDD.SCHEDDJOBS2.LOCAL_DIR)/procd_pipe<br/>
   SCHEDD.SCHEDDJOBS2.SPOOL         = $(SCHEDD.SCHEDDJOBS2.LOCAL_DIR)/spool<br/>
+  SCHEDD.SCHEDDJOBS2.JOB_QUEUE_LOG         = $(SCHEDD.SCHEDDJOBS2.SPOOL)/job_queue.log<br/>
   SCHEDD.SCHEDDJOBS2.SCHEDD_ADDRESS_FILE   = $(SCHEDD.SCHEDDJOBS2.SPOOL)/.schedd_address<br/>
   SCHEDD.SCHEDDJOBS2.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.SCHEDDJOBS2.SPOOL)/.schedd_classad<br/>
   <br/> 
@@ -472,6 +505,9 @@
     Atttributes for defining multiple schedds.<br/><br/>
     The capability to define multiple SCHEDD daemons as a Condor attribute is 
     available in Condor 7.5+.<br/>
+    <br/>
+    Effective with Condor 7.7.5+, a JOB_QUEUE_LOG attribute was added.  When multiple schedds are used, each additional
+    schedd must specify the unique location for that file.<br/>
     <br/>
     The execute, lock and spool directories for each schedd must be created manually.<br/>
      <br/>
@@ -504,10 +540,16 @@
    <td>
      GRIDMANAGER_MAX_SUBMITTED_JOBS_PER_RESOURCE=5000<br/>
      GRIDMANAGER_MAX_PENDING_SUBMITS_PER_RESOURCE=5000<br/>
-     GRIDMANAGER_MAX_PENDING_REQUESTS=500
-     SCHEDD_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridmanagerLog.$(USERNAME)"
+     GRIDMANAGER_MAX_PENDING_REQUESTS=500<br/>
+     GRIDMANAGER_PROXY_REFRESH_TIME=604800<br/>
+     SCHEDD_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridmanagerLog.$(USERNAME)"<br/>
   </td>
-  <td valign="top">Condor-G attributes
+  <td valign="top">Condor-G attributes<br/>
+    <br/>The GRIDMANAGER_PROXY_REFRESH_TIME attribute was introduced in Condor 7.7.5 as a
+         configurable attribute with a default of 6 hours.  
+         This forces Condor-G to re-delegate the proxy as soon as the 
+         Frontend provides one, defaulting to 1 week, since we do not 
+         expect proxies with longer lifetimes  
   </td>
 </tr>
 <tr>

@@ -51,7 +51,8 @@ def main(params):
         # create the init.d starup file
         cvWCreate.create_initd_startup(os.path.join(frontend_dicts_obj.main_dicts.work_dir,cvWConsts.INITD_STARTUP_FILE),
                                        frontend_dicts_obj.main_dicts.work_dir,
-                                       os.path.realpath(os.path.join(STARTUP_DIR,'..')))
+                                       os.path.realpath(os.path.join(STARTUP_DIR,'..')),
+                                       params.cfg_name)
     except:
         frontend_dicts_obj.delete_dirs()
         raise

@@ -36,7 +36,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         self.client_security={}
 
     def populate(self,params=None):
-        if params==None:
+        if params is None:
             params=self.params
 
         # put default files in place first
@@ -58,10 +58,32 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         for file in params.files:
             add_file_unparsed(file,self.dicts)
 
+        # start expr is special
+        start_expr=None
+
         # put user attributes into config files
         for attr_name in params.attrs.keys():
-            add_attr_unparsed(attr_name, params,self.dicts,"main")
+            if attr_name in ('GLIDECLIENT_Start','GLIDECLIENT_Group_Start'):
+                if start_expr is None:
+                    start_expr=params.attrs[attr_name].value
+                elif not (params.attrs[attr_name].value in (None,'True')):
+                    start_expr="(%s)&&(%s)"%(start_expr,params.attrs[attr_name].value)
+                # delete from the internal structure... will use it in match section
+                del params.data['attrs'][attr_name]
+            else:
+                add_attr_unparsed(attr_name, params,self.dicts,"main")
 
+        real_start_expr=params.match.start_expr
+        if start_expr is not None:
+            if real_start_expr!='True':
+                real_start_expr="(%s)&&(%s)"%(real_start_expr,start_expr)
+            else:
+                real_start_expr=start_expr
+            # since I removed the attributes, roll back into the match.start_expr
+            params.data['match']['start_expr']=real_start_expr
+        
+        self.dicts['consts'].add('GLIDECLIENT_Start',real_start_expr)
+        
         # create GLIDEIN_Collector attribute
         self.dicts['params'].add_extended('GLIDEIN_Collector',False,str(calc_glidein_collectors(params.collectors)))
         populate_gridmap(params,self.dicts['gridmap'])
@@ -120,6 +142,12 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
                     mfobj.load()
                     self.monitor_htmls.append(mfobj)
 
+        # Tell condor to advertise GLIDECLIENT_ReqNode
+        self.dicts['vars'].add_extended('GLIDECLIENT_ReqNode','string',None,None,False,True,False)
+
+        # derive attributes
+        populate_common_attrs(self.dicts)
+
         # populate security data
         populate_main_security(self.client_security,params)
 
@@ -139,7 +167,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
         if self.monitor_dir!=other.monitor_dir:
-            raise RuntimeError,"Cannot change main monitor base_dir! '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
+            print "WARNING: main monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
         
         return cvWDictFile.frontendMainDicts.reuse(self,other)
 
@@ -188,7 +216,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         self.client_security={}
 
     def populate(self,params=None):
-        if params==None:
+        if params is None:
             params=self.params
 
         sub_params=params.groups[self.sub_name]
@@ -211,9 +239,34 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         for file in sub_params.files:
             add_file_unparsed(file,self.dicts)
 
+        # start expr is special
+        start_expr=None
+
         # put user attributes into config files
         for attr_name in sub_params.attrs.keys():
-            add_attr_unparsed(attr_name, sub_params,self.dicts,self.sub_name)
+            if attr_name in ('GLIDECLIENT_Group_Start','GLIDECLIENT_Start'):
+                if start_expr is None:
+                    start_expr=sub_params.attrs[attr_name].value
+                elif sub_params.attrs[attr_name].value is not None:
+                    start_expr="(%s)&&(%s)"%(start_expr,sub_params.attrs[attr_name].value)
+                # delete from the internal structure... will use it in match section
+                del sub_params.data['attrs'][attr_name]
+            else:
+                add_attr_unparsed(attr_name, sub_params,self.dicts,self.sub_name)
+
+        real_start_expr=sub_params.match.start_expr
+        if start_expr is not None:
+            if real_start_expr!='True':
+                real_start_expr="(%s)&&(%s)"%(real_start_expr,start_expr)
+            else:
+                real_start_expr=start_expr
+            # since I removed the attributes, roll back into the match.start_expr
+            sub_params.data['match']['start_expr']=real_start_expr
+        
+        self.dicts['consts'].add('GLIDECLIENT_Group_Start',real_start_expr)
+
+        # derive attributes
+        populate_common_attrs(self.dicts)
 
         # populate complex files
         populate_group_descript(self.work_dir,self.dicts['group_descript'],
@@ -224,10 +277,11 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         populate_main_security(self.client_security,params)
         populate_group_security(self.client_security,params,sub_params)
 
+
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
         if self.monitor_dir!=other.monitor_dir:
-            raise RuntimeError,"Cannot change group monitor base_dir! '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
+            print "WARNING: group monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
         
         return cvWDictFile.frontendGroupDicts.reuse(self,other)
 
@@ -259,7 +313,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
 class frontendDicts(cvWDictFile.frontendDicts):
     def __init__(self,params,
                  sub_list=None): # if None, get it from params
-        if sub_list==None:
+        if sub_list is None:
             sub_list=params.groups.keys()
 
         self.params=params
@@ -270,7 +324,7 @@ class frontendDicts(cvWDictFile.frontendDicts):
         return
 
     def populate(self,params=None): # will update params (or self.params)
-        if params==None:
+        if params is None:
             params=self.params
         
         self.main_dicts.populate(params)
@@ -283,7 +337,7 @@ class frontendDicts(cvWDictFile.frontendDicts):
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
         if self.monitor_dir!=other.monitor_dir:
-            raise RuntimeError,"Cannot change monitor base_dir! '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
+            print "WARNING: monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
         
         return cvWDictFile.frontendDicts.reuse(self,other)
 
@@ -315,11 +369,11 @@ class frontendDicts(cvWDictFile.frontendDicts):
 # file as described by Params.file_defaults
 def add_file_unparsed(file,dicts):
     absfname=file.absfname
-    if absfname==None:
+    if absfname is None:
         raise RuntimeError, "Found a file element without an absname: %s"%file
     
     relfname=file.relfname
-    if relfname==None:
+    if relfname is None:
         relfname=os.path.basename(absfname) # defualt is the final part of absfname
     if len(relfname)<1:
         raise RuntimeError, "Found a file element with an empty relfname: %s"%file
@@ -362,11 +416,11 @@ def add_file_unparsed(file,dicts):
             raise RuntimeError, "A file cannot be untarred if it is not constant: %s"%file
 
         wnsubdir=file.untar_options.dir
-        if wnsubdir==None:
+        if wnsubdir is None:
             wnsubdir=string.split(relfname,'.',1)[0] # deafult is relfname up to the first .
 
         config_out=file.untar_options.absdir_outattr
-        if config_out==None:
+        if config_out is None:
             config_out="FALSE"
         cond_attr=file.untar_options.cond_attr
 
@@ -393,7 +447,7 @@ def add_attr_unparsed(attr_name,params,dicts,description):
 def add_attr_unparsed_real(attr_name,params,dicts):
     attr_obj=params.attrs[attr_name]
     
-    if attr_obj.value==None:
+    if attr_obj.value is None:
         raise RuntimeError, "Attribute '%s' does not have a value: %s"%(attr_name,attr_obj)
 
     is_parameter=eval(attr_obj.parameter,{},{})
@@ -403,10 +457,7 @@ def add_attr_unparsed_real(attr_name,params,dicts):
     if is_parameter:
         dicts['params'].add_extended(attr_name,is_expr,attr_val)
     else:
-        if is_expr:
-            RuntimeError, "Expression '%s' is not a parameter!"%attr_name
-        else:
-            dicts['consts'].add(attr_name,attr_val)
+        dicts['consts'].add(attr_name,attr_val)
 
     do_glidein_publish=eval(attr_obj.glidein_publish,{},{})
     do_job_publish=eval(attr_obj.job_publish,{},{})
@@ -437,13 +488,17 @@ def populate_frontend_descript(work_dir,
                                params):
         # if a user does not provide a file name, use the default one
         down_fname=params.downtimes.absfname
-        if down_fname==None:
+        if down_fname is None:
             down_fname=os.path.join(work_dir,'frontend.downtimes')
 
         frontend_dict.add('FrontendName',params.frontend_name)
         frontend_dict.add('WebURL',params.web_url)
+        if hasattr(params,"monitoring_web_url") and (params.monitoring_web_url is not None):
+            frontend_dict.add('MonitoringWebURL',params.monitoring_web_url)
+        else:
+            frontend_dict.add('MonitoringWebURL',params.web_url.replace("stage","monitor"))
 
-        if params.security.classad_proxy==None:
+        if params.security.classad_proxy is None:
             raise RuntimeError, "Missing security.classad_proxy"
         params.subparams.data['security']['classad_proxy']=os.path.abspath(params.security.classad_proxy)
         if not os.path.isfile(params.security.classad_proxy):
@@ -482,7 +537,7 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
                             sub_name,sub_params):
     # if a user does not provide a file name, use the default one
     down_fname=sub_params.downtimes.absfname
-    if down_fname==None:
+    if down_fname is None:
         down_fname=os.path.join(work_dir,'group.downtimes')
 
     group_descript_dict.add('GroupName',sub_name)
@@ -498,6 +553,8 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
     group_descript_dict.add('CurbIdleVMsPerEntry',sub_params.config.idle_vms_per_entry.curb)
     group_descript_dict.add('MaxRunningTotal',sub_params.config.running_glideins_total.max)
     group_descript_dict.add('CurbRunningTotal',sub_params.config.running_glideins_total.curb)
+    if (sub_params.attrs.has_key('GLIDEIN_Glexec_Use')):
+        group_descript_dict.add('GLIDEIN_Glexec_Use',sub_params.attrs['GLIDEIN_Glexec_Use']['value'])
 
 
 #####################################################
@@ -516,7 +573,7 @@ def populate_common_descript(descript_dict,        # will be modified
              (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'REQUIRED') and
              (param_tname == 'factory') ):
             ma_arr.append(('GLEXEC_BIN', 's'))
-            qry_expr = "(%s) && (GLEXEC_BIN=!=UNDEFINED)" % qry_expr
+            qry_expr = '(%s) && (GLEXEC_BIN=!=UNDEFINED) && (GLEXEC_BIN=!="NONE")' % qry_expr
 
         descript_dict.add('%sQueryExpr'%str_tname,qry_expr)
 
@@ -529,7 +586,7 @@ def populate_common_descript(descript_dict,        # will be modified
 
         descript_dict.add('%sMatchAttrs'%str_tname,repr(ma_arr))
 
-    if params.security.security_name!=None:
+    if params.security.security_name is not None:
         descript_dict.add('SecurityName',params.security.security_name)
 
     collectors=[]
@@ -546,7 +603,7 @@ def populate_common_descript(descript_dict,        # will be modified
         schedds.append(el['fullname'])
     descript_dict.add('JobSchedds',string.join(schedds,','))
 
-    if params.security.proxy_selection_plugin!=None:
+    if params.security.proxy_selection_plugin is not None:
         descript_dict.add('ProxySelectionPlugin',params.security.proxy_selection_plugin)
 
     if len(params.security.proxies)>0:
@@ -554,54 +611,71 @@ def populate_common_descript(descript_dict,        # will be modified
         proxy_refresh_scripts={}
         proxy_security_classes={}
         for pel in params.security.proxies:
-            if pel['absfname']==None:
+            if pel['absfname'] is None:
                 raise RuntimeError,"All proxies need a absfname!"
-            if pel['pool_count']==None:
+            if pel['pool_count'] is None:
                 # only one
                 proxies.append(pel['absfname'])
-                if pel['proxy_refresh_script']!=None:
+                if pel['proxy_refresh_script']is not None:
                     proxy_refresh_scripts[pel['absfname']]=pel['proxy_refresh_script']
-                if pel['security_class']!=None:
+                if pel['security_class']is not None:
                     proxy_security_classes[pel['absfname']]=pel['security_class']
             else: #pool
                 pool_count=int(pel['pool_count'])
                 for i in range(pool_count):
                     absfname="%s%s" % (pel['absfname'], str(i+1))
                     proxies.append(absfname)
-                    if pel['proxy_refresh_script']!=None:
+                    if pel['proxy_refresh_script']is not None:
                         proxy_refresh_scripts[absfname]=pel['proxy_refresh_script']
-                    if pel['security_class']!=None:
+                    if pel['security_class']is not None:
                         proxy_security_classes[absfname]=pel['security_class']
 
         descript_dict.add('Proxies',repr(proxies))
         if len(proxy_refresh_scripts.keys())>0:
-            descript_dict.add('ProxyRefreshScripts',repr(proxy_refresh_scripts))
+            descript_dict.add('ProxyRefreshScripts',
+                              repr(proxy_refresh_scripts))
         if len(proxy_security_classes.keys())>0:
-            descript_dict.add('ProxySecurityClasses',repr(proxy_security_classes))
+            descript_dict.add('ProxySecurityClasses',
+                              repr(proxy_security_classes))
 
     match_expr = params.match.match_expr
-    if ( (params.attrs.has_key('GLIDEIN_Glexec_Use')) and 
-         (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'REQUIRED') ):
-        match_expr = '(%s) and (glidein["attrs"]["GLEXEC_BIN"] != "NONE")' % match_expr
+
+    if (params.attrs.has_key('GLIDEIN_Glexec_Use')):
+        descript_dict.add('GLIDEIN_Glexec_Use',
+                          params.attrs['GLIDEIN_Glexec_Use']['value'])
+        # Based on the value GLIDEIN_Glexec_Use consider the entries as follows
+        # REQUIRED: Entries with GLEXEC_BIN set
+        # OPTIONAL: Consider all entries irrespective of their GLEXEC config
+        # NEVER   : Consider entries that do not want glidein to use GLEXEC
+        if (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'REQUIRED'):
+            match_expr = '(%s) and (glidein["attrs"].get("GLEXEC_BIN", "NONE") != "NONE")' % match_expr
+        elif (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'NEVER'):
+            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_REQUIRE_GLEXEC_USE", "False") == "False")' % match_expr
+
     descript_dict.add('MatchExpr', match_expr)
 
 
 #####################################################
 # Returns a string usable for GLIDEIN_Collector
 def calc_glidein_collectors(collectors):
-    collector_nodes=[]
-    for el in collectors:
-        is_secondary=eval(el.secondary)
-        if not is_secondary:
-            continue # only consider secondary collectors here
-        collector_nodes.append(el.node)
-    if len(collector_nodes)!=0:
-        return string.join(collector_nodes,",")
+    collector_nodes = {}
+    glidein_collectors = []
 
-    # no secondard nodes, will have to use the primary ones
     for el in collectors:
-        collector_nodes.append(el.node)
-    return string.join(collector_nodes,",")
+        if not collector_nodes.has_key(el.group):
+            collector_nodes[el.group] = {'primary': [], 'secondary': []}
+        if eval(el.secondary):
+            collector_nodes[el.group]['secondary'].append(el.node)
+        else:
+            collector_nodes[el.group]['primary'].append(el.node)
+
+    for group in collector_nodes.keys():
+        if len(collector_nodes[group]['secondary']) > 0:
+            glidein_collectors.append(string.join(collector_nodes[group]['secondary'], ","))
+        else:
+            glidein_collectors.append(string.join(collector_nodes[group]['primary'], ","))
+    return string.join(glidein_collectors, ";")
+
 
 #####################################################
 # Populate gridmap to be used by the glideins
@@ -609,14 +683,14 @@ def populate_gridmap(params,gridmap_dict):
     collector_dns=[]
     for el in params.collectors:
         dn=el.DN
-        if dn==None:
+        if dn is None:
             raise RuntimeError,"DN not defined for pool collector %s"%el.node
         if not (dn in collector_dns): #skip duplicates
             collector_dns.append(dn)
             gridmap_dict.add(dn,'collector%i'%len(collector_dns))
 
     # Add also the frontend DN, so it is easier to debug
-    if params.security.proxy_DN!=None:
+    if params.security.proxy_DN is not None:
         if not (params.security.proxy_DN in collector_dns):
             gridmap_dict.add(params.security.proxy_DN,'frontend')
             
@@ -624,7 +698,7 @@ def populate_gridmap(params,gridmap_dict):
 #####################################################
 # Populate security values
 def populate_main_security(client_security,params):
-    if params.security.proxy_DN==None:
+    if params.security.proxy_DN is None:
         raise RuntimeError,"DN not defined for classad_proxy"    
     client_security['proxy_DN']=params.security.proxy_DN
     
@@ -632,7 +706,7 @@ def populate_main_security(client_security,params):
     collector_nodes=[]
     for el in params.collectors:
         dn=el.DN
-        if dn==None:
+        if dn is None:
             raise RuntimeError,"DN not defined for pool collector %s"%el.node
         is_secondary=eval(el.secondary)
         if is_secondary:
@@ -648,12 +722,12 @@ def populate_group_security(client_security,params,sub_params):
     factory_dns=[]
     for el in params.match.factory.collectors:
         dn=el.DN
-        if dn==None:
+        if dn is None:
             raise RuntimeError,"DN not defined for factory %s"%el.node
         factory_dns.append(dn)
     for el in sub_params.match.factory.collectors:
         dn=el.DN
-        if dn==None:
+        if dn is None:
             raise RuntimeError,"DN not defined for factory %s"%el.node
         # don't worry about conflict... there is nothing wrong if the DN is listed twice
         factory_dns.append(dn)
@@ -662,15 +736,24 @@ def populate_group_security(client_security,params,sub_params):
     schedd_dns=[]
     for el in params.match.job.schedds:
         dn=el.DN
-        if dn==None:
+        if dn is None:
             raise RuntimeError,"DN not defined for schedd %s"%el.fullname
         schedd_dns.append(dn)
     for el in sub_params.match.job.schedds:
         dn=el.DN
-        if dn==None:
+        if dn is None:
             raise RuntimeError,"DN not defined for schedd %s"%el.fullname
         # don't worry about conflict... there is nothing wrong if the DN is listed twice
         schedd_dns.append(dn)
     client_security['schedd_DNs']=schedd_dns
 
-    
+#####################################################
+# Populate attrs
+# This is a digest of the other values
+
+def populate_common_attrs(dicts):
+    # there should be no conflicts, so does not matter in which order I put them together
+    for k in dicts['params'].keys:
+        dicts['attrs'].add(k,dicts['params'].get_true_val(k))
+    for k in dicts['consts'].keys:
+        dicts['attrs'].add(k,dicts['consts'].get_typed_val(k))

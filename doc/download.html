@@ -92,28 +92,77 @@ Factory:
 
       <tr style="vertical-align:top;">
         <td>Stable Series</td>
-        <td>v2_5_2_1</td>
-        <td>October 07, 2011</td>
+        <td>v2_6_3</td>
+        <td>November 02, 2012</td>
         <td>
-          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_2_1_factory.tgz">glideinWMS Factory</a>]
-          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_2_1_frontend.tgz">glideinWMS Frontend</a>]
-          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_2_1.tgz">glideinWMS full download</a>]
-          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/corral-2.5.2.tar.gz">Corral Frontend</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_6_3_factory.tgz">glideinWMS Factory</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_6_3_frontend.tgz">glideinWMS Frontend</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_6_3.tgz">glideinWMS full download</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/corral-2.6.3.tar.gz">Corral Frontend</a>]
         </td>
       </tr>
       <tr style="vertical-align:top;">
         <td>Development Series</td>
-        <td>-</td>
-        <td>-</td>
-        <td>Use Current Stable Series instead</td>
+        <td>v3_0</td>
+        <td>April 5, 2012</td>
+        <td>
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_0_factory.tgz">glideinWMS Factory</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_0_frontend.tgz">glideinWMS Frontend</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_0.tgz">glideinWMS full download</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/corral-3.0.tar.gz">Corral Frontend</a>]
+        </td>
       </tr>
     </table>
+    <br/>
+    <h4>NOTE: UPGRADING TO CONDOR 7.8.2</h4>
+    <p> Following information only applies to glideinwms deployments done using ini-based installer or rpms with one or more secondary schedds in wmspool and/or submit services. This does not apply to installations using traditional Q & A based glideinwms installer.</p>
 
+    <b>Ini-Installer:</b>
+    <ul>
+      <li> If your wms pool and/or submit service has one or more secondary schedds and you want to upgrade to condor 7.8.2, we strongly recommend to do a fresh install of these services using the ini-installer to avoid triggering a bug in condor that corrupts job queues.</li>
+
+      <li> However if you still decide to upgrade condor for wms pool and/or submit services with one or more secondary schedds you need to perform following steps -
+        <ol>
+          <li> Stop condor daemons before upgrading to new condor.</li>
+          <li> Backup the spool area used by each condor schedd. To find spool area run following command with right condor in your environment. This will help in recovering your setup in case of any problem.
+            <pre>condor_config_val -dump | grep -i "SPOOL ="</pre>
+          </li>
+          <li>After upgrading to condor 7.8.2 verify that the condor configuration has correct information for JOB_QUEUE_LOG for every secondary schedd. For example, every secondary schedd should have its JOB_QUEUE_LOG explicitly defined and separate from other schedds as follows -
+            <pre>SCHEDD.SCHEDDJOBS2.JOB_QUEUE_LOG = $(SCHEDD.SCHEDDJOBS2.SPOOL)/job_queue.log<br>SCHEDD.SCHEDDJOBS3.JOB_QUEUE_LOG = $(SCHEDD.SCHEDDJOBS3.SPOOL)/job_queue.log<br>...</pre>
+           <b>Failure to do so will corrupt the condor queues.</b>
+          <li>Start condor daemons
+        </ol>
+      </li>
+    </ul>
+
+    <b>RPMs:</b>
+    <ul>
+      <li> If your wms pool and/or submit service has one or more secondary schedds and you want to upgrade to condor 7.8.2, we strongly recommend to do a fresh install of these services using the ini-installer to avoid triggering a bug in condor that corrupts job queues.</li>
+
+      <li> However if you still decide to upgrade condor for wms pool and/or submit services with one or more secondary schedds you need to perform following steps -
+        <ol>
+          <li>Stop condor daemons before upgrading to new condor.</li>
+          <li> Backup the spool area used by each condor schedd. To find spool area run following command with right condor in your environment. This will help in recovering your setup in case of any problem.
+            <pre>condor_config_val -dump | grep -i "SPOOL ="</pre>
+          </li>
+          <li>Merge relevant changes to JOB_QUEUE_LOG based on the number of schedds you have from the condor config file /etc/condor/config.d/02_gwms_schedds.config.rpmnew to config file /etc/condor/config.d/02_gwms_schedds.config. For example, every secondary schedd should have its JOB_QUEUE_LOG explicitly defined and separate from other schedds as follows -
+            <pre>SCHEDD.SCHEDDJOBS2.JOB_QUEUE_LOG = $(SCHEDD.SCHEDDJOBS2.SPOOL)/job_queue.log<br>SCHEDD.SCHEDDJOBS3.JOB_QUEUE_LOG = $(SCHEDD.SCHEDDJOBS3.SPOOL)/job_queue.log<br>...</pre>
+           <b>Failure to do so will corrupt the condor queues.</b>
+          <li>Start condor daemons
+        </ol>
+      </li>
+    </ul>
+
+    <h4>glideinWMS Frontend RPM</h4>
+    glideinWMS Frontend RPM is available for download from the OSG RPM repository. Refer to <a href="https://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFrontend">OSG glideinwms frontend installation guide</a> for details.
+    <br/>
+    <h4>glideinWMS Factory RPM</h4>
+    glideinWMS Factory RPM is available for download from the OSG RPM repository. Refer to <a href="https://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFactory">OSG glideinwms factory installation guide</a> for details.
     <a name="download" />
     <h2>Downloading from Repository </h2>
     The code is maintained in <a target="_blank" href="https://cdcvs.fnal.gov/redmine/projects/glideinwms/repository">GIT</a>. To checkout the version from git, run following commands
     <br><br>
-    <pre>git clone http://cdcvs.fnal.gov/projects/glideinwms<br>git checkout v2_5_2_1</pre>
+    <pre>git clone http://cdcvs.fnal.gov/projects/glideinwms<br>git checkout v2_6_3</pre>
 
 </div>
 <div class="footer">

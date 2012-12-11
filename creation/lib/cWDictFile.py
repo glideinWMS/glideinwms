@@ -23,7 +23,7 @@ class DictFile:
                  fname_idx=None):      # if none, use fname
         self.dir=dir
         self.fname=fname
-        if fname_idx==None:
+        if fname_idx is None:
             fname_idx=fname
         self.fname_idx=fname_idx
         
@@ -100,14 +100,15 @@ class DictFile:
         if save_only_if_changed and (not self.changed):
             return # no change -> don't save
 
-        if dir==None:
+        if dir is None:
             dir=self.dir
-        if fname==None:
+        if fname is None:
             fname=self.fname
-        if sort_keys==None:
+        if sort_keys is None:
             sort_keys=self.sort_keys
 
-
+        if not os.path.exists(dir):
+            os.makedirs(dir)
         filepath=os.path.join(dir,fname)
         try:
             fd=open(filepath,"w")
@@ -123,11 +124,11 @@ class DictFile:
     def save_into_fd(self, fd,
                      sort_keys=None,set_readonly=True,reset_changed=True,
                      want_comments=True):
-        if sort_keys==None:
+        if sort_keys is None:
             sort_keys=self.sort_keys
 
         header=self.file_header(want_comments)
-        if header!=None:
+        if header is not None:
             fd.write("%s\n"%header)
         if sort_keys:
             keys=self.keys[0:]
@@ -137,7 +138,7 @@ class DictFile:
         for k in keys:
             fd.write("%s\n"%self.format_val(k,want_comments))
         footer=self.file_footer(want_comments)
-        if footer!=None:
+        if footer is not None:
             fd.write("%s\n"%footer)
 
         if set_readonly:
@@ -161,16 +162,20 @@ class DictFile:
              change_self=True,        # if dir and/or fname are not specified, use the defaults specified in __init__, if they are, and change_self is True, change the self.
              erase_first=True,        # if True, delete old content first
              set_not_changed=True):   # if True, set self.changed to False
-        if dir==None:
+        if dir is None:
             dir=self.dir
-        if fname==None:
+        if fname is None:
             fname=self.fname
 
         filepath=os.path.join(dir,fname)
         try:
+            if not os.path.exists(dir):
+                os.makedirs(dir)
             fd=open(filepath,"r")
         except IOError,e:
-            raise RuntimeError, "Error opening %s: %s"%(filepath,e)
+            print "Error opening %s: %s"%(filepath,e)
+            print "Assuming blank, and re-creating..."
+            return
         try:
             try:
                 self.load_from_fd(fd,erase_first,set_not_changed)
@@ -228,7 +233,7 @@ class DictFile:
             return False
         if compare_fname and (self.fname!=other.fname):
             return False
-        if compare_keys==None:
+        if compare_keys is None:
             compare_keys=self.order_matters
         if compare_keys and (self.keys!=other.keys):
             return False
@@ -346,7 +351,7 @@ class DictFileTwoKeys(DictFile): # both key and val are keys
             return False
         if compare_fname and (self.fname!=other.fname):
             return False
-        if compare_keys==None:
+        if compare_keys is None:
             compare_keys=self.order_matters
         if compare_keys and ((self.keys!=other.keys) or (self.keys2!=other.keys2)):
             return False
@@ -381,7 +386,7 @@ class SHA1DictFile(DictFile):
     def add_from_file(self,filepath,allow_overwrite=False,
                       key=None): # if key==None, use basefname
         sha1=hashCrypto.extract_sha1(filepath)
-        if key==None:
+        if key is None:
             key=os.path.basename(filepath)
         self.add(key,sha1,allow_overwrite)
 
@@ -414,9 +419,9 @@ class SummarySHA1DictFile(DictFile):
                       allow_overwrite=False,
                       key=None):   # if key==None, use basefname
         sha1=hashCrypto.extract_sha1(filepath)
-        if key==None:
+        if key is None:
             key=os.path.basename(filepath)        
-        if fname2==None:
+        if fname2 is None:
             fname2=os.path.basename(filepath)        
         DictFile.add(self,key,(sha1,fname2),allow_overwrite)
 
@@ -473,7 +478,7 @@ class SimpleFileDictFile(DictFile):
             fd.close()
 
     def format_val(self,key,want_comments):
-        if self.vals[key][0]!=None:
+        if self.vals[key][0] is not None:
             return "%s \t%s"%(key,self.vals[key][0])
         else:
             return key
@@ -615,7 +620,8 @@ class FileDictFile(SimpleFileDictFile):
         return
             
 # will convert values into python format before writing them out
-class ReprDictFile(DictFile):
+#   given that it does not call any parent methods, implement an interface first
+class ReprDictFileInterface:
     def format_val(self,key,want_comments):
         return "%s \t%s"%(key,repr(self.vals[key]))
 
@@ -635,10 +641,45 @@ class ReprDictFile(DictFile):
             val=arr[1]
         return self.add(key,eval(val))
 
+    # fake init to make pylint happy
+    def interface_fake_init(self):
+        self.vals={}
+        self.add=lambda x,y:True
+        raise NotImplementedError, "This function must never be called"
+
+#   this one actually has the full semantics
+class ReprDictFile(ReprDictFileInterface,DictFile):
+    pass
+
 # will hold only strings
 class StrDictFile(DictFile):
     def add(self,key,val,allow_overwrite=False):
         DictFile.add(self,key,str(val),allow_overwrite)
+
+# will save only strings
+# while populating, it may hold other types
+# not guaranteed to have typed values on (re-)load
+class StrWWorkTypeDictFile(StrDictFile):
+    def __init__(self,dir,fname,sort_keys=False,order_matters=False,
+                 fname_idx=None):      # if none, use fname
+        StrDictFile.__init__(self,dir,fname,sort_keys,order_matters,fname_idx)
+        self.typed_vals={}
+                             
+    def erase(self):
+        StrDictFile.erase(self)
+        self.typed_vals={}
+
+    def remove(self,key,fail_if_missing=False):
+        StrDictFile.remove(self,key,fail_if_missing)
+        if self.typed_vals.has_key(key):
+            del self.typed_vals[key]
+        
+    def get_typed_val(self,key):
+        return self.typed_vals[key]
+
+    def add(self,key,val,allow_overwrite=False):
+        StrDictFile.add(self,key,val,allow_overwrite)
+        self.typed_vals[key]=val
 
 # values are (Type,Default,CondorName,Required,Export,UserName)
 class VarsDictFile(DictFile):
@@ -685,10 +726,10 @@ class VarsDictFile(DictFile):
         else:
             type_str='I'
             
-        if (val_default==None) or (val_default==False):
+        if (val_default is None) or (val_default==False):
             val_default='-'
             
-        if (condor_name==None) or (condor_name==False):
+        if (condor_name is None) or (condor_name==False):
             condor_name="+"
             
         if required:
@@ -701,7 +742,7 @@ class VarsDictFile(DictFile):
         else:
             export_condor_str='N'
 
-        if (user_name==None) or (user_name==False):
+        if (user_name is None) or (user_name==False):
             user_name='-'
         elif user_name==True:
             user_name='+'
@@ -779,11 +820,11 @@ class ExeFile(SimpleFile):
         if save_only_if_changed and (not self.changed):
             return # no change -> don't save
 
-        if dir==None:
+        if dir is None:
             dir=self.dir
-        if fname==None:
+        if fname is None:
             fname=self.fname
-        if sort_keys==None:
+        if sort_keys is None:
             sort_keys=self.sort_keys
 
 
@@ -1298,7 +1339,7 @@ class fileDicts:
                 self.sub_dicts[k].reuse(other.sub_dicts[k])
             else:
                 # nothing to reuse, but must create dir
-                self.sub_dicts[k].create_dirs()
+                self.sub_dicts[k].create_dirs(fail_if_exists=False)
 
     ###########
     # PRIVATE

@@ -18,6 +18,7 @@ import condorManager
 import os
 import time
 import string
+import fcntl
 
 ############################################################
 #
@@ -71,6 +72,9 @@ class FactoryConfig:
         # warning log files
         # default is FakeLog, any other value must implement the write(str) method
         self.warning_log = FakeLog()
+
+        # Location of lock directory
+        self.lock_dir = "."
 
 
 # global configuration of the module
@@ -133,11 +137,11 @@ def findWork(factory_name, glidein_name, entry_name,
     
     status_constraint='(GlideinMyType=?="%s") && (ReqGlidein=?="%s@%s@%s")'%(factoryConfig.client_id,entry_name,glidein_name,factory_name)
 
-    if supported_signtypes!=None:
+    if supported_signtypes is not None:
         status_constraint+=' && stringListMember(%s%s,"%s")'%(factoryConfig.client_web_prefix,factoryConfig.client_web_signtype_suffix,string.join(supported_signtypes,","))
 
     if get_only_matching:
-        if pub_key_obj!=None:
+        if pub_key_obj is not None:
             # get only classads that have my key or no key at all
             # any other key will not work
             status_constraint+=' && (((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined) && (ReqEncIdentity=!=Undefined)) || (ReqPubKeyID=?=Undefined))'%pub_key_obj.get_pub_key_id()
@@ -148,14 +152,35 @@ def findWork(factory_name, glidein_name, entry_name,
                 # the proxy is not allowed, so ignore such requests 
                 status_constraint+=' && (GlideinEncParamx509_proxy =?= UNDEFINED) && (GlideinEncParamx509_proxy_0 =?= UNDEFINED)'
 
-    if additional_constraints!=None:
+    if additional_constraints is not None:
         status_constraint="(%s)&&(%s)"%(status_constraint,additional_constraints)
 
     status=condorMonitor.CondorStatus("any")
     status.require_integrity(True) #important, this dictates what gets submitted
     status.glidein_name=glidein_name
     status.entry_name=entry_name
-    status.load(status_constraint)
+
+    # serialize access to the Collector accross all the processes
+    # these is a single Collector anyhow
+    lock_fname=os.path.join(factoryConfig.lock_dir,"gfi_status.lock")
+    if not os.path.exists(lock_fname): #create a lock file if needed
+        try:
+            fd=open(lock_fname,"w")
+            fd.close()
+        except:
+            # could be a race condition
+            pass
+    
+    fd=open(lock_fname,"r+")
+    try:
+        fcntl.flock(fd,fcntl.LOCK_EX)
+        try:
+            status.load(status_constraint)
+        finally:
+            fcntl.flock(fd,fcntl.LOCK_UN)
+    finally:
+        fd.close()
+
 
     data=status.fetchStored()
 
@@ -177,7 +202,7 @@ def findWork(factory_name, glidein_name, entry_name,
                     continue # skip reserved names
                 if attr[:plen]==prefix:
                     el[key][attr[plen:]]=kel[attr]
-        if pub_key_obj!=None:
+        if pub_key_obj is not None:
             if kel.has_key('ReqPubKeyID'):
                 try:
                     sym_key_obj=pub_key_obj.extract_sym_key(kel['ReqEncKeyCode'])
@@ -191,7 +216,7 @@ def findWork(factory_name, glidein_name, entry_name,
         else:
             sym_key_obj=None # have no key, will not decrypt
 
-        if sym_key_obj!=None:
+        if sym_key_obj is not None:
             try:
                 enc_identity=sym_key_obj.decrypt_hex(kel['ReqEncIdentity'])
             except:
@@ -210,7 +235,7 @@ def findWork(factory_name, glidein_name, entry_name,
                     continue # skip reserved names
                 if attr[:plen]==prefix:
                     el[key][attr[plen:]]=None # define it even if I don't understand the content
-                    if sym_key_obj!=None:
+                    if sym_key_obj is not None:
                         try:
                             el[key][attr[plen:]]=sym_key_obj.decrypt_hex(kel[attr])
                         except:
@@ -236,6 +261,8 @@ def findWork(factory_name, glidein_name, entry_name,
 #
 start_time=time.time()
 advertizeGlideinCounter=0
+advertizeGFCCounter = {}
+
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
@@ -283,11 +310,11 @@ def advertizeGlidein(factory_name, glidein_name, entry_name,
             fd.write('GlideinName = "%s"\n'%glidein_name)
             fd.write('EntryName = "%s"\n'%entry_name)
             fd.write('%s = "%s"\n'%(factoryConfig.factory_signtype_id,string.join(supported_signtypes,',')))
-            if pub_key_obj!=None:
+            if pub_key_obj is not None:
                 fd.write('PubKeyID = "%s"\n'%pub_key_obj.get_pub_key_id())
                 fd.write('PubKeyType = "%s"\n'%pub_key_obj.get_pub_key_type())
                 fd.write('PubKeyValue = "%s"\n'%string.replace(pub_key_obj.get_pub_key_value(),'\n','\\n'))
-                if allowed_proxy_source!=None:
+                if allowed_proxy_source is not None:
                     fd.write('GlideinAllowx509_Proxy = %s\n'%('frontend' in allowed_proxy_source))
                     fd.write('GlideinRequirex509_Proxy = %s\n'%(not ('factory' in allowed_proxy_source)))
             fd.write('DaemonStartTime = %li\n'%start_time)
@@ -440,7 +467,7 @@ class MultiAdvertizeGlideinClientMonitoring:
 
             if len(error_arr)>0:
                 raise MultiExeError, error_arr
-        
+
 
 
 ##############################
@@ -455,13 +482,13 @@ def createGlideinClientMonitoringFile(fname,
                                       glidein_attrs={},client_params={},client_monitors={},
                                       do_append=False):
     global factoryConfig
-    #global advertizeGlideinCounter
+    global advertizeGFCCounter
 
     if do_append:
         open_type="a"
     else:
         open_type="w"
-        
+
     fd=file(fname,open_type)
     try:
         try:
@@ -476,8 +503,11 @@ def createGlideinClientMonitoringFile(fname,
             fd.write('ReqClientName = "%s"\n'%client_int_name)
             fd.write('ReqClientReqName = "%s"\n'%client_int_req)
             #fd.write('DaemonStartTime = %li\n'%start_time)
-            #fd.write('UpdateSequenceNumber = %i\n'%advertizeGlideinCounter)
-            #advertizeGlideinCounter+=1
+            if advertizeGFCCounter.has_key(client_name):
+                advertizeGFCCounter[client_name] += 1
+            else:
+                advertizeGFCCounter[client_name] = 0
+            fd.write('UpdateSequenceNumber = %i\n'%advertizeGFCCounter[client_name])
 
             # write out both the attributes, params and monitors
             for (prefix,data) in ((factoryConfig.glidein_attr_prefix,glidein_attrs),
@@ -574,8 +604,31 @@ def deadvertizeFactoryClientMonitoring(factory_name,glidein_name):
 #
 ############################################################
 
+# serialize access to the Collector accross all the processes
+# these is a single Collector anyhow
 def exe_condor_advertise(fname,command,
                          is_multi=False):
-    return condorManager.condorAdvertise(fname,command,factoryConfig.advertise_use_tcp,is_multi)
+    global factoryConfig
+
+    lock_fname=os.path.join(factoryConfig.lock_dir,"gfi_advertize.lock")
+    if not os.path.exists(lock_fname): #create a lock file if needed
+        try:
+            fd=open(lock_fname,"w")
+            fd.close()
+        except:
+            # could be a race condition
+            pass
+    
+    fd=open(lock_fname,"r+")
+    try:
+        fcntl.flock(fd,fcntl.LOCK_EX)
+        try:
+            ret = condorManager.condorAdvertise(fname,command,factoryConfig.advertise_use_tcp,is_multi)
+        finally:
+            fcntl.flock(fd,fcntl.LOCK_UN)
+    finally:
+        fd.close()
+
+    return ret
 
     

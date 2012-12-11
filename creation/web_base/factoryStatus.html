@@ -127,6 +127,11 @@ Description:
       var local_window_max=0;
       var coming_from_defaults = false;
       var timezone_num=0;
+      {
+        // find the local time
+        var d= new Date();
+        timezone_num=-d.getTimezoneOffset()/60;
+      }
 
       // Remove the Javascript warning
       document.getElementById("infotable").deleteRow(0);
@@ -229,14 +234,14 @@ Description:
       // when a new file is selected
       function update_plot() {
         var gtype_DSs=new Object();
-        gtype_DSs['running']=new Array('StatusRunning','ReqMaxGlideins','ClientGlideTotal','ClientGlideRunning','ClientGlideIdle','ClientJobsRunning','ClientJobsIdle','ReqIdle','StatusIdle','ClientInfoAge');
+        gtype_DSs['running']=new Array('StatusRunning','ReqMaxRun','ClientGlideTotal','ClientGlideRunning','ClientGlideIdle','ClientJobsRunning','ClientJobsIdle','ReqIdle','StatusIdle','ClientInfoAge');
         gtype_DSs['idle']=new Array('ReqIdle','StatusIdle','StatusWait','StatusPending','ClientJobsIdle','ClientInfoAge');
         gtype_DSs['other']=new Array('StatusHeld','StatusStageIn','StatusStageOut','StatusIdleOther','StatusIdle');
 
         gtype_formats=new Object();
         gtype_formats['running']={'StatusRunning':{ title: 'Running glidein jobs', label:'Running',color: "#00f800", checked:true, 
                                                     lines: { show: true, fill: true, fillColor:"#00ff00"} },
-                                  'ReqMaxGlideins':{title: 'Max requested glideins', label:'Max requested', color: "#c00000"},
+                                  'ReqMaxRun':{title: 'Max requested glideins', label:'Max requested', color: "#c00000"},
                                   'ClientGlideTotal':{title: 'Glideins at Collector', label:'Registered', color: "#000000"},
                                   'ClientGlideRunning':{title: 'Glideins claimed by user jobs', label:'Claimed', color: "#8000ff", checked:true},
                                   'ClientGlideIdle':{title: 'Glideins not matched', label:'Unmatched', color: "#ffff00", checked:true},
@@ -498,6 +503,7 @@ Description:
 		for(i = 0; i< paramSpecArry.length; i++)
 		{
 			counter = 2; 
+			group_sep_idx = groups_starting_idx + 2;
 			if(i == 0)
 			{
 				for(entry in entries)
@@ -530,6 +536,9 @@ Description:
 						document.getElementById("entries").selectedIndex = 0; 
                                                 setFrontendMenu(entry);
 						break;  	
+					}
+					if (counter == group_sep_idx) {
+						counter++;
 					}
 					counter++; 
 				}

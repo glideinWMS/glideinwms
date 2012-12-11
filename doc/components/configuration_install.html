@@ -116,7 +116,7 @@ option on all nodes to resolve any errors affecting dependencies.
 The script used to perform the installations is <i>glideinWMS/install/manage-glideins</i>.  
 <p></p>
 
-<b>./manage-glideins --OPTION SERVICE --ini INIFILE [--ssh]  [--debug]</b><br/>
+<b>./manage-glideins --OPTION SERVICE --ini INIFILE [--ssh [user]]  [--debug]</b><br/>
 <ul>
 This usage can be used to install, start, stop or check the status of
 the glidein services based on the configuration in the specified ini file.
@@ -145,7 +145,8 @@ the glidein services based on the configuration in the specified ini file.
 </p><p>
 <b>--ssh</b>: allows the start/stop/status actions to be performed 
 remotely providing the user has valid access to the other service's node via 
-'ssh -l' using the service's username.
+'ssh -l' using the service's username.  The '--ssh' will use the ini file
+specified username attribute unless an optional 'user' is specified.
 </p><p>
 <p>
 <b>--debug</b>: When used with start/stop/status actions, it will
@@ -182,6 +183,16 @@ and a reconfiguration performed..
 <ul>
 This option allows you to view the ini file options/values. This is especially useful
 when the DEFAULT section is used to apply values to all sections/services.
+</ul>
+
+<b>./manage-glideins --create-template SERVICE</b>
+<ul>
+This option allows you to create an ini file template for installing a single 
+service.  It contains all the required attributes for that service.  It should
+be understood that many of the validations that would normally insure a
+working installation are bypassed since those validations are normally 
+performed on the node for those services.
+
 </ul>
 </div>
 
@@ -335,7 +346,9 @@ See below for the ini file attributes that installing/running WMS collector requ
         <td>collector_port</td>
         <td>9618 (condor default)</td>
         <td>Defines the Condor Collector port. </td>
-        <td>Condor default is 9618. If multiple glidein services are installed on the same node, this should be unique of each service. </td>
+        <td>Optional: default is 9618 (Condor default)<br/>
+            If multiple glidein services are installed on the same node, this should be unique for each service. 
+        </td>
         </tr>
 
         <tr>
@@ -833,7 +846,19 @@ ires:<br/><br/>
             <td>collector_port  </td>
             <td>9618 (condor default)   </td>
             <td>Defines the Condor Collector port.  </td>
-            <td>Condor default is 9618. If multiple glidein services are installed on the same node, this should be unique of each service.</td>
+            <td>Optional: default is 9618 (Condor default)<br/>
+              If multiple glidein services are installed on the same node, this should be unique for each service. 
+        </td>
+            </tr>
+
+        <tr>
+            <td>number_of_secondary_collectors  </td>
+            <td align="center">5   </td>
+            <td>The desired number of secondary collectors to be used.  </td>
+            <td>Optional: default is 0 (zero)<br/>
+                A rough estimate is to use one collector per 100 glideins 
+                with a hard limit on 200 glideins per collector.
+            </td>
             </tr>
 
         <tr>
@@ -903,14 +928,6 @@ It must be a zipped tarball with a *.tg.tz name.
         <td>The email address to get Condor notifications in the event of a problem.</td>
         <td>Used in the condor_config.local only.    </td>
         </tr>
-
-        <tr>
-            <td>number_of_secondary_collectors  </td>
-            <td align="center">5   </td>
-            <td>The desired number of secondary collectors to be used.  </td>
-            <td>A rough estimate is to use one collector per 100 glideins 
-            with a hard limit on 200 glideins per collector.</td>
-            </tr>
 
         <tr>
           <td>install_vdt_client</td>

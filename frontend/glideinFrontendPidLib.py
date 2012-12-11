@@ -25,7 +25,7 @@ class FrontendPidSupport(pidSupport.PidSupport):
 def get_frontend_pid(startup_dir):
     pid_obj=FrontendPidSupport(startup_dir)
     pid_obj.load_registered()
-    if pid_obj.mypid==None:
+    if pid_obj.mypid is None:
         raise RuntimeError, "Frontend not running"
     return pid_obj.mypid
 
@@ -40,9 +40,9 @@ class ElementPidSupport(pidSupport.PidWParentSupport):
 def get_element_pid(startup_dir,group_name):
     pid_obj=ElementPidSupport(startup_dir,group_name)
     pid_obj.load_registered()
-    if pid_obj.mypid==None:
+    if pid_obj.mypid is None:
         raise RuntimeError, "Group element not running"
-    if pid_obj.parent_pid==None:
+    if pid_obj.parent_pid is None:
         raise RuntimeError, "Group element has no parent???"
     return (pid_obj.mypid,pid_obj.parent_pid)
 

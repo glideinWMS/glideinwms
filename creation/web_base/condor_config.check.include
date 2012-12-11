@@ -16,14 +16,16 @@ NUM_CPUS = 1
 SLOT_TYPE_1 = cpus=1, memory=100%, swap=100%, disk=100%
 NUM_SLOTS_TYPE_1 = 1
 
-HAS_MONITOR_VM=True
+HAS_MONITOR_VM=False
 IS_MONITOR_VM = False
 USES_MONITOR_STARTD = True
 
 STARTD_ATTRS = $(STARTD_ATTRS), IS_MONITOR_VM, HAS_MONITOR_VM, USES_MONITOR_STARTD, Monitoring_Name
 
 # don't start any jobs
-START=FALSE
+START=False
+WANT_HOLD=False
+PREEMPT=False
 
 IsOwner = False
 
@@ -36,4 +38,26 @@ SHUTDOWN_GRACEFUL_TIMEOUT=$(GLIDEIN_Job_Max_Time)
 # How long will it wait in an unclaimed state before exiting
 STARTD_NOCLAIM_SHUTDOWN = $(GLIDEIN_Max_Idle)
 
+
+# Set to shutdown if total idle exceeds max idle, or if the age
+# exceeds the retire time (and is idle) or is over the max walltime (todie)
+STARTD.DAEMON_SHUTDOWN = ( \
+    ((Activity=="Idle") && \
+     (TotalTimeUnclaimedIdle =!= UNDEFINED) && \
+     (GLIDEIN_Max_Idle =!= UNDEFINED)&& \
+     (TotalTimeUnclaimedIdle > GLIDEIN_Max_Idle))||\
+    ((Activity=="Idle") && (GLIDEIN_ToRetire =!= UNDEFINED) && \
+     (CurrentTime > GLIDEIN_ToRetire )) || \
+    ((GLIDEIN_ToDie =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToDie )) || \
+    ((Activity=="Idle") && \
+     (TotalTimeUnclaimedIdle=!= UNDEFINED) && \
+     (TotalTimeClaimedBusy=!= UNDEFINED) && \
+     (GLIDEIN_Max_Tail=!= UNDEFINED) && \
+     (TotalTimeUnclaimedIdle > GLIDEIN_Max_Tail)) )
+
+#
+# Shutdown the master if the startd exits.  Note that if
+# STARTD_StartTime is zero, that the startd is not currently running.
+#
+MASTER.DAEMON_SHUTDOWN = (STARTD_StartTime =?= 0)
 

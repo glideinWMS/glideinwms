@@ -50,7 +50,6 @@ frontend_options = [ "install_type",
 
 wmscollector_options = [ 
 "hostname",
-"collector_port",
 "service_name",
 "x509_gsi_dn",
 ]
@@ -71,8 +70,6 @@ usercollector_options = [
 "service_name",
 "x509_gsi_dn",
 "condor_location",
-"collector_port",
-"number_of_secondary_collectors",
 ]
 
 valid_options = { 
@@ -91,7 +88,9 @@ class VOFrontend(Condor):
     global valid_options
     self.inifile = inifile
     self.ini_section = "VOFrontend"
-    if optionsDict != None:
+    if inifile == "template":  # for creating actions not requiring ini file
+      return
+    if optionsDict is not None:
       valid_options = optionsDict
     Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
     self.daemon_list = "" 
@@ -107,19 +106,19 @@ class VOFrontend(Condor):
 
   #-- get service instances --------
   def get_wms(self):
-    if self.wms == None:
+    if self.wms is None:
       self.wms = WMSCollector.WMSCollector(self.inifile,valid_options)
   #--------------------------------
   def get_factory(self):
-    if self.factory == None:
+    if self.factory is None:
       self.factory = Factory.Factory(self.inifile,valid_options)
   #--------------------------------
   def get_usercollector(self):
-    if self.usercollector == None:
+    if self.usercollector is None:
       self.usercollector = UserCollector.UserCollector(self.inifile,valid_options)
   #--------------------------------
   def get_submit(self):
-    if self.submit == None:
+    if self.submit is None:
       self.submit = Submit.Submit(self.inifile,valid_options)
 
   #--------------------------------
@@ -246,40 +245,51 @@ class VOFrontend(Condor):
 
   #-----------------------------
   def verify_directories_empty(self):
+    """ This method attempts to clean up all directories so a fresh install
+        can be accomplished successfully.
+        It is consoldiated in a single check so as to only ask once and
+        not for each directory.
+    """
     if self.install_type == "rpm":
       return  # For RPM install we don't want to clean anything
+
+    instance_dir = "frontend_%(service)s-%(instance)s" % \
+                     { "service" : self.service_name(), 
+                       "instance" : self.glidein.instance_name(), }
+    #-- directories to check ---
     dirs = {}
-    if len(os.listdir(self.logs_dir())) > 0:
-      dirs["logs_dir"] = self.logs_dir()
-    for dir in ["monitor","stage"]:
-      subdir = os.path.join(self.glidein.web_location(),dir)
-      if os.path.isdir(subdir) and len(os.listdir(subdir)) > 0:
-        dirs["web_location/%s" % dir] = subdir
-    if len(os.listdir(self.install_location())) > 0:
-      if len(os.listdir(self.install_location())) > self.nbr_of_nested_dirs():
-        dirs["install_location"] = self.install_location()
+    dirs["logs........"] = os.path.join(self.logs_dir(),instance_dir)
+    dirs["install....."] = os.path.join(self.install_location(),instance_dir) 
+    dirs["config......"] = self.config_dir()
+    for subdir in ["monitor","stage"]:
+      dirs["web %s " % subdir] = os.path.join(self.glidein.web_location(),subdir,instance_dir)
+    #--- check them --
+    for type in dirs.keys():
+      if os.path.isdir(dirs[type]): 
+        if len(os.listdir(dirs[type])) == 0:
+          os.rmdir(dirs[type])
+          del dirs[type]  # remove from dict
+      else:
+        del dirs[type]  # it does not exist, remove from dict
+
+    #--- if all are empty, return      
     if len(dirs) == 0:
+      os.system("sleep 3")
       return  # all directories are empty
+
+    #--- See if we can remove them --- 
     common.logit("""The following directories must be empty for the install to succeed: """)
-    for option in dirs.keys():
-      common.logit("""  %(option)s: %(dir)s""" % \
-                        { "option" : option, "dir" : dirs[option] })
+    types = dirs.keys()
+    types.sort()
+    for type in types:
+      common.logit("""  %(type)s: %(dir)s""" % \
+                        { "type" : type, "dir" : dirs[type] })
     common.ask_continue("... can we remove their contents")
-    for option in dirs.keys():
-      common.remove_dir_contents(dirs[option])
-    self.validate_needed_directories()
-
-  #-----------------------------
-  def nbr_of_nested_dirs(self):
-    # Determines if any of the directories are subdirectories of the install
-    # location.  We are trying to avoid deleting teh contents if we do not have to.
-    cnt = 0
-    for dir in  [self.logs_dir(),
-                 self.glidein.web_location() ]:
-      if dir.find(self.install_location()) == 0:
-        cnt = cnt + 1
-    return cnt
-
+    for type in dirs.keys():
+      common.remove_dir_contents(dirs[type])
+      os.rmdir(dirs[type])
+    os.system("sleep 3")
+    return
     
   #-----------------------------
   def validate(self):
@@ -309,6 +319,7 @@ class VOFrontend(Condor):
     if self.install_type() == "tarball":
       self.validate_needed_directories()
     common.logit( "Verification complete\n")
+    os.system("sleep 2")
 
   #-----------------------------
   def configure(self):
@@ -325,16 +336,18 @@ class VOFrontend(Condor):
     self.__create_condor_mapfile__(self.condor_mapfile_users())
     self.__create_condor_config__()
     self.__create_initd_script__()
-    common.logit("Configuration complete")
+    common.logit("Condor configuration complete")
+    os.system("sleep 2")
 
   #---------------------------------
   def configure_frontend(self):
-    common.logit ("Configuring VOFrontend")
+    common.logit ("\nConfiguring VOFrontend")
     config_data  = self.get_config_data()
     self.create_config(config_data)
     if self.install_type() == "tarball":
       self.create_env_script()
-    common.logit ("Configuration complete")
+    common.logit ("VOFrontend configuration complete")
+    os.system("sleep 2")
 
   #--------------------------------
   def condor_mapfile_users(self):
@@ -592,7 +605,7 @@ The following DNs are in your grid_mapfile:"""
     fd = os.popen(cmd)
     lines = fd.readlines()
     err = fd.close()
-    if err != None: # condor_config_val not working 
+    if err is not None: # condor_config_val not working 
         common.logit("%s" % lines)
         common.logerr("""Failed to fetch list of schedds running condor_config_val.""")
     schedds = [self.hostname(),]
@@ -612,7 +625,7 @@ The following DNs are in your grid_mapfile:"""
     fd = os.popen(cmd)
     lines = fd.readlines()
     err = fd.close()
-    if err != None: # collector not accessible
+    if err is not None: # collector not accessible
         common.logit("%s" % lines)
         common.logerr("Failed to fetch list of schedds running condor_status -schedd\n       Your user pool collector and submit host condor need to be running.")
     if len(lines) == 0: # submit schedds not accessible
@@ -722,7 +735,7 @@ please verify and correct if needed.
     #--- create xml ----
     data  = """
 %(indent2)s<group name="%(group_name)s" enabled="True">
-%(indent3)s<match match_expr=%(match_string)s>
+%(indent3)s<match match_expr=%(match_string)s start_expr="True">
 %(factory_attributes)s
 %(job_attributes)s
 %(indent3)s</match>
@@ -797,26 +810,19 @@ please verify and correct if needed.
 
   #--------------------------------
   def config_data(self,schedds,match_criteria): 
-    data = """<frontend frontend_name="%s" """ % (self.frontend_name())
+    data = """<frontend frontend_name="%s"
+         advertise_delay="5"
+         advertise_with_multiple="True"
+         advertise_with_tcp="True"
+         loop_delay="60"
+         restart_attempts="3"
+         restart_interval="1800" """ % (self.frontend_name())
+
     if self.install_type() == "rpm":
-      data += """
-         advertise_delay="5" 
-         advertise_with_multiple="False" 
-         advertise_with_tcp="False" 
-         frontend_versioning="False" 
-         loop_delay="60" 
-         restart_attempts="3" 
-         restart_interval="1800">
-""" 
+      data += ' frontend_versioning="False">'
     else:
-      data += """
-         advertise_delay="5" 
-         advertise_with_multiple="False" 
-         advertise_with_tcp="False" 
-         loop_delay="60" 
-         restart_attempts="3" 
-         restart_interval="1800">
-""" 
+      data += '>'
+
     data += """\
 %(work)s
 %(stage)s
@@ -936,7 +942,7 @@ please verify and correct if needed.
   #--------------------------
   def config_match_data(self,schedds):
     data = """
-%(indent1)s<match>
+%(indent1)s<match match_expr="True" start_expr="True">
 %(indent2)s<factory>
 %(indent3)s<collectors>
 %(indent4)s<collector node="%(wms_node)s:%(wms_collector_port)s" DN="%(wms_gsi_gn)s" factory_identity="%(factory_username)s@%(wms_node)s" my_identity="%(frontend_identity)s@%(wms_node)s" comment="Define factory collectors globally for simplicity"/>
@@ -981,7 +987,6 @@ please verify and correct if needed.
 %(indent2)s<attr name="GLIDEIN_Glexec_Use"      value="%(glexec_use)s"      glidein_publish="True"  job_publish="True"  parameter="False" type="string"/>
 %(indent2)s<attr name="GLIDEIN_Expose_Grid_Env" value="%(expose_grid_env)s" glidein_publish="True"  job_publish="True"  parameter="False" type="string"/>
 %(indent2)s<attr name="USE_MATCH_AUTH"          value="True"              glidein_publish="False" job_publish="False" parameter="True" type="string"/> 
-%(indent2)s<attr name="GLIDECLIENT_Start"     value="%(entry_start)s"     glidein_publish="False" job_publish="False" parameter="True" type="string"/>
 %(indent2)s<attr name="GLIDECLIENT_Rank"      value="%(entry_rank)s"      glidein_publish="False" job_publish="False" parameter="True" type="string"/>
 %(indent1)s</attrs> 
 """ % \
@@ -1019,31 +1024,42 @@ please verify and correct if needed.
   #---------------------------------
   def extract_factory_attrs(self):
     glidein_attrs = []
-    attr_re = re.compile("glidein\[\"attrs\"\]\[['\"](?P<attr>[^'\"]+)['\"]\]")
-    idx = 0
-    while 1:
-      attr_obj = attr_re.search(self.match_string(),idx)
-      if attr_obj == None:
-        break # not found
-      attr_el = attr_obj.group('attr')
-      if not (attr_el in glidein_attrs):
-        glidein_attrs.append(attr_el)
-      idx = attr_obj.end()+1
+    regex = (
+      re.compile("glidein\[\"attrs\"\]\[['\"](?P<attr>[^'\"]+)['\"]\]"), 
+      re.compile("glidein\[\"attrs\"\]\.get\(['\"](?P<attr>[^'\"]+)['\"\)]")
+    )
+
+    for attr_re in regex:
+      idx = 0
+      while 1:
+        attr_obj = attr_re.search(self.match_string(),idx)
+        if attr_obj is None:
+          break # not found
+        attr_el = attr_obj.group('attr')
+        if not (attr_el in glidein_attrs):
+          glidein_attrs.append(attr_el)
+        idx = attr_obj.end()+1
     return glidein_attrs
 
   #---------------------------------
   def extract_job_attrs(self):
     job_attrs = []
-    attr_re = re.compile("job\[['\"](?P<attr>[^'\"]+)['\"]\]")
-    idx=0
-    while 1:
-      attr_obj = attr_re.search(self.match_string(),idx)
-      if attr_obj == None:
-        break # not found
-      attr_el=attr_obj.group('attr')
-      if not (attr_el in job_attrs):
-        job_attrs.append(attr_el)
-      idx = attr_obj.end()+1
+    regex = (
+      re.compile("job\.get\(['\"](?P<attr>[^'\"]+)['\"]\)"),
+      re.compile("job\[['\"](?P<attr>[^'\"]+)['\"]\]")
+    )
+
+
+    for attr_re in regex:
+      idx=0
+      while 1:
+        attr_obj = attr_re.search(self.match_string(),idx)
+        if attr_obj is None:
+          break # not found
+        attr_el=attr_obj.group('attr')
+        if not (attr_el in job_attrs):
+          job_attrs.append(attr_el)
+        idx = attr_obj.end()+1
     return job_attrs
 
   #--------------------------------
@@ -1061,6 +1077,20 @@ please verify and correct if needed.
     condor_entries += common.mapfile_entry(self.submit.x509_gsi_dn(), self.submit.service_name())
     condor_entries += common.mapfile_entry(self.usercollector.x509_gsi_dn(), self.usercollector.service_name())
     self.__create_condor_mapfile__(condor_entries)
+
+  #-------------------------
+  def create_template(self):
+    global valid_options
+    print "; ------------------------------------------"
+    print "; %s minimal ini options template" % self.ini_section
+    for section in valid_options.keys():
+      print "; ------------------------------------------"
+      print "[%s]" % section
+      for option in valid_options[section]:
+        print "%-25s =" % option
+      print
+
+### END OF CLASS ###
 
 #---------------------------
 def show_line():
@@ -1080,32 +1110,20 @@ specified.
     parser.add_option("-i", "--ini", dest="inifile",
                       help="ini file defining your configuration")
     (options, args) = parser.parse_args()
-    if options.inifile == None:
+    if options.inifile is None:
         parser.error("--ini argument required")
     if not os.path.isfile(options.inifile):
       raise common.logerr("inifile does not exist: %s" % options.inifile)
     common.logit("Using ini file: %s" % options.inifile)
     return options
 
-#-------------------------
-def create_template():
-  global valid_options
-  print "; ------------------------------------------"
-  print "; Submit minimal ini options template"
-  for section in valid_options.keys():
-    print "; ------------------------------------------"
-    print "[%s]" % section
-    for option in valid_options[section]:
-      print "%-25s =" % option
-    print
-
 ##########################################
 def main(argv):
   try:
-    #create_template()
-    options = validate_args(argv)
-    vo = VOFrontend(options.inifile)
-    vo.get_new_config_group()
+    create_template()
+    #options = validate_args(argv)
+    #vo = VOFrontend(options.inifile)
+    #vo.get_new_config_group()
     #vo.validate_glidein_proxies()
     #vo.install()
     #vo.get_usercollector()

@@ -46,9 +46,9 @@ PROCD_MAX_SNAPSHOT_INTERVAL = 60
 
 SUSPEND = False
 CONTINUE = True
-WANT_SUSPEND = True
+WANT_SUSPEND = False
 SUSPEND_VANILLA = False
-WANT_SUSPEND_VANILLA = True
+WANT_SUSPEND_VANILLA = False
 
 # if it ever enters the Preempting/Vacating state, get out of it in 5 minutes
 # should never happen, but it is a good precaution
@@ -56,7 +56,7 @@ KILL = (CurrentTime-EnteredCurrentActivity>300)
 
 IS_GLIDEIN = True
 MASTER_ATTRS = IS_GLIDEIN, GLIDEIN_ToRetire, GLIDEIN_ToDie, GLIDEIN_Expire, DaemonStopTime, $(GLIDEIN_VARIABLES)
-STARTD_ATTRS = GLIDEIN_COLLECTOR_NAME,GLIDEIN_MASTER_NAME, IS_GLIDEIN, GLIDEIN_ToRetire, GLIDEIN_ToDie, GLIDEIN_Expire, START, DaemonStopTime, GLIDEIN_PARENT_PID, $(GLIDEIN_VARIABLES)
+STARTD_ATTRS = GLIDEIN_COLLECTOR_NAME,GLIDEIN_MASTER_NAME, IS_GLIDEIN, GLIDEIN_ToRetire, GLIDEIN_ToDie, GLIDEIN_Expire, START, DaemonStopTime, GLIDEIN_PARENT_PID, LSB_RELEASE, LSB_DISTRIBUTOR_ID, LSB_DESCRIPTION, $(GLIDEIN_VARIABLES)
 
 # effectively disable checking of new binaries
 MASTER_CHECK_NEW_EXEC_INTERVAL = 3600000
@@ -88,6 +88,8 @@ DENY_NEGOTIATOR = anonymous@*
 LOCAL_CONFIG_FILE       = 
 
 GLIDEIN_START_CONDITION = ($(GLIDEIN_Start)) && ($(GLIDEIN_Entry_Start)) && ($(GLIDECLIENT_Start)) && ($(GLIDECLIENT_Group_Start))
+GLIDEIN_HOLD_CONDITION = ($(GLIDEIN_Hold)) || ($(GLIDEIN_Entry_Hold)) || ($(GLIDECLIENT_Hold)) || ($(GLIDECLIENT_Group_Hold))
+GLIDEIN_PREEMPT_CONDITION = ($(GLIDEIN_PREEMPT)) || ($(GLIDEIN_Entry_PREEMPT)) || ($(GLIDECLIENT_PREEMPT)) || ($(GLIDECLIENT_Group_PREEMPT))
 
 RANK = ($(GLIDEIN_Rank)) + ($(GLIDEIN_Entry_Rank)) + ($(GLIDECLIENT_Rank)) + ($(GLIDECLIENT_Group_Rank))
 
@@ -104,3 +106,9 @@ USE_VOMS_ATTRIBUTES = False
 
 # Disable condor_preen for Condor > 7.5.0
 PREEN=
+
+# Unset java so we can explicitly set it if required
+JAVA=
+
+# Condor transfer plugins
+FILETRANSFER_PLUGINS = $(LIBEXEC)/curl_plugin, $(LIBEXEC)/data_plugin

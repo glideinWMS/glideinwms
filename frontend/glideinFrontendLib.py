@@ -14,9 +14,10 @@
 #
 
 import os.path
-import sets,string,math
+import string,math
 import condorMonitor,condorExe
 import logSupport
+import sys, traceback
 
 class LogFiles:
     def __init__(self,log_dir,max_days,min_days,max_mbs):
@@ -75,14 +76,22 @@ log_files=None
 # specify the appropriate constraint
 #
 def getCondorQ(schedd_names,constraint=None,format_list=None):
-    if format_list!=None:
+    if format_list is not None:
         format_list=condorMonitor.complete_format_list(format_list,[('JobStatus','i'),('EnteredCurrentStatus','i'),('ServerTime','i'),('RemoteHost','s')])
     return getCondorQConstrained(schedd_names,"(JobStatus=?=1)||(JobStatus=?=2)",constraint,format_list)
 
 def getIdleVomsCondorQ(condorq_dict):
     out={}
     for schedd_name in condorq_dict.keys():
-        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:(el.has_key('JobStatus') and (el['JobStatus']==1) and (el.has_key('x509UserProxyFirstFQAN'))))
+        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:((el.get('JobStatus')==1) and ('x509UserProxyFirstFQAN' in el)))
+        sq.load()
+        out[schedd_name]=sq
+    return out
+
+def getIdleProxyCondorQ(condorq_dict):
+    out={}
+    for schedd_name in condorq_dict.keys():
+        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:((el.get('JobStatus')==1) and ('x509userproxy' in el)))
         sq.load()
         out[schedd_name]=sq
     return out
@@ -181,7 +190,7 @@ def countCondorQ(condorq_dict):
 #
 
 def getCondorQUsers(condorq_dict):
-    users_set=sets.Set()
+    users_set=set()
     for schedd_name in condorq_dict.keys():
         condorq_data=condorq_dict[schedd_name].fetchStored()
         for jid in condorq_data.keys():
@@ -207,7 +216,7 @@ def getCondorQUsers(condorq_dict):
 #  A special "glidein name" of (None, None, None) is used for jobs 
 #   that don't match any "real glidein name"
 
-def countMatch(match_obj,condorq_dict,glidein_dict):
+def countMatch(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match_list=None):
     out_glidein_counts={}
     #new_out_counts: keys are site indexes(numbers), 
     #elements will be the number of real
@@ -215,12 +224,38 @@ def countMatch(match_obj,condorq_dict,glidein_dict):
     new_out_counts={}
     glideindex=0
 
-    cq_jobs=sets.Set()
-    for schedd in condorq_dict.keys():
+    schedds=condorq_dict.keys()
+    nr_schedds=len(schedds)
+
+    # find max ProcId
+    max_procid=0
+    for scheddIdx in range(nr_schedds):
+        schedd=schedds[scheddIdx]
         condorq=condorq_dict[schedd]
         condorq_data=condorq.fetchStored()
         for jid in condorq_data.keys():
-            t=(schedd,jid)
+          procid=jid[1]
+          if procid>max_procid:
+           max_procid=procid
+    procid_mul=long(max_procid+1)
+
+    # dict of job clusters
+    # group together those that have the same attributes
+    cq_dict_clusters={}
+    # set of all jobs
+    cq_jobs=set()
+    for scheddIdx in range(nr_schedds):
+        schedd=schedds[scheddIdx]
+        cq_dict_clusters[scheddIdx]={}
+        cq_dict_clusters_el=cq_dict_clusters[scheddIdx]
+        condorq=condorq_dict[schedd]
+        condorq_data=condorq.fetchStored()
+        for jid in condorq_data.keys():
+            jh=hashJob(condorq_data[jid],condorq_match_list)
+            if not cq_dict_clusters_el.has_key(jh):
+                cq_dict_clusters_el[jh]=[]
+            cq_dict_clusters_el[jh].append(jid)
+            t=(jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
             cq_jobs.add(t)
 
     list_of_all_jobs=[]
@@ -228,25 +263,43 @@ def countMatch(match_obj,condorq_dict,glidein_dict):
     for glidename in glidein_dict:
         glidein=glidein_dict[glidename]
         glidein_count=0
-        jobs=sets.Set()
-        for schedd in condorq_dict.keys():
+        jobs_arr=[]
+        for scheddIdx in range(nr_schedds):
+            schedd=schedds[scheddIdx]
+            cq_dict_clusters_el=cq_dict_clusters[scheddIdx]
             condorq=condorq_dict[schedd]
             condorq_data=condorq.fetchStored()
             schedd_count=0
-            for jid in condorq_data.keys():
-                job=condorq_data[jid]
+            sjobs_arr=[]
+            for jh in cq_dict_clusters_el.keys():
+                # get the first job... they are all the same
+                first_jid=cq_dict_clusters_el[jh][0]
+                job=condorq_data[first_jid]
                 if eval(match_obj):
-                    t=(schedd,jid)
-                    jobs.add(t)
-                    schedd_count+=1
+                    # the first matched... add all jobs in the cluster
+                    cluster_arr=[]
+                    for jid in cq_dict_clusters_el[jh]:
+                        t=(jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
+                        cluster_arr.append(t)
+                        schedd_count+=1
+                    # adding a whole cluster much faster
+                    sjobs_arr+=cluster_arr
+                    del cluster_arr
+                    pass
                 pass
+            jobs_arr+=sjobs_arr
+            del sjobs_arr
             glidein_count+=schedd_count
             pass    
+        jobs=set(jobs_arr)
+        del jobs_arr
         list_of_all_jobs.append(jobs)
         out_glidein_counts[glidename]=glidein_count
         pass
-    (outvals,range) = uniqueSets(list_of_all_jobs)
-    count_unmatched=len(cq_jobs-range)
+
+    (outvals,jrange) = uniqueSets(list_of_all_jobs)
+    del list_of_all_jobs
+    count_unmatched=len(cq_jobs-jrange)
 
     #unique_to_site: keys are sites, elements are num of unique jobs
     unique_to_site = {}
@@ -291,21 +344,47 @@ def countMatch(match_obj,condorq_dict,glidein_dict):
     final_unique[(None,None,None)]=count_unmatched
     return (out_glidein_counts,final_out_counts,final_unique)
 
-def countRealRunning(match_obj,condorq_dict,glidein_dict):
+def countRealRunning(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match_list=None):
     out_glidein_counts={}
+
+    if condorq_match_list is not None:
+        condorq_match_list=condorq_match_list+['RunningOn']
+
+    schedds=condorq_dict.keys()
+    nr_schedds=len(schedds)
+
+    # dict of job clusters
+    # group together those that have the same attributes
+    cq_dict_clusters={}
+    for scheddIdx in range(nr_schedds):
+        schedd=schedds[scheddIdx]
+        cq_dict_clusters[scheddIdx]={}
+        cq_dict_clusters_el=cq_dict_clusters[scheddIdx]
+        condorq=condorq_dict[schedd]
+        condorq_data=condorq.fetchStored()
+        for jid in condorq_data.keys():
+            jh=hashJob(condorq_data[jid],condorq_match_list)
+            if not cq_dict_clusters_el.has_key(jh):
+                cq_dict_clusters_el[jh]=[]
+            cq_dict_clusters_el[jh].append(jid)
+
     for glidename in glidein_dict:
         # split by : to remove port number if there
         glide_str = "%s@%s" % (glidename[1],glidename[0].split(':')[0])
         glidein=glidein_dict[glidename]
         glidein_count=0
-        for schedd in condorq_dict.keys():
+        for scheddIdx in range(nr_schedds):
+            schedd=schedds[scheddIdx]
+            cq_dict_clusters_el=cq_dict_clusters[scheddIdx]
             condorq=condorq_dict[schedd]
             condorq_data=condorq.fetchStored()
             schedd_count=0
-            for jid in condorq_data.keys():
-                job=condorq_data[jid]
+            for jh in cq_dict_clusters_el.keys():
+                # get the first job... they are all the same
+                first_jid=cq_dict_clusters_el[jh][0]
+                job=condorq_data[first_jid]
                 if eval(match_obj) and job['RunningOn'] == glide_str:
-                    schedd_count+=1
+                    schedd_count+=len(cq_dict_clusters_el[jh])
                 pass
             glidein_count+=schedd_count
             pass
@@ -333,8 +412,8 @@ def evalParamExpr(expr_obj,frontend,glidein):
 # specify the appropriate constraint
 #
 def getCondorStatus(collector_names,constraint=None,format_list=None):
-    if format_list!=None:
-        format_list=condorMonitor.complete_format_list(format_list,[('State','s'),('Activity','s'),('EnteredCurrentState','i'),('EnteredCurrentActivity','i'),('LastHeardFrom','i'),('GLIDEIN_Factory','s'),('GLIDEIN_Name','s'),('GLIDEIN_Entry_Name','s'),('GLIDECLIENT_Name','s'),('GLIDEIN_Schedd','s')])
+    if format_list is not None:
+        format_list=condorMonitor.complete_format_list(format_list,[('State','s'),('Activity','s'),('EnteredCurrentState','i'),('EnteredCurrentActivity','i'),('LastHeardFrom','i'),('GLIDEIN_Factory','s'),('GLIDEIN_Name','s'),('GLIDEIN_Entry_Name','s'),('GLIDECLIENT_Name','s'),('GLIDECLIENT_ReqNode','s'),('GLIDEIN_Schedd','s')])
     return getCondorStatusConstrained(collector_names,'(IS_MONITOR_VM=!=True)&&(GLIDEIN_Factory=!=UNDEFINED)&&(GLIDEIN_Name=!=UNDEFINED)&&(GLIDEIN_Entry_Name=!=UNDEFINED)',constraint,format_list)
 
 #
@@ -391,6 +470,24 @@ def countCondorStatus(status_dict):
         count+=len(status_dict[collector_name].fetchStored())
     return count
 
+#
+# Given startd classads, return the list of all the factory entries
+# Each element in the list is (req_name, node_name)
+#
+def getFactoryEntryList(status_dict):
+    out=set()
+    for c in status_dict.keys():
+        coll_status_dict=status_dict[c].fetchStored()
+        for n in coll_status_dict.keys():
+            el=coll_status_dict[n]
+            if not (el.has_key('GLIDEIN_Entry_Name') and el.has_key('GLIDEIN_Name') and el.has_key('GLIDEIN_Factory') and el.has_key('GLIDECLIENT_ReqNode')):
+                continue # ignore this glidein... no factory info
+            entry_str="%s@%s@%s"%(el['GLIDEIN_Entry_Name'],el['GLIDEIN_Name'],el['GLIDEIN_Factory'])
+            factory_pool=str(el['GLIDECLIENT_ReqNode'])
+            out.add((entry_str,factory_pool))
+
+    return list(out)
+        
 ############################################################
 #
 # I N T E R N A L - Do not use
@@ -410,21 +507,23 @@ def getCondorQConstrained(schedd_names,type_constraint,constraint=None,format_li
         if schedd=='':
             log_files.logWarning("Skipping empty schedd name")
             continue
-        condorq=condorMonitor.CondorQ(schedd)
+        
         full_constraint=type_constraint[0:] #make copy
-        if constraint!=None:
+        if constraint is not None:
             full_constraint="(%s) && (%s)"%(full_constraint,constraint)
 
         try:
+            condorq=condorMonitor.CondorQ(schedd)
             condorq.load(full_constraint,format_list)
         except condorExe.ExeError, e:
-            if schedd!=None:
-                log_files.logWarning("Failed to talk to schedd %s. See debug log for more details."%schedd)
-                log_files.logDebug("Failed to talk to schedd %s: %s"%(schedd, e))
-            else:
-                log_files.logWarning("Failed to talk to schedd. See debug log for more details.")
-                log_files.logDebug("Failed to talk to schedd: %s"%e)
+            log_files.logWarning("Failed to talk to schedd. See debug log for more details.")
+            log_files.logDebug("Failed to talk to schedd: %s"%e)
             continue # if schedd not found it is equivalent to no jobs in the queue
+        except RuntimeError, e:
+            log_files.logWarning("Failed to talk to schedd. See debug log for more details.")
+            log_files.logDebug("Failed to talk to schedd: %s"%e)
+            continue
+            
         if len(condorq.fetchStored())>0:
             out_condorq_dict[schedd]=condorq
     return out_condorq_dict
@@ -439,21 +538,22 @@ def getCondorQConstrained(schedd_names,type_constraint,constraint=None,format_li
 def getCondorStatusConstrained(collector_names,type_constraint,constraint=None,format_list=None):
     out_status_dict={}
     for collector in collector_names:
-        status=condorMonitor.CondorStatus(pool_name=collector)
         full_constraint=type_constraint[0:] #make copy
-        if constraint!=None:
+        if constraint is not None:
             full_constraint="(%s) && (%s)"%(full_constraint,constraint)
 
         try:
+            status=condorMonitor.CondorStatus(pool_name=collector)
             status.load(full_constraint,format_list)
         except condorExe.ExeError, e:
-            if collector!=None:
-                log_files.logWarning("Failed to talk to collector %s. See debug log for more details."%collector)
-                log_files.logDebug("Failed to talk to collector %s: %s"%(collector, e))
-            else:
-                log_files.logWarning("Failed to talk to collector. See debug log for more details.")
-                log_files.logDebug("Failed to talk to collector: %s"%e)
+            log_files.logWarning("Failed to talk to collector. See debug log for more details.")
+            log_files.logDebug("Failed to talk to collector: %s"%e)
             continue # if collector not found it is equivalent to no classads
+        except RuntimeError, e:
+            log_files.logWarning("Failed to talk to collector. See debug log for more details.")
+            log_files.logDebug("Failed to talk to collector: %s"%e)
+            continue
+        
         if len(status.fetchStored())>0:
             out_status_dict[collector]=status
     return out_status_dict
@@ -484,10 +584,10 @@ def uniqueSets(in_sets):
     sorted_sets=[]
     for i in in_sets:
         common_list = []
-        common = sets.Set()
-        new_unique = sets.Set()
+        common = set()
+        new_unique = set()
         old_unique_list = []
-        old_unique = sets.Set()
+        old_unique = set()
         new = []
         #make a list of the elements common to i
         #(current iteration of sets) and the existing
@@ -521,7 +621,7 @@ def uniqueSets(in_sets):
         sorted_sets=new
 
     # set with all unique elements
-    sum_set = sets.Set()
+    sum_set = set()
     for s in sorted_sets:
         sum_set = sum_set | s
 
@@ -538,11 +638,26 @@ def uniqueSets(in_sets):
         for t in temp_sets:
             if s & t:
                 indexes.append(temp_sets.index(t))
-                temp_sets[temp_sets.index(t)]=sets.Set()
+                temp_sets[temp_sets.index(t)]=set()
         index_list.append(indexes)	
 
     # create output
     outvals=[]
     for i in range(len(index_list)-1): # last one contains all the values
-        outvals.append((sets.Set(index_list[i]),sorted_sets[i]))
+        outvals.append((set(index_list[i]),sorted_sets[i]))
     return (outvals,sorted_sets[-1])
+
+def hashJob(condorq_el,condorq_match_list=None):
+    out=[]
+    keys=condorq_el.keys()
+    keys.sort()
+    if condorq_match_list is not None:
+        # whitelist... keep only the ones listed
+        allkeys=keys
+        keys=[]
+        for k in allkeys:
+            if k in condorq_match_list:
+                keys.append(k)
+    for k in keys:
+        out.append((k,condorq_el[k]))
+    return tuple(out)

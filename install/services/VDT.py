@@ -29,6 +29,9 @@ class VDT(Configuration):
                           "pacman_tarball"  : self.pacman_tarball(),
                           "vdt_location"    : self.vdt_location(),
                           }
+    # Means to identify if this is a native (rpm/deb) installation of vdt
+    # self.vdt_install_type = 'pacman | 'native'
+    self.vdt_install_type = 'pacman'
 
   #-------------------------
   def osg_cache(self):
@@ -68,9 +71,16 @@ class VDT(Configuration):
     return False
   #-------------------
   def vdt_exists(self):
+    # VDT pacman install
     if os.path.isdir(self.vdt_location()):
       if os.path.isfile("%s/%s" % (self.vdt_location(),"setup.sh")):
         return True
+
+    # VDT rpm/native install
+    if os.path.exists('/usr/bin/osg-version'):
+        vdt_install_type = 'native'
+        return True
+
     return False
 
   #--------------------------

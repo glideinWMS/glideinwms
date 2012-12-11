@@ -45,6 +45,7 @@ class Condor(Configuration):
     self.condor_config_data = { "00_gwms_general"     : "",
                                 "01_gwms_collectors"  : "",
                                 "02_gwms_schedds"     : "",
+                                "03_gwms_local"       : "",
                               }
 
     #-- classes used ---
@@ -53,7 +54,7 @@ class Condor(Configuration):
 
   #--- instantiate objects needed ----
   def get_certs(self):
-    if self.certs == None:
+    if self.certs is None:
       self.certs = Certificates.Certificates(self.inifile,self.ini_section)
 
   #-----------------------------------------------------------
@@ -212,7 +213,7 @@ If no specific entries are needed, an empty list should be returned.
   def collector_port(self):
     option = "collector_port"
     if not self.has_option(self.ini_section,option):
-      return int(0)
+      return int(9618)
     value = self.option_value(self.ini_section,option)
     if common.not_an_integer(value):
       common.logerr("%s option is not a number: %s" % (option,value))
@@ -364,7 +365,7 @@ Check the condor_location ini option for correctness.""" % version_script)
     if status > 0:
       common.logerr("""Unable to determine Condor version using:
   %s""" % version_script)
-    if self.condor_version == None:
+    if self.condor_version is None:
       common.logerr("Still unable to determine condor_version")
     common.logit("    Condor version: %s" % self.condor_version)
 
@@ -543,9 +544,12 @@ You can only use the '--configure/--validate' options for this type.
     try:
         try:
             first_entry = fd.next().name
-            if ( len(first_entry.split('/')) < 2 ):
-              common.logerr("File (%s) is not a condor tarball! (found (%s), expected a subdirectory" % (tarball, first_entry))
-            self.condor_first_dir = first_entry.split('/')[0]+'/'
+            first_el=fd.getmember(first_entry)
+            if (not first_el.isdir()):
+              common.logwarn("File (%s) may not be a condor tarball! (found (%s), expected a subdirectory" % (tarball, first_entry))
+              self.condor_first_dir = first_entry+'/'
+            else:
+              self.condor_first_dir = first_entry.split('/')[0]+'/'
             
             if ( self.condor_first_dir[:7] != "condor-"):
               common.logerr("File '%s' is not a condor tarball! (found '%s', expected 'condor-*/'" % (tarball, self.condor_first_dir))
@@ -731,20 +735,20 @@ start () {
 stop () { 
    validate_user
    condor_status
-   [ "$RETVAL" != "0" ] && { return
+   [ "$RETVAL" != "0" ] && { RETVAL=0; return
 }
    echo -n "Shutting down condor: "
    killall -q -15 -exact $CONDOR_MASTER && success || failure
    sleep 3
    condor_status
-   [ "$RETVAL" != "0" ] && { return  # the stop worked
+   [ "$RETVAL" != "0" ] && { RETVAL=0; return  # the stop worked
 }
    echo -n "Shutting down condor with SIGKILL: "
    # If a master is still alive, we have a problem
    killall -q -9 -exact $CONDOR_MASTER && success || failure
    condor_status
    RETVAL=$?
-   [ "$RETVAL" != "0" ] && { return  # the stop worked
+   [ "$RETVAL" != "0" ] && { RETVAL=0; return  # the stop worked
 }
 }
 #-- restart --
@@ -787,15 +791,21 @@ exit $RETVAL
 
   #-----------------------------
   def __condor_config_gwms_data__(self):
+    type = "03_gwms_local"
+    self.condor_config_data[type] +=  """
+#-- Condor user: %(user)s
+CONDOR_IDS = %(condor_ids)s
+#--  Contact (via email) when problems occur
+CONDOR_ADMIN = %(admin_email)s
+""" % { "admin_email" : self.admin_email(), 
+        "condor_ids"  : self.condor_ids(), 
+        "user"        : self.username(), }
+
     type = "00_gwms_general"
     self.condor_config_data[type] +=  """
 ######################################################
 # Base configuration values for glideinWMS
 ######################################################
-#-- Condor user: %(user)s
-CONDOR_IDS = %(condor_ids)s
-#--  Contact (via email) when problems occur
-CONDOR_ADMIN = %(admin_email)s
 
 #--  With glideins, there is nothing shared
 UID_DOMAIN=$(FULL_HOSTNAME)
@@ -804,9 +814,7 @@ FILESYSTEM_DOMAIN=$(FULL_HOSTNAME)
 #-- Condor lock files to synchronize access to  various 
 #-- log files.  Using the log directory so they are collocated
 LOCK = $(LOG)
-""" % { "admin_email" : self.admin_email(), 
-        "condor_ids"  : self.condor_ids(), 
-        "user"        : self.username(), }
+""" 
 
   #-----------------------------
   def __condor_config_gsi_data__(self,users):
@@ -833,7 +841,10 @@ SEC_READ_INTEGRITY = OPTIONAL
 SEC_CLIENT_INTEGRITY = OPTIONAL
 SEC_READ_ENCRYPTION = OPTIONAL
 SEC_CLIENT_ENCRYPTION = OPTIONAL
+"""
 
+    type ="03_gwms_local"
+    self.condor_config_data[type] += """
 ############################
 # GSI Security config
 ############################
@@ -842,6 +853,7 @@ GSI_DAEMON_TRUSTED_CA_DIR=%(x509_cert_dir)s
 """ % { "x509_cert_dir"   : self.x509_cert_dir(),
       }
 
+    type ="03_gwms_local"
     if self.client_only_install == True:
       self.condor_config_data[type] += """
 #-- Credentials
@@ -865,6 +877,7 @@ CERTIFICATE_MAPFILE=%(mapfile)s
         "mapfile"        : self.condor_mapfile()
       }
 
+    type ="00_gwms_general"
     if self.condor_version >= "7.4":
       self.condor_config_data[type] += """
 #-- With strong security, do not use IP based controls
@@ -876,6 +889,7 @@ ALLOW_WRITE = $(HOSTALLOW_WRITE)
 #-- With strong security, do not use IP based controls
 HOSTALLOW_WRITE = *
 """
+    type ="03_gwms_local"
     if self.client_only_install == True:
       self.condor_config_data[type] += """
 ############################################
@@ -951,12 +965,15 @@ JOB_STOP_COUNT = 30
 
 #--  Raise file transfer limits
 #--  no upload limits, since JOB_START_DELAY limits that
-MAX_CONCURRENT_UPLOADS = 0
+MAX_CONCURRENT_UPLOADS = 100
 #--  but do limit downloads, as they are asyncronous
 MAX_CONCURRENT_DOWNLOADS = 100
 
 #--  Prevent checking on ImageSize
 APPEND_REQ_VANILLA = (Memory>=1) && (Disk>=1)
+# New in 7.8.x
+JOB_DEFAULT_REQUESTMEMORY=1
+JOB_DEFAULT_REQUESTDISK=1
 
 #--  Prevent preemption
 MAXJOBRETIREMENTTIME = $(HOUR) * 24 * 7
@@ -975,6 +992,9 @@ ENABLE_USERLOG_FSYNC = False
 SHADOW.GLEXEC_STARTER = True
 SHADOW.GLEXEC = /bin/false
 
+#-- limit size of shadow logs
+MAX_SHADOW_LOG = 100000000
+
 #-- Publish LOCAL_DIR so it is available in the schedd classads as needed
 LOCAL_DIR_STRING="$(LOCAL_DIR)"
 SCHEDD_EXPRS = $(SCHEDD_EXPRS) LOCAL_DIR_STRING
@@ -986,6 +1006,9 @@ SCHEDD_EXPRS = $(SCHEDD_EXPRS) LOCAL_DIR_STRING
 GRIDMANAGER_MAX_SUBMITTED_JOBS_PER_RESOURCE=5000
 GRIDMANAGER_MAX_PENDING_SUBMITS_PER_RESOURCE=5000
 GRIDMANAGER_MAX_PENDING_REQUESTS=500
+# Force Condor-G to re-delegate the proxy as soon as the FE provides one
+# Defaulting to 1 week, since we do not expect proxies with longer lifetimes 
+GRIDMANAGER_PROXY_REFRESH_TIME=604800
 SCHEDD_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridmanagerLog.$(USERNAME)"
 """
     
@@ -1048,6 +1071,7 @@ SCHEDD.%(upper_name)s.EXECUTE       = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/execute
 SCHEDD.%(upper_name)s.LOCK          = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/lock
 SCHEDD.%(upper_name)s.PROCD_ADDRESS = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/procd_pipe
 SCHEDD.%(upper_name)s.SPOOL         = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/spool
+SCHEDD.%(upper_name)s.JOB_QUEUE_LOG         = $(SCHEDD.%(upper_name)s.SPOOL)/job_queue.log
 SCHEDD.%(upper_name)s.SCHEDD_ADDRESS_FILE   = $(SCHEDD.%(upper_name)s.SPOOL)/.schedd_address
 SCHEDD.%(upper_name)s.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.%(upper_name)s.SPOOL)/.schedd_classad 
 %(upper_name)s_LOCAL_DIR_STRING     = "$(SCHEDD.%(upper_name)s.LOCAL_DIR)"
@@ -1124,7 +1148,7 @@ NEGOTIATOR_POST_JOB_RANK = MY.LastHeardFrom
 
 #-- Increase negotiation frequency, as new glideins do not trigger a reschedule
 NEGOTIATOR_INTERVAL = 60
-NEGOTIATOR_MAX_TIME_PER_SUBMITTER=40
+NEGOTIATOR_MAX_TIME_PER_SUBMITTER=60
 NEGOTIATOR_MAX_TIME_PER_PIESPIN=20
 
 #-- Prevent preemption
@@ -1140,6 +1164,13 @@ NEGOTIATOR.USE_VOMS_ATTRIBUTES = False
 #-- condor_startd rank expressions must be False for 
 #-- NEGOTIATOR_CONSIDER_PREEMPTION to be False
 NEGOTIATOR_CONSIDER_PREEMPTION = False
+
+###########################################################
+# Event logging (if desired) 
+###########################################################
+## EVENT_LOG=$(LOG)/EventLog
+## EVENT_LOG_JOB_AD_INFORMATION_ATTRS=Owner,CurrentHosts,x509userproxysubject,AccountingGroup,GlobalJobId,QDate,JobStartDate,JobCurrentStartDate,JobFinishedHookDone,MATCH_EXP_JOBGLIDEIN_Site,RemoteHost
+## EVENT_LOG_MAX_SIZE = 100000000 
 """
 
   #-----------------------------
@@ -1155,6 +1186,9 @@ COLLECTOR_HOST = $(CONDOR_HOST):%(port)s
 
 #-- disable VOMS checking
 COLLECTOR.USE_VOMS_ATTRIBUTES = False
+
+#-- allow more file descriptors (only works if Condor is started as root)
+##COLLECTOR_MAX_FILE_DESCRIPTORS=20000
 """ % { "name" : self.service_name(), 
         "port" : self.collector_port()
       }

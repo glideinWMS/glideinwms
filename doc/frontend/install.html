@@ -199,7 +199,7 @@ Install as: <b>Vo Frontend User</b><br><br>
     </tr>
     <tr>
         <td>The <a target="_blank" href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD</a> package</td>
-        <td>v0.6.1 or later with flot-0.7-tooltip-0.4.2 (see <a href="#software_javascriptRRD">additional install notes</a>)</td>
+        <td>v0.6.3 or later with flot (see <a href="#software_javascriptRRD">additional install notes</a>)</td>
 
         <td class="checked"> X </td>
     </tr>
@@ -654,7 +654,7 @@ The following profiles will be installed:
 Installing Glidein Frontend
 
 Do you have already a javascriptRRD installation?: (y/n) <b>y</b>
-Where is javascriptRRD installed?: /home/frontend/javascriptrrd-0.6.1
+Where is javascriptRRD installed?: /home/frontend/javascriptrrd-0.6.3
 Where will you host your config files?: [/home/frontend/frontstage] <b>/home/frontend/frontstage</b>
 Where will the web data be hosted?: [/var/www/html/vofrontend] <b>/var/www/html/vofrontend</b>
 What Web URL will you use?: [http://frontend1.my.org/vofrontend/] <b>http://frontend1.my.org/vofrontend</b>
@@ -786,32 +786,35 @@ Remember to set X509_USER_PROXY before starting the daemon
     <p>The same script can be used to stop, reconfig and restart the Glidein Frontend.</p>
 
     <h3>6.2. Reconfiguring the Glidein Frontend</h3>
-    <p>
-
-        If you make changes to the configuration file /home/frontend/frontstage/instance_v1.cfg/frontend.xml from above after creating
-        glidein, run reconfig_frontend tool to propagate the changes to the frontend configuration.
+    <p>The files in the frontend working directory must <b>never be changed by hand</b> after the directory structure has been created. 
     </p>
     <p>
-     <b>Note: If you make changes to the CONDOR_CONFIG files of the Condor
-        installation used by the Frontend, you MUST also
-        reconfigure the Frontend.  The Frontend is the only Glidein service 
-        that uses a modified version of the Condor config files. It can be found
-        in &lt;install_dir&gt;/frontend.condor_config.
-     </b>
+    The proper procedure to update the frontend configuration is to make a copy of the official configuration file 
+    (i.e. <i>frontend.xml</i>) as a backup.  Then edit the config file and run
     </p>
-    <blockquote>glideinWMS/creation/frontend_startup reconfig /home/frontend/frontstage/instance_v1.cfg/frontend.xml</blockquote>
+    <blockquote>
+        &lt;frontend working directory&gt;/frontend_startup reconfig <i>config_copy_fname</i>
+    </blockquote>
     <p>
-    <i>Note: you will need to change the location of the frontend.xml if you have made changes to this file in another location.</i></p>
+    This will update the directory tree and restart the frontend and group dameons. (If the frontend wasn't running at the time of reconfig it
+    will only update the directory tree.)
+    </p>
+   
+    <p>
+    Please notice that if you make any errors in the new configuration file, the reconfig 
+    script will throw an error and do nothing. If you executed the reconfig command while the frontend was running, it will revert to 
+    the last config file and restart with those settings.  As long as you use this tool, you should never corrupt the installation tree.
+    </p>
+    <p>The frontend_startup script contains a default location for the frontend configuration and is set to the location used for the initial
+    install.  This allows you to not have to specify the config location when doing a reconfig.  To change the default location in the file,
+    run the command:  
+    <blockquote>
+        &lt;frontend working directory&gt;/frontend_startup reconfig <i>config_copy_fname</i> update_default_cfg
+    </blockquote>
+    </p>
+    <p><b>NOTE</b>: The reconfig tool does not kill the frontend in case of errors.
+    It is also recommended that you disable any groups that will not be used.  Never remove them from the config file.</p>
 
-    <h3>6.3 More information</h3>
-    <p>
-        For more information, you can view the following pages:
-        <ul>
-        <li><a href="configuration.html">Frontend Xml Configuration</a></li>
-        <li><a href="../factory/custom_scripts.html">Custom Scripts</a> to run on the worker node</li>
-        <li><a href="../factory/custom_vars.html">Custom Variables</a> that will be available to the glidein</li>
-        <li></li>
-        </ul>
     </p>
     </div>
 

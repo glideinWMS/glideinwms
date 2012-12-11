@@ -45,7 +45,6 @@ class GlideinParams(cWParams.CommonParams):
 
         self.max_job_frontend_defaults=cWParams.commentedOrderedDict()
         self.max_job_frontend_defaults["name"]=(None,"string","frontend name",None)
-        self.max_job_frontend_defaults["security_class"]=("All","string","security class",None)
         self.max_job_frontend_defaults["held"]=('1000',"nr","Maximum number of held glideins (for this frontend) before forcing the cleanup.",None)
         self.max_job_frontend_defaults["idle"]=('2000',"nr","Maximum number of idle glideins (for this frontend) allowed.",None)
         self.max_job_frontend_defaults["running"]=('10000',"nr","Maximum number of concurrent glideins (per frontend) that can be submitted",None)
@@ -66,17 +65,24 @@ class GlideinParams(cWParams.CommonParams):
 
         entry_config_defaults=cWParams.commentedOrderedDict()
 
-
-
         entry_config_max_jobs_defaults=cWParams.commentedOrderedDict()
-        entry_config_max_jobs_defaults["running"]=('10000',"nr","Maximum number of concurrent glideins (per frontend) that can be submitted.",None)
-        entry_config_max_jobs_defaults["idle"]=('2000',"nr","Maximum number of idle glideins (per frontend) allowed.",None)
-        entry_config_max_jobs_defaults["held"]=('1000',"nr","Maximum number of held glideins (per frontend) before forcing the cleanup.",None)
+        entry_config_max_jobs_defaults["running"]=('10000',"nr","Maximum number of concurrent glideins that can be submitted.",None)
+        entry_config_max_jobs_defaults["idle"]=('2000',"nr","Maximum number of idle glideins allowed.",None)
+        entry_config_max_jobs_defaults["held"]=('1000',"nr","Maximum number of held glideins before forcing the cleanup.",None)
         entry_config_max_jobs_defaults["max_job_frontends"]=(xmlParse.OrderedDict(),'Dictionary of frontends',"Each frontend entry contains",self.max_job_frontend_defaults)
+        
+        default_max_jobs_frontend_defaults=cWParams.commentedOrderedDict()
+        default_max_jobs_frontend_defaults["running"]=('5000',"nr","Maximum number of concurrent glideins (default per frontend-security class) that can be submitted.",None)
+        default_max_jobs_frontend_defaults["idle"]=('100',"nr","Maximum number of idle glideins (default per frontend-security class) allowed.",None)
+        default_max_jobs_frontend_defaults["held"]=('50',"nr","Maximum number of held glideins (default per frontend-security class) before forcing the cleanup.",None)
+        entry_config_max_jobs_defaults["default_max_jobs_frontend"]=default_max_jobs_frontend_defaults
+        
         entry_config_defaults['max_jobs']=entry_config_max_jobs_defaults
+        
         
         entry_config_restrictions_defaults=cWParams.commentedOrderedDict()
         entry_config_restrictions_defaults["require_voms_proxy"]=("False","Bool","Whether this entry point requires a voms proxy",None)
+        entry_config_restrictions_defaults["require_glidein_glexec_use"]=("False","Bool","Whether this entry requires glidein to use glexec",None)
         entry_config_defaults['restrictions']=entry_config_restrictions_defaults
 
         
@@ -120,6 +126,7 @@ class GlideinParams(cWParams.CommonParams):
         self.defaults["factory_name"]=(socket.gethostname(),'ID', 'Factory name',None)
         self.defaults["glidein_name"]=(None,'ID', 'Glidein name',None)
         self.defaults['schedd_name']=("schedd_glideins@%s"%socket.gethostname(),"ScheddName","Which schedd to use, can be a comma separated list",None)
+        self.defaults['factory_versioning'] = ('True', 'Bool', 'Should we create versioned subdirectories?', None)
 
         submit_defaults=cWParams.commentedOrderedDict()
         submit_defaults["base_dir"]=("%s/glideinsubmit"%os.environ["HOME"],"base_dir","Submit base dir",None)
@@ -137,8 +144,8 @@ class GlideinParams(cWParams.CommonParams):
         log_retention_defaults["logs"]=copy.deepcopy(one_log_retention_defaults)
         log_retention_defaults["job_logs"]=copy.deepcopy(one_log_retention_defaults)
         log_retention_defaults["job_logs"]["min_days"][0]="2.0"
-        self.defaults['advertise_with_tcp']=('False','Bool', 'Should condor_advertise use TCP connections?',None)
-        self.defaults['advertise_with_multiple']=('False','Bool', 'Should condor_advertise use -multiple?',None)
+        self.defaults['advertise_with_tcp']=('True','Bool', 'Should condor_advertise use TCP connections?',None)
+        self.defaults['advertise_with_multiple']=('True','Bool', 'Should condor_advertise use -multiple?',None)
         log_retention_defaults["summary_logs"]=copy.deepcopy(one_log_retention_defaults)
         log_retention_defaults["summary_logs"]["max_days"][0]="31.0"
         log_retention_defaults["condor_logs"]=copy.deepcopy(one_log_retention_defaults)
@@ -204,28 +211,40 @@ class GlideinParams(cWParams.CommonParams):
     def get_top_element(self):
         return "glidein"
 
+    def buildDir(self, factoryVersioning, basedir):
+        # return either basedir or basedir/frontend_fename
+        glidein_subdir="glidein_%s"%self.glidein_name
+        if factoryVersioning:
+            return os.path.join(basedir, glidein_subdir)
+        else:
+            return basedir
+
     # validate data and add additional attributes if needed
     def derive(self):
         # glidein name does not have a reasonable default
-        if self.glidein_name==None:
+        if self.glidein_name is None:
             raise RuntimeError, "Missing glidein name"
         if not cWParams.is_valid_name(self.glidein_name):
             raise RuntimeError, "Invalid glidein name '%s'"%self.glidein_name
 
-        glidein_subdir="glidein_%s"%self.glidein_name
-        self.stage_dir=os.path.join(self.stage.base_dir,glidein_subdir)
-        self.monitor_dir=os.path.join(self.monitor.base_dir,glidein_subdir)
-        self.submit_dir=os.path.join(self.submit.base_dir,glidein_subdir)
-        self.log_dir=os.path.join(self.submit.base_log_dir,glidein_subdir)
-        self.web_url=os.path.join(self.stage.web_base_url,glidein_subdir)
+        factoryVersioning = False
+        if self.data.has_key('factory_versioning') and \
+               self.data['factory_versioning'].lower() == 'true':
+            factoryVersioning = True
+
+        self.stage_dir=self.buildDir(factoryVersioning, self.stage.base_dir)
+        self.monitor_dir=self.buildDir(factoryVersioning, self.monitor.base_dir)
+        self.submit_dir=self.buildDir(factoryVersioning, self.submit.base_dir)
+        self.log_dir=self.buildDir(factoryVersioning, self.submit.base_log_dir)
+        self.web_url=self.buildDir(factoryVersioning, self.stage.web_base_url)
 
         self.client_log_dirs={}
         self.client_proxies_dirs={}
         for fename in self.security.frontends.keys():
             for scname in self.security.frontends[fename].security_classes.keys():
                 username=self.security.frontends[fename].security_classes[scname].username
-                self.client_log_dirs[username]=os.path.join(os.path.join(self.submit.base_client_log_dir,"user_%s"%username),glidein_subdir)
-                self.client_proxies_dirs[username]=os.path.join(os.path.join(self.submit.base_client_proxies_dir,"user_%s"%username),glidein_subdir)
+                self.client_log_dirs[username]=self.buildDir(True, os.path.join(self.submit.base_client_log_dir,"user_%s"%username))
+                self.client_proxies_dirs[username]=self.buildDir(True, os.path.join(self.submit.base_client_proxies_dir,"user_%s"%username))
 
         if not cWParams.is_valid_name(self.factory_name):
             raise RuntimeError, "Invalid factory name '%s'"%self.factory_name
@@ -268,7 +287,7 @@ class GlideinParams(cWParams.CommonParams):
 #####################################
 # try to find out the base condor dir
 def find_condor_base_dir():
-    if condorExe.condor_bin_path==None:
+    if condorExe.condor_bin_path is None:
         return None
     else:
         return os.path.dirname(condorExe.condor_bin_path)

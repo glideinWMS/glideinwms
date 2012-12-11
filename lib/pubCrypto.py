@@ -65,12 +65,12 @@ class PubRSAKey:
 
     def load(self,
              key_str=None,key_fname=None):
-        if key_str!=None:
-            if key_fname!=None:
+        if key_str is not None:
+            if key_fname is not None:
                 raise ValueError,"Illegal to define both key_str and key_fname"
             bio = M2Crypto.BIO.MemoryBuffer(key_str)
             self.load_from_bio(bio)
-        elif key_fname!=None:
+        elif key_fname is not None:
             bio = M2Crypto.BIO.openfile(key_fname)
             self.load_from_bio(bio)
         else:
@@ -105,7 +105,7 @@ class PubRSAKey:
 
     # meant to be internal
     def save_to_bio(self,bio):
-        if self.rsa_key==None:
+        if self.rsa_key is None:
             raise KeyError,"No RSA key"
         
         return self.rsa_key.save_pub_key_bio(bio)
@@ -115,7 +115,7 @@ class PubRSAKey:
 
     # len(data) must be less than len(key)
     def encrypt(self,data):
-        if self.rsa_key==None:
+        if self.rsa_key is None:
             raise KeyError,"No RSA key"
         
         return self.rsa_key.public_encrypt(data,self.encryption_padding)
@@ -131,7 +131,7 @@ class PubRSAKey:
     # verify that the signature gets you the data
     # return a Bool
     def verify(self,data,signature):
-        if self.rsa_key==None:
+        if self.rsa_key is None:
             raise KeyError,"No RSA key"
         
         return self.rsa_key.verify(data,signature,self.sign_algo)
@@ -162,7 +162,7 @@ class RSAKey(PubRSAKey):
     ###########################################
     # Downgrade to PubRSAKey
     def PubRSAKey(self):
-        if self.rsa_key==None:
+        if self.rsa_key is None:
             raise KeyError,"No RSA key"
         
         bio = M2Crypto.BIO.MemoryBuffer()
@@ -186,7 +186,7 @@ class RSAKey(PubRSAKey):
     # meant to be internal
     # save and get use it
     def save_to_bio(self,bio):
-        if self.rsa_key==None:
+        if self.rsa_key is None:
             raise KeyError,"No RSA key"
         
         return self.rsa_key.save_key_bio(bio,self.private_cipher,self.private_callback)
@@ -195,8 +195,8 @@ class RSAKey(PubRSAKey):
     # generate key function
     # if no key_length provided, use the length of the existing one
     def new(self,key_length=None,exponent=65537):
-        if key_length==None:
-            if self.rsa_key==None:
+        if key_length is None:
+            if self.rsa_key is None:
                 raise KeyError,"No RSA key and no key length provided"
             key_length=len(self.rsa_key)
         self.rsa_key= M2Crypto.RSA.gen_key(key_length, exponent)
@@ -206,7 +206,7 @@ class RSAKey(PubRSAKey):
     # sign/decrypt data inline
 
     def decrypt(self,data):
-        if self.rsa_key==None:
+        if self.rsa_key is None:
             raise KeyError,"No RSA key"
         
         return self.rsa_key.private_decrypt(data,self.encryption_padding)
@@ -221,7 +221,7 @@ class RSAKey(PubRSAKey):
 
     # synonim with private_encrypt
     def sign(self,data):
-        if self.rsa_key==None:
+        if self.rsa_key is None:
             raise KeyError,"No RSA key"
         
         return self.rsa_key.sign(data,self.sign_algo)

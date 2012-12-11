@@ -24,8 +24,6 @@ usercollector_options = [ "install_type",
 "condor_tarball", 
 "condor_location", 
 "condor_admin_email", 
-"collector_port", 
-"number_of_secondary_collectors",
 "x509_cert_dir",
 "x509_cert", 
 "x509_key", 
@@ -36,7 +34,6 @@ usercollector_options = [ "install_type",
 ]
 
 wmscollector_options = [ "hostname",
-"collector_port",
 ]
 
 factory_options = [ "use_vofrontend_proxy",
@@ -70,7 +67,9 @@ class UserCollector(Condor):
     global valid_options
     self.inifile = inifile
     self.ini_section = "UserCollector"
-    if optionsDict != None:
+    if inifile == "template":  # for creating actions not requiring ini file
+      return
+    if optionsDict is not None:
       valid_options = optionsDict
     Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
     #self.certificates = self.option_value(self.ini_section,"certificates")
@@ -86,19 +85,19 @@ class UserCollector(Condor):
 
   #--------------------------------
   def get_wmscollector(self):
-    if self.wmscollector == None:
+    if self.wmscollector is None:
       self.wmscollector = WMSCollector.WMSCollector(self.inifile,valid_options)
   #--------------------------------
   def get_factory(self):
-    if self.factory == None:
+    if self.factory is None:
       self.factory = Factory.Factory(self.inifile,valid_options)
   #--------------------------------
   def get_submit(self):
-    if self.submit == None:
+    if self.submit is None:
       self.submit = Submit.Submit(self.inifile,valid_options)
   #--------------------------------
   def get_frontend(self):
-    if self.frontend == None:
+    if self.frontend is None:
       self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options)
  
   #--------------------------------
@@ -157,17 +156,35 @@ class UserCollector(Condor):
     if self.hostname() <> self.wmscollector.hostname():
       return  # -- no problem, on separate hosts --
     if self.collector_port() == self.wmscollector.collector_port():
-      common.logerr("""The WMS collector and User collector are being installed 
-on the same node. They both are trying to use the same port: %(port)s.
+      common.logerr("""The WMS and User collector are being installed on the same node. 
+They both are trying to use the same port: %(port)s.
+If not already specified, you may need to specifiy a 'collector_port' option 
+in your ini file for either the WMSCollector or UserCollector sections, or both.
+If present, are you really installing both services on the same node.
 """ %  { "port" : self.collector_port(),})
 
     if int(self.wmscollector.collector_port()) in self.secondary_collector_ports():
-      common.logerr("""The WMS collector and User collector are being installed 
-on the same node. The WMS collector port (%(wms_port)s) conflicts with one of the
-secondary User Collector ports that will be assigned: %(secondary_ports)s.
-""" % \
-      { "wms_port"        : self.wmscollector.collector_port(),
+      common.logerr("""The WMS and User collector are being installed on the same node. 
+The WMS collector port (%(wms_port)s) conflicts with one of the secondary 
+User Collector ports that will be assigned: 
+  %(secondary_ports)s.
+If not already specified, you may need to specifiy a 'collector_port' option 
+in your ini file for either the WMSCollector or UserCollector sections, or both.
+If present, are you really installing both services on the same node.
+""" % { "wms_port"        : self.wmscollector.collector_port(),
         "secondary_ports" : self.secondary_collector_ports(), })
+
+  #-------------------------
+  def create_template(self):
+    global valid_options
+    print "; ------------------------------------------"
+    print "; UserCollector minimal ini options template"
+    for section in valid_options.keys():
+      print "; ------------------------------------------"
+      print "[%s]" % section
+      for option in valid_options[section]:
+        print "%-25s =" % option
+      print 
 
 #--- END OF CLASS ---
 ###########################################
@@ -189,24 +206,12 @@ specified.
     parser.add_option("-i", "--ini", dest="inifile",
                       help="ini file defining your configuration")
     (options, args) = parser.parse_args()
-    if options.inifile == None:
+    if options.inifile is None:
         parser.error("--ini argument required")
     if not os.path.isfile(options.inifile):
       raise common.logerr("inifile does not exist: %s" % options.inifile)
     common.logit("Using ini file: %s" % options.inifile)
     return options
-
-#-------------------------
-def create_template():
-  global valid_options
-  print "; ------------------------------------------"
-  print "; UserCollector minimal ini options template"
-  for section in valid_options.keys():
-    print "; ------------------------------------------"
-    print "[%s]" % section
-    for option in valid_options[section]:
-      print "%-25s =" % option
-    print 
 
 ##########################################
 def main(argv):

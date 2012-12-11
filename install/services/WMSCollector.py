@@ -22,7 +22,6 @@ wmscollector_options = [
 "username", 
 "service_name", 
 "condor_location", 
-"collector_port", 
 "x509_cert_dir",
 "privilege_separation",
 "frontend_users",
@@ -47,8 +46,6 @@ factory_options = [ "hostname",
 ]
 
 usercollector_options = [ "hostname",
-"collector_port",
-"number_of_secondary_collectors",
 ]
 
 submit_options = []
@@ -69,7 +66,9 @@ class WMSCollector(Condor):
     global valid_options
     self.inifile = inifile
     self.ini_section = "WMSCollector"
-    if optionsDict != None:
+    if inifile == "template":  # for creating actions not requiring ini file
+      return
+    if optionsDict is not None:
       valid_options = optionsDict
     Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
     self.not_validated = True
@@ -84,15 +83,15 @@ class WMSCollector(Condor):
 
   #--------------------------------
   def get_frontend(self):
-    if self.frontend == None:
+    if self.frontend is None:
       self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options)
   #--------------------------------
   def get_factory(self):
-    if self.factory == None:
+    if self.factory is None:
       self.factory = Factory.Factory(self.inifile,valid_options)
   #--------------------------------
   def get_usercollector(self):
-    if self.usercollector == None:
+    if self.usercollector is None:
       self.usercollector = UserCollector.UserCollector(self.inifile,valid_options)
   #--------------------------------
   def get_privsep(self):
@@ -171,7 +170,7 @@ class WMSCollector(Condor):
   def condor_config_privsep_data(self):
     if self.privilege_separation() == "n":
       return  # no privilege separation in effect
-    if self.privsep == None:
+    if self.privsep is None:
       common.logerr("""System error: privilege separation is in effect but there
 the PrivilegeSeparation class has not been instantiated""")
     type = "00_gwms_general"
@@ -184,9 +183,35 @@ the PrivilegeSeparation class has not been instantiated""")
     if self.hostname() <> self.usercollector.hostname():
       return  # -- no problem, on separate nodes --
     if self.collector_port() == self.usercollector.collector_port():
-      common.logerr("The WMS collector and User collector are being installed \non the same node. They both are trying to use the same port: %s." % self.collector_port())
+      common.logerr("""The WMS and User collector are being installed on the same node. 
+They both are trying to use the same port: %(port)s.
+If not already specified, you may need to specifiy a 'collector_port' option 
+in your ini file for either the WMSCollector or UserCollector sections, or both.
+If present, are you really installing both services on the same node.
+""" %  { "port" : self.collector_port(),})
+
     if int(self.collector_port()) in self.usercollector.secondary_collector_ports():
-      common.logerr("The WMS collector and User collector are being installed \non the same node. The WMS collector port (%s) conflicts with one of the\nsecondary User collector ports that will be assigned: %s." % (self.collector_port(),self.usercollector.secondary_collector_ports()))
+      common.logerr("""The WMS collector and User collector are being installed on the same node. 
+The WMS collector port (%(wms_port)s) conflicts with one of the secondary
+User Collector ports that will be assigned: 
+  %(secondary_ports)s.
+If not already specified, you may need to specifiy a 'collector_port' option
+in your ini file for either the WMSCollector or UserCollector sections, or both.
+If present, are you really installing both services on the same node.
+""" % { "wms_port"        : self.collector_port(),
+        "secondary_ports" : self.usercollector.secondary_collector_ports(), })
+
+  #-------------------------
+  def create_template(self):
+    global valid_options
+    print "; ------------------------------------------"
+    print "; %s minimal ini options template" % self.ini_section
+    for section in valid_options.keys():
+      print "; ------------------------------------------"
+      print "[%s]" % section
+      for option in valid_options[section]:
+        print "%-25s =" % option
+      print
 
 #### end of class ####
 
@@ -207,24 +232,12 @@ specified.
     parser.add_option("-i", "--ini", dest="inifile",
                       help="ini file defining your configuration")
     (options, args) = parser.parse_args()
-    if options.inifile == None:
+    if options.inifile is None:
         parser.error("--ini argument required")
     if not os.path.isfile(options.inifile):
       raise common.logerr("inifile does not exist: %s" % options.inifile)
     common.logit("Using ini file: %s" % options.inifile)
     return options
-
-#-------------------------
-def create_template():
-  global valid_options
-  print "; ------------------------------------------"
-  print "; WMSCollector minimal ini options template"
-  for section in valid_options.keys():
-    print "; ------------------------------------------"
-    print "[%s]" % section
-    for option in valid_options[section]:
-      print "%-25s =" % option
-    print
 
 
 ##########################################

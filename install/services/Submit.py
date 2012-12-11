@@ -59,7 +59,9 @@ class Submit(Condor):
     global valid_options
     self.inifile = inifile
     self.ini_section = "Submit"
-    if optionsDict != None:
+    if inifile == "template":  # for creating actions not requiring ini file
+      return
+    if optionsDict is not None:
       valid_options = optionsDict
     Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
     self.userjob_classads_required = True
@@ -73,11 +75,11 @@ class Submit(Condor):
 
   #--------------------------------
   def get_frontend(self):
-    if self.frontend == None:
+    if self.frontend is None:
       self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options)
   #--------------------------------
   def get_usercollector(self):
-    if self.usercollector == None:
+    if self.usercollector is None:
       self.usercollector = UserCollector.UserCollector(self.inifile,valid_options)
  
   #--------------------------------
@@ -172,6 +174,20 @@ Do you want to continue.""" % { "services" : self.colocated_services,
     users.append(["VOFrontend",    self.frontend.x509_gsi_dn(),      self.frontend.service_name()])
     return users
 
+  #-------------------------
+  def create_template(self):
+    global valid_options
+    print "; ------------------------------------------"
+    print "; Submit  minimal ini options template"
+    for section in valid_options.keys():
+      print "; ------------------------------------------"
+      print "[%s]" % section
+      for option in valid_options[section]:
+        print "%-25s =" % option
+      print
+
+### END OF CLASS ###
+
 #---------------------------
 def show_line():
     x = traceback.extract_tb(sys.exc_info()[2])
@@ -190,24 +206,12 @@ specified.
     parser.add_option("-i", "--ini", dest="inifile",
                       help="ini file defining your configuration")
     (options, args) = parser.parse_args()
-    if options.inifile == None:
+    if options.inifile is None:
         parser.error("--ini argument required")
     if not os.path.isfile(options.inifile):
       raise common.logerr("inifile does not exist: %s" % options.inifile)
     common.logit("Using ini file: %s" % options.inifile)
     return options
-
-#-------------------------
-def create_template():
-  global valid_options
-  print "; ------------------------------------------"
-  print "; Submit  minimal ini options template"
-  for section in valid_options.keys():
-    print "; ------------------------------------------"
-    print "[%s]" % section
-    for option in valid_options[section]:
-      print "%-25s =" % option
-    print
 
 ##########################################
 def main(argv):
