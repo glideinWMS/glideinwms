@@ -256,8 +256,6 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     # Now fork a process per entry and wait for certain duration to get back
     # the results. Kill processes if they take too long to get back with result
 
-    # TODO: PM: Following should be multithreaded non-blocking
-
     # ids keyed by entry name
     pipe_ids = {}
 
@@ -280,13 +278,10 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
                                 entry, work[entry.name])
                 # entry object now has updated info in the child process
                 # This info is required for monitoring and advertising
-                # return the updated entry object back to the parent
-                #return_dict = {entry.name: {'entry': entry,
-                #                            'work_done': work_done}}
-
-                #return_dict = {'work_done': work_done}
-                #return_dict = {'entry_obj': entry, 'work_done': work_done}
-                return_dict = {'client_stats': entry.gflFactoryConfig.client_stats, 'work_done': work_done}
+                # Compile the return info from th  updated entry object 
+                # Can't dumps the entry object directly, so need to extract
+                # the info required.
+                return_dict = compile_pickle_data(entry, work_done)
                 os.write(w,cPickle.dumps(return_dict))
             except Exception, ex:
                 tb = traceback.format_exception(sys.exc_info()[0],
@@ -307,8 +302,11 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
         gfl.log_files.logActivity("Processing work info from children")
         gfl.log_files.logDebug("Processing work info from children")
         post_work_info = fetch_fork_result_list(pipe_ids)
-        gfl.log_files.logDebug("Work info from children processed")
-        gfl.log_files.logDebug(post_work_info)
+        #gfl.log_files.logDebug("=============================================")
+        #gfl.log_files.logDebug("WORK INFO FROM CHILDREN TO PROCESS")
+        #gfl.log_files.logDebug("---------------------------------------------")
+        #gfl.log_files.logDebug(post_work_info)
+        #gfl.log_files.logDebug("=============================================")
     except RuntimeError:
         # Expect all errors logged already
         work_info_read_err = True
@@ -321,15 +319,28 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
         #           entries. Needs further discussion
 
 
-    if not work_info_read_err:
-        # Entry object changes after doing work. Just capture the entry object
-        # from the child process and use it for further processing
-        for entry in my_entries:
-            (my_entries[entry]).gflFactoryConfig.client_stats = post_work_info[entry]['client_stats']
+    # TODO: PM: Move the code to a separate function of within entry class
+    #           where we load the state from the pickled object
+    for entry in my_entries:
+        # Update the entry object from the post_work_info
+        if entry in post_work_info:
             groupwork_done[entry] = {'work_done': post_work_info[entry]['work_done']}
-    else:
-        gfl.log_files.logDebug("work_info_read_err is true, client_stats not updated.")
-        gfl.log_files.logWarning("work_info_read_err is true, client_stats not updated.")
+            (my_entries[entry]).gflFactoryConfig.client_stats = post_work_info[entry]['client_stats']
+            (my_entries[entry]).gflFactoryConfig.qc_stats = post_work_info[entry]['qc_stats']
+            (my_entries[entry]).gflFactoryConfig.rrd_stats = post_work_info[entry]['rrd_stats']
+            (my_entries[entry]).gflFactoryConfig.client_internals = post_work_info[entry]['client_internals']
+            # Load info for latest log_stats correctly
+            (my_entries[entry]).gflFactoryConfig.log_stats.data = post_work_info[entry]['log_stats']['data']
+            (my_entries[entry]).gflFactoryConfig.log_stats.updated = post_work_info[entry]['log_stats']['updated']
+            (my_entries[entry]).gflFactoryConfig.log_stats.updated_year = post_work_info[entry]['log_stats']['updated_year']
+            (my_entries[entry]).gflFactoryConfig.log_stats.stats_diff = post_work_info[entry]['log_stats']['stats_diff']
+            (my_entries[entry]).gflFactoryConfig.log_stats.files_updated = post_work_info[entry]['log_stats']['files_updated']
+            (my_entries[entry]).setLogStatsOldStatsData(post_work_info[entry]['log_stats']['old_stats_data'])
+            (my_entries[entry]).setLogStatsCurrentStatsData(post_work_info[entry]['log_stats']['current_stats_data'])
+
+    if work_info_read_err:
+        gfl.log_files.logDebug("work_info_read_err is true, client_stats not updated for one or more entries.")
+        gfl.log_files.logWarning("work_info_read_err is true, client_stats not updated for one or more entries.")
     
     return groupwork_done
 
@@ -355,7 +366,11 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
                                                frontendDescript,
                                                group_name, my_entries)
     except:
+        tb = traceback.format_exception(sys.exc_info()[0],
+                                        sys.exc_info()[1],
+                                        sys.exc_info()[2])
         gfl.log_files.logWarning("Error occurred while trying to find and do work.")
+        gfl.log_files.logWarning("Exception: %s" % tb)
         
 
 
@@ -608,7 +623,33 @@ def main(parent_pid, sleep_time, advertize_rate,
     finally:
         pid_obj.relinquish()
 
-    
+
+################################################################################
+# Pickle Friendly data
+# TODO: PM: Can we convert this into __getstate__ and __setstate__ that
+#           pickle can use directly?
+################################################################################
+
+def compile_pickle_data(entry, work_done):
+    return_dict = {
+        'client_internals': entry.gflFactoryConfig.client_internals,
+        'client_stats': entry.gflFactoryConfig.client_stats,
+        'qc_stats': entry.gflFactoryConfig.qc_stats,
+        'rrd_stats': entry.gflFactoryConfig.rrd_stats,
+        'work_done': work_done
+    }        
+    return_dict['log_stats'] = {
+        'data': entry.gflFactoryConfig.log_stats.data,
+        'updated': entry.gflFactoryConfig.log_stats.updated,
+        'updated_year': entry.gflFactoryConfig.log_stats.updated_year,
+        'stats_diff': entry.gflFactoryConfig.log_stats.stats_diff,
+        'files_updated': entry.gflFactoryConfig.log_stats.files_updated,
+        'current_stats_data': entry.getLogStatsCurrentStatsData(),
+        'old_stats_data': entry.getLogStatsOldStatsData(),
+    }
+
+    return return_dict
+
 ############################################################
 #
 # S T A R T U P

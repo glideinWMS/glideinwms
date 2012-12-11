@@ -238,6 +238,7 @@ class Entry:
         # These two are used to write the history to disk
         self.gflFactoryConfig.qc_stats = glideFactoryMonitoring.condorQStats()
         self.gflFactoryConfig.client_internals = {}
+        self.gflFactoryConfig.log_stats.reset()
 
 
     def unsetInDowntime(self):
@@ -341,11 +342,11 @@ class Entry:
                 self.name, monitor_job_attrs)
     
         current_qc_data = self.gflFactoryConfig.client_stats.get_data()
-        self.logFiles.logActivity("=======================================")
-        self.logFiles.logActivity(self.gflFactoryConfig.client_internals)
-        self.logFiles.logActivity("---------------------------------------")
-        self.logFiles.logActivity(current_qc_data)
-        self.logFiles.logActivity("=======================================")
+        #self.logFiles.logActivity("=======================================")
+        #self.logFiles.logActivity(self.gflFactoryConfig.client_internals)
+        #self.logFiles.logActivity("---------------------------------------")
+        #self.logFiles.logActivity(current_qc_data)
+        #self.logFiles.logActivity("=======================================")
         for client_name in current_qc_data:
             client_qc_data = current_qc_data[client_name]
             if client_name not in self.gflFactoryConfig.client_internals:
@@ -429,6 +430,84 @@ class Entry:
         self.logFiles.logDebug("rrd_stats written")
     
         return
+
+
+    def getLogStatsOldStatsData(self):
+        """
+        Returns the self.gflFactoryConfig.log_stats.old_stats_data that can 
+        pickled
+        """
+
+        #self.logFiles.logDebug("___________________ GET OLD ___________________")
+        return self.getLogStatsData(self.gflFactoryConfig.log_stats.old_stats_data)
+
+
+    def getLogStatsCurrentStatsData(self):
+        """
+        Returns the self.gflFactoryConfig.log_stats.current_stats_data that can 
+        pickled
+        """
+
+        #self.logFiles.logDebug("___________________ GET CRR ___________________")
+        return self.getLogStatsData(self.gflFactoryConfig.log_stats.current_stats_data)
+
+
+    def getLogStatsData(self, stats_data):
+        return_dict = {}
+
+        #self.logFiles.logDebug(stats_data)
+        #self.logFiles.logDebug("___________________________________________")
+
+        for frontend in stats_data:
+            return_dict[frontend] = {}
+            for user in stats_data[frontend]:
+                return_dict[frontend][user] = stats_data[frontend][user].data
+        return return_dict
+
+
+    def setLogStatsOldStatsData(self, new_data):
+        """
+        Set self.gflFactoryConfig.log_stats.old_stats_data from pickled info
+        """
+
+        self.setLogStatsData(self.gflFactoryConfig.log_stats.old_stats_data,
+                             new_data )
+        #self.logFiles.logDebug("************** SET OLD *********************")
+        #self.logFiles.logDebug(self.gflFactoryConfig.log_stats.old_stats_data)
+        #self.logFiles.logDebug("****************************************")
+
+
+
+    def setLogStatsCurrentStatsData(self, new_data):
+        """
+        Set self.gflFactoryConfig.log_stats.current_stats_data from pickled info
+        """
+
+        self.setLogStatsData(self.gflFactoryConfig.log_stats.current_stats_data,
+                             new_data )
+        #self.logFiles.logDebug("************** SET CRR *********************")
+        #self.logFiles.logDebug(self.gflFactoryConfig.log_stats.current_stats_data)
+        #self.logFiles.logDebug("****************************************")
+
+
+    def setLogStatsData(self, stats_data, new_data):
+        """
+        """
+        # Stats 
+        for frontend in new_data:
+            stats_data[frontend] = {}
+            for user in new_data[frontend]:
+                x509_proxy_username = (user.split(':'))[0]
+                client_int_name = (user.split(':'))[1]
+                client_log_dir = self.gflFactoryConfig.get_client_log_dir(
+                                     self.name, x509_proxy_username)
+                stats = glideFactoryLogParser.dirSummaryTimingsOut(
+                            client_log_dir, self.logDir, 
+                            client_int_name, x509_proxy_username)
+                stats.load()
+                stats_data[frontend][user] = stats.get_simple()
+                stats_data[frontend][user].data = new_data
+
 
 # class Entry
 
@@ -1655,7 +1734,7 @@ def iterate_one(do_advertize,in_downtime,
     try:
         done_something = find_and_perform_work_old(in_downtime,glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams)
     except:
-        glideFactoryLib.log_files.logWarning("Error occurred while trying to find and do work.  ")
+        glideFactoryLib.log_files.logWarning("Error occurred while trying to find and do work.")
         
     if do_advertize or done_something:
         glideFactoryLib.log_files.logActivity("Advertize")
