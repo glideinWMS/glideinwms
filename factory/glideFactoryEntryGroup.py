@@ -133,8 +133,8 @@ def find_work(factory_in_downtime, glideinDescript,
         log_work_info(work, key='old')
 
         # Merge the work_oldkey with work
-        for w in work_oldkey.keys():
-            if work.has_key(w):
+        for w in work_oldkey:
+            if w in work:
                 # This should not happen but still as a safegaurd warn
                 gfl.log_files.logActivity("Work task for %s exists using existing key and old key. Ignoring the work from old key." % w)
                 gfl.log_files.logWarning("Work task for %s exists using existing key and old key. Ignoring the work from old key." % w)
@@ -199,8 +199,11 @@ def fetch_fork_result_list(pipe_ids):
             out[entry] = fetch_fork_result(pipe_ids[entry]['r'],
                                            pipe_ids[entry]['pid'])
         except Exception, e:
+            tb = traceback.format_exception(sys.exc_info()[0],
+                                            sys.exc_info()[1],
+                                            sys.exc_info()[2])
             gfl.log_files.logWarning("Failed to retrieve work done for entry subprocess '%s'" % entry)
-            gfl.log_files.logDebug("Failed to retrieve work done for entry subprocess '%s': %s" % (entry, e))
+            gfl.log_files.logDebug("Failed to retrieve work done for entry subprocess '%s': %s" % (entry, tb))
             failures += 1
 
     if failures>0:
@@ -259,12 +262,16 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     # ids keyed by entry name
     pipe_ids = {}
 
-    for entry in my_entries.values():
+    #for entry in my_entries.values():
+    # Only fork of child processes for entries that have corresponding
+    # work todo, ie glideclient classads.
+    for ent in work:
+        entry = my_entries[ent]
         r,w = os.pipe()
         pid = os.fork()
         if pid != 0:
             # This is the parent process
-            gfl.log_files.logActivity("In find_and_perform_work parent process with pid %s for entry %s" % (pid, entry.name))
+            gfl.log_files.logActivity("In find_and_perform_work parent process with pid %s after forking entry %s" % (pid, entry.name))
             os.close(w)
             pipe_ids[entry.name] = {'r': r, 'pid': pid}
         else:
@@ -298,6 +305,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     gfl.log_files.logActivity("All children terminated")
     gfl.log_files.logDebug("All children terminated")
     work_info_read_err = False
+    post_work_info = {}
     try:
         gfl.log_files.logActivity("Processing work info from children")
         gfl.log_files.logDebug("Processing work info from children")
@@ -323,7 +331,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     #           where we load the state from the pickled object
     for entry in my_entries:
         # Update the entry object from the post_work_info
-        if entry in post_work_info:
+        if ((entry in post_work_info) and (len(post_work_info[entry]) > 0)):
             groupwork_done[entry] = {'work_done': post_work_info[entry]['work_done']}
             (my_entries[entry]).gflFactoryConfig.client_stats = post_work_info[entry]['client_stats']
             (my_entries[entry]).gflFactoryConfig.qc_stats = post_work_info[entry]['qc_stats']
@@ -337,6 +345,8 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
             (my_entries[entry]).gflFactoryConfig.log_stats.files_updated = post_work_info[entry]['log_stats']['files_updated']
             (my_entries[entry]).setLogStatsOldStatsData(post_work_info[entry]['log_stats']['old_stats_data'])
             (my_entries[entry]).setLogStatsCurrentStatsData(post_work_info[entry]['log_stats']['current_stats_data'])
+        else:
+            gfl.log_files.logDebug("Entry %s not used by any frontends, i.e no corresponding glideclient classads" % entry)
 
     if work_info_read_err:
         gfl.log_files.logDebug("work_info_read_err is true, client_stats not updated for one or more entries.")
@@ -585,9 +595,9 @@ def main(parent_pid, sleep_time, advertize_rate,
     gfi.factoryConfig.warning_log = gfl.log_files.warning_log
 
      
-    gfl.log_files.logActivity("=================")
-    gfl.log_files.logActivity(startup_dir)
-    gfl.log_files.logActivity("=================")
+    #gfl.log_files.logActivity("=================")
+    #gfl.log_files.logActivity(startup_dir)
+    #gfl.log_files.logActivity("=================")
     gfl.log_files.logActivity("Starting up")
     gfl.log_files.logActivity("Entries processed by %s: %s " % (group_name, entry_names))
 
