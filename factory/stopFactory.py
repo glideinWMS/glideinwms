@@ -16,9 +16,10 @@
 #
 
 import signal,sys,os,os.path,fcntl,string,time
-sys.path.append(os.path.join(sys.path[0],"../lib"))
-import glideFactoryPidLib
-import glideFactoryConfig
+
+sys.path.append(os.path.join(sys.path[0],"../../"))
+from glideinwms.factory import glideFactoryPidLib
+from glideinwms.factory import glideFactoryConfig
 
 # this one should  never throw an exeption
 def get_entry_pids(startup_dir,factory_pid):

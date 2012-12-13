@@ -22,9 +22,8 @@ import re
 import string
 import shutil
 import traceback
-sys.path.append(os.path.join(STARTUP_DIR,"lib"))
-sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
-import cgWParams
+sys.path.append(os.path.join(STARTUP_DIR,"../.."))
+from glideinwms.creation.lib import cgWParams
 
 
 ################################################################################

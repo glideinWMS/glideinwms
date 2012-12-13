@@ -13,10 +13,10 @@
 #
 
 import time,string,os.path,copy
-import timeConversion
-import xmlParse,xmlFormat
 import glideinFrontendMonitoring
-import rrdSupport
+from glideinwms.lib import timeConversion
+from glideinwms.lib import xmlParse,xmlFormat
+from glideinwms.lib import rrdSupport
 import tempfile
 import shutil
 import time

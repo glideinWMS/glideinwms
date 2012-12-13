@@ -26,15 +26,13 @@ import os.path
 import string
 import shutil
 import traceback
-sys.path.append(os.path.join(STARTUP_DIR,"lib"))
-sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
-sys.path.append(os.path.join(STARTUP_DIR,"../frontend"))
-import cvWParams
-import cvWDictFile
-import cvWConsts,cWConsts
-import cvWCreate
-import cvWParamDict
-import glideinFrontendMonitorAggregator
+sys.path.append(os.path.join(STARTUP_DIR,"../.."))
+from glideinwms.creation.lib import cvWParams
+from glideinwms.creation.lib import cvWDictFile
+from glideinwms.creation.lib import cvWConsts,cWConsts
+from glideinwms.creation.lib import cvWCreate
+from glideinwms.creation.lib import cvWParamDict
+from glideinwms.frontend import glideinFrontendMonitorAggregator
 
 ################################################################################
 

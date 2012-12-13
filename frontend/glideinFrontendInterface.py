@@ -18,6 +18,7 @@ import copy
 import calendar
 import time
 import string
+from glideinwms.lib import pubCrypto,symCrypto
 from sets import Set
 
 STARTUP_DIR = sys.path[0]

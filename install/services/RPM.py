@@ -4,7 +4,7 @@ import traceback
 import sys,os,os.path,string,time
 import stat,re
 import xml.sax.saxutils
-import xmlFormat
+from glideinwms.lib import xmlFormat
 import optparse
 #-------------------------
 import common

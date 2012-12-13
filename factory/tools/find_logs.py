@@ -13,11 +13,9 @@
 
 import sys,os,os.path,time
 STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"lib"))
-sys.path.append(os.path.join(STARTUP_DIR,".."))
-sys.path.append(os.path.join(STARTUP_DIR,"../../lib"))
-import gWftArgsHelper,gWftLogParser
-import glideFactoryConfig
+sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
+from glideinwms.factory.tools.lib import gWftArgsHelper,gWftLogParser
+from glideinwms.factory import glideFactoryConfig
 
 USAGE="Usage: find_logs.py <factory> YY/MM/DD [hh:mm:ss]"
 

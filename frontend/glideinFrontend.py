@@ -27,10 +27,10 @@ import signal
 import time
 import string
 import logging
-sys.path.append(os.path.join(STARTUP_DIR, "../lib"))
+sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
-import logSupport
-import cleanupSupport
+from glideinwms.lib import logSupport
+from glideinwms.lib import cleanupSupport
 import glideinFrontendPidLib
 import glideinFrontendConfig
 import glideinFrontendMonitorAggregator

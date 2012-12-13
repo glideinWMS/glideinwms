@@ -29,21 +29,22 @@ import math
 import copy
 import random
 import sets
+<<<<<<< HEAD
 import logging
-sys.path.append(os.path.join(sys.path[0], "../lib"))
+sys.path.append(os.path.join(sys.path[0],"../../"))
 
-import glideFactoryPidLib
-import glideFactoryConfig
-import glideFactoryLib
-import glideFactoryMonitoring
-import glideFactoryInterface
-import glideFactoryLogParser
-import glideFactoryDowntimeLib
-import glideinWMSVersion
-import glideFactoryCredentials
+from glideinwms.factory import glideFactoryPidLib
+from glideinwms.factory import glideFactoryConfig
+from glideinwms.factory import glideFactoryLib
+from glideinwms.factory import glideFactoryMonitoring
+from glideinwms.factory import glideFactoryInterface
+from glideinwms.factory import glideFactoryLogParser
+from glideinwms.factory import glideFactoryDowntimeLib
+from glideinwms.lib import glideinWMSVersion
+from glideinwms.factory import glideFactoryCredentials
 
-import logSupport
-import cleanupSupport
+from glideinwms.lib import logSupport
+from glideinwms.lib import cleanupSupport
 
 # This declaration is not strictly needed - it is declared as global in main
 # however, to make code clearer (hopefully), it is declared here to make it

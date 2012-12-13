@@ -24,7 +24,7 @@ import condorPrivsep
 import logSupport
 import condorMonitor
 import condorManager
-import glideFactoryConfig
+from glideinwms.factory import glideFactoryConfig
 import base64
 import string
 import timeConversion

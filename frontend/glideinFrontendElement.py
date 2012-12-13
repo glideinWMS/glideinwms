@@ -26,9 +26,9 @@ import time
 import string
 import logging
 import cPickle
-sys.path.append(os.path.join(sys.path[0], "../lib"))
+sys.path.append(os.path.join(sys.path[0],"../.."))
 
-import pubCrypto
+from glideinwms.lib import pubCrypto
 
 import glideinFrontendConfig
 import glideinFrontendInterface
@@ -36,7 +36,7 @@ import glideinFrontendLib
 import glideinFrontendPidLib
 import glideinFrontendMonitoring
 import glideinFrontendPlugins
-import glideinWMSVersion
+from glideinwms.lib import glideinWMSVersion
 
 import logSupport
 import cleanupSupport

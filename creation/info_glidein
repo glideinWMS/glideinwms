@@ -17,10 +17,9 @@ STARTUP_DIR=sys.path[0]
 import os.path
 import string
 import traceback
-sys.path.append(os.path.join(STARTUP_DIR,"lib"))
-sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
-import cgWParams
-import cgWParamDict
+sys.path.append(os.path.join(STARTUP_DIR,"../.."))
+from glideinwms.creation.lib import cgWParams
+from glideinwms.creation.lib import cgWParamDict
 
 
 ################################################################################

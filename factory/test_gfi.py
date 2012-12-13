@@ -5,7 +5,8 @@
 # File Version: 
 #
 
-import os,sys,glideFactoryInterface
+import os,sys
+from glideinwms.factory import glideFactoryInterface
 
 glideFactoryInterface.factoryConfig.activity_log=sys.stdout
 glideFactoryInterface.factoryConfig.warining_log=sys.stdout

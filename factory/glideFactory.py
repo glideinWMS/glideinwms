@@ -28,19 +28,18 @@ import time
 import copy
 import logging
 from datetime import datetime
-sys.path.append(os.path.join(STARTUP_DIR, "../lib"))
 
-import glideFactoryPidLib
-import glideFactoryConfig
-import glideFactoryInterface
-import glideFactoryMonitorAggregator
-import glideFactoryMonitoring
-import glideFactoryDowntimeLib
-import glideFactoryLib
-import glideFactoryCredentials
-
-import logSupport
-import cleanupSupport
+sys.path.append(os.path.join(STARTUP_DIR,"../../"))
+from glideinwms.factory import glideFactoryPidLib
+from glideinwms.factory import glideFactoryConfig
+from glideinwms.factory import glideFactoryLib
+from glideinwms.factory import glideFactoryInterface
+from glideinwms.factory import glideFactoryMonitorAggregator
+from glideinwms.factory import glideFactoryMonitoring
+from glideinwms.factory import glideFactoryDowntimeLib
+from glideinwms.factory import glideFactoryCredentials
+from glideinwms.lib import logSupport
+from glideinwms.lib import cleanupSupport
 
 ############################################################
 def aggregate_stats(in_downtime):

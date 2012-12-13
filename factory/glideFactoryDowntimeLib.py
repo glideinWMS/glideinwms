@@ -15,7 +15,7 @@
 import time
 import fcntl
 import os.path
-import timeConversion
+from glideinwms.lib import timeConversion
 
 #
 # Handle a downtime file

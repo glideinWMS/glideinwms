@@ -20,7 +20,7 @@ import sys
 import os
 import string
 import time
-sys.path.append(os.path.join(sys.path[0], "../lib"))
+sys.path.append(os.path.join(sys.path[0],"../.."))
 import glideinFrontendPidLib
 import glideinFrontendConfig
 

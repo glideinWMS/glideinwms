@@ -19,9 +19,8 @@
 #
 
 import sys,os.path
-sys.path.append(os.path.join(sys.path[0],"lib"))
-sys.path.append(os.path.join(sys.path[0],"../lib"))
+sys.path.append(os.path.join(sys.path[0],"../.."))
 
-import glideinCmd
+from glideinwms.tools.lib import glideinCmd
 
 glideinCmd.exe_cmd(lambda argv:(['cat']+argv))

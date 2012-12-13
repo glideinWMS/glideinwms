@@ -25,9 +25,8 @@ import copy
 STARTUP_DIR=sys.path[0]
 
 # import glideinWMS libraries
-sys.path.append(os.path.join(STARTUP_DIR,"../../creation/lib"))
-sys.path.append(os.path.join(STARTUP_DIR,"../../lib"))
-import cgWParams
+sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
+from glideinwms.creation.lib import cgWParams
 
 # current entry for site
 currentSiteEntry = ""

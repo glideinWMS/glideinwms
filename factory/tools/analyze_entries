@@ -5,10 +5,10 @@ import datetime
 import urllib
 
 STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../../lib"))
-sys.path.append(os.path.join(STARTUP_DIR,"lib"))
+sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
 
-import xmlParse, analyze
+from glideinwms.lib import xmlParse
+from glideinwms.factory.tools.lib import analyze
 
 def frontend_print(frontend, fe_mode, d, div, to_be_printed,fe_sorting,fe_attr_list,fe_sort_attribute):
 

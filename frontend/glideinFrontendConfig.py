@@ -68,8 +68,8 @@ class ConfigFile:
         
 
     def validate_func(self,data,validate,fname):
-        if validate!=None:
-            import hashCrypto
+        if validate is not None:
+            from glideinwms.lib import hashCrypto
             vhash=hashCrypto.get_hash(validate[0],data)
             self.hash_value=vhash
             if (validate[1]!=None) and (vhash!=validate[1]):

@@ -7,9 +7,9 @@ from Condor        import Condor
 from Glidein       import Glidein
 from Configuration import Configuration
 from Configuration import ConfigurationError
-import condorPrivsep
-import condorMonitor
-import condorExe
+from glideinwms.lib import condorPrivsep
+from glideinwms.lib import condorMonitor
+from glideinwms.lib import condorExe
 
 import traceback
 import sys,os,pwd,string,time

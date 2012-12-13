@@ -19,13 +19,12 @@ import os.path
 import string
 import shutil
 import traceback
-sys.path.append(os.path.join(STARTUP_DIR,"lib"))
-sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
-import cvWParams
-import cvWDictFile
-import cvWConsts,cWConsts
-import cvWCreate
-import cvWParamDict
+sys.path.append(os.path.join(STARTUP_DIR,"../.."))
+from glideinwms.creation.lib import cvWParams
+from glideinwms.creation.lib import cvWDictFile
+from glideinwms.creation.lib import cvWConsts,cWConsts
+from glideinwms.creation.lib import cvWCreate
+from glideinwms.creation.lib import cvWParamDict
 
 
 ################################################################################
