@@ -25,7 +25,8 @@ import logSupport
 import condorMonitor
 import condorManager
 import tempfile
-import glideFactoryConfig
+
+from glideinwms.factory import glideFactoryConfig
 
 MY_USERNAME=pwd.getpwuid(os.getuid())[0]
 

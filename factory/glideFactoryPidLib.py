@@ -12,7 +12,7 @@
 #
 
 import sys,os,os.path
-import pidSupport
+from glideinwms.lib import pidSupport
 
 ############################################################
 

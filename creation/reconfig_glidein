@@ -17,17 +17,15 @@ import sys
 STARTUP_DIR=sys.path[0]
 
 import os.path
-sys.path.append(os.path.join(STARTUP_DIR,"lib"))
-sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
-sys.path.append(os.path.join(STARTUP_DIR,"../factory"))
-import cgWParams
-import cgWDictFile
-import cgWConsts,cWConsts
-import cgWCreate
-import cgWParamDict
-import glideFactoryMonitorAggregator
-import glideFactoryLib
-import glideFactoryConfig
+sys.path.append(os.path.join(STARTUP_DIR,"../.."))
+from glideinwms.creation.lib import cgWParams
+from glideinwms.creation.lib import cgWDictFile
+from glideinwms.creation.lib import cgWConsts,cWConsts
+from glideinwms.creation.lib import cgWCreate
+from glideinwms.creation.lib import cgWParamDict
+from glideinwms.factory import glideFactoryMonitorAggregator
+from glideinwms.factory import glideFactoryLib
+from glideinwms.factory import glideFactoryConfig
 
 
 WEB_BASE_DIR=os.path.join(STARTUP_DIR,"web_base")

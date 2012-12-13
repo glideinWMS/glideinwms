@@ -22,8 +22,8 @@ import stat
 import httplib
 import ftplib
 STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
-import xmlFormat
+sys.path.append(os.path.join(STARTUP_DIR,"../.."))
+from glideinwms.lib import xmlFormat
 
 #############################
 #

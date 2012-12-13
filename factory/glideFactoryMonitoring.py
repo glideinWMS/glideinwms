@@ -15,10 +15,9 @@
 import os,os.path
 import re,time,copy,string,math,random,fcntl
 import xmlFormat,timeConversion
-import rrdSupport
-
-import logSupport
-import glideFactoryLib
+from glideinwms.lib import rrdSupport
+from glideinwms.lib import logSupport
+from glideinwms.factory import glideFactoryLib
 
 # list of rrd files that each site has
 rrd_list = ('Status_Attributes.rrd', 'Log_Completed.rrd', 'Log_Completed_Stats.rrd', 'Log_Completed_WasteTime.rrd', 'Log_Counts.rrd')

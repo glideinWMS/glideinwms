@@ -15,9 +15,9 @@
 import copy,time,string,os.path
 import timeConversion
 import xmlParse,xmlFormat
-import glideFactoryMonitoring
-import glideFactoryLib
-import rrdSupport
+from glideinwms.lib import glideFactoryMonitoring
+from glideinwms.lib import glideFactoryLib
+from glideinwms.lib import rrdSupport
 import tempfile
 import shutil
 import time

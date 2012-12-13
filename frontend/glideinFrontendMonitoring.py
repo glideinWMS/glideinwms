@@ -14,8 +14,8 @@
 
 import os,os.path
 import re,time,copy,string,math,random,fcntl
-import xmlFormat,timeConversion
-import rrdSupport
+from glideinwms.lib import xmlFormat,timeConversion
+from glideinwms.lib import rrdSupport
 ############################################################
 #
 # Configuration

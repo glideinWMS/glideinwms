@@ -27,7 +27,7 @@ import signal
 import time
 import string
 
-sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
+sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
 import glideinFrontendPidLib
 import glideinFrontendConfig

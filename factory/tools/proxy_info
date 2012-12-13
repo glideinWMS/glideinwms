@@ -2,8 +2,8 @@
 
 import sys,os,string,time
 STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../../lib"))
-import condorPrivsep,condorExe
+sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
+from glideinwms.lib import condorPrivsep,condorExe
 
 def usage():
    print "Usage:"

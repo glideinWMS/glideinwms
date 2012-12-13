@@ -27,8 +27,8 @@ import random
 from xml.dom import minidom
 import infosys_lib 
 STARTUP_DIR = os.path.abspath(sys.path[0])
-sys.path.append(os.path.join(STARTUP_DIR, "../../lib"))
-import condorExe
+sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
+from glideinwms.lib import condorExe
 
 USAGE = "Usage: python config_update_tool.py [options] \n" \
         "Options:\n" \

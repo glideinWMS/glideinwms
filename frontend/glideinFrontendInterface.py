@@ -19,7 +19,7 @@ import os,os.path
 import copy
 import time
 import string
-import pubCrypto,symCrypto
+from glideinwms.lib import pubCrypto,symCrypto
 from sets import Set
 
 ############################################################

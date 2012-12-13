@@ -19,8 +19,8 @@ import string
 import socket
 import types
 import traceback
-import xmlParse
-import condorExe
+from glideinwms.lib import xmlParse
+from glideinwms.lib import condorExe
 import cWParams
 
 
