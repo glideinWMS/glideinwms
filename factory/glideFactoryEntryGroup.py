@@ -471,14 +471,20 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                                          group_name, my_entries)
 
             gfl.log_files.logActivity("Writing stats for all entries")
+
             try:
                 pids = []
-                for entry in my_entries.values():
+                # generate a list of entries for each CPU
+                cpuCount = os.sysconf('SC_NPROCESSORS_ONLN')
+                entrylists = [my_entries.values()[cpu::cpuCount] for cpu in xrange(cpuCount)]
+
+                for cpu in xrange(cpuCount):
                     pid = os.fork()
                     if pid: # I am the parent
                         pids.append(pid)
                     else: # I am the child
-                        entry.writeStats()
+                        for entry in entrylists[cpu]:
+                            entry.writeStats()
                         os._exit(0) # exit without triggering SystemExit exception
                 for pid in pids:
                     os.waitpid(pid, 0)
