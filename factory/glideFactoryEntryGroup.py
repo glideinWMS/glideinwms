@@ -472,8 +472,16 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
 
             gfl.log_files.logActivity("Writing stats for all entries")
             try:
+                pids = []
                 for entry in my_entries.values():
-                    entry.writeStats()
+                    pid = os.fork()
+                    if pid: # I am the parent
+                        pids.append(pid)
+                    else: # I am the child
+                        entry.writeStats()
+                        os._exit(0) # exit without triggering SystemExit exception
+                for pid in pids:
+                    os.waitpid(pid, 0)
             except KeyboardInterrupt:
                 raise # this is an exit signal, pass through
             except:
