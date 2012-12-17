@@ -15,7 +15,7 @@ import cgWDictFile,cWDictFile
 import cgWCreate
 import cgWConsts,cWConsts
 
-from glideinwmms.lib import pubCrypto
+from glideinwms.lib import pubCrypto
 
 ################################################
 #
