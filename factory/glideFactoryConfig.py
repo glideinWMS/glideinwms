@@ -120,7 +120,7 @@ class GlideinKey:
         """
         
         if self.pub_key_type=='RSA':
-            import pubCrypto,symCrypto
+            from glideinwms.lib import pubCrypto,symCrypto
             try:
                 # pylint: disable=E0611
                 #  (hashlib methods are called dynamically)

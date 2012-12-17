@@ -28,7 +28,7 @@ import logging
 import cPickle
 sys.path.append(os.path.join(sys.path[0],"../.."))
 
-from glideinwms.lib import pubCrypto
+from glideinwms.lib import symCrypto,pubCrypto
 
 import glideinFrontendConfig
 import glideinFrontendInterface
