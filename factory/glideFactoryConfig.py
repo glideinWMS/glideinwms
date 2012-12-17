@@ -10,6 +10,8 @@ import os
 import os.path
 import shutil
 
+from glideinwms.lib import pubCrypto,symCrypto
+
 ############################################################
 #
 # Configuration
@@ -120,7 +122,6 @@ class GlideinKey:
         """
         
         if self.pub_key_type=='RSA':
-            from glideinwms.lib import pubCrypto,symCrypto
             try:
                 # pylint: disable=E0611
                 #  (hashlib methods are called dynamically)
