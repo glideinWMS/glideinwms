@@ -216,6 +216,17 @@ def countMatch(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match_list=
     new_out_counts={}
     glideindex=0
 
+    #
+    # To speed up dictionary lookup
+    # we will convert Schedd_Name#ClusterId.ProcID into a number
+    # Since we have to convert a 3 dimensional entity into a linear number
+    # we have to pick two ranges to use as multipliers
+    # len(schedds) is the first obvious one, since it is fixed
+    # between ClusterId and ProcId, we select max(ProcId) since it is the smaller of the two
+    # the formula thus becomes
+    #  (ClusterId*max_ProcId+ProcId)*len(schedds)+scheddIdx
+    #
+
     schedds=condorq_dict.keys()
     nr_schedds=len(schedds)
 
