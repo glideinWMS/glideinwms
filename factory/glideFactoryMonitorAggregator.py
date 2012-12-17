@@ -13,11 +13,11 @@
 #
 
 import copy,time,string,os.path
-import timeConversion
-import xmlParse,xmlFormat
-from glideinwms.lib import glideFactoryMonitoring
-from glideinwms.lib import glideFactoryLib
+from glideinwms.lib import timeConversion
+from glideinwms.lib import xmlParse,xmlFormat
 from glideinwms.lib import rrdSupport
+import glideFactoryMonitoring
+import glideFactoryLib
 import tempfile
 import shutil
 import time

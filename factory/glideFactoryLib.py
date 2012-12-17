@@ -20,11 +20,11 @@ import re
 import traceback
 import pwd
 import binascii
-import condorExe,condorPrivsep
-import logSupport
-import condorMonitor
-import condorManager
 import tempfile
+from glideinwms.lib import condorExe,condorPrivsep
+from glideinwms.lib import logSupport
+from glideinwms.lib import condorMonitor
+from glideinwms.lib import condorManager
 
 from glideinwms.factory import glideFactoryConfig
 
