@@ -19,11 +19,11 @@ import time
 import re
 import pwd
 import binascii
-import condorExe
-import condorPrivsep
-import logSupport
-import condorMonitor
-import condorManager
+from glideinwms.lib import condorExe,condorPrivsep
+from glideinwms.lib import logSupport
+from glideinwms.lib import condorMonitor
+from glideinwms.lib import condorManager
+
 from glideinwms.factory import glideFactoryConfig
 import base64
 import string
@@ -1575,6 +1575,8 @@ class GlideinTotals:
             output += "     max_held = %s\n" % fe_limit['max_held']
             output += "     running = %s\n" % fe_limit['running']
             output += "     max_glideins = %s\n" % fe_limit['max_glideins']
+
+        return output
 
         return output
 
