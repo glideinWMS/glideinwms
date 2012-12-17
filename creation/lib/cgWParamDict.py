@@ -16,6 +16,8 @@ import cgWDictFile,cWDictFile
 import cgWCreate
 import cgWConsts,cWConsts
 
+from glideinwmms.lib import pubCrypto
+
 ################################################
 #
 # This Class contains the main dicts
@@ -234,7 +236,6 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         if self.params.security.pub_key=='None':
             pass # nothing to do
         elif self.params.security.pub_key=='RSA':
-            from glideinwmms.lib import pubCrypto
             rsa_key_fname=os.path.join(self.work_dir,cgWConsts.RSA_KEY)
 
             if not os.path.isfile(rsa_key_fname):
