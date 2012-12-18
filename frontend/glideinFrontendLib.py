@@ -196,22 +196,20 @@ def countMatch(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match_list=
     """
     Get the number of jobs that match each glideina
     
-    @type match_obj: What type is this???
-    @param match_obj: compile('(job["MIN_NAME"]<glidein["MIN_NAME"]) && (job["ARCH"]==glidein["ARCH"])',"<string>","eval")
-    @type condorq_dict: What type is this???
-    @param condorq_dict: output of getidlqCondorQ
-    @type glidein_dict: What type is this???
+    @param match_obj: output of re.compile(match string,'<string>','eval')
+    @type condorq_dict: dictionary: sched_name->CondorQ object
+    @param condorq_dict: output of getidleCondorQ
+    @type glidein_dict: dictionary: glidein_name->dictionary of params and attrs
     @param glidein_dict: output of interface.findGlideins
-    @param attr_dict:  ???
-    @param condorq_match:  ???
-    @param list:  ???
+    @param attr_dict:  dictionary of constant attributes
+    @param condorq_match_list: list of job attributes from the XML file
     @return: tuple of 3 elements, where each is a
         dictionary of glidein name where elements are number of jobs matching
         The first  one is a straight match
         The second one is the entry proportion based on unique subsets
         The third  one contains only elements that can only run on this site
-        A special "glidein name" of (None, None, None) is used for jobs
-        that don't match any "real glidein name"
+        A special 'glidein name' of (None, None, None) is used for jobs
+        that don't match any 'real glidein name'
     """
     out_glidein_counts={}
     #new_out_counts: keys are site indexes(numbers), 
@@ -251,7 +249,7 @@ def countMatch(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match_list=
     # Group jobs into clusters of similar attributes
 
     # Results will be stored in the variables:
-    #  cq_dict_clustera - dict of clusters (= list of job ids)
+    #  cq_dict_clusters - dict of clusters (= list of job ids)
     #  cq_jobs - full set of job ids
     cq_dict_clusters={}
     cq_jobs=set()
@@ -283,9 +281,10 @@ def countMatch(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match_list=
     # match the clusters to these glideins
 
     # Results:
-    #  list_of_all_jobs: list of sets of matching jobs ??? Please elaborate?
-    #  all_jobs_clusters: linearized array of all the jobs,
-    #        referenced by their first job id
+    #  list_of_all_jobs: a list containing the set of jobs that match a gliedin (i.e. entry)
+    #                    the position in the list identifies the glidein
+    #                    and each element is a set of indexes representing a job cluster each
+    #  all_jobs_clusters: dictionary of cluster index -> list of jobs in the cluster (represented each by its own index)
     list_of_all_jobs=[]
     all_jobs_clusters={}
     
@@ -315,12 +314,9 @@ def countMatch(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match_list=
                         t=(jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
                         cluster_arr.append(t)
                         schedd_count+=1
-                    # adding a whole cluster much faster
-                    #+sjobs_arr+=cluster_arr
                     first_t=(first_jid[0]*procid_mul+first_jid[1])*nr_schedds+scheddIdx
                     all_jobs_clusters[first_t]=cluster_arr
                     sjobs_arr+=[first_t]
-                    #+del cluster_arr
                     pass
                 pass
             jobs_arr+=sjobs_arr
@@ -333,8 +329,11 @@ def countMatch(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match_list=
         out_glidein_counts[glidename]=glidein_count
         pass
 
-    # ??? Combine the list of the jobs
-    # Igor: please comment as to why we are doing this.  Not obvious
+    # Now split the list of sets into unique sets
+    # We will use this to count how many glideins each job matches against
+    # outvals_cl contains the new list of unique sets
+    #  each element is a tuple: (set of glideins with the same jobs, set of jobs)
+    # jrange_cl contains the set of all the job clusters
     (outvals_cl,jrange_cl) = uniqueSets(list_of_all_jobs)
     del list_of_all_jobs
 
