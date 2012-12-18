@@ -573,7 +573,9 @@ The following DNs are in your grid_mapfile:"""
     common.logit("\nCreating VO frontend env script.")
     data = """#!/bin/bash
 . %(condor_location)s/condor.sh
-""" % { "condor_location" : self.condor_location(),}
+export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
+""" % { "condor_location" : self.condor_location(),
+        "install_location" : self.glideinwms_location(),}
     common.write_file("w",0644,self.env_script(),data)
     common.logit("VO frontend env script created: %s" % self.env_script() )
 
