@@ -18,19 +18,17 @@ import copy
 import calendar
 import time
 import string
-from glideinwms.lib import pubCrypto,symCrypto
-from sets import Set
 
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../lib"))
 
-import symCrypto
-import condorExe
-import condorMonitor
-import condorManager
-import pubCrypto
-import logSupport
-import classadSupport
+from glideinwms.lib import pubCrypto,symCrypto
+from glideinwms.lib import condorExe
+from glideinwms.lib import condorMonitor
+from glideinwms.lib import condorManager
+from glideinwms.lib import classadSupport
+
+from sets import Set
 
 ############################################################
 #
