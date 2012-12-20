@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v2_6_3_rc1
+# GLIDEINWMS_VERSION v2_6_3_rc2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 3e6a1442aed0ca6ece87f437079ca547  ./creation/add_entry
@@ -22,7 +22,7 @@ a6c59391de9725d677a8ab096fb83332  ./creation/web_base/condor_config.check.includ
 e10703fea90b6803c5d8ee15ed6f7cce  ./creation/web_base/condor_config.dedicated_starter.include
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
 f9a71916006e1a7f7778966628b0b232  ./creation/web_base/condor_config.multi_schedd.include
-33507b2f558bb22e21557abdcd828fc3  ./creation/web_base/condor_vars.lst
+e3a86ef7306b23290d9d9979baf562eb  ./creation/web_base/condor_vars.lst
 6ae698343398a7347acd5635dcc5a773  ./creation/web_base/condor_vars.lst.entry
 2defc7ddcb297a1205a6bf0682f420f9  ./creation/web_base/error_augment.sh
 94b331baa0564c40c8e2516a53c9cda1  ./creation/web_base/error_gen.sh
@@ -54,17 +54,17 @@ e0ba6891e61382c17e0aa7ea0a13c688  ./creation/web_base/setup_script.sh
 cada31e84568e1b5385e0686c2627725  ./factory/glideFactoryConfig.py
 e114c72a989540fb9602a5aeaf46772d  ./factory/glideFactoryInterface.py
 c01bff7ad130e0eeb2222b73f4b87173  ./frontend/checkFrontend.py
-46c7ac1835e94470d31b39e8e0267f66  ./frontend/glideinFrontendConfig.py
-1b1a05102839a50ea0e91681561f32a4  ./frontend/glideinFrontendElement.py
+90758e30a91701d90507a731af63b3c6  ./frontend/glideinFrontendConfig.py
+d1efedacc026ed5328bd8997bd682153  ./frontend/glideinFrontendElement.py
 d24e3b6fdda1735313a9c2d3ec3db280  ./frontend/glideinFrontendInterface.py
-52477734c5ac11e24acc67eaac429d9e  ./frontend/glideinFrontendLib.py
+3b62d712628cfdf324c9ca1cf6c2e4e2  ./frontend/glideinFrontendLib.py
 3bdf6e5ae5c6ad8d19a55149fd1e6e35  ./frontend/glideinFrontendMonitorAggregator.py
 9d1d6c56f90edac2bf23204a2b64147f  ./frontend/glideinFrontendMonitoring.py
 9a1de28ae5021272722c69631f77ca78  ./frontend/glideinFrontendPidLib.py
 24d0c70bb7686a2946041253b991f998  ./frontend/glideinFrontendPlugins.py
 0519a3dbe8a0285f66510184c0942e1e  ./frontend/glideinFrontend.py
 a9936d0fa9d7a379ece0a124c87abf70  ./frontend/stopFrontend.py
-399214ee12984a4eb84e3fe292f1db1a  ./install/glidecondor_addDN
+519d50204bfeffddb1013233c0ac74d4  ./install/glidecondor_addDN
 14348bd468664cec9c8632407842604b  ./install/glidecondor_upgrade
 ac0a334763d78ab1abe1148209625a94  ./install/glideinWMS.ini
 77ac6f38d202103c288fab35e09af219  ./install/glideinWMS_install

@@ -262,6 +262,7 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name):
         fd.write('                 fi\n')
         fd.write('                 ;;\n')
         fd.write('           esac\n')
+        fd.write('           shift\n')
         fd.write("        done\n")
         fd.write('        if [ -n "$GLIDEIN_WRITEBACK" ]; then\n')
         fd.write('           writeback="$GLIDEIN_WRITEBACK"\n')
