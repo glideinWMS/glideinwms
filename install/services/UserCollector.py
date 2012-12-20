@@ -216,7 +216,8 @@ specified.
 ##########################################
 def main(argv):
   try:
-    create_template() 
+    pass
+    #create_template()
     #options = validate_args(argv)
     #user = UserCollector(options.inifile)
     #user.start_me()

@@ -243,7 +243,8 @@ specified.
 ##########################################
 def main(argv):
   try:
-    create_template()
+    pass
+    #create_template()
     #options = validate_args(argv)
     #wms = WMSCollector(options.inifile)
     #wms.install()

@@ -1120,7 +1120,8 @@ specified.
 ##########################################
 def main(argv):
   try:
-    create_template()
+    pass
+    #create_template()
     #options = validate_args(argv)
     #vo = VOFrontend(options.inifile)
     #vo.get_new_config_group()
