@@ -137,7 +137,7 @@ def find_entries_with_partial_id_match(config_xml, skip_disabled):
             ress_entries.update(infosys_lib.query_ress(infosys))
                 
         elif type.lower() == 'tg':
-            tg_entries.update(infosys_lib.query_teragrid(infosys))
+            tg_entries.update(infosys_lib.query_teragrid())
             
     partial_match_bdii_entries = find_partial_id_match(bdii_entries, config_entries, 'bdii')
     partial_match_ress_entries = find_partial_id_match(ress_entries, config_entries, 'ress')

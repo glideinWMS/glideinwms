@@ -160,7 +160,7 @@ def find_new_entries_in_infosys(config_xml, source, source_type, skip_disabled, 
         infosys_entries = remove_duplicates(ress_entries)
             
     elif source_type.lower() == 'tg':
-        infosys_entries = infosys_lib.query_teragrid(source)
+        infosys_entries = infosys_lib.query_teragrid()
         
     # Compare config entries with what is found in the information system
     new_entries = []
