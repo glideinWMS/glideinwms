@@ -192,6 +192,9 @@ class LogFiles:
             # logging must never throw an exception!
             self.logWarning("logActivity failed, was logging: %s"%str,False)
 
+    def logError(self, str, log_in_activity=True):
+        self.logWarning(str, log_in_activity)
+
     def logWarning(self,str, log_in_activity=True):
         try:
             self.warning_log.write(str)
