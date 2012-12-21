@@ -237,6 +237,10 @@ Install as: various daemon users or as system rpms/packages<br>
     <p>Now follow the instructions.  Most of the questions should be fairly straightforward.</p>
     <p>Make sure that you install this service on a port that can be accessed by the internet, as
         worker nodes will need to be able to communicate with this port to download data.</p>
+
+    <p>
+        Note: If you are installing your own HTTP server or using a system-installed one, be aware that you may want to disable unneeded features for security reasons.  For instance, disable any LoadModule directives in Apache for any modules you are not using.  Also, directory browsing is one way that strangers can glean information from your system.  It is recommended that you disable this by default.  Set "Options -Indexes" inside the Directory directive for at least the Glidein vofrontend and factory or for the entire server.
+    </p>
 </div>
 
 
