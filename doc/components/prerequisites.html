@@ -227,6 +227,7 @@ Install as: various daemon users or as system rpms/packages
 
 <div class="section">
     <h2><a name="system_httpd">1. HTTP server</a></h2>
+<<<<<<< HEAD
     <p>
     You will need to install an HTTP server for glideinWMS to be used for staging and monitoring.  This needs to be installed on a port 
     accessible to the outside.  
@@ -261,7 +262,11 @@ Install as: various daemon users or as system rpms/packages
                     'authz_host_module','authz_default_module'</tt>.
             </li>
             <li>Disable any (unneeded) extensions in /etc/httpd/conf.d </li>
-        </ul>
+            <li>Recommended: disable indexes (Options -Indexes) in all
+            directories/locations, such as frontend/factory stage/monitor
+            directories.</li>
+    </ul>
+    <p>
     </p>
 </div>
 
