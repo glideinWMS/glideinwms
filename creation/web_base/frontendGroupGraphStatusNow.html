@@ -313,6 +313,7 @@ function UpdateGroup(group_obj) {
 
     // For each factory (entry_point), grab attributes from the xml
     $(group_obj).find("factory").each(function() {
+        if ( $(this).attr("Down").toLowerCase() == "down" ) return;
         data.addRows(1);
         entry_name = $(this).find("Attributes").attr("EntryName");
         factories.push(entry_name);
