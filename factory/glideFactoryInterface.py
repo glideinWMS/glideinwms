@@ -151,10 +151,6 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
     status.require_integrity(True)
     status.glidein_name = glidein_name
 
-    # TODO: PM: Is setting entry_name really required?
-    #           Cant find anywhere this is used
-    #status.entry_name=entry_name
-
     # Serialize access to the Collector accross all the processes
     # these is a single Collector anyhow
     lock_fname = os.path.join(factoryConfig.lock_dir, "gfi_status.lock")

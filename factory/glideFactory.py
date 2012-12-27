@@ -232,7 +232,10 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
     # Number of glideFactoryEntry processes to spawn and directly relates to 
     # number of concurrent condor_status processess
     # 
-    # TODO: This info should be read from glideinWMS.xml in future releases
+    # NOTE: If number of entries gets too big, we may excede the shell args 
+    #       limit. If that becomes an issue, move the logic to identify the 
+    #       entries to serve to the group itself.
+    #
     # Each process will handle multiple entries split as follows
     #   - Sort the entries alphabetically. Already done
     #   - Divide the list into equal chunks as possible

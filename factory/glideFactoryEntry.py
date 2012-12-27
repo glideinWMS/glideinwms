@@ -577,6 +577,27 @@ class Entry:
                 stats_data[frontend][user].data = new_data
 
 
+    def loadPostWorkState(self, post_work_info):
+        """
+        Load the post work state from the pickled info
+        
+        @type post_work_info: dict
+        @param post_work_info: Picked state after doing work
+        """
+
+        self.gflFactoryConfig.client_stats = post_work_info['client_stats']
+        self.gflFactoryConfig.qc_stats = post_work_info['qc_stats']
+        self.gflFactoryConfig.rrd_stats = post_work_info['rrd_stats']
+        self.gflFactoryConfig.client_internals = post_work_info['client_internals']
+        # Load info for latest log_stats correctly
+        self.gflFactoryConfig.log_stats.data = post_work_info['log_stats']['data']
+        self.gflFactoryConfig.log_stats.updated = post_work_info['log_stats']['updated']
+        self.gflFactoryConfig.log_stats.updated_year = post_work_info['log_stats']['updated_year']
+        self.gflFactoryConfig.log_stats.stats_diff = post_work_info['log_stats']['stats_diff']
+        self.gflFactoryConfig.log_stats.files_updated = post_work_info['log_stats']['files_updated']
+        self.setLogStatsOldStatsData(post_work_info['log_stats']['old_stats_data'])
+        self.setLogStatsCurrentStatsData(post_work_info['log_stats']['current_stats_data'])
+    
 # class Entry
 
 ###############################################################################
