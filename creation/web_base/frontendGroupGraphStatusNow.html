@@ -315,7 +315,7 @@ function UpdateGroup(group_obj) {
     $(group_obj).find("factory").each(function() {
         if ( $(this).attr("Down").toLowerCase() == "down" ) return;
         data.addRows(1);
-        entry_name = $(this).find("Attributes").attr("EntryName");
+        entry_name = $(this).find("Attributes").attr("EntryName") + '@' + $(this).find("Attributes").attr("FactoryName");
         factories.push(entry_name);
         data.setCell(counter, 0, entry_name);
 
