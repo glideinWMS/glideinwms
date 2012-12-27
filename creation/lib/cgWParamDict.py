@@ -652,6 +652,7 @@ def populate_factory_descript(work_dir,
         glidein_dict.add('WebURL',params.web_url)
         glidein_dict.add('PubKeyType',params.security.pub_key)
         glidein_dict.add('OldPubKeyGraceTime',params.security.reuse_oldkey_onstartup_gracetime)
+        glidein_dict.add('MonitorUpdateThreadCount',params.monitor.update_thread_count)
         del active_sub_list[:] # clean
 
         for sub in params.entries.keys():

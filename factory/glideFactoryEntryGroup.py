@@ -475,7 +475,9 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
             try:
                 pids = []
                 # generate a list of entries for each CPU
-                cpuCount = os.sysconf('SC_NPROCESSORS_ONLN')
+                #cpuCount = os.sysconf('SC_NPROCESSORS_ONLN')
+                cpuCount = int(glideinDescript.data['MonitorUpdateThreadCount'])
+                gfl.log_files.logActivity("Number of parallel writes for stats: %i" % cpuCount)
                 entrylists = [my_entries.values()[cpu::cpuCount] for cpu in xrange(cpuCount)]
 
                 for cpu in xrange(cpuCount):
@@ -483,8 +485,11 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                     if pid: # I am the parent
                         pids.append(pid)
                     else: # I am the child
-                        for entry in entrylists[cpu]:
-                            entry.writeStats()
+                        try:
+                            for entry in entrylists[cpu]:
+                                entry.writeStats()
+                        except:
+                            gfl.log_files.logWarning("Error writing stats for entry '%s': %s" % (entry.name, tb))                
                         os._exit(0) # exit without triggering SystemExit exception
                 for pid in pids:
                     os.waitpid(pid, 0)
@@ -495,7 +500,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                 tb = traceback.format_exception(sys.exc_info()[0],
                                                 sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                gfl.log_files.logWarning("Error writing stats for entry '%s': %s" % (entry.name, tb))                
+                gfl.log_files.logWarning("Error writing stats: %s" % tb)                
         except KeyboardInterrupt:
             raise # this is an exit signal, pass through
         except:
