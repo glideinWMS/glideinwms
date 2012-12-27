@@ -29,6 +29,7 @@ from glideinwms.lib import logSupport
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorManager
 from glideinwms.lib import timeConversion
+from glideinwms.lib import x509Support
 from glideinwms.factory import glideFactoryConfig
 
 
@@ -332,8 +333,8 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
         logSupport.log.error("Unable to create tempfile %s!" % tempfilename)
     
     try:
-        dn_list=condorExe.iexe_cmd("openssl x509 -subject -noout",stdin_data=proxy_data)
-        dn=dn_list[0]
+        dn = x509Support.extract_DN(tempfilename)
+
         voms_proxy_info = which('voms-proxy-info')
         if voms_proxy_info is not None:
             voms_list = condorExe.iexe_cmd("%s -fqan -file %s" % (voms_proxy_info, tempfilename))
