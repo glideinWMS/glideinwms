@@ -26,6 +26,7 @@ import condorMonitor
 import condorManager
 import tempfile
 import glideFactoryConfig
+import x509Support
 
 MY_USERNAME=pwd.getpwuid(os.getuid())[0]
 
