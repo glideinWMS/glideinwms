@@ -782,6 +782,26 @@ class ResourceClassad(Classad):
         self.adParams['UpdateSequenceNumber'] = advertizeGRCounter[self.adParams['Name']]
 
 
+    def setMatchExprs(self, match_expr, job_query_expr, factory_query_expr, start_expr):
+        """
+        Sets the matching expressions for the resource classad
+        Thus, it would be possible to find out why a job
+        is not matching.
+        @type match_expr: string
+        @param match_expr: A representation of the  frontend MatchExpr
+        @type job_query_expr: string
+        @param job_query_expr: Representation of the job query_expr
+        @type factory_query_expr: string
+        @param factory_query_expr: Representation of the factory query_expr
+        @type start_expr: string
+        @param start_expr: Representation of the match start expr (on the glidein)
+        """
+        self.adParams['GlideClientMatchExpr'] = "%s" % match_expr
+        self.adParams['GlideClientJobQueryExpr'] = "%s" % job_query_expr
+        self.adParams['GlideClientFactoryQueryExpr'] = "%s" % factory_query_expr
+        self.adParams['GlideClientStartExpr'] = "%s" % start_expr
+        
+
     def setInDownTime(self, downtime):
         """
         Set the downtime flag for the resource in the classad
