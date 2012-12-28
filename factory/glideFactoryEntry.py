@@ -29,7 +29,6 @@ import math
 import copy
 import random
 import sets
-<<<<<<< HEAD
 import logging
 sys.path.append(os.path.join(sys.path[0],"../../"))
 
