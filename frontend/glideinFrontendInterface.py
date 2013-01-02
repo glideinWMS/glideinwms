@@ -27,6 +27,7 @@ from glideinwms.lib import condorExe
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorManager
 from glideinwms.lib import classadSupport
+from glideinwms.lib import logSupport
 
 from sets import Set
 
