@@ -28,7 +28,7 @@ def usage():
     print " glidecondor_createSecSched [-commonlog] [-nocreatedirs] <scheddlist>"
     print "where:"
     print "  -commonlog    - If present, all the schedds will share a common log (default: one log per process)"
-    print "  -nocreatedirs - If present, do not (re-)create the needed directories (defaule: do create the directories)"
+    print "  -nocreatedirs - If present, do not (re-)create the needed directories (default: do create the directories)"
     print "  scheddlist    - List of secondary schedds to put in the config file (required)"
     print "Example:"
     print "  glidecondor_createSecSched schedd_glideins1,schedd_glideins2"
