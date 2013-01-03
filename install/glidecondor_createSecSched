@@ -21,9 +21,15 @@ import subprocess
 import string,copy
 
 def usage():
+    print "This tool creates the 11_gwms_secondary_schedds.config file"
+    print "in the HTCondor's config.d directory"
+    print
     print "Usage:"
-    #print " glidecondor_createSecSched [-commonlog] [-nocreatedirs] <scheddlist>"
     print " glidecondor_createSecSched [-commonlog] [-nocreatedirs] <scheddlist>"
+    print "where:"
+    print "  -commonlog    - If present, all the schedds will share a common log (default: one log per process)"
+    print "  -nocreatedirs - If present, do not (re-)create the needed directories (defaule: do create the directories)"
+    print "  scheddlist    - List of secondary schedds to put in the config file (required)"
     print "Example:"
     print "  glidecondor_createSecSched schedd_glideins1,schedd_glideins2"
     return
