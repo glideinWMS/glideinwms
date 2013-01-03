@@ -703,7 +703,8 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     glidein_monitors={}
     for w in current_qc_total.keys():
         for a in current_qc_total[w].keys():
-            glidein_monitors['Total%s%s'%(w,a)]=current_qc_total[w][a]
+            glidein_monitors['Total%s%s' % (w, a)] = current_qc_total[w][a]
+            jobAttributes.data['GlideinMonitorTotal%s%s' % (w, a)] = current_qc_total[w][a]
     try:
         # Make copy of job attributes so can override the validation downtime setting with the true setting of the entry (not from validation)
         myJobAttributes=jobAttributes.data.copy()
