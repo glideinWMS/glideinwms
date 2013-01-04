@@ -21,6 +21,7 @@ import stat
 import time
 import re
 import M2Crypto
+from x509Support import extract_DN
 
 STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
@@ -32,31 +33,6 @@ def usage():
     print " glidecondor_addDN [-daemon comment] DN|file user"
     return
 
-def extract_DN(fname):
-    fd=open(fname,"r")
-    try:
-        data=fd.read()
-    finally:
-        fd.close()
-
-    while 1:
-        try:
-            data_idx=data.rindex('-----BEGIN CERTIFICATE-----\n')
-            old_data=data[:data_idx]
-            data=data[data_idx:]       
-        except ValueError, e:
-            print "%s not a valid certificate file"%fname
-            sys.exit(3)
-        
-        m=M2Crypto.X509.load_cert_string(data)
-        if m.check_ca():
-            # ops, this is the CA part
-            # get the previous in the chain
-            data=old_data
-        else:
-            break #ok, found it, end the loop
-
-    return str(m.get_subject())
 
 def parse_args(args):
     daemon_comment=None
