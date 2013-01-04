@@ -240,12 +240,17 @@ function parseuserdata(xml) {
         if (first_group == true) {
             first_group = false;
             selected_group = group_name;
-            $("#" + group_name).parent().addClass("active");
-            // $("#group_display").html(selected_group);
-            UpdateGroup($(this));
+            group_object = $(this)
         }
-
+        if (group_name == "main"){
+            selected_group = group_name;
+            group_object = $(this)
+        }
     }); // end each group
+
+    $("#" + selected_group).parent().addClass("active");
+    UpdateGroup(group_object);
+
 
     // All the groups links need to be updated
     $(".group_link").click(function() {
@@ -379,7 +384,7 @@ function UpdateGroup(group_obj) {
     if ( factories.length == 0 ){
         $("#group_graphs").fadeTo(0, 0.5);
         ShowDialog($(group_selector), "No Entry Points Detected",
-            "No entry points were detected in the group: " + group_name);
+            "No entry points were detected in the group: <strong>" + group_name +"</strong>. <p>Please select another group from the menu on the left.</p>");
     
     // If no jobs are detected, idle or running
     } else if ((SumElements(matchedjobs_running) == 0) &&
@@ -391,7 +396,7 @@ function UpdateGroup(group_obj) {
 
         $("#group_graphs").fadeTo(0, 0.5);
         ShowDialog($(group_selector), "No Jobs Detected",
-             "No jobs were detected, idle or running, in the group: " + group_name);
+             "No jobs were detected, idle or running, in the group: <strong>" + group_name + "</strong>.  <p>Please select another group from the menu on the left.</p>");
 
     } else {
         $("#group_graphs").fadeTo(0, 1.0);
@@ -578,7 +583,7 @@ function HideDialog() {
 </div>
 <div class="container-fluid">
 <div class="row-fluid">
-<div id="header" class="span12 page-header"><h2 id="pgtitle">Current GlideinWMS Frontend Status</h2></div>
+<div id="header" class="span12 page-header" style="margin: 5px 0 5px"><h2 id="pgtitle">Current GlideinWMS Frontend Status</h2></div>
 <!-- <div class="page_links span3 offset1"> -->
 </div> <!-- Row -->
 
