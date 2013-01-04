@@ -155,6 +155,57 @@ function googleReady() {
 
 }
 
+// Function to get the url attributes
+function getURLParameter(name) {
+    return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
+}
+
+// Function to set the url attributes (with possible hashes)
+// source: http://stackoverflow.com/questions/6953944/how-to-add-parameters-to-a-url-that-already-contains-other-parameters-and-maybe
+function addParameter(url, parameterName, parameterValue){
+
+    replaceDuplicates = true;
+
+    if(url.indexOf('#') > 0){
+        var cl = url.indexOf('#');
+        urlhash = url.substring(url.indexOf('#'),url.length);
+    } else {
+        urlhash = '';
+        cl = url.length;
+    }
+
+    sourceUrl = url.substring(0,cl);
+
+
+
+    var urlParts = sourceUrl.split("?");
+    var newQueryString = "";
+
+    if (urlParts.length > 1)
+    {
+        var parameters = urlParts[1].split("&");
+        for (var i=0; (i < parameters.length); i++)
+        {
+            var parameterParts = parameters[i].split("=");
+            if (!(replaceDuplicates && parameterParts[0] == parameterName))
+            {
+                if (newQueryString == "")
+                    newQueryString = "?";
+                else
+                    newQueryString += "&";
+                newQueryString += parameterParts[0] + "=" + parameterParts[1];
+            }
+        }
+    }
+    if (newQueryString == "")
+        newQueryString = "?";
+    else
+        newQueryString += "&";
+    newQueryString += parameterName + "=" + parameterValue;
+
+    return urlParts[0] + newQueryString + urlhash;
+}
+
 
 // Reload all the data, including pulling down new xml, reloading
 // Charts and table
@@ -230,6 +281,7 @@ function parseuserdata(xml) {
     global_xml = xml;
     var first_group = true;
     var groups = new Array()
+    var url_group = getURLParameter('group');
     $(xml).find("group").each(function() {
         var group_name = $(this).attr('name');
     
@@ -240,11 +292,14 @@ function parseuserdata(xml) {
         if (first_group == true) {
             first_group = false;
             selected_group = group_name;
-            group_object = $(this)
+            group_object = $(this);
         }
-        if (group_name == "main"){
+        if (group_name == "main" && url_group == null){
             selected_group = group_name;
-            group_object = $(this)
+            group_object = $(this);
+        } else if ( url_group == group_name ) {
+            selected_group = group_name;
+            group_object = $(this);
         }
     }); // end each group
 
@@ -328,6 +383,9 @@ function UpdateGroup(group_obj) {
     // Convinence variables
     var group_name = $(group_obj).attr('name');
     var group_selector = "#group_graphs";
+
+    // Update the group in the URL
+    window.history.pushState({group: getURLParameter("group")},"",addParameter(document.location.href, 'group', selected_group));
 
     data.addColumn('string', 'Entry Name');
     data.addColumn('number', 'Running Jobs');
