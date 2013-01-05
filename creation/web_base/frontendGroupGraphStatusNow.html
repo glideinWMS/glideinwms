@@ -206,6 +206,17 @@ function addParameter(url, parameterName, parameterValue){
     return urlParts[0] + newQueryString + urlhash;
 }
 
+// Function to handle back / forward
+var going_back = false;
+window.onpopstate = function(event) {
+    
+    if ( event.state ) {
+        going_back = true;
+        $("#" + event.state.group).trigger("click");
+    } 
+
+};
+
 
 // Reload all the data, including pulling down new xml, reloading
 // Charts and table
@@ -243,6 +254,14 @@ function ChangeGroup(element) {
     selected_group = element.attr("id");
     $("#graphtable").find("img").remove();
     $("#graphtable").find("#image_load_fail").remove();
+
+    // Update the group in the URL
+    if ( going_back == false) {
+        window.history.pushState({group: selected_group},"",addParameter(document.location.href, 'group', selected_group));
+    } else {
+        going_back = false;
+    }
+
     // $("#group_display").html(selected_group);
     $(global_xml).find("group").each(function() {
         var group_name = $(this).attr('name');
@@ -286,7 +305,7 @@ function parseuserdata(xml) {
         var group_name = $(this).attr('name');
     
         // Add to the group list
-        $("#groups_list").append("<li class='group_selector'><a class='group_link' href='#' id='" + group_name + "' value='" + group_name + "'><i class='icon-chevron-right'></i>" + group_name + "</a>  </li>");
+        $("#groups_list").append("<li class='group_selector'><a class='group_link' href='javascript:void(0);' id='" + group_name + "' value='" + group_name + "'><i class='icon-chevron-right'></i>" + group_name + "</a>  </li>");
 
 
         if (first_group == true) {
@@ -305,6 +324,9 @@ function parseuserdata(xml) {
 
     $("#" + selected_group).parent().addClass("active");
     UpdateGroup(group_object);
+    
+    // Add history element to the initial
+    history.replaceState({group: selected_group}, "", "");
 
 
     // All the groups links need to be updated
@@ -383,9 +405,6 @@ function UpdateGroup(group_obj) {
     // Convinence variables
     var group_name = $(group_obj).attr('name');
     var group_selector = "#group_graphs";
-
-    // Update the group in the URL
-    window.history.pushState({group: getURLParameter("group")},"",addParameter(document.location.href, 'group', selected_group));
 
     data.addColumn('string', 'Entry Name');
     data.addColumn('number', 'Running Jobs');
