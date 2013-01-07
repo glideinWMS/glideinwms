@@ -4,18 +4,19 @@ import traceback
 import sys,os,os.path,string,time
 import stat,re
 import xml.sax.saxutils
-from glideinwms.lib import xmlFormat
 import optparse
 #-------------------------
-import common
-import WMSCollector
-import Factory
-import Submit
-import UserCollector
-import Glidein
-from Condor        import Condor
-from Configuration import Configuration
-from Configuration import ConfigurationError
+from glideinwms.lib import xmlFormat
+
+from glideinwms.install.services import common
+from glideinwms.install.services import WMSCollector
+from glideinwms.install.services import Factory
+from glideinwms.install.services import Submit
+from glideinwms.install.services import UserCollector
+from glideinwms.install.services import Glidein
+from glideinwms.install.services.Condor import Condor
+from glideinwms.install.services.Configuration import Configuration
+from glideinwms.install.services.Configuration import ConfigurationError
 #-------------------------
 os.environ["PYTHONPATH"] = ""
 

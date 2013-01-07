@@ -1660,10 +1660,8 @@ def which(program):
     @return: Path to the binary
     @rtype: string
     """
-
     def is_exe(fpath):
         return os.path.exists(fpath) and os.access(fpath, os.X_OK)
-
     fpath, fname = os.path.split(program)
     if fpath:
         if is_exe(program):
@@ -1673,5 +1671,4 @@ def which(program):
             exe_file = os.path.join(path, program)
             if is_exe(exe_file):
                 return exe_file
-
     return None

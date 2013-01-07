@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 
-import common
-import WMSCollector
-import VOFrontend
-from Condor        import Condor
-from Glidein       import Glidein
-from Configuration import Configuration
-from Configuration import ConfigurationError
-from glideinwms.lib import condorPrivsep
-from glideinwms.lib import condorMonitor
-from glideinwms.lib import condorExe
-
 import traceback
 import sys,os,pwd,string,time
 import xml.sax.saxutils
-
 import optparse
+
+from glideinwms.lib import condorMonitor
+from glideinwms.lib import condorExe
+from glideinwms.lib import condorPrivsep
+
+from glideinwms.install.services import common
+from glideinwms.install.services import WMSCollector
+from glideinwms.install.services import VOFrontend
+from glideinwms.install.services.Condor import Condor
+from glideinwms.install.services.Glidein import Glidein
+from glideinwms.install.services.Configuration import Configuration
+from glideinwms.install.services.Configuration import ConfigurationError
 
 #STARTUP_DIR=sys.path[0]
 #sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
