@@ -155,6 +155,68 @@ function googleReady() {
 
 }
 
+// Function to get the url attributes
+function getURLParameter(name) {
+    return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
+}
+
+// Function to set the url attributes (with possible hashes)
+// source: http://stackoverflow.com/questions/6953944/how-to-add-parameters-to-a-url-that-already-contains-other-parameters-and-maybe
+function addParameter(url, parameterName, parameterValue){
+
+    replaceDuplicates = true;
+
+    if(url.indexOf('#') > 0){
+        var cl = url.indexOf('#');
+        urlhash = url.substring(url.indexOf('#'),url.length);
+    } else {
+        urlhash = '';
+        cl = url.length;
+    }
+
+    sourceUrl = url.substring(0,cl);
+
+
+
+    var urlParts = sourceUrl.split("?");
+    var newQueryString = "";
+
+    if (urlParts.length > 1)
+    {
+        var parameters = urlParts[1].split("&");
+        for (var i=0; (i < parameters.length); i++)
+        {
+            var parameterParts = parameters[i].split("=");
+            if (!(replaceDuplicates && parameterParts[0] == parameterName))
+            {
+                if (newQueryString == "")
+                    newQueryString = "?";
+                else
+                    newQueryString += "&";
+                newQueryString += parameterParts[0] + "=" + parameterParts[1];
+            }
+        }
+    }
+    if (newQueryString == "")
+        newQueryString = "?";
+    else
+        newQueryString += "&";
+    newQueryString += parameterName + "=" + parameterValue;
+
+    return urlParts[0] + newQueryString + urlhash;
+}
+
+// Function to handle back / forward
+var going_back = false;
+window.onpopstate = function(event) {
+    
+    if ( event.state ) {
+        going_back = true;
+        $("#" + event.state.group).trigger("click");
+    } 
+
+};
+
 
 // Reload all the data, including pulling down new xml, reloading
 // Charts and table
@@ -192,6 +254,14 @@ function ChangeGroup(element) {
     selected_group = element.attr("id");
     $("#graphtable").find("img").remove();
     $("#graphtable").find("#image_load_fail").remove();
+
+    // Update the group in the URL
+    if ( going_back == false) {
+        window.history.pushState({group: selected_group},"",addParameter(document.location.href, 'group', selected_group));
+    } else {
+        going_back = false;
+    }
+
     // $("#group_display").html(selected_group);
     $(global_xml).find("group").each(function() {
         var group_name = $(this).attr('name');
@@ -230,26 +300,33 @@ function parseuserdata(xml) {
     global_xml = xml;
     var first_group = true;
     var groups = new Array()
+    var url_group = getURLParameter('group');
     $(xml).find("group").each(function() {
         var group_name = $(this).attr('name');
     
         // Add to the group list
-        $("#groups_list").append("<li class='group_selector'><a class='group_link' href='#' id='" + group_name + "' value='" + group_name + "'><i class='icon-chevron-right'></i>" + group_name + "</a>  </li>");
+        $("#groups_list").append("<li class='group_selector'><a class='group_link' href='javascript:void(0);' id='" + group_name + "' value='" + group_name + "'><i class='icon-chevron-right'></i>" + group_name + "</a>  </li>");
 
 
         if (first_group == true) {
             first_group = false;
             selected_group = group_name;
-            group_object = $(this)
+            group_object = $(this);
         }
-        if (group_name == "main"){
+        if (group_name == "main" && url_group == null){
             selected_group = group_name;
-            group_object = $(this)
+            group_object = $(this);
+        } else if ( url_group == group_name ) {
+            selected_group = group_name;
+            group_object = $(this);
         }
     }); // end each group
 
     $("#" + selected_group).parent().addClass("active");
     UpdateGroup(group_object);
+    
+    // Add history element to the initial
+    history.replaceState({group: selected_group}, "", "");
 
 
     // All the groups links need to be updated
