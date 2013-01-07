@@ -12,14 +12,18 @@
 #   Igor Sfiligoi (Mar 19th 2009)
 #
 
-import time,string,os.path,copy
-import glideinFrontendMonitoring
+import time
+import string
+import os.path
+import copy
+import tempfile
+import shutil
+
 from glideinwms.lib import timeConversion
 from glideinwms.lib import xmlParse,xmlFormat
 from glideinwms.lib import rrdSupport
-import tempfile
-import shutil
-import time
+
+from glideinwms.frontend import glideinFrontendMonitoring
 
 ############################################################
 #

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-import common
-from Configuration import Configuration
-from Configuration import ConfigurationError
-import Certificates  
-import VDTClient
+from glideinwms.install.services import common
+from glideinwms.install.services.Configuration import Configuration
+from glideinwms.install.services.Configuration import ConfigurationError
+from glideinwms.install.services import Certificates  
+from glideinwms.install.services import VDTClient
 #---------------------
 import sys,os,os.path,string,time,re
 import popen2

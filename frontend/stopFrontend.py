@@ -20,9 +20,11 @@ import sys
 import os
 import string
 import time
+
 sys.path.append(os.path.join(sys.path[0],"../.."))
-import glideinFrontendPidLib
-import glideinFrontendConfig
+
+from glideinwms.frontend import glideinFrontendPidLib
+from glideinwms.frontend import glideinFrontendConfig
 
 # this one should  never throw an exeption
 def get_element_pids(work_dir, frontend_pid):

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-import common
-from VDT import VDT
-#---------------------
 import sys,os,os.path,string,time,glob
+#---------------------
+from glideinwms.install.services import common
+from glideinwms.install.services.VDT import VDT
 
 
 class VDTClient(VDT):

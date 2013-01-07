@@ -31,10 +31,10 @@ sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
-import glideinFrontendPidLib
-import glideinFrontendConfig
-import glideinFrontendMonitorAggregator
-import glideinFrontendMonitoring
+from glideinws.frontend import glideinFrontendPidLib
+from glideinws.frontend import glideinFrontendConfig
+from glideinws.frontend import glideinFrontendMonitorAggregator
+from glideinws.frontend import glideinFrontendMonitoring
 
 ############################################################
 # KEL remove this method and just call the monitor aggregator method directly below?  we don't use the results

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import common
+from glideinwms.install.services import common
 #-----
 import re
 import os

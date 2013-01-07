@@ -19,19 +19,20 @@ import time
 import re
 import pwd
 import binascii
+import base64
+import string
+import traceback
+
+from glideinwms.lib.tarSupport import GlideinTar
 from glideinwms.lib import condorExe,condorPrivsep
 from glideinwms.lib import logSupport
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorManager
 
 from glideinwms.factory import glideFactoryConfig
-import base64
-import string
-import timeConversion
-import traceback
+from glideinwms.lib import timeConversion
 
 
-from tarSupport import GlideinTar
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
