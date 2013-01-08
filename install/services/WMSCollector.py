@@ -4,9 +4,9 @@ import traceback
 import sys,os,os.path,string,time
 import stat
 import re
+import optparse
 
 from glideinwms.install.services import common
-from glideinwms.install.services import optparse
 from glideinwms.install.services import VOFrontend
 from glideinwms.install.services import Factory
 from glideinwms.install.services import UserCollector

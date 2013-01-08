@@ -10,6 +10,7 @@ from glideinwms.install.services import common
 from glideinwms.install.services.Condor import Condor  
 from glideinwms.install.services import WMSCollector
 from glideinwms.install.services import VOFrontend
+from glideinwms.install.services import Factory
 from glideinwms.install.services import Submit
 from glideinwms.install.services.Configuration import ConfigurationError
 #-------------------------
