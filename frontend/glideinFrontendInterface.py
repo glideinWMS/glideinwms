@@ -796,10 +796,10 @@ class ResourceClassad(Classad):
         @type start_expr: string
         @param start_expr: Representation of the match start expr (on the glidein)
         """
-        self.adParams['GlideClientMatchExpr'] = "%s" % match_expr
-        self.adParams['GlideClientJobQueryExpr'] = "%s" % job_query_expr
-        self.adParams['GlideClientFactoryQueryExpr'] = "%s" % factory_query_expr
-        self.adParams['GlideClientStartExpr'] = "%s" % start_expr
+        self.adParams['GlideClientMatchingGlideinCondorExpr'] = "%s" % match_expr
+        self.adParams['GlideClientConstraintJobCondorExpr'] = "%s" % job_query_expr
+        self.adParams['GlideClientMatchingInternalPythonExpr'] = "%s" % factory_query_expr
+        self.adParams['GlideClientConstraintFactoryCondorExpr'] = "%s" % start_expr
         
 
     def setInDownTime(self, downtime):
