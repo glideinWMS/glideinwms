@@ -955,6 +955,7 @@ def advertize_myself(in_downtime, glideinDescript, jobDescript, jobAttributes, j
     for w in current_qc_total.keys():
         for a in current_qc_total[w].keys():
             glidein_monitors['Total%s%s' % (w, a)] = current_qc_total[w][a]
+            jobAttributes.data['GlideinMonitorTotal%s%s' % (w, a)] = current_qc_total[w][a]
     try:
         myJobAttributes = jobAttributes.data.copy()
         myJobAttributes['GLIDEIN_In_Downtime'] = in_downtime
