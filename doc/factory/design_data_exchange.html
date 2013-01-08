@@ -182,10 +182,10 @@ publish glideresource class-ads to the User Pool Collector. Such a class-ad will
 	<li>Monitoring information from the frontend about the glideins and jobs</li>
     <li>Matching information from the frontend about factory and job information:
         <ul>
-            <li>GlideClientStartExpr: The HTCondor start expression on the glideins to restrict the jobs that start on glideins.</li>
-            <li>GlideClientJobQueryExpr: The HTCondor expression of which jobs to consider for glidein matching.</li>
-            <li>GlideClientMatchExpr: The python expression that the frontend uses to determine which factory entries are acceptable for submission to.</li>
-            <li>GlideClientFactoryQueryExpr: A HTCondor classad expression to determine which factory entries can be considered.</li>
+            <li>GlideClientMatchingGlideinCondorExpr: The HTCondor start expression on the glideins to restrict the jobs that start on glideins.</li>
+            <li>GlideClientConstraintJobCondorExpr: The HTCondor expression of which jobs to consider for glidein matching.</li>
+            <li>GlideClientMatchingInternalPythonExpr: The python expression that the frontend uses to determine which factory entries are acceptable for submission to.</li>
+            <li>GlideClientConstraintFactoryCondorExpr: A HTCondor classad expression to determine which factory entries can be considered.</li>
         </ul>
     </li>
 	<li>Any custom information about the entry that is available through the glidefactory class-ad that a user can use for match-making purposes</li>
