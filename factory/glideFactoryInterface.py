@@ -123,7 +123,7 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
     
     status_constraint='(GlideinMyType=?="%s") && (stringListMember(ReqGlidein,"%s")=?=True)' % (factoryConfig.client_id, req_glideins)
  
-    if (supported_signtypes != None):
+    if (supported_signtypes is not None):
         status_constraint += ' && stringListMember(%s%s,"%s")' % \
             (factoryConfig.client_web_prefix, 
              factoryConfig.client_web_signtype_suffix, 
@@ -131,14 +131,14 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
 
 
     if get_only_matching:
-        if (pub_key_obj != None):
+        if (pub_key_obj is not None):
             # Get only classads that have my key or no key at all
             # Any other key will not work
             status_constraint += ' && (((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined) && (ReqEncIdentity=!=Undefined)) || (ReqPubKeyID=?=Undefined))' % pub_key_obj.get_pub_key_id()
-            if not ('factory' in allowed_proxy_source):
+            if ('factory' not in allowed_proxy_source):
                 # the proxy is required, so look for it 
                 status_constraint+=' && ((GlideinEncParamx509_proxy =!= UNDEFINED) || (GlideinEncParamx509_proxy_0 =!= UNDEFINED))'
-            if not ('frontend' in allowed_proxy_source):
+            if ('frontend' not in allowed_proxy_source):
                 # The proxy is not allowed, so ignore such requests 
                 status_constraint += ' && (GlideinEncParamx509_proxy =?= UNDEFINED) && (GlideinEncParamx509_proxy_0 =?= UNDEFINED)'
 
