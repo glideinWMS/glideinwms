@@ -110,8 +110,28 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
     Find request classAds that have my (factory, glidein name, entries) and
     create the dictionary of dictionary of work request information.
     Example: work[entry_name][frontend] = {'params':'value', 'requests':'value}
-    """
 
+    @type factory_name: string
+    @param factory_name: name of the factory
+    @type glidein_name: string
+    @param glidein_name: name of the glidein instance
+    @type entry_names: list
+    @param entry_names: list of factory entry names
+    @type supported_signtypes: list
+    @param supported_signtypes: only support one kind of signtype, 'sha1', default is None
+    @type pub_key_obj: string
+    @param pub_key_obj: only support 'RSA', defaults to None
+    @type allowed_proxy_source: list
+    @param allowed_proxy_source: types of sources the proxy is allowed to come from
+    @type get_only_matching: boolean
+    @param get_only_matching: if false, return also glideins I cannot use
+    @type additional_constraints: string
+    @param additional_constraints: any additional constraints to include for querying the WMS collector, default is None
+    
+    @rtype: dict
+    @return: Dictionary of work to perform. Return format is work[entry_name][frontend] = {'params':'value', 'requests':'value}
+        
+    """
     global factoryConfig
 
     req_glideins = ''
@@ -283,170 +303,7 @@ def workGroupByEntries(work):
     return grouped_work
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-def findWork(factory_name, glidein_name, entry_name,
-             supported_signtypes,
-             pub_key_obj=None, allowed_proxy_source=('factory','frontend'),
-             get_only_matching=True,
-             additional_constraints=None):
-    """
-    Find request classAds that have my (factory, glidein name, entry name) and create the dictionary of work request information.
-
-    @type factory_name: string
-    @param factory_name: name of the factory
-    @type glidein_name: string
-    @param glidein_name: name of the glidein instance
-    @type entry_name: string
-    @param entry_name: name of the factory entry
-    @type supported_signtypes: list
-    @param supported_signtypes: only support one kind of signtype, 'sha1', default is None
-    @type pub_key_obj: string
-    @param pub_key_obj: only support 'RSA'
-    @type allowed_proxy_source: list
-    @param allowed_proxy_source: types of sources the proxy is allowed to come from
-    @type get_only_matching: boolean
-    @param get_only_matching: if this is false, return also glideins I cannot use
-    @type additional_constraints: string
-    @param additional_constraints: any additional constraints to include for querying the WMS collector, default is None
-    
-    @return: dictionary, each key is the name of a frontend. Each value has a 'requests' and a 'params' key. Both refer to classAd dictionaries.
-        
-    """
-
-    global factoryConfig
-    
-    status_constraint='(GlideinMyType=?="%s") && (ReqGlidein=?="%s@%s@%s")'%(factoryConfig.client_id,entry_name,glidein_name,factory_name)
-
-    if supported_signtypes is not None:
-        status_constraint+=' && stringListMember(%s%s,"%s")'%(factoryConfig.client_web_prefix,factoryConfig.client_web_signtype_suffix,string.join(supported_signtypes,","))
-
-    if get_only_matching:
-        if pub_key_obj is not None:
-            # get only classads that have my key or no key at all
-            # any other key will not work
-            status_constraint+=' && (((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined) && (ReqEncIdentity=!=Undefined)) || (ReqPubKeyID=?=Undefined))'%pub_key_obj.get_pub_key_id()
-            if not ('factory' in allowed_proxy_source):
-                # the proxy is required, so look for it 
-                status_constraint+=' && ((GlideinEncParamx509_proxy =!= UNDEFINED) || (GlideinEncParamx509_proxy_0 =!= UNDEFINED))'
-            if not ('frontend' in allowed_proxy_source):
-                # the proxy is not allowed, so ignore such requests 
-                status_constraint+=' && (GlideinEncParamx509_proxy =?= UNDEFINED) && (GlideinEncParamx509_proxy_0 =?= UNDEFINED)'
-
-    if additional_constraints is not None:
-        status_constraint="(%s)&&(%s)"%(status_constraint,additional_constraints)
-
-    status=condorMonitor.CondorStatus("any")
-    status.require_integrity(True) #important, this dictates what gets submitted
-    status.glidein_name=glidein_name
-    status.entry_name=entry_name
-
-    # serialize access to the Collector accross all the processes
-    # these is a single Collector anyhow
-    lock_fname=os.path.join(factoryConfig.lock_dir,"gfi_status.lock")
-    if not os.path.exists(lock_fname): #create a lock file if needed
-        try:
-            fd=open(lock_fname,"w")
-            fd.close()
-        except:
-            # could be a race condition
-            pass
-    
-    fd=open(lock_fname,"r+")
-    try:
-        fcntl.flock(fd,fcntl.LOCK_EX)
-        try:
-            status.load(status_constraint)
-        finally:
-            fcntl.flock(fd,fcntl.LOCK_UN)
-    finally:
-        fd.close()
-
-
-    data=status.fetchStored()
-
-    reserved_names=("ReqName","ReqGlidein","ClientName","FrontendName","GroupName","ReqPubKeyID","ReqEncKeyCode","ReqEncIdentity","AuthenticatedIdentity")
-
-    out={}
-
-    # copy over requests and parameters
-    for k in data.keys():
-        kel=data[k]
-        el={"requests":{},"web":{},"params":{},"params_decrypted":{},"monitor":{},"internals":{}}
-        for (key,prefix) in (("requests",factoryConfig.client_req_prefix),
-                             ("web",factoryConfig.client_web_prefix),
-                             ("params",factoryConfig.glidein_param_prefix),
-                             ("monitor",factoryConfig.glidein_monitor_prefix)):
-            plen=len(prefix)
-            for attr in kel.keys():
-                if attr in reserved_names:
-                    continue # skip reserved names
-                if attr[:plen]==prefix:
-                    el[key][attr[plen:]]=kel[attr]
-        if pub_key_obj is not None:
-            if kel.has_key('ReqPubKeyID'):
-                try:
-                    sym_key_obj=pub_key_obj.extract_sym_key(kel['ReqEncKeyCode'])
-                except:
-                    if get_only_matching:
-                        continue # bad key, ignore entry
-                    else:
-                        sym_key_obj=None # leave it encrypted
-            else:
-                sym_key_obj=None # no key used, will not decrypt
-        else:
-            sym_key_obj=None # have no key, will not decrypt
-
-        if sym_key_obj is not None:
-            try:
-                enc_identity=sym_key_obj.decrypt_hex(kel['ReqEncIdentity'])
-            except:
-                factoryConfig.warning_log.write("Client %s provided invalid ReqEncIdentity, could not decode. Skipping for security reasons."%k)
-                continue # corrupted classad
-            if enc_identity!=kel['AuthenticatedIdentity']:
-                factoryConfig.warning_log.write("Client %s provided invalid ReqEncIdentity(%s!=%s). Skipping for security reasons."%(k,enc_identity,kel['AuthenticatedIdentity']))
-                continue # uh oh... either the client is misconfigured, or someone is trying to cheat
-            
-
-        invalid_classad=False
-        for (key,prefix) in (("params_decrypted",factoryConfig.encrypted_param_prefix),):
-            plen=len(prefix)
-            for attr in kel.keys():
-                if attr in reserved_names:
-                    continue # skip reserved names
-                if attr[:plen]==prefix:
-                    el[key][attr[plen:]]=None # define it even if I don't understand the content
-                    if sym_key_obj is not None:
-                        try:
-                            el[key][attr[plen:]]=sym_key_obj.decrypt_hex(kel[attr])
-                        except:
-                            invalid_classad=True
-                            break # I don't understand it -> invalid
-        if invalid_classad:
-            factoryConfig.warning_log.write("At least one of the encrypted parameters for client %s cannot be decoded. Skipping for security reasons."%k)
-            continue # need to go this way as I may have problems in an inner loop
-
-
-        for attr in kel.keys():
-            if attr in ("ClientName","FrontendName","GroupName","ReqName","LastHeardFrom","ReqPubKeyID","AuthenticatedIdentity"):
-                el["internals"][attr]=kel[attr]
-        
-        out[k]=el
-
-    return out
-
 ############################################################
-
 #
 # Define global variables that keep track of the Daemon lifetime
 #
