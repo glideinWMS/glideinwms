@@ -172,6 +172,27 @@ Future versions may contain more sophisticated
 controls, like the maximum number of glideins to keep in the queue or
 the maximum rate at which the glideins should be submitted.</p>
 
+<h4><a name="glideresource_classads"></a>The glideresource class-ad:</h4>
+<p>For every factory entry that accepts requests from the VO frontend, frontend will
+publish glideresource class-ads to the User Pool Collector. Such a class-ad will contains
+</p>
+<ul>
+	<li>Information about the factory and frontend element served and the downtime status</li>
+	<li>Monitoring information from the factory available in glidefactoryclient classad</li>
+	<li>Monitoring information from the frontend about the glideins and jobs</li>
+    <li>Matching information from the frontend about factory and job information:
+        <ul>
+            <li>GlideClientMatchingGlideinCondorExpr: The HTCondor start expression on the glideins to restrict the jobs that start on glideins.</li>
+            <li>GlideClientConstraintJobCondorExpr: The HTCondor expression of which jobs to consider for glidein matching.</li>
+            <li>GlideClientMatchingInternalPythonExpr: The python expression that the frontend uses to determine which factory entries are acceptable for submission to.</li>
+            <li>GlideClientConstraintFactoryCondorExpr: A HTCondor classad expression to determine which factory entries can be considered.</li>
+        </ul>
+    </li>
+	<li>Any custom information about the entry that is available through the glidefactory class-ad that a user can use for match-making purposes</li>
+</ul>
+<p>Picture below shows a glideresource classad<br>
+<img src="../images/frontend_publish_resource.png" name="graphics5c" align="BOTTOM" border="0"></p>
+</p>
 </div>
 </body>
 </html>

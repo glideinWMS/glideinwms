@@ -783,6 +783,10 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
         resource_classad.setInDownTime(glidein_in_downtime)
         resource_classad.setEntryInfo(glidein_el['attrs'])
         resource_classad.setGlideFactoryMonitorInfo(glidein_el['monitor'])
+        resource_classad.setMatchExprs(elementDescript.merged_data['MatchExpr'], 
+                elementDescript.merged_data['JobQueryExpr'],
+                elementDescript.merged_data['FactoryQueryExpr'],
+                attr_dict['GLIDECLIENT_Start'])
         try:
             resource_classad.setGlideClientMonitorInfo(this_stats_arr)
         except RuntimeError:
