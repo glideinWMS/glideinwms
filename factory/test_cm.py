@@ -5,7 +5,7 @@
 # File Version: 
 #
 
-import condorMonitor
+from glideinwms.lib import condorMonitor
 
 condorMonitor.set_path("/home/sfiligoi/condor/dist/bin")
 c=condorMonitor.CondorQ(schedd_name="schedd_glideins@cms-xen6.fnal.gov")

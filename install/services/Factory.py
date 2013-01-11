@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 
-import common
-import WMSCollector
-import VOFrontend
-from Condor        import Condor
-from Glidein       import Glidein
-from Configuration import Configuration
-from Configuration import ConfigurationError
-import condorPrivsep
-import condorMonitor
-import condorExe
-
 import traceback
 import sys,os,pwd,string,time
 import xml.sax.saxutils
-
 import optparse
+
+from glideinwms.lib import condorMonitor
+from glideinwms.lib import condorExe
+from glideinwms.lib import condorPrivsep
+
+from glideinwms.install.services import common
+from glideinwms.install.services import WMSCollector
+from glideinwms.install.services import VOFrontend
+from glideinwms.install.services.Condor import Condor
+from glideinwms.install.services.Glidein import Glidein
+from glideinwms.install.services.Configuration import Configuration
+from glideinwms.install.services.Configuration import ConfigurationError
 
 #STARTUP_DIR=sys.path[0]
 #sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
@@ -412,8 +412,10 @@ or you changed the ini file and did not reinstall that service.""")
     data = """#!/bin/bash
 export X509_CERT_DIR=%(x509_cert_dir)s
 .  %(condor_location)s/condor.sh
+export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 """ % { "x509_cert_dir"   : self.wms.x509_cert_dir(), 
-        "condor_location" : self.wms.condor_location(),}
+        "condor_location" : self.wms.condor_location(),
+        "install_location" : self.glideinwms_location(),}
     if self.use_vofrontend_proxy() == "n":
       data += "export X509_USER_PROXY=%s" % self.x509_proxy()
     common.write_file("w",0644,self.env_script(),data)

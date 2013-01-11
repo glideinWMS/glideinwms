@@ -27,14 +27,13 @@ import signal
 import time
 import string
 
-sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
+sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
-import glideinFrontendPidLib
-import glideinFrontendConfig
-import glideinFrontendLib
-import glideinFrontendMonitorAggregator
-import glideinFrontendMonitoring
-
+from glideinwms.frontend import glideinFrontendPidLib
+from glideinwms.frontend import glideinFrontendConfig
+from glideinwms.frontend import glideinFrontendLib
+from glideinwms.frontend import glideinFrontendMonitorAggregator
+from glideinwms.frontend import glideinFrontendMonitoring
 
 ############################################################
 def aggregate_stats():

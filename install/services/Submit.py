@@ -5,12 +5,12 @@ import sys,os,os.path,string,time
 import re
 import stat
 import optparse
-import common
 #-------------------------
-from Condor        import Condor
-import UserCollector
-import VOFrontend
-from Configuration import ConfigurationError
+from glideinwms.install.services import common
+from glideinwms.install.services import UserCollector
+from glideinwms.install.services import VOFrontend
+from glideinwms.install.services.Condor import Condor
+from glideinwms.install.services.Configuration import ConfigurationError
 #-------------------------
 os.environ["PYTHONPATH"] = ""
 
@@ -216,7 +216,8 @@ specified.
 ##########################################
 def main(argv):
   try:
-    create_template()
+    pass
+    #create_template()
     #options = validate_args(argv)
     #submit = Submit(options.inifile)
     #submit.install()

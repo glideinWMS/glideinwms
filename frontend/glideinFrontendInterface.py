@@ -12,14 +12,14 @@
 #   Igor Sfiligoi (Sept 15th 2006)
 #
 
-import condorExe
-import condorMonitor
-import condorManager
 import os,os.path
 import copy
 import time
 import string
-import pubCrypto,symCrypto
+from glideinwms.lib import pubCrypto,symCrypto
+from glideinwms.lib import condorExe
+from glideinwms.lib import condorMonitor
+from glideinwms.lib import condorManager
 from sets import Set
 
 ############################################################

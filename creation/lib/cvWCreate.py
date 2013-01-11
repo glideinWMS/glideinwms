@@ -18,8 +18,8 @@ import traceback
 import tarfile
 import cStringIO
 #import cvWConsts
-import condorExe
-import condorSecurity
+from glideinwms.lib import condorExe
+from glideinwms.lib import condorSecurity
 
 #########################################
 # Create init.d compatible startup file

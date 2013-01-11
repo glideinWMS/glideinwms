@@ -15,8 +15,8 @@
 
 import os.path
 import string,math
-import condorMonitor,condorExe
-import logSupport
+from glideinwms.lib import condorMonitor,condorExe
+from glideinwms.lib import logSupport
 import sys, traceback
 
 class LogFiles:

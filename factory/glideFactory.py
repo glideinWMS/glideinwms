@@ -29,15 +29,15 @@ import time
 import string
 import copy
 
-sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
+sys.path.append(os.path.join(STARTUP_DIR,"../../"))
 
-import glideFactoryPidLib
-import glideFactoryConfig
-import glideFactoryLib
-import glideFactoryInterface
-import glideFactoryMonitorAggregator
-import glideFactoryMonitoring
-import glideFactoryDowntimeLib
+from glideinwms.factory import glideFactoryPidLib
+from glideinwms.factory import glideFactoryConfig
+from glideinwms.factory import glideFactoryLib
+from glideinwms.factory import glideFactoryInterface
+from glideinwms.factory import glideFactoryMonitorAggregator
+from glideinwms.factory import glideFactoryMonitoring
+from glideinwms.factory import glideFactoryDowntimeLib
 
 ############################################################
 def aggregate_stats(in_downtime):

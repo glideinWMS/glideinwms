@@ -6,7 +6,7 @@
 #
 
 import os,sys,time
-import condorExe
+from glideinwms.lib import condorExe
 
 client_id="glideclient"
 

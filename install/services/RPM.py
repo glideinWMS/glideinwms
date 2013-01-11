@@ -4,12 +4,12 @@ import traceback
 import sys,os,os.path,string,time
 import stat,re
 import xml.sax.saxutils
-import xmlFormat
 import optparse
 #-------------------------
-import common
-import Condor
-from VOFrontend import VOFrontend
+from glideinwms.lib import xmlFormat
+from glideinwms.install.services import common
+from glideinwms.install.services import Condor
+from glideinwms.install.services.VOFrontend import VOFrontend
 #-------------------------
 os.environ["PYTHONPATH"] = ""
 

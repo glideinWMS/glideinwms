@@ -13,9 +13,8 @@ import tempfile,shutil,tarfile
 import os.path
 import string
 import traceback
-sys.path.append(os.path.join(STARTUP_DIR,"lib"))
-sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
-import cgWCreate
+sys.path.append(os.path.join(STARTUP_DIR,"../.."))
+from glideinwms.creation.lib import cgWCreate
 
 def usage():
     print "usage: create_condor_tarball <tarball_out_fname> <condor_dir_or_tar>"

@@ -14,8 +14,8 @@
 import os.path
 import sys
 STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"lib"))
-import gWftLogParser
+sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
+from glideinwms.factory.tools.lib import gWftLogParser
 
 USAGE="Usage: cat_StartdLog.py [-monitor] <logname>"
 

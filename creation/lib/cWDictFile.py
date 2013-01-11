@@ -9,7 +9,7 @@
 #
 
 import os,os.path,string,shutil,copy
-import hashCrypto
+from glideinwms.lib import hashCrypto
 import cStringIO
 
 ########################################

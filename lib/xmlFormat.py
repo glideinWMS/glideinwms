@@ -620,6 +620,7 @@ def tree2string(tree,tree_name,child_element,indent_tab=DEFAULT_TAB,leading_tab=
     
     return string.join(res,"\n")
 
+
 # Write a tree as XML into an open file
 # a tree is a dictionary that have inside other dictionaries of the same type
 # all the clients are contained in an element of list type

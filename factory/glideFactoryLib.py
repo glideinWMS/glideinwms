@@ -20,13 +20,14 @@ import re
 import traceback
 import pwd
 import binascii
-import condorExe,condorPrivsep
-import logSupport
-import condorMonitor
-import condorManager
 import tempfile
-import glideFactoryConfig
-import x509Support
+from glideinwms.lib import condorExe,condorPrivsep
+from glideinwms.lib import logSupport
+from glideinwms.lib import condorMonitor
+from glideinwms.lib import condorManager
+from glideinwms.lib import x509Support
+
+from glideinwms.factory import glideFactoryConfig
 
 MY_USERNAME=pwd.getpwuid(os.getuid())[0]
 
@@ -191,6 +192,9 @@ class LogFiles:
         except:
             # logging must never throw an exception!
             self.logWarning("logActivity failed, was logging: %s"%str,False)
+
+    def logError(self, str, log_in_activity=True):
+        self.logWarning(str, log_in_activity)
 
     def logWarning(self,str, log_in_activity=True):
         try:
@@ -1657,10 +1661,8 @@ def which(program):
     @return: Path to the binary
     @rtype: string
     """
-
     def is_exe(fpath):
         return os.path.exists(fpath) and os.access(fpath, os.X_OK)
-
     fpath, fname = os.path.split(program)
     if fpath:
         if is_exe(program):
@@ -1670,5 +1672,4 @@ def which(program):
             exe_file = os.path.join(path, program)
             if is_exe(exe_file):
                 return exe_file
-
     return None

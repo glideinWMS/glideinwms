@@ -6,7 +6,10 @@ import pwd,grp
 import stat
 import optparse
 
-import common
+from glideinwms.install.services import common
+from glideinwms.install.services import WMSCollector
+from glideinwms.install.services import Factory
+from glideinwms.install.services import VOFrontend
 os.environ["PYTHONPATH"] = "."
 #-------------------------
 
@@ -205,9 +208,6 @@ those in your frontend_users attribute of the WMSCollector ini file:
 ##########################################
 def main(argv):
   try:
-    import WMSCollector
-    import Factory
-    import VOFrontend
     wms      = WMSCollector.WMSCollector("../weigand.ini")
     factory  = Factory.Factory("../weigand.ini")
     frontend = VOFrontend.VOFrontend("../weigand.ini")

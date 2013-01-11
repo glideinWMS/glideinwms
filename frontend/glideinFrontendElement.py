@@ -22,17 +22,18 @@ import sys,os,os.path,copy
 import fcntl
 import traceback
 import time,string,cPickle,signal
-sys.path.append(os.path.join(sys.path[0],"../lib"))
+sys.path.append(os.path.join(sys.path[0],"../.."))
 
-import symCrypto,pubCrypto
+from glideinwms.lib import symCrypto,pubCrypto
+from glideinwms.lib import glideinWMSVersion
 
-import glideinFrontendConfig
-import glideinFrontendInterface
-import glideinFrontendLib
-import glideinFrontendPidLib
-import glideinFrontendMonitoring
-import glideinFrontendPlugins
-import glideinWMSVersion
+from glideinwms.frontend import glideinFrontendConfig
+from glideinwms.frontend import glideinFrontendInterface
+from glideinwms.frontend import glideinFrontendLib
+from glideinwms.frontend import glideinFrontendPidLib
+from glideinwms.frontend import glideinFrontendMonitoring
+from glideinwms.frontend import glideinFrontendPlugins
+
 
 ############################################################
 def check_parent(parent_pid):
