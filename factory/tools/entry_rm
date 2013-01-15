@@ -1,0 +1,110 @@
+#!/usr/bin/env python
+#
+# entry_rm
+#
+# Similar to condor_rm, but look for a specific entry
+#
+# Usage: entry_rm entry|-l [-dir <dir>] [-printschedd] [condor_rm options]
+#
+
+import os
+import sys
+STARTUP_DIR=sys.path[0]
+
+sys.path.append(os.path.join(STARTUP_DIR,"../../../"))
+
+from glideinwms.factory import glideFactoryConfig
+
+USAGE="Usage: entry_rm entry|-l [-dir <dir>] [-printschedd] [condor_rm options]"
+
+def print_entries(entries,want_schedd):
+    print "Available entries:"
+    for entry in entries.split(','):
+        if not want_schedd:
+            print "  %s"%entry
+        else:
+            jobDescript=glideFactoryConfig.JobDescript(entry)
+            schedd_name=jobDescript.data['Schedd']
+            print "  %-40s %-30s"%(entry,schedd_name)
+
+def main(argv):
+    if len(argv)<2:
+      print USAGE
+      sys.exit(1)
+
+    entry=argv[1]
+
+    # Try GLIDEIN_FACTORY_DIR env var first
+    if 'GLIDEIN_FACTORY_DIR' in os.environ:
+        gfactory_dir=os.environ['GLIDEIN_FACTORY_DIR']
+    else:
+        gfactory_dir="."
+
+    want_schedd=False
+    
+    # parse arguments
+    alen=len(argv)
+    i=2
+    while (i<alen):
+        ael=argv[i]
+        if ael=='-dir':
+            i=i+1
+            gfactory_dir=argv[i]
+            i=i+1
+        elif ael=='-printschedd':
+            i=i+1
+            want_schedd=True
+        else:
+            break # got everything
+
+    curdir=os.getcwd()
+    try:
+        os.chdir(gfactory_dir) # factoryConfig assumes the right dir
+    except OSError, e:
+        print "Dir '%s' not a valid factory dir: %s"%(gfactory_dir, e)
+        sys.exit(1)
+
+    try:
+        glideinDescript=glideFactoryConfig.GlideinDescript()
+    except IOError, e:
+        print "Dir '%s' not a valid factory dir: %s"%(gfactory_dir, e)
+        sys.exit(1)
+
+    if entry=="-l":
+        print_entries(glideinDescript.data['Entries'],want_schedd)
+        sys.exit(0)
+    
+    jobDescript=glideFactoryConfig.JobDescript(entry)
+    os.chdir(curdir)
+
+    factory_name=glideinDescript.data['FactoryName']
+    glidein_name=glideinDescript.data['GlideinName']
+    schedd_name=jobDescript.data['Schedd']
+    const_str='(GlideinFactory=?="%s")&&(GlideinName=?="%s")&&(GlideinEntryName=?="%s")'%(factory_name,glidein_name,entry)
+
+    cr_argv=argv[i:]
+    #print cr_argv
+
+    i=0
+    while (i<len(cr_argv)):
+        qel=cr_argv[i]
+        if qel[:3]=='-co':
+            const_str='(%s)&&(%s)'%(const_str,cr_argv[i+1])
+            del cr_argv[i]
+            del cr_argv[i]
+        else:
+            i=i+1 # not an interesting one
+
+    if want_schedd:
+        print "Schedd: %s"%schedd_name
+        print "Constraint: '%s'"%const_str
+    
+    # must flush out before forking, or any buffered content wil be lost
+    sys.__stdout__.flush()
+    sys.__stderr__.flush()
+    os.execvp('condor_rm',['condor_rm','-name',schedd_name,'-const',const_str]+cr_argv)
+
+
+if __name__ == '__main__':
+    main(sys.argv)
+ 
