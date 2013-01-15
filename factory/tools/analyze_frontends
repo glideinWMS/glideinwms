@@ -168,13 +168,29 @@ USAGE:
        file_dir = os.path.join(dir, rrd)
    else: 
        file_dir = os.path.join(dir, "monitor", rrd)
+
+   if not os.path.exists(file_dir):
+        #Try RPM location
+        rpmdir="/var/lib/gwms-factory/work-dir"
+        rpmfile_dir = os.path.join(rpmdir, "monitor",rrd)
+        if not os.path.exists(rpmfile_dir):
+            print "\nCannot open", file_dir
+            print "Please set --source to the factory work dir and try again."
+            sys.exit(1)
+        if dir != os.getcwd():
+            #Directory explicitly set, print warning
+            print "\nWARNING: Cannot open", file_dir
+            print "Using RPM default %s instead" % rpmfile_dir
+        dir=rpmdir
+        file_dir=rpmfile_dir
    
    try:  
        u = urllib.urlopen(file_dir)        
        rrd_data = xmlParse.xmlfile2dict(u)
    except:
        print "\nCannot open", file_dir,"\n\tor",rrd,"was not found there.\n"
-       raise
+       print "Please set --source to the factory work dir and try again."
+       sys.exit(1)
    u.close()
 
    # rrd_data[updated,total,entries[entry[total[periods], frontends[periods]]]]
