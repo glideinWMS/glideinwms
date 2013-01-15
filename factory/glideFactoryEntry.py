@@ -219,6 +219,32 @@ class Entry:
         self.jobAttributes.data['GLIDEIN_Downtime_Comment'] = self.downtimes.downtime_comment
 
 
+    def isClientBlacklisted(self, client_sec_name):
+        """
+        Check ifthe frontend whitelist is enabled and client is not in
+        whitelist
+
+        @rtype: boolean
+        @return: True if the client's security name is blacklist
+        """
+
+        return ( (self.frontendWhitelist=="On") and 
+                 (not self.isClientInWhitelist(client_sec_name)) )
+
+
+    def isClientWhitelisted(self, client_sec_name):
+        """
+        Check if the client's security name is in the whitelist of this entry
+        and the frontend whitelist is enabled
+
+        @rtype: boolean
+        @return: True if the client's security name is whitelisted
+        """
+
+        return ( (self.frontendWhitelist=="On") and 
+                 (self.isClientInWhitelist(client_sec_name)) )
+
+
     def isClientInWhitelist(self, client_sec_name):
         """
         Check if the client's security name is in the whitelist of this entry
@@ -712,8 +738,7 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
         client_security_name = decrypted_params.get('SecurityName',
                                                     client_int_name)
 
-        if ( (entry.frontendWhitelist == "On") and
-             (client_security_name not in entry.securityList) ):
+        if entry.isClientBlacklisted(client_security_name):
             entry.logFiles.logWarning("Client name '%s' not in whitelist. Preventing glideins from %s "% (client_security_name,client_int_name))
             in_downtime=True
 
@@ -828,8 +853,7 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
 
                 # Deny Frontend from entering glideins if the whitelist
                 # does not have its security class (or "All" for everyone)
-                if ( (entry.frontendWhitelist == "On") and
-                     (entry.isClientInWhitelist(client_security_name)) ):
+                if entry.isClientWhitelisted(client_security_name):
                     if entry.isSecurityClassAllowed(client_security_name,
                                                     x509_proxy_security_class):
                         in_downtime = prev_downtime
@@ -883,10 +907,9 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
 
             # Check if this entry point has a whitelist
             # If it does, then make sure that this frontend is in it.
-            if ((entry.frontendWhitelist == "On") and 
-                (entry.isClientInWhiteList(client_security_name)) and 
-                (not entry.isSecurityClassAllowed(client_security_name,
-                                                  x509_proxy_security_class))):
+            if ( (entry.isClientWhitelisted(client_security_name)) and 
+                 (not entry.isSecurityClassAllowed(client_security_name,
+                                                   x509_proxy_security_class))):
                 entry.logFiles.logWarning("Client %s not allowed to use entry point. Marking as in downtime (security class %s) "%(client_security_name,x509_proxy_security_class))
                 in_downtime=True
 

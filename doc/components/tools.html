@@ -60,6 +60,9 @@ the glideinWMS tree) can help manage Condor mapfiles.  The management of
 DNs and authorization to specific users can be confusing and this utility
 can help.
 </p>
+<p>
+Usage:
+</p>
 <blockquote>
 glidecondor_addDN [-daemon] <i>/OU=YOUR/OU=DN/CN=HERE</i> <i>Mapped_to_User</i>
 </blockquote>
@@ -73,6 +76,42 @@ in order to correctly add the DN to Condor's authorization scheme.
     If <tt>-daemon</tt> is specified, then, in addition, this will modify
 the <tt>condor_config.local</tt> to include this DN as a daemon.
 </p>
+
+</div>
+<div class="section">
+<h4><b>glidecondor_createSecSched</b></h4>
+<p>
+The <tt>glidecondor_createSecSched</tt> script (found in the ./install directory of 
+the glideinWMS tree) can help manage the HTCondor's secondary schedds. It can be used
+when HTCondor's configuration is stored in 
+<a href="http://research.cs.wisc.edu/htcondor/manual/v7.8/3_3Configuration.html#param:LocalConfigDir">LOCAL_CONFIG_DIR</a>.
+</p>
+<p>
+Usage:
+</p>
+<blockquote>
+   glidecondor_createSecSched [-commonlog] [-nocreatedirs] </i>scheddlist</i>
+</blockquote>
+<p>
+This script will re-create the <tt>11_gwms_secondary_schedds.config</tt> file at each invocation.
+The node admin can thus easily change the number of secondary schedds as needed.
+</p>
+<p>
+By default, each secondary schedd will have its own log file. 
+If a shared log is desired, use <tt>-commonlog</tt>.<br>
+Please <b>note</b> that the tool does not try to guess what the existing config, if any, is using.
+</p>
+<p>
+By default, the tool will create any needed directories. 
+If you are sure the directories are already in place, e.g. beacuse you are just reducing the number of secondary schedds,
+you can use <tt>-nocreatedirs</tt> to speed it up.
+</p>
+<p>
+Example:
+</p>
+<blockquote>
+   glidecondor_createSecSched schedd_glideins1,schedd_glideins2
+</blockquote>
 
 </div>
 <div class="section">
