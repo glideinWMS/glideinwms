@@ -204,7 +204,8 @@ def clean_exit(childs):
                 pass # ignore
             try:
                 tempErr = child.stderr.read()
-                if len(tempErr)!=0:
+                if ( (len(tempErr)!=0) and
+                     (not tempErr.startswith('Exception KeyboardInterrupt')) ):
                     glideFactoryLib.log_files.logWarning("EntryGroup %s STDERR: %s"%(group, tempErr))
             except IOError:
                 pass # ignore
@@ -537,4 +538,4 @@ if __name__ == '__main__':
     try:
         main(sys.argv[1])
     except KeyboardInterrupt,e:
-        glideFactoryLib.log_files.logActivity("Terminating: %s"%e)
+        glideFactoryLib.log_files.logActivity("Terminating Factory process: %s"%e)

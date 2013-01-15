@@ -484,6 +484,10 @@ class Entry:
         self.logFiles.logActivity("rrd_stats written")
         self.logFiles.logDebug("rrd_stats written")
 
+        #self.logFiles.logDebug("ARTIFICIALLY SLEEPING ...")
+        #import time
+        #time.sleep(120)
+        #self.logFiles.logDebug("ARTIFICIALLY SLEEPING ... DONE")
         return
 
 
