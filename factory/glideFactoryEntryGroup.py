@@ -45,10 +45,6 @@ import glideFactoryInterface as gfi
 import glideFactoryLib as gfl
 import glideFactoryConfig as gfc
 
-# Global variables for signal handling
-PARENT_PROCESS = True
-SIGNAL_SENT = False
-
 ############################################################
 class EntryGroup:
 
@@ -325,8 +321,6 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
             pipe_ids[entry.name] = {'r': r, 'pid': pid}
         else:
             # This is the child process
-            global PARENT_PROCESS
-            PARENT_PROCESS = False
             entry.logFiles.logActivity("In find_and_perform_work child process with pid %s for entry %s" % (pid, entry.name))
             os.close(r)
 
@@ -341,9 +335,6 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
                 # the info required.
                 return_dict = compile_pickle_data(entry, work_done)
                 os.write(w,cPickle.dumps(return_dict))
-            except KeyboardInterrupt:
-                # exit without triggering SystemExit exception
-                os._exit(0)
             except Exception, ex:
                 tb = traceback.format_exception(sys.exc_info()[0],
                                                 sys.exc_info()[1],
@@ -537,14 +528,9 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                     if pid: # I am the parent
                         pids.append(pid)
                     else: # I am the child
-                        global PARENT_PROCESS
-                        PARENT_PROCESS = False
                         try:
                             for entry in entrylists[cpu]:
                                 entry.writeStats()
-                        except KeyboardInterrupt:
-                            # exit without triggering SystemExit exception
-                            os._exit(0)
                         except:
                             gfl.log_files.logWarning("Error writing stats for entry '%s': %s" % (entry.name, tb))                
                         os._exit(0) # exit without triggering SystemExit exception
@@ -703,7 +689,6 @@ def main(parent_pid, sleep_time, advertize_rate,
                         group_name, my_entries)
             except KeyboardInterrupt:
                 gfl.log_files.logActivity("Received signal...exit")
-                raise
             except:
                 tb = traceback.format_exception(sys.exc_info()[0],
                                                 sys.exc_info()[1],
@@ -757,26 +742,15 @@ def compile_pickle_data(entry, work_done):
 #
 ############################################################
 
-
 def termsignal(signr,frame):
-    global SIGNAL_SENT, PARENT_PROCESS
-    if (not SIGNAL_SENT) and PARENT_PROCESS:
-        SIGNAL_SENT = True
-        gfl.log_files.logActivity("Terminating process group for Entry Group %s"% os.getpid())
-        os.killpg(0, signal.SIGTERM)
-        gfl.log_files.logActivity("SIGTERM sent to the process group")
     raise KeyboardInterrupt, "Received signal %s"%signr
 
 if __name__ == '__main__':
-    os.setsid()
     signal.signal(signal.SIGTERM, termsignal)
     signal.signal(signal.SIGQUIT, termsignal)
 
     # Force integrity checks on all condor operations
     gfl.set_condor_integrity_checks()
 
-    try:
-        main(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), 
-             sys.argv[4], sys.argv[5], sys.argv[6])
-    except KeyboardInterrupt,e:
-        gfl.log_files.logActivity("Terminating EntryGroup process: %s"%e)
+    main(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), 
+         sys.argv[4], sys.argv[5], sys.argv[6])
