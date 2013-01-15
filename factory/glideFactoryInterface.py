@@ -110,6 +110,26 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
     Find request classAds that have my (factory, glidein name, entries) and
     create the dictionary of dictionary of work request information.
     Example: work[entry_name][frontend] = {'params':'value', 'requests':'value}
+
+    @type factory_name: string
+    @param factory_name: name of the factory
+    @type glidein_name: string
+    @param glidein_name: name of the glidein instance
+    @type entry_names: list
+    @param entry_names: list of factory entry names
+    @type supported_signtypes: list
+    @param supported_signtypes: only support one kind of signtype, 'sha1', default is None
+    @type pub_key_obj: string
+    @param pub_key_obj: only support 'RSA', defaults to None
+    @type allowed_proxy_source: list
+    @param allowed_proxy_source: types of sources the proxy is allowed to come from
+    @type get_only_matching: boolean
+    @param get_only_matching: if false, return also glideins I cannot use
+    @type additional_constraints: string
+    @param additional_constraints: any additional constraints to include for querying the WMS collector, default is None
+    
+    @rtype: dict
+    @return: Dictionary of work to perform. Return format is work[entry_name][frontend] = {'params':'value', 'requests':'value}
     """
 
     global factoryConfig
@@ -283,17 +303,8 @@ def workGroupByEntries(work):
     return grouped_work
 
 
-
-
-
-
-
-
-
-
-
-
-
+# findWork is still needed by tools/wmsXMLView. Modify wmsXMLView its still 
+# being used before removing the function below
 
 def findWork(factory_name, glidein_name, entry_name,
              supported_signtypes,
@@ -446,7 +457,6 @@ def findWork(factory_name, glidein_name, entry_name,
     return out
 
 ############################################################
-
 #
 # Define global variables that keep track of the Daemon lifetime
 #
