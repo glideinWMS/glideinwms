@@ -530,11 +530,16 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                     else: # I am the child
                         signal.signal(signal.SIGTERM, signal.SIG_DFL)
                         signal.signal(signal.SIGQUIT, signal.SIG_DFL)
-                        try:
-                            for entry in entrylists[cpu]:
+                        for entry in entrylists[cpu]:
+                            try:
                                 entry.writeStats()
-                        except:
-                            gfl.log_files.logWarning("Error writing stats for entry '%s': %s" % (entry.name, tb))                
+                            except:
+                                tb = traceback.format_exception(
+                                         sys.exc_info()[0],
+                                         sys.exc_info()[1],
+                                         sys.exc_info()[2])
+                                gfl.log_files.logWarning("Error writing stats for entry '%s'" % (entry.name))                
+                                gfl.log_files.logDebug("Error writing stats for entry '%s': %s" % (entry.name, tb))                
                         os._exit(0) # exit without triggering SystemExit exception
                 for pid in pids:
                     os.waitpid(pid, 0)
