@@ -12,11 +12,19 @@
 #   Igor Sfiligoi (Dec 11th 2006)
 #
 
-import os,os.path
-import re,time,copy,string,math,random,fcntl
-import xmlFormat,timeConversion
+import os
+import os.path
+import re
+import time
+import copy
+import string
+import math
+import random
+import fcntl
+import traceback
+import xmlFormat
+import timeConversion
 import rrdSupport
-
 import logSupport
 import glideFactoryLib
 
@@ -159,7 +167,11 @@ class MonitoringConfig:
             try:
                 self.rrd_obj.update_rrd_multi(fname,time,val_dict)
             except Exception,e:
-                print "Failed to update %s"%fname
+                self.logFiles.logWarning("Failed to update %s"%fname)
+                tb = traceback.format_exception(sys.exc_info()[0],
+                                                sys.exc_info()[1],
+                                                sys.exc_info()[2])
+                self.logFiles.logDebug("Failed to update %s: %s" % (fname, string.join(tb,'')))
         return
 
     # like write_rrd_multi, but with each ds having each type
@@ -199,7 +211,11 @@ class MonitoringConfig:
             try:
                 self.rrd_obj.update_rrd_multi(fname,time,val_dict)
             except Exception,e:
-                print "Failed to update %s"%fname
+                self.logFiles.logWarning("Failed to update %s"%fname)
+                tb = traceback.format_exception(sys.exc_info()[0],
+                                                sys.exc_info()[1],
+                                                sys.exc_info()[2])
+                self.logFiles.logDebug("Failed to update %s: %s" % (fname, string.join(tb,'')))
         return
     
 
