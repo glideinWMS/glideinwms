@@ -528,6 +528,8 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                     if pid: # I am the parent
                         pids.append(pid)
                     else: # I am the child
+                        signal.signal(signal.SIGTERM, signal.SIG_DFL)
+                        signal.signal(signal.SIGQUIT, signal.SIG_DFL)
                         try:
                             for entry in entrylists[cpu]:
                                 entry.writeStats()
