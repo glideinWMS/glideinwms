@@ -21,52 +21,34 @@ import glideFactoryPidLib
 import glideFactoryConfig
 import subprocess
 
-def get_pids_in_pgid(pgid):
-    pids = []
-    try:
-        p = subprocess.Popen(['pgrep', '-g', pgid], shell=False,
-                             stdout=subprocess.PIPE)
-        out,err = p.communicate()
-        pids = out.strip('\n').split('\n')
-    except:
-        pass
-    return pids
-
-
-def all_pids_dead(pids):
-    for pid in pids:
-        if glideFactoryPidLib.pidSupport.check_pid(pid):
-            return False
-    return True
+def all_pids_in_pgid_dead(pgid):
+    # return 1 if there are no pids in the pgid still alive
+    devnull = os.open(os.devnull, os.O_RDWR)
+    return subprocess.call(["pgrep", "-g", "%s" % pgid],
+                            stdout=devnull,
+                            stderr=devnull)
 
 def kill_and_check_pgid(pgid, signr=signal.SIGTERM, 
-                        retries=100, retry_interval=0.2):
-    pids = get_pids_in_pgid(pgid)
-    alive_pids = set(pids)
+                        retries=100, retry_interval=0.5):
+    # return 0 if all pids in pgid are dead
 
     try:
         os.killpg(pgid, signr)
     except OSError:
         pass
 
-    for p in pids:
-        p_dead = False
-        for retries in range(retries):
-            if glideFactoryPidLib.pidSupport.check_pid(p):
-                time.sleep(retry_interval)
-            else:
-                p_dead = True
-                alive_pids.remove(p)
-                break
-
-        if not p_dead:
+    for retries in range(retries):
+        if not all_pids_in_pgid_dead(pgid):
             try:
-                os.kill(p, signr)
+                os.killpg(pgid, signr)
             except OSError:
-                # process already dead
-                alive_pids.remove(p)
-    if len(alive_pids) == 0:
-        return 0
+                # already dead
+                pass
+
+            time.sleep(retry_interval)
+        else:
+            return 0
+
     return 1
 
 def main(startup_dir,force=False):
@@ -90,7 +72,7 @@ def main(startup_dir,force=False):
         return 0
 
     if not force:
-        print "Factory did not die withing the timeout"
+        print "Factory did not die within the timeout"
         return 1
 
     # retry soft kill the factory... should exit now (5s timeout)
@@ -99,15 +81,11 @@ def main(startup_dir,force=False):
 
     print "Factory or children still alive... sending hard kill"
 
-    alive_pids = get_pids_in_pgid(factory_pgid)
-
-    for p in alive_pids:
-        if glideFactoryPidLib.pidSupport.check_pid(p):
-            print "Hard killing %s" % p
-            try:
-                os.kill(p, signal.SIGKILL)
-            except OSError:
-                pass # ignore already dead processes
+    try:
+        os.killpg(factory_pgid, signal.SIGKILL)
+    except OSError:
+        # in case they died between the last check and now
+        pass
 
     return 0
 
