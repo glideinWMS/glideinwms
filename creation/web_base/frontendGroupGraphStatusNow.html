@@ -42,6 +42,8 @@ opacity: .25;
 }
 </style>
 <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+ <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
 <script type="text/javascript">
 var gready = 0;
 
@@ -53,8 +55,6 @@ var timeout;
 
 // Google libraries to load
 google.load('visualization', '1', {packages:['table']});
-google.load("jquery", "1.5.0");
-google.load("jqueryui", "1.8.10");
 google.setOnLoadCallback(googleReady);
 
 //setTimeout("window.location.reload()", globalReload);
@@ -151,7 +151,7 @@ function googleReady() {
 	    }
 	
 	});
-	
+       
 
 }
 
@@ -460,7 +460,7 @@ function UpdateGroup(group_obj) {
     // If there are no factories detected
     if ( factories.length == 0 ){
         $("#group_graphs").fadeTo(0, 0.5);
-        ShowDialog($(group_selector), "No Entry Points Detected",
+        ShowDialog($("#content-area"), "No Entry Points Detected",
             "No entry points were detected in the group: <strong>" + group_name +"</strong>. <p>Please select another group from the menu on the left.</p>");
     
     // If no jobs are detected, idle or running
@@ -472,7 +472,7 @@ function UpdateGroup(group_obj) {
                (SumElements(requested_idle) == 0)){
 
         $("#group_graphs").fadeTo(0, 0.5);
-        ShowDialog($(group_selector), "No Jobs Detected",
+        ShowDialog($("#content-area"), "No Jobs Detected",
              "No jobs were detected, idle or running, in the group: <strong>" + group_name + "</strong>.  <p>Please select another group from the menu on the left.</p>");
 
     } else {
@@ -697,6 +697,15 @@ function HideDialog() {
 <!-- </td><td id="group_graphs"> 
 <table cellpadding='20px'> -->
 <div class="span10">
+
+<!-- Tabs -->
+<ul class="nav nav-tabs" id="myTab">
+ <li class="active"><a href="#graphs" data-toggle="tab">Graphs</a></li>
+ <li><a href="#table" data-toggle="tab">Table</a></li>
+</ul>
+
+<div class="tab-content" id="content-area">
+<div class="tab-pane" id="table">
 <div class="row-fluid">
 <div class="span9">
 Entry Search: <input class="search-query" type='text' id='entrysearch' onkeypress='FilterTable()'/>
@@ -706,6 +715,12 @@ Entry Search: <input class="search-query" type='text' id='entrysearch' onkeypres
 <div id="group_table">
 </div>
  </div>   
+
+</div> <!-- End table tab -->
+
+
+
+<div class="tab-pane active" id="graphs">
 
 <div id="graphtable">
 <div id="group_graphs">
@@ -741,6 +756,8 @@ Entry Search: <input class="search-query" type='text' id='entrysearch' onkeypres
 </div>
 </div> <!-- Row -->
 </div>
+</div> <!-- End tab plane -->
+</div> <!-- end tabs -->
 </div> <!-- span -->
 </div <!-- End span -->
 </div> <!-- end row -->
