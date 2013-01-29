@@ -242,10 +242,10 @@ def time2xml(the_time,outer_tag,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab="")
 #########################################################################################################################################
 
 class condorQStats:
-    def __init__(self):
+    def __init__(self, logfiles=glideFactoryLib.log_files):
         self.data={}
         self.updated=time.time()
-
+        self.logFiles = logfiles
         self.files_updated=None
         self.attributes={'Status':("Idle","Running","Held","Wait","Pending","StageIn","IdleOther","StageOut"),
                          'Requested':("Idle","MaxRun"),
@@ -462,13 +462,14 @@ class condorQStats:
         xml_downtime = xmlFormat.dict2string({}, dict_name = 'downtime', el_name = '', params = {'status':self.downtime}, leading_tab = leading_tab)
         return xml_downtime
 
-    def write_file(self):
-        global monitoringConfig
+    def write_file(self, monitoringConfig=None):
 
-        if (self.files_updated is not None) and ((self.updated-self.files_updated)<5):
-            # files updated recently, no need to redo it
+        if monitoringConfig is None:
+            monitoringConfig = globals()['monitoringConfig']
+
+        if ( (self.files_updated is not None) and 
+             ((self.updated-self.files_updated)<5) ):
             return 
-        
 
         # write snaphot file
         xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
@@ -536,7 +537,7 @@ class condorLogSummary:
     """
     This class handles the data obtained from parsing the glidein log files
     """
-    def __init__(self):
+    def __init__(self, logfiles=glideFactoryLib.log_files):
         self.data={} # not used
         self.updated=time.time()
         self.updated_year=time.localtime(self.updated)[0]
@@ -547,6 +548,7 @@ class condorLogSummary:
         self.job_statuses_short=('Running','Idle','Wait','Held') #const
 
         self.files_updated=None
+        self.logFiles = logfiles
 
     def reset(self):
         """
@@ -983,11 +985,13 @@ class condorLogSummary:
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
         return time2xml(self.updated,"updated",indent_tab,leading_tab)
 
-    def write_file(self):
-        global monitoringConfig
+    def write_file(self, monitoringConfig=None):
 
-        if (self.files_updated is not None) and ((self.updated-self.files_updated)<5):
-            # files updated recently, no need to redo it
+        if monitoringConfig is None:
+            monitoringConfig = globals()['monitoringConfig']
+
+        if ( (self.files_updated is not None) and 
+             ((self.updated-self.files_updated)<5) ):
             return 
 
         # write snaphot file
@@ -1106,7 +1110,7 @@ class condorLogSummary:
 
 class FactoryStatusData:
     """documentation"""
-    def __init__(self, logfiles=glideFactoryLib.log_files):
+    def __init__(self, logfiles=glideFactoryLib.log_files, base_dir=None):
         self.data = {}
         for rrd in rrd_list:
             self.data[rrd] = {}
@@ -1115,7 +1119,9 @@ class FactoryStatusData:
         self.resolution = (7200, 86400, 604800) # 2hr, 1 day, 1 week
         self.total = "total/"
         self.frontends = []
-        self.base_dir = monitoringConfig.monitor_dir
+        self.base_dir = base_dir
+        if base_dir is None:
+            self.base_dir = monitoringConfig.monitor_dir
         self.logFiles = logfiles
 
     def getUpdated(self):
@@ -1178,10 +1184,12 @@ class FactoryStatusData:
             self.logFiles.logDebug("average: TypeError")
             return
 
-    def getData(self, input):
+    def getData(self, input, monitoringConfig=None):
         """returns the data fetched by rrdtool in a xml readable format"""
-        global monitoringConfig
         
+        if monitoringConfig is None:
+            monitoringConfig = globals()['monitoringConfig']
+
         folder = str(input)
         if folder == self.total:
             client = folder
@@ -1251,7 +1259,11 @@ class FactoryStatusData:
         data_str =  total_xml_str + frontend_xml_str
         return data_str
     
-    def writeFiles(self):
+    def writeFiles(self, monitoringConfig=None):
+
+        if monitoringConfig is None:
+            monitoringConfig = globals()['monitoringConfig']
+
         for rrd in rrd_list:
             file_name = 'rrd_' + rrd.split(".")[0] + '.xml'
             xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +

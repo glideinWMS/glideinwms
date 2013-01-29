@@ -142,8 +142,8 @@ class Entry:
         self.gflFactoryConfig.remove_sleep = float(self.jobDescript.data['RemoveSleep'])
         self.gflFactoryConfig.max_releases = int(self.jobDescript.data['MaxReleaseRate'])
         self.gflFactoryConfig.release_sleep = float(self.jobDescript.data['ReleaseSleep'])
-        self.gflFactoryConfig.log_stats = glideFactoryMonitoring.condorLogSummary()
-        self.gflFactoryConfig.rrd_stats = glideFactoryMonitoring.FactoryStatusData(logfiles=self.logFiles)
+        self.gflFactoryConfig.log_stats = glideFactoryMonitoring.condorLogSummary(logfiles=self.logFiles)
+        self.gflFactoryConfig.rrd_stats = glideFactoryMonitoring.FactoryStatusData(logfiles=self.logFiles, base_dir=self.monitoringConfig.monitor_dir)
         self.gflFactoryConfig.rrd_stats.base_dir = self.monitorDir
 
 
@@ -298,14 +298,17 @@ class Entry:
         @param factory_in_downtime: Downtime flag for the factory
         """
 
+        self.loadContext()
+
         self.setDowntime(factory_in_downtime)
 
-        # This one is used for stats advertized in the ClassAd
-        self.gflFactoryConfig.client_stats = glideFactoryMonitoring.condorQStats()
-        # These two are used to write the history to disk
-        self.gflFactoryConfig.qc_stats = glideFactoryMonitoring.condorQStats()
-        self.gflFactoryConfig.client_internals = {}
         self.gflFactoryConfig.log_stats.reset()
+
+        # This one is used for stats advertized in the ClassAd
+        self.gflFactoryConfig.client_stats = glideFactoryMonitoring.condorQStats(logfiles=self.logFiles)
+        # These two are used to write the history to disk
+        self.gflFactoryConfig.qc_stats = glideFactoryMonitoring.condorQStats(logfiles=self.logFiles)
+        self.gflFactoryConfig.client_internals = {}
 
 
     def unsetInDowntime(self):
@@ -325,8 +328,14 @@ class Entry:
         """
 
         try:
-            return glideFactoryLib.getCondorQData(self.name, None,
-                                                  self.scheddName)
+            return glideFactoryLib.getCondorQData(
+                       self.name, None, self.scheddName,
+                       factory_schedd_attribute=self.gflFactoryConfig.factory_schedd_attribute,
+                       glidein_schedd_attribute=self.gflFactoryConfig.glidein_schedd_attribute,
+                       entry_schedd_attribute=self.gflFactoryConfig.entry_schedd_attribute,
+                       client_schedd_attribute=self.gflFactoryConfig.client_schedd_attribute,
+                       x509secclass_schedd_attribute=self.gflFactoryConfig.x509secclass_schedd_attribute,
+                       factoryConfig=self.gflFactoryConfig)
         except Exception, e:
             self.logFiles.logActivity("Schedd %s not responding, skipping"%self.scheddName)
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
@@ -422,11 +431,6 @@ class Entry:
                 self.name, monitor_job_attrs)
 
         current_qc_data = self.gflFactoryConfig.client_stats.get_data()
-        #self.logFiles.logActivity("=======================================")
-        #self.logFiles.logActivity(self.gflFactoryConfig.client_internals)
-        #self.logFiles.logActivity("---------------------------------------")
-        #self.logFiles.logActivity(current_qc_data)
-        #self.logFiles.logActivity("=======================================")
         for client_name in current_qc_data:
             client_qc_data = current_qc_data[client_name]
             if client_name not in self.gflFactoryConfig.client_internals:
@@ -493,20 +497,20 @@ class Entry:
 
         self.logFiles.logActivity("Writing log_stats for %s" % self.name)
         self.logFiles.logDebug("Writing log_stats for %s" % self.name)
-        self.gflFactoryConfig.log_stats.write_file()
+        self.gflFactoryConfig.log_stats.write_file(monitoringConfig=self.monitoringConfig)
         self.logFiles.logActivity("log_stats written")
         self.logFiles.logDebug("log_stats written")
 
         self.gflFactoryConfig.qc_stats.finalizeClientMonitor()
         self.logFiles.logActivity("Writing qc_stats for %s" % self.name)
         self.logFiles.logDebug("Writing qc_stats for %s" % self.name)
-        self.gflFactoryConfig.qc_stats.write_file()
+        self.gflFactoryConfig.qc_stats.write_file(monitoringConfig=self.monitoringConfig)
         self.logFiles.logActivity("qc_stats written")
         self.logFiles.logDebug("qc_stats written")
 
         self.logFiles.logActivity("Writing rrd_stats for %s" % self.name)
         self.logFiles.logDebug("Writing rrd_stats for %s" % self.name)
-        self.gflFactoryConfig.rrd_stats.writeFiles()
+        self.gflFactoryConfig.rrd_stats.writeFiles(monitoringConfig=self.monitoringConfig)
         self.logFiles.logActivity("rrd_stats written")
         self.logFiles.logDebug("rrd_stats written")
 
@@ -603,7 +607,35 @@ class Entry:
                 stats_data[frontend][user].data = new_data
 
 
-    def loadPostWorkState(self, post_work_info):
+    def getState(self):
+        """
+        Compile a dictionary containt useful state information
+
+        @rtype: dict
+        @return: Useful state information that can pickled and restored
+        """
+        state = {
+            'client_internals': self.gflFactoryConfig.client_internals,
+            'client_stats': self.gflFactoryConfig.client_stats,
+            'qc_stats': self.gflFactoryConfig.qc_stats,
+            'rrd_stats': self.gflFactoryConfig.rrd_stats,
+            'glidein_totals': self.glideinTotals,
+        }
+        state['log_stats'] = self.gflFactoryConfig.log_stats
+        """
+        state['log_stats'] = {
+            'data': self.gflFactoryConfig.log_stats.data,
+            'updated': self.gflFactoryConfig.log_stats.updated,
+            'updated_year': self.gflFactoryConfig.log_stats.updated_year,
+            'stats_diff': self.gflFactoryConfig.log_stats.stats_diff,
+            'files_updated': self.gflFactoryConfig.log_stats.files_updated,
+            'current_stats_data': self.getLogStatsCurrentStatsData(),
+            'old_stats_data': self.getLogStatsOldStatsData(),
+        }
+        """
+        return state
+
+    def setState(self, state):
         """
         Load the post work state from the pickled info
         
@@ -611,21 +643,58 @@ class Entry:
         @param post_work_info: Picked state after doing work
         """
 
-        self.gflFactoryConfig.client_stats = post_work_info['client_stats']
-        self.gflFactoryConfig.qc_stats = post_work_info['qc_stats']
-        self.gflFactoryConfig.rrd_stats = post_work_info['rrd_stats']
-        self.gflFactoryConfig.client_internals = post_work_info['client_internals']
+        self.gflFactoryConfig.client_stats = state.get('client_stats')
+        self.gflFactoryConfig.qc_stats = state.get('qc_stats')
+        self.gflFactoryConfig.rrd_stats = state.get('rrd_stats')
+        self.gflFactoryConfig.client_internals = state.get('client_internals')
+        self.glideinTotals = state.get('glidein_totals')
+        self.gflFactoryConfig.log_stats = state['log_stats']
+
         # Load info for latest log_stats correctly
-        self.gflFactoryConfig.log_stats.data = post_work_info['log_stats']['data']
-        self.gflFactoryConfig.log_stats.updated = post_work_info['log_stats']['updated']
-        self.gflFactoryConfig.log_stats.updated_year = post_work_info['log_stats']['updated_year']
-        self.gflFactoryConfig.log_stats.stats_diff = post_work_info['log_stats']['stats_diff']
-        self.gflFactoryConfig.log_stats.files_updated = post_work_info['log_stats']['files_updated']
-        self.setLogStatsOldStatsData(post_work_info['log_stats']['old_stats_data'])
-        self.setLogStatsCurrentStatsData(post_work_info['log_stats']['current_stats_data'])
+        """
+        self.gflFactoryConfig.log_stats.data = state['log_stats']['data']
+        self.gflFactoryConfig.log_stats.updated = state['log_stats']['updated']
+        self.gflFactoryConfig.log_stats.updated_year = state['log_stats']['updated_year']
+        self.gflFactoryConfig.log_stats.stats_diff = state['log_stats']['stats_diff']
+        self.gflFactoryConfig.log_stats.files_updated = state['log_stats']['files_updated']
+        self.setLogStatsCurrentStatsData(state['log_stats']['current_stats_data'])
+        self.setLogStatsOldStatsData(state['log_stats']['old_stats_data'])
+        """
     
+    #####################
+    # Debugging functions
+    #####################
+    def logLogStats(self, marker=""):
+        self.logFiles.logDebug(marker)
+        self.logFiles.logDebug("data = %s" % self.gflFactoryConfig.log_stats.data)
+        self.logFiles.logDebug("updated = %s" % self.gflFactoryConfig.log_stats.updated)
+        self.logFiles.logDebug("updated_year = %s" % self.gflFactoryConfig.log_stats.updated_year)
+        self.logFiles.logDebug("stats_diff = %s" % self.gflFactoryConfig.log_stats.stats_diff)
+        self.logFiles.logDebug("files_updated = %s" % self.gflFactoryConfig.log_stats.files_updated)
+        self.logFiles.logDebug("old_stats_data = %s" % self.gflFactoryConfig.log_stats.old_stats_data)
+        self.logFiles.logDebug("current_stats_data = %s" % self.gflFactoryConfig.log_stats.current_stats_data)
+        self.logFiles.logDebug(marker)
+
+
+    def dump(self):
+        return
+        stdout = sys.stdout
+        sys.stdout = self.logFiles.debug_log
+        dump_obj(self)
+        sys.stdout = stdout
 # class Entry
 
+def dump_obj(obj):
+    import types
+    print obj.__dict__
+    print "======= START: %s ======" % obj
+    for key in obj.__dict__:
+        if type(obj.__dict__[key]) is not types.InstanceType:
+            print "%s = %s" % (key, obj.__dict__[key])
+        else:
+            dump_obj(obj.__dict__[key])
+    print "======= END: %s ======" % obj
+        
 ###############################################################################
 
 class X509Proxies:
@@ -783,7 +852,8 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
                 x509_proxy_fname = glideFactoryLib.update_x509_proxy_file(
                                        entry.name, x509_proxy_username,
                                        work_key, decrypted_params['x509_proxy'],
-                                       logfiles=entry.logFiles)
+                                       logfiles=entry.logFiles,
+                                       factoryConfig=entry.gflFactoryConfig)
             except:
                 entry.logFiles.logWarning("Failed to update x509_proxy using usename %s for client %s, skipping request"%(x509_proxy_username,client_int_name))
                 continue # skip request
@@ -868,7 +938,8 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
                                            entry.name, x509_proxy_username,
                                            "%s_%s"%(work_key,
                                                     x509_proxy_identifier),
-                                           x509_proxy, logfiles=entry.logFiles)
+                                           x509_proxy, logfiles=entry.logFiles,
+                                           factoryConfig=entry.gflFactoryConfig)
                 except RuntimeError,e:
                     entry.logFiles.logWarning("Failed to update x509_proxy_%i using usename %s for client %s, skipping request"%(i,x509_proxy_username,client_int_name))
                     entry.logFiles.logDebug("Failed to update x509_proxy_%i using usename %s for client %s: %s"%(i,x509_proxy_username,client_int_name,e))
@@ -1009,19 +1080,20 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
                 max_running_pc = int(math.ceil(max_running*x509_proxy_frac))
 
                 # Should log here or in perform_work
-                glideFactoryLib.logWorkRequest(client_int_name, 
-                                               client_security_name,
-                                               x509_proxy_security_class,
-                                               idle_glideins, max_running,
-                                               work[work_key], x509_proxy_frac,
-                                               logfiles=entry.logFiles)
+                glideFactoryLib.logWorkRequest(
+                    client_int_name, client_security_name,
+                    x509_proxy_security_class, idle_glideins, max_running,
+                    work[work_key], x509_proxy_frac, logfiles=entry.logFiles,
+                    factoryConfig=entry.gflFactoryConfig)
 
                 all_security_names.add((client_security_name,
                                         x509_proxy_security_class))
 
                 entry_condorQ = glideFactoryLib.getQProxSecClass(
                                     condorQ, client_int_name,
-                                    x509_proxy_security_class)
+                                    x509_proxy_security_class,
+                                    client_schedd_attribute=entry.gflFactoryConfig.client_schedd_attribute,
+                                    x509secclass_schedd_attribute=entry.gflFactoryConfig.x509secclass_schedd_attribute)
 
                 # Map the identity to a frontend:sec_class for tracking totals
                 frontend_name = "%s:%s" % \
@@ -1051,21 +1123,22 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
     for sec_el in all_security_names:
         try:
             #glideFactoryLib.factoryConfig.rrd_stats.getData("%s_%s" % sec_el)
-            entry.gflFactoryConfig.rrd_stats.getData("%s_%s" % sec_el)
+            entry.gflFactoryConfig.rrd_stats.getData(
+                "%s_%s" % sec_el, monitoringConfig=entry.monitoringConfig)
         except glideFactoryLib.condorExe.ExeError,e:
             # Never fail for monitoring. Just log
             entry.logFiles.logWarning("get_RRD_data failed: %s" % e)
             tb = traceback.format_exception(sys.exc_info()[0],
                                             sys.exc_info()[1],
                                             sys.exc_info()[2])
-            entry.logFiles.logWarning("Traceback: %s"%string.join(tb,''))
+            entry.logFiles.logDebug("Traceback: %s"%string.join(tb,''))
         except:
             # Never fail for monitoring. Just log
             entry.logFiles.logWarning("get_RRD_data failed: error unknown")
             tb = traceback.format_exception(sys.exc_info()[0],
                                             sys.exc_info()[1],
                                             sys.exc_info()[2])
-            entry.logFiles.logWarning("Traceback: %s"%string.join(tb,''))
+            entry.logFiles.logDebug("Traceback: %s"%string.join(tb,''))
 
     return done_something
 
@@ -1156,7 +1229,8 @@ def perform_work(entry, condorQ, client_name, client_int_name,
 
     glideFactoryLib.logStats(condorQ, condorStatus, client_int_name,
                              client_security_name, x509_proxy_security_class,
-                             logfiles=entry.logFiles)
+                             logfiles=entry.logFiles,
+                             factoryConfig=entry.gflFactoryConfig)
     client_log_name = glideFactoryLib.secClass2Name(client_security_name,
                                                     x509_proxy_security_class)
     entry.gflFactoryConfig.log_stats.logSummary(client_log_name, log_stats)
@@ -1177,14 +1251,14 @@ def perform_work(entry, condorQ, client_name, client_int_name,
                             max_glideins_pproxy, glidein_totals, frontend_name,
                             x509_proxy_id, x509_proxy_fnames[x509_proxy_id],
                             x509_proxy_username, x509_proxy_security_class,
-                            client_web, params, entry.logFiles)
+                            client_web, params, entry.logFiles,
+                            factoryConfig=entry.gflFactoryConfig)
 
     if nr_submitted>0:
         entry.logFiles.logActivity("Submitted %s glideins" % nr_submitted)
         # We submitted something
         return 1
 
-    #glideFactoryLib.log_files.logActivity("Work done")
     return 0
 
 

@@ -529,19 +529,19 @@ class cacheDirClass:
                  dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
                  inactive_files=None,         
                  inactive_timeout=24*3600,   
-                 cache_dir=None):            
+                 cache_dir=None,wrapperClass=None,username=None):
         """
         @param inactive_files: if None, will be reloaded from cache
         @param inactive_timeout: how much time must elapse before a file can be declared inactive
         @param cache_dir: If None, use dirname for the cache directory.
         """
-        self.cdInit(logClass,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout,cache_dir)
+        self.cdInit(logClass,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout,cache_dir, wrapperClass=wrapperClass, username=username)
 
     def cdInit(self,logClass,
                dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
                inactive_files=None,         
                inactive_timeout=24*3600,    
-               cache_dir=None):             
+               cache_dir=None,wrapperClass=None,username=None):
         """
         @param logClass: this is an actual class, not an object
         @param inactive_files: if None, will be reloaded from cache
@@ -549,6 +549,9 @@ class cacheDirClass:
 declared inactive
         @param cache_dir: If None, use dirname for the cache directory.
         """
+        self.wrapperClass=wrapperClass
+        self.username=username
+
         self.logClass=logClass
         self.dirname=dirname
         if cache_dir is None:
@@ -601,7 +604,14 @@ declared inactive
         ch=False
         fnames=self.getFileList(active_only=True)
         for fname in fnames:
-            obj=self.logClass(os.path.join(self.dirname,fname),self.cache_dir)
+            if (self.wrapperClass is not None) and (self.username is not None):
+                obj = self.wrapperClass.getObj(
+                          logname=os.path.join(self.dirname,fname),
+                          cache_dir=self.cache_dir,
+                          username=self.username)
+            else:
+                obj=self.logClass(os.path.join(self.dirname,fname),
+                                  self.cache_dir)
             ch=(ch or obj.has_changed()) # it is enough that one changes
         return ch
 
@@ -629,7 +639,12 @@ declared inactive
             if os.path.getsize(absfname)<1:
                 continue # skip empty files
             last_mod=os.path.getmtime(absfname)
-            obj=self.logClass(absfname,self.cache_dir)
+            if (self.wrapperClass is not None) and (self.username is not None):
+                obj=self.wrapperClass.getObj(logname=absfname,
+                                             cache_dir=self.cache_dir,
+                                             username=self.username)
+            else:
+                obj=self.logClass(absfname,self.cache_dir)
             obj.load()
             mydata=obj.merge(mydata)
             if ((now-last_mod)>self.inactive_timeout) and (not obj.isActive()):
@@ -656,7 +671,14 @@ declared inactive
         This is a virtual function that just calls the class 
         diff() function.
         """
-        dummyobj=self.logClass(os.path.join(self.dirname,'dummy.txt'),self.cache_dir)
+
+        if (self.wrapperClass is not None) and (self.username is not None):
+            dummyobj=self.wrapperClass.getObj(os.path.join(self.dirname,
+                                                           'dummy.txt'),
+                                              self.cache_dir, self.username)
+        else:
+            dummyobj=self.logClass(os.path.join(self.dirname,'dummy.txt'),
+                                   self.cache_dir)
         dummyobj.data=self.data # a little rough but works
         return  dummyobj.diff(other) 
         

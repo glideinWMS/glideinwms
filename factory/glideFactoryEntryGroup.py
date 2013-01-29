@@ -161,6 +161,12 @@ def find_work(factory_in_downtime, glideinDescript,
                 continue
             work[w] = work_oldkey[w]
 
+    # Append empty work item for entries that do not have work
+    # This is required to trigger glidein sanitization further in the code
+    for ent in my_entries:
+        if ent not in work:
+            work[ent] = {}
+
     return work
 
 
@@ -223,10 +229,11 @@ def fetch_fork_result(r, pid):
 
 def fetch_fork_result_list(pipe_ids):
     """
-    Read the output pipe of the children
+    Read the output pipe of the children, used after forking to perform work
+    and after forking to entry.writeStats()
  
     @type pipe_ids: dict
-    @param pipe_ids: Dictinary of pipe and pid keyed on entry name
+    @param pipe_ids: Dictinary of pipe and pid 
 
     @rtype: dict
     @return: Dictionary of fork_results
@@ -234,17 +241,17 @@ def fetch_fork_result_list(pipe_ids):
 
     out = {}
     failures = 0
-    for entry in pipe_ids:
+    for key in pipe_ids:
         try:
             # Collect the results
-            out[entry] = fetch_fork_result(pipe_ids[entry]['r'],
-                                           pipe_ids[entry]['pid'])
+            out[key] = fetch_fork_result(pipe_ids[key]['r'],
+                                         pipe_ids[key]['pid'])
         except Exception, e:
             tb = traceback.format_exception(sys.exc_info()[0],
                                             sys.exc_info()[1],
                                             sys.exc_info()[2])
-            gfl.log_files.logWarning("Failed to retrieve work done for entry subprocess '%s'" % entry)
-            gfl.log_files.logDebug("Failed to retrieve work done for entry subprocess '%s': %s" % (entry, tb))
+            gfl.log_files.logWarning("Failed to extract info from child '%s'" % entry)
+            gfl.log_files.logDebug("Failed to extract info from child '%s': %s" % (entry, tb))
             failures += 1
 
     if failures>0:
@@ -347,8 +354,8 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
             os.kill(os.getpid(),signal.SIGKILL)
 
     # Gather results from the forked children
-    gfl.log_files.logActivity("All children terminated")
-    gfl.log_files.logDebug("All children terminated")
+    gfl.log_files.logActivity("All children forked for glideFactoryEntry.check_and_perform_work terminated.")
+    gfl.log_files.logDebug("All children forked for glideFactoryEntry.check_and_perform_work terminated.")
     work_info_read_err = False
     post_work_info = {}
     try:
@@ -366,7 +373,8 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
         # Update the entry object from the post_work_info
         if ((entry in post_work_info) and (len(post_work_info[entry]) > 0)):
             groupwork_done[entry] = {'work_done': post_work_info[entry]['work_done']}
-            (my_entries[entry]).loadPostWorkState(post_work_info[entry])
+            (my_entries[entry]).setState(post_work_info[entry])
+
         else:
             gfl.log_files.logDebug("Entry %s not used by any frontends, i.e no corresponding glideclient classads" % entry)
 
@@ -457,13 +465,13 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
     @param sleep_time: The number of seconds to sleep between iterations
 
     @type advertize_rate: int
-    @param advertize_rate: The rate at which advertising should occur (CHANGE ME... THIS IS NOT HELPFUL)
+    @param advertize_rate: The rate at which advertising should occur
 
     @type glideinDescript: glideFactoryConfig.GlideinDescript
-    @param glideinDescript: Object that encapsulates glidein.descript in the Factory root directory
+    @param glideinDescript: glidein.descript object in the Factory root dir
 
     @type frontendDescript: glideFactoryConfig.FrontendDescript
-    @param frontendDescript: Object that encapsulates frontend.descript in the Factory root directory
+    @param frontendDescript: frontend.descript object in the Factory root dir
 
     @type group_name: string
     @param group_name: Name of the group
@@ -518,21 +526,36 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
             try:
                 pids = []
                 # generate a list of entries for each CPU
-                #cpuCount = os.sysconf('SC_NPROCESSORS_ONLN')
                 cpuCount = int(glideinDescript.data['MonitorUpdateThreadCount'])
                 gfl.log_files.logActivity("Number of parallel writes for stats: %i" % cpuCount)
+
                 entrylists = [my_entries.values()[cpu::cpuCount] for cpu in xrange(cpuCount)]
 
+                # Fork's keyed by cpu number. Actual key is irrelevant
+                pipe_ids = {}
+
+                post_writestats_info = {}
+
                 for cpu in xrange(cpuCount):
+                    r,w = os.pipe()
                     pid = os.fork()
-                    if pid: # I am the parent
+                    if pid:
+                        # I am the parent
                         pids.append(pid)
-                    else: # I am the child
+                        os.close(w)
+                        pipe_ids[cpu] = {'r': r, 'pid': pid}
+                    else:
+                        # I am the child
                         signal.signal(signal.SIGTERM, signal.SIG_DFL)
                         signal.signal(signal.SIGQUIT, signal.SIG_DFL)
+                        os.close(r)
+                        # Return the pickled entry object in form of dict
+                        # return_dict[entry.name][entry.getState()]
+                        return_dict = {}
                         for entry in entrylists[cpu]:
                             try:
                                 entry.writeStats()
+                                return_dict[entry.name] = entry.getState()
                             except:
                                 tb = traceback.format_exception(
                                          sys.exc_info()[0],
@@ -540,9 +563,21 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                                          sys.exc_info()[2])
                                 gfl.log_files.logWarning("Error writing stats for entry '%s'" % (entry.name))                
                                 gfl.log_files.logDebug("Error writing stats for entry '%s': %s" % (entry.name, tb))                
-                        os._exit(0) # exit without triggering SystemExit exception
-                for pid in pids:
-                    os.waitpid(pid, 0)
+
+                        os.write(w, cPickle.dumps(return_dict))
+                        os.close(w)
+                        # Exit without triggering SystemExit exception
+                        os._exit(0)
+
+                try:
+                    gfl.log_files.logActivity("Processing response from children after write stats")
+                    post_writestats_info = fetch_fork_result_list(pipe_ids)
+                except:
+                    gfl.log_files.logWarning("Error processing response from one or more children after write stats")
+
+                for i in post_writestats_info:
+                    for ent in post_writestats_info[i]:
+                        (my_entries[ent]).setState(post_writestats_info[i][ent])
             except KeyboardInterrupt:
                 raise # this is an exit signal, pass through
             except:
@@ -724,22 +759,8 @@ def compile_pickle_data(entry, work_done):
     @param work_done: Work done info
     """
 
-    return_dict = {
-        'client_internals': entry.gflFactoryConfig.client_internals,
-        'client_stats': entry.gflFactoryConfig.client_stats,
-        'qc_stats': entry.gflFactoryConfig.qc_stats,
-        'rrd_stats': entry.gflFactoryConfig.rrd_stats,
-        'work_done': work_done
-    }        
-    return_dict['log_stats'] = {
-        'data': entry.gflFactoryConfig.log_stats.data,
-        'updated': entry.gflFactoryConfig.log_stats.updated,
-        'updated_year': entry.gflFactoryConfig.log_stats.updated_year,
-        'stats_diff': entry.gflFactoryConfig.log_stats.stats_diff,
-        'files_updated': entry.gflFactoryConfig.log_stats.files_updated,
-        'current_stats_data': entry.getLogStatsCurrentStatsData(),
-        'old_stats_data': entry.getLogStatsOldStatsData(),
-    }
+    return_dict = entry.getState()
+    return_dict['work_done'] = work_done
 
     return return_dict
 
