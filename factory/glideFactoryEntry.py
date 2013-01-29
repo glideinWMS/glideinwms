@@ -167,6 +167,8 @@ class Entry:
                 float(self.glideinDescript.data['CondorLogRetentionMinDays']),
                 float(self.glideinDescript.data['CondorLogRetentionMaxMBs']))
 
+        self.glideinTotals = None
+
         # Load intial context for whitelist and downtimes
         self.loadWhitelist()
         self.loadDowntimes()
@@ -490,29 +492,29 @@ class Entry:
         self.loadContext()
 
         self.logFiles.logActivity("Computing log_stats diff for %s" % self.name)
-        self.logFiles.logDebug("Computing log_stats diff for %s" % self.name)
+        #self.logFiles.logDebug("Computing log_stats diff for %s" % self.name)
         self.gflFactoryConfig.log_stats.computeDiff()
         self.logFiles.logActivity("log_stats diff computed")
-        self.logFiles.logDebug("log_stats diff computed")
+        #self.logFiles.logDebug("log_stats diff computed")
 
         self.logFiles.logActivity("Writing log_stats for %s" % self.name)
-        self.logFiles.logDebug("Writing log_stats for %s" % self.name)
+        #self.logFiles.logDebug("Writing log_stats for %s" % self.name)
         self.gflFactoryConfig.log_stats.write_file(monitoringConfig=self.monitoringConfig)
         self.logFiles.logActivity("log_stats written")
-        self.logFiles.logDebug("log_stats written")
+        #self.logFiles.logDebug("log_stats written")
 
         self.gflFactoryConfig.qc_stats.finalizeClientMonitor()
         self.logFiles.logActivity("Writing qc_stats for %s" % self.name)
-        self.logFiles.logDebug("Writing qc_stats for %s" % self.name)
+        #self.logFiles.logDebug("Writing qc_stats for %s" % self.name)
         self.gflFactoryConfig.qc_stats.write_file(monitoringConfig=self.monitoringConfig)
         self.logFiles.logActivity("qc_stats written")
-        self.logFiles.logDebug("qc_stats written")
+        #self.logFiles.logDebug("qc_stats written")
 
         self.logFiles.logActivity("Writing rrd_stats for %s" % self.name)
-        self.logFiles.logDebug("Writing rrd_stats for %s" % self.name)
+        #self.logFiles.logDebug("Writing rrd_stats for %s" % self.name)
         self.gflFactoryConfig.rrd_stats.writeFiles(monitoringConfig=self.monitoringConfig)
         self.logFiles.logActivity("rrd_stats written")
-        self.logFiles.logDebug("rrd_stats written")
+        #self.logFiles.logDebug("rrd_stats written")
 
         return
 

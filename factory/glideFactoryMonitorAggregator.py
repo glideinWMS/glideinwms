@@ -661,15 +661,14 @@ def aggregateRRDStats(logfiles=glideFactoryLib.log_files):
                             try:
                                 aggregate_output[client][res][data_set] += float(stats[entry][client]['periods'][res][data_set])
                             except KeyError:
+                                # Some may be just missing
                                 missing_total_data = True
-                                tb = traceback.format_exception(
-                                         sys.exc_info()[0],
-                                         sys.exc_info()[1],
-                                         sys.exc_info()[2])
-
-                                # well, some may be just missing.. can happen
-                                glideFactoryLib.log_files.logDebug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s]"%(entry,client,'periods',res,data_set))
-                                glideFactoryLib.log_files.logDebug(tb)
+                                #tb = traceback.format_exception(
+                                #         sys.exc_info()[0],
+                                #         sys.exc_info()[1],
+                                #         sys.exc_info()[2])
+                                #glideFactoryLib.log_files.logDebug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s]"%(entry,client,'periods',res,data_set))
+                                #glideFactoryLib.log_files.logDebug(tb)
 
                         else:
                             if stats[entry]['frontends'].has_key(client):
@@ -677,12 +676,17 @@ def aggregateRRDStats(logfiles=glideFactoryLib.log_files):
                                 try:
                                     aggregate_output[client][res][data_set] += float(stats[entry]['frontends'][client]['periods'][res][data_set])
                                 except KeyError:
+                                    # Some may be just missing
                                     missing_client_data = True
-                                    # well, some may be just missing.. can happen
                                     #glideFactoryLib.log_files.logDebug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s][%s]" %(entry,'frontends',client,'periods',res,data_set))
 
-        #  We still need to determine what is causing these missing data in case it is a real issue
-        # but using this flags will at least reduce the number of messages in the logs (see commented out messages above)
+        # We still need to determine what is causing these missing data
+        # in case it is a real issue. But using this flags will at least
+        # reduce the number of messages in the logs 
+        # (see commented out messages above)
+
+        # PM: This happens when a glidefactory classad has never had equivalent 
+        # glideclient classad
         if missing_total_data:
             logfiles.logDebug("aggregate_data, missing total data from file %s" % rrd)
         if missing_client_data:
