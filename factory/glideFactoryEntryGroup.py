@@ -250,8 +250,8 @@ def fetch_fork_result_list(pipe_ids):
             tb = traceback.format_exception(sys.exc_info()[0],
                                             sys.exc_info()[1],
                                             sys.exc_info()[2])
-            gfl.log_files.logWarning("Failed to extract info from child '%s'" % entry)
-            gfl.log_files.logDebug("Failed to extract info from child '%s': %s" % (entry, tb))
+            gfl.log_files.logWarning("Failed to extract info from child '%s'" % key)
+            gfl.log_files.logDebug("Failed to extract info from child '%s': %s" % (key, tb))
             failures += 1
 
     if failures>0:
