@@ -260,6 +260,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
     try:
         for group in range(len(entry_groups)):
             entry_names = string.join(entry_groups[group], ':')
+            glideFactoryLib.log_files.logActivity("Starting EntryGroup %s: %s" % (group, entry_groups[group]))
             
             # Converted to using the subprocess module
             command_list = [sys.executable, 
@@ -310,7 +311,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                     glideFactoryLib.log_files.logActivity("Failed to remove the old public key after its grace time")
                     glideFactoryLib.log_files.logWarning("Failed to remove the old public key after its grace time")
 
-            glideFactoryLib.log_files.logActivity("Checking EntryGroups %s: %s" % (group, entry_groups[group]))
+            glideFactoryLib.log_files.logActivity("Checking EntryGroups %s" % (group))
             for group in childs:
                 entry_names = string.join(entry_groups[group], ':')
                 child=childs[group]
