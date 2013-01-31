@@ -323,12 +323,12 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
         pid = os.fork()
         if pid != 0:
             # This is the parent process
-            gfl.log_files.logActivity("In find_and_perform_work parent process with pid %s after forking entry %s" % (pid, entry.name))
+            #gfl.log_files.logActivity("In find_and_perform_work parent process with pid %s after forking entry %s" % (pid, entry.name))
             os.close(w)
             pipe_ids[entry.name] = {'r': r, 'pid': pid}
         else:
             # This is the child process
-            entry.logFiles.logActivity("In find_and_perform_work child process with pid %s for entry %s" % (pid, entry.name))
+            #entry.logFiles.logActivity("In find_and_perform_work child process with pid %s for entry %s" % (pid, entry.name))
             os.close(r)
 
             try:
