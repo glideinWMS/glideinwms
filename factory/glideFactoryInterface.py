@@ -18,7 +18,7 @@ from glideinwms.lib import condorManager
 import os
 import time
 import string
-import logSupport
+from glideinwms.lib import logSupport
 import fcntl
 
 ############################################################
