@@ -38,7 +38,7 @@ STARTD_NOCLAIM_SHUTDOWN = $(GLIDEIN_Max_Idle)
 
 # Set to shutdown if total idle exceeds max idle, or if the age
 # exceeds the retire time (and is idle) or is over the max walltime (todie)
-DS_TODIE = ((GLIDEIN_ToDie =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToDie))
+DS_TO_DIE = ((GLIDEIN_ToDie =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToDie))
 DS_IDLE_MAX = ((TotalTimeUnclaimedIdle =!= UNDEFINED) && \
 	 (GLIDEIN_Max_Idle =!= UNDEFINED) && \
 	 (TotalTimeUnclaimedIdle > GLIDEIN_Max_Idle))
