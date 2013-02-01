@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v2_7_alpha1
+# GLIDEINWMS_VERSION v2_7_alpha2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 c4e9c1f360b685b8a49c62e32e6a3498  ./LICENSE.txt
@@ -53,8 +53,8 @@ ed35ca2289553f4e671d985bedd0ccef  ./creation/web_base/parse_starterlog.awk
 e0ba6891e61382c17e0aa7ea0a13c688  ./creation/web_base/setup_script.sh
 681b715ce05b64ba1be2f9e06b3676c5  ./creation/web_base/update_proxy.py
 cada31e84568e1b5385e0686c2627725  ./factory/glideFactoryConfig.py
-288c98fccaeb62bb63e3b9f4191923ca  ./factory/glideFactoryEntryGroup.py
-e38fd598af608508b01cb27cd0e6ad31  ./factory/glideFactoryInterface.py
+ead0871b0fb6e5f0e6077715b2676f19  ./factory/glideFactoryEntryGroup.py
+e7bad9c09ad894f92f8a4d290b04cd05  ./factory/glideFactoryInterface.py
 c01bff7ad130e0eeb2222b73f4b87173  ./frontend/checkFrontend.py
 0519a3dbe8a0285f66510184c0942e1e  ./frontend/glideinFrontend.py
 90758e30a91701d90507a731af63b3c6  ./frontend/glideinFrontendConfig.py
@@ -66,7 +66,8 @@ d24e3b6fdda1735313a9c2d3ec3db280  ./frontend/glideinFrontendInterface.py
 9a1de28ae5021272722c69631f77ca78  ./frontend/glideinFrontendPidLib.py
 24d0c70bb7686a2946041253b991f998  ./frontend/glideinFrontendPlugins.py
 a9936d0fa9d7a379ece0a124c87abf70  ./frontend/stopFrontend.py
-519d50204bfeffddb1013233c0ac74d4  ./install/glidecondor_addDN
+1abd3a25b39898e89fa0c98b5de7f102  ./install/glidecondor_addDN
+f28c34e36ba4305d337b6b1b3b4ae80f  ./install/glidecondor_createSecSched
 14348bd468664cec9c8632407842604b  ./install/glidecondor_upgrade
 ac0a334763d78ab1abe1148209625a94  ./install/glideinWMS.ini
 77ac6f38d202103c288fab35e09af219  ./install/glideinWMS_install
@@ -87,7 +88,7 @@ bb05b7186e66498a09619822f98a4e78  ./install/services/WMSCollector.py
 eeca4c743132cc3bcafafa26d75c218f  ./install/services/common.py
 e11d30b85bc8ee174418de14c2210257  ./install/services/init_schedd.sh
 05337aeed61e0a3f1f0a610501105260  ./lib/condorExe.py
-05e238fbad8533ddf82089aafb954950  ./lib/condorLogParser.py
+d1f66c16ea72448a420bf9e8569b779d  ./lib/condorLogParser.py
 2b5fc1962de1080ebd296df4b8b842dd  ./lib/condorManager.py
 941fe331d5ae45e0742d6553c69e1500  ./lib/condorMonitor.py
 802b6c8f4efc1f1c7a965e5c30e20852  ./lib/condorPrivsep.py
@@ -103,6 +104,7 @@ a4a9c9ce66d4297e420fe8f896ba7e1d  ./lib/rrdSupport.py
 5f6581e3130540db65c6d1ae8506e574  ./lib/subprocessSupport.py
 9d2dd5dfff2646ac5da5d8a745065840  ./lib/symCrypto.py
 07690943f55909c5ef7522e98f9c7088  ./lib/timeConversion.py
+2923d8496b592cd1a7fd2d50af4f61d8  ./lib/x509Support.py
 79f3aad234925bd803b7fd226783be38  ./lib/xmlFormat.py
 3d468262813e01553db3a4b692247cbb  ./lib/xmlParse.py
 91d3f401be8afcafdc9446f2c89169a2  ./tools/glidein_cat.py

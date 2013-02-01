@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v2_7_alpha1
+# GLIDEINWMS_VERSION v2_7_alpha2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 c4e9c1f360b685b8a49c62e32e6a3498  ./LICENSE.txt
@@ -79,19 +79,19 @@ e0ba6891e61382c17e0aa7ea0a13c688  ./creation/web_base/setup_script.sh
 681b715ce05b64ba1be2f9e06b3676c5  ./creation/web_base/update_proxy.py
 91bca6a6005d761584523440b6a9c929  ./creation/web_base/validate_node.sh
 924cde35c7cf84ba12ccbfa012ba6bb5  ./factory/checkFactory.py
-5fdb20a4b57bd19828f3e2f2027ee14f  ./factory/glideFactory.py
+97a20acc65e3695f6c09672a4636ad76  ./factory/glideFactory.py
 cada31e84568e1b5385e0686c2627725  ./factory/glideFactoryConfig.py
 0584599805c8e6ec7e6b4012b647819c  ./factory/glideFactoryDowntimeLib.py
-053ab69b33a2fd37abe5021e550a6c91  ./factory/glideFactoryEntry.py
-288c98fccaeb62bb63e3b9f4191923ca  ./factory/glideFactoryEntryGroup.py
-e38fd598af608508b01cb27cd0e6ad31  ./factory/glideFactoryInterface.py
-3e3871d91044c9f95f14838492f404b0  ./factory/glideFactoryLib.py
-d736c3ad92b3ca2f46970c4c7570bc1a  ./factory/glideFactoryLogParser.py
-26d8938e18f8c9292179bb7d933d561b  ./factory/glideFactoryMonitorAggregator.py
-6409c8227759bf35bf92292034bb3261  ./factory/glideFactoryMonitoring.py
+f58de370aedbba6f19b6ade2875367e1  ./factory/glideFactoryEntry.py
+ead0871b0fb6e5f0e6077715b2676f19  ./factory/glideFactoryEntryGroup.py
+e7bad9c09ad894f92f8a4d290b04cd05  ./factory/glideFactoryInterface.py
+e26e831464656202f0eb1eff2289d14c  ./factory/glideFactoryLib.py
+62c1991a61c34aad4bc51c4e9eb3cced  ./factory/glideFactoryLogParser.py
+373e7e9936828b47cfb64e34b0c6ef71  ./factory/glideFactoryMonitorAggregator.py
+a1bf165d6f9321107ba6335edb8eadf3  ./factory/glideFactoryMonitoring.py
 36f205aa8fcbc3dc3c4ee527877521d1  ./factory/glideFactoryPidLib.py
 323928f198f78c1c098c385b4b3bdd40  ./factory/manageFactoryDowntimes.py
-5bb1b8e2506460a0f1fbbb3fd6dc0bd1  ./factory/stopFactory.py
+961c528594de4eb4beac7cc0610cda18  ./factory/stopFactory.py
 d0d06fde122d4c5d1c583bf296d90322  ./factory/test_advertize.py
 c01db16ae0afa187276533bf2a96980c  ./factory/test_cm.py
 96bf46fb4bcc53472980aa1d4515a5b1  ./factory/test_gfi.py
@@ -128,7 +128,8 @@ d24e3b6fdda1735313a9c2d3ec3db280  ./frontend/glideinFrontendInterface.py
 9a1de28ae5021272722c69631f77ca78  ./frontend/glideinFrontendPidLib.py
 24d0c70bb7686a2946041253b991f998  ./frontend/glideinFrontendPlugins.py
 a9936d0fa9d7a379ece0a124c87abf70  ./frontend/stopFrontend.py
-519d50204bfeffddb1013233c0ac74d4  ./install/glidecondor_addDN
+1abd3a25b39898e89fa0c98b5de7f102  ./install/glidecondor_addDN
+f28c34e36ba4305d337b6b1b3b4ae80f  ./install/glidecondor_createSecSched
 14348bd468664cec9c8632407842604b  ./install/glidecondor_upgrade
 ac0a334763d78ab1abe1148209625a94  ./install/glideinWMS.ini
 77ac6f38d202103c288fab35e09af219  ./install/glideinWMS_install
@@ -149,7 +150,7 @@ bb05b7186e66498a09619822f98a4e78  ./install/services/WMSCollector.py
 eeca4c743132cc3bcafafa26d75c218f  ./install/services/common.py
 e11d30b85bc8ee174418de14c2210257  ./install/services/init_schedd.sh
 05337aeed61e0a3f1f0a610501105260  ./lib/condorExe.py
-05e238fbad8533ddf82089aafb954950  ./lib/condorLogParser.py
+d1f66c16ea72448a420bf9e8569b779d  ./lib/condorLogParser.py
 2b5fc1962de1080ebd296df4b8b842dd  ./lib/condorManager.py
 941fe331d5ae45e0742d6553c69e1500  ./lib/condorMonitor.py
 802b6c8f4efc1f1c7a965e5c30e20852  ./lib/condorPrivsep.py
@@ -165,6 +166,7 @@ a4a9c9ce66d4297e420fe8f896ba7e1d  ./lib/rrdSupport.py
 5f6581e3130540db65c6d1ae8506e574  ./lib/subprocessSupport.py
 9d2dd5dfff2646ac5da5d8a745065840  ./lib/symCrypto.py
 07690943f55909c5ef7522e98f9c7088  ./lib/timeConversion.py
+2923d8496b592cd1a7fd2d50af4f61d8  ./lib/x509Support.py
 79f3aad234925bd803b7fd226783be38  ./lib/xmlFormat.py
 3d468262813e01553db3a4b692247cbb  ./lib/xmlParse.py
 91d3f401be8afcafdc9446f2c89169a2  ./tools/glidein_cat.py
