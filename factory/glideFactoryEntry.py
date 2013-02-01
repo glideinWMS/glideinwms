@@ -1120,7 +1120,7 @@ def check_and_perform_work(factory_in_downtime, group_name, entry, work):
         entry.logFiles.logActivity("Sanitizing glideins for entry %s" % entry.name)
         glideFactoryLib.sanitizeGlideinsSimple(condorQ, logfiles=entry.logFiles)
 
-    entry.logFiles.logActivity("all_security_names = %s" % all_security_names)
+    #entry.logFiles.logActivity("all_security_names = %s" % all_security_names)
 
     for sec_el in all_security_names:
         try:
