@@ -38,23 +38,29 @@ SHUTDOWN_GRACEFUL_TIMEOUT=$(GLIDEIN_Job_Max_Time)
 # How long will it wait in an unclaimed state before exiting
 STARTD_NOCLAIM_SHUTDOWN = $(GLIDEIN_Max_Idle)
 
-
 # Set to shutdown if total idle exceeds max idle, or if the age
 # exceeds the retire time (and is idle) or is over the max walltime (todie)
-STARTD.DAEMON_SHUTDOWN = ( \
-    ((Activity=="Idle") && \
-     (TotalTimeUnclaimedIdle =!= UNDEFINED) && \
-     (GLIDEIN_Max_Idle =!= UNDEFINED)&& \
-     (TotalTimeUnclaimedIdle > GLIDEIN_Max_Idle))||\
-    ((Activity=="Idle") && (GLIDEIN_ToRetire =!= UNDEFINED) && \
-     (CurrentTime > GLIDEIN_ToRetire )) || \
-    ((GLIDEIN_ToDie =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToDie )) || \
-    ((Activity=="Idle") && \
-     (TotalTimeUnclaimedIdle=!= UNDEFINED) && \
-     (TotalTimeClaimedBusy=!= UNDEFINED) && \
-     (GLIDEIN_Max_Tail=!= UNDEFINED) && \
-     (TotalTimeUnclaimedIdle > GLIDEIN_Max_Tail)) )
 
+DS_TODIE = ((GLIDEIN_ToDie =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToDie))
+DS_IDLE_MAX = ((TotalTimeUnclaimedIdle =!= UNDEFINED) && \
+	 (GLIDEIN_Max_Idle =!= UNDEFINED) && \
+	 (TotalTimeUnclaimedIdle > GLIDEIN_Max_Idle))
+DS_IDLE_RETIRE = ((GLIDEIN_ToRetire =!= UNDEFINED) && \
+	 (CurrentTime > GLIDEIN_ToRetire ))
+DS_IDLE_TAIL = ((TotalTimeUnclaimedIdle=!= UNDEFINED) && \
+	 (TotalTimeClaimedBusy=!= UNDEFINED) && \
+	 (GLIDEIN_Max_Tail=!= UNDEFINED) && \
+	 (TotalTimeUnclaimedIdle > GLIDEIN_Max_Tail))
+DS_IDLE = ( (Activity == "Idle") && \
+	 ($(DS_IDLE_MAX) || $(DS_IDLE_RETIRE) || $(DS_IDLE_TAIL)) )
+
+# The last condition below is intended to match partitionable slots that have
+# no subslots.  Since the idle timer doesn't reset when resources
+# are reclaimed, partitionable slots will get reaped sooner than
+# non-partitionable.
+
+STARTD.DAEMON_SHUTDOWN = $(DS_TO_DIE) || \
+         ($(DS_IDLE) && ((PartitionableSlot =!= True) || (TotalSlots =?=1)))
 #
 # Shutdown the master if the startd exits.  Note that if
 # STARTD_StartTime is zero, that the startd is not currently running.
