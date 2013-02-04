@@ -19,9 +19,10 @@ import string
 import socket
 import types
 import traceback
-import xmlParse
-import condorExe
+
 import cWParams
+from glideinwms.lib import xmlParse
+from glideinwms.lib import condorExe
 
 
 ######################################################

@@ -1,15 +1,20 @@
 #!/usr/bin/env python
 
 import traceback
-import sys,os,os.path,string,time
-import stat,re
+import sys
+import os
+import os.path
+import string
+import time
+import stat
+import re
 import xml.sax.saxutils
-import xmlFormat
 import optparse
 #-------------------------
-import common
-import Condor
-from VOFrontend import VOFrontend
+from glideinwms.lib import xmlFormat
+from glideinwms.install.services import common
+from glideinwms.install.services import Condor
+from glideinwms.install.services.VOFrontend import VOFrontend
 #-------------------------
 os.environ["PYTHONPATH"] = ""
 

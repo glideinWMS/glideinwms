@@ -15,9 +15,10 @@
 #   Igor Sfiligoi Jul 9th 2008
 #
 
-import sys,os.path
-sys.path.append(os.path.join(sys.path[0],"../lib"))
-import glideFactoryPidLib
+import sys
+import os.path
+sys.path.append(os.path.join(sys.path[0],"../.."))
+from glideinwms.factory import glideFactoryPidLib
 
 try:
     startup_dir=sys.argv[1]

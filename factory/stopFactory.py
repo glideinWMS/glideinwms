@@ -15,11 +15,18 @@
 #   Igor Sfiligoi May 6th 2008
 #
 
-import signal,sys,os,os.path,fcntl,string,time
-sys.path.append(os.path.join(sys.path[0],"../lib"))
-import glideFactoryPidLib
-import glideFactoryConfig
+import signal
+import sys
+import os
+import os.path
+import fcntl
+import string
+import time
 import subprocess
+
+sys.path.append(os.path.join(sys.path[0],"../../"))
+from glideinwms.factory import glideFactoryPidLib
+from glideinwms.factory import glideFactoryConfig
 
 def all_pids_in_pgid_dead(pgid):
     # return 1 if there are no pids in the pgid still alive

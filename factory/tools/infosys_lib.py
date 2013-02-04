@@ -17,10 +17,10 @@ import re
 import sys
 from copy import deepcopy
 STARTUP_DIR = os.path.abspath(sys.path[0])
-sys.path.append(os.path.join(STARTUP_DIR, "../../lib"))
-import ldapMonitor
-import condorMonitor
-import condorExe
+sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
+from glideinwms.lib import ldapMonitor
+from glideinwms.lib import condorMonitor
+from glideinwms.lib import condorExe
 
 
 def query_bdii(bdii_source, vo_name=''):

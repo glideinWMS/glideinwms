@@ -8,9 +8,14 @@
 #   Classes needed to handle dictionary files
 #
 
-import os,os.path,string,shutil,copy
-import hashCrypto
+import os
+import os.path
+import string
+import shutil
+import copy
 import cStringIO
+
+from glideinwms.lib import hashCrypto
 
 ########################################
 #

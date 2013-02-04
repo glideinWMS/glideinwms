@@ -1,19 +1,22 @@
 #!/usr/bin/env python
 
 import traceback
-import sys,os,os.path,string,time
+import sys
+import os
+import os.path
+import string
+import time
 import stat
 import re
 import optparse
 #-------------------------
-import common
-#from Certificates  import Certificates  
-from Condor        import Condor  
-import WMSCollector
-import Factory
-import VOFrontend
-import Submit
-from Configuration import ConfigurationError
+from glideinwms.install.services import common
+from glideinwms.install.services.Condor import Condor  
+from glideinwms.install.services import WMSCollector
+from glideinwms.install.services import VOFrontend
+from glideinwms.install.services import Factory
+from glideinwms.install.services import Submit
+from glideinwms.install.services.Configuration import ConfigurationError
 #-------------------------
 os.environ["PYTHONPATH"] = ""
 
@@ -216,7 +219,8 @@ specified.
 ##########################################
 def main(argv):
   try:
-    create_template() 
+    pass
+    #create_template()
     #options = validate_args(argv)
     #user = UserCollector(options.inifile)
     #user.start_me()

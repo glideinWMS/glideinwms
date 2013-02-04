@@ -32,18 +32,20 @@ import copy
 import random
 import cPickle
 
-sys.path.append(os.path.join(sys.path[0],"../lib"))
+STARTUP_DIR=sys.path[0]
+sys.path.append(os.path.join(STARTUP_DIR,"../../"))
 
-import glideFactoryPidLib
-import glideFactoryMonitoring
-import glideFactoryLogParser
-import glideFactoryDowntimeLib
-import glideFactoryEntry
-import logSupport
-import glideinWMSVersion
-import glideFactoryInterface as gfi
-import glideFactoryLib as gfl
-import glideFactoryConfig as gfc
+from glideinwms.lib import logSupport
+from glideinwms.lib import glideinWMSVersion
+from glideinwms.factory import glideFactoryLogParser
+from glideinwms.factory import glideFactoryEntry
+from glideinwms.factory import glideFactoryConfig as gfc
+from glideinwms.factory import glideFactoryLib as gfl
+from glideinwms.factory import glideFactoryInterface as gfi
+from glideinwms.factory import glideFactoryPidLib
+from glideinwms.factory import glideFactoryMonitorAggregator
+from glideinwms.factory import glideFactoryMonitoring
+from glideinwms.factory import glideFactoryDowntimeLib
 
 ############################################################
 class EntryGroup:

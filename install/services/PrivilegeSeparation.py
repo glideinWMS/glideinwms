@@ -1,12 +1,20 @@
 #!/usr/bin/env python
 
 import traceback
-import sys,os,os.path,string,time
-import pwd,grp
+import sys
+import os
+import os.path
+import string
+import time
+import pwd
+import grp
 import stat
 import optparse
 
-import common
+from glideinwms.install.services import common
+from glideinwms.install.services import WMSCollector
+from glideinwms.install.services import Factory
+from glideinwms.install.services import VOFrontend
 os.environ["PYTHONPATH"] = "."
 #-------------------------
 
@@ -205,9 +213,6 @@ those in your frontend_users attribute of the WMSCollector ini file:
 ##########################################
 def main(argv):
   try:
-    import WMSCollector
-    import Factory
-    import VOFrontend
     wms      = WMSCollector.WMSCollector("../weigand.ini")
     factory  = Factory.Factory("../weigand.ini")
     frontend = VOFrontend.VOFrontend("../weigand.ini")

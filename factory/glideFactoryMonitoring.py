@@ -23,11 +23,12 @@ import math
 import random
 import fcntl
 import traceback
-import xmlFormat
-import timeConversion
-import rrdSupport
-import logSupport
-import glideFactoryLib
+
+from glideinwms.lib import timeConversion
+from glideinwms.lib import xmlFormat
+from glideinwms.lib import rrdSupport
+from glideinwms.lib import logSupport
+from glideinwms.factory import glideFactoryLib
 
 # list of rrd files that each site has
 rrd_list = ('Status_Attributes.rrd', 'Log_Completed.rrd', 'Log_Completed_Stats.rrd', 'Log_Completed_WasteTime.rrd', 'Log_Counts.rrd')

@@ -18,21 +18,28 @@
 #
 
 import signal
-import sys,os,os.path,copy
+import sys
+import os
+import os.path
+import copy
 import fcntl
 import traceback
-import time,string,cPickle,signal
-sys.path.append(os.path.join(sys.path[0],"../lib"))
+import time
+import string
+import cPickle
+import signal
 
-import symCrypto,pubCrypto
+sys.path.append(os.path.join(sys.path[0],"../.."))
 
-import glideinFrontendConfig
-import glideinFrontendInterface
-import glideinFrontendLib
-import glideinFrontendPidLib
-import glideinFrontendMonitoring
-import glideinFrontendPlugins
-import glideinWMSVersion
+from glideinwms.lib import symCrypto,pubCrypto
+from glideinwms.lib import glideinWMSVersion
+from glideinwms.frontend import glideinFrontendConfig
+from glideinwms.frontend import glideinFrontendInterface
+from glideinwms.frontend import glideinFrontendLib
+from glideinwms.frontend import glideinFrontendPidLib
+from glideinwms.frontend import glideinFrontendMonitoring
+from glideinwms.frontend import glideinFrontendPlugins
+
 
 ############################################################
 def check_parent(parent_pid):
@@ -746,6 +753,10 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
         resource_classad.setInDownTime(glidein_in_downtime)
         resource_classad.setEntryInfo(glidein_el['attrs'])
         resource_classad.setGlideFactoryMonitorInfo(glidein_el['monitor'])
+        resource_classad.setMatchExprs(elementDescript.merged_data['MatchExpr'], 
+                elementDescript.merged_data['JobQueryExpr'],
+                elementDescript.merged_data['FactoryQueryExpr'],
+                attr_dict['GLIDECLIENT_Start'])
         try:
             resource_classad.setGlideClientMonitorInfo(this_stats_arr)
         except RuntimeError, e:

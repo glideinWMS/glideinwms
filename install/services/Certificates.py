@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-import common
-from VDT import VDT
-#---------------------
 import sys
 import os
 import os.path
@@ -11,6 +8,8 @@ import time
 import glob
 import pwd
 import commands
+from glideinwms.install.services import common
+from glideinwms.install.services.VDT import VDT
 
 #STARTUP_DIR=sys.path[0]
 #sys.path.append(os.path.join(STARTUP_DIR,"../lib"))

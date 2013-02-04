@@ -13,18 +13,18 @@
 #
 
 
-import os, os.path,time,stat
+import os
+import os.path
+import time
+import stat
 import copy
-import mmap,re
-import condorLogParser
-import glideFactoryLib
+import mmap
+import re
 import sys
 import traceback
-try:
-    set
-except:
-    from sets import Set as set
 
+from glideinwms.lib import condorLogParser
+from glideinwms.factory import glideFactoryLib
 
 rawJobId2Nr=condorLogParser.rawJobId2Nr
 rawTime2cTime=condorLogParser.rawTime2cTime

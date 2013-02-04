@@ -22,8 +22,8 @@ import stat
 import httplib
 import ftplib
 STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
-import xmlFormat
+sys.path.append(os.path.join(STARTUP_DIR,"../.."))
+from glideinwms.lib import xmlFormat
 
 #############################
 #
@@ -2806,11 +2806,13 @@ def install_condor():
 
         #########################################
         # put condor binaries in system wide path
+        glideinWMS_base_dir=os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0])))
         fd=open("/etc/profile.d/condor.sh","w")
         try:
             fd.write("if ! echo ${PATH} | grep -q %s/bin ; then\n"%user_condor_base_dir)
             fd.write("  PATH=${PATH}:%s/bin\n"%user_condor_base_dir)
             fd.write("fi\n")
+            fd.write("export PYTHONPATH=$PYTHONPATH:%s/..\n" % glideinWMS_base_dir)
         finally:
             fd.close()
         os.chmod("/etc/profile.d/condor.sh",
@@ -2819,6 +2821,7 @@ def install_condor():
         fd=open("/etc/profile.d/condor.csh","w")
         try:
             fd.write("set path = ( $path %s/bin )\n"%user_condor_base_dir)
+            fd.write("set PYTHONPATH=$PYTHONPATH:%s/..\n" % glideinWMS_base_dir)
         finally:
             fd.close()
         os.chmod("/etc/profile.d/condor.csh",

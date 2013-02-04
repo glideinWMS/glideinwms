@@ -20,22 +20,18 @@ import string
 import math
 import copy
 import random
-try:
-    set
-except:
-    from sets import Set as set
 
-sys.path.append(os.path.join(sys.path[0],"../lib"))
+sys.path.append(os.path.join(sys.path[0],"../../"))
 
-import glideFactoryPidLib
-import glideFactoryConfig
-import glideFactoryLib
-import glideFactoryMonitoring
-import glideFactoryInterface
-import glideFactoryLogParser
-import glideFactoryDowntimeLib
-import logSupport
-import glideinWMSVersion
+from glideinwms.factory import glideFactoryPidLib
+from glideinwms.factory import glideFactoryConfig
+from glideinwms.factory import glideFactoryLib
+from glideinwms.factory import glideFactoryMonitoring
+from glideinwms.factory import glideFactoryInterface
+from glideinwms.factory import glideFactoryLogParser
+from glideinwms.factory import glideFactoryDowntimeLib
+from glideinwms.lib import logSupport
+from glideinwms.lib import glideinWMSVersion
 
 
 ############################################################

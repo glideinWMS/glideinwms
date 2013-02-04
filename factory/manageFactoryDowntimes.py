@@ -13,14 +13,16 @@
 
 import os.path
 import os
-import time,string
+import time
+import string
 import sys
 import re
+
 STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
-import glideFactoryConfig
-import glideFactoryDowntimeLib
-sys.path.append(os.path.join(STARTUP_DIR,"../creation/lib"))
+sys.path.append(os.path.join(STARTUP_DIR,"../../"))
+
+from glideinwms.factory import glideFactoryConfig
+from glideinwms.factory import glideFactoryDowntimeLib
 
 def usage():
     print "Usage:"

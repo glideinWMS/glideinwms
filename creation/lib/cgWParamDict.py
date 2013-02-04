@@ -9,12 +9,19 @@
 #   created out of the parameter object
 #
 
-import os,os.path,shutil,string
+import os
+import os.path
+import shutil
+import string
 import sys
+
 import cWParams
-import cgWDictFile,cWDictFile
+import cWConsts
+import cWDictFile
+import cgWDictFile
 import cgWCreate
-import cgWConsts,cWConsts
+import cgWConsts
+from glideinwms.lib import pubCrypto
 
 ################################################
 #
@@ -234,7 +241,6 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         if self.params.security.pub_key=='None':
             pass # nothing to do
         elif self.params.security.pub_key=='RSA':
-            import pubCrypto
             rsa_key_fname=os.path.join(self.work_dir,cgWConsts.RSA_KEY)
 
             if not os.path.isfile(rsa_key_fname):

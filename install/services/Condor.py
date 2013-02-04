@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
-import common
-from Configuration import Configuration
-from Configuration import ConfigurationError
-import Certificates  
-import VDTClient
-#---------------------
-import sys,os,os.path,string,time,re
+import sys
+import os
+import os.path
+import string
+import time
+import re
 import popen2
 import tarfile
 import shutil
@@ -15,6 +14,11 @@ import stat
 import commands
 import traceback
 
+from glideinwms.install.services import common
+from glideinwms.install.services.Configuration import Configuration
+from glideinwms.install.services.Configuration import ConfigurationError
+from glideinwms.install.services import Certificates  
+from glideinwms.install.services import VDTClient
 
 class Condor(Configuration):
 

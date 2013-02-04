@@ -12,10 +12,18 @@
 #   Igor Sfiligoi (Mar 19th 2009)
 #
 
-import os,os.path
-import re,time,copy,string,math,random,fcntl
-import xmlFormat,timeConversion
-import rrdSupport
+import os
+import os.path
+import re
+import time
+import copy
+import string
+import math
+import random
+import fcntl
+from glideinwms.lib import timeConversion
+from glideinwms.lib import xmlFormat
+from glideinwms.lib import rrdSupport
 ############################################################
 #
 # Configuration

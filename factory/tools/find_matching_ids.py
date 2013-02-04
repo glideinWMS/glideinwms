@@ -16,10 +16,10 @@ import sys
 import getopt 
 import datetime
 from xml.dom import minidom
-import infosys_lib 
 STARTUP_DIR = os.path.abspath(sys.path[0])
-sys.path.append(os.path.join(STARTUP_DIR, "../../lib"))
-import condorExe
+sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
+from glideinwms.factory.tools import infosys_lib 
+from glideinwms.lib import condorExe
 
 USAGE = "Usage: python config_update_tool.py [options]\n" \
         "Options: \n" \
@@ -137,7 +137,7 @@ def find_entries_with_different_content(config_xml, skip_disabled):
             ress_entries.update(infosys_lib.query_ress(infosys))
                 
         elif type.lower() == 'tg':
-            tg_entries.update(infosys_lib.query_teragrid(infosys))
+            tg_entries.update(infosys_lib.query_teragrid())
             
     id_match_bdii_entries = find_entries_id_match(bdii_entries, config_entries, 'bdii')
     id_match_ress_entries = find_entries_id_match(ress_entries, config_entries, 'ress')

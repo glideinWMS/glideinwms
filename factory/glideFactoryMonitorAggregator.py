@@ -12,17 +12,22 @@
 #   Igor Sfiligoi (May 23rd 2007)
 #
 
-import copy,time,string,os.path
-import timeConversion
-import xmlParse,xmlFormat
-import glideFactoryMonitoring
-import glideFactoryLib
-import rrdSupport
+import copy
+import time
+import string
+import os.path
 import tempfile
 import shutil
 import time
 import traceback
 import sys
+
+from glideinwms.lib import timeConversion
+from glideinwms.lib import xmlFormat
+from glideinwms.lib import xmlParse
+from glideinwms.lib import rrdSupport
+from glideinwms.factory import glideFactoryMonitoring
+from glideinwms.factory import glideFactoryLib
 
 ############################################################
 #

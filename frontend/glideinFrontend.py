@@ -17,9 +17,6 @@
 
 import os
 import sys
-
-STARTUP_DIR=sys.path[0]
-
 import fcntl
 import subprocess
 import traceback
@@ -27,14 +24,14 @@ import signal
 import time
 import string
 
-sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
+STARTUP_DIR=sys.path[0]
+sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
-import glideinFrontendPidLib
-import glideinFrontendConfig
-import glideinFrontendLib
-import glideinFrontendMonitorAggregator
-import glideinFrontendMonitoring
-
+from glideinwms.frontend import glideinFrontendPidLib
+from glideinwms.frontend import glideinFrontendConfig
+from glideinwms.frontend import glideinFrontendLib
+from glideinwms.frontend import glideinFrontendMonitorAggregator
+from glideinwms.frontend import glideinFrontendMonitoring
 
 ############################################################
 def aggregate_stats():

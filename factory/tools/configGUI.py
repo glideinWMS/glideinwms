@@ -16,16 +16,13 @@
 #import wxWidgets
 import wx
 import wx.grid
-
-#import system libraries
 import sys
 import os.path
-STARTUP_DIR=sys.path[0]
 
-# import glideinWMS libraries
-sys.path.append(os.path.join(STARTUP_DIR,"../../creation/lib"))
-sys.path.append(os.path.join(STARTUP_DIR,"../../lib"))
-import cgWParams
+STARTUP_DIR=sys.path[0]
+sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
+
+from glideinwms.lib import cgWParams
 
 # current entry for site
 currentSiteEntry = ""

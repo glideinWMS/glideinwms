@@ -1,21 +1,26 @@
 #!/usr/bin/env python
 
 import traceback
-import sys,os,os.path,string,time
-import stat,re
+import sys
+import os
+import os.path
+import string
+import time
+import stat
+import re
 import xml.sax.saxutils
-import xmlFormat
 import optparse
 #-------------------------
-import common
-import WMSCollector
-import Factory
-import Submit
-import UserCollector
-import Glidein
-from Condor        import Condor
-from Configuration import Configuration
-from Configuration import ConfigurationError
+from glideinwms.lib import xmlFormat
+from glideinwms.install.services import common
+from glideinwms.install.services import WMSCollector
+from glideinwms.install.services import Factory
+from glideinwms.install.services import Submit
+from glideinwms.install.services import UserCollector
+from glideinwms.install.services import Glidein
+from glideinwms.install.services.Condor import Condor
+from glideinwms.install.services.Configuration import Configuration
+from glideinwms.install.services.Configuration import ConfigurationError
 #-------------------------
 os.environ["PYTHONPATH"] = ""
 
@@ -573,7 +578,9 @@ The following DNs are in your grid_mapfile:"""
     common.logit("\nCreating VO frontend env script.")
     data = """#!/bin/bash
 . %(condor_location)s/condor.sh
-""" % { "condor_location" : self.condor_location(),}
+export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
+""" % { "condor_location" : self.condor_location(),
+        "install_location" : self.glideinwms_location(),}
     common.write_file("w",0644,self.env_script(),data)
     common.logit("VO frontend env script created: %s" % self.env_script() )
 
@@ -1120,7 +1127,8 @@ specified.
 ##########################################
 def main(argv):
   try:
-    create_template()
+    pass
+    #create_template()
     #options = validate_args(argv)
     #vo = VOFrontend(options.inifile)
     #vo.get_new_config_group()
