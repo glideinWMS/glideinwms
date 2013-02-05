@@ -21,11 +21,11 @@ import stat
 import time
 import re
 import M2Crypto
-from x509Support import extract_DN
 
 STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
+from glideinwms.lib.x509Support import extract_DN
 from glideinwms.lib import condorExe
 
 def usage():
