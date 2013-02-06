@@ -22,7 +22,7 @@ import sys
 sys.path.append(os.path.join(sys.path[0],"../.."))
 
 #import glideFactoryInterface
-from glidewms.frontend import glideinFrontendInterface
+from glideinwms.frontend import glideinFrontendInterface
 
 pool_name=None
 factory_name=None
