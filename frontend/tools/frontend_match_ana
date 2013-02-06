@@ -26,10 +26,10 @@ import time,string
 sys.path.append(os.path.join(sys.path[0],".."))
 sys.path.append(os.path.join(sys.path[0],"../../lib"))
 
-import glideinFrontendConfig
-import glideinFrontendInterface
-import glideinFrontendLib
-import exprParser
+from glideinwms.frontend import glideinFrontendConfig
+from glideinwms.frontend import glideinFrontendInterface
+from glideinwms.frontend import glideinFrontendLib
+from glideinwms.lib import exprParser
 
 # shortest first
 def mycmp(a,b):

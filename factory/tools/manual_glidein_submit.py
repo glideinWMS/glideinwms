@@ -8,12 +8,12 @@ STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,".."))
 sys.path.append(os.path.join(STARTUP_DIR,"../../lib"))
 
-from glideFactoryCredentials import SubmitCredentials
-from glideFactoryLib import submitGlideins
-from glideFactoryLib import ClientWeb
-from iniSupport import IniError
-from iniSupport import load_ini
-from iniSupport import cp_get
+from glideinwms.factory.glideFactoryCredentials import SubmitCredentials
+from glideinwms.factory.glideFactoryLib import submitGlideins
+from glideinwms.factory.glideFactoryLib import ClientWeb
+from glideinwms.lib.iniSupport import IniError
+from glideinwms.lib.iniSupport import load_ini
+from glideinwms.lib.iniSupport import cp_get
 
 class ArgumentError(Exception): pass
 

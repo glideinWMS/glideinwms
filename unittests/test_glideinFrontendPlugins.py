@@ -13,10 +13,10 @@ from unittest_utils import create_temp_file
 from unittest_utils import create_random_string
 from unittest_utils import FakeLogger
 
-import condorMonitor
-import glideinFrontendPlugins
-from glideinFrontendInterface import Credential
-import logSupport
+from glideinwms.lib import condorMonitor
+from glideinwms.lib import logSupport
+from glideinwms.frontend import glideinFrontendPlugins
+from glideinwms.frontend.glideinFrontendInterface import Credential
 
 class fakeObj:
     def __init__(self):

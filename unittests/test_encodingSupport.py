@@ -9,7 +9,7 @@ import unittest
 # path for us.
 from unittest_utils import runTest
 
-import encodingSupport
+from glideinwms.lib import encodingSupport
 
 class TestEncodingSupport(unittest.TestCase):
     """

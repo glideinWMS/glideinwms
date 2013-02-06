@@ -16,7 +16,7 @@ import time
 import sets
 import pickle
 import random
-import logSupport
+from glideinwms.lib import logSupport
 import glideinFrontendLib
 import glideinFrontendInterface
 
