@@ -26,6 +26,8 @@ import time
 import string
 import logging
 import cPickle
+import re
+
 sys.path.append(os.path.join(sys.path[0],"../.."))
 
 from glideinwms.lib import symCrypto,pubCrypto
@@ -187,7 +189,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
                 pass # no public key, nothing to do
             elif globals_el['attrs']['PubKeyType'] == 'RSA': # only trust RSA for now
                 try:
-                    globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(str(string.replace(globals_el['attrs']['PubKeyValue'], '\\n', '\n')))
+                    globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(re.sub(r"\\+n", r"\n", globals_el['attrs']['PubKeyValue'], '\\n', '\n'))
                     globals_el['attrs']['FactoryPoolNode'] = factory_pool_node
                     globals_el['attrs']['FactoryPoolId'] = my_identity_at_factory_pool
                             
