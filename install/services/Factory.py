@@ -10,17 +10,17 @@ from glideinwms.lib import condorExe
 from glideinwms.lib import condorPrivsep
 from glideinwms.lib import ldapMonitor
 
-from glideinwms.install.services import common
-from glideinwms.install.services import WMSCollector
-from glideinwms.install.services import VOFrontend
-from glideinwms.install.services.Condor import Condor
-from glideinwms.install.services.Glidein import Glidein
-from glideinwms.install.services.Configuration import Configuration
-from glideinwms.install.services.Configuration import ConfigurationError
+import common
+import WMSCollector
+import VOFrontend
+from Condor import Condor
+from Glidein import Glidein
+from Configuration import Configuration
+from Configuration import ConfigurationError
 
 #STARTUP_DIR=sys.path[0]
 #sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
-os.environ["PYTHONPATH"] = ""
+#os.environ["PYTHONPATH"] = ""
 
 factory_options = [ "hostname", 
 "username", 
@@ -30,6 +30,9 @@ factory_options = [ "hostname",
 "client_log_dir", 
 "client_proxy_dir", 
 "instance_name", 
+"use_vofrontend_proxy",
+"x509_proxy",
+"x509_gsi_dn",
 "use_glexec", 
 "use_ccb", 
 "ress_host",
@@ -118,6 +121,15 @@ class Factory(Condor):
   #---------------------
   def hostname(self):
     return self.glidein.hostname()
+  #---------------------
+  def use_vofrontend_proxy(self):
+    return self.option_value(self.ini_section,"use_vofrontend_proxy")
+  #---------------------
+  def x509_proxy(self):
+    return self.option_value(self.ini_section,"x509_proxy")
+  #---------------------
+  def x509_gsi_dn(self):
+    return self.option_value(self.ini_section,"x509_gsi_dn")
   #---------------------
   def env_script(self):
     return "%s/factory.sh" % self.glidein.install_location()

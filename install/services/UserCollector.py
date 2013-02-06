@@ -6,15 +6,15 @@ import stat
 import re
 import optparse
 #-------------------------
-from glideinwms.install.services import common
-from glideinwms.install.services.Condor import Condor  
-from glideinwms.install.services import WMSCollector
-from glideinwms.install.services import VOFrontend
-from glideinwms.install.services import Factory
-from glideinwms.install.services import Submit
-from glideinwms.install.services.Configuration import ConfigurationError
+import common
+from Condor import Condor  
+import WMSCollector
+import VOFrontend
+import Factory
+import Submit
+from Configuration import ConfigurationError
 #-------------------------
-os.environ["PYTHONPATH"] = ""
+#os.environ["PYTHONPATH"] = ""
 
 usercollector_options = [ "install_type",
 "hostname", 

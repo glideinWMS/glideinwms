@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from glideinwms.install.services import common
-from glideinwms.install.services.VDT import VDT
+import common
+from VDT import VDT
 #---------------------
 import sys
 import os

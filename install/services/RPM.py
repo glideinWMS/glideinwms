@@ -7,11 +7,11 @@ import xml.sax.saxutils
 import optparse
 #-------------------------
 from glideinwms.lib import xmlFormat
-from glideinwms.install.services import common
-from glideinwms.install.services import Condor
-from glideinwms.install.services.VOFrontend import VOFrontend
+import common
+import Condor
+from VOFrontend import VOFrontend
 #-------------------------
-os.environ["PYTHONPATH"] = ""
+#os.environ["PYTHONPATH"] = ""
 
 frontend_options = [ "install_type",
 "hostname", 

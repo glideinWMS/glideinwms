@@ -8,8 +8,8 @@ import string
 import time
 import glob
 #---------------------
-from glideinwms.install.services import common
-from glideinwms.install.services.Configuration import Configuration
+import common
+from Configuration import Configuration
 
 valid_options = [ "vdt_location",
 "pacman_location",
