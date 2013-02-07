@@ -34,9 +34,6 @@ factory_options = [ "hostname",
 "client_log_dir", 
 "client_proxy_dir", 
 "instance_name", 
-"use_vofrontend_proxy",
-"x509_proxy",
-"x509_gsi_dn",
 "use_glexec", 
 "use_ccb", 
 "ress_host",
@@ -125,15 +122,6 @@ class Factory(Condor):
   #---------------------
   def hostname(self):
     return self.glidein.hostname()
-  #---------------------
-  def use_vofrontend_proxy(self):
-    return self.option_value(self.ini_section,"use_vofrontend_proxy")
-  #---------------------
-  def x509_proxy(self):
-    return self.option_value(self.ini_section,"x509_proxy")
-  #---------------------
-  def x509_gsi_dn(self):
-    return self.option_value(self.ini_section,"x509_gsi_dn")
   #---------------------
   def env_script(self):
     return "%s/factory.sh" % self.glidein.install_location()
@@ -421,8 +409,6 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 """ % { "x509_cert_dir"   : self.wms.x509_cert_dir(), 
         "condor_location" : self.wms.condor_location(),
         "install_location" : self.glideinwms_location(),}
-    if self.use_vofrontend_proxy() == "n":
-      data += "export X509_USER_PROXY=%s" % self.x509_proxy()
     common.write_file("w",0644,self.env_script(),data)
     common.logit("%s\n" % data)
 
