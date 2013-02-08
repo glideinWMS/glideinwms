@@ -189,7 +189,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
                 pass # no public key, nothing to do
             elif globals_el['attrs']['PubKeyType'] == 'RSA': # only trust RSA for now
                 try:
-                    globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(re.sub(r"\\+n", r"\n", globals_el['attrs']['PubKeyValue']))
+                    globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(str(re.sub(r"\\+n", r"\n", globals_el['attrs']['PubKeyValue'])))
                     globals_el['attrs']['FactoryPoolNode'] = factory_pool_node
                     globals_el['attrs']['FactoryPoolId'] = my_identity_at_factory_pool
                             
@@ -199,6 +199,8 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
                     # if no valid key, just notify...
                     # if key needed, will handle the error later on
                     logSupport.log.warning("Factory Globals '%s': invalid RSA key" % globalid)
+                    tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1], sys.exc_info()[2])
+                    logSupport.log.debug("Factory Globals '%s': invalid RSA key traceback: %s\n" % (globalid, str(tb)))
             else:
                 # don't know what to do with this key, notify the admin
                 # if key needed, will handle the error later on
