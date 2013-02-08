@@ -201,25 +201,27 @@ specified.
     return options
 
 ##########################################
-def main(argv):
-  try:
-    create_template() 
+# Main function, primarily used for debugging, now commented
+#
+#def main(argv):
+#  try:
+#    create_template() 
     #options = validate_args(argv)
     #user = UserCollector(options.inifile)
     #user.start_me()
     #user.install()
     #user.configure_gsi_security()
-  except KeyboardInterrupt, e:
-    common.logit("\n... looks like you aborted this script... bye.")
-    return 1
-  except EOFError:
-    common.logit("\n... looks like you aborted this script... bye.");
-    return 1
-  except ConfigurationError, e:
-    print;print "ConfigurationError ERROR(should not get these): %s"%e;return 1
-  except common.WMSerror:
-    print;return 1
-  return 0
+#  except KeyboardInterrupt, e:
+#    common.logit("\n... looks like you aborted this script... bye.")
+#    return 1
+#  except EOFError:
+#    common.logit("\n... looks like you aborted this script... bye.");
+#    return 1
+#  except ConfigurationError, e:
+#    print;print "ConfigurationError ERROR(should not get these): %s"%e;return 1
+#  except common.WMSerror:
+#    print;return 1
+#  return 0
 
 
 #--------------------------

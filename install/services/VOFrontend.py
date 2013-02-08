@@ -1124,9 +1124,10 @@ specified.
     return options
 
 ##########################################
-def main(argv):
-  try:
-    create_template()
+# Main function, primarily used for debugging
+#def main(argv):
+#  try:
+#    create_template()
     #options = validate_args(argv)
     #vo = VOFrontend(options.inifile)
     #vo.get_new_config_group()
@@ -1135,19 +1136,19 @@ def main(argv):
     #vo.get_usercollector()
     #print vo.config_collectors_data()
     #vo.configure_gsi_security()
-  except KeyboardInterrupt, e:
-    common.logit("\n... looks like you aborted this script... bye.")
-    return 1
-  except EOFError:
-    common.logit("\n... looks like you aborted this script... bye.");
-    return 1
-  except ConfigurationError, e:
-    print;print "ConfigurationError ERROR(should not get these): %s"%e;return 1
-  except common.WMSerror:
-    print;return 1
-  return 0
+#  except KeyboardInterrupt, e:
+#    common.logit("\n... looks like you aborted this script... bye.")
+#    return 1
+#  except EOFError:
+#    common.logit("\n... looks like you aborted this script... bye.");
+#    return 1
+#  except ConfigurationError, e:
+#    print;print "ConfigurationError ERROR(should not get these): %s"%e;return 1
+#  except common.WMSerror:
+#    print;return 1
+#  return 0
 
 #--------------------------
-if __name__ == '__main__':
-  sys.exit(main(sys.argv))
+#if __name__ == '__main__':
+#  sys.exit(main(sys.argv))
 
