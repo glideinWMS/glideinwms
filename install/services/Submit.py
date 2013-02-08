@@ -6,13 +6,13 @@ import re
 import stat
 import optparse
 #-------------------------
-from glideinwms.install.services import common
-from glideinwms.install.services import UserCollector
-from glideinwms.install.services import VOFrontend
-from glideinwms.install.services.Condor import Condor
-from glideinwms.install.services.Configuration import ConfigurationError
+import common
+import UserCollector
+import VOFrontend
+from Condor import Condor
+from Configuration import ConfigurationError
 #-------------------------
-os.environ["PYTHONPATH"] = ""
+#os.environ["PYTHONPATH"] = ""
 
 submit_options = [ "hostname", 
 "username",
