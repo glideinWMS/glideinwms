@@ -8,6 +8,7 @@ import optparse
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorExe
 from glideinwms.lib import condorPrivsep
+from glideinwms.lib import ldapMonitor
 
 from glideinwms.install.services import common
 from glideinwms.install.services import WMSCollector
@@ -1020,7 +1021,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 
   #----------------------------
   def get_bdii_data(self):
-    import ldapMonitor
+
     common.logit("BDII host: %s" % self.glidein.bdii_host())
     #-- validate host ---
     if not common.url_is_valid(self.glidein.bdii_host()):
