@@ -4632,6 +4632,7 @@ def compare_entry_els(el1,el2):
 def get_ress_glidein_entries(vo,             #vo can be None
                              entries_list,   # disctionary, will add to this
                              config_glexec): # bool, ask for glexec dir
+
     if config_glexec:
         def_glexec_bin='OSG'
     else:
@@ -4815,6 +4816,7 @@ def get_ress_glidein_entries(vo,             #vo can be None
 def get_bdii_glidein_entries(vo,             #vo can be None
                              entries_list,   # dictionary, will add to this
                              config_glexec): # bool, ask for glexec dir
+
     if config_glexec:
         def_glexec_bin='/opt/glite/sbin/glexec'
     else:

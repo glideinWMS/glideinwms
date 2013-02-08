@@ -13,7 +13,6 @@ import traceback
 
 STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
-
 from glideinwms.lib import ldapMonitor
 from glideinwms.lib import xmlParse
 from glideinwms.creation.lib import cgWParams
