@@ -9,10 +9,17 @@
 # Description:
 #   glideinWMS Installer
 
-import sys,os,os.path,string,time
-import pwd,grp
+import sys
+import os
+import os.path
+import string
+import time
+import pwd
+import grp
 import shutil
-import tarfile,readline,pwd
+import tarfile
+import readline
+import pwd
 import md5
 import getpass
 import re
@@ -21,9 +28,13 @@ import socket
 import stat
 import httplib
 import ftplib
+
 STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
+
 from glideinwms.lib import xmlFormat
+from glideinwms.lib import condorMonitor
+from glideinwms.lib import ldapMonitor
 
 #############################
 #
@@ -4621,8 +4632,6 @@ def compare_entry_els(el1,el2):
 def get_ress_glidein_entries(vo,             #vo can be None
                              entries_list,   # disctionary, will add to this
                              config_glexec): # bool, ask for glexec dir
-    import condorMonitor
-
     if config_glexec:
         def_glexec_bin='OSG'
     else:
@@ -4806,8 +4815,6 @@ def get_ress_glidein_entries(vo,             #vo can be None
 def get_bdii_glidein_entries(vo,             #vo can be None
                              entries_list,   # dictionary, will add to this
                              config_glexec): # bool, ask for glexec dir
-    import ldapMonitor
-
     if config_glexec:
         def_glexec_bin='/opt/glite/sbin/glexec'
     else:
