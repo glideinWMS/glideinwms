@@ -82,8 +82,6 @@ if __name__ == '__main__':
     try:
         main(params,flags)
     except RuntimeError, e:
-        print usage
-        print ""
         print e
 
 ###########################################################
