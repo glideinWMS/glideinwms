@@ -114,7 +114,7 @@ class LocalScheddCache(NoneScheddCache):
         if schedd_ip in self.my_ips: #seems local, go for the dir
             l=el['LOCAL_DIR_STRING']
             if os.path.isdir(l): # making sure the directory exists
-                return {'_CONDOR_LOCAL_DIR':l}
+                return {'_CONDOR_SPOOL': '%s/spool' %l }
             else: #dir does not exist, likely not relevant, revert to standard behaviour
                 return None
         else: # not local
