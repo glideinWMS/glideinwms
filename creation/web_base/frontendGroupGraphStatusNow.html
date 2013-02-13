@@ -5,16 +5,18 @@
     <script type="text/javascript" src="jslibs/frontend_support.js"></script>
 <head>
 <script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAAu0TL0A-Hx1fvzGI6gOofLxRdWR7O4-XcWvAQALHxHt_c1fTKOhSeYIt5K3vK4_YcuhTz3-irM0p_eQ"></script>
+<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.1.1/css/bootstrap-combined.min.css" rel="stylesheet">
 <style type="text/css">
-.thumbnail {
+/*.thumbnail {
  width: 425px;
  height: 175px;
 }
-img.graph {
+*/
+/*img.graph {
  width: inherit;
  height: inherit;
 }
-
+*/
 div.page_links {
  position: absolute;
  top:50px;
@@ -29,9 +31,19 @@ font-size:14px;
 div.image_error {
 text-align:center;
 }
-
+div.row-fluid {
+margin-top: 10px;
+}
+.group_selector .icon-chevron-right {
+float: right;
+margin-top: 2px;
+margin-right: -6px;
+opacity: .25;
+}
 </style>
 <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+ <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
 <script type="text/javascript">
 var gready = 0;
 
@@ -43,8 +55,6 @@ var timeout;
 
 // Google libraries to load
 google.load('visualization', '1', {packages:['table']});
-google.load("jquery", "1.5.0");
-google.load("jqueryui", "1.8.10");
 google.setOnLoadCallback(googleReady);
 
 //setTimeout("window.location.reload()", globalReload);
@@ -141,9 +151,71 @@ function googleReady() {
 	    }
 	
 	});
-	
+       
 
 }
+
+// Function to get the url attributes
+function getURLParameter(name) {
+    return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
+}
+
+// Function to set the url attributes (with possible hashes)
+// source: http://stackoverflow.com/questions/6953944/how-to-add-parameters-to-a-url-that-already-contains-other-parameters-and-maybe
+function addParameter(url, parameterName, parameterValue){
+
+    replaceDuplicates = true;
+
+    if(url.indexOf('#') > 0){
+        var cl = url.indexOf('#');
+        urlhash = url.substring(url.indexOf('#'),url.length);
+    } else {
+        urlhash = '';
+        cl = url.length;
+    }
+
+    sourceUrl = url.substring(0,cl);
+
+
+
+    var urlParts = sourceUrl.split("?");
+    var newQueryString = "";
+
+    if (urlParts.length > 1)
+    {
+        var parameters = urlParts[1].split("&");
+        for (var i=0; (i < parameters.length); i++)
+        {
+            var parameterParts = parameters[i].split("=");
+            if (!(replaceDuplicates && parameterParts[0] == parameterName))
+            {
+                if (newQueryString == "")
+                    newQueryString = "?";
+                else
+                    newQueryString += "&";
+                newQueryString += parameterParts[0] + "=" + parameterParts[1];
+            }
+        }
+    }
+    if (newQueryString == "")
+        newQueryString = "?";
+    else
+        newQueryString += "&";
+    newQueryString += parameterName + "=" + parameterValue;
+
+    return urlParts[0] + newQueryString + urlhash;
+}
+
+// Function to handle back / forward
+var going_back = false;
+window.onpopstate = function(event) {
+    
+    if ( event.state ) {
+        going_back = true;
+        $("#" + event.state.group).trigger("click");
+    } 
+
+};
 
 
 // Reload all the data, including pulling down new xml, reloading
@@ -179,10 +251,18 @@ var global_xml = ""
 var selected_group = ""
 
 function ChangeGroup(element) {
-    selected_group = element.value;
+    selected_group = element.attr("id");
     $("#graphtable").find("img").remove();
     $("#graphtable").find("#image_load_fail").remove();
-    $("#group_display").html(selected_group);
+
+    // Update the group in the URL
+    if ( going_back == false) {
+        window.history.pushState({group: selected_group},"",addParameter(document.location.href, 'group', selected_group));
+    } else {
+        going_back = false;
+    }
+
+    // $("#group_display").html(selected_group);
     $(global_xml).find("group").each(function() {
         var group_name = $(this).attr('name');
         if (group_name == selected_group) {
@@ -220,21 +300,46 @@ function parseuserdata(xml) {
     global_xml = xml;
     var first_group = true;
     var groups = new Array()
+    var url_group = getURLParameter('group');
     $(xml).find("group").each(function() {
         var group_name = $(this).attr('name');
     
         // Add to the group list
-        $("#groups_list").append("<option value='" + group_name + "'>" + group_name + "</option>");
+        $("#groups_list").append("<li class='group_selector'><a class='group_link' href='javascript:void(0);' id='" + group_name + "' value='" + group_name + "'><i class='icon-chevron-right'></i>" + group_name + "</a>  </li>");
 
 
         if (first_group == true) {
             first_group = false;
             selected_group = group_name;
-            $("#group_display").html(selected_group);
-            UpdateGroup($(this));
+            group_object = $(this);
         }
-
+        if (group_name == "main" && url_group == null){
+            selected_group = group_name;
+            group_object = $(this);
+        } else if ( url_group == group_name ) {
+            selected_group = group_name;
+            group_object = $(this);
+        }
     }); // end each group
+
+    $("#" + selected_group).parent().addClass("active");
+    UpdateGroup(group_object);
+    
+    // Add history element to the initial
+    history.replaceState({group: selected_group}, "", "");
+
+
+    // All the groups links need to be updated
+    $(".group_link").click(function() {
+        group_selected = $(this).attr('id');
+
+        $(".group_selector").removeClass("active");
+        $(this).parent().addClass("active");
+
+        ChangeGroup($(this));
+
+
+    });
     
     UpdateXMLTime();
 
@@ -253,8 +358,8 @@ function UpdateXMLTime() {
 // Enlarge the graphs
 function ToggleExpandGroup() {
     var group_name =  selected_group;
-    $("#group_graphs").find("#idle").toggleClass("thumbnail");
-    $("#group_graphs").find("#running").toggleClass("thumbnail");
+    // $("#group_graphs").find("#idle").toggleClass("thumbnail");
+    // $("#group_graphs").find("#running").toggleClass("thumbnail");
     if ( $("#expandtoggle").attr('value') == "Enlarge Graphs") {
         $("#expandtoggle").attr('value', 'Reduce Graphs');
     } else {
@@ -355,8 +460,8 @@ function UpdateGroup(group_obj) {
     // If there are no factories detected
     if ( factories.length == 0 ){
         $("#group_graphs").fadeTo(0, 0.5);
-        ShowDialog($(group_selector), "No Entry Points Detected",
-            "No entry points were detected in the group: " + group_name);
+        ShowDialog($("#content-area"), "No Entry Points Detected",
+            "No entry points were detected in the group: <strong>" + group_name +"</strong>. <p>Please select another group from the menu on the left.</p>");
     
     // If no jobs are detected, idle or running
     } else if ((SumElements(matchedjobs_running) == 0) &&
@@ -367,8 +472,8 @@ function UpdateGroup(group_obj) {
                (SumElements(requested_idle) == 0)){
 
         $("#group_graphs").fadeTo(0, 0.5);
-        ShowDialog($(group_selector), "No Jobs Detected",
-             "No jobs were detected, idle or running, in the group: " + group_name);
+        ShowDialog($("#content-area"), "No Jobs Detected",
+             "No jobs were detected, idle or running, in the group: <strong>" + group_name + "</strong>.  <p>Please select another group from the menu on the left.</p>");
 
     } else {
         $("#group_graphs").fadeTo(0, 1.0);
@@ -399,27 +504,27 @@ function UpdateGroup(group_obj) {
     
     // Generate the graphs
     var img = CreateGraphImage();
-    $(group_selector).find("#MatchedGlideins").find("#idle").append(img);
+    $(group_selector).find("#MatchedGlideins").find("#idle").prepend(img);
     MakeChart(factories.slice(), matchedglideins_idle, "Glideins not matched",  img);
 
     img = CreateGraphImage();
-    $(group_selector).find("#MatchedGlideins").find("#running").append(img);
+    $(group_selector).find("#MatchedGlideins").find("#running").prepend(img);
     MakeChart(factories.slice(), matchedglideins_running, "Glideins claimed by jobs",  img);
 
     img = CreateGraphImage();
-    $(group_selector).find("#MatchedJobs").find("#idle").append(img);
+    $(group_selector).find("#MatchedJobs").find("#idle").prepend(img);
     MakeChart(factories.slice(), matchedjobs_idle, "Jobs Idle",  img);
 
     img = CreateGraphImage();
-    $(group_selector).find("#MatchedJobs").find("#running").append(img);
+    $(group_selector).find("#MatchedJobs").find("#running").prepend(img);
     MakeChart(factories.slice(), matchedjobs_running, "Running jobs by Entry", img);
 
     img = CreateGraphImage();
-    $(group_selector).find("#Requested").find("#idle").append(img);
+    $(group_selector).find("#Requested").find("#idle").prepend(img);
     MakeChart(factories.slice(), requested_idle, "Requested idle", img);
 
     img = CreateGraphImage();
-    $(group_selector).find("#Requested").find("#running").append(img);
+    $(group_selector).find("#Requested").find("#running").prepend(img);
     MakeChart(factories.slice(), requested_running, "Requested Running", img);
 
     table = new google.visualization.Table(document.getElementById('group_table'));
@@ -540,42 +645,125 @@ function HideDialog() {
 
 </head>
 <body>
-<div id="header"><h2 id="pgtitle">Current GlideinWMS Frontend Status</h2></div>
-<div class="page_links">
-[
-<a href="frontendRRDBrowse.html">Browse</a> |
-<a href="frontendRRDGroupMatrix.html">Group Matrix</a> |
-<a href="frontendStatus.html">Status</a>
-]
+<script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.1.1/js/bootstrap.min.js"></script>
+<div class="navbar">
+ <div class="navbar-inner">
+  <a class="brand" href="#">GlideinWMS Frontend</a>
+    <ul class="nav">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="frontendRRDBrowse.html">Browse</a></li>
+    <li><a href="frontendRRDGroupMatrix.html">Group Matrix</a></li>
+    <li><a href="frontendStatus.html">Status</a></li>
+    <li class="active"><a href="frontendGroupGraphStatusNow.html">Group Graphs</a></li>
+    </ul>
+ </div>
 </div>
-<div id="reloadbuttong"><input type="button" value="Refresh Data" onclick="reloadAll()"/> </div>
-<div class="updated" id="updated_display"> </div>
-<div id="graphs">
-<table cellpadding=10 id='graphtable' border=1>
-<tr><td valign=top align=center>
-<div id="groups_list_container">Groups: <br/> 
-<select id="groups_list" onchange="ChangeGroup(this)"></select></div>
+<div class="container-fluid">
+<div class="row-fluid">
+<div id="header" class="span12 page-header" style="margin: 5px 0 5px"><h2 id="pgtitle">Current GlideinWMS Frontend Status</h2></div>
+<!-- <div class="page_links span3 offset1"> -->
+</div> <!-- Row -->
+
+<div class="row-fluid">
+<div class="span2" id="reloadbuttong"><input class="btn btn-primary" type="button" value="Refresh Data" onclick="reloadAll()"/> </div>
+<div class="updated span4" id="updated_display"> </div>
+</div>
+
+<div class="row-fluid">
+
+<!-- Sidebar -->
+<div class="span2">
+<!-- <table cellpadding=10 id='graphtable' border=1> 
+<tr><td valign=top align=center> -->
+
+<!-- Groups -->
+<div class="row-fluid">
+<div class="span12">
+<div id="groups_list_container"> 
+<div class="well" style="padding: 8px 0;">
+<ul class="nav nav-list" id="groups_list">
+<li class="nav-header">Groups</li>
+<!-- <select id="groups_list" onchange="ChangeGroup(this)"></select></div> -->
+
+</ul>
+</div><!-- End Button Group -->
 <!--<div id="group_display"> </div>--> <br/> 
-<input type='button' value='Enlarge Graphs' id='expandtoggle' onclick='ToggleExpandGroup()'/> 
-</td><td id="group_graphs">
-<table cellpadding='20px'> 
-<tr id='MatchedGlideins'> <td id='running' class='thumbnail'></td> <td id='idle' class='thumbnail'></td></tr> 
-<tr id='MatchedJobs'> <td id='running' class='thumbnail'></td> <td id='idle' class='thumbnail'></td></tr> 
-<tr id='Requested'> <td id='running' class='thumbnail'></td> <td id='idle' class='thumbnail'></td></tr> 
-</table>
-</td>
-<tr>
-<td colspan="2">
-<p><input type="button" value="Refresh Data" onclick="reloadAll()"/></p>
-Entry Search: <input type='text' id='entrysearch' onkeypress='FilterTable()'/>
+<!-- <input type='button' class="btn" value='Enlarge Graphs' id='expandtoggle' onclick='ToggleExpandGroup()'/> -->
+</div>
+</div> <!-- span2 -->
+</div> <!-- Sidebar -->
+</div>
+
+<!-- </td><td id="group_graphs"> 
+<table cellpadding='20px'> -->
+<div class="span10">
+
+<!-- Tabs -->
+<ul class="nav nav-tabs" id="myTab">
+ <li class="active"><a href="#graphs" data-toggle="tab">Graphs</a></li>
+ <li><a href="#table" data-toggle="tab">Table</a></li>
+</ul>
+
+<div class="tab-content" id="content-area">
+<div class="tab-pane" id="table">
+<div class="row-fluid">
+<div class="span9">
+Entry Search: <input class="search-query" type='text' id='entrysearch' onkeypress='FilterTable()'/>
+</div>
+</div> <!-- End Row -->
+<div class="row-fluid">
 <div id="group_table">
 </div>
-</td>
-</tr>
-</tr>
-</table>
  </div>   
+
+</div> <!-- End table tab -->
+
+
+
+<div class="tab-pane active" id="graphs">
+
+<div id="graphtable">
+<div id="group_graphs">
+<div class="row-fluid" id="MatchedGlideins">
+<div class="span6 thumbnail" id="running" >
+<h3>Running Glideins</h3>
+<p>This is the number of glideins running jobs by site</p>
+
+</div>
+<div class="span6 thumbnail" id="idle"/>
+<h3>Idle Glideins</h3>
+<p> This is the number of glideins idle (not matched to jobs) by site</p>
+</div>
+</div> <!-- Row -->
+<div class="row-fluid" id="MatchedJobs">
+<div class="span6 thumbnail" id="running">
+<h3>Running Jobs</h3>
+<p>This is the number of jobs running by site</p>
+</div>
+<div class="span6 thumbnail" id="idle"/>
+<h3>Jobs Idle</h3>
+<p>Number of jobs idle detected by the frontend</p>
+</div>
+</div> <!-- Row -->
+<div class="row-fluid" id="Requested">
+<div class="span6 thumbnail" id="running">
+<h3>Requested Running</h3>
+<p>Maximum glideins this frontend requested to be running at each of the sites</p>
+</div>
+<div class="span6 thumbnail" id="idle"/>
+<h3>Requested Idle</h3>
+<p>Number of glideins requested idle by site.</p>
+</div>
+</div> <!-- Row -->
+</div>
+</div> <!-- End tab plane -->
+</div> <!-- end tabs -->
+</div> <!-- span -->
+</div <!-- End span -->
+</div> <!-- end row -->
+</div> <!-- end container -->
 <div id="monitor_footer"></div>
+</div> <!-- Container -->
 </body>
 
 </html>
