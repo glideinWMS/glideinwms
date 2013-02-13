@@ -227,27 +227,37 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, condorq_match_l
                 # get the first job... they are all the same
                 first_jid=cq_dict_clusters_el[jh][0]
                 job=condorq_data[first_jid]
-                if eval(match_obj):
-                    # the first matched... add all jobs in the cluster
-                    cluster_arr=[]
-                    for jid in cq_dict_clusters_el[jh]:
-                        t=(jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
-                        cluster_arr.append(t)
-                        schedd_count+=1
-                    # adding a whole cluster much faster
-                    sjobs_arr+=cluster_arr
-                    del cluster_arr
-                    pass
-                pass
+                
+                try:
+                    if eval(match_obj):
+                        # the first matched... add all jobs in the cluster
+                        cluster_arr=[]
+                        for jid in cq_dict_clusters_el[jh]:
+                            t=(jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
+                            cluster_arr.append(t)
+                            schedd_count+=1
+                        first_t=(first_jid[0]*procid_mul+first_jid[1])*nr_schedds+scheddIdx
+                        all_jobs_clusters[first_t]=cluster_arr
+                        sjobs_arr+=[first_t]
+                except KeyError, e:
+                    tb = traceback.format_exception(sys.exc_info()[0],
+                                                    sys.exc_info()[1],
+                                                    sys.exc_info()[2])
+                    key = ((tb[len(tb) - 1].split(':'))[1]).strip()
+                    glideinFrontendLib.log_files.logDebug("Failed to evaluate resource match in countMatch. Possibly match_expr has errors and trying to reference job or site attribute '%s' in an inappropriate way." % (key))
+                except Exception, e:
+                    tb = traceback.format_exception(sys.exc_info()[0],
+                                                    sys.exc_info()[1],
+                                                    sys.exc_info()[2])
+                    glideinFrontendLib.log_files.logDebug("Exception in counting subprocess for %s: %s " % (dt, tb))
+
             jobs_arr+=sjobs_arr
             del sjobs_arr
             glidein_count+=schedd_count
-            pass    
         jobs=set(jobs_arr)
         del jobs_arr
         list_of_all_jobs.append(jobs)
         out_glidein_counts[glidename]=glidein_count
-        pass
 
     (outvals,jrange) = uniqueSets(list_of_all_jobs)
     del list_of_all_jobs
@@ -335,13 +345,22 @@ def countRealRunning(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match
                 # get the first job... they are all the same
                 first_jid=cq_dict_clusters_el[jh][0]
                 job=condorq_data[first_jid]
-                if eval(match_obj) and job['RunningOn'] == glide_str:
-                    schedd_count+=len(cq_dict_clusters_el[jh])
-                pass
+                try:
+                    if eval(match_obj) and job['RunningOn'] == glide_str:
+                        schedd_count+=len(cq_dict_clusters_el[jh])
+                except KeyError, e:
+                    tb = traceback.format_exception(sys.exc_info()[0],
+                                                    sys.exc_info()[1],
+                                                    sys.exc_info()[2])
+                    key = ((tb[len(tb) - 1].split(':'))[1]).strip()
+                    glideinFrontendLib.log_files.logDebug("Failed to evaluate resource match in countRealRunning. Possibly match_expr has errors and trying to reference job or site attribute '%s' in an inappropriate way." % (key))
+                except Exception, e:
+                    tb = traceback.format_exception(sys.exc_info()[0],
+                                                    sys.exc_info()[1],
+                                                    sys.exc_info()[2])
+                    glideinFrontendLib.log_files.logDebug("Exception in counting subprocess for %s: %s " % (dt, tb))
             glidein_count+=schedd_count
-            pass
-        out_glidein_counts[glidename] = glidein_count
-        pass
+        out_glidein_counts[glidename]=glidein_count
     return out_glidein_counts
 
 #
