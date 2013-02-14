@@ -82,20 +82,39 @@ Related Pages:
 <a name="stable"></a>
     <h3>Stable Series</h3>
       <li>
-        <b>v2_6_3</b> released on December xx, 2012 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_6_3/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_6_3/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_6_3.tgz">Tarball</a>)<br>
+        <b>v2_7</b> released on February xx, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7.tgz">Tarball</a>)<br>
         <ul>
+          <li>glideinwms code is now organized as python packages
+          <li>Factory no longer creates long running process per entry.
+          Instead, it runs only a single long running glideFactoryEntryGroup
+          process instead of multiple glideFactoryEntry processes.
           <li>Improved factory prerformance by migrating popen calls to use
           python's subprocess library
           <li>Improved the performance of the Frontend by using pre-clustering
           in the Frontend match-making
           <li>Created index.html for factory monitoring so that admins can
           disable directory browsing in httpd.conf
+          <li>Added support for Partitionable condor slots in the glidein
+          <li>Frontend policy for matching factory classads is now exposed in 
+          glideresource classads
+          <li>Added a tool to dynamically create a secondary schedd config files
+          and directories to the existing installation
+          <li>Improved the usability of the frontendGrouGraphStatusNow
+          monitoring
+          <li>Improved documentation
           <li>Bug Fix: Fixed a bug where the factory entry processes and the
           frontend group (element) processes would inherit their parent's
           environment corrupting their own environment
           <li>Bug Fix: Glidein's job wrapper now behaves as true wrapper
           <li>Bug Fix: Fixed a bug where frontend_startup would not correctly
           pick default frontend.xml
+          <li>Bug Fix: Fixed a bug in frontend where failure to evaluate
+          match_expr for one entry would prevent frontend from requesting
+          glideins to other entries
+          <li>Bug Fix: RPM now has shared port daemon enabled in the
+          configuration
+          <li>Bug Fix: Fixed a bug where Factory would sometime use wrong DN
+          when calculating proxy hash
         </ul>
       </li>
       <li>
