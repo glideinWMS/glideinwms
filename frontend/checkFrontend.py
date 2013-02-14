@@ -15,7 +15,8 @@
 #   Igor Sfiligoi
 #
 
-import sys,os.path
+import sys
+import os.path
 sys.path.append(os.path.join(sys.path[0],"../.."))
 from glideinwms.frontend import glideinFrontendPidLib
 

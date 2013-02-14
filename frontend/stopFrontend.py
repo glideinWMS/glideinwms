@@ -15,7 +15,14 @@
 #   Igor Sfiligoi
 #
 
-import signal,sys,os,os.path,fcntl,string,time
+import signal
+import sys
+import os
+import os.path
+import fcntl
+import string
+import time
+
 sys.path.append(os.path.join(sys.path[0],"../.."))
 
 from glideinwms.frontend import glideinFrontendPidLib

@@ -11,7 +11,9 @@
 #   Igor Sfiligoi
 #
 
-import sys,os,os.path
+import sys
+import os
+import os.path
 from glideinwms.lib import pidSupport
 
 ############################################################

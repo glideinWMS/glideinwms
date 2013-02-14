@@ -14,10 +14,14 @@
 #
 
 import os.path
-import string,math
-from glideinwms.lib import condorMonitor,condorExe
+import string
+import math
+import sys
+import traceback
+
+from glideinwms.lib import condorExe
+from glideinwms.lib import condorMonitor
 from glideinwms.lib import logSupport
-import sys, traceback
 
 class LogFiles:
     def __init__(self,log_dir,max_days,min_days,max_mbs):

@@ -97,7 +97,7 @@ for a more detailed description.
         <a href="#">&lt; summary_logs max_days="31.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
     </blockquote>
     <a href="#">&lt;/log_retention &gt;</a><br/>
-    <a href="#monitor">&lt;monitor base_dir="/var/www/html/glidefactory/monitor" flot_dir="/opt/javascriptrrd-0.6.3/flot" javascriptRRD_dir="/opt/javascriptrrd-0.6.3/src/lib" jquery_dir="/opt/javascriptrrd-0.6.3/flot" /&gt;</a><br/>
+    <a href="#monitor">&lt;monitor base_dir="/var/www/html/glidefactory/monitor" flot_dir="/opt/javascriptrrd-0.6.3/flot" javascriptRRD_dir="/opt/javascriptrrd-0.6.3/src/lib" jquery_dir="/opt/javascriptrrd-0.6.3/flot" update_thread_count="4" /&gt;</a><br/>
     <a href="#monitor_footer">&lt;monitor_footer display_txt="Legal Disclaimer" href_link="/site/disclaimer.html"  /&gt;</a><br/>
     <a href="#security">&lt;security allow_proxy="frontend" key_length="2048" pub_key="RSA" reuse_oldkey_onstartup_gracetime="900"&gt;</a><br/>
     <blockquote>
@@ -327,12 +327,14 @@ individual entry point configuration.
         &lt;glidein&gt;&lt;monitor base_dir=&quot;<I>web dir</I>&quot; 
         javascriptRRD_dir=&quot;<I>web dir</I>&quot; 
         flot_dir=&quot;<I>web dir</I>&quot; 
-        jquery_dir=&quot;<I>web dir</I>>&quot; &gt;
+        jquery_dir=&quot;<I>web dir</I>&quot;
+        update_thread_count=&quot;<I>Num of parallel stat writes</I>&quot;
+        &gt;
 
         </div>
     <p><b>Recommended</b> The <STRONG>base_dir</STRONG> defines where the monitoring web are
     is.<BR/>The other entries point to where javascriptRRD, Flot and
-    JQuery libraries are.</P>
+    JQuery libraries are.<br/>Unless explicitly configured, <b>update_thread_count</b> will default to number of cpus on the machine. To default <b>update_thread_count</b> after changes, remove the update_thread_count attribute from the factory configuration and reconfig the factory.</P>
     <LI>
         <a name="monitor_footer" />
         <div class="xml">

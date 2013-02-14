@@ -12,15 +12,17 @@
 #   Igor Sfiligoi (Sept 15th 2006)
 #
 
-import os,os.path
+import os
+import os.path
 import copy
 import time
 import string
-from glideinwms.lib import pubCrypto,symCrypto
+from sets import Set
+from glideinwms.lib import symCrypto
+from glideinwms.lib import pubCrypto
 from glideinwms.lib import condorExe
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorManager
-from sets import Set
 
 ############################################################
 #

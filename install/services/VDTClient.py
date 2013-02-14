@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 
-import sys,os,os.path,string,time,glob
+import sys
+import os
+import os.path
+import string
+import time
+import glob
 #---------------------
 from glideinwms.install.services import common
 from glideinwms.install.services.VDT import VDT

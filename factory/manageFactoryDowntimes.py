@@ -13,7 +13,8 @@
 
 import os.path
 import os
-import time,string
+import time
+import string
 import sys
 import re
 
@@ -25,8 +26,13 @@ from glideinwms.creation.lib import cgWConsts
 STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../../"))
 
+from glideinwms.lib import condorMonitor
+from glideinwms.lib import ldapMonitor
+from glideinwms.creation.lib import cgWDictFile
+from glideinwms.creation.lib import cgWConsts
 from glideinwms.factory import glideFactoryConfig
 from glideinwms.factory import glideFactoryDowntimeLib
+
 
 def usage():
     print "Usage:"
@@ -307,8 +313,6 @@ def infosys_based(entry_name,opt_dict,infosys_types):
     else:
         config_el={}
         config_els[entry_name]={}
-
-    # load the infosys info
 
     for entry in config_els.keys():
         infosys_fd=cgWDictFile.InfoSysDictFile(cgWConsts.get_entry_submit_dir('.',entry),cgWConsts.INFOSYS_FILE)

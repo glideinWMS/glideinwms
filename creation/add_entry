@@ -7,14 +7,15 @@
 import os
 import copy
 import sys
-STARTUP_DIR=sys.path[0]
 import os.path
 import string
 import traceback
+
+STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
-from glideinwms.creation.lib import cgWParams
 from glideinwms.lib import ldapMonitor
 from glideinwms.lib import xmlParse
+from glideinwms.creation.lib import cgWParams
     
 ################################################################################
 

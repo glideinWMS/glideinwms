@@ -9,13 +9,18 @@
 #   created out of the parameter object
 #
 
-import os,os.path,shutil,string
+import os
+import os.path
+import shutil
+import string
 import sys
-import cWParams
-import cgWDictFile,cWDictFile
-import cgWCreate
-import cgWConsts,cWConsts
 
+import cWParams
+import cWConsts
+import cWDictFile
+import cgWDictFile
+import cgWCreate
+import cgWConsts
 from glideinwms.lib import pubCrypto
 
 ################################################
@@ -653,6 +658,7 @@ def populate_factory_descript(work_dir,
         glidein_dict.add('WebURL',params.web_url)
         glidein_dict.add('PubKeyType',params.security.pub_key)
         glidein_dict.add('OldPubKeyGraceTime',params.security.reuse_oldkey_onstartup_gracetime)
+        glidein_dict.add('MonitorUpdateThreadCount',params.monitor.update_thread_count)
         del active_sub_list[:] # clean
 
         for sub in params.entries.keys():

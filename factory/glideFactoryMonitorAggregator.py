@@ -19,9 +19,12 @@ import os.path
 import tempfile
 import shutil
 import time
+import traceback
+import sys
 
 from glideinwms.lib import timeConversion
-from glideinwms.lib import xmlParse,xmlFormat
+from glideinwms.lib import xmlFormat
+from glideinwms.lib import xmlParse
 from glideinwms.lib import rrdSupport
 from glideinwms.factory import glideFactoryMonitoring
 from glideinwms.factory import glideFactoryLib
@@ -601,9 +604,9 @@ def aggregateLogSummary():
     
     return status
 
-def aggregateRRDStats():
+def aggregateRRDStats(logfiles=glideFactoryLib.log_files):
     global monitorAggregatorConfig
-    factoryStatusData = glideFactoryMonitoring.FactoryStatusData()
+    factoryStatusData = glideFactoryMonitoring.FactoryStatusData(logfiles=logfiles)
     rrdstats_relname = glideFactoryMonitoring.rrd_list
     tab = xmlFormat.DEFAULT_TAB
 
@@ -616,7 +619,7 @@ def aggregateRRDStats():
             try:
                 stats[entry] = xmlParse.xmlfile2dict(rrd_fname, always_singular_list = {'timezone':{}})
             except IOError:
-                glideFactoryLib.log_files.logDebug("aggregateRRDStats %s exception: parse_xml, IOError"%rrd_fname)
+                logfiles.logDebug("aggregateRRDStats %s exception: parse_xml, IOError"%rrd_fname)
 
         stats_entries=stats.keys()
         if len(stats_entries)==0:
@@ -663,9 +666,14 @@ def aggregateRRDStats():
                             try:
                                 aggregate_output[client][res][data_set] += float(stats[entry][client]['periods'][res][data_set])
                             except KeyError:
+                                # Some may be just missing
                                 missing_total_data = True
-                                # well, some may be just missing.. can happen
+                                #tb = traceback.format_exception(
+                                #         sys.exc_info()[0],
+                                #         sys.exc_info()[1],
+                                #         sys.exc_info()[2])
                                 #glideFactoryLib.log_files.logDebug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s]"%(entry,client,'periods',res,data_set))
+                                #glideFactoryLib.log_files.logDebug(tb)
 
                         else:
                             if stats[entry]['frontends'].has_key(client):
@@ -673,16 +681,21 @@ def aggregateRRDStats():
                                 try:
                                     aggregate_output[client][res][data_set] += float(stats[entry]['frontends'][client]['periods'][res][data_set])
                                 except KeyError:
+                                    # Some may be just missing
                                     missing_client_data = True
-                                    # well, some may be just missing.. can happen
                                     #glideFactoryLib.log_files.logDebug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s][%s]" %(entry,'frontends',client,'periods',res,data_set))
 
-        #  We still need to determine what is causing these missing data in case it is a real issue
-        # but using this flags will at least reduce the number of messages in the logs (see commented out messages above)
+        # We still need to determine what is causing these missing data
+        # in case it is a real issue. But using this flags will at least
+        # reduce the number of messages in the logs 
+        # (see commented out messages above)
+
+        # PM: This happens when a glidefactory classad has never had equivalent 
+        # glideclient classad
         if missing_total_data:
-            glideFactoryLib.log_files.logDebug("aggregate_data, missing total data from file %s" % rrd_site(rrd))
+            logfiles.logDebug("aggregate_data, missing total data from file %s" % rrd)
         if missing_client_data:
-            glideFactoryLib.log_files.logDebug("aggregate_data, missing client data from file %s" % rrd_site(rrd))
+            logfiles.logDebug("aggregate_data, missing client data from file %s" % rrd_site(rrd))
             
         # write an aggregate XML file
 
@@ -695,7 +708,7 @@ def aggregateRRDStats():
             try:
                 entry_str += (xmlFormat.dict2string(stats[entry]['total']['periods'], dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 4 * tab) + "\n")
             except NameError, UnboundLocalError:
-                glideFactoryLib.log_files.logDebug("total_data, NameError or TypeError")
+                logfiles.logDebug("total_data, NameError or TypeError")
             entry_str += 3 * tab + '</total>\n'
         
             entry_str += (3 * tab + '<frontends>\n')
@@ -708,10 +721,10 @@ def aggregateRRDStats():
                     try:
                         entry_str += (xmlFormat.dict2string(stats[entry]['frontends'][frontend]['periods'], dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 5 * tab) + "\n")
                     except KeyError:
-                        glideFactoryLib.log_files.logDebug("frontend_data, KeyError")
+                        logfiles.logDebug("frontend_data, KeyError")
                     entry_str += 4 * tab + '</frontend>\n'
             except TypeError:
-                glideFactoryLib.log_files.logDebug("frontend_data, TypeError")
+                logfiles.logDebug("frontend_data, TypeError")
             entry_str += (3 * tab + '</frontends>\n')
             entry_str += 2 * tab + "</entry>\n"
         entry_str += tab + "</entries>\n"
@@ -722,7 +735,7 @@ def aggregateRRDStats():
         try:
             total_xml_str += (xmlFormat.dict2string(total_data, dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 4 * tab) + "\n")
         except NameError, UnboundLocalError:
-            glideFactoryLib.log_files.logDebug("total_data, NameError or TypeError")
+            logfiles.logDebug("total_data, NameError or TypeError")
         total_xml_str += 2 * tab + '</total>\n'
         
         frontend_xml_str = (2 * tab + '<frontends>\n')
@@ -734,7 +747,7 @@ def aggregateRRDStats():
                 frontend_xml_str += (xmlFormat.dict2string(frontend_data, dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 4 * tab) + "\n")
                 frontend_xml_str += 3 * tab + '</frontend>\n'
         except TypeError:
-            glideFactoryLib.log_files.logDebug("frontend_data, TypeError")
+            logfiles.logDebug("frontend_data, TypeError")
         frontend_xml_str += (2 * tab + '</frontends>\n')
                   
         data_str =  (tab + "<total>\n" + total_xml_str + frontend_xml_str +
@@ -750,7 +763,7 @@ def aggregateRRDStats():
         try:
             glideFactoryMonitoring.monitoringConfig.write_file(rrd_site(rrd), xml_str)
         except IOError:
-            glideFactoryLib.log_files.logDebug("write_file %s, IOError"%rrd_site(rrd))
+            logfiles.logDebug("write_file %s, IOError"%rrd_site(rrd))
 
     return
 

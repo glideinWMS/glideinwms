@@ -14,25 +14,26 @@
 import os
 import copy
 import sys
+import os.path
+import string
+import shutil
+import traceback
 
 STARTUP_DIR=sys.path[0]
+sys.path.append(os.path.join(STARTUP_DIR,"../.."))
+
+from glideinwms.creation.lib import cWConsts
+from glideinwms.creation.lib import cvWParams
+from glideinwms.creation.lib import cvWDictFile
+from glideinwms.creation.lib import cvWConsts
+from glideinwms.creation.lib import cvWCreate
+from glideinwms.creation.lib import cvWParamDict
+from glideinwms.frontend import glideinFrontendMonitorAggregator
 
 # Change this if you have changed the source for the 
 # For instance, in the frontend RPM
 WEB_BASE_DIR=os.path.join(STARTUP_DIR,"web_base")
 fix_rrd = False
-
-import os.path
-import string
-import shutil
-import traceback
-sys.path.append(os.path.join(STARTUP_DIR,"../.."))
-from glideinwms.creation.lib import cvWParams
-from glideinwms.creation.lib import cvWDictFile
-from glideinwms.creation.lib import cvWConsts,cWConsts
-from glideinwms.creation.lib import cvWCreate
-from glideinwms.creation.lib import cvWParamDict
-from glideinwms.frontend import glideinFrontendMonitorAggregator
 
 ################################################################################
 

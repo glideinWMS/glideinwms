@@ -22,8 +22,9 @@ import string
 import socket
 import types
 import traceback
-from glideinwms.lib import xmlParse
 import xml.parsers.expat
+
+from glideinwms.lib import xmlParse
 from glideinwms.lib import xmlFormat
 
 class SubParams:

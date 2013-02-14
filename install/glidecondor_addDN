@@ -15,7 +15,9 @@
 # Part of the glideinWMS package
 #
 
-import sys,os,os.path
+import sys
+import os
+import os.path
 import subprocess
 import stat
 import time
@@ -27,6 +29,7 @@ sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
 from glideinwms.lib.x509Support import extract_DN
 from glideinwms.lib import condorExe
+from glideinwms.lib.x509Support import extract_DN
 
 def usage():
     print "Usage:"

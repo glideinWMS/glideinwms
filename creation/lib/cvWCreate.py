@@ -10,7 +10,8 @@
 # Author: Igor Sfiligoi
 #
 
-import os,os.path
+import os
+import os.path
 import stat
 import string
 import re

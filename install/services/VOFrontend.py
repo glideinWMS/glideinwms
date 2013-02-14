@@ -1,13 +1,17 @@
 #!/usr/bin/env python
 
 import traceback
-import sys,os,os.path,string,time
-import stat,re
+import sys
+import os
+import os.path
+import string
+import time
+import stat
+import re
 import xml.sax.saxutils
 import optparse
 #-------------------------
 from glideinwms.lib import xmlFormat
-
 from glideinwms.install.services import common
 from glideinwms.install.services import WMSCollector
 from glideinwms.install.services import Factory

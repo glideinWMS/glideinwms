@@ -5,7 +5,9 @@
 # File Version: 
 #
 
-import os,sys,time
+import os
+import sys
+import time
 from glideinwms.lib import condorExe
 
 client_id="glideclient"

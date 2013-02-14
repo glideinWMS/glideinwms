@@ -18,15 +18,21 @@
 #
 
 import signal
-import sys,os,os.path,copy
+import sys
+import os
+import os.path
+import copy
 import fcntl
 import traceback
-import time,string,cPickle,signal
+import time
+import string
+import cPickle
+import signal
+
 sys.path.append(os.path.join(sys.path[0],"../.."))
 
 from glideinwms.lib import symCrypto,pubCrypto
 from glideinwms.lib import glideinWMSVersion
-
 from glideinwms.frontend import glideinFrontendConfig
 from glideinwms.frontend import glideinFrontendInterface
 from glideinwms.frontend import glideinFrontendLib

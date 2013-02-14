@@ -17,9 +17,6 @@
 
 import os
 import sys
-
-STARTUP_DIR=sys.path[0]
-
 import fcntl
 import subprocess
 import traceback
@@ -27,6 +24,7 @@ import signal
 import time
 import string
 
+STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
 from glideinwms.frontend import glideinFrontendPidLib

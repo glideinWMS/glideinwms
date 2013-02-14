@@ -21,9 +21,9 @@
 #  Fermitools
 #
 
-import sys,os.path
+import sys
+import os.path
 sys.path.append(os.path.join(sys.path[0],"../.."))
-
 from glideinwms.tools.lib import glideinCmd
 
 def argv_gdb(argv):

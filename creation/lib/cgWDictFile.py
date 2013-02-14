@@ -9,11 +9,16 @@
 #   handle dictionary files
 #
 
-import os,os.path,string,copy
-import cgWConsts,cWConsts
-import cWDictFile
+import os
+import os.path
+import string
+import copy
 import pwd
 import shutil
+
+import cWDictFile
+import cgWConsts
+import cWConsts
 from glideinwms.lib import condorPrivsep
 
 MY_USERNAME=pwd.getpwuid(os.getuid())[0]

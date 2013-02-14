@@ -18,9 +18,9 @@
 #  Fermitools
 #
 
-import sys,os.path
+import sys
+import os.path
 sys.path.append(os.path.join(sys.path[0],"../.."))
-
 from glideinwms.tools.lib import glideinCmd
 
 glideinCmd.exe_cmd(lambda argv:(['cat']+argv))

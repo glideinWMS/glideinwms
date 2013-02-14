@@ -20,9 +20,9 @@ import tempfile
 import shutil
 
 from glideinwms.lib import timeConversion
-from glideinwms.lib import xmlParse,xmlFormat
+from glideinwms.lib import xmlFormat
+from glideinwms.lib import xmlParse
 from glideinwms.lib import rrdSupport
-
 from glideinwms.frontend import glideinFrontendMonitoring
 
 ############################################################
