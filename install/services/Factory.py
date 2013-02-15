@@ -158,7 +158,6 @@ files and directories can be created correctly""" % self.username())
       common.validate_hostname(self.hostname())
       common.validate_user(self.username())
       common.validate_installer_user(self.username())
-      self.validate_use_vofrontend_proxy()
       self.glidein.validate_software_requirements()
       self.validate_needed_directories()
       common.logit( "Factory verification complete\n")
@@ -322,51 +321,6 @@ the ini file for the %(type)s attribute.  Be careful now.
     self.create_config()
 
   #---------------------------------
-  def validate_use_vofrontend_proxy(self):
-    option =  self.use_vofrontend_proxy()
-    common.logit("... validating use_vofrontend_proxy: %s" % option)
-    if option not in ("y",):
-      common.logerr("use_vofrontend_proxy must be 'y'.  This option will be depreated fully in V3.")
-    if option == "y":  # using vofrontend 
-      if len(self.x509_proxy())  > 0 or \
-         len(self.x509_gsi_dn()) > 0:
-        common.logerr("""You have said you want to use the Frontend proxies only.
-The x509_proxy and x509_gsi_dn option must be empty.""")
-
-    else:  # use factory proxy if no vofrontend proxy provided
-      self.validate_factory_proxy()
-
-  #---------------------------------
-  def validate_factory_proxy(self):
-    #--- using factory and vofrontend ---
-    if len(self.x509_proxy())  == 0 or \
-       len(self.x509_gsi_dn()) == 0:
-      common.logerr("""You have said you want to use a Frontend and Factory proxies.
-The x509_proxy and x509_gsi_dn option must be populated.""")
-    proxy_file = self.x509_proxy()
-    common.logit("... validating x509_proxy: %s" % proxy_file)
-    if not os.path.exists(proxy_file):
-      common.logerr("""File specified does not exist.""")
-    common.logit("... validating x509_gsi_dn: %s" % self.x509_gsi_dn())
-    type = "proxy"
-    dn_to_validate = self.x509_gsi_dn()
-    dn_in_file = common.get_gsi_dn(type,proxy_file)
-    if dn_in_file <> dn_to_validate:
-      common.logerr("""The DN of the %(type)s in %(file)s 
-does not match the x509_gsi_dn attribute in your ini file:
-%(type)8s dn: %(file_dn)s
-%(ini)11s: %(ini_dn)s
-This may cause a problem in other services.
-Are you sure this is a proxy and not a certificate?""" % \
-              { "type"    : type,
-                "ini"     : "x509_gsi_dn",
-                "file"    : proxy_file,
-                "file_dn" : dn_in_file,
-                "ini_dn"  : dn_to_validate},)
-
-    
-      
-  #---------------------------------
   def validate_logs_dir(self):
     common.logit("... validating logs_dir: %s" % self.logs_dir())
     common.make_directory(self.logs_dir(),self.username(),0755)
@@ -525,11 +479,12 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 
   #---------------
   def config_security_data(self): 
-    if self.use_vofrontend_proxy() == "y": # disable factory proxy
-      allow_proxy = "frontend"
-    else: # allow both factory proxy and VO proxy
-      allow_proxy = "factory,frontend"
+    #if self.use_vofrontend_proxy() == "y": # disable factory proxy
+    #  allow_proxy = "frontend"
+    #else: # allow both factory proxy and VO proxy
+    #  allow_proxy = "factory,frontend"
 
+    allow_proxy = "frontend"
     data = """
 %(indent1)s<security allow_proxy="%(allow_proxy)s" key_length="2048" pub_key="RSA" >
 %(indent2)s<frontends>""" % \
@@ -552,13 +507,13 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
   "hostname"      : self.hostname(),
   "frontend_user" : frontend_users_dict[frontend],
 }
-      if self.use_vofrontend_proxy() == "n":
-        data = data + """\
-%(indent5)s<security_class name="factory"  username="%(factory_user)s"/>
-""" % \
-{ "indent5"       : common.indent(5),
-  "factory_user"  : self.username(),
-}
+      #if self.use_vofrontend_proxy() == "n":
+      #  data = data + """\
+#%(indent5)s<security_class name="factory"  username="%(factory_user)s"/>
+#""" % \
+#{ "indent5"       : common.indent(5),
+#  "factory_user"  : self.username(),
+#}
 
       data = data + """
 %(indent4)s</security_classes>

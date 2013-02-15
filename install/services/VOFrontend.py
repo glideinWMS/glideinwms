@@ -433,14 +433,12 @@ authentification/authorizaton of the glidein pilots"""
     reinstall_msg = """You will need to reinstall the UserCollector so these pilot dns are used for
 authentification/authorizaton of the glidein pilots.""" 
 
-    if self.factory.use_vofrontend_proxy() == "y" and \
-       len(self.glidein_proxy_files()) == 0:
-      common.logerr("""The Factory use_vofrontend_proxy option (%(use_vofrontend)s) requires that you 
+    if len(self.glidein_proxy_files()) == 0:
+      common.logerr("""The Factory requires that you 
 provide proxies using the VOFrontend glidein_proxy_files and
 glidein_proxy_dns option.  These are not populated.
 %(reinstall)s.""" % \
-          { "use_vofrontend" : self.factory.use_vofrontend_proxy(), 
-            "reinstall"      : reinstall_msg, })
+          { "reinstall"      : reinstall_msg, })
     proxies = self.glidein_proxy_files().split(" ")
     if len(self.glidein_proxy_dns()) <> len(proxies):
       common.logerr("""The number of glidein_proxy_files (%(proxy)s) must match the number of glidein_proxy_dns (%(dns)s).
