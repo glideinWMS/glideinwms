@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+#-----
 import re
 import os
 import string
@@ -10,7 +11,7 @@ import ConfigParser
 import StringIO
 import inspect
 
-from glideinwms.install.services import common
+import common
 
 #### Class Configuration ############################
 class Configuration:

@@ -8,11 +8,11 @@ import string
 import time
 import optparse
 
-from glideinwms.install.services import common
-from glideinwms.install.services.Configuration import ConfigurationError
-from glideinwms.install.services.Configuration import Configuration
-from glideinwms.install.services.Configuration import ConfigurationError
-from glideinwms.install.services import VDTClient
+import common
+from Configuration import ConfigurationError
+from Configuration import Configuration
+from Configuration import ConfigurationError
+import VDTClient
 
 #STARTUP_DIR=sys.path[0]
 #sys.path.append(os.path.join(STARTUP_DIR,"../lib"))

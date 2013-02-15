@@ -6,6 +6,7 @@ import os.path
 import string
 import time
 import re
+#---------------------
 import popen2
 import tarfile
 import shutil
@@ -14,11 +15,11 @@ import stat
 import commands
 import traceback
 
-from glideinwms.install.services import common
-from glideinwms.install.services.Configuration import Configuration
-from glideinwms.install.services.Configuration import ConfigurationError
-from glideinwms.install.services import Certificates  
-from glideinwms.install.services import VDTClient
+import common
+import Certificates  
+import VDTClient
+from Configuration import Configuration
+from Configuration import ConfigurationError
 
 class Condor(Configuration):
 
