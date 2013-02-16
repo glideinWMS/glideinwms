@@ -12,6 +12,7 @@ import optparse
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorExe
 from glideinwms.lib import condorPrivsep
+from glideinwms.lib import ldapMonitor
 
 import common
 import WMSCollector
