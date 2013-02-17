@@ -315,31 +315,52 @@ def countMatch(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match_list=
             condorq_data=condorq.fetchStored()
             schedd_count=0
             sjobs_arr=[]
+
+            missing_keys = []
+            tb_count = 0
+            recent_tb = None
+
             for jh in cq_dict_clusters_el.keys():
                 # get the first job... they are all the same
                 first_jid=cq_dict_clusters_el[jh][0]
                 job=condorq_data[first_jid]
-                if eval(match_obj):
-                    # the first matched... add all jobs in the cluster
-                    cluster_arr=[]
-                    for jid in cq_dict_clusters_el[jh]:
-                        t=(jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
-                        cluster_arr.append(t)
-                        schedd_count+=1
-                    first_t=(first_jid[0]*procid_mul+first_jid[1])*nr_schedds+scheddIdx
-                    all_jobs_clusters[first_t]=cluster_arr
-                    sjobs_arr+=[first_t]
-                    pass
-                pass
+                
+                try:
+                    if eval(match_obj):
+                        # the first matched... add all jobs in the cluster
+                        cluster_arr=[]
+                        for jid in cq_dict_clusters_el[jh]:
+                            t=(jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
+                            cluster_arr.append(t)
+                            schedd_count+=1
+                        first_t=(first_jid[0]*procid_mul+first_jid[1])*nr_schedds+scheddIdx
+                        all_jobs_clusters[first_t]=cluster_arr
+                        sjobs_arr+=[first_t]
+                except KeyError, e:
+                    tb = traceback.format_exception(sys.exc_info()[0],
+                                                    sys.exc_info()[1],
+                                                    sys.exc_info()[2])
+                    key = ((tb[len(tb) - 1].split(':'))[1]).strip()
+                    if key not in missing_keys:
+                        missing_keys.append(key)
+                except Exception, e:
+                    tb_count = tb_count + 1
+                    recent_tb = traceback.format_exception(sys.exc_info()[0],
+                                                           sys.exc_info()[1],
+                                                           sys.exc_info()[2])
+
+            if len(missing_keys) > 0:
+                glideinFrontendLib.log_files.logDebug("Failed to evaluate resource match in countMatch. Possibly match_expr has errors and trying to reference job or site attribute(s) '%s' in an inappropriate way." % (','.join(missing_keys)))
+            if tb_count > 0: 
+                glideinFrontendLib.log_files.logDebug("There were %s exceptions in countMatch subprocess. Most recent traceback: %s " % (tb_count, recent_tb))
+
             jobs_arr+=sjobs_arr
             del sjobs_arr
             glidein_count+=schedd_count
-            pass    
         jobs=set(jobs_arr)
         del jobs_arr
         list_of_all_jobs.append(jobs)
         out_glidein_counts[glidename]=glidein_count
-        pass
 
     # Now split the list of sets into unique sets
     # We will use this to count how many glideins each job matches against
@@ -411,7 +432,9 @@ def countMatch(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match_list=
     final_unique[(None,None,None)]=count_unmatched
     return (out_glidein_counts,final_out_counts,final_unique)
 
-def countRealRunning(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match_list=None):
+def countRealRunning(match_obj, condorq_dict, glidein_dict,
+                     attr_dict, condorq_match_list=None):
+
     out_glidein_counts={}
 
     if condorq_match_list is not None:
@@ -446,17 +469,36 @@ def countRealRunning(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match
             condorq=condorq_dict[schedd]
             condorq_data=condorq.fetchStored()
             schedd_count=0
+
+            missing_keys = []
+            tb_count = 0
+            recent_tb = None
+
             for jh in cq_dict_clusters_el.keys():
                 # get the first job... they are all the same
                 first_jid=cq_dict_clusters_el[jh][0]
                 job=condorq_data[first_jid]
-                if eval(match_obj) and job['RunningOn'] == glide_str:
-                    schedd_count+=len(cq_dict_clusters_el[jh])
-                pass
+                try:
+                    if eval(match_obj) and job['RunningOn'] == glide_str:
+                        schedd_count+=len(cq_dict_clusters_el[jh])
+                except KeyError, e:
+                    tb = traceback.format_exception(sys.exc_info()[0],
+                                                    sys.exc_info()[1],
+                                                    sys.exc_info()[2])
+                    key = ((tb[len(tb) - 1].split(':'))[1]).strip()
+                    if key not in missing_keys:
+                        missing_keys.append(key)
+                except Exception, e:
+                    tb_count = tb_count + 1
+                    recent_tb = traceback.format_exception(sys.exc_info()[0],
+                                                           sys.exc_info()[1],
+                                                           sys.exc_info()[2])
+            if len(missing_keys) > 0:
+                glideinFrontendLib.log_files.logDebug("Failed to evaluate resource match in countRealRunning. Possibly match_expr has errors and trying to reference job or site attribute(s) '%s' in an inappropriate way." % (','.join(missing_keys)))
+            if tb_count > 0:
+                glideinFrontendLib.log_files.logDebug("There were %s exceptions in countRealRunning subprocess. Most recent traceback: %s " % (tb_count, recent_tb))
             glidein_count+=schedd_count
-            pass
         out_glidein_counts[glidename]=glidein_count
-        pass
     return out_glidein_counts
 
 #

@@ -442,36 +442,22 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
             # this is the child... return output as a pickled object via the pipe
             os.close(r)
             try:
-                try:
-                    if dt=='Real':
-                        out=glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict,attr_dict,condorq_match_list)
-                    elif dt=='Glidein':
-                        count_status_multi={}
-                        for glideid in glidein_dict.keys():
-                            request_name=glideid[1]
-    
-                            count_status_multi[request_name]={}
-                            for st in status_dict_types.keys():
-                                c=glideinFrontendLib.getClientCondorStatus(status_dict_types[st]['dict'],frontend_name,group_name,request_name)
-                                count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
-                        out=count_status_multi
-                    else:
-                        c,p,h=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict,attr_dict,condorq_match_list)
-                        t=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
-                        out=(c,p,h,t)
-                except KeyError, e:
-                    tb = traceback.format_exception(sys.exc_info()[0],
-                                                    sys.exc_info()[1],
-                                                    sys.exc_info()[2])
-                    key = ((tb[len(tb) - 1].split(':'))[1]).strip()
-                    glideinFrontendLib.log_files.logDebug("Failed to evaluate resource match for %s state. Possibly match_expr is buggy and trying to reference job or site attribute %s in an inappropriate way." % (dt,key))
-                    raise e
-                except Exception, e:
-                    tb = traceback.format_exception(sys.exc_info()[0],
-                                                    sys.exc_info()[1],
-                                                    sys.exc_info()[2])
-                    glideinFrontendLib.log_files.logDebug("Exception in counting subprocess for %s: %s " % (dt, tb))
-                    raise e
+                if dt=='Real':
+                    out=glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict,attr_dict,condorq_match_list)
+                elif dt=='Glidein':
+                    count_status_multi={}
+                    for glideid in glidein_dict.keys():
+                        request_name=glideid[1]
+
+                        count_status_multi[request_name]={}
+                        for st in status_dict_types.keys():
+                            c=glideinFrontendLib.getClientCondorStatus(status_dict_types[st]['dict'],frontend_name,group_name,request_name)
+                            count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
+                    out=count_status_multi
+                else:
+                    c,p,h=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict,attr_dict,condorq_match_list)
+                    t=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
+                    out=(c,p,h,t)
 
                 os.write(w,cPickle.dumps(out))
             finally:
