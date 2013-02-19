@@ -12,7 +12,6 @@ import optparse
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorExe
 from glideinwms.lib import condorPrivsep
-from glideinwms.lib import ldapMonitor
 
 import common
 import WMSCollector
@@ -882,26 +881,6 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
       common.logerr(e)
     del condor_obj
     return condor_data
-
-  #----------------------------
-  def get_bdii_data(self):
-    common.logit("BDII host: %s" % self.glidein.bdii_host())
-    #-- validate host ---
-    if not common.url_is_valid(self.glidein.bdii_host()):
-      common.logerr("BDII server (%s) in bdii_host option is not valid or inaccssible." % self.glidein.bdii_host())
-
-    #-- get gatekeeper data from BDII --
-    constraint = self.glidein.bdii_vo_constraint()
-    common.logit("Supported VOs: %s" % self.glidein.entry_vos())
-    common.logit("Constraints: %s" % constraint)
-    try:
-      bdii_obj=ldapMonitor.BDIICEQuery(self.glidein.bdii_host(),additional_filter_str=constraint)
-      bdii_obj.load()
-      bdii_data=bdii_obj.fetchStored()
-    except Exception,e: 
-      common.logerr(e)
-    del bdii_obj
-    return bdii_data
 
   #-------------------------
   def create_template(self):
