@@ -316,7 +316,7 @@ def countMatch(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match_list=
             schedd_count=0
             sjobs_arr=[]
 
-            missing_keys = []
+            missing_keys = set()
             tb_count = 0
             recent_tb = None
 
@@ -324,7 +324,7 @@ def countMatch(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match_list=
                 # get the first job... they are all the same
                 first_jid=cq_dict_clusters_el[jh][0]
                 job=condorq_data[first_jid]
-                
+
                 try:
                     if eval(match_obj):
                         # the first matched... add all jobs in the cluster
@@ -340,18 +340,18 @@ def countMatch(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match_list=
                     tb = traceback.format_exception(sys.exc_info()[0],
                                                     sys.exc_info()[1],
                                                     sys.exc_info()[2])
-                    key = ((tb[len(tb) - 1].split(':'))[1]).strip()
-                    if key not in missing_keys:
-                        missing_keys.append(key)
+                    key = ((tb[-1:].split(':'))[1]).strip()
+                    missing_keys.add(key)
+
                 except Exception, e:
                     tb_count = tb_count + 1
                     recent_tb = traceback.format_exception(sys.exc_info()[0],
                                                            sys.exc_info()[1],
                                                            sys.exc_info()[2])
 
-            if len(missing_keys) > 0:
+            if missing_keys:
                 glideinFrontendLib.log_files.logDebug("Failed to evaluate resource match in countMatch. Possibly match_expr has errors and trying to reference job or site attribute(s) '%s' in an inappropriate way." % (','.join(missing_keys)))
-            if tb_count > 0: 
+            if tb_count > 0:
                 glideinFrontendLib.log_files.logDebug("There were %s exceptions in countMatch subprocess. Most recent traceback: %s " % (tb_count, recent_tb))
 
             jobs_arr+=sjobs_arr
@@ -470,7 +470,7 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
             condorq_data=condorq.fetchStored()
             schedd_count=0
 
-            missing_keys = []
+            missing_keys = set()
             tb_count = 0
             recent_tb = None
 
@@ -485,15 +485,14 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
                     tb = traceback.format_exception(sys.exc_info()[0],
                                                     sys.exc_info()[1],
                                                     sys.exc_info()[2])
-                    key = ((tb[len(tb) - 1].split(':'))[1]).strip()
-                    if key not in missing_keys:
-                        missing_keys.append(key)
+                    key = ((tb[-1:].split(':'))[1]).strip()
+                    missing_keys.add(key)
                 except Exception, e:
                     tb_count = tb_count + 1
                     recent_tb = traceback.format_exception(sys.exc_info()[0],
                                                            sys.exc_info()[1],
                                                            sys.exc_info()[2])
-            if len(missing_keys) > 0:
+            if missing_keys:
                 glideinFrontendLib.log_files.logDebug("Failed to evaluate resource match in countRealRunning. Possibly match_expr has errors and trying to reference job or site attribute(s) '%s' in an inappropriate way." % (','.join(missing_keys)))
             if tb_count > 0:
                 glideinFrontendLib.log_files.logDebug("There were %s exceptions in countRealRunning subprocess. Most recent traceback: %s " % (tb_count, recent_tb))
