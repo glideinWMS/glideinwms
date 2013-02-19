@@ -350,9 +350,9 @@ def countMatch(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match_list=
                                                            sys.exc_info()[2])
 
             if missing_keys:
-                glideinFrontendLib.log_files.logDebug("Failed to evaluate resource match in countMatch. Possibly match_expr has errors and trying to reference job or site attribute(s) '%s' in an inappropriate way." % (','.join(missing_keys)))
+                log_files.logDebug("Failed to evaluate resource match in countMatch. Possibly match_expr has errors and trying to reference job or site attribute(s) '%s' in an inappropriate way." % (','.join(missing_keys)))
             if tb_count > 0:
-                glideinFrontendLib.log_files.logDebug("There were %s exceptions in countMatch subprocess. Most recent traceback: %s " % (tb_count, recent_tb))
+                log_files.logDebug("There were %s exceptions in countMatch subprocess. Most recent traceback: %s " % (tb_count, recent_tb))
 
             jobs_arr+=sjobs_arr
             del sjobs_arr
@@ -493,9 +493,9 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
                                                            sys.exc_info()[1],
                                                            sys.exc_info()[2])
             if missing_keys:
-                glideinFrontendLib.log_files.logDebug("Failed to evaluate resource match in countRealRunning. Possibly match_expr has errors and trying to reference job or site attribute(s) '%s' in an inappropriate way." % (','.join(missing_keys)))
+                log_files.logDebug("Failed to evaluate resource match in countRealRunning. Possibly match_expr has errors and trying to reference job or site attribute(s) '%s' in an inappropriate way." % (','.join(missing_keys)))
             if tb_count > 0:
-                glideinFrontendLib.log_files.logDebug("There were %s exceptions in countRealRunning subprocess. Most recent traceback: %s " % (tb_count, recent_tb))
+                log_files.logDebug("There were %s exceptions in countRealRunning subprocess. Most recent traceback: %s " % (tb_count, recent_tb))
             glidein_count+=schedd_count
         out_glidein_counts[glidename]=glidein_count
     return out_glidein_counts
