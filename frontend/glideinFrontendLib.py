@@ -258,9 +258,9 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, condorq_match_l
                                                            sys.exc_info()[2])
 
             if missing_keys:
-                glideinFrontendLib.log_files.logDebug("Failed to evaluate resource match in countMatch. Possibly match_expr has errors and trying to reference job or site attribute(s) '%s' in an inappropriate way." % (','.join(missing_keys)))
+                logSupport.log.debug("Failed to evaluate resource match in countMatch. Possibly match_expr has errors and trying to reference job or site attribute(s) '%s' in an inappropriate way." % (','.join(missing_keys)))
             if tb_count > 0:
-                glideinFrontendLib.log_files.logDebug("There were %s exceptions in countMatch subprocess. Most recent traceback: %s " % (tb_count, recent_tb))
+                logSupport.log.debug("There were %s exceptions in countMatch subprocess. Most recent traceback: %s " % (tb_count, recent_tb))
 
             jobs_arr+=sjobs_arr
             del sjobs_arr
