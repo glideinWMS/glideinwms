@@ -22,8 +22,8 @@ v2_7	glideinwms code is now organized as python packages
 	Bug Fix: Fixed a bug where frontend_startup would not correctly pick
 	  default frontend.xml
 	Bug Fix: Fixed a bug in frontend where failure to evaluate match_expr
-	  for one entry would prevent frontend from requesting glideins to
-	  other entries
+	  for one group would prevent frontend from requesting glideins for
+	  other groups
 	Bug Fix: RPM now has shared port daemon enabled in the configuration
 	Bug Fix: Fixed a bug where Factory would sometime use wrong DN when
 	  calculating proxy hash
