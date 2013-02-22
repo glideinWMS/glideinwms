@@ -1532,6 +1532,14 @@ do
 
 done
 
+#################################
+# report job as running to APFMon
+baseAPFurl=`grep "^APFMonBaseURL " $glidein_config | awk '{print $2}'`
+if [ -n ${baseAPFurl} ]; then
+    url="${baseAPFurl}/${glidein_factory}:job.${condorg_cluster}.${condorg_subcluster}"
+    curl -s -d "state=running" $url
+fi
+
 ###############################
 # Start the glidein main script
 add_config_line "GLIDEIN_INITIALIZED" "1"
@@ -1562,6 +1570,13 @@ echo "=== Last script ended `date` ($last_startup_end_time) with code $ret after
 echo
 if [ $ret -ne 0 ]; then
     warn "Error running '$last_script'" 1>&2
+fi
+
+#################################
+# report job as exiting to APFMon
+if [ -n ${baseAPFurl} ]; then
+    url="${baseAPFurl}/${glidein_factory}:job.${condorg_cluster}.${condorg_subcluster}"
+    curl -s -d "state=exiting" $url
 fi
 
 #########################
