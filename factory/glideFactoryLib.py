@@ -25,6 +25,7 @@ import traceback
 import tempfile
 
 from glideinwms.lib.tarSupport import GlideinTar
+from glideinwms.lib import APFMonClient
 from glideinwms.lib import condorExe,condorPrivsep
 from glideinwms.lib import logSupport
 from glideinwms.lib import condorMonitor
@@ -1178,6 +1179,17 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
         # write out no matter what
         log.info("Submitted %i glideins to %s: %s" % (len(submitted_jids),
                                                       schedd, submitted_jids))
+
+    if submitted_jids:
+        logSupport.log.info("Logging to APF")
+        apf = APFMonClient.APFMonClient()
+
+        try:
+            apf.sendJobIDs(entry_name, submitted_jids)
+        except Exception, e:
+            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            apf.log_files.logError(tb)
 
 # remove the glideins in the list
 def removeGlideins(schedd_name, jid_list, force=False, log=logSupport.log,
