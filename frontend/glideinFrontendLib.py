@@ -14,7 +14,11 @@
 #
 
 import os.path
-import string,math
+import string
+import math
+import sys
+import traceback
+
 from glideinwms.lib import condorMonitor,condorExe
 from glideinwms.lib import logSupport
 
@@ -241,9 +245,13 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, condorq_match_l
                             t=(jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
                             cluster_arr.append(t)
                             schedd_count+=1
-                        first_t=(first_jid[0]*procid_mul+first_jid[1])*nr_schedds+scheddIdx
-                        all_jobs_clusters[first_t]=cluster_arr
-                        sjobs_arr+=[first_t]
+                        #first_t=(first_jid[0]*procid_mul+first_jid[1])*nr_schedds+scheddIdx
+                        #all_jobs_clusters[first_t]=cluster_arr
+                        #sjobs_arr+=[first_t]
+                        # adding a whole cluster much faster
+                        sjobs_arr+=cluster_arr
+                        del cluster_arr
+
                 except KeyError, e:
                     tb = traceback.format_exception(sys.exc_info()[0],
                                                     sys.exc_info()[1],
@@ -378,9 +386,9 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
                                                            sys.exc_info()[1],
                                                            sys.exc_info()[2])
             if missing_keys:
-                glideinFrontendLib.log_files.logDebug("Failed to evaluate resource match in countRealRunning. Possibly match_expr has errors and trying to reference job or site attribute(s) '%s' in an inappropriate way." % (','.join(missing_keys)))
+                logSupport.log.debug("Failed to evaluate resource match in countRealRunning. Possibly match_expr has errors and trying to reference job or site attribute(s) '%s' in an inappropriate way." % (','.join(missing_keys)))
             if tb_count > 0:
-                glideinFrontendLib.log_files.logDebug("There were %s exceptions in countRealRunning subprocess. Most recent traceback: %s " % (tb_count, recent_tb))
+                logSupport.log.debug("There were %s exceptions in countRealRunning subprocess. Most recent traceback: %s " % (tb_count, recent_tb))
             glidein_count+=schedd_count
         out_glidein_counts[glidename]=glidein_count
     return out_glidein_counts
