@@ -43,6 +43,7 @@ from glideinwms.factory import glideFactoryMonitorAggregator
 from glideinwms.factory import glideFactoryMonitoring
 from glideinwms.factory import glideFactoryDowntimeLib
 from glideinwms.factory import glideFactoryCredentials
+from glideinwms.lib import APFMonClient
 
 ############################################################
 def aggregate_stats(in_downtime):
@@ -659,6 +660,9 @@ def main(startup_dir):
 
     # start
     pid_obj.register()
+    apf = APFMonClient.APFMonClient(BaseUrl=glideinDescript.data['WebURL'].replace('stage', 'logs'))
+    apf.registerFactory()
+
     try:
         try:
             spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
