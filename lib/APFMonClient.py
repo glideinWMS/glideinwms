@@ -1,4 +1,4 @@
-import json
+import simplejson as json
 import urllib2
 from glideinwms.factory import glideFactoryConfig
 from glideinwms.lib import logSupport
@@ -29,7 +29,7 @@ class APFMonClient:
             'type': 'glideinWMS' # choices: glideinWMS or AutoPyFactory
             }
 
-        data = json.write(attrs)
+        data = json.dumps(attrs)
         url = self._APFMonUrl + "factories/%s" % self._factoryId
         try:
             _ = self._httpPut(url, data)
@@ -57,7 +57,7 @@ class APFMonClient:
                         'nick': entry}
                        for clusterId, procId in jobslist]
 
-        data = json.write(apfJobsList)
+        data = json.dumps(apfJobsList)
         self.log_files.logActivity("Sending %s to APF" % data)
         url = self._APFMonUrl + "jobs"
 
