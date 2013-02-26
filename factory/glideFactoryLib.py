@@ -1187,9 +1187,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
         try:
             apf.sendJobIDs(entry_name, submitted_jids)
         except Exception, e:
-            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
-                                            sys.exc_info()[2])
-            apf.log_files.logError(tb)
+            logSupport.log.exception("Error logging to APF")
 
 # remove the glideins in the list
 def removeGlideins(schedd_name, jid_list, force=False, log=logSupport.log,

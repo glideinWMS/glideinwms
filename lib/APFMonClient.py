@@ -17,11 +17,9 @@ class APFMonClient:
         self._BaseUrl = BaseUrl
         self._Email="burt@fnal.gov"
 
-        import glideinwms.factory.glideFactoryLib as gfl
-        self.log_files = gfl.log_files
-
     def registerFactory(self):
-        self.log_files.logActivity("Registering factory to %s" % self._APFMonUrl)
+        logSupport.log.info("Registering factory to %s" % self._APFMonUrl)
+
         attrs = {
             'url' : self._BaseUrl,
             'email' : self._Email,
@@ -34,7 +32,7 @@ class APFMonClient:
         try:
             _ = self._httpPut(url, data)
         except:
-            self.log_files.logError("Unable to register factory to %s" % self._APFMonUrl)
+            logSupport.log.error("Unable to register factory to %s" % self._APFMonUrl)
 
     def _httpPut(self, url, data):
         # urllib only does GET and POST
@@ -47,7 +45,7 @@ class APFMonClient:
 
     def sendJobIDs(self, entry, jobslist):
         # jobslist is list of (clusterId, ProcId) tuples
-        self.log_files.logActivity("in sendJobIDs")
+        logSupport.log.info("in sendJobIDs")
         entry = "entry_%s" % entry
         apfJobsList = [{'cid': "job.%s.%s" % (clusterId, procId),
                         'label': entry,
@@ -58,18 +56,16 @@ class APFMonClient:
                        for clusterId, procId in jobslist]
 
         data = json.dumps(apfJobsList)
-        self.log_files.logActivity("Sending %s to APF" % data)
+        logSupport.log.info("Sending %s to APF" % data)
         url = self._APFMonUrl + "jobs"
 
         try:
             _ = self._httpPut(url, data)
         except urllib2.HTTPError, h:
             if h.code == 201:
-                self.log_files.logActivity("sendJobIDs success")
+                logSupport.log.info("sendJobIDs success")
             else:
                 raise h
         except Exception, e:
-            self.log_files.logError("sendJobIDs failure")
-            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
-                                            sys.exc_info()[2])
-            self.log_files.logError(tb)
+            logSupport.log.exception("sendJobIDs failure")
+
