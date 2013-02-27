@@ -451,8 +451,8 @@ advertizeGFCCounter = {}
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
-def advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain, auth_method,
-                     supported_signtypes, pub_key_obj,
+def advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain,
+                     auth_method, supported_signtypes, pub_key_obj,
                      glidein_attrs={}, glidein_params={}, glidein_monitors={}):
     
     """

@@ -412,6 +412,9 @@ class Entry:
         """
 
         self.loadContext()
+        
+        trust_domain = self.glideinDescript.data['TrustDomain']
+        auth_method = self.glideinDescript.data['AuthMethod']
         pub_key_obj = self.glideinDescript.data['PubKeyObj']
 
         self.gflFactoryConfig.client_stats.finalizeClientMonitor()
@@ -422,6 +425,7 @@ class Entry:
         for w in current_qc_total:
             for a in current_qc_total[w]:
                 glidein_monitors['Total%s%s'%(w,a)]=current_qc_total[w][a]
+                self.jobAttributes.data['GlideinMonitorTotal%s%s' % (w, a)] = current_qc_total[w][a]
         try:
             # Make copy of job attributes so can override the validation
             # downtime setting with the true setting of the entry 
@@ -431,25 +435,20 @@ class Entry:
             glideFactoryInterface.advertizeGlidein(
                 self.gflFactoryConfig.factory_name,
                 self.gflFactoryConfig.glidein_name,
-                self.name, self.gflFactoryConfig.supported_signtypes,
+                self.name, trust_domain, auth_method,
+                self.gflFactoryConfig.supported_signtypes, pub_key_obj,
                 myJobAttributes, self.jobParams.data.copy(),
-                glidein_monitors.copy(), pub_key_obj, self.allowedProxySource)
+                glidein_monitors.copy())
         except:
-            self.log.warning("Advertising entry '%s' failed"%self.name)
-            tb = traceback.format_exception(sys.exc_info()[0],
-                                            sys.exc_info()[1],
-                                            sys.exc_info()[2])
-            self.log.warning("Exception: %s" % tb)
-
+            self.log.error("Advertising entry '%s' failed"%self.name)
 
         # Advertise the monitoring, use the downtime found in
         # validation of the credentials
-        monitor_job_attrs = self.jobAttributes.data.copy()
         advertizer = \
             glideFactoryInterface.MultiAdvertizeGlideinClientMonitoring(
                 self.gflFactoryConfig.factory_name,
                 self.gflFactoryConfig.glidein_name,
-                self.name, monitor_job_attrs)
+                self.name, self.jobAttributes.data.copy())
 
         current_qc_data = self.gflFactoryConfig.client_stats.get_data()
         for client_name in current_qc_data:
@@ -1510,11 +1509,7 @@ def perform_work_v3(entry, condorQ, client_int_name, client_security_name,
     return 0
 
     
-
 ###############################################################################
-
-
-
 
 
 def perform_work_v2(entry, condorQ, client_int_name, client_security_name,
