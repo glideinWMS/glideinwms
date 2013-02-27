@@ -2714,6 +2714,7 @@ def install_condor():
     finally:
         # installation files not needed anymore
         shutil.rmtree(tar_dir)
+        del fd
 
     yn=raw_input("Do you want to split the config files between condor_config and condor_config.local?: (y/n) [y] ")
     if yn!='n':
