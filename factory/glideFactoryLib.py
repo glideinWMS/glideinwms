@@ -1579,5 +1579,37 @@ class GlideinTotals:
 
         return output
 
-        return output
 
+#######################################################
+
+def set_condor_integrity_checks():
+    os.environ['_CONDOR_SEC_DEFAULT_INTEGRITY'] = 'REQUIRED'
+    os.environ['_CONDOR_SEC_CLIENT_INTEGRITY'] = 'REQUIRED'
+    os.environ['_CONDOR_SEC_READ_INTEGRITY'] = 'REQUIRED'
+    os.environ['_CONDOR_SEC_WRITE_INTEGRITY'] = 'REQUIRED'
+
+def which(program):
+    """
+    Implementation of which command in python.
+
+    @return: Path to the binary
+    @rtype: string
+    """
+    def is_exe(fpath):
+        return os.path.exists(fpath) and os.access(fpath, os.X_OK)
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+    return None
+
+def days2sec(days):
+    return int(days * 24 * 60 * 60)
+
+def hrs2sec(hrs):
+    return int(hrs * 60 * 60)

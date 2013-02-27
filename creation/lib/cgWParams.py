@@ -176,6 +176,8 @@ class GlideinParams(cWParams.CommonParams):
         self.defaults["stage"] = stage_defaults
 
         self.monitor_defaults["base_dir"] = ("/var/www/html/glidefactory/monitor", "base_dir", "Monitoring base dir", None)
+        # Default for rrd update threads
+        self.monitor_defaults["update_thread_count"]=(os.sysconf('SC_NPROCESSORS_ONLN'),"update_thread_count","Number of rrd update threads. Defaults to cpu count.",None)
         self.defaults["monitor"] = self.monitor_defaults
 
         self.frontend_sec_class_defaults = cWParams.commentedOrderedDict()

@@ -105,6 +105,206 @@ class MultiExeError(condorExe.ExeError):
 #
 ############################################################
 
+def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
+                  pub_key_obj=None, additional_constraints=None):
+    """
+    Find request classAds that have my (factory, glidein name, entries) and
+    create the dictionary of dictionary of work request information.
+    Example: work[entry_name][frontend] = {'params':'value', 'requests':'value}
+
+    @type factory_name: string
+    @param factory_name: name of the factory
+
+    @type glidein_name: string
+    @param glidein_name: name of the glidein instance
+
+    @type entry_names: list
+    @param entry_names: list of factory entry names
+
+    @type supported_signtypes: list
+    @param supported_signtypes: only support one kind of signtype, 'sha1', default is None
+
+    @type pub_key_obj: string
+    @param pub_key_obj: only support 'RSA', defaults to None
+
+    @type additional_constraints: string
+    @param additional_constraints: any additional constraints to include for querying the WMS collector, default is None
+
+    @rtype: dict
+    @return: Dictionary of work to perform. Return format is work[entry_name][frontend] = {'params':'value', 'requests':'value}
+    """
+
+    global factoryConfig
+
+    req_glideins = ''
+    for entry in entry_names:
+        req_glideins = '%s@%s@%s,%s' % (entry, glidein_name,
+                                        factory_name, req_glideins)
+    # Strip off leading & trailing comma
+    req_glideins = req_glideins.strip(',')
+
+    status_constraint='(GlideinMyType=?="%s") && (stringListMember(ReqGlidein,"%s")=?=True)' % (factoryConfig.client_id, req_glideins)
+
+    if (supported_signtypes is not None):
+        status_constraint += ' && stringListMember(%s%s,"%s")' % \
+            (factoryConfig.client_web_prefix,
+             factoryConfig.client_web_signtype_suffix,
+             string.join(supported_signtypes, ","))
+
+    if (pub_key_obj is not None):
+        # Get only classads that have my key or no key at all
+        # Any other key will not work
+        status_constraint += ' && (((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined) && (ReqEncIdentity=!=Undefined)) || (ReqPubKeyID=?=Undefined))' % pub_key_obj.get_pub_key_id()
+
+    if (additional_constraints is not None):
+        status_constraint = "(%s)&&(%s)" % (status_constraint,
+                                            additional_constraints)
+
+    status = condorMonitor.CondorStatus("any")
+    # Important, this dictates what gets submitted
+    status.require_integrity(True)
+    status.glidein_name = glidein_name
+
+    # Serialize access to the Collector accross all the processes
+    # these is a single Collector anyhow
+    lock_fname = os.path.join(factoryConfig.lock_dir, "gfi_status.lock")
+    if not os.path.exists(lock_fname):
+        # Create a lock file if needed
+        try:
+            fd = open(lock_fname,"w")
+            fd.close()
+        except:
+            # could be a race condition
+            pass
+
+    fd = open(lock_fname,"r+")
+
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        try:
+            status.load(status_constraint)
+        finally:
+            fcntl.flock(fd, fcntl.LOCK_UN)
+    finally:
+        fd.close()
+
+    data = status.fetchStored()
+
+    reserved_names = ("ReqName", "ReqGlidein", "ClientName", "FrontendName",
+                      "GroupName","ReqPubKeyID","ReqEncKeyCode",
+                      "ReqEncIdentity","AuthenticatedIdentity")
+
+    # Output is now in the format of
+    # out[entry_name][frontend]
+    out = {}
+
+    # Copy over requests and parameters
+
+    for k in data:
+        kel = data[k]
+        el = {"requests":{}, "web":{}, "params":{}, 
+              "params_decrypted":{}, "monitor":{}, "internals":{}}
+
+        for (key,prefix) in (("requests",factoryConfig.client_req_prefix),
+                             ("web",factoryConfig.client_web_prefix),
+                             ("params",factoryConfig.glidein_param_prefix),
+                             ("monitor",factoryConfig.glidein_monitor_prefix)):
+            plen = len(prefix)
+            for attr in kel:
+                if attr in reserved_names:
+                    # Skip reserved names
+                    continue
+                if attr[:plen] == prefix:
+                    el[key][attr[plen:]] = kel[attr]
+
+        # sym_key_obj will stay None if
+        # 1) extract_sym_key throws exception
+        # 2) kel does not contain 'ReqPubKeyID'
+        # 3) pub_key_obj is None and there is no key to decrypt
+        sym_key_obj = None
+        if (pub_key_obj is not None) and ('ReqPubKeyID' in kel):
+            try:
+                sym_key_obj = pub_key_obj.extract_sym_key(kel['ReqEncKeyCode'])
+            except:
+                continue
+
+        if (sym_key_obj is not None):
+            # Verify that the identity the client claims to be is the
+            # identity that Condor thinks it is
+            try:
+                enc_identity = sym_key_obj.decrypt_hex(kel['ReqEncIdentity'])
+            except:
+                logSupport.log.warning("Client %s provided invalid ReqEncIdentity, could not decode. Skipping for security reasons." % k)
+                continue # Corrupted classad
+            if enc_identity != kel['AuthenticatedIdentity']:
+                logSupport.log.warning("Client %s provided invalid ReqEncIdentity(%s!=%s). Skipping for security reasons." % (k, enc_identity,
+                                            kel['AuthenticatedIdentity']))
+                # Either the client is misconfigured or someone is cheating
+                continue
+
+        invalid_classad = False
+
+        for (key, prefix) in (("params_decrypted", factoryConfig.encrypted_param_prefix),):
+            plen = len(prefix)
+            for attr in kel:
+                if attr in reserved_names:
+                    # Skip reserved names
+                    continue
+                if attr[:plen] == prefix:
+                    # Define it even if I don't understand the content
+                    el[key][attr[plen:]] = None
+                    if sym_key_obj is not None :
+                        try:
+                            el[key][attr[plen:]] = sym_key_obj.decrypt_hex(kel[attr])
+                        except:
+                            # I don't understand it -> invalid
+                            invalid_classad = True
+                            break
+
+        # Continue if I have problems in an inner loop
+        if invalid_classad:
+            logSupport.log.warning("At least one of the encrypted parameters for client %s cannot be decoded. Skipping for security reasons."%k)
+            continue
+
+        for attr in kel:
+            if attr in ("ClientName", "FrontendName", "GroupName", "ReqName",
+                        "LastHeardFrom", "ReqPubKeyID", "AuthenticatedIdentity"):
+                el["internals"][attr] = kel[attr]
+
+        out[k] = el
+
+    return workGroupByEntries(out)
+
+
+def workGroupByEntries(work):
+    """
+    Given the dictionary of work items, group the work based on the entry
+    Example: grouped_work[entry][w]
+    """
+
+    grouped_work = {}
+
+    for w in work:
+        req_name = work[w]['internals']['ReqName']
+        try:
+            entry = (req_name.split('@'))[0]
+            if not (entry in grouped_work):
+                grouped_work[entry] = {}
+            grouped_work[entry][w] = work[w]
+        except:
+            logSupport.log.warning("Unable to group work for '%s' based on ReqName '%s'. This work item will not be processed." % (w, req_name))
+
+    return grouped_work
+
+
+
+
+
+
+
+
+# TODO: PM: findWork is still needed by tools/wmsXMLView. Modify wmsXMLView
+# its still being used before removing the function below
 
 def findWork(factory_name, glidein_name, entry_name,
              supported_signtypes,
