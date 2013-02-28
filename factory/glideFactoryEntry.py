@@ -860,7 +860,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
                                           decrypted_params,
                                           params, in_downtime, condorQ)
         else:
-            work_performed = unit_work_v3(entry, work[work_key], work_key
+            work_performed = unit_work_v3(entry, work[work_key], work_key,
                                           client_int_name,
                                           client_expected_identity,
                                           decrypted_params,

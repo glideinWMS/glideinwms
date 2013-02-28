@@ -17,7 +17,8 @@
 
 import os
 import sys
-import fcntl #@UnresolvedImport
+import fcntl
+import resource
 import subprocess
 import traceback
 import signal
@@ -25,6 +26,7 @@ import time
 import string
 import copy
 import logging
+import math
 from datetime import datetime
 
 STARTUP_DIR = sys.path[0]
@@ -471,7 +473,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                                                          stderr=subprocess.PIPE)
 
                         if len(childs_uptime[group]) == restart_attempts:
-                            childs_uptime[entry_name].pop(0)
+                            childs_uptime[group].pop(0)
                         childs_uptime[group].append(time.time())
                         childs[group].tochild.close()
                         for fd in (childs[group].stdout.fileno(),
