@@ -1022,7 +1022,7 @@ def unit_work_v3(entry, work, work_key, client_int_name,
         else:
             # Validate factory provided vm id exists
             if entry.jobDescript.data.has_key('EntryVMId'):
-                vm_id = entry.jobDescript.data.['EntryVMId']
+                vm_id = entry.jobDescript.data['EntryVMId']
             else:
                 entry.log.warning("Entry does not specify a VM Id, this is required by entry %s, skipping request." % entry.name)
                 return return_dict 
@@ -1036,7 +1036,7 @@ def unit_work_v3(entry, work, work_key, client_int_name,
         else:
             # Validate factory provided vm type exists
             if entry.jobDescript.data.has_key('EntryVMType'): 
-                vm_type = entry.jobDescript.data.['EntryVMType']
+                vm_type = entry.jobDescript.data['EntryVMType']
             else:
                 entry.log.warning("Entry does not specify a VM Type, this is required by entry %s, skipping request." %  entry.name)
                 return return_dict 
@@ -1055,7 +1055,7 @@ def unit_work_v3(entry, work, work_key, client_int_name,
                 return return_dict 
                 
             private_cert_id = decrypted_params.get('PrivateCert')
-            if ( (private_cert_id) not 
+            if ( (private_cert_id) and 
                  (submit_credentials.add_security_credential(
                       'PrivateCert',
                       '%s_%s' % (client_int_name, private_cert_id))) ):
@@ -1198,7 +1198,7 @@ def unit_work_v3(entry, work, work_key, client_int_name,
                                      client_security_name, submit_credentials,
                                      remove_excess, idle_glideins, max_glideins,
                                      credential_username, entry.glideinTotals,
-                                     frontend_name, client_web, params):
+                                     frontend_name, client_web, params)
 
     # Gather the information to be returned back
     return_dict['success'] = True
@@ -1254,7 +1254,7 @@ def unit_work_v2(entry, work, work_key, client_int_name,
         # TODO: PM: determine how to verify voms attribute on a proxy
         pass
 
-    if ('nr_x509_proxies' not in decrypted_params.has_key('nr_x509_proxies'):
+    if ('nr_x509_proxies' not in decrypted_params.has_key('nr_x509_proxies')):
         logSupport.log.warning("Could not determine number of proxies for %s, skipping request" % client_int_name)
         return return_dict
         try:

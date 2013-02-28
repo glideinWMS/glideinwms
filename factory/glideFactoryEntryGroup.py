@@ -584,7 +584,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                                                 sys.exc_info()[2])
                 logSupport.log.warn("Exception occurred: %s" % tb)
 
-        gfl.log.cleanup()
+        logSupport.log.cleanup()
 
         logSupport.log.info("Sleep %is" % sleep_time)
         time.sleep(sleep_time)
