@@ -86,7 +86,7 @@ Related Links: <br/>
 Below is an example factory configuration xml file.  Click on any piece
 for a more detailed description.
 <div class="config">
-<a href="#glidein">&lt;glidein advertise_delay="5" factory_name="factory-dstrain" glidein_name="v2_4" loop_delay="60" restart_attempts="3" restart_interval="1800" schedd_name="schedd glideins1@submit.fnal.gov,schedd_glideins2@submit.fnal.gov&gt;</a><br/>
+<a href="#glidein">&lt;glidein advertise_delay="5" factory_name="factory-dstrain" glidein_name="v2_4" loop_delay="60" restart_attempts="3" restart_interval="1800" schedd_name="schedd glideins1@submit.fnal.gov,schedd_glideins2@submit.fnal.gov entry_parallel_workers="0"&gt;</a><br/>
 <blockquote>
     <a href="install.html#downtimes">&lt;downtimes /&gt;</a><br/>
     <a href="#">&lt;log_retention &gt;</a><br/>
@@ -267,6 +267,14 @@ individual entry point configuration.
         &lt;glidein advertise_with_tcp=&quot;<I>True|False</I>&quot; &gt;
     </div>
         <b>Optional</b> Defines if the factory should use TCP to advertise its classads.
+    </li>
+    <LI>
+    <div class="xml">
+        &lt;entry_parallel_workers=&quot;<I>nr</I>&quot; &gt;
+    </div>
+    <b>Optional</b> Number of parallel worker process to spawn at a given time to perform entry-specific tasks (like
+    submitting new glideins). If set to zero, the factory dynamically determines this number every iteration based on
+    the amount of free memory available (not counting cache/buffers), assuming a very conservative estimate of 240 MB per worker process.
     </li>
     <LI>
     <div class="xml">

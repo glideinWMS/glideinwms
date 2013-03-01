@@ -6,7 +6,7 @@
 # File Version:
 #
 # Description:
-#   This is the glideinFactoryEntryGroup. Common Tasks like queering collector
+#   This is the glideinFactoryEntryGroup. Common Tasks like querying collector
 #   and advertizing the work done by group are done here
 #
 # Arguments:
@@ -31,6 +31,7 @@ import math
 import copy
 import random
 import cPickle
+import select
 
 STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../../"))
@@ -47,6 +48,11 @@ from glideinwms.factory import glideFactoryMonitorAggregator
 from glideinwms.factory import glideFactoryMonitoring
 from glideinwms.factory import glideFactoryDowntimeLib
 
+# Memory foot print of a entry process when forked for check_and_perform_work
+# Set a conservative limit of 120 MB (based on USCD 2.6 factory Pss of 115 MB)
+#   plus a safety factor of 2
+
+ENTRY_MEM_REQ_BYTES = 120000000 * 2
 ############################################################
 class EntryGroup:
 
@@ -261,8 +267,47 @@ def fetch_fork_result_list(pipe_ids):
 
     return out
 
+
 ###############################
 
+def process_finished_children(pipe_ids):
+    """
+    Read the output pipe of the children, used after forking. If there is data
+    on the pipes to consume, read the data and close the pipe.
+    and after forking to entry.writeStats()
+
+    @type pipe_ids: dict
+    @param pipe_ids: Dictinary of pipe and pid
+
+    @rtype: dict
+    @return: Dictionary of work_done
+    """
+
+    work_info = {}
+    failures = 0
+    fds_to_entry = dict((pipe_ids[x]['r'], x) for x in pipe_ids)
+
+    readable_fds = select.select(fds_to_entry.keys(), [], [], 0)[0]
+    for fd in readable_fds:
+        try:
+            key = fds_to_entry[fd]
+            pid = pipe_ids[key]['pid']
+            out = fetch_fork_result(fd, pid)
+            work_info[key] = out
+        except Exception, e:
+            tb = traceback.format_exception(sys.exc_info()[0],
+                                            sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            gfl.log_files.logWarning("Failed to extract info from child '%s'" % key)
+            gfl.log_files.logDebug("Failed to extract info from child '%s': %s" % (key, tb))
+            failures += 1
+
+    if failures:
+        raise RuntimeError, "Found %i errors" % failures
+
+    return work_info
+
+###############################
 
 def find_and_perform_work(factory_in_downtime, glideinDescript,
                           frontendDescript, group_name, my_entries):
@@ -316,23 +361,66 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     # ids keyed by entry name
     pipe_ids = {}
 
-    #for entry in my_entries.values():
+    # Max number of children to fork at a time
+    # Each child currently takes ~50 MB
+    # Leaving 3GB for system, max number of children to fork is
+    # (Memory - 3000)/50 = 100 (RAM: 8GB) & 250 (RAM: 16GB)
+    parallel_workers = 0
+    try:
+        parallel_workers = int(glideinDescript.data['EntryParallelWorkers'])
+    except KeyError:
+        gfl.log_files.logDebug("EntryParallelWorkers not set -- factory probably needs a reconfig; setting to 0 for dynamic limits.")
+
+    post_work_info = {}
+    work_info_read_err = False
+
+    if parallel_workers <= 0:
+        gfl.log_files.logDebug("Setting parallel_workers limit dynamically based on the available free memory")
+        free_mem = os.sysconf('SC_AVPHYS_PAGES')*os.sysconf('SC_PAGE_SIZE')
+        parallel_workers = int(free_mem / float(ENTRY_MEM_REQ_BYTES))
+        if parallel_workers < 1: parallel_workers = 1
+
+    gfl.log_files.logDebug("Setting parallel_workers limit of %s" % parallel_workers)
+    forks_remaining = parallel_workers
+
     # Only fork of child processes for entries that have corresponding
     # work todo, ie glideclient classads.
     for ent in work:
+        # Check if we can fork more
+        while (forks_remaining == 0):
+            # Give some time for the processes to finsh the work
+            #gfl.log_files.logDebug("Reached parallel_workers limit of %s" % parallel_workers)
+            time.sleep(1)
+
+            post_work_info_subset = {}
+            # Wait and gather results for work done so far before forking more
+            try:
+                #post_work_info_subset = fetch_fork_result_list(pipe_ids)
+                #gfl.log_files.logDebug("Checking finished workers")
+                post_work_info_subset = process_finished_children(pipe_ids)
+                post_work_info.update(post_work_info_subset)
+            except RuntimeError:
+                # Expect all errors logged already
+                work_info_read_err = True
+
+            forks_remaining += len(post_work_info_subset)
+
+            for en in post_work_info_subset:
+                del pipe_ids[en]
+
+
         entry = my_entries[ent]
         r,w = os.pipe()
         pid = os.fork()
+        forks_remaining -= 1
+
         if pid != 0:
             # This is the parent process
-            #gfl.log_files.logActivity("In find_and_perform_work parent process with pid %s after forking entry %s" % (pid, entry.name))
             os.close(w)
             pipe_ids[entry.name] = {'r': r, 'pid': pid}
         else:
             # This is the child process
-            #entry.logFiles.logActivity("In find_and_perform_work child process with pid %s for entry %s" % (pid, entry.name))
             os.close(r)
-
             try:
                 work_done = glideFactoryEntry.check_and_perform_work(
                                 factory_in_downtime, group_name,
@@ -355,21 +443,18 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
             # just for doing check and perform work for each entry
             os.kill(os.getpid(),signal.SIGKILL)
 
-    # Gather results from the forked children
-    gfl.log_files.logActivity("All children forked for glideFactoryEntry.check_and_perform_work terminated.")
-    gfl.log_files.logDebug("All children forked for glideFactoryEntry.check_and_perform_work terminated.")
-    work_info_read_err = False
-    post_work_info = {}
+    # Gather info from rest of the entries
     try:
-        gfl.log_files.logActivity("Processing work info from children")
-        gfl.log_files.logDebug("Processing work info from children")
-        post_work_info = fetch_fork_result_list(pipe_ids)
+        post_work_info_subset = fetch_fork_result_list(pipe_ids)
+        post_work_info.update(post_work_info_subset)
     except RuntimeError:
         # Expect all errors logged already
-        # Ignore errors and only with good info for rest of the iteration
         work_info_read_err = True
-        gfl.log_files.logDebug("Unable to process response from check_and_perform_work. One or more forked processes may have failed.")
-        gfl.log_files.logWarning("Unable to process response from check_and_perform_work. One or more forked processes may have failed.")
+
+
+    # Gather results from the forked children
+    gfl.log_files.logActivity("All children forked for glideFactoryEntry.check_and_perform_work terminated. Loading post work state for the entry.")
+    gfl.log_files.logDebug("All children forked for glideFactoryEntry.check_and_perform_work terminated. Loading post work state for the entry.")
 
     for entry in my_entries:
         # Update the entry object from the post_work_info
@@ -381,8 +466,8 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
             gfl.log_files.logDebug("Entry %s not used by any frontends, i.e no corresponding glideclient classads" % entry)
 
     if work_info_read_err:
-        gfl.log_files.logDebug("work_info_read_err is true, client_stats not updated for one or more entries.")
-        gfl.log_files.logWarning("work_info_read_err is true, client_stats not updated for one or more entries.")
+        gfl.log_files.logDebug("Unable to process response from one or more children for check_and_perform_work. One or more forked processes may have failed and may not have client_stats updated")
+        gfl.log_files.logWarning("Unable to process response from one or more children for check_and_perform_work. One or more forked processes may have failed and may not have client_stats updated")
     
     return groupwork_done
 
