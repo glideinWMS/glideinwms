@@ -530,7 +530,8 @@ def advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain,
     finally:
         os.remove(tmpnam)
 
-def advertizeGlobal(factory_name, glidein_name, supported_signtypes, pub_key_obj):
+def advertizeGlobal(factory_name, glidein_name, supported_signtypes,
+                    pub_key_obj):
     
     """
     Creates the glidefactoryglobal classad and advertises.
@@ -809,7 +810,7 @@ def advertizeGlideinClientMonitoringFromFile(fname,
 # End INTERNAL
 ###########################################
 
-# remove adds from Collector
+# remove classads from Collector
 def deadvertizeAllGlideinClientMonitoring(factory_name, glidein_name, entry_name):
     """
     Deadvertize  monitoring classads for the given entry.

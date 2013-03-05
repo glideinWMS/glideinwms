@@ -358,11 +358,6 @@ class Entry:
         try:
             return glideFactoryLib.getCondorQData(
                        self.name, None, self.scheddName,
-                       factory_schedd_attribute=self.gflFactoryConfig.factory_schedd_attribute,
-                       glidein_schedd_attribute=self.gflFactoryConfig.glidein_schedd_attribute,
-                       entry_schedd_attribute=self.gflFactoryConfig.entry_schedd_attribute,
-                       client_schedd_attribute=self.gflFactoryConfig.client_schedd_attribute,
-                       x509secclass_schedd_attribute=self.gflFactoryConfig.x509secclass_schedd_attribute,
                        factoryConfig=self.gflFactoryConfig)
         except Exception, e:
             self.log.info("Schedd %s not responding, skipping"%self.scheddName)
@@ -1189,7 +1184,8 @@ def unit_work_v3(entry, work, work_key, client_int_name, client_int_req,
                         condorQ, client_int_name,
                         submit_credentials.security_class,
                         client_schedd_attribute=entry.gflFactoryConfig.client_schedd_attribute,
-                        x509secclass_schedd_attribute=entry.gflFactoryConfig.x509secclass_schedd_attribute)
+                        credential_secclass_schedd_attribute=entry.gflFactoryConfig.credential_secclass_schedd_attribute,
+                        factoryConfig=entry.gflFactoryConfig)
 
 
     # Map the identity to a frontend:sec_class for tracking totals
@@ -1342,7 +1338,8 @@ def unit_work_v2(entry, work, work_key, client_int_name, client_int_req,
             x509_proxy_fname = glideFactoryLib.update_x509_proxy_file(
                                    entry.name, x509_proxy_username,
                                    "%s_%s" % (work_key, x509_proxy_identifier),
-                                   x509_proxy)
+                                   x509_proxy,
+                                   factoryConfig=entry.gflFactoryConfig)
         except RuntimeError,e:
             entry.log.warning("Failed to update x509_proxy_%i using username %s for client %s, skipping request" % (i, x509_proxy_username, client_int_name))
             continue
@@ -1414,12 +1411,11 @@ def unit_work_v2(entry, work, work_key, client_int_name, client_int_req,
         client_group_descript = work['web']['GroupDescriptFile']
         client_group_sign = work['web']['GroupDescriptSign']
 
-        client_web = glideFactoryLib.ClientWeb(client_web_url, client_signtype,
-                                               client_descript, client_sign,
-                                               client_group,
-                                               client_group_web_url,
-                                               client_group_descript,
-                                               client_group_sign)
+        client_web = glideFactoryLib.ClientWeb(
+                         client_web_url, client_signtype, client_descript,
+                         client_sign, client_group, client_group_web_url,
+                         client_group_descript, client_group_sign,
+                         factoryConfig=self.gflFactoryConfig)
     except:
         # malformed classad, skip
         entry.log.warning("Malformed classad for client %s, missing web parameters, skipping request." % work_key)
@@ -1452,7 +1448,9 @@ def unit_work_v2(entry, work, work_key, client_int_name, client_int_req,
                             condorQ, client_int_name,
                             x509_proxy_security_class,
                             client_schedd_attribute=entry.gflFactoryConfig.client_schedd_attribute,
-                            x509secclass_schedd_attribute=entry.gflFactoryConfig.x509secclass_schedd_attribute)
+                            credential_secclass_schedd_attribute=entry.gflFactoryConfig.credential_secclass_schedd_attribute,
+                            factoryConfig=entry.gflFactoryConfig)
+
 
         # Map the identity to a frontend:sec_class for tracking totals
         frontend_name = "%s:%s" % \
@@ -1510,7 +1508,8 @@ def perform_work_v3(entry, condorQ, client_int_name, client_security_name,
     nr_submitted = glideFactoryLib.keepIdleGlideins(
                        condorQ, client_int_name, idle_glideins,
                        max_glideins, remove_excess, submit_credentials,
-                       glidein_totals, frontend_name, client_web, params)
+                       glidein_totals, frontend_name, client_web, params,
+                       log=entry.log, factoryConfig=entry.gflFactoryConfig)
 
     if nr_submitted>0:
         entry.logFiles.logActivity("Submitted %s glideins" % nr_submitted)
@@ -1629,7 +1628,8 @@ def perform_work_v2(entry, condorQ, client_int_name, client_security_name,
                             idle_glideins_pproxy, max_glideins_pproxy,
                             remove_excess, submit_credentials,
                             glidein_totals, frontend_name,
-                            client_web, params)
+                            client_web, params, log=entry.log,
+                            factoryConfig=entry.gflFactoryConfig)
 
     if nr_submitted>0:
         entry.log.info("Submitted %s glideins" % nr_submitted)
