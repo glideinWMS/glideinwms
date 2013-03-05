@@ -20,6 +20,7 @@ import string
 import math
 import copy
 import random
+import logging
 
 sys.path.append(os.path.join(sys.path[0],"../../"))
 
@@ -30,8 +31,10 @@ from glideinwms.factory import glideFactoryMonitoring
 from glideinwms.factory import glideFactoryInterface
 from glideinwms.factory import glideFactoryLogParser
 from glideinwms.factory import glideFactoryDowntimeLib
+from glideinwms.factory import glideFactoryCredentials
 from glideinwms.lib import logSupport
 from glideinwms.lib import glideinWMSVersion
+from glideinwms.lib import cleanupSupport
 
 
 ############################################################
@@ -76,7 +79,7 @@ class Entry:
         self.scheddName = self.jobDescript.data['Schedd']
 
         # glideFactoryLib.log_files
-        process_logs = eval(glideinDescript.data['ProcessLogs'])
+        process_logs = eval(self.glideinDescript.data['ProcessLogs'])
         for plog in process_logs:
             logSupport.add_processlog_handler(self.name, self.logDir,
                                               plog['msg_types'],
@@ -90,8 +93,8 @@ class Entry:
             None,
             self.logDir,
             "(condor_activity_.*\.log\..*\.ftstpk)",
-            gfl.days2sec(float(self.glideinDescript.data['CondorLogRetentionMaxDays'])),
-            gfl.days2sec(float(self.glideinDescript.data['CondorLogRetentionMinDays'])),
+            glideFactoryLib.days2sec(float(self.glideinDescript.data['CondorLogRetentionMaxDays'])),
+            glideFactoryLib.days2sec(float(self.glideinDescript.data['CondorLogRetentionMinDays'])),
             float(self.glideinDescript.data['CondorLogRetentionMaxMBs']) * pow(2, 20))
         cleanupSupport.cleaners.add_cleaner(cleaner)
 
@@ -156,8 +159,8 @@ class Entry:
                 username,
                 user_log_dir,
                 "(job\..*\.out)|(job\..*\.err)",
-                gfl.days2sec(float(self.glideinDescript.data['JobLogRetentionMaxDays'])),
-                gfl.days2sec(float(self.glideinDescript.data['JobLogRetentionMinDays'])),
+                glideFactoryLib.days2sec(float(self.glideinDescript.data['JobLogRetentionMaxDays'])),
+                glideFactoryLib.days2sec(float(self.glideinDescript.data['JobLogRetentionMinDays'])),
                 float(self.glideinDescript.data['JobLogRetentionMaxMBs']) * pow(2, 20))
             cleanupSupport.cleaners.add_cleaner(cleaner)
 
@@ -165,8 +168,8 @@ class Entry:
                 username,
                 user_log_dir,
                 "(condor_activity_.*\.log)|(condor_activity_.*\.log.ftstpk)|(submit_.*\.log)",
-                gfl.days2sec(float(self.glideinDescript.data['CondorLogRetentionMaxDays'])),
-                gfl.days2sec(float(self.glideinDescript.data['CondorLogRetentionMinDays'])),
+                glideFactoryLib.days2sec(float(self.glideinDescript.data['CondorLogRetentionMaxDays'])),
+                glideFactoryLib.days2sec(float(self.glideinDescript.data['CondorLogRetentionMinDays'])),
                 float(self.glideinDescript.data['CondorLogRetentionMaxMBs']) * pow(2,20))
             cleanupSupport.cleaners.add_cleaner(cleaner)
 
@@ -204,7 +207,10 @@ class Entry:
         self.frontendWhitelist = self.jobDescript.data['WhitelistMode']
         self.securityList = {};
         if (self.frontendWhitelist == "On"):
-            frontend_allow_list = self.jobDescript.get('AllowedVOs', '').split(',')
+            allowed_vos = ''
+            if self.jobDescript.has_key('AllowedVOs'):
+                allowed_vos = self.jobDescript.data['AllowedVOs']
+            frontend_allow_list = allowed_vos.split(',')
             for entry in frontend_allow_list:
                 entry_part = entry.split(":");
                 if (entry_part[0] in self.securityList):
@@ -767,11 +773,6 @@ def check_and_perform_work(factory_in_downtime, entry, work):
         # Protect and exit
         return 0
 
-    #
-    # STEP: CHECK THAT GLIDEINS ARE WITING ALLOWED LIMITS
-    #
-    can_submit_glideins = entry.glideinsWithinLimits(condorQ)
-
     # Consider downtimes and see if we can submit glideins
     all_security_names = set()
     done_something = 0
@@ -855,13 +856,13 @@ def check_and_perform_work(factory_in_downtime, entry, work):
 
         if ('x509_proxy_0' in decrypted_params):
             work_performed = unit_work_v2(entry, work[work_key], work_key,
-                                          client_int_name,
+                                          client_int_name, client_int_req,
                                           client_expected_identity,
                                           decrypted_params,
                                           params, in_downtime, condorQ)
         else:
             work_performed = unit_work_v3(entry, work[work_key], work_key,
-                                          client_int_name,
+                                          client_int_name, client_int_req,
                                           client_expected_identity,
                                           decrypted_params,
                                           params, in_downtime, condorQ)
@@ -896,7 +897,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
 
 
 ###############################################################################
-def unit_work_v3(entry, work, work_key, client_int_name,
+def unit_work_v3(entry, work, work_key, client_int_name, client_int_req,
                  client_expected_identity, decrypted_params, params,
                  in_downtime, condorQ):
     """
@@ -913,6 +914,12 @@ def unit_work_v3(entry, work, work_key, client_int_name,
         'work_done': None,
     }
 
+    #
+    # STEP: CHECK THAT GLIDEINS ARE WITING ALLOWED LIMITS
+    #
+    can_submit_glideins = entry.glideinsWithinLimits(condorQ)
+
+    auth_method = entry.jobDescript.data['AuthMethod']
     all_security_names = set()
 
     # Get credential security class
@@ -1099,7 +1106,7 @@ def unit_work_v3(entry, work, work_key, client_int_name,
                 return return_dict 
                                     
         else:
-            logSupport.log.warning("Factory entry %s has invalid authentication method. Skipping request for client %s." % (entry_name, client_int_name))
+            logSupport.log.warning("Factory entry %s has invalid authentication method. Skipping request for client %s." % (entry.name, client_int_name))
             return return_dict 
     
     # Set the downtime status so the frontend-specific
@@ -1188,7 +1195,7 @@ def unit_work_v3(entry, work, work_key, client_int_name,
     # Map the identity to a frontend:sec_class for tracking totals
     frontend_name = "%s:%s" % \
         (entry.frontendDescript.get_frontend_name(client_expected_identity),
-         x509_proxy_security_class)
+         credential_security_class)
 
     # do one iteration for the credential set (maps to a single security class)
     entry.gflFactoryConfig.client_internals[client_int_name] = \
@@ -1209,7 +1216,7 @@ def unit_work_v3(entry, work, work_key, client_int_name,
 
 ###############################################################################
 
-def unit_work_v2(entry, work, work_key, client_int_name,
+def unit_work_v2(entry, work, work_key, client_int_name, client_int_req,
                  client_expected_identity, decrypted_params, params,
                  in_downtime, condorQ):
     """
@@ -1227,9 +1234,16 @@ def unit_work_v2(entry, work, work_key, client_int_name,
         'security_names': None,
     }
 
+    #
+    # STEP: CHECK THAT GLIDEINS ARE WITING ALLOWED LIMITS
+    #
+    can_submit_glideins = entry.glideinsWithinLimits(condorQ)
+
     auth_method = entry.jobDescript.data['AuthMethod']
     client_security_name = decrypted_params.get('SecurityName')
     x509_proxies = X509Proxies(entry.frontendDescript, client_security_name)
+    all_security_names = set()
+    identity_credentials = {}
 
     # METHOD: grid_proxy
     if not ('grid_proxy' in auth_method):
@@ -1240,13 +1254,10 @@ def unit_work_v2(entry, work, work_key, client_int_name,
     if 'project_id' in auth_method:
         # Validate project id exists
         if 'ProjectId' in decrypted_params:
-            # TODO: PM: never used, why?
-            # just add to params for now, not a security issue
-            #return_dict['identity_credentials']['ProjectId'] = decrypted_params['ProjectId']
-            pass
+            identity_credentials['ProjectId'] = decrypted_params['ProjectId']
         else:
             # project id is required, cannot service request
-            logSupport.log.warning("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
+            logSupport.log.warning("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, entry.name))
             return return_dict
     
     # METHOD: voms_attr
@@ -1458,8 +1469,8 @@ def unit_work_v2(entry, work, work_key, client_int_name,
                              remove_excess, idle_glideins_pc, max_glideins_pc,
                              x509_proxies.fnames[x509_proxy_security_class],
                              x509_proxies.get_username(x509_proxy_security_class),
-                             entry.glideinTotals, frontend_name,
-                             client_web, params)
+                             identity_credentials, entry.glideinTotals,
+                             frontend_name, client_web, params)
 
     # Gather the information to be returned back
     return_dict['success'] = True
@@ -1515,7 +1526,8 @@ def perform_work_v3(entry, condorQ, client_int_name, client_security_name,
 def perform_work_v2(entry, condorQ, client_int_name, client_security_name,
                     credential_security_class, remove_excess, idle_glideins,
                     max_running, credential_fnames, credential_username,
-                    glidein_totals, frontend_name, client_web, params):
+                    identity_credentials, glidein_totals, frontend_name,
+                    client_web, params):
     """
     Perform the work (Submit glideins)
 
