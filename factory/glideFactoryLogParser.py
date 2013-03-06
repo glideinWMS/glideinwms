@@ -242,7 +242,7 @@ class dirSummarySimple:
         if (obj.wrapperClass is not None):
             self.logClass = obj.wrapperClass.getObj()
         else:
-            logSupport.log.logDebug("== MISHANDLED LogParser Object! ==")
+            logSupport.log.debug("== MISHANDLED LogParser Object! ==")
 
     def mkTempLogObj(self):
         if (self.wrapperClass is not None):

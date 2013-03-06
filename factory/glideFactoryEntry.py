@@ -110,7 +110,7 @@ class Entry:
 
         # FactoryConfig object from glideFactoryInterface
         self.gfiFactoryConfig = glideFactoryInterface.FactoryConfig()
-        self.gfiFactoryConfig.warning_log = self.log.warning_log
+        #self.gfiFactoryConfig.warning_log = self.log.warning_log
         self.gfiFactoryConfig.advertise_use_tcp = (
             self.glideinDescript.data['AdvertiseWithTCP'] in ('True','1'))
         self.gfiFactoryConfig.advertise_use_multi = (
@@ -699,7 +699,7 @@ class Entry:
     def dump(self):
         return
         stdout = sys.stdout
-        sys.stdout = self.log.debug_log
+        #sys.stdout = self.log.debug_log
         dump_obj(self)
         sys.stdout = stdout
 # class Entry
@@ -1439,7 +1439,7 @@ def unit_work_v2(entry, work, work_key, client_int_name, client_int_req,
         glideFactoryLib.logWorkRequest(
             client_int_name, client_security_name, x509_proxy_security_class,
             idle_glideins, max_glideins, work, fraction=x509_proxy_frac,
-            log=entry.logFiles, factoryConfig=entry.gflFactoryConfig)
+            log=entry.log, factoryConfig=entry.gflFactoryConfig)
 
         all_security_names.add((client_security_name,
                                 x509_proxy_security_class))
@@ -1512,7 +1512,7 @@ def perform_work_v3(entry, condorQ, client_int_name, client_security_name,
                        log=entry.log, factoryConfig=entry.gflFactoryConfig)
 
     if nr_submitted>0:
-        entry.logFiles.logActivity("Submitted %s glideins" % nr_submitted)
+        entry.log.info("Submitted %s glideins" % nr_submitted)
         # We submitted something
         return 1
 

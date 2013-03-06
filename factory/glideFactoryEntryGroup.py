@@ -326,7 +326,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
             pipe_ids[entry.name] = {'r': r, 'pid': pid}
         else:
             # This is the child process
-            #entry.logFiles.logActivity("In find_and_perform_work child process with pid %s for entry %s" % (pid, entry.name))
+            #entry.log.info("In find_and_perform_work child process with pid %s for entry %s" % (pid, entry.name))
             os.close(r)
 
             try:
@@ -343,7 +343,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
                 tb = traceback.format_exception(sys.exc_info()[0],
                                                 sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                entry.logFiles.logDebug("Error in talking to the factory pool: %s" % tb)
+                entry.log.debug("Error in talking to the factory pool: %s" % tb)
 
             os.close(w)
             # Hard kill myself. Don't want any cleanup, since I was created
