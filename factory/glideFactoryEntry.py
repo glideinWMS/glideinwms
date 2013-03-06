@@ -1497,7 +1497,8 @@ def perform_work_v3(entry, condorQ, client_int_name, client_security_name,
 
     glideFactoryLib.logStats(condorQ, client_int_name,
                              client_security_name,
-                             submit_credentials.security_class)
+                             submit_credentials.security_class, log=entry.log,
+                             factoryConfig=entry.gflFactoryConfig)
 
     client_log_name = glideFactoryLib.secClass2Name(
                           client_security_name,
@@ -1579,7 +1580,6 @@ def perform_work_v2(entry, condorQ, client_int_name, client_security_name,
     entry.loadContext()
 
     condor_pool = params.get('GLIDEIN_Collector', None)
-    condorStatus = None
 
     credential_keys = credential_fnames.keys()
     # Randomize so I don't favour any proxy over another
@@ -1595,9 +1595,7 @@ def perform_work_v2(entry, condorQ, client_int_name, client_security_name,
     # should not need privsep for reading logs
     log_stats[credential_username+":"+client_int_name].load()
 
-    glideFactoryLib.logStats(condorQ, condorStatus, client_int_name,
-                             client_security_name, credential_security_class,
-                             log=entry.log,
+    glideFactoryLib.logStats(condorQ, client_int_name, client_security_name,                                 credential_security_class, log=entry.log,
                              factoryConfig=entry.gflFactoryConfig)
     client_log_name = glideFactoryLib.secClass2Name(client_security_name,
                                                     credential_security_class)

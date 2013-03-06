@@ -579,12 +579,9 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                 raise
             else:
                 # if not the first pass, just warn
-                tb = traceback.format_exception(sys.exc_info()[0],
-                                                sys.exc_info()[1],
-                                                sys.exc_info()[2])
-                logSupport.log.warn("Exception occurred: %s" % tb)
+                logSupport.log.exception("Exception occurred: ")
 
-        logSupport.log.cleanup()
+        logSupport.cleaners.cleanup()
 
         logSupport.log.info("Sleep %is" % sleep_time)
         time.sleep(sleep_time)

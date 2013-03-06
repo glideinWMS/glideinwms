@@ -1098,7 +1098,7 @@ class FactoryStatusData:
         self.resolution = (7200, 86400, 604800) # 2hr, 1 day, 1 week
         self.total = "total/"
         self.frontends = []
-        if self.base_dir is None:
+        if base_dir is None:
             self.base_dir = monitoringConfig.monitor_dir
         self.log = log
 
