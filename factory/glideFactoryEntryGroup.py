@@ -37,6 +37,7 @@ STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../../"))
 
 from glideinwms.lib import logSupport
+from glideinwms.lib import cleanupSupport
 from glideinwms.lib import glideinWMSVersion
 from glideinwms.factory import glideFactoryEntry
 from glideinwms.factory import glideFactoryConfig as gfc
@@ -581,7 +582,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                 # if not the first pass, just warn
                 logSupport.log.exception("Exception occurred: ")
 
-        logSupport.cleaners.cleanup()
+        cleanupSupport.cleaners.cleanup()
 
         logSupport.log.info("Sleep %is" % sleep_time)
         time.sleep(sleep_time)

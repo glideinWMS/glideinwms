@@ -12,7 +12,7 @@
 #   Igor Sfiligoi (Jul 22nd 2008)
 #
 
-import ldap
+import ldap #@UnresolvedImport
 import re
 
 class LDAPQuery:

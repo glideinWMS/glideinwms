@@ -16,7 +16,7 @@ import string
 import time
 import popen2
 try:
-    import rrdtool
+    import rrdtool #@UnresolvedImport
 except:
     pass
 
