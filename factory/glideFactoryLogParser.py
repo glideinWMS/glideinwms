@@ -21,8 +21,10 @@ import copy
 import mmap
 import re
 import sys
+import logging
 import traceback
 
+from glideinwms.lib import logSupport
 from glideinwms.lib import condorLogParser
 from glideinwms.factory import glideFactoryLib
 

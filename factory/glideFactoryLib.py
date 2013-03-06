@@ -680,8 +680,8 @@ def clean_glidein_queue(remove_excess, glidein_totals, condorQ, req_min_idle,
                 rm_list += held_list
 
             if len(rm_list)>0:
-                removeGlideins(condorQ.schedd_name, rm_list,
-                               logfiles=logfiles,factoryConfig=factoryConfig)
+                removeGlideins(condorQ.schedd_name, rm_list, log=log,
+                               factoryConfig=factoryConfig)
                 return 1 # exit, even if no submitted
     elif ( (remove_excess_running) and 
            (req_max_glideins == 0) and 

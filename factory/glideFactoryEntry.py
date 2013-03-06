@@ -98,7 +98,7 @@ class Entry:
             float(self.glideinDescript.data['CondorLogRetentionMaxMBs']) * pow(2, 20))
         cleanupSupport.cleaners.add_cleaner(cleaner)
 
-        self.monitoringConfig = glideFactoryMonitoring.MonitoringConfig(logfiles=self.log)
+        self.monitoringConfig = glideFactoryMonitoring.MonitoringConfig(log=self.log)
         self.monitoringConfig.monitor_dir = self.monitorDir
         self.monitoringConfig.my_name = "%s@%s" % (name, self.glideinDescript.data['GlideinName'])
 
@@ -147,8 +147,8 @@ class Entry:
         self.gflFactoryConfig.remove_sleep = float(self.jobDescript.data['RemoveSleep'])
         self.gflFactoryConfig.max_releases = int(self.jobDescript.data['MaxReleaseRate'])
         self.gflFactoryConfig.release_sleep = float(self.jobDescript.data['ReleaseSleep'])
-        self.gflFactoryConfig.log_stats = glideFactoryMonitoring.condorLogSummary(logfiles=self.log)
-        self.gflFactoryConfig.rrd_stats = glideFactoryMonitoring.FactoryStatusData(logfiles=self.log, base_dir=self.monitoringConfig.monitor_dir)
+        self.gflFactoryConfig.log_stats = glideFactoryMonitoring.condorLogSummary(log=self.log)
+        self.gflFactoryConfig.rrd_stats = glideFactoryMonitoring.FactoryStatusData(log=self.log, base_dir=self.monitoringConfig.monitor_dir)
         self.gflFactoryConfig.rrd_stats.base_dir = self.monitorDir
 
         # Add cleaners for the user log directories
@@ -190,7 +190,6 @@ class Entry:
         writen correctly. This should be called in every method for now.
         """
 
-        #glideFactoryLib.log_files = self.log
         glideFactoryMonitoring.monitoringConfig = self.monitoringConfig
         glideFactoryInterface.factoryConfig = self.gfiFactoryConfig
         glideFactoryLib.factoryConfig = self.gflFactoryConfig
@@ -333,9 +332,9 @@ class Entry:
         self.gflFactoryConfig.log_stats.reset()
 
         # This one is used for stats advertized in the ClassAd
-        self.gflFactoryConfig.client_stats = glideFactoryMonitoring.condorQStats(logfiles=self.log)
+        self.gflFactoryConfig.client_stats = glideFactoryMonitoring.condorQStats(log=self.log)
         # These two are used to write the history to disk
-        self.gflFactoryConfig.qc_stats = glideFactoryMonitoring.condorQStats(logfiles=self.log)
+        self.gflFactoryConfig.qc_stats = glideFactoryMonitoring.condorQStats(log=self.log)
         self.gflFactoryConfig.client_internals = {}
 
 
@@ -382,7 +381,7 @@ class Entry:
         self.glideinTotals = glideFactoryLib.GlideinTotals(
                                  self.name, self.frontendDescript,
                                  self.jobDescript, condorQ,
-                                 logfiles=self.log)
+                                 log=self.log)
 
         # Check if entry has exceeded max idle
         if self.glideinTotals.has_entry_exceeded_max_idle():
@@ -807,7 +806,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
 
         if not glideFactoryLib.is_str_safe(client_int_name):
             # may be used to write files... make sure it is reasonable
-            entry.log_files.warning("Client name '%s' not safe. Skipping request"%client_int_name)
+            entry.log.warning("Client name '%s' not safe. Skipping request"%client_int_name)
             continue
 
         #
@@ -872,7 +871,8 @@ def check_and_perform_work(factory_in_downtime, entry, work):
 
     if done_something == 0:
         entry.log.info("Sanitizing glideins for entry %s" % entry.name)
-        glideFactoryLib.sanitizeGlideinsSimple(condorQ, logfiles=entry.log)
+        glideFactoryLib.sanitizeGlideins(condorQ, log=entry.log,
+                                         factoryConfig=entry.gflFactoryConfig)
 
     #entry.log.info("all_security_names = %s" % all_security_names)
 
@@ -1415,7 +1415,7 @@ def unit_work_v2(entry, work, work_key, client_int_name, client_int_req,
                          client_web_url, client_signtype, client_descript,
                          client_sign, client_group, client_group_web_url,
                          client_group_descript, client_group_sign,
-                         factoryConfig=self.gflFactoryConfig)
+                         factoryConfig=entry.gflFactoryConfig)
     except:
         # malformed classad, skip
         entry.log.warning("Malformed classad for client %s, missing web parameters, skipping request." % work_key)
@@ -1439,7 +1439,7 @@ def unit_work_v2(entry, work, work_key, client_int_name, client_int_req,
         glideFactoryLib.logWorkRequest(
             client_int_name, client_security_name, x509_proxy_security_class,
             idle_glideins, max_glideins, work, fraction=x509_proxy_frac,
-            logfiles=entry.logFiles, factoryConfig=entry.gflFactoryConfig)
+            log=entry.logFiles, factoryConfig=entry.gflFactoryConfig)
 
         all_security_names.add((client_security_name,
                                 x509_proxy_security_class))
@@ -1597,7 +1597,7 @@ def perform_work_v2(entry, condorQ, client_int_name, client_security_name,
 
     glideFactoryLib.logStats(condorQ, condorStatus, client_int_name,
                              client_security_name, credential_security_class,
-                             logfiles=entry.log,
+                             log=entry.log,
                              factoryConfig=entry.gflFactoryConfig)
     client_log_name = glideFactoryLib.secClass2Name(client_security_name,
                                                     credential_security_class)
@@ -1659,7 +1659,7 @@ def write_descript(entry_name,entryDescript,entryAttributes,entryParams,monitor_
         descript2XML.writeFile(monitor_dir + "/",
                                xml_str, singleEntry = True)
     except IOError:
-        glideFactoryLib.log_files.debug("IOError in writeFile in descript2XML")
+        logSupport.log.debug("IOError in writeFile in descript2XML")
 
     return
 
