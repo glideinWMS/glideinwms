@@ -28,6 +28,7 @@ import time
 import string
 import cPickle
 import signal
+import re
 
 sys.path.append(os.path.join(sys.path[0],"../.."))
 
@@ -360,7 +361,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
             pass # no public key, nothing to do
         elif glidein_el['attrs']['PubKeyType']=='RSA': # only trust RSA for now
             try:
-                glidein_el['attrs']['PubKeyObj']=pubCrypto.PubRSAKey(str(string.replace(glidein_el['attrs']['PubKeyValue'],'\\n','\n')))
+                glidein_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(str(re.sub(r"\\+n", r"\n", glidein_el['attrs']['PubKeyValue'])))
             except:
                 # if no valid key, just notify...
                 # if key needed, will handle the error later on
