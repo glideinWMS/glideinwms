@@ -14,7 +14,11 @@
 #
 
 import os.path
-import string,math
+import string
+import math
+import sys
+import traceback
+
 from glideinwms.lib import condorMonitor,condorExe
 from glideinwms.lib import logSupport
 
@@ -223,31 +227,56 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, condorq_match_l
             condorq_data=condorq.fetchStored()
             schedd_count=0
             sjobs_arr=[]
+
+            missing_keys = set()
+            tb_count = 0
+            recent_tb = None
+
             for jh in cq_dict_clusters_el.keys():
                 # get the first job... they are all the same
                 first_jid=cq_dict_clusters_el[jh][0]
                 job=condorq_data[first_jid]
-                if eval(match_obj):
-                    # the first matched... add all jobs in the cluster
-                    cluster_arr=[]
-                    for jid in cq_dict_clusters_el[jh]:
-                        t=(jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
-                        cluster_arr.append(t)
-                        schedd_count+=1
-                    # adding a whole cluster much faster
-                    sjobs_arr+=cluster_arr
-                    del cluster_arr
-                    pass
-                pass
+
+                try:
+                    if eval(match_obj):
+                        # the first matched... add all jobs in the cluster
+                        cluster_arr=[]
+                        for jid in cq_dict_clusters_el[jh]:
+                            t=(jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
+                            cluster_arr.append(t)
+                            schedd_count+=1
+                        #first_t=(first_jid[0]*procid_mul+first_jid[1])*nr_schedds+scheddIdx
+                        #all_jobs_clusters[first_t]=cluster_arr
+                        #sjobs_arr+=[first_t]
+                        # adding a whole cluster much faster
+                        sjobs_arr+=cluster_arr
+                        del cluster_arr
+
+                except KeyError, e:
+                    tb = traceback.format_exception(sys.exc_info()[0],
+                                                    sys.exc_info()[1],
+                                                    sys.exc_info()[2])
+                    key = ((tb[-1:].split(':'))[1]).strip()
+                    missing_keys.add(key)
+
+                except Exception, e:
+                    tb_count = tb_count + 1
+                    recent_tb = traceback.format_exception(sys.exc_info()[0],
+                                                           sys.exc_info()[1],
+                                                           sys.exc_info()[2])
+
+            if missing_keys:
+                logSupport.log.debug("Failed to evaluate resource match in countMatch. Possibly match_expr has errors and trying to reference job or site attribute(s) '%s' in an inappropriate way." % (','.join(missing_keys)))
+            if tb_count > 0:
+                logSupport.log.debug("There were %s exceptions in countMatch subprocess. Most recent traceback: %s " % (tb_count, recent_tb))
+
             jobs_arr+=sjobs_arr
             del sjobs_arr
             glidein_count+=schedd_count
-            pass    
         jobs=set(jobs_arr)
         del jobs_arr
         list_of_all_jobs.append(jobs)
         out_glidein_counts[glidename]=glidein_count
-        pass
 
     (outvals,jrange) = uniqueSets(list_of_all_jobs)
     del list_of_all_jobs
@@ -296,7 +325,9 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, condorq_match_l
     final_unique[(None,None,None)]=count_unmatched
     return (out_glidein_counts,final_out_counts,final_unique)
 
-def countRealRunning(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match_list=None):
+def countRealRunning(match_obj, condorq_dict, glidein_dict,
+                     attr_dict, condorq_match_list=None):
+
     out_glidein_counts={}
 
     if condorq_match_list!=None:
@@ -331,17 +362,35 @@ def countRealRunning(match_obj,condorq_dict,glidein_dict,attr_dict,condorq_match
             condorq=condorq_dict[schedd]
             condorq_data=condorq.fetchStored()
             schedd_count=0
+
+            missing_keys = set()
+            tb_count = 0
+            recent_tb = None
+
             for jh in cq_dict_clusters_el.keys():
                 # get the first job... they are all the same
                 first_jid=cq_dict_clusters_el[jh][0]
                 job=condorq_data[first_jid]
-                if eval(match_obj) and job['RunningOn'] == glide_str:
-                    schedd_count+=len(cq_dict_clusters_el[jh])
-                pass
+                try:
+                    if eval(match_obj) and job['RunningOn'] == glide_str:
+                        schedd_count+=len(cq_dict_clusters_el[jh])
+                except KeyError, e:
+                    tb = traceback.format_exception(sys.exc_info()[0],
+                                                    sys.exc_info()[1],
+                                                    sys.exc_info()[2])
+                    key = ((tb[-1:].split(':'))[1]).strip()
+                    missing_keys.add(key)
+                except Exception, e:
+                    tb_count = tb_count + 1
+                    recent_tb = traceback.format_exception(sys.exc_info()[0],
+                                                           sys.exc_info()[1],
+                                                           sys.exc_info()[2])
+            if missing_keys:
+                logSupport.log.debug("Failed to evaluate resource match in countRealRunning. Possibly match_expr has errors and trying to reference job or site attribute(s) '%s' in an inappropriate way." % (','.join(missing_keys)))
+            if tb_count > 0:
+                logSupport.log.debug("There were %s exceptions in countRealRunning subprocess. Most recent traceback: %s " % (tb_count, recent_tb))
             glidein_count+=schedd_count
-            pass
-        out_glidein_counts[glidename] = glidein_count
-        pass
+        out_glidein_counts[glidename]=glidein_count
     return out_glidein_counts
 
 #
