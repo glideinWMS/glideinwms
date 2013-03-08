@@ -65,6 +65,7 @@
     <div class="jump">
     <u>Jump to:</u>
     <ol>
+        <li><a href="#v2.7">Upgrade to v2.7</a></li>
         <li><a href="#b4v2.5.3">Upgrade to v2.5.3 or v2.5.4</a></li>
         <li><a href="#v20">Upgrade from v2.x</a></li>
         <li><a href="#v16">Upgrade from v1.6</a></li>
@@ -79,7 +80,32 @@
         </li>
     </ul>
     </div>
-    
+<div class="section">
+<a name="v2.7" />
+    <h3>Upgrading to version 2.7</h3>
+    <p>
+        Starting in version 2.7, glideinWMS now is packaged as a set of 
+        python modules.  This means that the top-level directory 
+        must be called "glideinwms" (case-sensitive).  [Python module
+        organization is based on the directory name.  Also, note that
+        symbolic links can get around this naming convention if needed but 
+        are not recommended].  For the RPM, no action is needed.<br/>
+        The tarball will by default use this naming scheme from this version
+        onwards.  Because of this, the source directory will necessarily 
+        change.    You will need to change the source directory in your
+        startup script (factory_startup or frontend_startup).
+        <br/>
+        <pre>glideinWMS_dir='/PATH_TO_DIR/glideinwms'</pre>
+        <br/>
+        It is also recommended (but not strictly required) that you set
+        your PYTHONPATH to include the parent of the <tt>glideinwms</tt>
+        directory.  For instance, if your tarball is installed into
+        <tt>/home/gfactory/v2.7/glideinwms</tt>, you can put:
+        <pre>export PYTHONPATH=$PYTHONPATH:/home/gfactory/v2.7</pre>
+        into your factory.sh/frontend.sh (ini based installs) or into your
+        profile.d (Q&A-based installs).
+    </p>
+</div>
 <div class="section">
     <a name="b4v2.5.3" />
     <h3>Upgrading from versions earlier than v2.5.3 to versions 2.5.3 or 2.5.4 only</h3>

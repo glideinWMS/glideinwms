@@ -1,25 +1,29 @@
 #!/usr/bin/env python
 
+import traceback
+import sys
+import os
+import pwd
+import string
+import time
+import xml.sax.saxutils
+import optparse
+
+from glideinwms.lib import condorMonitor
+from glideinwms.lib import condorExe
+from glideinwms.lib import condorPrivsep
+
 import common
 import WMSCollector
 import VOFrontend
-from Condor        import Condor
-from Glidein       import Glidein
+from Condor import Condor
+from Glidein import Glidein
 from Configuration import Configuration
 from Configuration import ConfigurationError
-import condorPrivsep
-import condorMonitor
-import condorExe
-
-import traceback
-import sys,os,pwd,string,time
-import xml.sax.saxutils
-
-import optparse
 
 #STARTUP_DIR=sys.path[0]
 #sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
-os.environ["PYTHONPATH"] = ""
+#os.environ["PYTHONPATH"] = ""
 
 factory_options = [ "hostname", 
 "username", 
@@ -28,10 +32,7 @@ factory_options = [ "hostname",
 "logs_dir",
 "client_log_dir", 
 "client_proxy_dir", 
-"instance_name",
-"use_vofrontend_proxy", 
-"x509_proxy", 
-"x509_gsi_dn", 
+"instance_name", 
 "use_glexec", 
 "use_ccb", 
 "ress_host",
@@ -121,15 +122,6 @@ class Factory(Condor):
   def hostname(self):
     return self.glidein.hostname()
   #---------------------
-  def use_vofrontend_proxy(self):
-    return self.option_value(self.ini_section,"use_vofrontend_proxy")
-  #---------------------
-  def x509_proxy(self):
-    return self.option_value(self.ini_section,"x509_proxy")
-  #---------------------
-  def x509_gsi_dn(self):
-    return self.option_value(self.ini_section,"x509_gsi_dn")
-  #---------------------
   def env_script(self):
     return "%s/factory.sh" % self.glidein.install_location()
   #---------------------
@@ -166,7 +158,6 @@ files and directories can be created correctly""" % self.username())
       common.validate_hostname(self.hostname())
       common.validate_user(self.username())
       common.validate_installer_user(self.username())
-      self.validate_use_vofrontend_proxy()
       self.glidein.validate_software_requirements()
       self.validate_needed_directories()
       common.logit( "Factory verification complete\n")
@@ -330,51 +321,6 @@ the ini file for the %(type)s attribute.  Be careful now.
     self.create_config()
 
   #---------------------------------
-  def validate_use_vofrontend_proxy(self):
-    option =  self.use_vofrontend_proxy()
-    common.logit("... validating use_vofrontend_proxy: %s" % option)
-    if option not in ("y",):
-      common.logerr("use_vofrontend_proxy must be 'y'.  This option will be depreated fully in V3.")
-    if option == "y":  # using vofrontend 
-      if len(self.x509_proxy())  > 0 or \
-         len(self.x509_gsi_dn()) > 0:
-        common.logerr("""You have said you want to use the Frontend proxies only.
-The x509_proxy and x509_gsi_dn option must be empty.""")
-
-    else:  # use factory proxy if no vofrontend proxy provided
-      self.validate_factory_proxy()
-
-  #---------------------------------
-  def validate_factory_proxy(self):
-    #--- using factory and vofrontend ---
-    if len(self.x509_proxy())  == 0 or \
-       len(self.x509_gsi_dn()) == 0:
-      common.logerr("""You have said you want to use a Frontend and Factory proxies.
-The x509_proxy and x509_gsi_dn option must be populated.""")
-    proxy_file = self.x509_proxy()
-    common.logit("... validating x509_proxy: %s" % proxy_file)
-    if not os.path.exists(proxy_file):
-      common.logerr("""File specified does not exist.""")
-    common.logit("... validating x509_gsi_dn: %s" % self.x509_gsi_dn())
-    type = "proxy"
-    dn_to_validate = self.x509_gsi_dn()
-    dn_in_file = common.get_gsi_dn(type,proxy_file)
-    if dn_in_file <> dn_to_validate:
-      common.logerr("""The DN of the %(type)s in %(file)s 
-does not match the x509_gsi_dn attribute in your ini file:
-%(type)8s dn: %(file_dn)s
-%(ini)11s: %(ini_dn)s
-This may cause a problem in other services.
-Are you sure this is a proxy and not a certificate?""" % \
-              { "type"    : type,
-                "ini"     : "x509_gsi_dn",
-                "file"    : proxy_file,
-                "file_dn" : dn_in_file,
-                "ini_dn"  : dn_to_validate},)
-
-    
-      
-  #---------------------------------
   def validate_logs_dir(self):
     common.logit("... validating logs_dir: %s" % self.logs_dir())
     common.make_directory(self.logs_dir(),self.username(),0755)
@@ -412,10 +358,10 @@ or you changed the ini file and did not reinstall that service.""")
     data = """#!/bin/bash
 export X509_CERT_DIR=%(x509_cert_dir)s
 .  %(condor_location)s/condor.sh
+export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 """ % { "x509_cert_dir"   : self.wms.x509_cert_dir(), 
-        "condor_location" : self.wms.condor_location(),}
-    if self.use_vofrontend_proxy() == "n":
-      data += "export X509_USER_PROXY=%s" % self.x509_proxy()
+        "condor_location" : self.wms.condor_location(),
+        "install_location" : self.glideinwms_location(),}
     common.write_file("w",0644,self.env_script(),data)
     common.logit("%s\n" % data)
 
@@ -533,11 +479,12 @@ export X509_CERT_DIR=%(x509_cert_dir)s
 
   #---------------
   def config_security_data(self): 
-    if self.use_vofrontend_proxy() == "y": # disable factory proxy
-      allow_proxy = "frontend"
-    else: # allow both factory proxy and VO proxy
-      allow_proxy = "factory,frontend"
+    #if self.use_vofrontend_proxy() == "y": # disable factory proxy
+    #  allow_proxy = "frontend"
+    #else: # allow both factory proxy and VO proxy
+    #  allow_proxy = "factory,frontend"
 
+    allow_proxy = "frontend"
     data = """
 %(indent1)s<security allow_proxy="%(allow_proxy)s" key_length="2048" pub_key="RSA" >
 %(indent2)s<frontends>""" % \
@@ -560,13 +507,13 @@ export X509_CERT_DIR=%(x509_cert_dir)s
   "hostname"      : self.hostname(),
   "frontend_user" : frontend_users_dict[frontend],
 }
-      if self.use_vofrontend_proxy() == "n":
-        data = data + """\
-%(indent5)s<security_class name="factory"  username="%(factory_user)s"/>
-""" % \
-{ "indent5"       : common.indent(5),
-  "factory_user"  : self.username(),
-}
+      #if self.use_vofrontend_proxy() == "n":
+      #  data = data + """\
+#%(indent5)s<security_class name="factory"  username="%(factory_user)s"/>
+#""" % \
+#{ "indent5"       : common.indent(5),
+#  "factory_user"  : self.username(),
+#}
 
       data = data + """
 %(indent4)s</security_classes>
@@ -691,12 +638,6 @@ export X509_CERT_DIR=%(x509_cert_dir)s
         ress_data     = self.get_ress_data()
         filtered_data = self.apply_filters_to_ress(ress_data)
         self.ask_user(filtered_data)
-      ## - tmp/permanent removal of BDII query as too may results occur 12/14/10 -
-      ## yn = common.ask_yn("Do you want to fetch entries from BDII")
-      ## if yn == 'y':
-      ##   bdii_data     = self.get_bdii_data()
-      ##   filtered_data = self.apply_filters_to_bdii(bdii_data)
-      ##   self.ask_user(filtered_data)
       yn = common.ask_yn("Do you want to add manual entries")
       if yn == 'y':
         self.additional_entry_points()
@@ -833,81 +774,6 @@ export X509_CERT_DIR=%(x509_cert_dir)s
     entries = self.discard_duplicate_entries(ress_entries)
     return entries
 
-  #----------------------------
-  def apply_filters_to_bdii(self,bdii_data):
-    #-- set up the  python filter ---
-    common.logit("Filters: %s" % self.glidein.entry_filters())
-
-    #-- using glexec? ---
-    if self.glidein.use_glexec() == "y":
-        def_glexec_bin='/opt/glite/sbin/glexec'
-    else:
-        def_glexec_bin='NONE'
-
-    cluster_count={}
-    bdii_entries={}
-    python_filter_obj = self.get_python_filter(self.glidein.entry_filters())
-    for ldap_id in bdii_data.keys():
-      el2=bdii_data[ldap_id]
-
-      # LDAP returns everything in lists... convert to values (i.e. get first element from list)
-      scalar_el={}
-      for k in el2.keys():
-        scalar_el[k]=el2[k][0]
-
-      if not self.passed_python_filter(python_filter_obj,scalar_el):
-        continue # has not passed the filter
-
-      work_dir="."
-      #-- some entries do not have all the attributes --
-      try:
-        gatekeeper="%s:%s/jobmanager-%s" %\
-           (el2['GlueCEHostingCluster'][0],
-            el2['GlueCEInfoGatekeeperPort'][0],
-            el2['GlueCEInfoJobManager'][0])
-        rsl="(queue=%s)(jobtype=single)" % el2['GlueCEName'][0]
-      except Exception, e:
-        common.logwarn("This entry point (%s/%s) is being skipped.  A required schema attribute missing: %s" % (el2['GlueCEName'][0],el2['GlueCEHostingCluster'][0],e))
-
-      site_name  = el2['Mds-Vo-name'][0]
-      cluster_id  ="bdii_%s" % site_name
-
-      bdii_id={'type':'BDII','server':self.glidein.bdii_host(),'name':ldap_id}
-
-      count=1
-      if cluster_count.has_key(cluster_id):
-        count = cluster_count[cluster_id] + 1
-      cluster_count[cluster_id] = count
-
-      if count == 1:
-        key_name = cluster_id
-      else:
-        key_name = "%s_%i" % (cluster_id,count)
-
-        if count == 2: # rename id -> id_1
-          key_name_tmp               = "%s_1"%cluster_id
-          bdii_entries[key_name_tmp] = bdii_entries[cluster_id]
-          del bdii_entries[cluster_id]
-
-      guess_glexec_bin = def_glexec_bin
-      if guess_glexec_bin != 'NONE':
-        if el2['GlueCEHostingCluster'][0][-3:] in ('gov','edu'):
-          # these should be OSG
-          guess_glexec_bin = 'OSG'
-        else:
-          # I assume everybody else uses glite software
-          guess_glexec_bin = '/opt/glite/sbin/glexec'
-
-      bdii_entries[key_name] = {'gatekeeper':gatekeeper,
-                                'rsl':rsl,'gridtype':'gt2',
-                                'work_dir':work_dir, 
-                                'site_name':site_name,
-                                'glexec_path':guess_glexec_bin, 
-                                'is_ids':[bdii_id]}
-    #-- end for loop --
-
-    entries = self.discard_duplicate_entries(bdii_entries)
-    return entries
   #-------------------------------------------
   def get_python_filter(self,filter):
     obj = None
@@ -1015,27 +881,6 @@ export X509_CERT_DIR=%(x509_cert_dir)s
       common.logerr(e)
     del condor_obj
     return condor_data
-
-  #----------------------------
-  def get_bdii_data(self):
-    import ldapMonitor
-    common.logit("BDII host: %s" % self.glidein.bdii_host())
-    #-- validate host ---
-    if not common.url_is_valid(self.glidein.bdii_host()):
-      common.logerr("BDII server (%s) in bdii_host option is not valid or inaccssible." % self.glidein.bdii_host())
-
-    #-- get gatekeeper data from BDII --
-    constraint = self.glidein.bdii_vo_constraint()
-    common.logit("Supported VOs: %s" % self.glidein.entry_vos())
-    common.logit("Constraints: %s" % constraint)
-    try:
-      bdii_obj=ldapMonitor.BDIICEQuery(self.glidein.bdii_host(),additional_filter_str=constraint)
-      bdii_obj.load()
-      bdii_data=bdii_obj.fetchStored()
-    except Exception,e: 
-      common.logerr(e)
-    del bdii_obj
-    return bdii_data
 
   #-------------------------
   def create_template(self):

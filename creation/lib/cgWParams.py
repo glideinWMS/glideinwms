@@ -19,9 +19,10 @@ import string
 import socket
 import types
 import traceback
-import xmlParse
-import condorExe
+
 import cWParams
+from glideinwms.lib import xmlParse
+from glideinwms.lib import condorExe
 
 
 ######################################################
@@ -205,6 +206,8 @@ class GlideinParams(cWParams.CommonParams):
 
         self.defaults["entries"]=(xmlParse.OrderedDict(),"Dictionary of entries","Each entry contains",self.entry_defaults)
         
+        # Default for rrd update threads
+        self.monitor_defaults["update_thread_count"]=(os.sysconf('SC_NPROCESSORS_ONLN'),"update_thread_count","Number of rrd update threads. Defaults to cpu count.",None)
         return
 
     # return name of top element

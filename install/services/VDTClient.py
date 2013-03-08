@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 
-import common
-import subprocessSupport
-from VDT import VDT
+import sys
+import os
+import os.path
+import string
+import time
+import glob
 #---------------------
-import sys,os,os.path,string,time,glob
+import glideinwms.lib.subprocessSupport
+import common
+from VDT import VDT
 
 
 class VDTClient(VDT):
@@ -54,7 +59,7 @@ Is it OK to install it in this location""" % self.vdt_location())
     err = 0
     if self.vdt_install_type == 'pacman':
       cmd = ". %s/setup.sh; type voms-proxy-init >/dev/null 2>&1;echo $?" % self.vdt_location()
-      err = int(subprocessSupport.iexe_cmd(cmd,useShell=True))
+      err = int(glideinwms.lib.subprocessSupport.iexe_cmd(cmd,useShell=True))
     elif self.vdt_install_type == 'native':
       err = 0
     else:

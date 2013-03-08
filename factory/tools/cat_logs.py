@@ -11,13 +11,17 @@
 # Usage: cat_logs.py <factory> YY/MM/DD [hh:mm:ss]
 #
 
-import sys,os,os.path,time
+import sys
+import os
+import os.path
+import time
+
 STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"lib"))
-sys.path.append(os.path.join(STARTUP_DIR,".."))
-sys.path.append(os.path.join(STARTUP_DIR,"../../lib"))
-import gWftArgsHelper,gWftLogParser
-import glideFactoryConfig
+sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
+
+from glideinwms.factory.tools.lib import gWftLogParser
+from glideinwms.factory.tools.lib import gWftArgsHelper
+from glideinwms.factory import glideFactoryConfig
 
 USAGE="Usage: cat_logs.py <factory> YY/MM/DD [hh:mm:ss]"
 

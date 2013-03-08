@@ -41,93 +41,77 @@ th.rounded
 font-size:35px;
 }
 
+a:link.thumbnail {text-decoration:none;}
+a:visited.thumbnail {text-decoration:none;}
+a:hover.thumbnail {text-decoration:none;}
+a:active.thumbnail {text-decoration:none;}
+
+a.thumbnail
+{
+color:#000000
+}
 
 </style>
+<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.1.1/css/bootstrap-combined.min.css" rel="stylesheet">
+<script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.1.1/js/bootstrap.min.js"></script>
+
 </head>
 <body>
-<center>
-<table class="centered">
-   <tr><th COLSPAN=2 class="heading rounded" id="pgtitle">
-   GlideinWMS VO Frontend Monitoring
-   </th></td>
-   <tr>
-      <td class="pagesummary">
-         <a href="frontendStatus.html">
-            <center>
-               <div class="rounded">
-                  <table>
-                     <tr><th COLSPAN=2>
-                        Historical Status
-                     </th></tr>
-                     <tr><td>
-                        <img src="frontendStatus.small.png"/>
-                     </td><td>
-                        This page shows the historical usage plotted over time.
-                     </td></tr>
-                  </table>
-               </div>
-            </center>
-         </a>
-      </td>
-      <td class="pagesummary">
-         <a href="frontendGroupGraphStatusNow.html">
-            <center>
-               <div class="rounded">
-                  <table>
-                     <tr><th COLSPAN=2>
-                        Current Status by Group
-                     </th></tr>
-                     <tr><td>
-                        <img src="frontendGroupGraphsNow.small.png"/>
-                     </td><td>
-                        This page shows the current number of running jobs, by group, on the frontend.
-                     </td></tr>
-                  </table>
-               </div>
-            </center>
-         </a>
-      </td>
-   </tr>
-   <tr>
-      <td class="pagesummary">
-         <a href="frontendRRDBrowse.html">
-            <center>
-               <div class="rounded">
-                  <table>
-                     <tr><th COLSPAN=2>
-                        Browse RRD Statistics
-                     </th></tr>
-                     <tr><td>
-                        <img src="frontendRRDBrowse.small.png"/>
-                     </td><td>
-                        This page shows the historical frontend statistics plotted over time.
-                     </td></tr>
-                  </table>
-               </div>
-            </center>
-         </a>
-      </td>
-      <td class="pagesummary">
-         <a href="frontendRRDGroupMatrix.html">
-            <center>
-               <div class="rounded">
-                  <table>
-                     <tr><th COLSPAN=2>
-                        Historical Per-Group Statistics
-                     </th></tr>
-                     <tr><td>
-                        <img src="frontendRRDGroupMatix.small.png"/>
-                     </td><td>
-                        This page shows historical statistics for each group.
-                     </td></tr>
-                  </table>
-               </div>
-            </center>
-         </a>
-      </td>
-   </tr>
-</table>
-</center>   
+<div class="navbar">
+ <div class="navbar-inner">
+  <a class="brand" href="#">GlideinWMS Frontend</a>
+    <ul class="nav">
+    <li class="active"><a href="index.html">Home</a></li>
+    <li><a href="frontendRRDBrowse.html">Browse</a></li>
+    <li><a href="frontendRRDGroupMatrix.html">Group Matrix</a></li>
+    <li><a href="frontendStatus.html">Status</a></li>
+    <li><a href="frontendGroupGraphStatusNow.html">Group Graphs</a></li>
+    </ul>
+ </div>
+</div>
+
+
+<div class="hero-unit">
+<h1>GlideinWMS VO Frontend Monitoring</h1>
+<p>The <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/">GlideinWMS</a> VO Frontend provides monitoring for users and administrators.  Select the monitoring webpage below.</p>
+</div> <!-- Hero -->
+
+<div class="container-fluid">
+<div class="row-fluid">
+<ul class="thumbnails">
+
+ <li class="span3">
+   <a href="frontendRRDBrowse.html" class="thumbnail">
+   <img src="frontendRRDBrowse.small.png">
+   <h3>Browse RRD Statistics</h3>
+   <p>This page shows the historical frontend statistics plotted over time.</p>
+   </a>
+ </li>
+ <li class="span3">
+   <a href="frontendRRDGroupMatrix.html" class="thumbnail">
+   <img src="frontendRRDGroupMatix.small.png">
+   <h3>Historical Per-Group Statistics</h3>
+   <p>This page shows historical statistics for each group.</p>
+   </a>
+ </li>
+ <li class="span3">
+  <a href="frontendStatus.html" class="thumbnail">
+   <img src="frontendStatus.small.png">
+   <h3>Historical Status</h3>
+   <p>This page shows the historical usage plotted over time.</p>
+   </a>
+ </li>
+ <li class="span3">
+   <a href="frontendGroupGraphStatusNow.html" class="thumbnail">
+   <img src="frontendGroupGraphsNow.small.png">
+   <h3>Current Status by Group</h3>
+   <p>This page shows the current number of running jobs, by group, on the frontend.</p>
+   </a>
+ </li>
+
+</ul>
+</div> <!-- End Row -->
+</div> <!-- End container -->
 <div id="monitor_footer"></div>
 </body>
 </html>

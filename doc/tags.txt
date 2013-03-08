@@ -1,6 +1,32 @@
-v2_6_3	Improved factory prerformance by migrated popen calls to use the 
+v2_7	glideinwms code is now organized as python packages
+	Factory no longer creates long running process per entry. Instead, it
+	  runs only a single long running glideFactoryEntryGroup process
+	  instead of multiple glideFactoryEntry processes.
+	Improved factory prerformance by migrating popen calls to use python's 
 	  subprocess library
-	Created index.html for factory monitoring
+	Improved the performance of the Frontend by using pre-clustering in 
+	  the Frontend match-making
+	Created index.html for factory monitoring so that admins can disable
+	  directory browsing in httpd.conf
+	Added support for Partitionable condor slots in the glidein
+	Frontend policy for matching factory classads is now exposed in 
+	  glideresource classads
+	Added a tool to dynamically create a secondary schedd config files
+	  and directories to the existing installation
+	Improved the usability of the frontendGrouGraphStatusNow monitoring
+	Improved documentation
+	Bug Fix: Fixed a bug where the factory entry processes and the frontend
+	  group (element) processes would inherit their parent's environment
+	  corrupting their own environment
+	Bug Fix: Glidein's job wrapper now behaves as true wrapper
+	Bug Fix: Fixed a bug where frontend_startup would not correctly pick
+	  default frontend.xml
+	Bug Fix: Fixed a bug in frontend where failure to evaluate match_expr
+	  for one group would prevent frontend from requesting glideins for
+	  other groups
+	Bug Fix: RPM now has shared port daemon enabled in the configuration
+	Bug Fix: Fixed a bug where Factory would sometime use wrong DN when
+	  calculating proxy hash
 
 v2_6_2	Factory now supports glidein failure modes. This information is
 	  propagated back to the factory.

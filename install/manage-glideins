@@ -1,26 +1,29 @@
 #!/usr/bin/env python
 
 import traceback
-import sys,os,os.path,string,time
+import sys
+import os
+import os.path
+import string
+import time
 import socket
 import getopt
 
 STARTUP_DIR=os.path.abspath(sys.path[0])
-sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
-sys.path.append(os.path.join(STARTUP_DIR,"./services"))
+sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
 os.chdir(STARTUP_DIR)
 
-import common
-import Configuration
-import WMSCollector
-import UserCollector
-import Submit
-import VOFrontend
-import Factory
-import RPM
-import subprocessSupport
-from Configuration import ConfigurationError
+from glideinwms.install.services import common
+from glideinwms.install.services import Configuration
+from glideinwms.install.services import WMSCollector
+from glideinwms.install.services import UserCollector
+from glideinwms.install.services import Submit
+from glideinwms.install.services import VOFrontend
+from glideinwms.install.services import Factory
+from glideinwms.install.services import RPM
+from glideinwms.install.services.Configuration import ConfigurationError
+import glideinwms.lib.subprocessSupport
 #-------------------------
 
 global gProgramName
@@ -47,8 +50,8 @@ def run_command(service,user,node,command):
   common.logit("## %s " % hdr)
   common.logit("Commands: %s" % cmd)
   try:
-    stdout = subprocessSupport.iexe_cmd(cmd,useShell=True)
-  except subprocessSupport.CalledProcessError, e:
+    stdout = glideinwms.lib.subprocessSupport.iexe_cmd(cmd,useShell=True)
+  except glideinwms.lib.subprocessSupport.CalledProcessError, e:
     common.logit(stdout)
     common.logerr("Requested action failed.")
   common.logit(stdout)
@@ -474,7 +477,7 @@ def main(argv):
     print;print "ConfigurationError ERROR(should not get this): %s"%e
     print traceback.print_exc()
     return 1
-  except subprocessSupport.CalledProcessError, e:
+  except glideinwms.lib.subprocessSupport.CalledProcessError, e:
     print;print "CalledProcessError ERROR(should not get this): %s"%e
     return 1
   except common.WMSerror:

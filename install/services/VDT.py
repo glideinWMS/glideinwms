@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-import common
-from Configuration import Configuration
-#---------------------
 import sys
 import os
 import os.path
@@ -10,6 +7,9 @@ import pwd
 import string
 import time
 import glob
+#---------------------
+import common
+from Configuration import Configuration
 
 valid_options = [ "vdt_location",
 "pacman_location",

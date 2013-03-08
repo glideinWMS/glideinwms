@@ -1,20 +1,24 @@
 #!/usr/bin/env python
 
 import traceback
-import sys,os,os.path,string,time
+import sys
+import os
+import os.path
+import string
+import time
 import stat
 import re
+import optparse
 
 import common
-import optparse
-from Certificates  import Certificates  
-from Condor        import Condor
 import VOFrontend
 import Factory
 import UserCollector
+import Certificates  
+from Condor import Condor
 from Configuration import ConfigurationError
 #-------------------------
-os.environ["PYTHONPATH"] = ""
+#os.environ["PYTHONPATH"] = ""
 
 wmscollector_options = [ 
 "install_type",
@@ -243,7 +247,8 @@ specified.
 ##########################################
 def main(argv):
   try:
-    create_template()
+    pass
+    #create_template()
     #options = validate_args(argv)
     #wms = WMSCollector(options.inifile)
     #wms.install()

@@ -15,20 +15,27 @@
 # Part of the glideinWMS package
 #
 
-import sys,os,os.path
+import sys
+import os
+import os.path
+import subprocess
 import stat
 import time
 import re
+import M2Crypto
 
 STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
+sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
-import condorExe
+from glideinwms.lib.x509Support import extract_DN
+from glideinwms.lib import condorExe
+from glideinwms.lib.x509Support import extract_DN
 
 def usage():
     print "Usage:"
-    print " glidecondor_addDN [-daemon comment] DN user"
+    print " glidecondor_addDN [-daemon comment] DN|file user"
     return
+
 
 def parse_args(args):
     daemon_comment=None
@@ -36,7 +43,7 @@ def parse_args(args):
         usage()
         sys.exit(1)
 
-    if (args[0]=='-help') or (args[0]=='-h'):
+    if (args[0]=='-help') or (args[0]=='-h') or (args[0]=='--help'):
         usage()
         sys.exit(1)
 
@@ -52,7 +59,14 @@ def parse_args(args):
         sys.exit(1)
     dn=args[0]
     user=args[1]
-    return {'is_daemon_dn':(daemon_comment is not None),'daemon_comment':daemon_comment,'dn':dn,'user':user}
+
+    if os.path.isfile(dn):
+        # not a DN... it is really a file
+        # extract the DN
+        dn=extract_DN(dn)
+        print "Using DN '%s'"%dn
+    
+    return {'is_daemon_dn':(daemon_comment!=None),'daemon_comment':daemon_comment,'dn':dn,'user':user}
 
 def check_config(fname):
     if not os.path.isfile(fname):
@@ -128,25 +142,30 @@ def main(args):
     # make sure we can access the files to be changed
     try:
         try:
-             condor_mapfile=condorExe.iexe_cmd("condor_config_val CERTIFICATE_MAPFILE")[0][:-1] # remove trailing newline
+             condor_mapfile=condorExe.iexe_cmd("condor_config_val CERTIFICATE_MAPFILE")[0].rstrip('\n')
         except condorExe.ExeError,e:
              raise IOError, "Path to CERTIFICATE_MAPFILE not found"
 
         check_config(condor_mapfile)
         if params['is_daemon_dn']:
+            has_dir=False
             try:
-                 condor_config=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_FILE")[0][:-1] # remove trailing newline
+                 condor_config_dir=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_DIR")[0].rstrip('\n')
+                 has_dir=os.path.exists(condor_config_dir)
+                 condor_config=os.path.join(condor_config_dir,"90_gwms_dns.config")
+                 if not os.path.isfile(condor_config):
+                     print "Please create %s"%condor_config
             except condorExe.ExeError,e:
+                has_dir=False
+
+            if has_dir:
+                 condor_config=os.path.join(condor_config_dir,"90_gwms_dns.config")
+                 if not os.path.isfile(condor_config):
+                     raise IOError, "Please create %s"%condor_config
+            else:
                  # not found, see if it uses a config dir
                  try:
-                    condor_config_dir=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_DIR")[0][:-1] # remove trailing newline
-                    # try the standard OSG RPM location
-                    condor_config=os.path.join(condor_config_dir,"03_gwms_local.config")
-                    if not os.path.isfile(condor_config):
-                       # ok, let's define a file of our own and expect the admins to use it
-                       condor_config=os.path.join(condor_config_dir,"90_gwms_dns.config")
-                       if not os.path.isfile(condor_config):
-                           print "Please create %s"%condor_config
+                    condor_config=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_FILE")[0].rstrip('\n')
                  except condorExe.ExeError,e:
                      # nope, go with the main config file
                      try:

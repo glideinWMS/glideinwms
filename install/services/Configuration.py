@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-import common
 #-----
 import re
 import os
@@ -10,8 +9,9 @@ import time
 import traceback
 import ConfigParser
 import StringIO
-
 import inspect
+
+import common
 
 #### Class Configuration ############################
 class Configuration:

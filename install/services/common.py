@@ -1,10 +1,17 @@
 #!/usr/bin/env python
 
-import sys,os.path,string,time,stat,shutil, getpass
+import sys
+import os.path
+import string
+import time
+import stat
+import shutil
+import getpass
 import pwd
 import socket
 import re
-import subprocessSupport
+#----------------------
+import glideinwms.lib.subprocessSupport
 
 #--------------------------
 class WMSerror(Exception):
@@ -81,8 +88,8 @@ common.remove_dir_contents method.  This will result deleting all files on
 this node.  Not something you really want to do""")
   cmd = "rm -rf %s/*" % dirname
   try:
-    stdout = subprocessSupport.iexe_cmd(cmd,useShell=True)
-  except subprocessSupport.CalledProcessError, e:
+    stdout = glideinwms.lib.subprocessSupport.iexe_cmd(cmd,useShell=True)
+  except glideinwms.lib.subprocessSupport.CalledProcessError, e:
     logerr("""Problem deleting files in %s
 %s""" % (dirname,e))
   logit("Files in %s  deleted" % dirname)
@@ -146,8 +153,8 @@ def run_script(script):
   """ Runs a script using subsystemSupport module. """
   logit("... running: %s" % script)
   try:
-    stdout = subprocessSupport.iexe_cmd(script,useShell=True)
-  except subprocessSupport.CalledProcessError, e:
+    stdout = glideinwms.lib.subprocessSupport.iexe_cmd(script,useShell=True)
+  except glideinwms.lib.subprocessSupport.CalledProcessError, e:
     logerr("""Script failed with non-zero return code
 %s """ % e )
 
@@ -159,16 +166,16 @@ def cron_append(lines,tmp_dir='/tmp'):
   tmp_fname="%s/tmp_%s_%s.tmp"%(tmp_dir,os.getpid(),time.time())
   try:
     cmd = "crontab -l >%s" % tmp_fname
-    stdout = subprocessSupport.iexe_cmd(cmd, useShell=True)
+    stdout = glideinwms.lib.subprocessSupport.iexe_cmd(cmd, useShell=True)
     fd=open(tmp_fname,'a')
     try:
       for line in lines:
         fd.writelines(line)
     finally:
       fd.close()
-    stdout = subprocessSupport.iexe_cmd("cat %s" % tmp_fname)
+    stdout = glideinwms.lib.subprocessSupport.iexe_cmd("cat %s" % tmp_fname)
     logit(stdout)
-    stdout = subprocessSupport.iexe_cmd("crontab %s" % tmp_fname)
+    stdout = glideinwms.lib.subprocessSupport.iexe_cmd("crontab %s" % tmp_fname)
   finally:
     if os.path.isfile(tmp_fname):
       os.unlink(tmp_fname)
@@ -196,8 +203,8 @@ def find_fullpath(search_path,name):
 def module_exists(module_name):
   cmd = "python -c 'import %s' >/dev/null 2>&1" % module_name
   try:
-    subprocessSupport.iexe_cmd(cmd, useShell=True)
-  except subprocessSupport.CalledProcessError, e:
+    glideinwms.lib.subprocessSupport.iexe_cmd(cmd, useShell=True)
+  except glideinwms.lib.subprocessSupport.CalledProcessError, e:
     return False
   return True
 
@@ -353,7 +360,7 @@ Or you could be  trying to perform this as the wrong user.
 """ % { "type" : type, "filename" : filename, "user" : install_user,})
 
   #-- read the cert/proxy --
-  dn_blob   = subprocessSupport.iexe_cmd("openssl x509 %s -noout -in %s" % (arg,filename))
+  dn_blob   = glideinwms.lib.subprocessSupport.iexe_cmd("openssl x509 %s -noout -in %s" % (arg,filename))
   if dn_blob is None:
     logerr("Failed to read %s from %s" % (arg,filename))
   if len(dn_blob) == 0:
@@ -398,8 +405,8 @@ def url_is_valid(url):
 def wget_is_valid(location):
   cmd = "wget --quiet --spider %s" % location
   try:
-    subprocessSupport.iexe_cmd(cmd,useShell=True)
-  except subprocessSupport.CalledProcessError, e:
+    glideinwms.lib.subprocessSupport.iexe_cmd(cmd,useShell=True)
+  except glideinwms.lib.subprocessSupport.CalledProcessError, e:
     return False
   return True
 
@@ -462,7 +469,7 @@ if __name__ == '__main__':
     filename = "%s/%s" % (testdir,__file__)
     shutil.copy(__file__,filename)
     make_backup(filename)
-    subprocessSupport.iexe_cmd("rm -f %s*" % filename,useShell=True)
+    glideinwms.lib.subprocessSupport.iexe_cmd("rm -f %s*" % filename,useShell=True)
     os.rmdir(testdir)
     os.rmdir(os.path.dirname(testdir))
     print "... PASSED"

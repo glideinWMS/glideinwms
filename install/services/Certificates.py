@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-import common
-from VDT import VDT
 #---------------------
 import sys
 import os
@@ -10,7 +8,10 @@ import string
 import time
 import glob
 import pwd
-import subprocessSupport
+
+import glideinwms.lib.subprocessSupport
+import common
+from VDT import VDT
 
 #STARTUP_DIR=sys.path[0]
 #sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
@@ -120,7 +121,7 @@ option specified: %(dir)s""" %  { "dir"    : self.vdt_location(),})
     common.logit("\nvdt-control --list")
     cmd = ". %(vdt_location)s/setup.sh;vdt-control --list" % \
            { "vdt_location" : self.vdt_location(),}
-    stdout = subprocessSupport.iexe_cmd(cmd,useShell=True)
+    stdout = glideinwms.lib.subprocessSupport.iexe_cmd(cmd,useShell=True)
     common.logit(stdout)
 
     #-- show the cron entries added - extract the lines put in cron
@@ -189,7 +190,7 @@ Suggest you check this out before proceeding:
     vdt_script = "%s/setup.sh" % self.vdt_location()
     if os.path.exists(vdt_script):
       cmd = ". %s;echo $X509_CERT_DIR" % vdt_script
-      cert_dir = subprocessSupport.iexe_cmd(cmd,useShell=True)
+      cert_dir = glideinwms.lib.subprocessSupport.iexe_cmd(cmd,useShell=True)
     return cert_dir
 
 ##########################################

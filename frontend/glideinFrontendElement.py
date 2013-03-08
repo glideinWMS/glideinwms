@@ -18,21 +18,29 @@
 #
 
 import signal
-import sys,os,os.path,copy
+import sys
+import os
+import os.path
+import copy
 import fcntl
 import traceback
-import time,string,cPickle,signal
-sys.path.append(os.path.join(sys.path[0],"../lib"))
+import time
+import string
+import cPickle
+import signal
+import re
 
-import symCrypto,pubCrypto
+sys.path.append(os.path.join(sys.path[0],"../.."))
 
-import glideinFrontendConfig
-import glideinFrontendInterface
-import glideinFrontendLib
-import glideinFrontendPidLib
-import glideinFrontendMonitoring
-import glideinFrontendPlugins
-import glideinWMSVersion
+from glideinwms.lib import symCrypto,pubCrypto
+from glideinwms.lib import glideinWMSVersion
+from glideinwms.frontend import glideinFrontendConfig
+from glideinwms.frontend import glideinFrontendInterface
+from glideinwms.frontend import glideinFrontendLib
+from glideinwms.frontend import glideinFrontendPidLib
+from glideinwms.frontend import glideinFrontendMonitoring
+from glideinwms.frontend import glideinFrontendPlugins
+
 
 ############################################################
 def check_parent(parent_pid):
@@ -228,6 +236,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
             ### Add in elements to help in determining if jobs have voms creds
             condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN','s'),))
             condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN','s'),))
+            condorq_format_list=list(condorq_format_list)+list((('x509userproxy','s'),))
             condorq_dict=glideinFrontendLib.getCondorQ(elementDescript.merged_data['JobSchedds'],
                                                        expand_DD(elementDescript.merged_data['JobQueryExpr'],attr_dict),
                                                        condorq_format_list)
@@ -292,6 +301,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
     condorq_dict=pipe_out['jobs']
     status_dict=pipe_out['startds']
 
+    condorq_dict_proxy=glideinFrontendLib.getIdleProxyCondorQ(condorq_dict)
     condorq_dict_voms=glideinFrontendLib.getIdleVomsCondorQ(condorq_dict)
     condorq_dict_idle=glideinFrontendLib.getIdleCondorQ(condorq_dict)
     condorq_dict_old_idle=glideinFrontendLib.getOldCondorQ(condorq_dict_idle,600)
@@ -300,6 +310,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
     condorq_dict_types={'Idle':{'dict':condorq_dict_idle,'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle)},
                         'OldIdle':{'dict':condorq_dict_old_idle,'abs':glideinFrontendLib.countCondorQ(condorq_dict_old_idle)},
                         'VomsIdle':{'dict':condorq_dict_voms,'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
+                        'ProxyIdle':{'dict':condorq_dict_proxy,'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
                         'Running':{'dict':condorq_dict_running,'abs':glideinFrontendLib.countCondorQ(condorq_dict_running)}}
     condorq_dict_abs=glideinFrontendLib.countCondorQ(condorq_dict);
     
@@ -350,7 +361,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
             pass # no public key, nothing to do
         elif glidein_el['attrs']['PubKeyType']=='RSA': # only trust RSA for now
             try:
-                glidein_el['attrs']['PubKeyObj']=pubCrypto.PubRSAKey(str(string.replace(glidein_el['attrs']['PubKeyValue'],'\\n','\n')))
+                glidein_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(str(re.sub(r"\\+n", r"\n", glidein_el['attrs']['PubKeyValue'])))
             except:
                 # if no valid key, just notify...
                 # if key needed, will handle the error later on
@@ -432,36 +443,22 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
             # this is the child... return output as a pickled object via the pipe
             os.close(r)
             try:
-                try:
-                    if dt=='Real':
-                        out=glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict,attr_dict,condorq_match_list)
-                    elif dt=='Glidein':
-                        count_status_multi={}
-                        for glideid in glidein_dict.keys():
-                            request_name=glideid[1]
-    
-                            count_status_multi[request_name]={}
-                            for st in status_dict_types.keys():
-                                c=glideinFrontendLib.getClientCondorStatus(status_dict_types[st]['dict'],frontend_name,group_name,request_name)
-                                count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
-                        out=count_status_multi
-                    else:
-                        c,p,h=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict,attr_dict,condorq_match_list)
-                        t=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
-                        out=(c,p,h,t)
-                except KeyError, e:
-                    tb = traceback.format_exception(sys.exc_info()[0],
-                                                    sys.exc_info()[1],
-                                                    sys.exc_info()[2])
-                    key = ((tb[len(tb) - 1].split(':'))[1]).strip()
-                    glideinFrontendLib.log_files.logDebug("Failed to evaluate resource match for %s state. Possibly match_expr is buggy and trying to reference job or site attribute %s in an inappropriate way." % (dt,key))
-                    raise e
-                except Exception, e:
-                    tb = traceback.format_exception(sys.exc_info()[0],
-                                                    sys.exc_info()[1],
-                                                    sys.exc_info()[2])
-                    glideinFrontendLib.log_files.logDebug("Exception in counting subprocess for %s: %s " % (dt, tb))
-                    raise e
+                if dt=='Real':
+                    out=glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict,attr_dict,condorq_match_list)
+                elif dt=='Glidein':
+                    count_status_multi={}
+                    for glideid in glidein_dict.keys():
+                        request_name=glideid[1]
+
+                        count_status_multi[request_name]={}
+                        for st in status_dict_types.keys():
+                            c=glideinFrontendLib.getClientCondorStatus(status_dict_types[st]['dict'],frontend_name,group_name,request_name)
+                            count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
+                    out=count_status_multi
+                else:
+                    c,p,h=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict,attr_dict,condorq_match_list)
+                    t=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
+                    out=(c,p,h,t)
 
                 os.write(w,cPickle.dumps(out))
             finally:
@@ -543,13 +540,16 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
         count_status=count_status_multi[request_name]
 
         #If the glidein requires a voms proxy, only match voms idle jobs
-	# Note: if GLEXEC is set to NEVER, the site will never see the proxy, 
-	# so it can be avoided.
-	if (glexec != 'NEVER'):
-            if glidein_el['attrs'].has_key('GLIDEIN_REQUIRE_VOMS'):
-                if (glidein_el['attrs']['GLIDEIN_REQUIRE_VOMS']=="True"):
+        # Note: if GLEXEC is set to NEVER, the site will never see the proxy, 
+        # so it can be avoided.
+        if (glexec != 'NEVER'):
+            if (glidein_el['attrs'].get('GLIDEIN_REQUIRE_VOMS')=="True"):
                     prop_jobs['Idle']=prop_jobs['VomsIdle']
-                    glideinFrontendLib.log_files.logActivity("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
+                    glideinFrontendLib.log_files.logDebug("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
+            elif (glidein_el['attrs'].get('GLIDEIN_REQUIRE_GLEXEC_USE')=="True"):
+                    prop_jobs['Idle']=prop_jobs['ProxyIdle']
+                    glideinFrontendLib.log_files.logDebug("Proxy required (GLEXEC), limiting idle glideins to: %i" % prop_jobs['Idle'])
+
 
         # effective idle is how much more we need
         # if there are idle slots, subtract them, they should match soon
@@ -740,6 +740,10 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
         resource_classad.setInDownTime(glidein_in_downtime)
         resource_classad.setEntryInfo(glidein_el['attrs'])
         resource_classad.setGlideFactoryMonitorInfo(glidein_el['monitor'])
+        resource_classad.setMatchExprs(elementDescript.merged_data['MatchExpr'], 
+                elementDescript.merged_data['JobQueryExpr'],
+                elementDescript.merged_data['FactoryQueryExpr'],
+                attr_dict['GLIDECLIENT_Start'])
         try:
             resource_classad.setGlideClientMonitorInfo(this_stats_arr)
         except RuntimeError, e:

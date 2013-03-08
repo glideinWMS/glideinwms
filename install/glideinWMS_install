@@ -9,10 +9,17 @@
 # Description:
 #   glideinWMS Installer
 
-import sys,os,os.path,string,time
-import pwd,grp
+import sys
+import os
+import os.path
+import string
+import time
+import pwd
+import grp
 import shutil
-import tarfile,readline,pwd
+import tarfile
+import readline
+import pwd
 import md5
 import getpass
 import re
@@ -21,9 +28,13 @@ import socket
 import stat
 import httplib
 import ftplib
+
 STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
-import xmlFormat
+sys.path.append(os.path.join(STARTUP_DIR,"../.."))
+
+from glideinwms.lib import xmlFormat
+from glideinwms.lib import condorMonitor
+from glideinwms.lib import ldapMonitor
 
 #############################
 #
@@ -2703,6 +2714,7 @@ def install_condor():
     finally:
         # installation files not needed anymore
         shutil.rmtree(tar_dir)
+        del fd
 
     yn=raw_input("Do you want to split the config files between condor_config and condor_config.local?: (y/n) [y] ")
     if yn!='n':
@@ -2806,11 +2818,13 @@ def install_condor():
 
         #########################################
         # put condor binaries in system wide path
+        glideinWMS_base_dir=os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0])))
         fd=open("/etc/profile.d/condor.sh","w")
         try:
             fd.write("if ! echo ${PATH} | grep -q %s/bin ; then\n"%user_condor_base_dir)
             fd.write("  PATH=${PATH}:%s/bin\n"%user_condor_base_dir)
             fd.write("fi\n")
+            fd.write("export PYTHONPATH=$PYTHONPATH:%s/..\n" % glideinWMS_base_dir)
         finally:
             fd.close()
         os.chmod("/etc/profile.d/condor.sh",
@@ -2819,6 +2833,7 @@ def install_condor():
         fd=open("/etc/profile.d/condor.csh","w")
         try:
             fd.write("set path = ( $path %s/bin )\n"%user_condor_base_dir)
+            fd.write("set PYTHONPATH=$PYTHONPATH:%s/..\n" % glideinWMS_base_dir)
         finally:
             fd.close()
         os.chmod("/etc/profile.d/condor.csh",
@@ -4618,7 +4633,6 @@ def compare_entry_els(el1,el2):
 def get_ress_glidein_entries(vo,             #vo can be None
                              entries_list,   # disctionary, will add to this
                              config_glexec): # bool, ask for glexec dir
-    import condorMonitor
 
     if config_glexec:
         def_glexec_bin='OSG'
@@ -4803,7 +4817,6 @@ def get_ress_glidein_entries(vo,             #vo can be None
 def get_bdii_glidein_entries(vo,             #vo can be None
                              entries_list,   # dictionary, will add to this
                              config_glexec): # bool, ask for glexec dir
-    import ldapMonitor
 
     if config_glexec:
         def_glexec_bin='/opt/glite/sbin/glexec'

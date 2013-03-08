@@ -32,10 +32,10 @@ def help():
 
 
 import time
-import sys,os.path
-sys.path.append(os.path.join(sys.path[0],"../lib"))
-
-import condorMonitor
+import sys
+import os.path
+sys.path.append(os.path.join(sys.path[0],"../.."))
+from glideinwms.lib import condorMonitor
 
 pool_name=None
 constraint=None

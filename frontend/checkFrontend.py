@@ -15,9 +15,10 @@
 #   Igor Sfiligoi
 #
 
-import sys,os.path
-sys.path.append(os.path.join(sys.path[0],"../lib"))
-import glideinFrontendPidLib
+import sys
+import os.path
+sys.path.append(os.path.join(sys.path[0],"../.."))
+from glideinwms.frontend import glideinFrontendPidLib
 
 try:
     work_dir=sys.argv[1]

@@ -1,21 +1,24 @@
 #!/usr/bin/env python
 
 import traceback
-import sys,os,os.path,string,time
+import sys
+import os
+import os.path
+import string
+import time
 import stat
 import re
 import optparse
 #-------------------------
 import common
-#from Certificates  import Certificates  
-from Condor        import Condor  
+from Condor import Condor  
 import WMSCollector
-import Factory
 import VOFrontend
+import Factory
 import Submit
 from Configuration import ConfigurationError
 #-------------------------
-os.environ["PYTHONPATH"] = ""
+#os.environ["PYTHONPATH"] = ""
 
 usercollector_options = [ "install_type",
 "hostname", 
@@ -216,7 +219,8 @@ specified.
 ##########################################
 def main(argv):
   try:
-    create_template() 
+    pass
+    #create_template()
     #options = validate_args(argv)
     #user = UserCollector(options.inifile)
     #user.start_me()

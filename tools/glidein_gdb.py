@@ -21,11 +21,10 @@
 #  Fermitools
 #
 
-import sys,os.path
-sys.path.append(os.path.join(sys.path[0],"lib"))
-sys.path.append(os.path.join(sys.path[0],"../lib"))
-
-import glideinCmd
+import sys
+import os.path
+sys.path.append(os.path.join(sys.path[0],"../.."))
+from glideinwms.tools.lib import glideinCmd
 
 def argv_gdb(argv):
     if len(argv)==0:

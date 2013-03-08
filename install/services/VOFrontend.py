@@ -1,24 +1,29 @@
 #!/usr/bin/env python
 
 import traceback
-import sys,os,os.path,string,time
-import stat,re
+import sys
+import os
+import os.path
+import string
+import time
+import stat
+import re
 import xml.sax.saxutils
-import xmlFormat
 import optparse
-import subprocessSupport
 #-------------------------
+import glideinwms.lib.subprocessSupport
+import glideinwms.lib.xmlFormat
 import common
 import WMSCollector
 import Factory
 import Submit
 import UserCollector
 import Glidein
-from Condor        import Condor
+from Condor import Condor
 from Configuration import Configuration
 from Configuration import ConfigurationError
 #-------------------------
-os.environ["PYTHONPATH"] = ""
+#os.environ["PYTHONPATH"] = ""
 
 frontend_options = [ "install_type",
 "hostname", 
@@ -429,14 +434,12 @@ authentification/authorizaton of the glidein pilots"""
     reinstall_msg = """You will need to reinstall the UserCollector so these pilot dns are used for
 authentification/authorizaton of the glidein pilots.""" 
 
-    if self.factory.use_vofrontend_proxy() == "y" and \
-       len(self.glidein_proxy_files()) == 0:
-      common.logerr("""The Factory use_vofrontend_proxy option (%(use_vofrontend)s) requires that you 
+    if len(self.glidein_proxy_files()) == 0:
+      common.logerr("""The Factory requires that you 
 provide proxies using the VOFrontend glidein_proxy_files and
 glidein_proxy_dns option.  These are not populated.
 %(reinstall)s.""" % \
-          { "use_vofrontend" : self.factory.use_vofrontend_proxy(), 
-            "reinstall"      : reinstall_msg, })
+          { "reinstall"      : reinstall_msg, })
     proxies = self.glidein_proxy_files().split(" ")
     if len(self.glidein_proxy_dns()) <> len(proxies):
       common.logerr("""The number of glidein_proxy_files (%(proxy)s) must match the number of glidein_proxy_dns (%(dns)s).
@@ -574,7 +577,9 @@ The following DNs are in your grid_mapfile:"""
     common.logit("\nCreating VO frontend env script.")
     data = """#!/bin/bash
 . %(condor_location)s/condor.sh
-""" % { "condor_location" : self.condor_location(),}
+export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
+""" % { "condor_location" : self.condor_location(),
+        "install_location" : self.glideinwms_location(),}
     common.write_file("w",0644,self.env_script(),data)
     common.logit("VO frontend env script created: %s" % self.env_script() )
 
@@ -603,7 +608,7 @@ The following DNs are in your grid_mapfile:"""
     if self.install_type() != "rpm":
       cmd += ". %s/condor.sh;" % self.condor_location()
     cmd += `"condor_config_val -dump |grep _jobs |awk \'{print $3}\'"`
-    lines = subprocessSupport.iexe_cmd(cmd, useShell=True)
+    lines = glideinwms.lib.subprocessSupport.iexe_cmd(cmd, useShell=True)
     if lines is None: # submit schedds not accessible
       common.logerr("""Failed to fetch list of schedds running condor_config_val.""")
     if len(lines) == 0: # submit schedds not accessible
@@ -621,7 +626,7 @@ The following DNs are in your grid_mapfile:"""
     if self.install_type() != "rpm":
       cmd += ". %s/condor.sh;" % self.condor_location()
     cmd += "condor_status -schedd -format \'%s\\n\' Name "  
-    lines = subprocessSupport.iexe_cmd(cmd, useShell=True)
+    lines = glideinwms.lib.subprocessSupport.iexe_cmd(cmd, useShell=True)
     if lines is None: # submit schedds not accessible
         common.logerr("None Failed to fetch list of schedds running condor_status -schedd\n       Your submit host condor needs to be running.")
     if len(lines) == 0: # submit schedds not accessible
@@ -739,7 +744,7 @@ please verify and correct if needed.
   "indent3" : common.indent(3),
   "indent4" : common.indent(4),
   "group_name"         : self.group_name(),
-  "match_string"       : xmlFormat.xml_quoteattr(self.match_string()),
+  "match_string"       : glideinwms.lib.xmlFormat.xml_quoteattr(self.match_string()),
   "factory_attributes" : self.factory_data(factory_attributes),
   "job_attributes"     : self.job_data(job_attributes),
 }
@@ -758,7 +763,7 @@ please verify and correct if needed.
 %(indent5)s<match_attrs> """ % \
  { "indent4" : common.indent(4),
    "indent5" : common.indent(5),
-   "expr"    : xmlFormat.xml_quoteattr(string.join(attr_query_arr," && ")),}
+   "expr"    : glideinwms.lib.xmlFormat.xml_quoteattr(string.join(attr_query_arr," && ")),}
 
       for attr in attributes:
         data = data + """
@@ -786,7 +791,7 @@ please verify and correct if needed.
 %(indent5)s<match_attrs> """ % \
  { "indent4" : common.indent(4),
    "indent5" : common.indent(5),
-   "expr"    : xmlFormat.xml_quoteattr(string.join(attr_query_arr," && ")),}
+   "expr"    : glideinwms.lib.xmlFormat.xml_quoteattr(string.join(attr_query_arr," && ")),}
 
       for attr in attributes:
         data = data + """
@@ -953,7 +958,7 @@ please verify and correct if needed.
   "wms_gsi_gn"        : self.wms.x509_gsi_dn(),
   "factory_username" : self.factory.username(),
   "frontend_identity" : self.service_name(),
-  "job_constraints"   : xmlFormat.xml_quoteattr(self.userjob_constraints()),
+  "job_constraints"   : glideinwms.lib.xmlFormat.xml_quoteattr(self.userjob_constraints()),
 }
 
     for schedd in schedds:
@@ -1114,7 +1119,8 @@ specified.
 ##########################################
 def main(argv):
   try:
-    create_template()
+    pass
+    #create_template()
     #options = validate_args(argv)
     #vo = VOFrontend(options.inifile)
     #vo.get_new_config_group()

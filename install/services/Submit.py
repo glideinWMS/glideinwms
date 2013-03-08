@@ -1,18 +1,22 @@
 #!/usr/bin/env python
 
 import traceback
-import sys,os,os.path,string,time
+import sys
+import os
+import os.path
+import string
+import time
 import re
 import stat
 import optparse
-import common
 #-------------------------
-from Condor        import Condor
+import common
 import UserCollector
 import VOFrontend
+from Condor import Condor
 from Configuration import ConfigurationError
 #-------------------------
-os.environ["PYTHONPATH"] = ""
+#os.environ["PYTHONPATH"] = ""
 
 submit_options = [ "hostname", 
 "username",
@@ -216,7 +220,8 @@ specified.
 ##########################################
 def main(argv):
   try:
-    create_template()
+    pass
+    #create_template()
     #options = validate_args(argv)
     #submit = Submit(options.inifile)
     #submit.install()
