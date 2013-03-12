@@ -367,7 +367,7 @@ Check the condor_location ini option for correctness.""" % version_script)
     cmd = "%s| awk '{print $2;exit}'" % version_script
     self.condor_version = glideinwms.lib.subprocessSupport.iexe_cmd(cmd,useShell=True)
     if len(self.condor_version) == 0:
-      common.logerr("""Unable to determine Condor version using: %s""" % self.version_script)
+      common.logerr("""Unable to determine Condor version using: %s""" % version_script)
     if self.condor_version is None:
       common.logerr("Still unable to determine condor_version")
     common.logit("    Condor version: %s" % self.condor_version)
