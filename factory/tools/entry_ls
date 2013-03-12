@@ -133,7 +133,7 @@ if __name__ == "__main__":
     try:
         fin = open(completed_fname)
     except IOError,e:
-        sys.stderr.write("WARNING: %s did not exist.  No jobs completed yet (or this is the wrong directory).\n")
+        sys.stderr.write("WARNING: %s did not exist.  No jobs completed yet (or this is the wrong directory).\n" % completed_fname)
         sys.exit(1)
 
 
