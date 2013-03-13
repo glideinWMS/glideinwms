@@ -342,7 +342,9 @@ def schedd_node_install():
             config_fd.write("\n#####################################\n")
             config_fd.write("# Enable shared_port_daemon \n")
             config_fd.write("#####################################\n")
-            config_fd.write("USE_SHARED_PORT = True\n")
+            config_fd.write("SCHEDD.USE_SHARED_PORT = True\n")
+            config_fd.write("SHADOW.USE_SHARED_PORT = True\n")
+            config_fd.write("SHARED_PORT_MAX_WORKERS = 1000\n")
             config_fd.write("SHARED_PORT_ARGS = -p %i\n"%sport_nr)
             config_fd.write("DAEMON_LIST = $(DAEMON_LIST) SHARED_PORT\n")
         finally:
