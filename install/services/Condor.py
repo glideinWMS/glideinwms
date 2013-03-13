@@ -1021,6 +1021,7 @@ SCHEDD_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridmanagerLog.$(USERNAME)"
 #--  Enable shared_port_daemon 
 SHADOW.USE_SHARED_PORT = True
 SCHEDD.USE_SHARED_PORT = True
+SHARED_PORT_MAX_WORKERS = 1000
 SHARED_PORT_ARGS = -p %(port)s
 DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT
 """ % { "port" : self.schedd_shared_port(), }
