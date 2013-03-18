@@ -1,20 +1,27 @@
 v2_7	glideinwms code is now organized as python packages
 	Factory no longer creates long running process per entry. Instead, it
 	  runs only a single long running glideFactoryEntryGroup process
-	  instead of multiple glideFactoryEntry processes.
-	Improved factory prerformance by migrating popen calls to use python's 
+	  instead of multiple glideFactoryEntry processes. Factory config
+          supports two additional config attributes entry_parallel_workers
+          and update_thread_count (see factory configuration docs for details)
+	Improved factory prerformance by migrating popen calls to use python's
 	  subprocess library
-	Improved the performance of the Frontend by using pre-clustering in 
+	Improved the performance of the Frontend by using pre-clustering in
 	  the Frontend match-making
 	Created index.html for factory monitoring so that admins can disable
 	  directory browsing in httpd.conf
 	Added support for Partitionable condor slots in the glidein
-	Frontend policy for matching factory classads is now exposed in 
+	Frontend policy for matching factory classads is now exposed in
 	  glideresource classads
 	Added a tool to dynamically create a secondary schedd config files
 	  and directories to the existing installation
 	Improved the usability of the frontendGrouGraphStatusNow monitoring
+        Factory now ships with two new operations tools: entry_ls and entry_rm
 	Improved documentation
+	Bug Fix: Fixed a bug where installers were not setting
+          SHARED_PORT_MAX_WORKERS in respective condor_config correctly
+	Bug Fix: Fixed a bug where the frontend would match jobs with now
+          proxy to sites that require glexec
 	Bug Fix: Fixed a bug where the factory entry processes and the frontend
 	  group (element) processes would inherit their parent's environment
 	  corrupting their own environment

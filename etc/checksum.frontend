@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v2_7_rc1
+# GLIDEINWMS_VERSION v2_7_rc2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 c4e9c1f360b685b8a49c62e32e6a3498  ./LICENSE.txt
@@ -57,13 +57,12 @@ e0ba6891e61382c17e0aa7ea0a13c688  ./creation/web_base/setup_script.sh
 681b715ce05b64ba1be2f9e06b3676c5  ./creation/web_base/update_proxy.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 5760d2e0712eb0e36493429eeaab54a0  ./factory/glideFactoryConfig.py
-5e51486879a9fe3ed477bac5ff2caa8a  ./factory/glideFactoryEntryGroup.py
 2c042ae28efdf825f84b53e0b0c66830  ./factory/glideFactoryInterface.py
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 4f75070f0a7b5a75e3a1cf6aa3e703f6  ./frontend/checkFrontend.py
 1fd7f29eda8e69a5c949e3206c6eb64a  ./frontend/glideinFrontend.py
 c474c280f714b64cc8185d934c098e10  ./frontend/glideinFrontendConfig.py
-3912a38bc3e9d0fffc43ae558d23f675  ./frontend/glideinFrontendElement.py
+f79aeb8ca551bb5154455a7d15402a25  ./frontend/glideinFrontendElement.py
 fc6583476e2a8318b1e32b3f8e078594  ./frontend/glideinFrontendInterface.py
 60aae7cacbbc4b5be47bf4906c1b93c8  ./frontend/glideinFrontendLib.py
 cef3f30b95bbce871c2765f17f5019e6  ./frontend/glideinFrontendMonitorAggregator.py
@@ -76,23 +75,23 @@ a388a8cafcb40decc5a71b58d8844457  ./install/glidecondor_addDN
 f28c34e36ba4305d337b6b1b3b4ae80f  ./install/glidecondor_createSecSched
 71a2a319bb6d7ce190e23df8fc2be50d  ./install/glidecondor_upgrade
 ac0a334763d78ab1abe1148209625a94  ./install/glideinWMS.ini
-6512d08023165506d829782fbbfa47db  ./install/glideinWMS_install
-c85b9c121a94d441fb1b1da3d81e903f  ./install/manage-glideins
-c84440bf12f704e05678bb9f1cbd0ba7  ./install/services/Certificates.py
-d03f4100591e06e8c97067d9cc3be986  ./install/services/Condor.py
+e4897c5bd7264d85711f80a2be09636f  ./install/glideinWMS_install
+9039b04f708cead0be3e37dcbc967234  ./install/manage-glideins
+23e4e5fa126e6f500fb84191f9f807c8  ./install/services/Certificates.py
+893c70f5a1ee3584e7d55d7c128c141c  ./install/services/Condor.py
 a20dd704b59cf1c24b63112cecdefc3b  ./install/services/Configuration.py
-f7910ba46974b2343624a91ff623841c  ./install/services/Factory.py
+afc6605865b6254b5d95d7686451ce9b  ./install/services/Factory.py
 d773ece272dd4e069e9b05edec301a05  ./install/services/Glidein.py
 4f9ece2f700b33752c4b1a127d4f2c35  ./install/services/PrivilegeSeparation.py
 bc4d3c19af3746ed7ca8d05d9ca933f9  ./install/services/RPM.py
 d3a1ecfc57b36efb64f95357fbfb2dba  ./install/services/Submit.py
 7fd76c47a0605e54dc31e101dd93dec4  ./install/services/UserCollector.py
-21c470303db990240850cf10b9b6f4ae  ./install/services/VDT.py
-67315a8e5f7897badca0acc4f9d21760  ./install/services/VDTClient.py
-8c18810692708260a4e5ce19fbde76d8  ./install/services/VOFrontend.py
+29fc2af03e0d39aff32d9098d83ea990  ./install/services/VDT.py
+a23ce34c112516db3b55180450092784  ./install/services/VDTClient.py
+632ffb34371a4a933b7a95b283696ae7  ./install/services/VOFrontend.py
 7124c20fe03974db88d049cf1962a1df  ./install/services/WMSCollector.py
 b56403417b299dfca2fff645ad7f3461  ./install/services/__init__.py
-eeca4c743132cc3bcafafa26d75c218f  ./install/services/common.py
+b80522fedd4de54052844cc26b465cbe  ./install/services/common.py
 e11d30b85bc8ee174418de14c2210257  ./install/services/init_schedd.sh
 d41d8cd98f00b204e9800998ecf8427e  ./lib/__init__.py
 05337aeed61e0a3f1f0a610501105260  ./lib/condorExe.py
@@ -109,7 +108,7 @@ a21a3df952f2bbea319fa2e2db0360ee  ./lib/ldapMonitor.py
 7ef3f7cbaf6600b21210bb2849d090e4  ./lib/pidSupport.py
 b8fcdf83d55f63b424ac9bf8468107cf  ./lib/pubCrypto.py
 a4a9c9ce66d4297e420fe8f896ba7e1d  ./lib/rrdSupport.py
-5f6581e3130540db65c6d1ae8506e574  ./lib/subprocessSupport.py
+d8200249619d609fe42e11c22579bcbb  ./lib/subprocessSupport.py
 9d2dd5dfff2646ac5da5d8a745065840  ./lib/symCrypto.py
 07690943f55909c5ef7522e98f9c7088  ./lib/timeConversion.py
 2923d8496b592cd1a7fd2d50af4f61d8  ./lib/x509Support.py

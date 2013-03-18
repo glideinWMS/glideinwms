@@ -82,12 +82,14 @@ Related Pages:
 <a name="stable"></a>
     <h3>Stable Series</h3>
       <li>
-        <b>v2_7</b> released on February xx, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7.tgz">Tarball</a>)<br>
+        <b>v2_7</b> released on March xx, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7.tgz">Tarball</a>)<br>
         <ul>
           <li>glideinwms code is now organized as python packages
           <li>Factory no longer creates long running process per entry.
           Instead, it runs only a single long running glideFactoryEntryGroup
-          process instead of multiple glideFactoryEntry processes.
+          process instead of multiple glideFactoryEntry processes. Factory
+          config supports two additional config attributes entry_parallel_workers
+          and update_thread_count (see factory configuration docs for details)
           <li>Improved factory prerformance by migrating popen calls to use
           python's subprocess library
           <li>Improved the performance of the Frontend by using pre-clustering
@@ -101,10 +103,15 @@ Related Pages:
           and directories to the existing installation
           <li>Improved the usability of the frontendGrouGraphStatusNow
           monitoring
+          <li>Factory now ships with two new operations tools: entry_ls and entry_rm
           <li>Improved documentation
           <li>Bug Fix: Fixed a bug where the factory entry processes and the
           frontend group (element) processes would inherit their parent's
           environment corrupting their own environment
+          <li>Bug Fix: Fixed a bug where installers were not setting
+          SHARED_PORT_MAX_WORKERS in respective condor_config correctly
+          <li>Bug Fix: Fixed a bug where the frontend would match jobs with now 
+          proxy to sites that require glexec 
           <li>Bug Fix: Glidein's job wrapper now behaves as true wrapper
           <li>Bug Fix: Fixed a bug where frontend_startup would not correctly
           pick default frontend.xml
