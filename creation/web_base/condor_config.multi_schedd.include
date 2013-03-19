@@ -17,6 +17,7 @@ SLOT_TYPE_1 = cpus=1, memory=1%, swap=1%, disk=1%
 NUM_SLOTS_TYPE_1 = 1
 SLOT_TYPE_2 = cpus=$(GLIDEIN_CPUS), memory=99%, swap=99%, disk=99%
 NUM_SLOTS_TYPE_2 = 1
+SLOT_TYPE_2_PARTITIONABLE = $(GLIDEIN_Is_Partitionable)
 
 STARTD_RESOURCE_PREFIX = vm
 

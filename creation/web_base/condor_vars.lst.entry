@@ -22,6 +22,7 @@ PREEMPT_GRACE_TIME	I	10000000	+				N	Y	+
 HOLD_GRACE_TIME	I	0	+				N	Y	+
 
 GLIDEIN_CPUS		C	1		+				N	N	@ 
+GLIDEIN_Is_Partitionable	C	False		+				N	N	@
 
 # Factory provided
 GLIDEIN_Entry_Name	S	-		+				Y	Y	@

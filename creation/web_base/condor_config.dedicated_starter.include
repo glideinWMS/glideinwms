@@ -11,10 +11,10 @@ WORK_DIR=$(LOCAL_DIR)
 # No need to be nice... I got the slot
 JOB_RENICE_INCREMENT = 0
 
-# force a single CPU (the WN could have many)
 NUM_CPUS = $(GLIDEIN_CPUS)
 SLOT_TYPE_1 = cpus=$(GLIDEIN_CPUS), memory=100%, swap=100%, disk=100%
 NUM_SLOTS_TYPE_1 = 1
+SLOT_TYPE_1_PARTITIONABLE = $(GLIDEIN_Is_Partitionable)
 
 HAS_MONITOR_VM=True
 IS_MONITOR_VM = False
