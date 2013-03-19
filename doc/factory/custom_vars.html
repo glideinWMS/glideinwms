@@ -394,6 +394,23 @@ by the VO factory clients.</P>
         </TD>
     </TR>
 
+    <TR>
+        <td> <b>GLIDEIN_CPUS</b> </td>
+        <TD> Int </TD>
+        <TD> 1 </TD>
+        <TD>
+            <P>Number of CPUs allocated per slot. If this is changed from the default, you probably need to modify the GLIDEIN_GlobusRSL for this entry to request more than one CPU.</P>
+        </TD>
+    </TR>
+
+    <TR>
+        <td> <b>GLIDEIN_Is_Partitionable</b> </td>
+        <TD> Exp (Bool)</TD>
+        <TD> False </TD>
+        <TD>
+            <P>Set this to <b>True</b> (in conjunction with GLIDEIN_CPUS) to enable dynamic slots for an entry.</P>
+        </TD>
+    </TR>
     <tr>
         <td> <b>PREEMPT</b></td>
         <td> Bool </td>
