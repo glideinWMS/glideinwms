@@ -415,7 +415,11 @@ def evalParamExpr(expr_obj, frontend, glidein):
 def getCondorStatus(collector_names, constraint=None, format_list=None):
     if format_list != None:
         format_list = condorMonitor.complete_format_list(format_list, [('State', 's'), ('Activity', 's'), ('EnteredCurrentState', 'i'), ('EnteredCurrentActivity', 'i'), ('LastHeardFrom', 'i'), ('GLIDEIN_Factory', 's'), ('GLIDEIN_Name', 's'), ('GLIDEIN_Entry_Name', 's'), ('GLIDECLIENT_Name', 's'), ('GLIDECLIENT_ReqNode','s'), ('GLIDEIN_Schedd', 's')])
-    return getCondorStatusConstrained(collector_names, '(IS_MONITOR_VM=!=True)&&(GLIDEIN_Factory=!=UNDEFINED)&&(GLIDEIN_Name=!=UNDEFINED)&&(GLIDEIN_Entry_Name=!=UNDEFINED)', constraint, format_list)
+        type_constraint = '(IS_MONITOR_VM=!=True)&&(GLIDEIN_Factory=!=UNDEFINED)&&(GLIDEIN_Name=!=UNDEFINED)&&(GLIDEIN_Entry_Name=!=UNDEFINED)'
+        # Partitionable slots are *always* idle -- the frontend only counts them when
+        # all the subslots have been reclaimed (HTCondor sets TotalSlots == 1)
+        type_constraint += '&& (PartitionableSlot =!= True || TotalSlots =?= 1)'
+    return getCondorStatusConstrained(collector_names, type_constraint, constraint, format_list)
 
 #
 # Return a dictionary of collectors containing idle(unclaimed) vms
