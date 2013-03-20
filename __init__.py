@@ -1,1 +1,2 @@
-__all__=["factory","frontend","lib","tools","creation","install","unittests"]
+__all__=["factory","frontend","lib","tools","creation","install","unittests","externals"]
+
