@@ -57,7 +57,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 
         # Load initial system scripts
         # These should be executed before the other scripts
-        for script_name in ('setup_script.sh','cat_consts.sh','setup_x509.sh'):
+        for script_name in ('setup_script.sh','cat_consts.sh','setup_x509.sh','check_proxy.sh'):
             self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
 
         #load system files
