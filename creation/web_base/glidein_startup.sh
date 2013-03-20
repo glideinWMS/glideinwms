@@ -1537,7 +1537,7 @@ done
 baseAPFurl=`grep "^APFMonBaseURL " $glidein_config | awk '{print $2}'`
 if [ -n ${baseAPFurl} ]; then
     url="${baseAPFurl}/${glidein_factory}:job.${condorg_cluster}.${condorg_subcluster}"
-    curl -s -d "state=running" $url
+    curl -s -d "state=running" $url -O /dev/null >& /dev/null
 fi
 
 ###############################
@@ -1576,7 +1576,7 @@ fi
 # report job as exiting to APFMon
 if [ -n ${baseAPFurl} ]; then
     url="${baseAPFurl}/${glidein_factory}:job.${condorg_cluster}.${condorg_subcluster}"
-    curl -s -d "state=exiting" $url
+    curl -s -d "state=exiting" $url -O /dev/null >& /dev/null
 fi
 
 #########################
