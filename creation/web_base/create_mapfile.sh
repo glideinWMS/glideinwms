@@ -9,6 +9,14 @@
 #   It has the routins to create grid and condor mapfiles
 #
 
+config_file="$1"
+
+# import add_config_line function
+add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
+source $add_config_line_source
+
+error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
+
 # add the current DN to the list of allowed DNs
 # create a new file if none exist
 function create_gridmapfile {
@@ -116,10 +124,6 @@ function create_condormapfile {
 ############################################################
 
 # Assume all functions exit on error
-config_file="$1"
-
-error_gen=`grep '^ERROR_GEN_PATH ' $config_file | awk '{print $2}'`
-
 EXPECTED_GRIDMAP_FNAME="grid-mapfile"
 
 X509_GRIDMAP="$PWD/$EXPECTED_GRIDMAP_FNAME"
@@ -137,13 +141,9 @@ create_gridmapfile
 X509_GRIDMAP_DNS=`extract_gridmap_DNs`
 create_condormapfile
 
-cat >> "$config_file" <<EOF
-######## create_mapfile ###########
-X509_CONDORMAP           $X509_CONDORMAP
-X509_GRIDMAP_DNS         $X509_GRIDMAP_DNS
-X509_GRIDMAP_TRUSTED_DNS $X509_GRIDMAP_DNS
-###############################
-EOF
+add_config_line X509_CONDORMAP           "$X509_CONDORMAP"
+add_config_line X509_GRIDMAP_DNS         "$X509_GRIDMAP_DNS"
+add_config_line X509_GRIDMAP_TRUSTED_DNS "$X509_GRIDMAP_DNS"
 
 "$error_gen" -ok "create_mapfile.sh" "DNs" "$X509_GRIDMAP_DNS" "TrustedDNs" "$X509_GRIDMAP_DNS"
 
