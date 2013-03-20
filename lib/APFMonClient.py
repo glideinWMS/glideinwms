@@ -1,4 +1,4 @@
-import simplejson as json
+import glideinwms.externals.simplejson as json
 import urllib2
 from glideinwms.factory import glideFactoryConfig
 from glideinwms.lib import logSupport
