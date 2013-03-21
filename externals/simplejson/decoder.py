@@ -1,5 +1,6 @@
 """Implementation of JSONDecoder
 """
+#pylint: disable=F0401
 import re
 import sys
 import struct

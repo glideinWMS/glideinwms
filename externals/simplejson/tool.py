@@ -10,6 +10,7 @@ Usage::
     Expecting property name: line 1 column 2 (char 2)
 
 """
+#pylint: disable=F0401
 import sys
 import simplejson
 

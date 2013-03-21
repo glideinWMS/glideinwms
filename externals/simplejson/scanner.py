@@ -1,5 +1,7 @@
 """JSON token scanner
 """
+#pylint: disable=F0401
+
 import re
 try:
     from simplejson._speedups import make_scanner as c_make_scanner
