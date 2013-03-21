@@ -43,7 +43,7 @@ error_gen=`grep '^ERROR_GEN_PATH ' $config_file | awk '{print $2}'`
 # find out whether user wants to run job or run test
 operation_mode=`grep -i "^DEBUG_MODE " $config_file | awk '{print $2}'`
 
-if [ "$operation_mode" == "1" ] || [ "$operation_mode" == "2" ]; then
+if [ "$operation_mode" -ne "0" ]; then
     echo "-------- $config_file in condor_startup.sh ----------" 1>&2
     cat $config_file 1>&2
     echo "-----------------------------------------------------" 1>&2
@@ -540,7 +540,7 @@ fi
 
 ####################################
 
-if [ "$operation_mode" == "1" ] || [ "$operation_mode" == "2" ]; then
+if [ "$operation_mode" -ne "0" ]; then
   echo "--- condor_config ---" 1>&2
   cat $CONDOR_CONFIG 1>&2
   echo "--- ============= ---" 1>&2

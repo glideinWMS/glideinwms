@@ -675,7 +675,7 @@ echo "As: `id`"
 echo "PID: $$"
 echo
 
-if [ $set_debug -eq 1 ] || [ $set_debug -eq 2 ]; then
+if [ $set_debug -ne 0 ]; then
   echo "------- Initial environment ---------------"  1>&2
   env 1>&2
   echo "------- =================== ---------------" 1>&2
