@@ -33,6 +33,7 @@ TargetType = "Job"
 
 Name = "${slot_name}@${host_name}"
 Machine = "${host_name}
+MyAddress = "<127.0.0.1:1>"
 
 State = "Owner"
 Activity = "Idle"
