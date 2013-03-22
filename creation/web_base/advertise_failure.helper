@@ -1,0 +1,94 @@
+#!/bin/bash
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#
+# Description:
+#   This helper script creates a machine classad and
+#     and sends it to the collector
+#
+# Expected environment:
+#   CONDOR_CONFIG
+#
+
+
+condor_advertise="$1"
+
+classad_fname=${CONDOR_CONFIG}.classad
+
+slot_name=`grep '^STARTD_NAME = ' $CONDOR_CONFIG | tail -1| awk '{print $3}'`
+host_name=`uname -n`
+collector_name=`grep '^HEAD_NODE=' $CONDOR_CONFIG | tail -1| awk -F = '{print $2}'`
+
+now=`date +%s`
+
+rm -f ${classad_fname}
+
+# Create the standard part
+cat >  ${classad_fname} << EOF
+MyType = "Machine"
+TargetType = "Job"
+
+Name = "${slot_name}@${host_name}"
+Machine = "${host_name}
+
+State = "Owner"
+Activity = "Idle"
+EnteredCurrentState = $now
+MyCurrentTime = $now
+DaemonStartTime = $now
+
+START = False
+Requirements = ( START ) && ( IsValidCheckpointPlatform )
+IsValidCheckpointPlatform = False
+
+CpuIsBusy = false
+CpuBusy = false
+
+LastBenchmark = 0
+
+FileSystemDomain = "${host_name}"
+UidDomain = "${host_name}"
+
+SlotID = 1
+TotalSlots = 1
+
+Cpus = 1
+TotalSlotCpus = 1
+DetectedCpus = 1
+TotalCpus = 1
+
+DetectedMemory = 1
+TotalVirtualMemory = 1
+VirtualMemory = 1
+TotalSlotMemory = 1
+TotalMemory = 1
+Memory = 1
+
+TotalSlotDisk = 1
+TotalDisk = 1
+Disk = 1
+
+Arch = "noarch"
+OpSys = "Bash"
+OpSysLegacy = "Bash"
+HasFileTransfer = true
+
+CondorPlatform = "\$glideinWMS: glidein_startup.sh \$"
+
+GLIDEIN_COLLECTOR_NAME = "${collector_name}"
+
+EOF
+
+# append the glidein-specific variables
+glidein_vars=`grep '^GLIDEIN_VARIABLES = ' $CONDOR_CONFIG | tail -1| awk '{split($3,a,","); for (i in a) {print a[i]} }'`
+
+for v in ${glidein_vars};
+do
+  grep "^$v=" $CONDOR_CONFIG | tail -1 >> ${classad_fname}
+done
+
+
+${condor_advertise} -tcp UPDATE_STARTD_AD ${classad_fname}
