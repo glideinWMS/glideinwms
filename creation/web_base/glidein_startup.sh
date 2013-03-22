@@ -12,9 +12,6 @@ export LANG=C
 
 function on_die {
         echo "Received kill signal... shutting down child processes" 1>&2
-        if [ "x$lock_file" != "x" ]; then
-            rm -f $lock_file
-        fi
         ON_DIE=1
         kill %1
 }
@@ -53,8 +50,7 @@ function usage {
     echo "  -clientsigngroup <sign>     : signature of the client group signature file"
     echo "  -clientdescript <fname>     : client description file name"
     echo "  -clientdescriptgroup <fname>: client description file name for group"
-    echo "  -slotslayout <type>         : how Condor will set up slots (single_slot, whole_node_n_slots,"
-    echo "                              : whole_node_htpc, whole_node_dynamic)"
+    echo "  -slotslayout <type>         : how Condor will set up slots (fixed, partitionable)"
     echo "  -v <id>                     : operation mode (std, nodebug, fast, check supported)"
     echo "  -param_* <arg>              : user specified parameters"
     exit 1
@@ -99,18 +95,11 @@ shift
 shift
 done
 
-# before creating workdirs and such, check if we are being asked for a
-# whole machine and if we are the only/first one to start up
-if (echo "x$slots_layout" | grep whole_node) >/dev/null 2>&1 ; then
-    lock_file=/tmp/glideinwms.$condorg_cluster.$condorg_subcluster.$sign_id
-    if ! ( set -o noclobber; echo "$$" > "$lock_file") 2>/dev/null ; then
-        # lock already exists - should we exit or wait here?
-        warn "whole node requested, and lock file already exists. Exiting..."
-        exit 0
-   fi
-    # we have the lock - ok to continue
+# make sure we have a valid slots_layout
+if (echo "x$slots_layout" | grep -i fixed) >/dev/null 2>&1 ; then
+    slots_layout="fixed"
 else
-    slots_layout="single_slot"
+    slots_layout="partitionable"
 fi
 
 function python_b64uuencode {
@@ -320,10 +309,6 @@ function glidein_exit {
   if [ $1 -ne 0 ]; then
       sleep $sleep_time 
       # wait a bit in case of error, to reduce lost glideins
-  fi
-  # lock file for whole machine 
-  if [ "x$lock_file" != "x" ]; then
-    rm -f $lock_file
   fi
 
   global_result=""

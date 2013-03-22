@@ -78,7 +78,7 @@ class FactoryConfig:
         self.remove_sleep = 0.2
         self.release_sleep = 0.2
         
-        self.slots_layout = "single_slot"
+        self.slots_layout = "fixed"
 
         # Max commands per cycle
         self.max_submits = 100
