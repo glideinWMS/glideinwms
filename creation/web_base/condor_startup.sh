@@ -41,9 +41,26 @@ config_file=$1
 error_gen=`grep '^ERROR_GEN_PATH ' $config_file | awk '{print $2}'`
 
 # find out whether user wants to run job or run test
-operation_mode=`grep -i "^DEBUG_MODE " $config_file | awk '{print $2}'`
+debug_mode=`grep -i "^DEBUG_MODE " $config_file | awk '{print $2}'`
 
-if [ "$operation_mode" -ne "0" ]; then
+print_debug=0
+check_only=0
+if [ "$debug_mode" -ne "0" ]; then
+    print_debug=1
+    if [ "$debug_mode" -eq "2" ]; then
+	check_only=1
+    fi
+fi
+
+adv_only=`grep -i "^GLIDEIN_ADVERTISE_ONLY " $config_file | awk '{print $2}'`
+
+if [ "$adv_only" -eq "1" ]; then
+    # no point in printing out debug info about config
+    print_debug=0
+    echo "Advertising failure to the VO collector"  1>&2
+fi
+
+if [ "$print_debug" -ne "0" ]; then
     echo "-------- $config_file in condor_startup.sh ----------" 1>&2
     cat $config_file 1>&2
     echo "-----------------------------------------------------" 1>&2
@@ -365,7 +382,7 @@ if [ "$retire_time" -lt "$min_glidein" ]; then
   let "retire_time=$retire_time + $retire_spread * $random100 / 100"
   let "die_time=$die_time + $retire_spread * $random100 / 100"
 fi
-if [ "$retire_time" -lt "$min_glidein" ]; then  
+if [ "$retire_time" -lt "$min_glidein" ] && [ "$adv_only" -ne "1" ]; then  
     #echo "Retire time still too low ($retire_time), aborting" 1>&2
     STR="Retire time still too low ($retire_time), aborting"
     "$error_gen" -error "condor_startup.sh" "Config" "$STR" "retire_time" "$retire_time" "min_retire_time" "$min_glidein"
@@ -382,7 +399,7 @@ let "session_duration=$x509_duration"
 
 # if in test mode, don't ever start any jobs
 START_JOBS="TRUE"
-if [ "$operation_mode" == "2" ]; then
+if [ "$chek_only" == "1" ]; then
 	START_JOBS="FALSE"
   # need to know which startd to fetch against
   STARTD_NAME=glidein_$$
@@ -437,14 +454,14 @@ fi
 
 monitor_mode=`grep -i "^MONITOR_MODE " $config_file | awk '{print $2}'`
 
-if [ "$monitor_mode" == "MULTI" ] || [ "$operation_mode" -eq 2 ]; then
+if [ "$monitor_mode" == "MULTI" ]; then
     use_multi_monitor=1
 else
     use_multi_monitor=0
 fi
 
 # get check_include file for testing
-if [ "$operation_mode" == "2" ]; then
+if [ "$check_only" == "1" ]; then
 	condor_config_check_include="${main_stage_dir}/`grep -i '^condor_config_check_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
     echo "# ---- start of include part ----" >> "$CONDOR_CONFIG"
     cat "$condor_config_check_include" >> "$CONDOR_CONFIG"
@@ -540,7 +557,7 @@ fi
 
 ####################################
 
-if [ "$operation_mode" -ne "0" ]; then
+if [ "$print_debug" -ne "0" ]; then
   echo "--- condor_config ---" 1>&2
   cat $CONDOR_CONFIG 1>&2
   echo "--- ============= ---" 1>&2
@@ -550,6 +567,18 @@ if [ "$operation_mode" -ne "0" ]; then
   #env 1>&2
 fi
 
+#
+# The config is complete at this point
+#
+
+if [ "$adv_only" -eq "1" ]; then
+    chmod u+rx "${main_stage_dir}/advertise_failure.helper"
+    "${main_stage_dir}/advertize_failure.helper" "$CONDOR_DIR/sbin/condor_advertise"
+    # short circuit... do not even try to start the Condor daemons below
+    exit $?
+fi
+
+
 X509_BACKUP=$X509_USER_PROXY
 if [ "$expose_x509" == "true" ]; then
 	echo "Exposing X509_USER_PROXY $X509_USER_PROXY" 1>&2
@@ -558,7 +587,7 @@ else
 	unset X509_USER_PROXY
 fi
 
-##	start the condor master
+##	start the monitoring condor master
 if [ "$use_multi_monitor" -ne 1 ]; then
     # don't start if monitoring is disabled
     if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
@@ -599,7 +628,7 @@ trap 'on_die' INT
 
 
 #### STARTS CONDOR ####
-if [ "$operation_mode" == "2" ]; then
+if [ "$check_only" == "1" ]; then
 	echo "=== Condor started in test mode ==="
 	$CONDOR_DIR/sbin/condor_master -pidfile $PWD/condor_master.pid
 else
@@ -635,7 +664,7 @@ metrics+=" CondorDuration $elapsed_time"
 ##    if fetch fails, sleep for 'fetch_sleeptime' amount
 ##    of seconds, then try again.  Repeat until
 ##    'timeout' amount of time has been reached.
-if [ $operation_mode -eq 2 ]; then
+if [ "$check_only" -eq 1 ]; then
 
   HOST=`uname -n`
 
@@ -696,7 +725,7 @@ if [ -f "${main_starter_log}" ]; then
 fi
 echo === End Stats of main ===
 
-if [ "$operation_mode" == "0" ] || [ "$operation_mode" == "1" ] || [ "$operation_mode" == "2" ]; then
+if [ 1 -eq 1 ]; then
     ls -l log 1>&2
     echo
     cond_print_log MasterLog log/MasterLog

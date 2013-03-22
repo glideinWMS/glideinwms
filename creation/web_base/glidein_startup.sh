@@ -145,6 +145,24 @@ $result
 }
 
 
+function extract_parent_fname {
+  exitcode=$1
+
+  if [ -s otrx_output.xml ]; then
+      # file exists and is not 0 size
+      last_result=`cat otrx_output.xml`
+ 
+      if [ "$exitcode" -eq 0 ]; then
+	  echo "SUCCESS"
+      else
+	  last_script_name=`echo "$last_result" |awk '/<OSGTestResult /{split($0,a,"id=\""); split(a[2],b,"\""); print b[1];}'`
+	  print ${last_script_name}
+      fi
+  else
+      print "Unknown" 
+  fi
+}
+
 function extract_parent_xml_detail {
   exitcode=$1
   glidein_end_time=`date +%s`
@@ -295,19 +313,16 @@ function early_glidein_failure {
   exit 1
 }
 
+
 # use this one once the most basic ops have been done
 function glidein_exit {
-  if [ $1 -ne 0 ]; then
-      sleep $sleep_time 
-      # wait a bit in case of error, to reduce lost glideins
-  fi
-
   global_result=""
   if [ -f otr_outlist.list ]; then
       global_result=`cat otr_outlist.list`
       chmod u+w otr_outlist.list
   fi
 
+  ge_last_script_name=`extract_parent_fname $1`
   result=`extract_parent_xml_detail $1`
   final_result=`construct_xml "$result"`
 
@@ -316,6 +331,45 @@ function glidein_exit {
 
   # Create a richer version, too
   final_result_long=`simplexml2longxml "${final_result_simple}" "${global_result}"`
+
+  if [ $1 -ne 0 ]; then
+      # wait a bit in case of error, to reduce lost glideins
+      let "dl=`date +%s` + $sleep_time"
+      add_config_line "GLIDEIN_ADVERTISE_ONLY" "1"
+      add_condor_vars_line "GLIDEIN_ADVERTISE_ONLY" "C" "True" "+" "Y" "Y" "-"
+      add_config_line "GLIDEIN_EXIT_CODE" "$1"
+      add_condor_vars_line "GLIDEIN_EXIT_CODE" "I" "-" "+" "Y" "Y" "-"
+      add_config_line "GLIDEIN_LAST_SCRIPT" "${ge_last_script_name}"
+      add_condor_vars_line "GLIDEIN_LAST_SCRIPT" "S" "-" "+" "Y" "Y" "-"
+
+      add_config_line "GLIDEIN_ADVERTISE_REASON" "Failed glidein, keeping node busy until $dl."
+      add_condor_vars_line "GLIDEIN_ADVERTISE_REASON" "S" "-" "+" "Y" "Y" "-"
+      main_work_dir=`get_work_dir main`
+
+      for ((t=`date +%s`; $t<$dl;t=`date +%s`))
+      do
+	if [ -e "${main_work_dir}/$last_script" ]; then
+	    # if the file exists, we should be able to talk to VO collector
+	    # notify VO things went badly and we are waiting
+	    "${gs_id_work_dir}/$last_script" glidein_config
+	fi
+
+	# sleep for about 5 mins... but randomize a bit
+	let "ds=250+$RANDOM%100"
+	let "as=`date +%s` + $ds"
+	if [ $as -gt $dl ]; then
+	    # too long, shorten to the deadline
+	    let "ds=$dl - `date +%s`"
+	fi
+	sleep $ds
+      done
+
+      if [ -e "${main_work_dir}/$last_script" ]; then
+	  # notify VO things went badly and we are going away
+	  add_config_line "GLIDEIN_ADVERTISE_REASON" "Last update, terminating."
+	  "${gs_id_work_dir}/$last_script" glidein_config
+      fi
+  fi
 
   cd "$start_dir"
   if [ "$work_dir_created" -eq "1" ]; then
@@ -876,6 +930,10 @@ fi
 echo "ADD_CONFIG_LINE_SOURCE $PWD/add_config_line.source" >> glidein_config
 echo "GET_ID_SELECTORS_SOURCE $PWD/get_id_selectors.source" >> glidein_config
 echo "WRAPPER_LIST $wrapper_list" >> glidein_config
+# Add a line saying we are still initializing
+echo "GLIDEIN_INITIALIZED 0" >> glidein_config
+# but be optimist, and leave advertise_only for the actual error handling script
+echo "GLIDEIN_ADVERTISE_ONLY 0" >> glidein_config
 echo "# --- User Parameters ---" >> glidein_config
 if [ $? -ne 0 ]; then
     # we should probably be testing all others as well, but this is better than nothing
@@ -1394,6 +1452,8 @@ done
 
 ###############################
 # Start the glidein main script
+add_config_line "GLIDEIN_INITIALIZED" "1"
+
 echo "# --- Last Script values ---" >> glidein_config
 last_startup_time=`date +%s`
 let validation_time=$last_startup_time-$startup_time
