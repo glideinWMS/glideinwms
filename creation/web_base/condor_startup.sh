@@ -230,6 +230,7 @@ function cond_print_log {
 }
 
 # interpret the variables
+rm -f condor_vars.lst.tmp
 touch condor_vars.lst.tmp
 for vid in GLIDECLIENT_GROUP_CONDOR_VARS_FILE GLIDECLIENT_CONDOR_VARS_FILE ENTRY_CONDOR_VARS_FILE CONDOR_VARS_FILE
 do
@@ -535,24 +536,32 @@ Monitoring_Name = "monitor_$$@\$(FULL_HOSTNAME)"
 EOF
 
       # also needs to create "monitor" dir for log and execute dirs
-      mkdir monitor monitor/log monitor/execute 
-      if [ $? -ne 0 ]; then
-        #echo "Error creating monitor dirs" 1>&2
-        STR="Error creating monitor dirs"
-        "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "directory" "$PWD/monitor_monitor/log_monitor/execute"
-        exit 1
+      if [ -d monitor ] && [ -d monitor/log ] && [ -d monitor/execute ]; then
+        echo "Monitoring dirs exist" 1>&2
+      else
+        mkdir monitor monitor/log monitor/execute 
+        if [ $? -ne 0 ]; then
+          #echo "Error creating monitor dirs" 1>&2
+          STR="Error creating monitor dirs"
+          "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "directory" "$PWD/monitor_monitor/log_monitor/execute"
+          exit 1
+        fi
       fi
     fi
 fi
 
 fi # if mode==2
 
-mkdir log execute 
-if [ $? -ne 0 ]; then
+if [ -d log ] && [ -d execute ]; then
+  echo "log and execute dirs exist" 1>&2
+else
+  mkdir log execute 
+  if [ $? -ne 0 ]; then
     #echo "Error creating condor dirs" 1>&2
     STR="Error creating monitor dirs"
     "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "directory" "$PWD/log_execute"
     exit 1
+  fi
 fi
 
 ####################################
@@ -573,7 +582,7 @@ fi
 
 if [ "$adv_only" -eq "1" ]; then
     chmod u+rx "${main_stage_dir}/advertise_failure.helper"
-    "${main_stage_dir}/advertize_failure.helper" "$CONDOR_DIR/sbin/condor_advertise"
+    "${main_stage_dir}/advertise_failure.helper" "$CONDOR_DIR/sbin/condor_advertise"
     # short circuit... do not even try to start the Condor daemons below
     exit $?
 fi

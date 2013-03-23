@@ -156,10 +156,10 @@ function extract_parent_fname {
 	  echo "SUCCESS"
       else
 	  last_script_name=`echo "$last_result" |awk '/<OSGTestResult /{split($0,a,"id=\""); split(a[2],b,"\""); print b[1];}'`
-	  print ${last_script_name}
+	  echo ${last_script_name}
       fi
   else
-      print "Unknown" 
+      echo "Unknown" 
   fi
 }
 
@@ -335,15 +335,27 @@ function glidein_exit {
   if [ $1 -ne 0 ]; then
       # wait a bit in case of error, to reduce lost glideins
       let "dl=`date +%s` + $sleep_time"
+      dlf=`date --date="@$dl"`
       add_config_line "GLIDEIN_ADVERTISE_ONLY" "1"
-      add_condor_vars_line "GLIDEIN_ADVERTISE_ONLY" "C" "True" "+" "Y" "Y" "-"
+      add_config_line "GLIDEIN_Failed" "True"
       add_config_line "GLIDEIN_EXIT_CODE" "$1"
-      add_condor_vars_line "GLIDEIN_EXIT_CODE" "I" "-" "+" "Y" "Y" "-"
+      add_config_line "GLIDEIN_ToDie" "$dl"
+      add_config_line "GLIDEIN_Expire" "$dl"
       add_config_line "GLIDEIN_LAST_SCRIPT" "${ge_last_script_name}"
-      add_condor_vars_line "GLIDEIN_LAST_SCRIPT" "S" "-" "+" "Y" "Y" "-"
 
-      add_config_line "GLIDEIN_ADVERTISE_REASON" "Failed glidein, keeping node busy until $dl."
-      add_condor_vars_line "GLIDEIN_ADVERTISE_REASON" "S" "-" "+" "Y" "Y" "-"
+      add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Keeping node busy until $dl ($dlf)."
+
+      condor_vars_file=`grep -i "^CONDOR_VARS_FILE " $glidein_config | awk '{print $2}'`
+      if [ -n "${condor_vars_file}" ]; then
+         # if we are to advertise, this should be available... else, it does not matter anyhow
+         add_condor_vars_line "GLIDEIN_ADVERTISE_ONLY" "C" "True" "+" "Y" "Y" "-"
+         add_condor_vars_line "GLIDEIN_Failed" "C" "True" "+" "Y" "Y" "-"
+         add_condor_vars_line "GLIDEIN_EXIT_CODE" "I" "-" "+" "Y" "Y" "-"
+         add_condor_vars_line "GLIDEIN_ToDie" "I" "-" "+" "Y" "Y" "-"
+         add_condor_vars_line "GLIDEIN_Expire" "I" "-" "+" "Y" "Y" "-"
+          add_condor_vars_line "GLIDEIN_LAST_SCRIPT" "S" "-" "+" "Y" "Y" "-"
+         add_condor_vars_line "GLIDEIN_FAILURE_REASON" "S" "-" "+" "Y" "Y" "-"
+      fi
       main_work_dir=`get_work_dir main`
 
       for ((t=`date +%s`; $t<$dl;t=`date +%s`))
@@ -351,6 +363,7 @@ function glidein_exit {
 	if [ -e "${main_work_dir}/$last_script" ]; then
 	    # if the file exists, we should be able to talk to VO collector
 	    # notify VO things went badly and we are waiting
+            warn "Notifying VO of error"
 	    "${gs_id_work_dir}/$last_script" glidein_config
 	fi
 
@@ -361,13 +374,15 @@ function glidein_exit {
 	    # too long, shorten to the deadline
 	    let "ds=$dl - `date +%s`"
 	fi
+        warn "Sleeping $ds"
 	sleep $ds
       done
 
       if [ -e "${main_work_dir}/$last_script" ]; then
 	  # notify VO things went badly and we are going away
-	  add_config_line "GLIDEIN_ADVERTISE_REASON" "Last update, terminating."
+	  add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Terminating now. ($dl) ($dlf)"
 	  "${gs_id_work_dir}/$last_script" glidein_config
+          warn "Last notification sent"
       fi
   fi
 

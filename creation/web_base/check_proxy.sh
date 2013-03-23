@@ -9,7 +9,7 @@
 #   It has the routins to setup the X509 environment
 #
 
-config_file="$1"
+glidein_config="$1"
 
 # import add_config_line function
 add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`

@@ -30,57 +30,52 @@ rm -f ${classad_fname}
 cat >  ${classad_fname} << EOF
 MyType = "Machine"
 TargetType = "Job"
-
 Name = "${slot_name}@${host_name}"
-Machine = "${host_name}
+Machine = "${host_name}"
 MyAddress = "<127.0.0.1:1>"
-
-State = "Owner"
-Activity = "Idle"
+State = "Drained"
+Activity = "Retiring"
 EnteredCurrentState = $now
+EnteredCurrentActivity = $now
 MyCurrentTime = $now
 DaemonStartTime = $now
-
 START = False
 Requirements = ( START ) && ( IsValidCheckpointPlatform )
 IsValidCheckpointPlatform = False
-
+Rank = 0
+CurrentRank = 0.0
+IS_GLIDEIN = True
+GLIDEIN_ToRetire = $now
 CpuIsBusy = false
 CpuBusy = false
-
 LastBenchmark = 0
-
 FileSystemDomain = "${host_name}"
 UidDomain = "${host_name}"
-
 SlotID = 1
 TotalSlots = 1
-
 Cpus = 1
 TotalSlotCpus = 1
 DetectedCpus = 1
 TotalCpus = 1
-
 DetectedMemory = 1
 TotalVirtualMemory = 1
 VirtualMemory = 1
 TotalSlotMemory = 1
 TotalMemory = 1
 Memory = 1
-
 TotalSlotDisk = 1
 TotalDisk = 1
 Disk = 1
-
-Arch = "noarch"
-OpSys = "Bash"
-OpSysLegacy = "Bash"
+LoadAvg = 0.0
+CondorLoadAvg =0.9
+TotalLoadAvg = 0.0
+TotalCondorLoadAvg = 0/0
+Arch = "`uname -m`"
+OpSys = "LINUX"
+OpSysLegacy = "LINUX"
 HasFileTransfer = true
-
 CondorPlatform = "\$glideinWMS: glidein_startup.sh \$"
-
 GLIDEIN_COLLECTOR_NAME = "${collector_name}"
-
 EOF
 
 # append the glidein-specific variables

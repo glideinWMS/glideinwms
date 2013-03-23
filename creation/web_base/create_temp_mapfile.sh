@@ -9,7 +9,7 @@
 #   It creates a minimal condor_mapfile so that condor_advertise can work in case of problems.
 #
 
-config_file="$1"
+glidein_config="$1"
 
 # import add_config_line function
 add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
