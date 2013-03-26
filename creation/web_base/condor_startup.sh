@@ -403,7 +403,7 @@ START_JOBS="TRUE"
 if [ "$chek_only" == "1" ]; then
 	START_JOBS="FALSE"
   # need to know which startd to fetch against
-  STARTD_NAME=glidein_$$
+  STARTD_NAME=glidein_$PPID
 fi
 
 #Add release and distribution information
@@ -436,8 +436,8 @@ GLIDEIN_START_TIME = $now
 STARTER_JOB_ENVIRONMENT = "$job_env"
 GLIDEIN_VARIABLES = $glidein_variables
 
-MASTER_NAME = glidein_$$
-STARTD_NAME = glidein_$$
+MASTER_NAME = glidein_$PPID
+STARTD_NAME = glidein_$PPID
 
 #This can be used for locating the proper PID for monitoring
 GLIDEIN_PARENT_PID = $$
