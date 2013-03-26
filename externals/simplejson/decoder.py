@@ -5,7 +5,7 @@ import re
 import sys
 import struct
 
-from simplejson.scanner import make_scanner
+from glideinwms.externals.simplejson.scanner import make_scanner
 try:
     from simplejson._speedups import scanstring as c_scanstring
 except ImportError:
