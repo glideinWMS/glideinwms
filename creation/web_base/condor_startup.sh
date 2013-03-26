@@ -581,8 +581,10 @@ fi
 #
 
 if [ "$adv_only" -eq "1" ]; then
+    adv_type=`grep -i "^GLIDEIN_ADVERTISE_TYPE " $config_file | awk '{print $2}'`
+
     chmod u+rx "${main_stage_dir}/advertise_failure.helper"
-    "${main_stage_dir}/advertise_failure.helper" "$CONDOR_DIR/sbin/condor_advertise"
+    "${main_stage_dir}/advertise_failure.helper" "$CONDOR_DIR/sbin/condor_advertise" "${adv_type}"
     # short circuit... do not even try to start the Condor daemons below
     exit $?
 fi

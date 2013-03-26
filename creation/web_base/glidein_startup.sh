@@ -333,6 +333,12 @@ function glidein_exit {
   final_result_long=`simplexml2longxml "${final_result_simple}" "${global_result}"`
 
   if [ $1 -ne 0 ]; then
+      report_failed=`grep -i "^GLIDEIN_Report_Failed " $glidein_config | awk '{print $2}'`
+
+      if [ -z "$report_failed" ]; then
+	  report_failed="NEVER"
+      fi
+
       # wait a bit in case of error, to reduce lost glideins
       let "dl=`date +%s` + $sleep_time"
       dlf=`date --date="@$dl"`
@@ -342,6 +348,7 @@ function glidein_exit {
       add_config_line "GLIDEIN_ToDie" "$dl"
       add_config_line "GLIDEIN_Expire" "$dl"
       add_config_line "GLIDEIN_LAST_SCRIPT" "${ge_last_script_name}"
+      add_config_line "GLIDEIN_ADVERTISE_TYPE" "Retiring"
 
       add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Keeping node busy until $dl ($dlf)."
 
@@ -353,14 +360,14 @@ function glidein_exit {
          add_condor_vars_line "GLIDEIN_EXIT_CODE" "I" "-" "+" "Y" "Y" "-"
          add_condor_vars_line "GLIDEIN_ToDie" "I" "-" "+" "Y" "Y" "-"
          add_condor_vars_line "GLIDEIN_Expire" "I" "-" "+" "Y" "Y" "-"
-          add_condor_vars_line "GLIDEIN_LAST_SCRIPT" "S" "-" "+" "Y" "Y" "-"
+	 add_condor_vars_line "GLIDEIN_LAST_SCRIPT" "S" "-" "+" "Y" "Y" "-"
          add_condor_vars_line "GLIDEIN_FAILURE_REASON" "S" "-" "+" "Y" "Y" "-"
       fi
       main_work_dir=`get_work_dir main`
 
       for ((t=`date +%s`; $t<$dl;t=`date +%s`))
       do
-	if [ -e "${main_work_dir}/$last_script" ]; then
+	if [ -e "${main_work_dir}/$last_script" ] && [ "$report_failed" != "NEVER" ] ; then
 	    # if the file exists, we should be able to talk to VO collector
 	    # notify VO things went badly and we are waiting
             warn "Notifying VO of error"
@@ -378,9 +385,14 @@ function glidein_exit {
 	sleep $ds
       done
 
-      if [ -e "${main_work_dir}/$last_script" ]; then
+      if [ -e "${main_work_dir}/$last_script" ] && [ "$report_failed" != "NEVER" ]; then
 	  # notify VO things went badly and we are going away
-	  add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Terminating now. ($dl) ($dlf)"
+	  if [ "$report_failed" == "ALIVEONLY" ]; then
+	      add_config_line "GLIDEIN_ADVERTISE_TYPE" "INVALIDATE"
+	  else
+	      add_config_line "GLIDEIN_ADVERTISE_TYPE" "Killing"
+	      add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Terminating now. ($dl) ($dlf)"
+	  fi
 	  "${gs_id_work_dir}/$last_script" glidein_config
           warn "Last notification sent"
       fi

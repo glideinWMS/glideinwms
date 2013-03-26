@@ -15,6 +15,7 @@
 
 
 condor_advertise="$1"
+act_type="$2"
 
 classad_fname=${CONDOR_CONFIG}.classad
 
@@ -26,15 +27,18 @@ now=`date +%s`
 
 rm -f ${classad_fname}
 
-# Create the standard part
-cat >  ${classad_fname} << EOF
+if [ "${act_type}" != "INVALIDATE" ]; then
+  # Advertise a classad
+
+  # Create the standard part
+  cat >  ${classad_fname} << EOF
 MyType = "Machine"
 TargetType = "Job"
 Name = "${slot_name}@${host_name}"
 Machine = "${host_name}"
 MyAddress = "<127.0.0.1:1>"
 State = "Drained"
-Activity = "Retiring"
+Activity = "${act_type}"
 EnteredCurrentState = $now
 EnteredCurrentActivity = $now
 MyCurrentTime = $now
@@ -78,13 +82,27 @@ CondorPlatform = "\$glideinWMS: glidein_startup.sh \$"
 GLIDEIN_COLLECTOR_NAME = "${collector_name}"
 EOF
 
-# append the glidein-specific variables
-glidein_vars=`grep '^GLIDEIN_VARIABLES = ' $CONDOR_CONFIG | tail -1| awk '{split($3,a,","); for (i in a) {print a[i]} }'`
+  # append the glidein-specific variables
+  glidein_vars=`grep '^GLIDEIN_VARIABLES = ' $CONDOR_CONFIG | tail -1| awk '{split($3,a,","); for (i in a) {print a[i]} }'`
 
-for v in ${glidein_vars};
-do
-  grep "^$v=" $CONDOR_CONFIG | tail -1 >> ${classad_fname}
-done
+  for v in ${glidein_vars};
+  do
+    grep "^$v=" $CONDOR_CONFIG | tail -1 >> ${classad_fname}
+  done
 
 
-${condor_advertise} -tcp UPDATE_STARTD_AD ${classad_fname}
+  ${condor_advertise} -tcp UPDATE_STARTD_AD ${classad_fname}
+  rc=$?
+else # if [ "${act_type}" == "INVALIDATE" ]
+  # Deadvertise
+  cat >  ${classad_fname} << EOF
+MyType = "Query"
+TargetType = "Machine"
+Requirements =  Name == "${slot_name}@${host_name}"
+EOF
+
+  ${condor_advertise} -tcp INVALIDATE_STARTD_ADS ${classad_fname}
+  rc=$?
+fi # if [ "${act_type}" != "INVALIDATE" ]
+
+exit $rc
