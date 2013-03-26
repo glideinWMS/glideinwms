@@ -43,10 +43,10 @@ class APFMonClient:
         result = opener.open(request)
         return result
 
-    def sendJobIDs(self, entry, jobslist):
+    def sendJobIDs(self, entry, fe_username, jobslist):
         # jobslist is list of (clusterId, ProcId) tuples
         logSupport.log.info("in sendJobIDs")
-        entry = "entry_%s" % entry
+        entry = "%s:entry_%s" % (fe_username, entry)
         apfJobsList = [{'cid': "job.%s.%s" % (clusterId, procId),
                         'label': entry,
                         'factory': self._factoryId,

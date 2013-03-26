@@ -1185,7 +1185,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
         apf = APFMonClient.APFMonClient()
 
         try:
-            apf.sendJobIDs(entry_name, submitted_jids)
+            apf.sendJobIDs(entry_name, username, submitted_jids)
         except Exception, e:
             logSupport.log.exception("Error logging to APF")
 
