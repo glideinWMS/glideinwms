@@ -1,5 +1,6 @@
 import glideinwms.externals.simplejson as json
 import urllib2
+import urlparse
 from glideinwms.factory import glideFactoryConfig
 from glideinwms.lib import logSupport
 import traceback
@@ -7,14 +8,21 @@ import sys
 
 class APFMonClient:
     def __init__(self, BaseUrl='http://cms-xen43.fnal.gov/factory/',
-                 APFMonUrl="http://cms-xen45.fnal.gov:8000/api/"):
+                 APFMonUrl="http://cms-xen45.fnal.gov:8000/api/",
+                 SSLPort=443):
+
+        parsedUrl = urlparse.urlparse(BaseUrl)
+        netloc = parsedUrl[1].split(":")[0] # remove port
+        path = parsedUrl[2]
+
+        self._BaseUrl = "https://%s:%d%s" % (netloc, SSLPort, path)
+
         config = glideFactoryConfig.GlideinDescript()
         self._factoryId=config.data['FactoryName']
         self._Tag=config.data['GlideinName']
         self._APFMonUrl = APFMonUrl
         # todo: add config for these
         self._Owner="CMS"
-        self._BaseUrl = BaseUrl
         self._Email="burt@fnal.gov"
 
     def registerFactory(self):
@@ -43,10 +51,10 @@ class APFMonClient:
         result = opener.open(request)
         return result
 
-    def sendJobIDs(self, entry, fe_username, jobslist):
+    def sendJobIDs(self, factory_name, entry, fe_username, jobslist):
         # jobslist is list of (clusterId, ProcId) tuples
         logSupport.log.info("in sendJobIDs")
-        entry = "%s:entry_%s" % (fe_username, entry)
+        entry = "%s:%s:entry_%s" % (factory_name, fe_username, entry)
         apfJobsList = [{'cid': "job.%s.%s" % (clusterId, procId),
                         'label': entry,
                         'factory': self._factoryId,
