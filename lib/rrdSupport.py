@@ -14,11 +14,12 @@
 
 import string
 import time
-import popen2
 try:
     import rrdtool #@UnresolvedImport
 except:
     pass
+import subprocess
+import shlex
 
 class BaseRRDSupport:
     #############################################################
@@ -527,8 +528,7 @@ def string_quote_join(arglist):
 # python module, if that one is not available
 class rrdtool_exe:
     def __init__(self):
-        self.popen2_obj = popen2
-        self.rrd_bin = self.iexe_cmd("which rrdtool")[0][:-1]
+        self.rrd_bin=self.iexe_cmd("which rrdtool")[0][:-1]
 
     def create(self, *args):
         cmdline = '%s create %s' % (self.rrd_bin, string_quote_join(args))
@@ -563,28 +563,6 @@ class rrdtool_exe:
         cmdline = '%s graph %s' % (self.rrd_bin, string_quote_join(args))
         self.iexe_cmd(cmdline)
         return
-
-    ##########################################
-    def iexe_cmd(self, cmd):
-        child=self.popen2_obj.Popen3(cmd,True)
-        child.tochild.close()
-        tempOut = child.fromchild.readlines()
-        child.fromchild.close()
-        tempErr = child.childerr.readlines()
-        child.childerr.close()
-        try:
-            errcode = child.wait()
-        except OSError, e:
-            if len(tempOut) != 0:
-                # if there was some output, it is probably just a problem of timing
-                # have seen a lot of those when running very short processes
-                errcode = 0
-            else:
-                raise RuntimeError, "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s" % (cmd, tempOut, tempErr, e)
-        if (errcode != 0):
-            raise RuntimeError, "Error running '%s'\ncode %i:%s" % (cmd, errcode, tempErr)
-        return tempOut
-
 
 def addDataStore(filenamein, filenameout, attrlist):
     """

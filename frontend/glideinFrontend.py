@@ -20,8 +20,8 @@ import sys
 
 STARTUP_DIR = sys.path[0]
 
-import fcntl #@UnresolvedImport
-import popen2
+import fcntl
+import subprocess
 import traceback
 import signal
 import time
@@ -39,7 +39,7 @@ from glideinwms.frontend import glideinFrontendMonitoring
 ############################################################
 # KEL remove this method and just call the monitor aggregator method directly below?  we don't use the results
 def aggregate_stats():
-    status = glideinFrontendMonitorAggregator.aggregateStatus()
+    _ = glideinFrontendMonitorAggregator.aggregateStatus()
 
     return
 
@@ -135,7 +135,17 @@ def spawn(sleep_time,advertize_rate,work_dir,
     logSupport.log.info("Starting groups %s" % groups)
     try:
         for group_name in groups:
-            childs[group_name] = popen2.Popen3("%s %s %s %s %s" % (sys.executable, os.path.join(STARTUP_DIR, "glideinFrontendElement.py"), os.getpid(), work_dir, group_name), True)
+
+            # Converted to using the subprocess module
+            command_list = [sys.executable,
+                            os.path.join(STARTUP_DIR,"glideinFrontendElement.py"),
+                            os.getpid(),
+                            work_dir,
+                            group_name]
+            childs[group_name] = subprocess.Popen(command_list, shell=False,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
+
             # Get the startup time. Used to check if the group is crashing
             # periodically and needs to be restarted.
             childs_uptime[group_name] = list()
@@ -143,10 +153,9 @@ def spawn(sleep_time,advertize_rate,work_dir,
         logSupport.log.info("Group startup times: %s" % childs_uptime)
 
         for group_name in childs.keys():
-            childs[group_name].tochild.close()
             # set it in non blocking mode
             # since we will run for a long time, we do not want to block
-            for fd  in (childs[group_name].fromchild.fileno(), childs[group_name].childerr.fileno()):
+            for fd  in (childs[group_name].stdout.fileno(),childs[group_name].stderr.fileno()):
                 fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
@@ -157,14 +166,14 @@ def spawn(sleep_time,advertize_rate,work_dir,
 
                 # empty stdout and stderr
                 try:
-                    tempOut = child.fromchild.read()
-                    if len(tempOut) != 0:
+                    tempOut = child.stdout.read()
+                    if len(tempOut)!=0:
                         logSupport.log.info("[%s]: %s" % (child, tempOut))
                 except IOError:
                     pass # ignore
                 try:
-                    tempErr = child.childerr.read()
-                    if len(tempErr) != 0:
+                    tempErr = child.stderr.read()
+                    if len(tempErr)!=0:
                         logSupport.log.warning("[%s]: %s" % (child, tempErr))
                 except IOError:
                     pass # ignore
@@ -173,8 +182,8 @@ def spawn(sleep_time,advertize_rate,work_dir,
                 if child.poll() != -1:
                     # the child exited
                     logSupport.log.warning("Child %s exited. Checking if it should be restarted." % (group_name))
-                    tempOut = child.fromchild.readlines()
-                    tempErr = child.childerr.readlines()
+                    tempOut = child.stdout.readlines()
+                    tempErr = child.stderr.readlines()
                     if is_crashing_often(childs_uptime[group_name], restart_interval, restart_attempts):
                         del childs[group_name]
                         raise RuntimeError, "Group '%s' has been crashing too often, quit the whole frontend:\n%s\n%s" % (group_name, tempOut, tempErr)
@@ -183,12 +192,22 @@ def spawn(sleep_time,advertize_rate,work_dir,
                         # Restart the group setting its restart time
                         logSupport.log.warning("Restarting child %s." % (group_name))
                         del childs[group_name]
-                        childs[group_name] = popen2.Popen3("%s %s %s %s %s" % (sys.executable, os.path.join(STARTUP_DIR, "glideinFrontendElement.py"), os.getpid(), work_dir, group_name), True)
+
+                        # Converted to using the subprocess module
+                        command_list = [sys.executable,
+                                        os.path.join(STARTUP_DIR,"glideinFrontendElement.py"),
+                                        os.getpid(),
+                                        work_dir,
+                                        group_name]
+                        childs[group_name] = subprocess.Popen(command_list, shell=False,
+                                           stdout=subprocess.PIPE,
+                                           stderr=subprocess.PIPE)
+
                         if len(childs_uptime[group_name]) == restart_attempts:
                             childs_uptime[group_name].pop(0)
                         childs_uptime[group_name].append(time.time())
-                        childs[group_name].tochild.close()
-                        for fd in (childs[group_name].fromchild.fileno(), childs[group_name].childerr.fileno()):
+
+                        for fd in (childs[group_name].stdout.fileno(),childs[group_name].stderr.fileno()):
                             fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                             fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
                         logSupport.log.warning("Group's startup/restart times: %s" % childs_uptime)
@@ -232,7 +251,8 @@ def cleanup_environ():
 
 ############################################################
 def main(work_dir):
-    startup_time = time.time()
+    # Not used anywhere?
+    #startup_time=time.time()
 
     glideinFrontendConfig.frontendConfig.frontend_descript_file = os.path.join(work_dir, glideinFrontendConfig.frontendConfig.frontend_descript_file)
     frontendDescript = glideinFrontendConfig.FrontendDescript(work_dir)
