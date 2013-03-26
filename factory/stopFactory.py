@@ -15,33 +15,48 @@
 #   Igor Sfiligoi May 6th 2008
 #
 
-import signal,sys,os,os.path,fcntl,string,time
+import signal
+import sys
+import os
+import os.path
+import fcntl
+import string
+import time
+import subprocess
 
 sys.path.append(os.path.join(sys.path[0],"../../"))
 from glideinwms.factory import glideFactoryPidLib
 from glideinwms.factory import glideFactoryConfig
 
-# this one should  never throw an exeption
-def get_entry_pids(startup_dir,factory_pid):
-    # get entry pids
-    glideFactoryConfig.factoryConfig.glidein_descript_file=os.path.join(startup_dir,glideFactoryConfig.factoryConfig.glidein_descript_file)
-    glideinDescript=glideFactoryConfig.GlideinDescript()
-    entries=string.split(glideinDescript.data['Entries'],',')
-    entries.sort()
+def all_pids_in_pgid_dead(pgid):
+    # return 1 if there are no pids in the pgid still alive
+    devnull = os.open(os.devnull, os.O_RDWR)
+    return subprocess.call(["pgrep", "-g", "%s" % pgid],
+                            stdout=devnull,
+                            stderr=devnull)
 
-    entry_pids={}
-    for entry in entries:
-        try:
-            entry_pid,entry_ppid=glideFactoryPidLib.get_entry_pid(startup_dir,entry)
-        except RuntimeError,e:
-            print e
-            continue # report error and fgo to next entry
-        if entry_ppid!=factory_pid:
-            print "Entry '%s' has an unexpected Parent PID: %s!=%s"%(entry,entry_ppid,factory_pid)
-            continue # report error and go to next entry
-        entry_pids[entry]=entry_pid
+def kill_and_check_pgid(pgid, signr=signal.SIGTERM, 
+                        retries=100, retry_interval=0.5):
+    # return 0 if all pids in pgid are dead
 
-    return entry_pids
+    try:
+        os.killpg(pgid, signr)
+    except OSError:
+        pass
+
+    for retries in range(retries):
+        if not all_pids_in_pgid_dead(pgid):
+            try:
+                os.killpg(pgid, signr)
+            except OSError:
+                # already dead
+                pass
+
+            time.sleep(retry_interval)
+        else:
+            return 0
+
+    return 1
 
 def main(startup_dir,force=True):
     # get the pids
@@ -52,63 +67,33 @@ def main(startup_dir,force=True):
         return 1
     #print factory_pid
 
+    factory_pgid = os.getpgid(factory_pid)
+
     if not glideFactoryPidLib.pidSupport.check_pid(factory_pid):
         # Factory already dead
         return 0
 
     # kill processes
-    # first soft kill the factory (20s timeout)
-    try:
-        os.kill(factory_pid,signal.SIGTERM)
-    except OSError:
-        pass # factory likely already dead
-
-    for retries in range(100):
-        if glideFactoryPidLib.pidSupport.check_pid(factory_pid):
-            time.sleep(0.2)
-        else:
-            return 0 # factory dead
+    # first soft kill the factoryprocess group  (20s timeout)
+    if (kill_and_check_pgid(factory_pgid) == 0):
+        return 0
 
     if not force:
-        print "Factory did not dye withing the timeout"
+        print "Factory did not die within the timeout"
         return 1
 
     # retry soft kill the factory... should exit now (5s timeout)
-    print "Retrying a soft kill"
-    try:
-        os.kill(factory_pid,signal.SIGTERM)
-    except OSError:
-        pass # factory likely already dead
+    if (kill_and_check_pgid(factory_pgid, retries=25) == 0):
+        return 0
 
-    for retries in range(25):
-        if glideFactoryPidLib.pidSupport.check_pid(factory_pid):
-            time.sleep(0.2)
-        else:
-            return 0 # factory dead
-    
-    print "Factory still alive... sending hard kill"
-
-    entry_pids=get_entry_pids(startup_dir,factory_pid)
-    #print entry_pids
-
-    entry_keys=entry_pids.keys()
-    entry_keys.sort()
-
-    for entry in entry_keys:
-        if glideFactoryPidLib.pidSupport.check_pid(entry_pids[entry]):
-            print "Hard killing entry %s"%entry
-            try:
-                os.kill(entry_pids[entry],signal.SIGKILL)
-            except OSError:
-                pass # ignore already dead processes
-
-    if not glideFactoryPidLib.pidSupport.check_pid(factory_pid):
-        return 0 # factory died
+    print "Factory or children still alive... sending hard kill"
 
     try:
-        os.kill(factory_pid,signal.SIGKILL)
+        os.killpg(factory_pgid, signal.SIGKILL)
     except OSError:
-        pass # ignore problems
+        # in case they died between the last check and now
+        pass
+
     return 0
 
 if __name__ == '__main__':

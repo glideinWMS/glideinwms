@@ -413,8 +413,8 @@ class Entry:
 
         self.loadContext()
         
-        trust_domain = self.glideinDescript.data['TrustDomain']
-        auth_method = self.glideinDescript.data['AuthMethod']
+        trust_domain = self.jobDescript.data['TrustDomain']
+        auth_method = self.jobDescript.data['AuthMethod']
         pub_key_obj = self.glideinDescript.data['PubKeyObj']
 
         self.gflFactoryConfig.client_stats.finalizeClientMonitor()

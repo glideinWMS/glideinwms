@@ -65,7 +65,7 @@ def aggregate_stats(in_downtime):
         logSupport.log.exception("aggregateLogStatus failed: ")
 
     try:
-        _ = glideFactoryMonitorAggregator.aggregateRRDStats()
+        _ = glideFactoryMonitorAggregator.aggregateRRDStats(log=logSupport.log)
     except:
         # protect and report
         logSupport.log.exception("aggregateRRDStats failed: ")
@@ -500,6 +500,9 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             cleanupSupport.cleaners.cleanup()
             logSupport.log.info("Sleep %s secs" % sleep_time)
             time.sleep(sleep_time)
+
+        # end while 1:
+
     finally:
         # cleanup at exit
         logSupport.log.info("Received signal...exit")
