@@ -73,6 +73,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         #
 
         # add the basic standard params
+        self.dicts['params'].add("GLIDEIN_Report_Failed",'NEVER')
         self.dicts['params'].add("CONDOR_OS",'default')
         self.dicts['params'].add("CONDOR_ARCH",'default')
         self.dicts['params'].add("CONDOR_VERSION",'default')
