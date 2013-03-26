@@ -1182,10 +1182,13 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
 
     if submitted_jids:
         logSupport.log.info("Logging to APF")
+        glideinDescript = glideFactoryConfig.GlideinDescript()
+        glidein_name = glideinDescript.data["GlideinName"]
         apf = APFMonClient.APFMonClient()
 
         try:
-            apf.sendJobIDs(entry_name, username, submitted_jids)
+            apf.sendJobIDs(factory_name=glidein_name, entry=entry_name,
+                           fe_username=username, jobslist=submitted_jids)
         except Exception, e:
             logSupport.log.exception("Error logging to APF")
 
