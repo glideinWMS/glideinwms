@@ -612,23 +612,6 @@ def main(startup_dir):
     glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.my_name = "%s@%s" % (glideinDescript.data['GlideinName'],
                glideinDescript.data['FactoryName'])
 
-        # check that the GSI environment is properly set
-        if not os.environ.has_key('X509_CERT_DIR'):
-            if os.path.isdir('/etc/grid-security/certificates'):
-                os.environ['X509_CERT_DIR']='/etc/grid-security/certificates'
-                glideFactoryLib.log_files.logActivity("Environment variable X509_CERT_DIR not set, defaulting to /etc/grid-security/certificates")
-            else:  
-                glideFactoryLib.log_files.logWarning("Environment variable X509_CERT_DIR not set and /etc/grid-security/certificates does not exist. Need X509_CERT_DIR to work!")
-                raise RuntimeError, "Need X509_CERT_DIR to work!"
-
-        allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
-        if 'factory' in allowed_proxy_source:
-            if not os.environ.has_key('X509_USER_PROXY'):
-                glideFactoryLib.log_files.logWarning("Factory is supposed to allow provide a proxy, but environment variable X509_USER_PROXY not set. Need X509_USER_PROXY to work!")
-                raise RuntimeError, "Factory is supposed to allow provide a proxy. Need X509_USER_PROXY to work!"
-            
->>>>>>> 9f1b378... changing popen calls to use the subprocess module
-
     glideFactoryInterface.factoryConfig.advertise_use_tcp = (glideinDescript.data['AdvertiseWithTCP'] in ('True', '1'))
     glideFactoryInterface.factoryConfig.advertise_use_multi = (glideinDescript.data['AdvertiseWithMultiple'] in ('True', '1'))
     sleep_time = int(glideinDescript.data['LoopDelay'])
