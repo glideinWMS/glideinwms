@@ -634,25 +634,22 @@ class Entry:
         @rtype: dict
         @return: Useful state information that can pickled and restored
         """
+   
+        # Set logger to None else we can't pickle file objects
+        self.gflFactoryConfig.client_stats.log = None
+        self.gflFactoryConfig.qc_stats.log = None
+        self.gflFactoryConfig.rrd_stats.log = None
+        self.gflFactoryConfig.log_stats.log = None
+
         state = {
             'client_internals': self.gflFactoryConfig.client_internals,
+            'glidein_totals': self.glideinTotals,
             'client_stats': self.gflFactoryConfig.client_stats,
             'qc_stats': self.gflFactoryConfig.qc_stats,
             'rrd_stats': self.gflFactoryConfig.rrd_stats,
-            'glidein_totals': self.glideinTotals,
+            'log_stats': self.gflFactoryConfig.log_stats
         }
-        state['log_stats'] = self.gflFactoryConfig.log_stats
-        """
-        state['log_stats'] = {
-            'data': self.gflFactoryConfig.log_stats.data,
-            'updated': self.gflFactoryConfig.log_stats.updated,
-            'updated_year': self.gflFactoryConfig.log_stats.updated_year,
-            'stats_diff': self.gflFactoryConfig.log_stats.stats_diff,
-            'files_updated': self.gflFactoryConfig.log_stats.files_updated,
-            'current_stats_data': self.getLogStatsCurrentStatsData(),
-            'old_stats_data': self.getLogStatsOldStatsData(),
-        }
-        """
+
         return state
 
     def setState(self, state):
@@ -664,11 +661,24 @@ class Entry:
         """
 
         self.gflFactoryConfig.client_stats = state.get('client_stats')
+        if self.gflFactoryConfig.client_stats:
+            self.gflFactoryConfig.client_stats.log = self.log
+        
         self.gflFactoryConfig.qc_stats = state.get('qc_stats')
+        if self.gflFactoryConfig.qc_stats:
+            self.gflFactoryConfig.qc_stats.log = self.log
+
         self.gflFactoryConfig.rrd_stats = state.get('rrd_stats')
+        if self.gflFactoryConfig.rrd_stats:
+            self.gflFactoryConfig.rrd_stats.log = self.log
+
         self.gflFactoryConfig.client_internals = state.get('client_internals')
+
         self.glideinTotals = state.get('glidein_totals')
+
         self.gflFactoryConfig.log_stats = state['log_stats']
+        if self.gflFactoryConfig.log_stats:
+            self.gflFactoryConfig.log_stats.log = self.log
 
         # Load info for latest log_stats correctly
         """
