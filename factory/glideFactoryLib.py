@@ -1734,7 +1734,6 @@ class GlideinTotals:
 
         return output
 
-<<<<<<< HEAD
 
 #######################################################
 
@@ -1744,10 +1743,8 @@ def set_condor_integrity_checks():
     os.environ['_CONDOR_SEC_READ_INTEGRITY'] = 'REQUIRED'
     os.environ['_CONDOR_SEC_WRITE_INTEGRITY'] = 'REQUIRED'
 
-=======
 #######################################################
 
->>>>>>> 0803ba5... Fixed a bunch of issues to accomodate subprocess
 def which(program):
     """
     Implementation of which command in python.
@@ -1755,15 +1752,10 @@ def which(program):
     @return: Path to the binary
     @rtype: string
     """
-<<<<<<< HEAD
-    def is_exe(fpath):
-        return os.path.exists(fpath) and os.access(fpath, os.X_OK)
-=======
 
     def is_exe(fpath):
         return os.path.exists(fpath) and os.access(fpath, os.X_OK)
 
->>>>>>> 0803ba5... Fixed a bunch of issues to accomodate subprocess
     fpath, fname = os.path.split(program)
     if fpath:
         if is_exe(program):
@@ -1773,7 +1765,6 @@ def which(program):
             exe_file = os.path.join(path, program)
             if is_exe(exe_file):
                 return exe_file
-<<<<<<< HEAD
     return None
 
 def days2sec(days):
@@ -1781,7 +1772,3 @@ def days2sec(days):
 
 def hrs2sec(hrs):
     return int(hrs * 60 * 60)
-=======
-
-    return None
->>>>>>> 0803ba5... Fixed a bunch of issues to accomodate subprocess
