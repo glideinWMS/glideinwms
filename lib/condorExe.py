@@ -14,14 +14,6 @@
 
 import os
 import logSupport
-
-class UnconfigError(RuntimeError):
-    def __init__(self, err_str):
-        RuntimeError.__init__(self,str)
-
-class ExeError(RuntimeError):
-    def __init__(self, err_str):
-        RuntimeError.__init__(self,str)
 import subprocess
 import subprocessSupport
 import string

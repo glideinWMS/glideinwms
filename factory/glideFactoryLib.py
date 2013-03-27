@@ -16,21 +16,21 @@
 import os
 import sys
 import time
+import string
 import re
 import pwd
 import binascii
 import base64
-import string
 import traceback
+import tempfile
 
 from glideinwms.lib.tarSupport import GlideinTar
 from glideinwms.lib import condorExe,condorPrivsep
 from glideinwms.lib import logSupport
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorManager
-
-from glideinwms.factory import glideFactoryConfig
 from glideinwms.lib import timeConversion
+from glideinwms.factory import glideFactoryConfig
 
 
 
@@ -330,7 +330,7 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
         os.write(f,proxy_data)
         os.close(f)
     except:
-        log.error("Unable to create tempfile %s!" % tempfilename)
+        logSupport.log.error("Unable to create tempfile %s!" % tempfilename)
     
     try:
         dn_list=condorExe.iexe_cmd("openssl x509 -subject -noout",stdin_data=proxy_data)
@@ -347,7 +347,7 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
     try:
         os.unlink(tempfilename)
     except:
-        log.error("Unable to delete tempfile %s!" % tempfilename)
+        logSupport.log.error("Unable to delete tempfile %s!" % tempfilename)
 
     hash_val=str(abs(hash(dn+voms))%1000000)
 
@@ -1098,7 +1098,8 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
     submitted_jids = []
 
     try:
-        exe_env = get_submit_environment(entry_name, client_name, submit_credentials, client_web, params)
+        exe_env = get_submit_environment(entry_name, client_name,
+                                         submit_credentials, client_web, params)
     except Exception, e:
         msg = "Failed to setup execution environment.  Error:" % str(e)
         log.error(msg)
@@ -1117,7 +1118,8 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
             exe_env.append('GLIDEIN_COUNT=%s' % nr_to_submit)
             exe_env.append('GLIDEIN_FRONTEND_NAME=%s' % frontend_name)
 
-            # check to see if the username for the proxy is the same as the factory username
+            # check to see if the username for the proxy is 
+            # same as the factory username
             if username != MY_USERNAME:
                 # no? use privsep
                 # need to push all the relevant env variables through
@@ -1135,36 +1137,35 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
                     log.debug(str(submit_out))
                 except condorPrivsep.ExeError, e:
                     submit_out = []
-                    msg = "condor_submit failed (user %s): %s" % (username, str(e))
+                    msg = "condor_submit failed (user %s): %s" % (username,
+                                                                  str(e))
                     log.error(msg)
-                    log.warning("condor_submit failed (user %s)" % username)
                     raise RuntimeError, msg
                 except:
                     submit_out = []
                     msg = "condor_submit failed (user %s): Unknown privsep error" % username
                     log.error(msg)
-                    log.warning(msg)
                     raise RuntimeError, msg
             else:
                 # avoid using privsep, if possible
                 try:
-                    child_env = {
-                        'X509_USER_PROXY': x509_proxy_fname,
-                        'GLIDEIN_FRONTEND_NAME': frontend_name
-                    }
-                    submit_out=condorExe.iexe_cmd('./%s "%s" "%s" "%s" "%s" %i "%s" %s -- %s'%(factoryConfig.submit_fname,entry_name,client_name,x509_proxy_security_class,x509_proxy_identifier,nr_to_submit,glidein_rsl,client_web_str,params_str), child_env=child_env)
+                    #submit_out = condorExe.iexe_cmd('./%s "%s" "%s" "%s" "%s" %i "%s" %s -- %s' % (factoryConfig.submit_fname, entry_name, client_name,
+                   #x509_proxy_security_class, x509_proxy_identifier,
+                   #nr_to_submit, glidein_rsl, client_web_str, params_str),
+                   #                                 child_env=child_env)
+                   submit_out = condorExe.iexe_cmd("condor_submit -name %s entry_%s/job.condor" % (schedd, entry_name),
+                                                   child_env=exe_env)
                 except condorExe.ExeError,e:
                     submit_out=[]
                     msg = "condor_submit failed: %s" % str(e)
                     log.error(msg)
-                    raise RuntimeError, "condor_submit failed: %s"%e
+                    raise RuntimeError, msg
                 except:
                     submit_out=[]
                     msg = "condor_submit failed: Unknown error: %s" % str(e)
                     log.error(msg)
-                    raise RuntimeError, "condor_submit failed: Unknown error"
-                
-                
+                    raise RuntimeError, msg
+
             cluster,count=extractJobId(submit_out)
             for j in range(count):
                 submitted_jids.append((cluster, j))

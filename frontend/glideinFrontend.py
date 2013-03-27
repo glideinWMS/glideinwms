@@ -187,6 +187,7 @@ def spawn(sleep_time,advertize_rate,work_dir,
                     tempErr = child.stderr.readlines()
                     if is_crashing_often(childs_uptime[group_name], restart_interval, restart_attempts):
                         del childs[group_name]
+                        logSupport.log.error("Group '%s' has been crashing too often, quit the whole frontend:\n%s\n%s" % (group_name, tempOut, tempErr))
                         raise RuntimeError, "Group '%s' has been crashing too often, quit the whole frontend:\n%s\n%s" % (group_name, tempOut, tempErr)
                         #raise RuntimeError,"Group '%s' exited, quit the whole frontend:\n%s\n%s"%(group_name,tempOut,tempErr)
                     else:
@@ -254,8 +255,7 @@ def cleanup_environ():
 
 ############################################################
 def main(work_dir):
-    # Not used anywhere?
-    #startup_time=time.time()
+    startup_time=time.time()
 
     glideinFrontendConfig.frontendConfig.frontend_descript_file = os.path.join(work_dir, glideinFrontendConfig.frontendConfig.frontend_descript_file)
     frontendDescript = glideinFrontendConfig.FrontendDescript(work_dir)
