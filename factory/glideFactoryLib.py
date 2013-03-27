@@ -1510,8 +1510,6 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
     # 48  : the provided RSL could not be properly parsed
     # 76  : cannot access cache files in ~/.globus/.gass_cache,
     #       check permissions, quota, and disk space
-    # 79  : connecting to the job manager failed. Possible reasons: job
-    #       terminated, invalid job contact, network problems, ...
     # 121 : the job state file doesn't exist
     # 122 : could not read the job state file
 
@@ -1523,7 +1521,7 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
     # Dictionary of {HeldReasonCode: HeldReasonSubCode}
     unrecoverableCodes = {2: [ 0, 2, 4, 5, 7, 8, 9, 10, 14, 17,
                                22, 27, 28, 31, 37, 47, 48,
-                               72, 76, 79, 81, 86, 87,
+                               72, 76, 81, 86, 87,
                                121, 122 ]}
 
     if jobInfo.has_key('HoldReasonCode') and jobInfo.has_key('HoldReasonSubCode'):

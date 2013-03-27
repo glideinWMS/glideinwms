@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-import common
-from VDT import VDT
 #---------------------
 import sys
 import os
@@ -10,7 +8,10 @@ import string
 import time
 import glob
 import pwd
-import commands
+
+import glideinwms.lib.subprocessSupport
+import common
+from VDT import VDT
 
 #STARTUP_DIR=sys.path[0]
 #sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
@@ -84,7 +85,7 @@ If not, stop and correct the %(option)s""" % { "option"       : self.option, })
                        { "option"  : self.option,
                          "expected" : expected_x509_cert_dir,} )
 
-    if common.not_writeable(os.path.dirname(self.vdt_location())):
+    if common.not_writeable(self.vdt_location()):
       common.logerr("""You do not have permissions to create the vdt_location 
 option specified: %(dir)s""" %  { "dir"    : self.vdt_location(),})
     common.logit(""" CA certificates install starting. The packages that will be installed are:
@@ -118,8 +119,10 @@ option specified: %(dir)s""" %  { "dir"    : self.vdt_location(),})
              "non_root_arg" : non_root_arg,
              "service"      : service,} )
     common.logit("\nvdt-control --list")
-    os.system(". %(vdt_location)s/setup.sh;vdt-control --list" % \
-           { "vdt_location" : self.vdt_location(),})
+    cmd = ". %(vdt_location)s/setup.sh;vdt-control --list" % \
+           { "vdt_location" : self.vdt_location(),}
+    stdout = glideinwms.lib.subprocessSupport.iexe_cmd(cmd,useShell=True)
+    common.logit(stdout)
 
     #-- show the cron entries added - extract the lines put in cron
     common.logit("\n... %(user)s crontab entries:" % \
@@ -186,9 +189,8 @@ Suggest you check this out before proceeding:
     cert_dir = ""
     vdt_script = "%s/setp.sh" % self.vdt_location()
     if os.path.exists(vdt_script):
-      (status, cert_dir) = commands.getstatusoutput(". %s;echo $X509_CERT_DIR" % vdt_script)
-      if status > 0:
-        cert_dir = ""
+      cmd = ". %s;echo $X509_CERT_DIR" % vdt_script
+      cert_dir = glideinwms.lib.subprocessSupport.iexe_cmd(cmd,useShell=True)
     return cert_dir
 
 ##########################################

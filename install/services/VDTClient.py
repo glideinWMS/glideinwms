@@ -3,6 +3,7 @@
 import sys,os,os.path,string,time,glob
 #---------------------
 import common
+import glideinwms.lib.subprocessSupport
 from VDT import VDT
 
 
@@ -53,6 +54,7 @@ Is it OK to install it in this location""" % self.vdt_location())
     if err == 0:
       return True
     return False
+
 
 ##########################################
 def main(argv):
