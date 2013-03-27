@@ -30,7 +30,8 @@ def create_condor_tar_fd(condor_base_dir):
 
         # List of optional files, included if found in condor distro
         condor_opt_bins = [
-            'sbin/condor_procd', 'sbin/gcb_broker_query', 'sbin/condor_fetchlog'
+            'sbin/condor_procd', 'sbin/gcb_broker_query',
+            'sbin/condor_fetchlog', 'sbin/condor_advertise'
                           ]
 
         condor_opt_libs = [
