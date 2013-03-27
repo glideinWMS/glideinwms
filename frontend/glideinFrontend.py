@@ -17,9 +17,6 @@
 
 import os
 import sys
-
-STARTUP_DIR = sys.path[0]
-
 import fcntl
 import subprocess
 import traceback
@@ -27,6 +24,8 @@ import signal
 import time
 import string
 import logging
+
+STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
 from glideinwms.lib import logSupport
@@ -143,6 +142,7 @@ def spawn(sleep_time,advertize_rate,work_dir,
                             str(os.getpid()),
                             work_dir,
                             group_name]
+            logSupport.log.debug("Command list: %s" % command_list)
             childs[group_name] = subprocess.Popen(command_list, shell=False,
                                                   stdout=subprocess.PIPE,
                                                   stderr=subprocess.PIPE)
@@ -156,7 +156,8 @@ def spawn(sleep_time,advertize_rate,work_dir,
         for group_name in childs.keys():
             # set it in non blocking mode
             # since we will run for a long time, we do not want to block
-            for fd  in (childs[group_name].stdout.fileno(),childs[group_name].stderr.fileno()):
+            for fd in (childs[group_name].stdout.fileno(),
+                       childs[group_name].stderr.fileno()):
                 fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
@@ -218,11 +219,17 @@ def spawn(sleep_time,advertize_rate,work_dir,
             logSupport.log.info("Aggregate monitoring data")
             # KEL - can we just call the monitor aggregator method directly?  see above
             aggregate_stats()
+            """
+            try:
+                aggregate_stats()
+            except Exception:
+                logSupport.log.exception("Aggregate monitoring data .. ERROR")
+            """
 
             # do it just before the sleep
             cleanupSupport.cleaners.cleanup()
 
-            logSupport.log.info("Sleep")
+            logSupport.log.info("Sleep %s sec" % sleep_time)
             time.sleep(sleep_time)
     finally:
         # cleanup at exit
@@ -266,10 +273,11 @@ def main(work_dir):
     # Configure frontend process logging
     process_logs = eval(frontendDescript.data['ProcessLogs']) 
     for plog in process_logs:
-        logSupport.add_processlog_handler("frontend", logSupport.log_dir, plog['msg_types'], plog['extension'],
-                                      int(float(plog['max_days'])),
-                                      int(float(plog['min_days'])),
-                                      int(float(plog['max_mbytes'])))
+        logSupport.add_processlog_handler("frontend", logSupport.log_dir,
+                                          plog['msg_types'], plog['extension'],
+                                          int(float(plog['max_days'])),
+                                          int(float(plog['min_days'])),
+                                          int(float(plog['max_mbytes'])))
     logSupport.log = logging.getLogger("frontend")
     logSupport.log.info("Logging initialized")
     logSupport.log.debug("Frontend startup time: %s" % str(startup_time))

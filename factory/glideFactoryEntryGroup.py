@@ -424,6 +424,8 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
         logSupport.log.exception("Exception: ")
 
     logSupport.log.debug("Group Work done: %s" % groupwork_done)
+    logSupport.log.info("Advertising entries")
+    entries_advertised = []
     for entry in my_entries.values():
         # Advertise if work was done or if advertise flag is set
         # TODO: Advertising can be optimized by grouping multiple entry
@@ -434,10 +436,14 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
             entrywork_done = groupwork_done[entry.name]['work_done']
 
         if ( (do_advertize) or (entrywork_done > 0) ):
-            logSupport.log.info("Advertising entry: %s" % entry.name)
             entry.advertise(factory_in_downtime)
+            entries_advertised.append(entry.name)
             done_something += entrywork_done
         entry.unsetInDowntime()
+
+    logSupport.log.debug("Advertised %i entries: %s" % \
+                             (len(entries_advertised),
+                              ', '.join(entries_advertised)))
 
     return done_something
 

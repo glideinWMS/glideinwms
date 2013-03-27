@@ -29,8 +29,6 @@ from glideinwms.lib import condorManager
 from glideinwms.lib import classadSupport
 from glideinwms.lib import logSupport
 
-from sets import Set
-
 ############################################################
 #
 # Configuration
@@ -1003,14 +1001,14 @@ class ResourceClassad(classadSupport.Classad):
         @param info: Useful info from the glidefactory classad  
         """
         
-        eliminate_attrs = Set([
+        eliminate_attrs = set([
                  'CurrentTime', 'USE_CCB', 'PubKeyValue', 'PubKeyType',
                  'AuthenticatedIdentity', 'GlideinName', 'FactoryName', 
                  'EntryName', 'GlideinWMSVersion', 'PubKeyObj', 
                  'LastHeardFrom', 'PubKeyID', 'SupportedSignTypes',
                  'GLIDEIN_In_Downtime'
                 ])
-        available_attrs = Set(info.keys())
+        available_attrs = set(info.keys())
         publish_attrs = available_attrs - eliminate_attrs
         for attr in publish_attrs:
             self.adParams[attr] = info[attr]
