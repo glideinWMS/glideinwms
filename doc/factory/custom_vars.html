@@ -350,24 +350,6 @@ by the VO factory clients.</P>
 
     </TR>
     <TR>
-        <td> <b>GLIDEIN_Job_Max_Time</b> </td>
-        <TD> Int </TD>
-        <TD> 360k<BR>(100 hours) </TD>
-
-        <TD>
-            <P>Max allowed time for the job to end.<BR>
-            This is used by the
-            condor_startd.  Once the GLIDEIN_Retire_Time expires, 
-            the glidein will allow the job to run for this amount
-            of time before activating DAEMON_SHUTDOWN and 
-            killing the job. 
-            Note that, if GLIDEIN_Max_Walltime is specified,
-            this variable could be reduced by the glidein in order 
-            to fit within Glidein_Max_Walltime.
-            See <a href="#lifetime">Lifetime of a glidein</a> for details.</P>
-        </TD>
-    </TR>
-    <TR>
         <td> <b>GLIDEIN_Max_Walltime</b> </td>
         <TD> Int </TD>
         <TD> N/A </TD>
@@ -872,6 +854,22 @@ described below ar the most often used.</P>
         <td> <b>GLIDECLIENT_Group_Rank</b> </td>
         <td> Exp (Int) </TD>
 
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_Job_Max_Time</b> </td>
+        <TD> Int </TD>
+        <TD>
+            <P>Max allowed time for the job to end.<BR>
+            This is used by the
+            condor_startd.  Once the GLIDEIN_Retire_Time expires, 
+            the glidein will allow the job to run for this amount
+            of time before activating DAEMON_SHUTDOWN and 
+            killing the job. 
+            Note that, if GLIDEIN_Max_Walltime is specified,
+            this variable could be reduced by the glidein in order 
+            to fit within Glidein_Max_Walltime.
+            See <a href="#lifetime">Lifetime of a glidein</a> for details.</P>
+        </TD>
     </TR>
     <TR>
         <td> <b>GLIDEIN_Expose_Grid_Env</b> </td>
