@@ -218,6 +218,7 @@ class Credential:
     def __init__(self,proxy_id,proxy_fname,elementDescript):
         self.req_idle=0
         self.req_max_run=0
+        #self.advertize=False
         try:
             proxy_security_classes=elementDescript.merged_data['ProxySecurityClasses']
             proxy_trust_domains=elementDescript.merged_data['ProxyTrustDomains']
@@ -307,7 +308,7 @@ class Credential:
         if ("grid_proxy" in self.type) or ("cert_pair" in self.type):
             time_list=condorExe.iexe_cmd("openssl x509 -in %s -noout -enddate" % self.filename)
             if "notAfter=" in time_list[0]:
-                time_str=time_list[0].split("=")[1][:-1]
+                time_str=time_list[0].split("=")[1].strip()
                 timeleft=calendar.timegm(time.strptime(time_str,"%b %d %H:%M:%S %Y %Z"))-int(time.time())
             return timeleft
         else:
@@ -705,6 +706,7 @@ class MultiAdvertizeWork:
                             filename_arr.append(f)
                 except condorExe.ExeError:
                     logSupport.log.exception("Error creating request files for factory pool %s, unable to advertise: %s" % factory_pool)
+                    logSupport.log.error("Error creating request files for factory pool %s, unable to advertise: %s" % factory_pool)
                 
             # Advertize all the files (if multi, should only be one) 
             for filename in filename_arr:
@@ -722,7 +724,7 @@ class MultiAdvertizeWork:
         
         descript_obj=self.descript_obj
         
-        logSupport.log.info("in create Advertize work");
+        logSupport.log.info("In create Advertize work");
 
         factory_trust,factory_auth=self.factory_constraint[params_obj.request_name]
         if descript_obj.x509_proxies_plugin!=None:

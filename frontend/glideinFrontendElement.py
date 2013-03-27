@@ -864,13 +864,13 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
     try:
         logSupport.log.info("Advertising global requests")
         advertizer.do_global_advertize()
-    except Exception:
-        logSupport.log.exception("Unknown error advertising global requests: ")
+    except:
+        logSupport.log.exception("Unknown error advertising global requests")
     try:
         logSupport.log.info("Advertising glidein requests") # cannot advertise len of queue since has both global and glidein requests
         advertizer.do_advertize()
-    except Exception:
-        logSupport.log.exception("Unknown error advertising glidein requests: ")
+    except:
+        logSupport.log.exception("Unknown error advertising glidein requests")
         
     logSupport.log.info("Done advertising requests")
 
