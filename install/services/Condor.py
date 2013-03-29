@@ -47,9 +47,10 @@ class Condor(Configuration):
 
     #--- condor config data --
     self.condor_config_data = { "00_gwms_general"     : "",
-                                "01_gwms_collectors"  : "",
                                 "02_gwms_schedds"     : "",
                                 "03_gwms_local"       : "",
+                                "11_gwms_secondary_collectors"  : "",
+
                               }
 
     #-- classes used ---
@@ -1181,7 +1182,7 @@ NEGOTIATOR_CONSIDER_PREEMPTION = False
 
   #-----------------------------
   def __condor_config_collector_data__(self):
-    type = "01_gwms_collectors"
+    type = "11_gwms_secondary_collectors"
     if self.daemon_list.find("COLLECTOR") >= 0:
       self.condor_config_data[type]  += """
 ###########################################################
@@ -1215,7 +1216,7 @@ COLLECTOR_HOST = $(CONDOR_HOST):%(port)s
       return  # no collector daemon
     if self.secondary_collectors() == 0:
       return   # no secondary collectors
-    type = "01_gwms_collectors"
+    type = "11_gwms_secondary_collectors"
     self.condor_config_data[type]  += """
 #################################################
 # Secondary Collectors
