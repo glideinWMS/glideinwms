@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v2_7_rc2
+# GLIDEINWMS_VERSION v2_7
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 c4e9c1f360b685b8a49c62e32e6a3498  ./LICENSE.txt
@@ -49,7 +49,7 @@ dbdd25fbeffc531abfcd29e93c5d87c4  ./creation/web_base/factoryLogStatus.html
 049a58e484d9ecb543f2ff27419c80fa  ./creation/web_base/factoryRRDBrowse.html
 dc8182dff02e5c70b88168c44aef52dd  ./creation/web_base/factoryRRDEntryMatrix.html
 1a982ad817a3d52f65f66f03104e7f6b  ./creation/web_base/factoryStatus.html
-5c9259595eba9592637b92c2fee38b0e  ./creation/web_base/factoryStatusNow.html
+e16e467ebf617053860730ab1584af77  ./creation/web_base/factoryStatusNow.html
 b14c00b25c63f6ce147416d97c615999  ./creation/web_base/factory_support.js
 c1527cf661115760242852c0421921bd  ./creation/web_base/gcb_setup.sh
 08428528a17d34e44a9fcab727c6fd92  ./creation/web_base/glexec_setup.sh
@@ -61,7 +61,7 @@ c1527cf661115760242852c0421921bd  ./creation/web_base/gcb_setup.sh
 014c3eaf1abf62ff0f599579658e6a10  ./creation/web_base/nodes.blacklist
 ed35ca2289553f4e671d985bedd0ccef  ./creation/web_base/parse_starterlog.awk
 e0ba6891e61382c17e0aa7ea0a13c688  ./creation/web_base/setup_script.sh
-0c947179d5fe5bb5482de5b2b44e5c21  ./creation/web_base/setup_x509.sh
+bf7fd6209d5719972432a51e6d00304d  ./creation/web_base/setup_x509.sh
 681b715ce05b64ba1be2f9e06b3676c5  ./creation/web_base/update_proxy.py
 91bca6a6005d761584523440b6a9c929  ./creation/web_base/validate_node.sh
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
@@ -72,12 +72,12 @@ d74b0fe6addeb6ff1a0d7a65142dd330  ./factory/glideFactory.py
 73737de82cf02a3a42b44b9d96859f2a  ./factory/glideFactoryEntry.py
 7d94f8c683bef814eafb86d46df9ed05  ./factory/glideFactoryEntryGroup.py
 2c042ae28efdf825f84b53e0b0c66830  ./factory/glideFactoryInterface.py
-6bc444a2de57bdb378dafb0f7f857bd5  ./factory/glideFactoryLib.py
+c55ee67b9258ee472662d70b26ca7662  ./factory/glideFactoryLib.py
 babd9c96bf7b6f51e4457e4acfd6ce16  ./factory/glideFactoryLogParser.py
 7c4cc5b72f7e7fd38180f428059140d9  ./factory/glideFactoryMonitorAggregator.py
 b6945310791c9d82c3aebc7aa7b61e73  ./factory/glideFactoryMonitoring.py
 edd212dbf8ac46d203dbf63a57b3c6ef  ./factory/glideFactoryPidLib.py
-3e9681182ed2479472165980f2e95dd2  ./factory/manageFactoryDowntimes.py
+866dfabf82fc50539a60f696f5c5202c  ./factory/manageFactoryDowntimes.py
 2b91d4efaf3904724d791d424aa797fe  ./factory/stopFactory.py
 052d66755e13288642c357a1b2d4a45c  ./factory/test_advertize.py
 d1a1ecb75fd8fcecdd8198874149aa98  ./factory/test_cm.py
