@@ -35,6 +35,11 @@ v2_7	glideinwms code is now organized as python packages
 	Bug Fix: RPM now has shared port daemon enabled in the configuration
 	Bug Fix: Fixed a bug where Factory would sometime use wrong DN when
 	  calculating proxy hash
+	Bug Fix: Fixed a bug where factoryStatusNow.html would not link to the
+          factoryEntryStatusNow.html correctly if the entry name is too long
+	Bug Fix: setup_x509.sh now correctly checks for existence of the
+          grid-proxy-info and voms-proxy-info binaries on the worker node
+	Bug Fix: Frontend now counts the partitionable slots correctly
 
 v2_6_2	Factory now supports glidein failure modes. This information is
 	  propagated back to the factory.

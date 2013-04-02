@@ -82,7 +82,7 @@ Related Pages:
 <a name="stable"></a>
     <h3>Stable Series</h3>
       <li>
-        <b>v2_7</b> released on March xx, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7.tgz">Tarball</a>)<br>
+        <b>v2_7</b> released on April 02, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7.tgz">Tarball</a>)<br>
         <ul>
           <li>glideinwms code is now organized as python packages
           <li>Factory no longer creates long running process per entry.
@@ -123,6 +123,11 @@ Related Pages:
           configuration
           <li>Bug Fix: Fixed a bug where Factory would sometime use wrong DN
           when calculating proxy hash
+          <li>Bug Fix: Fixed a bug where factoryStatusNow.html would not link
+          to the factoryEntryStatusNow.html correctly if the entry name is too long
+          <li>Bug Fix: setup_x509.sh now correctly checks for existence of the
+          grid-proxy-info and voms-proxy-info binaries on the worker node
+          <li>Bug Fix: Frontend now counts the partitionable slots correctly
         </ul>
       </li>
       <li>
