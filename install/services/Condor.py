@@ -47,6 +47,7 @@ class Condor(Configuration):
 
     #--- condor config data --
     self.condor_config_data = { "00_gwms_general"     : "",
+                                "01_gwms_collectors"  : "",
                                 "02_gwms_schedds"     : "",
                                 "03_gwms_local"       : "",
                                 "11_gwms_secondary_collectors"  : "",
@@ -341,8 +342,8 @@ If no specific entries are needed, an empty list should be returned.
     self.__condor_config_gwms_data__()
     self.__condor_config_daemon_list__()
     self.__condor_config_gsi_data__(self.condor_config_daemon_users())
-    self.__condor_config_negotiator_data__()
     self.__condor_config_collector_data__()
+    self.__condor_config_negotiator_data__()
     self.__condor_config_secondary_collector_data__()
     self.__condor_config_schedd_data__()
     self.__condor_config_secondary_schedd_data__()
@@ -1142,7 +1143,7 @@ SUBMIT_EXPRS = $(SUBMIT_EXPRS) JOB_Site JOB_GLIDEIN_Entry_Name JOB_GLIDEIN_Name 
 
   #-----------------------------
   def __condor_config_negotiator_data__(self):
-    type = "00_gwms_general"
+    type = "01_gwms_collectors"
     if self.daemon_list.find("NEGOTIATOR") < 0:
       return  # no negotiator
     self.condor_config_data[type] += """
@@ -1182,7 +1183,7 @@ NEGOTIATOR_CONSIDER_PREEMPTION = False
 
   #-----------------------------
   def __condor_config_collector_data__(self):
-    type = "11_gwms_secondary_collectors"
+    type = "01_gwms_collectors"
     if self.daemon_list.find("COLLECTOR") >= 0:
       self.condor_config_data[type]  += """
 ###########################################################
@@ -1196,6 +1197,13 @@ COLLECTOR.USE_VOMS_ATTRIBUTES = False
 
 #-- allow more file descriptors (only works if Condor is started as root)
 ##COLLECTOR_MAX_FILE_DESCRIPTORS=20000
+
+############################################
+# We expect to have secondary collectors, so
+#-- forward ads to the main collector
+#-- (this is ignored by the main collector, since the address matches itself)
+CONDOR_VIEW_HOST = $(COLLECTOR_HOST)
+
 """ % { "name" : self.service_name(), 
         "port" : self.collector_port()
       }
@@ -1214,16 +1222,23 @@ COLLECTOR_HOST = $(CONDOR_HOST):%(port)s
   def __condor_config_secondary_collector_data__(self):
     if self.daemon_list.find("COLLECTOR") < 0:
       return  # no collector daemon
-    if self.secondary_collectors() == 0:
-      return   # no secondary collectors
     type = "11_gwms_secondary_collectors"
-    self.condor_config_data[type]  += """
+    if self.secondary_collectors() == 0:
+      self.condor_config_data[type]  += """
 #################################################
 # Secondary Collectors
 #################################################
-#-- Forward ads to the main collector
-#-- (this is ignored by the main collector, since the address matches itself)
-CONDOR_VIEW_HOST = $(COLLECTOR_HOST)
+#
+# This file should be dynamically generated
+# but is provided as a static file for simple use cases
+#  
+"""
+    else:
+      self.condor_config_data[type]  += """
+#################################################
+# Secondary Collectors
+#################################################
+#
 """
 
     #-- define sub-collectors, ports and log files
