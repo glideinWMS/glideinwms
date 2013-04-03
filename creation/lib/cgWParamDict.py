@@ -688,6 +688,9 @@ def populate_factory_descript(work_dir,
         
         down_fname=os.path.join(work_dir,'glideinWMS.downtimes')
 
+        if (params.attrs.has_key('APFMonBaseURL')):
+            glidein_dict.add('APFMonBaseURL', params.attrs['APFMonBaseURL']['value'])
+
         glidein_dict.add('FactoryName',params.factory_name)
         glidein_dict.add('GlideinName',params.glidein_name)
         glidein_dict.add('WebURL',params.web_url)

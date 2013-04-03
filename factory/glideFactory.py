@@ -660,7 +660,9 @@ def main(startup_dir):
 
     # start
     pid_obj.register()
-    apf = APFMonClient.APFMonClient(BaseUrl=glideinDescript.data['WebURL'].replace('stage', 'logs'))
+    if 'APFMonBaseURL' in glideinDescript.data:
+        apf = APFMonClient.APFMonClient(BaseUrl=glideinDescript.data['WebURL'].replace('stage', 'logs'),
+                                        APFMonUrl=glideinDescript.data['APFMonBaseURL'])
     apf.registerFactory()
 
     try:
