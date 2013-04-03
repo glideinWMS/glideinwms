@@ -8,7 +8,7 @@ import sys
 
 class APFMonClient:
     def __init__(self, BaseUrl='http://cms-xen43.fnal.gov/factory/',
-                 APFMonUrl="http://cms-xen45.fnal.gov:8000/api/",
+                 APFMonUrl="http://cms-xen45.fnal.gov:8000/api",
                  SSLPort=443):
 
         parsedUrl = urlparse.urlparse(BaseUrl)
@@ -36,7 +36,7 @@ class APFMonClient:
             }
 
         data = json.dumps(attrs)
-        url = self._APFMonUrl + "factories/%s" % self._factoryId
+        url = self._APFMonUrl + "/factories/%s" % self._factoryId
         try:
             _ = self._httpPut(url, data)
         except:
@@ -65,7 +65,7 @@ class APFMonClient:
 
         data = json.dumps(apfJobsList)
         logSupport.log.info("Sending %s to APF" % data)
-        url = self._APFMonUrl + "jobs"
+        url = self._APFMonUrl + "/jobs"
 
         try:
             _ = self._httpPut(url, data)
