@@ -11,8 +11,8 @@ from unittest_utils import runTest
 from unittest_utils import FakeLogger
 from unittest_utils import create_temp_file
 
-import logSupport
-import cleanupSupport
+from glideinwms.lib import logSupport
+from glideinwms.lib import cleanupSupport
 
 class TestCleanupSupport(unittest.TestCase):
     """

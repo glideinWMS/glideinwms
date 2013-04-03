@@ -6,15 +6,15 @@ import stat
 import re
 import optparse
 
-from glideinwms.install.services import common
-from glideinwms.install.services import VOFrontend
-from glideinwms.install.services import Factory
-from glideinwms.install.services import UserCollector
-from glideinwms.install.services.Certificates import Certificates  
-from glideinwms.install.services.Condor import Condor
-from glideinwms.install.services.Configuration import ConfigurationError
+import common
+import VOFrontend
+import Factory
+import UserCollector
+import Certificates  
+from Condor import Condor
+from Configuration import ConfigurationError
 #-------------------------
-os.environ["PYTHONPATH"] = ""
+#os.environ["PYTHONPATH"] = ""
 
 wmscollector_options = [ 
 "install_type",
@@ -241,9 +241,11 @@ specified.
 
 
 ##########################################
-def main(argv):
-  try:
-    create_template()
+# Main function, primarily used for debugging
+#
+#def main(argv):
+#  try:
+#    create_template()
     #options = validate_args(argv)
     #wms = WMSCollector(options.inifile)
     #wms.install()
@@ -251,20 +253,20 @@ def main(argv):
     #wms.__create_initd_script__()
     #wms.configure_gsi_security()
     #wms.configure_secondary_schedds()
-  except KeyboardInterrupt, e:
-    common.logit("\n... looks like you aborted this script... bye.")
-    return 1
-  except EOFError:
-    common.logit("\n... looks like you aborted this script... bye.");
-    return 1
-  except ConfigurationError, e:
-    print;print "ConfigurationError ERROR(should not get these): %s"%e;return 1
-  except common.WMSerror:
-    print;return 1
-  return 0
+#  except KeyboardInterrupt, e:
+#    common.logit("\n... looks like you aborted this script... bye.")
+#    return 1
+#  except EOFError:
+#    common.logit("\n... looks like you aborted this script... bye.");
+#    return 1
+#  except ConfigurationError, e:
+#    print;print "ConfigurationError ERROR(should not get these): %s"%e;return 1
+#  except common.WMSerror:
+#    print;return 1
+#  return 0
 
 
 #--------------------------
-if __name__ == '__main__':
-  sys.exit(main(sys.argv))
+#if __name__ == '__main__':
+#  sys.exit(main(sys.argv))
 

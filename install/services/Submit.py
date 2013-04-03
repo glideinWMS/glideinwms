@@ -6,13 +6,13 @@ import re
 import stat
 import optparse
 #-------------------------
-from glideinwms.install.services import common
-from glideinwms.install.services import UserCollector
-from glideinwms.install.services import VOFrontend
-from glideinwms.install.services.Condor import Condor
-from glideinwms.install.services.Configuration import ConfigurationError
+import common
+import UserCollector
+import VOFrontend
+from Condor import Condor
+from Configuration import ConfigurationError
 #-------------------------
-os.environ["PYTHONPATH"] = ""
+#os.environ["PYTHONPATH"] = ""
 
 submit_options = [ "hostname", 
 "username",
@@ -214,29 +214,31 @@ specified.
     return options
 
 ##########################################
-def main(argv):
-  try:
-    create_template()
+# Main function, primarily used for debugging, now commented
+#
+#def main(argv):
+#  try:
+#    create_template()
     #options = validate_args(argv)
     #submit = Submit(options.inifile)
     #submit.install()
     #submit.configure_gsi_security()
     #submit.__validate_tarball__(submit.condor_tarball())
-  except KeyboardInterrupt, e:
-    common.logit("\n... looks like you aborted this script... bye.")
-    return 1
-  except EOFError:
-    common.logit("\n... looks like you aborted this script... bye.");
-    return 1
-  except ConfigurationError, e:
-    print;print "ConfigurationError ERROR(should not get these): %s"%e;return 1
-  except common.WMSerror:
-    print;return 1
-  return 0
+#  except KeyboardInterrupt, e:
+#    common.logit("\n... looks like you aborted this script... bye.")
+#    return 1
+#  except EOFError:
+#    common.logit("\n... looks like you aborted this script... bye.");
+#    return 1
+#  except ConfigurationError, e:
+#    print;print "ConfigurationError ERROR(should not get these): %s"%e;return 1
+#  except common.WMSerror:
+#    print;return 1
+#  return 0
 
 
 
 #--------------------------
-if __name__ == '__main__':
-  sys.exit(main(sys.argv))
+#if __name__ == '__main__':
+#  sys.exit(main(sys.argv))
 

@@ -538,6 +538,9 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             if x509_proxies.count_fnames<1:
                 logSupport.log.warning("No good proxies for %s, skipping request"%client_int_name)
                 continue #skip request
+            else:
+                security_credentials['x509_proxy_list'] = x509_proxies
+
         else:
             # ========== v3+ proxy protocol ===============
             

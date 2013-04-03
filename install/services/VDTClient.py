@@ -2,8 +2,9 @@
 
 import sys,os,os.path,string,time,glob
 #---------------------
-from glideinwms.install.services import common
-from glideinwms.install.services.VDT import VDT
+import common
+import glideinwms.lib.subprocessSupport
+from VDT import VDT
 
 
 class VDTClient(VDT):
@@ -53,6 +54,7 @@ Is it OK to install it in this location""" % self.vdt_location())
     if err == 0:
       return True
     return False
+
 
 ##########################################
 def main(argv):

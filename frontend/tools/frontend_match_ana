@@ -26,10 +26,10 @@ import time,string
 sys.path.append(os.path.join(sys.path[0],".."))
 sys.path.append(os.path.join(sys.path[0],"../../lib"))
 
-import glideinFrontendConfig
-import glideinFrontendInterface
-import glideinFrontendLib
-import exprParser
+from glideinwms.frontend import glideinFrontendConfig
+from glideinwms.frontend import glideinFrontendInterface
+from glideinwms.frontend import glideinFrontendLib
+from glideinwms.lib import exprParser
 
 # shortest first
 def mycmp(a,b):
@@ -90,7 +90,8 @@ def do_work(elementDescript,paramsDescript,signatureDescript,job_filter):
         factory_identity=factory_pool[1]
         my_identity_at_factory_pool=factory_pool[2]
         try:
-            factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,None,signatureDescript.signature_type,factory_constraint,True,get_only_matching=True)
+            full_constraint='(%s) && ((PubKeyType=?="RSA") && (GlideinAllowx509_Proxy=!=False))' % factory_constraint
+            factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,None,signatureDescript.signature_type,full_constraint)
         except RuntimeError,e:
             if factory_pool_node!=None:
                 print "Failed to talk to factory_pool %s: %s"%(factory_pool_node, e)

@@ -12,18 +12,18 @@ import re
 from xml.dom import minidom
 import unittest
 
-from infosys_lib import query_bdii
-from infosys_lib import query_ress
-from infosys_lib import query_teragrid
-from infosys_lib import parse_entries
-from infosys_lib import parse_condor_path
-from infosys_lib import parse_factory_schedds
-from infosys_lib import parse_info_systems
-from infosys_lib import generate_entry_xml
-from infosys_lib import format_entry_pair_output
+from glideinwms.factory.tools.infosys_lib import query_bdii
+from glideinwms.factory.tools.infosys_lib import query_ress
+from glideinwms.factory.tools.infosys_lib import query_teragrid
+from glideinwms.factory.tools.infosys_lib import parse_entries
+from glideinwms.factory.tools.infosys_lib import parse_condor_path
+from glideinwms.factory.tools.infosys_lib import parse_factory_schedds
+from glideinwms.factory.tools.infosys_lib import parse_info_systems
+from glideinwms.factory.tools.infosys_lib import generate_entry_xml
+from glideinwms.factory.tools.infosys_lib import format_entry_pair_output
 
-import condorExe
-import ldapMonitor
+from glideinwms.lib import condorExe
+from glideinwms.lib import ldapMonitor
 
 
 class TestInfosysLib(unittest.TestCase):

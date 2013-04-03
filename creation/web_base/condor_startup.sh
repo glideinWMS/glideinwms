@@ -115,7 +115,7 @@ function set_var {
         return 0
     fi
 
-    var_val=`grep "^$var_name " $config_file | awk '{if ($2) print substr($0,index($0,$2))}'`
+    var_val=`grep "^$var_name " $config_file | awk '{if (NF>1) print substr($0,index($0,$2))}'`
     if [ -z "$var_val" ]; then
 	if [ "$var_req" == "Y" ]; then
 	    # needed var, exit with error
@@ -618,15 +618,14 @@ ON_DIE=0
 trap 'ignore_signal' HUP
 trap 'on_die' TERM
 trap 'on_die' INT
-let "retmins=$retire_time / 60 - 1"
 
 
 #### STARTS CONDOR ####
 if [ "$operation_mode" == "2" ]; then
     echo "=== Condor started in test mode ==="
-    $CONDOR_DIR/sbin/condor_master -r $retmins -pidfile $PWD/condor_master.pid
+    $CONDOR_DIR/sbin/condor_master -pidfile $PWD/condor_master.pid
 else
-    $CONDOR_DIR/sbin/condor_master -f -r $retmins -pidfile $PWD/condor_master2.pid &
+    $CONDOR_DIR/sbin/condor_master -f -pidfile $PWD/condor_master2.pid &
     # Wait for a few seconds to make sure the pid file is created,
     # then wait on it for completion
     sleep 5

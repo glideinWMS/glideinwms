@@ -11,9 +11,9 @@ import unittest
 from unittest_utils import runTest
 from unittest_utils import create_temp_file
 from unittest_utils import create_random_string
-from hashCrypto import extract_md5
-from tarSupport import GlideinTar
-from tarSupport import FileDoesNotExist
+from glideinwms.lib.hashCrypto import extract_md5
+from glideinwms.lib.tarSupport import GlideinTar
+from glideinwms.lib.tarSupport import FileDoesNotExist
 
 class TestTarSupport(unittest.TestCase):
     """

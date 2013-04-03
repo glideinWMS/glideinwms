@@ -88,6 +88,21 @@ function check_x509_proxy {
         exit 1
     fi    
 
+# verify grid-proxy-info exists
+    command -v grid-proxy-info >& /dev/null
+    if [ $? -eq 1 ]; then
+	STR="grid-proxy-init command not found in path!"
+	"$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "grid-proxy-init"
+	exit 1
+    fi
+# verify voms-proxy-info exists
+    command -v voms-proxy-info >& /dev/null
+    if [ $? -eq 1 ]; then
+	STR="voms-proxy-init command not found in path!"
+	"$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "voms-proxy-init"
+	exit 1
+    fi
+
     grid-proxy-info -exists -valid 12:0
     if [ $? -ne 0 ]; then
         voms-proxy-info -exists -valid 12:0

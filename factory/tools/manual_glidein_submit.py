@@ -8,12 +8,12 @@ STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,".."))
 sys.path.append(os.path.join(STARTUP_DIR,"../../lib"))
 
-from glideFactoryCredentials import SubmitCredentials
-from glideFactoryLib import submitGlideins
-from glideFactoryLib import ClientWeb
-from iniSupport import IniError
-from iniSupport import load_ini
-from iniSupport import cp_get
+from glideinwms.factory.glideFactoryCredentials import SubmitCredentials
+from glideinwms.factory.glideFactoryLib import submitGlideins
+from glideinwms.factory.glideFactoryLib import ClientWeb
+from glideinwms.lib.iniSupport import IniError
+from glideinwms.lib.iniSupport import load_ini
+from glideinwms.lib.iniSupport import cp_get
 
 class ArgumentError(Exception): pass
 
@@ -44,27 +44,27 @@ def main():
         cp = load_ini(ini_path)
 
         # get all the required elements and create the required objects
-        entry_name = cp_get("entry", "entry_name", "", throw_exception=True)
-        client_name = cp_get("entry", "client_name", "", throw_exception=True)
-        nr_glideins = cp_get("entry", "nr_glideins", "", throw_exception=True)
-        frontend_name = cp_get("entry", "frontend_name", "", throw_exception=True)
-        user_name = cp_get("submit_credentials", "UserName", "", throw_exception=True)
-        security_class = cp_get("submit_credentials", "SecurityClass", "", throw_exception=True)
+        entry_name = cp_get(cp, "entry", "entry_name", "", throw_exception=True)
+        client_name = cp_get(cp, "entry", "client_name", "", throw_exception=True)
+        nr_glideins = cp_get(cp, "entry", "nr_glideins", "", throw_exception=True)
+        frontend_name = cp_get(cp, "entry", "frontend_name", "", throw_exception=True)
+        user_name = cp_get(cp, "submit_credentials", "UserName", "", throw_exception=True)
+        security_class = cp_get(cp, "submit_credentials", "SecurityClass", "", throw_exception=True)
 
         # create the params object
         params = {}
         for option in cp.options("params"):
-            params[option] = cp_get("params", option, "", throw_exception=True)
+            params[option] = cp_get(cp, "params", option, "", throw_exception=True)
 
         # create the client_web object
-        client_web_url = cp_get("client_web", "clientweb", "", throw_exception=True)
-        client_signtype = cp_get("client_web", "clientsigntype", "", throw_exception=True)
-        client_descript = cp_get("client_web", "clientdescript", "", throw_exception=True)
-        client_sign = cp_get("client_web", "clientsign", "", throw_exception=True)
-        client_group = cp_get("client_web", "clientgroup", "", throw_exception=True)
-        client_group_web_url = cp_get("client_web", "clientwebgroup", "", throw_exception=True)
-        client_group_descript = cp_get("client_web", "clientdescriptgroup", "", throw_exception=True)
-        client_group_sign = cp_get("client_web", "clientsigngroup", "", throw_exception=True)
+        client_web_url = cp_get(cp, "client_web", "clientweb", "", throw_exception=True)
+        client_signtype = cp_get(cp, "client_web", "clientsigntype", "", throw_exception=True)
+        client_descript = cp_get(cp, "client_web", "clientdescript", "", throw_exception=True)
+        client_sign = cp_get(cp, "client_web", "clientsign", "", throw_exception=True)
+        client_group = cp_get(cp, "client_web", "clientgroup", "", throw_exception=True)
+        client_group_web_url = cp_get(cp, "client_web", "clientwebgroup", "", throw_exception=True)
+        client_group_descript = cp_get(cp, "client_web", "clientdescriptgroup", "", throw_exception=True)
+        client_group_sign = cp_get(cp, "client_web", "clientsigngroup", "", throw_exception=True)
 
         client_web = ClientWeb(client_web_url, client_signtype, client_descript, client_sign,
                                client_group, client_group_web_url, client_group_descript, client_group_sign)
@@ -72,10 +72,10 @@ def main():
         # create the submit_credentials object
         credentials = SubmitCredentials(user_name, security_class)
         for option in cp.options("security_credentials"):
-            credentials.add_security_credential(option, cp_get("security_credentials", option, "", throw_exception=True))
+            credentials.add_security_credential(option, cp_get(cp, "security_credentials", option, "", throw_exception=True))
 
         for option in cp.options("identity_credentials"):
-            credentials.add_identity_credential(option, cp_get("identity_credentials", option, "", throw_exception=True))
+            credentials.add_identity_credential(option, cp_get(cp, "identity_credentials", option, "", throw_exception=True))
 
         # call the submit
         submitGlideins(entry_name, client_name, nr_glideins, frontend_name, credentials, client_web, params)

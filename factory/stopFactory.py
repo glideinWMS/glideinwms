@@ -43,7 +43,7 @@ def get_entry_pids(startup_dir,factory_pid):
 
     return entry_pids
 
-def main(startup_dir,force=False):
+def main(startup_dir,force=True):
     # get the pids
     try:
         factory_pid=glideFactoryPidLib.get_factory_pid(startup_dir)
@@ -113,14 +113,14 @@ def main(startup_dir,force=False):
 
 if __name__ == '__main__':
     if len(sys.argv)<2:
-        print "Usage: stopFactory.py [-force] submit_dir"
+        print "Usage: stopFactory.py submit_dir"
         sys.exit(1)
 
     if len(sys.argv)>2:
         if sys.argv[1]=='-force':
             sys.exit(main(sys.argv[2],True))
         else:
-            print "Usage: stopFactory.py [-force] submit_dir"
+            print "Usage: stopFactory.py submit_dir"
             sys.exit(1)
     else:
         sys.exit(main(sys.argv[1]))

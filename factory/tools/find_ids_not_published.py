@@ -165,7 +165,7 @@ def find_entries_with_ids_not_published(config_xml, skip_disabled):
             ress_entries.update(infosys_lib.query_ress(infosys))
                 
         elif type.lower() == 'tg':
-            tg_entries.update(infosys_lib.query_teragrid(infosys))
+            tg_entries.update(infosys_lib.query_teragrid())
             
 
     id_not_found_bdii_entries = find_entries_id_not_found(bdii_entries, config_entries, 'bdii')

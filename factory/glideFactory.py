@@ -556,8 +556,10 @@ def termsignal(signr, frame):
     raise KeyboardInterrupt, "Received signal %s" % signr
 
 if __name__ == '__main__':
-    signal.signal(signal.SIGTERM, termsignal)
-    signal.signal(signal.SIGQUIT, termsignal)
+    if os.getsid(os.getpid()) != os.getpgrp():
+        os.setpgid(0, 0)
+    signal.signal(signal.SIGTERM,termsignal)
+    signal.signal(signal.SIGQUIT,termsignal)
 
     try:
         main(sys.argv[1])

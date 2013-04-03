@@ -9,17 +9,17 @@ from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorExe
 from glideinwms.lib import condorPrivsep
 
-from glideinwms.install.services import common
-from glideinwms.install.services import WMSCollector
-from glideinwms.install.services import VOFrontend
-from glideinwms.install.services.Condor import Condor
-from glideinwms.install.services.Glidein import Glidein
-from glideinwms.install.services.Configuration import Configuration
-from glideinwms.install.services.Configuration import ConfigurationError
+import common
+import WMSCollector
+import VOFrontend
+from Condor import Condor
+from Glidein import Glidein
+from Configuration import Configuration
+from Configuration import ConfigurationError
 
 #STARTUP_DIR=sys.path[0]
 #sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
-os.environ["PYTHONPATH"] = ""
+#os.environ["PYTHONPATH"] = ""
 
 factory_options = [ "hostname", 
 "username", 
@@ -157,7 +157,7 @@ files and directories can be created correctly""" % self.username())
       self.glidein.validate_software_requirements()
       self.validate_needed_directories()
       common.logit( "Factory verification complete\n")
-      os.system("sleep 3")
+      time.sleep(3)
     self.not_validated = False
 
   #---------------------
@@ -209,7 +209,7 @@ files and directories can be created correctly""" % self.username())
 
     #--- if all are empty, return 
     if len(dirs) == 0:
-      os.system("sleep 3")
+      time.sleep(3)
       return  # all directories are empty
 
     #--- See if we can remove them ---
@@ -231,7 +231,7 @@ files and directories can be created correctly""" % self.username())
       common.logerr("""We seem to have had a problems deleting the contents of these directories:
 %s """ % dirs)
 
-    os.system("sleep 3")
+    time.sleep(3)
     return  # all directories are empty
 
   #------------------------------------
@@ -358,8 +358,6 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 """ % { "x509_cert_dir"   : self.wms.x509_cert_dir(), 
         "condor_location" : self.wms.condor_location(),
         "install_location" : self.glideinwms_location(),}
-    if self.use_vofrontend_proxy() == "n":
-      data += "export X509_USER_PROXY=%s" % self.x509_proxy()
     common.write_file("w",0644,self.env_script(),data)
     common.logit("%s\n" % data)
 
@@ -632,12 +630,6 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
         ress_data     = self.get_ress_data()
         filtered_data = self.apply_filters_to_ress(ress_data)
         self.ask_user(filtered_data)
-      ## - tmp/permanent removal of BDII query as too may results occur 12/14/10 -
-      ## yn = common.ask_yn("Do you want to fetch entries from BDII")
-      ## if yn == 'y':
-      ##   bdii_data     = self.get_bdii_data()
-      ##   filtered_data = self.apply_filters_to_bdii(bdii_data)
-      ##   self.ask_user(filtered_data)
       yn = common.ask_yn("Do you want to add manual entries")
       if yn == 'y':
         self.additional_entry_points()
@@ -774,81 +766,6 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     entries = self.discard_duplicate_entries(ress_entries)
     return entries
 
-  #----------------------------
-  def apply_filters_to_bdii(self,bdii_data):
-    #-- set up the  python filter ---
-    common.logit("Filters: %s" % self.glidein.entry_filters())
-
-    #-- using glexec? ---
-    if self.glidein.use_glexec() == "y":
-        def_glexec_bin='/opt/glite/sbin/glexec'
-    else:
-        def_glexec_bin='NONE'
-
-    cluster_count={}
-    bdii_entries={}
-    python_filter_obj = self.get_python_filter(self.glidein.entry_filters())
-    for ldap_id in bdii_data.keys():
-      el2=bdii_data[ldap_id]
-
-      # LDAP returns everything in lists... convert to values (i.e. get first element from list)
-      scalar_el={}
-      for k in el2.keys():
-        scalar_el[k]=el2[k][0]
-
-      if not self.passed_python_filter(python_filter_obj,scalar_el):
-        continue # has not passed the filter
-
-      work_dir="."
-      #-- some entries do not have all the attributes --
-      try:
-        gatekeeper="%s:%s/jobmanager-%s" %\
-           (el2['GlueCEHostingCluster'][0],
-            el2['GlueCEInfoGatekeeperPort'][0],
-            el2['GlueCEInfoJobManager'][0])
-        rsl="(queue=%s)(jobtype=single)" % el2['GlueCEName'][0]
-      except Exception, e:
-        common.logwarn("This entry point (%s/%s) is being skipped.  A required schema attribute missing: %s" % (el2['GlueCEName'][0],el2['GlueCEHostingCluster'][0],e))
-
-      site_name  = el2['Mds-Vo-name'][0]
-      cluster_id  ="bdii_%s" % site_name
-
-      bdii_id={'type':'BDII','server':self.glidein.bdii_host(),'name':ldap_id}
-
-      count=1
-      if cluster_count.has_key(cluster_id):
-        count = cluster_count[cluster_id] + 1
-      cluster_count[cluster_id] = count
-
-      if count == 1:
-        key_name = cluster_id
-      else:
-        key_name = "%s_%i" % (cluster_id,count)
-
-        if count == 2: # rename id -> id_1
-          key_name_tmp               = "%s_1"%cluster_id
-          bdii_entries[key_name_tmp] = bdii_entries[cluster_id]
-          del bdii_entries[cluster_id]
-
-      guess_glexec_bin = def_glexec_bin
-      if guess_glexec_bin != 'NONE':
-        if el2['GlueCEHostingCluster'][0][-3:] in ('gov','edu'):
-          # these should be OSG
-          guess_glexec_bin = 'OSG'
-        else:
-          # I assume everybody else uses glite software
-          guess_glexec_bin = '/opt/glite/sbin/glexec'
-
-      bdii_entries[key_name] = {'gatekeeper':gatekeeper,
-                                'rsl':rsl,'gridtype':'gt2',
-                                'work_dir':work_dir, 
-                                'site_name':site_name,
-                                'glexec_path':guess_glexec_bin, 
-                                'is_ids':[bdii_id]}
-    #-- end for loop --
-
-    entries = self.discard_duplicate_entries(bdii_entries)
-    return entries
   #-------------------------------------------
   def get_python_filter(self,filter):
     obj = None
@@ -956,27 +873,6 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
       common.logerr(e)
     del condor_obj
     return condor_data
-
-  #----------------------------
-  def get_bdii_data(self):
-    import ldapMonitor
-    common.logit("BDII host: %s" % self.glidein.bdii_host())
-    #-- validate host ---
-    if not common.url_is_valid(self.glidein.bdii_host()):
-      common.logerr("BDII server (%s) in bdii_host option is not valid or inaccssible." % self.glidein.bdii_host())
-
-    #-- get gatekeeper data from BDII --
-    constraint = self.glidein.bdii_vo_constraint()
-    common.logit("Supported VOs: %s" % self.glidein.entry_vos())
-    common.logit("Constraints: %s" % constraint)
-    try:
-      bdii_obj=ldapMonitor.BDIICEQuery(self.glidein.bdii_host(),additional_filter_str=constraint)
-      bdii_obj.load()
-      bdii_data=bdii_obj.fetchStored()
-    except Exception,e: 
-      common.logerr(e)
-    del bdii_obj
-    return bdii_data
 
   #-------------------------
   def create_template(self):

@@ -6,11 +6,11 @@ import pwd,grp
 import stat
 import optparse
 
-from glideinwms.install.services import common
-from glideinwms.install.services import WMSCollector
-from glideinwms.install.services import Factory
-from glideinwms.install.services import VOFrontend
-os.environ["PYTHONPATH"] = "."
+import common
+import WMSCollector
+import Factory
+import VOFrontend
+#os.environ["PYTHONPATH"] = "."
 #-------------------------
 
 class PrivilegeSeparation:

@@ -8,8 +8,8 @@ import string
 import time
 import glob
 #---------------------
-from glideinwms.install.services import common
-from glideinwms.install.services.Configuration import Configuration
+import common
+from Configuration import Configuration
 
 valid_options = [ "vdt_location",
 "pacman_location",
@@ -93,7 +93,7 @@ class VDT(Configuration):
     common.logit("... validating pacman_location: %s" % self.pacman_location())
     common.check_for_value("pacman_location",self.pacman_location())
     if self.pacman_is_installed():
-      os.system("sleep 2")
+      time.sleep(2)
       return #-- no need to install pacman--
     common.ask_continue("""
 Pacman is required and does not appear to be installed in:
@@ -113,7 +113,7 @@ pacman_location  is incorrect.  Please verify.""")
       common.logerr("""A pacman tarball of this name does not exist at:
     %(pacman_urlfile)s
 ... please verify.""" %  self.messagesDict)
-    os.system("sleep 2")
+    time.sleep(2)
     common.make_directory(self.pacman_parent(),self.username(),0755)
     common.run_script("cd %(pacman_parent)s && wget %(pacman_urlfile)s && tar --no-same-owner -xzf %(pacman_tarball)s && rm -f  %(pacman_tarball)s" % self.messagesDict)
     if not self.pacman_is_installed():
@@ -123,7 +123,7 @@ pacman_location  is incorrect.  Please verify.""")
     common.run_script("cd %(pacman_location)s && . setup.sh" % self.messagesDict)
     common.logit("\nPacman successfully installed: %(pacman_location)s" % self.messagesDict)
     common.logit("======== pacman install complete ==========\n")
-    os.system("sleep 2")
+    time.sleep(2)
 
 ##########################################
 def main(argv):
