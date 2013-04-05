@@ -25,7 +25,7 @@ def usage():
     print "in the HTCondor's config.d directory"
     print
     print "Usage:"
-    print " glidecondor_createSecCol [-useportasname] <portrange>"
+    print " glidecondor_createSecCol [-useportasname] [-commonlog] <portrange>"
     print "where:"
     print "  -useportasname  - If specified, the collector logs use port numbers as names (default is starting with 0)"
     print "  -commonlog      - If specified, all secondary collectors will share the log file"
