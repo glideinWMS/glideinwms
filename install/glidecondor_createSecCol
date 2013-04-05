@@ -1,0 +1,160 @@
+#!/usr/bin/env python
+
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#
+# Description:
+#   This tool creates the configuration file containing
+#   the secondary collectors
+#
+# Author:
+#   Igor Sfiligoi @UCSD (Mar 2013)
+#
+# Part of the glideinWMS package
+#
+
+import sys,os
+import subprocess
+import string,copy
+
+def usage():
+    print "This tool creates the 11_gwms_secondary_collectors.config file"
+    print "in the HTCondor's config.d directory"
+    print
+    print "Usage:"
+    print " glidecondor_createSecCol [-useportasname] <portrange>"
+    print "where:"
+    print "  -useportasname  - If specified, the collector logs use port numbers as names (default is starting with 0)"
+    print "  -commonlog      - If specified, all secondary collectors will share the log file"
+    print "  portrange       - Range of ports used by the secondary collectors to put in the config file (required)"
+    print "Example:"
+    print "  glidecondor_createSecCol 9620-9639"
+    return
+
+def get_config_val(attr, fail_if_missing=True):
+    try:
+        p=subprocess.Popen(['condor_config_val',attr],stdout=subprocess.PIPE)
+    except OSError, e:
+        print "Count not find condor_config_val!"
+        print "%s\n"%e
+        sys.exit(2)
+
+    rc=p.wait()
+    if rc!=0:
+        if fail_if_missing:
+            print "Attribute '%s' not found"%attr
+            sys.exit(2)
+        else:
+            return None
+    
+    res=p.communicate()
+    return res[0].strip('\n') # only the first line, and no trailing newline
+    
+
+def extract_condor_info():
+    global config_dir
+    config_dir=get_config_val('LOCAL_CONFIG_DIR')
+
+def add_collector(index,port,config_fd):
+    global common_log
+
+    if common_log:
+        logname='CollectorSecLog'
+    else:
+        logname='Collector%iLog'%index
+    fstr=('%(col)s = $(COLLECTOR)\n'+
+          '%(col)s_ENVIRONMENT = "_CONDOR_COLLECTOR_LOG=$(LOG)/%(logname)s"\n'+
+          '%(col)s_ARGS = -f -p %(port)s\n'+
+          'DAEMON_LIST=$(DAEMON_LIST), %(col)s\n\n')
+    config_fd.write(fstr%{'col':'COLLECTOR%i'%index,
+                          'logname':logname,
+                          'port':str(port)})
+
+def create_config(fname):
+    global collector_ports, use_port_as_name
+    try:
+        fd=open(fname,"w")
+    except IOError, e:
+        print "%s"%e
+        sys.exit(2)
+
+    fd.write("#################################################\n"+
+             "# Secondary Collectors\n"+
+             "#################################################\n\n"+
+             "#\n"+
+             "# This file has been dynamically generated\n"+
+             "# and thus may be different than the templates\n"+
+             "#\n\n"+
+             "# Define sub-collectors, their ports and their log files\n")
+
+    # still name collector 0,1,etc.
+    i=0
+    for p in collector_ports:
+        if use_port_as_name:
+            i=p
+        add_collector(i,p,fd)
+        i+=1
+
+    fd.close()
+
+def parse_args(args):
+    global collector_ports,use_port_as_name,common_log
+
+    common_log=False
+    use_port_as_name=False
+
+    if len(args)<1:
+        usage()
+        sys.exit(1)
+
+    if args[0]=='-h':
+        usage()
+        sys.exit(0)
+
+    while len(args)>1:
+        if args[0]=='-commonlog':
+            common_log=True
+        elif args[0]=='-useportasname':
+            use_port_as_name=True
+        else:
+            print "Unknown option %s"%args[0]
+            usage()
+            sys.exit(1)
+        args=args[1:]
+        
+    port_range_str=args[0]
+    port_range_arr=port_range_str.split('-')
+    if len(port_range_arr)!=2:
+        print "Invalid port range '%s', not a range"%port_range_str
+        usage()
+        sys.exit(1)
+    try:
+        port_min=int(port_range_arr[0])
+        port_max=int(port_range_arr[1])
+    except:
+        print "Invalid port range '%s', not numbers"%port_range_str
+        usage()
+        sys.exit(1)
+
+    if port_min>port_max:
+        print "Invalid port range '%s', min>max"%port_range_str
+        usage()
+        sys.exit(1)
+        
+    collector_ports=range(port_min, port_max+1)
+
+def main(args):
+    parse_args(args)
+    
+    extract_condor_info()
+    global config_dir
+    conf_fname=os.path.join(config_dir,"11_gwms_secondary_collectors.config")
+
+    create_config(conf_fname)
+    
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
