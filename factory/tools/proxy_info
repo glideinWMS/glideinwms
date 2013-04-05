@@ -48,7 +48,7 @@ def exec_info(user,args):
 def exec_cat(user,fname):
    dirname=os.path.dirname(fname)
    out = condorPrivsep.execute(user,dirname,'/bin/cat',['/bin/cat',fname])
-   print string.join(out,"")
+   print string.join(out,"\n")
 
 def main(argv):
    if (len(argv)<4) or (argv[1] in ('-h','-help')):
