@@ -14,6 +14,7 @@
 
 import time
 import string
+import os
 import os.path
 import copy
 import tempfile
@@ -23,6 +24,7 @@ from glideinwms.lib import timeConversion
 from glideinwms.lib import xmlFormat
 from glideinwms.lib import xmlParse
 from glideinwms.lib import rrdSupport
+from glideinwms.frontend import glideinFrontendLib
 from glideinwms.frontend import glideinFrontendMonitoring
 
 ############################################################
@@ -232,6 +234,9 @@ def aggregateStatus():
                                   monitorAggregatorConfig.status_relname)
         try:
             group_data=xmlParse.xmlfile2dict(status_fname)
+        except xmlParse.CorruptXML, e:
+            glideinFrontendLib.log_files.logError("Corrupt XML in %s (%s); deleting (it will be recreated)." % (status_fname, e))
+            os.unlink(status_fname)
         except IOError:
             continue # file not found, ignore
 
