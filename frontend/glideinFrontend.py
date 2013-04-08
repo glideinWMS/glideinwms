@@ -279,7 +279,8 @@ def main(work_dir):
         groups=string.split(frontendDescript.data['Groups'],',')
         groups.sort()
 
-        glideinFrontendMonitorAggregator.monitorAggregatorConfig.config_frontend(os.path.join(work_dir,"monitor"),groups)
+        glideinFrontendMonitorAggregator.monitorAggregatorConfig.config_frontend(os.path.join(work_dir,"monitor"),groups,
+                                                                                 glideinFrontendLib.log_files)
     except:
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])

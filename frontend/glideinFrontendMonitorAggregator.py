@@ -44,9 +44,10 @@ class MonitorAggregatorConfig:
         # name of the status files
         self.status_relname="frontend_status.xml"
 
-    def config_frontend(self,monitor_dir,groups):
+    def config_frontend(self, monitor_dir, groups, log_files):
         self.monitor_dir=monitor_dir
         self.groups=groups
+        self.log_files = log_files
         glideinFrontendMonitoring.monitoringConfig.monitor_dir=monitor_dir
     
 
@@ -235,8 +236,9 @@ def aggregateStatus():
         try:
             group_data=xmlParse.xmlfile2dict(status_fname)
         except xmlParse.CorruptXML, e:
-            glideinFrontendLib.log_files.logError("Corrupt XML in %s (%s); deleting (it will be recreated)." % (status_fname, e))
+            monitorAggregatorConfig.log_files.logWarning("Corrupt XML in %s; deleting file (it will be recreated)." % (status_fname))
             os.unlink(status_fname)
+            continue
         except IOError:
             continue # file not found, ignore
 
