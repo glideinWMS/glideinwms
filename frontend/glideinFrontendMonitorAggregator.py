@@ -236,8 +236,9 @@ def aggregateStatus():
         try:
             group_data=xmlParse.xmlfile2dict(status_fname)
         except xmlParse.CorruptXML, e:
-            logSupport.log.error("Corrupt XML in %s (%s); deleting (it will be recreated)." % (status_fname, e))
+            logSupport.log.error("Corrupt XML in %s; deleting (it will be recreated)." % (status_fname))
             os.unlink(status_fname)
+            continue
         except IOError:
             continue # file not found, ignore
 
