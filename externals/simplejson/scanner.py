@@ -1,6 +1,6 @@
 """JSON token scanner
 """
-#pylint: disable=F0401
+#pylint: disable-all
 
 import re
 try:
