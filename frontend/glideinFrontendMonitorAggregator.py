@@ -15,7 +15,7 @@
 import time
 import string
 import os.path
-ipmort os
+import os
 import copy
 import tempfile
 import shutil
