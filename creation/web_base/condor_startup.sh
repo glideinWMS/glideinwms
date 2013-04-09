@@ -46,6 +46,8 @@ config_file=$1
 
 error_gen=`grep '^ERROR_GEN_PATH ' $config_file | awk '{print $2}'`
 
+glidein_startup_pid=`grep -i "^GLIDEIN_STARTUP_PID " $config_file | awk '{print $2}'`
+
 # find out whether user wants to run job or run test
 debug_mode=`grep -i "^DEBUG_MODE " $config_file | awk '{print $2}'`
 
@@ -409,7 +411,7 @@ START_JOBS="TRUE"
 if [ "$chek_only" == "1" ]; then
   START_JOBS="FALSE"
   # need to know which startd to fetch against
-  STARTD_NAME=glidein_$PPID
+  STARTD_NAME=glidein_${glidein_startup_pid}
 fi
 
 #Add release and distribution information
@@ -442,8 +444,8 @@ GLIDEIN_START_TIME = $now
 STARTER_JOB_ENVIRONMENT = "$job_env"
 GLIDEIN_VARIABLES = $glidein_variables
 
-MASTER_NAME = glidein_$PPID
-STARTD_NAME = glidein_$PPID
+MASTER_NAME = glidein_${glidein_startup_pid}
+STARTD_NAME = glidein_${glidein_startup_pid}
 
 #This can be used for locating the proper PID for monitoring
 GLIDEIN_PARENT_PID = $$

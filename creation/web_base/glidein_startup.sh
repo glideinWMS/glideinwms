@@ -1000,6 +1000,7 @@ echo "CONDORG_CLUSTER $condorg_cluster" >> glidein_config
 echo "CONDORG_SUBCLUSTER $condorg_subcluster" >> glidein_config
 echo "CONDORG_SCHEDD $condorg_schedd" >> glidein_config
 echo "DEBUG_MODE $set_debug" >> glidein_config
+echo "GLIDEIN_STARTUP_PID $$" >> glidein_config 
 echo "GLIDEIN_WORK_DIR $main_dir" >> glidein_config
 echo "GLIDEIN_ENTRY_WORK_DIR $entry_dir" >> glidein_config
 echo "TMP_DIR $glide_tmp_dir" >> glidein_config
