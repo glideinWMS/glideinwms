@@ -230,20 +230,20 @@ USAGE:
         file_dir = os.path.join(dir)
     else: 
         file_dir = os.path.join(dir, "monitor")
-    if not os.path.isdir(file_dir):
-        #Try RPM location
-        rpmdir="/var/lib/gwms-factory/work-dir"
-        rpmfile_dir = os.path.join(rpmdir, "monitor")
-        if not os.path.isdir(rpmfile_dir):
-            print "\nCannot open", file_dir
-            print "Please set --source to the factory work dir and try again."
-            sys.exit(1)
-        if dir != os.getcwd():
-            #Directory explicitly set, print warning
-            print "\nWARNING: Cannot open", file_dir
-            print "Using RPM default %s instead" % rpmfile_dir
-        dir=rpmdir
-        file_dir=rpmfile_dir
+        if not os.path.isdir(file_dir):
+            #Try RPM location
+            rpmdir="/var/lib/gwms-factory/work-dir"
+            rpmfile_dir = os.path.join(rpmdir, "monitor")
+            if not os.path.isdir(rpmfile_dir):
+                print "\nCannot open", file_dir
+                print "Please set --source to the factory work dir and try again."
+                sys.exit(1)
+            if dir != os.getcwd():
+                #Directory explicitly set, print warning
+                print "\nWARNING: Cannot open", file_dir
+                print "Using RPM default %s instead" % rpmfile_dir
+            dir=rpmdir
+            file_dir=rpmfile_dir
 
     for name, xml in rrd_list.iteritems():
         try: 
