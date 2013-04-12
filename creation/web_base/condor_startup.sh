@@ -637,6 +637,17 @@ fi
 
 condor_ret=$?
 
+end_time=`date +%s`
+let elapsed_time=$end_time-$start_time
+
+if [ ${elapsed_time} -le 60 ]; then
+    echo "Abnormal shutdown: Condor exited in less than 60s" 1>&2
+    metrics+= " CondorOneMinuteShutdown True"
+    condor_ret=1
+else
+    metrics+= " CondorOneMinuteShutdown False"
+fi
+
 if [ ${condor_ret} -eq 99 ]; then
     echo "Normal DAEMON_SHUTDOWN encountered" 1>&2
     condor_ret=0
@@ -645,8 +656,6 @@ else
     metrics+=" AutoShutdown False"
 fi
 
-end_time=`date +%s`
-let elapsed_time=$end_time-$start_time
 echo "=== Condor ended `date` (`date +%s`) after $elapsed_time ==="
 echo
 
