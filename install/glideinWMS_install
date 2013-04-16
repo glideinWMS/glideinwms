@@ -3636,7 +3636,7 @@ def setup_main_schedd():
         config_fd.write('\n############################################\n')
         config_fd.write('# Publish SPOOL to enable optimizations \n')
         config_fd.write('############################################\n')
-        config_fd.write('SPOOLL_DIR_STRING="$(SPOOL)"\n')
+        config_fd.write('SPOOL_DIR_STRING="$(SPOOL)"\n')
         config_fd.write('SCHEDD_EXPRS = $(SCHEDD_EXPRS) SPOOL_DIR_STRING\n')
     finally:
         config_fd.close()
