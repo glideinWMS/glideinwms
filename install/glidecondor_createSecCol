@@ -55,8 +55,8 @@ def get_config_val(attr, fail_if_missing=True):
     
 
 def extract_condor_info():
-    global config_dir
     config_dir=get_config_val('LOCAL_CONFIG_DIR')
+    return config_dir
 
 def add_collector(index,port,config_fd):
     global common_log
@@ -149,8 +149,7 @@ def parse_args(args):
 def main(args):
     parse_args(args)
     
-    extract_condor_info()
-    global config_dir
+    config_dir=extract_condor_info()
     conf_fname=os.path.join(config_dir,"11_gwms_secondary_collectors.config")
 
     create_config(conf_fname)
