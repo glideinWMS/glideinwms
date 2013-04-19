@@ -16,25 +16,24 @@ import sys
 import logging
 
 STARTUP_DIR = sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR, "lib"))
-sys.path.append(os.path.join(STARTUP_DIR, "../lib"))
-sys.path.append(os.path.join(STARTUP_DIR,"../factory"))
-import cgWParams
-import cgWDictFile
-import cgWConsts
-import cWConsts
-import cgWCreate
-import cgWParamDict
-import glideFactoryMonitorAggregator
-import glideFactoryLib
-import glideFactoryConfig
-import logSupport
+sys.path.append(os.path.join(STARTUP_DIR,"../.."))
+import os.path
+from glideinwms.creation.lib import cgWParams
+from glideinwms.creation.lib import cgWDictFile
+from glideinwms.creation.lib import cgWConsts
+from glideinwms.creation.lib import cWConsts
+from glideinwms.creation.lib import cgWCreate
+from glideinwms.creation.lib import cgWParamDict
+from glideinwms.factory import glideFactoryMonitorAggregator
+from glideinwms.factory import glideFactoryConfig
+from glideinwms.lib import logSupport
 
 WEB_BASE_DIR=os.path.join(STARTUP_DIR,"web_base")
 force_delete=False
 fix_rrd = False
 
-################################################################################
+class UsageError(Exception): pass
+class ReconfigError(Exception): pass
 
 def logReconfig(msg):
     glideinDescript=glideFactoryConfig.GlideinDescript()
@@ -51,7 +50,7 @@ def logReconfig(msg):
                 int(float(plog['min_days'])),
                 int(float(plog['max_mbytes'])))
         else:
-            logSupport.add_processlog_handler("factory", 
+            logSupport.add_processlog_handler("factoryadmin", 
                 logSupport.log_dir, plog['msg_types'], plog['extension'],
                 int(float(plog['max_days'])),
                 int(float(plog['min_days'])),
@@ -59,9 +58,7 @@ def logReconfig(msg):
     logSupport.log = logging.getLogger("factoryadmin")
     logSupport.log.info("Reconfiguring factory: %s" % msg)
 
-
-
-def main(params, old_params, update_scripts, update_def_cfg):
+def main(params, old_params, update_scripts, update_def_cfg, comment=""):
     # load old files
     if not old_params is None:
         old_glidein_dicts_obj=cgWParamDict.glideinDicts(old_params)
@@ -94,8 +91,6 @@ def main(params, old_params, update_scripts, update_def_cfg):
         # If no old params exist, make sure to create the new directory, (no reuse)
         glidein_dicts_obj.create_dirs(fail_if_exists=False)
 
-
-                
     # write to disk
     glidein_dicts_obj.save()
     glidein_dicts_obj.set_readonly(True)
@@ -127,7 +122,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
                                        os.path.realpath(os.path.join(STARTUP_DIR, '..')),
                                        params.cfg_name)
         print "...Updated the factory_startup script"
-        
+
         if update_def_cfg == 'yes':
             print "...Updated default config file location to: %s" % params.cfg_name
 
@@ -156,7 +151,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
             print "WARNING: back up your existing rrds before auto-fixing rrds"
         sys.exit(1)
     print "...Submit files are in %s"%glidein_dicts_obj.main_dicts.work_dir
-    logReconfig(comment)
+    if comment: logReconfig(comment)
 
 ############################################################
 #
@@ -165,6 +160,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
 ############################################################
 
 if __name__ == '__main__':
+    exit_code = 0
     usage = "reconfig_glidein { -force_name name -writeback yes|no -update_scripts yes|no -xml xml -update_def_cfg yes|no [-force_delete] | -help }"
     argv = sys.argv
     force_name = None
@@ -198,58 +194,55 @@ if __name__ == '__main__':
 
     try:
         params=cgWParams.GlideinParams(usage, WEB_BASE_DIR, args)
-    except RuntimeError,e:
-        print e
-        sys.exit(1)
 
-    if force_name != None:
-        if params.glidein_name != force_name:
-            print usage
-            print ""
-            print "This is not a '%s' config file ('%s' found)" % (force_name, params.glidein_name)
-            sys.exit(1)
+        if force_name != None:
+            if params.glidein_name != force_name:
+                raise UsageError("This is not a '%s' config file ('%s' found)" % (force_name, params.glidein_name))
 
-    if not (writeback in ('yes', 'no')):
+        if not (writeback in ('yes', 'no')):
+            raise UsageError("-writeback must be yes or no, found '%s'" % writeback)
+
+        if not (update_def_cfg in ('yes', 'no')):
+            raise UsageError("-update_def_cfg must be yes or no, found '%s'" % update_def_cfg)
+
+        try:
+            # This is the current running version, saved in the glidein work dir
+            old_config_file = os.path.join(params.submit_dir, cgWConsts.XML_CONFIG_FILE)
+            if os.path.exists(old_config_file):
+                try:
+                    old_params=cgWParams.GlideinParams(usage,WEB_BASE_DIR,[argv[0],old_config_file])
+                except RuntimeError, e:
+                    raise RuntimeError, "Failed to load %s" % old_config_file
+            else:
+                print "Warning: Cannot find %s"%old_config_file
+                print "If this is the first reconfig, you can ignore this message."
+                old_params=None
+            
+            main(params, old_params, update_scripts, update_def_cfg, comment=comment)
+    
+        except RuntimeError, e:
+            raise ReconfigError(str(e))
+
+        try:
+            if writeback == 'yes':
+                # Writes back the factory admin configurable file in the .cfg directory
+                params.save_into_file_wbackup(params.cfg_name)
+                print "...Overriding the factory config file in %s to the current configuration " % params.cfg_name
+        except:
+            raise ReconfigError("Writing back config file failed")
+
+    except ReconfigError, re:
+        print re
+        exit_code = 1
+
+    except UsageError, ue:
         print usage
         print ""
-        print "-writeback must be yes or no, found '%s'" % writeback
-        sys.exit(1)
-        
-    if not (update_def_cfg in ('yes', 'no')):
-        print usage
-        print ""
-        print "-update_def_cfg must be yes or no, found '%s'" % update_def_cfg
-        sys.exit(1)
-
-    try:
-        # This is the current running version, saved in the glidein work dir
-        old_config_file = os.path.join(params.submit_dir, cgWConsts.XML_CONFIG_FILE)
-        if os.path.exists(old_config_file):
-            try:
-                old_params=cgWParams.GlideinParams(usage,WEB_BASE_DIR,[argv[0],old_config_file])
-            except RuntimeError, e:
-                raise RuntimeError, "Failed to load %s" % old_config_file
-        else:
-            print "Warning: Cannot find %s"%old_config_file
-            print "If this is the first reconfig, you can ignore this message."
-            old_params=None
-        
-        main(params, old_params, update_scripts, update_def_cfg)
+        print ue
+        exit_code = 1
 
     except RuntimeError, e:
-        print usage
-        print ""
         print e
-        sys.exit(1)
+        exit_code = 1
 
-    try:
-        if writeback == 'yes':
-            # Writes back the factory admin configurable file in the .cfg directory
-            params.save_into_file_wbackup(params.cfg_name)
-            print "...Overriding the factory config file in %s to the current configuration " % params.cfg_name
-    except:
-        print "Writing back config file failed"
-        sys.exit(1)
-        
-
-
+    sys.exit(exit_code)
