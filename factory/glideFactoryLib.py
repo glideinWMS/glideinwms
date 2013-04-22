@@ -1569,8 +1569,6 @@ class GlideinTotals:
         self.default_fesc_max_held = int(jobDescript.data['DefaultPerFrontendMaxHeld'])
         self.default_fesc_max_idle = int(jobDescript.data['DefaultPerFrontendMaxIdle'])
 
-        self.log = log
-
         # Count glideins by status
         # Initialized since the held and running won't ever change
         # To simplify idle requests, this variable is updated at the same time the frontend count is updated
@@ -1613,7 +1611,7 @@ class GlideinTotals:
                     try:
                         self.frontend_limits[el_list[0]][max_glideinstatus_key] = int(el_list[1])
                     except:
-                        self.log.warn("Invalid FrontendName:SecurityClassName combo '%s' encountered while finding '%s' from max_job_frontend" % (el_list[0], max_glideinstatus_key))
+                        log.warn("Invalid FrontendName:SecurityClassName combo '%s' encountered while finding '%s' from max_job_frontend" % (el_list[0], max_glideinstatus_key))
 
         # Initialize frontend totals
         for fe_sec_class in self.frontend_limits:
@@ -1643,10 +1641,17 @@ class GlideinTotals:
             self.frontend_limits[fe_sec_class]['idle'] = fe_idle
 
 
-    def can_add_idle_glideins(self, nr_glideins, frontend_name):
+    def can_add_idle_glideins(self, nr_glideins, frontend_name,
+                              log=logSupport.log, factoryConfig=factoryConfig):
         """
         Determines how many more glideins can be added.  Does not compare against request max_glideins.  Does not update totals.
         """
+
+
+        if factoryConfig is None:
+            factoryConfig = globals()['factoryConfig']
+
+
         nr_allowed = nr_glideins
 
         # Check entry idle limit

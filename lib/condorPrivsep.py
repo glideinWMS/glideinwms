@@ -126,8 +126,7 @@ def execute(target_user, init_dir, exe, args=None, env=None, stdin_fname=None, s
         msg = "About to submit using condorPrivsep::\n" \
               "user-uid=%s\n" \
               "exec-init-dir=%s\n" \
-              "exec-path=%s" \
-              "%s" % (target_user, init_dir, exe, other)
+              "exec-path=%s"  % (target_user, init_dir, exe)
         logSupport.log.debug(msg)
     except:
         # logging hasn't been setup yet
@@ -188,5 +187,9 @@ def condor_execute(target_user, init_dir, condor_exe, args, env=None, stdin_fnam
 #
 ##################################
 
+# TODO: PM: Disabling redirecting of error FD. Needs changes to make it work
+#           with the subprocess module. 3>&2 should not be passed as command
+#           line argument.
 def exe_privsep(cmd, options):
-    return condorExe.exe_cmd("../sbin/condor_root_switchboard", "%s 0 3 3>&2" % cmd, options)
+    return condorExe.exe_cmd("../sbin/condor_root_switchboard", "%s 0 3" % cmd, options)
+    #return condorExe.exe_cmd("../sbin/condor_root_switchboard", "%s 0 3 3>&2" % cmd, options)

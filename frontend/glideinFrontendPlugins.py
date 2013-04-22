@@ -13,7 +13,6 @@
 
 import os
 import time
-import sets
 import pickle
 import random
 from glideinwms.lib import logSupport
@@ -241,8 +240,8 @@ class ProxyUserRR:
     def load(self):
         if not os.path.isfile(self.config_fname):
             nr_proxies = len(self.proxy_list)
-            self.config_data = {'users_set':sets.Set(),
-                              'proxy_list':self.proxy_list}
+            self.config_data = {'users_set': set(),
+                                'proxy_list': self.proxy_list}
         else:
             fd = open(self.config_fname, "r")
             try:
@@ -455,7 +454,7 @@ class ProxyUserMapWRecycling:
                 fd.close()
 
             # if proxies changed, remove old ones and insert the new ones
-            cached_proxies = sets.Set() # here we will store the list of proxies in the cache
+            cached_proxies = set() # here we will store the list of proxies in the cache
 
             user_map = self.config_data['user_map']
 

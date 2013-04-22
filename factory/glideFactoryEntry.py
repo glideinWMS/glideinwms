@@ -649,8 +649,24 @@ class Entry:
             'rrd_stats': self.gflFactoryConfig.rrd_stats,
             'log_stats': self.gflFactoryConfig.log_stats
         }
-
         return state
+
+
+    def setState_old(self, state):
+        """
+        Load the post work state from the pickled info
+        
+        @type post_work_info: dict
+        @param post_work_info: Picked state after doing work
+        """
+
+        self.gflFactoryConfig.client_stats = state.get('client_stats')
+        self.gflFactoryConfig.qc_stats = state.get('qc_stats')
+        self.gflFactoryConfig.rrd_stats = state.get('rrd_stats')
+        self.gflFactoryConfig.client_internals = state.get('client_internals')
+        self.glideinTotals = state.get('glidein_totals')
+        self.gflFactoryConfig.log_stats = state['log_stats']
+
 
     def setState(self, state):
         """
@@ -1186,7 +1202,7 @@ def unit_work_v3(entry, work, work_key, client_int_name, client_int_req,
     glideFactoryLib.logWorkRequest(
         client_int_name, client_security_name,
         submit_credentials.security_class, idle_glideins,
-        max_glideins, work)
+        max_glideins, work, log=entry.log, factoryConfig=entry.gflFactoryConfig)
 
     all_security_names.add((client_security_name, credential_security_class))
 

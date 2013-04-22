@@ -338,13 +338,16 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
                 # Compile the return info from th  updated entry object 
                 # Can't dumps the entry object directly, so need to extract
                 # the info required.
+                entry.log.debug("=====================")
                 return_dict = compile_pickle_data(entry, work_done)
+                entry.log.debug(return_dict)
+                entry.log.debug("=====================")
                 os.write(w,cPickle.dumps(return_dict))
             except Exception, ex:
                 tb = traceback.format_exception(sys.exc_info()[0],
                                                 sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                entry.log.debug("Error in talking to the factory pool: %s" % tb)
+                entry.log.exception("Error in check_and_perform_work for entry '%s' " % entry.name)
 
             os.close(w)
             # Hard kill myself. Don't want any cleanup, since I was created
@@ -374,7 +377,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
             (my_entries[entry]).setState(post_work_info[entry])
 
         else:
-            logSupport.log.debug("Entry %s not used by any frontends, i.e no corresponding glideclient classads" % entry)
+            logSupport.log.debug("No work found for entry %s from anyt frontends" % entry)
 
     if work_info_read_err:
         logSupport.log.debug("work_info_read_err is true, client_stats not updated for one or more entries.")
@@ -560,7 +563,12 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                                 logSupport.log.warn("Error writing stats for entry '%s'" % (entry.name))
                                 logSupport.log.exception("Error writing stats for entry '%s': " % (entry.name))
 
-                        os.write(w, cPickle.dumps(return_dict))
+                        try:
+                            os.write(w, cPickle.dumps(return_dict))
+                        except:
+                            # Catch and log exceptions if any to avoid
+                            # runaway processes.
+                            logSupport.log.exception("Error writing pickled state for entry '%s': " % (entry.name))
                         os.close(w)
                         # Exit without triggering SystemExit exception
                         os._exit(0)
