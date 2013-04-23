@@ -440,7 +440,7 @@ class Entry:
                 myJobAttributes, self.jobParams.data.copy(),
                 glidein_monitors.copy())
         except:
-            self.log.error("Advertising entry '%s' failed"%self.name)
+            self.log.error("Advertising entry '%s' failed" % self.name)
 
         # Advertise the monitoring, use the downtime found in
         # validation of the credentials
@@ -918,7 +918,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
 
 
 ###############################################################################
-def unit_work_v3(entry, work, work_key, client_int_name, client_int_req,
+def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                  client_expected_identity, decrypted_params, params,
                  in_downtime, condorQ):
     """
@@ -1143,7 +1143,7 @@ def unit_work_v3(entry, work, work_key, client_int_name, client_int_req,
 
     if 'IdleGlideins' not in work['requests']:
         # Malformed, if no IdleGlideins
-        entry.log.warning("Skipping malformed classad for client %s" % work_key)
+        entry.log.warning("Skipping malformed classad for client %s" % client_name)
         return return_dict
 
     try:
@@ -1194,7 +1194,7 @@ def unit_work_v3(entry, work, work_key, client_int_name, client_int_req,
                                                client_group_sign)
     except:
         # malformed classad, skip
-        entry.log.warning("Malformed classad for client %s, missing web parameters, skipping request." % work_key)
+        entry.log.warning("Malformed classad for client %s, missing web parameters, skipping request." % client_name)
         return return_dict
 
 
@@ -1221,11 +1221,12 @@ def unit_work_v3(entry, work, work_key, client_int_name, client_int_req,
 
     # do one iteration for the credential set (maps to a single security class)
     entry.gflFactoryConfig.client_internals[client_int_name] = \
-        {"CompleteName":client_int_name, "ReqName":client_int_req}
+        {"CompleteName":client_name, "ReqName":client_int_req}
 
-    done_something = perform_work_v3(entry, entry_condorQ, client_int_name,
-                                     client_security_name, submit_credentials,
-                                     remove_excess, idle_glideins, max_glideins,
+    done_something = perform_work_v3(entry, entry_condorQ, client_name,
+                                     client_int_name, client_security_name,
+                                     submit_credentials, remove_excess,
+                                     idle_glideins, max_glideins,
                                      credential_username, entry.glideinTotals,
                                      frontend_name, client_web, params)
 
@@ -1238,7 +1239,7 @@ def unit_work_v3(entry, work, work_key, client_int_name, client_int_req,
 
 ###############################################################################
 
-def unit_work_v2(entry, work, work_key, client_int_name, client_int_req,
+def unit_work_v2(entry, work, client_name, client_int_name, client_int_req,
                  client_expected_identity, decrypted_params, params,
                  in_downtime, condorQ):
     """
@@ -1363,7 +1364,7 @@ def unit_work_v2(entry, work, work_key, client_int_name, client_int_req,
         try:
             x509_proxy_fname = glideFactoryLib.update_x509_proxy_file(
                                    entry.name, x509_proxy_username,
-                                   "%s_%s" % (work_key, x509_proxy_identifier),
+                                   "%s_%s" % (client_name, x509_proxy_identifier),
                                    x509_proxy,
                                    factoryConfig=entry.gflFactoryConfig)
         except RuntimeError,e:
@@ -1394,7 +1395,7 @@ def unit_work_v2(entry, work, work_key, client_int_name, client_int_req,
 
     if 'IdleGlideins' not in work['requests']:
         # Malformed, if no IdleGlideins
-        entry.log.warning("Skipping malformed classad for client %s" % work_key)
+        entry.log.warning("Skipping malformed classad for client %s" % client_name)
         return return_dict
 
     try:
@@ -1444,7 +1445,7 @@ def unit_work_v2(entry, work, work_key, client_int_name, client_int_req,
                          factoryConfig=entry.gflFactoryConfig)
     except:
         # malformed classad, skip
-        entry.log.warning("Malformed classad for client %s, missing web parameters, skipping request." % work_key)
+        entry.log.warning("Malformed classad for client %s, missing web parameters, skipping request." % client_name)
         return return_dict
 
     x509_proxy_security_classes = x509_proxies.fnames.keys()
@@ -1488,7 +1489,7 @@ def unit_work_v2(entry, work, work_key, client_int_name, client_int_req,
             {"CompleteName":client_int_name, "ReqName":client_int_req}
 
         done_something = perform_work_v2(
-                             entry, entry_condorQ, client_int_name,
+                             entry, entry_condorQ, client_name, client_int_name,
                              client_security_name, x509_proxy_security_class,
                              remove_excess, idle_glideins_pc, max_glideins_pc,
                              x509_proxies.fnames[x509_proxy_security_class],
@@ -1505,10 +1506,10 @@ def unit_work_v2(entry, work, work_key, client_int_name, client_int_req,
 
 ###############################################################################
 
-def perform_work_v3(entry, condorQ, client_int_name, client_security_name,
-                    submit_credentials, remove_excess, idle_glideins,
-                    max_glideins, credential_username, glidein_totals,
-                    frontend_name, client_web, params):
+def perform_work_v3(entry, condorQ, client_name, client_int_name,
+                    client_security_name, submit_credentials, remove_excess,
+                    idle_glideins, max_glideins, credential_username,
+                    glidein_totals, frontend_name, client_web, params):
 
     # find out the users it is using
     log_stats = {}
@@ -1549,9 +1550,10 @@ def perform_work_v3(entry, condorQ, client_int_name, client_security_name,
 ###############################################################################
 
 
-def perform_work_v2(entry, condorQ, client_int_name, client_security_name,
-                    credential_security_class, remove_excess, idle_glideins,
-                    max_running, credential_fnames, credential_username,
+def perform_work_v2(entry, condorQ, client_name, client_int_name,
+                    client_security_name, credential_security_class,
+                    remove_excess, idle_glideins, max_running,
+                    credential_fnames, credential_username,
                     identity_credentials, glidein_totals, frontend_name,
                     client_web, params):
     """
