@@ -176,6 +176,7 @@ def is_crashing_often(startup_time, restart_interval, restart_attempts):
 
     return crashing_often
 
+
 def is_file_old(filename, allowed_time):
     """
     Check if the file is older than given time
@@ -183,7 +184,7 @@ def is_file_old(filename, allowed_time):
     @type filename: String 
     @param filename: Full path to the file
     @type allowed_time: long
-    @param allowed_time: Time in second
+    @param allowed_time: Time is second
     
     @rtype: bool
     @return: True if file is older than the given time, else False 
@@ -191,6 +192,7 @@ def is_file_old(filename, allowed_time):
     if (time.time() > (os.path.getmtime(filename) + allowed_time)):
         return True
     return False
+
 
 ############################################################
 def clean_exit(childs):
@@ -419,6 +421,8 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                     glideFactoryCredentials.process_global(classad,
                                                            glideinDescript,
                                                            frontendDescript)
+                except CredentialError:
+                    logSupport.log.warning("Unable to decrypt the glideclientglobals classads using the factory key.")
                 except:
                     logSupport.log.exception("Error occurred processing the globals classads: ")
 

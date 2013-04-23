@@ -123,11 +123,13 @@ def execute(target_user, init_dir, exe, args=None, env=None, stdin_fname=None, s
         other += "\nexec-stderr=%s" % stderr_fname
 
     try:
-        msg = "About to submit using condorPrivsep::\n" \
-              "user-uid=%s\n" \
-              "exec-init-dir=%s\n" \
-              "exec-path=%s"  % (target_user, init_dir, exe)
-        logSupport.log.debug(msg)
+        privsep_env = {
+            'user-uid': target_user,
+            'exec-init-dir': init_dir,
+            'exec-path': exe,
+            'HEX': 'DATA_NOT_LOGGED_FOR_SECURITY'
+        }
+        logSupport.log.debug('Condor Privilage Separation options: %s' % privsep_env)
     except:
         # logging hasn't been setup yet
         pass

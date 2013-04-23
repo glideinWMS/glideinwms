@@ -593,7 +593,8 @@ def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
         log.warning("%s" % e)
         return 0 # something is wrong... assume 0 and exit
     except:
-        log.warning("Unexpected error in glideFactoryLib.submitGlideins")
+        log.warning("Unexpected error submiting glideins")
+        log.exception("Unexpected error submiting glideins")
         return 0 # something is wrong... assume 0 and exit
 
     return 0
@@ -1099,10 +1100,13 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
 
     try:
         exe_env = get_submit_environment(entry_name, client_name,
-                                         submit_credentials, client_web, params)
-    except Exception, e:
-        msg = "Failed to setup execution environment.  Error:" % str(e)
+                                         submit_credentials, client_web,
+                                         params, log=log,
+                                         factoryConfig=factoryConfig)
+    except:
+        msg = "Failed to setup execution environment."
         log.error(msg)
+        log.exception(msg)
         raise RuntimeError, msg
 
     try:
@@ -1397,13 +1401,13 @@ email_logs = False
                 exe_env.append('USER_DATA=%s' % encoded_tarball)
 
             except KeyError:
-                tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-                msg = "   Error setting up submission environment (bad key): %s" % str(tb)
+                msg = "Error setting up submission environment (bad key): %s" % str(tb)
                 log.debug(msg)
+                log.exception(msg)
             except Exception:
-                tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-                msg = "   Error setting up submission environment (in ec2 section): %s" % str(tb)
+                msg = "Error setting up submission environment (in ec2 section): %s" % str(tb)
                 log.debug(msg)
+                log.exception(msg)
                 raise
 
         else:
@@ -1434,8 +1438,9 @@ email_logs = False
 
         return exe_env
     except Exception, e:
-        msg = "   Error setting up submission environment: %s" % str(e)
+        msg = "Error setting up submission environment: %s" % str(e)
         log.debug(msg)
+        log.exception(msg)
 
 
 def isGlideinWithinHeldLimits(jobInfo, factoryConfig=None):

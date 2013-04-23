@@ -338,10 +338,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
                 # Compile the return info from th  updated entry object 
                 # Can't dumps the entry object directly, so need to extract
                 # the info required.
-                entry.log.debug("=====================")
                 return_dict = compile_pickle_data(entry, work_done)
-                entry.log.debug(return_dict)
-                entry.log.debug("=====================")
                 os.write(w,cPickle.dumps(return_dict))
             except Exception, ex:
                 tb = traceback.format_exception(sys.exc_info()[0],
