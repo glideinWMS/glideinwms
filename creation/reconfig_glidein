@@ -152,8 +152,7 @@ def main(params, old_params, update_scripts, update_def_cfg, comment=""):
             print "WARNING: back up your existing rrds before auto-fixing rrds"
         sys.exit(1)
     print "...Submit files are in %s"%glidein_dicts_obj.main_dicts.work_dir
-    if comment: logReconfig(comment)
-
+    logReconfig("Reconfig successful with options update_def_cfg='%s' update_scripts='%s' comment='%s'" % (update_def_cfg, update_scripts, comment))
 ############################################################
 #
 # S T A R T U P
