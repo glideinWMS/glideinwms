@@ -7,7 +7,10 @@ import stat
 import optparse
 
 import common
-os.environ["PYTHONPATH"] = "."
+import WMSCollector
+import Factory
+import VOFrontend
+#os.environ["PYTHONPATH"] = "."
 #-------------------------
 
 class PrivilegeSeparation:
@@ -205,9 +208,6 @@ those in your frontend_users attribute of the WMSCollector ini file:
 ##########################################
 def main(argv):
   try:
-    import WMSCollector
-    import Factory
-    import VOFrontend
     wms      = WMSCollector.WMSCollector("../weigand.ini")
     factory  = Factory.Factory("../weigand.ini")
     frontend = VOFrontend.VOFrontend("../weigand.ini")

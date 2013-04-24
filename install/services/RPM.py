@@ -4,14 +4,14 @@ import traceback
 import sys,os,os.path,string,time
 import stat,re
 import xml.sax.saxutils
-import xmlFormat
 import optparse
 #-------------------------
+from glideinwms.lib import xmlFormat
 import common
 import Condor
 from VOFrontend import VOFrontend
 #-------------------------
-os.environ["PYTHONPATH"] = ""
+#os.environ["PYTHONPATH"] = ""
 
 frontend_options = [ "install_type",
 "hostname", 

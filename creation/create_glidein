@@ -17,15 +17,13 @@ import string
 import traceback
 
 STARTUP_DIR = sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR, "lib"))
-sys.path.append(os.path.join(STARTUP_DIR, "../lib"))
+sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
-import cgWParams
-import cgWDictFile
-import cgWConsts
-import cWConsts
-import cgWCreate
-import cgWParamDict
+from glideinwms.creation.lib import cgWParams
+from glideinwms.creation.lib import cgWDictFile
+from glideinwms.creation.lib import cgWConsts,cWConsts
+from glideinwms.creation.lib import cgWCreate
+from glideinwms.creation.lib import cgWParamDict
 
 
 ################################################################################

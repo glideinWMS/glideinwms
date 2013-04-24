@@ -14,7 +14,8 @@
 import types
 import xml.sax.saxutils
 import string
-import timeConversion
+
+from glideinwms.lib import timeConversion
 
 #########################################################################################
 #

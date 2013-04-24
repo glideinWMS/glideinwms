@@ -16,11 +16,17 @@ import os
 import time,string
 import sys
 import re
+
+from glideinwms.lib import ldapMonitor
+from glideinwms.lib import condorMonitor
+from glideinwms.creation.lib import cgWDictFile
+from glideinwms.creation.lib import cgWConsts
+
 STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
-import glideFactoryConfig
-import glideFactoryDowntimeLib
-sys.path.append(os.path.join(STARTUP_DIR,"../creation/lib"))
+sys.path.append(os.path.join(STARTUP_DIR,"../../"))
+
+from glideinwms.factory import glideFactoryConfig
+from glideinwms.factory import glideFactoryDowntimeLib
 
 def usage():
     print "Usage:"
@@ -251,7 +257,6 @@ def vacuum(entry_or_id,opt_dict):
     return 0
 
 def get_production_ress_entries(server,ref_dict_list):
-    import condorMonitor
 
     production_entries=[]
 
@@ -268,7 +273,6 @@ def get_production_ress_entries(server,ref_dict_list):
     return production_entries
 
 def get_production_bdii_entries(server,ref_dict_list):
-    import ldapMonitor
 
     production_entries=[]
 
@@ -301,8 +305,6 @@ def infosys_based(entry_name,opt_dict,infosys_types):
         config_els[entry_name]={}
 
     # load the infosys info
-    import cgWDictFile
-    import cgWConsts
 
     for entry in config_els.keys():
         infosys_fd=cgWDictFile.InfoSysDictFile(cgWConsts.get_entry_submit_dir('.',entry),cgWConsts.INFOSYS_FILE)

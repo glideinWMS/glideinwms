@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
+import traceback
+import sys,os,os.path,string,time
+import optparse
+
 import common
 from Configuration import ConfigurationError
-
 from Configuration import Configuration
 from Configuration import ConfigurationError
 import VDTClient
-import traceback
-import sys,os,os.path,string,time
 
 #STARTUP_DIR=sys.path[0]
 #sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
@@ -173,7 +174,6 @@ def show_line():
     return "%s line %s" % (z[2],z[1])
 #---------------------------
 def validate_args(args):
-    import optparse
     usage = """Usage: %prog --ini ini_file
     
 This will install a Factory service for glideinWMS using the ini file

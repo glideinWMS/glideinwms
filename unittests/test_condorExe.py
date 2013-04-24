@@ -7,11 +7,11 @@ import unittest
 # path for us.
 from unittest_utils import runTest
 
-import condorExe
-from condorExe import iexe_cmd
-from condorExe import exe_cmd
-from condorExe import exe_cmd_sbin
-from condorExe import ExeError
+from glideinwms.lib import condorExe
+from glideinwms.lib.condorExe import iexe_cmd
+from glideinwms.lib.condorExe import exe_cmd
+from glideinwms.lib.condorExe import exe_cmd_sbin
+from glideinwms.lib.condorExe import ExeError
 
 class TestCondorExe(unittest.TestCase):
 

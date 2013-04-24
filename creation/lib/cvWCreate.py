@@ -14,8 +14,8 @@ import os
 import stat
 import string
 import re
-import condorExe
-import condorSecurity
+from glideinwms.lib import condorExe
+from glideinwms.lib import condorSecurity
 
 #########################################
 # Create init.d compatible startup file

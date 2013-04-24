@@ -19,10 +19,9 @@
 #
 
 import sys,os.path
-sys.path.append(os.path.join(sys.path[0],"lib"))
-sys.path.append(os.path.join(sys.path[0],"../lib"))
+sys.path.append(os.path.join(sys.path[0],"../.."))
 
-import glideinCmd
+from glideinwms.tools.lib import glideinCmd
 
 def argv_interactive(argv):
     if len(argv)<1:

@@ -27,14 +27,14 @@ import signal
 import time
 import string
 import logging
-sys.path.append(os.path.join(STARTUP_DIR, "../lib"))
+sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
-import logSupport
-import cleanupSupport
-import glideinFrontendPidLib
-import glideinFrontendConfig
-import glideinFrontendMonitorAggregator
-import glideinFrontendMonitoring
+from glideinwms.lib import logSupport
+from glideinwms.lib import cleanupSupport
+from glideinwms.frontend import glideinFrontendPidLib
+from glideinwms.frontend import glideinFrontendConfig
+from glideinwms.frontend import glideinFrontendMonitorAggregator
+from glideinwms.frontend import glideinFrontendMonitoring
 
 ############################################################
 # KEL remove this method and just call the monitor aggregator method directly below?  we don't use the results

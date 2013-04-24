@@ -1,0 +1,159 @@
+#!/usr/bin/python
+
+import sys
+import os
+import xml.parsers.expat
+import tempfile
+import getopt
+import stat
+import time
+
+# assumes the following globals are defined:
+# match_exp
+# gfactory_dir
+# user
+# entry
+# suffix
+# long
+def start_element(name, attrs):
+    if eval(match_exp):
+    #if name == 'job' and attrs['username'] == user:
+        cluster,proc = attrs['id'].split(".")
+        logname=os.path.join(gfactory_dir,"client_log/user_%s/entry_%s/job.%i.%i.%s" % (user,entry,int(cluster),int(proc),suffix))
+        try:
+            if long:
+                s=os.stat(logname)
+                print time.ctime(s[stat.ST_MTIME]), "%10i"%s[stat.ST_SIZE], "%6o"%s[stat.ST_MODE], logname
+            else:
+                print logname
+        except OSError:
+            sys.stderr.write("ERROR: The log %s does not exist.\n" % logname)
+
+def print_help():
+    print '''\
+Usage: entry_ls [OPTIONS] ENTRY USER DATE
+where DATE is of the form YYYYMMDD
+
+lists error / output files for the entry and user-specified constrained by
+the following OPTIONS.
+
+-o           append .out instead of .err extension
+-t show      jobs where condor_started == 'True'
+-f show      jobs where condor_started == 'False'
+-e HOUR      show jobs that ended before HOUR of the day (0-23)
+-E HOUR      show jobs that ended on or after HOUR of the day (0-23)
+-d DURATION  show jobs that lasted up to DURATION seconds
+-D DURATION  show jobs that lasted at least DURATION seconds 
+
+Requires the env variable GLIDEIN_FACTORY_DIR to be set to the 
+gwms factory instance location (or to be run in that directory)
+''',
+
+if __name__ == "__main__":
+    try:
+        opts,args = getopt.getopt(sys.argv[1:],'holtfe:E:d:D:')
+    except:
+        print_help()
+        sys.exit(1)
+
+    if len(args) != 3:
+        print_help()
+        sys.exit(1)
+    entry,user,date = args
+
+    suffix = "err"
+    match_exp = "name == 'job' and attrs['username'] == user"
+    start_exp = None
+    end_exp = None
+    dur_exp = None
+    long=False
+
+    for opt in opts:
+        if opt[0] == '-h':
+            print_help()
+            sys.exit(0)
+        elif opt[0] == '-o':
+            suffix = "out"
+        elif opt[0] == '-l':
+            long = True
+        elif opt[0] == '-t':
+            start_exp = "attrs['condor_started'] == 'True'"
+        elif opt[0] == '-f':
+            start_exp = "attrs['condor_started'] == 'False'"
+        elif opt[0] == '-e':
+            end_exp = "int(attrs['terminated'].split('T')[1].split(':')[0]) < %i" % int(opt[1])
+        elif opt[0] == '-E':
+            end_exp = "int(attrs['terminated'].split('T')[1].split(':')[0]) >= %i" % int(opt[1])
+        elif opt[0] == '-d':
+            dur_exp = "int(attrs['duration']) <= %i" % int(opt[1])
+        elif opt[0] == '-D':
+            dur_exp = "int(attrs['duration']) >= %i" % int(opt[1])
+            
+    if start_exp is not None:
+        match_exp = "%s and %s" % (match_exp, start_exp)
+    if end_exp is not None:       
+        match_exp = "%s and %s" % (match_exp, end_exp)
+    if dur_exp is not None:       
+        match_exp = "%s and %s" % (match_exp, dur_exp)
+
+    #print match_exp
+    match_exp = compile(match_exp, '<string>', 'eval')
+
+    # Try GLIDEIN_FACTORY_DIR env var first
+    if 'GLIDEIN_FACTORY_DIR' in os.environ:
+        gfactory_dir = os.environ['GLIDEIN_FACTORY_DIR']
+    else:
+        if os.path.isdir("/var/lib/gwms-factory/work-dir"):
+            #Assume RPM is installed
+            gfactory_dir="/var/lib/gwms-factory/work-dir"
+        else:
+            gfactory_dir = "."
+
+    gfactory_log_dir=os.path.join(gfactory_dir,"log")
+    if not os.path.isdir(gfactory_log_dir):
+        sys.stderr.write("The directory %s does not exist.\n" % gfactory_log_dir)
+        sys.stderr.write("Please set GLIDEIN_FACTORY_DIR to the factory instance directory and re-try.\n")
+        sys.exit(1)
+
+    #RPM has another layer of log directories
+    if os.path.realpath(gfactory_dir)=="/var/lib/gwms-factory/work-dir":
+        gfactory_log_dir=os.path.join(gfactory_log_dir,"server")
+    
+    if entry[:6]=="entry_":
+        sys.stderr.write("WARNING: entry should not start with \"entry_\"\n")
+        entry=entry[6:]
+
+    gfactory_entry_dir=os.path.join(gfactory_log_dir,"entry_"+entry)
+    if not os.path.isdir(gfactory_entry_dir):
+        sys.stderr.write("The directory %s does not exist.\n" % gfactory_entry_dir)
+        sys.stderr.write("Please set GLIDEIN_FACTORY_DIR to the factory instance directory and re-try.\n")
+        sys.exit(1)
+    
+    completed_fname=os.path.join(gfactory_entry_dir,"completed_jobs_%s.log" % (date))
+    try:
+        fin = open(completed_fname)
+    except IOError,e:
+        sys.stderr.write("WARNING: %s did not exist.  No jobs completed yet (or this is the wrong directory).\n" % completed_fname)
+        sys.exit(1)
+
+
+    # write into a temporary xml file and add root tags to make expat happy
+    tmp = tempfile.TemporaryFile()
+    tmp.write("<r>")
+
+    for line in fin:
+        tmp.write(line)
+    fin.close()
+
+    tmp.write("</r>")
+
+    tmp.flush()
+
+    tmp.seek(0)
+
+    xmlparser = xml.parsers.expat.ParserCreate()
+    xmlparser.StartElementHandler = start_element
+
+    xmlparser.ParseFile(tmp)
+
+    tmp.close()

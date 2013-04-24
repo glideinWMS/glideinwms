@@ -12,8 +12,8 @@
 import sys,os,time
 import tarfile,shutil,stat
 STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
-import condorExe
+sys.path.append(os.path.join(STARTUP_DIR,"../.."))
+from glideinwms.lib import condorExe
 
 # Validate parameters
 if (len(sys.argv)<2) or (sys.argv[-1]=="-help"):

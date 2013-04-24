@@ -350,24 +350,6 @@ by the VO factory clients.</P>
 
     </TR>
     <TR>
-        <td> <b>GLIDEIN_Job_Max_Time</b> </td>
-        <TD> Int </TD>
-        <TD> 360k<BR>(100 hours) </TD>
-
-        <TD>
-            <P>Max allowed time for the job to end.<BR>
-            This is used by the
-            condor_startd.  Once the GLIDEIN_Retire_Time expires, 
-            the glidein will allow the job to run for this amount
-            of time before activating DAEMON_SHUTDOWN and 
-            killing the job. 
-            Note that, if GLIDEIN_Max_Walltime is specified,
-            this variable could be reduced by the glidein in order 
-            to fit within Glidein_Max_Walltime.
-            See <a href="#lifetime">Lifetime of a glidein</a> for details.</P>
-        </TD>
-    </TR>
-    <TR>
         <td> <b>GLIDEIN_Max_Walltime</b> </td>
         <TD> Int </TD>
         <TD> N/A </TD>
@@ -874,6 +856,22 @@ described below ar the most often used.</P>
 
     </TR>
     <TR>
+        <td> <b>GLIDEIN_Job_Max_Time</b> </td>
+        <TD> Int </TD>
+        <TD>
+            <P>Max allowed time for the job to end.<BR>
+            This is used by the
+            condor_startd.  Once the GLIDEIN_Retire_Time expires, 
+            the glidein will allow the job to run for this amount
+            of time before activating DAEMON_SHUTDOWN and 
+            killing the job. 
+            Note that, if GLIDEIN_Max_Walltime is specified,
+            this variable could be reduced by the glidein in order 
+            to fit within Glidein_Max_Walltime.
+            See <a href="#lifetime">Lifetime of a glidein</a> for details.</P>
+        </TD>
+    </TR>
+    <TR>
         <td> <b>GLIDEIN_Expose_Grid_Env</b> </td>
         <td> Exp (Bool) </TD>
 
@@ -897,6 +895,20 @@ described below ar the most often used.</P>
             to true will override this behavior and keep the X509_USER_PROXY
             in the environment.
         </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_Report_Failed</b> </td>
+        <td> String </TD>
+
+        <TD>
+            <p>This attribute regulates advertising of validation failures to the user collector.
+            <ul>
+              <li><b>NEVER</b> - The glidein will just fail, and do nothing.
+              <li><b>ALIVEONLY</b> - The glidein will advertise a Machine ClassAd in <i>Drained</i> state and <i>Retiring</i> activity 
+                                     for the lifetime of the glidein script.
+              <li><b>ALWAYS</b> - Similar to <b>ALIVEONLY</b>, but will also send a final ClassAd
+                                     in <i>Drained</i> state and <i>Killing</i> activity just before dying.
+       </TD>
     </TR>
 
 
@@ -1149,6 +1161,8 @@ simultaneously), jobs can start on the glidein pilot.
 During the yellow period, START will evauluate to FALSE, 
 so no new jobs will start.  However,
 already running jobs will continue to run for GLIDEIN_Job_Max_Time.  
+(Note that the glideins will end during this period if the job ends.
+They will not idle afterwards since no new jobs can start anyway).
 </li>
 <li>
 Once this period is done, the DAEMON_SHUTDOWN variable will be true.</li>
@@ -1162,13 +1176,38 @@ this expression periodically.
 Once DAEMON_SHUTDOWN is true, condor gives a short grace period of
 GLIDEIN_Graceful_Shutdown before forcefully terminating everything and 
 shutting down.  All of these periods are totalled and calculated to fit
-within MAX_WALLTIME if specified.
+within GLIDEIN_MAX_WALLTIME if specified.
 </li>
 </ul>
 </p>
 <p>Note that if a job ends early in the green period, a new job will start.
 If a job ends after this period, then the glidein will shut down and end
-early.</p>
+early.  This can be seen in the example below with two jobs below:
+</p>
+<img src="../images/idle_times.jpg" />
+<p>
+<ul>
+<li><font color="f8bb44"><i>Orange</i></font>:
+A glidein first starts up.</li>
+<li><font color="f8d844"><i>Yellow</i></font>:
+After starting up, the glidein will wait for Glidein_Max_Idle
+for its initial matching.  If it is Idle for longer than this,
+it will assume no jobs are available and will shutdown.</li>
+<li><font color="499946"><i>Green</i></font>:
+A job runs (subject to the maximum limits in the previous diagram).
+<li><font color="f8d844"><i>Yellow</i></font>:
+Once a job runs, it will wait for Glidein_Max_Tail for another job.
+</li>
+<li><font color="499946"><i>Green</i></font>:
+Another matching job runs.</li>
+<li><font color="f8d844"><i>Yellow</i></font>:
+Once the job finishes, it will wait for Glidein_Max_Tail for another job.
+If cannot find one, it will shutdown.
+</li>
+</ul>
+Note that the idle limits are cumulative (it counds total idle time), so that
+the total idle times in all the yellow zones above will be counted towards
+GLIDEIN_Max_Idle and GLIDEIN_Max_Tail.
 </div>
 <div class="footer">
 Banner image by

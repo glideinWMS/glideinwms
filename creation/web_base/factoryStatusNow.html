@@ -1363,13 +1363,13 @@ function fillIn()
 	for( i = 0; i< numberRows; i++)
 	{
 		y = totalEntries[i].getAttribute("name");
-		 
+		display_y = y;
 		/* IF NAME DOESNT FIT */
-		if(y.length >= 32){y = y.substring(0, 27); y = y + "...";}
+		if(y.length >= 32){display_y = y.substring(0, 27); display_y = display_y + "...";} 
 		table.rows[i].cells[0].innerHTML = "";
 		links[i] = document.createElement('a');
 		links[i].setAttribute("id", "entryLinks"); 
-		links[i].innerHTML = y;
+		links[i].innerHTML = display_y;
 		links[i].setAttribute("onbrowseover", "showEntryName()"); 
 		links[i].setAttribute("onbrowseover", "hideEntryName()"); 
 		links[i].setAttribute("href", "factoryEntryStatusNow.html?entry=" + y);

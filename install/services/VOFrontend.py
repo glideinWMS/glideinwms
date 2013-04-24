@@ -1,23 +1,29 @@
 #!/usr/bin/env python
 
 import traceback
-import sys,os,os.path,string,time
-import stat,re
+import sys
+import os
+import os.path
+import string
+import time
+import stat
+import re
 import xml.sax.saxutils
-import xmlFormat
 import optparse
 #-------------------------
+import glideinwms.lib.subprocessSupport
+import glideinwms.lib.xmlFormat
 import common
 import WMSCollector
 import Factory
 import Submit
 import UserCollector
 import Glidein
-from Condor        import Condor
+from Condor import Condor
 from Configuration import Configuration
 from Configuration import ConfigurationError
 #-------------------------
-os.environ["PYTHONPATH"] = ""
+#os.environ["PYTHONPATH"] = ""
 
 frontend_options = [ "install_type",
 "hostname", 
@@ -274,7 +280,7 @@ class VOFrontend(Condor):
 
     #--- if all are empty, return      
     if len(dirs) == 0:
-      os.system("sleep 3")
+      time.sleep(3)
       return  # all directories are empty
 
     #--- See if we can remove them --- 
@@ -288,7 +294,7 @@ class VOFrontend(Condor):
     for type in dirs.keys():
       common.remove_dir_contents(dirs[type])
       os.rmdir(dirs[type])
-    os.system("sleep 3")
+    time.sleep(3)
     return
     
   #-----------------------------
@@ -319,7 +325,7 @@ class VOFrontend(Condor):
     if self.install_type() == "tarball":
       self.validate_needed_directories()
     common.logit( "Verification complete\n")
-    os.system("sleep 2")
+    time.sleep(2)
 
   #-----------------------------
   def configure(self):
@@ -337,7 +343,7 @@ class VOFrontend(Condor):
     self.__create_condor_config__()
     self.__create_initd_script__()
     common.logit("Condor configuration complete")
-    os.system("sleep 2")
+    time.sleep(2)
 
   #---------------------------------
   def configure_frontend(self):
@@ -347,7 +353,7 @@ class VOFrontend(Condor):
     if self.install_type() == "tarball":
       self.create_env_script()
     common.logit ("VOFrontend configuration complete")
-    os.system("sleep 2")
+    time.sleep(2)
 
   #--------------------------------
   def condor_mapfile_users(self):
@@ -487,9 +493,9 @@ option: %(option_dn)s
 
   #---------------------------------
   def get_gridmap_data(self):
-    os.system("sleep 2")
+    time.sleep(2)
     common.logit("\nCollecting  grid_mapfile data. More questions.")
-    os.system("sleep 2")
+    time.sleep(2)
     while 1:
       dns = {}
       dns[self.glidein.service_name()]      = self.glidein.x509_gsi_dn()
@@ -571,7 +577,9 @@ The following DNs are in your grid_mapfile:"""
     common.logit("\nCreating VO frontend env script.")
     data = """#!/bin/bash
 . %(condor_location)s/condor.sh
-""" % { "condor_location" : self.condor_location(),}
+export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
+""" % { "condor_location" : self.condor_location(),
+        "install_location" : self.glideinwms_location(),}
     common.write_file("w",0644,self.env_script(),data)
     common.logit("VO frontend env script created: %s" % self.env_script() )
 
@@ -599,18 +607,16 @@ The following DNs are in your grid_mapfile:"""
     cmd = ""
     if self.install_type() != "rpm":
       cmd += ". %s/condor.sh;" % self.condor_location()
-    cmd += "condor_config_val -dump |grep _jobs |awk '{print $3}'"
-    fd = os.popen(cmd)
-    lines = fd.readlines()
-    err = fd.close()
-    if err != None: # condor_config_val not working 
-        common.logit("%s" % lines)
-        common.logerr("""Failed to fetch list of schedds running condor_config_val.""")
+    cmd += `"condor_config_val -dump |grep _jobs |awk \'{print $3}\'"`
+    lines = glideinwms.lib.subprocessSupport.iexe_cmd(cmd, useShell=True)
+    if lines is None: # submit schedds not accessible
+      common.logerr("""Failed to fetch list of schedds running condor_config_val.""")
+    if len(lines) == 0: # submit schedds not accessible
+      common.logerr("""Failed to fetch list of schedds running condor_config_val.""")
     schedds = [self.hostname(),]
-    for line in lines:
-        line = line[:-1] #remove newline
+    for line in lines.split('\n'):
         if line != "":
-            schedds.append("%(line)s@%(hostname)s" % \
+          schedds.append("%(line)s@%(hostname)s" % \
               {"line" : line, "hostname" : self.hostname(),})
     return self.select_schedds(schedds)
 
@@ -619,19 +625,14 @@ The following DNs are in your grid_mapfile:"""
     cmd = ""
     if self.install_type() != "rpm":
       cmd += ". %s/condor.sh;" % self.condor_location()
-    cmd += "condor_status -schedd -format '%s\n' Name "
-    fd = os.popen(cmd)
-    lines = fd.readlines()
-    err = fd.close()
-    if err != None: # collector not accessible
-        common.logit("%s" % lines)
-        common.logerr("Failed to fetch list of schedds running condor_status -schedd\n       Your user pool collector and submit host condor need to be running.")
+    cmd += "condor_status -schedd -format \'%s\\n\' Name "  
+    lines = glideinwms.lib.subprocessSupport.iexe_cmd(cmd, useShell=True)
+    if lines is None: # submit schedds not accessible
+        common.logerr("None Failed to fetch list of schedds running condor_status -schedd\n       Your submit host condor needs to be running.")
     if len(lines) == 0: # submit schedds not accessible
-        common.logerr("Failed to fetch list of schedds running condor_status -schedd\n       Your submit host condor needs to be running.")
-
+        common.logerr("Zero Failed to fetch list of schedds running condor_status -schedd\n       Your submit host condor needs to be running.")
     default_schedds=[]
-    for line in lines:
-        line = line[:-1] #remove newline
+    for line in lines.split('\n'):
         if line != "":
             default_schedds.append(line)
 
@@ -686,7 +687,7 @@ or you have not defined any schedds on the submit host.""")
             problem = True
             break
         if problem:
-          os.system("sleep 1")
+          time.sleep(2)
           continue
         # got them
         for i in range(len(schedds)):
@@ -743,7 +744,7 @@ please verify and correct if needed.
   "indent3" : common.indent(3),
   "indent4" : common.indent(4),
   "group_name"         : self.group_name(),
-  "match_string"       : xmlFormat.xml_quoteattr(self.match_string()),
+  "match_string"       : glideinwms.lib.xmlFormat.xml_quoteattr(self.match_string()),
   "factory_attributes" : self.factory_data(factory_attributes),
   "job_attributes"     : self.job_data(job_attributes),
 }
@@ -762,7 +763,7 @@ please verify and correct if needed.
 %(indent5)s<match_attrs> """ % \
  { "indent4" : common.indent(4),
    "indent5" : common.indent(5),
-   "expr"    : xmlFormat.xml_quoteattr(string.join(attr_query_arr," && ")),}
+   "expr"    : glideinwms.lib.xmlFormat.xml_quoteattr(string.join(attr_query_arr," && ")),}
 
       for attr in attributes:
         data = data + """
@@ -790,7 +791,7 @@ please verify and correct if needed.
 %(indent5)s<match_attrs> """ % \
  { "indent4" : common.indent(4),
    "indent5" : common.indent(5),
-   "expr"    : xmlFormat.xml_quoteattr(string.join(attr_query_arr," && ")),}
+   "expr"    : glideinwms.lib.xmlFormat.xml_quoteattr(string.join(attr_query_arr," && ")),}
 
       for attr in attributes:
         data = data + """
@@ -962,7 +963,7 @@ please verify and correct if needed.
   "wms_gsi_gn"        : self.wms.x509_gsi_dn(),
   "factory_username" : self.factory.username(),
   "frontend_identity" : self.service_name(),
-  "job_constraints"   : xmlFormat.xml_quoteattr(self.userjob_constraints()),
+  "job_constraints"   : glideinwms.lib.xmlFormat.xml_quoteattr(self.userjob_constraints()),
 }
 
     for schedd in schedds:
@@ -1121,9 +1122,10 @@ specified.
     return options
 
 ##########################################
-def main(argv):
-  try:
-    create_template()
+# Main function, primarily used for debugging
+#def main(argv):
+#  try:
+#    create_template()
     #options = validate_args(argv)
     #vo = VOFrontend(options.inifile)
     #vo.get_new_config_group()
@@ -1132,19 +1134,19 @@ def main(argv):
     #vo.get_usercollector()
     #print vo.config_collectors_data()
     #vo.configure_gsi_security()
-  except KeyboardInterrupt, e:
-    common.logit("\n... looks like you aborted this script... bye.")
-    return 1
-  except EOFError:
-    common.logit("\n... looks like you aborted this script... bye.");
-    return 1
-  except ConfigurationError, e:
-    print;print "ConfigurationError ERROR(should not get these): %s"%e;return 1
-  except common.WMSerror:
-    print;return 1
-  return 0
+#  except KeyboardInterrupt, e:
+#    common.logit("\n... looks like you aborted this script... bye.")
+#    return 1
+#  except EOFError:
+#    common.logit("\n... looks like you aborted this script... bye.");
+#    return 1
+#  except ConfigurationError, e:
+#    print;print "ConfigurationError ERROR(should not get these): %s"%e;return 1
+#  except common.WMSerror:
+#    print;return 1
+#  return 0
 
 #--------------------------
-if __name__ == '__main__':
-  sys.exit(main(sys.argv))
+#if __name__ == '__main__':
+#  sys.exit(main(sys.argv))
 

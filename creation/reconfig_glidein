@@ -14,10 +14,11 @@
 import os
 import sys
 import logging
+import os.path
 
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
-import os.path
+
 from glideinwms.creation.lib import cgWParams
 from glideinwms.creation.lib import cgWDictFile
 from glideinwms.creation.lib import cgWConsts

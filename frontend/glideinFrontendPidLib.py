@@ -11,9 +11,9 @@
 #   Igor Sfiligoi
 #
 
-
 import os
-import pidSupport
+from glideinwms.lib import pidSupport
+from glideinwms.lib import logSupport
 
 ############################################################
 

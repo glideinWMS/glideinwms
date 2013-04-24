@@ -18,18 +18,18 @@ import copy
 import calendar
 import time
 import string
-from sets import Set
 
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR, "../lib"))
 
-import symCrypto
-import condorExe
-import condorMonitor
-import condorManager
-import pubCrypto
-import logSupport
-import classadSupport
+from glideinwms.lib import pubCrypto,symCrypto
+from glideinwms.lib import condorExe
+from glideinwms.lib import condorMonitor
+from glideinwms.lib import condorManager
+from glideinwms.lib import classadSupport
+from glideinwms.lib import logSupport
+
+from sets import Set
 
 ############################################################
 #
@@ -938,6 +938,26 @@ class ResourceClassad(classadSupport.Classad):
         else:       
             advertizeGRCounter[self.adParams['Name']] = 0
         self.adParams['UpdateSequenceNumber'] = advertizeGRCounter[self.adParams['Name']]
+
+    def setMatchExprs(self, match_expr, job_query_expr, factory_query_expr, start_expr):
+        """
+        Sets the matching expressions for the resource classad
+        Thus, it would be possible to find out why a job
+        is not matching.
+        @type match_expr: string
+        @param match_expr: A representation of the  frontend MatchExpr
+        @type job_query_expr: string
+        @param job_query_expr: Representation of the job query_expr
+        @type factory_query_expr: string
+        @param factory_query_expr: Representation of the factory query_expr
+        @type start_expr: string
+        @param start_expr: Representation of the match start expr (on the glidein)
+        """
+        self.adParams['GlideClientMatchingGlideinCondorExpr'] = "%s" % match_expr
+        self.adParams['GlideClientConstraintJobCondorExpr'] = "%s" % job_query_expr
+        self.adParams['GlideClientMatchingInternalPythonExpr'] = "%s" % factory_query_expr
+        self.adParams['GlideClientConstraintFactoryCondorExpr'] = "%s" % start_expr
+        
 
     def setInDownTime(self, downtime):
         """

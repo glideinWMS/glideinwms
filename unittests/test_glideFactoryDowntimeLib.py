@@ -14,10 +14,10 @@ from unittest_utils import create_temp_file
 from unittest_utils import create_random_string
 from unittest_utils import FakeLogger
 
-import condorMonitor
-import glideFactoryDowntimeLib
-from glideinFrontendInterface import Credential
-import logSupport
+from glideinwms.lib import condorMonitor
+from glideinwms.factory import glideFactoryDowntimeLib
+from glideinwms.frontend.glideinFrontendInterface import Credential
+from glideinwms.lib import logSupport
 
 class TestDowntimes(unittest.TestCase):
     """

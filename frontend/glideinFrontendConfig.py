@@ -2,6 +2,8 @@ import string
 import os.path
 import urllib
 
+from glideinwms.lib import hashCrypto
+
 #
 # Project:
 #   glideinWMS
@@ -68,8 +70,7 @@ class ConfigFile:
         
 
     def validate_func(self,data,validate,fname):
-        if validate!=None:
-            import hashCrypto
+        if validate is not None:
             vhash=hashCrypto.get_hash(validate[0],data)
             self.hash_value=vhash
             if (validate[1]!=None) and (vhash!=validate[1]):
@@ -240,7 +241,7 @@ class ElementMergedDescript:
                 raise RuntimeError,"Found empty %s!"%t
         for t in ('FactoryQueryExpr','JobQueryExpr'):
             self.merged_data[t]="(%s) && (%s)"%(self.frontend_data[t],self.element_data[t])
-        for t in ('FactoryMatchAttrs','JobMatchAttrs'):
+        for t in ('JobMatchAttrs',):
             attributes=[]
             names=[]
             for el in eval(self.frontend_data[t])+eval(self.element_data[t]):

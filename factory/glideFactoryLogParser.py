@@ -16,7 +16,7 @@
 import os, os.path,time,stat,sets
 import copy
 import mmap,re
-import condorLogParser
+from glideinwms.lib import condorLogParser
 
 rawJobId2Nr=condorLogParser.rawJobId2Nr
 rawTime2cTime=condorLogParser.rawTime2cTime

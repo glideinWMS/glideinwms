@@ -12,13 +12,13 @@
 #   Igor Sfiligoi (Sept 7th 2006)
 #
 
-import condorExe
-import condorMonitor
-import condorManager
+from glideinwms.lib import condorExe
+from glideinwms.lib import condorMonitor
+from glideinwms.lib import condorManager
 import os
 import time
 import string
-import logSupport
+from glideinwms.lib import logSupport
 import fcntl
 
 ############################################################

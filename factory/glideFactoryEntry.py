@@ -30,20 +30,20 @@ import copy
 import random
 import sets
 import logging
-sys.path.append(os.path.join(sys.path[0], "../lib"))
+sys.path.append(os.path.join(sys.path[0],"../../"))
 
-import glideFactoryPidLib
-import glideFactoryConfig
-import glideFactoryLib
-import glideFactoryMonitoring
-import glideFactoryInterface
-import glideFactoryLogParser
-import glideFactoryDowntimeLib
-import glideinWMSVersion
-import glideFactoryCredentials
+from glideinwms.factory import glideFactoryPidLib
+from glideinwms.factory import glideFactoryConfig
+from glideinwms.factory import glideFactoryLib
+from glideinwms.factory import glideFactoryMonitoring
+from glideinwms.factory import glideFactoryInterface
+from glideinwms.factory import glideFactoryLogParser
+from glideinwms.factory import glideFactoryDowntimeLib
+from glideinwms.lib import glideinWMSVersion
+from glideinwms.factory import glideFactoryCredentials
 
-import logSupport
-import cleanupSupport
+from glideinwms.lib import logSupport
+from glideinwms.lib import cleanupSupport
 
 # This declaration is not strictly needed - it is declared as global in main
 # however, to make code clearer (hopefully), it is declared here to make it
@@ -538,6 +538,9 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             if x509_proxies.count_fnames<1:
                 logSupport.log.warning("No good proxies for %s, skipping request"%client_int_name)
                 continue #skip request
+            else:
+                security_credentials['x509_proxy_list'] = x509_proxies
+
         else:
             # ========== v3+ proxy protocol ===============
             
@@ -955,6 +958,7 @@ def advertize_myself(in_downtime, glideinDescript, jobDescript, jobAttributes, j
     for w in current_qc_total.keys():
         for a in current_qc_total[w].keys():
             glidein_monitors['Total%s%s' % (w, a)] = current_qc_total[w][a]
+            jobAttributes.data['GlideinMonitorTotal%s%s' % (w, a)] = current_qc_total[w][a]
     try:
         myJobAttributes = jobAttributes.data.copy()
         myJobAttributes['GLIDEIN_In_Downtime'] = in_downtime

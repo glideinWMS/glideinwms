@@ -26,15 +26,13 @@ import os.path
 import string
 import shutil
 import traceback
-sys.path.append(os.path.join(STARTUP_DIR,"lib"))
-sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
-sys.path.append(os.path.join(STARTUP_DIR,"../frontend"))
-import cvWParams
-import cvWDictFile
-import cvWConsts,cWConsts
-import cvWCreate
-import cvWParamDict
-import glideinFrontendMonitorAggregator
+sys.path.append(os.path.join(STARTUP_DIR,"../.."))
+from glideinwms.creation.lib import cvWParams
+from glideinwms.creation.lib import cvWDictFile
+from glideinwms.creation.lib import cvWConsts,cWConsts
+from glideinwms.creation.lib import cvWCreate
+from glideinwms.creation.lib import cvWParamDict
+from glideinwms.frontend import glideinFrontendMonitorAggregator
 
 ################################################################################
 
@@ -49,7 +47,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
     frontend_dicts_obj.populate()
 
     if update_scripts == 'yes':
-        frontend_dicts_obj.create_dirs()
+        frontend_dicts_obj.create_dirs(fail_if_exists=False)
 
     # merge them together
     if not old_params is None:

@@ -19,14 +19,12 @@
 import string
 import os.path
 import sys
-sys.path.append(os.path.join(sys.path[0],"../factory"))
-sys.path.append(os.path.join(sys.path[0],"../frontend"))
-sys.path.append(os.path.join(sys.path[0],"../lib"))
+sys.path.append(os.path.join(sys.path[0],"../.."))
 
-import glideFactoryInterface
-import glideFactoryConfig
-import glideinFrontendInterface
-import xmlFormat
+from glideinwms.factory import glideFactoryInterface
+from glideinwms.factory import glideFactoryConfig
+from glideinwms.frontend import glideinFrontendInterface
+from glideinwms.lib import xmlFormat
 
 pool_name=None
 factory_name=None

@@ -14,6 +14,11 @@
 
 import string
 import time
+import popen2
+try:
+    import rrdtool
+except:
+    pass
 
 class BaseRRDSupport:
     #############################################################
@@ -473,7 +478,6 @@ class BaseRRDSupport:
 # This class uses the rrdtool module for rrd_obj
 class ModuleRRDSupport(BaseRRDSupport):
     def __init__(self):
-        import rrdtool
         BaseRRDSupport.__init__(self, rrdtool)
 
 # This class uses rrdtool cmdline for rrd_obj
@@ -487,7 +491,6 @@ class ExeRRDSupport(BaseRRDSupport):
 class rrdSupport(BaseRRDSupport):
     def __init__(self):
         try:
-            import rrdtool
             rrd_obj = rrdtool
         except ImportError:
             try:
@@ -524,7 +527,6 @@ def string_quote_join(arglist):
 # python module, if that one is not available
 class rrdtool_exe:
     def __init__(self):
-        import popen2
         self.popen2_obj = popen2
         self.rrd_bin = self.iexe_cmd("which rrdtool")[0][:-1]
 

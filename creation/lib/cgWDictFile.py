@@ -14,7 +14,7 @@ import cgWConsts,cWConsts
 import cWDictFile
 import pwd
 import shutil
-import condorPrivsep
+from glideinwms.lib import condorPrivsep
 
 MY_USERNAME=pwd.getpwuid(os.getuid())[0]
 

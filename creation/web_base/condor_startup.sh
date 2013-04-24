@@ -46,10 +46,29 @@ config_file=$1
 
 error_gen=`grep '^ERROR_GEN_PATH ' $config_file | awk '{print $2}'`
 
-# find out whether user wants to run job or run test
-operation_mode=`grep -i "^DEBUG_MODE " $config_file | awk '{print $2}'`
+glidein_startup_pid=`grep -i "^GLIDEIN_STARTUP_PID " $config_file | awk '{print $2}'`
 
-if [ "$operation_mode" == "1" ] || [ "$operation_mode" == "2" ]; then
+# find out whether user wants to run job or run test
+debug_mode=`grep -i "^DEBUG_MODE " $config_file | awk '{print $2}'`
+
+print_debug=0
+check_only=0
+if [ "$debug_mode" -ne "0" ]; then
+    print_debug=1
+    if [ "$debug_mode" -eq "2" ]; then
+	check_only=1
+    fi
+fi
+
+adv_only=`grep -i "^GLIDEIN_ADVERTISE_ONLY " $config_file | awk '{print $2}'`
+
+if [ "$adv_only" -eq "1" ]; then
+    # no point in printing out debug info about config
+    print_debug=0
+    echo "Advertising failure to the VO collector"  1>&2
+fi
+
+if [ "$print_debug" -ne "0" ]; then
     echo "-------- $config_file in condor_startup.sh ----------" 1>&2
     cat $config_file 1>&2
     echo "-----------------------------------------------------" 1>&2
@@ -115,7 +134,7 @@ function set_var {
         return 0
     fi
 
-    var_val=`grep "^$var_name " $config_file | awk '{print substr($0,index($0,$2))}'`
+    var_val=`grep "^$var_name " $config_file | awk '{if (NF>1) print substr($0,index($0,$2))}'`
     if [ -z "$var_val" ]; then
 	if [ "$var_req" == "Y" ]; then
 	    # needed var, exit with error
@@ -219,6 +238,7 @@ function cond_print_log {
 }
 
 # interpret the variables
+rm -f condor_vars.lst.tmp
 touch condor_vars.lst.tmp
 for vid in GLIDECLIENT_GROUP_CONDOR_VARS_FILE GLIDECLIENT_CONDOR_VARS_FILE ENTRY_CONDOR_VARS_FILE CONDOR_VARS_FILE
 do
@@ -371,7 +391,7 @@ if [ "$retire_time" -lt "$min_glidein" ]; then
   let "retire_time=$retire_time + $retire_spread * $random100 / 100"
   let "die_time=$die_time + $retire_spread * $random100 / 100"
 fi
-if [ "$retire_time" -lt "$min_glidein" ]; then  
+if [ "$retire_time" -lt "$min_glidein" ] && [ "$adv_only" -ne "1" ]; then  
     #echo "Retire time still too low ($retire_time), aborting" 1>&2
     STR="Retire time still too low ($retire_time), aborting"
     "$error_gen" -error "condor_startup.sh" "Config" "$STR" "retire_time" "$retire_time" "min_retire_time" "$min_glidein"
@@ -388,10 +408,10 @@ let "session_duration=$x509_duration"
 
 # if in test mode, don't ever start any jobs
 START_JOBS="TRUE"
-if [ "$operation_mode" == "2" ]; then
-    START_JOBS="FALSE"
+if [ "$chek_only" == "1" ]; then
+  START_JOBS="FALSE"
   # need to know which startd to fetch against
-  STARTD_NAME=glidein_$$
+  STARTD_NAME=glidein_${glidein_startup_pid}
 fi
 
 #Add release and distribution information
@@ -424,8 +444,8 @@ GLIDEIN_START_TIME = $now
 STARTER_JOB_ENVIRONMENT = "$job_env"
 GLIDEIN_VARIABLES = $glidein_variables
 
-MASTER_NAME = glidein_$$
-STARTD_NAME = glidein_$$
+MASTER_NAME = glidein_${glidein_startup_pid}
+STARTD_NAME = glidein_${glidein_startup_pid}
 
 #This can be used for locating the proper PID for monitoring
 GLIDEIN_PARENT_PID = $$
@@ -443,14 +463,14 @@ fi
 
 monitor_mode=`grep -i "^MONITOR_MODE " $config_file | awk '{print $2}'`
 
-if [ "$monitor_mode" == "MULTI" ] || [ "$operation_mode" -eq 2 ]; then
+if [ "$monitor_mode" == "MULTI" ]; then
     use_multi_monitor=1
 else
     use_multi_monitor=0
 fi
 
 # get check_include file for testing
-if [ "$operation_mode" == "2" ]; then
+if [ "$check_only" == "1" ]; then
     condor_config_check_include="${main_stage_dir}/`grep -i '^condor_config_check_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
     echo "# ---- start of include part ----" >> "$CONDOR_CONFIG"
     cat "$condor_config_check_include" >> "$CONDOR_CONFIG"
@@ -540,29 +560,37 @@ Monitoring_Name = "monitor_$$@\$(FULL_HOSTNAME)"
 EOF
 
       # also needs to create "monitor" dir for log and execute dirs
-      mkdir monitor monitor/log monitor/execute
-      if [ $? -ne 0 ]; then
-        #echo "Error creating monitor dirs" 1>&2
-        STR="Error creating monitor dirs"
-        "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "directory" "$PWD/monitor_monitor/log_monitor/execute"
-        exit 1
+      if [ -d monitor ] && [ -d monitor/log ] && [ -d monitor/execute ]; then
+        echo "Monitoring dirs exist" 1>&2
+      else
+        mkdir monitor monitor/log monitor/execute 
+        if [ $? -ne 0 ]; then
+          #echo "Error creating monitor dirs" 1>&2
+          STR="Error creating monitor dirs"
+          "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "directory" "$PWD/monitor_monitor/log_monitor/execute"
+          exit 1
+        fi
       fi
     fi
 fi
 
 fi # if mode==2
 
-mkdir log execute
-if [ $? -ne 0 ]; then
+if [ -d log ] && [ -d execute ]; then
+  echo "log and execute dirs exist" 1>&2
+else
+  mkdir log execute 
+  if [ $? -ne 0 ]; then
     #echo "Error creating condor dirs" 1>&2
     STR="Error creating monitor dirs"
     "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "directory" "$PWD/log_execute"
     exit 1
+  fi
 fi
 
 ####################################
 
-if [ "$operation_mode" == "1" ] || [ "$operation_mode" == "2" ]; then
+if [ "$print_debug" -ne "0" ]; then
   echo "--- condor_config ---" 1>&2
   cat $CONDOR_CONFIG 1>&2
   echo "--- ============= ---" 1>&2
@@ -572,6 +600,20 @@ if [ "$operation_mode" == "1" ] || [ "$operation_mode" == "2" ]; then
   #env 1>&2
 fi
 
+#
+# The config is complete at this point
+#
+
+if [ "$adv_only" -eq "1" ]; then
+    adv_type=`grep -i "^GLIDEIN_ADVERTISE_TYPE " $config_file | awk '{print $2}'`
+
+    chmod u+rx "${main_stage_dir}/advertise_failure.helper"
+    "${main_stage_dir}/advertise_failure.helper" "$CONDOR_DIR/sbin/condor_advertise" "${adv_type}"
+    # short circuit... do not even try to start the Condor daemons below
+    exit $?
+fi
+
+
 X509_BACKUP=$X509_USER_PROXY
 if [ "$expose_x509" == "true" ]; then
 	echo "Exposing X509_USER_PROXY $X509_USER_PROXY" 1>&2
@@ -580,7 +622,7 @@ else
 	unset X509_USER_PROXY
 fi
 
-##	start the condor master
+##	start the monitoring condor master
 if [ "$use_multi_monitor" -ne 1 ]; then
     # don't start if monitoring is disabled
     if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
@@ -618,15 +660,14 @@ ON_DIE=0
 trap 'ignore_signal' HUP
 trap 'on_die' TERM
 trap 'on_die' INT
-let "retmins=$retire_time / 60 - 1"
 
 
 #### STARTS CONDOR ####
-if [ "$operation_mode" == "2" ]; then
+if [ "$check_only" == "1" ]; then
     echo "=== Condor started in test mode ==="
-    $CONDOR_DIR/sbin/condor_master -r $retmins -pidfile $PWD/condor_master.pid
+    $CONDOR_DIR/sbin/condor_master -pidfile $PWD/condor_master.pid
 else
-    $CONDOR_DIR/sbin/condor_master -f -r $retmins -pidfile $PWD/condor_master2.pid &
+    $CONDOR_DIR/sbin/condor_master -f -pidfile $PWD/condor_master2.pid &
     # Wait for a few seconds to make sure the pid file is created,
     # then wait on it for completion
     sleep 5
@@ -658,7 +699,7 @@ metrics+=" CondorDuration $elapsed_time"
 ##    if fetch fails, sleep for 'fetch_sleeptime' amount
 ##    of seconds, then try again.  Repeat until
 ##    'timeout' amount of time has been reached.
-if [ $operation_mode -eq 2 ]; then
+if [ "$check_only" -eq 1 ]; then
 
   HOST=`uname -n`
 
@@ -719,7 +760,7 @@ if [ -f "${main_starter_log}" ]; then
 fi
 echo === End Stats of main ===
 
-if [ "$operation_mode" == "0" ] || [ "$operation_mode" == "1" ] || [ "$operation_mode" == "2" ]; then
+if [ 1 -eq 1 ]; then
     ls -l log 1>&2
     echo
     cond_print_log MasterLog log/MasterLog

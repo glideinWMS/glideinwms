@@ -1,20 +1,23 @@
 #!/usr/bin/env python
 
-import common
-from Configuration import Configuration
-from Configuration import ConfigurationError
-import Certificates  
-import VDTClient
-#---------------------
-import sys,os,os.path,string,time,re
-import popen2
+import sys
+import os
+import os.path
+import string
+import time
+import re
 import tarfile
 import shutil
 import pwd
 import stat
-import commands
 import traceback
-
+#---------------------
+import glideinwms.lib.subprocessSupport
+import common
+import Certificates  
+import VDTClient
+from Configuration import Configuration
+from Configuration import ConfigurationError
 
 class Condor(Configuration):
 
@@ -46,6 +49,8 @@ class Condor(Configuration):
                                 "01_gwms_collectors"  : "",
                                 "02_gwms_schedds"     : "",
                                 "03_gwms_local"       : "",
+                                "11_gwms_secondary_collectors"  : "",
+
                               }
 
     #-- classes used ---
@@ -336,8 +341,8 @@ If no specific entries are needed, an empty list should be returned.
     self.__condor_config_gwms_data__()
     self.__condor_config_daemon_list__()
     self.__condor_config_gsi_data__(self.condor_config_daemon_users())
-    self.__condor_config_negotiator_data__()
     self.__condor_config_collector_data__()
+    self.__condor_config_negotiator_data__()
     self.__condor_config_secondary_collector_data__()
     self.__condor_config_schedd_data__()
     self.__condor_config_secondary_schedd_data__()
@@ -360,12 +365,11 @@ If no specific entries are needed, an empty list should be returned.
 Is Condor really installed where you said it was or was it not successful?
 Check the condor_location ini option for correctness.""" % version_script)
     
-    cmds = "%s| awk '{print $2;exit}'" % version_script
-    (status, self.condor_version) = commands.getstatusoutput(cmds)
-    if status > 0:
-      common.logerr("""Unable to determine Condor version using:
-  %s""" % version_script)
-    if self.condor_version == None:
+    cmd = "%s| awk '{print $2;exit}'" % version_script
+    self.condor_version = glideinwms.lib.subprocessSupport.iexe_cmd(cmd,useShell=True)
+    if len(self.condor_version) == 0:
+      common.logerr("""Unable to determine Condor version using: %s""" % version_script)
+    if self.condor_version is None:
       common.logerr("Still unable to determine condor_version")
     common.logit("    Condor version: %s" % self.condor_version)
 
@@ -612,7 +616,8 @@ LOCAL_CONFIG_FILE =
 LOCAL_CONFIG_DIR  = %s
 """ % (self.local_config_dir())
     common.write_file("a",0644,self.condor_config(),cfg_data,SILENT=False)
-    common.os.system("tail -5 %s" % self.condor_config())
+    stdout = glideinwms.lib.subprocessSupport.iexe_cmd("tail -5 %s" % self.condor_config())
+    common.logit(stdout)
 
     common.logit("\nCreating GWMS condor_config files in:")
     common.logit("%s" % self.local_config_dir())
@@ -1021,6 +1026,7 @@ SCHEDD_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridmanagerLog.$(USERNAME)"
 #--  Enable shared_port_daemon 
 SHADOW.USE_SHARED_PORT = True
 SCHEDD.USE_SHARED_PORT = True
+SHARED_PORT_MAX_WORKERS = 1000
 SHARED_PORT_ARGS = -p %(port)s
 DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT
 """ % { "port" : self.schedd_shared_port(), }
@@ -1033,8 +1039,9 @@ SHADOW_WORKLIFE = 0
 """ 
 
     #-- checking for zero swap space - affects schedd's only --
-    rtn = os.system("free | tail -1 |awk '{ if ( $2 == 0 ) {exit 0} else {exit 1} }'")
-    if rtn == 0:
+    cmd = "free | tail -1 |awk '{ print $2 }'" 
+    swap = glideinwms.lib.subprocessSupport.iexe_cmd(cmd,useShell=True)
+    if swap == 0:
       self.condor_config_data[type] +=  """
 #-- No swap space 
 RESERVED_SWAP = 0
@@ -1139,7 +1146,7 @@ SUBMIT_EXPRS = $(SUBMIT_EXPRS) JOB_Site JOB_GLIDEIN_Entry_Name JOB_GLIDEIN_Name 
 
   #-----------------------------
   def __condor_config_negotiator_data__(self):
-    type = "00_gwms_general"
+    type = "01_gwms_collectors"
     if self.daemon_list.find("NEGOTIATOR") < 0:
       return  # no negotiator
     self.condor_config_data[type] += """
@@ -1193,6 +1200,13 @@ COLLECTOR.USE_VOMS_ATTRIBUTES = False
 
 #-- allow more file descriptors (only works if Condor is started as root)
 ##COLLECTOR_MAX_FILE_DESCRIPTORS=20000
+
+############################################
+# We expect to have secondary collectors, so
+#-- forward ads to the main collector
+#-- (this is ignored by the main collector, since the address matches itself)
+CONDOR_VIEW_HOST = $(COLLECTOR_HOST)
+
 """ % { "name" : self.service_name(), 
         "port" : self.collector_port()
       }
@@ -1211,16 +1225,23 @@ COLLECTOR_HOST = $(CONDOR_HOST):%(port)s
   def __condor_config_secondary_collector_data__(self):
     if self.daemon_list.find("COLLECTOR") < 0:
       return  # no collector daemon
+    type = "11_gwms_secondary_collectors"
     if self.secondary_collectors() == 0:
-      return   # no secondary collectors
-    type = "01_gwms_collectors"
-    self.condor_config_data[type]  += """
+      self.condor_config_data[type]  += """
 #################################################
 # Secondary Collectors
 #################################################
-#-- Forward ads to the main collector
-#-- (this is ignored by the main collector, since the address matches itself)
-CONDOR_VIEW_HOST = $(COLLECTOR_HOST)
+#
+# This file should be dynamically generated
+# but is provided as a static file for simple use cases
+#  
+"""
+    else:
+      self.condor_config_data[type]  += """
+#################################################
+# Secondary Collectors
+#################################################
+#
 """
 
     #-- define sub-collectors, ports and log files

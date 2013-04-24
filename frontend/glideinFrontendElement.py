@@ -26,20 +26,22 @@ import time
 import string
 import logging
 import cPickle
-sys.path.append(os.path.join(sys.path[0], "../lib"))
+import re
 
-import pubCrypto
+sys.path.append(os.path.join(sys.path[0],"../.."))
 
-import glideinFrontendConfig
-import glideinFrontendInterface
-import glideinFrontendLib
-import glideinFrontendPidLib
-import glideinFrontendMonitoring
-import glideinFrontendPlugins
-import glideinWMSVersion
+from glideinwms.lib import symCrypto,pubCrypto
+from glideinwms.lib import glideinWMSVersion
+from glideinwms.lib import logSupport
+from glideinwms.lib import cleanupSupport
 
-import logSupport
-import cleanupSupport
+from glideinwms.frontend import glideinFrontendConfig
+from glideinwms.frontend import glideinFrontendInterface
+from glideinwms.frontend import glideinFrontendLib
+from glideinwms.frontend import glideinFrontendPidLib
+from glideinwms.frontend import glideinFrontendMonitoring
+from glideinwms.frontend import glideinFrontendPlugins
+
 
 ############################################################
 def check_parent(parent_pid):
@@ -187,7 +189,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
                 pass # no public key, nothing to do
             elif globals_el['attrs']['PubKeyType'] == 'RSA': # only trust RSA for now
                 try:
-                    globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(str(string.replace(globals_el['attrs']['PubKeyValue'], '\\n', '\n')))
+                    globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(str(re.sub(r"\\+n", r"\n", globals_el['attrs']['PubKeyValue'])))
                     globals_el['attrs']['FactoryPoolNode'] = factory_pool_node
                     globals_el['attrs']['FactoryPoolId'] = my_identity_at_factory_pool
                             
@@ -197,6 +199,8 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
                     # if no valid key, just notify...
                     # if key needed, will handle the error later on
                     logSupport.log.warning("Factory Globals '%s': invalid RSA key" % globalid)
+                    tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1], sys.exc_info()[2])
+                    logSupport.log.debug("Factory Globals '%s': invalid RSA key traceback: %s\n" % (globalid, str(tb)))
             else:
                 # don't know what to do with this key, notify the admin
                 # if key needed, will handle the error later on
@@ -223,7 +227,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
                 except RuntimeError:
                     # failed to talk, like empty... maybe the next factory will have something
                     if factory_pool_node != None:
-                        logSupport.log.exception("Failed to talk to factory_pool %s for entry info: %s" % factory_pool_node)
+                        logSupport.log.exception("Failed to talk to factory_pool %s for entry info: " % factory_pool_node)
                     else:
                         logSupport.log.exception("Failed to talk to factory_pool for entry info: ")
                     factory_glidein_dict = {}
@@ -451,36 +455,22 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
             # this is the child... return output as a pickled object via the pipe
             os.close(r)
             try:
-                try:
-                    if dt=='Real':
-                        out=glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict,attr_dict,condorq_match_list)
-                    elif dt=='Glidein':
-                        count_status_multi={}
-                        for glideid in glidein_dict.keys():
-                            request_name=glideid[1]
-    
-                            count_status_multi[request_name]={}
-                            for st in status_dict_types.keys():
-                                c=glideinFrontendLib.getClientCondorStatus(status_dict_types[st]['dict'],frontend_name,group_name,request_name)
-                                count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
-                        out=count_status_multi
-                    else:
-                        c,p,h=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict,attr_dict,condorq_match_list)
-                        t=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
-                        out=(c,p,h,t)
-                except KeyError, e:
-                    tb = traceback.format_exception(sys.exc_info()[0],
-                                                    sys.exc_info()[1],
-                                                    sys.exc_info()[2])
-                    key = ((tb[len(tb) - 1].split(':'))[1]).strip()
-                    logSupport.log.debug("Failed to evaluate resource match for %s state. Possibly match_expr is buggy and trying to reference job or site attribute %s in an inappropriate way." % (dt,key))
-                    raise e
-                except Exception, e:
-                    tb = traceback.format_exception(sys.exc_info()[0],
-                                                    sys.exc_info()[1],
-                                                    sys.exc_info()[2])
-                    logSupport.log.debug("Exception in counting subprocess for %s: %s " % (dt, tb))
-                    raise e
+                if dt=='Real':
+                    out=glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict,attr_dict,condorq_match_list)
+                elif dt=='Glidein':
+                    count_status_multi={}
+                    for glideid in glidein_dict.keys():
+                        request_name=glideid[1]
+
+                        count_status_multi[request_name]={}
+                        for st in status_dict_types.keys():
+                            c=glideinFrontendLib.getClientCondorStatus(status_dict_types[st]['dict'],frontend_name,group_name,request_name)
+                            count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
+                    out=count_status_multi
+                else:
+                    c,p,h=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict,attr_dict,condorq_match_list)
+                    t=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
+                    out=(c,p,h,t)
 
                 os.write(w,cPickle.dumps(out))
             finally:
@@ -783,6 +773,10 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
         resource_classad.setInDownTime(glidein_in_downtime)
         resource_classad.setEntryInfo(glidein_el['attrs'])
         resource_classad.setGlideFactoryMonitorInfo(glidein_el['monitor'])
+        resource_classad.setMatchExprs(elementDescript.merged_data['MatchExpr'], 
+                elementDescript.merged_data['JobQueryExpr'],
+                elementDescript.merged_data['FactoryQueryExpr'],
+                attr_dict['GLIDECLIENT_Start'])
         try:
             resource_classad.setGlideClientMonitorInfo(this_stats_arr)
         except RuntimeError:

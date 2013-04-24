@@ -11,8 +11,8 @@ import binascii
 import traceback
 
 import glideFactoryLib
-import condorPrivsep
-import condorMonitor
+from glideinwms.lib import condorPrivsep
+from glideinwms.lib import condorMonitor
 
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
