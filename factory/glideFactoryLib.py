@@ -1401,11 +1401,11 @@ email_logs = False
                 exe_env.append('USER_DATA=%s' % encoded_tarball)
 
             except KeyError:
-                msg = "Error setting up submission environment (bad key): %s" % str(tb)
+                msg = "Error setting up submission environment (bad key)"
                 log.debug(msg)
                 log.exception(msg)
             except Exception:
-                msg = "Error setting up submission environment (in ec2 section): %s" % str(tb)
+                msg = "Error setting up submission environment (in ec2 section)"
                 log.debug(msg)
                 log.exception(msg)
                 raise
