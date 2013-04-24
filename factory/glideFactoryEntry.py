@@ -510,29 +510,21 @@ class Entry:
         self.loadContext()
 
         self.log.info("Computing log_stats diff for %s" % self.name)
-        #self.log.debug("Computing log_stats diff for %s" % self.name)
         self.gflFactoryConfig.log_stats.computeDiff()
         self.log.info("log_stats diff computed")
-        #self.log.debug("log_stats diff computed")
 
         self.log.info("Writing log_stats for %s" % self.name)
-        #self.log.debug("Writing log_stats for %s" % self.name)
         self.gflFactoryConfig.log_stats.write_file(monitoringConfig=self.monitoringConfig)
         self.log.info("log_stats written")
-        #self.log.debug("log_stats written")
 
         self.gflFactoryConfig.qc_stats.finalizeClientMonitor()
         self.log.info("Writing qc_stats for %s" % self.name)
-        #self.log.debug("Writing qc_stats for %s" % self.name)
         self.gflFactoryConfig.qc_stats.write_file(monitoringConfig=self.monitoringConfig)
         self.log.info("qc_stats written")
-        #self.log.debug("qc_stats written")
 
         self.log.info("Writing rrd_stats for %s" % self.name)
-        #self.log.debug("Writing rrd_stats for %s" % self.name)
         self.gflFactoryConfig.rrd_stats.writeFiles(monitoringConfig=self.monitoringConfig)
         self.log.info("rrd_stats written")
-        #self.log.debug("rrd_stats written")
 
         return
 
