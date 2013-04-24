@@ -99,11 +99,9 @@ def appendRealRunning(condorq_dict, status_dict):
                         # there is currently no way to get the factory collector from
                         #   condor status so this hack grabs the hostname of the schedd
                         schedd = condor_status[remote_host]['GLIDEIN_Schedd'].split('@')
-                        if len(schedd) < 2:
-                            break
 
                         # split by : to remove port number if there
-                        fact_pool = schedd[1].split(':')[0]
+                        fact_pool = schedd[-1].split(':')[0]
 
                         condorq[jid]['RunningOn'] = "%s@%s@%s@%s" % (
                             condor_status[remote_host]['GLIDEIN_Entry_Name'],
