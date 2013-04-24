@@ -23,9 +23,8 @@ import os.path
 import copy
 
 STARTUP_DIR=sys.path[0]
-
-# import glideinWMS libraries
 sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
+
 from glideinwms.creation.lib import cgWParams
 
 # current entry for site

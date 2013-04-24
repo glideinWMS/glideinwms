@@ -2,7 +2,10 @@
 # analyze_frontends
 # Focuses mostly on Client Info
 
-import os, sys, getopt, re 
+import os
+import sys
+import getopt
+import re 
 import datetime
 import urllib
 

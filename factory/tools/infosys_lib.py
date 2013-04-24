@@ -61,7 +61,7 @@ def query_bdii(bdii_source, vo_name=''):
             
             if 'GlueCEStateStatus' in bdii_entry:
                 ce_status = bdii_entry['GlueCEStateStatus'][0]            
-                if ce_status == '' or ce_status == None:
+                if ce_status == '' or ce_status is None:
                     ce_status = 'unknown'
             
             supported_vos = '' 
@@ -495,6 +495,7 @@ def generate_entry_xml(entry, schedd_name):
     entry_xml += "            <remove max_per_cycle=\"5\" sleep=\"0.2\"/>\n"
     entry_xml += "            <submit cluster_size=\"10\" max_per_cycle=\"100\" sleep=\"0.2\"/>\n"
     entry_xml += "         </config>\n"
+    entry_xml += "         <downtimes/>\n"
     entry_xml += "         <attrs>\n"
     entry_xml += "            <attr name=\"CONDOR_OS\" const=\"True\" glidein_publish=\"False\" job_publish=\"False\" parameter=\"True\" publish=\"False\" type=\"string\" value=\"default\"/>\n"
     entry_xml += "            <attr name=\"GLEXEC_BIN\" const=\"True\" glidein_publish=\"False\" job_publish=\"False\" parameter=\"True\" publish=\"True\" type=\"string\" value=\"%s\"/>\n" % entry['glexec_bin']
