@@ -9,6 +9,14 @@
 #   It has the routins to setup the X509 environment
 #
 
+glidein_config="$1"
+
+# import add_config_line function
+add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
+source $add_config_line_source
+
+error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
+
 # check that x509 certificates exist and set the env variable if needed
 function check_x509_certs {
     if [ -e "$X509_CERT_DIR" ]; then
@@ -30,7 +38,26 @@ function check_x509_certs {
     return 0
 }
 
-function check_x509_proxy {
+function check_x509_tools {
+    # verify grid-proxy-info exists
+    command -v grid-proxy-info >& /dev/null
+    if [ $? -eq 1 ]; then
+	STR="grid-proxy-init command not found in path!"
+	"$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "grid-proxy-init"
+	exit 1
+    fi
+    # verify voms-proxy-info exists
+    command -v voms-proxy-info >& /dev/null
+    if [ $? -eq 1 ]; then
+	STR="voms-proxy-init command not found in path!"
+	"$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "voms-proxy-init"
+	exit 1
+    fi
+
+    return 0
+}
+
+function copy_x509_proxy {
     if [ -a "$X509_USER_PROXY" ]; then
 	export X509_USER_PROXY
     else
@@ -88,51 +115,6 @@ function check_x509_proxy {
         exit 1
     fi    
 
-    grid-proxy-info -exists -valid 12:0
-    if [ $? -ne 0 ]; then
-        voms-proxy-info -exists -valid 12:0
-        if [ $? -ne 0 ]; then
-            STR="Proxy not valid in 12 hours!\n"
-            STR+="Proxy shorter than 12 hours are not allowed\n"
-            STR+="grid-proxy-info:\n"
-            STR+=`grid-proxy-info`
-            STR+="\nvoms-proxy-info:\n"
-            STR+=`voms-proxy-info -all`
-	    STR1=`echo -e "$STR"`
-            "$error_gen" -error "setup_x509.sh" "VO_Proxy" "$STR1" "proxy" "$X509_USER_PROXY"
-            exit 1
-        fi
-    fi
-    
-    return 0
-}
-
-
-# returns the expiration time of the proxy
-function get_x509_expiration {
-    now=`date +%s`
-    if [ $? -ne 0 ]; then
-        STR="Date not found!"
-        "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "date"
-        exit 1 # just to be sure
-    fi
-
-    l=`grid-proxy-info -timeleft`
-    ret=$?
-    if [ $ret -ne 0 ]; then
-	l=`voms-proxy-info -timeleft`
-	ret=$?
-    fi
-
-    if [ $ret -eq 0 ]; then
-	echo `/usr/bin/expr $now + $l`
-    else
-        #echo "Could not obtain -timeleft" 1>&2
-        STR="Could not obtain -timeleft"
-        "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "grid-proxy-info"
-        exit 1
-    fi
-
     return 0
 }
 
@@ -143,23 +125,13 @@ function get_x509_expiration {
 ############################################################
 
 # Assume all functions exit on error
-config_file="$1"
-
-error_gen=`grep '^ERROR_GEN_PATH ' $config_file | awk '{print $2}'`
-
 check_x509_certs
-check_x509_proxy
+check_x509_tools
+copy_x509_proxy
 
-# get X509 expiration time and store it into the config file
-X509_EXPIRE=`get_x509_expiration`
-cat >> "$config_file" <<EOF
-######## setup_x509 ###########
-X509_EXPIRE              $X509_EXPIRE
-X509_CERT_DIR            $X509_CERT_DIR
-X509_USER_PROXY          $X509_USER_PROXY
-###############################
-EOF
+add_config_line X509_CERT_DIR   "$X509_CERT_DIR"
+add_config_line X509_USER_PROXY "$X509_USER_PROXY"
 
-"$error_gen" -ok "setup_x509.sh" "proxy" "$X509_USER_PROXY" "proxy_expire" "`date --date=@$X509_EXPIRE +%Y-%m-%dT%H:%M:%S%:z`" "cert_dir" "$X509_CERT_DIR"
+"$error_gen" -ok "setup_x509.sh" "proxy" "$X509_USER_PROXY" "cert_dir" "$X509_CERT_DIR"
 
 exit 0

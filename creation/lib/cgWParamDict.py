@@ -49,13 +49,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.dicts['file_list'].add_placeholder(cWConsts.VARS_FILE,allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE,allow_overwrite=True) # this one must be loaded before any tarball
                 
-        # Load initial system scripts
-        # These should be executed before the other scripts
-        for script_name in ('setup_script.sh','cat_consts.sh','setup_x509.sh'):
-            self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
-
         #load system files
-        for file_name in ('error_gen.sh','error_augment.sh','parse_starterlog.awk', "condor_config", "condor_config.multi_schedd.include", "condor_config.dedicated_starter.include", "condor_config.check.include", "condor_config.monitor.include"):
+        for file_name in ('error_gen.sh','error_augment.sh','parse_starterlog.awk', 'advertise_failure.helper',
+                          "condor_config", "condor_config.multi_schedd.include", "condor_config.dedicated_starter.include", "condor_config.check.include", "condor_config.monitor.include"):
             self.dicts['file_list'].add_from_file(file_name,(cWConsts.insert_timestr(file_name),"regular","TRUE",'FALSE'),os.path.join(params.src_dir,file_name))
         self.dicts['description'].add("condor_config","condor_config")
         self.dicts['description'].add("condor_config.multi_schedd.include","condor_config_multi_include")
@@ -64,22 +60,25 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.dicts['description'].add("condor_config.check.include","condor_config_check_include")
         self.dicts['vars'].load(params.src_dir,'condor_vars.lst',change_self=False,set_not_changed=False)
 
-        # put user files in stage
-        for user_file in params.files:
-            add_file_unparsed(user_file,self.dicts)
-
-        # put user attributes into config files
-        for attr_name in params.attrs.keys():
-            add_attr_unparsed(attr_name, params,self.dicts,"main")
+        #
+        # Note:
+        #  We expect the condor platform info to be coming in as parameters
+        #  as FE provided consts file is not available at this time
+        #
 
         # add the basic standard params
-        self.dicts['params'].add("GLIDEIN_Collector",'Fake')
+        self.dicts['params'].add("GLIDEIN_Report_Failed",'NEVER')
+        self.dicts['params'].add("CONDOR_OS",'default')
+        self.dicts['params'].add("CONDOR_ARCH",'default')
+        self.dicts['params'].add("CONDOR_VERSION",'default')
 
-        # Prepare to load condor tarballs (after entry, as I may need data from there)
-        for script_name in ('validate_node.sh','condor_platform_select.sh'):
-            self.dicts['after_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
-                
+        # Load initial system scripts
+        # These should be executed before the other scripts
+        for script_name in ('setup_script.sh','cat_consts.sh','condor_platform_select.sh'):
+            self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
+
         #load condor tarballs
+        # only one will be downloaded in the end... based on what condor_platform_select.sh decides
         for condor_idx in range(len(params.condor_tarballs)):
             condor_el=params.condor_tarballs[condor_idx]
 
@@ -135,15 +134,40 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             if condor_fd != None:
                 condor_fd.close()
 
-        # add additional system scripts
-        for script_name in ('create_mapfile.sh','collector_setup.sh','gcb_setup.sh','glexec_setup.sh','java_setup.sh','glidein_memory_setup.sh'):
-            self.dicts['after_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
-                
-        # this must be the last script in the list
-        for script_name in (cgWConsts.CONDOR_STARTUP_FILE,):
-            self.dicts['after_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
+        #
+        # Note:
+        #  We expect the collector info to be coming in as parameter
+        #  as FE consts file is not available at this time
+        #
+
+        # add the basic standard params
+        self.dicts['params'].add("GLIDEIN_Collector",'Fake')
+
+        # Load more system scripts
+        for script_name in ('collector_setup.sh','create_temp_mapfile.sh','setup_x509.sh',cgWConsts.CONDOR_STARTUP_FILE):
+            self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
+
+        # make sure condor_startup does not get executed ahead of time under normal circumstances
+        # but must be loaded early, as it also works as a reporting script in case of error
         self.dicts['description'].add(cgWConsts.CONDOR_STARTUP_FILE,"last_script")
 
+
+        #
+        # At this point in the glideins, condor_advertize should be able to talk to the FE collector
+        #
+
+        # put user files in stage
+        for file in params.files:
+            add_file_unparsed(file,self.dicts)
+
+        # put user attributes into config files
+        for attr_name in params.attrs.keys():
+            add_attr_unparsed(attr_name, params,self.dicts,"main")
+
+        # add additional system scripts
+        for script_name in ('check_proxy.sh','create_mapfile.sh','validate_node.sh','gcb_setup.sh','glexec_setup.sh','java_setup.sh','glidein_memory_setup.sh'):
+            self.dicts['after_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
+                
         # populate complex files
         populate_factory_descript(self.work_dir,self.dicts['glidein'],self.active_sub_list,params)
         populate_frontend_descript(self.dicts['frontend_descript'],params)

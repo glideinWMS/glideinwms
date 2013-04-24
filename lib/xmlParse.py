@@ -13,6 +13,10 @@
 import xml.dom.minidom
 from UserDict import UserDict
 
+class CorruptXML(Exception):
+    pass
+
+
 # This Class was obtained from
 # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/107747
 class OrderedDict(UserDict):
@@ -75,7 +79,11 @@ class OrderedDict(UserDict):
 def xmlfile2dict(fname,
                  use_ord_dict=False,        # if true, return OrderedDict instead of a regular dictionary
                  always_singular_list=[]):  # anything id listed here will be considered as a list
-    doc = xml.dom.minidom.parse(fname)
+
+    try:
+        doc=xml.dom.minidom.parse(fname)
+    except xml.parsers.expat.ExpatError, e:
+        raise CorruptXML("XML corrupt in file %s: %s" % (fname, e))
 
     data = domel2dict(doc.documentElement, use_ord_dict, always_singular_list)
 

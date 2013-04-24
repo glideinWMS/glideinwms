@@ -227,7 +227,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
                 except RuntimeError:
                     # failed to talk, like empty... maybe the next factory will have something
                     if factory_pool_node != None:
-                        logSupport.log.exception("Failed to talk to factory_pool %s for entry info: %s" % factory_pool_node)
+                        logSupport.log.exception("Failed to talk to factory_pool %s for entry info: " % factory_pool_node)
                     else:
                         logSupport.log.exception("Failed to talk to factory_pool for entry info: ")
                     factory_glidein_dict = {}
