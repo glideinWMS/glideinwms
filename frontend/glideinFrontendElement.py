@@ -137,7 +137,7 @@ def expand_DD(qstr,attr_dict):
     robj=re.compile("\$\$\((?P<attrname>[^\)]*)\)")
     while 1:
         m=robj.search(qstr)
-        if m==None:
+        if m is None:
             break # no more substitutions to do
         attr_name=m.group('attrname')
         if not attr_dict.has_key(attr_name):
@@ -177,7 +177,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
             factory_globals_dict = glideinFrontendInterface.findGlobals(factory_pool_node, None, None)
         except RuntimeError:
             # failed to talk, like empty... maybe the next factory will have something
-            if factory_pool_node != None:
+            if factory_pool_node is not None:
                 logSupport.log.exception("Failed to talk to factory_pool %s for global info: " % factory_pool_node)
             else:
                 logSupport.log.exception("Failed to talk to factory_pool for global info: " )
@@ -226,7 +226,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
                     factory_glidein_dict = glideinFrontendInterface.findGlideins(factory_pool_node, None, signatureDescript.signature_type, factory_constraint)
                 except RuntimeError:
                     # failed to talk, like empty... maybe the next factory will have something
-                    if factory_pool_node != None:
+                    if factory_pool_node is not None:
                         logSupport.log.exception("Failed to talk to factory_pool %s for entry info: " % factory_pool_node)
                     else:
                         logSupport.log.exception("Failed to talk to factory_pool for entry info: ")
@@ -264,7 +264,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
         os.close(r)
         try:
             #condorq_format_list = elementDescript.merged_data['JobMatchAttrs']
-            #if x509_proxy_plugin != None:
+            #if x509_proxy_plugin is not None:
             #    condorq_format_list = list(condorq_format_list) + list(x509_proxy_plugin.get_required_job_attributes())
         
             ### Add in elements to help in determining if jobs have voms creds
@@ -275,7 +275,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
             #                                           condorq_format_list)
             try:
                 condorq_format_list = elementDescript.merged_data['JobMatchAttrs']
-                if x509_proxy_plugin != None:
+                if x509_proxy_plugin is not None:
                     condorq_format_list = list(condorq_format_list) + list(x509_proxy_plugin.get_required_job_attributes())
             
                 ### Add in elements to help in determining if jobs have voms creds
@@ -312,7 +312,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
         os.close(r)
         try:
             status_format_list=[]
-            if x509_proxy_plugin!=None:
+            if x509_proxy_plugin is not None:
                 status_format_list=list(status_format_list)+list(x509_proxy_plugin.get_required_classad_attributes())
 
             # use the main collector... all adds must go there
@@ -423,7 +423,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
     #        logSupport.log.info("Factory '%s@%s': unsupported pub key type '%s'" % (glideid[1], glideid[0], glidein_el['attrs']['PubKeyType']))
     
     # update x509 user map and give proxy plugin a chance to update based on condor stats
-    if x509_proxy_plugin != None:
+    if x509_proxy_plugin is not None:
         logSupport.log.info("Updating usermap ");
         x509_proxy_plugin.update_usermap(condorq_dict, condorq_dict_types,
                                                       status_dict, status_dict_types)
@@ -757,7 +757,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
             auth_method="grid_proxy"
 
         # Only advertize if there is a valid key for encryption
-        if key_obj != None:
+        if key_obj is not None:
             advertizer.add(factory_pool_node,
                            request_name, request_name,
                            glidein_min_idle, glidein_max_run, glidein_params, glidein_monitors,

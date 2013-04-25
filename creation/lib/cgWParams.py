@@ -230,7 +230,7 @@ class GlideinParams(cWParams.CommonParams):
     # validate data and add additional attributes if needed
     def derive(self):
         # glidein name does not have a reasonable default
-        if self.glidein_name==None:
+        if self.glidein_name is None:
             raise RuntimeError, "Missing glidein name"
         if not cWParams.is_valid_name(self.glidein_name):
             raise RuntimeError, "Invalid glidein name '%s'"%self.glidein_name
@@ -296,7 +296,7 @@ class GlideinParams(cWParams.CommonParams):
 #####################################
 # try to find out the base condor dir
 def find_condor_base_dir():
-    if condorExe.condor_bin_path==None:
+    if condorExe.condor_bin_path is None:
         return None
     else:
         return os.path.dirname(condorExe.condor_bin_path)

@@ -39,7 +39,7 @@ class cachedLogClass:
     """
     def clInit(self,logname,cache_dir,cache_ext):
         self.logname=logname
-        if cache_dir==None:
+        if cache_dir is None:
             self.cachename=logname+cache_ext
         else:
             self.cachename=os.path.join(cache_dir,os.path.basename(logname)+cache_ext)
@@ -143,9 +143,9 @@ class logSummary(cachedLogClass):
         Merge self data with other info
         @return: merged data, may modify other
         """
-        if other==None:
+        if other is None:
             return self.data
-        elif self.data==None:
+        elif self.data is None:
             return other
         else:
             for k in self.data.keys():
@@ -165,13 +165,13 @@ class logSummary(cachedLogClass):
 
         @return: data[status]['Entered'|'Exited'] - list of jobs
         """
-        if other==None:
+        if other is None:
             outdata={}
-            if self.data!=None:
+            if self.data is not None:
                 for k in self.data.keys():
                     outdata[k] = {'Exited':[], 'Entered':self.data[k]}
             return outdata
-        elif self.data == None:
+        elif self.data is None:
             outdata = {}
             for k in other.keys():
                 outdata[k] = {'Entered':[], 'Exited':other[k]}
@@ -256,9 +256,9 @@ class logCompleted(cachedLogClass):
         Merge self data with other info
         @return: merged data, may modify other
         """
-        if other==None:
+        if other is None:
             return self.data
-        elif self.data==None:
+        elif self.data is None:
             return other
         else:
             for k in self.data['counts'].keys():
@@ -277,8 +277,8 @@ class logCompleted(cachedLogClass):
 
         Uses symmetric difference of sets.
         """
-        if other==None:
-            if self.data!=None:
+        if other is None:
+            if self.data is not None:
                 outcj={'Exited':[],'Entered':self.data['completed_jobs']}
                 outdata={'counts':self.data['counts'],'completed_jobs':outcj}
             else:
@@ -286,7 +286,7 @@ class logCompleted(cachedLogClass):
                             'completed_jobs':{'Exited':[], 'Entered':[]}
                           }
             return outdata
-        elif self.data == None:
+        elif self.data is None:
             outcj = {'Entered':[], 'Exited':other['completed_jobs']}
             outct = {}
             for s in other['counts'].keys():
@@ -356,9 +356,9 @@ class logCounts(cachedLogClass):
         Merge self data with other info
         @return: merged data, may modify other
         """
-        if other==None:
+        if other is None:
             return self.data
-        elif self.data==None:
+        elif self.data is None:
             return other
         else:
             for k in self.data.keys():
@@ -373,12 +373,12 @@ class logCounts(cachedLogClass):
         Diff self data with other info
         @return: diff of counts
         """
-        if other==None:
-            if self.data!=None:
+        if other is None:
+            if self.data is not None:
                 return self.data
             else:
                 return {}
-        elif self.data == None:
+        elif self.data is None:
             outdata = {}
             for s in other.keys():
                 outdata[s] = -other[s]
@@ -436,9 +436,9 @@ class logSummaryTimings(cachedLogClass):
         merge self data with other info
         @return: merged data, may modify other
         """
-        if other==None:
+        if other is None:
             return self.data
-        elif self.data==None:
+        elif self.data is None:
             return other
         else:
             for k in self.data.keys():
@@ -453,13 +453,13 @@ class logSummaryTimings(cachedLogClass):
         diff self data with other info
         @return: data[status]['Entered'|'Exited'] - list of jobs
         """
-        if other==None:
+        if other is None:
             outdata={}
-            if self.data!=None:
+            if self.data is not None:
                 for k in self.data.keys():
                     outdata[k] = {'Exited':[], 'Entered':self.data[k]}
             return outdata
-        elif self.data == None:
+        elif self.data is None:
             outdata = {}
             for k in other.keys():
                 outdata[k] = {'Entered':[], 'Exited':other[k]}
@@ -551,14 +551,14 @@ declared inactive
 
         self.logClass=logClass
         self.dirname=dirname
-        if cache_dir==None:
+        if cache_dir is None:
             cache_dir=dirname
         self.cache_dir=cache_dir
         self.log_prefix=log_prefix
         self.log_suffix=log_suffix
         self.inactive_timeout=inactive_timeout
         self.inactive_files_cache=os.path.join(cache_dir,log_prefix+log_suffix+cache_ext)
-        if inactive_files==None:
+        if inactive_files is None:
             if os.path.isfile(self.inactive_files_cache):
                 self.inactive_files = loadCache(self.inactive_files_cache)
             else:
@@ -944,7 +944,7 @@ def parseSubmitLogFastRawTimings(fname):
         line_time = buf[idx:idx+14]
         idx += 16
 
-        if first_time == None:
+        if first_time is None:
             first_time = line_time
         last_time = line_time
             
@@ -1266,7 +1266,7 @@ def parseSubmitLogFastTimings(fname,year=None):
 
     jobs_raw, first_time, last_time = parseSubmitLogFastRawTimings(fname)
 
-    if year == None:
+    if year is None:
         year = time.localtime()[0]
 
     # it wrapped over, dates really in previous year

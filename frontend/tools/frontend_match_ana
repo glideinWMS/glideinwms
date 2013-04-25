@@ -93,7 +93,7 @@ def do_work(elementDescript,paramsDescript,signatureDescript,job_filter):
             full_constraint='(%s) && ((PubKeyType=?="RSA") && (GlideinAllowx509_Proxy=!=False))' % factory_constraint
             factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,None,signatureDescript.signature_type,full_constraint)
         except RuntimeError,e:
-            if factory_pool_node!=None:
+            if factory_pool_node is not None:
                 print "Failed to talk to factory_pool %s: %s"%(factory_pool_node, e)
             else:
                 print "Failed to talk to factory_pool: %s"%e
@@ -132,7 +132,7 @@ def do_work(elementDescript,paramsDescript,signatureDescript,job_filter):
             job=condorq_data[jid]
             t="%s#%i.%i"%(schedd,jid[0],jid[1])
 
-            if job_filter_obj.search(t)==None:
+            if job_filter_obj.search(t) is None:
                 continue #no matching
             
             print

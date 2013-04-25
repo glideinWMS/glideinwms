@@ -32,7 +32,7 @@ from glideinwms.lib import logSupport
 # specify the appropriate constraint
 #
 def getCondorQ(schedd_names, constraint=None, format_list=None):
-    if format_list != None:
+    if format_list is not None:
         format_list = condorMonitor.complete_format_list(format_list, [('JobStatus', 'i'), ('EnteredCurrentStatus', 'i'), ('ServerTime', 'i'), ('RemoteHost', 's')])
     return getCondorQConstrained(schedd_names, "(JobStatus=?=1)||(JobStatus=?=2)", constraint, format_list)
 
@@ -328,7 +328,7 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
 
     out_glidein_counts={}
 
-    if condorq_match_list!=None:
+    if condorq_match_list is not None:
         condorq_match_list=condorq_match_list+['RunningOn']
 
     schedds=condorq_dict.keys()
@@ -411,7 +411,7 @@ def evalParamExpr(expr_obj, frontend, glidein):
 # specify the appropriate constraint
 #
 def getCondorStatus(collector_names, constraint=None, format_list=None):
-    if format_list != None:
+    if format_list is not None:
         format_list = condorMonitor.complete_format_list(format_list, [('State', 's'), ('Activity', 's'), ('EnteredCurrentState', 'i'), ('EnteredCurrentActivity', 'i'), ('LastHeardFrom', 'i'), ('GLIDEIN_Factory', 's'), ('GLIDEIN_Name', 's'), ('GLIDEIN_Entry_Name', 's'), ('GLIDECLIENT_Name', 's'), ('GLIDECLIENT_ReqNode','s'), ('GLIDEIN_Schedd', 's')])
         type_constraint = '(IS_MONITOR_VM=!=True)&&(GLIDEIN_Factory=!=UNDEFINED)&&(GLIDEIN_Name=!=UNDEFINED)&&(GLIDEIN_Entry_Name=!=UNDEFINED)'
         # Partitionable slots are *always* idle -- the frontend only counts them when
@@ -511,7 +511,7 @@ def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format
             logSupport.log.warning("Skipping empty schedd name")
             continue
         full_constraint = type_constraint[0:] #make copy
-        if constraint != None:
+        if constraint is not None:
             full_constraint = "(%s) && (%s)" % (full_constraint, constraint)
 
         try:
@@ -542,14 +542,14 @@ def getCondorStatusConstrained(collector_names, type_constraint, constraint=None
     out_status_dict = {}
     for collector in collector_names:
         full_constraint = type_constraint[0:] #make copy
-        if constraint != None:
+        if constraint is not None:
             full_constraint = "(%s) && (%s)" % (full_constraint, constraint)
 
         try:
             status = condorMonitor.CondorStatus(pool_name=collector)
             status.load(full_constraint, format_list)
         except condorExe.ExeError:
-            if collector != None:
+            if collector is not None:
                 logSupport.log.exception("Condor Error. Failed to talk to collector %s: " % collector)
             else:
                 logSupport.log.exception("Condor Error. Failed to talk to collector: ")
@@ -656,7 +656,7 @@ def hashJob(condorq_el, condorq_match_list=None):
     out=[]
     keys=condorq_el.keys()
     keys.sort()
-    if condorq_match_list!=None:
+    if condorq_match_list is not None:
         # whitelist... keep only the ones listed
         allkeys=keys
         keys=[]

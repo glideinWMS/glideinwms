@@ -196,7 +196,7 @@ if __name__ == '__main__':
     try:
         params=cgWParams.GlideinParams(usage, WEB_BASE_DIR, args)
 
-        if force_name != None:
+        if force_name is not None:
             if params.glidein_name != force_name:
                 raise UsageError("This is not a '%s' config file ('%s' found)" % (force_name, params.glidein_name))
 

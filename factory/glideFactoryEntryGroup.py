@@ -497,7 +497,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
 
         # Check if its time to invalidate factory's old key
         if ( (time.time() > oldkey_eoltime) and
-             (glideinDescript.data['OldPubKeyObj'] != None) ):
+             (glideinDescript.data['OldPubKeyObj'] is not None) ):
             # Invalidate the use of factory's old key
             logSupport.log.info("Retiring use of old key.")
             logSupport.log.info("Old key was valid from %s to %s ie grace of ~%s sec" % (starttime,oldkey_eoltime,oldkey_gracetime))

@@ -167,7 +167,7 @@ def getCondorQData(entry_name, client_name, schedd_name, factoryConfig=None):
     if factoryConfig is None:
         factoryConfig = globals()['factoryConfig']
 
-    if client_name == None:
+    if client_name is None:
         client_constraint = ""
     else:
         client_constraint = ' && (%s =?= "%s")' % \
@@ -238,12 +238,12 @@ def getQProxSecClass(condorq, client_name, proxy_security_class,
     if factoryConfig is None:
         factoryConfig = globals()['factoryConfig']
 
-    if client_schedd_attribute == None:
+    if client_schedd_attribute is None:
         csa_str = factoryConfig.client_schedd_attribute
     else:
         csa_str = client_schedd_attribute
 
-    if credential_secclass_schedd_attribute == None:
+    if credential_secclass_schedd_attribute is None:
         xsa_str = factoryConfig.credential_secclass_schedd_attribute
     else:
         xsa_str = credential_secclass_schedd_attribute
@@ -1024,7 +1024,7 @@ def group_unclaimed(el_list):
 ############################################################
 
 def schedd_name2str(schedd_name):
-    if schedd_name == None:
+    if schedd_name is None:
         return ""
     else:
         return "-name %s" % schedd_name

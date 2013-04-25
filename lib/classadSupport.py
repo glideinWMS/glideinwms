@@ -205,7 +205,7 @@ class ClassadAdvertiser:
         @param ads: classad names to advertise
         """
 
-        if (ads == None) or (len(ads) == 0) :
+        if (ads is None) or (len(ads) == 0) :
             logSupport.log.info("There are 0 classads to advertise")
             return
 

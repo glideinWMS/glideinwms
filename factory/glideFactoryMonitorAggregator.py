@@ -253,7 +253,7 @@ def aggregateStatus(in_downtime):
                 if not entry_data['total'].has_key(w):
                     continue
                 el=entry_data['total'][w]
-                if tel==None:
+                if tel is None:
                     # new one, just copy over
                     global_total[w]={}
                     tel=global_total[w]
@@ -316,7 +316,7 @@ def aggregateStatus(in_downtime):
 
 
     for w in global_total.keys():
-        if global_total[w]==None:
+        if global_total[w] is None:
             del global_total[w] # remove entry if not defined
         else:
             tel=global_total[w]

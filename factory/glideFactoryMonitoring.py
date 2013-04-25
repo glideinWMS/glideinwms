@@ -148,9 +148,9 @@ class MonitoringConfig:
 
             if not os.path.isfile(fname):
                 #print "Create RRD "+fname
-                if min_val == None:
+                if min_val is None:
                     min_val = 'U'
-                if max_val == None:
+                if max_val is None:
                     max_val = 'U'
                 ds_names = val_dict.keys()
                 ds_names.sort()
@@ -385,7 +385,7 @@ class condorQStats:
                     el = fe[w]
                     tel = total[w]
 
-                    if tel == None:
+                    if tel is None:
                         # first one, just copy over
                         total[w] = {}
                         tel = total[w]
@@ -407,7 +407,7 @@ class condorQStats:
                                 del tel[a]
 
         for w in total.keys():
-            if total[w] == None:
+            if total[w] is None:
                 del total[w] # remove entry if not defined
             else:
                 tel = total[w]
@@ -466,7 +466,7 @@ class condorQStats:
         # update RRDs
         type_strings = {'Status':'Status', 'Requested':'Req', 'ClientMonitor':'Client'}
         for fe in [None] + data.keys():
-            if fe == None: # special key == Total
+            if fe is None: # special key == Total
                 fe_dir = "total"
                 fe_el = total_el
             else:
@@ -633,7 +633,7 @@ class condorLogSummary:
                     count = 0
                     for username in self.current_stats_data[client_name].keys():
                         client_el = self.current_stats_data[client_name][username].data
-                        if ((client_el != None) and (s in client_el.keys())):
+                        if ((client_el is not None) and (s in client_el.keys())):
                             count += len(client_el[s])
 
                     out_el[s] = count
@@ -664,7 +664,7 @@ class condorLogSummary:
             enle_condor_started = 0
             enle_condor_duration = 0 # default is 0, in case it never started
             enle_glidein_duration = enle_difftime # best guess
-            if enle_stats != None:
+            if enle_stats is not None:
                 enle_condor_started = enle_stats['condor_started']
                 if enle_stats.has_key('glidein_duration'):
                     enle_glidein_duration = enle_stats['glidein_duration']
@@ -683,7 +683,7 @@ class condorLogSummary:
             else:
                 #get waste_mill
                 enle_condor_duration = enle_stats['condor_duration']
-                if enle_condor_duration == None:
+                if enle_condor_duration is None:
                     enle_condor_duration = 0 # assume failed
 
                 if enle_condor_duration > enle_glidein_duration: # can happen... Condor-G has its delays
@@ -835,7 +835,7 @@ class condorLogSummary:
                 for username in self.stats_diff[client_name].keys():
                     diff_el = self.stats_diff[client_name][username]
 
-                    if ((diff_el != None) and (s in diff_el.keys())):
+                    if ((diff_el is not None) and (s in diff_el.keys())):
                         entered_list += diff_el[s]['Entered']
                         entered += len(diff_el[s]['Entered'])
                         exited -= len(diff_el[s]['Exited'])
@@ -846,7 +846,7 @@ class condorLogSummary:
                     for username in self.current_stats_data[client_name].keys():
                         stats_el = self.current_stats_data[client_name][username].data
 
-                        if ((stats_el != None) and (s in stats_el.keys())):
+                        if ((stats_el is not None) and (s in stats_el.keys())):
                             count += len(stats_el[s])
                     out_el['Current'][s] = count
                     # and we can never get out of the terminal state
@@ -876,7 +876,7 @@ class condorLogSummary:
             for client_name in self.current_stats_data.keys():
                 for username in self.current_stats_data[client_name]:
                     sdata = self.current_stats_data[client_name][username].data
-                    if ((sdata != None) and (k in sdata.keys())):
+                    if ((sdata is not None) and (k in sdata.keys())):
                         tdata = tdata + sdata[k]
             total[k] = tdata
         return total
@@ -909,7 +909,7 @@ class condorLogSummary:
                 #flatten all usernames into one
                 for username in self.stats_diff[client_name].keys():
                     sdiff = self.stats_diff[client_name][username]
-                    if ((sdiff != None) and (k in sdiff.keys())):
+                    if ((sdiff is not None) and (k in sdiff.keys())):
                         if k == 'Completed':
                             # for completed jobs, add the username
                             # not for the others since there is no adequate place in the object
@@ -930,7 +930,7 @@ class condorLogSummary:
             for client_name in self.stats_diff.keys():
                 for username in self.stats_diff[client_name].keys():
                     sdiff = self.stats_diff[client_name][username]
-                    if ((sdiff != None) and (k in sdiff.keys())):
+                    if ((sdiff is not None) and (k in sdiff.keys())):
                         for e in tdata.keys():
                             tdata[e] = tdata[e] + sdiff[k][e]
         return total
@@ -986,7 +986,7 @@ class condorLogSummary:
         diff_summary = self.get_diff_summary()
         stats_total_summary = self.get_stats_total_summary()
         for client_name in [None] + diff_summary.keys():
-            if client_name == None:
+            if client_name is None:
                 fe_dir = "total"
                 sdata = stats_total_summary
                 sdiff = self.get_diff_total()
@@ -1008,7 +1008,7 @@ class condorLogSummary:
                     val_dict_counts["Status%s" % s] = count
                     val_dict_counts_desc["Status%s" % s] = {'ds_type':'GAUGE'}
 
-                if ((sdiff != None) and (s in sdiff.keys())):
+                if ((sdiff is not None) and (s in sdiff.keys())):
                     entered_list = sdiff[s]['Entered']
                     entered = len(entered_list)
                     exited = -len(sdiff[s]['Exited'])
@@ -1024,7 +1024,7 @@ class condorLogSummary:
                     val_dict_counts_desc["Exited%s" % s] = {'ds_type':'ABSOLUTE'}
                 elif s == 'Completed':
                     completed_stats = self.get_completed_stats(entered_list)
-                    if client_name != None: # do not repeat for total
+                    if client_name is not None: # do not repeat for total
                         monitoringConfig.logCompleted(client_name, completed_stats)
                     completed_counts = self.summarize_completed_stats(completed_stats)
 

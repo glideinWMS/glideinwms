@@ -37,7 +37,7 @@ class GlideinWMSDistro:
 
         def __init__(self, dir, chksumFile=None):
             self.versionIdentifier = 'GLIDEINWMS_VERSION'
-            if chksumFile == None:
+            if chksumFile is None:
                 self.distroChksumFile = os.path.join(dir,'etc/checksum')
             else:
                 self.distroChksumFile = chksumFile

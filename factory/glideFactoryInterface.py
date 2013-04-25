@@ -335,10 +335,10 @@ def findWork(factory_name, glidein_name, entry_name,
     
     status_constraint = '(GlideinMyType=?="%s") && (ReqGlidein=?="%s@%s@%s")' % (factoryConfig.client_id, entry_name, glidein_name, factory_name)
 
-    if supported_signtypes != None:
+    if supported_signtypes is not None:
         status_constraint += ' && stringListMember(%s%s,"%s")' % (factoryConfig.client_web_prefix, factoryConfig.client_web_signtype_suffix, string.join(supported_signtypes, ","))
 
-    if additional_constraints != None:
+    if additional_constraints is not None:
         status_constraint = "((%s)&&(%s))" % (status_constraint, additional_constraints)
     
     status = condorMonitor.CondorStatus("any")
@@ -387,7 +387,7 @@ def findWork(factory_name, glidein_name, entry_name,
                     continue # skip reserved names
                 if attr[:plen] == prefix:
                     el[key][attr[plen:]] = kel[attr]
-        if pub_key_obj != None:
+        if pub_key_obj is not None:
             if kel.has_key('ReqPubKeyID'):
                 try:
                     sym_key_obj = pub_key_obj.extract_sym_key(kel['ReqEncKeyCode'])
@@ -398,7 +398,7 @@ def findWork(factory_name, glidein_name, entry_name,
         else:
             sym_key_obj = None # have no key, will not decrypt
 
-        if sym_key_obj != None:
+        if sym_key_obj is not None:
             # this is verifying that the identity that the client claims to be is the identity that Condor thinks it is
             try:
                 enc_identity = sym_key_obj.decrypt_hex(kel['ReqEncIdentity'])
@@ -418,7 +418,7 @@ def findWork(factory_name, glidein_name, entry_name,
                     continue # skip reserved names
                 if attr[:plen] == prefix:
                     el[key][attr[plen:]] = None # define it even if I don't understand the content
-                    if sym_key_obj != None:
+                    if sym_key_obj is not None:
                         try:
                             el[key][attr[plen:]] = sym_key_obj.decrypt_hex(kel[attr])
                         except:

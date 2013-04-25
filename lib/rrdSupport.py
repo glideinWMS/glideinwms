@@ -28,7 +28,7 @@ class BaseRRDSupport:
         self.rrd_obj = rrd_obj
 
     def isDummy(self):
-        return (self.rrd_obj == None)
+        return (self.rrd_obj is None)
 
     #############################################################
     # The default will do nothing
@@ -155,7 +155,7 @@ class BaseRRDSupport:
           time     - When was the value taken
           val_dict - What was the value
         """
-        if self.rrd_obj == None:
+        if self.rrd_obj is None:
             return # nothing to do in this case
 
         args = [str(rrdfname)]
@@ -165,7 +165,7 @@ class BaseRRDSupport:
         ds_names_real = []
         ds_vals = []
         for ds_name in ds_names:
-            if val_dict[ds_name]!=None:
+            if val_dict[ds_name] is not None:
                 ds_vals.append("%s"%val_dict[ds_name])
                 ds_names_real.append(ds_name)
 
@@ -312,14 +312,14 @@ class BaseRRDSupport:
             ds_fname = rrd_file[1]
             ds_name = rrd_file[2]
             ds_type = rrd_file[3]
-            if trend == None:
+            if trend is None:
                 args.append(str("DEF:%s=%s:%s:%s" % (ds_id, ds_fname, ds_name, ds_type)))
             else:
                 args.append(str("DEF:%s_inst=%s:%s:%s" % (ds_id, ds_fname, ds_name, ds_type)))
                 args.append(str("CDEF:%s=%s_inst,%i,TREND" % (ds_id, ds_id, trend)))
 
         plot_arr = rrd_files
-        if cdef_arr != None:
+        if cdef_arr is not None:
             # plot the cdefs not the files themselves, when we have them
             plot_arr = cdef_arr
 
@@ -432,16 +432,16 @@ class BaseRRDSupport:
         else:
             raise RuntimeError,"Invalid consolidation function %s"%CF
         args = [str(filename), consolFunc]
-        if not (resolution == None):
+        if resolution is not None:
             args.append('-r')
             args.append(str(resolution))
-        if not (end == None):
+        if end is not None:
             args.append('-e')
             args.append(str(end))
-        if not (start == None):
+        if start is not None:
             args.append('-s')
             args.append(str(start))
-        if not (daemon == None):
+        if daemon is not None:
             args.append('--daemon')
             args.append(str(daemon))
 

@@ -81,7 +81,7 @@ def strtxt2time(timeStr):
 # or
 # unix_time
 def str2time(timeStr):
-    #if (timeStr==None) or (timeStr=="None") or (timeStr==""):
+    #if (timeStr is None) or (timeStr=="None") or (timeStr==""):
     #    return time.localtime(time.time())
     if len(timeStr.split(':',1))>1:
         # has a :, so it must be a text representation

@@ -39,7 +39,7 @@ class EnvState:
         for condor_key in self.state.keys():
             env_key="_CONDOR_%s"%condor_key
             old_val=self.state[condor_key]
-            if old_val!=None:
+            if old_val is not None:
                 os.environ[env_key]=old_val
             else:
                 del os.environ[env_key]
@@ -90,7 +90,7 @@ class SecEnvRequest:
     def __init__(self,requests=None):
         # requests is a dictionary of requests [context][feature]=VAL
         self.requests={}
-        if requests!=None:
+        if requests is not None:
             for context in requests.keys():
                 for feature in requests[context].keys():
                     self.set(context,feature,requests[context][feature])
@@ -101,7 +101,7 @@ class SecEnvRequest:
     ##############################################
     # Methods for accessig the requests
     def set(self,context,feature,value): # if value is None, remove the request
-        if value!=None:
+        if value is not None:
             if not self.requests.has_key(context):
                 self.requests[context]={}
             self.requests[context][feature]=value
@@ -124,7 +124,7 @@ class SecEnvRequest:
     # Methods for preserving the old state
 
     def has_saved_state(self):
-        return (self.saved_state!=None)
+        return (self.saved_state is not None)
 
     def save_state(self):
         if self.has_saved_state():
@@ -136,7 +136,7 @@ class SecEnvRequest:
         self.saved_state=SecEnvState(filter)
 
     def restore_state(self):
-        if self.saved_state==None:
+        if self.saved_state is None:
             return # nothing to do
 
         self.saved_state.restore()
@@ -182,7 +182,7 @@ CONDOR_PROTO_VALUE_LIST=('NEVER','OPTIONAL','PREFERRED','REQUIRED')
 ########################################
 class EnvProtoState(SecEnvState):
     def __init__(self,filter=None):
-        if filter!=None:
+        if filter is not None:
             # validate filter
             for c in filter.keys():
                 if not (c in CONDOR_CONTEXT_LIST):
@@ -237,7 +237,7 @@ class GSIRequest(ProtoRequest):
             auth_str+=",FS"
 
         # force GSI authentication
-        if proto_requests!=None:
+        if proto_requests is not None:
             proto_request=copy.deepcopy(proto_requests)
         else:
             proto_request={}
@@ -253,7 +253,7 @@ class GSIRequest(ProtoRequest):
         ProtoRequest.__init__(self,proto_requests)
         self.allow_fs=allow_fs
 
-        if x509_proxy==None:
+        if x509_proxy is None:
             if not os.environ.has_key('X509_USER_PROXY'):
                 raise RuntimeError, "x509_proxy not provided and env(X509_USER_PROXY) undefined"
             x509_proxy=os.environ['X509_USER_PROXY']
@@ -275,12 +275,12 @@ class GSIRequest(ProtoRequest):
         ProtoRequest.save_state(self)
 
     def restore_state(self):
-        if self.saved_state==None:
+        if self.saved_state is None:
             return # nothing to do
 
         ProtoRequest.restore_state(self)
 
-        if self.x509_proxy_saved_state!=None:
+        if self.x509_proxy_saved_state is not None:
             os.environ['X509_USER_PROXY']=self.x509_proxy_saved_state
         else:
             del os.environ['X509_USER_PROXY']
