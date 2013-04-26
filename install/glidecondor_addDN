@@ -35,6 +35,21 @@ def usage():
     print " glidecondor_addDN [-q] [-daemon comment] DN|certfile user"
     return
 
+def expand_dn(dn,QUIET_OPS):
+    if dn.startswith("file:") or os.path.isfile(dn):
+        # not a DN... it is really a file
+        # extract the DN
+        if dn.startswith("file:"):
+            fname=dn.split(':',1)[1]
+        else:
+            fname=dn
+        if not QUIET_OPS:
+            print "Reading certificate file '%s'"%fname
+        dn=extract_DN(fname)
+        if not QUIET_OPS:
+            print "Using DN '%s'"%dn
+    return dn
+
 def parse_args(args):
     QUIET_OPS=False
     
@@ -64,20 +79,7 @@ def parse_args(args):
     dn=args[0]
     user=args[1]
 
-    if dn.startswith("file:") or os.path.isfile(dn):
-        # not a DN... it is really a file
-        # extract the DN
-        if dn.startswith("file:"):
-            fname=dn.split(':',1)[1]
-        else:
-            fname=dn
-        if not QUIET_OPS:
-            print "Reading certificate file '%s'"%fname
-        dn=extract_DN(fname)
-        if not QUIET_OPS:
-            print "Using DN '%s'"%dn
-    
-    return QUIET_OPS,{'is_daemon_dn':(daemon_comment!=None),'daemon_comment':daemon_comment,'dn':dn,'user':user}
+    return QUIET_OPS,{'is_daemon_dn':(daemon_comment!=None),'daemon_comment':daemon_comment,'dn':expand_dn(dn,QUIET_OPS),'user':user}
 
 def check_config(fname):
     if not os.path.isfile(fname):
@@ -154,11 +156,11 @@ def update_config(config_file,dnlist):
     return
 
 def main(args):
-    # parse the arguments, so we know what the user want
-    QUIET_OPS,params=parse_args(args)
-
-    # make sure we can access the files to be changed
     try:
+        # parse the arguments, so we know what the user want
+        QUIET_OPS,params=parse_args(args)
+
+        # make sure we can access the files to be changed
         try:
              condor_mapfile=condorExe.iexe_cmd("condor_config_val CERTIFICATE_MAPFILE")[0].rstrip('\n')
         except condorExe.ExeError,e:
