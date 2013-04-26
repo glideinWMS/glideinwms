@@ -36,7 +36,7 @@ def usage():
     return
 
 def expand_dn(dn,QUIET_OPS):
-    if dn.startswith("file:") or os.path.isfile(dn):
+    if dn.startswith("file:") or ((not dn.startswith('dn:')) and os.path.isfile(dn)):
         # not a DN... it is really a file
         # extract the DN
         if dn.startswith("file:"):
