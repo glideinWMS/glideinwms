@@ -32,11 +32,12 @@ from glideinwms.lib import condorExe
 
 def usage():
     print "Usage:"
-    print " glidecondor_addDN [-daemon comment] DN|certfile user"
+    print " glidecondor_addDN [-q] [-daemon comment] DN|certfile user"
     return
 
-
 def parse_args(args):
+    QUIET_OPS=False
+    
     daemon_comment=None
     if len(args)<2:
         usage()
@@ -46,6 +47,10 @@ def parse_args(args):
         usage()
         sys.exit(1)
 
+    if args[0]=='-q':
+        QUIET_OPS=True
+        args=args[1:]
+        
     if args[0]=='-daemon':
         daemon_comment=args[1]
         if len(daemon_comment)<10:
@@ -62,10 +67,13 @@ def parse_args(args):
     if os.path.isfile(dn):
         # not a DN... it is really a file
         # extract the DN
+        if not QUIET_OPS:
+            print "Reading certificate file '%s'"%dn
         dn=extract_DN(dn)
-        print "Using DN '%s'"%dn
+        if not QUIET_OPS:
+            print "Using DN '%s'"%dn
     
-    return {'is_daemon_dn':(daemon_comment!=None),'daemon_comment':daemon_comment,'dn':dn,'user':user}
+    return QUIET_OPS,{'is_daemon_dn':(daemon_comment!=None),'daemon_comment':daemon_comment,'dn':dn,'user':user}
 
 def check_config(fname):
     if not os.path.isfile(fname):
@@ -76,7 +84,7 @@ def check_config(fname):
 
     return # file seems OK
 
-def update_mapfile(mapfile,dn,user):
+def update_mapfile(mapfile,dnlist):
     mapmode=os.stat(mapfile)[stat.ST_MODE]
     fd=open(mapfile,'r')
     lines=fd.readlines()
@@ -97,7 +105,10 @@ def update_mapfile(mapfile,dn,user):
     for i in range(0,len(lines)):
         line=lines[i]
         if line[:5]!='GSI "':
-            lines.insert(i,'GSI "^%s$" %s\n'%(re.escape(dn),user))
+            for dnel in dnlist:
+                dn=dnel['dn']
+                user=dnel['user']
+                lines.insert(i,'GSI "^%s$" %s\n'%(re.escape(dn),user))
             found=True
             break
     if not found:
@@ -123,20 +134,24 @@ def update_mapfile(mapfile,dn,user):
 
     return
 
-def update_config(config_file,dn,user,comment):
+def update_config(config_file,dnlist):
     # just append at the end of the file
     fd=open(config_file,'a')
-    fd.write("\n# New daemon DN added on %s\n"%time.ctime())
-    fd.write("# Comment: %s\n"%comment)
-    fd.write("# The following DN will map to %s\n"%user)
-    fd.write("GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s\n"%dn)
+    for dnel in dnlist:
+        dn=dnel['dn']
+        user=dnel['user']
+        comment=dnel['daemon_comment']
+        fd.write("\n# New daemon DN added on %s\n"%time.ctime())
+        fd.write("# Comment: %s\n"%comment)
+        fd.write("# The following DN will map to %s\n"%user)
+        fd.write("GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s\n"%dn)
     fd.close()
 
     return
 
 def main(args):
     # parse the arguments, so we know what the user want
-    params=parse_args(args)
+    QUIET_OPS,params=parse_args(args)
 
     # make sure we can access the files to be changed
     try:
@@ -180,13 +195,14 @@ def main(args):
         sys.exit(2)
 
     #now do the changes
-    update_mapfile(condor_mapfile,params['dn'],params['user'])
+    update_mapfile(condor_mapfile,[params])
     if params['is_daemon_dn']:
-        update_config(condor_config,params['dn'],params['user'],params['daemon_comment'])
+        update_config(condor_config,[params])
 
-    print "Configuration files changed."
-    print "Remember to reconfig the affected Condor daemons."
-    print
+    if not QUIET_OPS:
+        print "Configuration files changed."
+        print "Remember to reconfig the affected Condor daemons."
+        print
 
     return 0
 
