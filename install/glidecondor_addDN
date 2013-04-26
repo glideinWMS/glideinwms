@@ -64,12 +64,16 @@ def parse_args(args):
     dn=args[0]
     user=args[1]
 
-    if os.path.isfile(dn):
+    if dn.startswith("file:") or os.path.isfile(dn):
         # not a DN... it is really a file
         # extract the DN
+        if dn.startswith("file:"):
+            fname=dn.split(':',1)[1]
+        else:
+            fname=dn
         if not QUIET_OPS:
-            print "Reading certificate file '%s'"%dn
-        dn=extract_DN(dn)
+            print "Reading certificate file '%s'"%fname
+        dn=extract_DN(fname)
         if not QUIET_OPS:
             print "Using DN '%s'"%dn
     
