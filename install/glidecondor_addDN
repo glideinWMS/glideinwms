@@ -123,9 +123,12 @@ def parse_import_args(args,QUIET_OPS):
             if not (larr[1] in ('daemon','nodaemon','client')):
                 raise IOError, (errno.EPROTO,"Unexpected dn type %s in %s:%i"%(larr[1],importfname,count))
             user=larr[0]
-            dn=larr[2]
+            try:
+                dn=expand_dn(larr[2],QUIET_OPS)
+            except IOError, e:
+                raise IOError, (e.errno, "While processing %s:%i %s"%(importfname, count, str(e)))
             is_daemon=(larr[1]=='daemon')
-            dnlist.append({'is_daemon_dn':is_daemon,'daemon_comment':"Imported from %s:%i"%(importfname,count),'dn':expand_dn(dn,QUIET_OPS),'user':user})
+            dnlist.append({'is_daemon_dn':is_daemon,'daemon_comment':"Imported from %s:%i"%(importfname,count),'dn':dn,'user':user})
 
             pass
         # end for lines
