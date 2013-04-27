@@ -22,6 +22,7 @@ import subprocess
 import stat
 import time
 import re
+import errno
 import M2Crypto
 
 STARTUP_DIR=sys.path[0]
@@ -33,6 +34,8 @@ from glideinwms.lib import condorExe
 def usage():
     print "Usage:"
     print " glidecondor_addDN [-q] [-daemon comment] DN|certfile user"
+    print "or"
+    print " glidecondor_addDN [-q] -import listfile*"
     return
 
 def expand_dn(dn,QUIET_OPS):
@@ -53,7 +56,6 @@ def expand_dn(dn,QUIET_OPS):
 def parse_args(args):
     QUIET_OPS=False
     
-    daemon_comment=None
     if len(args)<2:
         usage()
         sys.exit(1)
@@ -65,7 +67,18 @@ def parse_args(args):
     if args[0]=='-q':
         QUIET_OPS=True
         args=args[1:]
-        
+
+    if len(args)<2:
+        usage()
+        sys.exit(1)
+
+    if args[0]=='-import':
+        return parse_import_args(args,QUIET_OPS)
+    else:
+        return parse_one_args(args,QUIET_OPS)
+
+def parse_one_args(args,QUIET_OPS):
+    daemon_comment=None
     if args[0]=='-daemon':
         daemon_comment=args[1]
         if len(daemon_comment)<10:
@@ -79,7 +92,47 @@ def parse_args(args):
     dn=args[0]
     user=args[1]
 
-    return QUIET_OPS,{'is_daemon_dn':(daemon_comment!=None),'daemon_comment':daemon_comment,'dn':expand_dn(dn,QUIET_OPS),'user':user}
+    return QUIET_OPS,[{'is_daemon_dn':(daemon_comment!=None),'daemon_comment':daemon_comment,'dn':expand_dn(dn,QUIET_OPS),'user':user}]
+
+def parse_import_args(args,QUIET_OPS):
+    if len(args)<2:
+        usage()
+        sys.exit(1)
+
+    dnlist=[]
+    for importfname in args[1:]:
+        fd=open(importfname,"r")
+        try:
+            lines=fd.readlines()
+        finally:
+            fd.close()
+
+        count=0
+        for rawline in lines:
+            count+=1
+            line=rawline.strip()
+            if len(line)==0:
+                continue # emtpy line
+            if line[0]=="#":
+                continue # comment
+
+            larr=line.split(None,2)
+            if len(larr)!=3:
+                #Use IOError to simplify the exception handling
+                raise IOError, (errno.EPROTO,"Expected at least 3 tokens in %s:%i"%(importfname,count))
+            if not (larr[1] in ('daemon','nodaemon','client')):
+                raise IOError, (errno.EPROTO,"Unexpected dn type %s in %s:%i"%(larr[1],importfname,count))
+            user=larr[0]
+            dn=larr[2]
+            is_daemon=(larr[1]=='daemon')
+            dnlist.append({'is_daemon_dn':is_daemon,'daemon_comment':"Imported from %s:%i"%(importfname,count),'dn':expand_dn(dn,QUIET_OPS),'user':user})
+
+            pass
+        # end for lines
+        pass
+    #end for args
+    
+    return QUIET_OPS,dnlist
 
 def check_config(fname):
     if not os.path.isfile(fname):
@@ -159,7 +212,7 @@ def cond_update_config(config_file,dnlist):
 def main(args):
     try:
         # parse the arguments, so we know what the user want
-        QUIET_OPS,params=parse_args(args)
+        QUIET_OPS,dnlist=parse_args(args)
 
         # make sure we can access the files to be changed
         try:
@@ -168,7 +221,7 @@ def main(args):
              raise IOError, "Path to CERTIFICATE_MAPFILE not found"
 
         check_config(condor_mapfile)
-        if params['is_daemon_dn']:
+        if (len(dnlist)!=1) or dnlist[0]['is_daemon_dn']:
             has_dir=False
             try:
                  condor_config_dir=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_DIR")[0].rstrip('\n')
@@ -202,8 +255,9 @@ def main(args):
         sys.exit(2)
 
     #now do the changes
-    update_mapfile(condor_mapfile,[params])
-    cond_update_config(condor_config,[params])
+    update_mapfile(condor_mapfile,dnlist)
+    if (len(dnlist)!=1) or dnlist[0]['is_daemon_dn']:
+        cond_update_config(condor_config,dnlist)
 
     if not QUIET_OPS:
         print "Configuration files changed."
