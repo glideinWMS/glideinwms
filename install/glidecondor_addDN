@@ -167,10 +167,12 @@ def update_mapfile(mapfile,dnlist):
     for i in range(0,len(lines)):
         line=lines[i]
         if line[:5]!='GSI "':
+            iline=i
             for dnel in dnlist:
                 dn=dnel['dn']
                 user=dnel['user']
-                lines.insert(i,'GSI "^%s$" %s\n'%(re.escape(dn),user))
+                lines.insert(iline,'GSI "^%s$" %s\n'%(re.escape(dn),user))
+                iline+=1
             found=True
             break
     if not found:
