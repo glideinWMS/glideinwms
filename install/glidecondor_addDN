@@ -89,7 +89,13 @@ def parse_one_args(args,QUIET_OPS):
     if len(args)!=2:
         usage()
         sys.exit(1)
+
     dn=args[0]
+    if (len(dn)<3) or (dn[0]=="-"):
+        # this looks like a typo on the part of the user
+        print "Invalid DN: %s"%dn
+        sys.exit(1)
+
     user=args[1]
 
     return QUIET_OPS,[{'is_daemon_dn':(daemon_comment!=None),'daemon_comment':daemon_comment,'dn':expand_dn(dn,QUIET_OPS),'user':user}]
