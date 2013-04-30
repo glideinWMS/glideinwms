@@ -153,35 +153,52 @@ def getCondorQUsers(condorq_dict):
 
     return users_set
 
-#
-# Get the number of jobs that match each glidein
-#
-# match_obj = compile('(job["MIN_NAME"]<glidein["MIN_NAME"]) && (job["ARCH"]==glidein["ARCH"])',"<string>","eval")
-# condorq_dict = output of getidlqCondorQ
-# glidein_dict = output of interface.findGlideins
-#
-# Returns:
-#  tuple of 3 elements, where each is a
-#    dictionary of glidein name where elements are number of jobs matching
-#  The first  one is a straight match
-#  The second one is the entry proportion based on unique subsets
-#  The third  one contains only elements that can only run on this site 
-#
-#  A special "glidein name" of (None, None, None) is used for jobs 
-#   that don't match any "real glidein name"
 
-def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, condorq_match_list=None):
-    out_glidein_counts = {}
-    #new_out_counts: keys are site indexes(numbers), 
+def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
+               condorq_match_list=None):
+    """
+    Get the number of jobs that match each glideina
+    
+    @param match_obj: output of re.compile(match string,'<string>','eval')
+    @type condorq_dict: dictionary: sched_name->CondorQ object
+    @param condorq_dict: output of getidleCondorQ
+    @type glidein_dict: dictionary: glidein_name->dictionary of params and attrs
+    @param glidein_dict: output of interface.findGlideins
+    @param attr_dict:  dictionary of constant attributes
+    @param condorq_match_list: list of job attributes from the XML file
+    @return: tuple of 3 elements, where each is a
+        dictionary of glidein name where elements are number of jobs matching
+        The first  one is a straight match
+        The second one is the entry proportion based on unique subsets
+        The third  one contains only elements that can only run on this site
+        A special 'glidein name' of (None, None, None) is used for jobs
+        that don't match any 'real glidein name'
+    """
+
+    out_glidein_counts={}
+    #new_out_counts: keys are site indexes(numbers),
     #elements will be the number of real
     #idle jobs associated with each site
     new_out_counts = {}
     glideindex = 0
 
+    #
+    # To speed up dictionary lookup
+    # we will convert Schedd_Name#ClusterId.ProcID into a number
+    # Since we have to convert a 3 dimensional entity into a linear number
+    # we have to pick two ranges to use as multipliers
+    # len(schedds) is the first obvious one, since it is fixed
+    # between ClusterId and ProcId, we select max(ProcId) 
+    # since it is the smaller of the two the formula thus becomes
+    #  (ClusterId*max_ProcId+ProcId)*len(schedds)+scheddIdx
+    #
+
     schedds=condorq_dict.keys()
     nr_schedds=len(schedds)
 
-    # find max ProcId
+    # Find max ProcId by searching through condorq output for all schedds
+    #   This is needed to linearize the dictionary as per above
+    #   The max ProcId will be stored in procid_mul
     max_procid=0
     for scheddIdx in range(nr_schedds):
         schedd=schedds[scheddIdx]
@@ -193,32 +210,57 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, condorq_match_l
            max_procid=procid
     procid_mul=long(max_procid+1)
 
-    # dict of job clusters
-    # group together those that have the same attributes
+    # Group jobs into clusters of similar attributes
+
+    # Results will be stored in the variables:
+    #  cq_dict_clusters - dict of clusters (= list of job ids)
+    #  cq_jobs - full set of job ids
     cq_dict_clusters={}
-    # set of all jobs
     cq_jobs=set()
     for scheddIdx in range(nr_schedds):
+        # For each schedd, look through all its job from condorq results
         schedd=schedds[scheddIdx]
         cq_dict_clusters[scheddIdx]={}
         cq_dict_clusters_el=cq_dict_clusters[scheddIdx]
         condorq=condorq_dict[schedd]
         condorq_data=condorq.fetchStored()
         for jid in condorq_data.keys():
+            # For each job, hash the job using the attributes
+            #  listed from xml under match_attrs
+            # Jobs that hash to the same value should
+            #  be considered equivalent and part of the same
+            #  cluster for matching purposes
             jh=hashJob(condorq_data[jid],condorq_match_list)
             if not cq_dict_clusters_el.has_key(jh):
                 cq_dict_clusters_el[jh]=[]
+            # Add the job to the correct cluster according to the
+            #   linearization scheme above
             cq_dict_clusters_el[jh].append(jid)
             t=(jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
+            # Add jobs
             cq_jobs.add(t)
 
-    list_of_all_jobs = []
 
+    # Now, loop through all glideins (ie. entries)
+    # match the clusters to these glideins
+
+    # Results:
+    #  list_of_all_jobs: a list containing the set of jobs that match a gliedin (i.e. entry)
+    #                    the position in the list identifies the glidein
+    #                    and each element is a set of indexes representing a job cluster each
+    #  all_jobs_clusters: dictionary of cluster index -> list of jobs in the cluster (represented each by its own index)
+    list_of_all_jobs=[]
+    all_jobs_clusters={}
+    
     for glidename in glidein_dict:
         glidein=glidein_dict[glidename]
         glidein_count=0
         jobs_arr=[]
+        # Clusters are organized by schedd,
+        #  so loop through each schedd
         for scheddIdx in range(nr_schedds):
+            # Now, go through each unique hash in the cluster
+            #  and match clusters individually
             schedd=schedds[scheddIdx]
             cq_dict_clusters_el=cq_dict_clusters[scheddIdx]
             condorq=condorq_dict[schedd]
@@ -243,13 +285,10 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, condorq_match_l
                             t=(jid[0]*procid_mul+jid[1])*nr_schedds+scheddIdx
                             cluster_arr.append(t)
                             schedd_count+=1
-                        #first_t=(first_jid[0]*procid_mul+first_jid[1])*nr_schedds+scheddIdx
-                        #all_jobs_clusters[first_t]=cluster_arr
-                        #sjobs_arr+=[first_t]
-                        # adding a whole cluster much faster
-                        sjobs_arr+=cluster_arr
-                        del cluster_arr
-
+                        # PM: Added as part of #3150/#3196
+                        first_t=(first_jid[0]*procid_mul+first_jid[1])*nr_schedds+scheddIdx
+                        all_jobs_clusters[first_t]=cluster_arr
+                        sjobs_arr+=[first_t]
                 except KeyError, e:
                     tb = traceback.format_exception(sys.exc_info()[0],
                                                     sys.exc_info()[1],
@@ -276,8 +315,31 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict, condorq_match_l
         list_of_all_jobs.append(jobs)
         out_glidein_counts[glidename]=glidein_count
 
-    (outvals,jrange) = uniqueSets(list_of_all_jobs)
+    # Now split the list of sets into unique sets
+    # We will use this to count how many glideins each job matches against
+    # outvals_cl contains the new list of unique sets
+    #  each element is a tuple: (set of glideins with the same jobs, set of jobs)
+    # jrange_cl contains the set of all the job clusters
+    (outvals_cl,jrange_cl) = uniqueSets(list_of_all_jobs)
     del list_of_all_jobs
+
+    # Convert from clusters back to jobs
+    #   Now that we are done matching, we no longer
+    #   need the clusters (needed for more efficient matching)
+    #   convert all_jobs_clusters back to jobs_arr (list of jobs)
+    outvals=[]
+    for tuple in outvals_cl:
+        jobs_arr=[]
+        for ct in tuple[1]:
+            cluster_arr=all_jobs_clusters[ct]
+            jobs_arr+=cluster_arr
+        outvals.append((tuple[0],set(jobs_arr)))
+    jobs_arr=[]
+    for ct in jrange_cl:
+        cluster_arr=all_jobs_clusters[ct]
+        jobs_arr+=cluster_arr
+    jrange=set(jobs_arr)
+
     count_unmatched=len(cq_jobs-jrange)
 
     #unique_to_site: keys are sites, elements are num of unique jobs
