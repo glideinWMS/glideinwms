@@ -31,11 +31,22 @@ sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 from glideinwms.lib.x509Support import extract_DN
 from glideinwms.lib import condorExe
 
+class ArgError(RuntimeError):
+    def __init__(self, err_str):
+        RuntimeError.__init__(self, err_str)
+
 def usage():
     print "Usage:"
-    print " glidecondor_addDN [-q] [-daemon comment] DN|certfile user"
+    print " glidecondor_addDN [options] [-daemon comment] DN|certfile user"
+    print "    - Add a single DN"
     print "or"
-    print " glidecondor_addDN [-q] -import listfile*"
+    print " glidecondor_addDN [options] -import listfile*"
+    print "    - Add several DNs from one or more list files"
+    print "where [options] is any of the following:"
+    print " -h             - print this help and exit"
+    print " -q             - quiet operation"
+    #print " -allow-empty   - without, a valid condor-mapfile must already exist"
+    #print " -recreate      - destroy any existing mapfile and 90_gwms_dns.config, and crete a new one"
     return
 
 def expand_dn(dn,QUIET_OPS):
@@ -56,62 +67,125 @@ def expand_dn(dn,QUIET_OPS):
 def parse_args(args):
     QUIET_OPS=False
     
+    mode=None # 1 for single DN, 2 for list
+    opts=[]
+    modargs=[]
+
+    i=0
+    try:
+        while (i<len(args)):
+            arg=args[i]
+            i+=1
+            if arg in ('-h','-q','-allow-empty','-recreate'):
+                # options without any parameters
+                opts.append(arg)
+            elif arg=='-daemon':
+                # Single DN mode
+                if mode==2:
+                    raise ArgError, "Cannot use -daemon option in list mode: %i"%i
+                mode=1
+                modargs.append(arg)
+                arg=args[i]
+                i+=1
+                modargs.append(arg)
+            elif arg=='-import':
+                # list mode
+                if mode==1:
+                    raise ArgError, "Cannot use -import option in single DN mode: %i"%i
+                mode=2
+                modargs.append(arg)
+                # at least one fname expected
+                arg=args[i]
+                i+=1
+                if arg.startswith('-'):
+                    raise ArgError, "Expected a file name, got an option: %i"%i
+                modargs.append(arg)
+                # then all that are not options
+                while (i<len(args)):
+                    arg=args[i]
+                    if arg.startswith('-'):
+                        break # not a file name, move on
+                    i+=1
+                    modargs.append(arg)
+            elif arg.startswith('-'):
+                raise ArgError, "Unrecognized option '%s': %i"%(arg,i)
+            else: # what is left is the single DN mode
+                if mode==2:
+                    raise ArgError, "Found spurious arguments in list mode: %i"%i
+                mode=1
+                modargs.append(arg)
+                arg=args[i]
+                i+=1
+                modargs.append(arg)
+    except IndexError, e:
+        raise ArgError, "Not enough arguments, at least %i expected"%i
+        
+    if '-h' in opts:
+        # help requested, no error
+        usage()
+        sys.exit(0)
+        
     if len(args)<2:
-        usage()
-        sys.exit(1)
+        raise ArgError, "Not enough arguments"
 
-    if (args[0]=='-help') or (args[0]=='-h') or (args[0]=='--help'):
-        usage()
-        sys.exit(1)
+    if mode is None:
+        raise ArgError, "Could not find with mode to use"
 
-    if args[0]=='-q':
+    if '-q' in opts:
         QUIET_OPS=True
-        args=args[1:]
 
-    if len(args)<2:
-        usage()
-        sys.exit(1)
-
-    if args[0]=='-import':
-        return parse_import_args(args,QUIET_OPS)
+    if mode==2:
+        dnlist=parse_import_args(modargs,QUIET_OPS)
     else:
-        return parse_one_args(args,QUIET_OPS)
+        dnlist=parse_one_args(modargs,QUIET_OPS)
 
+    return {'dnlist':dnlist,'quiet':QUIET_OPS}
+            
 def parse_one_args(args,QUIET_OPS):
+    assert len(args)>=2
+    assert len(args)!=3
+
+    if len(args)>4:
+        raise ArgError, "Too many arguments"
+
     daemon_comment=None
-    if args[0]=='-daemon':
-        daemon_comment=args[1]
+    if len(args)>2:
+        if args[0]=='-daemon':
+            daemon_comment=args[1]
+            dn=args[2]
+            user=args[3]
+        elif args[2]=='-daemon':
+            daemon_comment=args[3]
+            dn=args[0]
+            user=args[1]
+        else:
+            raise ArgError, "Too many arguments, -daemon expected"
         if len(daemon_comment)<10:
-            print "Daemon comment must be at least 10 characters long"
-            sys.exit(1)
-        args=args[2:]
+            raise ArgError, "Daemon comment must be at least 10 characters long"
+    else:
+            dn=args[0]
+            user=args[1]
 
-    if len(args)!=2:
-        usage()
-        sys.exit(1)
-
-    dn=args[0]
     if (len(dn)<3) or (dn[0]=="-"):
         # this looks like a typo on the part of the user
-        print "Invalid DN: %s"%dn
-        sys.exit(1)
+        raise ArgError,"Invalid DN: %s"%dn
 
-    user=args[1]
-
-    return QUIET_OPS,[{'is_daemon_dn':(daemon_comment!=None),'daemon_comment':daemon_comment,'dn':expand_dn(dn,QUIET_OPS),'user':user}]
+    return [{'is_daemon_dn':(daemon_comment!=None),'daemon_comment':daemon_comment,'dn':expand_dn(dn,QUIET_OPS),'user':user}]
 
 def parse_import_args(args,QUIET_OPS):
-    if len(args)<2:
-        usage()
-        sys.exit(1)
+    assert len(args)>=2
+    assert args[0]=='-import'
 
     dnlist=[]
     for importfname in args[1:]:
-        fd=open(importfname,"r")
-        try:
-            lines=fd.readlines()
-        finally:
-            fd.close()
+        if importfname=='-':
+            lines=sys.stdin.readlines()
+        else:
+            fd=open(importfname,"r")
+            try:
+                lines=fd.readlines()
+            finally:
+                fd.close()
 
         count=0
         for rawline in lines:
@@ -141,7 +215,7 @@ def parse_import_args(args,QUIET_OPS):
         pass
     #end for args
     
-    return QUIET_OPS,dnlist
+    return dnlist
 
 def check_config(fname):
     if not os.path.isfile(fname):
@@ -169,6 +243,7 @@ def update_mapfile(mapfile,dnlist):
         
     # append GSI DN user
     # after the last line of that kind
+    # Note: Will be the first line if no standard GSI mappings are present
     found=False
     for i in range(0,len(lines)):
         line=lines[i]
@@ -182,12 +257,14 @@ def update_mapfile(mapfile,dnlist):
             found=True
             break
     if not found:
+        # should have found GSI anon, but could not
         print "File '%s' is not valid a condor mapfile; only plain GSI mappings found!"%mapfile
         sys.exit(3)
 
     # will overwrite the mapfile
     # but create a tmpfile first, so it is semi-atomic
-    tmpfile="%s.new"%mapfile
+    # always use a final tilde to avoid Condor using it
+    tmpfile="%s.new~"%mapfile
     if os.path.isfile(tmpfile):
         os.unlink(tmpfile)
     
@@ -223,7 +300,15 @@ def cond_update_config(config_file,dnlist):
 def main(args):
     try:
         # parse the arguments, so we know what the user want
-        QUIET_OPS,dnlist=parse_args(args)
+        try:
+            pargs=parse_args(args)
+            QUIET_OPS=pargs['quiet']
+            dnlist=pargs['dnlist']
+        except ArgError, e:
+            usage()
+            print
+            print e
+            sys.exit(1)
 
         # make sure we can access the files to be changed
         try:
@@ -232,43 +317,41 @@ def main(args):
              raise IOError, "Path to CERTIFICATE_MAPFILE not found"
 
         check_config(condor_mapfile)
-        if (len(dnlist)!=1) or dnlist[0]['is_daemon_dn']:
+        has_dir=False
+        try:
+             condor_config_dir=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_DIR")[0].rstrip('\n')
+             has_dir=os.path.exists(condor_config_dir)
+             condor_config=os.path.join(condor_config_dir,"90_gwms_dns.config")
+             if not os.path.isfile(condor_config):
+                 print "Please create %s"%condor_config
+        except condorExe.ExeError,e:
             has_dir=False
-            try:
-                 condor_config_dir=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_DIR")[0].rstrip('\n')
-                 has_dir=os.path.exists(condor_config_dir)
-                 condor_config=os.path.join(condor_config_dir,"90_gwms_dns.config")
-                 if not os.path.isfile(condor_config):
-                     print "Please create %s"%condor_config
-            except condorExe.ExeError,e:
-                has_dir=False
 
-            if has_dir:
-                 condor_config=os.path.join(condor_config_dir,"90_gwms_dns.config")
-                 if not os.path.isfile(condor_config):
-                     raise IOError, "Please create %s"%condor_config
-            else:
-                 # not found, see if it uses a config dir
+        if has_dir:
+             condor_config=os.path.join(condor_config_dir,"90_gwms_dns.config")
+             if not os.path.isfile(condor_config):
+                 raise IOError, "Please create %s"%condor_config
+        else:
+             # not found, see if it uses a config dir
+             try:
+                condor_config=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_FILE")[0].rstrip('\n')
+             except condorExe.ExeError,e:
+                 # nope, go with the main config file
                  try:
-                    condor_config=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_FILE")[0].rstrip('\n')
+                     condor_config=condorExe.iexe_cmd("condor_config_val -config")[1].strip() # it is in the second line, and it is indented
                  except condorExe.ExeError,e:
-                     # nope, go with the main config file
-                     try:
-                         condor_config=condorExe.iexe_cmd("condor_config_val -config")[1].strip() # it is in the second line, and it is indented
-                     except condorExe.ExeError,e:
-                         raise IOError, "No CONFIG_FILE found"
-            try:
-                check_config(condor_config)
-            except IOError, e:
-                raise IOError, e
+                     raise IOError, "No CONFIG_FILE found"
+        try:
+            check_config(condor_config)
+        except IOError, e:
+            raise IOError, e
     except IOError, e:
         print e
         sys.exit(2)
 
     #now do the changes
     update_mapfile(condor_mapfile,dnlist)
-    if (len(dnlist)!=1) or dnlist[0]['is_daemon_dn']:
-        cond_update_config(condor_config,dnlist)
+    cond_update_config(condor_config,dnlist)
 
     if not QUIET_OPS:
         print "Configuration files changed."
