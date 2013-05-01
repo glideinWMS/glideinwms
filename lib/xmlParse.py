@@ -10,6 +10,8 @@
 #  Igor Sfiligoi (Mar 27th, 2007)
 #
 
+import libxml2
+import libxslt
 import xml.dom.minidom
 from UserDict import UserDict
 
@@ -73,15 +75,37 @@ class OrderedDict(UserDict):
     def values(self):
         return map(self.get, self._keys)
     
+def xslt_transform(xml_file, xslt_file):
+    ''' Apply XSLT from xslt_file to XML in xml_string,
+    return a string.'''
+
+    doc = libxml2.parseFile(xml_file)
+    styledoc = libxml2.parseFile(xslt_file)
+    style = libxslt.parseStylesheetDoc(styledoc)
+    result = style.applyStylesheet(doc, None)
+
+    transformed_xml = style.saveResultToString(result)
+
+    style.freeStylesheet()
+    doc.freeDoc()
+    result.freeDoc()
+
+    return transformed_xml
 
 # convert a XML file into a dictionary
 # ignore text sections
 def xmlfile2dict(fname,
+                 xslt_file=None,
                  use_ord_dict=False,        # if true, return OrderedDict instead of a regular dictionary
                  always_singular_list=[]):  # anything id listed here will be considered as a list
-
+    doc = None
     try:
-        doc=xml.dom.minidom.parse(fname)
+        if xslt_file:
+            xml_string = xslt_transform(fname, xslt_file)
+            doc = xml.dom.minidom.parseString(xml_string)
+        else:
+            doc = xml.dom.minidom.parse(fname)
+
     except xml.parsers.expat.ExpatError, e:
         raise CorruptXML("XML corrupt in file %s: %s" % (fname, e))
 
