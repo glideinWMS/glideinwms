@@ -117,7 +117,7 @@ def parse_args(args):
                 i+=1
                 modargs.append(arg)
     except IndexError, e:
-        raise ArgError, "Not enough arguments, at least %i expected"%i
+        raise ArgError, "Expected to find another argument at %i"%i
         
     if '-h' in opts:
         # help requested, no error
@@ -160,7 +160,7 @@ def parse_one_args(args,QUIET_OPS):
             dn=args[0]
             user=args[1]
         else:
-            raise ArgError, "Too many arguments, -daemon expected"
+            raise ArgError, "Option -daemon expected with so many arguments, but none found"
         if len(daemon_comment)<10:
             raise ArgError, "Daemon comment must be at least 10 characters long"
     else:
@@ -200,9 +200,9 @@ def parse_import_args(args,QUIET_OPS):
             larr=line.split(None,2)
             if len(larr)!=3:
                 #Use IOError to simplify the exception handling
-                raise IOError, (errno.EPROTO,"Expected at least 3 tokens in %s:%i"%(importfname,count))
+                raise IOError, (errno.EPROTO,"Expected 3 tokens, got %i: %s:%i"%(len(larr),importfname,count))
             if not (larr[1] in ('daemon','nodaemon','client')):
-                raise IOError, (errno.EPROTO,"Unexpected dn type %s in %s:%i"%(larr[1],importfname,count))
+                raise IOError, (errno.EPROTO,"Unexpected dn type '%s', should be either 'daemon' or 'client' :%s:%i"%(larr[1],importfname,count))
             user=larr[0]
             try:
                 dn=expand_dn(larr[2],QUIET_OPS)
@@ -362,6 +362,7 @@ def main(args):
             usage()
             print
             print e
+            print "Aborting"
             sys.exit(1)
 
         # make sure we can access the files to be changed
