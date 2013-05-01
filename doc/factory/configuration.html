@@ -140,8 +140,12 @@ for a more detailed description.
                 <a href="#config">&lt;max_jobs&gt;</a><br/>
                 <blockquote>
                     <a href="#config">&lt;per_entry held="1000" idle="2000" glideins="10000"&gt;</a><br/>
-                    <a href="#config">&lt;default_per_frontend held="50" idle="100" glideins="5000"&gt;/</a><br/>
-                    <a href="#config">&lt;per_frontends/&gt;</a><br/>
+                    <a href="#config">&lt;default_per_frontend held="50" idle="100" glideins="5000"/&gt;</a><br/>
+                    <a href="#config">&lt;per_frontends&gt;</a><br/>
+                      <blockquote>
+                        <a href="#config">&lt;per_frontend name="FRONTEND:SECURITY_CLASS" held="50" idle="100" glideins="5000"/&gt;</a><br/>
+                      </blockquote>
+                    <a href="#config">&lt;/per_frontends&gt;</a><br/>
                 </blockquote>
                 <a href="#config">&lt;/max_jobs&gt;</a><br/>
                 <a href="#config">&lt;release max_per_cycle="20" sleep="0.2"&gt;</a><br/>
@@ -708,8 +712,12 @@ override the global arguments if present.
         <p>
         The values in the config section are limits for the entry.  <br/>
         <ul>
-        <li>The max_jobs section limits the number of held, idle, and total (including running).  You can specify the limits per entry, a 
-        default per frontend-security class, or override a specific frontend-security class.</li>
+            <li>The max_jobs section limits the number of held, idle, and total (including running).
+              <ul>
+                  <li>&lt;per_entry ... &gt; specifies the limits per entry</li>
+                  <li>&lt;default_per_frontend ... &gt; specifies default limits per frontend-security class</li>
+                  <li>&lt;per_frontend ... &gt; overrides the limits for a specific frontend-security class.</li>
+              </ul>
         <li>Release regulates how many glideins are released per cycle.</li>  
         <li>Remove regulates how many glideins are removed per cycle.</li>  
         <li>Submit values limit the number of glideins submitted, how long 
