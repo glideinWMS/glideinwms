@@ -47,7 +47,7 @@ from glideinwms.factory import glideFactoryCredentials
 def aggregate_stats(in_downtime):
     """
     Aggregate all the monitoring stats
-   
+
     @type in_downtime: boolean
     @param in_downtime: Entry downtime information
     """
@@ -77,11 +77,11 @@ def write_descript(glideinDescript, frontendDescript, monitor_dir):
     """
     Write the descript.xml to the monitoring directory
 
-    @type glideinDescript: glideFactoryConfig.GlideinDescript 
+    @type glideinDescript: glideFactoryConfig.GlideinDescript
     @param glideinDescript: Factory config's glidein description object
-    @type frontendDescript: glideFactoryConfig.FrontendDescript 
+    @type frontendDescript: glideFactoryConfig.FrontendDescript
     @param frontendDescript: Factory config's frontend description object
-    @type monitor_dir: String 
+    @type monitor_dir: String
     @param monitor_dir: Path to monitoring directory
     """
 
@@ -101,8 +101,8 @@ def write_descript(glideinDescript, frontendDescript, monitor_dir):
         entry_data[entry]['params'] = entryParams.data
 
     descript2XML = glideFactoryMonitoring.Descript2XML()
-    xml_str = (descript2XML.glideinDescript(glidein_data) + 
-               descript2XML.frontendDescript(frontend_data) + 
+    xml_str = (descript2XML.glideinDescript(glidein_data) +
+               descript2XML.frontendDescript(frontend_data) +
                descript2XML.entryDescript(entry_data))
 
     try:
@@ -122,7 +122,7 @@ def entry_grouper(size, entries):
     @param size: Size of each subgroup
     @type entries: list
     @param size: List of entries
-    
+
     @rtype: list
     @return: List of grouped entries. Each group is a list
     """
@@ -155,7 +155,7 @@ def is_crashing_often(startup_time, restart_interval, restart_attempts):
     @param restart_interval: Allowed restart interval in second
     @type restart_attempts: long
     @param restart_attempts: Number of allowed restart attempts in the interval
-    
+
     @rtype: bool
     @return: True if entry process is crashing/dieing often
     """
@@ -181,13 +181,13 @@ def is_file_old(filename, allowed_time):
     """
     Check if the file is older than given time
 
-    @type filename: String 
+    @type filename: String
     @param filename: Full path to the file
     @type allowed_time: long
     @param allowed_time: Time is second
-    
+
     @rtype: bool
-    @return: True if file is older than the given time, else False 
+    @return: True if file is older than the given time, else False
     """
     if (time.time() > (os.path.getmtime(filename) + allowed_time)):
         return True
@@ -263,11 +263,11 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
     @param sleep_time: Delay between every iteration
     @type advertize_rate: long
     @param advertize_rate: Rate at which entries advertise their classads
-    @type startup_dir: String 
+    @type startup_dir: String
     @param startup_dir: Path to glideinsubmit directory
-    @type glideinDescript: glideFactoryConfig.GlideinDescript 
+    @type glideinDescript: glideFactoryConfig.GlideinDescript
     @param glideinDescript: Factory config's glidein description object
-    @type frontendDescript: glideFactoryConfig.FrontendDescript 
+    @type frontendDescript: glideFactoryConfig.FrontendDescript
     @param frontendDescript: Factory config's frontend description object
     @type entries: list
     @param entries: Sorted list of entry names
@@ -280,11 +280,11 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
     global STARTUP_DIR
     childs = {}
 
-    # Number of glideFactoryEntry processes to spawn and directly relates to 
+    # Number of glideFactoryEntry processes to spawn and directly relates to
     # number of concurrent condor_status processess
-    # 
-    # NOTE: If number of entries gets too big, we may excede the shell args 
-    #       limit. If that becomes an issue, move the logic to identify the 
+    #
+    # NOTE: If number of entries gets too big, we may excede the shell args
+    #       limit. If that becomes an issue, move the logic to identify the
     #       entries to serve to the group itself.
     #
     # Each process will handle multiple entries split as follows
@@ -297,7 +297,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
     starttime = time.time()
     oldkey_gracetime = int(glideinDescript.data['OldPubKeyGraceTime'])
     oldkey_eoltime = starttime + oldkey_gracetime
-    
+
     childs_uptime={}
 
     factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
@@ -348,14 +348,12 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                 fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
         # If RemoveOldCredFreq < 0, do not do credential cleanup.
-        # TODO: PM: If factory is restarted/reconfig we may not hit the cleanup
-        #           Need to test if this cleanup really works
         if int(glideinDescript.data['RemoveOldCredFreq']) > 0:
             # Convert credential removal frequency from hours to seconds
             remove_old_cred_freq = int(glideinDescript.data['RemoveOldCredFreq']) * 60 * 60
             curr_time = time.time()
             update_time = curr_time + remove_old_cred_freq
-            
+
             # Convert credential removal age from days to seconds
             remove_old_cred_age = int(glideinDescript.data['RemoveOldCredAge']) * 60 * 60 * 24
 
@@ -369,14 +367,14 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                     username, cred_user_instance_dirname,
                     "(credential_*)", remove_old_cred_age)
                 cleanupSupport.cred_cleaners.add_cleaner(cred_cleaner)
-        
+
         while 1:
             # THIS IS FOR SECURITY
             # Make sure you delete the old key when its grace is up.
-            # If a compromised key is left around and if attacker can somehow 
+            # If a compromised key is left around and if attacker can somehow
             # trigger FactoryEntry process crash, we do not want the entry
-            # to pick up the old key again when factory auto restarts it.  
-            if ( (time.time() > oldkey_eoltime) and 
+            # to pick up the old key again when factory auto restarts it.
+            if ( (time.time() > oldkey_eoltime) and
                  (glideinDescript.data['OldPubKeyObj'] is not None) ):
                 glideinDescript.data['OldPubKeyObj'] = None
                 glideinDescript.data['OldPubKeyType'] = None
@@ -386,14 +384,14 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                 except:
                     # Do not crash if delete fails. Just log it.
                     logSupport.log.warning("Failed to remove the old public key after its grace time")
-            
+
             # Only removing credentials in the v3+ protocol
             # Affects Corral Frontend which only supports the v3+ protocol.
             # IF freq < zero, do not do cleanup.
-            if ( (int(glideinDescript.data['RemoveOldCredFreq']) > 0) and 
+            if ( (int(glideinDescript.data['RemoveOldCredFreq']) > 0) and
                  (curr_time >= update_time) ):
-                logSupport.log.info("Checking credentials for cleanup")  
-                
+                logSupport.log.info("Checking credentials for cleanup")
+
                 # Query queue for glideins. Don't remove proxies in use.
                 try:
                     in_use_creds = glideFactoryLib.getCondorQCredentialList()
@@ -402,11 +400,11 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                     logSupport.log.exception("Unable to cleanup old credentials")
 
                 update_time = curr_time + remove_old_cred_freq
-                
+
             curr_time = time.time()
-                                
+
             logSupport.log.info("Checking for credentials %s" % entries)
-    
+
             # Read in the frontend globals classad
             # Do this first so that the credentials are immediately
             # available when the Entries startup
@@ -426,7 +424,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                 except:
                     logSupport.log.exception("Error occurred processing the globals classads: ")
 
-            
+
             logSupport.log.info("Checking EntryGroups %s" % group)
             for group in childs:
                 entry_names = string.join(entry_groups[group], ':')
@@ -489,7 +487,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             # Aggregate Monitoring data periodically
             logSupport.log.info("Aggregate monitoring data")
             aggregate_stats(factory_downtimes.checkDowntime())
-            
+
             # Advertise the global classad with the factory keys
             try:
                 # KEL TODO need to add factory downtime?
@@ -542,11 +540,11 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
 def main(startup_dir):
     """
     Reads in the configuration file and starts up the factory
-    
-    @type startup_dir: String 
+
+    @type startup_dir: String
     @param startup_dir: Path to glideinsubmit directory
     """
-    
+
     # Force integrity checks on all condor operations
     glideFactoryLib.set_condor_integrity_checks()
 
@@ -574,31 +572,31 @@ def main(startup_dir):
 
     # Set the Log directory
     logSupport.log_dir = os.path.join(glideinDescript.data['LogDir'], "factory")
-   
+
     # Configure factory process logging
-    process_logs = eval(glideinDescript.data['ProcessLogs']) 
+    process_logs = eval(glideinDescript.data['ProcessLogs'])
     for plog in process_logs:
         if 'ADMIN' in plog['msg_types'].upper():
             logSupport.add_processlog_handler("factoryadmin", logSupport.log_dir, "DEBUG,INFO,WARN,ERR", plog['extension'],
                                       int(float(plog['max_days'])),
                                       int(float(plog['min_days'])),
                                       int(float(plog['max_mbytes'])))
-        else:         
+        else:
             logSupport.add_processlog_handler("factory", logSupport.log_dir, plog['msg_types'], plog['extension'],
                                       int(float(plog['max_days'])),
                                       int(float(plog['min_days'])),
                                       int(float(plog['max_mbytes'])))
     logSupport.log = logging.getLogger("factory")
     logSupport.log.info("Logging initialized")
-    
+
     try:
         os.chdir(startup_dir)
     except:
         logSupport.log.exception("Unable to change to startup_dir: ")
         raise
 
-    try:        
-        if (is_file_old(glideinDescript.default_rsakey_fname, 
+    try:
+        if (is_file_old(glideinDescript.default_rsakey_fname,
                         int(glideinDescript.data['OldPubKeyGraceTime']))):
             # First backup and load any existing key
             logSupport.log.info("Backing up and loading old key")
@@ -614,8 +612,8 @@ def main(startup_dir):
             glideinDescript.load_old_rsa_key()
     except:
         logSupport.log.exception("Exception occurred loading factory keys: ")
-        raise 
-        
+        raise
+
     glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.my_name = "%s@%s" % (glideinDescript.data['GlideinName'],
                glideinDescript.data['FactoryName'])
 

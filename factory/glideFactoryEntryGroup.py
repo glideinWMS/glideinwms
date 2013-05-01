@@ -244,11 +244,8 @@ def fetch_fork_result_list(pipe_ids):
             out[key] = fetch_fork_result(pipe_ids[key]['r'],
                                          pipe_ids[key]['pid'])
         except Exception, e:
-            tb = traceback.format_exception(sys.exc_info()[0],
-                                            sys.exc_info()[1],
-                                            sys.exc_info()[2])
             logSupport.log.warn("Failed to extract info from child '%s'" % key)
-            logSupport.log.debug("Failed to extract info from child '%s': %s" % (key, tb))
+            logSupport.log.exception("Failed to extract info from child '%s'" % key)
             failures += 1
 
     if failures>0:
@@ -297,8 +294,8 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     work = find_work(factory_in_downtime, glideinDescript,
                      frontendDescript, group_name, my_entries)
 
-    # TODO: PM: If we return here check if cleanup is triggered
-    #           So far only advertising is configrmed to trigger
+    # TODO: If we return here check if we need to do cleanup of held glideins?
+    #       So far only de-advertising is confirmed to trigger not cleanup
     work_count = get_work_count(work)
     if (work_count == 0):
         logSupport.log.info("No work found")
@@ -322,12 +319,10 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
         pid = os.fork()
         if pid != 0:
             # This is the parent process
-            #logSupport.log.info("In find_and_perform_work parent process with pid %s after forking entry %s" % (pid, entry.name))
             os.close(w)
             pipe_ids[entry.name] = {'r': r, 'pid': pid}
         else:
             # This is the child process
-            #entry.log.info("In find_and_perform_work child process with pid %s for entry %s" % (pid, entry.name))
             os.close(r)
 
             try:
@@ -379,7 +374,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     if work_info_read_err:
         logSupport.log.debug("work_info_read_err is true, client_stats not updated for one or more entries.")
         logSupport.log.warn("work_info_read_err is true, client_stats not updated for one or more entries.")
-    
+
     return groupwork_done
 
 ############################################################
@@ -428,8 +423,6 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
     entries_advertised = []
     for entry in my_entries.values():
         # Advertise if work was done or if advertise flag is set
-        # TODO: Advertising can be optimized by grouping multiple entry
-        #       ads together. For now do it one at a time.
         entrywork_done = 0
         if ( (entry.name in groupwork_done) and 
              ('work_done' in groupwork_done[entry.name]) ):
@@ -603,7 +596,6 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
 
 ############################################################
 # Initialize log_files for entries and groups
-# TODO: init_logs,init_group_logs,init_entry_logs maybe removed later
 
 def init_logs(name, log_dir, process_logs):
     for plog in process_logs:
@@ -702,10 +694,7 @@ def main(parent_pid, sleep_time, advertize_rate,
             except KeyboardInterrupt:
                 logSupport.log.info("Received signal...exit")
             except:
-                tb = traceback.format_exception(sys.exc_info()[0],
-                                                sys.exc_info()[1],
-                                                sys.exc_info()[2])
-                logSupport.log.exception("Exception occurred: %s" % tb)
+                logSupport.log.exception("Exception occurred in iterate: ")
                 raise
         finally:
             # No need to cleanup. The parent should be doing it

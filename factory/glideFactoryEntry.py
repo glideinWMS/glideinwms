@@ -6,7 +6,7 @@
 # File Version:
 #
 # Description:
-#   Entry class 
+#   Entry class
 #
 
 import signal
@@ -238,7 +238,7 @@ class Entry:
         @return: True if the client's security name is blacklist
         """
 
-        return ( (self.frontendWhitelist=="On") and 
+        return ( (self.frontendWhitelist=="On") and
                  (not self.isClientInWhitelist(client_sec_name)) )
 
 
@@ -251,7 +251,7 @@ class Entry:
         @return: True if the client's security name is whitelisted
         """
 
-        return ( (self.frontendWhitelist=="On") and 
+        return ( (self.frontendWhitelist=="On") and
                  (self.isClientInWhitelist(client_sec_name)) )
 
 
@@ -389,13 +389,13 @@ class Entry:
             can_submit_glideins = False
 
         # Check if entry has exceeded max glideins
-        if (can_submit_glideins and 
+        if (can_submit_glideins and
             self.glideinTotals.has_entry_exceeded_max_glideins()):
             self.log.warning("Entry %s has hit the limit for total glideins, cannot submit any more" % self.name)
             can_submit_glideins = False
 
         # Check if entry has exceeded max held
-        if (can_submit_glideins and 
+        if (can_submit_glideins and
             self.glideinTotals.has_entry_exceeded_max_held()):
             self.log.warning("Entry %s has hit the limit for held glideins, cannot submit any more" % self.name)
             can_submit_glideins = False
@@ -412,7 +412,7 @@ class Entry:
         """
 
         self.loadContext()
-        
+
         trust_domain = self.jobDescript.data['TrustDomain']
         auth_method = self.jobDescript.data['AuthMethod']
         pub_key_obj = self.glideinDescript.data['PubKeyObj']
@@ -428,7 +428,7 @@ class Entry:
                 self.jobAttributes.data['GlideinMonitorTotal%s%s' % (w, a)] = current_qc_total[w][a]
         try:
             # Make copy of job attributes so can override the validation
-            # downtime setting with the true setting of the entry 
+            # downtime setting with the true setting of the entry
             # (not from validation)
             myJobAttributes = self.jobAttributes.data.copy()
             myJobAttributes['GLIDEIN_In_Downtime'] = factory_in_downtime
@@ -496,8 +496,8 @@ class Entry:
         There are several main types of statistics:
 
         log stats: That come from parsing the condor_activity
-        and job logs.  This is computed every iteration 
-        (in perform_work()) and diff-ed to see any newly 
+        and job logs.  This is computed every iteration
+        (in perform_work()) and diff-ed to see any newly
         changed job statuses (ie. newly completed jobs)
 
         qc stats: From condor_q data.
@@ -626,7 +626,7 @@ class Entry:
         @rtype: dict
         @return: Useful state information that can pickled and restored
         """
-   
+
         # Set logger to None else we can't pickle file objects
         self.gflFactoryConfig.client_stats.log = None
         self.gflFactoryConfig.qc_stats.log = None
@@ -647,7 +647,7 @@ class Entry:
     def setState_old(self, state):
         """
         Load the post work state from the pickled info
-        
+
         @type post_work_info: dict
         @param post_work_info: Picked state after doing work
         """
@@ -663,7 +663,7 @@ class Entry:
     def setState(self, state):
         """
         Load the post work state from the pickled info
-        
+
         @type post_work_info: dict
         @param post_work_info: Picked state after doing work
         """
@@ -671,7 +671,7 @@ class Entry:
         self.gflFactoryConfig.client_stats = state.get('client_stats')
         if self.gflFactoryConfig.client_stats:
             self.gflFactoryConfig.client_stats.log = self.log
-        
+
         self.gflFactoryConfig.qc_stats = state.get('qc_stats')
         if self.gflFactoryConfig.qc_stats:
             self.gflFactoryConfig.qc_stats.log = self.log
@@ -698,7 +698,7 @@ class Entry:
         self.setLogStatsCurrentStatsData(state['log_stats']['current_stats_data'])
         self.setLogStatsOldStatsData(state['log_stats']['old_stats_data'])
         """
-    
+
     #####################
     # Debugging functions
     #####################
@@ -732,7 +732,7 @@ def dump_obj(obj):
         else:
             dump_obj(obj.__dict__[key])
     print "======= END: %s ======" % obj
-        
+
 ###############################################################################
 
 class X509Proxies:
@@ -813,7 +813,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
             if k not in params:
                 params[k] = entry.jobParams.data[k]
 
-        # Set client name (i.e. frontend.group) & 
+        # Set client name (i.e. frontend.group) &
         # request name (i.e. entry@glidein@factory)
         try:
             client_int_name = work[work_key]['internals']["ClientName"]
@@ -942,7 +942,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     if not credential_security_class:
         entry.log.warning("Client %s did not provide a security class. Skipping bad request." % client_int_name)
         return return_dict
-            
+
     # Check security class for downtime (in downtimes file)
     entry.log.info("Checking downtime for frontend %s security class: %s (entry %s)." % (client_security_name, credential_security_class, entry.name))
 
@@ -953,7 +953,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         # since other proxies may map to valid security classes
         entry.log.warning("Security class %s is currently in a downtime window for entry: %s. Ignoring request." % (credential_security_class, entry.name))
         return return_dict
-    
+
     # Deny Frontend from requesting glideins if the whitelist
     # does not have its security class (or "All" for everyone)
     if entry.isClientWhitelisted(client_security_name):
@@ -964,58 +964,56 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
             entry.log.warning("Security class not in whitelist, skipping request (%s %s). " % (client_security_name, credential_security_class))
             return return_dict
 
-    # Check that security class maps to a username for submission          
+    # Check that security class maps to a username for submission
     credential_username = entry.frontendDescript.get_username(
                               client_security_name, credential_security_class)
     if credential_username is None:
         entry.log.warning("No username mapping for security class %s of credential for %s (secid: %s), skipping request." % (credential_security_class, client_int_name, client_security_name))
         return return_dict
 
-    # Initialize submit credential object & determine the credential location  
+    # Initialize submit credential object & determine the credential location
     submit_credentials = glideFactoryCredentials.SubmitCredentials(
                              credential_username, credential_security_class)
-    submit_credentials.cred_dir = entry.gflFactoryConfig.get_client_proxies_dir(credential_username) 
+    submit_credentials.cred_dir = entry.gflFactoryConfig.get_client_proxies_dir(credential_username)
 
-    if 'grid_proxy' in auth_method:   
+    if 'grid_proxy' in auth_method:
         ########################
         # ENTRY TYPE: Grid Sites
         ########################
 
-        # Check if project id is required    
+        # Check if project id is required
         if 'project_id' in auth_method:
             if decrypted_params.has_key('ProjectId'):
                 submit_credentials.add_identity_credential('ProjectId', decrypted_params['ProjectId'])
             else:
                 # ProjectId is required, cannot service request
                 entry.log.warning("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping request." % (client_int_name, entry.name))
-                return return_dict 
-                           
+                return return_dict
+
         # Check if voms_attr required
         if 'voms_attr' in auth_method:
             # TODO: PM: determine how to verify voms attribute on a proxy
-            pass 
-                  
+            pass
+
         # Determine identifier for file name and add to
         # credentials to be passed to submit
         proxy_id = decrypted_params['SubmitProxy']
 
-        # TODO: KEL need to change call to frontendname_frontendgroup_proxy_id
-        #       (and all other ref to call add_security_cred)
         if not submit_credentials.add_security_credential('SubmitProxy', "%s_%s" % (client_int_name, proxy_id)):
             entry.log.warning("Credential %s for the submit proxy cannot be found for client %s, skipping request." % (proxy_id, client_int_name))
-            return return_dict 
-            
-        # Set the id used for tracking what is in the factory queue       
+            return return_dict
+
+        # Set the id used for tracking what is in the factory queue
         submit_credentials.id = proxy_id
-                             
+
     else:
         #########################
         # ENTRY TYPE: Cloud Sites
         #########################
 
-        # All non proxy auth methods are cloud sites. 
+        # All non proxy auth methods are cloud sites.
 
-        # Verify that the glidein proxy was provided. We still need it as it 
+        # Verify that the glidein proxy was provided. We still need it as it
         # is used to by the glidein's condor daemons to authenticate with the
         # user collector
         proxy_id = decrypted_params.get('GlideinProxy')
@@ -1023,43 +1021,43 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         if proxy_id:
             if not submit_credentials.add_security_credential('GlideinProxy', "%s_%s" % (client_int_name, proxy_id)):
                 entry.log.warning("Credential %s for the glidein proxy cannot be found for client %s, skipping request." % (proxy_id, client_int_name))
-                return return_dict 
-        else:  
+                return return_dict
+        else:
             entry.log.warning("Glidein proxy cannot be found for client %s, skipping request" % client_int_name)
-            return return_dict 
-        
+            return return_dict
+
         # VM id and type are required for cloud sites.
         # Either frontend or factory should provide it
         vm_id = None
         vm_type = None
 
-        if 'vm_id' in auth_method:                 
+        if 'vm_id' in auth_method:
             # First check if the Frontend supplied it
             vm_id = decrypted_params.get('VMId')
-            if not vm_id:     
+            if not vm_id:
                 entry.log.warning("Client '%s' did not specify a VM Id in the request, this is required by entry %s, skipping request. " % (client_int_name, entry.name))
-                return return_dict 
+                return return_dict
         else:
             # Validate factory provided vm id exists
             if entry.jobDescript.data.has_key('EntryVMId'):
                 vm_id = entry.jobDescript.data['EntryVMId']
             else:
                 entry.log.warning("Entry does not specify a VM Id, this is required by entry %s, skipping request." % entry.name)
-                return return_dict 
-                    
-        if 'vm_type' in auth_method:                  
+                return return_dict
+
+        if 'vm_type' in auth_method:
             # First check if the Frontend supplied it
             vm_type = decrypted_params.get('VMType')
             if not vm_type:
                 entry.log.warning("Client '%s' did not specify a VM Type in the request, this is required by entry %s, skipping request." % (client_int_name, entry.name))
-                return return_dict 
+                return return_dict
         else:
             # Validate factory provided vm type exists
-            if entry.jobDescript.data.has_key('EntryVMType'): 
+            if entry.jobDescript.data.has_key('EntryVMType'):
                 vm_type = entry.jobDescript.data['EntryVMType']
             else:
                 entry.log.warning("Entry does not specify a VM Type, this is required by entry %s, skipping request." %  entry.name)
-                return return_dict 
+                return return_dict
 
         submit_credentials.add_identity_credential('VMId', vm_id)
         submit_credentials.add_identity_credential('VMType', vm_type)
@@ -1067,39 +1065,39 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         if 'cert_pair' in auth_method :
             public_cert_id = decrypted_params.get('PublicCert')
             submit_credentials.id = public_cert_id
-            if ((public_cert_id) and 
+            if ((public_cert_id) and
                 (not submit_credentials.add_security_credential(
                          'PublicCert',
                          '%s_%s' % (client_int_name, public_cert_id))) ):
                 entry.log.warning("Credential %s for the public certificate is not safe for client %s, skipping request." % (public_cert_id, client_int_name))
-                return return_dict 
-                
+                return return_dict
+
             private_cert_id = decrypted_params.get('PrivateCert')
-            if ( (private_cert_id) and 
+            if ( (private_cert_id) and
                  (submit_credentials.add_security_credential(
                       'PrivateCert',
                       '%s_%s' % (client_int_name, private_cert_id))) ):
                 entry.log.warning("Credential %s for the private certificate is not safe for client %s, skipping request" % (private_cert_id, client_int_name))
-                return return_dict 
-                
+                return return_dict
+
         elif 'key_pair' in auth_method:
             public_key_id = decrypted_params.get('PublicKey')
             submit_credentials.id = public_key_id
-            if ( (public_key_id) and 
+            if ( (public_key_id) and
                  (not submit_credentials.add_security_credential(
                           'PublicKey',
                           '%s_%s' % (client_int_name, public_key_id))) ):
                 entry.log.warning("Credential %s for the public key is not safe for client %s, skipping request" % (public_key_id, client_int_name))
-                return return_dict 
-                
+                return return_dict
+
             private_key_id = decrypted_params.get('PrivateKey')
-            if ( (private_key_id) and 
+            if ( (private_key_id) and
                  (not submit_credentials.add_security_credential(
                           'PrivateKey',
                           '%s_%s' % (client_int_name, private_key_id))) ):
                 entry.log.warning("Credential %s for the private key is not safe for client %s, skipping request" % (private_key_id, client_int_name))
-                return return_dict 
-            
+                return return_dict
+
         elif 'username_password' in auth_method:
             username_id = decrypted_params.get('Username')
             submit_credentials.id = username_id
@@ -1108,20 +1106,20 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                           'Username',
                           '%s_%s' % (client_int_name, username_id))) ):
                 entry.log.warning("Credential %s for the username is not safe for client %s, skipping request" % (username_id, client_int_name))
-                return return_dict 
-                
+                return return_dict
+
             password_id = decrypted_params.get('Password')
-            if ( (password_id) and 
+            if ( (password_id) and
                  (not submit_credentials.add_security_credential(
                           'Password',
                           '%s_%s' % (client_int_name, password_id))) ):
                 entry.log.warning("Credential %s for the password is not safe for client %s, skipping request" % (password_id, client_int_name))
-                return return_dict 
-                                    
+                return return_dict
+
         else:
             logSupport.log.warning("Factory entry %s has invalid authentication method. Skipping request for client %s." % (entry.name, client_int_name))
-            return return_dict 
-    
+            return return_dict
+
     # Set the downtime status so the frontend-specific
     # downtime is advertised in glidefactoryclient ads
     entry.setDowntime(in_downtime)
@@ -1159,12 +1157,12 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
 
     # If we got this far, it was because we were able to
     # successfully update all the credentials in the request
-    # If we already have hit our limits checked at beginning of this 
-    # method and logged there, we can't submit.  
+    # If we already have hit our limits checked at beginning of this
+    # method and logged there, we can't submit.
     # We still need to check/update all the other request credentials
     # and do cleanup.
 
-    # We'll set idle glideins to zero if hit max or in downtime. 
+    # We'll set idle glideins to zero if hit max or in downtime.
     if in_downtime or not can_submit_glideins:
         idle_glideins=0
 
@@ -1241,7 +1239,7 @@ def unit_work_v2(entry, work, client_name, client_int_name, client_int_req,
     """
 
     # Only populate information to be passed at the end just before returning
-    # If any errors are identified in the work unit, just throw away the 
+    # If any errors are identified in the work unit, just throw away the
     # processing done so far by returning with success = False
     return_dict = {
         'success': False,
@@ -1274,7 +1272,7 @@ def unit_work_v2(entry, work, client_name, client_int_name, client_int_req,
             # project id is required, cannot service request
             logSupport.log.warning("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, entry.name))
             return return_dict
-    
+
     # METHOD: voms_attr
     if 'voms_attr' in auth_method:
         # TODO: PM: determine how to verify voms attribute on a proxy
@@ -1411,12 +1409,12 @@ def unit_work_v2(entry, work, client_name, client_int_name, client_int_req,
 
     # If we got this far, it was because we were able to
     # successfully update all the credentials in the request
-    # If we already have hit our limits checked at beginning of this 
-    # method and logged there, we can't submit.  
+    # If we already have hit our limits checked at beginning of this
+    # method and logged there, we can't submit.
     # We still need to check/update all the other request credentials
     # and do cleanup.
 
-    # We'll set idle glideins to zero if hit max or in downtime. 
+    # We'll set idle glideins to zero if hit max or in downtime.
     if in_downtime or not can_submit_glideins:
         idle_glideins=0
 
@@ -1538,7 +1536,7 @@ def perform_work_v3(entry, condorQ, client_name, client_int_name,
 
     return 0
 
-    
+
 ###############################################################################
 
 
