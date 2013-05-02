@@ -167,6 +167,7 @@ class Params:
         # initialize the defaults
         self.defaults=xmlParse.OrderedDict()
         self.init_defaults()
+        self.xslt_path = None
 
         try:
             if len(argv)<2:
@@ -176,6 +177,8 @@ class Params:
                 raise RuntimeError,"\nA config file will contain:\n%s\n\nThe config file will be in XML format."%self.get_description("  ")
                 
             self.cfg_name=os.path.abspath(argv[1])
+            if len(argv) == 3:
+                self.xslt_path = os.path.abspath(argv[2])
             self.load_file(self.cfg_name)
 
             self.subparams.validate(self.defaults,self.get_top_element())
@@ -224,7 +227,7 @@ class Params:
         if fname=="-":
             fname=sys.stdin
         try:
-            self.data=xmlParse.xmlfile2dict(fname,use_ord_dict=True)
+            self.data=xmlParse.xmlfile2dict(fname,use_ord_dict=True, xslt_path=self.xslt_path)
         except xml.parsers.expat.ExpatError, e:
             raise RuntimeError, "XML error parsing config file: %s"%e
         except IOError, e:
