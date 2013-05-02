@@ -1,22 +1,164 @@
-	Support multiple user collectors in HA mode
-	Support in factory to specify glexec required vs provided by site
-	Add attr_dict in the environemnt of the frontend match_expr
-	The start_expr is now a native part of match
-	Bug Fix: Frontend correctly correctly supports <attr> properties
+v3_1    Includes relevant features and bug fixes released upto v2_7
+        Added a new tool add_entry to help with entry creation
+        Support frontend to auto-update and auto-generate proxies using
+          proxy creation tools
+        Feature to advertise classad to User pool in case of glidein failure
+        Improved documentation
+        Bug Fix: DAEMON_SHUTDOWN now works with the multi-slot glideins
 
-v3_0_0
-    Change to max job limits to reflect more accurate names
+v3_0_0  Change to max job limits to reflect more accurate names
 	Add attr_dict in the environemnt of the frontend match_expr
 	New feature: The start_expr is now a native part of match
 	Support for new API for factory - frontend communication
 	Improved logging using standard Python logging APIs
-        The option to have either the factory and/or the frontend provide the 
+        The option to have either the factory and/or the frontend provide the
 	  pilot proxy has been removed.  The frontend must always provide it.
 	Added support to the Factory for EC2 Query API submissions to the Cloud
 	Consolidated the condor_tarball tag in glideinwms.xml to read in a list
 	  of os, arch, version
-    Added unittests for downtime, proxy plugins, and support functions
-    Miscellaenous bug fixes
+        Added unittests for downtime, proxy plugins, and support functions
+        Miscellaenous bug fixes
+
+v2_7    glideinwms code is now organized as python packages
+        Factory no longer creates long running process per entry. Instead, it
+          runs only a single long running glideFactoryEntryGroup process
+          instead of multiple glideFactoryEntry processes. Factory config
+          supports two additional config attributes entry_parallel_workers
+          and update_thread_count (see factory configuration docs for details)
+        Improved factory prerformance by migrating popen calls to use python's
+          subprocess library
+        Improved the performance of the Frontend by using pre-clustering in
+          the Frontend match-making
+        Created index.html for factory monitoring so that admins can disable
+          directory browsing in httpd.conf
+        Added support for Partitionable condor slots in the glidein
+        Frontend policy for matching factory classads is now exposed in
+          glideresource classads
+        Added a tool to dynamically create a secondary schedd config files
+          and directories to the existing installation
+        Improved the usability of the frontendGrouGraphStatusNow monitoring
+        Factory now ships with two new operations tools: entry_ls and entry_rm
+        Improved documentation
+        Factory will now try to recover glideins with held code 79
+        Bug Fix: Fixed a bug where installers were not setting
+          SHARED_PORT_MAX_WORKERS in respective condor_config correctly
+        Bug Fix: Fixed a bug where the frontend would match jobs with now
+          proxy to sites that require glexec
+        Bug Fix: Fixed a bug where the factory entry processes and the frontend
+          group (element) processes would inherit their parent's environment
+          corrupting their own environment
+        Bug Fix: Glidein's job wrapper now behaves as true wrapper
+        Bug Fix: Fixed a bug where frontend_startup would not correctly pick
+          default frontend.xml
+        Bug Fix: Fixed a bug in frontend where failure to evaluate match_expr
+          for one group would prevent frontend from requesting glideins for
+          other groups
+        Bug Fix: RPM now has shared port daemon enabled in the configuration
+        Bug Fix: Fixed a bug where Factory would sometime use wrong DN when
+          calculating proxy hash
+        Bug Fix: Fixed a bug where factoryStatusNow.html would not link to the
+          factoryEntryStatusNow.html correctly if the entry name is too long
+        Bug Fix: setup_x509.sh now correctly checks for existence of the
+          grid-proxy-info and voms-proxy-info binaries on the worker node
+        Bug Fix: Frontend now counts the partitionable slots correctly
+
+v2_6_2  Factory now supports glidein failure modes. This information is
+          propagated back to the factory.
+        Glideins now have different idle timeouts for startup and tail. The
+          glideins now exit much faster after comleting jobs and they do not
+          have enough time left to run another job.
+        Added support for javascriptRRD 2.6.2
+        Consolidate the condor_tarball tag in glideinwms.xml to read in a list
+          of os, arch, version. See docs for details.
+        Ini-installer will default collector_port to 9618 if not specified in
+          appropriate config sections.
+        Installation now supports GRIDMANAGER_PROXY_REFRESH_TIME for condorg
+          services
+        Improved logging when frontend fails to evaluate match expressions.
+        Monitoring pages changed to be even more compliant with DOM4
+        Improved the means for distributing condor config files for different
+          condor services.
+        Improved documentation.
+        Bug Fix: Better handling of monitor dir during upgrade
+        Bug Fix: Factory correctlt handles frontend in downtime and now it does
+          not affect requests from other frontends
+        Bug Fix: Putting entry in downtime multiple times now warns the user
+        Bug Fix: Fixed a bug where v2.6.1 frontend would crash under certain
+        Bug Fix: Installers do not set CONDOR_VERSION as constant by default.
+          This will now enable frontends to override this attr.
+        Bug Fix: Ini-installer now correctly cleans up files on re-install
+
+v2_6_1  Factory now limits the speed at which it releases held glideins. After 
+          too many unrecoverable attempts, held glideins are removed.
+        Added support for Condor 7.8+
+          KNOWN ISSUE: Only applies if you upgrade condor binaries in place
+          without using the installer. Upgrading condor binaries for user pool
+          and the wms collector with multiple schedds should not be done without
+          corresponding changes to the condor configuration file. If the
+          JOB_QUEUE_LOG is not correctly configured for each sched, condor
+          queue will be corrupted for all the scheds
+        Glideins now support curl & data file transfer plugins in condor
+        New installations of factory and frontend services now communicate with
+          condor daemons using TCP by default.
+        Bug Fix: Factory configuration now supports specifying limits for 
+          different security classes of same frontend
+          KNOWN ISSUE: If limits are configured in the factory, this change
+          breaks backward compatibility. As a workaround, admin needs to remove
+          the limits and re-apply them.
+        Bug Fix: Factory monitoring pages now correctly work in Firefox 14+
+        Bug Fix: Frontend now monitors the glideins correctly when the 
+          corresponding factory classad is missing
+        Bug Fix: Fixed factory logging. Factory can now correctly extract info
+          from a voms proxy
+        Bug Fix: Factory now correctly logs the Completed jobs info in rrd
+
+v2_6    Add attr_dict in the environment of the frontend match_expr
+        Config defined attributes are now available in match_expr
+        Factory now supports deleting entries using --force_delete
+        Upgrading glideinwms with changes to the monitoring rrds is supported
+        Frontend advertises its monitoring url to the factory
+        Misbehaving glidein can be put on hold using WANT_HOLD
+        The start_expr is now a native part of match
+        Startd now advertises per-slot memory when configured by the factory.
+          VO frontend can use GLIDEIN_MaxMemMBs_Estimate attr to make glidein 
+          estimate the available memory (based on memory/core or memory/cpu)
+        entry_q now reads GLIDEIN_FACTORY_DIR from env before checking cwd
+        Multiple user collectors are supported in HA mode
+        Factory can specify if glexec required vs provided by site
+        Providing config file locations for glideinwms.xml and frontend.xml is
+          optional during reconfig
+        Entry downtime reason is now reported in the glidefactory classad
+        Improved support for RHEL 6 platform
+        Added support for new ARC Gatekeeper 1.x 
+        Linux distro of the worker node is available in the glidein's classad
+        Condor classad fields are now considered case insensitive
+        Bug Fix: Java is correctly disable by default preventing increase in 
+          the image size during condor daemon benchmarking
+        Bug Fix: Glidein correctly handles semicolons in STARTER_JOB_ENVIRONMENT
+        Bug Fix: Frontend correctly correctly supports <attr> properties
+        Bug Fix: Glidein now correctly finds glexec on glite site
+        Bug Fix: Glideins update the user collector using TCP by default
+        Bug Fix: Ini-Installer now correctly works with condor tarball on RHEL6
+        Bug Fix: Reduced the logging in factory generated by inactive entries
+        Bug Fix: For frontend rpm, init.d scriptes now correctly sudo to the
+          frontend user before reconfig
+        Bug Fix: Any errors due to changes in condor_q output are logged
+        Bug Fix: MaxJobRetirementTime and PREEMPT expressions now correctly
+          work with WANT_HOLD
+        Bug Fix: Factory correctly deals with the situation when the frontend
+          changes the proxy used
+        Bug Fix: It is possible to specify limits for different frontends for
+          an entry in the factory config
+        Bug Fix: Glidein sets the LD_LIBRARY_PATH so condor uses local shared
+          libraries before those in system path
+        KNOWN ISSUE: When the monitor work_dir is moved, reconfig/upgrade will
+          fail. Recommended work-around is to delete the xml configuration in
+          the work directory, change the work directory, then reconfig/upgrade.
+        KNOWN ISSUE: If the work directory has changed, frontend startup
+          upgrade will not create the group directories and then the frontend
+          will fail (silently). If you are changing directories (e.g. from a RPM
+          upgrade), you should copy the group directories manually.
+
 
 v2_5_7
 	Patch of the clean_glidein_queue to return 1 only when something was
