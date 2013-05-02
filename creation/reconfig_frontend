@@ -108,12 +108,13 @@ def main(params, old_params, update_scripts, update_def_cfg):
 ############################################################
 
 if __name__ == '__main__':
-    usage = "{ -force_name name -writeback yes|no -update_scripts yes|no -xml xml -update_def_cfg yes|no | -help }"
+    usage = "{ -force_name name -writeback yes|no -update_scripts yes|no -xml xml -update_def_cfg yes|no [-xslt_path xslt_path]| -help }"
     argv = sys.argv
     force_name = None
     writeback = 'no'
     update_scripts = 'no'
     update_def_cfg = 'no'
+    xslt_path = None
     xml = ''
     for i in range(len(argv)):
         if argv[i] == '-fix_rrd':
@@ -126,6 +127,8 @@ if __name__ == '__main__':
             update_scripts = argv[i+1]
         if argv[i] == '-xml':
             xml = argv[i+1]
+        if argv[i] == '-xslt_path':
+            xslt_path = argv[i+1]
         if argv[i] == '-update_def_cfg':
             update_def_cfg = argv[i + 1]
         if argv[i] == '-help':
@@ -138,6 +141,7 @@ if __name__ == '__main__':
         xml = argv[len(argv)-1]      
         
     args = [argv[0], xml] 
+    if xslt_path: args.append(xslt_path)
         
     try:
         params=cvWParams.VOFrontendParams(usage, WEB_BASE_DIR, args)
