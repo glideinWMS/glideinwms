@@ -12,6 +12,7 @@
 
 import libxml2
 import libxslt
+import os
 import xml.dom.minidom
 from UserDict import UserDict
 
@@ -75,33 +76,42 @@ class OrderedDict(UserDict):
     def values(self):
         return map(self.get, self._keys)
     
-def xslt_transform(xml_file, xslt_file):
-    ''' Apply XSLT from xslt_file to XML in xml_string,
+def xslt_transform(xml_file, xslt_path):
+    ''' Apply XSLT from all files in xslt_path to XML in xml_string,
     return a string.'''
 
     doc = libxml2.parseFile(xml_file)
-    styledoc = libxml2.parseFile(xslt_file)
-    style = libxslt.parseStylesheetDoc(styledoc)
-    result = style.applyStylesheet(doc, None)
+    xslt_files = os.listdir(xslt_path)
+    xslt_files.sort()
+    xslt_file = None
 
-    transformed_xml = style.saveResultToString(result)
+    try:
+        for xslt_file in xslt_files:
+            styledoc = libxml2.parseFile(xslt_file)
+            style = libxslt.parseStylesheetDoc(styledoc)
+            result = style.applyStylesheet(doc, None)
 
-    style.freeStylesheet()
-    doc.freeDoc()
-    result.freeDoc()
+            style.freeStylesheet()
+            doc.freeDoc()
+            doc = result
+
+        transformed_xml = style.saveResultToString(result)
+        result.freeDoc()
+    except Exception, e:
+        raise CorruptXML('XSLT failed from %s/%s' % (xslt_path, xslt_file))
 
     return transformed_xml
 
 # convert a XML file into a dictionary
 # ignore text sections
 def xmlfile2dict(fname,
-                 xslt_file=None,
+                 xslt_path=None,
                  use_ord_dict=False,        # if true, return OrderedDict instead of a regular dictionary
                  always_singular_list=[]):  # anything id listed here will be considered as a list
     doc = None
     try:
-        if xslt_file:
-            xml_string = xslt_transform(fname, xslt_file)
+        if xslt_path:
+            xml_string = xslt_transform(fname, xslt_path)
             doc = xml.dom.minidom.parseString(xml_string)
         else:
             doc = xml.dom.minidom.parse(fname)
