@@ -86,24 +86,24 @@ Related Links: <br/>
 Below is an example factory configuration xml file.  Click on any piece
 for a more detailed description.
 <div class="config">
-<a href="#glidein">&lt;glidein advertise_delay="5" factory_name="factory-dstrain" glidein_name="v2_4" loop_delay="60" restart_attempts="3" restart_interval="1800" schedd_name="schedd glideins1@submit.fnal.gov,schedd_glideins2@submit.fnal.gov&gt;</a><br/>
+<a href="#glidein">&lt;glidein advertise_delay="5" factory_name="factory-dstrain" glidein_name="v2_4" loop_delay="60" restart_attempts="3" restart_interval="1800" schedd_name="schedd glideins1@submit.fnal.gov,schedd_glideins2@submit.fnal.gov"&gt;</a><br/>
 <blockquote>
     <a href="#">&lt;log_retention &gt;</a><br/>
     <blockquote>
-        <a href="#">&lt; condor_logs max_days="14.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
-        <a href="#">&lt; job_logs max_days="7.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
-        <a href="#">&lt; process_logs &gt;</a><br/>
+        <a href="#">&lt;condor_logs max_days="14.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
+        <a href="#">&lt;job_logs max_days="7.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
+        <a href="#">&lt;process_logs &gt;</a><br/>
         <blockquote>
-            <a href="#process_logs">&lt; process_log extension="info" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="INFO" /&gt;</a><br/>
-            <a href="#process_logs">&lt; process_log extension="debug" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="DEBUG,ERR,WARN" /&gt;</a><br/>
+            <a href="#process_logs">&lt;process_log extension="info" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="INFO" /&gt;</a><br/>
+            <a href="#process_logs">&lt;process_log extension="debug" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="DEBUG,ERR,WARN" /&gt;</a><br/>
         </blockquote>
-        <a href="#">&lt; /process_logs &gt;</a><br/>
-        <a href="#">&lt; summary_logs max_days="31.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
+        <a href="#">&lt;/process_logs &gt;</a><br/>
+        <a href="#">&lt;summary_logs max_days="31.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
     </blockquote>
     <a href="#">&lt;/log_retention &gt;</a><br/>
     <a href="#monitor">&lt;monitor base_dir="/var/www/html/glidefactory/monitor" flot_dir="/opt/javascriptrrd-0.6.3/flot" javascriptRRD_dir="/opt/javascriptrrd-0.6.3/src/lib" jquery_dir="/opt/javascriptrrd-0.6.3/flot" /&gt;</a><br/>
     <a href="#monitor_footer">&lt;monitor_footer display_txt="Legal Disclaimer" href_link="/site/disclaimer.html"  /&gt;</a><br/>
-    <a href="#security">&lt;security key_length="2048" pub_key="RSA" reuse_oldkey_onstartup_gracetime="900" remove_old_cred_freq="24" remove_old_cred_age="30"&gt;</a><br/>
+    <a href="#security">&lt;security key_length="2048" pub_key="RSA" reuse_oldkey_onstartup_gracetime="900" remove_old_cred_freq="24" remove_old_cred_age="30"/&gt;</a><br/>
     <blockquote>
         <a href="#security">&lt;frontends &gt;</a><br/>
         <blockquote>
@@ -111,7 +111,7 @@ for a more detailed description.
             <blockquote>
                 <a href="#security_class">&lt;security_classes &gt;</a><br/>
                 <blockquote>
-                    <a href="#security_class">&lt;security_class name="frontend" username="frontend1" &gt;</a><br/>
+                    <a href="#security_class">&lt;security_class name="frontend" username="frontend1" /&gt;</a><br/>
                 </blockquote>
                 <a href="#security_class">&lt;/security_classes &gt;</a><br/>
             </blockquote>
@@ -121,7 +121,7 @@ for a more detailed description.
     </blockquote>
     <a href="#security">&lt;/security &gt;</a><br/>
     <a href="#stage">&lt;stage base_dir="/var/www/html/glidefactory/stage" use_symlink="True" web_base_url="http://factory.fnal.gov:9000/glidefactory/stage"/&gt;</a><br/>
-    <a href="#submit">&lt;submit base_client_log_dir="/opt/clientlogs/clients/logs" base_client_proxies_dir="/opt/clientlogs/clients/proxies" base_dir="/opt/wmsfactory/" base_log_dir="/opt/wmsfactory//logs" /&gt;</a><br/>
+    <a href="#submit">&lt;submit base_client_log_dir="/opt/clientlogs/clients/logs" base_client_proxies_dir="/opt/clientlogs/clients/proxies" base_dir="/opt/wmsfactory/" base_log_dir="/opt/wmsfactory/logs" /&gt;</a><br/>
     <a href="#attrs">&lt;attrs&gt;</a><br/>
     <blockquote>
         <a href="#attrs">&lt;attr name="CONDOR_VERSION" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="default" /&gt;</a><br/>
@@ -172,7 +172,7 @@ for a more detailed description.
     <a href="#entry">&lt;/entries&gt;</a><br/>
     <a href="#condor_tarball">&lt;condor_tarballs&gt;</a><br/>
     <blockquote>
-        <a href="#condor_tarball">&lt;condor_tarball arch="default" base_dir="/opt/wmscollector/" os="default" tar_file="/var/www/html/glidefactory/stage/glidein_v2_4/condor_bin_default-default-default.a83ePm.tgz" version="default"&gt;</a><br/>
+        <a href="#condor_tarball">&lt;condor_tarball arch="default" base_dir="/opt/wmscollector/" os="default" tar_file="/var/www/html/glidefactory/stage/glidein_v2_4/condor_bin_default-default-default.a83ePm.tgz" version="default"/&gt;</a><br/>
     </blockquote>
     <a href="#condor_tarball">&lt;/condor_tarballs&gt;</a><br/>
     <a href="#">&lt;files /&gt;</a><br/>
@@ -370,7 +370,7 @@ individual entry point configuration.
         <a name="monitor_footer" />
         <div class="xml">
         &lt;glidein&gt;&lt;monitor_footer display_txt=&quot;<I>Legal Disclaimer</I>&quot; 
-        href_link=&quot;<I>/site/disclaimer.html</I>&quot;  &gt;
+        href_link=&quot;<I>/site/disclaimer.html</I>&quot; /&gt;
         </div>
     <p>OPTIONAL:  If the display text and link are configured, the monitoring pages will display the text/link at the 
     bottom of the page.</P>
@@ -575,7 +575,7 @@ override the global arguments if present.
     <b>Required</b> The authentication method this entry supports.  It is advertised to the Frontends to show which credentials are required for 
     submission.  <br/>
     If the authentication method is a credential pair (key_pair, cert_pair, username_password), then the VM id and type must be specified.<br/>
-    These can be additional entry values: &lt; entry vm_type="vmtype" or vm_id="vmid" &gt; <br/>
+    These can be additional entry values: &lt;entry vm_type="vmtype" or vm_id="vmid" &gt; <br/>
     OR <br/>
     added to the authentication method so the Frontend is required to pass them: &lt;entry auth_method="key_pair+vm_id+vm_type" &gt; <br/>
     If the entry is for a TeraGrid site, it requires a project id from the Corral Frontend (not supported by VO Frontends).  The authentication 
@@ -708,9 +708,8 @@ override the global arguments if present.
             &nbsp;&nbsp;&lt;default_per_frontend held="50" idle="100" glideins="5000"/&gt;<br/>
             &nbsp;&nbsp;&lt;per_frontends&gt;<br/>
             &nbsp;&nbsp;&nbsp;&nbsp;&lt;per_frontend name="FRONTEND:SECURITY_CLASS" held="50" idle="100" glideins="5000"/&gt;<br/>
-            &nbsp;&nbsp;&lt;per_frontends&gt;<br/>
-            &lt;max_jobs&gt;<br/>
-
+            &nbsp;&nbsp;&lt;/per_frontends&gt;<br/>
+            &lt;max_jobs/&gt;<br/>
             &lt;release max_per_cycle="20" sleep="0.2"/&gt;<br/>
             &lt;remove max_per_cycle="5" sleep="0.2"/&gt;<br/>
             &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="single_slot"/&gt;<br/>
@@ -821,7 +820,7 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
         name=&quot;<I>entry name</I>&quot;&gt;
         &lt;allow_frontends&gt;
         &lt;allow_frontend name="vofrontend_name"
-        security_class="security_class_name"&gt;
+        security_class="security_class_name"/&gt;
         </div>
         <p>
         This argument allows you to create a whitelist of
@@ -847,7 +846,7 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
     <div class="xml">
         &lt;glidein&gt;&lt;entries&gt;&lt;entry
         name=&quot;<I>entry name</I>&quot;&gt;
-        &lt;infosys_refs&gt;&lt;infosys_ref ref="<i>filename</i>" server="<i>SERVER</i>" type="<i>RESS/BDII</i>"&gt;
+        &lt;infosys_refs&gt;&lt;infosys_ref ref="<i>filename</i>" server="<i>SERVER</i>" type="<i>RESS/BDII</i>"/&gt;
     </div>
     <p>
     This argument is placed here by the installers based on information from BDII/RESS.  This gives you
@@ -994,7 +993,7 @@ as it will not work on any older Condor version!</P>
     name=&quot;SEC_DEFAULT_ENCRYPTION&quot;
     value=&quot;REQUIRED&quot;
     publish=&quot;False&quot;
-    parameter=&quot;True>&quot;/&gt;
+    parameter=&quot;True&quot;/&gt;
 
     </div>
     <p>Another thing to consider is the startup directory; it must be
@@ -1038,7 +1037,7 @@ firewall.
     To use Condor with GCB, you need to specify: 
     <div class="xml">
     &lt;glidein&gt;<BR/>
-    &nbsp;<i>[entries&gt;&lt;entry&gt;]</i><BR/>
+    &nbsp;<i>[&lt;entries&gt;&lt;entry&gt;]</i><BR/>
 
     &nbsp;&lt;attrs&gt;<BR/>
     &nbsp;&nbsp;&lt;attr name=&quot;GCB_LIST&quot;
@@ -1046,7 +1045,7 @@ firewall.
     publish=&quot;False&quot;
     parameter=&quot;True&quot;/&gt;<br/>
 
-    &nbsp;&nbps;&lt;attr name=&quot;GCB_ORDER&quot;
+    &nbsp;&nbsp;&lt;attr name=&quot;GCB_ORDER&quot;
     value=&quot;<I>NONE|RANDOM|GCBLOAD|ROUNDROBIN|SEQUENTIAL</i>&quot;
     publish=&quot;False&quot;
     parameter=&quot;True&quot;/&gt;
@@ -1120,7 +1119,7 @@ firewall.
     <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_7Networking_includes.html#SECTION00473500000000000000">GCB routing tables</A> , too, add: 
     <div class="xml">
     &lt;glidein&gt;<BR/>
-    &nbsp;<i>[entries&gt;&lt;entry&gt;]</i><BR/>
+    &nbsp;<i>[&lt;entries&gt;&lt;entry&gt;]</i><BR/>
     &nbsp;&lt;files&gt;<BR/>
 
     &nbsp;&nbsp;&lt;file absfname=&quot;<I>path to routing file</I>&quot;
@@ -1153,7 +1152,7 @@ machines.
     </p><p>To use Condor with CCB, you need to specify: 
     <div class="xml">
     &lt;glidein&gt;<BR/>
-    &nbsp;<i>[entries&gt;&lt;entry&gt;]</i><BR/>
+    &nbsp;<i>[&lt;entries&gt;&lt;entry&gt;]</i><BR/>
 
     &nbsp;&lt;attrs&gt;<BR/>
     &nbsp;&nbsp;&lt;attr name=&quot;USE_CCB&quot;
@@ -1308,7 +1307,7 @@ For a glidein, you can set this with the &lt;<B>attr</B>/&gt; options:
     For example: 
     <div class="xml">
     &lt;glidein&gt;<BR/>
-    &nbsp;<i>[entries&gt;&lt;entry&gt;]</i><BR>
+    &nbsp;<i>[&lt;entries&gt;&lt;entry&gt;]</i><BR>
     &nbsp; &lt;attrs&gt;<BR/>
     &nbsp; &nbsp; &lt;attr name=&quot;GLIDEIN_Start&quot;
 
@@ -1466,7 +1465,7 @@ of time.
 </p>
     <div class="xml">
     &lt;glidein&gt;<BR/>
-    &nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;
+    &nbsp;[&lt;entries&gt;&lt;entry&gt;]<BR>&nbsp;
     &lt;attrs&gt;<BR/>
 
     &nbsp; &nbsp; &lt;attr name=&quot;GLIDEIN_Max_Idle&quot; 
@@ -1474,12 +1473,12 @@ of time.
     type=&quot;int&quot; publish=&quot;False&quot;
     parameter=&quot;True&quot;/&gt;<BR/>
 
-    &nbsp; &nbsp; &lt; attr name=&quot;GLIDEIN_Retire_Time&quot; 
+    &nbsp; &nbsp; &lt;attr name=&quot;GLIDEIN_Retire_Time&quot;
     value=&quot;14400&quot;
     type=&quot;int&quot; publish=&quot;False&quot;
 
     parameter=&quot;True&quot;/&gt;<BR/>
-    &nbsp; &nbsp; &lt;attr name=&quot;GLIDEIN_Job_Max_Time&quot; 
+    &nbsp;&nbsp;&lt;attr name=&quot;GLIDEIN_Job_Max_Time&quot; 
     value=&quot;180000&quot;
     type=&quot;int&quot; publish=&quot;False&quot;
 
@@ -1543,7 +1542,7 @@ daemons are started up.</P>
 
     <div class="xml">
     &lt;glidein&gt;<BR/>
-    &nbsp;[entries&gt;&lt;entry&gt;]<BR/>
+    &nbsp;[&lt;entries&gt;&lt;entry&gt;]<BR/>
     &nbsp;&lt;files&gt;<BR/>
     &nbsp; &nbsp;&lt;file absfname=&quot;<I>script name</I>&quot; 
     wrapper=&quot;True&quot;
@@ -1559,7 +1558,7 @@ daemons are started up.</P>
 
         <div class="xml">
         &lt;glidein&gt;<BR/>
-        &nbsp;[entries&gt;&lt;entry&gt;]<BR/>
+        &nbsp;[&lt;entries&gt;&lt;entry&gt;]<BR/>
         &nbsp;&lt;files&gt;<BR/>
         &nbsp; &nbsp;&lt;file 
         absfname=&quot;<I>local file name</I>&quot; 
@@ -1583,7 +1582,7 @@ daemons are started up.</P>
     <LI>
         <div class="xml">
         &lt;glidein&gt;<BR/>
-        &nbsp;[entries&gt;&lt;entry&gt;]<BR/>
+        &nbsp;[&lt;entries&gt;&lt;entry&gt;]<BR/>
 
         &nbsp;&lt;files&gt;<BR/>
         &nbsp;&nbsp;&lt;file 
@@ -1594,7 +1593,7 @@ daemons are started up.</P>
         cond_attr=&quot;<I>conf_sw</I>&quot;
 
         dir=&quot;<I>dir name</I>&quot; 
-        absdir_outattr=&quot;<I>attr name</I>&quot;&gt;
+        absdir_outattr=&quot;<I>attr name</I>&quot;/&gt;
         </div>
     <p>Sometimes it is useful to transfer a
     whole set of files, or even directories, and that is much easier to

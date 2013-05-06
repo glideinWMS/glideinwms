@@ -93,12 +93,12 @@ Click on any piece for a more detailed description.
     <blockquote>
     <a href="#">&lt;log_retention &gt;</a><br/>
     <blockquote>
-        <a href="#">&lt; process_logs &gt;</a><br/>
+        <a href="#">&lt;process_logs &gt;</a><br/>
         <blockquote>
-            <a href="#process_logs">&lt; process_log extension="info" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="INFO" /&gt;</a><br/>
-            <a href="#process_logs">&lt; process_log extension="debug" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="DEBUG,ERR,WARN" /&gt;</a><br/>
+            <a href="#process_logs">&lt;process_log extension="info" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="INFO" /&gt;</a><br/>
+            <a href="#process_logs">&lt;process_log extension="debug" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="DEBUG,ERR,WARN" /&gt;</a><br/>
         </blockquote>
-        <a href="#">&lt; /process_logs &gt;</a><br/>
+        <a href="#">&lt;/process_logs &gt;</a><br/>
     </blockquote>
     <a href="#">&lt;/log_retention &gt;</a><br/>
         <a href="#match">&lt;match match_expr="True"&gt;</a><br/>
@@ -118,9 +118,9 @@ Click on any piece for a more detailed description.
                 <a href="#match">&lt;match_attrs /&gt;</a><br/>
                 <a href="#schedd">&lt;schedds&gt;</a><br/>
                 <blockquote>
-                    <a href="#schedd">&lt;schedd DN="/DC=org/DC=doegrids/OU=Services/CN=userpool.fnal.gov" fullname="userpool.fnal.gov"&gt;</a><br/>
-                    <a href="#schedd">&lt;schedd DN="/DC=org/DC=doegrids/OU=Services/CN=userpool.fnal.gov" fullname="schedd_jobs1@userpool.fnal.gov"&gt;</a><br/>
-                    <a href="#schedd">&lt;schedd DN="/DC=org/DC=doegrids/OU=Services/CN=userpool.fnal.gov" fullname="schedd_jobs2@userpool.fnal.gov"&gt;</a><br/>
+                    <a href="#schedd">&lt;schedd DN="/DC=org/DC=doegrids/OU=Services/CN=userpool.fnal.gov" fullname="userpool.fnal.gov" /&gt;</a><br/>
+                    <a href="#schedd">&lt;schedd DN="/DC=org/DC=doegrids/OU=Services/CN=userpool.fnal.gov" fullname="schedd_jobs1@userpool.fnal.gov" /&gt;</a><br/>
+                    <a href="#schedd">&lt;schedd DN="/DC=org/DC=doegrids/OU=Services/CN=userpool.fnal.gov" fullname="schedd_jobs2@userpool.fnal.gov" /&gt;</a><br/>
                 </blockquote>
                 <a href="#schedd">&lt;/schedds&gt;</a><br/>
             </blockquote>
@@ -128,25 +128,26 @@ Click on any piece for a more detailed description.
         </blockquote>
         <a href="#match">&lt;/match&gt;</a><br/>
         <br/>
-        <a href="#monitor">&lt;monitor base_dir="/var/www/html/vofrontend/monitor" flot_dir="/opt/javascriptrrd-0.6.3/flot" javascriptRRD_dir="/opt/javascriptrrd-0.6.3/src/lib" jquery_dir="/opt/javascriptrrd-0.6.3/flot"&gt;</a><br/>
+        <a href="#monitor">&lt;monitor base_dir="/var/www/html/vofrontend/monitor" flot_dir="/opt/javascriptrrd-0.6.3/flot" javascriptRRD_dir="/opt/javascriptrrd-0.6.3/src/lib" jquery_dir="/opt/javascriptrrd-0.6.3/flot" /&gt;</a><br/>
         <a href="#monitor_footer">&lt;monitor_footer display_txt="Legal Disclaimer" href_link="/site/disclaimer.html"  /&gt;</a><br/><br/>
         <a href="#security">&lt;security classad_proxy="/etc/grid-security/vocert.pem" proxy_DN="/DC=org/DC=doegrids/OU=Services/CN=frontend-server.fnal.gov" proxy_selection_plugin="ProxyAll" security_name="frontenduser" sym_key="aes_256_cbc"&gt;</a><br/>
         <blockquote>
-        <a href="#proxies">&lt;credentials&gt;</a><br/>
+        <a href="#credentials">&lt;credentials&gt;</a><br/>
         <blockquote>
-            <a href="#proxies">&lt;credential absfname="/tmp/x509up_u" security_class="frontend" trust_domain="OSG" auth_method="grid_proxy" vm_id="123" vm_type="type1" pool_idx_len="5" pool_idx_list="2,4-6,10" &gt;</a><br/>
+            <a href="#credentials">&lt;credential absfname="/tmp/x509up_u" security_class="frontend" trust_domain="OSG" auth_method="grid_proxy" vm_id="123" vm_type="type1" pool_idx_len="5" pool_idx_list="2,4-6,10" /&gt;</a><br/>
         </blockquote>
-        <a href="#proxies">&lt;/credentials&gt;</a><br/>
+        <a href="#credentials">&lt;/credentials&gt;</a><br/>
+        <a href="#security">&lt;/security&gt;</a><br/>
     </blockquote>
-    <a href="#stage">&lt;stage base_dir="/var/www/html/vofrontend/stage" use_symlink="True" web_base url="http://frontend-server.fnal.gov:9000/vofrontend/stage"&gt;</a><br/>
-    <a href="#work">&lt;work base_dir="/opt/vofrontend" base_log_dir="/opt/vofrontend/logs"&gt;</a><br/>
+    <a href="#stage">&lt;stage base_dir="/var/www/html/vofrontend/stage" use_symlink="True" web_base_url="http://frontend-server.fnal.gov:9000/vofrontend/stage" /&gt;</a><br/>
+    <a href="#work">&lt;work base_dir="/opt/vofrontend" base_log_dir="/opt/vofrontend/logs" /&gt;</a><br/>
     <a href="#attrs">&lt;attrs&gt;</a><br/>
     <blockquote>
-        <a href="#attr_client_rank">&lt;attr name="GLIDECLIENT_Rank" glidein_publish="False" job_publish="False " parameter="True" type="string" value="1"&gt;</a><br/>
-        <a href="#attr_client_start">&lt;attr  name="GLIDECLIENT_Start" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"&gt;</a><br/>
-        <a href="#attr_expose">&lt;attr  name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="False" type="string" value="True"&gt;</a><br/>
-        <a href="#attr_glexec">&lt;attr name="GLIDEIN_Glexec_Use" glidein_publish="True" job_publish="True" parameter="False" type="string" value="OPTIONAL"&gt;</a><br/>
-        <a href="#attr_match">&lt;attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"&gt;</a><br/>
+        <a href="#attr_client_rank">&lt;attr name="GLIDECLIENT_Rank" glidein_publish="False" job_publish="False " parameter="True" type="string" value="1" /&gt;</a><br/>
+        <a href="#attr_client_start">&lt;attr  name="GLIDECLIENT_Start" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True" /&gt;</a><br/>
+        <a href="#attr_expose">&lt;attr  name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="False" type="string" value="True" /&gt;</a><br/>
+        <a href="#attr_glexec">&lt;attr name="GLIDEIN_Glexec_Use" glidein_publish="True" job_publish="True" parameter="False" type="string" value="OPTIONAL" /&gt;</a><br/>
+        <a href="#attr_match">&lt;attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True" /&gt;</a><br/>
     </blockquote>
     <a href="#attrs">&lt;/attrs&gt;</a><br/>
     <a href="#group">&lt;groups&gt;</a><br/>
@@ -155,9 +156,9 @@ Click on any piece for a more detailed description.
         <blockquote>
             <a href="#group_config">&lt;config&gt;</a><br/>
             <blockquote>
-                <a href="#group_config">&lt;idle_glideins_per_entry max="100" reserve="5"&gt;</a><br/>
-                <a href="#group_config">&lt;idle_vms_per_entry curb="5" max="100"&gt;</a><br/>
-                <a href="#group_config">&lt;running_glideins_per_entry max="10000" relative_to_queue="1.15"&gt;</a><br/>
+                <a href="#group_config">&lt;idle_glideins_per_entry max="100" reserve="5" /&gt;</a><br/>
+                <a href="#group_config">&lt;idle_vms_per_entry curb="5" max="100" /&gt;</a><br/>
+                <a href="#group_config">&lt;running_glideins_per_entry max="10000" relative_to_queue="1.15" /&gt;</a><br/>
             </blockquote>
             <a href="#group_config">&lt;/config&gt;</a><br/>
             <a href="#group_match">&lt;match match_expr="True"&gt;</a><br/>
@@ -174,6 +175,7 @@ Click on any piece for a more detailed description.
                     <a href="#group_job">&lt;schedds /&gt;</a><br/>
                 </blockquote>
                 <a href="#group_job">&lt;/job&gt;</a><br/>
+            <a href="#group_match">&lt;/match&gt;</a><br/>
             </blockquote>
             <a href="#group_security_proxies">&lt;security&gt;</a><br/>
                 <blockquote>
@@ -189,8 +191,8 @@ Click on any piece for a more detailed description.
      
     <a href="#usercollector">&lt;collectors groups="default,ha"&gt;</a><br/>
     <blockquote>
-        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="default"&gt;</a><br/>
-        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="ha"&gt;</a><br/>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="default" /&gt;</a><br/>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="ha" /&gt;</a><br/>
     </blockquote>
     <a href="#usercollector">&lt;/collectors&gt;</a><br/>
     <a href="#files">&lt;files /&gt;</a><br/>
@@ -701,7 +703,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         /&gt;
 
         </div>
-        Group-specific credentials can be defined that will be passed to the factory in addition to any <a href="#proxies">globally defined credentials</a>.
+        Group-specific credentials can be defined that will be passed to the factory in addition to any <a href="#credentials">globally defined credentials</a>.
     </P></li>
     <LI><P>
         <a name="usercollector" />
@@ -892,12 +894,12 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         expression run on the pilot startd daemon.
         Here is an example:
         <div class="xml">
-              &lt; match match_expr='glidein[&quot;attrs&quot;].get(&quot;GLIDEIN_Site&quot;) in ((job.get(&quot;DESIRED_Sites&quot;) != None) and job.get(&quot;DESIRED_Sites&quot;).split(&quot;,&quot;))'
+              &lt;match match_expr='glidein[&quot;attrs&quot;].get(&quot;GLIDEIN_Site&quot;) in ((job.get(&quot;DESIRED_Sites&quot;) != None) and job.get(&quot;DESIRED_Sites&quot;).split(&quot;,&quot;))'
             start_expr='(stringListMember(GLIDEIN_Site,DESIRED_Sites,",")=?=True)' &lt;
             <br/>
             ...
             <br/>
-            &lt; /match &gt;
+            &lt;/match &gt;
         </div>
 </p>
 </div>
