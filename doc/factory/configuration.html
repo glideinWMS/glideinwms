@@ -86,19 +86,19 @@ Related Links: <br/>
 Below is an example factory configuration xml file.  Click on any piece
 for a more detailed description.
 <div class="config">
-<a href="#glidein">&lt;glidein advertise_delay="5" factory_name="factory-dstrain" glidein_name="v2_4" loop_delay="60" restart_attempts="3" restart_interval="1800" schedd_name="schedd glideins1@submit.fnal.gov,schedd_glideins2@submit.fnal.gov&gt;</a><br/>
+<a href="#glidein">&lt;glidein advertise_delay="5" factory_name="factory-dstrain" glidein_name="v2_4" loop_delay="60" restart_attempts="3" restart_interval="1800" schedd_name="schedd glideins1@submit.fnal.gov,schedd_glideins2@submit.fnal.gov"&gt;</a><br/>
 <blockquote>
     <a href="#">&lt;log_retention &gt;</a><br/>
     <blockquote>
-        <a href="#">&lt; condor_logs max_days="14.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
-        <a href="#">&lt; job_logs max_days="7.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
-        <a href="#">&lt; process_logs &gt;</a><br/>
+        <a href="#">&lt;condor_logs max_days="14.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
+        <a href="#">&lt;job_logs max_days="7.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
+        <a href="#">&lt;process_logs &gt;</a><br/>
         <blockquote>
-            <a href="#process_logs">&lt; process_log extension="info" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="INFO" /&gt;</a><br/>
-            <a href="#process_logs">&lt; process_log extension="debug" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="DEBUG,ERR,WARN" /&gt;</a><br/>
+            <a href="#process_logs">&lt;process_log extension="info" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="INFO" /&gt;</a><br/>
+            <a href="#process_logs">&lt;process_log extension="debug" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="DEBUG,ERR,WARN" /&gt;</a><br/>
         </blockquote>
-        <a href="#">&lt; /process_logs &gt;</a><br/>
-        <a href="#">&lt; summary_logs max_days="31.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
+        <a href="#">&lt;/process_logs &gt;</a><br/>
+        <a href="#">&lt;summary_logs max_days="31.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
     </blockquote>
     <a href="#">&lt;/log_retention &gt;</a><br/>
     <a href="#monitor">&lt;monitor base_dir="/var/www/html/glidefactory/monitor" flot_dir="/opt/javascriptrrd-0.6.3/flot" javascriptRRD_dir="/opt/javascriptrrd-0.6.3/src/lib" jquery_dir="/opt/javascriptrrd-0.6.3/flot" /&gt;</a><br/>
@@ -575,7 +575,7 @@ override the global arguments if present.
     <b>Required</b> The authentication method this entry supports.  It is advertised to the Frontends to show which credentials are required for 
     submission.  <br/>
     If the authentication method is a credential pair (key_pair, cert_pair, username_password), then the VM id and type must be specified.<br/>
-    These can be additional entry values: &lt; entry vm_type="vmtype" or vm_id="vmid" &gt; <br/>
+    These can be additional entry values: &lt;entry vm_type="vmtype" or vm_id="vmid" &gt; <br/>
     OR <br/>
     added to the authentication method so the Frontend is required to pass them: &lt;entry auth_method="key_pair+vm_id+vm_type" &gt; <br/>
     If the entry is for a TeraGrid site, it requires a project id from the Corral Frontend (not supported by VO Frontends).  The authentication 
@@ -1473,7 +1473,7 @@ of time.
     type=&quot;int&quot; publish=&quot;False&quot;
     parameter=&quot;True&quot;/&gt;<BR/>
 
-    &nbsp; &nbsp; &lt;attr name=&quot;GLIDEIN_Retire_Time&quot; 
+    &nbsp; &nbsp; &lt;attr name=&quot;GLIDEIN_Retire_Time&quot;
     value=&quot;14400&quot;
     type=&quot;int&quot; publish=&quot;False&quot;
 
