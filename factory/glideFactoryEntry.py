@@ -308,6 +308,9 @@ class Entry:
         self.gflFactoryConfig.qc_stats = glideFactoryMonitoring.condorQStats(logfiles=self.logFiles)
         self.gflFactoryConfig.client_internals = {}
 
+        # Cleanup log files
+        self.logFiles.cleanup()
+
 
     def unsetInDowntime(self):
         """
