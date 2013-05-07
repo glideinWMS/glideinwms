@@ -1,3 +1,14 @@
+<!--
+convert_factory_2to3: an XSL transform to convert glideinWMS factory v2
+ configuration to v3.
+
+To invoke (assuming the glideinwms source is in GLIDEIN_SRC):
+
+xsltproc -o glideinWMS-new.xml \
+   $GLIDEIN_SRC/factory/tools/convert_factory_2to3.xslt \
+   glideinWMS.xml
+-->
+
 <xsl:transform version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:output method="xml" indent="yes"/>
 <!-- Generic template: copy everything -->
