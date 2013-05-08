@@ -115,6 +115,43 @@ Example:
 
 </div>
 <div class="section">
+<h4><b>glidecondor_createSecCol</b></h4>
+<p>
+The <tt>glidecondor_createSecCol</tt> script (found in the ./install directory of 
+the glideinWMS tree) can help manage the HTCondor's secondary collectors. It can be used
+when HTCondor's configuration is stored in 
+<a href="http://research.cs.wisc.edu/htcondor/manual/v7.8/3_3Configuration.html#param:LocalConfigDir">LOCAL_CONFIG_DIR</a>.
+</p>
+<p>
+Usage:
+</p>
+<blockquote>
+   glidecondor_createSecCol [-useportasname] [-commonlog] <i>portrange</i>
+</blockquote>
+<p>
+This script will re-create the <tt>11_gwms_secondary_collectors.config file</tt> file at each invocation.
+The node admin can thus easily change the number of secondary collectors as needed.
+</p>
+<p>
+Since each Condor Daemon needs a unique name, each collector will be called COLLECTOR<i>xxx</i>.
+By default, the numbering starts with 0 for the first collector in the port range, and is incremented by one for each additional one.<br>
+If <tt>-useportasname</tt> is used, <i>xxx</i> is instread defined as the port number used by the collector.<br>
+Please <b>note</b> that the tool does not try to guess what the existing config, if any, is using.
+</p>
+<p>
+By default, each secondary collector will have its own log file. 
+If a shared log is desired, use <tt>-commonlog</tt>.<br>
+Please <b>note</b> that the tool does not try to guess what the existing config, if any, is using.
+</p>
+<p>
+Example:
+</p>
+<blockquote>
+   glidecondor_createSecCol 9620-9639
+</blockquote>
+
+</div>
+<div class="section">
 <h4><b>Other monitoring tools</b></h4>
 <p>
 The tools <tt>analyze_entries</tt>,<tt>analyze_queues</tt>, and 
