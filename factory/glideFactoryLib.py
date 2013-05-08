@@ -194,8 +194,8 @@ class LogFiles:
         # Don't clean up admin log.  More important to have record
         cleanup_regex = ''
         for ext in ('info', 'debug', 'err', 'admin'):
-            cleanup_regex = '%s|(%s\.[0-9]*\.%s\.log)' % (cleanup_regex,
-                                                          file_name, ext)
+            cleanup_regex += '|(%s\.[0-9]*\.%s\.log)' % (file_name, ext)
+
         self.cleanupObjs=[
             logSupport.DirCleanupWSpace(
                 log_dir, cleanup_regex.strip('|'),
