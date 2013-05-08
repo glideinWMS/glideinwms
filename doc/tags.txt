@@ -1,3 +1,16 @@
+v2_7_1  glidecondor_addDN tool now supports adding DNs from a file
+        Added new tool glidecondor_createSecCol to dynamically create
+          secondary collectors
+        Bug Fix: Fixed a bug where condor config templates used by glideinwms
+          components had undefined values
+        Bug Fix: analyze_entries tool now correctly handles URI http://
+        Bug Fix: Fixed a bug where frontend would crash if the some of the
+          internal files were trucated to zero length.
+        Bug Fix: Factory now correctly does the cleanup of log files
+        Bug Fix: Factory now correctly does accounting of glideins in default
+          condor schedd
+        Bug Fix: proxy_info works correctly with the cat option
+
 v2_7	glideinwms code is now organized as python packages
 	Factory no longer creates long running process per entry. Instead, it
 	  runs only a single long running glideFactoryEntryGroup process
