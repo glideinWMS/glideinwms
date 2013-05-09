@@ -333,15 +333,22 @@ def cond_update_config(config_file,dnlist,opts):
     recreate=opts['recreate']
     allow_others=opts['allow_others']
     
+    # create a tmpfile first, so the change is semi-atomic
+    # always use a final tilde to avoid Condor using it
+    tmpfile="%s.new~"%config_file
+    if os.path.isfile(tmpfile):
+        os.unlink(tmpfile)
+
     if recreate:
-        # create an new, empty file
-        fd=open(config_file,'w')
-        fd.write("# This file contains the list of daemon DNs\n\n")
+        # create an new, empty file... with just a header
+        lines=["# This file contains the list of daemon DNs\n\n"]
         # if not allowing others, set to true, so GSI_DAEMON_NAME will be cleaned up
         is_first=not allow_others
     else:
-        # just append at the end of the file
-        fd=open(config_file,'a')
+        fd=open(config_file,'r')
+        lines=fd.readlines()
+        fd.close()
+        # never destroy anything... we will just append to the end of the file
         is_first=False
     
     for dnel in dnlist:
@@ -349,21 +356,30 @@ def cond_update_config(config_file,dnlist,opts):
             dn=dnel['dn']
             user=dnel['user']
             comment=dnel['daemon_comment']
-            fd.write("\n# New daemon DN added on %s\n"%time.ctime())
-            fd.write("# Comment: %s\n"%comment)
-            fd.write("# The following DN will map to %s\n"%user)
+            lines.append("\n# New daemon DN added on %s\n"%time.ctime())
+            lines.append("# Comment: %s\n"%comment)
+            lines.append("# The following DN will map to %s\n"%user)
             if is_first:
-                fd.write("GSI_DAEMON_NAME=%s\n"%dn)
+                lines.append("GSI_DAEMON_NAME=%s\n"%dn)
                 is_first=False
             else:
-                fd.write("GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s\n"%dn)
+                lines.append("GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s\n"%dn)
 
     if is_first:
         # if there were no DNs to write, reset it to an empty string
-        assert recreate==True
-        fd.write("GSI_DAEMON_NAME=\n"%dn)
+        assert recreate
+        assert not allow_others
+        lines.append("GSI_DAEMON_NAME=\n")
 
+    fd=open(tmpfile,'w')
+    fd.writelines(lines)
     fd.close()
+
+    bakfile="%s~"%config_file
+    if os.path.isfile(bakfile):
+        os.unlink(bakfile)
+    os.rename(config_file,bakfile)
+    os.rename(tmpfile,config_file)
 
     return
 
