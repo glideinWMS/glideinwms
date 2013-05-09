@@ -91,7 +91,12 @@ Where <i>[options]</i> is any combination of:
      <td>If present, the tool will look for alternate config files (e.g. condor_config.local)
          to put daemon DNs into.</td></tr>
  <tr><td>-disable-checks</td><td>Without it, valid config files must already be present.</td></tr>
- <tr><td>-recreate</td><td>Destroy any existing configuration files, and crete a new ones.</td></tr>
+ <tr><td>-recreate</td>
+     <td>By default, the tool will add to existing files.<br>
+         If this option is present, it will destroy any existing configuration files, and create new ones instead.</td></tr>
+ <tr><td>-allow-others</td>
+     <td>By default when <tt>-recreate</tt> is used, the new config files will override any existing DN attributes (i.e. <i>GSI_DAEMON_NAME</i>).<br>
+         If you want to preserve the settings from other config files, use this option.</td></tr>
  <tr><td>-q</td><td>Quiet operation.</td></tr>
 </table>
 </p>

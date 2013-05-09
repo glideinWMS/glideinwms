@@ -46,7 +46,8 @@ def usage():
     print " -h              - print this help and exit"
     print " -q              - quiet operation"
     print " -disable-checks - without, a valid condor-mapfile must already exist"
-    print " -recreate       - destroy any existing mapfile and 90_gwms_dns.config, and crete a new one"
+    print " -recreate       - destroy any existing mapfile and 90_gwms_dns.config, and create a new one"
+    print " -allow-others   - allow for previously defined DNs"
     print " -allow-alterate - allow to use alternate config files (e.g. condor_config.local)"
     print " -m <fname>      - Use this file as the mapfile, instead of the standard one"
     print " -d <fname>      - Use this file as the DNS config file, instead of the standard one"
@@ -79,7 +80,7 @@ def parse_args(args):
         while (i<len(args)):
             arg=args[i]
             i+=1
-            if arg in ('-h','-q','-disable-checks','-recreate','-allow-alternate'):
+            if arg in ('-h','-q','-disable-checks','-recreate','-allow-others','-allow-alternate'):
                 # options without any parameters
                 opts.append(arg)
             elif arg=='-m':
@@ -145,6 +146,7 @@ def parse_args(args):
     QUIET_OPS=('-q' in opts)
     ENABLE_CHECKS=not ('-disable-checks' in opts)
     RECREATE=('-recreate' in opts)
+    ALLOW_OTHERS=('-allow-others' in opts)
     ALLOW_ALTERNATE=('-allow-alternate' in opts)
 
     if mode==2:
@@ -152,7 +154,7 @@ def parse_args(args):
     else:
         dnlist=parse_one_args(modargs,QUIET_OPS)
 
-    return {'dnlist':dnlist,'opts':{'quiet':QUIET_OPS,'enable_checks':ENABLE_CHECKS,'recreate':RECREATE,'allow_alternate':ALLOW_ALTERNATE,'mapfile':mapfile,'dnsfile':dnsfile}}
+    return {'dnlist':dnlist,'opts':{'quiet':QUIET_OPS,'enable_checks':ENABLE_CHECKS,'recreate':RECREATE,'allow_alternate':ALLOW_ALTERNATE,'allow_others':ALLOW_OTHERS,'mapfile':mapfile,'dnsfile':dnsfile}}
 
 def parse_one_args(args,QUIET_OPS):
     assert len(args)>=2
@@ -329,12 +331,14 @@ def update_mapfile(mapfile,dnlist,opts):
 
 def cond_update_config(config_file,dnlist,opts):
     recreate=opts['recreate']
-
+    allow_others=opts['allow_others']
+    
     if recreate:
         # create an new, empty file
         fd=open(config_file,'w')
         fd.write("# This file contains the list of daemon DNs\n\n")
-        is_first=True
+        # if not allowing others, set to true, so GSI_DAEMON_NAME will be cleaned up
+        is_first=not allow_others
     else:
         # just append at the end of the file
         fd=open(config_file,'a')
