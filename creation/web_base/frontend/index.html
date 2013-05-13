@@ -1,119 +1,94 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-    <script type="text/javascript" src="jslibs/frontend_support.js"></script>
-<head>
+  <script type="text/javascript" src="jslibs/frontend_support.js"></script>
+  <head>
     <title id="brtitle">GlideinWMS VO Frontend Monitoring</title>
+
+    <link href="css/bootstrap-combined.min.css" rel="stylesheet"/>
+    <!--link
+    href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.1.1/css/bootstrap-combined.min.css"
+    rel="stylesheet"-->
+    <link href="css/glideinwms.css" rel="stylesheet" type="text/css"/>
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
+
     <script type="text/javascript">
-	  var browser_title = "GlideinWMS VO Frontend Monitoring";
-	  var page_title = "GlideinWMS VO Frontend Monitoring";
-	  set_title_and_footer(browser_title, page_title);
-	</script>
+        window.onload = function() {
+            var browser_title = "GlideinWMS VO Frontend Monitoring";
+            var page_title = "GlideinWMS VO Frontend Monitoring";
+            set_title_and_footer(browser_title, page_title);
+        }
+    </script>
 
-<style type="text/css"> 
-.rounded
-{
-border:2px solid #a1a1a1;
-padding:10px 40px; 
-background:#dddddd;
-width:350px;
-border-radius:25px;
--moz-border-radius:25px; /* Firefox 3.6 and earlier */
-}
-div.rounded:hover
-{
-background:#eeeeee;
+  </head>
+  <body>
+    <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.1.1/js/bootstrap.min.js"></script>
 
-}
-div.rounded
-{
-height:170px;
-}
-table.centered;
-{
-}
-a
-{
-color:black;
-}
+    <div id="navbar" class="navbar">
+      <div id="navbar-inner" class="navbar-inner"></div>
+    </div>
+    <script type="text/javascript">
+        generate_navbar();
+    </script>
 
-th.rounded
-{
-font-size:35px;
-}
+    <div class="hero-unit">
+      <h1>GlideinWMS VO Frontend Monitoring</h1>
+      <p>
+        The <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/">
+          GlideinWMS</a>
+        VO Frontend provides monitoring for users and administrators.  Select the monitoring webpage below.
+      </p>
+    </div>
+    <!-- Hero -->
 
-a:link.thumbnail {text-decoration:none;}
-a:visited.thumbnail {text-decoration:none;}
-a:hover.thumbnail {text-decoration:none;}
-a:active.thumbnail {text-decoration:none;}
+    <div class="container-fluid">
+      <div class="row-fluid">
 
-a.thumbnail
-{
-color:#000000
-}
+        <ul class="thumbnails">
 
-</style>
-<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.1.1/css/bootstrap-combined.min.css" rel="stylesheet">
-<script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.1.1/js/bootstrap.min.js"></script>
+          <li class="span3">
+            <a href="frontendRRDBrowse.html" class="thumbnail">
+              <img src="frontendRRDBrowse.small.png"/>
+              <h3>Browse RRDs</h3>
+              <p>
+                Historical Frontend and Frontend groups statistics plotted over time
+              </p>
+            </a>
+          </li>
+          <li class="span3">
+            <a href="frontendRRDGroupMatrix.html" class="thumbnail">
+              <img src="frontendRRDGroupMatix.small.png">
+              <h3>Group Matrix</h3>
+              <p>
+                Historical statistics for each group along with the comparison mode
+              </p>
+            </a>
+          </li>
+          <li class="span3">
+            <a href="frontendStatus.html" class="thumbnail">
+              <img src="frontendStatus.small.png">
+              <h3>Historical Status</h3>
+              <p>
+                Historical usage of the Frontend as seen by the Glideinwms Factory
+              </p>
+            </a>
+          </li>
+          <li class="span3">
+            <a href="frontendGroupGraphStatusNow.html" class="thumbnail">
+              <img src="frontendGroupGraphsNow.small.png"> <h3>Current Status</h3>
+              <p>
+                Current status of the Frontend i.e. running/idle jobs and glideins
+              </p>
+            </a>
+          </li>
 
-</head>
-<body>
-<div class="navbar">
- <div class="navbar-inner">
-  <a class="brand" href="#">GlideinWMS Frontend</a>
-    <ul class="nav">
-    <li class="active"><a href="index.html">Home</a></li>
-    <li><a href="frontendRRDBrowse.html">Browse</a></li>
-    <li><a href="frontendRRDGroupMatrix.html">Group Matrix</a></li>
-    <li><a href="frontendStatus.html">Status</a></li>
-    <li><a href="frontendGroupGraphStatusNow.html">Group Graphs</a></li>
-    </ul>
- </div>
-</div>
-
-
-<div class="hero-unit">
-<h1>GlideinWMS VO Frontend Monitoring</h1>
-<p>The <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/">GlideinWMS</a> VO Frontend provides monitoring for users and administrators.  Select the monitoring webpage below.</p>
-</div> <!-- Hero -->
-
-<div class="container-fluid">
-<div class="row-fluid">
-<ul class="thumbnails">
-
- <li class="span3">
-   <a href="frontendRRDBrowse.html" class="thumbnail">
-   <img src="frontendRRDBrowse.small.png">
-   <h3>Browse RRD Statistics</h3>
-   <p>This page shows the historical frontend statistics plotted over time.</p>
-   </a>
- </li>
- <li class="span3">
-   <a href="frontendRRDGroupMatrix.html" class="thumbnail">
-   <img src="frontendRRDGroupMatix.small.png">
-   <h3>Historical Per-Group Statistics</h3>
-   <p>This page shows historical statistics for each group.</p>
-   </a>
- </li>
- <li class="span3">
-  <a href="frontendStatus.html" class="thumbnail">
-   <img src="frontendStatus.small.png">
-   <h3>Historical Status</h3>
-   <p>This page shows the historical usage plotted over time.</p>
-   </a>
- </li>
- <li class="span3">
-   <a href="frontendGroupGraphStatusNow.html" class="thumbnail">
-   <img src="frontendGroupGraphsNow.small.png">
-   <h3>Current Status by Group</h3>
-   <p>This page shows the current number of running jobs, by group, on the frontend.</p>
-   </a>
- </li>
-
-</ul>
-</div> <!-- End Row -->
-</div> <!-- End container -->
-<div id="monitor_footer"></div>
-</body>
+        </ul>
+      </div>
+      <!-- End Row -->
+    </div>
+    <!-- End container -->
+    <div id="monitor_footer"></div>
+  </body>
 </html>
-
 

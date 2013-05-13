@@ -2,531 +2,715 @@
 
 <!--
 Project:
-  glideinWMS
+glideinWMS
 
-File Version: 
+File Version:
 
 Description:
-  Browse the glideinWMS RRDs
+Browse the glideinWMS RRDs
 
-  Based on
-  javascriptrrd/src/lib/rrdJFlot.html 
-   Original repository: http://javascriptrrd.sourceforge.net/
+Based on
+javascriptrrd/src/lib/rrdJFlot.html
+Original repository: http://javascriptrrd.sourceforge.net/
 
-  ****************
-  Linking functional (hopefully). 
-  ****************
+****************
+Linking functional (hopefully).
+****************
 
 -->
 
 <html>
-  
-    <script type="text/javascript" src="jslibs/binaryXHR.js"></script>
-    <script type="text/javascript" src="jslibs/rrdFile.js"></script>
-    <script type="text/javascript" src="jslibs/rrdFilter.js"></script>
 
-    <!-- rrdFlot class needs the following include files !-->
-    <script type="text/javascript" src="jslibs/rrdFlotSupport.js"></script>
-    <script type="text/javascript" src="jslibs/rrdFlot.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.flot.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.flot.selection.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.flot.tooltip.js"></script>
-    <script type="text/javascript" src="jslibs/frontend_support.js"></script>
+  <script type="text/javascript" src="jslibs/binaryXHR.js"></script>
+  <script type="text/javascript" src="jslibs/rrdFile.js"></script>
+  <script type="text/javascript" src="jslibs/rrdFilter.js"></script>
+
+  <!-- rrdFlot class needs the following include files !-->
+  <script type="text/javascript" src="jslibs/rrdFlotSupport.js"></script>
+  <script type="text/javascript" src="jslibs/rrdFlot.js"></script>
+  <script type="text/javascript" src="jslibs/jquery.js"></script>
+  <script type="text/javascript" src="jslibs/jquery.flot.js"></script>
+  <script type="text/javascript" src="jslibs/jquery.flot.selection.js"></script>
+  <script type="text/javascript" src="jslibs/jquery.flot.tooltip.js"></script>
+  <script type="text/javascript" src="jslibs/frontend_support.js"></script>
   <head>
-    <title id="brtitle">VO frontend status</title>
+    <!--link
+    href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.1.1/css/bootstrap-combined.min.css"
+    rel="stylesheet"-->
+    <link href="css/bootstrap-combined.min.css" rel="stylesheet"/>
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+    <link href="css/glideinwms.css" rel="stylesheet" type="text/css"/>
+
+    <title id="brtitle">VO Frontend Status</title>
     <script type="text/javascript">
-	  var browser_title = "VO frontend status";
-	  var page_title = "VO frontend status";
-	  set_title_and_footer(browser_title, page_title);
-	</script>
+        window.onload = function() {
+            var browser_title = "Frontend Status";
+            var page_title = "Frontend Status";
+            set_title_and_footer(browser_title, page_title);
+        }
+    </script>
   </head>
 
   <body>
-    <table width="100%">
-    <tr>
-     <td><h1 id="pgtitle">VO frontend status</h1></td>
-     <td align="right">[ 
-	    <a href="frontendRRDBrowse.html">Browse</a> |
-	    <a href="frontendRRDGroupMatrix.html">Group Matrix</a> | 
-        <a href="frontendGroupGraphStatusNow.html">Group Graphs</a>
-	    ]</td>
-    </tr>
-    </table>
- 
-    <table border=0>
-     <tr>
-       <th>Group</th>
-       <td valing="middle">
-         <select id="groups" onchange="setFactoryMenu(document.getElementById('groups').options[document.getElementById('groups').selectedIndex].value);">
-          <option value="total">total</option>
-         </select>
-       </td>
-     </tr>
-     <tr>
-       <th>Factory</th>
-       <td valing="middle">
-         <select id="factory">
-          <option value="total">total</option>
-         </select>
-       </td>
-     </tr>
 
-     <tr>
-       <th>Info group</th>
-       <td><form id="gtypes">
-	     <input type="radio" name="gtype" value="running" checked>Running
-	     <input type="radio" name="gtype" value="idle"           >Idle
-           </form>
-       </td>
-     </tr>
-     <tr>
-       <td colspan=2>
-         <button onClick="nonlink_update()">Update</button>
-         <button onClick="defaults()" style="float:right">Defaults</button>
-         <button onClick="unlink()" style="float:right">Unlink</button>
-         <button onClick="showLink()" style="float:right">Link</button>
-       </td>
-     </tr>
-    </table>
+    <div id="navbar" class="navbar">
+      <div id="navbar-inner" class="navbar-inner"></div>
+    </div>
+    <script type="text/javascript">
+        generate_navbar();
+    </script>
 
+    <div class="container-fluid">
+      <div class="row-fluid">
+        <div id="header" class="page-header">
+          <h3 class="page-title" id="pgtitle">Current GlideinWMS Frontend Status</h3>
+        </div>
+        <table class="table-frontend-factory">
+          <tr>
+            <th>
+              Group
+            </th>
+            <td>
+              <select id="groups" onchange="setFactoryMenu(document.getElementById('groups').options[document.getElementById('groups').selectedIndex].value);">
+                <option value="total">total</option>
+              </select>
+            </td>
+            <th>
+              Factory
+            </th>
+            <td>
+              <select id="factory">
+                <option value="total">total</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <th>
+              Info Group
+            </th>
+            <td colspan=3>
+              <form class="form-jobtype-rrd" id="gtypes">
+                <input type="radio" name="gtype" value="running" checked>
+                Running</input>
+                <input type="radio" name="gtype" value="idle">
+                Idle</input>
+              </form>
+            </td>
+          </tr>
+          <tr>
+            <td colspan=4>
+              <input type='button' value='Update' onClick="nonlink_update()"/>
+              <input type='button' value='Defaults' title="Restore to default values" onClick="defaults()" style="float:right"/>
+              <input type='button' value='Unlink'onClick="unlink()" title="Remove the distributable URL link" style="float:right"/>
+              <input type='button' value='Link'onClick="showLink()" title="Create easy to distribute URL link" style="float:right"/>
+            </td>
+          </tr>
+        </table>
 
-    <hr>
+        <hr>
 
-    <table id="infotable" border=1>
-        <tr><td colspan="21"><b>Javascript needed for this page to work</b></td></tr>
-	    <tr><td><b>RRD file</b></td><td id="fname" colspan="5">None</td></tr>
-    </table>
+        <table id="infotable" class="table-rrdfile-info">
+          <tr>
+            <td colspan="21">
+              <b>Javascript needed for this page to work</b>
+            </td>
+          </tr>
+          <tr>
+            <th>
+              RRD File:
+            </th>
+            <td id="fname">
+              None
+            </td>
+          </tr>
+        </table>
 
-    <div id="mygraph"></div>
+        <div id="mygraph"></div>
 
-   <hr>
-    <p>Powered by
-        <a href="http://oss.oetiker.ch/rrdtool/" target="_blank">RRDTool</a>,
-        <a href="https://sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and 
-        <a href="http://code.google.com/p/flot/" target="_blank">Flot</a>.
-    </p>
-    
+        <div id="powered_footer"></div>
+        <script type="text/javascript">
+            draw_powered_footer('powered_footer');
+        </script>
+
+      </div>
+      <!-- Row -->
+    </div>
+    <!-- Container -->
     <div id="monitor_footer"></div>
 
-    
     <script type="text/javascript">
+        // Remove the Javascript warning
+        document.getElementById("infotable").deleteRow(0);
 
-      // Remove the Javascript warning
-      document.getElementById("infotable").deleteRow(0);
+        var infoGroupOptions = new Array("Running", "Idle");
 
-      var infoGroupOptions = new Array("Running","Idle");
+        //global variables to preserve things across updates
+        var graph_info;
+        //gotten from rrdFilter.getGraphInfo()
+        var specified_rra = 0;
+        //gotten from checkUrl() (URL Link)
+        var local_checked_DSs = [];
+        //checked elements from graphInfo
+        var link_checked_DSs = [];
+        //checked elements from URL Link
+        var windows = true;
+        //whether to use window parameters passed into rrdFlot
+        var local_window_min = 0;
+        //window params to pass into rrdFlot
+        var local_window_max = 0;
+        var coming_from_link = true;
+        var coming_from_defaults = false;
+        var timezone_num = 0;
 
-      //global variables to preserve things across updates
-      var graph_info;                   //gotten from rrdFilter.getGraphInfo()
-      var specified_rra = 0;            //gotten from checkUrl() (URL Link)     
-      var local_checked_DSs = [];       //checked elements from graphInfo
-      var link_checked_DSs = [];        //checked elements from URL Link
-      var windows = true;               //whether to use window parameters passed into rrdFlot 
-      var local_window_min=0;           //window params to pass into rrdFlot
-      var local_window_max=0;             
-      var coming_from_link = true;
-      var coming_from_defaults = false; 
-      var timezone_num=0;
+        // Load the status of the frontend
+        var frontendStats = loadFrontendStats();
+        var groups = getFrontendGroups(frontendStats);
 
+        for (var group in groups) {
+            var g = (groups[group]).toString();
+            var group_menu = document.getElementById("groups");
+            group_menu.appendChild(new Option(g, g));
+        }
+        setFactoryMenu('total');
 
-      // Load the status of the frontend
-      var frontendStats=loadFrontendStats();
-      var groups=getFrontendGroups(frontendStats);
+        // fname, gtype_id and rrd_data are the global variable used by all the
+        // functions below
+        rrd_data = undefined;
+        gtype_id = undefined;
 
-      for(var group in groups) {
-          var g = (groups[group]).toString();
-          var group_menu = document.getElementById("groups");
-          group_menu.appendChild(new Option(g,g));
-      }
-      setFactoryMenu('total');
+        checkUrl();
 
-      // fname, gtype_id and rrd_data are the global variable used by all the functions below
-      rrd_data=undefined;
-      gtype_id=undefined;
- 
-      checkUrl();
+        //Applys an groups's factories to the dropdown box
+        //below it once that group has been selected
+        function setFactoryMenu(group) {
+            var fac = document.getElementById("factory");
+            //Remove factories from previous group choice
+            while (fac.childNodes.length > 0) {
+                fac.removeChild(fac.firstChild);
+            }
+            fac.appendChild(new Option('total', 'total'));
+            //add back 'total',
 
-      //Applys an groups's factories to the dropdown box
-      //below it once that group has been selected
-      function setFactoryMenu(group) {
-        var fac = document.getElementById("factory");
-        //Remove factories from previous group choice
-        while(fac.childNodes.length>0) {fac.removeChild(fac.firstChild);}
-        fac.appendChild(new Option('total','total'));  //add back 'total', 
+            //add this groups's states
+            //note that checkUrl also puts states before factories;
+            //    so if changing the order here (states after factories), also
+            // change the order in checkUrl().
+            var states = getFrontendGroupStates(frontendStats, group);
 
-        //add this groups's states 
-        //note that checkUrl also puts states before factories;
-        //    so if changing the order here (states after factories), also change the order in checkUrl().
-        var states = getFrontendGroupStates(frontendStats, group);
-        
-        for(var state in states) {
-           state_name = states[state];
-           fac.appendChild(new Option(state_name, state_name));
+            for (var state in states) {
+                state_name = states[state];
+                fac.appendChild(new Option(state_name, state_name));
+            }
+
+            // and then add this groups's factories.
+            var factories = getFrontendGroupFactories(frontendStats, group);
+
+            for (var factory in factories) {
+                factory_name = factories[factory];
+                fac.appendChild(new Option(factory_name, factory_name));
+            }
         }
 
-        // and then add this groups's factories. 
-        var factories = getFrontendGroupFactories(frontendStats, group);
-        
-        for(var factory in factories) {
-           factory_name = factories[factory];
-           fac.appendChild(new Option(factory_name, factory_name));
-        }
-      }
 
-      //RRA Filter - leaves it alone.
-      function RRADoNothing(rra_idx) {
-         this.getIdx = function() {return rra_idx;}
-         this.getStep = function() {return null;}
-      }
-      
-      /* RRA Filter - Creates a new RRA with a different step size (in seconds) 
-      / based on another RRA, whose data the new RRA averages. 
-      / rra_idx should be index of RRA with largest step size that doesn't exceed new step size.
-      */
-      function RRA_Avg(rra_idx,new_step_in_seconds) {
-         this.getIdx = function() {return rra_idx;}
-         this.getStep = function() {return new_step_in_seconds;}
-      }
-
-
-      // This function updates the Web Page with the data from the RRD archive header
-      // when a new file is selected
-      function update_plot() {
-        // Finally, update the file name and enable the update button
-        document.getElementById("fname").firstChild.data=fname;
-
-        
-        var gtype_DSs=new Object();
-        gtype_DSs['running']=new Array('MatchJobRunningHere','MatchJobRunning','MatchGlideinTotal','MatchGlideinRunning','MatchGlideinIdle','MatchJobIdle','ReqIdle','ReqMaxRun');
-//                                       'JobsRunning',    'GlideinTotal',     'GlideinRunning',     'GlideinIdle',     'JobsIdle');
-        gtype_DSs['idle']=new Array('MatchJobIdle','MatchJobOldIdle','MatchJobEffIdle','MatchJobRunningHere','MatchGlideinRunning','MatchGlideinIdle','ReqIdle','ReqMaxRun');
-
-        var gtype_formats=new Object();
-        gtype_formats['running']={'MatchJobRunningHere':{ title: 'Running jobs', label:'Running',color: "#00f800", checked:true, 
-                                                          lines: { show: true, fill: true, fillColor:"#00ff00"} },
-                                  'MatchJobRunning':{title: 'Matched running', label:'MatchRun', color: "#004000"},
-                                  'MatchGlideinTotal':{title: 'Glideins at Collector', label:'Glideins', color: "#000000"},
-                                  'MatchGlideinRunning':{title: 'Glideins claimed by jobs', label:'Claimed', color: "#8000ff",checked:true},
-                                  'MatchGlideinIdle':{title: 'Glideins not matched', label:'Unmatched', color: "#ffff00",checked:true},
-                                  'MatchJobIdle':{title: 'Idle jobs', label:'JobsIdle', color: "#00ffff"},
-                                  'ReqIdle':{title: 'Requested idle glideins', label:'Requested', color: "#ff8080"},
-                                  'ReqMaxIdle':{title: 'Max requested glideins', label:'Max requested', color: "#c00000"},
-
-                                  'JobRunning':{title: 'Global Running Jobs', label:'GlobalRunning', color:"#00f800", fillColor:"#00ff00", checked:true},
-                                  'GlideinTotal':{title: 'Global Glideins at Collecter', label:'GlobalGlideins'},
-                                  'GlideinRunning':{title: 'Global Glideins claimed by jobs', label:'GlobalClaimed'},
-                                  'JobsIdle':{title: 'Global Jobs Idle', label:'GlobalUnmatched'},
-                                  'GlideinIdle':{title: 'Global not matched', label:'GlobalUnmatched', color: "#ffff00"},
-                                  'StatusIdle':{title: 'Global Idle jobs', label:'Idle', color: "#00ffff"}};
-
-        gtype_formats['idle']={'MatchJobIdle':{ title: 'Idle jobs', label:'Idle', color: "#00f8f8", checked:true, 
-                                           lines: { show: true, fill: true, fillColor:"#00ffff"} },
-                               'MatchJobOldIdle':{title: 'Idle old jobs', label:'OldIdle', color: "#0000ff"},
-                               'MatchJobEffIdle':{title: 'Effective idle jobs', label:'EffIdle', color: "#000080"},
-                               'MatchJobRunningHere':{title: 'Running jobs', label:'MatchRun', color: "#004000"},
-                               'MatchGlideinRunning':{title: 'Glideins claimed by jobs', label:'Claimed', color: "#8000ff"},
-                               'MatchGlideinIdle':{title: 'Glideins not matched', label:'Unmatched', color: "#ffff00"},
-                               'ReqIdle':{title: 'Requested idle glideins', label:'Requested', color: "#ff8080", checked:true},
-                               'ReqMaxIdle':{title: 'Max requested glideins', label:'Max requested', color: "#c00000"},
-
-                               'JobIdle':{title: 'Global Idle Jobs', label:'GlobalJobsIdle', checked:true},
-                               'GlideinTotal':{title: 'Glideins at Collector', label:'Glideins', color: "#ff00ff", yaxis:2}};
-
-/////////// Preservation over Updates/Linking //////////////////////////////
-        graph_info = getGraphInfo();
-
-        //preserve window selection
-        if(!coming_from_link) { //get from graph
-           windows = true;
-           local_window_max = graph_info['window_max'];
-           local_window_min = graph_info['window_min'];
-        } //if coming from link, use link params (which are already set)
-
-        if(coming_from_defaults) {
-           windows=false;
+        //RRA Filter - leaves it alone.
+        function RRADoNothing(rra_idx) {
+            this.getIdx = function() {
+                return rra_idx;
+            }
+            this.getStep = function() {
+                return null;
+            }
         }
 
-        //preserve rra
-        if(specified_rra==null || coming_from_defaults) {specified_rra=0;}
-        else if (!coming_from_link) {specified_rra = graph_info["rra"];}
-        
-        local_checked_DSs = [];
 
-        //if coming from link, used DS elements provided in link
-        //else, use preserved elements across link
-        if(!coming_from_link) {
-           checklist = local_checked_DSs;
-        }
-        else { //if coming from link
-           checklist = link_checked_DSs;
-        }   
-        if (local_window_max==0 && local_window_min==0) {windows=false;} 
-
-//////////////////////////////////////////////////////////////////////////////////////
-
-        var rrd_data1=new RRDFilterDS(rrd_data,gtype_DSs[gtype_id]);
-
-        //Add RRA filters for longer averaged-out RRAs
-        var rra_op_list = [];
-        for(var i=0; i<rrd_data1.getNrRRAs();i++) {
-           rra_op_list.push(new RRADoNothing(i));
-        }
-        rra_op_list.push(new RRA_Avg(2,86400)); //24 hours - base off rra at index 2
-        rra_op_list.push(new RRA_Avg(2,604800)); //1 week
-
-        rrd_data1 = new RRDRRAFilterAvg(rrd_data1,rra_op_list); //Adds 2 extra RRAs (averaged)
-
-        // the rrdFlot object creates and handles the graph -- below was being preped for link ability
-        var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id],{timezone: timezone_num, checked_DSs: checklist,use_rra:true,rra:specified_rra, use_windows: windows, window_min:local_window_min, window_max: local_window_max, use_checked_DSs:true,use_element_buttons:true});
-
-      }
-
-      // This is the callback function that,
-      // given a binary file object,
-      // verifies that it is a valid RRD archive
-      // and performs the update of the Web page
-      function update_plot_handler(bf) {
-          var i_rrd_data=undefined;
-          try {
-            var i_rrd_data=new RRDFile(bf);            
-          } catch(err) {
-            alert("File "+fname+" is not a valid RRD archive!");
-          }
-          if (i_rrd_data!=undefined) {
-            rrd_data=i_rrd_data;
-            update_plot()
-          }
-      }
-
-      // this function is invoked when the RRD file name changes
-      function fname_update() {
-        var group_name="";
-        gtype_id=undefined;
-
-        var groups_obj=document.getElementById("groups");
-        group_name=groups_obj.options[groups_obj.selectedIndex].value;
-        var factories_obj=document.getElementById("factory");
-        factory_name=factories_obj.options[factories_obj.selectedIndex].value;
-
-        rrd_fname="Status_Attributes";
-
-        //info groups
-        var gtypes_obj=document.getElementById("gtypes");
-        for (var i in gtypes_obj.gtype) {
-          var gtype=gtypes_obj.gtype[i];
-          if (gtype.checked==true) {
-  	    gtype_id=gtype.value;
-          }
+        /* RRA Filter - Creates a new RRA with a different step size (in seconds)
+         / based on another RRA, whose data the new RRA averages.
+         / rra_idx should be index of RRA with largest step size that doesn't
+         exceed new step size.
+         */
+        function RRA_Avg(rra_idx, new_step_in_seconds) {
+            this.getIdx = function() {
+                return rra_idx;
+            }
+            this.getStep = function() {
+                return new_step_in_seconds;
+            }
         }
 
-        fname=getRRDName(rrd_fname,group_name,factory_name,frontendStats);
 
-        document.getElementById("fname").firstChild.data="Loading "+fname;
-        try {
-          FetchBinaryURLAsync(fname,update_plot_handler);
-        } catch (err) {
-           alert("Failed loading "+fname+"\n"+err);
-        }
-      }
+        // This function updates the Web Page with the data from the RRD archive
+        // header
+        // when a new file is selected
+        function update_plot() {
+            // Finally, update the file name and enable the update button
+            document.getElementById("fname").firstChild.data = fname;
 
-      function nonlink_update() {
-         coming_from_link = false; 
-         fname_update();
-      }
+            var gtype_DSs = new Object();
+            gtype_DSs['running'] = new Array('MatchJobRunningHere', 'MatchJobRunning', 'MatchGlideinTotal', 'MatchGlideinRunning', 'MatchGlideinIdle', 'MatchJobIdle', 'ReqIdle', 'ReqMaxRun');
+            //                                       'JobsRunning',
+            // 'GlideinTotal',     'GlideinRunning',     'GlideinIdle',
+            // 'JobsIdle');
+            gtype_DSs['idle'] = new Array('MatchJobIdle', 'MatchJobOldIdle', 'MatchJobEffIdle', 'MatchJobRunningHere', 'MatchGlideinRunning', 'MatchGlideinIdle', 'ReqIdle', 'ReqMaxRun');
 
-        /* Function to read from the url any parameters the user has specified. */
-        function checkUrl()
-        {
-           var url = window.location.search;
-           parameterArry = new Array("group", "factory", "infoGroup","elements","rra","window_min","window_max","timezone"); 
-           var groupSpec; 
-           var infoGroupSpec;
-           link_checked_DSs=[];
-           specified_rra = 0;
-           urlValid = 0; 
-           paramSpecArry = new Array(); 
-           if(url) //split URL
-           {
-              url = url.substring(1);
-              urlSplit = url.split('&'); 
-              i = 0; 
-              while(i < urlSplit.length)
-              { 
-                 equalSplit = urlSplit[i].split('='); 
-                 if(equalSplit[0] == parameterArry[i])
-                 {
-                    paramSpecArry[i] = equalSplit[1];
-                 }
-                 i++; 
-              }
-           }
-           //Read in link parameters
-           for(i = 0; i< paramSpecArry.length; i++)
-           {
-              if(i == 0) // group
-              {
-                 var groups =  getFrontendGroups(loadFrontendStats());
-                 groups.push("total");
-                 for(group in groups)
-                 {
-                    if(groups[group] == paramSpecArry[0])
-                    {
-                       GROUP = paramSpecArry[0]; 
-                       groups_menu = document.getElementById("groups");
-                       for(j = 0; j< groups_menu.options.length; j++)
-                       {
-                          if(GROUP==groups_menu.options[j].value)
-                          {
-                             groups_menu.selectedIndex = j;
-                             setFactoryMenu(groups[group]);
-                             var fac = paramSpecArry[1];
-
-                             //make factory list the list of both states and factories,
-                             //   as seen in the factory menu.
-                             var state_list = getFrontendGroupStates(loadFrontendStats(), groups[group]); 
-                             var fac_list = getFrontendGroupFactories(loadFrontendStats(), groups[group]); 
-
-                             //states listed first in the Factory menu, so push factories onto state list
-                             state_list.push.apply(state_list,fac_list);
-                             fac_list = state_list;
-                             var fac_idx=0;
-                             for(var k=0;k<fac_list.length;k++) {
-                                if(fac==fac_list[k]) {fac_idx=k+1;} //+1 to avoid hitting total
-                             }
-                             document.getElementById("factory").selectedIndex = fac_idx; 
-
-                             break;  
-                          }       
-                       }
-                    } 
-                    //else if("total" ==      paramSpecArry[0])
-                    //{
-                    //   document.getElementById("groups").selectedIndex = 0; 
-                    //   setFactoryMenu('total');
-                    //   break;          
-                    //}
-                 }
-              }
-              else if(i == 2) //info groups
-              {
-                 for(var k = 0; k< infoGroupOptions.length; k++)
-                 {
-                    if(infoGroupOptions[k] == paramSpecArry[2])
-                    {
-                       document.getElementById("gtypes").elements[k].checked = true;
+            var gtype_formats = new Object();
+            gtype_formats['running'] = {
+                'MatchJobRunningHere' : {
+                    title : 'Running jobs',
+                    label : 'Running',
+                    color : "#00f800",
+                    checked : true,
+                    lines : {
+                        show : true,
+                        fill : true,
+                        fillColor : "#00ff00"
                     }
-                 }
-              }
-              else if(i==3) {
-                 var elems = paramSpecArry[i].split(",");
-                 for(var j=0;j<elems.length;j++)
-                 {
-                    link_checked_DSs.push(elems[j]);
-                 } 
-              }
-              else if(i==4) {specified_rra = paramSpecArry[i];}
-              else if(i==5) {local_window_min = paramSpecArry[i];}
-              else if(i==6) {local_window_max = paramSpecArry[i];}
-              else if(i==7) {timezone_num = paramSpecArry[i];}
-           }
-           fname_update();
+                },
+                'MatchJobRunning' : {
+                    title : 'Matched running',
+                    label : 'MatchRun',
+                    color : "#004000"
+                },
+                'MatchGlideinTotal' : {
+                    title : 'Glideins at Collector',
+                    label : 'Glideins',
+                    color : "#000000"
+                },
+                'MatchGlideinRunning' : {
+                    title : 'Glideins claimed by jobs',
+                    label : 'Claimed',
+                    color : "#8000ff",
+                    checked : true
+                },
+                'MatchGlideinIdle' : {
+                    title : 'Glideins not matched',
+                    label : 'Unmatched',
+                    color : "#ffff00",
+                    checked : true
+                },
+                'MatchJobIdle' : {
+                    title : 'Idle jobs',
+                    label : 'JobsIdle',
+                    color : "#00ffff"
+                },
+                'ReqIdle' : {
+                    title : 'Requested idle glideins',
+                    label : 'Requested',
+                    color : "#ff8080"
+                },
+                'ReqMaxIdle' : {
+                    title : 'Max requested glideins',
+                    label : 'Max requested',
+                    color : "#c00000"
+                },
+
+                'JobRunning' : {
+                    title : 'Global Running Jobs',
+                    label : 'GlobalRunning',
+                    color : "#00f800",
+                    fillColor : "#00ff00",
+                    checked : true
+                },
+                'GlideinTotal' : {
+                    title : 'Global Glideins at Collecter',
+                    label : 'GlobalGlideins'
+                },
+                'GlideinRunning' : {
+                    title : 'Global Glideins claimed by jobs',
+                    label : 'GlobalClaimed'
+                },
+                'JobsIdle' : {
+                    title : 'Global Jobs Idle',
+                    label : 'GlobalUnmatched'
+                },
+                'GlideinIdle' : {
+                    title : 'Global not matched',
+                    label : 'GlobalUnmatched',
+                    color : "#ffff00"
+                },
+                'StatusIdle' : {
+                    title : 'Global Idle jobs',
+                    label : 'Idle',
+                    color : "#00ffff"
+                }
+            };
+
+            gtype_formats['idle'] = {
+                'MatchJobIdle' : {
+                    title : 'Idle jobs',
+                    label : 'Idle',
+                    color : "#00f8f8",
+                    checked : true,
+                    lines : {
+                        show : true,
+                        fill : true,
+                        fillColor : "#00ffff"
+                    }
+                },
+                'MatchJobOldIdle' : {
+                    title : 'Idle old jobs',
+                    label : 'OldIdle',
+                    color : "#0000ff"
+                },
+                'MatchJobEffIdle' : {
+                    title : 'Effective idle jobs',
+                    label : 'EffIdle',
+                    color : "#000080"
+                },
+                'MatchJobRunningHere' : {
+                    title : 'Running jobs',
+                    label : 'MatchRun',
+                    color : "#004000"
+                },
+                'MatchGlideinRunning' : {
+                    title : 'Glideins claimed by jobs',
+                    label : 'Claimed',
+                    color : "#8000ff"
+                },
+                'MatchGlideinIdle' : {
+                    title : 'Glideins not matched',
+                    label : 'Unmatched',
+                    color : "#ffff00"
+                },
+                'ReqIdle' : {
+                    title : 'Requested idle glideins',
+                    label : 'Requested',
+                    color : "#ff8080",
+                    checked : true
+                },
+                'ReqMaxIdle' : {
+                    title : 'Max requested glideins',
+                    label : 'Max requested',
+                    color : "#c00000"
+                },
+
+                'JobIdle' : {
+                    title : 'Global Idle Jobs',
+                    label : 'GlobalJobsIdle',
+                    checked : true
+                },
+                'GlideinTotal' : {
+                    title : 'Glideins at Collector',
+                    label : 'Glideins',
+                    color : "#ff00ff",
+                    yaxis : 2
+                }
+            };
+
+            /////////// Preservation over Updates/Linking //////////////////////////////
+            graph_info = getGraphInfo();
+
+            //preserve window selection
+            if (!coming_from_link) {//get from graph
+                windows = true;
+                local_window_max = graph_info['window_max'];
+                local_window_min = graph_info['window_min'];
+            }//if coming from link, use link params (which are already set)
+
+            if (coming_from_defaults) {
+                windows = false;
+            }
+
+            //preserve rra
+            if (specified_rra == null || coming_from_defaults) {
+                specified_rra = 0;
+            }
+            else if (!coming_from_link) {
+                specified_rra = graph_info["rra"];
+            }
+
+            local_checked_DSs = [];
+
+            //if coming from link, used DS elements provided in link
+            //else, use preserved elements across link
+            if (!coming_from_link) {
+                checklist = local_checked_DSs;
+            }
+            else {//if coming from link
+                checklist = link_checked_DSs;
+            }
+            if (local_window_max == 0 && local_window_min == 0) {
+                windows = false;
+            }
+
+            //////////////////////////////////////////////////////////////////////////////////////
+
+            var rrd_data1 = new RRDFilterDS(rrd_data, gtype_DSs[gtype_id]);
+
+            //Add RRA filters for longer averaged-out RRAs
+            var rra_op_list = [];
+            for (var i = 0; i < rrd_data1.getNrRRAs(); i++) {
+                rra_op_list.push(new RRADoNothing(i));
+            }
+            rra_op_list.push(new RRA_Avg(2, 86400));
+            //24 hours - base off rra at index 2
+            rra_op_list.push(new RRA_Avg(2, 604800));
+            //1 week
+
+            rrd_data1 = new RRDRRAFilterAvg(rrd_data1, rra_op_list);
+            //Adds 2 extra RRAs (averaged)
+
+            // the rrdFlot object creates and handles the graph -- below was
+            // being preped for link ability
+            var f = new rrdFlot("mygraph", rrd_data1, null, gtype_formats[gtype_id], {
+                timezone : timezone_num,
+                checked_DSs : checklist,
+                use_rra : true,
+                rra : specified_rra,
+                use_windows : windows,
+                window_min : local_window_min,
+                window_max : local_window_max,
+                use_checked_DSs : true,
+                use_element_buttons : true
+            });
+
         }
 
-//////////////////////////////////////////////////////////////////////////
+
+        // This is the callback function that,
+        // given a binary file object,
+        // verifies that it is a valid RRD archive
+        // and performs the update of the Web page
+        function update_plot_handler(bf) {
+            var i_rrd_data = undefined;
+            try {
+                var i_rrd_data = new RRDFile(bf);
+            }
+            catch(err) {
+                alert("File " + fname + " is not a valid RRD archive!");
+            }
+            if (i_rrd_data != undefined) {
+                rrd_data = i_rrd_data;
+                update_plot()
+            }
+        }
+
+
+        // this function is invoked when the RRD file name changes
+        function fname_update() {
+            var group_name = "";
+            gtype_id = undefined;
+
+            var groups_obj = document.getElementById("groups");
+            group_name = groups_obj.options[groups_obj.selectedIndex].value;
+            var factories_obj = document.getElementById("factory");
+            factory_name = factories_obj.options[factories_obj.selectedIndex].value;
+
+            rrd_fname = "Status_Attributes";
+
+            //info groups
+            var gtypes_obj = document.getElementById("gtypes");
+            for (var i in gtypes_obj.gtype) {
+                var gtype = gtypes_obj.gtype[i];
+                if (gtype.checked == true) {
+                    gtype_id = gtype.value;
+                }
+            }
+
+            fname = getRRDName(rrd_fname, group_name, factory_name, frontendStats);
+
+            document.getElementById("fname").firstChild.data = "Loading " + fname;
+            try {
+                FetchBinaryURLAsync(fname, update_plot_handler);
+            }
+            catch (err) {
+                alert("Failed loading " + fname + "\n" + err);
+            }
+        }
+
+
+        function nonlink_update() {
+            coming_from_link = false;
+            fname_update();
+        }
+
+
+        /* Function to read from the url any parameters the user has specified.
+         * */
+        function checkUrl() {
+            var url = window.location.search;
+            parameterArry = new Array("group", "factory", "infoGroup", "elements", "rra", "window_min", "window_max", "timezone");
+            var groupSpec;
+            var infoGroupSpec;
+            link_checked_DSs = [];
+            specified_rra = 0;
+            urlValid = 0;
+            paramSpecArry = new Array();
+            if (url)//split URL
+            {
+                url = url.substring(1);
+                urlSplit = url.split('&');
+                i = 0;
+                while (i < urlSplit.length) {
+                    equalSplit = urlSplit[i].split('=');
+                    if (equalSplit[0] == parameterArry[i]) {
+                        paramSpecArry[i] = equalSplit[1];
+                    }
+                    i++;
+                }
+            }
+            //Read in link parameters
+            for ( i = 0; i < paramSpecArry.length; i++) {
+                if (i == 0)// group
+                {
+                    var groups = getFrontendGroups(loadFrontendStats());
+                    groups.push("total");
+                    for (group in groups) {
+                        if (groups[group] == paramSpecArry[0]) {
+                            GROUP = paramSpecArry[0];
+                            groups_menu = document.getElementById("groups");
+                            for ( j = 0; j < groups_menu.options.length; j++) {
+                                if (GROUP == groups_menu.options[j].value) {
+                                    groups_menu.selectedIndex = j;
+                                    setFactoryMenu(groups[group]);
+                                    var fac = paramSpecArry[1];
+
+                                    //make factory list the list of both states
+                                    // and factories,
+                                    //   as seen in the factory menu.
+                                    var state_list = getFrontendGroupStates(loadFrontendStats(), groups[group]);
+                                    var fac_list = getFrontendGroupFactories(loadFrontendStats(), groups[group]);
+
+                                    //states listed first in the Factory menu, so
+                                    // push factories onto state list
+                                    state_list.push.apply(state_list, fac_list);
+                                    fac_list = state_list;
+                                    var fac_idx = 0;
+                                    for (var k = 0; k < fac_list.length; k++) {
+                                        if (fac == fac_list[k]) {
+                                            fac_idx = k + 1;
+                                        } //+1 to avoid hitting total
+                                    }
+                                    document.getElementById("factory").selectedIndex = fac_idx;
+
+                                    break;
+                                }
+                            }
+                        }
+                        //else if("total" ==      paramSpecArry[0])
+                        //{
+                        //   document.getElementById("groups").selectedIndex = 0;
+                        //   setFactoryMenu('total');
+                        //   break;
+                        //}
+                    }
+                }
+                else if (i == 2)//info groups
+                {
+                    for (var k = 0; k < infoGroupOptions.length; k++) {
+                        if (infoGroupOptions[k] == paramSpecArry[2]) {
+                            document.getElementById("gtypes").elements[k].checked = true;
+                        }
+                    }
+                }
+                else if (i == 3) {
+                    var elems = paramSpecArry[i].split(",");
+                    for (var j = 0; j < elems.length; j++) {
+                        link_checked_DSs.push(elems[j]);
+                    }
+                }
+                else if (i == 4) {
+                    specified_rra = paramSpecArry[i];
+                }
+                else if (i == 5) {
+                    local_window_min = paramSpecArry[i];
+                }
+                else if (i == 6) {
+                    local_window_max = paramSpecArry[i];
+                }
+                else if (i == 7) {
+                    timezone_num = paramSpecArry[i];
+                }
+            }
+            fname_update();
+        }
+
+
+        //////////////////////////////////////////////////////////////////////////
 
         /* Function to show link for current options. */
-        function showLink()
-        {
-                constructed = document.URL.split('?');
-                groupsTable = document.getElementById("groups"); 
-                factoryTable = document.getElementById("factory"); 
-                var specifiedGroup;
-                var specifiedFactory;
-                var specifiedGOption; 
+        function showLink() {
+            constructed = document.URL.split('?');
+            groupsTable = document.getElementById("groups");
+            factoryTable = document.getElementById("factory");
+            var specifiedGroup;
+            var specifiedFactory;
+            var specifiedGOption;
 
-                //Graph data from rrdFlot.js
-                graph_info = getGraphInfo();
-                var local_checked_DSs_input= graph_info["dss"];
-                specified_rra = graph_info["rra"];
-                var specified_timezone = graph_info["timezone"];
-                var specified_win_min = graph_info["window_min"];
-                var specified_win_max = graph_info["window_max"];
-                
-                //specifiedGroup = entries_obj.options[entries_obj.selectedIndex].value;
+            //Graph data from rrdFlot.js
+            graph_info = getGraphInfo();
+            var local_checked_DSs_input = graph_info["dss"];
+            specified_rra = graph_info["rra"];
+            var specified_timezone = graph_info["timezone"];
+            var specified_win_min = graph_info["window_min"];
+            var specified_win_max = graph_info["window_max"];
 
-                /* Find the current group specified. */
-                for(i = 0; i < groupsTable.options.length; i++)
-                {
-                        if(groupsTable.options[i].selected == true)
-                        {
-                                specifiedGroup = groupsTable.options[i].text;  
-                        }
-                }
-                /* Find the current factory specified. */
-                for(i = 0; i < factoryTable.options.length; i++)
-                {
-                        if(factoryTable.options[i].selected == true)
-                        {
-                                specifiedFactory = factoryTable.options[i].text;     
-                        }
-                }
-                gOptionTable = document.getElementById("gtypes");
-                j = 0;  
-                /* Find the current group option specified. */
-                for(i = 1; i< gOptionTable.childNodes.length; i+=2)
-                {
-                        if(gOptionTable.childNodes[i].checked == true)
-                        {
-                                specifiedGOption = infoGroupOptions[j];
-                        }
-                        if(gOptionTable.childNodes[i].value)
-                        {
-                                j++;
-                        }
-                }
-                var elem_string = "";
-                for(var i=0;i<local_checked_DSs_input.length;i++) {
-                   elem_string += local_checked_DSs_input[i]+",";
-                }
-                constructed = constructed[0]+"?group="+specifiedGroup+"&factory="+specifiedFactory+"&infoGroup="+specifiedGOption+"&elements="+elem_string+"&rra="+specified_rra+"&window_min="+specified_win_min+"&window_max="+specified_win_max+"&timezone="+specified_timezone; 
+            //specifiedGroup =
+            // entries_obj.options[entries_obj.selectedIndex].value;
 
-                document.location.href = constructed; 
-        }  
+            /* Find the current group specified. */
+            for ( i = 0; i < groupsTable.options.length; i++) {
+                if (groupsTable.options[i].selected == true) {
+                    specifiedGroup = groupsTable.options[i].text;
+                }
+            }
+            /* Find the current factory specified. */
+            for ( i = 0; i < factoryTable.options.length; i++) {
+                if (factoryTable.options[i].selected == true) {
+                    specifiedFactory = factoryTable.options[i].text;
+                }
+            }
+            gOptionTable = document.getElementById("gtypes");
+            j = 0;
+            /* Find the current group option specified. */
+            for ( i = 1; i < gOptionTable.childNodes.length; i += 2) {
+                if (gOptionTable.childNodes[i].checked == true) {
+                    specifiedGOption = infoGroupOptions[j];
+                }
+                if (gOptionTable.childNodes[i].value) {
+                    j++;
+                }
+            }
+            var elem_string = "";
+            for (var i = 0; i < local_checked_DSs_input.length; i++) {
+                elem_string += local_checked_DSs_input[i] + ",";
+            }
+            constructed = constructed[0] + "?group=" + specifiedGroup + "&factory=" + specifiedFactory + "&infoGroup=" + specifiedGOption + "&elements=" + elem_string + "&rra=" + specified_rra + "&window_min=" + specified_win_min + "&window_max=" + specified_win_max + "&timezone=" + specified_timezone;
 
-/////////////////////////////////////////////////////////////////////////////////////////
- 
+            document.location.href = constructed;
+        }
+
+
+        /////////////////////////////////////////////////////////////////////////////////////////
+
         function unlink() {
-           document.location.href= document.URL.split('?')[0];
+            document.location.href = document.URL.split('?')[0];
         }
-   
+
+
         function defaults() {
-           local_checked_DSs = [];
-           link_checked_DSs = [];
-           specified_rra = null;
-           coming_from_defaults = true;
-           resetWindow();
-           update_plot();
+            local_checked_DSs = [];
+            link_checked_DSs = [];
+            specified_rra = null;
+            coming_from_defaults = true;
+            resetWindow();
+            update_plot();
         }
+
 
         /* Function to navigate to other glidein tools. */
-        function goToDestination(option)
-        {
-                if(option.value != "factoryStatusNow.html" && option.value != "factoryRRDEntryMatrix.html" && ENTRY)
-                {
-                        document.location.href = option.value + "?entry=" + ENTRY; 
-                }
-                else
-                {
-                        document.location.href = option.value; 
-                }
-                document.getElementById("destination").selectedIndex = 0; 
+        function goToDestination(option) {
+            if (option.value != "factoryStatusNow.html" && option.value != "factoryRRDEntryMatrix.html" && ENTRY) {
+                document.location.href = option.value + "?entry=" + ENTRY;
+            }
+            else {
+                document.location.href = option.value;
+            }
+            document.getElementById("destination").selectedIndex = 0;
         }
 
-
     </script>
-    
+
   </body>
-  
+
 </html>
 

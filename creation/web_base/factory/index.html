@@ -1,194 +1,122 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
-    <script type="text/javascript" src="jslibs/factory_support.js"></script>
-<head>
+  <script type="text/javascript" src="jslibs/factory_support.js"></script>
+  <head>
     <title id="brtitle">GlideinWMS VO Factory Monitoring</title>
+
+    <link href="css/bootstrap-combined.min.css" rel="stylesheet"/>
+    <link href="css/glideinwms.css" rel="stylesheet" type="text/css"/>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+
     <script type="text/javascript">
-	  var browser_title = "GlideinWMS VO Factory Monitoring";
-	  var page_title = "GlideinWMS VO Factory Monitoring";
-	  set_title_and_footer(browser_title, page_title);
-	</script>
+        window.onload = function() {
+            var browser_title = "GlideinWMS VO Factory Monitoring";
+            var page_title = "GlideinWMS VO Factory Monitoring";
+            set_title_and_footer(browser_title, page_title);
+        }
+    </script>
+  </head>
+  <body>
+    <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.1.1/js/bootstrap.min.js"></script>
 
-<style type="text/css"> 
-.rounded
-{
-border:2px solid #a1a1a1;
-padding:10px 40px; 
-background:#dddddd;
-width:350px;
-border-radius:25px;
--moz-border-radius:25px; /* Firefox 3.6 and earlier */
-}
-div.rounded:hover
-{
-background:#eeeeee;
+    <div id="navbar" class="navbar">
+      <div id="navbar-inner" class="navbar-inner"></div>
+    </div>
+    <script type="text/javascript">
+        generate_navbar();
+    </script>
 
-}
-div.rounded
-{
-height:170px;
-}
-table.centered;
-{
-}
-a
-{
-color:black;
-}
+    <div class="hero-unit">
+      <h1> GlideinWMS Factory Monitoring </h1>
+      <p>
+        The
+        <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/">
+          GlideinWMS
+        </a>
+        Factory provides monitoring for users and administrators. Select the monitoring webpage below.
+      </p>
+    </div>
+    <!-- Hero -->
 
-th.rounded
-{
-font-size:35px;
-}
+    <div class="container-fluid">
+      <div class="row-fluid">
 
+        <table>
+          <tr>
+            <td>
+              <a class="thumbnail" href="factoryStatus.html">
+                <img src="factoryStatus.png"/>
+                <h3> Historical Status </h3>
+                <p>
+                  Shows the historical usage plotted over time
+                </p>
+              </a>
+            </td>
+            <td>
+              <a class="thumbnail" href="factoryStatusNow.html">
+                <img src="factoryStatusNow.png"/>
+                <h3> Current Factory Status </h3>
+                <p>
+                  Shows the current status of the Factory
+                </p>
+              </a>
+            </td>
+            <td>
+              <a class="thumbnail" href="factoryEntryStatusNow.html">
+                <img src="factoryEntryStatusNow.png"/>
+                <h3> Current Entry Status </h3>
+                <p>
+                  Shows the current status of an Entry
+                </p>
+              </a>
+            </td>
+            <td>
+              <a class="thumbnail" href="factoryLogStatus.html">
+                <img src="factoryLogStatus.png"/>
+                <h3> Factory Status from Logs </h3>
+                <p>
+                  Shows the status of Factory from logs
+                </p>
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <a class="thumbnail" href="factoryCompletedStats.html">
+                <img src="factoryCompletedStats.png"/>
+                <h3> Completed Stats from Logs </h3>
+                <p>
+                  Shows the stats of completed glideins
+                </p>
+              </a>
+            </td>
+            <td>
+              <a class="thumbnail" href="factoryRRDBrowse.html">
+                <img src="factoryRRDBrowse.png"/>
+                <h3> Browse RRDs </h3>
+                <p>
+                  Shows historical statistics per monitoring groups
+                </p>
+              </a>
+            </td>
+            <td>
+              <a class="thumbnail" href="factoryRRDEntryMatrix.html">
+                <img src="factoryRRDEntryMatrix.png"/>
+                <h3> RRD Matrix </h3>
+                <p>
+                  Monitoring information contained in RRDs
+                </p>
+              </a>
+            </td>
+          </tr>
+        </table>
 
-</style>
-</head>
-<body>
-<center>
-<table class="centered">
-   <tr><th COLSPAN=2 class="heading rounded" id="pgtitle">
-   GlideinWMS VO Factory Monitoring
-   </th></td>
-   <tr>
-      <td class="pagesummary">
-         <a href="factoryStatus.html">
-            <center>
-               <div class="rounded">
-                  <table>
-                     <tr><th COLSPAN=2>
-                        Historical Status
-                     </th></tr>
-                     <tr><td>
-                        <img src="factoryStatus.png"/>
-                     </td><td>
-                        Shows the historical usage plotted over time.
-                     </td></tr>
-                  </table>
-               </div>
-            </center>
-         </a>
-      </td>
-      <td class="pagesummary">
-         <a href="factoryStatusNow.html">
-            <center>
-               <div class="rounded">
-                  <table>
-                     <tr><th COLSPAN=2>
-                        Current Status of the Factory
-                     </th></tr>
-                     <tr><td>
-                        <img src="factoryStatusNow.png"/>
-                     </td><td>
-                        Shows the current status of each entry in the factory.
-                     </td></tr>
-                  </table>
-               </div>
-            </center>
-         </a>
-      </td>
-   </tr>
-   <tr>
-      <td class="pagesummary">
-         <a href="factoryEntryStatusNow.html">
-            <center>
-               <div class="rounded">
-                  <table>
-                     <tr><th COLSPAN=2>
-                        Current Status of an Entry
-                     </th></tr>
-                     <tr><td>
-                        <img src="factoryEntryStatusNow.png"/>
-                     </td><td>
-                        Shows the current status of glideins and user jobs for the selected entry. 
-                     </td></tr>
-                  </table>
-               </div>
-            </center>
-         </a>
-      </td>
-      <td class="pagesummary">
-         <a href="factoryLogStatus.html">
-            <center>
-               <div class="rounded">
-                  <table>
-                     <tr><th COLSPAN=2>
-                        Factory Status from the Logs
-                     </th></tr>
-                     <tr><td>
-                        <img src="factoryLogStatus.png"/>
-                     </td><td>
-                        Shows the status of the factory from the logs. 
-                     </td></tr>
-                  </table>
-               </div>
-            </center>
-         </a>
-      </td>
-   </tr>
-   <tr>
-      <td class="pagesummary">
-         <a href="factoryCompletedStats.html">
-            <center>
-               <div class="rounded">
-                  <table>
-                     <tr><th COLSPAN=2>
-                        Completed Stats from the Logs
-                     </th></tr>
-                     <tr><td>
-                        <img src="factoryCompletedStats.png"/>
-                     </td><td>
-                        Shows the stats of completed glideins from the logs.
-                     </td></tr>
-                  </table>
-               </div>
-            </center>
-         </a>
-      </td>
-      <td class="pagesummary">
-         <a href="factoryRRDBrowse.html">
-            <center>
-               <div class="rounded">
-                  <table>
-                     <tr><th COLSPAN=2>
-                        Historical Per-Group Statistics
-                     </th></tr>
-                     <tr><td>
-                        <img src="factoryRRDBrowse.png"/>
-                     </td><td>
-                        This page shows historical statistics for each group.
-                     </td></tr>
-                  </table>
-               </div>
-            </center>
-         </a>
-      </td>
-   </tr>
-   <tr>
-      <td class="pagesummary">
-         <a href="factoryRRDEntryMatrix.html">
-            <center>
-               <div class="rounded">
-                  <table>
-                     <tr><th COLSPAN=2>
-                        RRD matrix by Entries
-                     </th></tr>
-                     <tr><td>
-                        <img src="factoryRRDEntryMatrix.png"/>
-                     </td><td>
-                        Overall view of information contained in the RRDs.
-                     </td></tr>
-                  </table>
-               </div>
-            </center>
-         </a>
-      </td>
-   </tr>
-</table>
-</center>   
-<div id="monitor_footer"></div>
-</body>
+      </div>
+      <!-- End Row -->
+    </div>
+    <!-- End container -->
+
+    <div id="monitor_footer"></div>
+  </body>
 </html>
-
-
 

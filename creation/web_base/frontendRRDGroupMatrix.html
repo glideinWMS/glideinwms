@@ -2,206 +2,252 @@
 
 <!--
 Project:
-  glideinWMS
+glideinWMS
 
-File Version: 
+File Version:
 
 Description:
-  Browse the glideinWMS RRDs over the groups
+Browse the glideinWMS RRDs over the groups
 
-  Based on
-  javascriptrrd/src/lib/rrdJFlot.html 
-   Original repository: http://javascriptrrd.sourceforge.net/
+Based on
+javascriptrrd/src/lib/rrdJFlot.html
+Original repository: http://javascriptrrd.sourceforge.net/
 -->
 
 <html>
-  
-    <script type="text/javascript" src="jslibs/binaryXHR.js"></script>
-    <script type="text/javascript" src="jslibs/rrdFile.js"></script>
 
-    <!-- rrdFlot class needs the following four include files !-->
-    <script type="text/javascript" src="jslibs/rrdFlotSupport.js"></script>
-    <script type="text/javascript" src="jslibs/rrdFlotMatrix.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.flot.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.flot.selection.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.flot.tooltip.js"></script>
+  <script type="text/javascript" src="jslibs/binaryXHR.js"></script>
+  <script type="text/javascript" src="jslibs/rrdFile.js"></script>
 
-    <script type="text/javascript" src="jslibs/frontend_support.js"></script>
+  <!-- rrdFlot class needs the following four include files !-->
+  <script type="text/javascript" src="jslibs/rrdFlotSupport.js"></script>
+  <script type="text/javascript" src="jslibs/rrdFlotMatrix.js"></script>
+  <script type="text/javascript" src="jslibs/jquery.js"></script>
+  <script type="text/javascript" src="jslibs/jquery.flot.js"></script>
+  <script type="text/javascript" src="jslibs/jquery.flot.selection.js"></script>
+  <script type="text/javascript" src="jslibs/jquery.flot.tooltip.js"></script>
+
+  <script type="text/javascript" src="jslibs/frontend_support.js"></script>
   <head>
+    <script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAAu0TL0A-Hx1fvzGI6gOofLxRdWR7O4-XcWvAQALHxHt_c1fTKOhSeYIt5K3vK4_YcuhTz3-irM0p_eQ"></script>
+    <!--link
+    href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.1.1/css/bootstrap-combined.min.css"
+    rel="stylesheet"/-->
+    <link href="css/bootstrap-combined.min.css" rel="stylesheet"/>
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+
+    <link href="css/glideinwms.css" rel="stylesheet" type="text/css"/>
+
     <title id="brtitle">RRD matrix by frontend groups</title>
     <script type="text/javascript">
-	  var browser_title = "RRD matrix by frontend groups";
-	  var page_title = "RRD matrix by frontend groups";
-	  set_title_and_footer(browser_title, page_title);
-	</script>
+        window.onload = function() {
+            var browser_title = "RRD Matrix by Frontend Groups";
+            var page_title = "RRD Matrix by Frontend Groups";
+            set_title_and_footer(browser_title, page_title);
+        }
+    </script>
   </head>
 
   <body>
-    <table width="100%">
-    <tr>
-     <td><h1 id="pgtitle">RRD matrix by frontend groups</h1></td>
-     <td align="right">[ 
-	    <a href="frontendStatus.html">Status</a> |
-	    <a href="frontendRRDBrowse.html">Browse</a> |
-        <a href="frontendGroupGraphStatusNow.html">Group Graphs</a>
-	    ]</td>
-    </tr>
-    </table>
 
-    <table border=0>
-     <tr>
-       <th>Groups</th>
-       <td><form id="groups">
-       </form></td>
-     </tr>
-     <tr>
-       <th>RRD</th>
-       <td><form id="rrds">
-	<input type="radio" name="rrd" value="Status_Attributes" checked>Status_Attributes
-       </form></td>
-     </tr>
-     <tr>
-      <td colspan=2><button onclick="fname_update()">Update</button></td>
-     </tr>
-    </table>
-
-    <hr>
-
-    <table id="infotable" border=1>
-        <tr><td colspan="21"><b>Javascript needed for this page to work</b></td></tr>
-	<tr><td><b>RRD file</b></td><td id="fname" colspan="5">None</td></tr>
-    </table>
-
-    <div id="mygraph"></div>
-
-   <hr>
-    <p>Powered by
-        <a href="http://oss.oetiker.ch/rrdtool/" target="_blank">RRDTool</a>,
-        <a href="https://sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and 
-        <a href="http://code.google.com/p/flot/" target="_blank">Flot</a>.
-    </p>
- 
-	<div id="monitor_footer"></div>
-	
+    <div id="navbar" class="navbar">
+      <div id="navbar-inner" class="navbar-inner"></div>
+    </div>
     <script type="text/javascript">
-
-      // Remove the Javascript warning
-      document.getElementById("infotable").deleteRow(0);
-
-      // Load the status of the frontend
-      var frontendStats=loadFrontendStats();
-      var groups=getFrontendGroups(frontendStats);
-      for (var group in groups) {
-	var cb_el = document.createElement("input");
-	cb_el.type = "checkbox";
-	cb_el.name = "group";
-	cb_el.value = groups[group];
-	cb_el.checked = cb_el.defaultChecked = true;
-
-        var html_el=document.getElementById("groups");
-	html_el.appendChild(cb_el);
-        html_el.appendChild(document.createTextNode(groups[group]));
-      }
-
-     // fname and rrd_data are the global variable used by all the functions below
-      rrd_name="";
-      group_names=[];
-      fnames=[];
-      rrd_data=[];
-
-      // This function updates the Web Page with the data from the RRD archive header
-      // when a new file is selected
-      function update_fname() {
-        // Finally, update the file name and enable the update button
-        document.getElementById("fname").firstChild.data=rrd_name;
-
-	var rrd_files=[];
-	for (var i in rrd_data) {
-	   rrd_files.push([group_names[i],rrd_data[i]]);
-	} 
-
-        // the rrdFlot object creates and handles the graph
-        var f=new rrdFlotMatrix("mygraph",rrd_files);
-      }
-
-      // This is the callback function that,
-      // given a binary file object and an index,
-      // verifies that it is a valid RRD archive
-      // checks if all have been updated
-      // and performs the update of the Web page
-      function update_fname_handler(bf, idx) {
-          document.getElementById("fname").firstChild.data=document.getElementById("fname").firstChild.data+".";
-
-          var i_rrd_data=undefined;
-          try {
-            var i_rrd_data=new RRDFile(bf);            
-          } catch(err) {
-            alert("File "+fnames[idx]+" is not a valid RRD archive!");
-          }
-          if (i_rrd_data!=undefined) {
-            rrd_data[idx]=i_rrd_data;
-          }
-	  var all_defined=true;
-          for (var i in rrd_data) {
-            if (rrd_data[idx]==null) {
-	       all_defined=false;
-	    }
-	  } 
-
-           if (all_defined) {
-            update_fname()
-          }
-      }
-
-      // this function is invoked when the RRD file name changes
-      function fname_update() {
-	fnames=[];
-	rrd_data=[];
-
-	group_names=[];
-        rrd_name="";
-
-        var groups_obj=document.getElementById("groups")
-	if (groups_obj.group.length>0) {
-          for (var i in groups_obj.group) {
-           var group=groups_obj.group[i];
-           if (group.checked==true) {
-  	     group_names.push(group.value);
-           } 
-          }
-        } else {
-	  group_names.push(groups_obj.group.value);
-        }
-
-        var rrds_obj=document.getElementById("rrds")
-	if (rrds_obj.rrd.length>0) {
-          for (var i in rrds_obj.rrd) {
-           var rrd=rrds_obj.rrd[i];
-           if (rrd.checked==true) {
-  	     rrd_name=rrd.value;
-           }
-          }
-        } else { // single element is not an array
-          rrd_name=rrds_obj.rrd.value;
-        }
-
-        for (var i in group_names) {
-          fnames.push("group_"+group_names[i]+"/total/"+rrd_name+".rrd");
-          rrd_data.push(null);
-        }
-
-	document.getElementById("fname").firstChild.data="Loading "+rrd_name;
-        for (var i in group_names) {
-          try {
-            FetchBinaryURLAsync(fnames[i],update_fname_handler,i);
-          } catch (err) {
-             alert("Failed loading "+fnames[i]+"\n"+err);
-          }
-	}
-      }
+        generate_navbar();
     </script>
-    
+
+    <div class="container-fluid">
+      <div class="row-fluid">
+        <div id="header" class="page-header">
+          <h3 class="page-title" id="pgtitle">Current GlideinWMS Frontend Status</h3>
+        </div>
+
+        <table class="table-frontend-factory">
+          <tr>
+            <th>
+              Group
+            </th>
+            <td>
+              <form class="form-jobtype-rrd" id="groups"></form>
+            </td>
+          </tr>
+          <tr>
+            <th>
+              RRD
+            </th>
+            <td>
+              <form class="form-jobtype-rrd" id="rrds">
+                <input type="radio" name="rrd" value="Status_Attributes" checked>
+                Status_Attributes
+              </form>
+            </td>
+          </tr>
+          <tr>
+            <td colspan=2>
+              <button onclick="fname_update()">
+                Update
+              </button>
+            </td>
+          </tr>
+        </table>
+
+        <hr>
+
+        <table id="infotable" class="table-rrdfile-info">
+          <tr>
+            <td colspan="21">
+              <b>Javascript needed for this page to work</b>
+            </td>
+          </tr>
+          <tr>
+            <th>
+              RRD File:
+            </th>
+            <td id="fname">
+              None
+            </td>
+          </tr>
+        </table>
+
+        <div id="mygraph"></div>
+
+        <div id=powered_footer></div>
+        <script type="text/javascript">
+            draw_powered_footer('powered_footer');
+        </script>
+
+      </div>
+      <!-- Row -->
+    </div>
+    <!-- Container -->
+
+    <script type="text/javascript">
+        // Remove the Javascript warning
+        document.getElementById("infotable").deleteRow(0);
+
+        // Load the status of the frontend
+        var frontendStats = loadFrontendStats();
+        var groups = getFrontendGroups(frontendStats);
+        for (var group in groups) {
+            var cb_el = document.createElement("input");
+            cb_el.type = "checkbox";
+            cb_el.name = "group";
+            cb_el.value = groups[group];
+            cb_el.checked = cb_el.defaultChecked = true;
+
+            var html_el = document.getElementById("groups");
+            html_el.appendChild(cb_el);
+            html_el.appendChild(document.createTextNode(groups[group]));
+        }
+
+        // fname and rrd_data are the global variable used by all the functions
+        // below
+        rrd_name = "";
+        group_names = [];
+        fnames = [];
+        rrd_data = [];
+
+        // This function updates the Web Page with the data from the RRD archive
+        // header
+        // when a new file is selected
+        function update_fname() {
+            // Finally, update the file name and enable the update button
+            document.getElementById("fname").firstChild.data = rrd_name;
+
+            var rrd_files = [];
+            for (var i in rrd_data) {
+                rrd_files.push([group_names[i], rrd_data[i]]);
+            }
+
+            // the rrdFlot object creates and handles the graph
+            var f = new rrdFlotMatrix("mygraph", rrd_files);
+        }
+
+
+        // This is the callback function that,
+        // given a binary file object and an index,
+        // verifies that it is a valid RRD archive
+        // checks if all have been updated
+        // and performs the update of the Web page
+        function update_fname_handler(bf, idx) {
+            document.getElementById("fname").firstChild.data = document.getElementById("fname").firstChild.data + ".";
+
+            var i_rrd_data = undefined;
+            try {
+                var i_rrd_data = new RRDFile(bf);
+            }
+            catch(err) {
+                alert("File " + fnames[idx] + " is not a valid RRD archive!");
+            }
+            if (i_rrd_data != undefined) {
+                rrd_data[idx] = i_rrd_data;
+            }
+            var all_defined = true;
+            for (var i in rrd_data) {
+                if (rrd_data[idx] == null) {
+                    all_defined = false;
+                }
+            }
+
+            if (all_defined) {
+                update_fname()
+            }
+        }
+
+
+        // this function is invoked when the RRD file name changes
+        function fname_update() {
+            fnames = [];
+            rrd_data = [];
+
+            group_names = [];
+            rrd_name = "";
+
+            var groups_obj = document.getElementById("groups")
+            if (groups_obj.group.length > 0) {
+                for (var i in groups_obj.group) {
+                    var group = groups_obj.group[i];
+                    if (group.checked == true) {
+                        group_names.push(group.value);
+                    }
+                }
+            }
+            else {
+                group_names.push(groups_obj.group.value);
+            }
+
+            var rrds_obj = document.getElementById("rrds")
+            if (rrds_obj.rrd.length > 0) {
+                for (var i in rrds_obj.rrd) {
+                    var rrd = rrds_obj.rrd[i];
+                    if (rrd.checked == true) {
+                        rrd_name = rrd.value;
+                    }
+                }
+            }
+            else {// single element is not an array
+                rrd_name = rrds_obj.rrd.value;
+            }
+
+            for (var i in group_names) {
+                fnames.push("group_" + group_names[i] + "/total/" + rrd_name + ".rrd");
+                rrd_data.push(null);
+            }
+
+            document.getElementById("fname").firstChild.data = "Loading " + rrd_name;
+            for (var i in group_names) {
+                try {
+                    FetchBinaryURLAsync(fnames[i], update_fname_handler, i);
+                }
+                catch (err) {
+                    alert("Failed loading " + fnames[i] + "\n" + err);
+                }
+            }
+        }
+    </script>
+
+    <div id="monitor_footer"></div>
   </body>
-  
+
 </html>

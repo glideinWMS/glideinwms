@@ -2,383 +2,425 @@
 
 <!--
 Project:
-  glideinWMS
+glideinWMS
 
 File Version:
 
 Description:
-  Browse the glideinWMS RRDs over the entries
+Browse the glideinWMS RRDs over the entries
 
-  Based on
-  javascriptrrd/src/lib/rrdJFlot.html
-   Original repository: http://javascriptrrd.sourceforge.net/
+Based on
+javascriptrrd/src/lib/rrdJFlot.html
+Original repository: http://javascriptrrd.sourceforge.net/
 -->
 
 <html>
-  
-    <script type="text/javascript" src="jslibs/binaryXHR.js"></script>
-    <script type="text/javascript" src="jslibs/rrdFile.js"></script>
-    <script type="text/javascript" src="jslibs/rrdMultiFile.js"></script>
 
-    <!-- rrdFlot class needs the following four include files !-->
-    <script type="text/javascript" src="jslibs/rrdFlotSupport.js"></script>
-    <script type="text/javascript" src="jslibs/rrdFlotMatrix.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.flot.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.flot.selection.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.flot.tooltip.js"></script>
+  <script type="text/javascript" src="jslibs/binaryXHR.js"></script>
+  <script type="text/javascript" src="jslibs/rrdFile.js"></script>
+  <script type="text/javascript" src="jslibs/rrdMultiFile.js"></script>
 
-    <script type="text/javascript" src="jslibs/factory_support.js"></script>
+  <!-- rrdFlot class needs the following four include files !-->
+  <script type="text/javascript" src="jslibs/rrdFlotSupport.js"></script>
+  <script type="text/javascript" src="jslibs/rrdFlotMatrix.js"></script>
+  <script type="text/javascript" src="jslibs/jquery.js"></script>
+  <script type="text/javascript" src="jslibs/jquery.flot.js"></script>
+  <script type="text/javascript" src="jslibs/jquery.flot.selection.js"></script>
+  <script type="text/javascript" src="jslibs/jquery.flot.tooltip.js"></script>
+
+  <script type="text/javascript" src="jslibs/factory_support.js"></script>
   <head>
-    <title id="brtitle">RRD matrix by gfactory entries</title>
+    <link href="css/bootstrap-combined.min.css" rel="stylesheet"/>
+    <link href="css/glideinwms.css" rel="stylesheet" type="text/css"/>
+
+    <title id="brtitle">RRD Matrix by Factory Entries</title>
     <script type="text/javascript">
-	  var browser_title = "RRD matrix by gfactory entries";
-	  var page_title = "RRD matrix by gfactory entries";
-	  set_title_and_footer(browser_title, page_title);
-	</script>
+        window.onload = function() {
+            var browser_title = "RRD Matrix by Factory Entries";
+            var page_title = "RRD Matrix by Factory Entries";
+            set_title_and_footer(browser_title, page_title);
+        }
+    </script>
   </head>
 
   <body>
-    <table width="100%">
-    <tr>
-     <td><h1 id="pgtitle">RRD matrix by gfactory entries</h1>
-     <td align="right">
-      <SELECT id="destination" style="float:right" onChange="goToDestination(this)" >
-<OPTION VALUE="" >Choose a Glidein destination...</OPTION>
-<OPTION VALUE="factoryEntryStatusNow.html"> Glidein entry. </OPTION>
-<OPTION VALUE="factoryStatusNow.html"> Glidein factory status now. </OPTION>
-<OPTION VALUE="factoryStatus.html"> Glidein factory status. </OPTION>
-<OPTION VALUE="factoryLogStatus.html"> Glidein factory log status. </OPTION>
-<OPTION VALUE="factoryCompletedStats.html"> Glidein factory completed stats. </OPTION>
-<OPTION VALUE="factoryRRDBrowse.html"> Glidein factory browse. </OPTION>
-</SELECT>
-    </tr>
-    </table>
 
-    <table border=0>
-     <tr valign="top">
-       <th>Entries/Groups<br>
-         <form id="selector">
-           <input type="button" id="selectall" value="Select All" onClick="setCriteriaValue('all', true)"/> <br/>
-           <input type="button" id="unselectall" value="Unselect All" onClick="setCriteriaValue('all', false)"/> <hr/>
-           <input type="button" id="selectentries" value="Select Entries" onClick="setCriteriaValue('entries', true)"/> <br/>
-           <input type="button" id="unselectentries" value="Unselect Entries" onClick="setCriteriaValue('entries', false)"/> <hr/>
-           <input type="button" id="selectgroups" value="Select Groups" onClick="setCriteriaValue('groups', true)"/> <br/>
-           <input type="button" id="unselectgroups" value="Unselect Groups" onClick="setCriteriaValue('groups', false)"/> <hr/>
-         </form>
-       </th>
-       <td>
-         <form id="entries">
-         </form>
-       </td>
-     </tr>
-     <tr>
-       <th>RRD</th>
-       <td><form id="rrds">
-	<input type="radio" name="rrd" value="Status_Attributes" checked>Status_Attributes
-	<input type="radio" name="rrd" value="Log_Counts">Log_Counts
-	<input type="radio" name="rrd" value="Log_Completed">Log_Completed
-       </form></td>
-     </tr>
-     <tr>
-      <td colspan=2><button onClick="fname_update()">Update</button></td>
-     </tr>
-    </table>
-
-    <hr>
-
-    <table id="infotable" border=1>
-        <tr><td colspan="21"><b>Javascript needed for this page to work</b></td></tr>
-	<tr><td><b>RRD file</b></td><td id="fname" colspan="5">None</td></tr>
-    </table>
-
-    <div id="mygraph"></div>
-
-   <hr>
-    <p>Powered by
-        <a href="http://oss.oetiker.ch/rrdtool/" target="_blank">RRDTool</a>,
-        <a href="https://sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and 
-        <a href="http://code.google.com/p/flot/" target="_blank">Flot</a>.
-    </p>
-    <div id="monitor_footer"></div>
-    
+    <div id="navbar" class="navbar">
+      <div id="navbar-inner" class="navbar-inner"></div>
+    </div>
     <script type="text/javascript">
+        generate_navbar();
+    </script>
 
-      // Remove the Javascript warning
-      document.getElementById("infotable").deleteRow(0);
+    <div class="container-fluid">
+      <div class="row-fluid">
+        <div id="header" class="page-header" style="margin: 5px 0 5px">
+          <h3 class="page-title" id="pgtitle">RRD Matrix by Factory Entries</h3>
+        </div>
 
-      // Load the status of the factory
-      var factoryQStats=loadFactoryQStats();
-      var entries=getFactoryEntryGroups(factoryQStats);
-      group_map = entries;
-      char_count=0;
-      groups_starting_idx = 0;
-      var entries_processed = 0;
+        <table class="table-frontend-factory">
+          <tr>
+            <th>
+              Entries/Groups
+              <br>
+              <form id="selector">
+                <p>
+                  <input type="button" id="selectall" value="Select All" onClick="setCriteriaValue('all', true)"/>
+                  <input type="button" id="unselectall" value="Unselect All" onClick="setCriteriaValue('all', false)"/>
+                </p>
+                <p>
+                  <input type="button" id="selectentries" value="Select Entries" onClick="setCriteriaValue('entries', true)"/>
+                  <input type="button" id="unselectentries" value="Unselect Entries" onClick="setCriteriaValue('entries', false)"/>
+                </p>
+                <p>
+                  <input type="button" id="selectgroups" value="Select Groups" onClick="setCriteriaValue('groups', true)"/>
+                  <input type="button" id="unselectgroups" value="Unselect Groups" onClick="setCriteriaValue('groups', false)"/>
+                </p>
+              </form>
+            </th>
+            <td>
+              <form id="entries"></form>
+            </td>
+          </tr>
+          <tr>
+            <th>
+              RRD
+            </th>
+            <td>
+              <form id="rrds">
+                <input type="radio" name="rrd" value="Status_Attributes" checked>
+                Status_Attributes
+                <input type="radio" name="rrd" value="Log_Counts">
+                Log_Counts
+                <input type="radio" name="rrd" value="Log_Completed">
+                Log_Completed
+              </form>
+            </td>
+          </tr>
+          <tr>
+            <td colspan=2>
+              <button onClick="fname_update()">
+                Update
+              </button>
+            </td>
+          </tr>
+        </table>
 
-      var ordered_entries_groups = [];
-      for(entry in entries) {
-          var e = (entries[entry]).toString();
-          if (((e.split(",")).length == 1) && (e == entry.toString())){
-              ordered_entries_groups[entry] = entries[entry];
-              groups_starting_idx++;
-          }
-      }
-      for(entry in entries) {
-          var e = (entries[entry]).toString();
-          if (((e.split(",")).length > 1) || (e != entry.toString())){
-              ordered_entries_groups[entry] = entries[entry];
-          }
-      }      
-      entries = ordered_entries_groups;
+        <hr>
 
-      // First get all the entries and later do the same thing for groups
-      //for (var entry in entries) {
-      for (var entry in ordered_entries_groups) {
-	  var cb_el = document.createElement("input");
-	  cb_el.type = "checkbox";
-	  cb_el.name = "entry";
-	  cb_el.value = entries[entry];
-	  cb_el.checked = cb_el.defaultChecked = false;
-          var html_el=document.getElementById("entries");
-          if( (entries_processed > 0) && 
-              (entries_processed==groups_starting_idx) ){
-              html_el.appendChild(document.createElement("hr"));
-              char_count=0;
-          }
-          if (char_count>60) {
-              html_el.appendChild(document.createElement("br"));
-              char_count=0;
-          }
-          html_el.appendChild(cb_el);
-          //html_el.appendChild(document.createTextNode(entries[entry]));
-          html_el.appendChild(document.createTextNode(entry));
-          char_count+=1+cb_el.value.length;
+        <table id="infotable" class="table-rrdfile-info">
+          <tr>
+            <td colspan="21">
+              <b>Javascript needed for this page to work</b>
+            </td>
+          </tr>
+          <tr>
+            <th>
+              RRD File:
+            </th>
+            <td id="fname" colspan="5">
+              None
+            </td>
+          </tr>
+        </table>
 
-          if (entries_processed > (groups_starting_idx-1)) {
-              //alert(entrylist2groupname(entries[entry]));
-              var but_el1 = document.createElement("input");
-              but_el1.type = "button";
-              but_el1.id = "select" + entrylist2groupname(entries[entry]);
-              but_el1.value = "Select " + entrylist2groupname(entries[entry]);
-              but_el1.setAttribute('onclick', 'setGroupEntriesValue("'+entrylist2groupname(entries[entry])+'", true)');
+        <div id="mygraph"></div>
+        <div id="powered_footer"></div>
+        <script type="text/javascript">
+            draw_powered_footer('powered_footer');
+        </script>
+      </div>
+      <!-- Row -->
+    </div>
+    <!-- Container -->
 
-              var but_el2 = document.createElement("input");
-              but_el2.type = "button";
-              but_el2.id = "unselect" + entrylist2groupname(entries[entry]);
-              but_el2.value = "Unselect " + entrylist2groupname(entries[entry]);
-              but_el2.setAttribute('onclick', 'setGroupEntriesValue("'+entrylist2groupname(entries[entry])+'", false)');
+    <div id="monitor_footer"></div>
 
-              var form_el=document.getElementById("selector");
-              form_el.appendChild(but_el1);
-              form_el.appendChild(document.createElement("br"));
-              form_el.appendChild(but_el2);
-              form_el.appendChild(document.createElement("hr"));
-          }
+    <script type="text/javascript">
+        // Remove the Javascript warning
+        document.getElementById("infotable").deleteRow(0);
 
-          entries_processed++;
-      }
+        // Load the status of the factory
+        var factoryQStats = loadFactoryQStats();
+        var entries = getFactoryEntryGroups(factoryQStats);
+        group_map = entries;
+        char_count = 0;
+        groups_starting_idx = 0;
+        var entries_processed = 0;
 
-
-      function entrylist2groupname(elist) {
-          var gname = elist;
-          for(var g in group_map) {
-              if ((group_map[g] == elist) && (g.toString() != elist)){
-                  gname = g;
-                  break;
-              }
-          }
-          return gname;
-      }
-
-     // fname and rrd_data are the global variable used by all the functions below
-      rrd_name="";
-      entry_names=[];
-      fnames=[];
-      rrd_data=[];
-      rrd_group_data=[];
-      entry_names_groups_start_idx = groups_starting_idx;
-      rrds_loaded = 0;
-      rrds_to_load = 0;
-
-      // This function updates the Web Page with the data from the RRD archive header
-      // when a new file is selected
-      function update_fname() {
-	var rrd_files=[];
-        var num_ent = (rrd_data.length >= rrd_group_data.length) ? rrd_data.length : rrd_group_data.length;
-	for (var i=0; i<num_ent; i++) {
-            if ((rrd_data[i] != null) && (entry_names[i] != undefined)){
-	        rrd_files.push([entry_names[i],rrd_data[i]]);
-            } 
-            else if ((rrd_group_data[i] != null) &&(entry_names[i] != undefined)){
-                var rrd_data_sum=new RRDFileSum(rrd_group_data[i], false);
-                rrd_files.push([entrylist2groupname(entry_names[i]),rrd_data_sum]);
+        var ordered_entries_groups = [];
+        for (entry in entries) {
+            var e = (entries[entry]).toString();
+            if (((e.split(",")).length == 1) && (e == entry.toString())) {
+                ordered_entries_groups[entry] = entries[entry];
+                groups_starting_idx++;
             }
-	} 
-
-        // the rrdFlot object creates and handles the graph
-        var f=new rrdFlotMatrix("mygraph",rrd_files,null,null,null,{legend:"None"});
-
-        // Finally, update the file name and enable the update button
-        rrds_loaded = rrds_loaded + 1;
-        document.getElementById("fname").firstChild.data="Loaded " + rrds_loaded + "/" + rrds_to_load + " : " + rrd_name;
-      }
-
-      function update_grouped_fname_handler(bf, idx) {
-          document.getElementById("fname").firstChild.data=document.getElementById("fname").firstChild.data+".";
-
-          var i_rrd_data=undefined;
-          try {
-            i_rrd_data=new RRDFile(bf);            
-          } catch(err) {
-            alert("File "+fnames[idx]+" is not a valid RRD archive!");
-          }
-          if (i_rrd_data!=undefined) {
-            if (rrd_group_data[idx]==null) {
-              rrd_group_data[idx] = new Array();
+        }
+        for (entry in entries) {
+            var e = (entries[entry]).toString();
+            if (((e.split(",")).length > 1) || (e != entry.toString())) {
+                ordered_entries_groups[entry] = entries[entry];
             }
-            rrd_data[idx] = null;
-            rrd_group_data[idx][(rrd_group_data[idx]).length]=i_rrd_data;
-          }
-	  var all_defined=true;
-          for (var i in rrd_group_data) {
-            if ((rrd_group_data[idx]==null) && (rrd_data[idx]==null)) {
-	       all_defined=false;
-	    }
-	  } 
+        }
+        entries = ordered_entries_groups;
 
-          if (all_defined) {
-            update_fname()
-          }
-      }
+        // First get all the entries and later do the same thing for groups
+        //for (var entry in entries) {
+        for (var entry in ordered_entries_groups) {
+            var cb_el = document.createElement("input");
+            cb_el.type = "checkbox";
+            cb_el.name = "entry";
+            cb_el.value = entries[entry];
+            cb_el.checked = cb_el.defaultChecked = false;
+            var html_el = document.getElementById("entries");
+            if ((entries_processed > 0) && (entries_processed == groups_starting_idx)) {
+                html_el.appendChild(document.createElement("hr"));
+                char_count = 0;
+            }
+            if (char_count > 60) {
+                html_el.appendChild(document.createElement("br"));
+                char_count = 0;
+            }
+            html_el.appendChild(cb_el);
+            //html_el.appendChild(document.createTextNode(entries[entry]));
+            html_el.appendChild(document.createTextNode(entry));
+            char_count += 1 + cb_el.value.length;
+
+            if (entries_processed > (groups_starting_idx - 1)) {
+                //alert(entrylist2groupname(entries[entry]));
+                var but_el1 = document.createElement("input");
+                but_el1.type = "button";
+                but_el1.id = "select" + entrylist2groupname(entries[entry]);
+                but_el1.value = "Select " + entrylist2groupname(entries[entry]);
+                but_el1.setAttribute('onclick', 'setGroupEntriesValue("' + entrylist2groupname(entries[entry]) + '", true)');
+
+                var but_el2 = document.createElement("input");
+                but_el2.type = "button";
+                but_el2.id = "unselect" + entrylist2groupname(entries[entry]);
+                but_el2.value = "Unselect " + entrylist2groupname(entries[entry]);
+                but_el2.setAttribute('onclick', 'setGroupEntriesValue("' + entrylist2groupname(entries[entry]) + '", false)');
+
+                var p_el = document.createElement("p");
+
+                p_el.appendChild(but_el1);
+                p_el.appendChild(but_el2);
+
+                var form_el = document.getElementById("selector");
+                form_el.appendChild(p_el);
+            }
+
+            entries_processed++;
+        }
+
+        function entrylist2groupname(elist) {
+            var gname = elist;
+            for (var g in group_map) {
+                if ((group_map[g] == elist) && (g.toString() != elist)) {
+                    gname = g;
+                    break;
+                }
+            }
+            return gname;
+        }
 
 
-      function update_fname_handler(bf, idx) {
-          document.getElementById("fname").firstChild.data=document.getElementById("fname").firstChild.data+".";
-
-          var i_rrd_data=undefined;
-          try {
-            var i_rrd_data=new RRDFile(bf);            
-          } catch(err) {
-            alert("File "+fnames[idx]+" is not a valid RRD archive!");
-          }
-          if (i_rrd_data!=undefined) {
-            rrd_data[idx]=i_rrd_data;
-            rrd_group_data[idx] = null;
-          }
-	  var all_defined=true;
-          for (var i in rrd_data) {
-            if ((rrd_group_data[idx]==null) && (rrd_data[idx]==null)) {
-	       all_defined=false;
-	    }
-	  } 
-
-          if (all_defined) {
-            update_fname()
-          }
-      }
-
-
-
-      // this function is invoked when the RRD file name changes
-      function fname_update() {
- 
-	    fnames=[];
-		rrd_data=[];
-        rrd_group_data=[];
-		entry_names=[];
-        rrd_name=""; 
-        entry_names_groups_start_idx = 0;
+        // fname and rrd_data are the global variable used by all the functions
+        // below
+        rrd_name = "";
+        entry_names = [];
+        fnames = [];
+        rrd_data = [];
+        rrd_group_data = [];
+        entry_names_groups_start_idx = groups_starting_idx;
         rrds_loaded = 0;
         rrds_to_load = 0;
 
-        var entries_obj=document.getElementById("entries")
-        for (var i in entries_obj.entry) {
-          var entry=entries_obj.entry[i];
-          if (entry.checked==true) {
-            if (i < groups_starting_idx) {
-              entry_names_groups_start_idx = entry_names.length;
-            }
-            //if (entry.value != undefined) {
-  	      entry_names.push(entry.value);
-            //}
-          }
-        }
-
-        var rrds_obj=document.getElementById("rrds")
-        for (var i in rrds_obj.rrd) {
-          var rrd=rrds_obj.rrd[i];
-          //if ((rrd.checked==true) && (rrd.value != undefined)){
-          if (rrd.checked==true){
-  	    rrd_name=rrd.value;
-          }
-        }
-
-        for (var i in entry_names) {
-          var ent_list = entry_names[i].split(",");
-          var fn_array = new Array();
-          for(var j=0; j<ent_list.length; j++) {
-            fn_array.push("entry_"+ent_list[j]+"/total/"+rrd_name+".rrd");
-          }
-          fnames.push(fn_array.join(","));
-          rrd_data.push(null);
-        }
-
-	document.getElementById("fname").firstChild.data="Loading "+rrd_name;
-        for (var i in entry_names) {
-          try {
-            if (((fnames[i].split(",")).length == 1) && (i < entry_names_groups_start_idx)) {
-                FetchBinaryURLAsync(fnames[i],update_fname_handler,i);
-                rrds_to_load++;
-            } else {
-                var fn_array = fnames[i].split(",");
-                for (var j=0; j<fn_array.length; j++) {
-                    FetchBinaryURLAsync(fn_array[j],update_grouped_fname_handler, i);
-                    rrds_to_load++;
+        // This function updates the Web Page with the data from the RRD archive
+        // header
+        // when a new file is selected
+        function update_fname() {
+            var rrd_files = [];
+            var num_ent = (rrd_data.length >= rrd_group_data.length) ? rrd_data.length : rrd_group_data.length;
+            for (var i = 0; i < num_ent; i++) {
+                if ((rrd_data[i] != null) && (entry_names[i] != undefined)) {
+                    rrd_files.push([entry_names[i], rrd_data[i]]);
+                }
+                else if ((rrd_group_data[i] != null) && (entry_names[i] != undefined)) {
+                    var rrd_data_sum = new RRDFileSum(rrd_group_data[i], false);
+                    rrd_files.push([entrylist2groupname(entry_names[i]), rrd_data_sum]);
                 }
             }
-          } catch (err) {
-             alert("Failed loading "+fnames[i]+"\n"+err);
-          }
-	}
-      }
+
+            // the rrdFlot object creates and handles the graph
+            var f = new rrdFlotMatrix("mygraph", rrd_files, null, null, null, {
+                legend : "None"
+            });
+
+            // Finally, update the file name and enable the update button
+            rrds_loaded = rrds_loaded + 1;
+            document.getElementById("fname").firstChild.data = "Loaded " + rrds_loaded + "/" + rrds_to_load + " : " + rrd_name;
+        }
 
 
-      function setCriteriaValue(criteria, val) {
-          var ent_obj = document.getElementById("entries");
-          if ((criteria == "all") || (criteria == "entries")) {
-              for (var i=0; (i<ent_obj.entry.length)&&(i<groups_starting_idx); i++) {
-                  if (ent_obj.entry[i].type == "checkbox") {
-                      ent_obj.entry[i].checked = val;
-                  }
-              }
-          }
-          if ((criteria == "all") || (criteria == "groups")) {
-              for (var i=groups_starting_idx; i<ent_obj.entry.length; i++) {
-                  if (ent_obj.entry[i].type == "checkbox") {
-                      ent_obj.entry[i].checked = val;
-                  }
-              }
-          }
-      }
+        function update_grouped_fname_handler(bf, idx) {
+            document.getElementById("fname").firstChild.data = document.getElementById("fname").firstChild.data + ".";
+
+            var i_rrd_data = undefined;
+            try {
+                i_rrd_data = new RRDFile(bf);
+            }
+            catch(err) {
+                alert("File " + fnames[idx] + " is not a valid RRD archive!");
+            }
+            if (i_rrd_data != undefined) {
+                if (rrd_group_data[idx] == null) {
+                    rrd_group_data[idx] = new Array();
+                }
+                rrd_data[idx] = null;
+                rrd_group_data[idx][(rrd_group_data[idx]).length] = i_rrd_data;
+            }
+            var all_defined = true;
+            for (var i in rrd_group_data) {
+                if ((rrd_group_data[idx] == null) && (rrd_data[idx] == null)) {
+                    all_defined = false;
+                }
+            }
+
+            if (all_defined) {
+                update_fname()
+            }
+        }
 
 
-      function setGroupEntriesValue(gname, val) {
-          var ent_obj = document.getElementById("entries");
-          var elist = (group_map[gname]).toString().split(",");
-          for(var i=0; i<elist.length; i++) {
-              for(var j=0;(j<ent_obj.entry.length)&&(j<groups_starting_idx);j++) {
-                  if ((ent_obj.entry[j].type == "checkbox") && 
-                     (elist[i].toString() == ent_obj.entry[j].value.toString())) {
-                      ent_obj.entry[j].checked = val;
-                  }
-              }
-          }
-      }
-	  function goToDestination(option)
-	{
-		document.location.href = option.value; 
-		document.getElementById("destination").selectedIndex = 0; 
-	}
+        function update_fname_handler(bf, idx) {
+            document.getElementById("fname").firstChild.data = document.getElementById("fname").firstChild.data + ".";
+
+            var i_rrd_data = undefined;
+            try {
+                var i_rrd_data = new RRDFile(bf);
+            }
+            catch(err) {
+                alert("File " + fnames[idx] + " is not a valid RRD archive!");
+            }
+            if (i_rrd_data != undefined) {
+                rrd_data[idx] = i_rrd_data;
+                rrd_group_data[idx] = null;
+            }
+            var all_defined = true;
+            for (var i in rrd_data) {
+                if ((rrd_group_data[idx] == null) && (rrd_data[idx] == null)) {
+                    all_defined = false;
+                }
+            }
+
+            if (all_defined) {
+                update_fname()
+            }
+        }
+
+
+        // this function is invoked when the RRD file name changes
+        function fname_update() {
+
+            fnames = [];
+            rrd_data = [];
+            rrd_group_data = [];
+            entry_names = [];
+            rrd_name = "";
+            entry_names_groups_start_idx = 0;
+            rrds_loaded = 0;
+            rrds_to_load = 0;
+
+            var entries_obj = document.getElementById("entries")
+            for (var i in entries_obj.entry) {
+                var entry = entries_obj.entry[i];
+                if (entry.checked == true) {
+                    if (i < groups_starting_idx) {
+                        entry_names_groups_start_idx = entry_names.length;
+                    }
+                    //if (entry.value != undefined) {
+                    entry_names.push(entry.value);
+                    //}
+                }
+            }
+
+            var rrds_obj = document.getElementById("rrds")
+            for (var i in rrds_obj.rrd) {
+                var rrd = rrds_obj.rrd[i];
+                //if ((rrd.checked==true) && (rrd.value != undefined)){
+                if (rrd.checked == true) {
+                    rrd_name = rrd.value;
+                }
+            }
+
+            for (var i in entry_names) {
+                var ent_list = entry_names[i].split(",");
+                var fn_array = new Array();
+                for (var j = 0; j < ent_list.length; j++) {
+                    fn_array.push("entry_" + ent_list[j] + "/total/" + rrd_name + ".rrd");
+                }
+                fnames.push(fn_array.join(","));
+                rrd_data.push(null);
+            }
+
+            document.getElementById("fname").firstChild.data = "Loading " + rrd_name;
+            for (var i in entry_names) {
+                try {
+                    if (((fnames[i].split(",")).length == 1) && (i < entry_names_groups_start_idx)) {
+                        FetchBinaryURLAsync(fnames[i], update_fname_handler, i);
+                        rrds_to_load++;
+                    }
+                    else {
+                        var fn_array = fnames[i].split(",");
+                        for (var j = 0; j < fn_array.length; j++) {
+                            FetchBinaryURLAsync(fn_array[j], update_grouped_fname_handler, i);
+                            rrds_to_load++;
+                        }
+                    }
+                }
+                catch (err) {
+                    alert("Failed loading " + fnames[i] + "\n" + err);
+                }
+            }
+        }
+
+
+        function setCriteriaValue(criteria, val) {
+            var ent_obj = document.getElementById("entries");
+            if ((criteria == "all") || (criteria == "entries")) {
+                for (var i = 0; (i < ent_obj.entry.length) && (i < groups_starting_idx); i++) {
+                    if (ent_obj.entry[i].type == "checkbox") {
+                        ent_obj.entry[i].checked = val;
+                    }
+                }
+            }
+            if ((criteria == "all") || (criteria == "groups")) {
+                for (var i = groups_starting_idx; i < ent_obj.entry.length; i++) {
+                    if (ent_obj.entry[i].type == "checkbox") {
+                        ent_obj.entry[i].checked = val;
+                    }
+                }
+            }
+        }
+
+
+        function setGroupEntriesValue(gname, val) {
+            var ent_obj = document.getElementById("entries");
+            var elist = (group_map[gname]).toString().split(",");
+            for (var i = 0; i < elist.length; i++) {
+                for (var j = 0; (j < ent_obj.entry.length) && (j < groups_starting_idx); j++) {
+                    if ((ent_obj.entry[j].type == "checkbox") && (elist[i].toString() == ent_obj.entry[j].value.toString())) {
+                        ent_obj.entry[j].checked = val;
+                    }
+                }
+            }
+        }
+
+
+        function goToDestination(option) {
+            document.location.href = option.value;
+            document.getElementById("destination").selectedIndex = 0;
+        }
     </script>
   </body>
 </html>
