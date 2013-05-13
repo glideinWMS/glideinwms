@@ -1278,14 +1278,15 @@ def unit_work_v2(entry, work, client_name, client_int_name, client_int_req,
         # TODO: PM: determine how to verify voms attribute on a proxy
         pass
 
-    if ('nr_x509_proxies' not in decrypted_params.has_key('nr_x509_proxies')):
+    nr_x509_proxies = 0
+    if ('nr_x509_proxies' not in decrypted_params):
         logSupport.log.warning("Could not determine number of proxies for %s, skipping request" % client_int_name)
         return return_dict
-        try:
-            nr_x509_proxies = int(decrypted_params['nr_x509_proxies'])
-        except:
-            logSupport.log.warning("Invalid number of proxies for %s, skipping request" % client_int_name)
-            return return_dict
+    try:
+        nr_x509_proxies = int(decrypted_params['nr_x509_proxies'])
+    except:
+        logSupport.log.warning("Invalid number of proxies for %s, skipping request" % client_int_name)
+        return return_dict
 
     # If the whitelist mode is on, then set downtime to true
     # We will set it to false in the loop if a security class passes the test
@@ -1297,8 +1298,10 @@ def unit_work_v2(entry, work, client_name, client_int_name, client_int_req,
     # TODO: PM: Why we need this? Its not used anywhere apart from being set
     security_class_downtime_found = False
 
+    entry.log.debug('===> TOTAL PROXY COUNT %i' % nr_x509_proxies)
     for i in range(nr_x509_proxies):
         # Validate each proxy
+        entry.log.debug('===> CHECKING PROXY %i' % i)
 
         x509_proxy = decrypted_params.get('x509_proxy_%i'%i)
         x509_proxy_identifier = decrypted_params.get(
