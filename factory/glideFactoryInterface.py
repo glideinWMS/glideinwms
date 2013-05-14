@@ -662,17 +662,14 @@ def advertizeGlideinClientMonitoring(factory_name, glidein_name, entry_name,
 class MultiAdvertizeGlideinClientMonitoring:
     # glidein_attrs is a dictionary of values to publish
     #  like {"Arch":"INTEL","MinDisk":200000}
-    def __init__(self,
-                 factory_name, glidein_name, entry_name,
-                 glidein_attrs):
+    def __init__(self, factory_name, glidein_name, entry_name, glidein_attrs):
         self.factory_name = factory_name
         self.glidein_name = glidein_name
         self.entry_name = entry_name
         self.glidein_attrs = glidein_attrs
         self.client_data = []
 
-    def add(self,
-            client_name, client_int_name, client_int_req,
+    def add(self, client_name, client_int_name, client_int_req,
             client_params={}, client_monitors={}):
         el = {'client_name':client_name,
             'client_int_name':client_int_name,
@@ -700,11 +697,13 @@ class MultiAdvertizeGlideinClientMonitoring:
         tmpnam = "/tmp/gfi_agcm_%li_%li" % (short_time, os.getpid())
 
         for el in self.client_data:
-            createGlideinClientMonitoringFile(tmpnam, self.factory_name, self.glidein_name, self.entry_name,
-                                              el['client_name'], el['client_int_name'], el['client_int_req'],
-                                              self.glidein_attrs, el['client_params'], el['client_monitors'])
+            createGlideinClientMonitoringFile(
+                tmpnam, self.factory_name, self.glidein_name, self.entry_name,
+                el['client_name'], el['client_int_name'], el['client_int_req'],
+                self.glidein_attrs, el['client_params'], el['client_monitors'])
             try:
-                advertizeGlideinClientMonitoringFromFile(tmpnam, remove_file=True)
+                advertizeGlideinClientMonitoringFromFile(tmpnam,
+                                                         remove_file=True)
             except condorExe.ExeError, e:
                 error_arr.append(e)
 
@@ -718,16 +717,19 @@ class MultiAdvertizeGlideinClientMonitoring:
 
         ap = False
         for el in self.client_data:
-            createGlideinClientMonitoringFile(tmpnam, self.factory_name, self.glidein_name, self.entry_name,
-                                              el['client_name'], el['client_int_name'], el['client_int_req'],
-                                              self.glidein_attrs, el['client_params'], el['client_monitors'],
-                                              do_append=ap)
+            createGlideinClientMonitoringFile(
+                tmpnam, self.factory_name, self.glidein_name, self.entry_name,
+                el['client_name'], el['client_int_name'], el['client_int_req'],
+                self.glidein_attrs, el['client_params'], el['client_monitors'],
+                do_append=ap)
             ap = True # Append from here on
 
         if ap:
             error_arr = []
             try:
-                advertizeGlideinClientMonitoringFromFile(tmpnam, remove_file=True, is_multi=True)
+                advertizeGlideinClientMonitoringFromFile(tmpnam,
+                                                         remove_file=True,
+                                                         is_multi=True)
             except condorExe.ExeError, e:
                 error_arr.append(e)
 

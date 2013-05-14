@@ -418,8 +418,11 @@ class Entry:
         pub_key_obj = self.glideinDescript.data['PubKeyObj']
 
         self.gflFactoryConfig.client_stats.finalizeClientMonitor()
-
         current_qc_total = self.gflFactoryConfig.client_stats.get_total()
+
+        ########################################################################
+        # Logic to advertise glidefactory classads
+        ########################################################################
 
         glidein_monitors = {}
         for w in current_qc_total:
@@ -442,8 +445,13 @@ class Entry:
         except:
             self.log.error("Advertising entry '%s' failed" % self.name)
 
+        ########################################################################
+        # Logic to advertise glidefactoryclient classads
+        ########################################################################
+
         # Advertise the monitoring, use the downtime found in
         # validation of the credentials
+
         advertizer = \
             glideFactoryInterface.MultiAdvertizeGlideinClientMonitoring(
                 self.gflFactoryConfig.factory_name,
@@ -1298,11 +1306,8 @@ def unit_work_v2(entry, work, client_name, client_int_name, client_int_req,
     # TODO: PM: Why we need this? Its not used anywhere apart from being set
     security_class_downtime_found = False
 
-    entry.log.debug('===> TOTAL PROXY COUNT %i' % nr_x509_proxies)
     for i in range(nr_x509_proxies):
         # Validate each proxy
-        entry.log.debug('===> CHECKING PROXY %i' % i)
-
         x509_proxy = decrypted_params.get('x509_proxy_%i'%i)
         x509_proxy_identifier = decrypted_params.get(
                                     'x509_proxy_%i_identifier'%i)
@@ -1479,7 +1484,7 @@ def unit_work_v2(entry, work, client_name, client_int_name, client_int_req,
 
         # Do a iteration for the credential set (maps to a 1 security class)
         entry.gflFactoryConfig.client_internals[client_int_name] = \
-            {"CompleteName":client_int_name, "ReqName":client_int_req}
+            {"CompleteName":client_name, "ReqName":client_int_req}
 
         done_something = perform_work_v2(
                              entry, entry_condorQ, client_name, client_int_name,
