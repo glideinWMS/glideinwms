@@ -72,24 +72,29 @@ except:
 
 os.mkdir(extract_dir)
 try:
-  first_entry=fd.getnames()[0]
-  if (len(first_entry.split('/'))<2):
-    print "File '%s' is not a condor tarball! (found '%s', expected a subdirectory'"%(new_tarball,first_entry)
+  members=fd.getmembers()
+  first_entry_obj=members[0]
+  first_entry=first_entry_obj.name
+  if not first_entry_obj.isdir():
+    print "File '%s' is not a condor tarball! (expected a subdirectory, found '%s'))"%(new_tarball,first_entry)
     sys.exit(4)
   first_dir=first_entry.split('/')[0]+'/'
-  if (first_dir[:7]!="condor-"):
+  if (first_dir[:7]=="condor-"):
+    condor_version=first_dir[7:-1]
+  elif (first_dir[:9]=="htcondor-"):
+    condor_version=first_dir[9:-1]
+  else:
     print "File '%s' is not a condor tarball! (found '%s', expected 'condor-*/'"%(new_tarball,first_dir)
     sys.exit(4)
-  condor_version=first_dir[7:-1]
   print "Seems condor version %s"%condor_version
   condor_tar_subdir=first_dir
 
   # first create the regular files
-  for f in fd.getmembers():
+  for f in members:
     if not f.islnk():
       fd.extract(f,extract_dir)
   # then create the links
-  for f in fd.getmembers():
+  for f in members:
        if f.islnk():
         os.link(os.path.join(extract_dir,f.linkname),os.path.join(extract_dir,f.name))
   if not os.path.exists(os.path.join(extract_dir,"%s/bin/condor_q"%condor_tar_subdir)):
