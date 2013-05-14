@@ -41,7 +41,7 @@ def extract_DN(fname):
 
     while 1:
         try:
-            data_idx=data.rindex('-----BEGIN CERTIFICATE-----\n')
+            data_idx=data.rindex('-----BEGIN CERTIFICATE-----')
             old_data=data[:data_idx]
             data=data[data_idx:]       
         except ValueError, e:
