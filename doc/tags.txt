@@ -10,6 +10,10 @@ v2_7_1  glidecondor_addDN tool now supports adding DNs from a file
         Bug Fix: Factory now correctly does accounting of glideins in default
           condor schedd
         Bug Fix: proxy_info works correctly with the cat option
+        Bug Fix: Fixed an issue where glidecondor_addDN would fail if the
+          certificate marker has trailing new line character
+        Bug Fix: glidecondor_upgrade now correctly works with the HTCondor 
+          7.8.8 and 7.9.6 tarballs
 
 v2_7	glideinwms code is now organized as python packages
 	Factory no longer creates long running process per entry. Instead, it

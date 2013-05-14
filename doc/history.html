@@ -82,7 +82,7 @@ Related Pages:
 <a name="stable"></a>
     <h3>Stable Series</h3>
       <li>
-        <b>v2_7_1</b> released on May xx, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7_1.tgz">Tarball</a>)<br>
+        <b>v2_7_1</b> released on May 14, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7_1.tgz">Tarball</a>)<br>
         <ul>
           <li>glidecondor_addDN tool now supports adding DNs from a file
           <li>Added new tool glidecondor_createSecCol to dynamically create
@@ -96,6 +96,10 @@ Related Pages:
           <li>Bug Fix: Factory now correctly does accounting of glideins in
           default condor schedd
           <li>Bug Fix: proxy_info works correctly with the cat option
+          <li>Bug Fix: Fixed an issue where glidecondor_addDN would fail if the
+          certificate marker has trailing new line character
+          <li>Bug Fix: glidecondor_upgrade now correctly works with the HTCondor
+          7.8.8 and 7.9.6 tarballs
         </ul>
       </li>
       <li>

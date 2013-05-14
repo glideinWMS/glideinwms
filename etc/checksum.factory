@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v2_7_1_rc1
+# GLIDEINWMS_VERSION v2_7_1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 c4e9c1f360b685b8a49c62e32e6a3498  ./LICENSE.txt
@@ -111,7 +111,7 @@ cb47b97ada6caf17f5d463bddfe7169d  ./factory/tools/proxy_info
 a388a8cafcb40decc5a71b58d8844457  ./install/glidecondor_addDN
 22461dfb34f1df82e24626987a250b9d  ./install/glidecondor_createSecCol
 f28c34e36ba4305d337b6b1b3b4ae80f  ./install/glidecondor_createSecSched
-71a2a319bb6d7ce190e23df8fc2be50d  ./install/glidecondor_upgrade
+1e4244567f13a539961bab626253f498  ./install/glidecondor_upgrade
 ac0a334763d78ab1abe1148209625a94  ./install/glideinWMS.ini
 e4897c5bd7264d85711f80a2be09636f  ./install/glideinWMS_install
 9039b04f708cead0be3e37dcbc967234  ./install/manage-glideins
@@ -149,7 +149,7 @@ a4a9c9ce66d4297e420fe8f896ba7e1d  ./lib/rrdSupport.py
 d8200249619d609fe42e11c22579bcbb  ./lib/subprocessSupport.py
 9d2dd5dfff2646ac5da5d8a745065840  ./lib/symCrypto.py
 07690943f55909c5ef7522e98f9c7088  ./lib/timeConversion.py
-2923d8496b592cd1a7fd2d50af4f61d8  ./lib/x509Support.py
+0411190e64e94cdea3b7f07d82d55b70  ./lib/x509Support.py
 8e54d6090767321aea5a645be0dc40c8  ./lib/xmlFormat.py
 0e980624042a89589e8418346f5a7f4c  ./lib/xmlParse.py
 d41d8cd98f00b204e9800998ecf8427e  ./tools/__init__.py
