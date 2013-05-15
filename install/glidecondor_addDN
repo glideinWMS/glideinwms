@@ -20,90 +20,297 @@ import subprocess
 import stat
 import time
 import re
+import errno
 import M2Crypto
 
 STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
-from glideinwms.lib import condorExe
 from glideinwms.lib.x509Support import extract_DN
+from glideinwms.lib import condorExe
+
+class ArgError(RuntimeError):
+    def __init__(self, err_str):
+        RuntimeError.__init__(self, err_str)
 
 def usage():
     print "Usage:"
-    print " glidecondor_addDN [-daemon comment] DN|file user"
+    print " glidecondor_addDN [options] [-daemon comment] DN|certfile user"
+    print "    - Add a single DN"
+    print "or"
+    print " glidecondor_addDN [options] -import listfile*"
+    print "    - Add several DNs from one or more list files"
+    print "where [options] is any of the following:"
+    print " -h              - print this help and exit"
+    print " -q              - quiet operation"
+    print " -disable-checks - without, a valid condor-mapfile must already exist"
+    print " -recreate       - destroy any existing mapfile and 90_gwms_dns.config, and create a new one"
+    print " -allow-others   - allow for previously defined DNs"
+    print " -allow-alterate - allow to use alternate config files (e.g. condor_config.local)"
+    print " -m <fname>      - Use this file as the mapfile, instead of the standard one"
+    print " -d <fname>      - Use this file as the DNS config file, instead of the standard one"
     return
 
-def parse_args(args):
-    daemon_comment=None
-    if len(args)<2:
-        usage()
-        sys.exit(1)
-
-    if (args[0]=='-help') or (args[0]=='-h') or (args[0]=='--help'):
-        usage()
-        sys.exit(1)
-
-    if args[0]=='-daemon':
-        daemon_comment=args[1]
-        if len(daemon_comment)<10:
-            print "Daemon comment must be at least 10 characters long"
-            sys.exit(1)
-        args=args[2:]
-
-    if len(args)!=2:
-        usage()
-        sys.exit(1)
-    dn=args[0]
-    user=args[1]
-
-    if os.path.isfile(dn):
+def expand_dn(dn,QUIET_OPS):
+    if dn.startswith("file:") or ((not dn.startswith('dn:')) and os.path.isfile(dn)):
         # not a DN... it is really a file
         # extract the DN
-        dn=extract_DN(dn)
-        print "Using DN '%s'"%dn
-    
-    return {'is_daemon_dn':(daemon_comment!=None),'daemon_comment':daemon_comment,'dn':dn,'user':user}
+        if dn.startswith("file:"):
+            fname=dn.split(':',1)[1]
+        else:
+            fname=dn
+        if not QUIET_OPS:
+            print "Reading certificate file '%s'"%fname
+        dn=extract_DN(fname)
+        if not QUIET_OPS:
+            print "Using DN '%s'"%dn
+    return dn
 
-def check_config(fname):
+def parse_args(args):
+    mode=None # 1 for single DN, 2 for list
+    opts=[]
+    modargs=[]
+    mapfile=None
+    dnsfile=None
+
+    i=0
+    try:
+        while (i<len(args)):
+            arg=args[i]
+            i+=1
+            if arg in ('-h','-q','-disable-checks','-recreate','-allow-others','-allow-alternate'):
+                # options without any parameters
+                opts.append(arg)
+            elif arg=='-m':
+                arg=args[i]
+                i+=1
+                mapfile=arg
+            elif arg=='-d':
+                arg=args[i]
+                i+=1
+                dnsfile=arg
+            elif arg=='-daemon':
+                # Single DN mode
+                if mode==2:
+                    raise ArgError, "Cannot use -daemon option in list mode: %i"%i
+                mode=1
+                modargs.append(arg)
+                arg=args[i]
+                i+=1
+                modargs.append(arg)
+            elif arg=='-import':
+                # list mode
+                if mode==1:
+                    raise ArgError, "Cannot use -import option in single DN mode: %i"%i
+                mode=2
+                modargs.append(arg)
+                # at least one fname expected
+                arg=args[i]
+                i+=1
+                if arg.startswith('-'):
+                    raise ArgError, "Expected a file name, got an option: %i"%i
+                modargs.append(arg)
+                # then all that are not options
+                while (i<len(args)):
+                    arg=args[i]
+                    if arg.startswith('-'):
+                        break # not a file name, move on
+                    i+=1
+                    modargs.append(arg)
+            elif arg.startswith('-'):
+                raise ArgError, "Unrecognized option '%s': %i"%(arg,i)
+            else: # what is left is the single DN mode
+                if mode==2:
+                    raise ArgError, "Found spurious arguments in list mode: %i"%i
+                mode=1
+                modargs.append(arg)
+                arg=args[i]
+                i+=1
+                modargs.append(arg)
+    except IndexError, e:
+        raise ArgError, "Expected to find another argument at %i"%i
+        
+    if '-h' in opts:
+        # help requested, no error
+        usage()
+        sys.exit(0)
+        
+    if len(args)<2:
+        raise ArgError, "Not enough arguments"
+
+    if mode is None:
+        raise ArgError, "Could not find with mode to use"
+
+    QUIET_OPS=('-q' in opts)
+    ENABLE_CHECKS=not ('-disable-checks' in opts)
+    RECREATE=('-recreate' in opts)
+    ALLOW_OTHERS=('-allow-others' in opts)
+    ALLOW_ALTERNATE=('-allow-alternate' in opts)
+
+    if mode==2:
+        dnlist=parse_import_args(modargs,QUIET_OPS)
+    else:
+        dnlist=parse_one_args(modargs,QUIET_OPS)
+
+    return {'dnlist':dnlist,'opts':{'quiet':QUIET_OPS,'enable_checks':ENABLE_CHECKS,'recreate':RECREATE,'allow_alternate':ALLOW_ALTERNATE,'allow_others':ALLOW_OTHERS,'mapfile':mapfile,'dnsfile':dnsfile}}
+
+def parse_one_args(args,QUIET_OPS):
+    assert len(args)>=2
+    assert len(args)!=3
+
+    if len(args)>4:
+        raise ArgError, "Too many arguments"
+
+    daemon_comment=None
+    if len(args)>2:
+        if args[0]=='-daemon':
+            daemon_comment=args[1]
+            dn=args[2]
+            user=args[3]
+        elif args[2]=='-daemon':
+            daemon_comment=args[3]
+            dn=args[0]
+            user=args[1]
+        else:
+            raise ArgError, "Option -daemon expected with so many arguments, but none found"
+        if len(daemon_comment)<10:
+            raise ArgError, "Daemon comment must be at least 10 characters long"
+    else:
+            dn=args[0]
+            user=args[1]
+
+    if (len(dn)<3) or (dn[0]=="-"):
+        # this looks like a typo on the part of the user
+        raise ArgError,"Invalid DN: %s"%dn
+
+    return [{'is_daemon_dn':(daemon_comment!=None),'daemon_comment':daemon_comment,'dn':expand_dn(dn,QUIET_OPS),'user':user}]
+
+def parse_import_args(args,QUIET_OPS):
+    assert len(args)>=2
+    assert args[0]=='-import'
+
+    dnlist=[]
+    for importfname in args[1:]:
+        if importfname=='-':
+            lines=sys.stdin.readlines()
+        else:
+            fd=open(importfname,"r")
+            try:
+                lines=fd.readlines()
+            finally:
+                fd.close()
+
+        count=0
+        for rawline in lines:
+            count+=1
+            line=rawline.strip()
+            if len(line)==0:
+                continue # emtpy line
+            if line[0]=="#":
+                continue # comment
+
+            larr=line.split(None,2)
+            if len(larr)!=3:
+                #Use IOError to simplify the exception handling
+                raise IOError, (errno.EPROTO,"Expected 3 tokens, got %i: %s:%i"%(len(larr),importfname,count))
+            if not (larr[1] in ('daemon','nodaemon','client')):
+                raise IOError, (errno.EPROTO,"Unexpected dn type '%s', should be either 'daemon' or 'client' :%s:%i"%(larr[1],importfname,count))
+            user=larr[0]
+            try:
+                dn=expand_dn(larr[2],QUIET_OPS)
+            except IOError, e:
+                raise IOError, (e.errno, "While processing %s:%i %s"%(importfname, count, str(e)))
+            is_daemon=(larr[1]=='daemon')
+            dnlist.append({'is_daemon_dn':is_daemon,'daemon_comment':"Imported from %s:%i"%(importfname,count),'dn':dn,'user':user})
+
+            pass
+        # end for lines
+        pass
+    #end for args
+    
+    return dnlist
+
+def check_config(fname,opts):
+    recreate=opts['recreate']
+    enable_checks=opts['enable_checks']
+
     if not os.path.isfile(fname):
-        raise IOError,"Config file '%s' not found!"%fname
+        if recreate and (not enable_checks):
+            # create an empty file
+            fd=open(fname,'w')
+            fd.close()
+            # and make it writable by owner only (but world readable)
+            os.chmod(fname,0644)
+        else:
+            raise IOError,(errno.ENOENT,"Config file '%s' not found!"%fname)
 
     if not os.access(fname,os.R_OK|os.W_OK):
-        raise IOError, "Config file '%s' not writable!"%fname
+        raise IOError, (errno.EPERM,"Config file '%s' not writable!"%fname)
 
     return # file seems OK
 
-def update_mapfile(mapfile,dn,user):
+def update_mapfile(mapfile,dnlist,opts):
+    recreate=opts['recreate']
+    enable_checks=opts['enable_checks']
+
     mapmode=os.stat(mapfile)[stat.ST_MODE]
     fd=open(mapfile,'r')
     lines=fd.readlines()
     fd.close()
 
-    if len(lines)<2:
+    if enable_checks and (len(lines)<2):
         # must have at least the GSI anon and FS anon
         print "File '%s' is not a condor mapfile; too short!"%mapfile
         sys.exit(3)
 
-    if lines[0][:4]!='GSI ':
+    if enable_checks and (lines[0][:4]!='GSI '):
         print "File '%s' is not a condor mapfile; first line is not a valid GSI mapping!"%mapfile
         sys.exit(3)
         
+    if enable_checks:
+        found=False
+        for i in range(0,len(lines)):
+            line=lines[i]
+            if line=='GSI (.*) anonymous\n':
+                found=True
+                break
+        if not found:
+            # should have found GSI anon, but could not
+            print "File '%s' is not valid a condor mapfile; cound not find anonymous mapping!"%mapfile
+            sys.exit(3)
+
+    if recreate:
+        # now that we did any needed checks, destroy the existing content and start from scratch
+        lines=['GSI (.*) anonymous\n',
+               'FS (.*) \\1\n']
+
     # append GSI DN user
     # after the last line of that kind
+    # Note: Will be the first line if no standard GSI mappings are present
     found=False
+    iline=0
     for i in range(0,len(lines)):
         line=lines[i]
+        iline=i
         if line[:5]!='GSI "':
-            lines.insert(i,'GSI "^%s$" %s\n'%(re.escape(dn),user))
             found=True
             break
+    
+    for dnel in dnlist:
+        dn=dnel['dn']
+        user=dnel['user']
+        lines.insert(iline,'GSI "^%s$" %s\n'%(re.escape(dn),user))
+        iline+=1
+
     if not found:
-        print "File '%s' is not valid a condor mapfile; only plain GSI mappings found!"%mapfile
-        sys.exit(3)
+        # should have found GSI anon, but could not
+        assert (not enable_checks)
+        print "Warning: the initial condor_mapfile did not look legitimate (but -disable-checks passed)"
 
     # will overwrite the mapfile
     # but create a tmpfile first, so it is semi-atomic
-    tmpfile="%s.new"%mapfile
+    # always use a final tilde to avoid Condor using it
+    tmpfile="%s.new~"%mapfile
     if os.path.isfile(tmpfile):
         os.unlink(tmpfile)
     
@@ -120,70 +327,128 @@ def update_mapfile(mapfile,dn,user):
 
     return
 
-def update_config(config_file,dn,user,comment):
-    # just append at the end of the file
-    fd=open(config_file,'a')
-    fd.write("\n# New daemon DN added on %s\n"%time.ctime())
-    fd.write("# Comment: %s\n"%comment)
-    fd.write("# The following DN will map to %s\n"%user)
-    fd.write("GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s\n"%dn)
+def cond_update_config(config_file,dnlist,opts):
+    recreate=opts['recreate']
+    allow_others=opts['allow_others']
+    
+    # create a tmpfile first, so the change is semi-atomic
+    # always use a final tilde to avoid Condor using it
+    tmpfile="%s.new~"%config_file
+    if os.path.isfile(tmpfile):
+        os.unlink(tmpfile)
+
+    if recreate:
+        # create an new, empty file... with just a header
+        lines=["# This file contains the list of daemon DNs\n\n"]
+        # if not allowing others, set to true, so GSI_DAEMON_NAME will be cleaned up
+        is_first=not allow_others
+    else:
+        fd=open(config_file,'r')
+        lines=fd.readlines()
+        fd.close()
+        # never destroy anything... we will just append to the end of the file
+        is_first=False
+    
+    for dnel in dnlist:
+        if dnel['is_daemon_dn']:
+            dn=dnel['dn']
+            user=dnel['user']
+            comment=dnel['daemon_comment']
+            lines.append("\n# New daemon DN added on %s\n"%time.ctime())
+            lines.append("# Comment: %s\n"%comment)
+            lines.append("# The following DN will map to %s\n"%user)
+            if is_first:
+                lines.append("GSI_DAEMON_NAME=%s\n"%dn)
+                is_first=False
+            else:
+                lines.append("GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s\n"%dn)
+
+    if is_first:
+        # if there were no DNs to write, reset it to an empty string
+        assert recreate
+        assert not allow_others
+        lines.append("GSI_DAEMON_NAME=\n")
+
+    fd=open(tmpfile,'w')
+    fd.writelines(lines)
     fd.close()
+
+    bakfile="%s~"%config_file
+    if os.path.isfile(bakfile):
+        os.unlink(bakfile)
+    os.rename(config_file,bakfile)
+    os.rename(tmpfile,config_file)
 
     return
 
 def main(args):
-    # parse the arguments, so we know what the user want
-    params=parse_args(args)
-
-    # make sure we can access the files to be changed
     try:
+        # parse the arguments, so we know what the user want
         try:
-             condor_mapfile=condorExe.iexe_cmd("condor_config_val CERTIFICATE_MAPFILE")[0].rstrip('\n')
-        except condorExe.ExeError,e:
-             raise IOError, "Path to CERTIFICATE_MAPFILE not found"
+            pargs=parse_args(args)
+            opts=pargs['opts']
+            dnlist=pargs['dnlist']
+        except ArgError, e:
+            usage()
+            print
+            print e
+            print "Aborting"
+            sys.exit(1)
 
-        check_config(condor_mapfile)
-        if params['is_daemon_dn']:
+        if opts['mapfile'] is None:
+            # make sure we can access the files to be changed
+            try:
+                 condor_mapfile=condorExe.iexe_cmd("condor_config_val CERTIFICATE_MAPFILE")[0].rstrip('\n')
+            except condorExe.ExeError,e:
+                 raise IOError,  (errno.ENOENT,"Path to CERTIFICATE_MAPFILE not found")
+        else:
+            condor_mapfile=opts['mapfile']
+
+        check_config(condor_mapfile,opts)
+
+        if opts['dnsfile'] is None:
             has_dir=False
             try:
                  condor_config_dir=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_DIR")[0].rstrip('\n')
                  has_dir=os.path.exists(condor_config_dir)
-                 condor_config=os.path.join(condor_config_dir,"90_gwms_dns.config")
-                 if not os.path.isfile(condor_config):
-                     print "Please create %s"%condor_config
             except condorExe.ExeError,e:
                 has_dir=False
 
             if has_dir:
-                 condor_config=os.path.join(condor_config_dir,"90_gwms_dns.config")
-                 if not os.path.isfile(condor_config):
-                     raise IOError, "Please create %s"%condor_config
+                condor_config=os.path.join(condor_config_dir,"90_gwms_dns.config")
             else:
-                 # not found, see if it uses a config dir
-                 try:
+                if not opts['allow_alternate']:
+                    raise IOError, (errno.ENOENT,"LOCAL_CONFIG_DIR not defined, and -allow-alternate not used")
+
+                if opts['recreate']:
+                    raise IOError, (errno.ENOENT,"LOCAL_CONFIG_DIR not defined, but -recreate used")
+
+                # dir not found, see if it uses a config dir
+                try:
                     condor_config=condorExe.iexe_cmd("condor_config_val LOCAL_CONFIG_FILE")[0].rstrip('\n')
-                 except condorExe.ExeError,e:
+                except condorExe.ExeError,e:
                      # nope, go with the main config file
                      try:
                          condor_config=condorExe.iexe_cmd("condor_config_val -config")[1].strip() # it is in the second line, and it is indented
                      except condorExe.ExeError,e:
-                         raise IOError, "No CONFIG_FILE found"
-            try:
-                check_config(condor_config)
-            except IOError, e:
-                raise IOError, e
+                         raise IOError, (errno.ENOENT,"No alternate CONFIG_FILE found")
+        else:
+            condor_config=opts['dnsfile']
+    
+        check_config(condor_config,opts)
     except IOError, e:
         print e
+        print "Command failed"
         sys.exit(2)
 
     #now do the changes
-    update_mapfile(condor_mapfile,params['dn'],params['user'])
-    if params['is_daemon_dn']:
-        update_config(condor_config,params['dn'],params['user'],params['daemon_comment'])
+    update_mapfile(condor_mapfile,dnlist,opts)
+    cond_update_config(condor_config,dnlist,opts)
 
-    print "Configuration files changed."
-    print "Remember to reconfig the affected Condor daemons."
-    print
+    if opts['quiet']:
+        print "Configuration files changed."
+        print "Remember to reconfig the affected Condor daemons."
+        print
 
     return 0
 

@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS</title>
+  <title>glideinWMS Tools</title>
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
 </head>
 
@@ -61,21 +61,91 @@ DNs and authorization to specific users can be confusing and this utility
 can help.
 </p>
 <p>
-Usage:
+It has two usage modes:
+<ol>
+<li> Add a single DN:<br>
+<blockquote>
+ glidecondor_addDN <i>[options]</i> [-daemon <i>comment</i>] <i>DN_or_certfile</i> <i>user</i>
+</blockquote>
+</li>
+<li> Add DNs from a list file:<br>
+<blockquote>
+  glidecondor_addDN <i>[options]</i> -import <i>listfile</i>*
+</blockquote>
+</li>
+</ol>
+</p>
+<p>
+Where <i>[options]</i> is any combination of:
+<table class="requirements">
+ <tr><td>-m <i>fname</i></td>
+     <td>By default, the script will find the certificate_mapfile by invoking
+         <blockquote>
+           condor_config_val CERTIFICATE_MAPFILE
+         </blockquote>
+         Use this option to specify a different file name (mostly useful for prototyping).</td></tr>
+ <tr><td>-d <i>fname</i></td>
+     <td>By default, the script will put the daemon DNs into <tt>90_gwms_dns.config</tt> in the Condor's <tt>LOCAL_CONFIG_DIR</tt> (obtained via <tt>condor_config_val</tt>).<br>
+         Use this option to specify a different file name (mostly useful for prototyping).</td></tr>
+ <tr><td>-allow-alterate</td>
+     <td>If present, the tool will look for alternate config files (e.g. condor_config.local)
+         to put daemon DNs into.</td></tr>
+ <tr><td>-disable-checks</td><td>Without it, valid config files must already be present.</td></tr>
+ <tr><td>-recreate</td>
+     <td>By default, the tool will add to existing files.<br>
+         If this option is present, it will destroy any existing configuration files, and create new ones instead.</td></tr>
+ <tr><td>-allow-others</td>
+     <td>By default when <tt>-recreate</tt> is used, the new config files will override any existing DN attributes (i.e. <i>GSI_DAEMON_NAME</i>).<br>
+         If you want to preserve the settings from other config files, use this option.</td></tr>
+ <tr><td>-q</td><td>Quiet operation.</td></tr>
+</table>
+</p>
+<p>
+In both operation modes, the tool will add properly encoded (DN,username) entries in the certificate mapfile,
+and, iif the DN is tagged as belonging to a trusted daemon, also in the DN config file.
+</p>
+<p>
+In both modes, the DN can be the actual DN string, or a certificate from which to extract the string from.
+The tool will try to guess which one you are using, but you can also force it by prepending it with either
+<tt>dn:</tt> or <tt>file:</tt>.
+</p>
+<p>
+The <i>listfile</i> contains one DN per line; lines starting with a hash (#) or that are completely empty, are ignored.<br>
+Each line must have exactly three columns, separated by any number of spaces:
+<blockquote>
+<i>user type DN_or_certfile</i>
+</blockquote>
+</p>
+<p>
+The <i>DN_or_cerfile</i> can contain spaces, and <b>MUST NOT</b> be quoted.
+</p>
+<p>
+The <i>type</i> columns must be either <tt>daemon</tt> or <tt>client</tt>.
+</p>
+<p>
+Example of the first type:
 </p>
 <blockquote>
-glidecondor_addDN [-daemon] <i>/OU=YOUR/OU=DN/CN=HERE</i> <i>Mapped_to_User</i>
+   glidecondor_addDN -daemon "My own host certificate DN" file:/etc/grid-security/hostcert.pem condor
 </blockquote>
 <p>
-    This script will use the condor_config in your path (from "<tt>condor_config_val BIN</tt>") so make sure  your path and config is pointing to the correct condor if you have multiple services installed on the same machine.</p>
-<p>
-    This script will modify the certs/condor_mapfile of your condor_mapfile 
-in order to correctly add the DN to Condor's authorization scheme.
+Example of the second type:
 </p>
-<p>
-    If <tt>-daemon</tt> is specified, then, in addition, this will modify
-the <tt>condor_config.local</tt> to include this DN as a daemon.
-</p>
+<blockquote>
+   cat pool_dns.list
+<pre>
+# This file contains the pool DNs
+# Format           
+# user type   DN
+condor daemon file:/etc/grid-security/hostcert.pem
+ce2    daemon /DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=osg-glidein-ce-2.example.edu
+ce1    daemon dn:/DC=org/DC=doegrids/OU=Services/CN=osg-glidein-ce.example.edu
+pilot1 daemon /DC=org/DC=doegrids/OU=Services/CN=osgpilot01/osg-glidein-fe.example.gov
+fe1    client /DC=org/DC=doegrids/OU=Services/CN=osg-glidein-fe.example.gov
+</pre>
+   glidecondor_addDN -recreate -disable-checks -import pool_dns.list
+</blockquote>
+
 
 </div>
 <div class="section">
