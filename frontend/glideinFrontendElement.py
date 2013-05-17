@@ -218,45 +218,7 @@ class glideinFrontendElement:
         logSupport.log.info("Querying schedd, entry, and glidein status using child processes.") 
 
         # query globals
-        # We can't fork this since the M2Crypto key objects are not pickle-able.  Not much to gain by forking anyway.
-        globals_dict = {}
-        for factory_pool in factory_pools:
-            factory_pool_node = factory_pool[0]
-            my_identity_at_factory_pool = factory_pool[2]
-            try:
-                factory_globals_dict = glideinFrontendInterface.findGlobals(factory_pool_node, None, None)
-            except RuntimeError:
-                # failed to talk, like empty... maybe the next factory will have something
-                if factory_pool_node is not None:
-                    logSupport.log.exception("Failed to talk to factory_pool %s for global info: " % factory_pool_node)
-                else:
-                    logSupport.log.exception("Failed to talk to factory_pool for global info: " )
-                factory_globals_dict = {}
-
-            for globalid in factory_globals_dict:
-                globals_el = factory_globals_dict[globalid]
-                if not globals_el['attrs'].has_key('PubKeyType'): # no pub key at all
-                    pass # no public key, nothing to do
-                elif globals_el['attrs']['PubKeyType'] == 'RSA': # only trust RSA for now
-                    try:
-                        globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(str(re.sub(r"\\+n", r"\n", globals_el['attrs']['PubKeyValue'])))
-                        globals_el['attrs']['FactoryPoolNode'] = factory_pool_node
-                        globals_el['attrs']['FactoryPoolId'] = my_identity_at_factory_pool
-
-                        # KEL ok to put here?  do we want all globals even if there is no key?  may resolve other issues with checking later on
-                        globals_dict[globalid] = globals_el
-                    except:
-                        # if no valid key, just notify...
-                        # if key needed, will handle the error later on
-                        logSupport.log.warning("Factory Globals '%s': invalid RSA key" % globalid)
-                        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1], sys.exc_info()[2])
-                        logSupport.log.debug("Factory Globals '%s': invalid RSA key traceback: %s\n" % (globalid, str(tb)))
-                else:
-                    # don't know what to do with this key, notify the admin
-                    # if key needed, will handle the error later on
-                    # KEL I think this log message is wrong, globalid is not a tuple?  or should it be?
-                    logSupport.log.info("Factory '%s@%s': unsupported pub key type '%s'" % (globalid[1], globalid[0], globals_el['attrs']['PubKeyType']))
-
+        pipe_ids['globals'] = fork_in_bg(self.query_globals)
 
         # query entries
         pipe_ids['entries'] = fork_in_bg(self.query_entries)
@@ -276,9 +238,24 @@ class glideinFrontendElement:
             return
         logSupport.log.info("All children terminated")
 
+        globals_dict = pipe_out['globals']
         self.glidein_dict=pipe_out['entries']
         condorq_dict=pipe_out['jobs']
         status_dict=pipe_out['startds']
+
+        # M2Crypto objects are not picklable, so I have to do the transforamtion here
+        for globalid in globals_dict:
+            globals_el = globals_dict[globalid]
+            try:
+                globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(globals_el['attrs']['PubKeyValue'])
+            except:
+                # if no valid key
+                # if key needed, will handle the error later on
+                logSupport.log.warning("Factory Globals '%s': invalid RSA key" % globalid)
+                tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1], sys.exc_info()[2])
+                logSupport.log.debug("Factory Globals '%s': invalid RSA key traceback: %s\n" % (globalid, str(tb)))
+                # but remove it also from the dictionary
+                del globals_dict[globalid]
 
         condorq_dict_proxy=glideinFrontendLib.getIdleProxyCondorQ(condorq_dict)
         condorq_dict_voms=glideinFrontendLib.getIdleVomsCondorQ(condorq_dict)
@@ -783,6 +760,53 @@ class glideinFrontendElement:
             logSupport.log.exception("Advertising failed: ")
 
         return
+
+    def query_globals(self):
+        globals_dict = {}
+        try:
+            # Note: M2Crypto key objects are not pickle-able, so we will have to do that in the parent later on
+            factory_pools=self.elementDescript.merged_data['FactoryCollectors']
+            for factory_pool in factory_pools:
+                factory_pool_node = factory_pool[0]
+                my_identity_at_factory_pool = factory_pool[2]
+                try:
+                    factory_globals_dict = glideinFrontendInterface.findGlobals(factory_pool_node, None, None)
+                except RuntimeError:
+                    # failed to talk, like empty... maybe the next factory will have something
+                    if factory_pool_node != None:
+                        logSupport.log.exception("Failed to talk to factory_pool %s for global info: " % factory_pool_node)
+                    else:
+                        logSupport.log.exception("Failed to talk to factory_pool for global info: " )
+                    factory_globals_dict = {}
+
+                for globalid in factory_globals_dict:
+                    globals_el = factory_globals_dict[globalid]
+                    if not globals_el['attrs'].has_key('PubKeyType'): # no pub key at all
+                        pass # no public key, nothing to do
+                    elif globals_el['attrs']['PubKeyType'] == 'RSA': # only trust RSA for now
+                        try:
+                            # The parent really needs just the M2Ctype object, but that is not picklable, so it will have to do it itself
+                            globals_el['attrs']['PubKeyValue'] = str(re.sub(r"\\+n", r"\n", globals_el['attrs']['PubKeyValue']))
+                            globals_el['attrs']['FactoryPoolNode'] = factory_pool_node
+                            globals_el['attrs']['FactoryPoolId'] = my_identity_at_factory_pool
+
+                            # KEL ok to put here?  do we want all globals even if there is no key?  may resolve other issues with checking later on
+                            globals_dict[globalid] = globals_el
+                        except:
+                            # if no valid key, just notify...
+                            # if key needed, will handle the error later on
+                            logSupport.log.warning("Factory Globals '%s': invalid RSA key" % globalid)
+                            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1], sys.exc_info()[2])
+                            logSupport.log.debug("Factory Globals '%s': invalid RSA key traceback: %s\n" % (globalid, str(tb)))
+                    else:
+                        # don't know what to do with this key, notify the admin
+                        # if key needed, will handle the error later on
+                        logSupport.log.info("Factory Globals '%s': unsupported pub key type '%s'" % (globalid, globals_el['attrs']['PubKeyType']))
+
+        except Exception, ex:
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                            sys.exc_info()[2])
+        return globals_dict
 
     def query_entries(self):
         try:
