@@ -34,7 +34,12 @@ from glideinwms.creation.lib import cgWParamDict
 def main(params):
     #print params.__dict__
     glidein_dicts_obj=cgWParamDict.glideinDicts(params)
-    glidein_dicts_obj.populate()
+
+    try:
+        glidein_dicts_obj.populate()
+    except cgWParamDict.UnconfiguredScheddError as e:
+        print e.err_str
+        sys.exit(1)
 
     glidein_dicts_obj.create_dirs()
     try:
