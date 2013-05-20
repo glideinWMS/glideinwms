@@ -71,6 +71,7 @@ def write_descript(glideinDescript,frontendDescript,monitor_dir):
     glidein_data = copy.deepcopy(glideinDescript.data)
     frontend_data = copy.deepcopy(frontendDescript.data)
     entry_data = {}
+
     for entry in glidein_data['Entries'].split(","):
         entry_data[entry] = {}
 
@@ -428,8 +429,6 @@ def main(startup_dir):
     glideinDescript=glideFactoryConfig.GlideinDescript()
     frontendDescript = glideFactoryConfig.FrontendDescript()
 
-    write_descript(glideinDescript,frontendDescript,os.path.join(startup_dir, 'monitor/'))
-
     # the log dir is shared between the factory main and the entries, so use a subdir
     log_dir=os.path.join(glideinDescript.data['LogDir'],"factory")
 
@@ -439,6 +438,15 @@ def main(startup_dir):
         float(glideinDescript.data['LogRetentionMaxDays']),
         float(glideinDescript.data['LogRetentionMinDays']),
         float(glideinDescript.data['LogRetentionMaxMBs']))
+
+    if (glideinDescript.data['Entries'].strip() in ('', ',')):
+        # No entries are enabled. There is nothing to do. Just exit here.
+        log_msg = "No Entries are enabled. Exiting."
+
+        glideFactoryLib.log_files.logError(log_msg)
+        sys.exit(1)
+
+    write_descript(glideinDescript,frontendDescript,os.path.join(startup_dir, 'monitor/'))
 
     try:
         os.chdir(startup_dir)
