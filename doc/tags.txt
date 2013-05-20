@@ -1,8 +1,15 @@
 v3_1    Includes relevant features and bug fixes released upto v2_7
+        Added a new feature that enables glidein to advertise error classads
+          to the User Collector to help in debugging
         Added a new tool add_entry to help with entry creation
         Support frontend to auto-update and auto-generate proxies using
           proxy creation tools
-        Feature to advertise classad to User pool in case of glidein failure
+        Added config conversion tool for factory and frontend to convert v2
+          based config to new format
+        Frontend can periodically execute external proxy renewal/creation
+          scripts to keep the frontend proxies updated
+        Glideinwms now uses standard python logging APIs
+        Version 3 Factory is backward compatible with the Version 2 Frontends
         Improved documentation
         Bug Fix: DAEMON_SHUTDOWN now works with the multi-slot glideins
 
@@ -18,6 +25,19 @@ v3_0_0  Change to max job limits to reflect more accurate names
 	  of os, arch, version
         Added unittests for downtime, proxy plugins, and support functions
         Miscellaenous bug fixes
+
+v2_7_1  glidecondor_addDN tool now supports adding DNs from a file
+        Added new tool glidecondor_createSecCol to dynamically create
+          secondary collectors
+        Bug Fix: Fixed a bug where condor config templates used by glideinwms
+          components had undefined values
+        Bug Fix: analyze_entries tool now correctly handles URI http://
+        Bug Fix: Fixed a bug where frontend would crash if the some of the
+          internal files were trucated to zero length.
+        Bug Fix: Factory now correctly does the cleanup of log files
+        Bug Fix: Factory now correctly does accounting of glideins in default
+          condor schedd
+        Bug Fix: proxy_info works correctly with the cat option
 
 v2_7    glideinwms code is now organized as python packages
         Factory no longer creates long running process per entry. Instead, it

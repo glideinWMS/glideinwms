@@ -84,6 +84,23 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
+        <b>v2_7_1</b> released on May xx, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7_1.tgz">Tarball</a>)<br>
+        <ul>
+          <li>glidecondor_addDN tool now supports adding DNs from a file
+          <li>Added new tool glidecondor_createSecCol to dynamically create
+          secondary collectors
+          <li>Bug Fix: Fixed a bug where condor config templates used by
+          glideinwms components had undefined values
+          <li>Bug Fix: analyze_entries tool now correctly handles URI http://
+          <li>Bug Fix: Fixed a bug where frontend would crash if the some of the
+          internal files were trucated to zero length.
+          <li>Bug Fix: Factory now correctly does the cleanup of log files
+          <li>Bug Fix: Factory now correctly does accounting of glideins in
+          default condor schedd
+          <li>Bug Fix: proxy_info works correctly with the cat option
+        </ul>
+      </li>
+      <li>
         <b>v2_7</b> released on April 02, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7.tgz">Tarball</a>)<br>
         <ul>
           <li>glideinwms code is now organized as python packages
@@ -434,13 +451,20 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
     But it is a good place to look for what is going on.<br>
     <ul>
       <li>
-        <b>v3_1</b> released on May xxx, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_1.tgz">Tarball</a>)<br>
+        <b>v3_1</b> released on June xxx, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_1.tgz">Tarball</a>)<br>
         <ul>
           <li>Includes relevant features and bug fixes released upto v2_7
+          <li>Added a new feature that enables glidein to advertise error
+          classads to the User Collector to help in debugging
           <li>Added a new tool add_entry to help with entry creation
           <li>Support frontend to auto-update and auto-generate proxies using
-          proxy creation tools
-          <li>Feature to advertise classad to User pool in case of glidein failure
+          <li>Added config conversion tool for factory and frontend to convert
+          v2 based config to new format proxy creation tools
+          <li>Frontend can periodically execute external proxy renewal/creation
+          scripts to keep the frontend proxies updated
+          <li>Glideinwms now uses standard python logging APIs
+          <li>Version 3 Factory is backward compatible with the Version 2
+          Frontends Improved documentation
           <li>Improved documentation
           <li>Bug Fix: DAEMON_SHUTDOWN now works with the multi-slot glideins
         </ul>
