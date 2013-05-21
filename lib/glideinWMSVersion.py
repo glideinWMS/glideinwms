@@ -35,12 +35,16 @@ class GlideinWMSDistro:
     class __impl:
         """ Implementation of the singleton interface """
 
-        def __init__(self, dir, chksumFile=None):
+        def __init__(self, dir, chksumFile='checksum'):
             self.versionIdentifier = 'GLIDEINWMS_VERSION'
-            if chksumFile == None:
-                self.distroChksumFile = os.path.join(dir,'etc/checksum')
-            else:
-                self.distroChksumFile = chksumFile
+            self.type="TARBALL"
+            self.distroChksumFile = os.path.join(dir,'etc',chksumFile)
+            if not os.path.exists(self.distroChksumFile):
+                # If the default location does not exist, try RPM location
+                self.distroChksumFile = os.path.join('/usr/lib/python2.4/site-packages',chksumFile)
+                self.type="RPM"
+                if not os.path.exists(self.distroChksumFile):
+                    self.type="UNKNOWN"
             try:
                 self.createVersionString(dir)
             except:
@@ -49,6 +53,7 @@ class GlideinWMSDistro:
         def createVersionString(self, dir):
             ver = 'UNKNOWN'
             patch = ""
+            modifiedFiles = []
 
             # Load the distro file hastable
             distroFileHash = {}
@@ -70,17 +75,27 @@ class GlideinWMSDistro:
 
             if ver != 'UNKNOWN':
                 # Read the dir contents of distro and compute the md5sum
+                computedFileHash = {}
                 for file in distroFileHash.keys():
                     fd = None
                     try:
-                        fd = open(os.path.join(dir,file), 'r')
+                        if (self.type != "RPM"):
+                            fd = open(os.path.join(dir,file), 'r')
+                        else:
+                            # In the RPM, all files are in site-packages
+                            fd = open(os.path.join(dir,os.path.basename(file)), 'r')
                         chksum = md5(fd.read()).hexdigest()
                         if (chksum != distroFileHash[file]):
-                            patch = 'PATCHED' 
-                    finally:
-                        if fd:
-                            fd.close()
-                        
+                            modifiedFiles.append(file)
+                            patch = 'PATCHED'
+                    except: #ignore missing files
+                        pass
+                    if fd:
+                        fd.close()
+
+            #if len(modifiedFiles) > 0:
+            #    print "Modified files: %s" % string.join(modifiedFiles)
+
             self._version = string.strip("glideinWMS %s %s" % (ver, patch))
 
         def version(self):
@@ -88,11 +103,11 @@ class GlideinWMSDistro:
 
     # storage for the instance reference
     __instance = None
-    
-    def __init__(self, dir, chksumFile=None):
+
+    def __init__(self, dir, chksumFile='checksum'):
         if GlideinWMSDistro.__instance is None:
             GlideinWMSDistro.__instance = GlideinWMSDistro.__impl(dir, chksumFile=chksumFile)
-    
+
         self.__dict__['_GlideinWMSDistro__instance'] = GlideinWMSDistro.__instance
 
     def __getattr__(self, attr):
@@ -105,7 +120,7 @@ class GlideinWMSDistro:
 
 
 def version(dir, chksumFile=None):
-    return GlideinWMSDistro(dir, chksumFile=chksumFile).version()
+     return GlideinWMSDistro(dir, chksumFile=chksumFile).version()
 #   version
 
 def usage():
