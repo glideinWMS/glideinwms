@@ -46,7 +46,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
 
     try:
         glidein_dicts_obj.populate()
-    except cgWParamDict.UnconfiguredScheddError as e:
+    except cgWParamDict.UnconfiguredScheddError, e:
         print e.err_str
         sys.exit(1)
 
