@@ -34,6 +34,7 @@ sys.path.append(os.path.join(STARTUP_DIR,"../../"))
 
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
+from glideinwms.lib import glideinWMSVersion
 from glideinwms.factory import glideFactoryPidLib
 from glideinwms.factory import glideFactoryConfig
 from glideinwms.factory import glideFactoryLib
@@ -623,6 +624,12 @@ def main(startup_dir):
     advertize_rate = int(glideinDescript.data['AdvertiseDelay'])
     restart_attempts = int(glideinDescript.data['RestartAttempts'])
     restart_interval = int(glideinDescript.data['RestartInterval'])
+
+    try:
+        glideinwms_dir = os.path.dirname(os.path.dirname(sys.argv[0]))
+        glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(glideinwms_dir, 'checksum.factory').version()
+    except:
+        logSupport.log.exception("Exception occurred while trying to retrieve the glideinwms version: ")
 
     entries = glideinDescript.data['Entries'].split(',')
     entries.sort()
