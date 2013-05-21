@@ -24,11 +24,11 @@ import cgWConsts
 from glideinwms.lib import pubCrypto
 
 
-class UnconfiguredScheddError(RuntimeError):
+class UnconfiguredScheddError(Exception):
 
-    def __init__(self, err_str):
-        self.err_str = err_str
-        RuntimeError.__init__(self, err_str)
+    def __init__(self, schedd):
+        self.schedd = schedd
+        self.err_str = "Schedd '%s' used by one or more entries is not configured." % (schedd)
 
     def __str__(self):
         return repr(self.err_str)
@@ -447,7 +447,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
     def reuse(self,other):             # other must be of the same class
         if self.monitor_dir!=other.monitor_dir:
             print "WARNING: monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
-        
+
         return cgWDictFile.glideinDicts.reuse(self,other)
 
     ###########
@@ -469,8 +469,8 @@ class glideinDicts(cgWDictFile.glideinDicts):
                 try:
                     global_schedd_count[params.entries[sub_name].schedd_name]+=1
                 except KeyError:
-                    raise UnconfiguredScheddError("Schedd '%s' used by one or more entries is not configured." % (params.entries[sub_name].schedd_name))
-                
+                    raise UnconfiguredScheddError(params.entries[sub_name].schedd_name)
+
         # now actually check the schedds
         for sub_name in self.sub_list:
             if params.entries[sub_name].schedd_name is None:
@@ -486,7 +486,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
                 params.subparams.data['entries'][sub_name]['schedd_name']=min_schedd
                 global_schedd_count[min_schedd]+=1
         return
-        
+
     ######################################
     def sortit(self,dict):
         """ A temporary method for sorting a dictionary based on
