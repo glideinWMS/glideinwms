@@ -307,52 +307,7 @@ class glideinFrontendElement:
             pipe_ids['entries']={'r':r,'pid':pid}
 
         ## schedd
-        r,w=os.pipe()
-        pid=os.fork()
-        if pid==0:
-            # this is the child... return output as a pickled object via the pipe
-            os.close(r)
-            try:
-                #condorq_format_list = elementDescript.merged_data['JobMatchAttrs']
-                #if x509_proxy_plugin is not None:
-                #    condorq_format_list = list(condorq_format_list) + list(x509_proxy_plugin.get_required_job_attributes())
-
-                ### Add in elements to help in determining if jobs have voms creds
-                #condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN','s'),))
-                #condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN','s'),))
-                #condorq_dict = glideinFrontendLib.getCondorQ(elementDescript.merged_data['JobSchedds'],
-                #                                           elementDescript.merged_data['JobQueryExpr'],
-                #                                           condorq_format_list)
-                try:
-                    condorq_format_list = self.elementDescript.merged_data['JobMatchAttrs']
-                    if self.x509_proxy_plugin is not None:
-                        condorq_format_list = list(condorq_format_list) + list(self.x509_proxy_plugin.get_required_job_attributes())
-
-                    ### Add in elements to help in determining if jobs have voms creds
-                    condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN','s'),))
-                    condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN','s'),))
-                    condorq_format_list=list(condorq_format_list)+list((('x509userproxy','s'),))
-                    condorq_dict = glideinFrontendLib.getCondorQ(self.elementDescript.merged_data['JobSchedds'],
-                                                           expand_DD(self.elementDescript.merged_data['JobQueryExpr'],self.attr_dict),
-                                                           condorq_format_list)
-                except Exception:
-                    logSupport.log.exception("In query schedd child, exception:")
-
-
-                os.write(w,cPickle.dumps(condorq_dict))
-            except Exception, ex:
-                tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
-                                                sys.exc_info()[2])
-                logSupport.log.debug("Error in retrieving information from schedd (condor_q): %s" % tb)
-
-            os.close(w)
-            # hard kill myself... don't want any cleanup, since i was created just for this calculation
-            os.kill(os.getpid(),signal.SIGKILL) 
-        else:
-            # this is the original
-            # just remember what you did for now
-            os.close(w)
-            pipe_ids['jobs']={'r':r,'pid':pid} 
+        pipe_ids['jobs'] = fork_in_bg(self.get_condor_q)
 
         ## resource
         pipe_ids['startds'] = fork_in_bg(self.get_condor_status)
@@ -873,6 +828,24 @@ class glideinFrontendElement:
             logSupport.log.exception("Advertising failed: ")
 
         return
+
+    def get_condor_q(self):
+        try:
+            condorq_format_list = self.elementDescript.merged_data['JobMatchAttrs']
+            if self.x509_proxy_plugin is not None:
+                condorq_format_list = list(condorq_format_list) + list(self.x509_proxy_plugin.get_required_job_attributes())
+
+            ### Add in elements to help in determining if jobs have voms creds
+            condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN','s'),))
+            condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN','s'),))
+            condorq_format_list=list(condorq_format_list)+list((('x509userproxy','s'),))
+            condorq_dict = glideinFrontendLib.getCondorQ(self.elementDescript.merged_data['JobSchedds'],
+                                                   expand_DD(self.elementDescript.merged_data['JobQueryExpr'],self.attr_dict),
+                                                   condorq_format_list)
+        except Exception:
+            logSupport.log.exception("In query schedd child, exception:")
+
+        return condorq_dict
 
     def get_condor_status(self):
         try:
