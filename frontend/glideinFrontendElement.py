@@ -532,7 +532,7 @@ class glideinFrontendElement:
             glideid_str = "%s@%s" % (request_name, factory_pool_node)
             processed_glideid_strs.append(glideid_str)
 
-            glidein_el = glidein_dict[glideid]
+            glidein_el = self.glidein_dict[glideid]
 
             glidein_in_downtime = False
             if glidein_el['attrs'].has_key('GLIDEIN_In_Downtime'):
