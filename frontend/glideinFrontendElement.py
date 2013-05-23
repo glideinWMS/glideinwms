@@ -500,7 +500,7 @@ class glideinFrontendElement:
         logSupport.log.info("Counting subprocess created")
         self.pipe_ids={}
         for dt in condorq_dict_types.keys()+['Real','Glidein']:
-            self.subprocess_count(dt)
+            self.pipe_ids[dt] = fork_in_bg(self.subprocess_count, dt)
 
         try:
             pipe_out=fetch_fork_result_list(pipe_ids)
@@ -907,40 +907,26 @@ class glideinFrontendElement:
         return
 
     def subprocess_count(self, dt):
-        # will make calculations in parallel,using multiple processes
-        r,w=os.pipe()
-        pid=os.fork()
-        if pid==0:
-            # this is the child... return output as a pickled object via the pipe
-            os.close(r)
-            try:
-                if dt=='Real':
-                    out=glideinFrontendLib.countRealRunning(self.elementDescript.merged_data['MatchExprCompiledObj'],self.condorq_dict_running,self.glidein_dict,self.attr_dict,self.condorq_match_list)
-                elif dt=='Glidein':
-                    count_status_multi={}
-                    for glideid in self.glidein_dict.keys():
-                        request_name=glideid[1]
+    # will make calculations in parallel,using multiple processes
+        out = ()
+        if dt=='Real':
+            out=glideinFrontendLib.countRealRunning(self.elementDescript.merged_data['MatchExprCompiledObj'],self.condorq_dict_running,self.glidein_dict,self.attr_dict,self.condorq_match_list)
+        elif dt=='Glidein':
+            count_status_multi={}
+            for glideid in self.glidein_dict.keys():
+                request_name=glideid[1]
 
-                        count_status_multi[request_name]={}
-                        for st in self.status_dict_types.keys():
-                            c=glideinFrontendLib.getClientCondorStatus(self.status_dict_types[st]['dict'],self.frontend_name,self.group_name,request_name)
-                            count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
-                    out=count_status_multi
-                else:
-                    c,p,h=glideinFrontendLib.countMatch(self.elementDescript.merged_data['MatchExprCompiledObj'],self.condorq_dict_types[dt]['dict'],self.glidein_dict,self.attr_dict,self.condorq_match_list)
-                    t=glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])
-                    out=(c,p,h,t)
-
-                os.write(w,cPickle.dumps(out))
-            finally:
-                os.close(w)
-                # hard kill myself... don't want any cleanup, since i was created just for this calculation
-                os.kill(os.getpid(),signal.SIGKILL)
+                count_status_multi[request_name]={}
+                for st in self.status_dict_types.keys():
+                    c=glideinFrontendLib.getClientCondorStatus(self.status_dict_types[st]['dict'],self.frontend_name,self.group_name,request_name)
+                    count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
+            out=count_status_multi
         else:
-            # this is the original
-            # just remember what you did for now
-            os.close(w)
-            self.pipe_ids[dt]={'r':r,'pid':pid}
+            c,p,h=glideinFrontendLib.countMatch(self.elementDescript.merged_data['MatchExprCompiledObj'],self.condorq_dict_types[dt]['dict'],self.glidein_dict,self.attr_dict,self.condorq_match_list)
+            t=glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])
+            out=(c,p,h,t)
+
+        return out
 
 def fork_in_bg(function, *args):
     # fork and call a function with args
