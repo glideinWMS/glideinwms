@@ -942,8 +942,27 @@ class glideinFrontendElement:
             os.close(w)
             self.pipe_ids[dt]={'r':r,'pid':pid}
 
+def fork_in_bg(function, *args):
+    # fork and call a function with args
+    #  return a dict with {'r': fd, 'pid': pid} where fd is the stdout from a pipe.
+    #    example:
+    #      def add(i, j): return i+j
+    #      d = fork_in_bg(add, i, j)
 
+    r, w = os.pipe()
+    pid = os.fork()
+    if pid == 0:
+        os.close(r)
+        try:
+            out = function(*args)
+            os.write(w, cPickle.dumps(out))
+        finally:
+            os.close(w)
+            os._exit(0)
+    else:
+        os.close(w)
 
+    return {'r': r, 'pid': pid}
 
 ############################################################
 def check_parent(parent_pid):
