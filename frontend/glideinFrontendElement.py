@@ -131,19 +131,19 @@ class glideinFrontendElement:
 
         factory_pools = self.elementDescript.merged_data['FactoryCollectors']
 
-        frontend_name = self.elementDescript.frontend_data['FrontendName']
-        group_name = self.elementDescript.element_data['GroupName']
+        self.frontend_name = self.elementDescript.frontend_data['FrontendName']
+        self.group_name = self.elementDescript.element_data['GroupName']
 
         self.stats = {}
         self.history_obj = {}
 
         if not self.elementDescript.frontend_data.has_key('X509Proxy'):
-            published_frontend_name = '%s.%s' % (frontend_name, group_name)
+            published_frontend_name = '%s.%s' % (self.frontend_name, self.group_name)
         else:
             # if using a VO proxy, label it as such
             # this way we don't risk of using the wrong proxy on the other side
             # if/when we decide to stop using the proxy
-            published_frontend_name = '%s.XPVO_%s' % (frontend_name, group_name)
+            published_frontend_name = '%s.XPVO_%s' % (self.frontend_name, self.group_name)
 
         try:
             is_first = 1
@@ -397,7 +397,7 @@ class glideinFrontendElement:
             return
         logSupport.log.info("All children terminated")
 
-        glidein_dict=pipe_out['entries']
+        self.glidein_dict=pipe_out['entries']
         condorq_dict=pipe_out['jobs']
         status_dict=pipe_out['startds']
 
@@ -405,13 +405,14 @@ class glideinFrontendElement:
         condorq_dict_voms=glideinFrontendLib.getIdleVomsCondorQ(condorq_dict)
         condorq_dict_idle = glideinFrontendLib.getIdleCondorQ(condorq_dict)
         condorq_dict_old_idle = glideinFrontendLib.getOldCondorQ(condorq_dict_idle, 600)
-        condorq_dict_running = glideinFrontendLib.getRunningCondorQ(condorq_dict)
+        self.condorq_dict_running = glideinFrontendLib.getRunningCondorQ(condorq_dict)
 
-        condorq_dict_types = {'Idle':{'dict':condorq_dict_idle, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle)},
+        self.condorq_dict_types = {'Idle':{'dict':condorq_dict_idle, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle)},
                               'OldIdle':{'dict':condorq_dict_old_idle, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_old_idle)},
                               'VomsIdle':{'dict':condorq_dict_voms, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
                             'ProxyIdle':{'dict':condorq_dict_proxy,'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
-                              'Running':{'dict':condorq_dict_running, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_running)}}
+                              'Running':{'dict':self.condorq_dict_running, 'abs':glideinFrontendLib.countCondorQ(self.condorq_dict_running)}}
+        condorq_dict_types = self.condorq_dict_types
         condorq_dict_abs = glideinFrontendLib.countCondorQ(condorq_dict);
 
 
@@ -431,26 +432,26 @@ class glideinFrontendElement:
 
         #logSupport.log.debug("condor stat: %s\n\n" % status_dict_running[None].fetchStored())
 
-        glideinFrontendLib.appendRealRunning(condorq_dict_running, status_dict_running)
+        glideinFrontendLib.appendRealRunning(self.condorq_dict_running, status_dict_running)
 
         #logSupport.log.debug("condorq running: %s\n\n" % condorq_dict_running['devg-1.t2.ucsd.edu'].fetchStored())
 
-        status_dict_types = {'Total':{'dict':status_dict, 'abs':glideinFrontendLib.countCondorStatus(status_dict)},
+        self.status_dict_types = {'Total':{'dict':status_dict, 'abs':glideinFrontendLib.countCondorStatus(status_dict)},
                            'Idle':{'dict':status_dict_idle, 'abs':glideinFrontendLib.countCondorStatus(status_dict_idle)},
                            'Running':{'dict':status_dict_running, 'abs':glideinFrontendLib.countCondorStatus(status_dict_running)}}
 
-        self.stats['group'].logGlideins({'Total':status_dict_types['Total']['abs'],
-                                'Idle':status_dict_types['Idle']['abs'],
-                                'Running':status_dict_types['Running']['abs']})
+        self.stats['group'].logGlideins({'Total':self.status_dict_types['Total']['abs'],
+                                'Idle':self.status_dict_types['Idle']['abs'],
+                                'Running':self.status_dict_types['Running']['abs']})
 
         total_max_glideins=int(self.elementDescript.element_data['MaxRunningTotal'])
         total_curb_glideins=int(self.elementDescript.element_data['CurbRunningTotal'])
-        total_glideins=status_dict_types['Total']['abs']
+        total_glideins=self.status_dict_types['Total']['abs']
 
         logSupport.log.info("Glideins found total %i idle %i running %i limit %i curb %i"%
                                                  (total_glideins,
-                                                  status_dict_types['Idle']['abs'],
-                                                  status_dict_types['Running']['abs'],
+                                                  self.status_dict_types['Idle']['abs'],
+                                                  self.status_dict_types['Running']['abs'],
                                                   total_max_glideins,total_curb_glideins)
                                                  )
 
@@ -476,7 +477,7 @@ class glideinFrontendElement:
         if self.x509_proxy_plugin is not None:
             logSupport.log.info("Updating usermap ");
             self.x509_proxy_plugin.update_usermap(condorq_dict, condorq_dict_types,
-                                                          status_dict, status_dict_types)
+                                                          status_dict, self.status_dict_types)
         # here we have all the data needed to build a GroupAdvertizeType object
         descript_obj = glideinFrontendInterface.FrontendDescript(client_name, frontend_name, group_name, web_url, self.signatureDescript.frontend_descript_fname, self.signatureDescript.group_descript_fname, self.signatureDescript.signature_type, self.signatureDescript.frontend_descript_signature, self.signatureDescript.group_descript_signature, self.x509_proxy_plugin)
         descript_obj.add_monitoring_url(monitoring_web_url)
@@ -489,49 +490,16 @@ class glideinFrontendElement:
         logSupport.log.info("Match")
 
         # extract only the attribute names from format list
-        condorq_match_list=[]
+        self.condorq_match_list=[]
         for f in self.elementDescript.merged_data['JobMatchAttrs']:
-            condorq_match_list.append(f[0])
+            self.condorq_match_list.append(f[0])
 
         #logSupport.log.debug("realcount: %s\n\n" % glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict))
 
         logSupport.log.info("Counting subprocess created")
-        pipe_ids={}
+        self.pipe_ids={}
         for dt in condorq_dict_types.keys()+['Real','Glidein']:
-            # will make calculations in parallel,using multiple processes
-            r,w=os.pipe()
-            pid=os.fork()
-            if pid==0:
-                # this is the child... return output as a pickled object via the pipe
-                os.close(r)
-                try:
-                    if dt=='Real':
-                        out=glideinFrontendLib.countRealRunning(self.elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict,self.attr_dict,condorq_match_list)
-                    elif dt=='Glidein':
-                        count_status_multi={}
-                        for glideid in glidein_dict.keys():
-                            request_name=glideid[1]
-
-                            count_status_multi[request_name]={}
-                            for st in status_dict_types.keys():
-                                c=glideinFrontendLib.getClientCondorStatus(status_dict_types[st]['dict'],frontend_name,group_name,request_name)
-                                count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
-                        out=count_status_multi
-                    else:
-                        c,p,h=glideinFrontendLib.countMatch(self.elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict,self.attr_dict,condorq_match_list)
-                        t=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
-                        out=(c,p,h,t)
-
-                    os.write(w,cPickle.dumps(out))
-                finally:
-                    os.close(w)
-                    # hard kill myself... don't want any cleanup, since i was created just for this calculation
-                    os.kill(os.getpid(),signal.SIGKILL) 
-            else:
-                # this is the original
-                # just remember what you did for now
-                os.close(w)
-                pipe_ids[dt]={'r':r,'pid':pid} 
+            self.subprocess_count(dt)
 
         try:
             pipe_out=fetch_fork_result_list(pipe_ids)
@@ -851,8 +819,8 @@ class glideinFrontendElement:
                 continue # already processed... ignore
 
             count_status_multi[request_name]={}
-            for st in status_dict_types.keys():
-                c=glideinFrontendLib.getClientCondorStatus(status_dict_types[st]['dict'],frontend_name,group_name,request_name)
+            for st in self.status_dict_types.keys():
+                c=glideinFrontendLib.getClientCondorStatus(self.status_dict_types[st]['dict'],frontend_name,group_name,request_name)
                 count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
             count_status=count_status_multi[request_name]
 
@@ -936,6 +904,43 @@ class glideinFrontendElement:
             logSupport.log.exception("Advertising failed: ")
 
         return
+
+    def subprocess_count(self, dt):
+        # will make calculations in parallel,using multiple processes
+        r,w=os.pipe()
+        pid=os.fork()
+        if pid==0:
+            # this is the child... return output as a pickled object via the pipe
+            os.close(r)
+            try:
+                if dt=='Real':
+                    out=glideinFrontendLib.countRealRunning(self.elementDescript.merged_data['MatchExprCompiledObj'],self.condorq_dict_running,self.glidein_dict,self.attr_dict,self.condorq_match_list)
+                elif dt=='Glidein':
+                    count_status_multi={}
+                    for glideid in self.glidein_dict.keys():
+                        request_name=glideid[1]
+
+                        count_status_multi[request_name]={}
+                        for st in self.status_dict_types.keys():
+                            c=glideinFrontendLib.getClientCondorStatus(self.status_dict_types[st]['dict'],self.frontend_name,self.group_name,request_name)
+                            count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
+                    out=count_status_multi
+                else:
+                    c,p,h=glideinFrontendLib.countMatch(self.elementDescript.merged_data['MatchExprCompiledObj'],self.condorq_dict_types[dt]['dict'],self.glidein_dict,self.attr_dict,self.condorq_match_list)
+                    t=glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])
+                    out=(c,p,h,t)
+
+                os.write(w,cPickle.dumps(out))
+            finally:
+                os.close(w)
+                # hard kill myself... don't want any cleanup, since i was created just for this calculation
+                os.kill(os.getpid(),signal.SIGKILL)
+        else:
+            # this is the original
+            # just remember what you did for now
+            os.close(w)
+            self.pipe_ids[dt]={'r':r,'pid':pid}
+
 
 
 
