@@ -355,38 +355,7 @@ class glideinFrontendElement:
             pipe_ids['jobs']={'r':r,'pid':pid} 
 
         ## resource
-        r,w=os.pipe()
-        pid=os.fork()
-        if pid==0:
-            # this is the child... return output as a pickled object via the pipe
-            os.close(r)
-            try:
-                status_format_list=[]
-                if self.x509_proxy_plugin!=None:
-                    status_format_list=list(status_format_list)+list(self.x509_proxy_plugin.get_required_classad_attributes())
-
-                # use the main collector... all adds must go there
-                status_dict=glideinFrontendLib.getCondorStatus([None],
-                                                               'GLIDECLIENT_Name=?="%s.%s"'%(frontend_name,group_name),
-                                                               status_format_list)
-
-                os.write(w,cPickle.dumps(status_dict))
-
-            except Exception, ex:
-                tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
-                                                sys.exc_info()[2])
-                logSupport.log.debug("Error in talking to the user pool (condor_status): %s" % tb)
-
-            os.close(w)
-            # hard kill myself... don't want any cleanup, since i was created just for this calculation
-            os.kill(os.getpid(),signal.SIGKILL) 
-
-        else:
-            # this is the original
-            # just remember what you did for now
-            os.close(w)
-            pipe_ids['startds']={'r':r,'pid':pid} 
-
+        pipe_ids['startds'] = fork_in_bg(self.get_condor_status)
 
         try:
             pipe_out=fetch_fork_result_list(pipe_ids)
@@ -905,6 +874,24 @@ class glideinFrontendElement:
             logSupport.log.exception("Advertising failed: ")
 
         return
+
+    def get_condor_status(self):
+        try:
+            status_format_list=[]
+            if self.x509_proxy_plugin!=None:
+                status_format_list=list(status_format_list)+list(self.x509_proxy_plugin.get_required_classad_attributes())
+
+            # use the main collector... all adds must go there
+            status_dict=glideinFrontendLib.getCondorStatus([None],
+                                                           'GLIDECLIENT_Name=?="%s.%s"'%(self.frontend_name, self.group_name),
+                                                           status_format_list)
+            return status_dict
+
+        except Exception, ex:
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            logSupport.log.debug("Error in talking to the user pool (condor_status): %s" % tb)
+
 
     def subprocess_count(self, dt):
     # will make calculations in parallel,using multiple processes
