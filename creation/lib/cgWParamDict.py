@@ -165,9 +165,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             add_attr_unparsed(attr_name, params,self.dicts,"main")
 
         # add additional system scripts
-        for script_name in ('check_proxy.sh','create_mapfile.sh','validate_node.sh','gcb_setup.sh','glexec_setup.sh','java_setup.sh','glidein_memory_setup.sh'):
+        for script_name in ('check_proxy.sh','create_mapfile.sh','validate_node.sh','gcb_setup.sh','glexec_setup.sh','java_setup.sh','glidein_memory_setup.sh', 'collector_setup.sh', 'glidein_cpus_setup.sh'):
             self.dicts['after_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
-                
+
         # populate complex files
         populate_factory_descript(self.work_dir,self.dicts['glidein'],self.active_sub_list,params)
         populate_frontend_descript(self.dicts['frontend_descript'],params)
