@@ -259,52 +259,7 @@ class glideinFrontendElement:
 
 
         # query entries
-        r,w=os.pipe()
-        pid=os.fork()
-        if pid==0:
-            # this is the child... return output as a pickled object via the pipe
-            os.close(r)
-            try:
-                glidein_dict = {}
-                factory_constraint=expand_DD(self.elementDescript.merged_data['FactoryQueryExpr'],self.attr_dict)
-                factory_pools=self.elementDescript.merged_data['FactoryCollectors']
-                for factory_pool in factory_pools:
-                    factory_pool_node = factory_pool[0]
-                    factory_identity = factory_pool[1]
-                    my_identity_at_factory_pool = factory_pool[2]
-                    try:
-                        factory_glidein_dict = glideinFrontendInterface.findGlideins(factory_pool_node, None, self.signatureDescript.signature_type, factory_constraint)
-                    except RuntimeError:
-                        # failed to talk, like empty... maybe the next factory will have something
-                        if factory_pool_node is not None:
-                            logSupport.log.exception("Failed to talk to factory_pool %s for entry info: " % factory_pool_node)
-                        else:
-                            logSupport.log.exception("Failed to talk to factory_pool for entry info: ")
-                        factory_glidein_dict = {}
-
-                    for glidename in factory_glidein_dict.keys():
-                        if (not factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity')) or (factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'] != factory_identity):
-                            logSupport.log.warning("Found an untrusted factory %s at %s; ignoring." % (glidename, factory_pool_node))
-                            if factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity'):
-                                logSupport.log.warning("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'" % (glidename, factory_pool_node, factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'], factory_identity))
-                        else:
-                            glidein_dict[(factory_pool_node, glidename, my_identity_at_factory_pool)] = factory_glidein_dict[glidename]
-
-                os.write(w,cPickle.dumps(glidein_dict))
-            except Exception, ex:
-                tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
-                                                sys.exc_info()[2])
-                logSupport.log.debug("Error in talking to the factory pool: %s" % tb)
-
-            os.close(w)
-            # hard kill myself... don't want any cleanup, since i was created just for this calculation
-            os.kill(os.getpid(),signal.SIGKILL) 
-
-        else:
-            # this is the original
-            # just remember what you did for now
-            os.close(w)
-            pipe_ids['entries']={'r':r,'pid':pid}
+        pipe_ids['entries'] = fork_in_bg(self.query_entries)
 
         ## schedd
         pipe_ids['jobs'] = fork_in_bg(self.get_condor_q)
@@ -829,6 +784,40 @@ class glideinFrontendElement:
             logSupport.log.exception("Advertising failed: ")
 
         return
+
+    def query_entries(self):
+        try:
+            glidein_dict = {}
+            factory_constraint=expand_DD(self.elementDescript.merged_data['FactoryQueryExpr'],self.attr_dict)
+            factory_pools=self.elementDescript.merged_data['FactoryCollectors']
+            for factory_pool in factory_pools:
+                factory_pool_node = factory_pool[0]
+                factory_identity = factory_pool[1]
+                my_identity_at_factory_pool = factory_pool[2]
+                try:
+                    factory_glidein_dict = glideinFrontendInterface.findGlideins(factory_pool_node, None, self.signatureDescript.signature_type, factory_constraint)
+                except RuntimeError:
+                    # failed to talk, like empty... maybe the next factory will have something
+                    if factory_pool_node is not None:
+                        logSupport.log.exception("Failed to talk to factory_pool %s for entry info: " % factory_pool_node)
+                    else:
+                        logSupport.log.exception("Failed to talk to factory_pool for entry info: ")
+                    factory_glidein_dict = {}
+
+                for glidename in factory_glidein_dict.keys():
+                    if (not factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity')) or (factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'] != factory_identity):
+                        logSupport.log.warning("Found an untrusted factory %s at %s; ignoring." % (glidename, factory_pool_node))
+                        if factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity'):
+                            logSupport.log.warning("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'" % (glidename, factory_pool_node, factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'], factory_identity))
+                    else:
+                        glidein_dict[(factory_pool_node, glidename, my_identity_at_factory_pool)] = factory_glidein_dict[glidename]
+
+        except Exception, ex:
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            logSupport.log.debug("Error in talking to the factory pool: %s" % tb)
+
+        return glidein_dict
 
     def get_condor_q(self):
         try:
