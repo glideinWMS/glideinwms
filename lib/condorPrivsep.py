@@ -193,5 +193,5 @@ def condor_execute(target_user, init_dir, condor_exe, args, env=None, stdin_fnam
 #           with the subprocess module. 3>&2 should not be passed as command
 #           line argument.
 def exe_privsep(cmd, options):
-    return condorExe.exe_cmd("../sbin/condor_root_switchboard", "%s 0 3" % cmd, options)
+    return condorExe.exe_cmd("../sbin/condor_root_switchboard", "%s 0 2" % cmd, options)
     #return condorExe.exe_cmd("../sbin/condor_root_switchboard", "%s 0 3 3>&2" % cmd, options)
