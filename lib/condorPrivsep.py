@@ -11,7 +11,9 @@
 #   Igor Sfiligoi (Mar 16th 2010)
 #
 
+import os
 import os.path
+import sys
 import condorExe
 from condorExe import UnconfigError
 from condorExe import ExeError
@@ -193,5 +195,9 @@ def condor_execute(target_user, init_dir, condor_exe, args, env=None, stdin_fnam
 #           with the subprocess module. 3>&2 should not be passed as command
 #           line argument.
 def exe_privsep(cmd, options):
-    return condorExe.exe_cmd("../sbin/condor_root_switchboard", "%s 0 2" % cmd, options)
-    #return condorExe.exe_cmd("../sbin/condor_root_switchboard", "%s 0 3 3>&2" % cmd, options)
+    switchboard_stderr = os.dup( sys.stderr.fileno() )
+    # we duplicate stderr because condor_root_switchboard closes it automatically.
+
+    output = condorExe.exe_cmd("../sbin/condor_root_switchboard", "%s 0 %d" % (cmd, switchboard_stderr), options)
+    os.close(switchboard_stderr)
+    return output
