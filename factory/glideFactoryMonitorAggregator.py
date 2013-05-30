@@ -253,7 +253,7 @@ def aggregateStatus(in_downtime):
                 if not entry_data['total'].has_key(w):
                     continue
                 el=entry_data['total'][w]
-                if tel==None:
+                if tel is None:
                     # new one, just copy over
                     global_total[w]={}
                     tel=global_total[w]
@@ -316,7 +316,7 @@ def aggregateStatus(in_downtime):
 
 
     for w in global_total.keys():
-        if global_total[w]==None:
+        if global_total[w] is None:
             del global_total[w] # remove entry if not defined
         else:
             tel=global_total[w]
@@ -613,7 +613,7 @@ def aggregateLogSummary():
 
     return status
 
-def aggregateRRDStats():
+def aggregateRRDStats(log=logSupport.log):
     """
     Create an aggregate of RRD stats, write it files
     """
@@ -632,7 +632,7 @@ def aggregateRRDStats():
             try:
                 stats[entry] = xmlParse.xmlfile2dict(rrd_fname, always_singular_list = {'timezone':{}})
             except IOError:
-                logSupport.log.debug("aggregateRRDStats %s exception: parse_xml, IOError"%rrd_fname)
+                log.debug("aggregateRRDStats %s exception: parse_xml, IOError"%rrd_fname)
 
         stats_entries=stats.keys()
         if len(stats_entries)==0:
@@ -681,7 +681,7 @@ def aggregateRRDStats():
                             except KeyError:
                                 missing_total_data = True
                                 # well, some may be just missing.. can happen
-                                #logSupport.log.debug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s]"%(entry,client,'periods',res,data_set))
+                                #log.debug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s]"%(entry,client,'periods',res,data_set))
 
                         else:
                             if stats[entry]['frontends'].has_key(client):
@@ -691,14 +691,14 @@ def aggregateRRDStats():
                                 except KeyError:
                                     missing_client_data = True
                                     # well, some may be just missing.. can happen
-                                    #logSupport.log.debug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s][%s]" %(entry,'frontends',client,'periods',res,data_set))
+                                    #log.debug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s][%s]" %(entry,'frontends',client,'periods',res,data_set))
         
         # We still need to determine what is causing these missing data in case it is a real issue
         # but using this flags will at least reduce the number of messages in the logs (see commented out messages above)
         if missing_total_data:
-            logSupport.log.debug("aggregate_data, missing total data from file %s" % rrd_site(rrd))
+            log.debug("aggregate_data, missing total data from file %s" % rrd_site(rrd))
         if missing_client_data:
-            logSupport.log.debug("aggregate_data, missing client data from file %s" % rrd_site(rrd))
+            log.debug("aggregate_data, missing client data from file %s" % rrd_site(rrd))
             
 
         # write an aggregate XML file
@@ -712,7 +712,7 @@ def aggregateRRDStats():
             try:
                 entry_str += (xmlFormat.dict2string(stats[entry]['total']['periods'], dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 4 * tab) + "\n")
             except (NameError, UnboundLocalError):
-                logSupport.log.debug("total_data, NameError or TypeError")
+                log.debug("total_data, NameError or TypeError")
             entry_str += 3 * tab + '</total>\n'
 
             entry_str += (3 * tab + '<frontends>\n')
@@ -725,10 +725,10 @@ def aggregateRRDStats():
                     try:
                         entry_str += (xmlFormat.dict2string(stats[entry]['frontends'][frontend]['periods'], dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 5 * tab) + "\n")
                     except KeyError:
-                        logSupport.log.debug("frontend_data, KeyError")
+                        log.debug("frontend_data, KeyError")
                     entry_str += 4 * tab + '</frontend>\n'
             except TypeError:
-                logSupport.log.debug("frontend_data, TypeError")
+                log.debug("frontend_data, TypeError")
             entry_str += (3 * tab + '</frontends>\n')
             entry_str += 2 * tab + "</entry>\n"
         entry_str += tab + "</entries>\n"
@@ -739,7 +739,7 @@ def aggregateRRDStats():
         try:
             total_xml_str += (xmlFormat.dict2string(total_data, dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 4 * tab) + "\n")
         except (NameError, UnboundLocalError):
-            logSupport.log.debug("total_data, NameError or TypeError")
+            log.debug("total_data, NameError or TypeError")
         total_xml_str += 2 * tab + '</total>\n'
 
         frontend_xml_str = (2 * tab + '<frontends>\n')
@@ -751,7 +751,7 @@ def aggregateRRDStats():
                 frontend_xml_str += (xmlFormat.dict2string(frontend_data, dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 4 * tab) + "\n")
                 frontend_xml_str += 3 * tab + '</frontend>\n'
         except TypeError:
-            logSupport.log.debug("frontend_data, TypeError")
+            log.debug("frontend_data, TypeError")
         frontend_xml_str += (2 * tab + '</frontends>\n')
 
         data_str =  (tab + "<total>\n" + total_xml_str + frontend_xml_str +
@@ -767,7 +767,7 @@ def aggregateRRDStats():
         try:
             glideFactoryMonitoring.monitoringConfig.write_file(rrd_site(rrd), xml_str)
         except IOError:
-            logSupport.log.debug("write_file %s, IOError"%rrd_site(rrd))
+            log.debug("write_file %s, IOError"%rrd_site(rrd))
 
     return
 

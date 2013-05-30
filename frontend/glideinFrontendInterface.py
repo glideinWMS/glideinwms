@@ -29,8 +29,6 @@ from glideinwms.lib import condorManager
 from glideinwms.lib import classadSupport
 from glideinwms.lib import logSupport
 
-from sets import Set
-
 ############################################################
 #
 # Configuration
@@ -121,10 +119,10 @@ def findGlobals(factory_pool,factory_identity,
                  additional_constraint=None): 
     global frontendConfig
     status_constraint='(GlideinMyType=?="%s")'%frontendConfig.factory_global
-    if not ((factory_identity==None) or (factory_identity=='*')): # identity checking can be disabled, if really wanted
+    if not ((factory_identity is None) or (factory_identity=='*')): # identity checking can be disabled, if really wanted
         # filter based on AuthenticatedIdentity
         status_constraint+=' && (AuthenticatedIdentity=?="%s")'%factory_identity
-    if additional_constraint!=None:
+    if additional_constraint is not None:
         status_constraint="%s && (%s)"%(status_constraint,additional_constraint)
     status=condorMonitor.CondorStatus("any",pool_name=factory_pool)
     status.require_integrity(True) #important, especially for proxy passing
@@ -141,17 +139,17 @@ def findGlideins(factory_pool, factory_identity,
     global frontendConfig
 
     status_constraint = '(GlideinMyType=?="%s")' % frontendConfig.factory_id
-    if not ((factory_identity == None) or (factory_identity == '*')): # identity checking can be disabled, if really wanted
+    if not ((factory_identity is None) or (factory_identity == '*')): # identity checking can be disabled, if really wanted
         # filter based on AuthenticatedIdentity
         status_constraint += ' && (AuthenticatedIdentity=?="%s")' % factory_identity
 
-    if signtype != None:
+    if signtype is not None:
         status_constraint += ' && stringListMember("%s",%s)' % (signtype, frontendConfig.factory_signtype_id)
 
     # Note that Require and Allow x509_Proxy has been replaced by credential
     # type and trust domain
 
-    if additional_constraint != None:
+    if additional_constraint is not None:
         status_constraint = "%s && (%s)" % (status_constraint, additional_constraint)
     status = condorMonitor.CondorStatus("any", pool_name=factory_pool)
     status.require_integrity(True) #important, especially for proxy passing
@@ -166,9 +164,9 @@ def findGlideinClientMonitoring(factory_pool, my_name,
     global frontendConfig
 
     status_constraint = '(GlideinMyType=?="%s")' % frontendConfig.factoryclient_id
-    if my_name != None:
+    if my_name is not None:
         status_constraint = '%s && (ReqClientName=?="%s")' % my_name
-    if additional_constraint != None:
+    if additional_constraint is not None:
         status_constraint = "%s && (%s)" % (status_constraint, additional_constraint)
     status = condorMonitor.CondorStatus("any", pool_name=factory_pool)
     status.load(status_constraint)
@@ -220,6 +218,7 @@ class Credential:
     def __init__(self,proxy_id,proxy_fname,elementDescript):
         self.req_idle=0
         self.req_max_run=0
+        #self.advertize=False
         try:
             proxy_security_classes=elementDescript.merged_data['ProxySecurityClasses']
             proxy_trust_domains=elementDescript.merged_data['ProxyTrustDomains']
@@ -309,7 +308,7 @@ class Credential:
         if ("grid_proxy" in self.type) or ("cert_pair" in self.type):
             time_list=condorExe.iexe_cmd("openssl x509 -in %s -noout -enddate" % self.filename)
             if "notAfter=" in time_list[0]:
-                time_str=time_list[0].split("=")[1][:-1]
+                time_str=time_list[0].split("=")[1].strip()
                 timeleft=calendar.timegm(time.strptime(time_str,"%b %d %H:%M:%S %Y %Z"))-int(time.time())
             return timeleft
         else:
@@ -372,7 +371,7 @@ class FrontendDescript:
         self.monitoring_web_url=monitoring_web_url 
 
     def need_encryption(self):
-        return self.x509_proxies_plugin != None
+        return self.x509_proxies_plugin is not None
 
     # return a list of strings
     def get_id_attrs(self):
@@ -399,7 +398,7 @@ class FactoryKeys4Advertize:
         self.factory_pub_key_id = factory_pub_key_id
         self.factory_pub_key = factory_pub_key
 
-        if glidein_symKey == None:
+        if glidein_symKey is None:
             glidein_symKey = symCrypto.SymAES256Key()
         if not glidein_symKey.is_valid():
             glidein_symKey = copy.deepcopy(glidein_symKey)
@@ -432,7 +431,7 @@ class Key4AdvertizeBuilder:
         # whoever can decrypt the pub key can anyhow get the symkey
         cache_id = factory_pub_key.get()
 
-        if glidein_symKey != None:
+        if glidein_symKey is not None:
             # when a key is explicitly given, cannot reuse a cached one
             key_obj = FactoryKeys4Advertize(classad_identity,
                                         factory_pub_key_id, factory_pub_key,
@@ -458,7 +457,7 @@ class Key4AdvertizeBuilder:
     def clear(self,
               created_after=None, # if not None, only clear entries older than this
               accessed_after=None): # if not None, only clear entries not accessed recently
-        if (created_after == None) and (accessed_after == None):
+        if (created_after is None) and (accessed_after is None):
             # just delete everything
             self.keys_cache = {}
             return
@@ -467,10 +466,10 @@ class Key4AdvertizeBuilder:
             # if at least one criteria is not satisfied, delete the entry
             delete_entry = False
 
-            if created_after != None:
+            if created_after is not None:
                 delete_entry = delete_entry or (self.keys_cache[cache_id][1] < created_after)
 
-            if accessed_after != None:
+            if accessed_after is not None:
                 delete_entry = delete_entry or (self.keys_cache[cache_id][2] < accessed_after)
 
             if delete_entry:
@@ -491,7 +490,7 @@ class AdvertizeParams:
         self.glidein_name = glidein_name
         self.min_nr_glideins = min_nr_glideins
         self.max_run_glideins = max_run_glideins
-        if remove_excess_str == None:
+        if remove_excess_str is None:
             remove_excess_str = "NO"
         elif not (remove_excess_str in ("NO", "WAIT", "IDLE", "ALL", "UNREG")):
             raise RuntimeError, 'Invalid remove_excess_str(%s), valid values are "NO","WAIT","IDLE","ALL","UNREG"' % remove_excess_str
@@ -591,7 +590,7 @@ class MultiAdvertizeWork:
             glidein_params_to_encrypt={}
             fd=file(tmpname,"w")
             x509_proxies_data=[]
-            if self.descript_obj.x509_proxies_plugin!=None:
+            if self.descript_obj.x509_proxies_plugin is not None:
                 x509_proxies_data=self.descript_obj.x509_proxies_plugin.get_credentials()
                 nr_credentials=len(x509_proxies_data)
                 glidein_params_to_encrypt['NumberOfCredentials']="%s"%nr_credentials
@@ -658,7 +657,7 @@ class MultiAdvertizeWork:
                         glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(cred_el.pilot_fname)]=str(cred_el.security_class)
             if (factory_pool in self.global_key):
                 key_obj=self.global_key[factory_pool]
-            if key_obj!=None:
+            if key_obj is not None:
                 fd.write(string.join(key_obj.get_key_attrs(),'\n')+"\n")
                 for attr in glidein_params_to_encrypt.keys():
                     #logSupport.log.debug("Encrypting (%s,%s)"%(attr,glidein_params_to_encrypt[attr]))
@@ -707,6 +706,7 @@ class MultiAdvertizeWork:
                             filename_arr.append(f)
                 except condorExe.ExeError:
                     logSupport.log.exception("Error creating request files for factory pool %s, unable to advertise: %s" % factory_pool)
+                    logSupport.log.error("Error creating request files for factory pool %s, unable to advertise: %s" % factory_pool)
                 
             # Advertize all the files (if multi, should only be one) 
             for filename in filename_arr:
@@ -724,10 +724,10 @@ class MultiAdvertizeWork:
         
         descript_obj=self.descript_obj
         
-        logSupport.log.info("in create Advertize work");
+        logSupport.log.info("In create Advertize work");
 
         factory_trust,factory_auth=self.factory_constraint[params_obj.request_name]
-        if descript_obj.x509_proxies_plugin!=None:
+        if descript_obj.x509_proxies_plugin is not None:
             x509_proxies_data=descript_obj.x509_proxies_plugin.get_credentials(params_obj=params_obj,credential_type=factory_auth,trust_domain=factory_trust)
             nr_credentials=len(x509_proxies_data)
         else:
@@ -738,7 +738,7 @@ class MultiAdvertizeWork:
             try:
                 encrypted_params={} # none by default
                 glidein_params_to_encrypt=params_obj.glidein_params_to_encrypt
-                if glidein_params_to_encrypt==None:
+                if glidein_params_to_encrypt is None:
                     glidein_params_to_encrypt={}
                 else:
                     glidein_params_to_encrypt=copy.deepcopy(glidein_params_to_encrypt)
@@ -746,7 +746,7 @@ class MultiAdvertizeWork:
                
                 req_idle=0
                 req_max_run=0
-                if x509_proxies_data!=None:
+                if x509_proxies_data is not None:
                     credential_el=x509_proxies_data[i]
                     logSupport.log.debug("Checking Credential file %s ..."%(credential_el.filename))
                     if credential_el.advertize==False:
@@ -808,10 +808,10 @@ class MultiAdvertizeWork:
 
                 fd.write(string.join(descript_obj.get_web_attrs(),'\n')+"\n")
 
-                if params_obj.security_name!=None:
+                if params_obj.security_name is not None:
                     glidein_params_to_encrypt['SecurityName']=params_obj.security_name
                                   
-                if key_obj!=None:
+                if key_obj is not None:
                     fd.write(string.join(key_obj.get_key_attrs(),'\n')+"\n")
                     for attr in glidein_params_to_encrypt.keys():
                         encrypted_params[attr]=key_obj.encrypt_hex(glidein_params_to_encrypt[attr])
@@ -848,7 +848,7 @@ class MultiAdvertizeWork:
             except:
                 logSupport.log.exception("Exception writing advertisement file: ")
                 # remove file in case of problems
-                if (fd!=None):
+                if (fd is not None):
                     fd.close()
                     os.remove(fname)
                 raise
@@ -1003,14 +1003,14 @@ class ResourceClassad(classadSupport.Classad):
         @param info: Useful info from the glidefactory classad  
         """
         
-        eliminate_attrs = Set([
+        eliminate_attrs = set([
                  'CurrentTime', 'USE_CCB', 'PubKeyValue', 'PubKeyType',
                  'AuthenticatedIdentity', 'GlideinName', 'FactoryName', 
                  'EntryName', 'GlideinWMSVersion', 'PubKeyObj', 
                  'LastHeardFrom', 'PubKeyID', 'SupportedSignTypes',
                  'GLIDEIN_In_Downtime'
                 ])
-        available_attrs = Set(info.keys())
+        available_attrs = set(info.keys())
         publish_attrs = available_attrs - eliminate_attrs
         for attr in publish_attrs:
             self.adParams[attr] = info[attr]

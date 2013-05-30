@@ -72,7 +72,7 @@ class DirCleanup:
 
         fnames = os.listdir(self.dirname)
         for fname in fnames:
-            if self.fname_expression_obj.match(fname) == None:
+            if self.fname_expression_obj.match(fname) is None:
                 continue # ignore files that do not match
 
             fpath = os.path.join(self.dirname, fname)
@@ -153,7 +153,7 @@ class PrivsepDirCleanupWSpace(DirCleanupWSpace):
         self.username = username
 
     def delete_file(self, fpath):
-        if (self.username != None) and (self.username != MY_USERNAME):
+        if (self.username is not None) and (self.username != MY_USERNAME):
             # use privsep
             # do not use rmtree as we do not want root privileges
             condorPrivsep.execute(self.username, os.path.dirname(fpath), '/bin/rm', ['rm', fpath], stdout_fname=None)
@@ -200,7 +200,7 @@ class PrivsepDirCleanupCredentials(DirCleanup):
             logSupport.log.info("No old credential files were removed.")
 
     def delete_file(self, fpath):
-        if (self.username != None) and (self.username != MY_USERNAME):
+        if (self.username is not None) and (self.username != MY_USERNAME):
             # use privsep
             # do not use rmtree as we do not want root privileges
             condorPrivsep.execute(self.username, os.path.dirname(fpath), '/bin/rm', ['rm', "-f", fpath], stdout_fname=None)

@@ -73,7 +73,7 @@ class ConfigFile:
         if validate is not None:
             vhash=hashCrypto.get_hash(validate[0],data)
             self.hash_value=vhash
-            if (validate[1]!=None) and (vhash!=validate[1]):
+            if (validate[1] is not None) and (vhash!=validate[1]):
                 raise IOError, "Failed validation of '%s'. Hash %s computed to '%s', expected '%s'"%(fname,validate[0],vhash,validate[1])
 
     def load(self,fname,convert_function,
@@ -129,7 +129,7 @@ class JoinConfigFile(ConfigFile):
         ConfigFile.__init__(self,base_dir,config_file,convert_function,main_validate)
         self.group_name=group_name
         group_obj=GroupConfigFile(base_dir,group_name,config_file,convert_function,group_validate)
-        if group_validate!=None:
+        if group_validate is not None:
             self.group_hash_value=group_obj.hash_value
         #merge by overriding whatever is found in the subdir
         for k in group_obj.data.keys():
@@ -345,7 +345,7 @@ class ExtStageFiles(StageFiles):
 
     # internal
     def load_preentry_file_list(self):
-        if self.preentry_file_list==None:
+        if self.preentry_file_list is None:
             self.preentry_file_list=self.get_file_list('preentry_file_list')
         # else, nothing to do
 

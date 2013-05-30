@@ -13,7 +13,6 @@
 
 import os
 import time
-import sets
 import pickle
 import random
 from glideinwms.lib import logSupport
@@ -74,11 +73,11 @@ class ProxyFirst:
     # get the proxies, given the condor_q and condor_status data
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
         for cred in self.cred_list:
-            if (trust_domain != None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
+            if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type != None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
                 continue
-            if (params_obj!=None):
+            if (params_obj is not None):
                 cred.add_usage_details(params_obj.min_nr_glideins,params_obj.max_run_glideins)
             return [cred]
         return []
@@ -110,12 +109,12 @@ class ProxyAll:
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
         rtnlist=[]
         for cred in self.cred_list:
-            if (trust_domain != None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
+            if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type != None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
                 continue
             rtnlist.append(cred)
-        if (params_obj!=None):
+        if (params_obj is not None):
             rtnlist=fair_assign(rtnlist,params_obj)
         return rtnlist
 
@@ -149,7 +148,7 @@ class ProxyUserCardinality:
     # get the proxies, given the condor_q and condor_status data
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
         rtnlist=self.get_proxies_from_cardinality(len(self.users_set),credential_type,trust_domain)
-        if (params_obj!=None):
+        if (params_obj is not None):
             rtnlist=fair_assign(rtnlist,params_obj)
 
         #Uncomment to print out assigned proxy allocations
@@ -165,9 +164,9 @@ class ProxyUserCardinality:
     def get_proxies_from_cardinality(self, nr_requested_proxies,credential_type=None, trust_domain=None):
         rtnlist=[]
         for cred in self.cred_list:
-            if (trust_domain != None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
+            if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type != None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
                 continue
             if len(rtnlist)<nr_requested_proxies:
                 rtnlist.append(cred)
@@ -219,16 +218,16 @@ class ProxyUserRR:
         rtnlist=[]
         num_cred=0
         for cred in self.config_data['proxy_list']:
-            if (trust_domain != None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
+            if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type != None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
                 continue
             rtnlist.append(cred)
             num_cred=num_cred+1
             if (num_cred >= len(new_users_set)):
                 break
                 
-        if (params_obj!=None):
+        if (params_obj is not None):
             rtnlist=fair_assign(rtnlist,params_obj)
         return rtnlist
 
@@ -241,8 +240,8 @@ class ProxyUserRR:
     def load(self):
         if not os.path.isfile(self.config_fname):
             nr_proxies = len(self.proxy_list)
-            self.config_data = {'users_set':sets.Set(),
-                              'proxy_list':self.proxy_list}
+            self.config_data = {'users_set': set(),
+                                'proxy_list': self.proxy_list}
         else:
             fd = open(self.config_fname, "r")
             try:
@@ -337,7 +336,7 @@ class ProxyUserMapWRecycling:
         total_user_map = self.config_data['user_map']
 
         # check if there are more users than proxies
-        if (credential_type==None) or (trust_domain==None):
+        if (credential_type is None) or (trust_domain is None):
             # if no type or trust_domain is returned
             # then we return the full list for the 
             # global advertisement
@@ -365,9 +364,9 @@ class ProxyUserMapWRecycling:
                 new_key=""
                 for k in keys:
                     cred=user_map[k]['proxy']
-                    if (trust_domain!=None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
+                    if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                         continue
-                    if (credential_type != None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+                    if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
                         continue
                     #Someone is already using this credential
                     if (k in users):
@@ -394,7 +393,7 @@ class ProxyUserMapWRecycling:
 
             # Out of the max_run glideins,
             # Allocate proportionally out of the total jobs
-            if (params_obj!=None):
+            if (params_obj is not None):
                 this_max=self.num_user_jobs[user]*params_obj.max_run_glideins/self.total_jobs
                 this_idle=self.num_user_jobs[user]*params_obj.min_nr_glideins/self.total_jobs
                 if (this_max<=0):
@@ -412,7 +411,7 @@ class ProxyUserMapWRecycling:
         
         #Uncomment to print out proxy allocations 
         #print_list(out_proxies)
-        #if params_obj!=None:
+        #if params_obj is not None:
         #    logSupport.log.debug("Total: %d %d" % (params_obj.min_nr_glideins,params_obj.max_run_glideins))
 
         return out_proxies
@@ -455,7 +454,7 @@ class ProxyUserMapWRecycling:
                 fd.close()
 
             # if proxies changed, remove old ones and insert the new ones
-            cached_proxies = sets.Set() # here we will store the list of proxies in the cache
+            cached_proxies = set() # here we will store the list of proxies in the cache
 
             user_map = self.config_data['user_map']
 

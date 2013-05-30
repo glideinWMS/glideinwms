@@ -67,7 +67,7 @@ while (i<alen):
 
 # get data
 factory_constraints=None
-if factory_name!=None:
+if factory_name is not None:
     farr=factory_name.split('@')
     if len(farr)==1:
         # just the generic factory name
@@ -82,7 +82,7 @@ if factory_name!=None:
 glideins_obj=glideinFrontendInterface.findGlideins(pool_name,None,None,factory_constraints)
 
 factoryclient_constraints=None
-if factory_name!=None:
+if factory_name is not None:
     farr=factory_name.split('@')
     if len(farr)==1:
         # just the generic factory name
@@ -117,7 +117,7 @@ for glidein in glideins:
     entry_name,glidein_name,factory_name=string.split(glidein,"@")
 
     frontend_constraints=None
-    if frontend_name!=None:
+    if frontend_name is not None:
         farr=frontend_name.split('.')
         if len(farr)==1:
             # just the generic frontend name
@@ -131,7 +131,7 @@ for glidein in glideins:
     glidein_el['clients']=clients_obj
     clients=clients_obj.keys()
 
-    if (frontend_name!=None) and (len(clients)==0):
+    if (frontend_name is not None) and (len(clients)==0):
         # if user requested to see only one frontend
         # and this factory is not serving that frontend
         # do not show the frontend at all
@@ -150,7 +150,7 @@ for glidein in glideins:
             clients_obj[client]['factory_monitor']=clientsmon_obj[client]['monitor']
 
         for pd_key in clients_obj[client]["params_decrypted"].keys():
-            if clients_obj[client]["params_decrypted"][pd_key]==None:
+            if clients_obj[client]["params_decrypted"][pd_key] is None:
                 clients_obj[client]["params_decrypted"][pd_key]="ENCRYPTED"
 
 

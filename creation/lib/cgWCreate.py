@@ -139,9 +139,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
     def populate_standard_grid(self, rsl, auth_method, gridtype):
         if gridtype == 'gt2' or gridtype =='gt5':
-            if "project_id" in auth_method or (rsl != None and rsl !=""):
+            if "project_id" in auth_method or ((rsl is not None) and rsl !=""):
                 self.add("globus_rsl", "$ENV(GLIDEIN_RSL)")
-        elif gridtype == 'cream' and (rsl != None and rsl !=""):
+        elif gridtype == 'cream' and ((rsl is not None) and rsl !=""):
             self.add("cream_attributes", "$ENV(GLIDEIN_RSL)")
         else:
             pass

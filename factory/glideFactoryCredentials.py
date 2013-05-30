@@ -162,7 +162,7 @@ def get_globals_classads():
 def process_global(classad, glidein_descript, frontend_descript):
     # Factory public key must exist for decryption 
     pub_key_obj = glidein_descript.data['PubKeyObj']
-    if pub_key_obj == None:
+    if pub_key_obj is None:
         raise CredentialError("Factory has no public key.  We cannot decrypt.")
 
     try:
@@ -254,7 +254,7 @@ def validate_frontend(classad, frontend_descript, pub_key_obj):
 
     # verify that the frontend is authorized to talk to the factory
     expected_identity = frontend_descript.get_identity(frontend_sec_name)
-    if expected_identity == None:
+    if expected_identity is None:
         error_str = "This frontend is not authorized by the factory.  Supplied security name: %s" % frontend_sec_name 
         raise CredentialError(error_str)
     if authenticated_identity != expected_identity:

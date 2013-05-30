@@ -51,7 +51,7 @@ def parseArgs(argv):
             i=i+1
             outdict['timeout']=int(argv[i])
         else:
-            if jid==None:
+            if jid is None:
                 jid=ael
             else:
                 # first unknown element
@@ -59,7 +59,7 @@ def parseArgs(argv):
                 break
         i=i+1
 
-    if jid==None:
+    if jid is None:
         raise RuntimeError, 'JID not found'
     outdict['jid']=jid
     outdict['argv']=argv[i:]
@@ -211,7 +211,7 @@ def createSubmitFile(work_dir,sfile,mlog,
         fd.write("notification=Never\n")
         fd.write("+GLIDEIN_Is_Monitor=True\n")
         fd.write("+Owner=Undefined\n")
-        if x509_file!=None:
+        if x509_file is not None:
             fd.write('x509userproxy = %s\n'%x509_file)
         fd.write('Requirements=(Name=?="%s")&&(Arch=!="Absurd")\n'%monitorVM)
         fd.write("periodic_remove=(CurrentTime>%li)\n"%(long(time.time())+timeout+30)) # karakiri after timeout+delta

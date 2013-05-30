@@ -80,7 +80,7 @@ while i<arglen:
     i+=1
 
 if not want_monitor:
-    if constraint==None:
+    if constraint is None:
         constraint='IS_MONITOR_VM =!= TRUE'
     else:
         constraint='(%s) && (IS_MONITOR_VM =!= TRUE)'%constraint

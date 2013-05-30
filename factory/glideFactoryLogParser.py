@@ -13,13 +13,34 @@
 #
 
 
-import os, os.path,time,stat,sets
+import os
+import os.path
+import time
+import stat
 import copy
-import mmap,re
+import mmap
+import re
+import sys
+import logging
+import traceback
+
+from glideinwms.lib import logSupport
 from glideinwms.lib import condorLogParser
+from glideinwms.factory import glideFactoryLib
 
 rawJobId2Nr=condorLogParser.rawJobId2Nr
 rawTime2cTime=condorLogParser.rawTime2cTime
+
+
+class logSummaryTimingsOutWrapper:
+    def __init__(self):
+        self.obj = None
+
+    def getObj(self, logname=None, cache_dir=None, username="all"):
+        if (logname is not None) and (cache_dir is not None):
+            self.obj = logSummaryTimingsOut(logname, cache_dir, username)
+        return self.obj
+
 
 class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
     """
@@ -115,13 +136,13 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
         @type other: dictionary of statuses -> jobs
         @return: data[status]['Entered'|'Exited'] - list of jobs
         """
-        if other==None:
+        if other is None:
             outdata={}
-            if self.data!=None:
+            if self.data is not None:
                 for k in self.data.keys():
                     outdata[k]={'Exited':[],'Entered':self.data[k]}
             return outdata
-        elif self.data==None:
+        elif self.data is None:
             outdata={}
             for k in other.keys():
                 outdata[k]={'Entered':[],'Exited':other[k]}
@@ -151,8 +172,8 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
                 outdata_s={'Entered':[],'Exited':[]}
                 outdata[s]=outdata_s
 
-                sset=sets.Set(sel)
-                oset=sets.Set(oel)
+                sset=set(sel)
+                oset=set(oel)
 
                 entered_set=sset.difference(oset)
                 entered=[]
@@ -216,19 +237,35 @@ class dirSummarySimple:
     def __init__(self,obj):
         self.data=copy.deepcopy(obj.data)
         self.logClass=obj.logClass
+        self.wrapperClass = obj.wrapperClass
+
+        if (obj.wrapperClass is not None):
+            self.logClass = obj.wrapperClass.getObj()
+        else:
+            logSupport.log.debug("== MISHANDLED LogParser Object! ==")
+
+    def mkTempLogObj(self):
+        if (self.wrapperClass is not None):
+            dummyobj = self.wrapperClass.getObj(
+                           logname=os.path.join('/tmp','dummy.txt'),
+                           cache_dir='/tmp')
+        else:
+            dummyobj = self.logClass(os.path.join('/tmp','dummy.txt'),'/tmp')
+        #dummyobj=self.logClass(os.path.join('/tmp','dummy.txt'),'/tmp')
+        dummyobj.data = self.data # a little rough but works
+        return dummyobj
+
 
     # diff self data with other info
     def diff(self,other):
-        dummyobj=self.logClass(os.path.join('/tmp','dummy.txt'),'/tmp')
-        dummyobj.data=self.data # a little rough but works
+        dummyobj = self.mkTempLogObj()
         return  dummyobj.diff(other.data) 
 
     # merge other into myself
     def merge(self,other):
-        dummyobj=self.logClass(os.path.join('/tmp','dummy.txt'),'/tmp')
-        dummyobj.data=self.data # a little rough but works
+        dummyobj = self.mkTempLogObj()
         dummyobj.merge(copy.deepcopy(other.data))
-        self.data=dummyobj.data
+        self.data = dummyobj.data
 
 class dirSummaryTimingsOut(condorLogParser.cacheDirClass):
     """
@@ -237,11 +274,22 @@ class dirSummaryTimingsOut(condorLogParser.cacheDirClass):
     The function chooses all condor_activity files in a directory
     that correspond to a particular client.
     """
-    def __init__(self,dirname,cache_dir,client_name,user_name,inactive_files=None,inactive_timeout=24*3600):
-        self.cdInit(lambda ln,cd:logSummaryTimingsOut(ln,cd,user_name),dirname,"condor_activity_","_%s.log"%client_name,".%s.cifpk"%user_name,inactive_files,inactive_timeout,cache_dir)
+    def __init__(self, dirname, cache_dir, client_name, user_name,
+                 inactive_files=None, inactive_timeout=24*3600):
+        self.cdInit(None, dirname,
+                    "condor_activity_", "_%s.log"%client_name,
+                    ".%s.cifpk"%user_name, inactive_files, inactive_timeout,
+                    cache_dir, wrapperClass=logSummaryTimingsOutWrapper(),
+                    username=user_name)
 
     def get_simple(self):
-        return dirSummarySimple(self)
+        try:
+            obj = dirSummarySimple(self)
+        except:
+            logSupport.log.exception()
+            raise
+
+        return obj
 
 class dirSummaryTimingsOutFull(condorLogParser.cacheDirClass):
     """
@@ -302,7 +350,7 @@ def extractLogData(fname):
         try:
             buf_idx=0
             validate_re=ELD_RC_VALIDATE_END.search(buf,buf_idx)
-            if validate_re!=None:
+            if validate_re is not None:
                 try:
                     validation_duration=int(validate_re.group('secs'))
                 except:
@@ -311,24 +359,24 @@ def extractLogData(fname):
                 bux_idx=validate_re.end()+1
             
             start_re=ELD_RC_CONDOR_START.search(buf,buf_idx)
-            if start_re!=None:
+            if start_re is not None:
                 condor_starting=1
                 buf_idx=start_re.end()+1
                 end_re=ELD_RC_CONDOR_END.search(buf,buf_idx)
-                if end_re!=None:
+                if end_re is not None:
                     try:
                         condor_duration=int(end_re.group('secs'))
                     except:
                         condor_duration=None
                     buf_idx=end_re.end()+1
                     slot_re=ELD_RC_CONDOR_SLOT.search(buf,buf_idx)
-                    while slot_re!=None:
+                    while slot_re is not None:
                         buf_idx=slot_re.end()+1
                         slot_name=slot_re.group('slot')
                         if slot_name[-1]!='1': # ignore slot 1, it is used for monitoring only
                             slot_buf=slot_re.group('content')
                             count_re=ELD_RC_CONDOR_SLOT_CONTENT_COUNT.search(slot_buf,0)
-                            while count_re!=None:
+                            while count_re is not None:
                                 count_name=count_re.group('name')
                                 # need to trim it, comes out with spaces
                                 if count_name==' ': # special case
@@ -342,7 +390,7 @@ def extractLogData(fname):
                                 except:
                                     jobsnr=None
                                     
-                                if jobsnr!=None: #check I had no errors in integer conversion
+                                if jobsnr is not None: #check I had no errors in integer conversion
                                     if not slot_stats.has_key(count_name):
                                         slot_stats[count_name]={'jobsnr':jobsnr,'secs':secs}
 
@@ -353,7 +401,7 @@ def extractLogData(fname):
                         # end while slot_re
                     
             glidein_end_re=ELD_RC_GLIDEIN_END.search(buf,buf_idx)
-            if glidein_end_re!=None:
+            if glidein_end_re is not None:
                 try:
                     glidein_duration=int(glidein_end_re.group('secs'))
                 except:
@@ -369,16 +417,16 @@ def extractLogData(fname):
         fd.close()
 
     out={'condor_started':condor_starting}
-    if validation_duration!=None:
+    if validation_duration is not None:
         out['validation_duration']=validation_duration
     #else:
     #   out['validation_duration']=1
-    if glidein_duration!=None:
+    if glidein_duration is not None:
         out['glidein_duration']=glidein_duration
     #else:
     #   out['glidein_duration']=2
     if condor_starting:
-        if condor_duration!=None:
+        if condor_duration is not None:
             out['condor_duration']=condor_duration
             out['stats']=slot_stats
 

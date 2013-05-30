@@ -31,15 +31,15 @@ from glideinwms.creation.lib import cgWParams
 def run_attr_regexp(params,entry_name,attr,ro):
     if not params.entries[entry_name].attrs.has_key(attr):
         return False
-    return re.search(ro,params.entries[entry_name].attrs[attr].value)!=None
+    return re.search(ro,params.entries[entry_name].attrs[attr].value) is not None
 
 def run_descr_regexp(params,entry_name,attr,ro):
     if not params.subparams.data['entries'][entry_name].has_key(attr):
         return False
-    return re.search(ro,params.subparams.data['entries'][entry_name][attr])!=None
+    return re.search(ro,params.subparams.data['entries'][entry_name][attr]) is not None
 
 def run_name_regexp(params,entry_name,ro):
-    return re.search(ro,entry_name)!=None
+    return re.search(ro,entry_name) is not None
 
 
 def create_filter(attr,regexp):
@@ -94,7 +94,7 @@ def merge_entry(params,other_params, entry_name,preserve_enable):
 def disable_entry(params,entry_name):
     eel=params.subparams.data['entries'][entry_name]
     eel['enabled']='False'
-    if eel.has_key('comment') and (eel['comment']!=None):
+    if eel.has_key('comment') and (eel['comment'] is not None):
         base_comment=eel['comment']+" "
     else:
         base_comment=""
@@ -176,7 +176,7 @@ def load():
         else:
             break
             
-    if other_fname==None:
+    if other_fname is None:
         print "Missing -other"
         print
         print "Usage:"

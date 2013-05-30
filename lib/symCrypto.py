@@ -49,15 +49,15 @@ class SymKey:
     def load(self,
              key_str=None, iv_str=None,
              key_iv_code=None):
-        if key_str != None:
-            if key_iv_code != None:
+        if key_str is not None:
+            if key_iv_code is not None:
                 raise ValueError, "Illegal to define both key_str and key_iv_code"
 
             key_str = str(key_str) # just in case it was unicode"
             if len(key_str) != (self.key_len*2):
                 raise ValueError, "Key must be exactly %i long, got %i" % (self.key_len*2, len(key_str))
 
-            if iv_str == None:
+            if iv_str is None:
                 # if key_str defined, one needs the iv_str, too
                 # set to default of 0
                 iv_str = '0'*(self.iv_len*2)
@@ -65,7 +65,7 @@ class SymKey:
                 if len(iv_str) != (self.iv_len*2):
                     raise ValueError, "Initialization vector must be exactly %i long, got %i" % (self.iv_len*2, len(iv_str))
                 iv_str = str(iv_str) # just in case it was unicode"
-        elif key_iv_code != None:
+        elif key_iv_code is not None:
             key_iv_code = str(key_iv_code) # just in case it was unicode
             ki_arr = key_iv_code.split(',')
             if len(ki_arr) != 3:
@@ -86,7 +86,7 @@ class SymKey:
     ###########################################
     # get the stored key
     def is_valid(self):
-        return (self.key_str != None)
+        return (self.key_str is not None)
 
     def get(self):
         return (self.key_str, self.iv_str)
@@ -179,7 +179,7 @@ class MutableSymKey(SymKey):
 
     # redefine, as null crypto name could be used in this class
     def is_valid(self):
-        return (self.key_str != None) and (self.cypher_name != None)
+        return (self.key_str is not None) and (self.cypher_name is not None)
 
     def get_wcrypto(self):
         return (self.cypher_name, self.key_str, self.iv_str)
@@ -213,7 +213,7 @@ class AutoSymKey(MutableSymKey):
     ###############################################
     # load a new key_iv_key and extract the cypther
     def auto_load(self, key_iv_code=None):
-        if key_iv_code == None:
+        if key_iv_code is None:
             self.cypher_name = None
             self.key_str = None
         else:

@@ -33,7 +33,7 @@ rrd_list = ('Status_Attributes.rrd', 'Log_Completed.rrd', 'Log_Completed_Stats.r
 ############################################################
 
 class MonitoringConfig:
-    def __init__(self):
+    def __init__(self, log=logSupport.log):
         # set default values
         # user should modify if needed
         self.rrd_step = 300       #default to 5 minutes
@@ -53,12 +53,14 @@ class MonitoringConfig:
         self.rrd_obj = rrdSupport.rrdSupport()
         """@ivar: The name of the attribute that identifies the glidein """
         self.my_name = "Unknown"
+        self.log = log
 
     def config_log(self, log_dir, max_days, min_days, max_mbs):
         self.log_dir = log_dir
-        cleaner = cleanupSupport.PrivsepDirCleanupWSpace(None , log_dir, "(completed_jobs_\..*\.log)",
-                                          int(max_days * 24 * 3600), int(min_days * 24 * 3600),
-                                          long(max_mbs * (1024.0 * 1024.0)))
+        cleaner = cleanupSupport.PrivsepDirCleanupWSpace(
+                      None , log_dir, "(completed_jobs_\..*\.log)",
+                      int(max_days * 24 * 3600), int(min_days * 24 * 3600),
+                      long(max_mbs * (1024.0 * 1024.0)))
         cleanupSupport.cleaners.add_cleaner(cleaner)
 
 
@@ -146,9 +148,9 @@ class MonitoringConfig:
 
             if not os.path.isfile(fname):
                 #print "Create RRD "+fname
-                if min_val == None:
+                if min_val is None:
                     min_val = 'U'
-                if max_val == None:
+                if max_val is None:
                     max_val = 'U'
                 ds_names = val_dict.keys()
                 ds_names.sort()
@@ -164,7 +166,7 @@ class MonitoringConfig:
             try:
                 self.rrd_obj.update_rrd_multi(fname, time, val_dict)
             except Exception, e: #@UnusedVariable
-                print "Failed to update %s" % fname
+                self.log.exception("Failed to update %s: " % fname)
         return
 
     # like write_rrd_multi, but with each ds having each type
@@ -204,7 +206,7 @@ class MonitoringConfig:
             try:
                 self.rrd_obj.update_rrd_multi(fname, time, val_dict)
             except Exception, e: #@UnusedVariable
-                print "Failed to update %s" % fname
+                self.log.exception("Failed to update %s: " % fname)
         return
 
 
@@ -218,9 +220,10 @@ class MonitoringConfig:
 #########################################################################################################################################
 
 class condorQStats:
-    def __init__(self):
+    def __init__(self, log=logSupport.log):
         self.data = {}
         self.updated = time.time()
+        self.log = log
 
         self.files_updated = None
         self.attributes = {'Status':("Idle", "Running", "Held", "Wait", "Pending", "StageIn", "IdleOther", "StageOut"),
@@ -382,7 +385,7 @@ class condorQStats:
                     el = fe[w]
                     tel = total[w]
 
-                    if tel == None:
+                    if tel is None:
                         # first one, just copy over
                         total[w] = {}
                         tel = total[w]
@@ -404,7 +407,7 @@ class condorQStats:
                                 del tel[a]
 
         for w in total.keys():
-            if total[w] == None:
+            if total[w] is None:
                 del total[w] # remove entry if not defined
             else:
                 tel = total[w]
@@ -436,10 +439,13 @@ class condorQStats:
         xml_downtime = xmlFormat.dict2string({}, dict_name='downtime', el_name='', params={'status':self.downtime}, leading_tab=leading_tab)
         return xml_downtime
 
-    def write_file(self):
-        global monitoringConfig
+    def write_file(self, monitoringConfig=None):
 
-        if (self.files_updated != None) and ((self.updated - self.files_updated) < 5):
+        if monitoringConfig is None:
+            monitoringConfig = globals()['monitoringConfig']
+
+        if ( (self.files_updated is not None) and 
+             ((self.updated - self.files_updated) < 5) ):
             # files updated recently, no need to redo it
             return
 
@@ -460,7 +466,7 @@ class condorQStats:
         # update RRDs
         type_strings = {'Status':'Status', 'Requested':'Req', 'ClientMonitor':'Client'}
         for fe in [None] + data.keys():
-            if fe == None: # special key == Total
+            if fe is None: # special key == Total
                 fe_dir = "total"
                 fe_el = total_el
             else:
@@ -510,7 +516,8 @@ class condorLogSummary:
     """
     This class handles the data obtained from parsing the glidein log files
     """
-    def __init__(self):
+
+    def __init__(self, log=logSupport.log):
         self.data = {} # not used
         self.updated = time.time()
         self.updated_year = time.localtime(self.updated)[0]
@@ -521,6 +528,7 @@ class condorLogSummary:
         self.job_statuses_short = ('Running', 'Idle', 'Wait', 'Held') #const
 
         self.files_updated = None
+        self.log = log
 
     def reset(self):
         """
@@ -625,7 +633,7 @@ class condorLogSummary:
                     count = 0
                     for username in self.current_stats_data[client_name].keys():
                         client_el = self.current_stats_data[client_name][username].data
-                        if ((client_el != None) and (s in client_el.keys())):
+                        if ((client_el is not None) and (s in client_el.keys())):
                             count += len(client_el[s])
 
                     out_el[s] = count
@@ -656,7 +664,7 @@ class condorLogSummary:
             enle_condor_started = 0
             enle_condor_duration = 0 # default is 0, in case it never started
             enle_glidein_duration = enle_difftime # best guess
-            if enle_stats != None:
+            if enle_stats is not None:
                 enle_condor_started = enle_stats['condor_started']
                 if enle_stats.has_key('glidein_duration'):
                     enle_glidein_duration = enle_stats['glidein_duration']
@@ -675,7 +683,7 @@ class condorLogSummary:
             else:
                 #get waste_mill
                 enle_condor_duration = enle_stats['condor_duration']
-                if enle_condor_duration == None:
+                if enle_condor_duration is None:
                     enle_condor_duration = 0 # assume failed
 
                 if enle_condor_duration > enle_glidein_duration: # can happen... Condor-G has its delays
@@ -827,7 +835,7 @@ class condorLogSummary:
                 for username in self.stats_diff[client_name].keys():
                     diff_el = self.stats_diff[client_name][username]
 
-                    if ((diff_el != None) and (s in diff_el.keys())):
+                    if ((diff_el is not None) and (s in diff_el.keys())):
                         entered_list += diff_el[s]['Entered']
                         entered += len(diff_el[s]['Entered'])
                         exited -= len(diff_el[s]['Exited'])
@@ -838,7 +846,7 @@ class condorLogSummary:
                     for username in self.current_stats_data[client_name].keys():
                         stats_el = self.current_stats_data[client_name][username].data
 
-                        if ((stats_el != None) and (s in stats_el.keys())):
+                        if ((stats_el is not None) and (s in stats_el.keys())):
                             count += len(stats_el[s])
                     out_el['Current'][s] = count
                     # and we can never get out of the terminal state
@@ -868,7 +876,7 @@ class condorLogSummary:
             for client_name in self.current_stats_data.keys():
                 for username in self.current_stats_data[client_name]:
                     sdata = self.current_stats_data[client_name][username].data
-                    if ((sdata != None) and (k in sdata.keys())):
+                    if ((sdata is not None) and (k in sdata.keys())):
                         tdata = tdata + sdata[k]
             total[k] = tdata
         return total
@@ -901,7 +909,7 @@ class condorLogSummary:
                 #flatten all usernames into one
                 for username in self.stats_diff[client_name].keys():
                     sdiff = self.stats_diff[client_name][username]
-                    if ((sdiff != None) and (k in sdiff.keys())):
+                    if ((sdiff is not None) and (k in sdiff.keys())):
                         if k == 'Completed':
                             # for completed jobs, add the username
                             # not for the others since there is no adequate place in the object
@@ -922,7 +930,7 @@ class condorLogSummary:
             for client_name in self.stats_diff.keys():
                 for username in self.stats_diff[client_name].keys():
                     sdiff = self.stats_diff[client_name][username]
-                    if ((sdiff != None) and (k in sdiff.keys())):
+                    if ((sdiff is not None) and (k in sdiff.keys())):
                         for e in tdata.keys():
                             tdata[e] = tdata[e] + sdiff[k][e]
         return total
@@ -954,10 +962,13 @@ class condorLogSummary:
     def get_xml_updated(self, indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=""):
         return xmlFormat.time2xml(self.updated, "updated", indent_tab, leading_tab)
 
-    def write_file(self):
-        global monitoringConfig
+    def write_file(self, monitoringConfig=None):
 
-        if (self.files_updated != None) and ((self.updated - self.files_updated) < 5):
+        if monitoringConfig is None:
+            monitoringConfig = globals()['monitoringConfig']
+
+        if ( (self.files_updated is not None) and 
+             ((self.updated - self.files_updated) < 5) ):
             # files updated recently, no need to redo it
             return
 
@@ -975,7 +986,7 @@ class condorLogSummary:
         diff_summary = self.get_diff_summary()
         stats_total_summary = self.get_stats_total_summary()
         for client_name in [None] + diff_summary.keys():
-            if client_name == None:
+            if client_name is None:
                 fe_dir = "total"
                 sdata = stats_total_summary
                 sdiff = self.get_diff_total()
@@ -997,7 +1008,7 @@ class condorLogSummary:
                     val_dict_counts["Status%s" % s] = count
                     val_dict_counts_desc["Status%s" % s] = {'ds_type':'GAUGE'}
 
-                if ((sdiff != None) and (s in sdiff.keys())):
+                if ((sdiff is not None) and (s in sdiff.keys())):
                     entered_list = sdiff[s]['Entered']
                     entered = len(entered_list)
                     exited = -len(sdiff[s]['Exited'])
@@ -1013,7 +1024,7 @@ class condorLogSummary:
                     val_dict_counts_desc["Exited%s" % s] = {'ds_type':'ABSOLUTE'}
                 elif s == 'Completed':
                     completed_stats = self.get_completed_stats(entered_list)
-                    if client_name != None: # do not repeat for total
+                    if client_name is not None: # do not repeat for total
                         monitoringConfig.logCompleted(client_name, completed_stats)
                     completed_counts = self.summarize_completed_stats(completed_stats)
 
@@ -1077,7 +1088,7 @@ class condorLogSummary:
 
 class FactoryStatusData:
     """documentation"""
-    def __init__(self):
+    def __init__(self, log=logSupport.log, base_dir=None):
         self.data = {}
         for rrd in rrd_list:
             self.data[rrd] = {}
@@ -1087,7 +1098,9 @@ class FactoryStatusData:
         self.resolution = (7200, 86400, 604800) # 2hr, 1 day, 1 week
         self.total = "total/"
         self.frontends = []
-        self.base_dir = monitoringConfig.monitor_dir
+        if base_dir is None:
+            self.base_dir = monitoringConfig.monitor_dir
+        self.log = log
 
     def getUpdated(self):
         """returns the time of last update"""
@@ -1107,7 +1120,7 @@ class FactoryStatusData:
             fetched = baseRRDSupport.fetch_rrd(pathway + rrd_file, 'AVERAGE', resolution=res, start=start, end=end)
         except:
             # probably not created yet
-            logSupport.log.debug("Failed to load %s" % (pathway + rrd_file))
+            self.log.debug("Failed to load %s" % (pathway + rrd_file))
             return {}
 
         #converts fetched from tuples to lists
@@ -1146,12 +1159,14 @@ class FactoryStatusData:
                 avg_list = 0
             return avg_list
         except TypeError:
-            logSupport.log.exception("glideFactoryMonitoring average: ")
+            self.log.exception("glideFactoryMonitoring average: ")
             return
 
-    def getData(self, input_val):
+    def getData(self, input_val, monitoringConfig=None):
         """returns the data fetched by rrdtool in a xml readable format"""
-        global monitoringConfig
+
+        if monitoringConfig is None:
+            monitoringConfig = globals()['monitoringConfig']
 
         folder = str(input_val)
         if folder == self.total:
@@ -1181,12 +1196,14 @@ class FactoryStatusData:
                 end = (int(time.time() / rrd_res) - 1) * rrd_res # round due to RRDTool requirements, -1 to avoid the last (partial) one
                 start = end - period
                 try:
-                    fetched_data = self.fetchData(rrd_file=rrd, pathway=self.base_dir + "/" + client,
-                                                  start=start, end=end, res=rrd_res)
+                    fetched_data = self.fetchData(
+                                       rrd_file=rrd,
+                                       pathway=self.base_dir + "/" + client,
+                                       start=start, end=end, res=rrd_res)
                     for data_set in fetched_data:
                         self.data[rrd][client][period][data_set] = self.average(fetched_data[data_set])
                 except TypeError:
-                    logSupport.log.exception("FactoryStatusData:fetchData: ")
+                    self.log.exception("FactoryStatusData:fetchData: ")
 
         return self.data
 
@@ -1200,7 +1217,7 @@ class FactoryStatusData:
             total_data = self.data[rrd][self.total]
             total_xml_str += (xmlFormat.dict2string(total_data, dict_name='periods', el_name='period', subtypes_params={"class":{}}, indent_tab=self.tab, leading_tab=2 * self.tab) + "\n")
         except (NameError, UnboundLocalError):
-            logSupport.log.exception("FactoryStatusData:total_data: ")
+            self.log.exception("FactoryStatusData:total_data: ")
         total_xml_str += self.tab + '</total>\n'
 
         # create a string containing the frontend data
@@ -1213,14 +1230,18 @@ class FactoryStatusData:
                 frontend_data = self.data[rrd][frontend]
                 frontend_xml_str += (xmlFormat.dict2string(frontend_data, dict_name='periods', el_name='period', subtypes_params={"class":{}}, indent_tab=self.tab, leading_tab=3 * self.tab) + "\n")
             except (NameError, UnboundLocalError):
-                logSupport.log.exception("FactoryStatusData:frontend_data: ")
+                self.log.exception("FactoryStatusData:frontend_data: ")
             frontend_xml_str += 2 * self.tab + '</frontend>'
         frontend_xml_str += self.tab + '</frontends>\n'
 
         data_str = total_xml_str + frontend_xml_str
         return data_str
 
-    def writeFiles(self):
+    def writeFiles(self,  monitoringConfig=None):
+
+        if monitoringConfig is None:
+            monitoringConfig = globals()['monitoringConfig']
+
         for rrd in rrd_list:
             file_name = 'rrd_' + rrd.split(".")[0] + '.xml'
             xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
@@ -1231,7 +1252,7 @@ class FactoryStatusData:
             try:
                 monitoringConfig.write_file(file_name, xml_str)
             except IOError:
-                logSupport.log.exception("FactoryStatusData:write_file: ")
+                self.log.exception("FactoryStatusData:write_file: ")
         return
 
 ##############################################################################
@@ -1242,14 +1263,16 @@ class FactoryStatusData:
 #############################################################################
 
 class Descript2XML:
-    def __init__(self):
+    def __init__(self, log=logSupport.log):
         self.tab = xmlFormat.DEFAULT_TAB
         self.entry_descript_blacklist = ('DowntimesFile', 'EntryName',
                                          'Schedd')
         self.frontend_blacklist = ('usermap',)
         self.glidein_whitelist = ('AdvertiseDelay',
                                   'FactoryName', 'GlideinName', 'LoopDelay',
-                                  'PubKeyType', 'WebURL', 'MonitorDisplayText', 'MonitorLink')
+                                  'PubKeyType', 'WebURL', 'MonitorDisplayText',
+                                  'MonitorLink')
+        self.log = log
 
     def frontendDescript(self, fe_dict):
         for key in self.frontend_blacklist:
@@ -1260,12 +1283,12 @@ class Descript2XML:
                     except KeyError:
                         continue
             except RuntimeError:
-                logSupport.log.exception("blacklist error frontendDescript: ")
+                self.log.exception("blacklist error frontendDescript: ")
         try:
             xml_str = xmlFormat.dict2string(fe_dict, dict_name="frontends", el_name="frontend", subtypes_params={"class":{}}, leading_tab=self.tab)
             return xml_str + "\n"
         except RuntimeError:
-            logSupport.log.exception("xmlFormat error in frontendDescript: ")
+            self.log.exception("xmlFormat error in frontendDescript: ")
             return
 
     def entryDescript(self, e_dict):
@@ -1277,12 +1300,12 @@ class Descript2XML:
                     except KeyError:
                         continue
             except RuntimeError:
-                logSupport.log.exception("blacklist error in entryDescript: ")
+                self.log.exception("blacklist error in entryDescript: ")
         try:
             xml_str = xmlFormat.dict2string(e_dict, dict_name="entries", el_name="entry", subtypes_params={"class":{'subclass_params':{}}}, leading_tab=self.tab)
             return xml_str + "\n"
         except RuntimeError:
-            logSupport.log.exception("xmlFormat Error in entryDescript: ")
+            self.log.exception("xmlFormat Error in entryDescript: ")
             return
 
     def glideinDescript(self, g_dict):

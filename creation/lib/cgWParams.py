@@ -82,6 +82,7 @@ class GlideinParams(cWParams.CommonParams):
     
         entry_config_restrictions_defaults=cWParams.commentedOrderedDict()
         entry_config_restrictions_defaults["require_voms_proxy"]=("False","Bool","Whether this entry point requires a voms proxy",None)
+        entry_config_restrictions_defaults["require_glidein_glexec_use"]=("False","Bool","Whether this entry requires glidein to use glexec",None)
         entry_config_defaults['restrictions']=entry_config_restrictions_defaults
 
         
@@ -176,6 +177,8 @@ class GlideinParams(cWParams.CommonParams):
         self.defaults["stage"] = stage_defaults
 
         self.monitor_defaults["base_dir"] = ("/var/www/html/glidefactory/monitor", "base_dir", "Monitoring base dir", None)
+        # Default for rrd update threads
+        self.monitor_defaults["update_thread_count"]=(os.sysconf('SC_NPROCESSORS_ONLN'),"update_thread_count","Number of rrd update threads. Defaults to cpu count.",None)
         self.defaults["monitor"] = self.monitor_defaults
 
         self.frontend_sec_class_defaults = cWParams.commentedOrderedDict()
@@ -228,7 +231,7 @@ class GlideinParams(cWParams.CommonParams):
     # validate data and add additional attributes if needed
     def derive(self):
         # glidein name does not have a reasonable default
-        if self.glidein_name==None:
+        if self.glidein_name is None:
             raise RuntimeError, "Missing glidein name"
         if not cWParams.is_valid_name(self.glidein_name):
             raise RuntimeError, "Invalid glidein name '%s'"%self.glidein_name
@@ -294,7 +297,7 @@ class GlideinParams(cWParams.CommonParams):
 #####################################
 # try to find out the base condor dir
 def find_condor_base_dir():
-    if condorExe.condor_bin_path==None:
+    if condorExe.condor_bin_path is None:
         return None
     else:
         return os.path.dirname(condorExe.condor_bin_path)

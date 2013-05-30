@@ -24,7 +24,6 @@ import re
 import mmap
 import time
 import cPickle
-import sets
 
 # -------------- Single Log classes ------------------------
 
@@ -40,7 +39,7 @@ class cachedLogClass:
     """
     def clInit(self,logname,cache_dir,cache_ext):
         self.logname=logname
-        if cache_dir==None:
+        if cache_dir is None:
             self.cachename=logname+cache_ext
         else:
             self.cachename=os.path.join(cache_dir,os.path.basename(logname)+cache_ext)
@@ -144,9 +143,9 @@ class logSummary(cachedLogClass):
         Merge self data with other info
         @return: merged data, may modify other
         """
-        if other==None:
+        if other is None:
             return self.data
-        elif self.data==None:
+        elif self.data is None:
             return other
         else:
             for k in self.data.keys():
@@ -166,13 +165,13 @@ class logSummary(cachedLogClass):
 
         @return: data[status]['Entered'|'Exited'] - list of jobs
         """
-        if other==None:
+        if other is None:
             outdata={}
-            if self.data!=None:
+            if self.data is not None:
                 for k in self.data.keys():
                     outdata[k] = {'Exited':[], 'Entered':self.data[k]}
             return outdata
-        elif self.data == None:
+        elif self.data is None:
             outdata = {}
             for k in other.keys():
                 outdata[k] = {'Entered':[], 'Exited':other[k]}
@@ -199,8 +198,8 @@ class logSummary(cachedLogClass):
                 outdata_s = {'Entered':[], 'Exited':[]}
                 outdata[s] = outdata_s
 
-                sset = sets.Set(sel)
-                oset = sets.Set(oel)
+                sset = set(sel)
+                oset = set(oel)
 
                 outdata_s['Entered'] = list(sset.difference(oset))
                 outdata_s['Exited'] = list(oset.difference(sset))
@@ -257,9 +256,9 @@ class logCompleted(cachedLogClass):
         Merge self data with other info
         @return: merged data, may modify other
         """
-        if other==None:
+        if other is None:
             return self.data
-        elif self.data==None:
+        elif self.data is None:
             return other
         else:
             for k in self.data['counts'].keys():
@@ -278,8 +277,8 @@ class logCompleted(cachedLogClass):
 
         Uses symmetric difference of sets.
         """
-        if other==None:
-            if self.data!=None:
+        if other is None:
+            if self.data is not None:
                 outcj={'Exited':[],'Entered':self.data['completed_jobs']}
                 outdata={'counts':self.data['counts'],'completed_jobs':outcj}
             else:
@@ -287,7 +286,7 @@ class logCompleted(cachedLogClass):
                             'completed_jobs':{'Exited':[], 'Entered':[]}
                           }
             return outdata
-        elif self.data == None:
+        elif self.data is None:
             outcj = {'Entered':[], 'Exited':other['completed_jobs']}
             outct = {}
             for s in other['counts'].keys():
@@ -318,8 +317,8 @@ class logCompleted(cachedLogClass):
 
             sel = self.data['completed_jobs']
             oel = other['completed_jobs']
-            sset = sets.Set(sel)
-            oset = sets.Set(oel)
+            sset = set(sel)
+            oset = set(oel)
 
             outcj['Entered'] = list(sset.difference(oset))
             outcj['Exited'] = list(oset.difference(sset))
@@ -357,9 +356,9 @@ class logCounts(cachedLogClass):
         Merge self data with other info
         @return: merged data, may modify other
         """
-        if other==None:
+        if other is None:
             return self.data
-        elif self.data==None:
+        elif self.data is None:
             return other
         else:
             for k in self.data.keys():
@@ -374,12 +373,12 @@ class logCounts(cachedLogClass):
         Diff self data with other info
         @return: diff of counts
         """
-        if other==None:
-            if self.data!=None:
+        if other is None:
+            if self.data is not None:
                 return self.data
             else:
                 return {}
-        elif self.data == None:
+        elif self.data is None:
             outdata = {}
             for s in other.keys():
                 outdata[s] = -other[s]
@@ -437,9 +436,9 @@ class logSummaryTimings(cachedLogClass):
         merge self data with other info
         @return: merged data, may modify other
         """
-        if other==None:
+        if other is None:
             return self.data
-        elif self.data==None:
+        elif self.data is None:
             return other
         else:
             for k in self.data.keys():
@@ -454,13 +453,13 @@ class logSummaryTimings(cachedLogClass):
         diff self data with other info
         @return: data[status]['Entered'|'Exited'] - list of jobs
         """
-        if other==None:
+        if other is None:
             outdata={}
-            if self.data!=None:
+            if self.data is not None:
                 for k in self.data.keys():
                     outdata[k] = {'Exited':[], 'Entered':self.data[k]}
             return outdata
-        elif self.data == None:
+        elif self.data is None:
             outdata = {}
             for k in other.keys():
                 outdata[k] = {'Entered':[], 'Exited':other[k]}
@@ -491,8 +490,8 @@ class logSummaryTimings(cachedLogClass):
                 outdata_s = {'Entered':[], 'Exited':[]}
                 outdata[s] = outdata_s
 
-                sset = sets.Set(sel)
-                oset = sets.Set(oel)
+                sset = set(sel)
+                oset = set(oel)
 
                 entered_set = sset.difference(oset)
                 entered = []
@@ -522,23 +521,23 @@ class cacheDirClass:
     It should generally not be called directly.  Rather,
     call one of the inherited classes.
     """
-    def __init__(self,logClass,
-                 dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
-                 inactive_files=None,
-                 inactive_timeout=24*3600,
-                 cache_dir=None):
+    def __init__(self, logClass, dirname, log_prefix, log_suffix=".log",
+                 cache_ext=".cifpk", inactive_files=None,
+                 inactive_timeout=24*3600, cache_dir=None,
+                 wrapperClass=None,username=None):
         """
         @param inactive_files: if None, will be reloaded from cache
         @param inactive_timeout: how much time must elapse before a file can be declared inactive
         @param cache_dir: If None, use dirname for the cache directory.
         """
-        self.cdInit(logClass,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout,cache_dir)
+        self.cdInit(logClass, dirname, log_prefix, log_suffix, cache_ext,
+                    inactive_files, inactive_timeout, cache_dir,
+                    wrapperClass=wrapperClass,username=username)
 
-    def cdInit(self,logClass,
-               dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
-               inactive_files=None,
-               inactive_timeout=24*3600,
-               cache_dir=None):
+    def cdInit(self, logClass, dirname, log_prefix, log_suffix=".log",
+               cache_ext=".cifpk", inactive_files=None,
+               inactive_timeout=24*3600, cache_dir=None,
+               wrapperClass=None,username=None):
         """
         @param logClass: this is an actual class, not an object
         @param inactive_files: if None, will be reloaded from cache
@@ -546,16 +545,20 @@ class cacheDirClass:
 declared inactive
         @param cache_dir: If None, use dirname for the cache directory.
         """
+
+        self.wrapperClass=wrapperClass
+        self.username=username
+
         self.logClass=logClass
         self.dirname=dirname
-        if cache_dir==None:
+        if cache_dir is None:
             cache_dir=dirname
         self.cache_dir=cache_dir
         self.log_prefix=log_prefix
         self.log_suffix=log_suffix
         self.inactive_timeout=inactive_timeout
         self.inactive_files_cache=os.path.join(cache_dir,log_prefix+log_suffix+cache_ext)
-        if inactive_files==None:
+        if inactive_files is None:
             if os.path.isfile(self.inactive_files_cache):
                 self.inactive_files = loadCache(self.inactive_files_cache)
             else:
@@ -597,7 +600,15 @@ declared inactive
         ch=False
         fnames=self.getFileList(active_only=True)
         for fname in fnames:
-            obj=self.logClass(os.path.join(self.dirname,fname),self.cache_dir)
+            if (self.wrapperClass is not None) and (self.username is not None):
+                obj = self.wrapperClass.getObj(
+                          logname=os.path.join(self.dirname,fname),
+                          cache_dir=self.cache_dir,
+                          username=self.username)
+            else:
+                obj=self.logClass(os.path.join(self.dirname,fname),
+                                  self.cache_dir)
+
             ch=(ch or obj.has_changed()) # it is enough that one changes
         return ch
 
@@ -626,7 +637,12 @@ declared inactive
             if os.path.getsize(absfname)<1:
                 continue # skip empty files
             last_mod=os.path.getmtime(absfname)
-            obj=self.logClass(absfname,self.cache_dir)
+            if (self.wrapperClass is not None) and (self.username is not None):
+                obj=self.wrapperClass.getObj(logname=absfname,
+                                             cache_dir=self.cache_dir,
+                                             username=self.username)
+            else:
+                obj=self.logClass(absfname, self.cache_dir)
             obj.load()
             mydata = obj.merge(mydata)
             if ( ((now-last_mod) > self.inactive_timeout) and 
@@ -653,7 +669,14 @@ declared inactive
         diff() function.
         """
 
-        dummyobj=self.logClass(os.path.join(self.dirname,'dummy.txt'),self.cache_dir)
+        if (self.wrapperClass is not None) and (self.username is not None):
+            dummyobj=self.wrapperClass.getObj(os.path.join(self.dirname,
+                                                           'dummy.txt'),
+                                              self.cache_dir, self.username)
+        else:
+            dummyobj=self.logClass(os.path.join(self.dirname,'dummy.txt'),
+                                   self.cache_dir)
+
         dummyobj.data=self.data # a little rough but works
         return  dummyobj.diff(other) 
         
@@ -921,7 +944,7 @@ def parseSubmitLogFastRawTimings(fname):
         line_time = buf[idx:idx+14]
         idx += 16
 
-        if first_time == None:
+        if first_time is None:
             first_time = line_time
         last_time = line_time
             
@@ -1243,7 +1266,7 @@ def parseSubmitLogFastTimings(fname,year=None):
 
     jobs_raw, first_time, last_time = parseSubmitLogFastRawTimings(fname)
 
-    if year == None:
+    if year is None:
         year = time.localtime()[0]
 
     # it wrapped over, dates really in previous year

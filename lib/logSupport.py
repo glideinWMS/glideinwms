@@ -19,8 +19,8 @@ log = None # create a place holder for a global logger, individual modules can c
 log_dir = None
 
 
-DEFAULT_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s:  %(message)s')
-DEBUG_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s:::%(module)s::%(lineno)d: %(message)s ')
+DEFAULT_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s')
+DEBUG_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s: %(module)s:%(lineno)d: %(message)s')
 
 # Adding in the capability to use the built in Python logging Module
 # This will allow us to log anything, anywhere

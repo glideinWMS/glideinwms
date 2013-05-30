@@ -14,11 +14,13 @@
 
 import string
 import time
-import popen2
 try:
-    import rrdtool
+    import rrdtool #@UnresolvedImport
 except:
     pass
+import subprocess
+import shlex
+import subprocessSupport
 
 class BaseRRDSupport:
     #############################################################
@@ -26,7 +28,7 @@ class BaseRRDSupport:
         self.rrd_obj = rrd_obj
 
     def isDummy(self):
-        return (self.rrd_obj == None)
+        return (self.rrd_obj is None)
 
     #############################################################
     # The default will do nothing
@@ -153,7 +155,7 @@ class BaseRRDSupport:
           time     - When was the value taken
           val_dict - What was the value
         """
-        if self.rrd_obj == None:
+        if self.rrd_obj is None:
             return # nothing to do in this case
 
         args = [str(rrdfname)]
@@ -163,7 +165,7 @@ class BaseRRDSupport:
         ds_names_real = []
         ds_vals = []
         for ds_name in ds_names:
-            if val_dict[ds_name]!=None:
+            if val_dict[ds_name] is not None:
                 ds_vals.append("%s"%val_dict[ds_name])
                 ds_names_real.append(ds_name)
 
@@ -310,14 +312,14 @@ class BaseRRDSupport:
             ds_fname = rrd_file[1]
             ds_name = rrd_file[2]
             ds_type = rrd_file[3]
-            if trend == None:
+            if trend is None:
                 args.append(str("DEF:%s=%s:%s:%s" % (ds_id, ds_fname, ds_name, ds_type)))
             else:
                 args.append(str("DEF:%s_inst=%s:%s:%s" % (ds_id, ds_fname, ds_name, ds_type)))
                 args.append(str("CDEF:%s=%s_inst,%i,TREND" % (ds_id, ds_id, trend)))
 
         plot_arr = rrd_files
-        if cdef_arr != None:
+        if cdef_arr is not None:
             # plot the cdefs not the files themselves, when we have them
             plot_arr = cdef_arr
 
@@ -430,16 +432,16 @@ class BaseRRDSupport:
         else:
             raise RuntimeError,"Invalid consolidation function %s"%CF
         args = [str(filename), consolFunc]
-        if not (resolution == None):
+        if resolution is not None:
             args.append('-r')
             args.append(str(resolution))
-        if not (end == None):
+        if end is not None:
             args.append('-e')
             args.append(str(end))
-        if not (start == None):
+        if start is not None:
             args.append('-s')
             args.append(str(start))
-        if not (daemon == None):
+        if daemon is not None:
             args.append('--daemon')
             args.append(str(daemon))
 
@@ -527,64 +529,41 @@ def string_quote_join(arglist):
 # python module, if that one is not available
 class rrdtool_exe:
     def __init__(self):
-        self.popen2_obj = popen2
-        self.rrd_bin = self.iexe_cmd("which rrdtool")[0][:-1]
+        self.rrd_bin = (subprocessSupport.iexe_cmd("which rrdtool")[0]).strip()
 
-    def create(self, *args):
-        cmdline = '%s create %s' % (self.rrd_bin, string_quote_join(args))
-        self.iexe_cmd(cmdline)
+    def create(self,*args):
+        cmdline = '%s create %s'%(self.rrd_bin,string_quote_join(args))
+        outstr = subprocessSupport.iexe_cmd(cmdline)
         return
 
-    def update(self, *args):
-        cmdline = '%s update %s' % (self.rrd_bin, string_quote_join(args))
-        self.iexe_cmd(cmdline)
+    def update(self,*args):
+        cmdline = '%s update %s'%(self.rrd_bin,string_quote_join(args))
+        outstr = subprocessSupport.iexe_cmd(cmdline)
         return
     
     def info(self,*args):
-        cmdline='%s info %s'%(self.rrd_bin,string_quote_join(args))
-        outstr=self.iexe_cmd(cmdline)
-        outarr={}
+        cmdline = '%s info %s'%(self.rrd_bin,string_quote_join(args))
+        outstr = subprocessSupport.iexe_cmd(cmdline)
+        outarr = {}
         for line in outstr:
-            linearr=line.split('=')
-            outarr[linearr[0]]=linearr[1]
+            linearr = line.split('=')
+            outarr[linearr[0]] = linearr[1]
         return outarr
     
     def dump(self,*args):
-        cmdline='%s dump %s'%(self.rrd_bin,string_quote_join(args))
-        outstr=self.iexe_cmd(cmdline)
+        cmdline = '%s dump %s' % (self.rrd_bin, string_quote_join(args))
+        outstr = subprocessSupport.iexe_cmd(cmdline)
         return outstr
     
     def restore(self,*args):
-        cmdline='%s restore %s'%(self.rrd_bin,string_quote_join(args))
-        outstr=self.iexe_cmd(cmdline)
+        cmdline = '%s restore %s'%(self.rrd_bin,string_quote_join(args))
+        outstr = subprocessSupport.iexe_cmd(cmdline)
         return
 
-    def graph(self, *args):
-        cmdline = '%s graph %s' % (self.rrd_bin, string_quote_join(args))
-        self.iexe_cmd(cmdline)
+    def graph(self,*args):
+        cmdline = '%s graph %s'%(self.rrd_bin, string_quote_join(args))
+        outstr = subprocessSupport.iexe_cmd(cmdline)
         return
-
-    ##########################################
-    def iexe_cmd(self, cmd):
-        child=self.popen2_obj.Popen3(cmd,True)
-        child.tochild.close()
-        tempOut = child.fromchild.readlines()
-        child.fromchild.close()
-        tempErr = child.childerr.readlines()
-        child.childerr.close()
-        try:
-            errcode = child.wait()
-        except OSError, e:
-            if len(tempOut) != 0:
-                # if there was some output, it is probably just a problem of timing
-                # have seen a lot of those when running very short processes
-                errcode = 0
-            else:
-                raise RuntimeError, "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s" % (cmd, tempOut, tempErr, e)
-        if (errcode != 0):
-            raise RuntimeError, "Error running '%s'\ncode %i:%s" % (cmd, errcode, tempErr)
-        return tempOut
-
 
 def addDataStore(filenamein, filenameout, attrlist):
     """

@@ -23,9 +23,8 @@ import os.path
 import copy
 
 STARTUP_DIR=sys.path[0]
-
-# import glideinWMS libraries
 sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
+
 from glideinwms.creation.lib import cgWParams
 
 # current entry for site
@@ -630,7 +629,7 @@ class GlideFrame(wx.Frame):
         
         # save config changes
         
-        if(event != None and event.GetId() == self.SAVEAS_COMMAND):
+        if(event is not None and event.GetId() == self.SAVEAS_COMMAND):
             filename =  wx.FileSelector("Save As...", flags=wx.SAVE|wx.OVERWRITE_PROMPT);
             if(filename==""):
                 return
