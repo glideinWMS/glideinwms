@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_1_alpha2
+# GLIDEINWMS_VERSION v3_1_alpha3
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -145,7 +145,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./lib/__init__.py
 47e90bb60b71274b2d13f283207336ae  ./lib/condorLogParser.py
 f9f296bc30e68cb314dfba0415c97b26  ./lib/condorManager.py
 a083c4af31cf125ba64b7c4497677a71  ./lib/condorMonitor.py
-a39c526b19653f86555742e31096a14f  ./lib/condorPrivsep.py
+c63af14747acce809ef03188a38d73db  ./lib/condorPrivsep.py
 d79f4a3b5492b5229d255085df2ef2b7  ./lib/condorSecurity.py
 85810235f5f90736e8d2899acd2a2cc9  ./lib/encodingSupport.py
 a203f536b05728922180758c66bdcb28  ./lib/exprParser.py
