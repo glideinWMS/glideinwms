@@ -536,6 +536,21 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                 logSupport.log.exception("Factory Monitoring deadvertize failed!")
         logSupport.log.info("All EntryGroups should be terminated")
 
+def increase_process_limit(new_limit = 10000):
+    """ Raise RLIMIT_NPROC to new_limit """
+    (soft, hard) = resource.getrlimit(resource.RLIMIT_NPROC)
+    if soft < new_limit:
+        try:
+            resource.setrlimit(resource.RLIMIT_NPROC, (new_limit, hard))
+            logSupport.log.info("Raised RLIMIT_NPROC from %d to %d" %
+                                (soft, new_limit))
+        except ValueError:
+            logSupport.log.info("Warning: could not raise RLIMIT_NPROC "
+                                "from %d to %d" % (soft, new_limit))
+
+    else:
+        logSupport.log.info("RLIMIT_NPROC already %d, not changing to %d" %
+                            (soft, new_limit))
 
 ############################################################
 def main(startup_dir):
@@ -639,6 +654,8 @@ def main(startup_dir):
 
     # create lock file
     pid_obj = glideFactoryPidLib.FactoryPidSupport(startup_dir)
+
+    increase_process_limit()
 
     # start
     pid_obj.register()
