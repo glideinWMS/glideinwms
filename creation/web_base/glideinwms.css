@@ -124,3 +124,11 @@ h3.page-title {
     color: #800517;
 }
 
+ul.nav li.dropdown:hover > ul.dropdown-menu {
+    display: block;
+    margin: 0;
+}
+
+ul.nav li:hover {
+    background-color:#e5e5e5;
+}
