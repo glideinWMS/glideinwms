@@ -49,12 +49,11 @@ def main(params, old_params, update_scripts, update_def_cfg):
     except cgWParamDict.UnconfiguredScheddError, e:
         print e.err_str
         sys.exit(1)
-
     # merge them together
     if not old_params is None:
         entries = glidein_dicts_obj.params.entries
         old_entries = old_glidein_dicts_obj.params.entries
-
+        
         for entry in old_entries.keys():
             if entry not in entries.keys():
                 print "WARNING: entry %s is not found in new xml!" % entry
@@ -62,9 +61,9 @@ def main(params, old_params, update_scripts, update_def_cfg):
                     print "Aborting reconfig since this is just too scary."
                     print "Enable -force_delete if you really want to delete it."
                     sys.exit(1)
-
+        
         glidein_dicts_obj.reuse(old_glidein_dicts_obj)
-
+    
         # Make sure we preserve old schedd names
         for entry in entries.keys():
             if entry in old_entries.keys():
@@ -72,7 +71,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
 
 
 
-
+                
     # write to disk
     glidein_dicts_obj.save()
     glidein_dicts_obj.set_readonly(True)
@@ -83,35 +82,35 @@ def main(params, old_params, update_scripts, update_def_cfg):
         cgWCreate.copy_exe(cgWConsts.SUBMIT_WRAPPER,glidein_dicts_obj.main_dicts.work_dir,params.src_dir, True)
         cgWCreate.copy_exe(cgWConsts.LOCAL_START_WRAPPER,glidein_dicts_obj.main_dicts.work_dir,params.src_dir, True)
         print '...Updated the glidein_startup.sh, job_submit.sh, and local_start.sh scripts'
-
+    
         # copy privsep helper executables
         cgWCreate.copy_exe(cgWConsts.UPDATE_PROXY_FILE,glidein_dicts_obj.main_dicts.work_dir,params.src_dir, True)
-
+    
     if update_def_cfg == 'yes' or update_scripts == 'yes':
         # recreate the init.d startup file
         startup_fname = os.path.join(glidein_dicts_obj.main_dicts.work_dir,cgWConsts.INITD_STARTUP_FILE)
         factory_dir = glidein_dicts_obj.main_dicts.work_dir
-
+        
         # Remove startup file if already exists
         if os.path.exists(os.path.join(factory_dir, startup_fname)):
             os.remove(os.path.join(factory_dir, startup_fname))
-
+        
         cgWCreate.create_initd_startup(startup_fname,
                                        factory_dir,
                                        os.path.realpath(os.path.join(STARTUP_DIR,'..')),
                                        params.cfg_name)
         print "...Updated the factory_startup script"
-
+        
         if update_def_cfg == 'yes':
             print "...Updated default config file location to: %s" % params.cfg_name
-
+                                       
     cfgfile=os.path.join(glidein_dicts_obj.main_dicts.work_dir,cgWConsts.XML_CONFIG_FILE)
-
+    
     # save config into file (with backup, since the old one already exists)
     # This is the version the factory is currently using for execution and is located in the main glidein dir.
     params.save_into_file_wbackup(cfgfile,set_ro=True)
     print "...Saved the current config file into the working dir"
-
+    
     # make backup copy that does not get overwritten on further reconfig
     # This file has the additional hash extension and is located in the main glidein dir
     cfgfile=cWConsts.insert_timestr(cfgfile)
@@ -142,7 +141,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
 ############################################################
 #
 # S T A R T U P
-#
+# 
 ############################################################
 
 if __name__ == '__main__':
@@ -174,14 +173,14 @@ if __name__ == '__main__':
         elif argv[i] == '-help':
             print usage
             sys.exit(1)
-
+    
     if xml == '':
         # to support upgrading from versions older than v2.5.3
         # the last arg is always the xml file
         xml = argv[len(argv)-1]
 
-    args = [argv[0], xml]
-
+    args = [argv[0], xml]     
+                
     try:
         params=cgWParams.GlideinParams(usage, WEB_BASE_DIR, args)
     except RuntimeError,e:
@@ -194,19 +193,19 @@ if __name__ == '__main__':
             print ""
             print "This is not a '%s' config file ('%s' found)"%(force_name,params.glidein_name)
             sys.exit(1)
-
+        
     if not (writeback in ('yes','no')):
         print usage
         print ""
         print "-writeback must be yes or no, found '%s'"%writeback
         sys.exit(1)
-
+    
     if not (update_def_cfg in ('yes', 'no')):
         print usage
         print ""
         print "-update_def_cfg must be yes or no, found '%s'" % update_def_cfg
         sys.exit(1)
-
+        
     try:
         # This is the current running version, saved in the glidein work dir
         old_config_file=os.path.join(params.submit_dir,cgWConsts.XML_CONFIG_FILE)
@@ -219,9 +218,9 @@ if __name__ == '__main__':
             print "Warning: Cannot find %s"%old_config_file
             print "If this is the first reconfig, you can ignore this message."
             old_params=None
-
+        
         main(params, old_params, update_scripts, update_def_cfg)
-
+      
     except RuntimeError, e:
         print usage
         print ""
@@ -236,3 +235,5 @@ if __name__ == '__main__':
     except:
         print "Writing back config file failed"
         sys.exit(1)
+
+

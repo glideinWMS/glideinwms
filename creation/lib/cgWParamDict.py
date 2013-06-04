@@ -447,7 +447,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
     def reuse(self,other):             # other must be of the same class
         if self.monitor_dir!=other.monitor_dir:
             print "WARNING: monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
-
+        
         return cgWDictFile.glideinDicts.reuse(self,other)
 
     ###########
@@ -486,7 +486,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
                 params.subparams.data['entries'][sub_name]['schedd_name']=min_schedd
                 global_schedd_count[min_schedd]+=1
         return
-
+        
     ######################################
     def sortit(self,dict):
         """ A temporary method for sorting a dictionary based on
