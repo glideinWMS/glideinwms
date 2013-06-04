@@ -286,7 +286,7 @@ class dirSummaryTimingsOut(condorLogParser.cacheDirClass):
         try:
             obj = dirSummarySimple(self)
         except:
-            logSupport.log.exception()
+            logSupport.log.exception("dirSummarySimple failed")
             raise
 
         return obj
