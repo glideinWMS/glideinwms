@@ -141,7 +141,7 @@ class Entry:
 
         self.gflFactoryConfig.max_submits = int(self.jobDescript.data['MaxSubmitRate'])
         self.gflFactoryConfig.max_cluster_size = int(self.jobDescript.data['SubmitCluster'])
-        self.gflFactoryConfig.slots_layout = int(self.jobDescript.data['SubmitSlotsLayout'])
+        self.gflFactoryConfig.slots_layout = self.jobDescript.data['SubmitSlotsLayout']
         self.gflFactoryConfig.submit_sleep = float(self.jobDescript.data['SubmitSleep'])
         self.gflFactoryConfig.max_removes = int(self.jobDescript.data['MaxRemoveRate'])
         self.gflFactoryConfig.remove_sleep = float(self.jobDescript.data['RemoveSleep'])
