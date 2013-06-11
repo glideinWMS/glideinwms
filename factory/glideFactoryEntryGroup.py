@@ -419,7 +419,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
                                             sys.exc_info()[1],
                                             sys.exc_info()[2])
             entry.logFiles.logDebug("Error in fork, contact developers: %s" % tb)
-            os._exit(1)
+            raise KeyboardInterrupt("Fork error")
 
         forks_remaining -= 1
 
@@ -518,6 +518,9 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
                                                glideinDescript,
                                                frontendDescript,
                                                group_name, my_entries)
+    except KeyboardInterrupt:
+        raise
+
     except:
         tb = traceback.format_exception(sys.exc_info()[0],
                                         sys.exc_info()[1],
@@ -641,7 +644,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                                                         sys.exc_info()[1],
                                                         sys.exc_info()[2])
                         gfl.log_files.logDebug("Error in fork, contact developers: %s" % tb)
-                        os._exit(1)
+                        raise KeyboardInterrupt("Fork error")
 
                     if pid:
                         # I am the parent
