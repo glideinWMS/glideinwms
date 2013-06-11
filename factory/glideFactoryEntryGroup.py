@@ -411,7 +411,16 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
 
         entry = my_entries[ent]
         r,w = os.pipe()
-        pid = os.fork()
+
+        try:
+            pid = os.fork()
+        except Exception, ex:
+            tb = traceback.format_exception(sys.exc_info()[0],
+                                            sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            entry.logFiles.logDebug("Error in fork, contact developers: %s" % tb)
+            os._exit(1)
+
         forks_remaining -= 1
 
         if pid != 0:
@@ -625,7 +634,15 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
 
                 for cpu in xrange(cpuCount):
                     r,w = os.pipe()
-                    pid = os.fork()
+                    try:
+                        pid = os.fork()
+                    except Exception, ex:
+                        tb = traceback.format_exception(sys.exc_info()[0],
+                                                        sys.exc_info()[1],
+                                                        sys.exc_info()[2])
+                        gfl.log_files.logDebug("Error in fork, contact developers: %s" % tb)
+                        os._exit(1)
+
                     if pid:
                         # I am the parent
                         pids.append(pid)
