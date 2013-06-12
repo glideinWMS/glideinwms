@@ -290,9 +290,37 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     # We may or may not be able to perform all the work but that will be
     # checked later per entry
 
-    work = {}
-    work = find_work(factory_in_downtime, glideinDescript,
-                     frontendDescript, group_name, my_entries)
+    # Do it in a different process to save memory
+    # Since we later fork many processes, the savings can be significant
+
+    r,w = os.pipe()
+    pid = os.fork()
+    if pid != 0:
+        # This is the parent process
+        os.close(w)
+        # most of the work done outside the if
+    else:
+        # This is the child process
+        os.close(r)
+        work = {}
+        try:
+            work = find_work(factory_in_downtime, glideinDescript,
+                             frontendDescript, group_name, my_entries)
+        except Exception, ex:
+            tb = traceback.format_exception(sys.exc_info()[0],
+                                            sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            logSupport.log.exception("Error in find_work")
+            # still return an empty dictionary
+
+        os.write(w,cPickle.dumps(work))
+        os.close(w)
+        # Hard kill myself. Don't want any cleanup, since I was created
+        # just for collecting the data
+        os.kill(os.getpid(),signal.SIGKILL)
+
+
+    work=fetch_fork_result(r,pid)
 
     # TODO: If we return here check if we need to do cleanup of held glideins?
     #       So far only de-advertising is confirmed to trigger not cleanup
