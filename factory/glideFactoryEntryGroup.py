@@ -211,17 +211,13 @@ def fetch_fork_result(r, pid):
     @return: Unpickled object
     """
 
+    rf=os.fdopen(r,'r')
     try:
-        rin = ""
-        s = os.read(r, 1024*1024)
-        while (s != ""): # "" means EOF
-            rin += s
-            s = os.read(r,1024*1024)
+        out=cPickle.load(rf)
     finally:
-        os.close(r)
+        rf.close() # this closes r as well
         os.waitpid(pid, 0)
 
-    out = cPickle.loads(rin)
     return out
 
 def fetch_fork_result_list(pipe_ids):
@@ -313,7 +309,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
             logSupport.log.exception("Error in find_work")
             # still return an empty dictionary
 
-        os.write(w,cPickle.dumps(work))
+        os.write(w,cPickle.dumps(work,protocol=-1))
         os.close(w)
         # Hard kill myself. Don't want any cleanup, since I was created
         # just for collecting the data
