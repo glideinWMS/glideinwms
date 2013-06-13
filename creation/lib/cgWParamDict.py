@@ -700,6 +700,7 @@ def populate_factory_descript(work_dir,
         glidein_dict.add('RestartAttempts',params.restart_attempts)
         glidein_dict.add('RestartInterval',params.restart_interval)
         glidein_dict.add('AdvertiseDelay',params.advertise_delay)
+        glidein_dict.add('EntryParallelWorkers',params.entry_parallel_workers)
         glidein_dict.add('LogDir',params.log_dir)
         glidein_dict.add('ClientLogBaseDir',params.submit.base_client_log_dir)
         glidein_dict.add('ClientProxiesBaseDir',params.submit.base_client_proxies_dir)
