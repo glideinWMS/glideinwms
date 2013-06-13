@@ -1362,7 +1362,14 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
                 proxy_contents = condorPrivsep.execute(
                                      submit_credentials.username,
                                      proxy_dir, cat_cmd, args)
-                proxy_contents = "".join(proxy_contents)
+                # AT: Since the move from popen2.Popen calls to subprocess calls,
+                # we no longer use readlines.  Instead we use splitlines on the
+                # output returned.  A readlines call preserves the \n characters
+                # in the output.  A splitlines call with no arguments doesn't.
+                # I believe that this is the only place where preserving the
+                # newline character matters.  So we will join on newline rather
+                # than the old empty string.
+                proxy_contents = "\n".join(proxy_contents)
 
                 try:
                     vm_max_lifetime = str(params["VM_MAX_LIFETIME"])
