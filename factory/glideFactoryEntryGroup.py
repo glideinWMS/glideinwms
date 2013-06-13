@@ -292,7 +292,7 @@ def process_finished_children(pipe_ids):
                                             sys.exc_info()[1],
                                             sys.exc_info()[2])
             logSupport.log.warn("Failed to extract info from child '%s'" % key)
-            ogSupport.log.debug("Failed to extract info from child '%s': %s" % (key, tb))
+            logSupport.log.debug("Failed to extract info from child '%s': %s" % (key, tb))
             failures += 1
 
     if failures:
@@ -370,12 +370,12 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     work_info_read_err = False
 
     if parallel_workers <= 0:
-        ogSupport.log.debug("Setting parallel_workers limit dynamically based on the available free memory")
+        logSupport.log.debug("Setting parallel_workers limit dynamically based on the available free memory")
         free_mem = os.sysconf('SC_AVPHYS_PAGES')*os.sysconf('SC_PAGE_SIZE')
         parallel_workers = int(free_mem / float(ENTRY_MEM_REQ_BYTES))
         if parallel_workers < 1: parallel_workers = 1
 
-    ogSupport.log.debug("Setting parallel_workers limit of %s" % parallel_workers)
+    logSupport.log.debug("Setting parallel_workers limit of %s" % parallel_workers)
     forks_remaining = parallel_workers
 
     # Only fork of child processes for entries that have corresponding
@@ -448,8 +448,8 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
         work_info_read_err = True
 
     # Gather results from the forked children
-    ogSupport.log.info("All children forked for glideFactoryEntry.check_and_perform_work terminated. Loading post work state for the entry.")
-    ogSupport.log.debug("All children forked for glideFactoryEntry.check_and_perform_work terminated. Loading post work state for the entry.")
+    logSupport.log.info("All children forked for glideFactoryEntry.check_and_perform_work terminated. Loading post work state for the entry.")
+    logSupport.log.debug("All children forked for glideFactoryEntry.check_and_perform_work terminated. Loading post work state for the entry.")
 
     for entry in my_entries:
         # Update the entry object from the post_work_info
@@ -461,7 +461,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
             logSupport.log.debug("No work found for entry %s from anyt frontends" % entry)
 
     if work_info_read_err:
-        ogSupport.log.debug("Unable to process response from one or more children for check_and_perform_work. One or more forked processes may have failed and may not have client_stats updated")
+        logSupport.log.debug("Unable to process response from one or more children for check_and_perform_work. One or more forked processes may have failed and may not have client_stats updated")
         logSupport.log.warn("Unable to process response from one or more children for check_and_perform_work. One or more forked processes may have failed and may not have client_stats updated")
 
 
