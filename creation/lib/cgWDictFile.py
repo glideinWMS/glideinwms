@@ -430,6 +430,8 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
             try:
                 # use privsep mkdir, as requested
                 condorPrivsep.mkdir(base_dir,os.path.basename(self.dir),self.user)
+                # with condor 7.9.4 a permissions change is required
+                condorPrivsep.execute(self.user,base_dir,'/bin/chmod',['chmod','0755',self.dir],stdout_fname=None)
             except condorPrivsep.ExeError, e:
                 raise RuntimeError,"Failed to create %s dir (user %s): %s"%(self.dir_name,self.user,e)
             except:
@@ -439,6 +441,8 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
                 # use the execute command
                 # do not use the mkdir one, as we do not need root privileges
                 condorPrivsep.execute(self.user,base_dir,'/bin/mkdir',['mkdir',self.dir],stdout_fname=None)
+                # with condor 7.9.4 a permissions change is required
+                condorPrivsep.execute(self.user,base_dir,'/bin/chmod',['chmod','0755',self.dir],stdout_fname=None)
             except condorPrivsep.ExeError, e:
                 raise RuntimeError,"Failed to create %s dir (user %s): %s"%(self.dir_name,self.user,e)
             except:
@@ -497,7 +501,9 @@ class chmodClientDirSupport(clientDirSupport):
             try:
                 # use the execute command
                 # do not use the mkdir one, as we do not need root privileges
-                condorPrivsep.execute(self.user,base_dir,'/bin/mkdir',['mkdir','-m',"0%o"%self.chmod,self.dir],stdout_fname=None)
+                condorPrivsep.execute(self.user,base_dir,'/bin/mkdir',['mkdir',self.dir],stdout_fname=None)
+                # with condor 7.9.4 a permissions change is required
+                condorPrivsep.execute(self.user,base_dir,'/bin/chmod',['chmod',"0%o"%self.chmod,self.dir],stdout_fname=None)
             except condorPrivsep.ExeError, e:
                 raise RuntimeError,"Failed to create %s dir (user %s): %s"%(self.dir_name,self.user,e)
             except:
