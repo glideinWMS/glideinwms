@@ -10,8 +10,16 @@ v3_1    Includes relevant features and bug fixes released upto v2_7
           scripts to keep the frontend proxies updated
         Glideinwms now uses standard python logging APIs
         Version 3 Factory is backward compatible with the Version 2 Frontends
+	Glidein Monitoring slots are now disabled by default
+	Factory process now tries to increase RLIMIT_NPROC if possible
         Improved documentation
         Bug Fix: DAEMON_SHUTDOWN now works with the multi-slot glideins
+        Bug Fix: Tools analyze_queues and analyze_frontend now correctly work
+	  with the http:// URI
+        Bug Fix: Fixed a bug where glidein would not parse some of its
+	  configuration variables corectly
+	Bug Fix: Fixed a bug where create_glidein would fail when used with
+	  condor 7.9.4+
 
 v3_0_0  Change to max job limits to reflect more accurate names
 	Add attr_dict in the environemnt of the frontend match_expr

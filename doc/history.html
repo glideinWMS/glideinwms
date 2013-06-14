@@ -464,9 +464,17 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
           scripts to keep the frontend proxies updated
           <li>Glideinwms now uses standard python logging APIs
           <li>Version 3 Factory is backward compatible with the Version 2
-          Frontends Improved documentation
+          Frontends
+          <li>Glidein Monitoring slots are now disabled by default
+          <li>Factory process now tries to increase RLIMIT_NPROC if possible
           <li>Improved documentation
           <li>Bug Fix: DAEMON_SHUTDOWN now works with the multi-slot glideins
+          <li>Bug Fix: Tools analyze_queues and analyze_frontend now correctly
+          work with the http:// URI
+          <li>Bug Fix: Fixed a bug where glidein would not parse some of its 
+          configuration variables corectly
+          <li>Bug Fix: Fixed a bug where create_glidein would fail when used
+          with condor 7.9.4+
         </ul>
       </li>
       <li>
