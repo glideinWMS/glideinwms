@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_1_alpha3
+# GLIDEINWMS_VERSION v3_1_alpha4
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -32,7 +32,7 @@ a4a3ccaf64969f678872fab82e3bc6fc  ./creation/web_base/condor_config.check.includ
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
 f9a71916006e1a7f7778966628b0b232  ./creation/web_base/condor_config.multi_schedd.include
 e3a86ef7306b23290d9d9979baf562eb  ./creation/web_base/condor_vars.lst
-3dd42dd78f83af8bd4d93cc82f3096dd  ./creation/web_base/condor_vars.lst.entry
+060bf410c7c621ad7eb780f1b072ab47  ./creation/web_base/condor_vars.lst.entry
 4ee15f9e9c74217e894fcdbbb7b0afe2  ./creation/web_base/create_temp_mapfile.sh
 2defc7ddcb297a1205a6bf0682f420f9  ./creation/web_base/error_augment.sh
 94b331baa0564c40c8e2516a53c9cda1  ./creation/web_base/error_gen.sh
@@ -111,7 +111,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./lib/__init__.py
 47e90bb60b71274b2d13f283207336ae  ./lib/condorLogParser.py
 f9f296bc30e68cb314dfba0415c97b26  ./lib/condorManager.py
 a083c4af31cf125ba64b7c4497677a71  ./lib/condorMonitor.py
-c63af14747acce809ef03188a38d73db  ./lib/condorPrivsep.py
+f5196f0f695b60dd4084bca1a2733bfc  ./lib/condorPrivsep.py
 d79f4a3b5492b5229d255085df2ef2b7  ./lib/condorSecurity.py
 85810235f5f90736e8d2899acd2a2cc9  ./lib/encodingSupport.py
 a203f536b05728922180758c66bdcb28  ./lib/exprParser.py
