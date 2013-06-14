@@ -364,7 +364,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     try:
         parallel_workers = int(glideinDescript.data['EntryParallelWorkers'])
     except KeyError:
-        ogSupport.log.debug("EntryParallelWorkers not set -- factory probably needs a reconfig; setting to 0 for dynamic limits.")
+        logSupport.log.debug("EntryParallelWorkers not set -- factory probably needs a reconfig; setting to 0 for dynamic limits.")
 
     post_work_info = {}
     work_info_read_err = False
