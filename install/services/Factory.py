@@ -407,7 +407,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     data += """\
       <log_retention>
          <process_logs>
-            <process_log max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="INFO" extension="info"/>
+            <process_log max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="INFO,ERR,EXCEPTION,WARN" extension="info"/>
          </process_logs>
       </log_retention>
     """
