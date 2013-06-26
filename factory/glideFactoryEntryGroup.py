@@ -49,7 +49,7 @@ from glideinwms.factory import glideFactoryMonitoring
 from glideinwms.factory import glideFactoryDowntimeLib
 
 # Memory foot print of a entry process when forked for check_and_perform_work
-# Set a conservative limit of 120 MB (based on USCD 2.6 factory Pss of 500 MB)
+# Set a conservative limit of 500 MB (based on USCD 2.6 factory Pss of 115 MB)
 #   plus a safety factor of 2
 
 ENTRY_MEM_REQ_BYTES = 500000000 * 2
