@@ -292,6 +292,9 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                 fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
         while 1:
+
+            iteration_stime = time.ctime()
+
             # THIS IS FOR SECURITY
             # Make sure you delete the old key when its grace is up.
             # If a compromised key is left around and if attacker can somehow 
@@ -327,7 +330,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                         glideFactoryLib.log_files.logWarning("EntryGroup %s STDERR: %s"%(group, tempErr))
                 except IOError:
                     pass # ignore
-                
+
                 # look for exited child
                 if child.poll() is not None:
                     # the child exited
@@ -370,13 +373,18 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             # Aggregate Monitoring data periodically
             glideFactoryLib.log_files.logActivity("Aggregate monitoring data")
             aggregate_stats(factory_downtimes.checkDowntime())
-            
+
             # do it just before the sleep
             glideFactoryLib.log_files.cleanup()
 
-            glideFactoryLib.log_files.logActivity("Sleep %s secs" % sleep_time)
-            time.sleep(sleep_time)
-    finally:        
+            iteration_etime = time.ctime()
+            iteration_sleep_time = sleep_time - (iteration_etime - iteration_stime)
+            if (iteration_sleep_time < 0):
+                iteration_sleep_time = 0
+
+            glideFactoryLib.log_files.logActivity("Sleep %s secs" %  iteration_sleep_time)
+            time.sleep(iteration_sleep_time)
+    finally:
         # cleanup at exit
         glideFactoryLib.log_files.logActivity("Received signal...exit")
         try:
