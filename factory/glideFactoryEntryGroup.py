@@ -576,11 +576,11 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
     # the end of lifetime for the old key object. Hardcoded for now to 30 mins.
     oldkey_gracetime = int(glideinDescript.data['OldPubKeyGraceTime'])
     oldkey_eoltime = starttime + oldkey_gracetime
-    
+
     factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
 
     while 1:
-        
+
         # Check if parent is still active. If not cleanup and die.
         check_parent(parent_pid, glideinDescript, my_entries)
 
@@ -597,11 +597,12 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
         # factory is in downtime. Entry specific downtime is handled in entry
         factory_in_downtime = factory_downtimes.checkDowntime(entry="factory")
 
-        if factory_in_downtime:
-            gfl.log_files.logActivity("Downtime iteration at %s" % time.ctime())
-        else:
-            gfl.log_files.logActivity("Iteration at %s" % time.ctime())
+        iteration_stime = time.ctime()
 
+        if factory_in_downtime:
+            gfl.log_files.logActivity("Iteration at (in downtime) %s" % iteration_stime)
+        else:
+            gfl.log_files.logActivity("Iteration at %s" % iteration_stime)
 
         try:
             done_something = iterate_one(count==0, factory_in_downtime,
@@ -648,8 +649,8 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                                          sys.exc_info()[0],
                                          sys.exc_info()[1],
                                          sys.exc_info()[2])
-                                gfl.log_files.logWarning("Error writing stats for entry '%s'" % (entry.name))                
-                                gfl.log_files.logDebug("Error writing stats for entry '%s': %s" % (entry.name, tb))                
+                                gfl.log_files.logWarning("Error writing stats for entry '%s'" % (entry.name))
+                                gfl.log_files.logDebug("Error writing stats for entry '%s': %s" % (entry.name, tb))
 
                         os.write(w, cPickle.dumps(return_dict))
                         os.close(w)
@@ -672,7 +673,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                 tb = traceback.format_exception(sys.exc_info()[0],
                                                 sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                gfl.log_files.logWarning("Error writing stats: %s" % tb)                
+                gfl.log_files.logWarning("Error writing stats: %s" % tb)
         except KeyboardInterrupt:
             raise # this is an exit signal, pass through
         except:
@@ -683,16 +684,21 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                 tb = traceback.format_exception(sys.exc_info()[0],
                                                 sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                gfl.log_files.logWarning("Exception occurred: %s" % tb)                
-                
+                gfl.log_files.logWarning("Exception occurred: %s" % tb)
+
         gfl.log_files.cleanup()
 
-        gfl.log_files.logActivity("Sleep %is" % sleep_time)
-        time.sleep(sleep_time)
+        iteration_etime = time.ctime()
+        iteration_sleep_time = sleep_time - (iteration_etime - iteration_stime)
+        if (iteration_sleep_time < 0):
+            iteration_sleep_time = 0
+
+        gfl.log_files.logActivity("Sleep %is" % iteration_sleep_time)
+        time.sleep(iteration_sleep_time)
         count = (count+1) % advertize_rate
         is_first = 0
-        
-        
+
+
 ############################################################
 # Initialize log_files for entries and groups
 # TODO: init_logs,init_group_logs,init_entry_logs maybe removed later
