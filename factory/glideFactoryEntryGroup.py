@@ -506,6 +506,19 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
     for entry in my_entries.values():
         entry.initIteration(factory_in_downtime)
 
+    cl_pid = os.fork()
+    if cl_pid != 0:
+        # This is the parent process
+        pass
+    else:
+        # This is the child process
+        for entry in my_entries.values():
+            entry.doCleanup()
+        # Hard kill myself. Don't want any cleanup, since I was created
+        # just for doing the cleanup
+        os.kill(os.getpid(),signal.SIGKILL)
+
+    logSupport.log.info("Cleanup forked")
     try:
         groupwork_done = find_and_perform_work(factory_in_downtime,
                                                glideinDescript,
@@ -518,6 +531,13 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
     logSupport.log.debug("Group Work done: %s" % groupwork_done)
     logSupport.log.info("Advertising entries")
     entries_advertised = []
+
+    logSupport.log.info("Collectoring cleanup")
+    os.waitpid(cl_pid, 0)
+    logSupport.log.info("Cleanup collected")
+
+
+    logSupport.log.debug("Group Work done: %s" % groupwork_done)
     for entry in my_entries.values():
         # Advertise if work was done or if advertise flag is set
         entrywork_done = 0
@@ -695,7 +715,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
         iteration_sleep_time = sleep_time - (iteration_etime - iteration_stime)
         if (iteration_sleep_time < 0):
             iteration_sleep_time = 0
-        gfl.log_files.logActivity("Sleep %is" % iteration_sleep_time)
+        logSupport.log.info("Sleep %is" % iteration_sleep_time)
         time.sleep(iteration_sleep_time)
 
         count = (count+1) % advertize_rate

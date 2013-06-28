@@ -336,6 +336,21 @@ class Entry:
         # These two are used to write the history to disk
         self.gflFactoryConfig.qc_stats = glideFactoryMonitoring.condorQStats(log=self.log)
         self.gflFactoryConfig.client_internals = {}
+        self.log.info("Iteration initialized")
+
+
+    def doCleanup(self):
+        """
+        Perform the log file cleanup
+
+        """
+
+        self.loadContext()
+
+        # Cleanup log files
+        self.log.info("Cleaning logs started")
+        self.log.cleanup()
+        self.log.info("Cleaning logs finished")
 
 
     def unsetInDowntime(self):
