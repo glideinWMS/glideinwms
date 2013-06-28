@@ -554,6 +554,10 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
     logSupport.log.debug("Advertised %i entries: %s" % \
                              (len(entries_advertised),
                               ', '.join(entries_advertised)))
+    
+    logSupport.log.info("Collectoring cleanup")
+    os.waitpid(cl_pid, 0)
+    logSupport.log.info("Cleanup collected")
 
     return done_something
 
