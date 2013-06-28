@@ -529,11 +529,6 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
         gfl.log_files.logWarning("Error occurred while trying to find and do work.")
         gfl.log_files.logWarning("Exception: %s" % tb)
 
-    gfl.log_files.logActivity("Collectoring cleanup")
-    os.waitpid(cl_pid, 0)
-    gfl.log_files.logActivity("Cleanup collected")
-
-
     gfl.log_files.logDebug("Group Work done: %s" % groupwork_done)
     for entry in my_entries.values():
         # Advertise if work was done or if advertise flag is set
@@ -550,6 +545,10 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
             done_something += entrywork_done
         entry.unsetInDowntime()
     
+    gfl.log_files.logActivity("Collectoring cleanup")
+    os.waitpid(cl_pid, 0)
+    gfl.log_files.logActivity("Cleanup collected")
+
     return done_something
 
 ############################################################
