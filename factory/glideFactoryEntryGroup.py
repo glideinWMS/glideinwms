@@ -504,6 +504,19 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
     for entry in my_entries.values():
         entry.initIteration(factory_in_downtime)
 
+    cl_pid = os.fork()
+    if cl_pid != 0:
+        # This is the parent process
+        pass
+    else:
+        # This is the child process
+        for entry in my_entries.values():
+            entry.doCleanup()
+        # Hard kill myself. Don't want any cleanup, since I was created
+        # just for doing the cleanup
+        os.kill(os.getpid(),signal.SIGKILL)
+
+    gfl.log_files.logActivity("Cleanup forked")
     try:
         groupwork_done = find_and_perform_work(factory_in_downtime, 
                                                glideinDescript,
@@ -515,8 +528,10 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
                                         sys.exc_info()[2])
         gfl.log_files.logWarning("Error occurred while trying to find and do work.")
         gfl.log_files.logWarning("Exception: %s" % tb)
-        
 
+    gfl.log_files.logActivity("Collectoring cleanup")
+    os.waitpid(cl_pid, 0)
+    gfl.log_files.logActivity("Cleanup collected")
 
 
     gfl.log_files.logDebug("Group Work done: %s" % groupwork_done)
