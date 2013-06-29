@@ -551,7 +551,7 @@ class EntryClassad(Classad):
         self.adParams['GlideinName'] = "%s" % glidein_name
         self.adParams['EntryName'] = "%s" % entry_name
         self.adParams[factoryConfig.factory_signtype_id] = "%s" % string.join(supported_signtypes, ',')
-        self.adParams['DaemonStartTime'] = start_time
+        self.adParams['DaemonStartTime'] = int(start_time)
         advertizeGFCounter['Name'] = advertizeGFCounter.get('Name', -1) + 1
         self.adParams['UpdateSequenceNumber'] = advertizeGFCounter['Name']
         if pub_key_obj is not None:
@@ -559,8 +559,8 @@ class EntryClassad(Classad):
             self.adParams['PubKeyType'] = "%s" % pub_key_obj.get_pub_key_type()
             self.adParams['PubKeyValue'] = "%s" % string.replace(pub_key_obj.get_pub_key_value(),'\n','\\n')
             if allowed_proxy_source is not None:
-                self.adParams['GlideinAllowx509_Proxy'] = '%s' % ('frontend' in allowed_proxy_source)
-                self.adParams['GlideinRequirex509_Proxy'] = '%s' % (not ('factory' in allowed_proxy_source))
+                self.adParams['GlideinAllowx509_Proxy'] = ('frontend' in allowed_proxy_source)
+                self.adParams['GlideinRequirex509_Proxy'] = (not ('factory' in allowed_proxy_source))
 
         # write out both the attributes, params and monitors
         for (prefix,data) in ((factoryConfig.glidein_attr_prefix,glidein_attrs),
