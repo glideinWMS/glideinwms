@@ -530,21 +530,68 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
         gfl.log_files.logWarning("Exception: %s" % tb)
 
     gfl.log_files.logDebug("Group Work done: %s" % groupwork_done)
+
+    # Classad files to use
+    # Get a 9 digit number that will stay 9 digit for the next 25 years
+    short_time = time.time() - 1.05e9
+    gf_filename = "/tmp/gfi_gf_multi_%li_%li" % (short_time, os.getpid())
+    gfc_filename = "/tmp/gfi_gfc_multi_%li_%li" % (short_time, os.getpid())
+
+    gfl.log_files.logActivity("Generating glidefactory (%s) and glidefactoryclient (%s) classads files" % (gf_filename, gfc_filename))
+
     for entry in my_entries.values():
-        # Advertise if work was done or if advertise flag is set
-        # TODO: Advertising can be optimized by grouping multiple entry
-        #       ads together. For now do it one at a time.
+        # Write classads to file if work was done or if advertise flag is set
+        # Actual advertise is done using multi classad advertisement
         entrywork_done = 0
         if ( (entry.name in groupwork_done) and 
              ('work_done' in groupwork_done[entry.name]) ):
             entrywork_done = groupwork_done[entry.name]['work_done']
 
+        #if ( (do_advertize) or (entrywork_done > 0) ):
+        #    gfl.log_files.logActivity("Advertising entry: %s" % entry.name)
+        #    entry.advertise(factory_in_downtime)
+        #    done_something += entrywork_done
+
         if ( (do_advertize) or (entrywork_done > 0) ):
-            gfl.log_files.logActivity("Advertising entry: %s" % entry.name)
-            entry.advertise(factory_in_downtime)
+            gfl.log_files.logDebug("Generating glidefactory and glidefactoryclient classads for entry: %s" % entry.name)
+            entry.writeClassadsToFile(factory_in_downtime, gf_filename,
+                                      gfc_filename)
             done_something += entrywork_done
+
         entry.unsetInDowntime()
-    
+
+    # ADVERTISE: glidefactory classads
+    if os.path.exists(gf_filename):
+        try:
+            gfl.log_files.logActivity("Advertising glidefactory classads")
+            gfi.advertizeGlideinFromFile(gf_filename,
+                                         remove_file=True,
+                                         is_multi=True)
+        except:
+            tb = traceback.format_exception(sys.exc_info()[0],
+                                            sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            gfl.log_files.logWarning("Advertising glidefactory classads failed")
+            gfl.log_files.logDebug("Advertising glidefactory classads failed: %s" % tb)
+    else:
+        gfl.log_files.logWarning("glidefactory classad file %s does not exist. Check if you have atleast one entry enabled" % gf_filename)
+
+    # ADVERTISE: glidefactoryclient classads
+    if os.path.exists(gfc_filename):
+        try:
+            gfl.log_files.logActivity("Advertising glidefactoryclient classads")
+            gfi.advertizeGlideinClientMonitoringFromFile(
+                gfc_filename, remove_file=True, is_multi=True)
+        except:
+            tb = traceback.format_exception(sys.exc_info()[0],
+                                            sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            gfl.log_files.logWarning("Advertising glidefactoryclient classads failed")
+            gfl.log_files.logDebug("Advertising glidefactoryclient classads failed: %s" % tb)
+    else:
+        gfl.log_files.logWarning("glidefactoryclient classad file %s does not exist. Check if frontends are allowed to submit to entry" % gfc_filename)
+
+
     gfl.log_files.logActivity("Collectoring cleanup")
     os.waitpid(cl_pid, 0)
     gfl.log_files.logActivity("Cleanup collected")
@@ -611,12 +658,13 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
         # factory is in downtime. Entry specific downtime is handled in entry
         factory_in_downtime = factory_downtimes.checkDowntime(entry="factory")
 
-        iteration_stime = time.ctime()
+        iteration_stime = time.time()
+        iteration_stime_str = time.ctime()
 
         if factory_in_downtime:
-            gfl.log_files.logActivity("Iteration at (in downtime) %s" % iteration_stime)
+            gfl.log_files.logActivity("Iteration at (in downtime) %s" % iteration_stime_str)
         else:
-            gfl.log_files.logActivity("Iteration at %s" % iteration_stime)
+            gfl.log_files.logActivity("Iteration at %s" % iteration_stime_str)
 
         try:
             done_something = iterate_one(count==0, factory_in_downtime,
@@ -702,7 +750,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
 
         gfl.log_files.cleanup()
 
-        iteration_etime = time.ctime()
+        iteration_etime = time.time()
         iteration_sleep_time = sleep_time - (iteration_etime - iteration_stime)
         if (iteration_sleep_time < 0):
             iteration_sleep_time = 0
