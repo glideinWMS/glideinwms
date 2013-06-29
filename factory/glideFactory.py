@@ -372,7 +372,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
         while 1:
 
             # Record the iteration start time
-            iteration_stime = time.ctime()
+            iteration_stime = time.time()
 
             # THIS IS FOR SECURITY
             # Make sure you delete the old key when its grace is up.
@@ -506,7 +506,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
 
             cleanupSupport.cleaners.cleanup()
 
-            iteration_etime = time.ctime()
+            iteration_etime = time.time()
             iteration_sleep_time = sleep_time - (iteration_etime - iteration_stime)
             if (iteration_sleep_time < 0):
                 iteration_sleep_time = 0
