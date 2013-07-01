@@ -504,19 +504,30 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
     for entry in my_entries.values():
         entry.initIteration(factory_in_downtime)
 
+    cl_pids=[]
     if need_cleanup:
-        cl_pid = os.fork()
-        if cl_pid != 0:
-            # This is the parent process
-            pass
-        else:
-            # This is the child process
-            for entry in my_entries.values():
-                entry.doCleanup()
-            # Hard kill myself. Don't want any cleanup, since I was created
-            # just for doing the cleanup
-            os.kill(os.getpid(),signal.SIGKILL)
-        gfl.log_files.logActivity("Cleanup forked pid:%s"%cl_pid)
+        # IS: Fix the number of forks to 4 for now
+        #     Would be a good idea making it configurable, though
+        elist=my_entries.values()
+        elistSize=len(elist)
+        elistForks=4
+        elistChunk=elistSize/elistForks+1*((elistSize%elistForks)!=0) #round up
+        for i in range(elistForks):
+            cl_pid = os.fork()
+            if cl_pid != 0:
+                # This is the parent process
+                cl_pids.append(cl_pid)
+            else:
+                # This is the child process
+                try:
+                    for entry in elist[i*elistChunk:(i+1)*elistChunk]:
+                        entry.doCleanup()
+                finally:
+                    # Hard kill myself. Don't want any cleanup, since I was created
+                    # just for doing the cleanup
+                    os.kill(os.getpid(),signal.SIGKILL)
+        del elist 
+        gfl.log_files.logActivity("Cleanup forked pids:%s"%str(cl_pids))
     else:
         gfl.log_files.logActivity("No cleanup this round")
 
@@ -596,9 +607,11 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
 
 
     if need_cleanup:
-        gfl.log_files.logActivity("Collectoring cleanup")
-        os.waitpid(cl_pid, 0)
-        gfl.log_files.logActivity("Cleanup collected")
+        for cl_pid in cl_pids:
+            gfl.log_files.logActivity("Collectoring cleanup pid:%s"%cl_pid)
+            os.waitpid(cl_pid, 0)
+        gfl.log_files.logActivity("All cleanups collected")
+        del cl_pids
 
     return done_something
 
