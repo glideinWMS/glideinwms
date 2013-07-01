@@ -1,3 +1,4 @@
+/config export-ignore
 doc/common merge=keepmine
 doc/common/glidein.js merge=keepmine
 doc/common/glideinWMS.css merge=keepmine
