@@ -477,7 +477,8 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
 ############################################################
 
 def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
-                frontendDescript, group_name, my_entries):
+                frontendDescript, group_name, my_entries, need_cleanup):
+    
     """
     One iteration of the entry group
 
@@ -506,19 +507,22 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
     for entry in my_entries.values():
         entry.initIteration(factory_in_downtime)
 
-    cl_pid = os.fork()
-    if cl_pid != 0:
-        # This is the parent process
-        pass
+    if need_cleanup:
+        cl_pid = os.fork()
+        if cl_pid != 0:
+            # This is the parent process
+            pass
+        else:
+            # This is the child process
+            for entry in my_entries.values():
+                entry.doCleanup()
+            # Hard kill myself. Don't want any cleanup, since I was created
+            # just for doing the cleanup
+            os.kill(os.getpid(),signal.SIGKILL)
+        logSupport.log.info("Cleanup forked pid:%s"%cl_pid)
     else:
-        # This is the child process
-        for entry in my_entries.values():
-            entry.doCleanup()
-        # Hard kill myself. Don't want any cleanup, since I was created
-        # just for doing the cleanup
-        os.kill(os.getpid(),signal.SIGKILL)
+        logSupport.log.info("No cleanup this round")
 
-    logSupport.log.info("Cleanup forked")
     try:
         groupwork_done = find_and_perform_work(factory_in_downtime,
                                                glideinDescript,
@@ -597,9 +601,10 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
         logSupport.log.warn("glidefactoryclient classad file %s does not exist. Check if frontends are allowed to submit to entry" % gfc_filename)
 
 
-    logSupport.log.info("Collecting cleanup")
-    os.waitpid(cl_pid, 0)
-    logSupport.log.info("Cleanup collected")
+    if need_cleanup:
+        logSupport.log.info("Collectoring cleanup")
+        os.waitpid(cl_pid, 0)
+        logSupport.log.info("Cleanup collected")
 
     return done_something
 
@@ -646,6 +651,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
 
     factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
 
+    last_cleanup=None
     while 1:
 
         # Check if parent is still active. If not cleanup and die.
@@ -677,9 +683,18 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
         # Why do we want to execute this if we are in downtime?
         # Or do we want to execute only few steps here but code prevents us?
         try:
+            if last_cleanup is None:
+                need_cleanup=True
+            else:
+                # IS: Fix it to half hour for now
+                #     Making it a prameter is likely be a good idea, though
+                need_cleanup=(time.time()-last_cleanup)>1800
+
             done_something = iterate_one(count==0, factory_in_downtime,
                                          glideinDescript, frontendDescript,
-                                         group_name, my_entries)
+                                         group_name, my_entries, need_cleanup)
+            if need_cleanup:
+                last_cleanup=time.time()
 
             logSupport.log.info("Writing stats for all entries")
 
