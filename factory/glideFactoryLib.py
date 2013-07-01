@@ -1378,11 +1378,13 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
                     # we can change this to a more "sane" default if we can 
                     # agree to what is "sane"
                     vm_max_lifetime = str(43200)
+                    log.debug("No lifetime set.  Defaulting to: %s" % vm_max_lifetime)
 
                 try:
                     vm_disable_shutdown = str(params["VM_DISABLE_SHUTDOWN"])
                 except Exception:
                     # By default assume we don't want to debug the VM
+                    log.debug("No disable flag set.  Defaulting to: False")
                     vm_disable_shutdown = "False"
 
                 ini_template ="""[glidein_startup]
@@ -1399,6 +1401,7 @@ email_logs = False
 """
 
                 ini = ini_template % (glidein_arguments, web_url, vm_max_lifetime, vm_disable_shutdown)
+                log.debug("Userdata ini file:\n%s" % ini)
 
                 tarball = GlideinTar()
                 tarball.add_string("glidein_userdata", ini)
