@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_1_alpha4
+# GLIDEINWMS_VERSION v3_1_rc1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -91,7 +91,7 @@ c0bfe44cfd746c385b7c8186df032ea2  ./install/glidecondor_upgrade
 1524a3cab15abde1a4c1c50b1f3417b9  ./install/services/Certificates.py
 2376638a0eaa81262d6839cc0409e18b  ./install/services/Condor.py
 2815d4e3a344ae0c202c598c51d418f6  ./install/services/Configuration.py
-cc6efbde4d50f396cdbbd2b1fb640c89  ./install/services/Factory.py
+9f2b94e6ba904d66bc177b20596b9b83  ./install/services/Factory.py
 f8d19ab77b0e90d9144164b8fa743bfa  ./install/services/Glidein.py
 20bd59ffce4049978cc70b7d5ca7f581  ./install/services/PrivilegeSeparation.py
 e25b4df45543f80cf9374b320a985f2b  ./install/services/RPM.py
@@ -99,7 +99,7 @@ e5b30fc8b74a658633cfcbe3cb038c08  ./install/services/Submit.py
 9e50aee68d972659da4ec5df8ee10edd  ./install/services/UserCollector.py
 854fd97da41352199f456608e62bb07a  ./install/services/VDT.py
 2a97aa59148723a0f31b231070841da2  ./install/services/VDTClient.py
-a17d1ce141b2013de789d42415bf8793  ./install/services/VOFrontend.py
+1a5c77eb4c69108b74f8cdccc3bc43be  ./install/services/VOFrontend.py
 0dc8b19b568e997f03d5ca8487efb5c4  ./install/services/WMSCollector.py
 b56403417b299dfca2fff645ad7f3461  ./install/services/__init__.py
 bebd1bb07fa101fec830cff93e159e6b  ./install/services/common.py
