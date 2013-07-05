@@ -31,6 +31,12 @@ xsltproc -o glideinWMS-new.xml \
 <!-- Remove downtimes node -->
 <xsl:template match="downtimes"/>
 
+<!-- Remove log_retention logs node -->
+<xsl:template match="logs"/>
+
+<!-- Remove security.allow_proxy node -->
+<xsl:template match="@allow_proxy"/>
+
 <!-- <xsl:text xml:space="preserve">&#10;</xsl:text> -->
 <!-- Add process_logs to log_retention node -->
 <xsl:template match="log_retention">
@@ -50,7 +56,7 @@ xsltproc -o glideinWMS-new.xml \
   <per_entry>
    <xsl:attribute name="held"><xsl:value-of select="@held"/></xsl:attribute>
    <xsl:attribute name="idle"><xsl:value-of select="@idle"/></xsl:attribute>
-   <xsl:attribute name="running"><xsl:value-of select="@running"/></xsl:attribute>
+   <xsl:attribute name="glideins"><xsl:value-of select="@running"/></xsl:attribute>
   </per_entry>
  <xsl:apply-templates/> 
  </max_jobs>
@@ -73,6 +79,13 @@ xsltproc -o glideinWMS-new.xml \
   <per_frontend>
     <xsl:apply-templates select="@*|node()"/>
   </per_frontend>
+</xsl:template>
+
+<!-- Rename running to glideins -->
+<xsl:template match="@running">
+  <xsl:attribute name="glideins">
+    <xsl:value-of select="."/>
+  </xsl:attribute>
 </xsl:template>
 
 </xsl:transform>
