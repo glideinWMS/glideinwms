@@ -620,10 +620,10 @@ let elapsed_time=$end_time-$start_time
 
 if [ ${elapsed_time} -le 60 ]; then
     echo "Abnormal shutdown: Condor exited in less than 60s" 1>&2
-    metrics+= " CondorOneMinuteShutdown True"
+    metrics+=" CondorOneMinuteShutdown True"
     condor_ret=1
 else
-    metrics+= " CondorOneMinuteShutdown False"
+    metrics+=" CondorOneMinuteShutdown False"
 fi
 
 if [ ${condor_ret} -eq 99 ]; then
