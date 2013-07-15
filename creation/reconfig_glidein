@@ -43,8 +43,12 @@ def main(params, old_params, update_scripts, update_def_cfg):
 
     # create dictionaries for new params
     glidein_dicts_obj=cgWParamDict.glideinDicts(params)
-    glidein_dicts_obj.populate()
 
+    try:
+        glidein_dicts_obj.populate()
+    except cgWParamDict.UnconfiguredScheddError, e:
+        print e.err_str
+        sys.exit(1)
     # merge them together
     if not old_params is None:
         entries = glidein_dicts_obj.params.entries
