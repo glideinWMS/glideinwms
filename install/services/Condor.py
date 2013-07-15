@@ -1002,8 +1002,8 @@ SHADOW.GLEXEC = /bin/false
 MAX_SHADOW_LOG = 100000000
 
 #-- Publish LOCAL_DIR so it is available in the schedd classads as needed
-LOCAL_DIR_STRING="$(LOCAL_DIR)"
-SCHEDD_EXPRS = $(SCHEDD_EXPRS) LOCAL_DIR_STRING
+SPOOL_DIR_STRING="$(SPOOL)"
+SCHEDD_EXPRS = $(SCHEDD_EXPRS) SPOOL_DIR_STRING
 """
 
     if self.use_gridmanager:
@@ -1082,8 +1082,8 @@ SCHEDD.%(upper_name)s.SPOOL         = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/spool
 SCHEDD.%(upper_name)s.JOB_QUEUE_LOG         = $(SCHEDD.%(upper_name)s.SPOOL)/job_queue.log
 SCHEDD.%(upper_name)s.SCHEDD_ADDRESS_FILE   = $(SCHEDD.%(upper_name)s.SPOOL)/.schedd_address
 SCHEDD.%(upper_name)s.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.%(upper_name)s.SPOOL)/.schedd_classad 
-%(upper_name)s_LOCAL_DIR_STRING     = "$(SCHEDD.%(upper_name)s.LOCAL_DIR)"
-SCHEDD.%(upper_name)s.SCHEDD_EXPRS  = LOCAL_DIR_STRING
+%(upper_name)s_SPOOL_DIR_STRING     = "$(SCHEDD.%(upper_name)s.SPOOL)"
+SCHEDD.%(upper_name)s.SCHEDD_EXPRS  = SPOOL_DIR_STRING
 """ % \
       { "name"       : name,
         "upper_name" : local_name.upper(),

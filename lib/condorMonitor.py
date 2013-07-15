@@ -99,21 +99,25 @@ class LocalScheddCache(NoneScheddCache):
     # Can raise exceptions
     def iGetEnv(self,schedd_name, pool_name):
         cs=CondorStatus('schedd',pool_name)
-        data=cs.fetch(constraint='Name=?="%s"'%schedd_name,format_list=[('ScheddIpAddr','s'),('LOCAL_DIR_STRING','s')])
+        data=cs.fetch(constraint='Name=?="%s"'%schedd_name,format_list=[('ScheddIpAddr','s'),('SPOOL_DIR_STRING','s'),('LOCAL_DIR_STRING','s')])
         if not data.has_key(schedd_name):
             raise RuntimeError, "Schedd '%s' not found"%schedd_name
 
         el=data[schedd_name]
-        if not el.has_key('LOCAL_DIR_STRING'): # not advertising, cannot use disk optimization
+        if 'SPOOL_DIR_STRING' not in el and 'LOCAL_DIR_STRING' not in el: # not advertising, cannot use disk optimization
             return None
         if not el.has_key('ScheddIpAddr'): # This should never happen
             raise RuntimeError, "Schedd '%s' is not advertising ScheddIpAddr"%schedd_name
 
         schedd_ip=el['ScheddIpAddr'][1:].split(':')[0]
         if schedd_ip in self.my_ips: #seems local, go for the dir
-            l=el['LOCAL_DIR_STRING']
+            l=el.get('SPOOL_DIR_STRING', el.get('LOCAL_DIR_STRING'))
             if os.path.isdir(l): # making sure the directory exists
-                return {'_CONDOR_SPOOL': '%s/spool' %l }
+                if 'SPOOL_DIR_STRING' in el:
+                    return {'_CONDOR_SPOOL': '%s' %l }
+                else: # LOCAL_DIR_STRING
+                    return {'_CONDOR_SPOOL': '%s/spool' %l }
+
             else: #dir does not exist, likely not relevant, revert to standard behaviour
                 return None
         else: # not local
