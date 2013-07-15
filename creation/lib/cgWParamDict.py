@@ -17,6 +17,15 @@ import cgWConsts,cWConsts
 
 from glideinwms.lib import pubCrypto
 
+class UnconfiguredScheddError(Exception):
+
+    def __init__(self, schedd):
+        self.schedd = schedd
+        self.err_str = "Schedd '%s' used by one or more entries is not configured." % (schedd)
+
+    def __str__(self):
+        return repr(self.err_str)
+
 ################################################
 #
 # This Class contains the main dicts
@@ -481,8 +490,11 @@ class glideinDicts(cgWDictFile.glideinDicts):
             global_schedd_count[n]=0
         for sub_name in self.sub_list:
             if params.entries[sub_name].schedd_name is not None:
-                global_schedd_count[params.entries[sub_name].schedd_name]+=1
-                
+                try:
+                    global_schedd_count[params.entries[sub_name].schedd_name]+=1
+                except KeyError:
+                    raise UnconfiguredScheddError(params.entries[sub_name].schedd_name)
+
         # now actually check the schedds
         for sub_name in self.sub_list:
             if params.entries[sub_name].schedd_name is None:
