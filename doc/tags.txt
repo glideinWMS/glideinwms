@@ -10,6 +10,8 @@ v3_1    Includes relevant features and bug fixes released upto v2_7
           scripts to keep the frontend proxies updated
         Glideinwms now uses standard python logging APIs
         Version 3 Factory is backward compatible with the Version 2 Frontends
+        Provide tools convert_frontend_2to3.sh and convert_factory_2to3.sh to
+          convert the version 2 based config files to version 3 format
 	Glidein Monitoring slots are now disabled by default
 	Factory process now tries to increase RLIMIT_NPROC if possible
         Improved documentation
@@ -20,6 +22,8 @@ v3_1    Includes relevant features and bug fixes released upto v2_7
 	  configuration variables corectly
 	Bug Fix: Fixed a bug where create_glidein would fail when used with
 	  condor 7.9.4+
+        Bug Fix: Factory does better error reporting when an entry is configured
+          with an invalid sched_name
 
 v3_0_0  Change to max job limits to reflect more accurate names
 	Add attr_dict in the environemnt of the frontend match_expr

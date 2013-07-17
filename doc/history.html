@@ -465,6 +465,8 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
           <li>Glideinwms now uses standard python logging APIs
           <li>Version 3 Factory is backward compatible with the Version 2
           Frontends
+          <li>Provide tools convert_frontend_2to3.sh and convert_factory_2to3.sh
+          to convert the version 2 based config files to version 3 format
           <li>Glidein Monitoring slots are now disabled by default
           <li>Factory process now tries to increase RLIMIT_NPROC if possible
           <li>Improved documentation
@@ -475,6 +477,8 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
           configuration variables corectly
           <li>Bug Fix: Fixed a bug where create_glidein would fail when used
           with condor 7.9.4+
+          <li>Bug Fix: Factory does better error reporting when an entry is
+          configured with an invalid sched_name
         </ul>
       </li>
       <li>
