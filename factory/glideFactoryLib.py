@@ -21,11 +21,10 @@ import re
 import pwd
 import binascii
 import base64
-import traceback
 import tempfile
 
-from glideinwms.lib.tarSupport import GlideinTar
-from glideinwms.lib import condorExe,condorPrivsep
+from glideinwms.lib import condorExe
+from glideinwms.lib import condorPrivsep
 from glideinwms.lib import logSupport
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorManager
@@ -1383,6 +1382,8 @@ email_logs = False
 
                 ini = ini_template % (glidein_arguments, web_url, vm_max_lifetime, vm_disable_shutdown)
                 log.debug("Userdata ini file:\n%s" % ini)
+                ini = base64.b64encode(ini)
+                log.debug("Userdata ini file has been base64 encoded")
                 exe_env.append('USER_DATA=%s' % ini)
 
                 # get the proxy

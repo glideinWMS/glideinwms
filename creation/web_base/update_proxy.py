@@ -26,6 +26,7 @@ import binascii
 import gzip
 import cStringIO
 import traceback
+import base64
 
 class ProxyEnvironmentError(Exception): pass
 class CompressionError(Exception): pass
@@ -36,7 +37,7 @@ def compress_credential(credential_data):
         f = gzip.GzipFile(fileobj=cfile, mode='wb')
         f.write(credential_data)
         f.close()
-        return cfile.getvalue()
+        return base64.b64encode(cfile.getvalue())
     except:
         tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
         msg = "Error compressing credential: \n%s" % tb

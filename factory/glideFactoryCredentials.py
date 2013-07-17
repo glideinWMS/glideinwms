@@ -11,6 +11,7 @@ import binascii
 import traceback
 import gzip
 import cStringIO
+import base64
 
 import glideFactoryLib
 from glideinwms.lib import condorPrivsep
@@ -339,7 +340,7 @@ def compress_credential(credential_data):
     f = gzip.GzipFile(fileobj=cfile, mode='wb')
     f.write(credential_data)
     f.close()
-    return cfile.getvalue()
+    return base64.b64encode(cfile.getvalue())
 
 def safe_update(fname, credential_data):
     if not os.path.isfile(fname):
