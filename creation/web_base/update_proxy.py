@@ -20,72 +20,105 @@
 #  Igor Sfiligoi (Mar 18th, 2010) @UCSD
 #
 
-import os,sys
+import os
+import sys
 import binascii
+import gzip
+import cStringIO
+import traceback
+import base64
 
-#
-# Extract data from environment
-# Arguments not used
-#
+class ProxyEnvironmentError(Exception): pass
+class CompressionError(Exception): pass
 
-if not os.environ.has_key('HEXDATA'):
-   sys.stderr.write('HEXDATA env variable not defined.')
-   sys.exit(2)
+def compress_credential(credential_data):
+    try:
+        cfile = cStringIO.StringIO()
+        f = gzip.GzipFile(fileobj=cfile, mode='wb')
+        f.write(credential_data)
+        f.close()
+        return base64.b64encode(cfile.getvalue())
+    except:
+        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
+        msg = "Error compressing credential: \n%s" % tb
+        raise CompressionError(msg)
 
-if not os.environ.has_key('FNAME'):
-   sys.stderr.write('FNAME env variable not defined.')
-   sys.exit(2)
+def update_credential(fname, credential_data):
+    if not os.path.isfile(fname):
+        # new file, create
+        fd = os.open(fname, os.O_CREAT|os.O_WRONLY, 0600)
+        try:
+            os.write(fd, credential_data)
+        finally:
+            os.close(fd)
+    else:
+        # old file exists, check if same content
+        fl = open(fname,'r')
+        try:
+            old_data = fl.read()
+        finally:
+            fl.close()
 
-proxy_data=binascii.a2b_hex(os.environ['HEXDATA'])
-fname=os.environ['FNAME']
+        #  if proxy_data == old_data nothing changed, done else
+        if not (credential_data == old_data):
+            # proxy changed, neeed to update
+            # remove any previous backup file, if it exists
+            try:
+                os.remove(fname + ".old")
+            except:
+                pass # just protect
 
-#
-# Update (or create) the file
-#
+            # create new file
+            fd = os.open(fname + ".new", os.O_CREAT|os.O_WRONLY, 0600)
+            try:
+                os.write(fd, credential_data)
+            finally:
+                os.close(fd)
 
-if not os.path.isfile(fname):
-   # new file, create
-   fd=os.open(fname,os.O_CREAT|os.O_WRONLY,0600)
-   try:
-      os.write(fd,proxy_data)
-   finally:
-      os.close(fd)
-   sys.exit(0)
+            # move the old file to a tmp and the new one into the official name
+            try:
+                os.rename(fname, fname + ".old")
+            except:
+                pass # just protect
 
-# old file exists, check if same content
-fl=open(fname,'r')
-try:
-   old_data=fl.read()
-finally:
-   fl.close()
-if proxy_data==old_data:
-   # nothing changed, done
-   sys.exit(0)
+            os.rename(fname + ".new", fname)
 
-#
-# proxy changed, neeed to update
-#
+def get_env():
+    # Extract data from environment
+    # Arguments not used
+    if not os.environ.has_key('HEXDATA'):
+        raise ProxyEnvironmentError('HEXDATA env variable not defined.')
 
-# remove any previous backup file
-try:
-   os.remove(fname+".old")
-except:
-   pass # just protect
-    
-# create new file
-fd=os.open(fname+".new",os.O_CREAT|os.O_WRONLY,0600)
-try:
-   os.write(fd,proxy_data)
-finally:
-   os.close(fd)
+    if not os.environ.has_key('FNAME'):
+        raise ProxyEnvironmentError('FNAME env variable not defined.')
 
-# move the old file to a tmp and the new one into the official name
-try:
-   os.rename(fname,fname+".old")
-except:
-   pass # just protect
+    credential_data = binascii.a2b_hex(os.environ['HEXDATA'])
+    fname = os.environ['FNAME']
 
-os.rename(fname+".new",fname)
-sys.exit(0)
+    if os.environ.has_key('FNAME_COMPRESSED'):
+        fname_compressed = os.environ['FNAME_COMPRESSED']
+    else:
+        fname_compressed = None
 
+    return credential_data, fname, fname_compressed
+
+def main():
+    update_code = 0
+    try:
+        credential_data, fname, fname_compressed = get_env()
+        update_credential(fname, credential_data)
+        if fname_compressed:
+            compressed_credential = compress_credential(credential_data)
+            update_credential(fname_compressed, compressed_credential)
+    except ProxyEnvironmentError, ex:
+        sys.stderr.write(str(ex))
+        update_code = 2
+    except Exception, ex:
+        sys.stderr.write(str(ex))
+        update_code = 4
+
+    return update_code
+
+if __name__ == "__main__":
+    sys.exit(main())
 

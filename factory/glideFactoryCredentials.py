@@ -9,11 +9,15 @@ import sys
 import pwd
 import binascii
 import traceback
+import gzip
+import cStringIO
+import base64
 
 import glideFactoryLib
 from glideinwms.lib import condorPrivsep
 from glideinwms.lib import condorMonitor
 
+from glideinwms.lib import logSupport
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
@@ -31,7 +35,7 @@ class SubmitCredentials:
         self.id = None # id used for tracking the credentials used for submitting in the schedd
         self.cred_dir = ''  # location of credentials
         self.security_credentials = {} # dict of credentials
-        self.identity_credentials = {} # identity informatin passed by frontend
+        self.identity_credentials = {} # identity information passed by frontend
 
     def add_security_credential(self, cred_type, filename):
         """
@@ -78,7 +82,7 @@ class SubmitCredentials:
             output += "    %s : %s" % (ic, self.identity_credentials[ic])
         return output
 
-def update_credential_file(username, client_id, proxy_data, request_clientname):
+def update_credential_file(username, client_id, credential_data, request_clientname):
     """
     Updates the credential file.
     """
@@ -86,11 +90,19 @@ def update_credential_file(username, client_id, proxy_data, request_clientname):
     proxy_dir = glideFactoryLib.factoryConfig.get_client_proxies_dir(username)
     fname_short = 'credential_%s_%s' % (request_clientname, glideFactoryLib.escapeParam(client_id))
     fname = os.path.join(proxy_dir, fname_short)
+    fname_compressed = "%s_compressed" % fname
 
+    msg = "updating credential file %s" % fname
+    logSupport.log.debug(msg)
     if username != MY_USERNAME:
+        msg = "updating using privsep"
+        logSupport.log.debug(msg)
+
         # use privsep
         # all args go through the environment, so they are protected
-        update_credential_env = ['HEXDATA=%s' % binascii.b2a_hex(proxy_data), 'FNAME=%s' % fname]
+        update_credential_env = ['HEXDATA=%s' % binascii.b2a_hex(credential_data), 
+                                 'FNAME=%s' % fname,
+                                 'FNAME_COMPRESSED=%s' % fname_compressed]
         for var in ('PATH', 'LD_LIBRARY_PATH', 'PYTHON_PATH'):
             if os.environ.has_key(var):
                 update_credential_env.append('%s=%s' % (var, os.environ[var]))
@@ -101,52 +113,15 @@ def update_credential_file(username, client_id, proxy_data, request_clientname):
             raise RuntimeError, "Failed to update credential %s in %s (user %s): %s" % (client_id, proxy_dir, username, e)
         except:
             raise RuntimeError, "Failed to update credential %s in %s (user %s): Unknown privsep error" % (client_id, proxy_dir, username)
-        return fname
     else:
-        # do it natively when you can
-        if not os.path.isfile(fname):
-            # new file, create
-            fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0600)
-            try:
-                os.write(fd, proxy_data)
-            finally:
-                os.close(fd)
-            return fname
+        msg = "no privsep, updating directly"
+        logSupport.log.debug(msg)
 
-        # old file exists, check if same content
-        fl = open(fname, 'r')
-        try:
-            old_data = fl.read()
-        finally:
-            fl.close()
-        if proxy_data == old_data:
-            # nothing changed, done
-            return fname
+        safe_update(fname, credential_data)
+        compressed_credential = compress_credential(credential_data)
+        safe_update(compressed_credential, fname_compressed)
 
-        #
-        # proxy changed, neeed to update
-        #
-
-        # remove any previous backup file
-        try:
-            os.remove(fname + ".old")
-        except:
-            pass # just protect
-
-        # create new file
-        fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0600)
-        try:
-            os.write(fd, proxy_data)
-        finally:
-            os.close(fd)
-
-        # move the old file to a tmp and the new one into the official name
-        try:
-            os.rename(fname, fname + ".old")
-        except:
-            pass # just protect
-        os.rename(fname + ".new", fname)
-        return fname
+    return fname, fname_compressed
 
 def get_globals_classads():
     status_constraint = '(GlideinMyType=?="glideclientglobal")'
@@ -182,6 +157,9 @@ def process_global(classad, glidein_descript, frontend_descript):
             cred_data = sym_key_obj.decrypt_hex(classad["GlideinEncParam%s" % cred_id])
             security_class = sym_key_obj.decrypt_hex(classad[key])
             username = frontend_descript.get_username(frontend_sec_name, security_class)
+
+            msg = "updating credential for %s" % username
+            logSupport.log.debug(msg)
 
             update_credential_file(username, cred_id, cred_data, request_clientname)
     except:
@@ -356,3 +334,48 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
             
     # No invalid credentials found
     return 
+
+def compress_credential(credential_data):
+    cfile = cStringIO.StringIO()
+    f = gzip.GzipFile(fileobj=cfile, mode='wb')
+    f.write(credential_data)
+    f.close()
+    return base64.b64encode(cfile.getvalue())
+
+def safe_update(fname, credential_data):
+    if not os.path.isfile(fname):
+        # new file, create
+        fd = os.open(fname, os.O_CREAT|os.O_WRONLY, 0600)
+        try:
+            os.write(fd, credential_data)
+        finally:
+            os.close(fd)
+    else:
+        # old file exists, check if same content
+        fl = open(fname,'r')
+        try:
+            old_data = fl.read()
+        finally:
+            fl.close()
+
+        #  if proxy_data == old_data nothing changed, done else
+        if not (credential_data == old_data):
+            # proxy changed, neeed to update
+            # remove any previous backup file, if it exists
+            if os.path.isfile(fname): os.remove(fname + ".old")
+
+            # create new file
+            fd = os.open(fname + ".new", os.O_CREAT|os.O_WRONLY, 0600)
+            try:
+                os.write(fd, credential_data)
+            finally:
+                os.close(fd)
+
+            # move the old file to a tmp and the new one into the official name
+            try:
+                os.rename(fname, fname + ".old")
+            except:
+                pass # just protect
+
+            os.rename(fname + ".new", fname)
+

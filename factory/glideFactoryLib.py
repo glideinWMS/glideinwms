@@ -21,11 +21,10 @@ import re
 import pwd
 import binascii
 import base64
-import traceback
 import tempfile
 
-from glideinwms.lib.tarSupport import GlideinTar
-from glideinwms.lib import condorExe,condorPrivsep
+from glideinwms.lib import condorExe
+from glideinwms.lib import condorPrivsep
 from glideinwms.lib import logSupport
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorManager
@@ -1352,28 +1351,9 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
                 exe_env.append('SECRET_KEY_FILE=%s' % submit_credentials.security_credentials["PrivateKey"])
                 exe_env.append('CREDENTIAL_DIR=%s' % os.path.dirname(submit_credentials.security_credentials["PublicKey"]))
 
-                # get the proxy
-                full_path_to_proxy = submit_credentials.security_credentials["GlideinProxy"]
-                proxy_file = os.path.basename(full_path_to_proxy)
-                proxy_dir = os.path.dirname(full_path_to_proxy)
-
-                cat_cmd = "/bin/cat"
-                args = [cat_cmd, proxy_file]
-                proxy_contents = condorPrivsep.execute(
-                                     submit_credentials.username,
-                                     proxy_dir, cat_cmd, args)
-                # AT: Since the move from popen2.Popen calls to subprocess calls,
-                # we no longer use readlines.  Instead we use splitlines on the
-                # output returned.  A readlines call preserves the \n characters
-                # in the output.  A splitlines call with no arguments doesn't.
-                # I believe that this is the only place where preserving the
-                # newline character matters.  So we will join on newline rather
-                # than the old empty string.
-                proxy_contents = "\n".join(proxy_contents)
-
                 try:
                     vm_max_lifetime = str(params["VM_MAX_LIFETIME"])
-                except Exception, ex:
+                except:
                     # if no lifetime is specified, then default to 12 hours
                     # we can change this to a more "sane" default if we can 
                     # agree to what is "sane"
@@ -1402,13 +1382,13 @@ email_logs = False
 
                 ini = ini_template % (glidein_arguments, web_url, vm_max_lifetime, vm_disable_shutdown)
                 log.debug("Userdata ini file:\n%s" % ini)
+                ini = base64.b64encode(ini)
+                log.debug("Userdata ini file has been base64 encoded")
+                exe_env.append('USER_DATA=%s' % ini)
 
-                tarball = GlideinTar()
-                tarball.add_string("glidein_userdata", ini)
-                tarball.add_string("pilot_proxy", proxy_contents)
-                binary_string = tarball.create_tar_blob()
-                encoded_tarball = base64.b64encode(binary_string)
-                exe_env.append('USER_DATA=%s' % encoded_tarball)
+                # get the proxy
+                full_path_to_proxy = submit_credentials.security_credentials["GlideinProxy"]
+                exe_env.append('GLIDEIN_PROXY_FNAME=%s' % full_path_to_proxy)
 
             except KeyError:
                 msg = "Error setting up submission environment (bad key)"

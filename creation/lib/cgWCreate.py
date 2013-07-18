@@ -173,7 +173,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # We do not add the entire argument list to the userdata directly since we want to be able
         # to change the argument list without having to modify every piece of code under the sun
         # this way only the submit_glideins function has to change (and of course glidein_startup.sh)
-        self.add("ec2_user_data", "$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)")
+        self.add("ec2_user_data", "$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####")
+        self.add("ec2_user_data_file", "$ENV(GLIDEIN_PROXY_FNAME)")
 
     def populate_glidein_classad(self, proxy_url):
         # add in the classad attributes for the WMS collector
