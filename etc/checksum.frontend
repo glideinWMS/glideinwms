@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_1_rc1
+# GLIDEINWMS_VERSION v3_1_rc2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -62,10 +62,10 @@ a93d03608501cdd471c413b681b05f8e  ./creation/web_base/frontend_support.js
 014c3eaf1abf62ff0f599579658e6a10  ./creation/web_base/nodes.blacklist
 ed35ca2289553f4e671d985bedd0ccef  ./creation/web_base/parse_starterlog.awk
 e0ba6891e61382c17e0aa7ea0a13c688  ./creation/web_base/setup_script.sh
-681b715ce05b64ba1be2f9e06b3676c5  ./creation/web_base/update_proxy.py
+832265338319a401e981faa9e38b4b19  ./creation/web_base/update_proxy.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 b292d006ca66e438359ea4574829419d  ./factory/glideFactoryConfig.py
-5f7f0366b1de93dfc59469a6c4f4ccaa  ./factory/glideFactoryCredentials.py
+664cbf7a1995992a7f0bb0a2f684119b  ./factory/glideFactoryCredentials.py
 af96cbac7fb4a9ca4c74c5831404f440  ./factory/glideFactoryInterface.py
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 be661351c66fc14686143441dce83e67  ./frontend/checkFrontend.py
@@ -79,6 +79,8 @@ be661351c66fc14686143441dce83e67  ./frontend/checkFrontend.py
 b2008bad682ac6a6ff16d38678051b4b  ./frontend/glideinFrontendPidLib.py
 70f5c9ab47d36448d2cbc1978d660ba9  ./frontend/glideinFrontendPlugins.py
 8b875b87a956d92e9d5f5098e182677f  ./frontend/stopFrontend.py
+19c20e236c01ff748ebf271a9d875639  ./frontend/tools/convert_frontend_2to3.sh
+8468711dac6ffe8f326e5aaf25a64156  ./frontend/tools/convert_frontend_2to3.xslt
 0aa57fed99a6d72ec01b5a843fab6392  ./frontend/tools/frontend_match_ana
 96e84c719b611728cc26b8f3f705396e  ./frontend/tools/frontend_match_list
 9372e3312529f81507a59fb1afb98fe9  ./install/__init__.py
@@ -89,7 +91,7 @@ c0bfe44cfd746c385b7c8186df032ea2  ./install/glidecondor_upgrade
 785dfb8a08831cc2983152f264233791  ./install/glideinWMS.ini
 04024c9906fcb63486a6c19657a4eb25  ./install/manage-glideins
 1524a3cab15abde1a4c1c50b1f3417b9  ./install/services/Certificates.py
-2376638a0eaa81262d6839cc0409e18b  ./install/services/Condor.py
+38e2eedf6fa68c8918dfb564bb2bf2b4  ./install/services/Condor.py
 2815d4e3a344ae0c202c598c51d418f6  ./install/services/Configuration.py
 9f2b94e6ba904d66bc177b20596b9b83  ./install/services/Factory.py
 f8d19ab77b0e90d9144164b8fa743bfa  ./install/services/Glidein.py
@@ -110,7 +112,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./lib/__init__.py
 5511e0a6d4584f87e869c0a9c4973bf0  ./lib/condorExe.py
 47e90bb60b71274b2d13f283207336ae  ./lib/condorLogParser.py
 f9f296bc30e68cb314dfba0415c97b26  ./lib/condorManager.py
-a083c4af31cf125ba64b7c4497677a71  ./lib/condorMonitor.py
+a4e4906706e86ca0e7ac318ef68cc09f  ./lib/condorMonitor.py
 f5196f0f695b60dd4084bca1a2733bfc  ./lib/condorPrivsep.py
 d79f4a3b5492b5229d255085df2ef2b7  ./lib/condorSecurity.py
 85810235f5f90736e8d2899acd2a2cc9  ./lib/encodingSupport.py
