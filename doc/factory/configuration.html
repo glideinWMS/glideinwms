@@ -156,6 +156,7 @@ for a more detailed description.
                 <a href="#entry_attrs">&lt;attr name="CONDOR_OS" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="default" /&gt;</a><br/>
                 <a href="#entry_attrs">&lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="NONE"/&gt;</a><br/>
                 <a href="#entry_attrs">&lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="FNAL_EXAMPLE_SITE"/&gt;</a><br/>
+                <a href="#entry_attrs">&lt;attr name="GLIDEIN_CPUS" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="1"/&gt;</a><br/>
                 <a href="#entry_attrs">&lt;attr /&gt;</a><br/>
             </blockquote>
             <a href="#entry_attrs">&lt;/attrs&gt;</a><br/>
@@ -712,7 +713,9 @@ override the global arguments if present.
         <li>Release regulates how many glideins are released per cycle.</li>  
         <li>Remove regulates how many glideins are removed per cycle.</li>  
         <li>Submit values limit the number of glideins submitted, how long 
-        to wait to submit, and what kinds of glideins the entry supports - single slot or whole node glideins.</li>
+        to wait to submit, and what kinds of glideins the entry supports - "fixed" number of slots, or "partitionable" which 
+        enables HTCondor's partionable/dynamic slots. The number of cores calimed by the glidein can be controlled by the
+        GLIDEIN_CPUS variable.</li>
         </ul>
         </p>
     </li>
@@ -796,6 +799,20 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
     <tt><B>CONDOR_OS=&quot;default&quot; CONDOR_ARCH=&quot;default&quot; 
     CONDOR_VERSION=&quot;default&quot;</B></tt>,
     if not otherwise defined. 
+
+    <li>
+        <div class="xml">
+        &lt;glidein&gt;&lt;entries&gt;&lt;entry
+        name=&quot;<I>entry name</I>&quot;&gt;&lt;attrs&gt;&lt;attr
+        name=&quot;GLIDEIN_CPUS&quot;
+        value=&quot;<I>value</I>&quot;
+        const=&quot;True&quot;
+        parameter=&quot;True&quot;
+        publish=&quot;True&quot;/&gt;
+        </div>
+        <b>Recommended</b> Specifies how many CPUs (cores) to claim on the compute node<BR/>
+        Valid values are 1..N and "auto" or "0" which means to use all cores by using HTCondor's
+        core auto-detection.  The entry will default to 1 if not otherwise defined. 
     </ul>
     </li>
         <li>
