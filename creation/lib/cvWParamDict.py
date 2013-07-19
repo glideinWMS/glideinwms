@@ -11,11 +11,54 @@
 #
 
 import os,os.path,shutil,string
+import socket
 import cWParams
 import cvWDictFile,cWDictFile
 import cvWConsts,cWConsts
 import cvWCreate
 
+#####################################################
+# Validate node string
+def validate_node(nodestr,allow_prange=False):
+    narr=nodestr.split(':')
+    if len(narr)>2:
+        raise RuntimeError, "Too many : in the node name: '%s'"%nodestr
+    if len(narr)>1:
+        # have ports, validate them
+        ports=narr[1]
+        parr=ports.split('-')
+        if len(parr)>2:
+            raise RuntimeError, "Too many - in the node ports: '%s'"%nodestr
+        if len(parr)>1:
+            if not allow_prange:
+                raise RuntimeError, "Port ranges not allowed for this node: '%s'"%nodestr
+            pmin=parr[0]
+            pmax=parr[1]
+        else:
+            pmin=parr[0]
+            pmax=parr[0]
+        try:
+            pmini=int(parr[0])
+            pmaxi=int(parr[1])
+        except ValueError,e:
+            raise RuntimeError, "Node ports are not integer: '%s'"%nodestr
+        if pmini>pmaxi:
+            raise RuntimeError, "Low port must be lower than high port in node port range: '%s'"%nodestr
+
+        if pmini<1:
+            raise RuntimeError, "Ports cannot be less than 1 for node ports: '%s'"%nodestr
+        if pmaxi>65535:
+            raise RuntimeError, "Ports cannot be more than 64k for node ports: '%s'"%nodestr
+
+    nodename=narr[0]
+    try:
+        socket.getaddrinfo(nodename,None)
+    except:
+        raise RuntimeError, "Node name unknown to DNS: '%s'"%nodestr
+
+    # OK, all looks good
+    return
+    
 ################################################
 #
 # This Class contains the main dicts
@@ -595,11 +638,13 @@ def populate_common_descript(descript_dict,        # will be modified
             raise RuntimeError, "factory_identity for %s not set! (i.e. it is fake)"%el['node']
         if el['my_identity'][-9:]=='@fake.org':
             raise RuntimeError, "my_identity for %s not set! (i.e. it is fake)"%el['node']
+        validate_node(el['node'])
         collectors.append((el['node'],el['factory_identity'],el['my_identity']))
     descript_dict.add('FactoryCollectors',repr(collectors))
 
     schedds=[]
     for el in params.match.job.schedds:
+        validate_node(el['fullname'])
         schedds.append(el['fullname'])
     descript_dict.add('JobSchedds',string.join(schedds,','))
 
@@ -654,7 +699,6 @@ def populate_common_descript(descript_dict,        # will be modified
 
     descript_dict.add('MatchExpr', match_expr)
 
-
 #####################################################
 # Returns a string usable for GLIDEIN_Collector
 def calc_glidein_collectors(collectors):
@@ -665,8 +709,10 @@ def calc_glidein_collectors(collectors):
         if not collector_nodes.has_key(el.group):
             collector_nodes[el.group] = {'primary': [], 'secondary': []}
         if eval(el.secondary):
+            validate_node(el.node,allow_prange=True)
             collector_nodes[el.group]['secondary'].append(el.node)
         else:
+            validate_node(el.node)
             collector_nodes[el.group]['primary'].append(el.node)
 
     for group in collector_nodes.keys():
