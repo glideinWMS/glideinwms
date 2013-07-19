@@ -38,8 +38,8 @@ def validate_node(nodestr,allow_prange=False):
             pmin=parr[0]
             pmax=parr[0]
         try:
-            pmini=int(parr[0])
-            pmaxi=int(parr[1])
+            pmini=int(pmin)
+            pmaxi=int(pmax)
         except ValueError,e:
             raise RuntimeError, "Node ports are not integer: '%s'"%nodestr
         if pmini>pmaxi:
