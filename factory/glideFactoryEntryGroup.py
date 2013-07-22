@@ -598,10 +598,13 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
         # factory is in downtime. Entry specific downtime is handled in entry
         factory_in_downtime = factory_downtimes.checkDowntime(entry="factory")
 
+        # Record the iteration start time
+        iteration_stime = time.ctime()
+
         if factory_in_downtime:
-            logSupport.log.info("Downtime iteration at %s" % time.ctime())
+            logSupport.log.info("Iteration at (in downtime) %s" % iteration_stime)
         else:
-            logSupport.log.info("Iteration at %s" % time.ctime())
+            logSupport.log.info("Iteration at %s" % iteration_stime)
 
         # PM: Shouldn't this be inside the else statement above?
         # Why do we want to execute this if we are in downtime?
@@ -688,8 +691,13 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
 
         cleanupSupport.cleaners.cleanup()
 
-        logSupport.log.info("Sleep %is" % sleep_time)
-        time.sleep(sleep_time)
+        iteration_etime = time.ctime()
+        iteration_sleep_time = sleep_time - (iteration_etime - iteration_stime)
+        if (iteration_sleep_time < 0):
+            iteration_sleep_time = 0
+        gfl.log_files.logActivity("Sleep %is" % iteration_sleep_time)
+        time.sleep(iteration_sleep_time)
+
         count = (count+1) % advertize_rate
         is_first = 0
 

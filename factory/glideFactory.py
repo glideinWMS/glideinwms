@@ -370,6 +370,10 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                 cleanupSupport.cred_cleaners.add_cleaner(cred_cleaner)
 
         while 1:
+
+            # Record the iteration start time
+            iteration_stime = time.ctime()
+
             # THIS IS FOR SECURITY
             # Make sure you delete the old key when its grace is up.
             # If a compromised key is left around and if attacker can somehow
@@ -501,8 +505,13 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                 logSupport.log.exception("Error advertizing global classads: ")
 
             cleanupSupport.cleaners.cleanup()
-            logSupport.log.info("Sleep %s secs" % sleep_time)
-            time.sleep(sleep_time)
+
+            iteration_etime = time.ctime()
+            iteration_sleep_time = sleep_time - (iteration_etime - iteration_stime)
+            if (iteration_sleep_time < 0):
+                iteration_sleep_time = 0
+            logSupport.log.info("Sleep %s secs" % iteration_sleep_time)
+            time.sleep(iteration_sleep_time)
 
         # end while 1:
 
