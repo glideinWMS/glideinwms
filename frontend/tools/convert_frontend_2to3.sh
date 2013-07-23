@@ -4,8 +4,8 @@ function usage {
     echo "Usage: convert_frontend_2to3.sh <options>"
     echo "where <options> are:"
     echo "   -s <path>             : path to top directory glideinWMS source"
-    echo "   -i <glideinWMS-2.xml>   : v2 glideinWMS.xml"
-    echo "   -o <glideinWMS-3.xml>   : v3 glideinWMS.xml"
+    echo "   -i <frontend-2.xml>   : v2 frontend.xml"
+    echo "   -o <frontend-3.xml>   : v3 frontend.xml"
 }
 
 src=
