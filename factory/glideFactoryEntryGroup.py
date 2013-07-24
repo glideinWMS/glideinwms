@@ -582,34 +582,12 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
         entry.unsetInDowntime()
 
     # ADVERTISE: glidefactory classads
-    if os.path.exists(gf_filename):
-        try:
-            logSupport.log.info("Advertising glidefactory classads")
-            gfi.advertizeGlideinFromFile(gf_filename,
-                                         remove_file=True,
-                                         is_multi=True)
-        except:
-            tb = traceback.format_exception(sys.exc_info()[0],
-                                            sys.exc_info()[1],
-                                            sys.exc_info()[2])
-            logSupport.log.warn("Advertising glidefactory classads failed")
-            logSupport.log.debug("Advertising glidefactory classads failed: %s" % tb)
-    else:
-        logSupport.log.warn("glidefactory classad file %s does not exist. Check if you have atleast one entry enabled" % gf_filename)
+    gfi.advertizeGlideinFromFile(gf_filename, remove_file=True, is_multi=True)
 
     # ADVERTISE: glidefactoryclient classads
-    if os.path.exists(gfc_filename):
-        try:
-            logSupport.log.info("Advertising glidefactoryclient classads")
-            gfi.advertizeGlideinClientMonitoringFromFile(
-                gfc_filename, remove_file=True, is_multi=True)
-        except:
-            logSupport.log.warn("Advertising glidefactoryclient classads failed")
-            logSupport.log.exception("Advertising glidefactoryclient classads failed: ")
-    else:
-        logSupport.log.warn("glidefactoryclient classad file %s does not exist. Check if frontends are allowed to submit to entry" % gfc_filename)
-
-
+    gfi.advertizeGlideinClientMonitoringFromFile(gfc_filename,
+                                                 remove_file=True,
+                                                 is_multi=True)
     if need_cleanup:
         for cl_pid in cl_pids:
             logSupport.log.info("Collectoring cleanup pid:%s"%cl_pid)

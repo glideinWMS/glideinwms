@@ -902,18 +902,32 @@ def createGlideinClientMonitoringFile(fname,
 # Can throw a CondorExe/ExeError exception
 def advertizeGlideinClientMonitoringFromFile(fname, remove_file=True,
                                              is_multi=False):
-    try:
-        exe_condor_advertise(fname, "UPDATE_LICENSE_AD", is_multi=is_multi)
-    finally:
+    if os.path.exists(fname):
+        try:
+            logSupport.log.info("Advertising glidefactoryclient classads")
+            exe_condor_advertise(fname, "UPDATE_LICENSE_AD", is_multi=is_multi)
+        except:
+            logSupport.log.warn("Advertising glidefactoryclient classads failed")
+            logSupport.log.exception("Advertising glidefactoryclient classads failed: ")
         if remove_file:
             os.remove(fname)
+    else:
+        logSupport.log.warn("glidefactoryclient classad file %s does not exist. Check if frontends are allowed to submit to entry" % fname)
 
 def advertizeGlideinFromFile(fname, remove_file=True, is_multi=False):
-    try:
-        exe_condor_advertise(fname, "UPDATE_MASTER_AD", is_multi=is_multi)
-    finally:
+    if os.path.exists(fname):
+        try:
+            logSupport.log.info("Advertising glidefactory classads")
+            exe_condor_advertise(fname, "UPDATE_MASTER_AD", is_multi=is_multi)
+        except:
+            logSupport.log.warn("Advertising glidefactory classads failed")
+            logSupport.log.exception("Advertising glidefactory classads failed: ")
         if remove_file:
             os.remove(fname)
+    else:
+        logSupport.log.warn("glidefactory classad file %s does not exist. Check if you have atleast one entry enabled" % fname)
+
+
 # End INTERNAL
 ###########################################
 

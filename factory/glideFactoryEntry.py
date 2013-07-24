@@ -28,7 +28,7 @@ from glideinwms.factory import glideFactoryPidLib
 from glideinwms.factory import glideFactoryConfig
 from glideinwms.factory import glideFactoryLib
 from glideinwms.factory import glideFactoryMonitoring
-from glideinwms.factory import glideFactoryInterface
+from glideinwms.factory import glideFactoryInterface as gfi
 from glideinwms.factory import glideFactoryLogParser
 from glideinwms.factory import glideFactoryDowntimeLib
 from glideinwms.factory import glideFactoryCredentials
@@ -110,7 +110,7 @@ class Entry:
             float(self.glideinDescript.data['SummaryLogRetentionMaxMBs']))
 
         # FactoryConfig object from glideFactoryInterface
-        self.gfiFactoryConfig = glideFactoryInterface.FactoryConfig()
+        self.gfiFactoryConfig = gfi.FactoryConfig()
         #self.gfiFactoryConfig.warning_log = self.log.warning_log
         self.gfiFactoryConfig.advertise_use_tcp = (
             self.glideinDescript.data['AdvertiseWithTCP'] in ('True','1'))
@@ -192,7 +192,7 @@ class Entry:
         """
 
         glideFactoryMonitoring.monitoringConfig = self.monitoringConfig
-        glideFactoryInterface.factoryConfig = self.gfiFactoryConfig
+        gfi.factoryConfig = self.gfiFactoryConfig
         glideFactoryLib.factoryConfig = self.gflFactoryConfig
 
 
@@ -463,14 +463,14 @@ class Entry:
         # (not from validation)
         myJobAttributes = self.jobAttributes.data.copy()
         myJobAttributes['GLIDEIN_In_Downtime'] = factory_in_downtime
-        gf_classad = glideFactoryInterface.EntryClassad(
-            self.gflFactoryConfig.factory_name,
-            self.gflFactoryConfig.glidein_name,
-            self.name, trust_domain, auth_method,
-            self.gflFactoryConfig.supported_signtypes,
-            pub_key_obj=pub_key_obj, glidein_attrs=myJobAttributes,
-            glidein_params=self.jobParams.data.copy(),
-            glidein_monitors=glidein_monitors.copy())
+        gf_classad = gfi.EntryClassad(
+                         self.gflFactoryConfig.factory_name,
+                         self.gflFactoryConfig.glidein_name,
+                         self.name, trust_domain, auth_method,
+                         self.gflFactoryConfig.supported_signtypes,
+                         pub_key_obj=pub_key_obj, glidein_attrs=myJobAttributes,
+                         glidein_params=self.jobParams.data.copy(),
+                         glidein_monitors=glidein_monitors.copy())
         try:
             gf_classad.writeToFile(gf_filename, append=append)
         except:
@@ -484,11 +484,10 @@ class Entry:
         # Advertise the monitoring, use the downtime found in
         # validation of the credentials
 
-        advertizer = \
-            glideFactoryInterface.MultiAdvertizeGlideinClientMonitoring(
-                self.gflFactoryConfig.factory_name,
-                self.gflFactoryConfig.glidein_name,
-                self.name, self.jobAttributes.data.copy())
+        advertizer = gfi.MultiAdvertizeGlideinClientMonitoring(
+                         self.gflFactoryConfig.factory_name,
+                         self.gflFactoryConfig.glidein_name,
+                         self.name, self.jobAttributes.data.copy())
 
         current_qc_data = self.gflFactoryConfig.client_stats.get_data()
         for client_name in current_qc_data:
@@ -539,86 +538,19 @@ class Entry:
 
         self.loadContext()
 
-        trust_domain = self.jobDescript.data['TrustDomain']
-        auth_method = self.jobDescript.data['AuthMethod']
-        pub_key_obj = self.glideinDescript.data['PubKeyObj']
+        # Classad files to use
+        gf_filename = classadSupport.generate_classad_filename(prefix='gfi_adm_gf')
+        gfc_filename = classadSupport.generate_classad_filename(prefix='gfi_adm_gfc')
+        self.writeClassadsToFile(factory_in_downtime, gf_filename, gfc_filename)
 
-        self.gflFactoryConfig.client_stats.finalizeClientMonitor()
-        current_qc_total = self.gflFactoryConfig.client_stats.get_total()
+        # ADVERTISE: glidefactory classads
+        gfi.advertizeGlideinFromFile(gf_filename, remove_file=True,
+                                     is_multi=True)
 
-        ########################################################################
-        # Logic to advertise glidefactory classads
-        ########################################################################
-
-        glidein_monitors = {}
-        for w in current_qc_total:
-            for a in current_qc_total[w]:
-                glidein_monitors['Total%s%s'%(w,a)]=current_qc_total[w][a]
-                self.jobAttributes.data['GlideinMonitorTotal%s%s' % (w, a)] = current_qc_total[w][a]
-        try:
-            # Make copy of job attributes so can override the validation
-            # downtime setting with the true setting of the entry
-            # (not from validation)
-            myJobAttributes = self.jobAttributes.data.copy()
-            myJobAttributes['GLIDEIN_In_Downtime'] = factory_in_downtime
-            glideFactoryInterface.advertizeGlidein(
-                self.gflFactoryConfig.factory_name,
-                self.gflFactoryConfig.glidein_name,
-                self.name, trust_domain, auth_method,
-                self.gflFactoryConfig.supported_signtypes, pub_key_obj,
-                myJobAttributes, self.jobParams.data.copy(),
-                glidein_monitors.copy())
-        except:
-            self.log.error("Advertising entry '%s' failed" % self.name)
-
-        ########################################################################
-        # Logic to advertise glidefactoryclient classads
-        ########################################################################
-
-        # Advertise the monitoring, use the downtime found in
-        # validation of the credentials
-
-        advertizer = \
-            glideFactoryInterface.MultiAdvertizeGlideinClientMonitoring(
-                self.gflFactoryConfig.factory_name,
-                self.gflFactoryConfig.glidein_name,
-                self.name, self.jobAttributes.data.copy())
-
-        current_qc_data = self.gflFactoryConfig.client_stats.get_data()
-        for client_name in current_qc_data:
-            client_qc_data = current_qc_data[client_name]
-            if client_name not in self.gflFactoryConfig.client_internals:
-                self.log.warning("Client '%s' has stats, but no classad! Ignoring." % client_name)
-                continue
-            client_internals = self.gflFactoryConfig.client_internals[client_name]
-
-            client_monitors={}
-            for w in client_qc_data:
-                for a in client_qc_data[w]:
-                    # report only numbers
-                    if type(client_qc_data[w][a])==type(1):
-                        client_monitors['%s%s'%(w,a)] = client_qc_data[w][a]
-
-            try:
-                fparams = current_qc_data[client_name]['Requested']['Parameters']
-            except:
-                fparams = {}
-
-            params = self.jobParams.data.copy()
-            for p in fparams.keys():
-                # Can only overwrite existing params, not create new ones
-                if p in params.keys():
-                    params[p] = fparams[p]
-
-            advertizer.add(client_internals["CompleteName"],
-                           client_name, client_internals["ReqName"],
-                           params, client_monitors.copy())
-
-        try:
-            advertizer.do_advertize()
-        except:
-            self.log.warning("Advertize of monitoring failed")
-
+        # ADVERTISE: glidefactoryclient classads
+        gfi.advertizeGlideinClientMonitoringFromFile(gfc_filename,
+                                                     remove_file=True,
+                                                     is_multi=True)
         return
 
 
