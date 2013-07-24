@@ -11,7 +11,9 @@
 #
 import codecs
 import os
+import re
 import stat
+import sys
 import time
 import logging
 from logging.handlers import BaseRotatingHandler
@@ -49,8 +51,7 @@ class GlideinHandler(BaseRotatingHandler):
     @type backupCount: int
     @ivar backupCount: How many backups to keep
     """
-    
-    def __init__(self, filename, interval=1, maxMBytes=10, minDays=0, backupCount=5):
+    def __init__(self, filename, maxDays=1, minDays=0, maxMBytes=10, backupCount=5):
         """
         Initialize the Handler.  We assume the following:
 
@@ -78,15 +79,17 @@ class GlideinHandler(BaseRotatingHandler):
         self.backupCount = backupCount
         self.maxBytes = maxMBytes * 1024.0 * 1024.0 # Convert the MB to bytes as needed by the base class
         self.min_lifetime = minDays * 24 * 60 * 60 # Convert min days to seconds
+        self.interval = maxDays * 24 * 60 * 60 # Convert max days (interval) to seconds
 
         # We are enforcing a date/time format for rotated log files to include
         # year, month, day, hours, and minutes.  The hours and minutes are to 
         # preserve multiple rotations in a single day.
         self.suffix = "%Y-%m-%d-%H-%M"
         self.extMatch = r"^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}$"
-
+        self.extMatch = re.compile(self.extMatch)
+        
         if os.path.exists(filename):
-            begin_interval_time = os.stat(filename)[stat.ST_CTIME]
+            begin_interval_time = os.stat(filename)[stat.ST_MTIME]
         else:
             begin_interval_time = int(time.time())
         self.rolloverAt = begin_interval_time + self.interval
@@ -106,17 +109,11 @@ class GlideinHandler(BaseRotatingHandler):
             do_timed_rollover = 1
 
         do_size_rollover = 0
-        log_file_ctime = os.stat(self.baseFilename)[stat.ST_CTIME]
-        log_file_age = int(time.time()) - log_file_ctime
-        # We want to keep the logs around for the minimum number of days no 
-        # matter what the size of the log is.
-        if log_file_age > self.min_lifetime:
-            # the log file is old enough, now lets check the size
-            if self.maxBytes > 0:                   # are we rolling over?
-                msg = "%s\n" % self.format(record)
-                self.stream.seek(0, 2)  #due to non-posix-compliant Windows feature
-                if (self.stream.tell() + len(msg) >= self.maxBytes):
-                    do_size_rollover = 1
+        if self.maxBytes > 0:                   # are we rolling over?
+            msg = "%s\n" % self.format(record)
+            self.stream.seek(0, 2)  #due to non-posix-compliant Windows feature
+            if (self.stream.tell() + len(msg) >= self.maxBytes):
+                do_size_rollover = 1
 
         return do_timed_rollover or do_size_rollover
 
@@ -178,7 +175,7 @@ class GlideinHandler(BaseRotatingHandler):
 
         # determine the next rollover time for the timed rollover check
         currentTime = int(time.time())
-        newRolloverAt = self.computeRollover(currentTime)
+        newRolloverAt = currentTime + self.interval
         while newRolloverAt <= currentTime:
             newRolloverAt = newRolloverAt + self.interval
 
@@ -198,7 +195,7 @@ class GlideinHandler(BaseRotatingHandler):
                 self.stream = open(self.baseFilename, self.mode)
 
 
-def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, minDays, maxMBytes):
+def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, minDays, maxMBytes, backupCount=5):
     """
     Adds a handler to the GlideinLogger logger referenced by logger_name.
     """
@@ -206,8 +203,8 @@ def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, 
      
     mylog = logging.getLogger(logger_name)
     mylog.setLevel(logging.DEBUG)
-    
-    handler = GlideinHandler(logfile, maxDays, minDays, maxMBytes, backupCount=5)
+
+    handler = GlideinHandler(logfile, maxDays, minDays, maxMBytes, backupCount)
     handler.setFormatter(DEFAULT_FORMATTER)
     handler.setLevel(logging.DEBUG)
     
