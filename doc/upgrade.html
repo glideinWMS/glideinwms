@@ -83,14 +83,36 @@
 <div class="section">
     <a name="v3plus" />
     <h3>Upgrading from v2+ to v3+</h3>
-    <p> There is no way to upgrade from a v2+ to a v3+ version.  We normally don't support major version upgrades and in this case
-    there have been significant changes to the configuration files and content in the working directories.  Please back up your 
-    configurations (they can be a reference for any customizations you have done) and reinstall all the services.
+    <p>We normally don't recommend major version upgrades as there are
+    significant changes to the configuration files and content in the working
+    directories.
+    <br><br>
+    Starting v3.1, glideinwms provides tools convert_factory_2to3.sh and
+    convert_frontend_2to3.sh to help with the upgrade process. The upgrade
+    process is not fully automated and involves few steps.
+    <pre>
+    <b>prompt$</b> ./convert_frontend_2to3.sh
+    Usage: convert_frontend_2to3.sh &lt;options&gt;
+    where &lt;options&gt; are:
+    -s &lt;path&gt;             : path to top directory glideinWMS source
+    -i &lt;frontend-2.xml&gt;   : v2 frontend.xml
+    -o &lt;frontend-3.xml&gt;   : v3 frontend.xml
+    </pre>
+    <pre>
+    <b>prompt$</b> ./convert_factory_2to3.sh
+    Usage: convert_factory_2to3.sh &lt;options&gt;
+    where &lt;options&gt; are:
+    -s &lt;path&gt;               : path to top directory glideinWMS source
+    -i &lt;glideinWMS-2.xml&gt;   : v2 glideinWMS.xml
+    -o &lt;glideinWMS-3.xml&gt;   : v3 glideinWMS.xml
+    </pre>
+    <br>
+    <b>NOTE: </b>Please back up your configurations (they can be a reference
+    for any customizations you have done) and reinstall all the services.
     </p>
-    <p>The same applies to upgrading from v1+ to v3+.  There are too many changes between these versions and reinstallation of ALL
-    services is required.</p>
-    
- 
+    <h3>Upgrading from v1+ to v3+</h3>
+    <p>We do not support upgrading from v1+ to v3+. There are too many changes
+    between these versions and reinstallation of ALL services is required.</p>
 </div>
 
 
