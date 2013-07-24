@@ -585,8 +585,7 @@ class MultiAdvertizeWork:
         global advertizeGCGounter
         
         for factory_pool in self.global_pool:
-            short_time = time.time()-1.05e9
-            tmpname="/tmp/globaliad_%li_%li"%(short_time,os.getpid())
+            tmpname=classadSupport.generate_classad_filename(prefix='gfi_ad_gcg')
             glidein_params_to_encrypt={}
             fd=file(tmpname,"w")
             x509_proxies_data=[]
@@ -685,13 +684,11 @@ class MultiAdvertizeWork:
         Do the actual advertizing
         """
 
-        # get a 9 digit number that will stay 9 digit for the next 25 years
-        short_time = time.time() - 1.05e9
         idx = 0
         for factory_pool in self.factory_queue.keys():
             idx = idx + 1
             self.unique_id=1
-            self.adname = "/tmp/gfi_aw_%li_%li_%li" % (short_time, os.getpid(), idx)
+            self.adname = classadSupport.generate_classad_filename(prefix='gfi_ad_gc_%li' % (idx))
 
             # this should be done in parallel, but keep it serial for now
             filename_arr=[]
@@ -862,9 +859,7 @@ def deadvertizeAllWork(factory_pool, my_name):
     """
     global frontendConfig
 
-    # get a 9 digit number that will stay 9 digit for the next 25 years
-    short_time = time.time() - 1.05e9
-    tmpnam = "/tmp/gfi_aw_%li_%li" % (short_time, os.getpid())
+    tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gc')
     fd = file(tmpnam, "w")
     try:
         try:
@@ -884,9 +879,7 @@ def deadvertizeAllGlobals(factory_pool, my_name):
     """
     global frontendConfig
 
-    # get a 9 digit number that will stay 9 digit for the next 25 years
-    short_time = time.time() - 1.05e9
-    tmpnam = "/tmp/gfi_aw_%li_%li" % (short_time, os.getpid())
+    tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gcg')
     fd = file(tmpnam, "w")
     try:
         try:

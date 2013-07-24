@@ -555,10 +555,8 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
     logSupport.log.debug("Group Work done: %s" % groupwork_done)
 
     # Classad files to use
-    # Get a 9 digit number that will stay 9 digit for the next 25 years
-    short_time = time.time() - 1.05e9
-    gf_filename = "/tmp/gfi_gf_multi_%li_%li" % (short_time, os.getpid())
-    gfc_filename = "/tmp/gfi_gfc_multi_%li_%li" % (short_time, os.getpid())
+    gf_filename = classadSupport.generate_classad_filename(prefix='gfi_adm_gf')
+    gfc_filename = classadSupport.generate_classad_filename(prefix='gfi_adm_gfc')
 
     logSupport.log.info("Generating glidefactory (%s) and glidefactoryclient (%s) classads files" % (gf_filename, gfc_filename))
 

@@ -33,6 +33,7 @@ from glideinwms.factory import glideFactoryLogParser
 from glideinwms.factory import glideFactoryDowntimeLib
 from glideinwms.factory import glideFactoryCredentials
 from glideinwms.lib import logSupport
+from glideinwms.lib import classadSupport
 from glideinwms.lib import glideinWMSVersion
 from glideinwms.lib import cleanupSupport
 
@@ -426,55 +427,74 @@ class Entry:
 
         @type factory_in_downtime: boolean
         @param factory_in_downtime: factory in the downtimes file
+
+        @type gf_filename: string
+        @param gf_filename: Filename to write glidefactory classads
+
+        @type gfc_filename: string
+        @param gfc_filename: Filename to write glidefactoryclient classads
+
+        @type append: boolean
+        @param append: True to append new classads. i.e Multi classads file
         """
 
-        classads = {}
         self.loadContext()
+
+        classads = {}
+        trust_domain = self.jobDescript.data['TrustDomain']
+        auth_method = self.jobDescript.data['AuthMethod']
         pub_key_obj = self.glideinDescript.data['PubKeyObj']
 
         self.gflFactoryConfig.client_stats.finalizeClientMonitor()
-
         current_qc_total = self.gflFactoryConfig.client_stats.get_total()
+
+        ########################################################################
+        # Logic to generate glidefactory classads file
+        ########################################################################
 
         glidein_monitors = {}
         for w in current_qc_total:
             for a in current_qc_total[w]:
                 glidein_monitors['Total%s%s'%(w,a)]=current_qc_total[w][a]
+                self.jobAttributes.data['GlideinMonitorTotal%s%s' % (w, a)] = current_qc_total[w][a]
 
         # Make copy of job attributes so can override the validation
-        # downtime setting with the true setting of the entry 
+        # downtime setting with the true setting of the entry
         # (not from validation)
         myJobAttributes = self.jobAttributes.data.copy()
         myJobAttributes['GLIDEIN_In_Downtime'] = factory_in_downtime
         gf_classad = glideFactoryInterface.EntryClassad(
             self.gflFactoryConfig.factory_name,
             self.gflFactoryConfig.glidein_name,
-            self.name, self.gflFactoryConfig.supported_signtypes,
-            myJobAttributes, self.jobParams.data.copy(),
-            glidein_monitors.copy(), pub_key_obj, self.allowedProxySource)
+            self.name, trust_domain, auth_method,
+            self.gflFactoryConfig.supported_signtypes,
+            pub_key_obj=pub_key_obj, glidein_attrs=myJobAttributes,
+            glidein_params=self.jobParams.data.copy(),
+            glidein_monitors=glidein_monitors.copy())
         try:
             gf_classad.writeToFile(gf_filename, append=append)
         except:
-            tb = traceback.format_exception(sys.exc_info()[0],
-                                            sys.exc_info()[1],
-                                            sys.exc_info()[2])
-            self.logFiles.logWarning("Error writing classad to file %s" % gf_filename)
-            self.logFiles.logDebug("Error writing classad to file %s: %s" % (gf_filename, tb))
+            self.log.warn("Error writing classad to file %s" % gf_filename)
+            self.log.exception("Error writing classad to file %s: " % (gf_filename))
+
+        ########################################################################
+        # Logic to generate glidefactoryclient classads file
+        ########################################################################
 
         # Advertise the monitoring, use the downtime found in
         # validation of the credentials
-        monitor_job_attrs = self.jobAttributes.data.copy()
+
         advertizer = \
             glideFactoryInterface.MultiAdvertizeGlideinClientMonitoring(
                 self.gflFactoryConfig.factory_name,
                 self.gflFactoryConfig.glidein_name,
-                self.name, monitor_job_attrs)
+                self.name, self.jobAttributes.data.copy())
 
         current_qc_data = self.gflFactoryConfig.client_stats.get_data()
         for client_name in current_qc_data:
             client_qc_data = current_qc_data[client_name]
             if client_name not in self.gflFactoryConfig.client_internals:
-                self.logFiles.logWarning("Client '%s' has stats, but no classad! Ignoring." % client_name)
+                self.log.warn("Client '%s' has stats, but no classad! Ignoring." % client_name)
                 continue
             client_internals = self.gflFactoryConfig.client_internals[client_name]
 
@@ -503,17 +523,9 @@ class Entry:
         try:
             advertizer.writeToMultiClassadFile(gfc_filename)
         except:
-            self.logFiles.logWarning("Writing monitoring classad to file %s failed" % gfc_filename)
+            self.log.warn("Writing monitoring classad to file %s failed" % gfc_filename)
 
         return
-
-
-
-
-
-
-
-
 
 
 

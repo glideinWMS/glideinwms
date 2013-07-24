@@ -34,8 +34,6 @@ class Classad(object):
         @param invalidateCmd: Condor update-command to invalidate this classad 
         """
 
-        global frontendConfig
-
         self.adType = adType
         self.adAdvertiseCmd = advertiseCmd
         self.adInvalidateCmd = invalidateCmd
@@ -312,12 +310,29 @@ class ClassadAdvertiser:
         @return: Filename
         """
 
-        # Get a 9 digit number that will stay 9 digit for next 25 years
-        short_time = time.time() - 1.05e9
-        fname = "/tmp/%s_%li_%li" % (self.advertiseFilePrefix,
-                                     short_time, os.getpid())
-        return fname
+        return generate_classad_filename(prefix=self.advertiseFilePrefix)
 
+
+###############################################################################
+# Generic Utility Functions used with classads
+###############################################################################
+
+def generate_classad_filename(prefix='gwms_classad'):
+    """
+    Return a uniq file name for advertising/invalidating classads
+
+    @type prefix: string
+    @param prefix: Prefix to be used for the filename
+
+    @rtype: string
+    @return: Filename
+    """
+
+    # Get a 9 digit number that will stay 9 digit for next 25 years
+    short_time = time.time() - 1.05e9
+    fname = "/tmp/%s_%li_%li" % (prefix, short_time, os.getpid())
+
+    return fname
 
 ############################################################
 #
@@ -331,8 +346,8 @@ def exe_condor_advertise(fname, command, pool, is_multi=False, use_tcp=False):
     """
 
     logSupport.log.debug("CONDOR ADVERTISE %s %s %s %s %s" % (fname, command,
-                                                           pool, is_multi,
-                                                           use_tcp))
+                                                              pool, is_multi,
+                                                              use_tcp))
     return condorManager.condorAdvertise(fname, command, use_tcp,
                                          is_multi, pool)
 
