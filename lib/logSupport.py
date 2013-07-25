@@ -9,11 +9,13 @@
 # Author:
 #  Igor Sfiligoi (Oct 25th 2006)
 #
+import codecs
 import os
-import sys
+import re
+import stat
 import time
 import logging
-from logging.handlers import TimedRotatingFileHandler
+from logging.handlers import BaseRotatingHandler
 
 log = None # create a place holder for a global logger, individual modules can create their own loggers if necessary
 log_dir = None
@@ -28,7 +30,7 @@ DEBUG_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s: %(module)s:%(l
 # Note:  We may need to create a custom class later if we need to handle
 #        logging with privilege separation
 
-class GlideinHandler(TimedRotatingFileHandler):
+class GlideinHandler(BaseRotatingHandler):
     """
     Custom logging handler class for glideinWMS.  It combines the decision tree
     for log rotation from the TimedRotatingFileHandler with the decision tree
@@ -48,8 +50,7 @@ class GlideinHandler(TimedRotatingFileHandler):
     @type backupCount: int
     @ivar backupCount: How many backups to keep
     """
-    
-    def __init__(self, filename, interval=1, maxMBytes=10, minDays=0, backupCount=5):
+    def __init__(self, filename, maxDays=1, minDays=0, maxMBytes=10, backupCount=5):
         """
         Initialize the Handler.  We assume the following:
 
@@ -68,18 +69,28 @@ class GlideinHandler(TimedRotatingFileHandler):
         @param backupCount: Number of backups to keep
 
         """
-        #Make dirs if logging directory does not exist
+        # Make dirs if logging directory does not exist
         if not os.path.exists(os.path.dirname(filename)):
             os.makedirs(os.path.dirname(filename))
 
-        when = 'D'
-        TimedRotatingFileHandler.__init__(self, filename, when, interval, backupCount, encoding=None)
-        
-        # Convert the MB to bytes as needed by the base class
-        self.maxBytes = maxMBytes * 1024.0 * 1024.0
-        
-        # Convert min days to seconds
-        self.minDays = minDays * 24 * 60 * 60
+        mode = 'a'
+        BaseRotatingHandler.__init__(self, filename, mode, encoding=None)
+        self.backupCount = backupCount
+        self.maxBytes = maxMBytes * 1024.0 * 1024.0 # Convert the MB to bytes as needed by the base class
+        self.min_lifetime = minDays * 24 * 60 * 60 # Convert min days to seconds
+        self.interval = maxDays * 24 * 60 * 60 # Convert max days (interval) to seconds
+
+        # We are enforcing a date/time format for rotated log files to include
+        # year, month, day, hours, and minutes.  The hours and minutes are to 
+        # preserve multiple rotations in a single day.
+        self.suffix = "%Y-%m-%d-%H-%M"
+        self.extMatch = re.compile(r"^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}$")
+
+        if os.path.exists(filename):
+            begin_interval_time = os.stat(filename)[stat.ST_MTIME]
+        else:
+            begin_interval_time = int(time.time())
+        self.rolloverAt = begin_interval_time + self.interval
 
     def shouldRollover(self, record):
         """
@@ -90,19 +101,99 @@ class GlideinHandler(TimedRotatingFileHandler):
         @type record: string
         @param record: The message that will be logged.
         """
-        do_timed_rollover = logging.handlers.TimedRotatingFileHandler.shouldRollover(self, record)
-        min_day_time = self.rolloverAt - self.interval + int(time.time())
+        do_timed_rollover = 0
+        t = int(time.time())
+        if t >= self.rolloverAt:
+            do_timed_rollover = 1
+
         do_size_rollover = 0
         if self.maxBytes > 0:                   # are we rolling over?
             msg = "%s\n" % self.format(record)
             self.stream.seek(0, 2)  #due to non-posix-compliant Windows feature
-            if (self.stream.tell() + len(msg) >= self.maxBytes) and (min_day_time > self.minDays):
+            if (self.stream.tell() + len(msg) >= self.maxBytes):
                 do_size_rollover = 1
 
         return do_timed_rollover or do_size_rollover
 
+    def getFilesToDelete(self):
+        """
+        Determine the files to delete when rolling over.
 
-def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, minDays, maxMBytes):
+        More specific than the earlier method, which just used glob.glob().
+        """
+        dirName, baseName = os.path.split(self.baseFilename)
+        fileNames = os.listdir(dirName)
+        result = []
+        prefix = baseName + "."
+        plen = len(prefix)
+        for fileName in fileNames:
+            if fileName[:plen] == prefix:
+                suffix = fileName[plen:]
+                if self.extMatch.match(suffix):
+                    result.append(os.path.join(dirName, fileName))
+        result.sort()
+        if len(result) < self.backupCount:
+            result = []
+        else:
+            result = result[:len(result) - self.backupCount]
+        return result
+
+    def doRollover(self):
+        """
+        do a rollover; in this case, a date/time stamp is appended to the filename
+        when the rollover happens.  If there is a backup count, then we have to get
+        a list of matching filenames, sort them and remove the one with the oldest 
+        suffix.
+        """
+        # Close the soon to be rotated log file
+        self.close()
+        # get the time that this sequence started at and make it a TimeTuple
+        timeTuple = time.localtime(time.time())
+        dfn = self.baseFilename + "." + time.strftime(self.suffix, timeTuple)
+
+        # If you are rotating log files in less than a minute, you either have
+        # set your sizes way too low, or you have serious problems.  We are 
+        # going to protect against that scenario by removing any files that 
+        # whose name collides with the new rotated file name.
+        if os.path.exists(dfn):
+            os.remove(dfn)
+
+        # rename the closed log file to the new rotated file name
+        os.rename(self.baseFilename, dfn)
+
+        # if there is a backup count specified, keep only the specified number of
+        # rotated logs, delete the rest
+        if self.backupCount > 0:
+            for s in self.getFilesToDelete():
+                os.remove(s)
+
+        # Open a new log file
+        self.mode = 'w'
+        self.stream = self._open_new_log()
+
+        # determine the next rollover time for the timed rollover check
+        currentTime = int(time.time())
+        newRolloverAt = currentTime + self.interval
+        while newRolloverAt <= currentTime:
+            newRolloverAt = newRolloverAt + self.interval
+
+        self.rolloverAt = newRolloverAt
+
+    def _open_new_log(self):
+        """
+        This function is here to bridge the gap between the old (python 2.4) way
+        of opening new log files and the new (python 2.7) way.
+        """
+        try:
+            self._open() # pylint: disable=E1101
+        except:
+            if self.encoding:
+                self.stream = codecs.open(self.baseFilename, self.mode, self.encoding)
+            else:
+                self.stream = open(self.baseFilename, self.mode)
+
+
+def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, minDays, maxMBytes, backupCount=5):
     """
     Adds a handler to the GlideinLogger logger referenced by logger_name.
     """
@@ -110,8 +201,8 @@ def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, 
      
     mylog = logging.getLogger(logger_name)
     mylog.setLevel(logging.DEBUG)
-    
-    handler = GlideinHandler(logfile, maxDays, minDays, maxMBytes, backupCount=5)
+
+    handler = GlideinHandler(logfile, maxDays, minDays, maxMBytes, backupCount)
     handler.setFormatter(DEFAULT_FORMATTER)
     handler.setLevel(logging.DEBUG)
     
