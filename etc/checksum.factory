@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_1_rc3
+# GLIDEINWMS_VERSION v3_1_rc4
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -156,7 +156,7 @@ a203f536b05728922180758c66bdcb28  ./lib/exprParser.py
 ac7d5c93017e3887f1d44fcdee9a7237  ./lib/hashCrypto.py
 560d3f938ae5104b0be721735f752486  ./lib/iniSupport.py
 223c74aae5cbc7132b080e0dedf679ba  ./lib/ldapMonitor.py
-0e8572b1c83a46e0a96fe1b68dae0440  ./lib/logSupport.py
+642e9025e5bf66ed86794fe59d32ddf8  ./lib/logSupport.py
 fe4614cb3ecabd81d65f3b85b5c7abb6  ./lib/logging.conf
 353e3c45bb31ebdd716b110100fa42b6  ./lib/pidSupport.py
 7b2d48ef58bbf0aca878d4dcb1efa690  ./lib/pubCrypto.py
@@ -184,12 +184,12 @@ d2f523ccdef6125a867ed8dc746b2148  ./tools/wmsXMLView.py
 c1312c7d5e45ede9739ef03eeb4b990e  ./unittests/__init__.py
 f8088fc30b1b9f54e60364b0b4f8fcda  ./unittests/test_cleanupSupport.py
 ac1ae5bdfd61e84c405d14b9aa719048  ./unittests/test_condorExe.py
-62ed16c8ce232976ff2ea1935486f6b9  ./unittests/test_configurations/test_logSupport.yaml
+6011a49a3771993da68c260a837bccf3  ./unittests/test_configurations/test_logSupport.yaml
 f40e7fffa0c8ea7308ca72738105a4a3  ./unittests/test_encodingSupport.py
 74683dc9f3d9fc9321cb024f45f4d778  ./unittests/test_glideFactoryDowntimeLib.py
 bac527ea84264fa74fc7491376beb0be  ./unittests/test_glideinFrontendPlugins.py
 994f0813b75e7813b309f255b78942cb  ./unittests/test_infosys_lib.py
-f0ef85fbe5e58f4f20f0a1a64115e650  ./unittests/test_logSupport.py
+401de728b6133abe6aedb88d4dbc7e87  ./unittests/test_logSupport.py
 e62a4284ef3ee405897fe71e6a00aa52  ./unittests/test_tarSupport.py
 58e156307d25fd6d584461a08ea064a1  ./unittests/unittest_utils.py
 deda72780003d66021f6bb8e9f4e6200  ./unittests/worker_scripts/write_exit_0.py
