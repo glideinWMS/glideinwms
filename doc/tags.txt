@@ -24,6 +24,7 @@ v3_1    Includes relevant features and bug fixes released upto v2_7
 	  condor 7.9.4+
         Bug Fix: Factory does better error reporting when an entry is configured
           with an invalid sched_name
+        Bug Fix: Fixed bug where log files were not rotated correctly
 
 v3_0_0  Change to max job limits to reflect more accurate names
 	Add attr_dict in the environemnt of the frontend match_expr
