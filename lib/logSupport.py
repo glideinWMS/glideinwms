@@ -13,7 +13,6 @@ import codecs
 import os
 import re
 import stat
-import sys
 import time
 import logging
 from logging.handlers import BaseRotatingHandler
@@ -85,9 +84,8 @@ class GlideinHandler(BaseRotatingHandler):
         # year, month, day, hours, and minutes.  The hours and minutes are to 
         # preserve multiple rotations in a single day.
         self.suffix = "%Y-%m-%d-%H-%M"
-        self.extMatch = r"^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}$"
-        self.extMatch = re.compile(self.extMatch)
-        
+        self.extMatch = re.compile(r"^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}$")
+
         if os.path.exists(filename):
             begin_interval_time = os.stat(filename)[stat.ST_MTIME]
         else:
@@ -187,7 +185,7 @@ class GlideinHandler(BaseRotatingHandler):
         of opening new log files and the new (python 2.7) way.
         """
         try:
-            self._open()
+            self._open() # pylint: disable=E1101
         except:
             if self.encoding:
                 self.stream = codecs.open(self.baseFilename, self.mode, self.encoding)
