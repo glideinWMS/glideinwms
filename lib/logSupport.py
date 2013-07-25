@@ -83,7 +83,7 @@ class GlideinHandler(BaseRotatingHandler):
         # We are enforcing a date/time format for rotated log files to include
         # year, month, day, hours, and minutes.  The hours and minutes are to 
         # preserve multiple rotations in a single day.
-        self.suffix = "%Y-%m-%d-%H-%M"
+        self.suffix = "%Y-%m-%d_%H-%M"
         self.extMatch = re.compile(r"^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}$")
 
         if os.path.exists(filename):
