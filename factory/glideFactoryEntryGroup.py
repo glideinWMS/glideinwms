@@ -629,16 +629,16 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
 
                 for cpu in xrange(cpuCount):
                     r,w = os.pipe()
+                    unregister_sighandler()
                     pid = os.fork()
                     if pid:
                         # I am the parent
+                        register_sighandler()
                         pids.append(pid)
                         os.close(w)
                         pipe_ids[cpu] = {'r': r, 'pid': pid}
                     else:
                         # I am the child
-                        signal.signal(signal.SIGTERM, signal.SIG_DFL)
-                        signal.signal(signal.SIGQUIT, signal.SIG_DFL)
                         os.close(r)
                         # Return the pickled entry object in form of dict
                         # return_dict[entry.name][entry.getState()]
