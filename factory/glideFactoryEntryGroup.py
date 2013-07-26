@@ -411,37 +411,41 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
 
         entry = my_entries[ent]
         r,w = os.pipe()
+        unregister_sighandler()
         pid = os.fork()
         forks_remaining -= 1
 
         if pid != 0:
+            register_sighandler()
             # This is the parent process
             os.close(w)
             pipe_ids[entry.name] = {'r': r, 'pid': pid}
         else:
             # This is the child process
-            os.close(r)
             try:
-                work_done = glideFactoryEntry.check_and_perform_work(
-                                factory_in_downtime, group_name,
-                                entry, work[entry.name])
-                # entry object now has updated info in the child process
-                # This info is required for monitoring and advertising
-                # Compile the return info from th  updated entry object 
-                # Can't dumps the entry object directly, so need to extract
-                # the info required.
-                return_dict = compile_pickle_data(entry, work_done)
-                os.write(w,cPickle.dumps(return_dict))
-            except Exception, ex:
-                tb = traceback.format_exception(sys.exc_info()[0],
-                                                sys.exc_info()[1],
-                                                sys.exc_info()[2])
-                entry.logFiles.logDebug("Error in talking to the factory pool: %s" % tb)
+                os.close(r)
+                try:
+                    work_done = glideFactoryEntry.check_and_perform_work(
+                                    factory_in_downtime, group_name,
+                                    entry, work[entry.name])
+                    # entry object now has updated info in the child process
+                    # This info is required for monitoring and advertising
+                    # Compile the return info from th  updated entry object 
+                    # Can't dumps the entry object directly, so need to extract
+                    # the info required.
+                    return_dict = compile_pickle_data(entry, work_done)
+                    os.write(w,cPickle.dumps(return_dict))
+                except Exception, ex:
+                    tb = traceback.format_exception(sys.exc_info()[0],
+                                                    sys.exc_info()[1],
+                                                    sys.exc_info()[2])
+                    entry.logFiles.logDebug("Error in talking to the factory pool: %s" % tb)
 
-            os.close(w)
-            # Hard kill myself. Don't want any cleanup, since I was created
-            # just for doing check and perform work for each entry
-            os.kill(os.getpid(),signal.SIGKILL)
+                os.close(w)
+            finally:
+                # Exit, immediately. Don't want any cleanup, since I was created
+                # just for doing check and perform work for each entry
+                os._exit(0)
 
     # Gather info from rest of the entries
     try:
@@ -860,10 +864,16 @@ def compile_pickle_data(entry, work_done):
 def termsignal(signr,frame):
     raise KeyboardInterrupt, "Received signal %s"%signr
 
-if __name__ == '__main__':
+def register_sighandler():
     signal.signal(signal.SIGTERM, termsignal)
     signal.signal(signal.SIGQUIT, termsignal)
 
+def unregister_sighandler():
+    signal.signal(signal.SIGTERM, signal.SIG_DFL)
+    signal.signal(signal.SIGQUIT, signal.SIG_DFL)
+
+if __name__ == '__main__':
+    register_sighandler()
     # Force integrity checks on all condor operations
     gfl.set_condor_integrity_checks()
 
