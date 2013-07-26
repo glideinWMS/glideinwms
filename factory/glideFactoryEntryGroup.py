@@ -635,8 +635,6 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                         pipe_ids[cpu] = {'r': r, 'pid': pid}
                     else:
                         # I am the child
-                        signal.signal(signal.SIGTERM, signal.SIG_DFL)
-                        signal.signal(signal.SIGQUIT, signal.SIG_DFL)
                         os.close(r)
                         # Return the pickled entry object in form of dict
                         # return_dict[entry.name][entry.getState()]
