@@ -185,7 +185,9 @@ class GlideinHandler(BaseRotatingHandler):
         of opening new log files and the new (python 2.7) way.
         """
         try:
-            self._open() # pylint: disable=E1101
+            # pylint: disable=E1101
+            self._open()
+            # pylint: enable=E1101
         except:
             if self.encoding:
                 self.stream = codecs.open(self.baseFilename, self.mode, self.encoding)
