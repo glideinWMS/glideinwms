@@ -146,7 +146,7 @@ class GlideinHandler(BaseRotatingHandler):
         suffix.
         """
         # Close the soon to be rotated log file
-        self.close()
+        self.stream.close()
         # get the time that this sequence started at and make it a TimeTuple
         timeTuple = time.localtime(time.time())
         dfn = self.baseFilename + "." + time.strftime(self.suffix, timeTuple)
@@ -184,13 +184,15 @@ class GlideinHandler(BaseRotatingHandler):
         This function is here to bridge the gap between the old (python 2.4) way
         of opening new log files and the new (python 2.7) way.
         """
+        new_stream = None
         try:
-            self._open() # pylint: disable=E1101
+            new_stream = self._open() # pylint: disable=E1101
         except:
             if self.encoding:
-                self.stream = codecs.open(self.baseFilename, self.mode, self.encoding)
+                new_stream = codecs.open(self.baseFilename, self.mode, self.encoding)
             else:
-                self.stream = open(self.baseFilename, self.mode)
+                new_stream = open(self.baseFilename, self.mode)
+        return new_stream
 
 
 def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, minDays, maxMBytes, backupCount=5):
