@@ -6,9 +6,7 @@
 #
 # Description: log support module
 #
-# Author:
-#  Igor Sfiligoi (Oct 25th 2006)
-#
+
 import codecs
 import os
 import re
@@ -19,7 +17,7 @@ from logging.handlers import BaseRotatingHandler
 
 log = None # create a place holder for a global logger, individual modules can create their own loggers if necessary
 log_dir = None
-
+disable_rotate = False
 
 DEFAULT_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s')
 DEBUG_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s: %(module)s:%(lineno)d: %(message)s')
@@ -100,7 +98,20 @@ class GlideinHandler(BaseRotatingHandler):
 
         @type record: string
         @param record: The message that will be logged.
+
+        @attention: Due to the architecture decision to fork "workers" we run 
+        into an issue where the child that was forked could cause a log 
+        rotation.  However the parent will never know and the parent's file
+        descriptor will still be pointing at the old log file (now renamed by
+        the child).  This will in turn cause the parent to immediately request
+        a log rotate, which results in what appears to be truncated logs.  To
+        handle this we add a flag to disable log rotation.  By default this is
+        set to False, but anywhere we want to fork a child (or in any object 
+        that will be forked) we set the flag to True.  Then in the parent, we
+        initiate a log function that will log and rotate if necessary.
         """
+        if disable_rotate: return 0
+
         do_timed_rollover = 0
         t = int(time.time())
         if t >= self.rolloverAt:
@@ -194,27 +205,58 @@ class GlideinHandler(BaseRotatingHandler):
                 new_stream = open(self.baseFilename, self.mode)
         return new_stream
 
+def log_and_rollover(self, log_msg, log_level):
+    """
+    if disable_rotate == True, then we need to re-enable it, log (let the
+    normal "rotate check and rotate if necessary" happen), then disable rotation
+    again.
+    """
+    # need to declare disable_rotate as a global so that we can modify it if 
+    # necessary.   By default access to module level variables is read-only
+    global disable_rotate
+    log_level = log_level.upper()
+
+    def do_log(log_msg, log_level):
+        if log_level == "INFO":
+            log.info(log_msg)
+        elif (log_level == "WARN") or (log_level == "WARNING") :
+            log.warning(log_msg)
+        elif (log_level == "ERR") or (log_level == "ERROR"):
+            log.error(log_msg)
+        elif log_level == "DEBUG":
+            log.debug(log_msg)
+
+    if disable_rotate:
+        # disable_rotate was set to True, so set to False, log a message, then 
+        # set to True again
+        disable_rotate = False
+        do_log(log_msg, log_level)
+        disable_rotate = True
+    else:
+        # disable_rotate was set to False, so we will leave as is and perform a
+        # "normal" log 
+        do_log(log_msg, log_level)
 
 def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, minDays, maxMBytes, backupCount=5):
     """
     Adds a handler to the GlideinLogger logger referenced by logger_name.
     """
     logfile = os.path.expandvars("%s/%s.%s.log" % (log_dir, logger_name, extension.lower()))
-     
+
     mylog = logging.getLogger(logger_name)
     mylog.setLevel(logging.DEBUG)
 
     handler = GlideinHandler(logfile, maxDays, minDays, maxMBytes, backupCount)
     handler.setFormatter(DEFAULT_FORMATTER)
     handler.setLevel(logging.DEBUG)
-    
+
     has_debug = False
-    msg_type_list = [] 
+    msg_type_list = []
     for msg_type in msg_types.split(","):
         msg_type = msg_type.upper().strip()
         if msg_type == "INFO":
             msg_type_list.append(logging.INFO)
-        elif msg_type == "WARN":
+        if msg_type == "WARN":
             msg_type_list.append(logging.WARN)
             msg_type_list.append(logging.WARNING)
         if msg_type == "ERR":
@@ -222,32 +264,32 @@ def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, 
             msg_type_list.append(logging.CRITICAL)
         if msg_type == "DEBUG":
             msg_type_list.append(logging.DEBUG)
-            has_debug = True        
-        
+            has_debug = True
+
     if has_debug:
-        handler.setFormatter(DEBUG_FORMATTER)  
+        handler.setFormatter(DEBUG_FORMATTER)
     else:
         handler.setFormatter(DEFAULT_FORMATTER)
-        
-    handler.addFilter(MsgFilter(msg_type_list)) 
-        
+
+    handler.addFilter(MsgFilter(msg_type_list))
+
     mylog.addHandler(handler)
-    
+
 
 class MsgFilter(logging.Filter):
     """
     Filter used in handling records for the info logs.
     """
     msg_type_list = [logging.INFO]
-    
+
     def __init__(self, msg_type_list):
         logging.Filter.__init__(self)
         self.msg_type_list = msg_type_list
-            
+
     def filter(self, rec):
         return rec.levelno in self.msg_type_list 
 
-    
+
 def format_dict(unformated_dict, log_format="   %-25s : %s\n"):
     """
     Convenience function used to format a dictionary for the logs to make it 
