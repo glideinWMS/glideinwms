@@ -437,6 +437,11 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
             # just for doing check and perform work for each entry
             os.kill(os.getpid(),signal.SIGKILL)
 
+        # We have now returned to the parent.  We are about to loop to another entry
+        # but before we do, lets log one more time and enable log rotation so that
+        # the log will be rotated here if necessary
+        log_msg = "Finished check_and_perform_work for entry '%s' " % entry.name
+        entry.log_and_rollover(log_msg, "INFO")
 
 
     # Gather info from rest of the entries
@@ -640,18 +645,24 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                                 entry.writeStats()
                                 return_dict[entry.name] = entry.getState()
                             except:
-                                logSupport.log.warn("Error writing stats for entry '%s'" % (entry.name))
-                                logSupport.log.exception("Error writing stats for entry '%s': " % (entry.name))
+                                entry.log.warn("Error writing stats for entry '%s'" % (entry.name))
+                                entry.log.exception("Error writing stats for entry '%s': " % (entry.name))
 
                         try:
                             os.write(w, cPickle.dumps(return_dict))
                         except:
                             # Catch and log exceptions if any to avoid
                             # runaway processes.
-                            logSupport.log.exception("Error writing pickled state for entry '%s': " % (entry.name))
+                            entry.log.exception("Error writing pickled state for entry '%s': " % (entry.name))
                         os.close(w)
                         # Exit without triggering SystemExit exception
                         os._exit(0)
+
+                    # We have now returned to the parent.  We are about to loop to another entry
+                    # but before we do, lets log one more time and enable log rotation so that
+                    # the log will be rotated here if necessary
+                    log_msg = "Finished writeStats for entry '%s' " % entry.name
+                    entrylists[cpu].log_and_rollover(log_msg, "INFO")
 
                 try:
                     logSupport.log.info("Processing response from children after write stats")
