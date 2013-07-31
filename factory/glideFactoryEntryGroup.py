@@ -436,6 +436,8 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
             # Hard kill myself. Don't want any cleanup, since I was created
             # just for doing check and perform work for each entry
             os.kill(os.getpid(),signal.SIGKILL)
+        
+        entry.log("Finished check_and_perform_work iteration for entry '%s' " % entry.name)
 
     # Gather info from rest of the entries
     try:
@@ -651,6 +653,9 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                         os.close(w)
                         # Exit without triggering SystemExit exception
                         os._exit(0)
+
+                    for entry in entrylists[cpu]:
+                        entry.log.info("Finished 'writing stats' iteration for entry '%s'" % (entry.name))
 
                 try:
                     logSupport.log.info("Processing response from children after write stats")
