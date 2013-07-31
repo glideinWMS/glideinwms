@@ -79,7 +79,7 @@ class GlideinHandler(BaseRotatingHandler):
         self.interval = maxDays * 24 * 60 * 60 # Convert max days (interval) to seconds
 
         # We are enforcing a date/time format for rotated log files to include
-        # year, month, day, hours, and minutes.  The hours and minutes are to 
+        # year, month, day, hours, and minutes.  The hours and minutes are to
         # preserve multiple rotations in a single day.
         self.suffix = "%Y-%m-%d_%H-%M"
         self.extMatch = re.compile(r"^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}$")
@@ -99,14 +99,14 @@ class GlideinHandler(BaseRotatingHandler):
         @type record: string
         @param record: The message that will be logged.
 
-        @attention: Due to the architecture decision to fork "workers" we run 
-        into an issue where the child that was forked could cause a log 
+        @attention: Due to the architecture decision to fork "workers" we run
+        into an issue where the child that was forked could cause a log
         rotation.  However the parent will never know and the parent's file
         descriptor will still be pointing at the old log file (now renamed by
         the child).  This will in turn cause the parent to immediately request
         a log rotate, which results in what appears to be truncated logs.  To
         handle this we add a flag to disable log rotation.  By default this is
-        set to False, but anywhere we want to fork a child (or in any object 
+        set to False, but anywhere we want to fork a child (or in any object
         that will be forked) we set the flag to True.  Then in the parent, we
         initiate a log function that will log and rotate if necessary.
         """
@@ -153,7 +153,7 @@ class GlideinHandler(BaseRotatingHandler):
         """
         do a rollover; in this case, a date/time stamp is appended to the filename
         when the rollover happens.  If there is a backup count, then we have to get
-        a list of matching filenames, sort them and remove the one with the oldest 
+        a list of matching filenames, sort them and remove the one with the oldest
         suffix.
         """
         # Close the soon to be rotated log file
@@ -163,8 +163,8 @@ class GlideinHandler(BaseRotatingHandler):
         dfn = self.baseFilename + "." + time.strftime(self.suffix, timeTuple)
 
         # If you are rotating log files in less than a minute, you either have
-        # set your sizes way too low, or you have serious problems.  We are 
-        # going to protect against that scenario by removing any files that 
+        # set your sizes way too low, or you have serious problems.  We are
+        # going to protect against that scenario by removing any files that
         # whose name collides with the new rotated file name.
         if os.path.exists(dfn):
             os.remove(dfn)
@@ -197,7 +197,9 @@ class GlideinHandler(BaseRotatingHandler):
         """
         new_stream = None
         try:
-            new_stream = self._open() # pylint: disable=E1101
+            # pylint: disable=E1101
+            new_stream = self._open()
+            # pylint: enable=E1101
         except:
             if self.encoding:
                 new_stream = codecs.open(self.baseFilename, self.mode, self.encoding)
@@ -211,7 +213,7 @@ def log_and_rollover(self, log_msg, log_level):
     normal "rotate check and rotate if necessary" happen), then disable rotation
     again.
     """
-    # need to declare disable_rotate as a global so that we can modify it if 
+    # need to declare disable_rotate as a global so that we can modify it if
     # necessary.   By default access to module level variables is read-only
     global disable_rotate
     log_level = log_level.upper()
@@ -227,14 +229,14 @@ def log_and_rollover(self, log_msg, log_level):
             log.debug(log_msg)
 
     if disable_rotate:
-        # disable_rotate was set to True, so set to False, log a message, then 
+        # disable_rotate was set to True, so set to False, log a message, then
         # set to True again
         disable_rotate = False
         do_log(log_msg, log_level)
         disable_rotate = True
     else:
         # disable_rotate was set to False, so we will leave as is and perform a
-        # "normal" log 
+        # "normal" log
         do_log(log_msg, log_level)
 
 def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, minDays, maxMBytes, backupCount=5):
@@ -287,14 +289,14 @@ class MsgFilter(logging.Filter):
         self.msg_type_list = msg_type_list
 
     def filter(self, rec):
-        return rec.levelno in self.msg_type_list 
+        return rec.levelno in self.msg_type_list
 
 
 def format_dict(unformated_dict, log_format="   %-25s : %s\n"):
     """
-    Convenience function used to format a dictionary for the logs to make it 
+    Convenience function used to format a dictionary for the logs to make it
     human readable.
-    
+
     @type unformated_dict: dict
     @param unformated_dict: The dictionary to be formatted for logging
     @type log_format: string
