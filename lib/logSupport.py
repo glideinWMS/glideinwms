@@ -207,38 +207,6 @@ class GlideinHandler(BaseRotatingHandler):
                 new_stream = open(self.baseFilename, self.mode)
         return new_stream
 
-def log_and_rollover(self, log_msg, log_level):
-    """
-    if disable_rotate == True, then we need to re-enable it, log (let the
-    normal "rotate check and rotate if necessary" happen), then disable rotation
-    again.
-    """
-    # need to declare disable_rotate as a global so that we can modify it if
-    # necessary.   By default access to module level variables is read-only
-    global disable_rotate
-    log_level = log_level.upper()
-
-    def do_log(log_msg, log_level):
-        if log_level == "INFO":
-            log.info(log_msg)
-        elif (log_level == "WARN") or (log_level == "WARNING") :
-            log.warning(log_msg)
-        elif (log_level == "ERR") or (log_level == "ERROR"):
-            log.error(log_msg)
-        elif log_level == "DEBUG":
-            log.debug(log_msg)
-
-    if disable_rotate:
-        # disable_rotate was set to True, so set to False, log a message, then
-        # set to True again
-        disable_rotate = False
-        do_log(log_msg, log_level)
-        disable_rotate = True
-    else:
-        # disable_rotate was set to False, so we will leave as is and perform a
-        # "normal" log
-        do_log(log_msg, log_level)
-
 def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, minDays, maxMBytes, backupCount=5):
     """
     Adds a handler to the GlideinLogger logger referenced by logger_name.

@@ -88,10 +88,6 @@ class Entry:
                                               int(float(plog['min_days'])),
                                               int(float(plog['max_mbytes'])))
         self.log = logging.getLogger(self.name)
-        logSupport.disable_rotate = True
-        # we alias the log_and_rollover function so that we can call it from the
-        # group
-        self.log_and_rollover = logSupport.log_and_rollover
 
         cleaner = cleanupSupport.PrivsepDirCleanupWSpace(
             None,
