@@ -6,9 +6,7 @@
 #
 # Description: log support module
 #
-# Author:
-#  Igor Sfiligoi (Oct 25th 2006)
-#
+
 import codecs
 import os
 import re
@@ -19,7 +17,8 @@ from logging.handlers import BaseRotatingHandler
 
 log = None # create a place holder for a global logger, individual modules can create their own loggers if necessary
 log_dir = None
-
+disable_rotate = False
+handlers = []
 
 DEFAULT_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s')
 DEBUG_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s: %(module)s:%(lineno)d: %(message)s')
@@ -81,7 +80,7 @@ class GlideinHandler(BaseRotatingHandler):
         self.interval = maxDays * 24 * 60 * 60 # Convert max days (interval) to seconds
 
         # We are enforcing a date/time format for rotated log files to include
-        # year, month, day, hours, and minutes.  The hours and minutes are to 
+        # year, month, day, hours, and minutes.  The hours and minutes are to
         # preserve multiple rotations in a single day.
         self.suffix = "%Y-%m-%d_%H-%M"
         self.extMatch = re.compile(r"^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}$")
@@ -92,7 +91,7 @@ class GlideinHandler(BaseRotatingHandler):
             begin_interval_time = int(time.time())
         self.rolloverAt = begin_interval_time + self.interval
 
-    def shouldRollover(self, record):
+    def shouldRollover(self, record, empty_record=False):
         """
         Determine if rollover should occur.
 
@@ -100,7 +99,20 @@ class GlideinHandler(BaseRotatingHandler):
 
         @type record: string
         @param record: The message that will be logged.
+
+        @attention: Due to the architecture decision to fork "workers" we run
+        into an issue where the child that was forked could cause a log
+        rotation.  However the parent will never know and the parent's file
+        descriptor will still be pointing at the old log file (now renamed by
+        the child).  This will in turn cause the parent to immediately request
+        a log rotate, which results in what appears to be truncated logs.  To
+        handle this we add a flag to disable log rotation.  By default this is
+        set to False, but anywhere we want to fork a child (or in any object
+        that will be forked) we set the flag to True.  Then in the parent, we
+        initiate a log function that will log and rotate if necessary.
         """
+        if disable_rotate: return 0
+
         do_timed_rollover = 0
         t = int(time.time())
         if t >= self.rolloverAt:
@@ -108,7 +120,10 @@ class GlideinHandler(BaseRotatingHandler):
 
         do_size_rollover = 0
         if self.maxBytes > 0:                   # are we rolling over?
-            msg = "%s\n" % self.format(record)
+            if empty_record:
+                msg = ""
+            else:
+                msg = "%s\n" % self.format(record)
             self.stream.seek(0, 2)  #due to non-posix-compliant Windows feature
             if (self.stream.tell() + len(msg) >= self.maxBytes):
                 do_size_rollover = 1
@@ -142,18 +157,18 @@ class GlideinHandler(BaseRotatingHandler):
         """
         do a rollover; in this case, a date/time stamp is appended to the filename
         when the rollover happens.  If there is a backup count, then we have to get
-        a list of matching filenames, sort them and remove the one with the oldest 
+        a list of matching filenames, sort them and remove the one with the oldest
         suffix.
         """
         # Close the soon to be rotated log file
-        self.close()
+        self.stream.close()
         # get the time that this sequence started at and make it a TimeTuple
         timeTuple = time.localtime(time.time())
         dfn = self.baseFilename + "." + time.strftime(self.suffix, timeTuple)
 
         # If you are rotating log files in less than a minute, you either have
-        # set your sizes way too low, or you have serious problems.  We are 
-        # going to protect against that scenario by removing any files that 
+        # set your sizes way too low, or you have serious problems.  We are
+        # going to protect against that scenario by removing any files that
         # whose name collides with the new rotated file name.
         if os.path.exists(dfn):
             os.remove(dfn)
@@ -184,35 +199,47 @@ class GlideinHandler(BaseRotatingHandler):
         This function is here to bridge the gap between the old (python 2.4) way
         of opening new log files and the new (python 2.7) way.
         """
+        new_stream = None
         try:
-            self._open() # pylint: disable=E1101
+            # pylint: disable=E1101
+            new_stream = self._open()
+            # pylint: enable=E1101
         except:
             if self.encoding:
-                self.stream = codecs.open(self.baseFilename, self.mode, self.encoding)
+                new_stream = codecs.open(self.baseFilename, self.mode, self.encoding)
             else:
-                self.stream = open(self.baseFilename, self.mode)
+                new_stream = open(self.baseFilename, self.mode)
+        return new_stream
 
+    def check_and_perform_rollover(self):
+        if self.shouldRollover(None, empty_record=True):
+            self.doRollover()
+
+def roll_all_logs():
+    for handler in handlers:
+        handler.check_and_perform_rollover()
 
 def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, minDays, maxMBytes, backupCount=5):
     """
     Adds a handler to the GlideinLogger logger referenced by logger_name.
     """
+
     logfile = os.path.expandvars("%s/%s.%s.log" % (log_dir, logger_name, extension.lower()))
-     
+
     mylog = logging.getLogger(logger_name)
     mylog.setLevel(logging.DEBUG)
 
     handler = GlideinHandler(logfile, maxDays, minDays, maxMBytes, backupCount)
     handler.setFormatter(DEFAULT_FORMATTER)
     handler.setLevel(logging.DEBUG)
-    
+
     has_debug = False
-    msg_type_list = [] 
+    msg_type_list = []
     for msg_type in msg_types.split(","):
         msg_type = msg_type.upper().strip()
         if msg_type == "INFO":
             msg_type_list.append(logging.INFO)
-        elif msg_type == "WARN":
+        if msg_type == "WARN":
             msg_type_list.append(logging.WARN)
             msg_type_list.append(logging.WARNING)
         if msg_type == "ERR":
@@ -220,37 +247,37 @@ def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, 
             msg_type_list.append(logging.CRITICAL)
         if msg_type == "DEBUG":
             msg_type_list.append(logging.DEBUG)
-            has_debug = True        
-        
+            has_debug = True
+
     if has_debug:
-        handler.setFormatter(DEBUG_FORMATTER)  
+        handler.setFormatter(DEBUG_FORMATTER)
     else:
         handler.setFormatter(DEFAULT_FORMATTER)
-        
-    handler.addFilter(MsgFilter(msg_type_list)) 
-        
+
+    handler.addFilter(MsgFilter(msg_type_list))
+
     mylog.addHandler(handler)
-    
+    handlers.append(handler)
 
 class MsgFilter(logging.Filter):
     """
     Filter used in handling records for the info logs.
     """
     msg_type_list = [logging.INFO]
-    
+
     def __init__(self, msg_type_list):
         logging.Filter.__init__(self)
         self.msg_type_list = msg_type_list
-            
-    def filter(self, rec):
-        return rec.levelno in self.msg_type_list 
 
-    
+    def filter(self, rec):
+        return rec.levelno in self.msg_type_list
+
+
 def format_dict(unformated_dict, log_format="   %-25s : %s\n"):
     """
-    Convenience function used to format a dictionary for the logs to make it 
+    Convenience function used to format a dictionary for the logs to make it
     human readable.
-    
+
     @type unformated_dict: dict
     @param unformated_dict: The dictionary to be formatted for logging
     @type log_format: string
