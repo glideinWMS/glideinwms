@@ -18,6 +18,7 @@ from logging.handlers import BaseRotatingHandler
 log = None # create a place holder for a global logger, individual modules can create their own loggers if necessary
 log_dir = None
 disable_rotate = False
+handlers = []
 
 DEFAULT_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s')
 DEBUG_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s: %(module)s:%(lineno)d: %(message)s')
@@ -90,7 +91,7 @@ class GlideinHandler(BaseRotatingHandler):
             begin_interval_time = int(time.time())
         self.rolloverAt = begin_interval_time + self.interval
 
-    def shouldRollover(self, record):
+    def shouldRollover(self, record, empty_record=False):
         """
         Determine if rollover should occur.
 
@@ -119,7 +120,10 @@ class GlideinHandler(BaseRotatingHandler):
 
         do_size_rollover = 0
         if self.maxBytes > 0:                   # are we rolling over?
-            msg = "%s\n" % self.format(record)
+            if empty_record:
+                msg = ""
+            else:
+                msg = "%s\n" % self.format(record)
             self.stream.seek(0, 2)  #due to non-posix-compliant Windows feature
             if (self.stream.tell() + len(msg) >= self.maxBytes):
                 do_size_rollover = 1
@@ -207,10 +211,19 @@ class GlideinHandler(BaseRotatingHandler):
                 new_stream = open(self.baseFilename, self.mode)
         return new_stream
 
+    def check_and_perform_rollover(self):
+        if self.shouldRollover(None, empty_record=True):
+            self.doRollover()
+
+def roll_all_logs():
+    for handler in handlers:
+        handler.check_and_perform_rollover()
+
 def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, minDays, maxMBytes, backupCount=5):
     """
     Adds a handler to the GlideinLogger logger referenced by logger_name.
     """
+
     logfile = os.path.expandvars("%s/%s.%s.log" % (log_dir, logger_name, extension.lower()))
 
     mylog = logging.getLogger(logger_name)
@@ -244,7 +257,7 @@ def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, 
     handler.addFilter(MsgFilter(msg_type_list))
 
     mylog.addHandler(handler)
-
+    handlers.append(handler)
 
 class MsgFilter(logging.Filter):
     """
