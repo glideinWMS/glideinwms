@@ -146,10 +146,9 @@
     significant changes to the configuration files and content in the working
     directories.
     <br><br>
-    Starting v3.1, glideinwms provides tools convert_factory_2to3.sh,
-    convert_factory_rrds_2to3.sh and convert_frontend_2to3.sh to help with
-    the upgrade from v2.7+. The upgrade process is not fully automated and
-    involves few steps.
+    Starting v3.1, glideinwms provides tools to convert v2.7 config files and
+    rrds to v3.1 equivalent. See below for detailed steps to upgrade factory
+    and frontend.
     <pre>
     <b>prompt$</b> ./convert_frontend_2to3.sh
     Usage: convert_frontend_2to3.sh &lt;options&gt;
@@ -164,10 +163,16 @@
     -s &lt;path&gt;               : path to top directory glideinWMS source
     -i &lt;glideinWMS-2.xml&gt;   : v2 glideinWMS.xml
     -o &lt;glideinWMS-3.xml&gt;   : v3 glideinWMS.xml
+
+    <b>prompt$</b> ./convert_factory_rrds_2to3.sh
+    Usage: convert_factory_rrds_2to3.sh &lt;options&gt;
+    where &lt;options&gt; are:
+    -c &lt;glideinWMS.xml&gt;   : full path to the v3 glideinWMS config file
     </pre>
     <br>
+    The upgrade process is not fully automated and involves few steps.
     <b>NOTE: </b>Please back up your configurations (they can be a reference
-    for any customizations you have done) and reinstall all the services.
+    for any customizations you have done) when reinstalling the services.
     </p>
     <pre>
     <b>#################################
