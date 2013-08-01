@@ -583,9 +583,6 @@ def main(startup_dir):
         glideinDescript.data['ClientLogBaseDir'],
         glideinDescript.data['ClientProxiesBaseDir'])
 
-    write_descript(glideinDescript, frontendDescript,
-                   os.path.join(startup_dir, 'monitor/'))
-
     # Set the Log directory
     logSupport.log_dir = os.path.join(glideinDescript.data['LogDir'], "factory")
 
@@ -604,6 +601,15 @@ def main(startup_dir):
                                       int(float(plog['max_mbytes'])))
     logSupport.log = logging.getLogger("factory")
     logSupport.log.info("Logging initialized")
+
+    if (glideinDescript.data['Entries'].strip() in ('', ',')):
+        # No entries are enabled. There is nothing to do. Just exit here.
+        log_msg = "No Entries are enabled. Exiting."
+
+        logSupport.log.error(log_msg)
+        sys.exit(1)
+
+    write_descript(glideinDescript,frontendDescript,os.path.join(startup_dir, 'monitor/'))
 
     try:
         os.chdir(startup_dir)
