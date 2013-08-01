@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_1_rc4
+# GLIDEINWMS_VERSION v3_1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -76,7 +76,7 @@ b292d006ca66e438359ea4574829419d  ./factory/glideFactoryConfig.py
 664cbf7a1995992a7f0bb0a2f684119b  ./factory/glideFactoryCredentials.py
 00d8a8bad3b7184131cd4c42f1839e1a  ./factory/glideFactoryDowntimeLib.py
 5bf3b59d977ac2fd9bd42b94205e56e2  ./factory/glideFactoryEntry.py
-75d57354376c71301c50525344ae4358  ./factory/glideFactoryEntryGroup.py
+3ce8eb1a7ab57676053cb57af908efb7  ./factory/glideFactoryEntryGroup.py
 af96cbac7fb4a9ca4c74c5831404f440  ./factory/glideFactoryInterface.py
 a33691a073496e3ccb6cb44e49dd1ed2  ./factory/glideFactoryLib.py
 465614b1447fb15115d4569a56175b8c  ./factory/glideFactoryLogParser.py
@@ -99,6 +99,7 @@ da8999ea9f852d3dc1090edbbeb8f87d  ./factory/tools/cat_MasterLog.py
 0d2c30ca235d8560463ac6670fb1e3d7  ./factory/tools/configGUI.py
 8785436fb67df2c6671ea209eae77161  ./factory/tools/convert_factory_2to3.sh
 a1ee1c6607cfbf9f64cf07120e9771d0  ./factory/tools/convert_factory_2to3.xslt
+3419c04fa7c657ed9c34c372dce0f1d3  ./factory/tools/convert_factory_rrds_2to3.sh
 e28fd0ce129514b523f13f2ea2eb98f2  ./factory/tools/entry_ls
 f2069326161387c9d98aa08539e951db  ./factory/tools/entry_q
 b34fe7fb3a430a2ff474962a2c03326d  ./factory/tools/entry_rm
@@ -156,7 +157,7 @@ a203f536b05728922180758c66bdcb28  ./lib/exprParser.py
 ac7d5c93017e3887f1d44fcdee9a7237  ./lib/hashCrypto.py
 560d3f938ae5104b0be721735f752486  ./lib/iniSupport.py
 223c74aae5cbc7132b080e0dedf679ba  ./lib/ldapMonitor.py
-642e9025e5bf66ed86794fe59d32ddf8  ./lib/logSupport.py
+90a4943a15dcdf9c69b3ebcfa3ea8a12  ./lib/logSupport.py
 fe4614cb3ecabd81d65f3b85b5c7abb6  ./lib/logging.conf
 353e3c45bb31ebdd716b110100fa42b6  ./lib/pidSupport.py
 7b2d48ef58bbf0aca878d4dcb1efa690  ./lib/pubCrypto.py
@@ -189,9 +190,11 @@ f40e7fffa0c8ea7308ca72738105a4a3  ./unittests/test_encodingSupport.py
 74683dc9f3d9fc9321cb024f45f4d778  ./unittests/test_glideFactoryDowntimeLib.py
 bac527ea84264fa74fc7491376beb0be  ./unittests/test_glideinFrontendPlugins.py
 994f0813b75e7813b309f255b78942cb  ./unittests/test_infosys_lib.py
-401de728b6133abe6aedb88d4dbc7e87  ./unittests/test_logSupport.py
+1042596530ea1af51aaa79da6046f45f  ./unittests/test_logSupport.py
 e62a4284ef3ee405897fe71e6a00aa52  ./unittests/test_tarSupport.py
 58e156307d25fd6d584461a08ea064a1  ./unittests/unittest_utils.py
+573c747342c3b0dbd6e39041e0fc43d3  ./unittests/worker_scripts/log_writer.py
+bb7311f7f5bbe1b396481c606c9f6c52  ./unittests/worker_scripts/master_writer.py
 deda72780003d66021f6bb8e9f4e6200  ./unittests/worker_scripts/write_exit_0.py
 b3193772ae25df2e5c72d4ee8b6f78f0  ./unittests/worker_scripts/write_exit_0.sh
 e715f91d16a153a78798b402f8584576  ./unittests/worker_scripts/write_exit_1.py

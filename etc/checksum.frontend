@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_1_rc4
+# GLIDEINWMS_VERSION v3_1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -122,7 +122,7 @@ a203f536b05728922180758c66bdcb28  ./lib/exprParser.py
 ac7d5c93017e3887f1d44fcdee9a7237  ./lib/hashCrypto.py
 560d3f938ae5104b0be721735f752486  ./lib/iniSupport.py
 223c74aae5cbc7132b080e0dedf679ba  ./lib/ldapMonitor.py
-642e9025e5bf66ed86794fe59d32ddf8  ./lib/logSupport.py
+90a4943a15dcdf9c69b3ebcfa3ea8a12  ./lib/logSupport.py
 fe4614cb3ecabd81d65f3b85b5c7abb6  ./lib/logging.conf
 353e3c45bb31ebdd716b110100fa42b6  ./lib/pidSupport.py
 7b2d48ef58bbf0aca878d4dcb1efa690  ./lib/pubCrypto.py
@@ -155,9 +155,11 @@ f40e7fffa0c8ea7308ca72738105a4a3  ./unittests/test_encodingSupport.py
 74683dc9f3d9fc9321cb024f45f4d778  ./unittests/test_glideFactoryDowntimeLib.py
 bac527ea84264fa74fc7491376beb0be  ./unittests/test_glideinFrontendPlugins.py
 994f0813b75e7813b309f255b78942cb  ./unittests/test_infosys_lib.py
-401de728b6133abe6aedb88d4dbc7e87  ./unittests/test_logSupport.py
+1042596530ea1af51aaa79da6046f45f  ./unittests/test_logSupport.py
 e62a4284ef3ee405897fe71e6a00aa52  ./unittests/test_tarSupport.py
 58e156307d25fd6d584461a08ea064a1  ./unittests/unittest_utils.py
+573c747342c3b0dbd6e39041e0fc43d3  ./unittests/worker_scripts/log_writer.py
+bb7311f7f5bbe1b396481c606c9f6c52  ./unittests/worker_scripts/master_writer.py
 deda72780003d66021f6bb8e9f4e6200  ./unittests/worker_scripts/write_exit_0.py
 b3193772ae25df2e5c72d4ee8b6f78f0  ./unittests/worker_scripts/write_exit_0.sh
 e715f91d16a153a78798b402f8584576  ./unittests/worker_scripts/write_exit_1.py
