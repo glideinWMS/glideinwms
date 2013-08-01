@@ -548,13 +548,6 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
     logSupport.log.info("Advertising entries")
     entries_advertised = []
 
-    logSupport.log.info("Collectoring cleanup")
-    os.waitpid(cl_pid, 0)
-    logSupport.log.info("Cleanup collected")
-
-
-    logSupport.log.debug("Group Work done: %s" % groupwork_done)
-
     # Classad files to use
     gf_filename = classadSupport.generate_classad_filename(prefix='gfi_adm_gf')
     gfc_filename = classadSupport.generate_classad_filename(prefix='gfi_adm_gfc')
