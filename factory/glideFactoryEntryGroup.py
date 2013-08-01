@@ -405,39 +405,44 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
 
         entry = my_entries[ent]
         r,w = os.pipe()
+        unregister_sighandler()
         pid = os.fork()
         forks_remaining -= 1
 
         if pid != 0:
+            register_sighandler()
             # This is the parent process
             os.close(w)
             pipe_ids[entry.name] = {'r': r, 'pid': pid}
         else:
             # This is the child process
-            os.close(r)
-            logSupport.disable_rotate = True
             try:
-                work_done = glideFactoryEntry.check_and_perform_work(
-                                factory_in_downtime, entry, work[entry.name])
-                # entry object now has updated info in the child process
-                # This info is required for monitoring and advertising
-                # Compile the return info from th  updated entry object 
-                # Can't dumps the entry object directly, so need to extract
-                # the info required.
-                return_dict = compile_pickle_data(entry, work_done)
-                os.write(w,cPickle.dumps(return_dict))
-            except Exception, ex:
-                tb = traceback.format_exception(sys.exc_info()[0],
-                                                sys.exc_info()[1],
-                                                sys.exc_info()[2])
-                entry.log.exception("Error in check_and_perform_work for entry '%s' " % entry.name)
+                logSupport.disable_rotate = True
+                os.close(r)
 
-            os.close(w)
-            # Hard kill myself. Don't want any cleanup, since I was created
-            # just for doing check and perform work for each entry
-            os.kill(os.getpid(),signal.SIGKILL)
+                try:
+                    work_done = glideFactoryEntry.check_and_perform_work(
+                                    factory_in_downtime, entry, work[entry.name])
+                    # entry object now has updated info in the child process
+                    # This info is required for monitoring and advertising
+                    # Compile the return info from th  updated entry object 
+                    # Can't dumps the entry object directly, so need to extract
+                    # the info required.
+                    return_dict = compile_pickle_data(entry, work_done)
+                    os.write(w,cPickle.dumps(return_dict))
+                except Exception, ex:
+                    tb = traceback.format_exception(sys.exc_info()[0],
+                                                    sys.exc_info()[1],
+                                                    sys.exc_info()[2])
+                    entry.log.exception("Error in check_and_perform_work for entry '%s' " % entry.name)
 
-        logSupport.roll_all_logs()
+                os.close(w)
+                # Hard kill myself. Don't want any cleanup, since I was created
+                # just for doing check and perform work for each entry
+            finally:
+                # Exit, immediately. Don't want any cleanup, since I was created
+                # just for doing check and perform work for each entry
+                os._exit(0)
 
     # Gather info from rest of the entries
     try:
@@ -446,6 +451,8 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
     except RuntimeError:
         # Expect all errors logged already
         work_info_read_err = True
+
+    logSupport.roll_all_logs()
 
     # Gather results from the forked children
     logSupport.log.info("All children forked for glideFactoryEntry.check_and_perform_work terminated. Loading post work state for the entry.")
@@ -621,16 +628,16 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
 
                 for cpu in xrange(cpuCount):
                     r,w = os.pipe()
+                    unregister_sighandler()
                     pid = os.fork()
                     if pid:
                         # I am the parent
+                        register_sighandler()
                         pids.append(pid)
                         os.close(w)
                         pipe_ids[cpu] = {'r': r, 'pid': pid}
                     else:
                         # I am the child
-                        signal.signal(signal.SIGTERM, signal.SIG_DFL)
-                        signal.signal(signal.SIGQUIT, signal.SIG_DFL)
                         os.close(r)
                         logSupport.disable_rotate = True
                         # Return the pickled entry object in form of dict
@@ -654,13 +661,13 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                         # Exit without triggering SystemExit exception
                         os._exit(0)
 
-                    logSupport.roll_all_logs()
-
                 try:
                     logSupport.log.info("Processing response from children after write stats")
                     post_writestats_info = fetch_fork_result_list(pipe_ids)
                 except:
                     logSupport.log.exception("Error processing response from one or more children after write stats")
+
+                logSupport.roll_all_logs()
 
                 for i in post_writestats_info:
                     for ent in post_writestats_info[i]:
@@ -825,9 +832,16 @@ def compile_pickle_data(entry, work_done):
 def termsignal(signr,frame):
     raise KeyboardInterrupt, "Received signal %s"%signr
 
-if __name__ == '__main__':
+def register_sighandler():
     signal.signal(signal.SIGTERM, termsignal)
     signal.signal(signal.SIGQUIT, termsignal)
+
+def unregister_sighandler():
+    signal.signal(signal.SIGTERM, signal.SIG_DFL)
+    signal.signal(signal.SIGQUIT, signal.SIG_DFL)
+
+if __name__ == '__main__':
+    register_sighandler()
 
     # Force integrity checks on all condor operations
     gfl.set_condor_integrity_checks()
