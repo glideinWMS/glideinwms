@@ -472,7 +472,7 @@ class EntryClassad(classadSupport.Classad):
     def __init__(self, factory_name, glidein_name, entry_name,
                  trust_domain, auth_method, supported_signtypes,
                  pub_key_obj=None, glidein_attrs={}, glidein_params={},
-                 glidein_monitors={})
+                 glidein_monitors={}):
         """
         Class Constructor
 
