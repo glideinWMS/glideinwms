@@ -65,9 +65,9 @@
     <div class="jump">
     <u>Jump to:</u>
     <ol>
-        <li><a href="#v3plus">Upgrade to v3+</a></li>
         <li><a href="#frontend">Upgrade a frontend</a></li>
         <li><a href="#factory">Upgrade a factory</a></li>
+        <li><a href="#v3plus">Upgrade to v3+</a></li>
     </ol>
     </div>
     <div class="related">
@@ -80,45 +80,11 @@
     </div>
     
 
-<div class="section">
-    <a name="v3plus" />
-    <h3>Upgrading from v2+ to v3+</h3>
-    <p>We normally don't recommend major version upgrades as there are
-    significant changes to the configuration files and content in the working
-    directories.
-    <br><br>
-    Starting v3.1, glideinwms provides tools convert_factory_2to3.sh and
-    convert_frontend_2to3.sh to help with the upgrade process. The upgrade
-    process is not fully automated and involves few steps.
-    <pre>
-    <b>prompt$</b> ./convert_frontend_2to3.sh
-    Usage: convert_frontend_2to3.sh &lt;options&gt;
-    where &lt;options&gt; are:
-    -s &lt;path&gt;             : path to top directory glideinWMS source
-    -i &lt;frontend-2.xml&gt;   : v2 frontend.xml
-    -o &lt;frontend-3.xml&gt;   : v3 frontend.xml
-    </pre>
-    <pre>
-    <b>prompt$</b> ./convert_factory_2to3.sh
-    Usage: convert_factory_2to3.sh &lt;options&gt;
-    where &lt;options&gt; are:
-    -s &lt;path&gt;               : path to top directory glideinWMS source
-    -i &lt;glideinWMS-2.xml&gt;   : v2 glideinWMS.xml
-    -o &lt;glideinWMS-3.xml&gt;   : v3 glideinWMS.xml
-    </pre>
-    <br>
-    <b>NOTE: </b>Please back up your configurations (they can be a reference
-    for any customizations you have done) and reinstall all the services.
-    </p>
-    <h3>Upgrading from v1+ to v3+</h3>
-    <p>We do not support upgrading from v1+ to v3+. There are too many changes
-    between these versions and reinstallation of ALL services is required.</p>
-</div>
 
 
 <div class="section">
     <a name="frontend" />
-    <h3>Upgrading a frontend </h3>
+    <h3>General upgrade instructions for a frontend </h3>
     <p> 
         These instructions assume that you are only upgrading the frontend.
         If you need to upgrade more components, it may involve additional
@@ -147,7 +113,7 @@
 
 <div class="section">
 
-	<h3><a name="factory"></a>Upgrading a factory</h3>
+	<h3><a name="factory"></a>General upgrade instructions for a factory</h3>
 	<p>
 		These instructions assume that you are only upgrading the factory.
         If you need to upgrade more components, it may involve additional
@@ -173,6 +139,122 @@
 	</p>
 </div>
 
+<div class="section">
+    <a name="v3plus" />
+    <h3>Upgrading from v2+ to v3+</h3>
+    <p>We normally don't recommend major version upgrades as there are
+    significant changes to the configuration files and content in the working
+    directories.
+    <br><br>
+    Starting v3.1, glideinwms provides tools convert_factory_2to3.sh,
+    convert_factory_rrds_2to3.sh and convert_frontend_2to3.sh to help with
+    the upgrade from v2.7+. The upgrade process is not fully automated and
+    involves few steps.
+    <pre>
+    <b>prompt$</b> ./convert_frontend_2to3.sh
+    Usage: convert_frontend_2to3.sh &lt;options&gt;
+    where &lt;options&gt; are:
+    -s &lt;path&gt;             : path to top directory glideinWMS source
+    -i &lt;frontend-2.xml&gt;   : v2 frontend.xml
+    -o &lt;frontend-3.xml&gt;   : v3 frontend.xml
+
+    <b>prompt$</b> ./convert_factory_2to3.sh
+    Usage: convert_factory_2to3.sh &lt;options&gt;
+    where &lt;options&gt; are:
+    -s &lt;path&gt;               : path to top directory glideinWMS source
+    -i &lt;glideinWMS-2.xml&gt;   : v2 glideinWMS.xml
+    -o &lt;glideinWMS-3.xml&gt;   : v3 glideinWMS.xml
+    </pre>
+    <br>
+    <b>NOTE: </b>Please back up your configurations (they can be a reference
+    for any customizations you have done) and reinstall all the services.
+    </p>
+    <pre>
+    <b>#################################
+    # UPGRADING FACTORY v2.7+ to v3.1
+    #################################</b>
+
+    <b># STEP 1: Stop the v2 factory service</b>
+    <b># STEP 2: Install glideinwms v3.1</b>
+    <b># STEP 3: Backup and Convert v2 config and rrds to v3</b>
+    <b># STEP 4: Run factory_startup with upgrade option</b>
+    <b># STEP 5: Start the factory service</b>
+    <hr>
+    <b># GLIDEINWMS from TARBALL/GIT, assuming following
+    # Glideinwms SRC_DIR=/opt/glideinwms
+    # Factory WORK_DIR=/home/factory/glideinsubmit/glidein_v1_0
+    # Factory CONFIG_DIR=/home/factory/glideinsubmit/glidein_v1_0.cfg</b>
+
+    <b>prompt$</b> cd $WORK_DIR
+    <b>prompt$</b> ./factory_startup stop
+    <b>prompt$</b> tar xzf -C $SRC_DIR /tmp/glideinwms_v3_1.tgz
+    <b>prompt$</b> cp $WORK_DIR/glideinWMS.xml $WORK_DIR/glideinWMS-2.xml
+    <b>prompt$</b> cp $CONFIG_DIR/glideinWMS.xml $CONFIG_DIR/glideinWMS-2.xml
+    <b>prompt$</b> $SRC_DIR/factory/tools/convert_factory_2to3.sh -i $WORK_DIR/glideinWMS-2.xml -o $WORK_DIR/glideinWMS.xml -s $SRC_DIR
+    <b>prompt$</b> $SRC_DIR/factory/tools/convert_factory_2to3.sh -i $CONFIG_DIR/glideinWMS-2.xml -o $CONFIG_DIR/glideinWMS.xml -s $SRC_DIR
+    <b>prompt$</b> $SRC_DIR/factory/tools/convert_factory_rrds_2to3.sh -c $CONFIG_DIR/glideinWMS.xml
+    <b>prompt$</b> ./factory_startup upgrade
+    <b>prompt$</b> ./factory_startup start
+    <hr>
+    <b># GLIDEINWMS from RPM, assuming following
+    # Glideinwms SRC_DIR=/usr/lib/python2.4/site-packages/glideinwms
+    # Factory WORK_DIR=/var/lib/gwms-factory/work-dir
+    # Factory CONFIG_DIR=/etc/gwms-factory</b>
+
+    <b>prompt$</b> service gwms-factory stop
+    <b>prompt$</b> rpm -Uvh &lt;glideinwms rpm&gt;
+    <b>prompt$</b> cp $WORK_DIR/glideinWMS.xml $WORK_DIR/glideinWMS-2.xml
+    <b>prompt$</b> cp $CONFIG_DIR/glideinWMS.xml $CONFIG_DIR/glideinWMS-2.xml
+    <b>prompt$</b> $SRC_DIR/factory/tools/convert_factory_2to3.sh -i $WORK_DIR/glideinWMS-2.xml -o $WORK_DIR/glideinWMS.xml -s $SRC_DIR
+    <b>prompt$</b> $SRC_DIR/factory/tools/convert_factory_2to3.sh -i $CONFIG_DIR/glideinWMS-2.xml -o $CONFIG_DIR/glideinWMS.xml -s $SRC_DIR
+    <b>prompt$</b> $SRC_DIR/factory/tools/convert_factory_rrds_2to3.sh -c $CONFIG_DIR/glideinWMS.xml
+    <b>prompt$</b> service gwms-factory upgrade
+    <b>prompt$</b> service gwms-factory start
+    </pre>
+    <pre>
+    <b>##################################
+    # UPGRADING FRONTEND v2.7+ to v3.1
+    ##################################</b>
+
+    <b># STEP 1: Stop the v2 frontend service</b>
+    <b># STEP 2: Install glideinwms v3.1</b>
+    <b># STEP 3: Backup and Convert v2 config to v3</b>
+    <b># STEP 4: Run frontend_startup with upgrade option</b>
+    <b># STEP 5: Start the frontend service</b>
+    <hr>
+    <b># GLIDEINWMS from TARBALL/GIT, assuming following
+    # Glideinwms SRC_DIR=/opt/glideinwms
+    # Frontend WORK_DIR=/home/frontend/frontstage/frontend_myfrontend
+    # Frontend CONFIG_DIR=/home/frontend/frontstage/instance.cfg</b>
+
+    <b>prompt$</b> cd $WORK_DIR
+    <b>prompt$</b> ./frontend_startup stop
+    <b>prompt$</b> tar xzf -C $SRC_DIR /tmp/glideinwms_v3_1.tgz
+    <b>prompt$</b> cp $WORK_DIR/frontend.xml $WORK_DIR/frontend-2.xml
+    <b>prompt$</b> cp $CONFIG_DIR/frontend.xml $CONFIG_DIR/frontend-2.xml
+    <b>prompt$</b> $SRC_DIR/frontend/tools/convert_frontend_2to3.sh -i $WORK_DIR/frontend-2.xml -o $WORK_DIR/frontend.xml -s $SRC_DIR 
+    <b>prompt$</b> $SRC_DIR/frontend/tools/convert_frontend_2to3.sh -i $CONFIG_DIR/frontend-2.xml -o $CONFIG_DIR/frontend.xml -s $SRC_DIR
+    <b>prompt$</b> ./frontend_startup upgrade
+    <b>prompt$</b> ./frontend_startup start
+    <hr>
+    <b># GLIDEINWMS from RPM, assuming following
+    # Glideinwms SRC_DIR=/usr/lib/python2.4/site-packages/glideinwms
+    # Frontend WORK_DIR=/var/lib/gwms-frontend/work-dir
+    # Frontend CONFIG_DIR=/etc/gwms-frontend</b>
+
+    <b>prompt$</b> service gwms-frontend stop
+    <b>prompt$</b> rpm -Uvh &lt;glideinwms rpm&gt;
+    <b>prompt$</b> cp $WORK_DIR/frontend.xml $WORK_DIR/frontend-2.xml
+    <b>prompt$</b> cp $CONFIG_DIR/frontend.xml $CONFIG_DIR/frontend-2.xml
+    <b>prompt$</b> $SRC_DIR/frontend/tools/convert_frontend_2to3.sh -i $WORK_DIR/frontend-2.xml -o $WORK_DIR/frontend.xml -s $SRC_DIR
+    <b>prompt$</b> $SRC_DIR/frontend/tools/convert_frontend_2to3.sh -i $CONFIG_DIR/glideinWMS-2.xml -o $CONFIG_DIR/glideinWMS.xml -s $SRC_DIR
+    <b>prompt$</b> service gwms-frontend upgrade
+    <b>prompt$</b> service gwms-frontend start
+    </pre>
+    <h3>Upgrading from v1+ to v3+</h3>
+    <p>We do not support upgrading from v1+ to v3+. There are too many changes
+    between these versions and reinstallation of ALL services is required.</p>
+</div>
 <div class="footer">
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
