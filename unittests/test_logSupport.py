@@ -7,7 +7,7 @@ import sys
 import tempfile
 import time
 import unittest
-import yaml
+import ConfigParser
 
 from unittest_utils import runTest
 from unittest_utils import create_random_string
@@ -22,8 +22,10 @@ class TestLogSupport(unittest.TestCase):
         self.log_base_dir = tempfile.mkdtemp()
         self.format = "%Y-%m-%d_%H-%M"
 
-        config_file = "%s/test_logSupport.yaml" % os.path.join(sys.path[0], "test_configurations")
-        self.config = yaml.load(file(config_file, 'r'))
+        config_file = "%s/test_logSupport.ini" % os.path.join(sys.path[0], "test_configurations")
+        cp = ConfigParser.ConfigParser()
+        cp.read(config_file)
+        self.config = cp._sections
 
     def tearDown(self):
         shutil.rmtree(self.log_base_dir)
