@@ -131,7 +131,7 @@ def execute(target_user, init_dir, exe, args=None, env=None, stdin_fname=None, s
             'exec-path': exe,
             'HEX': 'DATA_NOT_LOGGED_FOR_SECURITY'
         }
-        logSupport.log.debug('Condor Privilage Separation options: %s' % privsep_env)
+        #logSupport.log.debug('Condor Privilage Separation options: %s' % privsep_env)
     except:
         # logging hasn't been setup yet
         pass
