@@ -1354,21 +1354,35 @@ For more information, see the <a href="design_entry.html#config">Entry Internals
       Components - Tools section of the documentation</a>.
     </li>
     <p/>
-    <li> Put the tarball in a directory owned by the wmsfactory and unzip/untar it.
-    </li>
-    <p/>
+
     <li>Add a new <tt>condor_tarball</tt> tag to the factory configuration file:<br/>
+        There are two ways you can do this:
+       <ul>
+        <li> put the tarball in a directory owned by the wmsfactory and 
+             enter the <tt>condor_tarball</tt> tag as:
         <blockquote>
         &lt;glidein ... &gt;<br/>
         ...<br/>
         &nbsp;&nbsp;&lt;condor_tarballs &gt;<br/>
-        &nbsp;&nbsp;&nbsp;&nbsp;&lt;condor_tarball
-            os="<i>OS</i>"
-            arch="<i>Arch</i>"
-            base_dir="<i>DIR_OF_UNTARRED_BINARY</i>"
-            version="<i>Condor_Version</i>" /&gt;
-
+        &nbsp;&nbsp;&nbsp;&nbsp;&lt;condor_tarball 
+                    os="<i>OS</i>" 
+                    arch="<i>Arch</i>" 
+                    <font color="blue"><b>tar_file="ZIPPED_TARFILE</b></font>" 
+                    version="<i>Condor_Version</i>" /&gt;
         </blockquote>
+       </li>
+        <li> or put the tarball in a directory owned by the wmsfactory and unzip/untar it.
+             Then, enter the <tt>condor_tarball</tt> tag as:
+        <blockquote>
+        &lt;glidein ... &gt;<br/>
+        ...<br/>
+        &nbsp;&nbsp;&lt;condor_tarballs &gt;<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&lt;condor_tarball os="<i>OS</i>" arch="<i>Arch</i>" 
+             <font color="blue"><b>base_dir="DIR_OF_UNTARRED_BINARY"</b></font> 
+             version="<i>Condor_Version</i>" /&gt;
+        </blockquote>
+       </li>
+      </ul>
     <p/>
         Starting v2.6.2, to simplify the configuration, os, arch and version
         support comma values. This can drastically reduce the number of 
@@ -1445,10 +1459,16 @@ value="True"/&gt;<br/>
     <p/>
     <li>
         After reconfig, you can see the <tt>tar_file</tt> created from the 
-        condor distribution in the <tt>condor_tarball</tt> element in the configuration.
+        condor distribution in the <tt>condor_tarball</tt> element in the configuration
+        as (if you populated just <tt>tar_file</tt> in step 2
+        <blockquote>
+ &lt;condor_tarball arch="default" os="default" <font color="blue"><b>tar_file="FACTORY_DIR/condor-7.8.tgz"</b></font> version="default"/&gt;
+        </blockquote>
+            or (if you populated just <tt>base_dir</tt> in step 2)
         <blockquote>
  &lt;condor_tarball arch="default" base_dir="/opt/glideins/git-xen21-master-ps.ini/condor-wms" os="default" <font color="blue"><b>tar_file="/var/www/html/glideinwms/factory_service/stage/glidein_master/condor_bin_0.d7bbk9.tgz"</b></font> version="default"/&gt;
         </blockquote>
+    </li>
     </li>
 </ol>
 </div>
