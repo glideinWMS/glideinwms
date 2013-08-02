@@ -545,15 +545,14 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
         logSupport.log.exception("Exception: ")
 
     logSupport.log.debug("Group Work done: %s" % groupwork_done)
-    logSupport.log.info("Advertising entries")
-    entries_advertised = []
 
     # Classad files to use
     gf_filename = classadSupport.generate_classad_filename(prefix='gfi_adm_gf')
     gfc_filename = classadSupport.generate_classad_filename(prefix='gfi_adm_gfc')
 
-    logSupport.log.info("Generating glidefactory (%s) and glidefactoryclient (%s) classads files" % (gf_filename, gfc_filename))
+    logSupport.log.info("Generating glidefactory (%s) and glidefactoryclient (%s) classads as needed" % (gf_filename, gfc_filename))
 
+    entries_to_advertise = []
     for entry in my_entries.values():
         # Write classads to file if work was done or if advertise flag is set
         # Actual advertise is done using multi classad advertisement
@@ -561,27 +560,28 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
         if ( (entry.name in groupwork_done) and 
              ('work_done' in groupwork_done[entry.name]) ):
             entrywork_done = groupwork_done[entry.name]['work_done']
-
-        #if ( (do_advertize) or (entrywork_done > 0) ):
-        #    logSupport.log.info("Advertising entry: %s" % entry.name)
-        #    entry.advertise(factory_in_downtime)
-        #    done_something += entrywork_done
+            done_something += entrywork_done
 
         if ( (do_advertize) or (entrywork_done > 0) ):
-            logSupport.log.debug("Generating glidefactory and glidefactoryclient classads for entry: %s" % entry.name)
+            entries_to_advertise.append(entry.name)
             entry.writeClassadsToFile(factory_in_downtime, gf_filename,
                                       gfc_filename)
-            done_something += entrywork_done
 
         entry.unsetInDowntime()
 
-    # ADVERTISE: glidefactory classads
-    gfi.advertizeGlideinFromFile(gf_filename, remove_file=True, is_multi=True)
+    if ((do_advertize) or (done_something > 0)):
+        logSupport.log.debug("Generated glidefactory and glidefactoryclient classads for entries: %s" % string.join(entries_to_advertise, ', '))
+        # ADVERTISE: glidefactory classads
+        gfi.advertizeGlideinFromFile(gf_filename,
+                                     remove_file=True,
+                                     is_multi=True)
+        # ADVERTISE: glidefactoryclient classads
+        gfi.advertizeGlideinClientMonitoringFromFile(gfc_filename,
+                                                     remove_file=True,
+                                                     is_multi=True)
+    else:
+        logSupport.log.info("Not advertising glidefactory and glidefactoryclient classads this round")
 
-    # ADVERTISE: glidefactoryclient classads
-    gfi.advertizeGlideinClientMonitoringFromFile(gfc_filename,
-                                                 remove_file=True,
-                                                 is_multi=True)
     if need_cleanup:
         for cl_pid in cl_pids:
             logSupport.log.info("Collectoring cleanup pid:%s"%cl_pid)
