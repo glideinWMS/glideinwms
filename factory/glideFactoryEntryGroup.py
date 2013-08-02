@@ -512,10 +512,9 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
     if need_cleanup:
         # IS: Fix the number of forks to 4 for now
         #     Would be a good idea making it configurable, though
-        elist=my_entries.values()
-        elistSize=len(elist)
         elistForks=4
-        elistChunk=elistSize/elistForks+1*((elistSize%elistForks)!=0) #round up
+        elist = [my_entries.values()[i::elistForks] for i in xrange(elistForks)]
+
         for i in range(elistForks):
             cl_pid = os.fork()
             if cl_pid != 0:
@@ -524,7 +523,7 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
             else:
                 # This is the child process
                 try:
-                    for entry in elist[i*elistChunk:(i+1)*elistChunk]:
+                    for entry in elist[i]:
                         entry.doCleanup()
                 finally:
                     # Hard kill myself. Don't want any cleanup, since I was created
