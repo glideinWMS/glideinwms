@@ -551,7 +551,7 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
     gf_filename = "/tmp/gfi_gf_multi_%li_%li" % (short_time, os.getpid())
     gfc_filename = "/tmp/gfi_gfc_multi_%li_%li" % (short_time, os.getpid())
 
-    gfl.log_files.logActivity("Generating glidefactory (%s) and glidefactoryclient (%s) classads files" % (gf_filename, gfc_filename))
+    gfl.log_files.logActivity("Generating glidefactory (%s) and glidefactoryclient (%s) classads files as needed" % (gf_filename, gfc_filename))
 
     for entry in my_entries.values():
         # Write classads to file if work was done or if advertise flag is set
@@ -600,6 +600,8 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
                 gfl.log_files.logDebug("Advertising glidefactoryclient classads failed: %s" % tb)
         else:
             gfl.log_files.logWarning("glidefactoryclient classad file %s does not exist. Check if frontends are allowed to submit to entry" % gfc_filename)
+    else:
+        gfl.log_files.logActivity("Not advertising glidefactory and glidefactoryclient classads this round")
 
 
     if need_cleanup:
