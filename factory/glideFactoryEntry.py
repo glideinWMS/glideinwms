@@ -307,9 +307,21 @@ class Entry:
         # These two are used to write the history to disk
         self.gflFactoryConfig.qc_stats = glideFactoryMonitoring.condorQStats(logfiles=self.logFiles)
         self.gflFactoryConfig.client_internals = {}
+        self.logFiles.logActivity("Iteration initialized")
+
+
+    def doCleanup(self):
+        """
+        Perform the log file cleanup
+
+        """
+
+        self.loadContext()
 
         # Cleanup log files
+        self.logFiles.logActivity("Cleaning logs started")
         self.logFiles.cleanup()
+        self.logFiles.logActivity("Cleaning logs finished")
 
 
     def unsetInDowntime(self):
@@ -381,6 +393,105 @@ class Entry:
             can_submit_glideins = False
 
         return can_submit_glideins
+
+
+    def writeClassadsToFile(self, factory_in_downtime, gf_filename,
+                            gfc_filename, append=True):
+        """
+        Create the glidefactory and glidefactoryclient classads to advertise
+        but do not advertise
+
+        @type factory_in_downtime: boolean
+        @param factory_in_downtime: factory in the downtimes file
+        """
+
+        classads = {}
+        self.loadContext()
+        pub_key_obj = self.glideinDescript.data['PubKeyObj']
+
+        self.gflFactoryConfig.client_stats.finalizeClientMonitor()
+
+        current_qc_total = self.gflFactoryConfig.client_stats.get_total()
+
+        glidein_monitors = {}
+        for w in current_qc_total:
+            for a in current_qc_total[w]:
+                glidein_monitors['Total%s%s'%(w,a)]=current_qc_total[w][a]
+
+        # Make copy of job attributes so can override the validation
+        # downtime setting with the true setting of the entry 
+        # (not from validation)
+        myJobAttributes = self.jobAttributes.data.copy()
+        myJobAttributes['GLIDEIN_In_Downtime'] = factory_in_downtime
+        gf_classad = glideFactoryInterface.EntryClassad(
+            self.gflFactoryConfig.factory_name,
+            self.gflFactoryConfig.glidein_name,
+            self.name, self.gflFactoryConfig.supported_signtypes,
+            myJobAttributes, self.jobParams.data.copy(),
+            glidein_monitors.copy(), pub_key_obj, self.allowedProxySource)
+        try:
+            gf_classad.writeToFile(gf_filename, append=append)
+        except:
+            tb = traceback.format_exception(sys.exc_info()[0],
+                                            sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            self.logFiles.logWarning("Error writing classad to file %s" % gf_filename)
+            self.logFiles.logDebug("Error writing classad to file %s: %s" % (gf_filename, tb))
+
+        # Advertise the monitoring, use the downtime found in
+        # validation of the credentials
+        monitor_job_attrs = self.jobAttributes.data.copy()
+        advertizer = \
+            glideFactoryInterface.MultiAdvertizeGlideinClientMonitoring(
+                self.gflFactoryConfig.factory_name,
+                self.gflFactoryConfig.glidein_name,
+                self.name, monitor_job_attrs)
+
+        current_qc_data = self.gflFactoryConfig.client_stats.get_data()
+        for client_name in current_qc_data:
+            client_qc_data = current_qc_data[client_name]
+            if client_name not in self.gflFactoryConfig.client_internals:
+                self.logFiles.logWarning("Client '%s' has stats, but no classad! Ignoring." % client_name)
+                continue
+            client_internals = self.gflFactoryConfig.client_internals[client_name]
+
+            client_monitors={}
+            for w in client_qc_data:
+                for a in client_qc_data[w]:
+                    # report only numbers
+                    if type(client_qc_data[w][a])==type(1):
+                        client_monitors['%s%s'%(w,a)] = client_qc_data[w][a]
+
+            try:
+                fparams = current_qc_data[client_name]['Requested']['Parameters']
+            except:
+                fparams = {}
+
+            params = self.jobParams.data.copy()
+            for p in fparams.keys():
+                # Can only overwrite existing params, not create new ones
+                if p in params.keys():
+                    params[p] = fparams[p]
+
+            advertizer.add(client_internals["CompleteName"],
+                           client_name, client_internals["ReqName"],
+                           params, client_monitors.copy())
+
+        try:
+            advertizer.writeToMultiClassadFile(gfc_filename)
+        except:
+            self.logFiles.logWarning("Writing monitoring classad to file %s failed" % gfc_filename)
+
+        return
+
+
+
+
+
+
+
+
+
 
 
     def advertise(self, factory_in_downtime):

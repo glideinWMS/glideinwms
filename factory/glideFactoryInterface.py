@@ -23,6 +23,15 @@ from glideinwms.lib import condorManager
 
 ############################################################
 #
+# Global Variables
+#
+############################################################
+
+# Advertize counter for glidefactory
+advertizeGFCounter = {}
+
+############################################################
+#
 # Configuration
 #
 ############################################################
@@ -465,6 +474,129 @@ start_time=time.time()
 advertizeGlideinCounter=0
 advertizeGFCCounter = {}
 
+
+class Classad:
+    """
+    Base class describing a classad.
+    """
+
+    def __init__(self, adtype, advertiseCmd, invalidateCmd):
+        """
+        Constructor
+
+        @type type: string
+        @param type: Type of the classad
+        @type advertiseCmd: string
+        @param advertiseCmd: Condor update-command to advertise this classad
+        @type invalidateCmd: string
+        @param invalidateCmd: Condor update-command to invalidate this classad
+        """
+
+        global frontendConfig
+
+        self.adType = adtype
+        self.adAdvertiseCmd = advertiseCmd
+        self.adInvalidateCmd = invalidateCmd
+
+        self.adParams = {}
+        self.adParams['MyType'] = self.adType
+        self.adParams['GlideinMyType'] = self.adType
+        self.adParams['GlideinWMSVersion'] = factoryConfig.glideinwms_version
+
+    def __str__(self):
+        """
+        String representation of the classad.
+        """
+
+        ad = ""
+        for param in self.adParams.keys():
+            if isinstance(self.adParams[param], str):
+                escaped_str=self.adParams[param].replace("\"","\\\"")
+                ad += '%s = "%s"\n' % (param, escaped_str)
+            elif isinstance(self.adParams[param], unicode):
+                escaped_str=self.adParams[param].replace("\"","\\\"")
+                ad += '%s = "%s"\n' % (param, escaped_str)
+            else:
+                ad += '%s = %s\n' % (param, self.adParams[param])
+        return ad
+
+
+class EntryClassad(Classad):
+    """
+    This class describes the glidefactory classad. Factory advertises the
+    glidefactory classad to the user pool as an UPDATE_MASTER_AD type classad
+    """
+
+    def __init__(self, factory_name, glidein_name, entry_name,
+                 supported_signtypes, glidein_attrs={}, glidein_params={},
+                 glidein_monitors={}, pub_key_obj=None,
+                 allowed_proxy_source=None):
+        """
+        Class Constructor
+
+        @type factory_ref: string
+        @param factory_ref: Name of the resource in the glidefactory classad
+        @type frontend_ref: string
+        @param type: Name of the resource in the glideclient classad
+        """
+
+        global factoryConfig, advertizeGlideinCounter, advertizeGFCounter
+
+        Classad.__init__(self, factoryConfig.factory_id, 'UPDATE_MASTER_AD',
+                         'INVALIDATE_MASTER_ADS')
+
+        self.adParams['Name'] = "%s@%s@%s" % (entry_name, glidein_name,
+                                              factory_name)
+        self.adParams['FactoryName'] = "%s" % factory_name
+        self.adParams['GlideinName'] = "%s" % glidein_name
+        self.adParams['EntryName'] = "%s" % entry_name
+        self.adParams[factoryConfig.factory_signtype_id] = "%s" % string.join(supported_signtypes, ',')
+        self.adParams['DaemonStartTime'] = int(start_time)
+        advertizeGFCounter['Name'] = advertizeGFCounter.get('Name', -1) + 1
+        self.adParams['UpdateSequenceNumber'] = advertizeGFCounter['Name']
+        if pub_key_obj is not None:
+            self.adParams['PubKeyID'] = "%s" % pub_key_obj.get_pub_key_id()
+            self.adParams['PubKeyType'] = "%s" % pub_key_obj.get_pub_key_type()
+            self.adParams['PubKeyValue'] = "%s" % string.replace(pub_key_obj.get_pub_key_value(),'\n','\\n')
+            if allowed_proxy_source is not None:
+                self.adParams['GlideinAllowx509_Proxy'] = ('frontend' in allowed_proxy_source)
+                self.adParams['GlideinRequirex509_Proxy'] = (not ('factory' in allowed_proxy_source))
+
+        # write out both the attributes, params and monitors
+        for (prefix,data) in ((factoryConfig.glidein_attr_prefix,glidein_attrs),
+                              (factoryConfig.glidein_param_prefix,glidein_params),
+                              (factoryConfig.glidein_monitor_prefix,glidein_monitors)):
+            for attr in data.keys():
+                el=data[attr]
+                if type(el)==type(1):
+                    # don't quote ints
+                    self.adParams['%s%s' % (prefix,attr)] = el
+                else:
+                    escaped_el=string.replace(string.replace(str(el),'"','\\"'),'\n','\\n')
+                    self.adParams['%s%s' % (prefix,attr)] = "%s" % escaped_el
+
+
+    def writeToFile(self, filename, append=True):
+        o_flag = "a"
+        if not append:
+            o_flag = "w"
+
+        try:
+            fd = file(filename, o_flag)
+        except:
+            raise
+
+        try:
+            fd.write("%s" % self)
+            if append:
+                # Write empty line when in append mode so next classad can be
+                # written directly after this one
+                fd.write('\n')
+        finally:
+            fd.close()
+
+
+
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
@@ -670,6 +802,27 @@ class MultiAdvertizeGlideinClientMonitoring:
             if len(error_arr)>0:
                 raise MultiExeError, error_arr
 
+    def writeToMultiClassadFile(self, filename=None, append=True):
+        # filename: Name of the file to write classads to
+        # append: Wether the classads need to be appended to the file
+        #         If we create file append is in a way ignored
+
+        # get a 9 digit number that will stay 9 digit for the next 25 years
+        short_time = time.time() - 1.05e9
+        if filename is None:
+            filename = "/tmp/gfi_agcm_%li_%li" % (short_time, os.getpid())
+            append = False
+
+        for el in self.client_data:
+            createGlideinClientMonitoringFile(
+                filename, self.factory_name, self.glidein_name, self.entry_name,
+                el['client_name'], el['client_int_name'], el['client_int_req'],
+                self.glidein_attrs, el['client_params'], el['client_monitors'],
+                do_append=append)
+            # Append from here on anyways
+            append = True
+
+        return filename
 
 
 ##############################
@@ -734,8 +887,7 @@ def createGlideinClientMonitoringFile(fname,
 
 # Given a file, advertize
 # Can throw a CondorExe/ExeError exception
-def advertizeGlideinClientMonitoringFromFile(fname,
-                                             remove_file=True,
+def advertizeGlideinClientMonitoringFromFile(fname, remove_file=True,
                                              is_multi=False):
     try:
         exe_condor_advertise(fname,"UPDATE_LICENSE_AD",is_multi=is_multi)
@@ -743,6 +895,12 @@ def advertizeGlideinClientMonitoringFromFile(fname,
         if remove_file:
             os.remove(fname)
 
+def advertizeGlideinFromFile(fname, remove_file=True, is_multi=False):
+    try:
+        exe_condor_advertise(fname, "UPDATE_MASTER_AD", is_multi=is_multi)
+    finally:
+        if remove_file:
+            os.remove(fname)
 # End INTERNAL
 ###########################################
 

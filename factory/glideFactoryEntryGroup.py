@@ -478,7 +478,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
 ############################################################
 
 def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
-                frontendDescript, group_name, my_entries):
+                frontendDescript, group_name, my_entries, need_cleanup):
     
     """
     One iteration of the entry group
@@ -508,6 +508,33 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
     for entry in my_entries.values():
         entry.initIteration(factory_in_downtime)
 
+    cl_pids=[]
+    if need_cleanup:
+        # IS: Fix the number of forks to 4 for now
+        #     Would be a good idea making it configurable, though
+        elist=my_entries.values()
+        elistSize=len(elist)
+        elistForks=4
+        elistChunk=elistSize/elistForks+1*((elistSize%elistForks)!=0) #round up
+        for i in range(elistForks):
+            cl_pid = os.fork()
+            if cl_pid != 0:
+                # This is the parent process
+                cl_pids.append(cl_pid)
+            else:
+                # This is the child process
+                try:
+                    for entry in elist[i*elistChunk:(i+1)*elistChunk]:
+                        entry.doCleanup()
+                finally:
+                    # Hard kill myself. Don't want any cleanup, since I was created
+                    # just for doing the cleanup
+                    os.kill(os.getpid(),signal.SIGKILL)
+        del elist 
+        gfl.log_files.logActivity("Cleanup forked pids:%s"%str(cl_pids))
+    else:
+        gfl.log_files.logActivity("No cleanup this round")
+
     try:
         groupwork_done = find_and_perform_work(factory_in_downtime, 
                                                glideinDescript,
@@ -519,26 +546,75 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
                                         sys.exc_info()[2])
         gfl.log_files.logWarning("Error occurred while trying to find and do work.")
         gfl.log_files.logWarning("Exception: %s" % tb)
-        
-
-
 
     gfl.log_files.logDebug("Group Work done: %s" % groupwork_done)
+
+    # Classad files to use
+    # Get a 9 digit number that will stay 9 digit for the next 25 years
+    short_time = time.time() - 1.05e9
+    gf_filename = "/tmp/gfi_gf_multi_%li_%li" % (short_time, os.getpid())
+    gfc_filename = "/tmp/gfi_gfc_multi_%li_%li" % (short_time, os.getpid())
+
+    gfl.log_files.logActivity("Generating glidefactory (%s) and glidefactoryclient (%s) classads files as needed" % (gf_filename, gfc_filename))
+
     for entry in my_entries.values():
-        # Advertise if work was done or if advertise flag is set
-        # TODO: Advertising can be optimized by grouping multiple entry
-        #       ads together. For now do it one at a time.
+        # Write classads to file if work was done or if advertise flag is set
+        # Actual advertise is done using multi classad advertisement
         entrywork_done = 0
         if ( (entry.name in groupwork_done) and 
              ('work_done' in groupwork_done[entry.name]) ):
             entrywork_done = groupwork_done[entry.name]['work_done']
+            done_something += entrywork_done
 
         if ( (do_advertize) or (entrywork_done > 0) ):
-            gfl.log_files.logActivity("Advertising entry: %s" % entry.name)
-            entry.advertise(factory_in_downtime)
-            done_something += entrywork_done
+            gfl.log_files.logDebug("Generating glidefactory and glidefactoryclient classads for entry: %s" % entry.name)
+            entry.writeClassadsToFile(factory_in_downtime, gf_filename,
+                                      gfc_filename)
+
         entry.unsetInDowntime()
-    
+
+    if ( (do_advertize) or (done_something > 0) ):
+        # ADVERTISE: glidefactory classads
+        if os.path.exists(gf_filename):
+            try:
+                gfl.log_files.logActivity("Advertising glidefactory classads")
+                gfi.advertizeGlideinFromFile(gf_filename,
+                                             remove_file=True,
+                                             is_multi=True)
+            except:
+                tb = traceback.format_exception(sys.exc_info()[0],
+                                                sys.exc_info()[1],
+                                                sys.exc_info()[2])
+                gfl.log_files.logWarning("Advertising glidefactory classads failed")
+                gfl.log_files.logDebug("Advertising glidefactory classads failed: %s" % tb)
+        else:
+            gfl.log_files.logWarning("glidefactory classad file %s does not exist. Check if you have atleast one entry enabled" % gf_filename)
+
+        # ADVERTISE: glidefactoryclient classads
+        if os.path.exists(gfc_filename):
+            try:
+                gfl.log_files.logActivity("Advertising glidefactoryclient classads")
+                gfi.advertizeGlideinClientMonitoringFromFile(
+                    gfc_filename, remove_file=True, is_multi=True)
+            except:
+                tb = traceback.format_exception(sys.exc_info()[0],
+                                                sys.exc_info()[1],
+                                                sys.exc_info()[2])
+                gfl.log_files.logWarning("Advertising glidefactoryclient classads failed")
+                gfl.log_files.logDebug("Advertising glidefactoryclient classads failed: %s" % tb)
+        else:
+            gfl.log_files.logWarning("glidefactoryclient classad file %s does not exist. Check if frontends are allowed to submit to entry" % gfc_filename)
+    else:
+        gfl.log_files.logActivity("Not advertising glidefactory and glidefactoryclient classads this round")
+
+
+    if need_cleanup:
+        for cl_pid in cl_pids:
+            gfl.log_files.logActivity("Collectoring cleanup pid:%s"%cl_pid)
+            os.waitpid(cl_pid, 0)
+        gfl.log_files.logActivity("All cleanups collected")
+        del cl_pids
+
     return done_something
 
 ############################################################
@@ -580,11 +656,12 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
     # the end of lifetime for the old key object. Hardcoded for now to 30 mins.
     oldkey_gracetime = int(glideinDescript.data['OldPubKeyGraceTime'])
     oldkey_eoltime = starttime + oldkey_gracetime
-    
+
     factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
 
+    last_cleanup=None
     while 1:
-        
+
         # Check if parent is still active. If not cleanup and die.
         check_parent(parent_pid, glideinDescript, my_entries)
 
@@ -601,16 +678,27 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
         # factory is in downtime. Entry specific downtime is handled in entry
         factory_in_downtime = factory_downtimes.checkDowntime(entry="factory")
 
-        if factory_in_downtime:
-            gfl.log_files.logActivity("Downtime iteration at %s" % time.ctime())
-        else:
-            gfl.log_files.logActivity("Iteration at %s" % time.ctime())
+        iteration_stime = time.time()
+        iteration_stime_str = time.ctime()
 
+        if factory_in_downtime:
+            gfl.log_files.logActivity("Iteration at (in downtime) %s" % iteration_stime_str)
+        else:
+            gfl.log_files.logActivity("Iteration at %s" % iteration_stime_str)
 
         try:
+            if last_cleanup is None:
+                need_cleanup=True
+            else:
+                # IS: Fix it to half hour for now
+                #     Making it a prameter is likely be a good idea, though
+                need_cleanup=(time.time()-last_cleanup)>1800
+
             done_something = iterate_one(count==0, factory_in_downtime,
                                          glideinDescript, frontendDescript,
-                                         group_name, my_entries)
+                                         group_name, my_entries, need_cleanup)
+            if need_cleanup:
+                last_cleanup=time.time()
 
             gfl.log_files.logActivity("Writing stats for all entries")
 
@@ -652,8 +740,8 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                                          sys.exc_info()[0],
                                          sys.exc_info()[1],
                                          sys.exc_info()[2])
-                                gfl.log_files.logWarning("Error writing stats for entry '%s'" % (entry.name))                
-                                gfl.log_files.logDebug("Error writing stats for entry '%s': %s" % (entry.name, tb))                
+                                gfl.log_files.logWarning("Error writing stats for entry '%s'" % (entry.name))
+                                gfl.log_files.logDebug("Error writing stats for entry '%s': %s" % (entry.name, tb))
 
                         os.write(w, cPickle.dumps(return_dict))
                         os.close(w)
@@ -676,7 +764,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                 tb = traceback.format_exception(sys.exc_info()[0],
                                                 sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                gfl.log_files.logWarning("Error writing stats: %s" % tb)                
+                gfl.log_files.logWarning("Error writing stats: %s" % tb)
         except KeyboardInterrupt:
             raise # this is an exit signal, pass through
         except:
@@ -687,16 +775,21 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                 tb = traceback.format_exception(sys.exc_info()[0],
                                                 sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                gfl.log_files.logWarning("Exception occurred: %s" % tb)                
-                
+                gfl.log_files.logWarning("Exception occurred: %s" % tb)
+
         gfl.log_files.cleanup()
 
-        gfl.log_files.logActivity("Sleep %is" % sleep_time)
-        time.sleep(sleep_time)
+        iteration_etime = time.time()
+        iteration_sleep_time = sleep_time - (iteration_etime - iteration_stime)
+        if (iteration_sleep_time < 0):
+            iteration_sleep_time = 0
+
+        gfl.log_files.logActivity("Sleep %is" % iteration_sleep_time)
+        time.sleep(iteration_sleep_time)
         count = (count+1) % advertize_rate
         is_first = 0
-        
-        
+
+
 ############################################################
 # Initialize log_files for entries and groups
 # TODO: init_logs,init_group_logs,init_entry_logs maybe removed later
