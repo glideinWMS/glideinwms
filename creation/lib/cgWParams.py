@@ -245,6 +245,11 @@ class GlideinParams(cWParams.CommonParams):
         self.client_log_dirs={}
         self.client_proxies_dirs={}
         for fename in self.security.frontends.keys():
+            if not cWParams.is_valid_name(fename):
+                raise RuntimeError, "Invalid frontend name '%s'"%fename
+            if ' ' in self.security.frontends[fename].identity:
+                raise RuntimeError, "Invalid frontend identity '%s'"%self.security.frontends[fename].identity
+
             for scname in self.security.frontends[fename].security_classes.keys():
                 username=self.security.frontends[fename].security_classes[scname].username
                 self.client_log_dirs[username]=self.buildDir(True, os.path.join(self.submit.base_client_log_dir,"user_%s"%username))
