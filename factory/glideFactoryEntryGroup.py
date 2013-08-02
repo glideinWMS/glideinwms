@@ -516,9 +516,11 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
         elist = [my_entries.values()[i::elistForks] for i in xrange(elistForks)]
 
         for i in range(elistForks):
+            unregister_sighandler()
             cl_pid = os.fork()
             if cl_pid != 0:
                 # This is the parent process
+                register_sighandler()
                 cl_pids.append(cl_pid)
             else:
                 # This is the child process
