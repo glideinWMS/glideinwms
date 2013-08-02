@@ -17,8 +17,26 @@ sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 from glideinwms.creation.lib import cgWCreate
 
 def usage():
-    print "usage: create_condor_tarball <tarball_out_fname> <condor_dir_or_tar>"
-    print
+    print """
+Usage: create_condor_tarball output_filename input_tarfile_or_dir
+
+   output_filename - file name of the output tarball created
+
+   input_tarfile_or_dir - this is the source tarfile or if already expanded,
+                          the top level directory.
+
+This utility can be used to create an condor tarball for use by the glideinwms
+pilot process for various entry points.  The glideinwms pilot does not need all
+the files/processes contained in a normal HTCondor tarfile.  This utility 
+extracts only the needed processes/libraries thereby reducing the space needed 
+on your factory node.
+
+This takes an HTCondor tarfile (or expanded one) as input.
+Extracts the needed binaries and creates a smaller tarball.
+Refer to the glideinwms documentation:
+   WMSfactory -> Configuration -> Multiple HTCondor Tarballs
+for additional information on configuring the factory to use the tarball.
+"""
 
 
 ################################################################################

@@ -65,13 +65,14 @@
 <div class="jump">
 <u>Jump to:</u>
 <ol>
-        <LI><A HREF="#name">Command Line</A>
+        <LI><A HREF="#example_configuration">Example Configuration</A>
         <LI><A HREF="#args">Configuration File</A>
         <li><a href="#glexec">glExec</a> </li>
         <li><a href="#private_net">Private Networks</a> </li>
         <li><a href="#security">Security</a> </li>
         <li><a href="#tcp">TCP Updates</a> </li>
         <li><a href="#multicol">Multiple Collectors</a> </li>
+        <li><a href="#tarballs">Multiple HTCondor Tarballs</a> </li>
 </ol>
 </div>
 <div class="related">
@@ -79,10 +80,11 @@ Related Links: <br/>
 <ul>
         <LI><A HREF="./custom_scripts.html">Custom Scripts</A></li>
         <LI><A HREF="./custom_vars.html">Custom Variables</A></li>
+        <LI><A HREF="../components/tools.html">Tools</A></li>
 </ul>
 </div>
 <div class="section">
-<h2>Example Configuration</h2>
+<a name="example_configuration"></a><h2>Example Configuration</h2>
 Below is an example factory configuration xml file.  Click on any piece
 for a more detailed description.
 <div class="config">
@@ -1353,78 +1355,137 @@ For more information, see the <a href="design_entry.html#config">Entry Internals
     <h3><a name="tarballs">Multiple Condor Tarballs</a></h3>
     <p>One frequent problem is that one particular condor binary will not run on all compute nodes.  Entry points require different architectures, or have different versions of glibc (ie. SL3 does not have glib2.4). </p>
 <p> 
-    The solution (only available on glideinWMS v2+) is to have multiple condor binaries.  The way to do this is to specify a tarball tag in the factory configuration file.  
+    The solution is to have multiple condor binaries.  The way to do this is to specify a tarball tag in the factory configuration file.  
 </p>
 <ol>
     <li>Download the Condor binary from the 
-    <a target="_blank" href="http://www.cs.wisc.edu/condor/downloads-v2/download.pl">University of Wisconsin</a> site.
-    (Alternatively, you can build it from scratch on the architecture, refere to Condor instructions for this).
+    <a target="_blank" href="http://www.cs.wisc.edu/htcondor/downloads-v2/download.pl">University of Wisconsin</a> site.
+      (Alternatively, You can build it from scratch on the architecture.
+      Refer to Condor instructions for this.)
+      <p/>
+      The glideinwms pilot uses a subset of the condor binaries/libraries.
+      The <tt>create_condor_tarball</tt>
+      script can be used to reduce space needed on your factory node.
+      Details on this script can be found in the 
+      <a href="../components/tools.html#create_condor_tarball" >
+      Components - Tools section of the documentation</a>.
     </li>
-    <li> Put it in a directory owned by the wmsfactory and unzip/untar it.
-    </li>
+    <p/>
 
-    <li>Add a new tarball tag to the factory tag:<br/>
+    <li>Add a new <tt>condor_tarball</tt> tag to the factory configuration file:<br/>
+        There are two ways you can do this:
+       <ul>
+        <li> put the tarball in a directory owned by the wmsfactory and 
+             enter the <tt>condor_tarball</tt> tag as:
         <blockquote>
         &lt;glidein ... &gt;<br/>
         ...<br/>
         &nbsp;&nbsp;&lt;condor_tarballs &gt;<br/>
-        &nbsp;&nbsp;&nbsp;&nbsp;&lt;condor_tarball
-            os="<i>OS</i>"
-            arch="<i>Arch</i>"
-            base_dir="<i>DIR_OF_UNTARRED_BINARY</i>"
-            version="<i>Condor_Version</i>" /&gt;
-
+        &nbsp;&nbsp;&nbsp;&nbsp;&lt;condor_tarball 
+                    os="<i>OS</i>" 
+                    arch="<i>Arch</i>" 
+                    <font color="blue"><b>tar_file="ZIPPED_TARFILE</b></font>" 
+                    version="<i>Condor_Version</i>" /&gt;
         </blockquote>
-    </li>
-    <li>Verify your entry point attributes.  Each entry point will have the following attr set up.  Make sure that this matches the above tarball parameters:<br/>
+       </li>
+        <li> or put the tarball in a directory owned by the wmsfactory and unzip/untar it.
+             Then, enter the <tt>condor_tarball</tt> tag as:
         <blockquote>
-        &lt;attrs&gt;<br/>
-        &nbsp;&nbsp;&lt;attr name="CONDOR_ARCH" const="True" glidein_publish="False" parameter="True" publish="False" type="string" value="<i>Arch</i>"/&gt;<br/>
-
-            &nbsp;&nbsp;&lt;attr name="CONDOR_OS" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="<i>Condor_Version</i>"/&gt;<br/>
-        &nbsp;&nbsp;&lt;attr name="GLEXEC_JOB" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="True"/&gt;<br/>
-        &lt;/attrs&gt;<br/>
+        &lt;glidein ... &gt;<br/>
+        ...<br/>
+        &nbsp;&nbsp;&lt;condor_tarballs &gt;<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&lt;condor_tarball os="<i>OS</i>" arch="<i>Arch</i>" 
+             <font color="blue"><b>base_dir="DIR_OF_UNTARRED_BINARY"</b></font> 
+             version="<i>Condor_Version</i>" /&gt;
         </blockquote>
-                The CONDOR_OS and the CONDOR_ARCH should match the os and arch defined in the tarball tag.  If set to "auto", the glidein will decide the appropriate tarball to use for that worker node.  
- 	                 By default, the CONDOR_VERSION will be defined globally in &lt;glidein&gt;&lt;attrs&gt; and should match the version in the tarball tag.  You can overwrite this global version and  
- 	                 define one locally in the entry if needed.
+       </li>
+      </ul>
+    <p/>
+        Starting v2.6.2, to simplify the configuration, os, arch and version
+        support comma values. This can drastically reduce the number of 
+        condor_tarball entries needed in the configuration file.
+        <br><br>
+        Consider an example below for default <tt>os as rhel5</tt> and <tt>default arch as
+        x86_64</tt>. If the factory admin also wants <tt>os</tt> and <tt>arch</tt> information
+        explicitly available, the configuration needs following entries to cover
+        possible combinations.
+        <blockquote>
+        &lt;condor_tarball <font color="blue"><b>os="default" arch="default"</b></font>
+                           base_dir="dir" version="default"/&gt;<br>
+        &lt;condor_tarball <font color="blue"><b>os="rhel5" arch="x86_64"</b></font>
+                           base_dir="dir" version="default"/&gt;<br>
+        &lt;condor_tarball <font color="blue"><b>os="rhel5" arch="default"</b></font>
+                           base_dir="dir" version="default"/&gt;<br>
+        &lt;condor_tarball <font color="blue"><b>os="default" arch="x86_64"</b></font>
+                           base_dir="dir" version="default"/&gt;
+        </blockquote>
+        Above example can be easily consolidated into a single <tt>condor_tarball</tt>
+        entry as below and the factory reconfiguration process will 
+        internally consider all the combinations. This also applies to the
+        <tt>version</tt>.
+        <blockquote>
+        &lt;condor_tarball <font color="blue"><b>os="default,rhel5" arch="default,x86_64"</b></font>
+                           base_dir="dir" <font color="blue"><b>version="default"</font></b>/&gt;
+        </blockquote>
     </li>
+    <p/>
+    <li>Verify your <tt>entry</tt> point attributes.  Each <tt>entry</tt> point will have the following <tt>attr</tt> set up.  Make sure that this matches the above <tt>condor_tarball</tt> parameters:<br/>
+        <blockquote>
+    &lt;entry&gt;<br/>
+&nbsp;&nbsp;
+    &lt;attrs&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;
+    &lt;attr <font color="blue"><b>name="CONDOR_ARCH"</font></b> const="True" 
+parameter="True" 
+glidein_publish="False" 
+job_publish="False" 
+publish="False" 
+type="string" 
+<font color="blue"><b>value="<i>Arch</i>"</font></b>/&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;
+     &lt;attr <font color="blue"><b>name="CONDOR_OS"</font></b> const="True" 
+parameter="True" 
+glidein_publish="False" 
+job_publish="False" 
+publish="False" 
+type="string" 
+<font color="blue"><b>value="<i>Condor_Version</i>"</font></b>/&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;
+    &lt;attr name="GLEXEC_JOB" const="True" 
+parameter="True" 
+glidein_publish="False" 
+job_publish="False" 
+publish="False" 
+type="string" 
+value="True"/&gt;<br/>
+&nbsp;&nbsp
+    &lt;/attrs&gt;<br/>
+        </blockquote>
+                The CONDOR_OS and the CONDOR_ARCH should match the <tt>os</tt> and <tt>arch</tt> defined in the tarball tag.  If set to "auto", the glidein will decide the appropriate tarball to use for that worker node.  
+ 	        By default, the CONDOR_VERSION will be defined globally in <tt>&lt;glidein&gt;&lt;attrs&gt;</tt> 
+                and should match the version in the <tt>condor_tarball</tt> tag.  You can overwrite this global version and  
+ 	        define one locally in the <tt>entry</tt> if needed.
+    </li>
+    <p/>
     <li>Reconfigure the factory using the command:
         <blockquote>
 
         ./factory_startup reconfig ../CONFIG_DIR/glideinWMS.xml
         </blockquote>
     </li>
+    <p/>
     <li>
-        After reconfig, you can see the tar_file created from the condor distribution in the tarball line in the configuration.
+        After reconfig, you can see the <tt>tar_file</tt> created from the 
+        condor distribution in the <tt>condor_tarball</tt> element in the configuration
+        as (if you populated just <tt>tar_file</tt> in step 2
+        <blockquote>
+ &lt;condor_tarball arch="default" os="default" <font color="blue"><b>tar_file="FACTORY_DIR/condor-7.8.tgz"</b></font> version="default"/&gt;
+        </blockquote>
+            or (if you populated just <tt>base_dir</tt> in step 2)
+        <blockquote>
+ &lt;condor_tarball arch="default" base_dir="/opt/glideins/git-xen21-master-ps.ini/condor-wms" os="default" <font color="blue"><b>tar_file="/var/www/html/glideinwms/factory_service/stage/glidein_master/condor_bin_0.d7bbk9.tgz"</b></font> version="default"/&gt;
+        </blockquote>
     </li>
-    <li>
-        Starting v2.6.2, to simplify the configuration, os, arch and version
-        support comma values. This can drastically reduce the number of 
-        condor_tarball entries needed in the configuration file.
-        <br><br>
-        Consider an example below for default os as rhel5 and default arch as
-        x86_64. If the factory admin also wants os and arch information
-        explicitly available the configuration needs following entries to cover
-        possible combinations.
-        <blockquote>
-        &lt;condor_tarball os="default" arch="default"
-                           base_dir="dir" version="default"/&gt;<br>
-        &lt;condor_tarball os="rhel5" arch="x86_64"
-                           base_dir="dir" version="default"/&gt;<br>
-        &lt;condor_tarball os="rhel5" arch="default"
-                           base_dir="dir" version="default"/&gt;<br>
-        &lt;condor_tarball os="default" arch="x86_64"
-                           base_dir="dir" version="default"/&gt;
-        </blockquote>
-        Above example can be easily consolidated into a single condor_tarball
-        entry as below and the factory reconfiguration process will 
-        internally consider all the combinations. This also applies to the
-        version.
-        <blockquote>
-        &lt;condor_tarball os="default,rhel5" arch="default,x86_64"
-                           base_dir="dir" version="default"/&gt;
-        </blockquote>
     </li>
 </ol>
 </div>

@@ -40,6 +40,17 @@
     <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
 <div class="content">
     <div class="heading">
+
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
+    </map>
+
+
     <h2>Components</h2>
 	<ul class="subcomponents">
 	     <li> Overview</li>
@@ -50,10 +61,36 @@
 	     <li class="last"> <a href="./condor.html">Condor</a></li>
 	</ul>
         <h3>Tools</h3>
-    
 	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+        <li><a href="#glidecondor_addDN">
+                Add a DN to the Condor mapfile<br/>
+                (glidecondor_addDN)</a>
+        <li><a href="#glidecondor_createSecSched">
+                Add secondary Condor schedds<br/>
+                (glidecondor_createSecSched)</a>
+        <li><a href="#glidecondor_createSecCol">
+                Add Condor collectors <br/>
+                (glidecondor_createSecCol)</a>
+        <li><a href="#create_condor_tarball">
+                Adding Condor tarballs<br/>
+                (create_condor_tarball)</a>
+</ol>
+</div>
+<div class="related">
+Related Links: <br/>
+<ul>
+        <LI><A HREF="./custom_scripts.html">Custom Scripts</A></li>
+        <LI><A HREF="./custom_vars.html">Custom Variables</A></li>
+</ul>
+</div>
+
+<!-- -------------------------------------------------------- -->
+<hr width="90%"/>
 <div class="section">
-<h4><b>glidecondor_addDN</b></h4>
+<a name="glidecondor_addDN"/><h4><b>glidecondor_addDN</b></h4>
 <p>
 The <tt>glidecondor_addDN</tt> script (found in the ./install directory of 
 the glideinWMS tree) can help manage Condor mapfiles.  The management of 
@@ -145,11 +182,12 @@ fe1    client /DC=org/DC=doegrids/OU=Services/CN=osg-glidein-fe.example.gov
 </pre>
    glidecondor_addDN -recreate -disable-checks -import pool_dns.list
 </blockquote>
-
-
 </div>
+
+<!-- -------------------------------------------------------- -->
+<hr width="90%"/>
 <div class="section">
-<h4><b>glidecondor_createSecSched</b></h4>
+<a name="glidecondor_createSecSched"/><h4><b>glidecondor_createSecSched</b></h4>
 <p>
 The <tt>glidecondor_createSecSched</tt> script (found in the ./install directory of 
 the glideinWMS tree) can help manage the HTCondor's secondary schedds. It can be used
@@ -182,11 +220,13 @@ Example:
 <blockquote>
    glidecondor_createSecSched schedd_glideins1,schedd_glideins2
 </blockquote>
-
 </div>
+
+<!-- -------------------------------------------------------- -->
+<hr width="90%"/>
 <div class="section">
-<h4><b>glidecondor_createSecCol</b></h4>
-<p>
+<a name="glidecondor_createSecCol"><h4><b>glidecondor_createSecCol</b></h4>
+ <p>
 The <tt>glidecondor_createSecCol</tt> script (found in the ./install directory of 
 the glideinWMS tree) can help manage the HTCondor's secondary collectors. It can be used
 when HTCondor's configuration is stored in 
@@ -219,8 +259,46 @@ Example:
 <blockquote>
    glidecondor_createSecCol 9620-9639
 </blockquote>
-
 </div>
+
+<!-- -------------------------------------------------------- -->
+<hr width="90%"/>
+<div class="section">
+<a name="create_condor_tarball"><h4><b>create_condor_tarball</b></h4>
+ <p>
+The <tt>create_condor_tarball</tt> script 
+(found in the ./factory/creation directory of the glideinWMS tree) 
+can help reduce the disk space needs on the factory node.
+<p/>
+It can be used to create a condor tarball for use by the glideinwms pilot process for various entry points.  
+The glideinwms pilot does not need all the files/processes contained in a normal HTCondor tarfile.  
+This utility extracts only the needed processes/libraries thereby reducing the space needed on your factory node.
+</p>
+<pre>
+Usage: create_condor_tarball output_filename input_tarfile_or_dir
+
+   output_filename - file name of the output tarball created
+
+   input_tarfile_or_dir - this is the source tarfile or if already expanded,
+                          the top level directory.
+</pre>
+Once the output condor tarball is created, additional configuration is required in 
+the factory configuration file.  Refer to the 
+<a href="../factory/configuration.html#tarballs">Multiple Condor Tarballs section of the Factory Configuration</a> document for details.
+
+<p>
+</p>
+<p>
+Example:
+</p>
+<blockquote>
+  create_condor_tarball   /tmp/condor-7.7.5     condor-7.7.5-x86_64_rhap_5-stripped.tar.gz
+</blockquote>
+</div>
+
+
+<!-- -------------------------------------------------------- -->
+<hr width="90%"/>
 <div class="section">
 <h4><b>Other monitoring tools</b></h4>
 <p>
