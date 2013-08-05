@@ -96,7 +96,7 @@ def check_parent(parent_pid, glideinDescript, my_entries):
                 glideinDescript.data['GlideinName'],
                 entry.name)
         except:
-            logSupport.log.warn("Failed to deadvertize entry '%s'" % entry.name)
+            logSupport.log.warning("Failed to deadvertize entry '%s'" % entry.name)
 
         # Deadvertise glidefactoryclient classad
         try:
@@ -105,7 +105,7 @@ def check_parent(parent_pid, glideinDescript, my_entries):
                 glideinDescript.data['GlideinName'],
                 entry.name)
         except:
-            logSupport.log.warn("Failed to deadvertize monitoring for entry '%s'" % entry.name)
+            logSupport.log.warning("Failed to deadvertize monitoring for entry '%s'" % entry.name)
 
     raise KeyboardInterrupt,"Parent died. Quiting."
 
@@ -163,7 +163,7 @@ def find_work(factory_in_downtime, glideinDescript,
         for w in work_oldkey:
             if w in work:
                 # This should not happen but still as a safegaurd warn
-                logSupport.log.warn("Work task for %s exists using existing key and old key. Ignoring the work from old key." % w)
+                logSupport.log.warning("Work task for %s exists using existing key and old key. Ignoring the work from old key." % w)
                 continue
             work[w] = work_oldkey[w]
 
@@ -253,7 +253,7 @@ def fetch_fork_result_list(pipe_ids):
             out[key] = fetch_fork_result(pipe_ids[key]['r'],
                                          pipe_ids[key]['pid'])
         except Exception, e:
-            logSupport.log.warn("Failed to extract info from child '%s'" % key)
+            logSupport.log.warning("Failed to extract info from child '%s'" % key)
             logSupport.log.exception("Failed to extract info from child '%s'" % key)
             failures += 1
 
@@ -292,7 +292,7 @@ def process_finished_children(pipe_ids):
             tb = traceback.format_exception(sys.exc_info()[0],
                                             sys.exc_info()[1],
                                             sys.exc_info()[2])
-            logSupport.log.warn("Failed to extract info from child '%s'" % key)
+            logSupport.log.warning("Failed to extract info from child '%s'" % key)
             logSupport.log.debug("Failed to extract info from child '%s': %s" % (key, tb))
             failures += 1
 
@@ -470,7 +470,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
 
     if work_info_read_err:
         logSupport.log.debug("Unable to process response from one or more children for check_and_perform_work. One or more forked processes may have failed and may not have client_stats updated")
-        logSupport.log.warn("Unable to process response from one or more children for check_and_perform_work. One or more forked processes may have failed and may not have client_stats updated")
+        logSupport.log.warning("Unable to process response from one or more children for check_and_perform_work. One or more forked processes may have failed and may not have client_stats updated")
 
 
     return groupwork_done
@@ -542,7 +542,7 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
                                                frontendDescript,
                                                group_name, my_entries)
     except:
-        logSupport.log.warn("Error occurred while trying to find and do work.")
+        logSupport.log.warning("Error occurred while trying to find and do work.")
         logSupport.log.exception("Exception: ")
 
     logSupport.log.debug("Group Work done: %s" % groupwork_done)
@@ -717,7 +717,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                                 entry.writeStats()
                                 return_dict[entry.name] = entry.getState()
                             except:
-                                entry.log.warn("Error writing stats for entry '%s'" % (entry.name))
+                                entry.log.warning("Error writing stats for entry '%s'" % (entry.name))
                                 entry.log.exception("Error writing stats for entry '%s': " % (entry.name))
 
                         try:
@@ -847,7 +847,7 @@ def main(parent_pid, sleep_time, advertize_rate,
     for entry in string.split(entry_names, ':'):
         if not (entry in string.split(glidein_entries, ',')):
             msg = "Entry '%s' not configured: %s" % (entry, glidein_entries)
-            logSupport.log.warn(msg)
+            logSupport.log.warning(msg)
             raise RuntimeError, msg
 
         # Create entry objects
