@@ -38,6 +38,7 @@ STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../../"))
 
 from glideinwms.lib import logSupport
+from glideinwms.lib import classadSupport
 from glideinwms.lib import cleanupSupport
 from glideinwms.lib import glideinWMSVersion
 from glideinwms.factory import glideFactoryEntry
@@ -95,7 +96,7 @@ def check_parent(parent_pid, glideinDescript, my_entries):
                 glideinDescript.data['GlideinName'],
                 entry.name)
         except:
-            logSupport.log.warn("Failed to deadvertize entry '%s'" % entry.name)
+            logSupport.log.warning("Failed to deadvertize entry '%s'" % entry.name)
 
         # Deadvertise glidefactoryclient classad
         try:
@@ -104,7 +105,7 @@ def check_parent(parent_pid, glideinDescript, my_entries):
                 glideinDescript.data['GlideinName'],
                 entry.name)
         except:
-            logSupport.log.warn("Failed to deadvertize monitoring for entry '%s'" % entry.name)
+            logSupport.log.warning("Failed to deadvertize monitoring for entry '%s'" % entry.name)
 
     raise KeyboardInterrupt,"Parent died. Quiting."
 
@@ -162,7 +163,7 @@ def find_work(factory_in_downtime, glideinDescript,
         for w in work_oldkey:
             if w in work:
                 # This should not happen but still as a safegaurd warn
-                logSupport.log.warn("Work task for %s exists using existing key and old key. Ignoring the work from old key." % w)
+                logSupport.log.warning("Work task for %s exists using existing key and old key. Ignoring the work from old key." % w)
                 continue
             work[w] = work_oldkey[w]
 
@@ -252,7 +253,7 @@ def fetch_fork_result_list(pipe_ids):
             out[key] = fetch_fork_result(pipe_ids[key]['r'],
                                          pipe_ids[key]['pid'])
         except Exception, e:
-            logSupport.log.warn("Failed to extract info from child '%s'" % key)
+            logSupport.log.warning("Failed to extract info from child '%s'" % key)
             logSupport.log.exception("Failed to extract info from child '%s'" % key)
             failures += 1
 
@@ -291,7 +292,7 @@ def process_finished_children(pipe_ids):
             tb = traceback.format_exception(sys.exc_info()[0],
                                             sys.exc_info()[1],
                                             sys.exc_info()[2])
-            logSupport.log.warn("Failed to extract info from child '%s'" % key)
+            logSupport.log.warning("Failed to extract info from child '%s'" % key)
             logSupport.log.debug("Failed to extract info from child '%s': %s" % (key, tb))
             failures += 1
 
@@ -469,7 +470,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
 
     if work_info_read_err:
         logSupport.log.debug("Unable to process response from one or more children for check_and_perform_work. One or more forked processes may have failed and may not have client_stats updated")
-        logSupport.log.warn("Unable to process response from one or more children for check_and_perform_work. One or more forked processes may have failed and may not have client_stats updated")
+        logSupport.log.warning("Unable to process response from one or more children for check_and_perform_work. One or more forked processes may have failed and may not have client_stats updated")
 
 
     return groupwork_done
@@ -478,6 +479,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
 
 def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
                 frontendDescript, group_name, my_entries):
+    
     """
     One iteration of the entry group
 
@@ -512,28 +514,46 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
                                                frontendDescript,
                                                group_name, my_entries)
     except:
-        logSupport.log.warn("Error occurred while trying to find and do work.")
+        logSupport.log.warning("Error occurred while trying to find and do work.")
         logSupport.log.exception("Exception: ")
 
     logSupport.log.debug("Group Work done: %s" % groupwork_done)
-    logSupport.log.info("Advertising entries")
-    entries_advertised = []
+
+    # Classad files to use
+    gf_filename = classadSupport.generate_classad_filename(prefix='gfi_adm_gf')
+    gfc_filename = classadSupport.generate_classad_filename(prefix='gfi_adm_gfc')
+
+    logSupport.log.info("Generating glidefactory (%s) and glidefactoryclient (%s) classads as needed" % (gf_filename, gfc_filename))
+
+    entries_to_advertise = []
     for entry in my_entries.values():
-        # Advertise if work was done or if advertise flag is set
+        # Write classads to file if work was done or if advertise flag is set
+        # Actual advertise is done using multi classad advertisement
         entrywork_done = 0
         if ( (entry.name in groupwork_done) and 
              ('work_done' in groupwork_done[entry.name]) ):
             entrywork_done = groupwork_done[entry.name]['work_done']
+            done_something += entrywork_done
 
         if ( (do_advertize) or (entrywork_done > 0) ):
-            entry.advertise(factory_in_downtime)
-            entries_advertised.append(entry.name)
-            done_something += entrywork_done
+            entries_to_advertise.append(entry.name)
+            entry.writeClassadsToFile(factory_in_downtime, gf_filename,
+                                      gfc_filename)
+
         entry.unsetInDowntime()
 
-    logSupport.log.debug("Advertised %i entries: %s" % \
-                             (len(entries_advertised),
-                              ', '.join(entries_advertised)))
+    if ((do_advertize) or (done_something > 0)):
+        logSupport.log.debug("Generated glidefactory and glidefactoryclient classads for entries: %s" % string.join(entries_to_advertise, ', '))
+        # ADVERTISE: glidefactory classads
+        gfi.advertizeGlideinFromFile(gf_filename,
+                                     remove_file=True,
+                                     is_multi=True)
+        # ADVERTISE: glidefactoryclient classads
+        gfi.advertizeGlideinClientMonitoringFromFile(gfc_filename,
+                                                     remove_file=True,
+                                                     is_multi=True)
+    else:
+        logSupport.log.info("Not advertising glidefactory and glidefactoryclient classads this round")
 
     return done_something
 
@@ -598,10 +618,14 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
         # factory is in downtime. Entry specific downtime is handled in entry
         factory_in_downtime = factory_downtimes.checkDowntime(entry="factory")
 
+        # Record the iteration start time
+        iteration_stime = time.time()
+        iteration_stime_str = time.ctime()
+
         if factory_in_downtime:
-            logSupport.log.info("Downtime iteration at %s" % time.ctime())
+            logSupport.log.info("Iteration at (in downtime) %s" % iteration_stime_str)
         else:
-            logSupport.log.info("Iteration at %s" % time.ctime())
+            logSupport.log.info("Iteration at %s" % iteration_stime_str)
 
         # PM: Shouldn't this be inside the else statement above?
         # Why do we want to execute this if we are in downtime?
@@ -648,7 +672,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                                 entry.writeStats()
                                 return_dict[entry.name] = entry.getState()
                             except:
-                                entry.log.warn("Error writing stats for entry '%s'" % (entry.name))
+                                entry.log.warning("Error writing stats for entry '%s'" % (entry.name))
                                 entry.log.exception("Error writing stats for entry '%s': " % (entry.name))
 
                         try:
@@ -688,8 +712,13 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
 
         cleanupSupport.cleaners.cleanup()
 
-        logSupport.log.info("Sleep %is" % sleep_time)
-        time.sleep(sleep_time)
+        iteration_etime = time.time()
+        iteration_sleep_time = sleep_time - (iteration_etime - iteration_stime)
+        if (iteration_sleep_time < 0):
+            iteration_sleep_time = 0
+        logSupport.log.info("Sleep %is" % iteration_sleep_time)
+        time.sleep(iteration_sleep_time)
+
         count = (count+1) % advertize_rate
         is_first = 0
 
@@ -773,7 +802,7 @@ def main(parent_pid, sleep_time, advertize_rate,
     for entry in string.split(entry_names, ':'):
         if not (entry in string.split(glidein_entries, ',')):
             msg = "Entry '%s' not configured: %s" % (entry, glidein_entries)
-            logSupport.log.warn(msg)
+            logSupport.log.warning(msg)
             raise RuntimeError, msg
 
         # Create entry objects

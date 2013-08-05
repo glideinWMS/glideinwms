@@ -28,11 +28,12 @@ from glideinwms.factory import glideFactoryPidLib
 from glideinwms.factory import glideFactoryConfig
 from glideinwms.factory import glideFactoryLib
 from glideinwms.factory import glideFactoryMonitoring
-from glideinwms.factory import glideFactoryInterface
+from glideinwms.factory import glideFactoryInterface as gfi
 from glideinwms.factory import glideFactoryLogParser
 from glideinwms.factory import glideFactoryDowntimeLib
 from glideinwms.factory import glideFactoryCredentials
 from glideinwms.lib import logSupport
+from glideinwms.lib import classadSupport
 from glideinwms.lib import glideinWMSVersion
 from glideinwms.lib import cleanupSupport
 
@@ -109,7 +110,7 @@ class Entry:
             float(self.glideinDescript.data['SummaryLogRetentionMaxMBs']))
 
         # FactoryConfig object from glideFactoryInterface
-        self.gfiFactoryConfig = glideFactoryInterface.FactoryConfig()
+        self.gfiFactoryConfig = gfi.FactoryConfig()
         #self.gfiFactoryConfig.warning_log = self.log.warning_log
         self.gfiFactoryConfig.advertise_use_tcp = (
             self.glideinDescript.data['AdvertiseWithTCP'] in ('True','1'))
@@ -191,7 +192,7 @@ class Entry:
         """
 
         glideFactoryMonitoring.monitoringConfig = self.monitoringConfig
-        glideFactoryInterface.factoryConfig = self.gfiFactoryConfig
+        gfi.factoryConfig = self.gfiFactoryConfig
         glideFactoryLib.factoryConfig = self.gflFactoryConfig
 
 
@@ -336,6 +337,21 @@ class Entry:
         # These two are used to write the history to disk
         self.gflFactoryConfig.qc_stats = glideFactoryMonitoring.condorQStats(log=self.log)
         self.gflFactoryConfig.client_internals = {}
+        self.log.info("Iteration initialized")
+
+
+    def doCleanup(self):
+        """
+        Perform the log file cleanup
+
+        """
+
+        self.loadContext()
+
+        # Cleanup log files
+        self.log.info("Cleaning logs started")
+        self.log.cleanup()
+        self.log.info("Cleaning logs finished")
 
 
     def unsetInDowntime(self):
@@ -403,16 +419,28 @@ class Entry:
         return can_submit_glideins
 
 
-    def advertise(self, factory_in_downtime):
+    def writeClassadsToFile(self, factory_in_downtime, gf_filename,
+                            gfc_filename, append=True):
         """
-        Advertises the glidefactory and the glidefactoryclient classads.
+        Create the glidefactory and glidefactoryclient classads to advertise
+        but do not advertise
 
         @type factory_in_downtime: boolean
         @param factory_in_downtime: factory in the downtimes file
+
+        @type gf_filename: string
+        @param gf_filename: Filename to write glidefactory classads
+
+        @type gfc_filename: string
+        @param gfc_filename: Filename to write glidefactoryclient classads
+
+        @type append: boolean
+        @param append: True to append new classads. i.e Multi classads file
         """
 
         self.loadContext()
 
+        classads = {}
         trust_domain = self.jobDescript.data['TrustDomain']
         auth_method = self.jobDescript.data['AuthMethod']
         pub_key_obj = self.glideinDescript.data['PubKeyObj']
@@ -421,7 +449,7 @@ class Entry:
         current_qc_total = self.gflFactoryConfig.client_stats.get_total()
 
         ########################################################################
-        # Logic to advertise glidefactory classads
+        # Logic to generate glidefactory classads file
         ########################################################################
 
         glidein_monitors = {}
@@ -429,34 +457,37 @@ class Entry:
             for a in current_qc_total[w]:
                 glidein_monitors['Total%s%s'%(w,a)]=current_qc_total[w][a]
                 self.jobAttributes.data['GlideinMonitorTotal%s%s' % (w, a)] = current_qc_total[w][a]
+
+        # Make copy of job attributes so can override the validation
+        # downtime setting with the true setting of the entry
+        # (not from validation)
+        myJobAttributes = self.jobAttributes.data.copy()
+        myJobAttributes['GLIDEIN_In_Downtime'] = factory_in_downtime
+        gf_classad = gfi.EntryClassad(
+                         self.gflFactoryConfig.factory_name,
+                         self.gflFactoryConfig.glidein_name,
+                         self.name, trust_domain, auth_method,
+                         self.gflFactoryConfig.supported_signtypes,
+                         pub_key_obj=pub_key_obj, glidein_attrs=myJobAttributes,
+                         glidein_params=self.jobParams.data.copy(),
+                         glidein_monitors=glidein_monitors.copy())
         try:
-            # Make copy of job attributes so can override the validation
-            # downtime setting with the true setting of the entry
-            # (not from validation)
-            myJobAttributes = self.jobAttributes.data.copy()
-            myJobAttributes['GLIDEIN_In_Downtime'] = factory_in_downtime
-            glideFactoryInterface.advertizeGlidein(
-                self.gflFactoryConfig.factory_name,
-                self.gflFactoryConfig.glidein_name,
-                self.name, trust_domain, auth_method,
-                self.gflFactoryConfig.supported_signtypes, pub_key_obj,
-                myJobAttributes, self.jobParams.data.copy(),
-                glidein_monitors.copy())
+            gf_classad.writeToFile(gf_filename, append=append)
         except:
-            self.log.error("Advertising entry '%s' failed" % self.name)
+            self.log.warning("Error writing classad to file %s" % gf_filename)
+            self.log.exception("Error writing classad to file %s: " % (gf_filename))
 
         ########################################################################
-        # Logic to advertise glidefactoryclient classads
+        # Logic to generate glidefactoryclient classads file
         ########################################################################
 
         # Advertise the monitoring, use the downtime found in
         # validation of the credentials
 
-        advertizer = \
-            glideFactoryInterface.MultiAdvertizeGlideinClientMonitoring(
-                self.gflFactoryConfig.factory_name,
-                self.gflFactoryConfig.glidein_name,
-                self.name, self.jobAttributes.data.copy())
+        advertizer = gfi.MultiAdvertizeGlideinClientMonitoring(
+                         self.gflFactoryConfig.factory_name,
+                         self.gflFactoryConfig.glidein_name,
+                         self.name, self.jobAttributes.data.copy())
 
         current_qc_data = self.gflFactoryConfig.client_stats.get_data()
         for client_name in current_qc_data:
@@ -489,10 +520,37 @@ class Entry:
                            params, client_monitors.copy())
 
         try:
-            advertizer.do_advertize()
+            advertizer.writeToMultiClassadFile(gfc_filename)
         except:
-            self.log.warning("Advertize of monitoring failed")
+            self.log.warning("Writing monitoring classad to file %s failed" % gfc_filename)
 
+        return
+
+
+
+    def advertise(self, factory_in_downtime):
+        """
+        Advertises the glidefactory and the glidefactoryclient classads.
+
+        @type factory_in_downtime: boolean
+        @param factory_in_downtime: factory in the downtimes file
+        """
+
+        self.loadContext()
+
+        # Classad files to use
+        gf_filename = classadSupport.generate_classad_filename(prefix='gfi_adm_gf')
+        gfc_filename = classadSupport.generate_classad_filename(prefix='gfi_adm_gfc')
+        self.writeClassadsToFile(factory_in_downtime, gf_filename, gfc_filename)
+
+        # ADVERTISE: glidefactory classads
+        gfi.advertizeGlideinFromFile(gf_filename, remove_file=True,
+                                     is_multi=True)
+
+        # ADVERTISE: glidefactoryclient classads
+        gfi.advertizeGlideinClientMonitoringFromFile(gfc_filename,
+                                                     remove_file=True,
+                                                     is_multi=True)
         return
 
 

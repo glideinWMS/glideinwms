@@ -12,14 +12,24 @@
 #   Igor Sfiligoi (Sept 7th 2006)
 #
 
-from glideinwms.lib import condorExe
-from glideinwms.lib import condorMonitor
-from glideinwms.lib import condorManager
 import os
 import time
 import string
-from glideinwms.lib import logSupport
 import fcntl
+from glideinwms.lib import condorExe
+from glideinwms.lib import condorMonitor
+from glideinwms.lib import condorManager
+from glideinwms.lib import logSupport
+from glideinwms.lib import classadSupport
+
+############################################################
+#
+# Global Variables
+#
+############################################################
+
+# Advertize counter for glidefactory
+advertizeGFCounter = {}
 
 ############################################################
 #
@@ -448,6 +458,93 @@ advertizeGlideinCounter = 0
 advertizeGlobalCounter = 0
 advertizeGFCCounter = {}
 
+
+###############################################################################
+# Code to advertise glidefactory classads to the WMS Pool
+###############################################################################
+
+class EntryClassad(classadSupport.Classad):
+    """
+    This class describes the glidefactory classad. Factory advertises the
+    glidefactory classad to the user pool as an UPDATE_MASTER_AD type classad
+    """
+
+    def __init__(self, factory_name, glidein_name, entry_name,
+                 trust_domain, auth_method, supported_signtypes,
+                 pub_key_obj=None, glidein_attrs={}, glidein_params={},
+                 glidein_monitors={}):
+        """
+        Class Constructor
+
+        @type factory_ref: string
+        @param factory_ref: Name of the resource in the glidefactory classad
+        @type frontend_ref: string
+        @param type: Name of the resource in the glideclient classad
+        """
+
+        global factoryConfig, advertizeGlideinCounter, advertizeGFCounter
+
+        classadSupport.Classad.__init__(self, factoryConfig.factory_id,
+                                        'UPDATE_MASTER_AD',
+                                        'INVALIDATE_MASTER_ADS')
+
+        self.adParams['Name'] = "%s@%s@%s" % (entry_name, glidein_name,
+                                              factory_name)
+        self.adParams['FactoryName'] = "%s" % factory_name
+        self.adParams['GlideinName'] = "%s" % glidein_name
+        self.adParams['EntryName'] = "%s" % entry_name
+        self.adParams[factoryConfig.factory_signtype_id] = "%s" % string.join(supported_signtypes, ',')
+        self.adParams['DaemonStartTime'] = int(start_time)
+        advertizeGFCounter['Name'] = advertizeGFCounter.get('Name', -1) + 1
+        self.adParams['UpdateSequenceNumber'] = advertizeGFCounter['Name']
+        if pub_key_obj is not None:
+            self.adParams['PubKeyID'] = "%s" % pub_key_obj.get_pub_key_id()
+            self.adParams['PubKeyType'] = "%s" % pub_key_obj.get_pub_key_type()
+            self.adParams['PubKeyValue'] = "%s" % string.replace(pub_key_obj.get_pub_key_value(),'\n','\\n')
+        if 'grid_proxy' in auth_method:
+            self.adParams['GlideinAllowx509_Proxy'] = '%s' % True
+            self.adParams['GlideinRequirex509_Proxy'] = '%s' % True
+            self.adParams['GlideinRequireGlideinProxy'] = '%s' % False
+        else:
+            self.adParams['GlideinAllowx509_Proxy'] = '%s' % False
+            self.adParams['GlideinRequirex509_Proxy'] = '%s' % False
+            self.adParams['GlideinRequireGlideinProxy'] = '%s' % True
+
+        # write out both the attributes, params and monitors
+        for (prefix,data) in ((factoryConfig.glidein_attr_prefix,glidein_attrs),
+                              (factoryConfig.glidein_param_prefix,glidein_params),
+                              (factoryConfig.glidein_monitor_prefix,glidein_monitors)):
+            for attr in data.keys():
+                el=data[attr]
+                if type(el)==type(1):
+                    # don't quote ints
+                    self.adParams['%s%s' % (prefix,attr)] = el
+                else:
+                    escaped_el=string.replace(string.replace(str(el),'"','\\"'),'\n','\\n')
+                    self.adParams['%s%s' % (prefix,attr)] = "%s" % escaped_el
+
+
+    def writeToFile(self, filename, append=True):
+        o_flag = "a"
+        if not append:
+            o_flag = "w"
+
+        try:
+            fd = file(filename, o_flag)
+        except:
+            raise
+
+        try:
+            fd.write("%s" % self)
+            if append:
+                # Write empty line when in append mode so next classad can be
+                # written directly after this one
+                fd.write('\n')
+        finally:
+            fd.close()
+
+
+
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
@@ -481,9 +578,7 @@ def advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain,
     """
     global factoryConfig, advertizeGlideinCounter
 
-    # get a 9 digit number that will stay 9 digit for the next 25 years
-    short_time = time.time() - 1.05e9
-    tmpnam = "/tmp/gfi_ag_%li_%li" % (short_time, os.getpid())
+    tmpnam = classadSupport.generate_classad_filename(prefix='gfi_ad_gf')
     fd = file(tmpnam, "w")
     try:
         try:
@@ -551,9 +646,7 @@ def advertizeGlobal(factory_name, glidein_name, supported_signtypes,
     global factoryConfig
     global advertizeGlobalCounter
 
-    # get a 9 digit number that will stay 9 digit for the next 25 years
-    short_time = time.time() - 1.05e9
-    tmpnam = "/tmp/gfi_ag_%li_%li" % (short_time, os.getpid())
+    tmpnam = classadSupport.generate_classad_filename(prefix='gfi_ad_gfg')
     fd = file(tmpnam, "w")
 
     try:
@@ -584,9 +677,7 @@ def deadvertizeGlidein(factory_name, glidein_name, entry_name):
     """
     Removes the glidefactory classad advertising the entry from the WMS Collector.
     """
-    # get a 9 digit number that will stay 9 digit for the next 25 years
-    short_time = time.time() - 1.05e9
-    tmpnam = "/tmp/gfi_ag_%li_%li" % (short_time, os.getpid())
+    tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gf')
     fd = file(tmpnam, "w")
     try:
         try:
@@ -605,9 +696,7 @@ def deadvertizeGlobal(factory_name, glidein_name):
     """
     Removes the glidefactoryglobal classad advertising the factory globals from the WMS Collector.
     """
-    # get a 9 digit number that will stay 9 digit for the next 25 years
-    short_time = time.time() - 1.05e9
-    tmpnam = "/tmp/gfi_ag_%li_%li" % (short_time, os.getpid())
+    tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gfg')
     fd = file(tmpnam, "w")
     try:
         try:
@@ -625,9 +714,7 @@ def deadvertizeFactory(factory_name, glidein_name):
     """
     Deadvertize all entry and global classads for this factory.
     """
-    # get a 9 digit number that will stay 9 digit for the next 25 years
-    short_time = time.time() - 1.05e9
-    tmpnam = "/tmp/gfi_ag_%li_%li" % (short_time, os.getpid())
+    tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_fact')
     fd = file(tmpnam, "w")
     try:
         try:
@@ -650,9 +737,7 @@ def deadvertizeFactory(factory_name, glidein_name):
 def advertizeGlideinClientMonitoring(factory_name, glidein_name, entry_name,
                                      client_name, client_int_name, client_int_req,
                                      glidein_attrs={}, client_params={}, client_monitors={}):
-    # get a 9 digit number that will stay 9 digit for the next 25 years
-    short_time = time.time() - 1.05e9
-    tmpnam = "/tmp/gfi_agcm_%li_%li" % (short_time, os.getpid())
+    tmpnam = classadSupport.generate_classad_filename(prefix='gfi_adm_gfc')
 
     createGlideinClientMonitoringFile(tmpnam, factory_name, glidein_name, entry_name,
                                       client_name, client_int_name, client_int_req,
@@ -692,9 +777,7 @@ class MultiAdvertizeGlideinClientMonitoring:
     def do_advertize_iterate(self):
         error_arr = []
 
-        # get a 9 digit number that will stay 9 digit for the next 25 years
-        short_time = time.time() - 1.05e9
-        tmpnam = "/tmp/gfi_agcm_%li_%li" % (short_time, os.getpid())
+        tmpnam = classadSupport.generate_classad_filename(prefix='gfi_ad_gfc')
 
         for el in self.client_data:
             createGlideinClientMonitoringFile(
@@ -711,9 +794,7 @@ class MultiAdvertizeGlideinClientMonitoring:
             raise MultiExeError, error_arr
         
     def do_advertize_multi(self):
-        # get a 9 digit number that will stay 9 digit for the next 25 years
-        short_time = time.time() - 1.05e9
-        tmpnam = "/tmp/gfi_agcm_%li_%li" % (short_time, os.getpid())
+        tmpnam = classadSupport.generate_classad_filename(prefix='gfi_adm_gfc')
 
         ap = False
         for el in self.client_data:
@@ -735,7 +816,26 @@ class MultiAdvertizeGlideinClientMonitoring:
 
             if len(error_arr) > 0:
                 raise MultiExeError, error_arr
-        
+
+    def writeToMultiClassadFile(self, filename=None, append=True):
+        # filename: Name of the file to write classads to
+        # append: Wether the classads need to be appended to the file
+        #         If we create file append is in a way ignored
+
+        if filename is None:
+            filename = classadSupport.generate_classad_filename(prefix='gfi_adm_gfc')
+            append = False
+
+        for el in self.client_data:
+            createGlideinClientMonitoringFile(
+                filename, self.factory_name, self.glidein_name, self.entry_name,
+                el['client_name'], el['client_int_name'], el['client_int_req'],
+                self.glidein_attrs, el['client_params'], el['client_monitors'],
+                do_append=append)
+            # Append from here on anyways
+            append = True
+
+        return filename
 
 
 ##############################
@@ -800,14 +900,33 @@ def createGlideinClientMonitoringFile(fname,
 
 # Given a file, advertize
 # Can throw a CondorExe/ExeError exception
-def advertizeGlideinClientMonitoringFromFile(fname,
-                                             remove_file=True,
+def advertizeGlideinClientMonitoringFromFile(fname, remove_file=True,
                                              is_multi=False):
-    try:
-        exe_condor_advertise(fname, "UPDATE_LICENSE_AD", is_multi=is_multi)
-    finally:
+    if os.path.exists(fname):
+        try:
+            logSupport.log.info("Advertising glidefactoryclient classads")
+            exe_condor_advertise(fname, "UPDATE_LICENSE_AD", is_multi=is_multi)
+        except:
+            logSupport.log.warning("Advertising glidefactoryclient classads failed")
+            logSupport.log.exception("Advertising glidefactoryclient classads failed: ")
         if remove_file:
             os.remove(fname)
+    else:
+        logSupport.log.warning("glidefactoryclient classad file %s does not exist. Check if frontends are allowed to submit to entry" % fname)
+
+def advertizeGlideinFromFile(fname, remove_file=True, is_multi=False):
+    if os.path.exists(fname):
+        try:
+            logSupport.log.info("Advertising glidefactory classads")
+            exe_condor_advertise(fname, "UPDATE_MASTER_AD", is_multi=is_multi)
+        except:
+            logSupport.log.warning("Advertising glidefactory classads failed")
+            logSupport.log.exception("Advertising glidefactory classads failed: ")
+        if remove_file:
+            os.remove(fname)
+    else:
+        logSupport.log.warning("glidefactory classad file %s does not exist. Check if you have atleast one entry enabled" % fname)
+
 
 # End INTERNAL
 ###########################################
@@ -817,9 +936,7 @@ def deadvertizeAllGlideinClientMonitoring(factory_name, glidein_name, entry_name
     """
     Deadvertize  monitoring classads for the given entry.
     """
-    # get a 9 digit number that will stay 9 digit for the next 25 years
-    short_time = time.time() - 1.05e9
-    tmpnam = "/tmp/gfi_ag_%li_%li" % (short_time, os.getpid())
+    tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gfc')
     fd = file(tmpnam, "w")
     try:
         try:
@@ -838,9 +955,7 @@ def deadvertizeFactoryClientMonitoring(factory_name, glidein_name):
     """
     Deadvertize all monitoring classads for this factory.
     """
-    # get a 9 digit number that will stay 9 digit for the next 25 years
-    short_time = time.time() - 1.05e9
-    tmpnam = "/tmp/gfi_ag_%li_%li" % (short_time, os.getpid())
+    tmpnam = classadSupport.generate_classad_filename(prefix='gfi_de_gfc')
     fd = file(tmpnam, "w")
     try:
         try:

@@ -1333,7 +1333,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
                              sign_type, main_descript, entry_descript, startup_dir,
                              client_name, slots_layout, params_str))
         glidein_arguments = glidein_arguments.replace('"', '\\"') 
-        log.debug("glidein_arguments: %s" % glidein_arguments)
+        #log.debug("glidein_arguments: %s" % glidein_arguments)
 
         # get my (entry) type
         grid_type = jobDescript.data["GridType"]
