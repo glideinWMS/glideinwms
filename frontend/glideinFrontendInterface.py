@@ -750,7 +750,7 @@ class MultiAdvertizeWork:
                         filestr="(filename unknown)"
                         if hasattr(credential_el,'filename'):
                             filestr=credential_el.filename
-                        logSupport.log.warn("Credential file %s had some earlier problem in loading so not advertizing, skipping..."%(filestr))
+                        logSupport.log.warning("Credential file %s had some earlier problem in loading so not advertizing, skipping..."%(filestr))
                         continue
 
                     if (params_obj.request_name in self.factory_constraint):

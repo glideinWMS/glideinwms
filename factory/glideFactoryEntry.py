@@ -474,7 +474,7 @@ class Entry:
         try:
             gf_classad.writeToFile(gf_filename, append=append)
         except:
-            self.log.warn("Error writing classad to file %s" % gf_filename)
+            self.log.warning("Error writing classad to file %s" % gf_filename)
             self.log.exception("Error writing classad to file %s: " % (gf_filename))
 
         ########################################################################
@@ -493,7 +493,7 @@ class Entry:
         for client_name in current_qc_data:
             client_qc_data = current_qc_data[client_name]
             if client_name not in self.gflFactoryConfig.client_internals:
-                self.log.warn("Client '%s' has stats, but no classad! Ignoring." % client_name)
+                self.log.warning("Client '%s' has stats, but no classad! Ignoring." % client_name)
                 continue
             client_internals = self.gflFactoryConfig.client_internals[client_name]
 
@@ -522,7 +522,7 @@ class Entry:
         try:
             advertizer.writeToMultiClassadFile(gfc_filename)
         except:
-            self.log.warn("Writing monitoring classad to file %s failed" % gfc_filename)
+            self.log.warning("Writing monitoring classad to file %s failed" % gfc_filename)
 
         return
 
