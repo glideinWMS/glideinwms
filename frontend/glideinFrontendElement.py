@@ -34,6 +34,8 @@ from glideinwms.lib import symCrypto,pubCrypto
 from glideinwms.lib import glideinWMSVersion
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
+from glideinwms.lib.fork import fork_in_bg
+from glideinwms.lib.fork import register_sighandler
 
 from glideinwms.frontend import glideinFrontendConfig
 from glideinwms.frontend import glideinFrontendInterface
@@ -900,28 +902,6 @@ class glideinFrontendElement:
 
         return out
 
-def fork_in_bg(function, *args):
-    # fork and call a function with args
-    #  return a dict with {'r': fd, 'pid': pid} where fd is the stdout from a pipe.
-    #    example:
-    #      def add(i, j): return i+j
-    #      d = fork_in_bg(add, i, j)
-
-    r, w = os.pipe()
-    pid = os.fork()
-    if pid == 0:
-        os.close(r)
-        try:
-            out = function(*args)
-            os.write(w, cPickle.dumps(out))
-        finally:
-            os.close(w)
-            os._exit(0)
-    else:
-        os.close(w)
-
-    return {'r': r, 'pid': pid}
-
 ############################################################
 def check_parent(parent_pid):
     if os.path.exists('/proc/%s' % parent_pid):
@@ -1036,11 +1016,7 @@ def expand_DD(qstr,attr_dict):
 #
 ############################################################
 
-def termsignal(signr, frame):
-    raise KeyboardInterrupt, "Received signal %s" % signr
-
 if __name__ == '__main__':
-    signal.signal(signal.SIGTERM, termsignal)
-    signal.signal(signal.SIGQUIT, termsignal)
+    register_sighandler()
     gfe = glideinFrontendElement(int(sys.argv[1]), sys.argv[2], sys.argv[3])
     gfe.main()
