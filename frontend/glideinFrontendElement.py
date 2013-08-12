@@ -49,11 +49,18 @@ class glideinFrontendElement:
         self.parent_pid = parent_pid
         self.work_dir = work_dir
         self.group_name = group_name
-
-    def main(self):
-        startup_time = time.time()
-
         self.elementDescript = glideinFrontendConfig.ElementMergedDescript(self.work_dir, self.group_name)
+        self.paramsDescript = glideinFrontendConfig.ParamsDescript(self.work_dir, self.group_name)
+        self.signatureDescript = glideinFrontendConfig.GroupSignatureDescript(self.work_dir, self.group_name)
+        self.attr_dict = glideinFrontendConfig.AttrsDescript(self.work_dir,self.group_name).data
+        self.startup_time = time.time()
+
+        self.sleep_time = int(self.elementDescript.frontend_data['LoopDelay'])
+        self.frontend_name = self.elementDescript.frontend_data['FrontendName']
+        self.group_name = self.elementDescript.element_data['GroupName']
+
+    def configure(self):
+        ''' Do some initial configuration of the element. '''
 
         # the log dir is shared between the frontend main and the groups, so use a subdir
         logSupport.log_dir = os.path.join(self.elementDescript.frontend_data['LogDir'], "group_%s" % self.group_name)
@@ -67,28 +74,9 @@ class glideinFrontendElement:
                                           int(float(plog['max_mbytes'])))
         logSupport.log = logging.getLogger(self.group_name)
         logSupport.log.info("Logging initialized")
-        logSupport.log.debug("Frontend Element startup time: %s" % str(startup_time))
-
-        self.paramsDescript = glideinFrontendConfig.ParamsDescript(self.work_dir, self.group_name)
-        attrsDescript = glideinFrontendConfig.AttrsDescript(self.work_dir,self.group_name)
-        self.signatureDescript = glideinFrontendConfig.GroupSignatureDescript(self.work_dir, self.group_name)
-        #
-        # We decided we will not use the data from the stage area
-        # Leaving it commented in the code, in case we decide in the future
-        #  it was a good validation of the Web server health
-        #
-        #stageArea=glideinFrontendConfig.MergeStageFiles(elementDescript.frontend_data['WebURL'],
-        #                                                signatureDescript.signature_type,
-        #                                                signatureDescript.frontend_descript_fname,signatureDescript.frontend_descript_signature,
-        #                                                group_name,
-        #                                                signatureDescript.group_descript_fname,signatureDescript.group_descript_signature)
-        # constsDescript=stageArea.get_constants()
-        #
-
-        self.attr_dict=attrsDescript.data
+        logSupport.log.debug("Frontend Element startup time: %s" % str(self.startup_time))
 
         glideinFrontendMonitoring.monitoringConfig.monitor_dir = os.path.join(self.work_dir, "monitor/group_%s" % self.group_name)
-
         glideinFrontendInterface.frontendConfig.advertise_use_tcp = (self.elementDescript.frontend_data['AdvertiseWithTCP'] in ('True', '1'))
         glideinFrontendInterface.frontendConfig.advertise_use_multi = (self.elementDescript.frontend_data['AdvertiseWithMultiple'] in ('True', '1'))
 
@@ -98,11 +86,16 @@ class glideinFrontendElement:
         except:
             logSupport.log.exception("Exception occurred while trying to retrieve the glideinwms version: ")
 
-        if len(self.elementDescript.merged_data['Proxies']) > 0:
-            if not glideinFrontendPlugins.proxy_plugins.has_key(self.elementDescript.merged_data['ProxySelectionPlugin']):
-                logSupport.log.warning("Invalid ProxySelectionPlugin '%s', supported plugins are %s" % (self.elementDescript.merged_data['ProxySelectionPlugin']), glideinFrontendPlugins.proxy_plugins.keys())
+        if self.elementDescript.merged_data['Proxies']:
+            proxy_plugins = glideinFrontendPlugins.proxy_plugins
+            if not proxy_plugins.get(self.elementDescript.merged_data['ProxySelectionPlugin']):
+                logSupport.log.warning("Invalid ProxySelectionPlugin '%s', supported plugins are %s" %
+                                       (self.elementDescript.merged_data['ProxySelectionPlugin']),
+                                       proxy_plugins.keys())
                 return 1
-            self.x509_proxy_plugin = glideinFrontendPlugins.proxy_plugins[self.elementDescript.merged_data['ProxySelectionPlugin']](os.path.join(self.work_dir, "group_%s" % self.group_name), glideinFrontendPlugins.createCredentialList(self.elementDescript))
+            self.x509_proxy_plugin = proxy_plugins[self.elementDescript.merged_data['ProxySelectionPlugin']](
+                os.path.join(self.work_dir, "group_%s" % self.group_name),
+                glideinFrontendPlugins.createCredentialList(self.elementDescript))
         else:
             # no proxies, will try to use the factory one
             self.x509_proxy_plugin = None
@@ -112,6 +105,8 @@ class glideinFrontendElement:
         os.environ['_CONDOR_CERTIFICATE_MAPFILE'] = self.elementDescript.element_data['MapFile']
         os.environ['X509_USER_PROXY'] = self.elementDescript.frontend_data['ClassAdProxy']
 
+    def main(self):
+        self.configure()
         # create lock file
         pid_obj = glideinFrontendPidLib.ElementPidSupport(self.work_dir, self.group_name)
 
@@ -127,14 +122,9 @@ class glideinFrontendElement:
         finally:
             pid_obj.relinquish()
 
-
     def iterate(self):
-        sleep_time = int(self.elementDescript.frontend_data['LoopDelay'])
 
         factory_pools = self.elementDescript.merged_data['FactoryCollectors']
-
-        self.frontend_name = self.elementDescript.frontend_data['FrontendName']
-        self.group_name = self.elementDescript.element_data['GroupName']
 
         self.stats = {}
         self.history_obj = {}
@@ -181,7 +171,7 @@ class glideinFrontendElement:
                 cleanupSupport.cleaners.cleanup()
 
                 logSupport.log.info("Sleep")
-                time.sleep(sleep_time)
+                time.sleep(self.sleep_time)
         finally:
             logSupport.log.info("Deadvertize my ads")
             for factory_pool in factory_pools:
@@ -816,6 +806,7 @@ class glideinFrontendElement:
             glidein_dict = {}
             factory_constraint=expand_DD(self.elementDescript.merged_data['FactoryQueryExpr'],self.attr_dict)
             factory_pools=self.elementDescript.merged_data['FactoryCollectors']
+
             for factory_pool in factory_pools:
                 factory_pool_node = factory_pool[0]
                 factory_identity = factory_pool[1]
