@@ -49,6 +49,7 @@ class glideinFrontendElement:
         self.parent_pid = parent_pid
         self.work_dir = work_dir
         self.group_name = group_name
+
         self.elementDescript = glideinFrontendConfig.ElementMergedDescript(self.work_dir, self.group_name)
         self.paramsDescript = glideinFrontendConfig.ParamsDescript(self.work_dir, self.group_name)
         self.signatureDescript = glideinFrontendConfig.GroupSignatureDescript(self.work_dir, self.group_name)
@@ -57,7 +58,20 @@ class glideinFrontendElement:
 
         self.sleep_time = int(self.elementDescript.frontend_data['LoopDelay'])
         self.frontend_name = self.elementDescript.frontend_data['FrontendName']
-        self.group_name = self.elementDescript.element_data['GroupName']
+        self.web_url = self.elementDescript.frontend_data['WebURL']
+        self.monitoring_web_url = self.elementDescript.frontend_data['MonitoringWebURL']
+
+        self.security_name = self.elementDescript.merged_data['SecurityName']
+        self.factory_pools = self.elementDescript.merged_data['FactoryCollectors']
+
+        self.max_running = int(self.elementDescript.element_data['MaxRunningPerEntry'])
+        self.fraction_running = float(self.elementDescript.element_data['FracRunningPerEntry'])
+        self.max_idle = int(self.elementDescript.element_data['MaxIdlePerEntry'])
+        self.reserve_idle = int(self.elementDescript.element_data['ReserveIdlePerEntry'])
+        self.max_vms_idle = int(self.elementDescript.element_data['MaxIdleVMsPerEntry'])
+        self.curb_vms_idle = int(self.elementDescript.element_data['CurbIdleVMsPerEntry'])
+        self.total_max_glideins=int(self.elementDescript.element_data['MaxRunningTotal'])
+        self.total_curb_glideins=int(self.elementDescript.element_data['CurbRunningTotal'])
 
     def configure(self):
         ''' Do some initial configuration of the element. '''
@@ -66,7 +80,7 @@ class glideinFrontendElement:
         logSupport.log_dir = os.path.join(self.elementDescript.frontend_data['LogDir'], "group_%s" % self.group_name)
 
         # Configure frontend group process logging
-        process_logs = eval(self.elementDescript.frontend_data['ProcessLogs']) 
+        process_logs = eval(self.elementDescript.frontend_data['ProcessLogs'])
         for plog in process_logs:
             logSupport.add_processlog_handler(self.group_name, logSupport.log_dir, plog['msg_types'], plog['extension'],
                                           int(float(plog['max_days'])),
@@ -123,9 +137,6 @@ class glideinFrontendElement:
             pid_obj.relinquish()
 
     def iterate(self):
-
-        factory_pools = self.elementDescript.merged_data['FactoryCollectors']
-
         self.stats = {}
         self.history_obj = {}
 
@@ -174,7 +185,7 @@ class glideinFrontendElement:
                 time.sleep(self.sleep_time)
         finally:
             logSupport.log.info("Deadvertize my ads")
-            for factory_pool in factory_pools:
+            for factory_pool in self.factory_pools:
                 factory_pool_node = factory_pool[0]
                 try:
                     glideinFrontendInterface.deadvertizeAllWork(factory_pool_node, published_frontend_name)
@@ -195,19 +206,9 @@ class glideinFrontendElement:
                 pass
 
     def iterate_one(self, client_name):
-        frontend_name = self.elementDescript.frontend_data['FrontendName']
-        group_name = self.elementDescript.element_data['GroupName']
-        security_name = self.elementDescript.merged_data['SecurityName']
-
-        web_url = self.elementDescript.frontend_data['WebURL']
-        monitoring_web_url=self.elementDescript.frontend_data['MonitoringWebURL']
-
         pipe_ids={}
 
-        factory_constraint = self.elementDescript.merged_data['FactoryQueryExpr']
-        factory_pools = self.elementDescript.merged_data['FactoryCollectors']
-
-        logSupport.log.info("Querying schedd, entry, and glidein status using child processes.") 
+        logSupport.log.info("Querying schedd, entry, and glidein status using child processes.")
 
         # query globals
         pipe_ids['globals'] = fork_in_bg(self.query_globals)
@@ -244,8 +245,7 @@ class glideinFrontendElement:
                 # if no valid key
                 # if key needed, will handle the error later on
                 logSupport.log.warning("Factory Globals '%s': invalid RSA key" % globalid)
-                tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1], sys.exc_info()[2])
-                logSupport.log.debug("Factory Globals '%s': invalid RSA key traceback: %s\n" % (globalid, str(tb)))
+                logSupport.log.exception("Factory Globals '%s': invalid RSA key" % globalid)
                 # but remove it also from the dictionary
                 del globals_dict[globalid]
 
@@ -293,15 +293,13 @@ class glideinFrontendElement:
                                 'Idle':self.status_dict_types['Idle']['abs'],
                                 'Running':self.status_dict_types['Running']['abs']})
 
-        total_max_glideins=int(self.elementDescript.element_data['MaxRunningTotal'])
-        total_curb_glideins=int(self.elementDescript.element_data['CurbRunningTotal'])
         total_glideins=self.status_dict_types['Total']['abs']
 
         logSupport.log.info("Glideins found total %i idle %i running %i limit %i curb %i"%
                                                  (total_glideins,
                                                   self.status_dict_types['Idle']['abs'],
                                                   self.status_dict_types['Running']['abs'],
-                                                  total_max_glideins,total_curb_glideins)
+                                                  self.total_max_glideins, self.total_curb_glideins)
                                                  )
 
         # TODO: PM check if it is commented out because of globals section
@@ -328,13 +326,14 @@ class glideinFrontendElement:
             self.x509_proxy_plugin.update_usermap(condorq_dict, condorq_dict_types,
                                                           status_dict, self.status_dict_types)
         # here we have all the data needed to build a GroupAdvertizeType object
-        descript_obj = glideinFrontendInterface.FrontendDescript(client_name, frontend_name, group_name, web_url, self.signatureDescript.frontend_descript_fname, self.signatureDescript.group_descript_fname, self.signatureDescript.signature_type, self.signatureDescript.frontend_descript_signature, self.signatureDescript.group_descript_signature, self.x509_proxy_plugin)
-        descript_obj.add_monitoring_url(monitoring_web_url)
+        descript_obj = glideinFrontendInterface.FrontendDescript(client_name, self.frontend_name, self.group_name, self.web_url,
+                                                                 self.signatureDescript.frontend_descript_fname, self.signatureDescript.group_descript_fname,
+                                                                 self.signatureDescript.signature_type, self.signatureDescript.frontend_descript_signature,
+                                                                 self.signatureDescript.group_descript_signature, self.x509_proxy_plugin)
+        descript_obj.add_monitoring_url(self.monitoring_web_url)
 
         # reuse between loops might be a good idea, but this will work for now
         key_builder = glideinFrontendInterface.Key4AdvertizeBuilder()
-
-
 
         logSupport.log.info("Match")
 
@@ -366,13 +365,6 @@ class glideinFrontendElement:
         count_real=pipe_out['Real']
         count_status_multi=pipe_out['Glidein']
 
-        max_running = int(self.elementDescript.element_data['MaxRunningPerEntry'])
-        fraction_running = float(self.elementDescript.element_data['FracRunningPerEntry'])
-        max_idle = int(self.elementDescript.element_data['MaxIdlePerEntry'])
-        reserve_idle = int(self.elementDescript.element_data['ReserveIdlePerEntry'])
-        max_vms_idle = int(self.elementDescript.element_data['MaxIdleVMsPerEntry'])
-        curb_vms_idle = int(self.elementDescript.element_data['CurbIdleVMsPerEntry'])
-
         glexec='UNDEFINED'
         if 'GLIDEIN_Glexec_Use' in self.elementDescript.frontend_data:
             glexec=self.elementDescript.frontend_data['GLIDEIN_Glexec_Use']
@@ -380,7 +372,7 @@ class glideinFrontendElement:
             glexec=self.elementDescript.merged_data['GLIDEIN_Glexec_Use']
 
         total_running = condorq_dict_types['Running']['total']
-        logSupport.log.info("Total matching idle %i (old %i) running %i limit %i" % (condorq_dict_types['Idle']['total'], condorq_dict_types['OldIdle']['total'], total_running, max_running))
+        logSupport.log.info("Total matching idle %i (old %i) running %i limit %i" % (condorq_dict_types['Idle']['total'], condorq_dict_types['OldIdle']['total'], total_running, self.max_running))
 
         advertizer = glideinFrontendInterface.MultiAdvertizeWork(descript_obj)
         resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser(multi_support=glideinFrontendInterface.frontendConfig.advertise_use_multi)
@@ -390,7 +382,7 @@ class glideinFrontendElement:
             globals_el = globals_dict[globalid]
             if globals_el['attrs'].has_key('PubKeyObj'):
                 key_obj = key_builder.get_key_obj(globals_el['attrs']['FactoryPoolId'], globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
-                advertizer.add_global(globals_el['attrs']['FactoryPoolNode'],globalid,security_name,key_obj)
+                advertizer.add_global(globals_el['attrs']['FactoryPoolNode'],globalid,self.security_name,key_obj)
 
         glideid_list = condorq_dict_types['Idle']['count'].keys()
         # TODO: PM Following shows up in branch_v2plus. Which is correct?
@@ -445,53 +437,17 @@ class glideinFrontendElement:
             if effective_idle < 0:
                 effective_idle = 0
 
-
             effective_oldidle=prop_jobs['OldIdle']-count_status['Idle']
             if effective_oldidle<0:
                 effective_oldidle=0
 
-            if count_status['Total']>=max_running:
-                # have all the running jobs I wanted
-                glidein_min_idle=0
-            elif count_status['Idle']>=max_vms_idle:
-                # enough idle vms, do not ask for more
-                glidein_min_idle=0
-            elif total_glideins>=total_max_glideins:
-                # reached the system-wide limit
-                glidein_min_idle=0
-            elif (effective_idle>0):
-                glidein_min_idle = effective_idle
-                glidein_min_idle=glidein_min_idle/3 # since it takes a few cycles to stabilize, ask for only one third
-                glidein_idle_reserve=effective_oldidle/3 # do not reserve any more than the number of old idles for reserve (/3)
-                if glidein_idle_reserve>reserve_idle:
-                    glidein_idle_reserve=reserve_idle
-
-                glidein_min_idle+=glidein_idle_reserve
-
-                if glidein_min_idle>max_idle:
-                    glidein_min_idle=max_idle # but never go above max
-                if glidein_min_idle>(max_running-count_status['Total']+glidein_idle_reserve):
-                    glidein_min_idle=(max_running-count_status['Total']+glidein_idle_reserve) # don't go over the max_running
-                if glidein_min_idle>(total_max_glideins-total_glideins+glidein_idle_reserve):
-                    # don't go over the system-wide max
-                    # not perfect, given te number of entries, but better than nothing
-                    glidein_min_idle=(total_max_glideins-total_glideins+glidein_idle_reserve)
-                if count_status['Idle']>=curb_vms_idle:
-                    glidein_min_idle/=2 # above first treshold, reduce
-                if total_glideins>=total_curb_glideins:
-                    glidein_min_idle/=2 # above global treshold, reduce
-                if glidein_min_idle<1:
-                    glidein_min_idle=1
-            else:
-                # no idle, make sure the glideins know it
-                glidein_min_idle = 0
-
-            glidein_min_idle=int(glidein_min_idle)
+            glidein_min_idle = self.compute_glidein_min_idle(count_status, total_glideins,
+                                                             effective_idle, effective_oldidle)
 
             # we don't need more slots than number of jobs in the queue (unless the fraction is positive)
             if (prop_jobs['Idle'] + count_real[glideid]) > 0:
                 if prop_jobs['Idle']>0:
-                    glidein_max_run = int((prop_jobs['Idle'] + count_real[glideid]) * fraction_running + 1)
+                    glidein_max_run = int((prop_jobs['Idle'] + count_real[glideid]) * self.fraction_running + 1)
                 else:
                     # no good reason for a delta when we don't need more than we have
                     glidein_max_run = int(count_real[glideid])
@@ -563,9 +519,10 @@ class glideinFrontendElement:
             else:
                 remove_excess_str = "NO"
 
-            this_stats_arr = (prop_jobs['Idle'], count_jobs['Idle'], effective_idle, prop_jobs['OldIdle'], hereonly_jobs['Idle'], count_jobs['Running'], count_real[glideid], max_running,
-                            count_status['Total'], count_status['Idle'], count_status['Running'],
-                            glidein_min_idle, glidein_max_run)
+            this_stats_arr = (prop_jobs['Idle'], count_jobs['Idle'], effective_idle, prop_jobs['OldIdle'], hereonly_jobs['Idle'], count_jobs['Running'], count_real[glideid],
+                              self.max_running,
+                              count_status['Total'], count_status['Idle'], count_status['Running'],
+                              glidein_min_idle, glidein_max_run)
 
             self.stats['group'].logMatchedJobs(
                 glideid_str, prop_jobs['Idle'], effective_idle, prop_jobs['OldIdle'],
@@ -629,7 +586,7 @@ class glideinFrontendElement:
                                request_name, request_name,
                                glidein_min_idle, glidein_max_run, glidein_params, glidein_monitors,
                                remove_excess_str=remove_excess_str,
-                               key_obj=key_obj,glidein_params_to_encrypt=None,security_name=security_name,
+                               key_obj=key_obj,glidein_params_to_encrypt=None,security_name=self.security_name,
                                trust_domain=trust_domain,auth_method=auth_method)
             else:
                 logSupport.log.warning("Cannot advertise requests for %s because no factory %s key was found"% (request_name, factory_pool_node))
@@ -669,7 +626,7 @@ class glideinFrontendElement:
 
             count_status_multi[request_name]={}
             for st in self.status_dict_types.keys():
-                c=glideinFrontendLib.getClientCondorStatus(self.status_dict_types[st]['dict'],frontend_name,group_name,request_name)
+                c=glideinFrontendLib.getClientCondorStatus(self.status_dict_types[st]['dict'], self.frontend_name, self.group_name,request_name)
                 count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
             count_status=count_status_multi[request_name]
 
@@ -754,12 +711,50 @@ class glideinFrontendElement:
 
         return
 
+    def compute_glidein_min_idle(self, count_status, total_glideins,
+                                 effective_idle, effective_oldidle):
+        ''' Calculate the number of idle jobs to request from the factory '''
+
+        if count_status['Total'] >= self.max_running:
+            # have all the running jobs I wanted
+            glidein_min_idle=0
+        elif count_status['Idle'] >= self.max_vms_idle:
+            # enough idle vms, do not ask for more
+            glidein_min_idle=0
+        elif total_glideins >= self.total_max_glideins:
+            # reached the system-wide limit
+            glidein_min_idle=0
+        elif (effective_idle>0):
+            glidein_min_idle=effective_idle
+            glidein_min_idle=glidein_min_idle/3 # since it takes a few cycles to stabilize, ask for only one third
+            glidein_idle_reserve=effective_oldidle/3 # do not reserve any more than the number of old idles for reserve (/3)
+            glidein_idle_reserve = min(glidein_idle_reserve, self.reserve_idle)
+            glidein_min_idle+=glidein_idle_reserve
+
+            glidein_min_idle = min(glidein_min_idle, self.max_idle)
+            if glidein_min_idle>(self.max_running-count_status['Total']+glidein_idle_reserve):
+                glidein_min_idle=(self.max_running-count_status['Total']+glidein_idle_reserve) # don't go over the max_running
+            if glidein_min_idle>(self.total_max_glideins-total_glideins+glidein_idle_reserve):
+                # don't go over the system-wide max
+                # not perfect, given te number of entries, but better than nothing
+                glidein_min_idle=(self.total_max_glideins-total_glideins+glidein_idle_reserve)
+            if count_status['Idle'] >= self.curb_vms_idle:
+                glidein_min_idle/=2 # above first treshold, reduce
+            if total_glideins >= self.total_curb_glideins:
+                glidein_min_idle/=2 # above global treshold, reduce
+            if glidein_min_idle<1:
+                glidein_min_idle=1
+        else:
+            # no idle, make sure the glideins know it
+            glidein_min_idle = 0
+
+        return int(glidein_min_idle)
+
     def query_globals(self):
         globals_dict = {}
         try:
             # Note: M2Crypto key objects are not pickle-able, so we will have to do that in the parent later on
-            factory_pools=self.elementDescript.merged_data['FactoryCollectors']
-            for factory_pool in factory_pools:
+            for factory_pool in self.factory_pools:
                 factory_pool_node = factory_pool[0]
                 my_identity_at_factory_pool = factory_pool[2]
                 try:
@@ -805,9 +800,8 @@ class glideinFrontendElement:
         try:
             glidein_dict = {}
             factory_constraint=expand_DD(self.elementDescript.merged_data['FactoryQueryExpr'],self.attr_dict)
-            factory_pools=self.elementDescript.merged_data['FactoryCollectors']
 
-            for factory_pool in factory_pools:
+            for factory_pool in self.factory_pools:
                 factory_pool_node = factory_pool[0]
                 factory_identity = factory_pool[1]
                 my_identity_at_factory_pool = factory_pool[2]
@@ -822,12 +816,15 @@ class glideinFrontendElement:
                     factory_glidein_dict = {}
 
                 for glidename in factory_glidein_dict.keys():
-                    if (not factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity')) or (factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'] != factory_identity):
+                    auth_id = factory_glidein_dict[glidename]['attrs'].get('AuthenticatedIdentity')
+                    if not auth_id:
                         logSupport.log.warning("Found an untrusted factory %s at %s; ignoring." % (glidename, factory_pool_node))
-                        if factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity'):
-                            logSupport.log.warning("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'" % (glidename, factory_pool_node, factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'], factory_identity))
-                    else:
-                        glidein_dict[(factory_pool_node, glidename, my_identity_at_factory_pool)] = factory_glidein_dict[glidename]
+                        break
+                    if auth_id != factory_identity:
+                        logSupport.log.warning("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'" % (
+                                glidename, factory_pool_node, auth_id, factory_identity))
+                        break
+                    glidein_dict[(factory_pool_node, glidename, my_identity_at_factory_pool)] = factory_glidein_dict[glidename]
 
         except Exception, ex:
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
