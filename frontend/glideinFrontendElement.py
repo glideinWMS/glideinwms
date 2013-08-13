@@ -239,17 +239,8 @@ class glideinFrontendElement:
         # M2Crypto objects are not picklable, so I have to do the transforamtion here
         self.populate_pubkey(globals_dict)
 
-        condorq_dict_proxy=glideinFrontendLib.getIdleProxyCondorQ(condorq_dict)
-        condorq_dict_voms=glideinFrontendLib.getIdleVomsCondorQ(condorq_dict)
-        condorq_dict_idle = glideinFrontendLib.getIdleCondorQ(condorq_dict)
-        condorq_dict_old_idle = glideinFrontendLib.getOldCondorQ(condorq_dict_idle, 600)
-        self.condorq_dict_running = glideinFrontendLib.getRunningCondorQ(condorq_dict)
+        self.populate_condorq_dict_types(condorq_dict)
 
-        self.condorq_dict_types = {'Idle':{'dict':condorq_dict_idle, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle)},
-                              'OldIdle':{'dict':condorq_dict_old_idle, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_old_idle)},
-                              'VomsIdle':{'dict':condorq_dict_voms, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
-                            'ProxyIdle':{'dict':condorq_dict_proxy,'abs':glideinFrontendLib.countCondorQ(condorq_dict_proxy)},
-                              'Running':{'dict':self.condorq_dict_running, 'abs':glideinFrontendLib.countCondorQ(self.condorq_dict_running)}}
         condorq_dict_types = self.condorq_dict_types
         condorq_dict_abs = glideinFrontendLib.countCondorQ(condorq_dict);
 
@@ -629,6 +620,19 @@ class glideinFrontendElement:
                 logSupport.log.exception("Factory Globals '%s': invalid RSA key" % globalid)
                 # but remove it also from the dictionary
                 del globals_dict[globalid]
+
+    def populate_condorq_dict_types(self, condorq_dict):
+        condorq_dict_proxy=glideinFrontendLib.getIdleProxyCondorQ(condorq_dict)
+        condorq_dict_voms=glideinFrontendLib.getIdleVomsCondorQ(condorq_dict)
+        condorq_dict_idle = glideinFrontendLib.getIdleCondorQ(condorq_dict)
+        condorq_dict_old_idle = glideinFrontendLib.getOldCondorQ(condorq_dict_idle, 600)
+        self.condorq_dict_running = glideinFrontendLib.getRunningCondorQ(condorq_dict)
+
+        self.condorq_dict_types = {'Idle':{'dict':condorq_dict_idle, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle)},
+                              'OldIdle':{'dict':condorq_dict_old_idle, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_old_idle)},
+                              'VomsIdle':{'dict':condorq_dict_voms, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
+                            'ProxyIdle':{'dict':condorq_dict_proxy,'abs':glideinFrontendLib.countCondorQ(condorq_dict_proxy)},
+                              'Running':{'dict':self.condorq_dict_running, 'abs':glideinFrontendLib.countCondorQ(self.condorq_dict_running)}}
 
     def compute_glidein_min_idle(self, count_status, total_glideins,
                                  effective_idle, effective_oldidle):
