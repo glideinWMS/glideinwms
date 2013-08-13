@@ -297,34 +297,9 @@ class glideinFrontendElement:
 
         #logSupport.log.debug("realcount: %s\n\n" % glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict))
 
-        logSupport.log.info("Counting subprocess created")
-        self.pipe_ids={}
-        for dt in condorq_dict_types.keys()+['Real','Glidein']:
-            self.pipe_ids[dt] = fork_in_bg(self.subprocess_count, dt)
+        self.do_match()
 
-        try:
-            pipe_out=fetch_fork_result_list(pipe_ids)
-        except RuntimeError:
-            # expect all errors logged already
-            logSupport.log.exception("Terminating iteration due to errors:")
-            return
-        logSupport.log.info("All children terminated")
-
-        # TODO: PM Need to check if we are counting correctly after the merge
-        for dt in condorq_dict_types.keys():
-            el=condorq_dict_types[dt]
-            (el['count'], el['prop'], el['hereonly'], el['total'])=pipe_out[dt]
-
-        count_real=pipe_out['Real']
-        self.count_status_multi=pipe_out['Glidein']
-
-        glexec='UNDEFINED'
-        if 'GLIDEIN_Glexec_Use' in self.elementDescript.frontend_data:
-            glexec=self.elementDescript.frontend_data['GLIDEIN_Glexec_Use']
-        if 'GLIDEIN_Glexec_Use' in self.elementDescript.merged_data:
-            glexec=self.elementDescript.merged_data['GLIDEIN_Glexec_Use']
-
-        total_running = condorq_dict_types['Running']['total']
+        total_running = self.condorq_dict_types['Running']['total']
         logSupport.log.info("Total matching idle %i (old %i) running %i limit %i" % (condorq_dict_types['Idle']['total'], condorq_dict_types['OldIdle']['total'], total_running, self.max_running))
 
         advertizer = glideinFrontendInterface.MultiAdvertizeWork(descript_obj)
@@ -375,7 +350,7 @@ class glideinFrontendElement:
             #If the glidein requires a voms proxy, only match voms idle jobs
             # Note: if GLEXEC is set to NEVER, the site will never see the proxy, 
             # so it can be avoided.
-            if (glexec != 'NEVER'):
+            if (self.glexec != 'NEVER'):
                 if (glidein_el['attrs'].get('GLIDEIN_REQUIRE_VOMS')=="True"):
                         prop_jobs['Idle']=prop_jobs['VomsIdle']
                         logSupport.log.info("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
@@ -392,18 +367,18 @@ class glideinFrontendElement:
             glidein_min_idle = self.compute_glidein_min_idle(count_status, total_glideins,
                                                              effective_idle, effective_oldidle)
 
-            glidein_max_run = self.compute_glidein_max_run(prop_jobs, count_real[glideid])
+            glidein_max_run = self.compute_glidein_max_run(prop_jobs, self.count_real[glideid])
 
             remove_excess_str = self.choose_remove_excess_type(count_jobs, count_status, glideid)
 
-            this_stats_arr = (prop_jobs['Idle'], count_jobs['Idle'], effective_idle, prop_jobs['OldIdle'], hereonly_jobs['Idle'], count_jobs['Running'], count_real[glideid],
+            this_stats_arr = (prop_jobs['Idle'], count_jobs['Idle'], effective_idle, prop_jobs['OldIdle'], hereonly_jobs['Idle'], count_jobs['Running'], self.count_real[glideid],
                               self.max_running,
                               count_status['Total'], count_status['Idle'], count_status['Running'],
                               glidein_min_idle, glidein_max_run)
 
             self.stats['group'].logMatchedJobs(
                 glideid_str, prop_jobs['Idle'], effective_idle, prop_jobs['OldIdle'],
-                count_jobs['Running'], count_real[glideid])
+                count_jobs['Running'], self.count_real[glideid])
 
             self.stats['group'].logMatchedGlideins(
                 glideid_str, count_status['Total'], count_status['Idle'],
@@ -434,7 +409,7 @@ class glideinFrontendElement:
             for t in count_jobs.keys():
                 glidein_monitors[t] = count_jobs[t]
 
-            glidein_monitors['RunningHere'] = count_real[glideid]
+            glidein_monitors['RunningHere'] = self.count_real[glideid]
 
             for t in count_status.keys():
                 glidein_monitors['Glideins%s' % t] = count_status[t]
@@ -492,8 +467,6 @@ class glideinFrontendElement:
             self.stats['group'].logFactAttrs(el_str, [], ()) # just for completeness
             self.stats['group'].logFactDown(el_str, el_updown)
             self.stats['group'].logFactReq(el_str,el_stats_arr[11],el_stats_arr[12], {})
-
-
 
         # Print the totals
         # Ignore the resulting sum
@@ -845,6 +818,35 @@ class glideinFrontendElement:
                                             sys.exc_info()[2])
             logSupport.log.debug("Error in talking to the user pool (condor_status): %s" % tb)
 
+    def do_match(self):
+        ''' Do the actual matching.  This forks subprocess_count as a children to do
+        the work in parallel. '''
+
+        logSupport.log.info("Counting subprocess created")
+        pipe_ids={}
+        for dt in self.condorq_dict_types.keys()+['Real','Glidein']:
+            pipe_ids[dt] = fork_in_bg(self.subprocess_count, dt)
+
+        try:
+            pipe_out=fetch_fork_result_list(pipe_ids)
+        except RuntimeError:
+            # expect all errors logged already
+            logSupport.log.exception("Terminating iteration due to errors:")
+            return
+        logSupport.log.info("All children terminated")
+
+        # TODO: PM Need to check if we are counting correctly after the merge
+        for dt, el in self.condorq_dict_types.iteritems():
+            (el['count'], el['prop'], el['hereonly'], el['total'])=pipe_out[dt]
+
+        self.count_real=pipe_out['Real']
+        self.count_status_multi=pipe_out['Glidein']
+
+        self.glexec='UNDEFINED'
+        if 'GLIDEIN_Glexec_Use' in self.elementDescript.frontend_data:
+            self.glexec=self.elementDescript.frontend_data['GLIDEIN_Glexec_Use']
+        if 'GLIDEIN_Glexec_Use' in self.elementDescript.merged_data:
+            self.glexec=self.elementDescript.merged_data['GLIDEIN_Glexec_Use']
 
     def subprocess_count(self, dt):
     # will make calculations in parallel,using multiple processes
