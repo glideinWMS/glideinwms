@@ -237,17 +237,7 @@ class glideinFrontendElement:
         status_dict=pipe_out['startds']
 
         # M2Crypto objects are not picklable, so I have to do the transforamtion here
-        for globalid in globals_dict:
-            globals_el = globals_dict[globalid]
-            try:
-                globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(globals_el['attrs']['PubKeyValue'])
-            except:
-                # if no valid key
-                # if key needed, will handle the error later on
-                logSupport.log.warning("Factory Globals '%s': invalid RSA key" % globalid)
-                logSupport.log.exception("Factory Globals '%s': invalid RSA key" % globalid)
-                # but remove it also from the dictionary
-                del globals_dict[globalid]
+        self.populate_pubkey(globals_dict)
 
         condorq_dict_proxy=glideinFrontendLib.getIdleProxyCondorQ(condorq_dict)
         condorq_dict_voms=glideinFrontendLib.getIdleVomsCondorQ(condorq_dict)
@@ -376,13 +366,13 @@ class glideinFrontendElement:
 
         advertizer = glideinFrontendInterface.MultiAdvertizeWork(descript_obj)
         resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser(multi_support=glideinFrontendInterface.frontendConfig.advertise_use_multi)
-
         # Add globals
         for globalid in globals_dict:
             globals_el = globals_dict[globalid]
             if globals_el['attrs'].has_key('PubKeyObj'):
                 key_obj = key_builder.get_key_obj(globals_el['attrs']['FactoryPoolId'], globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
                 advertizer.add_global(globals_el['attrs']['FactoryPoolNode'],globalid,self.security_name,key_obj)
+
 
         glideid_list = condorq_dict_types['Idle']['count'].keys()
         # TODO: PM Following shows up in branch_v2plus. Which is correct?
@@ -494,15 +484,8 @@ class glideinFrontendElement:
                         key_obj = key_builder.get_key_obj(my_identity, globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
                     break            
 
-            if glidein_el['attrs'].has_key('GLIDEIN_TrustDomain'):
-                trust_domain=glidein_el['attrs']['GLIDEIN_TrustDomain']
-            else:
-                trust_domain="Grid"
-
-            if glidein_el['attrs'].has_key('GLIDEIN_SupportedAuthenticationMethod'):
-                auth_method=glidein_el['attrs']['GLIDEIN_SupportedAuthenticationMethod']
-            else:
-                auth_method="grid_proxy"
+            trust_domain = glidein_el['attrs'].get('GLIDEIN_TrustDomain', 'Grid')
+            auth_method = glidein_el['attrs'].get('GLIDEIN_SupportedAuthenticationMethod', 'grid_proxy')
 
             # Only advertize if there is a valid key for encryption
             if key_obj is not None:
@@ -634,6 +617,18 @@ class glideinFrontendElement:
             logSupport.log.exception("Advertising failed: ")
 
         return
+
+    def populate_pubkey(self, globals_dict):
+        for globalid, globals_el in globals_dict.iteritems():
+            try:
+                globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(globals_el['attrs']['PubKeyValue'])
+            except:
+                # if no valid key
+                # if key needed, will handle the error later on
+                logSupport.log.warning("Factory Globals '%s': invalid RSA key" % globalid)
+                logSupport.log.exception("Factory Globals '%s': invalid RSA key" % globalid)
+                # but remove it also from the dictionary
+                del globals_dict[globalid]
 
     def compute_glidein_min_idle(self, count_status, total_glideins,
                                  effective_idle, effective_oldidle):
