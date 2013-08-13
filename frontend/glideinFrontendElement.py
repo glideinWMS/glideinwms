@@ -360,7 +360,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
     condorq_dict_types = {'Idle':{'dict':condorq_dict_idle, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle)},
                           'OldIdle':{'dict':condorq_dict_old_idle, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_old_idle)},
                           'VomsIdle':{'dict':condorq_dict_voms, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
-                        'ProxyIdle':{'dict':condorq_dict_proxy,'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
+                        'ProxyIdle':{'dict':condorq_dict_proxy,'abs':glideinFrontendLib.countCondorQ(condorq_dict_proxy)},
                           'Running':{'dict':condorq_dict_running, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_running)}}
     condorq_dict_abs = glideinFrontendLib.countCondorQ(condorq_dict);
 
