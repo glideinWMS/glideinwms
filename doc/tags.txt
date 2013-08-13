@@ -1,3 +1,20 @@
+v3_2    Bug Fix: Fixed a race condition while shutting down factory service
+        Bug Fix: Fixed a bug where glidein would not set certain condor config
+          variables correctly
+        Bug Fix: Fixed a bug where analyze_queues and analyze_entries would not
+          work with the http:// URI
+        Bug Fix: Collector port ranges in frontend.xml are now validated for
+          errors
+        Bug Fix: Schedd name, frontend name and identity in factory config
+          are validated for errors
+        Bug Fix: Starting a factory with all entries disabled now prints
+          helpful message
+        Bug Fix: Glidein does not leak LD_LIBRARY_PATH to job's environment
+        Bug Fix: Added several speed enhancements to the factory to get
+          looptime under acceptable limits
+        Bug Fix: Fixed a bug where factory would not query rpm installed
+          schedd correctly
+
 v3_1    Includes relevant features and bug fixes released upto v2_7
         Added a new feature that enables glidein to advertise error classads
           to the User Collector to help in debugging

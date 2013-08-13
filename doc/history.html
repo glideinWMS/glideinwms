@@ -84,69 +84,26 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
-        <b>v2_7_1</b> released on May 14, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7_1.tgz">Tarball</a>)<br>
+        <b>v3_2</b> released on August xx, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2.tgz">Tarball</a>)<br>
         <ul>
-          <li>glidecondor_addDN tool now supports adding DNs from a file
-          <li>Added new tool glidecondor_createSecCol to dynamically create
-          secondary collectors
-          <li>Bug Fix: Fixed a bug where condor config templates used by
-          glideinwms components had undefined values
-          <li>Bug Fix: analyze_entries tool now correctly handles URI http://
-          <li>Bug Fix: Fixed a bug where frontend would crash if the some of the
-          internal files were trucated to zero length.
-          <li>Bug Fix: Factory now correctly does the cleanup of log files
-          <li>Bug Fix: Factory now correctly does accounting of glideins in
-          default condor schedd
-          <li>Bug Fix: proxy_info works correctly with the cat option
-        </ul>
-      </li>
-      <li>
-        <b>v2_7</b> released on April 02, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7.tgz">Tarball</a>)<br>
-        <ul>
-          <li>glideinwms code is now organized as python packages
-          <li>Factory no longer creates long running process per entry.
-          Instead, it runs only a single long running glideFactoryEntryGroup
-          process instead of multiple glideFactoryEntry processes. Factory
-          config supports two additional config attributes entry_parallel_workers
-          and update_thread_count (see factory configuration docs for details)
-          <li>Improved factory prerformance by migrating popen calls to use
-          python's subprocess library
-          <li>Improved the performance of the Frontend by using pre-clustering
-          in the Frontend match-making
-          <li>Created index.html for factory monitoring so that admins can
-          disable directory browsing in httpd.conf
-          <li>Added support for Partitionable condor slots in the glidein
-          <li>Frontend policy for matching factory classads is now exposed in 
-          glideresource classads
-          <li>Added a tool to dynamically create a secondary schedd config files
-          and directories to the existing installation
-          <li>Improved the usability of the frontendGrouGraphStatusNow
-          monitoring
-          <li>Factory now ships with two new operations tools: entry_ls and entry_rm
-          <li>Improved documentation
-          <li>Factory will now try to recover glideins with held code 79
-          <li>Bug Fix: Fixed a bug where the factory entry processes and the
-          frontend group (element) processes would inherit their parent's
-          environment corrupting their own environment
-          <li>Bug Fix: Fixed a bug where installers were not setting
-          SHARED_PORT_MAX_WORKERS in respective condor_config correctly
-          <li>Bug Fix: Fixed a bug where the frontend would match jobs with now 
-          proxy to sites that require glexec 
-          <li>Bug Fix: Glidein's job wrapper now behaves as true wrapper
-          <li>Bug Fix: Fixed a bug where frontend_startup would not correctly
-          pick default frontend.xml
-          <li>Bug Fix: Fixed a bug in frontend where failure to evaluate
-          match_expr for one group would prevent frontend from requesting
-          glideins for other groups
-          <li>Bug Fix: RPM now has shared port daemon enabled in the
-          configuration
-          <li>Bug Fix: Fixed a bug where Factory would sometime use wrong DN
-          when calculating proxy hash
-          <li>Bug Fix: Fixed a bug where factoryStatusNow.html would not link
-          to the factoryEntryStatusNow.html correctly if the entry name is too long
-          <li>Bug Fix: setup_x509.sh now correctly checks for existence of the
-          grid-proxy-info and voms-proxy-info binaries on the worker node
-          <li>Bug Fix: Frontend now counts the partitionable slots correctly
+          <li>Bug Fix: Fixed a race condition while shutting down factory
+          service
+          <li>Bug Fix: Fixed a bug where glidein would not set certain condor
+          config variables correctly
+          <li>Bug Fix: Fixed a bug where analyze_queues and analyze_entries
+          would not work with the http:// URI
+          <li>Bug Fix: Collector port ranges in frontend.xml are now validated
+          for errors
+          <li>Bug Fix: Schedd name, frontend name and identity in factory config
+          are validated for errors
+          <li>Bug Fix: Starting a factory with all entries disabled now prints
+          helpful message
+          <li>Bug Fix: Glidein does not leak LD_LIBRARY_PATH to job's
+          environment
+          <li>Bug Fix: Added several speed enhancements to the factory to get
+          looptime under acceptable limits
+          <li>Bug Fix: Fixed a bug where factory would not query rpm installed
+          schedd correctly
         </ul>
       </li>
     </ul>
@@ -213,6 +170,72 @@ Related Pages:
 
     <h3>Old Releases</h3>
      <ul>
+      <li>
+        <b>v2_7_1</b> released on May 14, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7_1.tgz">Tarball</a>)<br>
+        <ul>
+          <li>glidecondor_addDN tool now supports adding DNs from a file
+          <li>Added new tool glidecondor_createSecCol to dynamically create
+          secondary collectors
+          <li>Bug Fix: Fixed a bug where condor config templates used by
+          glideinwms components had undefined values
+          <li>Bug Fix: analyze_entries tool now correctly handles URI http://
+          <li>Bug Fix: Fixed a bug where frontend would crash if the some of the
+          internal files were trucated to zero length.
+          <li>Bug Fix: Factory now correctly does the cleanup of log files
+          <li>Bug Fix: Factory now correctly does accounting of glideins in
+          default condor schedd
+          <li>Bug Fix: proxy_info works correctly with the cat option
+        </ul>
+      </li>
+      <li>
+        <b>v2_7</b> released on April 02, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7.tgz">Tarball</a>)<br>
+        <ul>
+          <li>glideinwms code is now organized as python packages
+          <li>Factory no longer creates long running process per entry.
+          Instead, it runs only a single long running glideFactoryEntryGroup
+          process instead of multiple glideFactoryEntry processes. Factory
+          config supports two additional config attributes entry_parallel_workers
+          and update_thread_count (see factory configuration docs for details)
+          <li>Improved factory prerformance by migrating popen calls to use
+          python's subprocess library
+          <li>Improved the performance of the Frontend by using pre-clustering
+          in the Frontend match-making
+          <li>Created index.html for factory monitoring so that admins can
+          disable directory browsing in httpd.conf
+          <li>Added support for Partitionable condor slots in the glidein
+          <li>Frontend policy for matching factory classads is now exposed in 
+          glideresource classads
+          <li>Added a tool to dynamically create a secondary schedd config files
+          and directories to the existing installation
+          <li>Improved the usability of the frontendGrouGraphStatusNow
+          monitoring
+          <li>Factory now ships with two new operations tools: entry_ls and entry_rm
+          <li>Improved documentation
+          <li>Factory will now try to recover glideins with held code 79
+          <li>Bug Fix: Fixed a bug where the factory entry processes and the
+          frontend group (element) processes would inherit their parent's
+          environment corrupting their own environment
+          <li>Bug Fix: Fixed a bug where installers were not setting
+          SHARED_PORT_MAX_WORKERS in respective condor_config correctly
+          <li>Bug Fix: Fixed a bug where the frontend would match jobs with now 
+          proxy to sites that require glexec 
+          <li>Bug Fix: Glidein's job wrapper now behaves as true wrapper
+          <li>Bug Fix: Fixed a bug where frontend_startup would not correctly
+          pick default frontend.xml
+          <li>Bug Fix: Fixed a bug in frontend where failure to evaluate
+          match_expr for one group would prevent frontend from requesting
+          glideins for other groups
+          <li>Bug Fix: RPM now has shared port daemon enabled in the
+          configuration
+          <li>Bug Fix: Fixed a bug where Factory would sometime use wrong DN
+          when calculating proxy hash
+          <li>Bug Fix: Fixed a bug where factoryStatusNow.html would not link
+          to the factoryEntryStatusNow.html correctly if the entry name is too long
+          <li>Bug Fix: setup_x509.sh now correctly checks for existence of the
+          grid-proxy-info and voms-proxy-info binaries on the worker node
+          <li>Bug Fix: Frontend now counts the partitionable slots correctly
+        </ul>
+      </li>
       <li>
         <b>v2_6_2</b> released on November 02, 2012 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_6_2/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_6_2/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_6_2.tgz">Tarball</a>)<br>
         <ul>
