@@ -320,10 +320,11 @@ def iterate_one(client_name,elementDescript,paramsDescript,attr_dict,signatureDe
                             'OldIdle':condorq_dict_types['OldIdle']['abs'],
                             'Running':condorq_dict_types['Running']['abs']})
 
-    glideinFrontendLib.log_files.logActivity("Jobs found total %i idle %i (old %i, voms %i) running %i"%(condorq_dict_abs,
+    glideinFrontendLib.log_files.logActivity("Jobs found total %i idle %i (old %i, grid %i, voms %i) running %i"%(condorq_dict_abs,
                                                                                                 condorq_dict_types['Idle']['abs'],
-                                                                                                condorq_dict_types['VomsIdle']['abs'],
                                                                                                 condorq_dict_types['OldIdle']['abs'],
+                                                                                                condorq_dict_types['ProxyIdle']['abs'],
+                                                                                                condorq_dict_types['VomsIdle']['abs'],
                                                                                                 condorq_dict_types['Running']['abs']))
 
     status_dict_idle=glideinFrontendLib.getIdleCondorStatus(status_dict)
