@@ -257,18 +257,9 @@ class glideinFrontendElement:
                                                                                                     condorq_dict_types['VomsIdle']['abs'],
                                                                                                     condorq_dict_types['Running']['abs']))
 
-        status_dict_idle = glideinFrontendLib.getIdleCondorStatus(status_dict)
-        status_dict_running = glideinFrontendLib.getRunningCondorStatus(status_dict)
-
-        #logSupport.log.debug("condor stat: %s\n\n" % status_dict_running[None].fetchStored())
-
-        glideinFrontendLib.appendRealRunning(self.condorq_dict_running, status_dict_running)
-
-        #logSupport.log.debug("condorq running: %s\n\n" % condorq_dict_running['devg-1.t2.ucsd.edu'].fetchStored())
-
-        self.status_dict_types = {'Total':{'dict':status_dict, 'abs':glideinFrontendLib.countCondorStatus(status_dict)},
-                           'Idle':{'dict':status_dict_idle, 'abs':glideinFrontendLib.countCondorStatus(status_dict_idle)},
-                           'Running':{'dict':status_dict_running, 'abs':glideinFrontendLib.countCondorStatus(status_dict_running)}}
+        self.populate_status_dict_types(status_dict)
+        glideinFrontendLib.appendRealRunning(self.condorq_dict_running,
+                                             self.status_dict_types['Running']['dict'])
 
         self.stats['group'].logGlideins({'Total':self.status_dict_types['Total']['abs'],
                                 'Idle':self.status_dict_types['Idle']['abs'],
@@ -282,25 +273,6 @@ class glideinFrontendElement:
                                                   self.status_dict_types['Running']['abs'],
                                                   self.total_max_glideins, self.total_curb_glideins)
                                                  )
-
-        # TODO: PM check if it is commented out because of globals section
-        # extract the public key, if present
-        #for glideid in glidein_dict.keys():
-        #    glidein_el = glidein_dict[glideid]
-        #    if not glidein_el['attrs'].has_key('PubKeyType'): # no pub key at all
-        #        pass # no public key, nothing to do
-        #    elif glidein_el['attrs']['PubKeyType'] == 'RSA': # only trust RSA for now
-        #        try:
-        #            glidein_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(str(string.replace(glidein_el['attrs']['PubKeyValue'], '\\n', '\n')))
-        #        except:
-        #            # if no valid key, just notify...
-        #            # if key needed, will handle the error later on
-        #            logSupport.log.warning("Factory '%s@%s': invalid RSA key" % (glideid[1], glideid[0]))
-        #    else:
-        #        # don't know what to do with this key, notify the admin
-        #        # if key needed, will handle the error later on
-        #        logSupport.log.info("Factory '%s@%s': unsupported pub key type '%s'" % (glideid[1], glideid[0], glidein_el['attrs']['PubKeyType']))
-
         # update x509 user map and give proxy plugin a chance to update based on condor stats
         if self.x509_proxy_plugin is not None:
             logSupport.log.info("Updating usermap ");
@@ -633,6 +605,14 @@ class glideinFrontendElement:
                               'VomsIdle':{'dict':condorq_dict_voms, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
                             'ProxyIdle':{'dict':condorq_dict_proxy,'abs':glideinFrontendLib.countCondorQ(condorq_dict_proxy)},
                               'Running':{'dict':self.condorq_dict_running, 'abs':glideinFrontendLib.countCondorQ(self.condorq_dict_running)}}
+
+    def populate_status_dict_types(self, status_dict):
+        status_dict_idle = glideinFrontendLib.getIdleCondorStatus(status_dict)
+        status_dict_running = glideinFrontendLib.getRunningCondorStatus(status_dict)
+
+        self.status_dict_types = {'Total':{'dict':status_dict, 'abs':glideinFrontendLib.countCondorStatus(status_dict)},
+                           'Idle':{'dict':status_dict_idle, 'abs':glideinFrontendLib.countCondorStatus(status_dict_idle)},
+                           'Running':{'dict':status_dict_running, 'abs':glideinFrontendLib.countCondorStatus(status_dict_running)}}
 
     def compute_glidein_min_idle(self, count_status, total_glideins,
                                  effective_idle, effective_oldidle):
