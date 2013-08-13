@@ -448,11 +448,9 @@ class glideinFrontendElement:
 
             remove_excess_wait = False # do not remove excessive glideins by default
             # keep track of how often idle was 0
-            if not self.history_obj.has_key('idle0'):
-                self.history_obj['idle0'] = {}
-            history_idle0 = self.history_obj['idle0']
-            if not history_idle0.has_key(glideid):
-                history_idle0[glideid] = 0
+            history_idle0 = self.history_obj.setdefault('idle0', {})
+            history_idle0.setdefault(glideid, 0)
+
             if count_jobs['Idle'] == 0:
                 # no idle jobs in the queue left
                 # consider asking for unsubmitted idle glideins to be removed
@@ -466,11 +464,8 @@ class glideinFrontendElement:
             remove_excess_idle = False # do not remove excessive glideins by default
 
             # keep track of how often glideidle was 0
-            if not self.history_obj.has_key('glideempty'):
-                self.history_obj['glideempty'] = {}
-            history_glideempty = self.history_obj['glideempty']
-            if not history_glideempty.has_key(glideid):
-                history_glideempty[glideid] = 0
+            history_glideempty = self.history_obj.setdefault('glideempty', {})
+            history_glideempty.setdefault(glideid, 0)
             if count_status['Idle'] >= count_status['Total']:
                 # no glideins being used
                 # consider asking for all idle glideins to be removed
@@ -485,11 +480,8 @@ class glideinFrontendElement:
             remove_excess_running = False # do not remove excessive glideins by default
 
             # keep track of how often glidetotal was 0
-            if not self.history_obj.has_key('glidetotal0'):
-                self.history_obj['glidetotal0'] = {}
-            history_glidetotal0 = self.history_obj['glidetotal0']
-            if not history_glidetotal0.has_key(glideid):
-                history_glidetotal0[glideid] = 0
+            history_glidetotal0 = self.history_obj.setdefault('glidetotal0', {})
+            history_glidetotal0.setdefault(glideid, 0)
             if count_status['Total'] == 0:
                 # no glideins registered
                 # consider asking for all idle glideins to be removed
