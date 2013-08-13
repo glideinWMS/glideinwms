@@ -234,8 +234,8 @@ class glideinFrontendElement:
         globals_dict = pipe_out['globals']
         self.glidein_dict=pipe_out['entries']
         condorq_dict=pipe_out['jobs']
-        status_dict=pipe_out['startds']
-
+        self.status_dict=pipe_out['startds']
+        status_dict = self.status_dict
         # M2Crypto objects are not picklable, so I have to do the transforamtion here
         self.populate_pubkey(globals_dict)
 
@@ -316,7 +316,7 @@ class glideinFrontendElement:
             (el['count'], el['prop'], el['hereonly'], el['total'])=pipe_out[dt]
 
         count_real=pipe_out['Real']
-        count_status_multi=pipe_out['Glidein']
+        self.count_status_multi=pipe_out['Glidein']
 
         glexec='UNDEFINED'
         if 'GLIDEIN_Glexec_Use' in self.elementDescript.frontend_data:
@@ -342,7 +342,7 @@ class glideinFrontendElement:
         # glideid_list=glidein_dict.keys()
         glideid_list.sort() # sort for the sake of monitoring
 
-        processed_glideid_strs=[] # we will need this for faster lookup later
+        self.processed_glideid_strs=[] # we will need this for faster lookup later
 
         log_factory_header()
         total_up_stats_arr=init_factory_stats_arr()
@@ -354,7 +354,7 @@ class glideinFrontendElement:
             request_name = glideid[1]
             my_identity = str(glideid[2]) # get rid of unicode
             glideid_str = "%s@%s" % (request_name, factory_pool_node)
-            processed_glideid_strs.append(glideid_str)
+            self.processed_glideid_strs.append(glideid_str)
 
             glidein_el = self.glidein_dict[glideid]
 
@@ -370,7 +370,7 @@ class glideinFrontendElement:
                 prop_jobs[dt] = condorq_dict_types[dt]['prop'][glideid]
                 hereonly_jobs[dt] = condorq_dict_types[dt]['hereonly'][glideid]
 
-            count_status=count_status_multi[request_name]
+            count_status=self.count_status_multi[request_name]
 
             #If the glidein requires a voms proxy, only match voms idle jobs
             # Note: if GLEXEC is set to NEVER, the site will never see the proxy, 
@@ -480,41 +480,7 @@ class glideinFrontendElement:
 
         # end for glideid in condorq_dict_types['Idle']['count'].keys()
 
-        ###
-        # Find out the Factory entries that are running, but for which
-        # Factory ClassAds don't exist
-        #
-        factory_entry_list=glideinFrontendLib.getFactoryEntryList(status_dict)
-        processed_glideid_str_set=frozenset(processed_glideid_strs)
-
-        factory_entry_list.sort() # sort for the sake of monitoring
-        for a in factory_entry_list:
-            request_name,factory_pool_node=a
-            glideid_str="%s@%s"%(request_name,factory_pool_node)
-            if glideid_str in processed_glideid_str_set:
-                continue # already processed... ignore
-
-            count_status_multi[request_name]={}
-            for st in self.status_dict_types.keys():
-                c=glideinFrontendLib.getClientCondorStatus(self.status_dict_types[st]['dict'], self.frontend_name, self.group_name,request_name)
-                count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
-            count_status=count_status_multi[request_name]
-
-            # ignore matching jobs
-            # since we don't have the entry classad, we have no clue how to match
-            this_stats_arr=(0,0,0,0,0,0,0,0,
-                            count_status['Total'],count_status['Idle'],count_status['Running'],
-                            0,0)
-
-            self.stats['group'].logMatchedGlideins(
-                glideid_str, count_status['Total'],count_status['Idle'],
-                count_status['Running'])
-
-            # since I don't see it in the factory anymore, mark it as down
-            self.stats['group'].logFactDown(glideid_str, True)
-            total_down_stats_arr=log_and_sum_factory_line(glideid_str,True,this_stats_arr,total_down_stats_arr)
-
-
+        total_down_stats_arr = self.count_factory_entries_without_classads(total_down_stats_arr)
         # Log the totals
         for el in (('MatchedUp',total_up_stats_arr, True),('MatchedDown',total_down_stats_arr, False)):
             el_str,el_stats_arr,el_updown=el
@@ -727,6 +693,39 @@ class glideinFrontendElement:
         else:
             remove_excess_str = "NO"
         return remove_excess_str
+
+    def count_factory_entries_without_classads(self, total_down_stats_arr):
+        # Find out the Factory entries that are running, but for which
+        # Factory ClassAds don't exist
+        #
+        factory_entry_list=glideinFrontendLib.getFactoryEntryList(self.status_dict)
+        processed_glideid_str_set=frozenset(self.processed_glideid_strs)
+
+        factory_entry_list.sort() # sort for the sake of monitoring
+        for request_name, factory_pool_node  in factory_entry_list:
+            glideid_str="%s@%s"%(request_name,factory_pool_node)
+            if glideid_str in processed_glideid_str_set:
+                continue # already processed... ignore
+
+            self.count_status_multi[request_name]={}
+            for st in self.status_dict_types.keys():
+                c=glideinFrontendLib.getClientCondorStatus(self.status_dict_types[st]['dict'], self.frontend_name, self.group_name,request_name)
+                self.count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
+                count_status=self.count_status_multi[request_name]
+
+            # ignore matching jobs
+            # since we don't have the entry classad, we have no clue how to match
+            this_stats_arr=(0,0,0,0,0,0,0,0,
+                            count_status['Total'],count_status['Idle'],count_status['Running'],
+                            0,0)
+
+            self.stats['group'].logMatchedGlideins(
+                glideid_str, count_status['Total'],count_status['Idle'],
+                count_status['Running'])
+
+            # since I don't see it in the factory anymore, mark it as down
+            self.stats['group'].logFactDown(glideid_str, True)
+            total_down_stats_arr=log_and_sum_factory_line(glideid_str,True,this_stats_arr,total_down_stats_arr)
 
     def query_globals(self):
         globals_dict = {}
