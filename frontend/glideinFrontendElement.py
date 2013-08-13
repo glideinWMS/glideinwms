@@ -444,16 +444,7 @@ class glideinFrontendElement:
             glidein_min_idle = self.compute_glidein_min_idle(count_status, total_glideins,
                                                              effective_idle, effective_oldidle)
 
-            # we don't need more slots than number of jobs in the queue (unless the fraction is positive)
-            if (prop_jobs['Idle'] + count_real[glideid]) > 0:
-                if prop_jobs['Idle']>0:
-                    glidein_max_run = int((prop_jobs['Idle'] + count_real[glideid]) * self.fraction_running + 1)
-                else:
-                    # no good reason for a delta when we don't need more than we have
-                    glidein_max_run = int(count_real[glideid])
-            else:
-                # the above calculation is always >0, but should be 0 if nothing in the user queue
-                glidein_max_run = 0
+            glidein_max_run = self.compute_glidein_max_run(prop_jobs, count_real[glideid])
 
             remove_excess_wait = False # do not remove excessive glideins by default
             # keep track of how often idle was 0
@@ -749,6 +740,19 @@ class glideinFrontendElement:
             glidein_min_idle = 0
 
         return int(glidein_min_idle)
+
+    def compute_glidein_max_run(self, prop_jobs, real):
+        glidein_max_run = 0
+
+        # we don't need more slots than number of jobs in the queue (unless the fraction is positive)
+        if (prop_jobs['Idle'] + real) > 0:
+            if prop_jobs['Idle']>0:
+                glidein_max_run = int((prop_jobs['Idle'] + real) * self.fraction_running + 1)
+            else:
+                # no good reason for a delta when we don't need more than we have
+                glidein_max_run = int(real)
+
+        return glidein_max_run
 
     def query_globals(self):
         globals_dict = {}
