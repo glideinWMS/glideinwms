@@ -340,20 +340,6 @@ class Entry:
         self.log.info("Iteration initialized")
 
 
-    def doCleanup(self):
-        """
-        Perform the log file cleanup
-
-        """
-
-        self.loadContext()
-
-        # Cleanup log files
-        self.log.info("Cleaning logs started")
-        self.log.cleanup()
-        self.log.info("Cleaning logs finished")
-
-
     def unsetInDowntime(self):
         """
         Clear the downtime status of this entry
