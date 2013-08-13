@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v2_7_1
+# GLIDEINWMS_VERSION v2_7_2_rc1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 c4e9c1f360b685b8a49c62e32e6a3498  ./LICENSE.txt
@@ -16,7 +16,7 @@ e59bb78a8aba36d0d8691b5f9e4ebf4f  ./creation/lib/cWConsts.py
 ab37666bbf8d569a34974aea3dc29fa6  ./creation/lib/cvWConsts.py
 d3ca2f3f243e6251d0b4f79d57423129  ./creation/lib/cvWCreate.py
 2c20708ff9c1b3b0385f5fcd3ff924b9  ./creation/lib/cvWDictFile.py
-2a6c0287097d77e9517b64922d07709e  ./creation/lib/cvWParamDict.py
+88056a97e27fcc4c6eff240144e953cb  ./creation/lib/cvWParamDict.py
 54bd1f0da7276f224f5ef4589ce5d259  ./creation/lib/cvWParams.py
 9df30d48ecb0bfd4184b81bd1e925e94  ./creation/reconfig_frontend
 1a794306785cd9f0489ba1b484470af1  ./creation/web_base/cat_consts.sh
@@ -57,7 +57,7 @@ e0ba6891e61382c17e0aa7ea0a13c688  ./creation/web_base/setup_script.sh
 681b715ce05b64ba1be2f9e06b3676c5  ./creation/web_base/update_proxy.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 5760d2e0712eb0e36493429eeaab54a0  ./factory/glideFactoryConfig.py
-2c042ae28efdf825f84b53e0b0c66830  ./factory/glideFactoryInterface.py
+951c946667e716c131c8cddd10fda2d7  ./factory/glideFactoryInterface.py
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 4f75070f0a7b5a75e3a1cf6aa3e703f6  ./frontend/checkFrontend.py
 bd1fecacfd968f8e600e10612e8c5d82  ./frontend/glideinFrontend.py
@@ -71,15 +71,15 @@ ee6f26eaea68d8e2dba716be4524375e  ./frontend/glideinFrontendMonitoring.py
 24d0c70bb7686a2946041253b991f998  ./frontend/glideinFrontendPlugins.py
 f3d3b557b063e439bd16d16a58b2b07b  ./frontend/stopFrontend.py
 9372e3312529f81507a59fb1afb98fe9  ./install/__init__.py
-a388a8cafcb40decc5a71b58d8844457  ./install/glidecondor_addDN
+442054c7bc484c4a67003ccfa06d7ff4  ./install/glidecondor_addDN
 22461dfb34f1df82e24626987a250b9d  ./install/glidecondor_createSecCol
 f28c34e36ba4305d337b6b1b3b4ae80f  ./install/glidecondor_createSecSched
 1e4244567f13a539961bab626253f498  ./install/glidecondor_upgrade
 ac0a334763d78ab1abe1148209625a94  ./install/glideinWMS.ini
-e4897c5bd7264d85711f80a2be09636f  ./install/glideinWMS_install
+a278ca980ff287d60c99c5d018fc67c6  ./install/glideinWMS_install
 9039b04f708cead0be3e37dcbc967234  ./install/manage-glideins
 23e4e5fa126e6f500fb84191f9f807c8  ./install/services/Certificates.py
-9b0b17dd987f0bfafee47b16bde66337  ./install/services/Condor.py
+8565d28d0ee91bbd47c8d4f2481eb1d3  ./install/services/Condor.py
 a20dd704b59cf1c24b63112cecdefc3b  ./install/services/Configuration.py
 afc6605865b6254b5d95d7686451ce9b  ./install/services/Factory.py
 d773ece272dd4e069e9b05edec301a05  ./install/services/Glidein.py
@@ -98,7 +98,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./lib/__init__.py
 05337aeed61e0a3f1f0a610501105260  ./lib/condorExe.py
 d1f66c16ea72448a420bf9e8569b779d  ./lib/condorLogParser.py
 2b5fc1962de1080ebd296df4b8b842dd  ./lib/condorManager.py
-f28558b561a0819175fc977a408adecf  ./lib/condorMonitor.py
+2c43d9da7dbcb93281d5384be8b2db93  ./lib/condorMonitor.py
 802b6c8f4efc1f1c7a965e5c30e20852  ./lib/condorPrivsep.py
 d3b726f1c2d5e07c2017735b408c7846  ./lib/condorSecurity.py
 6ad61186b3ce0af1e8315076cbfc5ef1  ./lib/exprParser.py
