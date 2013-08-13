@@ -433,13 +433,8 @@ class glideinFrontendElement:
 
             # effective idle is how much more we need
             # if there are idle slots, subtract them, they should match soon
-            effective_idle = prop_jobs['Idle'] - count_status['Idle']
-            if effective_idle < 0:
-                effective_idle = 0
-
-            effective_oldidle=prop_jobs['OldIdle']-count_status['Idle']
-            if effective_oldidle<0:
-                effective_oldidle=0
+            effective_idle = max(prop_jobs['Idle'] - count_status['Idle'], 0)
+            effective_oldidle = max(prop_jobs['OldIdle']-count_status['Idle'], 0)
 
             glidein_min_idle = self.compute_glidein_min_idle(count_status, total_glideins,
                                                              effective_idle, effective_oldidle)
@@ -661,12 +656,12 @@ class glideinFrontendElement:
             glidein_min_idle+=glidein_idle_reserve
 
             glidein_min_idle = min(glidein_min_idle, self.max_idle)
-            if glidein_min_idle>(self.max_running-count_status['Total']+glidein_idle_reserve):
-                glidein_min_idle=(self.max_running-count_status['Total']+glidein_idle_reserve) # don't go over the max_running
-            if glidein_min_idle>(self.total_max_glideins-total_glideins+glidein_idle_reserve):
-                # don't go over the system-wide max
-                # not perfect, given te number of entries, but better than nothing
-                glidein_min_idle=(self.total_max_glideins-total_glideins+glidein_idle_reserve)
+            # don't go over the max_running
+            glidein_min_idle = max(glidein_min_idle, self.max_running-count_status['Total']+glidein_idle_reserve)
+            # don't go over the system-wide max
+            # not perfect, given te number of entries, but better than nothing
+            glidein_min_idle = max(glidein_min_idle, self.total_max_glideins-total_glideins+glidein_idle_reserve)
+
             if count_status['Idle'] >= self.curb_vms_idle:
                 glidein_min_idle/=2 # above first treshold, reduce
             if total_glideins >= self.total_curb_glideins:
