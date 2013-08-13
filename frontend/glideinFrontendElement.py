@@ -446,61 +446,7 @@ class glideinFrontendElement:
 
             glidein_max_run = self.compute_glidein_max_run(prop_jobs, count_real[glideid])
 
-            remove_excess_wait = False # do not remove excessive glideins by default
-            # keep track of how often idle was 0
-            history_idle0 = self.history_obj.setdefault('idle0', {})
-            history_idle0.setdefault(glideid, 0)
-
-            if count_jobs['Idle'] == 0:
-                # no idle jobs in the queue left
-                # consider asking for unsubmitted idle glideins to be removed
-                history_idle0[glideid] += 1
-                if history_idle0[glideid] > 5:
-                    # nobody asked for anything more for some time, so
-                    remove_excess_wait = True
-            else:
-                history_idle0[glideid] = 0
-
-            remove_excess_idle = False # do not remove excessive glideins by default
-
-            # keep track of how often glideidle was 0
-            history_glideempty = self.history_obj.setdefault('glideempty', {})
-            history_glideempty.setdefault(glideid, 0)
-            if count_status['Idle'] >= count_status['Total']:
-                # no glideins being used
-                # consider asking for all idle glideins to be removed
-                history_glideempty[glideid] += 1
-                if remove_excess_wait and (history_glideempty[glideid] > 10):
-                    # no requests and no glideins being used
-                    # no harm getting rid of everything
-                    remove_excess_idle = True
-            else:
-                history_glideempty[glideid] = 0
-
-            remove_excess_running = False # do not remove excessive glideins by default
-
-            # keep track of how often glidetotal was 0
-            history_glidetotal0 = self.history_obj.setdefault('glidetotal0', {})
-            history_glidetotal0.setdefault(glideid, 0)
-            if count_status['Total'] == 0:
-                # no glideins registered
-                # consider asking for all idle glideins to be removed
-                history_glidetotal0[glideid] += 1
-                if remove_excess_wait and (history_glidetotal0[glideid] > 10):
-                    # no requests and no glidein registered
-                    # no harm getting rid of everything
-                    remove_excess_running = True
-            else:
-                history_glidetotal0[glideid] = 0
-
-            if remove_excess_running:
-                remove_excess_str = "ALL"
-            elif remove_excess_idle:
-                remove_excess_str = "IDLE"
-            elif remove_excess_wait:
-                remove_excess_str = "WAIT"
-            else:
-                remove_excess_str = "NO"
+            remove_excess_str = self.choose_remove_excess_type(count_jobs, count_status, glideid)
 
             this_stats_arr = (prop_jobs['Idle'], count_jobs['Idle'], effective_idle, prop_jobs['OldIdle'], hereonly_jobs['Idle'], count_jobs['Running'], count_real[glideid],
                               self.max_running,
@@ -745,6 +691,68 @@ class glideinFrontendElement:
                 glidein_max_run = int(real)
 
         return glidein_max_run
+
+
+    def choose_remove_excess_type(self, count_jobs, count_status, glideid):
+        ''' Decides what kind of excess glideins to remove:
+            "ALL", "IDLE", "WAIT", or "NO"
+        '''
+        remove_excess_wait = False # do not remove excessive glideins by default
+        # keep track of how often idle was 0
+        history_idle0 = self.history_obj.setdefault('idle0', {})
+        history_idle0.setdefault(glideid, 0)
+
+        if count_jobs['Idle'] == 0:
+            # no idle jobs in the queue left
+            # consider asking for unsubmitted idle glideins to be removed
+            history_idle0[glideid] += 1
+            if history_idle0[glideid] > 5:
+                # nobody asked for anything more for some time, so
+                remove_excess_wait = True
+        else:
+            history_idle0[glideid] = 0
+
+        remove_excess_idle = False # do not remove excessive glideins by default
+
+        # keep track of how often glideidle was 0
+        history_glideempty = self.history_obj.setdefault('glideempty', {})
+        history_glideempty.setdefault(glideid, 0)
+        if count_status['Idle'] >= count_status['Total']:
+            # no glideins being used
+            # consider asking for all idle glideins to be removed
+            history_glideempty[glideid] += 1
+            if remove_excess_wait and (history_glideempty[glideid] > 10):
+                # no requests and no glideins being used
+                # no harm getting rid of everything
+                remove_excess_idle = True
+        else:
+            history_glideempty[glideid] = 0
+
+        remove_excess_running = False # do not remove excessive glideins by default
+
+        # keep track of how often glidetotal was 0
+        history_glidetotal0 = self.history_obj.setdefault('glidetotal0', {})
+        history_glidetotal0.setdefault(glideid, 0)
+        if count_status['Total'] == 0:
+            # no glideins registered
+            # consider asking for all idle glideins to be removed
+            history_glidetotal0[glideid] += 1
+            if remove_excess_wait and (history_glidetotal0[glideid] > 10):
+                # no requests and no glidein registered
+                # no harm getting rid of everything
+                remove_excess_running = True
+        else:
+            history_glidetotal0[glideid] = 0
+
+        if remove_excess_running:
+            remove_excess_str = "ALL"
+        elif remove_excess_idle:
+            remove_excess_str = "IDLE"
+        elif remove_excess_wait:
+            remove_excess_str = "WAIT"
+        else:
+            remove_excess_str = "NO"
+        return remove_excess_str
 
     def query_globals(self):
         globals_dict = {}
