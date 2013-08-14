@@ -13,7 +13,9 @@
 
 import os
 import copy
+import subprocess
 import sys
+import tempfile
 
 STARTUP_DIR=sys.path[0]
 
@@ -100,6 +102,31 @@ def main(params, old_params, update_scripts, update_def_cfg):
         sys.exit(1)
     print "...Work files are in %s"%frontend_dicts_obj.main_dicts.work_dir
 
+def xslt_xml(old_xmlfile, xslt_plugin_dir):
+    ''' Take an XML file, transform it via any XSLT in the
+    xslt_plugin_dir, and return the output.'''
+
+    old_xml_fd = open(old_xmlfile)
+    if not xslt_plugin_dir:
+        return old_xml_fd.read()
+
+    try:
+        plugins = [os.path.join(xslt_plugin_dir, f) for f in os.listdir(xslt_plugin_dir)]
+    except OSError, e:
+        print "Error opening %s directory: %s" % (xslt_plugin_dir, e.strerror)
+        return old_xml_fd.read()
+
+    plugins.sort()
+
+    procs = [subprocess.Popen(["cat", "%s" % old_xmlfile], stdout=subprocess.PIPE)]
+
+    for i, plugin in enumerate(plugins):
+        previous_stdout = procs[i].stdout
+        procs.append(subprocess.Popen(["xsltproc", "%s" % plugin, "-"], stdin=previous_stdout, stdout=subprocess.PIPE))
+        previous_stdout.close()
+
+    output = procs[-1].communicate()[0]
+    return output
 
 ############################################################
 #
@@ -108,13 +135,16 @@ def main(params, old_params, update_scripts, update_def_cfg):
 ############################################################
 
 if __name__ == '__main__':
-    usage = "{ -force_name name -writeback yes|no -update_scripts yes|no -xml xml -update_def_cfg yes|no | -help }"
+    usage = "{ -force_name name -writeback yes|no -update_scripts yes|no -xml xml -update_def_cfg yes|no [-xslt_plugin_dir xdir] | -help }"
     argv = sys.argv
     force_name = None
     writeback = 'no'
     update_scripts = 'no'
     update_def_cfg = 'no'
     xml = ''
+
+    xslt_plugin_dir = os.environ.get('GWMS_XSLT_PLUGIN_DIR', None)
+
     for i in range(len(argv)):
         if argv[i] == '-fix_rrd':
             fix_rrd = True
@@ -126,6 +156,8 @@ if __name__ == '__main__':
             update_scripts = argv[i+1]
         if argv[i] == '-xml':
             xml = argv[i+1]
+        if argv[i] == '-xslt_plugin_dir':
+            xslt_plugin_dir = argv[i+1]
         if argv[i] == '-update_def_cfg':
             update_def_cfg = argv[i + 1]
         if argv[i] == '-help':
@@ -136,10 +168,15 @@ if __name__ == '__main__':
         # to support upgrading from versions older than v2.5.3
         # the last arg is always the xml file
         xml = argv[len(argv)-1]      
-        
-    args = [argv[0], xml] 
-        
+
     try:
+        transformed_xmlfile = tempfile.NamedTemporaryFile()
+        transformed_xmlfile.write(old_xmlfile=xml,
+                                  xslt_plugin_dir=xslt_plugin_dir)
+        transformed_xmlfile.flush()
+
+        args = [argv[0], transformed_xmlfile]
+
         params=cvWParams.VOFrontendParams(usage, WEB_BASE_DIR, args)
     except RuntimeError,e:
         print e
