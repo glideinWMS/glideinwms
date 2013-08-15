@@ -233,15 +233,15 @@ class glideinFrontendElement:
 
         self.globals_dict = pipe_out['globals']
         self.glidein_dict=pipe_out['entries']
-        condorq_dict=pipe_out['jobs']
+        self.condorq_dict = pipe_out['jobs']
         self.status_dict=pipe_out['startds']
 
         # M2Crypto objects are not picklable, so I have to do the transforamtion here
         self.populate_pubkey()
-        self.populate_condorq_dict_types(condorq_dict)
+        self.populate_condorq_dict_types()
 
         condorq_dict_types = self.condorq_dict_types
-        condorq_dict_abs = glideinFrontendLib.countCondorQ(condorq_dict);
+        condorq_dict_abs = glideinFrontendLib.countCondorQ(self.condorq_dict);
 
 
         self.stats['group'].logJobs({'Total':condorq_dict_abs,
@@ -275,7 +275,7 @@ class glideinFrontendElement:
         # update x509 user map and give proxy plugin a chance to update based on condor stats
         if self.x509_proxy_plugin is not None:
             logSupport.log.info("Updating usermap ");
-            self.x509_proxy_plugin.update_usermap(condorq_dict, condorq_dict_types,
+            self.x509_proxy_plugin.update_usermap(self.condorq_dict, condorq_dict_types,
                                                           self.status_dict, self.status_dict_types)
         # here we have all the data needed to build a GroupAdvertizeType object
         descript_obj = glideinFrontendInterface.FrontendDescript(self.published_frontend_name, self.frontend_name, self.group_name, self.web_url,
@@ -483,12 +483,12 @@ class glideinFrontendElement:
                 # but remove it also from the dictionary
                 del self.globals_dict[globalid]
 
-    def populate_condorq_dict_types(self, condorq_dict):
-        condorq_dict_proxy=glideinFrontendLib.getIdleProxyCondorQ(condorq_dict)
-        condorq_dict_voms=glideinFrontendLib.getIdleVomsCondorQ(condorq_dict)
-        condorq_dict_idle = glideinFrontendLib.getIdleCondorQ(condorq_dict)
+    def populate_condorq_dict_types(self):
+        condorq_dict_proxy=glideinFrontendLib.getIdleProxyCondorQ(self.condorq_dict)
+        condorq_dict_voms=glideinFrontendLib.getIdleVomsCondorQ(self.condorq_dict)
+        condorq_dict_idle = glideinFrontendLib.getIdleCondorQ(self.condorq_dict)
         condorq_dict_old_idle = glideinFrontendLib.getOldCondorQ(condorq_dict_idle, 600)
-        self.condorq_dict_running = glideinFrontendLib.getRunningCondorQ(condorq_dict)
+        self.condorq_dict_running = glideinFrontendLib.getRunningCondorQ(self.condorq_dict)
 
         self.condorq_dict_types = {'Idle':{'dict':condorq_dict_idle, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle)},
                               'OldIdle':{'dict':condorq_dict_old_idle, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_old_idle)},
