@@ -231,13 +231,13 @@ class glideinFrontendElement:
             return
         logSupport.log.info("All children terminated")
 
-        globals_dict = pipe_out['globals']
+        self.globals_dict = pipe_out['globals']
         self.glidein_dict=pipe_out['entries']
         condorq_dict=pipe_out['jobs']
         self.status_dict=pipe_out['startds']
 
         # M2Crypto objects are not picklable, so I have to do the transforamtion here
-        self.populate_pubkey(globals_dict)
+        self.populate_pubkey()
         self.populate_condorq_dict_types(condorq_dict)
 
         condorq_dict_types = self.condorq_dict_types
@@ -304,8 +304,8 @@ class glideinFrontendElement:
         advertizer = glideinFrontendInterface.MultiAdvertizeWork(descript_obj)
         resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser(multi_support=glideinFrontendInterface.frontendConfig.advertise_use_multi)
         # Add globals
-        for globalid in globals_dict:
-            globals_el = globals_dict[globalid]
+        for globalid in self.globals_dict:
+            globals_el = self.globals_dict[globalid]
             if globals_el['attrs'].has_key('PubKeyObj'):
                 key_obj = key_builder.get_key_obj(globals_el['attrs']['FactoryPoolId'], globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
                 advertizer.add_global(globals_el['attrs']['FactoryPoolNode'],globalid,self.security_name,key_obj)
@@ -414,9 +414,9 @@ class glideinFrontendElement:
                 glidein_monitors['Glideins%s' % t] = count_status[t]
 
             key_obj = None
-            for globalid in globals_dict.keys():
+            for globalid in self.globals_dict:
                 if glideid[1].endswith(globalid):
-                    globals_el = globals_dict[globalid]
+                    globals_el = self.globals_dict[globalid]
                     if (globals_el['attrs'].has_key('PubKeyObj') and globals_el['attrs'].has_key('PubKeyID')):
                         key_obj = key_builder.get_key_obj(my_identity, globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
                     break            
@@ -471,8 +471,8 @@ class glideinFrontendElement:
 
         return
 
-    def populate_pubkey(self, globals_dict):
-        for globalid, globals_el in globals_dict.iteritems():
+    def populate_pubkey(self):
+        for globalid, globals_el in self.globals_dict.iteritems():
             try:
                 globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(globals_el['attrs']['PubKeyValue'])
             except:
@@ -481,7 +481,7 @@ class glideinFrontendElement:
                 logSupport.log.warning("Factory Globals '%s': invalid RSA key" % globalid)
                 logSupport.log.exception("Factory Globals '%s': invalid RSA key" % globalid)
                 # but remove it also from the dictionary
-                del globals_dict[globalid]
+                del self.globals_dict[globalid]
 
     def populate_condorq_dict_types(self, condorq_dict):
         condorq_dict_proxy=glideinFrontendLib.getIdleProxyCondorQ(condorq_dict)
