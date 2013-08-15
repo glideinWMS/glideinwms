@@ -27,6 +27,7 @@ from glideinwms.creation.lib import cgWConsts
 from glideinwms.creation.lib import cWConsts
 from glideinwms.creation.lib import cgWCreate
 from glideinwms.creation.lib import cgWParamDict
+from glideinwms.creation.lib import xslt
 from glideinwms.factory import glideFactoryMonitorAggregator
 from glideinwms.factory import glideFactoryConfig
 from glideinwms.lib import logSupport
@@ -162,32 +163,6 @@ def main(params, old_params, update_scripts, update_def_cfg, comment=""):
     if comment:
         logReconfig("Reconfig successful with options update_def_cfg='%s' update_scripts='%s' comment='%s'" % (update_def_cfg, update_scripts, comment))
 
-def xslt_xml(old_xmlfile, xslt_plugin_dir):
-    ''' Take an XML file, transform it via any XSLT in the
-    xslt_plugin_dir, and return the output.'''
-
-    old_xml_fd = open(old_xmlfile)
-    if not xslt_plugin_dir:
-        return old_xml_fd.read()
-
-    try:
-        plugins = [os.path.join(xslt_plugin_dir, f) for f in os.listdir(xslt_plugin_dir)]
-    except OSError, e:
-        print "Error opening %s directory: %s" % (xslt_plugin_dir, e.strerror)
-        return old_xml_fd.read()
-
-    plugins.sort()
-
-    procs = [subprocess.Popen(["cat", "%s" % old_xmlfile], stdout=subprocess.PIPE)]
-
-    for i, plugin in enumerate(plugins):
-        previous_stdout = procs[i].stdout
-        procs.append(subprocess.Popen(["xsltproc", "%s" % plugin, "-"], stdin=previous_stdout, stdout=subprocess.PIPE))
-        previous_stdout.close()
-
-    output = procs[-1].communicate()[0]
-    return output
-
 ############################################################
 #
 # S T A R T U P
@@ -232,7 +207,7 @@ if __name__ == '__main__':
 
     try:
         transformed_xmlfile = tempfile.NamedTemporaryFile()
-        transformed_xmlfile.write(xslt_xml(old_xmlfile=xml,
+        transformed_xmlfile.write(xslt.xslt_xml(old_xmlfile=xml,
                                   xslt_plugin_dir=xslt_plugin_dir))
         transformed_xmlfile.flush()
 
