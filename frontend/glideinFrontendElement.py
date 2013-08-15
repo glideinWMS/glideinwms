@@ -466,8 +466,6 @@ class glideinFrontendElement:
             #logSupport.log.info("glideresource classads to advertise -\n%s" % resource_advertiser.getAllClassads())
             resource_advertiser.advertiseAllClassads()
             logSupport.log.info("Done advertising glideresource classads")
-        except RuntimeError:
-            logSupport.log.exception("Advertising failed: ")
         except:
             logSupport.log.exception("Advertising failed: ")
 
