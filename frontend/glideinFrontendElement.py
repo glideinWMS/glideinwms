@@ -141,12 +141,12 @@ class glideinFrontendElement:
         self.history_obj = {}
 
         if not self.elementDescript.frontend_data.has_key('X509Proxy'):
-            published_frontend_name = '%s.%s' % (self.frontend_name, self.group_name)
+            self.published_frontend_name = '%s.%s' % (self.frontend_name, self.group_name)
         else:
             # if using a VO proxy, label it as such
             # this way we don't risk of using the wrong proxy on the other side
             # if/when we decide to stop using the proxy
-            published_frontend_name = '%s.XPVO_%s' % (self.frontend_name, self.group_name)
+            self.published_frontend_name = '%s.XPVO_%s' % (self.frontend_name, self.group_name)
 
         try:
             is_first = 1
@@ -157,7 +157,7 @@ class glideinFrontendElement:
                     # recreate every time (an easy way to start from a clean state)
                     self.stats['group'] = glideinFrontendMonitoring.groupStats()
 
-                    done_something = self.iterate_one(published_frontend_name)
+                    done_something = self.iterate_one()
                     logSupport.log.info("iterate_one status: %s" % str(done_something))
 
                     logSupport.log.info("Writing stats")
@@ -188,24 +188,24 @@ class glideinFrontendElement:
             for factory_pool in self.factory_pools:
                 factory_pool_node = factory_pool[0]
                 try:
-                    glideinFrontendInterface.deadvertizeAllWork(factory_pool_node, published_frontend_name)
+                    glideinFrontendInterface.deadvertizeAllWork(factory_pool_node, self.published_frontend_name)
                 except:
                     pass # just ignore errors... this was cleanup
 
                 try:
-                    glideinFrontendInterface.deadvertizeAllGlobals(factory_pool_node, published_frontend_name)
+                    glideinFrontendInterface.deadvertizeAllGlobals(factory_pool_node, self.published_frontend_name)
                 except:
                     pass # just ignore errors... this was cleanup
 
             # Invalidate all resource classads
             try:
                 resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser()
-                resource_advertiser.invalidateConstrainedClassads('GlideClientName == "%s"' % published_frontend_name)
+                resource_advertiser.invalidateConstrainedClassads('GlideClientName == "%s"' % self.published_frontend_name)
             except:
                 # Ignore all errors
                 pass
 
-    def iterate_one(self, client_name):
+    def iterate_one(self):
         pipe_ids={}
 
         logSupport.log.info("Querying schedd, entry, and glidein status using child processes.")
@@ -279,7 +279,7 @@ class glideinFrontendElement:
             self.x509_proxy_plugin.update_usermap(condorq_dict, condorq_dict_types,
                                                           status_dict, self.status_dict_types)
         # here we have all the data needed to build a GroupAdvertizeType object
-        descript_obj = glideinFrontendInterface.FrontendDescript(client_name, self.frontend_name, self.group_name, self.web_url,
+        descript_obj = glideinFrontendInterface.FrontendDescript(self.published_frontend_name, self.frontend_name, self.group_name, self.web_url,
                                                                  self.signatureDescript.frontend_descript_fname, self.signatureDescript.group_descript_fname,
                                                                  self.signatureDescript.signature_type, self.signatureDescript.frontend_descript_signature,
                                                                  self.signatureDescript.group_descript_signature, self.x509_proxy_plugin)
@@ -437,20 +437,7 @@ class glideinFrontendElement:
                 logSupport.log.warning("Cannot advertise requests for %s because no factory %s key was found"% (request_name, factory_pool_node))
 
 
-            # Create the resource classad and populate the required information
-            resource_classad = glideinFrontendInterface.ResourceClassad(request_name, client_name)
-            resource_classad.setInDownTime(glidein_in_downtime)
-            resource_classad.setEntryInfo(glidein_el['attrs'])
-            resource_classad.setGlideFactoryMonitorInfo(glidein_el['monitor'])
-            resource_classad.setMatchExprs(self.elementDescript.merged_data['MatchExpr'], 
-                    self.elementDescript.merged_data['JobQueryExpr'],
-                    self.elementDescript.merged_data['FactoryQueryExpr'],
-                    self.attr_dict['GLIDECLIENT_Start'])
-            try:
-                resource_classad.setGlideClientMonitorInfo(this_stats_arr)
-            except RuntimeError:
-                logSupport.log.exception("Populating GlideClientMonitor info in resource classad failed: ")
-
+            resource_classad = self.build_resource_classad(this_stats_arr, request_name, glidein_el, glidein_in_downtime)
             resource_advertiser.addClassad(resource_classad.adParams['Name'], resource_classad)
 
         # end for glideid in condorq_dict_types['Idle']['count'].keys()
@@ -552,6 +539,23 @@ class glideinFrontendElement:
         self.status_dict_types = {'Total':{'dict':status_dict, 'abs':glideinFrontendLib.countCondorStatus(status_dict)},
                            'Idle':{'dict':status_dict_idle, 'abs':glideinFrontendLib.countCondorStatus(status_dict_idle)},
                            'Running':{'dict':status_dict_running, 'abs':glideinFrontendLib.countCondorStatus(status_dict_running)}}
+
+    def build_resource_classad(self, this_stats_arr, request_name, glidein_el, glidein_in_downtime):
+        # Create the resource classad and populate the required information
+        resource_classad = glideinFrontendInterface.ResourceClassad(request_name, self.published_frontend_name)
+        resource_classad.setInDownTime(glidein_in_downtime)
+        resource_classad.setEntryInfo(glidein_el['attrs'])
+        resource_classad.setGlideFactoryMonitorInfo(glidein_el['monitor'])
+        resource_classad.setMatchExprs(self.elementDescript.merged_data['MatchExpr'],
+                self.elementDescript.merged_data['JobQueryExpr'],
+                self.elementDescript.merged_data['FactoryQueryExpr'],
+                self.attr_dict['GLIDECLIENT_Start'])
+        try:
+            resource_classad.setGlideClientMonitorInfo(this_stats_arr)
+        except RuntimeError:
+            logSupport.log.exception("Populating GlideClientMonitor info in resource classad failed: ")
+
+        return resource_classad
 
     def compute_glidein_min_idle(self, count_status, total_glideins,
                                  effective_idle, effective_oldidle):
