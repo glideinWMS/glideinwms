@@ -443,23 +443,8 @@ class glideinFrontendElement:
         # end for glideid in condorq_dict_types['Idle']['count'].keys()
 
         total_down_stats_arr = self.count_factory_entries_without_classads(total_down_stats_arr)
-        # Log the totals
-        for el in (('MatchedUp',total_up_stats_arr, True),('MatchedDown',total_down_stats_arr, False)):
-            el_str,el_stats_arr,el_updown=el
-            self.stats['group'].logMatchedJobs(
-                el_str, el_stats_arr[0],el_stats_arr[2], el_stats_arr[3],
-                el_stats_arr[5], el_stats_arr[6])
 
-            self.stats['group'].logMatchedGlideins(el_str,el_stats_arr[8],el_stats_arr[9], el_stats_arr[10])
-            self.stats['group'].logFactAttrs(el_str, [], ()) # just for completeness
-            self.stats['group'].logFactDown(el_str, el_updown)
-            self.stats['group'].logFactReq(el_str,el_stats_arr[11],el_stats_arr[12], {})
-
-        # Print the totals
-        # Ignore the resulting sum
-        log_factory_header()
-        log_and_sum_factory_line('Sum of useful factories', False, tuple(total_up_stats_arr), total_down_stats_arr)
-        log_and_sum_factory_line('Sum of down factories', True, tuple(total_down_stats_arr), total_up_stats_arr)
+        self.log_and_print_total_stats(total_up_stats_arr, total_down_stats_arr)
 
         # Print unmatched... Ignore the resulting sum
         unmatched_idle = condorq_dict_types['Idle']['count'][(None, None, None)]
@@ -608,6 +593,25 @@ class glideinFrontendElement:
                 glidein_max_run = int(real)
 
         return glidein_max_run
+
+    def log_and_print_total_stats(self, total_up_stats_arr, total_down_stats_arr):
+        # Log the totals
+        for el in (('MatchedUp',total_up_stats_arr, True),('MatchedDown',total_down_stats_arr, False)):
+            el_str,el_stats_arr,el_updown=el
+            self.stats['group'].logMatchedJobs(
+                el_str, el_stats_arr[0],el_stats_arr[2], el_stats_arr[3],
+                el_stats_arr[5], el_stats_arr[6])
+
+            self.stats['group'].logMatchedGlideins(el_str,el_stats_arr[8],el_stats_arr[9], el_stats_arr[10])
+            self.stats['group'].logFactAttrs(el_str, [], ()) # just for completeness
+            self.stats['group'].logFactDown(el_str, el_updown)
+            self.stats['group'].logFactReq(el_str,el_stats_arr[11],el_stats_arr[12], {})
+
+        # Print the totals
+        # Ignore the resulting sum
+        log_factory_header()
+        log_and_sum_factory_line('Sum of useful factories', False, tuple(total_up_stats_arr), total_down_stats_arr)
+        log_and_sum_factory_line('Sum of down factories', True, tuple(total_down_stats_arr), total_up_stats_arr)
 
 
     def choose_remove_excess_type(self, count_jobs, count_status, glideid):
