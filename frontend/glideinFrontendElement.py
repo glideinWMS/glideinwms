@@ -445,25 +445,7 @@ class glideinFrontendElement:
         total_down_stats_arr = self.count_factory_entries_without_classads(total_down_stats_arr)
 
         self.log_and_print_total_stats(total_up_stats_arr, total_down_stats_arr)
-
-        # Print unmatched... Ignore the resulting sum
-        unmatched_idle = condorq_dict_types['Idle']['count'][(None, None, None)]
-        unmatched_oldidle = condorq_dict_types['OldIdle']['count'][(None, None, None)]
-        unmatched_running = condorq_dict_types['Running']['count'][(None, None, None)]
-
-        self.stats['group'].logMatchedJobs(
-            'Unmatched', unmatched_idle, unmatched_idle, unmatched_oldidle,
-            unmatched_running, 0)
-
-        self.stats['group'].logMatchedGlideins('Unmatched', 0,0,0) # Nothing running
-        self.stats['group'].logFactAttrs('Unmatched', [], ()) # just for completeness
-        self.stats['group'].logFactDown('Unmatched', True)
-        self.stats['group'].logFactReq('Unmatched', 0, 0, {})
-
-        this_stats_arr = (unmatched_idle, unmatched_idle, unmatched_idle, unmatched_oldidle, unmatched_idle, unmatched_running, 0, 0,
-                        0, 0, 0, # glideins... none, since no matching
-                        0, 0)   # requested... none, since not matching
-        log_and_sum_factory_line('Unmatched', True, this_stats_arr, total_down_stats_arr)
+        self.log_and_print_unmatched(total_down_stats_arr)
 
         # Advertise glideclient and glideclient global classads
         try:
@@ -613,6 +595,25 @@ class glideinFrontendElement:
         log_and_sum_factory_line('Sum of useful factories', False, tuple(total_up_stats_arr), total_down_stats_arr)
         log_and_sum_factory_line('Sum of down factories', True, tuple(total_down_stats_arr), total_up_stats_arr)
 
+    def log_and_print_unmatched(self, total_down_stats_arr):
+        # Print unmatched... Ignore the resulting sum
+        unmatched_idle = self.condorq_dict_types['Idle']['count'][(None, None, None)]
+        unmatched_oldidle = self.condorq_dict_types['OldIdle']['count'][(None, None, None)]
+        unmatched_running = self.condorq_dict_types['Running']['count'][(None, None, None)]
+
+        self.stats['group'].logMatchedJobs(
+            'Unmatched', unmatched_idle, unmatched_idle, unmatched_oldidle,
+            unmatched_running, 0)
+
+        self.stats['group'].logMatchedGlideins('Unmatched', 0,0,0) # Nothing running
+        self.stats['group'].logFactAttrs('Unmatched', [], ()) # just for completeness
+        self.stats['group'].logFactDown('Unmatched', True)
+        self.stats['group'].logFactReq('Unmatched', 0, 0, {})
+
+        this_stats_arr = (unmatched_idle, unmatched_idle, unmatched_idle, unmatched_oldidle, unmatched_idle, unmatched_running, 0, 0,
+                        0, 0, 0, # glideins... none, since no matching
+                        0, 0)   # requested... none, since not matching
+        log_and_sum_factory_line('Unmatched', True, this_stats_arr, total_down_stats_arr)
 
     def choose_remove_excess_type(self, count_jobs, count_status, glideid):
         ''' Decides what kind of excess glideins to remove:
