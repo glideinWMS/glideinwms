@@ -171,8 +171,8 @@ if __name__ == '__main__':
 
     try:
         transformed_xmlfile = tempfile.NamedTemporaryFile()
-        transformed_xmlfile.write(old_xmlfile=xml,
-                                  xslt_plugin_dir=xslt_plugin_dir)
+        transformed_xmlfile.write(xslt_xml(old_xmlfile=xml,
+                                  xslt_plugin_dir=xslt_plugin_dir))
         transformed_xmlfile.flush()
 
         args = [argv[0], transformed_xmlfile]
