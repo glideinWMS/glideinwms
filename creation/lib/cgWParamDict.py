@@ -164,9 +164,10 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                        'java_setup.sh',
                                        'glidein_memory_setup.sh',
                                        'glidein_cpus_setup.sh'])
-        # Safegaurd against bugs
-        if not file_list_scripts.isdisjoint(after_file_list_scripts):
-            raise RuntimeError, "Duplicates found in the list of files to execute '%s'" % ','.join(file_list_scripts.intersection(after_file_list_scripts))
+        # Only execute scripts once
+        duplicate_scripts = file_list_scripts.intersection(after_file_list_scripts)
+        if duplicate_scripts:
+            raise RuntimeError, "Duplicates found in the list of files to execute '%s'" % ','.join(duplicate_scripts)
 
         # Load more system scripts
         for script_name in file_list_scripts:
