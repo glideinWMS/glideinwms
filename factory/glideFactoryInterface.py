@@ -520,7 +520,7 @@ class EntryClassad(classadSupport.Classad):
                     # don't quote ints
                     self.adParams['%s%s' % (prefix,attr)] = el
                 else:
-                    escaped_el=string.replace(string.replace(str(el),'"','\\"'),'\n','\\n')
+                    escaped_el=string.replace(str(el),'\n','\\n')
                     self.adParams['%s%s' % (prefix,attr)] = "%s" % escaped_el
 
 
