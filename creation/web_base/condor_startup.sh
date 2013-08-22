@@ -418,9 +418,9 @@ LSB_DISTRIBUTOR_ID="UNKNOWN"
 LSB_DESCRIPTION="UNKNOWN"
 command -v lsb_release >/dev/null
 if test $? = 0; then
-  LSB_RELEASE=`lsb_release -rs`
-  LSB_DISTRIBUTOR_ID=`lsb_release -is`
-  LSB_DESCRIPTION=`lsb_release -ds`
+  LSB_RELEASE=`lsb_release -rs | sed 's/"//g'`
+  LSB_DISTRIBUTOR_ID=`lsb_release -is | sed 's/"//g'`
+  LSB_DESCRIPTION=`lsb_release -ds | sed 's/"//g'`
 fi
 
 
@@ -428,7 +428,7 @@ cat >> "$CONDOR_CONFIG" <<EOF
 # ---- start of condor_startup fixed part ----
 LSB_DISTRIBUTOR_ID = "$LSB_DISTRIBUTOR_ID"
 LSB_RELEASE = "$LSB_RELEASE"
-LSB_DESCRIPTION = $LSB_DESCRIPTION
+LSB_DESCRIPTION = "$LSB_DESCRIPTION"
 
 SEC_DEFAULT_SESSION_DURATION = $session_duration
 
