@@ -705,6 +705,7 @@ class glideinFrontendElement:
             # since I don't see it in the factory anymore, mark it as down
             self.stats['group'].logFactDown(glideid_str, True)
             total_down_stats_arr=log_and_sum_factory_line(glideid_str,True,this_stats_arr,total_down_stats_arr)
+        return total_down_stats_arr
 
     def query_globals(self):
         globals_dict = {}
