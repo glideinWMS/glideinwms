@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_rc1
+# GLIDEINWMS_VERSION v3_2_rc2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -17,7 +17,7 @@ d70c079e6098d20b9cccfe8b60ee40ca  ./creation/lib/cWParams.py
 ab37666bbf8d569a34974aea3dc29fa6  ./creation/lib/cvWConsts.py
 c0cbafc246e86375a582af0e1532f790  ./creation/lib/cvWCreate.py
 2c20708ff9c1b3b0385f5fcd3ff924b9  ./creation/lib/cvWDictFile.py
-005832aaa82820740eb30b7531eda42d  ./creation/lib/cvWParamDict.py
+cd9692043f6fb7ec25442d2dd0166989  ./creation/lib/cvWParamDict.py
 d4c1a9a596752ca2b5746c22c080941c  ./creation/lib/cvWParams.py
 6f70bd6c3b493a7c3eac80ecc7c30a98  ./creation/reconfig_frontend
 f6b7e84d12e606ca0184721b040c698b  ./creation/templates/factory_initd_startup_template
@@ -66,12 +66,12 @@ e0ba6891e61382c17e0aa7ea0a13c688  ./creation/web_base/setup_script.sh
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 b292d006ca66e438359ea4574829419d  ./factory/glideFactoryConfig.py
 664cbf7a1995992a7f0bb0a2f684119b  ./factory/glideFactoryCredentials.py
-3366a240d18ae522c0869556cb76b3cf  ./factory/glideFactoryInterface.py
+0e0e4b71216c81902e0721682c8e5c51  ./factory/glideFactoryInterface.py
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 be661351c66fc14686143441dce83e67  ./frontend/checkFrontend.py
 5ae8f7a1a08a647afeca618472efe674  ./frontend/glideinFrontend.py
 658d1145adb585bda959af768287659e  ./frontend/glideinFrontendConfig.py
-2ad0ffb24dedbcce8c6e26f31b0d074d  ./frontend/glideinFrontendElement.py
+7d10d836c1827ab48f413e92ca4e83d0  ./frontend/glideinFrontendElement.py
 3275830e29be4eed027c932961767950  ./frontend/glideinFrontendInterface.py
 3e155a46654f94f0ec428cf92c3d31bd  ./frontend/glideinFrontendLib.py
 58a5ae1d29451c5faa0e9f332f4558a5  ./frontend/glideinFrontendMonitorAggregator.py
@@ -107,7 +107,7 @@ b56403417b299dfca2fff645ad7f3461  ./install/services/__init__.py
 bebd1bb07fa101fec830cff93e159e6b  ./install/services/common.py
 e11d30b85bc8ee174418de14c2210257  ./install/services/init_schedd.sh
 d41d8cd98f00b204e9800998ecf8427e  ./lib/__init__.py
-f43a950f49d7f65e58b3926b0b38ebc3  ./lib/classadSupport.py
+de2c846835330c1e613f3509d2defd6a  ./lib/classadSupport.py
 85d2629439c3dbd58e22694dfcf93729  ./lib/cleanupSupport.py
 5511e0a6d4584f87e869c0a9c4973bf0  ./lib/condorExe.py
 47e90bb60b71274b2d13f283207336ae  ./lib/condorLogParser.py
