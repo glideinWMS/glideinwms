@@ -45,11 +45,12 @@ class MonitorAggregatorConfig:
         self.status_relname="schedd_status.xml"
         self.logsummary_relname="log_summary.xml"
 
-    def config_factory(self,monitor_dir,entries):
+    def config_factory(self,monitor_dir,entries, log):
         self.monitor_dir=monitor_dir
         self.entries=entries
         glideFactoryMonitoring.monitoringConfig.monitor_dir=monitor_dir
-
+        glideFactoryMonitoring.monitoringConfig.log = log
+        self.log = log
 
 # global configuration of the module
 monitorAggregatorConfig=MonitorAggregatorConfig()
