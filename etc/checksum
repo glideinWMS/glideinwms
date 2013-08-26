@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v2_7_2_rc1
+# GLIDEINWMS_VERSION v2_7_2_rc2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 c4e9c1f360b685b8a49c62e32e6a3498  ./LICENSE.txt
@@ -23,7 +23,7 @@ f619205ba5755c61d7e628746cdc727c  ./creation/lib/cgWConsts.py
 ab37666bbf8d569a34974aea3dc29fa6  ./creation/lib/cvWConsts.py
 d3ca2f3f243e6251d0b4f79d57423129  ./creation/lib/cvWCreate.py
 2c20708ff9c1b3b0385f5fcd3ff924b9  ./creation/lib/cvWDictFile.py
-88056a97e27fcc4c6eff240144e953cb  ./creation/lib/cvWParamDict.py
+9ad55440fee7fa7d2531273e8fd26e0c  ./creation/lib/cvWParamDict.py
 54bd1f0da7276f224f5ef4589ce5d259  ./creation/lib/cvWParams.py
 9df30d48ecb0bfd4184b81bd1e925e94  ./creation/reconfig_frontend
 1fbc66c873c00343e884d6b0708f14e8  ./creation/reconfig_glidein
