@@ -152,14 +152,30 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # add the basic standard params
         self.dicts['params'].add("GLIDEIN_Collector",'Fake')
 
+        file_list_scripts = set(['collector_setup.sh',
+                                 'create_temp_mapfile.sh',
+                                 'setup_x509.sh',
+                                 cgWConsts.CONDOR_STARTUP_FILE])
+        after_file_list_scripts = set(['check_proxy.sh',
+                                       'create_mapfile.sh',
+                                       'validate_node.sh',
+                                       'gcb_setup.sh',
+                                       'glexec_setup.sh',
+                                       'java_setup.sh',
+                                       'glidein_memory_setup.sh',
+                                       'glidein_cpus_setup.sh'])
+        # Only execute scripts once
+        duplicate_scripts = file_list_scripts.intersection(after_file_list_scripts)
+        if duplicate_scripts:
+            raise RuntimeError, "Duplicates found in the list of files to execute '%s'" % ','.join(duplicate_scripts)
+
         # Load more system scripts
-        for script_name in ('collector_setup.sh','create_temp_mapfile.sh','setup_x509.sh',cgWConsts.CONDOR_STARTUP_FILE):
+        for script_name in file_list_scripts:
             self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
 
         # make sure condor_startup does not get executed ahead of time under normal circumstances
         # but must be loaded early, as it also works as a reporting script in case of error
         self.dicts['description'].add(cgWConsts.CONDOR_STARTUP_FILE,"last_script")
-
 
         #
         # At this point in the glideins, condor_advertize should be able to talk to the FE collector
@@ -174,7 +190,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             add_attr_unparsed(attr_name, params,self.dicts,"main")
 
         # add additional system scripts
-        for script_name in ('check_proxy.sh','create_mapfile.sh','validate_node.sh','gcb_setup.sh','glexec_setup.sh','java_setup.sh','glidein_memory_setup.sh', 'collector_setup.sh', 'glidein_cpus_setup.sh'):
+        for script_name in after_file_list_scripts:
             self.dicts['after_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
 
         # populate complex files

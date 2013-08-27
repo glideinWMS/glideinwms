@@ -56,13 +56,15 @@ class Classad(object):
         """
 
         ad = ""
-        for param in self.adParams.keys():
-            if isinstance(self.adParams[param], str):
-                ad += '%s = "%s"\n' % (param, self.adParams[param])
-            elif isinstance(self.adParams[param], unicode):
-                ad += '%s = "%s"\n' % (param, self.adParams[param])
+
+        for key, value in self.adParams.iteritems():
+            if isinstance(value, str) or isinstance(value, unicode):
+                # Format according to Condor String Literal definition
+                # http://research.cs.wisc.edu/htcondor/manual/v7.8/4_1HTCondor_s_ClassAd.html#SECTION005121
+                classad_value = value.replace('"', r'\"')
+                ad += '%s = "%s"\n' % (key, classad_value)
             else:
-                ad += '%s = %s\n' % (param, self.adParams[param])
+                ad += '%s = %s\n' % (key, value)
         return ad
 
 

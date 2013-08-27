@@ -424,8 +424,6 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                     glideFactoryCredentials.process_global(classad,
                                                            glideinDescript,
                                                            frontendDescript)
-                except glideFactoryCredentials.CredentialError:
-                    logSupport.log.warning("Unable to decrypt the glideclientglobals classads using the factory key.")
                 except:
                     logSupport.log.exception("Error occurred processing the globals classads: ")
 
