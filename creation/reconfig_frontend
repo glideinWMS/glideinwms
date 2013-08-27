@@ -150,7 +150,7 @@ if __name__ == '__main__':
                                   xslt_plugin_dir=xslt_plugin_dir))
         transformed_xmlfile.flush()
 
-        args = [argv[0], transformed_xmlfile]
+        args = [argv[0], transformed_xmlfile.name]
 
         params=cvWParams.VOFrontendParams(usage, WEB_BASE_DIR, args)
     except RuntimeError,e:

@@ -211,7 +211,7 @@ if __name__ == '__main__':
                                   xslt_plugin_dir=xslt_plugin_dir))
         transformed_xmlfile.flush()
 
-        args = [argv[0], transformed_xmlfile]
+        args = [argv[0], transformed_xmlfile.name]
         params=cgWParams.GlideinParams(usage, WEB_BASE_DIR, args)
 
         if force_name is not None:
