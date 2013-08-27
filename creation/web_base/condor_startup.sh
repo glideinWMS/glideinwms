@@ -418,9 +418,9 @@ LSB_DISTRIBUTOR_ID="UNKNOWN"
 LSB_DESCRIPTION="UNKNOWN"
 command -v lsb_release >/dev/null
 if test $? = 0; then
-  LSB_RELEASE=`lsb_release -rs`
-  LSB_DISTRIBUTOR_ID=`lsb_release -is`
-  LSB_DESCRIPTION=`lsb_release -ds`
+  LSB_RELEASE=`lsb_release -rs | sed 's/"//g'`
+  LSB_DISTRIBUTOR_ID=`lsb_release -is | sed 's/"//g'`
+  LSB_DESCRIPTION=`lsb_release -ds | sed 's/"//g'`
 fi
 
 

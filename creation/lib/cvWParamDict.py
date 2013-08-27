@@ -50,7 +50,8 @@ def validate_node(nodestr,allow_prange=False):
         if pmaxi>65535:
             raise RuntimeError, "Ports cannot be more than 64k for node ports: '%s'"%nodestr
 
-    nodename=narr[0]
+    # split needed to handle the multiple schedd naming convention
+    nodename = narr[0].split("@")[-1]  
     try:
         socket.getaddrinfo(nodename,None)
     except:

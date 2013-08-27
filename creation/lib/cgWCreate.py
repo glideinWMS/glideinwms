@@ -55,6 +55,19 @@ def create_condor_tar_fd(condor_base_dir):
                   'libexec/curl_plugin',
                   'libexec/data_plugin',
                               ]
+
+        # for RPM installations, add libexec/condor as libexec into the
+        # tarball instead
+        condor_bins_map = {}
+        condor_opt_libexecs_rpm = []
+
+        for libexec in condor_opt_libexecs:
+            libexec_rpm = libexec.replace('libexec', 'libexec/condor')
+            condor_opt_libexecs_rpm.append(libexec_rpm)
+            condor_bins_map[libexec_rpm] = libexec
+
+        condor_opt_libexecs += condor_opt_libexecs_rpm
+
         # check that dir and files exist
         if not os.path.isdir(condor_base_dir):
             raise RuntimeError, "%s is not a directory"%condor_base_dir
@@ -76,7 +89,7 @@ def create_condor_tar_fd(condor_base_dir):
         fd=cStringIO.StringIO()
         tf=tarfile.open("dummy.tgz",'w:gz',fd)
         for f in condor_bins:
-            tf.add(os.path.join(condor_base_dir,f),f)
+            tf.add(os.path.join(condor_base_dir,f), condor_bins_map.get(f, f))
         tf.close()
         # rewind the file to the beginning
         fd.seek(0)

@@ -86,6 +86,7 @@ Related Pages:
       <li>
         <b>v3_2</b> released on August xx, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2.tgz">Tarball</a>)<br>
         <ul>
+          <li>Added support for generation of condor tarball from condor installed        via rpm
           <li>Bug Fix: Fixed a race condition while shutting down factory
           service
           <li>Bug Fix: Fixed a bug where glidein would not set certain condor
@@ -104,6 +105,18 @@ Related Pages:
           looptime under acceptable limits
           <li>Bug Fix: Fixed a bug where factory would not query rpm installed
           schedd correctly
+          <li>Bug Fix: Fixed a bug where factory would throw exception while
+          logging during aggregating monitoring information
+          <li>Bug Fix: Fixed a bug where factory would fail advertising classads
+          to the WMS Collector when classad attributes had quotes in them
+          <li>Bug Fix: Fixed a bug where glidein's condor_startd would not
+          correctly advertise LSB_DESCRIPTION in the classad correctly
+          <li>Bug Fix: Fixed a bug where frontend would not correctly account
+          idle jobs that used vanilla proxies
+          <li>Bug Fix: Factory now properly logs errors when authenticating a
+          frontend
+          <li>Bug Fix: Fixed a bug in glidein where it would not report back to
+          all the user pool collectors in HA mode correctly
         </ul>
       </li>
     </ul>

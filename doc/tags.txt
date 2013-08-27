@@ -1,4 +1,6 @@
-v3_2    Bug Fix: Fixed a race condition while shutting down factory service
+v3_2    Added support for generation of condor tarball from condor installed
+          via rpm
+        Bug Fix: Fixed a race condition while shutting down factory service
         Bug Fix: Fixed a bug where glidein would not set certain condor config
           variables correctly
         Bug Fix: Fixed a bug where analyze_queues and analyze_entries would not
@@ -14,6 +16,18 @@ v3_2    Bug Fix: Fixed a race condition while shutting down factory service
           looptime under acceptable limits
         Bug Fix: Fixed a bug where factory would not query rpm installed
           schedd correctly
+        Bug Fix: Fixed a bug where factory would throw exception while logging
+          during aggregating monitoring information
+        Bug Fix: Fixed a bug where factory would fail advertising classads
+          to the WMS Collector when classad attributes had quotes in them
+        Bug Fix: Fixed a bug where glidein's condor_startd would not correctly
+          advertise LSB_DESCRIPTION in the classad correctly
+        Bug Fix: Fixed a bug where frontend would not correctly account idle
+          jobs that used vanilla proxies
+        Bug Fix: Factory now properly logs errors when authenticating a
+          frontend
+        Bug Fix: Fixed a bug in glidein where it would not report back to
+          all the user pool collectors in HA mode correctly
 
 v3_1    Includes relevant features and bug fixes released upto v2_7
         Added a new feature that enables glidein to advertise error classads

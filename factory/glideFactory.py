@@ -663,7 +663,8 @@ def main(startup_dir):
     entries.sort()
 
     glideFactoryMonitorAggregator.monitorAggregatorConfig.config_factory(
-        os.path.join(startup_dir, "monitor"), entries)
+        os.path.join(startup_dir, "monitor"), entries,
+        log = logSupport.log)
 
     # create lock file
     pid_obj = glideFactoryPidLib.FactoryPidSupport(startup_dir)
