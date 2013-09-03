@@ -290,22 +290,19 @@ class glideinFrontendElement:
         logSupport.log.info("Match")
 
         # extract only the attribute names from format list
-        self.condorq_match_list=[]
-        for f in self.elementDescript.merged_data['JobMatchAttrs']:
-            self.condorq_match_list.append(f[0])
+        self.condorq_match_list = [f[0] for f in self.elementDescript.merged_data['JobMatchAttrs']]
 
         #logSupport.log.debug("realcount: %s\n\n" % glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict))
 
         self.do_match()
 
-        total_running = self.condorq_dict_types['Running']['total']
-        logSupport.log.info("Total matching idle %i (old %i) running %i limit %i" % (condorq_dict_types['Idle']['total'], condorq_dict_types['OldIdle']['total'], total_running, self.max_running))
+        logSupport.log.info("Total matching idle %i (old %i) running %i limit %i" % (condorq_dict_types['Idle']['total'], condorq_dict_types['OldIdle']['total'],
+                                                                                     self.condorq_dict_types['Running']['total'], self.max_running))
 
         advertizer = glideinFrontendInterface.MultiAdvertizeWork(descript_obj)
         resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser(multi_support=glideinFrontendInterface.frontendConfig.advertise_use_multi)
         # Add globals
-        for globalid in self.globals_dict:
-            globals_el = self.globals_dict[globalid]
+        for globalid, globals_el in self.globals_dict.iteritems():
             if globals_el['attrs'].has_key('PubKeyObj'):
                 key_obj = key_builder.get_key_obj(globals_el['attrs']['FactoryPoolId'], globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
                 advertizer.add_global(globals_el['attrs']['FactoryPoolNode'],globalid,self.security_name,key_obj)
@@ -331,10 +328,8 @@ class glideinFrontendElement:
             self.processed_glideid_strs.append(glideid_str)
 
             glidein_el = self.glidein_dict[glideid]
-
-            glidein_in_downtime = False
-            if glidein_el['attrs'].has_key('GLIDEIN_In_Downtime'):
-                glidein_in_downtime = (glidein_el['attrs']['GLIDEIN_In_Downtime'] == 'True')
+            glidein_in_downtime = \
+                glidein_el['attrs'].get('GLIDEIN_In_Downtime') == 'True'
 
             count_jobs={}     # straight match
             prop_jobs={}      # proportional subset for this entry
