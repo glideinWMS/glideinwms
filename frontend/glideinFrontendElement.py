@@ -210,8 +210,10 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
                 
     # query entries
     r,w=os.pipe()
+    unregister_sighandler()
     pid=os.fork()
     if pid==0:
+        register_sighandler()
         # this is the child... return output as a pickled object via the pipe
         os.close(r)
         try:
@@ -258,9 +260,11 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
     
     ## schedd
     r,w=os.pipe()
+    unregister_sighandler()
     pid=os.fork()
     if pid==0:
         # this is the child... return output as a pickled object via the pipe
+        register_sighandler()
         os.close(r)
         try:
             #condorq_format_list = elementDescript.merged_data['JobMatchAttrs']
@@ -306,9 +310,11 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
 
     ## resource
     r,w=os.pipe()
+    unregister_sighandler()
     pid=os.fork()
     if pid==0:
         # this is the child... return output as a pickled object via the pipe
+        register_sighandler()
         os.close(r)
         try:
             status_format_list=[]
@@ -451,9 +457,11 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
     for dt in condorq_dict_types.keys()+['Real','Glidein']:
         # will make calculations in parallel,using multiple processes
         r,w=os.pipe()
+        unregister_sighandler()
         pid=os.fork()
         if pid==0:
             # this is the child... return output as a pickled object via the pipe
+            register_sighandler()
             os.close(r)
             try:
                 if dt=='Real':
@@ -1054,7 +1062,14 @@ def main(parent_pid, work_dir, group_name):
 def termsignal(signr, frame):
     raise KeyboardInterrupt, "Received signal %s" % signr
 
-if __name__ == '__main__':
+def register_sighandler():
     signal.signal(signal.SIGTERM, termsignal)
     signal.signal(signal.SIGQUIT, termsignal)
-    main(int(sys.argv[1]), sys.argv[2], sys.argv[3])
+
+def unregister_sighandler():
+    signal.signal(signal.SIGTERM, signal.SIG_DFL)
+    signal.signal(signal.SIGQUIT, signal.SIG_DFL)
+
+if __name__ == '__main__':
+    register_sighandler()
+    main(int(sys.argv[1]),sys.argv[2],sys.argv[3])
