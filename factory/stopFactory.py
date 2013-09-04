@@ -44,6 +44,7 @@ def kill_and_check_pgid(pgid, signr=signal.SIGTERM,
     except OSError:
         pass
 
+    time.sleep(.2)
     for retries in range(retries):
         if not all_pids_in_pgid_dead(pgid):
             try:
