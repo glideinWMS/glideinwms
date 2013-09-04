@@ -22,41 +22,11 @@ import os.path
 import fcntl
 import string
 import time
-import subprocess
 
 sys.path.append(os.path.join(sys.path[0],"../../"))
 from glideinwms.factory import glideFactoryPidLib
 from glideinwms.factory import glideFactoryConfig
-
-def all_pids_in_pgid_dead(pgid):
-    # return 1 if there are no pids in the pgid still alive
-    devnull = os.open(os.devnull, os.O_RDWR)
-    return subprocess.call(["pgrep", "-g", "%s" % pgid],
-                            stdout=devnull,
-                            stderr=devnull)
-
-def kill_and_check_pgid(pgid, signr=signal.SIGTERM, 
-                        retries=100, retry_interval=0.5):
-    # return 0 if all pids in pgid are dead
-
-    try:
-        os.killpg(pgid, signr)
-    except OSError:
-        pass
-
-    for retries in range(retries):
-        if not all_pids_in_pgid_dead(pgid):
-            try:
-                os.killpg(pgid, signr)
-            except OSError:
-                # already dead
-                pass
-
-            time.sleep(retry_interval)
-        else:
-            return 0
-
-    return 1
+from glideinwms.lib.pidSupport import kill_and_check_pgid
 
 def main(startup_dir,force=True):
     # get the pids
