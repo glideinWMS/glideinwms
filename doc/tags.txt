@@ -10,6 +10,8 @@ v2_7_2  Bug Fix: Fixed a race condition while shutting down factory service
         Bug Fix: Starting a factory with all entries disabled now prints
           helpful message
         Bug Fix: Glidein does not leak LD_LIBRARY_PATH to job's environment
+        Bug Fix: Fixed a bug where stopFactory would send two TERM signals
+          too quickly to stop processes
 
 v2_7_1  glidecondor_addDN tool now supports adding DNs from a file
         Added new tool glidecondor_createSecCol to dynamically create
