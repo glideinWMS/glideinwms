@@ -508,9 +508,8 @@ def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
         log.info("Too many held glideins for this frontend-security class: %i=held %i=max_held" % (glidein_totals.frontend_limits[frontend_name]['held'],
                    glidein_totals.frontend_limits[frontend_name]['max_held']))
         # run sanitize... we have to get out of this mess
-        sanitizeGlideins(condorq, log=log, factoryConfig=factoryConfig)
+        return sanitizeGlideins(condorq, log=log, factoryConfig=factoryConfig)
         # we have done something... return non-0 so sanitize is not called again
-        return 1
     
     # Count glideins for this request credential by status
     qc_status = getQStatus(condorq)
@@ -742,9 +741,11 @@ def sanitizeGlideins(condorq, log=logSupport.log, factoryConfig=None):
     if factoryConfig is None:
         factoryConfig = globals()['factoryConfig']
 
+    glideins_sanitized = 0
     # Check if some glideins have been in idle state for too long
     stale_list = extractStaleSimple(condorq)
     if len(stale_list) > 0:
+        glideins_sanitized = 1
         log.warning("Found %i stale glideins" % len(stale_list))
         removeGlideins(condorq.schedd_name, stale_list,
                        log=log, factoryConfig=factoryConfig)
@@ -752,6 +753,7 @@ def sanitizeGlideins(condorq, log=logSupport.log, factoryConfig=None):
     # Check if some glideins have been in running state for too long
     runstale_list = extractRunStale(condorq)
     if len(runstale_list) > 0:
+        glideins_sanitized = 1
         log.warning("Found %i stale (>%ih) running glideins" % (len(runstale_list), factoryConfig.stale_maxage[2] / 3600))
         removeGlideins(condorq.schedd_name, runstale_list,
                        log=log, factoryConfig=factoryConfig)
@@ -759,6 +761,7 @@ def sanitizeGlideins(condorq, log=logSupport.log, factoryConfig=None):
     # Check if there are held glideins that are not recoverable
     unrecoverable_held_list = extractUnrecoverableHeldSimple(condorq)
     if len(unrecoverable_held_list) > 0:
+        glideins_sanitized = 1
         log.warning("Found %i unrecoverable held glideins" % len(unrecoverable_held_list))
         removeGlideins(condorq.schedd_name, unrecoverable_held_list,
                        force=False, log=log, factoryConfig=factoryConfig)
@@ -767,6 +770,7 @@ def sanitizeGlideins(condorq, log=logSupport.log, factoryConfig=None):
     held_list = extractRecoverableHeldSimple(condorq,
                                              factoryConfig=factoryConfig)
     if len(held_list) > 0:
+        glideins_sanitized = 1
         limited_held_list = extractRecoverableHeldSimpleWithinLimits(
                                 condorq, factoryConfig=factoryConfig)
         log.warning("Found %i held glideins, %i within limits" % \
@@ -775,7 +779,7 @@ def sanitizeGlideins(condorq, log=logSupport.log, factoryConfig=None):
             releaseGlideins(condorq.schedd_name, limited_held_list,
                             log=log, factoryConfig=factoryConfig)
 
-    return
+    return glideins_sanitized
 
 def logStats(condorq, client_int_name, client_security_name,
              proxy_security_class, log=logSupport.log, factoryConfig=None):
