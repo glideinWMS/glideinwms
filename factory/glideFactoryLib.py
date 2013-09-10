@@ -508,7 +508,7 @@ def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
         log.info("Too many held glideins for this frontend-security class: %i=held %i=max_held" % (glidein_totals.frontend_limits[frontend_name]['held'],
                    glidein_totals.frontend_limits[frontend_name]['max_held']))
         # run sanitize... we have to get out of this mess
-        return sanitizeGlideins(condorq, log=log, factoryConfig=factoryConfig)
+        return sanitizeGlideins(client_condorq, log=log, factoryConfig=factoryConfig)
         # we have done something... return non-0 so sanitize is not called again
     
     # Count glideins for this request credential by status
