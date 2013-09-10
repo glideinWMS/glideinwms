@@ -77,6 +77,7 @@ Factory:
 <ul>
 <li> <a href="./factory/install.html">Install</a></li>
 </ul>
+<a href="upgrade.html">Upgrade Guide</a>
 </div>
 <div class="section">
    <a name="release" />
@@ -93,12 +94,12 @@ Factory:
       <tr style="vertical-align:top;">
         <td>Stable Series</td>
         <td>v2_7_2</td>
-        <td>September 05, 2013</td>
+        <td>September 10, 2013</td>
         <td>
           [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7_2_factory.tgz">glideinWMS Factory</a>]
           [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7_2_frontend.tgz">glideinWMS Frontend</a>]
           [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7_2.tgz">glideinWMS full download</a>]
-          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/corral-2.7.1.tar.gz">Corral Frontend</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/corral-2.7.2.tar.gz">Corral Frontend</a>]
         </td>
       </tr>
       <tr style="vertical-align:top;">
@@ -114,20 +115,27 @@ Factory:
       </tr>
     </table>
     <br/>
-    <h4>NOTE: UPGRADING TO HTCONDOR 7.8.2 is NOT RECOMMENDED BECAUSE OF A BUG IN THAT VERSION OF HTCONDOR. USE LATEST HTCONDOR INSTEAD.</h4>
 
-    <h2>RPM</h2>
-    <ul>
-        <li><b>Glideinwms Frontend:</b> Refer to <a href="https://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFrontend">OSG glideinwms frontend installation guide</a> for details.
-        <li><b>Glideinwms Factory:</b> Refer to <a href="https://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFactory">OSG glideinwms factory installation guide</a> for details.
-    </ul>
+        <h4>NOTE: UPGRADING TO HTCONDOR 7.8.2 is NOT RECOMMENDED BECAUSE OF A BUG IN THAT VERSION OF HTCONDOR. USE LATEST HTCONDOR INSTEAD.</h4>
+
+        <h2>RPM</h2>
+            <ul>
+                        <li><b>Glideinwms Frontend:</b> Refer to <a href="https://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFrontend">OSG glideinwms frontend installation guide</a> for details.
+                                <li><b>Glideinwms Factory:</b> Refer to <a href="https://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFactory">OSG glideinwms factory installation guide</a> for details.
+                                    </ul>
+
     <a name="download" />
-    <h2>Downloading from Repository</h2>
+    <h2>Downloading from Repository </h2>
     The code is maintained in <a target="_blank" href="https://cdcvs.fnal.gov/redmine/projects/glideinwms/repository">GIT</a>. To checkout the version from git, run following commands
     <br><br>
-    <pre>git clone http://cdcvs.fnal.gov/projects/glideinwms<br>git checkout v2_7_2</pre>
-
+    <pre> git clone http://cdcvs.fnal.gov/projects/glideinwms<br> # Stable Series<br> git checkout v2_7_2<br> # Development Series<br> git checkout v3_1</pre>
 </div>
+
+<h2>v3.1 Specific Notes</h2>
+<p>
+Starting v3.1 release, glideinwms contains tools that can convert v2 factory and frontend configuration to their v3.1 equivalent. These tools have been tested to work with v2.7 configuration files.<br>
+See the <a href="upgrade.html">Upgrade Guide</a> for details. 
+</p>
 <div class="footer">
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>

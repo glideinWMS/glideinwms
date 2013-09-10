@@ -73,6 +73,47 @@ v2_7	glideinwms code is now organized as python packages
           grid-proxy-info and voms-proxy-info binaries on the worker node
 	Bug Fix: Frontend now counts the partitionable slots correctly
 
+v3_1    Includes relevant features and bug fixes released upto v2_7
+        Added a new feature that enables glidein to advertise error classads
+          to the User Collector to help in debugging
+        Added a new tool add_entry to help with entry creation
+        Support frontend to auto-update and auto-generate proxies using
+          proxy creation tools
+        Added config conversion tool for factory and frontend to convert v2
+          based config to new format
+        Frontend can periodically execute external proxy renewal/creation
+          scripts to keep the frontend proxies updated
+        Glideinwms now uses standard python logging APIs
+        Version 3 Factory is backward compatible with the Version 2 Frontends
+        Provide tools convert_frontend_2to3.sh and convert_factory_2to3.sh to
+          convert the version 2 based config files to version 3 format
+        Glidein Monitoring slots are now disabled by default
+        Factory process now tries to increase RLIMIT_NPROC if possible
+        Improved documentation
+        Bug Fix: DAEMON_SHUTDOWN now works with the multi-slot glideins
+        Bug Fix: Tools analyze_queues and analyze_frontend now correctly work
+          with the http:// URI
+        Bug Fix: Fixed a bug where glidein would not parse some of its
+          configuration variables corectly
+        Bug Fix: Fixed a bug where create_glidein would fail when used with
+          condor 7.9.4+
+        Bug Fix: Factory does better error reporting when an entry is configured
+          with an invalid sched_name
+        Bug Fix: Fixed bug where log files were not rotated correctly
+
+v3_0_0  Change to max job limits to reflect more accurate names
+        Add attr_dict in the environemnt of the frontend match_expr
+        New feature: The start_expr is now a native part of match
+        Support for new API for factory - frontend communication
+        Improved logging using standard Python logging APIs
+        The option to have either the factory and/or the frontend provide the
+          pilot proxy has been removed.  The frontend must always provide it.
+        Added support to the Factory for EC2 Query API submissions to the Cloud
+        Consolidated the condor_tarball tag in glideinwms.xml to read in a list
+          of os, arch, version
+        Added unittests for downtime, proxy plugins, and support functions
+        Miscellaenous bug fixes
+
 v2_6_2	Factory now supports glidein failure modes. This information is
 	  propagated back to the factory.
 	Glideins now have different idle timeouts for startup and tail. The
