@@ -521,7 +521,7 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
             cl_pid = os.fork()
             if cl_pid != 0:
                 # This is the parent process
-                register.sighandler()
+                register_sighandler()
                 cl_pids.append(cl_pid)
             else:
                 # This is the child process
