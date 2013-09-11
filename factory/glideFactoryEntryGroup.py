@@ -607,6 +607,8 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
         # Check if parent is still active. If not cleanup and die.
         check_parent(parent_pid, glideinDescript, my_entries)
 
+        cleanupSupport.cleaners.start_background_cleanup()
+
         # Check if its time to invalidate factory's old key
         if ( (time.time() > oldkey_eoltime) and
              (glideinDescript.data['OldPubKeyObj'] is not None) ):
@@ -712,7 +714,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                 # if not the first pass, just warn
                 logSupport.log.exception("Exception occurred: ")
 
-        cleanupSupport.cleaners.cleanup()
+        cleanupSupport.cleaners.wait_for_cleanup()
 
         iteration_etime = time.time()
         iteration_sleep_time = sleep_time - (iteration_etime - iteration_stime)
