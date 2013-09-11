@@ -41,6 +41,8 @@ from glideinwms.lib import logSupport
 from glideinwms.lib import classadSupport
 from glideinwms.lib import cleanupSupport
 from glideinwms.lib import glideinWMSVersion
+from glideinwms.lib.pidSupport import register_sighandler
+from glideinwms.lib.pidSupport import unregister_sighandler
 from glideinwms.factory import glideFactoryEntry
 from glideinwms.factory import glideFactoryConfig as gfc
 from glideinwms.factory import glideFactoryLib as gfl
@@ -857,17 +859,6 @@ def compile_pickle_data(entry, work_done):
 # S T A R T U P
 #
 ############################################################
-
-def termsignal(signr,frame):
-    raise KeyboardInterrupt, "Received signal %s"%signr
-
-def register_sighandler():
-    signal.signal(signal.SIGTERM, termsignal)
-    signal.signal(signal.SIGQUIT, termsignal)
-
-def unregister_sighandler():
-    signal.signal(signal.SIGTERM, signal.SIG_DFL)
-    signal.signal(signal.SIGQUIT, signal.SIG_DFL)
 
 if __name__ == '__main__':
     register_sighandler()
