@@ -53,6 +53,12 @@ from glideinwms.factory import glideFactoryDowntimeLib
 #   plus a safety factor of 2
 
 ENTRY_MEM_REQ_BYTES = 500000000 * 2
+
+# Global variable that tells if we are parent. This is to prevent child from 
+# escaping and thinking that it is parent
+
+PARENT_PROCESS = True
+
 ############################################################
 class EntryGroup:
 
@@ -422,6 +428,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
             pipe_ids[entry.name] = {'r': r, 'pid': pid}
         else:
             # This is the child process
+            PARENT_PROCESS = False
             try:
                 os.close(r)
                 try:
@@ -523,6 +530,7 @@ def iterate_one(do_advertize, factory_in_downtime, glideinDescript,
                 cl_pids.append(cl_pid)
             else:
                 # This is the child process
+                PARENT_PROCESS = False
                 try:
                     for entry in elist[i*elistChunk:(i+1)*elistChunk]:
                         entry.doCleanup()
@@ -662,6 +670,13 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
     last_cleanup=None
     while 1:
 
+        # Check if we are escaped child
+        if not PARENT_PROCESS:
+            # Child should not be here. Something went wrong with the
+            # signal handling and catching and escaped. Just die without
+            # any further notice.
+            os._exit(0)
+
         # Check if parent is still active. If not cleanup and die.
         check_parent(parent_pid, glideinDescript, my_entries)
 
@@ -727,6 +742,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                         pipe_ids[cpu] = {'r': r, 'pid': pid}
                     else:
                         # I am the child
+                        PARENT_PROCESS = False
                         os.close(r)
                         # Return the pickled entry object in form of dict
                         # return_dict[entry.name][entry.getState()]
