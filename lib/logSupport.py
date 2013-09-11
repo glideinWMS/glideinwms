@@ -159,6 +159,10 @@ class DirCleanupWSpace(DirCleanup):
             fstat=files_wstats[fpath]
 
             update_time=fstat[stat.ST_MTIME]
+
+            if (update_time > min_treshold_time):
+                break
+
             fsize=fstat[stat.ST_SIZE]
 
             if ((update_time<treshold_time) or
