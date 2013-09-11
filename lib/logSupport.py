@@ -150,6 +150,18 @@ class DirCleanupWSpace(DirCleanup):
 
         # first calc the amount of space currently used
         used_space=0L        
+
+        def _delete_and_count():
+            global count_removes, count_removes_bytes, used_space
+            try:
+                self.delete_file(fpath)
+                count_removes+=1
+                count_removes_bytes+=fsize
+                used_space-=fsize
+            except:
+               if self.warning_log is not None:
+                   self.warning_log.write("Could not remove %s"%fpath)
+
         for fpath in fpaths:
             fstat=files_wstats[fpath]
             fsize=fstat[stat.ST_SIZE]
@@ -164,18 +176,17 @@ class DirCleanupWSpace(DirCleanup):
                 break
 
             fsize=fstat[stat.ST_SIZE]
+            if (used_space > self.maxspace):
+                if (update_time > min_treshold_time):
+                    _delete_and_count()
+                else:
+                    break
+            else:
+                if (update_time > treshold_time):
+                    _delete_and_count()
+                else:
+                    break
 
-            if ((update_time<treshold_time) or
-                ((update_time<min_treshold_time) and (used_space>self.maxspace))):
-                try:
-                    self.delete_file(fpath)
-                    count_removes+=1
-                    count_removes_bytes+=fsize
-                    used_space-=fsize
-                except:
-                   if self.warning_log is not None:
-                       self.warning_log.write("Could not remove %s"%fpath)
-                
         if count_removes>0:
             if self.activity_log is not None:
                 self.activity_log.write("Removed %i files for %.2fMB."%(count_removes,count_removes_bytes/(1024.0*1024.0)))
