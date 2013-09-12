@@ -145,7 +145,8 @@ class DirCleanupWSpace(DirCleanup):
 
         now = time.time()
         files_wstats=self.get_files_wstats()
-        self.activity_log.write("Directory stat (%s) took %ss" % (self.dirname, time.time()-now))
+        self.activity_log.write("Directory stat (%s) (%s files) took %ss" %
+                                (self.dirname, len(files_wstats), time.time()-now))
         fpaths=files_wstats.keys()
         # order based on time (older first)
         fpaths.sort(lambda i,j:cmp(files_wstats[i][stat.ST_MTIME],files_wstats[j][stat.ST_MTIME]))
