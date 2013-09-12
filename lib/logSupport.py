@@ -143,13 +143,16 @@ class DirCleanupWSpace(DirCleanup):
         min_treshold_time=time.time()-self.minlife
         treshold_time=time.time()-self.maxlife
 
+        now = time.time()
         files_wstats=self.get_files_wstats()
+        self.activity_log.write("Directory stat (%s) took %ss" % (self.dirname, time.time()-now))
         fpaths=files_wstats.keys()
         # order based on time (older first)
         fpaths.sort(lambda i,j:cmp(files_wstats[i][stat.ST_MTIME],files_wstats[j][stat.ST_MTIME]))
 
         # first calc the amount of space currently used
         used_space=0L        
+        now = time.time()
         for fpath in fpaths:
             fstat=files_wstats[fpath]
             fsize=fstat[stat.ST_SIZE]
@@ -171,6 +174,8 @@ class DirCleanupWSpace(DirCleanup):
                 except:
                    if self.warning_log is not None:
                        self.warning_log.write("Could not remove %s"%fpath)
+
+        self.activity_log.write("Deleting %i files took %ss" % (count_removes, time.time() - now))
                 
         if count_removes>0:
             if self.activity_log is not None:
