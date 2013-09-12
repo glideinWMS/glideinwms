@@ -19,30 +19,35 @@ class Cleanup:
 
     def start_background_cleanup(self):
         if self.cleanup_pids:
-            logSupport.log.warning("Earlier cleanup PIDs %s still exist; waiting for them to finish" %
+            logSupport.log.warning("Earlier cleanup PIDs %s still exist; skipping this cycle" %
                                    self.cleanup_pids)
-            self.wait_for_cleanup()
-
-        num_forks = 4 # arbitrary - could be configurable
-        cleanup_lists = [self.cleanup_objects[x::num_forks] for x in xrange(num_forks)]
-        for i in xrange(num_forks):
-            unregister_sighandler()
-            cl_pid = os.fork()
-            if cl_pid != 0:
-                register_sighandler()
-                self.cleanup_pids.append(cl_pid)
-            else:
-                for cleaner in cleanup_lists[i]:
-                    cleaner.cleanup()
-                os._exit(0)
-        logSupport.log.debug("Forked cleanup PIDS %s" % self.cleanup_pids)
-        del cleanup_lists
+        else:
+            num_forks = 4 # arbitrary - could be configurable
+            cleanup_lists = [self.cleanup_objects[x::num_forks] for x in xrange(num_forks)]
+            for i in xrange(num_forks):
+                unregister_sighandler()
+                cl_pid = os.fork()
+                if cl_pid != 0:
+                    register_sighandler()
+                    self.cleanup_pids.append(cl_pid)
+                else:
+                    for cleaner in cleanup_lists[i]:
+                        cleaner.cleanup()
+                    os._exit(0)
+            logSupport.log.debug("Forked cleanup PIDS %s" % self.cleanup_pids)
+            del cleanup_lists
 
     def wait_for_cleanup(self):
         for pid in self.cleanup_pids:
-            os.waitpid(pid, 0)
-            logSupport.log.debug("Collected cleanup PID %s" % pid)
-        self.cleanup_pids = []
+            try:
+                return_pid, _ = os.waitpid(pid, os.WNOHANG)
+                if return_pid:
+                    logSupport.log.debug("Collected cleanup PID %s" % pid)
+                    self.cleanup_pids.remove(pid)
+            except OSError, e:
+                self.cleanup_pids.remove(pid)
+                logSupport.log.warning("Received error %s while waiting for PID %s" %
+                                       (e.strerror, pid))
 
     def cleanup(self):
         # foreground cleanup
