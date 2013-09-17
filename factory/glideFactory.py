@@ -416,7 +416,8 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             try:
                 classads = glideFactoryCredentials.get_globals_classads()
             except Exception:
-                logSupport.log.exception("Error occurred processing globals classads: ")
+                logSupport.log.error("Error occurred retrieving globals classad -- is Condor running?")
+                raise
 
             for classad_key in classads:
                 classad = classads[classad_key]
