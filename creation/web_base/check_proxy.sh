@@ -63,10 +63,10 @@ function get_x509_expiration {
 ############################################################
 
 # Assume all functions exit on error
-# get X509 expiration time and store it into the config file
+# get X509 expiration time and validate the lifetime
+# no need to store the result... was already done
+# but do report it in the metrics
 X509_EXPIRE=`get_x509_expiration`
-
-add_config_line X509_EXPIRE  "$X509_EXPIRE"
 
 "$error_gen" -ok "check_proxy.sh" "proxy" "$X509_USER_PROXY" "proxy_expire" "`date --date=@$X509_EXPIRE +%Y-%m-%dT%H:%M:%S%:z`" "cert_dir" "$X509_CERT_DIR"
 
