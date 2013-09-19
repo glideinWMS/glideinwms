@@ -52,8 +52,8 @@ create_condormapfile
 add_config_line X509_CONDORMAP "$X509_CONDORMAP"
 
 # this is required by the condor_startup script
-# Setting it to a fake value for now, as it only looks for existence, not really using the content
-add_config_line X509_GRIDMAP_TRUSTED_DNS "nobody"
+# A star will allow everyone, which is OK for condor_advertize of the error classad
+add_config_line X509_GRIDMAP_TRUSTED_DNS "*"
 
 "$error_gen" -ok "create_temp_mapfile.sh"
 
