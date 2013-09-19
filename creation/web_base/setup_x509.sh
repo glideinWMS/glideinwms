@@ -118,6 +118,42 @@ function copy_x509_proxy {
     return 0
 }
 
+# returns the expiration time of the proxy
+function get_x509_expiration {
+    now=`date +%s`
+    if [ $? -ne 0 ]; then
+        STR="Date not found!"
+        "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "date"
+        exit 1 # just to be sure
+    fi
+
+    l=`grid-proxy-info -timeleft`
+    ret=$?
+    if [ $ret -ne 0 ]; then
+	l=`voms-proxy-info -timeleft`
+	ret=$?
+    fi
+
+    if [ $ret -eq 0 ]; then
+	if [ $l -lt 60 ]; then 
+	    STR="Proxy not valid in 1 minute, only $l seconds left!\n"
+	    STR+="Not enough time to do anything with it."
+	    STR1=`echo -e "$STR"`
+	    "$error_gen" -error "setup_x509.sh" "VO_Proxy" "$STR1" "proxy" "$X509_USER_PROXY"
+	    exit 1
+	fi
+	echo `/usr/bin/expr $now + $l`
+    else
+        #echo "Could not obtain -timeleft" 1>&2
+        STR="Could not obtain -timeleft"
+        "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "grid-proxy-info"
+        exit 1
+    fi
+
+    return 0
+}
+
+
 ############################################################
 #
 # Main
@@ -128,9 +164,11 @@ function copy_x509_proxy {
 check_x509_certs
 check_x509_tools
 copy_x509_proxy
+X509_EXPIRE=`get_x509_expiration`
 
 add_config_line X509_CERT_DIR   "$X509_CERT_DIR"
 add_config_line X509_USER_PROXY "$X509_USER_PROXY"
+add_config_line X509_EXPIRE  "$X509_EXPIRE"
 
 "$error_gen" -ok "setup_x509.sh" "proxy" "$X509_USER_PROXY" "cert_dir" "$X509_CERT_DIR"
 
