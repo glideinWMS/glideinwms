@@ -84,7 +84,7 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
-        <b>v3_2</b> released on August xx, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2.tgz">Tarball</a>)<br>
+        <b>v3_2</b> released on September xx, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2.tgz">Tarball</a>)<br>
         <ul>
           <li>Added support for generation of condor tarball from condor installed        via rpm
           <li>Bug Fix: Fixed a race condition while shutting down factory
@@ -183,6 +183,26 @@ Related Pages:
 
     <h3>Old Releases</h3>
      <ul>
+      <li>
+        <b>v2_7_2</b> released on September 10, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7_2/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7_2/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7_2.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Bug Fix: Fixed a race condition while shutting down factory
+          service
+          <li>Bug Fix: Fixed a bug where glidein would not set certain condor
+          config variables correctly
+          <li>Bug Fix: Fixed a bug where analyze_queues and analyze_entries
+          would not work with the http:// URI
+          <li>Bug Fix: Collector port ranges in frontend.xml are now validated
+          for errors
+          <li>Bug Fix: Schedd name, frontend name and identity in factory config
+          are validated for errors
+          <li>Bug Fix: Starting a factory with all entries disabled now prints
+          helpful message
+          <li>Bug Fix: Glidein does not leak LD_LIBRARY_PATH to job's
+          environment
+          <li>Bug Fix: Fixed a bug where stopFactory would send two TERM signals          too quickly to stop processes
+        </ul>
+      </li>
       <li>
         <b>v2_7_1</b> released on May 14, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7_1.tgz">Tarball</a>)<br>
         <ul>

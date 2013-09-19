@@ -70,13 +70,28 @@ v3_0_0  Change to max job limits to reflect more accurate names
         Added unittests for downtime, proxy plugins, and support functions
         Miscellaenous bug fixes
 
-v2_7_1  glidecondor_addDN tool now supports adding DNs from a file
-        Added new tool glidecondor_createSecCol to dynamically create
+v2_7_2  Bug Fix: Fixed a race condition while shutting down factory service
+        Bug Fix: Fixed a bug where glidein would not set certain condor config
+          variables correctly
+        Bug Fix: Fixed a bug where analyze_queues and analyze_entries would not
+          work with the http:// URI
+        Bug Fix: Collector port ranges in frontend.xml are now validated for
+          errors
+        Bug Fix: Schedd name, frontend name and identity in factory config
+          are validated for errors
+        Bug Fix: Starting a factory with all entries disabled now prints
+          helpful message
+        Bug Fix: Glidein does not leak LD_LIBRARY_PATH to job's environment
+        Bug Fix: Fixed a bug where stopFactory would send two TERM signals
+          too quickly to stop processes
+
+v2_7_1  glidecondor_adddn tool now supports adding dns from a file
+        added new tool glidecondor_createseccol to dynamically create
           secondary collectors
-        Bug Fix: Fixed a bug where condor config templates used by glideinwms
+        bug fix: fixed a bug where condor config templates used by glideinwms
           components had undefined values
-        Bug Fix: analyze_entries tool now correctly handles URI http://
-        Bug Fix: Fixed a bug where frontend would crash if the some of the
+        bug fix: analyze_entries tool now correctly handles uri http://
+        bug Fix: Fixed a bug where frontend would crash if the some of the
           internal files were trucated to zero length.
         Bug Fix: Factory now correctly does the cleanup of log files
         Bug Fix: Factory now correctly does accounting of glideins in default
