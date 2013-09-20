@@ -607,7 +607,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     cmd = ""
     if self.install_type() != "rpm":
       cmd += ". %s/condor.sh;" % self.condor_location()
-    cmd += `"condor_config_val -dump |grep _jobs |awk \'{print $3}\'"`
+    cmd += "condor_config_val -dump |grep _jobs |awk \'{print $3}\'"
     lines = glideinwms.lib.subprocessSupport.iexe_cmd(cmd, useShell=True)
     if lines is None: # submit schedds not accessible
       common.logerr("""Failed to fetch list of schedds running condor_config_val.""")
