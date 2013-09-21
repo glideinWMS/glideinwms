@@ -385,7 +385,7 @@ function glidein_exit {
 	    # if the file exists, we should be able to talk to VO collector
 	    # notify VO things went badly and we are waiting
             warn "Notifying VO of error"
-	    "${gs_id_work_dir}/$last_script" glidein_config
+	    "${main_work_dir}/$last_script" glidein_config
 	fi
 
 	# sleep for about 5 mins... but randomize a bit
@@ -407,7 +407,7 @@ function glidein_exit {
 	      add_config_line "GLIDEIN_ADVERTISE_TYPE" "Killing"
 	      add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Terminating now. ($dl) ($dlf)"
 	  fi
-	  "${gs_id_work_dir}/$last_script" glidein_config
+	  "${main_work_dir}/$last_script" glidein_config
           warn "Last notification sent"
       fi
   fi
