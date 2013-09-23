@@ -165,7 +165,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                    'glidein_memory_setup.sh',
                                    'glidein_cpus_setup.sh']
         # Only execute scripts once
-        duplicate_scripts = set(file_list_scripts).intersection(set(after_file_list_scripts))
+        duplicate_scripts = set(file_list_scripts).intersection(after_file_list_scripts)
         if duplicate_scripts:
             raise RuntimeError, "Duplicates found in the list of files to execute '%s'" % ','.join(duplicate_scripts)
 
