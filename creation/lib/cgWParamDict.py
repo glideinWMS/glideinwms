@@ -120,7 +120,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
                 if condor_fd is None:
                     # tar file exists. Just use it
-                    self.dicts['after_file_list'].add_from_file(
+                    self.dicts['file_list'].add_from_file(
                         condor_platform_fname, (condor_fname,
                                                 "untar", cond_name,
                                                 cgWConsts.CONDOR_ATTR),
@@ -129,7 +129,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                     # This is addition of new tarfile
                     # Need to rewind fd everytime
                     condor_fd.seek(0)
-                    self.dicts['after_file_list'].add_from_fd(
+                    self.dicts['file_list'].add_from_fd(
                         condor_platform_fname,
                         (condor_fname,"untar",cond_name,cgWConsts.CONDOR_ATTR),
                         condor_fd)
