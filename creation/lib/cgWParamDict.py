@@ -152,20 +152,20 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # add the basic standard params
         self.dicts['params'].add("GLIDEIN_Collector",'Fake')
 
-        file_list_scripts = set(['collector_setup.sh',
-                                 'create_temp_mapfile.sh',
-                                 'setup_x509.sh',
-                                 cgWConsts.CONDOR_STARTUP_FILE])
-        after_file_list_scripts = set(['check_proxy.sh',
-                                       'create_mapfile.sh',
-                                       'validate_node.sh',
-                                       'gcb_setup.sh',
-                                       'glexec_setup.sh',
-                                       'java_setup.sh',
-                                       'glidein_memory_setup.sh',
-                                       'glidein_cpus_setup.sh'])
+        file_list_scripts = ['collector_setup.sh',
+                             'create_temp_mapfile.sh',
+                             'setup_x509.sh',
+                             cgWConsts.CONDOR_STARTUP_FILE]
+        after_file_list_scripts = ['check_proxy.sh',
+                                   'create_mapfile.sh',
+                                   'validate_node.sh',
+                                   'gcb_setup.sh',
+                                   'glexec_setup.sh',
+                                   'java_setup.sh',
+                                   'glidein_memory_setup.sh',
+                                   'glidein_cpus_setup.sh']
         # Only execute scripts once
-        duplicate_scripts = file_list_scripts.intersection(after_file_list_scripts)
+        duplicate_scripts = set(file_list_scripts).intersection(set(after_file_list_scripts))
         if duplicate_scripts:
             raise RuntimeError, "Duplicates found in the list of files to execute '%s'" % ','.join(duplicate_scripts)
 
