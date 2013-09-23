@@ -49,4 +49,7 @@ GLIDEIN_Signature	S	-		+				Y	Y	@
 GLIDEIN_WRAPPER_EXEC		S	"\\\"\\\$@\\\"" 		+				N	N	-
 DESCRIPTION_FILE	S	-		GLIDEIN_Description_File	N	Y	-
 GLIDEIN_TORETIRE	I	-		+				N	Y	-
+
+# Glidein generated
+CONDOR_DIR		C	-		+				Y	N	-
 #################################################################################################################

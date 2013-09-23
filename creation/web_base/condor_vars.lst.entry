@@ -36,7 +36,6 @@ GLIDEIN_GlobusRSL	S	-		+				N	Y	@
 PROXY_URL		S	-		GLIDEIN_Proxy_URL		N	N	@
 
 # Glidein generated
-CONDOR_DIR		C	-		+				Y	N	-
 TMP_DIR			S	-		GLIDEIN_Tmp_Dir			Y	Y	@
 X509_USER_PROXY		C	-		GSI_DAEMON_PROXY		Y	N	-
 X509_EXPIRE		I	-		+				Y	N	-
