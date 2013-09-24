@@ -120,7 +120,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
                 if condor_fd is None:
                     # tar file exists. Just use it
-                    self.dicts['after_file_list'].add_from_file(
+                    self.dicts['file_list'].add_from_file(
                         condor_platform_fname, (condor_fname,
                                                 "untar", cond_name,
                                                 cgWConsts.CONDOR_ATTR),
@@ -129,7 +129,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                     # This is addition of new tarfile
                     # Need to rewind fd everytime
                     condor_fd.seek(0)
-                    self.dicts['after_file_list'].add_from_fd(
+                    self.dicts['file_list'].add_from_fd(
                         condor_platform_fname,
                         (condor_fname,"untar",cond_name,cgWConsts.CONDOR_ATTR),
                         condor_fd)
@@ -152,20 +152,20 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # add the basic standard params
         self.dicts['params'].add("GLIDEIN_Collector",'Fake')
 
-        file_list_scripts = set(['collector_setup.sh',
-                                 'create_temp_mapfile.sh',
-                                 'setup_x509.sh',
-                                 cgWConsts.CONDOR_STARTUP_FILE])
-        after_file_list_scripts = set(['check_proxy.sh',
-                                       'create_mapfile.sh',
-                                       'validate_node.sh',
-                                       'gcb_setup.sh',
-                                       'glexec_setup.sh',
-                                       'java_setup.sh',
-                                       'glidein_memory_setup.sh',
-                                       'glidein_cpus_setup.sh'])
+        file_list_scripts = ['collector_setup.sh',
+                             'create_temp_mapfile.sh',
+                             'setup_x509.sh',
+                             cgWConsts.CONDOR_STARTUP_FILE]
+        after_file_list_scripts = ['check_proxy.sh',
+                                   'create_mapfile.sh',
+                                   'validate_node.sh',
+                                   'gcb_setup.sh',
+                                   'glexec_setup.sh',
+                                   'java_setup.sh',
+                                   'glidein_memory_setup.sh',
+                                   'glidein_cpus_setup.sh']
         # Only execute scripts once
-        duplicate_scripts = file_list_scripts.intersection(after_file_list_scripts)
+        duplicate_scripts = set(file_list_scripts).intersection(after_file_list_scripts)
         if duplicate_scripts:
             raise RuntimeError, "Duplicates found in the list of files to execute '%s'" % ','.join(duplicate_scripts)
 

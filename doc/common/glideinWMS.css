@@ -54,7 +54,7 @@ h1 {
 	padding: 20px 10px 20px 150px; 
 	border: 1px solid black; background-color: #ccd; 
 	margin: 2px 0px 0px 0px; text-decoration:none;
-	background-image: url('../images/header.jpg');
+	background-image: url('../images/header2.jpg');
 	background-repeat: no-repeat;
 }
 
@@ -105,7 +105,7 @@ ol { margin: 5px 0 15px 10px; padding-left: 20px; }
 
 blockquote
 {
-    background:    #dcb; 
+    background:    #bcd; 
     padding:       10px 10px;
     font-size:     100%;
     border:        1px solid #ddd;
@@ -122,7 +122,7 @@ pre
     margin-left:    0.39in;
     margin-right:   0.39in; 
     margin-bottom:  0.2in;
-    background:    #cba; 
+    background:    #abc; 
 }
 
 div#searchcontent
@@ -163,7 +163,6 @@ table.requirements, table.attributes
     border-bottom:      1px solid #000;
     border-right:       1px solid #000;
     border-left:        1px solid #000;
-    border-collapse:    collapse;
     border-spacing:     0px;
 }
 
@@ -188,14 +187,14 @@ table.attributes tr.head td
 {
     font-weight:        bold;
     font-size:          1.3em;
-    background-color:   #eb8; 
+    background-color:   #8be; 
     padding: 5px;
     border-bottom:  2px solid #000;
 }
 
 table.attributes
 {
-    background-color: #fff2e8;
+    background-color: #e6f2ff;
 }
 
 table.attributes td
@@ -204,9 +203,16 @@ table.attributes td
     border-bottom:  1px solid #000;
     vertical-align: top;
 }
+table.attributes td p
+{
+    margin: 1px 1px 5px 1px;
+    padding: 0px;
+    text-align: left;
+}
+
 table.attributes td:first-child
 {
-    background-color: #fdb;
+    background-color: #bdf;
     text-align: center;
     font-weight: bold;
     font-size:1.1em;
@@ -288,8 +294,8 @@ ul.components li a
 {
     float:left;
 	width:100%;
-/* Change for master look and feel */
-	background-color: #d66;
+#	background-color: #ccd;
+	background-color: #7ad;
 	border: 1px solid #458;
 	margin: 0px 0px 2px 0px;
 	padding: 10px 0px 10px 0px;
@@ -315,8 +321,7 @@ border-right:0px solid black;
 
 ul.subcomponents li a
 {
-/* Change for master look and feel */
-color: #933;
+color: #339;
 text-decoration: none;
 padding: 0px;
 }
@@ -331,8 +336,7 @@ padding: 5px 0px 0px 10px;
 border: 1px solid black;
 }
 div.jump ol { margin-left: 10px; }
-/* Change for master look and feel */
-div.jump ol li a { text-decoration: none; color: #933;}
+div.jump ol li a { text-decoration: none; color: #339;}
 div.jump ol ol {margin: 0px;list-style-type: lower-alpha}
 
 
@@ -345,9 +349,7 @@ margin-left: 20px;
 border: 1px solid black;
 }
 div.related ul {list-style-type: circle; }
-/* Change for master look and feel */
-div.related a {text-decoration:none; color: #933;}
-div.related ul li a {text-decoration:none; color: #933;}
+div.related ul li a {text-decoration:none; color: #339;}
 
 ol {
 margin-left: 40px;
@@ -363,8 +365,7 @@ div.xml i { font-weight: normal; }
 
 div.config {
     margin: 15px;
-/* Change for master look and feel */
-    background-color: #fdc;
+    background-color: #cdf;
     padding: 5px;
 }
 
@@ -372,8 +373,7 @@ div.config blockquote {
     padding: 3px 5px 3px 25px;
     margin: 0px;
     border: 0px;
-/* Change for master look and feel */
-    background-color: #fdc;
+    background-color: #cdf;
 }
 
 div.config a {
