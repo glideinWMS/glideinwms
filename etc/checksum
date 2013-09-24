@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_rc3
+# GLIDEINWMS_VERSION v3_2_rc4
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -19,7 +19,7 @@ d70c079e6098d20b9cccfe8b60ee40ca  ./creation/lib/cWParams.py
 e4405e764b1e40327893d990ae6780f8  ./creation/lib/cgWConsts.py
 5ba5a859967adf548fa66d09ef558dd1  ./creation/lib/cgWCreate.py
 8654d73e182dae4e6c4d5a9b8e2a6151  ./creation/lib/cgWDictFile.py
-b48a319533405f9ec49e5375cd603f0f  ./creation/lib/cgWParamDict.py
+d7b8b8e184202922b20afc7a30e51b00  ./creation/lib/cgWParamDict.py
 005944551445102831e25264a49df117  ./creation/lib/cgWParams.py
 ab37666bbf8d569a34974aea3dc29fa6  ./creation/lib/cvWConsts.py
 c0cbafc246e86375a582af0e1532f790  ./creation/lib/cvWCreate.py
@@ -33,7 +33,7 @@ f6b7e84d12e606ca0184721b040c698b  ./creation/templates/factory_initd_startup_tem
 0cae63ee6a72dc91cc3a2d1f8ccecbce  ./creation/web_base/advertise_failure.helper
 1a794306785cd9f0489ba1b484470af1  ./creation/web_base/cat_consts.sh
 40a2b85a853a072f65049c4efe64bc3a  ./creation/web_base/check_blacklist.sh
-44477c71b616e6c5c6ce7b02dd7d5ac2  ./creation/web_base/check_proxy.sh
+d6e9206dcfd49aad71e0cc3e1954834a  ./creation/web_base/check_proxy.sh
 63c09f1369fb7e7f6ef00e6aa418a6c5  ./creation/web_base/collector_setup.sh
 deab109042c60b4fcf7b2cd157536859  ./creation/web_base/condor_config
 a4a3ccaf64969f678872fab82e3bc6fc  ./creation/web_base/condor_config.check.include
@@ -42,10 +42,10 @@ a4a3ccaf64969f678872fab82e3bc6fc  ./creation/web_base/condor_config.check.includ
 f9a71916006e1a7f7778966628b0b232  ./creation/web_base/condor_config.multi_schedd.include
 e045ab0b0412b0e990c55e42d6b8fbe4  ./creation/web_base/condor_platform_select.sh
 0aef0399d197b7577ec111137cef72a7  ./creation/web_base/condor_startup.sh
-e3a86ef7306b23290d9d9979baf562eb  ./creation/web_base/condor_vars.lst
-060bf410c7c621ad7eb780f1b072ab47  ./creation/web_base/condor_vars.lst.entry
+e1e9d5406c59a102a13d9a2062416d59  ./creation/web_base/condor_vars.lst
+d9518531cad88a401b4c0ffcfe043a5e  ./creation/web_base/condor_vars.lst.entry
 f73538bb344db6b4435814c518fb3921  ./creation/web_base/create_mapfile.sh
-4ee15f9e9c74217e894fcdbbb7b0afe2  ./creation/web_base/create_temp_mapfile.sh
+6d19939557bb1086d5d01739bdad62dd  ./creation/web_base/create_temp_mapfile.sh
 2defc7ddcb297a1205a6bf0682f420f9  ./creation/web_base/error_augment.sh
 94b331baa0564c40c8e2516a53c9cda1  ./creation/web_base/error_gen.sh
 0253e25ce6350ee987b8b473015e7dd3  ./creation/web_base/factory/images/factoryCompletedStats.png
@@ -79,13 +79,13 @@ c1527cf661115760242852c0421921bd  ./creation/web_base/gcb_setup.sh
 0203b8ae9c738d86e1d5af2b88e21556  ./creation/web_base/glexec_setup.sh
 2286d88123059b704c828009d7911007  ./creation/web_base/glidein_cpus_setup.sh
 06a2ccef37b281a4546a61e3b31c2512  ./creation/web_base/glidein_memory_setup.sh
-ff8f69f6c0b42ba201bb0a7920f7e2f2  ./creation/web_base/glidein_startup.sh
+3a61a489ec6a97ddda9cb3416d7425a6  ./creation/web_base/glidein_startup.sh
 1f3bbb3416afab773e58aab138e4ccd3  ./creation/web_base/java_setup.sh
 78d344f14e5e2144227c564f2d90401e  ./creation/web_base/local_start.sh
 014c3eaf1abf62ff0f599579658e6a10  ./creation/web_base/nodes.blacklist
 ed35ca2289553f4e671d985bedd0ccef  ./creation/web_base/parse_starterlog.awk
 e0ba6891e61382c17e0aa7ea0a13c688  ./creation/web_base/setup_script.sh
-df3c1639ec94c9f2b95ae3e7cab687f7  ./creation/web_base/setup_x509.sh
+44ff0b2f2a33654a2778d4709f9b14cb  ./creation/web_base/setup_x509.sh
 832265338319a401e981faa9e38b4b19  ./creation/web_base/update_proxy.py
 91bca6a6005d761584523440b6a9c929  ./creation/web_base/validate_node.sh
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
