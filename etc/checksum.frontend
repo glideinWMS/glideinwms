@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_rc4
+# GLIDEINWMS_VERSION v3_2_rc5
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -101,7 +101,7 @@ e5b30fc8b74a658633cfcbe3cb038c08  ./install/services/Submit.py
 9e50aee68d972659da4ec5df8ee10edd  ./install/services/UserCollector.py
 854fd97da41352199f456608e62bb07a  ./install/services/VDT.py
 2a97aa59148723a0f31b231070841da2  ./install/services/VDTClient.py
-1a5c77eb4c69108b74f8cdccc3bc43be  ./install/services/VOFrontend.py
+d22bafb4d668637dcfcab1ec1298d542  ./install/services/VOFrontend.py
 0dc8b19b568e997f03d5ca8487efb5c4  ./install/services/WMSCollector.py
 b56403417b299dfca2fff645ad7f3461  ./install/services/__init__.py
 bebd1bb07fa101fec830cff93e159e6b  ./install/services/common.py

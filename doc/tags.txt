@@ -28,6 +28,9 @@ v3_2    Added support for generation of condor tarball from condor installed
           frontend
         Bug Fix: Fixed a bug in glidein where it would not report back to
           all the user pool collectors in HA mode correctly
+        Bug Fix: Fixed a bug where some of the parameters passed to glideins
+          were not escaped correctly
+        Bug Fix: Submitting glideins in test only mode now works correctly
 
 v3_1    Includes relevant features and bug fixes released upto v2_7
         Added a new feature that enables glidein to advertise error classads

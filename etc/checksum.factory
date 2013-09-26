@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_rc4
+# GLIDEINWMS_VERSION v3_2_rc5
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -33,7 +33,7 @@ a4a3ccaf64969f678872fab82e3bc6fc  ./creation/web_base/condor_config.check.includ
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
 f9a71916006e1a7f7778966628b0b232  ./creation/web_base/condor_config.multi_schedd.include
 e045ab0b0412b0e990c55e42d6b8fbe4  ./creation/web_base/condor_platform_select.sh
-0aef0399d197b7577ec111137cef72a7  ./creation/web_base/condor_startup.sh
+dd0377bef3f03fd5778e230a6a8a3966  ./creation/web_base/condor_startup.sh
 e1e9d5406c59a102a13d9a2062416d59  ./creation/web_base/condor_vars.lst
 d9518531cad88a401b4c0ffcfe043a5e  ./creation/web_base/condor_vars.lst.entry
 f73538bb344db6b4435814c518fb3921  ./creation/web_base/create_mapfile.sh
@@ -78,7 +78,7 @@ b292d006ca66e438359ea4574829419d  ./factory/glideFactoryConfig.py
 d1a36f5ca6b8113716a287f340eff9e5  ./factory/glideFactoryEntry.py
 388a1289e9b3e3be7a26df5bd603ffaf  ./factory/glideFactoryEntryGroup.py
 0e0e4b71216c81902e0721682c8e5c51  ./factory/glideFactoryInterface.py
-784bb19b3676ec8f8b29eea7f5f1b231  ./factory/glideFactoryLib.py
+d47a4ae92c685e80656601f08bcd600f  ./factory/glideFactoryLib.py
 465614b1447fb15115d4569a56175b8c  ./factory/glideFactoryLogParser.py
 c4f1e786807971984b1582d66d6a6d78  ./factory/glideFactoryMonitorAggregator.py
 7d297d2098f1e375b060cd1685d671dc  ./factory/glideFactoryMonitoring.py
@@ -136,7 +136,7 @@ e5b30fc8b74a658633cfcbe3cb038c08  ./install/services/Submit.py
 9e50aee68d972659da4ec5df8ee10edd  ./install/services/UserCollector.py
 854fd97da41352199f456608e62bb07a  ./install/services/VDT.py
 2a97aa59148723a0f31b231070841da2  ./install/services/VDTClient.py
-1a5c77eb4c69108b74f8cdccc3bc43be  ./install/services/VOFrontend.py
+d22bafb4d668637dcfcab1ec1298d542  ./install/services/VOFrontend.py
 0dc8b19b568e997f03d5ca8487efb5c4  ./install/services/WMSCollector.py
 b56403417b299dfca2fff645ad7f3461  ./install/services/__init__.py
 bebd1bb07fa101fec830cff93e159e6b  ./install/services/common.py
