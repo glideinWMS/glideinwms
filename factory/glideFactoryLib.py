@@ -1270,8 +1270,8 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
         if client_web is not None:
             params_str = " ".join(client_web.get_glidein_args())
         # add all the params to the argument string
-        for k in params.keys():
-            params_str += " -param_%s %s" % (k, params[k])
+        for k, v in params.iteritems():
+            params_str += " -param_%s %s" % (k, escapeParam(str(v)))
 
         exe_env = ['GLIDEIN_ENTRY_NAME=%s' % entry_name]
         exe_env.append('GLIDEIN_CLIENT=%s' % client_name)
