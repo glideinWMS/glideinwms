@@ -406,7 +406,7 @@ let "session_duration=$x509_duration"
 
 # if in test mode, don't ever start any jobs
 START_JOBS="TRUE"
-if [ "$chek_only" == "1" ]; then
+if [ "$check_only" == "1" ]; then
   START_JOBS="FALSE"
   # need to know which startd to fetch against
   STARTD_NAME=glidein_${glidein_startup_pid}
