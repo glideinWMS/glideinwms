@@ -1124,7 +1124,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
             # check to see if the username for the proxy is 
             # same as the factory username
             if username != MY_USERNAME:
-                # no? use privsep
+                # Use privsep
                 # need to push all the relevant env variables through
                 for var in os.environ:
                     if ((var in ('PATH', 'LD_LIBRARY_PATH', 'X509_CERT_DIR')) or
@@ -1150,20 +1150,16 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
                     log.error(msg)
                     raise RuntimeError, msg
             else:
-                # avoid using privsep, if possible
+                # Do not use privsep
                 try:
-                    #submit_out = condorExe.iexe_cmd('./%s "%s" "%s" "%s" "%s" %i "%s" %s -- %s' % (factoryConfig.submit_fname, entry_name, client_name,
-                   #x509_proxy_security_class, x509_proxy_identifier,
-                   #nr_to_submit, glidein_rsl, client_web_str, params_str),
-                   #                                 child_env=child_env)
-                   submit_out = condorExe.iexe_cmd("condor_submit -name %s entry_%s/job.condor" % (schedd, entry_name),
-                                                   child_env=exe_env)
+                    submit_out = condorExe.iexe_cmd("condor_submit -name %s entry_%s/job.condor" % (schedd, entry_name),
+                                                    child_env=env_list2dict(exe_env))
                 except condorExe.ExeError,e:
                     submit_out=[]
                     msg = "condor_submit failed: %s" % str(e)
                     log.error(msg)
                     raise RuntimeError, msg
-                except:
+                except Exception,e:
                     submit_out=[]
                     msg = "condor_submit failed: Unknown error: %s" % str(e)
                     log.error(msg)
@@ -1771,3 +1767,11 @@ def days2sec(days):
 
 def hrs2sec(hrs):
     return int(hrs * 60 * 60)
+
+def env_list2dict(env, sep='='):
+    env_dict = {}
+    for ent in env:
+        tokens = ent.split(sep, 1)
+        if len(tokens) == 2:
+            env_dict[tokens[0]] = tokens[1]
+    return env_dict

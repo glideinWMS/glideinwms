@@ -119,7 +119,7 @@ def update_credential_file(username, client_id, credential_data, request_clientn
 
         safe_update(fname, credential_data)
         compressed_credential = compress_credential(credential_data)
-        safe_update(compressed_credential, fname_compressed)
+        safe_update(fname_compressed, compressed_credential)
 
     return fname, fname_compressed
 
