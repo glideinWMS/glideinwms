@@ -362,7 +362,7 @@ def safe_update(fname, credential_data):
         if not (credential_data == old_data):
             # proxy changed, neeed to update
             # remove any previous backup file, if it exists
-            if os.path.isfile(fname): os.remove(fname + ".old")
+            if os.path.isfile(fname + ".old"): os.remove(fname + ".old")
 
             # create new file
             fd = os.open(fname + ".new", os.O_CREAT|os.O_WRONLY, 0600)
