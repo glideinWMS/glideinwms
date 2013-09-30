@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_rc5
+# GLIDEINWMS_VERSION v3_2_rc6
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -65,7 +65,7 @@ e0ba6891e61382c17e0aa7ea0a13c688  ./creation/web_base/setup_script.sh
 832265338319a401e981faa9e38b4b19  ./creation/web_base/update_proxy.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 b292d006ca66e438359ea4574829419d  ./factory/glideFactoryConfig.py
-664cbf7a1995992a7f0bb0a2f684119b  ./factory/glideFactoryCredentials.py
+fb52dc83f5c6c4e9318c6f35548e7e0f  ./factory/glideFactoryCredentials.py
 0e0e4b71216c81902e0721682c8e5c51  ./factory/glideFactoryInterface.py
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 be661351c66fc14686143441dce83e67  ./frontend/checkFrontend.py

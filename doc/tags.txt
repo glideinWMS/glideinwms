@@ -31,6 +31,8 @@ v3_2    Added support for generation of condor tarball from condor installed
         Bug Fix: Fixed a bug where some of the parameters passed to glideins
           were not escaped correctly
         Bug Fix: Submitting glideins in test only mode now works correctly
+        Bug Fix: Fixed a bug where factory would not submit glideins when
+          privilege separation is disabled
 
 v3_1    Includes relevant features and bug fixes released upto v2_7
         Added a new feature that enables glidein to advertise error classads
