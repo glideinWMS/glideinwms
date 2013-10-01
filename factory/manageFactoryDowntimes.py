@@ -17,13 +17,13 @@ import time,string
 import sys
 import re
 
+STARTUP_DIR=sys.path[0]
+sys.path.append(os.path.join(STARTUP_DIR,"../../"))
+
 from glideinwms.lib import ldapMonitor
 from glideinwms.lib import condorMonitor
 from glideinwms.creation.lib import cgWDictFile
 from glideinwms.creation.lib import cgWConsts
-
-STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../../"))
 
 from glideinwms.factory import glideFactoryConfig
 from glideinwms.factory import glideFactoryDowntimeLib
