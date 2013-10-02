@@ -897,7 +897,7 @@ def sum_idle_count(qc_status):
     #   Have to integrate all the variants
     qc_status[1] = 0
     for k in qc_status.keys():
-        if (k >= 1000) and (k < 1100):
+        if (k >= 1000) and (k <= 1100):
             qc_status[1] += qc_status[k]
     return
 
