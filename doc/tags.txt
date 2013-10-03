@@ -33,6 +33,13 @@ v3_2    Added support for generation of condor tarball from condor installed
         Bug Fix: Submitting glideins in test only mode now works correctly
         Bug Fix: Fixed a bug where factory would not submit glideins when
           privilege separation is disabled
+        Bug Fix: Fixed a bug in manageFactoryDowntimes.py where it could not
+          find required python libraries
+        Bug Fix: Fixed a bug in factory accounting where glideins in certain
+          state were not accounted towards idle state
+        Bug Fix: Added support for the ACCEPTED state for ARC CE
+        Bug Fix: factoryStatus.html now correctly auto-selects timezone
+        Bug Fix: Fixed a bug where RSL for NorduGrid CE was not populated
 
 v3_1    Includes relevant features and bug fixes released upto v2_7
         Added a new feature that enables glidein to advertise error classads
