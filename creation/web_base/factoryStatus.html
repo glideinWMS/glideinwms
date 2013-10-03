@@ -335,7 +335,7 @@ Description:
 
         rrd_data1 = new RRDRRAFilterAvg(rrd_data1,rra_op_list); //Adds 2 extra RRAs (averaged)
 
-        var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id],{timezone: timezone_num, use_checked_DSs: true, checked_DSs: checklist, use_rra:true, rra:specified_rra, use_windows: windows, window_min:local_window_min, window_max: local_window_max, use_element_buttons: false });
+        var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id],{use_checked_DSs: true, checked_DSs: checklist, use_rra:true, rra:specified_rra, use_windows: windows, window_min:local_window_min, window_max: local_window_max, use_element_buttons: false });
 
 
         // Finally, update the files loaded so far
