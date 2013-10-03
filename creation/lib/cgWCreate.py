@@ -156,6 +156,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                 self.add("globus_rsl", "$ENV(GLIDEIN_RSL)")
         elif gridtype == 'cream' and ((rsl is not None) and rsl !=""):
             self.add("cream_attributes", "$ENV(GLIDEIN_RSL)")
+        elif gridtype == 'nordugrid' and rsl:
+            self.add("nordugrid_rsl", "$ENV(GLIDEIN_RSL)")
         else:
             pass
             # do we want to raise an error here?  we do in v2+
