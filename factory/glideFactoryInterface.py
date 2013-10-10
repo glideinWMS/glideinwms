@@ -497,6 +497,8 @@ class EntryClassad(classadSupport.Classad):
         self.adParams['DaemonStartTime'] = int(start_time)
         advertizeGFCounter['Name'] = advertizeGFCounter.get('Name', -1) + 1
         self.adParams['UpdateSequenceNumber'] = advertizeGFCounter['Name']
+        self.adParams['GlideinWMSVersion'] = factoryConfig.glideinwms_version
+
         if pub_key_obj is not None:
             self.adParams['PubKeyID'] = "%s" % pub_key_obj.get_pub_key_id()
             self.adParams['PubKeyType'] = "%s" % pub_key_obj.get_pub_key_type()
