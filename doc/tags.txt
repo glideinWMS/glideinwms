@@ -40,6 +40,7 @@ v3_2    Added support for generation of condor tarball from condor installed
         Bug Fix: Added support for the ACCEPTED state for ARC CE
         Bug Fix: factoryStatus.html now correctly auto-selects timezone
         Bug Fix: Fixed a bug where RSL for NorduGrid CE was not populated
+        Bug Fix: glidefactory classads now correctly display GlideinWMSVersion
 
 v3_1    Includes relevant features and bug fixes released upto v2_7
         Added a new feature that enables glidein to advertise error classads

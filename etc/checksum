@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_rc7
+# GLIDEINWMS_VERSION v3_2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -96,7 +96,7 @@ fb52dc83f5c6c4e9318c6f35548e7e0f  ./factory/glideFactoryCredentials.py
 00d8a8bad3b7184131cd4c42f1839e1a  ./factory/glideFactoryDowntimeLib.py
 d1a36f5ca6b8113716a287f340eff9e5  ./factory/glideFactoryEntry.py
 388a1289e9b3e3be7a26df5bd603ffaf  ./factory/glideFactoryEntryGroup.py
-0e0e4b71216c81902e0721682c8e5c51  ./factory/glideFactoryInterface.py
+ad1f4981740a508121181d6a35ef7bb7  ./factory/glideFactoryInterface.py
 5943f1b0bbe6bd646de29fcbc90ac81d  ./factory/glideFactoryLib.py
 465614b1447fb15115d4569a56175b8c  ./factory/glideFactoryLogParser.py
 c4f1e786807971984b1582d66d6a6d78  ./factory/glideFactoryMonitorAggregator.py
