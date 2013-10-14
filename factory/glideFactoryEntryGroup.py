@@ -41,6 +41,8 @@ from glideinwms.lib import logSupport
 from glideinwms.lib import classadSupport
 from glideinwms.lib import cleanupSupport
 from glideinwms.lib import glideinWMSVersion
+from glideinwms.lib.pidSupport import register_sighandler
+from glideinwms.lib.pidSupport import unregister_sighandler
 from glideinwms.factory import glideFactoryEntry
 from glideinwms.factory import glideFactoryConfig as gfc
 from glideinwms.factory import glideFactoryLib as gfl
@@ -605,6 +607,8 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
         # Check if parent is still active. If not cleanup and die.
         check_parent(parent_pid, glideinDescript, my_entries)
 
+        cleanupSupport.cleaners.start_background_cleanup()
+
         # Check if its time to invalidate factory's old key
         if ( (time.time() > oldkey_eoltime) and
              (glideinDescript.data['OldPubKeyObj'] is not None) ):
@@ -710,7 +714,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
                 # if not the first pass, just warn
                 logSupport.log.exception("Exception occurred: ")
 
-        cleanupSupport.cleaners.cleanup()
+        cleanupSupport.cleaners.wait_for_cleanup()
 
         iteration_etime = time.time()
         iteration_sleep_time = sleep_time - (iteration_etime - iteration_stime)
@@ -857,17 +861,6 @@ def compile_pickle_data(entry, work_done):
 # S T A R T U P
 #
 ############################################################
-
-def termsignal(signr,frame):
-    raise KeyboardInterrupt, "Received signal %s"%signr
-
-def register_sighandler():
-    signal.signal(signal.SIGTERM, termsignal)
-    signal.signal(signal.SIGQUIT, termsignal)
-
-def unregister_sighandler():
-    signal.signal(signal.SIGTERM, signal.SIG_DFL)
-    signal.signal(signal.SIGQUIT, signal.SIG_DFL)
 
 if __name__ == '__main__':
     register_sighandler()

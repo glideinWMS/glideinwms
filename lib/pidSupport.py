@@ -13,6 +13,7 @@
 
 import os
 import os.path
+import signal
 import fcntl
 import time
 
@@ -200,3 +201,14 @@ class PidWParentSupport(PidSupport):
         self.mypid = pid
         self.parent_pid = parent_pid
         return
+
+def termsignal(signr,frame):
+    raise KeyboardInterrupt, "Received signal %s"%signr
+
+def register_sighandler():
+    signal.signal(signal.SIGTERM, termsignal)
+    signal.signal(signal.SIGQUIT, termsignal)
+
+def unregister_sighandler():
+    signal.signal(signal.SIGTERM, signal.SIG_DFL)
+    signal.signal(signal.SIGQUIT, signal.SIG_DFL)
