@@ -701,9 +701,13 @@ class MultiAdvertizeWork:
                     for f in filename_arr_el:
                         if f not in filename_arr:
                             filename_arr.append(f)
+                except NoCredentialException:
+                    filename_arr = [] # don't try to advertise
+                    logSupport.log.warning("No security credentials match for factory pool %s, not advertising request" % factory_pool)
                 except condorExe.ExeError:
-                    logSupport.log.exception("Error creating request files for factory pool %s, unable to advertise: %s" % factory_pool)
-                    logSupport.log.error("Error creating request files for factory pool %s, unable to advertise: %s" % factory_pool)
+                    filename_arr = [] # don't try to advertise
+                    logSupport.log.exception("Error creating request files for factory pool %s, unable to advertise: " % factory_pool)
+                    logSupport.log.error("Error creating request files for factory pool %s, unable to advertise" % factory_pool)
                 
             # Advertize all the files (if multi, should only be one) 
             for filename in filename_arr:
@@ -730,6 +734,10 @@ class MultiAdvertizeWork:
         else:
             nr_credentials=1
         cred_filename_arr=[]
+
+        if nr_credentials == 0:
+            raise NoCredentialException
+
         for i in range(nr_credentials):
             fd=None
             try:
@@ -1066,3 +1074,6 @@ def exe_condor_advertise(fname,command, pool, is_multi=False):
     return condorManager.condorAdvertise(fname, command, 
                                          frontendConfig.advertise_use_tcp,
                                          is_multi, pool)
+
+class NoCredentialException(Exception):
+    pass
