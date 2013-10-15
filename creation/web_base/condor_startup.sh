@@ -546,9 +546,6 @@ EOF
         num_slots_for_shutdown_expr=$GLIDEIN_CPUS
     fi
 
-    echo "UPDATE_INTERVAL = 20" >> "$CONDOR_CONFIG"
-    echo "MASTER_UPDATE_INTERVAL = 20" >> "$CONDOR_CONFIG"
-
     # Set to shutdown if total idle exceeds max idle, or if the age
     # exceeds the retire time (and is idle) or is over the max walltime (todie)
     echo "STARTD_SLOT_ATTRS = State, Activity, EnteredCurrentActivity, TotalTimeUnclaimedIdle, TotalTimeClaimedBusy" >> "$CONDOR_CONFIG"
