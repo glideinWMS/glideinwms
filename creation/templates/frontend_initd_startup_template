@@ -2,6 +2,7 @@
 # condor   This is the glideinWMS frontend startup script
 # chkconfig: 35 90 30
 # description: Starts and stops a glideinWMS frontend
+
         
 # Emulate function library.
 success() {
@@ -13,6 +14,8 @@ failure() {
 	echo -en "\\033[60G[\033[31mFAILED\033[0m]"
 	return 1
 }
+
+[ -f /etc/sysconfig/gwms-frontend ] && . /etc/sysconfig/gwms-frontend
         
 frontend_dir=%(frontend_dir)s
 glideinWMS_dir=%(glideinWMS_dir)s
