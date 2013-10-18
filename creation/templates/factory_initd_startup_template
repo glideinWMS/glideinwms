@@ -16,6 +16,8 @@ failure()
     return 1
 }
 
+[ -f /etc/sysconfig/gwms-factory ] && . /etc/sysconfig/gwms-factory
+
 factory_dir=%(factory_dir)s
 glideinWMS_dir=%(glideinWMS_dir)s
 default_cfg_fpath=%(default_cfg_fpath)s
