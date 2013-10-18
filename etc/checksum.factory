@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2
+# GLIDEINWMS_VERSION v3_2_1_rc1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -20,8 +20,9 @@ c902f50a5af82d281d6c58a67ebfd2a7  ./creation/lib/cgWCreate.py
 8654d73e182dae4e6c4d5a9b8e2a6151  ./creation/lib/cgWDictFile.py
 d7b8b8e184202922b20afc7a30e51b00  ./creation/lib/cgWParamDict.py
 005944551445102831e25264a49df117  ./creation/lib/cgWParams.py
-efa7aa04740921f5b2b60ace055dc182  ./creation/reconfig_glidein
-f6b7e84d12e606ca0184721b040c698b  ./creation/templates/factory_initd_startup_template
+414dd08400e9050a5c7e6a64fa7a4d94  ./creation/lib/xslt.py
+4f3600d1181d0c552eb927899ccac583  ./creation/reconfig_glidein
+15e8c97a557f910b5966a5a547a0899c  ./creation/templates/factory_initd_startup_template
 0cae63ee6a72dc91cc3a2d1f8ccecbce  ./creation/web_base/advertise_failure.helper
 1a794306785cd9f0489ba1b484470af1  ./creation/web_base/cat_consts.sh
 40a2b85a853a072f65049c4efe64bc3a  ./creation/web_base/check_blacklist.sh
@@ -33,7 +34,7 @@ a4a3ccaf64969f678872fab82e3bc6fc  ./creation/web_base/condor_config.check.includ
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
 f9a71916006e1a7f7778966628b0b232  ./creation/web_base/condor_config.multi_schedd.include
 e045ab0b0412b0e990c55e42d6b8fbe4  ./creation/web_base/condor_platform_select.sh
-dd0377bef3f03fd5778e230a6a8a3966  ./creation/web_base/condor_startup.sh
+615670498879f1b2f35f801fcec35a86  ./creation/web_base/condor_startup.sh
 e1e9d5406c59a102a13d9a2062416d59  ./creation/web_base/condor_vars.lst
 d9518531cad88a401b4c0ffcfe043a5e  ./creation/web_base/condor_vars.lst.entry
 f73538bb344db6b4435814c518fb3921  ./creation/web_base/create_mapfile.sh
@@ -71,14 +72,14 @@ e0ba6891e61382c17e0aa7ea0a13c688  ./creation/web_base/setup_script.sh
 91bca6a6005d761584523440b6a9c929  ./creation/web_base/validate_node.sh
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 803f896297c845f622cd6047dc5283c7  ./factory/checkFactory.py
-893b7804218b63f67c56ce127686e792  ./factory/glideFactory.py
+64341f1ec618998105bcb154a0d0d1b2  ./factory/glideFactory.py
 b292d006ca66e438359ea4574829419d  ./factory/glideFactoryConfig.py
 fb52dc83f5c6c4e9318c6f35548e7e0f  ./factory/glideFactoryCredentials.py
 00d8a8bad3b7184131cd4c42f1839e1a  ./factory/glideFactoryDowntimeLib.py
 d1a36f5ca6b8113716a287f340eff9e5  ./factory/glideFactoryEntry.py
-388a1289e9b3e3be7a26df5bd603ffaf  ./factory/glideFactoryEntryGroup.py
+b2c8a45e6552163d238b3c880bbe5e41  ./factory/glideFactoryEntryGroup.py
 ad1f4981740a508121181d6a35ef7bb7  ./factory/glideFactoryInterface.py
-5943f1b0bbe6bd646de29fcbc90ac81d  ./factory/glideFactoryLib.py
+05146a847288c8a1f736fe85c8b3b154  ./factory/glideFactoryLib.py
 465614b1447fb15115d4569a56175b8c  ./factory/glideFactoryLogParser.py
 c4f1e786807971984b1582d66d6a6d78  ./factory/glideFactoryMonitorAggregator.py
 7d297d2098f1e375b060cd1685d671dc  ./factory/glideFactoryMonitoring.py
@@ -143,7 +144,7 @@ bebd1bb07fa101fec830cff93e159e6b  ./install/services/common.py
 e11d30b85bc8ee174418de14c2210257  ./install/services/init_schedd.sh
 d41d8cd98f00b204e9800998ecf8427e  ./lib/__init__.py
 de2c846835330c1e613f3509d2defd6a  ./lib/classadSupport.py
-85d2629439c3dbd58e22694dfcf93729  ./lib/cleanupSupport.py
+db3a6019e81123ab02788204c5170716  ./lib/cleanupSupport.py
 5511e0a6d4584f87e869c0a9c4973bf0  ./lib/condorExe.py
 47e90bb60b71274b2d13f283207336ae  ./lib/condorLogParser.py
 f9f296bc30e68cb314dfba0415c97b26  ./lib/condorManager.py
@@ -159,7 +160,7 @@ ac7d5c93017e3887f1d44fcdee9a7237  ./lib/hashCrypto.py
 223c74aae5cbc7132b080e0dedf679ba  ./lib/ldapMonitor.py
 90a4943a15dcdf9c69b3ebcfa3ea8a12  ./lib/logSupport.py
 fe4614cb3ecabd81d65f3b85b5c7abb6  ./lib/logging.conf
-353e3c45bb31ebdd716b110100fa42b6  ./lib/pidSupport.py
+1eb02bb338fc6dea82e0250f1823aa24  ./lib/pidSupport.py
 7b2d48ef58bbf0aca878d4dcb1efa690  ./lib/pubCrypto.py
 c4e870769dd81dc66a69f93542a2bd49  ./lib/rrdSupport.py
 d8200249619d609fe42e11c22579bcbb  ./lib/subprocessSupport.py

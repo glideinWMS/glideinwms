@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2
+# GLIDEINWMS_VERSION v3_2_1_rc1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -19,9 +19,10 @@ c0cbafc246e86375a582af0e1532f790  ./creation/lib/cvWCreate.py
 2c20708ff9c1b3b0385f5fcd3ff924b9  ./creation/lib/cvWDictFile.py
 cd9692043f6fb7ec25442d2dd0166989  ./creation/lib/cvWParamDict.py
 d4c1a9a596752ca2b5746c22c080941c  ./creation/lib/cvWParams.py
-6f70bd6c3b493a7c3eac80ecc7c30a98  ./creation/reconfig_frontend
-f6b7e84d12e606ca0184721b040c698b  ./creation/templates/factory_initd_startup_template
-7237b4bbfcea01d2f7df3c25be229ff3  ./creation/templates/frontend_initd_startup_template
+414dd08400e9050a5c7e6a64fa7a4d94  ./creation/lib/xslt.py
+1bf848dd9eeaa796f2d3c78b54d5d702  ./creation/reconfig_frontend
+15e8c97a557f910b5966a5a547a0899c  ./creation/templates/factory_initd_startup_template
+5f30e859c9581bd02d1085d1752727af  ./creation/templates/frontend_initd_startup_template
 0cae63ee6a72dc91cc3a2d1f8ccecbce  ./creation/web_base/advertise_failure.helper
 1a794306785cd9f0489ba1b484470af1  ./creation/web_base/cat_consts.sh
 40a2b85a853a072f65049c4efe64bc3a  ./creation/web_base/check_blacklist.sh
@@ -72,7 +73,7 @@ be661351c66fc14686143441dce83e67  ./frontend/checkFrontend.py
 5ae8f7a1a08a647afeca618472efe674  ./frontend/glideinFrontend.py
 658d1145adb585bda959af768287659e  ./frontend/glideinFrontendConfig.py
 7d10d836c1827ab48f413e92ca4e83d0  ./frontend/glideinFrontendElement.py
-3275830e29be4eed027c932961767950  ./frontend/glideinFrontendInterface.py
+6cac9fe3bff452cc6715f5e9fdf08b49  ./frontend/glideinFrontendInterface.py
 3e155a46654f94f0ec428cf92c3d31bd  ./frontend/glideinFrontendLib.py
 58a5ae1d29451c5faa0e9f332f4558a5  ./frontend/glideinFrontendMonitorAggregator.py
 8c3d36f5bcf6c4af4e730f1b31d1e801  ./frontend/glideinFrontendMonitoring.py
@@ -108,7 +109,7 @@ bebd1bb07fa101fec830cff93e159e6b  ./install/services/common.py
 e11d30b85bc8ee174418de14c2210257  ./install/services/init_schedd.sh
 d41d8cd98f00b204e9800998ecf8427e  ./lib/__init__.py
 de2c846835330c1e613f3509d2defd6a  ./lib/classadSupport.py
-85d2629439c3dbd58e22694dfcf93729  ./lib/cleanupSupport.py
+db3a6019e81123ab02788204c5170716  ./lib/cleanupSupport.py
 5511e0a6d4584f87e869c0a9c4973bf0  ./lib/condorExe.py
 47e90bb60b71274b2d13f283207336ae  ./lib/condorLogParser.py
 f9f296bc30e68cb314dfba0415c97b26  ./lib/condorManager.py
@@ -124,7 +125,7 @@ ac7d5c93017e3887f1d44fcdee9a7237  ./lib/hashCrypto.py
 223c74aae5cbc7132b080e0dedf679ba  ./lib/ldapMonitor.py
 90a4943a15dcdf9c69b3ebcfa3ea8a12  ./lib/logSupport.py
 fe4614cb3ecabd81d65f3b85b5c7abb6  ./lib/logging.conf
-353e3c45bb31ebdd716b110100fa42b6  ./lib/pidSupport.py
+1eb02bb338fc6dea82e0250f1823aa24  ./lib/pidSupport.py
 7b2d48ef58bbf0aca878d4dcb1efa690  ./lib/pubCrypto.py
 c4e870769dd81dc66a69f93542a2bd49  ./lib/rrdSupport.py
 d8200249619d609fe42e11c22579bcbb  ./lib/subprocessSupport.py
