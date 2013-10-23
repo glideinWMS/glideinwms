@@ -485,7 +485,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
             </div>
         This determines whether or not you want to mandate
         the use of GLEXEC. Possible values are 
-            NONE (do not use GLEXEC) or
+            NEVER (do not use GLEXEC) or
             OPTIONAL (use GLEXEC if the site is configured with it) 
             or REQUIRED (Always use GLEXEC). 
         Mandating the use of GLEXEC also enforces the
@@ -792,7 +792,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
 </div>
 <div class="section">
     <H2 CLASS="western"><A NAME="match_example"></A>
-        Match and Match Attributes
+        Match Expressions and Match Attributes
     </h2>
 <p>
     Several sections in the configuration allow a match expression.
@@ -804,7 +804,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     to specify where jobs can run or to specify
     which glidein_sites can run jobs.  <br />
     There are two ways to restrict matching in most cases.
-    Note that match_expr clauses, such as &lt;match match_expr&gt; 
+    Note that match_expr causes, such as &lt;match match_expr&gt; 
     will use python based expressions as explained below.  Others,
     such as &lt;factory query_expr&gt; and &lt;job query_expr&gt;
     use Condor ClassAd expressions.  For these, only valid Condor
