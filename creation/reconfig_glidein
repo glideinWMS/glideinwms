@@ -213,6 +213,9 @@ if __name__ == '__main__':
 
         args = [argv[0], transformed_xmlfile.name]
         params=cgWParams.GlideinParams(usage, WEB_BASE_DIR, args)
+        # We have read the transformed xml now. Overwrite the params.cfg_name
+        # with xml
+        params.cfg_name = xml
 
         if force_name is not None:
             if params.glidein_name != force_name:

@@ -153,6 +153,10 @@ if __name__ == '__main__':
         args = [argv[0], transformed_xmlfile.name]
 
         params=cvWParams.VOFrontendParams(usage, WEB_BASE_DIR, args)
+        # We have read the transformed xml now. Overwrite the params.cfg_name
+        # with xml
+        params.cfg_name = xml
+
     except RuntimeError,e:
         print e
         sys.exit(1)
