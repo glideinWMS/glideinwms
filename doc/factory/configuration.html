@@ -73,6 +73,7 @@
         <li><a href="#tcp">TCP Updates</a> </li>
         <li><a href="#multicol">Multiple Collectors</a> </li>
         <li><a href="#tarballs">Multiple HTCondor Tarballs</a> </li>
+        <li><a href="#xsltplugins">XSLT Plugins to extend configuration</a> </li>
 </ol>
 </div>
 <div class="related">
@@ -1744,6 +1745,49 @@ together.</P>
     </div>
 </p>
 </div></div>
+
+<div>
+    <a name="xsltplugins"/>
+        <h3 class="western">XSLT Plugins to extend configuration</h3>
+        <p>
+        Starting v3.2.1 you can use xslt transformations to manage complex configuration files. During the reconfig process, the glidein factory applies xslt transformations available to it in the directory pointed out by the environment variable $GWMS_XSLT_PLUGIN_DIR.
+        As a best practice that works for rpms as well as tarball/git installs, create a sysconfig file /etc/sysconfig/gwms-factory for the factory service and /etc/sysconfig/gwms-frontend for the frontend service with following contents.
+        <pre>
+[parag@fermicloud030 glideinwms]$ cat /etc/sysconfig/gwms-factory 
+# Configuration file for the Glideinwms services.
+
+#
+# Plugin directory to get xslt transformations from.
+#
+
+export GWMS_XSLT_PLUGIN_DIR=/etc/gwms-factory/plugin.d
+        </pre>
+
+Following sample xslt adds a &lt;security/&gt; tag to the configuration file used by the factory.
+
+        <pre>
+&lt;?xml version="1.0"?&gt;
+&lt;xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" &gt;
+
+   &lt;xsl:template match="security"&gt;
+       &lt;xsl:copy&gt;
+           &lt;xsl:apply-templates select="@*"/&gt;
+           &lt;xsl:text/&gt;
+           &lt;xsl:comment&gt;This part is my favorite!&lt;/xsl:comment&gt;
+           &lt;xsl:apply-templates select="node()"/&gt;
+       &lt;/xsl:copy&gt;
+   &lt;/xsl:template&gt;
+
+   &lt;xsl:template match="/ | @* | node()"&gt;
+       &lt;xsl:copy&gt;
+           &lt;xsl:apply-templates select="@* | node()"/&gt;
+       &lt;/xsl:copy&gt;
+   &lt;/xsl:template&gt;
+
+&lt;/xsl:stylesheet&gt;
+        </pre>
+        </p>
+</div>
 
 <div class="footer">
 Banner image by
