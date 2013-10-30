@@ -1753,7 +1753,7 @@ together.</P>
         Starting v3.2.1 you can use xslt transformations to manage complex configuration files. During the reconfig process, the glidein factory applies xslt transformations available to it in the directory pointed out by the environment variable $GWMS_XSLT_PLUGIN_DIR.
         As a best practice that works for rpms as well as tarball/git installs, create a sysconfig file /etc/sysconfig/gwms-factory for the factory service and /etc/sysconfig/gwms-frontend for the frontend service with following contents.
         <pre>
-[parag@fermicloud030 glideinwms]$ cat /etc/sysconfig/gwms-factory 
+<b>prompt$</b> cat /etc/sysconfig/gwms-factory 
 # Configuration file for the Glideinwms services.
 
 #
@@ -1788,6 +1788,12 @@ Following sample xslt adds a &lt;security/&gt; tag to the configuration file use
         </pre>
         </p>
 </div>
+
+The default behavior can be overridden by specificing the option -xslt_plugin_dir to reconfig_glidein and reconfig_frontend tools. 
+<pre>
+<b>prompt$</b> reconfig_glidein -xslt_plugin_dir &lt;xslt directory&gt; [...]
+<b>prompt$</b> reconfig_frontend -xslt_plugin_dir &lt;xslt directory&gt; [...]
+</pre>
 
 <div class="footer">
 Banner image by
