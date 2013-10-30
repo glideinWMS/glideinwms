@@ -5,7 +5,7 @@ v3_2_1  Added support for a plug-in architecture for config that lets admins
           credentials
         Bug Fix: Improved error reporting when factory fails to startup
         Bug Fix: Improved factory performance during log cleanup.
-        Bug Fix: Fixed a bug introduce in v3_2 where glidein update 
+        Bug Fix: Fixed a bug introduced in v3_2 where glidein update
           interval was too short that resulted in performance issues for
           busy collectors.
 
