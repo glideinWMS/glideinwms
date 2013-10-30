@@ -73,6 +73,7 @@
         <li><a href="#tcp">TCP Updates</a> </li>
         <li><a href="#multicol">Multiple Collectors</a> </li>
         <li><a href="#tarballs">Multiple HTCondor Tarballs</a> </li>
+        <li><a href="#xsltplugins">XSLT Plugins to extend configuration</a> </li>
 </ol>
 </div>
 <div class="related">
@@ -1744,6 +1745,59 @@ together.</P>
     </div>
 </p>
 </div></div>
+
+<div>
+    <a name="xsltplugins"/>
+        <h3 class="western">XSLT Plugins to extend configuration</h3>
+        <p>
+        Starting in v3.2.1, you can use XSL transformations (XSLT) to manage
+complex configuration files. During the reconfig process, the glidein factory
+applies XSL transformations available to it in the directory configured by the
+environment variable GWMS_XSLT_PLUGIN_DIR. (It is also available by
+supplying the -xslt_plugin_dir option to the reconfig_glidein and
+reconfig_frontend commands as shown below.)</p>
+<p>        Setting the variable via sysconfig files are supported:
+/etc/sysconfig/gwms-factory for the factory service and
+/etc/sysconfig/gwms-frontend for the frontend service,
+with the following contents:</p>
+        <pre>
+<b>prompt$</b> cat /etc/sysconfig/gwms-factory 
+# Configuration file for the Glideinwms services.
+
+#
+# Plugin directory to get xslt transformations from.
+#
+
+export GWMS_XSLT_PLUGIN_DIR=/etc/gwms-factory/plugin.d
+        </pre>
+
+The following sample XSLT adds a custom attribute to the configuration file
+used by the factory.
+
+<pre>
+&lt;?xml version=&quot;1.0&quot;?&gt;
+&lt;xsl:stylesheet version=&quot;1.0&quot; xmlns:xsl=&quot;http://www.w3.org/1999/XSL/Transform&quot; &gt;
+<b>   &lt;xsl:template match=&quot;glidein/attrs&quot;&gt;</b>
+       &lt;xsl:copy&gt;
+<b>         &lt;attr name=&quot;SOME_GWMS_ATTRIBUTE&quot; const=&quot;False&quot; glidein_publish=&quot;False&quot; job_publish=&quot;False&quot; parameter=&quot;True&quot; publish=&quot;True&quot; type=&quot;int&quot; value=&quot;7000&quot;/&gt;</b>
+         &lt;xsl:apply-templates select=&quot;@* | node()&quot;/&gt;
+       &lt;/xsl:copy&gt;
+   &lt;/xsl:template&gt;
+
+   &lt;xsl:template match=&quot;/ | @* | node()&quot;&gt;
+       &lt;xsl:copy&gt;
+           &lt;xsl:apply-templates select=&quot;@* | node()&quot;/&gt;
+       &lt;/xsl:copy&gt;
+   &lt;/xsl:template&gt;
+</pre>
+        </p>
+</div>
+
+The default behavior can be overridden by specifying the option -xslt_plugin_dir to reconfig_glidein and reconfig_frontend tools. 
+<pre>
+<b>prompt$</b> reconfig_glidein -xslt_plugin_dir &lt;xslt directory&gt; [...]
+<b>prompt$</b> reconfig_frontend -xslt_plugin_dir &lt;xslt directory&gt; [...]
+</pre>
 
 <div class="footer">
 Banner image by
