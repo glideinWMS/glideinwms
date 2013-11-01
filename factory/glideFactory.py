@@ -413,11 +413,11 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             # Read in the frontend globals classad
             # Do this first so that the credentials are immediately
             # available when the Entries startup
+            classads = {}
             try:
                 classads = glideFactoryCredentials.get_globals_classads()
             except Exception:
                 logSupport.log.error("Error occurred retrieving globals classad -- is Condor running?")
-                raise
 
             for classad_key in classads:
                 classad = classads[classad_key]
