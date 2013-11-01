@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_1
+# GLIDEINWMS_VERSION v3_2_2_rc1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -91,7 +91,7 @@ e0ba6891e61382c17e0aa7ea0a13c688  ./creation/web_base/setup_script.sh
 91bca6a6005d761584523440b6a9c929  ./creation/web_base/validate_node.sh
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 803f896297c845f622cd6047dc5283c7  ./factory/checkFactory.py
-64341f1ec618998105bcb154a0d0d1b2  ./factory/glideFactory.py
+ccbe16a2634b2a9cc3c5c34d7ab0c352  ./factory/glideFactory.py
 b292d006ca66e438359ea4574829419d  ./factory/glideFactoryConfig.py
 fb52dc83f5c6c4e9318c6f35548e7e0f  ./factory/glideFactoryCredentials.py
 00d8a8bad3b7184131cd4c42f1839e1a  ./factory/glideFactoryDowntimeLib.py
