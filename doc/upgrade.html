@@ -244,7 +244,7 @@
     <hr>
     <b># GLIDEINWMS from RPM, assuming following
     # Glideinwms SRC_DIR=/usr/lib/python2.4/site-packages/glideinwms
-    # Frontend WORK_DIR=/var/lib/gwms-frontend/work-dir
+    # Frontend WORK_DIR=/var/lib/gwms-frontend/vofrontend
     # Frontend CONFIG_DIR=/etc/gwms-frontend</b>
 
     <b>prompt$</b> service gwms-frontend stop
@@ -252,7 +252,7 @@
     <b>prompt$</b> cp $WORK_DIR/frontend.xml $WORK_DIR/frontend-2.xml
     <b>prompt$</b> cp $CONFIG_DIR/frontend.xml $CONFIG_DIR/frontend-2.xml
     <b>prompt$</b> $SRC_DIR/frontend/tools/convert_frontend_2to3.sh -i $WORK_DIR/frontend-2.xml -o $WORK_DIR/frontend.xml -s $SRC_DIR
-    <b>prompt$</b> $SRC_DIR/frontend/tools/convert_frontend_2to3.sh -i $CONFIG_DIR/glideinWMS-2.xml -o $CONFIG_DIR/glideinWMS.xml -s $SRC_DIR
+    <b>prompt$</b> $SRC_DIR/frontend/tools/convert_frontend_2to3.sh -i $CONFIG_DIR/gfrontend-2.xml -o $CONFIG_DIR/frontend.xml -s $SRC_DIR
     <b>prompt$</b> service gwms-frontend upgrade
     <b>prompt$</b> service gwms-frontend start
     </pre>
