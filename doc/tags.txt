@@ -1,5 +1,6 @@
-vNext   Bug Fix: Fix a bug where factory would crash if it fail to query
+v3_2_2  Bug Fix: Fix a bug where factory would crash if it fails to query
           client global classads in wms collector
+        Bug Fix: Glidein jobs correctly interpret the ARC CE FINISHED state
 
 v3_2_1  Added support for a plug-in architecture for config that lets admins
           manipulate frontend and factory config with ease.
