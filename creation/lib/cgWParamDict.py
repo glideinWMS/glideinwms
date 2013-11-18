@@ -163,7 +163,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                    'glexec_setup.sh',
                                    'java_setup.sh',
                                    'glidein_memory_setup.sh',
-                                   'glidein_cpus_setup.sh']
+                                   'glidein_cpus_setup.sh',
+                                   'glidein_sitewms_setup.sh']
         # Only execute scripts once
         duplicate_scripts = set(file_list_scripts).intersection(after_file_list_scripts)
         if duplicate_scripts:
