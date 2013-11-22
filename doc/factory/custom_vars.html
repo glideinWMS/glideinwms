@@ -186,6 +186,7 @@ glideins are Condor based; see the <A target="_blank" HREF="http://www.cs.wisc.e
     <LI><A HREF="#factory_attrs">Factory config xml - attr tags</A></li>
     <LI><A HREF="#factory_vars">Factory config xml - configuration</A></li>
     <LI><A HREF="#frontend_vars">Frontend variables</A></li>
+    <LI><A HREF="#vm_vars">Cloud VM variables</A></li>
     <LI><A HREF="#dyn_vars">Dynamically generated</A></li>
     <LI><A HREF="#path_vars">Directory Paths</A></li>
     <LI><A HREF="#glidein_vars">Glidein Scripts (dynamic)</A></li>
@@ -919,6 +920,51 @@ described below ar the most often used.</P>
 
 </TABLE>
 </div>
+
+
+
+
+
+<div class="section">
+<H3><A NAME="vm_vars"></A>Cloud VM specific Variables</H3>
+<P>The following variables are only applicable to Cloud VMs.</P>
+<P>These variables can be either configured by factory or the frontend</P>
+<TABLE class="attributes">
+    <TR class="head">
+        <td> <P><b>Name</b></P></td>
+        <td> <P><b>Type</b></P></td>
+        <td> <P><b>Default Value</b></P></td>
+        <td> <P><b>Description</b></P></td>
+
+    </TR>
+    <TR>
+        <td> <b>VM_MAX_LIFETIME</b></td>
+        <td> Int </td>
+        <td> 172800 <br> (48 hours) </td>
+        <td>
+            <P>Max lifetime of the VM. When this timer is reached the
+            glideinwms-pilot service will terminate and glidein process,
+            shutdown the glideinwms-pilot service and issue a VM shutdown
+            </P>
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>VM_DISABLE_SHUTDOWN</b></td>
+        <td> Bool </td>
+        <td> False </td>
+        <td>
+            <P>Disables VM from automatically shutting down after
+            the glideinwms-pilot service has exited.<br>
+            <font color="ff0000"><b>NOTE:</b>
+            This variable is for debugging purposes only and should
+            not be set to True in the Production environment. Disabling
+            auto shutdown could result in accumulating financial charges
+            in case of paid clouds.</font></P>
+        </TD>
+    </TR>
+</TABLE>
+
+
 
 
 <div class="section">
