@@ -41,8 +41,7 @@ case $sitewms in
         # for slotx instead of slotx_y
       
         hostname=`uname -n`
-        slot="${_CONDOR_SLOT}"
-        [ "$slot" = "" ] && slot="slot1"
+        slot=${_CONDOR_SLOT:-"slot1"}
         sitewms_slot="$slot@$hostname"
 
         #slotid=`grep -i "^remoteslotid = " $_CONDOR_JOB_AD | awk -F'=' '{print $NF}' | tr -d ' '`
