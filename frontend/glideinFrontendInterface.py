@@ -754,7 +754,7 @@ class MultiAdvertizeWork:
                
                 req_idle=0
                 req_max_run=0
-                if x509_proxies_data is not None:
+                if x509_proxies_data:
                     credential_el=x509_proxies_data[i]
                     logSupport.log.debug("Checking Credential file %s ..."%(credential_el.filename))
                     if credential_el.advertize==False:
