@@ -733,7 +733,7 @@ class MultiAdvertizeWork:
             x509_proxies_data=descript_obj.x509_proxies_plugin.get_credentials(params_obj=params_obj,credential_type=factory_auth,trust_domain=factory_trust)
             nr_credentials=len(x509_proxies_data)
         else:
-            nr_credentials=1
+            nr_credentials=0
             logSupport.log.error("No credentials detected! This is probably a misconfiguration!")
 
         cred_filename_arr=[]
