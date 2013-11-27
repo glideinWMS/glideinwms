@@ -230,11 +230,17 @@ function b64uuencode {
 function cond_print_log {
     # $1 = fname
     # $2 = fpath
-    if [ -f  "$2" ]; then
-    echo "$1" 1>&2
-    echo "======== gzip | uuencode =============" 1>&2
-    gzip --stdout "$2" | b64uuencode 1>&2
-    echo
+
+    logname=$1
+    shift
+    # Use ls to allow fpath to include wild cards
+    files_to_zip="`ls -1 $@ 2>/dev/null`"
+    
+    if [ "$files_to_zip" != "" ]; then
+        echo "$logname" 1>&2
+        echo "======== gzip | uuencode =============" 1>&2
+        gzip --stdout $files_to_zip | b64uuencode 1>&2
+        echo
     fi
 }
 
@@ -804,7 +810,7 @@ if [ 1 -eq 1 ]; then
     echo
     cond_print_log MasterLog log/MasterLog
     cond_print_log StartdLog log/StartdLog
-    cond_print_log StarterLog ${main_starter_log}
+    cond_print_log StarterLog ${main_starter_log} ${main_starter_log}.slot*
     if [ "$use_multi_monitor" -ne 1 ]; then
       if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
         cond_print_log MasterLog.monitor monitor/log/MasterLog
