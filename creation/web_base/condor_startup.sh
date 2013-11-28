@@ -810,7 +810,14 @@ if [ 1 -eq 1 ]; then
     echo
     cond_print_log MasterLog log/MasterLog
     cond_print_log StartdLog log/StartdLog
-    cond_print_log StarterLog ${main_starter_log} ${main_starter_log}.slot*
+    cond_print_log StarterLog ${main_starter_log}
+    slotlogs="`ls -1 ${main_starter_log}.slot* 2>/dev/null`"
+    for slotlog in $slotlogs
+    do
+        slotname=`echo $slotlog | awk -F"${main_starter_log}." '{print $2}'`
+        cond_print_log StarterLog.${slotname} $slotlog
+    done
+
     if [ "$use_multi_monitor" -ne 1 ]; then
       if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
         cond_print_log MasterLog.monitor monitor/log/MasterLog
