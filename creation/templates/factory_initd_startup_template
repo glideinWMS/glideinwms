@@ -113,8 +113,10 @@ reconfig() {
           fi
         fi
         
+        pushd $factory_dir
         "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" -writeback "$writeback" -update_scripts "no" -xml "$cfg_loc" -update_def_cfg "$update_def_cfg" $force_delete $fix_rrd -comment "$comment"
         reconfig_failed=$?
+        popd
         echo -n "Reconfiguring the factory"
         test $reconfig_failed -eq 0 && success || failure
         RETVAL=$?
