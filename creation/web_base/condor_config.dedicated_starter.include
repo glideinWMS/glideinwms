@@ -41,3 +41,5 @@ STARTD_NOCLAIM_SHUTDOWN = $(GLIDEIN_Max_Idle)
 #
 MASTER.DAEMON_SHUTDOWN = (STARTD_StartTime =?= 0)
 
+# Make sure subslots get renegotiated
+CLAIM_WORKLIFE = ifThenElse(DynamicSlot =?= True, 300, -1)
