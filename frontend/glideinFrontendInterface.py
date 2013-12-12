@@ -727,12 +727,15 @@ class MultiAdvertizeWork:
         
         logSupport.log.info("In create Advertize work");
 
+        x509_proxies_data = []
         factory_trust,factory_auth=self.factory_constraint[params_obj.request_name]
         if descript_obj.x509_proxies_plugin is not None:
             x509_proxies_data=descript_obj.x509_proxies_plugin.get_credentials(params_obj=params_obj,credential_type=factory_auth,trust_domain=factory_trust)
             nr_credentials=len(x509_proxies_data)
         else:
             nr_credentials=1
+            logSupport.log.error("No credentials detected! This is probably a misconfiguration!")
+
         cred_filename_arr=[]
 
         if nr_credentials == 0:
@@ -751,7 +754,7 @@ class MultiAdvertizeWork:
                
                 req_idle=0
                 req_max_run=0
-                if x509_proxies_data is not None:
+                if x509_proxies_data:
                     credential_el=x509_proxies_data[i]
                     logSupport.log.debug("Checking Credential file %s ..."%(credential_el.filename))
                     if credential_el.advertize==False:
