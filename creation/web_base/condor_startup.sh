@@ -573,6 +573,9 @@ DS${I}_IDLE = ( (Slot${I}_Activity == "Idle") && \\
 DS${I} = (\$(DS${I}_TO_DIE) || \\
          (\$(DS${I}_IDLE) && ((PartitionableSlot =!= True) || (TotalSlots =?=1))))
 
+# But don't enforce shutdowns for dynamic slots (aka "subslots")
+DS${I} = (DynamicSlot =!= True) && (\$(DS${I}))
+
 EOF
         if [ "X$daemon_shutdown" != "X" ]; then
             daemon_shutdown="$daemon_shutdown &&"
