@@ -41,7 +41,8 @@ GLIDECLIENT_Group_Hold	C	False		+				N	N	-
 GLIDECLIENT_Group_PREEMPT	C	False		+				N	N	-
 GLIDECLIENT_Rank	C	1		+				N	N	-
 GLIDECLIENT_Group_Rank	C	1		+				N	N	-
-GLIDEIN_DYNAMICSLOT_CLAIM_WORKLIFE	I	3600		+				N	N	-
+GLIDEIN_CLAIM_WORKLIFE_DYNAMIC	I	3600		+				N	N	-
+GLIDEIN_CLAIM_WORKLIFE	I	-1		+				N	N	-
 
 # Factory provided
 GLIDEIN_Factory		S	-		+				Y	Y	@
