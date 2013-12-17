@@ -65,8 +65,8 @@ def get_glidein_logs(factory_dir,entries,date_arr,time_arr,ext="err"):
 
     return log_list
 
-# extract the blob from a glidein log file
-def get_Compressed_raw(log_fname,start_str):
+# extract the blob from a glidein log file starting from position 
+def get_Compressed_raw(log_fname,start_str, start_pos=0):
     SL_START_RE=re.compile("%s\nbegin-base64 644 -\n"%start_str,re.M|re.DOTALL)
     size = os.path.getsize(log_fname)
     if size==0:
@@ -148,4 +148,23 @@ def get_XMLResult(log_fname):
     start_str="^=== XML description of glidein activity ==="
     end_str="^=== End XML description of glidein activity ==="
     return get_Simple(log_fname,start_str,end_str)
+
+
+# extract slot names
+def get_StarterSlotNames(log_fname, condor_log_id='(StarterLog.slot[0-9]*[_]*[0-9]*)'):
+    start_str="^%s\n======== gzip . uuencode ============="%condor_log_id
+    SL_START_RE=re.compile("%s\nbegin-base64 644 -\n"%start_str,re.M|re.DOTALL)
+    size = os.path.getsize(log_fname)
+    if size==0:
+        return "" # mmap would fail... and I know I will not find anything anyhow
+    fd=open(log_fname)
+    try:
+        buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
+        try:
+            strings = SL_START_RE.findall(buf, 0)
+            return strings
+        finally:
+            buf.close()
+    finally:
+        fd.close()
 
