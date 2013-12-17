@@ -110,8 +110,13 @@ def main(params, old_params, update_scripts, update_def_cfg):
 ############################################################
 
 if __name__ == '__main__':
-    usage = "{ -force_name name -writeback yes|no -update_scripts yes|no -xml xml -update_def_cfg yes|no [-xslt_plugin_dir xdir] | -help }"
+    usage = "usage: reconfig_frontend { -force_name name -writeback yes|no -update_scripts yes|no -xml xml -update_def_cfg yes|no [-xslt_plugin_dir xdir] | -help }"
     argv = sys.argv
+
+    if len(argv) == 1:
+        print usage
+        sys.exit(1)
+
     force_name = None
     writeback = 'no'
     update_scripts = 'no'
