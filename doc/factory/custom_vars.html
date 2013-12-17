@@ -905,10 +905,8 @@ described below ar the most often used.</P>
             <p>This attribute regulates advertising of validation failures to the user collector.
             <ul>
               <li><b>NEVER</b> - The glidein will just fail, and do nothing.
-              <li><b>ALIVEONLY</b> - The glidein will advertise a Machine ClassAd in <i>Drained</i> state and <i>Retiring</i> activity 
-                                     for the lifetime of the glidein script.
-              <li><b>ALWAYS</b> - Similar to <b>ALIVEONLY</b>, but will also send a final ClassAd
-                                     in <i>Drained</i> state and <i>Killing</i> activity just before dying.
+              <li><b>ALIVEONLY</b> - The glidein will advertise a Machine ClassAd in <i>Drained</i> state and <i>Retiring</i> activity for the lifetime of the glidein script.
+              <li><b>ALWAYS</b> - Similar to <b>ALIVEONLY</b>, but will also send a final ClassAd in <i>Drained</i> state and <i>Killing</i> activity just before dying.
             </ul>
             <p>When advertised, the classad is flagged <i>GLIDEIN_Failed=True</i>, 
                the error is recorded in the <i>GLIDEIN_FAILURE_REASON</i> and
@@ -916,7 +914,22 @@ described below ar the most often used.</P>
                the failing script is recorded in the <i>GLIDEIN_LAST_SCRIPT</i> attribute.
        </TD>
     </TR>
+    <TR>
+        <td> <b>GLIDEIN_CLAIM_WORKLIFE</b> </td>
+        <td> Int </TD>
 
+        <TD>
+            <p>CLAIM_WORKLIFE for non-dynamic slots. Defaults to -1 i.e. HTCondor will treat this as an infinite claim worklife and schedd will hold claim to the slot until jobs are preempted or user runs out of jobs.
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_CLAIM_WORKLIFE_DYNAMIC</b> </td>
+        <td> Int </TD>
+
+        <TD>
+            <p>CLAIM_WORKLIFE for dynamically partitionable slots. Defaults to 3600. This controls how frequently the dynamically partionable slots will coalesce.
+        </TD>
+    </TR>
 
 </TABLE>
 </div>
