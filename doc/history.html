@@ -84,6 +84,29 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
+        <b>v3_2_3</b> released on December xx, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_3/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_3/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_3.tgz">Tarball</a>)<br>
+       <ul>
+         <li>Glideins now have the ability to track the worker node batch slot.
+         Based on the batch system at site (HTCondor, SGE, PBS, LSF, SLURM) the
+         information is reported in the glidein's STARTD classad and logged in
+         job's log file written by HTCondor using classad variables
+         GLIDEIN_SiteWMS, GLIDEIN_SiteWMS_JOBID, GLIDEIN_SiteWMS_QUEUE and
+         GLIDEIN_SiteWMS_SLOT.
+         <li>Bug Fix: Factory now correctly updates the renewed credentials it gets
+         from the Frontends
+         <li>Bug Fix: Cloud related configuration attributes VM_DISABLE_SHUTDOWN and
+         VM_MAX_LIFETIME are now documented
+         <li>Bug Fix: Partitionable slots now correctly evaluate daemon shutdown
+         <li>Bug Fix: Partitionable slots now correctly coalesce when the jobs
+         finish
+         <li>Bug Fix: For non-rpm installs, reconfiguring the factory from outside
+         the factory working directory now works correctly
+         <li>Bug Fix: Frontend with no credentials configured logs appropriate info
+         in the log files
+         <li>Bug Fix: clone_glidein tool is now packaged with the factory rpm
+       </ul>
+      </li>
+      <li>
         <b>v3_2_2</b> released on November 08, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_2/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_2/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_2.tgz">Tarball</a>)<br>
         <ul>
           <li>Bug Fix: Fix a bug where factory would crash if it fails

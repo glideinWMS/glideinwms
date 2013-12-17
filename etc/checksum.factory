@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_2
+# GLIDEINWMS_VERSION v3_2_3_rc1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -18,11 +18,11 @@ d70c079e6098d20b9cccfe8b60ee40ca  ./creation/lib/cWParams.py
 e4405e764b1e40327893d990ae6780f8  ./creation/lib/cgWConsts.py
 c902f50a5af82d281d6c58a67ebfd2a7  ./creation/lib/cgWCreate.py
 8654d73e182dae4e6c4d5a9b8e2a6151  ./creation/lib/cgWDictFile.py
-d7b8b8e184202922b20afc7a30e51b00  ./creation/lib/cgWParamDict.py
+f34b30c9f8abd4b5ea5150806152665c  ./creation/lib/cgWParamDict.py
 005944551445102831e25264a49df117  ./creation/lib/cgWParams.py
 414dd08400e9050a5c7e6a64fa7a4d94  ./creation/lib/xslt.py
 4d8f0e17478e69364cdadb61f81b99ac  ./creation/reconfig_glidein
-15e8c97a557f910b5966a5a547a0899c  ./creation/templates/factory_initd_startup_template
+eb1f8bac7142ee514517d8bb2df60747  ./creation/templates/factory_initd_startup_template
 0cae63ee6a72dc91cc3a2d1f8ccecbce  ./creation/web_base/advertise_failure.helper
 1a794306785cd9f0489ba1b484470af1  ./creation/web_base/cat_consts.sh
 40a2b85a853a072f65049c4efe64bc3a  ./creation/web_base/check_blacklist.sh
@@ -30,12 +30,12 @@ d6e9206dcfd49aad71e0cc3e1954834a  ./creation/web_base/check_proxy.sh
 63c09f1369fb7e7f6ef00e6aa418a6c5  ./creation/web_base/collector_setup.sh
 deab109042c60b4fcf7b2cd157536859  ./creation/web_base/condor_config
 a4a3ccaf64969f678872fab82e3bc6fc  ./creation/web_base/condor_config.check.include
-526264bdaaa154bc3d12458dedc9b574  ./creation/web_base/condor_config.dedicated_starter.include
+25b01eb426a9d26434264fb306a3e839  ./creation/web_base/condor_config.dedicated_starter.include
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
-f9a71916006e1a7f7778966628b0b232  ./creation/web_base/condor_config.multi_schedd.include
+68dfdebf47aa54c20d6ab998b12b4eed  ./creation/web_base/condor_config.multi_schedd.include
 e045ab0b0412b0e990c55e42d6b8fbe4  ./creation/web_base/condor_platform_select.sh
-615670498879f1b2f35f801fcec35a86  ./creation/web_base/condor_startup.sh
-e1e9d5406c59a102a13d9a2062416d59  ./creation/web_base/condor_vars.lst
+50e1e76b7f3fa68925f25e6a06912381  ./creation/web_base/condor_startup.sh
+a3fc971818cd55de2354dfb59037ccf3  ./creation/web_base/condor_vars.lst
 d9518531cad88a401b4c0ffcfe043a5e  ./creation/web_base/condor_vars.lst.entry
 f73538bb344db6b4435814c518fb3921  ./creation/web_base/create_mapfile.sh
 6d19939557bb1086d5d01739bdad62dd  ./creation/web_base/create_temp_mapfile.sh
@@ -61,6 +61,7 @@ c1527cf661115760242852c0421921bd  ./creation/web_base/gcb_setup.sh
 0203b8ae9c738d86e1d5af2b88e21556  ./creation/web_base/glexec_setup.sh
 2286d88123059b704c828009d7911007  ./creation/web_base/glidein_cpus_setup.sh
 06a2ccef37b281a4546a61e3b31c2512  ./creation/web_base/glidein_memory_setup.sh
+9c5707b728923b90c8f56ac201f6c686  ./creation/web_base/glidein_sitewms_setup.sh
 3a61a489ec6a97ddda9cb3416d7425a6  ./creation/web_base/glidein_startup.sh
 1f3bbb3416afab773e58aab138e4ccd3  ./creation/web_base/java_setup.sh
 78d344f14e5e2144227c564f2d90401e  ./creation/web_base/local_start.sh
@@ -79,7 +80,7 @@ fb52dc83f5c6c4e9318c6f35548e7e0f  ./factory/glideFactoryCredentials.py
 d1a36f5ca6b8113716a287f340eff9e5  ./factory/glideFactoryEntry.py
 b2c8a45e6552163d238b3c880bbe5e41  ./factory/glideFactoryEntryGroup.py
 ad1f4981740a508121181d6a35ef7bb7  ./factory/glideFactoryInterface.py
-680f2002abb2ea63ea4d7edaabae2561  ./factory/glideFactoryLib.py
+4e42156b2c5a7ff584092971322c9967  ./factory/glideFactoryLib.py
 465614b1447fb15115d4569a56175b8c  ./factory/glideFactoryLogParser.py
 c4f1e786807971984b1582d66d6a6d78  ./factory/glideFactoryMonitorAggregator.py
 7d297d2098f1e375b060cd1685d671dc  ./factory/glideFactoryMonitoring.py
@@ -94,7 +95,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./factory/tools/__init__.py
 e6dfaf8032a52b623b18469c405f0ab7  ./factory/tools/analyze_queues
 da8999ea9f852d3dc1090edbbeb8f87d  ./factory/tools/cat_MasterLog.py
 23c4c0188942af50174f276852523398  ./factory/tools/cat_StartdLog.py
-80c1c3ff3fdd43107f9f3ceb819ddcd9  ./factory/tools/cat_StarterLog.py
+47faab15bc2e76cc4c7f3d8254f2ca71  ./factory/tools/cat_StarterLog.py
 4d02976d73a4b588bd586e91594f3696  ./factory/tools/cat_XMLResult.py
 6d989d4bde7c2d8e353641e43e21215a  ./factory/tools/cat_logs.py
 0d2c30ca235d8560463ac6670fb1e3d7  ./factory/tools/configGUI.py
@@ -116,7 +117,7 @@ e42da857a7614a1537bb1a5726c6f819  ./factory/tools/find_new_entries.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/tools/lib/__init__.py
 e5e7085488190f286e8010de400f3c58  ./factory/tools/lib/analyze.py
 c3a1c5b5b6bfd7f4ee399b2da67fc66c  ./factory/tools/lib/gWftArgsHelper.py
-9bb1463e03c33c1c1c32f77d321e06c7  ./factory/tools/lib/gWftLogParser.py
+885a81597a101b21cdcd637432d53284  ./factory/tools/lib/gWftLogParser.py
 27378913b004f3728042593761b9baa8  ./factory/tools/manual_glidein_submit.py
 0bebcfc9e26f62064fd084233e347e76  ./factory/tools/proxy_info
 9372e3312529f81507a59fb1afb98fe9  ./install/__init__.py

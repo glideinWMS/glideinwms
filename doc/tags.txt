@@ -1,3 +1,21 @@
+v3_2_3  Glideins now have the ability to track the worker node batch slot.
+          Based on the batch system at site (HTCondor, SGE, PBS, LSF, SLURM) the
+          information is reported in the glidein's STARTD classad and logged in
+          job's log file written by HTCondor using classad variables
+          GLIDEIN_SiteWMS, GLIDEIN_SiteWMS_JOBID, GLIDEIN_SiteWMS_QUEUE and
+          GLIDEIN_SiteWMS_SLOT.
+        Bug Fix: Factory now correctly updates the renewed credentials it gets
+          from the Frontends
+        Bug Fix: Cloud related configuration attributes VM_DISABLE_SHUTDOWN and
+          VM_MAX_LIFETIME are now documented
+        Bug Fix: Partitionable slots now correctly evaluate daemon shutdown
+        Bug Fix: Partitionable slots now correctly coalesce when the jobs finish
+        Bug Fix: For non-rpm installs, reconfiguring the factory from outside
+          the factory working directory now works correctly
+        Bug Fix: Frontend with no credentials configured logs appropriate info
+          in the log files
+        Bug Fix: clone_glidein tool is now packaged with the factory rpm
+
 v3_2_2  Bug Fix: Fix a bug where factory would crash if it fails to query
           client global classads in wms collector
         Bug Fix: Glidein jobs correctly interpret the ARC CE FINISHED state
