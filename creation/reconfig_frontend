@@ -117,6 +117,9 @@ if __name__ == '__main__':
         print usage
         sys.exit(1)
 
+    if not os.geteuid():
+        print "NOTE: Executing reconfig_frontend as user 'root' is not allowed. Use the frontend user instead. For rpm based installations, use the 'service gwms-frontend <start|stop|reconfig|...>' command to perform gwms-frontend operations"
+
     force_name = None
     writeback = 'no'
     update_scripts = 'no'

@@ -178,6 +178,9 @@ if __name__ == '__main__':
         print usage
         sys.exit(1)
 
+    if not os.geteuid():
+        print "NOTE: Executing reconfig_glidein as user 'root' is not allowed. Use the factory user instead. For rpm based installations, use the 'service gwms-factory <start|stop|reconfig|...>' command to perform gwms-factory operations"
+
     force_name = None
     writeback = 'no'
     update_scripts = 'no'
