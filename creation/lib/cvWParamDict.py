@@ -601,9 +601,8 @@ MATCH_ATTR_CONV={'string':'s','int':'i','real':'r','bool':'b'}
 def apply_group_glexec_policy(descript_dict, sub_params, params):
 
     glidein_glexec_use = None
-    #query_expr = sub_params.match['factory']['query_expr']
     query_expr = descript_dict['FactoryQueryExpr']
-    match_expr = sub_params.match.match_expr
+    match_expr = descript_dict['MatchExpr']
     ma_arr = []
     match_attrs = None
 
