@@ -38,16 +38,33 @@ start() {
         
 stop() {
         echo -n "Shutting down glideinWMS frontend $id_str: "
-        "$glideinWMS_dir/frontend/stopFrontend.py" "$frontend_dir" 2>/dev/null 1>&2 </dev/null && success || failure
-        RETVAL=$?
-        echo
+        "$glideinWMS_dir/frontend/stopFrontend.py" -f "$frontend_dir" 2>/dev/null 1>&2 </dev/null && success || failure
+        RETVAL=$? 
+        echo 
 }
         
 restart() {
         stop
         if [ $RETVAL -ne 0 ]; then
+            # Waiting 30 sec for the shutdown to complete
+            echo "Waiting for the glideinWMS frontend to shutdown" 2>&1
+            for i in range(60); do
+                # Returns 0 if running, 1 if not
+                "$glideinWMS_dir/frontend/checkFrontend.py" "$frontend_dir" >/dev/null 2>&1 </dev/null
+                if [ $? -eq 1 ]; then
+                    RETVAL=0
+                    break
+                fi
+                sleep 1
+                echo -n "."
+            done
+            echo
+        fi
+        if [ $RETVAL -ne 0 ]; then
+          echo "Failed to stop the glidinWMS factory. Please check."
           exit $RETVAL
         fi
+        echo "Shutdown complete"
         start
 }
 

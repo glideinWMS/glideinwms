@@ -4,14 +4,12 @@
 # description: Starts and stops a glideinWMS factory
 
 # Emulate function library.
-success()
-{
+success() {
     echo -en "\\033[60G[\033[32mOK\033[0m]"
     return 0
 }
 
-failure()
-{
+failure() {
     echo -en "\\033[60G[\033[31mFAILED\033[0m]"
     return 1
 }
@@ -28,8 +26,7 @@ glidein_name=`awk '/^GlideinName /{print $2}' ${factory_dir}/glidein.descript`
 id_str="$glidein_name@${factory_name}"
 
 
-start()
-{
+start() {
     cwd=`pwd`
     cd $factory_dir
     echo -n "Starting glideinWMS factory $id_str: "
@@ -43,20 +40,35 @@ start()
     echo
 }
 
-stop()
-{
+stop() {
     echo -n "Shutting down glideinWMS factory $id_str: "
     "$glideinWMS_dir/factory/stopFactory.py" "$factory_dir" 2>/dev/null 1>&2 </dev/null && success || failure
     RETVAL=$?
     echo
 }
 
-restart()
-{
+restart() {
     stop
     if [ $RETVAL -ne 0 ]; then
+        # Waiting 30 sec for the shutdown to complete
+        echo "Waiting for the glideinWMS factory to shutdown" 2>&1
+        for i in range(60); do
+            # Returns 0 if running, 1 if not
+            "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir" >/dev/null 2>&1 </dev/null
+            if [ $? -eq 1 ]; then
+                RETVAL=0
+                break
+            fi
+            sleep 1
+            echo -n "."
+        done
+        echo
+    fi
+    if [ $RETVAL -ne 0 ]; then
+        echo "Failed to shutdown the glidinWMS factory. Please check."
         exit $RETVAL
     fi
+    echo "Shutdown complete"
     start
 }
 
@@ -172,8 +184,7 @@ upgrade() {
         fi
 }
 
-downtime()
-{
+downtime() {
     if [ -z "$3" ]; then
         echo $"Usage: factory_startup $1 -entry \'factory\'|\'entries\'|entry_name [-delay delay] [-frontend sec_name] [-security sec_class|\'All\'] [-comment comment]"
         exit 1
