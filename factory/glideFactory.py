@@ -673,7 +673,11 @@ def main(startup_dir):
     increase_process_limit()
 
     # start
-    pid_obj.register()
+    try:
+        pid_obj.register()
+    except AlreadyRunning, err:
+        logSupport.log.exception("Exception during registration: %s" % err)
+        raise
     try:
         try:
             spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,

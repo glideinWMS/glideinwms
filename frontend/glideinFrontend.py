@@ -307,7 +307,11 @@ def main(work_dir):
     pid_obj = glideinFrontendPidLib.FrontendPidSupport(work_dir)
 
     # start
-    pid_obj.register()
+    try:
+        pid_obj.register()
+    except AlreadyRunning, err:
+        logSupport.log.exception("Exception during registration: %s" % err)
+        raise
     try:
         try:
             spawn(sleep_time, advertize_rate, work_dir,
