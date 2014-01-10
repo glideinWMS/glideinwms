@@ -614,7 +614,10 @@ override the global arguments if present.
     (example: '<tt>(condorsubmit=(universe vanilla)(requirements \&quot;(ISMINOSAFS=?=True)\&quot;))</tt>'). <br/>
     NOTE:  If the auth_method contains "+project_id" for a TeraGrid entry, the string "(project=TG_PROJECT_ID)" 
     will be added by the Factory and populated with the project id passed in the Corral request.  Only Corral Frontends can use
-    these entries since we currently do not support a VO Frontend passing the project id.
+    these entries since we currently do not support a VO Frontend passing the project id.<p>
+    The rsl attribute uses a different format for HTCondor-CE entries.  The format is Key/Value pairs separated by the
+    pound symbol. Example:
+    <pre>RequestMemory=1024#RequestCpus=1</pre>
     </li>
     <li>
         <div class="xml">
