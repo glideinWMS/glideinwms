@@ -38,6 +38,15 @@ frontendConfig=FrontendConfig()
 
 ############################################################
 #
+# Helper function
+#
+############################################################
+def get_group_dir(base_dir,group_name):
+    return os.path.join(base_dir,"group_"+group_name)
+
+
+############################################################
+#
 # Generic Class
 # You most probably don't want to use these
 #
@@ -116,7 +125,7 @@ class ConfigFile:
 class GroupConfigFile(ConfigFile):
     def __init__(self,base_dir,group_name,config_file,convert_function=repr,
                  validate=None): # if defined, must be (hash_algo,value)
-        ConfigFile.__init__(self,os.path.join(base_dir,"group_"+group_name),config_file,convert_function,validate)
+        ConfigFile.__init__(self,get_group_dir(base_dir,group_name),config_file,convert_function,validate)
         self.group_name=group_name
 
 # load both the main and group subdir config file
@@ -357,7 +366,7 @@ class MergeStageFiles:
                  group_name,group_descript_fname,group_signature_hash):
         self.group_name=group_name
         self.main_stage=ExtStageFiles(base_URL,main_descript_fname,validate_algo,main_signature_hash)
-        self.group_stage=ExtStageFiles(os.path.join(base_URL,"group_"+group_name),group_descript_fname,validate_algo,group_signature_hash)
+        self.group_stage=ExtStageFiles(get_group_dir(base_URL,group_name),group_descript_fname,validate_algo,group_signature_hash)
 
     def get_constants(self):
         main_consts=self.main_stage.get_constants()

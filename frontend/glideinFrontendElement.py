@@ -970,10 +970,12 @@ def iterate(parent_pid, elementDescript, paramsDescript, attr_dict, signatureDes
 def main(parent_pid, work_dir, group_name):
     startup_time = time.time()
 
+    group_dir = glideinFrontendConfig.get_group_dir(work_dir, group_name)
+    
     elementDescript = glideinFrontendConfig.ElementMergedDescript(work_dir, group_name)
 
     # the log dir is shared between the frontend main and the groups, so use a subdir
-    logSupport.log_dir = os.path.join(elementDescript.frontend_data['LogDir'], "group_%s" % group_name)
+    logSupport.log_dir = glideinFrontendConfig.get_group_dir(elementDescript.frontend_data['LogDir'], group_name)
     
     # Configure frontend group process logging
     process_logs = eval(elementDescript.frontend_data['ProcessLogs']) 
@@ -1004,7 +1006,7 @@ def main(parent_pid, work_dir, group_name):
 
     attr_dict=attrsDescript.data
 
-    glideinFrontendMonitoring.monitoringConfig.monitor_dir = os.path.join(work_dir, "monitor/group_%s" % group_name)
+    glideinFrontendMonitoring.monitoringConfig.monitor_dir =glideinFrontendConfig.get_group_dir(os.path.join(work_dir, "monitor"), group_name)
 
     glideinFrontendInterface.frontendConfig.advertise_use_tcp = (elementDescript.frontend_data['AdvertiseWithTCP'] in ('True', '1'))
     glideinFrontendInterface.frontendConfig.advertise_use_multi = (elementDescript.frontend_data['AdvertiseWithMultiple'] in ('True', '1'))
@@ -1019,7 +1021,7 @@ def main(parent_pid, work_dir, group_name):
         if not glideinFrontendPlugins.proxy_plugins.has_key(elementDescript.merged_data['ProxySelectionPlugin']):
             logSupport.log.warning("Invalid ProxySelectionPlugin '%s', supported plugins are %s" % (elementDescript.merged_data['ProxySelectionPlugin']), glideinFrontendPlugins.proxy_plugins.keys())
             return 1
-        x509_proxy_plugin = glideinFrontendPlugins.proxy_plugins[elementDescript.merged_data['ProxySelectionPlugin']](os.path.join(work_dir, "group_%s" % group_name), glideinFrontendPlugins.createCredentialList(elementDescript))
+        x509_proxy_plugin = glideinFrontendPlugins.proxy_plugins[elementDescript.merged_data['ProxySelectionPlugin']](group_dir, glideinFrontendPlugins.createCredentialList(elementDescript))
     else:
         # no proxies, will try to use the factory one
         x509_proxy_plugin = None
