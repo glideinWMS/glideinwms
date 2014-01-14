@@ -277,7 +277,8 @@ def main(work_dir):
                                           plog['msg_types'], plog['extension'],
                                           int(float(plog['max_days'])),
                                           int(float(plog['min_days'])),
-                                          int(float(plog['max_mbytes'])))
+                                          int(float(plog['max_mbytes'])),
+                                          int(float(plog['backup_count'])))
     logSupport.log = logging.getLogger("frontend")
     logSupport.log.info("Logging initialized")
     logSupport.log.debug("Frontend startup time: %s" % str(startup_time))

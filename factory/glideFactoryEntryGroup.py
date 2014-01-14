@@ -733,10 +733,12 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
 def init_logs(name, log_dir, process_logs):
     for plog in process_logs:
         logSupport.add_processlog_handler(name, log_dir,
-                                          plog['msg_types'], plog['extension'],
+                                          plog['msg_types'],
+                                          plog['extension'],
                                           int(float(plog['max_days'])),
                                           int(float(plog['min_days'])),
-                                          int(float(plog['max_mbytes'])))
+                                          int(float(plog['max_mbytes'])),
+                                          int(float(plog['backup_count'])))
         logSupport.log = logging.getLogger(name)
         logSupport.log.info("Logging initialized for %s" % name)
 
