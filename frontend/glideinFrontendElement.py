@@ -889,7 +889,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
     return
 
 ############################################################
-def iterate(parent_pid, elementDescript, paramsDescript, attr_dict, signatureDescript, x509_proxy_plugin):
+def iterate(parent_pid, elementDescript, paramsDescript, attr_dict, signatureDescript, x509_proxy_plugin, history_obj):
     sleep_time = int(elementDescript.frontend_data['LoopDelay'])
 
     factory_pools = elementDescript.merged_data['FactoryCollectors']
@@ -898,7 +898,6 @@ def iterate(parent_pid, elementDescript, paramsDescript, attr_dict, signatureDes
     group_name = elementDescript.element_data['GroupName']
 
     stats = {}
-    history_obj = {}
 
     if not elementDescript.frontend_data.has_key('X509Proxy'):
         published_frontend_name = '%s.%s' % (frontend_name, group_name)
@@ -918,6 +917,7 @@ def iterate(parent_pid, elementDescript, paramsDescript, attr_dict, signatureDes
                 stats['group'] = glideinFrontendMonitoring.groupStats()
 
                 done_something = iterate_one(published_frontend_name, elementDescript, paramsDescript, attr_dict, signatureDescript, x509_proxy_plugin, stats, history_obj)
+                history_obj.save()
                 logSupport.log.info("iterate_one status: %s" % str(done_something))
 
                 logSupport.log.info("Writing stats")
@@ -1011,6 +1011,8 @@ def main(parent_pid, work_dir, group_name):
     glideinFrontendInterface.frontendConfig.advertise_use_tcp = (elementDescript.frontend_data['AdvertiseWithTCP'] in ('True', '1'))
     glideinFrontendInterface.frontendConfig.advertise_use_multi = (elementDescript.frontend_data['AdvertiseWithMultiple'] in ('True', '1'))
 
+    history_obj = glideinFrontendConfig.HistoryFile(work_dir, group_name, True)
+
     try:
         glideinwms_dir = os.path.dirname(os.path.dirname(sys.argv[0]))
         glideinFrontendInterface.frontendConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(glideinwms_dir, 'checksum.frontend').version()
@@ -1038,7 +1040,7 @@ def main(parent_pid, work_dir, group_name):
     try:
         try:
             logSupport.log.info("Starting up")
-            iterate(parent_pid, elementDescript, paramsDescript, attr_dict, signatureDescript, x509_proxy_plugin)
+            iterate(parent_pid, elementDescript, paramsDescript, attr_dict, signatureDescript, x509_proxy_plugin, history_obj)
         except KeyboardInterrupt:
             logSupport.log.info("Received signal...exit")
         except:

@@ -1,6 +1,7 @@
 import string
 import os.path
 import urllib
+import cPickle
 
 from glideinwms.lib import hashCrypto
 
@@ -31,6 +32,7 @@ class FrontendConfig:
         self.attrs_descript_file = "attrs.cfg"
         self.signature_descript_file = "signatures.sha1"
         self.signature_type = "sha1"
+        self.history_file = "history.pk"
 
 # global configuration of the module
 frontendConfig=FrontendConfig()
@@ -389,3 +391,87 @@ class MergeStageFiles:
         main_cv.group_hash_value=group_cv.hash_value
 
         return main_cv
+
+############################################################
+#
+# Processed configuration
+#
+############################################################
+
+class HistoryFile:
+    def __init__(self, base_dir, group_name, load_on_init = True):
+        self.base_dir = base_dir
+        self.group_name = group_name
+        self.fname = os.path.join(get_group_dir(base_dir, group_name), frontendConfig.history_file)
+
+        self.data = {}
+
+        if load_on_init:
+            self.load()
+
+    def load(self, raise_on_error = False):
+        try:
+            fd = open(self.fname,'r')
+            try:
+                data = cPickle.load(fd)
+            finally:
+                fd.close()
+        except:
+            if raise_on_error:
+                raise
+            else:
+                # default to empty history on error
+                data = {}
+
+        if type(data) != type({}):
+            if raise_on_error:
+                raise TypeError, "History object not a dictionary: %s" % str(type(data))
+            else:
+                # default to empty history on error
+                data = {}
+
+        self.data = data
+
+    def save(self, raise_on_error = False):
+        try:
+            # there is no concurrency, so does not need to be done atomically
+            fd = open(self.fname, 'w')
+            try:
+                cPickle.dump(fd, self.data, cPickle.HIGHEST_PROTOCOL)
+            finally:
+                fd.close()
+        except:
+            if raise_on_error:
+                raise
+            #else, just ignore
+
+    def has_key(self, keyid):
+        return self.data.has_key(keyid)
+
+    def __getattr__(self, keyid):
+        return self.data[keyid]
+
+    def __setattr__(self, keyid, val):
+        self.data[keyid] = val
+
+    def __delattr__(self, keyid):
+        del self.data[keyid]
+
+    def empty(self):
+        self.data = {}
+
+    def get(self, keyid):
+        """
+        Return the value of the keyid key, if exists.
+        Raise like [] if the key does not exist.
+        """
+        return self.data[keyid]
+
+    def get_dict_el(self, keyid):
+        """
+        Return the value of the keyid key, if exists.
+        Create an empty dictionary for the key, and return it, else.
+        """
+        if not self.data.has_key(keyid):
+            self.data[keyid] = {}
+        return self.data[keyid]
