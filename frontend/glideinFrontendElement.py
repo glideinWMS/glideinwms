@@ -978,10 +978,12 @@ def main(parent_pid, work_dir, group_name):
     # Configure frontend group process logging
     process_logs = eval(elementDescript.frontend_data['ProcessLogs']) 
     for plog in process_logs:
-        logSupport.add_processlog_handler(group_name, logSupport.log_dir, plog['msg_types'], plog['extension'],
-                                      int(float(plog['max_days'])),
-                                      int(float(plog['min_days'])),
-                                      int(float(plog['max_mbytes'])))
+        logSupport.add_processlog_handler(group_name, logSupport.log_dir,
+                                          plog['msg_types'], plog['extension'],
+                                          int(float(plog['max_days'])),
+                                          int(float(plog['min_days'])),
+                                          int(float(plog['max_mbytes'])),
+                                          int(float(plog['backup_count'])))
     logSupport.log = logging.getLogger(group_name)
     logSupport.log.info("Logging initialized")
     logSupport.log.debug("Frontend Element startup time: %s" % str(startup_time))

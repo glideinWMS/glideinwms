@@ -87,7 +87,8 @@ class Entry:
                                               plog['extension'],
                                               int(float(plog['max_days'])),
                                               int(float(plog['min_days'])),
-                                              int(float(plog['max_mbytes'])))
+                                              int(float(plog['max_mbytes'])),
+                                              int(float(plog['backup_count'])))
         self.log = logging.getLogger(self.name)
 
         cleaner = cleanupSupport.PrivsepDirCleanupWSpace(
