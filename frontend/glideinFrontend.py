@@ -182,12 +182,12 @@ def spawn_cleanup(work_dir,groups):
         
 ############################################################
 def spawn(sleep_time,advertize_rate,work_dir,
-          frontendDescript,groups,restart_attempts,restart_interval):
+          frontendDescript,groups,max_parallel_workers):
 
     try:
         while 1: #will exit on signal
             start_time=time.time()
-            spawn_iteration(work_dir,groups,2)
+            spawn_iteration(work_dir,groups,max_parallel_workers)
             end_time=time.time()
             elapsed_time=end_time-start_time
             if elapsed_time<sleep_time:
@@ -244,8 +244,7 @@ def main(work_dir):
 
         sleep_time = int(frontendDescript.data['LoopDelay'])
         advertize_rate = int(frontendDescript.data['AdvertiseDelay'])
-        restart_attempts = int(frontendDescript.data['RestartAttempts'])
-        restart_interval = int(frontendDescript.data['RestartInterval'])
+        max_parallel_workers = int(frontendDescript.data['GroupParallelWorkers'])
 
         groups = string.split(frontendDescript.data['Groups'], ',')
         groups.sort()
@@ -267,7 +266,7 @@ def main(work_dir):
     try:
         try:
             spawn(sleep_time, advertize_rate, work_dir,
-                  frontendDescript, groups, restart_attempts, restart_interval)
+                  frontendDescript, groups, max_parallel_workers)
         except KeyboardInterrupt:
             logSupport.log.info("Received signal...exit")
         except:
