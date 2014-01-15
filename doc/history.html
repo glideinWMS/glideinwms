@@ -84,7 +84,7 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
-        <b>v3_2_3</b> released on December xx, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_3/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_3/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_3.tgz">Tarball</a>)<br>
+        <b>v3_2_3</b> released on January xx, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_3/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_3/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_3.tgz">Tarball</a>)<br>
        <ul>
          <li>Glideins now have the ability to track the worker node batch slot.
          Based on the batch system at site (HTCondor, SGE, PBS, LSF, SLURM) the
@@ -92,6 +92,9 @@ Related Pages:
          job's log file written by HTCondor using classad variables
          GLIDEIN_SiteWMS, GLIDEIN_SiteWMS_JOBID, GLIDEIN_SiteWMS_QUEUE and
          GLIDEIN_SiteWMS_SLOT.
+         <li>Number of rotated process_logs for factory and frontend process to
+         keep can now be configured using backup_count configuration
+         attribute
          <li>Bug Fix: Factory now correctly updates the renewed credentials it gets
          from the Frontends
          <li>Bug Fix: Cloud related configuration attributes VM_DISABLE_SHUTDOWN and
@@ -104,6 +107,7 @@ Related Pages:
          <li>Bug Fix: Frontend with no credentials configured logs appropriate info
          in the log files
          <li>Bug Fix: clone_glidein tool is now packaged with the factory rpm
+         <li>Bug Fix: Factory now correctly cleans up completed_jobs logs
        </ul>
       </li>
       <li>

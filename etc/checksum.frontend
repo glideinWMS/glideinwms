@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_3_rc1
+# GLIDEINWMS_VERSION v3_2_3_rc2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -7,7 +7,7 @@ fffc4b1932dc8e722997ac14344b065b  ./__init__.py
 0a4e5a33f6dfdc6c64e0c07c7c034467  ./config/mailinglist.cfg
 d41d8cd98f00b204e9800998ecf8427e  ./creation/__init__.py
 395efde005de1c0994fb6ba8f99835f8  ./creation/add_entry
-3ac928be08bb3ffdcdb3ece4f7e1e482  ./creation/clone_glidein
+a9f684b73a8929aec914751e8d87c0e8  ./creation/clone_glidein
 eb0a7d5a10c30507e159ae2f43280dd9  ./creation/create_condor_tarball
 7ec83323e801a74629addbdef104394b  ./creation/create_frontend
 d41d8cd98f00b204e9800998ecf8427e  ./creation/lib/__init__.py
@@ -18,7 +18,7 @@ ab37666bbf8d569a34974aea3dc29fa6  ./creation/lib/cvWConsts.py
 c0cbafc246e86375a582af0e1532f790  ./creation/lib/cvWCreate.py
 2c20708ff9c1b3b0385f5fcd3ff924b9  ./creation/lib/cvWDictFile.py
 cd9692043f6fb7ec25442d2dd0166989  ./creation/lib/cvWParamDict.py
-d4c1a9a596752ca2b5746c22c080941c  ./creation/lib/cvWParams.py
+682f86f09604a79999f0aba6dc4f7e6b  ./creation/lib/cvWParams.py
 414dd08400e9050a5c7e6a64fa7a4d94  ./creation/lib/xslt.py
 06e292d228737a9dd994ad4ec5c86118  ./creation/reconfig_frontend
 eb1f8bac7142ee514517d8bb2df60747  ./creation/templates/factory_initd_startup_template
@@ -44,17 +44,17 @@ d9518531cad88a401b4c0ffcfe043a5e  ./creation/web_base/condor_vars.lst.entry
 4adef465628d734944cbe17be23c8cc1  ./creation/web_base/factory/images/factoryRRDEntryMatrix.png
 160927d1db8559d1f26775d0d6d49d4f  ./creation/web_base/factory/images/factoryStatus.png
 170fb468141b942135036a5763b388dc  ./creation/web_base/factory/images/factoryStatusNow.png
-73136200ad07292f3d5bae14568ea0c4  ./creation/web_base/factory/index.html
+4e3fe4521f98fa0cee68c50a34e5bf80  ./creation/web_base/factory/index.html
 c5345237a982253b5bf9be6b52455464  ./creation/web_base/factory_support.js
 e978c04a58b98a15498d07eb5235ff45  ./creation/web_base/frontend/images/frontendGroupGraphsNow.small.png
 5412b771d0461d8c1963d57b9d8486ae  ./creation/web_base/frontend/images/frontendRRDBrowse.small.png
 a8a213f5c4387a8a027091f7100bd124  ./creation/web_base/frontend/images/frontendRRDGroupMatix.small.png
 ce8e0cff9fdd11a3fba9ca691ea44372  ./creation/web_base/frontend/images/frontendStatus.small.png
-c10a8a37cd7c992be0e710882283da11  ./creation/web_base/frontend/index.html
+d837fdb994350b2fa4c85f2dcc3b2ccc  ./creation/web_base/frontend/index.html
 2597e2fb8581d2c9dd5479de6e2d997a  ./creation/web_base/frontendGroupGraphStatusNow.html
-42b8b7c98c7bef63645a8338c105d62b  ./creation/web_base/frontendRRDBrowse.html
-f03880d79782200d77adbcde8e307768  ./creation/web_base/frontendRRDGroupMatrix.html
-db423a8ca8db56411089672b1677fe43  ./creation/web_base/frontendStatus.html
+7fd54666baf2c3da506d869c3c848e67  ./creation/web_base/frontendRRDBrowse.html
+7b57b4147f2c26160ea660dd76c15187  ./creation/web_base/frontendRRDGroupMatrix.html
+1031e0ef94959116c9be575e884adf28  ./creation/web_base/frontendStatus.html
 ce9fbcaae6a9a2e4b61eb38cb7dfac87  ./creation/web_base/frontendStatusNow.html
 a93d03608501cdd471c413b681b05f8e  ./creation/web_base/frontend_support.js
 2286d88123059b704c828009d7911007  ./creation/web_base/glidein_cpus_setup.sh
@@ -71,9 +71,9 @@ fb52dc83f5c6c4e9318c6f35548e7e0f  ./factory/glideFactoryCredentials.py
 ad1f4981740a508121181d6a35ef7bb7  ./factory/glideFactoryInterface.py
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 be661351c66fc14686143441dce83e67  ./frontend/checkFrontend.py
-5ae8f7a1a08a647afeca618472efe674  ./frontend/glideinFrontend.py
+3ba27680ff77f986c58a60a25de53bc6  ./frontend/glideinFrontend.py
 658d1145adb585bda959af768287659e  ./frontend/glideinFrontendConfig.py
-7d10d836c1827ab48f413e92ca4e83d0  ./frontend/glideinFrontendElement.py
+fec395fab491a8e195cb42a6be05f538  ./frontend/glideinFrontendElement.py
 3e1e219d71523788fa75604edc94470a  ./frontend/glideinFrontendInterface.py
 3e155a46654f94f0ec428cf92c3d31bd  ./frontend/glideinFrontendLib.py
 58a5ae1d29451c5faa0e9f332f4558a5  ./frontend/glideinFrontendMonitorAggregator.py
