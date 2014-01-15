@@ -12,6 +12,7 @@
 #   $1 = parent PID
 #   $2 = work dir
 #   $3 = group_name
+#   $4 = operation type (optional, defaults to "run")
 #
 # Author:
 #   Igor Sfiligoi (was glideinFrontend.py until Nov 21, 2008)
@@ -765,6 +766,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
 
         # Create the resource classad and populate the required information
         resource_classad = glideinFrontendInterface.ResourceClassad(request_name, client_name)
+        resource_classad.setFrontendDetails(frontend_name,group_name)
         resource_classad.setInDownTime(glidein_in_downtime)
         resource_classad.setEntryInfo(glidein_el['attrs'])
         resource_classad.setGlideFactoryMonitorInfo(glidein_el['monitor'])
@@ -883,8 +885,8 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
     return
 
 ############################################################
-def iterate(parent_pid, elementDescript, paramsDescript, attr_dict, signatureDescript, x509_proxy_plugin, history_obj):
-    sleep_time = int(elementDescript.frontend_data['LoopDelay'])
+def iterate(parent_pid, elementDescript, paramsDescript, attr_dict, signatureDescript, x509_proxy_plugin, history_obj, action):
+    #sleep_time = int(elementDescript.frontend_data['LoopDelay'])
 
     factory_pools = elementDescript.merged_data['FactoryCollectors']
 
@@ -901,9 +903,9 @@ def iterate(parent_pid, elementDescript, paramsDescript, attr_dict, signatureDes
         # if/when we decide to stop using the proxy
         published_frontend_name = '%s.XPVO_%s' % (frontend_name, group_name)
 
-    try:
+    if action=="run":
         is_first = 1
-        while 1: # will exit by exception
+        if 1: # do a single iteration
             check_parent(parent_pid)
             logSupport.log.info("Iteration at %s" % time.ctime())
             try:
@@ -935,33 +937,35 @@ def iterate(parent_pid, elementDescript, paramsDescript, attr_dict, signatureDes
             # do it just before the sleep
             cleanupSupport.cleaners.cleanup()
 
-            logSupport.log.info("Sleep")
-            time.sleep(sleep_time)
-    finally:
+            # only one iteration, no sleep
+            #logSupport.log.info("Sleep")
+            #time.sleep(sleep_time)
+    elif action=="deadvertise":
         logSupport.log.info("Deadvertize my ads")
         for factory_pool in factory_pools:
             factory_pool_node = factory_pool[0]
             try:
                 glideinFrontendInterface.deadvertizeAllWork(factory_pool_node, published_frontend_name)
             except:
-                pass # just ignore errors... this was cleanup
+                logSupport.log.warning("Failed to deadvertise work on %s"%factory_pool_node)
             
             try:
                 glideinFrontendInterface.deadvertizeAllGlobals(factory_pool_node, published_frontend_name)
             except:
-                pass # just ignore errors... this was cleanup
-
+                logSupport.log.warning("Failed to deadvertise globals on %s"%factory_pool_node)
+        
         # Invalidate all resource classads
         try:
             resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser()
             resource_advertiser.invalidateConstrainedClassads('GlideClientName == "%s"' % published_frontend_name)
         except:
-            # Ignore all errors
-            pass
-
+            logSupport.log.warning("Failed to deadvertise resources classads")
+    else:
+        logSupport.log.warning("Unknown action: %s"%action)
+        
 
 ############################################################
-def main(parent_pid, work_dir, group_name):
+def main(parent_pid, work_dir, group_name, action):
     startup_time = time.time()
 
     group_dir = glideinFrontendConfig.get_group_dir(work_dir, group_name)
@@ -979,8 +983,10 @@ def main(parent_pid, work_dir, group_name):
                                       int(float(plog['min_days'])),
                                       int(float(plog['max_mbytes'])))
     logSupport.log = logging.getLogger(group_name)
-    logSupport.log.info("Logging initialized")
-    logSupport.log.debug("Frontend Element startup time: %s" % str(startup_time))
+    
+    # We will be starting often, so reduce the clutter
+    #logSupport.log.info("Logging initialized")
+    #logSupport.log.debug("Frontend Element startup time: %s" % str(startup_time))
 
     paramsDescript = glideinFrontendConfig.ParamsDescript(work_dir, group_name)
     attrsDescript = glideinFrontendConfig.AttrsDescript(work_dir,group_name)
@@ -1033,8 +1039,8 @@ def main(parent_pid, work_dir, group_name):
     pid_obj.register(parent_pid)
     try:
         try:
-            logSupport.log.info("Starting up")
-            iterate(parent_pid, elementDescript, paramsDescript, attr_dict, signatureDescript, x509_proxy_plugin, history_obj)
+            #logSupport.log.info("Starting up")
+            iterate(parent_pid, elementDescript, paramsDescript, attr_dict, signatureDescript, x509_proxy_plugin, history_obj, action)
         except KeyboardInterrupt:
             logSupport.log.info("Received signal...exit")
         except:
@@ -1055,4 +1061,8 @@ def termsignal(signr, frame):
 if __name__ == '__main__':
     signal.signal(signal.SIGTERM, termsignal)
     signal.signal(signal.SIGQUIT, termsignal)
-    main(int(sys.argv[1]), sys.argv[2], sys.argv[3])
+    if len(sys.argv)==4:
+        action = "run"
+    else:
+        action = sys.argv[4]
+    main(int(sys.argv[1]), sys.argv[2], sys.argv[3], action)

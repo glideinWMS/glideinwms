@@ -437,7 +437,7 @@ class HistoryFile:
             # there is no concurrency, so does not need to be done atomically
             fd = open(self.fname, 'w')
             try:
-                cPickle.dump(fd, self.data, cPickle.HIGHEST_PROTOCOL)
+                cPickle.dump(self.data, fd, cPickle.HIGHEST_PROTOCOL)
             finally:
                 fd.close()
         except:
@@ -448,13 +448,13 @@ class HistoryFile:
     def has_key(self, keyid):
         return self.data.has_key(keyid)
 
-    def __getattr__(self, keyid):
+    def __getitem__(self, keyid):
         return self.data[keyid]
 
-    def __setattr__(self, keyid, val):
+    def __setitem__(self, keyid, val):
         self.data[keyid] = val
 
-    def __delattr__(self, keyid):
+    def __delitem__(self, keyid):
         del self.data[keyid]
 
     def empty(self):
