@@ -41,9 +41,12 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.monitor_jslibs_dir=os.path.join(self.monitor_dir,'jslibs')
         self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_jslibs_dir,"monitor"))
+        self.monitor_images_dir=os.path.join(self.monitor_dir,'images')
+        self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_images_dir,"monitor"))
         self.params=params
         self.active_sub_list=[]
         self.monitor_jslibs=[]
+        self.monitor_images=[]
         self.monitor_htmls=[]
 
     def populate(self,params=None):
@@ -245,7 +248,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                         'factoryStatusNow.png'):
             mfobj=cWDictFile.SimpleFile(params.src_dir + '/factory/images/', imgfile)
             mfobj.load()
-            self.monitor_htmls.append(mfobj)
+            self.monitor_images.append(mfobj)
 
         # populate the monitor configuration file
         #populate_monitor_config(self.work_dir,self.dicts['glidein'],params)
@@ -304,6 +307,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
     def save_monitor(self):
         for fobj in self.monitor_jslibs:
             fobj.save(dir=self.monitor_jslibs_dir,save_only_if_changed=False)
+        for fobj in self.monitor_images:
+            fobj.save(dir=self.monitor_images_dir,save_only_if_changed=False)
         for fobj in self.monitor_htmls:
             fobj.save(dir=self.monitor_dir,save_only_if_changed=False)
         return
