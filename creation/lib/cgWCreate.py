@@ -158,6 +158,11 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             self.add("cream_attributes", "$ENV(GLIDEIN_RSL)")
         elif gridtype == 'nordugrid' and rsl:
             self.add("nordugrid_rsl", "$ENV(GLIDEIN_RSL)")
+        elif gridtype == 'condor' and rsl:
+            custom_attrs = rsl.split('#')
+            for attr in custom_attrs:
+                key, value = attr.split('=')
+                self.add(key, value)
         else:
             pass
             # do we want to raise an error here?  we do in v2+
