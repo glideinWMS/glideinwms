@@ -261,24 +261,29 @@ complicated configurations.  Instructions can be found here:
 	<p>
 	The attributes in this section apply to all subsequent sections in the ini file unless they are overridden specifically 
 	in that section.  So, if the location/value of any option in this section varies from host to host, you will need to 
-	override them in that section of the ini file. The only options in the <i>glideinWMS.ini</i> template will be the pacman 
-	options in the next section.
+	override them in that section of the ini file. 
+        <!--The only options in the <i>glideinWMS.ini</i> template will be the pacman 
+	options in the next section.-->
 	</p>
 	<h4>Pacman options</h4>
 	<p>
-	The 2 pacman related attributes are used to bring down the OSG/VDT client software 
-	and CA certificates if they are not already installed on the node. 
-	If you already have the OSG/VDT client and CA certificates installed on a host
-	or you have already installed the CA certificates and are using other non-VDT client software for proxy renewals, then:</p>
+	The 2 pacman related attributes are in the Default section and were used to download and install 
+        the OSG/VDT client software and CA certificates with Pacman.
+        This is obsolete, please:
 	<ul>
-	<li>these options are still required but may be empty, i.e., contain no value.</li>
-	<li>the vdt_location option is still required but may be empty.</li>
-	<li>the install_vdt_client should be set to 'n'.</li>
+	<li>leave these options empty: these are still required but should contain no value.</li>
+	<li>set the vdt_location option if you  <a href="components/prerequisites.html#system_vdt">install OSG Client</a>
+using the tarball distribution. Set itempty if you  <a href="components/prerequisites.html#system_vdt">install OSG Client</a> 
+using the RPM (system install).</li>
+	<li>the install_vdt_client attribute should be set to 'n'.</li>
 	</ul>
-	</p><p>
+If OSG Client and the CA certificates are not already installed on the node see the <a href="components/prerequisites.html#system_vdt">
+        prerequisites section for instructions to install them</a>.
+	</p>
+<!--        <p>
 	<b>These are parts of the pacman related options below that should not be 
 	changed unless advised to by glideinwms-support as there 
-	may be compatiblity issues between pacman and VDT distributions. 
+	may be compatiblity issues between Pacman and VDT distributions. 
 	Please see below for details.
 	</b>
 	</p>
@@ -313,9 +318,14 @@ complicated configurations.  Instructions can be found here:
         </tr>
     </tbody></table>
     </p>
+-->
 	<h4>Service options</h4>
-    <p>All service attributes are described in their respective install pages.  Each describes what is required for validating and
-    installing that service.  For example configuration files, see <a href="components/configuration_install.html">here</a>.
+    <p>The Glidein WMS system provides five different services, each one with a section in the ini file: 
+WMSCollector, Factory, VOFrontend, UserCollector, Submit (host). All service attributes are described 
+in their respective install pages.  Each page, e.g. the <a href="frontend/install.html">VOFrontend installation page</a> 
+describes what is required for installing and validating that service.  
+</p>
+    <p><a href="components/configuration_install.html">Here</a> you can find some example configuration files.
 	</p>
 </div>
 
@@ -324,100 +334,106 @@ complicated configurations.  Instructions can be found here:
 <a name="manage_script" />
 <h3>The manage-glideins script </h3>
 <p>
-This script is used to install and manage the glideinWMS services.  It is located in <i>glideinWMS/install/manage-glideins</i>.  
+This script is used to install and manage the glideinWMS services.  It is located in <i>glideinWMS/install/manage-glideins</i> and can be invoked in different ways.  
 </p>
+<pre>./manage-glideins --ACTION SERVICE --ini INIFILE [--ssh [user]]  [--debug]</pre>
 
-<b>./manage-glideins --OPTION SERVICE --ini INIFILE [--ssh [user]]  [--debug]</b><br/>
-<ul>
-This usage can be used to install, start, stop or check the status of
+<p>
+This invocation can be used to install, start, stop or check the status of
 the glidein services based on the configuration in the specified ini file.
-<p> 
-<b>OPTION</b> can be one of:</br>
- - <b>validate</b>: Allows you to validate the ini file prior to installation</br>
- - <b>install</b>: Install the service</br>
- - <b>configure</b>: This allows  you to reconfigure your service based on 
-     changes to the ini file without re-installing condor.<br/>
-     For services using Condor, it will update the config.d local config files,<br/> 
-     For the factory and vofrontend, it will update the respective xml config files.</br>
- - <b>start</b>: Start the service.  Remote starting of services is possible if remote access (via ssh) is allowed.</br>
- - <b>stop</b>: Stop the service.  Remote starting of services is possible if remote access (via ssh) is allowed.</br>
- - <b>status</b>: Return the status of the service.  Remote starting of services is possible if remote access (via ssh) is allowed.</br>
+</p> 
+<p><b>ACTION</b> can be one of:
+<ul>
+<li> <b>validate</b>: Allows you to validate the ini file prior to installation</li>
+<li> <b>install</b>: Install the service</li>
+<li> <b>configure</b>: This allows  you to reconfigure your service based on changes to the ini file without re-installing HTCondor.<br/>
+     For services using HTCondor, it will update the config.d local config files,<br/> 
+     For the factory and vofrontend, it will update the respective xml config files.</li>
+<li> <b>start</b>: Start the service.  Remote starting of services is possible if remote access (via ssh) is allowed.</li>
+<li> <b>stop</b>: Stop the service.  Remote starting of services is possible if remote access (via ssh) is allowed.</li>
+<li> <b>status</b>: Return the status of the service.  Remote starting of services is possible if remote access (via ssh) is allowed.</li>
+</ul>
 </p>
-<p>
-<b>SERVICE</b> can be one of:</br>
- - wmscollector</br>
- - usercollector</br>
- - factory</br>
- - submit</br>
- - vofrontend</br>
- - rpm (Used for OSG Frontend RPM sites. Note: The 'install' action is not allowed for this service.)</br>
- - all: can only be used with start/stop/status actions</br>
+<p><b>SERVICE</b> can be one of:
+<ul>
+<li> wmscollector</li>
+<li> usercollector</li>
+<li> factory</li>
+<li> submit</li>
+<li> vofrontend</li>
+<li> rpm (Used for OSG Frontend RPM sites. Note: The 'install' action is not allowed for this service.)</li>
+<li> all: can only be used with start/stop/status actions</li>
+</ul>
 </p>
-<p>
-<b>--ssh</b>: allows the start/stop/status actions to be performed 
+<p><b>--ssh</b>: allows the start/stop/status actions to be performed 
 remotely providing the user has valid access to the other service's node via 
-'ssh -l' using the service's username.  The '--ssh' will use the ini file
+'ssh -l' using the service's username.  The '--ssh' option will use the ini file
 specified username attribute unless an optional 'user' is specified.
 </p>
-<p>
-<b>--debug</b>: When used with start/stop/status actions, it will
+<p><b>--debug</b>: When used with start/stop/status actions, it will
 display the series of commands used.
-</ul>
+</p>
 
-<b>./manage-glideins --install-node --ini INIFILE</b>
-<ul>
-This usage allows you to install all services for the node you are installing
-on. There are some limitation to this.
-</ul>
+<br/>
+<p>
+<pre>./manage-glideins --install-node --ini INIFILE</pre>
+This invocation allows you to install all services configured for the node where you are running
+the script. There are some limitation to this.
+</p>
 
-<b>./manage-glideins --create-entries --ini INIFILE</b>
-<ul>
-This usage can be used to select new glidein entry points after the
-initial installation of a factory service. If will walk you through the same
+<br/>
+<p>
+<pre>./manage-glideins --create-entries --ini INIFILE</pre>
+This invocation can be used to select new glidein entry points after the
+initial installation of a factory service. It will walk you through the same
 question and answer process querying ReSS and allowing for manual entries.
-It will then create a file containing the entry elements for those selected. 
+It will then create a file containing the entry elements for the elements you selected. 
 This can then be merged with the existing Factory configuration file
-and a reconfiguration performed.. 
-</ul>
+and a reconfiguration performed to update those elements. 
+</p>
 
-<b>./manage-glideins --create-group --ini INIFILE</b>
-<ul>
-This usage can be used to select new group selection criteria after the
-initial installation of a frontend service. If will walk you through the same
+<br/>
+<p>
+<pre>./manage-glideins --create-group --ini INIFILE</pre>
+This invocation can be used to select new group selection criteria after the
+initial installation of a frontend service. It will walk you through the same
 question and answer process as during the installation.
 It will then create a file containing the group element for the criteria selected.
 This can then be merged with the existing frontend configuration file
-and a reconfiguration performed.. 
-</ul>
+and a reconfiguration performed.
+</p>
 
-<b>./manage-glideins --show-ini INIFILE</b>
-<ul>
-This option allows you to view the ini file options/values. This is especially useful
-when the DEFAULT section is used to apply values to all sections/services.
-</ul>
+<br/>
+<p>
+<pre>./manage-glideins --show-ini INIFILE</pre>
+This invocation allows you to view the ini file options/values. It substitutes the variables and 
+is especially useful when the DEFAULT section is used to apply values to all sections/services.
+</p>
 
-<b>./manage-glideins --create-template SERVICE</b>
-<ul>
-This option allows you to create an ini file template for installing a single 
+<br/>
+<p>
+<pre>./manage-glideins --create-template SERVICE</pre>
+This invocation allows you to create an ini file template for installing a single 
 service.  It contains all the required attributes for that service.  It should
-be understood that many of the validations that would normally insure a
+be understood that many of the cross-validations that would normally insure a
 working installation are bypassed since those validations are normally 
 performed on the node for those services.
 </p>
-</ul>
 </div>
+
 
 <div class="section">
 <a name="documents" />
 
 <h3>Additional Documents:</h3>
 <ul>
-  <li><a href="components/prerequisites.html">Component Installation</a>: Installation tips for components needed by glideinWMS, such as HTTP, VDT, JavascriptRRD, etc.</li>
-  <li><a href="components/condor.html#gcb">Installation of a GCB node</a>:  (only if
+  <li><a href="components/prerequisites.html">Component Installation</a>: Installation tips for other software needed by the glideinWMS, such as HTTP, OSG Client, JavascriptRRD, etc.</li>
+<!--  <li><a href="components/condor.html#gcb">Installation of a GCB node</a>:  (only if
             you are gliding into Grid sites with restrictive network policies
             and cannot use CCB) <br/>
     <b>NOTE:</b> It is strongly recommended to use CCB over GCB if possible.
   </li>
+-->
   <li>
 
     <a href="components/gsi.html">Quick Reference Guide to GSI Authentication Setup in glideinWMS</a>:

@@ -271,19 +271,24 @@ Install as: various daemon users or as system rpms/packages
 
 
 <div class="section">
-    <h2><a name="system_vdt">2. OSG VDT Client</a></h2>
+    <h2><a name="system_vdt">2. OSG Client</a></h2>
     <p>
-        The OSG Client is now available as a set of RPMs.  To install
-        the OSG Client, you will need to enable the EPEL and OSG
+        The OSG Client (formerly known as VDT Client) is now available as a set of RPMs. 
+        OSG provides a <a href="http://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallOSGClient">
+        complete set of instructions</a> that that we recommend.
+        Here folow a short version to install OSG Client on RHEL6 based systems. 
+        First you will need to enable the EPEL and OSG
         repositories.  It is also advisable to enable the yum priorities
         module in order to guarantee the correct packages.
         The following commands will enable the repositories:
         <pre>
-        rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm
+        rpm -Uvh http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
         yum install yum-priorities
-        rpm -Uvh http://repo.grid.iu.edu/osg-release-latest.rpm </pre>
-        Next, you can install osg client:
-        <pre> yum install osg-client </pre>
+        http://repo.grid.iu.edu/osg/3.2/osg-3.2-el6-release-latest.rpm </pre>
+        Next, you can install the CA certificates and OSG client:
+        <pre> yum install osg-ca-certs
+        yum install osg-client 
+        </pre>
         You may also want to enable the fetch-crl service
         to keep your certificate revocation lists up to date:
         <pre>
@@ -292,6 +297,9 @@ Install as: various daemon users or as system rpms/packages
         /sbin/service fetch-crl-cron start
         /sbin/chkconfig fetch-crl-boot on
         /sbin/chkconfig fetch-crl-cron on </pre>
+        If you have no root privileges, OSG Client is available also in a tarball distribution
+        <a href="http://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallOSGClientTarball">
+        check here</a> for more information.
     </p>
 </div>
 
