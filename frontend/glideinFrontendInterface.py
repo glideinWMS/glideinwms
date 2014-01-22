@@ -725,7 +725,7 @@ class MultiAdvertizeWork:
         
         descript_obj=self.descript_obj
         
-        logSupport.log.info("In create Advertize work");
+        logSupport.log.debug("In create Advertize work");
 
         x509_proxies_data = []
         factory_trust,factory_auth=self.factory_constraint[params_obj.request_name]
