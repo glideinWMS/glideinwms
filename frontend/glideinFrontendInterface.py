@@ -794,7 +794,7 @@ class MultiAdvertizeWork:
                         glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
                         
                     (req_idle,req_max_run)=credential_el.get_usage_details()
-                    logSupport.log.info("Advertizing credential %s with (%d idle, %d max run) for request %s"%(credential_el.filename, req_idle, req_max_run, params_obj.request_name))
+                    logSupport.log.debug("Advertizing credential %s with (%d idle, %d max run) for request %s"%(credential_el.filename, req_idle, req_max_run, params_obj.request_name))
                 
                 if (frontendConfig.advertise_use_multi==True):
                     fname=self.adname
