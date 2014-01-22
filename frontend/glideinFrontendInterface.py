@@ -347,6 +347,15 @@ class Credential:
         
         return output
 
+class CredentialCache:
+    def __init__(self):
+        self.file_id_cache={}
+
+    def file_id(self,credential_el,filename):
+        k=(credential_el.type,filename)
+        if not (k in self.file_id_cache):
+            self.file_id_cache[k] = credential_el.file_id(filename)
+        return self.file_id_cache[k]
 
 class FrontendDescript:
     def __init__(self,
@@ -685,6 +694,7 @@ class MultiAdvertizeWork:
         """
 
         idx = 0
+        file_id_cache=CredentialCache()
         for factory_pool in self.factory_queue.keys():
             idx = idx + 1
             self.unique_id=1
@@ -697,7 +707,7 @@ class MultiAdvertizeWork:
             for el in self.factory_queue[factory_pool]:
                 params_obj, key_obj = el
                 try:
-                    filename_arr_el=self.createAdvertizeWorkFile(factory_pool,params_obj,key_obj)
+                    filename_arr_el=self.createAdvertizeWorkFile(factory_pool,params_obj,key_obj,file_id_cache=file_id_cache)
                     for f in filename_arr_el:
                         if f not in filename_arr:
                             filename_arr.append(f)
@@ -719,7 +729,7 @@ class MultiAdvertizeWork:
         self.factory_queue = {} # clean queue
 
 
-    def createAdvertizeWorkFile(self, factory_pool, params_obj, key_obj=None): 
+    def createAdvertizeWorkFile(self, factory_pool, params_obj, key_obj=None, file_id_cache=None): 
         global frontendConfig
         global advertizeGCCounter
         
@@ -740,6 +750,10 @@ class MultiAdvertizeWork:
 
         if nr_credentials == 0:
             raise NoCredentialException
+
+        if file_id_cache is None:
+            # create a local cache, if no global provided
+            file_id_cache=CredentialCache()
 
         for i in range(nr_credentials):
             fd=None
@@ -775,18 +789,18 @@ class MultiAdvertizeWork:
                     glidein_params_to_encrypt['SecurityClass']=str(credential_el.security_class)
                     classad_name=credential_el.file_id(credential_el.filename,ignoredn=True)+"_"+classad_name
                     if "username_password"in credential_el.type:
-                        glidein_params_to_encrypt['Username']=credential_el.file_id(credential_el.filename)
-                        glidein_params_to_encrypt['Password']=credential_el.file_id(credential_el.key_fname)
+                        glidein_params_to_encrypt['Username']=file_id_cache.file_id(credential_el, credential_el.filename)
+                        glidein_params_to_encrypt['Password']=file_id_cache.file_id(credential_el, credential_el.key_fname)
                     if "grid_proxy" in credential_el.type:
-                        glidein_params_to_encrypt['SubmitProxy']=credential_el.file_id(credential_el.filename)
+                        glidein_params_to_encrypt['SubmitProxy']=file_id_cache.file_id(credential_el, credential_el.filename)
                     if "cert_pair" in credential_el.type:
-                        glidein_params_to_encrypt['PublicCert']=credential_el.file_id(credential_el.filename)
-                        glidein_params_to_encrypt['PrivateCert']=credential_el.file_id(credential_el.key_fname)
+                        glidein_params_to_encrypt['PublicCert']=file_id_cache.file_id(credential_el, credential_el.filename)
+                        glidein_params_to_encrypt['PrivateCert']=file_id_cache.file_id(credential_el, credential_el.key_fname)
                     if "key_pair" in credential_el.type:
-                        glidein_params_to_encrypt['PublicKey']=credential_el.file_id(credential_el.filename)
-                        glidein_params_to_encrypt['PrivateKey']=credential_el.file_id(credential_el.key_fname)
+                        glidein_params_to_encrypt['PublicKey']=file_id_cache.file_id(credential_el, credential_el.filename)
+                        glidein_params_to_encrypt['PrivateKey']=file_id_cache.file_id(credential_el, credential_el.key_fname)
                     if hasattr(credential_el,'pilot_fname'):
-                        glidein_params_to_encrypt['GlideinProxy']=credential_el.file_id(credential_el.pilot_fname)
+                        glidein_params_to_encrypt['GlideinProxy']=file_id_cache.file_id(credential_el, credential_el.pilot_fname)
                     
                     if "vm_id" in credential_el.type:
                         glidein_params_to_encrypt['VMId']=str(credential_el.vm_id)
