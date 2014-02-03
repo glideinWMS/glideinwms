@@ -7,7 +7,6 @@ v3_2_3  Glideins now have the ability to track the worker node batch slot.
         Number of rotated process_logs for factory and frontend process to
            keep can now be configured using backup_count configuration
            attribute
-        Add support for HTCondor CE rsl attributes
         Bug Fix: Factory now correctly updates the renewed credentials it gets
           from the Frontends
         Bug Fix: Cloud related configuration attributes VM_DISABLE_SHUTDOWN and
