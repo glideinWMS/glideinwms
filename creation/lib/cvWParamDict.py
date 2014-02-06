@@ -142,17 +142,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         # populate the monitor files
         javascriptrrd_dir = params.monitor.javascriptRRD_dir
         for mfarr in ((params.src_dir,'frontend_support.js'),
-                      (javascriptrrd_dir,'rrdFlot.js'),
-                      (javascriptrrd_dir,'rrdFlotMatrix.js'),
-                      (javascriptrrd_dir,'rrdFlotSupport.js'),
-                      (javascriptrrd_dir,'rrdFile.js'),
-                      (javascriptrrd_dir,'rrdFilter.js'),
-                      (javascriptrrd_dir,'binaryXHR.js'),
-                      (params.monitor.flot_dir,'jquery.flot.js'),
-                      (params.monitor.flot_dir,'jquery.flot.selection.js'),
-                      (params.monitor.flot_dir,'jquery.flot.tooltip.js'),
-                      (params.monitor.flot_dir,'excanvas.js'),
-                      (params.monitor.jquery_dir,'jquery.js')):
+                      (javascriptrrd_dir,'javascriptrrd.wlibs.js')):
             mfdir,mfname=mfarr
             parent_dir = self.find_parent_dir(mfdir,mfname)
             mfobj=cWDictFile.SimpleFile(parent_dir,mfname)
