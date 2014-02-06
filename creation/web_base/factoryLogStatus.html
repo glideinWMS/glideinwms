@@ -154,6 +154,7 @@ Description:
               ec_added++;
           } 
       }
+      setOptions('total');
 
 
      // fname, gtype_id and rrd_data are the global variable used by all the functions below
@@ -329,7 +330,12 @@ Description:
         }
 
         if (entry_name=="total") {
-          fname="total/"+rrd_fname+".rrd";
+            if (frontend_name!="total") {
+               fname="total/"+"frontend_"+frontend_name+"/"+rrd_fname+".rrd";
+            }
+            else {
+               fname="total/"+rrd_fname+".rrd";
+            }
         } else if (frontend_name!="total"){
           fname="entry_"+entry_name+"/frontend_"+frontend_name+"/"+rrd_fname+".rrd";
         } else {
@@ -413,7 +419,6 @@ Description:
                    var fe_list = document.getElementById("frontends").childNodes; 
                    var fe_idx=0;
                    for(var k=0;k<fe_list.length;k++) {
-                     document.write(fe_list[k].innerHTML);
                      if(frontend==fe_list[k].innerHTML) {
                        fe_idx=k;
                      }
@@ -425,7 +430,16 @@ Description:
                else if("total" == paramSpecArry[0]) {
                  urlValid = 1; 
                  document.getElementById("entries").selectedIndex = 0; 
-                 setOptions(entry);
+                 setOptions("total");
+                 var frontend = paramSpecArry[1];
+                 var fe_list = document.getElementById("frontends").childNodes; 
+                 var fe_idx=0;
+                 for(var k=0;k<fe_list.length;k++) {
+	 	   if(frontend==fe_list[k].innerHTML) {
+		     fe_idx=k;
+		   }
+		 }
+		 document.getElementById("frontends").selectedIndex = fe_idx;
                  break;  	
                }
                counter++; 
@@ -446,6 +460,7 @@ Description:
            }
          }
          if(urlValid) {
+           coming_from_link=true;
            fname_update();
          }
        }
