@@ -254,7 +254,7 @@ Description:
         files_loaded=0;
 
         var entry_name="";
-        var rrd_name="";
+        var rrd_fname="";
 
         var entries_obj=document.getElementById("entries")
         entry_name=entries_obj.options[entries_obj.selectedIndex].value;
@@ -265,7 +265,7 @@ Description:
         for (var i in rrds_obj.rrd) {
          var rrd=rrds_obj.rrd[i];
          if (rrd.checked==true) {
-  	   rrd_name=rrd.value;
+  	   rrd_fname=rrd.value;
          }
         }
 
@@ -277,9 +277,9 @@ Description:
                fname="total/"+rrd_fname+".rrd";
             }
         } else if (frontend_name!="total"){
-          fname="entry_"+entry_name+"/frontend_"+frontend_name+"/"+rrd_name+".rrd";
+          fname="entry_"+entry_name+"/frontend_"+frontend_name+"/"+rrd_fname+".rrd";
         } else {
-          fname="entry_"+entry_name+"/total/"+rrd_name+".rrd";
+          fname="entry_"+entry_name+"/total/"+rrd_fname+".rrd";
         }
 
         if ( (entry_name == "total") || (((entry_name.split(",")).length == 1) && (entry_name == entrylist2groupname(entry_name.split(",")))) ){
@@ -295,9 +295,9 @@ Description:
           fname = "";
           for (var i=0; i<en_array.length; i++) {
               if (i == 0) {
-                  fname="entry_"+en_array[i]+"/total/"+rrd_name+".rrd";
+                  fname="entry_"+en_array[i]+"/total/"+rrd_fname+".rrd";
               } else {
-                  fname=fname+",entry_"+en_array[i]+"/total/"+rrd_name+".rrd";
+                  fname=fname+",entry_"+en_array[i]+"/total/"+rrd_fname+".rrd";
               }
           }
           //document.getElementById("fname").firstChild.data="Loading " + fname;
@@ -305,7 +305,7 @@ Description:
 
           for (var i=0; i<en_array.length; i++) {
             //alert("GROUP SELECTED with entry: " + en_array[i]);
-            var fn = "entry_"+en_array[i]+"/total/"+rrd_name+".rrd"; 
+            var fn = "entry_"+en_array[i]+"/total/"+rrd_fname+".rrd"; 
             try {
               FetchBinaryURLAsync(fn,update_grouped_fname_handler);
             } catch (err) {
