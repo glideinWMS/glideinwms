@@ -532,11 +532,11 @@ def aggregateLogSummary():
             status['entries'][entry]['total']=local_total
         
         # update frontends
-        for fe in out_data.keys():
+        for fe in out_data:
             #compare each to the list of fe's accumulated so far
-            if not status_fe['frontends'].has_key(fe):
+            if not (fe in status_fe['frontends']):
                 status_fe['frontends'][fe]={}
-            if not nr_feentries.has_key(fe):
+            if not (fe in nr_feentries):
                 nr_feentries[fe]=1 #already found one
             else:
                 nr_feentries[fe]+=1
@@ -565,21 +565,21 @@ def aggregateLogSummary():
     writeLogSummaryRRDs("total",status["total"])
     
     # Frontend total rrds across all factories
-    for fe in status_fe['frontends'].keys():
+    for fe in status_fe['frontends']:
         writeLogSummaryRRDs("total/%s"%("frontend_"+fe),status_fe['frontends'][fe])
 
     return status
 
 def sumDictInt(indict,outdict):
-    for orgi in indict.keys():
+    for orgi in indict:
         i=str(orgi) # RRDs don't like unicode, so make sure we use strings
         if type(indict[i])==type(1):
-            if not outdict.has_key(i):                    
+            if not (i in outdict):
                 outdict[i]=0
             outdict[i]+=indict[i]
         else:
             # assume it is a dictionary
-            if not outdict.has_key(i):                    
+            if not (i in outdict):
                 outdict[i]={}
 
             sumDictInt(indict[i],outdict[i])
