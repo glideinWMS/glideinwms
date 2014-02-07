@@ -14,19 +14,17 @@ def frontend_print(frontend, fe_mode, d, div, to_be_printed,fe_sorting,fe_attr_l
 
 
     fdiv=1
-    if fe_attr_list[fe_sort_attribute] in ['total_time','val','used','idle','waste']:
+    if fe_attr_list[fe_sort_attribute] in ['total_time','val','used','idle','waste','badput']:
         fdiv=float(div)
-    if fe_sort_attribute in [2,4,6,8]:#['u%','v%','i%','w%']:
+    if fe_sort_attribute in [2,4,6,8]:#['u%','v%','i%','w%','b%']:
         fdiv=float(div)*(float(d['total_time'])/float(div))
-    elif fe_attr_list[fe_sort_attribute] in ['usd/wst']:
-        fdiv = float(d['waste'])
     elif fe_attr_list[fe_sort_attribute] in ['eff']:
         fdiv = float(d['waste']+d['used'])
 
     sorter = int(100.0*float(d[fe_attr_list[fe_sort_attribute]])/fdiv)
 
     to_be_printed.append((sorter, 
-      "%-25s %6s|%6s %3d%%|%6s %3d%%|%6s %3d%%|%6s %3d%%|%9.2f %7.2f" % 
+      "%-25s %6s|%6s %3d%%|%6s %3d%%|%6s %3d%%|%6s %3d%%|%6s %3d%%|%5.2f" % 
       (frontend.lstrip("frontend_"), 
       analyze.km(float(d['total_time'])/float(div)), 
       analyze.km(float(d['used'])/float(div)), 
@@ -37,7 +35,8 @@ def frontend_print(frontend, fe_mode, d, div, to_be_printed,fe_sorting,fe_attr_l
       (float(d['idle'])/float(div))/(float(d['total_time'])/float(div))*100.0, 
       analyze.km(float(d['waste'])/float(div)), 
       (float(d['waste'])/float(div))/(float(d['total_time'])/float(div))*100.0, 
-      float(d['used'])/float(d['waste']), 
+      analyze.km(float(d['badput'])/float(div)), 
+      (float(d['badput'])/float(div))/(float(d['total_time'])/float(div))*100.0, 
       float(d['used'])/float(d['used']+d['waste'])))) 
     return to_be_printed
 
@@ -243,8 +242,8 @@ USAGE:
         sort_attribute = sort_attributes.index(sort_attribute)
 
     #Frontend Sorting
-    fe_sort_attributes = ['total','used','u%','val','v%','idle','i%','waste','w%','usd/wst','eff']
-    fe_attr_list = ['total_time','used','used','validation','validation','idle','idle','waste','waste','used','used']
+    fe_sort_attributes = ['total','used','u%','val','v%','idle','i%','waste','w%','badput','b%','eff']
+    fe_attr_list = ['total_time','used','used','validation','validation','idle','idle','waste','waste','badput','badput','used']
     if fe_sorting !=0:
         if fe_sort_attribute not in fe_sort_attributes:
             print("%s not in list of attributes. Choices are:\n" % fe_sort_attribute)
@@ -527,8 +526,8 @@ Per Entry (per frontend) stats for the past %s hours.\n""" % (x)
 ---------------------------------------
 ---------------------------------------
 Frontend stats for the past %s hours.\n""" % (x)
-        print("%-25s%7s %7s %3s %7s %3s %7s %3s %7s %3s %11s %4s\n" % (
-              "Units: "+units[frontend_mode-1], "total","used","u%","val","v%","idle","i%","waste","w%","usd/wst","eff"))
+        print("%-25s%7s %7s %3s %7s %3s %7s %3s %7s %3s %7s %3s %4s\n" % (
+              "Units: "+units[frontend_mode-1], "total","used","u%","val","v%","idle","i%","waste","w%","badput","b%","eff"))
 
     fe_to_be_printed = []
 
@@ -634,12 +633,16 @@ used - time used
 val  - time spent validating
 idle - time spent idle
 wst  - time wasted (Lasted - JobsLasted) 
+badp - badput (Lasted - JobsGoodput)
 
-u,v,i,w% - percentage of previous corresponding attribute
-           (used, val, idle, waste) over total time
+u,v,i,w,b% - percentage of previous corresponding attribute
+             (used, val, idle, waste, badput) over total time
 ----------
-usd/wst - ratio of time used to time wasted
 eff     - efficiency - time used over total time 
+-------------------------------------
+Lasted      - total wallclock time
+JobsLasted  - wallclock time used to run jobs
+JobsGoodput - wallclock time used by jobs terminatig with exit code 0 
 -------------------------------------
         \n""")
 
