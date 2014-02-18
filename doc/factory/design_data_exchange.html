@@ -140,12 +140,12 @@ published. Such a class-ad will contain
     currently running, etc.) 
 </li></ul>
 
-<p>If encryption is used, the the encrypted identity must must match the AuthenticatedIdentity attribute inserted by the condor collector <b>(needs Condor version 7.3.1 or better)</b></p>
+<p>If encryption is used, the the encrypted identity must must match the AuthenticatedIdentity attribute inserted by the HTCondor collector <b>(needs HTCondor version 7.3.1 or later)</b></p>
 
 <p>Have a look at the picture below for a generic description.<br><img src="../images/frontend_publish.png" name="graphics5" align="BOTTOM" border="0"></p>
-<p>The most important parameters that the VO fronted sends to the factory are:</p>
+<p>The most important parameters that the VO Fronted sends to the Factory are:</p>
 <ul>
-      <li>The address of the <a href="../components/collector_install.html">User pool collector(s)</a> - <b>GLIDEIN_Collector</b>.</li>
+      <li>The address of the <a href="../components/collector_install.html">User Pool collector(s)</a> - <b>GLIDEIN_Collector</b>.</li>
 
       <li>The pilot proxies. If present, these are always encrypted. Three types of information are sent:
     <ul>
@@ -184,7 +184,7 @@ publish glideresource class-ads to the User Pool Collector. Such a class-ad will
         <ul>
             <li>GlideClientMatchingGlideinCondorExpr: The HTCondor start expression on the glideins to restrict the jobs that start on glideins.</li>
             <li>GlideClientConstraintJobCondorExpr: The HTCondor expression of which jobs to consider for glidein matching.</li>
-            <li>GlideClientMatchingInternalPythonExpr: The python expression that the frontend uses to determine which factory entries are acceptable for submission to.</li>
+            <li>GlideClientMatchingInternalPythonExpr: The Python expression that the frontend uses to determine which factory entries are acceptable for submission to.</li>
             <li>GlideClientConstraintFactoryCondorExpr: A HTCondor classad expression to determine which factory entries can be considered.</li>
         </ul>
     </li>

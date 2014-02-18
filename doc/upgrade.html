@@ -65,9 +65,9 @@
     <div class="jump">
     <u>Jump to:</u>
     <ol>
-        <li><a href="#frontend">Upgrade a frontend</a></li>
-        <li><a href="#factory">Upgrade a factory</a></li>
-        <li><a href="#v3plus">Upgrade to v3+</a></li>
+        <li><a href="#frontend">Upgrade a Frontend</a></li>
+        <li><a href="#factory">Upgrade a Factory</a></li>
+        <li><a href="#v3plus">Upgrade v2+ to v3+</a></li>
     </ol>
     </div>
     <div class="related">
@@ -76,29 +76,39 @@
         <li>
             <a href="install.html">Installation Overview</a>
         </li>
+        <li>
+            <a href="download.html">Download Overview</a>
+        </li>
+        <li>
+            <a href="history.html">Releases history</a>
+        </li>
     </ul>
     </div>
     
 
-
+<p>If you installed the component using the RPMs, you must upgrade using RPMs as described in the OSG guides (see 
+<a href="https://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFrontend">Frontend RPM installation</a>, 
+<a href="https://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFactory">Factory RPM installation</a>).
+This document refers to the TAR files installation.
+</p>
 
 <div class="section">
     <a name="frontend" />
-    <h3>General upgrade instructions for a frontend </h3>
+    <h3>General upgrade instructions for a Frontend </h3>
     <p> 
-        These instructions assume that you are only upgrading the frontend.
+        These instructions assume that you are only upgrading the Glidein Frontend.
         If you need to upgrade more components, it may involve additional
         steps.
     </p>
         <ol>
-            <li>Back up your glideinWMS (binaries/source), frontstage area for the existing installation.</li>
-            <li>Download the glideinWMS tarball and replace the old version with it.</li>
-            <li>Make sure you have correct condor in your path. This is important!</li>
+            <li>Back up your glideinwms (binaries/source) and frontstage (working directory) areas for the existing installation.</li>
+            <li>Download the GlideinWMS tarball and replace the old version with it.</li>
+            <li>Make sure you have correct HTCondor in your path. This is important!</li>
             <li>cd frontstage/frontend_Frontend_dir. this is the directory where you have frontend_startup script</li>
             <li>./frontend_startup upgrade ../instance_v3_0.cfg/frontend.xml</li>
-		</ol>
+        </ol>
 	<p>
-        <i>Note that the path names (instance_v3_0) may be slightly different in each case based on existing configuration.</i><br/>
+        <i>Note that the path names (glideinwms, frontstage, frontend_Frontend_dir, instance_v3_0) may be slightly different in each case based on your configuration.</i><br/>
 		In case you have done any special configuration to glideinWMS/creation/web_base/condor_vars.lst, you need to 
 		redo them for the existing code base.
 	</p>
@@ -113,9 +123,9 @@
 
 <div class="section">
 
-	<h3><a name="factory"></a>General upgrade instructions for a factory</h3>
+	<h3><a name="factory"></a>General upgrade instructions for a Factory</h3>
 	<p>
-		These instructions assume that you are only upgrading the factory.
+		These instructions assume that you are only upgrading the Glidein Factory.
         If you need to upgrade more components, it may involve additional
         steps.  Upgrading a factory can be done in two ways:
 	</p><ul>

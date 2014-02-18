@@ -44,10 +44,10 @@
 	<ul class="subcomponents">
 	     <li> <a href="./index.html">Overview</a></li>
 	     <li> Prerequisites</li>
-	     <li> <a href="./collector_install.html">User Collector</a></li>
+	     <li> <a href="./collector_install.html">User Pool</a></li>
 	     <li> <a href="./pool_install.html">User Schedd</a></li>
          <li> <a href="./gsi.html">GSI</a></li>
-	     <li class="last"> <a href="./condor.html">Condor</a></li>
+	     <li class="last"> <a href="./condor.html">HTCondor</a></li>
 	</ul>
         <h3>Prerequisite Component Installation</h3>
 	</div>
@@ -62,7 +62,7 @@
 </ol>
 </div>
 <div class="related">
-<u><b>Installation Procedure</b></u><br><br>
+<u><b><a href="../install.html">Installation Procedure</a></b></u><br><br>
 
 Preceded by: <a href="../install.html">Installation Overview</a><br>
 Followed by: <a href="../factory/install.html">Factory Install</a><br>
@@ -74,7 +74,7 @@ Install as: various daemon users or as system rpms/packages
 
 <h2 class="header">Prerequisite components</h2>
     <p>        
-    The following is needed by glideinWMS.  The installer will install Condor but all others should be installed before you begin.  The javascriptRRD directory
+    The following is needed by GlideinWMS.  The installer will install HTCondor but all others should be installed before you begin.  The javascriptRRD directory
     will also need to be provided to the installer.
     </p>
     <table class="requirements">
@@ -91,7 +91,7 @@ Install as: various daemon users or as system rpms/packages
 
         </tr>
         <tr>
-            <td> <a href="index.html">glideinWMS</a> </td>
+            <td> <a href="index.html">GlideinWMS</a> </td>
             <td> v3.0+ </td>
             <td class="checked"> y </td>
             <td class="checked"> y </td>
@@ -116,7 +116,7 @@ Install as: various daemon users or as system rpms/packages
         </tr>
         
         <tr>
-            <td> <a target="_blank" href="http://www.cs.wisc.edu/condor/downloads/">Condor</a> </td>
+            <td> <a target="_blank" href="http://www.cs.wisc.edu/condor/downloads/">HTCondor</a> </td>
             <td> v7.2.+ </td>
             <td class="checked"> y </td>
             <td> &nbsp; </td>
@@ -207,15 +207,15 @@ Install as: various daemon users or as system rpms/packages
             <td> &nbsp; </td>
             <td class="checked"> y </td>
             <td> <b>Note:</b> JavascriptRRD and flot, are available from different sources however they may not always work when installed 
-            separately for glideinWMS. We only support JavascriptRRD with Flot available from the sourceforge link provided.</td>
+            separately for GlideinWMS. We only support JavascriptRRD with Flot available from the sourceforge link provided.</td>
         </tr>
     </tbody></table>
     <br/>
     <h4>NOTE:</h4>
     <ul>
-        <li>Condor version v7.3.1 has a known issue with incorrect return/exit codes of condor_status and condor_q</li>
+        <li>HTCondor version v7.3.1 has a known issue with incorrect return/exit codes of condor_status and condor_q</li>
         <li>
-            If you are using Condor version v7.3.2 disable VOMS checking in condor_config file used by Condor daemons other 
+            If you are using HTCondor version v7.3.2 disable VOMS checking in condor_config file used by Condor daemons other 
             than that used by user schedd. VOMS checking adds unrequired overhead. To do so, set <br>
 
             <blockquote>USE_VOMS_ATTRIBUTES = False </blockquote> 
@@ -228,14 +228,14 @@ Install as: various daemon users or as system rpms/packages
 <div class="section">
     <h2><a name="system_httpd">1. HTTP server</a></h2>
     <p>
-    You will need to install an HTTP server for glideinWMS to be used for staging and monitoring.  This needs to be installed on a port 
+    You will need to install an HTTP server for GlideinWMS to be used for staging and monitoring.  This needs to be installed on a port 
     accessible to the outside.  
     The server should be installed on the same node, but a different node can be used as long as the web area is writable from this one.  
     In particular, the staging directory will need to be accessible 
     to glideins so they can download appropriate software.
     </p>
     <p> 
-        The choice of web server is independent of glideinWMS, but this tutorial will only
+        The choice of web server is independent of glideinWMS, but this documentation will only
         show the example of Apache Web Server.  For most systems, this can be installed via
         yum:
         <pre>
@@ -276,7 +276,7 @@ Install as: various daemon users or as system rpms/packages
         The OSG Client (formerly known as VDT Client) is now available as a set of RPMs. 
         OSG provides a <a href="http://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallOSGClient">
         complete set of instructions</a> that that we recommend.
-        Here folow a short version to install OSG Client on RHEL6 based systems. 
+        Here folow a short version to install OSG Client on RHEL6 based systems (including CentOS and SL). 
         First you will need to enable the EPEL and OSG
         repositories.  It is also advisable to enable the yum priorities
         module in order to guarantee the correct packages.
@@ -379,6 +379,7 @@ Install as: various daemon users or as system rpms/packages
     <p>
         Otherwise, download the tarball (with flot), and untar it.  You will need to 
         point the installer to this directory.
+        The installer will copy the library files to the Web directories during the installation or reconfig steps.
     </p>
 
 </div>
