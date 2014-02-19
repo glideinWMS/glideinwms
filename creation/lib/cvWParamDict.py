@@ -626,13 +626,13 @@ def apply_group_glexec_policy(descript_dict, sub_params, params):
         elif (glidein_glexec_use == 'NEVER'):
             match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_REQUIRE_GLEXEC_USE", "False") == "False")' % match_expr
 
-    if ma_arr:
-        match_attrs = eval(descript_dict['FactoryMatchAttrs']) + ma_arr
-        descript_dict.add('FactoryMatchAttrs', repr(match_attrs),
-                          allow_overwrite=True)
+        if ma_arr:
+            match_attrs = eval(descript_dict['FactoryMatchAttrs']) + ma_arr
+            descript_dict.add('FactoryMatchAttrs', repr(match_attrs),
+                              allow_overwrite=True)
 
-    descript_dict.add('FactoryQueryExpr', query_expr, allow_overwrite=True)
-    descript_dict.add('MatchExpr', match_expr, allow_overwrite=True)
+        descript_dict.add('FactoryQueryExpr', query_expr, allow_overwrite=True)
+        descript_dict.add('MatchExpr', match_expr, allow_overwrite=True)
 
 
 def populate_common_descript(descript_dict,        # will be modified
