@@ -65,6 +65,10 @@ def main(startup_dir,force=True):
         factory_pid=glideFactoryPidLib.get_factory_pid(startup_dir)
     except RuntimeError, e:
         print e
+        if str(e) == "Factory not running":
+            # Workaround to distinguish when the factory is not running
+            # string must be the same as in glideFactoryPidLib
+            return 2
         return 1
     #print factory_pid
 
@@ -97,7 +101,10 @@ def main(startup_dir,force=True):
 
     return 0
 
-USAGE_STRING = "Usage: stopFactory [-f|-force] submit_dir"
+USAGE_STRING = """Usage: stopFactory [-f|-force] submit_dir
+     return values: 0 Factory stopped, 
+         1 unable to stop Factory or wrong invocation, 2 Factory was not running
+"""
 if __name__ == '__main__':
     if len(sys.argv)<2:
         print USAGE_STRING

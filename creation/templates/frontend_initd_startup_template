@@ -39,15 +39,22 @@ start() {
 stop() {
         echo -n "Shutting down glideinWMS frontend $id_str: "
         "$glideinWMS_dir/frontend/stopFrontend.py" -f "$frontend_dir" 2>/dev/null 1>&2 </dev/null && success || failure
-        RETVAL=$? 
+        RETVAL=$?
+        if [ $RETVAL -eq 2 ]; then
+            echo -n "Already stopped."
+        fi         
         echo 
 }
         
 restart() {
         stop
+        if [ $RETVAL -eq 2 ]; then
+            # OK if already stopped
+            RETVAL=0
+        fi
         if [ $RETVAL -ne 0 ]; then
             # Waiting 30 sec for the shutdown to complete
-            echo "Waiting for the glideinWMS frontend to shutdown" 2>&1
+            echo "Waiting for the GlideinWMS Frontend to shutdown" 2>&1
             for i in range(60); do
                 # Returns 0 if running, 1 if not
                 "$glideinWMS_dir/frontend/checkFrontend.py" "$frontend_dir" >/dev/null 2>&1 </dev/null
@@ -61,7 +68,7 @@ restart() {
             echo
         fi
         if [ $RETVAL -ne 0 ]; then
-          echo "Failed to stop the glidinWMS factory. Please check."
+          echo "Failed to stop the GlidinWMS Frontend. Please check."
           exit $RETVAL
         fi
         echo "Shutdown complete"
@@ -71,11 +78,11 @@ restart() {
 reconfig() {
         if [ -f "$2" ]; then
            has_arg=1
-           echo "Using frontend config file arg: $2"
+           echo "Using Frontend config file arg: $2"
            cfg_loc=$2           
         else
            has_arg=0
-           echo "Using default frontend config file: $default_cfg_fpath"
+           echo "Using default Frontend config file: $default_cfg_fpath"
            cfg_loc=$default_cfg_fpath
         fi
         shift
@@ -108,7 +115,8 @@ reconfig() {
         notrun=$?
         if [ $notrun -eq 0 ]; then
           stop
-          if [ $RETVAL -ne 0 ]; then
+          if [ $RETVAL -ne 0 ] && [ $RETVAL -ne 2 ]; then
+            echo "Failed to stop the GlidinWMS Frontend. Please check."
             exit $RETVAL
           fi
         fi
@@ -137,7 +145,8 @@ upgrade() {
         notrun=$?
         if [ $notrun -eq 0 ]; then
           stop
-          if [ $RETVAL -ne 0 ]; then
+          if [ $RETVAL -ne 0 ] && [ $RETVAL -ne 2 ]; then
+            echo "Failed to stop the GlidinWMS Frontend. Please check."
             exit $RETVAL
           fi
         fi
@@ -185,8 +194,9 @@ case $1 in
                 restart
         ;;
         status)
-               "$glideinWMS_dir/frontend/checkFrontend.py" "$frontend_dir"
-	         RETVAL=$?
+                "$glideinWMS_dir/frontend/checkFrontend.py" "$frontend_dir"
+	        RETVAL=$?
+                #TODO: Should it print something?
         ;;
         reconfig)
                 reconfig "$@"

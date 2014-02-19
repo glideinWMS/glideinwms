@@ -44,14 +44,21 @@ stop() {
     echo -n "Shutting down glideinWMS factory $id_str: "
     "$glideinWMS_dir/factory/stopFactory.py" "$factory_dir" 2>/dev/null 1>&2 </dev/null && success || failure
     RETVAL=$?
+    if [ $RETVAL -eq 2 ]; then
+        echo -n "Already stopped."
+    fi  
     echo
 }
 
 restart() {
     stop
+    if [ $RETVAL -eq 2 ]; then
+        # OK if already stopped
+        RETVAL=0
+    fi
     if [ $RETVAL -ne 0 ]; then
         # Waiting 30 sec for the shutdown to complete
-        echo "Waiting for the glideinWMS factory to shutdown" 2>&1
+        echo "Waiting for the GlideinWMS Factory to shutdown" 2>&1
         for i in range(60); do
             # Returns 0 if running, 1 if not
             "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir" >/dev/null 2>&1 </dev/null
@@ -65,7 +72,7 @@ restart() {
         echo
     fi
     if [ $RETVAL -ne 0 ]; then
-        echo "Failed to shutdown the glidinWMS factory. Please check."
+        echo "Failed to shutdown the GlidinWMS Factory. Please check."
         exit $RETVAL
     fi
     echo "Shutdown complete"
@@ -120,7 +127,8 @@ reconfig() {
         notrun=$?
         if [ $notrun -eq 0 ]; then
           stop
-          if [ $RETVAL -ne 0 ]; then
+          if [ $RETVAL -ne 0 ] && [ $RETVAL -ne 2 ]; then
+            echo "Failed to shutdown the GlidinWMS Factory. Please check."
             exit $RETVAL
           fi
         fi
@@ -161,7 +169,8 @@ upgrade() {
         notrun=$?
         if [ $notrun -eq 0 ]; then
           stop
-          if [ $RETVAL -ne 0 ]; then
+          if [ $RETVAL -ne 0 ] && [ $RETVAL -ne 2 ]; then
+            echo "Failed to shutdown the GlidinWMS Factory. Please check."
             exit $RETVAL
           fi
         fi
@@ -216,6 +225,7 @@ case $1 in
     status)
         $glideinWMS_dir/factory/checkFactory.py $factory_dir
         RETVAL=$?
+        #TODO: Should it print something?
         ;;
     info)
         shift
