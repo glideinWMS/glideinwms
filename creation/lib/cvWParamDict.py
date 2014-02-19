@@ -307,6 +307,9 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
                                 self.sub_name,sub_params)
         populate_common_descript(self.dicts['group_descript'],sub_params)
 
+        # Apply group specific glexec policy
+        apply_group_glexec_policy(self.dicts['group_descript'], sub_params, params)
+
         # populate security data
         populate_main_security(self.client_security,params)
         populate_group_security(self.client_security,params,sub_params)
@@ -584,6 +587,44 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
 # Populate values common to frontend and group dicts
 MATCH_ATTR_CONV={'string':'s','int':'i','real':'r','bool':'b'}
 
+
+def apply_group_glexec_policy(descript_dict, sub_params, params):
+
+    glidein_glexec_use = None
+    query_expr = descript_dict['FactoryQueryExpr']
+    match_expr = descript_dict['MatchExpr']
+    ma_arr = []
+    match_attrs = None
+
+    # Consider GLIDEIN_Glexec_Use from Group level, else global
+    if sub_params.attrs.has_key('GLIDEIN_Glexec_Use'):
+        glidein_glexec_use = sub_params.attrs['GLIDEIN_Glexec_Use']['value']
+    elif params.attrs.has_key('GLIDEIN_Glexec_Use'):
+        glidein_glexec_use = params.attrs['GLIDEIN_Glexec_Use']['value']
+
+    if (glidein_glexec_use):
+        descript_dict.add('GLIDEIN_Glexec_Use', glidein_glexec_use)
+
+        # Based on the value GLIDEIN_Glexec_Use consider the entries as follows
+        # REQUIRED: Entries with GLEXEC_BIN set
+        # OPTIONAL: Consider all entries irrespective of their GLEXEC config
+        # NEVER   : Consider entries that do not want glidein to use GLEXEC
+        if (glidein_glexec_use == 'REQUIRED'):
+            query_expr = '(%s) && (GLEXEC_BIN=!=UNDEFINED) && (GLEXEC_BIN=!="NONE")' % query_expr
+            match_expr = '(%s) and (glidein["attrs"].get("GLEXEC_BIN", "NONE") != "NONE")' % match_expr
+            ma_arr.append(('GLEXEC_BIN', 's'))
+        elif (glidein_glexec_use == 'NEVER'):
+            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_REQUIRE_GLEXEC_USE", "False") == "False")' % match_expr
+
+        if ma_arr:
+            match_attrs = eval(descript_dict['FactoryMatchAttrs']) + ma_arr
+            descript_dict.add('FactoryMatchAttrs', repr(match_attrs),
+                              allow_overwrite=True)
+
+        descript_dict.add('FactoryQueryExpr', query_expr, allow_overwrite=True)
+        descript_dict.add('MatchExpr', match_expr, allow_overwrite=True)
+
+
 def populate_common_descript(descript_dict,        # will be modified
                              params):
 
@@ -591,12 +632,6 @@ def populate_common_descript(descript_dict,        # will be modified
         param_tname,str_tname=tel
         ma_arr=[]
         qry_expr = params.match[param_tname]['query_expr']
-
-        if ( (params.attrs.has_key('GLIDEIN_Glexec_Use')) and
-             (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'REQUIRED') and
-             (param_tname == 'factory') ):
-            ma_arr.append(('GLEXEC_BIN', 's'))
-            qry_expr = '(%s) && (GLEXEC_BIN=!=UNDEFINED) && (GLEXEC_BIN=!="NONE")' % qry_expr
 
         descript_dict.add('%sQueryExpr'%str_tname,qry_expr)
 
@@ -687,20 +722,8 @@ def populate_common_descript(descript_dict,        # will be modified
                 descript_dict.add(proxy_attr_names[attr], repr(proxy_descript_values[attr]))
 
     match_expr = params.match.match_expr
-
-    if (params.attrs.has_key('GLIDEIN_Glexec_Use')):
-        descript_dict.add('GLIDEIN_Glexec_Use',
-                          params.attrs['GLIDEIN_Glexec_Use']['value'])
-        # Based on the value GLIDEIN_Glexec_Use consider the entries as follows
-        # REQUIRED: Entries with GLEXEC_BIN set
-        # OPTIONAL: Consider all entries irrespective of their GLEXEC config
-        # NEVER   : Consider entries that do not want glidein to use GLEXEC
-        if (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'REQUIRED'):
-            match_expr = '(%s) and (glidein["attrs"].get("GLEXEC_BIN", "NONE") != "NONE")' % match_expr
-        elif (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'NEVER'):
-            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_REQUIRE_GLEXEC_USE", "False") == "False")' % match_expr
-
     descript_dict.add('MatchExpr', match_expr)
+
 
 #####################################################
 # Returns a string usable for GLIDEIN_Collector
