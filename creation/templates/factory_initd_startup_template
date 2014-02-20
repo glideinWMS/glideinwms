@@ -199,7 +199,7 @@ upgrade() {
 
 downtime() {
     if [ -z "$3" ]; then
-        echo $"Usage: factory_startup $1 -entry \'factory\'|\'entries\'|entry_name [-delay delay] [-frontend sec_name] [-security sec_class|\'All\'] [-comment comment]"
+        echo $"Usage: factory_startup $1 -entry 'factory'|'entries'|entry_name [-delay delay] [-frontend sec_name] [-security sec_class|\'All\'] [-comment comment]"
         exit 1
     fi
 
@@ -253,7 +253,7 @@ case $1 in
         ;;
     statusdown)
         if [ -z "$2" ]; then
-            echo $"Usage: factory_startup $1 -entry \'factory\'|\'entries\'|entry_name [-delay delay]"
+            echo $"Usage: factory_startup $1 -entry 'factory'|'entries'|entry_name [-delay delay]"
             exit 1
         fi
         "$glideinWMS_dir/factory/manageFactoryDowntimes.py" -cmd check -dir "$factory_dir" "$@"
