@@ -64,12 +64,13 @@ restart() {
                 echo -n "."
             done
             echo
+            if [ $RETVAL -ne 0 ]; then
+                echo "Failed to stop the GlidinWMS Frontend. Please check."
+                exit $RETVAL
+            else
+                echo "Shutdown complete"
+            fi
         fi
-        if [ $RETVAL -ne 0 ]; then
-          echo "Failed to stop the GlidinWMS Frontend. Please check."
-          exit $RETVAL
-        fi
-        echo "Shutdown complete"
         start
 }
 

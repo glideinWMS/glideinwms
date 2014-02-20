@@ -5,25 +5,30 @@
 
 # Emulate function library.
 success() {
-    echo -en "\033[80G[[32mOK[0m]"
+    echo -en "\033[60G[[32mOK[0m]"
     return 0
 }
 
 failure() {
-    echo -en "\033[80G[[31mFAILED[0m]"
+    echo -en "\033[60G[[31mFAILED[0m]"
     return 1
 }
 
-frontend_dir='/usr/share/gwms-frontend/frontend-temp'
+[ -f /etc/sysconfig/gwms-frontend ] && . /etc/sysconfig/gwms-frontend
+
+frontend_dir='/var/lib/gwms-frontend/vofrontend'
 glideinWMS_dir=$frontend_dir
 frontend_config=/etc/gwms-frontend/frontend.xml
-frontend_name=''
+export HOME="/var/lib/gwms-frontend"
+export FRONTEND_USER=frontend
+
 if [ -s ${frontend_config} ]
 then
-    frontend_name=`grep "^<frontend" $frontend_config  | sed 's/ /\n/g' | grep ^frontend_name | awk 'BEGIN { FS = "\""} ; { print $2 }'`
+    frontend_name=`grep "^<frontend" $frontend_config  | sed 's/ /\n/g' | grep ^frontend_name | awk 'BEGIN { FS = "\""} ; { print $2
+ }'`
 fi
 
-if [ -z ${frontend_name} ] && [ -d ${frontend_dir} ]  
+if [ -z ${frontend_name} ] && [ -d ${frontend_dir} ]
 then
     frontend_name=`awk '/^FrontendName /{print $2}' $frontend_dir/frontend.descript`
 fi
@@ -33,12 +38,11 @@ then
     echo 'Cannot determine frontend name!'
     failure
 fi
-
 id_str="$frontend_name"
 
 start() {
         echo -n "Starting glideinWMS frontend $id_str: "
-        su -s /bin/bash frontend -c "nice -2 \"glideinFrontend\" \"$frontend_dir\"" 2>/dev/null 1>&2 </dev/null &
+        su -s /bin/bash $FRONTEND_USER -c "nice -2 \"glideinFrontend\" \"$frontend_dir\"" 2>/var/log/gwms-frontend/frontend/startup.log 1>&2 </dev/null &
         sleep 5
         "checkFrontend" "$frontend_dir"  2>/dev/null 1>&2 </dev/null && success || failure
         RETVAL=$?
@@ -47,7 +51,7 @@ start() {
 
 stop() {
         echo -n "Shutting down glideinWMS frontend $id_str: "
-        "stopFrontend" -f "$frontend_dir" 2>/dev/null 1>&2 </dev/null && success || failure
+        "stopFrontend" "$frontend_dir" 2>/dev/null 1>&2 </dev/null && success || failure
         RETVAL=$?
         if [ $RETVAL -eq 2 ]; then
             echo -n "Already stopped."
@@ -75,23 +79,17 @@ restart() {
                 echo -n "."
             done
             echo
+            if [ $RETVAL -ne 0 ]; then
+                echo "Failed to stop the GlidinWMS Frontend. Please check."
+                exit $RETVAL
+            else
+                echo "Shutdown complete"
+            fi
         fi
-        if [ $RETVAL -ne 0 ]; then
-          echo "Failed to stop the GlidinWMS Frontend. Please check."
-          exit $RETVAL
-        fi
-        echo "Shutdown complete"
         start
 }
 
 reconfig() {
-        #if [ -f "$1" ]; then
-        #   has_arg=1
-        #else
-        #   has_arg=0
-        #   echo $"Usage: frontend_startup reconfig <fname>"
-        #   exit 1
-        #fi
         "checkFrontend" "$frontend_dir" >/dev/null 2>&1 </dev/null
         notrun=$?
         if [ $notrun -eq 0 ]; then
@@ -101,12 +99,37 @@ reconfig() {
             exit $RETVAL
           fi
         fi
-        "reconfig_frontend" -force_name "$frontend_name" /etc/gwms-frontend/frontend.xml
+        pushd $frontend_dir
+        su -s /bin/bash $FRONTEND_USER -c "reconfig_frontend -force_name \"$frontend_name\" -update_scripts \"no\" -xml $frontend_config"
         RETVAL=$?
         reconfig_failed=$?
         echo -n "Reconfiguring the frontend"
         test $reconfig_failed -eq 0 && success || failure
         echo
+        popd
+        if [ $notrun -eq 0 ]; then
+          start
+        fi
+}
+
+upgrade() {
+        "checkFrontend" "$frontend_dir" >/dev/null 2>&1 </dev/null
+        notrun=$?
+        if [ $notrun -eq 0 ]; then
+          stop
+          if [ $RETVAL -ne 0 ] && [ $RETVAL -ne 2 ]; then
+            echo "Failed to stop the GlidinWMS Frontend. Please check."
+            exit $RETVAL
+          fi
+        fi
+        pushd $frontend_dir
+        su -s /bin/bash $FRONTEND_USER -c "reconfig_frontend -force_name \"$frontend_name\" -writeback \"yes\" -update_scripts \"yes\" -xml $frontend_config"
+        reconfig_failed=$?
+        echo -n "Upgrading the frontend"
+        test $reconfig_failed -eq 0 && success || failure
+          RETVAL=$?
+        echo
+        popd
         if [ $notrun -eq 0 ]; then
           start
         fi
@@ -132,7 +155,7 @@ downtime() {
 	   echo -n " entry $2:"
 	 fi
 
-	 "$glideinWMS_dir/frontend/manageFrontendDowntimes.py" "$frontend_dir" $2 $1 $3 2>/dev/null 1>&2 </dev/null && success || failure
+	 "manageFrontendDowntimes" "$frontend_dir" $2 $1 $3 2>/dev/null 1>&2 </dev/null && success || failure
 	 RETVAL=$?
 	 echo
 }
@@ -148,11 +171,14 @@ case $1 in
                 restart
         ;;
         status)
-                "checkFrontend" "$frontend_dir"
-                RETVAL=$?
+               "checkFrontend" "$frontend_dir"
+	         RETVAL=$?
         ;;
         reconfig)
-                reconfig $2
+                reconfig "$@"
+        ;;
+        upgrade)
+                upgrade $2
         ;;
         *)
         echo $"Usage: frontend_startup {start|stop|restart|status|reconfig}"
