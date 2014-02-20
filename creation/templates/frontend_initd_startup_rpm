@@ -1,0 +1,162 @@
+#!/bin/bash
+# condor   This is the glideinWMS frontend startup script
+# chkconfig: 35 90 30
+# description: Starts and stops a glideinWMS frontend
+
+# Emulate function library.
+success() {
+    echo -en "\033[80G[[32mOK[0m]"
+    return 0
+}
+
+failure() {
+    echo -en "\033[80G[[31mFAILED[0m]"
+    return 1
+}
+
+frontend_dir='/usr/share/gwms-frontend/frontend-temp'
+glideinWMS_dir=$frontend_dir
+frontend_config=/etc/gwms-frontend/frontend.xml
+frontend_name=''
+if [ -s ${frontend_config} ]
+then
+    frontend_name=`grep "^<frontend" $frontend_config  | sed 's/ /\n/g' | grep ^frontend_name | awk 'BEGIN { FS = "\""} ; { print $2 }'`
+fi
+
+if [ -z ${frontend_name} ] && [ -d ${frontend_dir} ]  
+then
+    frontend_name=`awk '/^FrontendName /{print $2}' $frontend_dir/frontend.descript`
+fi
+
+if [ -z ${frontend_name} ]
+then
+    echo 'Cannot determine frontend name!'
+    failure
+fi
+
+id_str="$frontend_name"
+
+start() {
+        echo -n "Starting glideinWMS frontend $id_str: "
+        su -s /bin/bash frontend -c "nice -2 \"glideinFrontend\" \"$frontend_dir\"" 2>/dev/null 1>&2 </dev/null &
+        sleep 5
+        "checkFrontend" "$frontend_dir"  2>/dev/null 1>&2 </dev/null && success || failure
+        RETVAL=$?
+        echo
+}
+
+stop() {
+        echo -n "Shutting down glideinWMS frontend $id_str: "
+        "stopFrontend" -f "$frontend_dir" 2>/dev/null 1>&2 </dev/null && success || failure
+        RETVAL=$?
+        if [ $RETVAL -eq 2 ]; then
+            echo -n "Already stopped."
+        fi         
+        echo
+}
+
+restart() {
+        stop
+        if [ $RETVAL -eq 2 ]; then
+            # OK if already stopped
+            RETVAL=0
+        fi
+        if [ $RETVAL -ne 0 ]; then
+            # Waiting 30 sec for the shutdown to complete
+            echo "Waiting for the GlideinWMS Frontend to shutdown" 2>&1
+            for i in range(60); do
+                # Returns 0 if running, 1 if not
+                "$glideinWMS_dir/frontend/checkFrontend.py" "$frontend_dir" >/dev/null 2>&1 </dev/null
+                if [ $? -eq 1 ]; then
+                    RETVAL=0
+                    break
+                fi
+                sleep 1
+                echo -n "."
+            done
+            echo
+        fi
+        if [ $RETVAL -ne 0 ]; then
+          echo "Failed to stop the GlidinWMS Frontend. Please check."
+          exit $RETVAL
+        fi
+        echo "Shutdown complete"
+        start
+}
+
+reconfig() {
+        #if [ -f "$1" ]; then
+        #   has_arg=1
+        #else
+        #   has_arg=0
+        #   echo $"Usage: frontend_startup reconfig <fname>"
+        #   exit 1
+        #fi
+        "checkFrontend" "$frontend_dir" >/dev/null 2>&1 </dev/null
+        notrun=$?
+        if [ $notrun -eq 0 ]; then
+          stop
+          if [ $RETVAL -ne 0 ] && [ $RETVAL -ne 2 ]; then
+            echo "Failed to stop the GlidinWMS Frontend. Please check."
+            exit $RETVAL
+          fi
+        fi
+        "reconfig_frontend" -force_name "$frontend_name" /etc/gwms-frontend/frontend.xml
+        RETVAL=$?
+        reconfig_failed=$?
+        echo -n "Reconfiguring the frontend"
+        test $reconfig_failed -eq 0 && success || failure
+        echo
+        if [ $notrun -eq 0 ]; then
+          start
+        fi
+}
+
+downtime() {
+       if [ -z "$2" ]; then
+           echo $"Usage: frontend_startup $1 'frontend'|'entries'|entry_name [delay]"
+           exit 1
+       fi
+
+	 if [ "$1" == "down" ]; then
+	   echo -n "Setting downtime for"
+	 elif [ "$1" == "up" ]; then
+	   echo -n "Removing downtime for"
+	 else
+	   echo -n "Infosys-based downtime management for"
+	 fi
+
+	 if [ "$2" == "frontend" ]; then
+	   echo -n " frontend:"
+       else
+	   echo -n " entry $2:"
+	 fi
+
+	 "$glideinWMS_dir/frontend/manageFrontendDowntimes.py" "$frontend_dir" $2 $1 $3 2>/dev/null 1>&2 </dev/null && success || failure
+	 RETVAL=$?
+	 echo
+}
+
+case $1 in
+        start)
+                start
+        ;;
+        stop)
+                stop
+        ;;
+        restart)
+                restart
+        ;;
+        status)
+                "checkFrontend" "$frontend_dir"
+                RETVAL=$?
+        ;;
+        reconfig)
+                reconfig $2
+        ;;
+        *)
+        echo $"Usage: frontend_startup {start|stop|restart|status|reconfig}"
+        exit 1
+esac
+
+exit $RETVAL
