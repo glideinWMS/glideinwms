@@ -119,9 +119,11 @@ reconfig() {
             exit $RETVAL
           fi
         fi
+        pushd $frontend_dir
         "$glideinWMS_dir/creation/reconfig_frontend" -force_name "$frontend_name" -writeback "$writeback" -update_scripts "no" -xml "$cfg_loc" -update_def_cfg "$update_def_cfg" $fix_rrd
         RETVAL=$?
         reconfig_failed=$?
+        popd
         echo -n "Reconfiguring the frontend"
         test $reconfig_failed -eq 0 && success || failure
         echo
@@ -149,8 +151,10 @@ upgrade() {
             exit $RETVAL
           fi
         fi
+        pushd $frontend_dir
         "$glideinWMS_dir/creation/reconfig_frontend" -force_name "$frontend_name" -writeback "yes" -update_scripts "yes" -xml "$cfg_loc"
         reconfig_failed=$?
+        popd
         echo -n "Upgrading the frontend"
         test $reconfig_failed -eq 0 && success || failure
           RETVAL=$?

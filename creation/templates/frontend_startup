@@ -103,10 +103,10 @@ reconfig() {
         su -s /bin/bash $FRONTEND_USER -c "reconfig_frontend -force_name \"$frontend_name\" -update_scripts \"no\" -xml $frontend_config"
         RETVAL=$?
         reconfig_failed=$?
+        popd
         echo -n "Reconfiguring the frontend"
         test $reconfig_failed -eq 0 && success || failure
         echo
-        popd
         if [ $notrun -eq 0 ]; then
           start
         fi
@@ -125,11 +125,11 @@ upgrade() {
         pushd $frontend_dir
         su -s /bin/bash $FRONTEND_USER -c "reconfig_frontend -force_name \"$frontend_name\" -writeback \"yes\" -update_scripts \"yes\" -xml $frontend_config"
         reconfig_failed=$?
+        popd
         echo -n "Upgrading the frontend"
         test $reconfig_failed -eq 0 && success || failure
           RETVAL=$?
         echo
-        popd
         if [ $notrun -eq 0 ]; then
           start
         fi
