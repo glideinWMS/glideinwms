@@ -675,7 +675,7 @@ def main(startup_dir):
     # start
     try:
         pid_obj.register()
-    except AlreadyRunning, err:
+    except glideFactoryPidLib.pidSupport.AlreadyRunning, err:
         logSupport.log.exception("Exception during registration: %s" % err)
         raise
     try:
