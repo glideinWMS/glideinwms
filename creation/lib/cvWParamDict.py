@@ -112,10 +112,11 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
                     start_expr=params.attrs[attr_name].value
                 elif not (params.attrs[attr_name].value in (None,'True')):
                     start_expr="(%s)&&(%s)"%(start_expr,params.attrs[attr_name].value)
-                # delete from the internal structure... will use it in match section
+                # delete from the internal structure... that's legacy only
                 del params.data['attrs'][attr_name]
-            else:
+            elif params.attrs[attr_name].value.find('$')==-1: #does not need to be expanded
                 add_attr_unparsed(attr_name, params,self.dicts,"main")
+            # ignore attributes that need expansion in the global section
 
         real_start_expr=params.match.start_expr
         if start_expr is not None:
@@ -126,7 +127,12 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
             # since I removed the attributes, roll back into the match.start_expr
             params.data['match']['start_expr']=real_start_expr
         
-        self.dicts['consts'].add('GLIDECLIENT_Start',real_start_expr)
+        if real_start_expr.find('$')==-1:
+            self.dicts['consts'].add('GLIDECLIENT_Start',real_start_expr)
+        else:
+            # the start epxression must be expanded, so will deal with it in the group section
+            # use a simple placeholder, since the glideins expect it
+            self.dicts['consts'].add('GLIDECLIENT_Start','True')
         
         # create GLIDEIN_Collector attribute
         self.dicts['params'].add_extended('GLIDEIN_Collector',False,str(calc_glidein_collectors(params.collectors)))
@@ -135,9 +141,15 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         if self.dicts['preentry_file_list'].is_placeholder(cWConsts.GRIDMAP_FILE): # gridmapfile is optional, so if not loaded, remove the placeholder
             self.dicts['preentry_file_list'].remove(cWConsts.GRIDMAP_FILE)
 
+        # Tell condor to advertise GLIDECLIENT_ReqNode
+        self.dicts['vars'].add_extended('GLIDECLIENT_ReqNode','string',None,None,False,True,False)
+
+        # derive attributes
+        populate_common_attrs(self.dicts)
+
         # populate complex files
         populate_frontend_descript(self.work_dir,self.dicts['frontend_descript'],self.active_sub_list,params)
-        populate_common_descript(self.dicts['frontend_descript'],params)
+        populate_common_descript(self.dicts['frontend_descript'],params,self.dicts['attrs'])
 
         # populate the monitor files
         javascriptrrd_dir = params.monitor.javascriptRRD_dir
@@ -186,14 +198,20 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
                     mfobj.load()
                     self.monitor_htmls.append(mfobj)
 
-        # Tell condor to advertise GLIDECLIENT_ReqNode
-        self.dicts['vars'].add_extended('GLIDECLIENT_ReqNode','string',None,None,False,True,False)
-
-        # derive attributes
-        populate_common_attrs(self.dicts)
-
         # populate security data
         populate_main_security(self.client_security,params)
+
+    # this one is called after all the group ones have been called
+    def post_populate(self,params=None):
+        if params is None:
+            params=self.params
+
+        for attr_name in ('JobQueryExpr','FactoryQueryExpr','MatchExpr'):
+            if self.dicts['frontend_descript'][attr_name].find('$')!=-1:
+                # needs to be expanded, was put in group already
+                # set it to the default True value here
+                self.dicts['frontend_descript'].add(attr_name,'True',allow_overwrite=True)
+
 
     def find_parent_dir(self,search_path,name):
         """ Given a search path, determine if the given file exists
@@ -259,7 +277,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         self.params=params
         self.client_security={}
 
-    def populate(self,params=None):
+    def populate(self,main_dicts,params=None):
         if params is None:
             params=self.params
 
@@ -282,8 +300,16 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         # put user files in stage
         for user_file in sub_params.files:
             add_file_unparsed(user_file,self.dicts)
+            
+        # insert the global values that need to be expanded
+        # will be in the group section now
+        for attr_name in params.attrs.keys():
+             if params.attrs[attr_name].value.find('$')!=-1:
+                 if not (attr_name in sub_params.attrs.keys()):
+                     add_attr_unparsed(attr_name, params,self.dicts,self.sub_name)
+                 # else the group value will override it later on
 
-        # start expr is special
+        #start expr is special
         start_expr=None
 
         # put user attributes into config files
@@ -293,7 +319,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
                     start_expr=sub_params.attrs[attr_name].value
                 elif sub_params.attrs[attr_name].value is not None:
                     start_expr="(%s)&&(%s)"%(start_expr,sub_params.attrs[attr_name].value)
-                # delete from the internal structure... will use it in match section
+                # delete from the internal structure... that's legacy only
                 del sub_params.data['attrs'][attr_name]
             else:
                 add_attr_unparsed(attr_name, sub_params,self.dicts,self.sub_name)
@@ -306,8 +332,13 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
                 real_start_expr=start_expr
             # since I removed the attributes, roll back into the match.start_expr
             sub_params.data['match']['start_expr']=real_start_expr
+
+        if params.match.start_expr.find('$')!=-1:
+            # the global one must be expanded, so deal with it at the group level
+            real_start_expr="(%s)&&(%s)"%(params.match.start_expr,real_start_expr)
         
         self.dicts['consts'].add('GLIDECLIENT_Group_Start',real_start_expr)
+
 
         # derive attributes
         populate_common_attrs(self.dicts)
@@ -315,7 +346,16 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         # populate complex files
         populate_group_descript(self.work_dir,self.dicts['group_descript'],
                                 self.sub_name,sub_params)
-        populate_common_descript(self.dicts['group_descript'],sub_params)
+        populate_common_descript(self.dicts['group_descript'],sub_params,self.dicts['attrs'])
+
+        # look up global descript value, and if they need to be expanded, move them in the entry
+        for kt in (('JobQueryExpr','&&'),('FactoryQueryExpr','&&'),('MatchExpr','and')):
+            attr_name,connector=kt
+            if main_dicts['frontend_descript'][attr_name].find('$')!=-1:
+                # needs to be expanded, put it here, already joined with local one
+                self.dicts['group_descript'].add(attr_name,
+                                                 '(%s)%s(%s)'%(main_dicts['frontend_descript'][attr_name],connector,self.dicts['group_descript'][attr_name]),
+                                                 allow_overwrite=True)
 
         # populate security data
         populate_main_security(self.client_security,params)
@@ -376,7 +416,9 @@ class frontendDicts(cvWDictFile.frontendDicts):
 
         self.local_populate(params)
         for sub_name in self.sub_list:
-            self.sub_dicts[sub_name].populate(params)
+            self.sub_dicts[sub_name].populate(self.main_dicts.dicts,params)
+
+        self.main_dicts.post_populate(params)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -595,15 +637,16 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
 MATCH_ATTR_CONV={'string':'s','int':'i','real':'r','bool':'b'}
 
 def populate_common_descript(descript_dict,        # will be modified
-                             params):
+                             params,
+                             attrs_dict):
 
     for tel in (("factory","Factory"),("job","Job")):
         param_tname,str_tname=tel
         ma_arr=[]
         qry_expr = params.match[param_tname]['query_expr']
 
-        if ( (params.attrs.has_key('GLIDEIN_Glexec_Use')) and
-             (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'REQUIRED') and
+        if ( (attrs_dict.has_key('GLIDEIN_Glexec_Use')) and
+             (attrs_dict['GLIDEIN_Glexec_Use'] == 'REQUIRED') and
              (param_tname == 'factory') ):
             ma_arr.append(('GLEXEC_BIN', 's'))
             qry_expr = '(%s) && (GLEXEC_BIN=!=UNDEFINED) && (GLEXEC_BIN=!="NONE")' % qry_expr
@@ -698,16 +741,16 @@ def populate_common_descript(descript_dict,        # will be modified
 
     match_expr = params.match.match_expr
 
-    if (params.attrs.has_key('GLIDEIN_Glexec_Use')):
+    if (attrs_dict.has_key('GLIDEIN_Glexec_Use')):
         descript_dict.add('GLIDEIN_Glexec_Use',
-                          params.attrs['GLIDEIN_Glexec_Use']['value'])
+                          attrs_dict['GLIDEIN_Glexec_Use'])
         # Based on the value GLIDEIN_Glexec_Use consider the entries as follows
         # REQUIRED: Entries with GLEXEC_BIN set
         # OPTIONAL: Consider all entries irrespective of their GLEXEC config
         # NEVER   : Consider entries that do not want glidein to use GLEXEC
-        if (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'REQUIRED'):
+        if (attrs_dict['GLIDEIN_Glexec_Use'] == 'REQUIRED'):
             match_expr = '(%s) and (glidein["attrs"].get("GLEXEC_BIN", "NONE") != "NONE")' % match_expr
-        elif (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'NEVER'):
+        elif (attrs_dict['GLIDEIN_Glexec_Use'] == 'NEVER'):
             match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_REQUIRE_GLEXEC_USE", "False") == "False")' % match_expr
 
     descript_dict.add('MatchExpr', match_expr)
