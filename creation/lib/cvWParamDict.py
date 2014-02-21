@@ -79,9 +79,12 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         self.monitor_htmls=[]
         self.client_security={}
 
+    # returns a dictionary of attributes that must go into the group section
     def populate(self,params=None):
         if params is None:
             params=self.params
+
+        outdict={'descript':{}}
 
         # put default files in place first
         self.dicts['preentry_file_list'].add_placeholder(cWConsts.CONSTS_FILE,allow_overwrite=True)
@@ -151,6 +154,14 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         populate_frontend_descript(self.work_dir,self.dicts['frontend_descript'],self.active_sub_list,params)
         populate_common_descript(self.dicts['frontend_descript'],params,self.dicts['attrs'])
 
+        # some of the descript attributes may need expansion... push them into group
+        for attr_name in ('JobQueryExpr','FactoryQueryExpr','MatchExpr'):
+            if self.dicts['frontend_descript'][attr_name].find('$')!=-1:
+                # needs to be expanded, put in group
+                outdict['descript'][attr_name]=self.dicts['frontend_descript'][attr_name]
+                # set it to the default True value here
+                self.dicts['frontend_descript'].add(attr_name,'True',allow_overwrite=True)
+
         # populate the monitor files
         javascriptrrd_dir = params.monitor.javascriptRRD_dir
         for mfarr in ((params.src_dir,'frontend_support.js'),
@@ -201,16 +212,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         # populate security data
         populate_main_security(self.client_security,params)
 
-    # this one is called after all the group ones have been called
-    def post_populate(self,params=None):
-        if params is None:
-            params=self.params
-
-        for attr_name in ('JobQueryExpr','FactoryQueryExpr','MatchExpr'):
-            if self.dicts['frontend_descript'][attr_name].find('$')!=-1:
-                # needs to be expanded, was put in group already
-                # set it to the default True value here
-                self.dicts['frontend_descript'].add(attr_name,'True',allow_overwrite=True)
+        return outdict
 
 
     def find_parent_dir(self,search_path,name):
@@ -351,10 +353,10 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         # look up global descript value, and if they need to be expanded, move them in the entry
         for kt in (('JobQueryExpr','&&'),('FactoryQueryExpr','&&'),('MatchExpr','and')):
             attr_name,connector=kt
-            if main_dicts['frontend_descript'][attr_name].find('$')!=-1:
+            if main_dicts['descript'].has_key(attr_name):
                 # needs to be expanded, put it here, already joined with local one
                 self.dicts['group_descript'].add(attr_name,
-                                                 '(%s)%s(%s)'%(main_dicts['frontend_descript'][attr_name],connector,self.dicts['group_descript'][attr_name]),
+                                                 '(%s)%s(%s)'%(main_dicts['descript'][attr_name],connector,self.dicts['group_descript'][attr_name]),
                                                  allow_overwrite=True)
 
         # populate security data
@@ -411,14 +413,12 @@ class frontendDicts(cvWDictFile.frontendDicts):
         if params is None:
             params=self.params
         
-        self.main_dicts.populate(params)
+        promote_dicts=self.main_dicts.populate(params)
         self.active_sub_list=self.main_dicts.active_sub_list
 
         self.local_populate(params)
         for sub_name in self.sub_list:
-            self.sub_dicts[sub_name].populate(self.main_dicts.dicts,params)
-
-        self.main_dicts.post_populate(params)
+            self.sub_dicts[sub_name].populate(promote_dicts,params)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
