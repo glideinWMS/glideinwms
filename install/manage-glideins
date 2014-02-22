@@ -45,11 +45,13 @@ def run_command(service,user,node,command):
   common.logit("\n############################################################")
   common.logit("## %s " % hdr)
   common.logit("Commands: %s" % cmd)
+  stdout=""
   try:
     stdout = glideinwms.lib.subprocessSupport.iexe_cmd(cmd,useShell=True)
   except glideinwms.lib.subprocessSupport.CalledProcessError, e:
     common.logit(stdout)
     common.logerr("Requested action failed.")
+    #TODO: should re-rise the exceptopn? How should it be handled? exit?
   common.logit(stdout)
   common.logit("## %s " % hdr)
   common.logit("############################################################\n")
