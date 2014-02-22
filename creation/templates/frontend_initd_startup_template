@@ -53,7 +53,7 @@ restart() {
         if [ $RETVAL -ne 0 ]; then
             # Waiting 30 sec for the shutdown to complete
             echo "Waiting for the GlideinWMS Frontend to shutdown" 2>&1
-            for i in range(60); do
+            for i in {1..60}; do  # Use seq if a variable is needed: $(seq 1 $END)
                 # Returns 0 if running, 1 if not
                 "$glideinWMS_dir/frontend/checkFrontend.py" "$frontend_dir" >/dev/null 2>&1 </dev/null
                 if [ $? -eq 1 ]; then
