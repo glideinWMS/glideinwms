@@ -16,6 +16,7 @@ import cWParams
 import cvWDictFile,cWDictFile
 import cvWConsts,cWConsts
 import cvWCreate
+import cWExpand
 
 #####################################################
 # Validate node string
@@ -279,7 +280,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         self.params=params
         self.client_security={}
 
-    def populate(self,main_dicts,params=None):
+    def populate(self,promote_dicts,main_dicts,params=None):
         if params is None:
             params=self.params
 
@@ -353,15 +354,36 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         # look up global descript value, and if they need to be expanded, move them in the entry
         for kt in (('JobQueryExpr','&&'),('FactoryQueryExpr','&&'),('MatchExpr','and')):
             attr_name,connector=kt
-            if main_dicts['descript'].has_key(attr_name):
+            if promote_dicts['descript'].has_key(attr_name):
                 # needs to be expanded, put it here, already joined with local one
                 self.dicts['group_descript'].add(attr_name,
-                                                 '(%s)%s(%s)'%(main_dicts['descript'][attr_name],connector,self.dicts['group_descript'][attr_name]),
+                                                 '(%s)%s(%s)'%(promote_dicts['descript'][attr_name],connector,self.dicts['group_descript'][attr_name]),
                                                  allow_overwrite=True)
 
         # populate security data
         populate_main_security(self.client_security,params)
         populate_group_security(self.client_security,params,sub_params)
+
+        # we now have all the attributes... do the expansion
+        # first, let's merge the attributes
+        summed_attrs={}
+        for d in (main_dicts['attrs'],self.dicts['attrs']):
+            for k in d.keys:
+                # if the same key is in both global and group (i.e. local), group wins
+                summed_attrs[k]=d[k] 
+
+        for dname in ('attrs','consts','group_descript'):
+            for attr_name in self.dicts[dname].keys:
+                if self.dicts[dname][attr_name].find('$')!=-1:
+                    self.dicts[dname].add(attr_name,
+                                          cWExpand.expand_DLR(self.dicts[dname][attr_name],summed_attrs),
+                                          allow_overwrite=True)
+        for dname in ('params',):
+            for attr_name in self.dicts[dname].keys:
+                if self.dicts[dname][attr_name][1].find('$')!=-1:
+                    self.dicts[dname].add(attr_name,
+                                          (self.dicts[dname][attr_name][0],cWExpand.expand_DLR(self.dicts[dname][attr_name][1],summed_attrs)),
+                                          allow_overwrite=True)
 
 
     # reuse as much of the other as possible
@@ -418,7 +440,7 @@ class frontendDicts(cvWDictFile.frontendDicts):
 
         self.local_populate(params)
         for sub_name in self.sub_list:
-            self.sub_dicts[sub_name].populate(promote_dicts,params)
+            self.sub_dicts[sub_name].populate(promote_dicts,self.main_dicts.dicts,params)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
