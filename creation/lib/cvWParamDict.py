@@ -857,4 +857,4 @@ def populate_common_attrs(dicts):
     for k in dicts['params'].keys:
         dicts['attrs'].add(k,dicts['params'].get_true_val(k))
     for k in dicts['consts'].keys:
-        dicts['attrs'].add(k,dicts['consts'].get_typed_val(k))
+        dicts['attrs'].add(k,dicts['consts'][k])
