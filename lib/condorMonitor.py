@@ -372,6 +372,17 @@ class SubQuery(BaseSubQuery):
     def __init__(self, query, constraint_func=None):
         BaseSubQuery.__init__(self, query, lambda d:applyConstraint(d, constraint_func))
 
+    def __repr__(self):
+        output = "SubQuery:\n"
+        output += "client_name = %s\n" % str(self.client_name)
+        output += "entry_name = %s\n" % str(self.entry_name)
+        output += "factory_name = %s\n" % str(self.factory_name)
+        output += "glidein_name = %s\n" % str(self.glidein_name)
+        output += "schedd_name = %s\n" % str(self.schedd_name)
+        output += "stored_data = %s" % str(self.stored_data)
+        return output
+
+
 class Group(BaseSubQuery):
     #  group_key_func  - Key extraction function
     #                      One argument: classad dictionary
@@ -381,6 +392,7 @@ class Group(BaseSubQuery):
     #                      Returns: a summary classad dictionary
     def __init__(self, query, group_key_func, group_data_func):
         BaseSubQuery.__init__(self, query, lambda d:doGroup(d, group_key_func, group_data_func))
+
 
 #
 # Summarizing classes

@@ -65,6 +65,7 @@ class FactoryConfig:
         self.schedd_startd_attribute = "GLIDEIN_Schedd"
         self.clusterid_startd_attribute = "GLIDEIN_ClusterId"
         self.procid_startd_attribute = "GLIDEIN_ProcId"
+        self.credential_id_startd_attribute = "GLIDEIN_CredentialIdentifier"
 
         self.count_env = 'GLIDEIN_COUNT'
 
@@ -227,6 +228,29 @@ def getCondorQCredentialList(factoryConfig=None):
                 
     return cred_list
 
+def getQCredentials(condorq, client_name, creds,
+                   client_sa, cred_secclass_sa, cred_id_sa):
+    """
+    Get the current queue status for client and credenitial.
+    v3 equivalent for getQProxySecClass
+    """
+
+    entry_condorQ = condorMonitor.SubQuery(
+        condorq,
+        lambda d: (
+            (d.get(client_sa) == client_name) and
+            (d.get(cred_secclass_sa) == creds.security_class) and
+            (d.get(cred_id_sa) == creds.id)
+        )
+    )
+    entry_condorQ.schedd_name = condorq.schedd_name
+    entry_condorQ.factory_name = condorq.factory_name
+    entry_condorQ.glidein_name = condorq.glidein_name
+    entry_condorQ.entry_name = condorq.entry_name
+    entry_condorQ.client_name = condorq.client_name
+    entry_condorQ.load()
+    return entry_condorQ
+
 def getQProxSecClass(condorq, client_name, proxy_security_class,
                      client_schedd_attribute=None,
                      credential_secclass_schedd_attribute=None,
@@ -248,8 +272,14 @@ def getQProxSecClass(condorq, client_name, proxy_security_class,
     else:
         xsa_str = credential_secclass_schedd_attribute
 
-    entry_condorQ = condorMonitor.SubQuery(condorq, lambda d:(d.has_key(csa_str) and (d[csa_str] == client_name) and
-                                                           d.has_key(xsa_str) and (d[xsa_str] == proxy_security_class)))
+    # For v2 protocol
+    entry_condorQ = condorMonitor.SubQuery(
+        condorq,
+        lambda d: (
+            d.has_key(csa_str) and (d[csa_str] == client_name) and
+            d.has_key(xsa_str) and (d[xsa_str] == proxy_security_class)
+        )
+    )
     entry_condorQ.schedd_name = condorq.schedd_name
     entry_condorQ.factory_name = condorq.factory_name
     entry_condorQ.glidein_name = condorq.glidein_name
@@ -1328,11 +1358,12 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
         # Build the glidein pilot arguments
         glidein_arguments = str("-v %s -name %s -entry %s -clientname %s -schedd %s " \
                             "-factory %s -web %s -sign %s -signentry %s -signtype %s " \
-                            "-descript %s -descriptentry %s -dir %s -param_GLIDEIN_Client %s -slotslayout %s %s" % \
+                            "-descript %s -descriptentry %s -dir %s -param_GLIDEIN_Client %s -submitcredid %s -slotslayout %s %s" % \
                             (verbosity, glidein_name, entry_name, client_name,
                              schedd, factory_name, web_url, main_sign, entry_sign,
-                             sign_type, main_descript, entry_descript, startup_dir,
-                             client_name, slots_layout, params_str))
+                             sign_type, main_descript, entry_descript,
+                             startup_dir, client_name, submit_credentials.id,
+                             slots_layout, params_str))
         glidein_arguments = glidein_arguments.replace('"', '\\"') 
         #log.debug("glidein_arguments: %s" % glidein_arguments)
 

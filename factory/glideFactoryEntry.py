@@ -483,7 +483,6 @@ class Entry:
                 self.log.warning("Client '%s' has stats, but no classad! Ignoring." % client_name)
                 continue
             client_internals = self.gflFactoryConfig.client_internals[client_name]
-
             client_monitors={}
             for w in client_qc_data:
                 for a in client_qc_data[w]:
@@ -915,6 +914,12 @@ def check_and_perform_work(factory_in_downtime, entry, work):
             entry.log.warning("Client %s (secid: %s) is not coming from a trusted source; AuthenticatedIdentity %s!=%s. Skipping for security reasons."%(client_int_name,client_security_name,client_authenticated_identity,client_expected_identity))
             continue
 
+        entry.gflFactoryConfig.client_internals[client_int_name] = {
+            'CompleteName': '%s@%s' % (client_int_req, client_int_name),
+            'CompleteNameWithCredentialsId': work_key,
+            'ReqName': client_int_req
+        }
+
         #
         # STEP: Actually process the unit work using either v2 or v3 protocol
         #
@@ -1252,12 +1257,18 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
 
     all_security_names.add((client_security_name, credential_security_class))
 
-    entry_condorQ = glideFactoryLib.getQProxSecClass(
-                        condorQ, client_int_name,
-                        submit_credentials.security_class,
-                        client_schedd_attribute=entry.gflFactoryConfig.client_schedd_attribute,
-                        credential_secclass_schedd_attribute=entry.gflFactoryConfig.credential_secclass_schedd_attribute,
-                        factoryConfig=entry.gflFactoryConfig)
+    #entry_condorQ = glideFactoryLib.getQProxSecClass(
+    #                    condorQ, client_int_name,
+    #                    submit_credentials.security_class,
+    #                    client_schedd_attribute=entry.gflFactoryConfig.client_schedd_attribute,
+    #                    credential_secclass_schedd_attribute=entry.gflFactoryConfig.credential_secclass_schedd_attribute,
+    #                    factoryConfig=entry.gflFactoryConfig)
+
+    entry_condorQ = glideFactoryLib.getQCredentials(
+                        condorQ, client_int_name, submit_credentials,
+                        entry.gflFactoryConfig.client_schedd_attribute,
+                        entry.gflFactoryConfig.credential_secclass_schedd_attribute,
+                        entry.gflFactoryConfig.credential_id_schedd_attribute)
 
 
     # Map the identity to a frontend:sec_class for tracking totals
@@ -1266,9 +1277,9 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
          credential_security_class)
 
     # do one iteration for the credential set (maps to a single security class)
-    entry.gflFactoryConfig.client_internals[client_int_name] = \
-        {"CompleteName":client_name, "ReqName":client_int_req}
-
+    #entry.gflFactoryConfig.client_internals[client_int_name] = \
+    #    {"CompleteName":client_name, "ReqName":client_int_req}
+    
     done_something = perform_work_v3(entry, entry_condorQ, client_name,
                                      client_int_name, client_security_name,
                                      submit_credentials, remove_excess,
@@ -1530,9 +1541,9 @@ def unit_work_v2(entry, work, client_name, client_int_name, client_int_req,
             (entry.frontendDescript.get_frontend_name(client_expected_identity),
              x509_proxy_security_class)
 
-        # Do a iteration for the credential set (maps to a 1 security class)
-        entry.gflFactoryConfig.client_internals[client_int_name] = \
-            {"CompleteName":client_name, "ReqName":client_int_req}
+        ## Do a iteration for the credential set (maps to a 1 security class)
+        #entry.gflFactoryConfig.client_internals[client_int_name] = \
+        #    {"CompleteName":client_name, "ReqName":client_int_req}
 
         done_something = perform_work_v2(
                              entry, entry_condorQ, client_name, client_int_name,
