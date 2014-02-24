@@ -130,27 +130,6 @@ def fetch_fork_result_list(pipe_ids):
     return out
         
 
-######################
-# expand $$(attribute)
-def expand_DD(qstr,attr_dict):
-    import re
-    robj=re.compile("\$\$\((?P<attrname>[^\)]*)\)")
-    while 1:
-        m=robj.search(qstr)
-        if m is None:
-            break # no more substitutions to do
-        attr_name=m.group('attrname')
-        if not attr_dict.has_key(attr_name):
-            raise KeyError, "Missing attribute %s"%attr_name
-        attr_val=attr_dict[attr_name]
-        if type(attr_val)==type(1):
-            attr_str=str(attr_val)
-        else: # assume it is a string for all other purposes... quote and escape existing quotes
-            attr_str='"%s"'%attr_val.replace('"','\\"')
-        qstr="%s%s%s"%(qstr[:m.start()],attr_str,qstr[m.end():])
-    return qstr
-    
-
 ############################################################
 def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatureDescript, x509_proxy_plugin, stats, history_obj):
     frontend_name = elementDescript.frontend_data['FrontendName']
@@ -216,7 +195,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
         os.close(r)
         try:
             glidein_dict = {}
-            factory_constraint=expand_DD(elementDescript.merged_data['FactoryQueryExpr'],attr_dict)
+            factory_constraint=elementDescript.merged_data['FactoryQueryExpr']
             factory_pools=elementDescript.merged_data['FactoryCollectors']
             for factory_pool in factory_pools:
                 factory_pool_node = factory_pool[0]
@@ -283,7 +262,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
                 condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN','s'),))
                 condorq_format_list=list(condorq_format_list)+list((('x509userproxy','s'),))
                 condorq_dict = glideinFrontendLib.getCondorQ(elementDescript.merged_data['JobSchedds'],
-                                                       expand_DD(elementDescript.merged_data['JobQueryExpr'],attr_dict),
+                                                       elementDescript.merged_data['JobQueryExpr'],
                                                        condorq_format_list)
             except Exception:
                 logSupport.log.exception("In query schedd child, exception:")
