@@ -61,6 +61,89 @@ def validate_node(nodestr,allow_prange=False):
     # OK, all looks good
     return
     
+#####################################################
+# Validate match string
+def validate_match(match_str,factory_attrs,job_attrs,attr_dict):
+    env={'glidein':{'attrs':{}},'job':{},'attr_dict':{}}
+
+    for attr_name in factory_attrs.keys():
+        attr_type=factory_attrs[attr_name]
+        if attr_type=='string':
+            attr_val='a'
+        elif attr_type=='int':
+            attr_val=1
+        elif attr_type=='bool':
+            attr_val=True
+        elif attr_type=='real':
+            attr_val=1.0
+        else:
+            raise RuntimeError, "Invalid %s factory attr type '%s'"%(loc_str,attr_type)
+        env['glidein']['attrs'][attr_name]=attr_val
+
+    for attr_name in job_attrs.keys():
+        attr_type=job_attrs[attr_name]
+        if attr_type=='string':
+            attr_val='a'
+        elif attr_type=='int':
+            attr_val=1
+        elif attr_type=='bool':
+            attr_val=True
+        elif attr_type=='real':
+            attr_val=1.0
+        else:
+            raise RuntimeError, "Invalid %s job attr type '%s'"%(loc_str,attr_type)
+        env['job'][attr_name]=attr_val
+
+    for attr_name in attr_dict.keys():
+        # all attributes are integers for the frontend
+        env['attr_dict'][attr_name]="a"
+
+    try:
+        match_obj=compile(match_str,"<string>","eval")
+        eval(match_obj,env)
+    except KeyError, e:
+        raise RuntimeError, "Invalid match_expr '%s': Missing attribute %s"%(match_str,e)
+    except Exception, e:
+        raise RuntimeError, "Invalid match_expr '%s': %s"%(match_str,e)
+
+    return
+
+def derive_and_validate_match(main_match_expr,group_match_exp,
+                              main_factory_attr_list,group_factory_attr_list,
+                              main_job_attr_list,group_job_attr_list,
+                              main_attr_dict,group_attr_dict):
+
+    # merge global and group things 
+    factory_attrs={}
+    for d in (main_factory_attr_list,group_factory_attr_list):
+        for attr_name in d.keys():
+            if ((attr_name in factory_attrs) and
+                (factory_attrs[attr_name]!=d[attr_name]['type'])):
+                raise RuntimeError, "Conflicting factory attribute type %s (%s,%s)"%(attr_name,factory_attrs[attr_name],d[attr_name]['type'])
+            else:
+                factory_attrs[attr_name]=d[attr_name]['type']
+
+    job_attrs={}
+    for d in (main_job_attr_list,group_job_attr_list):
+        for attr_name in d.keys():
+            if ((attr_name in job_attrs) and
+                (job_attrs[attr_name]!=d[attr_name]['type'])):
+                raise RuntimeError, "Conflicting job attribute type %s (%s,%s)"%(attr_name,job_attrs[attr_name],d[attr_name]['type'])
+            else:
+                job_attrs[attr_name]=d[attr_name]['type']
+
+    attrs_dict={}
+    for d in (main_attr_dict,group_attr_dict):
+        for attr_name in d.keys:
+            # they are all strings
+            # just make group override main
+            attrs_dict[attr_name]="string"
+
+    match_expr="(%s) and (%s)"%(main_match_expr,group_match_exp)
+    return validate_match(match_expr,
+                          factory_attrs,job_attrs,attrs_dict)
+
+
 ################################################
 #
 # This Class contains the main dicts
@@ -384,6 +467,13 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
                     self.dicts[dname].add(attr_name,
                                           (self.dicts[dname][attr_name][0],cWExpand.expand_DLR(self.dicts[dname][attr_name][1],summed_attrs)),
                                           allow_overwrite=True)
+
+        # now that all is expanded, validate match_expression
+
+        derive_and_validate_match(main_dicts['frontend_descript']['MatchExpr'],self.dicts['group_descript']['MatchExpr'],
+                                  params.match.factory.match_attrs,sub_params.match.factory.match_attrs,
+                                  params.match.job.match_attrs,sub_params.match.job.match_attrs,
+                                  main_dicts['attrs'],self.dicts['attrs'])
 
 
     # reuse as much of the other as possible
