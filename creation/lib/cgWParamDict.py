@@ -191,7 +191,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # put user attributes into config files
         for attr_name in params.attrs.keys():
-            add_attr_unparsed(attr_name, params,self.dicts,"main")
+            if params.attrs[attr_name].value.find('$')==-1: #does not need to be expanded
+                add_attr_unparsed(attr_name, params,self.dicts,"main")
+            # ignore attributes that need expansion in the global section
 
         # add additional system scripts
         for script_name in after_file_list_scripts:
@@ -405,6 +407,14 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             add_file_unparsed(user_file,self.dicts)
 
         # Add attribute for voms
+
+        # insert the global values that need to be expanded
+        # will be in the entry section now
+        for attr_name in params.attrs.keys():
+             if params.attrs[attr_name].value.find('$')!=-1:
+                 if not (attr_name in sub_params.attrs.keys()):
+                     add_attr_unparsed(attr_name, params,self.dicts,self.sub_name)
+                 # else the entry value will override it later on
 
         # put user attributes into config files
         for attr_name in sub_params.attrs.keys():
