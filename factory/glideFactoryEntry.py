@@ -406,14 +406,14 @@ class Entry:
         return can_submit_glideins
 
 
-    def writeClassadsToFile(self, factory_in_downtime, gf_filename,
+    def writeClassadsToFile(self, downtime_flag, gf_filename,
                             gfc_filename, append=True):
         """
         Create the glidefactory and glidefactoryclient classads to advertise
         but do not advertise
 
-        @type factory_in_downtime: boolean
-        @param factory_in_downtime: factory in the downtimes file
+        @type downtime_flag: boolean
+        @param downtime_flag: downtime flag
 
         @type gf_filename: string
         @param gf_filename: Filename to write glidefactory classads
@@ -449,7 +449,7 @@ class Entry:
         # downtime setting with the true setting of the entry
         # (not from validation)
         myJobAttributes = self.jobAttributes.data.copy()
-        myJobAttributes['GLIDEIN_In_Downtime'] = factory_in_downtime
+        myJobAttributes['GLIDEIN_In_Downtime'] = (downtime_flag or self.isInDowntime())
         gf_classad = gfi.EntryClassad(
                          self.gflFactoryConfig.factory_name,
                          self.gflFactoryConfig.glidein_name,
@@ -515,12 +515,12 @@ class Entry:
 
 
 
-    def advertise(self, factory_in_downtime):
+    def advertise(self, downtime_flag):
         """
         Advertises the glidefactory and the glidefactoryclient classads.
 
-        @type factory_in_downtime: boolean
-        @param factory_in_downtime: factory in the downtimes file
+        @type downtime_flag: boolean
+        @param downtime_flag: Downtime flag
         """
 
         self.loadContext()
@@ -528,11 +528,10 @@ class Entry:
         # Classad files to use
         gf_filename = classadSupport.generate_classad_filename(prefix='gfi_adm_gf')
         gfc_filename = classadSupport.generate_classad_filename(prefix='gfi_adm_gfc')
-        self.writeClassadsToFile(factory_in_downtime, gf_filename, gfc_filename)
+        self.writeClassadsToFile(downtime_flag, gf_filename, gfc_filename)
 
         # ADVERTISE: glidefactory classads
-        gfi.advertizeGlideinFromFile(gf_filename, remove_file=True,
-                                     is_multi=True)
+        gfi.advertizeGlideinFromFile(gf_filename, remove_file=True, is_multi=True)
 
         # ADVERTISE: glidefactoryclient classads
         gfi.advertizeGlideinClientMonitoringFromFile(gfc_filename,
