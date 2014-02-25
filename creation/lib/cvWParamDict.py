@@ -77,7 +77,7 @@ def validate_match(match_str,factory_attrs,job_attrs,attr_dict):
         elif attr_type=='real':
             attr_val=1.0
         else:
-            raise RuntimeError, "Invalid %s factory attr type '%s'"%(loc_str,attr_type)
+            raise RuntimeError, "Invalid factory attr type '%s'"%attr_type
         env['glidein']['attrs'][attr_name]=attr_val
 
     for attr_name in job_attrs.keys():
@@ -91,7 +91,7 @@ def validate_match(match_str,factory_attrs,job_attrs,attr_dict):
         elif attr_type=='real':
             attr_val=1.0
         else:
-            raise RuntimeError, "Invalid %s job attr type '%s'"%(loc_str,attr_type)
+            raise RuntimeError, "Invalid job attr type '%s'"%attr_type
         env['job'][attr_name]=attr_val
 
     for attr_name in attr_dict.keys():
