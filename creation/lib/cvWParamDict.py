@@ -584,6 +584,8 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
     group_descript_dict.add('ReserveIdlePerEntry',sub_params.config.idle_glideins_per_entry.reserve)
     group_descript_dict.add('MaxIdleVMsPerEntry',sub_params.config.idle_vms_per_entry.max)
     group_descript_dict.add('CurbIdleVMsPerEntry',sub_params.config.idle_vms_per_entry.curb)
+    group_descript_dict.add('MaxIdleVMsTotal',sub_params.config.idle_vms_total.max)
+    group_descript_dict.add('CurbIdleVMsTotal',sub_params.config.idle_vms_total.curb)
     group_descript_dict.add('MaxRunningTotal',sub_params.config.running_glideins_total.max)
     group_descript_dict.add('CurbRunningTotal',sub_params.config.running_glideins_total.curb)
     if (sub_params.attrs.has_key('GLIDEIN_Glexec_Use')):

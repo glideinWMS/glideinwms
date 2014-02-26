@@ -398,11 +398,17 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
     total_curb_glideins=int(elementDescript.element_data['CurbRunningTotal'])
     total_glideins=status_dict_types['Total']['abs']
 
-    logSupport.log.info("Glideins found total %i idle %i running %i limit %i curb %i"%
-                                             (total_glideins,
-                                              status_dict_types['Idle']['abs'],
-                                              status_dict_types['Running']['abs'],
-                                              total_max_glideins,total_curb_glideins)
+
+    total_running_glideins=status_dict_types['Running']['abs']
+
+    total_max_vms_idle = int(elementDescript.element_data['MaxIdleVMsTotal'])
+    total_curb_vms_idle = int(elementDescript.element_data['CurbIdleVMsTotal'])
+    total_idle_glideins=status_dict_types['Idle']['abs']
+
+    logSupport.log.info("Glideins found total %i limit %i curb %i; of these idle %i limit %i curb %i running %i"%
+                                             (total_glideins,total_max_glideins,total_curb_glideins,
+                                              total_idle_glideins,total_max_vms_idle,total_curb_vms_idle,
+                                              total_running_glideins)
                                              )
 
     # TODO: PM check if it is commented out because of globals section
@@ -593,8 +599,24 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
         elif total_glideins>=total_max_glideins:
             # reached the system-wide limit
             glidein_min_idle=0
+        elif total_idle_glideins>=total_max_vms_idle:
+            # reached the system-wide limit
+            glidein_min_idle=0
         elif (effective_idle>0):
             glidein_min_idle = effective_idle
+            
+            if glidein_min_idle>(max_running-count_status['Total']):
+                glidein_min_idle=(max_running-count_status['Total']) # don't go over the max_running
+
+            if glidein_min_idle>(total_max_glideins-total_glideins):
+                # don't go over the system-wide max
+                # not perfect, given te number of entries, but better than nothing
+                glidein_min_idle=(total_max_glideins-total_glideins)
+            if glidein_min_idle>(total_max_vms_idle-total_idle_glideins):
+                # don't go over the system-wide max
+                # not perfect, given te number of entries, but better than nothing
+                glidein_min_idle=(total_max_vms_idle-total_idle_glideins)
+
             glidein_min_idle=glidein_min_idle/3 # since it takes a few cycles to stabilize, ask for only one third
             glidein_idle_reserve=effective_oldidle/3 # do not reserve any more than the number of old idles for reserve (/3)
             if glidein_idle_reserve>reserve_idle:
@@ -604,16 +626,13 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
             
             if glidein_min_idle>max_idle:
                 glidein_min_idle=max_idle # but never go above max
-            if glidein_min_idle>(max_running-count_status['Total']+glidein_idle_reserve):
-                glidein_min_idle=(max_running-count_status['Total']+glidein_idle_reserve) # don't go over the max_running
-            if glidein_min_idle>(total_max_glideins-total_glideins+glidein_idle_reserve):
-                # don't go over the system-wide max
-                # not perfect, given te number of entries, but better than nothing
-                glidein_min_idle=(total_max_glideins-total_glideins+glidein_idle_reserve)
+
             if count_status['Idle']>=curb_vms_idle:
                 glidein_min_idle/=2 # above first treshold, reduce
             if total_glideins>=total_curb_glideins:
-                glidein_min_idle/=2 # above global treshold, reduce
+                glidein_min_idle/=2 # above global treshold, reduce further
+            if total_idle_glideins>=total_curb_vms_idle:
+                glidein_min_idle/=2 # above global treshold, reduce further
             if glidein_min_idle<1:
                 glidein_min_idle=1
         else:
