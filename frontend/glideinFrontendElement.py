@@ -72,6 +72,8 @@ class glideinFrontendElement:
         self.curb_vms_idle = int(self.elementDescript.element_data['CurbIdleVMsPerEntry'])
         self.total_max_glideins=int(self.elementDescript.element_data['MaxRunningTotal'])
         self.total_curb_glideins=int(self.elementDescript.element_data['CurbRunningTotal'])
+        # Default bahavior: Use factory proxies unless configure overrides it
+        self.x509_proxy_plugin = None
 
     def configure(self):
         ''' Do some initial configuration of the element. '''
@@ -82,10 +84,13 @@ class glideinFrontendElement:
         # Configure frontend group process logging
         process_logs = eval(self.elementDescript.frontend_data['ProcessLogs'])
         for plog in process_logs:
-            logSupport.add_processlog_handler(self.group_name, logSupport.log_dir, plog['msg_types'], plog['extension'],
-                                          int(float(plog['max_days'])),
-                                          int(float(plog['min_days'])),
-                                          int(float(plog['max_mbytes'])))
+            logSupport.add_processlog_handler(self.group_name,
+                                              logSupport.log_dir,
+                                              plog['msg_types'],
+                                              plog['extension'],
+                                              int(float(plog['max_days'])),
+                                              int(float(plog['min_days'])),
+                                              int(float(plog['max_mbytes'])))
         logSupport.log = logging.getLogger(self.group_name)
         logSupport.log.info("Logging initialized")
         logSupport.log.debug("Frontend Element startup time: %s" % str(self.startup_time))
@@ -103,27 +108,25 @@ class glideinFrontendElement:
         if self.elementDescript.merged_data['Proxies']:
             proxy_plugins = glideinFrontendPlugins.proxy_plugins
             if not proxy_plugins.get(self.elementDescript.merged_data['ProxySelectionPlugin']):
-                logSupport.log.warning("Invalid ProxySelectionPlugin '%s', supported plugins are %s" %
-                                       (self.elementDescript.merged_data['ProxySelectionPlugin']),
-                                       proxy_plugins.keys())
+                logSupport.log.warning("Invalid ProxySelectionPlugin '%s', supported plugins are %s" % (
+                    self.elementDescript.merged_data['ProxySelectionPlugin']),
+                    proxy_plugins.keys())
                 return 1
             self.x509_proxy_plugin = proxy_plugins[self.elementDescript.merged_data['ProxySelectionPlugin']](
                 os.path.join(self.work_dir, "group_%s" % self.group_name),
                 glideinFrontendPlugins.createCredentialList(self.elementDescript))
-        else:
-            # no proxies, will try to use the factory one
-            self.x509_proxy_plugin = None
 
         # set the condor configuration and GSI setup globally, so I don't need to worry about it later on
         os.environ['CONDOR_CONFIG'] = self.elementDescript.frontend_data['CondorConfig']
         os.environ['_CONDOR_CERTIFICATE_MAPFILE'] = self.elementDescript.element_data['MapFile']
         os.environ['X509_USER_PROXY'] = self.elementDescript.frontend_data['ClassAdProxy']
 
+
     def main(self):
         self.configure()
         # create lock file
-        pid_obj = glideinFrontendPidLib.ElementPidSupport(self.work_dir, self.group_name)
-
+        pid_obj = glideinFrontendPidLib.ElementPidSupport(self.work_dir,
+                                                          self.group_name)
         pid_obj.register(self.parent_pid)
         try:
             try:
@@ -136,17 +139,20 @@ class glideinFrontendElement:
         finally:
             pid_obj.relinquish()
 
+
     def iterate(self):
         self.stats = {}
         self.history_obj = {}
 
         if not self.elementDescript.frontend_data.has_key('X509Proxy'):
-            self.published_frontend_name = '%s.%s' % (self.frontend_name, self.group_name)
+            self.published_frontend_name = '%s.%s' % (self.frontend_name,
+                                                      self.group_name)
         else:
             # if using a VO proxy, label it as such
             # this way we don't risk of using the wrong proxy on the other side
             # if/when we decide to stop using the proxy
-            self.published_frontend_name = '%s.XPVO_%s' % (self.frontend_name, self.group_name)
+            self.published_frontend_name = '%s.XPVO_%s' % (self.frontend_name,
+                                                           self.group_name)
 
         try:
             is_first = 1
@@ -154,7 +160,7 @@ class glideinFrontendElement:
                 check_parent(self.parent_pid)
                 logSupport.log.info("Iteration at %s" % time.ctime())
                 try:
-                    # recreate every time (an easy way to start from a clean state)
+                    # recreate every time to start from a clean state
                     self.stats['group'] = glideinFrontendMonitoring.groupStats()
 
                     done_something = self.iterate_one()
@@ -181,29 +187,37 @@ class glideinFrontendElement:
                 # do it just before the sleep
                 cleanupSupport.cleaners.cleanup()
 
-                logSupport.log.info("Sleep")
+                logSupport.log.info("Sleeping %s sec" % self.sleep_time)
                 time.sleep(self.sleep_time)
         finally:
             logSupport.log.info("Deadvertize my ads")
-            for factory_pool in self.factory_pools:
-                factory_pool_node = factory_pool[0]
-                try:
-                    glideinFrontendInterface.deadvertizeAllWork(factory_pool_node, self.published_frontend_name)
-                except:
-                    pass # just ignore errors... this was cleanup
+            self.deadvertiseAllClassads()
 
-                try:
-                    glideinFrontendInterface.deadvertizeAllGlobals(factory_pool_node, self.published_frontend_name)
-                except:
-                    pass # just ignore errors... this was cleanup
 
-            # Invalidate all resource classads
+    def deadvertiseAllClassads(self):
+        # Invalidate all glideclient glideclientglobal classads
+        for factory_pool in self.factory_pools:
+            factory_pool_node = factory_pool[0]
             try:
-                resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser()
-                resource_advertiser.invalidateConstrainedClassads('GlideClientName == "%s"' % self.published_frontend_name)
+                glideinFrontendInterface.deadvertizeAllWork(factory_pool_node, self.published_frontend_name)
             except:
-                # Ignore all errors
+                # Ignore errors
                 pass
+
+            try:
+                glideinFrontendInterface.deadvertizeAllGlobals(factory_pool_node, self.published_frontend_name)
+            except:
+                # Ignore errors
+                pass
+
+        # Invalidate all glideresource classads
+        try:
+            resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser()
+            resource_advertiser.invalidateConstrainedClassads('GlideClientName == "%s"' % self.published_frontend_name)
+        except:
+            # Ignore all errors
+            pass
+
 
     def iterate_one(self):
         pipe_ids={}
@@ -236,52 +250,62 @@ class glideinFrontendElement:
         self.condorq_dict = pipe_out['jobs']
         self.status_dict=pipe_out['startds']
 
-        # M2Crypto objects are not picklable, so I have to do the transforamtion here
+        # M2Crypto objects are not picklable, so do the transforamtion here
         self.populate_pubkey()
         self.populate_condorq_dict_types()
 
         condorq_dict_types = self.condorq_dict_types
-        condorq_dict_abs = glideinFrontendLib.countCondorQ(self.condorq_dict);
+        condorq_dict_abs = glideinFrontendLib.countCondorQ(self.condorq_dict)
 
-
-        self.stats['group'].logJobs({'Total':condorq_dict_abs,
-                                'Idle':condorq_dict_types['Idle']['abs'],
-                                'OldIdle':condorq_dict_types['OldIdle']['abs'],
-                                'Running':condorq_dict_types['Running']['abs']})
+        self.stats['group'].logJobs(
+            {'Total':condorq_dict_abs,
+             'Idle':condorq_dict_types['Idle']['abs'],
+             'OldIdle':condorq_dict_types['OldIdle']['abs'],
+             'Running':condorq_dict_types['Running']['abs']})
 
         logSupport.log.info("Jobs found total %i idle %i (old %i, grid %i, voms %i) running %i" % (condorq_dict_abs,
-                                                                                                    condorq_dict_types['Idle']['abs'],
-                                                                                                    condorq_dict_types['OldIdle']['abs'],
-                                                                                                    condorq_dict_types['ProxyIdle']['abs'],
-                                                                                                    condorq_dict_types['VomsIdle']['abs'],
-                                                                                                    condorq_dict_types['Running']['abs']))
+                   condorq_dict_types['Idle']['abs'],
+                   condorq_dict_types['OldIdle']['abs'],
+                   condorq_dict_types['ProxyIdle']['abs'],
+                   condorq_dict_types['VomsIdle']['abs'],
+                   condorq_dict_types['Running']['abs']))
 
         self.populate_status_dict_types()
         glideinFrontendLib.appendRealRunning(self.condorq_dict_running,
                                              self.status_dict_types['Running']['dict'])
 
-        self.stats['group'].logGlideins({'Total':self.status_dict_types['Total']['abs'],
-                                'Idle':self.status_dict_types['Idle']['abs'],
-                                'Running':self.status_dict_types['Running']['abs']})
+        self.stats['group'].logGlideins(
+            {'Total':self.status_dict_types['Total']['abs'],
+             'Idle':self.status_dict_types['Idle']['abs'],
+             'Running':self.status_dict_types['Running']['abs']})
 
         total_glideins=self.status_dict_types['Total']['abs']
 
-        logSupport.log.info("Glideins found total %i idle %i running %i limit %i curb %i"%
-                                                 (total_glideins,
-                                                  self.status_dict_types['Idle']['abs'],
-                                                  self.status_dict_types['Running']['abs'],
-                                                  self.total_max_glideins, self.total_curb_glideins)
-                                                 )
-        # update x509 user map and give proxy plugin a chance to update based on condor stats
-        if self.x509_proxy_plugin is not None:
+        logSupport.log.info("Glideins found total %i idle %i running %i limit %i curb %i" % (total_glideins, self.status_dict_types['Idle']['abs'],
+             self.status_dict_types['Running']['abs'],
+             self.total_max_glideins, self.total_curb_glideins))
+
+        # Update x509 user map and give proxy plugin a chance
+        # to update based on condor stats
+        if self.x509_proxy_plugin:
             logSupport.log.info("Updating usermap ");
-            self.x509_proxy_plugin.update_usermap(self.condorq_dict, condorq_dict_types,
-                                                          self.status_dict, self.status_dict_types)
+            self.x509_proxy_plugin.update_usermap(self.condorq_dict,
+                                                  condorq_dict_types,
+                                                  self.status_dict,
+                                                  self.status_dict_types)
+
         # here we have all the data needed to build a GroupAdvertizeType object
-        descript_obj = glideinFrontendInterface.FrontendDescript(self.published_frontend_name, self.frontend_name, self.group_name, self.web_url,
-                                                                 self.signatureDescript.frontend_descript_fname, self.signatureDescript.group_descript_fname,
-                                                                 self.signatureDescript.signature_type, self.signatureDescript.frontend_descript_signature,
-                                                                 self.signatureDescript.group_descript_signature, self.x509_proxy_plugin)
+        descript_obj = glideinFrontendInterface.FrontendDescript(
+                           self.published_frontend_name,
+                           self.frontend_name,
+                           self.group_name,
+                           self.web_url,
+                           self.signatureDescript.frontend_descript_fname,
+                           self.signatureDescript.group_descript_fname,
+                           self.signatureDescript.signature_type,
+                           self.signatureDescript.frontend_descript_signature,
+                           self.signatureDescript.group_descript_signature,
+                           self.x509_proxy_plugin)
         descript_obj.add_monitoring_url(self.monitoring_web_url)
 
         # reuse between loops might be a good idea, but this will work for now
@@ -296,24 +320,33 @@ class glideinFrontendElement:
 
         self.do_match()
 
-        logSupport.log.info("Total matching idle %i (old %i) running %i limit %i" % (condorq_dict_types['Idle']['total'], condorq_dict_types['OldIdle']['total'],
-                                                                                     self.condorq_dict_types['Running']['total'], self.max_running))
+        logSupport.log.info("Total matching idle %i (old %i) running %i limit %i" % (condorq_dict_types['Idle']['total'],
+     condorq_dict_types['OldIdle']['total'],
+     self.condorq_dict_types['Running']['total'],
+     self.max_running))
 
         advertizer = glideinFrontendInterface.MultiAdvertizeWork(descript_obj)
         resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser(multi_support=glideinFrontendInterface.frontendConfig.advertise_use_multi)
+
         # Add globals
         for globalid, globals_el in self.globals_dict.iteritems():
             if globals_el['attrs'].has_key('PubKeyObj'):
-                key_obj = key_builder.get_key_obj(globals_el['attrs']['FactoryPoolId'], globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
-                advertizer.add_global(globals_el['attrs']['FactoryPoolNode'],globalid,self.security_name,key_obj)
+                key_obj = key_builder.get_key_obj(
+                              globals_el['attrs']['FactoryPoolId'],
+                              globals_el['attrs']['PubKeyID'],
+                              globals_el['attrs']['PubKeyObj'])
+                advertizer.add_global(globals_el['attrs']['FactoryPoolNode'],
+                                      globalid, self.security_name, key_obj)
 
 
         glideid_list = condorq_dict_types['Idle']['count'].keys()
         # TODO: PM Following shows up in branch_v2plus. Which is correct?
         # glideid_list=glidein_dict.keys()
-        glideid_list.sort() # sort for the sake of monitoring
+        # sort for the sake of monitoring
+        glideid_list.sort()
 
-        self.processed_glideid_strs=[] # we will need this for faster lookup later
+        # we will need this for faster lookup later
+        self.processed_glideid_strs=[]
 
         log_factory_header()
         total_up_stats_arr=init_factory_stats_arr()
@@ -358,34 +391,45 @@ class glideinFrontendElement:
             effective_idle = max(prop_jobs['Idle'] - count_status['Idle'], 0)
             effective_oldidle = max(prop_jobs['OldIdle']-count_status['Idle'], 0)
 
-            glidein_min_idle = self.compute_glidein_min_idle(count_status, total_glideins,
-                                                             effective_idle, effective_oldidle)
+            glidein_min_idle = self.compute_glidein_min_idle(
+                                   count_status, total_glideins,
+                                   effective_idle, effective_oldidle)
 
-            glidein_max_run = self.compute_glidein_max_run(prop_jobs, self.count_real[glideid])
+            glidein_max_run = self.compute_glidein_max_run(
+                                  prop_jobs, self.count_real[glideid])
 
-            remove_excess_str = self.choose_remove_excess_type(count_jobs, count_status, glideid)
+            remove_excess_str = self.choose_remove_excess_type(
+                                    count_jobs, count_status, glideid)
 
-            this_stats_arr = (prop_jobs['Idle'], count_jobs['Idle'], effective_idle, prop_jobs['OldIdle'], hereonly_jobs['Idle'], count_jobs['Running'], self.count_real[glideid],
-                              self.max_running,
-                              count_status['Total'], count_status['Idle'], count_status['Running'],
+            this_stats_arr = (prop_jobs['Idle'], count_jobs['Idle'],
+                              effective_idle, prop_jobs['OldIdle'],
+                              hereonly_jobs['Idle'], count_jobs['Running'],
+                              self.count_real[glideid], self.max_running,
+                              count_status['Total'], count_status['Idle'],
+                              count_status['Running'],
                               glidein_min_idle, glidein_max_run)
 
             self.stats['group'].logMatchedJobs(
-                glideid_str, prop_jobs['Idle'], effective_idle, prop_jobs['OldIdle'],
-                count_jobs['Running'], self.count_real[glideid])
+                glideid_str, prop_jobs['Idle'], effective_idle,
+                prop_jobs['OldIdle'], count_jobs['Running'], self.count_real[glideid])
 
             self.stats['group'].logMatchedGlideins(
                 glideid_str, count_status['Total'], count_status['Idle'],
                 count_status['Running'])
 
-            self.stats['group'].logFactAttrs(glideid_str, glidein_el['attrs'], ('PubKeyValue', 'PubKeyObj'))
+            self.stats['group'].logFactAttrs(glideid_str, glidein_el['attrs'],
+                                             ('PubKeyValue', 'PubKeyObj'))
 
             self.stats['group'].logFactDown(glideid_str, glidein_in_downtime)
 
             if glidein_in_downtime:
-                total_down_stats_arr = log_and_sum_factory_line(glideid_str, glidein_in_downtime, this_stats_arr, total_down_stats_arr)
+                total_down_stats_arr = log_and_sum_factory_line(
+                                           glideid_str, glidein_in_downtime,
+                                           this_stats_arr, total_down_stats_arr)
             else:
-                total_up_stats_arr = log_and_sum_factory_line(glideid_str, glidein_in_downtime, this_stats_arr, total_up_stats_arr)
+                total_up_stats_arr = log_and_sum_factory_line(
+                                         glideid_str, glidein_in_downtime,
+                                         this_stats_arr, total_up_stats_arr)
 
             # get the parameters
             glidein_params = copy.deepcopy(self.paramsDescript.const_data)
@@ -416,23 +460,29 @@ class glideinFrontendElement:
                         key_obj = key_builder.get_key_obj(my_identity, globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
                     break            
 
-            trust_domain = glidein_el['attrs'].get('GLIDEIN_TrustDomain', 'Grid')
+            trust_domain = glidein_el['attrs'].get('GLIDEIN_TrustDomain','Grid')
             auth_method = glidein_el['attrs'].get('GLIDEIN_SupportedAuthenticationMethod', 'grid_proxy')
 
             # Only advertize if there is a valid key for encryption
             if key_obj is not None:
                 advertizer.add(factory_pool_node,
                                request_name, request_name,
-                               glidein_min_idle, glidein_max_run, glidein_params, glidein_monitors,
+                               glidein_min_idle, glidein_max_run,
+                               glidein_params, glidein_monitors,
                                remove_excess_str=remove_excess_str,
-                               key_obj=key_obj,glidein_params_to_encrypt=None,security_name=self.security_name,
-                               trust_domain=trust_domain,auth_method=auth_method)
+                               key_obj=key_obj, glidein_params_to_encrypt=None,
+                               security_name=self.security_name,
+                               trust_domain=trust_domain,
+                               auth_method=auth_method)
             else:
                 logSupport.log.warning("Cannot advertise requests for %s because no factory %s key was found"% (request_name, factory_pool_node))
 
 
-            resource_classad = self.build_resource_classad(this_stats_arr, request_name, glidein_el, glidein_in_downtime)
-            resource_advertiser.addClassad(resource_classad.adParams['Name'], resource_classad)
+            resource_classad = self.build_resource_classad(
+                                   this_stats_arr, request_name,
+                                   glidein_el, glidein_in_downtime)
+            resource_advertiser.addClassad(resource_classad.adParams['Name'],
+                                           resource_classad)
 
         # end for glideid in condorq_dict_types['Idle']['count'].keys()
 
@@ -448,7 +498,9 @@ class glideinFrontendElement:
         except Exception:
             logSupport.log.exception("Unknown error advertising global requests")
         try:
-            logSupport.log.info("Advertising glidein requests") # cannot advertise len of queue since has both global and glidein requests
+            # cannot advertise len of queue since has both
+            # glideclientglobal and glideclient
+            logSupport.log.info("Advertising glidein requests")
             advertizer.do_advertize()
         except Exception:
             logSupport.log.exception("Unknown error advertising glidein requests")
@@ -485,19 +537,46 @@ class glideinFrontendElement:
         condorq_dict_old_idle = glideinFrontendLib.getOldCondorQ(condorq_dict_idle, 600)
         self.condorq_dict_running = glideinFrontendLib.getRunningCondorQ(self.condorq_dict)
 
-        self.condorq_dict_types = {'Idle':{'dict':condorq_dict_idle, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle)},
-                              'OldIdle':{'dict':condorq_dict_old_idle, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_old_idle)},
-                              'VomsIdle':{'dict':condorq_dict_voms, 'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
-                            'ProxyIdle':{'dict':condorq_dict_proxy,'abs':glideinFrontendLib.countCondorQ(condorq_dict_proxy)},
-                              'Running':{'dict':self.condorq_dict_running, 'abs':glideinFrontendLib.countCondorQ(self.condorq_dict_running)}}
+        self.condorq_dict_types = {
+            'Idle': {
+                'dict':condorq_dict_idle,
+                'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle)
+            },
+            'OldIdle': {
+                'dict':condorq_dict_old_idle,
+                'abs':glideinFrontendLib.countCondorQ(condorq_dict_old_idle)
+            },
+            'VomsIdle': {
+                'dict':condorq_dict_voms,
+                'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
+            'ProxyIdle': {
+                'dict':condorq_dict_proxy,
+                'abs':glideinFrontendLib.countCondorQ(condorq_dict_proxy)
+            },
+            'Running': {
+                'dict':self.condorq_dict_running,
+                'abs':glideinFrontendLib.countCondorQ(self.condorq_dict_running)
+            }
+        }
 
     def populate_status_dict_types(self):
         status_dict_idle = glideinFrontendLib.getIdleCondorStatus(self.status_dict)
         status_dict_running = glideinFrontendLib.getRunningCondorStatus(self.status_dict)
 
-        self.status_dict_types = {'Total':{'dict':self.status_dict, 'abs':glideinFrontendLib.countCondorStatus(self.status_dict)},
-                           'Idle':{'dict':status_dict_idle, 'abs':glideinFrontendLib.countCondorStatus(status_dict_idle)},
-                           'Running':{'dict':status_dict_running, 'abs':glideinFrontendLib.countCondorStatus(status_dict_running)}}
+        self.status_dict_types = {
+            'Total': {
+                'dict':self.status_dict,
+                'abs':glideinFrontendLib.countCondorStatus(self.status_dict)
+            },
+            'Idle': {
+                'dict':status_dict_idle,
+                'abs':glideinFrontendLib.countCondorStatus(status_dict_idle)
+            },
+            'Running': {
+                'dict':status_dict_running,
+                'abs':glideinFrontendLib.countCondorStatus(status_dict_running)
+            }
+        }
 
     def build_resource_classad(self, this_stats_arr, request_name, glidein_el, glidein_in_downtime):
         # Create the resource classad and populate the required information
@@ -505,10 +584,11 @@ class glideinFrontendElement:
         resource_classad.setInDownTime(glidein_in_downtime)
         resource_classad.setEntryInfo(glidein_el['attrs'])
         resource_classad.setGlideFactoryMonitorInfo(glidein_el['monitor'])
-        resource_classad.setMatchExprs(self.elementDescript.merged_data['MatchExpr'],
-                self.elementDescript.merged_data['JobQueryExpr'],
-                self.elementDescript.merged_data['FactoryQueryExpr'],
-                self.attr_dict['GLIDECLIENT_Start'])
+        resource_classad.setMatchExprs(
+            self.elementDescript.merged_data['MatchExpr'],
+            self.elementDescript.merged_data['JobQueryExpr'],
+            self.elementDescript.merged_data['FactoryQueryExpr'],
+            self.attr_dict['GLIDECLIENT_Start'])
         try:
             resource_classad.setGlideClientMonitorInfo(this_stats_arr)
         except RuntimeError:
@@ -531,8 +611,11 @@ class glideinFrontendElement:
             glidein_min_idle=0
         elif (effective_idle>0):
             glidein_min_idle=effective_idle
-            glidein_min_idle=glidein_min_idle/3 # since it takes a few cycles to stabilize, ask for only one third
-            glidein_idle_reserve=effective_oldidle/3 # do not reserve any more than the number of old idles for reserve (/3)
+            # since it takes a few cycles to stabilize, ask for only one third
+            glidein_min_idle=glidein_min_idle/3
+            # do not reserve any more than the number of old idles
+            # for reserve (/3)
+            glidein_idle_reserve=effective_oldidle/3
             glidein_idle_reserve = min(glidein_idle_reserve, self.reserve_idle)
             glidein_min_idle+=glidein_idle_reserve
 
@@ -563,7 +646,8 @@ class glideinFrontendElement:
             if prop_jobs['Idle']>0:
                 glidein_max_run = int((prop_jobs['Idle'] + real) * self.fraction_running + 1)
             else:
-                # no good reason for a delta when we don't need more than we have
+                # no good reason for a delta when we don't need
+                # more than we have
                 glidein_max_run = int(real)
 
         return glidein_max_run
@@ -611,7 +695,8 @@ class glideinFrontendElement:
         ''' Decides what kind of excess glideins to remove:
             "ALL", "IDLE", "WAIT", or "NO"
         '''
-        remove_excess_wait = False # do not remove excessive glideins by default
+        # do not remove excessive glideins by default
+        remove_excess_wait = False
         # keep track of how often idle was 0
         history_idle0 = self.history_obj.setdefault('idle0', {})
         history_idle0.setdefault(glideid, 0)
@@ -626,7 +711,8 @@ class glideinFrontendElement:
         else:
             history_idle0[glideid] = 0
 
-        remove_excess_idle = False # do not remove excessive glideins by default
+        # do not remove excessive glideins by default
+        remove_excess_idle = False
 
         # keep track of how often glideidle was 0
         history_glideempty = self.history_obj.setdefault('glideempty', {})
@@ -642,7 +728,8 @@ class glideinFrontendElement:
         else:
             history_glideempty[glideid] = 0
 
-        remove_excess_running = False # do not remove excessive glideins by default
+        # do not remove excessive glideins by default
+        remove_excess_running = False
 
         # keep track of how often glidetotal was 0
         history_glidetotal0 = self.history_obj.setdefault('glidetotal0', {})
@@ -683,14 +770,18 @@ class glideinFrontendElement:
 
             self.count_status_multi[request_name]={}
             for st in self.status_dict_types.keys():
-                c=glideinFrontendLib.getClientCondorStatus(self.status_dict_types[st]['dict'], self.frontend_name, self.group_name,request_name)
+                c = glideinFrontendLib.getClientCondorStatus(
+                        self.status_dict_types[st]['dict'],
+                        self.frontend_name, self.group_name,request_name)
                 self.count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
                 count_status=self.count_status_multi[request_name]
 
             # ignore matching jobs
             # since we don't have the entry classad, we have no clue how to match
             this_stats_arr=(0,0,0,0,0,0,0,0,
-                            count_status['Total'],count_status['Idle'],count_status['Running'],
+                            count_status['Total'],
+                            count_status['Idle'],
+                            count_status['Running'],
                             0,0)
 
             self.stats['group'].logMatchedGlideins(
@@ -699,21 +790,25 @@ class glideinFrontendElement:
 
             # since I don't see it in the factory anymore, mark it as down
             self.stats['group'].logFactDown(glideid_str, True)
-            total_down_stats_arr=log_and_sum_factory_line(glideid_str,True,this_stats_arr,total_down_stats_arr)
+            total_down_stats_arr = log_and_sum_factory_line(
+                                       glideid_str, True,
+                                       this_stats_arr, total_down_stats_arr)
         return total_down_stats_arr
 
     def query_globals(self):
         globals_dict = {}
         try:
-            # Note: M2Crypto key objects are not pickle-able, so we will have to do that in the parent later on
+            # Note: M2Crypto key objects are not pickle-able,
+            # so we will have to do that in the parent later on
             for factory_pool in self.factory_pools:
                 factory_pool_node = factory_pool[0]
                 my_identity_at_factory_pool = factory_pool[2]
                 try:
                     factory_globals_dict = glideinFrontendInterface.findGlobals(factory_pool_node, None, None)
                 except RuntimeError:
-                    # failed to talk, like empty... maybe the next factory will have something
-                    if factory_pool_node != None:
+                    # Failed to talk or likely result is empty
+                    # Maybe the next factory will have something
+                    if not factory_pool_node:
                         logSupport.log.exception("Failed to talk to factory_pool %s for global info: " % factory_pool_node)
                     else:
                         logSupport.log.exception("Failed to talk to factory_pool for global info: " )
@@ -721,16 +816,22 @@ class glideinFrontendElement:
 
                 for globalid in factory_globals_dict:
                     globals_el = factory_globals_dict[globalid]
-                    if not globals_el['attrs'].has_key('PubKeyType'): # no pub key at all
-                        pass # no public key, nothing to do
-                    elif globals_el['attrs']['PubKeyType'] == 'RSA': # only trust RSA for now
+                    if not globals_el['attrs'].has_key('PubKeyType'):
+                        # no pub key at all, nothing to do
+                        pass
+                    elif globals_el['attrs']['PubKeyType'] == 'RSA':
+                        # only trust RSA for now
                         try:
-                            # The parent really needs just the M2Ctype object, but that is not picklable, so it will have to do it itself
+                            # The parent really needs just the M2Ctype object,
+                            # but that is not picklable, so it will have to
+                            # do it ourself
                             globals_el['attrs']['PubKeyValue'] = str(re.sub(r"\\+n", r"\n", globals_el['attrs']['PubKeyValue']))
                             globals_el['attrs']['FactoryPoolNode'] = factory_pool_node
                             globals_el['attrs']['FactoryPoolId'] = my_identity_at_factory_pool
 
-                            # KEL ok to put here?  do we want all globals even if there is no key?  may resolve other issues with checking later on
+                            # KEL: OK to put here?
+                            # Do we want all globals even if there is no key?
+                            # May resolve other issues with checking later on
                             globals_dict[globalid] = globals_el
                         except:
                             # if no valid key, just notify...
@@ -744,7 +845,8 @@ class glideinFrontendElement:
                         logSupport.log.info("Factory Globals '%s': unsupported pub key type '%s'" % (globalid, globals_el['attrs']['PubKeyType']))
 
         except Exception, ex:
-            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+            tb = traceback.format_exception(sys.exc_info()[0],
+                                            sys.exc_info()[1],
                                             sys.exc_info()[2])
         return globals_dict
 
@@ -760,8 +862,9 @@ class glideinFrontendElement:
                 try:
                     factory_glidein_dict = glideinFrontendInterface.findGlideins(factory_pool_node, None, self.signatureDescript.signature_type, factory_constraint)
                 except RuntimeError:
-                    # failed to talk, like empty... maybe the next factory will have something
-                    if factory_pool_node is not None:
+                    # Failed to talk or likely result is empty
+                    # Maybe the next factory will have something
+                    if factory_pool_node:
                         logSupport.log.exception("Failed to talk to factory_pool %s for entry info: " % factory_pool_node)
                     else:
                         logSupport.log.exception("Failed to talk to factory_pool for entry info: ")
@@ -773,13 +876,14 @@ class glideinFrontendElement:
                         logSupport.log.warning("Found an untrusted factory %s at %s; ignoring." % (glidename, factory_pool_node))
                         break
                     if auth_id != factory_identity:
-                        logSupport.log.warning("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'" % (
-                                glidename, factory_pool_node, auth_id, factory_identity))
+                        logSupport.log.warning("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'" % (glidename, factory_pool_node,
+                                      auth_id, factory_identity))
                         break
                     glidein_dict[(factory_pool_node, glidename, my_identity_at_factory_pool)] = factory_glidein_dict[glidename]
 
         except Exception, ex:
-            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+            tb = traceback.format_exception(sys.exc_info()[0],
+                                            sys.exc_info()[1],
                                             sys.exc_info()[2])
             logSupport.log.debug("Error in talking to the factory pool: %s" % tb)
 
@@ -788,31 +892,35 @@ class glideinFrontendElement:
     def get_condor_q(self):
         try:
             condorq_format_list = self.elementDescript.merged_data['JobMatchAttrs']
-            if self.x509_proxy_plugin is not None:
+            if self.x509_proxy_plugin:
                 condorq_format_list = list(condorq_format_list) + list(self.x509_proxy_plugin.get_required_job_attributes())
 
             ### Add in elements to help in determining if jobs have voms creds
             condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN','s'),))
             condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN','s'),))
             condorq_format_list=list(condorq_format_list)+list((('x509userproxy','s'),))
-            condorq_dict = glideinFrontendLib.getCondorQ(self.elementDescript.merged_data['JobSchedds'],
-                                                   expand_DD(self.elementDescript.merged_data['JobQueryExpr'],self.attr_dict),
-                                                   condorq_format_list)
+            condorq_dict = glideinFrontendLib.getCondorQ(
+                               self.elementDescript.merged_data['JobSchedds'],
+                               expand_DD(self.elementDescript.merged_data['JobQueryExpr'],self.attr_dict),
+                               condorq_format_list)
         except Exception:
             logSupport.log.exception("In query schedd child, exception:")
 
         return condorq_dict
 
+
     def get_condor_status(self):
         try:
             status_format_list=[]
-            if self.x509_proxy_plugin!=None:
+            if self.x509_proxy_plugin:
                 status_format_list=list(status_format_list)+list(self.x509_proxy_plugin.get_required_classad_attributes())
 
             # use the main collector... all adds must go there
-            status_dict=glideinFrontendLib.getCondorStatus([None],
-                                                           'GLIDECLIENT_Name=?="%s.%s"'%(self.frontend_name, self.group_name),
-                                                           status_format_list)
+            status_dict = glideinFrontendLib.getCondorStatus(
+                              [None],
+                              'GLIDECLIENT_Name=?="%s.%s"'%(self.frontend_name,
+                                                            self.group_name),
+                              status_format_list)
             return status_dict
 
         except Exception, ex:
@@ -821,8 +929,8 @@ class glideinFrontendElement:
             logSupport.log.debug("Error in talking to the user pool (condor_status): %s" % tb)
 
     def do_match(self):
-        ''' Do the actual matching.  This forks subprocess_count as a children to do
-        the work in parallel. '''
+        ''' Do the actual matching.  This forks subprocess_count as children
+        to do the work in parallel. '''
 
         logSupport.log.info("Counting subprocess created")
         pipe_ids={}
@@ -854,7 +962,10 @@ class glideinFrontendElement:
     # will make calculations in parallel,using multiple processes
         out = ()
         if dt=='Real':
-            out=glideinFrontendLib.countRealRunning(self.elementDescript.merged_data['MatchExprCompiledObj'],self.condorq_dict_running,self.glidein_dict,self.attr_dict,self.condorq_match_list)
+            out = glideinFrontendLib.countRealRunning(
+                      self.elementDescript.merged_data['MatchExprCompiledObj'],
+                      self.condorq_dict_running, self.glidein_dict,
+                      self.attr_dict, self.condorq_match_list)
         elif dt=='Glidein':
             count_status_multi={}
             for glideid in self.glidein_dict.keys():
@@ -862,11 +973,17 @@ class glideinFrontendElement:
 
                 count_status_multi[request_name]={}
                 for st in self.status_dict_types.keys():
-                    c=glideinFrontendLib.getClientCondorStatus(self.status_dict_types[st]['dict'],self.frontend_name,self.group_name,request_name)
+                    c = glideinFrontendLib.getClientCondorStatus(
+                            self.status_dict_types[st]['dict'],
+                            self.frontend_name, self.group_name, request_name)
                     count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
             out=count_status_multi
         else:
-            c,p,h=glideinFrontendLib.countMatch(self.elementDescript.merged_data['MatchExprCompiledObj'],self.condorq_dict_types[dt]['dict'],self.glidein_dict,self.attr_dict,self.condorq_match_list)
+            c,p,h = glideinFrontendLib.countMatch(
+                        self.elementDescript.merged_data['MatchExprCompiledObj'],
+                        self.condorq_dict_types[dt]['dict'],
+                        self.glidein_dict, self.attr_dict,
+                        self.condorq_match_list)
             t=glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])
             out=(c,p,h,t)
 
@@ -904,8 +1021,7 @@ def log_and_sum_factory_line(factory, is_down, factory_stat_arr, old_factory_sta
     else:
         down_str = "Up  "
 
-    logSupport.log.info(("%s(%s %s %s %s) %s(%s %s) | %s %s %s | %s %s " % tuple(form_arr)) +
-                                             ("%s %s" % (down_str, factory)))
+    logSupport.log.info(("%s(%s %s %s %s) %s(%s %s) | %s %s %s | %s %s " % tuple(form_arr)) + ("%s %s" % (down_str, factory)))
 
     new_arr = []
     for i in range(len(factory_stat_arr)):
@@ -962,7 +1078,6 @@ def fetch_fork_result_list(pipe_ids):
 ######################
 # expand $$(attribute)
 def expand_DD(qstr,attr_dict):
-    import re
     robj=re.compile("\$\$\((?P<attrname>[^\)]*)\)")
     while 1:
         m=robj.search(qstr)
