@@ -421,6 +421,23 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         for attr_name in sub_params.attrs.keys():
             add_attr_unparsed(attr_name, sub_params,self.dicts,self.sub_name)
 
+        # put standard attributes into config file
+        # override anything the user set
+        for dtype in ('attrs','consts'):
+            self.dicts[dtype].add("GLIDEIN_Gatekeeper",sub_params.gatekeeper,allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_GridType",sub_params.gridtype,allow_overwrite=True)
+            # MERGENOTE:
+            # GLIDEIN_REQUIRE_VOMS publishes an attribute so that users without VOMS proxies
+            #   can avoid sites that require VOMS proxies (using the normal Condor Requirements
+            #   string. 
+            self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS",sub_params.config.restrictions.require_voms_proxy,allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_REQUIRE_GLEXEC_USE",sub_params.config.restrictions.require_glidein_glexec_use,allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_TrustDomain",sub_params.trust_domain,allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_SupportedAuthenticationMethod",sub_params.auth_method,allow_overwrite=True)
+            if sub_params.rsl is not None:
+                self.dicts[dtype].add('GLIDEIN_GlobusRSL',sub_params.rsl,allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_SlotsLayout", sub_params.config.submit.slots_layout, allow_overwrite=True)
+
         # we now have all the attributes... do the expansion
         # first, let's merge the attributes
         summed_attrs={}
@@ -441,23 +458,6 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
                     self.dicts[dname].add(attr_name,
                                           (self.dicts[dname][attr_name][0],cWExpand.expand_DLR(self.dicts[dname][attr_name][1],summed_attrs)),
                                           allow_overwrite=True)
-
-        # put standard attributes into config file
-        # override anything the user set
-        for dtype in ('attrs','consts'):
-            self.dicts[dtype].add("GLIDEIN_Gatekeeper",sub_params.gatekeeper,allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_GridType",sub_params.gridtype,allow_overwrite=True)
-            # MERGENOTE:
-            # GLIDEIN_REQUIRE_VOMS publishes an attribute so that users without VOMS proxies
-            #   can avoid sites that require VOMS proxies (using the normal Condor Requirements
-            #   string. 
-            self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS",sub_params.config.restrictions.require_voms_proxy,allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_REQUIRE_GLEXEC_USE",sub_params.config.restrictions.require_glidein_glexec_use,allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_TrustDomain",sub_params.trust_domain,allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_SupportedAuthenticationMethod",sub_params.auth_method,allow_overwrite=True)
-            if sub_params.rsl is not None:
-                self.dicts[dtype].add('GLIDEIN_GlobusRSL',sub_params.rsl,allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_SlotsLayout", sub_params.config.submit.slots_layout, allow_overwrite=True)
 
 
         self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_VOMS","boolean",sub_params.config.restrictions.require_voms_proxy,None,False,True,True)
