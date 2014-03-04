@@ -72,6 +72,8 @@ class glideinFrontendElement:
         self.curb_vms_idle = int(self.elementDescript.element_data['CurbIdleVMsPerEntry'])
         self.total_max_glideins=int(self.elementDescript.element_data['MaxRunningTotal'])
         self.total_curb_glideins=int(self.elementDescript.element_data['CurbRunningTotal'])
+        self.total_max_vms_idle = int(self.elementDescript.element_data['MaxIdleVMsTotal'])
+        self.total_curb_vms_idle = int(self.elementDescript.element_data['CurbIdleVMsTotal'])
         # Default bahavior: Use factory proxies unless configure overrides it
         self.x509_proxy_plugin = None
 
@@ -280,11 +282,15 @@ class glideinFrontendElement:
              'Running':self.status_dict_types['Running']['abs']})
 
         total_glideins=self.status_dict_types['Total']['abs']
+        total_running_glideins=self.status_dict_types['Running']['abs']
+        total_idle_glideins=self.status_dict_types['Idle']['abs']
 
-        logSupport.log.info("Glideins found total %i idle %i running %i limit %i curb %i" % (total_glideins, self.status_dict_types['Idle']['abs'],
-             self.status_dict_types['Running']['abs'],
-             self.total_max_glideins, self.total_curb_glideins))
-
+        logSupport.log.info("Glideins found total %i limit %i curb %i; of these idle %i limit %i curb %i running %i"%
+                            (total_glideins,self.total_max_glideins,self.total_curb_glideins,
+                             total_idle_glideins,self.total_max_vms_idle,self.total_curb_vms_idle,
+                             total_running_glideins)
+                            )
+        
         # Update x509 user map and give proxy plugin a chance
         # to update based on condor stats
         if self.x509_proxy_plugin:
@@ -392,7 +398,7 @@ class glideinFrontendElement:
             effective_oldidle = max(prop_jobs['OldIdle']-count_status['Idle'], 0)
 
             glidein_min_idle = self.compute_glidein_min_idle(
-                                   count_status, total_glideins,
+                                   count_status, total_glideins, total_idle_glideins,
                                    effective_idle, effective_oldidle)
 
             glidein_max_run = self.compute_glidein_max_run(
@@ -596,7 +602,7 @@ class glideinFrontendElement:
 
         return resource_classad
 
-    def compute_glidein_min_idle(self, count_status, total_glideins,
+    def compute_glidein_min_idle(self, count_status, total_glideins, total_idle_glideins,
                                  effective_idle, effective_oldidle):
         ''' Calculate the number of idle jobs to request from the factory '''
 
@@ -609,8 +615,21 @@ class glideinFrontendElement:
         elif total_glideins >= self.total_max_glideins:
             # reached the system-wide limit
             glidein_min_idle=0
+        elif total_idle_glideins>=self.total_max_vms_idle:
+            # reached the system-wide limit
+            glidein_min_idle=0
         elif (effective_idle>0):
             glidein_min_idle=effective_idle
+
+            # don't go over the max_running
+            glidein_min_idle=min(glidein_min_idle,self.max_running-count_status['Total'])
+            # don't go over the system-wide max
+            # not perfect, given te number of entries, but better than nothing
+            glidein_min_idle=min(glidein_min_idle,self.total_max_glideins-total_glideins)
+            # don't go over the system-wide max
+            # not perfect, given te number of entries, but better than nothing
+            glidein_min_idle=min(glidein_min_idle,self.total_max_vms_idle-total_idle_glideins)
+
             # since it takes a few cycles to stabilize, ask for only one third
             glidein_min_idle=glidein_min_idle/3
             # do not reserve any more than the number of old idles
@@ -620,16 +639,13 @@ class glideinFrontendElement:
             glidein_min_idle+=glidein_idle_reserve
 
             glidein_min_idle = min(glidein_min_idle, self.max_idle)
-            # don't go over the max_running
-            glidein_min_idle = max(glidein_min_idle, self.max_running-count_status['Total']+glidein_idle_reserve)
-            # don't go over the system-wide max
-            # not perfect, given te number of entries, but better than nothing
-            glidein_min_idle = max(glidein_min_idle, self.total_max_glideins-total_glideins+glidein_idle_reserve)
-
+      
             if count_status['Idle'] >= self.curb_vms_idle:
                 glidein_min_idle/=2 # above first treshold, reduce
             if total_glideins >= self.total_curb_glideins:
-                glidein_min_idle/=2 # above global treshold, reduce
+                glidein_min_idle/=2 # above global treshold, reduce further
+            if total_idle_glideins >= self.total_curb_vms_idle:
+                glidein_min_idle/=2 # above global treshold, reduce further
             if glidein_min_idle<1:
                 glidein_min_idle=1
         else:
