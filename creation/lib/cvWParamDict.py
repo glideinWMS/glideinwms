@@ -568,6 +568,14 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('LogDir',params.log_dir)
         frontend_dict.add('ProcessLogs', str(params.log_retention['process_logs']))
         
+        frontend_dict.add('MaxIdleVMsTotal',params.config.idle_vms_total.max)
+        frontend_dict.add('CurbIdleVMsTotal',params.config.idle_vms_total.curb)
+        frontend_dict.add('MaxIdleVMsTotalGlobal',params.config.idle_vms_total_global.max)
+        frontend_dict.add('CurbIdleVMsTotalGlobal',params.config.idle_vms_total_global.curb)
+        frontend_dict.add('MaxRunningTotal',params.config.running_glideins_total.max)
+        frontend_dict.add('CurbRunningTotal',params.config.running_glideins_total.curb)
+        frontend_dict.add('MaxRunningTotalGlobal',params.config.running_glideins_total_global.max)
+        frontend_dict.add('CurbRunningTotalGlobal',params.config.running_glideins_total_global.curb)
 
 #######################
 # Populate group descript
