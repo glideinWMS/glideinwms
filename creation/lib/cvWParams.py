@@ -50,10 +50,10 @@ class VOFrontendParams(cWParams.CommonParams):
         group_config_running_defaults["relative_to_queue"]=['1.15',"fraction","Max relative to number of matching jobs in the queue.",None]
         group_config_defaults['running_glideins_per_entry']=group_config_running_defaults
 
-        group_config_running_total_defaults=cWParams.commentedOrderedDict()
-        group_config_running_total_defaults["max"]=['100000',"nr_jobs","What is the max number of running glideins I want to get to - globally",None]
-        group_config_running_total_defaults["curb"]=['90000',"nr_jobs","When should I start curbing glidein submission",None]
-        group_config_defaults['running_glideins_total']=group_config_running_total_defaults
+        common_config_running_total_defaults=cWParams.commentedOrderedDict()
+        common_config_running_total_defaults["max"]=['100000',"nr_jobs","What is the max number of running glideins I want to get to - globally",None]
+        common_config_running_total_defaults["curb"]=['90000',"nr_jobs","When should I start curbing glidein submission",None]
+        group_config_defaults['running_glideins_total']=common_config_running_total_defaults
 
         group_config_idle_defaults=cWParams.commentedOrderedDict()
         group_config_idle_defaults["max"]=['100',"nr_jobs","How much pressure should I apply to the entry points",None]
@@ -65,10 +65,10 @@ class VOFrontendParams(cWParams.CommonParams):
         group_config_vms_defaults["curb"]=['5',"nr_vms","How many idle VMs should I tollerate, before starting to curb submissions.",None]
         group_config_defaults['idle_vms_per_entry']=group_config_vms_defaults
 
-        group_config_vms_total_defaults=cWParams.commentedOrderedDict()
-        group_config_vms_total_defaults["max"]=['1000',"nr_jobs","How many total idle VMs should I tollerate, before stopping submitting glideins",None]
-        group_config_vms_total_defaults["curb"]=['200',"nr_jobs","How many total idle VMs should I tollerate, before starting to curb submissions.",None]
-        group_config_defaults['idle_vms_total']=group_config_vms_total_defaults
+        common_config_vms_total_defaults=cWParams.commentedOrderedDict()
+        common_config_vms_total_defaults["max"]=['1000',"nr_jobs","How many total idle VMs should I tollerate, before stopping submitting glideins",None]
+        common_config_vms_total_defaults["curb"]=['200',"nr_jobs","How many total idle VMs should I tollerate, before starting to curb submissions.",None]
+        group_config_defaults['idle_vms_total']=common_config_vms_total_defaults
 
         # not exported and order does not matter, can stay a regular dictionary
         sub_defaults={'attrs':(xmlParse.OrderedDict(),'Dictionary of attributes',"Each attribute group contains",self.attr_defaults),
@@ -200,6 +200,13 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults["files"]=copy.deepcopy(sub_defaults['files'])
         # ordering is specific to global section of factory
         self.defaults["files"][3]["after_group"]=("False",'Bool','Should this file be loaded after the group ones?',None)
+
+        global_config_defaults=cWParams.commentedOrderedDict()
+        global_config_defaults['idle_vms_total']=copy.deepcopy(common_config_vms_total_defaults)
+        global_config_defaults['idle_vms_total_global']=copy.deepcopy(common_config_vms_total_defaults)
+        global_config_defaults['running_glideins_total']=copy.deepcopy(common_config_running_total_defaults)
+        global_config_defaults['running_glideins_total_global']=copy.deepcopy(common_config_running_total_defaults)
+        self.defaults["config"]=global_config_defaults
 
         self.defaults["groups"]=(xmlParse.OrderedDict(),"Dictionary of groups","Each group contains",self.group_defaults)
         
