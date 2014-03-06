@@ -31,10 +31,25 @@ from glideinwms.lib import logSupport
 # If not all the jobs of the schedd has to be considered,
 # specify the appropriate constraint
 #
-def getCondorQ(schedd_names, constraint=None, format_list=None):
+def getCondorQ(schedd_names, constraint=None, format_list=None,
+               want_format_completion=True, job_status_filter=(1,2)):
     if format_list is not None:
-        format_list = condorMonitor.complete_format_list(format_list, [('JobStatus', 'i'), ('EnteredCurrentStatus', 'i'), ('ServerTime', 'i'), ('RemoteHost', 's')])
-    return getCondorQConstrained(schedd_names, "(JobStatus=?=1)||(JobStatus=?=2)", constraint, format_list)
+        if want_format_completion:
+            format_list = condorMonitor.complete_format_list(
+                format_list,
+                [('JobStatus', 'i'), ('EnteredCurrentStatus', 'i'),
+                 ('ServerTime', 'i'), ('RemoteHost', 's')])
+
+    if (job_status_filter is None) or (len(job_status_filter)==0):
+        # if nothing specified, assume it wants all of them
+        js_constraint="True"
+    else:
+        js_arr=[]
+        for n in job_status_filter:
+            js_arr.append('(JobStatus=?=%i)'%n)
+        js_constraint=string.join(js_arr,'||')
+            
+    return getCondorQConstrained(schedd_names, js_constraint, constraint, format_list)
 
 def getIdleVomsCondorQ(condorq_dict):
     out={}
@@ -472,14 +487,22 @@ def evalParamExpr(expr_obj, frontend, glidein):
 # If not all the jobs of the schedd has to be considered,
 # specify the appropriate constraint
 #
-def getCondorStatus(collector_names, constraint=None, format_list=None):
+def getCondorStatus(collector_names, constraint=None, format_list=None,
+                    want_format_completion=True, want_glideins_only=True):
     if format_list is not None:
-        format_list = condorMonitor.complete_format_list(format_list, [('State', 's'), ('Activity', 's'), ('EnteredCurrentState', 'i'), ('EnteredCurrentActivity', 'i'), ('LastHeardFrom', 'i'), ('GLIDEIN_Factory', 's'), ('GLIDEIN_Name', 's'), ('GLIDEIN_Entry_Name', 's'), ('GLIDECLIENT_Name', 's'), ('GLIDECLIENT_ReqNode','s'), ('GLIDEIN_Schedd', 's')])
+        if want_format_completion:
+            format_list = condorMonitor.complete_format_list(
+                format_list,
+                [('State', 's'), ('Activity', 's'), ('EnteredCurrentState', 'i'),('EnteredCurrentActivity', 'i'),
+                 ('LastHeardFrom', 'i'), ('GLIDEIN_Factory', 's'), ('GLIDEIN_Name', 's'), ('GLIDEIN_Entry_Name', 's'),
+                 ('GLIDECLIENT_Name', 's'), ('GLIDECLIENT_ReqNode','s'), ('GLIDEIN_Schedd', 's')])
 
-    type_constraint = '(IS_MONITOR_VM=!=True)&&(GLIDEIN_Factory=!=UNDEFINED)&&(GLIDEIN_Name=!=UNDEFINED)&&(GLIDEIN_Entry_Name=!=UNDEFINED)'
     # Partitionable slots are *always* idle -- the frontend only counts them when
     # all the subslots have been reclaimed (HTCondor sets TotalSlots == 1)
-    type_constraint += '&& (PartitionableSlot =!= True || TotalSlots =?= 1)'
+    type_constraint = '(PartitionableSlot =!= True || TotalSlots =?= 1)'
+    if want_glideins_only:
+        type_constraint += '&&(IS_MONITOR_VM=!=True)&&(GLIDEIN_Factory=!=UNDEFINED)&&(GLIDEIN_Name=!=UNDEFINED)&&(GLIDEIN_Entry_Name=!=UNDEFINED)'
+
     return getCondorStatusConstrained(collector_names, type_constraint, constraint, format_list)
 
 #
