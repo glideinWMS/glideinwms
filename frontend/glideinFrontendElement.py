@@ -444,8 +444,8 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
 
     fe_total_glideins=fe_counts['Total']
     fe_total_idle_glideins=fe_counts['Idle']
-    fe_total_max_glideins=int(elementDescript.element_data['MaxRunningTotal'])
-    fe_total_curb_glideins=int(elementDescript.element_data['CurbRunningTotal'])
+    fe_total_max_glideins=int(elementDescript.frontend_data['MaxRunningTotal'])
+    fe_total_curb_glideins=int(elementDescript.frontend_data['CurbRunningTotal'])
     fe_total_max_vms_idle = int(elementDescript.frontend_data['MaxIdleVMsTotal'])
     fe_total_curb_vms_idle = int(elementDescript.frontend_data['CurbIdleVMsTotal'])
     logSupport.log.info("Frontend glideins found total %i limit %i curb %i; of these idle %i limit %i curb %i"%
@@ -456,8 +456,8 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
 
     global_total_glideins=global_counts['Total']
     global_total_idle_glideins=global_counts['Idle']
-    global_total_max_glideins=int(elementDescript.element_data['MaxRunningTotalGlobal'])
-    global_total_curb_glideins=int(elementDescript.element_data['CurbRunningTotalGlobal'])
+    global_total_max_glideins=int(elementDescript.frontend_data['MaxRunningTotalGlobal'])
+    global_total_curb_glideins=int(elementDescript.frontend_data['CurbRunningTotalGlobal'])
     global_total_max_vms_idle = int(elementDescript.frontend_data['MaxIdleVMsTotalGlobal'])
     global_total_curb_vms_idle = int(elementDescript.frontend_data['CurbIdleVMsTotalGlobal'])
     logSupport.log.info("Overall slots found total %i limit %i curb %i; of these idle %i limit %i curb %i"%
@@ -665,7 +665,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
         elif global_total_glideins>=global_total_max_glideins:
             # reached the system-wide limit
             glidein_min_idle=0
-        elif total_idle_glideins>=total_max_vms_idle:
+        elif global_total_idle_glideins>=global_total_max_vms_idle:
             # reached the system-wide limit
             glidein_min_idle=0
         elif (effective_idle>0):
