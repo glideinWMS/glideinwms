@@ -645,16 +645,16 @@ class glideinFrontendElement:
         elif total_idle_glideins>=self.total_max_vms_idle:
             # reached the system-wide limit
             glidein_min_idle=0
-        elif fe_total_glideins>=fe_total_max_glideins:
+        elif fe_total_glideins>=self.fe_total_max_glideins:
             # reached the system-wide limit
             glidein_min_idle=0
-        elif fe_total_idle_glideins>=fe_total_max_vms_idle:
+        elif fe_total_idle_glideins>=self.fe_total_max_vms_idle:
             # reached the system-wide limit
             glidein_min_idle=0
-        elif global_total_glideins>=global_total_max_glideins:
+        elif global_total_glideins>=self.global_total_max_glideins:
             # reached the system-wide limit
             glidein_min_idle=0
-        elif global_total_idle_glideins>=global_total_max_vms_idle:
+        elif global_total_idle_glideins>=self.global_total_max_vms_idle:
             # reached the system-wide limit
             glidein_min_idle=0
         elif (effective_idle>0):
@@ -687,13 +687,13 @@ class glideinFrontendElement:
                 glidein_min_idle/=2 # above global treshold, reduce further
             if total_idle_glideins >= self.total_curb_vms_idle:
                 glidein_min_idle/=2 # above global treshold, reduce further
-            if fe_total_glideins>=fe_total_curb_glideins:
+            if fe_total_glideins>=self.fe_total_curb_glideins:
                 glidein_min_idle/=2 # above global treshold, reduce further
-            if fe_total_idle_glideins>=fe_total_curb_vms_idle:
+            if fe_total_idle_glideins>=self.fe_total_curb_vms_idle:
                 glidein_min_idle/=2 # above global treshold, reduce further
-            if global_total_glideins>=global_total_curb_glideins:
+            if global_total_glideins>=self.global_total_curb_glideins:
                 glidein_min_idle/=2 # above global treshold, reduce further
-            if global_total_idle_glideins>=global_total_curb_vms_idle:
+            if global_total_idle_glideins>=self.global_total_curb_vms_idle:
                 glidein_min_idle/=2 # above global treshold, reduce further
             if glidein_min_idle<1:
                 glidein_min_idle=1
