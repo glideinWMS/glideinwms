@@ -319,8 +319,39 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
             status_dict=glideinFrontendLib.getCondorStatus([None],
                                                            'GLIDECLIENT_Name=?="%s.%s"'%(frontend_name,group_name),
                                                            status_format_list)
+            # also get all the classads for the whole FE for counting
+            # do it in the same thread, as we are hitting the same collector
+            
+            # minimize the number of attributes, since we are really just interest in the counts
+            try:
+                fe_status_dict=glideinFrontendLib.getCondorStatus([None],
+                                                                  'substr(GLIDECLIENT_Name,0,%i)=?="%s."'%(len(frontend_name)+1,frontend_name),
+                                                                  [('State', 's'), ('Activity', 's')], want_format_completion=False)
+                fe_counts = {
+                    'Idle':glideinFrontendLib.countCondorStatus(
+                        glideinFrontendLib.getIdleCondorStatus(fe_status_dict)),
+                    'Total':glideinFrontendLib.countCondorStatus(fe_status_dict)}
+                del fe_status_dict
+            except:
+                # This is not critical information, do not abort the cycle if it fails
+                fe_counts = {'Idle':0, 'Total':0}
 
-            os.write(w,cPickle.dumps(status_dict))
+            # same for all slots
+            try:
+                global_status_dict=glideinFrontendLib.getCondorStatus([None],
+                                                                      constraint='True', want_glideins_only=False,
+                                                                      format_list=[('State', 's'), ('Activity', 's')], want_format_completion=False,)
+                global_counts = {
+                    'Idle':glideinFrontendLib.countCondorStatus(
+                                        glideinFrontendLib.getIdleCondorStatus(global_status_dict)),
+                    'Total':glideinFrontendLib.countCondorStatus(global_status_dict)}
+                del global_status_dict
+            except:
+                # This is not critical information, do not abort the cycle if it fails
+                global_counts = {'Idle':0, 'Total':0}
+                
+
+            os.write(w,cPickle.dumps((status_dict,fe_counts,global_counts)))
 
         except Exception, ex:
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
@@ -349,7 +380,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
 
     glidein_dict=pipe_out['entries']
     condorq_dict=pipe_out['jobs']
-    status_dict=pipe_out['startds']
+    (status_dict,fe_counts,global_counts)=pipe_out['startds']
     
     condorq_dict_proxy=glideinFrontendLib.getIdleProxyCondorQ(condorq_dict)
     condorq_dict_voms=glideinFrontendLib.getIdleVomsCondorQ(condorq_dict)
@@ -405,11 +436,34 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
     total_curb_vms_idle = int(elementDescript.element_data['CurbIdleVMsTotal'])
     total_idle_glideins=status_dict_types['Idle']['abs']
 
-    logSupport.log.info("Glideins found total %i limit %i curb %i; of these idle %i limit %i curb %i running %i"%
-                                             (total_glideins,total_max_glideins,total_curb_glideins,
-                                              total_idle_glideins,total_max_vms_idle,total_curb_vms_idle,
-                                              total_running_glideins)
-                                             )
+    logSupport.log.info("Group glideins found total %i limit %i curb %i; of these idle %i limit %i curb %i running %i"%
+                        (total_glideins,total_max_glideins,total_curb_glideins,
+                         total_idle_glideins,total_max_vms_idle,total_curb_vms_idle,
+                         total_running_glideins)
+                        )
+
+    fe_total_glideins=fe_counts['Total']
+    fe_total_idle_glideins=fe_counts['Idle']
+    fe_total_max_glideins=int(elementDescript.element_data['MaxRunningTotal'])
+    fe_total_curb_glideins=int(elementDescript.element_data['CurbRunningTotal'])
+    fe_total_max_vms_idle = int(elementDescript.frontend_data['MaxIdleVMsTotal'])
+    fe_total_curb_vms_idle = int(elementDescript.frontend_data['CurbIdleVMsTotal'])
+    logSupport.log.info("Frontend glideins found total %i limit %i curb %i; of these idle %i limit %i curb %i"%
+                        (fe_total_glideins,fe_total_max_glideins,fe_total_curb_glideins,
+                         fe_total_idle_glideins,fe_total_max_vms_idle,fe_total_curb_vms_idle)
+                        )
+
+
+    global_total_glideins=global_counts['Total']
+    global_total_idle_glideins=global_counts['Idle']
+    global_total_max_glideins=int(elementDescript.element_data['MaxRunningTotalGlobal'])
+    global_total_curb_glideins=int(elementDescript.element_data['CurbRunningTotalGlobal'])
+    global_total_max_vms_idle = int(elementDescript.frontend_data['MaxIdleVMsTotalGlobal'])
+    global_total_curb_vms_idle = int(elementDescript.frontend_data['CurbIdleVMsTotalGlobal'])
+    logSupport.log.info("Overall slots found total %i limit %i curb %i; of these idle %i limit %i curb %i"%
+                        (global_total_glideins,global_total_max_glideins,global_total_curb_glideins,
+                         global_total_idle_glideins,global_total_max_vms_idle,global_total_curb_vms_idle)
+                        )
 
     # TODO: PM check if it is commented out because of globals section
     # extract the public key, if present
@@ -602,6 +656,18 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
         elif total_idle_glideins>=total_max_vms_idle:
             # reached the system-wide limit
             glidein_min_idle=0
+        elif fe_total_glideins>=fe_total_max_glideins:
+            # reached the system-wide limit
+            glidein_min_idle=0
+        elif fe_total_idle_glideins>=fe_total_max_vms_idle:
+            # reached the system-wide limit
+            glidein_min_idle=0
+        elif global_total_glideins>=global_total_max_glideins:
+            # reached the system-wide limit
+            glidein_min_idle=0
+        elif total_idle_glideins>=total_max_vms_idle:
+            # reached the system-wide limit
+            glidein_min_idle=0
         elif (effective_idle>0):
             glidein_min_idle = effective_idle
             
@@ -616,6 +682,22 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
                 # don't go over the system-wide max
                 # not perfect, given te number of entries, but better than nothing
                 glidein_min_idle=(total_max_vms_idle-total_idle_glideins)
+            if glidein_min_idle>(fe_total_max_glideins-fe_total_glideins):
+                # don't go over the system-wide max
+                # not perfect, given te number of entries, but better than nothing
+                glidein_min_idle=(fe_total_max_glideins-fe_total_glideins)
+            if glidein_min_idle>(fe_total_max_vms_idle-fe_total_idle_glideins):
+                # don't go over the system-wide max
+                # not perfect, given te number of entries, but better than nothing
+                glidein_min_idle=(fe_total_max_vms_idle-fe_total_idle_glideins)
+            if glidein_min_idle>(global_total_max_glideins-global_total_glideins):
+                # don't go over the system-wide max
+                # not perfect, given te number of entries, but better than nothing
+                glidein_min_idle=(global_total_max_glideins-global_total_glideins)
+            if glidein_min_idle>(global_total_max_vms_idle-global_total_idle_glideins):
+                # don't go over the system-wide max
+                # not perfect, given te number of entries, but better than nothing
+                glidein_min_idle=(global_total_max_vms_idle-global_total_idle_glideins)
 
             glidein_min_idle=glidein_min_idle/3 # since it takes a few cycles to stabilize, ask for only one third
             glidein_idle_reserve=effective_oldidle/3 # do not reserve any more than the number of old idles for reserve (/3)
@@ -632,6 +714,14 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
             if total_glideins>=total_curb_glideins:
                 glidein_min_idle/=2 # above global treshold, reduce further
             if total_idle_glideins>=total_curb_vms_idle:
+                glidein_min_idle/=2 # above global treshold, reduce further
+            if fe_total_glideins>=fe_total_curb_glideins:
+                glidein_min_idle/=2 # above global treshold, reduce further
+            if fe_total_idle_glideins>=fe_total_curb_vms_idle:
+                glidein_min_idle/=2 # above global treshold, reduce further
+            if global_total_glideins>=global_total_curb_glideins:
+                glidein_min_idle/=2 # above global treshold, reduce further
+            if global_total_idle_glideins>=global_total_curb_vms_idle:
                 glidein_min_idle/=2 # above global treshold, reduce further
             if glidein_min_idle<1:
                 glidein_min_idle=1
