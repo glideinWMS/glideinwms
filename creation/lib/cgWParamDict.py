@@ -446,19 +446,13 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
                 # if the same key is in both global and entry (i.e. local), entry wins
                 summed_attrs[k]=d[k] 
 
-        for dname in ('attrs','consts'):
+        for dname in ('attrs','consts','params'):
             for attr_name in self.dicts[dname].keys:
-                if self.dicts[dname][attr_name].find('$')!=-1:
+                if ((type(self.dicts[dname][attr_name]) in (type('a'),type(u'a'))) and
+                    (self.dicts[dname][attr_name].find('$')!=-1)):
                     self.dicts[dname].add(attr_name,
                                           cWExpand.expand_DLR(self.dicts[dname][attr_name],summed_attrs),
                                           allow_overwrite=True)
-        for dname in ('params',):
-            for attr_name in self.dicts[dname].keys:
-                if self.dicts[dname][attr_name][1].find('$')!=-1:
-                    self.dicts[dname].add(attr_name,
-                                          (self.dicts[dname][attr_name][0],cWExpand.expand_DLR(self.dicts[dname][attr_name][1],summed_attrs)),
-                                          allow_overwrite=True)
-
 
         self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_VOMS","boolean",sub_params.config.restrictions.require_voms_proxy,None,False,True,True)
         self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_GLEXEC_USE","boolean",sub_params.config.restrictions.require_glidein_glexec_use,None,False,True,True)

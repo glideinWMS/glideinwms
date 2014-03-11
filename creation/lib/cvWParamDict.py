@@ -240,7 +240,8 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
 
         # some of the descript attributes may need expansion... push them into group
         for attr_name in ('JobQueryExpr','FactoryQueryExpr','MatchExpr'):
-            if self.dicts['frontend_descript'][attr_name].find('$')!=-1:
+            if ((type(self.dicts['frontend_descript'][attr_name]) in (type('a'),type(u'a'))) and
+                (self.dicts['frontend_descript'][attr_name].find('$')!=-1)):
                 # needs to be expanded, put in group
                 outdict['descript'][attr_name]=self.dicts['frontend_descript'][attr_name]
                 # set it to the default True value here
@@ -457,13 +458,15 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
 
         for dname in ('attrs','consts','group_descript'):
             for attr_name in self.dicts[dname].keys:
-                if self.dicts[dname][attr_name].find('$')!=-1:
+                if ((type(self.dicts[dname][attr_name]) in (type('a'),type(u'a'))) and
+                    (self.dicts[dname][attr_name].find('$')!=-1)):
                     self.dicts[dname].add(attr_name,
                                           cWExpand.expand_DLR(self.dicts[dname][attr_name],summed_attrs),
                                           allow_overwrite=True)
         for dname in ('params',):
             for attr_name in self.dicts[dname].keys:
-                if self.dicts[dname][attr_name][1].find('$')!=-1:
+                if ((type(self.dicts[dname][attr_name][1]) in (type('a'),type(u'a'))) and
+                    (self.dicts[dname][attr_name][1].find('$')!=-1)):
                     self.dicts[dname].add(attr_name,
                                           (self.dicts[dname][attr_name][0],cWExpand.expand_DLR(self.dicts[dname][attr_name][1],summed_attrs)),
                                           allow_overwrite=True)
