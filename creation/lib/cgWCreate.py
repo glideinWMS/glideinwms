@@ -216,7 +216,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
        
 #########################################
 # Create init.d compatible startup file
-def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name):
+def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name, is_rpm=''):
     """
     Creates the factory startup script from the template.
     """
@@ -225,7 +225,8 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name):
     try:
         template = template % {"factory_dir": factory_dir, 
                                "glideinWMS_dir": glideinWMS_dir, 
-                               "default_cfg_fpath": cfg_name}
+                               "default_cfg_fpath": cfg_name,
+                               "this_is_rpm_install": is_rpm}
         fd.write(template)
     finally:
         fd.close()
