@@ -192,6 +192,15 @@ Click on any piece for a more detailed description.
     </blockquote>
     <a href="#">&lt;/groups&gt;</a><br/>
      
+    <a href="#global_config">&lt;config&gt;</a><br/>
+    <blockquote>
+       <a href="#global_config">&lt;idle_vms_total curb="800" max="1200" /&gt;</a><br/>
+       <a href="#global_config">&lt;idle_vms_total_global curb="1000" max="1500" /&gt;</a><br/>
+       <a href="#global_config">&lt;running_glideins_total curb="35000" max="45000" /&gt;</a><br/>
+       <a href="#global_config">&lt;running_glideins_total_global curb="50000" max="60000" /&gt;</a><br/>
+    </blockquote>
+    <a href="#global_config">&lt;/config&gt;</a><br/>
+
     <a href="#usercollector">&lt;collectors groups="default,ha"&gt;</a><br/>
     <blockquote>
         <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="default" /&gt;</a><br/>
@@ -737,7 +746,24 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     If an attribute is defined twice with the same name, the group one prevails.
     </P>
    </LI>
-   <LI><P>
+    <LI><P>
+        <a name="global_config" />
+        <div class="xml">
+        &lt;frontend&gt;&lt;config&gt;
+        </div>
+    The parameters listed here regulate the throttling of the provisioning requests.<br>
+    <ul>
+     <li>The first two elements are used to kick in if the glideins (and startds in general) 
+         are not matched to the user jobs, either due to a mismatch in policy or system overload.<br>
+         <b>idle_vms_total</b> throttles based on the glideins provisioned by this frontend, <br>while
+         <b>idle_vms_total_global</b> throttles based on all the startds visible to the frontend.
+     <li>The last two elements are used to put an upper bound on how many glideins will the frontend provision.<br>
+         Similarly to the previoues two, 
+         <b>running_glideins_total</b> will throttle the provisioning requests based on the number of glideins provisioned by this frontend, <br>while
+         <b>running_glideins_total_global</b> throttles based on the number of all the startds visible to the frontend.
+      </ul>
+    </P></LI>
+    <LI><P>
         <a name="usercollector" />
         <div class="xml">
         &lt;frontend&gt;&lt;collectors groups="<i>list of collector groups</i>"&gt;&lt;collector DN="<i>certificate DN</i>" node="<i>User Pool Collector</i>" secondary="<i>True/False</i>" group="<i>Group Name</i>"&gt;
