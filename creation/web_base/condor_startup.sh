@@ -799,7 +799,14 @@ log_dir='log'
 
 echo ===   Stats of main   ===
 if [ -f "${main_starter_log}" ]; then
-  parsed_out=`awk -f "${main_stage_dir}/parse_starterlog.awk" ${main_starter_log}`
+    echo "===NewFile===" > separator_log.txt
+    listtoparse="separator_log.txt"
+    slotlogs="`ls -1 ${main_starter_log} ${main_starter_log}.slot* 2>/dev/null`"
+    for slotlog in $slotlogs
+    do
+        listtoparse="$listtoparse $slotlog separator_log.txt"
+    done
+  parsed_out=`cat $listtoparse | awk -f "${main_stage_dir}/parse_starterlog.awk"`
   echo "$parsed_out"
 
   parsed_metrics=`echo "$parsed_out" | awk 'BEGIN{p=0;}/^Total /{if (p==1) {if ($2=="jobs") {t="Total";n=$3;m=$5;} else {t=$2;n=$4;m=$7;} print t "JobsNr " n " " t "JobsTime " m;}}/^====/{p=1;}'`

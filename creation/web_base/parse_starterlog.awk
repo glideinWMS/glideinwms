@@ -127,6 +127,15 @@ function percent(a,b) {
   starttime=0;
 }
 
+/^===NewFile===/{
+  if (starttime>0) {
+    print "Termination event for job",jid,"from",shadow,"not found"
+  }
+  # cleanup, so it is not reused by accident
+  jid="";
+  shadow="";
+  starttime=0;
+} 
 ########################################################################  
 END {
   print "=================";
