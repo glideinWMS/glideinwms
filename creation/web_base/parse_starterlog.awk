@@ -139,9 +139,9 @@ function percent(a,b) {
 ########################################################################  
 END {
   print "=================";
-  print "Total jobs",ended_jobs,"utilization",total_used;
-  print "Total goodZ jobs",goodjobsZ " (" percent(goodjobsZ,ended_jobs) "%)","utilization",goodputZ " (" percent(goodputZ,total_used) "%)";
-  print "Total goodNZ jobs",goodjobsNZ " (" percent(goodjobsNZ,ended_jobs) "%)","utilization",goodputNZ " (" percent(goodputNZ,total_used) "%)";
-  print "Total badSignal jobs",badjobsSignal " (" percent(badjobsSignal,ended_jobs) "%)","utilization",badputSignal " (" percent(badputSignal,total_used) "%)";
-  print "Total badOther jobs",badjobsOther " (" percent(badjobsOther,ended_jobs) "%)","utilization",badputOther " (" percent(badputOther,total_used) "%)";
+  print "Total jobs",ended_jobs,"utilization",int(total_used/parallelism);
+  print "Total goodZ jobs",goodjobsZ " (" percent(goodjobsZ,ended_jobs) "%)","utilization",int(goodputZ/parallelism) " (" percent(goodputZ,total_used) "%)";
+  print "Total goodNZ jobs",goodjobsNZ " (" percent(goodjobsNZ,ended_jobs) "%)","utilization",int(goodputNZ/parallelism) " (" percent(goodputNZ,total_used) "%)";
+  print "Total badSignal jobs",badjobsSignal " (" percent(badjobsSignal,ended_jobs) "%)","utilization",int(badputSignal/parallelism) " (" percent(badputSignal,total_used) "%)";
+  print "Total badOther jobs",badjobsOther " (" percent(badjobsOther,ended_jobs) "%)","utilization",int(badputOther/parallelism) " (" percent(badputOther,total_used) "%)";
 }
