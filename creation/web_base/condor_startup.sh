@@ -544,11 +544,8 @@ EOF
     else
         # fixed
         echo "NUM_CPUS = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
-        # requested memory/core from glidein_memory_setup.sh
-        if [ "x${GLIDEIN_MaxMemMBs}" != "x" ]; then
-            echo "SLOT_TYPE_1 = cpus=1, memory=\$(GLIDEIN_MaxMemMBs)" >> "$CONDOR_CONFIG"
-            echo "NUM_SLOTS_TYPE_1 = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
-        fi
+        echo "SLOT_TYPE_1 = cpus=1" >> "$CONDOR_CONFIG"
+        echo "NUM_SLOTS_TYPE_1 = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
         num_slots_for_shutdown_expr=$GLIDEIN_CPUS
     fi
 
