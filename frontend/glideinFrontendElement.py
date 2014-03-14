@@ -246,9 +246,9 @@ class glideinFrontendElement:
         logSupport.log.info("All children terminated")
 
         self.globals_dict = pipe_out['globals']
-        self.glidein_dict=pipe_out['entries']
+        self.glidein_dict = pipe_out['entries']
         self.condorq_dict = pipe_out['jobs']
-        self.status_dict=pipe_out['startds']
+        self.status_dict = pipe_out['startds']
 
         # M2Crypto objects are not picklable, so do the transforamtion here
         self.populate_pubkey()
@@ -288,7 +288,7 @@ class glideinFrontendElement:
         # Update x509 user map and give proxy plugin a chance
         # to update based on condor stats
         if self.x509_proxy_plugin:
-            logSupport.log.info("Updating usermap ");
+            logSupport.log.info("Updating usermap")
             self.x509_proxy_plugin.update_usermap(self.condorq_dict,
                                                   condorq_dict_types,
                                                   self.status_dict,
@@ -373,6 +373,7 @@ class glideinFrontendElement:
                 hereonly_jobs[dt] = condorq_dict_types[dt]['hereonly'][glideid]
 
             count_status=self.count_status_multi[request_name]
+            count_status_per_cred = self.count_status_multi_per_cred[request_name]
 
             #If the glidein requires a voms proxy, only match voms idle jobs
             # Note: if GLEXEC is set to NEVER, the site will never see the proxy, 
@@ -444,13 +445,19 @@ class glideinFrontendElement:
                 glideid_str, glidein_min_idle, glidein_max_run, glidein_params)
 
             glidein_monitors = {}
+            glidein_monitors_per_cred = {}
             for t in count_jobs.keys():
                 glidein_monitors[t] = count_jobs[t]
-
             glidein_monitors['RunningHere'] = self.count_real[glideid]
 
             for t in count_status.keys():
                 glidein_monitors['Glideins%s' % t] = count_status[t]
+
+
+            for cred in self.x509_proxy_plugin.cred_list:
+                glidein_monitors_per_cred[cred.getId()] = {}
+                for t in count_status.keys():
+                    glidein_monitors_per_cred[cred.getId()]['Glideins%s' % t] = count_status_per_cred[cred.getId()][t]
 
             key_obj = None
             for globalid in self.globals_dict:
@@ -468,7 +475,9 @@ class glideinFrontendElement:
                 advertizer.add(factory_pool_node,
                                request_name, request_name,
                                glidein_min_idle, glidein_max_run,
-                               glidein_params, glidein_monitors,
+                               glidein_params=glidein_params,
+                               glidein_monitors=glidein_monitors,
+                               glidein_monitors_per_cred=glidein_monitors_per_cred,
                                remove_excess_str=remove_excess_str,
                                key_obj=key_obj, glidein_params_to_encrypt=None,
                                security_name=self.security_name,
@@ -911,7 +920,11 @@ class glideinFrontendElement:
 
     def get_condor_status(self):
         try:
-            status_format_list=[]
+            # Always get the credential id used to submit the glideins
+            # This is essential for proper accounting info related to running
+            # glideins that have reported back to user pool
+            status_format_list=[('GLIDEIN_CredentialIdentifier', 's')]
+
             if self.x509_proxy_plugin:
                 status_format_list=list(status_format_list)+list(self.x509_proxy_plugin.get_required_classad_attributes())
 
@@ -932,7 +945,6 @@ class glideinFrontendElement:
         ''' Do the actual matching.  This forks subprocess_count as children
         to do the work in parallel. '''
 
-        logSupport.log.info("Counting subprocess created")
         pipe_ids={}
         for dt in self.condorq_dict_types.keys()+['Real','Glidein']:
             pipe_ids[dt] = fork_in_bg(self.subprocess_count, dt)
@@ -950,7 +962,8 @@ class glideinFrontendElement:
             (el['count'], el['prop'], el['hereonly'], el['total'])=pipe_out[dt]
 
         self.count_real=pipe_out['Real']
-        self.count_status_multi=pipe_out['Glidein']
+        self.count_status_multi = pipe_out['Glidein'][0]
+        self.count_status_multi_per_cred = pipe_out['Glidein'][1]
 
         self.glexec='UNDEFINED'
         if 'GLIDEIN_Glexec_Use' in self.elementDescript.frontend_data:
@@ -958,9 +971,12 @@ class glideinFrontendElement:
         if 'GLIDEIN_Glexec_Use' in self.elementDescript.merged_data:
             self.glexec=self.elementDescript.merged_data['GLIDEIN_Glexec_Use']
 
+
+
     def subprocess_count(self, dt):
-    # will make calculations in parallel,using multiple processes
+        # will make calculations in parallel,using multiple processes
         out = ()
+       
         if dt=='Real':
             out = glideinFrontendLib.countRealRunning(
                       self.elementDescript.merged_data['MatchExprCompiledObj'],
@@ -977,7 +993,23 @@ class glideinFrontendElement:
                             self.status_dict_types[st]['dict'],
                             self.frontend_name, self.group_name, request_name)
                     count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
-            out=count_status_multi
+
+            # PATCH TO FIX CLIENT MONITORING
+            # Count distribution per credentials
+            count_status_multi_per_cred = {}
+            for glideid in self.glidein_dict.keys():
+                request_name=glideid[1]
+                count_status_multi_per_cred[request_name] = {}
+                for cred in self.x509_proxy_plugin.cred_list:
+                    count_status_multi_per_cred[request_name][cred.getId()] = {}
+                    for st in self.status_dict_types.keys():
+                        c = glideinFrontendLib.getClientCondorStatusPerCredId(
+                                self.status_dict_types[st]['dict'],
+                                self.frontend_name, self.group_name,
+                                request_name, cred.getId())
+                        count_status_multi_per_cred[request_name][cred.getId()][st] = glideinFrontendLib.countCondorStatus(c)
+
+            out = (count_status_multi, count_status_multi_per_cred)
         else:
             c,p,h = glideinFrontendLib.countMatch(
                         self.elementDescript.merged_data['MatchExprCompiledObj'],
@@ -986,7 +1018,7 @@ class glideinFrontendElement:
                         self.condorq_match_list)
             t=glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])
             out=(c,p,h,t)
-
+        
         return out
 
 ############################################################

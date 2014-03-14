@@ -214,6 +214,14 @@ def format_condor_dict(data):
 
 ############################################
 
+# TODO: PM
+# At some point we should change this class to watch for credential file 
+# updates and cache the contents/info between updates. This should further 
+# reduce calls to openssl and maintain consistency of credential info
+# between cycles. If the file does not change the info in it remains same.
+# This also means that the credential objects should be created much before
+# and not for every iteration.
+
 class Credential:
     def __init__(self,proxy_id,proxy_fname,elementDescript):
         self.req_idle=0
@@ -412,9 +420,10 @@ class Credential:
 
     def __str__(self):
         output = ""
+        output += "id = %s\n" % self.getId()
+        output += "proxy_id = %s\n" % self.proxy_id
         output += "req_idle = %s\n" % self.req_idle
         output += "req_max_run = %s\n" % self.req_max_run
-        output += "proxy_id = %s\n" % self.proxy_id
         output += "filename = %s\n" % self.filename
         output += "type = %s\n" % self.type
         output += "security_class = %s\n" % self.security_class
@@ -581,6 +590,7 @@ class AdvertizeParams:
                  request_name, glidein_name,
                  min_nr_glideins, max_run_glideins,
                  glidein_params={}, glidein_monitors={},
+                 glidein_monitors_per_cred={},
                  glidein_params_to_encrypt=None, # params_to_encrypt needs key_obj
                  security_name=None, # needs key_obj
                  remove_excess_str=None):
@@ -595,6 +605,7 @@ class AdvertizeParams:
         self.remove_excess_str = remove_excess_str
         self.glidein_params = glidein_params
         self.glidein_monitors = glidein_monitors
+        self.glidein_monitors_per_cred = glidein_monitors_per_cred
         self.glidein_params_to_encrypt = glidein_params_to_encrypt
         self.security_name = security_name
 
@@ -607,6 +618,7 @@ class AdvertizeParams:
         output += "remove_excess_str = %s\n" % self.remove_excess_str
         output += "glidein_params = %s\n" % self.glidein_params
         output += "glidein_monitors = %s\n" % self.glidein_monitors
+        output += "glidein_monitors_per_cred = %s\n" % self.glidein_monitors_per_cred
         output += "glidein_params_to_encrypt = %s\n" % self.glidein_params_to_encrypt
         output += "security_name = %s\n" % self.security_name
         
@@ -646,6 +658,7 @@ class MultiAdvertizeWork:
             request_name,glidein_name,
             min_nr_glideins,max_run_glideins,
             glidein_params={},glidein_monitors={},
+            glidein_monitors_per_cred={},
             key_obj=None,                     # must be of type FactoryKeys4Advertize
             glidein_params_to_encrypt=None,   # params_to_encrypt needs key_obj
             security_name=None,               # needs key_obj
@@ -656,6 +669,7 @@ class MultiAdvertizeWork:
         params_obj=AdvertizeParams(request_name,glidein_name,
                                    min_nr_glideins,max_run_glideins,
                                    glidein_params,glidein_monitors,
+                                   glidein_monitors_per_cred,
                                    glidein_params_to_encrypt,security_name,
                                    remove_excess_str)
 
@@ -817,6 +831,7 @@ class MultiAdvertizeWork:
 
         for i in range(nr_credentials):
             fd=None
+            glidein_monitors_this_cred = {}
             try:
                 encrypted_params={} # none by default
                 glidein_params_to_encrypt=params_obj.glidein_params_to_encrypt
@@ -870,6 +885,8 @@ class MultiAdvertizeWork:
                     (req_idle,req_max_run)=credential_el.get_usage_details()
                     logSupport.log.debug("Advertizing credential %s with (%d idle, %d max run) for request %s"%(credential_el.filename, req_idle, req_max_run, params_obj.request_name))
                 
+                    glidein_monitors_this_cred = params_obj.glidein_monitors_per_cred.get(credential_el.getId(), {})
+
                 if (frontendConfig.advertise_use_multi==True):
                     fname=self.adname
                     cred_filename_arr.append(fname)
@@ -904,19 +921,30 @@ class MultiAdvertizeWork:
                 fd.write('ReqRemoveExcess = "%s"\n'%params_obj.remove_excess_str)
                 fd.write('WebMonitoringURL = "%s"\n'%descript_obj.monitoring_web_url)
                          
-                # write out both the params and monitors
+                # write out both the params 
                 for (prefix, data) in ((frontendConfig.glidein_param_prefix, params_obj.glidein_params),
-                                  (frontendConfig.glidein_monitor_prefix, params_obj.glidein_monitors),
-                                  (frontendConfig.encrypted_param_prefix, encrypted_params)):
+                                       (frontendConfig.encrypted_param_prefix, encrypted_params)):
                     for attr in data.keys():
-                        el = data[attr]
-                        if type(el) == type(1):
-                            # don't quote ints
-                            fd.write('%s%s = %s\n' % (prefix, attr, el))
-                        else:
-                            escaped_el = string.replace(string.replace(str(el), '"', '\\"'), '\n', '\\n')
-                            fd.write('%s%s = "%s"\n' % (prefix, attr, escaped_el))
-                            
+                        writeTypedClassadAttrToFile(fd,
+                                                    '%s%s' % (prefix, attr),
+                                                    data[attr])
+
+                for attr_name in params_obj.glidein_monitors:
+                    prefix = frontendConfig.glidein_monitor_prefix
+                    #attr_value = params_obj.glidein_monitors[attr_name] 
+                    if (attr_name == 'RunningHere') and glidein_monitors_this_cred:
+                        # This double check is for backward compatibility
+                        attr_value = glidein_monitors_this_cred.get(
+                                         'GlideinsRunning', 0)
+                    else:
+                        attr_value = glidein_monitors_this_cred.get(
+                                         attr_name,
+                                         params_obj.glidein_monitors[attr_name])
+                    writeTypedClassadAttrToFile(fd,
+                                                '%s%s' % (prefix, attr_name),
+                                                attr_value)
+                    
+
                 # Update Sequence number information
                 if advertizeGCCounter.has_key(classad_name):
                     advertizeGCCounter[classad_name] += 1
@@ -935,6 +963,19 @@ class MultiAdvertizeWork:
                     os.remove(fname)
                 raise
         return cred_filename_arr
+
+
+
+def writeTypedClassadAttrToFile(fd, attr_name, attr_value):
+    """
+    Given the FD, type check the value and write the info the classad file
+    """
+    if type(attr_value) == type(1):
+        # don't quote ints
+        fd.write('%s = %s\n' % (attr_name, attr_value))
+    else:
+        escaped_value = string.replace(string.replace(str(attr_value), '"', '\\"'), '\n', '\\n')
+        fd.write('%s = "%s"\n' % (attr_name, escaped_value))
 
 
 # Remove ClassAd from Collector
