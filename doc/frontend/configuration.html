@@ -158,8 +158,10 @@ Click on any piece for a more detailed description.
             <a href="#group_config">&lt;config&gt;</a><br/>
             <blockquote>
                 <a href="#group_config">&lt;idle_glideins_per_entry max="100" reserve="5" /&gt;</a><br/>
-                <a href="#group_config">&lt;idle_vms_per_entry curb="5" max="100" /&gt;</a><br/>
-                <a href="#group_config">&lt;running_glideins_per_entry max="10000" relative_to_queue="1.15" /&gt;</a><br/>
+                <a href="#group_config">&lt;idle_vms_per_entry curb="20" max="100" /&gt;</a><br/>
+                <a href="#group_config">&lt;idle_vms_total curb="500" max="1000" /&gt;</a><br/>
+                <a href="#group_config">&lt;running_glideins_per_entry max="2000" relative_to_queue="1.15" /&gt;</a><br/>
+                <a href="#group_config">&lt;running_glideins_total curb="30000" max="40000" /&gt;</a><br/>
             </blockquote>
             <a href="#group_config">&lt;/config&gt;</a><br/>
             <a href="#group_match">&lt;match match_expr="True"&gt;</a><br/>
@@ -601,9 +603,20 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         <div class="xml">
         &lt;frontend&gt;&lt;groups&gt;&lt;config&gt;
         </div>
-    The parameters listed here define how many glideins to create and
-    maintain, such as idle_glideins_per_entry 
-    and running_glideins_per_entry. 
+    The parameters listed here regulate how aggressive should the frontend be
+    in provisioning glideins when it sees idle user jobs.<br>
+    <ul>
+     <li>The first element, <b>idle_glideins_per_entry</b>, defines the upper limit on how 
+    aggressive the provisioning should be.
+     <li>The next two are used to throttle the requests, if the provisioned glideins 
+         are not matched to the user jobs, either due to a mismatch in policy or system overload.<br>
+         <b>idle_vms_per_entry</b> throttles based on a per factory entry basis (e.g. Grid site), <br>while
+         <b>idle_vms_total</b> throttles based on the states of all the glideins provisioned by this group. 
+     <li>The last two elements are used to put an upper bound on how many glideins will the frontend provision.<br>
+         Similarly to the previoues two, 
+         <b>running_glideins_per_entry</b> will throttle the provisioning requests based on per factory entry basis, <br>while
+         <b>running_glideins_total</b> throttles based on number of all the glideins provisioned by this group.
+      </ul>
     </P></li>
 
     <LI><P>
