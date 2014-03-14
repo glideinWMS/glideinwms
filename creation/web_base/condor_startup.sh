@@ -544,8 +544,8 @@ EOF
     else
         # fixed
         echo "NUM_CPUS = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
-	echo "SLOT_TYPE_1 = cpus=1" >> "$CONDOR_CONFIG"
-	echo "NUM_SLOTS_TYPE_1 = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
+        echo "SLOT_TYPE_1 = cpus=1" >> "$CONDOR_CONFIG"
+        echo "NUM_SLOTS_TYPE_1 = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
         num_slots_for_shutdown_expr=$GLIDEIN_CPUS
     fi
 
