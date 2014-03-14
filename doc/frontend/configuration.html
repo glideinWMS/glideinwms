@@ -185,7 +185,7 @@ Click on any piece for a more detailed description.
                     <a href="#group_security_proxies">&lt;credentials /&gt;</a><br/>
                 </blockquote>
             <a href="#">&lt;/security&gt;</a><br/>
-            <a href="#">&lt;attrs /&gt;</a><br/>
+            <a href="#group_attrs">&lt;attrs /&gt;</a><br/>
             <a href="#files">&lt;files /&gt;</a><br/>
         </blockquote>
         <a href="#">&lt;/group&gt;</a><br/>
@@ -440,7 +440,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         </P></li>
 
     <LI><P>
-        <a name="files" />
+        <a name="attrs" />
         <div class="xml">
         &lt;frontend&gt;&lt;attrs&gt;&lt;attr
         name=&quot;<I>attr_name</I>&quot;
@@ -458,7 +458,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
 
     <UL>
         <LI><P>
-        <a name="attrs" />
+        <a name="attrs_collector" />
             <div class="xml">
             &lt;attr name=&quot;GLIDEIN_Collector&quot; &gt;
             </div>
@@ -601,7 +601,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     <LI><P>
         <a name="group_config" />
         <div class="xml">
-        &lt;frontend&gt;&lt;groups&gt;&lt;config&gt;
+        &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;config&gt;
         </div>
     The parameters listed here regulate how aggressive should the frontend be
     in provisioning glideins when it sees idle user jobs.<br>
@@ -622,7 +622,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     <LI><P>
         <a name="group_match" />
         <div class="xml">
-        &lt;frontend&gt;&lt;groups&gt;&lt;match
+        &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;match
         match_expr=&quot;<I>expr</I>&quot; &gt;
         </div>
     The match_expr is Python boolean expression is used to match glideins
@@ -720,10 +720,27 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         </div>
         Group-specific credentials can be defined that will be passed to the factory in addition to any <a href="#credentials">globally defined credentials</a>.
     </P></li>
-    <LI><P>
+     <LI><P>
+        <a name="group_attrs" />
+        <div class="xml">
+        &lt;frontend&gt&lt;groups&gt;&lt;group&gt;
+        &lt;attrs&gt;&lt;attr name=&quot;<I>attr_name</I>&quot;
+        value=&quot;<I>value</I>&quot;
+        parameter=&quot;True&quot;
+
+        type=&quot;string&quot;
+        glidein_publish=&quot;<I>boolean</I>&quot;
+        job_publish=&quot;<I>boolean</I>&quot; &gt;
+        </div>
+    Each group can have its own set of attributes, with the same semantics
+    as the <A HREF="#attrs">attrs</A> section in the global area.<br><br>
+    If an attribute is defined twice with the same name, the group one prevails.
+    </P>
+   </LI>
+   <LI><P>
         <a name="usercollector" />
         <div class="xml">
-        &lt;collectors groups="<i>list of collector groups</i>"&gt;&lt;collector DN="<i>certificate DN</i>" node="<i>User Pool Collector</i>" secondary="<i>True/False</i>" group="<i>Group Name</i>"&gt;
+        &lt;frontend&gt;&lt;collectors groups="<i>list of collector groups</i>"&gt;&lt;collector DN="<i>certificate DN</i>" node="<i>User Pool Collector</i>" secondary="<i>True/False</i>" group="<i>Group Name</i>"&gt;
         </div>
         List of user pool collector(s) where condor_startd started by glideins
         should report to as an available resource.  
