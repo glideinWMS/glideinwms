@@ -16,9 +16,58 @@ failure() {
 
 [ -f /etc/sysconfig/gwms-factory ] && . /etc/sysconfig/gwms-factory
 
+# Variables substituted during the file creation (by cgWCreate.py)        
 factory_dir=%(factory_dir)s
 glideinWMS_dir=%(glideinWMS_dir)s
-default_cfg_fpath=%(default_cfg_fpath)s
+def_factory_config=%(default_cfg_fpath)s
+RPM_INSTALL=%(this_is_rpm_install)s
+
+# RPM_INSTALL can be {''|'no'|'yes'}
+# RPM only if RPM_INSTALL = yes 
+# '' enables autodetection: RPM installation only if this file path is /etc/init.d/gwms-frontend
+SCRIPT_NAME="`readlink -f $0`"
+#alt: SCRIPT_NAME="$(cd "$(dirname "$0")" 2>/dev/null && pwd)/$(basename "$0")"
+if [ -z "$RPM_INSTALL" ] && [ "$SCRIPT_NAME" = "/etc/gwms-frontend/frontend.xml" ]; then
+    RPM_INSTALL=yes
+else
+    RPM_INSTALL=no
+fi
+SCRIPT_NAME="`basename $0`"
+
+
+if [ "$RPM_INSTALL" = "yes" ]; then
+    # RPM installation (defaults and binaries)
+    LOG_FILE_STARTUP=/dev/null
+    DEFAULT_WRITEBACK=no
+    BIN_DIR=/usr/sbin/
+    CREATION_DIR=
+    FACTORY_START="${BIN_DIR}glideFactory.py"
+    FACTORY_STOP="${BIN_DIR}stopFactory.py"
+    FACTORY_CHECK="${BIN_DIR}checkFactory.py"
+    FACTORY_DOWNTIMES="${BIN_DIR}manageFactoryDowntimes.py"
+    # Overriding variables values for RPM installation
+    factory_dir=/var/lib/gwms-factory/work-dir
+    glideinWMS_dir="$factory_dir"
+    def_factory_config=/etc/gwms-factory/glideinWMS.xml
+    FACTORY_CONFIG=/etc/gwms-factory/glideinWMS.xml
+else
+    # TAR installation  (defaults and binaries)
+    LOG_FILE_STARTUP=/dev/null
+    DEFAULT_WRITEBACK=yes
+    BIN_DIR="$glideinWMS_dir/factory/"
+    CREATION_DIR="$glideinWMS_dir/creation/"
+    FACTORY_START="${BIN_DIR}glideFactory.py"
+    FACTORY_STOP="${BIN_DIR}stopFactory.py"
+    FACTORY_CHECK="${BIN_DIR}checkFactory.py"
+    FACTORY_DOWNTIMES="${BIN_DIR}manageFactoryDowntimes.py"
+    FACTORY_CONFIG="$factory_dir/glideinWMS.xml"
+fi
+
+
+export HOME="/var/lib/gwms-factory"
+export X509_CERT_DIR="/etc/grid-security/certificates"
+#export FACTORY_USER=gfactory
+FACTORY_USER=gfactory
 
 
 factory_name=`awk '/^FactoryName /{print $2}' ${factory_dir}/glidein.descript`
@@ -26,42 +75,115 @@ glidein_name=`awk '/^GlideinName /{print $2}' ${factory_dir}/glidein.descript`
 id_str="$glidein_name@${factory_name}"
 
 
-start() {
-    cwd=`pwd`
-    cd $factory_dir
-    echo -n "Starting GlideinWMS Factory $id_str: "
-    nice -2 "$glideinWMS_dir/factory/glideFactory.py" "$factory_dir" 2>/dev/null 1>&2 </dev/null &
-    sleep 5
-    "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir"  2>/dev/null 1>&2 </dev/null && success || failure
-    RETVAL=$?
-    if [ -n "$cwd" ]; then
-        cd $cwd
+
+# Check that factory user is the owner of the config file
+THIS_USER=`logname`
+THIS_ID=`id -u $THIS_USER`
+# should check actually the config file in the working directory
+FILE_OWNER=`stat -c%u "$def_factory_config"`
+if [ $THIS_ID -eq 0 ]; then
+    if [ `id -u $FACTORY_USER` -ne $FILE_OWNER ]; then
+        echo "The Factory user ($FACTORY_USER) must own the configuration file ($def_factory_config).
+Use the correct user or edit FACTORY_USER in $0"
+        failure
+        exit 4
     fi
+else
+    if [ $THIS_ID -ne $FILE_OWNER ]; then
+        echo "The user invoking this script ($THIS_ID) must be root or must own the configuration file ($def_factory_config)"
+        failure
+        exit 4
+    fi
+fi
+
+# -s /bin/sh necessary because frontend could have /bin/nologin as default
+# BSD system: SU_COMMAND="eval sudo -u "
+SU_COMMAND="/bin/su -s /bin/sh"
+if [ -x "/sbin/runuser" ]; then
+    # For SELinux we need to use 'runuser' not 'su'
+    SU_COMMAND="/sbin/runuser -s /bin/sh"      # /sbin/runuser
+fi
+
+invoke_as_factory() {
+    # parameters are the user and the command to invoke
+    local user_to_use=$FACTORY_USER
+    local user_id=$(id -u $(logname))
+    if [ $user_id -eq 0 ]; then
+        # It's root, change user
+        $SU_COMMAND $user_to_use -c "$@"
+        return $?
+    elif [ $user_id = $FILE_OWNER ]; then
+        # It's the owner, invoke directly, both su and runuser would ask for password
+        eval "$@"
+        return $?
+    else
+        # someone else, raise error
+        echo "ERROR: you must be root or the owner of ${def_factory_config}."
+        #return 4
+        exit 4
+    fi
+}
+
+
+
+
+
+
+help_usage() {
+    if [ "$RPM_INSTALL" = "yes" ]; then
+        # upgrade does not make sense for RPM because the RPM upgrade will take care of it
+    #             echo $"Usage: factory_startup {reconfig xml <update_default_cfg> <writeback yes|no>}"
+        echo "Usage: $SCRIPT_NAME {start|stop|restart|status|info|reconfig|down|up|infosysdown|statusdown}
+    $SCRIPT_NAME reconfig [NEW_XML_CONFIG_FILE] [-fix_rrd] [update_default_cfg] [{yes|no}] [-comment COMMENT] [-force_delete]
+    $SCRIPT_NAME {down|up} -entry factory|entries|ENTRY_NAME [-delay DELAY] [-frontend SEC_NAME] [-security SEC_CLASS|All] [-comment COMMENT]
+    $SCRIPT_NAME infosysdown [-delay DELAY] [-frontend SEC_NAME] [-security SEC_CLASS|All] [-comment COMMENT]
+    $SCRIPT_NAME statusdown -entry factory|entries|ENTRY_NAME [-delay DELAY] 
+"
+    else
+        echo "Usage: $SCRIPT_NAME {start|stop|restart|status|info|reconfig|down|up|infosysdown|statusdown}
+    $SCRIPT_NAME upgrade [NEW_XML_CONFIG_FILE]
+    $SCRIPT_NAME reconfig [NEW_XML_CONFIG_FILE] [-fix_rrd] [update_default_cfg] [{yes|no}] [-comment COMMENT] [-force_delete]
+    $SCRIPT_NAME {down|up} -entry factory|entries|ENTRY_NAME [-delay DELAY] [-frontend SEC_NAME|All] [-security SEC_CLASS|All] [-comment COMMENT]
+    $SCRIPT_NAME infosysdown [-delay DELAY] [-frontend SEC_NAME] [-security SEC_CLASS|All] [-comment COMMENT]
+    $SCRIPT_NAME statusdown -entry factory|entries|ENTRY_NAME [-delay DELAY] 
+"
+#                 echo $"Usage: factory_startup {reconfig xml <update_default_cfg> <writeback yes|no>}"
+#    $SCRIPT_NAME ress+bdii entries [-delay DELAY] [-frontend SEC_NAME] [-security SEC_CLASS|All] [-comment COMMENT]
+# RPM: echo $"Usage: factory_startup $1 -entry 'factory'|'entries'|entry_name [-delay delay] [-frontend sec_name|'All'] [-security sec_class|'All'] [-comment comment]"
+
+    fi
+}
+
+start() {
+    pushd $factory_dir
+    echo -n "Starting GlideinWMS Factory $id_str: "
+    invoke_as_factory "nice -2 \"${FACTORY_START}\" \"$factory_dir\" 2>/dev/null 1>&2 </dev/null &"
+    sleep 5
+    "$FACTORY_CHECK" "$factory_dir"  2>/dev/null 1>&2 </dev/null && success || failure
+    RETVAL=$?
+    popd
     echo
 }
 
 stop() {
     echo -n "Shutting down GlideinWMS Factory $id_str: "
-    "$glideinWMS_dir/factory/stopFactory.py" -f "$factory_dir" 2>/dev/null 1>&2 </dev/null && success || failure
+    "$FACTORY_STOP" -f "$factory_dir" 2>/dev/null 1>&2 </dev/null && success || failure
     RETVAL=$?
     if [ $RETVAL -eq 2 ]; then
         echo -n "Already stopped."
+        RETVAL=0
     fi  
     echo
 }
 
 restart() {
     stop
-    if [ $RETVAL -eq 2 ]; then
-        # OK if already stopped
-        RETVAL=0
-    fi
     if [ $RETVAL -ne 0 ]; then
         # Waiting 30 sec for the shutdown to complete
         echo "Waiting for the GlideinWMS Factory to shutdown" 2>&1
         for i in {1..60}; do  # Use seq if a variable is needed: $(seq 1 $END)
             # Returns 0 if running, 1 if not
-            "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir" >/dev/null 2>&1 </dev/null
+            "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null
             if [ $? -eq 1 ]; then
                 RETVAL=0
                 break
@@ -81,92 +203,89 @@ restart() {
 }
 
 reconfig() {
-        if [ -f "$2" ]; then
-           has_arg=1
-           echo "Using factory config file arg: $2"
-           cfg_loc=$2
-        else
-           has_arg=0
-           echo "Using default factory config file: $default_cfg_fpath"
-           cfg_loc=$default_cfg_fpath
-        fi
         shift
-        update_def_cfg="no"
-        writeback="yes"
+        if [ -f "$1" ]; then
+            echo "Using factory config file arg: $1"
+            cfg_loc=$1
+            shift 
+        else
+            echo "Using default factory config file: $def_factory_config"
+            cfg_loc=$def_factory_config
+        fi
+        update_def_cfg=no
+        writeback=$DEFAULT_WRITEBACK
         force_delete=""
-        comment=""
         fix_rrd=""
+        comment=""
 
         while (( "$#" )); do
-           var=$1
-           case "$var" in
-              yes | no) writeback="$var"
-                 ;;
-              update_default_cfg) update_def_cfg="yes"
-                 ;;
-              "-force_delete") force_delete="-force_delete"
+            var=$1
+            case "$var" in
+            yes | no) writeback="$var"
                 ;;
-              "-comment") comment=$2
+            "-force_delete") force_delete="-force_delete"
+                ;;
+            "-fix_rrd") fix_rrd="-fix_rrd"
+                ;;
+            update_default_cfg) update_def_cfg=yes
+                ;;
+            "-comment") comment=$2
                 shift
                 ;;
-              "-fix_rrd") fix_rrd="-fix_rrd"
-                 ;;
-              *) if [ "$cfg_loc" != "$var" ]; then
-                 echo "Unknown argument passed: $var"
-                 echo $"Usage: factory_startup {reconfig xml <update_default_cfg> <writeback yes|no>}"
-                 exit 1
-                 fi
-                 ;;
-           esac
-           shift
+            *)  echo "Unknown argument passed: $var"
+                # echo $"Usage: factory_startup {reconfig xml <update_default_cfg> <writeback yes|no>}"
+                help_usage
+                exit 1
+                ;;
+            esac
+            shift
         done
         if [ -n "$GLIDEIN_WRITEBACK" ]; then
-           writeback="$GLIDEIN_WRITEBACK"
+            writeback="$GLIDEIN_WRITEBACK"
         fi
 
-        "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir" >/dev/null 2>&1 </dev/null
+        "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null
         notrun=$?
         if [ $notrun -eq 0 ]; then
-          stop
-          if [ $RETVAL -ne 0 ] && [ $RETVAL -ne 2 ]; then
-            echo "Failed to shutdown the GlidinWMS Factory. Please check."
-            exit $RETVAL
-          fi
+            stop
+            if [ $RETVAL -ne 0 ] && [ $RETVAL -ne 2 ]; then
+                echo "Failed to shutdown the GlidinWMS Factory. Please check."
+                exit $RETVAL
+            fi
         fi
 
+        echo -n "Reconfiguring the factory"
         pushd $factory_dir
-        "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" -writeback "$writeback" -update_scripts "no" -xml "$cfg_loc" -update_def_cfg "$update_def_cfg" $force_delete $fix_rrd -comment "$comment"
+        invoke_as_factory "\"${CREATION_DIR}reconfig_glidein\" -update_scripts no -xml \"$cfg_loc\" -writeback $writeback $fix_rrd $force_delete -force_name \"$glidein_name\" -update_def_cfg $update_def_cfg -comment \"$comment\""
+        # RPM su -s /bin/bash $FACTORY_USER -c "reconfig_glidein -update_scripts no -xml $factory_config -writeback $writeback $fix_rrd $force_delete"
         reconfig_failed=$?
         popd
-        echo -n "Reconfiguring the factory"
         test $reconfig_failed -eq 0 && success || failure
         RETVAL=$?
         echo
         if [ $notrun -eq 0 ]; then
-          if [ $reconfig_failed -ne 0 ];then
-            echo ".. starting factory with old configuration file"
-          fi
-          start
-          if [ $RETVAL -eq 0 ] && [ $reconfig_failed -eq 0 ]; then
-            RETVAL=0
-          else
-            RETVAL=1
-          fi
+            if [ $reconfig_failed -ne 0 ];then
+                echo ".. starting factory with old configuration file"
+            fi
+            start
+            if [ $RETVAL -eq 0 ] && [ $reconfig_failed -eq 0 ]; then
+                RETVAL=0
+            else
+                RETVAL=1
+            fi
         fi
 }
 
 upgrade() {
         if [ -f "$1" ]; then
-           has_arg=1
            echo "Using factory config file arg: $1"
            cfg_loc=$1
         else
-           has_arg=0
            echo "Using default factory config file: $default_cfg_fpath"
            cfg_loc=$default_cfg_fpath
         fi
 
-        "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir" >/dev/null 2>&1 </dev/null
+        "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null
         notrun=$?
         if [ $notrun -eq 0 ]; then
           stop
@@ -176,8 +295,29 @@ upgrade() {
           fi
         fi
 
+        writeback=$DEFAULT_WRITEBACK
+        force_delete=""
+        fix_rrd=""
+        for var in "$@"
+        do
+            case "$var" in
+            yes | no) writeback="$var"
+                ;;
+            "-force_delete") force_delete="-force_delete"
+                ;;
+            "-fix_rrd") fix_rrd="-fix_rrd"
+                ;;
+            *)  echo "Invalid option: $var"
+                help_message
+                exit 2
+                ;;
+            esac
+        done
+
         pushd $factory_dir
-        "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" -writeback "yes" -update_scripts "yes" -xml "$cfg_loc" 
+        invoke_as_factory "\"${CREATION_DIR}reconfig_glidein\" -force_name \"$glidein_name\" -writeback yes -update_scripts yes -xml \"$cfg_loc\"" 
+        # su -s /bin/bash $FACTORY_USER -c "reconfig_glidein -update_scripts yes -xml $factory_config -writeback $writeback $fix_rrd $force_delete"
+
         reconfig_failed=$?
         popd
         echo -n "Upgrading the factory"
@@ -199,8 +339,10 @@ upgrade() {
 
 downtime() {
     if [ -z "$3" ]; then
-        echo $"Usage: factory_startup $1 -entry 'factory'|'entries'|entry_name [-delay delay] [-frontend sec_name] [-security sec_class|\'All\'] [-comment comment]"
-        exit 1
+        #echo $"Usage: factory_startup $1 -entry 'factory'|'entries'|entry_name [-delay delay] [-frontend sec_name] [-security sec_class|\'All\'] [-comment comment]"
+        #RPM: echo $"Usage: factory_startup $1 -entry 'factory'|'entries'|entry_name [-delay delay] [-frontend sec_name|'All'] [-security sec_class|'All'] [-comment comment]"
+        help_usage
+        exit 2
     fi
 
     if [ "$1" == "down" ]; then
@@ -211,7 +353,7 @@ downtime() {
         echo -n "Infosys-based downtime management."
     fi
 
-    "$glideinWMS_dir/factory/manageFactoryDowntimes.py" -cmd $1 -dir "$factory_dir" "$@" </dev/null && success || failure
+    "$FACTORY_DOWNTIMES" -cmd $1 -dir "$factory_dir" "$@" </dev/null && success || failure
     RETVAL=$?
     echo
 }
@@ -223,24 +365,24 @@ case $1 in
     stop)
         stop
         ;;
-    restart)
+    force-reload|restart)
         restart
         ;;
     status)
-        $glideinWMS_dir/factory/checkFactory.py $factory_dir
+        "$FACTORY_CHECK" "$factory_dir"
         RETVAL=$?
         #TODO: Should it print something?
         ;;
     info)
         shift
-        $glideinWMS_dir/creation/info_glidein $@ $factory_dir/glideinWMS.xml
+        "${CREATION_DIR}info_glidein" "$@" "$FACTORY_CONFIG"
         RETVAL=$?
         ;;
     reconfig)
         reconfig "$@"
         ;;
     upgrade)
-        upgrade $2
+        upgrade "$2"
         ;;
     down)
         downtime down "$@"
@@ -253,15 +395,17 @@ case $1 in
         ;;
     statusdown)
         if [ -z "$2" ]; then
-            echo $"Usage: factory_startup $1 -entry 'factory'|'entries'|entry_name [-delay delay]"
+            #echo $"Usage: factory_startup $1 -entry 'factory'|'entries'|entry_name [-delay delay]"
+            help_usage
             exit 1
         fi
-        "$glideinWMS_dir/factory/manageFactoryDowntimes.py" -cmd check -dir "$factory_dir" "$@"
+        "$FACTORY_DOWNTIMES" -cmd check -dir "$factory_dir" "$@"
         RETVAL=$?
         ;;
     *)
-        echo $"Usage: factory_startup {start|stop|restart|status|info|reconfig|down|up|infosysdown|statusdown}"
-        exit 1
+        help_usage
+        #echo $"Usage: factory_startup {start|stop|restart|status|info|reconfig|down|up|infosysdown|statusdown}"
+        exit 3
 esac
 
 exit $RETVAL
