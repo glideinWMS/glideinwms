@@ -16,7 +16,7 @@ def frontend_print(frontend, fe_mode, d, div, to_be_printed,fe_sorting,fe_attr_l
     fdiv=1
     if fe_attr_list[fe_sort_attribute] in ['total_time','val','used','idle','waste','badput']:
         fdiv=float(div)
-    if fe_sort_attribute in [2,4,6,8]:#['u%','v%','i%','w%','b%']:
+    if fe_sort_attribute in [2,4,6,8,10]:#['u%','v%','i%','w%','b%']:
         fdiv=float(div)*(float(d['total_time'])/float(div))
     elif fe_attr_list[fe_sort_attribute] in ['eff']:
         fdiv = float(d['waste']+d['used'])
