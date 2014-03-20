@@ -84,11 +84,21 @@ fi
 id_str="$frontend_name"
 
 
+get_user() {
+  # logname returns the original user efater a "su" instead I need the current one
+  if [ ! -z "$USER" ]; then
+    echo $USER
+  else
+    logname
+  fi
+}
+
 # Check that frontend user is the owner of the config file
-THIS_USER=`logname`
+THIS_USER=`get_user`
 THIS_ID=`id -u $THIS_USER`
 # should check actually the config file in the working directory
-FILE_OWNER=`stat -c%u "$def_frontend_config"`
+# Double percent %% needed for template substitution
+FILE_OWNER=`stat -c%%u "$def_frontend_config"`
 if [ $THIS_ID -eq 0 ]; then
     if [ `id -u $FRONTEND_USER` -ne $FILE_OWNER ]; then
         echo "The Frontend user ($FRONTEND_USER) must own the configuration file ($def_frontend_config).
@@ -116,7 +126,7 @@ invoke_as_frontend() {
     # parameters are a string with the command to invoke
     # e.g. "ls -al \"$directory\""
     local user_to_use=$FRONTEND_USER
-    local user_id=$(id -u $(logname))
+    local user_id=$(id -u $(get_user))
     if [ $user_id -eq 0 ]; then
         # It's root, change user
         $SU_COMMAND $user_to_use -c "$@"

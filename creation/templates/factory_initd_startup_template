@@ -75,12 +75,21 @@ glidein_name=`awk '/^GlideinName /{print $2}' ${factory_dir}/glidein.descript`
 id_str="$glidein_name@${factory_name}"
 
 
+get_user() {
+  # logname returns the original user efater a "su" instead I need the current one
+  if [ ! -z "$USER" ]; then
+    echo $USER
+  else
+    logname
+  fi
+}
 
 # Check that factory user is the owner of the config file
-THIS_USER=`logname`
+THIS_USER=`get_user`
 THIS_ID=`id -u $THIS_USER`
 # should check actually the config file in the working directory
-FILE_OWNER=`stat -c%u "$def_factory_config"`
+# Double percent %% needed for template substitution
+FILE_OWNER=`stat -c%%u "$def_factory_config"`
 if [ $THIS_ID -eq 0 ]; then
     if [ `id -u $FACTORY_USER` -ne $FILE_OWNER ]; then
         echo "The Factory user ($FACTORY_USER) must own the configuration file ($def_factory_config).
@@ -107,7 +116,7 @@ fi
 invoke_as_factory() {
     # parameters are the user and the command to invoke
     local user_to_use=$FACTORY_USER
-    local user_id=$(id -u $(logname))
+    local user_id=$(id -u $(get_user))
     if [ $user_id -eq 0 ]; then
         # It's root, change user
         $SU_COMMAND $user_to_use -c "$@"
