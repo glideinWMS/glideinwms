@@ -622,6 +622,11 @@ class MultiAdvertizeWork:
         self.global_params={}
         self.factory_constraint={}
 
+        # set a few defaults
+        self.unique_id=1
+        self.adname=None
+        
+
     # add a request to the list
     def add(self,
             factory_pool,
@@ -668,14 +673,32 @@ class MultiAdvertizeWork:
             self.do_global_advertize_one(factory_pool)
 
     def do_global_advertize_one(self, factory_pool):
+        """
+        Advertize globals with credentials to one factory
+        """
+        tmpname=classadSupport.generate_classad_filename(prefix='gfi_ad_gcg')
+        self.unique_id=1
+        self.adname=tmpname
+        filename_arr = self.createGlobalAdvertizeWorkFile(factory_pool)
+        # Advertize all the files (if multi, should only be one) 
+        for filename in filename_arr:
+            try:
+                advertizeWorkFromFile(factory_pool, filename, remove_file=True)
+            except condorExe.ExeError:
+                logSupport.log.exception("Advertising globals failed for factory pool %s: " % factory_pool)
+                
+    def createGlobalAdvertizeWorkFile(self, factory_pool):
             """
-            Advertize globals with credentials to one factory
+            Create the advertize file for globals with credentials
+            Expects the object variable
+             adname
+            to be set.
             """
             # the different indentation is due to code refactoring
             # this way the diff was minimized
             global advertizeGCGounter
 
-            tmpname=classadSupport.generate_classad_filename(prefix='gfi_ad_gcg')
+            tmpname=self.adname
             glidein_params_to_encrypt={}
             fd=file(tmpname,"w")
             x509_proxies_data=[]
@@ -734,12 +757,8 @@ class MultiAdvertizeWork:
             fd.write('UpdateSequenceNumber = %s\n' % advertizeGCGounter[classad_name]) 
  
             fd.close()
-            
-            try:
-                advertizeWorkFromFile(factory_pool, tmpname, remove_file=True)
-            except condorExe.ExeError:
-                logSupport.log.exception("Advertising globals failed for factory pool %s: " % factory_pool)
-                
+
+            return [tmpname]
 
     def do_advertize(self, file_id_cache=None):
         """
@@ -793,6 +812,12 @@ class MultiAdvertizeWork:
 
 
     def createAdvertizeWorkFile(self, factory_pool, params_obj, key_obj=None, file_id_cache=None): 
+        """
+        Create the advertize file
+        Expects the object variables
+          adname and unique_id
+        to be set.
+        """
         global frontendConfig
         global advertizeGCCounter
         
