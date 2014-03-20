@@ -619,7 +619,9 @@ class MultiAdvertizeWork:
                 advertizeWorkFromFile(factory_pool, filename, remove_file=remove_files, is_multi=frontendConfig.advertise_use_multi)
             except condorExe.ExeError:
                 logSupport.log.exception("Advertising failed for factory pool %s: " % factory_pool)
-        
+
+    def get_advertize_factory_list(self):
+        return tuple(set(self.global_pool)+set(self.factory_queue.keys()))
             
     def do_global_advertize(self, adname=None, create_files_only=False, reset_unique_id=True):
         """
@@ -640,6 +642,10 @@ class MultiAdvertizeWork:
         Advertize globals with credentials to one factory
         Returns the list of files that still need to be advertised.
         """
+        if not (factory_pool in self.global_pool):
+            # nothing to be done, prevent failure
+            return []
+
         if adname is None:
             tmpname=classadSupport.generate_classad_filename(prefix='gfi_ad_gcg')
         else:
@@ -786,6 +792,10 @@ class MultiAdvertizeWork:
             """
             # the different indentation is due to code refactoring
             # this way the diff was minimized
+            if not (factory_pool in self.factory_queue.keys()):
+                # nothing to be done, prevent failure
+                return []
+
             if file_id_cache is None:
                 file_id_cache=CredentialCache()
 
