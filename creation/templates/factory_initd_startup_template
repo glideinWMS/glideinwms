@@ -76,12 +76,13 @@ id_str="$glidein_name@${factory_name}"
 
 
 get_user() {
-  # logname returns the original user efater a "su" instead I need the current one
-  if [ ! -z "$USER" ]; then
-    echo $USER
-  else
-    logname
-  fi
+    # logname returns the original user efater a "su" instead I need the current one
+    if [ ! -z "$USER" ]; then
+        echo $USER
+    else
+        # whoami is the current user, logname the original
+        whoami 
+    fi
 }
 
 # Check that factory user is the owner of the config file
