@@ -694,7 +694,7 @@ class MultiAdvertizeWork:
                 logSupport.log.exception("Advertising failed for factory pool %s: " % factory_pool)
 
     def get_advertize_factory_list(self):
-        return tuple(set(self.global_pool)+set(self.factory_queue.keys()))
+        return tuple(set(self.global_pool).union(set(self.factory_queue.keys())))
             
     def do_global_advertize(self, adname=None, create_files_only=False, reset_unique_id=True):
         """
