@@ -753,7 +753,7 @@ class MultiAdvertizeWork:
 
             tmpname=self.adname
             glidein_params_to_encrypt={}
-            fd=file(tmpname,"w")
+            fd=file(tmpname,"a")
             x509_proxies_data=[]
             if self.descript_obj.x509_proxies_plugin is not None:
                 x509_proxies_data=self.descript_obj.x509_proxies_plugin.get_credentials()
@@ -809,6 +809,8 @@ class MultiAdvertizeWork:
                 advertizeGCGounter[classad_name] = 0
             fd.write('UpdateSequenceNumber = %s\n' % advertizeGCGounter[classad_name]) 
  
+            # add a final empty line... useful when appending
+            fd.write('\n')
             fd.close()
 
             return [tmpname]
