@@ -591,9 +591,17 @@ class MultiAdvertizeWork:
         """
         Advertize globals with credentials
         """
-        global advertizeGCGounter
-        
         for factory_pool in self.global_pool:
+            self.do_global_advertize_one(factory_pool)
+
+    def do_global_advertize_one(self, factory_pool):
+            """
+            Advertize globals with credentials to one factory
+            """
+            # the different indentation is due to code refactoring
+            # this way the diff was minimized
+            global advertizeGCGounter
+
             tmpname=classadSupport.generate_classad_filename(prefix='gfi_ad_gcg')
             glidein_params_to_encrypt={}
             fd=file(tmpname,"w")
@@ -688,17 +696,27 @@ class MultiAdvertizeWork:
                 logSupport.log.exception("Advertising globals failed for factory pool %s: " % factory_pool)
                 
 
-    def do_advertize(self):
+    def do_advertize(self, file_id_cache=None):
         """
         Do the actual advertizing
         """
+        if file_id_cache is None:
+            file_id_cache=CredentialCache()
 
-        idx = 0
-        file_id_cache=CredentialCache()
         for factory_pool in self.factory_queue.keys():
-            idx = idx + 1
+            self.do_advertize_one(factory_pool, file_id_cache)
+
+    def do_advertize_one(self, factory_pool, file_id_cache=None):
+            """
+            Do the actual advertizing for one factory
+            """
+            # the different indentation is due to code refactoring
+            # this way the diff was minimized
+            if file_id_cache is None:
+                file_id_cache=CredentialCache()
+
             self.unique_id=1
-            self.adname = classadSupport.generate_classad_filename(prefix='gfi_ad_gc_%li' % (idx))
+            self.adname = classadSupport.generate_classad_filename(prefix='gfi_ad_gc')
 
             # this should be done in parallel, but keep it serial for now
             filename_arr=[]
@@ -726,7 +744,7 @@ class MultiAdvertizeWork:
                 except condorExe.ExeError:
                     logSupport.log.exception("Advertising request failed for factory pool %s: " % factory_pool)
 
-        self.factory_queue = {} # clean queue
+            del self.factory_queue[factory_pool] # clean queue for this factory
 
 
     def createAdvertizeWorkFile(self, factory_pool, params_obj, key_obj=None, file_id_cache=None): 
