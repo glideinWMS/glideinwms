@@ -92,7 +92,6 @@ get_user() {
         # whoami is the current user, logname the original
         whoami 
     fi
-  fi
 }
 
 # Check that frontend user is the owner of the config file
