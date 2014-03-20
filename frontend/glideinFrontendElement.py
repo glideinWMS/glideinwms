@@ -533,6 +533,8 @@ class glideinFrontendElement:
         pids=[]
         # Advertise glideclient and glideclient global classads
         ad_file_id_cache=glideinFrontendInterface.CredentialCache()
+        advertizer.renew_and_load_credentials()
+
         ad_factnames=advertizer.get_advertize_factory_list()
         for ad_factname in ad_factnames:
                 logSupport.log.info("Advertising global and singular requests for factory %s" % ad_factname)
