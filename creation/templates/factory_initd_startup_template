@@ -164,13 +164,13 @@ help_usage() {
 }
 
 start() {
-    pushd $factory_dir
+    pushd $factory_dir 1>/dev/null
     echo -n "Starting GlideinWMS Factory $id_str: "
     invoke_as_factory "nice -2 \"${FACTORY_START}\" \"$factory_dir\" 2>/dev/null 1>&2 </dev/null &"
     sleep 5
     "$FACTORY_CHECK" "$factory_dir"  2>/dev/null 1>&2 </dev/null && success || failure
     RETVAL=$?
-    popd
+    popd 1>/dev/null
     echo
 }
 
@@ -264,11 +264,11 @@ reconfig() {
         fi
 
         echo -n "Reconfiguring the factory"
-        pushd $factory_dir
+        pushd $factory_dir 1>/dev/null
         invoke_as_factory "\"${CREATION_DIR}reconfig_glidein\" -update_scripts no -xml \"$cfg_loc\" -writeback $writeback $fix_rrd $force_delete -force_name \"$glidein_name\" -update_def_cfg $update_def_cfg -comment \"$comment\""
         # RPM su -s /bin/bash $FACTORY_USER -c "reconfig_glidein -update_scripts no -xml $factory_config -writeback $writeback $fix_rrd $force_delete"
         reconfig_failed=$?
-        popd
+        popd 1>/dev/null
         test $reconfig_failed -eq 0 && success || failure
         RETVAL=$?
         echo
@@ -323,12 +323,12 @@ upgrade() {
             esac
         done
 
-        pushd $factory_dir
+        pushd $factory_dir 1>/dev/null
         invoke_as_factory "\"${CREATION_DIR}reconfig_glidein\" -force_name \"$glidein_name\" -writeback yes -update_scripts yes -xml \"$cfg_loc\"" 
         # su -s /bin/bash $FACTORY_USER -c "reconfig_glidein -update_scripts yes -xml $factory_config -writeback $writeback $fix_rrd $force_delete"
 
         reconfig_failed=$?
-        popd
+        popd 1>/dev/null
         echo -n "Upgrading the factory"
         test $reconfig_failed -eq 0 && success || failure
         RETVAL=$?

@@ -249,7 +249,7 @@ reconfig() {
                 exit $RETVAL
             fi
         fi
-        pushd $frontend_dir
+        pushd $frontend_dir 1>/dev/null
 
         # Defaults of reconfig_frontend (f-flag, v-variable)
         # f   fix_rrd = False
@@ -262,7 +262,7 @@ reconfig() {
 
         RETVAL=$?
         reconfig_failed=$?
-        popd
+        popd 1>/dev/null
         echo -n "Reconfiguring the frontend"
         test $reconfig_failed -eq 0 && success || failure
         echo
@@ -288,13 +288,13 @@ upgrade() {
                 exit $RETVAL
             fi
         fi
-        pushd $frontend_dir
+        pushd $frontend_dir 1>/dev/null
         invoke_as_frontend "\"${CREATION_DIR}reconfig_frontend\" -force_name \"$frontend_name\" -writeback yes -update_scripts yes -xml \"$cfg_loc\""
 
         # su -s /bin/bash $FRONTEND_USER -c "reconfig_frontend -force_name \"$frontend_name\" -writeback \"yes\" -update_scripts \"yes\" -xml $frontend_config"
 
         reconfig_failed=$?
-        popd
+        popd 1>/dev/null
         echo -n "Upgrading the frontend"
         test $reconfig_failed -eq 0 && success || failure
         RETVAL=$?
