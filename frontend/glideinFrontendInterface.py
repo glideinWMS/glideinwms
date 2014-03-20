@@ -554,6 +554,7 @@ class MultiAdvertizeWork:
         # set a few defaults
         self.unique_id=1
         self.adname=None
+        self.x509_proxies_data=[]
         
 
     # add a request to the list
@@ -592,6 +593,67 @@ class MultiAdvertizeWork:
             count += len(self.factory_queue[factory_pool])
         return count
 
+    def renew_and_load_credentials(self):
+            """
+            Get the list of proxies,
+            invoke the renew scripts if any,
+            and read the credentials in memory.
+            Modifies the self.x509_proxies_data variable.
+            """
+            self.x509_proxies_data=[]
+            if self.descript_obj.x509_proxies_plugin is not None:
+                self.x509_proxies_data=self.descript_obj.x509_proxies_plugin.get_credentials()
+                nr_credentials=len(self.x509_proxies_data)
+            else:
+                nr_credentials=0
+
+            nr_good_credentials=nr_credentials
+            for i in range(nr_credentials):
+                cred_el=self.x509_proxies_data[i]
+                cred_el.renew()
+                cred_el.advertize=True
+                cred_el.loaded_data=[]
+                if (hasattr(cred_el,'filename')):
+                    try:
+                        if (not os.path.exists(cred_el.filename)) and (cred_el.creation_script is not None):
+                            logSupport.log.debug("Proxy %s didn not exist, calling creation_script %s" % (cred_el.filename,cred_el.creation_script))
+                            condorExe.iexe_cmd(cred_el.creation_script)
+                        data_fd=open(cred_el.filename)
+                        cred_data=data_fd.read()
+                        data_fd.close()
+                    except:
+                        cred_el.advertize=False
+                        nr_good_credentials-=1
+                        logSupport.log.exception("Cannot read credential %s" % cred_el.filename)
+                        continue
+                    cred_el.loaded_data.append(('filename',cred_el.filename,cred_data))
+
+                if (hasattr(cred_el,'key_fname')):
+                    try:
+                        data_fd=open(cred_el.key_fname)
+                        cred_data=data_fd.read()
+                        data_fd.close()
+                    except:
+                        cred_el.advertize=False
+                        nr_good_credentials-=1
+                        logSupport.log.exception("Cannot read credential %s: " % cred_el.key_fname)
+                        continue
+                    cred_el.loaded_data.append(('key_fname',cred_el.key_fname,cred_data))
+                        
+                if (hasattr(cred_el,'pilot_fname')):
+                    try:
+                        data_fd=open(cred_el.pilot_fname)
+                        cred_data=data_fd.read()
+                        data_fd.close()
+                    except:
+                        cred_el.advertize=False
+                        nr_good_credentials-=1
+                        logSupport.log.exception("Cannot read credential %s failed: " % cred_el.pilot_fname)
+                        continue
+                    cred_el.loaded_data.append(('pilot_fname',cred_el.pilot_fname,cred_data))
+
+            return nr_credentials
+
     def initialize_advertize_batch(self, adname_prefix='gfi_ad_batch'):
         """
         Initialize the variables that are used for batch avertizement
@@ -605,6 +667,7 @@ class MultiAdvertizeWork:
         """
         Advertize the classad files in the dictionary provided
          The keys are the factory names, while the elements are lists of files
+        Safe to run in parallel, guaranteed to not modify the self object state.
         """
         for factory_pool in filename_dict:
             self.do_advertize_batch_one(factory_pool, filename_dict[factory_pool], remove_files)
@@ -612,6 +675,7 @@ class MultiAdvertizeWork:
     def do_advertize_batch_one(self, factory_pool, filename_arr, remove_files=True):
         """
         Advertize to a factory the clasad files provided
+        Safe to run in parallel, guaranteed to not modify the self object state.
         """
         # Advertize all the files 
         for filename in filename_arr:
@@ -681,13 +745,10 @@ class MultiAdvertizeWork:
             tmpname=self.adname
             glidein_params_to_encrypt={}
             fd=file(tmpname,"a")
-            x509_proxies_data=[]
-            if self.descript_obj.x509_proxies_plugin is not None:
-                x509_proxies_data=self.descript_obj.x509_proxies_plugin.get_credentials()
-                nr_credentials=len(x509_proxies_data)
+            nr_credentials=len(self.x509_proxies_data)
+            if nr_credentials>0:
                 glidein_params_to_encrypt['NumberOfCredentials']="%s"%nr_credentials
-            else:
-                nr_credentials=0
+
             request_name="Global"
             if (factory_pool in self.global_params):
                 request_name,security_name=self.global_params[factory_pool]
@@ -701,52 +762,16 @@ class MultiAdvertizeWork:
             fd.write('GroupName = "%s"\n'%self.descript_obj.group_name)
             fd.write('ClientName = "%s"\n'%self.descript_obj.my_name)
             for i in range(nr_credentials):
-                cred_el=x509_proxies_data[i]
-                cred_el.renew()
-                cred_el.advertize=True
-                if (hasattr(cred_el,'filename')):
-                    try:
-                        if (not os.path.exists(cred_el.filename)) and (cred_el.creation_script is not None):
-                            logSupport.log.debug("Proxy %s didn not exist, calling creation_script %s" % (cred_el.filename,cred_el.creation_script))
-                            condorExe.iexe_cmd(cred_el.creation_script)
-                        data_fd=open(cred_el.filename)
-                        cred_data=data_fd.read()
-                        data_fd.close()
-                    except:
-                        cred_el.advertize=False
-                        logSupport.log.exception("Advertising global credential %s failed" % cred_el.filename)
-                        continue
-                    glidein_params_to_encrypt[cred_el.file_id(cred_el.filename)]=cred_data
+                cred_el=self.x509_proxies_data[i]
+                if cred_el.advertize==False:
+                    continue # we already determined it cannot be used
+                for ld_el in cred_el.loaded_data:
+                    ld_type,ld_fname,ld_data=ld_el
+                    glidein_params_to_encrypt[cred_el.file_id(ld_fname)]=ld_data
                     if (hasattr(cred_el,'security_class')):
                         # Convert the sec class to a string so the Factory can interpret the value correctly
-                        glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(cred_el.filename)]=str(cred_el.security_class)
-                if (hasattr(cred_el,'key_fname')):
-                    try:
-                        data_fd=open(cred_el.key_fname)
-                        cred_data=data_fd.read()
-                        data_fd.close()
-                    except:
-                        cred_el.advertize=False
-                        logSupport.log.exception("Advertising global credential %s failed: " % cred_el.filename)
-                        continue
-                        
-                    glidein_params_to_encrypt[cred_el.file_id(cred_el.key_fname)]=cred_data
-                    if (hasattr(cred_el,'security_class')):
-                        # Convert the sec class to a string so the Factory can interpret the value correctly
-                        glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(cred_el.key_fname)]=str(cred_el.security_class)
-                if (hasattr(cred_el,'pilot_fname')):
-                    try:
-                        data_fd=open(cred_el.pilot_fname)
-                        cred_data=data_fd.read()
-                        data_fd.close()
-                    except:
-                        cred_el.advertize=False
-                        logSupport.log.exception("Advertising global credential %s failed: " % cred_el.filename)
-                        continue
-                    glidein_params_to_encrypt[cred_el.file_id(cred_el.pilot_fname)]=cred_data
-                    if (hasattr(cred_el,'security_class')):
-                        # Convert the sec class to a string so the Factory can interpret the value correctly
-                        glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(cred_el.pilot_fname)]=str(cred_el.security_class)
+                        glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(ld_fname)]=str(cred_el.security_class)
+
             if (factory_pool in self.global_key):
                 key_obj=self.global_key[factory_pool]
             if key_obj is not None:
@@ -856,17 +881,20 @@ class MultiAdvertizeWork:
         
         logSupport.log.debug("In create Advertize work");
 
-        x509_proxies_data = []
         factory_trust,factory_auth=self.factory_constraint[params_obj.request_name]
-        if descript_obj.x509_proxies_plugin is not None:
-            x509_proxies_data=descript_obj.x509_proxies_plugin.get_credentials(params_obj=params_obj,credential_type=factory_auth,trust_domain=factory_trust)
-            nr_credentials=len(x509_proxies_data)
-        else:
-            nr_credentials=1
-            logSupport.log.error("No credentials detected! This is probably a misconfiguration!")
+
+        total_nr_credentials = len(self.x509_proxies_data)
 
         cred_filename_arr=[]
 
+        if total_nr_credentials == 0:
+            raise NoCredentialException
+
+        # get_credentials will augment the needed credentials with the requests
+        # A little weird, but that's how it works right now
+        # The credential objects are also persistent, so this will be a subset of self.x509_proxies_data
+        credentials_with_requests = descript_obj.x509_proxies_plugin.get_credentials(params_obj=params_obj,credential_type=factory_auth,trust_domain=factory_trust)
+        nr_credentials = len(credentials_with_requests)
         if nr_credentials == 0:
             raise NoCredentialException
 
@@ -887,14 +915,14 @@ class MultiAdvertizeWork:
                
                 req_idle=0
                 req_max_run=0
-                if x509_proxies_data:
-                    credential_el=x509_proxies_data[i]
+                if True: # for historical reasons... to preserve indentation
+                    credential_el=credentials_with_requests[i]
                     logSupport.log.debug("Checking Credential file %s ..."%(credential_el.filename))
-                    if credential_el.advertize==False:
-                        filestr="(filename unknown)"
-                        if hasattr(credential_el,'filename'):
-                            filestr=credential_el.filename
-                        logSupport.log.warning("Credential file %s had some earlier problem in loading so not advertizing, skipping..."%(filestr))
+                    if credential_el.advertize==False: # we already determined it cannot be used
+                        #filestr="(filename unknown)"
+                        #if hasattr(credential_el,'filename'):
+                        #    filestr=credential_el.filename
+                        #logSupport.log.warning("Credential file %s had some earlier problem in loading so not advertizing, skipping..."%(filestr))
                         continue
 
                     if (params_obj.request_name in self.factory_constraint):

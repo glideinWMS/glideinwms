@@ -493,6 +493,8 @@ class glideinFrontendElement:
 
         # Advertise glideclient and glideclient global classads
         ad_file_id_cache=glideinFrontendInterface.CredentialCache()
+        advertizer.renew_and_load_credentials()
+
         ad_factnames=advertizer.get_advertize_factory_list()
         for ad_factname in ad_factnames:
             try:
