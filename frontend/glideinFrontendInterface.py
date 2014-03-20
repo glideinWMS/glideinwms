@@ -665,27 +665,74 @@ class MultiAdvertizeWork:
             count += len(self.factory_queue[factory_pool])
         return count
 
-    def do_global_advertize(self):
+    def initialize_advertize_batch(self, adname_prefix='gfi_ad_batch'):
         """
-        Advertize globals with credentials
+        Initialize the variables that are used for batch avertizement
+        Returns the adname to pass to do*advertize methods
+        (will have to set reset_unique_id=False there, too)
         """
-        for factory_pool in self.global_pool:
-            self.do_global_advertize_one(factory_pool)
-
-    def do_global_advertize_one(self, factory_pool):
-        """
-        Advertize globals with credentials to one factory
-        """
-        tmpname=classadSupport.generate_classad_filename(prefix='gfi_ad_gcg')
         self.unique_id=1
-        self.adname=tmpname
-        filename_arr = self.createGlobalAdvertizeWorkFile(factory_pool)
-        # Advertize all the files (if multi, should only be one) 
+        return classadSupport.generate_classad_filename(prefix=adname_prefix)
+
+    def do_advertize_batch(self, filename_dict, remove_files=True):
+        """
+        Advertize the classad files in the dictionary provided
+         The keys are the factory names, while the elements are lists of files
+        """
+        for factory_pool in filename_dict:
+            self.do_advertize_batch_one(factory_pool, filename_dict[factory_pool], remove_files)
+
+    def do_advertize_batch_one(self, factory_pool, filename_arr, remove_files=True):
+        """
+        Advertize to a factory the clasad files provided
+        """
+        # Advertize all the files 
         for filename in filename_arr:
             try:
-                advertizeWorkFromFile(factory_pool, filename, remove_file=True)
+                advertizeWorkFromFile(factory_pool, filename, remove_file=remove_files, is_multi=frontendConfig.advertise_use_multi)
+            except condorExe.ExeError:
+                logSupport.log.exception("Advertising failed for factory pool %s: " % factory_pool)
+        
+            
+    def do_global_advertize(self, adname=None, create_files_only=False, reset_unique_id=True):
+        """
+        Advertize globals with credentials
+        Returns a dictionary of files that still need to be advertised.
+          The key is the factory pool, while the element is a list of file names
+        """
+        unpublished_files={}
+        if reset_unique_id:
+            self.unique_id=1
+        for factory_pool in self.global_pool:
+            self.unique_id+=1 # make sure ads for different factories don't end in the same file
+            unpublished_files[factory_pool]=self.do_global_advertize_one(factory_pool, adname, create_files_only, False)
+        return unpublished_files
+
+    def do_global_advertize_one(self, factory_pool, adname=None, create_files_only=False, reset_unique_id=True):
+        """
+        Advertize globals with credentials to one factory
+        Returns the list of files that still need to be advertised.
+        """
+        if adname is None:
+            tmpname=classadSupport.generate_classad_filename(prefix='gfi_ad_gcg')
+        else:
+            tmpname=adname 
+
+        if reset_unique_id:
+            self.unique_id=1
+        self.adname=tmpname
+        filename_arr = self.createGlobalAdvertizeWorkFile(factory_pool)
+        if create_files_only:
+            return filename_arr
+        
+        # Else, advertize all the files (if multi, should only be one) 
+        for filename in filename_arr:
+            try:
+                advertizeWorkFromFile(factory_pool, filename, remove_file=True, is_multi=frontendConfig.advertise_use_multi)
             except condorExe.ExeError:
                 logSupport.log.exception("Advertising globals failed for factory pool %s: " % factory_pool)
+        return [] # no files left to be advertised
+    
                 
     def createGlobalAdvertizeWorkFile(self, factory_pool):
             """
@@ -760,27 +807,39 @@ class MultiAdvertizeWork:
 
             return [tmpname]
 
-    def do_advertize(self, file_id_cache=None):
+    def do_advertize(self, file_id_cache=None, adname=None, create_files_only=False, reset_unique_id=True):
         """
-        Do the actual advertizing
+        Do the advertizing of the requests
+        Returns a dictionary of files that still need to be advertised.
+          The key is the factory pool, while the element is a list of file names
         """
         if file_id_cache is None:
             file_id_cache=CredentialCache()
 
+        unpublished_files={}
+        if reset_unique_id:
+            self.unique_id=1
         for factory_pool in self.factory_queue.keys():
-            self.do_advertize_one(factory_pool, file_id_cache)
+            self.unique_id+=1 # make sure ads for different factories don't end in the same file
+            unpublished_files[factory_pool]=self.do_advertize_one(factory_pool, file_id_cache, adname, create_files_only, False)
+        return unpublished_files
 
-    def do_advertize_one(self, factory_pool, file_id_cache=None):
+    def do_advertize_one(self, factory_pool, file_id_cache=None, adname=None, create_files_only=False, reset_unique_id=True):
             """
-            Do the actual advertizing for one factory
+            Do the advertizing of requests for one factory
+            Returns the list of files that still need to be advertised.
             """
             # the different indentation is due to code refactoring
             # this way the diff was minimized
             if file_id_cache is None:
                 file_id_cache=CredentialCache()
 
-            self.unique_id=1
-            self.adname = classadSupport.generate_classad_filename(prefix='gfi_ad_gc')
+            if reset_unique_id:
+                self.unique_id=1
+            if adname is None:
+                self.adname = classadSupport.generate_classad_filename(prefix='gfi_ad_gc')
+            else:
+                self.adname = adname
 
             # this should be done in parallel, but keep it serial for now
             filename_arr=[]
@@ -801,14 +860,19 @@ class MultiAdvertizeWork:
                     logSupport.log.exception("Error creating request files for factory pool %s, unable to advertise: " % factory_pool)
                     logSupport.log.error("Error creating request files for factory pool %s, unable to advertise" % factory_pool)
                 
-            # Advertize all the files (if multi, should only be one) 
+            del self.factory_queue[factory_pool] # clean queue for this factory
+
+            if create_files_only:
+                return filename_arr
+
+            # Else, advertize all the files (if multi, should only be one) 
             for filename in filename_arr:
                 try:
                     advertizeWorkFromFile(factory_pool, filename, remove_file=True, is_multi=frontendConfig.advertise_use_multi)
                 except condorExe.ExeError:
                     logSupport.log.exception("Advertising request failed for factory pool %s: " % factory_pool)
 
-            del self.factory_queue[factory_pool] # clean queue for this factory
+            return [] # No files left to be advertized
 
 
     def createAdvertizeWorkFile(self, factory_pool, params_obj, key_obj=None, file_id_cache=None): 
