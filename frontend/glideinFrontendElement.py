@@ -531,18 +531,18 @@ class glideinFrontendElement:
         self.log_and_print_unmatched(total_down_stats_arr)
 
         # Advertise glideclient and glideclient global classads
-        try:
-            logSupport.log.info("Advertising global requests")
-            advertizer.do_global_advertize()
-        except Exception:
-            logSupport.log.exception("Unknown error advertising global requests")
-        try:
-            # cannot advertise len of queue since has both
-            # glideclientglobal and glideclient
-            logSupport.log.info("Advertising glidein requests")
-            advertizer.do_advertize()
-        except Exception:
-            logSupport.log.exception("Unknown error advertising glidein requests")
+        ad_file_id_cache=glideinFrontendInterface.CredentialCache()
+        ad_factnames=advertizer.get_advertize_factory_list()
+        for ad_factname in ad_factnames:
+            try:
+                logSupport.log.info("Advertising global and singular requests for factory %s" % ad_factname)
+                adname=advertizer.initialize_advertize_batch()
+                g_ads=advertizer.do_global_advertize_one(ad_factname,adname=adname,create_files_only=True, reset_unique_id=False)
+                s_ads=advertizer.do_advertize_one(ad_factname,ad_file_id_cache,adname=adname,create_files_only=True, reset_unique_id=False)
+                advertizer.do_advertize_batch_one(ad_factname,tuple(set(g_ads).union(set(s_ads))))
+            except Exception:
+                logSupport.log.exception("Unknown error advertising glidein requests for factory %s" % ad_factname)
+        del ad_file_id_cache
 
         logSupport.log.info("Done advertising requests")
 
