@@ -541,7 +541,7 @@ def getClientCondorStatusPerCredId(status_dict, frontend_name, group_name,
     client_name_old = "%s@%s.%s" % (request_name, frontend_name, group_name)
     client_name_new = "%s.%s" % (frontend_name, group_name)
     out = {}
-    for collector_name in status_dict.keys():
+    for collector_name in status_dict:
         sq = condorMonitor.SubQuery(
                  status_dict[collector_name],
                  lambda el:(

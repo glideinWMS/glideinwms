@@ -446,17 +446,16 @@ class glideinFrontendElement:
 
             glidein_monitors = {}
             glidein_monitors_per_cred = {}
-            for t in count_jobs.keys():
+            for t in count_jobs():
                 glidein_monitors[t] = count_jobs[t]
             glidein_monitors['RunningHere'] = self.count_real[glideid]
 
-            for t in count_status.keys():
+            for t in count_status:
                 glidein_monitors['Glideins%s' % t] = count_status[t]
-
 
             for cred in self.x509_proxy_plugin.cred_list:
                 glidein_monitors_per_cred[cred.getId()] = {}
-                for t in count_status.keys():
+                for t in count_status:
                     glidein_monitors_per_cred[cred.getId()]['Glideins%s' % t] = count_status_per_cred[cred.getId()][t]
 
             key_obj = None
@@ -778,7 +777,7 @@ class glideinFrontendElement:
                 continue # already processed... ignore
 
             self.count_status_multi[request_name]={}
-            for st in self.status_dict_types.keys():
+            for st in self.status_dict_types:
                 c = glideinFrontendLib.getClientCondorStatus(
                         self.status_dict_types[st]['dict'],
                         self.frontend_name, self.group_name,request_name)
@@ -879,7 +878,7 @@ class glideinFrontendElement:
                         logSupport.log.exception("Failed to talk to factory_pool for entry info: ")
                     factory_glidein_dict = {}
 
-                for glidename in factory_glidein_dict.keys():
+                for glidename in factory_glidein_dict:
                     auth_id = factory_glidein_dict[glidename]['attrs'].get('AuthenticatedIdentity')
                     if not auth_id:
                         logSupport.log.warning("Found an untrusted factory %s at %s; ignoring." % (glidename, factory_pool_node))
@@ -984,11 +983,11 @@ class glideinFrontendElement:
                       self.attr_dict, self.condorq_match_list)
         elif dt=='Glidein':
             count_status_multi={}
-            for glideid in self.glidein_dict.keys():
+            for glideid in self.glidein_dict:
                 request_name=glideid[1]
 
                 count_status_multi[request_name]={}
-                for st in self.status_dict_types.keys():
+                for st in self.status_dict_types:
                     c = glideinFrontendLib.getClientCondorStatus(
                             self.status_dict_types[st]['dict'],
                             self.frontend_name, self.group_name, request_name)
@@ -997,12 +996,12 @@ class glideinFrontendElement:
             # PATCH TO FIX CLIENT MONITORING
             # Count distribution per credentials
             count_status_multi_per_cred = {}
-            for glideid in self.glidein_dict.keys():
+            for glideid in self.glidein_dict:
                 request_name=glideid[1]
                 count_status_multi_per_cred[request_name] = {}
                 for cred in self.x509_proxy_plugin.cred_list:
                     count_status_multi_per_cred[request_name][cred.getId()] = {}
-                    for st in self.status_dict_types.keys():
+                    for st in self.status_dict_types:
                         c = glideinFrontendLib.getClientCondorStatusPerCredId(
                                 self.status_dict_types[st]['dict'],
                                 self.frontend_name, self.group_name,
