@@ -223,7 +223,7 @@ def format_condor_dict(data):
 # and not for every iteration.
 
 class Credential:
-    def __init__(self,proxy_id,proxy_fname,elementDescript):
+    def __init__(self, proxy_id, proxy_fname, elementDescript):
         self.req_idle=0
         self.req_max_run=0
         self.advertize=False
@@ -237,50 +237,20 @@ class Credential:
         proxy_vm_types = elementDescript.merged_data['ProxyVMTypes']
         proxy_creation_scripts = elementDescript.merged_data['ProxyCreationScripts']
         proxy_update_frequency = elementDescript.merged_data['ProxyUpdateFrequency']
-        self.proxy_id=proxy_id
-        self.filename=proxy_fname
+        self.proxy_id = proxy_id
+        self.filename = proxy_fname
+        self.type = proxy_types.get(proxy_fname, "Unknown")
+        self.security_class = proxy_security_classes.get(proxy_fname, proxy_id)
+        self.trust_domain = proxy_trust_domains.get(proxy_fname, "None")
+        self.update_frequency = int(proxy_update_frequency.get(proxy_fname, -1))
 
-        # PM: This if-else-then way of initilizing members is full of crap
-        #     Are these dicts and if so can we use get() instead?
+        # Following items can be None
+        self.vm_id = proxy_vm_ids.get(proxy_fname)
+        self.vm_type = proxy_vm_types.get(proxy_fname)
+        self.creation_script = proxy_creation_scripts.get(proxy_fname)
+        self.key_fname = proxy_keyfiles.get(proxy_fname)
+        self.pilot_fname = proxy_pilotfiles.get(proxy_fname)
 
-        if proxy_types.has_key(proxy_fname):
-            self.type=proxy_types[proxy_fname]
-        else:
-            self.type="Unknown"
-
-        if proxy_security_classes.has_key(proxy_fname):
-            self.security_class=proxy_security_classes[proxy_fname]
-        else:
-            self.security_class=proxy_id
-
-        if proxy_trust_domains.has_key(proxy_fname):
-            self.trust_domain=proxy_trust_domains[proxy_fname]
-        else:
-            self.trust_domain="None"
-
-        if proxy_keyfiles.has_key(proxy_fname):
-            self.key_fname = proxy_keyfiles[proxy_fname]
-        
-        if proxy_pilotfiles.has_key(proxy_fname):
-            self.pilot_fname=proxy_pilotfiles[proxy_fname]
-        
-        self.vm_id = None    
-        if proxy_vm_ids.has_key(proxy_fname):
-            self.vm_id = proxy_vm_ids[proxy_fname]
-        
-        self.vm_type = None
-        if proxy_vm_types.has_key(proxy_fname):
-            self.vm_type = proxy_vm_types[proxy_fname]
-        
-        self.creation_script = None
-        if proxy_creation_scripts.has_key(proxy_fname):
-            self.creation_script=proxy_creation_scripts[proxy_fname]
-
-        if proxy_update_frequency.has_key(proxy_fname):
-            self.update_frequency=int(proxy_update_frequency[proxy_fname])
-        else:
-            self.update_frequency=-1
-            
         # Will be initialized when getId() is called
         self._id = None
 
@@ -308,11 +278,11 @@ class Credential:
         # to get the filename is right thing to do
 
         cred_file = None
-        if hasattr(self, 'filename'):
+        if self.filename:
             cred_file = self.filename
-        elif hasattr(self, 'key_fname'):
+        elif self.key_fname:
             cred_file = self.key_fname
-        elif hasattr(self, 'pilot_fname'):
+        elif self.pilot_fname:
             cred_file = self.pilot_fname
         return cred_file
 
@@ -339,7 +309,7 @@ class Credential:
         Generate the credential if it does not exists.
         """
 
-        if hasattr(self, 'filename') and (not os.path.exists(self.filename)):
+        if self.filename and (not os.path.exists(self.filename)):
             logSupport.log.debug("Credential %s does not exist." % (self.filename))
             self.create()
 
@@ -733,7 +703,8 @@ class MultiAdvertizeWork:
                     continue
 
                 glidein_params_to_encrypt[cred_el.getId()] = cred_data
-                if (hasattr(cred_el,'security_class')):
+                # Check explicitly for None only
+                if (cred_el.security_class is not None):
                     # Convert the sec class to a string so the
                     # factory can interpret the value correctly
                     glidein_params_to_encrypt["SecurityClass"+cred_el.getId()] = str(cred_el.security_class)
@@ -848,7 +819,7 @@ class MultiAdvertizeWork:
                     logSupport.log.debug("Checking Credential file %s ..."%(credential_el.filename))
                     if credential_el.advertize==False:
                         filestr="(filename unknown)"
-                        if hasattr(credential_el,'filename'):
+                        if credential_el.filename:
                             filestr=credential_el.filename
                         logSupport.log.warning("Credential file %s had some earlier problem in loading so not advertizing, skipping..."%(filestr))
                         continue
@@ -874,7 +845,7 @@ class MultiAdvertizeWork:
                     if "key_pair" in credential_el.type:
                         glidein_params_to_encrypt['PublicKey']=file_id_cache.file_id(credential_el, credential_el.filename)
                         glidein_params_to_encrypt['PrivateKey']=file_id_cache.file_id(credential_el, credential_el.key_fname)
-                    if hasattr(credential_el,'pilot_fname'):
+                    if credential_el.pilot_fname:
                         glidein_params_to_encrypt['GlideinProxy']=file_id_cache.file_id(credential_el, credential_el.pilot_fname)
                     
                     if "vm_id" in credential_el.type:
