@@ -224,18 +224,22 @@ class glideinFrontendElement:
 
         logSupport.log.info("Querying schedd, entry, and glidein status using child processes.")
 
-        # query globals
-        pipe_ids['globals'] = fork_in_bg(self.query_globals)
-
-        # query entries
-        pipe_ids['entries'] = fork_in_bg(self.query_entries)
+        # query globals and entries
+        idx=0
+        for factory_pool in self.factory_pools:
+            idx+=1
+            pipe_ids[('factory',idx)] = fork_in_bg(self.query_factory,factory_pool)
 
         ## schedd
-        pipe_ids['jobs'] = fork_in_bg(self.get_condor_q)
+        idx=0
+        for schedd_name in self.elementDescript.merged_data['JobSchedds']:
+            idx+=1
+            pipe_ids[('schedd',idx)] = fork_in_bg(self.get_condor_q,schedd_name)
 
         ## resource
-        pipe_ids['startds'] = fork_in_bg(self.get_condor_status)
+        pipe_ids[('collector',0)] = fork_in_bg(self.get_condor_status)
 
+        logSupport.log.debug("%i child query processes started"%len(pipe_ids.keys()))
         try:
             pipe_out=fetch_fork_result_list(pipe_ids)
         except RuntimeError, e:
@@ -245,10 +249,26 @@ class glideinFrontendElement:
             return
         logSupport.log.info("All children terminated")
 
-        self.globals_dict = pipe_out['globals']
-        self.glidein_dict=pipe_out['entries']
-        self.condorq_dict = pipe_out['jobs']
-        self.status_dict=pipe_out['startds']
+        self.globals_dict = {}
+        self.glidein_dict= {}
+        self.condorq_dict = {}
+
+        for pkel in pipe_out.keys():
+            ptype,idx=pkel
+            if ptype=='factory':
+                pglobals_dict,pglidein_dict=pipe_out[pkel]
+                self.globals_dict.update(pglobals_dict)
+                self.glidein_dict.update(pglidein_dict)
+                del pglobals_dict
+                del pglidein_dict
+            elif ptype=='schedd':
+                pcondorq_dict=pipe_out[pkel]
+                self.condorq_dict.update(pcondorq_dict)
+                del pcondorq_dict
+            # collector dealt with outside the loop
+            # nothing else left
+
+        self.status_dict=pipe_out[('collector',0)]
 
         # M2Crypto objects are not picklable, so do the transforamtion here
         self.populate_pubkey()
@@ -795,12 +815,11 @@ class glideinFrontendElement:
                                        this_stats_arr, total_down_stats_arr)
         return total_down_stats_arr
 
-    def query_globals(self):
+    def query_globals(self,factory_pool):
         globals_dict = {}
         try:
-            # Note: M2Crypto key objects are not pickle-able,
-            # so we will have to do that in the parent later on
-            for factory_pool in self.factory_pools:
+                # Note: M2Crypto key objects are not pickle-able,
+                # so we will have to do that in the parent later on
                 factory_pool_node = factory_pool[0]
                 my_identity_at_factory_pool = factory_pool[2]
                 try:
@@ -845,17 +864,16 @@ class glideinFrontendElement:
                         logSupport.log.info("Factory Globals '%s': unsupported pub key type '%s'" % (globalid, globals_el['attrs']['PubKeyType']))
 
         except Exception, ex:
-            tb = traceback.format_exception(sys.exc_info()[0],
-                                            sys.exc_info()[1],
-                                            sys.exc_info()[2])
+            logSupport.log.exception("Error in talking to the factory pool:")
+
         return globals_dict
 
-    def query_entries(self):
+    def query_entries(self, factory_pool):
         try:
             glidein_dict = {}
             factory_constraint=expand_DD(self.elementDescript.merged_data['FactoryQueryExpr'],self.attr_dict)
 
-            for factory_pool in self.factory_pools:
+            if True: # for historical reasons, to preserve indentation
                 factory_pool_node = factory_pool[0]
                 factory_identity = factory_pool[1]
                 my_identity_at_factory_pool = factory_pool[2]
@@ -882,14 +900,18 @@ class glideinFrontendElement:
                     glidein_dict[(factory_pool_node, glidename, my_identity_at_factory_pool)] = factory_glidein_dict[glidename]
 
         except Exception, ex:
-            tb = traceback.format_exception(sys.exc_info()[0],
-                                            sys.exc_info()[1],
-                                            sys.exc_info()[2])
-            logSupport.log.debug("Error in talking to the factory pool: %s" % tb)
+            logSupport.log.exception("Error in talking to the factory pool:")
 
         return glidein_dict
 
-    def get_condor_q(self):
+    def query_factory(self, factory_pool):
+        """
+        Serialize queries to the same factory.
+        """
+        return (self.query_globals(factory_pool),self.query_entries(factory_pool))
+
+    def get_condor_q(self, schedd_name):
+        condorq_dict = {}
         try:
             condorq_format_list = self.elementDescript.merged_data['JobMatchAttrs']
             if self.x509_proxy_plugin:
@@ -900,7 +922,7 @@ class glideinFrontendElement:
             condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN','s'),))
             condorq_format_list=list(condorq_format_list)+list((('x509userproxy','s'),))
             condorq_dict = glideinFrontendLib.getCondorQ(
-                               self.elementDescript.merged_data['JobSchedds'],
+                               [schedd_name],
                                expand_DD(self.elementDescript.merged_data['JobQueryExpr'],self.attr_dict),
                                condorq_format_list)
         except Exception:
@@ -924,9 +946,7 @@ class glideinFrontendElement:
             return status_dict
 
         except Exception, ex:
-            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
-                                            sys.exc_info()[2])
-            logSupport.log.debug("Error in talking to the user pool (condor_status): %s" % tb)
+            logSupport.log.exception("Error in talking to the user pool (condor_status):")
 
     def do_match(self):
         ''' Do the actual matching.  This forks subprocess_count as children
@@ -1065,8 +1085,8 @@ def fetch_fork_result_list(pipe_ids):
             rin=fetch_fork_result(pipe_ids[k]['r'],pipe_ids[k]['pid'])
             out[k]=rin
         except Exception, e:
-            logSupport.log.warning("Failed to retrieve %s state information from the subprocess." % k)
-            logSupport.log.debug("Failed to retrieve %s state from the subprocess: %s" % (k, e))
+            logSupport.log.warning("Failed to retrieve %s state information from the subprocess." % str(k))
+            logSupport.log.debug("Failed to retrieve %s state from the subprocess: %s" % (str(k), e))
             failures+=1
         
     if failures>0:
