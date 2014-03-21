@@ -541,9 +541,9 @@ def getClientCondorStatusPerCredId(status_dict, frontend_name, group_name,
     client_name_old = "%s@%s.%s" % (request_name, frontend_name, group_name)
     client_name_new = "%s.%s" % (frontend_name, group_name)
     out = {}
-    for collector_name in status_dict:
+    for collector_name, collector_status in status_dict.iteritems():
         sq = condorMonitor.SubQuery(
-                 status_dict[collector_name],
+                 collector_status,
                  lambda el:(
                      el.has_key('GLIDECLIENT_Name') and 
                      el.has_key('GLIDEIN_CredentialIdentifier') and 
