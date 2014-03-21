@@ -34,7 +34,7 @@ from glideinwms.lib import symCrypto,pubCrypto
 from glideinwms.lib import glideinWMSVersion
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
-from glideinwms.lib.fork import fork_in_bg
+from glideinwms.lib.fork import fork_in_bg,wait_for_pids
 from glideinwms.lib.fork import register_sighandler
 
 from glideinwms.frontend import glideinFrontendConfig
@@ -491,33 +491,27 @@ class glideinFrontendElement:
         self.log_and_print_total_stats(total_up_stats_arr, total_down_stats_arr)
         self.log_and_print_unmatched(total_down_stats_arr)
 
+        pids=[]
         # Advertise glideclient and glideclient global classads
         ad_file_id_cache=glideinFrontendInterface.CredentialCache()
         advertizer.renew_and_load_credentials()
 
         ad_factnames=advertizer.get_advertize_factory_list()
         for ad_factname in ad_factnames:
-            try:
                 logSupport.log.info("Advertising global and singular requests for factory %s" % ad_factname)
-                adname=advertizer.initialize_advertize_batch()
+                adname=advertizer.initialize_advertize_batch()+"_"+ad_factname # they will run in parallel, make sure they don't collide
                 g_ads=advertizer.do_global_advertize_one(ad_factname,adname=adname,create_files_only=True, reset_unique_id=False)
                 s_ads=advertizer.do_advertize_one(ad_factname,ad_file_id_cache,adname=adname,create_files_only=True, reset_unique_id=False)
-                advertizer.do_advertize_batch_one(ad_factname,tuple(set(g_ads).union(set(s_ads))))
-            except Exception:
-                logSupport.log.exception("Unknown error advertising glidein requests for factory %s" % ad_factname)
+                pids.append(fork_in_bg(advertizer.do_advertize_batch_one,ad_factname,tuple(set(g_ads)|set(s_ads))))
+
         del ad_file_id_cache
 
-        logSupport.log.info("Done advertising requests")
-
         # Advertise glideresource classads
-        try:
-            logSupport.log.info("Advertising %i glideresource classads to the user pool" %  len(resource_advertiser.classads))
-            #logSupport.log.info("glideresource classads to advertise -\n%s" % resource_advertiser.getAllClassads())
-            resource_advertiser.advertiseAllClassads()
-            logSupport.log.info("Done advertising glideresource classads")
-        except:
-            logSupport.log.exception("Advertising failed: ")
+        logSupport.log.info("Advertising %i glideresource classads to the user pool" %  len(resource_advertiser.classads))
+        pids.append(fork_in_bg(resource_advertiser.advertiseAllClassads))
 
+        wait_for_pids(pids)
+        logSupport.log.info("Done advertising")
         return
 
     def populate_pubkey(self):
