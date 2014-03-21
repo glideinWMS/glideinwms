@@ -36,3 +36,21 @@ def fork_in_bg(function, *args):
         os.close(w)
 
     return {'r': r, 'pid': pid}
+
+def wait_for_pids(pid_list):
+    """
+    Wait for all pids to finish.
+    Throw away any stdout or err
+    """
+    for pidel in pid_list:
+       pid=pidel['pid']
+       r=pidel['r']
+       try:
+          #empty the read buffer first
+          s=os.read(r,1024)
+          while (s!=""): # "" means EOF
+             s=os.read(r,1024) 
+       finally:
+          os.close(r)
+          os.waitpid(pid,0)
+         
