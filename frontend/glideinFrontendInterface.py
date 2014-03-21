@@ -701,6 +701,7 @@ class MultiAdvertizeWork:
         Advertize globals with credentials
         Returns a dictionary of files that still need to be advertised.
           The key is the factory pool, while the element is a list of file names
+        Expects that the credentials have been already loaded.
         """
         unpublished_files={}
         if reset_unique_id:
@@ -714,6 +715,7 @@ class MultiAdvertizeWork:
         """
         Advertize globals with credentials to one factory
         Returns the list of files that still need to be advertised.
+        Expects that the credentials have been already loaded.
         """
         if not (factory_pool in self.global_pool):
             # nothing to be done, prevent failure
@@ -743,8 +745,8 @@ class MultiAdvertizeWork:
     def createGlobalAdvertizeWorkFile(self, factory_pool):
             """
             Create the advertize file for globals with credentials
-            Expects the object variable
-             adname
+            Expects the object variables
+             adname and x509_proxies_data
             to be set.
             """
             # the different indentation is due to code refactoring
@@ -820,6 +822,7 @@ class MultiAdvertizeWork:
         Do the advertizing of the requests
         Returns a dictionary of files that still need to be advertised.
           The key is the factory pool, while the element is a list of file names
+        Expects that the credentials have already been loaded.
         """
         if file_id_cache is None:
             file_id_cache=CredentialCache()
@@ -836,6 +839,7 @@ class MultiAdvertizeWork:
             """
             Do the advertizing of requests for one factory
             Returns the list of files that still need to be advertised.
+            Expects that the credentials have already been loaded.
             """
             # the different indentation is due to code refactoring
             # this way the diff was minimized
@@ -891,7 +895,7 @@ class MultiAdvertizeWork:
         """
         Create the advertize file
         Expects the object variables
-          adname and unique_id
+          adname, unique_id and x509_proxies_data
         to be set.
         """
         global frontendConfig
