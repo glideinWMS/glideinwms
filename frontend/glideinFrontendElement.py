@@ -975,6 +975,9 @@ class glideinFrontendElement:
 
 
     def get_condor_status(self):
+        status_dict={}
+        fe_counts = {'Idle':0, 'Total':0}
+        global_counts = {'Idle':0, 'Total':0}
         try:
             status_format_list=[]
             if self.x509_proxy_plugin:
@@ -1004,7 +1007,7 @@ class glideinFrontendElement:
                 del fe_status_dict
             except:
                 # This is not critical information, do not abort the cycle if it fails
-                fe_counts = {'Idle':0, 'Total':0}
+                pass
 
             # same for all slots
             try:
@@ -1020,14 +1023,14 @@ class glideinFrontendElement:
                 del global_status_dict
             except:
                 # This is not critical information, do not abort the cycle if it fails
-                global_counts = {'Idle':0, 'Total':0}
-                
-            return (status_dict,fe_counts,global_counts)
+                pass
 
         except Exception, ex:
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
             logSupport.log.debug("Error in talking to the user pool (condor_status): %s" % tb)
+
+        return (status_dict,fe_counts,global_counts)
 
     def do_match(self):
         ''' Do the actual matching.  This forks subprocess_count as children
