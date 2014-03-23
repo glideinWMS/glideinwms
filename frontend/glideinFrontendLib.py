@@ -553,6 +553,25 @@ def getFactoryEntryList(status_dict):
 
     return list(out)
         
+#
+# Return a dictionary of collectors containing interesting classads
+# Each element is a condorStatus
+#
+# Return the schedd classads
+#
+def getCondorStatusSchedds(collector_names, constraint=None, format_list=None,
+                           want_format_completion=True):
+    if format_list is not None:
+        if want_format_completion:
+            format_list = condorMonitor.complete_format_list(format_list,
+                           [('TotalRunningJobs', 'i'), ('TotalSchedulerJobsRunning', 'i'),
+                            ('TransferQueueNumUploading','i'),
+                            ('MaxJobsRunning','i'), ('TransferQueueMaxUploading','i')])
+
+    type_constraint = 'True'
+    return getCondorStatusConstrained(collector_names, type_constraint, constraint, format_list,
+                                      subsystem_name="schedd")
+
 ############################################################
 #
 # I N T E R N A L - Do not use
@@ -600,7 +619,7 @@ def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format
 # If not all the jobs of the schedd has to be considered,
 # specify the appropriate additional constraint
 #
-def getCondorStatusConstrained(collector_names, type_constraint, constraint=None, format_list=None):
+def getCondorStatusConstrained(collector_names, type_constraint, constraint=None, format_list=None, subsystem_name=None):
     out_status_dict = {}
     for collector in collector_names:
         full_constraint = type_constraint[0:] #make copy
@@ -608,7 +627,7 @@ def getCondorStatusConstrained(collector_names, type_constraint, constraint=None
             full_constraint = "(%s) && (%s)" % (full_constraint, constraint)
 
         try:
-            status = condorMonitor.CondorStatus(pool_name=collector)
+            status = condorMonitor.CondorStatus(subsystem_name=subsystem_name, pool_name=collector)
             status.load(full_constraint, format_list)
         except condorExe.ExeError:
             if collector is not None:

@@ -248,10 +248,11 @@ class glideinFrontendElement:
         self.globals_dict = pipe_out['globals']
         self.glidein_dict=pipe_out['entries']
         self.condorq_dict = pipe_out['jobs']
-        self.status_dict=pipe_out['startds']
+        (self.status_dict,self.status_schedd_dict) = pipe_out['startds']
 
         # M2Crypto objects are not picklable, so do the transforamtion here
         self.populate_pubkey()
+        self.identify_bad_schedds()
         self.populate_condorq_dict_types()
 
         condorq_dict_types = self.condorq_dict_types
@@ -263,7 +264,8 @@ class glideinFrontendElement:
              'OldIdle':condorq_dict_types['OldIdle']['abs'],
              'Running':condorq_dict_types['Running']['abs']})
 
-        logSupport.log.info("Jobs found total %i idle %i (old %i, grid %i, voms %i) running %i" % (condorq_dict_abs,
+        logSupport.log.info("Jobs found total %i idle %i (good %i, old %i, grid %i, voms %i) running %i" % (condorq_dict_abs,
+                   condorq_dict_types['IdleAll']['abs'],
                    condorq_dict_types['Idle']['abs'],
                    condorq_dict_types['OldIdle']['abs'],
                    condorq_dict_types['ProxyIdle']['abs'],
@@ -530,14 +532,54 @@ class glideinFrontendElement:
                 # but remove it also from the dictionary
                 del self.globals_dict[globalid]
 
+    def identify_bad_schedds(self):
+        self.blacklist_schedds=set()
+
+        for c in self.status_schedd_dict.keys():
+            coll_status_schedd_dict=self.status_schedd_dict[c].fetchStored()
+            for schedd in coll_status_schedd_dict.keys():
+                el=coll_status_schedd_dict[schedd]
+                try:
+                    max_run=int(el['MaxJobsRunning']*0.95) # stop a bit earlier
+                    current_run=el['TotalRunningJobs']
+                    if el.has_key('TotalSchedulerJobsRunning'): #older schedds may not have it
+                        current_run+=el['TotalSchedulerJobsRunning']
+                    logSupport.log.debug("Schedd %s has %i running with max %i" % (schedd, current_run, max_run))
+                    if current_run>=max_run:
+                        self.blacklist_schedds.add(schedd)
+                        logSupport.log.warning("Schedd %s hit maxrun limit, blacklisting: has %i running with max %i" % (schedd, current_run, max_run))
+
+                    if el.has_key('TransferQueueMaxUploading'):
+                        max_up=int(el['TransferQueueMaxUploading']*0.95) # stop a bit earlier
+                        current_up=el['TransferQueueNumUploading']
+                        logSupport.log.debug("Schedd %s has %i uploading with max %i" % (schedd, current_up, max_up))
+                        if current_up>=max_up:
+                            self.blacklist_schedds.add(schedd)
+                            logSupport.log.warning("Schedd %s hit maxupload limit, blacklisting: has %i uploading with max %i" % (schedd, current_up, max_up))
+                except:
+                    logSupport.log.exception("Unexpected exception checking schedd %s for limit" % schedd)
+
     def populate_condorq_dict_types(self):
-        condorq_dict_proxy=glideinFrontendLib.getIdleProxyCondorQ(self.condorq_dict)
-        condorq_dict_voms=glideinFrontendLib.getIdleVomsCondorQ(self.condorq_dict)
-        condorq_dict_idle = glideinFrontendLib.getIdleCondorQ(self.condorq_dict)
+        # create a dictionary that does not contain the blacklisted schedds
+        good_condorq_dict=self.condorq_dict.copy() #simple copy enough, will only modify keys
+        for k in self.blacklist_schedds:
+            del good_condorq_dict[k]
+        # use only the good schedds when considering idle
+        condorq_dict_idle = glideinFrontendLib.getIdleCondorQ(good_condorq_dict)
         condorq_dict_old_idle = glideinFrontendLib.getOldCondorQ(condorq_dict_idle, 600)
+        condorq_dict_proxy=glideinFrontendLib.getIdleProxyCondorQ(condorq_dict_idle)
+        condorq_dict_voms=glideinFrontendLib.getIdleVomsCondorQ(condorq_dict_idle)
+
+        # then report how many we really had
+        condorq_dict_idle_all = glideinFrontendLib.getIdleCondorQ(self.condorq_dict)
+        
         self.condorq_dict_running = glideinFrontendLib.getRunningCondorQ(self.condorq_dict)
 
         self.condorq_dict_types = {
+            'IdleAll': {
+                'dict':condorq_dict_idle_all,
+                'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle_all)
+            },
             'Idle': {
                 'dict':condorq_dict_idle,
                 'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle)
@@ -910,6 +952,7 @@ class glideinFrontendElement:
 
 
     def get_condor_status(self):
+        status_schedd_dict={}
         try:
             status_format_list=[]
             if self.x509_proxy_plugin:
@@ -921,7 +964,15 @@ class glideinFrontendElement:
                               'GLIDECLIENT_Name=?="%s.%s"'%(self.frontend_name,
                                                             self.group_name),
                               status_format_list)
-            return status_dict
+
+            try:
+                status_schedd_dict=glideinFrontendLib.getCondorStatusSchedds(
+                              [None],None,[])
+            except:
+                # This is not critical information, do not abort the cycle if it fails
+                pass
+
+            return (status_dict, status_schedd_dict)
 
         except Exception, ex:
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
