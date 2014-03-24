@@ -9,17 +9,23 @@ import stat
 
 
 # Create init.d compatible startup file
-def create_initd_startup(glideinWMS_dir_template, startup_fname, frontend_dir, glideinWMS_dir, cfg_name, is_rpm=''):
+def create_initd_startup(glideinWMS_dir_template, template_fname, startup_fname, work_dir, glideinWMS_dir, cfg_name, is_rpm=''):
     """
     Creates the frontend startup file and changes the permissions.  Can overwrite an existing file.
     """            
-    template = get_template("frontend_initd_startup_template", glideinWMS_dir_template)
+    template = get_template(template_fname, glideinWMS_dir_template)
     fd = open(startup_fname,"w")
     try:
-        template = template % {"frontend_dir": frontend_dir, 
-                               "glideinWMS_dir": glideinWMS_dir, 
-                               "default_cfg_fpath": cfg_name,
-                               "this_is_rpm_install": is_rpm}
+        if template_fname.startswith('frontend'):
+            template = template % {"frontend_dir": work_dir, 
+                                   "glideinWMS_dir": glideinWMS_dir, 
+                                   "default_cfg_fpath": cfg_name,
+                                   "this_is_rpm_install": is_rpm}
+        else:
+            template = template % {"factory_dir": work_dir, 
+                                   "glideinWMS_dir": glideinWMS_dir, 
+                                   "default_cfg_fpath": cfg_name,
+                                   "this_is_rpm_install": is_rpm}
         fd.write(template)
     finally:
         fd.close()
@@ -46,7 +52,8 @@ def main(gwms_src_root_dir, sfile_frontend, sfile_factory):
             os.remove(os.path.join(gwms_src_root_dir, startup_fname))
 
     # Frontend
-    create_initd_startup(gwms_src_root_dir, sfile_frontend,
+    create_initd_startup(gwms_src_root_dir, 'frontend_initd_startup_template',
+                         sfile_frontend,
                          '/var/lib/gwms-frontend/vofrontend',
                          '/var/lib/gwms-frontend/vofrontend',
                          '/etc/gwms-frontend/frontend.xml',
@@ -54,7 +61,8 @@ def main(gwms_src_root_dir, sfile_frontend, sfile_factory):
     print "...Updated the frontend startup script"
 
     # Factory
-    create_initd_startup(gwms_src_root_dir, sfile_factory,
+    create_initd_startup(gwms_src_root_dir, 'factory_initd_startup_template',
+                         sfile_factory,
                          '/var/lib/gwms-factory/work-dir',
                          '/var/lib/gwms-factory/work-dir',
                          '/etc/gwms-factory/glideinWMS.xml',
