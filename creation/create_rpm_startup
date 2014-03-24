@@ -1,0 +1,77 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import stat
+#STARTUP_DIR=sys.path[0]
+#import os.path
+#sys.path.append(os.path.join(STARTUP_DIR,"../.."))
+
+
+# Create init.d compatible startup file
+def create_initd_startup(glideinWMS_dir_template, startup_fname, frontend_dir, glideinWMS_dir, cfg_name, is_rpm=''):
+    """
+    Creates the frontend startup file and changes the permissions.  Can overwrite an existing file.
+    """            
+    template = get_template("frontend_initd_startup_template", glideinWMS_dir_template)
+    fd = open(startup_fname,"w")
+    try:
+        template = template % {"frontend_dir": frontend_dir, 
+                               "glideinWMS_dir": glideinWMS_dir, 
+                               "default_cfg_fpath": cfg_name,
+                               "this_is_rpm_install": is_rpm}
+        fd.write(template)
+    finally:
+        fd.close()
+
+    os.chmod(startup_fname, stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
+
+    return
+
+
+# Read startup file template
+def get_template(template_name, glideinWMS_dir):
+    template_fd = open("%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r")
+    template_str = template_fd.read()
+    template_fd.close()
+    return template_str
+
+
+def main(gwms_src_root_dir, sfile_frontend, sfile_factory):
+    # Recreate the init.d startup files
+
+    # Remove startup file if already exists
+    for startup_fname in [ sfile_frontend, sfile_factory]:
+        if os.path.exists(os.path.join(gwms_src_root_dir, startup_fname)):
+            os.remove(os.path.join(gwms_src_root_dir, startup_fname))
+
+    # Frontend
+    create_initd_startup(gwms_src_root_dir, sfile_frontend,
+                         '/var/lib/gwms-frontend/vofrontend',
+                         '/var/lib/gwms-frontend/vofrontend',
+                         '/etc/gwms-frontend/frontend.xml',
+                         'yes')
+    print "...Updated the frontend startup script"
+
+    # Factory
+    create_initd_startup(gwms_src_root_dir, sfile_factory,
+                         '/var/lib/gwms-factory/work-dir',
+                         '/var/lib/gwms-factory/work-dir',
+                         '/etc/gwms-factory/glideinWMS.xml',
+                         'yes')
+    print "...Updated the factory startup script"
+
+
+
+if __name__ == '__main__':
+    usage = "create_rpm_startup GWMS_DIR FRONTEND_STARTUP FACTORY_STARTUP"
+    argv=sys.argv[1:]
+    if len(argv)==3 and not argv[0] in ['-h', '--help', '-help']:
+        if os.path.isdir(argv[0]):
+            main(argv[0], argv[1], argv[2])    
+            sys.exit(0)
+    print usage
+    sys.exit(1)
+
+
+
