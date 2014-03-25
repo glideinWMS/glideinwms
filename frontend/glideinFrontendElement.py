@@ -446,7 +446,7 @@ class glideinFrontendElement:
 
             glidein_monitors = {}
             glidein_monitors_per_cred = {}
-            for t in count_jobs():
+            for t in count_jobs:
                 glidein_monitors[t] = count_jobs[t]
             glidein_monitors['RunningHere'] = self.count_real[glideid]
 
