@@ -221,8 +221,8 @@ individual entry point configuration.
         <div class="xml">
         &lt;glidein ... &gt;
         </div>
-    <p><b>Required</b> The main tag of the factory configuration.  See below for the 
-        paramters for this tag:
+    <p><b>Required</b> The main tag of the Factory configuration.  See below for the 
+        parameters for this tag:
     <ul>
     <li>
     <p>
@@ -754,7 +754,7 @@ override the global arguments if present.
     <p>
     Attributes you want to publish into the HTCondor classad.
     These are used by the
-    <A HREF="../frontend/index.html#match_expr">VO frontend matchmaking</A>
+    <A HREF="../frontend/index.html#match_expr">VO Frontend matchmaking</A>
     and job matchmaking.</p>
     <p>Example
     attributes are:</P>
@@ -844,17 +844,17 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
         </div>
         <p>
         This argument allows you to create a whitelist of
-        vo frontends that can access this entry point.
+        vo Frontends that can access this entry point.
         If this tag is blank or missing, it is assumed that
-        all vo frontends can submit glideins to this entry point.
+        all VO Frontends can submit glideins to this entry point.
         However, if any allow_frontend tags exist, the entry point
         will <b>only</b> allow those frontends to submit glideins.
-        The name of the frontend must match the name given in
+        The name of the Frontend must match the name given in
         the security class above in the configuration.
         </p>
         <p>
-        For each frontend, you must tell it which security classes
-        (e.g. proxies) can use the frontend.  The factory will
+        For each Frontend, you must tell it which security classes
+        (e.g. proxies) can use the Frontend.  The Factory will
         only submit glideins on behalf of these security classes.
         If you want all security classes to be allowed, you can put
         "All" in this field.  Otherwise, it must match the security
@@ -1222,11 +1222,11 @@ For a glidein, you can set this with the &lt;<B>attr</B>/&gt; options:
 </div>
 <div class="section">
 <h3>Internal Configuration</h3>
-The configuration is parsed during the reconfiguration of the factory, and split into a number of files:
+The configuration is parsed during the reconfiguration of the Factory, and split into a number of files:
 <ul>
 <li>job.descript = is read by the daemon do decide how to work </li>
 <li>attributes.cfg = are fixed values, these are published in the factory classad</li>
-<li>params.cfg = are for values the frontend will change, also published in the factory classad</li>
+<li>params.cfg = are for values the frontend will change, also published in the Factory classad</li>
 </ul>
 For more information, see the <a href="design_entry.html#config">Entry Internals</a> page.
 
@@ -1478,7 +1478,7 @@ cases, the glidein creation command adds the options listed below.</P>
 <p><b>Note:</b>
 <A NAME="ref"></A>Files and subsystems will be
 downloaded before the scripts. User provided scripts
-will be executed in the specified order, and before the Condor
+will be executed in the specified order, and before the HTCondor
 daemons are started up.</P>
 <UL>
     <LI>
@@ -1563,7 +1563,7 @@ daemons are started up.</P>
     scripts.</p>
     <UL>
         <LI><B>absfname</B>: 
-        Path to the costum tarball. 
+        Path to the custom tarball. 
         (like &quot;/tmp/mytar_v12.5.tgz&quot;) </li>
         <LI><B>conf_sw</B>: 
         Name of a configuration switch. 
@@ -1632,14 +1632,14 @@ together.</P>
         <h3 class="western">XSLT Plugins to extend configuration</h3>
         <p>
         Starting in v3.2.1, you can use XSL transformations (XSLT) to manage
-complex configuration files. During the reconfig process, the glidein factory
+complex configuration files. During the reconfig process, the glidein Factory
 applies XSL transformations available to it in the directory configured by the
 environment variable GWMS_XSLT_PLUGIN_DIR. (It is also available by
 supplying the -xslt_plugin_dir option to the reconfig_glidein and
 reconfig_frontend commands as shown below.)</p>
 <p>        Setting the variable via sysconfig files are supported:
 /etc/sysconfig/gwms-factory for the factory service and
-/etc/sysconfig/gwms-frontend for the frontend service,
+/etc/sysconfig/gwms-frontend for the Frontend service,
 with the following contents:</p>
         <pre>
 <b>prompt$</b> cat /etc/sysconfig/gwms-factory 

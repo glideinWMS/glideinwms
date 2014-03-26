@@ -91,8 +91,7 @@ Factory:
     <a target="_blank" href="http://research.cs.wisc.edu/htcondor/">HTCondor</a>.
     Glideins are like placeholders, are a mechanism by which one or more remote 
     resources temporarily join a local HTCondor pool. 
-    The HTCondor system is used for scheduling and job control, but you don't need to be
-    an HTCondor expert to understand and use the GlideinWMS.
+    The HTCondor system is used for scheduling and job control.
     </p>
     <p>
     <img align="right" width="40%" src="images/simple_animation.gif" />
@@ -171,10 +170,10 @@ Factory:
       <li><b>Which are the components of the Glidein Workflow Management System?</b><br>
           The main components of the system, shown also in the picture above are:
           <ul>
-              <li>User Pool (User Collector, Glidein Pool Collector): a HTCondor pool (at least collector and negotiator daemons) where all the user jobs are queued</li>
-              <li>WMS Pool (WMS Collector, glidein pool Collector node, glideinWMS Collector ): a HTCondor pool (at least collector and negotiator daemons) used to submit the glideins to all the resources (entries)</li>
-              <li>User Schedd (User submit node, scheduler node): a HTCondor system, consisting of the only schedd daemon, used to submit jobs</li>
-              <li>GlideinWMS VO Frontend (Glidein Frontend, VO Frontend): a service requestig glideins to the Factory to maintain availble job slots when jobs are queued via the User Schedd</li>
+              <li>User Pool (User Collector, Glidein Pool Collector): a HTCondor pool (at least collector and negotiator daemons) where all the user jobs are matched to glideins and managed. Jobs are queued in an separate service (User schedd)</li>
+              <li>User Schedd (User submit node, scheduler node): a HTCondor system, consisting only of the schedd daemon, used to submit and queue jobs</li>
+              <li>WMS Pool (WMS Collector, glidein pool Collector node, glideinWMS Collector ): a HTCondor pool (at least collector, negotiator and schedd daemons) used to manage and submit the glideins to all the resources (entries)</li>
+              <li>GlideinWMS VO Frontend (Glidein Frontend, VO Frontend): a service that looks at the queued jobs, resources available to run them and applies VO defined policies to request glideins at desired sites (resources)</li>
               <li>GlideinWMS Factory (Glidein Factory): a service submitting glidein to the available resources</li>
           </ul>
           There may be one or more instances of the components above and they may be on different hosts or
