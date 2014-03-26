@@ -44,12 +44,12 @@
 	<ul class="subcomponents">
 	     <li> <a href="./index.html">Overview</a></li>
 	     <li> <a href="./prerequisites.html">Prerequisites</a></li>
-	     <li> User Collector</li>
+	     <li> User Pool</li>
 	     <li> <a href="./pool_install.html">User Schedd</a></li>
          <li> <a href="./gsi.html">GSI</a></li>
 	     <li class="last"> <a href="./condor.html">Condor</a></li>
 	</ul>
-        <h3>User Collector Installation</h3>
+        <h3>User Pool Installation</h3>
 	</div>
 <div class="jump">
 <u>Jump to:</u>
@@ -58,11 +58,11 @@
     <li><a href="#hardware">Hardware requirements</a></li>
     <li><a href="#software">Needed software</a></li>
     <li><a href="#condor">Installation</a></li>
-    <li><a href="#startstop">Start/stop condor</a></li>
+    <li><a href="#startstop">Start/stop</a></li>
 </ol>
 </div>
 <div class="related">
-<u><b>Installation Procedure</b></u><br><br>
+<u><b><a href="../install.html">Installation Procedure</a></b></u><br><br>
 
 Preceded by: <a href="../factory/install.html">Factory Install</a><br>
 Followed by: <a href="./pool_install.html">User Schedd</a><br>
@@ -75,9 +75,12 @@ Install as: root or non-priveleged user.
 <h2><a name="description">1. Description</a></h2>
             <p><img src="../images/overview_collector.png" name="Collector Overview" align="right" border="0"></p>
             <p>
-                The glidein pool Collector node will be the 
-                <a target="_blank" href="http://www.cs.wisc.edu/condor/manual/v7.4/3_1Introduction.html#SECTION00411000000000000000">Condor Central Manager</a> for
-                the glidein pool, i.e. it will run the Condor Collector and Negotiator daemons. These daemons define the glidein pool; if this node
+                The User Pool will be the 
+                <a target="_blank" href="http://www.cs.wisc.edu/condor/manual/v7.4/3_1Introduction.html#SECTION00411000000000000000">HTCondor Central Manager</a> 
+                for the glidein pool, i.e. it will run the HTCondor Collector and Negotiator daemons. 
+                All glideins submitted by the Factories connected to this User Pool will report to it and be available to match with
+                the jobs submitted to the Schedds (User submit nodes) connected to it.
+                These daemons define the glidein pool; if this node
                 dies, the pool dies with it.
             </p>
 
@@ -125,7 +128,7 @@ Install as: root or non-priveleged user.
 
 <div class="section">
     <h2><a name="software">3. Needed software</a></h2>
-    <p>See the <a href="">prerequisites</a> page for a list of software requirements.
+    <p>See the <a href="prerequisites.html">prerequisites</a> page for a list of software requirements.
 
 </div>
 
@@ -133,7 +136,7 @@ Install as: root or non-priveleged user.
 <div class="section">
     <h2><a name="condor">4. Installation instructions</a></h2>
     <p>
-        The user pool Collector can be installed either as root or as a non privileged user. Either case, make sure that the user has access to the 
+        The User Pool can be installed either as root or as a non privileged user. Either case, make sure that the user has access to the 
         needed <a href="../components/gsi.html">GSI credentials</a>.  There is no real advantage to install as root, so non-privileged installation is 
         recommended if installed separately.
     </p>

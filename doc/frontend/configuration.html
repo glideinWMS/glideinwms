@@ -225,11 +225,11 @@ be defined:</P>
 	advertise_with_tcp=&quot;<I>True|False</I>&quot; 
 	advertise_with_multiple=&quot;<I>True|False</I>&quot;&gt;
         </div>
-    The frontend_name is a combination of the frontend
+    The frontend_name is a combination of the Frontend
     and instance names specified during installation. It is used to
     create Glidein Frontend instance directory and files. The delay
     parameters define how active the Glidein Frontend should be. 
-Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassAds to the factory, and advertise_with_multiple can enable the condor_advertise -multiple option present in Condor 7.5.4 and up. 
+Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassAds to the Factory, and advertise_with_multiple can enable the condor_advertise -multiple option present in HTCondor 7.5.4 and up. 
     </P></li>
     <LI>
         <a name="process_logs" />
@@ -265,8 +265,8 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
     This shows what WMS Collector the Glidein Frontend will map to. It is the
     mapped name for the identity of the classad. It also tells what
     should be the identity used by the frontend itself and the expected
-    identity of the factory.  These attributes must be configured correctly,
-    or else the factory will drop requests from the frontend, citing security
+    identity of the Factory.  These attributes must be configured correctly,
+    or else the factory will drop requests from the Frontend, citing security
     concerns.
     <br><br>
     To configure the WMS collector for multiple (secondary) ports, refer to the 
@@ -369,7 +369,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         [pool_idx_list=&quot;<I>2,4-6,10</I>&quot;]
         /&gt;
         </div>
-    This section lists credentials used by the whole frontend.  You can
+    This section lists credentials used by the whole Frontend.  You can
     have multiple credentials listed here and they are used by all groups.
     The authentication method can be one of the following:
     <ul>
@@ -387,9 +387,9 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
     then you should have files foo0002, foo0004, foo0005, foo0006 in path/.
     <br/><br/>
     Security class determines what user the credential is associated with
-    on the factory side.  The trust domain determines which entries this
+    on the Factory side.  The trust domain determines which entries this
     credential will be used on.  The credential will only be submitted to 
-    sites that match this trust domain.  Coordinate with your factory operator
+    sites that match this trust domain.  Coordinate with your Factory operator
     in order to properly determine these values.
     <br/><br/>
     The attribute <i>pilotabsfname</i> is required for non-grid types.  
@@ -397,7 +397,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
     submit) that is used for the pilot to connect back to the user pool.
     For instance, Amazon key pairs can be used to connect to cloud resources,
     but an actual x509 proxy will be needed for the glidein on the cloud 
-    to connect to the Condor user pool.
+    to connect to the HTCondor user pool.
     </P></li>
     <LI><P>
         <a name="stage" />
@@ -523,7 +523,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
     </UL>
 </UL>
     <P>Other attributes can be specified as well. They are used by the
-    VO frontend matchmaking and job matchmaking. The format is similar
+    VO Frontend matchmaking and job matchmaking. The format is similar
     to the attributes on the Factory config file. The table below
     describes the &lt;attrs ... &gt; tag in more detail. 
     </P>
@@ -638,13 +638,13 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         <div class="xml">
         &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;match&gt;&lt;factory query_expr=&quot;<I>expr</I>&quot; &gt;
         </div>
-        This is a Condor ClassAd expression to select factory entry points.
-        The expression will be evaluated by Condor and should be a 
-        valid Condor expression.<br/>
+        This is a HTCondor ClassAd expression to select factory entry points.
+        The expression will be evaluated by HTCondor and should be a 
+        valid HTCondor expression.<br/>
         One example to select from entries that list CMS as a supported VO 
         could be <tt>query_expr='stringListMember("CMS",GLIDEIN_Supported_VOs) &amp;&amp; (GLIDEIN_Job_Max_Time=!=UNDEFINED)'</tt><br/>
-        See the condor manual for more on valid expressions and functions.<br/>
-        Note that if you specify a factory constraint in the global 
+        See the HTCondor manual for more on valid expressions and functions.<br/>
+        Note that if you specify a Factory constraint in the global 
         default section as well as in the group factory tag
         (such as <i> &lt;factory query_expr='EXPR1'&gt;...  
             &lt;group&gt; &lt;factory query_expr='EXPR2'&gt; &lt;/group&gt;</i>)
@@ -659,8 +659,8 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         </div>
 
         A list of glidein factory attributes used in the
-        factory match expression.   Each match attribute
-        should be a Condor classad attribute that is listed 
+        Factory match expression.   Each match attribute
+        should be a HTCondor classad attribute that is listed 
         in the above    match_expr.
         <a href="#match_example">More on match expressions</a>
     </P></li>
@@ -670,9 +670,9 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;match&gt;&lt;job
         query_expr=&quot;<I>expr</I>&quot; &gt;
         </div>
-        This is a Condor ClassAd expression to select valid user jobs
-        to find glideins for.  It will be evaluated by Condor and
-        should be a valid Condor expression.  
+        This is a HTCondor ClassAd expression to select valid user jobs
+        to find glideins for.  It will be evaluated by HTCondor and
+        should be a valid HTCondor expression.  
         For instance, <tt>query_expr="(JobUniverse==5)"</tt> will
         select only vanilla universe jobs.<br/>
 
@@ -684,9 +684,9 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;match&gt;&lt;job&gt;&lt;match attrs&gt;&lt;match attr name=&quot;<I>name</I>&quot; &gt;
 
         </div>
-        A list of glidein factory attributes used in the
-        factory match expression.   Each match attribute
-        should be a Condor classad attribute that is listed 
+        A list of glidein Factory attributes used in the
+        Factory match expression.   Each match attribute
+        should be a HTCondor classad attribute that is listed 
         in the above match_expr.
         <a href="#match_example">More on match expressions</a>
     </P></li>
@@ -705,7 +705,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         /&gt;
 
         </div>
-        Group-specific credentials can be defined that will be passed to the factory in addition to any <a href="#credentials">globally defined credentials</a>.
+        Group-specific credentials can be defined that will be passed to the Factory in addition to any <a href="#credentials">globally defined credentials</a>.
     </P></li>
     <LI><P>
         <a name="usercollector" />
@@ -719,7 +719,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     For <b>scalability</b> purposes, multiple (secondary) user pool collectors can be used. 
     Refer to the 
     <a href="../components/condor.html#collectors">Advanced Condor Configuration Multiple Collectors document</a> for details for the Condor configuration.<br/>
-    The configuration required for the frontend to communicate with the secondary user pool collectors is shown below:
+    The configuration required for the Frontend to communicate with the secondary user pool collectors is shown below:
       <blockquote>
          &lt;collectors>&gt;
          &lt;collector DN="<i>certificate DN</i>"  secondary="<b>False</b>"
@@ -817,7 +817,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     factory query_expr), you can specify expressions in both the
     default global section as well as in individual group sections.
     You should take special care before doing this to make sure the
-    expressions are correct, as the expreesions are typically "AND"-ed
+    expressions are correct, as the expressions are typically "AND"-ed
     together.
 </p>
 <p>
@@ -827,7 +827,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
 </p>
 <p>
     Each python expression will typical be a series of boolean tests,
-    surrounded by parantheses and connected by the boolean expressions
+    surrounded by parentheses and connected by the boolean expressions
     "and", "or", and "not".  You can use several dictionaries in
     these match expressions.  The "job" dictionary contains the
     classad of the job being matched, and the "glidein" dictionary
@@ -926,23 +926,23 @@ have.  Why?</p>
 
 <p>
 Consider the following scenario: Alice, Bob, and Charlie are all in the
-FUNGUS experiment and form a VO.  They are using glideinWMS.  Alice
-sends 1000 jobs to FNAL via their glideinWMS using a single pilot proxy.
-   The pilots map to ther userid fungus01 at FNAL, and in accordance with
-the batch system's fairshare policies, the job priority for user
+FUNGUS experiment and form a VO.  They are using GlideinWMS.  Alice
+sends 1000 jobs to FNAL via their GlideinWMS using a single pilot proxy.
+   The pilots map to their userid fungus01 at FNAL, and in accordance with
+the batch system's fair-share policies, the job priority for user
 fungus01 is decreased significantly.
 </p>
 <p>
-Bob comes along and submits 1000 jobs via glideinWMS, while Charlie
-submits 1000 jobs under his own proxy and not using glideinWMS.  The
-glideinWMS pilots launch for Bob, and map to fungus01. Charlie launches
+Bob comes along and submits 1000 jobs via GlideinWMS, while Charlie
+submits 1000 jobs under his own proxy and not using GlideinWMS.  The
+GlideinWMS pilots launch for Bob, and map to fungus01. Charlie launches
 his own jobs that get mapped to fungus02.  Relative to fungus02,
 fungus01 priority is terrible, and Bob's jobs sit around waiting for
 Charlie -- even though Bob didn't occupy the FNAL resources, Alice did!
 </p>
 <p>
 The solution: have a pool of pilot proxies.  We then spread the
-fairshare penalty amongst fungus01, fungus02, and fungus03, and Bob now
+fair-share penalty amongst fungus01, fungus02, and fungus03, and Bob now
 can compete on a more equal footing with Charlie and Alice.
 </p>
 <p>
@@ -950,7 +950,7 @@ can compete on a more equal footing with Charlie and Alice.
 </p>
 <p>
 Proxies can be specified in the 
-<tt>&lt;security&gt;&lt;credentials&gt;&lt;credential&gt;</tt> tags.  Multiple proxy tags can be entered, one for each proxy file.  These can found in the security section at the top of the xml, in which case, the proxies are shared for all securitty groups.  They can also be found within <tt>&lt;group&gt;</tt> tags, in which case they are used only by that security group.
+<tt>&lt;security&gt;&lt;credentials&gt;&lt;credential&gt;</tt> tags.  Multiple proxy tags can be entered, one for each proxy file.  These can found in the security section at the top of the xml, in which case, the proxies are shared for all security groups.  They can also be found within <tt>&lt;group&gt;</tt> tags, in which case they are used only by that security group.
 </p>
 <p>
 One example follows:
@@ -978,15 +978,15 @@ One example follows:
 <H2 CLASS="western"><A NAME="run_daemon"></A>Starting a Glidein Frontend
 Daemon</H2>
 <P>Once you have the desired configuration file, move to the VO
-frontend directory&nbsp; and launch the command:</P>
+Frontend directory&nbsp; and launch the command:</P>
 
     <blockquote>./frontend_startup start</blockquote>
 <P>
-All the activity messages will go into 
+With the configutation above, all the activity messages will go into 
 </P>
     <BLOCKQUOTE>group_*/log/frontend_info.&lt;date&gt;.log</BLOCKQUOTE>
-<P>while the warnings go into </P>
-    <BLOCKQUOTE>group_*/log/frontend_err.&lt;date&gt;.log</BLOCKQUOTE>
+<P>while the debug, warning and error messages go into </P>
+    <BLOCKQUOTE>group_*/log/frontend_debug.&lt;date&gt;.log</BLOCKQUOTE>
 
 <P><A NAME="ref"></A>
     The frontend logs are deleted after a week.
