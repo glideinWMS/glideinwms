@@ -581,6 +581,9 @@ def main(startup_dir):
     glideinDescript = glideFactoryConfig.GlideinDescript()
     frontendDescript = glideFactoryConfig.FrontendDescript()
 
+    # set factory_collector at a global level, since we do not expect it to change
+    glideFactoryInterface.factoryConfig.factory_collector = glideinDescript.data['FactoryCollector']
+
     # Setup the glideFactoryLib.factoryConfig so that we can process the
     # globals classads
     glideFactoryLib.factoryConfig.config_whoamI(
