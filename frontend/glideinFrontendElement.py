@@ -627,60 +627,49 @@ class glideinFrontendElement:
 
         return resource_classad
 
-    def compute_glidein_min_idle(self, count_status, total_glideins, total_idle_glideins,
-                                 fe_total_glideins, fe_total_idle_glideins,
-                                 global_total_glideins, global_total_idle_glideins,
+    def compute_glidein_min_idle(self, count_status, total_glideins,
+                                 total_idle_glideins, fe_total_glideins,
+                                 fe_total_idle_glideins, global_total_glideins,
+                                 global_total_idle_glideins,
                                  effective_idle, effective_oldidle):
         ''' Calculate the number of idle jobs to request from the factory '''
 
-        if count_status['Total'] >= self.max_running:
-            # have all the running jobs I wanted
-            glidein_min_idle=0
-        elif count_status['Idle'] >= self.max_vms_idle:
-            # enough idle vms, do not ask for more
-            glidein_min_idle=0
-        elif total_glideins >= self.total_max_glideins:
-            # reached the system-wide limit
-            glidein_min_idle=0
-        elif total_idle_glideins>=self.total_max_vms_idle:
-            # reached the system-wide limit
-            glidein_min_idle=0
-        elif fe_total_glideins>=self.fe_total_max_glideins:
-            # reached the system-wide limit
-            glidein_min_idle=0
-        elif fe_total_idle_glideins>=self.fe_total_max_vms_idle:
-            # reached the system-wide limit
-            glidein_min_idle=0
-        elif global_total_glideins>=self.global_total_max_glideins:
-            # reached the system-wide limit
-            glidein_min_idle=0
-        elif global_total_idle_glideins>=self.global_total_max_vms_idle:
-            # reached the system-wide limit
+        if ( (count_status['Total'] >= self.max_running) or
+             (count_status['Idle'] >= self.max_vms_idle) or
+             (total_glideins >= self.total_max_glideins) or
+             (total_idle_glideins >= self.total_max_vms_idle) or
+             (fe_total_glideins >= self.fe_total_max_glideins) or
+             (fe_total_idle_glideins >= self.fe_total_max_vms_idle) or
+             (global_total_glideins >= self.global_total_max_glideins) or
+             (global_total_idle_glideins>=self.global_total_max_vms_idle) ):
+
+            # Do not request more glideins under following conditions:
+            # 1. Have all the running jobs I wanted
+            # 2. Have enough idle vms/slots
+            # 3. Reached the system-wide limit
             glidein_min_idle=0
         elif (effective_idle>0):
-            glidein_min_idle=effective_idle
-
-            # don't go over the max_running
-            glidein_min_idle=min(glidein_min_idle,self.max_running-count_status['Total'])
             # don't go over the system-wide max
             # not perfect, given te number of entries, but better than nothing
-            glidein_min_idle=min(glidein_min_idle,self.total_max_glideins-total_glideins)
-            glidein_min_idle=min(glidein_min_idle,self.total_max_vms_idle-total_idle_glideins)
-            glidein_min_idle=min(glidein_min_idle,self.fe_total_max_glideins-fe_total_glideins)
-            glidein_min_idle=min(glidein_min_idle,self.fe_total_max_vms_idle-fe_total_idle_glideins)
-            glidein_min_idle=min(glidein_min_idle,self.global_total_max_glideins-global_total_glideins)
-            glidein_min_idle=min(glidein_min_idle,self.global_total_max_vms_idle-global_total_idle_glideins)
+            glidein_min_idle = min(
+                effective_idle,
+                self.max_running-count_status['Total'],
+                self.total_max_glideins-total_glideins,
+                self.total_max_vms_idle-total_idle_glideins,
+                self.fe_total_max_glideins-fe_total_glideins,
+                self.fe_total_max_vms_idle-fe_total_idle_glideins,
+                self.global_total_max_glideins-global_total_glideins,
+                self.global_total_max_vms_idle-global_total_idle_glideins)
 
             # since it takes a few cycles to stabilize, ask for only one third
             glidein_min_idle=glidein_min_idle/3
             # do not reserve any more than the number of old idles
             # for reserve (/3)
-            glidein_idle_reserve=effective_oldidle/3
-            glidein_idle_reserve = min(glidein_idle_reserve, self.reserve_idle)
-            glidein_min_idle+=glidein_idle_reserve
+            glidein_idle_reserve = min(effective_oldidle/3, self.reserve_idle)
 
+            glidein_min_idle+=glidein_idle_reserve
             glidein_min_idle = min(glidein_min_idle, self.max_idle)
-      
+
             if count_status['Idle'] >= self.curb_vms_idle:
                 glidein_min_idle/=2 # above first treshold, reduce
             if total_glideins >= self.total_curb_glideins:

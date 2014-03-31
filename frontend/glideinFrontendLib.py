@@ -40,7 +40,7 @@ def getCondorQ(schedd_names, constraint=None, format_list=None,
                 [('JobStatus', 'i'), ('EnteredCurrentStatus', 'i'),
                  ('ServerTime', 'i'), ('RemoteHost', 's')])
 
-    if (job_status_filter is None) or (len(job_status_filter)==0):
+    if not job_status_filter:
         # if nothing specified, assume it wants all of them
         js_constraint="True"
     else:
@@ -48,7 +48,7 @@ def getCondorQ(schedd_names, constraint=None, format_list=None,
         for n in job_status_filter:
             js_arr.append('(JobStatus=?=%i)'%n)
         js_constraint=string.join(js_arr,'||')
-            
+
     return getCondorQConstrained(schedd_names, js_constraint, constraint, format_list)
 
 def getIdleVomsCondorQ(condorq_dict):
