@@ -758,11 +758,14 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         </div>
     The parameters listed here regulate the throttling of the provisioning requests.<br>
     <ul>
-     <li>The first two elements are used to kick in if the glideins (and startds in general) 
-         are not matched to the user jobs, either due to a mismatch in policy or system overload.<br>
+     <li>The first two elements are used to throttle requests if the glideins (and startds in general) 
+         are not matched to the user jobs, either due to a mismatch in policy or system overload (counted as number of slots)<br>
          <b>idle_vms_total</b> throttles based on the glideins provisioned by this frontend, <br>while
-         <b>idle_vms_total_global</b> throttles based on all the startds visible to the frontend.
-     <li>The last two elements are used to put an upper bound on how many glideins will the frontend provision.<br>
+         <b>idle_vms_total_global</b> throttles based on all the startds visible to the frontend.<br>
+         The frontend will stop requesting more glideins if/when <b>max</b> is reached.
+         If/when <b>curb</b> is reached/exceeded, the number of glideins requested in each provisioning request 
+         is cut in half.
+     <li>The last two elements are used to put an upper bound on how many glideins will the frontend try to provision.<br>
          Similarly to the previoues two, 
          <b>running_glideins_total</b> will throttle the provisioning requests based on the number of glideins provisioned by this frontend, <br>while
          <b>running_glideins_total_global</b> throttles based on the number of all the startds visible to the frontend.
