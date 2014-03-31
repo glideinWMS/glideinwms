@@ -61,9 +61,14 @@ class VOFrontendParams(cWParams.CommonParams):
         group_config_defaults['idle_glideins_per_entry']=group_config_idle_defaults
 
         group_config_vms_defaults=cWParams.commentedOrderedDict()
-        group_config_vms_defaults["max"]=['100',"nr_jobs","How many idle VMs should I tollerate, before stopping submitting glideins",None]
-        group_config_vms_defaults["curb"]=['5',"nr_jobs","How many idle VMs should I tollerate, before starting to curb submissions.",None]
+        group_config_vms_defaults["max"]=['100',"nr_vms","How many idle VMs should I tollerate, before stopping submitting glideins",None]
+        group_config_vms_defaults["curb"]=['5',"nr_vms","How many idle VMs should I tollerate, before starting to curb submissions.",None]
         group_config_defaults['idle_vms_per_entry']=group_config_vms_defaults
+
+        group_config_vms_total_defaults=cWParams.commentedOrderedDict()
+        group_config_vms_total_defaults["max"]=['1000',"nr_jobs","How many total idle VMs should I tollerate, before stopping submitting glideins",None]
+        group_config_vms_total_defaults["curb"]=['200',"nr_jobs","How many total idle VMs should I tollerate, before starting to curb submissions.",None]
+        group_config_defaults['idle_vms_total']=group_config_vms_total_defaults
 
         # not exported and order does not matter, can stay a regular dictionary
         sub_defaults={'attrs':(xmlParse.OrderedDict(),'Dictionary of attributes',"Each attribute group contains",self.attr_defaults),
