@@ -521,7 +521,39 @@ def getClientCondorStatus(status_dict, frontend_name, group_name, request_name):
     client_name_new = "%s.%s" % (frontend_name, group_name)
     out = {}
     for collector_name in status_dict.keys():
-        sq = condorMonitor.SubQuery(status_dict[collector_name], lambda el:(el.has_key('GLIDECLIENT_Name') and ((el['GLIDECLIENT_Name'] == client_name_old) or ((el['GLIDECLIENT_Name'] == client_name_new) and (("%s@%s@%s" % (el['GLIDEIN_Entry_Name'], el['GLIDEIN_Name'], el['GLIDEIN_Factory'])) == request_name)))))
+        sq = condorMonitor.SubQuery(
+                 status_dict[collector_name],
+                 lambda el:(el.has_key('GLIDECLIENT_Name') and ((el['GLIDECLIENT_Name'] == client_name_old) or ((el['GLIDECLIENT_Name'] == client_name_new) and (("%s@%s@%s" % (el['GLIDEIN_Entry_Name'], el['GLIDEIN_Name'], el['GLIDEIN_Factory'])) == request_name)))))
+        sq.load()
+        out[collector_name] = sq
+    return out
+
+
+#
+# Return a dictionary of collectors containing vms at a client split by creds
+# Each element is a condorStatus
+#
+# Use the output of getCondorStatus
+#
+
+def getClientCondorStatusPerCredId(status_dict, frontend_name, group_name,
+                                   request_name, cred_id):
+    client_name_old = "%s@%s.%s" % (request_name, frontend_name, group_name)
+    client_name_new = "%s.%s" % (frontend_name, group_name)
+    out = {}
+    for collector_name, collector_status in status_dict.iteritems():
+        sq = condorMonitor.SubQuery(
+                 collector_status,
+                 lambda el:(
+                     el.has_key('GLIDECLIENT_Name') and 
+                     el.has_key('GLIDEIN_CredentialIdentifier') and 
+                     (el['GLIDEIN_CredentialIdentifier'] == cred_id) and 
+                     ( (el['GLIDECLIENT_Name'] == client_name_old) or 
+                       ( (el['GLIDECLIENT_Name'] == client_name_new) and 
+                         (("%s@%s@%s" % (el['GLIDEIN_Entry_Name'], el['GLIDEIN_Name'], el['GLIDEIN_Factory'])) == request_name)
+                       )
+                     )
+                 ) )
         sq.load()
         out[collector_name] = sq
     return out

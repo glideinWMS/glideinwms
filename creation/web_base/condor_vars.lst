@@ -47,6 +47,7 @@ GLIDEIN_CLAIM_WORKLIFE	I	-1		+				N	N	-
 # Factory provided
 GLIDEIN_Factory		S	-		+				Y	Y	@
 GLIDEIN_Name		S	-		+				Y	Y	@
+GLIDEIN_CredentialIdentifier	S	-		+				Y	Y	-
 GLIDEIN_Signature	S	-		+				Y	Y	@
 GLIDEIN_WRAPPER_EXEC		S	"\\\"\\\$@\\\"" 		+				N	N	-
 DESCRIPTION_FILE	S	-		GLIDEIN_Description_File	N	Y	-
