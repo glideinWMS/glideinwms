@@ -604,15 +604,20 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;config&gt;
         </div>
     The parameters listed here regulate how aggressive should the frontend be
-    in provisioning glideins when it sees idle user jobs.<br>
+    in trying to provision glideins when it sees idle user jobs.<br>
     <ul>
      <li>The first element, <b>idle_glideins_per_entry</b>, defines the upper limit on how 
-    aggressive the provisioning should be.
-     <li>The next two are used to throttle the requests, if the provisioned glideins 
+    aggressive the provisioning requests should be.<br>
+     The number specified in <b>max</b> is the highest number of idle/pending 
+     glideins that the resource associated with any factory entry will ever see.  
+     <li>The next two are used to throttle the requests, if the provisioned glideins (counted as number of slots) 
          are not matched to the user jobs, either due to a mismatch in policy or system overload.<br>
          <b>idle_vms_per_entry</b> throttles based on a per factory entry basis (e.g. Grid site), <br>while
-         <b>idle_vms_total</b> throttles based on the states of all the glideins provisioned by this group. 
-     <li>The last two elements are used to put an upper bound on how many glideins will the frontend provision.<br>
+         <b>idle_vms_total</b> throttles based on the states of all the glideins provisioned by this group.<br>
+         The frontend will stop requesting more glideins if/when <b>max</b> is reached.
+         If/when <b>curb</b> is reached/exceeded, the number of glideins requested in each provisioning request 
+         is cut in half.
+     <li>The last two elements are used to put an upper bound on how many glideins will the frontend try to provision.<br>
          Similarly to the previoues two, 
          <b>running_glideins_per_entry</b> will throttle the provisioning requests based on per factory entry basis, <br>while
          <b>running_glideins_total</b> throttles based on number of all the glideins provisioned by this group.
