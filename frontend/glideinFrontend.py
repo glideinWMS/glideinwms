@@ -310,7 +310,9 @@ def main(work_dir):
     try:
         pid_obj.register()
     except  glideinFrontendPidLib.pidSupport.AlreadyRunning, err:
-        logSupport.log.exception("Exception during registration: %s" % err)
+        pid_obj.load_registered()
+        logSupport.log.exception("Failed starting Frontend. Instance with pid %s is aready running. Exception during pid registration: %s" % 
+                                 (pid_obj.mypid , err))
         raise
     try:
         try:
