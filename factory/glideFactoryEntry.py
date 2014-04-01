@@ -117,6 +117,8 @@ class Entry:
             self.glideinDescript.data['AdvertiseWithTCP'] in ('True','1'))
         self.gfiFactoryConfig.advertise_use_multi = (
             self.glideinDescript.data['AdvertiseWithMultiple'] in ('True','1'))
+        # set factory_collector at a global level, since we do not expect it to change
+        self.gfiFactoryConfig.factory_collector = self.glideinDescript.data['FactoryCollector']
 
         try:
             self.gfiFactoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(os.path.dirname(os.path.dirname(sys.argv[0])), 'checksum.factory').version()
