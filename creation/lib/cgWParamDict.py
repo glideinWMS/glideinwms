@@ -432,11 +432,20 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         populate_job_descript(self.work_dir,self.dicts['job_descript'],
                               self.sub_name,sub_params)
 
-        self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE,
-                                          params.factory_name,params.glidein_name,self.sub_name,
-                                          sub_params.gridtype,sub_params.gatekeeper, sub_params.rsl, sub_params.auth_method,
-                                          params.web_url,sub_params.proxy_url,sub_params.work_dir,
-                                          params.submit.base_client_log_dir)
+        ################################################################################################################
+        # This is the original function call:
+        #
+        # self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE,
+        #                                   params.factory_name,params.glidein_name,self.sub_name,
+        #                                   sub_params.gridtype,sub_params.gatekeeper, sub_params.rsl, sub_params.auth_method,
+        #                                   params.web_url,sub_params.proxy_url,sub_params.work_dir,
+        #                                   params.submit.base_client_log_dir, sub_params.submit.submit_attrs)
+        #
+        # Almost all of the parameters are attributes of params and/or sub_params.  Instead of maintaining an ever
+        # increasing parameter list for this function, lets just pass params, sub_params, and the 2 other parameters
+        # to the function and call it a day.
+        ################################################################################################################
+        self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE, self.sub_name, params, sub_params)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
