@@ -119,6 +119,7 @@ def main(params, old_params, update_scripts, update_def_cfg, comment=""):
 
     if update_def_cfg == 'yes' or update_scripts == 'yes':
         # recreate the init.d startup file
+        # This will never happen in RPM installations (because of the init.d file)
         startup_fname = os.path.join(glidein_dicts_obj.main_dicts.work_dir, cgWConsts.INITD_STARTUP_FILE)
         factory_dir = glidein_dicts_obj.main_dicts.work_dir
         

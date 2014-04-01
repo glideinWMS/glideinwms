@@ -9,7 +9,7 @@ import stat
 
 
 # Create init.d compatible startup file
-def create_initd_startup(glideinWMS_dir_template, template_fname, startup_fname, work_dir, glideinWMS_dir, cfg_name, is_rpm=''):
+def create_initd_startup(glideinWMS_dir_template, template_fname, startup_fname, work_dir, glideinWMS_dir, cfg_name, rpm_install=''):
     """
     Creates the frontend startup file and changes the permissions.  Can overwrite an existing file.
     """            
@@ -20,12 +20,12 @@ def create_initd_startup(glideinWMS_dir_template, template_fname, startup_fname,
             template = template % {"frontend_dir": work_dir, 
                                    "glideinWMS_dir": glideinWMS_dir, 
                                    "default_cfg_fpath": cfg_name,
-                                   "this_is_rpm_install": is_rpm}
+                                   "rpm_install": rpm_install}
         else:
             template = template % {"factory_dir": work_dir, 
                                    "glideinWMS_dir": glideinWMS_dir, 
                                    "default_cfg_fpath": cfg_name,
-                                   "this_is_rpm_install": is_rpm}
+                                   "rpm_install": rpm_install}
         fd.write(template)
     finally:
         fd.close()
@@ -57,7 +57,7 @@ def main(gwms_src_root_dir, sfile_frontend, sfile_factory):
                          '/var/lib/gwms-frontend/vofrontend',
                          '/var/lib/gwms-frontend/vofrontend',
                          '/etc/gwms-frontend/frontend.xml',
-                         'yes')
+                         'True')
     print "...Updated the frontend startup script"
 
     # Factory
@@ -66,7 +66,7 @@ def main(gwms_src_root_dir, sfile_frontend, sfile_factory):
                          '/var/lib/gwms-factory/work-dir',
                          '/var/lib/gwms-factory/work-dir',
                          '/etc/gwms-factory/glideinWMS.xml',
-                         'yes')
+                         'True')
     print "...Updated the factory startup script"
 
 

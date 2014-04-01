@@ -20,22 +20,22 @@ failure() {
 factory_dir=%(factory_dir)s
 glideinWMS_dir=%(glideinWMS_dir)s
 def_factory_config=%(default_cfg_fpath)s
-RPM_INSTALL=%(this_is_rpm_install)s
+RPM_INSTALL=%(rpm_install)s
 
-# RPM_INSTALL can be {''|'no'|'yes'}
-# RPM only if RPM_INSTALL = yes 
+# RPM_INSTALL can be {''|'False'|'True'}
+# RPM only if RPM_INSTALL = True 
 # '' enables autodetection: RPM installation only if this file path is /etc/init.d/gwms-frontend
 SCRIPT_NAME="`readlink -f $0`"
 #alt: SCRIPT_NAME="$(cd "$(dirname "$0")" 2>/dev/null && pwd)/$(basename "$0")"
 if [ -z "$RPM_INSTALL" ] && [ "$SCRIPT_NAME" = "/etc/gwms-frontend/frontend.xml" ]; then
-    RPM_INSTALL=yes
+    RPM_INSTALL=True
 else
-    RPM_INSTALL=no
+    RPM_INSTALL=False
 fi
 SCRIPT_NAME="`basename $0`"
 
 
-if [ "$RPM_INSTALL" = "yes" ]; then
+if [ "$RPM_INSTALL" = "True" ]; then
     # RPM installation (defaults and binaries)
     LOG_FILE_STARTUP=/dev/null
     DEFAULT_WRITEBACK=no
@@ -140,7 +140,7 @@ invoke_as_factory() {
 
 
 help_usage() {
-    if [ "$RPM_INSTALL" = "yes" ]; then
+    if [ "$RPM_INSTALL" = "True" ]; then
         # upgrade does not make sense for RPM because the RPM upgrade will take care of it
     #             echo $"Usage: factory_startup {reconfig xml <update_default_cfg> <writeback yes|no>}"
         echo "Usage: $SCRIPT_NAME {start|stop|restart|status|info|reconfig|down|up|infosysdown|statusdown}
@@ -238,6 +238,11 @@ reconfig() {
             "-fix_rrd") fix_rrd="-fix_rrd"
                 ;;
             update_default_cfg) update_def_cfg=yes
+                if [ "$RPM_INSTALL" = "True" ]; then
+                    echo "update_def_cfg is not a valid option for RPM installations"
+                    help_usage
+                    exit 2
+                fi
                 ;;
             "-comment") comment=$2
                 shift
@@ -392,6 +397,11 @@ case $1 in
         reconfig "$@"
         ;;
     upgrade)
+        if [ "$RPM_INSTALL" = "True" ]; then
+            echo "upgrade is not a valid action for RPM installations"
+            help_usage
+            exit 2
+        fi
         upgrade "$2"
         ;;
     down)

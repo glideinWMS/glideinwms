@@ -62,6 +62,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
     
     if update_def_cfg == 'yes' or update_scripts == 'yes':
         # recreate the init.d startup file
+        # This will never happen in RPM installations (because of the init.d file)
         frontend_dir = frontend_dicts_obj.main_dicts.work_dir
         startup_fname = os.path.join(frontend_dicts_obj.main_dicts.work_dir,cvWConsts.INITD_STARTUP_FILE)
         
