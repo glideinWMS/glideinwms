@@ -5,9 +5,11 @@ import sys,os,os.path,string,time
 import socket
 import getopt
 
+
 STARTUP_DIR=os.path.abspath(sys.path[0])
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
+OLD_DIR=os.path.abspath(os.curdir)
 os.chdir(STARTUP_DIR)
 
 from glideinwms.install.services import common
@@ -50,7 +52,7 @@ def run_command(service,user,node,command):
     stdout = glideinwms.lib.subprocessSupport.iexe_cmd(cmd,useShell=True)
   except glideinwms.lib.subprocessSupport.CalledProcessError, e:
     common.logit(stdout)
-    common.logerr("Requested action failed.")
+    common.logerr("Requested action failed: " + str(e))
     #TODO: should re-rise the exceptopn? How should it be handled? exit?
   common.logit(stdout)
   common.logit("## %s " % hdr)
@@ -364,14 +366,16 @@ def main(argv):
         return 1
 
       if o in ("--ini"):
-        inifile = a
+        # join is intelligent and will not join if a is abspath
+        inifile = os.path.join(OLD_DIR, a)
         if not os.path.isfile(inifile):
           common.logerr("ini file does not exist: %s" % inifile)
         continue
 
       if o in ("--show-ini"):
         gAction = o[2:]
-        inifile = a
+        # join is intelligent and will not join if a is abspath
+        inifile = os.path.join(OLD_DIR, a)
         if not os.path.isfile(inifile):
           common.logerr("ini file does not exist: %s" % inifile)
         continue
