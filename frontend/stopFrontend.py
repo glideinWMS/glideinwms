@@ -48,13 +48,17 @@ def get_element_pids(work_dir, frontend_pid):
     return element_pids
 
 def main(work_dir, force=False):
-    retries_count = 100
-    sleep_in_retries = 0.2
+    retries_count = 50
+    sleep_in_retries = 0.6
     # get the pids
     try:
         frontend_pid = glideinFrontendPidLib.get_frontend_pid(work_dir)
     except RuntimeError, e:
         print e
+        if str(e) == "Frontend not running":
+            # Workaround to distinguish when the frontend is not running
+            # string must be the same as in glideinFrontendPidLib
+            return 2
         return 1
     #print frontend_pid
 
@@ -63,7 +67,7 @@ def main(work_dir, force=False):
         return 0
 
     # kill processes
-    # first soft kill the frontend (20s timeout)
+    # first soft kill the frontend (30s timeout, retries_count*sleep_in_retries )
     try:
         os.kill(frontend_pid, signal.SIGTERM)
     except OSError:
@@ -117,9 +121,23 @@ def main(work_dir, force=False):
         pass # ignore problems
     return 0
 
+USAGE_STRING = """Usage: stopFrontend [-f|force] work_dir
+     return values: 0 Frontend stopped, 
+         1 unable to stop Frontend or wrong invocation, 2 Frontend was not running
+"""
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print "Usage: stopFrontend.py work_dir"
+        print USAGE_STRING
         sys.exit(1)
 
-    sys.exit(main(sys.argv[1], force=True))
+    if len(sys.argv)>2:
+        if sys.argv[1]=='-force' or sys.argv[1]=='-f':
+            sys.exit(main(sys.argv[2], force=True))
+        else:
+            print USAGE_STRING
+            sys.exit(1)
+    else:
+        #sys.exit(main(sys.argv[1]))
+        # force should be false but keeping old behavior, always forced stop
+        sys.exit(main(sys.argv[1], force=True))
+
