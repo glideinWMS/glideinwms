@@ -44,10 +44,10 @@
 	<ul class="subcomponents">
 	     <li> <a href="./index.html">Overview</a></li>
 	     <li> <a href="./prerequisites.html">Prerequisites</a></li>
-	     <li> <a href="./collector_install.html">User Collector</a></li>
+	     <li> <a href="./collector_install.html">User Pool</a></li>
 	     <li> <a href="./pool_install.html">User Schedd</a></li>
          <li> GSI</li>
-	     <li class="last"> <a href="./condor.html">Condor</a></li>
+	     <li class="last"> <a href="./condor.html">HTCondor</a></li>
 	</ul>
         <h3>GSI Authentication</h3>
 	</div>
@@ -69,11 +69,11 @@
 <h2>1. Quick Reference Guide to GSI Authentication Setup</h2>
 
 <p>
-glideinWMS uses GSI for authentication/authorization of services and clients.
+GlideinWMS uses GSI for authentication/authorization of services and clients.
 The table below acts as a quick reference guide for configuring GSI in glideinWMS.
 </p>
 <p>
-<u>NOTE</u>: Newer version of glideinWMS does not require factory to have proxy. Glideins can run using credentials supplied by frontend (prefered mode) but can also be configured to run with factory credentials. If the factory is configured to not use any gsi credentials, exclude factory from the list of condor_config and GSI_DAEMON_NAME in the table below.
+<u>NOTE</u>: Newer versions of GlideinWMS do not require the Factory to have proxy (it will authenticate with the WMS Pool by being on the same host and using the file system). Glideins can run using credentials supplied by the Frontend (prefered mode) but can also be configured to run with Factory supplied credentials. If the Factory is configured to not use any GSI credentials, exclude the Factory from the list of condor_config and GSI_DAEMON_NAME in the table below.
 
 </p>  
 <table class="requirements">
@@ -83,10 +83,10 @@ The table below acts as a quick reference guide for configuring GSI in glideinWM
 
   </tr>
   <tr>
-    <td>glideinWMS Collector</td>
+    <td>WMS Pool (Collector)</td>
        <td>
          <ul>
-           <li>GSI_DAEMON_NAME in condor_config should contain DNs of glideinWMS Collector.
+           <li>GSI_DAEMON_NAME in condor_config should contain DNs of GlideinWMS Collector.
            </li>
            <li>Condor Mapfile should contain DNs of WMS Collector, Glidein Frontend, Glidein Factory.
            </li>
@@ -97,13 +97,13 @@ The table below acts as a quick reference guide for configuring GSI in glideinWM
        <td>Glidein (Through Glidein Factory)</td>
        <td>
          <ul>
-           <li><u>condor mapfile to be used by glidein startd</u> should contain DN of user schedds and Glidein Pool Collector. This condor mapfile is not used by the factory itself but passed over to the glidein via staging area.
+           <li><u>condor mapfile to be used by glidein startd</u> should contain DN of User Schedds and User Pool. This condor mapfile is not used by the factory itself but passed over to the glidein via staging area.
            </li>
          </ul>
        </td>
      </tr>
      <tr>
-       <td>Glidein Pool Collector</td>
+       <td>User Pool (Collector)</td>
 
        <td>
          <ul>
@@ -120,7 +120,7 @@ The table below acts as a quick reference guide for configuring GSI in glideinWM
 
        <td>
          <ul>
-           <li>DN of Glidein Frontend should be in the gridmapfile of glideinWMS Collector, Glidein Pool Collector and User Schedd.
+           <li>DN of Glidein Frontend should be in the gridmapfile of WMS Pool, User Pool and User Schedds.
            </li>
          </ul>
        </td>
@@ -132,7 +132,7 @@ The table below acts as a quick reference guide for configuring GSI in glideinWM
          <ul>
            <li>GSI_DAEMON_NAME in condor_config should contain DNs of Glidein Pool Collector, User Schedd Node itself, Glidein Frontend, glidein startd
            </li>
-           <li>Condor Mapfile should contain DNs of Glidein Pool Collector, User Schedd Nodes, Glidein Frontend, glidein startd.
+           <li>Condor Mapfile should contain DNs of User Pool, User Schedd Nodes, Glidein Frontend, glidein startd.
            </li>
          </ul>
        </td>
@@ -145,20 +145,20 @@ The table below acts as a quick reference guide for configuring GSI in glideinWM
 
     <li>
     Any
-    <a href=http://www.cs.wisc.edu/condor/manual/v7.0/1_5Availability.html title="Available architectures">
-        Condor-supported OS
+    <a href="http://research.cs.wisc.edu/htcondor/manual/v8.0/1_5Availability.html" title="Available architectures">
+        HTCondor supported platforms
     </a>.
     </li>
     <li>
     The
-    <a href=https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome title="OSG User Web page">
-        OSG client software</a>.
+    <a href="http://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallOSGClient" title="OSG Client Web page">
+        OSG Client software</a>.
     </li>
 
     <li>
     The
-    <a href=http://www.cs.wisc.edu/condor/downloads/ title="Condor download page">
-        Condor distribution</a>.
+    <a href=http://research.cs.wisc.edu/htcondor/downloads/ title="HTCondor download page">
+        HTCondor distribution</a>.
     </li>
     </ul>
 </div>
@@ -177,19 +177,18 @@ The table below acts as a quick reference guide for configuring GSI in glideinWM
 </div>
 
 <div class="section">
-<h3>  3.1 Install OSG client</h3>
+<h3>  3.1 Install OSG Client</h3>
     <p>
-    If you have not installed the OSG client in <b>/opt/vdt</b> already, do it now.<br/>
+    If you have not installed already OSG Client as RPM or tarball, do it now.<br/>
     <i>(Note: An EGEE/gLite Grid User Interface will work as well, but you need to
-	replace /opt/vdt with whatever is appropriate for that installation)</i>
+	replace commands and configuration paths with whatever is appropriate for that installation)</i>
     </p>
 
     <p>
 	See the prerequisites page for instructions on <a href="prerequisites.html#system_vdt">installing the OSG client</a>.
 
     <p>
-    <i>(Please notice that those installation instructions tell you to install in ~/client_directory, 
-    please use /opt/vdt instead)</i>
+    <i>(Please notice that those installation assume that the CA certificates will be installed in <b>/etc/grid-security/certificates</b>. You may have to change that path below if you installed it differently)</i>
     </p>
 </div>
 <div class="section">
@@ -202,6 +201,7 @@ The table below acts as a quick reference guide for configuring GSI in glideinWM
       chmod a+rx /opt/glidecondor/certs
     </blockquote>
     This directory will host the grid-mapfile and eventual service proxy (see below).
+    Note that the RPM installations will use different paths. See the above mentioned documents.
     </p>
     <p>
     Now you need to select what proxy or certificate you will be used for authentication. 
@@ -221,7 +221,7 @@ The table below acts as a quick reference guide for configuring GSI in glideinWM
         certificate, in <b>/opt/glidecondor/certs</b>.
         How you keep this proxy valid (via
         <a href=http://grid.ncsa.uiuc.edu/myproxy/ title="MyProxy home page">MyProxy</a>,
-        <a href=http://www.kx509.org/ title="kx509 Mode Page">kx509</a>,
+        <a href=http://tools.ietf.org/search/rfc6717 title="kx509 Mode Page">kx509</a>,
         voms-proxy-init from a local certificate, scp from other nodes, or other
         methods), is beyond the scope of this document.
       </li>
@@ -237,7 +237,7 @@ The table below acts as a quick reference guide for configuring GSI in glideinWM
     <p>
     <b>Note:</b> The proxy and/or the certificate key must bereadable by the owner only! 
     <b>If it is either group or world readable</b> (and/or writable),
-    <b>Condor will refuse to use it</b> 
+    <b>HTCondor will refuse to use it</b> 
     (since it could have been stolen and/or compromised by now).
     </p>
 
@@ -262,29 +262,29 @@ The table below acts as a quick reference guide for configuring GSI in glideinWM
     <ul>
       <li>
         The DNs of other Condor nodes, i.e. the
-        <a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Condor
+        <a href=http://research.cs.wisc.edu/htcondor/manual/v8.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">HTCondor
         Central Manager</a>,&nbsp; the
-        <a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Condor
+        <a href=http://research.cs.wisc.edu/htcondor/manual/v8.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">HTCondor
         Submit nodes</a> and the
-        <a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Condor
+        <a href=http://research.cs.wisc.edu/htcondor/manual/v8.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">HTCondor
         Execute nodes</a>.
       </li>
 
       <li>
         If this is a
-        <a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Submit
+        <a href=http://research.cs.wisc.edu/htcondor/manual/v8.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Submit
         node</a>
-        or&nbsp;<a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Execute
+        or&nbsp;<a href=http://research.cs.wisc.edu/htcondor/manual/v8.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Execute
         node</a> and your users use GSI authentication, you also need to list all the users' DNs.
       </li>
     </ul>
     Again, you will need to add nicknames to those DNs. In the case of a
-    <a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">
+    <a href=http://research.cs.wisc.edu/htcondor/manual/v8.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">
 
         Submit node
     </a>
     or 
-    <a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">
+    <a href=http://research.cs.wisc.edu/htcondor/manual/v8.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">
         Execute node
     </a> 
     running as root, the user nicknames must represent actual Unix account.
@@ -309,7 +309,7 @@ The table below acts as a quick reference guide for configuring GSI in glideinWM
     </blockquote>
 </div>
 <div class="section">
-<h3>  3.3 Configure Condor security</h3>
+<h3>  3.3 Configure HTCondor security</h3>
     <p>Force GSI authentication in
     <b>/etc/condor/condor_config</b>, by adding:
     <blockquote>
@@ -328,7 +328,7 @@ The table below acts as a quick reference guide for configuring GSI in glideinWM
       SEC_CLIENT_AUTHENTICATION = OPTIONAL<br/>
       <br/>
       # Grid Certificate directory<br/>
-      GSI_DAEMON_TRUSTED_CA_DIR=/opt/vdt/globus/TRUSTED_CA<br/>
+      GSI_DAEMON_TRUSTED_CA_DIR=/etc/grid-security/certificates<br/>
 
       <br/>
       ############################<br/>

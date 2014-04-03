@@ -221,8 +221,8 @@ individual entry point configuration.
         <div class="xml">
         &lt;glidein ... &gt;
         </div>
-    <p><b>Required</b> The main tag of the factory configuration.  See below for the 
-        paramters for this tag:
+    <p><b>Required</b> The main tag of the Factory configuration.  See below for the 
+        parameters for this tag:
     <ul>
     <li>
     <p>
@@ -231,7 +231,7 @@ individual entry point configuration.
         </div>
         <b>Required</b> The name
     of the configuration. It will be used to advertise the entry points,
-    will be defined as Condor glidein attribute <tt>GLIDEIN_Name</tt>,
+    will be defined as HTCondor glidein attribute <tt>GLIDEIN_Name</tt>,
     and is used also to create the directory names.
     Choose a short name that describes the set of Grid resources 
     it represents and append a version number (like 
@@ -253,7 +253,7 @@ individual entry point configuration.
         &lt;glidein
         schedd_name=&quot;<I>schedd name[,schedd name]*</I>&quot;&gt;
         </div>
-    <b>Recommended</b> If you want to use multiple Condor schedds or you don't like the
+    <b>Recommended</b> If you want to use multiple HTCondor schedds or you don't like the
     default name, you definitely need to set this. If you specify more
     than a single schedd, the various entries will be equally spread
     among all the listed schedds.  Possible values include (but are not limited to): <br/>
@@ -288,7 +288,7 @@ individual entry point configuration.
     <div class="xml">
         &lt;glidein advertise_with_multiple=&quot;<I>True|False</I>&quot; &gt;
     </div>
-        <b>Optional</b> Defines if the factory should use -multiple to advertise its classads (requires Condor 7.5.4+).  
+        <b>Optional</b> Defines if the factory should use -multiple to advertise its classads (requires HTCondor 7.5.4+).  
     </li>
     </ul>
     </li>
@@ -323,10 +323,10 @@ individual entry point configuration.
             base_dir=&quot;<I>directory</I>&quot;
             version=&quot;<I>condor version</I>&quot;/&gt;
         </div>
-    <p><b>Required</b> Where to find the Condor binaries.
+    <p><b>Required</b> Where to find the HTCondor binaries.
     You can list as many as you need,
     but at least one is required. This lets you configure glideins for
-    different sites to use different version of condor binaries based on
+    different sites to use different version of HTCondor binaries based on
     architecture, os of the worker nodes that could be found on the site.<br/>
     It is recommended to have one default entry with
         <b>os=&quot;default&quot; arch=&quot;default&quot;
@@ -625,7 +625,7 @@ override the global arguments if present.
         </div>
     <b>Optional</b> The current implementation has been
     tested with Globus v2 Gatekeepers only, but this tag can specify 
-    additional Condor Grid types.
+    additional HTCondor Grid types.
     </li>
     <LI>
         <div class="xml">
@@ -637,8 +637,8 @@ override the global arguments if present.
     on the worker node.
     <i>Note: Most OSG sites are known to crash if you use your
     starting directory to run. </i>  For those sites, it is good practice to
-    specify <tt>&quot;Condor&quot;</tt> if they are
-    running Condor as the underlying batch system, and
+    specify <tt>&quot;HTCondor&quot;</tt> if they are
+    running HTCondor as the underlying batch system, and
     <tt>&quot;OSG&quot;</tt>
     else.  On EGEE sites, &quot;.&quot; is usually fine.
     </li>
@@ -752,9 +752,9 @@ override the global arguments if present.
 
         </div>
     <p>
-    Attributes you want to publish into the Condor classad.
+    Attributes you want to publish into the HTCondor classad.
     These are used by the
-    <A HREF="../frontend/index.html#match_expr">VO frontend matchmaking</A>
+    <A HREF="../frontend/index.html#match_expr">VO Frontend matchmaking</A>
     and job matchmaking.</p>
     <p>Example
     attributes are:</P>
@@ -811,7 +811,7 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
     const=&quot;True&quot; parameter=&quot;True&quot; 
     publish=&quot;False&quot;/&gt;
     </div>
-    <b>Recommended</b> Select a non-default condor binary.<BR/>
+    <b>Recommended</b> Select a non-default HTCondor binary.<BR/>
 
     The entry will default to 
     <tt><B>CONDOR_OS=&quot;default&quot; CONDOR_ARCH=&quot;default&quot; 
@@ -844,17 +844,17 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
         </div>
         <p>
         This argument allows you to create a whitelist of
-        vo frontends that can access this entry point.
+        vo Frontends that can access this entry point.
         If this tag is blank or missing, it is assumed that
-        all vo frontends can submit glideins to this entry point.
+        all VO Frontends can submit glideins to this entry point.
         However, if any allow_frontend tags exist, the entry point
         will <b>only</b> allow those frontends to submit glideins.
-        The name of the frontend must match the name given in
+        The name of the Frontend must match the name given in
         the security class above in the configuration.
         </p>
         <p>
-        For each frontend, you must tell it which security classes
-        (e.g. proxies) can use the frontend.  The factory will
+        For each Frontend, you must tell it which security classes
+        (e.g. proxies) can use the Frontend.  The Factory will
         only submit glideins on behalf of these security classes.
         If you want all security classes to be allowed, you can put
         "All" in this field.  Otherwise, it must match the security
@@ -893,7 +893,7 @@ the same service proxy. While this has the advantage of simplifying
 the architecture and improve both efficiency and VO control, it does
 have a few problems:</P>
 <UL>
-    <LI><P STYLE="margin-bottom: 0in">All glidein scripts and Condor
+    <LI><P STYLE="margin-bottom: 0in">All glidein scripts and HTCondor
     daemons, AND user jobs all run under the same Unix UID. So users can
     interfere with the glidein tasks, possibly hacking the
     system.&nbsp;<BR>Plus, when several glideins start on the same node
@@ -962,7 +962,7 @@ worker nodes. gLExec is a service that will take the following:</P>
     GLEXEC = /bin/false 
     </blockquote>
 
-<P>As of version 7.1.3 of Condor, a new, better glexec operation mode
+<P>As of version 7.1.3 of HTCondor, a new, better glexec operation mode
 is supported; in the old operation mode, condor_startd invoked
 condor_starter through glexec. The result was that condor_starter was
 running under the same UID as the user job, leaving it vulnerable to
@@ -984,8 +984,8 @@ much more secure.</P>
 <P>
 Note that you still need to set <tt><B>GLEXEC_BIN</B></tt>,
 too.</p>
-    <p><B>Warning</B>: Use it only if you use Condor 7.1.3 or later,
-as it will not work on any older Condor version!</P>
+    <p><B>Warning</B>: Use it only if you use HTCondor 7.1.3 or later,
+as it will not work on any older HTCondor version!</P>
 
 <H4 CLASS="western"><A NAME="glexec_troubleshooting"></A>Troubleshooting</H4>
 <p>
@@ -1020,7 +1020,7 @@ as it will not work on any older Condor version!</P>
     accessible by both the starting user and the target user(s). The
     directory you usually start in the Grid is most often not readable
     by any other user, so you must select something else. 
-    Both <tt>Condor</tt>
+    Both <tt>HTCondor</tt>
     and <tt>OSG</tt> should be fine, or you can
     specify any other fixed, WN-local location. 
     </p>
@@ -1030,146 +1030,27 @@ as it will not work on any older Condor version!</P>
 <H3 CLASS="western">
 <A NAME="private_net"></A>Private networks and firewalls</H3>
 
-<P>Condor daemons need two way communication in order to work
+<P>HTCondor daemons need two way communication in order to work
 properly. This clashes with the network policies of most Grid sites,
 that have worker nodes in private networks or implement a restrictive
 firewall. 
 </P>
-<P>Condor provides two mechanisms to address this: 
+<P>HTCondor provides the CCB mechanism to address this. It was providing also a second mechanism, GCB, 
+but it is no more supported in recent versions, so remove it if you still have it in your configuration.
 </P>
-<UL>
-    <LI><A HREF="#gcb">GCB</A> and </li>
-    <LI><A HREF="#ccb">CCB</A> (since v7.3.0). </li>
-</UL>
-<H4 CLASS="western"><A NAME="gcb"></A>GCB - Generic Connection Broker</H4>
 
-<p>
-    GCB was the first Condor
-    implementation that allowed it to work in restrictive network
-    environments. <BR/>
-    The detailed description of GCB is beyond the
-    scope of this manual and you should refer to the Condor
-    documentation available at
-    <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_7Networking_includes.html#sec:GCB">http://www.cs.wisc.edu/condor/manual/v7.2/3_7Networking_includes.html#sec:GCB</A>.
-    Here you will find only the parameters needed to enable it in the
-    glideins.
-    </p><p>
-    To use Condor with GCB, you need to specify: 
-    <div class="xml">
-    &lt;glidein&gt;<BR/>
-    &nbsp;<i>[&lt;entries&gt;&lt;entry&gt;]</i><BR/>
-
-    &nbsp;&lt;attrs&gt;<BR/>
-    &nbsp;&nbsp;&lt;attr name=&quot;GCB_LIST&quot;
-    value=&quot;<I>IP[:PORT],IP[:PORT],...</I>&quot;
-    publish=&quot;False&quot;
-    parameter=&quot;True&quot;/&gt;<br/>
-
-    &nbsp;&nbsp;&lt;attr name=&quot;GCB_ORDER&quot;
-    value=&quot;<I>NONE|RANDOM|GCBLOAD|ROUNDROBIN|SEQUENTIAL</i>&quot;
-    publish=&quot;False&quot;
-    parameter=&quot;True&quot;/&gt;
-
-    </div>
-<P> where:</P>
-<UL>
-    <LI><P><b>NONE</b>: Do
-    not use GCB (a good way to selectively disable it) 
-    </P>
-    <LI><P><b>RANDOM</b>: Randomly distributes between the listed GCBs 
-    </P>
-    <LI><P><b>ROUNDROBIN</b> (or <b>RR</b>): Round robin between them,
-    based on the job submission number. 
-    </P>
-
-    <LI><P><b>SEQUENTIAL</b> (or <b>SEQ</b>): Keep the order.
-    Essentially always tries the first one first (the others will be
-    used only if the first one fails) 
-    </P>
-    <LI><P><b>GCBLOAD</b>i: Order by GCB load.
-    All GCBs must support the <tt>freesockets</tt>
-    query&nbsp;and you must upload the <tt>gcb_broker_query</tt>
-
-    binary, too. See below. 
-    </P>
-</UL>
-<p>
-    If your GCBs support <tt>freesockets</tt>
-    queries (v7.0 and above), you most probably want to protect your
-    glideins from failing due to an overloaded GCB. To do that,
-    <tt>gcb_broker_query</tt> binary needs to be
-    part of the Condor distribution you are using. You also need to
-    decide what is the minimum number of free sockets you are
-    comfortable with: 
-    <div class="xml">
-    &lt;glidein&gt;&lt;attrs&gt;&lt;attr
-    name=&quot;GCB_MIN_FREE&quot;
-
-    value=&quot;<I>number</I>&quot;
-    publish=&quot;False&quot;
-    parameter=&quot;True&quot;/&gt;
-    </div>
-    <p>
-
-    I would suggest you set it to at least 100, possibly more. Most
-    Condor versions use around 5 sockets per VM (depending on
-    configuration).
-    </p><p>You can also specify a default GCB port
-    (defaults to <tt>65432</tt>): 
-    </p>
-    <div class="xml">
-    &lt;glidein&gt;&lt;attrs&gt;&lt;attr
-    name=&quot;GCB_PORT&quot;
-    value=&quot;<I>port</I>&quot;
-
-    publish=&quot;False&quot;
-    parameter=&quot;True&quot;/&gt;
-    </div>
-    <p>
-    (Note that Condor GCB right now does not support any other port
-    number).
-    </p>
-    <p>Also, for more flexibility, you can let 
-    <A HREF="../frontend/index.html#management">the frontends</A> 
-    to provide their own GCB servers, by setting
-    <tt><B>publish=&quot;True&quot; const=&quot;False&quot;</b></tt>.
-    </p><p>
-
-    If you are more sophisticated, and want to use 
-    <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_7Networking_includes.html#SECTION00473500000000000000">GCB routing tables</A> , too, add: 
-    <div class="xml">
-    &lt;glidein&gt;<BR/>
-    &nbsp;<i>[&lt;entries&gt;&lt;entry&gt;]</i><BR/>
-    &nbsp;&lt;files&gt;<BR/>
-
-    &nbsp;&nbsp;&lt;file absfname=&quot;<I>path to routing file</I>&quot;
-    relfname=&quot;gcb_route.cfg&quot;/&gt;<BR/>
-    &nbsp;&lt;/files&gt;<BR/>
-    &nbsp;&lt;attrs&gt;<BR/>
-    &nbsp;&nbsp;&lt;attr name=&quot;GCB_REMAP_ROUTE&quot;
-
-    value=&quot;gcb_route.cfg&quot;
-    publish=&quot;False&quot;
-    parameter=&quot;True&quot;/&gt;
-    </div>
-<P>
-Please be aware that the above will configure the glideins only;
-you still need to properly configure the Collector and the submit
-machines. 
-
-</P>
 <H4 CLASS="western"><A NAME="ccb"></A>CCB - Condor Connection Broker</H4>
 <p>
     CCB was introduced in Condor v7.3.0
     to replace GCB in most circumstances. It is much more reliable than
     GCB and also easier to setup. <BR/>
     The detailed description of CCB is
-    beyond the scope of this manual and you should refer to the Condor
+    beyond the scope of this manual and you should refer to the HTCondor
     documentation available at
-    <A HREF="http://www.cs.wisc.edu/condor/manual/v7.3/3_7Networking_includes.html#sec:CCB">http://www.cs.wisc.edu/condor/manual/v7.3/3_7Networking_includes.html#sec:CCB</A>.
+    <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_7Networking_includes.html#sec:CCB">http://research.cs.wisc.edu/htcondor/manual/v8.0/3_7Networking_includes.html#sec:CCB</A>.
     Here you will find only the parameters needed to enable it in the
     glideins.
-    </p><p>To use Condor with CCB, you need to specify: 
+    </p><p>To use HTCondor with CCB, you need to specify: 
     <div class="xml">
     &lt;glidein&gt;<BR/>
     &nbsp;<i>[&lt;entries&gt;&lt;entry&gt;]</i><BR/>
@@ -1183,7 +1064,7 @@ machines.
     </div>
 <P>
 and you are done. Just make sure you follow the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.3/3_7Networking_includes.html#sec:CCB">suggested
-scalability guidelines described in the Condor manual</A>.</P>
+scalability guidelines described in the HTCondor manual</A>.</P>
 </div>
 
 <div class="section">
@@ -1204,7 +1085,7 @@ and the default values are:</P>
     <LI><B>DELEGATE_JOB_GSI_CREDENTIALS</B>=False</li>
 </UL>
 </tt>
-<P>As of Condor version 7.1.3 condor also supports a more efficient
+<P>As of HTCondor version 7.1.3 condor also supports a more efficient
 authentication mechanism between the condor_schedd/condor_shadow and
 condor_startd/condor_starter. This method uses the match ClaimId as a
 shared password for authentication between these daemons. Since using
@@ -1221,9 +1102,9 @@ should be used every time it is feasible.</P>
        ... <font color="red"><b>disabled</b></font>
     </blockquote>
 <p>
-    When enabled, this condor attribute <b>must</b> be set in the
+    When enabled, this HTCondor attribute <b>must</b> be set in the
     <B>condor_config</B> of the <B>submit machine</B>.<br/>
-    This option is not used by the Condor negotiator or collector and therefore
+    This option is not used by the HTCondor negotiator or collector and therefore
     not needed if they are installed separately.
 </p>
 
@@ -1239,7 +1120,7 @@ should be used every time it is feasible.</P>
 <H3 CLASS="western">
 <A NAME="tcp"></A>Using TCP to send updates to the Collector</H3>
 <p>
-    By default, Condor uses UDP packets
+    By default, HTCondor uses UDP packets
     to communicate between the glideins and the Collector. While more
     efficient than TCP, UDP packets are often blocked at the firewall,
     or lost on the WAN. 
@@ -1251,7 +1132,7 @@ should be used every time it is feasible.</P>
     <B>UPDATE_COLLECTOR_WITH_TCP</B>=False
     </blockquote>
 </p>
-<P>In glideinWMS, we enable the glideins to update the user collector using TCP by default.
+<P>In GlideinWMS, we enable the glideins to update the user collector using TCP by default.
 <BR>Please be aware that this will configure the glideins only; you
 still need to properly configure the Collector machine. See 
 <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_7Networking_includes.html#SECTION00474000000000000000">Condor documentation</A>
@@ -1260,7 +1141,7 @@ still need to properly configure the Collector machine. See
 
 <div class="section">
 <H3 CLASS="western"><A NAME="multicol"></A>Multiple Collectors</H3>
-<P>By default, Condor uses only one Collector for the 
+<P>By default, HTCondor uses only one Collector for the 
 <A HREF="../index.html#pool_glidein">glidein (user) pool</A>.
 However, if the load becomes too high on the collector, you can
 configure multiple collectors in a chain.  
@@ -1294,7 +1175,7 @@ export _CONDOR_CONDOR_VIEW_HOST=$COLH:9618</PRE>
     them. 
 
 </p><p>
-    The <A HREF="../frontend/index.html">VO frontend</A>
+    The <A HREF="../frontend/index.html">VO Frontend</A>
     will have to point the factory to a 
     <A HREF="../frontend/index.html#management">list of collectors</A>. 
 </p><p>
@@ -1311,9 +1192,9 @@ export _CONDOR_CONDOR_VIEW_HOST=$COLH:9618</PRE>
 <div class="section">
 <H3 CLASS="western">
 <A NAME="start_rank"></A>Setting the glidein start and rank&nbsp;condition</H3>
-<P>As with any Condor pool, you may need to set the startd 
-<A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_5Startd_Policy.html#SECTION00452000000000000000">start</A>
-and <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_5Startd_Policy.html#SECTION00454000000000000000">rank</A>
+<P>As with any HTCondor pool, you may need to set the startd 
+<A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_5Startd_Policy.html#SECTION00452000000000000000">start</A>
+and <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_5Startd_Policy.html#SECTION00454000000000000000">rank</A>
 conditions. <BR/>
 
 For a glidein, you can set this with the &lt;<B>attr</B>/&gt; options: 
@@ -1341,11 +1222,11 @@ For a glidein, you can set this with the &lt;<B>attr</B>/&gt; options:
 </div>
 <div class="section">
 <h3>Internal Configuration</h3>
-The configuration is parsed during the reconfiguration of the factory, and split into a number of files:
+The configuration is parsed during the reconfiguration of the Factory, and split into a number of files:
 <ul>
 <li>job.descript = is read by the daemon do decide how to work </li>
 <li>attributes.cfg = are fixed values, these are published in the factory classad</li>
-<li>params.cfg = are for values the frontend will change, also published in the factory classad</li>
+<li>params.cfg = are for values the frontend will change, also published in the Factory classad</li>
 </ul>
 For more information, see the <a href="design_entry.html#config">Entry Internals</a> page.
 
@@ -1359,10 +1240,10 @@ For more information, see the <a href="design_entry.html#config">Entry Internals
     The solution is to have multiple condor binaries.  The way to do this is to specify a tarball tag in the factory configuration file.  
 </p>
 <ol>
-    <li>Download the Condor binary from the 
-    <a target="_blank" href="http://www.cs.wisc.edu/htcondor/downloads-v2/download.pl">University of Wisconsin</a> site.
+    <li>Download the HTCondor binary from the 
+    <a target="_blank" href="http://research.cs.wisc.edu/htcondor/downloads/">University of Wisconsin</a> site.
       (Alternatively, You can build it from scratch on the architecture.
-      Refer to Condor instructions for this.)
+      Refer to HTCondor instructions for this.)
       <p/>
       The glideinwms pilot uses a subset of the condor binaries/libraries.
       The <tt>create_condor_tarball</tt>
@@ -1597,7 +1478,7 @@ cases, the glidein creation command adds the options listed below.</P>
 <p><b>Note:</b>
 <A NAME="ref"></A>Files and subsystems will be
 downloaded before the scripts. User provided scripts
-will be executed in the specified order, and before the Condor
+will be executed in the specified order, and before the HTCondor
 daemons are started up.</P>
 <UL>
     <LI>
@@ -1682,7 +1563,7 @@ daemons are started up.</P>
     scripts.</p>
     <UL>
         <LI><B>absfname</B>: 
-        Path to the costum tarball. 
+        Path to the custom tarball. 
         (like &quot;/tmp/mytar_v12.5.tgz&quot;) </li>
         <LI><B>conf_sw</B>: 
         Name of a configuration switch. 
@@ -1751,14 +1632,14 @@ together.</P>
         <h3 class="western">XSLT Plugins to extend configuration</h3>
         <p>
         Starting in v3.2.1, you can use XSL transformations (XSLT) to manage
-complex configuration files. During the reconfig process, the glidein factory
+complex configuration files. During the reconfig process, the glidein Factory
 applies XSL transformations available to it in the directory configured by the
 environment variable GWMS_XSLT_PLUGIN_DIR. (It is also available by
 supplying the -xslt_plugin_dir option to the reconfig_glidein and
 reconfig_frontend commands as shown below.)</p>
 <p>        Setting the variable via sysconfig files are supported:
 /etc/sysconfig/gwms-factory for the factory service and
-/etc/sysconfig/gwms-frontend for the frontend service,
+/etc/sysconfig/gwms-frontend for the Frontend service,
 with the following contents:</p>
         <pre>
 <b>prompt$</b> cat /etc/sysconfig/gwms-factory 

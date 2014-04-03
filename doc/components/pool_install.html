@@ -40,14 +40,14 @@
     <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
 <div class="content">
     <div class="heading">
-    <h2>User Pool</h2>
+    <h2>User Schedd</h2>
 	<ul class="subcomponents">
 	     <li> <a href="./index.html">Overview</a></li>
 	     <li> <a href="./prerequisites.html">Prerequisites</a></li>
-	     <li> <a href="./collector_install.html">User Collector</a></li>
+	     <li> <a href="./collector_install.html">User Pool</a></li>
 	     <li> User Schedd</li>
          <li> <a href="./gsi.html">GSI</a></li>
-	     <li class="last"> <a href="./condor.html">Condor</a></li>
+	     <li class="last"> <a href="./condor.html">HTCondor</a></li>
 	</ul>
         <h3>User Schedd Install</h3>
 	</div>
@@ -66,7 +66,7 @@
 <div class="related">
 <u><b>Installation Procedure</b></u><br><br>
 
-Preceded by: <a href="./collector_install.html">User Collector</a><br>
+Preceded by: <a href="./collector_install.html">User Pool</a><br>
 Followed by: <a href="../frontend/install.html">Glidein Frontend</a><br>
 <br/>
 Install as: root
@@ -78,7 +78,7 @@ Install as: root
             <p><img src="../images/overview_schedd.png" name="Schedd Overview" align="right" border="0"></p>
             <p>
                 This node will be a 
-                <a target="_blank" href="http://www.cs.wisc.edu/condor/manual/v7.4/3_1Introduction.html#SECTION00411000000000000000">Condor Submit node</a>
+                <a target="_blank" href="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_1Introduction.html#SECTION00411000000000000000">HTCondor Submit node</a>
                 for the user jobs.  You can install many such nodes to improve scalability of your system.
             </p>
     </div>
@@ -128,12 +128,13 @@ Install as: root
         created and put in place before running the installer.  The following is a list of DNs the installer will ask for:
         </p><ul>
             <li>Glidein Submitter cert/proxy DN</li>
-            <li>Pool Collector cert/proxy DN</li>
-            <li>VO Frontend cert/proxy DN</li>
+            <li>User Pool (Collector) cert/proxy DN</li>
+            <li>Glidein (VO) Frontend cert/proxy DN</li>
 
         </ul>
-        <strong>Note:</strong> In some places the installer will also ask for nicknames to go with the DNs.  These do not matter when installing
-        the user schedds. 
+        <strong>Note:</strong> In some places the installer will also ask for nicknames to go with the DNs.  
+        These nicknames are the HTCondor UID used in its configuration and mapfile. 
+        These do not matter when installing the user schedds. 
     <p></p>
     
     <h3><a name="before_install_misc">4.2 Miscellaneous Notes</a></h3>
@@ -147,8 +148,8 @@ Install as: root
     <h2><a name="condor">5. Installation instructions</a></h2>
     <p>
         The scheduler node software should be installed as root. While it is possible to run the schedds as a non-privileged user, it has some serious
-        security implications; see the <a target="_blank" href="http://www.cs.wisc.edu/condor/manual/v7.4/3_6Security.html#sec:Non-Root">Condor manual</a> for details.
-        The whole process is managed by a install script described below.
+        security implications; see the <a target="_blank" href="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_6Security.html#sec:Non-Root">HTCondor manual</a> for details.
+        The whole process is managed by the install script manage-glideins described below.
     </p>
 
     <p>Move into</p>
@@ -296,7 +297,7 @@ Install as: root
         for schedds.
         </td>
         <td>
-        This is only available in Condor 7.5.3+.</br>
+        This is only available in HTCondor 7.5.3+.</br>
         This can drastically reduce the number of ports used and thus improves
         scalability.</br>
         The default port is 9615.</br>
@@ -310,36 +311,47 @@ Install as: root
 
         <tr>
           <td>install_vdt_client</td>
-          <td align="center">y</td>
+          <td align="center">n</td>
           <td>Indicates if an OSG/VDT client should be installed if it is not already present in the <b>vdt_location</b> option location.
             </td>
           <td>
+              This should be set as <b>n</b> - so the installler will not attempt to install the OSG Client<br/>
+              You must pre-install OSG Client<br/>
+<!--
+			This installer will not attempt to reinstall this software if it is already 
+			present.</br>
+
 			Valid values:</br>
-			* <b>y</b> - installer will install a VDT client using the <b>vdt_location</b> and <b>pacman_location/_url</b> options specified.</br>
+			* <b>y</b> - installer will install a OSG Client using the <b>vdt_location</b> and <b>pacman_location/_url</b> options specified.</br>
 			* <b>n</b> - will not attempt to install the VDT client<br/><br/>
 			This installer will not attempt to reinstall this software if it is already 
 			present.</br>
+-->
           </td>
         </tr>
 
         <tr>
             <td>vdt_location</td>
             <td>    /path/to/glidein/vdt</td>
-            <td>   The location of the OSG/VDT client software.</td> 
+            <td>   The location of the OSG/VDT client software. 
+                   Used only if <b>install_vdt_client</b> option is 'y'</td> 
             <td>
-			The installer looks for the existence of 2 files to verify if this is a valid 
+			Leave this blank (since the <b>install_vdt_client</b> option is should always be 'n'
+<!--
+The installer looks for the existence of 2 files to verify if this is a valid 
 			OSG/VDT client installation:</br>
 			1. setup.sh</br>
 			2. existence of a voms-proxy-init executable.</br></br>
 			If the <b>install_vdt_client</b> option is 'n', then this option's value should 
 			be empty/blank.</br>
+-->
         </tr> 
 
         <tr>
         <td>glideinwms_location     </td>
         <td>/path/to/glideinWMS    </td>
         <td>Directory of the glideinWMS software.   </td>
-        <td>Since this is a Condor service only, this software is only used during the installation process. </td>
+        <td>Since this is a HTCondor service only, this software is only used during the installation process. </td>
         </tr>
 
 	</tbody></table> 
@@ -348,7 +360,7 @@ Install as: root
 	<p>For example configuration files, see <a href="configuration_install.html">here</a>.
 	</p>
 	   
-    <p>The installer allows you to automatically start the Condor daemons.  To start them on your own, source the condor env script and execute:</p>
+    <p>The installer allows you to automatically start the HTCondor daemons.  To start them on your own, source the condor env script and execute:</p>
     <blockquote>/path/to/condor/location/condor start</blockquote>
     
     <p>To stop the Condor daemons, source the condor env script and execute:</p>
@@ -361,7 +373,7 @@ Install as: root
    
     <h2><a name="submit">6. Submitting user jobs</a></h2>
     <p>
-        From the user point of view, this is just a regular Condor pool.<br><br>
+        From the user point of view, this is just a regular HTCondor pool.<br><br>
 
         However, since the resources potentially come from all over the world, users need to create more complex <b>Requirements</b> line in their JDL, 
         in order to prevent the jobs from landing on sites that cannot run their jobs.<br><br>
@@ -377,7 +389,7 @@ Install as: root
     <p>Some glideins may also need to properly identify the final user, using GSI authentication. A user should thus add the following line:</p>
     <blockquote>x509userproxy = <i>&lt;path to X509 proxy&gt;</i></blockquote>
     
-    <p>to their Condor submission file.</p>
+    <p>to their HTCondor submission file.</p>
                    
     </div>
 

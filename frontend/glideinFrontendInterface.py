@@ -214,81 +214,141 @@ def format_condor_dict(data):
 
 ############################################
 
+# TODO: PM
+# At some point we should change this class to watch for credential file 
+# updates and cache the contents/info between updates. This should further 
+# reduce calls to openssl and maintain consistency of credential info
+# between cycles. If the file does not change the info in it remains same.
+# This also means that the credential objects should be created much before
+# and not for every iteration.
+
 class Credential:
-    def __init__(self,proxy_id,proxy_fname,elementDescript):
+    def __init__(self, proxy_id, proxy_fname, elementDescript):
         self.req_idle=0
         self.req_max_run=0
-        #self.advertize=False
-        try:
-            proxy_security_classes=elementDescript.merged_data['ProxySecurityClasses']
-            proxy_trust_domains=elementDescript.merged_data['ProxyTrustDomains']
-            proxy_types=elementDescript.merged_data['ProxyTypes']
-            proxy_keyfiles=elementDescript.merged_data['ProxyKeyFiles']
-            proxy_pilotfiles=elementDescript.merged_data['ProxyPilotFiles']
-            proxy_vm_ids = elementDescript.merged_data['ProxyVMIds']
-            proxy_vm_types = elementDescript.merged_data['ProxyVMTypes']
-            proxy_creation_scripts = elementDescript.merged_data['ProxyCreationScripts']
-            proxy_update_frequency = elementDescript.merged_data['ProxyUpdateFrequency']
-            self.proxy_id=proxy_id
-            self.filename=proxy_fname
-            if proxy_types.has_key(proxy_fname):
-                self.type=proxy_types[proxy_fname]
-            else:
-                self.type="Unknown"
-            if proxy_security_classes.has_key(proxy_fname):
-                    self.security_class=proxy_security_classes[proxy_fname]
-            else:
-                    self.security_class=proxy_id
-            if proxy_trust_domains.has_key(proxy_fname):
-                    self.trust_domain=proxy_trust_domains[proxy_fname]
-            else:
-                    self.trust_domain="None"
+        self.advertize=False
 
-            if proxy_keyfiles.has_key(proxy_fname):
-                self.key_fname=proxy_keyfiles[proxy_fname]
-                proxy_fd=open(self.key_fname,'r')
-                self.key_data=proxy_fd.read()
-                proxy_fd.close()
-            
-            if proxy_pilotfiles.has_key(proxy_fname):
-                logSupport.log.info("pilot")
-                logSupport.log.info(proxy_pilotfiles[proxy_fname])
-                self.pilot_fname=proxy_pilotfiles[proxy_fname]
-                proxy_fd=open(self.pilot_fname,'r')
-                self.pilot_data=proxy_fd.read()
-                proxy_fd.close()
-            
-            self.vm_id = None    
-            if proxy_vm_ids.has_key(proxy_fname):
-                self.vm_id = proxy_vm_ids[proxy_fname]
-            
-            self.vm_type = None
-            if proxy_vm_types.has_key(proxy_fname):
-                self.vm_type = proxy_vm_types[proxy_fname]
-            
-            if proxy_creation_scripts.has_key(proxy_fname):
-                self.creation_script=proxy_creation_scripts[proxy_fname]
-            if proxy_update_frequency.has_key(proxy_fname):
-                self.update_frequency=int(proxy_update_frequency[proxy_fname])
-            else:
-                self.update_frequency=-1
-            
-            proxy_fd=open(proxy_fname,'r')
-            self.proxy_data=proxy_fd.read()
-            proxy_fd.close()
+        proxy_security_classes=elementDescript.merged_data['ProxySecurityClasses']
+        proxy_trust_domains=elementDescript.merged_data['ProxyTrustDomains']
+        proxy_types=elementDescript.merged_data['ProxyTypes']
+        proxy_keyfiles=elementDescript.merged_data['ProxyKeyFiles']
+        proxy_pilotfiles=elementDescript.merged_data['ProxyPilotFiles']
+        proxy_vm_ids = elementDescript.merged_data['ProxyVMIds']
+        proxy_vm_types = elementDescript.merged_data['ProxyVMTypes']
+        proxy_creation_scripts = elementDescript.merged_data['ProxyCreationScripts']
+        proxy_update_frequency = elementDescript.merged_data['ProxyUpdateFrequency']
+        self.proxy_id = proxy_id
+        self.filename = proxy_fname
+        self.type = proxy_types.get(proxy_fname, "Unknown")
+        self.security_class = proxy_security_classes.get(proxy_fname, proxy_id)
+        self.trust_domain = proxy_trust_domains.get(proxy_fname, "None")
+        self.update_frequency = int(proxy_update_frequency.get(proxy_fname, -1))
+
+        # Following items can be None
+        self.vm_id = proxy_vm_ids.get(proxy_fname)
+        self.vm_type = proxy_vm_types.get(proxy_fname)
+        self.creation_script = proxy_creation_scripts.get(proxy_fname)
+        self.key_fname = proxy_keyfiles.get(proxy_fname)
+        self.pilot_fname = proxy_pilotfiles.get(proxy_fname)
+
+        # Will be initialized when getId() is called
+        self._id = None
+
+
+    def getId(self, recreate=False):
+        """
+        Generate the Credential id if we do not have one already
+        Since the Id is dependent on the credential content for proxies
+        recreate them if asked to do so
+        """
+
+        if (not self._id) or recreate:
+            # Create the credential id
+            self.create()
+            self._id = self.file_id(self.getIdFilename())
+        return self._id
+   
+
+    def getIdFilename(self):
+        """
+        Get credential file used to generate the credential id
+        """
+
+        # This checks seem hacky. Ideally checking against the credetnial type
+        # to get the filename is right thing to do
+
+        cred_file = None
+        if self.filename:
+            cred_file = self.filename
+        elif self.key_fname:
+            cred_file = self.key_fname
+        elif self.pilot_fname:
+            cred_file = self.pilot_fname
+        return cred_file
+
+
+    def create(self):
+        """
+        Generate the credential
+        """
+
+        if self.creation_script:
+            logSupport.log.debug("Creating credential using %s" % (self.creation_script))
+            try:
+                condorExe.iexe_cmd(self.creation_script)
+            except:
+                logSupport.log.exception("Creating credential using %s failed" % (self.creation_script))
+                self.advertize = False
+
+            # Recreating the credential can result in ID change
+            self._id = self.file_id(self.getIdFilename())
+
+
+    def createIfNotExist(self):
+        """
+        Generate the credential if it does not exists.
+        """
+
+        if self.filename and (not os.path.exists(self.filename)):
+            logSupport.log.debug("Credential %s does not exist." % (self.filename))
+            self.create()
+
+
+    def getString(self, cred_file=None):
+        """
+        Based on the type of credentials read appropriate files and return
+        the credentials to advertise as a string. The output should be
+        encrypted by the caller as required.
+        """
+
+        cred_data = ''
+        if not cred_file:
+            # If not file specified, assume the file used to generate Id
+            cred_file = self.getIdFilename()
+        try:
+            data_fd = open(cred_file)
+            cred_data = data_fd.read()
+            data_fd.close()
         except:
-            logSupport.log.error("Could not read credential file '%s'"%proxy_fname)
-            pass
-        
+            # This credential should not be advertised
+            self.advertize = False
+            logSupport.log.exception("Failed to read credential %s: " % cred_file)
+        return cred_data
+
+
+    # PM: Why are the usage details part of Credential Class?
+    #     This is overloading the purpose of Credential Class
     def add_usage_details(self,req_idle=0,req_max_run=0):
         self.req_idle=req_idle
         self.req_max_run=req_max_run
         
+
     def get_usage_details(self):
         return (self.req_idle,self.req_max_run)
     
+
     def file_id(self,filename,ignoredn=False):
-        if (("grid_proxy" in self.type)and not ignoredn):
+        if (("grid_proxy" in self.type) and not ignoredn):
             dn_list = condorExe.iexe_cmd("openssl x509 -subject -in %s -noout" % (filename))
             dn = dn_list[0]
             hash_str=filename+dn
@@ -296,6 +356,7 @@ class Credential:
             hash_str=filename
         #logSupport.log.debug("Using hash_str=%s (%d)"%(hash_str,abs(hash(hash_str))%1000000))
         return str(abs(hash(hash_str))%1000000)
+
 
     def time_left(self):
         """
@@ -305,6 +366,7 @@ class Credential:
         """
         if (not os.path.exists(self.filename)):
             return 0
+
         if ("grid_proxy" in self.type) or ("cert_pair" in self.type):
             time_list=condorExe.iexe_cmd("openssl x509 -in %s -noout -enddate" % self.filename)
             if "notAfter=" in time_list[0]:
@@ -318,34 +380,40 @@ class Credential:
     def renew(self):
         """
         Renews credential if time_left()<update_frequency
-        Only works if type is grid_proxy 
+        Only works if type is grid_proxy or creation_script is provided
         """
         remaining=self.time_left()
-        if (remaining !=-1) and (self.update_frequency!=-1) and (remaining<self.update_frequency) and (self.creation_script is not None):
-            logSupport.log.debug("Updating proxy %s with creation_script %s" % (self.filename,self.creation_script))
-            condorExe.iexe_cmd(self.creation_script)
+        if ( (remaining !=-1) and (self.update_frequency!=-1) and 
+             (remaining<self.update_frequency) ): 
+            self.create()
+
 
     def __str__(self):
         output = ""
+        output += "id = %s\n" % self.getId()
+        output += "proxy_id = %s\n" % self.proxy_id
         output += "req_idle = %s\n" % self.req_idle
         output += "req_max_run = %s\n" % self.req_max_run
-        output += "proxy_id = %s\n" % self.proxy_id
         output += "filename = %s\n" % self.filename
         output += "type = %s\n" % self.type
         output += "security_class = %s\n" % self.security_class
         output += "trust_domain = %s\n" % self.trust_domain
-        #output += "proxy_data = %s\n" % self.proxy_data
+        #output += "proxy_data = %s\n" % self.getString(cred_file=self.filename)
         try:
             output += "key_fname = %s\n" % self.key_fname
+            #output += "key_data = %s\n" % self.getString(cred_file=self.key_fname)
             #output += "key_data = %s\n" % self.key_data
             output += "pilot_fname = %s\n" % self.pilot_fname
-            #output += "pilot_data = %s\n" % self.pilot_data
+            #output += "pilot_data = %s\n" % self.getString(cred_file=self.pilot_fname)
         except:
             pass
         output += "vm_id = %s\n" % self.vm_id
         output += "vm_type = %s\n" % self.vm_type        
         
         return output
+
+# PM: Credential.getId() should be much faster way of geting the Id
+#     Maybe CredentialCache is now obsolete? Can we get rid of it?
 
 class CredentialCache:
     def __init__(self):
@@ -492,6 +560,7 @@ class AdvertizeParams:
                  request_name, glidein_name,
                  min_nr_glideins, max_run_glideins,
                  glidein_params={}, glidein_monitors={},
+                 glidein_monitors_per_cred={},
                  glidein_params_to_encrypt=None, # params_to_encrypt needs key_obj
                  security_name=None, # needs key_obj
                  remove_excess_str=None):
@@ -506,6 +575,7 @@ class AdvertizeParams:
         self.remove_excess_str = remove_excess_str
         self.glidein_params = glidein_params
         self.glidein_monitors = glidein_monitors
+        self.glidein_monitors_per_cred = glidein_monitors_per_cred
         self.glidein_params_to_encrypt = glidein_params_to_encrypt
         self.security_name = security_name
 
@@ -518,6 +588,7 @@ class AdvertizeParams:
         output += "remove_excess_str = %s\n" % self.remove_excess_str
         output += "glidein_params = %s\n" % self.glidein_params
         output += "glidein_monitors = %s\n" % self.glidein_monitors
+        output += "glidein_monitors_per_cred = %s\n" % self.glidein_monitors_per_cred
         output += "glidein_params_to_encrypt = %s\n" % self.glidein_params_to_encrypt
         output += "security_name = %s\n" % self.security_name
         
@@ -557,6 +628,7 @@ class MultiAdvertizeWork:
             request_name,glidein_name,
             min_nr_glideins,max_run_glideins,
             glidein_params={},glidein_monitors={},
+            glidein_monitors_per_cred={},
             key_obj=None,                     # must be of type FactoryKeys4Advertize
             glidein_params_to_encrypt=None,   # params_to_encrypt needs key_obj
             security_name=None,               # needs key_obj
@@ -567,6 +639,7 @@ class MultiAdvertizeWork:
         params_obj=AdvertizeParams(request_name,glidein_name,
                                    min_nr_glideins,max_run_glideins,
                                    glidein_params,glidein_monitors,
+                                   glidein_monitors_per_cred,
                                    glidein_params_to_encrypt,security_name,
                                    remove_excess_str)
 
@@ -618,57 +691,29 @@ class MultiAdvertizeWork:
             fd.write('ClientName = "%s"\n'%self.descript_obj.my_name)
             for i in range(nr_credentials):
                 cred_el=x509_proxies_data[i]
-                cred_el.renew()
                 cred_el.advertize=True
-                if (hasattr(cred_el,'filename')):
-                    try:
-                        if (not os.path.exists(cred_el.filename)) and (cred_el.creation_script is not None):
-                            logSupport.log.debug("Proxy %s didn not exist, calling creation_script %s" % (cred_el.filename,cred_el.creation_script))
-                            condorExe.iexe_cmd(cred_el.creation_script)
-                        data_fd=open(cred_el.filename)
-                        cred_data=data_fd.read()
-                        data_fd.close()
-                    except:
-                        cred_el.advertize=False
-                        logSupport.log.exception("Advertising global credential %s failed" % cred_el.filename)
-                        continue
-                    glidein_params_to_encrypt[cred_el.file_id(cred_el.filename)]=cred_data
-                    if (hasattr(cred_el,'security_class')):
-                        # Convert the sec class to a string so the Factory can interpret the value correctly
-                        glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(cred_el.filename)]=str(cred_el.security_class)
-                if (hasattr(cred_el,'key_fname')):
-                    try:
-                        data_fd=open(cred_el.key_fname)
-                        cred_data=data_fd.read()
-                        data_fd.close()
-                    except:
-                        cred_el.advertize=False
-                        logSupport.log.exception("Advertising global credential %s failed: " % cred_el.filename)
-                        continue
-                        
-                    glidein_params_to_encrypt[cred_el.file_id(cred_el.key_fname)]=cred_data
-                    if (hasattr(cred_el,'security_class')):
-                        # Convert the sec class to a string so the Factory can interpret the value correctly
-                        glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(cred_el.key_fname)]=str(cred_el.security_class)
-                if (hasattr(cred_el,'pilot_fname')):
-                    try:
-                        data_fd=open(cred_el.pilot_fname)
-                        cred_data=data_fd.read()
-                        data_fd.close()
-                    except:
-                        cred_el.advertize=False
-                        logSupport.log.exception("Advertising global credential %s failed: " % cred_el.filename)
-                        continue
-                    glidein_params_to_encrypt[cred_el.file_id(cred_el.pilot_fname)]=cred_data
-                    if (hasattr(cred_el,'security_class')):
-                        # Convert the sec class to a string so the Factory can interpret the value correctly
-                        glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(cred_el.pilot_fname)]=str(cred_el.security_class)
+                cred_el.renew()
+
+                # Renew already creates it. May not need recreate
+                cred_el.createIfNotExist()
+                cred_data = cred_el.getString()
+                if not cred_el.advertize:
+                    # Problem with the credential creation
+                    # Do not advertise
+                    continue
+
+                glidein_params_to_encrypt[cred_el.getId()] = cred_data
+                # Check explicitly for None only
+                if (cred_el.security_class is not None):
+                    # Convert the sec class to a string so the
+                    # factory can interpret the value correctly
+                    glidein_params_to_encrypt["SecurityClass"+cred_el.getId()] = str(cred_el.security_class)
+
             if (factory_pool in self.global_key):
                 key_obj=self.global_key[factory_pool]
             if key_obj is not None:
                 fd.write(string.join(key_obj.get_key_attrs(),'\n')+"\n")
                 for attr in glidein_params_to_encrypt.keys():
-                    #logSupport.log.debug("Encrypting (%s,%s)"%(attr,glidein_params_to_encrypt[attr]))
                     el = key_obj.encrypt_hex(glidein_params_to_encrypt[attr])
                     escaped_el = string.replace(string.replace(str(el), '"', '\\"'), '\n', '\\n')
                     fd.write('%s%s = "%s"\n' % (frontendConfig.encrypted_param_prefix, attr, escaped_el))
@@ -757,6 +802,7 @@ class MultiAdvertizeWork:
 
         for i in range(nr_credentials):
             fd=None
+            glidein_monitors_this_cred = {}
             try:
                 encrypted_params={} # none by default
                 glidein_params_to_encrypt=params_obj.glidein_params_to_encrypt
@@ -773,7 +819,7 @@ class MultiAdvertizeWork:
                     logSupport.log.debug("Checking Credential file %s ..."%(credential_el.filename))
                     if credential_el.advertize==False:
                         filestr="(filename unknown)"
-                        if hasattr(credential_el,'filename'):
+                        if credential_el.filename:
                             filestr=credential_el.filename
                         logSupport.log.warning("Credential file %s had some earlier problem in loading so not advertizing, skipping..."%(filestr))
                         continue
@@ -799,7 +845,7 @@ class MultiAdvertizeWork:
                     if "key_pair" in credential_el.type:
                         glidein_params_to_encrypt['PublicKey']=file_id_cache.file_id(credential_el, credential_el.filename)
                         glidein_params_to_encrypt['PrivateKey']=file_id_cache.file_id(credential_el, credential_el.key_fname)
-                    if hasattr(credential_el,'pilot_fname'):
+                    if credential_el.pilot_fname:
                         glidein_params_to_encrypt['GlideinProxy']=file_id_cache.file_id(credential_el, credential_el.pilot_fname)
                     
                     if "vm_id" in credential_el.type:
@@ -810,6 +856,8 @@ class MultiAdvertizeWork:
                     (req_idle,req_max_run)=credential_el.get_usage_details()
                     logSupport.log.debug("Advertizing credential %s with (%d idle, %d max run) for request %s"%(credential_el.filename, req_idle, req_max_run, params_obj.request_name))
                 
+                    glidein_monitors_this_cred = params_obj.glidein_monitors_per_cred.get(credential_el.getId(), {})
+
                 if (frontendConfig.advertise_use_multi==True):
                     fname=self.adname
                     cred_filename_arr.append(fname)
@@ -844,19 +892,30 @@ class MultiAdvertizeWork:
                 fd.write('ReqRemoveExcess = "%s"\n'%params_obj.remove_excess_str)
                 fd.write('WebMonitoringURL = "%s"\n'%descript_obj.monitoring_web_url)
                          
-                # write out both the params and monitors
+                # write out both the params 
                 for (prefix, data) in ((frontendConfig.glidein_param_prefix, params_obj.glidein_params),
-                                  (frontendConfig.glidein_monitor_prefix, params_obj.glidein_monitors),
-                                  (frontendConfig.encrypted_param_prefix, encrypted_params)):
+                                       (frontendConfig.encrypted_param_prefix, encrypted_params)):
                     for attr in data.keys():
-                        el = data[attr]
-                        if type(el) == type(1):
-                            # don't quote ints
-                            fd.write('%s%s = %s\n' % (prefix, attr, el))
-                        else:
-                            escaped_el = string.replace(string.replace(str(el), '"', '\\"'), '\n', '\\n')
-                            fd.write('%s%s = "%s"\n' % (prefix, attr, escaped_el))
-                            
+                        writeTypedClassadAttrToFile(fd,
+                                                    '%s%s' % (prefix, attr),
+                                                    data[attr])
+
+                for attr_name in params_obj.glidein_monitors:
+                    prefix = frontendConfig.glidein_monitor_prefix
+                    #attr_value = params_obj.glidein_monitors[attr_name] 
+                    if (attr_name == 'RunningHere') and glidein_monitors_this_cred:
+                        # This double check is for backward compatibility
+                        attr_value = glidein_monitors_this_cred.get(
+                                         'GlideinsRunning', 0)
+                    else:
+                        attr_value = glidein_monitors_this_cred.get(
+                                         attr_name,
+                                         params_obj.glidein_monitors[attr_name])
+                    writeTypedClassadAttrToFile(fd,
+                                                '%s%s' % (prefix, attr_name),
+                                                attr_value)
+                    
+
                 # Update Sequence number information
                 if advertizeGCCounter.has_key(classad_name):
                     advertizeGCCounter[classad_name] += 1
@@ -875,6 +934,19 @@ class MultiAdvertizeWork:
                     os.remove(fname)
                 raise
         return cred_filename_arr
+
+
+
+def writeTypedClassadAttrToFile(fd, attr_name, attr_value):
+    """
+    Given the FD, type check the value and write the info the classad file
+    """
+    if type(attr_value) == type(1):
+        # don't quote ints
+        fd.write('%s = %s\n' % (attr_name, attr_value))
+    else:
+        escaped_value = string.replace(string.replace(str(attr_value), '"', '\\"'), '\n', '\\n')
+        fd.write('%s = "%s"\n' % (attr_name, escaped_value))
 
 
 # Remove ClassAd from Collector

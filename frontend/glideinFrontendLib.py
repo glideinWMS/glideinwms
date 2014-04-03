@@ -31,10 +31,25 @@ from glideinwms.lib import logSupport
 # If not all the jobs of the schedd has to be considered,
 # specify the appropriate constraint
 #
-def getCondorQ(schedd_names, constraint=None, format_list=None):
+def getCondorQ(schedd_names, constraint=None, format_list=None,
+               want_format_completion=True, job_status_filter=(1,2)):
     if format_list is not None:
-        format_list = condorMonitor.complete_format_list(format_list, [('JobStatus', 'i'), ('EnteredCurrentStatus', 'i'), ('ServerTime', 'i'), ('RemoteHost', 's')])
-    return getCondorQConstrained(schedd_names, "(JobStatus=?=1)||(JobStatus=?=2)", constraint, format_list)
+        if want_format_completion:
+            format_list = condorMonitor.complete_format_list(
+                format_list,
+                [('JobStatus', 'i'), ('EnteredCurrentStatus', 'i'),
+                 ('ServerTime', 'i'), ('RemoteHost', 's')])
+
+    if not job_status_filter:
+        # if nothing specified, assume it wants all of them
+        js_constraint="True"
+    else:
+        js_arr=[]
+        for n in job_status_filter:
+            js_arr.append('(JobStatus=?=%i)'%n)
+        js_constraint=string.join(js_arr,'||')
+
+    return getCondorQConstrained(schedd_names, js_constraint, constraint, format_list)
 
 def getIdleVomsCondorQ(condorq_dict):
     out={}
@@ -472,14 +487,22 @@ def evalParamExpr(expr_obj, frontend, glidein):
 # If not all the jobs of the schedd has to be considered,
 # specify the appropriate constraint
 #
-def getCondorStatus(collector_names, constraint=None, format_list=None):
+def getCondorStatus(collector_names, constraint=None, format_list=None,
+                    want_format_completion=True, want_glideins_only=True):
     if format_list is not None:
-        format_list = condorMonitor.complete_format_list(format_list, [('State', 's'), ('Activity', 's'), ('EnteredCurrentState', 'i'), ('EnteredCurrentActivity', 'i'), ('LastHeardFrom', 'i'), ('GLIDEIN_Factory', 's'), ('GLIDEIN_Name', 's'), ('GLIDEIN_Entry_Name', 's'), ('GLIDECLIENT_Name', 's'), ('GLIDECLIENT_ReqNode','s'), ('GLIDEIN_Schedd', 's')])
+        if want_format_completion:
+            format_list = condorMonitor.complete_format_list(
+                format_list,
+                [('State', 's'), ('Activity', 's'), ('EnteredCurrentState', 'i'),('EnteredCurrentActivity', 'i'),
+                 ('LastHeardFrom', 'i'), ('GLIDEIN_Factory', 's'), ('GLIDEIN_Name', 's'), ('GLIDEIN_Entry_Name', 's'),
+                 ('GLIDECLIENT_Name', 's'), ('GLIDECLIENT_ReqNode','s'), ('GLIDEIN_Schedd', 's')])
 
-    type_constraint = '(IS_MONITOR_VM=!=True)&&(GLIDEIN_Factory=!=UNDEFINED)&&(GLIDEIN_Name=!=UNDEFINED)&&(GLIDEIN_Entry_Name=!=UNDEFINED)'
     # Partitionable slots are *always* idle -- the frontend only counts them when
     # all the subslots have been reclaimed (HTCondor sets TotalSlots == 1)
-    type_constraint += '&& (PartitionableSlot =!= True || TotalSlots =?= 1)'
+    type_constraint = '(PartitionableSlot =!= True || TotalSlots =?= 1)'
+    if want_glideins_only:
+        type_constraint += '&&(IS_MONITOR_VM=!=True)&&(GLIDEIN_Factory=!=UNDEFINED)&&(GLIDEIN_Name=!=UNDEFINED)&&(GLIDEIN_Entry_Name=!=UNDEFINED)'
+
     return getCondorStatusConstrained(collector_names, type_constraint, constraint, format_list)
 
 #
@@ -521,7 +544,39 @@ def getClientCondorStatus(status_dict, frontend_name, group_name, request_name):
     client_name_new = "%s.%s" % (frontend_name, group_name)
     out = {}
     for collector_name in status_dict.keys():
-        sq = condorMonitor.SubQuery(status_dict[collector_name], lambda el:(el.has_key('GLIDECLIENT_Name') and ((el['GLIDECLIENT_Name'] == client_name_old) or ((el['GLIDECLIENT_Name'] == client_name_new) and (("%s@%s@%s" % (el['GLIDEIN_Entry_Name'], el['GLIDEIN_Name'], el['GLIDEIN_Factory'])) == request_name)))))
+        sq = condorMonitor.SubQuery(
+                 status_dict[collector_name],
+                 lambda el:(el.has_key('GLIDECLIENT_Name') and ((el['GLIDECLIENT_Name'] == client_name_old) or ((el['GLIDECLIENT_Name'] == client_name_new) and (("%s@%s@%s" % (el['GLIDEIN_Entry_Name'], el['GLIDEIN_Name'], el['GLIDEIN_Factory'])) == request_name)))))
+        sq.load()
+        out[collector_name] = sq
+    return out
+
+
+#
+# Return a dictionary of collectors containing vms at a client split by creds
+# Each element is a condorStatus
+#
+# Use the output of getCondorStatus
+#
+
+def getClientCondorStatusPerCredId(status_dict, frontend_name, group_name,
+                                   request_name, cred_id):
+    client_name_old = "%s@%s.%s" % (request_name, frontend_name, group_name)
+    client_name_new = "%s.%s" % (frontend_name, group_name)
+    out = {}
+    for collector_name, collector_status in status_dict.iteritems():
+        sq = condorMonitor.SubQuery(
+                 collector_status,
+                 lambda el:(
+                     el.has_key('GLIDECLIENT_Name') and 
+                     el.has_key('GLIDEIN_CredentialIdentifier') and 
+                     (el['GLIDEIN_CredentialIdentifier'] == cred_id) and 
+                     ( (el['GLIDECLIENT_Name'] == client_name_old) or 
+                       ( (el['GLIDECLIENT_Name'] == client_name_new) and 
+                         (("%s@%s@%s" % (el['GLIDEIN_Entry_Name'], el['GLIDEIN_Name'], el['GLIDEIN_Factory'])) == request_name)
+                       )
+                     )
+                 ) )
         sq.load()
         out[collector_name] = sq
     return out

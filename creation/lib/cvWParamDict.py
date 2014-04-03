@@ -561,6 +561,14 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('LogDir',params.log_dir)
         frontend_dict.add('ProcessLogs', str(params.log_retention['process_logs']))
         
+        frontend_dict.add('MaxIdleVMsTotal',params.config.idle_vms_total.max)
+        frontend_dict.add('CurbIdleVMsTotal',params.config.idle_vms_total.curb)
+        frontend_dict.add('MaxIdleVMsTotalGlobal',params.config.idle_vms_total_global.max)
+        frontend_dict.add('CurbIdleVMsTotalGlobal',params.config.idle_vms_total_global.curb)
+        frontend_dict.add('MaxRunningTotal',params.config.running_glideins_total.max)
+        frontend_dict.add('CurbRunningTotal',params.config.running_glideins_total.curb)
+        frontend_dict.add('MaxRunningTotalGlobal',params.config.running_glideins_total_global.max)
+        frontend_dict.add('CurbRunningTotalGlobal',params.config.running_glideins_total_global.curb)
 
 #######################
 # Populate group descript
@@ -577,6 +585,8 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
     group_descript_dict.add('ReserveIdlePerEntry',sub_params.config.idle_glideins_per_entry.reserve)
     group_descript_dict.add('MaxIdleVMsPerEntry',sub_params.config.idle_vms_per_entry.max)
     group_descript_dict.add('CurbIdleVMsPerEntry',sub_params.config.idle_vms_per_entry.curb)
+    group_descript_dict.add('MaxIdleVMsTotal',sub_params.config.idle_vms_total.max)
+    group_descript_dict.add('CurbIdleVMsTotal',sub_params.config.idle_vms_total.curb)
     group_descript_dict.add('MaxRunningTotal',sub_params.config.running_glideins_total.max)
     group_descript_dict.add('CurbRunningTotal',sub_params.config.running_glideins_total.curb)
     if (sub_params.attrs.has_key('GLIDEIN_Glexec_Use')):
