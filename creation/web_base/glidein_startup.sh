@@ -40,12 +40,13 @@ function usage {
     echo "  -signentry <sign>           : signature of the entry signature file"
     echo "  -cluster <ClusterID>        : condorG ClusterId"
     echo "  -subcluster <ProcID>        : condorG ProcId"
+    echo "  -submitcredid <CredentialID>: Credential ID of this condorG job"
     echo "  -schedd <name>              : condorG Schedd Name"
     echo "  -descript <fname>           : description file name"
     echo "  -descriptentry <fname>      : description file name for entry"
     echo "  -clientweb <baseURL>        : base URL from where to fetch client files"
     echo "  -clientwebgroup <baseURL>   : base URL from where to fetch client group files"
-    echo "  -ciientsign <sign>          : signature of the client signature file"
+    echo "  -clientsign <sign>          : signature of the client signature file"
     echo "  -clientsigntype <id>        : type of client signature (only sha1 supported for now)"
     echo "  -clientsigngroup <sign>     : signature of the client group signature file"
     echo "  -clientdescript <fname>     : client description file name"
@@ -76,6 +77,7 @@ do case "$1" in
     -signentry)  sign_entry_id="$2";;
     -cluster)    condorg_cluster="$2";;
     -subcluster) condorg_subcluster="$2";;
+    -submitcredid) glidein_cred_id="$2";;
     -schedd)     condorg_schedd="$2";;
     -descript)   descript_file="$2";;
     -descriptentry)   descript_entry_file="$2";;
@@ -261,6 +263,7 @@ function simplexml2longxml {
   echo "    <env name=\"glidein_entry\">$glidein_entry</env>"
   echo "    <env name=\"condorg_cluster\">$condorg_cluster</env>"
   echo "    <env name=\"condorg_subcluster\">$condorg_subcluster</env>"
+  echo "    <env name=\"glidein_credential_id\">$glidein_cred_id</env>"
   echo "    <env name=\"condorg_schedd\">$condorg_schedd</env>"
 
   echo "${final_result_simple}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<operatingenvironment>/{fr=1;}'
@@ -770,6 +773,7 @@ echo "debug_mode        = '$operation_mode'"
 echo "condorg_cluster   = '$condorg_cluster'"
 echo "condorg_subcluster= '$condorg_subcluster'"
 echo "condorg_schedd    = '$condorg_schedd'"
+echo "glidein_credential_id = '$glidein_cred_id'"
 echo "glidein_factory   = '$glidein_factory'"
 echo "glidein_name      = '$glidein_name'"
 echo "glidein_entry     = '$glidein_entry'"
@@ -985,6 +989,7 @@ if [ -n '$client_group' ]; then
     # client group not required as it is not used for anything but debug info
     echo "GLIDECLIENT_Group $client_group" >> glidein_config
 fi
+echo "GLIDEIN_CredentialIdentifier $glidein_cred_id" >> glidein_config
 echo "CONDORG_CLUSTER $condorg_cluster" >> glidein_config
 echo "CONDORG_SUBCLUSTER $condorg_subcluster" >> glidein_config
 echo "CONDORG_SCHEDD $condorg_schedd" >> glidein_config

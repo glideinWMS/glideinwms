@@ -80,7 +80,7 @@ Related Information:
 <div class="section">
 
 <H2 CLASS="western"><A NAME="implementation"></A>Implementation</H2>
-<P>The current implementation of the VO frontend is <A HREF="http://www.python.org/">Python</A>
+<P>The current implementation of the VO Frontend is <A HREF="http://www.python.org/">Python</A>
 based. It uses a tree of process like the factory does.
 <BR>
 <BR><BR>
@@ -93,7 +93,7 @@ The sub-process (group) code is composed of 4 logical pieces:</P>
     <LI>... and the glue that links the above together. </li>
 </UL>
 <P><A NAME="match_expr"></A>The top two elements simply contact the
-appropriate Condor Collector and store the data in memory.<BR><BR>The
+appropriate HTCondor Collector and store the data in memory.<BR><BR>The
 matchmaking procedure loops over all the <A HREF="../factory/design.html#factory_classads">factory
 ads</A> and&nbsp;counts the number of idle user jobs that match the
 attributes of that particular factory entry point. <BR><BR>The
@@ -116,7 +116,7 @@ job[&quot;HasData&quot;] or (glidein[&quot;site&quot;] in string.split(job[&quot
 (job[&quot;Arch&quot;] == glidein[&quot;Arch&quot;]) and (job[&quot;gccVersion&quot;]==glidein[&quot;attrs&quot;][&quot;gccVersion&quot;])</PRE><P>
 
 Finally, the advertise procedure loops over the counts and converts
-them into appropriate <A HREF="../factory/design_data_exchange.html#frontend_classads">Condor
+them into appropriate <A HREF="../factory/design_data_exchange.html#frontend_classads">HTCondor
 Class Ads</A>.<BR><BR>The glue code is responsible of parsing the
 input parameters, loading the configuration values and loop over the
 above steps.</P>

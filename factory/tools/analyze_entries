@@ -14,19 +14,17 @@ def frontend_print(frontend, fe_mode, d, div, to_be_printed,fe_sorting,fe_attr_l
 
 
     fdiv=1
-    if fe_attr_list[fe_sort_attribute] in ['total_time','val','used','idle','waste']:
+    if fe_attr_list[fe_sort_attribute] in ['total_time','val','used','idle','waste','badput']:
         fdiv=float(div)
-    if fe_sort_attribute in [2,4,6,8]:#['u%','v%','i%','w%']:
+    if fe_sort_attribute in [2,4,6,8,10]:#['u%','v%','i%','w%','b%']:
         fdiv=float(div)*(float(d['total_time'])/float(div))
-    elif fe_attr_list[fe_sort_attribute] in ['usd/wst']:
-        fdiv = float(d['waste'])
     elif fe_attr_list[fe_sort_attribute] in ['eff']:
         fdiv = float(d['waste']+d['used'])
 
     sorter = int(100.0*float(d[fe_attr_list[fe_sort_attribute]])/fdiv)
 
     to_be_printed.append((sorter, 
-      "%-25s %6s|%6s %3d%%|%6s %3d%%|%6s %3d%%|%6s %3d%%|%9.2f %7.2f" % 
+      "%-25s %6s|%6s %3d%%|%6s %3d%%|%6s %3d%%|%6s %3d%%|%6s %3d%%|%5.2f" % 
       (frontend.lstrip("frontend_"), 
       analyze.km(float(d['total_time'])/float(div)), 
       analyze.km(float(d['used'])/float(div)), 
@@ -37,7 +35,8 @@ def frontend_print(frontend, fe_mode, d, div, to_be_printed,fe_sorting,fe_attr_l
       (float(d['idle'])/float(div))/(float(d['total_time'])/float(div))*100.0, 
       analyze.km(float(d['waste'])/float(div)), 
       (float(d['waste'])/float(div))/(float(d['total_time'])/float(div))*100.0, 
-      float(d['used'])/float(d['waste']), 
+      analyze.km(float(d['badput'])/float(div)), 
+      (float(d['badput'])/float(div))/(float(d['total_time'])/float(div))*100.0, 
       float(d['used'])/float(d['used']+d['waste'])))) 
     return to_be_printed
 
@@ -48,35 +47,50 @@ def blockprint(title,d,p,pd):
     else: 
         s=""
         t="Total "
+    if d['jobs']>0:
+        avg_len=float(d['used'])/d['jobs']
+    else:
+        avg_len=float('NaN')
+
     print(
 """
 %sGlideins: %s%s
-%sJobs: %d (Average jobs/glidein: %.2f) 
+%sJobs: %d (Avg jobs/glidein: %.2f, avg job len: %.2fh) 
 
 %stime:            %s
 %stime used:       %s
 %stime validating: %s
 %stime idle:       %s
 %stime wasted:     %s
+%sbadput:          %s
 Time used/time wasted: %.1f
-Time efficiency: %.2f
+Time efficiency: %.2f  Goodput fraction: %.2f
 """
       % ( 
         t,d['glideins'],s, 
         t,d['jobs'], 
         float(d['jobs'])/float(d['glideins']),
+        avg_len/3600.0,
         t,analyze.printline(d['total_time'],1,p),
         t,analyze.printline(d['used'],d['total_time'],p),
         t,analyze.printline(d['validation'],d['total_time'],p),
         t,analyze.printline(d['idle'],d['total_time'],p),
         t,analyze.printline(d['waste'],d['total_time'],p),
+        t,analyze.printline(d['badput'],d['total_time'],p),
         float(d['used'])/float(d['waste']),
-        float(d['used'])/float(d['waste']+d['used'])))
- 
-def lineprint(entry_name, entry, g_entry,g,to_be_printed, attr_list, sort_attribute,min_limit):  
+        float(d['used'])/float(d['waste']+d['used']),
+        float(d['total_time']-d['badput'])/float(d['total_time'])))
+
+LINEPRINT_HEADER_FMT="%-40s%5s %4s %4s | %4s %4s %4s %4s | %6s %7s %7s"
+LINEPRINT_HEADER_DIV=LINEPRINT_HEADER_FMT% (
+                     "----------", "---","---","---","---","---","---","---","---","---","---")
+LINEPRINT_HEADER=LINEPRINT_HEADER_FMT% (
+                 "", "strt","fval","0job","val","idle","wst","badp","waste","time","total")
+def lineprint(entry_name, entry, g_entry,g,to_be_printed, attr_list, sort_attribute,min_limit,totals=None):  
     if g==1:
        s = 'Lasted'
     else: s = 'total_time'
+
 
     # For Sorting
     list=dict(entry,**g_entry) #combine the two dictionaries
@@ -90,6 +104,24 @@ def lineprint(entry_name, entry, g_entry,g,to_be_printed, attr_list, sort_attrib
     else:
         sorter = int((float(list[attr_list[sort_attribute]])/div)*100)
 
+    if not (totals is None):
+        ekeys=('FailedNr','validation_All','JobsNr_None',s)
+        gkeys=('glideins','validation','idle','waste','badput')
+        
+        # save raw totals
+        if len(totals)==0:
+            # still needs to be initialized... do it
+            totals['entry']={}
+            for k in ekeys:
+                totals['entry'][k]=0.0
+            totals['g_entry']={}
+            for k in gkeys:
+                totals['g_entry'][k]=0.0
+        for k in ekeys:
+            totals['entry'][k]+=entry[k]
+        for k in gkeys:
+            totals['g_entry'][k]+=g_entry[k]
+
     p={} # pre-compute the values to print
     p['strt'] = (float(entry['FailedNr'])/float(g_entry['glideins']))*100
     p['fval'] = (float(entry['validation_All'])/float(entry[s]))*100
@@ -99,7 +131,7 @@ def lineprint(entry_name, entry, g_entry,g,to_be_printed, attr_list, sort_attrib
     p['wst'] =  (float(g_entry['waste'])/float(entry[s]))*100
     p['badp'] = (float(g_entry['badput'])/float(entry[s]))*100
     p['waste']= g_entry['waste']/3600.0
-    p['time'] = entry['Lasted']/3600.0
+    p['time'] = entry[s]/3600.0
     p['total']= g_entry['glideins']
 
     # see if it is failing all min limits
@@ -114,11 +146,11 @@ def lineprint(entry_name, entry, g_entry,g,to_be_printed, attr_list, sort_attrib
            break
 
     if not pass_limits:
-      return # did not reach the limit thresholds, do not print
-
-    to_be_printed.append((sorter, "%-40s %3d%% %3d%% %3d%% | %3d%% %3d%% %3d%% %3d%% | %6d  %6d  | %4d" 
-      % (entry_name.lstrip("entry_"),
-         p['strt'],p['fval'],p['0job'], p['val'],p['idle'],p['wst'],p['badp'], p['waste'],p['time'], p['total'])))
+        return
+    else:
+        to_be_printed.append((sorter, "%-40s %3d%% %3d%% %3d%% | %3d%% %3d%% %3d%% %3d%% | %6d  %6d  | %4d" 
+                              % (entry_name.lstrip("entry_"),
+                                 p['strt'],p['fval'],p['0job'], p['val'],p['idle'],p['wst'],p['badp'], p['waste'],p['time'], p['total'])))
 
 def main():
 
@@ -210,8 +242,8 @@ USAGE:
         sort_attribute = sort_attributes.index(sort_attribute)
 
     #Frontend Sorting
-    fe_sort_attributes = ['total','used','u%','val','v%','idle','i%','waste','w%','usd/wst','eff']
-    fe_attr_list = ['total_time','used','used','validation','validation','idle','idle','waste','waste','used','used']
+    fe_sort_attributes = ['total','used','u%','val','v%','idle','i%','waste','w%','badput','b%','eff']
+    fe_attr_list = ['total_time','used','used','validation','validation','idle','idle','waste','waste','badput','badput','used']
     if fe_sorting !=0:
         if fe_sort_attribute not in fe_sort_attributes:
             print("%s not in list of attributes. Choices are:\n" % fe_sort_attribute)
@@ -448,10 +480,11 @@ Glidein log analysis for frontend %s - %s
 ---------------------------------------
 Per Entry (all frontends) stats for the past %s hours.\n""" % x
 
-        print("%-40s%5s %3s %4s | %4s %4s %4s %4s | %6s %7s %7s" % ( 
-                  "", "strt","fval","0job","val","idle","wst","badp","waste","time","total"))
+        print LINEPRINT_HEADER
 
         to_be_printed = []  # dict of paired entry data with wastetime for sorting
+        totals={}
+        totals_to_be_printed = []
 
         for entry_name, entry in entry_data_all_frontends[period].iteritems():
  
@@ -460,17 +493,20 @@ Per Entry (all frontends) stats for the past %s hours.\n""" % x
             if entry['validation'] == 0:
                 entry['validation'] = 1
             
-            lineprint(entry_name,entry,entry,0,to_be_printed,attr_list,sort_attribute,min_limit) 
-
+            lineprint(entry_name,entry,entry,0,to_be_printed,attr_list,sort_attribute,min_limit,totals) 
+        lineprint('Total/Average',totals['entry'],totals['g_entry'],0,totals_to_be_printed,attr_list,sort_attribute,{}) 
+        print totals_to_be_printed[0][1]
+        print LINEPRINT_HEADER_DIV
+        
         if sorting == 1:
             to_be_printed.sort()
             to_be_printed.reverse()
             for a in to_be_printed:
-                print a[1] 
+                print a[1]
             print("----------------------------------")
         else: 
             for a in to_be_printed:
-                print a[1] 
+                print a[1]
 
 
 ################################################################################
@@ -490,8 +526,8 @@ Per Entry (per frontend) stats for the past %s hours.\n""" % (x)
 ---------------------------------------
 ---------------------------------------
 Frontend stats for the past %s hours.\n""" % (x)
-        print("%-25s%7s %7s %3s %7s %3s %7s %3s %7s %3s %11s %4s\n" % (
-              "Units: "+units[frontend_mode-1], "total","used","u%","val","v%","idle","i%","waste","w%","usd/wst","eff"))
+        print("%-25s%7s %7s %3s %7s %3s %7s %3s %7s %3s %7s %3s %4s\n" % (
+              "Units: "+units[frontend_mode-1], "total","used","u%","val","v%","idle","i%","waste","w%","badput","b%","eff"))
 
     fe_to_be_printed = []
 
@@ -510,10 +546,12 @@ Frontend stats for the past %s hours.\n""" % (x)
             if show_block:
               blockprint(frontend,d,period,period_data[period])
             
-            print("%-40s%5s %3s %4s | %4s %4s %4s %4s | %6s %7s %7s" % (
-              "", "strt","fval","0job","val","idle","wst","badp","waste","time","total"))
+            print LINEPRINT_HEADER
 
             to_be_printed = []  # dict of paired entry data with wastetime for sorting
+            totals={}
+            totals_to_be_printed = []
+            
             for entry, e in entries.iteritems():
                 en = entry_data[period][frontend][entry] 
 
@@ -522,8 +560,11 @@ Frontend stats for the past %s hours.\n""" % (x)
                 if en['validation'] == 0:
                     en['validation'] = 1
 
-                lineprint(entry, e, en, 1, to_be_printed,attr_list,sort_attribute,min_limit) 
-
+                lineprint(entry, e, en, 1, to_be_printed,attr_list,sort_attribute,min_limit,totals) 
+            lineprint('Total/Average',totals['entry'],totals['g_entry'],1,totals_to_be_printed,attr_list,sort_attribute,{}) 
+            print totals_to_be_printed[0][1]
+            print LINEPRINT_HEADER_DIV
+            
             if sorting == 1:
                 to_be_printed.sort()
                 to_be_printed.reverse()
@@ -532,7 +573,7 @@ Frontend stats for the past %s hours.\n""" % (x)
                 print("----------------------------------")
             else: 
                 for a in to_be_printed:
-                    print a[1] 
+                    print a[1]
 
          
         else: # print frontend like entries, and omit entries
@@ -573,7 +614,10 @@ waste - wallclock time wasted (hours) (Lasted - JobsLasted)
 time - total wallclock time (hours) (Lasted)
 total - total number of glideins
 -------------------------------------
-        \n""")
+Lasted      - total wallclock time
+JobsLasted  - wallclock time used to run jobs
+JobsGoodput - wallclock time used by jobs terminatig with exit code 0 
+\n""")
 
     else: #frontend_mode legend
         print("""\n-----------------------------------
@@ -589,12 +633,16 @@ used - time used
 val  - time spent validating
 idle - time spent idle
 wst  - time wasted (Lasted - JobsLasted) 
+badp - badput (Lasted - JobsGoodput)
 
-u,v,i,w% - percentage of previous corresponding attribute
-           (used, val, idle, waste) over total time
+u,v,i,w,b% - percentage of previous corresponding attribute
+             (used, val, idle, waste, badput) over total time
 ----------
-usd/wst - ratio of time used to time wasted
 eff     - efficiency - time used over total time 
+-------------------------------------
+Lasted      - total wallclock time
+JobsLasted  - wallclock time used to run jobs
+JobsGoodput - wallclock time used by jobs terminatig with exit code 0 
 -------------------------------------
         \n""")
 

@@ -622,7 +622,7 @@ def main(startup_dir):
     try:
         os.chdir(startup_dir)
     except:
-        logSupport.log.exception("Unable to change to startup_dir: ")
+        logSupport.log.exception("Failed starting Factory. Unable to change to startup_dir: ")
         raise
 
     try:
@@ -641,7 +641,7 @@ def main(startup_dir):
             logSupport.log.info("Loading old key")
             glideinDescript.load_old_rsa_key()
     except:
-        logSupport.log.exception("Exception occurred loading factory keys: ")
+        logSupport.log.exception("Failed starting Factory. Exception occurred loading factory keys: ")
         raise
 
     glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.my_name = "%s@%s" % (glideinDescript.data['GlideinName'],
@@ -658,7 +658,7 @@ def main(startup_dir):
         glideinwms_dir = os.path.dirname(os.path.dirname(sys.argv[0]))
         glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(glideinwms_dir, 'checksum.factory').version()
     except:
-        logSupport.log.exception("Exception occurred while trying to retrieve the glideinwms version: ")
+        logSupport.log.exception("Non critical Factory error. Exception occurred while trying to retrieve the glideinwms version: ")
 
     entries = glideinDescript.data['Entries'].split(',')
     entries.sort()
@@ -673,7 +673,13 @@ def main(startup_dir):
     increase_process_limit()
 
     # start
-    pid_obj.register()
+    try:
+        pid_obj.register()
+    except glideFactoryPidLib.pidSupport.AlreadyRunning, err:
+        pid_obj.load_registered()
+        logSupport.log.exception("Failed starting Factory. Instance with pid %s is aready running. Exception during pid registration: %s" % 
+                                 (pid_obj.mypid , err))
+        raise
     try:
         try:
             spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,

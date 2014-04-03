@@ -19,7 +19,7 @@ from glideinwms.lib import condorSecurity
 
 #########################################
 # Create init.d compatible startup file
-def create_initd_startup(startup_fname, frontend_dir, glideinWMS_dir, cfg_name):
+def create_initd_startup(startup_fname, frontend_dir, glideinWMS_dir, cfg_name, rpm_install=''):
     """
     Creates the frontend startup file and changes the permissions.  Can overwrite an existing file.
     """            
@@ -28,7 +28,8 @@ def create_initd_startup(startup_fname, frontend_dir, glideinWMS_dir, cfg_name):
     try:
         template = template % {"frontend_dir": frontend_dir, 
                                "glideinWMS_dir": glideinWMS_dir, 
-                               "default_cfg_fpath": cfg_name}
+                               "default_cfg_fpath": cfg_name,
+                               "rpm_install": rpm_install}
         fd.write(template)
     finally:
         fd.close()

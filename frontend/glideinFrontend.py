@@ -263,7 +263,13 @@ def main(work_dir):
     pid_obj = glideinFrontendPidLib.FrontendPidSupport(work_dir)
 
     # start
-    pid_obj.register()
+    try:
+        pid_obj.register()
+    except  glideinFrontendPidLib.pidSupport.AlreadyRunning, err:
+        pid_obj.load_registered()
+        logSupport.log.exception("Failed starting Frontend. Instance with pid %s is aready running. Exception during pid registration: %s" % 
+                                 (pid_obj.mypid , err))
+        raise
     try:
         try:
             spawn(sleep_time, advertize_rate, work_dir,
