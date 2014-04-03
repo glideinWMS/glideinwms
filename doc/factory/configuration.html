@@ -153,7 +153,15 @@ for a more detailed description.
                 <a href="#config">&lt;/max_jobs&gt;</a><br/>
                 <a href="#config">&lt;release max_per_cycle="20" sleep="0.2"/&gt;</a><br/>
                 <a href="#config">&lt;remove max_per_cycle="5" sleep="0.2"/&gt;</a><br/>
-                <a href="#config">&lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="single_slot"/&gt;</a><br/>
+                <a href="#config">&lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="single_slot"&gt;</a><br/>
+                    <blockquote>
+                    <a href="#config">&lt;submit_attrs&gt;</a><br/>
+                        <blockquote>
+                        <a href="#config">&lt;submit_attr name="RequestMemory" value="2000"&gt;</a><br/>
+                        </blockquote>
+                    <a href="#config">&lt;submit_attrs/&gt;</a><br/>
+                    </blockquote>
+                <a href="#config">&lt;submit/&gt;</a><br/>
             </blockquote>
             <a href="#">&lt;/config&gt;</a><br/>
             <a href="#allow_frontend">&lt;allow_frontends /&gt;</a><br/>
@@ -716,7 +724,11 @@ override the global arguments if present.
             &lt;max_jobs/&gt;<br/>
             &lt;release max_per_cycle="20" sleep="0.2"/&gt;<br/>
             &lt;remove max_per_cycle="5" sleep="0.2"/&gt;<br/>
-            &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="single_slot"/&gt;<br/>
+            &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="single_slot"&gt;<br/>
+            &nbsp;&nbsp;&lt;submit_attrs&gt;<br/>
+            &nbsp;&nbsp;&nbsp;&nbsp;&lt;submit_attr name="RequestMemory" value="2000"/&gt;<br/>
+            &nbsp;&nbsp;&lt;submit_attrs/&gt;<br/>
+            &lt;submit/&gt;<br/>
             &lt;config/&gt;
         </div>
         <p>
@@ -728,13 +740,24 @@ override the global arguments if present.
                   <li>&lt;default_per_frontend ... &gt; specifies default limits per frontend-security class</li>
                   <li>&lt;per_frontend ... &gt; overrides the limits for a specific frontend-security class.</li>
               </ul>
+            </li>
         <li>Release regulates how many glideins are released per cycle.</li>  
         <li>Remove regulates how many glideins are removed per cycle.</li>  
         <li>Submit values limit the number of glideins submitted, how long 
-        to wait to submit, and what kinds of glideins the entry supports - "fixed" number of slots, or "partitionable" which 
-        enables HTCondor's partionable/dynamic slots. The number of cores calimed by the glidein can be controlled by the
-        GLIDEIN_CPUS variable.</li>
-        </ul>
+            to wait to submit, and what kinds of glideins the entry supports -
+            "fixed" number of slots, or "partitionable" which  enables HTCondor's
+            partionable/dynamic slots. The number of cores calimed by the glidein
+            can be controlled by the GLIDEIN_CPUS variable.
+            <ul>
+                <li>
+                &lt;submit_attr ... &gt; specifies additional HTCondor attributes to
+                add to the HTCondor submit file that the Factory uses to submit pilots
+                to a site.  These attributes are only added when the 
+                <a name="entry">gridtype</a> is "condor".  The attributes are ignored
+                for all other grid types.
+                </li>
+            </ul>
+        </li>
         </p>
     </li>
         <LI>
