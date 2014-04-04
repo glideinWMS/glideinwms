@@ -2,6 +2,7 @@ import string
 import os.path
 import urllib
 import cPickle
+import copy
 
 from glideinwms.lib import hashCrypto
 
@@ -394,16 +395,29 @@ class MergeStageFiles:
 
 ############################################################
 #
-# Processed configuration
+# The FrontendGroups may want to preserve some state between
+# iterations/invocations. The HistoryFile class provides
+# the needed support for this.
+#
+# There is no fixed schema in the class itself;
+# the FrontedGroup is free to store any arbitrary dictionary
+# in it.
 #
 ############################################################
 
 class HistoryFile:
-    def __init__(self, base_dir, group_name, load_on_init = True):
+    def __init__(self, base_dir, group_name, load_on_init = True,
+                 default_factory=None):
+        """
+        The default_factory semantics is the same as the one in collections.defaultdict
+        """
         self.base_dir = base_dir
         self.group_name = group_name
         self.fname = os.path.join(get_group_dir(base_dir, group_name), frontendConfig.history_file)
+        self.default_factory = default_factory
 
+        # cannot use collections.defaultdict directly
+        # since it is only supported starting python 2.5
         self.data = {}
 
         if load_on_init:
@@ -448,8 +462,18 @@ class HistoryFile:
     def has_key(self, keyid):
         return self.data.has_key(keyid)
 
+    def __contains__(self, keyid):
+        return (keyid in self.data)
+
     def __getitem__(self, keyid):
-        return self.data[keyid]
+        try:
+            return self.data[keyid]
+        except KeyError,e:
+            if self.default_factory is None:
+                raise # no default initialization, just fail
+            # i have the initialization function, use it
+            self.data[keyid] = self.default_factory()
+            return self.data[keyid]
 
     def __setitem__(self, keyid, val):
         self.data[keyid] = val
@@ -460,18 +484,5 @@ class HistoryFile:
     def empty(self):
         self.data = {}
 
-    def get(self, keyid):
-        """
-        Return the value of the keyid key, if exists.
-        Raise like [] if the key does not exist.
-        """
-        return self.data[keyid]
-
-    def get_dict_el(self, keyid):
-        """
-        Return the value of the keyid key, if exists.
-        Create an empty dictionary for the key, and return it, else.
-        """
-        if not self.data.has_key(keyid):
-            self.data[keyid] = {}
-        return self.data[keyid]
+    def get(self, keyid, defaultval=None):
+        return self.data.get(keyid, defaultval)

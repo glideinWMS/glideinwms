@@ -52,6 +52,39 @@ def check_parent(parent_pid):
     logSupport.log.warning("Parent died, exit.")
     raise KeyboardInterrupt, "Parent died"
 
+###########################################################
+# Support class that mimics the 2.7 collections.Counter class
+#
+# Not a 1-to-1 implementation though... just straight minimum
+# to support auto initialization to 0
+
+class CounterWrapper:
+    def __init__(self, dict_el):
+        self.dict_el = dict_el
+
+    def has_key(self, keyid):
+        return self.dict_el.has_key(keyid)
+
+    def __contains__(self, keyid):
+        return (keyid in self.dict_el)
+
+    def __getitem__(self, keyid):
+        try:
+            return self.dict_el[keyid]
+        except KeyError,e:
+            self.dict_el[keyid] = 0
+            return self.dict_el[keyid]
+
+    def __setitem__(self, keyid, val):
+        self.dict_el[keyid] = val
+
+    def __delitem__(self, keyid):
+        del self.dict_el[keyid]
+
+    
+
+    
+
 ############################################################
 def write_stats(stats):
     for k in stats.keys():
@@ -636,9 +669,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
 
         remove_excess_wait = False # do not remove excessive glideins by default
         # keep track of how often idle was 0
-        history_idle0 = history_obj.get_dict_el('idle0')
-        if not history_idle0.has_key(glideid):
-            history_idle0[glideid] = 0
+        history_idle0 = CounterWrapper(history_obj['idle0'])
         if count_jobs['Idle'] == 0:
             # no idle jobs in the queue left
             # consider asking for unsubmitted idle glideins to be removed
@@ -652,9 +683,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
         remove_excess_idle = False # do not remove excessive glideins by default
 
         # keep track of how often glideidle was 0
-        history_glideempty = history_obj.get_dict_el('glideempty')
-        if not history_glideempty.has_key(glideid):
-            history_glideempty[glideid] = 0
+        history_glideempty = CounterWrapper(history_obj['glideempty'])
         if count_status['Idle'] >= count_status['Total']:
             # no glideins being used
             # consider asking for all idle glideins to be removed
@@ -669,9 +698,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, attr_dict, signatu
         remove_excess_running = False # do not remove excessive glideins by default
 
         # keep track of how often glidetotal was 0
-        history_glidetotal0 = history_obj.get_dict_el('glidetotal0')
-        if not history_glidetotal0.has_key(glideid):
-            history_glidetotal0[glideid] = 0
+        history_glidetotal0 = CounterWrapper(history_obj['glidetotal0'])
         if count_status['Total'] == 0:
             # no glideins registered
             # consider asking for all idle glideins to be removed
@@ -1011,7 +1038,10 @@ def main(parent_pid, work_dir, group_name, action):
     glideinFrontendInterface.frontendConfig.advertise_use_tcp = (elementDescript.frontend_data['AdvertiseWithTCP'] in ('True', '1'))
     glideinFrontendInterface.frontendConfig.advertise_use_multi = (elementDescript.frontend_data['AdvertiseWithMultiple'] in ('True', '1'))
 
-    history_obj = glideinFrontendConfig.HistoryFile(work_dir, group_name, True)
+    history_obj = glideinFrontendConfig.HistoryFile(work_dir, group_name,
+                                                    True, # auto load
+                                                    dict) # automatically initialze objects to dictionaries, if needed
+    # PS: The default initialization is not to CounterWrapper, to avoid saving custom classes to disk
 
     try:
         glideinwms_dir = os.path.dirname(os.path.dirname(sys.argv[0]))
