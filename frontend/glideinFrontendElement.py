@@ -45,6 +45,39 @@ from glideinwms.frontend import glideinFrontendPidLib
 from glideinwms.frontend import glideinFrontendMonitoring
 from glideinwms.frontend import glideinFrontendPlugins
 
+###########################################################
+# Support class that mimics the 2.7 collections.Counter class
+#
+# Not a 1-to-1 implementation though... just straight minimum
+# to support auto initialization to 0
+
+class CounterWrapper:
+    def __init__(self, dict_el):
+        self.dict_el = dict_el
+
+    def has_key(self, keyid):
+        return self.dict_el.has_key(keyid)
+
+    def __contains__(self, keyid):
+        return (keyid in self.dict_el)
+
+    def __getitem__(self, keyid):
+        try:
+            return self.dict_el[keyid]
+        except KeyError,e:
+            self.dict_el[keyid] = 0
+            return self.dict_el[keyid]
+
+    def __setitem__(self, keyid, val):
+        self.dict_el[keyid] = val
+
+    def __delitem__(self, keyid):
+        del self.dict_el[keyid]
+
+#####################################################
+#
+# Main class for the module
+
 class glideinFrontendElement:
     def __init__(self, parent_pid, work_dir, group_name, action):
         self.parent_pid = parent_pid
@@ -56,7 +89,10 @@ class glideinFrontendElement:
         self.paramsDescript = glideinFrontendConfig.ParamsDescript(self.work_dir, self.group_name)
         self.signatureDescript = glideinFrontendConfig.GroupSignatureDescript(self.work_dir, self.group_name)
         self.attr_dict = glideinFrontendConfig.AttrsDescript(self.work_dir,self.group_name).data
-        self.history_obj = glideinFrontendConfig.HistoryFile(self.work_dir, self.group_name, True)
+        self.history_obj = glideinFrontendConfig.HistoryFile(self.work_dir, self.group_name,
+                                                             True, # auto load
+                                                             dict) # automatically initialze objects to dictionaries, if needed
+        # PS: The default initialization is not to CounterWrapper, to avoid saving custom classes to disk
         self.startup_time = time.time()
 
         #self.sleep_time = int(self.elementDescript.frontend_data['LoopDelay'])
@@ -702,8 +738,7 @@ class glideinFrontendElement:
         # do not remove excessive glideins by default
         remove_excess_wait = False
         # keep track of how often idle was 0
-        history_idle0 = self.history_obj.get_dict_el('idle0')
-        history_idle0.setdefault(glideid, 0)
+        history_idle0 = CounterWrapper(self.history_obj['idle0'])
         if count_jobs['Idle'] == 0:
             # no idle jobs in the queue left
             # consider asking for unsubmitted idle glideins to be removed
@@ -718,8 +753,7 @@ class glideinFrontendElement:
         remove_excess_idle = False
 
         # keep track of how often glideidle was 0
-        history_glideempty = self.history_obj.get_dict_el('glideempty')
-        history_glideempty.setdefault(glideid, 0)
+        history_glideempty = CounterWrapper(self.history_obj['glideempty'])
         if count_status['Idle'] >= count_status['Total']:
             # no glideins being used
             # consider asking for all idle glideins to be removed
@@ -735,8 +769,7 @@ class glideinFrontendElement:
         remove_excess_running = False
 
         # keep track of how often glidetotal was 0
-        history_glidetotal0 = self.history_obj.get_dict_el('glidetotal0')
-        history_glidetotal0.setdefault(glideid, 0)
+        history_glidetotal0 = CounterWrapper(self.history_obj['glidetotal0'])
         if count_status['Total'] == 0:
             # no glideins registered
             # consider asking for all idle glideins to be removed
