@@ -998,6 +998,7 @@ class MultiAdvertizeWork:
                     if credential_el.advertize==False: # we already determined it cannot be used
                         #filestr="(filename unknown)"
                         #if credential_el.filename:
+                        #if hasattr(credential_el,'filename'):
                         #    filestr=credential_el.filename
                         #logSupport.log.warning("Credential file %s had some earlier problem in loading so not advertizing, skipping..."%(filestr))
                         continue
