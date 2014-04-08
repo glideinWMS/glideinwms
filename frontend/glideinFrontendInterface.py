@@ -683,47 +683,20 @@ class MultiAdvertizeWork:
             nr_good_credentials=nr_credentials
             for i in range(nr_credentials):
                 cred_el=self.x509_proxies_data[i]
-                cred_el.renew()
                 cred_el.advertize=True
-                cred_el.loaded_data=[]
-                if (hasattr(cred_el,'filename')):
-                    try:
-                        if (not os.path.exists(cred_el.filename)) and (cred_el.creation_script is not None):
-                            logSupport.log.debug("Proxy %s didn not exist, calling creation_script %s" % (cred_el.filename,cred_el.creation_script))
-                            condorExe.iexe_cmd(cred_el.creation_script)
-                        data_fd=open(cred_el.filename)
-                        cred_data=data_fd.read()
-                        data_fd.close()
-                    except:
-                        cred_el.advertize=False
-                        nr_good_credentials-=1
-                        logSupport.log.exception("Cannot read credential %s" % cred_el.filename)
-                        continue
-                    cred_el.loaded_data.append(('filename',cred_el.filename,cred_data))
+                cred_el.renew()
+                cred_el.createIfNotExist()
 
-                if (hasattr(cred_el,'key_fname')):
-                    try:
-                        data_fd=open(cred_el.key_fname)
-                        cred_data=data_fd.read()
-                        data_fd.close()
-                    except:
-                        cred_el.advertize=False
-                        nr_good_credentials-=1
-                        logSupport.log.exception("Cannot read credential %s: " % cred_el.key_fname)
-                        continue
-                    cred_el.loaded_data.append(('key_fname',cred_el.key_fname,cred_data))
-                        
-                if (hasattr(cred_el,'pilot_fname')):
-                    try:
-                        data_fd=open(cred_el.pilot_fname)
-                        cred_data=data_fd.read()
-                        data_fd.close()
-                    except:
-                        cred_el.advertize=False
-                        nr_good_credentials-=1
-                        logSupport.log.exception("Cannot read credential %s failed: " % cred_el.pilot_fname)
-                        continue
-                    cred_el.loaded_data.append(('pilot_fname',cred_el.pilot_fname,cred_data))
+                cred_el.loaded_data=[]
+                for cred_file in (cred_el.filename, cred_el.key_fname, cred_el.pilot_fname):
+                    if cred_file:
+                        cred_data = cred_el.getString(cred_file)
+                        if cred_data:
+                            cred_el.loaded_data.append((cred_file, cred_data))
+                        else:
+                            # We encountered error with this credential
+                            # Move onto next credential
+                            break
 
             return nr_credentials
 
@@ -841,7 +814,7 @@ class MultiAdvertizeWork:
                 if cred_el.advertize==False:
                     continue # we already determined it cannot be used
                 for ld_el in cred_el.loaded_data:
-                    ld_type,ld_fname,ld_data=ld_el
+                    ld_fname,ld_data=ld_el
                     glidein_params_to_encrypt[cred_el.file_id(ld_fname)]=ld_data
                     if (hasattr(cred_el,'security_class')):
                         # Convert the sec class to a string so the Factory can interpret the value correctly
@@ -995,9 +968,8 @@ class MultiAdvertizeWork:
                 if True: # for historical reasons... to preserve indentation
                     credential_el=credentials_with_requests[i]
                     logSupport.log.debug("Checking Credential file %s ..."%(credential_el.filename))
-                    if credential_el.advertize==False: # we already determined it cannot be used
-                        #filestr="(filename unknown)"
-                        #if credential_el.filename:
+                    if credential_el.advertize==False:
+                        # We already determined it cannot be used
                         #if hasattr(credential_el,'filename'):
                         #    filestr=credential_el.filename
                         #logSupport.log.warning("Credential file %s had some earlier problem in loading so not advertizing, skipping..."%(filestr))
