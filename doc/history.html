@@ -84,6 +84,34 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
+        <b>v3_2_4</b> released on April xx, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_4/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_4/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_4.tgz">Tarball</a>)<br>
+       <ul>
+         <li>Added support for HTCondor-CE attributes in the factory
+         <li>Made several performance improvements to frontend. Frontend does
+         several tasks in parallel to better utilize the CPU.
+         <li>Factory and frontend monitoring pages now use new javascriptrrd
+         v1.1.0+
+         <li>Factory monitoring now aggregates Log RRDs
+         <li>Frontend can now limit total idle glideins
+         <li>Added limits to globaly total idle glideins
+         <li>Added badput summary line in the factory report
+         <li>Improved documentation
+         <li>Bug Fix: Factory and frontend operations like reconfig and upgrade
+         now check if they are run by valid users
+         <li>Bug Fix: Fixed partitioning of multi-core glideins
+         <li>Bug Fix: Fixed bug with the Frontend's ProxyUserMapWRecycling
+         credential selection plugin
+         <li>Bug Fix: Fixed bug in factory/frontend stopping
+         <li>Bug Fix: Fixed several bugs in the /etc/init.d/gwms-factory script
+          available through the RPM distribution
+         <li>Bug Fix: Fixed bug with the factory/frontend monitoring that
+         resulted in significantly scaled up monitoring numbers when frontend
+         used multiple proxies
+         <li>Bug Fix: Factory now properly advertises entries in downtime
+         <li>Bug Fix: GLIDEIN_Glexec_Use when defined in the group now correctly          overriddes the value defined in global scope
+       </ul>
+      </li>
+      <li>
         <b>v3_2_3</b> released on February 03, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_3/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_3/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_3.tgz">Tarball</a>)<br>
        <ul>
          <li>Glideins now have the ability to track the worker node batch slot.
