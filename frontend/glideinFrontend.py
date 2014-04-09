@@ -116,6 +116,8 @@ def poll_group_process(group_name,child):
     return child.poll()
 
 ############################################################
+
+# return the list of (group,walltime) pairs
 def spawn_iteration(work_dir, groups, max_active,
                     failure_dict, max_failures):
     childs = {}
@@ -145,6 +147,7 @@ def spawn_iteration(work_dir, groups, max_active,
                             num_failures=failure_dict[group_name].count_failures()
                             max_num_failures=max(max_num_failures, num_failures)
                             logSupport.log.warning("Group %s terminated with exit code %i (%i recent failure)" % (group_name, group_rc, num_failures))
+                        childs[group_name]['end_time']=time.time()
                         active_groups-=1
                         groups_tofinish-=1
                         done_something = True
@@ -155,6 +158,7 @@ def spawn_iteration(work_dir, groups, max_active,
                     if childs[group_name]['state']=='queued':
                         childs[group_name]['data'] = spawn_group(work_dir,group_name)
                         childs[group_name]['state'] = 'spawned'
+                        childs[group_name]['start_time']=time.time()
                         active_groups+=1
                         done_something = True
                 else:
@@ -194,7 +198,12 @@ def spawn_iteration(work_dir, groups, max_active,
                     os.kill(childs[group_name]['data'].pid,signal.SIGKILL)
                 except OSError:
                     pass # ignore failed kills of non-existent processes
-        
+
+    # at this point, all groups should have been run
+    timings=[]
+    for group_name in groups:
+        timings.append((group_name,childs[group_name]['end_time']-childs[group_name]['start_time']))
+    return timings
         
 ############################################################
 def spawn_cleanup(work_dir,groups):
@@ -231,6 +240,7 @@ def spawn(sleep_time,advertize_rate,work_dir,
           frontendDescript,groups,max_parallel_workers,
           restart_interval, restart_attempts):
 
+    num_groups=len(groups)
     try:
         failure_dict={}
         for group in groups:
@@ -238,8 +248,8 @@ def spawn(sleep_time,advertize_rate,work_dir,
             
         while 1: #will exit on signal
             start_time=time.time()
-            spawn_iteration(work_dir,groups,max_parallel_workers,
-                            failure_dict, restart_attempts)
+            timings=spawn_iteration(work_dir,groups,max_parallel_workers,
+                                    failure_dict, restart_attempts)
             end_time=time.time()
             elapsed_time=end_time-start_time
             if elapsed_time<sleep_time:
@@ -248,6 +258,13 @@ def spawn(sleep_time,advertize_rate,work_dir,
                 time.sleep(real_sleep_time)
             else:
                 logSupport.log.info("No sleeping this loop, took %.1f sec > %.1f sec" % (elapsed_time, sleep_time))
+
+            # order the groups by walltime
+            # longest walltime first
+            timings.sort(lambda x,y:-cmp(x[1],y[1]))
+            # recreate the groups list, with new ordering
+            groups=[el[0] for el in timings]
+            assert num_groups==len(groups), "Something went wrong, number of groups changed"
     finally:
         logSupport.log.info("Deadvertize my ads")
         spawn_cleanup(work_dir,groups)
