@@ -10,8 +10,6 @@ v3_2_4  Added support for HTCondor-CE attributes in the factory
         Bug Fix: Factory & frontend operations like reconfig and upgrade now
           check if they are run by valid users
         Bug Fix: Fixed partitioning of multi-core glideins
-        Bug Fix: Fixed bug with the Frontend's ProxyUserMapWRecycling
-          credential selection plugin
         Bug Fix: Fixed bug in factory/frontend stopping
         Bug Fix: Fixed several bugs in the /etc/init.d/gwms-factory script
           available through the RPM distribution
