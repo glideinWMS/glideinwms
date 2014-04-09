@@ -163,10 +163,8 @@ class VOFrontendParams(cWParams.CommonParams):
 
         self.defaults['group_parallel_workers']=('2','NR', 'Max number of parallel workers that process the group policies', None)
 
-        # These two are obsolete now
-        # Keeping them in just for backwards compatibility now
-        self.defaults['restart_attempts']=('3','NR', 'OBSOLETE', None)
-        self.defaults['restart_interval']=('1800','NR', 'OBSOLETE', None)
+        self.defaults['restart_attempts']=('3','NR', 'Max allowed NR restarts every restart_interval before shutting down',None)
+        self.defaults['restart_interval']=('1800','NR', 'Time interval NR sec which allow max restart attempts',None)
 
         stage_defaults=cWParams.commentedOrderedDict()
         stage_defaults["base_dir"]=("/var/www/html/vofrontend/stage","base_dir","Stage base dir",None)

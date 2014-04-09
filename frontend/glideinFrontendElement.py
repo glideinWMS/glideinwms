@@ -168,17 +168,22 @@ class glideinFrontendElement:
         # create lock file
         pid_obj = glideinFrontendPidLib.ElementPidSupport(self.work_dir,
                                                           self.group_name)
+        rc = 0
         pid_obj.register(self.parent_pid)
         try:
             try:
                 #logSupport.log.info("Starting up")
-                self.iterate()
+                rc = self.iterate()
             except KeyboardInterrupt:
                 logSupport.log.info("Received signal...exit")
+                rc = 1
             except:
                 logSupport.log.exception("Unhandled exception, dying: ")
+                rc = 2
         finally:
             pid_obj.relinquish()
+
+        return rc
 
 
     def iterate(self):
@@ -195,11 +200,10 @@ class glideinFrontendElement:
                                                            self.group_name)
 
         if self.action=="run":
-            is_first = 1
             if 1: # do a single iteration, keep indentation to minimize commit changes
                 check_parent(self.parent_pid)
                 logSupport.log.info("Iteration at %s" % time.ctime())
-                try:
+                if True: # for histroical reasons only... was an additional try...catch clause
                     # recreate every time to start from a clean state
                     self.stats['group'] = glideinFrontendMonitoring.groupStats()
 
@@ -215,15 +219,6 @@ class glideinFrontendElement:
                     except:
                         # never fail for stats reasons!
                         logSupport.log.exception("Exception occurred writing stats: " )
-                except KeyboardInterrupt:
-                    raise # this is an exit signal, pass trough
-                except:
-                    if is_first:
-                        raise
-                    else:
-                        # if not the first pass, just warn
-                        logSupport.log.exception("Exception occurred iteration: ")
-                is_first = 0
 
                 # do it just before the sleep
                 cleanupSupport.cleaners.cleanup()
@@ -236,6 +231,9 @@ class glideinFrontendElement:
             self.deadvertiseAllClassads()
         else:
             logSupport.log.warning("Unknown action: %s"%self.action)
+            return 1
+
+        return 0
 
     def deadvertiseAllClassads(self):
         # Invalidate all glideclient glideclientglobal classads
@@ -1129,7 +1127,6 @@ def expand_DD(qstr,attr_dict):
             attr_str='"%s"'%attr_val.replace('"','\\"')
         qstr="%s%s%s"%(qstr[:m.start()],attr_str,qstr[m.end():])
     return qstr
-    
 
 ############################################################
 #
@@ -1144,4 +1141,9 @@ if __name__ == '__main__':
     else:
         action = sys.argv[4]
     gfe = glideinFrontendElement(int(sys.argv[1]), sys.argv[2], sys.argv[3], action)
-    gfe.main()
+    rc = gfe.main()
+
+    # explicitly exit with 0
+    # this allows for reliable checking 
+    exit(rc)
+    
