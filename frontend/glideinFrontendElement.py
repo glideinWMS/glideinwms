@@ -12,6 +12,7 @@
 #   $1 = parent PID
 #   $2 = work dir
 #   $3 = group_name
+#   $4 = operation type (optional, defaults to "run")
 #
 # Author:
 #   Igor Sfiligoi (was glideinFrontend.py until Nov 21, 2008)
@@ -45,18 +46,20 @@ from glideinwms.frontend import glideinFrontendMonitoring
 from glideinwms.frontend import glideinFrontendPlugins
 
 class glideinFrontendElement:
-    def __init__(self, parent_pid, work_dir, group_name):
+    def __init__(self, parent_pid, work_dir, group_name, action):
         self.parent_pid = parent_pid
         self.work_dir = work_dir
         self.group_name = group_name
+        self.action = action
 
         self.elementDescript = glideinFrontendConfig.ElementMergedDescript(self.work_dir, self.group_name)
         self.paramsDescript = glideinFrontendConfig.ParamsDescript(self.work_dir, self.group_name)
         self.signatureDescript = glideinFrontendConfig.GroupSignatureDescript(self.work_dir, self.group_name)
         self.attr_dict = glideinFrontendConfig.AttrsDescript(self.work_dir,self.group_name).data
+        self.history_obj = glideinFrontendConfig.HistoryFile(self.work_dir, self.group_name, True)
         self.startup_time = time.time()
 
-        self.sleep_time = int(self.elementDescript.frontend_data['LoopDelay'])
+        #self.sleep_time = int(self.elementDescript.frontend_data['LoopDelay'])
         self.frontend_name = self.elementDescript.frontend_data['FrontendName']
         self.web_url = self.elementDescript.frontend_data['WebURL']
         self.monitoring_web_url = self.elementDescript.frontend_data['MonitoringWebURL']
@@ -87,9 +90,10 @@ class glideinFrontendElement:
 
     def configure(self):
         ''' Do some initial configuration of the element. '''
+        group_dir = glideinFrontendConfig.get_group_dir(self.work_dir, self.group_name)
 
         # the log dir is shared between the frontend main and the groups, so use a subdir
-        logSupport.log_dir = os.path.join(self.elementDescript.frontend_data['LogDir'], "group_%s" % self.group_name)
+        logSupport.log_dir = glideinFrontendConfig.get_group_dir(self.elementDescript.frontend_data['LogDir'], self.group_name)
 
         # Configure frontend group process logging
         process_logs = eval(self.elementDescript.frontend_data['ProcessLogs'])
@@ -102,10 +106,12 @@ class glideinFrontendElement:
                                               int(float(plog['min_days'])),
                                               int(float(plog['max_mbytes'])))
         logSupport.log = logging.getLogger(self.group_name)
-        logSupport.log.info("Logging initialized")
-        logSupport.log.debug("Frontend Element startup time: %s" % str(self.startup_time))
 
-        glideinFrontendMonitoring.monitoringConfig.monitor_dir = os.path.join(self.work_dir, "monitor/group_%s" % self.group_name)
+        # We will be starting often, so reduce the clutter
+        #logSupport.log.info("Logging initialized")
+        #logSupport.log.debug("Frontend Element startup time: %s" % str(self.startup_time))
+
+        glideinFrontendMonitoring.monitoringConfig.monitor_dir =glideinFrontendConfig.get_group_dir(os.path.join(self.work_dir, "monitor"), self.group_name)
         glideinFrontendInterface.frontendConfig.advertise_use_tcp = (self.elementDescript.frontend_data['AdvertiseWithTCP'] in ('True', '1'))
         glideinFrontendInterface.frontendConfig.advertise_use_multi = (self.elementDescript.frontend_data['AdvertiseWithMultiple'] in ('True', '1'))
 
@@ -123,8 +129,7 @@ class glideinFrontendElement:
                     proxy_plugins.keys())
                 return 1
             self.x509_proxy_plugin = proxy_plugins[self.elementDescript.merged_data['ProxySelectionPlugin']](
-                os.path.join(self.work_dir, "group_%s" % self.group_name),
-                glideinFrontendPlugins.createCredentialList(self.elementDescript))
+                group_dir,glideinFrontendPlugins.createCredentialList(self.elementDescript))
 
         # set the condor configuration and GSI setup globally, so I don't need to worry about it later on
         os.environ['CONDOR_CONFIG'] = self.elementDescript.frontend_data['CondorConfig']
@@ -140,7 +145,7 @@ class glideinFrontendElement:
         pid_obj.register(self.parent_pid)
         try:
             try:
-                logSupport.log.info("Starting up")
+                #logSupport.log.info("Starting up")
                 self.iterate()
             except KeyboardInterrupt:
                 logSupport.log.info("Received signal...exit")
@@ -152,7 +157,6 @@ class glideinFrontendElement:
 
     def iterate(self):
         self.stats = {}
-        self.history_obj = {}
 
         if not self.elementDescript.frontend_data.has_key('X509Proxy'):
             self.published_frontend_name = '%s.%s' % (self.frontend_name,
@@ -164,9 +168,9 @@ class glideinFrontendElement:
             self.published_frontend_name = '%s.XPVO_%s' % (self.frontend_name,
                                                            self.group_name)
 
-        try:
+        if self.action=="run":
             is_first = 1
-            while 1: # will exit by exception
+            if 1: # do a single iteration, keep indentation to minimize commit changes
                 check_parent(self.parent_pid)
                 logSupport.log.info("Iteration at %s" % time.ctime())
                 try:
@@ -174,6 +178,7 @@ class glideinFrontendElement:
                     self.stats['group'] = glideinFrontendMonitoring.groupStats()
 
                     done_something = self.iterate_one()
+                    self.history_obj.save()
                     logSupport.log.info("iterate_one status: %s" % str(done_something))
 
                     logSupport.log.info("Writing stats")
@@ -197,12 +202,14 @@ class glideinFrontendElement:
                 # do it just before the sleep
                 cleanupSupport.cleaners.cleanup()
 
-                logSupport.log.info("Sleeping %s sec" % self.sleep_time)
-                time.sleep(self.sleep_time)
-        finally:
+                # only one iteration, no sleep
+                #logSupport.log.info("Sleeping %s sec" % self.sleep_time)
+                #time.sleep(self.sleep_time)
+        elif self.action=="deadvertise":
             logSupport.log.info("Deadvertize my ads")
             self.deadvertiseAllClassads()
-
+        else:
+            logSupport.log.warning("Unknown action: %s"%self.action)
 
     def deadvertiseAllClassads(self):
         # Invalidate all glideclient glideclientglobal classads
@@ -211,23 +218,19 @@ class glideinFrontendElement:
             try:
                 glideinFrontendInterface.deadvertizeAllWork(factory_pool_node, self.published_frontend_name)
             except:
-                # Ignore errors
-                pass
+                logSupport.log.warning("Failed to deadvertise work on %s"%factory_pool_node)
 
             try:
                 glideinFrontendInterface.deadvertizeAllGlobals(factory_pool_node, self.published_frontend_name)
             except:
-                # Ignore errors
-                pass
+                logSupport.log.warning("Failed to deadvertise globals on %s"%factory_pool_node)
 
         # Invalidate all glideresource classads
         try:
             resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser()
             resource_advertiser.invalidateConstrainedClassads('GlideClientName == "%s"' % self.published_frontend_name)
         except:
-            # Ignore all errors
-            pass
-
+            logSupport.log.warning("Failed to deadvertise resources classads")
 
     def iterate_one(self):
         pipe_ids={}
@@ -616,6 +619,7 @@ class glideinFrontendElement:
     def build_resource_classad(self, this_stats_arr, request_name, glidein_el, glidein_in_downtime):
         # Create the resource classad and populate the required information
         resource_classad = glideinFrontendInterface.ResourceClassad(request_name, self.published_frontend_name)
+        resource_classad.setFrontendDetails(self.frontend_name,self.group_name)
         resource_classad.setInDownTime(glidein_in_downtime)
         resource_classad.setEntryInfo(glidein_el['attrs'])
         resource_classad.setGlideFactoryMonitorInfo(glidein_el['monitor'])
@@ -756,9 +760,8 @@ class glideinFrontendElement:
         # do not remove excessive glideins by default
         remove_excess_wait = False
         # keep track of how often idle was 0
-        history_idle0 = self.history_obj.setdefault('idle0', {})
+        history_idle0 = self.history_obj.get_dict_el('idle0')
         history_idle0.setdefault(glideid, 0)
-
         if count_jobs['Idle'] == 0:
             # no idle jobs in the queue left
             # consider asking for unsubmitted idle glideins to be removed
@@ -773,7 +776,7 @@ class glideinFrontendElement:
         remove_excess_idle = False
 
         # keep track of how often glideidle was 0
-        history_glideempty = self.history_obj.setdefault('glideempty', {})
+        history_glideempty = self.history_obj.get_dict_el('glideempty')
         history_glideempty.setdefault(glideid, 0)
         if count_status['Idle'] >= count_status['Total']:
             # no glideins being used
@@ -790,7 +793,7 @@ class glideinFrontendElement:
         remove_excess_running = False
 
         # keep track of how often glidetotal was 0
-        history_glidetotal0 = self.history_obj.setdefault('glidetotal0', {})
+        history_glidetotal0 = self.history_obj.get_dict_el('glidetotal0')
         history_glidetotal0.setdefault(glideid, 0)
         if count_status['Total'] == 0:
             # no glideins registered
@@ -1223,5 +1226,9 @@ def expand_DD(qstr,attr_dict):
 
 if __name__ == '__main__':
     register_sighandler()
-    gfe = glideinFrontendElement(int(sys.argv[1]), sys.argv[2], sys.argv[3])
+    if len(sys.argv)==4:
+        action = "run"
+    else:
+        action = sys.argv[4]
+    gfe = glideinFrontendElement(int(sys.argv[1]), sys.argv[2], sys.argv[3], action)
     gfe.main()

@@ -1180,6 +1180,17 @@ class ResourceClassad(classadSupport.Classad):
             advertizeGRCounter[self.adParams['Name']] = 0
         self.adParams['UpdateSequenceNumber'] = advertizeGRCounter[self.adParams['Name']]
 
+    def setFrontendDetails(self, frontend_name, group_name):
+        """
+        Add the detailed description of the frontend.
+        @type frontend_name: string
+        @param frontend_name: A representation of the  frontend MatchExpr
+        @type group_name: string
+        @param group_name: Representation of the job query_expr
+        """
+        self.adParams['GlideFrontendName'] = "%s" % frontend_name
+        self.adParams['GlideGroupName'] = "%s" % group_name
+        
     def setMatchExprs(self, match_expr, job_query_expr, factory_query_expr, start_expr):
         """
         Sets the matching expressions for the resource classad

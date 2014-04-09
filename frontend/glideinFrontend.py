@@ -32,6 +32,7 @@ from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
 from glideinwms.frontend import glideinFrontendPidLib
 from glideinwms.frontend import glideinFrontendConfig
+from glideinwms.frontend import glideinFrontendInterface
 from glideinwms.frontend import glideinFrontendMonitorAggregator
 from glideinwms.frontend import glideinFrontendMonitoring
 
@@ -43,209 +44,163 @@ def aggregate_stats():
     return
 
 ############################################################
-def is_crashing_often(startup_time, restart_interval, restart_attempts):
-    crashing_often = True
-
-    if (len(startup_time) < restart_attempts):
-        # We haven't exhausted restart attempts
-        crashing_often = False
-    else:
-        # Check if the service has been restarted often
-        if restart_attempts == 1:
-            crashing_often = True
-        elif (time.time() - startup_time[0]) >= restart_interval:
-            crashing_often = False
-        else:
-            crashing_often = True
-
-    return crashing_often
-
-############################################################
-def clean_exit(childs):
-    count=100000000 # set it high, so it is triggered at the first iteration
-    sleep_time=0.1 # start with very little sleep
-    while len(childs.keys())>0:
-        count+=1
-        if count>4:
-            # Send a term signal to the childs
-            # May need to do it several times, in case there are in the middle of something
-            count=0
-            groups=childs.keys()
-            groups.sort()
-            logSupport.log.info("Killing groups %s"%groups)
-            for group_name in childs.keys():
-                try:
-                    os.kill(childs[group_name].pid,signal.SIGTERM)
-                except OSError:
-                    logSupport.log.info("Group %s already dead"%group_name)  
-                    del childs[group_name] # already dead
-        
-        logSupport.log.info("Sleep")
-        time.sleep(sleep_time)
-        # exponentially increase, up to 5 secs
-        sleep_time=sleep_time*2
-        if sleep_time>5:
-            sleep_time=5
-
-        groups=childs.keys()
-        groups.sort()
-        
-        logSupport.log.info("Checking dying groups %s"%groups)  
-        dead_groups=[]
-        for group_name in childs.keys():
-            child=childs[group_name]
-        
-            # empty stdout and stderr
-            try:
-                tempOut = child.fromchild.read()
-                if len(tempOut)!=0:
-                    logSupport.log.warning("Child %s STDOUT: %s"%(group_name, tempOut))
-            except IOError:
-                pass # ignore
-            try:
-                tempErr = child.childerr.read()
-                if len(tempErr)!=0:
-                    logSupport.log.warning("Child %s STDERR: %s"%(group_name, tempErr))
-            except IOError:
-                pass # ignore
-
-            # look for exited child
-            if child.poll() is not None:
-                # the child exited
-                dead_groups.append(group_name)
-                del childs[group_name]
-                tempOut = child.fromchild.readlines()
-                tempErr = child.childerr.readlines()
-        if len(dead_groups)>0:
-            logSupport.log.info("These groups died: %s"%dead_groups)
-
-    logSupport.log.info("All groups dead")
-
-
-############################################################
-def spawn(sleep_time,advertize_rate,work_dir,
-          frontendDescript,groups,restart_attempts,restart_interval):
-
+def spawn_group(work_dir,group_name):
     global STARTUP_DIR
-    childs = {}
-    childs_uptime = {}
-    # By default allow max 3 restarts every 30 min before giving up
 
-    logSupport.log.info("Starting groups %s" % groups)
+    command_list = [sys.executable,
+                    os.path.join(STARTUP_DIR,
+                                 "glideinFrontendElement.py"),
+                    str(os.getpid()),
+                    work_dir,
+                    group_name]
+    #logSupport.log.debug("Command list: %s" % command_list)
+    child = subprocess.Popen(command_list, shell=False,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+
+    # set it in non blocking mode
+    for fd in (child.stdout.fileno(),
+               child.stderr.fileno()):
+        fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+        fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+
+    return child
+
+############################################################
+def check_alive(group_name,child):
+    # empty stdout and stderr
     try:
-        for group_name in groups:
+        tempOut = child.stdout.read()
+        if len(tempOut)!=0:
+            logSupport.log.info("[%s]: %s" % (group_name, tempOut))
+    except IOError:
+        pass # ignore
+    try:
+        tempErr = child.stderr.read()
+        if len(tempErr)!=0:
+            logSupport.log.warning("[%s]: %s" % (group_name, tempErr))
+    except IOError:
+        pass # ignore
 
-            # Converted to using the subprocess module
+    return (child.poll() is None)
+
+############################################################
+def spawn_iteration(work_dir,groups,max_active):
+    childs = {}
+  
+    for group_name in groups:
+        childs[group_name] = {'state':'queued'}
+
+    active_groups = 0
+    groups_tofinish = len(groups)
+
+
+    logSupport.log.info("Starting iteration")
+    try:
+        while groups_tofinish>0:
+            done_something = False
+            # check if any group finished by now
+            for group_name in groups:
+                if childs[group_name]['state']=='spawned':
+                    if not check_alive(group_name,childs[group_name]['data']):
+                        childs[group_name]['state'] = 'finished'
+                        active_groups-=1
+                        groups_tofinish-=1
+                        done_something = True
+
+            # see if I can spawn more
+            for group_name in groups:
+                if active_groups<max_active: # can spawn more
+                    if childs[group_name]['state']=='queued':
+                        childs[group_name]['data'] = spawn_group(work_dir,group_name)
+                        childs[group_name]['state'] = 'spawned'
+                        active_groups+=1
+                        done_something = True
+                else:
+                    break
+
+            if done_something:
+                logSupport.log.info("Active groups = %i, Groups to finish = %i"%(active_groups,groups_tofinish))
+            if groups_tofinish>0:
+                time.sleep(0.01)
+    
+        logSupport.log.info("All groups finished")
+
+        logSupport.log.info("Aggregate monitoring data")
+        # KEL - can we just call the monitor aggregator method directly?  see above
+        aggregate_stats()
+        """
+        try:
+          aggregate_stats()
+        except Exception:
+          logSupport.log.exception("Aggregate monitoring data .. ERROR")
+        """
+
+        logSupport.log.info("Cleaning logs")
+        cleanupSupport.cleaners.cleanup()
+    finally:
+        # cleanup at exit
+        # if anything goes wrong, hardkill the rest
+        for group_name in childs.keys():
+            if childs[group_name]['state']=='spawned':
+                logSupport.log.info("Hard killing group %s" % group_name)
+                try:
+                    os.kill(childs[group_name]['data'].pid,signal.SIGKILL)
+                except OSError:
+                    pass # ignore failed kills of non-existent processes
+        
+        
+############################################################
+def spawn_cleanup(work_dir,groups):
+    global STARTUP_DIR
+
+    for group_name in groups:
+        try:
             command_list = [sys.executable,
                             os.path.join(STARTUP_DIR,
                                          "glideinFrontendElement.py"),
                             str(os.getpid()),
                             work_dir,
-                            group_name]
-            logSupport.log.debug("Command list: %s" % command_list)
-            childs[group_name] = subprocess.Popen(command_list, shell=False,
-                                                  stdout=subprocess.PIPE,
-                                                  stderr=subprocess.PIPE)
+                            group_name,
+                            "deadvertise"]
+            #logSupport.log.debug("Command list: %s" % command_list)
+            child = subprocess.Popen(command_list, shell=False,
+                                     stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE)
 
-            # Get the startup time. Used to check if the group is crashing
-            # periodically and needs to be restarted.
-            childs_uptime[group_name] = list()
-            childs_uptime[group_name].insert(0, time.time())
-        logSupport.log.info("Group startup times: %s" % childs_uptime)
-
-        for group_name in childs.keys():
             # set it in non blocking mode
-            # since we will run for a long time, we do not want to block
-            for fd in (childs[group_name].stdout.fileno(),
-                       childs[group_name].stderr.fileno()):
+            for fd in (child.stdout.fileno(),
+                       child.stderr.fileno()):
                 fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
-
-        while 1:
-            logSupport.log.info("Checking groups %s" % groups)
-            for group_name in childs.keys():
-                child = childs[group_name]
-
-                # empty stdout and stderr
-                try:
-                    tempOut = child.stdout.read()
-                    if len(tempOut)!=0:
-                        logSupport.log.info("[%s]: %s" % (child, tempOut))
-                except IOError:
-                    pass # ignore
-                try:
-                    tempErr = child.stderr.read()
-                    if len(tempErr)!=0:
-                        logSupport.log.warning("[%s]: %s" % (child, tempErr))
-                except IOError:
-                    pass # ignore
-
-                # look for exited child
-                if child.poll():
-                    # the child exited
-                    logSupport.log.warning("Child %s exited. Checking if it should be restarted." % (group_name))
-                    tempOut = child.stdout.readlines()
-                    tempErr = child.stderr.readlines()
-                    if is_crashing_often(childs_uptime[group_name], restart_interval, restart_attempts):
-                        del childs[group_name]
-                        logSupport.log.error("Group '%s' has been crashing too often, quit the whole frontend:\n%s\n%s" % (group_name, tempOut, tempErr))
-                        raise RuntimeError, "Group '%s' has been crashing too often, quit the whole frontend:\n%s\n%s" % (group_name, tempOut, tempErr)
-                        #raise RuntimeError,"Group '%s' exited, quit the whole frontend:\n%s\n%s"%(group_name,tempOut,tempErr)
-                    else:
-                        # Restart the group setting its restart time
-                        logSupport.log.warning("Restarting child %s." % (group_name))
-                        del childs[group_name]
-
-                        # Converted to using the subprocess module
-                        command_list = [sys.executable,
-                                        os.path.join(STARTUP_DIR,
-                                                   "glideinFrontendElement.py"),
-                                        str(os.getpid()),
-                                        work_dir,
-                                        group_name]
-                        childs[group_name] = subprocess.Popen(
-                                                 command_list, shell=False,
-                                                 stdout=subprocess.PIPE,
-                                                 stderr=subprocess.PIPE)
-
-                        if len(childs_uptime[group_name]) == restart_attempts:
-                            childs_uptime[group_name].pop(0)
-                        childs_uptime[group_name].append(time.time())
-
-                        for fd in (childs[group_name].stdout.fileno(),childs[group_name].stderr.fileno()):
-                            fl = fcntl.fcntl(fd, fcntl.F_GETFL)
-                            fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
-                        logSupport.log.warning("Group's startup/restart times: %s" % childs_uptime)
-            logSupport.log.info("Aggregate monitoring data")
-            # KEL - can we just call the monitor aggregator method directly?  see above
-            aggregate_stats()
-            """
-            try:
-                aggregate_stats()
-            except Exception:
-                logSupport.log.exception("Aggregate monitoring data .. ERROR")
-            """
-
-            # do it just before the sleep
-            cleanupSupport.cleaners.cleanup()
-
-            logSupport.log.info("Sleep %s sec" % sleep_time)
-            time.sleep(sleep_time)
-    finally:
-        # cleanup at exit
-        logSupport.log.info("Received signal...exit")
-        try:
-            clean_exit(childs)
+            
+            while check_alive(group_name,child):
+                time.sleep(0.01)
         except:
-            # if anything goes wrong, hardkill the rest
-            for group_name in childs.keys():
-                logSupport.log.info("Hard killing group %s" % group_name)
-                try:
-                    os.kill(childs[group_name].pid,signal.SIGTERM)
-                except OSError:
-                    pass # ignore failed kills of non-existent processes
+            # never fail on cleanup
+            pass
         
-        
+############################################################
+def spawn(sleep_time,advertize_rate,work_dir,
+          frontendDescript,groups,max_parallel_workers):
+
+    try:
+        while 1: #will exit on signal
+            start_time=time.time()
+            spawn_iteration(work_dir,groups,max_parallel_workers)
+            end_time=time.time()
+            elapsed_time=end_time-start_time
+            if elapsed_time<sleep_time:
+                real_sleep_time=sleep_time-elapsed_time
+                logSupport.log.info("Sleep %.1f sec" % real_sleep_time)
+                time.sleep(real_sleep_time)
+            else:
+                logSupport.log.info("No sleeping this loop, took %.1f sec > %.1f sec" % (elapsed_time, sleep_time))
+    finally:
+        logSupport.log.info("Deadvertize my ads")
+        spawn_cleanup(work_dir,groups)
+
+
 ############################################################
 def cleanup_environ():
     for val in os.environ.keys():
@@ -290,8 +245,7 @@ def main(work_dir):
 
         sleep_time = int(frontendDescript.data['LoopDelay'])
         advertize_rate = int(frontendDescript.data['AdvertiseDelay'])
-        restart_attempts = int(frontendDescript.data['RestartAttempts'])
-        restart_interval = int(frontendDescript.data['RestartInterval'])
+        max_parallel_workers = int(frontendDescript.data['GroupParallelWorkers'])
 
         groups = string.split(frontendDescript.data['Groups'], ',')
         groups.sort()
@@ -303,6 +257,8 @@ def main(work_dir):
 
     glideinFrontendMonitoring.write_frontend_descript_xml(frontendDescript, os.path.join(work_dir, 'monitor/'))
     
+    logSupport.log.info("Enabled groups: %s" % groups)
+
     # create lock file
     pid_obj = glideinFrontendPidLib.FrontendPidSupport(work_dir)
 
@@ -317,7 +273,7 @@ def main(work_dir):
     try:
         try:
             spawn(sleep_time, advertize_rate, work_dir,
-                  frontendDescript, groups, restart_attempts, restart_interval)
+                  frontendDescript, groups, max_parallel_workers)
         except KeyboardInterrupt:
             logSupport.log.info("Received signal...exit")
         except:
