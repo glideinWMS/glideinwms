@@ -330,11 +330,11 @@ case $1 in
             reconfig "$@"
             ;;
         upgrade)
-            if [ "$RPM_INSTALL" = "True" ]; then
-                echo "upgrade is not a valid action for RPM installations"
-                help_usage
-                exit 2
-            fi
+            #if [ "$RPM_INSTALL" = "True" ]; then
+            #    echo "upgrade is not a valid action for RPM installations"
+            #    help_usage
+            #    exit 2
+            #fi
             upgrade $2
             ;;
         *)
