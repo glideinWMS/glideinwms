@@ -317,21 +317,23 @@ upgrade() {
         writeback=$DEFAULT_WRITEBACK
         force_delete=""
         fix_rrd=""
-        for var in "$@"
-        do
-            case "$var" in
-            yes | no) writeback="$var"
-                ;;
-            "-force_delete") force_delete="-force_delete"
-                ;;
-            "-fix_rrd") fix_rrd="-fix_rrd"
-                ;;
-            *)  echo "Invalid option: $var"
-                help_usage
-                exit 2
-                ;;
-            esac
-        done
+        if [ -n "$@" ]; then
+            for var in "$@"
+            do
+                case "$var" in
+                yes | no) writeback="$var"
+                    ;;
+                "-force_delete") force_delete="-force_delete"
+                    ;;
+                "-fix_rrd") fix_rrd="-fix_rrd"
+                    ;;
+                *)  echo "Invalid option: $var"
+                    help_usage
+                    exit 2
+                    ;;
+                esac
+            done
+        fi
 
         pushd $factory_dir 1>/dev/null
         invoke_as_factory "\"${CREATION_DIR}reconfig_glidein\" -force_name \"$glidein_name\" -writeback yes -update_scripts yes -xml \"$cfg_loc\"" 
