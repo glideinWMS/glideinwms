@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_4_rc2
+# GLIDEINWMS_VERSION v3_2_4_rc3
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -30,8 +30,8 @@ ab37666bbf8d569a34974aea3dc29fa6  ./creation/lib/cvWConsts.py
 414dd08400e9050a5c7e6a64fa7a4d94  ./creation/lib/xslt.py
 bd792b8d6a0ed1d97e2b75c77adc420d  ./creation/reconfig_frontend
 98c31d903771ce585339bdf6438fb3e6  ./creation/reconfig_glidein
-af89fc7eef3d95f0e9d4e813e0ffd9da  ./creation/templates/factory_initd_startup_template
-348cf74ae0ba2d5297cb5d10b8d19525  ./creation/templates/frontend_initd_startup_template
+a2e397f9b92814b72726a90ac977a066  ./creation/templates/factory_initd_startup_template
+d00f35683e4c36e0ba321de5349d3011  ./creation/templates/frontend_initd_startup_template
 0cae63ee6a72dc91cc3a2d1f8ccecbce  ./creation/web_base/advertise_failure.helper
 1a794306785cd9f0489ba1b484470af1  ./creation/web_base/cat_consts.sh
 40a2b85a853a072f65049c4efe64bc3a  ./creation/web_base/check_blacklist.sh
