@@ -1265,5 +1265,5 @@ if __name__ == '__main__':
 
     # explicitly exit with 0
     # this allows for reliable checking 
-    exit(rc)
+    sys.exit(rc)
     
