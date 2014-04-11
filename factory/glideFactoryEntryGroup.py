@@ -788,6 +788,9 @@ def main(parent_pid, sleep_time, advertize_rate,
     glideinDescript = gfc.GlideinDescript()
     frontendDescript = gfc.FrontendDescript()
 
+    # set factory_collector at a global level, since we do not expect it to change
+    gfi.factoryConfig.factory_collector = glideinDescript.data['FactoryCollector']
+
     # Load factory keys
     glideinDescript.load_pub_key()
     glideinDescript.load_old_rsa_key()

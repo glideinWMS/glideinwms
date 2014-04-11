@@ -135,6 +135,7 @@ class GlideinParams(cWParams.CommonParams):
         self.defaults["factory_name"] = (socket.gethostname(), 'ID', 'Factory name', None)
         self.defaults["glidein_name"] = (None, 'ID', 'Glidein name', None)
         self.defaults['schedd_name'] = ("schedd_glideins@%s" % socket.gethostname(), "ScheddName", "Which schedd to use, can be a comma separated list", None)
+        self.defaults['factory_collector'] = (None, "CollectorName", "Which collector should we use for factory ClassAds", None)
         self.defaults['factory_versioning'] = ('True', 'Bool', 'Should we create versioned subdirectories?', None)
 
         submit_defaults = cWParams.commentedOrderedDict()
