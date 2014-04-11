@@ -27,10 +27,12 @@ RPM_INSTALL=%(rpm_install)s
 # '' enables autodetection: RPM installation only if this file path is /etc/init.d/gwms-frontend
 SCRIPT_NAME="`readlink -f $0`"
 #alt: SCRIPT_NAME="$(cd "$(dirname "$0")" 2>/dev/null && pwd)/$(basename "$0")"
-if [ -z "$RPM_INSTALL" ] && [ "$SCRIPT_NAME" = "/etc/gwms-frontend/frontend.xml" ]; then
-    RPM_INSTALL=True
-else
-    RPM_INSTALL=False
+if [ -z "$RPM_INSTALL" ]; then
+    if [ "$SCRIPT_NAME" = "/etc/gwms-frontend/frontend.xml" ]; then
+        RPM_INSTALL=True
+    else
+        RPM_INSTALL=False
+    fi
 fi
 SCRIPT_NAME="`basename $0`"
 
@@ -292,12 +294,14 @@ reconfig() {
 }
 
 upgrade() {
+        shift
         if [ -f "$1" ]; then
            echo "Using factory config file arg: $1"
            cfg_loc=$1
+           shift
         else
-           echo "Using default factory config file: $default_cfg_fpath"
-           cfg_loc=$default_cfg_fpath
+           echo "Using default factory config file: $def_factory_config"
+           cfg_loc=$def_factory_config 
         fi
 
         "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null
@@ -323,7 +327,7 @@ upgrade() {
             "-fix_rrd") fix_rrd="-fix_rrd"
                 ;;
             *)  echo "Invalid option: $var"
-                help_message
+                help_usage
                 exit 2
                 ;;
             esac
@@ -402,7 +406,7 @@ case $1 in
         #    help_usage
         #    exit 2
         #fi
-        upgrade "$2"
+        upgrade "$@"
         ;;
     down)
         downtime down "$@"
