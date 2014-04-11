@@ -28,10 +28,12 @@ RPM_INSTALL=%(rpm_install)s
 # '' enables autodetection: RPM installation only if this file path is /etc/init.d/gwms-frontend
 SCRIPT_NAME="`readlink -f $0`"
 #alt: SCRIPT_NAME="$(cd "$(dirname "$0")" 2>/dev/null && pwd)/$(basename "$0")"
-if [ -z "$RPM_INSTALL" ] && [ "$SCRIPT_NAME" = "/etc/init.d/gwms-frontend" ]; then
-    RPM_INSTALL=True
-else
-    RPM_INSTALL=False
+if [ -z "$RPM_INSTALL" ]; then
+    if [ "$SCRIPT_NAME" = "/etc/init.d/gwms-frontend" ]; then
+        RPM_INSTALL=True
+    else
+        RPM_INSTALL=False
+    fi
 fi
 SCRIPT_NAME="`basename $0`"
 
