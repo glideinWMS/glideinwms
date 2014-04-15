@@ -14,6 +14,7 @@ import sys
 import cgWDictFile,cWDictFile
 import cgWCreate
 import cgWConsts,cWConsts
+import cWExpand
 
 from glideinwms.lib import pubCrypto
 
@@ -191,7 +192,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # put user attributes into config files
         for attr_name in params.attrs.keys():
-            add_attr_unparsed(attr_name, params,self.dicts,"main")
+            if params.attrs[attr_name].value.find('$')==-1: #does not need to be expanded
+                add_attr_unparsed(attr_name, params,self.dicts,"main")
+            # ignore attributes that need expansion in the global section
 
         # add additional system scripts
         for script_name in after_file_list_scripts:
@@ -366,7 +369,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         self.dicts['condor_jdl'].save(set_readonly=set_readonly)
         
     
-    def populate(self,params=None):
+    def populate(self,main_dicts,params=None):
         if params is None:
             params=self.params
         sub_params=params.entries[self.sub_name]
@@ -395,6 +398,14 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         # Add attribute for voms
 
+        # insert the global values that need to be expanded
+        # will be in the entry section now
+        for attr_name in params.attrs.keys():
+             if params.attrs[attr_name].value.find('$')!=-1:
+                 if not (attr_name in sub_params.attrs.keys()):
+                     add_attr_unparsed(attr_name, params,self.dicts,self.sub_name)
+                 # else the entry value will override it later on
+
         # put user attributes into config files
         for attr_name in sub_params.attrs.keys():
             add_attr_unparsed(attr_name, sub_params,self.dicts,self.sub_name)
@@ -416,6 +427,21 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
                 self.dicts[dtype].add('GLIDEIN_GlobusRSL',sub_params.rsl,allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_SlotsLayout", sub_params.config.submit.slots_layout, allow_overwrite=True)
 
+        # we now have all the attributes... do the expansion
+        # first, let's merge the attributes
+        summed_attrs={}
+        for d in (main_dicts['attrs'],self.dicts['attrs']):
+            for k in d.keys:
+                # if the same key is in both global and entry (i.e. local), entry wins
+                summed_attrs[k]=d[k] 
+
+        for dname in ('attrs','consts','params'):
+            for attr_name in self.dicts[dname].keys:
+                if ((type(self.dicts[dname][attr_name]) in (type('a'),type(u'a'))) and
+                    (self.dicts[dname][attr_name].find('$')!=-1)):
+                    self.dicts[dname].add(attr_name,
+                                          cWExpand.expand_DLR(self.dicts[dname][attr_name],summed_attrs),
+                                          allow_overwrite=True)
 
         self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_VOMS","boolean",sub_params.config.restrictions.require_voms_proxy,None,False,True,True)
         self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_GLEXEC_USE","boolean",sub_params.config.restrictions.require_glidein_glexec_use,None,False,True,True)
@@ -429,23 +455,26 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             self.dicts['mongroup'].add_extended(monitorgroup['group_name'],allow_overwrite=True)
 
         # populate complex files
-        populate_job_descript(self.work_dir,self.dicts['job_descript'],
-                              self.sub_name,sub_params)
+        jd = self.dicts['job_descript']
+        populate_job_descript(self.work_dir,jd,
+                              self.sub_name,sub_params,
+                              summed_attrs)
 
         ################################################################################################################
         # This is the original function call:
         #
         # self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE,
         #                                   params.factory_name,params.glidein_name,self.sub_name,
-        #                                   sub_params.gridtype,sub_params.gatekeeper, sub_params.rsl, sub_params.auth_method,
-        #                                   params.web_url,sub_params.proxy_url,sub_params.work_dir,
-        #                                   params.submit.base_client_log_dir, sub_params.submit.submit_attrs)
+        #                                   jd['GridType'],jd['Gatekeeper'], rsl, jd['AuthMethod'],
+        #                                   params.web_url,proxy_url,jd['StartupDir'],
+        #                                   params.submit.base_client_log_dir,
+        #                                   eval(job_descript['SubmitAttrs']))
         #
-        # Almost all of the parameters are attributes of params and/or sub_params.  Instead of maintaining an ever
-        # increasing parameter list for this function, lets just pass params, sub_params, and the 2 other parameters
+        # Almost all of the parameters are attributes of params and/or job_descript.  Instead of maintaining an ever
+        # increasing parameter list for this function, lets just pass params, jd, and the 2 other parameters
         # to the function and call it a day.
         ################################################################################################################
-        self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE, self.sub_name, params, sub_params)
+        self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE, self.sub_name, params, jd)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -483,7 +512,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
 
         self.local_populate(params)
         for sub_name in self.sub_list:
-            self.sub_dicts[sub_name].populate(params)
+            self.sub_dicts[sub_name].populate(self.main_dicts.dicts,params)
 
         validate_condor_tarball_attrs(params)
 
@@ -751,7 +780,8 @@ def populate_factory_descript(work_dir,
 
 #######################
 def populate_job_descript(work_dir, job_descript_dict, 
-                          sub_name, sub_params):
+                          sub_name, sub_params,
+                          attrs_dict):
     """
     Modifies the job_descript_dict to contain the factory configuration values.
     
@@ -763,6 +793,8 @@ def populate_job_descript(work_dir, job_descript_dict,
     @param sub_name: entry name
     @type sub_params: dict
     @param sub_params: entry parameters
+    @type attr_dict: dict
+    @param attr_dict: dictionary of attributes
     """
     
     down_fname = os.path.join(work_dir, 'glideinWMS.downtimes')
@@ -825,6 +857,21 @@ def populate_job_descript(work_dir, job_descript_dict,
     job_descript_dict.add("WhitelistMode", white_mode)
     job_descript_dict.add("AllowedVOs", allowed_vos[:-1])
 
+    # finally, expand as needed
+    for attr_name in job_descript_dict.keys:
+        job_descript_dict.add(attr_name,
+                              cWExpand.expand_DLR(job_descript_dict[attr_name],attrs_dict),
+                              allow_overwrite=True)
+
+    # Submit attributes are a bit special, since they need to be serialized, so we will deal with them explictly
+    submit_attrs={}
+    for key in sub_params.config.submit.submit_attrs.keys():
+        el=sub_params.config.submit.submit_attrs[key]['value']
+        expkey=cWExpand.expand_DLR(key,attrs_dict)
+        expel=cWExpand.expand_DLR(el,attrs_dict)
+        submit_attrs[expkey] = expel
+    
+    job_descript_dict.add('SubmitAttrs', repr(submit_attrs))
 
 ###################################
 # Create the frontend descript file

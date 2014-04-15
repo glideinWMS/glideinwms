@@ -101,25 +101,25 @@ def create_condor_tar_fd(condor_base_dir):
 ##########################################
 # Condor submit file dictionary
 class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
-    def populate(self, exe_fname, entry_name, params, sub_params):
+    def populate(self, exe_fname, entry_name, params, job_descript):
         """
         Since there are only two parameters that ever were passed that didn't already exist in the params dict or the
-        sub_params dict, the function signature has been greatly simplified into just those two parameters and the
+        job_descript, the function signature has been greatly simplified into just those two parameters and the
         two dicts.
 
         This has the added benefit of being "future-proof" for as long as we maintain this particular configuration
-        method.  Any new attribute that may be in params or sub_params can be accessed here without having to add yet
+        method.  Any new attribute that may be in params or job_descript can be accessed here without having to add yet
         another parameter to the function.
         """
 
         glidein_name = params.glidein_name
-        gridtype = sub_params.gridtype
-        gatekeeper = sub_params.gatekeeper
-        rsl = sub_params.rsl
-        auth_method = sub_params.auth_method
-        proxy_url = sub_params.proxy_url
+        gridtype = job_descript['GridType']
+        gatekeeper = job_desript['Gatekeeper']
+        rsl = job_descript.get('GlobusRSL')
+        auth_method = job_descript['AuthMethod']
+        proxy_url = job_descript.get('ProxyURL')
         client_log_base_dir = params.submit.base_client_log_dir
-        submit_attrs = sub_params.config.submit.submit_attrs
+        submit_attrs = eval(job_descript['SubmitAttrs']) # safe to eval, internal encoding
 
         # Add in some common elements before setting up grid type specific attributes
         self.add("Universe", "grid")

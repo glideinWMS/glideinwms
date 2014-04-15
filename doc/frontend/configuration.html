@@ -905,7 +905,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     <li><b>(job["NumJobStarts"]>5)</b>: Returns true if the job classad attribute "NumJobStarts" is greater than 5.</li>
     <li><b>(glidein["attrs"].has_key("GLIDEIN_Retire_Time"))</b>: Returns true if the factory entry classad has the attribute "GLIDEIN_Retire_Time".</li>
     <li><b>(glidein["attrs"]["GLIDEIN_Retire_Time"]>21600)</b>: Returns true if the factory entry classad's "GLIDEIN_Retire_Time" is greater than 21600.</li>
-    <li><b>(attr_dict["NUM_USERS_ALLOWED"]&gt;0)</b>: Returns true if there is a attribute in the frontend.xml with NUM_USERS_ALLOWED that is greater than zero.</li>
+    <li><b>(int(attr_dict["NUM_USERS_ALLOWED"])&gt;0)</b>: Returns true if there is a attribute in the frontend.xml with NUM_USERS_ALLOWED that is greater than zero.</li>
     <li><b>(job["Owner"] in attr_dict["ITB_Users"].split(","))</b>: Returns true if the job classad attribute "Owner" is in the comma-delimited string attribute ITB_USERS (which would be defined in frontend.xml)</li>
     </ul>
 </p>
