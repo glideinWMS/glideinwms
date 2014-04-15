@@ -114,7 +114,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
         glidein_name = params.glidein_name
         gridtype = job_descript['GridType']
-        gatekeeper = job_desript['Gatekeeper']
+        gatekeeper = job_descript['Gatekeeper']
         rsl = job_descript.get('GlobusRSL')
         auth_method = job_descript['AuthMethod']
         proxy_url = job_descript.get('ProxyURL')
