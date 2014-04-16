@@ -101,23 +101,25 @@ def create_condor_tar_fd(condor_base_dir):
 ##########################################
 # Condor submit file dictionary
 class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
-    def populate(self, exe_fname, factory_name, glidein_name,
-                 entry_name, gridtype, gatekeeper, rsl, auth_method, web_base,
-                 proxy_url, work_dir, client_log_base_dir):
+    def populate(self, exe_fname, entry_name, params, sub_params):
         """
-        Many of these arguments are no longer needed, but keeping here for the moment
-        since the code is so obscure that removing anything might have unintended
-        consequences
+        Since there are only two parameters that ever were passed that didn't already exist in the params dict or the
+        sub_params dict, the function signature has been greatly simplified into just those two parameters and the
+        two dicts.
 
-        arguments that *are* needed:
-            client_log_base_dir
-            glidein_name
-            entry_name
-            gridtype
-            gatekeeper
-            exe_fname
-            proxy_url
+        This has the added benefit of being "future-proof" for as long as we maintain this particular configuration
+        method.  Any new attribute that may be in params or sub_params can be accessed here without having to add yet
+        another parameter to the function.
         """
+
+        glidein_name = params.glidein_name
+        gridtype = sub_params.gridtype
+        gatekeeper = sub_params.gatekeeper
+        rsl = sub_params.rsl
+        auth_method = sub_params.auth_method
+        proxy_url = sub_params.proxy_url
+        client_log_base_dir = params.submit.base_client_log_dir
+        submit_attrs = sub_params.config.submit.submit_attrs
 
         # Add in some common elements before setting up grid type specific attributes
         self.add("Universe", "grid")
@@ -132,7 +134,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             # so we first do the normal population
             self.populate_standard_grid(rsl, auth_method, gridtype)
             # next we add the Condor-C additions
-            self.populate_condorc_grid()
+            self.populate_condorc_grid(submit_attrs)
         else:
             self.populate_standard_grid(rsl, auth_method, gridtype)
 
@@ -175,7 +177,10 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("stream_output", "False")
         self.add("stream_error ", "False")
 
-    def populate_condorc_grid(self):
+    def populate_condorc_grid(self, submit_attrs):
+        for key in submit_attrs.keys():
+            self.add(key, submit_attrs[key]['value'])
+
         self.add('+TransferOutput', '""')
         self.add('x509userproxy', '$ENV(X509_USER_PROXY)')
 

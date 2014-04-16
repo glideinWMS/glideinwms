@@ -1,3 +1,25 @@
+v3_2_4  Added support for HTCondor-CE attributes in the factory
+        Made several performance improvements to frontend. Frontend does
+          several tasks in parallel to better utilize the CPU.
+        Factory & frontend monitoring pages now use new javascriptrrd v1.1.0+
+        Factory monitoring now aggregates Log RRDs
+        Frontend can now limit total idle glideins
+        Added limits to globaly total idle glideins
+        Added badput summary line in the factory report
+        Improved documentation
+        Bug Fix: Factory & frontend operations like reconfig and upgrade now
+          check if they are run by valid users
+        Bug Fix: Fixed partitioning of multi-core glideins
+        Bug Fix: Fixed bug in factory/frontend stopping
+        Bug Fix: Fixed several bugs in the /etc/init.d/gwms-factory script
+          available through the RPM distribution
+        Bug Fix: Fixed bug with the factory/frontend monitoring that resulted
+          in significantly scaled up monitoring numbers when frontend used
+          multiple proxies
+        Bug Fix: Factory now properly advertises entries in downtime
+        Bug Fix: GLIDEIN_Glexec_Use when defined in the group now correctly
+          overriddes the value defined in global scope
+
 v3_2_3  Glideins now have the ability to track the worker node batch slot.
           Based on the batch system at site (HTCondor, SGE, PBS, LSF, SLURM) the
           information is reported in the glidein's STARTD classad and logged in
@@ -56,13 +78,6 @@ v3_2    Added support for generation of condor tarball from condor installed
           schedd correctly
         Bug Fix: Fixed a bug where factory would throw exception while logging
           during aggregating monitoring information
-        Bug Fix: Fixed a bug where factory would fail advertising classads
-          to the WMS Collector when classad attributes had quotes in them
-        Bug Fix: Fixed a bug where glidein's condor_startd would not correctly
-          advertise LSB_DESCRIPTION in the classad correctly
-        Bug Fix: Fixed a bug where frontend would not correctly account idle
-          jobs that used vanilla proxies
-        Bug Fix: Factory now properly logs errors when authenticating a
           frontend
         Bug Fix: Fixed a bug in glidein where it would not report back to
           all the user pool collectors in HA mode correctly
@@ -762,6 +777,13 @@ v1_0	During installation, Quill is now optional.
         Files are now loaded in order specified.
         Added local_start.sh to ease testing.
         Slimmed down glidein_submit.sh.
+        Many bugs fixed.
+        NOT BACKWARD COMPATIBLE: Entry points need to be recreated.
+
+v0_9	Significant speedup in the VO frontend matchmaking
+	Added MaxRunningGlideins request
+        Use human readable dates in logs
+        Factory will use python rrd module if present
         Many bugs fixed.
         NOT BACKWARD COMPATIBLE: Entry points need to be recreated.
 

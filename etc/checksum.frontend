@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_3
+# GLIDEINWMS_VERSION v3_2_4
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -10,19 +10,20 @@ d41d8cd98f00b204e9800998ecf8427e  ./creation/__init__.py
 a9f684b73a8929aec914751e8d87c0e8  ./creation/clone_glidein
 eb0a7d5a10c30507e159ae2f43280dd9  ./creation/create_condor_tarball
 7ec83323e801a74629addbdef104394b  ./creation/create_frontend
+67938d01423fc74eb34ea3915b1b181d  ./creation/create_rpm_startup
 d41d8cd98f00b204e9800998ecf8427e  ./creation/lib/__init__.py
 e59bb78a8aba36d0d8691b5f9e4ebf4f  ./creation/lib/cWConsts.py
 c324f521b448b4432b90d821bb02df60  ./creation/lib/cWDictFile.py
 d70c079e6098d20b9cccfe8b60ee40ca  ./creation/lib/cWParams.py
 ab37666bbf8d569a34974aea3dc29fa6  ./creation/lib/cvWConsts.py
-c0cbafc246e86375a582af0e1532f790  ./creation/lib/cvWCreate.py
+22d9aaf94925358e7be1fc87c635a68e  ./creation/lib/cvWCreate.py
 2c20708ff9c1b3b0385f5fcd3ff924b9  ./creation/lib/cvWDictFile.py
-cd9692043f6fb7ec25442d2dd0166989  ./creation/lib/cvWParamDict.py
-682f86f09604a79999f0aba6dc4f7e6b  ./creation/lib/cvWParams.py
+8995b23b73918abf0b4ea1a51d7bf151  ./creation/lib/cvWParamDict.py
+8a7c445f9dac640710ea9e011f8bbef8  ./creation/lib/cvWParams.py
 414dd08400e9050a5c7e6a64fa7a4d94  ./creation/lib/xslt.py
-06e292d228737a9dd994ad4ec5c86118  ./creation/reconfig_frontend
-eb1f8bac7142ee514517d8bb2df60747  ./creation/templates/factory_initd_startup_template
-5f30e859c9581bd02d1085d1752727af  ./creation/templates/frontend_initd_startup_template
+bd792b8d6a0ed1d97e2b75c77adc420d  ./creation/reconfig_frontend
+a2e397f9b92814b72726a90ac977a066  ./creation/templates/factory_initd_startup_template
+d00f35683e4c36e0ba321de5349d3011  ./creation/templates/frontend_initd_startup_template
 0cae63ee6a72dc91cc3a2d1f8ccecbce  ./creation/web_base/advertise_failure.helper
 1a794306785cd9f0489ba1b484470af1  ./creation/web_base/cat_consts.sh
 40a2b85a853a072f65049c4efe64bc3a  ./creation/web_base/check_blacklist.sh
@@ -32,7 +33,7 @@ a4a3ccaf64969f678872fab82e3bc6fc  ./creation/web_base/condor_config.check.includ
 25b01eb426a9d26434264fb306a3e839  ./creation/web_base/condor_config.dedicated_starter.include
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
 68dfdebf47aa54c20d6ab998b12b4eed  ./creation/web_base/condor_config.multi_schedd.include
-a3fc971818cd55de2354dfb59037ccf3  ./creation/web_base/condor_vars.lst
+7b84235a79079d1690d11fb86e861c85  ./creation/web_base/condor_vars.lst
 d9518531cad88a401b4c0ffcfe043a5e  ./creation/web_base/condor_vars.lst.entry
 6d19939557bb1086d5d01739bdad62dd  ./creation/web_base/create_temp_mapfile.sh
 2defc7ddcb297a1205a6bf0682f420f9  ./creation/web_base/error_augment.sh
@@ -52,9 +53,9 @@ a8a213f5c4387a8a027091f7100bd124  ./creation/web_base/frontend/images/frontendRR
 ce8e0cff9fdd11a3fba9ca691ea44372  ./creation/web_base/frontend/images/frontendStatus.small.png
 d837fdb994350b2fa4c85f2dcc3b2ccc  ./creation/web_base/frontend/index.html
 2597e2fb8581d2c9dd5479de6e2d997a  ./creation/web_base/frontendGroupGraphStatusNow.html
-7fd54666baf2c3da506d869c3c848e67  ./creation/web_base/frontendRRDBrowse.html
-7b57b4147f2c26160ea660dd76c15187  ./creation/web_base/frontendRRDGroupMatrix.html
-1031e0ef94959116c9be575e884adf28  ./creation/web_base/frontendStatus.html
+558e9b9d0f175ed311f834b4b3fbd599  ./creation/web_base/frontendRRDBrowse.html
+43d5bb275ca81430e1510763f24f68c4  ./creation/web_base/frontendRRDGroupMatrix.html
+23bc45c59ad0e647a1804bc87dad0c48  ./creation/web_base/frontendStatus.html
 ce9fbcaae6a9a2e4b61eb38cb7dfac87  ./creation/web_base/frontendStatusNow.html
 a93d03608501cdd471c413b681b05f8e  ./creation/web_base/frontend_support.js
 2286d88123059b704c828009d7911007  ./creation/web_base/glidein_cpus_setup.sh
@@ -62,7 +63,7 @@ a93d03608501cdd471c413b681b05f8e  ./creation/web_base/frontend_support.js
 9c5707b728923b90c8f56ac201f6c686  ./creation/web_base/glidein_sitewms_setup.sh
 1f3bbb3416afab773e58aab138e4ccd3  ./creation/web_base/java_setup.sh
 014c3eaf1abf62ff0f599579658e6a10  ./creation/web_base/nodes.blacklist
-ed35ca2289553f4e671d985bedd0ccef  ./creation/web_base/parse_starterlog.awk
+9b6490416cbd81224d1762f88c4486d7  ./creation/web_base/parse_starterlog.awk
 e0ba6891e61382c17e0aa7ea0a13c688  ./creation/web_base/setup_script.sh
 832265338319a401e981faa9e38b4b19  ./creation/web_base/update_proxy.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
@@ -71,16 +72,16 @@ fb52dc83f5c6c4e9318c6f35548e7e0f  ./factory/glideFactoryCredentials.py
 ad1f4981740a508121181d6a35ef7bb7  ./factory/glideFactoryInterface.py
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 be661351c66fc14686143441dce83e67  ./frontend/checkFrontend.py
-3ba27680ff77f986c58a60a25de53bc6  ./frontend/glideinFrontend.py
-658d1145adb585bda959af768287659e  ./frontend/glideinFrontendConfig.py
-fec395fab491a8e195cb42a6be05f538  ./frontend/glideinFrontendElement.py
-d6b9bf172a7df4e56a6ee12846160b12  ./frontend/glideinFrontendInterface.py
-3e155a46654f94f0ec428cf92c3d31bd  ./frontend/glideinFrontendLib.py
+eeca8cdfe9111c5e97772a1ee4cbed7d  ./frontend/glideinFrontend.py
+b04d93ffbbe5a85bbad9b868596cc70d  ./frontend/glideinFrontendConfig.py
+0739d4281059f959675e3be226f80b63  ./frontend/glideinFrontendElement.py
+9c6da77ef537b079be2045f7d68da818  ./frontend/glideinFrontendInterface.py
+1545c6bfcfda17e6a876d319c039b59a  ./frontend/glideinFrontendLib.py
 58a5ae1d29451c5faa0e9f332f4558a5  ./frontend/glideinFrontendMonitorAggregator.py
 8c3d36f5bcf6c4af4e730f1b31d1e801  ./frontend/glideinFrontendMonitoring.py
 b2008bad682ac6a6ff16d38678051b4b  ./frontend/glideinFrontendPidLib.py
 70f5c9ab47d36448d2cbc1978d660ba9  ./frontend/glideinFrontendPlugins.py
-8b875b87a956d92e9d5f5098e182677f  ./frontend/stopFrontend.py
+0fe2d57c2c6ba21c42bfd6541881feb7  ./frontend/stopFrontend.py
 c65ab9f9ad169145a2bd5017b0c5da22  ./frontend/tools/convert_frontend_2to3.sh
 8468711dac6ffe8f326e5aaf25a64156  ./frontend/tools/convert_frontend_2to3.xslt
 0aa57fed99a6d72ec01b5a843fab6392  ./frontend/tools/frontend_match_ana
@@ -91,7 +92,7 @@ c65ab9f9ad169145a2bd5017b0c5da22  ./frontend/tools/convert_frontend_2to3.sh
 f28c34e36ba4305d337b6b1b3b4ae80f  ./install/glidecondor_createSecSched
 c0bfe44cfd746c385b7c8186df032ea2  ./install/glidecondor_upgrade
 785dfb8a08831cc2983152f264233791  ./install/glideinWMS.ini
-04024c9906fcb63486a6c19657a4eb25  ./install/manage-glideins
+d87d0e217589fcb7a3f5b28339ca145d  ./install/manage-glideins
 1524a3cab15abde1a4c1c50b1f3417b9  ./install/services/Certificates.py
 38e2eedf6fa68c8918dfb564bb2bf2b4  ./install/services/Condor.py
 2815d4e3a344ae0c202c598c51d418f6  ./install/services/Configuration.py
@@ -114,11 +115,12 @@ db3a6019e81123ab02788204c5170716  ./lib/cleanupSupport.py
 5511e0a6d4584f87e869c0a9c4973bf0  ./lib/condorExe.py
 47e90bb60b71274b2d13f283207336ae  ./lib/condorLogParser.py
 f9f296bc30e68cb314dfba0415c97b26  ./lib/condorManager.py
-a4e4906706e86ca0e7ac318ef68cc09f  ./lib/condorMonitor.py
+211397fcde313158cd502326a8f80148  ./lib/condorMonitor.py
 54580e3784e390b019cde26799f47b2c  ./lib/condorPrivsep.py
 d79f4a3b5492b5229d255085df2ef2b7  ./lib/condorSecurity.py
 85810235f5f90736e8d2899acd2a2cc9  ./lib/encodingSupport.py
 a203f536b05728922180758c66bdcb28  ./lib/exprParser.py
+37aeeea68b9fe964055146e550331ea9  ./lib/fork.py
 346773e49875910f2a6cb6232be2376a  ./lib/glideinWMSVersion.py
 4954ab878c7cba513b61a79a7dadf795  ./lib/glideinwms_tarfile.py
 ac7d5c93017e3887f1d44fcdee9a7237  ./lib/hashCrypto.py
@@ -126,7 +128,7 @@ ac7d5c93017e3887f1d44fcdee9a7237  ./lib/hashCrypto.py
 223c74aae5cbc7132b080e0dedf679ba  ./lib/ldapMonitor.py
 90a4943a15dcdf9c69b3ebcfa3ea8a12  ./lib/logSupport.py
 fe4614cb3ecabd81d65f3b85b5c7abb6  ./lib/logging.conf
-1eb02bb338fc6dea82e0250f1823aa24  ./lib/pidSupport.py
+204773ac895265a17183f7319426882e  ./lib/pidSupport.py
 7b2d48ef58bbf0aca878d4dcb1efa690  ./lib/pubCrypto.py
 c4e870769dd81dc66a69f93542a2bd49  ./lib/rrdSupport.py
 d8200249619d609fe42e11c22579bcbb  ./lib/subprocessSupport.py

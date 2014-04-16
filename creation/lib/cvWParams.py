@@ -165,6 +165,9 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults['advertise_delay']=('5','NR', 'Advertize evert NR loops',None)
         self.defaults['advertise_with_tcp']=('True','Bool', 'Should condor_advertise use TCP connections?',None)
         self.defaults['advertise_with_multiple']=('True','Bool', 'Should condor_advertise use -multiple?',None)
+
+        self.defaults['group_parallel_workers']=('2','NR', 'Max number of parallel workers that process the group policies', None)
+
         self.defaults['restart_attempts']=('3','NR', 'Max allowed NR restarts every restart_interval before shutting down',None)
         self.defaults['restart_interval']=('1800','NR', 'Time interval NR sec which allow max restart attempts',None)
 

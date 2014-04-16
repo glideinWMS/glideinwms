@@ -548,6 +548,7 @@ def populate_frontend_descript(work_dir,
 
         frontend_dict.add('LoopDelay',params.loop_delay)
         frontend_dict.add('AdvertiseDelay',params.advertise_delay)
+        frontend_dict.add('GroupParallelWorkers',params.group_parallel_workers)
         frontend_dict.add('RestartAttempts',params.restart_attempts)
         frontend_dict.add('RestartInterval',params.restart_interval)
         frontend_dict.add('AdvertiseWithTCP',params.advertise_with_tcp)
