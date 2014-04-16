@@ -535,21 +535,20 @@ class glideinFrontendElement:
     def identify_bad_schedds(self):
         self.blacklist_schedds=set()
 
-        for c in self.status_schedd_dict.keys():
+        for c in self.status_schedd_dict:
             coll_status_schedd_dict=self.status_schedd_dict[c].fetchStored()
-            for schedd in coll_status_schedd_dict.keys():
+            for schedd in coll_status_schedd_dict:
                 el=coll_status_schedd_dict[schedd]
                 try:
                     max_run=int(el['MaxJobsRunning']*0.95) # stop a bit earlier
                     current_run=el['TotalRunningJobs']
-                    if el.has_key('TotalSchedulerJobsRunning'): #older schedds may not have it
-                        current_run+=el['TotalSchedulerJobsRunning']
+                    current_run+=el.get('TotalSchedulerJobsRunning',0)#older schedds may not have it
                     logSupport.log.debug("Schedd %s has %i running with max %i" % (schedd, current_run, max_run))
                     if current_run>=max_run:
                         self.blacklist_schedds.add(schedd)
                         logSupport.log.warning("Schedd %s hit maxrun limit, blacklisting: has %i running with max %i" % (schedd, current_run, max_run))
 
-                    if el.has_key('TransferQueueMaxUploading'):
+                    if 'TransferQueueMaxUploading' in el:
                         max_up=int(el['TransferQueueMaxUploading']*0.95) # stop a bit earlier
                         current_up=el['TransferQueueNumUploading']
                         logSupport.log.debug("Schedd %s has %i uploading with max %i" % (schedd, current_up, max_up))
