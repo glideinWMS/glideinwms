@@ -1,0 +1,103 @@
+#!/usr/bin/env python
+#
+# Project:
+#   glideinWMS
+#
+# Description:
+#   Setup the environment so that all condor commands behave
+#   like they would if executed by the frontend
+#
+# Arguments:
+#  -d DIR, --work-dir=DIR                  Frontend work dir (default: $FE_WORK_DIR)
+#  -g GROUP_NAME, --group-name=GROUP_NAME  Frontend group name (default: $FE_GROUP_NAME)
+#  -n, --no-pilots                         Do not include pilot DNs in mapfile
+#
+# Author:
+#   Igor Sfiligoi
+#
+
+import os
+import sys
+import optparse
+
+sys.path.append(os.path.join(sys.path[0],"../../.."))
+from glideinwms.frontend import glideinFrontendConfig
+
+def complete_options(options):
+    if options.work_dir is None:
+        options.work_dir=os.environ.get("FE_WORK_DIR")
+    if options.work_dir is None:
+        raise ValueError, "FE work dir not specified (neither -d nor FE_WORK_DIR used), aborting"
+    if not os.path.isfile(os.path.join(options.work_dir,"frontend.descript")):
+        raise ValueError, "%s is not a valid FE work dir"%options.work_dir
+    
+    if options.group_name is None:
+        options.group_name=os.environ.get("FE_GROUP_NAME")
+    if options.group_name is None:
+        raise ValueError, "FE group name not specified (neither -g nor FE_GROUP_NAME used), aborting"
+    if not os.path.isfile(os.path.join(options.work_dir,"group_%s/group.descript"%options.group_name)):
+        raise ValueError, "%s is not a valid FE group name (no valid group_%s subdir found)"%(options.group_name,options.group_name)
+    return 0
+
+############################################################
+# Main function
+def main(argv):
+    # parse arguments
+    argparser=optparse.OptionParser()
+    argparser.add_option("-d","--work-dir", dest="work_dir",
+                         help="Frontend work dir (default: $FE_WORK_DIR)", metavar="DIR")
+    argparser.add_option("-g","--group-name", dest="group_name",
+                         help="Frontend group name (default: $FE_GROUP_NAME)", metavar="GROUP_NAME")
+    argparser.add_option("-n","--no-pilots", dest="nopilots", action="store_true",
+                         help="Do not include pilot DNs in mapfile")
+    argparser.add_option("-q","--quiet", dest="quiet", action="store_true",
+                         help="Minimize startup messages")
+    (options, other_args) = argparser.parse_args(argv[1:])
+
+    complete_options(options)
+    elementDescript = glideinFrontendConfig.ElementMergedDescript(options.work_dir, options.group_name)
+    
+    # set the condor configuration and GSI setup globally, so I don't need to worry about it later on
+    os.environ['CONDOR_CONFIG'] = elementDescript.frontend_data['CondorConfig']
+    if options.nopilots==True:
+        os.environ['_CONDOR_CERTIFICATE_MAPFILE'] = elementDescript.element_data['MapFile']
+    else:
+        os.environ['_CONDOR_CERTIFICATE_MAPFILE'] = elementDescript.element_data['MapFileWPilots']
+    os.environ['X509_USER_PROXY'] = elementDescript.frontend_data['ClassAdProxy']
+
+    os.environ["FE_WORK_DIR"]=options.work_dir
+    os.environ["FE_GROUP_NAME"]=options.group_name
+
+    if options.quiet!=True:
+        sys.stdout.write("Set the environment variables needed to emulate the environment of\n")
+        sys.stdout.write("frontend\t%s\n"%options.work_dir)
+        sys.stdout.write("group\t\t%s\n\n"%options.group_name)
+        if options.nopilots==True:
+            sys.stdout.write("Pilot DNs will not be trusted, so you cannot contact the glideins.\n")
+            sys.stdout.write("This is analogous to what happens in the frontend processes themselves.\n\n")
+        else:
+            sys.stdout.write("Pilot DNs are also trusted, so you can contact and manage the glideins.\n")
+            sys.stdout.write("(unlike what happens in the frontend processes themselves)\n\n")
+            
+        sys.stdout.write("Executing shell %s\n\n"%os.environ['SHELL'])
+        sys.stdout.flush()
+    
+    os.execl(os.environ['SHELL'])
+    # this never returns
+
+    return 0
+
+############################################################
+#
+# S T A R T U P
+#
+############################################################
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main(sys.argv))
+    except Exception, e:
+        sys.stderr.write("ERROR: Exception msg %s\n"%str(e))
+        sys.exit(9)
+
+    
