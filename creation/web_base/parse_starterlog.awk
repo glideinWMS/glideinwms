@@ -151,16 +151,16 @@ END {
   #since it is rounded, the sum could exceed tj
   tcnt=0; 
   tgnz=updiv(goodjobsNZ,parallelism);tcnt=tcnt+tgnz;
-  while (tcnt>tj) {tgnz=tgnz-1; tcnt=tcnt-1;}
+  if (tcnt>tj) {tgnz=tgnz-(tcnt-tj); tcnt=tj;}
   tbjs=updiv(badjobsSignal,parallelism);tcnt=tcnt+tbjs;
-  while (tcnt>tj) {tbjs=tbjs-1; tcnt=tcnt-1;}
+  if (tcnt>tj) {tbjs=tbjs-(tcnt-tj); tcnt=tj;}
   tbjo=updiv(badjobsOther,parallelism);tcnt=tcnt+tbjo;
-  while (tcnt>tj) {tbjo=tbjo-1; tcnt=tcnt-1;}
+  if (tcnt>tj) {tbjo=tbjo-(tcnt-tj); tcnt=tj;}
 
   # if needed, penalize the "good jobs" the most
   # we mostly want to monitor failures
   tgz=updiv(goodjobsZ,parallelism); tcnt=tcnt+tgz;
-  while (tcnt>tj) {tgz=tgz-1; tcnt=tcnt-1;}
+  if (tcnt>tj) {tgz=tgz-(tcnt-tj); tcnt=tj;}
   # please notice that the percentages will still be accurate
 
   print "=================";
