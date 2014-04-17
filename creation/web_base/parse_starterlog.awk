@@ -31,6 +31,14 @@ function percent(a,b) {
   }
 }
 
+# divide and rund up anything that is not an onteger
+# e.g. 1.1 becomes 2
+function updiv(x,y) {
+  t=1.0*x/y;
+  dstr=sprintf("%d",t+0.99);
+  return int(dstr);
+}
+ 
 ########################################################################  
 / Communicating with shadow /{
   # 7/17 10:42:20 (pid:26855) Communicating with shadow <131.225.204.208:34839>
@@ -138,10 +146,27 @@ function percent(a,b) {
 } 
 ########################################################################  
 END {
+  tj=updiv(ended_jobs,parallelism);
+
+  #since it is rounded, the sum could exceed tj
+  tcnt=0; 
+  tgnz=updiv(goodjobsNZ,parallelism);tcnt=tcnt+tgnz;
+  while (tcnt>tj) {tgnz=tgnz-1; tcnt=tcnt-1;}
+  tbjs=updiv(badjobsSignal,parallelism);tcnt=tcnt+tbjs;
+  while (tcnt>tj) {tbjs=tbjs-1; tcnt=tcnt-1;}
+  tbjo=updiv(badjobsOther,parallelism);tcnt=tcnt+tbjo;
+  while (tcnt>tj) {tbjo=tbjo-1; tcnt=tcnt-1;}
+
+  # if needed, penalize the "good jobs" the most
+  # we mostly want to monitor failures
+  tgz=updiv(goodjobsZ,parallelism); tcnt=tcnt+tgz;
+  while (tcnt>tj) {tgz=tgz-1; tcnt=tcnt-1;}
+  # please notice that the percentages will still be accurate
+
   print "=================";
-  print "Total jobs",ended_jobs,"utilization",int(total_used/parallelism);
-  print "Total goodZ jobs",goodjobsZ " (" percent(goodjobsZ,ended_jobs) "%)","utilization",int(goodputZ/parallelism) " (" percent(goodputZ,total_used) "%)";
-  print "Total goodNZ jobs",goodjobsNZ " (" percent(goodjobsNZ,ended_jobs) "%)","utilization",int(goodputNZ/parallelism) " (" percent(goodputNZ,total_used) "%)";
-  print "Total badSignal jobs",badjobsSignal " (" percent(badjobsSignal,ended_jobs) "%)","utilization",int(badputSignal/parallelism) " (" percent(badputSignal,total_used) "%)";
-  print "Total badOther jobs",badjobsOther " (" percent(badjobsOther,ended_jobs) "%)","utilization",int(badputOther/parallelism) " (" percent(badputOther,total_used) "%)";
+  print "Total jobs",tj,"utilization",int(total_used/parallelism);
+  print "Total goodZ jobs",tgz, " (" percent(goodjobsZ,ended_jobs) "%)","utilization",int(goodputZ/parallelism) " (" percent(goodputZ,total_used) "%)";
+  print "Total goodNZ jobs",tgnz, " (" percent(goodjobsNZ,ended_jobs) "%)","utilization",int(goodputNZ/parallelism) " (" percent(goodputNZ,total_used) "%)";
+  print "Total badSignal jobs",tbjs, " (" percent(badjobsSignal,ended_jobs) "%)","utilization",int(badputSignal/parallelism) " (" percent(badputSignal,total_used) "%)";
+  print "Total badOther jobs",tbjo, " (" percent(badjobsOther,ended_jobs) "%)","utilization",int(badputOther/parallelism) " (" percent(badputOther,total_used) "%)";
 }
