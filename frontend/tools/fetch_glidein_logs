@@ -1,0 +1,77 @@
+#!/usr/bin/env python
+#
+# Project:
+#   glideinWMS
+#
+# Description:
+#   Retrieve the logs of a running glidein
+#
+# Arguments:
+#  -d DIR, --work-dir=DIR                  Frontend work dir (default: $FE_WORK_DIR)
+#  -g GROUP_NAME, --group-name=GROUP_NAME  Frontend group name (default: $FE_GROUP_NAME)
+#  -n, --no-pilots                         Do not include pilot DNs in mapfile
+#
+# Author:
+#   Igor Sfiligoi
+#
+
+import os
+import sys
+import string
+import optparse
+
+sys.path.append(os.path.join(sys.path[0],"../../.."))
+from glideinwms.frontend import glideinFrontendConfig
+from glideinwms.frontend.tools.lib import frontenvparse
+from glideinwms.lib import condorExe
+
+############################################################
+# Main function
+def main(argv):
+    feconfig=frontenvparse.FEConfig()
+    # parse arguments
+    usage = ("Usage: %prog [options] glidein_name [log_type]\n\n"+
+             "Attributes:\n"+
+             "  glidein_name - Name of the glidein, e.g. glidein_637@cabinet-1-1-1.t2.ucsd.edu\n"+
+             "  log_type - Type of the log, defaults to STARTD\n"+
+             "             See condor_fetchlog help for the full list")
+    argparser=optparse.OptionParser(usage=usage)
+    feconfig.config_optparse(argparser)
+    argparser.add_option("-q","--quiet", dest="quiet", action="store_true",
+                         help="Minimize startup messages")
+    (options, other_args) = argparser.parse_args(argv[1:])
+
+    if len(other_args)<1:
+        raise ValueError, "Missing glidein_name"
+    glidein_name = other_args[0]
+    if len(other_args)>=2:
+        log_type=other_args[1]
+    else:
+        log_type="STARTD"
+        
+    feconfig.load_frontend_config(options)
+    feconfig.set_environment(wpilots=True)
+    
+    try:
+        out=condorExe.exe_cmd_sbin("condor_fetchlog","-startd %s %s"%(glidein_name,log_type))
+        print string.join(out,"\n")
+    except condorExe.ExeError, e:
+        sys.stderr.write("%s\n"%e)
+        return 1
+    return 0
+
+############################################################
+#
+# S T A R T U P
+#
+############################################################
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main(sys.argv))
+    except Exception, e:
+        raise
+        sys.stderr.write("ERROR: Exception msg %s\n"%str(e))
+        sys.exit(9)
+
+    
