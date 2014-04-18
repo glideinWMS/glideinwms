@@ -72,7 +72,6 @@ if __name__ == '__main__':
     try:
         sys.exit(main(sys.argv))
     except Exception, e:
-        raise
         sys.stderr.write("ERROR: Exception msg %s\n"%str(e))
         sys.exit(9)
 
