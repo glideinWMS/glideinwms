@@ -562,7 +562,8 @@ class glideinFrontendElement:
         # create a dictionary that does not contain the blacklisted schedds
         good_condorq_dict=self.condorq_dict.copy() #simple copy enough, will only modify keys
         for k in self.blacklist_schedds:
-            del good_condorq_dict[k]
+            if k in good_condorq_dict: # some schedds may not have returned anything
+                del good_condorq_dict[k]
         # use only the good schedds when considering idle
         condorq_dict_idle = glideinFrontendLib.getIdleCondorQ(good_condorq_dict)
         condorq_dict_old_idle = glideinFrontendLib.getOldCondorQ(condorq_dict_idle, 600)
