@@ -7,9 +7,13 @@
 #   Retrieve the logs of a running glidein
 #
 # Arguments:
+#  glidein_name - Name of the glidein, e.g. glidein_637@cabinet-1-1-1.t2.ucsd.edu
+#  log_type - OPTIONAL: Type of the log, defaults to STARTD
+#                       See condor_fetchlog help for the full list
+#
+# Options:
 #  -d DIR, --work-dir=DIR                  Frontend work dir (default: $FE_WORK_DIR)
 #  -g GROUP_NAME, --group-name=GROUP_NAME  Frontend group name (default: $FE_GROUP_NAME)
-#  -n, --no-pilots                         Do not include pilot DNs in mapfile
 #
 # Author:
 #   Igor Sfiligoi
@@ -31,7 +35,7 @@ def main(argv):
     feconfig=frontenvparse.FEConfig()
     # parse arguments
     usage = ("Usage: %prog [options] glidein_name [log_type]\n\n"+
-             "Attributes:\n"+
+             "Arguments:\n"+
              "  glidein_name - Name of the glidein, e.g. glidein_637@cabinet-1-1-1.t2.ucsd.edu\n"+
              "  log_type - Type of the log, defaults to STARTD\n"+
              "             See condor_fetchlog help for the full list")
