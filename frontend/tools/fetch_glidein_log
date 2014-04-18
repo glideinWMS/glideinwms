@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # Description:
-#   Retrieve the logs of a running glidein
+#   Retrieve the log of a running glidein
 #
 # Arguments:
 #  glidein_name - Name of the glidein, e.g. glidein_637@cabinet-1-1-1.t2.ucsd.edu
