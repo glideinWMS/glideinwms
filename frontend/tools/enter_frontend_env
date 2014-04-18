@@ -22,51 +22,23 @@ import optparse
 
 sys.path.append(os.path.join(sys.path[0],"../../.."))
 from glideinwms.frontend import glideinFrontendConfig
-
-def complete_options(options):
-    if options.work_dir is None:
-        options.work_dir=os.environ.get("FE_WORK_DIR")
-    if options.work_dir is None:
-        raise ValueError, "FE work dir not specified (neither -d nor FE_WORK_DIR used), aborting"
-    if not os.path.isfile(os.path.join(options.work_dir,"frontend.descript")):
-        raise ValueError, "%s is not a valid FE work dir"%options.work_dir
-    
-    if options.group_name is None:
-        options.group_name=os.environ.get("FE_GROUP_NAME")
-    if options.group_name is None:
-        raise ValueError, "FE group name not specified (neither -g nor FE_GROUP_NAME used), aborting"
-    if not os.path.isfile(os.path.join(options.work_dir,"group_%s/group.descript"%options.group_name)):
-        raise ValueError, "%s is not a valid FE group name (no valid group_%s subdir found)"%(options.group_name,options.group_name)
-    return 0
+from glideinwms.frontend.tools.lib import frontenvparse
 
 ############################################################
 # Main function
 def main(argv):
+    feconfig=frontenvparse.FEConfig()
     # parse arguments
     argparser=optparse.OptionParser()
-    argparser.add_option("-d","--work-dir", dest="work_dir",
-                         help="Frontend work dir (default: $FE_WORK_DIR)", metavar="DIR")
-    argparser.add_option("-g","--group-name", dest="group_name",
-                         help="Frontend group name (default: $FE_GROUP_NAME)", metavar="GROUP_NAME")
+    feconfig.config_optparse(argparser)
     argparser.add_option("-n","--no-pilots", dest="nopilots", action="store_true",
                          help="Do not include pilot DNs in mapfile")
     argparser.add_option("-q","--quiet", dest="quiet", action="store_true",
                          help="Minimize startup messages")
     (options, other_args) = argparser.parse_args(argv[1:])
 
-    complete_options(options)
-    elementDescript = glideinFrontendConfig.ElementMergedDescript(options.work_dir, options.group_name)
-    
-    # set the condor configuration and GSI setup globally, so I don't need to worry about it later on
-    os.environ['CONDOR_CONFIG'] = elementDescript.frontend_data['CondorConfig']
-    if options.nopilots==True:
-        os.environ['_CONDOR_CERTIFICATE_MAPFILE'] = elementDescript.element_data['MapFile']
-    else:
-        os.environ['_CONDOR_CERTIFICATE_MAPFILE'] = elementDescript.element_data['MapFileWPilots']
-    os.environ['X509_USER_PROXY'] = elementDescript.frontend_data['ClassAdProxy']
-
-    os.environ["FE_WORK_DIR"]=options.work_dir
-    os.environ["FE_GROUP_NAME"]=options.group_name
+    feconfig.load_frontend_config(options)
+    feconfig.set_environment(wpilots=(options.nopilots!=True))
 
     if options.quiet!=True:
         sys.stdout.write("Set the environment variables needed to emulate the environment of\n")
