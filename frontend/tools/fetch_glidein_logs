@@ -41,8 +41,6 @@ def main(argv):
              "             See condor_fetchlog help for the full list")
     argparser=optparse.OptionParser(usage=usage)
     feconfig.config_optparse(argparser)
-    argparser.add_option("-q","--quiet", dest="quiet", action="store_true",
-                         help="Minimize startup messages")
     (options, other_args) = argparser.parse_args(argv[1:])
 
     if len(other_args)<1:
