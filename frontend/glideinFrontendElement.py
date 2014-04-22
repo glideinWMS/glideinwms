@@ -124,6 +124,9 @@ class glideinFrontendElement:
         # Default bahavior: Use factory proxies unless configure overrides it
         self.x509_proxy_plugin = None
 
+        # If not None, just ask for removal of glideins
+        self.request_removal_wtype = None
+
     def configure(self):
         ''' Do some initial configuration of the element. '''
         group_dir = glideinFrontendConfig.get_group_dir(self.work_dir, self.group_name)
@@ -197,7 +200,7 @@ class glideinFrontendElement:
 
 
     def iterate(self):
-        self.stats = {}
+        self.stats = {'group' : glideinFrontendMonitoring.groupStats()}
 
         if not self.elementDescript.frontend_data.has_key('X509Proxy'):
             self.published_frontend_name = '%s.%s' % (self.frontend_name,
@@ -210,35 +213,33 @@ class glideinFrontendElement:
                                                            self.group_name)
 
         if self.action=="run":
-            if 1: # do a single iteration, keep indentation to minimize commit changes
-                check_parent(self.parent_pid)
-                logSupport.log.info("Iteration at %s" % time.ctime())
-                if True: # for histroical reasons only... was an additional try...catch clause
-                    # recreate every time to start from a clean state
-                    self.stats['group'] = glideinFrontendMonitoring.groupStats()
+            logSupport.log.info("Iteration at %s" % time.ctime())
 
-                    done_something = self.iterate_one()
-                    self.history_obj.save()
-                    logSupport.log.info("iterate_one status: %s" % str(done_something))
+            done_something = self.iterate_one()
+            self.history_obj.save()
+            logSupport.log.info("iterate_one status: %s" % str(done_something))
 
-                    logSupport.log.info("Writing stats")
-                    try:
-                        write_stats(self.stats)
-                    except KeyboardInterrupt:
-                        raise # this is an exit signal, pass through
-                    except:
-                        # never fail for stats reasons!
-                        logSupport.log.exception("Exception occurred writing stats: " )
+            logSupport.log.info("Writing stats")
+            try:
+                write_stats(self.stats)
+            except KeyboardInterrupt:
+                raise # this is an exit signal, pass through
+            except:
+                # never fail for stats reasons!
+                logSupport.log.exception("Exception occurred writing stats: " )
 
-                # do it just before the sleep
-                cleanupSupport.cleaners.cleanup()
-
-                # only one iteration, no sleep
-                #logSupport.log.info("Sleeping %s sec" % self.sleep_time)
-                #time.sleep(self.sleep_time)
+            # do it just before the sleep
+            cleanupSupport.cleaners.cleanup()
         elif self.action=="deadvertise":
             logSupport.log.info("Deadvertize my ads")
             self.deadvertiseAllClassads()
+        elif self.action in ('removeWait','removeIdle','removeAll'):
+            # use the standard logic for most things, but change what is being requested
+            self.request_removal_wtype = self.action[6:].upper()
+            logSupport.log.info("Requesting removal of %s glideins"%self.request_removal_wtype)
+            done_something = self.iterate_one()
+            logSupport.log.info("iterate_one status: %s" % str(done_something))
+            # no saving or disk cleanup... be quick
         else:
             logSupport.log.warning("Unknown action: %s"%self.action)
             return 1
@@ -718,6 +719,10 @@ class glideinFrontendElement:
                                  effective_idle, effective_oldidle):
         ''' Calculate the number of idle jobs to request from the factory '''
 
+        if self.request_removal_wtype is not None:
+            # we are requesting the removal of glideins, do not request more
+            return 0
+
         if ( (count_status['Total'] >= self.max_running) or
              (count_status['Idle'] >= self.max_vms_idle) or
              (total_glideins >= self.total_max_glideins) or
@@ -833,6 +838,10 @@ class glideinFrontendElement:
         ''' Decides what kind of excess glideins to remove:
             "ALL", "IDLE", "WAIT", or "NO"
         '''
+        if self.request_removal_wtype is not None:
+            # we are requesting the removal of glideins, and we have the explicit code to use
+            return self.request_removal_wtype
+
         # do not remove excessive glideins by default
         remove_excess_wait = False
         # keep track of how often idle was 0

@@ -75,7 +75,7 @@ class FailureCounter:
             self.failure_times.pop(0)
         
 ############################################################
-def spawn_group(work_dir,group_name):
+def spawn_group(work_dir, group_name, action):
     global STARTUP_DIR
 
     command_list = [sys.executable,
@@ -83,7 +83,8 @@ def spawn_group(work_dir,group_name):
                                  "glideinFrontendElement.py"),
                     str(os.getpid()),
                     work_dir,
-                    group_name]
+                    group_name,
+                    action]
     #logSupport.log.debug("Command list: %s" % command_list)
     child = subprocess.Popen(command_list, shell=False,
                              stdout=subprocess.PIPE,
@@ -119,7 +120,8 @@ def poll_group_process(group_name,child):
 
 # return the list of (group,walltime) pairs
 def spawn_iteration(work_dir, groups, max_active,
-                    failure_dict, max_failures):
+                    failure_dict, max_failures,
+                    action):
     childs = {}
   
     for group_name in groups:
@@ -156,7 +158,7 @@ def spawn_iteration(work_dir, groups, max_active,
             for group_name in groups:
                 if active_groups<max_active: # can spawn more
                     if childs[group_name]['state']=='queued':
-                        childs[group_name]['data'] = spawn_group(work_dir,group_name)
+                        childs[group_name]['data'] = spawn_group(work_dir, group_name, action)
                         childs[group_name]['state'] = 'spawned'
                         childs[group_name]['start_time']=time.time()
                         active_groups+=1
@@ -249,7 +251,7 @@ def spawn(sleep_time,advertize_rate,work_dir,
         while 1: #will exit on signal
             start_time=time.time()
             timings=spawn_iteration(work_dir,groups,max_parallel_workers,
-                                    failure_dict, restart_attempts)
+                                    failure_dict, restart_attempts, "run")
             end_time=time.time()
             elapsed_time=end_time-start_time
             if elapsed_time<sleep_time:
@@ -271,6 +273,18 @@ def spawn(sleep_time,advertize_rate,work_dir,
 
 
 ############################################################
+def spawn_removal(work_dir,
+                  frontendDescript,groups,max_parallel_workers,
+                  removal_action):
+
+    failure_dict={}
+    for group in groups:
+        failure_dict[group]=FailureCounter(group, 3600)
+            
+    spawn_iteration(work_dir,groups,max_parallel_workers,
+                    failure_dict, 1, removal_action)
+
+############################################################
 def cleanup_environ():
     for val in os.environ.keys():
         val_low = val.lower()
@@ -285,7 +299,7 @@ def cleanup_environ():
 
 
 ############################################################
-def main(work_dir):
+def main(work_dir, action):
     startup_time=time.time()
 
     glideinFrontendConfig.frontendConfig.frontend_descript_file = os.path.join(work_dir, glideinFrontendConfig.frontendConfig.frontend_descript_file)
@@ -344,9 +358,16 @@ def main(work_dir):
         raise
     try:
         try:
-            spawn(sleep_time, advertize_rate, work_dir,
-                  frontendDescript, groups, max_parallel_workers,
-                  restart_interval, restart_attempts)
+            if action=="run":
+                spawn(sleep_time, advertize_rate, work_dir,
+                      frontendDescript, groups, max_parallel_workers,
+                      restart_interval, restart_attempts)
+            elif action in ('removeWait','removeIdle','removeAll'):
+                spawn_removal(work_dir,
+                              frontendDescript, groups, max_parallel_workers,
+                              action)
+            else:
+                raise ValueError, "Unknown action: %s"%action
         except KeyboardInterrupt:
             logSupport.log.info("Received signal...exit")
         except:
@@ -367,4 +388,9 @@ if __name__ == '__main__':
     signal.signal(signal.SIGTERM, termsignal)
     signal.signal(signal.SIGQUIT, termsignal)
 
-    main(sys.argv[1])
+    if len(sys.argv)==2:
+        action = "run"
+    else:
+        action = sys.argv[2]
+
+    main(sys.argv[1], action)
