@@ -275,7 +275,15 @@ reconfig() {
         test $reconfig_failed -eq 0 && success || failure
         echo
         if [ $notrun -eq 0 ]; then
+            if [ $reconfig_failed -ne 0 ];then
+                echo ".. starting Frontend with old configuration file"
+            fi
             start
+            if [ $RETVAL -eq 0 ] && [ $reconfig_failed -eq 0 ]; then
+                RETVAL=0
+            else
+                RETVAL=1
+            fi
         fi
 }
         
@@ -308,7 +316,15 @@ upgrade() {
         RETVAL=$?
         echo
         if [ $notrun -eq 0 ]; then
+            if [ $reconfig_failed -ne 0 ];then
+                echo ".. starting Frontend with old configuration file"
+            fi
             start
+            if [ $RETVAL -eq 0 ] && [ $reconfig_failed -eq 0 ]; then
+                RETVAL=0
+            else
+                RETVAL=1
+            fi
         fi
 }
 
