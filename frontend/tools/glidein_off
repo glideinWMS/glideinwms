@@ -1,0 +1,306 @@
+#!/usr/bin/env python
+#
+# Project:
+#   glideinWMS
+#
+# Description:
+#   Turn off one or more glideins, i.e. shut them down
+#
+# Note:
+#   If several glidein slots share the same master,
+#   turning off one slot will turn off all of them
+#
+#Arguments:
+#  glidein_name - Name of the glidein, e.g. glidein_637@cabinet-1-1-1.t2.ucsd.edu
+#
+# Legacy options:
+#   -graceful    - becomes --type graceful
+#   -fast        - becomes --type fast
+#   -peaceful    - becomes --type peaceful
+#   -force-graceful
+#                - becomes --type force-graceful
+#   -name NAME   - becomes --name NAME
+#   -addr ADDR   - becomes --addr ADDR
+#   -const[raint] CONSTRAINT
+#                - becomes --constraint CONSTRAINT
+#   -all         - becomes --all
+#
+# Options:
+#   -d DIR, --work-dir=DIR
+#                         Frontend work dir (default: $FE_WORK_DIR)
+#   -g GROUP_NAME, --group-name=GROUP_NAME
+#                         Frontend group name (default: $FE_GROUP_NAME)
+#   -t OFF_TYPE, --type=OFF_TYPE
+#                         Type of off command (default: graceful)
+#   -n GLIDEIN_NAME, --name=GLIDEIN_NAME
+#                         Specific glidein to target
+#   -a ADDR, --addr=ADDR  Specific glidein to target
+#   -c CONSTR, --constraint=CONSTR
+#                         Limit off to the glideins matching the constraint
+#   -x, --all             If specified, kill all glideins belonging to the FE
+#   -p N, --parallel=N    Number of commands to send in parallel (default: 10)
+#
+# Author:
+#   Igor Sfiligoi
+#
+
+import os
+import sys
+import string
+import time
+import threading
+import optparse
+
+sys.path.append(os.path.join(sys.path[0],"../../.."))
+from glideinwms.frontend import glideinFrontendConfig
+from glideinwms.frontend.tools.lib import frontenvparse
+from glideinwms.lib import condorMonitor
+from glideinwms.lib import condorExe
+
+############################################################################
+# condor_off supports nonstandard arguments
+# we want to support that, but optparse does not
+# so we do the transform in place
+def convert_legacy_args(args):
+    i=0
+    while i<len(args):
+        el=args[i]
+        if el in ('-graceful', '-fast', '-peaceful' ,'-force-graceful'):
+            args[i]=args[i][1:] # just remove the leading -
+            args.insert(i,'--type') # prepend the --type 
+            i+=1
+        elif el.startswith("-const"):
+            args[i]="--constraint"
+        elif el == "-name":
+            args[i]="--name"
+        elif el == "-addr":
+            args[i]="--addr"
+        elif el == "-all":
+            args[i]="--all"
+        i+=1
+
+#################################################
+# Interpret the arguments and return the constraint to use
+def build_glidein_constraint(options, other_args):
+    constraint_list=[]
+    if len(other_args)>=1:
+        constraint_list.append('(Name=?="%s")'%other_args[0])
+    if options.glidein_name is not None:
+        constraint_list.append('(Name=?="%s")'%options.glidein_name)
+    if options.glidein_addr is not None:
+        constraint_list.append('(MyAddress=?="%s")'%options.glidein_addr)
+    if options.constr is not None:
+        constraint_list.append('(%s)'%options.constr)
+    if options.off_all==True:
+        constraint_list.append('True')
+
+    if len(constraint_list)==0:
+        raise ValueError, "No selection arguments/options given, aborting"
+        
+    constraint=string.join(constraint_list,'||')
+    return constraint
+
+############################################################################
+# The off commands need to go to the master processes
+# The glidein classad contains the master name and collector
+#  so we need to extract that first, and then look up for the
+#  masters themselves
+
+
+def lookup_addrs(constr):
+    failures=False
+
+    # get the adds for all the requested glideins
+    sts=condorMonitor.CondorStatus()
+    sts.require_integrity(True) # we do not want to get tricked into shutdding down unrelated masters
+    try:
+        data = sts.fetch(constr,[('GLIDEIN_MASTER_NAME','s'),('GLIDEIN_COLLECTOR_NAME','s')])
+    except:
+        time.sleep(1) #retry once
+        data = sts.fetch(constr,[('GLIDEIN_MASTER_NAME','s'),('GLIDEIN_COLLECTOR_NAME','s')])
+    del sts
+        
+    if len(data)==0:
+        raise ValueError, "No glideins matched your selection"
+
+    # find the master names
+    master_collectors={}
+    for glidein_name in data:
+        glidein_ad=data[glidein_name]
+        if (('GLIDEIN_MASTER_NAME' in glidein_ad) and
+            ('GLIDEIN_COLLECTOR_NAME' in glidein_ad)):
+            #ignore any malformed ads
+            master_collector=glidein_ad['GLIDEIN_COLLECTOR_NAME']
+
+            # many glideins may share the same master, so use a set
+            if master_collector not in master_collectors:
+                master_collectors[master_collector]=set()
+            master_collectors[master_collector].add(glidein_ad['GLIDEIN_MASTER_NAME'])
+
+    addrs=[]
+    # extract the addresses for them, querying all the affected collectors
+    # not doing it in parallel, since all collectors likely share the same HW
+    for collector_name in master_collectors:
+        master_names=master_collectors[collector_name]
+        master_list_str=string.join(master_names,",")
+        master_constr='stringListMember(Name,"%s")'%master_list_str
+        sts=condorMonitor.CondorStatus(subsystem_name="master", pool_name=collector_name)
+        sts.require_integrity(True) # same as above
+        try:
+            data = sts.fetch(master_constr,[('MyAddress','s')])
+        except:
+            time.sleep(1) #retry once
+            try:
+                data = sts.fetch(master_constr,[('MyAddress','s')])
+            except condorExe.ExeError, e:
+                # still continue, partial success is better than nothing
+                sys.stderr.write("%s\n"%e)
+                failures=True
+        for master_name in data:
+            try:
+                addrs.append(data[master_name]['MyAddress'])
+            except:
+                # just protect
+                sys.stderr.write("Classad for %s@%s is missing the MyAddress attribute!\n"%(master_name,collector_name))
+
+    if len(addrs)==0:
+        raise ValueError, "Could not find any glidein master!"
+
+    return (addrs,failures)
+
+        
+#############################################################################
+TP_FAIL=False
+
+# thrad callback
+def run_off(addr, off_type):
+    global TP_FAIL
+    try:
+        out=condorExe.exe_cmd_sbin("condor_off","-master -%s -addr %s"%(off_type,addr))
+    except condorExe.ExeError, e:
+        sys.stderr.write("%s\n"%e)
+        TP_FAIL=True # setting the value should be thread safe
+    
+
+############################################################
+# Main function
+def main(argv):
+    global TP_FAIL
+    args=list(argv[1:])
+    convert_legacy_args(args)
+
+    feconfig=frontenvparse.FEConfig()
+    # parse arguments
+    usage = ("Usage: %prog [legacy-options] [options] [glidein_name] \n\n"+
+             "Arguments:\n"+
+             "  glidein_name - Name of the glidein, e.g. glidein_637@cabinet-1-1-1.t2.ucsd.edu\n\n"+
+             "Legacy options:\n"+
+             "  -graceful    - becomes --type graceful\n"+
+             "  -fast        - becomes --type fast\n"+
+             "  -peaceful    - becomes --type peaceful\n"+
+             "  -force-graceful\n"+
+             "               - becomes --type force-graceful\n"+
+             "  -name NAME   - becomes --name NAME\n"+
+             "  -addr ADDR   - becomes --addr ADDR\n"+
+             "  -const[raint] CONSTRAINT\n"+
+             "               - becomes --constraint CONSTRAINT\n"+
+             "  -all         - becomes --all")
+
+    argparser=optparse.OptionParser(usage=usage)
+    feconfig.config_optparse(argparser)
+    argparser.add_option("-t","--type", dest="off_type",
+                         help="Type of off command (default: graceful)",
+                         default="graceful")
+    argparser.add_option("-n","--name", dest="glidein_name",
+                         help="Specific glidein to target", metavar="GLIDEIN_NAME")
+    argparser.add_option("-a","--addr", dest="glidein_addr",
+                         help="Specific glidein to target", metavar="ADDR")
+    argparser.add_option("-c","--constraint", dest="constr",
+                         help="Limit off to the glideins matching the constraint",
+                         metavar="CONSTR")
+    argparser.add_option("-x","--all", dest="off_all", action="store_true",
+                         help="If specified, kill all glideins belonging to the FE")
+    argparser.add_option("-p","--parallel", dest="num_parallel",
+                         help="Number of commands to send in parallel (default: 10)", metavar="N",
+                         default="10")
+    argparser.add_option("-q","--quiet", dest="quiet", action="store_true",
+                         help="Minimize startup messages")
+    (options, other_args) = argparser.parse_args(args)
+    glidein_constr = build_glidein_constraint(options, other_args)
+
+    fedescript = feconfig.load_frontend_config(options)
+    feconfig.set_environment(wpilots=True)
+
+    frontend_name = fedescript.frontend_data['FrontendName']
+    group_name = options.group_name
+
+    # we only want to deal with our own glideins
+    # it is unlikely we can shut down any others
+    complete_constr='(GLIDECLIENT_Name=?="%s.%s")&&(%s)'%(frontend_name,group_name,glidein_constr)
+    addrs,failures = lookup_addrs(complete_constr)
+
+    off_type=options.off_type
+    if off_type not in ('graceful','fast','peaceful','force-graceful'):
+        raise ValueError, "Unknown off type '%s'"%off_type
+        
+    feconf = feconfig.load_frontend_config(options)
+    feconfig.set_environment(wpilots=True)
+
+    TP_FAIL=False
+    max_threads = int(options.num_parallel)
+    started_threads={}
+    for addr in addrs:
+        # make sure we do not run more than allowed
+        while threading.activeCount()>max_threads: # we can run max+1... 1 is us
+            time.sleep(0.01)
+
+        # clean up the threads
+        tk_list=started_threads.keys() # since we are going to modify the dict, cannot use the iterator
+        for tk in tk_list:
+            if not started_threads[tk].isAlive():
+                started_threads[tk].join() # this should return immediately
+                del started_threads[tk]
+
+        if options.quiet!=True:
+            sys.stdout.write("Sending off to glidein master at %s\n"%addr)
+        thr=threading.Thread(target=run_off,args=(addr,off_type))
+        started_threads[addr]=thr
+        thr.start()
+
+    # now wait for all th thread to finish
+    while threading.activeCount()>1: # there is always one thread, myself
+        time.sleep(0.01)
+
+    tk_list=started_threads.keys() # since we are going to modify the dict, cannot use the iterator
+    for tk in tk_list:
+        started_threads[tk].join(0.01) # this should return immediately
+        assert (not started_threads[tk].isAlive()), "Found a lingering tread!"
+        del started_threads[tk]
+
+    if TP_FAIL:
+        if options.quiet!=True:
+            sys.stderr.write("\nAt least one off command failed\n")
+        return 1
+
+    if failures:
+        if options.quiet!=True:
+            sys.stderr.write("\nCould not find the masters for all the requested glidein\n"+
+                             "You may need to issue the command again\n")
+        return 1
+
+    return 0
+
+############################################################
+#
+# S T A R T U P
+#
+############################################################
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main(sys.argv))
+    except Exception, e:
+        sys.stderr.write("ERROR: Exception msg %s\n"%str(e))
+        sys.exit(9)
+
+    
