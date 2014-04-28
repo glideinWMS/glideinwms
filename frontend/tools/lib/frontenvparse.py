@@ -19,9 +19,11 @@ class FEConfig:
         Configure a optparse.OptionParser object
         """
         argparser.add_option("-d","--work-dir", dest="work_dir",
-                             help="Frontend work dir (default: $FE_WORK_DIR)", metavar="DIR")
+                             help="Frontend work dir (default: $FE_WORK_DIR)", metavar="DIR",
+                             default=os.environ.get("FE_WORK_DIR"))
         argparser.add_option("-g","--group-name", dest="group_name",
-                             help="Frontend group name (default: $FE_GROUP_NAME)", metavar="GROUP_NAME")
+                             help="Frontend group name (default: $FE_GROUP_NAME)", metavar="GROUP_NAME",
+                             default=os.environ.get("FE_GROUP_NAME"))
         
     def load_frontend_config(self, options):
         """
@@ -31,7 +33,7 @@ class FEConfig:
         """
         self.options=options
         
-        self.set_defaults()
+        self.validate_options()
         self.elementDescript = glideinFrontendConfig.ElementMergedDescript(self.options.work_dir, self.options.group_name)
         return self.elementDescript
 
@@ -55,16 +57,12 @@ class FEConfig:
 
 
     # INTERNAL
-    def set_defaults(self):
-        if self.options.work_dir is None:
-            self.options.work_dir=os.environ.get("FE_WORK_DIR")
+    def validate_options(self):
         if self.options.work_dir is None:
             raise ValueError, "FE work dir not specified (neither -d nor FE_WORK_DIR used), aborting"
         if not os.path.isfile(os.path.join(self.options.work_dir,"frontend.descript")):
             raise ValueError, "%s is not a valid FE work dir"%self.options.work_dir
 
-        if self.options.group_name is None:
-            self.options.group_name=os.environ.get("FE_GROUP_NAME")
         if self.options.group_name is None:
             raise ValueError, "FE group name not specified (neither -g nor FE_GROUP_NAME used), aborting"
         if not os.path.isfile(os.path.join(self.options.work_dir,"group_%s/group.descript"%self.options.group_name)):
