@@ -287,18 +287,24 @@ class GlideinParams(cWParams.CommonParams):
 
     # return xml formatting
     def get_xml_format(self):
-        return {'lists_params':{'condor_tarballs':{'el_name':'condor_tarball','subtypes_params':{'class':{}}},
-                                'files':{'el_name':'file','subtypes_params':{'class':{}}},
-                                'process_logs':{'el_name':'process_log','subtypes_params':{'class':{}}},
-                                'monitorgroups':{'el_name':'monitorgroup','subtypes_params':{'class':{}}},
-                                'infosys_refs':{'el_name':'infosys_ref','subtypes_params':{'class':{}}}},
-                'dicts_params':{'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},
-                                'per_frontends':{'el_name':'per_frontend','subtypes_params':{'class':{}}},
-                                'entries':{'el_name':'entry','subtypes_params':{'class':{}}},
-                                'allow_frontends':{'el_name':'allow_frontend','subtypes_params':{'class':{}}},
-                                'frontends':{'el_name':'frontend','subtypes_params':{'class':{}}},'security_classes':{'el_name':'security_class','subtypes_params':{'class':{}}}}}
-
-
+        return {
+            'lists_params':{
+                'condor_tarballs':{'el_name':'condor_tarball', 'subtypes_params':{'class':{}}},
+                'files':{'el_name':'file','subtypes_params':{'class':{}}},
+                'process_logs':{'el_name':'process_log','subtypes_params':{'class':{}}},
+                'monitorgroups':{'el_name':'monitorgroup','subtypes_params':{'class':{}}},
+                'infosys_refs':{'el_name':'infosys_ref','subtypes_params':{'class':{}}}
+            },
+            'dicts_params':{
+                'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},
+                'per_frontends':{'el_name':'per_frontend','subtypes_params':{'class':{}}},
+                'entries':{'el_name':'entry','subtypes_params':{'class':{}}},
+                'allow_frontends':{'el_name':'allow_frontend','subtypes_params':{'class':{}}},
+                'frontends':{'el_name':'frontend','subtypes_params':{'class':{}}},
+                'security_classes':{'el_name':'security_class','subtypes_params':{'class':{}}},
+                'submit_attrs':{'el_name':'submit_attr','subtypes_params':{'class':{}}},
+            }
+        }
 
 ############################################################
 #
