@@ -1,0 +1,75 @@
+#!/usr/bin/env python
+#
+# Project:
+#   glideinWMS
+#
+# Description:
+#   Setup the environment so that all condor commands behave
+#   like they would if executed by the frontend
+#
+# Arguments:
+#  -d DIR, --work-dir=DIR                  Frontend work dir (default: $FE_WORK_DIR)
+#  -g GROUP_NAME, --group-name=GROUP_NAME  Frontend group name (default: $FE_GROUP_NAME)
+#  -n, --no-pilots                         Do not include pilot DNs in mapfile
+#
+# Author:
+#   Igor Sfiligoi
+#
+
+import os
+import sys
+import optparse
+
+sys.path.append(os.path.join(sys.path[0],"../../.."))
+from glideinwms.frontend import glideinFrontendConfig
+from glideinwms.frontend.tools.lib import frontenvparse
+
+############################################################
+# Main function
+def main(argv):
+    feconfig=frontenvparse.FEConfig()
+    # parse arguments
+    argparser=optparse.OptionParser()
+    feconfig.config_optparse(argparser)
+    argparser.add_option("-n","--no-pilots", dest="nopilots", action="store_true",
+                         help="Do not include pilot DNs in mapfile")
+    argparser.add_option("-q","--quiet", dest="quiet", action="store_true",
+                         help="Minimize startup messages")
+    (options, other_args) = argparser.parse_args(argv[1:])
+
+    feconfig.load_frontend_config(options)
+    feconfig.set_environment(wpilots=(options.nopilots!=True))
+
+    if options.quiet!=True:
+        sys.stdout.write("Set the environment variables needed to emulate the environment of\n")
+        sys.stdout.write("frontend\t%s\n"%options.work_dir)
+        sys.stdout.write("group\t\t%s\n\n"%options.group_name)
+        if options.nopilots==True:
+            sys.stdout.write("Pilot DNs will not be trusted, so you cannot contact the glideins.\n")
+            sys.stdout.write("This is analogous to what happens in the frontend processes themselves.\n\n")
+        else:
+            sys.stdout.write("Pilot DNs are also trusted, so you can contact and manage the glideins.\n")
+            sys.stdout.write("(unlike what happens in the frontend processes themselves)\n\n")
+            
+        sys.stdout.write("Executing shell %s\n\n"%os.environ['SHELL'])
+        sys.stdout.flush()
+    
+    os.execl(os.environ['SHELL'])
+    # this never returns
+
+    return 0
+
+############################################################
+#
+# S T A R T U P
+#
+############################################################
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main(sys.argv))
+    except Exception, e:
+        sys.stderr.write("ERROR: Exception msg %s\n"%str(e))
+        sys.exit(9)
+
+    

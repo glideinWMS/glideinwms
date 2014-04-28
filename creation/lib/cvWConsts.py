@@ -27,6 +27,7 @@ FRONTEND_MAP_FILE="frontend.mapfile"
 FRONTEND_CONDOR_CONFIG_FILE="frontend.condor_config"
 GROUP_DESCRIPT_FILE="group.descript"
 GROUP_MAP_FILE="group.mapfile"
+GROUP_WPILOTS_MAP_FILE="group_wpilots.mapfile"
 XML_CONFIG_FILE="frontend.xml"
 
 INITD_STARTUP_FILE="frontend_startup"

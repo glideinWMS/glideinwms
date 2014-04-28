@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS - Glidein Frontend</title>
+  <title>glideinWMS - Glidein Frontend - Troubleshooting</title>
   <meta name="CREATED" content="0;0">
   <meta name="CHANGED" content="20100521;20081031;14115200">    
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
@@ -72,6 +72,7 @@
     <li><a href="#submitting">Problems Submitting</a></li>
 
     <li><a href="#idle_jobs">Jobs Stay Idle</a></li>
+    <li><a href="#admin_tools">Administrative tools</a></li>
 
 </ol>
 </div>
@@ -375,6 +376,45 @@ code 1:Error: communication error<br/>
         condor_status -collector &gt;WMSCollector_node:port&gt; -long |grep -i AuthenticatedIdentity |sort -u 
     </blockquote>
 </p>
+   </div>
+
+
+    <div class="section">
+    <h2><a name="admin_tools">Administrative tools</a></h2>
+    <p>
+    glideinWMS comes with a set of administrative tools that you can use when troubleshooting problems.
+    </p>
+    <p>
+    All tools are located in a common area:
+    <blockquote>
+       glideinwms/frontend/tools    
+    </blockquote>
+    There are two ready-to-use tools:
+    <ul>
+      <li><b>fetch_glidein_log</b> - This tool will fetch the log from a glidein. It is a wrapper around 
+             <a href="http://research.cs.wisc.edu/htcondor/manual/v8.0/condor_fetchlog.html">condor_fetchlog</a>.</li>
+      <li><b>glidein_off</b> - This tool will turn off one or more glideins. It is a wrapper around 
+             <a href="http://research.cs.wisc.edu/htcondor/manual/v8.0/condor_off.html">condor_off</a>.</li>
+    </ul>
+    Additionally, there is a general purpuse tool, called <br><b>enter_frontend_env</b><br> that simply sets the
+    environment so that it matches the one used by the Frontend daemons. You can then use all HTCondor commands directly.
+    </p>
+    <p>
+    All tools require access to the Frontend group's work area in order to work.
+    <ul>
+     <li>The top level work area can be set either with a <b>-d</b> option, or through the <b>$FE_WORK_DIR</b> environment variable.</li>
+     <li>The group name can be set either with a <b>-g</b> option, or theough the <b>$FE_GROUP_NAME</b> environemtn variable.</li>
+    </ul>
+    </p>
+    <p>
+    An example command would be:
+    <blockquote>
+    # Turn off all the glideins that are currently not used<br>
+    export FE_WOK_DIR=~/frontstage/frontend_UCSD_v1_0<br>
+    cd ~/glideinwms/frontend/tools<br>
+    ./glidein_off -g main --constraint 'State=!="Claimed"'
+    </blockquote>
+    </p>
 </div>
 
 <div class="footer">

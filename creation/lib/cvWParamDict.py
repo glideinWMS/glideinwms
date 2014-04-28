@@ -16,6 +16,7 @@ import cWParams
 import cvWDictFile,cWDictFile
 import cvWConsts,cWConsts
 import cvWCreate
+from glideinwms.lib import x509Support
 
 #####################################################
 # Validate node string
@@ -331,12 +332,18 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
     ########################################
     
     def save_client_security(self):
-        # create the real mapfile
+        # create the real mapfiles
         cvWCreate.create_client_mapfile(os.path.join(self.work_dir,cvWConsts.GROUP_MAP_FILE),
                                         self.client_security['proxy_DN'],
                                         self.client_security['factory_DNs'],
                                         self.client_security['schedd_DNs'],
                                         self.client_security['collector_DNs'])
+        cvWCreate.create_client_mapfile(os.path.join(self.work_dir,cvWConsts.GROUP_WPILOTS_MAP_FILE),
+                                        self.client_security['proxy_DN'],
+                                        self.client_security['factory_DNs'],
+                                        self.client_security['schedd_DNs'],
+                                        self.client_security['collector_DNs'],
+                                        self.client_security['pilot_DNs'])
         return
 
         
@@ -579,6 +586,7 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
     group_descript_dict.add('GroupName',sub_name)
 
     group_descript_dict.add('MapFile',os.path.join(work_dir,cvWConsts.GROUP_MAP_FILE))
+    group_descript_dict.add('MapFileWPilots',os.path.join(work_dir,cvWConsts.GROUP_WPILOTS_MAP_FILE))
 
     group_descript_dict.add('MaxRunningPerEntry',sub_params.config.running_glideins_per_entry.max)
     group_descript_dict.add('FracRunningPerEntry',sub_params.config.running_glideins_per_entry.relative_to_queue)
@@ -635,6 +643,30 @@ def apply_group_glexec_policy(descript_dict, sub_params, params):
         descript_dict.add('FactoryQueryExpr', query_expr, allow_overwrite=True)
         descript_dict.add('MatchExpr', match_expr, allow_overwrite=True)
 
+
+def get_pool_list(credential):
+    pool_idx_len = credential['pool_idx_len']
+    if pool_idx_len is None:
+        pool_idx_len = 0
+    else:
+        pool_idx_len = int(pool_idx_len)
+    pool_idx_list_unexpanded = credential['pool_idx_list'].split(',')
+    pool_idx_list_expanded = []
+
+    # Expand ranges in pool list
+    for idx in pool_idx_list_unexpanded:
+        if '-' in idx:
+            idx_range = idx.split('-')
+            for i in range(int(idx_range[0]), int(idx_range[1])+1):
+                pool_idx_list_expanded.append(str(i))
+        else:
+            pool_idx_list_expanded.append(idx.strip())
+
+    pool_idx_list_strings=[]
+    for idx in pool_idx_list_expanded:
+        pool_idx_list_strings.append(idx.zfill(pool_idx_len))
+    return pool_idx_list_strings
+    
 
 def populate_common_descript(descript_dict,        # will be modified
                              params):
@@ -703,25 +735,9 @@ def populate_common_descript(descript_dict,        # will be modified
                     if pel[attr] is not None:
                         proxy_descript_values[attr][pel['absfname']]=pel[attr]
             else: #pool
-                pool_idx_len = pel['pool_idx_len']
-                if pool_idx_len is None:
-                    pool_idx_len = 0
-                else:
-                    pool_idx_len = int(pool_idx_len)
-                pool_idx_list_unexpanded = pel['pool_idx_list'].split(',')
-                pool_idx_list_expanded = []
-
-                # Expand ranges in pool list
-                for idx in pool_idx_list_unexpanded:
-                    if '-' in idx:
-                        idx_range = idx.split('-')
-                        for i in range(int(idx_range[0]), int(idx_range[1])+1):
-                            pool_idx_list_expanded.append(str(i))
-                    else:
-                        pool_idx_list_expanded.append(idx.strip())
-
-                for idx in pool_idx_list_expanded:
-                    absfname = "%s%s" % (pel['absfname'], idx.zfill(pool_idx_len))
+                pool_idx_list_expanded_strings = get_pool_list(pel)
+                for idx in pool_idx_list_expanded_strings:
+                    absfname = "%s%s" % (pel['absfname'], idx)
                     proxies.append(absfname)
                     for attr in proxy_attrs:
                         if pel[attr] is not None:
@@ -802,12 +818,8 @@ def populate_main_security(client_security,params):
 
 def populate_group_security(client_security,params,sub_params):
     factory_dns=[]
-    for el in params.match.factory.collectors:
-        dn=el.DN
-        if dn is None:
-            raise RuntimeError,"DN not defined for factory %s"%el.node
-        factory_dns.append(dn)
-    for el in sub_params.match.factory.collectors:
+    for collectors in (params.match.factory.collectors, sub_params.match.factory.collectors):
+      for el in collectors:
         dn=el.DN
         if dn is None:
             raise RuntimeError,"DN not defined for factory %s"%el.node
@@ -816,18 +828,38 @@ def populate_group_security(client_security,params,sub_params):
     client_security['factory_DNs']=factory_dns
     
     schedd_dns=[]
-    for el in params.match.job.schedds:
-        dn=el.DN
-        if dn is None:
-            raise RuntimeError,"DN not defined for schedd %s"%el.fullname
-        schedd_dns.append(dn)
-    for el in sub_params.match.job.schedds:
+    for schedds in (params.match.job.schedds, sub_params.match.job.schedds):
+      for el in schedds:
         dn=el.DN
         if dn is None:
             raise RuntimeError,"DN not defined for schedd %s"%el.fullname
         # don't worry about conflict... there is nothing wrong if the DN is listed twice
         schedd_dns.append(dn)
     client_security['schedd_DNs']=schedd_dns
+
+    pilot_dns=[]
+    for credentials in (params.security.credentials, sub_params.security.credentials):
+        for pel in credentials:
+            if pel['pilotabsfname'] is None:
+                proxy_fname=pel['absfname']
+            else:
+                proxy_fname=pel['pilotabsfname']
+
+            if (pel['pool_idx_len'] is None) and (pel['pool_idx_list'] is None):
+                # only one
+                dn=x509Support.extract_DN(proxy_fname)
+                # don't worry about conflict... there is nothing wrong if the DN is listed twice
+                pilot_dns.append(dn)
+            else:
+                # pool
+                pool_idx_list_expanded_strings = get_pool_list(pel)
+                for idx in pool_idx_list_expanded_strings:
+                    real_proxy_fname = "%s%s" % (proxy_fname, idx)
+                    dn=x509Support.extract_DN(real_proxy_fname)
+                    # don't worry about conflict... there is nothing wrong if the DN is listed twice
+                    pilot_dns.append(dn)
+                
+    client_security['pilot_DNs']=pilot_dns
 
 #####################################################
 # Populate attrs
