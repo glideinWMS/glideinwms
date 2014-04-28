@@ -617,6 +617,16 @@ by the VO factory clients.</P>
         </TD>
 
     </TR>
+    <TR>
+        <td> <b>GLIDEIN_CPUS</b> </td>
+        <TD> Int</td>
+
+        <TD> 1 </TD>
+        <TD ROWSPAN=2>
+          <P>Number of CPUs per condor slot created by the glidein. Use "auto" to let HTCondor manage the slots. In case of static partitioning, glidein will create Total_CPUS/GLIDEIN_CPUS number of slots. In case of dynamic partitioning, the slots will be created autmatically based on the CPUs required by the job.</P>
+        </TD>
+
+    </TR>
 </TABLE>
 </div>
 <div class="section">
