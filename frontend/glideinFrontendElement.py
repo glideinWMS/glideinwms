@@ -249,7 +249,7 @@ class glideinFrontendElement:
         ## resource
         pipe_ids[('collector',0)] = fork_in_bg(self.get_condor_status)
 
-        logSupport.log.debug("%i child query processes started"%len(pipe_ids.keys()))
+        logSupport.log.debug("%i child query processes started"%len(pipe_ids))
         try:
             pipe_out=fetch_fork_result_list(pipe_ids)
         except RuntimeError, e:
