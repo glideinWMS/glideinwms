@@ -209,7 +209,8 @@ def main(argv):
     argparser=optparse.OptionParser(usage=usage)
     feconfig.config_optparse(argparser)
     argparser.add_option("-t","--type", dest="off_type",
-                         help="Type of off command (default: graceful)")
+                         help="Type of off command (default: graceful)",
+                         default="graceful")
     argparser.add_option("-n","--name", dest="glidein_name",
                          help="Specific glidein to target", metavar="GLIDEIN_NAME")
     argparser.add_option("-a","--addr", dest="glidein_addr",
@@ -220,7 +221,8 @@ def main(argv):
     argparser.add_option("-x","--all", dest="off_all", action="store_true",
                          help="If specified, kill all glideins belonging to the FE")
     argparser.add_option("-p","--parallel", dest="num_parallel",
-                         help="Number of commands to send in parallel (default: 10)", metavar="N")
+                         help="Number of commands to send in parallel (default: 10)", metavar="N",
+                         default="10")
     argparser.add_option("-q","--quiet", dest="quiet", action="store_true",
                          help="Minimize startup messages")
     (options, other_args) = argparser.parse_args(args)
@@ -238,19 +240,14 @@ def main(argv):
     addrs,failures = lookup_addrs(complete_constr)
 
     off_type=options.off_type
-    if off_type is None:
-        off_type="graceful"
-    elif off_type not in ('graceful','fast','peaceful','force-graceful'):
+    if off_type not in ('graceful','fast','peaceful','force-graceful'):
         raise ValueError, "Unknown off type '%s'"%off_type
         
     feconf = feconfig.load_frontend_config(options)
     feconfig.set_environment(wpilots=True)
 
     TP_FAIL=False
-    if options.num_parallel is None:
-        max_threads = 10
-    else:
-        max_threads = int(options.num_parallel)
+    max_threads = int(options.num_parallel)
     started_threads={}
     for addr in addrs:
         # make sure we do not run more than allowed
