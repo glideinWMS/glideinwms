@@ -52,7 +52,7 @@ class FailureCounter:
         self.failure_times=[]
 
     def add_failure(self, when=None):
-        if not when:
+        if when is None:
             when = time.time()
 
         self.clean_old()
