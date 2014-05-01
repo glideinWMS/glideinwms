@@ -623,7 +623,7 @@ by the VO factory clients.</P>
 
         <TD> 1 </TD>
         <TD ROWSPAN=2>
-            <P>Number of CPUs glidein should use. Use "auto" to let glidein determine this from the system. GLIDEIN_CPUS is used to set NUM_CPUS for HTCondor. In case of static partitioning, glidein will create Total_CPUS/GLIDEIN_CPUS number of slots. In case of dynamic partitioning, the slots will be created autmatically based on the CPUs required by the job. Refer to HTCondor manual for info on <a href="http://research.cs.wisc.edu/htcondor/manual/v8.1/3_3Configuration.html#19943">NUM_CPUS</a></P>
+            <P>Number of CPUs glidein should use. GLIDEIN_CPUS is used to set NUM_CPUS for the HTCondor started by the glidein. Use "auto" to let glidein determine this from the worker node, set a value to force a different number. In case of static partitioning, glidein will create GLIDEIN_CPUS number of slots. In case of dynamic partitioning, the slots will be created automatically based on the CPUs required by the job and GLIDEIN_CPUS is the sum of them. Refer to HTCondor manual for info on <a href="http://research.cs.wisc.edu/htcondor/manual/v8.1/3_3Configuration.html#19943">NUM_CPUS</a></P>
         </TD>
 
     </TR>
