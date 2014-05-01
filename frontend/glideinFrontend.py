@@ -63,7 +63,7 @@ class FailureCounter:
         return self.failure_times
 
     def count_failures(self):
-        return len(self.get_failures)
+        return len(self.get_failures())
 
     # INTERNAL
 
