@@ -84,6 +84,30 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
+        <b>v3_2_5</b> released on May xx, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_5/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_5/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_5.tgz">Tarball</a>)<br>
+       <ul>
+         <li>Added administrative commands for frontend fetch_glidein_log,
+         glidein_off and enter_frontend_env
+         <li>Frontend now considers MAX_JOBS_RUNNING when requesting more
+         glideins
+         <li>Frontend can now perform several tasks in parallel making it
+         more scalable
+         <li>Frontend and Factory startup scripts are more consistent with each
+         other
+         <li>Improved Documentation
+         <li>Bug Fix: Fixed an issue when factory config with HTCondorCE
+         attributes would result in an invalid XML on reconfig
+         <li>Bug Fix: Fixed a bug where number of jobs run as reported by a
+         glidein was significantly scaled up
+         <li>Bug Fix: Fixed issues in frontend introduced in v3_2_4 where the
+         frontend would crash under certain conditions
+         <li>Bug Fix: Frontend's group logging and factory logging now
+         correctly consider the backup_count when configured
+         <li>Bug Fix: Frontend RPM now corectly creates frontend.xml config with
+         default trust_domain='grid' for the credentials
+       </ul>
+      </li>
+      <li>
         <b>v3_2_4</b> released on April 14, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_4/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_4/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_4.tgz">Tarball</a>)<br>
        <ul>
          <li>Added support for HTCondor-CE attributes in the factory

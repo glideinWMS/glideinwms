@@ -1,3 +1,22 @@
+v3_2_5  Added administrative commands for frontend fetch_glidein_log,
+          glidein_off and enter_frontend_env
+        Frontend now considers MAX_JOBS_RUNNING when requesting more glideins
+        Frontend can now perform several tasks in parallel making it
+          more scalable
+        Frontend and Factory startup scripts are more consistent with each
+          other
+        Improved Documentation
+        Bug Fix: Fixed an issue when factory config with HTCondorCE attributes
+          would result in an invalid XML on reconfig
+        Bug Fix: Fixed a bug where number of jobs run as reported by a
+          glidein was significantly scaled up
+        Bug Fix: Fixed issues in frontend introduced in v3_2_4 where the
+          frontend would crash under certain conditions
+        Bug Fix: Frontend's group logging and factory logging now
+          correctly consider the backup_count when configured
+        Bug Fix: Frontend RPM now corectly creates frontend.xml config with
+          default trust_domain='grid' for the credentials
+
 v3_2_4  Added support for HTCondor-CE attributes in the factory
         Made several performance improvements to frontend. Frontend does
           several tasks in parallel to better utilize the CPU.
