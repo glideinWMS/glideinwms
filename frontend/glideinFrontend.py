@@ -52,7 +52,7 @@ class FailureCounter:
         self.failure_times=[]
 
     def add_failure(self, when=None):
-        if when in None:
+        if when is None:
             when = time.time()
 
         self.clean_old()
@@ -63,7 +63,7 @@ class FailureCounter:
         return self.failure_times
 
     def count_failures(self):
-        return len(self.get_failures)
+        return len(self.get_failures())
 
     # INTERNAL
 
