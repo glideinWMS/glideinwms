@@ -633,7 +633,8 @@ class glideinFrontendElement:
             for schedd in coll_status_schedd_dict:
                 el=coll_status_schedd_dict[schedd]
                 try:
-                    max_run=int(el['MaxJobsRunning']*0.95) # stop a bit earlier
+                    # here 0 reallw means no jobs
+                    max_run=int(el['MaxJobsRunning']*0.95+0.5) # stop a bit earlier
                     current_run=el['TotalRunningJobs']
                     current_run+=el.get('TotalSchedulerJobsRunning',0)#older schedds may not have it
                     logSupport.log.debug("Schedd %s has %i running with max %i" % (schedd, current_run, max_run))
@@ -642,7 +643,8 @@ class glideinFrontendElement:
                         logSupport.log.warning("Schedd %s hit maxrun limit, blacklisting: has %i running with max %i" % (schedd, current_run, max_run))
 
                     if 'TransferQueueMaxUploading' in el:
-                        max_up=int(el['TransferQueueMaxUploading']*0.95) # stop a bit earlier
+                      if el['TransferQueueMaxUploading']>0: # 0 means unlimited
+                        max_up=int(el['TransferQueueMaxUploading']*0.95+0.5) # stop a bit earlier
                         current_up=el['TransferQueueNumUploading']
                         logSupport.log.debug("Schedd %s has %i uploading with max %i" % (schedd, current_up, max_up))
                         if current_up>=max_up:
