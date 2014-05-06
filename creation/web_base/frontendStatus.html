@@ -76,6 +76,11 @@ Description:
      </tr>
      <tr>
        <td colspan=2>
+         <input type="checkbox" id = "autoupdate" onclick= "autoupdate()" > Autoupdate (30 mins)</input>
+       </td>
+     </tr>
+     <tr>
+       <td colspan=2>
          <button onClick="nonlink_update()">Update</button>
          <button onClick="defaults()" style="float:right">Defaults</button>
          <button onClick="unlink()" style="float:right">Unlink</button>
@@ -105,6 +110,10 @@ Description:
 
     
     <script type="text/javascript">
+	
+      /* AutoUpdateInterval reference */
+      var auInt;
+
 
       // Remove the Javascript warning
       document.getElementById("infotable").deleteRow(0);
@@ -517,6 +526,15 @@ Description:
                 document.getElementById("destination").selectedIndex = 0; 
         }
 
+      function autoupdate() {
+        var auchk = document.getElementById("autoupdate").checked;
+        
+        if (auchk) {
+          auInt=setInterval(nonlink_update, 1800000);
+        } else {
+          clearInterval(auInt);
+        };
+      }
 
     </script>
     
