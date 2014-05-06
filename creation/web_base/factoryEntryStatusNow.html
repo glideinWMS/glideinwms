@@ -82,6 +82,9 @@ var indivChild; var indivChildFE;
 
 var FE;
 
+/* AutoUpdateInterval reference */
+var auInt;
+
 /* FIND Y POSITION OF AN ELEMENT */
 function findPosY(obj)
 {
@@ -1901,6 +1904,17 @@ function showPr()
 	makeTotTable(ENTRY); /* ADJUST */
 }
 
+function autoupdate()
+{
+  var auchk = document.getElementById("autoupdate").checked;
+
+  if (auchk) {
+    auInt=setInterval(updateTable, 1800000);
+  } else {
+    clearInterval(auInt);
+  };
+}
+
 </script>
 
 <style = "text/css">
@@ -2046,6 +2060,7 @@ td
 
 <!-- GO TO LINK + UPDTATE BUTTON -->
 <div id = "select"> 
+        <input type="checkbox" id = "autoupdate" onclick= "autoupdate()" > Autoupdate (30 mins)<br />
 	<input id = "button" type="button" value="Update Table"  onclick="updateTable()"/>
     <input id = "link" type="button" value="Link" onclick="goToLink()" />
     <input id = "prOption" type="checkbox" value= "Period" onclick= "showPr()" disabled="disabled"> Period 
