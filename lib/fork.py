@@ -14,7 +14,7 @@
 #
 import cPickle
 import os
-import signal
+import select
 from pidSupport import register_sighandler, unregister_sighandler, termsignal
 import logSupport
 
@@ -32,12 +32,15 @@ def fork_in_bg(function, *args):
     unregister_sighandler()
     pid = os.fork()
     if pid == 0:
+        logSupport.disable_rotate = True
         os.close(r)
         try:
             out = function(*args)
             os.write(w, cPickle.dumps(out))
         finally:
             os.close(w)
+            # Exit, immediately. Don't want any cleanup, since I was created
+            # just for performing the work
             os._exit(0)
     else:
         register_sighandler()
@@ -101,6 +104,40 @@ def fetch_fork_result_list(pipe_ids):
         raise RuntimeError, "Found %i errors" % failures
 
     return out
+
+def fetch_ready_fork_result_list(pipe_ids):
+    """
+    Read the output pipe of the children, used after forking. If there is data
+    on the pipes to consume, read the data and close the pipe.
+    and after forking to entry.writeStats()
+
+    @type pipe_ids: dict
+    @param pipe_ids: Dictinary of pipe and pid
+
+    @rtype: dict
+    @return: Dictionary of work_done
+    """
+
+    work_info = {}
+    failures = 0
+    fds_to_entry = dict((pipe_ids[x]['r'], x) for x in pipe_ids)
+
+    readable_fds = select.select(fds_to_entry.keys(), [], [], 0)[0]
+    for fd in readable_fds:
+        try:
+            key = fds_to_entry[fd]
+            pid = pipe_ids[key]['pid']
+            out = fetch_fork_result(fd, pid)
+            work_info[key] = out
+        except Exception, e:
+            logSupport.log.warning("Failed to extract info from child '%s'" % key)
+            logSupport.log.exception("Failed to extract info from child '%s'" % key)
+            failures += 1
+
+    if failures:
+        raise RuntimeError, "Found %i errors" % failures
+
+    return work_info
 
 def wait_for_pids(pid_list):
     """
