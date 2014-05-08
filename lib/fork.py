@@ -1,17 +1,25 @@
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#
+# Description:
+#   This module implements methods
+#   to handle forking of processes
+#   and the collection of results
+#
+# Author:
+#   Burt Holzman and Igor Sfiligoi
+#
 import cPickle
 import os
 import signal
+from pidSupport import register_sighandler, unregister_sighandler, termsignal
+import logSupport
 
-def register_sighandler():
-     signal.signal(signal.SIGTERM, termsignal)
-     signal.signal(signal.SIGQUIT, termsignal)
-
-def unregister_sighandler():
-    signal.signal(signal.SIGTERM, signal.SIG_DFL)
-    signal.signal(signal.SIGQUIT, signal.SIG_DFL)
-
-def termsignal(signr, frame):
-    raise KeyboardInterrupt, "Received signal %s" % signr
+################################################
+# Low level fork and collect functions
 
 def fork_in_bg(function, *args):
     # fork and call a function with args
@@ -36,6 +44,63 @@ def fork_in_bg(function, *args):
         os.close(w)
 
     return {'r': r, 'pid': pid}
+
+###############################
+def fetch_fork_result(r, pid):
+    """
+    Used with fork clients
+
+    @type r: pipe
+    @param r: Input pipe
+
+    @type pid: int
+    @param pid: pid of the child
+
+    @rtype: Object
+    @return: Unpickled object
+    """
+
+    try:
+        rin = ""
+        s = os.read(r, 1024*1024)
+        while (s != ""): # "" means EOF
+            rin += s
+            s = os.read(r,1024*1024)
+    finally:
+        os.close(r)
+        os.waitpid(pid, 0)
+
+    out = cPickle.loads(rin)
+    return out
+
+def fetch_fork_result_list(pipe_ids):
+    """
+    Read the output pipe of the children, used after forking to perform work
+    and after forking to entry.writeStats()
+ 
+    @type pipe_ids: dict
+    @param pipe_ids: Dictinary of pipe and pid 
+
+    @rtype: dict
+    @return: Dictionary of fork_results
+    """
+
+    out = {}
+    failures = 0
+    for key in pipe_ids:
+        try:
+            # Collect the results
+            out[key] = fetch_fork_result(pipe_ids[key]['r'],
+                                         pipe_ids[key]['pid'])
+        except Exception, e:
+            logSupport.log.warning("Failed to extract info from child '%s'" % key)
+            logSupport.log.exception("Failed to extract info from child '%s'" % key)
+            failures += 1
+
+    if failures>0:
+        raise RuntimeError, "Found %i errors" % failures
+
+    return out
 
 def wait_for_pids(pid_list):
     """

@@ -35,8 +35,8 @@ from glideinwms.lib import symCrypto,pubCrypto
 from glideinwms.lib import glideinWMSVersion
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
-from glideinwms.lib.fork import fork_in_bg,wait_for_pids
-from glideinwms.lib.fork import register_sighandler
+from glideinwms.lib.fork import fork_in_bg, wait_for_pids, fetch_fork_result_list
+from glideinwms.lib.pidSupport import register_sighandler
 
 from glideinwms.frontend import glideinFrontendConfig
 from glideinwms.frontend import glideinFrontendInterface
@@ -1263,46 +1263,6 @@ def init_factory_stats_arr():
 def log_factory_header():
     logSupport.log.info("            Jobs in schedd queues                 |      Glideins     |   Request   ")
     logSupport.log.info("Idle (match  eff   old  uniq )  Run ( here  max ) | Total Idle   Run  | Idle MaxRun Down Factory")
-
-###############################
-# to be used with fork clients
-# Args:
-#  r    - input pipe
-#  pid - pid of the child
-def fetch_fork_result(r,pid):
-    try:
-        rin=""
-        s=os.read(r,1024*1024)
-        while (s!=""): # "" means EOF
-            rin+=s
-            s=os.read(r,1024*1024) 
-    finally:
-        os.close(r)
-        os.waitpid(pid,0)
-
-    out=cPickle.loads(rin)
-    return out
-
-# in: pipe_is - dictionary, each element is {'r':r,'pid':pid} - see above
-# out: dictionary of fork_results
-def fetch_fork_result_list(pipe_ids):
-    out={}
-    failures=0
-    for k in pipe_ids.keys():
-        try:
-            # now collect the results
-            rin=fetch_fork_result(pipe_ids[k]['r'],pipe_ids[k]['pid'])
-            out[k]=rin
-        except Exception, e:
-            logSupport.log.warning("Failed to retrieve %s state information from the subprocess." % str(k))
-            logSupport.log.debug("Failed to retrieve %s state from the subprocess: %s" % (str(k), e))
-            failures+=1
-        
-    if failures>0:
-        raise RuntimeError, "Found %i errors"%failures
-
-    return out
-        
 
 ######################
 # expand $$(attribute)

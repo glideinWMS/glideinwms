@@ -41,6 +41,7 @@ from glideinwms.lib import logSupport
 from glideinwms.lib import classadSupport
 from glideinwms.lib import cleanupSupport
 from glideinwms.lib import glideinWMSVersion
+from glideinwms.lib.fork import fetch_fork_result, fetch_fork_result_list
 from glideinwms.lib.pidSupport import register_sighandler
 from glideinwms.lib.pidSupport import unregister_sighandler
 from glideinwms.factory import glideFactoryEntry
@@ -206,63 +207,6 @@ def get_work_count(work):
     for entry in work:
         count += len(work[entry])
     return count
-
-###############################
-def fetch_fork_result(r, pid):
-    """
-    Used with fork clients
-
-    @type r: pipe
-    @param r: Input pipe
-
-    @type pid: int
-    @param pid: pid of the child
-
-    @rtype: Object
-    @return: Unpickled object
-    """
-
-    try:
-        rin = ""
-        s = os.read(r, 1024*1024)
-        while (s != ""): # "" means EOF
-            rin += s
-            s = os.read(r,1024*1024)
-    finally:
-        os.close(r)
-        os.waitpid(pid, 0)
-
-    out = cPickle.loads(rin)
-    return out
-
-def fetch_fork_result_list(pipe_ids):
-    """
-    Read the output pipe of the children, used after forking to perform work
-    and after forking to entry.writeStats()
- 
-    @type pipe_ids: dict
-    @param pipe_ids: Dictinary of pipe and pid 
-
-    @rtype: dict
-    @return: Dictionary of fork_results
-    """
-
-    out = {}
-    failures = 0
-    for key in pipe_ids:
-        try:
-            # Collect the results
-            out[key] = fetch_fork_result(pipe_ids[key]['r'],
-                                         pipe_ids[key]['pid'])
-        except Exception, e:
-            logSupport.log.warning("Failed to extract info from child '%s'" % key)
-            logSupport.log.exception("Failed to extract info from child '%s'" % key)
-            failures += 1
-
-    if failures>0:
-        raise RuntimeError, "Found %i errors" % failures
-
-    return out
 
 ###############################
 
