@@ -41,7 +41,8 @@ from glideinwms.lib import logSupport
 from glideinwms.lib import classadSupport
 from glideinwms.lib import cleanupSupport
 from glideinwms.lib import glideinWMSVersion
-from glideinwms.lib.fork import fork_in_bg, fetch_ready_fork_result_list, fetch_fork_result_list
+from glideinwms.lib.fork import fetch_fork_result_list
+from glideinwms.lib.fork import ForkManager
 from glideinwms.lib.pidSupport import register_sighandler
 from glideinwms.lib.pidSupport import unregister_sighandler
 from glideinwms.factory import glideFactoryEntry
@@ -271,13 +272,6 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
 
     logSupport.log.info("Found %s total tasks to work on" % work_count)
 
-    # Got the work items grouped by entries
-    # Now fork a process per entry and wait for certain duration to get back
-    # the results. Kill processes if they take too long to get back with result
-
-    # ids keyed by entry name
-    pipe_ids = {}
-
     # Max number of children to fork at a time
     # Each child currently takes ~50 MB
     # Leaving 3GB for system, max number of children to fork is
@@ -298,40 +292,17 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
         if parallel_workers < 1: parallel_workers = 1
 
     logSupport.log.debug("Setting parallel_workers limit of %s" % parallel_workers)
-    forks_remaining = parallel_workers
 
+    forkm_obj = ForkManager()
     # Only fork of child processes for entries that have corresponding
     # work todo, ie glideclient classads.
     for ent in work:
-        # Check if we can fork more
-        while (forks_remaining == 0):
-            # Give some time for the processes to finsh the work
-            # logSupport.log.debug("Reached parallel_workers limit of %s" % parallel_workers)
-            time.sleep(1)
-
-            post_work_info_subset = {}
-            # Wait and gather results for work done so far before forking more
-            try:
-                # logSupport.log.debug("Checking finished workers")
-                post_work_info_subset = fetch_ready_fork_result_list(pipe_ids)
-                post_work_info.update(post_work_info_subset)
-            except RuntimeError:
-                # Expect all errors logged already
-                work_info_read_err = True
-
-            forks_remaining += len(post_work_info_subset)
-
-            for en in post_work_info_subset:
-                del pipe_ids[en]
-
         entry = my_entries[ent]
-        pipe_ids[entry.name] = fork_in_bg(forked_check_and_perform_work,
-                                          factory_in_downtime, entry, work)
-
-    # Gather info from rest of the entries
+        forkm_obj.add_fork(entry.name,
+                           forked_check_and_perform_work,
+                           factory_in_downtime, entry, work)
     try:
-        post_work_info_subset = fetch_fork_result_list(pipe_ids)
-        post_work_info.update(post_work_info_subset)
+        post_work_info = forkm_obj.bounded_fork_and_collect(parallel_workers)
     except RuntimeError:
         # Expect all errors logged already
         work_info_read_err = True

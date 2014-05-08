@@ -5,7 +5,7 @@
 # File Version: 
 #
 # Description:
-#   This module implements methods
+#   This module implements functions and classes
 #   to handle forking of processes
 #   and the collection of results
 #
@@ -14,9 +14,16 @@
 #
 import cPickle
 import os
+import time
 import select
 from pidSupport import register_sighandler, unregister_sighandler, termsignal
 import logSupport
+
+class ForkResultError(RuntimeError):
+    def __init__(self, nr_errors, good_results):
+        RuntimeError.__init__(self, "Found %i errors" % nr_errors)
+        self.nr_errors = nr_errors
+        self.good_results = good_results
 
 ################################################
 # Low level fork and collect functions
@@ -101,7 +108,7 @@ def fetch_fork_result_list(pipe_ids):
             failures += 1
 
     if failures>0:
-        raise RuntimeError, "Found %i errors" % failures
+        raise ForkResultError, (failures, out)
 
     return out
 
@@ -134,8 +141,8 @@ def fetch_ready_fork_result_list(pipe_ids):
             logSupport.log.exception("Failed to extract info from child '%s'" % key)
             failures += 1
 
-    if failures:
-        raise RuntimeError, "Found %i errors" % failures
+    if failures>0:
+        raise ForkResultError, (failures, work_info)
 
     return work_info
 
@@ -156,3 +163,105 @@ def wait_for_pids(pid_list):
           os.close(r)
           os.waitpid(pid,0)
          
+################################################
+# Fork Class
+
+class ForkManager:
+     def __init__(self):
+          self.functions_tofork = {}
+          return
+
+     def add_fork(self, key, function, *args):
+          if key in self.functions_tofork:
+               raise KeyError, "Fork key '%s' already in use"%key
+          self.functions_tofork[key] = ( (function, ) + args)
+
+     def fork_and_collect(self):
+          pipe_ids = {}
+          for key in self.functions_tofork:
+               pipe_ids[key] = fork_in_bg(*self.functions_tofork[key])
+          results = fetch_fork_result_list(pipe_ids)
+          return results
+
+     def bounded_fork_and_collect(self, max_forks,
+                                  log_progress=True, sleep_time=0.01):
+
+         post_work_info = {}
+         nr_errors = 0
+
+         pipe_ids = {}
+         forks_remaining = max_forks
+         functions_remaining = len(self.functions_tofork)
+
+         # try to fork all the functions
+         for key in self.functions_tofork:
+             # Check if we can fork more
+             if (forks_remaining == 0):
+                  if log_progress:
+                       # log here, since we will have to wait
+                       logSupport.log.info("Active forks = %i, Forks to finish = %i"%(max_forks,functions_remaining))
+             while (forks_remaining == 0):
+                 # Give some time for the processes to finish the work
+                 # logSupport.log.debug("Reached parallel_workers limit of %s" % parallel_workers)
+                 time.sleep(sleep_time)
+
+                 # Wait and gather results for work done so far before forking more
+                 try:
+                     # logSupport.log.debug("Checking finished workers")
+                     post_work_info_subset = fetch_ready_fork_result_list(pipe_ids)
+                 except ForkResultError, e:
+                     # Collect the partial result
+                     post_work_info_subset = e.good_results
+                     # Expect all errors logged already, just count
+                     nr_errors += e.nr_errors
+                     functions_remaining -= e.nr_errors
+
+                 post_work_info.update(post_work_info_subset)
+                 forks_remaining += len(post_work_info_subset)
+                 functions_remaining -= len(post_work_info_subset)
+
+                 for i in post_work_info_subset:
+                     del pipe_ids[i]
+                 #end for
+             #end while
+
+             # yes, we can, do it
+             pipe_ids[key] = fork_in_bg(*self.functions_tofork[key])
+             forks_remaining -= 1
+         #end for
+
+         if log_progress:
+              logSupport.log.info("Active forks = %i, Forks to finish = %i"%(max_forks-forks_remaining,functions_remaining))
+         
+         # now we just have to wait for all to finish
+         while (functions_remaining>0):
+            # Give some time for the processes to finish the work
+            time.sleep(sleep_time)
+
+            # Wait and gather results for work done so far before forking more
+            try:
+                # logSupport.log.debug("Checking finished workers")
+                post_work_info_subset = fetch_ready_fork_result_list(pipe_ids)
+            except ForkResultError, e:
+                # Collect the partial result
+                post_work_info_subset = e.good_results
+                # Expect all errors logged already, just count
+                nr_errors += e.nr_errors
+                functions_remaining -= e.nr_errors
+
+            post_work_info.update(post_work_info_subset)
+            forks_remaining += len(post_work_info_subset)
+            functions_remaining -= len(post_work_info_subset)
+
+            for i in post_work_info_subset:
+                del pipe_ids[i]
+
+            if len(post_work_info_subset)>0:
+                 if log_progress:
+                      logSupport.log.info("Active forks = %i, Forks to finish = %i"%(max_forks-forks_remaining,functions_remaining))
+         #end while
+          
+         if nr_errors>0:
+              raise ForkResultError, (nr_errors, post_work_info)
+
+         return post_work_info
