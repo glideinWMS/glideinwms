@@ -171,10 +171,19 @@ class ForkManager:
           self.functions_tofork = {}
           return
 
+     def __len__(self):
+          return len(self.functions_tofork)
+
      def add_fork(self, key, function, *args):
           if key in self.functions_tofork:
                raise KeyError, "Fork key '%s' already in use"%key
           self.functions_tofork[key] = ( (function, ) + args)
+
+     def fork_and_wait(self):
+          pids=[]
+          for key in self.functions_tofork:
+               pids.append(fork_in_bg(*self.functions_tofork[key]))
+          wait_for_pids(pids)
 
      def fork_and_collect(self):
           pipe_ids = {}

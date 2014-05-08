@@ -35,7 +35,8 @@ from glideinwms.lib import symCrypto,pubCrypto
 from glideinwms.lib import glideinWMSVersion
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
-from glideinwms.lib.fork import fork_in_bg, wait_for_pids, fetch_fork_result_list
+from glideinwms.lib.fork import fork_in_bg, wait_for_pids
+from glideinwms.lib.fork import ForkManager
 from glideinwms.lib.pidSupport import register_sighandler
 
 from glideinwms.frontend import glideinFrontendConfig
@@ -272,30 +273,33 @@ class glideinFrontendElement:
 
         logSupport.log.info("Querying schedd, entry, and glidein status using child processes.")
 
+        forkm_obj = ForkManager()
+
         # query globals and entries
         idx=0
         for factory_pool in self.factory_pools:
             idx+=1
-            pipe_ids[('factory',idx)] = fork_in_bg(self.query_factory,factory_pool)
+            forkm_obj.add_fork(('factory',idx), self.query_factory, factory_pool)
 
         ## schedd
         idx=0
         for schedd_name in self.elementDescript.merged_data['JobSchedds']:
             idx+=1
-            pipe_ids[('schedd',idx)] = fork_in_bg(self.get_condor_q,schedd_name)
+            forkm_obj.add_fork(('schedd',idx), self.get_condor_q, schedd_name)
 
         ## resource
-        pipe_ids[('collector',0)] = fork_in_bg(self.get_condor_status)
+        forkm_obj.add_fork(('collector',0), self.get_condor_status)
 
-        logSupport.log.debug("%i child query processes started"%len(pipe_ids))
+        logSupport.log.debug("%i child query processes started"%len(forkm_obj))
         try:
-            pipe_out=fetch_fork_result_list(pipe_ids)
+            pipe_out=forkm_obj.fork_and_collect()
         except RuntimeError, e:
             # expect all errors logged already
             logSupport.log.info("Missing schedd, factory entry, and/or current glidein state information. " \
                                 "Unable to calculate required glideins, terminating loop.")
             return
         logSupport.log.info("All children terminated")
+        del forkm_obj
 
         self.globals_dict = {}
         self.glidein_dict= {}
@@ -1142,12 +1146,12 @@ class glideinFrontendElement:
         ''' Do the actual matching.  This forks subprocess_count as children
         to do the work in parallel. '''
 
-        pipe_ids={}
+        forkm_obj = ForkManager()
         for dt in self.condorq_dict_types.keys()+['Real','Glidein']:
-            pipe_ids[dt] = fork_in_bg(self.subprocess_count, dt)
+            forkm_obj.add_fork(dt, self.subprocess_count, dt)
 
         try:
-            pipe_out=fetch_fork_result_list(pipe_ids)
+            pipe_out=forkm_obj.fork_and_collect()
         except RuntimeError:
             # expect all errors logged already
             logSupport.log.exception("Terminating iteration due to errors:")
