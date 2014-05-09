@@ -122,6 +122,9 @@ class glideinFrontendElement:
         self.global_total_curb_glideins=int(self.elementDescript.frontend_data['CurbRunningTotalGlobal'])
         self.global_total_max_vms_idle = int(self.elementDescript.frontend_data['MaxIdleVMsTotalGlobal'])
         self.global_total_curb_vms_idle = int(self.elementDescript.frontend_data['CurbIdleVMsTotalGlobal'])
+
+        self.max_matchmakers = int(self.elementDescript.element_data['MaxMatchmakers'])
+
         # Default bahavior: Use factory proxies unless configure overrides it
         self.x509_proxy_plugin = None
 
@@ -1147,11 +1150,11 @@ class glideinFrontendElement:
         to do the work in parallel. '''
 
         forkm_obj = ForkManager()
-        for dt in self.condorq_dict_types.keys()+['Real','Glidein']:
+        for dt in ['Glidein', 'Real']+self.condorq_dict_types.keys():
             forkm_obj.add_fork(dt, self.subprocess_count, dt)
 
         try:
-            pipe_out=forkm_obj.fork_and_collect()
+            pipe_out=forkm_obj.bounded_fork_and_collect(self.max_matchmakers)
         except RuntimeError:
             # expect all errors logged already
             logSupport.log.exception("Terminating iteration due to errors:")
