@@ -447,7 +447,7 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
                 first_jid=cq_dict_clusters_el[jh][0]
                 job=condorq_data[first_jid]
                 try:
-                    if eval(match_obj) and job['RunningOn'] == glide_str:
+                    if (job['RunningOn'] == glide_str) and eval(match_obj):
                         schedd_count+=len(cq_dict_clusters_el[jh])
                 except KeyError, e:
                     tb = traceback.format_exception(sys.exc_info()[0],
