@@ -35,8 +35,9 @@ from glideinwms.lib import symCrypto,pubCrypto
 from glideinwms.lib import glideinWMSVersion
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
-from glideinwms.lib.fork import fork_in_bg,wait_for_pids
-from glideinwms.lib.fork import register_sighandler
+from glideinwms.lib.fork import fork_in_bg, wait_for_pids
+from glideinwms.lib.fork import ForkManager
+from glideinwms.lib.pidSupport import register_sighandler
 
 from glideinwms.frontend import glideinFrontendConfig
 from glideinwms.frontend import glideinFrontendInterface
@@ -121,6 +122,9 @@ class glideinFrontendElement:
         self.global_total_curb_glideins=int(self.elementDescript.frontend_data['CurbRunningTotalGlobal'])
         self.global_total_max_vms_idle = int(self.elementDescript.frontend_data['MaxIdleVMsTotalGlobal'])
         self.global_total_curb_vms_idle = int(self.elementDescript.frontend_data['CurbIdleVMsTotalGlobal'])
+
+        self.max_matchmakers = int(self.elementDescript.element_data['MaxMatchmakers'])
+
         # Default bahavior: Use factory proxies unless configure overrides it
         self.x509_proxy_plugin = None
 
@@ -272,30 +276,33 @@ class glideinFrontendElement:
 
         logSupport.log.info("Querying schedd, entry, and glidein status using child processes.")
 
+        forkm_obj = ForkManager()
+
         # query globals and entries
         idx=0
         for factory_pool in self.factory_pools:
             idx+=1
-            pipe_ids[('factory',idx)] = fork_in_bg(self.query_factory,factory_pool)
+            forkm_obj.add_fork(('factory',idx), self.query_factory, factory_pool)
 
         ## schedd
         idx=0
         for schedd_name in self.elementDescript.merged_data['JobSchedds']:
             idx+=1
-            pipe_ids[('schedd',idx)] = fork_in_bg(self.get_condor_q,schedd_name)
+            forkm_obj.add_fork(('schedd',idx), self.get_condor_q, schedd_name)
 
         ## resource
-        pipe_ids[('collector',0)] = fork_in_bg(self.get_condor_status)
+        forkm_obj.add_fork(('collector',0), self.get_condor_status)
 
-        logSupport.log.debug("%i child query processes started"%len(pipe_ids))
+        logSupport.log.debug("%i child query processes started"%len(forkm_obj))
         try:
-            pipe_out=fetch_fork_result_list(pipe_ids)
+            pipe_out=forkm_obj.fork_and_collect()
         except RuntimeError, e:
             # expect all errors logged already
             logSupport.log.info("Missing schedd, factory entry, and/or current glidein state information. " \
                                 "Unable to calculate required glideins, terminating loop.")
             return
         logSupport.log.info("All children terminated")
+        del forkm_obj
 
         self.globals_dict = {}
         self.glidein_dict= {}
@@ -633,7 +640,8 @@ class glideinFrontendElement:
             for schedd in coll_status_schedd_dict:
                 el=coll_status_schedd_dict[schedd]
                 try:
-                    max_run=int(el['MaxJobsRunning']*0.95) # stop a bit earlier
+                    # here 0 reallw means no jobs
+                    max_run=int(el['MaxJobsRunning']*0.95+0.5) # stop a bit earlier
                     current_run=el['TotalRunningJobs']
                     current_run+=el.get('TotalSchedulerJobsRunning',0)#older schedds may not have it
                     logSupport.log.debug("Schedd %s has %i running with max %i" % (schedd, current_run, max_run))
@@ -642,7 +650,8 @@ class glideinFrontendElement:
                         logSupport.log.warning("Schedd %s hit maxrun limit, blacklisting: has %i running with max %i" % (schedd, current_run, max_run))
 
                     if 'TransferQueueMaxUploading' in el:
-                        max_up=int(el['TransferQueueMaxUploading']*0.95) # stop a bit earlier
+                      if el['TransferQueueMaxUploading']>0: # 0 means unlimited
+                        max_up=int(el['TransferQueueMaxUploading']*0.95+0.5) # stop a bit earlier
                         current_up=el['TransferQueueNumUploading']
                         logSupport.log.debug("Schedd %s has %i uploading with max %i" % (schedd, current_up, max_up))
                         if current_up>=max_up:
@@ -1140,12 +1149,12 @@ class glideinFrontendElement:
         ''' Do the actual matching.  This forks subprocess_count as children
         to do the work in parallel. '''
 
-        pipe_ids={}
-        for dt in self.condorq_dict_types.keys()+['Real','Glidein']:
-            pipe_ids[dt] = fork_in_bg(self.subprocess_count, dt)
+        forkm_obj = ForkManager()
+        for dt in ['Glidein', 'Real']+self.condorq_dict_types.keys():
+            forkm_obj.add_fork(dt, self.subprocess_count, dt)
 
         try:
-            pipe_out=fetch_fork_result_list(pipe_ids)
+            pipe_out=forkm_obj.bounded_fork_and_collect(self.max_matchmakers)
         except RuntimeError:
             # expect all errors logged already
             logSupport.log.exception("Terminating iteration due to errors:")
@@ -1266,46 +1275,6 @@ def init_factory_stats_arr():
 def log_factory_header():
     logSupport.log.info("            Jobs in schedd queues                 |      Glideins     |   Request   ")
     logSupport.log.info("Idle (match  eff   old  uniq )  Run ( here  max ) | Total Idle   Run  | Idle MaxRun Down Factory")
-
-###############################
-# to be used with fork clients
-# Args:
-#  r    - input pipe
-#  pid - pid of the child
-def fetch_fork_result(r,pid):
-    try:
-        rin=""
-        s=os.read(r,1024*1024)
-        while (s!=""): # "" means EOF
-            rin+=s
-            s=os.read(r,1024*1024) 
-    finally:
-        os.close(r)
-        os.waitpid(pid,0)
-
-    out=cPickle.loads(rin)
-    return out
-
-# in: pipe_is - dictionary, each element is {'r':r,'pid':pid} - see above
-# out: dictionary of fork_results
-def fetch_fork_result_list(pipe_ids):
-    out={}
-    failures=0
-    for k in pipe_ids.keys():
-        try:
-            # now collect the results
-            rin=fetch_fork_result(pipe_ids[k]['r'],pipe_ids[k]['pid'])
-            out[k]=rin
-        except Exception, e:
-            logSupport.log.warning("Failed to retrieve %s state information from the subprocess." % str(k))
-            logSupport.log.debug("Failed to retrieve %s state from the subprocess: %s" % (str(k), e))
-            failures+=1
-        
-    if failures>0:
-        raise RuntimeError, "Found %i errors"%failures
-
-    return out
-        
 
 ######################
 # expand $$(attribute)

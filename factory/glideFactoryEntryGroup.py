@@ -41,6 +41,8 @@ from glideinwms.lib import logSupport
 from glideinwms.lib import classadSupport
 from glideinwms.lib import cleanupSupport
 from glideinwms.lib import glideinWMSVersion
+from glideinwms.lib.fork import fetch_fork_result_list
+from glideinwms.lib.fork import ForkManager
 from glideinwms.lib.pidSupport import register_sighandler
 from glideinwms.lib.pidSupport import unregister_sighandler
 from glideinwms.factory import glideFactoryEntry
@@ -208,100 +210,18 @@ def get_work_count(work):
     return count
 
 ###############################
-def fetch_fork_result(r, pid):
-    """
-    Used with fork clients
 
-    @type r: pipe
-    @param r: Input pipe
-
-    @type pid: int
-    @param pid: pid of the child
-
-    @rtype: Object
-    @return: Unpickled object
-    """
-
-    try:
-        rin = ""
-        s = os.read(r, 1024*1024)
-        while (s != ""): # "" means EOF
-            rin += s
-            s = os.read(r,1024*1024)
-    finally:
-        os.close(r)
-        os.waitpid(pid, 0)
-
-    out = cPickle.loads(rin)
-    return out
-
-def fetch_fork_result_list(pipe_ids):
-    """
-    Read the output pipe of the children, used after forking to perform work
-    and after forking to entry.writeStats()
- 
-    @type pipe_ids: dict
-    @param pipe_ids: Dictinary of pipe and pid 
-
-    @rtype: dict
-    @return: Dictionary of fork_results
-    """
-
-    out = {}
-    failures = 0
-    for key in pipe_ids:
-        try:
-            # Collect the results
-            out[key] = fetch_fork_result(pipe_ids[key]['r'],
-                                         pipe_ids[key]['pid'])
-        except Exception, e:
-            logSupport.log.warning("Failed to extract info from child '%s'" % key)
-            logSupport.log.exception("Failed to extract info from child '%s'" % key)
-            failures += 1
-
-    if failures>0:
-        raise RuntimeError, "Found %i errors" % failures
-
-    return out
-
-###############################
-
-def process_finished_children(pipe_ids):
-    """
-    Read the output pipe of the children, used after forking. If there is data
-    on the pipes to consume, read the data and close the pipe.
-    and after forking to entry.writeStats()
-
-    @type pipe_ids: dict
-    @param pipe_ids: Dictinary of pipe and pid
-
-    @rtype: dict
-    @return: Dictionary of work_done
-    """
-
-    work_info = {}
-    failures = 0
-    fds_to_entry = dict((pipe_ids[x]['r'], x) for x in pipe_ids)
-
-    readable_fds = select.select(fds_to_entry.keys(), [], [], 0)[0]
-    for fd in readable_fds:
-        try:
-            key = fds_to_entry[fd]
-            pid = pipe_ids[key]['pid']
-            out = fetch_fork_result(fd, pid)
-            work_info[key] = out
-        except Exception, e:
-            tb = traceback.format_exception(sys.exc_info()[0],
-                                            sys.exc_info()[1],
-                                            sys.exc_info()[2])
-            logSupport.log.warning("Failed to extract info from child '%s'" % key)
-            logSupport.log.debug("Failed to extract info from child '%s': %s" % (key, tb))
-            failures += 1
-
-    if failures:
-        raise RuntimeError, "Found %i errors" % failures
-
-    return work_info
+def forked_check_and_perform_work(factory_in_downtime, entry, work):
+    work_done = glideFactoryEntry.check_and_perform_work(
+                    factory_in_downtime, entry, work[entry.name])
+    
+    # entry object now has updated info in the child process
+    # This info is required for monitoring and advertising
+    # Compile the return info from th  updated entry object 
+    # Can't dumps the entry object directly, so need to extract
+    # the info required.
+    return_dict = compile_pickle_data(entry, work_done)
+    return return_dict
 
 ###############################
 
@@ -352,13 +272,6 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
 
     logSupport.log.info("Found %s total tasks to work on" % work_count)
 
-    # Got the work items grouped by entries
-    # Now fork a process per entry and wait for certain duration to get back
-    # the results. Kill processes if they take too long to get back with result
-
-    # ids keyed by entry name
-    pipe_ids = {}
-
     # Max number of children to fork at a time
     # Each child currently takes ~50 MB
     # Leaving 3GB for system, max number of children to fork is
@@ -379,78 +292,17 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
         if parallel_workers < 1: parallel_workers = 1
 
     logSupport.log.debug("Setting parallel_workers limit of %s" % parallel_workers)
-    forks_remaining = parallel_workers
 
+    forkm_obj = ForkManager()
     # Only fork of child processes for entries that have corresponding
     # work todo, ie glideclient classads.
     for ent in work:
-        # Check if we can fork more
-        while (forks_remaining == 0):
-            # Give some time for the processes to finsh the work
-            #ogSupport.log.debug("Reached parallel_workers limit of %s" % parallel_workers)
-            time.sleep(1)
-
-            post_work_info_subset = {}
-            # Wait and gather results for work done so far before forking more
-            try:
-                #post_work_info_subset = fetch_fork_result_list(pipe_ids)
-                #ogSupport.log.debug("Checking finished workers")
-                post_work_info_subset = process_finished_children(pipe_ids)
-                post_work_info.update(post_work_info_subset)
-            except RuntimeError:
-                # Expect all errors logged already
-                work_info_read_err = True
-
-            forks_remaining += len(post_work_info_subset)
-
-            for en in post_work_info_subset:
-                del pipe_ids[en]
-
         entry = my_entries[ent]
-        r,w = os.pipe()
-        unregister_sighandler()
-        pid = os.fork()
-        forks_remaining -= 1
-
-        if pid != 0:
-            register_sighandler()
-            # This is the parent process
-            os.close(w)
-            pipe_ids[entry.name] = {'r': r, 'pid': pid}
-        else:
-            # This is the child process
-            try:
-                logSupport.disable_rotate = True
-                os.close(r)
-
-                try:
-                    work_done = glideFactoryEntry.check_and_perform_work(
-                                    factory_in_downtime, entry, work[entry.name])
-                    # entry object now has updated info in the child process
-                    # This info is required for monitoring and advertising
-                    # Compile the return info from th  updated entry object 
-                    # Can't dumps the entry object directly, so need to extract
-                    # the info required.
-                    return_dict = compile_pickle_data(entry, work_done)
-                    os.write(w,cPickle.dumps(return_dict))
-                except Exception, ex:
-                    tb = traceback.format_exception(sys.exc_info()[0],
-                                                    sys.exc_info()[1],
-                                                    sys.exc_info()[2])
-                    entry.log.exception("Error in check_and_perform_work for entry '%s' " % entry.name)
-
-                os.close(w)
-                # Hard kill myself. Don't want any cleanup, since I was created
-                # just for doing check and perform work for each entry
-            finally:
-                # Exit, immediately. Don't want any cleanup, since I was created
-                # just for doing check and perform work for each entry
-                os._exit(0)
-
-    # Gather info from rest of the entries
+        forkm_obj.add_fork(entry.name,
+                           forked_check_and_perform_work,
+                           factory_in_downtime, entry, work)
     try:
-        post_work_info_subset = fetch_fork_result_list(pipe_ids)
-        post_work_info.update(post_work_info_subset)
+        post_work_info = forkm_obj.bounded_fork_and_collect(parallel_workers)
     except RuntimeError:
         # Expect all errors logged already
         work_info_read_err = True
