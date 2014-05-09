@@ -447,7 +447,7 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
                 first_jid=cq_dict_clusters_el[jh][0]
                 job=condorq_data[first_jid]
                 try:
-                    if eval(match_obj) and job['RunningOn'] == glide_str:
+                    if (job['RunningOn'] == glide_str) and eval(match_obj):
                         schedd_count+=len(cq_dict_clusters_el[jh])
                 except KeyError, e:
                     tb = traceback.format_exception(sys.exc_info()[0],
@@ -551,6 +551,27 @@ def getClientCondorStatus(status_dict, frontend_name, group_name, request_name):
         out[collector_name] = sq
     return out
 
+#
+# Return a dictionary of collectors containing vms of a specific cred
+#  Input should be the output of getClientCondorStatus or equivalent
+# Each element is a condorStatus
+#
+# Use the output of getCondorStatus
+#
+
+def getClientCondorStatusCredIdOnly(status_dict, cred_id):
+    out = {}
+    for collector_name, collector_status in status_dict.iteritems():
+        sq = condorMonitor.SubQuery(
+                 collector_status,
+                 lambda el:(
+                     el.has_key('GLIDEIN_CredentialIdentifier') and 
+                     (el['GLIDEIN_CredentialIdentifier'] == cred_id)
+                           )
+                 )
+        sq.load()
+        out[collector_name] = sq
+    return out
 
 #
 # Return a dictionary of collectors containing vms at a client split by creds
@@ -561,24 +582,9 @@ def getClientCondorStatus(status_dict, frontend_name, group_name, request_name):
 
 def getClientCondorStatusPerCredId(status_dict, frontend_name, group_name,
                                    request_name, cred_id):
-    client_name_old = "%s@%s.%s" % (request_name, frontend_name, group_name)
-    client_name_new = "%s.%s" % (frontend_name, group_name)
-    out = {}
-    for collector_name, collector_status in status_dict.iteritems():
-        sq = condorMonitor.SubQuery(
-                 collector_status,
-                 lambda el:(
-                     el.has_key('GLIDECLIENT_Name') and 
-                     el.has_key('GLIDEIN_CredentialIdentifier') and 
-                     (el['GLIDEIN_CredentialIdentifier'] == cred_id) and 
-                     ( (el['GLIDECLIENT_Name'] == client_name_old) or 
-                       ( (el['GLIDECLIENT_Name'] == client_name_new) and 
-                         (("%s@%s@%s" % (el['GLIDEIN_Entry_Name'], el['GLIDEIN_Name'], el['GLIDEIN_Factory'])) == request_name)
-                       )
-                     )
-                 ) )
-        sq.load()
-        out[collector_name] = sq
+    step1 = getClientCondorStatus(status_dict, frontend_name, group_name,
+                                  request_name)
+    out = getClientCondorStatusCredIdOnly(step1, cred_id)
     return out
 
 #
