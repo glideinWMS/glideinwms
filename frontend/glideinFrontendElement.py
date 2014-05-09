@@ -1189,10 +1189,19 @@ class glideinFrontendElement:
                 count_status_multi_per_cred[request_name] = {}
                 for cred in self.x509_proxy_plugin.cred_list:
                     count_status_multi_per_cred[request_name][cred.getId()] = {}
-                for st in self.status_dict_types:
-                    req_dict = glideinFrontendLib.getClientCondorStatus(
-                            self.status_dict_types[st]['dict'],
+
+                # It is cheaper to get Idle and Running from request-only classads
+                # then filter out requests from Idle and Running glideins
+                total_req_dict = glideinFrontendLib.getClientCondorStatus(
+                            self.status_dict_types['Total']['dict'],
                             self.frontend_name, self.group_name, request_name)
+
+                req_dict_types={'Total':total_req_dict,
+                                'Idle':glideinFrontendLib.getIdleCondorStatus(total_req_dict),
+                                'Running':glideinFrontendLib.getRunningCondorStatus(total_req_dict)}
+
+                for st in req_dict_types:
+                    req_dict = req_dict_types[st]
                     count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(req_dict)
                     for cred in self.x509_proxy_plugin.cred_list:
                         cred_id=cred.getId()
