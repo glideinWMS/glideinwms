@@ -1149,8 +1149,18 @@ class glideinFrontendElement:
         ''' Do the actual matching.  This forks subprocess_count as children
         to do the work in parallel. '''
 
+        # IS: Heauristics of 100 glideins per fork
+        #     Based on times seem by CMS
+        glideins_per_fork = 100
+        
+        glidein_list=self.glidein_dict.keys()
+        # split the list in equal pieces
+        # the result is a list of lists
+        split_glidein_list = [glidein_list[i:i+glideins_per_fork] for i in range(0, len(glidein_list), glideins_per_fork)]
+
         forkm_obj = ForkManager()
-        forkm_obj.add_fork('Glidein', self.subprocess_count_glidein)
+        for i in range(len(split_glidein_list)):
+            forkm_obj.add_fork(('Glidein',i), self.subprocess_count_glidein, split_glidein_list[i])
         forkm_obj.add_fork('Real', self.subprocess_count_real)
         for dt in self.condorq_dict_types:
             forkm_obj.add_fork(dt, self.subprocess_count_dt, dt)
@@ -1167,9 +1177,14 @@ class glideinFrontendElement:
         for dt, el in self.condorq_dict_types.iteritems():
             (el['count'], el['prop'], el['hereonly'], el['total'])=pipe_out[dt]
 
-        self.count_real=pipe_out['Real']
-        self.count_status_multi = pipe_out['Glidein'][0]
-        self.count_status_multi_per_cred = pipe_out['Glidein'][1]
+        self.count_real = pipe_out['Real']
+        self.count_status_multi = {}
+        self.count_status_multi_per_cred = {}
+        for i in range(len(split_glidein_list)):       
+            tmp_count_status_multi = pipe_out[('Glidein',i)][0]
+            self.count_status_multi.update(tmp_count_status_multi)
+            tmp_count_status_multi_per_cred = pipe_out[('Glidein',i)][1]
+            self.count_status_multi_per_cred.update(tmp_count_status_multi_per_cred)
 
         self.glexec='UNDEFINED'
         if 'GLIDEIN_Glexec_Use' in self.elementDescript.frontend_data:
@@ -1200,7 +1215,7 @@ class glideinFrontendElement:
                       self.attr_dict, self.condorq_match_list)
         return out
 
-    def subprocess_count_glidein(self):
+    def subprocess_count_glidein(self, glidein_list):
         # will make calculations in parallel,using multiple processes
         out = ()
        
@@ -1209,7 +1224,7 @@ class glideinFrontendElement:
             # PATCH TO FIX CLIENT MONITORING
             # Count distribution per credentials
             count_status_multi_per_cred = {}
-            for glideid in self.glidein_dict:
+            for glideid in glidein_list:
                 request_name=glideid[1]
 
                 count_status_multi[request_name]={}
