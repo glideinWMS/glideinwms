@@ -169,6 +169,8 @@ def wait_for_pids(pid_list):
 class ForkManager:
      def __init__(self):
           self.functions_tofork = {}
+          # I need a separate list to keep the order
+          self.key_list = []
           return
 
      def __len__(self):
@@ -178,16 +180,17 @@ class ForkManager:
           if key in self.functions_tofork:
                raise KeyError, "Fork key '%s' already in use"%key
           self.functions_tofork[key] = ( (function, ) + args)
+          self.key_list.append(key)
 
      def fork_and_wait(self):
           pids=[]
-          for key in self.functions_tofork:
+          for key in self.key_list:
                pids.append(fork_in_bg(*self.functions_tofork[key]))
           wait_for_pids(pids)
 
      def fork_and_collect(self):
           pipe_ids = {}
-          for key in self.functions_tofork:
+          for key in self.key_list:
                pipe_ids[key] = fork_in_bg(*self.functions_tofork[key])
           results = fetch_fork_result_list(pipe_ids)
           return results
@@ -203,7 +206,7 @@ class ForkManager:
          functions_remaining = len(self.functions_tofork)
 
          # try to fork all the functions
-         for key in self.functions_tofork:
+         for key in self.key_list:
              # Check if we can fork more
              if (forks_remaining == 0):
                   if log_progress:
