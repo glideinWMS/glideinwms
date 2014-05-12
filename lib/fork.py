@@ -108,7 +108,7 @@ def fetch_fork_result_list(pipe_ids):
             failures += 1
 
     if failures>0:
-        raise ForkResultError, (failures, out)
+        raise ForkResultError(failures, out)
 
     return out
 
@@ -142,7 +142,7 @@ def fetch_ready_fork_result_list(pipe_ids):
             failures += 1
 
     if failures>0:
-        raise ForkResultError, (failures, work_info)
+        raise ForkResultError(failures, work_info)
 
     return work_info
 
@@ -178,7 +178,7 @@ class ForkManager:
 
      def add_fork(self, key, function, *args):
           if key in self.functions_tofork:
-               raise KeyError, "Fork key '%s' already in use"%key
+               raise KeyError("Fork key '%s' already in use"%key)
           self.functions_tofork[key] = ( (function, ) + args)
           self.key_list.append(key)
 
@@ -274,6 +274,6 @@ class ForkManager:
          #end while
           
          if nr_errors>0:
-              raise ForkResultError, (nr_errors, post_work_info)
+              raise ForkResultError(nr_errors, post_work_info)
 
          return post_work_info
