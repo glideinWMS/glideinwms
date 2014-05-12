@@ -1149,9 +1149,21 @@ class glideinFrontendElement:
         ''' Do the actual matching.  This forks subprocess_count as children
         to do the work in parallel. '''
 
+        # IS: Heauristics of 100 glideins per fork
+        #     Based on times seem by CMS
+        glideins_per_fork = 100
+        
+        glidein_list=self.glidein_dict.keys()
+        # split the list in equal pieces
+        # the result is a list of lists
+        split_glidein_list = [glidein_list[i:i+glideins_per_fork] for i in range(0, len(glidein_list), glideins_per_fork)]
+
         forkm_obj = ForkManager()
-        for dt in ['Glidein', 'Real']+self.condorq_dict_types.keys():
-            forkm_obj.add_fork(dt, self.subprocess_count, dt)
+        for i in range(len(split_glidein_list)):
+            forkm_obj.add_fork(('Glidein',i), self.subprocess_count_glidein, split_glidein_list[i])
+        forkm_obj.add_fork('Real', self.subprocess_count_real)
+        for dt in self.condorq_dict_types:
+            forkm_obj.add_fork(dt, self.subprocess_count_dt, dt)
 
         try:
             pipe_out=forkm_obj.bounded_fork_and_collect(self.max_matchmakers)
@@ -1165,9 +1177,14 @@ class glideinFrontendElement:
         for dt, el in self.condorq_dict_types.iteritems():
             (el['count'], el['prop'], el['hereonly'], el['total'])=pipe_out[dt]
 
-        self.count_real=pipe_out['Real']
-        self.count_status_multi = pipe_out['Glidein'][0]
-        self.count_status_multi_per_cred = pipe_out['Glidein'][1]
+        self.count_real = pipe_out['Real']
+        self.count_status_multi = {}
+        self.count_status_multi_per_cred = {}
+        for i in range(len(split_glidein_list)):       
+            tmp_count_status_multi = pipe_out[('Glidein',i)][0]
+            self.count_status_multi.update(tmp_count_status_multi)
+            tmp_count_status_multi_per_cred = pipe_out[('Glidein',i)][1]
+            self.count_status_multi_per_cred.update(tmp_count_status_multi_per_cred)
 
         self.glexec='UNDEFINED'
         if 'GLIDEIN_Glexec_Use' in self.elementDescript.frontend_data:
@@ -1176,22 +1193,38 @@ class glideinFrontendElement:
             self.glexec=self.elementDescript.merged_data['GLIDEIN_Glexec_Use']
 
 
-
-    def subprocess_count(self, dt):
+    def subprocess_count_dt(self, dt):
         # will make calculations in parallel,using multiple processes
         out = ()
        
-        if dt=='Real':
-            out = glideinFrontendLib.countRealRunning(
+        c,p,h = glideinFrontendLib.countMatch(
+                        self.elementDescript.merged_data['MatchExprCompiledObj'],
+                        self.condorq_dict_types[dt]['dict'],
+                        self.glidein_dict, self.attr_dict,
+                        self.condorq_match_list)
+        t=glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])
+        out=(c,p,h,t)
+        
+        return out
+
+    def subprocess_count_real(self):
+        # will make calculations in parallel,using multiple processes
+        out = glideinFrontendLib.countRealRunning(
                       self.elementDescript.merged_data['MatchExprCompiledObj'],
                       self.condorq_dict_running, self.glidein_dict,
                       self.attr_dict, self.condorq_match_list)
-        elif dt=='Glidein':
+        return out
+
+    def subprocess_count_glidein(self, glidein_list):
+        # will make calculations in parallel,using multiple processes
+        out = ()
+       
+        if True: # just for historical reasons, to preserve the indentation
             count_status_multi={}
             # PATCH TO FIX CLIENT MONITORING
             # Count distribution per credentials
             count_status_multi_per_cred = {}
-            for glideid in self.glidein_dict:
+            for glideid in glidein_list:
                 request_name=glideid[1]
 
                 count_status_multi[request_name]={}
@@ -1219,14 +1252,6 @@ class glideinFrontendElement:
                         count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCondorStatus(cred_dict)
 
             out = (count_status_multi, count_status_multi_per_cred)
-        else:
-            c,p,h = glideinFrontendLib.countMatch(
-                        self.elementDescript.merged_data['MatchExprCompiledObj'],
-                        self.condorq_dict_types[dt]['dict'],
-                        self.glidein_dict, self.attr_dict,
-                        self.condorq_match_list)
-            t=glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])
-            out=(c,p,h,t)
         
         return out
 
