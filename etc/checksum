@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_4
+# GLIDEINWMS_VERSION v3_2_5_rc2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -21,17 +21,17 @@ e4405e764b1e40327893d990ae6780f8  ./creation/lib/cgWConsts.py
 245b1fbc009bad9d524ae983ae938362  ./creation/lib/cgWCreate.py
 8654d73e182dae4e6c4d5a9b8e2a6151  ./creation/lib/cgWDictFile.py
 55da889add43b4da7e5a40e97f55dec0  ./creation/lib/cgWParamDict.py
-4f011aec0cd7feed26402f9893c19de8  ./creation/lib/cgWParams.py
-ab37666bbf8d569a34974aea3dc29fa6  ./creation/lib/cvWConsts.py
-22d9aaf94925358e7be1fc87c635a68e  ./creation/lib/cvWCreate.py
+67d406ba04ac24f1e1714a94fb172de5  ./creation/lib/cgWParams.py
+ee69422c103b2d45da5079d91677eb72  ./creation/lib/cvWConsts.py
+077f753922f46a9d3d649c0eb56e8c49  ./creation/lib/cvWCreate.py
 2c20708ff9c1b3b0385f5fcd3ff924b9  ./creation/lib/cvWDictFile.py
-8995b23b73918abf0b4ea1a51d7bf151  ./creation/lib/cvWParamDict.py
+dfa7145b25d265f7d521bdd586fb4676  ./creation/lib/cvWParamDict.py
 8a7c445f9dac640710ea9e011f8bbef8  ./creation/lib/cvWParams.py
 414dd08400e9050a5c7e6a64fa7a4d94  ./creation/lib/xslt.py
 bd792b8d6a0ed1d97e2b75c77adc420d  ./creation/reconfig_frontend
 98c31d903771ce585339bdf6438fb3e6  ./creation/reconfig_glidein
 a2e397f9b92814b72726a90ac977a066  ./creation/templates/factory_initd_startup_template
-d00f35683e4c36e0ba321de5349d3011  ./creation/templates/frontend_initd_startup_template
+643214a412f7233de34aaa25b26dfb5d  ./creation/templates/frontend_initd_startup_template
 0cae63ee6a72dc91cc3a2d1f8ccecbce  ./creation/web_base/advertise_failure.helper
 1a794306785cd9f0489ba1b484470af1  ./creation/web_base/cat_consts.sh
 40a2b85a853a072f65049c4efe64bc3a  ./creation/web_base/check_blacklist.sh
@@ -86,14 +86,14 @@ c6f7350607bfb77a69fb0d8e207f1d05  ./creation/web_base/glidein_startup.sh
 1f3bbb3416afab773e58aab138e4ccd3  ./creation/web_base/java_setup.sh
 78d344f14e5e2144227c564f2d90401e  ./creation/web_base/local_start.sh
 014c3eaf1abf62ff0f599579658e6a10  ./creation/web_base/nodes.blacklist
-9b6490416cbd81224d1762f88c4486d7  ./creation/web_base/parse_starterlog.awk
+e4fb7c132ab526609b41136fb977aca5  ./creation/web_base/parse_starterlog.awk
 e0ba6891e61382c17e0aa7ea0a13c688  ./creation/web_base/setup_script.sh
 44ff0b2f2a33654a2778d4709f9b14cb  ./creation/web_base/setup_x509.sh
 832265338319a401e981faa9e38b4b19  ./creation/web_base/update_proxy.py
 91bca6a6005d761584523440b6a9c929  ./creation/web_base/validate_node.sh
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 803f896297c845f622cd6047dc5283c7  ./factory/checkFactory.py
-606375703b711d41eaf8b08b8f8bf6be  ./factory/glideFactory.py
+62de27a16662d88491534b7ecd695ef9  ./factory/glideFactory.py
 b292d006ca66e438359ea4574829419d  ./factory/glideFactoryConfig.py
 fb52dc83f5c6c4e9318c6f35548e7e0f  ./factory/glideFactoryCredentials.py
 00d8a8bad3b7184131cd4c42f1839e1a  ./factory/glideFactoryDowntimeLib.py
@@ -143,20 +143,26 @@ c3a1c5b5b6bfd7f4ee399b2da67fc66c  ./factory/tools/lib/gWftArgsHelper.py
 0bebcfc9e26f62064fd084233e347e76  ./factory/tools/proxy_info
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 be661351c66fc14686143441dce83e67  ./frontend/checkFrontend.py
-eeca8cdfe9111c5e97772a1ee4cbed7d  ./frontend/glideinFrontend.py
+dbc054d984f91d4d8b57160e61ef33a8  ./frontend/glideinFrontend.py
 b04d93ffbbe5a85bbad9b868596cc70d  ./frontend/glideinFrontendConfig.py
-0739d4281059f959675e3be226f80b63  ./frontend/glideinFrontendElement.py
+326b605605050c51b19796554ecda276  ./frontend/glideinFrontendElement.py
 9c6da77ef537b079be2045f7d68da818  ./frontend/glideinFrontendInterface.py
-1545c6bfcfda17e6a876d319c039b59a  ./frontend/glideinFrontendLib.py
+7932cb8d7ebf8be5c2fa941f9080f426  ./frontend/glideinFrontendLib.py
 58a5ae1d29451c5faa0e9f332f4558a5  ./frontend/glideinFrontendMonitorAggregator.py
 8c3d36f5bcf6c4af4e730f1b31d1e801  ./frontend/glideinFrontendMonitoring.py
 b2008bad682ac6a6ff16d38678051b4b  ./frontend/glideinFrontendPidLib.py
 70f5c9ab47d36448d2cbc1978d660ba9  ./frontend/glideinFrontendPlugins.py
 0fe2d57c2c6ba21c42bfd6541881feb7  ./frontend/stopFrontend.py
+d41d8cd98f00b204e9800998ecf8427e  ./frontend/tools/__init__.py
 c65ab9f9ad169145a2bd5017b0c5da22  ./frontend/tools/convert_frontend_2to3.sh
 8468711dac6ffe8f326e5aaf25a64156  ./frontend/tools/convert_frontend_2to3.xslt
+e709b8d66cef79432176bd79a88beca6  ./frontend/tools/enter_frontend_env
+39829d6391fddc9f01bf191c69cb8f92  ./frontend/tools/fetch_glidein_log
 0aa57fed99a6d72ec01b5a843fab6392  ./frontend/tools/frontend_match_ana
 96e84c719b611728cc26b8f3f705396e  ./frontend/tools/frontend_match_list
+65577920d9f023d47df90d318e3b461e  ./frontend/tools/glidein_off
+d41d8cd98f00b204e9800998ecf8427e  ./frontend/tools/lib/__init__.py
+b64133397c1f50c7e7317e73b9c370da  ./frontend/tools/lib/frontenvparse.py
 9372e3312529f81507a59fb1afb98fe9  ./install/__init__.py
 8a67a689a1ae398ff2f58887eb9a6e24  ./install/glidecondor_addDN
 22461dfb34f1df82e24626987a250b9d  ./install/glidecondor_createSecCol

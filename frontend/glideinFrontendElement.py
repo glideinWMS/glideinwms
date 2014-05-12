@@ -35,8 +35,9 @@ from glideinwms.lib import symCrypto,pubCrypto
 from glideinwms.lib import glideinWMSVersion
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
-from glideinwms.lib.fork import fork_in_bg,wait_for_pids
-from glideinwms.lib.fork import register_sighandler
+from glideinwms.lib.fork import fork_in_bg, wait_for_pids
+from glideinwms.lib.fork import ForkManager
+from glideinwms.lib.pidSupport import register_sighandler
 
 from glideinwms.frontend import glideinFrontendConfig
 from glideinwms.frontend import glideinFrontendInterface
@@ -121,6 +122,9 @@ class glideinFrontendElement:
         self.global_total_curb_glideins=int(self.elementDescript.frontend_data['CurbRunningTotalGlobal'])
         self.global_total_max_vms_idle = int(self.elementDescript.frontend_data['MaxIdleVMsTotalGlobal'])
         self.global_total_curb_vms_idle = int(self.elementDescript.frontend_data['CurbIdleVMsTotalGlobal'])
+
+        self.max_matchmakers = int(self.elementDescript.element_data['MaxMatchmakers'])
+
         # Default bahavior: Use factory proxies unless configure overrides it
         self.x509_proxy_plugin = None
 
@@ -140,7 +144,8 @@ class glideinFrontendElement:
                                               plog['extension'],
                                               int(float(plog['max_days'])),
                                               int(float(plog['min_days'])),
-                                              int(float(plog['max_mbytes'])))
+                                              int(float(plog['max_mbytes'])),
+                                              int(float(plog['backup_count'])))
         logSupport.log = logging.getLogger(self.group_name)
 
         # We will be starting often, so reduce the clutter
@@ -271,30 +276,33 @@ class glideinFrontendElement:
 
         logSupport.log.info("Querying schedd, entry, and glidein status using child processes.")
 
+        forkm_obj = ForkManager()
+
         # query globals and entries
         idx=0
         for factory_pool in self.factory_pools:
             idx+=1
-            pipe_ids[('factory',idx)] = fork_in_bg(self.query_factory,factory_pool)
+            forkm_obj.add_fork(('factory',idx), self.query_factory, factory_pool)
 
         ## schedd
         idx=0
         for schedd_name in self.elementDescript.merged_data['JobSchedds']:
             idx+=1
-            pipe_ids[('schedd',idx)] = fork_in_bg(self.get_condor_q,schedd_name)
+            forkm_obj.add_fork(('schedd',idx), self.get_condor_q, schedd_name)
 
         ## resource
-        pipe_ids[('collector',0)] = fork_in_bg(self.get_condor_status)
+        forkm_obj.add_fork(('collector',0), self.get_condor_status)
 
-        logSupport.log.debug("%i child query processes started"%len(pipe_ids))
+        logSupport.log.debug("%i child query processes started"%len(forkm_obj))
         try:
-            pipe_out=fetch_fork_result_list(pipe_ids)
+            pipe_out=forkm_obj.fork_and_collect()
         except RuntimeError, e:
             # expect all errors logged already
             logSupport.log.info("Missing schedd, factory entry, and/or current glidein state information. " \
                                 "Unable to calculate required glideins, terminating loop.")
             return
         logSupport.log.info("All children terminated")
+        del forkm_obj
 
         self.globals_dict = {}
         self.glidein_dict= {}
@@ -632,7 +640,8 @@ class glideinFrontendElement:
             for schedd in coll_status_schedd_dict:
                 el=coll_status_schedd_dict[schedd]
                 try:
-                    max_run=int(el['MaxJobsRunning']*0.95) # stop a bit earlier
+                    # here 0 reallw means no jobs
+                    max_run=int(el['MaxJobsRunning']*0.95+0.5) # stop a bit earlier
                     current_run=el['TotalRunningJobs']
                     current_run+=el.get('TotalSchedulerJobsRunning',0)#older schedds may not have it
                     logSupport.log.debug("Schedd %s has %i running with max %i" % (schedd, current_run, max_run))
@@ -641,7 +650,8 @@ class glideinFrontendElement:
                         logSupport.log.warning("Schedd %s hit maxrun limit, blacklisting: has %i running with max %i" % (schedd, current_run, max_run))
 
                     if 'TransferQueueMaxUploading' in el:
-                        max_up=int(el['TransferQueueMaxUploading']*0.95) # stop a bit earlier
+                      if el['TransferQueueMaxUploading']>0: # 0 means unlimited
+                        max_up=int(el['TransferQueueMaxUploading']*0.95+0.5) # stop a bit earlier
                         current_up=el['TransferQueueNumUploading']
                         logSupport.log.debug("Schedd %s has %i uploading with max %i" % (schedd, current_up, max_up))
                         if current_up>=max_up:
@@ -1139,12 +1149,24 @@ class glideinFrontendElement:
         ''' Do the actual matching.  This forks subprocess_count as children
         to do the work in parallel. '''
 
-        pipe_ids={}
-        for dt in self.condorq_dict_types.keys()+['Real','Glidein']:
-            pipe_ids[dt] = fork_in_bg(self.subprocess_count, dt)
+        # IS: Heauristics of 100 glideins per fork
+        #     Based on times seem by CMS
+        glideins_per_fork = 100
+        
+        glidein_list=self.glidein_dict.keys()
+        # split the list in equal pieces
+        # the result is a list of lists
+        split_glidein_list = [glidein_list[i:i+glideins_per_fork] for i in range(0, len(glidein_list), glideins_per_fork)]
+
+        forkm_obj = ForkManager()
+        for i in range(len(split_glidein_list)):
+            forkm_obj.add_fork(('Glidein',i), self.subprocess_count_glidein, split_glidein_list[i])
+        forkm_obj.add_fork('Real', self.subprocess_count_real)
+        for dt in self.condorq_dict_types:
+            forkm_obj.add_fork(dt, self.subprocess_count_dt, dt)
 
         try:
-            pipe_out=fetch_fork_result_list(pipe_ids)
+            pipe_out=forkm_obj.bounded_fork_and_collect(self.max_matchmakers)
         except RuntimeError:
             # expect all errors logged already
             logSupport.log.exception("Terminating iteration due to errors:")
@@ -1155,9 +1177,14 @@ class glideinFrontendElement:
         for dt, el in self.condorq_dict_types.iteritems():
             (el['count'], el['prop'], el['hereonly'], el['total'])=pipe_out[dt]
 
-        self.count_real=pipe_out['Real']
-        self.count_status_multi = pipe_out['Glidein'][0]
-        self.count_status_multi_per_cred = pipe_out['Glidein'][1]
+        self.count_real = pipe_out['Real']
+        self.count_status_multi = {}
+        self.count_status_multi_per_cred = {}
+        for i in range(len(split_glidein_list)):       
+            tmp_count_status_multi = pipe_out[('Glidein',i)][0]
+            self.count_status_multi.update(tmp_count_status_multi)
+            tmp_count_status_multi_per_cred = pipe_out[('Glidein',i)][1]
+            self.count_status_multi_per_cred.update(tmp_count_status_multi_per_cred)
 
         self.glexec='UNDEFINED'
         if 'GLIDEIN_Glexec_Use' in self.elementDescript.frontend_data:
@@ -1166,52 +1193,65 @@ class glideinFrontendElement:
             self.glexec=self.elementDescript.merged_data['GLIDEIN_Glexec_Use']
 
 
-
-    def subprocess_count(self, dt):
+    def subprocess_count_dt(self, dt):
         # will make calculations in parallel,using multiple processes
         out = ()
        
-        if dt=='Real':
-            out = glideinFrontendLib.countRealRunning(
-                      self.elementDescript.merged_data['MatchExprCompiledObj'],
-                      self.condorq_dict_running, self.glidein_dict,
-                      self.attr_dict, self.condorq_match_list)
-        elif dt=='Glidein':
-            count_status_multi={}
-            for glideid in self.glidein_dict:
-                request_name=glideid[1]
-
-                count_status_multi[request_name]={}
-                for st in self.status_dict_types:
-                    c = glideinFrontendLib.getClientCondorStatus(
-                            self.status_dict_types[st]['dict'],
-                            self.frontend_name, self.group_name, request_name)
-                    count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
-
-            # PATCH TO FIX CLIENT MONITORING
-            # Count distribution per credentials
-            count_status_multi_per_cred = {}
-            for glideid in self.glidein_dict:
-                request_name=glideid[1]
-                count_status_multi_per_cred[request_name] = {}
-                for cred in self.x509_proxy_plugin.cred_list:
-                    count_status_multi_per_cred[request_name][cred.getId()] = {}
-                    for st in self.status_dict_types:
-                        c = glideinFrontendLib.getClientCondorStatusPerCredId(
-                                self.status_dict_types[st]['dict'],
-                                self.frontend_name, self.group_name,
-                                request_name, cred.getId())
-                        count_status_multi_per_cred[request_name][cred.getId()][st] = glideinFrontendLib.countCondorStatus(c)
-
-            out = (count_status_multi, count_status_multi_per_cred)
-        else:
-            c,p,h = glideinFrontendLib.countMatch(
+        c,p,h = glideinFrontendLib.countMatch(
                         self.elementDescript.merged_data['MatchExprCompiledObj'],
                         self.condorq_dict_types[dt]['dict'],
                         self.glidein_dict, self.attr_dict,
                         self.condorq_match_list)
-            t=glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])
-            out=(c,p,h,t)
+        t=glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])
+        out=(c,p,h,t)
+        
+        return out
+
+    def subprocess_count_real(self):
+        # will make calculations in parallel,using multiple processes
+        out = glideinFrontendLib.countRealRunning(
+                      self.elementDescript.merged_data['MatchExprCompiledObj'],
+                      self.condorq_dict_running, self.glidein_dict,
+                      self.attr_dict, self.condorq_match_list)
+        return out
+
+    def subprocess_count_glidein(self, glidein_list):
+        # will make calculations in parallel,using multiple processes
+        out = ()
+       
+        if True: # just for historical reasons, to preserve the indentation
+            count_status_multi={}
+            # PATCH TO FIX CLIENT MONITORING
+            # Count distribution per credentials
+            count_status_multi_per_cred = {}
+            for glideid in glidein_list:
+                request_name=glideid[1]
+
+                count_status_multi[request_name]={}
+                count_status_multi_per_cred[request_name] = {}
+                for cred in self.x509_proxy_plugin.cred_list:
+                    count_status_multi_per_cred[request_name][cred.getId()] = {}
+
+                # It is cheaper to get Idle and Running from request-only classads
+                # then filter out requests from Idle and Running glideins
+                total_req_dict = glideinFrontendLib.getClientCondorStatus(
+                            self.status_dict_types['Total']['dict'],
+                            self.frontend_name, self.group_name, request_name)
+
+                req_dict_types={'Total':total_req_dict,
+                                'Idle':glideinFrontendLib.getIdleCondorStatus(total_req_dict),
+                                'Running':glideinFrontendLib.getRunningCondorStatus(total_req_dict)}
+
+                for st in req_dict_types:
+                    req_dict = req_dict_types[st]
+                    count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(req_dict)
+                    for cred in self.x509_proxy_plugin.cred_list:
+                        cred_id=cred.getId()
+                        cred_dict = glideinFrontendLib.getClientCondorStatusCredIdOnly(
+                                       req_dict,cred_id)
+                        count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCondorStatus(cred_dict)
+
+            out = (count_status_multi, count_status_multi_per_cred)
         
         return out
 
@@ -1260,46 +1300,6 @@ def init_factory_stats_arr():
 def log_factory_header():
     logSupport.log.info("            Jobs in schedd queues                 |      Glideins     |   Request   ")
     logSupport.log.info("Idle (match  eff   old  uniq )  Run ( here  max ) | Total Idle   Run  | Idle MaxRun Down Factory")
-
-###############################
-# to be used with fork clients
-# Args:
-#  r    - input pipe
-#  pid - pid of the child
-def fetch_fork_result(r,pid):
-    try:
-        rin=""
-        s=os.read(r,1024*1024)
-        while (s!=""): # "" means EOF
-            rin+=s
-            s=os.read(r,1024*1024) 
-    finally:
-        os.close(r)
-        os.waitpid(pid,0)
-
-    out=cPickle.loads(rin)
-    return out
-
-# in: pipe_is - dictionary, each element is {'r':r,'pid':pid} - see above
-# out: dictionary of fork_results
-def fetch_fork_result_list(pipe_ids):
-    out={}
-    failures=0
-    for k in pipe_ids.keys():
-        try:
-            # now collect the results
-            rin=fetch_fork_result(pipe_ids[k]['r'],pipe_ids[k]['pid'])
-            out[k]=rin
-        except Exception, e:
-            logSupport.log.warning("Failed to retrieve %s state information from the subprocess." % str(k))
-            logSupport.log.debug("Failed to retrieve %s state from the subprocess: %s" % (str(k), e))
-            failures+=1
-        
-    if failures>0:
-        raise RuntimeError, "Found %i errors"%failures
-
-    return out
-        
 
 ######################
 # expand $$(attribute)
