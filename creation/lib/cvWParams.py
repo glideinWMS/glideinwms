@@ -70,6 +70,10 @@ class VOFrontendParams(cWParams.CommonParams):
         common_config_vms_total_defaults["curb"]=['200',"nr_jobs","How many total idle VMs should I tollerate, before starting to curb submissions.",None]
         group_config_defaults['idle_vms_total']=common_config_vms_total_defaults
 
+        group_config_proc_work_defaults=cWParams.commentedOrderedDict()
+        group_config_proc_work_defaults["matchmakers"]=['3',"NR","Max number of worker processes that will be doing the matchmaking",None]
+        group_config_defaults['processing_workers']=group_config_proc_work_defaults
+
         # not exported and order does not matter, can stay a regular dictionary
         sub_defaults={'attrs':(xmlParse.OrderedDict(),'Dictionary of attributes',"Each attribute group contains",self.attr_defaults),
                       'files':([],'List of files',"Each file group contains",self.file_defaults)}
