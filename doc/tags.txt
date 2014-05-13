@@ -16,6 +16,7 @@ v3_2_5  Added administrative commands for frontend fetch_glidein_log,
           correctly consider the backup_count when configured
         Bug Fix: Frontend RPM now corectly creates frontend.xml config with
           default trust_domain='grid' for the credentials
+        Bug Fix: Fixed frontend performance issue introduced in v3.2.4
 
 v3_2_4  Added support for HTCondor-CE attributes in the factory
         Made several performance improvements to frontend. Frontend does
