@@ -284,11 +284,11 @@ Install as: various daemon users or as system rpms/packages
         <pre>
         rpm -Uvh http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
         yum install yum-priorities
-        http://repo.grid.iu.edu/osg/3.2/osg-3.2-el6-release-latest.rpm </pre>
+        yum install http://repo.grid.iu.edu/osg/3.2/osg-3.2-el6-release-latest.rpm </pre>
         Next, you can install the CA certificates and OSG client:
-        <pre> yum install osg-ca-certs
-        yum install osg-client 
-        </pre>
+        <pre>
+        yum install osg-ca-certs
+        yum install osg-client </pre>
         You may also want to enable the fetch-crl service
         to keep your certificate revocation lists up to date:
         <pre>
