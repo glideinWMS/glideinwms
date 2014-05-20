@@ -77,6 +77,11 @@ Description:
      </tr>
      <tr>
        <td colspan=2>
+         <input type="checkbox" id = "autoupdate" onclick= "autoupdate()" > Autoupdate (30 mins)</input>
+       </td>
+     </tr>
+     <tr>
+       <td colspan=2>
          <button onClick="nonlink_update()">Update</button>
          <button onClick="defaults()" style="float:right">Defaults</button>
          <button onClick="unlink()" style="float:right">Unlink</button>
@@ -104,7 +109,8 @@ Description:
     </form>
     <script type="text/javascript">
 	
-
+      /* AutoUpdateInterval reference */
+      var auInt;
 
       var infoGroupOptions = new Array("running", "idle", "other");
       var entriesTable;   
@@ -557,6 +563,17 @@ function recreate_graph() {
         }
         document.getElementById("destination").selectedIndex = 0; 
       }
+
+      function autoupdate() {
+        var auchk = document.getElementById("autoupdate").checked;
+        
+        if (auchk) {
+          auInt=setInterval(nonlink_update, 1800000);
+        } else {
+          clearInterval(auInt);
+        };
+      }
+
     </script>
   </body>
 </html>

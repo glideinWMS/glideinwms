@@ -90,6 +90,11 @@ Description:
        </form></td>
      </tr>
      <tr>
+       <td colspan=2>
+         <input type="checkbox" id = "autoupdate" onclick= "autoupdate()" > Autoupdate (30 mins)</input>
+       </td>
+     </tr>
+     <tr>
       <td colspan=2><button onClick="fname_update()">Update</button><button onClick="showLink()" style="float:right">Link</button></td>
      </tr>
     </table>
@@ -114,6 +119,9 @@ Description:
     </td>
      </tr>
      <script type="text/javascript">
+	
+      /* AutoUpdateInterval reference */
+      var auInt;
 
       var total_file_to_load=0;
       var multi_rrd_flag=0;
@@ -850,6 +858,17 @@ Description:
         }
         document.getElementById("destination").selectedIndex = 0; 
       }
+
+      function autoupdate() {
+        var auchk = document.getElementById("autoupdate").checked;
+        
+        if (auchk) {
+          auInt=setInterval(fname_update, 1800000);
+        } else {
+          clearInterval(auInt);
+        };
+      }
+
     </script>
   </body>
 </html>
