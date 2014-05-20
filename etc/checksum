@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_5_rc2
+# GLIDEINWMS_VERSION v3_2_5
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -74,7 +74,7 @@ d837fdb994350b2fa4c85f2dcc3b2ccc  ./creation/web_base/frontend/index.html
 2597e2fb8581d2c9dd5479de6e2d997a  ./creation/web_base/frontendGroupGraphStatusNow.html
 558e9b9d0f175ed311f834b4b3fbd599  ./creation/web_base/frontendRRDBrowse.html
 43d5bb275ca81430e1510763f24f68c4  ./creation/web_base/frontendRRDGroupMatrix.html
-23bc45c59ad0e647a1804bc87dad0c48  ./creation/web_base/frontendStatus.html
+8aeb182ccc455494e8521737189678ef  ./creation/web_base/frontendStatus.html
 ce9fbcaae6a9a2e4b61eb38cb7dfac87  ./creation/web_base/frontendStatusNow.html
 a93d03608501cdd471c413b681b05f8e  ./creation/web_base/frontend_support.js
 c1527cf661115760242852c0421921bd  ./creation/web_base/gcb_setup.sh
@@ -145,9 +145,9 @@ d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 be661351c66fc14686143441dce83e67  ./frontend/checkFrontend.py
 dbc054d984f91d4d8b57160e61ef33a8  ./frontend/glideinFrontend.py
 b04d93ffbbe5a85bbad9b868596cc70d  ./frontend/glideinFrontendConfig.py
-326b605605050c51b19796554ecda276  ./frontend/glideinFrontendElement.py
+6ba3d321ed8ac69f714effee19ad9d54  ./frontend/glideinFrontendElement.py
 9c6da77ef537b079be2045f7d68da818  ./frontend/glideinFrontendInterface.py
-7932cb8d7ebf8be5c2fa941f9080f426  ./frontend/glideinFrontendLib.py
+45922b58a6cc776c52dc6ced30423e87  ./frontend/glideinFrontendLib.py
 58a5ae1d29451c5faa0e9f332f4558a5  ./frontend/glideinFrontendMonitorAggregator.py
 8c3d36f5bcf6c4af4e730f1b31d1e801  ./frontend/glideinFrontendMonitoring.py
 b2008bad682ac6a6ff16d38678051b4b  ./frontend/glideinFrontendPidLib.py
