@@ -128,8 +128,8 @@ def update_credential_file(username, client_id, credential_data, request_clientn
 # Comment by Igor:
 # This functionality should really be in glideFactoryInterface module
 # Making a minimal patch now to get the desired functionality
-def get_globals_classads(factory_collector="default"):
-    if factory_collector=="default":
+def get_globals_classads(factory_collector=glideFactoryInterface.DEFAULT_VAL):
+    if factory_collector==glideFactoryInterface.DEFAULT_VAL:
         factory_collector=glideFactoryInterface.factoryConfig.factory_collector
 
     status_constraint = '(GlideinMyType=?="glideclientglobal")'

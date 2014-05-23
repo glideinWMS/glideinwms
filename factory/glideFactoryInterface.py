@@ -95,6 +95,20 @@ class FactoryConfig:
 # global configuration of the module
 factoryConfig = FactoryConfig()
 
+#
+# When something is set to this,
+# use the value set in factoryConfig
+# This is useful when None has a well defined semantics
+#   end cannot be used to signal the use of the default
+# e.g.
+#   the functions getting the default factory_collector value
+#   will use
+#   factoryConfig.factory_collector
+#   (None means "use system collector" in that context)
+#
+DEFAULT_VAL = "default"
+
+
 #####################################################
 # Exception thrown when multiple executions are used
 # Helps handle partial failures
@@ -119,7 +133,7 @@ class MultiExeError(condorExe.ExeError):
 ############################################################
 
 def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
-                  pub_key_obj=None, additional_constraints=None, factory_collector="default"):
+                  pub_key_obj=None, additional_constraints=None, factory_collector=DEFAULT_VAL):
     """
     Find request classAds that have my (factory, glidein name, entries) and
     create the dictionary of dictionary of work request information.
@@ -152,7 +166,7 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
 
     global factoryConfig
 
-    if factory_collector=="default":
+    if factory_collector==DEFAULT_VAL:
         factory_collector=factoryConfig.factory_collector
 
     req_glideins = ''
@@ -329,7 +343,7 @@ def findWork(factory_name, glidein_name, entry_name,
              supported_signtypes,
              pub_key_obj=None,
              additional_constraints=None,
-             factory_collector="default"):
+             factory_collector=DEFAULT_VAL):
     """
     Find request classAds that have my (factory, glidein name, entry name) and create the dictionary of work request information.
 
@@ -356,7 +370,7 @@ def findWork(factory_name, glidein_name, entry_name,
     global factoryConfig
     logSupport.log.debug("Querying collector for requests")
     
-    if factory_collector=="default":
+    if factory_collector==DEFAULT_VAL:
         factory_collector=factoryConfig.factory_collector
 
     status_constraint = '(GlideinMyType=?="%s") && (ReqGlidein=?="%s@%s@%s")' % (factoryConfig.client_id, entry_name, glidein_name, factory_name)
@@ -569,7 +583,7 @@ class EntryClassad(classadSupport.Classad):
 def advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain,
                      auth_method, supported_signtypes, pub_key_obj,
                      glidein_attrs={}, glidein_params={}, glidein_monitors={},
-                     factory_collector="default"):
+                     factory_collector=DEFAULT_VAL):
     
     """
     Creates the glideclient classad and advertises.
@@ -647,7 +661,7 @@ def advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain,
         os.remove(tmpnam)
 
 def advertizeGlobal(factory_name, glidein_name, supported_signtypes,
-                    pub_key_obj, factory_collector="default"):
+                    pub_key_obj, factory_collector=DEFAULT_VAL):
     
     """
     Creates the glidefactoryglobal classad and advertises.
@@ -696,7 +710,7 @@ def advertizeGlobal(factory_name, glidein_name, supported_signtypes,
         os.remove(tmpnam)
 
 
-def deadvertizeGlidein(factory_name, glidein_name, entry_name, factory_collector="default"):
+def deadvertizeGlidein(factory_name, glidein_name, entry_name, factory_collector=DEFAULT_VAL):
     """
     Removes the glidefactory classad advertising the entry from the WMS Collector.
     """
@@ -715,7 +729,7 @@ def deadvertizeGlidein(factory_name, glidein_name, entry_name, factory_collector
         os.remove(tmpnam)
 
         
-def deadvertizeGlobal(factory_name, glidein_name, factory_collector="default"):
+def deadvertizeGlobal(factory_name, glidein_name, factory_collector=DEFAULT_VAL):
     """
     Removes the glidefactoryglobal classad advertising the factory globals from the WMS Collector.
     """
@@ -733,7 +747,7 @@ def deadvertizeGlobal(factory_name, glidein_name, factory_collector="default"):
     finally:
         os.remove(tmpnam)
 
-def deadvertizeFactory(factory_name, glidein_name, factory_collector="default"):
+def deadvertizeFactory(factory_name, glidein_name, factory_collector=DEFAULT_VAL):
     """
     Deadvertize all entry and global classads for this factory.
     """
@@ -760,7 +774,7 @@ def deadvertizeFactory(factory_name, glidein_name, factory_collector="default"):
 def advertizeGlideinClientMonitoring(factory_name, glidein_name, entry_name,
                                      client_name, client_int_name, client_int_req,
                                      glidein_attrs={}, client_params={}, client_monitors={},
-                                     factory_collector="default"):
+                                     factory_collector=DEFAULT_VAL):
     tmpnam = classadSupport.generate_classad_filename(prefix='gfi_adm_gfc')
 
     createGlideinClientMonitoringFile(tmpnam, factory_name, glidein_name, entry_name,
@@ -771,7 +785,7 @@ def advertizeGlideinClientMonitoring(factory_name, glidein_name, entry_name,
 class MultiAdvertizeGlideinClientMonitoring:
     # glidein_attrs is a dictionary of values to publish
     #  like {"Arch":"INTEL","MinDisk":200000}
-    def __init__(self, factory_name, glidein_name, entry_name, glidein_attrs, factory_collector="default"):
+    def __init__(self, factory_name, glidein_name, entry_name, glidein_attrs, factory_collector=DEFAULT_VAL):
         self.factory_name = factory_name
         self.glidein_name = glidein_name
         self.entry_name = entry_name
@@ -928,7 +942,7 @@ def createGlideinClientMonitoringFile(fname,
 # Given a file, advertize
 # Can throw a CondorExe/ExeError exception
 def advertizeGlideinClientMonitoringFromFile(fname, remove_file=True,
-                                             is_multi=False, factory_collector="default"):
+                                             is_multi=False, factory_collector=DEFAULT_VAL):
     if os.path.exists(fname):
         try:
             logSupport.log.info("Advertising glidefactoryclient classads")
@@ -941,7 +955,7 @@ def advertizeGlideinClientMonitoringFromFile(fname, remove_file=True,
     else:
         logSupport.log.warning("glidefactoryclient classad file %s does not exist. Check if frontends are allowed to submit to entry" % fname)
 
-def advertizeGlideinFromFile(fname, remove_file=True, is_multi=False, factory_collector="default"):
+def advertizeGlideinFromFile(fname, remove_file=True, is_multi=False, factory_collector=DEFAULT_VAL):
     if os.path.exists(fname):
         try:
             logSupport.log.info("Advertising glidefactory classads")
@@ -959,7 +973,7 @@ def advertizeGlideinFromFile(fname, remove_file=True, is_multi=False, factory_co
 ###########################################
 
 # remove classads from Collector
-def deadvertizeAllGlideinClientMonitoring(factory_name, glidein_name, entry_name, factory_collector="default"):
+def deadvertizeAllGlideinClientMonitoring(factory_name, glidein_name, entry_name, factory_collector=DEFAULT_VAL):
     """
     Deadvertize  monitoring classads for the given entry.
     """
@@ -978,7 +992,7 @@ def deadvertizeAllGlideinClientMonitoring(factory_name, glidein_name, entry_name
         os.remove(tmpnam)
 
 
-def deadvertizeFactoryClientMonitoring(factory_name, glidein_name, factory_collector="default"):
+def deadvertizeFactoryClientMonitoring(factory_name, glidein_name, factory_collector=DEFAULT_VAL):
     """
     Deadvertize all monitoring classads for this factory.
     """
@@ -1008,7 +1022,7 @@ def exe_condor_advertise(fname, command,
                          is_multi=False, factory_collector=None):
     global factoryConfig
 
-    if factory_collector=="default":
+    if factory_collector==DEFAULT_VAL:
         factory_collector=factoryConfig.factory_collector
 
     lock_fname=os.path.join(factoryConfig.lock_dir,"gfi_advertize.lock")
