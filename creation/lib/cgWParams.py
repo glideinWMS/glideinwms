@@ -135,6 +135,7 @@ class GlideinParams(cWParams.CommonParams):
         self.defaults["factory_name"] = (socket.gethostname(), 'ID', 'Factory name', None)
         self.defaults["glidein_name"] = (None, 'ID', 'Glidein name', None)
         self.defaults['schedd_name'] = ("schedd_glideins@%s" % socket.gethostname(), "ScheddName", "Which schedd to use, can be a comma separated list", None)
+        self.defaults['factory_collector'] = (None, "CollectorName", "Which collector should we use for factory ClassAds", None)
         self.defaults['factory_versioning'] = ('True', 'Bool', 'Should we create versioned subdirectories?', None)
 
         submit_defaults = cWParams.commentedOrderedDict()
@@ -242,6 +243,9 @@ class GlideinParams(cWParams.CommonParams):
             raise RuntimeError, "Missing glidein name"
         if not cWParams.is_valid_name(self.glidein_name):
             raise RuntimeError, "Invalid glidein name '%s'"%self.glidein_name
+
+        if self.factory_collector=="default":
+            raise RuntimeError, '"default" is a reserved keyword, cannot be used as factory_collector'
 
         factoryVersioning = False
         if self.data.has_key('factory_versioning') and \

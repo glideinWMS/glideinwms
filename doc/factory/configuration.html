@@ -89,7 +89,7 @@ Related Links: <br/>
 Below is an example factory configuration xml file.  Click on any piece
 for a more detailed description.
 <div class="config">
-<a href="#glidein">&lt;glidein advertise_delay="5" factory_name="factory-dstrain" glidein_name="v2_4" loop_delay="60" restart_attempts="3" restart_interval="1800" schedd_name="schedd glideins1@submit.fnal.gov,schedd_glideins2@submit.fnal.gov" entry_parallel_workers="0"&gt;</a><br/>
+<a href="#glidein">&lt;glidein advertise_delay="5" factory_name="factory-dstrain" glidein_name="v2_4" loop_delay="60" restart_attempts="3" restart_interval="1800" schedd_name="schedd glideins1@submit.fnal.gov,schedd_glideins2@submit.fnal.gov" factory_collector="submit.fnal.gov:9618" entry_parallel_workers="0"&gt;</a><br/>
 <blockquote>
     <a href="#">&lt;log_retention &gt;</a><br/>
     <blockquote>
@@ -267,6 +267,16 @@ individual entry point configuration.
     among all the listed schedds.  Possible values include (but are not limited to): <br/>
     <tt>&quot;myschedd@mymachine.mydomain&quot;</tt><br/>
     <tt>&quot;myschedd_g1@mymachine.mydomain,myschedd_g2@mymachine.mydomain,myschedd_g3@mymachine.mydomain&quot;</tt><br/>
+    </li><LI>
+        <div class="xml">
+        &lt;glidein
+        factory_collector=&quot;<I>collector_name:port</I>&quot;&gt;
+        </div>
+    <b>Recommended</b> You can have a dedicated collector serving just for message passing with the Frontend.<br>
+    If this is not set, the default collector will be used, which also happens to be used to advertise the
+    internal Condor-G classads. That's undersirable both for security reasons, 
+    and also because frequent Condor-G updates tend to load it heavily.
+
     </li>
     <LI>
         <div class="xml">
