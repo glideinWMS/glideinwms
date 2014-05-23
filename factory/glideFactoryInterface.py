@@ -89,6 +89,9 @@ class FactoryConfig:
         self.lock_dir = "."
 
         # Location of the factory Collector
+        # Please notice that None means "use the system collector"
+        # while any string value will force the use of that specific collector
+        # i.e. the -pool argument coption to HTCondor cmdline tools
         self.factory_collector=None
 
 
