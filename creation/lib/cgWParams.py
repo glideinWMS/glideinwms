@@ -244,6 +244,9 @@ class GlideinParams(cWParams.CommonParams):
         if not cWParams.is_valid_name(self.glidein_name):
             raise RuntimeError, "Invalid glidein name '%s'"%self.glidein_name
 
+        if self.factory_collector=="default":
+            raise RuntimeError, '"default" is a reserved keyword, cannot be used as factory_collector'
+
         factoryVersioning = False
         if self.data.has_key('factory_versioning') and \
                self.data['factory_versioning'].lower() == 'true':
