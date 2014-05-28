@@ -151,19 +151,58 @@ invoke_as_frontend() {
 help_usage() {
     if [ "$RPM_INSTALL" = "True" ]; then
         # upgrade does not make sense for RPM because the RPM upgrade will take care of it
-        echo "Usage: $SCRIPT_NAME {start|stop|restart|status|reconfig}"
+        echo "Usage: $SCRIPT_NAME {start|stop|restart|status|reconfig|remove-idle|kill-all}"
     else
-        echo "Usage: $SCRIPT_NAME {start|stop|restart|status|reconfig|upgrade}
+        echo "Usage: $SCRIPT_NAME {start|stop|restart|status|reconfig|upgrade|remove-idle|kill-all}
     $SCRIPT_NAME upgrade [NEW_XML_CONFIG_FILE]
     $SCRIPT_NAME reconfig [NEW_XML_CONFIG_FILE] [-fix_rrd] [update_default_cfg] [{yes|no}] 
 "
     fi
 }
 
+request_remove() {
+    # Returns 0 if running, 1 if not
+    "${FRONTEND_CHECK}" "$frontend_dir" >/dev/null 2>&1 </dev/null
+    if [ $? -eq 0 ]; then
+        echo -n "Removal can only be requested when Frontend stopped."
+        failure
+        echo
+        exit 1
+    fi
+    echo -n "Requesting the removal of glideins for glideinWMS frontend $id_str: "
+    # The regular daemon process will request the removal
+    invoke_as_frontend "\"${FRONTEND_START}\" \"$frontend_dir\" \"$1\" 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
+    # Now wait for it to finish
+    for i in {1..240}; do  # Use seq if a variable is needed: $(seq 1 $END)
+        # Returns 0 if running, 1 if not
+        "${FRONTEND_CHECK}" "$frontend_dir" >/dev/null 2>&1 </dev/null
+        if [ $? -eq 1 ]; then
+            RETVAL=0
+            break
+        fi
+        sleep 5
+        echo -n "."
+    done
+    echo
+    # we don't actually check that the factory acted on it
+    # there is no really easy way to do it... maybe we can add it in future 
+    success
+    echo
+    RETVAL=0
+}
+
 start() {
         echo -n "Starting glideinWMS frontend $id_str: "
         invoke_as_frontend "nice -2 \"${FRONTEND_START}\" \"$frontend_dir\" 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
-        sleep 5
+        for i in {1..15}; do  # Use seq if a variable is needed: $(seq 1 $END)
+            # Returns 0 if running, 1 if not
+            "${FRONTEND_CHECK}" "$frontend_dir" >/dev/null 2>&1 </dev/null
+            if [ $? -eq 0 ]; then
+                RETVAL=0
+                break
+            fi
+            sleep 1
+        done
         "$FRONTEND_CHECK" "$frontend_dir"  2>/dev/null 1>&2 </dev/null && success || failure
         RETVAL=$?
         echo
@@ -354,6 +393,12 @@ case $1 in
             #    exit 2
             #fi
             upgrade $2
+            ;;
+        remove-idle)
+            request_remove removeIdle
+            ;;
+        kill-all)
+            request_remove removeAll
             ;;
         *)
             help_usage
