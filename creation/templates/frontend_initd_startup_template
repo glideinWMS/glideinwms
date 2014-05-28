@@ -170,7 +170,9 @@ request_remove() {
         exit 1
     fi
     echo -n "Requesting the removal of glideins for glideinWMS frontend $id_str: "
+    # The regular daemon process will request the removal
     invoke_as_frontend "\"${FRONTEND_START}\" \"$frontend_dir\" \"$1\" 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
+    # Now wait for it to finish
     for i in {1..240}; do  # Use seq if a variable is needed: $(seq 1 $END)
         # Returns 0 if running, 1 if not
         "${FRONTEND_CHECK}" "$frontend_dir" >/dev/null 2>&1 </dev/null
