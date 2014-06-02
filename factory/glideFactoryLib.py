@@ -1439,7 +1439,10 @@ email_logs = False
             # we don't add the macros to the arguments for the EC2 submission since condor will never 
             # see the macros
             glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
-            if grid_type == "condor":
+            # condor and batch (BLAH/BOSCO) submissions do not like arguments enclosed in quotes
+            # - batch pbs would consider a single argument if quoted
+            # - condor and batch condor would return a submission error
+            if grid_type == "condor" or grid_type.startswith("batch"):
                 # condor_submit will swallow the " character in the string.
                 # condor_submit will include ' as a literal in the arguments string, causing breakage
                 # Hence, use " for now.
