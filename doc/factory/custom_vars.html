@@ -235,24 +235,6 @@ by the VO factory clients.</P>
         </TD>
     </TR>
     <TR>
-        <td> <b>GLIDEIN_Start</b> </td>
-        <TD> Exp (Bool)</td>
-
-        <TD> True </TD>
-        <TD ROWSPAN=2>
-            <P>Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_5Policy_Configuration.html#SECTION00452000000000000000">START expression</A> 
-            to use in the glideins. All must be true for a
-            user job to start.</P>
-                                <P>PS: The idea of having several variables is meant to help setting global and entry-specific, as well as frontend-specific requirements.</P>
-        </TD>
-
-    </TR>
-    <TR>
-        <td> <b>GLIDEIN_Entry_Start</b> </td>
-        <TD> Exp (Bool)</td>
-        <TD>True </TD>
-    </TR>
-    <TR>
         <td> <b>GLIDEIN_Hold</b> </td>
         <TD> Exp (Bool)</td>
 
@@ -280,11 +262,6 @@ by the VO factory clients.</P>
             custom preemption policies for user jobs.
         </TD>
 
-    </TR>
-    <TR>
-        <td> <b>GLIDEIN_Entry_Start</b> </td>
-        <TD> Exp (Bool)</td>
-        <TD>True </TD>
     </TR>
 
     <TR>
@@ -811,22 +788,6 @@ described below ar the most often used.</P>
                 <B>HEAD_NODE</B> in the condor_config.</P>
         </TD>
 
-    </TR>
-    <TR>
-        <td> <b>GLIDECLIENT_Start</b> </td>
-        <TD> Exp (Bool)</td>
-
-        <TD ROWSPAN=2>
-            <P>Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_5Policy_Configuration.html#SECTION00452000000000000000">START expression</A> 
-            to use in the glideins. All must be true for a
-            user job to start.</P>
-                                <P>PS: The idea of having several variables is meant to help setting factory and frontend-specific requirements.</P>
-        </TD>
-
-    </TR>
-    <TR>
-        <td> <b>GLIDECLIENT_Group_Start</b> </td>
-        <TD> Exp (Bool)</td>
     </TR>
     <TR>
         <td> <b>GLIDECLIENT_Hold</b> </td>
