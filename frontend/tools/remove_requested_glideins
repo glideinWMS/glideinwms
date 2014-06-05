@@ -1,0 +1,126 @@
+#!/usr/bin/env python
+#
+# Project:
+#   glideinWMS
+#
+# Description:
+#   Remove glideins that were requested in the past
+#
+# Arguments:
+#  -d DIR, --work-dir=DIR         Frontend work dir (default: $FE_WORK_DIR)
+#  -t TYPE, --removal-type=TYPE   Type of removal request (defalt: IDLE)
+#
+# Author:
+#   Igor Sfiligoi
+#
+
+import os
+import sys
+import fcntl
+import signal
+import optparse
+import subprocess
+import time
+
+STARTUP_DIR = sys.path[0]
+sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
+from glideinwms.frontend import glideinFrontendPidLib
+
+def parse_args(argv):
+    argparser=optparse.OptionParser()
+    argparser.add_option("-d","--work-dir", dest="work_dir",
+                         help="Frontend work dir (default: $FE_WORK_DIR)", metavar="DIR",
+                         default=os.environ.get("FE_WORK_DIR"))
+    argparser.add_option("-t","--removal-type", dest="removal_type",
+                         help="Removal type: idle, wait or all (default: idle)",
+                         metavar="TYPE", default="idle")
+    argparser.add_option("-q","--quiet", dest="quiet", action="store_true",
+                         help="Quiet mode")
+    (options, other_args) = argparser.parse_args(argv[1:])
+    
+    if options.work_dir is None:
+        raise ValueError("FE work dir not specified (neither -d nor FE_WORK_DIR used), aborting")
+    
+    if not os.path.isfile(os.path.join(options.work_dir,"frontend.descript")):
+        raise ValueError, "%s is not a valid FE work dir"%options.work_dir
+
+    if options.removal_type not in ('idle', 'wait', 'all'):
+        raise ValueError("Unexpected removal type %s (valid ones are idle, wait or all)"%options.removal_type)
+
+    if len(other_args)!=0:
+        raise ValueError("Unexpected arguments found: %s"%str(other_args))
+
+    return options
+
+############################################################
+# Main function
+def main(argv):
+    options=parse_args(argv)
+
+    running=True
+    try:
+        action_type=glideinFrontendPidLib.get_frontend_action_type(options.work_dir)
+    except:
+        running=False
+
+    if running:
+        if (action_type is None) or (action_type=="run"):
+            raise RuntimeError("The Frontend is currently running.\nYou have to stop it before issuing this command")
+        else:
+            raise RuntimeError("The Frontend is currently busy (%s)\nPlease retry later", action_type)
+    
+
+    command_list = [sys.executable,
+                    os.path.join(STARTUP_DIR,
+                                 "../glideinFrontend.py"),
+                    str(os.getpid()),
+                    options.work_dir,
+                    "remove%s%s"%(options.removal_type[:1].upper(),options.removal_type[1:])]
+
+    child = subprocess.Popen(command_list, shell=False,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+
+    # set it in non blocking mode to be on the safe side
+    for fd in (child.stdout.fileno(),
+               child.stderr.fileno()):
+        fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+        fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+
+    signal.signal(signal.SIGTERM, termsignal)
+    signal.signal(signal.SIGQUIT, termsignal)
+
+    try:
+        cnt=0
+        while child.poll() is None: # None means still alive
+            if cnt==0:
+                if not options.quiet:
+                    sys.stderr.write(".")
+                    sys.stderr.flush()
+            cnt=(cnt+1)%25
+            time.sleep(0.2)
+    except:
+        if not options.quiet:
+            sys.stderr.write("\nAborting\n")
+        os.kill(signal.SIGTERM, child.pid)
+        raise
+
+    return 0
+
+def termsignal(signr, frame):
+    raise KeyboardInterrupt, "Received signal %s" % signr
+
+############################################################
+#
+# S T A R T U P
+#
+############################################################
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main(sys.argv))
+    except Exception, e:
+        sys.stderr.write("ERROR: Exception msg %s\n"%str(e))
+        sys.exit(9)
+
+    
