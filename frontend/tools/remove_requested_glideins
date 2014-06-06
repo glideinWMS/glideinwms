@@ -70,10 +70,11 @@ def main(argv):
             raise RuntimeError("The Frontend is currently busy (%s)\nPlease retry later", action_type)
     
 
+    os.chdir(options.work_dir)
+    
     command_list = [sys.executable,
                     os.path.join(STARTUP_DIR,
                                  "../glideinFrontend.py"),
-                    str(os.getpid()),
                     options.work_dir,
                     "remove%s%s"%(options.removal_type[:1].upper(),options.removal_type[1:])]
 
@@ -99,10 +100,27 @@ def main(argv):
                     sys.stderr.flush()
             cnt=(cnt+1)%25
             time.sleep(0.2)
+        if not options.quiet:
+            sys.stderr.write("\nDone\n")
+
+        try:
+            tempOut = child.stdout.read()
+            if len(tempOut)!=0:
+                if not options.quiet:
+                    sys.stdout.write(tempOut)
+        except IOError:
+            pass # ignore
+        try:
+            tempErr = child.stderr.read()
+            if len(tempErr)!=0:
+                sys.stderr.write(tempErr)
+        except IOError:
+            pass # ignore
+
     except:
         if not options.quiet:
             sys.stderr.write("\nAborting\n")
-        os.kill(signal.SIGTERM, child.pid)
+        os.kill(child.pid, signal.SIGTERM)
         raise
 
     return 0
