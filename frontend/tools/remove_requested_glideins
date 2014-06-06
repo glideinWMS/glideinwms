@@ -34,6 +34,8 @@ def parse_args(argv):
     argparser.add_option("-t","--removal-type", dest="removal_type",
                          help="Removal type: idle, wait or all (default: idle)",
                          metavar="TYPE", default="idle")
+    argparser.add_option("-c","--exess-only", dest="excess_only", action="store_true",
+                         help="Remove only excess glideins (default: remove all of them)")
     argparser.add_option("-q","--quiet", dest="quiet", action="store_true",
                          help="Quiet mode")
     (options, other_args) = argparser.parse_args(argv[1:])
@@ -72,11 +74,14 @@ def main(argv):
 
     os.chdir(options.work_dir)
     
+    action="remove%s%s"%(options.removal_type[:1].upper(),options.removal_type[1:])
+    if options.excess_only:
+        action+="Excess"
     command_list = [sys.executable,
                     os.path.join(STARTUP_DIR,
                                  "../glideinFrontend.py"),
                     options.work_dir,
-                    "remove%s%s"%(options.removal_type[:1].upper(),options.removal_type[1:])]
+                    action]
 
     child = subprocess.Popen(command_list, shell=False,
                              stdout=subprocess.PIPE,

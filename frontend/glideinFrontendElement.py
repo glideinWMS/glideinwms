@@ -128,8 +128,9 @@ class glideinFrontendElement:
         # Default bahavior: Use factory proxies unless configure overrides it
         self.x509_proxy_plugin = None
 
-        # If not None, just ask for removal of glideins
+        # If not None, this is a request for removal of glideins only (i.e. do not ask for more)
         self.request_removal_wtype = None
+        self.request_removal_excess_only = False
 
     def configure(self):
         ''' Do some initial configuration of the element. '''
@@ -238,10 +239,16 @@ class glideinFrontendElement:
         elif self.action=="deadvertise":
             logSupport.log.info("Deadvertize my ads")
             self.deadvertiseAllClassads()
-        elif self.action in ('removeWait','removeIdle','removeAll'):
+        elif self.action in ('removeWait','removeIdle','removeAll','removeWaitExcess','removeIdleExcess','removeAllExcess'):
             # use the standard logic for most things, but change what is being requested
-            self.request_removal_wtype = self.action[6:].upper()
-            logSupport.log.info("Requesting removal of %s glideins"%self.request_removal_wtype)
+            if self.action.endswith("Excess"):
+                self.request_removal_wtype = self.action[6:-6].upper()
+                self.request_removal_excess_only = True
+                logSupport.log.info("Requesting removal of %s excess glideins"%self.request_removal_wtype)
+            else:
+                self.request_removal_wtype = self.action[6:].upper()
+                self.request_removal_excess_only = False
+                logSupport.log.info("Requesting removal of %s glideins"%self.request_removal_wtype)
             done_something = self.iterate_one()
             logSupport.log.info("iterate_one status: %s" % str(done_something))
             # no saving or disk cleanup... be quick
@@ -813,6 +820,11 @@ class glideinFrontendElement:
 
     def compute_glidein_max_run(self, prop_jobs, real):
         glidein_max_run = 0
+
+        if ((self.request_removal_wtype is not None) and
+            (not self.request_removal_excess_only)):
+            # we are requesting the removal of all the glideins, tell GF to remove all of them
+            return 0
 
         # we don't need more slots than number of jobs in the queue (unless the fraction is positive)
         if (prop_jobs['Idle'] + real) > 0:

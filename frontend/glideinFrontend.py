@@ -362,7 +362,7 @@ def main(work_dir, action):
                 spawn(sleep_time, advertize_rate, work_dir,
                       frontendDescript, groups, max_parallel_workers,
                       restart_interval, restart_attempts)
-            elif action in ('removeWait','removeIdle','removeAll'):
+            elif action in ('removeWait','removeIdle','removeAll','removeWaitExcess','removeIdleExcess','removeAllExcess'):
                 spawn_removal(work_dir,
                               frontendDescript, groups, max_parallel_workers,
                               action)
