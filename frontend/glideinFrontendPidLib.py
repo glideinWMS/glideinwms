@@ -28,8 +28,8 @@ class FrontendPidSupport(pidSupport.PidSupport):
                  action_type,
                  pid = None,            # if none, will default to os.getpid()
                  started_time = None):  # if none, use time.time()
-        pidSupport.PidSupport.register(self, pid, started_time)
         self.action_type = action_type
+        pidSupport.PidSupport.register(self, pid, started_time)
 
     ###############################
     # INTERNAL

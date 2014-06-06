@@ -31,7 +31,7 @@ if action_type is None:
     # if not defined, assume it is the standard running type
     action_type = "run"
 
-if len(sys.argv)>=2:
+if len(sys.argv)>=3:
     req_action_type = sys.argv[2]
 else:
     req_action_type = "run"
