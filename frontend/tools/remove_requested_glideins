@@ -67,7 +67,7 @@ def main(argv):
         if (action_type is None) or (action_type=="run"):
             raise RuntimeError("The Frontend is currently running.\nYou have to stop it before issuing this command")
         else:
-            raise RuntimeError("The Frontend is currently busy (%s)\nPlease retry later", action_type)
+            raise RuntimeError("The Frontend is currently busy (%s)\nPlease retry later"%action_type)
     
 
     os.chdir(options.work_dir)
