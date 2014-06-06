@@ -50,7 +50,7 @@ class FrontendPidSupport(pidSupport.PidSupport):
         self.action_type = None
         if len(lines)>=3:
             if lines[2].startswith("TYPE: "):
-                action_type=lines[2][6:].strip()
+                self.action_type=lines[2][6:].strip()
 
         return
 
