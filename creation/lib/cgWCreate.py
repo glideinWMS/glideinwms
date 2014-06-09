@@ -54,6 +54,7 @@ def create_condor_tar_fd(condor_base_dir):
                   'libexec/condor_mips',
                   'libexec/curl_plugin',
                   'libexec/data_plugin',
+                  'libexec/condor_chirp',
                               ]
 
         # for RPM installations, add libexec/condor as libexec into the
