@@ -77,8 +77,8 @@ if [ -r "${factory_dir}/glidein.descript" ]; then
     glidein_name=`awk '/^GlideinName /{print $2}' ${factory_dir}/glidein.descript`
     force_name_option="-force_name \"$glidein_name\""
 else
-    factory_name=NEW_INSTALL
-    glidein_name=NEW_INSTALL
+    factory_name="NEW_INSTALL"
+    glidein_name="NEW_INSTALL"
     force_name_option=
 fi
 id_str="$glidein_name@${factory_name}"
@@ -282,11 +282,11 @@ reconfig() {
         echo -n "Reconfiguring the factory"
         pushd $factory_dir 1>/dev/null
         if [ "$RPM_INSTALL" = "True" ]; then
-            update_def_cfg_option=
+            extra_options=
         else
-            update_def_cfg_option=" -update_def_cfg $update_def_cfg"
+            extra_options=" $force_name_option -update_def_cfg $update_def_cfg"
         fi
-        invoke_as_factory "\"${CREATION_DIR}reconfig_glidein\" -update_scripts no -xml \"$cfg_loc\" -writeback $writeback $fix_rrd $force_delete $force_name_option $update_def_cfg_option $comment_option"
+        invoke_as_factory "\"${CREATION_DIR}reconfig_glidein\" -update_scripts no -xml \"$cfg_loc\" -writeback $writeback $fix_rrd $force_delete $comment_option"
         # RPM su -s /bin/bash $FACTORY_USER -c "reconfig_glidein -update_scripts no -xml $factory_config -writeback $writeback $fix_rrd $force_delete"
         reconfig_failed=$?
         popd 1>/dev/null
