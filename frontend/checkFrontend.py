@@ -12,6 +12,11 @@
 #   $1 = work_dir
 #   $2 = (optional) run mode (defaults to "run")
 #
+# Exit code:
+#   0 - Running
+#   1 - Not running anything
+#   2 - Not running my types, but another type is indeed running
+#
 # Author:
 #   Igor Sfiligoi
 #
@@ -38,8 +43,8 @@ else:
 
 
 if action_type!=req_action_type:
-    print "Not running my type"
-    sys.exit(1)
+    print 'Not running my type (note that conflicting "%s" type is running).' % action_type
+    sys.exit(2)
 
 print "Running"
 sys.exit(0)
