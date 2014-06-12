@@ -211,12 +211,31 @@ stop() {
             return $RETVAL
         fi
 
-        invoke_as_frontend "\"${FRONTEND_STOP}\" -f \"$frontend_dir\" 2>/dev/null 1>&2 </dev/null" && success || failure
-        RETVAL=$?
-        if [ $RETVAL -eq 2 ]; then
-            echo -n "Already stopped."
-            RETVAL=0
+        invoke_as_frontend "\"${FRONTEND_STOP}\" -f \"$frontend_dir\" 2>/dev/null 1>&2 </dev/null"
+        MYRETVAL=$?
+
+        if [ $MYRETVAL -ne 0 ]; then
+            echo -n "Invocation failed "
+            failure
+            RETVAL=$?
+            echo
+            return $RETVAL
         fi         
+
+        # check that it has actually stopped
+        # can take some time
+        for i in {1..30}; do  # Use seq if a variable is needed: $(seq 1 $END)
+            # Returns 0 if running, 1 if not
+            "${FRONTEND_CHECK}" "$frontend_dir" >/dev/null 2>&1 </dev/null
+            if [ $? -ne 0 ]; then
+                RETVAL=0
+                break
+            fi
+            sleep 1
+        done
+        
+        "${FRONTEND_CHECK}" "$frontend_dir"  2>/dev/null 1>&2 </dev/null && failure || success
+        RETVAL=$?
         echo
 }
 
