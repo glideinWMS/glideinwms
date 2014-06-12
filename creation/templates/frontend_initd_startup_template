@@ -162,6 +162,23 @@ help_usage() {
 
 start() {
         echo -n "Starting glideinWMS frontend $id_str: "
+
+        "$FRONTEND_CHECK" "$frontend_dir"  2>/dev/null 1>&2 </dev/null 
+        MYRETVAL=$?
+        if [ $MYRETVAL -eq 0 ]; then
+            # already running, so nothing to be done
+            success
+            RETVAL=$?
+            return $RETVAL
+        fi
+        if [ $MYRETVAL -eq 2 ]; then
+            # conflicting type running, cannot start
+            echo -n "Maintenance processes detected "
+            failure
+            RETVAL=$?
+            return $RETVAL
+        fi
+
         invoke_as_frontend "nice -2 \"${FRONTEND_START}\" \"$frontend_dir\" 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
         for i in {1..15}; do  # Use seq if a variable is needed: $(seq 1 $END)
             # Returns 0 if running, 1 if not
@@ -179,6 +196,17 @@ start() {
 
 stop() {
         echo -n "Shutting down glideinWMS frontend $id_str: "
+
+        "$FRONTEND_CHECK" "$frontend_dir"  2>/dev/null 1>&2 </dev/null 
+        MYRETVAL=$?
+        if [ $MYRETVAL -ne 0 ]; then
+            # not running, so nothing to be done
+            echo -n "Not running. "
+            success
+            RETVAL=$?
+            return $RETVAL
+        fi
+
         invoke_as_frontend "\"${FRONTEND_STOP}\" -f \"$frontend_dir\" 2>/dev/null 1>&2 </dev/null" && success || failure
         RETVAL=$?
         if [ $RETVAL -eq 2 ]; then
@@ -194,9 +222,9 @@ restart() {
             # Waiting 30 sec for the shutdown to complete
             echo "Waiting for the GlideinWMS Frontend to shutdown" 2>&1
             for i in {1..60}; do  # Use seq if a variable is needed: $(seq 1 $END)
-                # Returns 0 if running, 1 if not
+                # Returns 0 if running
                 "${FRONTEND_CHECK}" "$frontend_dir" >/dev/null 2>&1 </dev/null
-                if [ $? -eq 1 ]; then
+                if [ $? -ne 0 ]; then
                     RETVAL=0
                     break
                 fi
@@ -205,7 +233,7 @@ restart() {
             done
             echo
             if [ $RETVAL -ne 0 ]; then
-                echo "Failed to stop the GlidinWMS Frontend. Please check."
+                echo "Failed to stop the GlideinWMS Frontend. Please check."
                 exit $RETVAL
             else
                 echo "Shutdown complete"
