@@ -167,8 +167,10 @@ start() {
         MYRETVAL=$?
         if [ $MYRETVAL -eq 0 ]; then
             # already running, so nothing to be done
+            echo -n "Already running "
             success
             RETVAL=$?
+            echo
             return $RETVAL
         fi
         if [ $MYRETVAL -eq 2 ]; then
@@ -176,6 +178,7 @@ start() {
             echo -n "Maintenance processes detected "
             failure
             RETVAL=$?
+            echo
             return $RETVAL
         fi
 
@@ -204,6 +207,7 @@ stop() {
             echo -n "Not running. "
             success
             RETVAL=$?
+            echo
             return $RETVAL
         fi
 
