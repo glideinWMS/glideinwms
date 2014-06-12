@@ -27,8 +27,10 @@ class FactoryPidSupport(pidSupport.PidSupport):
 def get_factory_pid(startup_dir):
     pid_obj=FactoryPidSupport(startup_dir)
     pid_obj.load_registered()
-    if pid_obj.mypid is None:
+    if not pid_obj.lock_in_place:
         raise RuntimeError, "Factory not running"
+    if pid_obj.mypid is None:
+        raise RuntimeError, "Factory process not found"
     return pid_obj.mypid
 
 ############################################################
@@ -42,8 +44,10 @@ class EntryPidSupport(pidSupport.PidWParentSupport):
 def get_entry_pid(startup_dir,entry_name):
     pid_obj=EntryPidSupport(startup_dir,entry_name)
     pid_obj.load_registered()
-    if pid_obj.mypid is None:
+    if not pid_obj.lock_in_place:
         raise RuntimeError, "Entry not running"
+    if pid_obj.mypid is None:
+        raise RuntimeError, "Entry process not found"
     if pid_obj.parent_pid is None:
         raise RuntimeError, "Entry has no parent???"
     return (pid_obj.mypid,pid_obj.parent_pid)
@@ -61,7 +65,9 @@ class EntryGroupPidSupport(pidSupport.PidWParentSupport):
 def get_entrygroup_pid(startup_dir, group_name):
     pid_obj = EntryGroupPidSupport(startup_dir, group_name)
     pid_obj.load_registered()
-    if pid_obj.mypid is None:
+    if not pid_obj.lock_in_place:
         raise RuntimeError, "Entry Group %s not running" % group_name
+    if pid_obj.mypid is None:
+        raise RuntimeError, "Entry Group %s process not found" % group_name
     if pid_obj.parent_pid is None:
         raise RuntimeError, "Entry Group %s has no parent" % group_name

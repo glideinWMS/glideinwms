@@ -42,6 +42,7 @@ class PidSupport:
         self.pid_fname = pid_fname
         self.fd = None
         self.mypid = None
+        self.lock_in_place = False
         
     # open the pid_file and gain the exclusive lock
     # also write in the PID information
@@ -68,6 +69,7 @@ class PidSupport:
         fd = open(self.pid_fname, "r+")
         try:
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            self.lock_in_place = True
         except IOError:
             fd.close()
             raise AlreadyRunning, "Another process already running. Unable to acquire lock %s" % self.pid_fname
@@ -88,13 +90,17 @@ class PidSupport:
         self.fd.close()
         self.fd = None
         self.mypid = None
-        
+        self.lock_in_place = False
+
+    # Will update self.mypid and self.lock_in_place
     def load_registered(self):
         if self.fd is not None:
             return # we own it, so nothing to do
 
         # make sure it is initialized (to not registered)
-        self.mypid = None
+        self.reset_to_default()
+        
+        self.lock_in_place = False
         # else I don't own it
         if not os.path.isfile(self.pid_fname):
             return
@@ -111,6 +117,7 @@ class PidSupport:
             # if the data is corrupted, I will deal with it later
             lines = fd.readlines()
             fd.close()
+            self.lock_in_place = True
 
         try:
             self.parse_pid_file_content(lines)
@@ -131,7 +138,11 @@ class PidSupport:
     def format_pid_file_content(self):
         return "PID: %s\nStarted: %s\n" % (self.mypid, time.ctime(self.started_time))
 
+    def reset_to_default(self):
+        self.mypid = None
+
     def parse_pid_file_content(self, lines):
+        self.mypid = None
         if len(lines) < 2:
             raise RuntimeError, "Corrupted lock file: too short"
 
@@ -176,7 +187,14 @@ class PidWParentSupport(PidSupport):
     def format_pid_file_content(self):
         return ("PID: %s\nParent PID:%s\nStarted: %s\n" % (self.mypid, self.parent_pid, time.ctime(self.started_time)))
 
+    def reset_to_default(self):
+        PidSupport.reset_to_default(self)
+        self.parent_pid = None
+
     def parse_pid_file_content(self, lines):
+        self.mypid = None
+        self.parent_pid = None
+        
         if len(lines) < 3:
             raise RuntimeError, "Corrupted lock file: too short"
 

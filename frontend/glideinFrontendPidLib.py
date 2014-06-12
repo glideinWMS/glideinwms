@@ -21,6 +21,7 @@ class FrontendPidSupport(pidSupport.PidSupport):
     def __init__(self, startup_dir):
         lock_file = os.path.join(startup_dir, "lock/frontend.lock")
         pidSupport.PidSupport.__init__(self, lock_file)
+        self.action_type = None
 
     # See parent for full description
     # We add action_type here
@@ -44,10 +45,16 @@ class FrontendPidSupport(pidSupport.PidSupport):
         return cnt
 
 
+    def reset_to_default(self):
+        pidSupport.PidSupport.reset_to_default(self)
+        self.action_type = None
+
+
     def parse_pid_file_content(self, lines):
+        self.action_type = None
+
         pidSupport.PidSupport.parse_pid_file_content(self, lines)
         # the above will throw in case of error
-        self.action_type = None
         if len(lines)>=3:
             if lines[2].startswith("TYPE: "):
                 self.action_type=lines[2][6:].strip()
@@ -58,15 +65,17 @@ class FrontendPidSupport(pidSupport.PidSupport):
 def get_frontend_pid(startup_dir):
     pid_obj = FrontendPidSupport(startup_dir)
     pid_obj.load_registered()
-    if pid_obj.mypid is None:
+    if not pid_obj.lock_in_place:
         raise RuntimeError, "Frontend not running"
+    if pid_obj.mypid is None:
+        raise RuntimeError, "Could not determine the pid"
     return pid_obj.mypid
 
 #raise an exception if not running
 def get_frontend_action_type(startup_dir):
     pid_obj = FrontendPidSupport(startup_dir)
     pid_obj.load_registered()
-    if pid_obj.mypid is None:
+    if not pid_obj.lock_in_place:
         raise RuntimeError, "Frontend not running"
     return pid_obj.action_type
 
