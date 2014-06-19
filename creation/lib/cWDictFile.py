@@ -68,7 +68,7 @@ class DictFile:
                 return # already exists, nothing to do
 
         if self.is_readonly:
-            raise RuntimeError, "Trying to modify a readonly object!"
+            raise RuntimeError, "Trying to modify a readonly object (%s, %s)!" % (key, val)
 
         if key in self.keys:
             if not allow_overwrite:
@@ -302,7 +302,7 @@ class DictFileTwoKeys(DictFile): # both key and val are keys
                 return # already exists, nothing to do
 
         if self.is_readonly:
-            raise RuntimeError, "Trying to modify a readonly object!"
+            raise RuntimeError, "Trying to modify a readonly object (%s, %s)!" % (key, val)
 
         if key in self.keys:
             old_val=self.vals[key]
