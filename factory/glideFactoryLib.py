@@ -898,30 +898,29 @@ def get_status_glideidx(el):
 # All others just return the JobStatus
 def hash_status(el):
     job_status = el["JobStatus"]
+    grid_status = str(el.get("GridJobStatus", "undefined")).upper()
+
     if job_status == 1:
         # idle jobs, look of GridJobStatus
-        if el.has_key("GridJobStatus"):
-            grid_status = str(el["GridJobStatus"]).upper()
-            if grid_status in ("PENDING", "INLRMS: Q", "PREPARED", "SUBMITTING", "IDLE", "SUSPENDED", "REGISTERED", "INLRMS:Q"):
-                return 1002
-            elif grid_status in ("STAGE_IN", "PREPARING", "ACCEPTING", "ACCEPTED"):
-                return 1010
-            else:
-                return 1100
-        else:
+        if grid_status in ("PENDING", "INLRMS: Q", "PREPARED", "SUBMITTING", "IDLE", "SUSPENDED", "REGISTERED", "INLRMS:Q"):
+            return 1002
+        elif grid_status in ("STAGE_IN", "PREPARING", "ACCEPTING", "ACCEPTED"):
+            return 1010
+        elif grid_status in ("UNDEFINED"):
             return 1001
+        else:
+            return 1100 #unknown
+
     elif job_status == 2:
         # count only real running, all others become Other
-        if el.has_key("GridJobStatus"):
-            grid_status = str(el["GridJobStatus"]).upper()
-            if grid_status in ("ACTIVE", "REALLY-RUNNING", "INLRMS: R", "RUNNING", "INLRMS:R"):
-                return 2
-            elif grid_status in ("STAGE_OUT", "INLRMS: E", "EXECUTED", "FINISHING", "FINISHED", "DONE", "INLRMS:E"):
-                return 4010
-            else:
-                return 1100
-        else:
+        if grid_status in ("ACTIVE", "REALLY-RUNNING", "INLRMS: R", "RUNNING", "INLRMS:R"):
             return 2
+        elif grid_status in ("STAGE_OUT", "INLRMS: E", "EXECUTED", "FINISHING", "FINISHED", "DONE", "INLRMS:E"):
+            return 4010
+        elif grid_status in ("UNDEFINED"):
+            return 2
+        else:
+            return 1100 #unknown
     else:
         # others just pass over
         return job_status
