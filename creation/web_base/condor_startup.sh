@@ -836,6 +836,8 @@ if [ 1 -eq 1 ]; then
     else
       cond_print_log StarterLog.monitor ${monitor_starter_log}
     fi
+
+    cond_print_log StartdHistoryLog log/StartdHistoryLog
 fi
 
 ## kill the master (which will kill the startd)
