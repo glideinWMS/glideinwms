@@ -350,11 +350,11 @@ def main(work_dir, action):
 
     # start
     try:
-        pid_obj.register()
+        pid_obj.register(action)
     except  glideinFrontendPidLib.pidSupport.AlreadyRunning, err:
         pid_obj.load_registered()
-        logSupport.log.exception("Failed starting Frontend. Instance with pid %s is aready running. Exception during pid registration: %s" % 
-                                 (pid_obj.mypid , err))
+        logSupport.log.exception("Failed starting Frontend with action %s. Instance with pid %s is aready running for action %s. Exception during pid registration: %s" % 
+                                 (action, pid_obj.mypid , str(pid_obj.action_type), err))
         raise
     try:
         try:
@@ -362,7 +362,7 @@ def main(work_dir, action):
                 spawn(sleep_time, advertize_rate, work_dir,
                       frontendDescript, groups, max_parallel_workers,
                       restart_interval, restart_attempts)
-            elif action in ('removeWait','removeIdle','removeAll'):
+            elif action in ('removeWait','removeIdle','removeAll','removeWaitExcess','removeIdleExcess','removeAllExcess'):
                 spawn_removal(work_dir,
                               frontendDescript, groups, max_parallel_workers,
                               action)

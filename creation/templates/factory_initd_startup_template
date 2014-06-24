@@ -169,8 +169,28 @@ help_usage() {
 start() {
     pushd $factory_dir 1>/dev/null
     echo -n "Starting GlideinWMS Factory $id_str: "
+
+    "$FACTORY_CHECK" "$factory_dir"  2>/dev/null 1>&2 </dev/null 
+    MYRETVAL=$?
+    if [ $MYRETVAL -eq 0 ]; then
+        # already running, so nothing to be done
+        echo -n "Already running "
+        success
+        RETVAL=$?
+        echo
+        return $RETVAL
+    fi
+
     invoke_as_factory "nice -2 \"${FACTORY_START}\" \"$factory_dir\" 2>/dev/null 1>&2 </dev/null &"
-    sleep 5
+    for i in {1..15}; do  # Use seq if a variable is needed: $(seq 1 $END)
+        # Returns 0 if running
+        "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null
+        if [ $? -eq 0 ]; then
+            RETVAL=0
+            break
+        fi
+        sleep 1
+    done
     "$FACTORY_CHECK" "$factory_dir"  2>/dev/null 1>&2 </dev/null && success || failure
     RETVAL=$?
     popd 1>/dev/null
@@ -179,12 +199,43 @@ start() {
 
 stop() {
     echo -n "Shutting down GlideinWMS Factory $id_str: "
-    "$FACTORY_STOP" -f "$factory_dir" 2>/dev/null 1>&2 </dev/null && success || failure
+
+    "$FACTORY_CHECK" "$factory_dir" 2>/dev/null 1>&2 </dev/null 
+    MYRETVAL=$?
+    if [ $MYRETVAL -ne 0 ]; then
+        # not running, so nothing to be done
+        echo -n "Not running. "
+        success
+        RETVAL=$?
+        echo
+        return $RETVAL
+    fi
+
+    "$FACTORY_STOP" -f "$factory_dir" 2>/dev/null 1>&2 </dev/null
+    MYRETVAL=$?
+
+    if [ $MYRETVAL -ne 0 ]; then
+        echo -n "Invocation failed "
+        failure
+        RETVAL=$?
+        echo
+        return $RETVAL
+    fi
+
+    # check that it has actually stopped
+    # can take some time
+    for i in {1..30}; do  # Use seq if a variable is needed: $(seq 1 $END)
+        # Returns 0 if running, 1 if not
+        "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null
+        if [ $? -ne 0 ]; then
+            RETVAL=0
+            break
+        fi
+        sleep 1
+    done
+    
+    "$FACTORY_CHECK" "$factory_dir"  2>/dev/null 1>&2 </dev/null && failure || success
     RETVAL=$?
-    if [ $RETVAL -eq 2 ]; then
-        echo -n "Already stopped."
-        RETVAL=0
-    fi  
     echo
 }
 
@@ -196,7 +247,7 @@ restart() {
         for i in {1..60}; do  # Use seq if a variable is needed: $(seq 1 $END)
             # Returns 0 if running, 1 if not
             "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null
-            if [ $? -eq 1 ]; then
+            if [ $? -ne 0 ]; then
                 RETVAL=0
                 break
             fi
