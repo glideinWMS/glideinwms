@@ -175,7 +175,7 @@ start() {
         fi
         if [ $MYRETVAL -eq 2 ]; then
             # conflicting type running, cannot start
-            echo -n "Maintenance processes detected "
+            echo -n "Maintenance processes detected, cannot start "
             failure
             RETVAL=$?
             echo
