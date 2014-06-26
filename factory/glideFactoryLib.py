@@ -1369,7 +1369,12 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
 
         # get my (entry) type
         grid_type = jobDescript.data["GridType"]
-        if grid_type == "ec2":
+
+        if grid_type.startswith('batch '):
+            log.debug("submit_credentials.security_credentials: %s" % str(submit_credentials.security_credentials))
+            exe_env.append('GRID_RESOURCE_OPTIONS=-rgahp-key %s' % submit_credentials.security_credentials["PrivateKey"])
+            exe_env.append('X509_USER_PROXY=%s' % submit_credentials.security_credentials["GlideinProxy"])
+        elif grid_type == "ec2":
             log.debug("params: %s" % str(params))
             log.debug("submit_credentials.security_credentials: %s" % str(submit_credentials.security_credentials))
             log.debug("submit_credentials.identity_credentials: %s" % str(submit_credentials.identity_credentials))
@@ -1431,7 +1436,6 @@ email_logs = False
                 log.debug(msg)
                 log.exception(msg)
                 raise
-
         else:
             exe_env.append('X509_USER_PROXY=%s' % submit_credentials.security_credentials["SubmitProxy"])
 

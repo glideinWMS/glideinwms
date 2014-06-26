@@ -123,7 +123,12 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
         # Add in some common elements before setting up grid type specific attributes
         self.add("Universe", "grid")
-        self.add("Grid_Resource", "%s %s" % (gridtype, gatekeeper))
+        if gridtype.startswith('batch '):
+            # For BOSCO ie gridtype 'batch *', allow means to pass VO specific
+            # bosco/ssh keys
+            self.add("Grid_Resource", "%s %s $ENV(GRID_RESOURCE_OPTIONS)" % (gridtype, gatekeeper))
+        else:
+            self.add("Grid_Resource", "%s %s" % (gridtype, gatekeeper))
         self.add("Executable", exe_fname)
                 
         # set up the grid specific attributes
@@ -153,6 +158,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
 
     def populate_standard_grid(self, rsl, auth_method, gridtype):
+        input_files = []
+        encrypt_input_files = []
         if gridtype == 'gt2' or gridtype =='gt5':
             if "project_id" in auth_method or ((rsl is not None) and rsl !=""):
                 self.add("globus_rsl", "$ENV(GLIDEIN_RSL)")
@@ -160,9 +167,11 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             self.add("cream_attributes", "$ENV(GLIDEIN_RSL)")
         elif gridtype == 'nordugrid' and rsl:
             self.add("nordugrid_rsl", "$ENV(GLIDEIN_RSL)")
+        elif gridtype.startswith('batch '):
+            input_files.append('$ENV(X509_USER_PROXY)')
+            encrypt_input_files.append('$ENV(X509_USER_PROXY)')
         else:
             pass
-            # do we want to raise an error here?  we do in v2+
 
         # Force the copy to spool to prevent caching at the CE side
         self.add("copy_to_spool", "True")
@@ -170,7 +179,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("Arguments", "$ENV(GLIDEIN_ARGUMENTS)")
 
         self.add("Transfer_Executable", "True")
-        self.add("transfer_Input_files", "")
+        self.add("transfer_Input_files", ','.join(input_files))
+        self.add("encrypt_Input_files", ','.join(encrypt_input_files))
         self.add("transfer_Output_files", "")
         self.add("WhenToTransferOutput ", "ON_EXIT")
 

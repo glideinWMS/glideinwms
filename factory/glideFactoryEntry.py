@@ -992,6 +992,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     can_submit_glideins = entry.glideinsWithinLimits(condorQ)
 
     auth_method = entry.jobDescript.data['AuthMethod']
+    grid_type = entry.jobDescript.data['GridType']
     all_security_names = set()
 
     # Get credential security class
@@ -1066,11 +1067,11 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         submit_credentials.id = proxy_id
 
     else:
-        #########################
-        # ENTRY TYPE: Cloud Sites
-        #########################
-
-        # All non proxy auth methods are cloud sites.
+        ###################################
+        # ENTRY TYPE: Other than grid sites
+        # - Cloud Sites
+        # - BOSCO
+        ###################################
 
         # Verify that the glidein proxy was provided. We still need it as it
         # is used to by the glidein's condor daemons to authenticate with the
@@ -1088,38 +1089,44 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
             entry.log.warning("Glidein proxy cannot be found for client %s, skipping request" % client_int_name)
             return return_dict
 
+
+
+
         # VM id and type are required for cloud sites.
         # Either frontend or factory should provide it
         vm_id = None
         vm_type = None
 
-        if 'vm_id' in auth_method:
-            # First check if the Frontend supplied it
-            vm_id = decrypted_params.get('VMId')
-            if not vm_id:
-                entry.log.warning("Client '%s' did not specify a VM Id in the request, this is required by entry %s, skipping request. " % (client_int_name, entry.name))
-                return return_dict
-        else:
-            # Validate factory provided vm id exists
-            if entry.jobDescript.data.has_key('EntryVMId'):
-                vm_id = entry.jobDescript.data['EntryVMId']
-            else:
-                entry.log.warning("Entry does not specify a VM Id, this is required by entry %s, skipping request." % entry.name)
-                return return_dict
+        if grid_type == 'ec2':
+            # vm_id and vm_type are only applicable to EC2/Clouds
 
-        if 'vm_type' in auth_method:
-            # First check if the Frontend supplied it
-            vm_type = decrypted_params.get('VMType')
-            if not vm_type:
-                entry.log.warning("Client '%s' did not specify a VM Type in the request, this is required by entry %s, skipping request." % (client_int_name, entry.name))
-                return return_dict
-        else:
-            # Validate factory provided vm type exists
-            if entry.jobDescript.data.has_key('EntryVMType'):
-                vm_type = entry.jobDescript.data['EntryVMType']
+            if 'vm_id' in auth_method:
+                # First check if the Frontend supplied it
+                vm_id = decrypted_params.get('VMId')
+                if not vm_id:
+                    entry.log.warning("Client '%s' did not specify a VM Id in the request, this is required by entry %s, skipping request. " % (client_int_name, entry.name))
+                    return return_dict
             else:
-                entry.log.warning("Entry does not specify a VM Type, this is required by entry %s, skipping request." %  entry.name)
-                return return_dict
+                # Validate factory provided vm id exists
+                if entry.jobDescript.data.has_key('EntryVMId'):
+                    vm_id = entry.jobDescript.data['EntryVMId']
+                else:
+                    entry.log.warning("Entry does not specify a VM Id, this is required by entry %s, skipping request." % entry.name)
+                    return return_dict
+
+            if 'vm_type' in auth_method:
+                # First check if the Frontend supplied it
+                vm_type = decrypted_params.get('VMType')
+                if not vm_type:
+                    entry.log.warning("Client '%s' did not specify a VM Type in the request, this is required by entry %s, skipping request." % (client_int_name, entry.name))
+                    return return_dict
+            else:
+                # Validate factory provided vm type exists
+                if entry.jobDescript.data.has_key('EntryVMType'):
+                    vm_type = entry.jobDescript.data['EntryVMType']
+                else:
+                    entry.log.warning("Entry does not specify a VM Type, this is required by entry %s, skipping request." %  entry.name)
+                    return return_dict
 
         submit_credentials.add_identity_credential('VMId', vm_id)
         submit_credentials.add_identity_credential('VMType', vm_type)
