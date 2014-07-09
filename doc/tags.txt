@@ -1,3 +1,5 @@
+v3_2_5_1 Bug Fix: Fixed an issue with the factory_startup template that affects factory reconfig/upgrade in case of RPM
+
 v3_2_5  Added administrative commands for frontend fetch_glidein_log,
           glidein_off and enter_frontend_env
         Frontend now considers MAX_JOBS_RUNNING when requesting more glideins
