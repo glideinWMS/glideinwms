@@ -16,6 +16,7 @@ import cWParams
 import cvWDictFile,cWDictFile
 import cvWConsts,cWConsts
 import cvWCreate
+import shutil
 from glideinwms.lib import x509Support
 
 #####################################################
@@ -186,6 +187,8 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         # populate security data
         populate_main_security(self.client_security,params)
 
+        
+
     def find_parent_dir(self,search_path,name):
         """ Given a search path, determine if the given file exists
             somewhere in the path.
@@ -210,6 +213,8 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         cvWDictFile.frontendMainDicts.save(self,set_readonly)
         self.save_monitor()
         self.save_client_security()
+        if self.params.match['policy_file']:
+            shutil.copy(self.params.match['policy_file'], self.work_dir)
 
 
     ########################################
@@ -326,6 +331,10 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
     def save(self,set_readonly=True):
         cvWDictFile.frontendGroupDicts.save(self,set_readonly)
         self.save_client_security()
+        if self.params.groups[self.sub_name].match['policy_file']:
+            shutil.copy(
+                self.params.groups[self.sub_name].match['policy_file'],
+                self.work_dir)
 
     ########################################
     # INTERNAL
@@ -609,6 +618,8 @@ MATCH_ATTR_CONV={'string':'s','int':'i','real':'r','bool':'b'}
 
 
 def apply_group_glexec_policy(descript_dict, sub_params, params):
+
+    print '************* apply_group_glexec_policy'
 
     glidein_glexec_use = None
     query_expr = descript_dict['FactoryQueryExpr']
