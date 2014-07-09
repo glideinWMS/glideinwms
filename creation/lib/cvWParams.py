@@ -13,15 +13,18 @@
 
 import os
 import copy
-import sys  # not used
-import os.path  # not needed (os is sufficient)
-import string  # not used
+import sys
+import re
+import os.path
+import imp
+import string
 import socket
 import types  # not used
 import traceback  # not used
 from glideinwms.lib import xmlParse
 from glideinwms.lib import condorExe  # not used
 import cWParams
+import pprint
 
 
 class VOFrontendSubParams(cWParams.CommonSubParams):
@@ -106,6 +109,7 @@ class VOFrontendParams(cWParams.CommonParams):
         match_defaults["job"]=job_match_defaults
         match_defaults["match_expr"]=('True','PythonExpr', 'Python expression for matching jobs to factory entries with access to job and glidein dictionaries',None)
         match_defaults["start_expr"]=('True','CondorExpr', 'Condor expression for matching jobs to glideins at runtime',None)
+        match_defaults["policy_file"]=(None, 'PolicyFile', 'Policy file where match_expr, query_expr, start_expr and match_attr are defined',None)
 
 
         proxy_defaults=cWParams.commentedOrderedDict()
@@ -134,7 +138,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.group_defaults["attrs"]=sub_defaults['attrs']
         self.group_defaults["files"]=sub_defaults['files']
         self.group_defaults["security"]=copy.deepcopy(security_defaults)
-        
+
 
         ###############################
         # Start defining the defaults
@@ -226,6 +230,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
         self.defaults["groups"]=(xmlParse.OrderedDict(),"Dictionary of groups","Each group contains",self.group_defaults)
         
+<<<<<<< HEAD
         # High Availability Configuration settings
 
 
@@ -242,6 +247,9 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults['high_availability'] = ha_defaults
 
 
+=======
+        self.match_policy_modules = {}
+>>>>>>> Work in progress. Checkpointing the work done for one of the iterations.
         return
 
     # return name of top element
@@ -337,6 +345,7 @@ class VOFrontendParams(cWParams.CommonParams):
                     # define an explicit security, so the admin is aware of it
                     pel['security_class']="group_%s"%group_name
 
+<<<<<<< HEAD
         # verify and populate HA
         if self.high_availability['enabled'].lower() == 'true':
             if (len(self.high_availability['ha_frontends']) == 1):
@@ -346,11 +355,49 @@ class VOFrontendParams(cWParams.CommonParams):
             else:
                 raise RuntimeError, 'Exactly one master ha_frontend information is needed when running this frontend in high_availability slave mode.'
 
+=======
+>>>>>>> Work in progress. Checkpointing the work done for one of the iterations.
 
     # verify match data and create the attributes if needed
     def derive_match_attrs(self):
-        self.validate_match('frontend',self.match.match_expr,
-                            self.match.factory.match_attrs,self.match.job.match_attrs,self.attrs)
+
+        # Load all the match policy modules upfront since we need them
+        self.load_match_policies()
+
+        self.update_match_attrs()
+
+
+
+        # TODO: PARAG
+        # ISSUE: Need to reconfig twice to loa module. We may not be setting
+        #        the module search path correctly
+        # ISSUE: The code gets the match_attrs from config and policy
+        #        and merges them together. Then it recreates the config file
+        #        that has all the match_attrs. Because of this, even if you
+        #        update the policy to remove a match_attr, it does not get
+        #        reflected properly. In short the match_attr once entered is
+        #        never forgotten until you remove it from the policy and
+        #        config 
+
+        # TODO: PARAG
+        # Now that policy modules are loaded, insert info from the modules into
+        # self.match.factory.match_attrs
+        # self.match.job.match_attrs
+        # self.groups[group_name].match.factory.match_attrs
+        # self.groups[group_name].match.job.match_attrs
+
+
+        print_match_info('frontend', self.match)
+        self.validate_match('frontend', self.match.match_expr,
+                            self.match.factory.match_attrs,
+                            self.match.job.match_attrs, self.attrs,
+                            [self.match_policy_modules['frontend']])
+
+
+
+
+
+
 
         group_names=self.groups.keys()
         for group_name in group_names:
@@ -371,8 +418,16 @@ class VOFrontendParams(cWParams.CommonParams):
             for attr_name in self.groups[group_name].match.job.match_attrs.keys():
                 job_attrs[attr_name]=self.groups[group_name].match.job.match_attrs[attr_name]
             match_expr="(%s) and (%s)"%(self.match.match_expr,self.groups[group_name].match.match_expr)
-            self.validate_match('group %s'%group_name,match_expr,
-                                factory_attrs,job_attrs,attrs_dict)
+            policy_file = self.groups[group_name].match.policy_file
+            work_dir = os.path.join(self.work_dir, 'group_%s'%group_name)
+            policy_modules = [
+                self.match_policy_modules['frontend'],
+                self.match_policy_modules['group'][group_name]
+            ]
+            print_match_info(group_name, self.groups[group_name].match)
+            self.validate_match('group %s'%group_name, match_expr,
+                                factory_attrs, job_attrs, attrs_dict,
+                                policy_modules)
 
         return
 
@@ -422,9 +477,23 @@ class VOFrontendParams(cWParams.CommonParams):
                     raise RuntimeError, "Invalid group '%s' attribute name '%s'."%(group_name,attr_name)
         return
 
-    def validate_match(self,loc_str,
-                       match_str,factory_attrs,job_attrs,attr_dict):
+    def validate_match(self, loc_str, match_str, factory_attrs,
+                       job_attrs, attr_dict, policy_modules):
+
+        print "==========================================================="
+        print '%s: validate_match' % loc_str
+        print "==========================================================="
+
+        # Globals/Locals that will be passed to the eval
         env={'glidein':{'attrs':{}},'job':{},'attr_dict':{}}
+
+        # Add module name to the Globals/Locals dict
+        for module in policy_modules:
+            if module:
+                env[module['name']] = module['module_obj']
+
+        # Validate factory's match_attrs
+        #print "VALIDATING match_attrs =======> %s" % factory_attrs
         for attr_name in factory_attrs.keys():
             attr_type=factory_attrs[attr_name]['type']
             if attr_type=='string':
@@ -438,6 +507,9 @@ class VOFrontendParams(cWParams.CommonParams):
             else:
                 raise RuntimeError, "Invalid %s factory attr type '%s'"%(loc_str,attr_type)
             env['glidein']['attrs'][attr_name]=attr_val
+
+        # Validate job's match_attrs
+        #print "VALIDATING job_attrs =======> %s" % job_attrs
         for attr_name in job_attrs.keys():
             attr_type=job_attrs[attr_name]['type']
             if attr_type=='string':
@@ -451,6 +523,9 @@ class VOFrontendParams(cWParams.CommonParams):
             else:
                 raise RuntimeError, "Invalid %s job attr type '%s'"%(loc_str,attr_type)
             env['job'][attr_name]=attr_val
+
+        # Validate attr
+        #print "VALIDATING attr_dict =======> %s" % attr_dict
         for attr_name in attr_dict.keys():
             attr_type=attr_dict[attr_name]['type']
             if attr_type=='string':
@@ -462,14 +537,17 @@ class VOFrontendParams(cWParams.CommonParams):
             else:
                 raise RuntimeError, "Invalid %s attr type '%s'"%(loc_str,attr_type)
             env['attr_dict'][attr_name]=attr_val
+
+        # Now that we have validated the match_attrs, compile match_obj
         try:
-            match_obj=compile(match_str,"<string>","eval")
-            eval(match_obj,env)
+            match_obj = compile(match_str, "<string>", "exec")
+            eval(match_obj, env)
         except KeyError, e:
             raise RuntimeError, "Invalid %s match_expr '%s': Missing attribute %s"%(loc_str,match_str,e)
         except Exception, e:
             raise RuntimeError, "Invalid %s match_expr '%s': %s"%(loc_str,match_str,e)
-            
+
+        print "==========================================================="
         return
 
 
@@ -479,7 +557,107 @@ class VOFrontendParams(cWParams.CommonParams):
 
     def get_subparams_class(self):
         return VOFrontendSubParams
-    
+
+
+    def load_match_policies(self):
+        #self.match_policy_modules
+        # Load global frontend policy modules
+        self.match_policy_modules['frontend'] = load_python_module_simple(
+                                                    self.match.policy_file,
+                                                    [self.work_dir])
+
+        # Load group policy modules
+        self.match_policy_modules['group'] = {}
+        for group_name in self.groups.keys():
+            policy_file = self.groups[group_name].match.policy_file
+            work_dir = os.path.join(self.work_dir, 'group_%s'%group_name)
+            self.match_policy_modules['group'][group_name] = \
+                load_python_module_simple(policy_file, [work_dir])
+
+
+    def update_match_attrs(self):
+        # Load global match_attrs from externally loaded match_policies
+        if self.match_policy_modules['frontend']:
+            print '**** FRONTEND: update_match_attrs_from_module'
+            module_obj = self.match_policy_modules['frontend']['module_obj']
+            if ( ('factory_match_attrs' in dir(module_obj)) and
+                 (type(module_obj.factory_match_attrs) == type({})) ): 
+                self.match.factory.match_attrs.data = match_attrs_from_module(
+                    'factory_match_attrs', module_obj,
+                    module_obj.factory_match_attrs)
+            if ( ('job_match_attrs' in dir(module_obj)) and
+                 (type(module_obj.job_match_attrs) == type({})) ): 
+                self.match.job.match_attrs.data = match_attrs_from_module(
+                    'job_match_attrs', module_obj,
+                    module_obj.job_match_attrs)
+            #update_match_attrs_from_module(
+            #    self.match_policy_modules['frontend']['module_obj'],
+            #    self.match.factory.match_attrs,
+            #    self.match.job.match_attrs)
+
+        # Load group match_attrs from externally loaded match_policies
+        for group_name in self.groups.keys():
+            if self.match_policy_modules['group'][group_name]:
+                print '**** %s: update_match_attrs_from_module' % group_name
+                module_obj = self.match_policy_modules['group'][group_name]['module_obj']
+                if ( ('factory_match_attrs' in dir(module_obj)) and
+                     (type(module_obj.factory_match_attrs) == type({})) ): 
+                    self.match.factory.match_attrs.data = match_attrs_from_module(
+                        'factory_match_attrs', module_obj,
+                        module_obj.factory_match_attrs)
+                if ( ('job_match_attrs' in dir(module_obj)) and
+                     (type(module_obj.job_match_attrs) == type({})) ): 
+                    self.match.job.match_attrs.data = match_attrs_from_module(
+                        'job_match_attrs', module_obj,
+                        module_obj.job_match_attrs)
+                #update_match_attrs_from_module(
+                #    self.match_policy_modules['group'][group_name]['module_obj'],
+                #    self.groups[group_name].match.factory.match_attrs,
+                #    self.groups[group_name].match.job.match_attrs)
+
+
+def update_match_attrs_from_module(module_obj, factory_ma, job_ma):
+    """
+    Update the match attrs from modules in place
+    """
+
+    #print "======> %s" % factory_ma.data.__class__.__name__
+    data = xmlParse.OrderedDict()
+
+    if ( ('factory_match_attrs' in dir(module_obj)) and
+         (type(module_obj.factory_match_attrs) == type({})) ): 
+        print "======> READING factory_match_attrs"
+        for k,v in module_obj.factory_match_attrs.iteritems():
+            print "(k,v) ======> %s, %s" % (k, v) 
+            #factory_ma.data[k] = xmlParse.OrderedDict(v)
+            data[k] = xmlParse.OrderedDict(v)
+    import copy
+    factory_ma.data = copy.deepcopy(data)
+    print "factory_ma.data <======> %s" % factory_ma.data
+        #factory_ma.data.update(xmlParse.OrderedDict(module_obj.factory_match_attrs))
+
+    data = xmlParse.OrderedDict()
+    if ( ('job_match_attrs' in dir(module_obj)) and
+         (type(module_obj.job_match_attrs) == type({})) ): 
+        for k,v in module_obj.job_match_attrs.iteritems():
+            #job_ma.data[k] = xmlParse.OrderedDict(v)
+            data[k] = xmlParse.OrderedDict(v)
+        #job_ma.data.update(xmlParse.OrderedDict(module_obj.job_match_attrs))
+    job_ma.data = copy.deepcopy(data)
+    print "job_ma.data <======> %s" % job_ma.data
+
+
+def match_attrs_from_module(ma_name, module_obj, ma):
+    """
+    ma is factory_match_attrs or job_match_attrs
+    """
+
+    #if (ma in dir(module_obj)) and (type(ma) == type({})): 
+    data = xmlParse.OrderedDict()
+    for k,v in ma.iteritems():
+        data[k] = xmlParse.OrderedDict(v)
+    return data
+
 ####################################################################
 # INTERNAL, do not use directly
 # Use the class method instead
@@ -493,3 +671,52 @@ def extract_attr_val(attr_obj):
         return str(attr_obj.value)
     else:
         return int(attr_obj.value)
+
+def load_python_module_simple(file, search_path=[]):
+    """
+    Load simple python file modules. Return dict of useful info
+
+    file: Full path to the python file
+    sys_path: Search path to the python module to load
+    """
+
+    print '******* load_python_module %s' % file
+
+    module = None
+
+    if (file is not None) and (file != ''):
+        module = {}
+        # Full path to the file
+        module['file'] = file
+        # Python module name as derived from the filename by dropping .py ext
+        module['name'] = get_py_module_name(file)
+        # Module search path 
+        module['search_path'] = search_path
+        module['search_path'].append(os.path.dirname(os.path.realpath(file)))
+        # First find the module
+        f, path, desc = imp.find_module(module['name'], module['search_path'])
+        # Load the module
+        module['module_obj'] = imp.load_module(module['name'], f, path, desc)
+
+    return module
+
+
+def get_py_module_name(policy_file):
+    policy_fname = os.path.basename(policy_file)
+    policy_module_name = re.sub('.py$', '', policy_fname) 
+    return policy_module_name
+
+
+def print_match_info(group, match):
+   print '-------------------------------------------------------------------'
+   print 'MATCH INFO FOR GROUP: %s' % group
+   print '-------------------------------------------------------------------'
+
+   pp = pprint.PrettyPrinter()
+   print 'match_expr:'
+   pp.pprint(match.match_expr)
+   print 'match.factory.match_attrs'
+   pp.pprint(dict(match.factory.match_attrs))
+   print 'match.job.match_attrs'
+   pp.pprint(dict(match.job.match_attrs))
+   print '-------------------------------------------------------------------'
