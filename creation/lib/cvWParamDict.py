@@ -67,7 +67,7 @@ def validate_node(nodestr,allow_prange=False):
 def validate_match(match_str,factory_attrs,job_attrs,attr_dict):
     env={'glidein':{'attrs':{}},'job':{},'attr_dict':{}}
 
-    for attr_name in factory_attrs.keys():
+    for attr_name in factory_attrs:
         attr_type=factory_attrs[attr_name]
         if attr_type=='string':
             attr_val='a'
@@ -81,7 +81,7 @@ def validate_match(match_str,factory_attrs,job_attrs,attr_dict):
             raise RuntimeError, "Invalid factory attr type '%s'"%attr_type
         env['glidein']['attrs'][attr_name]=attr_val
 
-    for attr_name in job_attrs.keys():
+    for attr_name in job_attrs:
         attr_type=job_attrs[attr_name]
         if attr_type=='string':
             attr_val='a'
@@ -95,7 +95,7 @@ def validate_match(match_str,factory_attrs,job_attrs,attr_dict):
             raise RuntimeError, "Invalid job attr type '%s'"%attr_type
         env['job'][attr_name]=attr_val
 
-    for attr_name in attr_dict.keys():
+    for attr_name in attr_dict:
         # all attributes are integers for the frontend
         env['attr_dict'][attr_name]="a"
 
@@ -117,7 +117,7 @@ def derive_and_validate_match(main_match_expr,group_match_exp,
     # merge global and group things 
     factory_attrs={}
     for d in (main_factory_attr_list,group_factory_attr_list):
-        for attr_name in d.keys():
+        for attr_name in d:
             if ((attr_name in factory_attrs) and
                 (factory_attrs[attr_name]!=d[attr_name]['type'])):
                 raise RuntimeError, "Conflicting factory attribute type %s (%s,%s)"%(attr_name,factory_attrs[attr_name],d[attr_name]['type'])
@@ -126,7 +126,7 @@ def derive_and_validate_match(main_match_expr,group_match_exp,
 
     job_attrs={}
     for d in (main_job_attr_list,group_job_attr_list):
-        for attr_name in d.keys():
+        for attr_name in d:
             if ((attr_name in job_attrs) and
                 (job_attrs[attr_name]!=d[attr_name]['type'])):
                 raise RuntimeError, "Conflicting job attribute type %s (%s,%s)"%(attr_name,job_attrs[attr_name],d[attr_name]['type'])
@@ -194,7 +194,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         start_expr=None
 
         # put user attributes into config files
-        for attr_name in params.attrs.keys():
+        for attr_name in params.attrs:
             if attr_name in ('GLIDECLIENT_Start','GLIDECLIENT_Group_Start'):
                 if start_expr is None:
                     start_expr=params.attrs[attr_name].value
@@ -381,7 +381,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
             
         # insert the global values that need to be expanded
         # will be in the group section now
-        for attr_name in params.attrs.keys():
+        for attr_name in params.attrs:
              if params.attrs[attr_name].value.find('$')!=-1:
                  if not (attr_name in sub_params.attrs.keys()):
                      add_attr_unparsed(attr_name, params,self.dicts,self.sub_name)
@@ -391,7 +391,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         start_expr=None
 
         # put user attributes into config files
-        for attr_name in sub_params.attrs.keys():
+        for attr_name in sub_params.attrs:
             if attr_name in ('GLIDECLIENT_Group_Start','GLIDECLIENT_Start'):
                 if start_expr is None:
                     start_expr=sub_params.attrs[attr_name].value
