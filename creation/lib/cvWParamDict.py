@@ -65,6 +65,21 @@ def validate_node(nodestr,allow_prange=False):
 #####################################################
 # Validate match string
 def validate_match(match_str,factory_attrs,job_attrs,attr_dict):
+    """
+    Validate a match string, by actually evaluating it
+    Since it will likely use the external dictionaries,
+      create a mock version of them, justmaking sure the types are correct
+
+    @type match_str: string
+    @param match_str: The match string to validate
+    @type factory_attrs: dict
+    @param factroy_attrs: Description of the queried factory attributes
+    @type job_attrs: dict
+    @param job_attrs: Description of the queried user job attributes
+    @type attr_dict: dict
+    @param attr_dict: Description of the frontend attributes
+    """
+    
     env={'glidein':{'attrs':{}},'job':{},'attr_dict':{}}
 
     for ka in ((factory_attrs,env['glidein']['attrs'],'factory'),
@@ -98,14 +113,29 @@ def validate_match(match_str,factory_attrs,job_attrs,attr_dict):
 
     return
 
-def derive_and_validate_match(main_match_expr,group_match_exp,
-                              main_factory_attr_list,group_factory_attr_list,
-                              main_job_attr_list,group_job_attr_list,
-                              main_attr_dict,group_attr_dict):
+def derive_and_validate_match(match_expr_pair,
+                              factory_attr_list_pair,
+                              job_attr_list_pair,
+                              attr_dict_pair):
+    """
+    Validate a match strings, by first concatenating and then evaluating them
+    Since the eval will likely use the external dictionaries,
+      create a mock version of them, just making sure the types are correct
+    The complete list of attributes is created by merging main and group dictionaries
+
+    @type match_expr_pair: tuple
+    @param match_expr_pair: Pair of (main,group) match strings to validate
+    @type factory_attr_list_pair: tuple
+    @param factroy_attr_list_pair: Pair of (main,group) descriptions of the queried factory attributes
+    @type job_attr_list_pair: tuple
+    @param job_attr_list_pair: Pair of (main,group) descriptions of the queried user job attributes
+    @type attr_dict_pair: tuple
+    @param attr_dict_pair: Pair of (main,group) descriptions of the frontend attributes
+    """
 
     # merge global and group things 
     factory_attrs={}
-    for d in (main_factory_attr_list,group_factory_attr_list):
+    for d in factory_attr_list_pair:
         for attr_name in d:
             if ((attr_name in factory_attrs) and
                 (factory_attrs[attr_name]!=d[attr_name]['type'])):
@@ -114,7 +144,7 @@ def derive_and_validate_match(main_match_expr,group_match_exp,
                 factory_attrs[attr_name]=d[attr_name]['type']
 
     job_attrs={}
-    for d in (main_job_attr_list,group_job_attr_list):
+    for d in job_attr_list_pair:
         for attr_name in d:
             if ((attr_name in job_attrs) and
                 (job_attrs[attr_name]!=d[attr_name]['type'])):
@@ -123,13 +153,13 @@ def derive_and_validate_match(main_match_expr,group_match_exp,
                 job_attrs[attr_name]=d[attr_name]['type']
 
     attrs_dict={}
-    for d in (main_attr_dict,group_attr_dict):
+    for d in attr_dict_pair:
         for attr_name in d.keys:
             # they are all strings
             # just make group override main
             attrs_dict[attr_name]="string"
 
-    match_expr="(%s) and (%s)"%(main_match_expr,group_match_exp)
+    match_expr="(%s) and (%s)"%match_expr_pair
     return validate_match(match_expr,
                           factory_attrs,job_attrs,attrs_dict)
 
@@ -456,10 +486,10 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
 
         # now that all is expanded, validate match_expression
 
-        derive_and_validate_match(main_dicts['frontend_descript']['MatchExpr'],self.dicts['group_descript']['MatchExpr'],
-                                  params.match.factory.match_attrs,sub_params.match.factory.match_attrs,
-                                  params.match.job.match_attrs,sub_params.match.job.match_attrs,
-                                  main_dicts['attrs'],self.dicts['attrs'])
+        derive_and_validate_match((main_dicts['frontend_descript']['MatchExpr'],self.dicts['group_descript']['MatchExpr']),
+                                  (params.match.factory.match_attrs,sub_params.match.factory.match_attrs),
+                                  (params.match.job.match_attrs,sub_params.match.job.match_attrs),
+                                  (main_dicts['attrs'],self.dicts['attrs']))
 
 
     # reuse as much of the other as possible
