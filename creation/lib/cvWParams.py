@@ -254,8 +254,6 @@ class VOFrontendParams(cWParams.CommonParams):
             self.monitoring_web_url=self.web_url.replace("stage","monitor")
 
 
-        self.derive_match_attrs()
-
         ####################
         has_collector=self.attrs.has_key('GLIDEIN_Collector')
         if not has_collector:
@@ -301,35 +299,6 @@ class VOFrontendParams(cWParams.CommonParams):
                     # define an explicit security, so the admin is aware of it
                     pel['security_class']="group_%s"%group_name
 
-    # verify match data and create the attributes if needed
-    def derive_match_attrs(self):
-        self.validate_match('frontend',self.match.match_expr,
-                            self.match.factory.match_attrs,self.match.job.match_attrs,self.attrs)
-
-        group_names=self.groups.keys()
-        for group_name in group_names:
-            # merge general and group matches
-            attrs_dict={}
-            for attr_name in self.attrs.keys():
-                attrs_dict[attr_name]=self.attrs[attr_name]
-            for attr_name in self.groups[group_name].attrs.keys():
-                attrs_dict[attr_name]=self.groups[group_name].attrs[attr_name]
-            factory_attrs={}
-            for attr_name in self.match.factory.match_attrs.keys():
-                factory_attrs[attr_name]=self.match.factory.match_attrs[attr_name]
-            for attr_name in self.groups[group_name].match.factory.match_attrs.keys():
-                factory_attrs[attr_name]=self.groups[group_name].match.factory.match_attrs[attr_name]
-            job_attrs={}
-            for attr_name in self.match.job.match_attrs.keys():
-                job_attrs[attr_name]=self.match.job.match_attrs[attr_name]
-            for attr_name in self.groups[group_name].match.job.match_attrs.keys():
-                job_attrs[attr_name]=self.groups[group_name].match.job.match_attrs[attr_name]
-            match_expr="(%s) and (%s)"%(self.match.match_expr,self.groups[group_name].match.match_expr)
-            self.validate_match('group %s'%group_name,match_expr,
-                                factory_attrs,job_attrs,attrs_dict)
-
-        return
-
     # return xml formatting
     def get_xml_format(self):
         return {'lists_params':{'files':{'el_name':'file','subtypes_params':{'class':{}}},
@@ -373,57 +342,6 @@ class VOFrontendParams(cWParams.CommonParams):
                 if not cWParams.is_valid_name(attr_name):
                     raise RuntimeError, "Invalid group '%s' attribute name '%s'."%(group_name,attr_name)
         return
-
-    def validate_match(self,loc_str,
-                       match_str,factory_attrs,job_attrs,attr_dict):
-        env={'glidein':{'attrs':{}},'job':{},'attr_dict':{}}
-        for attr_name in factory_attrs.keys():
-            attr_type=factory_attrs[attr_name]['type']
-            if attr_type=='string':
-                attr_val='a'
-            elif attr_type=='int':
-                attr_val=1
-            elif attr_type=='bool':
-                attr_val=True
-            elif attr_type=='real':
-                attr_val=1.0
-            else:
-                raise RuntimeError, "Invalid %s factory attr type '%s'"%(loc_str,attr_type)
-            env['glidein']['attrs'][attr_name]=attr_val
-        for attr_name in job_attrs.keys():
-            attr_type=job_attrs[attr_name]['type']
-            if attr_type=='string':
-                attr_val='a'
-            elif attr_type=='int':
-                attr_val=1
-            elif attr_type=='bool':
-                attr_val=True
-            elif attr_type=='real':
-                attr_val=1.0
-            else:
-                raise RuntimeError, "Invalid %s job attr type '%s'"%(loc_str,attr_type)
-            env['job'][attr_name]=attr_val
-        for attr_name in attr_dict.keys():
-            attr_type=attr_dict[attr_name]['type']
-            if attr_type=='string':
-                attr_val='a'
-            elif attr_type=='int':
-                attr_val=1
-            elif attr_type=='expr':
-                attr_val='a'
-            else:
-                raise RuntimeError, "Invalid %s attr type '%s'"%(loc_str,attr_type)
-            env['attr_dict'][attr_name]=attr_val
-        try:
-            match_obj=compile(match_str,"<string>","eval")
-            eval(match_obj,env)
-        except KeyError, e:
-            raise RuntimeError, "Invalid %s match_expr '%s': Missing attribute %s"%(loc_str,match_str,e)
-        except Exception, e:
-            raise RuntimeError, "Invalid %s match_expr '%s': %s"%(loc_str,match_str,e)
-            
-        return
-
 
     # return attribute value in the proper python format
     def extract_attr_val(self,attr_obj):

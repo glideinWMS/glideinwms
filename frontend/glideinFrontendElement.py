@@ -1036,7 +1036,7 @@ class glideinFrontendElement:
     def query_entries(self, factory_pool):
         try:
             glidein_dict = {}
-            factory_constraint=expand_DD(self.elementDescript.merged_data['FactoryQueryExpr'],self.attr_dict)
+            factory_constraint=self.elementDescript.merged_data['FactoryQueryExpr']
 
             if True: # for historical reasons, to preserve indentation
                 factory_pool_node = factory_pool[0]
@@ -1088,7 +1088,7 @@ class glideinFrontendElement:
             condorq_format_list=list(condorq_format_list)+list((('x509userproxy','s'),))
             condorq_dict = glideinFrontendLib.getCondorQ(
                                [schedd_name],
-                               expand_DD(self.elementDescript.merged_data['JobQueryExpr'],self.attr_dict),
+                               self.elementDescript.merged_data['JobQueryExpr'],
                                condorq_format_list)
         except Exception:
             logSupport.log.exception("In query schedd child, exception:")
@@ -1321,25 +1321,6 @@ def init_factory_stats_arr():
 def log_factory_header():
     logSupport.log.info("            Jobs in schedd queues                 |      Glideins     |   Request   ")
     logSupport.log.info("Idle (match  eff   old  uniq )  Run ( here  max ) | Total Idle   Run  | Idle MaxRun Down Factory")
-
-######################
-# expand $$(attribute)
-def expand_DD(qstr,attr_dict):
-    robj=re.compile("\$\$\((?P<attrname>[^\)]*)\)")
-    while 1:
-        m=robj.search(qstr)
-        if m is None:
-            break # no more substitutions to do
-        attr_name=m.group('attrname')
-        if not attr_dict.has_key(attr_name):
-            raise KeyError, "Missing attribute %s"%attr_name
-        attr_val=attr_dict[attr_name]
-        if type(attr_val)==type(1):
-            attr_str=str(attr_val)
-        else: # assume it is a string for all other purposes... quote and escape existing quotes
-            attr_str='"%s"'%attr_val.replace('"','\\"')
-        qstr="%s%s%s"%(qstr[:m.start()],attr_str,qstr[m.end():])
-    return qstr
 
 ############################################################
 #
