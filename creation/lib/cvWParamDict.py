@@ -67,36 +67,25 @@ def validate_node(nodestr,allow_prange=False):
 def validate_match(match_str,factory_attrs,job_attrs,attr_dict):
     env={'glidein':{'attrs':{}},'job':{},'attr_dict':{}}
 
-    for attr_name in factory_attrs:
-        attr_type=factory_attrs[attr_name]
-        if attr_type=='string':
-            attr_val='a'
-        elif attr_type=='int':
-            attr_val=1
-        elif attr_type=='bool':
-            attr_val=True
-        elif attr_type=='real':
-            attr_val=1.0
-        else:
-            raise RuntimeError, "Invalid factory attr type '%s'"%attr_type
-        env['glidein']['attrs'][attr_name]=attr_val
-
-    for attr_name in job_attrs:
-        attr_type=job_attrs[attr_name]
-        if attr_type=='string':
-            attr_val='a'
-        elif attr_type=='int':
-            attr_val=1
-        elif attr_type=='bool':
-            attr_val=True
-        elif attr_type=='real':
-            attr_val=1.0
-        else:
-            raise RuntimeError, "Invalid job attr type '%s'"%attr_type
-        env['job'][attr_name]=attr_val
+    for ka in ((factory_attrs,env['glidein']['attrs'],'factory'),
+               (job_attrs,env['job'],'job')):
+        attr_dict,out_dict,adesc=ka
+        for attr_name in attr_dict:
+            attr_type=attr_dict[attr_name]
+            if attr_type=='string':
+                attr_val='a'
+            elif attr_type=='int':
+                attr_val=1
+            elif attr_type=='bool':
+                attr_val=True
+            elif attr_type=='real':
+                attr_val=1.0
+            else:
+                raise RuntimeError, "Invalid %s attr type '%s'"%(adesc,attr_type)
+            out_dict[attr_name]=attr_val
 
     for attr_name in attr_dict:
-        # all attributes are integers for the frontend
+        # all attributes are strings for the frontend
         env['attr_dict'][attr_name]="a"
 
     try:
