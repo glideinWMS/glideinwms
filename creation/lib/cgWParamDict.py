@@ -401,14 +401,14 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         # insert the global values that need to be expanded
         # will be in the entry section now
-        for attr_name in params.attrs:
+        for attr_name in params.attrs.keys():
              if params.attrs[attr_name].value.find('$')!=-1:
                  if not (attr_name in sub_params.attrs.keys()):
                      add_attr_unparsed(attr_name, params,self.dicts,self.sub_name)
                  # else the entry value will override it later on
 
         # put user attributes into config files
-        for attr_name in sub_params.attrs:
+        for attr_name in sub_params.attrs.keys():
             add_attr_unparsed(attr_name, sub_params,self.dicts,self.sub_name)
 
         # put standard attributes into config file
@@ -853,7 +853,7 @@ def populate_job_descript(work_dir, job_descript_dict,
     #  to it.
     white_mode = "Off"
     allowed_vos = ""
-    for X in sub_params.allow_frontends:
+    for X in sub_params.allow_frontends.keys():
         white_mode = "On"
         allowed_vos = allowed_vos + X + ":" + sub_params.allow_frontends[X].security_class + ","
     job_descript_dict.add("WhitelistMode", white_mode)
@@ -867,7 +867,7 @@ def populate_job_descript(work_dir, job_descript_dict,
 
     # Submit attributes are a bit special, since they need to be serialized, so we will deal with them explictly
     submit_attrs={}
-    for key in sub_params.config.submit.submit_attrs:
+    for key in sub_params.config.submit.submit_attrs.keys():
         el=sub_params.config.submit.submit_attrs[key]['value']
         expkey=cWExpand.expand_DLR(key,attrs_dict)
         expel=cWExpand.expand_DLR(el,attrs_dict)
@@ -879,7 +879,7 @@ def populate_job_descript(work_dir, job_descript_dict,
 # Create the frontend descript file
 def populate_frontend_descript(frontend_dict,     # will be modified
                                params):
-    for fe in params.security.frontends:
+    for fe in params.security.frontends.keys():
         fe_el=params.security.frontends[fe]
 
         ident=fe_el['identity']
@@ -887,7 +887,7 @@ def populate_frontend_descript(frontend_dict,     # will be modified
             raise RuntimeError, 'security.frontends[%s][identity] not defined, but required'%fe
 
         maps={}
-        for sc in fe_el['security_classes']:
+        for sc in fe_el['security_classes'].keys():
             sc_el=fe_el['security_classes'][sc]
             username=sc_el['username']
             if username is None:

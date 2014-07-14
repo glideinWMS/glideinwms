@@ -85,7 +85,7 @@ def validate_match(match_str,factory_attrs,job_attrs,attr_dict):
     for ka in ((factory_attrs,env['glidein']['attrs'],'factory'),
                (job_attrs,env['job'],'job')):
         attr_dict,out_dict,adesc=ka
-        for attr_name in attr_dict:
+        for attr_name in attr_dict.keys():
             attr_type=attr_dict[attr_name]
             if attr_type=='string':
                 attr_val='a'
@@ -99,7 +99,7 @@ def validate_match(match_str,factory_attrs,job_attrs,attr_dict):
                 raise RuntimeError, "Invalid %s attr type '%s'"%(adesc,attr_type)
             out_dict[attr_name]=attr_val
 
-    for attr_name in attr_dict:
+    for attr_name in attr_dict.keys():
         # all attributes are strings for the frontend
         env['attr_dict'][attr_name]="a"
 
@@ -136,7 +136,7 @@ def derive_and_validate_match(match_expr_pair,
     # merge global and group things 
     factory_attrs={}
     for d in factory_attr_list_pair:
-        for attr_name in d:
+        for attr_name in d.keys():
             if ((attr_name in factory_attrs) and
                 (factory_attrs[attr_name]!=d[attr_name]['type'])):
                 raise RuntimeError, "Conflicting factory attribute type %s (%s,%s)"%(attr_name,factory_attrs[attr_name],d[attr_name]['type'])
@@ -145,7 +145,7 @@ def derive_and_validate_match(match_expr_pair,
 
     job_attrs={}
     for d in job_attr_list_pair:
-        for attr_name in d:
+        for attr_name in d.keys():
             if ((attr_name in job_attrs) and
                 (job_attrs[attr_name]!=d[attr_name]['type'])):
                 raise RuntimeError, "Conflicting job attribute type %s (%s,%s)"%(attr_name,job_attrs[attr_name],d[attr_name]['type'])
@@ -213,7 +213,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         start_expr=None
 
         # put user attributes into config files
-        for attr_name in params.attrs:
+        for attr_name in params.attrs.keys():
             if attr_name in ('GLIDECLIENT_Start','GLIDECLIENT_Group_Start'):
                 if start_expr is None:
                     start_expr=params.attrs[attr_name].value
@@ -400,7 +400,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
             
         # insert the global values that need to be expanded
         # will be in the group section now
-        for attr_name in params.attrs:
+        for attr_name in params.attrs.keys():
              if params.attrs[attr_name].value.find('$')!=-1:
                  if not (attr_name in sub_params.attrs.keys()):
                      add_attr_unparsed(attr_name, params,self.dicts,self.sub_name)
@@ -410,7 +410,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         start_expr=None
 
         # put user attributes into config files
-        for attr_name in sub_params.attrs:
+        for attr_name in sub_params.attrs.keys():
             if attr_name in ('GLIDECLIENT_Group_Start','GLIDECLIENT_Start'):
                 if start_expr is None:
                     start_expr=sub_params.attrs[attr_name].value
