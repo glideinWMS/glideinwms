@@ -1079,9 +1079,13 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         proxy_id = decrypted_params.get('GlideinProxy')
 
         if proxy_id:
-            # the GlideinProxy must be compressed for usage within user data
-            # so we specify the compressed version of the credential
-            credential_name = "%s_%s_compressed" % (client_int_name, proxy_id)
+            if grid_type == 'ec2':
+                # the GlideinProxy must be compressed for usage within user data
+                # so we specify the compressed version of the credential
+                credential_name = "%s_%s_compressed" % (client_int_name, proxy_id)
+            else:
+                # BOSCO is using regular proxy, not compressed
+                credential_name = "%s_%s" % (client_int_name, proxy_id)
             if not submit_credentials.add_security_credential('GlideinProxy', credential_name):
                 entry.log.warning("Credential %s for the glidein proxy cannot be found for client %s, skipping request." % (proxy_id, client_int_name))
                 return return_dict
