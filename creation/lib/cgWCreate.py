@@ -170,6 +170,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         elif gridtype.startswith('batch '):
             input_files.append('$ENV(X509_USER_PROXY)')
             encrypt_input_files.append('$ENV(X509_USER_PROXY)')
+            self.add('x509userproxy', '$ENV(X509_USER_PROXY)')
         else:
             pass
 
