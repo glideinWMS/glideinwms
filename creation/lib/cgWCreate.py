@@ -171,6 +171,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             input_files.append('$ENV(X509_USER_PROXY)')
             encrypt_input_files.append('$ENV(X509_USER_PROXY)')
             self.add('x509userproxy', '$ENV(X509_USER_PROXY)')
+            self.add('request_memory', '2GB')
         else:
             pass
 
