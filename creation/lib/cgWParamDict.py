@@ -704,9 +704,12 @@ def add_attr_unparsed_real(attr_name,params,dicts):
             if is_const:
                 dicts['consts'].add(attr_name,attr_val)
             else:
-                raise RuntimeError, "Parameter attributes '%s' must be either a published or constant: %s"%(attr_name,attr_obj)
+                raise RuntimeError, "Parameter attribute '%s' must be either published or a constant: %s"%(attr_name,attr_obj)
         else:
-            raise RuntimeError, "Attributes '%s' must be either a published or parameters: %s"%(attr_name,attr_obj) 
+            if is_const:
+                dicts['attrs'].add(attr_name,attr_val)
+            else:
+                raise RuntimeError, "Non-constant attribute '%s' must be either published or a parameter: %s"%(attr_name,attr_obj) 
 
     do_glidein_publish=eval(attr_obj.glidein_publish,{},{})
     do_job_publish=eval(attr_obj.job_publish,{},{})
