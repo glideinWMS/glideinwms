@@ -67,6 +67,7 @@
 <ol>
         <LI><A HREF="#example_configuration">Example Configuration</A>
         <LI><A HREF="#args">Configuration File</A>
+        <li><a href="#attr_substitution">Attribute substitution</a> </li>
         <li><a href="#glexec">glExec</a> </li>
         <li><a href="#private_net">Private Networks</a> </li>
         <li><a href="#security">Security</a> </li>
@@ -128,15 +129,15 @@ for a more detailed description.
     <a href="#attrs">&lt;attrs&gt;</a><br/>
     <blockquote>
         <a href="#attrs">&lt;attr name="CONDOR_VERSION" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="default" /&gt;</a><br/>
-        <a href="#attrs">&lt;attr name="GCB_ORDER" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="NONE" /&gt;</a><br/>
-        <a href="#attrs">&lt;attr name="GLEXEC_JOB" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="True" /&gt;</a><br/>
-        <a href="#attrs">&lt;attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="False" /&gt;</a><br/>
+        <a href="#attrs">&lt;attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="True" /&gt;</a><br/>
         <a href="#attrs">&lt;attr name="USE_MATCH_AUTH" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="True" /&gt;</a><br/>
+        <a href="#attrs">&lt;attr name="GLIDEIN_MaxMemMBs" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="int" value="2500"  /&gt;</a><br/>
+        <a href="#attrs">&lt;attr name="PBS_RSL" const="True" glidein_publish="False" job_publish="False" parameter="False" publish="False" type="string" value="(queue=default)(jobtype=single)(maxWalltime=$$(GLIDEIN_Max_Walltime))(memory=$$(GLIDEIN_MaxMemMBs))" /&gt;</a><br/>
     </blockquote>
     <a href="#attrs">&lt;/attrs&gt;</a><br/>
     <a href="#entry">&lt;entries&gt;</a><br/>
     <blockquote>
-        <a href="#entry">&lt;entry name="EXAMPLE_ENTRY" enabled="True" auth_method="grid_proxy" trust_domain="OSG" gatekeeper="gatewayname.fnal.gov/jobmanager-condor" gridtype="gt2" rsl="(queue=default)(jobtype=single)" schedd_name="wmscollector.fnal.gov" verbosity="std" work_dir="OSG"&gt;</a><br/>
+        <a href="#entry">&lt;entry name="FNAL_Gateway" enabled="True" auth_method="grid_proxy" trust_domain="grid" gatekeeper="gatewayname.fnal.gov/jobmanager-pbs" gridtype="gt2" rsl="$(PBS_RSL)" verbosity="std" work_dir="OSG"&gt;</a><br/>
         <blockquote>
             <a href="#config">&lt;config&gt;</a><br/>
             <blockquote>
@@ -172,6 +173,7 @@ for a more detailed description.
                 <a href="#entry_attrs">&lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="NONE"/&gt;</a><br/>
                 <a href="#entry_attrs">&lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="FNAL_EXAMPLE_SITE"/&gt;</a><br/>
                 <a href="#entry_attrs">&lt;attr name="GLIDEIN_CPUS" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="1"/&gt;</a><br/>
+                <a href="#entry_attrs">&lt;attr name="GLIDEIN_Max_Walltime" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="int" value="171000"/&gt;</a><br/>
                 <a href="#entry_attrs">&lt;attr /&gt;</a><br/>
             </blockquote>
             <a href="#entry_attrs">&lt;/attrs&gt;</a><br/>
@@ -184,7 +186,7 @@ for a more detailed description.
     <a href="#entry">&lt;/entries&gt;</a><br/>
     <a href="#condor_tarball">&lt;condor_tarballs&gt;</a><br/>
     <blockquote>
-        <a href="#condor_tarball">&lt;condor_tarball arch="default" base_dir="/opt/wmscollector/" os="default" tar_file="/var/www/html/glidefactory/stage/glidein_v2_4/condor_bin_default-default-default.a83ePm.tgz" version="default"/&gt;</a><br/>
+        <a href="#condor_tarball">&lt;condor_tarball arch="default" base_dir="/opt/wmscollector/" os="default" version="default"/&gt;</a><br/>
     </blockquote>
     <a href="#condor_tarball">&lt;/condor_tarballs&gt;</a><br/>
     <a href="#">&lt;files /&gt;</a><br/>
@@ -908,6 +910,62 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
     </li>
 </UL>
 </div>
+
+<div class="section">
+<a name="attr_substitution" />
+<h2>Attribute substitution</h2>
+
+<p>
+Atribute substitution can be used to parametrized the Factory configuration.
+</p>
+<p>
+Anytime one of the following two bits are found inside the configuration file
+<ul>
+<li><b>$$(<i>attr_name</i>)</b>
+<li><b>$(<i>attr_name</i>)</b>
+</ul>
+</p>
+<p>
+the value of the <i>named attribute</i> is inserted in that place.
+</p>
+<p>
+The <b>$$</b> variant will interpret the type of the attribute, quoting its value as appopriate, 
+while the <b>$</b> requires a <i>string</i> type and will use it as-is.<br>
+They can appear in any string of the configuration file.
+</p>
+<p>
+If an attribute is defined both in the main and the entry section, the section one will prevail.<br>
+This can be used to e.g. define a generic expression in the global section, and customize it on a entry by entry basis
+by only re-defining the relevant bits. 
+</p>
+<p>
+The attribute expansion also works recursively, as long as there are no loops.<br>
+<b>$(DOLLAR)</b> can be used to represent the <b>$</b> sign.
+</p>
+<p>
+For example, with
+<div class="xml">
+<blockquote>
+     &lt;attr name="GLIDEIN_MaxMemMBs" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="int" value="2500" /&gt;<br>
+     &lt;attr name="GLIDEIN_Max_Walltime" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="int" value="171000"/&gt;<br>
+     &lt;attr name="PBS_RSL" const="True" glidein_publish="False" job_publish="False" parameter="False" publish="False" type="string" value="(jobtype=single)(maxWalltime=$$(GLIDEIN_Max_Walltime))(memory=$$(GLIDEIN_MaxMemMBs))" /&gt;<br>
+     ... rsl="(queue=default)$(PBS_RSL)" ...<br>
+</blockquote>
+</div>
+</p>
+<p>
+will be expanded into
+<div class="xml">
+<blockquote>
+     ... rsl="(queue=default)(jobtype=single)(maxWalltime=171000)(memory=2500)" ...<br>
+</blockquote>
+</div>
+</p>
+<p>
+Please notice that the Factory will throw an error on reconfig if a referenced attribute is not defined.
+</p>
+</div>
+
 
 <div class="section">
 <H2 CLASS="western"><A NAME="advanced"></A>Advanced topics</H2>
