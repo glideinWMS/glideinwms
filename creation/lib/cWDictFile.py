@@ -38,11 +38,14 @@ class DictFile:
         self.keys=[]
         self.vals={}
 
-    def has_key(self,key):
+    def has_key(self, key):
         return key in self.keys
 
-    def __getitem__(self,key):
+    def __getitem__(self, key):
         return self.vals[key]
+
+    def get(self, key):
+        return self.vals.get(key)
 
     def get_fname(self):
         return self.fname
