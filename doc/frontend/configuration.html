@@ -68,6 +68,7 @@
         <li><a href="#example">Example Configuration</a> </li>
         <li><a href="#management">Frontend Configuration</a> </li>
         <li><a href="#custom_code">Customizing the glidein Startup</a> </li>
+        <li><a href="#attr_substitution">Attribute substitution</a> </li>
         <li><a href="#multiple_proxy">Using multiple proxies</a> </li>
         <li><a href="#wmscollector">Using multiple wms collectors</a> </li>
         <li><a href="#usercollector">Using multiple user pool collectors/Condor High Availability (HA) support</a> </li>
@@ -102,7 +103,7 @@ Click on any piece for a more detailed description.
         <a href="#">&lt;/process_logs &gt;</a><br/>
     </blockquote>
     <a href="#">&lt;/log_retention &gt;</a><br/>
-        <a href="#match">&lt;match match_expr="True"&gt;</a><br/>
+        <a href="#match">&lt;match match_expr="True" start_expr="$(JOBSTR_ATTR)&lt;$$(JOBSTR_VAL)" &gt;</a><br/>
         <blockquote>
             <a href="#match">&lt;factory query_expr="True"&gt;</a><br/>
             <blockquote>
@@ -114,7 +115,7 @@ Click on any piece for a more detailed description.
                 <a href="#wmscollector">&lt;/collectors&gt;</a><br/>
             </blockquote>
             <a href="#match">&lt;/factory&gt;</a><br/>
-            <a href="#job_query">&lt;job comment="" query_expr="(JobUniverse==5)&amp;&amp;(GLIDEIN_Is_Monitor =!= TRUE)&amp;&amp;(JOB_Is_Monitor =!= TRUE)"&gt;</a><br/>
+            <a href="#job_query">&lt;job comment="" query_expr="(JobUniverse==5)&amp;&amp;($(JOBSTR_ATTR)&lt;$$(JOBSTR_VAL))" &gt;</a><br/>
             <blockquote>
                 <a href="#match">&lt;match_attrs /&gt;</a><br/>
                 <a href="#schedd">&lt;schedds&gt;</a><br/>
@@ -149,6 +150,7 @@ Click on any piece for a more detailed description.
         <a href="#attr_expose">&lt;attr  name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="False" type="string" value="True" /&gt;</a><br/>
         <a href="#attr_glexec">&lt;attr name="GLIDEIN_Glexec_Use" glidein_publish="True" job_publish="True" parameter="False" type="string" value="OPTIONAL" /&gt;</a><br/>
         <a href="#attr_match">&lt;attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True" /&gt;</a><br/>
+        <a href="#attr_match">&lt;attr name="JOBSTR_ATTR" glidein_publish="False" job_publish="False" parameter="True" type="string" value="NumJobStarts"/&gt;</a><br/>
     </blockquote>
     <a href="#attrs">&lt;/attrs&gt;</a><br/>
     <a href="#group">&lt;groups&gt;</a><br/>
@@ -185,7 +187,11 @@ Click on any piece for a more detailed description.
                     <a href="#group_security_proxies">&lt;credentials /&gt;</a><br/>
                 </blockquote>
             <a href="#">&lt;/security&gt;</a><br/>
-            <a href="#group_attrs">&lt;attrs /&gt;</a><br/>
+            <a href="#group_attrs">&lt;attrs &gt;</a><br/>
+                <blockquote>
+                     <a href="#group_attrs">&lt;attr name="JOBSTR_VAL" glidein_publish="False" job_publish="False" parameter="True" type="int" value="5"/&gt;</a><br/>
+                </blockquote>
+            <a href="#group_attrs">&lt;/attrs /&gt;</a><br/>
             <a href="#files">&lt;files /&gt;</a><br/>
         </blockquote>
         <a href="#">&lt;/group&gt;</a><br/>
@@ -967,6 +973,55 @@ glideins.  Groups are used to group users with similar requirements, such as pro
             <br/>
             &lt;/match &gt;
         </div>
+</p>
+</div>
+<div class="section">
+<a name="attr_substitution" />
+<h2>Attribute substitution</h2>
+
+<p>
+Atribute substitution can be used to parametrized the Frontend configuration.
+</p>
+<p>
+Anytime one of the following two bits are found inside the configuration file
+<ul>
+<li><b>$$(<i>attr_name</i>)</b>
+<li><b>$(<i>attr_name</i>)</b>
+</ul>
+</p>
+<p>
+the value of the <i>named attribute</i> is inserted in that place.
+</p>
+<p>
+The <b>$$</b> variant will interpret the type of the attribute, quoting its value as appopriate, 
+while the <b>$</b> requires a <i>string</i> type and will use it as-is.
+</p>
+<p>
+For example, with
+<div class="xml">
+<blockquote>
+     &lt;attr name="JOBSTR_ATTR" glidein_publish="False" job_publish="False" parameter="True" type="string" value="NumJobStarts"/&gt;<br>
+     &lt;attr name="JOBSTR_VAL" glidein_publish="False" job_publish="False" parameter="True" type="int" value="5"/&gt;<br>
+     &lt;attr name="SITE_ATTR" glidein_publish="False" job_publish="False" parameter="True" type="string" value="GLIDEIN_Site"/&gt;<br>
+     &lt;attr name="SITE_VAL" glidein_publish="False" job_publish="False" parameter="True" type="string" value="FNAL"/&gt;<br>
+     ... start_expr="($(JOBSTR_ATTR)&lt;$$(JOBSTR_VAL))&amp;&amp;($(SITE_ATTR)=?=$$(SITE_VAL))" ...<br>
+</blockquote>
+</div>
+</p>
+<p>
+will be expanded into
+<div class="xml">
+<blockquote>
+     ... start_expr='(NumJobStarts&lt;5)&amp;&amp;(GLIDEIN_Site=?="FNAL")' ...<br>
+</blockquote>
+</div>
+<p>
+If an attribute is defined both in the main and the group section, the section one will prevail.<br>
+The attribute expansion also works recursively, as long as there are no loops.<br>
+<b>$(DOLLAR)</b> can be used to represent the <b>$</b> sign.
+</p>
+<p>
+Finally, the Frontend will throw an error if an referenced attribute is not defined.
 </p>
 </div>
 <div class="section">
