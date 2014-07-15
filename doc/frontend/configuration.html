@@ -994,7 +994,17 @@ the value of the <i>named attribute</i> is inserted in that place.
 </p>
 <p>
 The <b>$$</b> variant will interpret the type of the attribute, quoting its value as appopriate, 
-while the <b>$</b> requires a <i>string</i> type and will use it as-is.
+while the <b>$</b> requires a <i>string</i> type and will use it as-is.<br>
+They can appear in any string of the configuration file.
+</p>
+<p>
+If an attribute is defined both in the main and the group section, the section one will prevail.<br>
+This can be used to e.g. define a generic expression in the global section, and customize it on a group by group basis
+by only re-defining the relevant bits. 
+</p>
+<p>
+The attribute expansion also works recursively, as long as there are no loops.<br>
+<b>$(DOLLAR)</b> can be used to represent the <b>$</b> sign.
 </p>
 <p>
 For example, with
@@ -1002,7 +1012,8 @@ For example, with
 <blockquote>
      &lt;attr name="JOBSTR_ATTR" glidein_publish="False" job_publish="False" parameter="True" type="string" value="NumJobStarts"/&gt;<br>
      &lt;attr name="JOBSTR_VAL" glidein_publish="False" job_publish="False" parameter="True" type="int" value="5"/&gt;<br>
-     &lt;attr name="SITE_ATTR" glidein_publish="False" job_publish="False" parameter="True" type="string" value="GLIDEIN_Site"/&gt;<br>
+     &lt;attr name="PREFIX_VAL" glidein_publish="False" job_publish="False" parameter="True" type="string" value="DESIRED"/&gt;<br>
+     &lt;attr name="SITE_ATTR" glidein_publish="False" job_publish="False" parameter="True" type="string" value="$(PREFIX_VAL)_Site"/&gt;<br>
      &lt;attr name="SITE_VAL" glidein_publish="False" job_publish="False" parameter="True" type="string" value="FNAL"/&gt;<br>
      ... start_expr="($(JOBSTR_ATTR)&lt;$$(JOBSTR_VAL))&amp;&amp;($(SITE_ATTR)=?=$$(SITE_VAL))" ...<br>
 </blockquote>
@@ -1012,16 +1023,12 @@ For example, with
 will be expanded into
 <div class="xml">
 <blockquote>
-     ... start_expr='(NumJobStarts&lt;5)&amp;&amp;(GLIDEIN_Site=?="FNAL")' ...<br>
+     ... start_expr='(NumJobStarts&lt;5)&amp;&amp;(DESIRED_Site=?="FNAL")' ...<br>
 </blockquote>
 </div>
-<p>
-If an attribute is defined both in the main and the group section, the section one will prevail.<br>
-The attribute expansion also works recursively, as long as there are no loops.<br>
-<b>$(DOLLAR)</b> can be used to represent the <b>$</b> sign.
 </p>
 <p>
-Finally, the Frontend will throw an error if an referenced attribute is not defined.
+Please notice that the Frontend will throw an error on reconfig if a referenced attribute is not defined.
 </p>
 </div>
 <div class="section">
