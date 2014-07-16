@@ -170,7 +170,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         elif gridtype.startswith('batch '):
             input_files.append('$ENV(X509_USER_PROXY)')
             encrypt_input_files.append('$ENV(X509_USER_PROXY)')
-            self.add('x509userproxy', '$ENV(X509_USER_PROXY)')
+            self.add('environment', '"X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME)"')
+            # TODO: revisit when fixed by condor, 8.2.2?
+            # self.add('x509userproxy', '$ENV(X509_USER_PROXY)')
             self.add('request_memory', '2GB')
         else:
             pass

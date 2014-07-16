@@ -1376,6 +1376,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
             # --rgahp-script is a workaround for condor_submit adding the script as second parameter
             exe_env.append('GRID_RESOURCE_OPTIONS=--rgahp-script --rgahp-key %s --rgahp-nopass' % submit_credentials.security_credentials["PrivateKey"])
             exe_env.append('X509_USER_PROXY=%s' % submit_credentials.security_credentials["GlideinProxy"])
+            exe_env.append('X509_USER_PROXY_BASENAME=%s' % os.path.basename(submit_credentials.security_credentials["GlideinProxy"]))
             glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
             # condor and batch (BLAH/BOSCO) submissions do not like arguments enclosed in quotes
             # - batch pbs would consider a single argument if quoted
