@@ -48,6 +48,7 @@ def create_condor_tar_fd(condor_base_dir):
                   'libexec/condor_glexec_run',
                   'libexec/condor_glexec_update_proxy',
                   'libexec/condor_glexec_setup',
+                  'libexec/condor_shared_port',
                   'libexec/condor_ssh_to_job_sshd_setup',
                   'libexec/condor_ssh_to_job_shell_setup',
                   'libexec/condor_kflops',
