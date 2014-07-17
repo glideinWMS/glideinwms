@@ -445,8 +445,8 @@ function automatic_work_dir {
         fi
 
         # make sure there is enough available diskspace
-        cd $d
-        free=`df -kP . | awk '{if (NR==2) print $4}'`
+        #cd $d
+        free=`df -kP $d | awk '{if (NR==2) print $4}'`
         if [ "x$free" == "x" -o $free -lt $disk_required ]; then
             echo "  Workdir: not enough disk space available in $d" 1>&2
             continue
@@ -860,6 +860,20 @@ if [ -z "$GLOBUS_PATH" ]; then
     warn 'Continuing like nothing happened' 1>&2
   fi
 fi
+
+function set_proxy_fullpath {
+    # Set the X509_USER_PROXY path to full path to the file
+    fullpath="`readlink -f $X509_USER_PROXY`"
+    if [ $? -eq 0 ]; then
+        echo "Setting X509_USER_PROXY $X09_USER_PROXY to canonical path $fullpath" 1>&2
+        export X509_USER_PROXY="$fullpath"
+    else
+        echo "Unable to get canonical path for X509_USER_PROXY, using $X09_USER_PROXY" 1>&2
+    fi
+}
+
+
+[ -n "$X509_USER_PROXY" ] && set_proxy_fullpath
 
 ########################################
 # prepare and move to the work directory
