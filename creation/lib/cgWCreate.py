@@ -192,7 +192,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
         input_files.append('$ENV(X509_USER_PROXY)')
         encrypt_input_files.append('$ENV(X509_USER_PROXY)')
-        self.add('environment', '"X509_USER_PROXY=$ENV(X509_USER_PROXY_FILENAME)"')
+        self.add('environment', '"X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME)"')
         self.add("transfer_Input_files", ','.join(input_files))
         self.add("encrypt_Input_files", ','.join(encrypt_input_files))
 
