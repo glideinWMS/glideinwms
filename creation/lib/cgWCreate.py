@@ -140,6 +140,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             self.populate_standard_grid(rsl, auth_method, gridtype)
             # next we add the Condor-C additions
             self.populate_condorc_grid(submit_attrs)
+        elif (gridtype.startswith('batch ')):
+            # BOSCO, aka batch *
+            self.populate_batch_grid(rsl, auth_method, gridtype, submit_attrs)
         else:
             self.populate_standard_grid(rsl, auth_method, gridtype)
 
@@ -158,8 +161,6 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
 
     def populate_standard_grid(self, rsl, auth_method, gridtype):
-        input_files = []
-        encrypt_input_files = []
         if gridtype == 'gt2' or gridtype =='gt5':
             if "project_id" in auth_method or ((rsl is not None) and rsl !=""):
                 self.add("globus_rsl", "$ENV(GLIDEIN_RSL)")
@@ -167,13 +168,6 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             self.add("cream_attributes", "$ENV(GLIDEIN_RSL)")
         elif gridtype == 'nordugrid' and rsl:
             self.add("nordugrid_rsl", "$ENV(GLIDEIN_RSL)")
-        elif gridtype.startswith('batch '):
-            input_files.append('$ENV(X509_USER_PROXY)')
-            encrypt_input_files.append('$ENV(X509_USER_PROXY)')
-            self.add('environment', '"X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME)"')
-            # TODO: revisit when fixed by condor, 8.2.2?
-            # self.add('x509userproxy', '$ENV(X509_USER_PROXY)')
-            self.add('request_memory', '2GB')
         else:
             pass
 
@@ -183,18 +177,35 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("Arguments", "$ENV(GLIDEIN_ARGUMENTS)")
 
         self.add("Transfer_Executable", "True")
-        self.add("transfer_Input_files", ','.join(input_files))
-        self.add("encrypt_Input_files", ','.join(encrypt_input_files))
         self.add("transfer_Output_files", "")
         self.add("WhenToTransferOutput ", "ON_EXIT")
 
         self.add("stream_output", "False")
         self.add("stream_error ", "False")
 
-    def populate_condorc_grid(self, submit_attrs):
-        for key in submit_attrs.keys():
-            self.add(key, submit_attrs[key]['value'])
 
+    def populate_batch_grid(self, rsl, auth_method, gridtype, submit_attrs):
+        input_files = []
+        encrypt_input_files = []
+
+        self.populate_standard_grid(rsl, auth_method, gridtype)
+
+        input_files.append('$ENV(X509_USER_PROXY)')
+        encrypt_input_files.append('$ENV(X509_USER_PROXY)')
+        self.add('environment', '"X509_USER_PROXY=$ENV(X509_USER_PROXY_FILENAME)"')
+        self.add("transfer_Input_files", ','.join(input_files))
+        self.add("encrypt_Input_files", ','.join(encrypt_input_files))
+
+        self.populate_submit_attrs(submit_attrs)
+
+
+    def populate_submit_attrs(self, submit_attrs, attr_prefix=''):
+        for key in submit_attrs.keys():
+            self.add('%s%s' % (attr_prefix, key), submit_attrs[key]['value'])
+
+
+    def populate_condorc_grid(self, submit_attrs):
+        self.populate_submit_attrs(submit_attrs)
         self.add('+TransferOutput', '""')
         self.add('x509userproxy', '$ENV(X509_USER_PROXY)')
 
