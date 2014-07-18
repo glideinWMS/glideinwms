@@ -1078,10 +1078,24 @@ the working directory specified by</P>
         <td> <b>TMP_DIR</b> </td>
         <TD>
             <P>Path to the directory that admin-provided scripts and user jobs can use
-            for storing temporary data. 
+            for storing temporary data.
             </P>
             <P>This variable is exported as <B>GLIDEIN_Tmp_Dir</B> both to
-            the glidein ClassAd and to the use job environment.</P>
+            the glidein ClassAd and to the user job environment.</P>
+        </TD>
+
+    </TR>
+    <TR>
+
+        <td> <b>GLIDEIN_LOCAL_TMP_DIR</b> </td>
+        <TD>
+            <P>Path to the directory on the local file system
+            for storing temporary data.<br>
+            <B>Note:</B> Only use for things that absolutely need the guarantee
+                of residing in the local file system. 
+                Prefer <b>TMP_DIR</b> above for everything else.
+            </P>
+            <P>This variable is exported to the user job environment.</P>
         </TD>
 
     </TR>
