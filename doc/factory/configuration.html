@@ -580,7 +580,7 @@ override the global arguments if present.
         &lt;glidein&gt;&lt;entries&gt;&lt;entry
         name=&quot;<I>entry name</I>&quot;&gt;
         </div>
-    <P><b>Required</b>Each entry point will have its own root tag with parameters:</p>
+    <P><b>Required</b> Each entry point will have its own root tag with parameters:</p>
     <ul>
     <LI>
         <div class="xml">
@@ -595,13 +595,14 @@ override the global arguments if present.
         name=&quot;<I>entry name</I>&quot; auth_method=&quot;<I>grid_proxy</I>&quot;&gt;
         </div>
     <b>Required</b> The authentication method this entry supports.  It is advertised to the Frontends to show which credentials are required for 
-    submission.  <br/>
-    If the authentication method is a credential pair (key_pair, cert_pair, username_password), then the VM id and type must be specified.<br/>
-    These can be additional entry values: &lt;entry vm_type="vmtype" or vm_id="vmid" &gt; <br/>
+    submission.  Valid values: grid_proxy, voms_proxy, key_pair, cert_pair, username_password, vm_type, vm_id, project_id<br/>
+    Multiple authentication methods may be needed and there may be reqirements on the authentication method depending on the type of entry. 
+    E.g. ec2 requires a credential pair (key_pair, cert_pair, username_password) and the VM id and type. BOSCO requires a key_pair and a grid_proxy.
+    A TeraGrid site requires a project id from the Corral Frontend (not supported by VO Frontends).  The authentication 
+    method then must be &lt;entry auth_method="grid_proxy+project_id" &gt;. <br/>
+    When multiple methods are needed these can be additional entry values: &lt;entry vm_type="vmtype" or vm_id="vmid" &gt; <br/>
     OR <br/>
-    added to the authentication method so the Frontend is required to pass them: &lt;entry auth_method="key_pair+vm_id+vm_type" &gt; <br/>
-    If the entry is for a TeraGrid site, it requires a project id from the Corral Frontend (not supported by VO Frontends).  The authentication 
-    method then must be &lt;entry auth_method="grid_proxy+project_id" &gt;
+    can be added to the authentication method so the Frontend is required to pass them: &lt;entry auth_method="key_pair+vm_id+vm_type" &gt; <br/>
     </li>
     <LI>
         <div class="xml">
@@ -610,7 +611,7 @@ override the global arguments if present.
         </div>
     <b>Required</b> The trust domain for the entry.  This is not interpreted by the Factory code, only used to show what credentials are valid.  For example,
     there may be two ec2-type entries for two different clouds with the authentication method of "key-pair".  This shows allows the Frontend to map a key pair
-    to a particular cloud.
+    to a particular cloud. Or in BOSCO you can use it to select the key to use with a specific cluster.
     </li>
     <LI>
         <div class="xml">
@@ -618,8 +619,9 @@ override the global arguments if present.
         name=&quot;<I>entry name</I>&quot;
         gatekeeper=&quot;<I>gatekeeper</I>&quot;&gt;
         </div>
-    <b>Required</b> The identifier of your Grid resource (like
-    <tt>&quot;cmsitbsrv01.fnal.gov/jobmanager-condor&quot;</tt>).
+    <b>Required</b> The identifier of your Grid/BOSCO resource (like
+    <tt>&quot;cmsitbsrv01.fnal.gov/jobmanager-condor&quot;</tt>). 
+    BOSCO resources are USER@FQDN, e.g. <tt>cmsuser@cmscluster.fnal.gov</tt>.
     </li>
     <li>
         <div class="xml">
@@ -641,9 +643,9 @@ override the global arguments if present.
 
         gridtype=&quot;<I>grid type [default: gt2]</I>&quot;&gt;
         </div>
-    <b>Optional</b> The current implementation has been
-    tested with Globus v2 Gatekeepers only, but this tag can specify 
-    additional HTCondor Grid types.
+    <b>Optional</b> The default gt2 is for Globus v2 Gatekeepers. Other values are ec2, condor or one of the batch types supported by HTCondor: 
+    batch pbs (for PBS and SLURM), batch lsf, batch sge, batch condor. 
+    This tag can specify additional HTCondor Grid types.
     </li>
     <LI>
         <div class="xml">
@@ -851,7 +853,22 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
     CONDOR_VERSION=&quot;default&quot;</B></tt>,
     if not otherwise defined. 
 
-    <li>
+     <li>
+        <div class="xml">
+        &lt;glidein&gt;&lt;entries&gt;&lt;entry
+        name=&quot;<I>entry name</I>&quot;&gt;&lt;attrs&gt;&lt;attr
+        name=&quot;X509_CERT_DIR&quot;
+        value=&quot;<I>value</I>&quot;
+        const=&quot;True&quot;
+        parameter=&quot;True&quot;
+        glidein_publish=&quot;False&quot; 
+        job_publish=&quot;True&quot;
+        publish=&quot;True&quot;/&gt;
+        </div>
+        <b>Recommended for BOSCO resources</b> BOSCO resources normally have no OSG installed, so it is safer to publish 
+        the location of the CA certificates because the job may not be able to find them otherwise
+     </li>
+     <li>
         <div class="xml">
         &lt;glidein&gt;&lt;entries&gt;&lt;entry
         name=&quot;<I>entry name</I>&quot;&gt;&lt;attrs&gt;&lt;attr
@@ -864,8 +881,8 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&ldqu
         <b>Recommended</b> Specifies how many CPUs (cores) to claim on the compute node<BR/>
         Valid values are 1..N and "auto" or "0" which means to use all cores by using HTCondor's
         core auto-detection.  The entry will default to 1 if not otherwise defined. 
-    </ul>
     </li>
+    </ul>
         <li>
         <a name="allow_frontend" />
         <div class="xml">

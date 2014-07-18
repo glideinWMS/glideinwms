@@ -1,0 +1,366 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+    <title>glideinWMS - Glidein Recipes</title>
+    <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+    <style type="text/css">
+    </style>
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+        <span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="./index.html">Glidein Recipes</a></li>
+        <li>Overview</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+            <li> <a href="../index.html">Home</a></li>
+            <li> <a href="../download.html">Download</a></li>
+            <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+            <li> <a href="../corral.html">Corral Frontend</a></li>
+            <li> <a href="../factory/index.html">WMS Factory</a></li>
+            <li> <a href="../components/index.html" >Components</a></li>
+            <li> <a href="../recipes/index.html">Recipes</a></li>
+            <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <div id="cse-search-form" style="width: 100%;">Loading</div>
+            <script src="http://www.google.com/jsapi" type="text/javascript"></script>
+            <script src="../common/glidein.js" type="text/javascript"></script>
+            <script type="text/javascript">
+                google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+                google.setOnLoadCallback(onLoad);
+            </script>
+        </div>
+    </div>
+    <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
+    <div class="content">
+        <div class="heading">
+            <img align="right" width="280px" border="0px" src="../images/simple_diagram.png" usemap="#rightimage">
+            <map name="rightimage">
+                <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+                <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+                <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+                <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
+            </map>
+
+            <h2>Glidein Recipes</h2>
+            <ul class="subcomponents">
+                <li><a href="./index.html">Overview</a></li>
+                <li>Cloud Recipes</li>
+                <li class="last"> <a href="./ec2vmroll.html">EC2 VM Roll</a></li>
+            </ul>
+            <h3>Overview</h3>
+        </div>
+        <div class="jump">
+            <u>Jump to:</u>
+            <ol>
+                <li><a href="#Overview">Overview</a> </li>
+            </ol>
+        </div>
+        <div class="related">
+            Related Information:
+            <ul>
+                <li> <a href="./install.html">Install</a></li>
+                <li> <a href="./troubleshooting.html">Troubleshooting</a></li>
+            </ul>
+        </div>
+        <div class="section">
+            <h2 class="western">Description</h2>
+            <p>
+                This recipe is designed to give an example on how to configure a factory and frontend to submit user jobs to a batch cluster via BOSCO.
+            </p>
+            <table summary="Requirements for Batch/BOSCO Submission" class="requirements">
+                <tbody>
+                    <tr class="head">
+                        <td scope="col">Requirement</td>
+                        <td scope="col">Description</td>
+                    </tr>
+                    <tr>
+                        <td>A functioning glideinwms factory</td>
+                        <td>
+                            The factory should be completely configured and functioning for Grid submissions.  The main reason for this is to be
+                            able to be assured that the factory is running and works before we do any configuration for BOSCO.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>A functioning glideinwms frontend</td>
+                        <td>
+                            The frontend should be completely configured and functioning for Grid submissions.  The same reasoning for the factory 
+                            applies here.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><nobr>A valid BOSCO resource</nobr></td>
+                        <td>
+                            Valid, current, enabled account to access a submit host and submit to the cluster.
+                            Specifically, you need the private and public ssh keys are needed for submission.
+                            Then you can add the resource by invoking the "bosco_cluster --add" command. This can be invoked 
+                            from any host but we suggest to do it form the Frontend so that you don't need to transfer the ssh keys.
+                            See the <a href="https://twiki.grid.iu.edu/bin/view/CampusGrids/BoscoInstall#4_3_Add_a_cluster_to_BOSCO">BOSCO manual</a> 
+                            for more information on adding a BOSCO resource.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="section">
+            <h2 class="western">Example BOSCO Factory Entry</h2>
+            <pre>
+&lt;entry name="BOSCO_TEST_carver" 
+    auth_method="key_pair" 
+    enabled="True" 
+    gatekeeper="cmsuser@carvergrid.nersc.gov"
+    gridtype="batch pbs" 
+    schedd_name="fermicloud199.fnal.gov" 
+    trust_domain="bosco" 
+    verbosity="std" 
+    work_dir="AUTO"&gt;
+
+    &lt;config&gt;
+        &lt;max_jobs glideins="3" held="2" idle="1"&gt;
+            &lt;max_job_frontends&gt;&lt;/max_job_frontends&gt;
+        &lt;/max_jobs&gt;
+        &lt;release max_per_cycle="20" sleep="0.2"/&gt;
+        &lt;remove max_per_cycle="5" sleep="0.2"/&gt;
+        &lt;restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/&gt;
+        &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2"/&gt;
+    &lt;/config&gt;
+    &lt;allow_frontends&gt;&lt;/allow_frontends&gt;
+
+    &lt;attrs&gt;
+        &lt;attr name="CONDOR_ARCH" const="True" glidein_publish="False" job_publish="False"
+              parameter="True" publish="False" type="string" value="default"/&gt;
+        &lt;attr name="CONDOR_OS" const="True" glidein_publish="False"  job_publish="False" 
+              parameter="True" publish="False" type="string" value="default"/&gt;
+        &lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" 
+              parameter="True" publish="True" type="string" value="NONE"/&gt;
+        &lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" 
+              parameter="True" publish="True" type="string" value="BOSCO_PBS"/&gt;
+        &lt;attr name="USE_CCB" const="False" glidein_publish="True" job_publish="False" 
+              parameter="True" publish="True" type="string" value="True"/&gt;
+        &lt;attr name="X509_CERT_DIR" const="True" glidein_publish="False" job_publish="True" 
+              parameter="True" publish="True" type="string" value="/osg/certificates"/&gt;
+     &lt;/attrs&gt;
+    &lt;files&gt;&lt;/files&gt;
+    &lt;infosys_refs&gt;&lt;/infosys_refs&gt;
+    &lt;monitorgroups&gt;&lt;/monitorgroups&gt;
+&lt;/entry&gt;
+            </pre>
+            <p> The important pieces of the entry stanza listed above are listed below:</p>
+            <table summary="Important sections of the example factory entry" class="requirements">
+                <tbody>
+                    <tr class="head">
+                        <td scope="col">Name</td>
+                        <td scope="col">Type</td>
+                        <td scope="col">Value</td>
+                        <td scope="col">Description</td>
+                    </tr>
+                    <tr>
+                        <td>auth_method</td>
+                        <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
+                        <td><nobr>"key_pair"</nobr></td>
+                        <td>
+                            <p>The key pair in this case refers to the ssh keypair installed to access the BOSCO resource (remote cluster submit host).  
+                            </p>
+                            <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>gatekeeper</td>
+                        <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
+                        <td><nobr>"cmsuser@carvergrid.nersc.gov"</nobr></td>
+                        <td>
+                            <p>The gatekeeper attribute in the BOSCO case is the username and hostname used by the user to login to the cluster and submit jobs.
+                            </p>
+                            <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>gridtype</td>
+                        <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
+                        <td>"batch pbs"</td>
+                        <td>
+                            <p>It must be the keyword "batch" followed by the batch system used in the cluster (must be one supported by HTCondor/BOSCO, 
+                            e.g pbs, condor, lsf, sge.</p>
+                            <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>trust_domain</td>
+                        <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
+                        <td>"bosco"</td>
+                        <td>
+                            <p>The trust domain can be any arbitrary value.  The only caveat is that both the factory and the frontend
+                            must be configured to use the same value.  In this example, "bosco" is the arbitrary value.</p>
+                            <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>work_dir</td>
+                        <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
+                        <td>"."</td>
+                        <td>
+                            <p>The working directory that the pilot starts up in can be any one supported by the remote cluster or batch system.
+                            </p>
+                            <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>glideins</td>
+                        <td><nobr>Element attribute for &lt;max_jobs&gt;</nobr></td>
+                        <td>"3"</td>
+                        <td>
+                            <p>This attribute is very important for cloud use.  Even more so when real money is being used to pay for the 
+                            computing cycles.  This is a hard limit for the number of VMs that the factory will start.  For testing purposes
+                            this example was restricted to 3 running VMs.</p>
+                            <p>See <a href="../factory/configuration.html">Factory Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>held</td>
+                        <td><nobr>Element attribute for &lt;max_jobs&gt;</nobr></td>
+                        <td>"1"</td>
+                        <td>
+                            <p>This is a limit for the number of VM requests that can be in held state.  If the number of held requests match
+                            this number, the factory will stop asking for more.  For purposes of testing, this number was set extremely low.</p>
+                            <p>See <a href="../factory/configuration.html">Factory Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>idle</td>
+                        <td><nobr>Element attribute for &lt;max_jobs&gt;</nobr></td>
+                        <td>"1"</td>
+                        <td>
+                            <p>This is a limit for the number of VM requests that can be in idle state.  Ordinarily, this attribute is used to 
+                            determine "pressure" at a grid site.  However, the cloud use case is different considering that most cloud 
+                            implementations do not operate on "allocations" or something similare, but are operated on a "pay-as-you-go" 
+                            principle.  Therefore, real money is exchanged for actual usage.  By setting this value to "1", we basically
+                            turn off the "pressure" and ask for as many VMs as there are jobs up to the max set by the <strong>glideins</strong>
+                            attribute.</p>
+                            <p>See <a href="../factory/configuration.html">Factory Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="section">
+            <h2 class="western">Example BOSCO Frontend Configuration</h2>
+            <p>This only configuration for the frontend in this example is for the credential setup.  The credential setup can be included 
+            in the group credential definition or in the global credential definition.
+            <pre>
+      <credentials>
+         <credential absfname="/local/home/frontend/security/grid_proxy" security_class="frontend" trust_domain="OSG" type="grid_proxy"/>
+         <credential absfname="/local/home/frontend/security/bosco_key.rsa.pub" keyabsfname="/local/home/frontend/security/bosco_key.rsa" pilotabsfname="/local/home/frontend/security/grid_proxy.bosco" security_class="frontend" trust_domain="bosco" type="key_pair"/>
+      </credentials>
+
+
+&lt;credential absfname="/path/to/grid_proxy"
+            security_class="frontend"
+            trust_domain="OSG"
+            type="grid_proxy"&gt;
+&lt;credential absfname="/path/to/bosco_key.rsa.pub"
+            keyabsfname="/path/to/bosco_key.rsa"
+            security_class="frontend"
+            trust_domain="bosco"
+            type="key_pair"&gt;
+            </pre>
+            <p> The important pieces of the credential stanza listed above are listed below:</p>
+            <table summary="Important sections of the example factory entry" class="requirements">
+                <tbody>
+                    <tr class="head">
+                        <td scope="col">Name</td>
+                        <td scope="col">Type</td>
+                        <td scope="col">Value</td>
+                        <td scope="col">Description</td>
+                    </tr>
+                    <tr>
+                        <td>absfname</td>
+                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
+                        <td>"/path/to/grid_proxy"</td>
+                        <td>
+                            <p>This is the full path to the file containing the grid proxy used to identify the glidein with the Frontend</p>
+                            <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>absfname</td>
+                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
+                        <td>"/path/to/bosco_key.rsa.pub"</td>
+                        <td>
+                            <p>This is the full path to the file containing the publik key installed on the BOSCO resource to allow ssh access
+                            </p>
+                            <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>keyabsfname</td>
+                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
+                        <td>"/path/to/bosco_key.rsa"</td>
+                        <td>
+                            <p>This is the full path to the file containing the secret key used to access  the BOSCO resource via ssh 
+                            </p>
+                            <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>security_class</td>
+                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
+                        <td>"frontend"</td>
+                        <td>
+                            <p>This is the security class that is defined for the other credentials on this frontend</p>
+                            <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>trust_domain</td>
+                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
+                        <td>"bosco"</td>
+                        <td>
+                            <p>The trust domain can be any arbitrary value.  The only caveat is that both the factory and the frontend
+                            must be configured to use the same value.  In this example, "bosco" and "OSG" are the arbitrary values.</p>
+                            <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>type</td>
+                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
+                        <td>"key_pair"</td>
+                        <td>
+                            <p>The key pair in this case refers to the public and secret keys that can be used to ssh to the BOSCO resource submit host.
+                            </p>
+                            <p>This must match the value specified in the factory for the credentials to be matched properly</p>
+                            <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>pilotabsfname</td>
+                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
+                        <td>"/path/to/pilot_proxy"</td>
+                        <td>
+                            <p>A proxy for the pilot is required in all cases, even if proxies are not used to authenticate on the gatekeeper. 
+                            This is because the proxy is used to establish secure communication between the pilot and the user collector.</p>
+                            <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="footer">
+            Banner image by
+            <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+            used under Creative Commons license.
+            <br>
+            Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glid%0AeinWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
+            glideinWMS email support: glideinwms-support at fnal.gov
+        </div>
+    </div>
+</body>
+</html>
