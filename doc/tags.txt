@@ -1,5 +1,6 @@
 v3_2_6  condor_chirp is now added to condor tarbar used by glidein
-        Added support for submitting glideins to non-grid sites using BOSCO
+        Added support for submitting glideins to batch sites using BOSCO.
+          Requires HTCondor v8.2.2+
         Added new tool to purge old glideins
         Added periodic auto-update to Status Now monitoring pages
         Upon completion, glidein Job history is brought back to the factory
