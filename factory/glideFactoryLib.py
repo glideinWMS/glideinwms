@@ -1369,7 +1369,23 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
 
         # get my (entry) type
         grid_type = jobDescript.data["GridType"]
-        if grid_type == "ec2":
+
+        if grid_type.startswith('batch '):
+            log.debug("submit_credentials.security_credentials: %s" % str(submit_credentials.security_credentials))
+            # exe_env.append('GRID_RESOURCE_OPTIONS=--rgahp-key %s --rgahp-nopass' % submit_credentials.security_credentials["PrivateKey"])
+            # --rgahp-script is a workaround for condor_submit adding the script as second parameter
+            exe_env.append('GRID_RESOURCE_OPTIONS=--rgahp-script --rgahp-key %s --rgahp-nopass' % submit_credentials.security_credentials["PrivateKey"])
+            exe_env.append('X509_USER_PROXY=%s' % submit_credentials.security_credentials["GlideinProxy"])
+            exe_env.append('X509_USER_PROXY_BASENAME=%s' % os.path.basename(submit_credentials.security_credentials["GlideinProxy"]))
+            glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
+            # condor and batch (BLAH/BOSCO) submissions do not like arguments enclosed in quotes
+            # - batch pbs would consider a single argument if quoted
+            # - condor and batch condor would return a submission error
+            # condor_submit will swallow the " character in the string.
+            # condor_submit will include ' as a literal in the arguments string, causing breakage
+            # Hence, use " for now.
+            exe_env.append('GLIDEIN_ARGUMENTS=%s' % glidein_arguments)
+        elif grid_type == "ec2":
             log.debug("params: %s" % str(params))
             log.debug("submit_credentials.security_credentials: %s" % str(submit_credentials.security_credentials))
             log.debug("submit_credentials.identity_credentials: %s" % str(submit_credentials.identity_credentials))
@@ -1431,7 +1447,6 @@ email_logs = False
                 log.debug(msg)
                 log.exception(msg)
                 raise
-
         else:
             exe_env.append('X509_USER_PROXY=%s' % submit_credentials.security_credentials["SubmitProxy"])
 
@@ -1440,9 +1455,8 @@ email_logs = False
             # see the macros
             glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
             if grid_type == "condor":
+                # barch grid type are handled above
                 # condor_submit will swallow the " character in the string.
-                # condor_submit will include ' as a literal in the arguments string, causing breakage
-                # Hence, use " for now.
                 exe_env.append('GLIDEIN_ARGUMENTS=%s' % glidein_arguments)
             else:
                 exe_env.append('GLIDEIN_ARGUMENTS="%s"' % glidein_arguments)

@@ -22,40 +22,99 @@ function check_x509_certs {
     if [ -e "$X509_CERT_DIR" ]; then
 	  export X509_CERT_DIR
     elif [ -e "$HOME/.globus/certificates/" ]; then
-	  export X509_CERT_DIR=$HOME/.globus/certificates/
+	  export X509_CERT_DIR="$HOME/.globus/certificates/"
     elif [ -e "/etc/grid-security/certificates/" ]; then
 	  export X509_CERT_DIR=/etc/grid-security/certificates/
+    elif [ -e "$GLOBUS_LOCATION/share/certificates/" ]; then
+	  export X509_CERT_DIR="$GLOBUS_LOCATION/share/certificates/"
+    elif [ -e "$X509_CADIR" ]; then
+	  export X509_CERT_DIR="$X509_CADIR"
     else
-        STR="Could not find grid-certificates!\n"
+        STR="Could not find CA certificates!\n"
         STR+="Looked in:\n"
         STR+="	\$X509_CERT_DIR ($X509_CERT_DIR)\n"
         STR+="	\$HOME/.globus/certificates/ ($HOME/.globus/certificates/)\n"
         STR+="	/etc/grid-security/certificates/"
+        STR+="	\$GLOBUS_LOCATION/share/certificates/ ($GLOBUS_LOCATION/share/certificates/)\n"
+        STR+="	\$X509_CADIR ($X509_CADIR)\n"
 	STR1=`echo -e "$STR"`
-        "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR1" "directory" "$X509_CERT_DIR"
-        exit 1
+        echo "WARNING - $STR1" >&2
+        #"$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR1" "directory" "$X509_CERT_DIR"
+        #exit 1
     fi
     return 0
 }
 
+
+function get_x509_proxy {
+    # Look for the certificates in $1, $X509_USER_CERT, /tmp/x509up_u`id -u`
+    # $1 - optional certificate file name
+    cert_fname=$1
+    if [ -z "$cert_fname" ]; then
+        if [ -n "$X509_USER_CERT" ]; then
+            cert_fname="$X509_USER_CERT"
+        else
+            cert_fname="/tmp/x509up_u`id -u`"
+        fi
+    else
+        X509_USER_CERT="$cert_fname"
+    fi
+    if [ ! -e "$cert_fname" ]; then
+        echo "Certificate file $cert_fname does not exist." >&2
+        #exit 1
+    fi
+    if [ ! -r "$cert_fname" ]; then
+        echo "Unable to read $cert_fname (user: `id -u`/$USER)." >&2
+        #exit 1
+    fi
+
+
+}
+
+
 function check_x509_tools {
+    # Failing only if all commands are missing (grid-proxy-info, voms=proxy-info, openssl)
+    # If only some are missing only prints warning on stderr
+    # All functions have to be modified to work with any of the 3 commands
+    missing_commands=0
     # verify grid-proxy-info exists
     command -v grid-proxy-info >& /dev/null
     if [ $? -eq 1 ]; then
 	STR="grid-proxy-init command not found in path!"
-	"$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "grid-proxy-init"
-	exit 1
+	echo $STR >&2
+        #"$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "grid-proxy-init"
+	let missing_commands+=1
     fi
     # verify voms-proxy-info exists
     command -v voms-proxy-info >& /dev/null
     if [ $? -eq 1 ]; then
 	STR="voms-proxy-init command not found in path!"
-	"$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "voms-proxy-init"
-	exit 1
+	echo $STR >&2
+	#"$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "voms-proxy-init"
+	let missing_commands+=1
+    fi
+    # verify openssl  exists
+    command -v openssl >& /dev/null
+    if [ $? -eq 1 ]; then
+	STR="openssl command not found in path!"
+	echo $STR >&2
+	#"$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "voms-proxy-init"
+	let missing_commands+=1
+    fi
+    if [ $missing_commands -ne 0 ]; then
+        if [ $missing_commands -ge 3 ]; then
+	    STR="No x509 command (grid-proxy-init, voms-proxy-init, openssl) found in path!"
+            "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" 
+            exit 1
+        else
+            STR="Not all x509 commands found in path ($missing_commands missing)!"
+	    echo $STR >&2
+        fi
     fi
 
     return 0
 }
+
 
 function copy_x509_proxy {
     if [ -a "$X509_USER_PROXY" ]; then
@@ -104,9 +163,8 @@ function copy_x509_proxy {
     fi
 
     export X509_USER_PROXY="$local_proxy_dir/myproxy"
-    # protect from strange sites
-    chmod a-wx "$X509_USER_PROXY"
-    chmod go-r "$X509_USER_PROXY"
+    # protect from strange sites (only the owner should only read) was: a-wx, go-r
+    chmod 0400 "$X509_USER_PROXY"
 
     umask $old_umask
     if [ $? -ne 0 ]; then
@@ -118,6 +176,36 @@ function copy_x509_proxy {
     return 0
 }
 
+
+function openssl_get_x509_timeleft {
+    # $1 cert pathname
+    if [ ! -a "$1" ]; then
+        return 1
+    fi
+    cert_pathname=$1
+    output=$(openssl x509 -noout -subject -dates -in $cert_pathname 2>/dev/null)
+
+    start_date=$(echo $output | sed 's/.*notBefore=\(.*\).*not.*/\1/g')
+    end_date=$(echo $output | sed 's/.*notAfter=\(.*\)$/\1/g')
+
+    # For OS X: date  -j -f "%b %d %T %Y %Z" "$start_date" +"%s"
+    start_epoch=$(date +%s -d "$start_date")
+    end_epoch=$(date +%s -d "$end_date")
+
+    epoch_now=$(date +%s)
+
+    if [ "$start_epoch" -gt "$epoch_now" ]; then
+        echo "Certificate for $1 is not yet valid" >&2
+        seconds_to_expire=0
+    else
+        seconds_to_expire=$(($end_epoch - $epoch_now))
+    fi
+
+    echo $seconds_to_expire
+}
+
+
+
 # returns the expiration time of the proxy
 function get_x509_expiration {
     now=`date +%s`
@@ -127,11 +215,16 @@ function get_x509_expiration {
         exit 1 # just to be sure
     fi
 
-    l=`grid-proxy-info -timeleft`
+    l=$(grid-proxy-info -timeleft)
     ret=$?
     if [ $ret -ne 0 ]; then
-	l=`voms-proxy-info -timeleft`
-	ret=$?
+        # using  -dont-verify-ac to avoid exit code 1 if AC signatures are not present
+        l=$(voms-proxy-info -dont-verify-ac -timeleft)
+        ret=$?
+        if [ $ret -ne 0 ]; then
+            l=$(openssl_get_x509_timeleft "$X509_USER_PROXY")
+            ret=$?
+        fi
     fi
 
     if [ $ret -eq 0 ]; then
@@ -141,8 +234,8 @@ function get_x509_expiration {
 	    STR1=`echo -e "$STR"`
 	    "$error_gen" -error "setup_x509.sh" "VO_Proxy" "$STR1" "proxy" "$X509_USER_PROXY"
 	    exit 1
-	fi
-	echo `/usr/bin/expr $now + $l`
+        fi
+        echo $(/usr/bin/expr $now + $l)
     else
         #echo "Could not obtain -timeleft" 1>&2
         STR="Could not obtain -timeleft"
