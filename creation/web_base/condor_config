@@ -17,7 +17,6 @@ LIB=$(CONDOR_DIR)/lib
 LIBEXEC = $(CONDOR_DIR)/libexec
 
 MAIL = /bin/mail
-DAEMON_LIST = MASTER, STARTD
 MASTER_ADDRESS_FILE = $(LOG)/.master_address
 MASTER = $(SBIN)/condor_master
 MASTER_LOG = $(LOG)/MasterLog
