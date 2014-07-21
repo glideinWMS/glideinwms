@@ -54,7 +54,8 @@
             <h2>Glidein Recipes</h2>
             <ul class="subcomponents">
                 <li><a href="./index.html">Overview</a></li>
-                <li>Cloud Recipes</li>
+                <li>Batch (BOSCO)</li>
+                <li><a href="./cloud.html">Cloud Recipes</a></li>
                 <li class="last"> <a href="./ec2vmroll.html">EC2 VM Roll</a></li>
             </ul>
             <h3>Overview</h3>
@@ -150,6 +151,9 @@
               parameter="True" publish="True" type="string" value="/osg/certificates"/&gt;
      &lt;/attrs&gt;
     &lt;files&gt;&lt;/files&gt;
+    &lt;submit_attrs&gt;
+        &lt;submit_attr name="+remote_queue" value='"serial"'/&gt;
+    &lt;submit_attrs&gt;
     &lt;infosys_refs&gt;&lt;/infosys_refs&gt;
     &lt;monitorgroups&gt;&lt;/monitorgroups&gt;
 &lt;/entry&gt;
@@ -198,15 +202,14 @@
                         <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
                         <td>"bosco"</td>
                         <td>
-                            <p>The trust domain can be any arbitrary value.  The only caveat is that both the factory and the frontend
-                            must be configured to use the same value.  In this example, "bosco" is the arbitrary value.</p>
+                            <p>The trust domain can be any arbitrary value. Both the factory and the frontend must be configured to use the same value of the trust_domain.  In this example, "bosco" is the arbitrary value.</p>
                             <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
                     <tr>
                         <td>work_dir</td>
                         <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
-                        <td>"."</td>
+                        <td>"AUTO"</td>
                         <td>
                             <p>The working directory that the pilot starts up in can be any one supported by the remote cluster or batch system.
                             </p>
@@ -218,8 +221,7 @@
                         <td><nobr>Element attribute for &lt;max_jobs&gt;</nobr></td>
                         <td>"3"</td>
                         <td>
-                            <p>This attribute is very important for cloud use.  Even more so when real money is being used to pay for the 
-                            computing cycles.  This is a hard limit for the number of VMs that the factory will start.  For testing purposes
+                            <p>This is a hard limit for the number of glideins that the factory will submit to the remote batch system. For testing purposes
                             this example was restricted to 3 running VMs.</p>
                             <p>See <a href="../factory/configuration.html">Factory Configuration</a> for a complete description.</p>
                         </td>
@@ -229,7 +231,7 @@
                         <td><nobr>Element attribute for &lt;max_jobs&gt;</nobr></td>
                         <td>"1"</td>
                         <td>
-                            <p>This is a limit for the number of VM requests that can be in held state.  If the number of held requests match
+                            <p>This is a limit for the number of glideins requests that can be in held state.  If the number of held requests match
                             this number, the factory will stop asking for more.  For purposes of testing, this number was set extremely low.</p>
                             <p>See <a href="../factory/configuration.html">Factory Configuration</a> for a complete description.</p>
                         </td>
@@ -239,12 +241,17 @@
                         <td><nobr>Element attribute for &lt;max_jobs&gt;</nobr></td>
                         <td>"1"</td>
                         <td>
-                            <p>This is a limit for the number of VM requests that can be in idle state.  Ordinarily, this attribute is used to 
-                            determine "pressure" at a grid site.  However, the cloud use case is different considering that most cloud 
-                            implementations do not operate on "allocations" or something similare, but are operated on a "pay-as-you-go" 
-                            principle.  Therefore, real money is exchanged for actual usage.  By setting this value to "1", we basically
-                            turn off the "pressure" and ask for as many VMs as there are jobs up to the max set by the <strong>glideins</strong>
-                            attribute.</p>
+                            <p>This is a limit for the number of glideins requests that can be in idle state.  Ordinarily, this attribute is used to determine "pressure" at a grid site.</p>
+                            <p>See <a href="../factory/configuration.html">Factory Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>submit_attr</td>
+                        <td><nobr>Element &lt;submit_attr&gt;</nobr></td>
+                        <td>-</td>
+                        <td>
+                            <p>This element is used to specify RSL equivalent info for gt2/gt5. Name and value of the submit attribute configured will be put in the glidein's JDL before submission. For example, the above configuration shows how to configure glidein submission to a specific remote queue and will result in the following line in the glidein's JDL.</p>
+                            <pre>+remote_queue = "serial"</pre>
                             <p>See <a href="../factory/configuration.html">Factory Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
@@ -256,12 +263,6 @@
             <p>This only configuration for the frontend in this example is for the credential setup.  The credential setup can be included 
             in the group credential definition or in the global credential definition.
             <pre>
-      <credentials>
-         <credential absfname="/local/home/frontend/security/grid_proxy" security_class="frontend" trust_domain="OSG" type="grid_proxy"/>
-         <credential absfname="/local/home/frontend/security/bosco_key.rsa.pub" keyabsfname="/local/home/frontend/security/bosco_key.rsa" pilotabsfname="/local/home/frontend/security/grid_proxy.bosco" security_class="frontend" trust_domain="bosco" type="key_pair"/>
-      </credentials>
-
-
 &lt;credential absfname="/path/to/grid_proxy"
             security_class="frontend"
             trust_domain="OSG"
@@ -270,8 +271,7 @@
             keyabsfname="/path/to/bosco_key.rsa"
             security_class="frontend"
             trust_domain="bosco"
-            type="key_pair"&gt;
-            </pre>
+            type="key_pair"&gt; </pre>
             <p> The important pieces of the credential stanza listed above are listed below:</p>
             <table summary="Important sections of the example factory entry" class="requirements">
                 <tbody>
@@ -324,8 +324,7 @@
                         <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
                         <td>"bosco"</td>
                         <td>
-                            <p>The trust domain can be any arbitrary value.  The only caveat is that both the factory and the frontend
-                            must be configured to use the same value.  In this example, "bosco" and "OSG" are the arbitrary values.</p>
+                            <p>The trust domain can be any arbitrary value. Both the factory and the frontend must be configured to use the same value of the trust_domain.  In this example, "bosco" is the arbitrary value.</p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
                         </td>
                     </tr>

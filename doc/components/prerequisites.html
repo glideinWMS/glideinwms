@@ -117,32 +117,22 @@ Install as: various daemon users or as system rpms/packages
         
         <tr>
             <td> <a target="_blank" href="http://www.cs.wisc.edu/condor/downloads/">HTCondor</a> </td>
-            <td> v7.2.+ </td>
+            <td> v7.8+/<br>v8.2.2+(BOSCO)</td>
             <td class="checked"> y </td>
             <td> &nbsp; </td>
 
             <td class="checked"> y </td>
             <td class="checked"> y </td>
             <td class="checked"> y </td>
-            <td>The installer will use the tarball or rpm 
-            to install and configure HTCondor inline.  It is recommended to use v7.4 and above.</td>
-
-        </tr>
-        <tr>
-            <td> <a target="_blank" href="http://www.cs.wisc.edu/condor/downloads/">HTCondor</a> </td>
-            <td> v8.2.2+ </td>
-            <td class="checked"> y </td>
-            <td> &nbsp; </td>
-            <td> &nbsp; </td>
-            <td> &nbsp; </td>
-            <td class="checked"> y </td>
-            <td>The installer will use the tarball or rpm 
-            to install and configure HTCondor inline.  If you want to add batch resources (via BOSCO) 
-            you need v8.2.2 and above. This version requirement if for the WMS Pool, submitting glideins 
-            and the Frontend, used to setup the BOSCO resource (bosco_cluster_add).
-            Other components still use HTCondor but the previous version requirement applies.
-            If you don't plan to use batch resources via BOSCO you can ignore this requirement.</td>
-
+            <td>The installer will use the tarball or rpm to install and
+                configure HTCondor inline. It is recommended to use v7.8
+                and above.<br><br>
+                <b><u>Batch Submission via BOSCO:</u></b><br>
+                If you want to add batch resources (via BOSCO) you need
+                HTCondor v8.2.2+. This version requirement is for the WMS Pool,
+                submitting glideins and the HTCondor client, used to setup
+                the BOSCO resource (bosco_cluster_add). Other components
+                can use previous recommended versions of HTCondor.</td>
         </tr>
 
         <tr>
