@@ -47,27 +47,29 @@ function check_x509_certs {
 
 
 function get_x509_proxy {
-    # Look for the certificates in $1, $X509_USER_CERT, /tmp/x509up_u`id -u`
+    # Look for the certificates in $1, $X509_USER_PROXY, (not /tmp/x509up_u`id -u`)
     # $1 - optional certificate file name
+    # This function is also setting/changing the value of X509_USER_PROXY
     cert_fname=$1
     if [ -z "$cert_fname" ]; then
-        if [ -n "$X509_USER_CERT" ]; then
-            cert_fname="$X509_USER_CERT"
-        else
-            cert_fname="/tmp/x509up_u`id -u`"
+        if [ -n "$X509_USER_PROXY" ]; then
+            cert_fname="$X509_USER_PROXY"
+        # Skipping proxy in /tmp because it may be confusing
+        #else
+        #    cert_fname="/tmp/x509up_u`id -u`"
         fi
     else
-        X509_USER_CERT="$cert_fname"
+        X509_USER_PROXY="$cert_fname"
     fi
     if [ ! -e "$cert_fname" ]; then
-        echo "Certificate file $cert_fname does not exist." >&2
+        echo "Proxy certificate '$cert_fname' does not exist." >&2
         #exit 1
     fi
     if [ ! -r "$cert_fname" ]; then
-        echo "Unable to read $cert_fname (user: `id -u`/$USER)." >&2
+        echo "Unable to read '$cert_fname' (user: `id -u`/$USER)." >&2
         #exit 1
     fi
-
+    echo "$cert_fname"
 
 }
 

@@ -24,9 +24,10 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-            <li> <a href="../corral.html">Corral Frontend</a></li>
+                <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
 	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
         </ul>
         <div class="search">
@@ -136,9 +137,9 @@ WMS Pool/Factory and the User Pool. NOTE: You do require at least one entry poin
         Also, make sure that this cert has authorization to run a job by running a command such as
         (all on one line): 
         <blockquote>
-            X509_USER_CERT=/tmp/x509up_u&lt;UID&gt; globus-job-run -a -r &lt;gatekeeper in factory config&gt;
+            X509_USER_PROXY=/tmp/x509up_u&lt;UID&gt; globus-job-run -a -r &lt;gatekeeper in factory config&gt;
         </blockquote>
-        Note that /tmp/x509up_u&lt;UID&gt; is the typical location for kerberos certificates, but use 
+        Note that /tmp/x509up_u&lt;UID&gt; is the typical location for x509/kerberos proxy certificates, but use 
         the proper location if the place of your server certificate varies.
     </p>
 
@@ -349,7 +350,7 @@ code 1:Error: communication error<br/>
     
     If using VOMS, try to query the information to verify:
     <blockquote>
-        X509_USER_CERT=&lt;vofronted_proxy_location&gt; voms-proxy-info.
+        X509_USER_PROXY=&lt;vofronted_proxy_location&gt; voms-proxy-info.
     </blockquote>
     </p>
 
