@@ -145,7 +145,7 @@ def lookup_addrs(constr):
         master_names=master_collectors[collector_name_arr_str]
         master_list_str=string.join(master_names,",")
         master_constr='stringListMember(Name,"%s")'%master_list_str
-        coll_error=None
+        coll_error="No collector name???"
         collector_name_arr = collector_name_arr_str.split(',')
         # pick them in random order... they should all be the same
         # but this way we distribute better the load
@@ -155,11 +155,13 @@ def lookup_addrs(constr):
             sts.require_integrity(True) # same as above
             try:
                 data = sts.fetch(master_constr,[('MyAddress','s')])
+                coll_error=None
                 break
             except:
                 time.sleep(1) #retry once
                 try:
                     data = sts.fetch(master_constr,[('MyAddress','s')])
+                    coll_error=None
                     break
                 except condorExe.ExeError, e:
                     # still continue, partial success is better than nothing
