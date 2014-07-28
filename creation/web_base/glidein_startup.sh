@@ -940,7 +940,7 @@ if [ $? -ne 0 ]; then
 fi
 glide_local_tmp_dir_created=1
 
-# the tmpdir should be world readable
+# the tmpdir should be world writable
 # This way it will work even if the user spawned by the glidein is different
 # than the glidein user
 chmod a+rwx "$glide_local_tmp_dir"
@@ -958,7 +958,7 @@ mkdir "$glide_tmp_dir"
 if [ $? -ne 0 ]; then
     early_glidein_failure "Cannot create '$glide_tmp_dir'"
 fi
-# the tmpdir should be world readable
+# the tmpdir should be world writable
 # This way it will work even if the user spawned by the glidein is different
 # than the glidein user
 chmod a+rwx "$glide_tmp_dir"
