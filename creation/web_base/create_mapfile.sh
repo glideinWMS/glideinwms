@@ -19,16 +19,15 @@ source $add_config_line_source
 error_gen=`grep '^ERROR_GEN_PATH ' $config_file | awk '{print $2}'`
 
 
-function get_cert_fname {
+function get_proxy_fname {
     cert_fname="$1"
     if [ -z "$cert_fname" ]; then
-        if [ -n "$X509_USER_CERT" ]; then
-            cert_fname="$X509_USER_CERT"
-        else
-            cert_fname="/tmp/x509up_u`id -u`"
+        if [ -n "$X509_USER_PROXY" ]; then
+            cert_fname="$X509_USER_PROXY"
+        # Ignoring the file in /tmp, it may be confusing
+        #else
+        #    cert_fname="/tmp/x509up_u`id -u`"
         fi
-    #else
-    #    X509_USER_CERT="$cert_fname"
     fi
     # should it control if the file exists?
     echo "Using proxy file $cert_fname (`[ -e "$cert_fname" ] && echo "OK" || echo "No file"`)" 1>&2
@@ -44,7 +43,7 @@ function create_gridmapfile {
         if [ $? -ne 0 ]; then
             # "openssl x509 -noout -issuer .." works for proxys but may be a CA for certificates
             # did not find something to extract the identity, filtering manually
-            cert_fname="`get_cert_fname`"
+            cert_fname="`get_proxy_fname`"
             id_subject=`openssl x509 -noout -subject -in "$cert_fname" | cut -c10-`
             if [ $? -ne 0 ]; then
                 STR="Cannot get user identity.\n"

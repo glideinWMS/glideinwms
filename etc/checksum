@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_6_rc1
+# GLIDEINWMS_VERSION v3_2_6
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -18,7 +18,7 @@ e59bb78a8aba36d0d8691b5f9e4ebf4f  ./creation/lib/cWConsts.py
 27df4d39933d5c1e1f9f5f360e52d71f  ./creation/lib/cWDictFile.py
 d70c079e6098d20b9cccfe8b60ee40ca  ./creation/lib/cWParams.py
 e4405e764b1e40327893d990ae6780f8  ./creation/lib/cgWConsts.py
-3f1c2df06faaacb4dbc4daae6fcdf1d1  ./creation/lib/cgWCreate.py
+056aece39c09055fccf71dae374da95c  ./creation/lib/cgWCreate.py
 8654d73e182dae4e6c4d5a9b8e2a6151  ./creation/lib/cgWDictFile.py
 7222e96fb0e25d4d3b066ab434094a49  ./creation/lib/cgWParamDict.py
 2e809ddb08c8715905808744953e3c28  ./creation/lib/cgWParams.py
@@ -46,7 +46,7 @@ e045ab0b0412b0e990c55e42d6b8fbe4  ./creation/web_base/condor_platform_select.sh
 febae16424ca822c3d9e8b5be90ea919  ./creation/web_base/condor_startup.sh
 7b84235a79079d1690d11fb86e861c85  ./creation/web_base/condor_vars.lst
 d9518531cad88a401b4c0ffcfe043a5e  ./creation/web_base/condor_vars.lst.entry
-41ba291b6ae2aa4e7979c5957ad2d68d  ./creation/web_base/create_mapfile.sh
+6e35bfa7c5fce44d1ba43c3cae1924bc  ./creation/web_base/create_mapfile.sh
 6d19939557bb1086d5d01739bdad62dd  ./creation/web_base/create_temp_mapfile.sh
 2defc7ddcb297a1205a6bf0682f420f9  ./creation/web_base/error_augment.sh
 94b331baa0564c40c8e2516a53c9cda1  ./creation/web_base/error_gen.sh
@@ -88,7 +88,7 @@ f5d175bb907a2a74fb65b5fa2968779e  ./creation/web_base/glidein_startup.sh
 014c3eaf1abf62ff0f599579658e6a10  ./creation/web_base/nodes.blacklist
 e4fb7c132ab526609b41136fb977aca5  ./creation/web_base/parse_starterlog.awk
 e0ba6891e61382c17e0aa7ea0a13c688  ./creation/web_base/setup_script.sh
-6bad71a24ba4c65e4338a1a249fbb427  ./creation/web_base/setup_x509.sh
+ff016e9edd2bdc91aa9ea5fd6ab77061  ./creation/web_base/setup_x509.sh
 53383450eb59e7501d296cb1fee279b3  ./creation/web_base/smart_partitionable.sh
 832265338319a401e981faa9e38b4b19  ./creation/web_base/update_proxy.py
 91bca6a6005d761584523440b6a9c929  ./creation/web_base/validate_node.sh
@@ -101,7 +101,7 @@ ae4938bf593da9b3bebb07b98d47a546  ./factory/glideFactoryCredentials.py
 8c45e44875bd34887c8eff620f4b2d86  ./factory/glideFactoryEntry.py
 7d4b04c41c4d5b568aadbc69178f0b40  ./factory/glideFactoryEntryGroup.py
 1817fe4dba3d67cba2edac276d62a5c3  ./factory/glideFactoryInterface.py
-e058dd8116b199b38d9c1fb34edbe03a  ./factory/glideFactoryLib.py
+68de21377081e1df6185431ff6b95f55  ./factory/glideFactoryLib.py
 465614b1447fb15115d4569a56175b8c  ./factory/glideFactoryLogParser.py
 326b2afd8b836fe63753ac79f73ea5e6  ./factory/glideFactoryMonitorAggregator.py
 ab4e7e961552b1b9a0b391bbb1a1c468  ./factory/glideFactoryMonitoring.py
