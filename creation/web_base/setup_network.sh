@@ -8,7 +8,7 @@
 #
 # Description:
 #   This script will setup the knobs that
-#   are related to incoming connections/firewalls
+#   are related to network tunning, like incoming connections/firewalls
 #
 
 glidein_config=$1
@@ -38,7 +38,7 @@ if [ "$use_ccb" == "True" -o "$use_ccb" == "TRUE" -o "$use_ccb" == "T" -o "$use_
     if [ -z "$collector_host" ]; then
         #echo "No GLIDEIN_Collector found!" 1>&2
         STR="No GLIDEIN_Collector found!"
-        "$error_gen" -error "setup_firewall.sh" "Corruption" "$STR" "attribute" "GLIDEIN_Collector"
+        "$error_gen" -error "setup_network.sh" "Corruption" "$STR" "attribute" "GLIDEIN_Collector"
         exit 1
     fi
 
@@ -69,6 +69,6 @@ if [ "$use_sharedp" == "True" -o "$use_sharedp" == "TRUE" -o "$use_sharedp" == "
 fi
 
 
-"$error_gen" -ok "setup_firewall.sh" "UseCCB" "${out_ccb_str}" "UseSharedPort" "${out_sharedp_str}"
+"$error_gen" -ok "setup_network.sh" "UseCCB" "${out_ccb_str}" "UseSharedPort" "${out_sharedp_str}"
 
 exit 0
