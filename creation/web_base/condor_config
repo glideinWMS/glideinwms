@@ -17,7 +17,6 @@ LIB=$(CONDOR_DIR)/lib
 LIBEXEC = $(CONDOR_DIR)/libexec
 
 MAIL = /bin/mail
-DAEMON_LIST = MASTER, STARTD
 MASTER_ADDRESS_FILE = $(LOG)/.master_address
 MASTER = $(SBIN)/condor_master
 MASTER_LOG = $(LOG)/MasterLog
@@ -44,6 +43,9 @@ PROCD_LOG = $(LOG)/ProcLog
 PROCD_DEBUG = False
 PROCD_MAX_SNAPSHOT_INTERVAL = 60
 
+SHARED_PORT = $(LIBEXEC)/condor_shared_port
+SHARED_PORT_LOG = $(LOG)/SharedPortLog
+SHARED_PORT_DAEMON_AD_FILE = $(GLIDEIN_LOCAL_TMP_DIR)/shared_port_ad
 
 SUSPEND = False
 CONTINUE = True

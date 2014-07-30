@@ -517,7 +517,7 @@ by the VO factory clients.</P>
             <P>Another security setting.</P>
             <P>If set to True, the schedd and the startd will use a low
             overhead protocol. See the <A HREF="configuration.html#security">configuration
-            page</A> or the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:SecEnableMatchPasswordAuthentication">Condor
+            page</A> or the <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_3Configuration.html#param:SecEnableMatchPasswordAuthentication">Condor
             manual</A>.</P>
         </TD>
     </TR>
@@ -553,8 +553,9 @@ by the VO factory clients.</P>
         <TD ROWSPAN=4> - </TD>
         <TD ROWSPAN=4>
             <P>Configure <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_7Networking_includes.html#SECTION00473000000000000000">GCB</A>.</P>
-            <P>GCB is needed to run glideins on worker nodes behind a
-            firewall or a NAT.</P>
+            <P>GCB was needed to run glideins on worker nodes behind a
+            firewall or a NAT in older versions of HTCondor.<BR>
+            <B>Note: Newer versions of HTCondor do not support it anymore.</B></P>
             <P>For more information, see the <A HREF="../components/condor.html#gcb">configuration page</A>.</P>
 
         </TD>
@@ -590,7 +591,20 @@ by the VO factory clients.</P>
         <TD> Bool </TD>
         <TD> False </TD>
         <TD>
-            <P>If set to True, it will enable <A HREF="http://www.cs.wisc.edu/condor/manual/v7.3/3_7Networking_includes.html#sec:CCB">CCB</A> (available since Condor v7.3.0).</P>
+            <P>If set to True, it will enable <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_7Networking_includes.html#sec:CCB">HTCondor Connection Brokering (CCB)</A>,
+            which is needed if the glideins are behind a firewall or a NAT.</P>
+        </TD>
+
+    </TR>
+    <TR>
+        <td> <b>USE_SHARED_PORT</b> </td>
+
+        <TD> Bool </TD>
+        <TD> False </TD>
+        <TD>
+            <P>If set to True, it will enable <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_7Networking_includes.html#sec:shared-port-daemon">the shared port daemon</A>,
+               which will reduce the number of connections between the glidein and the collectors.
+               </P>
         </TD>
 
     </TR>
