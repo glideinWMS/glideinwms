@@ -292,6 +292,7 @@ function print_tail {
 ####################################
 # Cleaup, print out message and exit
 work_dir_created=0
+glide_local_tmp_dir_created=0
 
 # use this for early failures, when we cannot assume we can write to disk at all
 # too bad we end up with some repeated code, but difficult to do better
@@ -318,6 +319,9 @@ function early_glidein_failure {
   cd "$start_dir"
   if [ "$work_dir_created" -eq "1" ]; then
     rm -fR "$work_dir"
+  fi
+  if [ "$glide_local_tmp_dir_created" -eq "1" ]; then
+    rm -fR "$glide_local_tmp_dir"
   fi
 
   print_tail 1 "${final_result_simple}" "${final_result_long}"
@@ -418,6 +422,9 @@ function glidein_exit {
   cd "$start_dir"
   if [ "$work_dir_created" -eq "1" ]; then
     rm -fR "$work_dir"
+  fi
+  if [ "$glide_local_tmp_dir_created" -eq "1" ]; then
+    rm -fR "$glide_local_tmp_dir"
   fi
 
   print_tail $1 "${final_result_simple}" "${final_result_long}"
@@ -926,15 +933,35 @@ if [ $? -ne 0 ]; then
     early_glidein_failure "Failed chmod '$work_dir'"
 fi
 
+def_glide_local_tmp_dir="/tmp/glide_`id -u -n`_XXXXXX"
+glide_local_tmp_dir=`mktemp -d "$def_glide_local_tmp_dir"`
+if [ $? -ne 0 ]; then
+    early_glidein_failure "Cannot create temp '$def_glide_local_tmp_dir'"
+fi
+glide_local_tmp_dir_created=1
+
+# the tmpdir should be world writable
+# This way it will work even if the user spawned by the glidein is different
+# than the glidein user
+chmod 1777 "$glide_local_tmp_dir"
+if [ $? -ne 0 ]; then
+    early_glidein_failure "Failed chmod '$glide_local_tmp_dir'"
+fi
+# prevent others to remove or rename a file in tmp
+chmod o+t "$glide_local_tmp_dir"
+if [ $? -ne 0 ]; then
+    early_glidein_failure "Failed special chmod '$glide_local_tmp_dir'"
+fi
+
 glide_tmp_dir="${work_dir}/tmp"
 mkdir "$glide_tmp_dir"
 if [ $? -ne 0 ]; then
     early_glidein_failure "Cannot create '$glide_tmp_dir'"
 fi
-# the tmpdir should be world readable
+# the tmpdir should be world writable
 # This way it will work even if the user spawned by the glidein is different
 # than the glidein user
-chmod a+rwx "$glide_tmp_dir"
+chmod 1777 "$glide_tmp_dir"
 if [ $? -ne 0 ]; then
     early_glidein_failure "Failed chmod '$glide_tmp_dir'"
 fi
@@ -1012,6 +1039,7 @@ echo "GLIDEIN_STARTUP_PID $$" >> glidein_config
 echo "GLIDEIN_WORK_DIR $main_dir" >> glidein_config
 echo "GLIDEIN_ENTRY_WORK_DIR $entry_dir" >> glidein_config
 echo "TMP_DIR $glide_tmp_dir" >> glidein_config
+echo "GLIDEIN_LOCAL_TMP_DIR $glide_local_tmp_dir" >> glidein_config
 echo "PROXY_URL $proxy_url" >> glidein_config
 echo "DESCRIPTION_FILE $descript_file" >> glidein_config
 echo "DESCRIPTION_ENTRY_FILE $descript_entry_file" >> glidein_config
