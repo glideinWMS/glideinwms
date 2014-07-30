@@ -62,19 +62,6 @@ done
 
 add_config_line GLIDEIN_Collector $collector_host
 
-##########################################################
-# check if it should use CCB
-##########################################################
-out_ccb_str="False"
-use_ccb=`grep '^USE_CCB ' $glidein_config | awk '{print $2}'`
-if [ "$use_ccb" == "True" -o "$use_ccb" == "TRUE" -o "$use_ccb" == "T" -o "$use_ccb" == "Yes" -o "$use_ccb" == "Y" -o "$use_ccb" == "1" ]; then
-    # ok, we need to define CCB variable
-    add_config_line CCB_ADDRESS $collector_host
-    # and export it to Condor
-    add_condor_vars_line CCB_ADDRESS C "-" "+" Y N "-"
-    out_ccb_str="True"
-fi
-
-"$error_gen" -ok "collector_setup.sh" "CollectorList" "${head_nodes}" "Collector" "$collector_host" "UseCCB" "${out_ccb_str}"
+"$error_gen" -ok "collector_setup.sh" "CollectorList" "${head_nodes}" "Collector" "$collector_host"
 
 exit 0
