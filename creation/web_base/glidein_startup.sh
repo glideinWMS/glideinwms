@@ -943,7 +943,7 @@ glide_local_tmp_dir_created=1
 # the tmpdir should be world writable
 # This way it will work even if the user spawned by the glidein is different
 # than the glidein user
-chmod a+rwx "$glide_local_tmp_dir"
+chmod 1777 "$glide_local_tmp_dir"
 if [ $? -ne 0 ]; then
     early_glidein_failure "Failed chmod '$glide_local_tmp_dir'"
 fi
@@ -961,7 +961,7 @@ fi
 # the tmpdir should be world writable
 # This way it will work even if the user spawned by the glidein is different
 # than the glidein user
-chmod a+rwx "$glide_tmp_dir"
+chmod 1777 "$glide_tmp_dir"
 if [ $? -ne 0 ]; then
     early_glidein_failure "Failed chmod '$glide_tmp_dir'"
 fi
