@@ -947,11 +947,6 @@ chmod 1777 "$glide_local_tmp_dir"
 if [ $? -ne 0 ]; then
     early_glidein_failure "Failed chmod '$glide_local_tmp_dir'"
 fi
-# prevent others to remove or rename a file in tmp
-chmod o+t "$glide_local_tmp_dir"
-if [ $? -ne 0 ]; then
-    early_glidein_failure "Failed special chmod '$glide_local_tmp_dir'"
-fi
 
 glide_tmp_dir="${work_dir}/tmp"
 mkdir "$glide_tmp_dir"
@@ -964,11 +959,6 @@ fi
 chmod 1777 "$glide_tmp_dir"
 if [ $? -ne 0 ]; then
     early_glidein_failure "Failed chmod '$glide_tmp_dir'"
-fi
-# prevent others to remove or rename a file in tmp
-chmod o+t "$glide_tmp_dir"
-if [ $? -ne 0 ]; then
-    early_glidein_failure "Failed special chmod '$glide_tmp_dir'"
 fi
 
 short_main_dir=main
