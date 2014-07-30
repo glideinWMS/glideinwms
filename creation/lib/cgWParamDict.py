@@ -162,7 +162,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         after_file_list_scripts = ['check_proxy.sh',
                                    'create_mapfile.sh',
                                    'validate_node.sh',
-                                   'setup_firewall.sh',
+                                   'setup_network.sh',
                                    'gcb_setup.sh',
                                    'glexec_setup.sh',
                                    'java_setup.sh',
