@@ -140,6 +140,10 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         populate_frontend_descript(self.work_dir,self.dicts['frontend_descript'],self.active_sub_list,params)
         populate_common_descript(self.dicts['frontend_descript'],params)
 
+        # Apply multicore policy so frontend can deal with multicore
+        # glideins and requests correctly
+        apply_multicore_policy(self.dicts['frontend_descript'])
+
         # populate the monitor files
         javascriptrrd_dir = params.monitor.javascriptRRD_dir
         for mfarr in ((params.src_dir,'frontend_support.js'),
@@ -643,6 +647,22 @@ def apply_group_glexec_policy(descript_dict, sub_params, params):
 
         descript_dict.add('FactoryQueryExpr', query_expr, allow_overwrite=True)
         descript_dict.add('MatchExpr', match_expr, allow_overwrite=True)
+
+
+def apply_multicore_policy(descript_dict):
+    match_expr = descript_dict['MatchExpr']
+
+    # Only consider sites that provide enough GLIDEIN_CPUS jobs to run
+    match_expr = '(%s) and (int(glidein["attrs"].get("GLIDEIN_CPUS", 1)) >= int(job.get("RequestCpus", 1)))' % match_expr
+    descript_dict.add('MatchExpr', match_expr, allow_overwrite=True)
+
+    # Add GLIDEIN_CPUS to the list of attrs queried in glidefactory classad
+    fact_ma = eval(descript_dict['FactoryMatchAttrs']) + [('GLIDEIN_CPUS', 's')]
+    descript_dict.add('FactoryMatchAttrs', repr(fact_ma), allow_overwrite=True)
+
+    # Add RequestCpus to the list of attrs queried in glidefactory classad
+    job_ma = eval(descript_dict['JobMatchAttrs']) + [('RequestCpus', 'i')]
+    descript_dict.add('JobMatchAttrs', repr(job_ma), allow_overwrite=True)
 
 
 def get_pool_list(credential):
