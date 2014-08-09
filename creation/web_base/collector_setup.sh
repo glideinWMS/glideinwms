@@ -19,6 +19,24 @@ function warn {
  echo `date` $@ 1>&2
 }
 
+# initialize random seed for awk
+# should not be used twice without being incremented
+let random_seed=`date +%s`+$$
+
+function select_collector {
+    local group="$1"
+
+    # increment the random_seed, so it is always unique
+    let random_seed=$random_seed+$$
+    head_node_wports=`echo "$group" | awk "BEGIN{srand($random_seed)}"'{split($0,g,","); for (i in g) print rand() "\t" g[i]}' | sort -n |awk '{print $2}'|tail -1`
+
+    # increment the random_seed, so it is always unique
+    let random_seed=$random_seed+$$
+    head_node=`echo "$head_node_wports" | awk "BEGIN{srand($random_seed)}"'{split($0,g,":"); if (g[2]=="") { print 0 "\t" $0} else {split(g[2],p,"-"); if (p[2]=="") {print 0 "\t" $0} else {for (i=p[1]; i<=p[2]; i++) {print rand() "\t" g[1] ":" i}}}}' | sort -n |awk '{print $2}'|tail -1`
+
+    echo "$head_node"
+}
+
 # import add_config_line function
 add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
 source $add_config_line_source
@@ -45,13 +63,8 @@ collector_host=""
 
 for group in $node_groups
 do
-    # randomly select from the list of nodes 
-    let random_seed=`date +%s`+$$
-    head_node_wports=`echo "$group" | awk "BEGIN{srand($random_seed)}"'{split($0,g,","); for (i in g) print rand() "\t" g[i]}' | sort -n |awk '{print $2}'|tail -1`
-
-    #randomly select from the range of ports
-    let random_seed=`date +%s`+$$'*'2 
-    head_node=`echo "$head_node_wports" | awk "BEGIN{srand($random_seed)}"'{split($0,g,":"); if (g[2]=="") { print 0 "\t" $0} else {split(g[2],p,"-"); if (p[2]=="") {print 0 "\t" $0} else {for (i=p[1]; i<=p[2]; i++) {print rand() "\t" g[1] ":" i}}}}' | sort -n |awk '{print $2}'|tail -1`
+    # randomly select from the list of nodes and ports
+    head_node=`select_collector "$group"`
 
     if [ "$collector_host" = "" ]; then
         collector_host=$head_node
