@@ -37,6 +37,39 @@ function select_collector {
     echo "$head_node"
 }
 
+function parse_and_select_collectors {
+    local inattr="$1"
+
+    local inlist=`grep "^$inattr " $glidein_config | awk '{print $2}'`
+    if [ -z "$inlist" ]; then
+        echo ""
+        return 0
+    fi
+    
+    local ingroups="`echo $inlist | awk '{split($0,g,";"); for (i in g) print g[i] }'`"
+
+    local outlist=""
+
+    ##########################################################
+    # Select one randomly per group
+    ##########################################################
+
+    local lgroup
+    for lgroup in $ingroups
+      do
+      # randomly select from the list of nodes and ports
+      local lcoll=`select_collector "$lgroup"`
+      
+      if [ "$outlist" = "" ]; then
+          outlist=$lcoll
+      else
+          outlist="$outlist,$lcoll"
+      fi
+    done
+
+    echo "$outlist"
+}
+
 # import add_config_line function
 add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
 source $add_config_line_source
@@ -45,34 +78,13 @@ error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
 
 condor_vars_file=`grep -i "^CONDOR_VARS_FILE " $glidein_config | awk '{print $2}'`
 
-head_nodes=`grep '^GLIDEIN_Collector ' $glidein_config | awk '{print $2}'`
-if [ -z "$head_nodes" ]; then
+collector_host="`parse_and_select_collectors GLIDEIN_Collector`"
+if [ -z "$collector_host" ]; then
     #echo "No GLIDEIN_Collector found!" 1>&2
     STR="No GLIDEIN_Collector found!"
     "$error_gen" -error "collector_setup.sh" "Corruption" "$STR" "attribute" "GLIDEIN_Collector"
     exit 1
 fi
-
-node_groups="`echo $head_nodes | awk '{split($0,g,";"); for (i in g) print g[i] }'`"
-
-collector_host=""
-
-##########################################################
-# Select one randomly per group
-##########################################################
-
-for group in $node_groups
-do
-    # randomly select from the list of nodes and ports
-    head_node=`select_collector "$group"`
-
-    if [ "$collector_host" = "" ]; then
-        collector_host=$head_node
-    else
-        collector_host="$collector_host,$head_node"
-    fi
-done
-
 add_config_line GLIDEIN_Collector $collector_host
 
 ##########################################################
