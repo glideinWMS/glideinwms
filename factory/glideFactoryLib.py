@@ -1319,6 +1319,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
         verbosity = jobDescript.data["Verbosity"]
         startup_dir = jobDescript.data["StartupDir"]
         slots_layout = jobDescript.data["SubmitSlotsLayout"]
+        proxy_url = jobDescript.data.get("ProxyURL", None)
 
         exe_env.append('GLIDEIN_SCHEDD=%s' % schedd)
         exe_env.append('GLIDEIN_VERBOSITY=%s' % verbosity)
@@ -1356,11 +1357,11 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
         # Specify how the slots should be layed out
         slots_layout = jobDescript.data['SubmitSlotsLayout']
         # Build the glidein pilot arguments
-        glidein_arguments = str("-v %s -name %s -entry %s -clientname %s -schedd %s " \
+        glidein_arguments = str("-v %s -name %s -entry %s -clientname %s -schedd %s -proxy %s " \
                             "-factory %s -web %s -sign %s -signentry %s -signtype %s " \
                             "-descript %s -descriptentry %s -dir %s -param_GLIDEIN_Client %s -submitcredid %s -slotslayout %s %s" % \
                             (verbosity, glidein_name, entry_name, client_name,
-                             schedd, factory_name, web_url, main_sign, entry_sign,
+                             schedd, proxy_url, factory_name, web_url, main_sign, entry_sign,
                              sign_type, main_descript, entry_descript,
                              startup_dir, client_name, submit_credentials.id,
                              slots_layout, params_str))
