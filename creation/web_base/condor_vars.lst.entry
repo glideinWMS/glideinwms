@@ -4,23 +4,5 @@
 #												@ = Use CondorName
 #################################################################################################################
 
-# User modifiable variables
-GLIDEIN_Site		S	$GLIDEIN_Entry_Name	+			N	Y	@
-GLIDEIN_Entry_Start	C	True		+				N	N	-
-GLIDEIN_Entry_Hold	C	False		+				N	N	-
-GLIDEIN_Entry_PREEMPT	C	False		+				N	N	-
-GLIDEIN_Entry_Rank	C	1		+				N	N	-
-GLIDEIN_Job_Max_Time	I	129600		+				N	Y	-
-GLIDEIN_Graceful_Shutdown	I	120		+				N	Y	-
-WANT_VACATE		C	True		+				N	N	-
-GLIDEIN_Expose_Grid_Env	C	True		JOB_INHERITS_STARTER_ENVIRONMENT	N	Y	+
-GLIDEIN_Glexec_Use	S	REQUIRED	+				N	Y	+
-GLEXEC_BIN		C	-		GLEXEC				N	N	-
-GLIDEIN_Monitoring_Enabled	C	False		+				N	Y	+
-# this will be used for MaxJobRetirementTime of the main startd
-PREEMPT_GRACE_TIME	I	10000000	+				N	Y	+
-GLIDEIN_CPUS		C	1		+				N	N	@ 
-HOLD_GRACE_TIME	I	0	+				N	Y	+
-
 
 #################################################################################################################
