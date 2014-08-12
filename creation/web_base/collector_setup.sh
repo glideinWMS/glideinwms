@@ -87,6 +87,16 @@ if [ -z "$collector_host" ]; then
 fi
 add_config_line GLIDEIN_Collector $collector_host
 
+factory_collector_host="`parse_and_select_collectors GLIDEIN_Factory_Collector`"
+if [ -z "$factory_collector_host" ]; then
+    # no factory collector, master will use the standard collector list
+    master_collector_host="$collector_host"
+else
+    # factory has a collector, add it to the master collector list 
+    master_collector_host="$collector_host,$factory_collector_host"
+fi
+add_config_line GLIDEIN_Master_Collector $master_collector_host
+
 ##########################################################
 # check if it should use CCB
 ##########################################################
@@ -100,6 +110,6 @@ if [ "$use_ccb" == "True" -o "$use_ccb" == "TRUE" -o "$use_ccb" == "T" -o "$use_
     out_ccb_str="True"
 fi
 
-"$error_gen" -ok "collector_setup.sh" "CollectorList" "${head_nodes}" "Collector" "$collector_host" "UseCCB" "${out_ccb_str}"
+"$error_gen" -ok "collector_setup.sh" "Collector" "$collector_host" "MasterCollector" "$master_collector_host" "UseCCB" "${out_ccb_str}"
 
 exit 0
