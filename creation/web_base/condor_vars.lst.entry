@@ -23,19 +23,4 @@ GLIDEIN_CPUS		C	1		+				N	N	@
 HOLD_GRACE_TIME	I	0	+				N	Y	+
 
 
-# Factory provided
-GLIDEIN_Entry_Name	S	-		+				Y	Y	@
-GLIDEIN_Entry_Signature	S	-		+				Y	Y	@
-DESCRIPTION_ENTRY_FILE	S	-		GLIDEIN_Description_Entry_File	N	Y	-
-CONDORG_CLUSTER		I	-		GLIDEIN_ClusterId		Y	Y	@
-CONDORG_SUBCLUSTER	I	-		GLIDEIN_ProcId			Y	Y	@
-CONDORG_SCHEDD		S	-		GLIDEIN_Schedd			Y	Y	@
-GLIDEIN_Gatekeeper	S	-		+				N	Y	@
-GLIDEIN_GridType	S	-		+				N	Y	@
-GLIDEIN_GlobusRSL	S	-		+				N	Y	@
-PROXY_URL		S	-		GLIDEIN_Proxy_URL		N	N	@
-
-# Glidein generated
-TMP_DIR			S	-		GLIDEIN_Tmp_Dir			Y	Y	@
-
 #################################################################################################################
