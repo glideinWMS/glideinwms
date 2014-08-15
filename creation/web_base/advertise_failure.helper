@@ -113,8 +113,8 @@ EOF
   ${condor_advertise} -tcp UPDATE_STARTD_AD ${startd_classad_fname}
   rc1=$?
 
-  # condor_advertise -pool does not seem to work, so use the environemtn instead
-  export _CONDOR_COLLECTOR_NODE=${master_collector_name}
+  # condor_advertise -pool does not seem to work, so use the environment instead
+  export _CONDOR_COLLECTOR_HOST=${master_collector_name}
   ${condor_advertise} -tcp UPDATE_MASTER_AD ${master_classad_fname}
   rc2=$?
 
@@ -137,9 +137,9 @@ TargetType = "DaemonMaster"
 Requirements =  Name == "${slot_name}@${host_name}"
 EOF
 
-  # condor_advertise -pool does not seem to work, so use the environemtn instead
-  export _CONDOR_COLLECTOR_NODE=${master_collector_name}
-  ${condor_advertise} -pool ${master_collector_name} -tcp INVALIDATE_MASTER_ADS ${master_classad_fname}
+  # condor_advertise -pool does not seem to work, so use the environment instead
+  export _CONDOR_COLLECTOR_HOST=${master_collector_name}
+  ${condor_advertise} -tcp INVALIDATE_MASTER_ADS ${master_classad_fname}
   rc2=$?
 
   let "rc=$rc1||$rc2"
