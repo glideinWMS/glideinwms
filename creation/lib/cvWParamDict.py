@@ -653,7 +653,7 @@ def apply_multicore_policy(descript_dict):
     match_expr = descript_dict['MatchExpr']
 
     # Only consider sites that provide enough GLIDEIN_CPUS jobs to run
-    match_expr = '(%s) and (int(glidein["attrs"].get("GLIDEIN_CPUS", 1)) >= int(job.get("RequestCpus", 1)))' % match_expr
+    match_expr = '(%s) and (getGlideinCpusNum(glidein) >= int(job.get("RequestCpus", 1)))' % match_expr
     descript_dict.add('MatchExpr', match_expr, allow_overwrite=True)
 
     # Add GLIDEIN_CPUS to the list of attrs queried in glidefactory classad
