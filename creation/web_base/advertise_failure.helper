@@ -17,21 +17,24 @@
 condor_advertise="$1"
 act_type="$2"
 
-classad_fname=${CONDOR_CONFIG}.classad
+startd_classad_fname=${CONDOR_CONFIG}.startd.classad
+master_classad_fname=${CONDOR_CONFIG}.master.classad
 
 slot_name=`grep '^STARTD_NAME = ' $CONDOR_CONFIG | tail -1| awk '{print $3}'`
 host_name=`uname -n`
 collector_name=`grep '^HEAD_NODE=' $CONDOR_CONFIG | tail -1| awk -F = '{print $2}'`
+master_collector_name=`grep '^GLIDEIN_Master_Collector=' $CONDOR_CONFIG | tail -1| awk -F = '{print $2}'`
 
 now=`date +%s`
 
-rm -f ${classad_fname}
+rm -f ${startd_classad_fname}
+rm -f ${master_classad_fname}
 
 if [ "${act_type}" != "INVALIDATE" ]; then
   # Advertise a classad
 
   # Create the standard part
-  cat >  ${classad_fname} << EOF
+  cat >  ${startd_classad_fname} << EOF
 MyType = "Machine"
 TargetType = "Job"
 Name = "${slot_name}@${host_name}"
@@ -82,27 +85,65 @@ CondorPlatform = "\$glideinWMS: glidein_startup.sh \$"
 GLIDEIN_COLLECTOR_NAME = "${collector_name}"
 EOF
 
+  cat >  ${master_classad_fname} << EOF
+MyType = "DaemonMaster"
+TargetType = ""
+Name = "${slot_name}@${host_name}"
+Machine = "${host_name}"
+MyAddress = "<127.0.0.1:1>"
+MyCurrentTime = $now
+DaemonStartTime = $now
+IS_GLIDEIN = True
+GLIDEIN_ToRetire = $now
+DetectedCpus = 1
+DetectedMemory = 1
+CondorPlatform = "\$glideinWMS: glidein_startup.sh \$"
+EOF
+
   # append the glidein-specific variables
   glidein_vars=`grep '^GLIDEIN_VARIABLES = ' $CONDOR_CONFIG | tail -1| awk '{split($3,a,","); for (i in a) {print a[i]} }'`
 
   for v in ${glidein_vars};
   do
-    grep "^$v=" $CONDOR_CONFIG | tail -1 >> ${classad_fname}
+    grep "^$v=" $CONDOR_CONFIG | tail -1 >> ${startd_classad_fname}
+    grep "^$v=" $CONDOR_CONFIG | tail -1 >> ${master_classad_fname}
   done
 
 
-  ${condor_advertise} -tcp UPDATE_STARTD_AD ${classad_fname}
-  rc=$?
+  ${condor_advertise} -tcp UPDATE_STARTD_AD ${startd_classad_fname}
+  rc1=$?
+
+  # condor_advertise -pool does not seem to work, so use the environemtn instead
+  export _CONDOR_COLLECTOR_NODE=${master_collector_name}
+  ${condor_advertise} -tcp UPDATE_MASTER_AD ${master_classad_fname}
+  rc2=$?
+
+  let "rc=$rc1||$rc2"
+
 else # if [ "${act_type}" == "INVALIDATE" ]
   # Deadvertise
-  cat >  ${classad_fname} << EOF
+  cat >  ${startd_classad_fname} << EOF
 MyType = "Query"
 TargetType = "Machine"
 Requirements =  Name == "${slot_name}@${host_name}"
 EOF
 
-  ${condor_advertise} -tcp INVALIDATE_STARTD_ADS ${classad_fname}
-  rc=$?
+  ${condor_advertise} -tcp INVALIDATE_STARTD_ADS ${startd_classad_fname}
+  rc1=$?
+
+  cat >  ${master_classad_fname} << EOF
+MyType = "Query"
+TargetType = "DaemonMaster"
+Requirements =  Name == "${slot_name}@${host_name}"
+EOF
+
+  # condor_advertise -pool does not seem to work, so use the environemtn instead
+  export _CONDOR_COLLECTOR_NODE=${master_collector_name}
+  ${condor_advertise} -pool ${master_collector_name} -tcp INVALIDATE_MASTER_ADS ${master_classad_fname}
+  rc2=$?
+
+  let "rc=$rc1||$rc2"
+
 fi # if [ "${act_type}" != "INVALIDATE" ]
 
 exit $rc
