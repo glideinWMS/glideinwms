@@ -489,6 +489,9 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
 	</p>
 <br/>
 
+    <p>If you are <b>using privilege separation</b>, please control the content of the PrivSep configuration file (/etc/condor/privsep_config) and make sure that the callers and targets are colon separated lists including respectively all the users (and default groups) the factory runs under and the ones representing the frontend. This should match the security_classes section in the factory configuration (glideinWMS.xml).
+    </p>
+
     <p>The installer allows you to automatically start the HTCondor daemons.  To start them on your own, source the condor env script and execute:</p>
     <blockquote>/path/to/condor/location/condor start</blockquote>
     
