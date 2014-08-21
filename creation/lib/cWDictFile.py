@@ -385,6 +385,34 @@ class DescriptionDictFile(DictFileTwoKeys):
 
         return self.add(arr[1],arr[0])
 
+# gridmap file
+class GridMapDict(DictFileTwoKeys):
+    def file_header(self,want_comments):
+        return None
+    
+    def format_val(self,key,want_comments):
+        return '"%s" %s'%(key,self.vals[key])
+
+    def parse_val(self,line):
+        if line[0]=='#':
+            return # ignore comments
+        arr=line.split()
+        if len(arr)==0:
+            return # empty line
+        if len(arr[0])==0:
+            return # empty key
+
+        if line[0:1]!='"':
+            raise RuntimeError,'Not a valid gridmap line; not starting with ": %s'%line
+
+        user=arr[-1]
+
+        if line[-len(user)-2:-len(user)-1]!='"':
+            raise RuntimeError,'Not a valid gridmap line; DN not ending with ": %s'%line
+        
+        dn=line[1:-len(user)-2]
+        return self.add(dn,user)
+
 ##################################
 
 # signatures
