@@ -158,7 +158,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # add the factory monitoring collector parameter, if any collectors are defined
         # this is purely a factory thing
-        factory_monitoring_collector=calc_collectors_string(params.monitoring_collectors)
+        factory_monitoring_collector=calc_monitoring_collectors_string(params.monitoring_collectors)
         if factory_monitoring_collector is not None:
             self.dicts['params'].add('GLIDEIN_Factory_Collector',str(factory_monitoring_collector))
         populate_gridmap(params,self.dicts['gridmap'])
@@ -751,6 +751,10 @@ def populate_factory_descript(work_dir,
         glidein_dict.add('MonitorDisplayText',params.monitor_footer.display_txt)
         glidein_dict.add('MonitorLink',params.monitor_footer.href_link)
         
+        monitoring_collectors=calc_primary_monitoring_collectors(params.monitoring_collectors)
+        if monitoring_collectors is not None:
+            glidein_dict.add('PrimaryMonitoringCollectors',str(monitoring_collectors))
+
         for lel in (("job_logs",'JobLog'),("summary_logs",'SummaryLog'),("condor_logs",'CondorLog')):
             param_lname,str_lname=lel
             for tel in (("max_days",'MaxDays'),("min_days",'MinDays'),("max_mbytes",'MaxMBs')):
@@ -996,7 +1000,7 @@ def itertools_product(*args, **kwds):
 #####################################################
 # Returns a string usable for GLIDEIN_Factory_Collector
 # Returns None if there are no collectors defined
-def calc_collectors_string(collectors):
+def calc_monitoring_collectors_string(collectors):
     collector_nodes = {}
     monitoring_collectors = []
 
@@ -1020,4 +1024,23 @@ def calc_collectors_string(collectors):
         return None
     else:
         return string.join(monitoring_collectors, ";")
+
+# Returns a string listing the primary monitoring collectors
+# Returns None if there are no collectors defined
+def calc_primary_monitoring_collectors(collectors):
+    collector_nodes = {}
+
+    for el in collectors:
+        if not eval(el.secondary):
+            # only consider the primary collectors
+            cWDictFile.validate_node(el.node)
+            # we only expect one per group
+            if collector_nodes.has_key(el.group):
+                raise RuntimeError, "Duplicate primary monitoring collector found for group %s"%el.group
+            collector_nodes[el.group]=el.node
+    
+    if len(collector_nodes)==0:
+        return None
+    else:
+        return string.join(collector_nodes.values(), ",")
 
