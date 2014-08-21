@@ -356,7 +356,7 @@ def reuse_file_dict(dicts,other_dicts,key):
 def reuse_common_dicts(dicts, other_dicts,is_main,all_reused):
     # save the immutable ones
     # check simple dictionaries
-    for k in ('consts','untar_cfg','vars','gridmap'):
+    for k in ('consts','untar_cfg','vars'):
         all_reused=reuse_simple_dict(dicts,other_dicts,k) and all_reused
     # since the file names may have changed, refresh the file_list
     refresh_file_list(dicts,is_main)
@@ -382,6 +382,7 @@ def reuse_common_dicts(dicts, other_dicts,is_main,all_reused):
 def reuse_main_dicts(main_dicts, other_main_dicts):
     reuse_simple_dict(main_dicts, other_main_dicts,'glidein')
     reuse_simple_dict(main_dicts, other_main_dicts,'frontend_descript')
+    reuse_simple_dict(main_dicts, other_main_dicts,'gridmap')
     all_reused=reuse_common_dicts(main_dicts, other_main_dicts,True,True)
     # will not try to reuse the summary_signature... being in submit_dir
     # can be rewritten and it is not worth the pain to try to prevent it

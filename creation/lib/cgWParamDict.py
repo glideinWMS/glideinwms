@@ -869,7 +869,7 @@ def populate_gridmap(params,gridmap_dict):
             raise RuntimeError,"DN not defined for monitoring collector %s"%el.node
         if not (dn in collector_dns): #skip duplicates
             collector_dns.append(dn)
-            gridmap_dict.add(dn,'collector%i'%len(collector_dns))
+            gridmap_dict.add(dn,'fcollector%i'%len(collector_dns))
 
     # TODO: We should also have a Factory DN, for ease of debugging
     #       None available now, but we should add it
