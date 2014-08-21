@@ -305,6 +305,7 @@ class GlideinParams(cWParams.CommonParams):
                 'files':{'el_name':'file','subtypes_params':{'class':{}}},
                 'process_logs':{'el_name':'process_log','subtypes_params':{'class':{}}},
                 'monitorgroups':{'el_name':'monitorgroup','subtypes_params':{'class':{}}},
+                'monitoring_collectors':{'el_name':'monitoring_collector','subtypes_params':{'class':{}}},
                 'infosys_refs':{'el_name':'infosys_ref','subtypes_params':{'class':{}}}
             },
             'dicts_params':{
