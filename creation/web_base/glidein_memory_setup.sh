@@ -32,19 +32,30 @@ if [ "${GLIDEIN_MaxMemMBs}" = "" ]; then
 
     if [ "$estimate" = "TRUE" ]; then
         echo "`date` Estimating Max memory based on the CPUs and total memory."
-       
-        core_proc=`awk -F: '/^physical/ && !ID[$2] { P++; ID[$2]=1 }; /^physical/ { N++ };  END { print N, P }' /proc/cpuinfo`
-        cores=`echo "$core_proc" | awk -F' ' '{print $1}'`
-        if [ "$cores" = "" ]; then
-            # Old style, no multiple cores or hyperthreading
-            cores=`grep processor /proc/cpuinfo  | wc -l`
-        fi
-        
+
+        # Figure out how much free memory is available
         mem=`free -m | grep "^Mem:" | awk '{print $2}'`
 
-        GLIDEIN_MaxMemMBs=`echo "$mem / $cores" | bc`
+        glidein_cpus=`grep -i "^GLIDEIN_CPUS " $glidein_config | awk '{print $2}'`
 
-        echo "`date` Estimate: memory=$mem cores=$cores mem/core=$GLIDEIN_MaxMemMBs"
+        if [ "$glidein_cpus" != "" ]; then
+            # GLIDEIN_CPUS is set. Let HTCondor handle the memory.
+            # Also handles GLIDEIN_CPUS=0, ie estimate the available cpus.
+            echo "`date` Estimate: memory=$mem GLIDEIN_CPUS=$glidein_cpus mem/core controlled by HTCondor"
+            GLIDEIN_MaxMemMBs=$mem
+        else
+            # Assume GLIDEIN_CPUS=1 and figure out the available memory/core
+            core_proc=`awk -F: '/^physical/ && !ID[$2] { P++; ID[$2]=1 }; /^physical/ { N++ };  END { print N, P }' /proc/cpuinfo`
+            cores=`echo "$core_proc" | awk -F' ' '{print $1}'`
+            if [ "$cores" = "" ]; then
+                # Old style, no multiple cores or hyperthreading
+                cores=`grep processor /proc/cpuinfo  | wc -l`
+            fi
+        
+            GLIDEIN_MaxMemMBs=`echo "$mem / $cores" | bc`
+
+            echo "`date` Estimate: memory=$mem cores=$cores mem/core=$GLIDEIN_MaxMemMBs"
+        fi
 
         if [ "$GLIDEIN_MaxMemMBs" = "" ]; then
             echo "`date` Error estimating mem/core. Using default memory value provided by Condor."
