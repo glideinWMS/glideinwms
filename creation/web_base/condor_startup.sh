@@ -72,7 +72,7 @@ if [ "$adv_only" -eq "1" ]; then
 
     # no point in printing out debug info about config
     print_debug=0
-    if [ "$adv_destination" == "VO" ]; then
+    if [ "$adv_destination" = "VO" ]; then
         echo "Advertising failure to the VO collector"  1>&2
     else
         echo "Advertising failure to the Factory collector"  1>&2

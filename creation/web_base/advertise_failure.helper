@@ -22,7 +22,7 @@ slot_name=`grep '^STARTD_NAME = ' $CONDOR_CONFIG | tail -1| awk '{print $3}'`
 host_name=`uname -n`
 collector_name=`grep '^HEAD_NODE=' $CONDOR_CONFIG | tail -1| awk -F = '{print $2}'`
 
-if [ "$destination" == "VO" ]; then
+if [ "$destination" = "VO" ]; then
     startd_classad_fname=${CONDOR_CONFIG}.startd.classad
     classad_fname=${startd_classad_fname}
     rm -f ${startd_classad_fname}
@@ -44,7 +44,7 @@ now=`date +%s`
 if [ "${act_type}" != "INVALIDATE" ]; then
   # Advertise a classad
 
-  if [ "$destination" == "VO" ]; then
+  if [ "$destination" = "VO" ]; then
     # Create the standard part
     cat >  ${startd_classad_fname} << EOF
 MyType = "Machine"
@@ -117,7 +117,7 @@ EOF
   done
 
 
-  if [ "$destination" == "VO" ]; then
+  if [ "$destination" = "VO" ]; then
       ${condor_advertise} -tcp UPDATE_STARTD_AD ${startd_classad_fname}
       rc=$?
   else
@@ -129,7 +129,7 @@ EOF
   fi
 
 else # if [ "${act_type}" == "INVALIDATE" ]
-  if [ "$destination" == "VO" ]; then
+  if [ "$destination" = "VO" ]; then
     # Deadvertise
     cat >  ${startd_classad_fname} << EOF
 MyType = "Query"
