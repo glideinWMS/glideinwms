@@ -279,6 +279,7 @@ class glideinFrontendElement:
         except:
             logSupport.log.warning("Failed to deadvertise resources classads")
 
+
     def iterate_one(self):
         pipe_ids={}
 
@@ -424,10 +425,11 @@ class glideinFrontendElement:
 
         self.do_match()
 
-        logSupport.log.info("Total matching idle %i (old %i) running %i limit %i" % (condorq_dict_types['Idle']['total'],
-     condorq_dict_types['OldIdle']['total'],
-     self.condorq_dict_types['Running']['total'],
-     self.max_running))
+        logSupport.log.info("Total matching idle %i (old %i) running %i limit %i" % (
+            condorq_dict_types['Idle']['total'],
+            condorq_dict_types['OldIdle']['total'],
+            self.condorq_dict_types['Running']['total'],
+            self.max_running))
 
         advertizer = glideinFrontendInterface.MultiAdvertizeWork(descript_obj)
         resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser(multi_support=glideinFrontendInterface.frontendConfig.advertise_use_multi)
@@ -455,6 +457,7 @@ class glideinFrontendElement:
         log_factory_header()
         total_up_stats_arr=init_factory_stats_arr()
         total_down_stats_arr=init_factory_stats_arr()
+
         for glideid in glideid_list:
             if glideid == (None, None, None):
                 continue # This is the special "Unmatched" entry
@@ -468,12 +471,14 @@ class glideinFrontendElement:
             glidein_in_downtime = \
                 glidein_el['attrs'].get('GLIDEIN_In_Downtime') == 'True'
 
-            count_jobs={}     # straight match
-            prop_jobs={}      # proportional subset for this entry
-            hereonly_jobs={}  # can only run on this site
+            count_jobs={}   # straight match
+            prop_jobs={}    # proportional subset for this entry
+            prop_mc_jobs={} # proportional subset for this entry for multicore
+            hereonly_jobs={} # can only run on this site
             for dt in condorq_dict_types.keys():
                 count_jobs[dt] = condorq_dict_types[dt]['count'][glideid]
                 prop_jobs[dt] = condorq_dict_types[dt]['prop'][glideid]
+                prop_mc_jobs[dt] = condorq_dict_types[dt]['prop_mc'][glideid]
                 hereonly_jobs[dt] = condorq_dict_types[dt]['hereonly'][glideid]
 
             count_status=self.count_status_multi[request_name]
@@ -496,14 +501,19 @@ class glideinFrontendElement:
             effective_idle = max(prop_jobs['Idle'] - count_status['Idle'], 0)
             effective_oldidle = max(prop_jobs['OldIdle']-count_status['Idle'], 0)
 
+            # Compute min glideins required based on multicore jobs
+            effective_idle_mc = max(prop_mc_jobs['Idle'] - count_status['Idle'], 0)
+            effective_oldidle_mc = max(prop_mc_jobs['OldIdle']-count_status['Idle'], 0)
             glidein_min_idle = self.compute_glidein_min_idle(
-                                   count_status, total_glideins, total_idle_glideins,
-                                   fe_total_glideins, fe_total_idle_glideins,
-                                   global_total_glideins, global_total_idle_glideins,
-                                   effective_idle, effective_oldidle)
+                                   count_status, total_glideins,
+                                   total_idle_glideins, fe_total_glideins,
+                                   fe_total_idle_glideins,
+                                   global_total_glideins,
+                                   global_total_idle_glideins,
+                                   effective_idle_mc, effective_oldidle_mc)
 
             glidein_max_run = self.compute_glidein_max_run(
-                                  prop_jobs, self.count_real[glideid])
+                                  prop_mc_jobs, self.count_real[glideid])
 
             remove_excess_str = self.choose_remove_excess_type(
                                     count_jobs, count_status, glideid)
@@ -751,10 +761,13 @@ class glideinFrontendElement:
 
     def compute_glidein_min_idle(self, count_status, total_glideins,
                                  total_idle_glideins, fe_total_glideins,
-                                 fe_total_idle_glideins, global_total_glideins,
+                                 fe_total_idle_glideins,
+                                 global_total_glideins,
                                  global_total_idle_glideins,
                                  effective_idle, effective_oldidle):
-        ''' Calculate the number of idle jobs to request from the factory '''
+        """
+        Calculate the number of idle glideins to request from the factory
+        """
 
         if self.request_removal_wtype is not None:
             # we are requesting the removal of glideins, do not request more
@@ -1166,6 +1179,7 @@ class glideinFrontendElement:
 
         return (status_dict,fe_counts,global_counts,status_schedd_dict)
 
+
     def do_match(self):
         ''' Do the actual matching.  This forks subprocess_count as children
         to do the work in parallel. '''
@@ -1180,9 +1194,12 @@ class glideinFrontendElement:
         split_glidein_list = [glidein_list[i:i+glideins_per_fork] for i in range(0, len(glidein_list), glideins_per_fork)]
 
         forkm_obj = ForkManager()
+
         for i in range(len(split_glidein_list)):
             forkm_obj.add_fork(('Glidein',i), self.subprocess_count_glidein, split_glidein_list[i])
+
         forkm_obj.add_fork('Real', self.subprocess_count_real)
+
         for dt in self.condorq_dict_types:
             forkm_obj.add_fork(dt, self.subprocess_count_dt, dt)
 
@@ -1194,9 +1211,9 @@ class glideinFrontendElement:
             return
         logSupport.log.info("All children terminated")
 
-        # TODO: PM Need to check if we are counting correctly after the merge
         for dt, el in self.condorq_dict_types.iteritems():
-            (el['count'], el['prop'], el['hereonly'], el['total'])=pipe_out[dt]
+            # c, p, h, t returned by  subprocess_count_dt(self, dt)
+            (el['count'], el['prop'], el['hereonly'], el['prop_mc'], el['total'])=pipe_out[dt]
 
         self.count_real = pipe_out['Real']
         self.count_status_multi = {}
@@ -1215,25 +1232,33 @@ class glideinFrontendElement:
 
 
     def subprocess_count_dt(self, dt):
+        """
         # will make calculations in parallel,using multiple processes
+        @return: Tuple of 6 elements
+                 
+        """
         out = ()
        
-        c,p,h = glideinFrontendLib.countMatch(
+        c,p,h,pmc = glideinFrontendLib.countMatch(
                         self.elementDescript.merged_data['MatchExprCompiledObj'],
                         self.condorq_dict_types[dt]['dict'],
-                        self.glidein_dict, self.attr_dict,
+                        self.glidein_dict,
+                        self.attr_dict,
                         self.condorq_match_list)
         t=glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])
-        out=(c,p,h,t)
+
+        out=(c,p,h,pmc,t)
         
         return out
 
     def subprocess_count_real(self):
         # will make calculations in parallel,using multiple processes
         out = glideinFrontendLib.countRealRunning(
-                      self.elementDescript.merged_data['MatchExprCompiledObj'],
-                      self.condorq_dict_running, self.glidein_dict,
-                      self.attr_dict, self.condorq_match_list)
+                  self.elementDescript.merged_data['MatchExprCompiledObj'],
+                  self.condorq_dict_running,
+                  self.glidein_dict,
+                  self.attr_dict,
+                  self.condorq_match_list)
         return out
 
     def subprocess_count_glidein(self, glidein_list):
