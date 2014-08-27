@@ -425,10 +425,11 @@ class glideinFrontendElement:
 
         self.do_match()
 
-        logSupport.log.info("Total matching idle %i (old %i) running %i limit %i" % (condorq_dict_types['Idle']['total'],
-       condorq_dict_types['OldIdle']['total'],
-       self.condorq_dict_types['Running']['total'],
-       self.max_running))
+        logSupport.log.info("Total matching idle %i (old %i) running %i limit %i" % (
+            condorq_dict_types['Idle']['total'],
+            condorq_dict_types['OldIdle']['total'],
+            self.condorq_dict_types['Running']['total'],
+            self.max_running))
 
         advertizer = glideinFrontendInterface.MultiAdvertizeWork(descript_obj)
         resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser(multi_support=glideinFrontendInterface.frontendConfig.advertise_use_multi)
