@@ -1229,7 +1229,7 @@ class ResourceClassad(classadSupport.Classad):
         @param monitorInfo: GlideClientMonitor information.
         """
 
-        if len(monitorInfo) == 13:
+        if len(monitorInfo) == 14:
             self.adParams['GlideClientMonitorJobsIdle'] = monitorInfo[0]
             self.adParams['GlideClientMonitorJobsIdleMatching'] = monitorInfo[1]
             self.adParams['GlideClientMonitorJobsIdleEffective'] = monitorInfo[2]
@@ -1241,8 +1241,9 @@ class ResourceClassad(classadSupport.Classad):
             self.adParams['GlideClientMonitorGlideinsTotal'] = monitorInfo[8]
             self.adParams['GlideClientMonitorGlideinsIdle'] = monitorInfo[9]
             self.adParams['GlideClientMonitorGlideinsRunning'] = monitorInfo[10]
-            self.adParams['GlideClientMonitorGlideinsRequestIdle'] = monitorInfo[11]
-            self.adParams['GlideClientMonitorGlideinsRequestMaxRun'] = monitorInfo[12]
+            self.adParams['GlideClientMonitorGlideinsFailed'] = monitorInfo[11]
+            self.adParams['GlideClientMonitorGlideinsRequestIdle'] = monitorInfo[12]
+            self.adParams['GlideClientMonitorGlideinsRequestMaxRun'] = monitorInfo[13]
         else:
             raise RuntimeError, 'Glide client monitoring structure changed. Resource ad may have incorrect GlideClientMonitor values'
     

@@ -114,7 +114,7 @@ class groupStats:
         self.attributes={'Jobs':("Idle","OldIdle","Running","Total"),
                          'Glideins':("Idle","Running","Total"),
                          'MatchedJobs':("Idle","EffIdle","OldIdle","Running","RunningHere"),
-                         'MatchedGlideins':("Total","Idle","Running"),
+                         'MatchedGlideins':("Total","Idle","Running","Failed"),
                          'Requested':("Idle","MaxRun")}
         # only these will be states, all other names are assumed to be factories
         self.states_names=('Unmatched','MatchedUp','MatchedDown')
@@ -160,12 +160,13 @@ class groupStats:
 
         self.updated = time.time()
 
-    def logMatchedGlideins(self, factory, total, idle, running):
+    def logMatchedGlideins(self, factory, total, idle, running, failed):
         factory_or_state_d = self.get_factory_dict(factory)
 
         factory_or_state_d['MatchedGlideins'] = {self.attributes['MatchedGlideins'][0]: int(total),
                                                  self.attributes['MatchedGlideins'][1]: int(idle),
-                                                 self.attributes['MatchedGlideins'][2]: int(running)
+                                                 self.attributes['MatchedGlideins'][2]: int(running),
+                                                 self.attributes['MatchedGlideins'][3]: int(failed)
                                                 }
 
         self.update=time.time()

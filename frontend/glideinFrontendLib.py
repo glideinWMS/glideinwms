@@ -514,7 +514,7 @@ def getCondorStatus(collector_names, constraint=None, format_list=None,
 def getIdleCondorStatus(status_dict):
     out = {}
     for collector_name in status_dict.keys():
-        sq = condorMonitor.SubQuery(status_dict[collector_name], lambda el:(el.has_key('State') and el.has_key('Activity') and (el['State'] == "Unclaimed") and (el['Activity'] == "Idle")))
+        sq = condorMonitor.SubQuery(status_dict[collector_name], lambda el:(el.get('State') == "Unclaimed") and (el.get('Activity') == "Idle"))
         sq.load()
         out[collector_name] = sq
     return out
@@ -528,7 +528,21 @@ def getIdleCondorStatus(status_dict):
 def getRunningCondorStatus(status_dict):
     out = {}
     for collector_name in status_dict.keys():
-        sq = condorMonitor.SubQuery(status_dict[collector_name], lambda el:(el.has_key('State') and el.has_key('Activity') and (el['State'] == "Claimed") and (el['Activity'] in ("Busy", "Retiring"))))
+        sq = condorMonitor.SubQuery(status_dict[collector_name], lambda el:(el.get('State') == "Claimed") and (el.get('Activity') in ("Busy", "Retiring")))
+        sq.load()
+        out[collector_name] = sq
+    return out
+
+#
+# Return a dictionary of collectors containing failed(drained) vms
+# Each element is a condorStatus
+#
+# Use the output of getCondorStatus
+#
+def getFailedCondorStatus(status_dict):
+    out = {}
+    for collector_name in status_dict.keys():
+        sq = condorMonitor.SubQuery(status_dict[collector_name], lambda el:(el.get('State') == "Drained") and (el.get('Activity') == "Retiring"))
         sq.load()
         out[collector_name] = sq
     return out
