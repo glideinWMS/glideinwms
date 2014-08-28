@@ -48,6 +48,46 @@ def compareLambdas(func1, func2):
 #        pass
     return code1 == code2
 
+class FETestCaseCondorStatus(unittest.TestCase):
+    def setUp(self):
+        with mock.patch('glideinwms.lib.condorExe.exe_cmd') as m_exe_cmd:
+            f = open('cs.fixture')
+            m_exe_cmd.return_value = f.readlines()
+            self.status_dict = glideinFrontendLib.getCondorStatus(['coll1'])
+
+    def test_getCondorStatus(self):
+        machines = self.status_dict['coll1'].stored_data.keys()
+        self.assertItemsEqual(machines, ['glidein_1@cmswn001.local', 'glidein_2@cmswn002.local',
+                                         'glidein_3@cmswn003.local', 'glidein_4@cmswn004.local'])
+
+    def test_getIdleCondorStatus(self):
+        condorStatus = glideinFrontendLib.getIdleCondorStatus(self.status_dict)
+        machines = condorStatus['coll1'].stored_data.keys()
+        self.assertItemsEqual(machines, ['glidein_4@cmswn004.local'])
+
+    def test_getRunningCondorStatus(self):
+        condorStatus = glideinFrontendLib.getRunningCondorStatus(self.status_dict)
+        machines = condorStatus['coll1'].stored_data.keys()
+        self.assertItemsEqual(machines, ['glidein_1@cmswn001.local', 'glidein_2@cmswn002.local',
+                                         'glidein_3@cmswn003.local'])
+
+    def test_getClientCondorStatus(self):
+        # v3 FE
+        condorStatus = glideinFrontendLib.getClientCondorStatus(
+            self.status_dict, 'frontend_v3', 'maingroup', 'Site_Name@v3_0@factory1')
+        machines = condorStatus['coll1'].stored_data.keys()
+        self.assertItemsEqual(machines, ['glidein_1@cmswn001.local'])
+
+        # v2 FE
+        condorStatus = glideinFrontendLib.getClientCondorStatus(
+            self.status_dict, 'frontend_v2', 'maingroup', 'request')
+        machines = condorStatus['coll1'].stored_data.keys()
+        self.assertItemsEqual(machines, ['glidein_1@cmswn002.local'])
+
+
+
+
+
 class FETestCaseCondorQ(unittest.TestCase):
     def prepare_condorq_dict(self):
         with mock.patch('glideinwms.lib.condorMonitor.LocalScheddCache.iGetEnv') as m_iGetEnv:
@@ -167,6 +207,8 @@ class FETestCaseCondorQ(unittest.TestCase):
         condor_ids = cq['sched1'].fetchStored().keys()
 
         self.assertItemsEqual(condor_ids, [(12345, x) for x in xrange(0,5)])
+
+
 
 if __name__ == '__main__':
     unittest.main()
