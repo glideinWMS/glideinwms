@@ -360,6 +360,24 @@ function glidein_exit {
 	  report_failed="NEVER"
       fi
 
+      factory_report_failed=`grep -i "^GLIDEIN_Factory_Report_Failed " $glidein_config | awk '{print $2}'`
+
+      if [ -z "$factory_report_failed" ]; then
+          factory_collector=`grep -i "^GLIDEIN_Factory_Collector " $glidein_config | awk '{print $2}'`
+          if [ -z "$factory_collector" ]; then
+              # no point in enabling it if there are no collectors
+              factory_report_failed="NEVER"
+          else
+              factory_report_failed="ALIVEONLY"
+          fi
+      fi
+
+      do_report=0
+      if [ "$report_failed" != "NEVER" ] || [ "$factory_report_failed" != "NEVER" ]; then
+          do_report=1
+      fi
+
+
       # wait a bit in case of error, to reduce lost glideins
       let "dl=`date +%s` + $sleep_time"
       dlf=`date --date="@$dl"`
@@ -388,11 +406,19 @@ function glidein_exit {
 
       for ((t=`date +%s`; $t<$dl;t=`date +%s`))
       do
-	if [ -e "${main_work_dir}/$last_script" ] && [ "$report_failed" != "NEVER" ] ; then
-	    # if the file exists, we should be able to talk to VO collector
-	    # notify VO things went badly and we are waiting
-            warn "Notifying VO of error"
-	    "${main_work_dir}/$last_script" glidein_config
+	if [ -e "${main_work_dir}/$last_script" ] && [ "$do_report" == "1" ] ; then
+	    # if the file exists, we should be able to talk to the collectors
+	    # notify that things went badly and we are waiting
+            if [ "$factory_report_failed" != "NEVER" ]; then
+                add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "Factory"
+                warn "Notifying Factory of error"
+                "${main_work_dir}/$last_script" glidein_config
+            fi
+            if [ "$report_failed" != "NEVER" ]; then
+                add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "VO"
+                warn "Notifying VO of error"
+                "${main_work_dir}/$last_script" glidein_config
+            fi
 	fi
 
 	# sleep for about 5 mins... but randomize a bit
@@ -406,16 +432,30 @@ function glidein_exit {
 	sleep $ds
       done
 
-      if [ -e "${main_work_dir}/$last_script" ] && [ "$report_failed" != "NEVER" ]; then
-	  # notify VO things went badly and we are going away
-	  if [ "$report_failed" == "ALIVEONLY" ]; then
-	      add_config_line "GLIDEIN_ADVERTISE_TYPE" "INVALIDATE"
-	  else
-	      add_config_line "GLIDEIN_ADVERTISE_TYPE" "Killing"
-	      add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Terminating now. ($dl) ($dlf)"
-	  fi
-	  "${main_work_dir}/$last_script" glidein_config
-          warn "Last notification sent"
+      if [ -e "${main_work_dir}/$last_script" ] && [ "$do_report" == "1" ]; then
+	  # notify that things went badly and we are going away
+          if [ "$factory_report_failed" != "NEVER" ]; then
+              add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "Factory"
+              if [ "$factory_report_failed" == "ALIVEONLY" ]; then
+                  add_config_line "GLIDEIN_ADVERTISE_TYPE" "INVALIDATE"
+              else
+                  add_config_line "GLIDEIN_ADVERTISE_TYPE" "Killing"
+                  add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Terminating now. ($dl) ($dlf)"
+              fi
+              "${main_work_dir}/$last_script" glidein_config
+              warn "Last notification sent to Factory"
+          fi
+          if [ "$report_failed" != "NEVER" ]; then
+              add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "VO"
+              if [ "$report_failed" == "ALIVEONLY" ]; then
+                  add_config_line "GLIDEIN_ADVERTISE_TYPE" "INVALIDATE"
+              else
+                  add_config_line "GLIDEIN_ADVERTISE_TYPE" "Killing"
+                  add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Terminating now. ($dl) ($dlf)"
+              fi
+              "${main_work_dir}/$last_script" glidein_config
+              warn "Last notification sent to VO"
+          fi
       fi
   fi
 

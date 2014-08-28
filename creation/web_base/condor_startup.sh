@@ -65,9 +65,18 @@ fi
 adv_only=`grep -i "^GLIDEIN_ADVERTISE_ONLY " $config_file | awk '{print $2}'`
 
 if [ "$adv_only" -eq "1" ]; then
+    adv_destination=`grep -i "^GLIDEIN_ADVERTISE_DESTINATION " $config_file | awk '{print $2}'`
+    if [ -z "${adv_destination}" ]; then
+        adv_destination=VO
+    fi
+
     # no point in printing out debug info about config
     print_debug=0
-    echo "Advertising failure to the VO collector"  1>&2
+    if [ "$adv_destination" = "VO" ]; then
+        echo "Advertising failure to the VO collector"  1>&2
+    else
+        echo "Advertising failure to the Factory collector"  1>&2
+    fi
 fi
 
 if [ "$print_debug" -ne "0" ]; then
@@ -655,7 +664,7 @@ if [ "$adv_only" -eq "1" ]; then
     adv_type=`grep -i "^GLIDEIN_ADVERTISE_TYPE " $config_file | awk '{print $2}'`
 
     chmod u+rx "${main_stage_dir}/advertise_failure.helper"
-    "${main_stage_dir}/advertise_failure.helper" "$CONDOR_DIR/sbin/condor_advertise" "${adv_type}"
+    "${main_stage_dir}/advertise_failure.helper" "$CONDOR_DIR/sbin/condor_advertise" "${adv_type}" "${adv_destination}"
     # short circuit... do not even try to start the Condor daemons below
     exit $?
 fi

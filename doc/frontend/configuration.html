@@ -192,7 +192,19 @@ Click on any piece for a more detailed description.
         <a href="#">&lt;/group&gt;</a><br/>
     </blockquote>
     <a href="#">&lt;/groups&gt;</a><br/>
-     
+    <a href="#files">&lt;files&gt;</a><br/>
+    <blockquote>
+      <a href="#files">&lt;file absfname="/opt/script/testSW.sh" after_entry="True" after_group="False" const="True" executable="True" untar="False" wrapper="False" /&gt;</a><br/>
+    </blockquote>
+    <a href="#files">&lt;/files&gt;</a><br/>     
+    <a href="#usercollector">&lt;collectors&gt;</a><br/>
+    <blockquote>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="default" /&gt;</a><br/>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov:9620-9819" secondary="True" group="default" /&gt;</a><br/>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector2.fnal.gov" node="usercollector2.fnal.gov" secondary="False" group="ha" /&gt;</a><br/>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector2.fnal.gov" node="usercollector2.fnal.gov:9620-9919" secondary="True" group="ha" /&gt;</a><br/>
+    </blockquote>
+    <a href="#usercollector">&lt;/collectors&gt;</a><br/>
     <a href="#global_config">&lt;config&gt;</a><br/>
     <blockquote>
        <a href="#global_config">&lt;idle_vms_total curb="800" max="1200" /&gt;</a><br/>
@@ -201,14 +213,6 @@ Click on any piece for a more detailed description.
        <a href="#global_config">&lt;running_glideins_total_global curb="50000" max="60000" /&gt;</a><br/>
     </blockquote>
     <a href="#global_config">&lt;/config&gt;</a><br/>
-
-    <a href="#usercollector">&lt;collectors groups="default,ha"&gt;</a><br/>
-    <blockquote>
-        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="default" /&gt;</a><br/>
-        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="ha" /&gt;</a><br/>
-    </blockquote>
-    <a href="#usercollector">&lt;/collectors&gt;</a><br/>
-    <a href="#files">&lt;files /&gt;</a><br/>
     </blockquote>
     <a href="#">&lt;/frontend&gt;</a><br/>
 </div>
@@ -434,6 +438,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         This defines the path to the Glidein Frontend directory. 
     </P></li>
         <LI><P>
+                <a name="files" />
                 <div class="xml">
                 &lt;frontend&gt;&lt;files&gt;&lt;file
                 absfname=&quot;<I>filepath</I>&quot;
@@ -775,7 +780,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     <LI><P>
         <a name="usercollector" />
         <div class="xml">
-        &lt;frontend&gt;&lt;collectors groups="<i>list of collector groups</i>"&gt;&lt;collector DN="<i>certificate DN</i>" node="<i>User Pool Collector</i>" secondary="<i>True/False</i>" group="<i>Group Name</i>"&gt;
+        &lt;frontend&gt;&lt;collectors&gt;&lt;collector DN="<i>certificate DN</i>" node="<i>User Pool Collector</i>" secondary="<i>True/False</i>" group="<i>Group Name</i>"&gt;
         </div>
         List of user pool collector(s) where condor_startd started by glideins
         should report to as an available resource.  
@@ -786,7 +791,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     <a href="../components/condor.html#collectors">Advanced Condor Configuration Multiple Collectors document</a> for details for the Condor configuration.<br/>
     The configuration required for the Frontend to communicate with the secondary user pool collectors is shown below:
       <blockquote>
-         &lt;collectors>&gt;
+         &lt;collectors&gt;
          &lt;collector DN="<i>certificate DN</i>"  secondary="<b>False</b>"
                   node="User Pool Collector:<b>primary_port</b>"/&gt;</br>
          &lt;collector DN="<i>certificate DN</i>" secondary="<b>True</b>"
@@ -803,9 +808,8 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     Condor daemons started by the glideins will report back to one of the
     secondary collectors in each <b>group</b>. If a <b>group</b> has no secondary collector, 
     the primary collector is selected for that group. 
-    The collector element <b>groups</b> attribute defines the set of collectors the frontend will use.
-      <blockquote>
-         &lt;collectors <b>groups="default,1"</b>&gt;
+    <blockquote>
+         &lt;collectors&gt;
         <ul>
          &lt;collector DN="<i>certificate DN</i>"  secondary="False"
                   node="<b>User Pool Collector 1</b>:primary_port" <b>group="default"</b>/&gt;</br>

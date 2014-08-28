@@ -634,6 +634,24 @@ by the VO factory clients.</P>
             <P>Used in conjunction with GLIDEIN_MaxMemMBs. See GLIDEIN_MaxMemMBs for the description.</P>
         </TD>
     </TR>
+    <TR>
+        <td> <b>GLIDEIN_Factory_Report_Failed</b> </td>
+        <td> String </TD>
+        <td> ALIVEONLY </TD>
+
+        <TD>
+            <p>This attribute regulates advertising of validation failures to the Factory collector.
+            <ul>
+              <li><b>NEVER</b> - The glidein will just fail, and do nothing.
+              <li><b>ALIVEONLY</b> - The glidein will advertise a Master ClassAd in <i>Drained</i> state and <i>Retiring</i> activity for the lifetime of the glidein script.
+              <li><b>ALWAYS</b> - Similar to <b>ALIVEONLY</b>, but will also send a final ClassAd in <i>Drained</i> state and <i>Killing</i> activity just before dying.
+            </ul>
+            <p>When advertised, the classad is flagged <i>GLIDEIN_Failed=True</i>, 
+               the error is recorded in the <i>GLIDEIN_FAILURE_REASON</i> and
+                  <i>GLIDEIN_EXIT_CODE</i> attributes, and
+               the failing script is recorded in the <i>GLIDEIN_LAST_SCRIPT</i> attribute.
+       </TD>
+    </TR>
 </TABLE>
 </div>
 <div class="section">

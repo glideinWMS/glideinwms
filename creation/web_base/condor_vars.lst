@@ -33,6 +33,8 @@ GLIDECLIENT_Group	S	-		+				N	Y	@
 GLIDECLIENT_Signature	S	-		+				N	Y	@
 GLIDECLIENT_Group_Signature	S	-	+				N	Y	@
 GLIDEIN_Collector	C	-		HEAD_NODE			Y	N	-
+GLIDEIN_Factory_Collector	C	-	+       			N	N	-
+GLIDEIN_Master_Collector	C	-	+       			Y	N	-
 GLIDECLIENT_Start	C	True		+				N	N	-
 GLIDECLIENT_Hold	C	False		+				N	N	-
 GLIDECLIENT_PREEMPT	C	False		+				N	N	-

@@ -185,6 +185,7 @@ def get_main_dicts(submit_dir,stage_dir):
     main_dicts['summary_signature']=cWDictFile.SummarySHA1DictFile(submit_dir,cWConsts.SUMMARY_SIGNATURE_FILE)
     main_dicts['glidein']=cWDictFile.StrDictFile(submit_dir,cgWConsts.GLIDEIN_FILE)
     main_dicts['frontend_descript']=cWDictFile.ReprDictFile(submit_dir,cgWConsts.FRONTEND_DESCRIPT_FILE)
+    main_dicts['gridmap']=cWDictFile.GridMapDict(stage_dir,cWConsts.insert_timestr(cWConsts.GRIDMAP_FILE))
     main_dicts['after_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cgWConsts.AFTER_FILE_LISTFILE),fname_idx=cgWConsts.AFTER_FILE_LISTFILE)
     return main_dicts
 
@@ -215,6 +216,8 @@ def load_common_dicts(dicts,           # update in place
     dicts['consts'].load(fname=file_el[cWConsts.CONSTS_FILE][0])
     dicts['vars'].load(fname=file_el[cWConsts.VARS_FILE][0])
     dicts['untar_cfg'].load(fname=file_el[cWConsts.UNTAR_CFG_FILE][0])
+    if dicts.has_key('gridmap'):
+        dicts['gridmap'].load(fname=file_el[cWConsts.GRIDMAP_FILE][0])
 
 def load_main_dicts(main_dicts): # update in place
     main_dicts['glidein'].load()
@@ -258,11 +261,13 @@ def refresh_file_list(dicts,is_main, # update in place
     file_dict.add(cWConsts.CONSTS_FILE,(dicts['consts'].get_fname(),"regular","TRUE","CONSTS_FILE",dicts['consts'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
     file_dict.add(cWConsts.VARS_FILE,(dicts['vars'].get_fname(),"regular","TRUE","CONDOR_VARS_FILE",dicts['vars'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
     file_dict.add(cWConsts.UNTAR_CFG_FILE,(dicts['untar_cfg'].get_fname(),"regular","TRUE","UNTAR_CFG_FILE",dicts['untar_cfg'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
+    if is_main:
+        file_dict.add(cWConsts.GRIDMAP_FILE,(dicts['gridmap'].get_fname(),"regular","TRUE","GRIDMAP",dicts['gridmap'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
 
 # dictionaries must have been written to disk before using this
 def refresh_signature(dicts): # update in place
     signature_dict=dicts['signature']
-    for k in ('consts','vars','untar_cfg','file_list','after_file_list','description'):
+    for k in ('consts','vars','untar_cfg','gridmap','file_list','after_file_list','description'):
         if dicts.has_key(k):
             signature_dict.add_from_file(dicts[k].get_filepath(),allow_overwrite=True)
     # add signatures of all the files linked in the lists
@@ -377,6 +382,7 @@ def reuse_common_dicts(dicts, other_dicts,is_main,all_reused):
 def reuse_main_dicts(main_dicts, other_main_dicts):
     reuse_simple_dict(main_dicts, other_main_dicts,'glidein')
     reuse_simple_dict(main_dicts, other_main_dicts,'frontend_descript')
+    reuse_simple_dict(main_dicts, other_main_dicts,'gridmap')
     all_reused=reuse_common_dicts(main_dicts, other_main_dicts,True,True)
     # will not try to reuse the summary_signature... being in submit_dir
     # can be rewritten and it is not worth the pain to try to prevent it

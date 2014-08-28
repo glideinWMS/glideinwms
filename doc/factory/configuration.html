@@ -183,12 +183,24 @@ for a more detailed description.
         <a href="#entry">&lt;/entry&gt;</a><br/>
     </blockquote>
     <a href="#entry">&lt;/entries&gt;</a><br/>
+    <a href="#files">&lt;files&gt;</a><br/>
+    <blockquote>
+      <a href="#files">&lt;file absfname="/usr/conf/sethome.source" after_entry="False" const="True" executable="False" untar="False" wrapper="True" /&gt;</a><br/>
+    </blockquote>
+    <a href="#files">&lt;/files&gt;</a><br/>     
     <a href="#condor_tarball">&lt;condor_tarballs&gt;</a><br/>
     <blockquote>
         <a href="#condor_tarball">&lt;condor_tarball arch="default" base_dir="/opt/wmscollector/" os="default" tar_file="/var/www/html/glidefactory/stage/glidein_v2_4/condor_bin_default-default-default.a83ePm.tgz" version="default"/&gt;</a><br/>
     </blockquote>
     <a href="#condor_tarball">&lt;/condor_tarballs&gt;</a><br/>
-    <a href="#">&lt;files /&gt;</a><br/>
+    <a href="#factmoncollector">&lt;monitoring_colectors&gt;</a><br/>
+    <blockquote>
+        <a href="#factmoncollector">&lt;monitoring_colector DN="/DC=org/DC=doegrids/OU=Services/CN=factmoncollector.fnal.gov" node="factmoncollector.fnal.gov" secondary="False" group="default" /&gt;</a><br/>
+        <a href="#factmoncollector">&lt;monitoring_colector DN="/DC=org/DC=doegrids/OU=Services/CN=factmoncollector.fnal.gov" node="factmoncollector.fnal.gov:9620-9819" secondary="True" group="default" /&gt;</a><br/>
+        <a href="#factmoncollector">&lt;monitoring_colector DN="/DC=org/DC=doegrids/OU=Services/CN=factmoncollector2.fnal.gov" node="factmoncollector2.fnal.gov" secondary="False" group="ha" /&gt;</a><br/>
+        <a href="#factmoncollector">&lt;monitoring_colector DN="/DC=org/DC=doegrids/OU=Services/CN=factmoncollector2.fnal.gov" node="factmoncollector2.fnal.gov:9620-9919" secondary="True" group="ha" /&gt;</a><br/>
+    </blockquote>
+    <a href="#factmoncollector">&lt;/monitoring_colectors&gt;</a><br/>
 </blockquote>
 <a href="#glidein">&lt;/glidein&gt;</a><br/>
 </div>
@@ -1521,7 +1533,8 @@ statistics and the names of the slots is also different.</P>
 <div class="section">
 
 <H3 CLASS="western">
-<A NAME="custom_code"></A>Adding custom code/files to the glideins</H3>
+<A NAME="custom_code"></A><A NAME="files"></A>
+Adding custom code/files to the glideins</H3>
 <P>While provided code should cover most of the general purpose use
 cases, some administrators may have additional needs. For these
 cases, the glidein creation command adds the options listed below.</P>
@@ -1635,6 +1648,43 @@ daemons are started up.</P>
 	if if the <b>&lt;file&gt;</b> directive occurs in an entry.</li>
     </UL>
 </UL>
+</div>
+
+<div class="section">
+<a name="factmoncollector" />
+<H3 CLASS="western">
+Monitoring collectors
+</H3>
+<p>
+By default, the glideins talk to the VO Pool Collector only.
+This makes monitoring them from the Factory side extremely difficult.
+</p>
+<p>
+To solve this, you can set up a Monitoring Collector tree that mirrors
+that of <a href="../frontend/configuration.html#usercollector">the VO Pool Collector</a>, 
+and tell the glideins to report there, too.
+</p>
+<p>
+The configuration syntax is very similar to that of the
+ <a href="../frontend/configuration.html#usercollector">the VO Pool Collector</a>, but using <b>monitoring_collector</b> instead of <b>collector</b> keyword.<br>
+For example:
+    <div class="xml">
+    <blockquote>
+    &lt;monitoring_colectors&gt;<br/>
+    <blockquote>
+        &lt;monitoring_colector DN="/DC=org/DC=doegrids/OU=Services/CN=factmoncollector.fnal.gov" node="factmoncollector.fnal.gov" secondary="False" group="default" /&gt;<br/>
+        &lt;monitoring_colector DN="/DC=org/DC=doegrids/OU=Services/CN=factmoncollector.fnal.gov" node="factmoncollector.fnal.gov:9620-9819" secondary="True" group="default" /&gt;<br/>
+        &lt;monitoring_colector DN="/DC=org/DC=doegrids/OU=Services/CN=factmoncollector2.fnal.gov" node="factmoncollector2.fnal.gov" secondary="False" group="ha" /&gt;<br/>
+        &lt;monitoring_colector DN="/DC=org/DC=doegrids/OU=Services/CN=factmoncollector2.fnal.gov" node="factmoncollector2.fnal.gov:9620-9919" secondary="True" group="ha" /&gt;<br/>
+    </blockquote>
+    &lt;/monitoring_colectors&gt;<br/>
+    </blockquote>
+    </div></p>
+<p>
+<p>
+For more details, see the 
+ <a href="../frontend/configuration.html#usercollector">Frontend documentation</a>.
+</p>
 </div>
 
 <div class="section">

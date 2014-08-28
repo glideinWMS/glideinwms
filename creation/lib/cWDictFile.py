@@ -6,9 +6,11 @@
 #
 # Description:
 #   Classes needed to handle dictionary files
+#   And other support functions
 #
 
 import os,os.path,string,shutil,copy
+import socket
 from glideinwms.lib import hashCrypto
 import cStringIO
 
@@ -384,6 +386,34 @@ class DescriptionDictFile(DictFileTwoKeys):
             raise RuntimeError,"Not a valid description line: '%s'"%line
 
         return self.add(arr[1],arr[0])
+
+# gridmap file
+class GridMapDict(DictFileTwoKeys):
+    def file_header(self,want_comments):
+        return None
+    
+    def format_val(self,key,want_comments):
+        return '"%s" %s'%(key,self.vals[key])
+
+    def parse_val(self,line):
+        if line[0]=='#':
+            return # ignore comments
+        arr=line.split()
+        if len(arr)==0:
+            return # empty line
+        if len(arr[0])==0:
+            return # empty key
+
+        if line[0:1]!='"':
+            raise RuntimeError,'Not a valid gridmap line; not starting with ": %s'%line
+
+        user=arr[-1]
+
+        if line[-len(user)-2:-len(user)-1]!='"':
+            raise RuntimeError,'Not a valid gridmap line; DN not ending with ": %s'%line
+        
+        dn=line[1:-len(user)-2]
+        return self.add(dn,user)
 
 ##################################
 
@@ -1430,3 +1460,53 @@ class MonitorFileDicts:
         self.main_dicts.save(set_readonly=set_readonly)
         for sub_name in self.sub_list:
             self.sub_dicts[sub_name].save_final(set_readonly=set_readonly)
+
+#########################################################
+#
+# Common functions
+#
+#########################################################
+
+#####################################################
+# Validate node string
+def validate_node(nodestr,allow_prange=False):
+    narr=nodestr.split(':')
+    if len(narr)>2:
+        raise RuntimeError, "Too many : in the node name: '%s'"%nodestr
+    if len(narr)>1:
+        # have ports, validate them
+        ports=narr[1]
+        parr=ports.split('-')
+        if len(parr)>2:
+            raise RuntimeError, "Too many - in the node ports: '%s'"%nodestr
+        if len(parr)>1:
+            if not allow_prange:
+                raise RuntimeError, "Port ranges not allowed for this node: '%s'"%nodestr
+            pmin=parr[0]
+            pmax=parr[1]
+        else:
+            pmin=parr[0]
+            pmax=parr[0]
+        try:
+            pmini=int(pmin)
+            pmaxi=int(pmax)
+        except ValueError,e:
+            raise RuntimeError, "Node ports are not integer: '%s'"%nodestr
+        if pmini>pmaxi:
+            raise RuntimeError, "Low port must be lower than high port in node port range: '%s'"%nodestr
+
+        if pmini<1:
+            raise RuntimeError, "Ports cannot be less than 1 for node ports: '%s'"%nodestr
+        if pmaxi>65535:
+            raise RuntimeError, "Ports cannot be more than 64k for node ports: '%s'"%nodestr
+
+    # split needed to handle the multiple schedd naming convention
+    nodename = narr[0].split("@")[-1]  
+    try:
+        socket.getaddrinfo(nodename,None)
+    except:
+        raise RuntimeError, "Node name unknown to DNS: '%s'"%nodestr
+
+    # OK, all looks good
+    return
+    

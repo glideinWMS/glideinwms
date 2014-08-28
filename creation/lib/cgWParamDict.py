@@ -60,7 +60,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.dicts['file_list'].add_placeholder(cWConsts.CONSTS_FILE,allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cWConsts.VARS_FILE,allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE,allow_overwrite=True) # this one must be loaded before any tarball
-                
+        self.dicts['file_list'].add_placeholder(cWConsts.GRIDMAP_FILE,allow_overwrite=True) # this one must be loaded before setup_x509.sh is run
+
         #load system files
         for file_name in ('error_gen.sh','error_augment.sh','parse_starterlog.awk', 'advertise_failure.helper',
                           "condor_config", "condor_config.multi_schedd.include", "condor_config.dedicated_starter.include", "condor_config.check.include", "condor_config.monitor.include"):
@@ -155,6 +156,13 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # add the basic standard params
         self.dicts['params'].add("GLIDEIN_Collector",'Fake')
 
+        # add the factory monitoring collector parameter, if any collectors are defined
+        # this is purely a factory thing
+        factory_monitoring_collector=calc_monitoring_collectors_string(params.monitoring_collectors)
+        if factory_monitoring_collector is not None:
+            self.dicts['params'].add('GLIDEIN_Factory_Collector',str(factory_monitoring_collector))
+        populate_gridmap(params,self.dicts['gridmap'])
+        
         file_list_scripts = ['collector_setup.sh',
                              'create_temp_mapfile.sh',
                              'setup_x509.sh',
@@ -744,6 +752,10 @@ def populate_factory_descript(work_dir,
         glidein_dict.add('MonitorDisplayText',params.monitor_footer.display_txt)
         glidein_dict.add('MonitorLink',params.monitor_footer.href_link)
         
+        monitoring_collectors=calc_primary_monitoring_collectors(params.monitoring_collectors)
+        if monitoring_collectors is not None:
+            glidein_dict.add('PrimaryMonitoringCollectors',str(monitoring_collectors))
+
         for lel in (("job_logs",'JobLog'),("summary_logs",'SummaryLog'),("condor_logs",'CondorLog')):
             param_lname,str_lname=lel
             for tel in (("max_days",'MaxDays'),("min_days",'MinDays'),("max_mbytes",'MaxMBs')):
@@ -850,6 +862,22 @@ def populate_frontend_descript(frontend_dict,     # will be modified
         
         frontend_dict.add(fe,{'ident':ident,'usermap':maps})
 
+
+
+#####################################################
+# Populate gridmap to be used by the glideins
+def populate_gridmap(params,gridmap_dict):
+    collector_dns=[]
+    for el in params.monitoring_collectors:
+        dn=el.DN
+        if dn is None:
+            raise RuntimeError,"DN not defined for monitoring collector %s"%el.node
+        if not (dn in collector_dns): #skip duplicates
+            collector_dns.append(dn)
+            gridmap_dict.add(dn,'fcollector%i'%len(collector_dns))
+
+    # TODO: We should also have a Factory DN, for ease of debugging
+    #       None available now, but we should add it
 
 
 #####################
@@ -969,4 +997,51 @@ def itertools_product(*args, **kwds):
         result = [x+[y] for x in result for y in pool]
     for prod in result:
         yield tuple(prod)
+
+#####################################################
+# Returns a string usable for GLIDEIN_Factory_Collector
+# Returns None if there are no collectors defined
+def calc_monitoring_collectors_string(collectors):
+    collector_nodes = {}
+    monitoring_collectors = []
+
+    for el in collectors:
+        if not collector_nodes.has_key(el.group):
+            collector_nodes[el.group] = {'primary': [], 'secondary': []}
+        if eval(el.secondary):
+            cWDictFile.validate_node(el.node,allow_prange=True)
+            collector_nodes[el.group]['secondary'].append(el.node)
+        else:
+            cWDictFile.validate_node(el.node)
+            collector_nodes[el.group]['primary'].append(el.node)
+
+    for group in collector_nodes.keys():
+        if len(collector_nodes[group]['secondary']) > 0:
+            monitoring_collectors.append(string.join(collector_nodes[group]['secondary'], ","))
+        else:
+            monitoring_collectors.append(string.join(collector_nodes[group]['primary'], ","))
+
+    if len(monitoring_collectors)==0:
+        return None
+    else:
+        return string.join(monitoring_collectors, ";")
+
+# Returns a string listing the primary monitoring collectors
+# Returns None if there are no collectors defined
+def calc_primary_monitoring_collectors(collectors):
+    collector_nodes = {}
+
+    for el in collectors:
+        if not eval(el.secondary):
+            # only consider the primary collectors
+            cWDictFile.validate_node(el.node)
+            # we only expect one per group
+            if collector_nodes.has_key(el.group):
+                raise RuntimeError, "Duplicate primary monitoring collector found for group %s"%el.group
+            collector_nodes[el.group]=el.node
+    
+    if len(collector_nodes)==0:
+        return None
+    else:
+        return string.join(collector_nodes.values(), ",")
 
