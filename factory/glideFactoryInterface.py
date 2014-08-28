@@ -28,8 +28,17 @@ from glideinwms.lib import classadSupport
 #
 ############################################################
 
-# Advertize counter for glidefactory
+# Define global variables that keep track of the Daemon lifetime
+start_time = time.time()
+# Advertize counter for glidefactory classad
 advertizeGFCounter = {}
+# Advertize counter for glidefactoryclient classad
+advertizeGFCCounter = {}
+# Advertize counter for glidefactoryglobal classad
+advertizeGlobalCounter = 0
+
+advertizeGlideinCounter = 0
+
 
 ############################################################
 #
@@ -481,17 +490,6 @@ def findWork(factory_name, glidein_name, entry_name,
     return out
 
 
-############################################################
-
-#
-# Define global variables that keep track of the Daemon lifetime
-#
-start_time = time.time()
-advertizeGlideinCounter = 0
-advertizeGlobalCounter = 0
-advertizeGFCCounter = {}
-
-
 ###############################################################################
 # Code to advertise glidefactory classads to the WMS Pool
 ###############################################################################
@@ -521,15 +519,16 @@ class EntryClassad(classadSupport.Classad):
                                         'UPDATE_MASTER_AD',
                                         'INVALIDATE_MASTER_ADS')
 
-        self.adParams['Name'] = "%s@%s@%s" % (entry_name, glidein_name,
-                                              factory_name)
+        # Short hand for easy access
+        classad_name = "%s@%s@%s" % (entry_name, glidein_name, factory_name)
+        self.adParams['Name'] = classad_name
         self.adParams['FactoryName'] = "%s" % factory_name
         self.adParams['GlideinName'] = "%s" % glidein_name
         self.adParams['EntryName'] = "%s" % entry_name
         self.adParams[factoryConfig.factory_signtype_id] = "%s" % string.join(supported_signtypes, ',')
         self.adParams['DaemonStartTime'] = int(start_time)
-        advertizeGFCounter['Name'] = advertizeGFCounter.get('Name', -1) + 1
-        self.adParams['UpdateSequenceNumber'] = advertizeGFCounter['Name']
+        advertizeGFCounter[classad_name] = advertizeGFCounter.get(classad_name, -1) + 1
+        self.adParams['UpdateSequenceNumber'] = advertizeGFCounter[classad_name]
         self.adParams['GlideinWMSVersion'] = factoryConfig.glideinwms_version
 
         if pub_key_obj is not None:
@@ -915,10 +914,7 @@ def createGlideinClientMonitoringFile(fname,
             fd.write('ReqClientName = "%s"\n' % client_int_name)
             fd.write('ReqClientReqName = "%s"\n' % client_int_req)
             #fd.write('DaemonStartTime = %li\n'%start_time)
-            if advertizeGFCCounter.has_key(client_name):
-                advertizeGFCCounter[client_name] += 1
-            else:
-                advertizeGFCCounter[client_name] = 0
+            advertizeGFCCounter[client_name] = advertizeGFCCounter.get(client_name, -1) + 1
             fd.write('UpdateSequenceNumber = %i\n'%advertizeGFCCounter[client_name])            
 
             # write out both the attributes, params and monitors
