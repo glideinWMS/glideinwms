@@ -112,7 +112,7 @@ def verifyHelper(filename,dict, fix_rrd=False):
         dump_obj=rrdSupport.rrdtool_exe()
         outstr=dump_obj.dump(filename)
         for line in outstr:
-            os.write(f,line)
+            os.write(f,"%s\n"%line)
         os.close(f)
         rrdSupport.addDataStore(tempfilename,tempfilename2,missing)
         os.unlink(filename)
