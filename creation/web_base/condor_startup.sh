@@ -467,6 +467,12 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# should I start multiple Condor daemons?
+multi_cnt=`grep -i "^GLIDESTART_MULTIPLE " $config_file | awk '{print $2}'`
+if [ -z "$multi_cnt" ]; then
+  multi_cnt=1
+fi
+
 monitor_mode=`grep -i "^MONITOR_MODE " $config_file | awk '{print $2}'`
 
 if [ "$monitor_mode" == "MULTI" ]; then
@@ -710,21 +716,53 @@ trap 'on_die' INT
 
 
 #### STARTS CONDOR ####
+condor_ret=255
+
 if [ "$check_only" == "1" ]; then
     echo "=== Condor started in test mode ==="
     $CONDOR_DIR/sbin/condor_master -pidfile $PWD/condor_master.pid
+    condor_ret=$?
 else
     $CONDOR_DIR/sbin/condor_master -f -pidfile $PWD/condor_master2.pid &
+    echo "=== Launched main background Condor process `date` (`date +%s`) ===" 1>&2
     # Wait for a few seconds to make sure the pid file is created,
     # then wait on it for completion
+    if [ $multi_cnt -gt 1 ]; then
+        org_condor_config=$CONDOR_CONFIG
+        for ((i=2; $i<=$multi_cnt; i++)); do
+            export CONDOR_CONFIG="${org_condor_config}.cfg${i}"
+            cp "${org_condor_config}" "$CONDOR_CONFIG"
+            mkdir work${i} work${i}/log work${i}/execute
+            echo "WORK_DIR=$PWD/work${i}" >> "$CONDOR_CONFIG"
+            echo "MASTER_NAME = glidein_${i}_${glidein_startup_pid}" >> "$CONDOR_CONFIG"
+            echo "STARTD_NAME = glidein_${i}_${glidein_startup_pid}" >> "$CONDOR_CONFIG"
+            $CONDOR_DIR/sbin/condor_master -f -pidfile $PWD/condor_master2_${i}.pid &
+            echo "=== Launched background Condor process(${i}) `date` (`date +%s`) ===" 1>&2
+        done
+        export CONDOR_CONFIG=${org_condor_config}
+    fi
     sleep 5
     if [ -e "$PWD/condor_master2.pid" ]; then
-        echo "=== Condor started in background, now waiting on process `cat $PWD/condor_master2.pid` ==="
-        wait `cat $PWD/condor_master2.pid`
+        mpid=`cat $PWD/condor_master2.pid`
+        echo "=== Condor started in background, now waiting on process $mpid ==="
+        wait "$mpid"
+        condor_ret=$?
+        echo "=== Main background condor process $mpid terminated `date` (`date +%s`) ===" 1>&2
+    else
+        echo "=== Main background condor process already terminated at `date` (`date +%s`)===" 1>&2
+    fi
+    if [ $multi_cnt -gt 1 ]; then
+        for ((i=2; $i<=$multi_cnt; i++)); do
+            if [ -e "$PWD/condor_master2_${i}.pid" ]; then
+                mpid=`cat $PWD/condor_master2_${i}.pid`
+                wait "$mpid"
+                echo "=== Background condor process(${i}) $mpid terminated `date` (`date +%s`) ===" 1>&2
+            else
+                echo "=== Background condor process(${i}) already terminated at `date` (`date +%s`) ===" 1>&2
+            fi
+        done
     fi
 fi
-
-condor_ret=$?
 
 if [ ${condor_ret} -eq 99 ]; then
     echo "Normal DAEMON_SHUTDOWN encountered" 1>&2
