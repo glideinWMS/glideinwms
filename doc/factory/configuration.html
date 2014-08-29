@@ -1722,13 +1722,28 @@ used by the factory.
    &lt;/xsl:template&gt;
 </pre>
         </p>
-</div>
 
 The default behavior can be overridden by specifying the option -xslt_plugin_dir to reconfig_glidein and reconfig_frontend tools. 
 <pre>
 <b>prompt$</b> reconfig_glidein -xslt_plugin_dir &lt;xslt directory&gt; [...]
 <b>prompt$</b> reconfig_frontend -xslt_plugin_dir &lt;xslt directory&gt; [...]
 </pre>
+</div>
+
+<div>
+<a name="multiglidein"/>
+<h3 class="western">Starting multiple HTCondor daemons in a single gldiein</h3>
+<p>
+glideinWMS is sometimes used for testing HTCondor scalability.
+In this use case, one needs to start up as many HTCondor execute daemons as possible.
+</p>
+<p>
+Since the number of glideins that can be started at any point in time is limited,
+one may want to start multiple HTCondor daemons inside a single glidein.<br>
+The <b>GLIDESTART_MULTIPLE</b> attribute allows to do just that.<br>
+If set to any positive number, the glideins will internally start that many independent HTCondor daemons.
+</p>
+</div>
 
 <div class="footer">
 Banner image by
