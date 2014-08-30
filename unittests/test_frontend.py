@@ -54,13 +54,37 @@ def compareLambdas(func1, func2):
 #        pass
     return code1 == code2
 
-#@unittest.skip('yay')
-class FETestCaseCondorStatus(unittest.TestCase):
+class FETestCaseBase(unittest.TestCase):
     def setUp(self):
         with mock.patch('glideinwms.lib.condorExe.exe_cmd') as m_exe_cmd:
             f = open('cs.fixture')
             m_exe_cmd.return_value = f.readlines()
             self.status_dict = glideinFrontendLib.getCondorStatus(['coll1'])
+
+        self.frontend_name = 'fe_name'
+        self.group_name = 'group_name'
+        self.request_name = 'request_name'
+        self.cred_id = 1234
+        self.default_format = [('JobStatus', 'i'), ('EnteredCurrentStatus', 'i'),
+                               ('ServerTime', 'i'), ('RemoteHost', 's')]
+
+        self.prepare_condorq_dict()
+
+
+    def prepare_condorq_dict(self):
+        with mock.patch('glideinwms.lib.condorMonitor.LocalScheddCache.iGetEnv') as m_iGetEnv:
+            cq = condorMonitor.CondorQ(schedd_name='sched1', pool_name='pool1')
+
+        with mock.patch('glideinwms.lib.condorExe.exe_cmd') as m_exe_cmd:
+            f = open('cq.fixture')
+            m_exe_cmd.return_value = f.readlines()
+            cq.load()
+
+        self.condorq_dict = {'sched1': cq}
+
+
+#@unittest.skip('yay')
+class FETestCaseCondorStatus(FETestCaseBase):
 
     def test_getCondorStatus(self):
         machines = self.status_dict['coll1'].stored_data.keys()
@@ -108,7 +132,7 @@ class FETestCaseCondorStatus(unittest.TestCase):
             self.assertItemsEqual(condorStatus['coll1'].stored_data.keys(),
                                   ['schedd%s.local' % x for x in xrange(1,4)])
 
-class FETestCaseMisc(unittest.TestCase):
+class FETestCaseMisc(FETestCaseBase):
     def test_uniqueSets(self):
         input = \
         [set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]), set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
@@ -134,31 +158,15 @@ class FETestCaseMisc(unittest.TestCase):
                               glideinFrontendLib.hashJob(in1, in2))
 
     def test_appendRealRunning(self):
-        glideinFrontendLib.appendRealRunning(self.condorq_dict, self.status_dict)
+        cq_run_dict = glideinFrontendLib.getRunningCondorQ(self.condorq_dict)
+        glideinFrontendLib.appendRealRunning(cq_run_dict, self.status_dict)
+
+        self.assertItemsEqual(
+            [x['RunningOn'] for x in cq_run_dict['sched1'].fetchStored().values()],
+            ['Site_Name%s@v3_0@factory%s@submit.local' % (x,x) for x in xrange(1,3)])
 
 #@unittest.skip('yay')
-class FETestCaseCondorQ(unittest.TestCase):
-    def prepare_condorq_dict(self):
-        with mock.patch('glideinwms.lib.condorMonitor.LocalScheddCache.iGetEnv') as m_iGetEnv:
-            cq = condorMonitor.CondorQ(schedd_name='sched1', pool_name='pool1')
-
-        with mock.patch('glideinwms.lib.condorExe.exe_cmd') as m_exe_cmd:
-            f = open('cq.fixture')
-            m_exe_cmd.return_value = f.readlines()
-            cq.load()
-
-        self.condorq_dict = {'sched1': cq}
-
-    def setUp(self):
-        self.status_dict = {'coll1': '1001'}
-        self.frontend_name = 'fe_name'
-        self.group_name = 'group_name'
-        self.request_name = 'request_name'
-        self.cred_id = 1234
-        self.default_format = [('JobStatus', 'i'), ('EnteredCurrentStatus', 'i'),
-                               ('ServerTime', 'i'), ('RemoteHost', 's')]
-
-        self.prepare_condorq_dict()
+class FETestCaseCondorQ(FETestCaseBase):
 
     @mock.patch.object(glideinFrontendLib, 'getClientCondorStatus')
     @mock.patch.object(glideinFrontendLib, 'getClientCondorStatusCredIdOnly')
