@@ -37,6 +37,7 @@
     <a n="ClusterId"><i>12345</i></a>
     <a n="ProcId"><i>3</i></a>
     <a n="JobStatus"><i>2</i></a>
+    <a n="RemoteHost"><s>glidein_1@cmswn001.local</s></a>
     <a n="User"><s>user2@fnal.gov</s></a>
 </c>
 <c>
@@ -47,6 +48,7 @@
     <a n="x509userproxysubject"><s>/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=drbeef/CN=66666/CN=Doctor Beef</s></a>
     <a n="x509UserProxyEmail"><s>nobody@example.com</s></a>
     <a n="JobStatus"><i>2</i></a>
+    <a n="RemoteHost"><s>glidein_2@cmswn002.local</s></a>
     <a n="User"><s>user2@fnal.gov</s></a>
 </c>
 </classads>

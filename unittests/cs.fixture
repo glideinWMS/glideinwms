@@ -27,7 +27,7 @@
     <a n="GLEXEC_STARTER"><b v="f"/></a>
     <a n="CanHibernate"><b v="f"/></a>
     <a n="GLIDEIN_Gatekeeper"><s>alcyone-cms.grid.helsinki.fi</s></a>
-    <a n="GLIDEIN_Schedd"><s>schedd_glideins4@vocms32.cern.ch</s></a>
+    <a n="GLIDEIN_Schedd"><s>schedd_glideins1@submit.local</s></a>
     <a n="UpdateSequenceNumber"><i>156</i></a>
     <a n="LastBenchmark"><i>1409216797</i></a>
     <a n="GLIDEIN_COLLECTOR_NAME"><s>vocms97.cern.ch:9877,cmssrv119.fnal.gov:10052</s></a>
@@ -254,7 +254,7 @@
     <a n="GLEXEC_STARTER"><b v="f"/></a>
     <a n="CanHibernate"><b v="f"/></a>
     <a n="GLIDEIN_Gatekeeper"><s>alcyone-cms.grid.helsinki.fi</s></a>
-    <a n="GLIDEIN_Schedd"><s>schedd_glideins7@gfactory-1.t2.ucsd.edu</s></a>
+    <a n="GLIDEIN_Schedd"><s>schedd_glideins2@submit.local</s></a>
     <a n="UpdateSequenceNumber"><i>13</i></a>
     <a n="LastBenchmark"><i>1409255605</i></a>
     <a n="GLIDEIN_COLLECTOR_NAME"><s>vocms97.cern.ch:9927,cmssrv119.fnal.gov:9927</s></a>
@@ -482,7 +482,7 @@
     <a n="GLEXEC_STARTER"><b v="f"/></a>
     <a n="CanHibernate"><b v="f"/></a>
     <a n="GLIDEIN_Gatekeeper"><s>alcyone-cms.grid.helsinki.fi</s></a>
-    <a n="GLIDEIN_Schedd"><s>schedd_glideins4@vocms32.cern.ch</s></a>
+    <a n="GLIDEIN_Schedd"><s>schedd_glideins3@submit.local</s></a>
     <a n="UpdateSequenceNumber"><i>13</i></a>
     <a n="LastBenchmark"><i>1409255622</i></a>
     <a n="GLIDEIN_COLLECTOR_NAME"><s>vocms97.cern.ch:9706,cmssrv119.fnal.gov:10319</s></a>
@@ -710,7 +710,7 @@
     <a n="GLEXEC_STARTER"><b v="f"/></a>
     <a n="CanHibernate"><b v="f"/></a>
     <a n="GLIDEIN_Gatekeeper"><s>alcyone-cms.grid.helsinki.fi</s></a>
-    <a n="GLIDEIN_Schedd"><s>schedd_glideins7@gfactory-1.t2.ucsd.edu</s></a>
+    <a n="GLIDEIN_Schedd"><s>schedd_glideins4@submit.local</s></a>
     <a n="UpdateSequenceNumber"><i>51</i></a>
     <a n="LastBenchmark"><i>1409247776</i></a>
     <a n="GLIDEIN_COLLECTOR_NAME"><s>vocms97.cern.ch:9922,cmssrv119.fnal.gov:10302</s></a>
