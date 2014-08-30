@@ -32,7 +32,7 @@
     <a n="LastBenchmark"><i>1409216797</i></a>
     <a n="GLIDEIN_COLLECTOR_NAME"><s>vocms97.cern.ch:9877,cmssrv119.fnal.gov:10052</s></a>
     <a n="Name"><s>glidein_1@cmswn001.local</s></a>
-    <a n="GLIDECLIENT_ReqNode"><s>vocms32.cern.ch</s></a>
+    <a n="GLIDECLIENT_ReqNode"><s>frontend1.local</s></a>
     <a n="IS_MONITOR_VM"><b v="f"/></a>
     <a n="LastFetchWorkSpawned"><i>0</i></a>
     <a n="slot1_TotalTimeClaimedBusy"><i>42326</i></a>
@@ -125,7 +125,7 @@
     <a n="GLIDEIN_CMSSite"><s>T2_FI_HIP</s></a>
     <a n="TotalTimeUnclaimedBenchmarking"><i>27</i></a>
     <a n="USES_MONITOR_STARTD"><b v="t"/></a>
-    <a n="GLIDEIN_Entry_Name"><s>Site_Name</s></a>
+    <a n="GLIDEIN_Entry_Name"><s>Site_Name1</s></a>
     <a n="GLIDEIN_SiteWMS_Slot"><s>Unknown</s></a>
     <a n="TotalSlotCpus"><i>1</i></a>
     <a n="IsWakeOnLanSupported"><b v="f"/></a>
@@ -259,7 +259,7 @@
     <a n="LastBenchmark"><i>1409255605</i></a>
     <a n="GLIDEIN_COLLECTOR_NAME"><s>vocms97.cern.ch:9927,cmssrv119.fnal.gov:9927</s></a>
     <a n="Name"><s>glidein_2@cmswn002.local</s></a>
-    <a n="GLIDECLIENT_ReqNode"><s>gfactory-1.t2.ucsd.edu</s></a>
+    <a n="GLIDECLIENT_ReqNode"><s>frontend2.local</s></a>
     <a n="IS_MONITOR_VM"><b v="f"/></a>
     <a n="LastFetchWorkSpawned"><i>0</i></a>
     <a n="slot1_TotalTimeClaimedBusy"><i>3756</i></a>
@@ -353,7 +353,7 @@
     <a n="GLIDEIN_CMSSite"><s>T2_FI_HIP</s></a>
     <a n="TotalTimeUnclaimedBenchmarking"><i>28</i></a>
     <a n="USES_MONITOR_STARTD"><b v="t"/></a>
-    <a n="GLIDEIN_Entry_Name"><s>CMS_T2_FI_HIP_alcyone-gridcms</s></a>
+    <a n="GLIDEIN_Entry_Name"><s>Site_Name2</s></a>
     <a n="GLIDEIN_SiteWMS_Slot"><s>Unknown</s></a>
     <a n="TotalSlotCpus"><i>1</i></a>
     <a n="IsWakeOnLanSupported"><b v="f"/></a>
@@ -387,7 +387,7 @@
     <a n="IsWakeOnLanEnabled"><b v="f"/></a>
     <a n="ExpectedMachineGracefulDrainingCompletion"><i>1419255675</i></a>
     <a n="slot1_TotalTimeUnclaimedIdle"><i>69</i></a>
-    <a n="GLIDEIN_Factory"><s>SDSC</s></a>
+    <a n="GLIDEIN_Factory"><s>factory2</s></a>
     <a n="TotalJobRunTime"><i>3756</i></a>
     <a n="HibernationLevel"><i>0</i></a>
     <a n="CheckpointPlatform"><s>LINUX X86_64 2.6.x normal N/A ssse3 sse4_1 sse4_2</s></a>
@@ -487,7 +487,7 @@
     <a n="LastBenchmark"><i>1409255622</i></a>
     <a n="GLIDEIN_COLLECTOR_NAME"><s>vocms97.cern.ch:9706,cmssrv119.fnal.gov:10319</s></a>
     <a n="Name"><s>glidein_3@cmswn003.local</s></a>
-    <a n="GLIDECLIENT_ReqNode"><s>vocms32.cern.ch</s></a>
+    <a n="GLIDECLIENT_ReqNode"><s>frontend3.local</s></a>
     <a n="IS_MONITOR_VM"><b v="f"/></a>
     <a n="LastFetchWorkSpawned"><i>0</i></a>
     <a n="slot1_TotalTimeClaimedBusy"><i>3759</i></a>
@@ -581,7 +581,7 @@
     <a n="GLIDEIN_CMSSite"><s>T2_FI_HIP</s></a>
     <a n="TotalTimeUnclaimedBenchmarking"><i>27</i></a>
     <a n="USES_MONITOR_STARTD"><b v="t"/></a>
-    <a n="GLIDEIN_Entry_Name"><s>CMS_T2_FI_HIP_alcyone-gridcms</s></a>
+    <a n="GLIDEIN_Entry_Name"><s>Site_Name3</s></a>
     <a n="GLIDEIN_SiteWMS_Slot"><s>Unknown</s></a>
     <a n="TotalSlotCpus"><i>1</i></a>
     <a n="IsWakeOnLanSupported"><b v="f"/></a>
@@ -615,12 +615,12 @@
     <a n="IsWakeOnLanEnabled"><b v="f"/></a>
     <a n="ExpectedMachineGracefulDrainingCompletion"><i>1419255675</i></a>
     <a n="slot1_TotalTimeUnclaimedIdle"><i>52</i></a>
-    <a n="GLIDEIN_Factory"><s>CMS-CERN2</s></a>
+    <a n="GLIDEIN_Factory"><s>factory3</s></a>
     <a n="TotalJobRunTime"><i>3763</i></a>
     <a n="HibernationLevel"><i>0</i></a>
     <a n="CheckpointPlatform"><s>LINUX X86_64 2.6.x normal N/A ssse3 sse4_1 sse4_2</s></a>
     <a n="VirtualMemory"><i>65504200</i></a>
-    <a n="GLIDEIN_Name"><s>v1_3</s></a>
+    <a n="GLIDEIN_Name"><s>v3_0</s></a>
     <a n="MonitorSelfRegisteredSocketCount"><i>3</i></a>
     <a n="StartdIpAddr"><s>&lt;10.1.101.2:55684?CCBID=128.142.187.77:9706#22133%20131.225.191.126:10319#2021433&amp;noUDP&gt;</s></a>
     <a n="MonitorSelfTime"><i>1409259435</i></a>
@@ -715,7 +715,7 @@
     <a n="LastBenchmark"><i>1409247776</i></a>
     <a n="GLIDEIN_COLLECTOR_NAME"><s>vocms97.cern.ch:9922,cmssrv119.fnal.gov:10302</s></a>
     <a n="Name"><s>glidein_4@cmswn004.local</s></a>
-    <a n="GLIDECLIENT_ReqNode"><s>gfactory-1.t2.ucsd.edu</s></a>
+    <a n="GLIDECLIENT_ReqNode"><s>frontend4.local</s></a>
     <a n="IS_MONITOR_VM"><b v="f"/></a>
     <a n="LastFetchWorkSpawned"><i>0</i></a>
     <a n="slot1_TotalTimeClaimedBusy"><i>12645</i></a>
@@ -799,7 +799,7 @@
     <a n="GLIDEIN_CMSSite"><s>T2_FI_HIP</s></a>
     <a n="TotalTimeUnclaimedBenchmarking"><i>28</i></a>
     <a n="USES_MONITOR_STARTD"><b v="t"/></a>
-    <a n="GLIDEIN_Entry_Name"><s>CMS_T2_FI_HIP_alcyone-gridcms</s></a>
+    <a n="GLIDEIN_Entry_Name"><s>Site_Name4</s></a>
     <a n="GLIDEIN_SiteWMS_Slot"><s>Unknown</s></a>
     <a n="TotalSlotCpus"><i>1</i></a>
     <a n="IsWakeOnLanSupported"><b v="f"/></a>
@@ -831,7 +831,7 @@
     <a n="IsWakeOnLanEnabled"><b v="f"/></a>
     <a n="ExpectedMachineGracefulDrainingCompletion"><i>1409260792</i></a>
     <a n="slot1_TotalTimeUnclaimedIdle"><i>370</i></a>
-    <a n="GLIDEIN_Factory"><s>SDSC</s></a>
+    <a n="GLIDEIN_Factory"><s>factory4</s></a>
     <a n="HibernationLevel"><i>0</i></a>
     <a n="CheckpointPlatform"><s>LINUX X86_64 2.6.x normal N/A ssse3 sse4_1 sse4_2</s></a>
     <a n="VirtualMemory"><i>65533984</i></a>
