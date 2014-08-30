@@ -20,6 +20,12 @@ import re
 import sys
 import StringIO
 
+# todo
+#def appendRealRunning
+#def countMatch
+#def countRealRunning
+#def evalParamExpr
+
 
 def compareLambdas(func1, func2):
     def strip_line_number(code):
@@ -48,6 +54,7 @@ def compareLambdas(func1, func2):
 #        pass
     return code1 == code2
 
+#@unittest.skip('yay')
 class FETestCaseCondorStatus(unittest.TestCase):
     def setUp(self):
         with mock.patch('glideinwms.lib.condorExe.exe_cmd') as m_exe_cmd:
@@ -72,22 +79,64 @@ class FETestCaseCondorStatus(unittest.TestCase):
                                          'glidein_3@cmswn003.local'])
 
     def test_getClientCondorStatus(self):
-        # v3 FE
         condorStatus = glideinFrontendLib.getClientCondorStatus(
-            self.status_dict, 'frontend_v3', 'maingroup', 'Site_Name@v3_0@factory1')
+            self.status_dict, 'frontend_v3', 'maingroup', 'Site_Name1@v3_0@factory1')
         machines = condorStatus['coll1'].stored_data.keys()
         self.assertItemsEqual(machines, ['glidein_1@cmswn001.local'])
 
-        # v2 FE
-        condorStatus = glideinFrontendLib.getClientCondorStatus(
-            self.status_dict, 'frontend_v2', 'maingroup', 'request')
-        machines = condorStatus['coll1'].stored_data.keys()
-        self.assertItemsEqual(machines, ['glidein_1@cmswn002.local'])
+    def test_getClientCondorStatusCredIdOnly(self):
+        # need example with GLIDEIN_CredentialIdentifier
+        pass
+    def test_getClientCondorStatusPerCredId(self):
+        # need example with GLIDEIN_CredentialIdentifier
+        pass
 
+    def test_countCondorStatus(self):
+        self.assertEqual(glideinFrontendLib.countCondorStatus(self.status_dict), 4)
 
+    def test_getFactoryEntryList(self):
+        entries = glideinFrontendLib.getFactoryEntryList(self.status_dict)
+        self.assertItemsEqual(
+            entries,
+            [('Site_Name%s@v3_0@factory%s' % (x, x), 'frontend%s.local' % x) for x in xrange(1,5)])
 
+    def test_getCondorStatusSchedds(self):
+        with mock.patch('glideinwms.lib.condorExe.exe_cmd') as m_exe_cmd:
+            f = open('cs.schedd.fixture')
+            m_exe_cmd.return_value = f.readlines()
+            condorStatus = glideinFrontendLib.getCondorStatusSchedds(['coll1'])
+            self.assertItemsEqual(condorStatus['coll1'].stored_data.keys(),
+                                  ['schedd%s.local' % x for x in xrange(1,4)])
 
+class FETestCaseMisc(unittest.TestCase):
+    def test_uniqueSets(self):
+        input = \
+        [set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]), set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+         set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+              21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]),
+         set([11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30])]
 
+        expected = \
+            ([(set([2]), set([32, 33, 34, 35, 31])),
+              (set([0, 1, 2]), set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])),
+              (set([2, 3]), set([11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+                                 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]))],
+             set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+                  21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]))
+
+        self.assertItemsEqual(expected, glideinFrontendLib.uniqueSets(input))
+
+    def test_hashJob(self):
+        in1 = {1: 'a', 2: 'b', 3: 'c'}
+        in2 = [1, 3]
+        expected = ((1, 'a'), (3, 'c'))
+        self.assertItemsEqual(expected,
+                              glideinFrontendLib.hashJob(in1, in2))
+
+    def test_appendRealRunning(self):
+        glideinFrontendLib.appendRealRunning(self.condorq_dict, self.status_dict)
+
+#@unittest.skip('yay')
 class FETestCaseCondorQ(unittest.TestCase):
     def prepare_condorq_dict(self):
         with mock.patch('glideinwms.lib.condorMonitor.LocalScheddCache.iGetEnv') as m_iGetEnv:
@@ -158,26 +207,26 @@ class FETestCaseCondorQ(unittest.TestCase):
 
         # this just checks that the lambda is evaluating the min_age variable, not dereferencing it!
 
-    def test_getRunningCondorq(self):
+    def test_getRunningCondorQ(self):
         condor_ids = \
             glideinFrontendLib.getRunningCondorQ(self.condorq_dict)['sched1'].fetchStored().keys()
 
         self.assertItemsEqual(condor_ids, [(12345, 3), (12345, 4)])
 
 
-    def test_getIdleCondorq(self):
+    def test_getIdleCondorQ(self):
         condor_ids = \
             glideinFrontendLib.getIdleCondorQ(self.condorq_dict)['sched1'].fetchStored().keys()
 
         self.assertItemsEqual(condor_ids, [(12345, 0), (12345, 1), (12345,2)])
 
-    def test_getIdleVomsCondorq(self):
+    def test_getIdleVomsCondorQ(self):
         condor_ids = \
             glideinFrontendLib.getIdleVomsCondorQ(self.condorq_dict)['sched1'].fetchStored().keys()
 
         self.assertEqual(condor_ids, [(12345, 2)])
 
-    def test_getIdleProxyCondorq(self):
+    def test_getIdleProxyCondorQ(self):
         condor_ids = \
             glideinFrontendLib.getIdleProxyCondorQ(self.condorq_dict)['sched1'].fetchStored().keys()
 
