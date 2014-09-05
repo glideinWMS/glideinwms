@@ -96,9 +96,6 @@
 
        for (var i = 0; i < entries.length; i++) {
 	 var entry = entries[i].getAttribute('name');
-	 var test = entries[i].getElementsByTagName('frontends'); // delete me
-	 var test2 = entries[i].getElementsByTagName('frontends')[0]; // delete me
-	 // var frontends = entries[i].getElementsByTagName('frontends')[0].children;
 	 var frontends = entries[i].getElementsByTagName('frontends')[0].getElementsByTagName('frontend');
 	 var total = entries[i].getElementsByTagName('total')[0];
 	 
