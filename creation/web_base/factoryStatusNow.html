@@ -96,7 +96,10 @@
 
        for (var i = 0; i < entries.length; i++) {
 	 var entry = entries[i].getAttribute('name');
-	 var frontends = entries[i].getElementsByTagName('frontends')[0].children;
+	 var test = entries[i].getElementsByTagName('frontends'); // delete me
+	 var test2 = entries[i].getElementsByTagName('frontends')[0]; // delete me
+	 // var frontends = entries[i].getElementsByTagName('frontends')[0].children;
+	 var frontends = entries[i].getElementsByTagName('frontends')[0].getElementsByTagName('frontend');
 	 var total = entries[i].getElementsByTagName('total')[0];
 	 
 	 for (var j = 0; j < frontends.length; j++) {
@@ -105,14 +108,14 @@
 	   row = row.concat(getData(element));
 	   data.addRow(row);
 	 }
-	 if (total.children.length>0) {
+	 if (total.childElementCount>0) {
 	   var row = ["All",entry];
 	   row = row.concat(getData(total));
 	   data.addRow(row);
 	 }
        }
 
-       sumamry = ""
+       sumamry = "";
        if (timeInfo){
 	 summary = "<center><h5>Last update: " + timeInfo[1].getAttribute("RFC2822") + "</h5></center>";
        }
@@ -170,11 +173,13 @@
 </head>
 
 <body style="font-family: Arial;
-      min-width: 920px; background: #aaccff none repeat
+      background: #aaccff none repeat
       scroll top left; /* padding: 40px 40px 40px 40px */">
   <div style="padding: 40px 40px 40px 40px;
+       min-width: 920px;
        background-color: #ffffff;
        box-shadow: 0 0 40px rgba(0, 0, 0, .15);
+       display: inline-block
        ">
     <center><h2>Glidein Factory Status</h2></center>
     <div id="info"></div>
