@@ -83,12 +83,6 @@ class FETestCaseBase(unittest.TestCase):
         self.condorq_dict = {'sched1': cq}
 
 
-#@unittest.skip('yay')
-#def countRealRunning(match_obj, condorq_dict, glidein_dict,
-#                     attr_dict, condorq_match_list=None):
-import glideinwms.frontend.glideinFrontendElement as gfe
-import glideinwms.frontend.glideinFrontendConfig
-
 class FETestCaseCount(FETestCaseBase):
 
     def setUp(self):
@@ -96,11 +90,10 @@ class FETestCaseCount(FETestCaseBase):
         self.glidein_dict = { ('submit.local', 'Site_Name1@v3_0@factory1', 'frontend@factory1'):
                               {'attrs': {}, 'monitor': {}, 'params': {} }}
 
-    def test_countRealRunning_matchTrue(self):
+    def test_countRealRunning_match(self):
         cq_run_dict = glideinFrontendLib.getRunningCondorQ(self.condorq_dict)
         glideinFrontendLib.appendRealRunning(cq_run_dict, self.status_dict)
 
-        import glideinwms.unittests.misc_fixture as mf
         match_obj = compile('True', "<string>", "eval")
         actual = glideinFrontendLib.countRealRunning(match_obj, cq_run_dict, self.glidein_dict, {})
         expected = {('submit.local', 'Site_Name1@v3_0@factory1', 'frontend@factory1'): 1}
