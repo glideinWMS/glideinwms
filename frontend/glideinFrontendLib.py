@@ -325,7 +325,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
                     tb = traceback.format_exception(sys.exc_info()[0],
                                                     sys.exc_info()[1],
                                                     sys.exc_info()[2])
-                    key = ((tb[-1:].split(':'))[1]).strip()
+                    key = ((tb[-1].split(':'))[1]).strip()
                     missing_keys.add(key)
 
                 except Exception, e:
@@ -497,7 +497,7 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
                     tb = traceback.format_exception(sys.exc_info()[0],
                                                     sys.exc_info()[1],
                                                     sys.exc_info()[2])
-                    key = ((tb[-1:].split(':'))[1]).strip()
+                    key = ((tb[-1].split(':'))[1]).strip()
                     missing_keys.add(key)
                 except Exception, e:
                     tb_count = tb_count + 1
