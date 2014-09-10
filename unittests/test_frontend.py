@@ -12,6 +12,8 @@ import glideinwms.lib.condorExe
 import glideinwms.lib.condorMonitor as condorMonitor
 import glideinwms.frontend.glideinFrontendLib as glideinFrontendLib
 
+from unittest_utils import FakeLogger
+
 import mock
 import unittest2 as unittest
 import dis
@@ -112,6 +114,17 @@ class FETestCaseCount(FETestCaseBase):
         actual = glideinFrontendLib.countRealRunning(match_obj, cq_run_dict, self.glidein_dict, {})
         expected = {self.glidein_dict_k1: 1, self.glidein_dict_k2: 1}
         self.assertEqual(expected, actual)
+
+    def test_countRealRunning_missingKey(self):
+        cq_run_dict = glideinFrontendLib.getRunningCondorQ(self.condorq_dict)
+        glideinFrontendLib.appendRealRunning(cq_run_dict, self.status_dict)
+        glideinwms.frontend.glideinFrontendLib.logSupport.log = FakeLogger()
+        with mock.patch.object(glideinwms.frontend.glideinFrontendLib.logSupport.log, 'debug') as m_debug:
+            match_obj = compile('glidein["attrs"]["FOO"] == 3', "<string>", "eval")
+            actual = glideinFrontendLib.countRealRunning(match_obj, cq_run_dict, self.glidein_dict, {})
+            m_debug.assert_called_with(
+                "Failed to evaluate resource match in countRealRunning. Possibly match_expr has "
+                "errors and trying to reference job or site attribute(s) ''FOO'' in an inappropriate way.")
 
 class FETestCaseCondorStatus(FETestCaseBase):
 
