@@ -3,7 +3,8 @@
 # virtualenv .venv
 # cd .venv
 # bin/activate.csh
-# (just once): pip install mock unittest2
+# (just once): pip install mock unittest2 coverage
+#   [for rrdtool: pip install git+https://github.com/holzman/python-rrdtool]
 
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatus
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatusCredIdOnly
@@ -23,9 +24,7 @@ import sys
 import StringIO
 
 # todo
-#def appendRealRunning
 #def countMatch
-#def countRealRunning
 #def evalParamExpr
 
 
@@ -96,6 +95,40 @@ class FETestCaseCount(FETestCaseBase):
 
     def setUp(self):
         super(FETestCaseCount, self).setUp()
+
+
+    def test_countMatch(self):
+        # TODO: different match expressions, more complicated setup
+        # TODO: probe and test unmatched
+        match_expr = 'glidein["attrs"].get("GLIDEIN_Site") in job.get("DESIRED_Sites", [])'
+        match_obj = compile(match_expr, "<string>", "eval")
+        actual = glideinFrontendLib.countMatch(match_obj, self.condorq_dict, self.glidein_dict, {})
+
+        straight_match = actual[0]
+        # straight match
+        self.assertEqual(
+            (straight_match[self.glidein_dict_k1], straight_match[self.glidein_dict_k2], straight_match[self.glidein_dict_k3]),
+            (4, 1, 0) )
+
+        prop_match = actual[1]
+        # proportional match
+        self.assertEqual(
+            (prop_match[self.glidein_dict_k1], prop_match[self.glidein_dict_k2], prop_match[self.glidein_dict_k3]),
+            (4.0, 1.0, 0) )
+
+        only_match = actual[2]
+        # only match: elements can only run on this site
+        self.assertEqual(
+            (only_match[self.glidein_dict_k1], only_match[self.glidein_dict_k2], only_match[self.glidein_dict_k3]),
+            (4, 1, 0) )
+
+        uniq_match = actual[3]
+        # uniq match: glideins requested based on unique subsets after considering multicore
+        self.assertEqual(
+            (uniq_match[self.glidein_dict_k1], uniq_match[self.glidein_dict_k2], uniq_match[self.glidein_dict_k3]),
+            (4.0, 1.0, 0) )
+
+
     def test_countRealRunning_match(self):
         cq_run_dict = glideinFrontendLib.getRunningCondorQ(self.condorq_dict)
         glideinFrontendLib.appendRealRunning(cq_run_dict, self.status_dict)
