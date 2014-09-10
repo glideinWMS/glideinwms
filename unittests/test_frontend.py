@@ -72,6 +72,13 @@ class FETestCaseBase(unittest.TestCase):
 
         self.prepare_condorq_dict()
 
+        self.glidein_dict_k1 = ('submit.local', 'Site_Name1@v3_0@factory1', 'frontend@factory1')
+        self.glidein_dict_k2 = ('submit.local', 'Site_Name2@v3_0@factory1', 'frontend@factory1')
+        self.glidein_dict_k3 = ('submit.local', 'Site_Name3@v3_0@factory1', 'frontend@factory1')
+        self.glidein_dict = { self.glidein_dict_k1: {'attrs': {'GLIDEIN_Site': 'Site_Name1', 'GLIDEIN_CPUS': 1}, 'monitor': {}, 'params': {} },
+                              self.glidein_dict_k2: {'attrs': {'GLIDEIN_Site': 'Site_Name2', 'GLIDEIN_CPUS': 4}, 'monitor': {}, 'params': {} },
+                              self.glidein_dict_k3: {'attrs': {'GLIDEIN_Site': 'Site_Name3', 'GLIDEIN_CPUS': 'aUtO'}, 'monitor': {}, 'params': {} }
+                              }
 
     def prepare_condorq_dict(self):
         with mock.patch('glideinwms.lib.condorMonitor.LocalScheddCache.iGetEnv') as m_iGetEnv:
@@ -89,30 +96,24 @@ class FETestCaseCount(FETestCaseBase):
 
     def setUp(self):
         super(FETestCaseCount, self).setUp()
-        self.glidein_dict_k1 = ('submit.local', 'Site_Name1@v3_0@factory1', 'frontend@factory1')
-        self.glidein_dict_k2 = ('submit.local', 'Site_Name2@v3_0@factory1', 'frontend@factory1')
-        self.glidein_dict = { self.glidein_dict_k1: {'attrs': {'GLIDEIN_Site': 'Site_Name1'}, 'monitor': {}, 'params': {} },
-                              self.glidein_dict_k2: {'attrs': {'GLIDEIN_Site': 'Site_Name2'}, 'monitor': {}, 'params': {} }
-                              }
-
     def test_countRealRunning_match(self):
         cq_run_dict = glideinFrontendLib.getRunningCondorQ(self.condorq_dict)
         glideinFrontendLib.appendRealRunning(cq_run_dict, self.status_dict)
 
         match_obj = compile('True', "<string>", "eval")
         actual = glideinFrontendLib.countRealRunning(match_obj, cq_run_dict, self.glidein_dict, {})
-        expected = {self.glidein_dict_k1: 1, self.glidein_dict_k2: 2}
+        expected = {self.glidein_dict_k1: 1, self.glidein_dict_k2: 2, self.glidein_dict_k3: 0}
         self.assertEqual(expected, actual)
 
         match_obj = compile('False', "<string>", "eval")
         actual = glideinFrontendLib.countRealRunning(match_obj, cq_run_dict, self.glidein_dict, {})
-        expected = {self.glidein_dict_k1: 0, self.glidein_dict_k2: 0}
+        expected = {self.glidein_dict_k1: 0, self.glidein_dict_k2: 0, self.glidein_dict_k3: 0}
         self.assertEqual(expected, actual)
 
         match_expr = 'glidein["attrs"].get("GLIDEIN_Site") in job.get("DESIRED_Sites", [])'
         match_obj = compile(match_expr, "<string>", "eval")
         actual = glideinFrontendLib.countRealRunning(match_obj, cq_run_dict, self.glidein_dict, {})
-        expected = {self.glidein_dict_k1: 1, self.glidein_dict_k2: 1}
+        expected = {self.glidein_dict_k1: 1, self.glidein_dict_k2: 1, self.glidein_dict_k3: 0}
         self.assertEqual(expected, actual)
 
     def test_countRealRunning_missingKey(self):
@@ -209,6 +210,11 @@ class FETestCaseMisc(FETestCaseBase):
         self.assertItemsEqual(
             [x['RunningOn'] for x in cq_run_dict['sched1'].fetchStored().values()],
             ['Site_Name%s@v3_0@factory1@submit.local' % (x) for x in [1,2,2]])
+
+    def test_getGlideinCpusNum(self):
+        self.assertEqual(glideinFrontendLib.getGlideinCpusNum(self.glidein_dict[self.glidein_dict_k1]), 1)
+        self.assertEqual(glideinFrontendLib.getGlideinCpusNum(self.glidein_dict[self.glidein_dict_k2]), 4)
+        self.assertEqual(glideinFrontendLib.getGlideinCpusNum(self.glidein_dict[self.glidein_dict_k3]), 1)
 
 #@unittest.skip('yay')
 class FETestCaseCondorQ(FETestCaseBase):
