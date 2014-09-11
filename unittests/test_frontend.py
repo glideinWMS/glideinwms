@@ -95,7 +95,25 @@ class FETestCaseCount(FETestCaseBase):
 
     def setUp(self):
         super(FETestCaseCount, self).setUp()
+        glideinwms.frontend.glideinFrontendLib.logSupport.log = FakeLogger()
 
+    def test_countMatch_missingKey(self):
+        with mock.patch.object(glideinwms.frontend.glideinFrontendLib.logSupport.log, 'debug') as m_debug:
+
+            match_obj = compile('glidein["attrs"]["FOO"] == 3', "<string>", "eval")
+            match_counts = glideinFrontendLib.countMatch(match_obj, self.condorq_dict, self.glidein_dict, {})
+            m_debug.assert_called_with(
+                "Failed to evaluate resource match in countMatch. Possibly match_expr has "
+                "errors and trying to reference job or site attribute(s) ''FOO'' in an inappropriate way.")
+
+    def test_countMatch_otherException(self):
+        with mock.patch.object(glideinwms.frontend.glideinFrontendLib.logSupport.log, 'debug') as m_debug:
+            match_obj = compile('3/0', "<string>", "eval")
+            match_counts = glideinFrontendLib.countMatch(match_obj, self.condorq_dict, self.glidein_dict, {})
+            log_msg = m_debug.call_args[0]
+
+            self.assertTrue('exceptions in countMatch subprocess. Most recent traceback') in log_msg
+            self.assertTrue('ZeroDivisionError: integer division or modulo by zero') in log_msg
 
     def test_countMatch(self):
         match_expr = 'not job.has_key("DESIRED_Sites") or glidein["attrs"].get("GLIDEIN_Site") in job["DESIRED_Sites"]'
@@ -154,7 +172,7 @@ class FETestCaseCount(FETestCaseBase):
     def test_countRealRunning_missingKey(self):
         cq_run_dict = glideinFrontendLib.getRunningCondorQ(self.condorq_dict)
         glideinFrontendLib.appendRealRunning(cq_run_dict, self.status_dict)
-        glideinwms.frontend.glideinFrontendLib.logSupport.log = FakeLogger()
+
         with mock.patch.object(glideinwms.frontend.glideinFrontendLib.logSupport.log, 'debug') as m_debug:
             match_obj = compile('glidein["attrs"]["FOO"] == 3', "<string>", "eval")
             actual = glideinFrontendLib.countRealRunning(match_obj, cq_run_dict, self.glidein_dict, {})
@@ -162,10 +180,27 @@ class FETestCaseCount(FETestCaseBase):
                 "Failed to evaluate resource match in countRealRunning. Possibly match_expr has "
                 "errors and trying to reference job or site attribute(s) ''FOO'' in an inappropriate way.")
 
+    def test_countRealRunning_otherException(self):
+        cq_run_dict = glideinFrontendLib.getRunningCondorQ(self.condorq_dict)
+        glideinFrontendLib.appendRealRunning(cq_run_dict, self.status_dict)
+        with mock.patch.object(glideinwms.frontend.glideinFrontendLib.logSupport.log, 'debug') as m_debug:
+            match_obj = compile('3/0', "<string>", "eval")
+            actual = glideinFrontendLib.countRealRunning(match_obj, cq_run_dict, self.glidein_dict, {})
+            log_msg = m_debug.call_args[0]
+
+            self.assertTrue('exceptions in countMatch subprocess. Most recent traceback') in log_msg
+            self.assertTrue('ZeroDivisionError: integer division or modulo by zero') in log_msg
+
+
 class FETestCaseCondorStatus(FETestCaseBase):
 
     def test_getCondorStatus(self):
-        machines = self.status_dict['coll1'].stored_data.keys()
+        with mock.patch('glideinwms.lib.condorExe.exe_cmd') as m_exe_cmd:
+            f = open('cs.fixture')
+            m_exe_cmd.return_value = f.readlines()
+            condorStatus = glideinFrontendLib.getCondorStatus(['coll1'])
+
+        machines = condorStatus['coll1'].stored_data.keys()
         self.assertItemsEqual(machines, ['glidein_1@cmswn001.local', 'glidein_2@cmswn002.local',
                                          'glidein_3@cmswn003.local', 'glidein_4@cmswn004.local',
                                          'glidein_5@cmswn005.local'])
