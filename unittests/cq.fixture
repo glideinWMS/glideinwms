@@ -68,5 +68,53 @@
     <a n="User"><s>user2@fnal.gov</s></a>
 </c>
 
+<c>
+    <a n="ClusterId"><i>12345</i></a>
+    <a n="ProcId"><i>6</i></a>
+    <a n="x509UserProxyExpiration"><i>1409150167</i></a>
+    <a n="x509userproxy"><s>/tmp/x509up_u98765</s></a>
+    <a n="x509userproxysubject"><s>/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=drbeef/CN=66666/CN=Doctor Beef</s></a>
+    <a n="x509UserProxyEmail"><s>nobody@example.com</s></a>
+    <a n="DESIRED_Sites"><s>Site_Name2</s></a>
+    <a n="JobStatus"><i>1</i></a>
+    <a n="User"><s>user2@fnal.gov</s></a>
+</c>
+
+<c>
+    <a n="ClusterId"><i>12345</i></a>
+    <a n="ProcId"><i>7</i></a>
+    <a n="x509UserProxyExpiration"><i>1409150167</i></a>
+    <a n="x509userproxy"><s>/tmp/x509up_u98765</s></a>
+    <a n="x509userproxysubject"><s>/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=drbeef/CN=66666/CN=Doctor Beef</s></a>
+    <a n="x509UserProxyEmail"><s>nobody@example.com</s></a>
+    <a n="DESIRED_Sites"><s>Site_Name1, Site_Name2</s></a>
+    <a n="JobStatus"><i>1</i></a>
+    <a n="User"><s>user2@fnal.gov</s></a>
+</c>
+
+<c>
+    <a n="ClusterId"><i>12345</i></a>
+    <a n="ProcId"><i>8</i></a>
+    <a n="x509UserProxyExpiration"><i>1409150167</i></a>
+    <a n="x509userproxy"><s>/tmp/x509up_u98765</s></a>
+    <a n="x509userproxysubject"><s>/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=drbeef/CN=66666/CN=Doctor Beef</s></a>
+    <a n="x509UserProxyEmail"><s>nobody@example.com</s></a>
+    <a n="DESIRED_Sites"><s>Site_Name1, Site_Name2</s></a>
+    <a n="JobStatus"><i>1</i></a>
+    <a n="User"><s>user2@fnal.gov</s></a>
+</c>
+
+<c>
+    <a n="ClusterId"><i>12345</i></a>
+    <a n="ProcId"><i>9</i></a>
+    <a n="x509UserProxyExpiration"><i>1409150167</i></a>
+    <a n="x509userproxy"><s>/tmp/x509up_u98765</s></a>
+    <a n="x509userproxysubject"><s>/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=drbeef/CN=66666/CN=Doctor Beef</s></a>
+    <a n="x509UserProxyEmail"><s>nobody@example.com</s></a>
+    <a n="DESIRED_Sites"><s>NO_SUCH_SITE</s></a>
+    <a n="JobStatus"><i>1</i></a>
+    <a n="User"><s>user2@fnal.gov</s></a>
+</c>
+
 </classads>
 

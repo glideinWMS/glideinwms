@@ -98,36 +98,38 @@ class FETestCaseCount(FETestCaseBase):
 
 
     def test_countMatch(self):
-        # TODO: different match expressions, more complicated setup
-        # TODO: probe and test unmatched
-        match_expr = 'glidein["attrs"].get("GLIDEIN_Site") in job.get("DESIRED_Sites", [])'
+        match_expr = 'not job.has_key("DESIRED_Sites") or glidein["attrs"].get("GLIDEIN_Site") in job["DESIRED_Sites"]'
         match_obj = compile(match_expr, "<string>", "eval")
-        actual = glideinFrontendLib.countMatch(match_obj, self.condorq_dict, self.glidein_dict, {})
+        unmatched = (None, None, None)
+        match_counts = glideinFrontendLib.countMatch(match_obj, self.condorq_dict, self.glidein_dict, {})
 
-        straight_match = actual[0]
+        straight_match = match_counts[0]
         # straight match
         self.assertEqual(
             (straight_match[self.glidein_dict_k1], straight_match[self.glidein_dict_k2], straight_match[self.glidein_dict_k3]),
-            (4, 1, 0) )
+            (7, 5, 1) )
 
-        prop_match = actual[1]
+        prop_match = match_counts[1]
         # proportional match
         self.assertEqual(
             (prop_match[self.glidein_dict_k1], prop_match[self.glidein_dict_k2], prop_match[self.glidein_dict_k3]),
-            (4.0, 1.0, 0) )
+            (6, 4, 1) )
 
-        only_match = actual[2]
+        only_match = match_counts[2]
         # only match: elements can only run on this site
         self.assertEqual(
             (only_match[self.glidein_dict_k1], only_match[self.glidein_dict_k2], only_match[self.glidein_dict_k3]),
-            (4, 1, 0) )
+            (4, 2, 0) )
 
-        uniq_match = actual[3]
+        uniq_match = match_counts[3]
         # uniq match: glideins requested based on unique subsets after considering multicore
         self.assertEqual(
             (uniq_match[self.glidein_dict_k1], uniq_match[self.glidein_dict_k2], uniq_match[self.glidein_dict_k3]),
-            (4.0, 1.0, 0) )
+            (6, 1, 1) )
 
+        # unmatched
+        self.assertEqual((straight_match[unmatched], prop_match[unmatched], only_match[unmatched], uniq_match[unmatched]),
+                         (1, 1, 1, 1))
 
     def test_countRealRunning_match(self):
         cq_run_dict = glideinFrontendLib.getRunningCondorQ(self.condorq_dict)
@@ -251,6 +253,9 @@ class FETestCaseMisc(FETestCaseBase):
 
 #@unittest.skip('yay')
 class FETestCaseCondorQ(FETestCaseBase):
+    def setUp(self):
+        super(FETestCaseCondorQ, self).setUp()
+        self.total_idle_jobs = 10
 
     @mock.patch.object(glideinFrontendLib, 'getClientCondorStatus')
     @mock.patch.object(glideinFrontendLib, 'getClientCondorStatusCredIdOnly')
@@ -310,7 +315,7 @@ class FETestCaseCondorQ(FETestCaseBase):
         condor_ids = \
             glideinFrontendLib.getIdleCondorQ(self.condorq_dict)['sched1'].fetchStored().keys()
 
-        self.assertItemsEqual(condor_ids, [(12345, 0), (12345, 1), (12345,2)])
+        self.assertItemsEqual(condor_ids, [(12345, 0), (12345, 1), (12345,2), (12345, 6), (12345, 7), (12345, 8), (12345, 9)])
 
     def test_getIdleVomsCondorQ(self):
         condor_ids = \
@@ -322,7 +327,7 @@ class FETestCaseCondorQ(FETestCaseBase):
         condor_ids = \
             glideinFrontendLib.getIdleProxyCondorQ(self.condorq_dict)['sched1'].fetchStored().keys()
 
-        self.assertItemsEqual(condor_ids, [(12345, 1), (12345, 2)])
+        self.assertItemsEqual(condor_ids, [(12345, 1), (12345, 2), (12345, 6), (12345, 7), (12345, 8), (12345, 9)])
 
     def test_getOldCondorQ(self):
         min_age = 100
@@ -332,7 +337,7 @@ class FETestCaseCondorQ(FETestCaseBase):
 
     def test_countCondorQ(self):
         count = glideinFrontendLib.countCondorQ(self.condorq_dict)
-        self.assertEqual(count, 6)
+        self.assertEqual(count, self.total_idle_jobs)
 
     def test_getCondorQUsers(self):
         users = glideinFrontendLib.getCondorQUsers(self.condorq_dict)
@@ -347,8 +352,7 @@ class FETestCaseCondorQ(FETestCaseBase):
         cq = glideinFrontendLib.getCondorQ(['sched1'])
         condor_ids = cq['sched1'].fetchStored().keys()
 
-        self.assertItemsEqual(condor_ids, [(12345, x) for x in xrange(0,6)])
-
+        self.assertItemsEqual(condor_ids, [(12345, x) for x in xrange(0, self.total_idle_jobs)])
 
 
 if __name__ == '__main__':
