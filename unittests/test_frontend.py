@@ -291,6 +291,9 @@ class FETestCaseMisc(FETestCaseBase):
         self.assertEqual(glideinFrontendLib.getGlideinCpusNum(self.glidein_dict[self.glidein_dict_k2]), 4)
         self.assertEqual(glideinFrontendLib.getGlideinCpusNum(self.glidein_dict[self.glidein_dict_k3]), 1)
 
+    def test_evalParamExpr(self):
+        self.assertIs(glideinFrontendLib.evalParamExpr('(30 + 40)', None, None), 70)
+
 #@unittest.skip('yay')
 class FETestCaseCondorQ(FETestCaseBase):
     def setUp(self):
