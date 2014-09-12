@@ -198,7 +198,9 @@ class FETestCaseCondorStatus(FETestCaseBase):
         with mock.patch('glideinwms.lib.condorExe.exe_cmd') as m_exe_cmd:
             f = open('cs.fixture')
             m_exe_cmd.return_value = f.readlines()
-            condorStatus = glideinFrontendLib.getCondorStatus(['coll1'])
+            condorStatus = glideinFrontendLib.getCondorStatus(['coll1'],
+                                                              format_list=[('State', 's'), ('Activity', 's')],
+                                                              want_format_completion=True)
 
         machines = condorStatus['coll1'].stored_data.keys()
         self.assertItemsEqual(machines, ['glidein_1@cmswn001.local', 'glidein_2@cmswn002.local',
