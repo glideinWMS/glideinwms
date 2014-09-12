@@ -22,10 +22,24 @@ import StringIO
 class FEElementTestCase(unittest.TestCase):
     def setUp(self):
         glideinwms.frontend.glideinFrontendLib.logSupport.log = FakeLogger()
+        self.frontendDescript = glideinwms.frontend.glideinFrontendConfig.FrontendDescript('fixtures/frontend')
 
         with mock.patch.object(glideinFrontendConfig.ConfigFile, 'load') as m_load:
+            # simpler data structures
             self.attrDescript = glideinwms.frontend.glideinFrontendConfig.AttrsDescript('', '')
+            self.paramsDescript = glideinwms.frontend.glideinFrontendConfig.ParamsDescript('', '')
+
+            # bases for derived data structures
             elementDescriptBase = glideinwms.frontend.glideinFrontendConfig.ElementDescript('', '')
+            signatureDescript = glideinwms.frontend.glideinFrontendConfig.SignatureDescript('')
+            signatureDescript.data = {
+                'group_group1': ('ad0f57615c3df8bbb2130d96cfdf09363f4bd3ed', 'description.e98f4o.cfg'),
+                'main': ('7cea6e20d5a4e65e9468937f27511e3e44c72735', 'description.e98f4o.cfg')}
+
+        self.paramsDescript.data = {'USE_MATCH_AUTH': 'True', 'GLIDECLIENT_Rank': '1', 'GLIDEIN_Collector': 'frontend:9620-9640'}
+        self.paramsDescript.const_data = {
+            'USE_MATCH_AUTH': ('CONST', 'True'), 'GLIDEIN_Collector': ('CONST', 'frontend:9620-9640'),
+            'GLIDECLIENT_Rank': ('CONST', '1')}
 
         self.attrDescript.data = {
             'GLIDEIN_Glexec_Use': 'OPTIONAL', 'GLIDECLIENT_Rank': '1', 'GLIDEIN_Expose_Grid_Env': 'True',
@@ -41,7 +55,9 @@ class FEElementTestCase(unittest.TestCase):
             'GroupName': 'group1', 'MaxMatchmakers': '3',
             'MapFileWPilots': '/var/lib/gwms-frontend/vofrontend/group_main/group_wpilots.mapfile', 'CurbIdleVMsPerEntry': '5'}
 
-        self.frontendDescript = glideinwms.frontend.glideinFrontendConfig.FrontendDescript('fixtures/frontend')
+        with mock.patch.object(glideinFrontendConfig, 'SignatureDescript') as m_signatureDescript:
+            m_signatureDescript.return_value = signatureDescript
+            self.groupSignatureDescript = glideinwms.frontend.glideinFrontendConfig.GroupSignatureDescript('', 'group1')
 
         with mock.patch.object(glideinFrontendConfig, 'ElementDescript') as m_elementDescript:
             with mock.patch.object(glideinFrontendConfig, 'FrontendDescript') as m_feDescript:
@@ -49,36 +65,18 @@ class FEElementTestCase(unittest.TestCase):
                 m_feDescript.return_value = self.frontendDescript
                 self.elementDescript = glideinwms.frontend.glideinFrontendConfig.ElementMergedDescript('', 'group1')
 
-
-#        print self.elementDescript.data
-
-
-
     @mock.patch('glideinwms.frontend.glideinFrontendConfig.ElementMergedDescript')
     @mock.patch('glideinwms.frontend.glideinFrontendConfig.ParamsDescript')
     @mock.patch('glideinwms.frontend.glideinFrontendConfig.GroupSignatureDescript')
     @mock.patch('glideinwms.frontend.glideinFrontendConfig.AttrsDescript')
     def test_foo(self, m_AttrsDescript, m_GroupSignatureDescript, m_ParamsDescript, m_ElementMergedDescript):
         m_AttrsDescript.return_value = self.attrDescript
-#        m_ParamsDecript.return_value = self.attrDescript
-#        m_AttrsDescript.return_value = self.attrDescript
-#        m_AttrsDescript.return_value = self.attrDescript
-        pass
+        m_GroupSignatureDescript.return_value = self.groupSignatureDescript
+        m_ParamsDescript.return_value = self.paramsDescript
+        m_ElementMergedDescript = self.elementDescript
 
-#        self.elementDescript = glideinFrontendConfig.ElementMergedDescript('fixtures/frontend', 'group1')
-#        print dir(self.elementDescript)
-#        m_ad.return_value = self.attrDescript
         gfe = glideinFrontendElement.glideinFrontendElement(1, '/tmp/work_dir', 'group1', 'dingus')
 #        cq = gfe.get_condor_q('schedd1')
-
-
-#        print cq
-        #gfe.populate_condorq_dict_types()
-
-
-#        self.paramsDescript = glideinFrontendConfig.ParamsDescript(self.work_dir, self.group_name)
-#        self.signatureDescript = glideinFrontendConfig.GroupSignatureDescript(self.work_dir, self.group_name)
-#        self.attr_dict = glideinFrontendConfig.AttrsDescript(self.work_dir,self.group_name).data
 
 if __name__ == '__main__':
     unittest.main()
