@@ -98,8 +98,8 @@ for a more detailed description.
         <a href="#">&lt;job_logs max_days="7.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
         <a href="#">&lt;process_logs &gt;</a><br/>
         <blockquote>
-            <a href="#process_logs">&lt;process_log extension="info" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="INFO" /&gt;</a><br/>
-            <a href="#process_logs">&lt;process_log extension="debug" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="DEBUG,ERR,WARN" /&gt;</a><br/>
+            <a href="#process_logs">&lt;process_log extension="info" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="INFO" backup_count=&quot;5&quot; /&gt;</a><br/>
+            <a href="#process_logs">&lt;process_log extension="debug" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="DEBUG,ERR,WARN" backup_count=&quot;5&quot; /&gt;</a><br/>
         </blockquote>
         <a href="#">&lt;/process_logs &gt;</a><br/>
         <a href="#">&lt;summary_logs max_days="31.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
@@ -330,7 +330,8 @@ individual entry point configuration.
             max_days=&quot;<I>max days</I>&quot;
             min_days=&quot;<I>min days</I>&quot;
             max_bytes=&quot;<I>max bytes</I>&quot;
-            type=&quot;<I>INFO</I>&quot;/&gt;
+            type=&quot;<I>INFO</I>&quot;
+            backup_count=&quot;<I>backup count</I>&quot;/&gt;
         </div>
     <p>
     The admin can configure one or more logs with any combination of following log message types: 
@@ -342,6 +343,17 @@ individual entry point configuration.
     <li>ADMIN: This is a special setting only applicable to factory logs (and not entry logs) that contains admin messages, such as reconfig comments.  This will create a new log called factoryadmin.extension.log.  Currently, it cannot be combined with other message types.</li>
     </ul>
     The extension is added to the log name to create separate logs.
+    <br><br>
+    <b>Log Retention and Rotation Policy:</b>
+    <br><br>
+    Log files are rotated based on a time and size of the log files as follows:
+    <ul>
+        <li>If the log file size reaches <i>max_bytes</i> it will be rotated.</li>
+        <li>If the log file size is less that <i>max_bytes</i> but the file is older than max_days it will be rotated.</li>
+        <li><i>min_days</i> is not used and is there for backwards compatibility.</li>
+        <li>After rotation, recent number of <i>back_count</i> files will be kept and older ones are deleted. Defaults to 5.</li>
+    </ul>
+
     </p>
     </li>
     <LI>
