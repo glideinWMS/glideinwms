@@ -116,5 +116,13 @@
     <a n="User"><s>user2@fnal.gov</s></a>
 </c>
 
+<c>
+    <a n="ClusterId"><i>12345</i></a>
+    <a n="ProcId"><i>10</i></a>
+    <a n="JobStatus"><i>2</i></a>
+    <a n="RemoteHost"><s>glidein_NOT@MATCHING.ANY.HOST.local</s></a>
+    <a n="User"><s>user2@fnal.gov</s></a>
+</c>
+
 </classads>
 

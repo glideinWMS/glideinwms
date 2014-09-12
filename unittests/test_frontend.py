@@ -125,7 +125,7 @@ class FETestCaseCount(FETestCaseBase):
         # straight match
         self.assertEqual(
             (straight_match[self.glidein_dict_k1], straight_match[self.glidein_dict_k2], straight_match[self.glidein_dict_k3]),
-            (7, 5, 1) )
+            (8, 6, 2) )
 
         prop_match = match_counts[1]
         # proportional match
@@ -277,9 +277,12 @@ class FETestCaseMisc(FETestCaseBase):
     def test_appendRealRunning(self):
         cq_run_dict = glideinFrontendLib.getRunningCondorQ(self.condorq_dict)
         glideinFrontendLib.appendRealRunning(cq_run_dict, self.status_dict)
+        expected = ['Site_Name%s@v3_0@factory1@submit.local' % (x) for x in [1,2,2]]
+        expected.append('UNKNOWN')
+
         self.assertItemsEqual(
             [x['RunningOn'] for x in cq_run_dict['sched1'].fetchStored().values()],
-            ['Site_Name%s@v3_0@factory1@submit.local' % (x) for x in [1,2,2]])
+            expected)
 
     def test_getGlideinCpusNum(self):
         self.assertEqual(glideinFrontendLib.getGlideinCpusNum(self.glidein_dict[self.glidein_dict_k1]), 1)
@@ -290,7 +293,7 @@ class FETestCaseMisc(FETestCaseBase):
 class FETestCaseCondorQ(FETestCaseBase):
     def setUp(self):
         super(FETestCaseCondorQ, self).setUp()
-        self.total_idle_jobs = 10
+        self.total_jobs = 11
 
     @mock.patch.object(glideinFrontendLib, 'getClientCondorStatus')
     @mock.patch.object(glideinFrontendLib, 'getClientCondorStatusCredIdOnly')
@@ -343,7 +346,7 @@ class FETestCaseCondorQ(FETestCaseBase):
         condor_ids = \
             glideinFrontendLib.getRunningCondorQ(self.condorq_dict)['sched1'].fetchStored().keys()
 
-        self.assertItemsEqual(condor_ids, [(12345, 3), (12345, 4), (12345, 5)])
+        self.assertItemsEqual(condor_ids, [(12345, 3), (12345, 4), (12345, 5), (12345, 10)])
 
 
     def test_getIdleCondorQ(self):
@@ -372,7 +375,7 @@ class FETestCaseCondorQ(FETestCaseBase):
 
     def test_countCondorQ(self):
         count = glideinFrontendLib.countCondorQ(self.condorq_dict)
-        self.assertEqual(count, self.total_idle_jobs)
+        self.assertEqual(count, self.total_jobs)
 
     def test_getCondorQUsers(self):
         users = glideinFrontendLib.getCondorQUsers(self.condorq_dict)
@@ -387,7 +390,7 @@ class FETestCaseCondorQ(FETestCaseBase):
         cq = glideinFrontendLib.getCondorQ(['sched1'])
         condor_ids = cq['sched1'].fetchStored().keys()
 
-        self.assertItemsEqual(condor_ids, [(12345, x) for x in xrange(0, self.total_idle_jobs)])
+        self.assertItemsEqual(condor_ids, [(12345, x) for x in xrange(0, self.total_jobs)])
 
 
 if __name__ == '__main__':
