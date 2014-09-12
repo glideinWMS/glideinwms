@@ -230,6 +230,7 @@ class BaseSignatureDescript(ConfigFile):
 class ElementMergedDescript:
     def __init__(self,base_dir,group_name):
         self.frontend_data=FrontendDescript(base_dir).data
+
         if not (group_name in string.split(self.frontend_data['Groups'],',')):
             raise RuntimeError, "Group '%s' not supported: %s"%(group_name,self.frontend_data['Groups'])
         
