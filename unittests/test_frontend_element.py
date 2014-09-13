@@ -65,18 +65,38 @@ class FEElementTestCase(unittest.TestCase):
                 m_feDescript.return_value = self.frontendDescript
                 self.elementDescript = glideinwms.frontend.glideinFrontendConfig.ElementMergedDescript('', 'group1')
 
-    @mock.patch('glideinwms.frontend.glideinFrontendConfig.ElementMergedDescript')
-    @mock.patch('glideinwms.frontend.glideinFrontendConfig.ParamsDescript')
-    @mock.patch('glideinwms.frontend.glideinFrontendConfig.GroupSignatureDescript')
-    @mock.patch('glideinwms.frontend.glideinFrontendConfig.AttrsDescript')
-    def test_foo(self, m_AttrsDescript, m_GroupSignatureDescript, m_ParamsDescript, m_ElementMergedDescript):
-        m_AttrsDescript.return_value = self.attrDescript
-        m_GroupSignatureDescript.return_value = self.groupSignatureDescript
-        m_ParamsDescript.return_value = self.paramsDescript
-        m_ElementMergedDescript = self.elementDescript
+        @mock.patch('glideinwms.frontend.glideinFrontendConfig.ElementMergedDescript')
+        @mock.patch('glideinwms.frontend.glideinFrontendConfig.ParamsDescript')
+        @mock.patch('glideinwms.frontend.glideinFrontendConfig.GroupSignatureDescript')
+        @mock.patch('glideinwms.frontend.glideinFrontendConfig.AttrsDescript')
+        def create_glideinFrontendElement(m_AttrsDescript, m_GroupSignatureDescript, m_ParamsDescript, m_ElementMergedDescript):
+            m_AttrsDescript.return_value = self.attrDescript
+            m_GroupSignatureDescript.return_value = self.groupSignatureDescript
+            m_ParamsDescript.return_value = self.paramsDescript
+            m_ElementMergedDescript.return_value = self.elementDescript
 
-        gfe = glideinFrontendElement.glideinFrontendElement(1, '/tmp/work_dir', 'group1', 'dingus')
-#        cq = gfe.get_condor_q('schedd1')
+            self.gfe = glideinFrontendElement.glideinFrontendElement(1, '', 'group1', '')
+            self.gfe.elementDescript = self.elementDescript
+
+
+        create_glideinFrontendElement()
+
+    def test_get_condor_q(self):
+        with mock.patch('glideinwms.lib.condorMonitor.LocalScheddCache.iGetEnv'):
+            with mock.patch('glideinwms.lib.condorExe.exe_cmd') as m_exe_cmd:
+                f = open('cq.fixture')
+                m_exe_cmd.return_value = f.readlines()
+                cq = self.gfe.get_condor_q('schedd1')
+
+        self.assertItemsEqual(cq['schedd1'].fetchStored().keys(), [(12345, x) for x in xrange(0, 11)])
+
+    def test_compute_glidein_max_run(self):
+        self.assertEqual(self.gfe.compute_glidein_max_run({'Idle': 412}, 971), 1591)
+        self.assertEqual(self.gfe.compute_glidein_max_run({'Idle': 100}, 100), 230)
+        self.assertEqual(self.gfe.compute_glidein_max_run({'Idle': 100}, 0), 115)
+        self.assertEqual(self.gfe.compute_glidein_max_run({'Idle': 0}, 0), 0)
+        self.assertEqual(self.gfe.compute_glidein_max_run({'Idle': 0}, 100), 100)
+
 
 if __name__ == '__main__':
     unittest.main()
