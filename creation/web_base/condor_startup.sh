@@ -559,24 +559,23 @@ EOF
         cat >> "$CONDOR_CONFIG" <<EOF
 
 DS${I}_TO_DIE = ((GLIDEIN_ToDie =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToDie))
-DS${I}_IDLE_MAX = ((Slot${I}_TotalTimeUnclaimedIdle =!= UNDEFINED) && \\
-        (GLIDEIN_Max_Idle =!= UNDEFINED) && \\
-        (Slot${I}_TotalTimeUnclaimedIdle > GLIDEIN_Max_Idle))
-DS${I}_IDLE_RETIRE = ((GLIDEIN_ToRetire =!= UNDEFINED) && \\
-       (CurrentTime > GLIDEIN_ToRetire ))
-DS${I}_IDLE_TAIL = ((Slot${I}_TotalTimeUnclaimedIdle =!= UNDEFINED) && \\
-        (Slot${I}_TotalTimeClaimedBusy =!= UNDEFINED) && \\
-        (GLIDEIN_Max_Tail =!= UNDEFINED) && \\
-        (Slot${I}_TotalTimeUnclaimedIdle > GLIDEIN_Max_Tail))
-DS${I}_IDLE = ( (Slot${I}_Activity == "Idle") && \\
-        (\$(DS${I}_IDLE_MAX) || \$(DS${I}_IDLE_RETIRE) || \$(DS${I}_IDLE_TAIL)) )
+# No jobs started (using GLIDEIN_Max_Idle)
+DS${I}_IDLE_NJ = ((Slot${I}_JobStarts =!= UNDEFINED) && (Slot${I}_SelfMonitorAge =!= UNDEFINED) && (GLIDEIN_Max_Idle =!= UNDEFINED) && \\
+                  (Slot${I}_JobStarts == 0) && \\
+                  (Slot${I}_SelfMonitorAge > GLIDEIN_Max_Idle))
+# Some jobs started (using GLIDEIN_Max_Tail)
+DS${I}_IDLE_J = ((Slot${I}_JobStarts =!= UNDEFINED) && (Slot${I}_ExpectedMachineGracefulDrainingCompletion =!= UNDEFINED) &&  \\
+                 (GLIDEIN_Max_Tail =!= UNDEFINED) && \\
+                 (Slot${I}_JobStarts > 0) && \\
+                 ((CurrentTime - Slot${I}_ExpectedMachineGracefulDrainingCompletion) > GLIDEIN_Max_Tail) )
+DS${I}_IDLE_LIMITS = (\$(DS${I}_IDLE_NJ) || \$(DS${I}_IDLE_J))
 
 # The last condition below is intended to match partitionable slots that have
 # no subslots.  Since the idle timer doesn't reset when resources
 # are reclaimed, partitionable slots will get reaped sooner than
 # non-partitionable.
 DS${I} = (\$(DS${I}_TO_DIE) || \\
-         (\$(DS${I}_IDLE) && ((PartitionableSlot =!= True) || (TotalSlots =?=1))))
+          \$(DS${I}_IDLE_LIMITS))
 
 # But don't enforce shutdowns for dynamic slots (aka "subslots")
 DS${I} = (DynamicSlot =!= True) && (\$(DS${I}))
