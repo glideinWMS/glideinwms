@@ -261,7 +261,7 @@ def refresh_file_list(dicts,is_main, # update in place
     file_dict.add(cWConsts.CONSTS_FILE,(dicts['consts'].get_fname(),"regular","TRUE","CONSTS_FILE",dicts['consts'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
     file_dict.add(cWConsts.VARS_FILE,(dicts['vars'].get_fname(),"regular","TRUE","CONDOR_VARS_FILE",dicts['vars'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
     file_dict.add(cWConsts.UNTAR_CFG_FILE,(dicts['untar_cfg'].get_fname(),"regular","TRUE","UNTAR_CFG_FILE",dicts['untar_cfg'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
-    if is_main:
+    if is_main and dicts.has_key('gridmap'):
         file_dict.add(cWConsts.GRIDMAP_FILE,(dicts['gridmap'].get_fname(),"regular","TRUE","GRIDMAP",dicts['gridmap'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
 
 # dictionaries must have been written to disk before using this
