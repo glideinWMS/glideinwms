@@ -220,6 +220,7 @@ class ForkManager:
                        # log here, since we will have to wait
                        logSupport.log.info("Active forks = %i, Forks to finish = %i"%(max_forks,functions_remaining))
              while (forks_remaining == 0):
+                 failed_keys = []
                  # Give some time for the processes to finish the work
                  # logSupport.log.debug("Reached parallel_workers limit of %s" % parallel_workers)
                  time.sleep(sleep_time)
@@ -255,6 +256,7 @@ class ForkManager:
          
          # now we just have to wait for all to finish
          while (functions_remaining>0):
+            failed_keys = []
             # Give some time for the processes to finish the work
             time.sleep(sleep_time)
 
