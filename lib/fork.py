@@ -20,10 +20,11 @@ from pidSupport import register_sighandler, unregister_sighandler, termsignal
 import logSupport
 
 class ForkResultError(RuntimeError):
-    def __init__(self, nr_errors, good_results):
+    def __init__(self, nr_errors, good_results, failed=[]):
         RuntimeError.__init__(self, "Found %i errors" % nr_errors)
         self.nr_errors = nr_errors
         self.good_results = good_results
+        self.failed = failed
 
 ################################################
 # Low level fork and collect functions
@@ -97,6 +98,7 @@ def fetch_fork_result_list(pipe_ids):
 
     out = {}
     failures = 0
+    failed = []
     for key in pipe_ids:
         try:
             # Collect the results
@@ -105,10 +107,12 @@ def fetch_fork_result_list(pipe_ids):
         except Exception, e:
             logSupport.log.warning("Failed to extract info from child '%s'" % key)
             logSupport.log.exception("Failed to extract info from child '%s'" % key)
+            # Record failed keys
+            failed.append(key)
             failures += 1
 
     if failures>0:
-        raise ForkResultError(failures, out)
+        raise ForkResultError(failures, out, failed=failed)
 
     return out
 
@@ -127,6 +131,7 @@ def fetch_ready_fork_result_list(pipe_ids):
 
     work_info = {}
     failures = 0
+    failed = []
     fds_to_entry = dict((pipe_ids[x]['r'], x) for x in pipe_ids)
 
     readable_fds = select.select(fds_to_entry.keys(), [], [], 0)[0]
@@ -139,10 +144,12 @@ def fetch_ready_fork_result_list(pipe_ids):
         except Exception, e:
             logSupport.log.warning("Failed to extract info from child '%s'" % key)
             logSupport.log.exception("Failed to extract info from child '%s'" % key)
+            # Record failed keys
+            failed.append(key)
             failures += 1
 
     if failures>0:
-        raise ForkResultError(failures, work_info)
+        raise ForkResultError(failures, work_info, failed=failed)
 
     return work_info
 
@@ -227,12 +234,13 @@ class ForkManager:
                      # Expect all errors logged already, just count
                      nr_errors += e.nr_errors
                      functions_remaining -= e.nr_errors
+                     failed_keys = e.failed
 
                  post_work_info.update(post_work_info_subset)
                  forks_remaining += len(post_work_info_subset)
                  functions_remaining -= len(post_work_info_subset)
 
-                 for i in post_work_info_subset:
+                 for i in (post_work_info_subset.keys() + failed_keys):
                      del pipe_ids[i]
                  #end for
              #end while
@@ -260,12 +268,13 @@ class ForkManager:
                 # Expect all errors logged already, just count
                 nr_errors += e.nr_errors
                 functions_remaining -= e.nr_errors
+                failed_keys = e.failed
 
             post_work_info.update(post_work_info_subset)
             forks_remaining += len(post_work_info_subset)
             functions_remaining -= len(post_work_info_subset)
 
-            for i in post_work_info_subset:
+            for i in (post_work_info_subset.keys() + failed_keys):
                 del pipe_ids[i]
 
             if len(post_work_info_subset)>0:
