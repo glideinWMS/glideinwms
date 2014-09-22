@@ -1589,7 +1589,10 @@ def perform_work_v3(entry, condorQ, client_name, client_int_name,
             entry.logDir, client_int_name, credential_username)
 
     # should not need privsep for reading logs
-    log_stats[credential_username + ":" + client_int_name].load()
+    try: # the logParser class will throw an exception if the input file is bad
+        log_stats[credential_username + ":" + client_int_name].load()
+    except Exception, e:
+        log.exception(e)
 
     glideFactoryLib.logStats(condorQ, client_int_name,
                              client_security_name,
