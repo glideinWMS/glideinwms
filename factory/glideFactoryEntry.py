@@ -1592,7 +1592,7 @@ def perform_work_v3(entry, condorQ, client_name, client_int_name,
     try: # the logParser class will throw an exception if the input file is bad
         log_stats[credential_username + ":" + client_int_name].load()
     except Exception, e:
-        log.exception(e)
+        entry.log.exception(e)
 
     glideFactoryLib.logStats(condorQ, client_int_name,
                              client_security_name,
