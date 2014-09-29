@@ -571,8 +571,8 @@ DS${I}_IDLE_NJ_AC82 = ((Slot${I}_SelfMonitorAge =!= UNDEFINED) && \\
 DS${I}_IDLE_NJ_BC82 = ((Slot${I}_TotalTimeUnclaimedIdle =!= UNDEFINED) && \\
         \$(DS${I}_NOT_PARTITIONABLE) && \\
         (Slot${I}_TotalTimeUnclaimedIdle > GLIDEIN_Max_Idle))
-DS${I}_IDLE_NJ = (GLIDEIN_Max_Idle =!= UNDEFINED) && \\
-        ifThenElse((Slot${I}_JobStarts =!= UNDEFINED), \$(DS${I}_IDLE_NJ_AC82), \$(DS${I}_IDLE_NJ_BC82)) 
+DS${I}_IDLE_NJ = ((GLIDEIN_Max_Idle =!= UNDEFINED) && \\
+        ifThenElse((Slot${I}_JobStarts =!= UNDEFINED), \$(DS${I}_IDLE_NJ_AC82), \$(DS${I}_IDLE_NJ_BC82))) 
 # Some jobs started (using GLIDEIN_Max_Tail)
 DS${I}_IDLE_J_AC82 = ((Slot${I}_ExpectedMachineGracefulDrainingCompletion =!= UNDEFINED) &&  \\
         (Slot${I}_JobStarts > 0) && \\
