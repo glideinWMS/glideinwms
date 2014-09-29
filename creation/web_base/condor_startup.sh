@@ -574,7 +574,7 @@ DS${I}_TO_DIE = ((GLIDEIN_ToDie =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToDie))
 # partitionable slots will get reaped sooner than non-partitionable.
 DS${I}_NOT_PARTITIONABLE = ((PartitionableSlot =!= True) || (TotalSlots =?=1))
 # The daemon shutdown expression for idle startds(glideins) depends on some conditions:
-# If some jobs were sheduled on the startd (JOB) or none at all (NOJOB)
+# If some jobs were sheduled on the startd (TAIL) or none at all (NOJOB)
 # If using condor 8.2 or later (NEW) or previous versions (PRE82). JobStarts defined
 # is used to discriminate
 DS${I}_IS_HTCONDOR_NEW = (Slot${I}_JobStarts =!= UNDEFINED)
@@ -588,19 +588,19 @@ DS${I}_IDLE_NOJOB_PRE82 = ((Slot${I}_TotalTimeUnclaimedIdle =!= UNDEFINED) && \\
 DS${I}_IDLE_NOJOB = ((GLIDEIN_Max_Idle =!= UNDEFINED) && \\
         ifThenElse(\$(DS${I}_IS_HTCONDOR_NEW), \$(DS${I}_IDLE_NOJOB_NEW), \$(DS${I}_IDLE_NOJOB_PRE82))) 
 # Some jobs started (using GLIDEIN_Max_Tail)
-DS${I}_IDLE_JOB_NEW = ((Slot${I}_ExpectedMachineGracefulDrainingCompletion =!= UNDEFINED) &&  \\
+DS${I}_IDLE_TAIL_NEW = ((Slot${I}_ExpectedMachineGracefulDrainingCompletion =!= UNDEFINED) &&  \\
         (Slot${I}_JobStarts > 0) && \\
         ((CurrentTime - Slot${I}_ExpectedMachineGracefulDrainingCompletion) > GLIDEIN_Max_Tail) )
-DS${I}_IDLE_JOB_PRE82 = ((Slot${I}_TotalTimeUnclaimedIdle =!= UNDEFINED) && \\
+DS${I}_IDLE_TAIL_PRE82 = ((Slot${I}_TotalTimeUnclaimedIdle =!= UNDEFINED) && \\
         (Slot${I}_TotalTimeClaimedBusy =!= UNDEFINED) && \\
         \$(DS${I}_NOT_PARTITIONABLE) && \\
         (Slot${I}_TotalTimeUnclaimedIdle > GLIDEIN_Max_Tail))
-DS${I}_IDLE_JOB = ((GLIDEIN_Max_Tail =!= UNDEFINED) && \\
-        ifThenElse(\$(DS${I}_IS_HTCONDOR_NEW), \$(DS${I}_IDLE_JOB_NEW), \$(DS${I}_IDLE_JOB_PRE82)))
+DS${I}_IDLE_TAIL = ((GLIDEIN_Max_Tail =!= UNDEFINED) && \\
+        ifThenElse(\$(DS${I}_IS_HTCONDOR_NEW), \$(DS${I}_IDLE_TAIL_NEW), \$(DS${I}_IDLE_TAIL_PRE82)))
 DS${I}_IDLE_RETIRE = ((GLIDEIN_ToRetire =!= UNDEFINED) && \\
        (CurrentTime > GLIDEIN_ToRetire ))
 DS${I}_IDLE = ( (Slot${I}_Activity == "Idle") && \\
-        (\$(DS${I}_IDLE_NOJOB) || \$(DS${I}_IDLE_JOB) || \$(DS${I}_IDLE_RETIRE)) )
+        (\$(DS${I}_IDLE_NOJOB) || \$(DS${I}_IDLE_TAIL) || \$(DS${I}_IDLE_RETIRE)) )
 
 DS${I} = (\$(DS${I}_TO_DIE) || \\
           \$(DS${I}_IDLE))
