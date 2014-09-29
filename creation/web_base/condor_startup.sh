@@ -559,23 +559,37 @@ EOF
         cat >> "$CONDOR_CONFIG" <<EOF
 
 DS${I}_TO_DIE = ((GLIDEIN_ToDie =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToDie))
-# No jobs started (using GLIDEIN_Max_Idle)
-DS${I}_IDLE_NJ = ((Slot${I}_JobStarts =!= UNDEFINED) && (Slot${I}_SelfMonitorAge =!= UNDEFINED) && (GLIDEIN_Max_Idle =!= UNDEFINED) && \\
+
+# The condition pre 8.2 is valid only for not partitionable slots
+# Since the idle timer doesn't reset/stop when resources are reclaimed, 
+# partitionable slots will get reaped sooner than non-partitionable.
+DS${I}_NOT_PARTITIONABLE = ((PartitionableSlot =!= True) || (TotalSlots =?=1))
+# No jobs started (using GLIDEIN_Max_Idle) B/AC82=Before/AfterCondor8.2
+DS${I}_IDLE_NJ_AC82 = ((Slot${I}_SelfMonitorAge =!= UNDEFINED) && \\
                   (Slot${I}_JobStarts == 0) && \\
                   (Slot${I}_SelfMonitorAge > GLIDEIN_Max_Idle))
+DS${I}_IDLE_NJ_BC82 = ((Slot${I}_TotalTimeUnclaimedIdle =!= UNDEFINED) && \\
+        \$(DS${I}_NOT_PARTITIONABLE) && \\
+        (Slot${I}_TotalTimeUnclaimedIdle > GLIDEIN_Max_Idle))
+DS${I}_IDLE_NJ = (GLIDEIN_Max_Idle =!= UNDEFINED) && \\
+        ifThenElse((Slot${I}_JobStarts =!= UNDEFINED), \$(DS${I}_IDLE_NJ_AC82), \$(DS${I}_IDLE_NJ_BC82)) 
 # Some jobs started (using GLIDEIN_Max_Tail)
-DS${I}_IDLE_J = ((Slot${I}_JobStarts =!= UNDEFINED) && (Slot${I}_ExpectedMachineGracefulDrainingCompletion =!= UNDEFINED) &&  \\
-                 (GLIDEIN_Max_Tail =!= UNDEFINED) && \\
-                 (Slot${I}_JobStarts > 0) && \\
-                 ((CurrentTime - Slot${I}_ExpectedMachineGracefulDrainingCompletion) > GLIDEIN_Max_Tail) )
-DS${I}_IDLE_LIMITS = (\$(DS${I}_IDLE_NJ) || \$(DS${I}_IDLE_J))
+DS${I}_IDLE_J_AC82 = ((Slot${I}_ExpectedMachineGracefulDrainingCompletion =!= UNDEFINED) &&  \\
+        (Slot${I}_JobStarts > 0) && \\
+        ((CurrentTime - Slot${I}_ExpectedMachineGracefulDrainingCompletion) > GLIDEIN_Max_Tail) )
+DS${I}_IDLE_J_BC82 = ((Slot${I}_TotalTimeUnclaimedIdle =!= UNDEFINED) && \\
+        (Slot${I}_TotalTimeClaimedBusy =!= UNDEFINED) && \\
+        \$(DS${I}_NOT_PARTITIONABLE) && \\
+        (Slot${I}_TotalTimeUnclaimedIdle > GLIDEIN_Max_Tail))
+DS${I}_IDLE_J = ((GLIDEIN_Max_Tail =!= UNDEFINED) && \\
+        ifThenElse((Slot${I}_JobStarts =!= UNDEFINED), \$(DS${I}_IDLE_J_AC82), \$(DS${I}_IDLE_J_BC82)))
+DS${I}_IDLE_RETIRE = ((GLIDEIN_ToRetire =!= UNDEFINED) && \\
+       (CurrentTime > GLIDEIN_ToRetire ))
+DS${I}_IDLE = ( (Slot${I}_Activity == "Idle") && \\
+        (\$(DS${I}_IDLE_NJ) || \$(DS${I}_IDLE_J) || \$(DS${I}_IDLE_RETIRE)) )
 
-# The last condition below is intended to match partitionable slots that have
-# no subslots.  Since the idle timer doesn't reset when resources
-# are reclaimed, partitionable slots will get reaped sooner than
-# non-partitionable.
 DS${I} = (\$(DS${I}_TO_DIE) || \\
-          \$(DS${I}_IDLE_LIMITS))
+          \$(DS${I}_IDLE))
 
 # But don't enforce shutdowns for dynamic slots (aka "subslots")
 DS${I} = (DynamicSlot =!= True) && (\$(DS${I}))
