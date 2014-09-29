@@ -135,6 +135,7 @@ class GlideinParams(cWParams.CommonParams):
         self.defaults["factory_name"] = (socket.gethostname(), 'ID', 'Factory name', None)
         self.defaults["glidein_name"] = (None, 'ID', 'Glidein name', None)
         self.defaults['schedd_name'] = ("schedd_glideins@%s" % socket.gethostname(), "ScheddName", "Which schedd to use, can be a comma separated list", None)
+        self.defaults['factory_collector'] = (None, "CollectorName", "Which collector should we use for factory ClassAds", None)
         self.defaults['factory_versioning'] = ('True', 'Bool', 'Should we create versioned subdirectories?', None)
 
         submit_defaults = cWParams.commentedOrderedDict()
@@ -195,6 +196,14 @@ class GlideinParams(cWParams.CommonParams):
         self.frontend_defaults["identity"] = (None, 'identity', 'Authenticated Identity', None)
         self.frontend_defaults["security_classes"] = (xmlParse.OrderedDict(), "Dictionary of security class maps", "Each mapping contains", self.frontend_sec_class_defaults)
 
+        monitoring_collector_defaults=cWParams.commentedOrderedDict()
+        monitoring_collector_defaults["node"]=(None,"nodename","Factory monitoring collector node name (for example, col1.my.org:9999)",None)
+        monitoring_collector_defaults["DN"]=(None,"dn","Factory collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=col1.my.org)",None)
+        monitoring_collector_defaults["secondary"]=("False","Bool","Secondary nodes will be used by glideins, if present",None)
+        monitoring_collector_defaults["group"]=("default","string","Collector group name useful to group HA setup",None)
+
+        self.defaults["monitoring_collectors"]=([],'List of factory monitoring collectors',"Each collector contains",monitoring_collector_defaults)
+
         security_default=cWParams.commentedOrderedDict()
         security_default["pub_key"]=("RSA","None|RSA","Type of public key system used for secure message passing",None)
         security_default["reuse_oldkey_onstartup_gracetime"]=("900","seconds","Time in sec old key can be used to decrypt requests from frontend",None)
@@ -242,6 +251,9 @@ class GlideinParams(cWParams.CommonParams):
             raise RuntimeError, "Missing glidein name"
         if not cWParams.is_valid_name(self.glidein_name):
             raise RuntimeError, "Invalid glidein name '%s'"%self.glidein_name
+
+        if self.factory_collector=="default":
+            raise RuntimeError, '"default" is a reserved keyword, cannot be used as factory_collector'
 
         factoryVersioning = False
         if self.data.has_key('factory_versioning') and \
@@ -293,6 +305,7 @@ class GlideinParams(cWParams.CommonParams):
                 'files':{'el_name':'file','subtypes_params':{'class':{}}},
                 'process_logs':{'el_name':'process_log','subtypes_params':{'class':{}}},
                 'monitorgroups':{'el_name':'monitorgroup','subtypes_params':{'class':{}}},
+                'monitoring_collectors':{'el_name':'monitoring_collector','subtypes_params':{'class':{}}},
                 'infosys_refs':{'el_name':'infosys_ref','subtypes_params':{'class':{}}}
             },
             'dicts_params':{

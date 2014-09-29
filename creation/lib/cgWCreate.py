@@ -48,12 +48,14 @@ def create_condor_tar_fd(condor_base_dir):
                   'libexec/condor_glexec_run',
                   'libexec/condor_glexec_update_proxy',
                   'libexec/condor_glexec_setup',
+                  'libexec/condor_shared_port',
                   'libexec/condor_ssh_to_job_sshd_setup',
                   'libexec/condor_ssh_to_job_shell_setup',
                   'libexec/condor_kflops',
                   'libexec/condor_mips',
                   'libexec/curl_plugin',
                   'libexec/data_plugin',
+                  'libexec/condor_chirp',
                               ]
 
         # for RPM installations, add libexec/condor as libexec into the
@@ -123,7 +125,12 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
         # Add in some common elements before setting up grid type specific attributes
         self.add("Universe", "grid")
-        self.add("Grid_Resource", "%s %s" % (gridtype, gatekeeper))
+        if gridtype.startswith('batch '):
+            # For BOSCO ie gridtype 'batch *', allow means to pass VO specific
+            # bosco/ssh keys
+            self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) %s" % (gridtype, gatekeeper))
+        else:
+            self.add("Grid_Resource", "%s %s" % (gridtype, gatekeeper))
         self.add("Executable", exe_fname)
                 
         # set up the grid specific attributes
@@ -135,6 +142,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             self.populate_standard_grid(rsl, auth_method, gridtype)
             # next we add the Condor-C additions
             self.populate_condorc_grid(submit_attrs)
+        elif (gridtype.startswith('batch ')):
+            # BOSCO, aka batch *
+            self.populate_batch_grid(rsl, auth_method, gridtype, submit_attrs)
         else:
             self.populate_standard_grid(rsl, auth_method, gridtype)
 
@@ -162,7 +172,6 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             self.add("nordugrid_rsl", "$ENV(GLIDEIN_RSL)")
         else:
             pass
-            # do we want to raise an error here?  we do in v2+
 
         # Force the copy to spool to prevent caching at the CE side
         self.add("copy_to_spool", "True")
@@ -170,17 +179,35 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("Arguments", "$ENV(GLIDEIN_ARGUMENTS)")
 
         self.add("Transfer_Executable", "True")
-        self.add("transfer_Input_files", "")
         self.add("transfer_Output_files", "")
         self.add("WhenToTransferOutput ", "ON_EXIT")
 
         self.add("stream_output", "False")
         self.add("stream_error ", "False")
 
-    def populate_condorc_grid(self, submit_attrs):
-        for key in submit_attrs.keys():
-            self.add(key, submit_attrs[key]['value'])
 
+    def populate_batch_grid(self, rsl, auth_method, gridtype, submit_attrs):
+        input_files = []
+        encrypt_input_files = []
+
+        self.populate_standard_grid(rsl, auth_method, gridtype)
+
+        input_files.append('$ENV(X509_USER_PROXY)')
+        encrypt_input_files.append('$ENV(X509_USER_PROXY)')
+        self.add('environment', '"X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME)"')
+        self.add("transfer_Input_files", ','.join(input_files))
+        self.add("encrypt_Input_files", ','.join(encrypt_input_files))
+
+        self.populate_submit_attrs(submit_attrs)
+
+
+    def populate_submit_attrs(self, submit_attrs, attr_prefix=''):
+        for key in submit_attrs.keys():
+            self.add('%s%s' % (attr_prefix, key), submit_attrs[key]['value'])
+
+
+    def populate_condorc_grid(self, submit_attrs):
+        self.populate_submit_attrs(submit_attrs)
         self.add('+TransferOutput', '""')
         self.add('x509userproxy', '$ENV(X509_USER_PROXY)')
 

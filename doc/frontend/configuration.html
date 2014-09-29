@@ -24,9 +24,10 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-            <li> <a href="../corral.html">Corral Frontend</a></li>
+                <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
 	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
         </ul>
         <div class="search">
@@ -96,8 +97,8 @@ Click on any piece for a more detailed description.
     <blockquote>
         <a href="#">&lt;process_logs &gt;</a><br/>
         <blockquote>
-            <a href="#process_logs">&lt;process_log extension="info" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="INFO" /&gt;</a><br/>
-            <a href="#process_logs">&lt;process_log extension="debug" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="DEBUG,ERR,WARN" /&gt;</a><br/>
+            <a href="#process_logs">&lt;process_log extension="info" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="INFO" backup_count=&quot;5&quot; /&gt;</a><br/>
+            <a href="#process_logs">&lt;process_log extension="debug" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="DEBUG,ERR,WARN" backup_count=&quot;5&quot; /&gt;</a><br/>
         </blockquote>
         <a href="#">&lt;/process_logs &gt;</a><br/>
     </blockquote>
@@ -191,7 +192,19 @@ Click on any piece for a more detailed description.
         <a href="#">&lt;/group&gt;</a><br/>
     </blockquote>
     <a href="#">&lt;/groups&gt;</a><br/>
-     
+    <a href="#files">&lt;files&gt;</a><br/>
+    <blockquote>
+      <a href="#files">&lt;file absfname="/opt/script/testSW.sh" after_entry="True" after_group="False" const="True" executable="True" untar="False" wrapper="False" /&gt;</a><br/>
+    </blockquote>
+    <a href="#files">&lt;/files&gt;</a><br/>     
+    <a href="#usercollector">&lt;collectors&gt;</a><br/>
+    <blockquote>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="default" /&gt;</a><br/>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov:9620-9819" secondary="True" group="default" /&gt;</a><br/>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector2.fnal.gov" node="usercollector2.fnal.gov" secondary="False" group="ha" /&gt;</a><br/>
+        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector2.fnal.gov" node="usercollector2.fnal.gov:9620-9919" secondary="True" group="ha" /&gt;</a><br/>
+    </blockquote>
+    <a href="#usercollector">&lt;/collectors&gt;</a><br/>
     <a href="#global_config">&lt;config&gt;</a><br/>
     <blockquote>
        <a href="#global_config">&lt;idle_vms_total curb="800" max="1200" /&gt;</a><br/>
@@ -200,14 +213,6 @@ Click on any piece for a more detailed description.
        <a href="#global_config">&lt;running_glideins_total_global curb="50000" max="60000" /&gt;</a><br/>
     </blockquote>
     <a href="#global_config">&lt;/config&gt;</a><br/>
-
-    <a href="#usercollector">&lt;collectors groups="default,ha"&gt;</a><br/>
-    <blockquote>
-        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="default" /&gt;</a><br/>
-        <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov" node="usercollector.fnal.gov" secondary="False" group="ha" /&gt;</a><br/>
-    </blockquote>
-    <a href="#usercollector">&lt;/collectors&gt;</a><br/>
-    <a href="#files">&lt;files /&gt;</a><br/>
     </blockquote>
     <a href="#">&lt;/frontend&gt;</a><br/>
 </div>
@@ -245,21 +250,32 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
     <LI>
         <a name="process_logs" />
         <div class="xml">
-            &lt;glidein&gt;&lt;log_retention&gt;&lt;process_logs&gt;&lt;process_log 
+            &lt;frontend&gt;&lt;log_retention&gt;&lt;process_logs&gt;&lt;process_log 
             max_days=&quot;<I>max days</I>&quot;
             min_days=&quot;<I>min days</I>&quot;
             max_bytes=&quot;<I>max bytes</I>&quot;
+            backup_count=&quot;<I>backup count</I>&quot;
             type=&quot;<I>ALL</I>&quot;/&gt;
         </div>
     <p>
     The admin can configure one or more logs with any combination of following log message types: 
     <ul>
-    <li>INFO:  Informational messages about the state of the system. </li>
-    <li>DEBUG:  Debug message. These are additional informational messages that describe code execution in detail.</li>
-    <li>ERR:  Error messages. These may include tracebacks. </li>
-    <li>WARN:  Warning messages. These warn of conditions that were found that don't necessarily cause abnormal execution.</li>
+      <li>INFO:  Informational messages about the state of the system. </li>
+      <li>DEBUG:  Debug message. These are additional informational messages that describe code execution in detail.</li>
+      <li>ERR:  Error messages. These may include tracebacks. </li>
+      <li>WARN:  Warning messages. These warn of conditions that were found that don't necessarily cause abnormal execution.</li>
     </ul>
     The extension is added to the log name to create separate logs.
+    <br><br>
+    <b>Log Retention and Rotation Policy:</b>
+    <br><br>
+    Log files are rotated based on a time and size of the log files as follows:
+    <ul>
+        <li>If the log file size reaches <i>max_bytes</i> it will be rotated.</li>
+        <li>If the log file size is less that <i>max_bytes</i> but the file is older than max_days it will be rotated.</li>
+        <li><i>min_days</i> is not used and is there for backwards compatibility.</li>
+        <li>After rotation, recent number of <i>back_count</i> files will be kept and older ones are deleted. Defaults to 5.</li>
+    </ul>
     </p>
     </li>
     
@@ -433,6 +449,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         This defines the path to the Glidein Frontend directory. 
     </P></li>
         <LI><P>
+                <a name="files" />
                 <div class="xml">
                 &lt;frontend&gt;&lt;files&gt;&lt;file
                 absfname=&quot;<I>filepath</I>&quot;
@@ -774,7 +791,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     <LI><P>
         <a name="usercollector" />
         <div class="xml">
-        &lt;frontend&gt;&lt;collectors groups="<i>list of collector groups</i>"&gt;&lt;collector DN="<i>certificate DN</i>" node="<i>User Pool Collector</i>" secondary="<i>True/False</i>" group="<i>Group Name</i>"&gt;
+        &lt;frontend&gt;&lt;collectors&gt;&lt;collector DN="<i>certificate DN</i>" node="<i>User Pool Collector</i>" secondary="<i>True/False</i>" group="<i>Group Name</i>"&gt;
         </div>
         List of user pool collector(s) where condor_startd started by glideins
         should report to as an available resource.  
@@ -785,7 +802,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     <a href="../components/condor.html#collectors">Advanced Condor Configuration Multiple Collectors document</a> for details for the Condor configuration.<br/>
     The configuration required for the Frontend to communicate with the secondary user pool collectors is shown below:
       <blockquote>
-         &lt;collectors>&gt;
+         &lt;collectors&gt;
          &lt;collector DN="<i>certificate DN</i>"  secondary="<b>False</b>"
                   node="User Pool Collector:<b>primary_port</b>"/&gt;</br>
          &lt;collector DN="<i>certificate DN</i>" secondary="<b>True</b>"
@@ -802,9 +819,8 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     Condor daemons started by the glideins will report back to one of the
     secondary collectors in each <b>group</b>. If a <b>group</b> has no secondary collector, 
     the primary collector is selected for that group. 
-    The collector element <b>groups</b> attribute defines the set of collectors the frontend will use.
-      <blockquote>
-         &lt;collectors <b>groups="default,1"</b>&gt;
+    <blockquote>
+         &lt;collectors&gt;
         <ul>
          &lt;collector DN="<i>certificate DN</i>"  secondary="False"
                   node="<b>User Pool Collector 1</b>:primary_port" <b>group="default"</b>/&gt;</br>

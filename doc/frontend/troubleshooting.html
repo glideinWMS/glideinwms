@@ -24,9 +24,10 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-            <li> <a href="../corral.html">Corral Frontend</a></li>
+                <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
 	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
         </ul>
         <div class="search">
@@ -136,9 +137,9 @@ WMS Pool/Factory and the User Pool. NOTE: You do require at least one entry poin
         Also, make sure that this cert has authorization to run a job by running a command such as
         (all on one line): 
         <blockquote>
-            X509_USER_CERT=/tmp/x509up_u&lt;UID&gt; globus-job-run -a -r &lt;gatekeeper in factory config&gt;
+            X509_USER_PROXY=/tmp/x509up_u&lt;UID&gt; globus-job-run -a -r &lt;gatekeeper in factory config&gt;
         </blockquote>
-        Note that /tmp/x509up_u&lt;UID&gt; is the typical location for kerberos certificates, but use 
+        Note that /tmp/x509up_u&lt;UID&gt; is the typical location for x509/kerberos proxy certificates, but use 
         the proper location if the place of your server certificate varies.
     </p>
 
@@ -349,7 +350,7 @@ code 1:Error: communication error<br/>
     
     If using VOMS, try to query the information to verify:
     <blockquote>
-        X509_USER_CERT=&lt;vofronted_proxy_location&gt; voms-proxy-info.
+        X509_USER_PROXY=&lt;vofronted_proxy_location&gt; voms-proxy-info.
     </blockquote>
     </p>
 
@@ -389,7 +390,9 @@ code 1:Error: communication error<br/>
     <blockquote>
        glideinwms/frontend/tools    
     </blockquote>
-    There are two ready-to-use tools:
+    </p>
+    <p>
+    There are two tools that can be used to talk to the glideins:
     <ul>
       <li><b>fetch_glidein_log</b> - This tool will fetch the log from a glidein. It is a wrapper around 
              <a href="http://research.cs.wisc.edu/htcondor/manual/v8.0/condor_fetchlog.html">condor_fetchlog</a>.</li>
@@ -397,7 +400,8 @@ code 1:Error: communication error<br/>
              <a href="http://research.cs.wisc.edu/htcondor/manual/v8.0/condor_off.html">condor_off</a>.</li>
     </ul>
     Additionally, there is a general purpuse tool, called <br><b>enter_frontend_env</b><br> that simply sets the
-    environment so that it matches the one used by the Frontend daemons. You can then use all HTCondor commands directly.
+    environment so that it matches the one used by the Frontend daemons. You can then use all HTCondor commands directly,
+    to both the glideins and the Factories.
     </p>
     <p>
     All tools require access to the Frontend group's work area in order to work.
@@ -414,6 +418,21 @@ code 1:Error: communication error<br/>
     cd ~/glideinwms/frontend/tools<br>
     ./glidein_off -g main --constraint 'State=!="Claimed"'
     </blockquote>
+    </p>
+    <p>
+    You can furthermore use:
+    <ul>
+      <li><b>remove_requested_glideins</b> - 
+              This tool will request the removal of glideins requested by the frontend.<br>
+              This comes handy when/if you find out that you had major configuration problem in the previous
+              Frontend configuration. By default, a reconfig will only request glideins of new type,
+              but will not remove any old ones.<br><br>
+              There are two types of removals you most likely want to request (through the <i>-t</i> option):
+              <ul>
+                 <li><b>idle</b> - Only remove glideins that have not started yet (the default).
+                 <li><b>all</b> - All glideins, including those currently running.
+              </ul>
+    </ul>
     </p>
 </div>
 

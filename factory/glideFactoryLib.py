@@ -1319,6 +1319,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
         verbosity = jobDescript.data["Verbosity"]
         startup_dir = jobDescript.data["StartupDir"]
         slots_layout = jobDescript.data["SubmitSlotsLayout"]
+        proxy_url = jobDescript.data.get("ProxyURL", None)
 
         exe_env.append('GLIDEIN_SCHEDD=%s' % schedd)
         exe_env.append('GLIDEIN_VERBOSITY=%s' % verbosity)
@@ -1356,11 +1357,11 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
         # Specify how the slots should be layed out
         slots_layout = jobDescript.data['SubmitSlotsLayout']
         # Build the glidein pilot arguments
-        glidein_arguments = str("-v %s -name %s -entry %s -clientname %s -schedd %s " \
+        glidein_arguments = str("-v %s -name %s -entry %s -clientname %s -schedd %s -proxy %s " \
                             "-factory %s -web %s -sign %s -signentry %s -signtype %s " \
                             "-descript %s -descriptentry %s -dir %s -param_GLIDEIN_Client %s -submitcredid %s -slotslayout %s %s" % \
                             (verbosity, glidein_name, entry_name, client_name,
-                             schedd, factory_name, web_url, main_sign, entry_sign,
+                             schedd, proxy_url, factory_name, web_url, main_sign, entry_sign,
                              sign_type, main_descript, entry_descript,
                              startup_dir, client_name, submit_credentials.id,
                              slots_layout, params_str))
@@ -1369,7 +1370,21 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
 
         # get my (entry) type
         grid_type = jobDescript.data["GridType"]
-        if grid_type == "ec2":
+
+        if grid_type.startswith('batch '):
+            log.debug("submit_credentials.security_credentials: %s" % str(submit_credentials.security_credentials))
+            exe_env.append('GRID_RESOURCE_OPTIONS=--rgahp-key %s --rgahp-nopass' % submit_credentials.security_credentials["PrivateKey"])
+            exe_env.append('X509_USER_PROXY=%s' % submit_credentials.security_credentials["GlideinProxy"])
+            exe_env.append('X509_USER_PROXY_BASENAME=%s' % os.path.basename(submit_credentials.security_credentials["GlideinProxy"]))
+            glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
+            # condor and batch (BLAH/BOSCO) submissions do not like arguments enclosed in quotes
+            # - batch pbs would consider a single argument if quoted
+            # - condor and batch condor would return a submission error
+            # condor_submit will swallow the " character in the string.
+            # condor_submit will include ' as a literal in the arguments string, causing breakage
+            # Hence, use " for now.
+            exe_env.append('GLIDEIN_ARGUMENTS=%s' % glidein_arguments)
+        elif grid_type == "ec2":
             log.debug("params: %s" % str(params))
             log.debug("submit_credentials.security_credentials: %s" % str(submit_credentials.security_credentials))
             log.debug("submit_credentials.identity_credentials: %s" % str(submit_credentials.identity_credentials))
@@ -1431,7 +1446,6 @@ email_logs = False
                 log.debug(msg)
                 log.exception(msg)
                 raise
-
         else:
             exe_env.append('X509_USER_PROXY=%s' % submit_credentials.security_credentials["SubmitProxy"])
 
@@ -1440,9 +1454,8 @@ email_logs = False
             # see the macros
             glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
             if grid_type == "condor":
+                # batch grid type are handled above
                 # condor_submit will swallow the " character in the string.
-                # condor_submit will include ' as a literal in the arguments string, causing breakage
-                # Hence, use " for now.
                 exe_env.append('GLIDEIN_ARGUMENTS=%s' % glidein_arguments)
             else:
                 exe_env.append('GLIDEIN_ARGUMENTS="%s"' % glidein_arguments)

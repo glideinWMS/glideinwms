@@ -24,9 +24,10 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-            <li> <a href="../corral.html">Corral Frontend</a></li>
+                <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
 	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
         </ul>
         <div class="search">
@@ -219,7 +220,7 @@ the factory config's security_class element name attribute. </li>
     Make sure the proxy/cert is correct.  
     Try the following to make sure the user is authorized to run jobs on the site.
     <blockquote>
-        X509_USER_CERT=/tmp/x509up_u&lt;UID&gt; globus-job-run -a -r &lt;gatekeeper in factory config&gt;
+        X509_USER_PROXY=/tmp/x509up_u&lt;UID&gt; globus-job-run -a -r &lt;gatekeeper in factory config&gt;
     </blockquote>
     <li>
 
@@ -355,7 +356,7 @@ In case HTCondor daemons are crashing, you can browse the logs of HTCondor daemo
 <div class="section">
 <h2><a name="switchboard">Condor Switchboard Failures</a></h2>
 		
-		<b>Symptoms:</b> Installation or reconfig gives errors with the switchboard:
+		<b>Symptoms:</b> Installation, upgrade or reconfig gives errors with the switchboard:
 		<blockquote>
 		    ERROR: Failed to create base clientlog dir (user xxx_cms):<br/>
 		Error running '/usr/local/glideins/v2_4_3_alpha_1/condor-wms/bin/../sbin/condor_root_switchboard mkdir 0 2'<br/>
@@ -364,7 +365,19 @@ In case HTCondor daemons are crashing, you can browse the logs of HTCondor daemo
 		</blockquote>
 		<b>Debugging steps</b>: 
 		This indicates a problem with privilege separation.  Verify that the username in the security_class in the factory config is listed in /etc/condor/privsep_config as a valid-target-uid.  Also, HTCondor requires specific permissions on directories for privsep, so similar errors can be triggered if the directory permissions are not set correctly (owner of the directories in the tree must be root or the designated owner).
+
+		<b>Symptoms:</b> Installation, upgrade or reconfig gives errors with the switchboard:
+		<blockquote>
+invalid caller gid (5111)<br/>
+Failed to create base clientlog dir (user frontend):<br/>
+Unexpected Error running '/usr/bin/../sbin/condor_root_switchboard mkdir 0 4'.<br/>
+Details: Command '/usr/bin/../sbin/condor_root_switchboard mkdir 0 4' returned non-zero exit status 1: <br/>
+		Upgrading the factory [FAILED]
+		</blockquote>
+		<b>Debugging steps</b>: 
+		This indicates a problem with privilege separation.  Verify that the username and the group under which the factory runs are listed in /etc/condor/privsep_config as a valid-caller-uids/valid-caller-gids.  Also, HTCondor requires specific permissions on directories for privsep, so similar errors can be triggered if the directory permissions are not set correctly (owner/group owner of the directories in the tree must be root or the designated owner/group).
 </div>
+
 
 <div class="section">
 <h2><a name="find_user">Finding the user</a></h2>
@@ -399,8 +412,9 @@ In case HTCondor daemons are crashing, you can browse the logs of HTCondor daemo
 	    	<li>cat_MasterLog.py <i>glidien_log</i></li>
 	    	<li>cat_StartdLog.py <i>glidien_log</i></li>
 	    	<li>cat_StarterLog.py <i>glidien_log</i></li>
+	    	<li>cat_StartdHistoryLog.py <i>glidien_log</i></li>
 	    </ul>
-		The Startd log will contain the DN of the user, just search for x509UserProxyFQAN. 
+		The Startd and StartdHistory log will contain the DN of the user, just search for x509UserProxyFQAN. 
 		</p>
 	    
 	    

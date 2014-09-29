@@ -72,10 +72,17 @@ export X509_CERT_DIR="/etc/grid-security/certificates"
 FACTORY_USER=gfactory
 
 
-factory_name=`awk '/^FactoryName /{print $2}' ${factory_dir}/glidein.descript`
-glidein_name=`awk '/^GlideinName /{print $2}' ${factory_dir}/glidein.descript`
+if [ -r "${factory_dir}/glidein.descript" ]; then
+    factory_name=`awk '/^FactoryName /{print $2}' ${factory_dir}/glidein.descript`
+    glidein_name=`awk '/^GlideinName /{print $2}' ${factory_dir}/glidein.descript`
+    force_name_option="-force_name \"$glidein_name\""
+else
+    factory_name="NEW_INSTALL"
+    glidein_name="NEW_INSTALL"
+    force_name_option=
+fi
 id_str="$glidein_name@${factory_name}"
-
+    
 
 get_user() {
     # logname returns the original user efater a "su" instead I need the current one
@@ -169,8 +176,28 @@ help_usage() {
 start() {
     pushd $factory_dir 1>/dev/null
     echo -n "Starting GlideinWMS Factory $id_str: "
+
+    "$FACTORY_CHECK" "$factory_dir"  2>/dev/null 1>&2 </dev/null 
+    MYRETVAL=$?
+    if [ $MYRETVAL -eq 0 ]; then
+        # already running, so nothing to be done
+        echo -n "Already running "
+        success
+        RETVAL=$?
+        echo
+        return $RETVAL
+    fi
+
     invoke_as_factory "nice -2 \"${FACTORY_START}\" \"$factory_dir\" 2>/dev/null 1>&2 </dev/null &"
-    sleep 5
+    for i in {1..15}; do  # Use seq if a variable is needed: $(seq 1 $END)
+        # Returns 0 if running
+        "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null
+        if [ $? -eq 0 ]; then
+            RETVAL=0
+            break
+        fi
+        sleep 1
+    done
     "$FACTORY_CHECK" "$factory_dir"  2>/dev/null 1>&2 </dev/null && success || failure
     RETVAL=$?
     popd 1>/dev/null
@@ -179,12 +206,43 @@ start() {
 
 stop() {
     echo -n "Shutting down GlideinWMS Factory $id_str: "
-    "$FACTORY_STOP" -f "$factory_dir" 2>/dev/null 1>&2 </dev/null && success || failure
+
+    "$FACTORY_CHECK" "$factory_dir" 2>/dev/null 1>&2 </dev/null 
+    MYRETVAL=$?
+    if [ $MYRETVAL -ne 0 ]; then
+        # not running, so nothing to be done
+        echo -n "Not running. "
+        success
+        RETVAL=$?
+        echo
+        return $RETVAL
+    fi
+
+    "$FACTORY_STOP" -f "$factory_dir" 2>/dev/null 1>&2 </dev/null
+    MYRETVAL=$?
+
+    if [ $MYRETVAL -ne 0 ]; then
+        echo -n "Invocation failed "
+        failure
+        RETVAL=$?
+        echo
+        return $RETVAL
+    fi
+
+    # check that it has actually stopped
+    # can take some time
+    for i in {1..30}; do  # Use seq if a variable is needed: $(seq 1 $END)
+        # Returns 0 if running, 1 if not
+        "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null
+        if [ $? -ne 0 ]; then
+            RETVAL=0
+            break
+        fi
+        sleep 1
+    done
+    
+    "$FACTORY_CHECK" "$factory_dir"  2>/dev/null 1>&2 </dev/null && failure || success
     RETVAL=$?
-    if [ $RETVAL -eq 2 ]; then
-        echo -n "Already stopped."
-        RETVAL=0
-    fi  
     echo
 }
 
@@ -196,7 +254,7 @@ restart() {
         for i in {1..60}; do  # Use seq if a variable is needed: $(seq 1 $END)
             # Returns 0 if running, 1 if not
             "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null
-            if [ $? -eq 1 ]; then
+            if [ $? -ne 0 ]; then
                 RETVAL=0
                 break
             fi
@@ -224,11 +282,12 @@ reconfig() {
             echo "Using default factory config file: $def_factory_config"
             cfg_loc=$def_factory_config
         fi
+        update_def_cfg_option=
         update_def_cfg=no
         writeback=$DEFAULT_WRITEBACK
         force_delete=""
         fix_rrd=""
-        comment=""
+        comment_option=""
 
         while (( "$#" )); do
             var=$1
@@ -246,7 +305,7 @@ reconfig() {
                     exit 2
                 fi
                 ;;
-            "-comment") comment=$2
+            "-comment") comment_option="-comment \\\"$2\\\""
                 shift
                 ;;
             *)  echo "Unknown argument passed: $var"
@@ -273,7 +332,12 @@ reconfig() {
 
         echo -n "Reconfiguring the factory"
         pushd $factory_dir 1>/dev/null
-        invoke_as_factory "\"${CREATION_DIR}reconfig_glidein\" -update_scripts no -xml \"$cfg_loc\" -writeback $writeback $fix_rrd $force_delete -force_name \"$glidein_name\" -update_def_cfg $update_def_cfg -comment \"$comment\""
+        if [ "$RPM_INSTALL" = "True" ]; then
+            extra_options=
+        else
+            extra_options=" $force_name_option -update_def_cfg $update_def_cfg"
+        fi
+        invoke_as_factory "\"${CREATION_DIR}reconfig_glidein\" -update_scripts no -xml \"$cfg_loc\" -writeback $writeback $fix_rrd $force_delete $comment_option"
         # RPM su -s /bin/bash $FACTORY_USER -c "reconfig_glidein -update_scripts no -xml $factory_config -writeback $writeback $fix_rrd $force_delete"
         reconfig_failed=$?
         popd 1>/dev/null
@@ -336,7 +400,12 @@ upgrade() {
         fi
 
         pushd $factory_dir 1>/dev/null
-        invoke_as_factory "\"${CREATION_DIR}reconfig_glidein\" -force_name \"$glidein_name\" -writeback yes -update_scripts yes -xml \"$cfg_loc\"" 
+        if [ "$RPM_INSTALL" = "True" ]; then
+            extra_options=
+        else # options used only in the tarball version (before the merge)
+            extra_options=" $force_delete $fix_rrd"
+        fi
+        invoke_as_factory "\"${CREATION_DIR}reconfig_glidein\" $force_name_option -writeback yes -update_scripts yes -xml \"$cfg_loc\" $extra_options" 
         # su -s /bin/bash $FACTORY_USER -c "reconfig_glidein -update_scripts yes -xml $factory_config -writeback $writeback $fix_rrd $force_delete"
 
         reconfig_failed=$?

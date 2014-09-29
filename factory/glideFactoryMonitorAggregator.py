@@ -111,7 +111,7 @@ def verifyHelper(filename,dict, fix_rrd=False):
         dump_obj=rrdSupport.rrdtool_exe()
         outstr=dump_obj.dump(filename)
         for line in outstr:
-            os.write(f,line)
+            os.write(f,"%s\n"%line)
         os.close(f)
         #Move file to backup location 
         shutil.move(filename,filename+backup_str)

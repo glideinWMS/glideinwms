@@ -23,9 +23,10 @@
 	<li> <a href="./index.html">Home</a></li>
 	<li> <a href="./download.html">Download</a></li>
 	<li> <a href="./frontend/index.html">Glidein Frontend</a></li>
-    <li> <a href="./corral.html">Corral Frontend</a></li>
+        <li> <a href="./corral.html">Corral Frontend</a></li>
 	<li> <a href="./factory/index.html">WMS Factory</a></li>
 	<li> <a href="./components/index.html" >Components</a></li>
+        <li> <a href="./recipes/index.html">Recipes</a></li>
 	<li> <a href="./components/faq.html" class="last">FAQ</a></li>
         </ul>
         <div class="search">
@@ -84,7 +85,30 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
-        <b>v3_2_5</b> released on May xx, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_5/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_5/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_5.tgz">Tarball</a>)<br>
+        <b>v3_2_6</b> released on July 28, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_6/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_6/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_6.tgz">Tarball</a>)<br>
+       <ul>
+         <li>condor_chirp is now added to condor tarbar used by glidein
+         <li>Added support for submitting glideins to batch sites using BOSCO.
+         Requires HTCondor v8.2.2+
+         <li>Added new tool to purge old glideins
+         <li>Added periodic auto-update to Status Now monitoring pages
+         Upon completion, glidein Job history is brought back to the factory
+         <li>Allow for separation of Factory collector and CondorG collector
+         <li>Bug Fix: Fixed local timezone in some frontend monitoring pages
+         <li>Bug Fix: Improved frontend performance
+         <li>Bug Fix: Requesting single-core partitionable glideins is
+         not allowed
+         <li>Bug Fix: Fixed file ownership issues for rpm packages
+       </ul>
+     </li>
+      <li>
+        <b>v3_2_5_1</b> released on June 23, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_5/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_5/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_5.tgz">Tarball</a>)<br>
+       <ul>
+         <li>Bug Fix: Fixed an issue with the factory_startup template that affects factory reconfig/upgrade in case of RPM
+       </ul>
+     </li>
+      <li>
+        <b>v3_2_5</b> released on May 19, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_5/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_5/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_5.tgz">Tarball</a>)<br>
        <ul>
          <li>Added administrative commands for frontend fetch_glidein_log,
          glidein_off and enter_frontend_env
@@ -105,6 +129,7 @@ Related Pages:
          correctly consider the backup_count when configured
          <li>Bug Fix: Frontend RPM now corectly creates frontend.xml config with
          default trust_domain='grid' for the credentials
+         <li>Bug Fix: Fixed frontend performance issue introduced in v3.2.4
        </ul>
       </li>
       <li>

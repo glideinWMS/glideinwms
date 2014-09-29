@@ -11,56 +11,11 @@
 #
 
 import os,os.path,shutil,string
-import socket
-import cWParams
 import cvWDictFile,cWDictFile
 import cvWConsts,cWConsts
 import cvWCreate
 from glideinwms.lib import x509Support
 
-#####################################################
-# Validate node string
-def validate_node(nodestr,allow_prange=False):
-    narr=nodestr.split(':')
-    if len(narr)>2:
-        raise RuntimeError, "Too many : in the node name: '%s'"%nodestr
-    if len(narr)>1:
-        # have ports, validate them
-        ports=narr[1]
-        parr=ports.split('-')
-        if len(parr)>2:
-            raise RuntimeError, "Too many - in the node ports: '%s'"%nodestr
-        if len(parr)>1:
-            if not allow_prange:
-                raise RuntimeError, "Port ranges not allowed for this node: '%s'"%nodestr
-            pmin=parr[0]
-            pmax=parr[1]
-        else:
-            pmin=parr[0]
-            pmax=parr[0]
-        try:
-            pmini=int(pmin)
-            pmaxi=int(pmax)
-        except ValueError,e:
-            raise RuntimeError, "Node ports are not integer: '%s'"%nodestr
-        if pmini>pmaxi:
-            raise RuntimeError, "Low port must be lower than high port in node port range: '%s'"%nodestr
-
-        if pmini<1:
-            raise RuntimeError, "Ports cannot be less than 1 for node ports: '%s'"%nodestr
-        if pmaxi>65535:
-            raise RuntimeError, "Ports cannot be more than 64k for node ports: '%s'"%nodestr
-
-    # split needed to handle the multiple schedd naming convention
-    nodename = narr[0].split("@")[-1]  
-    try:
-        socket.getaddrinfo(nodename,None)
-    except:
-        raise RuntimeError, "Node name unknown to DNS: '%s'"%nodestr
-
-    # OK, all looks good
-    return
-    
 ################################################
 #
 # This Class contains the main dicts
@@ -139,6 +94,10 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         # populate complex files
         populate_frontend_descript(self.work_dir,self.dicts['frontend_descript'],self.active_sub_list,params)
         populate_common_descript(self.dicts['frontend_descript'],params)
+
+        # Apply multicore policy so frontend can deal with multicore
+        # glideins and requests correctly
+        apply_multicore_policy(self.dicts['frontend_descript'])
 
         # populate the monitor files
         javascriptrrd_dir = params.monitor.javascriptRRD_dir
@@ -645,6 +604,22 @@ def apply_group_glexec_policy(descript_dict, sub_params, params):
         descript_dict.add('MatchExpr', match_expr, allow_overwrite=True)
 
 
+def apply_multicore_policy(descript_dict):
+    match_expr = descript_dict['MatchExpr']
+
+    # Only consider sites that provide enough GLIDEIN_CPUS jobs to run
+    match_expr = '(%s) and (getGlideinCpusNum(glidein) >= int(job.get("RequestCpus", 1)))' % match_expr
+    descript_dict.add('MatchExpr', match_expr, allow_overwrite=True)
+
+    # Add GLIDEIN_CPUS to the list of attrs queried in glidefactory classad
+    fact_ma = eval(descript_dict['FactoryMatchAttrs']) + [('GLIDEIN_CPUS', 's')]
+    descript_dict.add('FactoryMatchAttrs', repr(fact_ma), allow_overwrite=True)
+
+    # Add RequestCpus to the list of attrs queried in glidefactory classad
+    job_ma = eval(descript_dict['JobMatchAttrs']) + [('RequestCpus', 'i')]
+    descript_dict.add('JobMatchAttrs', repr(job_ma), allow_overwrite=True)
+
+
 def get_pool_list(credential):
     pool_idx_len = credential['pool_idx_len']
     if pool_idx_len is None:
@@ -697,13 +672,13 @@ def populate_common_descript(descript_dict,        # will be modified
             raise RuntimeError, "factory_identity for %s not set! (i.e. it is fake)"%el['node']
         if el['my_identity'][-9:]=='@fake.org':
             raise RuntimeError, "my_identity for %s not set! (i.e. it is fake)"%el['node']
-        validate_node(el['node'])
+        cWDictFile.validate_node(el['node'])
         collectors.append((el['node'],el['factory_identity'],el['my_identity']))
     descript_dict.add('FactoryCollectors',repr(collectors))
 
     schedds=[]
     for el in params.match.job.schedds:
-        validate_node(el['fullname'])
+        cWDictFile.validate_node(el['fullname'])
         schedds.append(el['fullname'])
     descript_dict.add('JobSchedds',string.join(schedds,','))
 
@@ -763,10 +738,10 @@ def calc_glidein_collectors(collectors):
         if not collector_nodes.has_key(el.group):
             collector_nodes[el.group] = {'primary': [], 'secondary': []}
         if eval(el.secondary):
-            validate_node(el.node,allow_prange=True)
+            cWDictFile.validate_node(el.node,allow_prange=True)
             collector_nodes[el.group]['secondary'].append(el.node)
         else:
-            validate_node(el.node)
+            cWDictFile.validate_node(el.node)
             collector_nodes[el.group]['primary'].append(el.node)
 
     for group in collector_nodes.keys():

@@ -117,16 +117,22 @@ Install as: various daemon users or as system rpms/packages
         
         <tr>
             <td> <a target="_blank" href="http://www.cs.wisc.edu/condor/downloads/">HTCondor</a> </td>
-            <td> v7.2.+ </td>
+            <td> v7.8+/<br>v8.2.2+(BOSCO)</td>
             <td class="checked"> y </td>
             <td> &nbsp; </td>
 
             <td class="checked"> y </td>
             <td class="checked"> y </td>
             <td class="checked"> y </td>
-            <td>The installer will use the tarball or rpm 
-            to install and configure Condor inline.  It is recommended to use v7.4 and above.</td>
-
+            <td>The installer will use the tarball or rpm to install and
+                configure HTCondor inline. It is recommended to use v7.8
+                and above.<br><br>
+                <b><u>Batch Submission via BOSCO:</u></b><br>
+                If you want to add batch resources (via BOSCO) you need
+                HTCondor v8.2.2+. This version requirement is for the WMS Pool,
+                submitting glideins and the HTCondor client, used to setup
+                the BOSCO resource (bosco_cluster_add). Other components
+                can use previous recommended versions of HTCondor.</td>
         </tr>
 
         <tr>
@@ -284,11 +290,11 @@ Install as: various daemon users or as system rpms/packages
         <pre>
         rpm -Uvh http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
         yum install yum-priorities
-        http://repo.grid.iu.edu/osg/3.2/osg-3.2-el6-release-latest.rpm </pre>
+        yum install http://repo.grid.iu.edu/osg/3.2/osg-3.2-el6-release-latest.rpm </pre>
         Next, you can install the CA certificates and OSG client:
-        <pre> yum install osg-ca-certs
-        yum install osg-client 
-        </pre>
+        <pre>
+        yum install osg-ca-certs
+        yum install osg-client </pre>
         You may also want to enable the fetch-crl service
         to keep your certificate revocation lists up to date:
         <pre>

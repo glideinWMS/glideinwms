@@ -172,6 +172,9 @@ class GlideinDescript(ConfigFile):
         global factoryConfig
         ConfigFile.__init__(self,factoryConfig.glidein_descript_file,
                             repr) # convert everything in strings
+        if ((not ('FactoryCollector' in self.data)) or
+            (self.data['FactoryCollector']=='None')):
+            self.data['FactoryCollector']=None
         if self.data['PubKeyType']=='None':
             self.data['PubKeyType']=None
         self.default_rsakey_fname = 'rsa.key'

@@ -18,6 +18,22 @@ source $add_config_line_source
 
 error_gen=`grep '^ERROR_GEN_PATH ' $config_file | awk '{print $2}'`
 
+
+function get_proxy_fname {
+    cert_fname="$1"
+    if [ -z "$cert_fname" ]; then
+        if [ -n "$X509_USER_PROXY" ]; then
+            cert_fname="$X509_USER_PROXY"
+        # Ignoring the file in /tmp, it may be confusing
+        #else
+        #    cert_fname="/tmp/x509up_u`id -u`"
+        fi
+    fi
+    # should it control if the file exists?
+    echo "Using proxy file $cert_fname (`[ -e "$cert_fname" ] && echo "OK" || echo "No file"`)" 1>&2
+    echo "$cert_fname"
+}
+
 # add the current DN to the list of allowed DNs
 # create a new file if none exist
 function create_gridmapfile {
@@ -25,11 +41,20 @@ function create_gridmapfile {
     if [ $? -ne 0 ]; then
         id=`voms-proxy-info -identity`
         if [ $? -ne 0 ]; then
-            STR="Cannot get user identity.\n"
-            STR+="Tried both grid-proxy-info and voms-proxy-info."
-	    STR1=`echo -e "$STR"`
-            "$error_gen" -error "create_mapfile.sh" "WN_Resource" "$STR1" "command" "grid-proxy-info"
-            exit 1
+            # "openssl x509 -noout -issuer .." works for proxys but may be a CA for certificates
+            # did not find something to extract the identity, filtering manually
+            cert_fname="`get_proxy_fname`"
+            id_subject=`openssl x509 -noout -subject -in "$cert_fname" | cut -c10-`
+            if [ $? -ne 0 ]; then
+                STR="Cannot get user identity.\n"
+                STR+="Tried all grid-proxy-info, voms-proxy-info and openssl x509."
+	        STR1=`echo -e "$STR"`
+                "$error_gen" -error "create_mapfile.sh" "WN_Resource" "$STR1" "command" "grid-proxy-info"
+                exit 1
+            fi
+            # can I use bash variables? id="${id_subject%%/CN=proxy*}"
+            # proxy part removed below anyway
+            id="$id_subject"
         fi
     fi
 

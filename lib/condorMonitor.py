@@ -264,15 +264,17 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
 
         # set environment for security settings
         self.security_obj.save_state()
-        self.security_obj.enforce_requests()
+        try:
+            self.security_obj.enforce_requests()
 
-        if full_xml:
-            xml_data = condorExe.exe_cmd(self.exe_name,"%s -xml %s %s"%(self.resource_str,self.pool_str,constraint_str),env=self.env);
-        else:
-            xml_data = condorExe.exe_cmd(self.exe_name,"%s %s -xml %s %s"%(self.resource_str,format_str,self.pool_str,constraint_str),env=self.env);
+            if full_xml:
+                xml_data = condorExe.exe_cmd(self.exe_name,"%s -xml %s %s"%(self.resource_str,self.pool_str,constraint_str),env=self.env);
+            else:
+                xml_data = condorExe.exe_cmd(self.exe_name,"%s %s -xml %s %s"%(self.resource_str,format_str,self.pool_str,constraint_str),env=self.env);
 
-        # restore old values
-        self.security_obj.restore_state()
+        finally:
+            # restore old values
+            self.security_obj.restore_state()
 
         list_data = xml2list(xml_data)
         del xml_data

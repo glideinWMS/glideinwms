@@ -23,9 +23,10 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-            <li> <a href="../corral.html">Corral Frontend</a></li>
+                <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
 	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
         </ul>
         <div class="search">
@@ -235,24 +236,6 @@ by the VO factory clients.</P>
         </TD>
     </TR>
     <TR>
-        <td> <b>GLIDEIN_Start</b> </td>
-        <TD> Exp (Bool)</td>
-
-        <TD> True </TD>
-        <TD ROWSPAN=2>
-            <P>Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_5Policy_Configuration.html#SECTION00452000000000000000">START expression</A> 
-            to use in the glideins. All must be true for a
-            user job to start.</P>
-                                <P>PS: The idea of having several variables is meant to help setting global and entry-specific, as well as frontend-specific requirements.</P>
-        </TD>
-
-    </TR>
-    <TR>
-        <td> <b>GLIDEIN_Entry_Start</b> </td>
-        <TD> Exp (Bool)</td>
-        <TD>True </TD>
-    </TR>
-    <TR>
         <td> <b>GLIDEIN_Hold</b> </td>
         <TD> Exp (Bool)</td>
 
@@ -280,11 +263,6 @@ by the VO factory clients.</P>
             custom preemption policies for user jobs.
         </TD>
 
-    </TR>
-    <TR>
-        <td> <b>GLIDEIN_Entry_Start</b> </td>
-        <TD> Exp (Bool)</td>
-        <TD>True </TD>
     </TR>
 
     <TR>
@@ -539,7 +517,7 @@ by the VO factory clients.</P>
             <P>Another security setting.</P>
             <P>If set to True, the schedd and the startd will use a low
             overhead protocol. See the <A HREF="configuration.html#security">configuration
-            page</A> or the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:SecEnableMatchPasswordAuthentication">Condor
+            page</A> or the <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_3Configuration.html#param:SecEnableMatchPasswordAuthentication">Condor
             manual</A>.</P>
         </TD>
     </TR>
@@ -575,8 +553,9 @@ by the VO factory clients.</P>
         <TD ROWSPAN=4> - </TD>
         <TD ROWSPAN=4>
             <P>Configure <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_7Networking_includes.html#SECTION00473000000000000000">GCB</A>.</P>
-            <P>GCB is needed to run glideins on worker nodes behind a
-            firewall or a NAT.</P>
+            <P>GCB was needed to run glideins on worker nodes behind a
+            firewall or a NAT in older versions of HTCondor.<BR>
+            <B>Note: Newer versions of HTCondor do not support it anymore.</B></P>
             <P>For more information, see the <A HREF="../components/condor.html#gcb">configuration page</A>.</P>
 
         </TD>
@@ -612,7 +591,20 @@ by the VO factory clients.</P>
         <TD> Bool </TD>
         <TD> False </TD>
         <TD>
-            <P>If set to True, it will enable <A HREF="http://www.cs.wisc.edu/condor/manual/v7.3/3_7Networking_includes.html#sec:CCB">CCB</A> (available since Condor v7.3.0).</P>
+            <P>If set to True, it will enable <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_7Networking_includes.html#sec:CCB">HTCondor Connection Brokering (CCB)</A>,
+            which is needed if the glideins are behind a firewall or a NAT.</P>
+        </TD>
+
+    </TR>
+    <TR>
+        <td> <b>USE_SHARED_PORT</b> </td>
+
+        <TD> Bool </TD>
+        <TD> False </TD>
+        <TD>
+            <P>If set to True, it will enable <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_7Networking_includes.html#sec:shared-port-daemon">the shared port daemon</A>,
+               which will reduce the number of connections between the glidein and the collectors.
+               </P>
         </TD>
 
     </TR>
@@ -641,6 +633,24 @@ by the VO factory clients.</P>
         <TD>
             <P>Used in conjunction with GLIDEIN_MaxMemMBs. See GLIDEIN_MaxMemMBs for the description.</P>
         </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_Factory_Report_Failed</b> </td>
+        <td> String </TD>
+        <td> ALIVEONLY </TD>
+
+        <TD>
+            <p>This attribute regulates advertising of validation failures to the Factory collector.
+            <ul>
+              <li><b>NEVER</b> - The glidein will just fail, and do nothing.
+              <li><b>ALIVEONLY</b> - The glidein will advertise a Master ClassAd in <i>Drained</i> state and <i>Retiring</i> activity for the lifetime of the glidein script.
+              <li><b>ALWAYS</b> - Similar to <b>ALIVEONLY</b>, but will also send a final ClassAd in <i>Drained</i> state and <i>Killing</i> activity just before dying.
+            </ul>
+            <p>When advertised, the classad is flagged <i>GLIDEIN_Failed=True</i>, 
+               the error is recorded in the <i>GLIDEIN_FAILURE_REASON</i> and
+                  <i>GLIDEIN_EXIT_CODE</i> attributes, and
+               the failing script is recorded in the <i>GLIDEIN_LAST_SCRIPT</i> attribute.
+       </TD>
     </TR>
 </TABLE>
 </div>
@@ -813,22 +823,6 @@ described below ar the most often used.</P>
 
     </TR>
     <TR>
-        <td> <b>GLIDECLIENT_Start</b> </td>
-        <TD> Exp (Bool)</td>
-
-        <TD ROWSPAN=2>
-            <P>Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_5Policy_Configuration.html#SECTION00452000000000000000">START expression</A> 
-            to use in the glideins. All must be true for a
-            user job to start.</P>
-                                <P>PS: The idea of having several variables is meant to help setting factory and frontend-specific requirements.</P>
-        </TD>
-
-    </TR>
-    <TR>
-        <td> <b>GLIDECLIENT_Group_Start</b> </td>
-        <TD> Exp (Bool)</td>
-    </TR>
-    <TR>
         <td> <b>GLIDECLIENT_Hold</b> </td>
         <TD> Exp (Bool)</td>
 
@@ -920,6 +914,36 @@ described below ar the most often used.</P>
             jobs from accessing the pilot proxy.  Setting this
             to true will override this behavior and keep the X509_USER_PROXY
             in the environment.
+        </TD>
+    </TR>
+    <TR>
+    <TR>
+        <td> <b>SLOTS_LAYOUT</b> </td>
+        <td> String </TD>
+
+        <TD>
+            Defines how multi-core glideins should split their resources.<br><br>
+            There are only two legal values:
+            <ul>
+              <li><b>fixed</b> - create N single core slots, and split memory and disk equally mong them
+              <li><b>partitionable</b> - start up with 
+                        <a href="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_5Policy_Configuration.html#sec:SMP-dynamicprovisioning">
+                        a single partitionable slot and let HTCondor do the spliting as needed</a>
+            </ul>
+
+             The default behavior is defined by the factory, but it has historically been set to "fixed".<br><br>
+             <b>Note: This variable MUST NOT be passed as a parameter, or the glideins will fail!</b>
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>FORCE_PARTITIONABLE</b> </td>
+        <td> String (Bool) </TD>
+
+        <TD>
+            By default, single core glideins will never be configured as partitionable, 
+            independently of the value of <b>SLOTS_LAYOUT</b>.<br><br>
+
+            If partitionable slots are desired also for single-core glideins, set this variable to <b>"True"</b>.
         </TD>
     </TR>
     <TR>
@@ -1087,10 +1111,24 @@ the working directory specified by</P>
         <td> <b>TMP_DIR</b> </td>
         <TD>
             <P>Path to the directory that admin-provided scripts and user jobs can use
-            for storing temporary data. 
+            for storing temporary data.
             </P>
             <P>This variable is exported as <B>GLIDEIN_Tmp_Dir</B> both to
-            the glidein ClassAd and to the use job environment.</P>
+            the glidein ClassAd and to the user job environment.</P>
+        </TD>
+
+    </TR>
+    <TR>
+
+        <td> <b>GLIDEIN_LOCAL_TMP_DIR</b> </td>
+        <TD>
+            <P>Path to the directory on the local file system
+            for storing temporary data.<br>
+            <B>Note:</B> Only use for things that absolutely need the guarantee
+                of residing in the local file system. 
+                Prefer <b>TMP_DIR</b> above for everything else.
+            </P>
+            <P>This variable is exported to the user job environment.</P>
         </TD>
 
     </TR>

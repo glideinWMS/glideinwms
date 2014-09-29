@@ -68,33 +68,6 @@ class ParamsDictFile(cWDictFile.DictFile):
         key=arr[0]
         return self.add(key,(arr[1],eval(arr[2])))
 
-class GridMapDict(cWDictFile.DictFileTwoKeys):
-    def file_header(self,want_comments):
-        return None
-    
-    def format_val(self,key,want_comments):
-        return '"%s" %s'%(key,self.vals[key])
-
-    def parse_val(self,line):
-        if line[0]=='#':
-            return # ignore comments
-        arr=line.split()
-        if len(arr)==0:
-            return # empty line
-        if len(arr[0])==0:
-            return # empty key
-
-        if line[0:1]!='"':
-            raise RuntimeError,'Not a valid gridmap line; not starting with ": %s'%line
-
-        user=arr[-1]
-
-        if line[-len(user)-2:-len(user)-1]!='"':
-            raise RuntimeError,'Not a valid gridmap line; DN not ending with ": %s'%line
-        
-        dn=line[1:-len(user)-2]
-        return self.add(dn,user)
-
 
 ################################################
 #
@@ -123,7 +96,7 @@ def get_main_dicts(work_dir,stage_dir,simple_work_dir,assume_groups):
     main_dicts=get_common_dicts(work_dir,stage_dir,simple_work_dir)
     main_dicts['summary_signature']=cWDictFile.SummarySHA1DictFile(work_dir,cWConsts.SUMMARY_SIGNATURE_FILE)
     main_dicts['frontend_descript']=cWDictFile.StrDictFile(work_dir,cvWConsts.FRONTEND_DESCRIPT_FILE)
-    main_dicts['gridmap']=GridMapDict(stage_dir,cWConsts.insert_timestr(cvWConsts.GRIDMAP_FILE))
+    main_dicts['gridmap']=cWDictFile.GridMapDict(stage_dir,cWConsts.insert_timestr(cWConsts.GRIDMAP_FILE))
     if assume_groups:
         main_dicts['aftergroup_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cvWConsts.AFTERGROUP_FILE_LISTFILE),fname_idx=cvWConsts.AFTERGROUP_FILE_LISTFILE)
         main_dicts['aftergroup_preentry_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cvWConsts.AFTERGROUP_PREENTRY_FILE_LISTFILE),fname_idx=cvWConsts.AFTERGROUP_PREENTRY_FILE_LISTFILE)
@@ -164,7 +137,7 @@ def load_common_dicts(dicts,           # update in place
     dicts['vars'].load(fname=file_el[cWConsts.VARS_FILE][0])
     dicts['untar_cfg'].load(fname=file_el[cWConsts.UNTAR_CFG_FILE][0])
     if dicts.has_key('gridmap'):
-        dicts['gridmap'].load(fname=file_el[cvWConsts.GRIDMAP_FILE][0])
+        dicts['gridmap'].load(fname=file_el[cWConsts.GRIDMAP_FILE][0])
 
 def load_main_dicts(main_dicts): # update in place
     main_dicts['frontend_descript'].load()
@@ -207,7 +180,7 @@ def refresh_file_list(dicts,is_main, # update in place
     file_dict.add(cWConsts.VARS_FILE,(dicts['vars'].get_fname(),"regular","TRUE","CONDOR_VARS_FILE",dicts['vars'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
     file_dict.add(cWConsts.UNTAR_CFG_FILE,(dicts['untar_cfg'].get_fname(),"regular","TRUE","UNTAR_CFG_FILE",dicts['untar_cfg'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
     if is_main:
-        file_dict.add(cvWConsts.GRIDMAP_FILE,(dicts['gridmap'].get_fname(),"regular","TRUE","GRIDMAP",dicts['gridmap'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
+        file_dict.add(cWConsts.GRIDMAP_FILE,(dicts['gridmap'].get_fname(),"regular","TRUE","GRIDMAP",dicts['gridmap'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
 
 # dictionaries must have been written to disk before using this
 def refresh_signature(dicts): # update in place

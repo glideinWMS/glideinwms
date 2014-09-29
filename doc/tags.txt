@@ -1,3 +1,17 @@
+v3_2_6  condor_chirp is now added to condor tarbar used by glidein
+        Added support for submitting glideins to batch sites using BOSCO.
+          Requires HTCondor v8.2.2+
+        Added new tool to purge old glideins
+        Added periodic auto-update to Status Now monitoring pages
+        Upon completion, glidein Job history is brought back to the factory
+        Allow for separation of Factory collector and CondorG collector
+        Bug Fix: Fixed local timezone in some frontend monitoring pages
+        Bug Fix: Improved frontend performance
+        Bug Fix: Requesting single-core partitionable glideins is not allowed
+        Bug Fix: Fixed file ownership issues for rpm packages
+
+v3_2_5_1 Bug Fix: Fixed an issue with the factory_startup template that affects factory reconfig/upgrade in case of RPM
+
 v3_2_5  Added administrative commands for frontend fetch_glidein_log,
           glidein_off and enter_frontend_env
         Frontend now considers MAX_JOBS_RUNNING when requesting more glideins
@@ -16,6 +30,7 @@ v3_2_5  Added administrative commands for frontend fetch_glidein_log,
           correctly consider the backup_count when configured
         Bug Fix: Frontend RPM now corectly creates frontend.xml config with
           default trust_domain='grid' for the credentials
+        Bug Fix: Fixed frontend performance issue introduced in v3.2.4
 
 v3_2_4  Added support for HTCondor-CE attributes in the factory
         Made several performance improvements to frontend. Frontend does
