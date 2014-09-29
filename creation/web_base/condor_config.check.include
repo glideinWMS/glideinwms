@@ -43,33 +43,51 @@ STARTD_NOCLAIM_SHUTDOWN = $(GLIDEIN_Max_Idle)
 
 DS_TO_DIE = ((GLIDEIN_ToDie =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToDie))
 
+
+# The condition pre 8.2 is valid only for not partitionable slots
+# Since the idle timer doesn't reset/stop when resources are reclaimed, 
+# partitionable slots will get reaped sooner than non-partitionable.
+DS${I}_NOT_PARTITIONABLE = ((PartitionableSlot =!= True) || (TotalSlots =?=1))
+# The daemon shutdown expression for idle startds(glideins) depends on some conditions:
+# If some jobs were sheduled on the startd (JOB) or none at all (NOJOB)
+# If using condor 8.2 or later (NEW) or previous versions (PRE82). JobStarts defined
+# is used to discriminate
+DS${I}_IS_HCCONDOR_NEW = (Slot${I}_JobStarts =!= UNDEFINED)
+# No jobs started (using GLIDEIN_Max_Idle) 
+
+
 # The condition pre 8.2 is valid only for not partitionable slots
 # Since the idle timer doesn't reset/stop when resources are reclaimed, 
 # partitionable slots will get reaped sooner than non-partitionable.
 DS_NOT_PARTITIONABLE = ((PartitionableSlot =!= True) || (TotalSlots =?=1))
-# No jobs started (using GLIDEIN_Max_Idle) B/AC82=Before/AfterCondor8.2
-DS_IDLE_NJ_AC82 = ((SelfMonitorAge =!= UNDEFINED) && \
+# The daemon shutdown expression for idle startds(glideins) depends on some conditions:
+# If some jobs were sheduled on the startd (TAIL) or none at all (NOJOB)
+# If using condor 8.2 or later (NEW) or previous versions (PRE82). JobStarts defined
+# is used to discriminate
+DS_IS_HTCONDOR_NEW = (JobStarts =!= UNDEFINED)
+# No jobs started (using GLIDEIN_Max_Idle)
+DS_IDLE_NOJOB_NEW = ((SelfMonitorAge =!= UNDEFINED) && \
                   (JobStarts == 0) && \
                   (SelfMonitorAge > GLIDEIN_Max_Idle))
-DS_IDLE_NJ_BC82 = ((TotalTimeUnclaimedIdle =!= UNDEFINED) && \
+DS_IDLE_NOJOB_PRE82 = ((TotalTimeUnclaimedIdle =!= UNDEFINED) && \
         $(DS_NOT_PARTITIONABLE) && \
         (TotalTimeUnclaimedIdle > GLIDEIN_Max_Idle))
-DS_IDLE_NJ = ((GLIDEIN_Max_Idle =!= UNDEFINED) && \
-        ifThenElse((JobStarts =!= UNDEFINED), $(DS_IDLE_NJ_AC82), $(DS_IDLE_NJ_BC82))) 
+DS_IDLE_NOJOB = ((GLIDEIN_Max_Idle =!= UNDEFINED) && \
+        ifThenElse($(DS_IS_HTCONDOR_NEW), $(DS_IDLE_NOJOB_NEW), $(DS_IDLE_NOJOB_PRE82))) 
 # Some jobs started (using GLIDEIN_Max_Tail)
-DS_IDLE_J_AC82 = ((ExpectedMachineGracefulDrainingCompletion =!= UNDEFINED) &&  \
+DS_IDLE_TAIL_NEW = ((ExpectedMachineGracefulDrainingCompletion =!= UNDEFINED) &&  \
         (JobStarts > 0) && \
         ((CurrentTime - ExpectedMachineGracefulDrainingCompletion) > GLIDEIN_Max_Tail) )
-DS_IDLE_J_BC82 = ((TotalTimeUnclaimedIdle =!= UNDEFINED) && \
+DS_IDLE_TAIL_PRE82 = ((TotalTimeUnclaimedIdle =!= UNDEFINED) && \
         (TotalTimeClaimedBusy =!= UNDEFINED) && \
         $(DS_NOT_PARTITIONABLE) && \
         (TotalTimeUnclaimedIdle > GLIDEIN_Max_Tail))
-DS_IDLE_J = ((GLIDEIN_Max_Tail =!= UNDEFINED) && \
-        ifThenElse((JobStarts =!= UNDEFINED), $(DS_IDLE_J_AC82), $(DS_IDLE_J_BC82)))
+DS_IDLE_TAIL = ((GLIDEIN_Max_Tail =!= UNDEFINED) && \
+        ifThenElse($(DS_IS_HTCONDOR_NEW), $(DS_IDLE_TAIL_NEW), $(DS_IDLE_TAIL_PRE82)))
 DS_IDLE_RETIRE = ((GLIDEIN_ToRetire =!= UNDEFINED) && \
        (CurrentTime > GLIDEIN_ToRetire ))
 DS_IDLE = ( (Activity == "Idle") && \
-        ($(DS_IDLE_NJ) || $(DS_IDLE_J) || $(DS_IDLE_RETIRE)) )
+        ($(DS_IDLE_NOJOB) || $(DS_IDLE_TAIL) || $(DS_IDLE_RETIRE)) )
 
 DS = ($(DS_TO_DIE) || $(DS_IDLE))
 
