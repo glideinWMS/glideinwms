@@ -66,19 +66,19 @@ DS_NOT_PARTITIONABLE = ((PartitionableSlot =!= True) || (TotalSlots =?=1))
 # is used to discriminate
 DS_IS_HTCONDOR_NEW = (JobStarts =!= UNDEFINED)
 # No jobs started (using GLIDEIN_Max_Idle)
-DS_IDLE_NOJOB_NEW = ((SelfMonitorAge =!= UNDEFINED) && \
+DS_IDLE_NOJOB_NEW = ((JobStarts =!= UNDEFINED) && (SelfMonitorAge =!= UNDEFINED) && (GLIDEIN_Max_Idle =!= UNDEFINED) && \
                   (JobStarts == 0) && \
                   (SelfMonitorAge > GLIDEIN_Max_Idle))
-DS_IDLE_NOJOB_PRE82 = ((TotalTimeUnclaimedIdle =!= UNDEFINED) && \
+DS_IDLE_NOJOB_PRE82 = ((TotalTimeUnclaimedIdle =!= UNDEFINED) && (GLIDEIN_Max_Idle =!= UNDEFINED) && \
         $(DS_NOT_PARTITIONABLE) && \
         (TotalTimeUnclaimedIdle > GLIDEIN_Max_Idle))
 DS_IDLE_NOJOB = ((GLIDEIN_Max_Idle =!= UNDEFINED) && \
         ifThenElse($(DS_IS_HTCONDOR_NEW), $(DS_IDLE_NOJOB_NEW), $(DS_IDLE_NOJOB_PRE82))) 
 # Some jobs started (using GLIDEIN_Max_Tail)
-DS_IDLE_TAIL_NEW = ((ExpectedMachineGracefulDrainingCompletion =!= UNDEFINED) &&  \
+DS_IDLE_TAIL_NEW = ((JobStarts =!= UNDEFINED) && (ExpectedMachineGracefulDrainingCompletion =!= UNDEFINED) && (GLIDEIN_Max_Tail =!= UNDEFINED) && \
         (JobStarts > 0) && \
         ((CurrentTime - ExpectedMachineGracefulDrainingCompletion) > GLIDEIN_Max_Tail) )
-DS_IDLE_TAIL_PRE82 = ((TotalTimeUnclaimedIdle =!= UNDEFINED) && \
+DS_IDLE_TAIL_PRE82 = ((TotalTimeUnclaimedIdle =!= UNDEFINED) && (GLIDEIN_Max_Tail =!= UNDEFINED) && \
         (TotalTimeClaimedBusy =!= UNDEFINED) && \
         $(DS_NOT_PARTITIONABLE) && \
         (TotalTimeUnclaimedIdle > GLIDEIN_Max_Tail))
