@@ -50,7 +50,9 @@
    var clientMonitor = element.getElementsByTagName("ClientMonitor")[0];
    row.push(parseInt(clientMonitor.getAttribute("GlideRunning")));
    row.push(parseInt(clientMonitor.getAttribute("GlideIdle")));
-   row.push(parseInt(clientMonitor.getAttribute("InfoAge")));
+   row.push(parseInt(clientMonitor.getAttribute("JobsRunHere")));
+   row.push(parseInt(clientMonitor.getAttribute("JobsRunning")));
+   // row.push(parseInt(clientMonitor.getAttribute("InfoAge")));
    return row;
  }
 
@@ -83,19 +85,21 @@
        var data = new google.visualization.DataTable();
        data.addColumn('string', 'Frontend');
        data.addColumn("string", 'Site Entry Name'); 
-       data.addColumn('number', 'Jobs Running');
-       data.addColumn('number', 'Jobs Idle');
-       data.addColumn('number', 'Jobs Waiting');
-       data.addColumn('number', 'Jobs Pending');
-       data.addColumn('number', 'Jobs Staging IN');
-       data.addColumn('number', 'Jobs Staging OUT');
-       data.addColumn('number', 'Jobs Unknown');
-       data.addColumn('number', 'Jobs Held');
-       data.addColumn('number', 'Max Glideins Requested');
-       data.addColumn('number', 'Idle Glideins Requested');
-       data.addColumn('number', 'Glideins Claimed');
-       data.addColumn('number', 'Glideins Unclaimed');
-       data.addColumn('number', 'Info age');
+       data.addColumn('number', '<div title="Grid HTCondor-G jobs running">Running Glideins</div>');
+       data.addColumn('number', '<div title="Grid HTCondor-G jobs idling">Idling Glideins</div>');
+       data.addColumn('number', '<div title="Grid HTCondor-G jobs waiting">Waiting Glideins</div>');
+       data.addColumn('number', '<div title="Grid HTCondor-G jobs pending">Pending Glideins</div>');
+       data.addColumn('number', '<div title="Grid HTCondor-G jobs staging IN">StageIn Glideins</div>');
+       data.addColumn('number', '<div title="Grid HTCondor-G jobs staging OUT">StageOut Glideins</div>');
+       data.addColumn('number', '<div title="Grid HTCondor-G jobs in Unknown state">Unknown Glideins</div>');
+       data.addColumn('number', '<div title="Grid HTCondor-G jobs on Hold">Held Glideins</div>');
+       data.addColumn('number', '<div title="Maximum number of total glideins requested">Max Glideins Requested</div>');
+       data.addColumn('number', '<div title="Maximum number of idling glideins requested">Idle Glideins Requested</div>');
+       data.addColumn('number', '<div title="Glideins running user jobs">Claimed Glideins</div>');
+       data.addColumn('number', '<div title="Glideins that have no useful load and appear as empty slots to a user">Unclaimed Glideins</div>');
+       data.addColumn('number', '<div title="Client jobs running in this entry">Here Running Jobs</div>');
+       data.addColumn('number', '<div title="Client jobs in running status that can run in this entry but may be running here or on other entry">All Running Jobs</div>');
+       // data.addColumn('number', 'Info age');
 
        for (var i = 0; i < entries.length; i++) {
 	 var entry = entries[i].getAttribute('name');
@@ -151,9 +155,12 @@
        var table = new google.visualization.ChartWrapper({
          'chartType': 'Table',
 	 'containerId': 'chart1',
-	 'view':{'columns':[1,2,3,4,5,6,7,8,9,10,11,12,13,14]}
+	 'options': {
+	   'allowHtml': true
+	 },
+	 'view':{'columns':[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]}
        });
-      
+             
        // Create the dashboard.
        var dashboard = new google.visualization.Dashboard(document.getElementById('dashboard'))
        // Configure the string filter to affect the table contents
