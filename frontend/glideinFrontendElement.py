@@ -605,11 +605,11 @@ class glideinFrontendElement:
                         if (creds_with_running - scaled) == 1:
                             # This is the last one. Assign remaining running
 
-                            glidein_monitors_per_cred[cred.getId()]['ScaledRunning']  = tr - (tr/creds_with_running)*scaled
+                            glidein_monitors_per_cred[cred.getId()]['ScaledRunning']  = tr - (tr//creds_with_running)*scaled
                             scaled += 1
                             break
                         else:
-                            glidein_monitors_per_cred[cred.getId()]['ScaledRunning']  = tr/creds_with_running
+                            glidein_monitors_per_cred[cred.getId()]['ScaledRunning']  = tr//creds_with_running
                             scaled += 1
 
             key_obj = None
