@@ -1058,6 +1058,10 @@ class MultiAdvertizeWork:
                         # This double check is for backward compatibility
                         attr_value = glidein_monitors_this_cred.get(
                                          'GlideinsRunning', 0)
+                    elif (attr_name == 'Running') and glidein_monitors_this_cred:
+                        # This double check is for backward compatibility
+                        attr_value = glidein_monitors_this_cred.get(
+                                         'ScaledRunning', 0)
                     else:
                         attr_value = glidein_monitors_this_cred.get(
                                          attr_name,

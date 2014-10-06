@@ -484,9 +484,9 @@ class glideinFrontendElement:
             count_status=self.count_status_multi[request_name]
             count_status_per_cred = self.count_status_multi_per_cred[request_name]
 
-            #If the glidein requires a voms proxy, only match voms idle jobs
-            # Note: if GLEXEC is set to NEVER, the site will never see the proxy, 
-            # so it can be avoided.
+            # If the glidein requires a voms proxy, only match voms idle jobs
+            # Note: if GLEXEC is set to NEVER, the site will never see
+            # the proxy, so it can be avoided.
             if (self.glexec != 'NEVER'):
                 if (glidein_el['attrs'].get('GLIDEIN_REQUIRE_VOMS')=="True"):
                         prop_jobs['Idle']=prop_jobs['VomsIdle']
@@ -569,10 +569,48 @@ class glideinFrontendElement:
             for t in count_status:
                 glidein_monitors['Glideins%s' % t] = count_status[t]
 
+            """
             for cred in self.x509_proxy_plugin.cred_list:
                 glidein_monitors_per_cred[cred.getId()] = {}
                 for t in count_status:
                     glidein_monitors_per_cred[cred.getId()]['Glideins%s' % t] = count_status_per_cred[cred.getId()][t]
+            """
+
+            # Number of credentials that have running and glideins.
+            # This will be used to scale down the glidein_monitors[Running]
+            # when there are multiple credentials per group.
+            # This is efficient way of achieving the end result. Note that
+            # Credential specific stats are not presented anywhere except the
+            # classad. Monitoring info in frontend and factory shows
+            # aggregated info considering all the credentials
+            creds_with_running = 0
+
+            for cred in self.x509_proxy_plugin.cred_list:
+                glidein_monitors_per_cred[cred.getId()] = {}
+                for t in count_status:
+                    glidein_monitors_per_cred[cred.getId()]['Glideins%s' % t] = count_status_per_cred[cred.getId()][t]
+                glidein_monitors_per_cred[cred.getId()]['ScaledRunning'] = 0
+                # This credential has running glideins.
+                if glidein_monitors_per_cred[cred.getId()]['GlideinsRunning']:
+                    creds_with_running += 1
+
+            if creds_with_running:
+                # Counter to handle rounding errors
+                scaled = 0
+                tr = glidein_monitors['Running']
+                for cred in self.x509_proxy_plugin.cred_list:
+                    if glidein_monitors_per_cred[cred.getId()]['GlideinsRunning']:
+                        # This cred has running. Scale them down
+
+                        if (creds_with_running - scaled) == 1:
+                            # This is the last one. Assign remaining running
+
+                            glidein_monitors_per_cred[cred.getId()]['ScaledRunning']  = tr - (tr/creds_with_running)*scaled
+                            scaled += 1
+                            break
+                        else:
+                            glidein_monitors_per_cred[cred.getId()]['ScaledRunning']  = tr/creds_with_running
+                            scaled += 1
 
             key_obj = None
             for globalid in self.globals_dict:
