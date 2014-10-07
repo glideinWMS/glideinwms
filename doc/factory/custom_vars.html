@@ -1294,9 +1294,11 @@ Once the job finishes, it will wait for Glidein_Max_Tail for another job.
 If cannot find one, it will shutdown.
 </li>
 </ul>
-Note that the idle limits are cumulative (it counds total idle time), so that
+Note that for GlideinWMS versions before 3.2.7 or for glidins using HTCondor pre 8.2, 
+the idle limits are cumulative (it counts total idle time), so that
 the total idle times in all the yellow zones above will be counted towards
-GLIDEIN_Max_Idle and GLIDEIN_Max_Tail.
+GLIDEIN_Max_Tail. Not so for GlideinWMS 3.2.7 and HTCondor 8.2 or later, 
+where Glidein_Max_Tail counts the idle time after the previous job ends, as specified above.
 </div>
 <div class="footer">
 Banner image by
