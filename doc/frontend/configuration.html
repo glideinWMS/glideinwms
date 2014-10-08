@@ -658,15 +658,15 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         </div>
     The match_expr is Python boolean expression is used to match glideins
     to jobs. The glidein and job dictionaries are used in the
-    expression, i.e. glidein[&quot;attrs&quot;].get(&quot;GLIDEIN_Site&quot;)
-    in ((job.get(&quot;DESIRED_Sites&quot;) != None) and job.get(&quot;DESIRED_Sites&quot;).split(&quot;,&quot;)). If you want
+    expression, i.e. <tt>glidein[&quot;attrs&quot;].get(&quot;GLIDEIN_Site&quot;)
+    in ((job.get(&quot;DESIRED_Sites&quot;) != None) and job.get(&quot;DESIRED_Sites&quot;).split(&quot;,&quot;))</tt>. If you want
     to match all, just specify True.  
     All Condor attributes used in this expression should be listed
     below in the match_attrs section.<br/>
 
     The start_expr is a Condor expression that will be evaluated
     to match glideins to jobs.  This should be a valid Condor ClassAd
-    expression.
+    expression, i.e. <tt>(stringListMember(GLIDEIN_Site,DESIRED_Sites,",")=?=True)</tt>.
     <br/>
     Note that there are two expressions.  The "match_expr" will be 
     evaluated when matching glidein (pilot) requests to entries.
@@ -674,6 +674,10 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     The "start_expr" is evaluated when jobs are matched to pilots.
     This will determine, once glidein pilots are up and running,
     which jobs will run on them.
+    The examples above in this section start pilots only on sites (GLIDEIN_Site value) that 
+    are included in the DESIRED_Sites list of one of the queued jobs (match_expr) and 
+    start a job only on a pilot running on a site that is listed in the 
+    DESIRED_Sites list (start_expr).
     <a href="#match_example">More on match expressions</a>
     </P></li>
 
@@ -690,8 +694,8 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         See the HTCondor manual for more on valid expressions and functions.<br/>
         Note that if you specify a Factory constraint in the global 
         default section as well as in the group factory tag
-        (such as <i> &lt;factory query_expr='EXPR1'&gt;...  
-            &lt;group&gt; &lt;factory query_expr='EXPR2'&gt; &lt;/group&gt;</i>)
+        (such as <tt> &lt;factory query_expr='EXPR1'&gt;...  
+            &lt;group&gt; &lt;factory query_expr='EXPR2'&gt; &lt;/group&gt;</tt>)
         then the frontend will "AND" the expressions to create a
         combination (such as, <i>EXPR1 && EXPR2</i>).
     </P></li>
