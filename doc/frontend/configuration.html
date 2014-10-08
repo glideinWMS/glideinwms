@@ -103,7 +103,7 @@ Click on any piece for a more detailed description.
         <a href="#">&lt;/process_logs &gt;</a><br/>
     </blockquote>
     <a href="#">&lt;/log_retention &gt;</a><br/>
-        <a href="#match">&lt;match match_expr="True"&gt;</a><br/>
+        <a href="#match">&lt;match match_expr="True" start_expr="True"&gt;</a><br/>
         <blockquote>
             <a href="#match">&lt;factory query_expr="True"&gt;</a><br/>
             <blockquote>
@@ -165,7 +165,7 @@ Click on any piece for a more detailed description.
                 <a href="#group_config">&lt;running_glideins_total curb="30000" max="40000" /&gt;</a><br/>
             </blockquote>
             <a href="#group_config">&lt;/config&gt;</a><br/>
-            <a href="#group_match">&lt;match match_expr="True"&gt;</a><br/>
+            <a href="#group_match">&lt;match match_expr="True" start_expr="True"&gt;</a><br/>
             <blockquote>
                 <a href="#group_factory">&lt;factory query_expr="True"&gt;</a><br/>
                 <blockquote>
@@ -654,7 +654,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         <a name="group_match" />
         <div class="xml">
         &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;match
-        match_expr=&quot;<I>expr</I>&quot; &gt;
+        match_expr=&quot;<I>expr</I>&quot; start_expr=&quot;<I>expr</I>&quot; &gt;
         </div>
     The match_expr is Python boolean expression is used to match glideins
     to jobs. The glidein and job dictionaries are used in the
