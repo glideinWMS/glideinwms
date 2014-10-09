@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_7_rc1
+# GLIDEINWMS_VERSION v3_2_7_rc2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -18,7 +18,7 @@ e59bb78a8aba36d0d8691b5f9e4ebf4f  ./creation/lib/cWConsts.py
 d70c079e6098d20b9cccfe8b60ee40ca  ./creation/lib/cWParams.py
 e4405e764b1e40327893d990ae6780f8  ./creation/lib/cgWConsts.py
 fd07bc069b28f7909482530eef3c160a  ./creation/lib/cgWCreate.py
-58ce5602a0c53be924a5632cfedb4e65  ./creation/lib/cgWDictFile.py
+7ad987392e6a08b7b44bb069a2eb5cf9  ./creation/lib/cgWDictFile.py
 eda9d4df5548840be7911affd376640d  ./creation/lib/cgWParamDict.py
 889dc0f18f55d9a6a5ab7f4cfa36d1fd  ./creation/lib/cgWParams.py
 414dd08400e9050a5c7e6a64fa7a4d94  ./creation/lib/xslt.py

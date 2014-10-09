@@ -2,6 +2,7 @@ v3_2_7  Glideins now have an option to report monitoring info to a
           different collector configured in the factory
         Glideins now support shared port
         Glideins now use local storage for its tmp internal operaations
+        Improved documentation
         Bug Fix: Fixed an issue where a corrupted internal state file
           would crash the factory
         Bug Fix: KeyError in a match_expr is now correctly logged
