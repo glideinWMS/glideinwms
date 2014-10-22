@@ -42,7 +42,13 @@ if [ "$use_ccb" == "True" -o "$use_ccb" == "TRUE" -o "$use_ccb" == "T" -o "$use_
         exit 1
     fi
 
-    add_config_line CCB_ADDRESS $collector_host
+    ccb_host=`grep '^CCB_ADDRESS ' $glidein_config | awk '{print $2}'`
+    if [ -z "$ccb_host" ]; then
+	add_config_line CCB_ADDRESS $collector_host
+    else
+	add_config_line CCB_ADDRESS $ccb_host
+    fi
+
     # and export it to Condor
     add_condor_vars_line CCB_ADDRESS C "-" "+" Y N "-"
     out_ccb_str="True"
