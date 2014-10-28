@@ -315,9 +315,13 @@ restart() {
 }
 
 reconfig() {
-        check_installed
         # All parameters are passed ($@)
-        # The confic file must be the first after reconfig (if any)
+        # The config file must be the first after reconfig (if any)
+        # RETVAL contains the exit code
+        #  0 all OK
+        #  6 bad or missing configuration (even if running w/ old configuration)
+        #  1 generic error (also start failed) 
+        check_installed
         shift
         if [ -f "$1" ]; then
             echo "Using Frontend config file arg: $1"
@@ -381,6 +385,7 @@ reconfig() {
         popd 1>/dev/null
         echo -n "Reconfiguring the frontend"
         test $reconfig_failed -eq 0 && success || failure
+        # To return the correct exit code (RET_NOT_CONFIGURED instead of 1)
         [ $? -eq 0 ] && RETVAL=0 || RETVAL=$RET_NOT_CONFIGURED
         echo
         if [ $notrun -eq 0 ]; then
@@ -388,6 +393,12 @@ reconfig() {
                 echo ".. starting Frontend with old configuration file"
             fi
             start
+            # At the end RETVAL needs to be set to the value to return
+            # start is changing the value of RETVAL (0-succeded, !0-failed)
+            # reconfig_failed is the reconfiguration result: 0-succeded, !0-failed
+            #  If start failed, then RETVAL=1 (generic error)
+            #  If start succeeded but reconfig failed RETVAL=6 (RET_NOT_CONFIGURED: bad or missing configuration)
+            #  If start succeded and reconfig succeded, then return 0
             if [ $RETVAL -eq 0 ]; then
                 [ $reconfig_failed -eq 0 ] && RETVAL=0 || RETVAL=$RET_NOT_CONFIGURED
             else
@@ -397,6 +408,7 @@ reconfig() {
 }
         
 upgrade() {
+        # see reconfig for return values and logic explanation
         check_installed
         if [ -f "$1" ]; then
             echo "Using frontend config file arg: $1"
