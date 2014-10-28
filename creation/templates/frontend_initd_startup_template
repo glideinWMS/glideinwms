@@ -14,6 +14,41 @@ failure() {
 	return 1
 }
 
+# LSB Exit codes for status:
+#0	program is running or service is OK
+#1	program is dead and /var/run pid file exists
+#2	program is dead and /var/lock lock file exists
+#3	program is not running
+#4	program or service status is unknown
+#5-99	reserved for future LSB use
+#100-149	reserved for distribution use
+#150-199	reserved for application use
+#200-254	reserved
+# LSB Exit codes for non status:
+#1	generic or unspecified error (current practice)
+#2	invalid or excess argument(s)
+#3	unimplemented feature (for example, "reload")
+#4	user had insufficient privilege
+#5	program is not installed
+#6	program is not configured
+#7	program is not running
+#8-99	reserved for future LSB use
+#100-149	reserved for distribution use
+#150-199	reserved for application use
+#200-254	reserved
+RET_OK=0
+RET_ERROR=1
+RET_STATUS_DEADWPIDFILE=1
+RET_STATUS_DEADWLOCK=2
+RET_STATUS_NOT_RUNNING=3
+RET_STATUS_UNKNOWN=4
+RET_BAD_SYNTAX=2
+RET_NOT_IMPLEMENTED=3
+RET_NO_PRIVILEGE=4
+RET_NOT_INSTALLED=5
+RET_NOT_CONFIGURED=6
+RET_NOT_RUNNING=7
+
 
 [ -f /etc/sysconfig/gwms-frontend ] && . /etc/sysconfig/gwms-frontend
 
@@ -62,6 +97,16 @@ else
     FRONTEND_CHECK=${BIN_DIR}checkFrontend.py
 fi
 
+check_installed () {
+    # check to see if the program is installed (look for FRONTEND_START and FRONTEND_CHECK)
+    if [ -x "$FRONTEND_START" -a -x "$FRONTEND_CHECK" ]; then
+        return 0
+    fi
+    echo -n "The Frontend is not installed correctly"
+    failure
+    exit $RET_NOT_INSTALLED
+}
+
 export HOME="/var/lib/gwms-frontend"
 # FRONTEND_USER is used when invoking the script as root
 FRONTEND_USER=frontend
@@ -107,13 +152,13 @@ if [ $THIS_ID -eq 0 ]; then
         echo "The Frontend user ($FRONTEND_USER) must own the configuration file ($def_frontend_config).
 Use the correct user or edit FRONTEND_USER in $0"
         failure
-        exit 4
+        exit $RET_NO_PRIVILEGE
     fi
 else
     if [ $THIS_ID -ne $FILE_OWNER ]; then
         echo "The user invoking this script ($THIS_ID) must be root or own the configuration file ($def_frontend_config)"
         failure
-        exit 4
+        exit $RET_NO_PRIVILEGE
     fi
 fi
 
@@ -144,7 +189,7 @@ invoke_as_frontend() {
         # someone else, raise error
         echo "ERROR: you must be the owner of ${def_frontend_config}."
         #return 4
-        exit 4
+        exit $RET_NO_PRIVILEGE
     fi
 }
 
@@ -163,6 +208,7 @@ help_usage() {
 }
 
 start() {
+        check_installed
         echo -n "Starting glideinWMS frontend $id_str: "
 
         "$FRONTEND_CHECK" "$frontend_dir"  2>/dev/null 1>&2 </dev/null 
@@ -200,6 +246,7 @@ start() {
 }
 
 stop() {
+        check_installed
         echo -n "Shutting down glideinWMS frontend $id_str: "
 
         "$FRONTEND_CHECK" "$frontend_dir"  2>/dev/null 1>&2 </dev/null 
@@ -244,7 +291,7 @@ stop() {
 restart() {
         stop
         if [ $RETVAL -ne 0 ]; then
-            # Waiting 30 sec for the shutdown to complete
+            # Waiting 60 sec for the shutdown to complete
             echo "Waiting for the GlideinWMS Frontend to shutdown" 2>&1
             for i in {1..60}; do  # Use seq if a variable is needed: $(seq 1 $END)
                 # Returns 0 if running
@@ -269,7 +316,12 @@ restart() {
 
 reconfig() {
         # All parameters are passed ($@)
-        # The confic file must be the first after reconfig (if any)
+        # The config file must be the first after reconfig (if any)
+        # RETVAL contains the exit code
+        #  0 all OK
+        #  6 bad or missing configuration (even if running w/ old configuration)
+        #  1 generic error (also start failed) 
+        check_installed
         shift
         if [ -f "$1" ]; then
             echo "Using Frontend config file arg: $1"
@@ -329,19 +381,26 @@ reconfig() {
 
         #su -s /bin/bash $FRONTEND_USER -c "reconfig_frontend -force_name \"$frontend_name\" -update_scripts \"no\" -xml $frontend_config"
 
-        RETVAL=$?
         reconfig_failed=$?
         popd 1>/dev/null
         echo -n "Reconfiguring the frontend"
         test $reconfig_failed -eq 0 && success || failure
+        # To return the correct exit code (RET_NOT_CONFIGURED instead of 1)
+        [ $? -eq 0 ] && RETVAL=0 || RETVAL=$RET_NOT_CONFIGURED
         echo
         if [ $notrun -eq 0 ]; then
             if [ $reconfig_failed -ne 0 ];then
                 echo ".. starting Frontend with old configuration file"
             fi
             start
-            if [ $RETVAL -eq 0 ] && [ $reconfig_failed -eq 0 ]; then
-                RETVAL=0
+            # At the end RETVAL needs to be set to the value to return
+            # start is changing the value of RETVAL (0-succeded, !0-failed)
+            # reconfig_failed is the reconfiguration result: 0-succeded, !0-failed
+            #  If start failed, then RETVAL=1 (generic error)
+            #  If start succeeded but reconfig failed RETVAL=6 (RET_NOT_CONFIGURED: bad or missing configuration)
+            #  If start succeded and reconfig succeded, then return 0
+            if [ $RETVAL -eq 0 ]; then
+                [ $reconfig_failed -eq 0 ] && RETVAL=0 || RETVAL=$RET_NOT_CONFIGURED
             else
                 RETVAL=1
             fi
@@ -349,6 +408,8 @@ reconfig() {
 }
         
 upgrade() {
+        # see reconfig for return values and logic explanation
+        check_installed
         if [ -f "$1" ]; then
             echo "Using frontend config file arg: $1"
             cfg_loc=$1
@@ -374,15 +435,15 @@ upgrade() {
         popd 1>/dev/null
         echo -n "Upgrading the frontend"
         test $reconfig_failed -eq 0 && success || failure
-        RETVAL=$?
+        [ $? -eq 0 ] && RETVAL=0 || RETVAL=$RET_NOT_CONFIGURED
         echo
         if [ $notrun -eq 0 ]; then
             if [ $reconfig_failed -ne 0 ];then
                 echo ".. starting Frontend with old configuration file"
             fi
             start
-            if [ $RETVAL -eq 0 ] && [ $reconfig_failed -eq 0 ]; then
-                RETVAL=0
+            if [ $RETVAL -eq 0 ]; then
+                [ $reconfig_failed -eq 0 ] && RETVAL=0 || RETVAL=$RET_NOT_CONFIGURED
             else
                 RETVAL=1
             fi
@@ -418,7 +479,7 @@ case $1 in
             ;;
         *)
             help_usage
-            exit 3
+            exit $RET_NOT_IMPLEMENTED
 esac
 
 exit $RETVAL
