@@ -1,3 +1,5 @@
+v3_2_7_1 Set USE_SHARED_PORT to get around the issue with HTCondor 8.2.3
+
 v3_2_7  Glideins now have an option to report monitoring info to a
           different collector configured in the factory
         Glideins now support shared port
