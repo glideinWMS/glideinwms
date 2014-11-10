@@ -1243,8 +1243,13 @@ export _CONDOR_DAEMON_LIST=&quot;MASTER, COLLECTOR&quot;
 export _CONDOR_LOCAL_DIR=$LD/$_CONDOR_MASTER_NAME
 export _CONDOR_LOCK=$_CONDOR_LOCAL_DIR/lock
 # Forward all the traffic to the main collector
-export _CONDOR_CONDOR_VIEW_HOST=$COLH:9618</PRE>
+export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</PRE>
 <p>
+    Using <t>localhost</t> to communicate to the master collector is more efficient.
+    But will not work if they are on different hosts or if you are using HTCondor older than 8.2.
+    For those case you'll need: <t>export _CONDOR_CONDOR_VIEW_HOST=$COLH:9618</t> 
+
+</p><p>
     Once you have the slave collectors set up, you will want to use
     them. 
 
