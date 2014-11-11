@@ -1260,7 +1260,7 @@ class ResourceClassad(classadSupport.Classad):
         """
         
         eliminate_attrs = set([
-                 'CurrentTime', 'USE_CCB', 'PubKeyValue', 'PubKeyType',
+                 'CurrentTime', 'PubKeyValue', 'PubKeyType',
                  'AuthenticatedIdentity', 'GlideinName', 'FactoryName', 
                  'EntryName', 'GlideinWMSVersion', 'PubKeyObj', 
                  'LastHeardFrom', 'PubKeyID', 'SupportedSignTypes',
