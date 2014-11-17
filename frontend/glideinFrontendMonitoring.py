@@ -115,6 +115,7 @@ class groupStats:
                          'Glideins':("Idle","Running","Total"),
                          'MatchedJobs':("Idle","EffIdle","OldIdle","Running","RunningHere"),
                          'MatchedGlideins':("Total","Idle","Running"),
+                         #'MatchedGlideins':("Total","Idle","Running","IdleCores","RunningCores"),
                          'Requested':("Idle","MaxRun")}
         # only these will be states, all other names are assumed to be factories
         self.states_names=('Unmatched','MatchedUp','MatchedDown')
@@ -144,8 +145,8 @@ class groupStats:
         factory_or_state_d['MatchedJobs'] = {self.attributes['MatchedJobs'][0]: int(idle),
                                              self.attributes['MatchedJobs'][1]: int(effIdle),
                                              self.attributes['MatchedJobs'][2]: int(oldIdle),
-                                             self.attributes['MatchedJobs'][3]: int(running),
-                                             self.attributes['MatchedJobs'][4]: int(realRunning)
+                                             #self.attributes['MatchedJobs'][3]: int(running),
+                                             #self.attributes['MatchedJobs'][4]: int(realRunning)
                                             }
 
         self.update=time.time()
@@ -160,12 +161,14 @@ class groupStats:
 
         self.updated = time.time()
 
-    def logMatchedGlideins(self, factory, total, idle, running):
+    def logMatchedGlideins(self, factory, total, idle, running, idlecores, runningcores):
         factory_or_state_d = self.get_factory_dict(factory)
 
         factory_or_state_d['MatchedGlideins'] = {self.attributes['MatchedGlideins'][0]: int(total),
                                                  self.attributes['MatchedGlideins'][1]: int(idle),
-                                                 self.attributes['MatchedGlideins'][2]: int(running)
+                                                 self.attributes['MatchedGlideins'][2]: int(running),
+                                                 self.attributes['MatchedGlideins'][3]: int(idlecores),
+                                                 self.attributes['MatchedGlideins'][4]: int(runningcores),
                                                 }
 
         self.update=time.time()
