@@ -364,8 +364,8 @@ class glideinFrontendElement:
              'Total':self.status_dict_types['Total']['abs'],
              'Idle':self.status_dict_types['Idle']['abs'],
              'Running':self.status_dict_types['Running']['abs'],
-             'IdleCores':self.status_dict_types['IdleCores']['abs'],
-             'RunningCores':self.status_dict_types['RunningCores']['abs'],
+             #'IdleCores':self.status_dict_types['IdleCores']['abs'],
+             #'RunningCores':self.status_dict_types['RunningCores']['abs'],
         })
 
         total_glideins=self.status_dict_types['Total']['abs']
@@ -786,7 +786,7 @@ class glideinFrontendElement:
             'Running': {
                 'dict':status_dict_running,
                 'abs':glideinFrontendLib.countCondorStatus(status_dict_running)
-            }
+            },
             'IdleCores': {
                 'dict':status_dict_idlecores,
                 'abs':glideinFrontendLib.countCondorStatus(status_dict_idlecores)
@@ -939,8 +939,10 @@ class glideinFrontendElement:
             'Unmatched', unmatched_idle, unmatched_idle, unmatched_oldidle,
             unmatched_running, 0)
 
-        self.stats['group'].logMatchedGlideins('Unmatched', 0,0,0) # Nothing running
-        self.stats['group'].logFactAttrs('Unmatched', [], ()) # just for completeness
+        # Nothing running
+        self.stats['group'].logMatchedGlideins('Unmatched', 0,0,0,0,0)
+        # just for completeness
+        self.stats['group'].logFactAttrs('Unmatched', [], ())
         self.stats['group'].logFactDown('Unmatched', True)
         self.stats['group'].logFactReq('Unmatched', 0, 0, {})
 
