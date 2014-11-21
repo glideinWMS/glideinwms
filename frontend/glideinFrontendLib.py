@@ -577,6 +577,52 @@ def getRunningCondorStatus(status_dict):
         out[collector_name] = sq
     return out
 
+
+
+
+
+
+
+#
+# Return a dictionary of collectors containing idle(unclaimed) vms
+# Each element is a condorStatus
+#
+# Use the output of getCondorStatus
+#
+def getIdleCoresCondorStatus(status_dict):
+    out = {}
+    for collector_name in status_dict.keys():
+        sq = condorMonitor.SubQuery(status_dict[collector_name], lambda el:(el.has_key('State') and el.has_key('Activity') and (el['State'] == "Unclaimed") and (el['Activity'] == "Idle")))
+        sq.load()
+        out[collector_name] = sq
+    return out
+
+#
+# Return a dictionary of collectors containing running(claimed) vms
+# Each element is a condorStatus
+#
+# Use the output of getCondorStatus
+#
+def getRunningCoresCondorStatus(status_dict):
+    out = {}
+    for collector_name in status_dict.keys():
+        sq = condorMonitor.SubQuery(status_dict[collector_name], lambda el:(el.has_key('State') and el.has_key('Activity') and (el['State'] == "Claimed") and (el['Activity'] in ("Busy", "Retiring"))))
+        sq.load()
+        out[collector_name] = sq
+    return out
+
+#
+
+
+
+
+
+
+
+
+
+
+
 #
 # Return a dictionary of collectors containing idle(unclaimed) vms
 # Each element is a condorStatus
