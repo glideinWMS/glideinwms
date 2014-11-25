@@ -533,21 +533,35 @@ def evalParamExpr(expr_obj, frontend, glidein):
 #
 def getCondorStatus(collector_names, constraint=None, format_list=None,
                     want_format_completion=True, want_glideins_only=True):
+    type_constraint = '(True)'
     if format_list is not None:
         if want_format_completion:
             format_list = condorMonitor.complete_format_list(
                 format_list,
-                [('State', 's'), ('Activity', 's'), ('EnteredCurrentState', 'i'),('EnteredCurrentActivity', 'i'),
-                 ('LastHeardFrom', 'i'), ('GLIDEIN_Factory', 's'), ('GLIDEIN_Name', 's'), ('GLIDEIN_Entry_Name', 's'),
-                 ('GLIDECLIENT_Name', 's'), ('GLIDECLIENT_ReqNode','s'), ('GLIDEIN_Schedd', 's')])
+                [('State', 's'), ('Activity', 's'),
+                 ('EnteredCurrentState', 'i'),('EnteredCurrentActivity', 'i'),
+                 ('LastHeardFrom', 'i'), ('GLIDEIN_Factory', 's'),
+                 ('GLIDEIN_Name', 's'), ('GLIDEIN_Entry_Name', 's'),
+                 ('GLIDECLIENT_Name', 's'), ('GLIDECLIENT_ReqNode','s'),
+                 ('GLIDEIN_Schedd', 's')])
 
-    # Partitionable slots are *always* idle -- the frontend only counts them when
-    # all the subslots have been reclaimed (HTCondor sets TotalSlots == 1)
-    type_constraint = '(PartitionableSlot =!= True || TotalSlots =?= 1)'
+    ###########################################################################
+    # Parag: Nov 24, 2014
+    # To get accounting info related to idle/running/total cores, you need to
+    # get the partitionable slot (ie parent slot) classads as well.
+    # Move the type_constraint below to individual getCondorStatus* filtering
+    #
+    # Partitionable slots are *always* idle 
+    # The frontend only counts them when all the subslots have been
+    # reclaimed (HTCondor sets TotalSlots == 1)
+    #type_constraint = '(PartitionableSlot =!= True || TotalSlots =?= 1)'
+    ###########################################################################
+
     if want_glideins_only:
         type_constraint += '&&(IS_MONITOR_VM=!=True)&&(GLIDEIN_Factory=!=UNDEFINED)&&(GLIDEIN_Name=!=UNDEFINED)&&(GLIDEIN_Entry_Name=!=UNDEFINED)'
 
     return getCondorStatusConstrained(collector_names, type_constraint, constraint, format_list)
+
 
 #
 # Return a dictionary of collectors containing idle(unclaimed) vms
@@ -558,10 +572,21 @@ def getCondorStatus(collector_names, constraint=None, format_list=None,
 def getIdleCondorStatus(status_dict):
     out = {}
     for collector_name in status_dict.keys():
-        sq = condorMonitor.SubQuery(status_dict[collector_name], lambda el:(el.has_key('State') and el.has_key('Activity') and (el['State'] == "Unclaimed") and (el['Activity'] == "Idle")))
+        #sq = condorMonitor.SubQuery(status_dict[collector_name], lambda el:(el.has_key('State') and el.has_key('Activity') and (el['State'] == "Unclaimed") and (el['Activity'] == "Idle")))
+        sq = condorMonitor.SubQuery(
+                 status_dict[collector_name],
+                 lambda el:(
+                     ( (el.get('State') == 'Unclaimed') and
+                       (el.get('Activity') == 'Idle') and
+                       ( (el.get('PartitionableSlot') != True) or
+                         (el.get('TotalSlots') == 1) 
+                       )
+                     )
+                 ) )
         sq.load()
         out[collector_name] = sq
     return out
+
 
 #
 # Return a dictionary of collectors containing running(claimed) vms
@@ -572,19 +597,24 @@ def getIdleCondorStatus(status_dict):
 def getRunningCondorStatus(status_dict):
     out = {}
     for collector_name in status_dict.keys():
-        sq = condorMonitor.SubQuery(status_dict[collector_name], lambda el:(el.has_key('State') and el.has_key('Activity') and (el['State'] == "Claimed") and (el['Activity'] in ("Busy", "Retiring"))))
+        #sq = condorMonitor.SubQuery(status_dict[collector_name], lambda el:(el.has_key('State') and el.has_key('Activity') and (el['State'] == "Claimed") and (el['Activity'] in ("Busy", "Retiring"))))
+        sq = condorMonitor.SubQuery(
+                 status_dict[collector_name],
+                 lambda el:(
+                     ( (el.get('State') == 'Claimed') and
+                       (el.get('Activity') in ('Busy', 'Retiring')) and
+                       ( (el.get('PartitionableSlot') != True) or
+                         (el.get('TotalSlots') == 1) 
+                       )
+                     )
+                 ) )
         sq.load()
         out[collector_name] = sq
     return out
 
 
-
-
-
-
-
 #
-# Return a dictionary of collectors containing idle(unclaimed) vms
+# Return a dictionary of collectors containing idle(unclaimed) cores
 # Each element is a condorStatus
 #
 # Use the output of getCondorStatus
@@ -592,35 +622,33 @@ def getRunningCondorStatus(status_dict):
 def getIdleCoresCondorStatus(status_dict):
     out = {}
     for collector_name in status_dict.keys():
-        sq = condorMonitor.SubQuery(status_dict[collector_name], lambda el:(el.has_key('State') and el.has_key('Activity') and (el['State'] == "Unclaimed") and (el['Activity'] == "Idle")))
+        #sq = condorMonitor.SubQuery(status_dict[collector_name], lambda el:(el.has_key('State') and el.has_key('Activity') and (el['State'] == "Unclaimed") and (el['Activity'] == "Idle")))
+        sq = condorMonitor.SubQuery(
+                 status_dict[collector_name],
+                 lambda el:(
+                     ( (el.get('State') == 'Unclaimed') and
+                       (el.get('Activity') == 'Idle') and
+                       ( (el.get('PartitionableSlot') != True) or
+                         (el.get('PartitionableSlot')==True and el.get('Cpus',0)>0) or
+                         (el.get('TotalSlots') == 1) 
+                       )
+                     )
+                 ) )
+        sq.load()
+        out[collector_name] = sq
         sq.load()
         out[collector_name] = sq
     return out
 
+
 #
-# Return a dictionary of collectors containing running(claimed) vms
+# Return a dictionary of collectors containing running(claimed) cores
 # Each element is a condorStatus
 #
 # Use the output of getCondorStatus
 #
 def getRunningCoresCondorStatus(status_dict):
-    out = {}
-    for collector_name in status_dict.keys():
-        sq = condorMonitor.SubQuery(status_dict[collector_name], lambda el:(el.has_key('State') and el.has_key('Activity') and (el['State'] == "Claimed") and (el['Activity'] in ("Busy", "Retiring"))))
-        sq.load()
-        out[collector_name] = sq
-    return out
-
-#
-
-
-
-
-
-
-
-
-
+    return getRunningCondorStatus(status_dict)
 
 
 #
@@ -640,6 +668,7 @@ def getClientCondorStatus(status_dict, frontend_name, group_name, request_name):
         sq.load()
         out[collector_name] = sq
     return out
+
 
 #
 # Return a dictionary of collectors containing vms of a specific cred
@@ -687,6 +716,18 @@ def countCondorStatus(status_dict):
         count += len(status_dict[collector_name].fetchStored())
     return count
 
+
+#
+# Return the number of cores in the dictionary
+# Use the output of getCondorStatus
+#
+def countCoresCondorStatus(status_dict):
+    count = 0
+    for collector_name in status_dict.keys():
+        for glidein_name,glidein_details in status_dict[collector_name].fetchStored().iteritems():
+            count += glidein_details.get('Cpus', 0)
+        
+    return count
 #
 # Given startd classads, return the list of all the factory entries
 # Each element in the list is (req_name, node_name)
