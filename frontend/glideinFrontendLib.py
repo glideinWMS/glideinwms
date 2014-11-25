@@ -597,7 +597,6 @@ def getIdleCondorStatus(status_dict):
 def getRunningCondorStatus(status_dict):
     out = {}
     for collector_name in status_dict.keys():
-        #sq = condorMonitor.SubQuery(status_dict[collector_name], lambda el:(el.has_key('State') and el.has_key('Activity') and (el['State'] == "Claimed") and (el['Activity'] in ("Busy", "Retiring"))))
         sq = condorMonitor.SubQuery(
                  status_dict[collector_name],
                  lambda el:(
@@ -608,6 +607,20 @@ def getRunningCondorStatus(status_dict):
                        )
                      )
                  ) )
+        sq.load()
+        out[collector_name] = sq
+    return out
+
+
+def getFailedCondorStatus(status_dict):
+    out = {}
+    for collector_name in status_dict.keys():
+        sq = condorMonitor.SubQuery(
+                 status_dict[collector_name],
+                 lambda el:(
+                     (el.get('State') == "Drained") and 
+                     (el.get('Activity') == "Retiring") )
+                 )
         sq.load()
         out[collector_name] = sq
     return out
@@ -634,8 +647,6 @@ def getIdleCoresCondorStatus(status_dict):
                        )
                      )
                  ) )
-        sq.load()
-        out[collector_name] = sq
         sq.load()
         out[collector_name] = sq
     return out
