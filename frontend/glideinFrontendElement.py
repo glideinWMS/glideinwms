@@ -360,17 +360,20 @@ class glideinFrontendElement:
         glideinFrontendLib.appendRealRunning(self.condorq_dict_running,
                                              self.status_dict_types['Running']['dict'])
 
+        # TODO: should IdleCores/RunningCores be commented here?
         self.stats['group'].logGlideins({
              'Total':self.status_dict_types['Total']['abs'],
              'Idle':self.status_dict_types['Idle']['abs'],
              'Running':self.status_dict_types['Running']['abs'],
-             #'IdleCores':self.status_dict_types['IdleCores']['abs'],
-             #'RunningCores':self.status_dict_types['RunningCores']['abs'],
+             'TotalCores':self.status_dict_types['TotalCores']['abs'],
+             'IdleCores':self.status_dict_types['IdleCores']['abs'],
+             'RunningCores':self.status_dict_types['RunningCores']['abs'],
         })
 
         total_glideins=self.status_dict_types['Total']['abs']
         total_running_glideins=self.status_dict_types['Running']['abs']
         total_idle_glideins=self.status_dict_types['Idle']['abs']
+        total_cores=self.status_dict_types['TotalCores']['abs']
         total_running_cores = self.status_dict_types['RunningCores']['abs']
         total_idle_cores = self.status_dict_types['IdleCores']['abs']
 
@@ -528,25 +531,30 @@ class glideinFrontendElement:
                               effective_idle, prop_jobs['OldIdle'],
                               hereonly_jobs['Idle'], count_jobs['Running'],
                               self.count_real[glideid], self.max_running,
-                              count_status['Total'], count_status['Idle'],
+                              count_status['Total'],
+                              count_status['Idle'],
                               count_status['Running'],
+                              count_status['TotalCores'],
                               count_status['IdleCores'],
                               count_status['RunningCores'],
                               glidein_min_idle, glidein_max_run)
 
             self.stats['group'].logMatchedJobs(
                 glideid_str, prop_jobs['Idle'], effective_idle,
-                prop_jobs['OldIdle'], count_jobs['Running'], self.count_real[glideid])
+                prop_jobs['OldIdle'], count_jobs['Running'],
+                self.count_real[glideid])
 
             self.stats['group'].logMatchedGlideins(
                 glideid_str, count_status['Total'],
                 count_status['Idle'], count_status['Running'],
-                count_status['IdleCores'], count_status['RunningCores'])
+                count_status['TotalCores'], count_status['IdleCores'],
+                count_status['RunningCores'])
 
             self.stats['group'].logFactAttrs(glideid_str, glidein_el['attrs'],
                                              ('PubKeyValue', 'PubKeyObj'))
 
             self.stats['group'].logFactDown(glideid_str, glidein_in_downtime)
+
 
             if glidein_in_downtime:
                 total_down_stats_arr = log_and_sum_factory_line(
@@ -774,6 +782,7 @@ class glideinFrontendElement:
         status_dict_idlecores = glideinFrontendLib.getIdleCoresCondorStatus(self.status_dict)
         status_dict_runningcores = glideinFrontendLib.getRunningCoresCondorStatus(self.status_dict)
 
+
         self.status_dict_types = {
             'Total': {
                 'dict':self.status_dict,
@@ -787,13 +796,17 @@ class glideinFrontendElement:
                 'dict':status_dict_running,
                 'abs':glideinFrontendLib.countCondorStatus(status_dict_running)
             },
+            'TotalCores': {
+                'dict':status_dict_idlecores,
+                'abs':glideinFrontendLib.countCoresCondorStatus(self.status_dict)
+            },
             'IdleCores': {
                 'dict':status_dict_idlecores,
-                'abs':glideinFrontendLib.countCondorStatus(status_dict_idlecores)
+                'abs':glideinFrontendLib.countCoresCondorStatus(status_dict_idlecores)
             },
             'RunningCores': {
                 'dict':status_dict_runningcores,
-                'abs':glideinFrontendLib.countCondorStatus(status_dict_runningcores)
+                'abs':glideinFrontendLib.countCoresCondorStatus(status_dict_runningcores)
             }
         }
 
@@ -917,11 +930,11 @@ class glideinFrontendElement:
 
             self.stats['group'].logMatchedGlideins(
                 el_str, el_stats_arr[8], el_stats_arr[9], el_stats_arr[10],
-                el_stats_arr[11], el_stats_arr[12])
+                el_stats_arr[11], el_stats_arr[12], el_stats_arr[13])
             self.stats['group'].logFactAttrs(el_str, [], ()) # for completeness
             self.stats['group'].logFactDown(el_str, el_updown)
             self.stats['group'].logFactReq(
-                el_str, el_stats_arr[13], el_stats_arr[14], {})
+                el_str, el_stats_arr[14], el_stats_arr[15], {})
 
         # Print the totals
         # Ignore the resulting sum
@@ -940,7 +953,7 @@ class glideinFrontendElement:
             unmatched_running, 0)
 
         # Nothing running
-        self.stats['group'].logMatchedGlideins('Unmatched', 0,0,0,0,0)
+        self.stats['group'].logMatchedGlideins('Unmatched', 0,0,0,0,0,0)
         # just for completeness
         self.stats['group'].logFactAttrs('Unmatched', [], ())
         self.stats['group'].logFactDown('Unmatched', True)
@@ -951,7 +964,7 @@ class glideinFrontendElement:
             unmatched_oldidle, unmatched_idle, unmatched_running,
             0, 0,
             0, 0, 0, # glideins... none, since no matching
-            0, 0,
+            0, 0, 0, # Cores
             0, 0,    # requested... none, since not matching
         )
         log_and_sum_factory_line('Unmatched', True, this_stats_arr, total_down_stats_arr)
@@ -1047,6 +1060,7 @@ class glideinFrontendElement:
                             count_status['Total'],
                             count_status['Idle'],
                             count_status['Running'],
+                            count_status['TotalCores'],
                             count_status['IdleCores'],
                             count_status['RunningCores'],
                             0,0)
@@ -1054,7 +1068,8 @@ class glideinFrontendElement:
             self.stats['group'].logMatchedGlideins(
                 glideid_str, count_status['Total'],
                 count_status['Idle'], count_status['Running'],
-                count_status['IdleCores'], count_status['RunningCores'])
+                count_status['TotalCores'], count_status['IdleCores'],
+                count_status['RunningCores'])
 
             # since I don't see it in the factory anymore, mark it as down
             self.stats['group'].logFactDown(glideid_str, True)
@@ -1188,7 +1203,12 @@ class glideinFrontendElement:
             # Always get the credential id used to submit the glideins
             # This is essential for proper accounting info related to running
             # glideins that have reported back to user pool
-            status_format_list=[('GLIDEIN_CredentialIdentifier', 's')]
+            status_format_list=[
+                ('GLIDEIN_CredentialIdentifier', 's'),
+                ('TotalSlots', 'i'),
+                ('Cpus', 'i'),
+                ('PartitionableSlot', 's'),
+            ]
 
             if self.x509_proxy_plugin:
                 status_format_list=list(status_format_list)+list(self.x509_proxy_plugin.get_required_classad_attributes())
@@ -1362,18 +1382,25 @@ class glideinFrontendElement:
                     'Total':total_req_dict,
                     'Idle':glideinFrontendLib.getIdleCondorStatus(total_req_dict),
                     'Running':glideinFrontendLib.getRunningCondorStatus(total_req_dict),
+                    'TotalCores':total_req_dict,
                     'IdleCores':glideinFrontendLib.getIdleCoresCondorStatus(total_req_dict),
                     'RunningCores':glideinFrontendLib.getRunningCoresCondorStatus(total_req_dict),
                 }
 
                 for st in req_dict_types:
                     req_dict = req_dict_types[st]
-                    count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(req_dict)
+                    if st in ('TotalCores', 'IdleCores', 'RunningCores'):
+                        count_status_multi[request_name][st]=glideinFrontendLib.countCoresCondorStatus(req_dict)
+                    else:
+                        count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(req_dict)
+
                     for cred in self.x509_proxy_plugin.cred_list:
                         cred_id=cred.getId()
-                        cred_dict = glideinFrontendLib.getClientCondorStatusCredIdOnly(
-                                       req_dict,cred_id)
-                        count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCondorStatus(cred_dict)
+                        cred_dict = glideinFrontendLib.getClientCondorStatusCredIdOnly(req_dict,cred_id)
+                        if st in ('TotalCores', 'IdleCores', 'RunningCores'):
+                            count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCoresCondorStatus(cred_dict)
+                        else:
+                            count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCondorStatus(cred_dict)
 
             out = (count_status_multi, count_status_multi_per_cred)
         
@@ -1393,7 +1420,7 @@ def write_stats(stats):
         stats[k].write_file();
 
 ############################################################
-# Will log the factory_stat_arr (tuple composed of 15 numbers)
+# Will log the factory_stat_arr (tuple composed of 16 numbers)
 # and return a sum of factory_stat_arr+old_factory_stat_arr
 def log_and_sum_factory_line(factory, is_down, factory_stat_arr, old_factory_stat_arr):
     # if numbers are too big, reduce them to either k or M for presentation
@@ -1411,7 +1438,7 @@ def log_and_sum_factory_line(factory, is_down, factory_stat_arr, old_factory_sta
     else:
         down_str = "Up  "
 
-    logSupport.log.info(("%s(%s %s %s %s) %s(%s %s) | %s %s %s | %s %s | %s %s " % tuple(form_arr)) + ("%s %s" % (down_str, factory)))
+    logSupport.log.info(("%s(%s %s %s %s) %s(%s %s) | %s %s %s | %s %s %s | %s %s " % tuple(form_arr)) + ("%s %s" % (down_str, factory)))
 
     new_arr = []
     for i in range(len(factory_stat_arr)):
@@ -1419,11 +1446,11 @@ def log_and_sum_factory_line(factory, is_down, factory_stat_arr, old_factory_sta
     return new_arr
 
 def init_factory_stats_arr():
-    return [0] * 15
+    return [0] * 16
 
 def log_factory_header():
-    logSupport.log.info("            Jobs in schedd queues                 |      Glideins     |   Cores        |    Request   ")
-    logSupport.log.info("Idle (match  eff   old  uniq )  Run ( here  max ) | Total Idle   Run  | Idle   Run     | Idle MaxRun Down Factory")
+    logSupport.log.info("            Jobs in schedd queues                 |      Glideins     |       Cores       |    Request   ")
+    logSupport.log.info("Idle (match  eff   old  uniq )  Run ( here  max ) | Total Idle   Run  | Total Idle   Run  | Idle MaxRun Down Factory")
 
 ######################
 # expand $$(attribute)

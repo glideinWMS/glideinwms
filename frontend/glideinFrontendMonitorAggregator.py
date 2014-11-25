@@ -62,8 +62,8 @@ monitorAggregatorConfig=MonitorAggregatorConfig()
 frontend_status_attributes={'Jobs':("Idle","OldIdle","Running","Total"),
                    'Glideins':("Idle","Running","Total"),
                    'MatchedJobs':("Idle","EffIdle","OldIdle","Running","RunningHere"),
-                   'MatchedGlideins':("Total","Idle","Running"),
-                   #'MatchedGlideins':("Total","Idle","Running","IdleCores","RunningCores"),
+                   #'MatchedGlideins':("Total","Idle","Running"),
+                   'MatchedGlideins':("Total","Idle","Running","TotalCores","IdleCores","RunningCores"),
                    'Requested':("Idle","MaxRun")}
 
 frontend_total_type_strings={'Jobs':'Jobs','Glideins':'Glidein','MatchedJobs':'MatchJob',

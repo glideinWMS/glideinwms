@@ -14,6 +14,7 @@
 
 import os,os.path
 import re,time,copy,string,math,random,fcntl
+import traceback
 from glideinwms.lib import xmlFormat,timeConversion
 from glideinwms.lib import rrdSupport
 from glideinwms.lib import logSupport
@@ -93,7 +94,8 @@ class MonitoringConfig:
             try:
                 self.rrd_obj.update_rrd_multi(fname,time,val_dict)
             except Exception,e:
-                print "Failed to update %s"%fname
+                logSupport.log.error("Failed to update %s" % fname)
+                #logSupport.log.exception(traceback.format_exc())
         return
     
 
@@ -115,7 +117,7 @@ class groupStats:
                          'Glideins':("Idle","Running","Total"),
                          'MatchedJobs':("Idle","EffIdle","OldIdle","Running","RunningHere"),
                          #'MatchedGlideins':("Total","Idle","Running"),
-                         'MatchedGlideins':("Total","Idle","Running","IdleCores","RunningCores"),
+                         'MatchedGlideins':("Total","Idle","Running","TotalCores","IdleCores","RunningCores"),
                          'Requested':("Idle","MaxRun")}
         # only these will be states, all other names are assumed to be factories
         self.states_names=('Unmatched','MatchedUp','MatchedDown')
@@ -161,14 +163,15 @@ class groupStats:
 
         self.updated = time.time()
 
-    def logMatchedGlideins(self, factory, total, idle, running, idlecores, runningcores):
+    def logMatchedGlideins(self, factory, total, idle, running, totalcores, idlecores, runningcores):
         factory_or_state_d = self.get_factory_dict(factory)
 
         factory_or_state_d['MatchedGlideins'] = {self.attributes['MatchedGlideins'][0]: int(total),
                                                  self.attributes['MatchedGlideins'][1]: int(idle),
                                                  self.attributes['MatchedGlideins'][2]: int(running),
-                                                 self.attributes['MatchedGlideins'][3]: int(idlecores),
-                                                 self.attributes['MatchedGlideins'][4]: int(runningcores),
+                                                 self.attributes['MatchedGlideins'][3]: int(totalcores),
+                                                 self.attributes['MatchedGlideins'][4]: int(idlecores),
+                                                 self.attributes['MatchedGlideins'][5]: int(runningcores),
                                                 }
 
         self.update=time.time()
