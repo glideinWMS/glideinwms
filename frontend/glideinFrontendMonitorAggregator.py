@@ -59,16 +59,34 @@ monitorAggregatorConfig=MonitorAggregatorConfig()
 #
 ###########################################################
 
-frontend_status_attributes={'Jobs':("Idle","OldIdle","Running","Total"),
-                   'Glideins':("Idle","Running","Total"),
-                   'MatchedJobs':("Idle","EffIdle","OldIdle","Running","RunningHere"),
-                   'MatchedGlideins':("Total","Idle","Running","Failed","TotalCores","IdleCores","RunningCores"),
-                   'Requested':("Idle","MaxRun")}
+# PM: Nov 26, 2014
+# There is a limit on rrd field names. Max allowed is 20 chars long.
+# Truncate the names for following to be in limits
+frontend_status_attributes = {
+    'Jobs':("Idle","OldIdle","Running","Total"),
+    'Glideins':("Idle","Running","Total"),
+    'MatchedJobs':("Idle","EffIdle","OldIdle","Running","RunningHere"),
+    'MatchedGlideins':("Total","Idle","Running","Failed"),
+    #'MatchedGlideins':("Total","Idle","Running","Failed","TCores","ICores","RCores"),
+    'MatchedCores':("Total","Idle","Running"),
+    'Requested':("Idle","MaxRun")
+}
 
-frontend_total_type_strings={'Jobs':'Jobs','Glideins':'Glidein','MatchedJobs':'MatchJob',
-                      'MatchedGlideins':'MatchGlidein','Requested':'Req'}
-frontend_job_type_strings={'MatchedJobs':'MatchJob',
-                      'MatchedGlideins':'MatchGlidein','Requested':'Req'}
+frontend_total_type_strings = {
+    'Jobs':'Jobs',
+    'Glideins':'Glidein',
+    'MatchedJobs':'MatchJob',
+    'MatchedGlideins':'MatchGlidein',
+    'MatchedCores':'MatchCore',
+    'Requested':'Req'
+}
+
+frontend_job_type_strings = {
+    'MatchedJobs':'MatchJob',
+    'MatchedGlideins':'MatchGlidein',
+    'MatchedCores':'MatchCore',
+    'Requested':'Req'
+}
 
 
 ####################################
@@ -219,9 +237,22 @@ def write_one_rrd(name,updated,data,fact=0):
 def aggregateStatus():
     global monitorAggregatorConfig
 
-    type_strings={'Jobs':'Jobs','Glideins':'Glidein','MatchedJobs':'MatchJob',
-                  'MatchedGlideins':'MatchGlidein','Requested':'Req'}
-    global_total={'Jobs':None,'Glideins':None,'MatchedJobs':None,'Requested':None,'MatchedGlideins':None}
+    type_strings = {
+        'Jobs':'Jobs',
+        'Glideins':'Glidein',
+        'MatchedJobs':'MatchJob',
+        'MatchedGlideins':'MatchGlidein',
+        'MatchedCores':'MatchCore',
+        'Requested':'Req'
+    }
+    global_total = {
+        'Jobs':None,
+        'Glideins':None,
+        'MatchedJobs':None,
+        'Requested':None,
+        'MatchedGlideins':None,
+        'MatchedCores':None,
+    }
     status={'groups':{},'total':global_total}
     global_fact_totals={}
 

@@ -113,11 +113,15 @@ class groupStats:
         self.updated=time.time()
 
         self.files_updated=None
-        self.attributes={'Jobs':("Idle","OldIdle","Running","Total"),
-                         'Glideins':("Idle","Running","Total"),
-                         'MatchedJobs':("Idle","EffIdle","OldIdle","Running","RunningHere"),
-                         'MatchedGlideins':("Total","Idle","Running","Failed","TotalCores","IdleCores","RunningCores"),
-                         'Requested':("Idle","MaxRun")}
+        self.attributes = {
+            'Jobs':("Idle","OldIdle","Running","Total"),
+            'Glideins':("Idle","Running","Total"),
+            'MatchedJobs':("Idle","EffIdle","OldIdle","Running","RunningHere"),
+            #'MatchedGlideins':("Total","Idle","Running","Failed","TotalCores","IdleCores","RunningCores"),
+            'MatchedGlideins':("Total","Idle","Running","Failed"),
+            'MatchedCores':("Total","Idle","Running"),
+            'Requested':("Idle","MaxRun")
+        }
         # only these will be states, all other names are assumed to be factories
         self.states_names=('Unmatched','MatchedUp','MatchedDown')
 
@@ -165,14 +169,17 @@ class groupStats:
     def logMatchedGlideins(self, factory, total, idle, running, failed, totalcores, idlecores, runningcores):
         factory_or_state_d = self.get_factory_dict(factory)
 
-        factory_or_state_d['MatchedGlideins'] = {self.attributes['MatchedGlideins'][0]: int(total),
-                                                 self.attributes['MatchedGlideins'][1]: int(idle),
-                                                 self.attributes['MatchedGlideins'][2]: int(running),
-                                                 self.attributes['MatchedGlideins'][3]: int(failed),
-                                                 self.attributes['MatchedGlideins'][4]: int(totalcores),
-                                                 self.attributes['MatchedGlideins'][5]: int(idlecores),
-                                                 self.attributes['MatchedGlideins'][6]: int(runningcores),
-                                                }
+        factory_or_state_d['MatchedGlideins'] = {
+            self.attributes['MatchedGlideins'][0]: int(total),
+            self.attributes['MatchedGlideins'][1]: int(idle),
+            self.attributes['MatchedGlideins'][2]: int(running),
+            self.attributes['MatchedGlideins'][3]: int(failed),
+        }
+        factory_or_state_d['MatchedCores'] = {
+            self.attributes['MatchedCores'][0]: int(totalcores),
+            self.attributes['MatchedCores'][1]: int(idlecores),
+            self.attributes['MatchedCores'][2]: int(runningcores),
+        }
 
         self.update=time.time()
             
@@ -221,7 +228,12 @@ class groupStats:
         return xmlFormat.time2xml(self.updated, "updated", indent_tab=xmlFormat.DEFAULT_TAB, leading_tab="")
 
     def get_total(self):
-        total={'MatchedJobs':None,'Requested':None,'MatchedGlideins':None}
+        total = {
+            'MatchedJobs':None,
+            'Requested':None,
+            'MatchedGlideins':None,
+            'MatchedCores':None,
+        }
         numtypes=(type(1),type(1L),type(1.0))
 
         for f in self.data['factories'].keys():
@@ -319,11 +331,21 @@ class groupStats:
 
         val_dict={}
         if fact==0:
-            type_strings={'Jobs':'Jobs','Glideins':'Glidein','MatchedJobs':'MatchJob',
-                 'MatchedGlideins':'MatchGlidein','Requested':'Req'}
+            type_strings = {
+                'Jobs':'Jobs',
+                'Glideins':'Glidein',
+                'MatchedJobs':'MatchJob',
+                'MatchedGlideins':'MatchGlidein',
+                'MatchedCores':'MatchCore',
+                'Requested':'Req'
+            }
         else:
-            type_strings={'MatchedJobs':'MatchJob',
-                      'MatchedGlideins':'MatchGlidein','Requested':'Req'}
+            type_strings = {
+                'MatchedJobs':'MatchJob',
+                'MatchedGlideins':'MatchGlidein',
+                'MatchedCores':'MatchCore',
+                'Requested':'Req'
+            }
 
         #init, so that all get created properly
         for tp in self.attributes.keys():

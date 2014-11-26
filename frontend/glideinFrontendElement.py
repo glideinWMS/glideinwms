@@ -1461,7 +1461,7 @@ def init_factory_stats_arr():
 
 def log_factory_header():
     logSupport.log.info("            Jobs in schedd queues                 |         Glideins        |       Cores       |    Request   ")
-    logSupport.log.info("Idle (match  eff   old  uniq )  Run ( here  max ) | Total Idle   Run   Fail | Total Idle   Run  | Idle MaxRun Down Factory")
+    logSupport.log.info("Idle (match  eff   old  uniq )  Run ( here  max ) | Total  Idle   Run  Fail | Total  Idle   Run | Idle MaxRun Down Factory")
 
 ######################
 # expand $$(attribute)
