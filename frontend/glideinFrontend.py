@@ -316,7 +316,8 @@ def main(work_dir, action):
                                           int(float(plog['max_days'])),
                                           int(float(plog['min_days'])),
                                           int(float(plog['max_mbytes'])),
-                                          int(float(plog['backup_count'])))
+                                          int(float(plog['backup_count'])),
+                                          plog['compression'])
     logSupport.log = logging.getLogger("frontend")
     logSupport.log.info("Logging initialized")
     logSupport.log.debug("Frontend startup time: %s" % str(startup_time))

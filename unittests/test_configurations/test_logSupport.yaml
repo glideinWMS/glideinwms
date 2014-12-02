@@ -21,9 +21,17 @@ test_backup_count:
   log_name: backupCount
   msg_types: INFO,DEBUG,ERR,WARN
   extension: count
-  # since we are testing timed rotation, we will ensure that it rotates very quickly
-  # should rotate every 86.4 seconds
   max_days: 1
   min_days: 0
   max_mbytes: 1
   backup_count: 5
+
+test_compress:
+  log_name: compress
+  msg_types: INFO,DEBUG,ERR,WARN
+  extension: count
+  max_days: 1
+  min_days: 0
+  max_mbytes: 1
+  backup_count: 3
+  compression: gz

@@ -149,7 +149,9 @@ class glideinFrontendElement:
                                               int(float(plog['max_days'])),
                                               int(float(plog['min_days'])),
                                               int(float(plog['max_mbytes'])),
-                                              int(float(plog['backup_count'])))
+                                              int(float(plog['backup_count'])),
+                                              plog['compression'])
+
         logSupport.log = logging.getLogger(self.group_name)
 
         # We will be starting often, so reduce the clutter

@@ -590,7 +590,8 @@ def init_logs(name, log_dir, process_logs):
                                           int(float(plog['max_days'])),
                                           int(float(plog['min_days'])),
                                           int(float(plog['max_mbytes'])),
-                                          int(float(plog['backup_count'])))
+                                          int(float(plog['backup_count'])),
+                                          plog['compression'])
         logSupport.log = logging.getLogger(name)
         logSupport.log.info("Logging initialized for %s" % name)
 

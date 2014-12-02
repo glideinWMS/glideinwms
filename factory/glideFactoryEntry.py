@@ -88,7 +88,8 @@ class Entry:
                                               int(float(plog['max_days'])),
                                               int(float(plog['min_days'])),
                                               int(float(plog['max_mbytes'])),
-                                              int(float(plog['backup_count'])))
+                                              int(float(plog['backup_count'])),
+                                              plog['compression'])
         self.log = logging.getLogger(self.name)
 
         cleaner = cleanupSupport.PrivsepDirCleanupWSpace(
