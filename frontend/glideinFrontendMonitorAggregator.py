@@ -61,7 +61,9 @@ monitorAggregatorConfig=MonitorAggregatorConfig()
 
 # PM: Nov 26, 2014
 # There is a limit on rrd field names. Max allowed is 20 chars long.
-# Truncate the names for following to be in limits
+# RRD enforces this limit while creating fields, but will not enforce the limits
+# when trying to read from a field with name longer than 20 chars.
+# Truncate the names for following to be in limits to avoid above issue.
 frontend_status_attributes = {
     'Jobs':("Idle","OldIdle","Running","Total"),
     'Glideins':("Idle","Running","Total"),

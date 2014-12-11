@@ -393,7 +393,6 @@ class glideinFrontendElement:
                              fe_total_idle_glideins,self.fe_total_max_vms_idle,self.fe_total_curb_vms_idle)
                             )
         
-        
         global_total_glideins=self.global_counts['Total']
         global_total_idle_glideins=self.global_counts['Idle']
         logSupport.log.info("Overall slots found total %i limit %i curb %i; of these idle %i limit %i curb %i"%
@@ -455,7 +454,6 @@ class glideinFrontendElement:
                 advertizer.add_global(globals_el['attrs']['FactoryPoolNode'],
                                       globalid, self.security_name, key_obj)
 
-
         glideid_list = condorq_dict_types['Idle']['count'].keys()
         # TODO: PM Following shows up in branch_v2plus. Which is correct?
         # glideid_list=glidein_dict.keys()
@@ -505,7 +503,6 @@ class glideinFrontendElement:
                 elif (glidein_el['attrs'].get('GLIDEIN_REQUIRE_GLEXEC_USE')=="True"):
                         prop_jobs['Idle']=prop_jobs['ProxyIdle']
                         logSupport.log.info("Proxy required (GLEXEC), limiting idle glideins to: %i" % prop_jobs['Idle'])
-
 
             # effective idle is how much more we need
             # if there are idle slots, subtract them, they should match soon
