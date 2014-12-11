@@ -49,6 +49,11 @@ config_file=$1
 error_gen=`grep '^ERROR_GEN_PATH ' $config_file | awk '{print $2}'`
 
 glidein_startup_pid=`grep -i "^GLIDEIN_STARTUP_PID " $config_file | awk '{print $2}'`
+# DO NOT USE PID FOR DAEMON NAMES
+# If site's batch system is HTCondor and USE_PID_NAMESPACES is set pid's
+# it does not play well with HTCondor daemon name creation
+# $RANDOM is in range(0, 32K). Add extra safeguards
+let "random_name_str=($RANDOM+1000)*($RANDOM+2000)"
 
 # find out whether user wants to run job or run test
 debug_mode=`grep -i "^DEBUG_MODE " $config_file | awk '{print $2}'`
@@ -426,7 +431,7 @@ START_JOBS="TRUE"
 if [ "$check_only" == "1" ]; then
   START_JOBS="FALSE"
   # need to know which startd to fetch against
-  STARTD_NAME=glidein_${glidein_startup_pid}
+  STARTD_NAME=glidein_${glidein_startup_pid}_${random_name_str}
 fi
 
 #Add release and distribution information
@@ -459,8 +464,8 @@ GLIDEIN_START_TIME = $now
 STARTER_JOB_ENVIRONMENT = "$job_env"
 GLIDEIN_VARIABLES = $glidein_variables
 
-MASTER_NAME = glidein_${glidein_startup_pid}
-STARTD_NAME = glidein_${glidein_startup_pid}
+MASTER_NAME = glidein_${glidein_startup_pid}_${random_name_str}
+STARTD_NAME = glidein_${glidein_startup_pid}_${random_name_str}
 
 #This can be used for locating the proper PID for monitoring
 GLIDEIN_PARENT_PID = $$
