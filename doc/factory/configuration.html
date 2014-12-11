@@ -154,7 +154,7 @@ for a more detailed description.
                 <a href="#config">&lt;/max_jobs&gt;</a><br/>
                 <a href="#config">&lt;release max_per_cycle="20" sleep="0.2"/&gt;</a><br/>
                 <a href="#config">&lt;remove max_per_cycle="5" sleep="0.2"/&gt;</a><br/>
-                <a href="#config">&lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="single_slot"&gt;</a><br/>
+                <a href="#config">&lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="partitionable"&gt;</a><br/>
                     <blockquote>
                     <a href="#config">&lt;submit_attrs&gt;</a><br/>
                         <blockquote>
@@ -761,7 +761,7 @@ override the global arguments if present.
             &lt;max_jobs/&gt;<br/>
             &lt;release max_per_cycle="20" sleep="0.2"/&gt;<br/>
             &lt;remove max_per_cycle="5" sleep="0.2"/&gt;<br/>
-            &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="single_slot"&gt;<br/>
+            &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="partitionable"&gt;<br/>
             &nbsp;&nbsp;&lt;submit_attrs&gt;<br/>
             &nbsp;&nbsp;&nbsp;&nbsp;&lt;submit_attr name="RequestMemory" value="2000"/&gt;<br/>
             &nbsp;&nbsp;&lt;submit_attrs/&gt;<br/>
@@ -780,12 +780,17 @@ override the global arguments if present.
             </li>
         <li>Release regulates how many glideins are released per cycle.</li>  
         <li>Remove regulates how many glideins are removed per cycle.</li>  
-        <li>Submit values limit the number of glideins submitted, how long 
-            to wait to submit, and what kinds of glideins the entry supports -
-            "fixed" number of slots, or "partitionable" which  enables HTCondor's
-            partionable/dynamic slots. The number of cores calimed by the glidein
-            can be controlled by the GLIDEIN_CPUS variable.
+        <li>Submit values limits how fast the glideins are glideins submitted
+            and their type.
             <ul>
+                <li>cluster_size limits how many glideins are submitted with
+                one condor_submit command.
+                <li>sleep limits the how long to wait between two submit commands.
+                <li>max_per_cycle limits how many glideins to submit every cycle
+                <li>slots_layout tells what kind of glideins the entry supports -
+            "fixed" number of slots, or "partitionable" which  enables HTCondor's
+            partionable/dynamic slots. The number of cores claimed by the glidein
+            can be controlled by the GLIDEIN_CPUS variable.
                 <li>
                 &lt;submit_attr ... &gt; specifies additional HTCondor attributes to
                 add to the HTCondor submit file that the Factory uses to submit pilots
