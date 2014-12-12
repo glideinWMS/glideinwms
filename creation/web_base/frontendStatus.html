@@ -204,9 +204,9 @@ Description:
 
         
         var gtype_DSs=new Object();
-        gtype_DSs['running']=new Array('MatchJobRunningHere','MatchJobRunning','MatchGlideinTotal','MatchGlideinRunning','MatchGlideinIdle','MatchJobIdle','ReqIdle','ReqMaxRun');
+        gtype_DSs['running']=new Array('MatchJobRunningHere','MatchJobRunning','MatchGlideinTotal','MatchGlideinRunning','MatchGlideinIdle','MatchGlideinFailed','MatchCoreTotal','MatchCoreIdle','MatchCoreRunning','MatchJobIdle','ReqIdle','ReqMaxRun');
 //                                       'JobsRunning',    'GlideinTotal',     'GlideinRunning',     'GlideinIdle',     'JobsIdle');
-        gtype_DSs['idle']=new Array('MatchJobIdle','MatchJobOldIdle','MatchJobEffIdle','MatchJobRunningHere','MatchGlideinRunning','MatchGlideinIdle','ReqIdle','ReqMaxRun');
+        gtype_DSs['idle']=new Array('MatchJobIdle','MatchJobOldIdle','MatchJobEffIdle','MatchJobRunningHere','MatchGlideinRunning','MatchGlideinIdle','MatchGlideinFailed','MatchCoreTotal','MatchCoreIdle','MatchCoreRunning','ReqIdle','ReqMaxRun');
 
         var gtype_formats=new Object();
         gtype_formats['running']={'MatchJobRunningHere':{ title: 'Running jobs', label:'Running',color: "#00f800", checked:true, 
@@ -215,6 +215,10 @@ Description:
                                   'MatchGlideinTotal':{title: 'Glideins at Collector', label:'Glideins', color: "#000000"},
                                   'MatchGlideinRunning':{title: 'Glideins claimed by jobs', label:'Claimed', color: "#8000ff",checked:true},
                                   'MatchGlideinIdle':{title: 'Glideins not matched', label:'Unmatched', color: "#ffff00",checked:true},
+                                  'MatchGlideinFailed':{title: 'Glideins failing to start', label:'Failed', color: "#ff0000",checked:true},
+                                  'MatchCoreTotal':{title: 'Glidein Cores at Collector', label:'Cores', color: "#707070"},
+                                  'MatchCoreRunning':{title: 'Glidein Cores claimed by jobs', label:'ClaimedCores', color: "#bf7fff",checked:true},
+                                  'MatchCoreIdle':{title: 'Glidein Cores not matched', label:'UnmatchedCores', color: "#FF8000",checked:true},
                                   'MatchJobIdle':{title: 'Idle jobs', label:'JobsIdle', color: "#00ffff"},
                                   'ReqIdle':{title: 'Requested idle glideins', label:'Requested', color: "#ff8080"},
                                   'ReqMaxIdle':{title: 'Max requested glideins', label:'Max requested', color: "#c00000"},
@@ -233,6 +237,10 @@ Description:
                                'MatchJobRunningHere':{title: 'Running jobs', label:'MatchRun', color: "#004000"},
                                'MatchGlideinRunning':{title: 'Glideins claimed by jobs', label:'Claimed', color: "#8000ff"},
                                'MatchGlideinIdle':{title: 'Glideins not matched', label:'Unmatched', color: "#ffff00"},
+                               'MatchGlideinFailed':{title: 'Glideins failing to start', label:'Failed', color: "#ff0000"},
+                                  'MatchCoreTotal':{title: 'Glidein Cores at Collector', label:'Cores', color: "#707070"},
+                                  'MatchCoreRunning':{title: 'Glidein Cores claimed by jobs', label:'ClaimedCores', color: "#bf7fff",checked:true},
+                                  'MatchCoreIdle':{title: 'Glidein Cores not matched', label:'UnmatchedCores', color: "#FF8000",checked:true},
                                'ReqIdle':{title: 'Requested idle glideins', label:'Requested', color: "#ff8080", checked:true},
                                'ReqMaxIdle':{title: 'Max requested glideins', label:'Max requested', color: "#c00000"},
 
