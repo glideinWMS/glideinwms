@@ -272,7 +272,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
     <br><br>
     Log files are rotated based on a time and size of the log files as follows:
     <ul>
-        <li>If the log file size reaches <i>max_bytes</i> it will be rotated.</li>
+        <li>If the log file size reaches <i>max_bytes</i> it will be rotated (NOTE: the value will be truncated and 0 means no rotation).</li>
         <li>If the log file size is less that <i>max_bytes</i> but the file is older than max_days it will be rotated.</li>
         <li><i>min_days</i> is not used and is there for backwards compatibility.</li>
         <li>Rotated files may be compressed. Supported compressions are Gzip "gz" and Zip "zip". Default is no compression (empty string).</li> 
