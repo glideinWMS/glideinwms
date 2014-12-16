@@ -46,12 +46,18 @@ class TestLogSupport(unittest.TestCase):
         except:
             pass # backup_count may not exist in all sections
 
+        compression = ''
+        try:
+            compression = str(self.config[section]["compression"])
+        except:
+            pass # compress may not exist in all sections
+
         log_dir = "%s/%s" % (self.log_base_dir, log_name)
         os.makedirs(log_dir)
 
         logSupport.add_processlog_handler(log_name, log_dir, msg_types, 
                     extension, max_days, min_days, max_mbytes, 
-                    backupCount=backupCount)
+                    backupCount=backupCount, compression=compression)
 
         return logging.getLogger(log_name), log_dir
 
@@ -123,6 +129,35 @@ class TestLogSupport(unittest.TestCase):
         # There should be 5 backups and the current log file
         file_list = os.listdir(log_dir)
         self.assertTrue(len(file_list) == 6, "Log file rotate didn't clean up properly." )
+
+    def test_logSupport_compression(self):
+        section = "test_compression"
+        log, log_dir = self.load_log(section)
+
+        max_bytes = float(self.config[section]["max_mbytes"]) * 1024.0 * 1024.0
+
+        # we want to exceed the max size of the log but stop logging shortly after
+        required_number_of_lines = (max_bytes / 100) + 100
+
+        # we are going to force a log rotate at least 7 times
+        for _ in range(0, 8):
+            lines = 0
+            while lines < required_number_of_lines:
+                log.info(create_random_string(length=100))
+                lines += 1
+            # sleep at least one minute so that we don't have name collisions on rollover
+            time.sleep(62)
+
+        # There should be 3 compressed backups
+        file_list = os.listdir(log_dir)
+        gzip_list = [ i for i in file_list if i.endswith('gz') ]
+        # TODO:  Check more than the extension (size is smaller or check that file is a correct gzip - magic number?)
+        # e.g.: file = open(f,'rb')        
+        # if (file.read(2) == b'\x1f\x8b'):
+        self.assertTrue(len(file_list) == len(gzip_list)+1, "Log file rotate didn't compress the files." )
+
+  
+
 
 def main():
     return runTest(TestLogSupport)

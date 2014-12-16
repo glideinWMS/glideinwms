@@ -52,13 +52,15 @@ def logReconfig(msg):
                 plog['extension'],
                 int(float(plog['max_days'])),
                 int(float(plog['min_days'])),
-                int(float(plog['max_mbytes'])))
+                int(float(plog['max_mbytes'])),
+                plog['compression'])
         else:
             logSupport.add_processlog_handler("factoryadmin", 
                 logSupport.log_dir, plog['msg_types'], plog['extension'],
                 int(float(plog['max_days'])),
                 int(float(plog['min_days'])),
-                int(float(plog['max_mbytes'])))
+                int(float(plog['max_mbytes'])),
+                plog['compression'])
     logSupport.log = logging.getLogger("factoryadmin")
     logSupport.log.info("Reconfiguring factory: %s" % msg)
 

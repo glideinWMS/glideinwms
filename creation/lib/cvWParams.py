@@ -155,6 +155,7 @@ class VOFrontendParams(cWParams.CommonParams):
         process_log_defaults['extension'] = ["all", "string", "name of the log extention", None]
         process_log_defaults['msg_types'] = ["INFO, WARN, ERR", "string", "types of log messages", None]
         process_log_defaults['backup_count'] = ["5", "string", "Number of backup logs to keep", None]
+        process_log_defaults['compression'] = ["", "string", "Compression for backup log files", None]
         
         log_retention_defaults = cWParams.commentedOrderedDict()
         log_retention_defaults["process_logs"] = ([], 'Dictionary of log types', "Each log corresponds to a log file", copy.deepcopy(process_log_defaults))
