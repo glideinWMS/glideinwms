@@ -8,6 +8,7 @@
 #
 
 import codecs
+import sys  # for alternate_log
 import os
 import re
 import stat
@@ -42,6 +43,14 @@ DEBUG_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s: %(module)s:%(l
 #
 # Note:  We may need to create a custom class later if we need to handle
 #        logging with privilege separation
+
+def alternate_log(msg):
+    """
+    When an exceptions happen within the logging system (e.g. when the disk is full while rotating a 
+    log file) an alternate logging is necessary, e.g. writing to stderr
+    """
+    sys.stderr.write("%s\n" % msg)
+    
 
 class GlideinHandler(BaseRotatingHandler):
     """
@@ -219,19 +228,25 @@ class GlideinHandler(BaseRotatingHandler):
         if self.compression == "zip":
             if os.path.exists(dfn + ".zip"):
                 os.remove(dfn + ".zip")
-            f_out = zipfile.ZipFile(dfn + ".zip", "w")
-            f_out.write(dfn, os.path.basename(dfn), zipfile.ZIP_DEFLATED)
-            f_out.close()
-            os.remove(dfn)
+            try:
+                f_out = zipfile.ZipFile(dfn + ".zip", "w")
+                f_out.write(dfn, os.path.basename(dfn), zipfile.ZIP_DEFLATED)
+                f_out.close()
+                os.remove(dfn)
+            except IOError, e:
+                alternate_log("Log file zip compression failed: %s" % e)
         elif self.compression == "gz":
             if os.path.exists(dfn + ".gz"):
                 os.remove(dfn + ".gz")
             f_in = open(dfn, "rb")
-            f_out = gzip.open(dfn + ".gz", "wb")
-            f_out.writelines(f_in)
-            f_out.close()
-            f_in.close()
-            os.remove(dfn)
+            try:
+                f_out = gzip.open(dfn + ".gz", "wb")
+                f_out.writelines(f_in)
+                f_out.close()
+                f_in.close()
+                os.remove(dfn)
+            except IOError, e:
+                alternate_log("Log file gzip compression failed: %s" % e)
 
     def _open_new_log(self):
         """
