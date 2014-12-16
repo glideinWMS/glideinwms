@@ -78,6 +78,7 @@ X509_GRIDMAP_DNS	S	-		GLIDEIN_X509_GRIDMAP_DNS	N	Y	-
 X509_GRIDMAP_TRUSTED_DNS	C	-	GSI_DAEMON_NAME			Y	N	-
 GLIDEIN_LOCAL_TMP_DIR   C       -               +                               Y       N       @
 TMP_DIR			S	-		GLIDEIN_Tmp_Dir			Y	Y	@
+PUBLISH_OBITUARIES      C       False           +                               N       N       -
 
 # Entry specific User modifiable variables
 GLIDEIN_Site		S	$GLIDEIN_Entry_Name	+			N	Y	@

@@ -216,7 +216,7 @@ def load_common_dicts(dicts,           # update in place
     dicts['consts'].load(fname=file_el[cWConsts.CONSTS_FILE][0])
     dicts['vars'].load(fname=file_el[cWConsts.VARS_FILE][0])
     dicts['untar_cfg'].load(fname=file_el[cWConsts.UNTAR_CFG_FILE][0])
-    if dicts.has_key('gridmap'):
+    if dicts.has_key('gridmap') and file_el.has_key(cWConsts.GRIDMAP_FILE):
         dicts['gridmap'].load(fname=file_el[cWConsts.GRIDMAP_FILE][0])
 
 def load_main_dicts(main_dicts): # update in place

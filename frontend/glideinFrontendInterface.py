@@ -1058,6 +1058,10 @@ class MultiAdvertizeWork:
                         # This double check is for backward compatibility
                         attr_value = glidein_monitors_this_cred.get(
                                          'GlideinsRunning', 0)
+                    elif (attr_name == 'Running') and glidein_monitors_this_cred:
+                        # This double check is for backward compatibility
+                        attr_value = glidein_monitors_this_cred.get(
+                                         'ScaledRunning', 0)
                     else:
                         attr_value = glidein_monitors_this_cred.get(
                                          attr_name,
@@ -1229,7 +1233,7 @@ class ResourceClassad(classadSupport.Classad):
         @param monitorInfo: GlideClientMonitor information.
         """
 
-        if len(monitorInfo) == 13:
+        if len(monitorInfo) == 17:
             self.adParams['GlideClientMonitorJobsIdle'] = monitorInfo[0]
             self.adParams['GlideClientMonitorJobsIdleMatching'] = monitorInfo[1]
             self.adParams['GlideClientMonitorJobsIdleEffective'] = monitorInfo[2]
@@ -1241,8 +1245,12 @@ class ResourceClassad(classadSupport.Classad):
             self.adParams['GlideClientMonitorGlideinsTotal'] = monitorInfo[8]
             self.adParams['GlideClientMonitorGlideinsIdle'] = monitorInfo[9]
             self.adParams['GlideClientMonitorGlideinsRunning'] = monitorInfo[10]
-            self.adParams['GlideClientMonitorGlideinsRequestIdle'] = monitorInfo[11]
-            self.adParams['GlideClientMonitorGlideinsRequestMaxRun'] = monitorInfo[12]
+            self.adParams['GlideClientMonitorGlideinsFailed'] = monitorInfo[11]
+            self.adParams['GlideClientMonitorGlideinsTotalCores'] = monitorInfo[12]
+            self.adParams['GlideClientMonitorGlideinsIdleCores'] = monitorInfo[13]
+            self.adParams['GlideClientMonitorGlideinsRunningCores'] = monitorInfo[14]
+            self.adParams['GlideClientMonitorGlideinsRequestIdle'] = monitorInfo[15]
+            self.adParams['GlideClientMonitorGlideinsRequestMaxRun'] = monitorInfo[16]
         else:
             raise RuntimeError, 'Glide client monitoring structure changed. Resource ad may have incorrect GlideClientMonitor values'
     
@@ -1256,7 +1264,7 @@ class ResourceClassad(classadSupport.Classad):
         """
         
         eliminate_attrs = set([
-                 'CurrentTime', 'USE_CCB', 'PubKeyValue', 'PubKeyType',
+                 'CurrentTime', 'PubKeyValue', 'PubKeyType',
                  'AuthenticatedIdentity', 'GlideinName', 'FactoryName', 
                  'EntryName', 'GlideinWMSVersion', 'PubKeyObj', 
                  'LastHeardFrom', 'PubKeyID', 'SupportedSignTypes',

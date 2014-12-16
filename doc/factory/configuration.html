@@ -98,8 +98,8 @@ for a more detailed description.
         <a href="#">&lt;job_logs max_days="7.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
         <a href="#">&lt;process_logs &gt;</a><br/>
         <blockquote>
-            <a href="#process_logs">&lt;process_log extension="info" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="INFO" /&gt;</a><br/>
-            <a href="#process_logs">&lt;process_log extension="debug" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="DEBUG,ERR,WARN" /&gt;</a><br/>
+            <a href="#process_logs">&lt;process_log extension="info" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="INFO" backup_count=&quot;5&quot; /&gt;</a><br/>
+            <a href="#process_logs">&lt;process_log extension="debug" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="DEBUG,ERR,WARN" backup_count=&quot;5&quot; /&gt;</a><br/>
         </blockquote>
         <a href="#">&lt;/process_logs &gt;</a><br/>
         <a href="#">&lt;summary_logs max_days="31.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
@@ -154,7 +154,7 @@ for a more detailed description.
                 <a href="#config">&lt;/max_jobs&gt;</a><br/>
                 <a href="#config">&lt;release max_per_cycle="20" sleep="0.2"/&gt;</a><br/>
                 <a href="#config">&lt;remove max_per_cycle="5" sleep="0.2"/&gt;</a><br/>
-                <a href="#config">&lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="single_slot"&gt;</a><br/>
+                <a href="#config">&lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="partitionable"&gt;</a><br/>
                     <blockquote>
                     <a href="#config">&lt;submit_attrs&gt;</a><br/>
                         <blockquote>
@@ -162,7 +162,7 @@ for a more detailed description.
                         </blockquote>
                     <a href="#config">&lt;submit_attrs/&gt;</a><br/>
                     </blockquote>
-                <a href="#config">&lt;submit/&gt;</a><br/>
+                <a href="#config">&lt;/submit&gt;</a><br/>
             </blockquote>
             <a href="#">&lt;/config&gt;</a><br/>
             <a href="#allow_frontend">&lt;allow_frontends /&gt;</a><br/>
@@ -330,7 +330,8 @@ individual entry point configuration.
             max_days=&quot;<I>max days</I>&quot;
             min_days=&quot;<I>min days</I>&quot;
             max_bytes=&quot;<I>max bytes</I>&quot;
-            type=&quot;<I>INFO</I>&quot;/&gt;
+            type=&quot;<I>INFO</I>&quot;
+            backup_count=&quot;<I>backup count</I>&quot;/&gt;
         </div>
     <p>
     The admin can configure one or more logs with any combination of following log message types: 
@@ -342,6 +343,17 @@ individual entry point configuration.
     <li>ADMIN: This is a special setting only applicable to factory logs (and not entry logs) that contains admin messages, such as reconfig comments.  This will create a new log called factoryadmin.extension.log.  Currently, it cannot be combined with other message types.</li>
     </ul>
     The extension is added to the log name to create separate logs.
+    <br><br>
+    <b>Log Retention and Rotation Policy:</b>
+    <br><br>
+    Log files are rotated based on a time and size of the log files as follows:
+    <ul>
+        <li>If the log file size reaches <i>max_bytes</i> it will be rotated.</li>
+        <li>If the log file size is less that <i>max_bytes</i> but the file is older than max_days it will be rotated.</li>
+        <li><i>min_days</i> is not used and is there for backwards compatibility.</li>
+        <li>After rotation, recent number of <i>back_count</i> files will be kept and older ones are deleted. Defaults to 5.</li>
+    </ul>
+
     </p>
     </li>
     <LI>
@@ -749,39 +761,51 @@ override the global arguments if present.
             &lt;max_jobs/&gt;<br/>
             &lt;release max_per_cycle="20" sleep="0.2"/&gt;<br/>
             &lt;remove max_per_cycle="5" sleep="0.2"/&gt;<br/>
-            &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="single_slot"&gt;<br/>
+            &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="partitionable"&gt;<br/>
             &nbsp;&nbsp;&lt;submit_attrs&gt;<br/>
             &nbsp;&nbsp;&nbsp;&nbsp;&lt;submit_attr name="RequestMemory" value="2000"/&gt;<br/>
-            &nbsp;&nbsp;&lt;submit_attrs/&gt;<br/>
-            &lt;submit/&gt;<br/>
-            &lt;config/&gt;
+            &nbsp;&nbsp;&lt;/submit_attrs&gt;<br/>
+            &lt;/submit&gt;<br/>
+            &lt;/config&gt;
         </div>
         <p>
-        The values in the config section are limits for the entry.  <br/>
+        The config section controls the glidein policies for the entry.  <br/>
         <ul>
-            <li>The max_jobs section limits the number of held, idle, and total (including running).
-              <ul>
-                  <li>&lt;per_entry ... &gt; specifies the limits per entry</li>
-                  <li>&lt;default_per_frontend ... &gt; specifies default limits per frontend-security class</li>
-                  <li>&lt;per_frontend ... &gt; overrides the limits for a specific frontend-security class.</li>
-              </ul>
-            </li>
+           <li>The max_jobs section limits the number of glidins held, idle, and total (including running).
+             <ul>
+                 <li>&lt;per_entry ... &gt; specifies the limits per entry.</li>
+                 <li>&lt;default_per_frontend ... &gt; specifies default limits for each frontend-security class (for this entry).</li>
+                 <li>&lt;per_frontend ... &gt; overrides the limits for a specific frontend-security class.</li>
+             </ul>
+           </li>
         <li>Release regulates how many glideins are released per cycle.</li>  
         <li>Remove regulates how many glideins are removed per cycle.</li>  
-        <li>Submit values limit the number of glideins submitted, how long 
-            to wait to submit, and what kinds of glideins the entry supports -
-            "fixed" number of slots, or "partitionable" which  enables HTCondor's
-            partionable/dynamic slots. The number of cores calimed by the glidein
-            can be controlled by the GLIDEIN_CPUS variable.
-            <ul>
-                <li>
-                &lt;submit_attr ... &gt; specifies additional HTCondor attributes to
-                add to the HTCondor submit file that the Factory uses to submit pilots
-                to a site.  These attributes are only added when the 
-                <a name="entry">gridtype</a> is "batch SOMETHING" (<a href="../recipes/batch.html">using BOSCO</a>) or "condor".  The attributes are ignored
-                for all other grid types.
-                </li>
-            </ul>
+        <li>Submit limits how fast the glideins are submitted
+           and controls the glideins type. Each main loop (cycle) the glideins are submitted using 
+           multiple condor_submit commands
+           <ul>
+<!-- Attributes in the code
+cluster_size, self.jobDescript.data['SubmitCluster'], self.gflFactoryConfig.max_cluster_size; 
+max_per_cycle, jobDescript.data['MaxSubmitRate'], self.gflFactoryConfig.max_submits;
+sleep, self.jobDescript.data['SubmitSleep'], self.gflFactoryConfig.submit_sleep -> 
+-->
+               <li>cluster_size limits how many glideins are submitted with
+               one condor_submit command (if more glideins need to be submitted, multiple condor_submit invocations are used).</li>
+               <li>sleep is the minimum wait between two condor_submit commands (actual time is longer).</li>
+               <li>max_per_cycle limits how many glideins to submit every cycle</li>
+               <li>slots_layout tells what kind of glideins the entry supports: 
+           "fixed" number of slots; or "partitionable" slots, which  enables HTCondor's
+           partionable/dynamic slots. The number of cores claimed by the glidein
+           can be controlled by the GLIDEIN_CPUS variable.</li>
+               <li>
+               &lt;submit_attr ... &gt; specifies additional HTCondor attributes to
+               add to the HTCondor submit file that the Factory uses to submit pilots
+               to a site.  These attributes are only added when the 
+               <a name="entry">gridtype</a> is "batch SOMETHING" (<a href="../recipes/batch.html">using BOSCO</a>) 
+               or "condor".  The attributes are ignored
+               for all other grid types.
+               </li>
+           </ul>
         </li>
         </p>
     </li>
@@ -1231,8 +1255,13 @@ export _CONDOR_DAEMON_LIST=&quot;MASTER, COLLECTOR&quot;
 export _CONDOR_LOCAL_DIR=$LD/$_CONDOR_MASTER_NAME
 export _CONDOR_LOCK=$_CONDOR_LOCAL_DIR/lock
 # Forward all the traffic to the main collector
-export _CONDOR_CONDOR_VIEW_HOST=$COLH:9618</PRE>
+export _CONDOR_CONDOR_VIEW_HOST=localhost:9618</PRE>
 <p>
+    Using <t>localhost</t> to communicate to the master collector is more efficient.
+    But will not work if they are on different hosts or if you are using HTCondor older than 8.2.
+    For those case you'll need: <t>export _CONDOR_CONDOR_VIEW_HOST=$COLH:9618</t> 
+
+</p><p>
     Once you have the slave collectors set up, you will want to use
     them. 
 
