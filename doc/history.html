@@ -85,6 +85,33 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
+        <b>v3_2_8</b> released on December xx, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_8/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_8/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_8.tgz">Tarball</a>)<br>
+        <ul>
+          <li>VO Frontend parameters are added to HTCondor config for ganglia
+          monitoring
+          <li>CONDOR_VIEW_HOST is now set to localhost for factory collectors to
+          minimize overhead in communication between primary and secondary
+          collectors
+          <li>Added option to compress process logs in factory and frontend
+          <li>Added failed glidein statistics to frontend monitoring
+          <li>Added idle/running/total core statistics to frontend monitoring
+          <li>USE_CCB is now enabled by default and this information is
+          advertised in the glidefactory classads
+          <li>Improved documentation
+          <li>Bug Fix: Glideins do not mail admins when HTCondor daemon crash
+          <li>Bug Fix: Gridmanager log paths used by glidein/factory scheds are
+          now correctly expanded for different users
+          <li>Bug Fix: Factory and Frontend service start/stop exit codes now
+          confer to Linux standards
+          <li>Bug Fix: Fixed issue where work dir and vesioning in frontend
+          config would break the config in case of frontend rpms
+          <li>Bug Fix: Made improvements to the HTCondor configuration used by
+          factory rpm
+          <li>Bug Fix: There is no name collision for glideins when
+          USE_PID_NAMESPACES is enabled in site's HTCondor batch system
+      </ul>
+      </li>
+      <li>
         <b>v3_2_7</b> released on October 14, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_7/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_7/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_7.tgz">Tarball</a>)<br>
         <ul>
           <li>Glideins now have an option to report monitoring info to a
