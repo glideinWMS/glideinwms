@@ -108,7 +108,23 @@ check_installed () {
     fi
     echo -n "The Factory is not installed correctly"
     failure
+    echo
     exit $RET_NOT_INSTALLED
+}
+
+check_configured () {
+    # check if some files created during the configuration (upgrade/reconfig) exist
+    if [ -x "$factory_dir/update_proxy.py" ]; then
+        if [ -r "$factory_dir/glideinWMS.xml" ]; then
+            return 0
+        fi
+        echo -n "The Factory is not configured correctly: try to run reconfig"
+    else
+        echo -n "The Factory is not configured correctly: try to run upgrade"
+    fi
+    failure
+    echo
+    exit $RET_NOT_CONFIGURED
 }
 
 export HOME="/var/lib/gwms-factory"
@@ -221,6 +237,7 @@ help_usage() {
 start() {
     check_installed
     pushd $factory_dir 1>/dev/null
+    check_configured
     echo -n "Starting GlideinWMS Factory $id_str: "
 
     "$FACTORY_CHECK" "$factory_dir"  2>/dev/null 1>&2 </dev/null 
@@ -565,3 +582,4 @@ case $1 in
 esac
 
 exit $RETVAL
+

@@ -104,8 +104,25 @@ check_installed () {
     fi
     echo -n "The Frontend is not installed correctly"
     failure
+    echo
     exit $RET_NOT_INSTALLED
 }
+
+check_configured () {
+    # check if some files created during the configuration (upgrade/reconfig) exist
+    if [ -x "$frontend_dir/frontend_startup" ]; then
+        if [ -r "$frontend_dir/frontend.xml" ]; then
+            return 0
+        fi
+        echo -n "The Frontend is not configured correctly: try to run reconfig"
+    else
+        echo -n "The Frontend is not configured correctly: try to run upgrade"
+    fi
+    failure
+    echo
+    exit $RET_NOT_CONFIGURED
+}
+
 
 export HOME="/var/lib/gwms-frontend"
 # FRONTEND_USER is used when invoking the script as root
@@ -209,6 +226,7 @@ help_usage() {
 
 start() {
         check_installed
+        check_configured
         echo -n "Starting glideinWMS frontend $id_str: "
 
         "$FRONTEND_CHECK" "$frontend_dir"  2>/dev/null 1>&2 </dev/null 
