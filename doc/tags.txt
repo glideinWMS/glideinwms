@@ -20,6 +20,10 @@ v3_2_8  VO Frontend parameters are added to HTCondor config for ganglia
           factory rpm
         Bug Fix: There is no name collision for glideins when
           USE_PID_NAMESPACES is enabled in site's HTCondor batch system
+v3_2_7_2 Bug Fix: Set MASTER.USE_SHARED_PORT instead of USE_SHARED_PORT to
+          avoid secondary collectors using the shared port daemon
+
+v3_2_7_1 Set USE_SHARED_PORT to get around the issue with HTCondor 8.2.3
 
 v3_2_7  Glideins now have an option to report monitoring info to a
           different collector configured in the factory
