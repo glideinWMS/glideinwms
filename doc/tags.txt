@@ -1,3 +1,26 @@
+v3_2_8  VO Frontend parameters are added to HTCondor config for ganglia
+          monitoring
+        CONDOR_VIEW_HOST is now set to localhost for factory collectors to
+          minimize overhead in communication between primary and secondary
+          collectors
+        Added option to compress process logs in factory and frontend
+        Added failed glidein statistics to frontend monitoring
+        Added idle/running/total core statistics to frontend monitoring
+        USE_CCB is now enabled by default and this information is
+          advertised in the glidefactory classads
+        Improved documentation
+        Bug Fix: Glideins do not mail admins when HTCondor daemon crash
+        Bug Fix: Gridmanager log paths used by glidein/factory scheds are
+          now correctly expanded for different users
+        Bug Fix: Factory and Frontend service start/stop exit codes now
+          confer to Linux standards
+        Bug Fix: Fixed issue where work dir and vesioning in frontend config
+          would break the config in case of frontend rpms
+        Bug Fix: Made improvements to the HTCondor configuration used by
+          factory rpm
+        Bug Fix: There is no name collision for glideins when
+          USE_PID_NAMESPACES is enabled in site's HTCondor batch system
+
 v3_2_7  Glideins now have an option to report monitoring info to a
           different collector configured in the factory
         Glideins now support shared port
