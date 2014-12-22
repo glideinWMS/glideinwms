@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_7_2
+# GLIDEINWMS_VERSION v3_2_8_rc1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -20,10 +20,10 @@ e4405e764b1e40327893d990ae6780f8  ./creation/lib/cgWConsts.py
 fd07bc069b28f7909482530eef3c160a  ./creation/lib/cgWCreate.py
 7ad987392e6a08b7b44bb069a2eb5cf9  ./creation/lib/cgWDictFile.py
 eda9d4df5548840be7911affd376640d  ./creation/lib/cgWParamDict.py
-889dc0f18f55d9a6a5ab7f4cfa36d1fd  ./creation/lib/cgWParams.py
+41eabe63c4dcbeea083cd7d0f0ef065f  ./creation/lib/cgWParams.py
 414dd08400e9050a5c7e6a64fa7a4d94  ./creation/lib/xslt.py
-98c31d903771ce585339bdf6438fb3e6  ./creation/reconfig_glidein
-ca2e8aa23089a03d24cb9a3475d67d6d  ./creation/templates/factory_initd_startup_template
+2a70b65561f51461f02a6558ed67f049  ./creation/reconfig_glidein
+eb3e5e1c14b6e25a0d6903302afe5d5f  ./creation/templates/factory_initd_startup_template
 ccec55d588485ee238a38a5463373614  ./creation/web_base/advertise_failure.helper
 1a794306785cd9f0489ba1b484470af1  ./creation/web_base/cat_consts.sh
 40a2b85a853a072f65049c4efe64bc3a  ./creation/web_base/check_blacklist.sh
@@ -35,8 +35,8 @@ c438d82b7967e035a5f814c582087193  ./creation/web_base/condor_config
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
 68dfdebf47aa54c20d6ab998b12b4eed  ./creation/web_base/condor_config.multi_schedd.include
 e045ab0b0412b0e990c55e42d6b8fbe4  ./creation/web_base/condor_platform_select.sh
-12e7a56f89a4583fe9e4322326d5185f  ./creation/web_base/condor_startup.sh
-5fc785988b73b26487e0b2fadd50da94  ./creation/web_base/condor_vars.lst
+ed865b793dcf6ec8cf04c790c7417f74  ./creation/web_base/condor_startup.sh
+7646f287f26f03954aeff750e71cd196  ./creation/web_base/condor_vars.lst
 baac24b5b0cfd0f134bc895cff30c183  ./creation/web_base/condor_vars.lst.entry
 6e35bfa7c5fce44d1ba43c3cae1924bc  ./creation/web_base/create_mapfile.sh
 6d19939557bb1086d5d01739bdad62dd  ./creation/web_base/create_temp_mapfile.sh
@@ -76,12 +76,12 @@ ff016e9edd2bdc91aa9ea5fd6ab77061  ./creation/web_base/setup_x509.sh
 91bca6a6005d761584523440b6a9c929  ./creation/web_base/validate_node.sh
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 803f896297c845f622cd6047dc5283c7  ./factory/checkFactory.py
-dac4827c215e3b8b8ae8ec3be8bdb587  ./factory/glideFactory.py
+1e39c7eba73700ee59995247756c9f8c  ./factory/glideFactory.py
 e107903b65620ba873c88d631a28652a  ./factory/glideFactoryConfig.py
 ae4938bf593da9b3bebb07b98d47a546  ./factory/glideFactoryCredentials.py
 00d8a8bad3b7184131cd4c42f1839e1a  ./factory/glideFactoryDowntimeLib.py
-45c29b2ee72ffbbf9732846b84afa125  ./factory/glideFactoryEntry.py
-7d4b04c41c4d5b568aadbc69178f0b40  ./factory/glideFactoryEntryGroup.py
+b0a9896b755024d5609f750da61fe517  ./factory/glideFactoryEntry.py
+dcc9d18139cb8bd703c6048a0c19bcba  ./factory/glideFactoryEntryGroup.py
 8cf0aa1f4181e259f7f8f5300041df88  ./factory/glideFactoryInterface.py
 a66847f1aab97a1c502d1cc81aa94275  ./factory/glideFactoryLib.py
 465614b1447fb15115d4569a56175b8c  ./factory/glideFactoryLogParser.py
@@ -132,9 +132,9 @@ c0bfe44cfd746c385b7c8186df032ea2  ./install/glidecondor_upgrade
 785dfb8a08831cc2983152f264233791  ./install/glideinWMS.ini
 d87d0e217589fcb7a3f5b28339ca145d  ./install/manage-glideins
 1524a3cab15abde1a4c1c50b1f3417b9  ./install/services/Certificates.py
-34ea216bf42df3672dad68659ba16f35  ./install/services/Condor.py
+a32e43ef719f698f40fc00cde21dffcb  ./install/services/Condor.py
 2815d4e3a344ae0c202c598c51d418f6  ./install/services/Configuration.py
-9f2b94e6ba904d66bc177b20596b9b83  ./install/services/Factory.py
+5f9df7c2e6c6978856129a5e3c140a3b  ./install/services/Factory.py
 f8d19ab77b0e90d9144164b8fa743bfa  ./install/services/Glidein.py
 20bd59ffce4049978cc70b7d5ca7f581  ./install/services/PrivilegeSeparation.py
 e25b4df45543f80cf9374b320a985f2b  ./install/services/RPM.py
@@ -154,7 +154,7 @@ db3a6019e81123ab02788204c5170716  ./lib/cleanupSupport.py
 62ace95abeb9172364f64f05acb75f2e  ./lib/condorLogParser.py
 f9f296bc30e68cb314dfba0415c97b26  ./lib/condorManager.py
 c531fc1e260d351805d3650fac6cb80a  ./lib/condorMonitor.py
-54580e3784e390b019cde26799f47b2c  ./lib/condorPrivsep.py
+89772f9af06bd4627edeb0b6ca1e0b7d  ./lib/condorPrivsep.py
 d79f4a3b5492b5229d255085df2ef2b7  ./lib/condorSecurity.py
 85810235f5f90736e8d2899acd2a2cc9  ./lib/encodingSupport.py
 a203f536b05728922180758c66bdcb28  ./lib/exprParser.py
@@ -164,7 +164,7 @@ b3fb00444ece8326e163e19d29c01b73  ./lib/fork.py
 ac7d5c93017e3887f1d44fcdee9a7237  ./lib/hashCrypto.py
 560d3f938ae5104b0be721735f752486  ./lib/iniSupport.py
 223c74aae5cbc7132b080e0dedf679ba  ./lib/ldapMonitor.py
-90a4943a15dcdf9c69b3ebcfa3ea8a12  ./lib/logSupport.py
+f1566811861839974b1d5fdbf8ac9267  ./lib/logSupport.py
 fe4614cb3ecabd81d65f3b85b5c7abb6  ./lib/logging.conf
 21064bcec10ae71f37fce919052b3ad6  ./lib/pidSupport.py
 7b2d48ef58bbf0aca878d4dcb1efa690  ./lib/pubCrypto.py
@@ -192,15 +192,15 @@ d2f523ccdef6125a867ed8dc746b2148  ./tools/wmsXMLView.py
 c1312c7d5e45ede9739ef03eeb4b990e  ./unittests/__init__.py
 f8088fc30b1b9f54e60364b0b4f8fcda  ./unittests/test_cleanupSupport.py
 ac1ae5bdfd61e84c405d14b9aa719048  ./unittests/test_condorExe.py
-6011a49a3771993da68c260a837bccf3  ./unittests/test_configurations/test_logSupport.yaml
+36da4c69987a4f60e732b5687fb68c27  ./unittests/test_configurations/test_logSupport.yaml
 f40e7fffa0c8ea7308ca72738105a4a3  ./unittests/test_encodingSupport.py
 74683dc9f3d9fc9321cb024f45f4d778  ./unittests/test_glideFactoryDowntimeLib.py
 bac527ea84264fa74fc7491376beb0be  ./unittests/test_glideinFrontendPlugins.py
 994f0813b75e7813b309f255b78942cb  ./unittests/test_infosys_lib.py
-1042596530ea1af51aaa79da6046f45f  ./unittests/test_logSupport.py
+62934212b60d862c582bcc803992e1c8  ./unittests/test_logSupport.py
 e62a4284ef3ee405897fe71e6a00aa52  ./unittests/test_tarSupport.py
 58e156307d25fd6d584461a08ea064a1  ./unittests/unittest_utils.py
-573c747342c3b0dbd6e39041e0fc43d3  ./unittests/worker_scripts/log_writer.py
+5ac2e72df43580befa32df86209694af  ./unittests/worker_scripts/log_writer.py
 bb7311f7f5bbe1b396481c606c9f6c52  ./unittests/worker_scripts/master_writer.py
 deda72780003d66021f6bb8e9f4e6200  ./unittests/worker_scripts/write_exit_0.py
 b3193772ae25df2e5c72d4ee8b6f78f0  ./unittests/worker_scripts/write_exit_0.sh

@@ -20,6 +20,9 @@ v3_2_8  VO Frontend parameters are added to HTCondor config for ganglia
           factory rpm
         Bug Fix: There is no name collision for glideins when
           USE_PID_NAMESPACES is enabled in site's HTCondor batch system
+        Bug Fix: Factory does not leak file descriptors when HTCondor
+          commands using privilege separation fail
+
 v3_2_7_2 Bug Fix: Set MASTER.USE_SHARED_PORT instead of USE_SHARED_PORT to
           avoid secondary collectors using the shared port daemon
 
