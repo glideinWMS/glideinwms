@@ -117,7 +117,7 @@ Install as: various daemon users or as system rpms/packages
         
         <tr>
             <td> <a target="_blank" href="http://www.cs.wisc.edu/condor/downloads/">HTCondor</a> </td>
-            <td> v7.8+/<br>v8.2.2+(BOSCO)</td>
+            <td> v7.8+/<br>v8.2.3+(BOSCO or Ganglia)</td>
             <td class="checked"> y </td>
             <td> &nbsp; </td>
 
@@ -132,7 +132,15 @@ Install as: various daemon users or as system rpms/packages
                 HTCondor v8.2.2+. This version requirement is for the WMS Pool,
                 submitting glideins and the HTCondor client, used to setup
                 the BOSCO resource (bosco_cluster_add). Other components
-                can use previous recommended versions of HTCondor.</td>
+                can use previous recommended versions of HTCondor.
+                <br><br>
+                <b><u>HTCondor monitoring via Ganglia:</u></b><br>
+                HTCondor v8.1.0+ supports <a href="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_10Monitoring.html">monitoring via Ganglia</a>.
+                GlideinWMS provides configuration files for it.
+                If you have HTCondor 8.0.x or earlier you must remove <t>/etc/condor/config.d/01_gwms_ganglia.config</t>,
+                otherwise your HTCondor will complain about an unsupported option
+                and crash.
+                </td>
         </tr>
 
         <tr>

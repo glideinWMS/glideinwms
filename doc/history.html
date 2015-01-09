@@ -95,6 +95,11 @@ Related Pages:
           <li>Added option to compress process logs in factory and frontend
           <li>Added failed glidein statistics to frontend monitoring
           <li>Added idle/running/total core statistics to frontend monitoring
+          <li>Added the support for HTCondor GANGLIAD monitoring 
+          (requires HTCondor 8.1 or newer). If you have HTCondor 8.0.x or earlier 
+          you must remove <t>/etc/condor/config.d/01_gwms_ganglia.config</t>,
+          otherwise your HTCondor will complain about an unsupported option
+          and crash.
           <li>USE_CCB is now enabled by default and this information is
           advertised in the glidefactory classads
           <li>Improved documentation
