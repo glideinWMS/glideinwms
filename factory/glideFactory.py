@@ -308,8 +308,8 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
     group_size = long(math.ceil(float(len(entries))/entry_process_count))
     entry_groups = entry_grouper(group_size, entries)
     def _set_rlimit(lim = 16384):
-        (soft, hard) = resource.getrlimit(resource.RLIMIT_NPROC)
-        if soft > lim:
+        (soft, hard) = resource.getrlimit(resource.RLIMIT_NOFILE)
+        if (soft > lim) or (hard > lim):
             resource.setrlimit(resource.RLIMIT_NOFILE, [lim, lim])
 
     try:
