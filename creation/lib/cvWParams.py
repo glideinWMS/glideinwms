@@ -218,6 +218,20 @@ class VOFrontendParams(cWParams.CommonParams):
 
         self.defaults["groups"]=(xmlParse.OrderedDict(),"Dictionary of groups","Each group contains",self.group_defaults)
         
+        # High Availability Configuration settings
+
+
+        haf_defaults = cWParams.commentedOrderedDict()
+        haf_defaults['frontend_name'] = (None, 'frontend_name',
+                                         'Name of the frontend', None)
+
+        ha_defaults = cWParams.commentedOrderedDict()
+        ha_defaults['ha_frontends'] = ([], 'List of frontends in  HA mode',
+                                       'Each element contains', haf_defaults)
+        ha_defaults["enabled"]=(False, "Bool", "Enable HA?", None)
+        self.defaults['high_availability'] = ha_defaults
+
+
         return
 
     # return name of top element
@@ -302,6 +316,16 @@ class VOFrontendParams(cWParams.CommonParams):
                     # define an explicit security, so the admin is aware of it
                     pel['security_class']="group_%s"%group_name
 
+        # verify and populate HA
+        if self.high_availability['enabled']:
+            if (len(self.high_availability['ha_frontends']) == 1):
+                haf = self.high_availability['ha_frontends'][0]
+                if not haf['frontend_name']:
+                    raise RuntimeError, 'High availability is enabled but the configuration is missing frontend_name of the master ha_frontend.'
+            else:
+                raise RuntimeError, 'Exactly one master ha_frontend information is needed when running this frontend in high_availability slave mode.'
+
+
     # verify match data and create the attributes if needed
     def derive_match_attrs(self):
         self.validate_match('frontend',self.match.match_expr,
@@ -337,6 +361,7 @@ class VOFrontendParams(cWParams.CommonParams):
                                 'process_logs':{'el_name':'process_log','subtypes_params':{'class':{}}},
                                 'collectors':{'el_name':'collector','subtypes_params':{'class':{}}},
                                 'schedds':{'el_name':'schedd','subtypes_params':{'class':{}}},
+                                'ha_frontends':{'el_name':'ha_frontend','subtypes_params':{'class':{}}},
                                 'credentials':{'el_name':'credential','subtypes_params':{'class':{}}}},
                 'dicts_params':{'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},
                                 'groups':{'el_name':'group','subtypes_params':{'class':{}}},

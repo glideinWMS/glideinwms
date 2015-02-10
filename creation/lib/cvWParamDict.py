@@ -536,6 +536,7 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('CurbRunningTotal',params.config.running_glideins_total.curb)
         frontend_dict.add('MaxRunningTotalGlobal',params.config.running_glideins_total_global.max)
         frontend_dict.add('CurbRunningTotalGlobal',params.config.running_glideins_total_global.curb)
+        frontend_dict.add('HighAvailability', params.high_availability)
 
 #######################
 # Populate group descript
