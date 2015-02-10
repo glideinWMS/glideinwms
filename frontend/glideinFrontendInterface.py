@@ -115,20 +115,30 @@ advertizeGCGounter = {}
 # User functions
 #
 ############################################################
-def findGlobals(factory_pool,factory_identity,
-                 additional_constraint=None): 
-    global frontendConfig
-    status_constraint='(GlideinMyType=?="%s")'%frontendConfig.factory_global
-    if not ((factory_identity is None) or (factory_identity=='*')): # identity checking can be disabled, if really wanted
+def findGlobals(pool_name, auth_identity, classad_type,
+                additional_constraint=None): 
+    """
+    Query the given pool to find the globals classad.
+    Can be used to query glidefactoryglobal and glidefrontendglobal classads.
+    """
+
+    status_constraint = '(GlideinMyType=?="%s")' % classad_type
+
+    # identity checking can be disabled, if really wanted
+    if not ((auth_identity is None) or (auth_identity=='*')):
         # filter based on AuthenticatedIdentity
-        status_constraint+=' && (AuthenticatedIdentity=?="%s")'%factory_identity
+        status_constraint += ' && (AuthenticatedIdentity=?="%s")' % auth_identity
+
     if additional_constraint is not None:
-        status_constraint="%s && (%s)"%(status_constraint,additional_constraint)
-    status=condorMonitor.CondorStatus("any",pool_name=factory_pool)
-    status.require_integrity(True) #important, especially for proxy passing
+        status_constraint = '%s && (%s)' % (status_constraint,
+                                            additional_constraint)
+
+    status = condorMonitor.CondorStatus('any', pool_name=pool_name)
+    #important, especially for proxy passing
+    status.require_integrity(True)
     status.load(status_constraint)
-    
-    data=status.fetchStored()
+    data = status.fetchStored()
+
     return format_condor_dict(data)
     
 
