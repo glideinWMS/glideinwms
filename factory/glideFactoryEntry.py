@@ -40,6 +40,34 @@ from glideinwms.lib import cleanupSupport
 
 ############################################################
 class Entry:
+    def initLogging(self):
+        process_logs = eval(self.glideinDescript.data['ProcessLogs'])
+        for plog in process_logs:
+            logSupport.add_processlog_handler(self.name, self.logDir,
+                                              plog['msg_types'],
+                                              plog['extension'],
+                                              int(float(plog['max_days'])),
+                                              int(float(plog['min_days'])),
+                                              int(float(plog['max_mbytes'])),
+                                              int(float(plog['backup_count'])),
+                                              plog['compression'])
+
+        cleaner = cleanupSupport.PrivsepDirCleanupWSpace(
+            None,
+            self.logDir,
+            "(condor_activity_.*\.log\..*\.ftstpk)",
+            glideFactoryLib.days2sec(float(self.glideinDescript.data['CondorLogRetentionMaxDays'])),
+            glideFactoryLib.days2sec(float(self.glideinDescript.data['CondorLogRetentionMinDays'])),
+            float(self.glideinDescript.data['CondorLogRetentionMaxMBs']) * pow(2, 20))
+        cleanupSupport.cleaners.add_cleaner(cleaner)
+
+        self._log = logging.getLogger(self.name)
+
+    @property
+    def log(self):
+        if not self._log:
+            self.initLogging()
+        return self._log
 
     def __init__(self, name, startup_dir, glidein_descript, frontend_descript):
         """
@@ -71,39 +99,16 @@ class Entry:
         # glideFactoryMonitoring.monitoringConfig.monitor_dir
         self.monitorDir = os.path.join(self.startupDir,
                                        "monitor/entry_%s" % self.name)
-
-        # Dir where my logs are stored
+        self._log = None
         self.logDir = os.path.join(self.glideinDescript.data['LogDir'],
                                    "entry_%s" % self.name)
 
         # Schedd where my glideins will be submitted
         self.scheddName = self.jobDescript.data['Schedd']
 
-        # glideFactoryLib.log_files
-        process_logs = eval(self.glideinDescript.data['ProcessLogs'])
-        for plog in process_logs:
-            logSupport.add_processlog_handler(self.name, self.logDir,
-                                              plog['msg_types'],
-                                              plog['extension'],
-                                              int(float(plog['max_days'])),
-                                              int(float(plog['min_days'])),
-                                              int(float(plog['max_mbytes'])),
-                                              int(float(plog['backup_count'])),
-                                              plog['compression'])
-        self.log = logging.getLogger(self.name)
-
-        cleaner = cleanupSupport.PrivsepDirCleanupWSpace(
-            None,
-            self.logDir,
-            "(condor_activity_.*\.log\..*\.ftstpk)",
-            glideFactoryLib.days2sec(float(self.glideinDescript.data['CondorLogRetentionMaxDays'])),
-            glideFactoryLib.days2sec(float(self.glideinDescript.data['CondorLogRetentionMinDays'])),
-            float(self.glideinDescript.data['CondorLogRetentionMaxMBs']) * pow(2, 20))
-        cleanupSupport.cleaners.add_cleaner(cleaner)
-
-        self.monitoringConfig = glideFactoryMonitoring.MonitoringConfig(log=self.log)
+        self.monitoringConfig = glideFactoryMonitoring.MonitoringConfig()
         self.monitoringConfig.monitor_dir = self.monitorDir
-        self.monitoringConfig.my_name = "%s@%s" % (name, self.glideinDescript.data['GlideinName'])
+        self.monitoringConfig.my_name = "%s@%s" % (self.name, self.glideinDescript.data['GlideinName'])
 
         self.monitoringConfig.config_log(
             self.logDir,
@@ -127,9 +132,8 @@ class Entry:
             tb = traceback.format_exception(sys.exc_info()[0],
                                             sys.exc_info()[1],
                                             sys.exc_info()[2])
-            self.log.warning("Exception occured while trying to retrieve the glideinwms version. See debug log for more details.")
-            self.log.debug("Exception occurred while trying to retrieve the glideinwms version: %s" % tb)
-
+            logSupport.log.warning("Exception occured while trying to retrieve the glideinwms version. See debug log for more details.")
+            logSupport.log.debug("Exception occurred while trying to retrieve the glideinwms version: %s" % tb)
 
         # FactoryConfig object from glideFactoryLib
         self.gflFactoryConfig = glideFactoryLib.FactoryConfig()
@@ -152,8 +156,8 @@ class Entry:
         self.gflFactoryConfig.remove_sleep = float(self.jobDescript.data['RemoveSleep'])
         self.gflFactoryConfig.max_releases = int(self.jobDescript.data['MaxReleaseRate'])
         self.gflFactoryConfig.release_sleep = float(self.jobDescript.data['ReleaseSleep'])
-        self.gflFactoryConfig.log_stats = glideFactoryMonitoring.condorLogSummary(log=self.log)
-        self.gflFactoryConfig.rrd_stats = glideFactoryMonitoring.FactoryStatusData(log=self.log, base_dir=self.monitoringConfig.monitor_dir)
+        self.gflFactoryConfig.log_stats = glideFactoryMonitoring.condorLogSummary()
+        self.gflFactoryConfig.rrd_stats = glideFactoryMonitoring.FactoryStatusData(base_dir=self.monitoringConfig.monitor_dir)
         self.gflFactoryConfig.rrd_stats.base_dir = self.monitorDir
 
         # Add cleaners for the user log directories
@@ -337,11 +341,11 @@ class Entry:
         self.gflFactoryConfig.log_stats.reset()
 
         # This one is used for stats advertized in the ClassAd
-        self.gflFactoryConfig.client_stats = glideFactoryMonitoring.condorQStats(log=self.log)
+        self.gflFactoryConfig.client_stats = glideFactoryMonitoring.condorQStats()
         # These two are used to write the history to disk
-        self.gflFactoryConfig.qc_stats = glideFactoryMonitoring.condorQStats(log=self.log)
+        self.gflFactoryConfig.qc_stats = glideFactoryMonitoring.condorQStats()
         self.gflFactoryConfig.client_internals = {}
-        self.log.info("Iteration initialized")
+        logSupport.log.info("Iteration initialized")
 
 
     def unsetInDowntime(self):
@@ -562,23 +566,23 @@ class Entry:
         global log_rrd_thread, qc_rrd_thread
 
         self.loadContext()
-
-        self.log.info("Computing log_stats diff for %s" % self.name)
+        grouplog = logSupport.log
+        logSupport.log.info("Computing log_stats diff for %s" % self.name)
         self.gflFactoryConfig.log_stats.computeDiff()
-        self.log.info("log_stats diff computed")
+        grouplog.info("log_stats diff computed")
 
-        self.log.info("Writing log_stats for %s" % self.name)
+        grouplog.info("Writing log_stats for %s" % self.name)
         self.gflFactoryConfig.log_stats.write_file(monitoringConfig=self.monitoringConfig)
-        self.log.info("log_stats written")
+        grouplog.info("log_stats written")
 
         self.gflFactoryConfig.qc_stats.finalizeClientMonitor()
-        self.log.info("Writing qc_stats for %s" % self.name)
+        grouplog.info("Writing qc_stats for %s" % self.name)
         self.gflFactoryConfig.qc_stats.write_file(monitoringConfig=self.monitoringConfig)
-        self.log.info("qc_stats written")
+        grouplog.info("qc_stats written")
 
-        self.log.info("Writing rrd_stats for %s" % self.name)
+        grouplog.info("Writing rrd_stats for %s" % self.name)
         self.gflFactoryConfig.rrd_stats.writeFiles(monitoringConfig=self.monitoringConfig)
-        self.log.info("rrd_stats written")
+        grouplog.info("rrd_stats written")
 
         return
 
@@ -723,24 +727,13 @@ class Entry:
         """
 
         self.gflFactoryConfig.client_stats = state.get('client_stats')
-        if self.gflFactoryConfig.client_stats:
-            self.gflFactoryConfig.client_stats.log = self.log
-
         self.gflFactoryConfig.qc_stats = state.get('qc_stats')
-        if self.gflFactoryConfig.qc_stats:
-            self.gflFactoryConfig.qc_stats.log = self.log
-
         self.gflFactoryConfig.rrd_stats = state.get('rrd_stats')
-        if self.gflFactoryConfig.rrd_stats:
-            self.gflFactoryConfig.rrd_stats.log = self.log
-
         self.gflFactoryConfig.client_internals = state.get('client_internals')
 
         self.glideinTotals = state.get('glidein_totals')
 
         self.gflFactoryConfig.log_stats = state['log_stats']
-        if self.gflFactoryConfig.log_stats:
-            self.gflFactoryConfig.log_stats.log = self.log
 
         # Load info for latest log_stats correctly
         """
