@@ -237,6 +237,9 @@ class ForkManager:
                      functions_remaining -= e.nr_errors
                      failed_keys = e.failed
 
+                     # free up a slot from the crashed child
+                     forks_remaining += e.nr_errors
+
                  post_work_info.update(post_work_info_subset)
                  forks_remaining += len(post_work_info_subset)
                  functions_remaining -= len(post_work_info_subset)
