@@ -229,7 +229,7 @@ class ForkManager:
                      # logSupport.log.debug("Checking finished workers")
                      post_work_info_subset = fetch_ready_fork_result_list(pipe_ids)
                  except ForkResultError, e:
-                     logSupport.log.info("Error in reading child(ren) %s" % ','.join([x.name for x in e.failed]))
+                     logSupport.log.info("Error in reading child(ren) %s" % ','.join(e.failed))
                      for i in self.key_list:
                          del pipe_ids[i]
                          raise ForkResultError(nr_errors, post_work_info)
@@ -262,7 +262,7 @@ class ForkManager:
                 # logSupport.log.debug("Checking finished workers")
                 post_work_info_subset = fetch_ready_fork_result_list(pipe_ids)
             except ForkResultError, e:
-                logSupport.log.info("Error in reading child(ren) %s" % ','.join([x.name for x in e.failed]))
+                logSupport.log.info("Error in reading child(ren) %s" % ','.join(e.failed))
                 for i in self.key_list:
                     del pipe_ids[i]
                     raise ForkResultError(nr_errors, post_work_info)
@@ -271,7 +271,7 @@ class ForkManager:
             forks_remaining += len(post_work_info_subset)
             functions_remaining -= len(post_work_info_subset)
 
-            for i in (post_work_info_subset.keys())
+            for i in (post_work_info_subset.keys()):
                 del pipe_ids[i]
 
             if len(post_work_info_subset)>0:
