@@ -220,7 +220,6 @@ class ForkManager:
                        # log here, since we will have to wait
                        logSupport.log.info("Active forks = %i, Forks to finish = %i"%(max_forks,functions_remaining))
              while (forks_remaining == 0):
-                 failed_keys = []
                  # Give some time for the processes to finish the work
                  # logSupport.log.debug("Reached parallel_workers limit of %s" % parallel_workers)
                  time.sleep(sleep_time)
@@ -230,12 +229,10 @@ class ForkManager:
                      # logSupport.log.debug("Checking finished workers")
                      post_work_info_subset = fetch_ready_fork_result_list(pipe_ids)
                  except ForkResultError, e:
-                     # Collect the partial result
-                     post_work_info_subset = e.good_results
-                     # Expect all errors logged already, just count
-                     nr_errors += e.nr_errors
-                     functions_remaining -= e.nr_errors
-                     failed_keys = e.failed
+                     logSupport.log.info("Error in reading child(ren) %s" % ','.join([x.name for x in e.failed]))
+                     for i in self.key_list:
+                         del pipe_ids[i]
+                         raise ForkResultError(nr_errors, post_work_info)
 
                      # free up a slot from the crashed child
                      forks_remaining += e.nr_errors
@@ -244,8 +241,6 @@ class ForkManager:
                  forks_remaining += len(post_work_info_subset)
                  functions_remaining -= len(post_work_info_subset)
 
-                 for i in (post_work_info_subset.keys() + failed_keys):
-                     del pipe_ids[i]
                  #end for
              #end while
 
@@ -259,7 +254,6 @@ class ForkManager:
          
          # now we just have to wait for all to finish
          while (functions_remaining>0):
-            failed_keys = []
             # Give some time for the processes to finish the work
             time.sleep(sleep_time)
 
@@ -268,18 +262,16 @@ class ForkManager:
                 # logSupport.log.debug("Checking finished workers")
                 post_work_info_subset = fetch_ready_fork_result_list(pipe_ids)
             except ForkResultError, e:
-                # Collect the partial result
-                post_work_info_subset = e.good_results
-                # Expect all errors logged already, just count
-                nr_errors += e.nr_errors
-                functions_remaining -= e.nr_errors
-                failed_keys = e.failed
+                logSupport.log.info("Error in reading child(ren) %s" % ','.join([x.name for x in e.failed]))
+                for i in self.key_list:
+                    del pipe_ids[i]
+                    raise ForkResultError(nr_errors, post_work_info)
 
             post_work_info.update(post_work_info_subset)
             forks_remaining += len(post_work_info_subset)
             functions_remaining -= len(post_work_info_subset)
 
-            for i in (post_work_info_subset.keys() + failed_keys):
+            for i in (post_work_info_subset.keys())
                 del pipe_ids[i]
 
             if len(post_work_info_subset)>0:
