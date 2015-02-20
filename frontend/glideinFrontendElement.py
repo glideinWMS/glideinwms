@@ -131,6 +131,8 @@ class glideinFrontendElement:
         # If not None, this is a request for removal of glideins only (i.e. do not ask for more)
         self.request_removal_wtype = None
         self.request_removal_excess_only = False
+        self.ha_mode = glideinFrontendLib.getHAMode(self.elementDescript.frontend_data)
+
 
     def configure(self):
         ''' Do some initial configuration of the element. '''
@@ -153,6 +155,7 @@ class glideinFrontendElement:
                                               plog['compression'])
 
         logSupport.log = logging.getLogger(self.group_name)
+
 
         # We will be starting often, so reduce the clutter
         #logSupport.log.info("Logging initialized")
@@ -265,19 +268,26 @@ class glideinFrontendElement:
         for factory_pool in self.factory_pools:
             factory_pool_node = factory_pool[0]
             try:
-                glideinFrontendInterface.deadvertizeAllWork(factory_pool_node, self.published_frontend_name)
+                glideinFrontendInterface.deadvertizeAllWork(
+                    factory_pool_node,
+                    self.published_frontend_name,
+                    ha_mode=self.ha_mode)
             except:
                 logSupport.log.warning("Failed to deadvertise work on %s"%factory_pool_node)
 
             try:
-                glideinFrontendInterface.deadvertizeAllGlobals(factory_pool_node, self.published_frontend_name)
+                glideinFrontendInterface.deadvertizeAllGlobals(
+                    factory_pool_node,
+                    self.published_frontend_name,
+                    ha_mode=self.ha_mode)
             except:
                 logSupport.log.warning("Failed to deadvertise globals on %s"%factory_pool_node)
 
         # Invalidate all glideresource classads
         try:
             resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser()
-            resource_advertiser.invalidateConstrainedClassads('GlideClientName == "%s"' % self.published_frontend_name)
+            resource_advertiser.invalidateConstrainedClassads(
+                '(GlideClientName=="%s")&&(GlideFrontendHAMode=?=%s)' % (self.published_frontend_name, self.ha_mode))
         except:
             logSupport.log.warning("Failed to deadvertise resources classads")
 
@@ -422,7 +432,8 @@ class glideinFrontendElement:
                            self.signatureDescript.signature_type,
                            self.signatureDescript.frontend_descript_signature,
                            self.signatureDescript.group_descript_signature,
-                           self.x509_proxy_plugin)
+                           x509_proxies_plugin=self.x509_proxy_plugin,
+                           ha_mode=self.ha_mode)
         descript_obj.add_monitoring_url(self.monitoring_web_url)
 
         # reuse between loops might be a good idea, but this will work for now
@@ -654,7 +665,7 @@ class glideinFrontendElement:
                                key_obj=key_obj, glidein_params_to_encrypt=None,
                                security_name=self.security_name,
                                trust_domain=trust_domain,
-                               auth_method=auth_method)
+                               auth_method=auth_method, ha_mode=self.ha_mode)
             else:
                 logSupport.log.warning("Cannot advertise requests for %s because no factory %s key was found"% (request_name, factory_pool_node))
 
@@ -819,8 +830,11 @@ class glideinFrontendElement:
 
     def build_resource_classad(self, this_stats_arr, request_name, glidein_el, glidein_in_downtime):
         # Create the resource classad and populate the required information
-        resource_classad = glideinFrontendInterface.ResourceClassad(request_name, self.published_frontend_name)
-        resource_classad.setFrontendDetails(self.frontend_name,self.group_name)
+        resource_classad = glideinFrontendInterface.ResourceClassad(
+                               request_name, self.published_frontend_name)
+        resource_classad.setFrontendDetails(self.frontend_name,
+                                            self.group_name,
+                                            self.ha_mode)
         resource_classad.setInDownTime(glidein_in_downtime)
         resource_classad.setEntryInfo(glidein_el['attrs'])
         resource_classad.setGlideFactoryMonitorInfo(glidein_el['monitor'])
@@ -1095,7 +1109,9 @@ class glideinFrontendElement:
                 factory_pool_node = factory_pool[0]
                 my_identity_at_factory_pool = factory_pool[2]
                 try:
-                    factory_globals_dict = glideinFrontendInterface.findGlobals(factory_pool_node, None, None)
+                    factory_globals_dict = glideinFrontendInterface.findGlobals(
+                        factory_pool_node, None,
+                        glideinFrontendInterface.frontendConfig.factory_global)
                 except RuntimeError:
                     # Failed to talk or likely result is empty
                     # Maybe the next factory will have something

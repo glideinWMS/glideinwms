@@ -142,6 +142,23 @@ def findGlobals(pool_name, auth_identity, classad_type,
     return format_condor_dict(data)
     
 
+def findMasterFrontendClassads(pool_name, frontend_name):
+    """
+    Query the given pool to find master frontend classads
+    """
+
+    status_constraint = '(GlideinMyType=?="%s")||(GlideinMyType=?="%s")' % ('glideclientglobal', 'glideclient')
+    frontend_constraint = '(FrontendName=?="%s")&&(FrontendHAMode=!="slave")' % frontend_name
+
+    status = condorMonitor.CondorStatus('any', pool_name=pool_name)
+    #important, especially for proxy passing
+    status.require_integrity(True)
+    status.load('(%s)&&(%s)' % (status_constraint, frontend_constraint))
+    data = status.fetchStored()
+
+    return format_condor_dict(data)
+
+
 # can throw condorExe.ExeError
 def findGlideins(factory_pool, factory_identity,
                  signtype,
@@ -440,7 +457,7 @@ class FrontendDescript:
                  my_name,frontend_name,group_name,
                  web_url, main_descript, group_descript,
                  signtype, main_sign, group_sign,
-                 x509_proxies_plugin=None):
+                 x509_proxies_plugin=None, ha_mode='master'):
         self.my_name=my_name
         self.frontend_name=frontend_name
         self.web_url=web_url
@@ -452,6 +469,7 @@ class FrontendDescript:
         self.group_name=group_name
         self.group_descript=group_descript
         self.group_sign=group_sign
+        self.ha_mode=ha_mode
 
     # Accessor method for monitoring web url
     def add_monitoring_url(self, monitoring_web_url):
@@ -464,6 +482,7 @@ class FrontendDescript:
     def get_id_attrs(self):
         return ('ClientName = "%s"'%self.my_name,
                 'FrontendName = "%s"'%self.frontend_name,
+                'FrontendHAMode = "%s"'%self.ha_mode,
                 'GroupName = "%s"'%self.group_name)
 
     def get_web_attrs(self):
@@ -650,7 +669,8 @@ class MultiAdvertizeWork:
             security_name=None,               # needs key_obj
             remove_excess_str=None,
             trust_domain="Any",
-            auth_method="Any"):
+            auth_method="Any",
+            ha_mode='master'):
 
         params_obj=AdvertizeParams(request_name,glidein_name,
                                    min_nr_glideins,max_run_glideins,
@@ -663,6 +683,7 @@ class MultiAdvertizeWork:
             self.factory_queue[factory_pool] = []
         self.factory_queue[factory_pool].append((params_obj, key_obj))
         self.factory_constraint[params_obj.request_name]=(trust_domain, auth_method)
+        self.ha_mode = ha_mode
 
     def add_global(self,factory_pool,request_name,security_name,key_obj):
         self.global_pool.append(factory_pool)
@@ -817,6 +838,7 @@ class MultiAdvertizeWork:
             fd.write('GlideinWMSVersion = "%s"\n'%frontendConfig.glideinwms_version)
             fd.write('Name = "%s"\n'%classad_name)
             fd.write('FrontendName = "%s"\n'%self.descript_obj.frontend_name)
+            fd.write('FrontendHAMode = "%s"\n'%self.ha_mode)
             fd.write('GroupName = "%s"\n'%self.descript_obj.group_name)
             fd.write('ClientName = "%s"\n'%self.descript_obj.my_name)
             for i in range(nr_credentials):
@@ -1115,7 +1137,7 @@ def writeTypedClassadAttrToFile(fd, attr_name, attr_value):
 
 
 # Remove ClassAd from Collector
-def deadvertizeAllWork(factory_pool, my_name):
+def deadvertizeAllWork(factory_pool, my_name, ha_mode='master'):
     """
     Removes all work requests for the client in the factory.
     """
@@ -1127,7 +1149,7 @@ def deadvertizeAllWork(factory_pool, my_name):
         try:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % frontendConfig.client_id)
-            fd.write('Requirements = (ClientName == "%s") && (GlideinMyType == "%s")\n' % (my_name, frontendConfig.client_id))
+            fd.write('Requirements = (ClientName == "%s") && (GlideinMyType == "%s") && (FrontendHAMode == "%s")\n' % (my_name, frontendConfig.client_id, ha_mode))
         finally:
             fd.close()
 
@@ -1135,7 +1157,7 @@ def deadvertizeAllWork(factory_pool, my_name):
     finally:
         os.remove(tmpnam)
 
-def deadvertizeAllGlobals(factory_pool, my_name):
+def deadvertizeAllGlobals(factory_pool, my_name, ha_mode='master'):
     """
     Removes all globals classads for the client in the factory.
     """
@@ -1147,7 +1169,7 @@ def deadvertizeAllGlobals(factory_pool, my_name):
         try:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % frontendConfig.client_global)
-            fd.write('Requirements = (ClientName == "%s") && (GlideinMyType == "%s")\n' % (my_name, frontendConfig.client_global))
+            fd.write('Requirements = (ClientName == "%s") && (GlideinMyType == "%s") && (FrontendHAMode == "%s")\n' % (my_name, frontendConfig.client_global, ha_mode))
         finally:
             fd.close()
 
@@ -1194,7 +1216,7 @@ class ResourceClassad(classadSupport.Classad):
             advertizeGRCounter[self.adParams['Name']] = 0
         self.adParams['UpdateSequenceNumber'] = advertizeGRCounter[self.adParams['Name']]
 
-    def setFrontendDetails(self, frontend_name, group_name):
+    def setFrontendDetails(self, frontend_name, group_name, ha_mode):
         """
         Add the detailed description of the frontend.
         @type frontend_name: string
@@ -1204,6 +1226,7 @@ class ResourceClassad(classadSupport.Classad):
         """
         self.adParams['GlideFrontendName'] = "%s" % frontend_name
         self.adParams['GlideGroupName'] = "%s" % group_name
+        self.adParams['GlideFrontendHAMode'] = "%s" % ha_mode
         
     def setMatchExprs(self, match_expr, job_query_expr, factory_query_expr, start_expr):
         """
