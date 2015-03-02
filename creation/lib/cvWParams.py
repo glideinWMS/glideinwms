@@ -319,7 +319,7 @@ class VOFrontendParams(cWParams.CommonParams):
                     pel['security_class']="group_%s"%group_name
 
         # verify and populate HA
-        if self.high_availability['enabled']:
+        if self.high_availability['enabled'].lower() == 'True':
             if (len(self.high_availability['ha_frontends']) == 1):
                 haf = self.high_availability['ha_frontends'][0]
                 if not haf['frontend_name']:
