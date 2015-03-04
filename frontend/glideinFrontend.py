@@ -36,6 +36,7 @@ from glideinwms.frontend import glideinFrontendLib
 from glideinwms.frontend import glideinFrontendInterface
 from glideinwms.frontend import glideinFrontendMonitorAggregator
 from glideinwms.frontend import glideinFrontendMonitoring
+from glideinFrontendElement import glideinFrontendElement
 
 ############################################################
 # KEL remove this method and just call the monitor aggregator method directly below?  we don't use the results
@@ -247,13 +248,18 @@ def spawn(sleep_time, advertize_rate, work_dir, frontendDescript,
     num_groups=len(groups)
     # TODO: Get the ha_check_interval from the config
     ha = glideinFrontendLib.getHASettings(frontendDescript.data)
-    logSupport.log.info(ha)
+    #logSupport.log.info(ha)
     ha_check_interval = glideinFrontendLib.getHACheckInterval(frontendDescript.data)
     mode = glideinFrontendLib.getHAMode(frontendDescript.data)
+    master_frontend_name = ''
+    if mode == 'slave':
+        master_frontend_name = ha.get('ha_frontends')[0].get('frontend_name')
+
     active = (mode == 'master')
     hibernate = shouldHibernate(frontendDescript, work_dir,
                                 ha, mode, groups)
 
+    logSupport.log.info('Frontend started as %s' % mode)
     try:
 
         # Service will exit on signal only.
@@ -265,7 +271,7 @@ def spawn(sleep_time, advertize_rate, work_dir, frontendDescript,
 
             while hibernate:
                 # If I am slave enter hibernation cycle while Master is alive
-                logSupport.log.info('Master Frontend is online. Hibernating.')
+                logSupport.log.info('Master Frontend %s is online. Hibernating.' % master_frontend_name)
                 time.sleep(ha_check_interval)
                 hibernate = shouldHibernate(frontendDescript, work_dir,
                                             ha, mode, groups)
@@ -273,7 +279,7 @@ def spawn(sleep_time, advertize_rate, work_dir, frontendDescript,
             # We broke out of hibernation cycle
             # Either Master has disappeared or I am the Master
             if mode == 'slave':
-                logSupport.log.info("Master frontend is offline. Activating slave frontend.")
+                logSupport.log.info("Master frontend %s is offline. Activating slave frontend." % master_frontend_name)
                 active = True
 
             failure_dict={}
@@ -309,11 +315,11 @@ def spawn(sleep_time, advertize_rate, work_dir, frontendDescript,
 
                     if hibernate:
                         active = False
-                        logSupport.log.info("Master frontend is back online")
+                        logSupport.log.info("Master frontend %s is back online" % master_frontend_name)
                         logSupport.log.info("Deadvertize my ads and enter hibernation cycle")
                         spawn_cleanup(work_dir, groups)
                     else:
-                        logSupport.log.info("Master frontend is still offline")
+                        logSupport.log.info("Master frontend %s is still offline" % master_frontend_name)
                     
 
     finally:
@@ -332,11 +338,10 @@ def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
     @return: True if we should hibernate else False
     """
 
-    from glideinFrontendElement import glideinFrontendElement
     hibernate = False
 
     if mode == 'slave':
-        frontend_name = ha.get('ha_frontends')[0].get('frontend_name')
+        master_frontend_name = ha.get('ha_frontends')[0].get('frontend_name')
 
         for group in groups:
             element = glideinFrontendElement(os.getpid(), work_dir,
@@ -350,7 +355,7 @@ def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
             for factory_pool in element.factory_pools:
                 factory_pool_node = factory_pool[0]
 
-                master_classads = glideinFrontendInterface.findMasterFrontendClassads(factory_pool_node, frontend_name)
+                master_classads = glideinFrontendInterface.findMasterFrontendClassads(factory_pool_node, master_frontend_name)
 
                 if master_classads:
                     # Found some classads in one of the collectors
