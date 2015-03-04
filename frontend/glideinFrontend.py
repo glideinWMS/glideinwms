@@ -248,7 +248,6 @@ def spawn(sleep_time, advertize_rate, work_dir, frontendDescript,
     num_groups=len(groups)
     # TODO: Get the ha_check_interval from the config
     ha = glideinFrontendLib.getHASettings(frontendDescript.data)
-    #logSupport.log.info(ha)
     ha_check_interval = glideinFrontendLib.getHACheckInterval(frontendDescript.data)
     mode = glideinFrontendLib.getHAMode(frontendDescript.data)
     master_frontend_name = ''
