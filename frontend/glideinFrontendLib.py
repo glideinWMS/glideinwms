@@ -977,7 +977,7 @@ def getHAMode(frontend_data):
 
     mode = 'master'
     ha = getHASettings(frontend_data)
-    if ha and (ha.get('enabled') == True):
+    if ha and (ha.get('enabled').lower() == 'true'):
         mode = 'slave'
     return mode
 
