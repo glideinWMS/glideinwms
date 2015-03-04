@@ -228,7 +228,7 @@ class VOFrontendParams(cWParams.CommonParams):
         ha_defaults = cWParams.commentedOrderedDict()
         ha_defaults['ha_frontends'] = ([], 'List of frontends in  HA mode',
                                        'Each element contains', haf_defaults)
-        ha_defaults["enabled"]=(False, 'Bool', 'Enable HA?', None)
+        ha_defaults["enabled"]=('False', 'Bool', 'Enable HA?', None)
         ha_defaults["check_interval"]=('300', 'NR', 'How frequently should slav check if the master is down', None)
         #ha_defaults["activation_delay"]=('150', 'NR', 'How many sec to wait before slav activates after detecting that master is down', None)
         self.defaults['high_availability'] = ha_defaults
