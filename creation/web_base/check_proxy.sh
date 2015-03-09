@@ -83,12 +83,12 @@ function get_x509_expiration {
     fi
 
     if [ $ret -eq 0 ]; then
-	if [ $l -lt 43200 ]; then 
-	    STR="Proxy not valid in in 12 hours, only $l seconds left!\n"
-	    STR+="Proxy shorter than 12 hours are not allowed."
-	    STR1=`echo -e "$STR"`
-	    "$error_gen" -error "check_proxy.sh" "VO_Proxy" "$STR1" "proxy" "$X509_USER_PROXY"
-	    exit 1
+        if [ $l -lt 43200 ]; then 
+            STR="Proxy not valid in in 12 hours, only $l seconds left!\n"
+            STR+="Proxy shorter than 12 hours are not allowed."
+            STR1=`echo -e "$STR"`
+            "$error_gen" -error "check_proxy.sh" "VO_Proxy" "$STR1" "proxy" "$X509_USER_PROXY"
+            exit 1
         fi
         RETVAL="$(/usr/bin/expr $now + $l)"
     else
