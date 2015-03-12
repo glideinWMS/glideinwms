@@ -161,12 +161,13 @@ def findMasterFrontendClassads(pool_name, frontend_name):
 
 # can throw condorExe.ExeError
 def findGlideins(factory_pool, factory_identity,
-                 signtype,
-                 additional_constraint=None):
+                 signtype, additional_constraint=None):
     global frontendConfig
 
     status_constraint = '(GlideinMyType=?="%s")' % frontendConfig.factory_id
-    if not ((factory_identity is None) or (factory_identity == '*')): # identity checking can be disabled, if really wanted
+
+    # identity checking can be disabled, if really wanted
+    if not ((factory_identity is None) or (factory_identity == '*')):
         # filter based on AuthenticatedIdentity
         status_constraint += ' && (AuthenticatedIdentity=?="%s")' % factory_identity
 
@@ -186,13 +187,20 @@ def findGlideins(factory_pool, factory_identity,
     return format_condor_dict(data)
 
 
-def findGlideinClientMonitoring(factory_pool, my_name,
-                                additional_constraint=None):
+def findGlideinClientMonitoring(factory_pool, factory_identity,
+                                my_name, additional_constraint=None):
     global frontendConfig
 
     status_constraint = '(GlideinMyType=?="%s")' % frontendConfig.factoryclient_id
+
+    # identity checking can be disabled, if really wanted
+    if not ((factory_identity is None) or (factory_identity == '*')):
+        # filter based on AuthenticatedIdentity
+        status_constraint += ' && (AuthenticatedIdentity=?="%s")' % factory_identity
+
     if my_name is not None:
-        status_constraint = '%s && (ReqClientName=?="%s")' % my_name
+        status_constraint = '%s && (ReqClientName=?="%s")' % (status_constraint, my_name)
+
     if additional_constraint is not None:
         status_constraint = "%s && (%s)" % (status_constraint, additional_constraint)
     status = condorMonitor.CondorStatus("any", pool_name=factory_pool)
@@ -200,6 +208,7 @@ def findGlideinClientMonitoring(factory_pool, my_name,
 
     data = status.fetchStored()
     return format_condor_dict(data)
+
 
 def format_condor_dict(data):
     """
@@ -1316,18 +1325,19 @@ class ResourceClassad(classadSupport.Classad):
         @type info: string 
         @param info: Useful information from the glidefactoryclient classad
         """
-        
+
         # Required keys do not start with TotalClientMonitor but only
-        # start with Total. Substitute Total with GlideFactoryMonitor
-        # and put it in the classad
-        
+        # start with Total or Status or Requested. Append GlideFactoryMonitor
+        # to these keys and put them in the classad
+
         for key in info.keys():
+            ad_key = key
             if not key.startswith('TotalClientMonitor'):
-                if key.startswith('Total'):
-                    ad_key = key.replace('Total', 'GlideFactoryMonitor', 1)
+                if key.startswith('Total') or key.startswith('Status') or key.startswith('Requested'):
+                    ad_key = 'GlideFactoryMonitor' + key
                     self.adParams[ad_key] = info[key]
-    
-    
+
+
 class ResourceClassadAdvertiser(classadSupport.ClassadAdvertiser):
     """
     Class to handle the advertisement of resource classads to the user pool
