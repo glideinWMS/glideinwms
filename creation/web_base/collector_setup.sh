@@ -70,6 +70,37 @@ function parse_and_select_collectors {
     echo "$outlist"
 }
 
+function csv_shuffle {
+    local inlist="$1"
+
+    local outlist="`echo "$inlist" | sed -r 's/(.[^,]*,)/ \1 /g' | tr " " "\n" | while IFS= read -r line
+do
+    printf "%06d %s\n" $RANDOM "$line"
+done | sort -n | cut -c8- | tr -d "\n" | sed -r 's/,+/,/g'`"
+
+    echo ${outlist}
+}
+
+function parse_and_shuffle_ccbs {
+    local inattr="$1"
+
+    local inlist="`grep "^$inattr " $glidein_config | awk '{print $2}'`"
+    if [ -z "$inlist" ]; then
+        echo ""
+        return 0
+    fi
+    
+    local outlist=""
+    which shuf > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        outlist="`echo "$inlist," | sed -r 's/(.[^,]*,)/ \1 /g' | tr " " "\n" | shuf | tr -d "\n" | sed -r 's/,+/,/g'`"
+    else
+        outlist="`csv_shuffle "$inlist,"`"
+    fi
+
+    echo "${outlist%,}"
+}
+
 # import add_config_line function
 add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
 source $add_config_line_source
@@ -86,6 +117,17 @@ if [ -z "$collector_host" ]; then
     exit 1
 fi
 add_config_line GLIDEIN_Collector $collector_host
+
+ccb_host="`parse_and_shuffle_ccbs GLIDEIN_CCB`"
+if [ -z "ccb_host" ]; then
+    echo "No GLIDEIN_CCB found (use collectors)!" 1>&2
+    #STR="No GLIDEIN_CCB found!"
+    #"$error_gen" -ok "collector_setup.sh" "Corruption" "$STR" "attribute" "GLIDEIN_Collector"
+else
+    add_config_line GLIDEIN_CCB $ccb_host
+fi
+
+
 
 factory_collector_host="`parse_and_select_collectors GLIDEIN_Factory_Collector`"
 if [ -z "$factory_collector_host" ]; then

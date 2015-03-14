@@ -84,8 +84,9 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         
         self.dicts['consts'].add('GLIDECLIENT_Start',real_start_expr)
         
-        # create GLIDEIN_Collector attribute
+        # create GLIDEIN_Collector and GLIDEIN_CCB attribute
         self.dicts['params'].add_extended('GLIDEIN_Collector',False,str(calc_glidein_collectors(params.collectors)))
+        self.dicts['params'].add_extended('GLIDEIN_CCB',False,str(calc_glidein_ccbs(params.ccb_collectors)))
         populate_gridmap(params,self.dicts['gridmap'])
 
         if self.dicts['preentry_file_list'].is_placeholder(cWConsts.GRIDMAP_FILE): # gridmapfile is optional, so if not loaded, remove the placeholder
@@ -751,6 +752,16 @@ def calc_glidein_collectors(collectors):
             glidein_collectors.append(string.join(collector_nodes[group]['primary'], ","))
     return string.join(glidein_collectors, ";")
 
+#####################################################
+# Returns a string usable for GLIDEIN_CCB
+def calc_glidein_ccbs(collectors):
+    # All CCB collectors are equivalent
+    glidein_ccb_collectors = []
+
+    for el in collectors:
+        cWDictFile.validate_node(el.node)
+        glidein_ccb_collectors.append(el.node)
+    return string.join(glidein_ccb_collectors, ",")
 
 #####################################################
 # Populate gridmap to be used by the glideins

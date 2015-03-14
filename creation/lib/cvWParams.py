@@ -13,14 +13,14 @@
 
 import os
 import copy
-import sys
-import os.path
-import string
+import sys  # not used
+import os.path  # not needed (os is sufficient)
+import string  # not used
 import socket
-import types
-import traceback
+import types  # not used
+import traceback  # not used
 from glideinwms.lib import xmlParse
-from glideinwms.lib import condorExe
+from glideinwms.lib import condorExe  # not used
 import cWParams
 
 
@@ -188,11 +188,18 @@ class VOFrontendParams(cWParams.CommonParams):
         
         pool_collector_defaults=cWParams.commentedOrderedDict()
         pool_collector_defaults["node"]=(None,"nodename","Pool collector node name (for example, col1.my.org:9999)",None)
-        pool_collector_defaults["DN"]=(None,"dn","Factory collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=col1.my.org)",None)
+        pool_collector_defaults["DN"]=(None,"dn","Pool collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=col1.my.org)",None)
         pool_collector_defaults["secondary"]=("False","Bool","Secondary nodes will be used by glideins, if present",None)
         pool_collector_defaults["group"]=("default","string","Collector group name useful to group HA setup",None)
 
         self.defaults["collectors"]=([],'List of pool collectors',"Each proxy collector contains",pool_collector_defaults)
+
+        ccb_collector_defaults=cWParams.commentedOrderedDict()
+        ccb_collector_defaults["node"]=(None,"nodename","CCB collector node name (for example, ccb1.my.org:9999)",None)
+        ccb_collector_defaults["DN"]=(None,"dn","CCB collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=ccb1.my.org)",None)
+        self.defaults["ccbs"]=([],'List of CCB collectors',"Each CCB contains",ccb_collector_defaults)
+
+
 
         self.defaults["security"]=copy.deepcopy(security_defaults)
         self.defaults["security"]["classad_proxy"]=(None,"fname","File name of the proxy used for talking to the WMS collector",None)
