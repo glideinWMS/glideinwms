@@ -7,7 +7,7 @@ JOBLOGPREFIX=/var/log/gwms-factory/client/user_frontend/glidein_gfactory_instanc
 # TODO: substitute with a real temp file and delete after use (or print file name)
 TMPLOG=/tmp/pilot_launcher.log.$UID
 
-LOGNAME=
+CONFIG_FNAME=/etc/gwms-factory/glideinWMS.xml
 
 
 function help_msg {
@@ -25,7 +25,31 @@ $0 -l
   -h       print this message
   -l       list all entries (arguments are ignored)
   -r       Remote running jobs. pilot_launcher.log is fetched form the VM 
+  -c FNAME Factory configuration file (default: /etc/gwms-factory/glideinWMS.xml)
 EOF
+}
+
+function find_dirs {
+  if [ ! -f "$TOOLDIR/cat_logs.py" ]; then 
+    TOOLDIR="$(dirname "$(readlink -f $0)")"
+    if [ ! -f "$TOOLDIR/cat_logs.py" ]; then 
+      TOOLDIR=/usr/lib/python2.4/site-packages/glideinwms/factory/tools
+    fi
+    if [ ! -f "$TOOLDIR/cat_logs.py" ]; then 
+      echo "Unable to find the directory with the factory tools."
+      exit 1
+    fi
+  fi
+  if [ ! -d "${JOBLOGPREFIX%/entry_}" ]; then
+    #    <submit base_client_log_dir="/var/log/gwms-factory/client" base_client_proxies_
+    # log_dir=$(grep -E 'submit[ '$'\t'']+base_client_log_dir' | sed 's/.*base_client_log_dir="\(.*\)".*/\1/' )
+    log_dir=$(grep -E 'submit[ '$'\t'']+base_client_log_dir' "$CONFIG_FNAME" | sed 's/.*base_client_log_dir="\([^"]*\)".*/\1/' )
+    if [ ! -d "${log_dir}/user_frontend/glidein_gfactory_instance" ]; then
+      echo "Unable to find the factory client log directory."
+      exit 1
+    fi
+    JOBLOGPREFIX="${log_dir}/user_frontend/glidein_gfactory_instance/entry_"
+  fi
 }
 
 function get_last_log {
@@ -48,10 +72,18 @@ do
   in
   "h") help_msg; exit 0;;
   "v") VERBOSE=yes;;
-  l) list_entries; exit 0;;
+  l) LIST_ENTRIES=yes;;
   r) REMOTE=yes;;
+  c) CONFIG_FNAME=$OPTARG;;
   esac
 done
+
+find_dirs
+
+if [ -n "$LIST_ENTRIES" ]; then 
+  list_entries 
+  exit 0
+fi 
 
 shift $((OPTIND-1))
 
@@ -73,6 +105,7 @@ case $logoption in
   startdhistory) LOGNAME=cat_StartdHistory.py;;
   *) echo "Unknown LOG_TYPE: $logoption"; help_msg; exit 1;;
 esac
+
 
 if [ -n "$REMOTE" ]; then
   # Copying file locally
