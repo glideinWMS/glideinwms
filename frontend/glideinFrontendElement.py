@@ -156,10 +156,8 @@ class glideinFrontendElement:
 
         logSupport.log = logging.getLogger(self.group_name)
 
-
         # We will be starting often, so reduce the clutter
         #logSupport.log.info("Logging initialized")
-        #logSupport.log.debug("Frontend Element startup time: %s" % str(self.startup_time))
 
         glideinFrontendMonitoring.monitoringConfig.monitor_dir =glideinFrontendConfig.get_group_dir(os.path.join(self.work_dir, "monitor"), self.group_name)
         glideinFrontendInterface.frontendConfig.advertise_use_tcp = (self.elementDescript.frontend_data['AdvertiseWithTCP'] in ('True', '1'))

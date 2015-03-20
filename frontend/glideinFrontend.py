@@ -255,10 +255,9 @@ def spawn(sleep_time, advertize_rate, work_dir, frontendDescript,
         master_frontend_name = ha.get('ha_frontends')[0].get('frontend_name')
 
     active = (mode == 'master')
-    hibernate = shouldHibernate(frontendDescript, work_dir,
-                                ha, mode, groups)
+    hibernate = shouldHibernate(frontendDescript, work_dir, ha, mode, groups)
 
-    logSupport.log.info('Frontend started as %s' % mode)
+    logSupport.log.info('Frontend started with mode = %s' % mode)
     try:
 
         # Service will exit on signal only.
@@ -284,12 +283,12 @@ def spawn(sleep_time, advertize_rate, work_dir, frontendDescript,
             failure_dict={}
             for group in groups:
                 failure_dict[group]=FailureCounter(group, restart_interval)
-            
-            while ( (mode == 'master') or
-                    ((mode == 'slave') and (active)) ):
+
+            while ((mode == 'master') or ((mode == 'slave' and active)):
                 start_time=time.time()
-                timings=spawn_iteration(work_dir,groups,max_parallel_workers,
-                                        failure_dict, restart_attempts, "run")
+                timings = spawn_iteration(work_dir, groups,
+                                          max_parallel_workers, failure_dict,
+                                          restart_attempts, "run")
                 end_time=time.time()
                 elapsed_time=end_time-start_time
                 if elapsed_time<sleep_time:
@@ -319,7 +318,7 @@ def spawn(sleep_time, advertize_rate, work_dir, frontendDescript,
                         spawn_cleanup(work_dir, groups)
                     else:
                         logSupport.log.info("Master frontend %s is still offline" % master_frontend_name)
-                    
+
 
     finally:
         # We have been asked to terminate
@@ -336,8 +335,6 @@ def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
     @rtype: bool
     @return: True if we should hibernate else False
     """
-
-    hibernate = False
 
     if mode == 'slave':
         master_frontend_name = ha.get('ha_frontends')[0].get('frontend_name')
@@ -358,28 +355,30 @@ def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
 
                 if master_classads:
                     # Found some classads in one of the collectors
-                    hibernate = True
-                    break
-            if hibernate:
-                # We found something. No need to continue
-                break
+                    # Cleanup the env and return True
+                    clean_htcondor_env()
+                    return True
 
-    clean_htcondor_env()
-    return hibernate
+        # Cleanup the env
+        clean_htcondor_env()
+
+    return False
 
 
 def clean_htcondor_env():
     for v in ('CONDOR_CONFIG','_CONDOR_CERTIFICATE_MAPFILE','X509_USER_PROXY'):
         if os.environ.get(v):
             del os.environ[v]
+
 ############################################################
+
 def spawn_removal(work_dir, frontendDescript, groups,
                   max_parallel_workers, removal_action):
 
     failure_dict={}
     for group in groups:
         failure_dict[group]=FailureCounter(group, 3600)
-            
+
     spawn_iteration(work_dir,groups,max_parallel_workers,
                     failure_dict, 1, removal_action)
 
