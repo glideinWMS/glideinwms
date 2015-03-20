@@ -967,3 +967,35 @@ def getGlideinCpusNum(glidein):
        glidein_cpus = int(cpus)
 
    return glidein_cpus
+
+
+def getHAMode(frontend_data):
+    """
+    Given the frontendDescript return if this frontend is to be run
+    in 'master' or 'slave' mode
+    """
+
+    mode = 'master'
+    ha = getHASettings(frontend_data)
+    if ha and (ha.get('enabled').lower() == 'true'):
+        mode = 'slave'
+    return mode
+
+
+def getHACheckInterval(frontend_data):
+    """
+    Given the frontendDescript return if this frontend is to be run
+    in 'master' or 'slave' mode
+    """
+    interval = 0
+    ha = getHASettings(frontend_data)
+    if ha and ha.get('check_interval'):
+        interval = int(ha.get('check_interval'))
+    return interval
+
+
+def getHASettings(frontend_data):
+    ha = None
+    if frontend_data.get('HighAvailability'):
+        ha = eval(frontend_data.get('HighAvailability'))
+    return ha
