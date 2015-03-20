@@ -284,7 +284,7 @@ def spawn(sleep_time, advertize_rate, work_dir, frontendDescript,
             for group in groups:
                 failure_dict[group]=FailureCounter(group, restart_interval)
 
-            while ((mode == 'master') or ((mode == 'slave' and active)):
+            while ((mode == 'master') or ((mode == 'slave') and active)):
                 start_time=time.time()
                 timings = spawn_iteration(work_dir, groups,
                                           max_parallel_workers, failure_dict,
