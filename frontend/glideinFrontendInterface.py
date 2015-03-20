@@ -151,12 +151,13 @@ def findGlideins(factory_pool, factory_identity,
     # type and trust domain
 
     if additional_constraint is not None:
-        status_constraint = "%s && (%s)" % (status_constraint, additional_constraint)
+        status_constraint += '%s && (%s)' % additional_constraint
+
     status = condorMonitor.CondorStatus("any", pool_name=factory_pool)
     status.require_integrity(True) #important, especially for proxy passing
     status.load(status_constraint)
 
-    data = status.fetchStored()    
+    data = status.fetchStored()
     return format_condor_dict(data)
 
 
@@ -172,10 +173,10 @@ def findGlideinClientMonitoring(factory_pool, factory_identity,
         status_constraint += ' && (AuthenticatedIdentity=?="%s")' % factory_identity
 
     if my_name is not None:
-        status_constraint = '%s && (ReqClientName=?="%s")' % (status_constraint, my_name)
+        status_constraint += ' && (ReqClientName=?="%s")' % my_name
 
     if additional_constraint is not None:
-        status_constraint = "%s && (%s)" % (status_constraint, additional_constraint)
+        status_constraint += ' && (%s)' % additional_constraint
     status = condorMonitor.CondorStatus("any", pool_name=factory_pool)
     status.load(status_constraint)
 
@@ -186,15 +187,15 @@ def findGlideinClientMonitoring(factory_pool, factory_identity,
 def format_condor_dict(data):
     """
     Formats the data from the condor call.
-    """    
-    
+    """
+
     reserved_names = frontendConfig.condor_reserved_names
     for k in reserved_names:
         if data.has_key(k):
             del data[k]
-    
+
     out = {}
-    
+
     for k in data.keys():
         kel = data[k].copy()
 
@@ -1237,8 +1238,8 @@ class ResourceClassad(classadSupport.Classad):
     def setGlideClientMonitorInfo(self, monitorInfo):
         """
         Set the GlideClientMonitor* for the resource in the classad
-        
-        @type monitorInfo: list 
+
+        @type monitorInfo: list
         @param monitorInfo: GlideClientMonitor information.
         """
 
@@ -1262,7 +1263,7 @@ class ResourceClassad(classadSupport.Classad):
             self.adParams['GlideClientMonitorGlideinsRequestMaxRun'] = monitorInfo[16]
         else:
             raise RuntimeError, 'Glide client monitoring structure changed. Resource ad may have incorrect GlideClientMonitor values'
-    
+
 
     def setEntryInfo(self, info):
         """
@@ -1289,7 +1290,7 @@ class ResourceClassad(classadSupport.Classad):
         """
         Set the GlideinFactoryMonitor* for the resource in the classad
 
-        @type info: string 
+        @type info: string
         @param info: Useful information from the glidefactoryclient classad
         """
 

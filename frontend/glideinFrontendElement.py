@@ -840,8 +840,9 @@ class glideinFrontendElement:
             resource_classad.setGlideFactoryMonitorInfo(
                 self.factoryclients_dict[key]['monitor'])
         except:
+            # Ignore errors. Just log them.
             logSupport.log.exception("Populating GlideFactoryMonitor info in resource classad failed: ")
-            #resource_classad.setGlideFactoryMonitorInfo(glidein_el['monitor'])
+
         resource_classad.setMatchExprs(
             self.elementDescript.merged_data['MatchExpr'],
             self.elementDescript.merged_data['JobQueryExpr'],
@@ -1154,7 +1155,7 @@ class glideinFrontendElement:
                         # if key needed, will handle the error later on
                         logSupport.log.info("Factory Globals '%s': unsupported pub key type '%s'" % (globalid, globals_el['attrs']['PubKeyType']))
 
-        except Exception, ex:
+        except Exception:
             logSupport.log.exception("Error in talking to the factory pool:")
 
         return globals_dict
@@ -1195,7 +1196,7 @@ class glideinFrontendElement:
                     break
                 factoryclients[(factory_pool_node, glidename, my_identity_at_factory_pool)] = factory_factoryclients[glidename]
 
-        except Exception, ex:
+        except Exception:
             logSupport.log.exception("Error in talking to the factory pool:")
 
         return factoryclients
