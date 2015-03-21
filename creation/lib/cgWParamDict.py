@@ -33,17 +33,18 @@ class UnconfiguredScheddError(Exception):
 ################################################
 
 class glideinMainDicts(cgWDictFile.glideinMainDicts):
-    def __init__(self,params,workdir_name):
-        cgWDictFile.glideinMainDicts.__init__(self,params.submit_dir,params.stage_dir,workdir_name,
-                                              params.log_dir,
+    def __init__(self,params,conf_dom,workdir_name):
+        cgWDictFile.glideinMainDicts.__init__(self,conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_dir'),conf_dom.getElementsByTagName(u'stage')[0].getAttribute(u'base_dir'),workdir_name,
+                                              conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),
                                               params.client_log_dirs,params.client_proxies_dirs)
-        self.monitor_dir=params.monitor_dir
+        self.monitor_dir=conf_dom.getElementsByTagName(u'monitor')[0].getAttribute(u'base_dir')
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.monitor_jslibs_dir=os.path.join(self.monitor_dir,'jslibs')
         self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_jslibs_dir,"monitor"))
         self.monitor_images_dir=os.path.join(self.monitor_dir,'images')
         self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_images_dir,"monitor"))
         self.params=params
+        self.conf_dom=conf_dom
         self.active_sub_list=[]
         self.monitor_jslibs=[]
         self.monitor_images=[]
@@ -351,14 +352,15 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 ################################################
 
 class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
-    def __init__(self,params,sub_name,
+    def __init__(self,params,conf_dom,sub_name,
                  summary_signature,workdir_name):
-        cgWDictFile.glideinEntryDicts.__init__(self,params.submit_dir,params.stage_dir,sub_name,summary_signature,workdir_name,
-                                               params.log_dir,params.client_log_dirs,params.client_proxies_dirs)
+        cgWDictFile.glideinEntryDicts.__init__(self,conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_dir'),conf_dom.getElementsByTagName(u'stage')[0].getAttribute(u'base_dir'),sub_name,summary_signature,workdir_name,
+                                               conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),params.client_log_dirs,params.client_proxies_dirs)
                                                
-        self.monitor_dir=cgWConsts.get_entry_monitor_dir(params.monitor_dir,sub_name)
+        self.monitor_dir=cgWConsts.get_entry_monitor_dir(conf_dom.getElementsByTagName(u'monitor')[0].getAttribute(u'base_dir'),sub_name)
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.params=params
+        self.conf_dom=conf_dom
 
     def erase(self):
         cgWDictFile.glideinEntryDicts.erase(self)
@@ -472,15 +474,16 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 ################################################
 
 class glideinDicts(cgWDictFile.glideinDicts):
-    def __init__(self,params,
+    def __init__(self,params,conf_dom,
                  sub_list=None): # if None, get it from params
         if sub_list is None:
-            sub_list=params.entries.keys()
+            sub_list = [e.getAttribute(u'name') for e in conf_dom.getElementsByTagName(u'entry')]
 
         self.params=params
-        cgWDictFile.glideinDicts.__init__(self,params.submit_dir,params.stage_dir,params.log_dir,params.client_log_dirs,params.client_proxies_dirs,sub_list)
+        self.conf_dom=conf_dom
+        cgWDictFile.glideinDicts.__init__(self,conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_dir'),conf_dom.getElementsByTagName(u'stage')[0].getAttribute(u'base_dir'),conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),params.client_log_dirs,params.client_proxies_dirs,sub_list)
 
-        self.monitor_dir=params.monitor_dir
+        self.monitor_dir=conf_dom.getElementsByTagName(u'monitor')[0].getAttribute(u'base_dir')
         self.active_sub_list=[]
         return
 
@@ -567,10 +570,10 @@ class glideinDicts(cgWDictFile.glideinDicts):
     ######################################
     # Redefine methods needed by parent
     def new_MainDicts(self):
-        return glideinMainDicts(self.params,self.workdir_name)
+        return glideinMainDicts(self.params,self.conf_dom,self.workdir_name)
 
     def new_SubDicts(self,sub_name):
-        return glideinEntryDicts(self.params,sub_name,
+        return glideinEntryDicts(self.params,self.conf_dom,sub_name,
                                  self.main_dicts.get_summary_signature(),self.workdir_name)
         
 ############################################################

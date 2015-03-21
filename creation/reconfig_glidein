@@ -68,11 +68,11 @@ def logReconfig(msg):
 def main(xml, params, conf_dom, old_params, update_scripts, update_def_cfg, comment=""):
     # load old files
     if not old_params is None:
-        old_glidein_dicts_obj=cgWParamDict.glideinDicts(old_params)
+        old_glidein_dicts_obj=cgWParamDict.glideinDicts(old_params, conf_dom)
         old_glidein_dicts_obj.load()
 
     # create dictionaries for new params
-    glidein_dicts_obj = cgWParamDict.glideinDicts(params)
+    glidein_dicts_obj = cgWParamDict.glideinDicts(params, conf_dom)
 
     try:
         glidein_dicts_obj.populate()
