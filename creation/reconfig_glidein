@@ -17,6 +17,7 @@ import logging
 import os.path
 import subprocess
 import tempfile
+from xml.dom.minidom import parse
 
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
@@ -64,7 +65,7 @@ def logReconfig(msg):
     logSupport.log = logging.getLogger("factoryadmin")
     logSupport.log.info("Reconfiguring factory: %s" % msg)
 
-def main(params, old_params, update_scripts, update_def_cfg, comment=""):
+def main(xml, params, conf_dom, old_params, update_scripts, update_def_cfg, comment=""):
     # load old files
     if not old_params is None:
         old_glidein_dicts_obj=cgWParamDict.glideinDicts(old_params)
@@ -108,16 +109,16 @@ def main(params, old_params, update_scripts, update_def_cfg, comment=""):
 
     if update_scripts == 'yes':
         # copy the submit files
-        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.work_dir, params.src_dir, True)
-        cgWCreate.copy_exe(cgWConsts.LOCAL_START_WRAPPER, glidein_dicts_obj.main_dicts.work_dir, params.src_dir, True)
+        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.work_dir, WEB_BASE_DIR, True)
+        cgWCreate.copy_exe(cgWConsts.LOCAL_START_WRAPPER, glidein_dicts_obj.main_dicts.work_dir, WEB_BASE_DIR, True)
         print '...Updated the glidein_startup.sh and local_start.sh scripts'
 
         # copy glidein_startup.sh to the stage area for cloud entries
-        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.stage_dir, params.src_dir, True)
+        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.stage_dir, WEB_BASE_DIR, True)
         print "...Updated the glidein_startup.sh file in the staging area"
 
         # copy privsep helper executables
-        cgWCreate.copy_exe(cgWConsts.UPDATE_PROXY_FILE, glidein_dicts_obj.main_dicts.work_dir, params.src_dir, True)
+        cgWCreate.copy_exe(cgWConsts.UPDATE_PROXY_FILE, glidein_dicts_obj.main_dicts.work_dir, WEB_BASE_DIR, True)
 
     if update_def_cfg == 'yes' or update_scripts == 'yes':
         # recreate the init.d startup file
@@ -132,11 +133,11 @@ def main(params, old_params, update_scripts, update_def_cfg, comment=""):
         cgWCreate.create_initd_startup(startup_fname,
                                        factory_dir,
                                        os.path.realpath(os.path.join(STARTUP_DIR, '..')),
-                                       params.cfg_name)
+                                       xml)
         print "...Updated the factory_startup script"
 
         if update_def_cfg == 'yes':
-            print "...Updated default config file location to: %s" % params.cfg_name
+            print "...Updated default config file location to: %s" % xml
 
     # save config into file (with backup, since the old one already exists)
     cfgfile = os.path.join(glidein_dicts_obj.main_dicts.work_dir, cgWConsts.XML_CONFIG_FILE)
@@ -152,7 +153,7 @@ def main(params, old_params, update_scripts, update_def_cfg, comment=""):
     params.save_into_file(cfgfile, set_ro=True)
     print "...Saved the backup config file into the working dir"
 
-    print "...Reconfigured glidein '%s' is complete" % params.glidein_name
+    print "...Reconfigured glidein '%s' is complete" % conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')
     print "...Active entries are:"
     for entry in glidein_dicts_obj.active_sub_list:
         print "     %s"%entry
@@ -216,6 +217,8 @@ if __name__ == '__main__':
             print usage
             sys.exit(1)
 
+    conf_dom = parse(xml)
+
     try:
         transformed_xmlfile = tempfile.NamedTemporaryFile()
         transformed_xmlfile.write(xslt.xslt_xml(old_xmlfile=xml,
@@ -228,9 +231,10 @@ if __name__ == '__main__':
         # with xml
         params.cfg_name = xml
 
+        glidein_name = conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')
         if force_name is not None:
-            if params.glidein_name != force_name:
-                raise UsageError("This is not a '%s' config file ('%s' found)" % (force_name, params.glidein_name))
+            if glidein_name != force_name:
+                raise UsageError("This is not a '%s' config file ('%s' found)" % (force_name, glidein_name))
 
         if not (writeback in ('yes', 'no')):
             raise UsageError("-writeback must be yes or no, found '%s'" % writeback)
@@ -240,7 +244,7 @@ if __name__ == '__main__':
 
         try:
             # This is the current running version, saved in the glidein work dir
-            old_config_file = os.path.join(params.submit_dir, cgWConsts.XML_CONFIG_FILE)
+            old_config_file = os.path.join(conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_dir'), cgWConsts.XML_CONFIG_FILE)
             if os.path.exists(old_config_file):
                 try:
                     old_params=cgWParams.GlideinParams(usage,WEB_BASE_DIR,[argv[0],old_config_file])
@@ -251,7 +255,7 @@ if __name__ == '__main__':
                 print "If this is the first reconfig, you can ignore this message."
                 old_params=None
             
-            main(params, old_params, update_scripts, update_def_cfg, comment=comment)
+            main(xml, params, conf_dom, old_params, update_scripts, update_def_cfg, comment=comment)
     
         except RuntimeError, e:
             raise ReconfigError(str(e))
@@ -259,8 +263,8 @@ if __name__ == '__main__':
         try:
             if writeback == 'yes':
                 # Writes back the factory admin configurable file in the .cfg directory
-                params.save_into_file_wbackup(params.cfg_name)
-                print "...Overriding the factory config file in %s to the current configuration " % params.cfg_name
+                params.save_into_file_wbackup(xml)
+                print "...Overriding the factory config file in %s to the current configuration " % xml
         except:
             raise ReconfigError("Writing back config file failed")
 
@@ -278,5 +282,7 @@ if __name__ == '__main__':
         print e
         exit_code = 1
 
+    conf_dom.unlink()
     sys.exit(exit_code)
+
 
