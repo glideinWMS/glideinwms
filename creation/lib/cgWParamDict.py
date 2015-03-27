@@ -40,8 +40,10 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
         monitor_path = os.path.join("%s/glidein_%s" % (conf_dom.getElementsByTagName(u'monitor')[0].getAttribute(u'base_dir'),
             conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
+        log_path = os.path.join("%s/glidein_%s" % (conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),
+            conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
         cgWDictFile.glideinMainDicts.__init__(self,submit_path,stage_path,workdir_name,
-                                              conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),
+                                              log_path,
                                               params.client_log_dirs,params.client_proxies_dirs)
         self.monitor_dir=monitor_path
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
@@ -366,8 +368,10 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
         monitor_path = os.path.join("%s/glidein_%s" % (conf_dom.getElementsByTagName(u'monitor')[0].getAttribute(u'base_dir'),
             conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
+        log_path = os.path.join("%s/glidein_%s" % (conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),
+            conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
         cgWDictFile.glideinEntryDicts.__init__(self,submit_path,stage_path,sub_name,summary_signature,workdir_name,
-                                               conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),params.client_log_dirs,params.client_proxies_dirs)
+                                               log_path,params.client_log_dirs,params.client_proxies_dirs)
                                                
         self.monitor_dir=cgWConsts.get_entry_monitor_dir(monitor_path,sub_name)
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
@@ -499,7 +503,9 @@ class glideinDicts(cgWDictFile.glideinDicts):
             conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
         monitor_path = os.path.join("%s/glidein_%s" % (conf_dom.getElementsByTagName(u'monitor')[0].getAttribute(u'base_dir'),
             conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
-        cgWDictFile.glideinDicts.__init__(self,submit_path,stage_path,conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),params.client_log_dirs,params.client_proxies_dirs,sub_list)
+        log_path = os.path.join("%s/glidein_%s" % (conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),
+            conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
+        cgWDictFile.glideinDicts.__init__(self,submit_path,stage_path,log_path,params.client_log_dirs,params.client_proxies_dirs,sub_list)
 
         self.monitor_dir=monitor_path
         self.active_sub_list=[]
