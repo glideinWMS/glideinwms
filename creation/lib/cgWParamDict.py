@@ -34,7 +34,9 @@ class UnconfiguredScheddError(Exception):
 
 class glideinMainDicts(cgWDictFile.glideinMainDicts):
     def __init__(self,params,conf_dom,workdir_name):
-        cgWDictFile.glideinMainDicts.__init__(self,conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_dir'),conf_dom.getElementsByTagName(u'stage')[0].getAttribute(u'base_dir'),workdir_name,
+        submit_path = os.path.join("%s/glidein_%s" % (conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_dir'),
+            conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
+        cgWDictFile.glideinMainDicts.__init__(self,submit_path,conf_dom.getElementsByTagName(u'stage')[0].getAttribute(u'base_dir'),workdir_name,
                                               conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),
                                               params.client_log_dirs,params.client_proxies_dirs)
         self.monitor_dir=conf_dom.getElementsByTagName(u'monitor')[0].getAttribute(u'base_dir')
@@ -354,7 +356,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
     def __init__(self,params,conf_dom,sub_name,
                  summary_signature,workdir_name):
-        cgWDictFile.glideinEntryDicts.__init__(self,conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_dir'),conf_dom.getElementsByTagName(u'stage')[0].getAttribute(u'base_dir'),sub_name,summary_signature,workdir_name,
+        submit_path = os.path.join("%s/glidein_%s" % (conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_dir'),
+            conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
+        cgWDictFile.glideinEntryDicts.__init__(self,submit_path,conf_dom.getElementsByTagName(u'stage')[0].getAttribute(u'base_dir'),sub_name,summary_signature,workdir_name,
                                                conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),params.client_log_dirs,params.client_proxies_dirs)
                                                
         self.monitor_dir=cgWConsts.get_entry_monitor_dir(conf_dom.getElementsByTagName(u'monitor')[0].getAttribute(u'base_dir'),sub_name)
@@ -481,7 +485,9 @@ class glideinDicts(cgWDictFile.glideinDicts):
 
         self.params=params
         self.conf_dom=conf_dom
-        cgWDictFile.glideinDicts.__init__(self,conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_dir'),conf_dom.getElementsByTagName(u'stage')[0].getAttribute(u'base_dir'),conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),params.client_log_dirs,params.client_proxies_dirs,sub_list)
+        submit_path = os.path.join("%s/glidein_%s" % (conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_dir'),
+            conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
+        cgWDictFile.glideinDicts.__init__(self,submit_path,conf_dom.getElementsByTagName(u'stage')[0].getAttribute(u'base_dir'),conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),params.client_log_dirs,params.client_proxies_dirs,sub_list)
 
         self.monitor_dir=conf_dom.getElementsByTagName(u'monitor')[0].getAttribute(u'base_dir')
         self.active_sub_list=[]
