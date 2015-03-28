@@ -16,6 +16,7 @@ import cgWCreate
 import cgWConsts,cWConsts
 
 from glideinwms.lib import pubCrypto
+from glideinwms.creation.lib import factXmlUtil
 
 class UnconfiguredScheddError(Exception):
 
@@ -34,18 +35,14 @@ class UnconfiguredScheddError(Exception):
 
 class glideinMainDicts(cgWDictFile.glideinMainDicts):
     def __init__(self,params,conf_dom,workdir_name):
-        submit_path = os.path.join("%s/glidein_%s" % (conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_dir'),
-            conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
-        stage_path = os.path.join("%s/glidein_%s" % (conf_dom.getElementsByTagName(u'stage')[0].getAttribute(u'base_dir'),
-            conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
-        monitor_path = os.path.join("%s/glidein_%s" % (conf_dom.getElementsByTagName(u'monitor')[0].getAttribute(u'base_dir'),
-            conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
-        log_path = os.path.join("%s/glidein_%s" % (conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),
-            conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
-        cgWDictFile.glideinMainDicts.__init__(self,submit_path,stage_path,workdir_name,
-                                              log_path,
+        submit_dir = factXmlUtil.get_submit_dir(conf_dom)
+        stage_dir = factXmlUtil.get_stage_dir(conf_dom)
+        monitor_dir = factXmlUtil.get_monitor_dir(conf_dom)
+        log_dir = factXmlUtil.get_log_dir(conf_dom)
+        cgWDictFile.glideinMainDicts.__init__(self,submit_dir,stage_dir,workdir_name,
+                                              log_dir,
                                               params.client_log_dirs,params.client_proxies_dirs)
-        self.monitor_dir=monitor_path
+        self.monitor_dir=monitor_dir
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.monitor_jslibs_dir=os.path.join(self.monitor_dir,'jslibs')
         self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_jslibs_dir,"monitor"))
@@ -362,18 +359,14 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
     def __init__(self,params,conf_dom,sub_name,
                  summary_signature,workdir_name):
-        submit_path = os.path.join("%s/glidein_%s" % (conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_dir'),
-            conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
-        stage_path = os.path.join("%s/glidein_%s" % (conf_dom.getElementsByTagName(u'stage')[0].getAttribute(u'base_dir'),
-            conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
-        monitor_path = os.path.join("%s/glidein_%s" % (conf_dom.getElementsByTagName(u'monitor')[0].getAttribute(u'base_dir'),
-            conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
-        log_path = os.path.join("%s/glidein_%s" % (conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),
-            conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
-        cgWDictFile.glideinEntryDicts.__init__(self,submit_path,stage_path,sub_name,summary_signature,workdir_name,
-                                               log_path,params.client_log_dirs,params.client_proxies_dirs)
+        submit_dir = factXmlUtil.get_submit_dir(conf_dom)
+        stage_dir = factXmlUtil.get_stage_dir(conf_dom)
+        monitor_dir = factXmlUtil.get_monitor_dir(conf_dom)
+        log_dir = factXmlUtil.get_log_dir(conf_dom)
+        cgWDictFile.glideinEntryDicts.__init__(self,submit_dir,stage_dir,sub_name,summary_signature,workdir_name,
+                                               log_dir,params.client_log_dirs,params.client_proxies_dirs)
                                                
-        self.monitor_dir=cgWConsts.get_entry_monitor_dir(monitor_path,sub_name)
+        self.monitor_dir=cgWConsts.get_entry_monitor_dir(monitor_dir,sub_name)
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.params=params
         self.conf_dom=conf_dom
@@ -497,17 +490,13 @@ class glideinDicts(cgWDictFile.glideinDicts):
 
         self.params=params
         self.conf_dom=conf_dom
-        submit_path = os.path.join("%s/glidein_%s" % (conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_dir'),
-            conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
-        stage_path = os.path.join("%s/glidein_%s" % (conf_dom.getElementsByTagName(u'stage')[0].getAttribute(u'base_dir'),
-            conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
-        monitor_path = os.path.join("%s/glidein_%s" % (conf_dom.getElementsByTagName(u'monitor')[0].getAttribute(u'base_dir'),
-            conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
-        log_path = os.path.join("%s/glidein_%s" % (conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),
-            conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')))
-        cgWDictFile.glideinDicts.__init__(self,submit_path,stage_path,log_path,params.client_log_dirs,params.client_proxies_dirs,sub_list)
+        submit_dir = factXmlUtil.get_submit_dir(conf_dom)
+        stage_dir = factXmlUtil.get_stage_dir(conf_dom)
+        monitor_dir = factXmlUtil.get_monitor_dir(conf_dom)
+        log_dir = factXmlUtil.get_log_dir(conf_dom)
+        cgWDictFile.glideinDicts.__init__(self,submit_dir,stage_dir,log_dir,params.client_log_dirs,params.client_proxies_dirs,sub_list)
 
-        self.monitor_dir=monitor_path
+        self.monitor_dir=monitor_dir
         self.active_sub_list=[]
         return
 
