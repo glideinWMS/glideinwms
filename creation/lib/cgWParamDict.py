@@ -102,8 +102,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         #load condor tarballs
         # only one will be downloaded in the end... based on what condor_platform_select.sh decides
-        for condor_idx in range(len(params.condor_tarballs)):
-            condor_el=params.condor_tarballs[condor_idx]
+        condor_tarballs = factXmlUtil.get_condor_tarballs(self.conf_dom)
+        for condor_idx in range(len(condor_tarballs)):
+            condor_el=condor_tarballs[condor_idx]
 
             # condor_el now is a combination of csv version+os+arch
             # Get list of valid tarballs for this condor_el
@@ -112,19 +113,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             condor_el_valid_tarballs = get_valid_condor_tarballs([condor_el])
             condor_fname = cWConsts.insert_timestr(cgWConsts.CONDOR_FILE % condor_idx)
             condor_tarfile = ""
-            condor_fd = None
 
-            if condor_el.tar_file is not None:
-                # Condor tarball available. Just add it to the list of tarballs
-                # with every possible condor_platform string
-                condor_tarfile = condor_el.tar_file
-            else:
-                # Create a new tarball as usual
-                condor_fd = cgWCreate.create_condor_tar_fd(condor_el.base_dir)
-                condor_tarfile = os.path.join(self.dicts['file_list'].dir,
-                                              condor_fname)
-                # insert the newly created tarball fname back into the config
-                params.subparams.data['condor_tarballs'][condor_idx]['tar_file'] = condor_tarfile
+            condor_tarfile = condor_el['tar_file']
 
             for tar in condor_el_valid_tarballs:
                 condor_platform = "%s-%s-%s" % (tar['version'], tar['os'],
@@ -132,21 +122,11 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 cond_name = "CONDOR_PLATFORM_%s" % condor_platform
                 condor_platform_fname = cgWConsts.CONDOR_FILE % condor_platform
 
-                if condor_fd is None:
-                    # tar file exists. Just use it
-                    self.dicts['file_list'].add_from_file(
-                        condor_platform_fname, (condor_fname,
-                                                "untar", cond_name,
-                                                cgWConsts.CONDOR_ATTR),
-                        condor_el.tar_file)
-                else:
-                    # This is addition of new tarfile
-                    # Need to rewind fd everytime
-                    condor_fd.seek(0)
-                    self.dicts['file_list'].add_from_fd(
-                        condor_platform_fname,
-                        (condor_fname,"untar",cond_name,cgWConsts.CONDOR_ATTR),
-                        condor_fd)
+                self.dicts['file_list'].add_from_file(
+                    condor_platform_fname, (condor_fname,
+                                            "untar", cond_name,
+                                            cgWConsts.CONDOR_ATTR),
+                    condor_el['tar_file'])
 
                 self.dicts['untar_cfg'].add(condor_platform_fname,
                                             cgWConsts.CONDOR_DIR)
@@ -154,8 +134,6 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 # But leave it disabled by default
                 self.dicts['consts'].add(cond_name, "0",
                                          allow_overwrite=False)
-            if condor_fd is not None:
-                condor_fd.close()
 
         #
         # Note:
@@ -511,7 +489,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
     def populate(self,params=None): # will update params (or self.params)
         if params is None:
             params=self.params
-        
+
         self.main_dicts.populate(params)
         self.active_sub_list=self.main_dicts.active_sub_list
 

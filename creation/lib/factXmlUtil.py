@@ -35,3 +35,15 @@ def get_client_proxy_dirs(conf_dom):
             u"user_%s" % sc.getAttribute(u'username'), u"glidein_%s" % glidein_name)
 
     return cp_dict
+
+def get_condor_tarballs(conf_dom):
+    tarballs = []
+    for tb in conf_dom.getElementsByTagName(u'condor_tarball'):
+        tb_dict = {}
+        tb_dict[u'arch'] = tb.getAttribute(u'arch')
+        tb_dict[u'os'] = tb.getAttribute(u'os')
+        tb_dict[u'tar_file'] = tb.getAttribute(u'tar_file')
+        tb_dict[u'version'] = tb.getAttribute(u'version')
+        tarballs.append(tb_dict)
+
+    return tarballs
