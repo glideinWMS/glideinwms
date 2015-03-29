@@ -15,6 +15,8 @@ import cgWDictFile,cWDictFile
 import cgWCreate
 import cgWConsts,cWConsts
 
+WEB_BASE_DIR=os.path.join(os.path.dirname(__file__),"..","web_base")
+
 from glideinwms.lib import pubCrypto
 from glideinwms.creation.lib import factXmlUtil
 
@@ -73,13 +75,13 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         #load system files
         for file_name in ('error_gen.sh','error_augment.sh','parse_starterlog.awk', 'advertise_failure.helper',
                           "condor_config", "condor_config.multi_schedd.include", "condor_config.dedicated_starter.include", "condor_config.check.include", "condor_config.monitor.include"):
-            self.dicts['file_list'].add_from_file(file_name,(cWConsts.insert_timestr(file_name),"regular","TRUE",'FALSE'),os.path.join(params.src_dir,file_name))
+            self.dicts['file_list'].add_from_file(file_name,(cWConsts.insert_timestr(file_name),"regular","TRUE",'FALSE'),os.path.join(WEB_BASE_DIR,file_name))
         self.dicts['description'].add("condor_config","condor_config")
         self.dicts['description'].add("condor_config.multi_schedd.include","condor_config_multi_include")
         self.dicts['description'].add("condor_config.dedicated_starter.include","condor_config_main_include")
         self.dicts['description'].add("condor_config.monitor.include","condor_config_monitor_include")
         self.dicts['description'].add("condor_config.check.include","condor_config_check_include")
-        self.dicts['vars'].load(params.src_dir,'condor_vars.lst',change_self=False,set_not_changed=False)
+        self.dicts['vars'].load(WEB_BASE_DIR,'condor_vars.lst',change_self=False,set_not_changed=False)
 
         #
         # Note:
@@ -96,7 +98,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # Load initial system scripts
         # These should be executed before the other scripts
         for script_name in ('setup_script.sh','cat_consts.sh','condor_platform_select.sh'):
-            self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
+            self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(WEB_BASE_DIR,script_name))
 
         #load condor tarballs
         # only one will be downloaded in the end... based on what condor_platform_select.sh decides
@@ -193,7 +195,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # Load more system scripts
         for script_name in file_list_scripts:
-            self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
+            self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(WEB_BASE_DIR,script_name))
 
         # make sure condor_startup does not get executed ahead of time under normal circumstances
         # but must be loaded early, as it also works as a reporting script in case of error
@@ -213,7 +215,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # add additional system scripts
         for script_name in after_file_list_scripts:
-            self.dicts['after_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
+            self.dicts['after_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(WEB_BASE_DIR,script_name))
 
         # populate complex files
         populate_factory_descript(self.work_dir,self.dicts['glidein'],self.active_sub_list,params)
@@ -222,7 +224,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # populate the monitor files
         javascriptrrd_dir = params.monitor.javascriptRRD_dir
-        for mfarr in ((params.src_dir,'factory_support.js'),
+        for mfarr in ((WEB_BASE_DIR,'factory_support.js'),
                       (javascriptrrd_dir,'javascriptrrd.wlibs.js')):
             mfdir,mfname=mfarr
             parent_dir = self.find_parent_dir(mfdir,mfname)
@@ -230,20 +232,20 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             mfobj.load()
             self.monitor_jslibs.append(mfobj)
 
-        for mfarr in ((params.src_dir,'factoryRRDBrowse.html'),
-                      (params.src_dir,'factoryRRDEntryMatrix.html'),
-                      (params.src_dir,'factoryStatus.html'),
-                      (params.src_dir,'factoryLogStatus.html'),
-                      (params.src_dir,'factoryCompletedStats.html'),
-                      (params.src_dir,'factoryStatusNow.html'),
-                      (params.src_dir,'factoryEntryStatusNow.html')):
+        for mfarr in ((WEB_BASE_DIR,'factoryRRDBrowse.html'),
+                      (WEB_BASE_DIR,'factoryRRDEntryMatrix.html'),
+                      (WEB_BASE_DIR,'factoryStatus.html'),
+                      (WEB_BASE_DIR,'factoryLogStatus.html'),
+                      (WEB_BASE_DIR,'factoryCompletedStats.html'),
+                      (WEB_BASE_DIR,'factoryStatusNow.html'),
+                      (WEB_BASE_DIR,'factoryEntryStatusNow.html')):
             mfdir,mfname=mfarr
             mfobj=cWDictFile.SimpleFile(mfdir,mfname)
             mfobj.load()
             self.monitor_htmls.append(mfobj)            
         
         # add the index page and its images
-        mfobj=cWDictFile.SimpleFile(params.src_dir + '/factory/', 'index.html')
+        mfobj=cWDictFile.SimpleFile(WEB_BASE_DIR + '/factory/', 'index.html')
         mfobj.load()
         self.monitor_htmls.append(mfobj)
         for imgfile in ('factoryCompletedStats.png',
@@ -253,7 +255,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                         'factoryRRDEntryMatrix.png',
                         'factoryStatus.png',
                         'factoryStatusNow.png'):
-            mfobj=cWDictFile.SimpleFile(params.src_dir + '/factory/images/', imgfile)
+            mfobj=cWDictFile.SimpleFile(WEB_BASE_DIR + '/factory/images/', imgfile)
             mfobj.load()
             self.monitor_images.append(mfobj)
 
