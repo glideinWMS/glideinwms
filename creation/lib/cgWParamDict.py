@@ -39,9 +39,11 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         stage_dir = factXmlUtil.get_stage_dir(conf_dom)
         monitor_dir = factXmlUtil.get_monitor_dir(conf_dom)
         log_dir = factXmlUtil.get_log_dir(conf_dom)
+        client_log_dirs = factXmlUtil.get_client_log_dirs(conf_dom)
+        client_proxy_dirs = factXmlUtil.get_client_proxy_dirs(conf_dom)
         cgWDictFile.glideinMainDicts.__init__(self,submit_dir,stage_dir,workdir_name,
                                               log_dir,
-                                              params.client_log_dirs,params.client_proxies_dirs)
+                                              client_log_dirs,client_proxy_dirs)
         self.monitor_dir=monitor_dir
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.monitor_jslibs_dir=os.path.join(self.monitor_dir,'jslibs')
@@ -363,8 +365,10 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         stage_dir = factXmlUtil.get_stage_dir(conf_dom)
         monitor_dir = factXmlUtil.get_monitor_dir(conf_dom)
         log_dir = factXmlUtil.get_log_dir(conf_dom)
+        client_log_dirs = factXmlUtil.get_client_log_dirs(conf_dom)
+        client_proxy_dirs = factXmlUtil.get_client_proxy_dirs(conf_dom)
         cgWDictFile.glideinEntryDicts.__init__(self,submit_dir,stage_dir,sub_name,summary_signature,workdir_name,
-                                               log_dir,params.client_log_dirs,params.client_proxies_dirs)
+                                               log_dir,client_log_dirs,client_proxy_dirs)
                                                
         self.monitor_dir=cgWConsts.get_entry_monitor_dir(monitor_dir,sub_name)
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
