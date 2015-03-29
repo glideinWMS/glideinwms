@@ -47,3 +47,53 @@ def get_condor_tarballs(conf_dom):
         tarballs.append(tb_dict)
 
     return tarballs
+
+def get_files(conf_dom):
+    files = []
+    files_el = conf_dom.getElementsByTagName(u'files')[-1]
+    for f in files_el.getElementsByTagName(u'file'):
+        file_dict = {}
+        if f.hasAttribute(u'absfname'):
+            file_dict[u'absfname'] = f.getAttribute(u'absfname')
+        else:
+            file_dict[u'absfname'] = None
+        if f.hasAttribute(u'after_entry'):
+            file_dict[u'after_entry'] = f.getAttribute(u'after_entry')
+        if f.hasAttribute(u'const'):
+            file_dict[u'const'] = f.getAttribute(u'const')
+        else:
+            file_dict[u'const'] = u'False'
+        if f.hasAttribute(u'executable'):
+            file_dict[u'executable'] = f.getAttribute(u'executable')
+        else:
+            file_dict[u'executable'] = u'False'
+        if f.hasAttribute(u'relfname'):
+            file_dict[u'relfname'] = f.getAttribute(u'relfname')
+        else:
+            file_dict[u'relfname'] = None
+        if f.hasAttribute(u'untar'):
+            file_dict[u'untar'] = f.getAttribute(u'untar')
+        else:
+            file_dict[u'untar'] = u'False'
+        if f.hasAttribute(u'wrapper'):
+            file_dict[u'wrapper'] = f.getAttribute(u'wrapper')
+        else:
+            file_dict[u'wrapper'] = u'False'
+        uopts = f.getElementsByTagName(u'untar_options')
+        if len(uopts) > 0:
+            uopt_el = f.getElementsByTagName(u'untar_options')[0]
+            uopt_dict = {}
+            if uopt_el.hasAttribute(u'absdir_outattr'):
+                uopt_dict[u'absdir_outattr'] = uopt_el.getAttribute(u'absdir_outattr')
+            else:
+                uopt_dict[u'absdir_outattr'] = None
+            if uopt_el.hasAttribute(u'dir'):
+                uopt_dict[u'dir'] = uopt_el.getAttribute(u'dir')
+            else:
+                uopt_dict[u'dir'] = None
+            uopt_dict[u'cond_attr'] = uopt_el.getAttribute(u'cond_attr')
+            file_dict[u'untar_options'] = uopt_dict
+            
+        files.append(file_dict)
+
+    return files

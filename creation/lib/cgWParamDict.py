@@ -184,7 +184,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         #
 
         # put user files in stage
-        for file in params.files:
+        for file in factXmlUtil.get_files(self.conf_dom):
             add_file_unparsed(file,self.dicts)
 
         # put user attributes into config files
@@ -585,24 +585,24 @@ class glideinDicts(cgWDictFile.glideinDicts):
 # Add a user file residing in the stage area
 # file as described by Params.file_defaults
 def add_file_unparsed(user_file,dicts):
-    absfname=user_file.absfname
+    absfname=user_file['absfname']
     if absfname is None:
         raise RuntimeError, "Found a file element without an absname: %s"%user_file
     
-    relfname=user_file.relfname
+    relfname=user_file['relfname']
     if relfname is None:
         relfname=os.path.basename(absfname) # defualt is the final part of absfname
     if len(relfname)<1:
         raise RuntimeError, "Found a file element with an empty relfname: %s"%user_file
 
-    is_const=eval(user_file.const,{},{})
-    is_executable=eval(user_file.executable,{},{})
-    is_wrapper=eval(user_file.wrapper,{},{})
-    do_untar=eval(user_file.untar,{},{})
+    is_const=eval(user_file['const'],{},{})
+    is_executable=eval(user_file['executable'],{},{})
+    is_wrapper=eval(user_file['wrapper'],{},{})
+    do_untar=eval(user_file['untar'],{},{})
 
     file_list_idx='file_list'
     if user_file.has_key('after_entry'):
-        if eval(user_file.after_entry,{},{}):
+        if eval(user_file['after_entry'],{},{}):
             file_list_idx='after_file_list'
 
     if is_executable: # a script
@@ -628,14 +628,14 @@ def add_file_unparsed(user_file,dicts):
         if not is_const:
             raise RuntimeError, "A file cannot be untarred if it is not constant: %s"%user_file
 
-        wnsubdir=user_file.untar_options.dir
+        wnsubdir=user_file['untar_options']['dir']
         if wnsubdir is None:
             wnsubdir=string.split(relfname,'.',1)[0] # deafult is relfname up to the first .
 
-        config_out=user_file.untar_options.absdir_outattr
+        config_out=user_file['untar_options']['absdir_outattr']
         if config_out is None:
             config_out="FALSE"
-        cond_attr=user_file.untar_options.cond_attr
+        cond_attr=user_file['untar_options']['cond_attr']
 
 
         dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"untar",cond_attr,config_out),absfname)
