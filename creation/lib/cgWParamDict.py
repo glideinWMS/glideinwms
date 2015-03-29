@@ -498,7 +498,9 @@ class glideinDicts(cgWDictFile.glideinDicts):
         stage_dir = factXmlUtil.get_stage_dir(conf_dom)
         monitor_dir = factXmlUtil.get_monitor_dir(conf_dom)
         log_dir = factXmlUtil.get_log_dir(conf_dom)
-        cgWDictFile.glideinDicts.__init__(self,submit_dir,stage_dir,log_dir,params.client_log_dirs,params.client_proxies_dirs,sub_list)
+        client_log_dirs = factXmlUtil.get_client_log_dirs(conf_dom)
+        client_proxy_dirs = factXmlUtil.get_client_proxy_dirs(conf_dom)
+        cgWDictFile.glideinDicts.__init__(self,submit_dir,stage_dir,log_dir,client_log_dirs,client_proxy_dirs,sub_list)
 
         self.monitor_dir=monitor_dir
         self.active_sub_list=[]
