@@ -97,3 +97,12 @@ def get_files(conf_dom):
         files.append(file_dict)
 
     return files
+
+def extract_attr_val(attr):
+    if (not attr.getAttribute(u'type') in ("string","int","expr")):
+        raise RuntimeError, "Wrong attribute type '%s', must be either 'int' or 'string'"%attr.getAttribute(u'type')
+
+    if attr.getAttribute(u'type') in ("string","expr"):
+        return str(attr.getAttribute(u'value'))
+    else:
+        return int(attr.getAttribute(u'value'))

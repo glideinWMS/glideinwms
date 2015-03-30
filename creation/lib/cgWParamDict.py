@@ -188,8 +188,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             add_file_unparsed(file,self.dicts)
 
         # put user attributes into config files
-        for attr_name in params.attrs.keys():
-            add_attr_unparsed(attr_name, params,self.dicts,"main")
+        attrs = self.conf_dom.getElementsByTagName(u'attrs')[0]
+        for attr in attrs.getElementsByTagName(u'attr'):
+            add_attr_unparsed(attr,self.dicts,"main")
 
         # add additional system scripts
         for script_name in after_file_list_scripts:
@@ -651,22 +652,22 @@ def add_file_unparsed(user_file,dicts):
 #######################
 # Register an attribute
 # attr_obj as described by Params.attr_defaults
-def add_attr_unparsed(attr_name,params,dicts,description):
+def add_attr_unparsed(attr,dicts,description):
     try:
-        add_attr_unparsed_real(attr_name,params,dicts)
+        add_attr_unparsed_real(attr,dicts)
     except RuntimeError,e:
-        raise RuntimeError, "Error parsing attr %s[%s]: %s"%(description,attr_name,str(e))
+        raise RuntimeError, "Error parsing attr %s[%s]: %s"%(description,attr.getAttribute(u'name'),str(e))
 
-def add_attr_unparsed_real(attr_name,params,dicts):
-    attr_obj=params.attrs[attr_name]
+def add_attr_unparsed_real(attr,dicts):
+    attr_name = attr.getAttribute(u'name')
     
-    if attr_obj.value is None:
-        raise RuntimeError, "Attribute '%s' does not have a value: %s"%(attr_name,attr_obj)
+    if not attr.hasAttribute(u'value') or attr.getAttribute(u'value') == u'None':
+        raise RuntimeError, "Attribute '%s' does not have a value: %s"%(attr_name,attr.toxml())
     
-    do_publish=eval(attr_obj.publish,{},{})
-    is_parameter=eval(attr_obj.parameter,{},{})
-    is_const=eval(attr_obj.const,{},{})
-    attr_val=params.extract_attr_val(attr_obj)
+    do_publish=eval(attr.getAttribute(u'publish'),{},{})
+    is_parameter=eval(attr.getAttribute(u'parameter'),{},{})
+    is_const=eval(attr.getAttribute(u'const'),{},{})
+    attr_val=factXmlUtil.extract_attr_val(attr)
     
     if do_publish: # publish in factory ClassAd
         if is_parameter: # but also push to glidein
@@ -677,7 +678,7 @@ def add_attr_unparsed_real(attr_name,params,dicts):
                 dicts['params'].add(attr_name,attr_val)
         else: # only publish
             if (not is_const):
-                raise RuntimeError, "Published attribute '%s' must be either a parameter or constant: %s"%(attr_name,attr_obj)
+                raise RuntimeError, "Published attribute '%s' must be either a parameter or constant: %s"%(attr_name,attr.toxml())
             
             dicts['attrs'].add(attr_name,attr_val)
             dicts['consts'].add(attr_name,attr_val)
@@ -686,12 +687,12 @@ def add_attr_unparsed_real(attr_name,params,dicts):
             if is_const:
                 dicts['consts'].add(attr_name,attr_val)
             else:
-                raise RuntimeError, "Parameter attributes '%s' must be either a published or constant: %s"%(attr_name,attr_obj)
+                raise RuntimeError, "Parameter attributes '%s' must be either a published or constant: %s"%(attr_name,attr.toxml())
         else:
-            raise RuntimeError, "Attributes '%s' must be either a published or parameters: %s"%(attr_name,attr_obj) 
+            raise RuntimeError, "Attributes '%s' must be either a published or parameters: %s"%(attr_name,attr.toxml()) 
 
-    do_glidein_publish=eval(attr_obj.glidein_publish,{},{})
-    do_job_publish=eval(attr_obj.job_publish,{},{})
+    do_glidein_publish=eval(attr.getAttribute(u'glidein_publish'),{},{})
+    do_job_publish=eval(attr.getAttribute(u'job_publish'),{},{})
 
     if do_glidein_publish or do_job_publish:
             # need to add a line only if will be published
@@ -699,10 +700,10 @@ def add_attr_unparsed_real(attr_name,params,dicts):
                 # already in the var file, check if compatible
                 attr_var_el=dicts['vars'][attr_name]
                 attr_var_type=attr_var_el[0]
-                if (((attr_obj.type=="int") and (attr_var_type!='I')) or
-                    ((attr_obj.type=="expr") and (attr_var_type=='I')) or
-                    ((attr_obj.type=="string") and (attr_var_type=='I'))):
-                    raise RuntimeError, "Types not compatible (%s,%s)"%(attr_obj.type,attr_var_type)
+                if (((attr.getAttribute(u'type')=="int") and (attr_var_type!='I')) or
+                    ((attr.getAttribute(u'type')=="expr") and (attr_var_type=='I')) or
+                    ((attr.getAttribute(u'type')=="string") and (attr_var_type=='I'))):
+                    raise RuntimeError, "Types not compatible (%s,%s)"%(attr.getAttribute(u'type'),attr_var_type)
                 attr_var_export=attr_var_el[4]
                 if do_glidein_publish and (attr_var_export=='N'):
                     raise RuntimeError, "Cannot force glidein publishing"
@@ -710,7 +711,7 @@ def add_attr_unparsed_real(attr_name,params,dicts):
                 if do_job_publish and (attr_var_job_publish=='-'):
                     raise RuntimeError, "Cannot force job publishing"
             else:
-                dicts['vars'].add_extended(attr_name,attr_obj.type,None,None,False,do_glidein_publish,do_job_publish)
+                dicts['vars'].add_extended(attr_name,attr.getAttribute(u'type'),None,None,False,do_glidein_publish,do_job_publish)
 
 ###################################
 # Create the glidein descript file
