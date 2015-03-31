@@ -372,7 +372,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         self.dicts['condor_jdl'].save(set_readonly=set_readonly)
         
     
-    def populate(self,params=None):
+    def populate(self,entry,params=None):
         if params is None:
             params=self.params
         sub_params=params.entries[self.sub_name]
@@ -402,8 +402,8 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         # Add attribute for voms
 
         # put user attributes into config files
-        for attr_name in sub_params.attrs.keys():
-            add_attr_unparsed(attr_name, sub_params,self.dicts,self.sub_name)
+        for attr in entry.getElementsByTagName(u'attr'):
+            add_attr_unparsed(attr,self.dicts,self.sub_name)
 
         # put standard attributes into config file
         # override anything the user set
@@ -495,8 +495,9 @@ class glideinDicts(cgWDictFile.glideinDicts):
         self.active_sub_list=self.main_dicts.active_sub_list
 
         self.local_populate(params)
-        for sub_name in self.sub_list:
-            self.sub_dicts[sub_name].populate(params)
+        for entry in self.conf_dom.getElementsByTagName(u'entry'):
+            entry_name = entry.getAttribute(u'name')
+            self.sub_dicts[entry_name].populate(entry, params)
 
         validate_condor_tarball_attrs(params)
 
