@@ -16,6 +16,10 @@ def get_log_dir(conf_dom):
     return os.path.join(conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),
         u"glidein_%s" % conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
 
+def get_web_url(conf_dom):
+    return os.path.join(conf_dom.getElementsByTagName(u'stage')[0].getAttribute(u'web_base_url'),
+        u"glidein_%s" % conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
+
 def get_client_log_dirs(conf_dom):
     cl_dict = {}
     client_dir = conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_client_log_dir')
@@ -97,6 +101,32 @@ def get_files(conf_dom):
         files.append(file_dict)
 
     return files
+
+def get_log_retention(conf_dom):
+    log_ret_dict = {}
+
+    for log in (u'condor_logs', u'job_logs', u'summary_logs'):
+        log_el = conf_dom.getElementsByTagName(log)[0]
+        log_dict = {}
+        log_dict[u'max_mbytes'] = log_el.getAttribute(u'max_mbytes')
+        log_dict[u'min_days'] = log_el.getAttribute(u'min_days')
+        log_dict[u'max_days'] = log_el.getAttribute(u'max_days')
+        log_ret_dict[log] = log_dict
+
+    log_ret_dict['process_logs'] = []
+    for plog_el in conf_dom.getElementsByTagName(u'process_log'):
+        plog_dict = {}
+        plog_dict[u'backup_count'] = plog_el.getAttribute(u'backup_count')
+        plog_dict[u'compression'] = plog_el.getAttribute(u'compression')
+        plog_dict[u'extension'] = plog_el.getAttribute(u'extension')
+        plog_dict[u'max_mbytes'] = plog_el.getAttribute(u'max_mbytes')
+        plog_dict[u'min_days'] = plog_el.getAttribute(u'min_days')
+        plog_dict[u'max_days'] = plog_el.getAttribute(u'max_days')
+        plog_dict[u'msg_types'] = plog_el.getAttribute(u'msg_types')
+        log_ret_dict['process_logs'].append(plog_dict)
+
+    return log_ret_dict
+         
 
 def extract_attr_val(attr):
     if (not attr.getAttribute(u'type') in ("string","int","expr")):

@@ -197,7 +197,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self.dicts['after_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(WEB_BASE_DIR,script_name))
 
         # populate complex files
-        populate_factory_descript(self.work_dir,self.dicts['glidein'],self.active_sub_list,params)
+        populate_factory_descript(self.work_dir,self.dicts['glidein'],self.active_sub_list,params,self.conf_dom)
         populate_frontend_descript(self.dicts['frontend_descript'],params)
 
 
@@ -718,55 +718,60 @@ def add_attr_unparsed_real(attr,dicts):
 # Create the glidein descript file
 def populate_factory_descript(work_dir,
                               glidein_dict,active_sub_list,        # will be modified
-                              params):
+                              params, conf_dom):
         
         down_fname=os.path.join(work_dir,'glideinWMS.downtimes')
 
-        glidein_dict.add('FactoryCollector',params.factory_collector)
-        glidein_dict.add('FactoryName',params.factory_name)
-        glidein_dict.add('GlideinName',params.glidein_name)
-        glidein_dict.add('WebURL',params.web_url)
-        glidein_dict.add('PubKeyType',params.security.pub_key)
-        glidein_dict.add('OldPubKeyGraceTime',params.security.reuse_oldkey_onstartup_gracetime)
-        glidein_dict.add('MonitorUpdateThreadCount',params.monitor.update_thread_count)
-        glidein_dict.add('RemoveOldCredFreq', params.security.remove_old_cred_freq)
-        glidein_dict.add('RemoveOldCredAge', params.security.remove_old_cred_age)
+        glidein_el = conf_dom.getElementsByTagName(u'glidein')[0]
+        sec_el = conf_dom.getElementsByTagName(u'security')[0]
+        sub_el = conf_dom.getElementsByTagName(u'submit')[0]
+        mon_foot_el = conf_dom.getElementsByTagName(u'monitor_footer')[0]
+        if glidein_el.hasAttribute(u'factory_collector'):
+            glidein_dict.add('FactoryCollector',glidein_el.getAttribute(u'factory_collector'))
+        else:
+            glidein_dict.add('FactoryCollector',None)
+        glidein_dict.add('FactoryName',glidein_el.getAttribute(u'factory_name'))
+        glidein_dict.add('GlideinName',glidein_el.getAttribute(u'glidein_name'))
+        glidein_dict.add('WebURL',factXmlUtil.get_web_url(conf_dom))
+        glidein_dict.add('PubKeyType',sec_el.getAttribute(u'pub_key'))
+        glidein_dict.add('OldPubKeyGraceTime',sec_el.getAttribute(u'reuse_oldkey_onstartup_gracetime'))
+        glidein_dict.add('MonitorUpdateThreadCount',conf_dom.getElementsByTagName(u'monitor')[0].getAttribute(u'update_thread_count'))
+        glidein_dict.add('RemoveOldCredFreq', sec_el.getAttribute('remove_old_cred_freq'))
+        glidein_dict.add('RemoveOldCredAge', sec_el.getAttribute('remove_old_cred_age'))
         del active_sub_list[:] # clean
 
-        for sub in params.entries.keys():
-            if eval(params.entries[sub].enabled,{},{}):
-                active_sub_list.append(sub)
+        for entry in conf_dom.getElementsByTagName(u'entry'):
+            if eval(entry.getAttribute(u'enabled'),{},{}):
+                active_sub_list.append(entry.getAttribute(u'name'))
 
         glidein_dict.add('Entries',string.join(active_sub_list,','))
-        glidein_dict.add('AdvertiseWithTCP',params.advertise_with_tcp)
-        glidein_dict.add('AdvertiseWithMultiple',params.advertise_with_multiple)
-        glidein_dict.add('AdvertiseWithTCP',params.advertise_with_tcp)
-        glidein_dict.add('AdvertiseWithMultiple',params.advertise_with_multiple)
-        glidein_dict.add('LoopDelay',params.loop_delay)
-        glidein_dict.add('AdvertiseDelay',params.advertise_delay)
-        glidein_dict.add('RestartAttempts',params.restart_attempts)
-        glidein_dict.add('RestartInterval',params.restart_interval)
-        glidein_dict.add('AdvertiseDelay',params.advertise_delay)
-        glidein_dict.add('EntryParallelWorkers',params.entry_parallel_workers)
-        glidein_dict.add('LogDir',params.log_dir)
-        glidein_dict.add('ClientLogBaseDir',params.submit.base_client_log_dir)
-        glidein_dict.add('ClientProxiesBaseDir',params.submit.base_client_proxies_dir)
+        glidein_dict.add('AdvertiseWithTCP',glidein_el.getAttribute(u'advertise_with_tcp'))
+        glidein_dict.add('AdvertiseWithMultiple',glidein_el.getAttribute(u'advertise_with_multiple'))
+        glidein_dict.add('LoopDelay',glidein_el.getAttribute(u'loop_delay'))
+        glidein_dict.add('AdvertiseDelay',glidein_el.getAttribute(u'advertise_delay'))
+        glidein_dict.add('RestartAttempts',glidein_el.getAttribute(u'restart_attempts'))
+        glidein_dict.add('RestartInterval',glidein_el.getAttribute(u'restart_interval'))
+        glidein_dict.add('EntryParallelWorkers',glidein_el.getAttribute(u'entry_parallel_workers'))
+        glidein_dict.add('LogDir',factXmlUtil.get_log_dir(conf_dom))
+        glidein_dict.add('ClientLogBaseDir',sub_el.getAttribute(u'base_client_log_dir'))
+        glidein_dict.add('ClientProxiesBaseDir',sub_el.getAttribute(u'base_client_proxies_dir'))
         glidein_dict.add('DowntimesFile',down_fname)
         
-        glidein_dict.add('MonitorDisplayText',params.monitor_footer.display_txt)
-        glidein_dict.add('MonitorLink',params.monitor_footer.href_link)
+        glidein_dict.add('MonitorDisplayText',mon_foot_el.getAttribute(u'display_txt'))
+        glidein_dict.add('MonitorLink',mon_foot_el.getAttribute(u'href_link'))
         
         monitoring_collectors=calc_primary_monitoring_collectors(params.monitoring_collectors)
         if monitoring_collectors is not None:
             glidein_dict.add('PrimaryMonitoringCollectors',str(monitoring_collectors))
 
+        log_retention = factXmlUtil.get_log_retention(conf_dom)
         for lel in (("job_logs",'JobLog'),("summary_logs",'SummaryLog'),("condor_logs",'CondorLog')):
             param_lname,str_lname=lel
             for tel in (("max_days",'MaxDays'),("min_days",'MinDays'),("max_mbytes",'MaxMBs')):
                 param_tname,str_tname=tel
-                glidein_dict.add('%sRetention%s'%(str_lname,str_tname),params.log_retention[param_lname][param_tname])
+                glidein_dict.add('%sRetention%s'%(str_lname,str_tname),log_retention[param_lname][param_tname])
 
-        glidein_dict.add('ProcessLogs', str(params.log_retention['process_logs']))
+        glidein_dict.add('ProcessLogs', str(log_retention['process_logs']))
 
 #######################
 def populate_job_descript(work_dir, job_descript_dict, 
