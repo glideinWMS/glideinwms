@@ -127,6 +127,15 @@ def get_log_retention(conf_dom):
 
     return log_ret_dict
          
+def get_frontends(conf_dom):
+    frontends = {}
+    for fe_el in conf_dom.getElementsByTagName(u'frontend'):
+        sec_classes = {}
+        for sc_el in fe_el.getElementsByTagName(u'security_class'):
+            sec_classes[sc_el.getAttribute(u'name')] = {u'username': sc_el.getAttribute(u'username')}
+        frontends[fe_el.getAttribute(u'name')] = {u'security_classes': sec_classes, u'identity': fe_el.getAttribute(u'identity')}
+
+    return frontends
 
 def extract_attr_val(attr):
     if (not attr.getAttribute(u'type') in ("string","int","expr")):

@@ -198,7 +198,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # populate complex files
         populate_factory_descript(self.work_dir,self.dicts['glidein'],self.active_sub_list,params,self.conf_dom)
-        populate_frontend_descript(self.dicts['frontend_descript'],params)
+        populate_frontend_descript(self.dicts['frontend_descript'],self.conf_dom)
 
 
         # populate the monitor files
@@ -853,9 +853,10 @@ def populate_job_descript(work_dir, job_descript_dict,
 ###################################
 # Create the frontend descript file
 def populate_frontend_descript(frontend_dict,     # will be modified
-                               params):
-    for fe in params.security.frontends.keys():
-        fe_el=params.security.frontends[fe]
+                               conf_dom):
+    frontends = factXmlUtil.get_frontends(conf_dom)
+    for fe in frontends:
+        fe_el=frontends[fe]
 
         ident=fe_el['identity']
         if ident is None:
