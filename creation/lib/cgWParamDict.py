@@ -202,7 +202,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
 
         # populate the monitor files
-        javascriptrrd_dir = params.monitor.javascriptRRD_dir
+        javascriptrrd_dir = self.conf_dom.getElementsByTagName(u'monitor')[0].getAttribute(u'javascriptRRD_dir')
         for mfarr in ((WEB_BASE_DIR,'factory_support.js'),
                       (javascriptrrd_dir,'javascriptrrd.wlibs.js')):
             mfdir,mfname=mfarr
