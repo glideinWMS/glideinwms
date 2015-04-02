@@ -52,9 +52,8 @@ def get_condor_tarballs(conf_dom):
 
     return tarballs
 
-def get_files(conf_dom):
+def get_files(files_el):
     files = []
-    files_el = conf_dom.getElementsByTagName(u'files')[-1]
     for f in files_el.getElementsByTagName(u'file'):
         file_dict = {}
         if f.hasAttribute(u'absfname'):

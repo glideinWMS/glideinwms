@@ -184,7 +184,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         #
 
         # put user files in stage
-        for file in factXmlUtil.get_files(self.conf_dom):
+        files_el = self.conf_dom.getElementsByTagName(u'files')[-1]
+        for file in factXmlUtil.get_files(files_el):
             add_file_unparsed(file,self.dicts)
 
         # put user attributes into config files
@@ -384,19 +385,20 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         # follow by the blacklist file
         file_name=cWConsts.BLACKLIST_FILE
-        self.dicts['file_list'].add_from_file(file_name,(file_name,"nocache","TRUE",'BLACKLIST_FILE'),os.path.join(params.src_dir,file_name))
+        self.dicts['file_list'].add_from_file(file_name,(file_name,"nocache","TRUE",'BLACKLIST_FILE'),os.path.join(WEB_BASE_DIR,file_name))
 
         # Load initial system scripts
         # These should be executed before the other scripts
         for script_name in ('cat_consts.sh',"check_blacklist.sh"):
-            self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
+            self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(WEB_BASE_DIR,script_name))
 
         #load system files
-        self.dicts['vars'].load(params.src_dir,'condor_vars.lst.entry',change_self=False,set_not_changed=False)
+        self.dicts['vars'].load(WEB_BASE_DIR,'condor_vars.lst.entry',change_self=False,set_not_changed=False)
         
         
         # put user files in stage
-        for user_file in sub_params.files:
+        files_el = entry.getElementsByTagName(u'files')[0]
+        for user_file in factXmlUtil.get_files(files_el):
             add_file_unparsed(user_file,self.dicts)
 
         # Add attribute for voms
