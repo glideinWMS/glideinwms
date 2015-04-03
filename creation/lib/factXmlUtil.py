@@ -136,6 +136,26 @@ def get_frontends(conf_dom):
 
     return frontends
 
+def get_max_per_frontends(entry):
+    per_frontends = {}
+    for fe_el in entry.getElementsByTagName(u'per_frontend'):
+        fe_dict = {}
+        fe_dict[u'glideins'] = fe_el.getAttribute(u'glideins')
+        fe_dict[u'held'] = fe_el.getAttribute(u'held')
+        fe_dict[u'idle'] = fe_el.getAttribute(u'idle')
+        per_frontends[fe_el.getAttribute(u'name')] = fe_dict
+
+    return per_frontends
+
+def get_allowed_frontends(entry):
+    allowed_frontends = {}
+    for fe_el in entry.getElementsByTagName(u'allow_frontend'):
+        fe_dict = {}
+        fe_dict[u'security_class'] = fe_el.getAttribute(u'security_class')
+        allowed_frontends[fe_el.getAttribute(u'name')] = fe_dict
+
+    return allowed_frontends
+
 def extract_attr_val(attr):
     if (not attr.getAttribute(u'type') in ("string","int","expr")):
         raise RuntimeError, "Wrong attribute type '%s', must be either 'int' or 'string'"%attr.getAttribute(u'type')

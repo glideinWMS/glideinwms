@@ -837,11 +837,12 @@ def populate_job_descript(work_dir, job_descript_dict,
     max_held_frontend = ""
     max_idle_frontend = ""
     max_glideins_frontend = ""
-    for frontend_name in sub_params.config.max_jobs.per_frontends.keys():
-        el = sub_params.config.max_jobs.per_frontends[frontend_name]
-        max_held_frontend += frontend_name + ";" + el.held + ","
-        max_idle_frontend += frontend_name + ";" + el.idle + ","
-        max_glideins_frontend += frontend_name + ";" + el.glideins + ","
+    per_frontends = factXmlUtil.get_max_per_frontends(entry)
+    for frontend_name in per_frontends:
+        el = per_frontends[frontend_name]
+        max_held_frontend += frontend_name + ";" + el[u'held'] + ","
+        max_idle_frontend += frontend_name + ";" + el[u'idle'] + ","
+        max_glideins_frontend += frontend_name + ";" + el[u'glideins'] + ","
     job_descript_dict.add("PerFrontendMaxGlideins", max_glideins_frontend[:-1])
     job_descript_dict.add("PerFrontendMaxHeld", max_held_frontend[:-1])
     job_descript_dict.add("PerFrontendMaxIdle", max_idle_frontend[:-1])
@@ -851,9 +852,10 @@ def populate_job_descript(work_dir, job_descript_dict,
     #  to it.
     white_mode = "Off"
     allowed_vos = ""
-    for X in sub_params.allow_frontends.keys():
+    allowed_frontends = factXmlUtil.get_allowed_frontends(entry)
+    for X in allowed_frontends:
         white_mode = "On"
-        allowed_vos = allowed_vos + X + ":" + sub_params.allow_frontends[X].security_class + ","
+        allowed_vos = allowed_vos + X + ":" + allowed_frontends[X][u'security_class'] + ","
     job_descript_dict.add("WhitelistMode", white_mode)
     job_descript_dict.add("AllowedVOs", allowed_vos[:-1])
 
