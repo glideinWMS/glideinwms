@@ -18,6 +18,7 @@ import stat
 import tarfile
 import cStringIO
 import cgWDictFile
+from glideinwms.creation.lib import factXmlUtil
 
 ##############################
 # Create condor tarball and store it into a StringIO
@@ -127,7 +128,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         else:
             proxy_url = None
         client_log_base_dir =  conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_client_log_dir')
-        submit_attrs = sub_params.config.submit.submit_attrs
+        submit_attrs = factXmlUtil.get_submit_attrs(entry)
 
         # Add in some common elements before setting up grid type specific attributes
         self.add("Universe", "grid")

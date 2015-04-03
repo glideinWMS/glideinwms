@@ -156,6 +156,15 @@ def get_allowed_frontends(entry):
 
     return allowed_frontends
 
+def get_submit_attrs(entry):
+    submit_attrs = {}
+    for attr_el in entry.getElementsByTagName(u'submit_attr'):
+        attr_dict = {}
+        attr_dict[u'value'] = attr_el.getAttribute(u'value')
+        submit_attrs[attr_el.getAttribute(u'name')] = attr_dict
+
+    return submit_attrs
+
 def extract_attr_val(attr):
     if (not attr.getAttribute(u'type') in ("string","int","expr")):
         raise RuntimeError, "Wrong attribute type '%s', must be either 'int' or 'string'"%attr.getAttribute(u'type')
