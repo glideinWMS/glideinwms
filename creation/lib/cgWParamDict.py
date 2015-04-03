@@ -438,7 +438,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         # populate complex files
         populate_job_descript(self.work_dir,self.dicts['job_descript'],
-                              self.sub_name,sub_params)
+                              self.sub_name,sub_params,entry)
 
         ################################################################################################################
         # This is the original function call:
@@ -777,7 +777,7 @@ def populate_factory_descript(work_dir,
 
 #######################
 def populate_job_descript(work_dir, job_descript_dict, 
-                          sub_name, sub_params):
+                          sub_name, sub_params, entry):
     """
     Modifies the job_descript_dict to contain the factory configuration values.
     
@@ -794,38 +794,44 @@ def populate_job_descript(work_dir, job_descript_dict,
     down_fname = os.path.join(work_dir, 'glideinWMS.downtimes')
 
     job_descript_dict.add('EntryName', sub_name)
-    job_descript_dict.add('GridType', sub_params.gridtype)
-    job_descript_dict.add('Gatekeeper', sub_params.gatekeeper)
-    job_descript_dict.add('AuthMethod', sub_params.auth_method)
-    job_descript_dict.add('TrustDomain', sub_params.trust_domain)
-    if sub_params.vm_id is not None:
-        job_descript_dict.add('EntryVMId', sub_params.vm_id)
-    if sub_params.vm_type is not None:
-        job_descript_dict.add('EntryVMType', sub_params.vm_type)
-    if sub_params.rsl is not None:
-        job_descript_dict.add('GlobusRSL', sub_params.rsl)
-    job_descript_dict.add('Schedd', sub_params.schedd_name)
-    job_descript_dict.add('StartupDir', sub_params.work_dir)
-    if sub_params.proxy_url is not None:
-        job_descript_dict.add('ProxyURL', sub_params.proxy_url)
-    job_descript_dict.add('Verbosity', sub_params.verbosity)
+    job_descript_dict.add('GridType', entry.getAttribute(u'gridtype'))
+    job_descript_dict.add('Gatekeeper', entry.getAttribute(u'gatekeeper'))
+    job_descript_dict.add('AuthMethod', entry.getAttribute(u'auth_method'))
+    job_descript_dict.add('TrustDomain', entry.getAttribute(u'trust_domain'))
+    if entry.hasAttribute(u'vm_id'):
+        job_descript_dict.add('EntryVMId', entry.getAttribute(u'vm_id'))
+    if entry.hasAttribute(u'vm_type'):
+        job_descript_dict.add('EntryVMType', entry.getAttribute(u'vm_type'))
+    if entry.hasAttribute(u'rsl'):
+        job_descript_dict.add('GlobusRSL', entry.getAttribute(u'rsl'))
+    job_descript_dict.add('Schedd', entry.getAttribute(u'schedd_name'))
+    job_descript_dict.add('StartupDir', entry.getAttribute(u'work_dir'))
+    if entry.hasAttribute(u'proxy_url'):
+        job_descript_dict.add('ProxyURL', entry.getAttribute(u'proxy_url'))
+    job_descript_dict.add('Verbosity', entry.getAttribute(u'verbosity'))
     job_descript_dict.add('DowntimesFile', down_fname)
-    job_descript_dict.add('PerEntryMaxGlideins', sub_params.config.max_jobs.per_entry.glideins)
-    job_descript_dict.add('PerEntryMaxIdle', sub_params.config.max_jobs.per_entry.idle)
-    job_descript_dict.add('PerEntryMaxHeld', sub_params.config.max_jobs.per_entry.held)
-    job_descript_dict.add('DefaultPerFrontendMaxGlideins', sub_params.config.max_jobs.default_per_frontend.glideins)
-    job_descript_dict.add('DefaultPerFrontendMaxIdle', sub_params.config.max_jobs.default_per_frontend.idle)
-    job_descript_dict.add('DefaultPerFrontendMaxHeld', sub_params.config.max_jobs.default_per_frontend.held)
-    job_descript_dict.add('MaxSubmitRate', sub_params.config.submit.max_per_cycle)
-    job_descript_dict.add('SubmitCluster', sub_params.config.submit.cluster_size)
-    job_descript_dict.add('SubmitSlotsLayout', sub_params.config.submit.slots_layout)
-    job_descript_dict.add('SubmitSleep', sub_params.config.submit.sleep)
-    job_descript_dict.add('MaxRemoveRate', sub_params.config.remove.max_per_cycle)
-    job_descript_dict.add('RemoveSleep', sub_params.config.remove.sleep)
-    job_descript_dict.add('MaxReleaseRate', sub_params.config.release.max_per_cycle)
-    job_descript_dict.add('ReleaseSleep', sub_params.config.release.sleep)
-    job_descript_dict.add('RequireVomsProxy',sub_params.config.restrictions.require_voms_proxy)
-    job_descript_dict.add('RequireGlideinGlexecUse',sub_params.config.restrictions.require_glidein_glexec_use)
+    per_entry = entry.getElementsByTagName(u'per_entry')[0]
+    job_descript_dict.add('PerEntryMaxGlideins', per_entry.getAttribute(u'glideins'))
+    job_descript_dict.add('PerEntryMaxIdle', per_entry.getAttribute(u'idle'))
+    job_descript_dict.add('PerEntryMaxHeld', per_entry.getAttribute(u'held'))
+    def_per_fe = entry.getElementsByTagName(u'default_per_frontend')[0]
+    job_descript_dict.add('DefaultPerFrontendMaxGlideins', def_per_fe.getAttribute(u'glideins'))
+    job_descript_dict.add('DefaultPerFrontendMaxIdle', def_per_fe.getAttribute(u'idle'))
+    job_descript_dict.add('DefaultPerFrontendMaxHeld', def_per_fe.getAttribute(u'held'))
+    submit = entry.getElementsByTagName(u'submit')[0]
+    job_descript_dict.add('MaxSubmitRate', submit.getAttribute(u'max_per_cycle'))
+    job_descript_dict.add('SubmitCluster', submit.getAttribute(u'cluster_size'))
+    job_descript_dict.add('SubmitSlotsLayout', submit.getAttribute(u'slots_layout'))
+    job_descript_dict.add('SubmitSleep', submit.getAttribute(u'sleep'))
+    remove = entry.getElementsByTagName(u'remove')[0]
+    job_descript_dict.add('MaxRemoveRate', remove.getAttribute(u'max_per_cycle'))
+    job_descript_dict.add('RemoveSleep', remove.getAttribute(u'sleep'))
+    release = entry.getElementsByTagName(u'release')[0]
+    job_descript_dict.add('MaxReleaseRate', release.getAttribute(u'max_per_cycle'))
+    job_descript_dict.add('ReleaseSleep', release.getAttribute(u'sleep'))
+    restrictions = entry.getElementsByTagName(u'restrictions')[0]
+    job_descript_dict.add('RequireVomsProxy',restrictions.getAttribute(u'require_voms_proxy'))
+    job_descript_dict.add('RequireGlideinGlexecUse',restrictions.getAttribute(u'require_glidein_glexec_use'))
    
     # Add the frontend specific job limits to the job.descript file
     max_held_frontend = ""
