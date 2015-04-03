@@ -410,31 +410,31 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         # put standard attributes into config file
         # override anything the user set
         for dtype in ('attrs','consts'):
-            self.dicts[dtype].add("GLIDEIN_Gatekeeper",sub_params.gatekeeper,allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_GridType",sub_params.gridtype,allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_Gatekeeper",entry.getAttribute(u'gatekeeper'),allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_GridType",entry.getAttribute(u'gridtype'),allow_overwrite=True)
             # MERGENOTE:
             # GLIDEIN_REQUIRE_VOMS publishes an attribute so that users without VOMS proxies
             #   can avoid sites that require VOMS proxies (using the normal Condor Requirements
             #   string. 
-            self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS",sub_params.config.restrictions.require_voms_proxy,allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_REQUIRE_GLEXEC_USE",sub_params.config.restrictions.require_glidein_glexec_use,allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_TrustDomain",sub_params.trust_domain,allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_SupportedAuthenticationMethod",sub_params.auth_method,allow_overwrite=True)
-            if sub_params.rsl is not None:
-                self.dicts[dtype].add('GLIDEIN_GlobusRSL',sub_params.rsl,allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_SlotsLayout", sub_params.config.submit.slots_layout, allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS",entry.getElementsByTagName(u'restrictions')[0].getAttribute(u'require_voms_proxy'),allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_REQUIRE_GLEXEC_USE",entry.getElementsByTagName(u'restrictions')[0].getAttribute(u'require_glidein_glexec_use'),allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_TrustDomain",entry.getAttribute(u'trust_domain'),allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_SupportedAuthenticationMethod",entry.getAttribute(u'auth_method'),allow_overwrite=True)
+            if entry.hasAttribute(u'rsl'):
+                self.dicts[dtype].add('GLIDEIN_GlobusRSL',entry.getAttribute(u'rsl'),allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_SlotsLayout", entry.getElementsByTagName(u'submit')[0].getAttribute(u'slots_layout'), allow_overwrite=True)
 
 
-        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_VOMS","boolean",sub_params.config.restrictions.require_voms_proxy,None,False,True,True)
-        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_GLEXEC_USE","boolean",sub_params.config.restrictions.require_glidein_glexec_use,None,False,True,True)
+        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_VOMS","boolean",entry.getElementsByTagName(u'restrictions')[0].getAttribute(u'require_voms_proxy'),None,False,True,True)
+        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_GLEXEC_USE","boolean",entry.getElementsByTagName(u'restrictions')[0].getAttribute(u'require_glidein_glexec_use'),None,False,True,True)
 
         # populate infosys
-        for infosys_ref in sub_params.infosys_refs:
-            self.dicts['infosys'].add_extended(infosys_ref['type'],infosys_ref['server'],infosys_ref['ref'],allow_overwrite=True)
+        for infosys_ref in entry.getElementsByTagName(u'infosys_ref'):
+            self.dicts['infosys'].add_extended(infosys_ref.getAttribute(u'type'),infosys_ref.getAttribute(u'server'),infosys_ref.getAttribute(u'ref'),allow_overwrite=True)
 
         # populate monitorgroups
-        for monitorgroup in sub_params.monitorgroups:
-            self.dicts['mongroup'].add_extended(monitorgroup['group_name'],allow_overwrite=True)
+        for monitorgroup in entry.getElementsByTagName(u'monitorgroup'):
+            self.dicts['mongroup'].add_extended(monitorgroup.getAttribute(u'group_name'),allow_overwrite=True)
 
         # populate complex files
         populate_job_descript(self.work_dir,self.dicts['job_descript'],
