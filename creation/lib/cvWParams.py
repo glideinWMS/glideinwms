@@ -197,7 +197,8 @@ class VOFrontendParams(cWParams.CommonParams):
         ccb_collector_defaults=cWParams.commentedOrderedDict()
         ccb_collector_defaults["node"]=(None,"nodename","CCB collector node name (for example, ccb1.my.org:9999)",None)
         ccb_collector_defaults["DN"]=(None,"dn","CCB collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=ccb1.my.org)",None)
-        self.defaults["ccbs"]=([],'List of CCB collectors',"Each CCB contains",ccb_collector_defaults)
+        ccb_collector_defaults["group"]=("default","string","CCB collector group name useful to group HA setup",None)
+        self.defaults["ccb_collectors"]=([],'List of CCB collectors',"Each CCB contains",ccb_collector_defaults)
 
 
 
@@ -343,6 +344,7 @@ class VOFrontendParams(cWParams.CommonParams):
         return {'lists_params':{'files':{'el_name':'file','subtypes_params':{'class':{}}},
                                 'process_logs':{'el_name':'process_log','subtypes_params':{'class':{}}},
                                 'collectors':{'el_name':'collector','subtypes_params':{'class':{}}},
+                                'ccb_collectors':{'el_name':'ccb_collector','subtypes_params':{'class':{}}},
                                 'schedds':{'el_name':'schedd','subtypes_params':{'class':{}}},
                                 'credentials':{'el_name':'credential','subtypes_params':{'class':{}}}},
                 'dicts_params':{'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},

@@ -205,6 +205,13 @@ Click on any piece for a more detailed description.
         <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector2.fnal.gov" node="usercollector2.fnal.gov:9620-9919" secondary="True" group="ha" /&gt;</a><br/>
     </blockquote>
     <a href="#usercollector">&lt;/collectors&gt;</a><br/>
+    <a href="#ccbcollector">&lt;ccb_collectors&gt;</a><br/>
+    <blockquote>
+        <a href="#ccbcollector">&lt;ccb_collector DN="/DC=org/DC=doegrids/OU=Services/CN=ccb.fnal.gov" node="ccb.fnal.gov" /&gt;</a><br/>
+        <a href="#ccbcollector">&lt;ccb_collector DN="/DC=org/DC=doegrids/OU=Services/CN=ccb2.fnal.gov" node="ccb2.fnal.gov:9620" /&gt;</a><br/>
+        <a href="#ccbcollector">&lt;ccb_collector DN="/DC=org/DC=doegrids/OU=Services/CN=ccb2.fnal.gov" node="ccb2.fnal.gov:9621" /&gt;</a><br/>
+    </blockquote>
+    <a href="#ccbcollector">&lt;/ccb_collectors&gt;</a><br/>
     <a href="#global_config">&lt;config&gt;</a><br/>
     <blockquote>
        <a href="#global_config">&lt;idle_vms_total curb="800" max="1200" /&gt;</a><br/>
@@ -797,7 +804,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     <LI><P>
         <a name="usercollector" />
         <div class="xml">
-        &lt;frontend&gt;&lt;collectors&gt;&lt;collector DN="<i>certificate DN</i>" node="<i>User Pool Collector</i>" secondary="<i>True/False</i>" group="<i>Group Name</i>"&gt;
+        &lt;frontend&gt;&lt;collectors&gt;&lt;collector DN="<i>certificate DN</i>" node="<i>User Pool Collector</i>" secondary="<i>True/False</i>" group="<i>Group Name</i>"/&gt;
         </div>
         List of user pool collector(s) where condor_startd started by glideins
         should report to as an available resource.  
@@ -842,10 +849,36 @@ glideins.  Groups are used to group users with similar requirements, such as pro
             element for each secondary port.</i></font><br/>
        </ul>
       </blockquote>
-
-
     </li>
-    
+
+    <LI><P>
+        <a name="ccbcollector" />
+        <div class="xml">
+        &lt;frontend&gt;&lt;ccb_collectors&gt;&lt;ccb_collector DN="<i>certificate DN</i>" node="<i>CCB (Collector)</i>" /&gt;
+        </div>
+        List of <a href="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_7Networking_includes.html#SECTION00474000000000000000">
+HTCondor Connection Brokering, or CCB,</a> servers. These are collector daemons that allow communications with HTCondor daemons behind a firewall.
+See the  <a href="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_7Networking_includes.html#SECTION00474000000000000000">HTCondor manual</a> 
+for more information on CCB. A switch in the entry section of the factory configuration determines wether the daemons started by Glideins on that entry
+will use CCBs or not.<br><br>
+<b>Normally this section is empty and the main User Pool Collector acts also as CCB if needed</b>.
+Only very specific setups need to change this section.
+    <br><br>
+    For <b>scalability</b> purposes, multiple CCB can be listed. 
+Each HTCondor damon will use only one CCB: it will receive a randomly shuffled version of the list of CCBs and will start using the first one 
+and falling back to the following ones in case of errors. Daemons on the same host using a shared port daemon will share the same CCB.<br>
+    The configuration required for the Frontend and Glideins to communicate using CCB collectors is shown below:
+      <blockquote>
+         &lt;ccb_collectors&gt;
+         &lt;ccb_collector DN="<i>certificate DN</i>"  
+                  node="CCB Collector:<b>primary_port</b>"/&gt;</br>
+         &lt;ccb_collector DN="<i>certificate DN</i>" 
+                  node="CCB Collector:<b>other_port</b>"/&gt;</br>
+            <font color="blue"><i>
+            Contrary to the User Pool Collector configuration, here only an optional port number is allowed, no <i>port range</i></font><br/>
+      </blockquote>
+    </li>
+     
 </UL>
 </div>
 <div class="section">
