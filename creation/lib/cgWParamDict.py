@@ -453,7 +453,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         # increasing parameter list for this function, lets just pass params, sub_params, and the 2 other parameters
         # to the function and call it a day.
         ################################################################################################################
-        self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE, self.sub_name, params, sub_params)
+        self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE, self.sub_name, params, self.conf_dom, sub_params, entry)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
