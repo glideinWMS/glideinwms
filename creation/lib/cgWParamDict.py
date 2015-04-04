@@ -502,7 +502,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
             entry_name = entry.getAttribute(u'name')
             self.sub_dicts[entry_name].populate(entry, params)
 
-        validate_condor_tarball_attrs(params)
+        validate_condor_tarball_attrs(params, self.conf_dom)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -913,32 +913,35 @@ def copy_file(infile,outfile):
 ###############################################
 # Validate CONDOR_OS CONDOR_ARCH CONDOR_VERSION
 
-def validate_condor_tarball_attrs(params):
-    valid_tarballs = get_valid_condor_tarballs(params.condor_tarballs)
+def validate_condor_tarball_attrs(params, conf_dom):
+    valid_tarballs = get_valid_condor_tarballs(factXmlUtil.get_condor_tarballs(conf_dom))
 
     common_version = "default"
     common_os = "default"
     common_arch = "default"
-    if (params.attrs.has_key('CONDOR_VERSION')):
-        common_version = params.attrs['CONDOR_VERSION']['value']
-    if (params.attrs.has_key('CONDOR_OS')):
-        common_os = params.attrs['CONDOR_OS']['value']
-    if (params.attrs.has_key('CONDOR_ARCH')):
-        common_arch = params.attrs['CONDOR_ARCH']['value']
+    
+    cond_attrs = factXmlUtil.get_condor_attrs(conf_dom.getElementsByTagName(u'attrs')[0])
+    if cond_attrs[0] is not None:
+        common_version = cond_attrs[0]
+    if cond_attrs[1] is not None:
+        common_os = cond_attrs[1]
+    if cond_attrs[2] is not None:
+        common_arch = cond_attrs[2]
 
     # Check the configuration for every entry
-    for entry in params.entries.keys():
+    for entry in conf_dom.getElementsByTagName(u'entry'):
         my_version = common_version
         my_os = common_os
         my_arch = common_arch
         match_found = False        
 
-        if (params.entries[entry].attrs.has_key('CONDOR_VERSION')):
-            my_version = params.entries[entry].attrs['CONDOR_VERSION']['value']
-        if (params.entries[entry].attrs.has_key('CONDOR_OS')):
-            my_os = params.entries[entry].attrs['CONDOR_OS']['value']
-        if (params.entries[entry].attrs.has_key('CONDOR_ARCH')):
-            my_arch = params.entries[entry].attrs['CONDOR_ARCH']['value']
+        cond_attrs = factXmlUtil.get_condor_attrs(entry.getElementsByTagName(u'attrs')[0])
+        if cond_attrs[0] is not None:
+            my_version = cond_attrs[0]
+        if cond_attrs[1] is not None:
+            my_os = cond_attrs[1]
+        if cond_attrs[2] is not None:
+            my_arch = cond_attrs[2]
 
         # If either os or arch is auto, handle is carefully
         if ((my_os == "auto") and (my_arch == "auto")):

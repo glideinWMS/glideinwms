@@ -173,3 +173,21 @@ def extract_attr_val(attr):
         return str(attr.getAttribute(u'value'))
     else:
         return int(attr.getAttribute(u'value'))
+
+def get_condor_attrs(attrs):
+    version = None
+    os = None
+    arch = None 
+
+    for attr in attrs.getElementsByTagName(u'attr'):
+        if attr.getAttribute(u'name') == u'CONDOR_VERSION':
+            version = attr.getAttribute(u'value')       
+        elif attr.getAttribute(u'name') == u'CONDOR_OS':
+            os = attr.getAttribute(u'value')       
+        elif attr.getAttribute(u'name') == u'CONDOR_ARCH':
+            arch = attr.getAttribute(u'value')       
+
+        if version is not None and os is not None and arch is not None:
+            break
+    
+    return (version,os,arch)
