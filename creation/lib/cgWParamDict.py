@@ -146,10 +146,10 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # add the factory monitoring collector parameter, if any collectors are defined
         # this is purely a factory thing
-        factory_monitoring_collector=calc_monitoring_collectors_string(params.monitoring_collectors)
+        factory_monitoring_collector=calc_monitoring_collectors_string(factXmlUtil.get_mon_collectors(self.conf_dom))
         if factory_monitoring_collector is not None:
             self.dicts['params'].add('GLIDEIN_Factory_Collector',str(factory_monitoring_collector))
-        populate_gridmap(params,self.dicts['gridmap'])
+        populate_gridmap(params,self.conf_dom,self.dicts['gridmap'])
         
         file_list_scripts = ['collector_setup.sh',
                              'create_temp_mapfile.sh',
@@ -763,7 +763,7 @@ def populate_factory_descript(work_dir,
         glidein_dict.add('MonitorDisplayText',mon_foot_el.getAttribute(u'display_txt'))
         glidein_dict.add('MonitorLink',mon_foot_el.getAttribute(u'href_link'))
         
-        monitoring_collectors=calc_primary_monitoring_collectors(params.monitoring_collectors)
+        monitoring_collectors=calc_primary_monitoring_collectors(factXmlUtil.get_mon_collectors(conf_dom))
         if monitoring_collectors is not None:
             glidein_dict.add('PrimaryMonitoringCollectors',str(monitoring_collectors))
 
@@ -887,12 +887,12 @@ def populate_frontend_descript(frontend_dict,     # will be modified
 
 #####################################################
 # Populate gridmap to be used by the glideins
-def populate_gridmap(params,gridmap_dict):
+def populate_gridmap(params,conf_dom,gridmap_dict):
     collector_dns=[]
-    for el in params.monitoring_collectors:
-        dn=el.DN
+    for el in factXmlUtil.get_mon_collectors(conf_dom):
+        dn=el[u'DN']
         if dn is None:
-            raise RuntimeError,"DN not defined for monitoring collector %s"%el.node
+            raise RuntimeError,"DN not defined for monitoring collector %s"%el[u'node']
         if not (dn in collector_dns): #skip duplicates
             collector_dns.append(dn)
             gridmap_dict.add(dn,'fcollector%i'%len(collector_dns))
@@ -1030,14 +1030,14 @@ def calc_monitoring_collectors_string(collectors):
     monitoring_collectors = []
 
     for el in collectors:
-        if not collector_nodes.has_key(el.group):
-            collector_nodes[el.group] = {'primary': [], 'secondary': []}
-        if eval(el.secondary):
-            cWDictFile.validate_node(el.node,allow_prange=True)
-            collector_nodes[el.group]['secondary'].append(el.node)
+        if not collector_nodes.has_key(el[u'group']):
+            collector_nodes[el[u'group']] = {'primary': [], 'secondary': []}
+        if eval(el[u'secondary']):
+            cWDictFile.validate_node(el[u'node'],allow_prange=True)
+            collector_nodes[el[u'group']]['secondary'].append(el[u'node'])
         else:
-            cWDictFile.validate_node(el.node)
-            collector_nodes[el.group]['primary'].append(el.node)
+            cWDictFile.validate_node(el[u'node'])
+            collector_nodes[el[u'group']]['primary'].append(el[u'node'])
 
     for group in collector_nodes.keys():
         if len(collector_nodes[group]['secondary']) > 0:
@@ -1056,13 +1056,13 @@ def calc_primary_monitoring_collectors(collectors):
     collector_nodes = {}
 
     for el in collectors:
-        if not eval(el.secondary):
+        if not eval(el[u'secondary']):
             # only consider the primary collectors
-            cWDictFile.validate_node(el.node)
+            cWDictFile.validate_node(el[u'node'])
             # we only expect one per group
-            if collector_nodes.has_key(el.group):
-                raise RuntimeError, "Duplicate primary monitoring collector found for group %s"%el.group
-            collector_nodes[el.group]=el.node
+            if collector_nodes.has_key(el[u'group']):
+                raise RuntimeError, "Duplicate primary monitoring collector found for group %s"%el[u'group']
+            collector_nodes[el[u'group']]=el[u'node']
     
     if len(collector_nodes)==0:
         return None

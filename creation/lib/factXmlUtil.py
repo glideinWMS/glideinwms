@@ -136,6 +136,18 @@ def get_frontends(conf_dom):
 
     return frontends
 
+def get_mon_collectors(conf_dom):
+    mon_collectors = []
+    for mon_col_el in conf_dom.getElementsByTagName(u'monitoring_collector'):
+        mon_col = {}
+        mon_col[u'DN'] = mon_col_el.getAttribute(u'DN')
+        mon_col[u'group'] = mon_col_el.getAttribute(u'group')
+        mon_col[u'node'] = mon_col_el.getAttribute(u'node')
+        mon_col[u'secondary'] = mon_col_el.getAttribute(u'secondary')
+        mon_collectors.append(mon_col)
+
+    return mon_collectors
+
 def get_max_per_frontends(entry):
     per_frontends = {}
     for fe_el in entry.getElementsByTagName(u'per_frontend'):
