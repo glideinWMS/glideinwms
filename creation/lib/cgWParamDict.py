@@ -374,7 +374,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         self.dicts['condor_jdl'].save(set_readonly=set_readonly)
         
     
-    def populate(self,entry,params=None):
+    def populate(self,entry,schedd,params=None):
         if params is None:
             params=self.params
         sub_params=params.entries[self.sub_name]
@@ -439,7 +439,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         # populate complex files
         populate_job_descript(self.work_dir,self.dicts['job_descript'],
-                              self.sub_name,sub_params,entry)
+                              self.sub_name,sub_params,entry,schedd)
 
         ################################################################################################################
         # This is the original function call:
@@ -490,17 +490,33 @@ class glideinDicts(cgWDictFile.glideinDicts):
         self.active_sub_list=[]
         return
 
-    def populate(self,params=None): # will update params (or self.params)
+    def populate(self,other=None,params=None): # will update params (or self.params)
         if params is None:
             params=self.params
 
         self.main_dicts.populate(params)
         self.active_sub_list=self.main_dicts.active_sub_list
 
-        self.local_populate(params)
+        schedds = self.conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'schedd_name').split(u',')
+        schedd_counts = {}
+        for s in schedds:
+            schedd_counts[s] = 0
+
+        if other is not None:
+            for e in other.sub_dicts:
+                schedd = other.sub_dicts[e]['job_descript']['Schedd']
+                if schedd in schedd_counts:
+                    schedd_counts[schedd] += 1
+
         for entry in self.conf_dom.getElementsByTagName(u'entry'):
             entry_name = entry.getAttribute(u'name')
-            self.sub_dicts[entry_name].populate(entry, params)
+            if other is not None and entry_name in other.sub_dicts and other.sub_dicts[entry_name]['job_descript']['Schedd'] in schedd_counts:
+                schedd = other.sub_dicts[entry_name]['job_descript']['Schedd']
+            else:
+                schedd_arr = [(k, schedd_counts[k]) for k in schedd_counts]
+                schedd = sorted(schedd_arr, key=lambda x:x[1])[0][0]
+                schedd_counts[schedd] += 1
+            self.sub_dicts[entry_name].populate(entry, schedd, params)
 
         validate_condor_tarball_attrs(params, self.conf_dom)
 
@@ -778,7 +794,7 @@ def populate_factory_descript(work_dir,
 
 #######################
 def populate_job_descript(work_dir, job_descript_dict, 
-                          sub_name, sub_params, entry):
+                          sub_name, sub_params, entry, schedd):
     """
     Modifies the job_descript_dict to contain the factory configuration values.
     
@@ -805,7 +821,7 @@ def populate_job_descript(work_dir, job_descript_dict,
         job_descript_dict.add('EntryVMType', entry.getAttribute(u'vm_type'))
     if entry.hasAttribute(u'rsl'):
         job_descript_dict.add('GlobusRSL', entry.getAttribute(u'rsl'))
-    job_descript_dict.add('Schedd', entry.getAttribute(u'schedd_name'))
+    job_descript_dict.add('Schedd', schedd)
     job_descript_dict.add('StartupDir', entry.getAttribute(u'work_dir'))
     if entry.hasAttribute(u'proxy_url'):
         job_descript_dict.add('ProxyURL', entry.getAttribute(u'proxy_url'))

@@ -76,7 +76,7 @@ def main(xml, params, conf_dom, old_params, update_scripts, update_def_cfg, comm
     glidein_dicts_obj = cgWParamDict.glideinDicts(params, conf_dom)
 
     try:
-        glidein_dicts_obj.populate()
+        glidein_dicts_obj.populate(old_glidein_dicts_obj)
     except cgWParamDict.UnconfiguredScheddError, e:
         print e.err_str
         sys.exit(1)
