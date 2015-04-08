@@ -759,7 +759,7 @@ def calc_glidein_ccbs(collectors):
     glidein_ccb_collectors = []
 
     for el in collectors:
-        cWDictFile.validate_node(el.node)
+        cWDictFile.validate_node(el.node,allow_prange=True)
         glidein_ccb_collectors.append(el.node)
     return string.join(glidein_ccb_collectors, ",")
 
@@ -771,6 +771,16 @@ def populate_gridmap(params,gridmap_dict):
         dn=el.DN
         if dn is None:
             raise RuntimeError,"DN not defined for pool collector %s"%el.node
+        if not (dn in collector_dns): #skip duplicates
+            collector_dns.append(dn)
+            gridmap_dict.add(dn,'collector%i'%len(collector_dns))
+
+    # Add also the CCB DNs (if any). Duplicates with the collectors list are skipped 
+    # The name is still collector%i, continuing from the collectors counter.
+    for el in params.ccb_collectors:
+        dn=el.DN
+        if dn is None:
+            raise RuntimeError,"DN not defined for CCB collector %s"%el.node
         if not (dn in collector_dns): #skip duplicates
             collector_dns.append(dn)
             gridmap_dict.add(dn,'collector%i'%len(collector_dns))

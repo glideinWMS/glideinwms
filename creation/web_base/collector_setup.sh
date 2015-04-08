@@ -71,6 +71,8 @@ function parse_and_select_collectors {
 }
 
 function csv_shuffle {
+    # using shuf: outlist="`echo "$inlist," | sed -r 's/(.[^,]*,)/ \1 /g' | tr " " "\n" | shuf | tr -d "\n" | sed -r 's/,+/,/g'`"
+    
     local inlist="$1"
 
     local outlist="`echo "$inlist" | sed -r 's/(.[^,]*,)/ \1 /g' | tr " " "\n" | while IFS= read -r line
@@ -79,6 +81,17 @@ do
 done | sort -n | cut -c8- | tr -d "\n" | sed -r 's/,+/,/g'`"
 
     echo ${outlist}
+}
+
+function csv_expand_and_shuffle {
+    # expand port ranges and shuffle all the elements
+    local inlist="$1"
+
+    # increment the random_seed, so it is always unique
+    let random_seed=$random_seed+$$
+    outlist="`echo "$inlist" | awk "BEGIN{srand($random_seed)}"'{split($0,g,","); for (i in g) print  g[i]}' | awk "BEGIN{srand($random_seed)}"'{split($0,g,":"); if (g[2]=="") { print rand() "\t" $0} else {split(g[2],p,"-"); if (p[2]=="") {print rand() "\t" $0} else {for (i=p[1]; i<=p[2]; i++) {print rand() "\t" g[1] ":" i}}}}' | sort -n |awk '{print $2}'| tr "\n" "," | sed "s;^,*;;" | sed "s;,*$;;"`"
+
+    echo "${outlist}"
 }
 
 function parse_and_shuffle_ccbs {
@@ -90,15 +103,9 @@ function parse_and_shuffle_ccbs {
         return 0
     fi
     
-    local outlist=""
-    which shuf > /dev/null 2>&1
-    if [ $? -eq 0 ]; then
-        outlist="`echo "$inlist," | sed -r 's/(.[^,]*,)/ \1 /g' | tr " " "\n" | shuf | tr -d "\n" | sed -r 's/,+/,/g'`"
-    else
-        outlist="`csv_shuffle "$inlist,"`"
-    fi
+    local outlist="`csv_expand_and_shuffle "$inlist,"`"
 
-    echo "${outlist%,}"
+    echo "${outlist}"
 }
 
 # import add_config_line function
