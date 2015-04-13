@@ -40,12 +40,13 @@ function usage {
     echo "  -signentry <sign>           : signature of the entry signature file"
     echo "  -cluster <ClusterID>        : condorG ClusterId"
     echo "  -subcluster <ProcID>        : condorG ProcId"
+    echo "  -submitcredid <CredentialID>: Credential ID of this condorG job"
     echo "  -schedd <name>              : condorG Schedd Name"
     echo "  -descript <fname>           : description file name"
     echo "  -descriptentry <fname>      : description file name for entry"
     echo "  -clientweb <baseURL>        : base URL from where to fetch client files"
     echo "  -clientwebgroup <baseURL>   : base URL from where to fetch client group files"
-    echo "  -ciientsign <sign>          : signature of the client signature file"
+    echo "  -clientsign <sign>          : signature of the client signature file"
     echo "  -clientsigntype <id>        : type of client signature (only sha1 supported for now)"
     echo "  -clientsigngroup <sign>     : signature of the client group signature file"
     echo "  -clientdescript <fname>     : client description file name"
@@ -76,6 +77,7 @@ do case "$1" in
     -signentry)  sign_entry_id="$2";;
     -cluster)    condorg_cluster="$2";;
     -subcluster) condorg_subcluster="$2";;
+    -submitcredid) glidein_cred_id="$2";;
     -schedd)     condorg_schedd="$2";;
     -descript)   descript_file="$2";;
     -descriptentry)   descript_entry_file="$2";;
@@ -261,6 +263,7 @@ function simplexml2longxml {
   echo "    <env name=\"glidein_entry\">$glidein_entry</env>"
   echo "    <env name=\"condorg_cluster\">$condorg_cluster</env>"
   echo "    <env name=\"condorg_subcluster\">$condorg_subcluster</env>"
+  echo "    <env name=\"glidein_credential_id\">$glidein_cred_id</env>"
   echo "    <env name=\"condorg_schedd\">$condorg_schedd</env>"
 
   echo "${final_result_simple}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<operatingenvironment>/{fr=1;}'
@@ -289,6 +292,7 @@ function print_tail {
 ####################################
 # Cleaup, print out message and exit
 work_dir_created=0
+glide_local_tmp_dir_created=0
 
 # use this for early failures, when we cannot assume we can write to disk at all
 # too bad we end up with some repeated code, but difficult to do better
@@ -315,6 +319,9 @@ function early_glidein_failure {
   cd "$start_dir"
   if [ "$work_dir_created" -eq "1" ]; then
     rm -fR "$work_dir"
+  fi
+  if [ "$glide_local_tmp_dir_created" -eq "1" ]; then
+    rm -fR "$glide_local_tmp_dir"
   fi
 
   print_tail 1 "${final_result_simple}" "${final_result_long}"
@@ -353,6 +360,24 @@ function glidein_exit {
 	  report_failed="NEVER"
       fi
 
+      factory_report_failed=`grep -i "^GLIDEIN_Factory_Report_Failed " $glidein_config | awk '{print $2}'`
+
+      if [ -z "$factory_report_failed" ]; then
+          factory_collector=`grep -i "^GLIDEIN_Factory_Collector " $glidein_config | awk '{print $2}'`
+          if [ -z "$factory_collector" ]; then
+              # no point in enabling it if there are no collectors
+              factory_report_failed="NEVER"
+          else
+              factory_report_failed="ALIVEONLY"
+          fi
+      fi
+
+      do_report=0
+      if [ "$report_failed" != "NEVER" ] || [ "$factory_report_failed" != "NEVER" ]; then
+          do_report=1
+      fi
+
+
       # wait a bit in case of error, to reduce lost glideins
       let "dl=`date +%s` + $sleep_time"
       dlf=`date --date="@$dl"`
@@ -381,11 +406,19 @@ function glidein_exit {
 
       for ((t=`date +%s`; $t<$dl;t=`date +%s`))
       do
-	if [ -e "${main_work_dir}/$last_script" ] && [ "$report_failed" != "NEVER" ] ; then
-	    # if the file exists, we should be able to talk to VO collector
-	    # notify VO things went badly and we are waiting
-            warn "Notifying VO of error"
-	    "${gs_id_work_dir}/$last_script" glidein_config
+	if [ -e "${main_work_dir}/$last_script" ] && [ "$do_report" == "1" ] ; then
+	    # if the file exists, we should be able to talk to the collectors
+	    # notify that things went badly and we are waiting
+            if [ "$factory_report_failed" != "NEVER" ]; then
+                add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "Factory"
+                warn "Notifying Factory of error"
+                "${main_work_dir}/$last_script" glidein_config
+            fi
+            if [ "$report_failed" != "NEVER" ]; then
+                add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "VO"
+                warn "Notifying VO of error"
+                "${main_work_dir}/$last_script" glidein_config
+            fi
 	fi
 
 	# sleep for about 5 mins... but randomize a bit
@@ -399,22 +432,39 @@ function glidein_exit {
 	sleep $ds
       done
 
-      if [ -e "${main_work_dir}/$last_script" ] && [ "$report_failed" != "NEVER" ]; then
-	  # notify VO things went badly and we are going away
-	  if [ "$report_failed" == "ALIVEONLY" ]; then
-	      add_config_line "GLIDEIN_ADVERTISE_TYPE" "INVALIDATE"
-	  else
-	      add_config_line "GLIDEIN_ADVERTISE_TYPE" "Killing"
-	      add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Terminating now. ($dl) ($dlf)"
-	  fi
-	  "${gs_id_work_dir}/$last_script" glidein_config
-          warn "Last notification sent"
+      if [ -e "${main_work_dir}/$last_script" ] && [ "$do_report" == "1" ]; then
+	  # notify that things went badly and we are going away
+          if [ "$factory_report_failed" != "NEVER" ]; then
+              add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "Factory"
+              if [ "$factory_report_failed" == "ALIVEONLY" ]; then
+                  add_config_line "GLIDEIN_ADVERTISE_TYPE" "INVALIDATE"
+              else
+                  add_config_line "GLIDEIN_ADVERTISE_TYPE" "Killing"
+                  add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Terminating now. ($dl) ($dlf)"
+              fi
+              "${main_work_dir}/$last_script" glidein_config
+              warn "Last notification sent to Factory"
+          fi
+          if [ "$report_failed" != "NEVER" ]; then
+              add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "VO"
+              if [ "$report_failed" == "ALIVEONLY" ]; then
+                  add_config_line "GLIDEIN_ADVERTISE_TYPE" "INVALIDATE"
+              else
+                  add_config_line "GLIDEIN_ADVERTISE_TYPE" "Killing"
+                  add_config_line "GLIDEIN_FAILURE_REASON" "Glidein failed while running ${ge_last_script_name}. Terminating now. ($dl) ($dlf)"
+              fi
+              "${main_work_dir}/$last_script" glidein_config
+              warn "Last notification sent to VO"
+          fi
       fi
   fi
 
   cd "$start_dir"
   if [ "$work_dir_created" -eq "1" ]; then
     rm -fR "$work_dir"
+  fi
+  if [ "$glide_local_tmp_dir_created" -eq "1" ]; then
+    rm -fR "$glide_local_tmp_dir"
   fi
 
   print_tail $1 "${final_result_simple}" "${final_result_long}"
@@ -442,8 +492,8 @@ function automatic_work_dir {
         fi
 
         # make sure there is enough available diskspace
-        cd $d
-        free=`df -kP . | awk '{if (NR==2) print $4}'`
+        #cd $d
+        free=`df -kP $d | awk '{if (NR==2) print $4}'`
         if [ "x$free" == "x" -o $free -lt $disk_required ]; then
             echo "  Workdir: not enough disk space available in $d" 1>&2
             continue
@@ -770,6 +820,7 @@ echo "debug_mode        = '$operation_mode'"
 echo "condorg_cluster   = '$condorg_cluster'"
 echo "condorg_subcluster= '$condorg_subcluster'"
 echo "condorg_schedd    = '$condorg_schedd'"
+echo "glidein_credential_id = '$glidein_cred_id'"
 echo "glidein_factory   = '$glidein_factory'"
 echo "glidein_name      = '$glidein_name'"
 echo "glidein_entry     = '$glidein_entry'"
@@ -857,6 +908,20 @@ if [ -z "$GLOBUS_PATH" ]; then
   fi
 fi
 
+function set_proxy_fullpath {
+    # Set the X509_USER_PROXY path to full path to the file
+    fullpath="`readlink -f $X509_USER_PROXY`"
+    if [ $? -eq 0 ]; then
+        echo "Setting X509_USER_PROXY $X09_USER_PROXY to canonical path $fullpath" 1>&2
+        export X509_USER_PROXY="$fullpath"
+    else
+        echo "Unable to get canonical path for X509_USER_PROXY, using $X09_USER_PROXY" 1>&2
+    fi
+}
+
+
+[ -n "$X509_USER_PROXY" ] && set_proxy_fullpath
+
 ########################################
 # prepare and move to the work directory
 if [ "$work_dir" == "Condor" ]; then
@@ -908,22 +973,32 @@ if [ $? -ne 0 ]; then
     early_glidein_failure "Failed chmod '$work_dir'"
 fi
 
+def_glide_local_tmp_dir="/tmp/glide_`id -u -n`_XXXXXX"
+glide_local_tmp_dir=`mktemp -d "$def_glide_local_tmp_dir"`
+if [ $? -ne 0 ]; then
+    early_glidein_failure "Cannot create temp '$def_glide_local_tmp_dir'"
+fi
+glide_local_tmp_dir_created=1
+
+# the tmpdir should be world writable
+# This way it will work even if the user spawned by the glidein is different
+# than the glidein user
+chmod 1777 "$glide_local_tmp_dir"
+if [ $? -ne 0 ]; then
+    early_glidein_failure "Failed chmod '$glide_local_tmp_dir'"
+fi
+
 glide_tmp_dir="${work_dir}/tmp"
 mkdir "$glide_tmp_dir"
 if [ $? -ne 0 ]; then
     early_glidein_failure "Cannot create '$glide_tmp_dir'"
 fi
-# the tmpdir should be world readable
+# the tmpdir should be world writable
 # This way it will work even if the user spawned by the glidein is different
 # than the glidein user
-chmod a+rwx "$glide_tmp_dir"
+chmod 1777 "$glide_tmp_dir"
 if [ $? -ne 0 ]; then
     early_glidein_failure "Failed chmod '$glide_tmp_dir'"
-fi
-# prevent others to remove or rename a file in tmp
-chmod o+t "$glide_tmp_dir"
-if [ $? -ne 0 ]; then
-    early_glidein_failure "Failed special chmod '$glide_tmp_dir'"
 fi
 
 short_main_dir=main
@@ -985,6 +1060,7 @@ if [ -n '$client_group' ]; then
     # client group not required as it is not used for anything but debug info
     echo "GLIDECLIENT_Group $client_group" >> glidein_config
 fi
+echo "GLIDEIN_CredentialIdentifier $glidein_cred_id" >> glidein_config
 echo "CONDORG_CLUSTER $condorg_cluster" >> glidein_config
 echo "CONDORG_SUBCLUSTER $condorg_subcluster" >> glidein_config
 echo "CONDORG_SCHEDD $condorg_schedd" >> glidein_config
@@ -993,6 +1069,7 @@ echo "GLIDEIN_STARTUP_PID $$" >> glidein_config
 echo "GLIDEIN_WORK_DIR $main_dir" >> glidein_config
 echo "GLIDEIN_ENTRY_WORK_DIR $entry_dir" >> glidein_config
 echo "TMP_DIR $glide_tmp_dir" >> glidein_config
+echo "GLIDEIN_LOCAL_TMP_DIR $glide_local_tmp_dir" >> glidein_config
 echo "PROXY_URL $proxy_url" >> glidein_config
 echo "DESCRIPTION_FILE $descript_file" >> glidein_config
 echo "DESCRIPTION_ENTRY_FILE $descript_entry_file" >> glidein_config

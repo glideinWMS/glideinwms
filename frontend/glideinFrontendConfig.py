@@ -1,6 +1,8 @@
 import string
 import os.path
 import urllib
+import cPickle
+import copy
 
 from glideinwms.lib import hashCrypto
 
@@ -31,9 +33,19 @@ class FrontendConfig:
         self.attrs_descript_file = "attrs.cfg"
         self.signature_descript_file = "signatures.sha1"
         self.signature_type = "sha1"
+        self.history_file = "history.pk"
 
 # global configuration of the module
 frontendConfig=FrontendConfig()
+
+
+############################################################
+#
+# Helper function
+#
+############################################################
+def get_group_dir(base_dir,group_name):
+    return os.path.join(base_dir,"group_"+group_name)
 
 
 ############################################################
@@ -116,7 +128,7 @@ class ConfigFile:
 class GroupConfigFile(ConfigFile):
     def __init__(self,base_dir,group_name,config_file,convert_function=repr,
                  validate=None): # if defined, must be (hash_algo,value)
-        ConfigFile.__init__(self,os.path.join(base_dir,"group_"+group_name),config_file,convert_function,validate)
+        ConfigFile.__init__(self,get_group_dir(base_dir,group_name),config_file,convert_function,validate)
         self.group_name=group_name
 
 # load both the main and group subdir config file
@@ -357,7 +369,7 @@ class MergeStageFiles:
                  group_name,group_descript_fname,group_signature_hash):
         self.group_name=group_name
         self.main_stage=ExtStageFiles(base_URL,main_descript_fname,validate_algo,main_signature_hash)
-        self.group_stage=ExtStageFiles(os.path.join(base_URL,"group_"+group_name),group_descript_fname,validate_algo,group_signature_hash)
+        self.group_stage=ExtStageFiles(get_group_dir(base_URL,group_name),group_descript_fname,validate_algo,group_signature_hash)
 
     def get_constants(self):
         main_consts=self.main_stage.get_constants()
@@ -380,3 +392,97 @@ class MergeStageFiles:
         main_cv.group_hash_value=group_cv.hash_value
 
         return main_cv
+
+############################################################
+#
+# The FrontendGroups may want to preserve some state between
+# iterations/invocations. The HistoryFile class provides
+# the needed support for this.
+#
+# There is no fixed schema in the class itself;
+# the FrontedGroup is free to store any arbitrary dictionary
+# in it.
+#
+############################################################
+
+class HistoryFile:
+    def __init__(self, base_dir, group_name, load_on_init = True,
+                 default_factory=None):
+        """
+        The default_factory semantics is the same as the one in collections.defaultdict
+        """
+        self.base_dir = base_dir
+        self.group_name = group_name
+        self.fname = os.path.join(get_group_dir(base_dir, group_name), frontendConfig.history_file)
+        self.default_factory = default_factory
+
+        # cannot use collections.defaultdict directly
+        # since it is only supported starting python 2.5
+        self.data = {}
+
+        if load_on_init:
+            self.load()
+
+    def load(self, raise_on_error = False):
+        try:
+            fd = open(self.fname,'r')
+            try:
+                data = cPickle.load(fd)
+            finally:
+                fd.close()
+        except:
+            if raise_on_error:
+                raise
+            else:
+                # default to empty history on error
+                data = {}
+
+        if type(data) != type({}):
+            if raise_on_error:
+                raise TypeError, "History object not a dictionary: %s" % str(type(data))
+            else:
+                # default to empty history on error
+                data = {}
+
+        self.data = data
+
+    def save(self, raise_on_error = False):
+        try:
+            # there is no concurrency, so does not need to be done atomically
+            fd = open(self.fname, 'w')
+            try:
+                cPickle.dump(self.data, fd, cPickle.HIGHEST_PROTOCOL)
+            finally:
+                fd.close()
+        except:
+            if raise_on_error:
+                raise
+            #else, just ignore
+
+    def has_key(self, keyid):
+        return self.data.has_key(keyid)
+
+    def __contains__(self, keyid):
+        return (keyid in self.data)
+
+    def __getitem__(self, keyid):
+        try:
+            return self.data[keyid]
+        except KeyError,e:
+            if self.default_factory is None:
+                raise # no default initialization, just fail
+            # i have the initialization function, use it
+            self.data[keyid] = self.default_factory()
+            return self.data[keyid]
+
+    def __setitem__(self, keyid, val):
+        self.data[keyid] = val
+
+    def __delitem__(self, keyid):
+        del self.data[keyid]
+
+    def empty(self):
+        self.data = {}
+
+    def get(self, keyid, defaultval=None):
+        return self.data.get(keyid, defaultval)

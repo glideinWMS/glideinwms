@@ -198,6 +198,15 @@ def exe_privsep(cmd, options):
     switchboard_stderr = os.dup( sys.stderr.fileno() )
     # we duplicate stderr because condor_root_switchboard closes it automatically.
 
-    output = condorExe.exe_cmd("../sbin/condor_root_switchboard", "%s 0 %d" % (cmd, switchboard_stderr), options)
+    try:
+        output = condorExe.exe_cmd("../sbin/condor_root_switchboard", "%s 0 %d" % (cmd, switchboard_stderr), options)
+    except:
+        try:
+            exc_info = sys.exc_info()
+            os.close(switchboard_stderr)
+        except OSError:
+            # Ignore if it is already closed, raise original exception
+            raise exc_info[0], exc_info[1], exc_info[2]
+        raise
     os.close(switchboard_stderr)
     return output

@@ -264,15 +264,17 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
 
         # set environment for security settings
         self.security_obj.save_state()
-        self.security_obj.enforce_requests()
+        try:
+            self.security_obj.enforce_requests()
 
-        if full_xml:
-            xml_data = condorExe.exe_cmd(self.exe_name,"%s -xml %s %s"%(self.resource_str,self.pool_str,constraint_str),env=self.env);
-        else:
-            xml_data = condorExe.exe_cmd(self.exe_name,"%s %s -xml %s %s"%(self.resource_str,format_str,self.pool_str,constraint_str),env=self.env);
+            if full_xml:
+                xml_data = condorExe.exe_cmd(self.exe_name,"%s -xml %s %s"%(self.resource_str,self.pool_str,constraint_str),env=self.env);
+            else:
+                xml_data = condorExe.exe_cmd(self.exe_name,"%s %s -xml %s %s"%(self.resource_str,format_str,self.pool_str,constraint_str),env=self.env);
 
-        # restore old values
-        self.security_obj.restore_state()
+        finally:
+            # restore old values
+            self.security_obj.restore_state()
 
         list_data = xml2list(xml_data)
         del xml_data
@@ -341,6 +343,19 @@ class CondorStatus(QueryExe):
             format_list = complete_format_list(format_list, [("Name",'s')])
         return QueryExe.fetch(self, constraint=constraint, format_list=format_list)
 
+
+    def __repr__(self):
+        output = "CondorStatus:\n"
+        output += "exe_name = %s\n" % str(self.exe_name)
+        output += "env = %s\n" % str(self.env)
+        output += "resource_str = %s\n" % str(self.resource_str)
+        output += "group_attribute = %s\n" % str(self.group_attribute)
+        output += "pool_str = %s\n" % str(self.pool_str)
+        output += "security_obj = %s\n" % str(self.security_obj)
+        output += "stored_data = %s" % str(self.stored_data)
+        return output
+
+
 #
 # Subquery classes
 #
@@ -372,6 +387,17 @@ class SubQuery(BaseSubQuery):
     def __init__(self, query, constraint_func=None):
         BaseSubQuery.__init__(self, query, lambda d:applyConstraint(d, constraint_func))
 
+    def __repr__(self):
+        output = "SubQuery:\n"
+        #output += "client_name = %s\n" % str(self.client_name)
+        #output += "entry_name = %s\n" % str(self.entry_name)
+        #output += "factory_name = %s\n" % str(self.factory_name)
+        #output += "glidein_name = %s\n" % str(self.glidein_name)
+        #output += "schedd_name = %s\n" % str(self.schedd_name)
+        output += "stored_data = %s" % str(self.stored_data)
+        return output
+
+
 class Group(BaseSubQuery):
     #  group_key_func  - Key extraction function
     #                      One argument: classad dictionary
@@ -381,6 +407,7 @@ class Group(BaseSubQuery):
     #                      Returns: a summary classad dictionary
     def __init__(self, query, group_key_func, group_data_func):
         BaseSubQuery.__init__(self, query, lambda d:doGroup(d, group_key_func, group_data_func))
+
 
 #
 # Summarizing classes

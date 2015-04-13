@@ -41,9 +41,12 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.monitor_jslibs_dir=os.path.join(self.monitor_dir,'jslibs')
         self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_jslibs_dir,"monitor"))
+        self.monitor_images_dir=os.path.join(self.monitor_dir,'images')
+        self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_images_dir,"monitor"))
         self.params=params
         self.active_sub_list=[]
         self.monitor_jslibs=[]
+        self.monitor_images=[]
         self.monitor_htmls=[]
 
     def populate(self,params=None):
@@ -57,7 +60,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.dicts['file_list'].add_placeholder(cWConsts.CONSTS_FILE,allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cWConsts.VARS_FILE,allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE,allow_overwrite=True) # this one must be loaded before any tarball
-                
+        self.dicts['file_list'].add_placeholder(cWConsts.GRIDMAP_FILE,allow_overwrite=True) # this one must be loaded before setup_x509.sh is run
+
         #load system files
         for file_name in ('error_gen.sh','error_augment.sh','parse_starterlog.awk', 'advertise_failure.helper',
                           "condor_config", "condor_config.multi_schedd.include", "condor_config.dedicated_starter.include", "condor_config.check.include", "condor_config.monitor.include"):
@@ -120,7 +124,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
                 if condor_fd is None:
                     # tar file exists. Just use it
-                    self.dicts['after_file_list'].add_from_file(
+                    self.dicts['file_list'].add_from_file(
                         condor_platform_fname, (condor_fname,
                                                 "untar", cond_name,
                                                 cgWConsts.CONDOR_ATTR),
@@ -129,7 +133,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                     # This is addition of new tarfile
                     # Need to rewind fd everytime
                     condor_fd.seek(0)
-                    self.dicts['after_file_list'].add_from_fd(
+                    self.dicts['file_list'].add_from_fd(
                         condor_platform_fname,
                         (condor_fname,"untar",cond_name,cgWConsts.CONDOR_ATTR),
                         condor_fd)
@@ -152,20 +156,30 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # add the basic standard params
         self.dicts['params'].add("GLIDEIN_Collector",'Fake')
 
-        file_list_scripts = set(['collector_setup.sh',
-                                 'create_temp_mapfile.sh',
-                                 'setup_x509.sh',
-                                 cgWConsts.CONDOR_STARTUP_FILE])
-        after_file_list_scripts = set(['check_proxy.sh',
-                                       'create_mapfile.sh',
-                                       'validate_node.sh',
-                                       'gcb_setup.sh',
-                                       'glexec_setup.sh',
-                                       'java_setup.sh',
-                                       'glidein_memory_setup.sh',
-                                       'glidein_cpus_setup.sh'])
+        # add the factory monitoring collector parameter, if any collectors are defined
+        # this is purely a factory thing
+        factory_monitoring_collector=calc_monitoring_collectors_string(params.monitoring_collectors)
+        if factory_monitoring_collector is not None:
+            self.dicts['params'].add('GLIDEIN_Factory_Collector',str(factory_monitoring_collector))
+        populate_gridmap(params,self.dicts['gridmap'])
+        
+        file_list_scripts = ['collector_setup.sh',
+                             'create_temp_mapfile.sh',
+                             'setup_x509.sh',
+                             cgWConsts.CONDOR_STARTUP_FILE]
+        after_file_list_scripts = ['check_proxy.sh',
+                                   'create_mapfile.sh',
+                                   'validate_node.sh',
+                                   'setup_network.sh',
+                                   'gcb_setup.sh',
+                                   'glexec_setup.sh',
+                                   'java_setup.sh',
+                                   'glidein_memory_setup.sh',
+                                   'glidein_cpus_setup.sh',
+                                   'glidein_sitewms_setup.sh',
+                                   'smart_partitionable.sh']
         # Only execute scripts once
-        duplicate_scripts = file_list_scripts.intersection(after_file_list_scripts)
+        duplicate_scripts = set(file_list_scripts).intersection(after_file_list_scripts)
         if duplicate_scripts:
             raise RuntimeError, "Duplicates found in the list of files to execute '%s'" % ','.join(duplicate_scripts)
 
@@ -201,18 +215,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # populate the monitor files
         javascriptrrd_dir = params.monitor.javascriptRRD_dir
         for mfarr in ((params.src_dir,'factory_support.js'),
-                      (javascriptrrd_dir,'rrdFlot.js'),
-                      (javascriptrrd_dir,'rrdFlotMatrix.js'),
-                      (javascriptrrd_dir,'rrdFlotSupport.js'),
-                      (javascriptrrd_dir,'rrdFile.js'),
-                      (javascriptrrd_dir,'rrdMultiFile.js'),
-                      (javascriptrrd_dir,'rrdFilter.js'),
-                      (javascriptrrd_dir,'binaryXHR.js'),
-                      (params.monitor.flot_dir,'jquery.flot.js'),
-                      (params.monitor.flot_dir,'jquery.flot.selection.js'),
-                      (params.monitor.flot_dir,'jquery.flot.tooltip.js'),
-                      (params.monitor.flot_dir,'excanvas.js'),
-                      (params.monitor.jquery_dir,'jquery.js')):
+                      (javascriptrrd_dir,'javascriptrrd.wlibs.js')):
             mfdir,mfname=mfarr
             parent_dir = self.find_parent_dir(mfdir,mfname)
             mfobj=cWDictFile.SimpleFile(parent_dir,mfname)
@@ -244,7 +247,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                         'factoryStatusNow.png'):
             mfobj=cWDictFile.SimpleFile(params.src_dir + '/factory/images/', imgfile)
             mfobj.load()
-            self.monitor_htmls.append(mfobj)
+            self.monitor_images.append(mfobj)
 
         # populate the monitor configuration file
         #populate_monitor_config(self.work_dir,self.dicts['glidein'],params)
@@ -303,6 +306,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
     def save_monitor(self):
         for fobj in self.monitor_jslibs:
             fobj.save(dir=self.monitor_jslibs_dir,save_only_if_changed=False)
+        for fobj in self.monitor_images:
+            fobj.save(dir=self.monitor_images_dir,save_only_if_changed=False)
         for fobj in self.monitor_htmls:
             fobj.save(dir=self.monitor_dir,save_only_if_changed=False)
         return
@@ -437,11 +442,20 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         populate_job_descript(self.work_dir,self.dicts['job_descript'],
                               self.sub_name,sub_params)
 
-        self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE,
-                                          params.factory_name,params.glidein_name,self.sub_name,
-                                          sub_params.gridtype,sub_params.gatekeeper, sub_params.rsl, sub_params.auth_method,
-                                          params.web_url,sub_params.proxy_url,sub_params.work_dir,
-                                          params.submit.base_client_log_dir)
+        ################################################################################################################
+        # This is the original function call:
+        #
+        # self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE,
+        #                                   params.factory_name,params.glidein_name,self.sub_name,
+        #                                   sub_params.gridtype,sub_params.gatekeeper, sub_params.rsl, sub_params.auth_method,
+        #                                   params.web_url,sub_params.proxy_url,sub_params.work_dir,
+        #                                   params.submit.base_client_log_dir, sub_params.submit.submit_attrs)
+        #
+        # Almost all of the parameters are attributes of params and/or sub_params.  Instead of maintaining an ever
+        # increasing parameter list for this function, lets just pass params, sub_params, and the 2 other parameters
+        # to the function and call it a day.
+        ################################################################################################################
+        self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE, self.sub_name, params, sub_params)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -704,6 +718,7 @@ def populate_factory_descript(work_dir,
         
         down_fname=os.path.join(work_dir,'glideinWMS.downtimes')
 
+        glidein_dict.add('FactoryCollector',params.factory_collector)
         glidein_dict.add('FactoryName',params.factory_name)
         glidein_dict.add('GlideinName',params.glidein_name)
         glidein_dict.add('WebURL',params.web_url)
@@ -737,6 +752,10 @@ def populate_factory_descript(work_dir,
         glidein_dict.add('MonitorDisplayText',params.monitor_footer.display_txt)
         glidein_dict.add('MonitorLink',params.monitor_footer.href_link)
         
+        monitoring_collectors=calc_primary_monitoring_collectors(params.monitoring_collectors)
+        if monitoring_collectors is not None:
+            glidein_dict.add('PrimaryMonitoringCollectors',str(monitoring_collectors))
+
         for lel in (("job_logs",'JobLog'),("summary_logs",'SummaryLog'),("condor_logs",'CondorLog')):
             param_lname,str_lname=lel
             for tel in (("max_days",'MaxDays'),("min_days",'MinDays'),("max_mbytes",'MaxMBs')):
@@ -843,6 +862,22 @@ def populate_frontend_descript(frontend_dict,     # will be modified
         
         frontend_dict.add(fe,{'ident':ident,'usermap':maps})
 
+
+
+#####################################################
+# Populate gridmap to be used by the glideins
+def populate_gridmap(params,gridmap_dict):
+    collector_dns=[]
+    for el in params.monitoring_collectors:
+        dn=el.DN
+        if dn is None:
+            raise RuntimeError,"DN not defined for monitoring collector %s"%el.node
+        if not (dn in collector_dns): #skip duplicates
+            collector_dns.append(dn)
+            gridmap_dict.add(dn,'fcollector%i'%len(collector_dns))
+
+    # TODO: We should also have a Factory DN, for ease of debugging
+    #       None available now, but we should add it
 
 
 #####################
@@ -962,4 +997,51 @@ def itertools_product(*args, **kwds):
         result = [x+[y] for x in result for y in pool]
     for prod in result:
         yield tuple(prod)
+
+#####################################################
+# Returns a string usable for GLIDEIN_Factory_Collector
+# Returns None if there are no collectors defined
+def calc_monitoring_collectors_string(collectors):
+    collector_nodes = {}
+    monitoring_collectors = []
+
+    for el in collectors:
+        if not collector_nodes.has_key(el.group):
+            collector_nodes[el.group] = {'primary': [], 'secondary': []}
+        if eval(el.secondary):
+            cWDictFile.validate_node(el.node,allow_prange=True)
+            collector_nodes[el.group]['secondary'].append(el.node)
+        else:
+            cWDictFile.validate_node(el.node)
+            collector_nodes[el.group]['primary'].append(el.node)
+
+    for group in collector_nodes.keys():
+        if len(collector_nodes[group]['secondary']) > 0:
+            monitoring_collectors.append(string.join(collector_nodes[group]['secondary'], ","))
+        else:
+            monitoring_collectors.append(string.join(collector_nodes[group]['primary'], ","))
+
+    if len(monitoring_collectors)==0:
+        return None
+    else:
+        return string.join(monitoring_collectors, ";")
+
+# Returns a string listing the primary monitoring collectors
+# Returns None if there are no collectors defined
+def calc_primary_monitoring_collectors(collectors):
+    collector_nodes = {}
+
+    for el in collectors:
+        if not eval(el.secondary):
+            # only consider the primary collectors
+            cWDictFile.validate_node(el.node)
+            # we only expect one per group
+            if collector_nodes.has_key(el.group):
+                raise RuntimeError, "Duplicate primary monitoring collector found for group %s"%el.group
+            collector_nodes[el.group]=el.node
+    
+    if len(collector_nodes)==0:
+        return None
+    else:
+        return string.join(collector_nodes.values(), ",")
 

@@ -11,55 +11,11 @@
 #
 
 import os,os.path,shutil,string
-import socket
-import cWParams
 import cvWDictFile,cWDictFile
 import cvWConsts,cWConsts
 import cvWCreate
+from glideinwms.lib import x509Support
 
-#####################################################
-# Validate node string
-def validate_node(nodestr,allow_prange=False):
-    narr=nodestr.split(':')
-    if len(narr)>2:
-        raise RuntimeError, "Too many : in the node name: '%s'"%nodestr
-    if len(narr)>1:
-        # have ports, validate them
-        ports=narr[1]
-        parr=ports.split('-')
-        if len(parr)>2:
-            raise RuntimeError, "Too many - in the node ports: '%s'"%nodestr
-        if len(parr)>1:
-            if not allow_prange:
-                raise RuntimeError, "Port ranges not allowed for this node: '%s'"%nodestr
-            pmin=parr[0]
-            pmax=parr[1]
-        else:
-            pmin=parr[0]
-            pmax=parr[0]
-        try:
-            pmini=int(pmin)
-            pmaxi=int(pmax)
-        except ValueError,e:
-            raise RuntimeError, "Node ports are not integer: '%s'"%nodestr
-        if pmini>pmaxi:
-            raise RuntimeError, "Low port must be lower than high port in node port range: '%s'"%nodestr
-
-        if pmini<1:
-            raise RuntimeError, "Ports cannot be less than 1 for node ports: '%s'"%nodestr
-        if pmaxi>65535:
-            raise RuntimeError, "Ports cannot be more than 64k for node ports: '%s'"%nodestr
-
-    # split needed to handle the multiple schedd naming convention
-    nodename = narr[0].split("@")[-1]  
-    try:
-        socket.getaddrinfo(nodename,None)
-    except:
-        raise RuntimeError, "Node name unknown to DNS: '%s'"%nodestr
-
-    # OK, all looks good
-    return
-    
 ################################################
 #
 # This Class contains the main dicts
@@ -139,20 +95,14 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         populate_frontend_descript(self.work_dir,self.dicts['frontend_descript'],self.active_sub_list,params)
         populate_common_descript(self.dicts['frontend_descript'],params)
 
+        # Apply multicore policy so frontend can deal with multicore
+        # glideins and requests correctly
+        apply_multicore_policy(self.dicts['frontend_descript'])
+
         # populate the monitor files
         javascriptrrd_dir = params.monitor.javascriptRRD_dir
         for mfarr in ((params.src_dir,'frontend_support.js'),
-                      (javascriptrrd_dir,'rrdFlot.js'),
-                      (javascriptrrd_dir,'rrdFlotMatrix.js'),
-                      (javascriptrrd_dir,'rrdFlotSupport.js'),
-                      (javascriptrrd_dir,'rrdFile.js'),
-                      (javascriptrrd_dir,'rrdFilter.js'),
-                      (javascriptrrd_dir,'binaryXHR.js'),
-                      (params.monitor.flot_dir,'jquery.flot.js'),
-                      (params.monitor.flot_dir,'jquery.flot.selection.js'),
-                      (params.monitor.flot_dir,'jquery.flot.tooltip.js'),
-                      (params.monitor.flot_dir,'excanvas.js'),
-                      (params.monitor.jquery_dir,'jquery.js')):
+                      (javascriptrrd_dir,'javascriptrrd.wlibs.js')):
             mfdir,mfname=mfarr
             parent_dir = self.find_parent_dir(mfdir,mfname)
             mfobj=cWDictFile.SimpleFile(parent_dir,mfname)
@@ -317,6 +267,9 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
                                 self.sub_name,sub_params)
         populate_common_descript(self.dicts['group_descript'],sub_params)
 
+        # Apply group specific glexec policy
+        apply_group_glexec_policy(self.dicts['group_descript'], sub_params, params)
+
         # populate security data
         populate_main_security(self.client_security,params)
         populate_group_security(self.client_security,params,sub_params)
@@ -338,12 +291,18 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
     ########################################
     
     def save_client_security(self):
-        # create the real mapfile
+        # create the real mapfiles
         cvWCreate.create_client_mapfile(os.path.join(self.work_dir,cvWConsts.GROUP_MAP_FILE),
                                         self.client_security['proxy_DN'],
                                         self.client_security['factory_DNs'],
                                         self.client_security['schedd_DNs'],
                                         self.client_security['collector_DNs'])
+        cvWCreate.create_client_mapfile(os.path.join(self.work_dir,cvWConsts.GROUP_WPILOTS_MAP_FILE),
+                                        self.client_security['proxy_DN'],
+                                        self.client_security['factory_DNs'],
+                                        self.client_security['schedd_DNs'],
+                                        self.client_security['collector_DNs'],
+                                        self.client_security['pilot_DNs'])
         return
 
         
@@ -555,6 +514,7 @@ def populate_frontend_descript(work_dir,
 
         frontend_dict.add('LoopDelay',params.loop_delay)
         frontend_dict.add('AdvertiseDelay',params.advertise_delay)
+        frontend_dict.add('GroupParallelWorkers',params.group_parallel_workers)
         frontend_dict.add('RestartAttempts',params.restart_attempts)
         frontend_dict.add('RestartInterval',params.restart_interval)
         frontend_dict.add('AdvertiseWithTCP',params.advertise_with_tcp)
@@ -568,6 +528,15 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('LogDir',params.log_dir)
         frontend_dict.add('ProcessLogs', str(params.log_retention['process_logs']))
         
+        frontend_dict.add('MaxIdleVMsTotal',params.config.idle_vms_total.max)
+        frontend_dict.add('CurbIdleVMsTotal',params.config.idle_vms_total.curb)
+        frontend_dict.add('MaxIdleVMsTotalGlobal',params.config.idle_vms_total_global.max)
+        frontend_dict.add('CurbIdleVMsTotalGlobal',params.config.idle_vms_total_global.curb)
+        frontend_dict.add('MaxRunningTotal',params.config.running_glideins_total.max)
+        frontend_dict.add('CurbRunningTotal',params.config.running_glideins_total.curb)
+        frontend_dict.add('MaxRunningTotalGlobal',params.config.running_glideins_total_global.max)
+        frontend_dict.add('CurbRunningTotalGlobal',params.config.running_glideins_total_global.curb)
+        frontend_dict.add('HighAvailability', params.high_availability)
 
 #######################
 # Populate group descript
@@ -577,6 +546,7 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
     group_descript_dict.add('GroupName',sub_name)
 
     group_descript_dict.add('MapFile',os.path.join(work_dir,cvWConsts.GROUP_MAP_FILE))
+    group_descript_dict.add('MapFileWPilots',os.path.join(work_dir,cvWConsts.GROUP_WPILOTS_MAP_FILE))
 
     group_descript_dict.add('MaxRunningPerEntry',sub_params.config.running_glideins_per_entry.max)
     group_descript_dict.add('FracRunningPerEntry',sub_params.config.running_glideins_per_entry.relative_to_queue)
@@ -584,8 +554,11 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
     group_descript_dict.add('ReserveIdlePerEntry',sub_params.config.idle_glideins_per_entry.reserve)
     group_descript_dict.add('MaxIdleVMsPerEntry',sub_params.config.idle_vms_per_entry.max)
     group_descript_dict.add('CurbIdleVMsPerEntry',sub_params.config.idle_vms_per_entry.curb)
+    group_descript_dict.add('MaxIdleVMsTotal',sub_params.config.idle_vms_total.max)
+    group_descript_dict.add('CurbIdleVMsTotal',sub_params.config.idle_vms_total.curb)
     group_descript_dict.add('MaxRunningTotal',sub_params.config.running_glideins_total.max)
     group_descript_dict.add('CurbRunningTotal',sub_params.config.running_glideins_total.curb)
+    group_descript_dict.add('MaxMatchmakers',sub_params.config.processing_workers.matchmakers)
     if (sub_params.attrs.has_key('GLIDEIN_Glexec_Use')):
         group_descript_dict.add('GLIDEIN_Glexec_Use',sub_params.attrs['GLIDEIN_Glexec_Use']['value'])
 
@@ -594,6 +567,84 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
 # Populate values common to frontend and group dicts
 MATCH_ATTR_CONV={'string':'s','int':'i','real':'r','bool':'b'}
 
+
+def apply_group_glexec_policy(descript_dict, sub_params, params):
+
+    glidein_glexec_use = None
+    query_expr = descript_dict['FactoryQueryExpr']
+    match_expr = descript_dict['MatchExpr']
+    ma_arr = []
+    match_attrs = None
+
+    # Consider GLIDEIN_Glexec_Use from Group level, else global
+    if sub_params.attrs.has_key('GLIDEIN_Glexec_Use'):
+        glidein_glexec_use = sub_params.attrs['GLIDEIN_Glexec_Use']['value']
+    elif params.attrs.has_key('GLIDEIN_Glexec_Use'):
+        glidein_glexec_use = params.attrs['GLIDEIN_Glexec_Use']['value']
+
+    if (glidein_glexec_use):
+        descript_dict.add('GLIDEIN_Glexec_Use', glidein_glexec_use)
+
+        # Based on the value GLIDEIN_Glexec_Use consider the entries as follows
+        # REQUIRED: Entries with GLEXEC_BIN set
+        # OPTIONAL: Consider all entries irrespective of their GLEXEC config
+        # NEVER   : Consider entries that do not want glidein to use GLEXEC
+        if (glidein_glexec_use == 'REQUIRED'):
+            query_expr = '(%s) && (GLEXEC_BIN=!=UNDEFINED) && (GLEXEC_BIN=!="NONE")' % query_expr
+            match_expr = '(%s) and (glidein["attrs"].get("GLEXEC_BIN", "NONE") != "NONE")' % match_expr
+            ma_arr.append(('GLEXEC_BIN', 's'))
+        elif (glidein_glexec_use == 'NEVER'):
+            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_REQUIRE_GLEXEC_USE", "False") == "False")' % match_expr
+
+        if ma_arr:
+            match_attrs = eval(descript_dict['FactoryMatchAttrs']) + ma_arr
+            descript_dict.add('FactoryMatchAttrs', repr(match_attrs),
+                              allow_overwrite=True)
+
+        descript_dict.add('FactoryQueryExpr', query_expr, allow_overwrite=True)
+        descript_dict.add('MatchExpr', match_expr, allow_overwrite=True)
+
+
+def apply_multicore_policy(descript_dict):
+    match_expr = descript_dict['MatchExpr']
+
+    # Only consider sites that provide enough GLIDEIN_CPUS jobs to run
+    match_expr = '(%s) and (getGlideinCpusNum(glidein) >= int(job.get("RequestCpus", 1)))' % match_expr
+    descript_dict.add('MatchExpr', match_expr, allow_overwrite=True)
+
+    # Add GLIDEIN_CPUS to the list of attrs queried in glidefactory classad
+    fact_ma = eval(descript_dict['FactoryMatchAttrs']) + [('GLIDEIN_CPUS', 's')]
+    descript_dict.add('FactoryMatchAttrs', repr(fact_ma), allow_overwrite=True)
+
+    # Add RequestCpus to the list of attrs queried in glidefactory classad
+    job_ma = eval(descript_dict['JobMatchAttrs']) + [('RequestCpus', 'i')]
+    descript_dict.add('JobMatchAttrs', repr(job_ma), allow_overwrite=True)
+
+
+def get_pool_list(credential):
+    pool_idx_len = credential['pool_idx_len']
+    if pool_idx_len is None:
+        pool_idx_len = 0
+    else:
+        pool_idx_len = int(pool_idx_len)
+    pool_idx_list_unexpanded = credential['pool_idx_list'].split(',')
+    pool_idx_list_expanded = []
+
+    # Expand ranges in pool list
+    for idx in pool_idx_list_unexpanded:
+        if '-' in idx:
+            idx_range = idx.split('-')
+            for i in range(int(idx_range[0]), int(idx_range[1])+1):
+                pool_idx_list_expanded.append(str(i))
+        else:
+            pool_idx_list_expanded.append(idx.strip())
+
+    pool_idx_list_strings=[]
+    for idx in pool_idx_list_expanded:
+        pool_idx_list_strings.append(idx.zfill(pool_idx_len))
+    return pool_idx_list_strings
+    
+
 def populate_common_descript(descript_dict,        # will be modified
                              params):
 
@@ -601,12 +652,6 @@ def populate_common_descript(descript_dict,        # will be modified
         param_tname,str_tname=tel
         ma_arr=[]
         qry_expr = params.match[param_tname]['query_expr']
-
-        if ( (params.attrs.has_key('GLIDEIN_Glexec_Use')) and
-             (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'REQUIRED') and
-             (param_tname == 'factory') ):
-            ma_arr.append(('GLEXEC_BIN', 's'))
-            qry_expr = '(%s) && (GLEXEC_BIN=!=UNDEFINED) && (GLEXEC_BIN=!="NONE")' % qry_expr
 
         descript_dict.add('%sQueryExpr'%str_tname,qry_expr)
 
@@ -628,13 +673,13 @@ def populate_common_descript(descript_dict,        # will be modified
             raise RuntimeError, "factory_identity for %s not set! (i.e. it is fake)"%el['node']
         if el['my_identity'][-9:]=='@fake.org':
             raise RuntimeError, "my_identity for %s not set! (i.e. it is fake)"%el['node']
-        validate_node(el['node'])
+        cWDictFile.validate_node(el['node'])
         collectors.append((el['node'],el['factory_identity'],el['my_identity']))
     descript_dict.add('FactoryCollectors',repr(collectors))
 
     schedds=[]
     for el in params.match.job.schedds:
-        validate_node(el['fullname'])
+        cWDictFile.validate_node(el['fullname'])
         schedds.append(el['fullname'])
     descript_dict.add('JobSchedds',string.join(schedds,','))
 
@@ -667,25 +712,9 @@ def populate_common_descript(descript_dict,        # will be modified
                     if pel[attr] is not None:
                         proxy_descript_values[attr][pel['absfname']]=pel[attr]
             else: #pool
-                pool_idx_len = pel['pool_idx_len']
-                if pool_idx_len is None:
-                    pool_idx_len = 0
-                else:
-                    pool_idx_len = int(pool_idx_len)
-                pool_idx_list_unexpanded = pel['pool_idx_list'].split(',')
-                pool_idx_list_expanded = []
-
-                # Expand ranges in pool list
-                for idx in pool_idx_list_unexpanded:
-                    if '-' in idx:
-                        idx_range = idx.split('-')
-                        for i in range(int(idx_range[0]), int(idx_range[1])+1):
-                            pool_idx_list_expanded.append(str(i))
-                    else:
-                        pool_idx_list_expanded.append(idx.strip())
-
-                for idx in pool_idx_list_expanded:
-                    absfname = "%s%s" % (pel['absfname'], idx.zfill(pool_idx_len))
+                pool_idx_list_expanded_strings = get_pool_list(pel)
+                for idx in pool_idx_list_expanded_strings:
+                    absfname = "%s%s" % (pel['absfname'], idx)
                     proxies.append(absfname)
                     for attr in proxy_attrs:
                         if pel[attr] is not None:
@@ -697,20 +726,8 @@ def populate_common_descript(descript_dict,        # will be modified
                 descript_dict.add(proxy_attr_names[attr], repr(proxy_descript_values[attr]))
 
     match_expr = params.match.match_expr
-
-    if (params.attrs.has_key('GLIDEIN_Glexec_Use')):
-        descript_dict.add('GLIDEIN_Glexec_Use',
-                          params.attrs['GLIDEIN_Glexec_Use']['value'])
-        # Based on the value GLIDEIN_Glexec_Use consider the entries as follows
-        # REQUIRED: Entries with GLEXEC_BIN set
-        # OPTIONAL: Consider all entries irrespective of their GLEXEC config
-        # NEVER   : Consider entries that do not want glidein to use GLEXEC
-        if (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'REQUIRED'):
-            match_expr = '(%s) and (glidein["attrs"].get("GLEXEC_BIN", "NONE") != "NONE")' % match_expr
-        elif (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'NEVER'):
-            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_REQUIRE_GLEXEC_USE", "False") == "False")' % match_expr
-
     descript_dict.add('MatchExpr', match_expr)
+
 
 #####################################################
 # Returns a string usable for GLIDEIN_Collector
@@ -722,10 +739,10 @@ def calc_glidein_collectors(collectors):
         if not collector_nodes.has_key(el.group):
             collector_nodes[el.group] = {'primary': [], 'secondary': []}
         if eval(el.secondary):
-            validate_node(el.node,allow_prange=True)
+            cWDictFile.validate_node(el.node,allow_prange=True)
             collector_nodes[el.group]['secondary'].append(el.node)
         else:
-            validate_node(el.node)
+            cWDictFile.validate_node(el.node)
             collector_nodes[el.group]['primary'].append(el.node)
 
     for group in collector_nodes.keys():
@@ -778,12 +795,8 @@ def populate_main_security(client_security,params):
 
 def populate_group_security(client_security,params,sub_params):
     factory_dns=[]
-    for el in params.match.factory.collectors:
-        dn=el.DN
-        if dn is None:
-            raise RuntimeError,"DN not defined for factory %s"%el.node
-        factory_dns.append(dn)
-    for el in sub_params.match.factory.collectors:
+    for collectors in (params.match.factory.collectors, sub_params.match.factory.collectors):
+      for el in collectors:
         dn=el.DN
         if dn is None:
             raise RuntimeError,"DN not defined for factory %s"%el.node
@@ -792,18 +805,38 @@ def populate_group_security(client_security,params,sub_params):
     client_security['factory_DNs']=factory_dns
     
     schedd_dns=[]
-    for el in params.match.job.schedds:
-        dn=el.DN
-        if dn is None:
-            raise RuntimeError,"DN not defined for schedd %s"%el.fullname
-        schedd_dns.append(dn)
-    for el in sub_params.match.job.schedds:
+    for schedds in (params.match.job.schedds, sub_params.match.job.schedds):
+      for el in schedds:
         dn=el.DN
         if dn is None:
             raise RuntimeError,"DN not defined for schedd %s"%el.fullname
         # don't worry about conflict... there is nothing wrong if the DN is listed twice
         schedd_dns.append(dn)
     client_security['schedd_DNs']=schedd_dns
+
+    pilot_dns=[]
+    for credentials in (params.security.credentials, sub_params.security.credentials):
+        for pel in credentials:
+            if pel['pilotabsfname'] is None:
+                proxy_fname=pel['absfname']
+            else:
+                proxy_fname=pel['pilotabsfname']
+
+            if (pel['pool_idx_len'] is None) and (pel['pool_idx_list'] is None):
+                # only one
+                dn=x509Support.extract_DN(proxy_fname)
+                # don't worry about conflict... there is nothing wrong if the DN is listed twice
+                pilot_dns.append(dn)
+            else:
+                # pool
+                pool_idx_list_expanded_strings = get_pool_list(pel)
+                for idx in pool_idx_list_expanded_strings:
+                    real_proxy_fname = "%s%s" % (proxy_fname, idx)
+                    dn=x509Support.extract_DN(real_proxy_fname)
+                    # don't worry about conflict... there is nothing wrong if the DN is listed twice
+                    pilot_dns.append(dn)
+                
+    client_security['pilot_DNs']=pilot_dns
 
 #####################################################
 # Populate attrs

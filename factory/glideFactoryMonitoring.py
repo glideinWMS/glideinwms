@@ -58,7 +58,7 @@ class MonitoringConfig:
     def config_log(self, log_dir, max_days, min_days, max_mbs):
         self.log_dir = log_dir
         cleaner = cleanupSupport.PrivsepDirCleanupWSpace(
-                      None , log_dir, "(completed_jobs_\..*\.log)",
+                      None , log_dir, "(completed_jobs_.*\.log)",
                       int(max_days * 24 * 3600), int(min_days * 24 * 3600),
                       long(max_mbs * (1024.0 * 1024.0)))
         cleanupSupport.cleaners.add_cleaner(cleaner)
@@ -296,10 +296,11 @@ class condorQStats:
         self.updated = time.time()
 
     def logClientMonitor(self, client_name, client_monitor, client_internals,
-                         fraction=1.0): # if specified, will be used to extract partial info
+                         fraction=1.0):
         """
         client_monitor is a dictinary of monitoring info
         client_internals is a dictinary of internals
+        If fraction is specified it will be used to extract partial info
 
         At the moment, it looks only for
           'Idle'
@@ -310,6 +311,7 @@ class condorQStats:
           'GlideinsTotal'
           'LastHeardFrom'
         """
+
         if self.data.has_key(client_name):
             t_el = self.data[client_name]
         else:

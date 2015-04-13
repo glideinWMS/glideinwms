@@ -13,7 +13,9 @@
 
 import os
 import copy
+import subprocess
 import sys
+import tempfile
 
 STARTUP_DIR=sys.path[0]
 
@@ -32,6 +34,7 @@ from glideinwms.creation.lib import cvWDictFile
 from glideinwms.creation.lib import cvWConsts,cWConsts
 from glideinwms.creation.lib import cvWCreate
 from glideinwms.creation.lib import cvWParamDict
+from glideinwms.creation.lib import xslt
 from glideinwms.frontend import glideinFrontendMonitorAggregator
 
 ################################################################################
@@ -59,6 +62,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
     
     if update_def_cfg == 'yes' or update_scripts == 'yes':
         # recreate the init.d startup file
+        # This will never happen in RPM installations (because of the init.d file)
         frontend_dir = frontend_dicts_obj.main_dicts.work_dir
         startup_fname = os.path.join(frontend_dicts_obj.main_dicts.work_dir,cvWConsts.INITD_STARTUP_FILE)
         
@@ -100,7 +104,6 @@ def main(params, old_params, update_scripts, update_def_cfg):
         sys.exit(1)
     print "...Work files are in %s"%frontend_dicts_obj.main_dicts.work_dir
 
-
 ############################################################
 #
 # S T A R T U P
@@ -108,13 +111,24 @@ def main(params, old_params, update_scripts, update_def_cfg):
 ############################################################
 
 if __name__ == '__main__':
-    usage = "{ -force_name name -writeback yes|no -update_scripts yes|no -xml xml -update_def_cfg yes|no | -help }"
+    usage = "usage: reconfig_frontend { -force_name name -writeback yes|no -update_scripts yes|no -xml xml -update_def_cfg yes|no [-xslt_plugin_dir xdir] | -help }"
     argv = sys.argv
+
+    if len(argv) == 1:
+        print usage
+        sys.exit(1)
+
+    if os.geteuid() == 0:
+        print "NOTE: Executing reconfig_frontend as user 'root' is not allowed. Use the frontend user instead. For rpm based installations, use the 'service gwms-frontend <start|stop|reconfig|...>' command to perform gwms-frontend operations"
+
     force_name = None
     writeback = 'no'
     update_scripts = 'no'
     update_def_cfg = 'no'
     xml = ''
+
+    xslt_plugin_dir = os.environ.get('GWMS_XSLT_PLUGIN_DIR', None)
+
     for i in range(len(argv)):
         if argv[i] == '-fix_rrd':
             fix_rrd = True
@@ -126,6 +140,8 @@ if __name__ == '__main__':
             update_scripts = argv[i+1]
         if argv[i] == '-xml':
             xml = argv[i+1]
+        if argv[i] == '-xslt_plugin_dir':
+            xslt_plugin_dir = argv[i+1]
         if argv[i] == '-update_def_cfg':
             update_def_cfg = argv[i + 1]
         if argv[i] == '-help':
@@ -136,11 +152,20 @@ if __name__ == '__main__':
         # to support upgrading from versions older than v2.5.3
         # the last arg is always the xml file
         xml = argv[len(argv)-1]      
-        
-    args = [argv[0], xml] 
-        
+
     try:
+        transformed_xmlfile = tempfile.NamedTemporaryFile()
+        transformed_xmlfile.write(xslt.xslt_xml(old_xmlfile=xml,
+                                  xslt_plugin_dir=xslt_plugin_dir))
+        transformed_xmlfile.flush()
+
+        args = [argv[0], transformed_xmlfile.name]
+
         params=cvWParams.VOFrontendParams(usage, WEB_BASE_DIR, args)
+        # We have read the transformed xml now. Overwrite the params.cfg_name
+        # with xml
+        params.cfg_name = xml
+
     except RuntimeError,e:
         print e
         sys.exit(1)

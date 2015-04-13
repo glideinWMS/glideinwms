@@ -22,9 +22,10 @@
 	<li> <a href="./index.html">Home</a></li>
 	<li> <a href="./download.html">Download</a></li>
 	<li> <a href="./frontend/index.html">Glidein Frontend</a></li>
-    <li> <a href="./corral.html">Corral Frontend</a></li>
+        <li> <a href="./corral.html">Corral Frontend</a></li>
 	<li> <a href="./factory/index.html">WMS Factory</a></li>
 	<li> <a href="./components/index.html" >Components</a></li>
+        <li> <a href="./recipes/index.html">Recipes</a></li>
 	<li> <a href="./components/faq.html" class="last">FAQ</a></li>
         </ul>
     <div class="search">
@@ -84,41 +85,43 @@ Factory:
     <a name="overview" />
     <h2>Overview</h2>
     <p>
-    The purpose of the glideinWMS is to provide a simple way 
+    The purpose of the GlideinWMS is to provide a simple way 
     to access the Grid resources. 
     GlideinWMS is a Glidein Based WMS (Workload Management System) 
     that works on top of 
-    <a target="_blank" href="http://www.cs.wisc.edu/condor/">Condor</a>.
-    For those familiar with the Condor system, it is used for scheduling
-    and  job control.
+    <a target="_blank" href="http://research.cs.wisc.edu/htcondor/">HTCondor</a>.
+    Glideins are like placeholders, are a mechanism by which one or more remote 
+    resources temporarily join a local HTCondor pool. 
+    The HTCondor system is used for scheduling and job control.
     </p>
     <p>
     <img align="right" width="40%" src="images/simple_animation.gif" />
 
-    The glideinWMS is made of several services (In animation to the right, you 
+    The GlideinWMS is made of several services (In animation to the right, you 
     can see this process with green circles representing jobs, 
     black circles as glideins, gray as resources in Condor  ).  
     <ul>
         <li>Users submit jobs to the <b>User Pool</b> 
-        Condor schedd process.</li>
+        HTCondor schedd process.</li>
         <li>The <b>GlideinWMS Frontend</b> polls the user pool to make
-        sure that there are enough glideins (worker nodes) to satisfy user
+        sure that there are enough glideins (workers) to satisfy user
         jobs.  It submits requests to the glidein factory to submit glideins.
         </li>
         <li>Alternatively, users can control their workflow with the
         <b>CorralWMS</b> frontend.</li>
-        <li>The <b>glidein factory and WMS pool</b> receives requests 
-        from the frontend(s) and submits a condor startd wrapper to 
+        <li>The <b>Glidein Factory and WMS Pool</b> receives requests 
+        from the frontend(s) and submits a HTCondor startd wrapper (glidein) to 
         entry points (grid sites).</li>
-        <li>The grid sites receive the jobs and starts a condor startd
-        that joins the user pool.  This shows up as a resource 
-        in the user pool.</li>
+        <li>The grid sites receive the (glidein) jobs and start a HTCondor startd
+        that joins the User Pool.  This glidein shows up as a resource 
+        in the User Pool.</li>
+        <li>The user jobs are matched with these resources</li>
     </ul>
-    Once setup, final users can 
-    <a href="./tutorials.html">submit regular Condor jobs</a>
-    to the local queue and the glidein factory will provide the 
+    The result is that users can 
+    <a href="./tutorials.html">submit regular HTCondor jobs</a>
+    to the local queue and the Glidein Factory will provide the 
     computing resources behind the scenes. From the final 
-    user point of view, the Condor pool just magically grows 
+    user point of view, the HTCondor pool (User Pool) just magically grows 
     and shrinks as needed.  The user need not worry about grid entry
     points, managing queues, or provisioning worker nodes.  
     </p>
@@ -133,23 +136,23 @@ Factory:
     <a name="faq" />
     <h2>Frequently Asked Questions</h2>
     <ul>
-      <li><b>What can glideinWMS be used for?</b><br>
+      <li><b>What can GlideinWMS be used for?</b><br>
 
-          The glideinWMS can be used to shield regular users from the Grid.<br>
-          A user will submit a vanilla or standard job to a local Condor
-          schedd and the glideinWMS will make sure the job runs somewhere.<br>
+          The GlideinWMS can be used to shield regular users from the Grid.<br>
+          A user will submit a vanilla or standard job to a local HTCondor
+          schedd and the GlideinWMS will make sure the job runs somewhere.<br>
           A user need not worry about site selection 
           or other grid technicalities.</li>
-      <li><b>If the glideinWMS is Condor based, does this mean it can only
-             be used on Grid sites that use Condor as the
+      <li><b>If the GlideinWMS is HTCondor based, does this mean it can only
+             be used on Grid sites that use HTCondor as the
              underlying batch system?</b><br>
-          No. Condor is used just as a WMS batch system (i.e. a user submits
+          No. HTCondor is used just as a overlay WMS batch system (i.e. a user submits
           to a local condor_schedd).<br>
-          Any grid resource can be used using glideinWMS.</li>
+          Any grid resource can be used using GlideinWMS.</li>
       <li><b>What are the advantages of using glideins?</b><br/>
             Installing and configuring the glidein infrastructure can be
             daunting, but it has a lot of advantages.  Once configured,
-            the ease of submitting jobs to the grid is vastly simplified.
+            the task of submitting jobs to the grid is vastly simplified.
             In addition, glideins allow worker nodes to process multiple
             jobs.  If a job finishes and there are still unmatched jobs in
             the user pool, the glidein will continue servicing the user pool.
@@ -162,9 +165,24 @@ Factory:
             Other similar problems will be shielded from users.
         </li>
       <li><b>How do I submit jobs?</b><br>
-          See our <a href="./tutorials.html">user tutorials</a> with example job submission for both VO and Corral Frontends.  These examples
-          assume you have a working glideinWMS installation.
+          See our <a href="./tutorials.html">user tutorials</a> with example job submissions for both VO and Corral Frontends.  These examples
+          assume you have a working GlideinWMS installation.
       </li>
+      <li><b>Which are the components of the Glidein Workflow Management System?</b><br>
+          The main components of the system, shown also in the picture above are:
+          <ul>
+              <li>User Pool (User Collector, Glidein Pool Collector): a HTCondor pool (at least collector and negotiator daemons) where all the user jobs are matched to glideins and managed. Jobs are queued in an separate service (User schedd)</li>
+              <li>User Schedd (User submit node, scheduler node): a HTCondor system, consisting only of the schedd daemon, used to submit and queue jobs</li>
+              <li>WMS Pool (WMS Collector, glidein pool Collector node, glideinWMS Collector ): a HTCondor pool (at least collector, negotiator and schedd daemons) used to manage and submit the glideins to all the resources (entries)</li>
+              <li>GlideinWMS VO Frontend (Glidein Frontend, VO Frontend): a service that looks at the queued jobs, resources available to run them and applies VO defined policies to request glideins at desired sites (resources)</li>
+              <li>GlideinWMS Factory (Glidein Factory): a service submitting glidein to the available resources</li>
+          </ul>
+          There may be one or more instances of the components above and they may be on different hosts or
+          colocated on the same host.
+          The design documents (<a href="frontend/design.html">Frontend</a>, 
+          <a href="factory/design.html">Factory</a>) give more information.
+     </li>
+
     </ul>
 </div>
 <div class="footer">

@@ -28,12 +28,13 @@ def main():
         min_days = float(config[section]["min_days"])
         max_mbytes = float(config[section]["max_mbytes"])
         backupCount = 5
+        compression = ''
 
         log_dir = "/tmp/%s" % log_name
 
         logSupport.add_processlog_handler(log_name, log_dir, msg_types, 
                     extension, max_days, min_days, max_mbytes, 
-                    backupCount=backupCount)
+                    backupCount=backupCount, compression=compression)
 
         log = logging.getLogger(log_name)
         log.info("%s\n" % create_random_string(length=2048))

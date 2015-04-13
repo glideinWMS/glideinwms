@@ -25,13 +25,7 @@ Description:
     <script type="text/javascript" src="jslibs/rrdFile.js"></script>
     <script type="text/javascript" src="jslibs/rrdFilter.js"></script>
 
-    <!-- rrdFlot class needs the following include files !-->
-    <script type="text/javascript" src="jslibs/rrdFlotSupport.js"></script>
-    <script type="text/javascript" src="jslibs/rrdFlot.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.flot.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.flot.selection.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.flot.tooltip.js"></script>
+    <script type="text/javascript" src="jslibs/javascriptrrd.wlibs.js"></script>
     <script type="text/javascript" src="jslibs/frontend_support.js"></script>
   <head>
     <title id="brtitle">VO frontend status</title>
@@ -82,6 +76,11 @@ Description:
      </tr>
      <tr>
        <td colspan=2>
+         <input type="checkbox" id = "autoupdate" onclick= "autoupdate()" > Autoupdate (30 mins)</input>
+       </td>
+     </tr>
+     <tr>
+       <td colspan=2>
          <button onClick="nonlink_update()">Update</button>
          <button onClick="defaults()" style="float:right">Defaults</button>
          <button onClick="unlink()" style="float:right">Unlink</button>
@@ -104,13 +103,17 @@ Description:
     <p>Powered by
         <a href="http://oss.oetiker.ch/rrdtool/" target="_blank">RRDTool</a>,
         <a href="https://sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and 
-        <a href="http://code.google.com/p/flot/" target="_blank">Flot</a>.
+        <a href="http://www.flotcharts.org/" target="_blank">Flot</a>.
     </p>
     
     <div id="monitor_footer"></div>
 
     
     <script type="text/javascript">
+	
+      /* AutoUpdateInterval reference */
+      var auInt;
+
 
       // Remove the Javascript warning
       document.getElementById("infotable").deleteRow(0);
@@ -127,7 +130,10 @@ Description:
       var local_window_max=0;             
       var coming_from_link = true;
       var coming_from_defaults = false; 
-      var timezone_num=0;
+
+      // Set to an invalid value, e.g. "default"
+      // This way javascriptRRD will autodetect the local timezone
+      var timezone_num="default";
 
 
       // Load the status of the frontend
@@ -198,9 +204,9 @@ Description:
 
         
         var gtype_DSs=new Object();
-        gtype_DSs['running']=new Array('MatchJobRunningHere','MatchJobRunning','MatchGlideinTotal','MatchGlideinRunning','MatchGlideinIdle','MatchJobIdle','ReqIdle','ReqMaxRun');
+        gtype_DSs['running']=new Array('MatchJobRunningHere','MatchJobRunning','MatchGlideinTotal','MatchGlideinRunning','MatchGlideinIdle','MatchGlideinFailed','MatchCoreTotal','MatchCoreIdle','MatchCoreRunning','MatchJobIdle','ReqIdle','ReqMaxRun');
 //                                       'JobsRunning',    'GlideinTotal',     'GlideinRunning',     'GlideinIdle',     'JobsIdle');
-        gtype_DSs['idle']=new Array('MatchJobIdle','MatchJobOldIdle','MatchJobEffIdle','MatchJobRunningHere','MatchGlideinRunning','MatchGlideinIdle','ReqIdle','ReqMaxRun');
+        gtype_DSs['idle']=new Array('MatchJobIdle','MatchJobOldIdle','MatchJobEffIdle','MatchJobRunningHere','MatchGlideinRunning','MatchGlideinIdle','MatchGlideinFailed','MatchCoreTotal','MatchCoreIdle','MatchCoreRunning','ReqIdle','ReqMaxRun');
 
         var gtype_formats=new Object();
         gtype_formats['running']={'MatchJobRunningHere':{ title: 'Running jobs', label:'Running',color: "#00f800", checked:true, 
@@ -209,6 +215,10 @@ Description:
                                   'MatchGlideinTotal':{title: 'Glideins at Collector', label:'Glideins', color: "#000000"},
                                   'MatchGlideinRunning':{title: 'Glideins claimed by jobs', label:'Claimed', color: "#8000ff",checked:true},
                                   'MatchGlideinIdle':{title: 'Glideins not matched', label:'Unmatched', color: "#ffff00",checked:true},
+                                  'MatchGlideinFailed':{title: 'Glideins failing to start', label:'Failed', color: "#ff0000",checked:true},
+                                  'MatchCoreTotal':{title: 'Glidein Cores at Collector', label:'Cores', color: "#707070"},
+                                  'MatchCoreRunning':{title: 'Glidein Cores claimed by jobs', label:'ClaimedCores', color: "#bf7fff",checked:true},
+                                  'MatchCoreIdle':{title: 'Glidein Cores not matched', label:'UnmatchedCores', color: "#FF8000",checked:true},
                                   'MatchJobIdle':{title: 'Idle jobs', label:'JobsIdle', color: "#00ffff"},
                                   'ReqIdle':{title: 'Requested idle glideins', label:'Requested', color: "#ff8080"},
                                   'ReqMaxIdle':{title: 'Max requested glideins', label:'Max requested', color: "#c00000"},
@@ -227,6 +237,10 @@ Description:
                                'MatchJobRunningHere':{title: 'Running jobs', label:'MatchRun', color: "#004000"},
                                'MatchGlideinRunning':{title: 'Glideins claimed by jobs', label:'Claimed', color: "#8000ff"},
                                'MatchGlideinIdle':{title: 'Glideins not matched', label:'Unmatched', color: "#ffff00"},
+                               'MatchGlideinFailed':{title: 'Glideins failing to start', label:'Failed', color: "#ff0000"},
+                                  'MatchCoreTotal':{title: 'Glidein Cores at Collector', label:'Cores', color: "#707070"},
+                                  'MatchCoreRunning':{title: 'Glidein Cores claimed by jobs', label:'ClaimedCores', color: "#bf7fff",checked:true},
+                                  'MatchCoreIdle':{title: 'Glidein Cores not matched', label:'UnmatchedCores', color: "#FF8000",checked:true},
                                'ReqIdle':{title: 'Requested idle glideins', label:'Requested', color: "#ff8080", checked:true},
                                'ReqMaxIdle':{title: 'Max requested glideins', label:'Max requested', color: "#c00000"},
 
@@ -523,6 +537,15 @@ Description:
                 document.getElementById("destination").selectedIndex = 0; 
         }
 
+      function autoupdate() {
+        var auchk = document.getElementById("autoupdate").checked;
+        
+        if (auchk) {
+          auInt=setInterval(nonlink_update, 1800000);
+        } else {
+          clearInterval(auInt);
+        };
+      }
 
     </script>
     

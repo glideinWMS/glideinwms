@@ -5,17 +5,52 @@ import re
 import pwd
 import logSupport
 import condorPrivsep
+from pidSupport import register_sighandler, unregister_sighandler
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
 class Cleanup:
     def __init__(self):
         self.cleanup_objects = []
+        self.cleanup_pids = []
 
     def add_cleaner(self, cleaner):
         self.cleanup_objects.append(cleaner)
 
+    def start_background_cleanup(self):
+        if self.cleanup_pids:
+            logSupport.log.warning("Earlier cleanup PIDs %s still exist; skipping this cycle" %
+                                   self.cleanup_pids)
+        else:
+            num_forks = 4 # arbitrary - could be configurable
+            cleanup_lists = [self.cleanup_objects[x::num_forks] for x in xrange(num_forks)]
+            for i in xrange(num_forks):
+                unregister_sighandler()
+                cl_pid = os.fork()
+                if cl_pid != 0:
+                    register_sighandler()
+                    self.cleanup_pids.append(cl_pid)
+                else:
+                    for cleaner in cleanup_lists[i]:
+                        cleaner.cleanup()
+                    os._exit(0)
+            logSupport.log.debug("Forked cleanup PIDS %s" % self.cleanup_pids)
+            del cleanup_lists
+
+    def wait_for_cleanup(self):
+        for pid in self.cleanup_pids:
+            try:
+                return_pid, _ = os.waitpid(pid, os.WNOHANG)
+                if return_pid:
+                    logSupport.log.debug("Collected cleanup PID %s" % pid)
+                    self.cleanup_pids.remove(pid)
+            except OSError, e:
+                self.cleanup_pids.remove(pid)
+                logSupport.log.warning("Received error %s while waiting for PID %s" %
+                                       (e.strerror, pid))
+
     def cleanup(self):
+        # foreground cleanup
         for cleaner in self.cleanup_objects:
             cleaner.cleanup()
 

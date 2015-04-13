@@ -44,7 +44,7 @@
 	<ul class="subcomponents">
 	     <li> <a href="./index.html">Overview</a></li>
 	     <li> <a href="./prerequisites.html">Prerequisites</a></li>
-	     <li> <a href="./collector_install.html">User Collector</a></li>
+	     <li> <a href="./collector_install.html">User Pool</a></li>
 	     <li> <a href="./pool_install.html">User Schedd</a></li>
          <li> <a href="./gsi.html">GSI</a></li>
 	     <li class="last"> Condor</li>
@@ -58,41 +58,50 @@
     <li><a href="#schedds">Multiple Schedds / Shared Port</a></li>
     <li><a href="#collectors">Multiple Collectors for Scalability</a></li>
     <li><a href="#collectors_ha">Multiple Collectors for Reliability / Condor High Availability (HA) Feature</a></li>
-    <li><a href="#gcb">Configuring GCB</a></li>
     <li><a href="#quill">Quill</a></li>
 </ol>
 </div>
 <div class="related">
 Related Links:
 <ul>
-<li><a target="_blank" href="http://www.cs.wisc.edu/condor/">Condor Website</a></li>
-<li> <a href="./condor_config.html">Condor configuration attributes</a></li>
-<li><a  href="./index.html">More GlideinWMS Condor Topics</a></li>
+<li><a target="_blank" href="http://research.cs.wisc.edu/htcondor/">HTCondor Website</a></li>
+<li> <a href="condor_config.html">HTCondor configuration attributes</a></li>
+<li><a  href="index.html">More GlideinWMS HTCondor Topics</a></li>
 
 </div>
-<div class="section">
-<a name="schedds"><h2>Multiple Schedds</h2></a>
 
+
+<div class="section">
     <p>
-    The installation will assume you have installed Condor v7.0.5+.
+    The installation will assume you have installed HTCondor v7.0.5+.
     <br>
-    For the purposes of the examples shown here the Condor install location is 
+    For the purposes of the examples shown here the HTCondor install location is 
     shown as <b>/opt/glideincondor</b>.<br/>
     The working directory is
     <b>/opt/glidecondor/condor_local</b> and the machine name is 
     <b>mymachine.fnal.gov</b>.<br>
 
     If you want to use a different setup, make the necessary changes.
+    If you installed HTCondor via RPMs the configuration files location is different: see 
+     <a href="http://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallCondor">this OSG guide</a>
+    or the OSG pages about the 
+     <a href="https://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFrontend">Fronrtend</a>
+    and <a href="https://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFactory">Factory</a>.
     </p>
-    <p>
-    <b>Note: </b>If you specified any of these options using the glideinWMS
+</div>
+
+<div class="section">
+<a name="schedds"><h2>Multiple Schedds</h2></a>
+
+   <p>
+    <b>Note: </b>If you specified any of these options using the GlideinWMS
     configuration based installer, these files and initialization steps will
     already have been performed.  These instructions are relevant to any
     post-installation changes you desire to make.
     </p>
     <p>
     Unless explicity mentioned, all operations are to be done by the user that 
-    you installed Condor as.
+    you installed HTCondor as.
     </p>
 
 <h3>Increase the number of available file descriptors</h3>
@@ -105,13 +114,13 @@ Related Links:
 
 <h3>Using the condor_shared_port feature</h3>
     <p>
-    The Condor shared_port_daemon is available in Condor 7.5.3+.
+    The HTCondor shared_port_daemon is available in Condor 7.5.3+.
     
     <!-- Shared port V2.5.2+ ----- -->
-    <h4>glideinWMS V2.5.2+ </h4>
+    <h4>GlideinWMS V2.5.2+ </h4>
     Additional information on this daemon can be found here:<ul>
-    <a href="http://www.cs.wisc.edu/condor/manual/v7.5/3_1Introduction.html#8153">Condor manual 3.1.2 The Condor Daemons</a></br>
-    <a href="http://www.cs.wisc.edu/condor/manual/v7.5/3_7Networking_includes.html#31365">Condor manuel 3.7.2 Reducing Port Usage with the condor_shared_port Daemon</a><br></ul> 
+    <a href="http://www.cs.wisc.edu/condor/manual/v7.5/3_1Introduction.html#8153">HTCondor manual 3.1.2 The Condor Daemons</a></br>
+    <a href="http://www.cs.wisc.edu/condor/manual/v7.5/3_7Networking_includes.html#31365">HTCondor manual 3.7.2 Reducing Port Usage with the condor_shared_port Daemon</a><br></ul> 
     </p>
     <p>
     Your <b>/opt/glidecondor/condor_config.d/02_gwms_schedds.config</b> 
@@ -129,10 +138,10 @@ Related Links:
     </p>
 
     <!-- Shared port V2.5.1 ----- -->
-    <h4>glideinWMS V2.5.1 and earlier</h4>
+    <h4>GlideinWMS V2.5.1 and earlier</h4>
     Additional information on this daemon can be found here:<ul>
-    <a href="http://www.cs.wisc.edu/condor/manual/v7.5/3_1Introduction.html#8153">Condor manual 3.1.2 The Condor Daemons</a></br>
-    <a href="http://www.cs.wisc.edu/condor/manual/v7.5/3_7Networking_includes.html#31365">Condor manuel 3.7.2 Reducing Port Usage with the condor_shared_port Daemon</a><br></ul> 
+    <a href="http://www.cs.wisc.edu/condor/manual/v7.5/3_1Introduction.html#8153">HTCondor manual 3.1.2 The Condor Daemons</a></br>
+    <a href="http://www.cs.wisc.edu/condor/manual/v7.5/3_7Networking_includes.html#31365">HTCondor manuel 3.7.2 Reducing Port Usage with the condor_shared_port Daemon</a><br></ul> 
     </p>
     <p>
     If you are using this feature, there are 3 additional variables that must 
@@ -160,7 +169,7 @@ Related Links:
 
 <!-- Multiple Schedds ---- -->
 <a name="new_schedd_setup"/>
-<h3>Multiple Schedds in glideinWMS V2.5.2+</h3>
+<h3>Multiple Schedds in GlideinWMS V2.5.2+</h3>
 The following needs to be added to your Condor config file for each additional 
 schedd desired.  
 Note the <b><font color="red">numeric</font></b> suffix used to distinguish each schedd.
@@ -194,7 +203,7 @@ DAEMON_LIST = $(DAEMON_LIST), SCHEDDGLIDEINS<b><font color="red">2</font></b><br
 DC_DAEMON_LIST = + SCHEDDGLIDEINS<b><font color="red">2</font></b><br/>
 </p>
 <p>
-<b><u>For the Submit:</u></b><br/>
+<b><u>For the User Submit host:</u></b><br/>
 SCHEDDJOBS<b><font color="red">2</font></b> = $(SCHEDD)<br/>
 SCHEDDJOBS<b><font color="red">2</font></b>_ARGS  = -local-name scheddglideins<b><font color="red">2</font></b><br/>
 SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_NAME   = schedd_glideins<b><font color="red">2</font></b><br/>
@@ -252,7 +261,7 @@ Processing schedd: SCHEDDJOBS2<br/>
 </p>
 
 
-<h3>Multiple Schedds in glideinWMS V2.5.1</h3>
+<h3>Multiple Schedds in GlideinWMS V2.5.1</h3>
 <h4>Create setup files</h4>
     If not already created during installation, you will need to create
     a set of files to support multiple schedds.  This describes the
@@ -411,10 +420,10 @@ those instructions.
 <a name="collectors"><h2>Multiple Collectors for Scalability</h2></a>
     <p>
      For scalability purposes, this section will describe the steps (configuration) necessary to add additional
-     (secondary) Condor collectors for the WMS and/or User Collectors.
+     (secondary) HTCondor collectors for the WMS and/or User Collectors.
     </p>
     <p>
-    <b>Note: </b>If you specified any of these options using the glideinWMS
+    <b>Note: </b>If you specified any of these options using the GlideinWMS
     configuration based installer, these files and initialization steps will
     already have been performed.  These instructions are relevant to any
     post-installation changes you desire to make.
@@ -425,7 +434,7 @@ those instructions.
        <a href="../frontend/configuration.html">Frontend configurations</a>  
        so they are made aware of them.
     </p>
-<h3></a>Condor configuration changes</h3>
+<h3></a>HTCondor configuration changes</h3>
     <p>
      For <b>each</b> secondary collector, the following Condor attributes are required:
     </p>
@@ -441,7 +450,7 @@ those instructions.
      Each secondary collector must also have a unique <b>port_number</b>.
     </p>
     <p>
-     After these  changes have been made in your Condor configuration file, restart Condor to effect
+     After these  changes have been made in your Condor configuration file, restart HTCondor to effect
      the change.  You will see these collector processes running (example has 5 secondary collectors).
     </p>
     <blockquote>
@@ -467,7 +476,7 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
      <p/>
      The Condor configuration of additional (secondary) collectors is the same as in the previous section, 
      <a href="#collectors">Multiple Collectors for Scalability</a>.
-     Refer to the <a href="http://research.cs.wisc.edu/condor/manual/">Condor manual</a> section on 
+     Refer to the <a href="http://research.cs.wisc.edu/htcondor/manual/">HTCondor manual</a> section on 
      High Availability of the Central Manager for additional configuration requirements.
      <p> 
     <b>Important: </b>When the Condor High Availability feature is used in the User Collector, 
@@ -478,131 +487,16 @@ user  17741 17732  0 13:34 ?        00:00:00 condor_collector -f -p 9623 <font c
     <p/>
 
 
+<!-- GCB is no mor in HTCondor: https://htcondor-wiki.cs.wisc.edu/index.cgi/wiki?p=QuickAndDirtyGcb
+- The GCB section has been removed 
+-->
 
-<div class="section">
-<hr width="90%"><hr width="90%">
-<h2><a name="gcb">GCB Installation</a></h2>
-    <img src="../images/overview_gcb.png" name="graphics1" height="213" width="359" align="right" border="0"><p></p>
-    <p><b>NOTE: It is strongly recommended to use CCB available in new version of condor over GCB. GCB is no longer supported in Condor 7.6 and following.</b> CCB provides same functionality as GCB and has performance benifits. Using GCB requires additional installation of condor daemon whereas this feature is integrated in newer versions of condor.</p>
-    <p>This node will serveas a 
-    <a target="_blank" href="http://www.cs.wisc.edu/condor/gcb/">Generic Connection Brokering (GCB)</a> node. 
-    If you are working over firewalls or NATs, and are using an older version of condor (before v7.3.0) you will need one or more of these.  If in use, GCB is needed every time you have a firewall or a NAT.
-    If this node dies, all the glideins relying on it will die with it. If possible use <a target="_blank" href="http://www.cs.wisc.edu/condor/manual/v7.3/3_7Networking_includes.html#sec:CCB">CCB</a> instead.
-    </p>
-<h3><a name="hardware"></a>Hardware requirements </h3>
-    <p>This machine needs <b>a reasonably recent CPU</b> and a small amount of <b>memory</b>
-    (<b>256MB</b> should be enough).</p>
-
-    <p>It must have a <b>reliable network</b> connectivity and must be 
-    <b>on the public internet,</b> with <b>no firewalls</b>.  It will work as a router. 
-    It will <b>use 20k IP ports</b>, so it should not be collocated with other network intensive
-    applications.</p>
-    <p> The machine must be <b>very stable</b>.  If the GCB dies, 
-    all the glideins relying on it will die with it..
-    (Multiple GCBs can improve this by minimizing the damage of a downtime, 
-    but this machine should still be on the most stable machine affordable).</p>
-
-    <p>About <b>5GB of disk space</b> is needed for Condor binaries and log files.</p>
-    <p>As these specifications are not disk/memory intensive, you may consider collocating it with a 
-    <a href="../frontend/install.html">Glidein Frontend</a>.</p>
-<h3><a name="software">Needed software </a></h3>
-<p>You will need a reasonably recent Linux OS (SL4 used at press time), and 
-    the <a target="_blank" href="http://www.cs.wisc.edu/condor/downloads/">Condor distribution</a>.</p>
-<h3><a name="condor">Installation instructions </a></h3>
-
-    <p>The GCB should be installed as a non privileged user. </p>
-    <p>The whole process is managed by a install script described below. You will need to provide a valid
-    <a target="_blank" href="http://www.cs.wisc.edu/condor/downloads/">Condor tarball</a>,
-    so you should download it before starting the installer.</p>
-    <p>
-    Move into the "glideinWMS/install" directory and execute
-    </p><blockquote>
-
-        ./glideinWMS_install
-    </blockquote>
-    You will be presented with this screen:
-    <blockquote>
-    What do you want to install?<br>
-    (May select several options at one, using a , separated list)<br>
-    [1] glideinWMS Collector<br>
-    [2] Glidein Factory<br>
-
-    [3] GCB<br>
-    [4] pool Collector<br>
-    [5] Schedd node<br>
-    [6] Condor for Glidein Frontend<br>
-    [7] Glidein Frontend<br>
-    [8] Components
-    </blockquote>
-
-    Select <b>3</b>.  Now follow the instructions. The installation is straightforward.<p></p>
-    The installer will also start the Condor daemons. 
-    <p></p>
-<h3><a name="starting">Starting and Stopping</a></h3>
-    <p>
-    To start the Condor daemons, issue:
-    </p><blockquote>
-
-    cd &lt;install dir&gt;<br>
-    ./start_condor.sh
-    </blockquote>
-
-    <p></p>
-    <p>
-    To stop the Condor daemons, issue:
-    </p><blockquote>
-        killall condor_master
-    </blockquote>
-
-    <p></p>
-<h3><a name="verify">Verify it is running</a></h3>
-
-    <p>You can check that the processes are running:
-    </p><blockquote>
-        ps -u `id -un`|grep gcb
-    </blockquote>
-    You should see one gcb_broker and at least one gcb_relay_server.
-    <p></p>
-    <p>
-
-    You can also check that they are working by pinging it with gcb_broker_query:
-    </p><blockquote>
-    &lt;install dir&gt;/sbin/gcb_broker_query &lt;your_ip&gt; freesockets
-    </blockquote>
-
-<h3><a name="tuning">Fine tuning</a></h3>
-<h4>Increase the number of available ports</h4>
-    <p>
-
-    The default installation will set up GCB to handle up to 20k requests. Look in
-the &lt;install dir&gt;/etc/condor_config.local for
-    </p><blockquote>
-    GCB_MAX_RELAY_SERVERS=200<br>
-    GCB_MAX_CLIENTS_PER_RELAY_SERVER=100
-    </blockquote>
-    This is enough for approximately 4000 glideins (each glidein uses 5-6 ports).
-    <p></p>
-    <p>
-    If you want a single GCB to serve more glideins that that, you can increase those numbers.
-However, be aware that the OS also has its limits. On most Linux systems, the limit is set in 
-
-<b>/proc/sys/net/ipv4/ip_local_port_range</b>.
-    </p><blockquote>
-    $ cat /proc/sys/net/ipv4/ip_local_port_range<br>
-    32768   61000
-    </blockquote>
-    For example, the typical port range listed above has only ~28k ports available. 
-    If you want to configure GCB/CCB to serve more than that, first change the system limit, 
-    then the GCB/CCB configuration.
-    <p></p>
-<h4>Increase the number of available file descriptors</h4>
-
-    <p>Note that every port used by the GCB/CCB also consumes available file descriptors. The default number of file descriptors per process is 1024 on most systems. Increase this limit to ~16k or value higher than number of ports GCB/CCB is allowed to open.</p>
-
-    <p>This can be done by issuing a "ulimit -n" command as well as changing the values in the /etc/security/limits.conf file</p>
-</div>
 <div class="section">
     <h2><a name="quill">Installing Quill</a></h2>
+
+<p>The <a href="http://research.cs.wisc.edu/htcondor/manual/v8.1/9_3Quill.html">HTCondor manual section about Quill</a>
+  may have instructions more updated than this section.
+</p>
 <h3><a name="software">Required software</a></h3>
     <ul>
     <li>
@@ -615,14 +509,14 @@ However, be aware that the OS also has its limits. On most Linux systems, the li
 
     <li>
         The
-        <a target="_blank" href="http://www.cs.wisc.edu/condor/downloads/" title="Condor download page">
-            Condor distribution</a>.<br>
+        <a target="_blank" href="http://research.cs.wisc.edu/htcondor/downloads/" title="HTCondor download page">
+            HTCondor distribution</a>.<br>
     </li>
     </ul>
 <h3><a name="install">Installation instructions</a></h3>
 
     <p>
-    The installation will assume you have installed Condor v7.0.5 or newer.
+    The installation will assume you have installed HTCondor v7.0.5 or newer.
     </p>
     <p>
     The install directory is <b>/opt/glidecondor</b>, the working directory is

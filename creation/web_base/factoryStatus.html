@@ -21,14 +21,7 @@ Description:
     <script type="text/javascript" src="jslibs/rrdMultiFile.js"></script>
     <script type="text/javascript" src="jslibs/rrdFilter.js"></script>
 
-    <!-- rrdFlot class needs the following four include files !-->
-    <script type="text/javascript" src="jslibs/rrdFlotSupport.js"></script>
-    <script type="text/javascript" src="jslibs/rrdFlot.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.flot.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.flot.selection.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.flot.tooltip.js"></script>
-
+    <script type="text/javascript" src="jslibs/javascriptrrd.wlibs.js"></script>
     <script type="text/javascript" src="jslibs/factory_support.js"></script>
   <head>
     <title id="brtitle">Glidein factory status</title>
@@ -84,6 +77,11 @@ Description:
      </tr>
      <tr>
        <td colspan=2>
+         <input type="checkbox" id = "autoupdate" onclick= "autoupdate()" > Autoupdate (30 mins)</input>
+       </td>
+     </tr>
+     <tr>
+       <td colspan=2>
          <button onClick="nonlink_update()">Update</button>
          <button onClick="defaults()" style="float:right">Defaults</button>
          <button onClick="unlink()" style="float:right">Unlink</button>
@@ -105,13 +103,14 @@ Description:
     <p>Powered by
         <a href="http://oss.oetiker.ch/rrdtool/" target="_blank">RRDTool</a>,
         <a href="https://sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and                                                                
-        <a href="http://code.google.com/p/flot/" target="_blank">Flot</a>.
+        <a href="http://www.flotcharts.org/" target="_blank">Flot</a>.
     </p>
     <div id="monitor_footer"></div>
     </form>
     <script type="text/javascript">
 	
-
+      /* AutoUpdateInterval reference */
+      var auInt;
 
       var infoGroupOptions = new Array("running", "idle", "other");
       var entriesTable;   
@@ -181,10 +180,8 @@ Description:
       }
 
      // fname, gtype_id and rrd_data are the global variable used by all the functions below
-      rrd_data=undefined;
       gtype_id=undefined;
-      rrd_group_data=[];
-	  checkUrl(); 
+      checkUrl(); 
 
       function setFrontendMenu(entry) {
         var fes = document.getElementById("frontends");
@@ -208,26 +205,10 @@ Description:
           return gname;
       }
 
-      //RRA Filter - leaves it alone.
-      function RRADoNothing(rra_idx) {
-         this.getIdx = function() {return rra_idx;}
-         this.getStep = function() {return null;}
-      }
-      
-      /* RRA Filter - Creates a new RRA with a different step size (in seconds) 
-      / based on another RRA, whose data the new RRA averages. 
-      / rra_idx should be index of RRA with largest step size that doesn't exceed new step size.
-      */
-      function RRA_Avg(rra_idx,new_step_in_seconds) {
-         this.getIdx = function() {return rra_idx;}
-         this.getStep = function() {return new_step_in_seconds;}
-      }
-
 //---------------------------------------------------------------------------------------
 
-      // This function updates the Web Page with the data from the RRD archive header
-      // when a new file is selected
-      function update_plot() {
+// the indentation is a bit weird due to incremental changes
+function recreate_graph() {
         var gtype_DSs=new Object();
         gtype_DSs['running']=new Array('StatusRunning','ReqMaxGlideins','ClientGlideTotal','ClientGlideRunning','ClientGlideIdle','ClientJobsRunning','ClientJobsIdle','ReqIdle','StatusIdle','ClientInfoAge');
         gtype_DSs['idle']=new Array('ReqIdle','StatusIdle','StatusWait','StatusPending','ClientJobsIdle','ClientInfoAge');
@@ -316,80 +297,33 @@ Description:
 
  /////////////////////////////////////////////////////////////////////////////////
 	  
-        var rrd_data1 = undefined;
-        if (rrd_group_data.length == 0) {
-            rrd_data1=new RRDFilterDS(rrd_data,gtype_DSs[gtype_id]);
-        } else {
-            var rrd_data_sum = new RRDFileSum(rrd_group_data, false);
-            rrd_data1=new RRDFilterDS(rrd_data_sum,gtype_DSs[gtype_id]);
-        }
-  
         //Add RRA filters for longer averaged-out RRAs
-        var rra_op_list = [];
-        for(var i=0; i<rrd_data1.getNrRRAs();i++) {
-           if(i==2) {rra_op_list.push(new RRA_Avg(1,14400));} //4 hours, based on rra at idx 1 (added here for ordering)
-           rra_op_list.push(new RRADoNothing(i));
-        }
-        rra_op_list.push(new RRA_Avg(2,86400)); //24 hours - base off rra at index 2
-        rra_op_list.push(new RRA_Avg(2,604800)); //1 week
+        var rra_ops = [0, [0,1800],  // org(5mins), 30mins
+		       1, [1,14400], // org(60mins), 4h
+		       2, [2,86400], [2,604800]]; // org(12h), 24h, 1w
 
-        rrd_data1 = new RRDRRAFilterAvg(rrd_data1,rra_op_list); //Adds 2 extra RRAs (averaged)
-
-        var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id],{timezone: timezone_num, use_checked_DSs: true, checked_DSs: checklist, use_rra:true, rra:specified_rra, use_windows: windows, window_min:local_window_min, window_max: local_window_max, use_element_buttons: false });
+        flot_obj=new rrdFlotSumAsync("mygraph",null,
+				     null,true,
+				     null,gtype_formats[gtype_id],
+				     {use_checked_DSs: true, checked_DSs: checklist, use_rra:true, rra:specified_rra, 
+					 use_windows: windows, window_min:local_window_min, window_max: local_window_max,
+					 use_element_buttons: false },
+				     gtype_DSs[gtype_id],rra_ops);
 
 
         // Finally, update the files loaded so far
-        files_loaded = files_loaded + 1;
-        var total_file_to_load = fname.split(",").length
-        if (files_loaded < total_file_to_load) {
-            document.getElementById("fname").firstChild.data="Loaded files " + files_loaded + "/" + total_file_to_load;
-        }
-        else {
-            document.getElementById("fname").firstChild.data="Loaded files " + files_loaded + "/" + total_file_to_load + ": " + fname;
-        }
+        //files_loaded = files_loaded + 1;
+        //var total_file_to_load = fname.split(",").length
+        //if (files_loaded < total_file_to_load) {
+        //    document.getElementById("fname").firstChild.data="Loaded files " + files_loaded + "/" + total_file_to_load;
+        //}
+        //else {
+        //    document.getElementById("fname").firstChild.data="Loaded files " + files_loaded + "/" + total_file_to_load + ": " + fname;
+        //}
 
 
         coming_from_defaults = false;
-      }
-	
-      // This is the callback function that,
-      // given a binary file object,
-      // verifies that it is a valid RRD archive
-      // and performs the update of the Web page
-      function update_plot_handler(bf) {
-          var i_rrd_data=undefined;
-          try {
-            var i_rrd_data=new RRDFile(bf);            
-          } catch(err) {
-            alert("File "+fname+" is not a valid RRD archive!");
-          }
-          if (i_rrd_data!=undefined) {
-            rrd_data=i_rrd_data;
-            update_plot()
-          }
-      }
-
-
-      function update_grouped_plot_handler(bf) {
-          var i_rrd_data=undefined;
-          var idx = 0;
-          if (rrd_group_data != undefined) {
-            idx = rrd_group_data.length;
-          } else {
-            rrd_group_data = [];
-          }
-         
-          try {
-            var i_rrd_data=new RRDFile(bf);            
-          } catch(err) {
-            alert("File "+fname+" is not a valid RRD archive!");
-          }
-          if (i_rrd_data!=undefined) {
-            rrd_group_data[idx] = new Array(); 
-            rrd_group_data[idx] = i_rrd_data;
-            update_plot()
-          }
-      }
+      }	
 
       function nonlink_update() {
          coming_from_link = false; 
@@ -398,10 +332,6 @@ Description:
 
       // this function is invoked when the RRD file name changes
       function fname_update() {
-        rrd_group_data=[];
-        rrd_data=undefined;
-        files_loaded = 0;
-
         var entry_name="";
         gtype_id=undefined;
 
@@ -421,8 +351,6 @@ Description:
          }
         }
 
-        //if(frontend_name!="UCSDCMS_cmspilot" && frontend_name!="total") {frontend_name=frontend_name+"_frontend";}
-
         if (entry_name=="total") {
           if (frontend_name=="total"){
             fname="total/"+rrd_fname+".rrd";
@@ -437,13 +365,10 @@ Description:
         }
 
         if ( (entry_name == "total") || (((entry_name.split(",")).length == 1) && (entry_name == entrylist2groupname(entry_name.split(",")))) ){
-          //document.getElementById("fname").firstChild.data="Loaded "+fname;
-          document.getElementById("fname").firstChild.data="Loaded files " + files_loaded + "/" + fname.split(",").length;
-          try {
-            FetchBinaryURLAsync(fname,update_plot_handler);
-          } catch (err) {
-             alert("Failed loading "+fname+"\n"+err);
-          }
+          document.getElementById("fname").firstChild.data="Displaying "+fname;
+          //document.getElementById("fname").firstChild.data="Loaded files " + files_loaded + "/" + fname.split(",").length;
+	  recreate_graph();
+	  flot_obj.reload([fname])
         } else {
           var en_array = entry_name.split(",");
           fname = "";
@@ -454,17 +379,16 @@ Description:
                   fname=fname+",entry_"+en_array[i]+"/total/"+rrd_fname+".rrd";
               }
           }
-          //document.getElementById("fname").firstChild.data="Loading " + fname;
-          document.getElementById("fname").firstChild.data="Loaded files " + files_loaded + "/" + fname.split(",").length;
+          document.getElementById("fname").firstChild.data="Displaying " + fname.split(",").length + " files for " + entry_name;
+          //document.getElementById("fname").firstChild.data="Loaded files " + files_loaded + "/" + fname.split(",").length;
 
+	  var fnarr=[]
           for (var i=0; i<en_array.length; i++) {
             var fn = "entry_"+en_array[i]+"/total/"+rrd_fname+".rrd"; 
-            try {
-              FetchBinaryURLAsync(fn,update_grouped_plot_handler);
-            } catch (err) {
-               alert("Failed loading "+fn+"\n"+err);
-            }
+	    fnarr.push(fn);
           }
+	  recreate_graph();
+	  flot_obj.reload(fnarr)
         }
       }
       
@@ -639,6 +563,17 @@ Description:
         }
         document.getElementById("destination").selectedIndex = 0; 
       }
+
+      function autoupdate() {
+        var auchk = document.getElementById("autoupdate").checked;
+        
+        if (auchk) {
+          auInt=setInterval(nonlink_update, 1800000);
+        } else {
+          clearInterval(auInt);
+        };
+      }
+
     </script>
   </body>
 </html>

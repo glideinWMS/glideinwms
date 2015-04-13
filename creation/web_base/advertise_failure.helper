@@ -16,40 +16,48 @@
 
 condor_advertise="$1"
 act_type="$2"
-
-classad_fname=${CONDOR_CONFIG}.classad
+destination="$3"
 
 slot_name=`grep '^STARTD_NAME = ' $CONDOR_CONFIG | tail -1| awk '{print $3}'`
 host_name=`uname -n`
 collector_name=`grep '^HEAD_NODE=' $CONDOR_CONFIG | tail -1| awk -F = '{print $2}'`
 
-now=`date +%s`
+if [ "$destination" = "VO" ]; then
+    startd_classad_fname=${CONDOR_CONFIG}.startd.classad
+    classad_fname=${startd_classad_fname}
+    rm -f ${startd_classad_fname}
+else
+    factory_collector_name=`grep '^GLIDEIN_Factory_Collector=' $CONDOR_CONFIG | tail -1| awk -F = '{print $2}'`
 
-rm -f ${classad_fname}
+    if [ -z "${factory_collector_name}" ]; then
+        echo "Could not find GLIDEIN_Factory_Collector! Failing Factory advertising." 1>&2
+        exit 1
+    fi
+
+    factory_classad_fname=${CONDOR_CONFIG}.master.classad
+    classad_fname=${factory_classad_fname}
+    rm -f ${factory_classad_fname}
+fi
+
+now=`date +%s`
 
 if [ "${act_type}" != "INVALIDATE" ]; then
   # Advertise a classad
 
-  # Create the standard part
-  cat >  ${classad_fname} << EOF
+  if [ "$destination" = "VO" ]; then
+    # Create the standard part
+    cat >  ${startd_classad_fname} << EOF
 MyType = "Machine"
 TargetType = "Job"
-Name = "${slot_name}@${host_name}"
-Machine = "${host_name}"
-MyAddress = "<127.0.0.1:1>"
 State = "Drained"
 Activity = "${act_type}"
 EnteredCurrentState = $now
 EnteredCurrentActivity = $now
-MyCurrentTime = $now
-DaemonStartTime = $now
 START = False
 Requirements = ( START ) && ( IsValidCheckpointPlatform )
 IsValidCheckpointPlatform = False
 Rank = 0
 CurrentRank = 0.0
-IS_GLIDEIN = True
-GLIDEIN_ToRetire = $now
 CpuIsBusy = false
 CpuBusy = false
 LastBenchmark = 0
@@ -78,6 +86,24 @@ Arch = "`uname -m`"
 OpSys = "LINUX"
 OpSysLegacy = "LINUX"
 HasFileTransfer = true
+EOF
+  else
+    cat >  ${factory_classad_fname} << EOF
+MyType = "DaemonMaster"
+TargetType = ""
+DetectedCpus = 1
+DetectedMemory = 1
+EOF
+  fi
+
+  cat >>  ${classad_fname} << EOF
+Name = "${slot_name}@${host_name}"
+Machine = "${host_name}"
+MyAddress = "<127.0.0.1:1>"
+MyCurrentTime = $now
+DaemonStartTime = $now
+IS_GLIDEIN = True
+GLIDEIN_ToRetire = $now
 CondorPlatform = "\$glideinWMS: glidein_startup.sh \$"
 GLIDEIN_COLLECTOR_NAME = "${collector_name}"
 EOF
@@ -91,18 +117,42 @@ EOF
   done
 
 
-  ${condor_advertise} -tcp UPDATE_STARTD_AD ${classad_fname}
-  rc=$?
+  if [ "$destination" = "VO" ]; then
+      ${condor_advertise} -tcp UPDATE_STARTD_AD ${startd_classad_fname}
+      rc=$?
+  else
+      # condor_advertise -pool does not seem to work, so use the environment instead
+      export _CONDOR_COLLECTOR_HOST=${factory_collector_name}
+      ${condor_advertise} -tcp UPDATE_MASTER_AD ${factory_classad_fname}
+      rc=$?
+      # no need to clean up, since we will terminate soon after
+  fi
+
 else # if [ "${act_type}" == "INVALIDATE" ]
-  # Deadvertise
-  cat >  ${classad_fname} << EOF
+  if [ "$destination" = "VO" ]; then
+    # Deadvertise
+    cat >  ${startd_classad_fname} << EOF
 MyType = "Query"
 TargetType = "Machine"
 Requirements =  Name == "${slot_name}@${host_name}"
 EOF
 
-  ${condor_advertise} -tcp INVALIDATE_STARTD_ADS ${classad_fname}
-  rc=$?
+    ${condor_advertise} -tcp INVALIDATE_STARTD_ADS ${startd_classad_fname}
+    rc=$?
+  else
+    cat >  ${factory_classad_fname} << EOF
+MyType = "Query"
+TargetType = "DaemonMaster"
+Requirements =  Name == "${slot_name}@${host_name}"
+EOF
+
+    # condor_advertise -pool does not seem to work, so use the environment instead
+    export _CONDOR_COLLECTOR_HOST=${factory_collector_name}
+    ${condor_advertise} -tcp INVALIDATE_MASTER_ADS ${factory_classad_fname}
+    rc=$?
+    # no need to clean up, since we will terminate soon after
+  fi
+
 fi # if [ "${act_type}" != "INVALIDATE" ]
 
 exit $rc

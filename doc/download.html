@@ -23,9 +23,10 @@
 	<li> <a href="./index.html">Home</a></li>
 	<li> <a href="./download.html">Download</a></li>
 	<li> <a href="./frontend/index.html">Glidein Frontend</a></li>
-    <li> <a href="./corral.html">Corral Frontend</a></li>
+        <li> <a href="./corral.html">Corral Frontend</a></li>
 	<li> <a href="./factory/index.html">WMS Factory</a></li>
 	<li> <a href="./components/index.html" >Components</a></li>
+        <li> <a href="./recipes/index.html">Recipes</a></li>
 	<li> <a href="./components/faq.html" class="last">FAQ</a></li>
         </ul>
     <div class="search">
@@ -81,7 +82,14 @@ Factory:
 </div>
 <div class="section">
    <a name="release" />
-    <h2>Current release</h2>
+    <h2>Current release distributions</h2>
+    The GlideinWMS software is available via OSG as RPM (the Frontend, the Factory and HTCondor with special configurations) and as 
+    TAR bundle (from the links below in this page). 
+    The supported platforms are currently RHEL5 and RHEL6 (and derivates like CentOS and SL).
+    RPM installations are more structured.
+    Installations form the TAR files allow more flexibility.
+
+    <h4>TAR file distribution</h4>
 
     <table frame="box" width="750px" style="vertical-align:top;">
       <thead style="background-color:grey; font-weight:bold; border-width:1; border-color:black; border-style:solid; ">
@@ -93,46 +101,53 @@ Factory:
 
       <tr style="vertical-align:top;">
         <td>Stable Series</td>
-        <td>v2_7_1</td>
-        <td>May 14, 2013</td>
+        <td>v3_2_8</td>
+        <td>December 30, 2014</td>
         <td>
-          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7_1_factory.tgz">glideinWMS Factory</a>]
-          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7_1_frontend.tgz">glideinWMS Frontend</a>]
-          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7_1.tgz">glideinWMS full download</a>]
-          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/corral-2.7.1.tar.gz">Corral Frontend</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_8.tgz">GlideinWMS Factory</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_8.tgz">GlideinWMS Frontend</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_8.tgz">GlideinWMS full download</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/corral-3.2.8.tar.gz">Corral Frontend</a>]
         </td>
       </tr>
       <tr style="vertical-align:top;">
-        <td>Development Series</td>
-        <td>v3_2</td>
-        <td>August xx, 2013</td>
+        <td>Previous Stable Series</td>
+        <td>v2_7_2</td>
+        <td>September 10, 2013</td>
         <td>
-          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_factory.tgz">glideinWMS Factory</a>]
-          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_frontend.tgz">glideinWMS Frontend</a>]
-          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2.tgz">glideinWMS full download</a>]
-          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/corral-3.2.tar.gz">Corral Frontend</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7_2_factory.tgz">GlideinWMS Factory</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7_2_frontend.tgz">GlideinWMS Frontend</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7_2.tgz">GlideinWMS full download</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/corral-2.7.2.tar.gz">Corral Frontend</a>]
         </td>
       </tr>
+
     </table>
     <br/>
-    <h4>glideinWMS Frontend RPM</h4>
-    glideinWMS Frontend RPM is available for download from the OSG RPM repository. Refer to <a href="https://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFrontend">OSG glideinwms frontend installation guide</a> for details.
-    <br/>
-    <h4>glideinWMS Factory RPM</h4>
-    glideinWMS Factory RPM is available for download from the OSG RPM reposito
-     <a name="download" />
+    <h4>GlideinWMS Frontend RPM</h4>
+    GlideinWMS Frontend RPM is available for download from the OSG RPM repository. The installation process will install and setup also the User Pool and User Schedd. Refer to <a href="https://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFrontend">OSG GlideinWMS Frontend installation guide</a> for details.
+    <br/><br/>
+    <h4>GlideinWMS Factory RPM</h4>
+    GlideinWMS Factory RPM is available for download from the OSG RPM repository. The installation process will install and setup also the WMS Pool. Refer to <a href="https://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFactory">OSG GlideinWMS Factory installation guide</a> for details.
     <a name="download" />
-    <h2>Downloading from Repository </h2>
+
+<h2>Downloading from the Code Repository </h2>
     The code is maintained in <a target="_blank" href="https://cdcvs.fnal.gov/redmine/projects/glideinwms/repository">GIT</a>. To checkout the version from git, run following commands
     <br><br>
-    <pre> git clone http://cdcvs.fnal.gov/projects/glideinwms<br> # Stable Series<br> git checkout v2_7_1<br> # Development Series<br> git checkout v3_2</pre>
+    <pre> git clone http://cdcvs.fnal.gov/projects/glideinwms<br> # Stable Series<br> git checkout v3_2_8<br> # Previous Stable Series<br> git checkout v2_7_2</pre>
 </div>
 
-<h2>v3.1 Specific Notes</h2>
+<h2>v3.1+ Upgrade Specific Notes</h2>
 <p>
-Starting v3.1 release, glideinwms contains tools that can convert v2 factory and frontend configuration to their v3.1 equivalent. These tools have been tested to work with v2.7 configuration files.<br>
+Starting v3.1 release, GlideinWMS contains tools that can convert a v2 Factory and Frontend configuration to their v3.1 equivalent. These tools have been tested to work with v2.7 configuration files.<br>
 See the <a href="upgrade.html">Upgrade Guide</a> for details. 
 </p>
+
+<h2>GlideinWMS Cloud VMs</h2>
+<p>
+This activity is tracked separately under a different project on GitHub. See the <a href='https://github.com/holzman/gwms-cloud-vms'>gwms-cloud-vms</a> project page for more details.
+</p>
+
 <div class="footer">
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>

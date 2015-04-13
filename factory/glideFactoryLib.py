@@ -29,6 +29,7 @@ from glideinwms.lib import logSupport
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorManager
 from glideinwms.lib import timeConversion
+from glideinwms.lib import x509Support
 from glideinwms.factory import glideFactoryConfig
 
 
@@ -64,6 +65,7 @@ class FactoryConfig:
         self.schedd_startd_attribute = "GLIDEIN_Schedd"
         self.clusterid_startd_attribute = "GLIDEIN_ClusterId"
         self.procid_startd_attribute = "GLIDEIN_ProcId"
+        self.credential_id_startd_attribute = "GLIDEIN_CredentialIdentifier"
 
         self.count_env = 'GLIDEIN_COUNT'
 
@@ -226,6 +228,29 @@ def getCondorQCredentialList(factoryConfig=None):
                 
     return cred_list
 
+def getQCredentials(condorq, client_name, creds,
+                   client_sa, cred_secclass_sa, cred_id_sa):
+    """
+    Get the current queue status for client and credenitial.
+    v3 equivalent for getQProxySecClass
+    """
+
+    entry_condorQ = condorMonitor.SubQuery(
+        condorq,
+        lambda d: (
+            (d.get(client_sa) == client_name) and
+            (d.get(cred_secclass_sa) == creds.security_class) and
+            (d.get(cred_id_sa) == creds.id)
+        )
+    )
+    entry_condorQ.schedd_name = condorq.schedd_name
+    entry_condorQ.factory_name = condorq.factory_name
+    entry_condorQ.glidein_name = condorq.glidein_name
+    entry_condorQ.entry_name = condorq.entry_name
+    entry_condorQ.client_name = condorq.client_name
+    entry_condorQ.load()
+    return entry_condorQ
+
 def getQProxSecClass(condorq, client_name, proxy_security_class,
                      client_schedd_attribute=None,
                      credential_secclass_schedd_attribute=None,
@@ -247,8 +272,14 @@ def getQProxSecClass(condorq, client_name, proxy_security_class,
     else:
         xsa_str = credential_secclass_schedd_attribute
 
-    entry_condorQ = condorMonitor.SubQuery(condorq, lambda d:(d.has_key(csa_str) and (d[csa_str] == client_name) and
-                                                           d.has_key(xsa_str) and (d[xsa_str] == proxy_security_class)))
+    # For v2 protocol
+    entry_condorQ = condorMonitor.SubQuery(
+        condorq,
+        lambda d: (
+            d.has_key(csa_str) and (d[csa_str] == client_name) and
+            d.has_key(xsa_str) and (d[xsa_str] == proxy_security_class)
+        )
+    )
     entry_condorQ.schedd_name = condorq.schedd_name
     entry_condorQ.factory_name = condorq.factory_name
     entry_condorQ.glidein_name = condorq.glidein_name
@@ -332,8 +363,8 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
         logSupport.log.error("Unable to create tempfile %s!" % tempfilename)
     
     try:
-        dn_list=condorExe.iexe_cmd("openssl x509 -subject -noout",stdin_data=proxy_data)
-        dn=dn_list[0]
+        dn = x509Support.extract_DN(tempfilename)
+
         voms_proxy_info = which('voms-proxy-info')
         if voms_proxy_info is not None:
             voms_list = condorExe.iexe_cmd("%s -fqan -file %s" % (voms_proxy_info, tempfilename))
@@ -508,9 +539,8 @@ def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
         log.info("Too many held glideins for this frontend-security class: %i=held %i=max_held" % (glidein_totals.frontend_limits[frontend_name]['held'],
                    glidein_totals.frontend_limits[frontend_name]['max_held']))
         # run sanitize... we have to get out of this mess
-        sanitizeGlideins(condorq, log=log, factoryConfig=factoryConfig)
+        return sanitizeGlideins(client_condorq, log=log, factoryConfig=factoryConfig)
         # we have done something... return non-0 so sanitize is not called again
-        return 1
     
     # Count glideins for this request credential by status
     qc_status = getQStatus(condorq)
@@ -742,9 +772,11 @@ def sanitizeGlideins(condorq, log=logSupport.log, factoryConfig=None):
     if factoryConfig is None:
         factoryConfig = globals()['factoryConfig']
 
+    glideins_sanitized = 0
     # Check if some glideins have been in idle state for too long
     stale_list = extractStaleSimple(condorq)
     if len(stale_list) > 0:
+        glideins_sanitized = 1
         log.warning("Found %i stale glideins" % len(stale_list))
         removeGlideins(condorq.schedd_name, stale_list,
                        log=log, factoryConfig=factoryConfig)
@@ -752,6 +784,7 @@ def sanitizeGlideins(condorq, log=logSupport.log, factoryConfig=None):
     # Check if some glideins have been in running state for too long
     runstale_list = extractRunStale(condorq)
     if len(runstale_list) > 0:
+        glideins_sanitized = 1
         log.warning("Found %i stale (>%ih) running glideins" % (len(runstale_list), factoryConfig.stale_maxage[2] / 3600))
         removeGlideins(condorq.schedd_name, runstale_list,
                        log=log, factoryConfig=factoryConfig)
@@ -759,6 +792,7 @@ def sanitizeGlideins(condorq, log=logSupport.log, factoryConfig=None):
     # Check if there are held glideins that are not recoverable
     unrecoverable_held_list = extractUnrecoverableHeldSimple(condorq)
     if len(unrecoverable_held_list) > 0:
+        glideins_sanitized = 1
         log.warning("Found %i unrecoverable held glideins" % len(unrecoverable_held_list))
         removeGlideins(condorq.schedd_name, unrecoverable_held_list,
                        force=False, log=log, factoryConfig=factoryConfig)
@@ -767,6 +801,7 @@ def sanitizeGlideins(condorq, log=logSupport.log, factoryConfig=None):
     held_list = extractRecoverableHeldSimple(condorq,
                                              factoryConfig=factoryConfig)
     if len(held_list) > 0:
+        glideins_sanitized = 1
         limited_held_list = extractRecoverableHeldSimpleWithinLimits(
                                 condorq, factoryConfig=factoryConfig)
         log.warning("Found %i held glideins, %i within limits" % \
@@ -775,7 +810,7 @@ def sanitizeGlideins(condorq, log=logSupport.log, factoryConfig=None):
             releaseGlideins(condorq.schedd_name, limited_held_list,
                             log=log, factoryConfig=factoryConfig)
 
-    return
+    return glideins_sanitized
 
 def logStats(condorq, client_int_name, client_security_name,
              proxy_security_class, log=logSupport.log, factoryConfig=None):
@@ -869,7 +904,7 @@ def hash_status(el):
             grid_status = str(el["GridJobStatus"]).upper()
             if grid_status in ("PENDING", "INLRMS: Q", "PREPARED", "SUBMITTING", "IDLE", "SUSPENDED", "REGISTERED", "INLRMS:Q"):
                 return 1002
-            elif grid_status in ("STAGE_IN", "PREPARING", "ACCEPTING"):
+            elif grid_status in ("STAGE_IN", "PREPARING", "ACCEPTING", "ACCEPTED"):
                 return 1010
             else:
                 return 1100
@@ -881,7 +916,7 @@ def hash_status(el):
             grid_status = str(el["GridJobStatus"]).upper()
             if grid_status in ("ACTIVE", "REALLY-RUNNING", "INLRMS: R", "RUNNING", "INLRMS:R"):
                 return 2
-            elif grid_status in ("STAGE_OUT", "INLRMS: E", "EXECUTED", "FINISHING", "DONE", "INLRMS:E"):
+            elif grid_status in ("STAGE_OUT", "INLRMS: E", "EXECUTED", "FINISHING", "FINISHED", "DONE", "INLRMS:E"):
                 return 4010
             else:
                 return 1100
@@ -897,7 +932,7 @@ def sum_idle_count(qc_status):
     #   Have to integrate all the variants
     qc_status[1] = 0
     for k in qc_status.keys():
-        if (k >= 1000) and (k < 1100):
+        if (k >= 1000) and (k <= 1100):
             qc_status[1] += qc_status[k]
     return
 
@@ -1124,7 +1159,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
             # check to see if the username for the proxy is 
             # same as the factory username
             if username != MY_USERNAME:
-                # no? use privsep
+                # Use privsep
                 # need to push all the relevant env variables through
                 for var in os.environ:
                     if ((var in ('PATH', 'LD_LIBRARY_PATH', 'X509_CERT_DIR')) or
@@ -1150,20 +1185,16 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
                     log.error(msg)
                     raise RuntimeError, msg
             else:
-                # avoid using privsep, if possible
+                # Do not use privsep
                 try:
-                    #submit_out = condorExe.iexe_cmd('./%s "%s" "%s" "%s" "%s" %i "%s" %s -- %s' % (factoryConfig.submit_fname, entry_name, client_name,
-                   #x509_proxy_security_class, x509_proxy_identifier,
-                   #nr_to_submit, glidein_rsl, client_web_str, params_str),
-                   #                                 child_env=child_env)
-                   submit_out = condorExe.iexe_cmd("condor_submit -name %s entry_%s/job.condor" % (schedd, entry_name),
-                                                   child_env=exe_env)
+                    submit_out = condorExe.iexe_cmd("condor_submit -name %s entry_%s/job.condor" % (schedd, entry_name),
+                                                    child_env=env_list2dict(exe_env))
                 except condorExe.ExeError,e:
                     submit_out=[]
                     msg = "condor_submit failed: %s" % str(e)
                     log.error(msg)
                     raise RuntimeError, msg
-                except:
+                except Exception,e:
                     submit_out=[]
                     msg = "condor_submit failed: Unknown error: %s" % str(e)
                     log.error(msg)
@@ -1270,8 +1301,8 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
         if client_web is not None:
             params_str = " ".join(client_web.get_glidein_args())
         # add all the params to the argument string
-        for k in params.keys():
-            params_str += " -param_%s %s" % (k, params[k])
+        for k, v in params.iteritems():
+            params_str += " -param_%s %s" % (k, escapeParam(str(v)))
 
         exe_env = ['GLIDEIN_ENTRY_NAME=%s' % entry_name]
         exe_env.append('GLIDEIN_CLIENT=%s' % client_name)
@@ -1288,6 +1319,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
         verbosity = jobDescript.data["Verbosity"]
         startup_dir = jobDescript.data["StartupDir"]
         slots_layout = jobDescript.data["SubmitSlotsLayout"]
+        proxy_url = jobDescript.data.get("ProxyURL", None)
 
         exe_env.append('GLIDEIN_SCHEDD=%s' % schedd)
         exe_env.append('GLIDEIN_VERBOSITY=%s' % verbosity)
@@ -1325,19 +1357,34 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
         # Specify how the slots should be layed out
         slots_layout = jobDescript.data['SubmitSlotsLayout']
         # Build the glidein pilot arguments
-        glidein_arguments = str("-v %s -name %s -entry %s -clientname %s -schedd %s " \
+        glidein_arguments = str("-v %s -name %s -entry %s -clientname %s -schedd %s -proxy %s " \
                             "-factory %s -web %s -sign %s -signentry %s -signtype %s " \
-                            "-descript %s -descriptentry %s -dir %s -param_GLIDEIN_Client %s -slotslayout %s %s" % \
+                            "-descript %s -descriptentry %s -dir %s -param_GLIDEIN_Client %s -submitcredid %s -slotslayout %s %s" % \
                             (verbosity, glidein_name, entry_name, client_name,
-                             schedd, factory_name, web_url, main_sign, entry_sign,
-                             sign_type, main_descript, entry_descript, startup_dir,
-                             client_name, slots_layout, params_str))
+                             schedd, proxy_url, factory_name, web_url, main_sign, entry_sign,
+                             sign_type, main_descript, entry_descript,
+                             startup_dir, client_name, submit_credentials.id,
+                             slots_layout, params_str))
         glidein_arguments = glidein_arguments.replace('"', '\\"') 
         #log.debug("glidein_arguments: %s" % glidein_arguments)
 
         # get my (entry) type
         grid_type = jobDescript.data["GridType"]
-        if grid_type == "ec2":
+
+        if grid_type.startswith('batch '):
+            log.debug("submit_credentials.security_credentials: %s" % str(submit_credentials.security_credentials))
+            exe_env.append('GRID_RESOURCE_OPTIONS=--rgahp-key %s --rgahp-nopass' % submit_credentials.security_credentials["PrivateKey"])
+            exe_env.append('X509_USER_PROXY=%s' % submit_credentials.security_credentials["GlideinProxy"])
+            exe_env.append('X509_USER_PROXY_BASENAME=%s' % os.path.basename(submit_credentials.security_credentials["GlideinProxy"]))
+            glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
+            # condor and batch (BLAH/BOSCO) submissions do not like arguments enclosed in quotes
+            # - batch pbs would consider a single argument if quoted
+            # - condor and batch condor would return a submission error
+            # condor_submit will swallow the " character in the string.
+            # condor_submit will include ' as a literal in the arguments string, causing breakage
+            # Hence, use " for now.
+            exe_env.append('GLIDEIN_ARGUMENTS=%s' % glidein_arguments)
+        elif grid_type == "ec2":
             log.debug("params: %s" % str(params))
             log.debug("submit_credentials.security_credentials: %s" % str(submit_credentials.security_credentials))
             log.debug("submit_credentials.identity_credentials: %s" % str(submit_credentials.identity_credentials))
@@ -1399,7 +1446,6 @@ email_logs = False
                 log.debug(msg)
                 log.exception(msg)
                 raise
-
         else:
             exe_env.append('X509_USER_PROXY=%s' % submit_credentials.security_credentials["SubmitProxy"])
 
@@ -1408,9 +1454,8 @@ email_logs = False
             # see the macros
             glidein_arguments += " -cluster $(Cluster) -subcluster $(Process)"
             if grid_type == "condor":
+                # batch grid type are handled above
                 # condor_submit will swallow the " character in the string.
-                # condor_submit will include ' as a literal in the arguments string, causing breakage
-                # Hence, use " for now.
                 exe_env.append('GLIDEIN_ARGUMENTS=%s' % glidein_arguments)
             else:
                 exe_env.append('GLIDEIN_ARGUMENTS="%s"' % glidein_arguments)
@@ -1771,3 +1816,11 @@ def days2sec(days):
 
 def hrs2sec(hrs):
     return int(hrs * 60 * 60)
+
+def env_list2dict(env, sep='='):
+    env_dict = {}
+    for ent in env:
+        tokens = ent.split(sep, 1)
+        if len(tokens) == 2:
+            env_dict[tokens[0]] = tokens[1]
+    return env_dict

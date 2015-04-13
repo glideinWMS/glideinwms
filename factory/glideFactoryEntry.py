@@ -87,7 +87,9 @@ class Entry:
                                               plog['extension'],
                                               int(float(plog['max_days'])),
                                               int(float(plog['min_days'])),
-                                              int(float(plog['max_mbytes'])))
+                                              int(float(plog['max_mbytes'])),
+                                              int(float(plog['backup_count'])),
+                                              plog['compression'])
         self.log = logging.getLogger(self.name)
 
         cleaner = cleanupSupport.PrivsepDirCleanupWSpace(
@@ -116,6 +118,8 @@ class Entry:
             self.glideinDescript.data['AdvertiseWithTCP'] in ('True','1'))
         self.gfiFactoryConfig.advertise_use_multi = (
             self.glideinDescript.data['AdvertiseWithMultiple'] in ('True','1'))
+        # set factory_collector at a global level, since we do not expect it to change
+        self.gfiFactoryConfig.factory_collector = self.glideinDescript.data['FactoryCollector']
 
         try:
             self.gfiFactoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(os.path.dirname(os.path.dirname(sys.argv[0])), 'checksum.factory').version()
@@ -405,14 +409,14 @@ class Entry:
         return can_submit_glideins
 
 
-    def writeClassadsToFile(self, factory_in_downtime, gf_filename,
+    def writeClassadsToFile(self, downtime_flag, gf_filename,
                             gfc_filename, append=True):
         """
         Create the glidefactory and glidefactoryclient classads to advertise
         but do not advertise
 
-        @type factory_in_downtime: boolean
-        @param factory_in_downtime: factory in the downtimes file
+        @type downtime_flag: boolean
+        @param downtime_flag: downtime flag
 
         @type gf_filename: string
         @param gf_filename: Filename to write glidefactory classads
@@ -448,7 +452,7 @@ class Entry:
         # downtime setting with the true setting of the entry
         # (not from validation)
         myJobAttributes = self.jobAttributes.data.copy()
-        myJobAttributes['GLIDEIN_In_Downtime'] = factory_in_downtime
+        myJobAttributes['GLIDEIN_In_Downtime'] = (downtime_flag or self.isInDowntime())
         gf_classad = gfi.EntryClassad(
                          self.gflFactoryConfig.factory_name,
                          self.gflFactoryConfig.glidein_name,
@@ -482,7 +486,6 @@ class Entry:
                 self.log.warning("Client '%s' has stats, but no classad! Ignoring." % client_name)
                 continue
             client_internals = self.gflFactoryConfig.client_internals[client_name]
-
             client_monitors={}
             for w in client_qc_data:
                 for a in client_qc_data[w]:
@@ -514,12 +517,12 @@ class Entry:
 
 
 
-    def advertise(self, factory_in_downtime):
+    def advertise(self, downtime_flag):
         """
         Advertises the glidefactory and the glidefactoryclient classads.
 
-        @type factory_in_downtime: boolean
-        @param factory_in_downtime: factory in the downtimes file
+        @type downtime_flag: boolean
+        @param downtime_flag: Downtime flag
         """
 
         self.loadContext()
@@ -527,11 +530,10 @@ class Entry:
         # Classad files to use
         gf_filename = classadSupport.generate_classad_filename(prefix='gfi_adm_gf')
         gfc_filename = classadSupport.generate_classad_filename(prefix='gfi_adm_gfc')
-        self.writeClassadsToFile(factory_in_downtime, gf_filename, gfc_filename)
+        self.writeClassadsToFile(downtime_flag, gf_filename, gfc_filename)
 
         # ADVERTISE: glidefactory classads
-        gfi.advertizeGlideinFromFile(gf_filename, remove_file=True,
-                                     is_multi=True)
+        gfi.advertizeGlideinFromFile(gf_filename, remove_file=True, is_multi=True)
 
         # ADVERTISE: glidefactoryclient classads
         gfi.advertizeGlideinClientMonitoringFromFile(gfc_filename,
@@ -914,6 +916,12 @@ def check_and_perform_work(factory_in_downtime, entry, work):
             entry.log.warning("Client %s (secid: %s) is not coming from a trusted source; AuthenticatedIdentity %s!=%s. Skipping for security reasons."%(client_int_name,client_security_name,client_authenticated_identity,client_expected_identity))
             continue
 
+        entry.gflFactoryConfig.client_internals[client_int_name] = {
+            'CompleteName': '%s@%s' % (client_int_req, client_int_name),
+            'CompleteNameWithCredentialsId': work_key,
+            'ReqName': client_int_req
+        }
+
         #
         # STEP: Actually process the unit work using either v2 or v3 protocol
         #
@@ -985,6 +993,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     can_submit_glideins = entry.glideinsWithinLimits(condorQ)
 
     auth_method = entry.jobDescript.data['AuthMethod']
+    grid_type = entry.jobDescript.data['GridType']
     all_security_names = set()
 
     # Get credential security class
@@ -1059,11 +1068,11 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         submit_credentials.id = proxy_id
 
     else:
-        #########################
-        # ENTRY TYPE: Cloud Sites
-        #########################
-
-        # All non proxy auth methods are cloud sites.
+        ###################################
+        # ENTRY TYPE: Other than grid sites
+        # - Cloud Sites
+        # - BOSCO
+        ###################################
 
         # Verify that the glidein proxy was provided. We still need it as it
         # is used to by the glidein's condor daemons to authenticate with the
@@ -1071,9 +1080,13 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         proxy_id = decrypted_params.get('GlideinProxy')
 
         if proxy_id:
-            # the GlideinProxy must be compressed for usage within user data
-            # so we specify the compressed version of the credential
-            credential_name = "%s_%s_compressed" % (client_int_name, proxy_id)
+            if grid_type == 'ec2':
+                # the GlideinProxy must be compressed for usage within user data
+                # so we specify the compressed version of the credential
+                credential_name = "%s_%s_compressed" % (client_int_name, proxy_id)
+            else:
+                # BOSCO is using regular proxy, not compressed
+                credential_name = "%s_%s" % (client_int_name, proxy_id)
             if not submit_credentials.add_security_credential('GlideinProxy', credential_name):
                 entry.log.warning("Credential %s for the glidein proxy cannot be found for client %s, skipping request." % (proxy_id, client_int_name))
                 return return_dict
@@ -1081,38 +1094,44 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
             entry.log.warning("Glidein proxy cannot be found for client %s, skipping request" % client_int_name)
             return return_dict
 
+
+
+
         # VM id and type are required for cloud sites.
         # Either frontend or factory should provide it
         vm_id = None
         vm_type = None
 
-        if 'vm_id' in auth_method:
-            # First check if the Frontend supplied it
-            vm_id = decrypted_params.get('VMId')
-            if not vm_id:
-                entry.log.warning("Client '%s' did not specify a VM Id in the request, this is required by entry %s, skipping request. " % (client_int_name, entry.name))
-                return return_dict
-        else:
-            # Validate factory provided vm id exists
-            if entry.jobDescript.data.has_key('EntryVMId'):
-                vm_id = entry.jobDescript.data['EntryVMId']
-            else:
-                entry.log.warning("Entry does not specify a VM Id, this is required by entry %s, skipping request." % entry.name)
-                return return_dict
+        if grid_type == 'ec2':
+            # vm_id and vm_type are only applicable to EC2/Clouds
 
-        if 'vm_type' in auth_method:
-            # First check if the Frontend supplied it
-            vm_type = decrypted_params.get('VMType')
-            if not vm_type:
-                entry.log.warning("Client '%s' did not specify a VM Type in the request, this is required by entry %s, skipping request." % (client_int_name, entry.name))
-                return return_dict
-        else:
-            # Validate factory provided vm type exists
-            if entry.jobDescript.data.has_key('EntryVMType'):
-                vm_type = entry.jobDescript.data['EntryVMType']
+            if 'vm_id' in auth_method:
+                # First check if the Frontend supplied it
+                vm_id = decrypted_params.get('VMId')
+                if not vm_id:
+                    entry.log.warning("Client '%s' did not specify a VM Id in the request, this is required by entry %s, skipping request. " % (client_int_name, entry.name))
+                    return return_dict
             else:
-                entry.log.warning("Entry does not specify a VM Type, this is required by entry %s, skipping request." %  entry.name)
-                return return_dict
+                # Validate factory provided vm id exists
+                if entry.jobDescript.data.has_key('EntryVMId'):
+                    vm_id = entry.jobDescript.data['EntryVMId']
+                else:
+                    entry.log.warning("Entry does not specify a VM Id, this is required by entry %s, skipping request." % entry.name)
+                    return return_dict
+
+            if 'vm_type' in auth_method:
+                # First check if the Frontend supplied it
+                vm_type = decrypted_params.get('VMType')
+                if not vm_type:
+                    entry.log.warning("Client '%s' did not specify a VM Type in the request, this is required by entry %s, skipping request." % (client_int_name, entry.name))
+                    return return_dict
+            else:
+                # Validate factory provided vm type exists
+                if entry.jobDescript.data.has_key('EntryVMType'):
+                    vm_type = entry.jobDescript.data['EntryVMType']
+                else:
+                    entry.log.warning("Entry does not specify a VM Type, this is required by entry %s, skipping request." %  entry.name)
+                    return return_dict
 
         submit_credentials.add_identity_credential('VMId', vm_id)
         submit_credentials.add_identity_credential('VMType', vm_type)
@@ -1251,12 +1270,18 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
 
     all_security_names.add((client_security_name, credential_security_class))
 
-    entry_condorQ = glideFactoryLib.getQProxSecClass(
-                        condorQ, client_int_name,
-                        submit_credentials.security_class,
-                        client_schedd_attribute=entry.gflFactoryConfig.client_schedd_attribute,
-                        credential_secclass_schedd_attribute=entry.gflFactoryConfig.credential_secclass_schedd_attribute,
-                        factoryConfig=entry.gflFactoryConfig)
+    #entry_condorQ = glideFactoryLib.getQProxSecClass(
+    #                    condorQ, client_int_name,
+    #                    submit_credentials.security_class,
+    #                    client_schedd_attribute=entry.gflFactoryConfig.client_schedd_attribute,
+    #                    credential_secclass_schedd_attribute=entry.gflFactoryConfig.credential_secclass_schedd_attribute,
+    #                    factoryConfig=entry.gflFactoryConfig)
+
+    entry_condorQ = glideFactoryLib.getQCredentials(
+                        condorQ, client_int_name, submit_credentials,
+                        entry.gflFactoryConfig.client_schedd_attribute,
+                        entry.gflFactoryConfig.credential_secclass_schedd_attribute,
+                        entry.gflFactoryConfig.credential_id_schedd_attribute)
 
 
     # Map the identity to a frontend:sec_class for tracking totals
@@ -1265,9 +1290,9 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
          credential_security_class)
 
     # do one iteration for the credential set (maps to a single security class)
-    entry.gflFactoryConfig.client_internals[client_int_name] = \
-        {"CompleteName":client_name, "ReqName":client_int_req}
-
+    #entry.gflFactoryConfig.client_internals[client_int_name] = \
+    #    {"CompleteName":client_name, "ReqName":client_int_req}
+    
     done_something = perform_work_v3(entry, entry_condorQ, client_name,
                                      client_int_name, client_security_name,
                                      submit_credentials, remove_excess,
@@ -1529,9 +1554,9 @@ def unit_work_v2(entry, work, client_name, client_int_name, client_int_req,
             (entry.frontendDescript.get_frontend_name(client_expected_identity),
              x509_proxy_security_class)
 
-        # Do a iteration for the credential set (maps to a 1 security class)
-        entry.gflFactoryConfig.client_internals[client_int_name] = \
-            {"CompleteName":client_name, "ReqName":client_int_req}
+        ## Do a iteration for the credential set (maps to a 1 security class)
+        #entry.gflFactoryConfig.client_internals[client_int_name] = \
+        #    {"CompleteName":client_name, "ReqName":client_int_req}
 
         done_something = perform_work_v2(
                              entry, entry_condorQ, client_name, client_int_name,
@@ -1565,7 +1590,10 @@ def perform_work_v3(entry, condorQ, client_name, client_int_name,
             entry.logDir, client_int_name, credential_username)
 
     # should not need privsep for reading logs
-    log_stats[credential_username + ":" + client_int_name].load()
+    try: # the logParser class will throw an exception if the input file is bad
+        log_stats[credential_username + ":" + client_int_name].load()
+    except Exception, e:
+        entry.log.exception(e)
 
     glideFactoryLib.logStats(condorQ, client_int_name,
                              client_security_name,

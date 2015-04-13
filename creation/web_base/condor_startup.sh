@@ -22,6 +22,8 @@ function ignore_signal {
 
 metrics=""
 
+# put in place a reasonable default
+GLIDEIN_CPUS=1
 
 # first of all, clean up any CONDOR variable
 condor_vars=`env |awk '/^_[Cc][Oo][Nn][Dd][Oo][Rr]_/{split($1,a,"=");print a[1]}'`
@@ -47,6 +49,11 @@ config_file=$1
 error_gen=`grep '^ERROR_GEN_PATH ' $config_file | awk '{print $2}'`
 
 glidein_startup_pid=`grep -i "^GLIDEIN_STARTUP_PID " $config_file | awk '{print $2}'`
+# DO NOT USE PID FOR DAEMON NAMES
+# If site's batch system is HTCondor and USE_PID_NAMESPACES is set pid's
+# it does not play well with HTCondor daemon name creation
+# $RANDOM is in range(0, 32K). Add extra safeguards
+let "random_name_str=($RANDOM+1000)*($RANDOM+2000)"
 
 # find out whether user wants to run job or run test
 debug_mode=`grep -i "^DEBUG_MODE " $config_file | awk '{print $2}'`
@@ -63,9 +70,18 @@ fi
 adv_only=`grep -i "^GLIDEIN_ADVERTISE_ONLY " $config_file | awk '{print $2}'`
 
 if [ "$adv_only" -eq "1" ]; then
+    adv_destination=`grep -i "^GLIDEIN_ADVERTISE_DESTINATION " $config_file | awk '{print $2}'`
+    if [ -z "${adv_destination}" ]; then
+        adv_destination=VO
+    fi
+
     # no point in printing out debug info about config
     print_debug=0
-    echo "Advertising failure to the VO collector"  1>&2
+    if [ "$adv_destination" = "VO" ]; then
+        echo "Advertising failure to the VO collector"  1>&2
+    else
+        echo "Advertising failure to the Factory collector"  1>&2
+    fi
 fi
 
 if [ "$print_debug" -ne "0" ]; then
@@ -230,11 +246,17 @@ function b64uuencode {
 function cond_print_log {
     # $1 = fname
     # $2 = fpath
-    if [ -f  "$2" ]; then
-    echo "$1" 1>&2
-    echo "======== gzip | uuencode =============" 1>&2
-    gzip --stdout "$2" | b64uuencode 1>&2
-    echo
+
+    logname=$1
+    shift
+    # Use ls to allow fpath to include wild cards
+    files_to_zip="`ls -1 $@ 2>/dev/null`"
+    
+    if [ "$files_to_zip" != "" ]; then
+        echo "$logname" 1>&2
+        echo "======== gzip | uuencode =============" 1>&2
+        gzip --stdout $files_to_zip | b64uuencode 1>&2
+        echo
     fi
 }
 
@@ -406,10 +428,10 @@ let "session_duration=$x509_duration"
 
 # if in test mode, don't ever start any jobs
 START_JOBS="TRUE"
-if [ "$chek_only" == "1" ]; then
+if [ "$check_only" == "1" ]; then
   START_JOBS="FALSE"
   # need to know which startd to fetch against
-  STARTD_NAME=glidein_${glidein_startup_pid}
+  STARTD_NAME=glidein_${glidein_startup_pid}_${random_name_str}
 fi
 
 #Add release and distribution information
@@ -442,8 +464,8 @@ GLIDEIN_START_TIME = $now
 STARTER_JOB_ENVIRONMENT = "$job_env"
 GLIDEIN_VARIABLES = $glidein_variables
 
-MASTER_NAME = glidein_${glidein_startup_pid}
-STARTD_NAME = glidein_${glidein_startup_pid}
+MASTER_NAME = glidein_${glidein_startup_pid}_${random_name_str}
+STARTD_NAME = glidein_${glidein_startup_pid}_${random_name_str}
 
 #This can be used for locating the proper PID for monitoring
 GLIDEIN_PARENT_PID = $$
@@ -538,16 +560,10 @@ EOF
     else
         # fixed
         echo "NUM_CPUS = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
-        # requested memory/core from glidein_memory_setup.sh
-        if [ "x${GLIDEIN_MaxMemMBs}" != "x" ]; then
-            echo "SLOT_TYPE_1 = cpus=1, memory=\$(GLIDEIN_MaxMemMBs)" >> "$CONDOR_CONFIG"
-            echo "NUM_SLOTS_TYPE_1 = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
-        fi
+        echo "SLOT_TYPE_1 = cpus=1" >> "$CONDOR_CONFIG"
+        echo "NUM_SLOTS_TYPE_1 = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
         num_slots_for_shutdown_expr=$GLIDEIN_CPUS
     fi
-
-    echo "UPDATE_INTERVAL = 20" >> "$CONDOR_CONFIG"
-    echo "MASTER_UPDATE_INTERVAL = 20" >> "$CONDOR_CONFIG"
 
     # Set to shutdown if total idle exceeds max idle, or if the age
     # exceeds the retire time (and is idle) or is over the max walltime (todie)
@@ -557,24 +573,45 @@ EOF
         cat >> "$CONDOR_CONFIG" <<EOF
 
 DS${I}_TO_DIE = ((GLIDEIN_ToDie =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToDie))
-DS${I}_IDLE_MAX = ((Slot${I}_TotalTimeUnclaimedIdle =!= UNDEFINED) && \\
-        (GLIDEIN_Max_Idle =!= UNDEFINED) && \\
+
+# The condition pre 8.2 is valid only for not partitionable slots
+# Since the idle timer doesn't reset/stop when resources are reclaimed, 
+# partitionable slots will get reaped sooner than non-partitionable.
+DS${I}_NOT_PARTITIONABLE = ((PartitionableSlot =!= True) || (TotalSlots =?=1))
+# The daemon shutdown expression for idle startds(glideins) depends on some conditions:
+# If some jobs were sheduled on the startd (TAIL) or none at all (NOJOB)
+# If using condor 8.2 or later (NEW) or previous versions (PRE82). JobStarts defined
+# is used to discriminate
+DS${I}_IS_HTCONDOR_NEW = (Slot${I}_JobStarts =!= UNDEFINED)
+# No jobs started (using GLIDEIN_Max_Idle) 
+DS${I}_IDLE_NOJOB_NEW = ((Slot${I}_JobStarts =!= UNDEFINED) && (Slot${I}_SelfMonitorAge =!= UNDEFINED) && (GLIDEIN_Max_Idle =!= UNDEFINED) && \\
+                  (Slot${I}_JobStarts == 0) && \\
+                  (Slot${I}_SelfMonitorAge > GLIDEIN_Max_Idle))
+DS${I}_IDLE_NOJOB_PRE82 = ((Slot${I}_TotalTimeUnclaimedIdle =!= UNDEFINED) && (GLIDEIN_Max_Idle =!= UNDEFINED) && \\
+        \$(DS${I}_NOT_PARTITIONABLE) && \\
         (Slot${I}_TotalTimeUnclaimedIdle > GLIDEIN_Max_Idle))
+DS${I}_IDLE_NOJOB = ((GLIDEIN_Max_Idle =!= UNDEFINED) && \\
+        ifThenElse(\$(DS${I}_IS_HTCONDOR_NEW), \$(DS${I}_IDLE_NOJOB_NEW), \$(DS${I}_IDLE_NOJOB_PRE82))) 
+# Some jobs started (using GLIDEIN_Max_Tail)
+DS${I}_IDLE_TAIL_NEW = ((Slot${I}_JobStarts =!= UNDEFINED) && (Slot${I}_ExpectedMachineGracefulDrainingCompletion =!= UNDEFINED) && (GLIDEIN_Max_Tail =!= UNDEFINED) && \\
+        (Slot${I}_JobStarts > 0) && \\
+        ((CurrentTime - Slot${I}_ExpectedMachineGracefulDrainingCompletion) > GLIDEIN_Max_Tail) )
+DS${I}_IDLE_TAIL_PRE82 = ((Slot${I}_TotalTimeUnclaimedIdle =!= UNDEFINED) && (GLIDEIN_Max_Tail =!= UNDEFINED) && \\
+        (Slot${I}_TotalTimeClaimedBusy =!= UNDEFINED) && \\
+        \$(DS${I}_NOT_PARTITIONABLE) && \\
+        (Slot${I}_TotalTimeUnclaimedIdle > GLIDEIN_Max_Tail))
+DS${I}_IDLE_TAIL = ((GLIDEIN_Max_Tail =!= UNDEFINED) && \\
+        ifThenElse(\$(DS${I}_IS_HTCONDOR_NEW), \$(DS${I}_IDLE_TAIL_NEW), \$(DS${I}_IDLE_TAIL_PRE82)))
 DS${I}_IDLE_RETIRE = ((GLIDEIN_ToRetire =!= UNDEFINED) && \\
        (CurrentTime > GLIDEIN_ToRetire ))
-DS${I}_IDLE_TAIL = ((Slot${I}_TotalTimeUnclaimedIdle =!= UNDEFINED) && \\
-        (Slot${I}_TotalTimeClaimedBusy =!= UNDEFINED) && \\
-        (GLIDEIN_Max_Tail =!= UNDEFINED) && \\
-        (Slot${I}_TotalTimeUnclaimedIdle > GLIDEIN_Max_Tail))
 DS${I}_IDLE = ( (Slot${I}_Activity == "Idle") && \\
-        (\$(DS${I}_IDLE_MAX) || \$(DS${I}_IDLE_RETIRE) || \$(DS${I}_IDLE_TAIL)) )
+        (\$(DS${I}_IDLE_NOJOB) || \$(DS${I}_IDLE_TAIL) || \$(DS${I}_IDLE_RETIRE)) )
 
-# The last condition below is intended to match partitionable slots that have
-# no subslots.  Since the idle timer doesn't reset when resources
-# are reclaimed, partitionable slots will get reaped sooner than
-# non-partitionable.
 DS${I} = (\$(DS${I}_TO_DIE) || \\
-         (\$(DS${I}_IDLE) && ((PartitionableSlot =!= True) || (TotalSlots =?=1))))
+          \$(DS${I}_IDLE))
+
+# But don't enforce shutdowns for dynamic slots (aka "subslots")
+DS${I} = (DynamicSlot =!= True) && (\$(DS${I}))
 
 EOF
         if [ "X$daemon_shutdown" != "X" ]; then
@@ -650,7 +687,7 @@ if [ "$adv_only" -eq "1" ]; then
     adv_type=`grep -i "^GLIDEIN_ADVERTISE_TYPE " $config_file | awk '{print $2}'`
 
     chmod u+rx "${main_stage_dir}/advertise_failure.helper"
-    "${main_stage_dir}/advertise_failure.helper" "$CONDOR_DIR/sbin/condor_advertise" "${adv_type}"
+    "${main_stage_dir}/advertise_failure.helper" "$CONDOR_DIR/sbin/condor_advertise" "${adv_type}" "${adv_destination}"
     # short circuit... do not even try to start the Condor daemons below
     exit $?
 fi
@@ -793,7 +830,14 @@ log_dir='log'
 
 echo ===   Stats of main   ===
 if [ -f "${main_starter_log}" ]; then
-  parsed_out=`awk -f "${main_stage_dir}/parse_starterlog.awk" ${main_starter_log}`
+    echo "===NewFile===" > separator_log.txt
+    listtoparse="separator_log.txt"
+    slotlogs="`ls -1 ${main_starter_log} ${main_starter_log}.slot* 2>/dev/null`"
+    for slotlog in $slotlogs
+    do
+        listtoparse="$listtoparse $slotlog separator_log.txt"
+    done
+  parsed_out=`cat $listtoparse | awk -v parallelism=${GLIDEIN_CPUS} -f "${main_stage_dir}/parse_starterlog.awk"`
   echo "$parsed_out"
 
   parsed_metrics=`echo "$parsed_out" | awk 'BEGIN{p=0;}/^Total /{if (p==1) {if ($2=="jobs") {t="Total";n=$3;m=$5;} else {t=$2;n=$4;m=$7;} print t "JobsNr " n " " t "JobsTime " m;}}/^====/{p=1;}'`
@@ -808,6 +852,13 @@ if [ 1 -eq 1 ]; then
     cond_print_log MasterLog log/MasterLog
     cond_print_log StartdLog log/StartdLog
     cond_print_log StarterLog ${main_starter_log}
+    slotlogs="`ls -1 ${main_starter_log}.slot* 2>/dev/null`"
+    for slotlog in $slotlogs
+    do
+        slotname=`echo $slotlog | awk -F"${main_starter_log}." '{print $2}'`
+        cond_print_log StarterLog.${slotname} $slotlog
+    done
+
     if [ "$use_multi_monitor" -ne 1 ]; then
       if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
         cond_print_log MasterLog.monitor monitor/log/MasterLog
@@ -817,6 +868,8 @@ if [ 1 -eq 1 ]; then
     else
       cond_print_log StarterLog.monitor ${monitor_starter_log}
     fi
+
+    cond_print_log StartdHistoryLog log/StartdHistoryLog
 fi
 
 ## kill the master (which will kill the startd)

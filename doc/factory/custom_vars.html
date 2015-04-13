@@ -23,9 +23,10 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-            <li> <a href="../corral.html">Corral Frontend</a></li>
+                <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
 	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
         </ul>
         <div class="search">
@@ -186,6 +187,7 @@ glideins are Condor based; see the <A target="_blank" HREF="http://www.cs.wisc.e
     <LI><A HREF="#factory_attrs">Factory config xml - attr tags</A></li>
     <LI><A HREF="#factory_vars">Factory config xml - configuration</A></li>
     <LI><A HREF="#frontend_vars">Frontend variables</A></li>
+    <LI><A HREF="#vm_vars">Cloud VM variables</A></li>
     <LI><A HREF="#dyn_vars">Dynamically generated</A></li>
     <LI><A HREF="#path_vars">Directory Paths</A></li>
     <LI><A HREF="#glidein_vars">Glidein Scripts (dynamic)</A></li>
@@ -234,24 +236,6 @@ by the VO factory clients.</P>
         </TD>
     </TR>
     <TR>
-        <td> <b>GLIDEIN_Start</b> </td>
-        <TD> Exp (Bool)</td>
-
-        <TD> True </TD>
-        <TD ROWSPAN=2>
-            <P>Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_5Policy_Configuration.html#SECTION00452000000000000000">START expression</A> 
-            to use in the glideins. All must be true for a
-            user job to start.</P>
-                                <P>PS: The idea of having several variables is meant to help setting global and entry-specific, as well as frontend-specific requirements.</P>
-        </TD>
-
-    </TR>
-    <TR>
-        <td> <b>GLIDEIN_Entry_Start</b> </td>
-        <TD> Exp (Bool)</td>
-        <TD>True </TD>
-    </TR>
-    <TR>
         <td> <b>GLIDEIN_Hold</b> </td>
         <TD> Exp (Bool)</td>
 
@@ -279,11 +263,6 @@ by the VO factory clients.</P>
             custom preemption policies for user jobs.
         </TD>
 
-    </TR>
-    <TR>
-        <td> <b>GLIDEIN_Entry_Start</b> </td>
-        <TD> Exp (Bool)</td>
-        <TD>True </TD>
     </TR>
 
     <TR>
@@ -380,7 +359,6 @@ by the VO factory clients.</P>
         <td> <b>PREEMPT</b></td>
         <td> Bool </td>
         <td> False </td>
-        <td>
         <TD> 1 </TD>
             Specifies whether preemption is allowed to occur on this glidein.
         </td>
@@ -539,7 +517,7 @@ by the VO factory clients.</P>
             <P>Another security setting.</P>
             <P>If set to True, the schedd and the startd will use a low
             overhead protocol. See the <A HREF="configuration.html#security">configuration
-            page</A> or the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:SecEnableMatchPasswordAuthentication">Condor
+            page</A> or the <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_3Configuration.html#param:SecEnableMatchPasswordAuthentication">Condor
             manual</A>.</P>
         </TD>
     </TR>
@@ -575,8 +553,9 @@ by the VO factory clients.</P>
         <TD ROWSPAN=4> - </TD>
         <TD ROWSPAN=4>
             <P>Configure <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_7Networking_includes.html#SECTION00473000000000000000">GCB</A>.</P>
-            <P>GCB is needed to run glideins on worker nodes behind a
-            firewall or a NAT.</P>
+            <P>GCB was needed to run glideins on worker nodes behind a
+            firewall or a NAT in older versions of HTCondor.<BR>
+            <B>Note: Newer versions of HTCondor do not support it anymore.</B></P>
             <P>For more information, see the <A HREF="../components/condor.html#gcb">configuration page</A>.</P>
 
         </TD>
@@ -612,9 +591,66 @@ by the VO factory clients.</P>
         <TD> Bool </TD>
         <TD> False </TD>
         <TD>
-            <P>If set to True, it will enable <A HREF="http://www.cs.wisc.edu/condor/manual/v7.3/3_7Networking_includes.html#sec:CCB">CCB</A> (available since Condor v7.3.0).</P>
+            <P>If set to True, it will enable <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_7Networking_includes.html#sec:CCB">HTCondor Connection Brokering (CCB)</A>,
+            which is needed if the glideins are behind a firewall or a NAT.</P>
         </TD>
 
+    </TR>
+    <TR>
+        <td> <b>USE_SHARED_PORT</b> </td>
+
+        <TD> Bool </TD>
+        <TD> False </TD>
+        <TD>
+            <P>If set to True, it will enable <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_7Networking_includes.html#sec:shared-port-daemon">the shared port daemon</A>,
+               which will reduce the number of connections between the glidein and the collectors.
+               </P>
+        </TD>
+
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_CPUS</b> </td>
+        <TD> Int</td>
+
+        <TD> 1 </TD>
+        <TD>
+            <P>Number of CPUs glidein should use. GLIDEIN_CPUS is used to set NUM_CPUS for the HTCondor started by the glidein. Use "auto" to let glidein determine this from the worker node, set a value to force a different number. In case of static partitioning, glidein will create GLIDEIN_CPUS number of slots. In case of dynamic partitioning, the slots will be created automatically based on the CPUs required by the job and GLIDEIN_CPUS is the sum of the slots made available. Refer to HTCondor manual for info on <a href="http://research.cs.wisc.edu/htcondor/manual/v8.1/3_3Configuration.html#19943">NUM_CPUS</a></P>
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_MaxMemMBs</b> </td>
+        <TD> Int</td>
+        <TD> None </TD>
+        <TD>
+            <P>Amount of memory glidein should use. If set, GLIDEIN_MaxMemMBs is used to set total MEMORY used for the HTCondor and Startd and jobs started by the glidein. If not GLIDEIN_MaxMemMBs is not set and GLIDEIN_MaxMemMBs_Estimate is TRUE, GLIDEIN_MaxMemMBs is calculated based on the memory available on the worker node. If GLIDEIN_MaxMemMBs is not set and GLIDEIN_MaxMemMBs_Estimate is not TRUE, glidein lets HTCondor decide the amount of memory. Refer to HTCondor manual for info on <a href="http://research.cs.wisc.edu/htcondor/manual/v8.1/3_3Configuration.html#19977">MEMORY</a></P>
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_MaxMemMBs_Estimate</b> </td>
+        <TD> Bool</td>
+
+        <TD> False </TD>
+        <TD>
+            <P>Used in conjunction with GLIDEIN_MaxMemMBs. See GLIDEIN_MaxMemMBs for the description.</P>
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_Factory_Report_Failed</b> </td>
+        <td> String </TD>
+        <td> ALIVEONLY </TD>
+
+        <TD>
+            <p>This attribute regulates advertising of validation failures to the Factory collector.
+            <ul>
+              <li><b>NEVER</b> - The glidein will just fail, and do nothing.
+              <li><b>ALIVEONLY</b> - The glidein will advertise a Master ClassAd in <i>Drained</i> state and <i>Retiring</i> activity for the lifetime of the glidein script.
+              <li><b>ALWAYS</b> - Similar to <b>ALIVEONLY</b>, but will also send a final ClassAd in <i>Drained</i> state and <i>Killing</i> activity just before dying.
+            </ul>
+            <p>When advertised, the classad is flagged <i>GLIDEIN_Failed=True</i>, 
+               the error is recorded in the <i>GLIDEIN_FAILURE_REASON</i> and
+                  <i>GLIDEIN_EXIT_CODE</i> attributes, and
+               the failing script is recorded in the <i>GLIDEIN_LAST_SCRIPT</i> attribute.
+       </TD>
     </TR>
 </TABLE>
 </div>
@@ -787,22 +823,6 @@ described below ar the most often used.</P>
 
     </TR>
     <TR>
-        <td> <b>GLIDECLIENT_Start</b> </td>
-        <TD> Exp (Bool)</td>
-
-        <TD ROWSPAN=2>
-            <P>Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_5Policy_Configuration.html#SECTION00452000000000000000">START expression</A> 
-            to use in the glideins. All must be true for a
-            user job to start.</P>
-                                <P>PS: The idea of having several variables is meant to help setting factory and frontend-specific requirements.</P>
-        </TD>
-
-    </TR>
-    <TR>
-        <td> <b>GLIDECLIENT_Group_Start</b> </td>
-        <TD> Exp (Bool)</td>
-    </TR>
-    <TR>
         <td> <b>GLIDECLIENT_Hold</b> </td>
         <TD> Exp (Bool)</td>
 
@@ -897,6 +917,36 @@ described below ar the most often used.</P>
         </TD>
     </TR>
     <TR>
+    <TR>
+        <td> <b>SLOTS_LAYOUT</b> </td>
+        <td> String </TD>
+
+        <TD>
+            Defines how multi-core glideins should split their resources.<br><br>
+            There are only two legal values:
+            <ul>
+              <li><b>fixed</b> - create N single core slots, and split memory and disk equally mong them
+              <li><b>partitionable</b> - start up with 
+                        <a href="http://research.cs.wisc.edu/htcondor/manual/v8.0/3_5Policy_Configuration.html#sec:SMP-dynamicprovisioning">
+                        a single partitionable slot and let HTCondor do the spliting as needed</a>
+            </ul>
+
+             The default behavior is defined by the factory, but it has historically been set to "fixed".<br><br>
+             <b>Note: This variable MUST NOT be passed as a parameter, or the glideins will fail!</b>
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>FORCE_PARTITIONABLE</b> </td>
+        <td> String (Bool) </TD>
+
+        <TD>
+            By default, single core glideins will never be configured as partitionable, 
+            independently of the value of <b>SLOTS_LAYOUT</b>.<br><br>
+
+            If partitionable slots are desired also for single-core glideins, set this variable to <b>"True"</b>.
+        </TD>
+    </TR>
+    <TR>
         <td> <b>GLIDEIN_Report_Failed</b> </td>
         <td> String </TD>
 
@@ -904,10 +954,8 @@ described below ar the most often used.</P>
             <p>This attribute regulates advertising of validation failures to the user collector.
             <ul>
               <li><b>NEVER</b> - The glidein will just fail, and do nothing.
-              <li><b>ALIVEONLY</b> - The glidein will advertise a Machine ClassAd in <i>Drained</i> state and <i>Retiring</i> activity 
-                                     for the lifetime of the glidein script.
-              <li><b>ALWAYS</b> - Similar to <b>ALIVEONLY</b>, but will also send a final ClassAd
-                                     in <i>Drained</i> state and <i>Killing</i> activity just before dying.
+              <li><b>ALIVEONLY</b> - The glidein will advertise a Machine ClassAd in <i>Drained</i> state and <i>Retiring</i> activity for the lifetime of the glidein script.
+              <li><b>ALWAYS</b> - Similar to <b>ALIVEONLY</b>, but will also send a final ClassAd in <i>Drained</i> state and <i>Killing</i> activity just before dying.
             </ul>
             <p>When advertised, the classad is flagged <i>GLIDEIN_Failed=True</i>, 
                the error is recorded in the <i>GLIDEIN_FAILURE_REASON</i> and
@@ -915,10 +963,70 @@ described below ar the most often used.</P>
                the failing script is recorded in the <i>GLIDEIN_LAST_SCRIPT</i> attribute.
        </TD>
     </TR>
+    <TR>
+        <td> <b>GLIDEIN_CLAIM_WORKLIFE</b> </td>
+        <td> Int </TD>
 
+        <TD>
+            <p>CLAIM_WORKLIFE for non-dynamic slots. Defaults to -1 i.e. HTCondor will treat this as an infinite claim worklife and schedd will hold claim to the slot until jobs are preempted or user runs out of jobs.
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_CLAIM_WORKLIFE_DYNAMIC</b> </td>
+        <td> Int </TD>
+
+        <TD>
+            <p>CLAIM_WORKLIFE for dynamically partitionable slots. Defaults to 3600. This controls how frequently the dynamically partionable slots will coalesce.
+        </TD>
+    </TR>
 
 </TABLE>
 </div>
+
+
+
+
+
+<div class="section">
+<H3><A NAME="vm_vars"></A>Cloud VM specific Variables</H3>
+<P>The following variables are only applicable to Cloud VMs.</P>
+<P>These variables can be either configured by factory or the frontend</P>
+<TABLE class="attributes">
+    <TR class="head">
+        <td> <P><b>Name</b></P></td>
+        <td> <P><b>Type</b></P></td>
+        <td> <P><b>Default Value</b></P></td>
+        <td> <P><b>Description</b></P></td>
+
+    </TR>
+    <TR>
+        <td> <b>VM_MAX_LIFETIME</b></td>
+        <td> Int </td>
+        <td> 172800 <br> (48 hours) </td>
+        <td>
+            <P>Max lifetime of the VM. When this timer is reached the
+            glideinwms-pilot service will terminate and glidein process,
+            shutdown the glideinwms-pilot service and issue a VM shutdown
+            </P>
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>VM_DISABLE_SHUTDOWN</b></td>
+        <td> Bool </td>
+        <td> False </td>
+        <td>
+            <P>Disables VM from automatically shutting down after
+            the glideinwms-pilot service has exited.<br>
+            <font color="ff0000"><b>NOTE:</b>
+            This variable is for debugging purposes only and should
+            not be set to True in the Production environment. Disabling
+            auto shutdown could result in accumulating financial charges
+            in case of paid clouds.</font></P>
+        </TD>
+    </TR>
+</TABLE>
+
+
 
 
 <div class="section">
@@ -1003,10 +1111,24 @@ the working directory specified by</P>
         <td> <b>TMP_DIR</b> </td>
         <TD>
             <P>Path to the directory that admin-provided scripts and user jobs can use
-            for storing temporary data. 
+            for storing temporary data.
             </P>
             <P>This variable is exported as <B>GLIDEIN_Tmp_Dir</B> both to
-            the glidein ClassAd and to the use job environment.</P>
+            the glidein ClassAd and to the user job environment.</P>
+        </TD>
+
+    </TR>
+    <TR>
+
+        <td> <b>GLIDEIN_LOCAL_TMP_DIR</b> </td>
+        <TD>
+            <P>Path to the directory on the local file system
+            for storing temporary data.<br>
+            <B>Note:</B> Only use for things that absolutely need the guarantee
+                of residing in the local file system. 
+                Prefer <b>TMP_DIR</b> above for everything else.
+            </P>
+            <P>This variable is exported to the user job environment.</P>
         </TD>
 
     </TR>
@@ -1210,9 +1332,11 @@ Once the job finishes, it will wait for Glidein_Max_Tail for another job.
 If cannot find one, it will shutdown.
 </li>
 </ul>
-Note that the idle limits are cumulative (it counds total idle time), so that
+Note that for GlideinWMS versions before 3.2.7 or for glidins using HTCondor pre 8.2, 
+the idle limits are cumulative (it counts total idle time), so that
 the total idle times in all the yellow zones above will be counted towards
-GLIDEIN_Max_Idle and GLIDEIN_Max_Tail.
+GLIDEIN_Max_Tail. Not so for GlideinWMS 3.2.7 and HTCondor 8.2 or later, 
+where Glidein_Max_Tail counts the idle time after the previous job ends, as specified above.
 </div>
 <div class="footer">
 Banner image by

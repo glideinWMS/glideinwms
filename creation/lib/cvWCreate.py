@@ -19,7 +19,7 @@ from glideinwms.lib import condorSecurity
 
 #########################################
 # Create init.d compatible startup file
-def create_initd_startup(startup_fname, frontend_dir, glideinWMS_dir, cfg_name):
+def create_initd_startup(startup_fname, frontend_dir, glideinWMS_dir, cfg_name, rpm_install=''):
     """
     Creates the frontend startup file and changes the permissions.  Can overwrite an existing file.
     """            
@@ -28,7 +28,8 @@ def create_initd_startup(startup_fname, frontend_dir, glideinWMS_dir, cfg_name):
     try:
         template = template % {"frontend_dir": frontend_dir, 
                                "glideinWMS_dir": glideinWMS_dir, 
-                               "default_cfg_fpath": cfg_name}
+                               "default_cfg_fpath": cfg_name,
+                               "rpm_install": rpm_install}
         fd.write(template)
     finally:
         fd.close()
@@ -39,13 +40,14 @@ def create_initd_startup(startup_fname, frontend_dir, glideinWMS_dir, cfg_name):
 
 #########################################
 # Create frontend-specific mapfile
-def create_client_mapfile(mapfile_fname,my_DN,factory_DNs,schedd_DNs,collector_DNs):
+def create_client_mapfile(mapfile_fname,my_DN,factory_DNs,schedd_DNs,collector_DNs,pilot_DNs=[]):
     fd=open(mapfile_fname,"w")
     try:
         fd.write('GSI "^%s$" %s\n'%(re.escape(my_DN),'me'))
         for (uid,dns) in (('factory',factory_DNs),
                           ('schedd',schedd_DNs),
-                          ('collector',collector_DNs)):
+                          ('collector',collector_DNs),
+                          ('pilot',pilot_DNs)):
             for i in range(len(dns)):
                 fd.write('GSI "^%s$" %s%i\n'%(re.escape(dns[i]),uid,i))
         fd.write("GSI (.*) anonymous\n")
@@ -138,6 +140,14 @@ def create_client_condor_config(config_fname, mapfile_fname, collector_nodes, cl
         fd.write("USE_VOMS_ATTRIBUTES = False\n")
         
         fd.write("\n######################################################\n")
+        fd.write("## Newer versions of Condor will try to enforce hostname\n")
+        fd.write("## mapping in the server DN. This does not work for\n")
+        fd.write("## pilot DNs. We can safely disable this check since\n")
+        fd.write("## we explicitly whitelist all DNs.\n")
+        fd.write("######################################################\n")
+        fd.write("GSI_SKIP_HOST_CHECK = True\n")
+        
+        fd.write("\n######################################################\n")
         fd.write("## Add GSI DAEMON PROXY based on the frontend config and \n")
         fd.write("## not what is in the condor configs from install \n")
         fd.write("########################################################\n")
@@ -158,6 +168,7 @@ def filter_unwanted_config_attrs(attrs):
     unwanted_attrs.append('TOOL.GRIDMAP')
     unwanted_attrs.append('TOOL.CERTIFICATE_MAPFILE')
     unwanted_attrs.append('TOOL.GSI_DAEMON_NAME')
+    unwanted_attrs.append('TOOL.GSI_SKIP_HOST_CHECK')
 
     unwanted_attrs.append('LOCAL_CONFIG_FILE')
     unwanted_attrs.append('LOCAL_CONFIG_DIR')

@@ -21,14 +21,7 @@ Description:
     <script type="text/javascript" src="jslibs/rrdMultiFile.js"></script>
     <script type="text/javascript" src="jslibs/rrdFilter.js"></script>
 
-    <!-- rrdFlot class needs the following four include files !-->
-    <script type="text/javascript" src="jslibs/rrdFlotSupport.js"></script>
-    <script type="text/javascript" src="jslibs/rrdFlot.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.flot.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.flot.selection.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.flot.tooltip.js"></script>
-
+    <script type="text/javascript" src="jslibs/javascriptrrd.wlibs.js"></script>
     <script type="text/javascript" src="jslibs/factory_support.js"></script>
   <head>
     <title id="brtitle">Glidein factory status from logs</title>
@@ -85,6 +78,11 @@ Description:
        </form></td>
      </tr>
      <tr>
+       <td colspan=2>
+         <input type="checkbox" id = "autoupdate" onclick= "autoupdate()" > Autoupdate (30 mins)</input>
+       </td>
+     </tr>
+     <tr>
       <td colspan=2><button onClick="fname_update()">Update</button><button onClick="showLink()" style="float:right">Link</button></td>
      </tr>
     </table>
@@ -102,11 +100,15 @@ Description:
     <p>Powered by
         <a href="http://oss.oetiker.ch/rrdtool/" target="_blank">RRDTool</a>,
         <a href="https://sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and 
-        <a href="http://code.google.com/p/flot/" target="_blank">Flot</a>.
+        <a href="http://www.flotcharts.org/" target="_blank">Flot</a>.
     </p>
     <div id="monitor_footer"></div>
  
     <script type="text/javascript">
+	
+      /* AutoUpdateInterval reference */
+      var auInt;
+
 	
 	  var infoGroupOptions = new Array("running", "idle", "other", "completed");
 	  var ENTRY; 
@@ -161,6 +163,7 @@ Description:
               ec_added++;
           } 
       }
+      setOptions('total');
 
 
      // fname, gtype_id and rrd_data are the global variable used by all the functions below
@@ -336,7 +339,12 @@ Description:
         }
 
         if (entry_name=="total") {
-          fname="total/"+rrd_fname+".rrd";
+            if (frontend_name!="total") {
+               fname="total/"+"frontend_"+frontend_name+"/"+rrd_fname+".rrd";
+            }
+            else {
+               fname="total/"+rrd_fname+".rrd";
+            }
         } else if (frontend_name!="total"){
           fname="entry_"+entry_name+"/frontend_"+frontend_name+"/"+rrd_fname+".rrd";
         } else {
@@ -420,7 +428,6 @@ Description:
                    var fe_list = document.getElementById("frontends").childNodes; 
                    var fe_idx=0;
                    for(var k=0;k<fe_list.length;k++) {
-                     document.write(fe_list[k].innerHTML);
                      if(frontend==fe_list[k].innerHTML) {
                        fe_idx=k;
                      }
@@ -432,7 +439,16 @@ Description:
                else if("total" == paramSpecArry[0]) {
                  urlValid = 1; 
                  document.getElementById("entries").selectedIndex = 0; 
-                 setOptions(entry);
+                 setOptions("total");
+                 var frontend = paramSpecArry[1];
+                 var fe_list = document.getElementById("frontends").childNodes; 
+                 var fe_idx=0;
+                 for(var k=0;k<fe_list.length;k++) {
+	 	   if(frontend==fe_list[k].innerHTML) {
+		     fe_idx=k;
+		   }
+		 }
+		 document.getElementById("frontends").selectedIndex = fe_idx;
                  break;  	
                }
                counter++; 
@@ -453,6 +469,7 @@ Description:
            }
          }
          if(urlValid) {
+           coming_from_link=true;
            fname_update();
          }
        }
@@ -497,6 +514,17 @@ Description:
          }
          document.getElementById("destination").selectedIndex = 0; 
        }
+
+      function autoupdate() {
+        var auchk = document.getElementById("autoupdate").checked;
+        
+        if (auchk) {
+          auInt=setInterval(fname_update, 1800000);
+        } else {
+          clearInterval(auInt);
+        };
+      }
+
     </script>
   </body>
 </html>

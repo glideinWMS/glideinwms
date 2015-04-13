@@ -15,6 +15,8 @@ import os
 import sys
 import logging
 import os.path
+import subprocess
+import tempfile
 
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
@@ -25,6 +27,7 @@ from glideinwms.creation.lib import cgWConsts
 from glideinwms.creation.lib import cWConsts
 from glideinwms.creation.lib import cgWCreate
 from glideinwms.creation.lib import cgWParamDict
+from glideinwms.creation.lib import xslt
 from glideinwms.factory import glideFactoryMonitorAggregator
 from glideinwms.factory import glideFactoryConfig
 from glideinwms.lib import logSupport
@@ -49,13 +52,15 @@ def logReconfig(msg):
                 plog['extension'],
                 int(float(plog['max_days'])),
                 int(float(plog['min_days'])),
-                int(float(plog['max_mbytes'])))
+                int(float(plog['max_mbytes'])),
+                plog['compression'])
         else:
             logSupport.add_processlog_handler("factoryadmin", 
                 logSupport.log_dir, plog['msg_types'], plog['extension'],
                 int(float(plog['max_days'])),
                 int(float(plog['min_days'])),
-                int(float(plog['max_mbytes'])))
+                int(float(plog['max_mbytes'])),
+                plog['compression'])
     logSupport.log = logging.getLogger("factoryadmin")
     logSupport.log.info("Reconfiguring factory: %s" % msg)
 
@@ -116,6 +121,7 @@ def main(params, old_params, update_scripts, update_def_cfg, comment=""):
 
     if update_def_cfg == 'yes' or update_scripts == 'yes':
         # recreate the init.d startup file
+        # This will never happen in RPM installations (because of the init.d file)
         startup_fname = os.path.join(glidein_dicts_obj.main_dicts.work_dir, cgWConsts.INITD_STARTUP_FILE)
         factory_dir = glidein_dicts_obj.main_dicts.work_dir
         
@@ -159,6 +165,7 @@ def main(params, old_params, update_scripts, update_def_cfg, comment=""):
     print "...Submit files are in %s"%glidein_dicts_obj.main_dicts.work_dir
     if comment:
         logReconfig("Reconfig successful with options update_def_cfg='%s' update_scripts='%s' comment='%s'" % (update_def_cfg, update_scripts, comment))
+
 ############################################################
 #
 # S T A R T U P
@@ -167,14 +174,25 @@ def main(params, old_params, update_scripts, update_def_cfg, comment=""):
 
 if __name__ == '__main__':
     exit_code = 0
-    usage = "reconfig_glidein { -force_name name -writeback yes|no -update_scripts yes|no -xml xml -update_def_cfg yes|no [-force_delete] | -help }"
+    usage = "usage: reconfig_glidein { -force_name name -writeback yes|no -update_scripts yes|no -xml xml -update_def_cfg yes|no [-force_delete] [-xslt_plugin_dir xdir] | -help }"
     argv = sys.argv
+
+    if len(argv) == 1:
+        print usage
+        sys.exit(1)
+
+    if os.geteuid() == 0:
+        print "NOTE: Executing reconfig_glidein as user 'root' is not allowed. Use the factory user instead. For rpm based installations, use the 'service gwms-factory <start|stop|reconfig|...>' command to perform gwms-factory operations"
+
     force_name = None
     writeback = 'no'
     update_scripts = 'no'
     xml = ''
     comment=''
     update_def_cfg = 'no'
+
+    xslt_plugin_dir = os.environ.get('GWMS_XSLT_PLUGIN_DIR', None)
+
     for i in range(len(argv)):
         if argv[i] == '-fix_rrd':
             fix_rrd = True
@@ -190,16 +208,25 @@ if __name__ == '__main__':
             update_scripts = argv[i + 1]
         if argv[i] == '-xml':
             xml = argv[i + 1]
+        if argv[i] == '-xslt_plugin_dir':
+            xslt_plugin_dir = argv[i+1]
         if argv[i] == '-update_def_cfg':
             update_def_cfg = argv[i + 1]
         if argv[i] == '-help':
             print usage
             sys.exit(1)
-        
-    args = [argv[0], xml]
 
     try:
+        transformed_xmlfile = tempfile.NamedTemporaryFile()
+        transformed_xmlfile.write(xslt.xslt_xml(old_xmlfile=xml,
+                                  xslt_plugin_dir=xslt_plugin_dir))
+        transformed_xmlfile.flush()
+
+        args = [argv[0], transformed_xmlfile.name]
         params=cgWParams.GlideinParams(usage, WEB_BASE_DIR, args)
+        # We have read the transformed xml now. Overwrite the params.cfg_name
+        # with xml
+        params.cfg_name = xml
 
         if force_name is not None:
             if params.glidein_name != force_name:
@@ -252,3 +279,4 @@ if __name__ == '__main__':
         exit_code = 1
 
     sys.exit(exit_code)
+

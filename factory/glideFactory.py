@@ -413,10 +413,11 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             # Read in the frontend globals classad
             # Do this first so that the credentials are immediately
             # available when the Entries startup
+            classads = {}
             try:
                 classads = glideFactoryCredentials.get_globals_classads()
             except Exception:
-                logSupport.log.exception("Error occurred processing globals classads: ")
+                logSupport.log.error("Error occurred retrieving globals classad -- is Condor running?")
 
             for classad_key in classads:
                 classad = classads[classad_key]
@@ -580,6 +581,9 @@ def main(startup_dir):
     glideinDescript = glideFactoryConfig.GlideinDescript()
     frontendDescript = glideFactoryConfig.FrontendDescript()
 
+    # set factory_collector at a global level, since we do not expect it to change
+    glideFactoryInterface.factoryConfig.factory_collector = glideinDescript.data['FactoryCollector']
+
     # Setup the glideFactoryLib.factoryConfig so that we can process the
     # globals classads
     glideFactoryLib.factoryConfig.config_whoamI(
@@ -597,15 +601,25 @@ def main(startup_dir):
     process_logs = eval(glideinDescript.data['ProcessLogs'])
     for plog in process_logs:
         if 'ADMIN' in plog['msg_types'].upper():
-            logSupport.add_processlog_handler("factoryadmin", logSupport.log_dir, "DEBUG,INFO,WARN,ERR", plog['extension'],
-                                      int(float(plog['max_days'])),
-                                      int(float(plog['min_days'])),
-                                      int(float(plog['max_mbytes'])))
+            logSupport.add_processlog_handler("factoryadmin",
+                                              logSupport.log_dir,
+                                              "DEBUG,INFO,WARN,ERR",
+                                              plog['extension'],
+                                              int(float(plog['max_days'])),
+                                              int(float(plog['min_days'])),
+                                              int(float(plog['max_mbytes'])),
+                                              int(float(plog['backup_count'])),
+                                              plog['compression'])
         else:
-            logSupport.add_processlog_handler("factory", logSupport.log_dir, plog['msg_types'], plog['extension'],
-                                      int(float(plog['max_days'])),
-                                      int(float(plog['min_days'])),
-                                      int(float(plog['max_mbytes'])))
+            logSupport.add_processlog_handler("factory",
+                                              logSupport.log_dir,
+                                              plog['msg_types'],
+                                              plog['extension'],
+                                              int(float(plog['max_days'])),
+                                              int(float(plog['min_days'])),
+                                              int(float(plog['max_mbytes'])),
+                                              int(float(plog['backup_count'])),
+                                              plog['compression'])
     logSupport.log = logging.getLogger("factory")
     logSupport.log.info("Logging initialized")
 
@@ -621,7 +635,7 @@ def main(startup_dir):
     try:
         os.chdir(startup_dir)
     except:
-        logSupport.log.exception("Unable to change to startup_dir: ")
+        logSupport.log.exception("Failed starting Factory. Unable to change to startup_dir: ")
         raise
 
     try:
@@ -640,7 +654,7 @@ def main(startup_dir):
             logSupport.log.info("Loading old key")
             glideinDescript.load_old_rsa_key()
     except:
-        logSupport.log.exception("Exception occurred loading factory keys: ")
+        logSupport.log.exception("Failed starting Factory. Exception occurred loading factory keys: ")
         raise
 
     glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.my_name = "%s@%s" % (glideinDescript.data['GlideinName'],
@@ -657,7 +671,7 @@ def main(startup_dir):
         glideinwms_dir = os.path.dirname(os.path.dirname(sys.argv[0]))
         glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(glideinwms_dir, 'checksum.factory').version()
     except:
-        logSupport.log.exception("Exception occurred while trying to retrieve the glideinwms version: ")
+        logSupport.log.exception("Non critical Factory error. Exception occurred while trying to retrieve the glideinwms version: ")
 
     entries = glideinDescript.data['Entries'].split(',')
     entries.sort()
@@ -672,7 +686,13 @@ def main(startup_dir):
     increase_process_limit()
 
     # start
-    pid_obj.register()
+    try:
+        pid_obj.register()
+    except glideFactoryPidLib.pidSupport.AlreadyRunning, err:
+        pid_obj.load_registered()
+        logSupport.log.exception("Failed starting Factory. Instance with pid %s is aready running. Exception during pid registration: %s" % 
+                                 (pid_obj.mypid , err))
+        raise
     try:
         try:
             spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,

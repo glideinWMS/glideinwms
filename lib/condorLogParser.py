@@ -1308,9 +1308,14 @@ def loadCache(fname):
     @param fname: Filename to load
     @return: data retrieved from file
     """
-    fd=open(fname,"r")
-    data=cPickle.load(fd)
-    fd.close()
+
+    try:
+        fd=open(fname,"r")
+        data=cPickle.load(fd)
+        fd.close()
+    except Exception:
+        raise RuntimeError("Could not read %s" % fname)
+
     return data
 
 def saveCache(fname,data):

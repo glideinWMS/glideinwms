@@ -14,6 +14,7 @@ import cStringIO
 import base64
 
 import glideFactoryLib
+import glideFactoryInterface
 from glideinwms.lib import condorPrivsep
 from glideinwms.lib import condorMonitor
 
@@ -119,14 +120,21 @@ def update_credential_file(username, client_id, credential_data, request_clientn
 
         safe_update(fname, credential_data)
         compressed_credential = compress_credential(credential_data)
-        safe_update(compressed_credential, fname_compressed)
+        safe_update(fname_compressed, compressed_credential)
 
     return fname, fname_compressed
 
-def get_globals_classads():
+#
+# Comment by Igor:
+# This functionality should really be in glideFactoryInterface module
+# Making a minimal patch now to get the desired functionality
+def get_globals_classads(factory_collector=glideFactoryInterface.DEFAULT_VAL):
+    if factory_collector==glideFactoryInterface.DEFAULT_VAL:
+        factory_collector=glideFactoryInterface.factoryConfig.factory_collector
+
     status_constraint = '(GlideinMyType=?="glideclientglobal")'
 
-    status = condorMonitor.CondorStatus("any")
+    status = condorMonitor.CondorStatus("any", pool_name=factory_collector)
     status.require_integrity(True) # important, this dictates what gets submitted
 
     status.load(status_constraint)
@@ -362,7 +370,7 @@ def safe_update(fname, credential_data):
         if not (credential_data == old_data):
             # proxy changed, neeed to update
             # remove any previous backup file, if it exists
-            if os.path.isfile(fname): os.remove(fname + ".old")
+            if os.path.isfile(fname + ".old"): os.remove(fname + ".old")
 
             # create new file
             fd = os.open(fname + ".new", os.O_CREAT|os.O_WRONLY, 0600)

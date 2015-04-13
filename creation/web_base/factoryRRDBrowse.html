@@ -20,14 +20,7 @@ Description:
     <script type="text/javascript" src="jslibs/rrdFile.js"></script>
     <script type="text/javascript" src="jslibs/rrdMultiFile.js"></script>
 
-    <!-- rrdFlot class needs the following four include files !-->
-    <script type="text/javascript" src="jslibs/rrdFlotSupport.js"></script>
-    <script type="text/javascript" src="jslibs/rrdFlot.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.flot.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.flot.selection.js"></script>
-    <script type="text/javascript" src="jslibs/jquery.flot.tooltip.js"></script>
-
+    <script type="text/javascript" src="jslibs/javascriptrrd.wlibs.js"></script>
     <script type="text/javascript" src="jslibs/factory_support.js"></script>
   <head>
     <title id="brtitle">Browse gfactory RRDs</title>
@@ -101,7 +94,7 @@ Description:
     <p>Powered by
         <a href="http://oss.oetiker.ch/rrdtool/" target="_blank">RRDTool</a>,
         <a href="https://sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and 
-        <a href="http://code.google.com/p/flot/" target="_blank">Flot</a>.
+        <a href="http://www.flotcharts.org/" target="_blank">Flot</a>.
     </p>
     <div id="monitor_footer"></div>
     
@@ -160,6 +153,7 @@ Description:
               ec_added++;
           } 
       }
+      setOptions('total');
 
      // fname and rrd_data are the global variable used by all the functions below
       rrd_data=undefined;
@@ -260,7 +254,7 @@ Description:
         files_loaded=0;
 
         var entry_name="";
-        var rrd_name="";
+        var rrd_fname="";
 
         var entries_obj=document.getElementById("entries")
         entry_name=entries_obj.options[entries_obj.selectedIndex].value;
@@ -271,16 +265,21 @@ Description:
         for (var i in rrds_obj.rrd) {
          var rrd=rrds_obj.rrd[i];
          if (rrd.checked==true) {
-  	   rrd_name=rrd.value;
+  	   rrd_fname=rrd.value;
          }
         }
 
         if (entry_name=="total") {
-          fname="total/"+rrd_name+".rrd";
+            if (frontend_name!="total") {
+               fname="total/"+"frontend_"+frontend_name+"/"+rrd_fname+".rrd";
+            }
+            else {
+               fname="total/"+rrd_fname+".rrd";
+            }
         } else if (frontend_name!="total"){
-          fname="entry_"+entry_name+"/frontend_"+frontend_name+"/"+rrd_name+".rrd";
+          fname="entry_"+entry_name+"/frontend_"+frontend_name+"/"+rrd_fname+".rrd";
         } else {
-          fname="entry_"+entry_name+"/total/"+rrd_name+".rrd";
+          fname="entry_"+entry_name+"/total/"+rrd_fname+".rrd";
         }
 
         if ( (entry_name == "total") || (((entry_name.split(",")).length == 1) && (entry_name == entrylist2groupname(entry_name.split(",")))) ){
@@ -296,9 +295,9 @@ Description:
           fname = "";
           for (var i=0; i<en_array.length; i++) {
               if (i == 0) {
-                  fname="entry_"+en_array[i]+"/total/"+rrd_name+".rrd";
+                  fname="entry_"+en_array[i]+"/total/"+rrd_fname+".rrd";
               } else {
-                  fname=fname+",entry_"+en_array[i]+"/total/"+rrd_name+".rrd";
+                  fname=fname+",entry_"+en_array[i]+"/total/"+rrd_fname+".rrd";
               }
           }
           //document.getElementById("fname").firstChild.data="Loading " + fname;
@@ -306,7 +305,7 @@ Description:
 
           for (var i=0; i<en_array.length; i++) {
             //alert("GROUP SELECTED with entry: " + en_array[i]);
-            var fn = "entry_"+en_array[i]+"/total/"+rrd_name+".rrd"; 
+            var fn = "entry_"+en_array[i]+"/total/"+rrd_fname+".rrd"; 
             try {
               FetchBinaryURLAsync(fn,update_grouped_fname_handler);
             } catch (err) {
@@ -370,8 +369,9 @@ Description:
                                                         var fe_list = document.getElementById("frontends").childNodes; 
                                                         var fe_idx=0;
                                                         for(var k=0;k<fe_list.length;k++) {
-                                                           document.write(fe_list[k].innerHTML);
-                                                           if(frontend==fe_list[k].innerHTML) {fe_idx=k;}
+							  if(frontend==fe_list[k].innerHTML) {
+							    fe_idx=k;
+							  }
                                                         }
                                                         document.getElementById("frontends").selectedIndex = fe_idx; 
 						}
@@ -381,7 +381,16 @@ Description:
 					{
 						urlValid = 1; 
 						document.getElementById("entries").selectedIndex = 0; 
-                                                setOptions(entry);
+						setOptions("total");
+						var frontend = paramSpecArry[1];
+						var fe_list = document.getElementById("frontends").childNodes; 
+						var fe_idx=0;
+						for(var k=0;k<fe_list.length;k++) {
+						  if(frontend==fe_list[k].innerHTML) {
+						    fe_idx=k;
+						  }
+						}
+						document.getElementById("frontends").selectedIndex = fe_idx;
 						break;  	
 					}
 					counter++; 
@@ -403,7 +412,8 @@ Description:
 		}
 		if(urlValid)
 		{
-			fname_update();
+		  coming_from_link=true;
+		  fname_update();
 		}
 	}
 	/* Function to show link for current options. */

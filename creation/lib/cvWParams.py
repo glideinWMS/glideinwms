@@ -50,10 +50,10 @@ class VOFrontendParams(cWParams.CommonParams):
         group_config_running_defaults["relative_to_queue"]=['1.15',"fraction","Max relative to number of matching jobs in the queue.",None]
         group_config_defaults['running_glideins_per_entry']=group_config_running_defaults
 
-        group_config_running_total_defaults=cWParams.commentedOrderedDict()
-        group_config_running_total_defaults["max"]=['100000',"nr_jobs","What is the max number of running glideins I want to get to - globally",None]
-        group_config_running_total_defaults["curb"]=['90000',"nr_jobs","When should I start curbing glidein submission",None]
-        group_config_defaults['running_glideins_total']=group_config_running_total_defaults
+        common_config_running_total_defaults=cWParams.commentedOrderedDict()
+        common_config_running_total_defaults["max"]=['100000',"nr_jobs","What is the max number of running glideins I want to get to - globally",None]
+        common_config_running_total_defaults["curb"]=['90000',"nr_jobs","When should I start curbing glidein submission",None]
+        group_config_defaults['running_glideins_total']=common_config_running_total_defaults
 
         group_config_idle_defaults=cWParams.commentedOrderedDict()
         group_config_idle_defaults["max"]=['100',"nr_jobs","How much pressure should I apply to the entry points",None]
@@ -61,9 +61,18 @@ class VOFrontendParams(cWParams.CommonParams):
         group_config_defaults['idle_glideins_per_entry']=group_config_idle_defaults
 
         group_config_vms_defaults=cWParams.commentedOrderedDict()
-        group_config_vms_defaults["max"]=['100',"nr_jobs","How many idle VMs should I tollerate, before stopping submitting glideins",None]
-        group_config_vms_defaults["curb"]=['5',"nr_jobs","How many idle VMs should I tollerate, before starting to curb submissions.",None]
+        group_config_vms_defaults["max"]=['100',"nr_vms","How many idle VMs should I tollerate, before stopping submitting glideins",None]
+        group_config_vms_defaults["curb"]=['5',"nr_vms","How many idle VMs should I tollerate, before starting to curb submissions.",None]
         group_config_defaults['idle_vms_per_entry']=group_config_vms_defaults
+
+        common_config_vms_total_defaults=cWParams.commentedOrderedDict()
+        common_config_vms_total_defaults["max"]=['1000',"nr_jobs","How many total idle VMs should I tollerate, before stopping submitting glideins",None]
+        common_config_vms_total_defaults["curb"]=['200',"nr_jobs","How many total idle VMs should I tollerate, before starting to curb submissions.",None]
+        group_config_defaults['idle_vms_total']=common_config_vms_total_defaults
+
+        group_config_proc_work_defaults=cWParams.commentedOrderedDict()
+        group_config_proc_work_defaults["matchmakers"]=['3',"NR","Max number of worker processes that will be doing the matchmaking",None]
+        group_config_defaults['processing_workers']=group_config_proc_work_defaults
 
         # not exported and order does not matter, can stay a regular dictionary
         sub_defaults={'attrs':(xmlParse.OrderedDict(),'Dictionary of attributes',"Each attribute group contains",self.attr_defaults),
@@ -145,6 +154,8 @@ class VOFrontendParams(cWParams.CommonParams):
         process_log_defaults["max_mbytes"] = ["100.0","Mbytes","Max number of Mbytes the logs can use",None]
         process_log_defaults['extension'] = ["all", "string", "name of the log extention", None]
         process_log_defaults['msg_types'] = ["INFO, WARN, ERR", "string", "types of log messages", None]
+        process_log_defaults['backup_count'] = ["5", "string", "Number of backup logs to keep", None]
+        process_log_defaults['compression'] = ["", "string", "Compression for backup log files", None]
         
         log_retention_defaults = cWParams.commentedOrderedDict()
         log_retention_defaults["process_logs"] = ([], 'Dictionary of log types', "Each log corresponds to a log file", copy.deepcopy(process_log_defaults))
@@ -159,6 +170,9 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults['advertise_delay']=('5','NR', 'Advertize evert NR loops',None)
         self.defaults['advertise_with_tcp']=('True','Bool', 'Should condor_advertise use TCP connections?',None)
         self.defaults['advertise_with_multiple']=('True','Bool', 'Should condor_advertise use -multiple?',None)
+
+        self.defaults['group_parallel_workers']=('2','NR', 'Max number of parallel workers that process the group policies', None)
+
         self.defaults['restart_attempts']=('3','NR', 'Max allowed NR restarts every restart_interval before shutting down',None)
         self.defaults['restart_interval']=('1800','NR', 'Time interval NR sec which allow max restart attempts',None)
 
@@ -195,8 +209,31 @@ class VOFrontendParams(cWParams.CommonParams):
         # ordering is specific to global section of factory
         self.defaults["files"][3]["after_group"]=("False",'Bool','Should this file be loaded after the group ones?',None)
 
+        global_config_defaults=cWParams.commentedOrderedDict()
+        global_config_defaults['idle_vms_total']=copy.deepcopy(common_config_vms_total_defaults)
+        global_config_defaults['idle_vms_total_global']=copy.deepcopy(common_config_vms_total_defaults)
+        global_config_defaults['running_glideins_total']=copy.deepcopy(common_config_running_total_defaults)
+        global_config_defaults['running_glideins_total_global']=copy.deepcopy(common_config_running_total_defaults)
+        self.defaults["config"]=global_config_defaults
+
         self.defaults["groups"]=(xmlParse.OrderedDict(),"Dictionary of groups","Each group contains",self.group_defaults)
         
+        # High Availability Configuration settings
+
+
+        haf_defaults = cWParams.commentedOrderedDict()
+        haf_defaults['frontend_name'] = (None, 'frontend_name',
+                                         'Name of the frontend', None)
+
+        ha_defaults = cWParams.commentedOrderedDict()
+        ha_defaults['ha_frontends'] = ([], 'List of frontends in  HA mode',
+                                       'Each element contains', haf_defaults)
+        ha_defaults["enabled"]=('False', 'Bool', 'Enable HA?', None)
+        ha_defaults["check_interval"]=('300', 'NR', 'How frequently should slav check if the master is down', None)
+        #ha_defaults["activation_delay"]=('150', 'NR', 'How many sec to wait before slav activates after detecting that master is down', None)
+        self.defaults['high_availability'] = ha_defaults
+
+
         return
 
     # return name of top element
@@ -281,6 +318,16 @@ class VOFrontendParams(cWParams.CommonParams):
                     # define an explicit security, so the admin is aware of it
                     pel['security_class']="group_%s"%group_name
 
+        # verify and populate HA
+        if self.high_availability['enabled'].lower() == 'true':
+            if (len(self.high_availability['ha_frontends']) == 1):
+                haf = self.high_availability['ha_frontends'][0]
+                if not haf['frontend_name']:
+                    raise RuntimeError, 'High availability is enabled but the configuration is missing frontend_name of the master ha_frontend.'
+            else:
+                raise RuntimeError, 'Exactly one master ha_frontend information is needed when running this frontend in high_availability slave mode.'
+
+
     # verify match data and create the attributes if needed
     def derive_match_attrs(self):
         self.validate_match('frontend',self.match.match_expr,
@@ -316,6 +363,7 @@ class VOFrontendParams(cWParams.CommonParams):
                                 'process_logs':{'el_name':'process_log','subtypes_params':{'class':{}}},
                                 'collectors':{'el_name':'collector','subtypes_params':{'class':{}}},
                                 'schedds':{'el_name':'schedd','subtypes_params':{'class':{}}},
+                                'ha_frontends':{'el_name':'ha_frontend','subtypes_params':{'class':{}}},
                                 'credentials':{'el_name':'credential','subtypes_params':{'class':{}}}},
                 'dicts_params':{'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},
                                 'groups':{'el_name':'group','subtypes_params':{'class':{}}},

@@ -48,12 +48,14 @@ def create_condor_tar_fd(condor_base_dir):
                   'libexec/condor_glexec_run',
                   'libexec/condor_glexec_update_proxy',
                   'libexec/condor_glexec_setup',
+                  'libexec/condor_shared_port',
                   'libexec/condor_ssh_to_job_sshd_setup',
                   'libexec/condor_ssh_to_job_shell_setup',
                   'libexec/condor_kflops',
                   'libexec/condor_mips',
                   'libexec/curl_plugin',
                   'libexec/data_plugin',
+                  'libexec/condor_chirp',
                               ]
 
         # for RPM installations, add libexec/condor as libexec into the
@@ -101,27 +103,34 @@ def create_condor_tar_fd(condor_base_dir):
 ##########################################
 # Condor submit file dictionary
 class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
-    def populate(self, exe_fname, factory_name, glidein_name,
-                 entry_name, gridtype, gatekeeper, rsl, auth_method, web_base,
-                 proxy_url, work_dir, client_log_base_dir):
+    def populate(self, exe_fname, entry_name, params, sub_params):
         """
-        Many of these arguments are no longer needed, but keeping here for the moment
-        since the code is so obscure that removing anything might have unintended
-        consequences
+        Since there are only two parameters that ever were passed that didn't already exist in the params dict or the
+        sub_params dict, the function signature has been greatly simplified into just those two parameters and the
+        two dicts.
 
-        arguments that *are* needed:
-            client_log_base_dir
-            glidein_name
-            entry_name
-            gridtype
-            gatekeeper
-            exe_fname
-            proxy_url
+        This has the added benefit of being "future-proof" for as long as we maintain this particular configuration
+        method.  Any new attribute that may be in params or sub_params can be accessed here without having to add yet
+        another parameter to the function.
         """
+
+        glidein_name = params.glidein_name
+        gridtype = sub_params.gridtype
+        gatekeeper = sub_params.gatekeeper
+        rsl = sub_params.rsl
+        auth_method = sub_params.auth_method
+        proxy_url = sub_params.proxy_url
+        client_log_base_dir = params.submit.base_client_log_dir
+        submit_attrs = sub_params.config.submit.submit_attrs
 
         # Add in some common elements before setting up grid type specific attributes
         self.add("Universe", "grid")
-        self.add("Grid_Resource", "%s %s" % (gridtype, gatekeeper))
+        if gridtype.startswith('batch '):
+            # For BOSCO ie gridtype 'batch *', allow means to pass VO specific
+            # bosco/ssh keys
+            self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) %s" % (gridtype, gatekeeper))
+        else:
+            self.add("Grid_Resource", "%s %s" % (gridtype, gatekeeper))
         self.add("Executable", exe_fname)
                 
         # set up the grid specific attributes
@@ -132,7 +141,10 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             # so we first do the normal population
             self.populate_standard_grid(rsl, auth_method, gridtype)
             # next we add the Condor-C additions
-            self.populate_condorc_grid()
+            self.populate_condorc_grid(submit_attrs)
+        elif (gridtype.startswith('batch ')):
+            # BOSCO, aka batch *
+            self.populate_batch_grid(rsl, auth_method, gridtype, submit_attrs)
         else:
             self.populate_standard_grid(rsl, auth_method, gridtype)
 
@@ -156,9 +168,10 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                 self.add("globus_rsl", "$ENV(GLIDEIN_RSL)")
         elif gridtype == 'cream' and ((rsl is not None) and rsl !=""):
             self.add("cream_attributes", "$ENV(GLIDEIN_RSL)")
+        elif gridtype == 'nordugrid' and rsl:
+            self.add("nordugrid_rsl", "$ENV(GLIDEIN_RSL)")
         else:
             pass
-            # do we want to raise an error here?  we do in v2+
 
         # Force the copy to spool to prevent caching at the CE side
         self.add("copy_to_spool", "True")
@@ -166,14 +179,35 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("Arguments", "$ENV(GLIDEIN_ARGUMENTS)")
 
         self.add("Transfer_Executable", "True")
-        self.add("transfer_Input_files", "")
         self.add("transfer_Output_files", "")
         self.add("WhenToTransferOutput ", "ON_EXIT")
 
         self.add("stream_output", "False")
         self.add("stream_error ", "False")
 
-    def populate_condorc_grid(self):
+
+    def populate_batch_grid(self, rsl, auth_method, gridtype, submit_attrs):
+        input_files = []
+        encrypt_input_files = []
+
+        self.populate_standard_grid(rsl, auth_method, gridtype)
+
+        input_files.append('$ENV(X509_USER_PROXY)')
+        encrypt_input_files.append('$ENV(X509_USER_PROXY)')
+        self.add('environment', '"X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME)"')
+        self.add("transfer_Input_files", ','.join(input_files))
+        self.add("encrypt_Input_files", ','.join(encrypt_input_files))
+
+        self.populate_submit_attrs(submit_attrs)
+
+
+    def populate_submit_attrs(self, submit_attrs, attr_prefix=''):
+        for key in submit_attrs.keys():
+            self.add('%s%s' % (attr_prefix, key), submit_attrs[key]['value'])
+
+
+    def populate_condorc_grid(self, submit_attrs):
+        self.populate_submit_attrs(submit_attrs)
         self.add('+TransferOutput', '""')
         self.add('x509userproxy', '$ENV(X509_USER_PROXY)')
 
@@ -214,7 +248,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
        
 #########################################
 # Create init.d compatible startup file
-def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name):
+def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name, rpm_install=''):
     """
     Creates the factory startup script from the template.
     """
@@ -223,7 +257,8 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name):
     try:
         template = template % {"factory_dir": factory_dir, 
                                "glideinWMS_dir": glideinWMS_dir, 
-                               "default_cfg_fpath": cfg_name}
+                               "default_cfg_fpath": cfg_name,
+                               "rpm_install": rpm_install}
         fd.write(template)
     finally:
         fd.close()

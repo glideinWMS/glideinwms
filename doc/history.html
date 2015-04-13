@@ -23,9 +23,10 @@
 	<li> <a href="./index.html">Home</a></li>
 	<li> <a href="./download.html">Download</a></li>
 	<li> <a href="./frontend/index.html">Glidein Frontend</a></li>
-    <li> <a href="./corral.html">Corral Frontend</a></li>
+        <li> <a href="./corral.html">Corral Frontend</a></li>
 	<li> <a href="./factory/index.html">WMS Factory</a></li>
 	<li> <a href="./components/index.html" >Components</a></li>
+        <li> <a href="./recipes/index.html">Recipes</a></li>
 	<li> <a href="./components/faq.html" class="last">FAQ</a></li>
         </ul>
         <div class="search">
@@ -84,7 +85,214 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
-        <b>v3_2</b> released on August xx, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2.tgz">Tarball</a>)<br>
+        <b>v3_2_8</b> released on December 30, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_8/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_8/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_8.tgz">Tarball</a>)<br>
+        <ul>
+          <li>VO Frontend parameters are added to HTCondor config for ganglia
+          monitoring
+          <li>CONDOR_VIEW_HOST is now set to localhost for factory collectors to
+          minimize overhead in communication between primary and secondary
+          collectors
+          <li>Added option to compress process logs in factory and frontend
+          <li>Added failed glidein statistics to frontend monitoring
+          <li>Added idle/running/total core statistics to frontend monitoring
+          <li>Added the support for HTCondor GANGLIAD monitoring 
+          (requires HTCondor 8.1 or newer). If you have HTCondor 8.0.x or earlier 
+          you must remove <t>/etc/condor/config.d/01_gwms_ganglia.config</t>,
+          otherwise your HTCondor will complain about an unsupported option
+          and crash.
+          <li>USE_CCB is now enabled by default and this information is
+          advertised in the glidefactory classads
+          <li>Improved documentation
+          <li>Bug Fix: Glideins do not mail admins when HTCondor daemon crash
+          <li>Bug Fix: Gridmanager log paths used by glidein/factory scheds are
+          now correctly expanded for different users
+          <li>Bug Fix: Factory and Frontend service start/stop exit codes now
+          confer to Linux standards
+          <li>Bug Fix: Fixed issue where work dir and vesioning in frontend
+          config would break the config in case of frontend rpms
+          <li>Bug Fix: Made improvements to the HTCondor configuration used by
+          factory rpm
+          <li>Bug Fix: There is no name collision for glideins when
+          USE_PID_NAMESPACES is enabled in site's HTCondor batch system
+          <li>Bug Fix: Factory does not leak file descriptors when HTCondor
+          commands using privilege separation fail
+        </ul>
+      </li>
+      <li>
+        <b>v3_2_7_2</b> released on November 06, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_7_2/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_7_2/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_7_2.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Bug Fix: Set MASTER.USE_SHARED_PORT instead of USE_SHARED_PORT to
+          avoid secondary collectors using the shared port daemon
+        </ul>
+      </li>
+      <li>
+        <b>v3_2_7_1</b> released on November 05, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_7_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_7_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_7_1.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Set USE_SHARED_PORT to get around the issue with HTCondor 8.2.3
+        </ul>
+      </li>
+      <li>
+        <b>v3_2_7</b> released on October 14, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_7/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_7/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_7.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Glideins now have an option to report monitoring info to a
+          different collector configured in the factory
+          <li>Glideins now support shared port
+          <li>Glideins now use local storage for its tmp internal operaations
+          <li>Improved documentation
+          <li>Bug Fix: Fixed an issue where a corrupted internal state file
+          would crash the factory
+          <li>Bug Fix: KeyError in a match_expr is now correctly logged
+          <li>Bug Fix: proxy_url in an entry's config is now correctly used
+          <li>Bug Fix: rrdtool commands are now used correctly when rrdtool
+          python library is not installed on the system
+          <li>Bug Fix: Error classads now correctly advertise all the relevant
+          attributes
+          <li>Bug Fix: glidein_off now correctly work with the HTCondor HA setup
+          <li>Bug Fix: Internal security changes are now properly cleaned up
+          and applied in factory and frontend
+          <li>Bug Fix: Factory monitoring now correctly report UserRunning info
+          when frontend is configured with multiple credentials
+          <li>Bug Fix: Fixed an issue with the factory rpm installation in case
+          of privilege separation
+          <li>Bug Fix: Secondary schedd for frontend is now disabled by default
+          <li>Bug Fix: DAEMON_SHUTDOWN in glidein now uses idle timers that
+          are relative to change in the state
+          <li>Bug Fix: Factory rpm now properly pulls down dependencies
+          <li>Bug Fix: UpdateSequenceNumber for classads now update correctly
+          <li>Bug Fix: Frontend now correctly provisions multicore glideins if
+          the GLIDEIN_CPUS is configured for the entry
+          <li>Bug Fix: GLIDEIN_MaxMemMBs_Estimate now takes GLIDEIN_CPUS in the
+          consideration
+        </ul>
+      </li>
+      <li>
+        <b>v3_2_6</b> released on July 28, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_6/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_6/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_6.tgz">Tarball</a>)<br>
+       <ul>
+         <li>condor_chirp is now added to condor tarbar used by glidein
+         <li>Added support for submitting glideins to batch sites using BOSCO.
+         Requires HTCondor v8.2.2+
+         <li>Added new tool to purge old glideins
+         <li>Added periodic auto-update to Status Now monitoring pages
+         Upon completion, glidein Job history is brought back to the factory
+         <li>Allow for separation of Factory collector and CondorG collector
+         <li>Bug Fix: Fixed local timezone in some frontend monitoring pages
+         <li>Bug Fix: Improved frontend performance
+         <li>Bug Fix: Requesting single-core partitionable glideins is
+         not allowed
+         <li>Bug Fix: Fixed file ownership issues for rpm packages
+       </ul>
+     </li>
+      <li>
+        <b>v3_2_5_1</b> released on June 23, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_5/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_5/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_5.tgz">Tarball</a>)<br>
+       <ul>
+         <li>Bug Fix: Fixed an issue with the factory_startup template that affects factory reconfig/upgrade in case of RPM
+       </ul>
+     </li>
+      <li>
+        <b>v3_2_5</b> released on May 19, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_5/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_5/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_5.tgz">Tarball</a>)<br>
+       <ul>
+         <li>Added administrative commands for frontend fetch_glidein_log,
+         glidein_off and enter_frontend_env
+         <li>Frontend now considers MAX_JOBS_RUNNING when requesting more
+         glideins
+         <li>Frontend can now perform several tasks in parallel making it
+         more scalable
+         <li>Frontend and Factory startup scripts are more consistent with each
+         other
+         <li>Improved Documentation
+         <li>Bug Fix: Fixed an issue when factory config with HTCondorCE
+         attributes would result in an invalid XML on reconfig
+         <li>Bug Fix: Fixed a bug where number of jobs run as reported by a
+         glidein was significantly scaled up
+         <li>Bug Fix: Fixed issues in frontend introduced in v3_2_4 where the
+         frontend would crash under certain conditions
+         <li>Bug Fix: Frontend's group logging and factory logging now
+         correctly consider the backup_count when configured
+         <li>Bug Fix: Frontend RPM now corectly creates frontend.xml config with
+         default trust_domain='grid' for the credentials
+         <li>Bug Fix: Fixed frontend performance issue introduced in v3.2.4
+       </ul>
+      </li>
+      <li>
+        <b>v3_2_4</b> released on April 14, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_4/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_4/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_4.tgz">Tarball</a>)<br>
+       <ul>
+         <li>Added support for HTCondor-CE attributes in the factory
+         <li>Made several performance improvements to frontend. Frontend does
+         several tasks in parallel to better utilize the CPU.
+         <li>Factory and frontend monitoring pages now use new javascriptrrd
+         v1.1.0+
+         <li>Factory monitoring now aggregates Log RRDs
+         <li>Frontend can now limit total idle glideins
+         <li>Added limits to globaly total idle glideins
+         <li>Added badput summary line in the factory report
+         <li>Improved documentation
+         <li>Bug Fix: Factory and frontend operations like reconfig and upgrade
+         now check if they are run by valid users
+         <li>Bug Fix: Fixed partitioning of multi-core glideins
+         <li>Bug Fix: Fixed bug in factory/frontend stopping
+         <li>Bug Fix: Fixed several bugs in the /etc/init.d/gwms-factory script
+          available through the RPM distribution
+         <li>Bug Fix: Fixed bug with the factory/frontend monitoring that
+         resulted in significantly scaled up monitoring numbers when frontend
+         used multiple proxies
+         <li>Bug Fix: Factory now properly advertises entries in downtime
+         <li>Bug Fix: GLIDEIN_Glexec_Use when defined in the group now correctly          overriddes the value defined in global scope
+       </ul>
+      </li>
+      <li>
+        <b>v3_2_3</b> released on February 03, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_3/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_3/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_3.tgz">Tarball</a>)<br>
+       <ul>
+         <li>Glideins now have the ability to track the worker node batch slot.
+         Based on the batch system at site (HTCondor, SGE, PBS, LSF, SLURM) the
+         information is reported in the glidein's STARTD classad and logged in
+         job's log file written by HTCondor using classad variables
+         GLIDEIN_SiteWMS, GLIDEIN_SiteWMS_JOBID, GLIDEIN_SiteWMS_QUEUE and
+         GLIDEIN_SiteWMS_SLOT.
+         <li>Number of rotated process_logs for factory and frontend process to
+         keep can now be configured using backup_count configuration
+         attribute
+         <li>Bug Fix: Factory now correctly updates the renewed credentials it gets
+         from the Frontends
+         <li>Bug Fix: Cloud related configuration attributes VM_DISABLE_SHUTDOWN and
+         VM_MAX_LIFETIME are now documented
+         <li>Bug Fix: Partitionable slots now correctly evaluate daemon shutdown
+         <li>Bug Fix: Partitionable slots now correctly coalesce when the jobs
+         finish
+         <li>Bug Fix: For non-rpm installs, reconfiguring the factory from outside
+         the factory working directory now works correctly
+         <li>Bug Fix: Frontend with no credentials configured logs appropriate info
+         in the log files
+         <li>Bug Fix: clone_glidein tool is now packaged with the factory rpm
+         <li>Bug Fix: Factory now correctly cleans up completed_jobs logs
+         <li>Bug Fix: Improved Frontend efficiency by reducing the calls to OpenSSL
+       </ul>
+      </li>
+      <li>
+        <b>v3_2_2</b> released on November 08, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_2/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_2/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_2.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Bug Fix: Fix a bug where factory would crash if it fails
+          to query client global classads in wms collector
+          <li>Bug Fix: Glidein jobs correctly interpret the ARC CE FINISHED
+          state
+       </ul>
+      </li>
+      <li>
+        <b>v3_2_1</b> released on October 30, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_1.tgz">Tarball</a>)<br>
+        <ul>
+          <li>v3_2_1  Added support for a plug-in architecture for config that
+          lets admins manipulate frontend and factory config with ease
+          <li>Bug Fix: Factory accounting now correctly accounts for held jobs
+          <li>Bug Fix: Improved error reporting in case of misconfigured
+          credentials
+          <li>Bug Fix: Improved error reporting when factory fails to startup
+          <li>Bug Fix: Improved factory performance during log cleanup
+          <li>Bug Fix: Fixed a bug introduced in v3_2 where glidein update
+          interval was too short that resulted in performance issues for
+          busy collectors
+       </ul>
+      </li>
+      <li>
+        <b>v3_2</b> released on October 10, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2.tgz">Tarball</a>)<br>
         <ul>
           <li>Added support for generation of condor tarball from condor installed        via rpm
           <li>Bug Fix: Fixed a race condition while shutting down factory
@@ -117,6 +325,19 @@ Related Pages:
           frontend
           <li>Bug Fix: Fixed a bug in glidein where it would not report back to
           all the user pool collectors in HA mode correctly
+          <li>Bug Fix: Fixed a bug where some of the parameters passed to
+          glideins were not escaped correctly
+          <li>Bug Fix: Submitting glideins in test only mode now works correctly
+          <li>Bug Fix: Fixed a bug where factory would not submit glideins when
+          privilege separation is disabled
+          <li>Bug Fix: Fixed a bug in manageFactoryDowntimes.py where it could
+          not find required python libraries
+          <li>Bug Fix: Fixed a bug in factory accounting where glideins in
+          certain state were not accounted towards idle state
+          <li>Bug Fix: Added support for the ACCEPTED state for ARC CE
+          <li>Bug Fix: factoryStatus.html now correctly auto-selects timezone
+          <li>Bug Fix: Fixed a bug where RSL for NorduGrid CE was not populated
+          <li>Bug Fix: glidefactory classads now correctly display GlideinWMSVersion
         </ul>
       </li>
     </ul>
@@ -183,6 +404,26 @@ Related Pages:
 
     <h3>Old Releases</h3>
      <ul>
+      <li>
+        <b>v2_7_2</b> released on September 10, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7_2/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7_2/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7_2.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Bug Fix: Fixed a race condition while shutting down factory
+          service
+          <li>Bug Fix: Fixed a bug where glidein would not set certain condor
+          config variables correctly
+          <li>Bug Fix: Fixed a bug where analyze_queues and analyze_entries
+          would not work with the http:// URI
+          <li>Bug Fix: Collector port ranges in frontend.xml are now validated
+          for errors
+          <li>Bug Fix: Schedd name, frontend name and identity in factory config
+          are validated for errors
+          <li>Bug Fix: Starting a factory with all entries disabled now prints
+          helpful message
+          <li>Bug Fix: Glidein does not leak LD_LIBRARY_PATH to job's
+          environment
+          <li>Bug Fix: Fixed a bug where stopFactory would send two TERM signals          too quickly to stop processes
+        </ul>
+      </li>
       <li>
         <b>v2_7_1</b> released on May 14, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7_1.tgz">Tarball</a>)<br>
         <ul>

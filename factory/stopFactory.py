@@ -30,33 +30,34 @@ from glideinwms.factory import glideFactoryConfig
 
 def all_pids_in_pgid_dead(pgid):
     # return 1 if there are no pids in the pgid still alive
+    # 0 otherwise 
     devnull = os.open(os.devnull, os.O_RDWR)
     return subprocess.call(["pgrep", "-g", "%s" % pgid],
                             stdout=devnull,
                             stderr=devnull)
 
+
 def kill_and_check_pgid(pgid, signr=signal.SIGTERM, 
                         retries=100, retry_interval=0.5):
     # return 0 if all pids in pgid are dead
+    # 50 sec timeout by default
 
     try:
         os.killpg(pgid, signr)
     except OSError:
+        # can check err.errno
+        # errno.EPERM if it is not allowed
+        # errno.ESRCH if the process does not exist
         pass
 
     for retries in range(retries):
-        if not all_pids_in_pgid_dead(pgid):
-            try:
-                os.killpg(pgid, signr)
-            except OSError:
-                # already dead
-                pass
-
-            time.sleep(retry_interval)
-        else:
+        if all_pids_in_pgid_dead(pgid)==1:
             return 0
+        else:
+            time.sleep(retry_interval)
 
     return 1
+
 
 def main(startup_dir,force=True):
     # get the pids
@@ -64,6 +65,10 @@ def main(startup_dir,force=True):
         factory_pid=glideFactoryPidLib.get_factory_pid(startup_dir)
     except RuntimeError, e:
         print e
+        if str(e) == "Factory not running":
+            # Workaround to distinguish when the factory is not running
+            # string must be the same as in glideFactoryPidLib
+            return 2
         return 1
     #print factory_pid
 
@@ -74,7 +79,7 @@ def main(startup_dir,force=True):
         return 0
 
     # kill processes
-    # first soft kill the factoryprocess group  (20s timeout)
+    # first soft kill the factoryprocess group  (50s timeout)
     if (kill_and_check_pgid(factory_pgid) == 0):
         return 0
 
@@ -83,7 +88,7 @@ def main(startup_dir,force=True):
         return 1
 
     # retry soft kill the factory... should exit now (5s timeout)
-    if (kill_and_check_pgid(factory_pgid, retries=25) == 0):
+    if (kill_and_check_pgid(factory_pgid, retries=30, signr=signal.SIGTERM) == 0):
         return 0
 
     print "Factory or children still alive... sending hard kill"
@@ -96,16 +101,20 @@ def main(startup_dir,force=True):
 
     return 0
 
+USAGE_STRING = """Usage: stopFactory [-f|-force] submit_dir
+     return values: 0 Factory stopped, 
+         1 unable to stop Factory or wrong invocation, 2 Factory was not running
+"""
 if __name__ == '__main__':
     if len(sys.argv)<2:
-        print "Usage: stopFactory.py submit_dir"
+        print USAGE_STRING
         sys.exit(1)
 
     if len(sys.argv)>2:
-        if sys.argv[1]=='-force':
+        if sys.argv[1]=='-force' or sys.argv[1]=='-f':
             sys.exit(main(sys.argv[2],True))
         else:
-            print "Usage: stopFactory.py submit_dir"
+            print USAGE_STRING
             sys.exit(1)
     else:
         sys.exit(main(sys.argv[1]))

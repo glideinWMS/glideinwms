@@ -44,10 +44,10 @@
 	<ul class="subcomponents">
 	     <li> <a href="./index.html">Overview</a></li>
 	     <li> Prerequisites</li>
-	     <li> <a href="./collector_install.html">User Collector</a></li>
+	     <li> <a href="./collector_install.html">User Pool</a></li>
 	     <li> <a href="./pool_install.html">User Schedd</a></li>
          <li> <a href="./gsi.html">GSI</a></li>
-	     <li class="last"> <a href="./condor.html">Condor</a></li>
+	     <li class="last"> <a href="./condor.html">HTCondor</a></li>
 	</ul>
         <h3>Prerequisite Component Installation</h3>
 	</div>
@@ -62,7 +62,7 @@
 </ol>
 </div>
 <div class="related">
-<u><b>Installation Procedure</b></u><br><br>
+<u><b><a href="../install.html">Installation Procedure</a></b></u><br><br>
 
 Preceded by: <a href="../install.html">Installation Overview</a><br>
 Followed by: <a href="../factory/install.html">Factory Install</a><br>
@@ -74,7 +74,7 @@ Install as: various daemon users or as system rpms/packages
 
 <h2 class="header">Prerequisite components</h2>
     <p>        
-    The following is needed by glideinWMS.  The installer will install Condor but all others should be installed before you begin.  The javascriptRRD directory
+    The following is needed by GlideinWMS.  The installer will install HTCondor but all others should be installed before you begin.  The javascriptRRD directory
     will also need to be provided to the installer.
     </p>
     <table class="requirements">
@@ -91,7 +91,7 @@ Install as: various daemon users or as system rpms/packages
 
         </tr>
         <tr>
-            <td> <a href="index.html">glideinWMS</a> </td>
+            <td> <a href="index.html">GlideinWMS</a> </td>
             <td> v3.0+ </td>
             <td class="checked"> y </td>
             <td class="checked"> y </td>
@@ -116,17 +116,31 @@ Install as: various daemon users or as system rpms/packages
         </tr>
         
         <tr>
-            <td> <a target="_blank" href="http://www.cs.wisc.edu/condor/downloads/">Condor</a> </td>
-            <td> v7.2.+ </td>
+            <td> <a target="_blank" href="http://www.cs.wisc.edu/condor/downloads/">HTCondor</a> </td>
+            <td> v7.8+/<br>v8.2.3+(BOSCO or Ganglia)</td>
             <td class="checked"> y </td>
             <td> &nbsp; </td>
 
             <td class="checked"> y </td>
             <td class="checked"> y </td>
             <td class="checked"> y </td>
-            <td>The installer will use the tarball or rpm 
-            to install and configure Condor inline.  It is recommended to use v7.4 and above.</td>
-
+            <td>The installer will use the tarball or rpm to install and
+                configure HTCondor inline. It is recommended to use v7.8
+                and above.<br><br>
+                <b><u>Batch Submission via BOSCO:</u></b><br>
+                If you want to add batch resources (via BOSCO) you need
+                HTCondor v8.2.2+. This version requirement is for the WMS Pool,
+                submitting glideins and the HTCondor client, used to setup
+                the BOSCO resource (bosco_cluster_add). Other components
+                can use previous recommended versions of HTCondor.
+                <br><br>
+                <b><u>HTCondor monitoring via Ganglia:</u></b><br>
+                HTCondor v8.1.0+ supports <a href="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_10Monitoring.html">monitoring via Ganglia</a>.
+                GlideinWMS provides configuration files for it.
+                If you have HTCondor 8.0.x or earlier you must remove <t>/etc/condor/config.d/01_gwms_ganglia.config</t>,
+                otherwise your HTCondor will complain about an unsupported option
+                and crash.
+                </td>
         </tr>
 
         <tr>
@@ -207,15 +221,15 @@ Install as: various daemon users or as system rpms/packages
             <td> &nbsp; </td>
             <td class="checked"> y </td>
             <td> <b>Note:</b> JavascriptRRD and flot, are available from different sources however they may not always work when installed 
-            separately for glideinWMS. We only support JavascriptRRD with Flot available from the sourceforge link provided.</td>
+            separately for GlideinWMS. We only support JavascriptRRD with Flot available from the sourceforge link provided.</td>
         </tr>
     </tbody></table>
     <br/>
     <h4>NOTE:</h4>
     <ul>
-        <li>Condor version v7.3.1 has a known issue with incorrect return/exit codes of condor_status and condor_q</li>
+        <li>HTCondor version v7.3.1 has a known issue with incorrect return/exit codes of condor_status and condor_q</li>
         <li>
-            If you are using Condor version v7.3.2 disable VOMS checking in condor_config file used by Condor daemons other 
+            If you are using HTCondor version v7.3.2 disable VOMS checking in condor_config file used by Condor daemons other 
             than that used by user schedd. VOMS checking adds unrequired overhead. To do so, set <br>
 
             <blockquote>USE_VOMS_ATTRIBUTES = False </blockquote> 
@@ -228,14 +242,14 @@ Install as: various daemon users or as system rpms/packages
 <div class="section">
     <h2><a name="system_httpd">1. HTTP server</a></h2>
     <p>
-    You will need to install an HTTP server for glideinWMS to be used for staging and monitoring.  This needs to be installed on a port 
+    You will need to install an HTTP server for GlideinWMS to be used for staging and monitoring.  This needs to be installed on a port 
     accessible to the outside.  
     The server should be installed on the same node, but a different node can be used as long as the web area is writable from this one.  
     In particular, the staging directory will need to be accessible 
     to glideins so they can download appropriate software.
     </p>
     <p> 
-        The choice of web server is independent of glideinWMS, but this tutorial will only
+        The choice of web server is independent of glideinWMS, but this documentation will only
         show the example of Apache Web Server.  For most systems, this can be installed via
         yum:
         <pre>
@@ -271,19 +285,24 @@ Install as: various daemon users or as system rpms/packages
 
 
 <div class="section">
-    <h2><a name="system_vdt">2. OSG VDT Client</a></h2>
+    <h2><a name="system_vdt">2. OSG Client</a></h2>
     <p>
-        The OSG Client is now available as a set of RPMs.  To install
-        the OSG Client, you will need to enable the EPEL and OSG
+        The OSG Client (formerly known as VDT Client) is now available as a set of RPMs. 
+        OSG provides a <a href="http://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallOSGClient">
+        complete set of instructions</a> that that we recommend.
+        Here folow a short version to install OSG Client on RHEL6 based systems (including CentOS and SL). 
+        First you will need to enable the EPEL and OSG
         repositories.  It is also advisable to enable the yum priorities
         module in order to guarantee the correct packages.
         The following commands will enable the repositories:
         <pre>
-        rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm
+        rpm -Uvh http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
         yum install yum-priorities
-        rpm -Uvh http://repo.grid.iu.edu/osg-release-latest.rpm </pre>
-        Next, you can install osg client:
-        <pre> yum install osg-client </pre>
+        yum install http://repo.grid.iu.edu/osg/3.2/osg-3.2-el6-release-latest.rpm </pre>
+        Next, you can install the CA certificates and OSG client:
+        <pre>
+        yum install osg-ca-certs
+        yum install osg-client </pre>
         You may also want to enable the fetch-crl service
         to keep your certificate revocation lists up to date:
         <pre>
@@ -292,6 +311,9 @@ Install as: various daemon users or as system rpms/packages
         /sbin/service fetch-crl-cron start
         /sbin/chkconfig fetch-crl-boot on
         /sbin/chkconfig fetch-crl-cron on </pre>
+        If you have no root privileges, OSG Client is available also in a tarball distribution
+        <a href="http://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallOSGClientTarball">
+        check here</a> for more information.
     </p>
 </div>
 
@@ -371,6 +393,7 @@ Install as: various daemon users or as system rpms/packages
     <p>
         Otherwise, download the tarball (with flot), and untar it.  You will need to 
         point the installer to this directory.
+        The installer will copy the library files to the Web directories during the installation or reconfig steps.
     </p>
 
 </div>

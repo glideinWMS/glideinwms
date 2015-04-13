@@ -4,45 +4,5 @@
 #												@ = Use CondorName
 #################################################################################################################
 
-# User modifiable variables
-GLIDEIN_Site		S	$GLIDEIN_Entry_Name	+			N	Y	@
-GLIDEIN_Entry_Start	C	True		+				N	N	-
-GLIDEIN_Entry_Hold	C	False		+				N	N	-
-GLIDEIN_Entry_PREEMPT	C	False		+				N	N	-
-GLIDEIN_Entry_Rank	C	1		+				N	N	-
-GLIDEIN_Job_Max_Time	I	129600		+				N	Y	-
-GLIDEIN_Graceful_Shutdown	I	120		+				N	Y	-
-WANT_VACATE		C	True		+				N	N	-
-GLIDEIN_Expose_Grid_Env	C	True		JOB_INHERITS_STARTER_ENVIRONMENT	N	Y	+
-GLIDEIN_Glexec_Use	S	REQUIRED	+				N	Y	+
-GLEXEC_BIN		C	-		GLEXEC				N	N	-
-GLIDEIN_Monitoring_Enabled	C	False		+				N	Y	+
-# this will be used for MaxJobRetirementTime of the main startd
-PREEMPT_GRACE_TIME	I	10000000	+				N	Y	+
-GLIDEIN_CPUS		C	1		+				N	N	@ 
-HOLD_GRACE_TIME	I	0	+				N	Y	+
-
-
-# Factory provided
-GLIDEIN_Entry_Name	S	-		+				Y	Y	@
-GLIDEIN_Entry_Signature	S	-		+				Y	Y	@
-DESCRIPTION_ENTRY_FILE	S	-		GLIDEIN_Description_Entry_File	N	Y	-
-CONDORG_CLUSTER		I	-		GLIDEIN_ClusterId		Y	Y	@
-CONDORG_SUBCLUSTER	I	-		GLIDEIN_ProcId			Y	Y	@
-CONDORG_SCHEDD		S	-		GLIDEIN_Schedd			Y	Y	@
-GLIDEIN_Gatekeeper	S	-		+				N	Y	@
-GLIDEIN_GridType	S	-		+				N	Y	@
-GLIDEIN_GlobusRSL	S	-		+				N	Y	@
-PROXY_URL		S	-		GLIDEIN_Proxy_URL		N	N	@
-
-# Glidein generated
-CONDOR_DIR		C	-		+				Y	N	-
-TMP_DIR			S	-		GLIDEIN_Tmp_Dir			Y	Y	@
-X509_USER_PROXY		C	-		GSI_DAEMON_PROXY		Y	N	-
-X509_EXPIRE		I	-		+				Y	N	-
-X509_CERT_DIR		C	-		GSI_DAEMON_TRUSTED_CA_DIR	Y	N	-
-X509_CONDORMAP		C	-		CERTIFICATE_MAPFILE		Y	N	-
-X509_GRIDMAP_DNS	S	-		GLIDEIN_X509_GRIDMAP_DNS	N	Y	-
-X509_GRIDMAP_TRUSTED_DNS	C	-	GSI_DAEMON_NAME			Y	N	-
 
 #################################################################################################################

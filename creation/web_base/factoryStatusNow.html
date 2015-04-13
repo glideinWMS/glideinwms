@@ -105,6 +105,9 @@ var preFrontEndName = "Total";
 var links = new Array(); 
 var sortColName; 
 
+/* AutoUpdateInterval reference */
+var auInt;
+
 /* HOVER POP UPS : TOTAL/ANY OF DEFAULT OR TROUBLESHOOT VIEW */
 function showPopUp(hoveritem)
 {	
@@ -4665,6 +4668,17 @@ function restoreDefault()
 	document.location.href  = holder[0];
 }
 
+function autoupdate()
+{
+  var auchk = document.getElementById("autoupdate").checked;
+
+  if (auchk) {
+    auInt=setInterval(updateTable, 1800000);
+  } else {
+    clearInterval(auInt);
+  };
+}
+
 </script>
 <style = "text/css">
 
@@ -4800,6 +4814,7 @@ td
 <br /><br /><br /><br />
 
 <!-- UPDATE TABLE + GOTO LINK BUTTONS--> 
+<input type="checkbox" id = "autoupdate" onclick= "autoupdate()" > Autoupdate (30 mins)<br />
 <form  > <input id = "button" type="button" value="Update Table"  onclick="updateTable()"/><form >  <input type="button" id = "reset" name="option3" value="Reset All Selections" onclick= "restoreDefault()" > </form>
 <form  > <input id = "link" type="button" value="Link" onclick="goToLink()" /> </form>
 

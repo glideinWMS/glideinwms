@@ -24,9 +24,10 @@
 	<li> <a href="../index.html">Home</a></li>
 	<li> <a href="../download.html">Download</a></li>
 	<li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-    <li> <a href="../corral.html">Corral Frontend</a></li>
+        <li> <a href="../corral.html">Corral Frontend</a></li>
 	<li> <a href="../factory/index.html">WMS Factory</a></li>
 	<li> <a href="../components/index.html" >Components</a></li>
+        <li> <a href="../recipes/index.html">Recipes</a></li>
 	<li> <a href="../components/faq.html" class="last">FAQ</a></li>
         </ul>
    <div class="search">
@@ -82,13 +83,13 @@
 
 Preceded by: <a href="../components/pool_install.html">User Pool Schedd</a><br/>
 Followed by: <a href="../components/index.html">Other Components</a><br/>
-Install as: <b>Vo Frontend User</b><br/>
+Install as: <b>VO Frontend User</b><br/>
 </div>
 <div class="section">
 
             <h2><a name="description">1. Description</a></h2>
         <p><img src="../images/overview_frontend.png" name="graphics1" align="right" border="0"></p>
-            <p>The Glidein Frontend will match user jobs with glidein factory ads. It is responsible for the submission of new glideins.</p>
+            <p>The Glidein Frontend (or VO frontend) will match user jobs with Glidein Factory ads. It is responsible for the submission of new glideins.</p>
 
             <p>
                 The VO frontend also keeps part of the configuration of a glidein, and can also provide the 
@@ -98,6 +99,13 @@ Install as: <b>Vo Frontend User</b><br/>
     <p> Note: if you are installing only the frontend
     and planning to connect to the OSG factory, please refer to this section:
     <a href="../install.html#osg">Connecting to OSG Factory</a></p>
+
+    <p><b>Note:</b> This document refers to the tarball distribution of the Glidein Frontend.
+                If you want to install or installed via RPM please refer to the 
+    <a href="http://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFrontend">OSG RMP Guide</a>.
+                </p>
+
+
 
     </div>
 
@@ -127,7 +135,7 @@ Install as: <b>Vo Frontend User</b><br/>
 
 <div class="section">
     <h2><a name="software">3. Needed software</a></h2>
-    <p>See the <a href="">prerequisites</a> page for a list of software requirements.
+    <p>See the <a href="../components/prerequisites.html">prerequisites</a> page for a list of software requirements.
 </div>
 
     <div class="section">
@@ -135,7 +143,7 @@ Install as: <b>Vo Frontend User</b><br/>
     <h2><a name="before_install">4. Before you begin...</a></h2>
     <h3><a name="before_install_users">4.1 Required Users</a></h3>
     <p>
-        The installer requires a non-privileged user.  This should be created prior to running the glideinWMS installer.  
+        The installer requires a non-privileged user.  This should be created prior to running the GlideinWMS installer.  
     </p>
     
     <table class="requirements">
@@ -145,10 +153,10 @@ Install as: <b>Vo Frontend User</b><br/>
         <td>Notes</td>
     </tr>
     <tr>
-        <td>Vo Frontend User</td>
+        <td>VO Frontend User</td>
         <td>
             The Glidein Frontend should be installed as a non-privilged user.  
-            <strong>Note:</strong> It is recommended that you install Condor as this user as well.
+            <strong>Note:</strong> It is recommended that you install HTCondor as this user as well.
         </td>
 
     </tr>
@@ -160,14 +168,13 @@ Install as: <b>Vo Frontend User</b><br/>
         The installer will ask for several DNs for GSI authentication.  You have the option of using a service certificate or a proxy.  These should be
         created and put in place before running the installer.  The following is a list of DNs the installer will ask for:
         <ul>
-            <li>WMS Collector cert/proxy DN</li>
-
-            <li>User Pool Collector cert/proxy DN</li>
+            <li>WMS Pool (Collector) cert/proxy DN</li>
+            <li>User Pool (Collector) cert/proxy DN</li>
             <li>User Submitter cert/proxy DN</li>
-            <li>Glidein Frontend Condor cert/proxy DN (cannot use a cert here)</li>
+            <li>Glidein Frontend HTCondor proxy DN (cannot use a cert here)</li>
         </ul>
-        <strong>Note 1:</strong> In some places the installer will also ask for nicknames to go with the DNs.  In the Frontend, these names do not matter.<br> 
-        <strong>Note 2:</strong> The installer will ask if these are trusted Condor Daemons.  Answer 'y'. 
+        <strong>Note 1:</strong> In some places the installer will also ask for nicknames to go with the DNs. These nicknames are the HTCondor UID used in its configuration and mapfile.  In the Frontend, these names do not matter.<br> 
+        <strong>Note 2:</strong> The installer will ask if these are trusted HTCondor Daemons.  Answer 'y'. 
     </p>
 
     
@@ -179,23 +186,28 @@ Install as: <b>Vo Frontend User</b><br/>
     </p>
         
     <p>
-        <strong>Note:</strong> The web data must be stored in a directory served by the HTTP Server. <br><br>
+        <strong>Note:</strong> The Web data must be stored in a directory served by the HTTP Server. <br><br>
     </p>
 
     <h3><a name="before_install_misc">4.4 Miscellaneous Notes</a></h3>
     <p>
-        You will need the OSG VDT client.  This can be handled one of two ways:
+        You will need the OSG Client (formerly VDT client).  
+You need to install it yourself using either the RPM or the tarball provided by OSG (see <a href="../components/prerequisites.html#system_vdt">here</a>).
+<!--This can be handled one of two ways:
         <ul>
         <li>Install it yourself (see <a href="../components/prerequisites.html#system_vdt">here</a>). Specify 'n' in the ini file for installing the vdt.</li>
-        <li>Have the installer install it for you via pacman. Specify 'n' in the ini file for installing the vdt.</li>
+        <li>Have the installer install it for you via Pacman. Specify 'n' in the ini file for installing the vdt.</li>
         </ul>
+-->
     </p>
     <p>
-        When asked if you want OSG_VDT_BASE defined globally? Answer 'y' unless you want to force your users to find and hard code the location.
+        If you installed OSG Client using the RPM, the binaries will be in the system path. 
+If you installed it using the tarball, then answer 'y' when asked if you want OSG_VDT_BASE defined globally.
+Unless you want to force your users to find and hard code the location.
     </p>
     <p>By default, match authentication will be used. 
        If you have a reason not to use it, be sure to set to False the USE_MATCH_AUTH 
-       attribute in both in both the Factory and Frontend configuration files.
+       attribute in both the Factory and Frontend configuration files.
     </p>
 </div>
 
@@ -203,11 +215,12 @@ Install as: <b>Vo Frontend User</b><br/>
 
 <div class="section">
     
-    <h2><a name="system">5. Condor installation instructions</a></h2>
+    <h2><a name="system">5. HTCondor installation instructions</a></h2>
 
     <p>
-        The Glidein Frontend will need the the Condor binaries. You can reuse an existing installation, if available, like if you host
-        the Glidein Frontend on the <a href="../components/pool_install.html">a submitter node</a>.
+        The Glidein Frontend will need the the HTCondor binaries. You can reuse an existing installation, if available, like if you host
+        the Glidein Frontend on the <a href="../components/pool_install.html">a submitter node</a>
+or on <a href="../components/pool_install.html">a submitter node</a>.
     </p>
 
     <p>
@@ -225,7 +238,7 @@ Install as: <b>Vo Frontend User</b><br/>
     <p>
         The Glidein Frontend needs a x509 proxy to communicate with the glidein Factory. You need to create such proxy before starting a VO 
         Frontend and then keep it valid for the life of the frontend. If used for glidein submission (i.e. if it is passed to the glidein
-        Factory), this proxy must at any point in time have a validity of at least the longest expected job being run by the glideinWMS
+        Factory), this proxy must at any point in time have a validity of at least the longest expected job being run by the GlideinWMS
         (and not less than 12 hours).<br><br>
         How you keep this proxy valid (via MyProxy, kx509, voms-proxy-init from a local certificate, scp from other nodes, or other methods), 
         is beyond the scope of this document.
@@ -342,8 +355,8 @@ Install as: <b>Vo Frontend User</b><br/>
         <td>/path/to/condor-submit     </td>
         <td>Directory in which the condor software will be installed.   </td>
         <td>
-           Note: The Frontend never runs any Condor daemons. 
-           It only uses the Condor client tools.<br/><br/>
+           Note: The Frontend never runs any HTCondor daemons. 
+           It only uses the HTCondor client tools.<br/><br/>
            <b>IMPORTANT:</b> 
               The Frontend can share the same instance of Condor as the User Collector
               and /or Submit.
@@ -512,15 +525,22 @@ Install as: <b>Vo Frontend User</b><br/>
 
         <tr>
           <td>install_vdt_client</td>
-          <td align="center">y</td>
-          <td>Indicates if an OSG/VDT client should be installed if it is not already present in the <b>vdt_location</b> option location.
+          <td align="center">n</td>
+          <td>This should be set as <b>n</b> - so the installler will not attempt to install the OSG Client<br/>
+              You must pre-install OSG Client<br/>
+<!--
+Indicates if an OSG/VDT client should be installed if it is not already present in the <b>vdt_location</b> option location.
+-->
             </td>
           <td>
+              Choose 'n'.
+<!--
 			Valid values:</br>
 			* <b>y</b> - installer will install a VDT client using the <b>vdt_location</b> and <b>pacman_location/_url</b> options specified.</br>
 			* <b>n</b> - will not attempt to install the VDT client<br/><br/>
 			This installer will not attempt to reinstall this software if it is already 
 			present.</br>
+-->
           </td>
         </tr>
 
@@ -529,12 +549,15 @@ Install as: <b>Vo Frontend User</b><br/>
             <td>    /path/to/glidein/vdt</td>
             <td>   The location of the OSG/VDT client software.</td> 
             <td>
+			Leave this blank, since the <b>install_vdt_client</b> option should always be 'n'
+<!--
 			The installer looks for the existence of 2 files to verify if this is a valid 
 			OSG/VDT client installation:</br>
 			1. setup.sh</br>
 			2. existence of a voms-proxy-init executable.</br></br>
 			If the <b>install_vdt_client</b> option is 'n', then this option's value should 
 			be empty/blank.</br>
+-->
         </tr> 
 
         <tr>
@@ -604,6 +627,11 @@ Install as: <b>Vo Frontend User</b><br/>
     </blockquote>
 
     <p>The same script can be used to stop, reconfig and restart the Glidein Frontend.</p>
+
+    <p><b>Note:</b> If you installed the frontend via RPM some files or commands will differ. Please refer to the 
+    <a href="http://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFrontend">OSG RMP Guide</a>.
+    </p>
+
 
     <h3>6.2. Reconfiguring the Glidein Frontend</h3>
     <p>The files in the frontend working directory must <b>never be changed by hand</b> after the directory structure has been created. </p>

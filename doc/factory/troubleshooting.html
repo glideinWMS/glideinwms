@@ -24,9 +24,10 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-            <li> <a href="../corral.html">Corral Frontend</a></li>
+                <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
 	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
         </ul>
         <div class="search">
@@ -63,7 +64,7 @@
         <h3>Factory Troubleshooting</h3>
 	</div>
 <div class="jump">
-<u>Jump to:</u>
+<u>Factory Troubleshooting<br/>Jump to:</u>
 <ol>
     <li><a href="#idle_jobs">Jobs Stay Idle</a></li>
     <li><a href="#idle_glideins">Glideins Stay Idle</a></li>
@@ -81,28 +82,28 @@ Frontend troubleshooting:
 <li> <a href="../frontend/troubleshooting.html#submitting"> Problems submitting</a></li>
 <li> <a href="../frontend/troubleshooting.html#idle_jobs">Jobs stay idle (frontend)</a></li>
 </ul>
-
-Factory troubleshooting:
-<ul>
-<li> Jobs stay idle (factory)</li>
-<li> Glideins stay idle</li>
-<li> Resource not registered</li>
-<li> Jobs don't start</li>
-</ul>
-
+<br/>
 <a href="../tutorials.html">Submitting a job</a>
 </div>
+
+<div class="section">
+<p>
+    If you installed the RPM distribution, files and commands differ a bit, see the 
+    <a href="http://twiki.grid.iu.edu/bin/view/Documentation/Release3/InstallGlideinWMSFactory">Factory OSG RPM guide</a>.
+</p>
+</div>
+
 <div class="section">
     <h2>Factory does not submit glideins corresponding to your job</h2>
 
     <b>Symptoms:</b>User job stays idle and there are no glideins submitted to the glidein queue that correspond to your job.<br/>
-    However, the VO frontend does detect the job and attempts to advertise to the factory<br/>
+    However, the VO Frontend does detect the job and attempts to advertise to the Factory<br/>
     <b>Useful Files:</b>
     GLIDEINWMS_GFACTORY_HOME/&lt;entry&gt;/log<br/>
     <b>Debugging Steps:</b>
 
     <p>
-    Once the frontend identifies potential entry points that can run your job, it will reflect this information in the glideclient classad in WMS collector for that corresponding entry point. 
+    Once the Frontend identifies potential entry points that can run your job, it will reflect this information in the glideclient classad in the WMS Pool collector for that corresponding entry point. 
     You can find this information by running &ldquo;condor_status -any -pool &lt;wms collector&gt;&rdquo; Glidein factory looks up the glideclient classad, queries the wms collector to find out distribution of existing glideins in the glidein queues and submits additional glideins as required. 
 Once the factory has submitted the required glideins, you can see them by queering glideins queue using command, &ldquo;condor_q -g -pool &lt;wms collector&gt;&rdquo; 
     </p>
@@ -116,7 +117,7 @@ Once the factory has submitted the required glideins, you can see them by queeri
         <li>Check for error messages in logs located in GLIDEINWMS_GFACTORY_HOME/&lt;entry&gt;/log</li>
         <li>Look for possible error messages in the glideins queue (condor_schedd). Based on the actual condor scheduler, you can find scheduler logfile, SchedLog, in one of the sub directories of directory listed by &ldquo;condor_config_val local_dir&rdquo;</li>
         <li>  Check security settings.  The WMS factory will drop requests from the VO frontends if settings do not match correctly. There will usually be lines in the vofrontend that useful factories exist, but the factory logs will have warnings/errors related to security settings.</li>
-        <li>The first line in frontend.xml must match the name in security-frontends-frontend in the factory's glideinWMS:
+        <li>The first line in frontend.xml must match the name in security-frontends-frontend in the factory's GlideinWMS:
         <blockquote>
 
         &lt;frontend advertise_delay="5" frontend_name="exampleVO-cms-xen25-v1_0" loop_delay="60"&gt;
@@ -135,12 +136,12 @@ Once the factory has submitted the required glideins, you can see them by queeri
         <li>Whitelist error: (WARNING: Client NAME.main (secid: IDENTITY) not in white list. Skipping request).  Verify that the security_name (in the frontend config &lt;frontend&gt;&lt;collector&gt;&lt;security security_name="foo"&gt;) must match the frontend name (&lt;frontend name="foo"&gt;) in the factory config.<br/>
             Also, if you have enabled allowed_vos for whitelist functionality, make sure this security class is listed.
         </li>
-        <li>Frontend not coming from a trusted source: (WARNING: Client name.main (secid: identity) is not coming from a trusted source; AuthenticatedIdentity identity@x.fnal.gov!=identity2@y.fnal.gov. Skipping for security reasons.).  There is a mismatch between &lt;frontend&gt;&lt;collector <b>my_identity</b>&gt; in the frontend config and &lt;frontend identity&gt; in the factory config.  If you are running on the same machine, this can be caused if Condor is using filesystem (FS) authentication instead of GSI authentication.
+        <li>Frontend not coming from a trusted source: (WARNING: Client name.main (secid: identity) is not coming from a trusted source; AuthenticatedIdentity identity@x.fnal.gov!=identity2@y.fnal.gov. Skipping for security reasons.).  There is a mismatch between &lt;frontend&gt;&lt;collector <b>my_identity</b>&gt; in the frontend config and &lt;frontend identity&gt; in the factory config.  If you are running on the same machine, this can be caused if HTCondor is using filesystem (FS) authentication instead of GSI authentication.
         </li>
         <li>No mapping for security class:  (WARNING: No mapping for security class frontend of x509_proxy_0 for frontend_service-v2_4_3.main (secid: frontend_identity), skipping and trying the others).  The frontend config's proxy element security_class attribute does not match
 the factory config's security_class element name attribute. </li>
-    <li>Client provided invalid ReqEncIdentity: (Client X provided invalid ReqEncIdentity ( id1@x.fnal.gov!= id2@x.fnal.gov). Skipping for security reasons. When the VOFrontend contacts the WMS Collector using the frontend configuration file's security element proxy_DN/classad_proxy attribute, the WMS Collector Condor uses the certs/condor_mapfile to map the VOFrontend to a name. This name identifies how the factory knows the VOFrontend on the Factory node. This must match with the factory configuration file's frontend element identity attribute.  <br/>
-        Verify that the proxy_dn in the security section of the frontend config matches the condor_mapfile on the WMS collector node.  This identity (with machine name) should map the frontend identity in the factory config.  Also, if you running all services on the same machine, make sure that condor is using GSI authentication and not file system (FS) authentication.</li>
+    <li>Client provided invalid ReqEncIdentity: (Client X provided invalid ReqEncIdentity ( id1@x.fnal.gov!= id2@x.fnal.gov). Skipping for security reasons. When the VOFrontend contacts the WMS Pool collector using the frontend configuration file's security element proxy_DN/classad_proxy attribute, the WMS Pool HTCondor uses the certs/condor_mapfile to map the VOFrontend to a name. This name identifies how the Factory knows the VOFrontend on the Factory node. This must match with the factory configuration file's frontend element identity attribute.  <br/>
+        Verify that the proxy_dn in the security section of the Frontend config matches the condor_mapfile on the WMS Pool node.  This identity (with machine name) should map the frontend identity in the Factory config.  Also, if you are running all services on the same machine, make sure that HTCondor is using GSI authentication and not file system (FS) authentication.</li>
     </ul>
     <br/> 
     <h2>Security Overview</h2>
@@ -185,7 +186,7 @@ the factory config's security_class element name attribute. </li>
         Check if the glidein has been submitted to the remote site. You can find this information either from the condor_activity log found in the GLIDEINWMS_GFACTORY_HOME/&lt;entry&gt;/log or by queering glideins queue using &ldquo;condor_q -globus -g -pool &lt;wms collector&gt;&rdquo;. If the glidein job was submitted to the remote site, its quite possible that it is waiting for a worker node to be available to run it.
     </li>
     <li>
-        Check condor logs in GLIDEINWMS_WMSCOLLECTOR_HOME/condor_local/logs.  
+        Check HTCondor logs in GLIDEINWMS_WMSCOLLECTOR_HOME/condor_local/logs.  
     </li>
 
     <li>
@@ -219,7 +220,7 @@ the factory config's security_class element name attribute. </li>
     Make sure the proxy/cert is correct.  
     Try the following to make sure the user is authorized to run jobs on the site.
     <blockquote>
-        X509_USER_CERT=/tmp/x509up_u&lt;UID&gt; globus-job-run -a -r &lt;gatekeeper in factory config&gt;
+        X509_USER_PROXY=/tmp/x509up_u&lt;UID&gt; globus-job-run -a -r &lt;gatekeeper in factory config&gt;
     </blockquote>
     <li>
 
@@ -247,11 +248,11 @@ the factory config's security_class element name attribute. </li>
     <b>Debugging Steps:</b>
 
     <p>
-        Once the glidein starts running, the glidein startup script downloads condor files and other relevant files from the factories web area. It then does the required checks, generates condor configuration files and starts condor_startd daemon. This condor_startd reports to the user collector as a resource on which the user job is supposed to run. If the glidein job exists and you never see a resource in the user collector, the problem is generally related to bootstrapping the processes on the worker nodes.
+        Once the glidein starts running, the glidein startup script downloads condor files and other relevant files from the factories web area. It then does the required checks, generates condor configuration files and starts condor_startd daemon. This condor_startd reports to the user collector as a resource on which the user job is supposed to run. If the glidein job exists and you never see a resource in the User Pool collector, the problem is generally related to bootstrapping the processes on the worker nodes.
     </p>
     <p>
-        If the glidein job has completed, you should be able to look for output and error logs for the glidein job in directory  GLIDEINWMS_GFACTORY_HOME/&lt;entry&gt;/log. The files are named are job.&lt;glidein jobid&gt;.out and job.&lt;glidein jobid&gt;.err. Most common cause for the failures is mismatch in the architecture of condor binaries used and that of the worker nodes. Starting in glideinWMS 2.2, you can configure entry points to use different condor binaries.
-In case condor daemons are crashing, you can browse the logs of condor daemons by using tools available in the /glideinWMS/factory/tools
+        If the glidein job has completed, you should be able to look for output and error logs for the glidein job in directory  GLIDEINWMS_GFACTORY_HOME/&lt;entry&gt;/log. The files are named are job.&lt;glidein jobid&gt;.out and job.&lt;glidein jobid&gt;.err. Most common cause for the failures is mismatch in the architecture of HTCondor binaries used and that of the worker nodes. Starting in GlideinWMS 2.2, you can configure entry points to use different HTCondor binaries.
+In case HTCondor daemons are crashing, you can browse the logs of HTCondor daemons by using tools available in the /glideinWMS/factory/tools
     </p>
 
     <p>
@@ -264,7 +265,7 @@ In case condor daemons are crashing, you can browse the logs of condor daemons b
         Starting monitoring condor at Fri Jun 18 10:11:27 CDT 2010 (1276873887)<br/>
 /usr/local/osg-ce/OSG.DIRS/wn_tmp/glide_rP2945/main/condor/sbin/condor_master: /lib/tls/i686/nosegneg/libc.so.6: version `GLIBC_2.4' not found (required by /usr/local/osg-ce/OSG.DIRS/wn_tmp/glide_rP2945/main/condor/sbin/condor_master)<br/>
         </blockquote>
-        In this case, the version of glibc on the worker node is less than the glibc that condor is using.  For instance, this can happen if the factory is on SL5, but the worker node is SL4.  Condor has special binaries for glib2.3, so you can re-install/re-compile using these binaries.  For advanced users, you can configure multiple tarballs for various architectures in the factory config.
+        In this case, the version of glibc on the worker node is less than the glibc that HTCondor is using.  For instance, this can happen if the factory is on SL5, but the worker node is SL4.  HTCondor has special binaries for glib2.3, so you can re-install/re-compile using these binaries.  For advanced users, you can configure multiple tarballs for various architectures in the factory config.
     </li>
     <li><b>Collector authentication issues</b>:<br/>
         Another error that can happen and cause these symptoms is 
@@ -281,7 +282,7 @@ In case condor daemons are crashing, you can browse the logs of condor daemons b
         logs <tt>USER_COLLECTOR/condor_local/log/CollectorLog</tt>
         For instance,
         <blockquote>
-         03/25/11 15:36:43 authenticate_self_gss: acquiring self credentials failed. Please check your Condor configuration file if this is a server process. Or the user environment variable if this is a user process. 
+         03/25/11 15:36:43 authenticate_self_gss: acquiring self credentials failed. Please check your HTCondor configuration file if this is a server process. Or the user environment variable if this is a user process. 
         </blockquote>
          Or:
         <blockquote>
@@ -305,19 +306,17 @@ In case condor daemons are crashing, you can browse the logs of condor daemons b
         frontend.xml are correct and reconfig.
     </li>
     <ul>
-   </div>
+</div>
 
-
-
-   <div class="section">
-    <h2><a name="no_start">User Job does not start on the registered resource</a></h2>
+<div class="section">
+<h2><a name="no_start">User Job does not start on the registered resource</a></h2>
     <b>Symptoms:</b>Your job does not start running on the resource created by a running glidein jobs.<br/>
     <b>Useful Files:</b>
     <br/>
 
     <b>Debugging Steps:</b>
     <p>
-        On some versions of Condor, there is a problem with the swap.
+        On some versions of HTCondor, there is a problem with the swap.
         Make sure that GLIDEINWMS_USERSCHEDD_HOME/etc/condor_config.local contains RESERVED_SWAP=0
         <blockquote>
         source GLIDEINWMS_USERSCHEDD_HOME/condor.sh<br/>
@@ -327,7 +326,7 @@ In case condor daemons are crashing, you can browse the logs of condor daemons b
     </p>
 
     <p>
-    Once the glidein starts running on the worker node and successfully starts required condor daemons, condor_startd registers as a resource in the user pool collector. If your job does not start running on the resource, check that the requirements expressed by the user job can be satisfied by the resource. If not, understand the constraints that are not satisfied and tweak the requirements.
+    Once the glidein starts running on the worker node and successfully starts required HTCondor daemons, condor_startd registers as a resource in the User Pool collector. If your job does not start running on the resource, check that the requirements expressed by the user job can be satisfied by the resource. If not, understand the constraints that are not satisfied and tweak the requirements.
     </p>
     <p>
         You can get further information on this by running:
@@ -353,11 +352,11 @@ In case condor daemons are crashing, you can browse the logs of condor daemons b
     <p>
         If the job is held, make sure the user schedd is running as root (if getting permission denied).  Run "condor_q -analyze" to see what is holding the process.   
     </p>
-     </div>
-	<div class="section">
-		<h2><a name="switchboard">Condor Switchboard Failures</a></h2>
+</div>
+<div class="section">
+<h2><a name="switchboard">Condor Switchboard Failures</a></h2>
 		
-		<b>Symptoms:</b> Installation or reconfig gives errors with the switchboard:
+		<b>Symptoms:</b> Installation, upgrade or reconfig gives errors with the switchboard:
 		<blockquote>
 		    ERROR: Failed to create base clientlog dir (user xxx_cms):<br/>
 		Error running '/usr/local/glideins/v2_4_3_alpha_1/condor-wms/bin/../sbin/condor_root_switchboard mkdir 0 2'<br/>
@@ -365,51 +364,63 @@ In case condor daemons are crashing, you can browse the logs of condor daemons b
 		Reconfiguring the factory [FAILED]
 		</blockquote>
 		<b>Debugging steps</b>: 
-		This indicates a problem with privilege separation.  Verify that the username in the security_class in the factory config is listed in /etc/condor/privsep_config as a valid-target-uid.  Also, condor requires specific permissions on directories for privsep, so similar errors can be triggered if directory permissions are not set correctly.
-	</div>
+		This indicates a problem with privilege separation.  Verify that the username in the security_class in the factory config is listed in /etc/condor/privsep_config as a valid-target-uid.  Also, HTCondor requires specific permissions on directories for privsep, so similar errors can be triggered if the directory permissions are not set correctly (owner of the directories in the tree must be root or the designated owner).
+
+		<b>Symptoms:</b> Installation, upgrade or reconfig gives errors with the switchboard:
+		<blockquote>
+invalid caller gid (5111)<br/>
+Failed to create base clientlog dir (user frontend):<br/>
+Unexpected Error running '/usr/bin/../sbin/condor_root_switchboard mkdir 0 4'.<br/>
+Details: Command '/usr/bin/../sbin/condor_root_switchboard mkdir 0 4' returned non-zero exit status 1: <br/>
+		Upgrading the factory [FAILED]
+		</blockquote>
+		<b>Debugging steps</b>: 
+		This indicates a problem with privilege separation.  Verify that the username and the group under which the factory runs are listed in /etc/condor/privsep_config as a valid-caller-uids/valid-caller-gids.  Also, HTCondor requires specific permissions on directories for privsep, so similar errors can be triggered if the directory permissions are not set correctly (owner/group owner of the directories in the tree must be root or the designated owner/group).
+</div>
 
 
-	<div class="section">
-		<h2><a name="find_user">Finding the user</a></h2>
+<div class="section">
+<h2><a name="find_user">Finding the user</a></h2>
 		
 		<b>Symptoms:</b> There are issues and you need to find the user running the job<br/>
-    	<b>Useful Files:</b> Condor logs, glidein logs<br/>
+    	<b>Useful Files:</b> HTCondor logs, glidein logs<br/>
 		<b>Debugging steps</b>:<br/>
 		<p> 
 		When the Frontend sees user jobs in the queue, it requests glideins on behalf of those users.  The Frontend provides a proxy (possibly one 
 		shared by multiple members of the VO) that is authorized to submit those glideins to a site.  The glideins then report back to the local 
-		Condor collector as slots that are available to run jobs.
+		HTCondor collector (User Pool) as slots that are available to run jobs.
 		<br/>
 		<br/>
 		If a site uses gLExec, the user must provide a proxy as part of their job submission.  Once the user job gets matched to a glidein by the local 
-		Condor collector, this proxy is then used for authorization and to map the user to a local account.  This mapping prevents the security problem
+		HTCondor collector (User Pool), this proxy is then used for authorization and to map the user to a local account.  This mapping prevents the security problem
 		introduced in pilot-based systems where there is no authentication of the actual user credentials so that the job is run on a local account.  
 		Because the jobs aren't being run explicitly as the user, it is also not obvious whose job is running at a site.
 		<br/>
 		<br/>
-		For more a more detailed explanation of the issues and for more information on integrating gLExec with glideinWMS, see 
+		For more a more detailed explanation of the issues and for more information on integrating gLExec with GlideinWMS, see 
 		<a href="./configuration.html#glexec">here</a>.  It is recommended that you always set x509userproxy in user job submission since the glidein
 		may or may not run on a site with gLExec enabled.  A proxy may also be required for other reasons, such as having the job stage data.
 		</p>
 		
 	    <h4>If the glideins have completed</h4>
 		<p> 
-	    If the glideins have completed, a factory admin can find the glidein logs in the client logs directory on the factory.  The Condor logs 
-	    are automatically included in the glidein logs sent back to the factory.  glideinWMS provides tools for viewing these Condor logs in 
+	    If the glideins have completed, a factory admin can find the glidein logs in the client logs directory on the factory.  The HTCondor logs 
+	    are automatically included in the glidein logs sent back to the factory.  GlideinWMS provides tools for viewing these HTCondor logs in 
 	    glideinWMS/factory/tools/:
 	    <ul>
 	    	<li>cat_logs.py <i>glidien_log</i></li>
 	    	<li>cat_MasterLog.py <i>glidien_log</i></li>
 	    	<li>cat_StartdLog.py <i>glidien_log</i></li>
 	    	<li>cat_StarterLog.py <i>glidien_log</i></li>
+	    	<li>cat_StartdHistoryLog.py <i>glidien_log</i></li>
 	    </ul>
-		The Startd log will contain the DN of the user, just search for x509UserProxyFQAN. 
+		The Startd and StartdHistory log will contain the DN of the user, just search for x509UserProxyFQAN. 
 		</p>
 	    
 	    
 	    <h4>If the glideins are still running</h4>
 		<p> 
-	    The user proxy DN is located in the Startd Condor logs as the x509UserProxyFQAN.  The site admin can access this log    
+	    The user proxy DN is located in the Startd HTCondor logs as the x509UserProxyFQAN.  The site admin can access this log    
 		on the node under glide_*/log.  The location of the glide_* directory will change if gLExec is used.
 		<br/>
 		<br/>  
