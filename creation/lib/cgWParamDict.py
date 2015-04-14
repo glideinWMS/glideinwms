@@ -36,7 +36,7 @@ class UnconfiguredScheddError(Exception):
 ################################################
 
 class glideinMainDicts(cgWDictFile.glideinMainDicts):
-    def __init__(self,params,conf_dom,workdir_name):
+    def __init__(self,conf_dom,workdir_name):
         submit_dir = factXmlUtil.get_submit_dir(conf_dom)
         stage_dir = factXmlUtil.get_stage_dir(conf_dom)
         monitor_dir = factXmlUtil.get_monitor_dir(conf_dom)
@@ -52,17 +52,13 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_jslibs_dir,"monitor"))
         self.monitor_images_dir=os.path.join(self.monitor_dir,'images')
         self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_images_dir,"monitor"))
-        self.params=params
         self.conf_dom=conf_dom
         self.active_sub_list=[]
         self.monitor_jslibs=[]
         self.monitor_images=[]
         self.monitor_htmls=[]
 
-    def populate(self,params=None):
-        if params is None:
-            params=self.params
-
+    def populate(self):
         # put default files in place first       
         self.dicts['file_list'].add_placeholder('error_gen.sh',allow_overwrite=True)
         self.dicts['file_list'].add_placeholder('error_augment.sh',allow_overwrite=True)
@@ -149,7 +145,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         factory_monitoring_collector=calc_monitoring_collectors_string(factXmlUtil.get_mon_collectors(self.conf_dom))
         if factory_monitoring_collector is not None:
             self.dicts['params'].add('GLIDEIN_Factory_Collector',str(factory_monitoring_collector))
-        populate_gridmap(params,self.conf_dom,self.dicts['gridmap'])
+        populate_gridmap(self.conf_dom,self.dicts['gridmap'])
         
         file_list_scripts = ['collector_setup.sh',
                              'create_temp_mapfile.sh',
@@ -198,7 +194,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self.dicts['after_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(WEB_BASE_DIR,script_name))
 
         # populate complex files
-        populate_factory_descript(self.work_dir,self.dicts['glidein'],self.active_sub_list,params,self.conf_dom)
+        populate_factory_descript(self.work_dir,self.dicts['glidein'],self.active_sub_list,self.conf_dom)
         populate_frontend_descript(self.dicts['frontend_descript'],self.conf_dom)
 
 
@@ -266,7 +262,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         cgWDictFile.glideinMainDicts.save(self,set_readonly)
         self.save_pub_key()
         self.save_monitor()
-        self.save_monitor_config(self.work_dir,self.dicts['glidein'],self.params)
+        self.save_monitor_config(self.work_dir,self.dicts['glidein'])
 
 
     ########################################
@@ -305,7 +301,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
     ###################################
     # Create the monitor config file
-    def save_monitor_config(self, work_dir, glidein_dict, params):
+    def save_monitor_config(self, work_dir, glidein_dict):
         monitor_config_file = os.path.join(factXmlUtil.get_monitor_dir(self.conf_dom), cgWConsts.MONITOR_CONFIG_FILE)
         monitor_config_line = []
         
@@ -342,7 +338,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 ################################################
 
 class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
-    def __init__(self,params,conf_dom,sub_name,
+    def __init__(self,conf_dom,sub_name,
                  summary_signature,workdir_name):
         submit_dir = factXmlUtil.get_submit_dir(conf_dom)
         stage_dir = factXmlUtil.get_stage_dir(conf_dom)
@@ -355,7 +351,6 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
                                                
         self.monitor_dir=cgWConsts.get_entry_monitor_dir(monitor_dir,sub_name)
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
-        self.params=params
         self.conf_dom=conf_dom
 
     def erase(self):
@@ -374,11 +369,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         self.dicts['condor_jdl'].save(set_readonly=set_readonly)
         
     
-    def populate(self,entry,schedd,params=None):
-        if params is None:
-            params=self.params
-        sub_params=None
-
+    def populate(self,entry,schedd):
         # put default files in place first
         self.dicts['file_list'].add_placeholder(cWConsts.CONSTS_FILE,allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cWConsts.VARS_FILE,allow_overwrite=True)
@@ -439,7 +430,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         # populate complex files
         populate_job_descript(self.work_dir,self.dicts['job_descript'],
-                              self.sub_name,sub_params,entry,schedd)
+                              self.sub_name,entry,schedd)
 
         ################################################################################################################
         # This is the original function call:
@@ -454,7 +445,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         # increasing parameter list for this function, lets just pass params, sub_params, and the 2 other parameters
         # to the function and call it a day.
         ################################################################################################################
-        self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE, self.sub_name, params, self.conf_dom, sub_params, entry)
+        self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf_dom, entry)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -471,12 +462,11 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 ################################################
 
 class glideinDicts(cgWDictFile.glideinDicts):
-    def __init__(self,params,conf_dom,
+    def __init__(self,conf_dom,
                  sub_list=None): # if None, get it from params
         if sub_list is None:
             sub_list = [e.getAttribute(u'name') for e in conf_dom.getElementsByTagName(u'entry')]
 
-        self.params=params
         self.conf_dom=conf_dom
         submit_dir = factXmlUtil.get_submit_dir(conf_dom)
         stage_dir = factXmlUtil.get_stage_dir(conf_dom)
@@ -490,11 +480,8 @@ class glideinDicts(cgWDictFile.glideinDicts):
         self.active_sub_list=[]
         return
 
-    def populate(self,other=None,params=None): # will update params (or self.params)
-        if params is None:
-            params=self.params
-
-        self.main_dicts.populate(params)
+    def populate(self,other=None): # will update params (or self.params)
+        self.main_dicts.populate()
         self.active_sub_list=self.main_dicts.active_sub_list
 
         schedds = self.conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'schedd_name').split(u',')
@@ -516,9 +503,9 @@ class glideinDicts(cgWDictFile.glideinDicts):
                 schedd_arr = [(k, schedd_counts[k]) for k in schedd_counts]
                 schedd = sorted(schedd_arr, key=lambda x:x[1])[0][0]
                 schedd_counts[schedd] += 1
-            self.sub_dicts[entry_name].populate(entry, schedd, params)
+            self.sub_dicts[entry_name].populate(entry, schedd)
 
-        validate_condor_tarball_attrs(params, self.conf_dom)
+        validate_condor_tarball_attrs(self.conf_dom)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -531,39 +518,6 @@ class glideinDicts(cgWDictFile.glideinDicts):
     # PRIVATE
     ###########
 
-    def local_populate(self,params):
-        # make sure all the schedds are defined
-        # if not, define them, in place, so thet it get recorded
-        global_schedd_names=string.split(params.schedd_name,',')
-
-        # we will need to know how loaded are the schedds
-        # so we properly load balance
-        global_schedd_count={}
-        for n in global_schedd_names:
-            global_schedd_count[n]=0
-        for sub_name in self.sub_list:
-            if params.entries[sub_name].schedd_name is not None:
-                try:
-                    global_schedd_count[params.entries[sub_name].schedd_name]+=1
-                except KeyError:
-                    raise UnconfiguredScheddError(params.entries[sub_name].schedd_name)
-
-        # now actually check the schedds
-        for sub_name in self.sub_list:
-            if params.entries[sub_name].schedd_name is None:
-                # now find the least used one
-                # NOTE: The self.sortit method should be removed, when SL4 and
-                #       python 2.3.4 are no longer supported
-                if sys.version_info < (2,4): # python 2.3.4 /SL4
-                    gs = self.sortit(global_schedd_count)
-                else:  # python 2.4+ / SL5
-                    gs = global_schedd_count.keys()
-                    gs.sort(key=global_schedd_count.__getitem__)
-                min_schedd=gs[0]
-                params.subparams.data['entries'][sub_name]['schedd_name']=min_schedd
-                global_schedd_count[min_schedd]+=1
-        return
-        
     ######################################
     def sortit(self, unsorted_dict):
         """ A temporary method for sorting a dictionary based on
@@ -590,10 +544,10 @@ class glideinDicts(cgWDictFile.glideinDicts):
     ######################################
     # Redefine methods needed by parent
     def new_MainDicts(self):
-        return glideinMainDicts(self.params,self.conf_dom,self.workdir_name)
+        return glideinMainDicts(self.conf_dom,self.workdir_name)
 
     def new_SubDicts(self,sub_name):
-        return glideinEntryDicts(self.params,self.conf_dom,sub_name,
+        return glideinEntryDicts(self.conf_dom,sub_name,
                                  self.main_dicts.get_summary_signature(),self.workdir_name)
         
 ############################################################
@@ -737,7 +691,7 @@ def add_attr_unparsed_real(attr,dicts):
 # Create the glidein descript file
 def populate_factory_descript(work_dir,
                               glidein_dict,active_sub_list,        # will be modified
-                              params, conf_dom):
+                              conf_dom):
         
         down_fname=os.path.join(work_dir,'glideinWMS.downtimes')
 
@@ -794,7 +748,7 @@ def populate_factory_descript(work_dir,
 
 #######################
 def populate_job_descript(work_dir, job_descript_dict, 
-                          sub_name, sub_params, entry, schedd):
+                          sub_name, entry, schedd):
     """
     Modifies the job_descript_dict to contain the factory configuration values.
     
@@ -903,7 +857,7 @@ def populate_frontend_descript(frontend_dict,     # will be modified
 
 #####################################################
 # Populate gridmap to be used by the glideins
-def populate_gridmap(params,conf_dom,gridmap_dict):
+def populate_gridmap(conf_dom,gridmap_dict):
     collector_dns=[]
     for el in factXmlUtil.get_mon_collectors(conf_dom):
         dn=el[u'DN']
@@ -929,7 +883,7 @@ def copy_file(infile,outfile):
 ###############################################
 # Validate CONDOR_OS CONDOR_ARCH CONDOR_VERSION
 
-def validate_condor_tarball_attrs(params, conf_dom):
+def validate_condor_tarball_attrs(conf_dom):
     valid_tarballs = get_valid_condor_tarballs(factXmlUtil.get_condor_tarballs(conf_dom))
 
     common_version = "default"

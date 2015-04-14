@@ -104,7 +104,7 @@ def create_condor_tar_fd(condor_base_dir):
 ##########################################
 # Condor submit file dictionary
 class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
-    def populate(self, exe_fname, entry_name, params, conf_dom, sub_params, entry):
+    def populate(self, exe_fname, entry_name, conf_dom, entry):
         """
         Since there are only two parameters that ever were passed that didn't already exist in the params dict or the
         sub_params dict, the function signature has been greatly simplified into just those two parameters and the

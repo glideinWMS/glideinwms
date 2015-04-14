@@ -70,11 +70,11 @@ def main(xml, conf_dom, update_scripts, update_def_cfg, comment=""):
     old_glidein_dicts_obj = None
     
     # create dictionaries for new params
-    glidein_dicts_obj = cgWParamDict.glideinDicts(None, conf_dom)
+    glidein_dicts_obj = cgWParamDict.glideinDicts(conf_dom)
 
     # load old files
     if os.path.exists(glidein_dicts_obj.main_dicts['glidein'].get_filepath()):
-        old_glidein_dicts_obj = cgWParamDict.glideinDicts(None, conf_dom)
+        old_glidein_dicts_obj = cgWParamDict.glideinDicts(conf_dom)
         old_glidein_dicts_obj.load()
 
     try:
