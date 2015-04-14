@@ -377,7 +377,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
     def populate(self,entry,schedd,params=None):
         if params is None:
             params=self.params
-        sub_params=params.entries[self.sub_name]
+        sub_params=None
 
         # put default files in place first
         self.dicts['file_list'].add_placeholder(cWConsts.CONSTS_FILE,allow_overwrite=True)
