@@ -276,6 +276,17 @@ class VOFrontendParams(cWParams.CommonParams):
             raise RuntimeError, "Attribute GLIDEIN_Collector cannot be defined by the user"
 
         ####################
+        has_ccb=self.attrs.has_key('GLIDEIN_CCB')
+        if not has_collector:
+            # collector not defined at global level, must be defined in every group
+            has_ccb=True
+            for  group_name in self.groups.keys():
+                has_ccb&=self.groups[group_name].attrs.has_key('GLIDEIN_CCB')
+
+        if has_ccb:
+            raise RuntimeError, "Attribute GLIDEIN_CCB cannot be defined by the user"
+
+        ####################
         if self.security.proxy_DN is None:
             raise RuntimeError, "security.proxy_DN not defined"
 
