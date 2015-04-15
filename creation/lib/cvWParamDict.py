@@ -84,9 +84,12 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         
         self.dicts['consts'].add('GLIDECLIENT_Start',real_start_expr)
         
-        # create GLIDEIN_Collector and GLIDEIN_CCB attribute
-        self.dicts['params'].add_extended('GLIDEIN_Collector',False,str(calc_glidein_collectors(params.collectors)))
-        self.dicts['params'].add_extended('GLIDEIN_CCB',False,str(calc_glidein_ccbs(params.ccb_collectors)))
+        # create GLIDEIN_Collector attribute 
+        self.dicts['params'].add_extended('GLIDEIN_Collector', False, str(calc_glidein_collectors(params.collectors)))
+        # create GLIDEIN_CCB attribute only if CCBs list is in config file
+        tmp_glidein_ccbs_string = str(calc_glidein_ccbs(params.ccb_collectors))
+        if tmp_glidein_ccbs_string:
+            self.dicts['params'].add_extended('GLIDEIN_CCB', False, tmp_glidein_ccbs_string)
         populate_gridmap(params,self.dicts['gridmap'])
 
         if self.dicts['preentry_file_list'].is_placeholder(cWConsts.GRIDMAP_FILE): # gridmapfile is optional, so if not loaded, remove the placeholder

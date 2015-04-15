@@ -1302,6 +1302,10 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
             params_str = " ".join(client_web.get_glidein_args())
         # add all the params to the argument string
         for k, v in params.iteritems():
+            # Remove the null parameters and warn
+            if not str(v).strip():
+                log.warning('Skipping empty job parameter (%s)' % k)
+                continue
             params_str += " -param_%s %s" % (k, escapeParam(str(v)))
 
         exe_env = ['GLIDEIN_ENTRY_NAME=%s' % entry_name]
