@@ -208,8 +208,7 @@ Click on any piece for a more detailed description.
     <a href="#ccbcollector">&lt;ccb_collectors&gt;</a><br/>
     <blockquote>
         <a href="#ccbcollector">&lt;ccb_collector DN="/DC=org/DC=doegrids/OU=Services/CN=ccb.fnal.gov" node="ccb.fnal.gov" /&gt;</a><br/>
-        <a href="#ccbcollector">&lt;ccb_collector DN="/DC=org/DC=doegrids/OU=Services/CN=ccb2.fnal.gov" node="ccb2.fnal.gov:9620" /&gt;</a><br/>
-        <a href="#ccbcollector">&lt;ccb_collector DN="/DC=org/DC=doegrids/OU=Services/CN=ccb2.fnal.gov" node="ccb2.fnal.gov:9621" /&gt;</a><br/>
+        <a href="#ccbcollector">&lt;ccb_collector DN="/DC=org/DC=doegrids/OU=Services/CN=ccb2.fnal.gov" node="ccb2.fnal.gov:9620-9640" /&gt;</a><br/>
     </blockquote>
     <a href="#ccbcollector">&lt;/ccb_collectors&gt;</a><br/>
     <a href="#global_config">&lt;config&gt;</a><br/>
@@ -865,13 +864,14 @@ will use CCBs or not.<br><br>
 Only very specific setups need to change this section.
     <br><br>
     For <b>scalability</b> purposes, multiple CCB can be listed. 
-Each HTCondor damon will use only one CCB: it will receive a randomly shuffled version of the list of CCBs and will start using the first one 
+Each HTCondor daemon will use only one CCB: it will receive a randomly shuffled version of the list of CCBs (with port ranges expanded as different entries) 
+and will start using the first one 
 and falling back to the following ones in case of errors. Daemons on the same host using a shared port daemon will share the same CCB.<br>
     The configuration required for the Frontend and Glideins to communicate using CCB collectors is shown below:
       <blockquote>
          &lt;ccb_collectors&gt;
          &lt;ccb_collector DN="<i>certificate DN</i>"  
-                  node="CCB Collector:<b>primary_port</b>"/&gt;</br>
+                  node="CCB Collector:<b>port</b>"/&gt;</br>
          &lt;ccb_collector DN="<i>certificate DN</i>" 
                   node="CCB Collector:<b>other_port</b>"/&gt;</br>
             <font color="blue"><i>
