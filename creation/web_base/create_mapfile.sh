@@ -140,6 +140,18 @@ function create_condormapfile {
     echo "GSI (.*) anonymous" >> "$X509_CONDORMAP"
     echo "FS (.*) anonymous" >> "$X509_CONDORMAP"
 
+    # TODO: REMOVE THIS THIS export USED FOR TESTING
+    export CONDORCE_COLLECTOR_HOST="fermicloud102.fnal.gov"
+    # If $CONDORCE_COLLECTOR_HOST is set in the glidein's environment, site
+    # wants to have some visibility into the glidein. Add to COLLECTOR_HOST
+    if [ -n "$CONDORCE_COLLECTOR_HOST" ]; then
+        #collector_host=$collector_host,$CONDORCE_COLLECTOR_HOST
+        echo "CLAIMTOBE .*$CONDORCE_COLLECTOR_HOST anonymous@claimtobe" >> "$X509_CONDORMAP"
+        #echo "CLAIMTOBE $CONDORCE_COLLECTOR_HOST condorce_collector_host@claimtobe"
+    fi
+
+
+
     return 0
 }
 

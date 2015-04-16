@@ -12,6 +12,9 @@
 #   The glidein will take a random one from the list
 #
 
+# TODO: REMOVE THIS THIS export USED FOR TESTING
+export CONDORCE_COLLECTOR_HOST="fermicloud102.fnal.gov"
+
 glidein_config=$1
 tmp_fname=${glidein_config}.$$.tmp
 
