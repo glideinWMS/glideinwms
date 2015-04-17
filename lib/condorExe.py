@@ -99,8 +99,11 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
                                                 child_env=child_env)
     except Exception, ex:
         msg = "Unexpected Error running '%s'. Details: %s" % (cmd, ex)
-        logSupport.log.debug(msg)
-        logSupport.log.debug(generate_bash_script(cmd, os.environ))
+        try:
+            logSupport.log.debug(msg)
+            logSupport.log.debug(generate_bash_script(cmd, os.environ))
+        except:
+            pass
         raise ExeError, msg
 
     return stdoutdata.splitlines()
