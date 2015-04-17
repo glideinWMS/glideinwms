@@ -846,8 +846,9 @@ class glideinFrontendElement:
                 resource_classad.adParams['Name'],
                 my_identity
             )
-            resource_classad.setGlideFactoryMonitorInfo(
-                self.factoryclients_dict[key]['monitor'])
+            if key in self.factoryclients_dict:
+                resource_classad.setGlideFactoryMonitorInfo(
+                    self.factoryclients_dict[key]['monitor'])
         except:
             # Ignore errors. Just log them.
             logSupport.log.exception("Populating GlideFactoryMonitor info in resource classad failed: ")
