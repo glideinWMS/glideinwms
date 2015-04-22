@@ -131,6 +131,8 @@ class glideinFrontendElement:
         # If not None, this is a request for removal of glideins only (i.e. do not ask for more)
         self.request_removal_wtype = None
         self.request_removal_excess_only = False
+        self.ha_mode = glideinFrontendLib.getHAMode(self.elementDescript.frontend_data)
+
 
     def configure(self):
         ''' Do some initial configuration of the element. '''
@@ -156,7 +158,6 @@ class glideinFrontendElement:
 
         # We will be starting often, so reduce the clutter
         #logSupport.log.info("Logging initialized")
-        #logSupport.log.debug("Frontend Element startup time: %s" % str(self.startup_time))
 
         glideinFrontendMonitoring.monitoringConfig.monitor_dir =glideinFrontendConfig.get_group_dir(os.path.join(self.work_dir, "monitor"), self.group_name)
         glideinFrontendInterface.frontendConfig.advertise_use_tcp = (self.elementDescript.frontend_data['AdvertiseWithTCP'] in ('True', '1'))
@@ -265,19 +266,26 @@ class glideinFrontendElement:
         for factory_pool in self.factory_pools:
             factory_pool_node = factory_pool[0]
             try:
-                glideinFrontendInterface.deadvertizeAllWork(factory_pool_node, self.published_frontend_name)
+                glideinFrontendInterface.deadvertizeAllWork(
+                    factory_pool_node,
+                    self.published_frontend_name,
+                    ha_mode=self.ha_mode)
             except:
                 logSupport.log.warning("Failed to deadvertise work on %s"%factory_pool_node)
 
             try:
-                glideinFrontendInterface.deadvertizeAllGlobals(factory_pool_node, self.published_frontend_name)
+                glideinFrontendInterface.deadvertizeAllGlobals(
+                    factory_pool_node,
+                    self.published_frontend_name,
+                    ha_mode=self.ha_mode)
             except:
                 logSupport.log.warning("Failed to deadvertise globals on %s"%factory_pool_node)
 
         # Invalidate all glideresource classads
         try:
             resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser()
-            resource_advertiser.invalidateConstrainedClassads('GlideClientName == "%s"' % self.published_frontend_name)
+            resource_advertiser.invalidateConstrainedClassads(
+                '(GlideClientName=="%s")&&(GlideFrontendHAMode=?=%s)' % (self.published_frontend_name, self.ha_mode))
         except:
             logSupport.log.warning("Failed to deadvertise resources classads")
 
@@ -316,17 +324,20 @@ class glideinFrontendElement:
         del forkm_obj
 
         self.globals_dict = {}
-        self.glidein_dict= {}
+        self.glidein_dict = {}
+        self.factoryclients_dict = {}
         self.condorq_dict = {}
 
         for pkel in pipe_out.keys():
             ptype,idx=pkel
             if ptype=='factory':
-                pglobals_dict,pglidein_dict=pipe_out[pkel]
+                pglobals_dict, pglidein_dict, pfactoryclients_dict = pipe_out[pkel]
                 self.globals_dict.update(pglobals_dict)
                 self.glidein_dict.update(pglidein_dict)
+                self.factoryclients_dict.update(pfactoryclients_dict)
                 del pglobals_dict
                 del pglidein_dict
+                del pfactoryclients_dict
             elif ptype=='schedd':
                 pcondorq_dict=pipe_out[pkel]
                 self.condorq_dict.update(pcondorq_dict)
@@ -422,7 +433,8 @@ class glideinFrontendElement:
                            self.signatureDescript.signature_type,
                            self.signatureDescript.frontend_descript_signature,
                            self.signatureDescript.group_descript_signature,
-                           self.x509_proxy_plugin)
+                           x509_proxies_plugin=self.x509_proxy_plugin,
+                           ha_mode=self.ha_mode)
         descript_obj.add_monitoring_url(self.monitoring_web_url)
 
         # reuse between loops might be a good idea, but this will work for now
@@ -433,7 +445,6 @@ class glideinFrontendElement:
         # extract only the attribute names from format list
         self.condorq_match_list = [f[0] for f in self.elementDescript.merged_data['JobMatchAttrs']]
 
-        #logSupport.log.debug("realcount: %s\n\n" % glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict))
 
         self.do_match()
 
@@ -654,14 +665,14 @@ class glideinFrontendElement:
                                key_obj=key_obj, glidein_params_to_encrypt=None,
                                security_name=self.security_name,
                                trust_domain=trust_domain,
-                               auth_method=auth_method)
+                               auth_method=auth_method, ha_mode=self.ha_mode)
             else:
                 logSupport.log.warning("Cannot advertise requests for %s because no factory %s key was found"% (request_name, factory_pool_node))
 
-
             resource_classad = self.build_resource_classad(
                                    this_stats_arr, request_name,
-                                   glidein_el, glidein_in_downtime)
+                                   glidein_el, glidein_in_downtime,
+                                   factory_pool_node, my_identity)
             resource_advertiser.addClassad(resource_classad.adParams['Name'],
                                            resource_classad)
 
@@ -817,13 +828,30 @@ class glideinFrontendElement:
             }
         }
 
-    def build_resource_classad(self, this_stats_arr, request_name, glidein_el, glidein_in_downtime):
+
+    def build_resource_classad(self, this_stats_arr, request_name,
+                               glidein_el, glidein_in_downtime,
+                               factory_pool_node, my_identity):
         # Create the resource classad and populate the required information
-        resource_classad = glideinFrontendInterface.ResourceClassad(request_name, self.published_frontend_name)
-        resource_classad.setFrontendDetails(self.frontend_name,self.group_name)
+        resource_classad = glideinFrontendInterface.ResourceClassad(
+                               request_name, self.published_frontend_name)
+        resource_classad.setFrontendDetails(self.frontend_name,
+                                            self.group_name,
+                                            self.ha_mode)
         resource_classad.setInDownTime(glidein_in_downtime)
         resource_classad.setEntryInfo(glidein_el['attrs'])
-        resource_classad.setGlideFactoryMonitorInfo(glidein_el['monitor'])
+        try:
+            key = (
+                factory_pool_node,
+                resource_classad.adParams['Name'],
+                my_identity
+            )
+            resource_classad.setGlideFactoryMonitorInfo(
+                self.factoryclients_dict[key]['monitor'])
+        except:
+            # Ignore errors. Just log them.
+            logSupport.log.exception("Populating GlideFactoryMonitor info in resource classad failed: ")
+
         resource_classad.setMatchExprs(
             self.elementDescript.merged_data['MatchExpr'],
             self.elementDescript.merged_data['JobQueryExpr'],
@@ -835,6 +863,7 @@ class glideinFrontendElement:
             logSupport.log.exception("Populating GlideClientMonitor info in resource classad failed: ")
 
         return resource_classad
+
 
     def compute_glidein_min_idle(self, count_status, total_glideins,
                                  total_idle_glideins, fe_total_glideins,
@@ -1095,7 +1124,9 @@ class glideinFrontendElement:
                 factory_pool_node = factory_pool[0]
                 my_identity_at_factory_pool = factory_pool[2]
                 try:
-                    factory_globals_dict = glideinFrontendInterface.findGlobals(factory_pool_node, None, None)
+                    factory_globals_dict = glideinFrontendInterface.findGlobals(
+                        factory_pool_node, None,
+                        glideinFrontendInterface.frontendConfig.factory_global)
                 except RuntimeError:
                     # Failed to talk or likely result is empty
                     # Maybe the next factory will have something
@@ -1135,52 +1166,100 @@ class glideinFrontendElement:
                         # if key needed, will handle the error later on
                         logSupport.log.info("Factory Globals '%s': unsupported pub key type '%s'" % (globalid, globals_el['attrs']['PubKeyType']))
 
-        except Exception, ex:
+        except Exception:
             logSupport.log.exception("Error in talking to the factory pool:")
 
         return globals_dict
+
+
+    def query_factoryclients(self, factory_pool):
+        try:
+            factoryclients = {}
+            factory_constraint = expand_DD(
+                self.elementDescript.merged_data['FactoryQueryExpr'],
+                self.attr_dict)
+
+            factory_pool_node = factory_pool[0]
+            factory_identity = factory_pool[1]
+            my_identity_at_factory_pool = factory_pool[2]
+            try:
+                factory_factoryclients = glideinFrontendInterface.findGlideinClientMonitoring(
+                    factory_pool_node, None,
+                    self.published_frontend_name,
+                    factory_constraint)
+            except RuntimeError:
+                # Failed to talk or likely result is empty
+                # Maybe the next factory will have something
+                if factory_pool_node:
+                    logSupport.log.exception("Failed to talk to factory_pool %s for glidefactoryclient info: " % factory_pool_node)
+                else:
+                    logSupport.log.exception("Failed to talk to factory_pool for glidefactoryclient info: ")
+                factory_factoryclients = {}
+
+            for glidename in factory_factoryclients:
+                auth_id = factory_factoryclients[glidename]['attrs'].get('AuthenticatedIdentity')
+                if not auth_id:
+                    logSupport.log.warning("Found an untrusted factory %s at %s; ignoring." % (glidename, factory_pool_node))
+                    break
+                if auth_id != factory_identity:
+                    logSupport.log.warning("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'" % (glidename, factory_pool_node,
+                                  auth_id, factory_identity))
+                    break
+                factoryclients[(factory_pool_node, glidename, my_identity_at_factory_pool)] = factory_factoryclients[glidename]
+
+        except Exception:
+            logSupport.log.exception("Error in talking to the factory pool:")
+
+        return factoryclients
+
 
     def query_entries(self, factory_pool):
         try:
             glidein_dict = {}
             factory_constraint=expand_DD(self.elementDescript.merged_data['FactoryQueryExpr'],self.attr_dict)
 
-            if True: # for historical reasons, to preserve indentation
-                factory_pool_node = factory_pool[0]
-                factory_identity = factory_pool[1]
-                my_identity_at_factory_pool = factory_pool[2]
-                try:
-                    factory_glidein_dict = glideinFrontendInterface.findGlideins(factory_pool_node, None, self.signatureDescript.signature_type, factory_constraint)
-                except RuntimeError:
-                    # Failed to talk or likely result is empty
-                    # Maybe the next factory will have something
-                    if factory_pool_node:
-                        logSupport.log.exception("Failed to talk to factory_pool %s for entry info: " % factory_pool_node)
-                    else:
-                        logSupport.log.exception("Failed to talk to factory_pool for entry info: ")
-                    factory_glidein_dict = {}
+            factory_pool_node = factory_pool[0]
+            factory_identity = factory_pool[1]
+            my_identity_at_factory_pool = factory_pool[2]
+            try:
+                factory_glidein_dict = glideinFrontendInterface.findGlideins(
+                    factory_pool_node, None,
+                    self.signatureDescript.signature_type,
+                    factory_constraint)
+            except RuntimeError:
+                # Failed to talk or likely result is empty
+                # Maybe the next factory will have something
+                if factory_pool_node:
+                    logSupport.log.exception("Failed to talk to factory_pool %s for entry info: " % factory_pool_node)
+                else:
+                    logSupport.log.exception("Failed to talk to factory_pool for entry info: ")
+                factory_glidein_dict = {}
 
-                for glidename in factory_glidein_dict:
-                    auth_id = factory_glidein_dict[glidename]['attrs'].get('AuthenticatedIdentity')
-                    if not auth_id:
-                        logSupport.log.warning("Found an untrusted factory %s at %s; ignoring." % (glidename, factory_pool_node))
-                        break
-                    if auth_id != factory_identity:
-                        logSupport.log.warning("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'" % (glidename, factory_pool_node,
-                                      auth_id, factory_identity))
-                        break
-                    glidein_dict[(factory_pool_node, glidename, my_identity_at_factory_pool)] = factory_glidein_dict[glidename]
+            for glidename in factory_glidein_dict:
+                auth_id = factory_glidein_dict[glidename]['attrs'].get('AuthenticatedIdentity')
+                if not auth_id:
+                    logSupport.log.warning("Found an untrusted factory %s at %s; ignoring." % (glidename, factory_pool_node))
+                    break
+                if auth_id != factory_identity:
+                    logSupport.log.warning("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'" % (glidename, factory_pool_node,
+                                  auth_id, factory_identity))
+                    break
+                glidein_dict[(factory_pool_node, glidename, my_identity_at_factory_pool)] = factory_glidein_dict[glidename]
 
         except Exception, ex:
             logSupport.log.exception("Error in talking to the factory pool:")
 
         return glidein_dict
 
+
     def query_factory(self, factory_pool):
         """
         Serialize queries to the same factory.
         """
-        return (self.query_globals(factory_pool),self.query_entries(factory_pool))
+        return (self.query_globals(factory_pool),
+                self.query_entries(factory_pool),
+                self.query_factoryclients(factory_pool))
+
 
     def get_condor_q(self, schedd_name):
         condorq_dict = {}

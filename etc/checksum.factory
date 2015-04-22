@@ -1,10 +1,10 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_8
+# GLIDEINWMS_VERSION v3_2_9_rc1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
 fffc4b1932dc8e722997ac14344b065b  ./__init__.py
-0a4e5a33f6dfdc6c64e0c07c7c034467  ./config/mailinglist.cfg
+bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
 d41d8cd98f00b204e9800998ecf8427e  ./creation/__init__.py
 395efde005de1c0994fb6ba8f99835f8  ./creation/add_entry
 a9f684b73a8929aec914751e8d87c0e8  ./creation/clone_glidein
@@ -117,6 +117,7 @@ a8b315b8229dbe1cc978d29e116bd7de  ./factory/tools/find_matching_ids.py
 053e87efe508ba7c8d0f434818f36a4b  ./factory/tools/find_missing_ids.py
 e42da857a7614a1537bb1a5726c6f819  ./factory/tools/find_new_entries.py
 23e63f2e2b38f4aa2ce522236f6647fe  ./factory/tools/find_partial_matching_ids.py
+5f72990b2ee23bb69d2a4358ec9f4d16  ./factory/tools/gwms-logcat.sh
 919fa9b845944420d9b57bc58fd557bb  ./factory/tools/infosys_lib.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/tools/lib/__init__.py
 e5e7085488190f286e8010de400f3c58  ./factory/tools/lib/analyze.py
@@ -150,7 +151,7 @@ e11d30b85bc8ee174418de14c2210257  ./install/services/init_schedd.sh
 d41d8cd98f00b204e9800998ecf8427e  ./lib/__init__.py
 de2c846835330c1e613f3509d2defd6a  ./lib/classadSupport.py
 db3a6019e81123ab02788204c5170716  ./lib/cleanupSupport.py
-5511e0a6d4584f87e869c0a9c4973bf0  ./lib/condorExe.py
+8f0fd5be967de34af0e8d322b9e141f1  ./lib/condorExe.py
 62ace95abeb9172364f64f05acb75f2e  ./lib/condorLogParser.py
 f9f296bc30e68cb314dfba0415c97b26  ./lib/condorManager.py
 c531fc1e260d351805d3650fac6cb80a  ./lib/condorMonitor.py
@@ -158,7 +159,7 @@ c531fc1e260d351805d3650fac6cb80a  ./lib/condorMonitor.py
 d79f4a3b5492b5229d255085df2ef2b7  ./lib/condorSecurity.py
 85810235f5f90736e8d2899acd2a2cc9  ./lib/encodingSupport.py
 a203f536b05728922180758c66bdcb28  ./lib/exprParser.py
-b3fb00444ece8326e163e19d29c01b73  ./lib/fork.py
+fee2fce504293e2ca69ce075fd13d7fa  ./lib/fork.py
 346773e49875910f2a6cb6232be2376a  ./lib/glideinWMSVersion.py
 4954ab878c7cba513b61a79a7dadf795  ./lib/glideinwms_tarfile.py
 ac7d5c93017e3887f1d44fcdee9a7237  ./lib/hashCrypto.py
