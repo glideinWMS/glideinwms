@@ -201,7 +201,7 @@ if __name__ == '__main__':
             print usage
             sys.exit(1)
 
-    conf_dom = parse(xml)
+    conf_dom = factXmlUtil.parse_config(xml)
 
     try:
         transformed_xmlfile = tempfile.NamedTemporaryFile()
