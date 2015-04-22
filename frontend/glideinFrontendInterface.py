@@ -178,7 +178,7 @@ def findGlideins(factory_pool, factory_identity,
     # type and trust domain
 
     if additional_constraint is not None:
-        status_constraint += '%s && (%s)' % additional_constraint
+        status_constraint += ' && (%s)' % additional_constraint
 
     status = condorMonitor.CondorStatus("any", pool_name=factory_pool)
     status.require_integrity(True) #important, especially for proxy passing
