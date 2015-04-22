@@ -25,6 +25,7 @@ from glideinwms.creation.lib import cgWDictFile
 from glideinwms.creation.lib import cgWConsts,cWConsts
 from glideinwms.creation.lib import cgWCreate
 from glideinwms.creation.lib import cgWParamDict
+from glideinwms.creation.lib import factXmlUtil
 
 WEB_BASE_DIR=os.path.join(STARTUP_DIR,"web_base")
 
@@ -97,7 +98,7 @@ if __name__ == '__main__':
             break
 
     xml = argv[1]
-    conf_dom = parse(xml)
+    conf_dom = factXmlUtil.parse_config(xml)
 
     if not (writeback in ('yes', 'no')):
         print usage
