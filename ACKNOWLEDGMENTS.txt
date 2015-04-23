@@ -10,5 +10,3 @@ The development of that code was jointly funded by INFN, Fermilab and UCSD.
 glideinWMS heavily relies on Condor:
 http://www.cs.wisc.edu/condor/
 The support of the Condor team was invaluable in the realization of glideinWMS.
-
-
