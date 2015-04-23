@@ -87,7 +87,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         # create GLIDEIN_Collector attribute 
         self.dicts['params'].add_extended('GLIDEIN_Collector', False, str(calc_glidein_collectors(params.collectors)))
         # create GLIDEIN_CCB attribute only if CCBs list is in config file
-        tmp_glidein_ccbs_string = str(calc_glidein_ccbs(params.ccb_collectors))
+        tmp_glidein_ccbs_string = str(calc_glidein_ccbs(params.ccbs))
         if tmp_glidein_ccbs_string:
             self.dicts['params'].add_extended('GLIDEIN_CCB', False, tmp_glidein_ccbs_string)
         populate_gridmap(params,self.dicts['gridmap'])
@@ -760,34 +760,27 @@ def calc_glidein_collectors(collectors):
 # Returns a string usable for GLIDEIN_CCB
 def calc_glidein_ccbs(collectors):
     # All CCB collectors are equivalent
-    glidein_ccb_collectors = []
+    glidein_ccbs = []
 
     for el in collectors:
         cWDictFile.validate_node(el.node,allow_prange=True)
-        glidein_ccb_collectors.append(el.node)
-    return string.join(glidein_ccb_collectors, ",")
+        glidein_ccbs.append(el.node)
+    return string.join(glidein_ccbs, ",")
 
 #####################################################
 # Populate gridmap to be used by the glideins
 def populate_gridmap(params,gridmap_dict):
     collector_dns=[]
-    for el in params.collectors:
-        dn=el.DN
-        if dn is None:
-            raise RuntimeError,"DN not defined for pool collector %s"%el.node
-        if not (dn in collector_dns): #skip duplicates
-            collector_dns.append(dn)
-            gridmap_dict.add(dn,'collector%i'%len(collector_dns))
-
-    # Add also the CCB DNs (if any). Duplicates with the collectors list are skipped 
-    # The name is still collector%i, continuing from the collectors counter.
-    for el in params.ccb_collectors:
-        dn=el.DN
-        if dn is None:
-            raise RuntimeError,"DN not defined for CCB collector %s"%el.node
-        if not (dn in collector_dns): #skip duplicates
-            collector_dns.append(dn)
-            gridmap_dict.add(dn,'collector%i'%len(collector_dns))
+    for coll_list in (params.collectors, params.ccbs):
+        # Add both collectors and CCB DNs (if any). Duplicates are skipped 
+        # The name is for both collector%i.
+        for el in coll_list:
+            dn=el.DN
+            if dn is None:
+                raise RuntimeError,"DN not defined for pool collector or CCB %s"%el.node
+            if not (dn in collector_dns):  #skip duplicates
+                collector_dns.append(dn)
+                gridmap_dict.add(dn,'collector%i'%len(collector_dns))
 
     # Add also the frontend DN, so it is easier to debug
     if params.security.proxy_DN is not None:
