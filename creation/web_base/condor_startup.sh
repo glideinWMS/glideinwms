@@ -287,6 +287,9 @@ chmod a+x $condor_job_wrapper
 #let "max_job_time=$job_max_hours * 3600"
 
 now=`date +%s`
+# If not an integer reset to 0 (a string could cause errors [#7899])
+[ "$X509_EXPIRE" -eq "$X509_EXPIRE" ] 2>/dev/null || X509_EXPIRE=0
+
 #add some safety margin
 let "x509_duration=$X509_EXPIRE - $now - 300"
 
