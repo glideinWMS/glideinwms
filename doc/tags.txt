@@ -1,6 +1,7 @@
 v3_2_9  VO Frontend supports a master-slave HA mode
         Added a factory wrapper script to view glidein logs files
         Updated the dependency of Glideinwms to HTCondor v8.2.2
+        Frontend supports CCBs in addition to User Collector
         Updated documentation
         Bug Fix: glideresource classads now contain appropriate monitoring
           information
@@ -8,6 +9,8 @@ v3_2_9  VO Frontend supports a master-slave HA mode
           frontend to shutdown
         Bug Fix: Removed obsolute defult requirement for vanilla jobs in
           user schedd's config file
+        Bug Fix: Glidein now works correctly when both grid/voms-proxy
+          commands are not available on the worker node
 
 v3_2_8  VO Frontend parameters are added to HTCondor config for ganglia
           monitoring
