@@ -38,10 +38,11 @@ class GlideinWMSDistro:
         def __init__(self, dir, chksumFile='checksum'):
             self.versionIdentifier = 'GLIDEINWMS_VERSION'
             self.type="TARBALL"
-            self.distroChksumFile = os.path.join(dir,'etc',chksumFile)
+            self.distroChksumFile = os.path.join(dir, 'etc', chksumFile)
             if not os.path.exists(self.distroChksumFile):
                 # If the default location does not exist, try RPM location
-                self.distroChksumFile = os.path.join('/usr/lib/python2.4/site-packages',chksumFile)
+                rpm_workdir = '/var/lib/gwms-factory/work-dir/'
+                self.distroChksumFile = os.path.join(rpm_workdir, chksumFile)
                 self.type="RPM"
                 if not os.path.exists(self.distroChksumFile):
                     self.type="UNKNOWN"
