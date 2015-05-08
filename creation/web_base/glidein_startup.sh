@@ -941,7 +941,7 @@ elif [ -z "$work_dir" ]; then
 fi
 
 if [ -z "$work_dir" ]; then
-    early_glidein_failure "Startup dir is empty."
+    early_glidein_failure "Unable to identify Startup dir for the glidein."
 fi
 
 if [ -e "$work_dir" ]; then
