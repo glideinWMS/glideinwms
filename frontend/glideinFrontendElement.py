@@ -1216,6 +1216,7 @@ class glideinFrontendElement:
                 ('GLIDEIN_CredentialIdentifier', 's'),
                 ('TotalSlots', 'i'),
                 ('Cpus', 'i'),
+                ('Memory', 'i'),
                 ('PartitionableSlot', 's'),
             ]
 

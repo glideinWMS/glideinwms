@@ -475,6 +475,7 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
         glide_str = "%s@%s" % (glidename[1],glidename[0].split(':')[0])
         glidein=glidein_dict[glidename]
         glidein_count=0
+        glidein_ids = set()
         for scheddIdx in range(nr_schedds):
             schedd=schedds[scheddIdx]
             cq_dict_clusters_el=cq_dict_clusters[scheddIdx]
@@ -493,6 +494,12 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
                 try:
                     if (job['RunningOn'] == glide_str) and eval(match_obj):
                         schedd_count+=len(cq_dict_clusters_el[jh])
+                        for jid in cq_dict_clusters_el[jh]:
+                            job = condorq_data[jid]
+                            if 'RemoteHost' in job:
+                                glidein_ids.add(job['RemoteHost'])
+                            else:
+                                glidein_ids.add("%d" % (scheddIdx, jid))
                 except KeyError, e:
                     tb = traceback.format_exception(sys.exc_info()[0],
                                                     sys.exc_info()[1],
@@ -509,6 +516,8 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
             if tb_count > 0:
                 logSupport.log.debug("There were %s exceptions in countRealRunning subprocess. Most recent traceback: %s " % (tb_count, recent_tb))
             glidein_count+=schedd_count
+        logSupport.log.debug("Example running glidein ids at %s (total %d): %s" % (glidename, len(glidein_ids), ", ".join(list(glidein_ids)[:5])))
+        glidein_count = len(glidein_ids)
         out_glidein_counts[glidename]=glidein_count
     return out_glidein_counts
 
@@ -601,10 +610,12 @@ def getRunningCondorStatus(status_dict):
                  status_dict[collector_name],
                  lambda el:(
                      ( (el.get('State') == 'Claimed') and
-                       (el.get('Activity') in ('Busy', 'Retiring')) and
-                       ( (el.get('PartitionableSlot') != True) or
-                         (el.get('TotalSlots') == 1) 
-                       )
+                       (el.get('Activity') in ('Busy', 'Retiring'))
+                     ) or
+                     ( (el.get('State') == 'Unclaimed') and
+                       (el.get('Activity') == 'Idle') and
+                       (el.get('PartitionableSlot') == True) and
+                       (el.get('TotalSlots', 1) > 1)
                      )
                  ) )
         sq.load()
@@ -642,7 +653,7 @@ def getIdleCoresCondorStatus(status_dict):
                      ( (el.get('State') == 'Unclaimed') and
                        (el.get('Activity') == 'Idle') and
                        ( (el.get('PartitionableSlot') != True) or
-                         (el.get('PartitionableSlot')==True and el.get('Cpus',0)>0) or
+                         (el.get('PartitionableSlot')==True and el.get('Cpus',0)>0 and el.get('Memory', 2501) > 2500) or
                          (el.get('TotalSlots') == 1) 
                        )
                      )
