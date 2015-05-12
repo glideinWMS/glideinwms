@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_9_rc1
+# GLIDEINWMS_VERSION v3_2_9
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -82,7 +82,7 @@ c1527cf661115760242852c0421921bd  ./creation/web_base/gcb_setup.sh
 2286d88123059b704c828009d7911007  ./creation/web_base/glidein_cpus_setup.sh
 c048847d2338b10b8c31c12be4633fea  ./creation/web_base/glidein_memory_setup.sh
 9c5707b728923b90c8f56ac201f6c686  ./creation/web_base/glidein_sitewms_setup.sh
-7a27272894713c8a06445863287026a2  ./creation/web_base/glidein_startup.sh
+7daf13d892346278b9784603ed643633  ./creation/web_base/glidein_startup.sh
 1f3bbb3416afab773e58aab138e4ccd3  ./creation/web_base/java_setup.sh
 78d344f14e5e2144227c564f2d90401e  ./creation/web_base/local_start.sh
 014c3eaf1abf62ff0f599579658e6a10  ./creation/web_base/nodes.blacklist
@@ -203,7 +203,7 @@ d79f4a3b5492b5229d255085df2ef2b7  ./lib/condorSecurity.py
 85810235f5f90736e8d2899acd2a2cc9  ./lib/encodingSupport.py
 a203f536b05728922180758c66bdcb28  ./lib/exprParser.py
 fee2fce504293e2ca69ce075fd13d7fa  ./lib/fork.py
-346773e49875910f2a6cb6232be2376a  ./lib/glideinWMSVersion.py
+0556256ef54259b8afd3388b77dc3f32  ./lib/glideinWMSVersion.py
 4954ab878c7cba513b61a79a7dadf795  ./lib/glideinwms_tarfile.py
 ac7d5c93017e3887f1d44fcdee9a7237  ./lib/hashCrypto.py
 560d3f938ae5104b0be721735f752486  ./lib/iniSupport.py
@@ -233,20 +233,3 @@ d41d8cd98f00b204e9800998ecf8427e  ./tools/lib/__init__.py
 46303104667997899b0a6d9239f7188a  ./tools/lib/glideinMonitor.py
 042b4f73cff78a0226154724aa4fefb1  ./tools/wmsTxtView.py
 d2f523ccdef6125a867ed8dc746b2148  ./tools/wmsXMLView.py
-c1312c7d5e45ede9739ef03eeb4b990e  ./unittests/__init__.py
-f8088fc30b1b9f54e60364b0b4f8fcda  ./unittests/test_cleanupSupport.py
-ac1ae5bdfd61e84c405d14b9aa719048  ./unittests/test_condorExe.py
-36da4c69987a4f60e732b5687fb68c27  ./unittests/test_configurations/test_logSupport.yaml
-f40e7fffa0c8ea7308ca72738105a4a3  ./unittests/test_encodingSupport.py
-74683dc9f3d9fc9321cb024f45f4d778  ./unittests/test_glideFactoryDowntimeLib.py
-bac527ea84264fa74fc7491376beb0be  ./unittests/test_glideinFrontendPlugins.py
-994f0813b75e7813b309f255b78942cb  ./unittests/test_infosys_lib.py
-62934212b60d862c582bcc803992e1c8  ./unittests/test_logSupport.py
-e62a4284ef3ee405897fe71e6a00aa52  ./unittests/test_tarSupport.py
-58e156307d25fd6d584461a08ea064a1  ./unittests/unittest_utils.py
-5ac2e72df43580befa32df86209694af  ./unittests/worker_scripts/log_writer.py
-bb7311f7f5bbe1b396481c606c9f6c52  ./unittests/worker_scripts/master_writer.py
-deda72780003d66021f6bb8e9f4e6200  ./unittests/worker_scripts/write_exit_0.py
-b3193772ae25df2e5c72d4ee8b6f78f0  ./unittests/worker_scripts/write_exit_0.sh
-e715f91d16a153a78798b402f8584576  ./unittests/worker_scripts/write_exit_1.py
-feab1d1cb0ffe42c09fd5d46b495cea4  ./unittests/worker_scripts/write_exit_1.sh

@@ -11,6 +11,7 @@ v3_2_9  VO Frontend supports a master-slave HA mode
           user schedd's config file
         Bug Fix: Glidein now works correctly when both grid/voms-proxy
           commands are not available on the worker node
+        Bug Fix: GlideinWMSVersion is now correctly reported in rpm distribution
 
 v3_2_8  VO Frontend parameters are added to HTCondor config for ganglia
           monitoring
