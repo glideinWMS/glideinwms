@@ -496,10 +496,7 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
                         schedd_count+=len(cq_dict_clusters_el[jh])
                         for jid in cq_dict_clusters_el[jh]:
                             job = condorq_data[jid]
-                            if 'RemoteHost' in job:
-                                glidein_ids.add(job['RemoteHost'])
-                            else:
-                                glidein_ids.add("%d" % (scheddIdx, jid))
+                            glidein_ids.add(job.get('RemoteHost', "%d %d" % (scheddIdx, jid)))
                 except KeyError, e:
                     tb = traceback.format_exception(sys.exc_info()[0],
                                                     sys.exc_info()[1],
