@@ -88,7 +88,7 @@ class FEElementTestCase(unittest.TestCase):
                 m_exe_cmd.return_value = f.readlines()
                 cq = self.gfe.get_condor_q('schedd1')
 
-        self.assertItemsEqual(cq['schedd1'].fetchStored().keys(), [(12345, x) for x in xrange(0, 11)])
+        self.assertItemsEqual(cq['schedd1'].fetchStored().keys(), [(12345, x) for x in xrange(0, 13)])
 
     def test_compute_glidein_max_run(self):
         self.assertEqual(self.gfe.compute_glidein_max_run({'Idle': 412}, 971), 1591)

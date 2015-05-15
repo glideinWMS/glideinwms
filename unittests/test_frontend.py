@@ -125,13 +125,13 @@ class FETestCaseCount(FETestCaseBase):
         # straight match
         self.assertEqual(
             (straight_match[self.glidein_dict_k1], straight_match[self.glidein_dict_k2], straight_match[self.glidein_dict_k3]),
-            (8, 6, 2) )
+            (10, 8, 4) )
 
         prop_match = match_counts[1]
         # proportional match
         self.assertEqual(
             (prop_match[self.glidein_dict_k1], prop_match[self.glidein_dict_k2], prop_match[self.glidein_dict_k3]),
-            (6, 4, 1) )
+            (7, 5, 2) )
 
         only_match = match_counts[2]
         # only match: elements can only run on this site
@@ -143,7 +143,7 @@ class FETestCaseCount(FETestCaseBase):
         # uniq match: glideins requested based on unique subsets after considering multicore
         self.assertEqual(
             (uniq_match[self.glidein_dict_k1], uniq_match[self.glidein_dict_k2], uniq_match[self.glidein_dict_k3]),
-            (6, 1, 1) )
+            (7, 2, 2) )
 
         # unmatched
         self.assertEqual((straight_match[unmatched], prop_match[unmatched], only_match[unmatched], uniq_match[unmatched]),
@@ -155,7 +155,7 @@ class FETestCaseCount(FETestCaseBase):
 
         match_obj = compile('True', "<string>", "eval")
         actual = glideinFrontendLib.countRealRunning(match_obj, cq_run_dict, self.glidein_dict, {})
-        expected = {self.glidein_dict_k1: 1, self.glidein_dict_k2: 2, self.glidein_dict_k3: 0}
+        expected = {self.glidein_dict_k1: 1, self.glidein_dict_k2: 4, self.glidein_dict_k3: 0}
         self.assertEqual(expected, actual)
 
         match_obj = compile('False', "<string>", "eval")
@@ -205,7 +205,7 @@ class FETestCaseCondorStatus(FETestCaseBase):
         machines = condorStatus['coll1'].stored_data.keys()
         self.assertItemsEqual(machines, ['glidein_1@cmswn001.local', 'glidein_2@cmswn002.local',
                                          'glidein_3@cmswn003.local', 'glidein_4@cmswn004.local',
-                                         'glidein_5@cmswn005.local'])
+                                         'glidein_5@cmswn005.local', 'glidein_1@cmswn006.local'])
 
     def test_getIdleCondorStatus(self):
         condorStatus = glideinFrontendLib.getIdleCondorStatus(self.status_dict)
@@ -216,7 +216,8 @@ class FETestCaseCondorStatus(FETestCaseBase):
         condorStatus = glideinFrontendLib.getRunningCondorStatus(self.status_dict)
         machines = condorStatus['coll1'].stored_data.keys()
         self.assertItemsEqual(machines, ['glidein_1@cmswn001.local', 'glidein_2@cmswn002.local',
-                                         'glidein_3@cmswn003.local', 'glidein_5@cmswn005.local'])
+                                         'glidein_3@cmswn003.local', 'glidein_5@cmswn005.local',
+                                         'glidein_1@cmswn006.local'])
 
     def test_getClientCondorStatus(self):
         condorStatus = glideinFrontendLib.getClientCondorStatus(
@@ -232,7 +233,7 @@ class FETestCaseCondorStatus(FETestCaseBase):
         pass
 
     def test_countCondorStatus(self):
-        self.assertEqual(glideinFrontendLib.countCondorStatus(self.status_dict), 5)
+        self.assertEqual(glideinFrontendLib.countCondorStatus(self.status_dict), 6)
 
     def test_getFactoryEntryList(self):
         entries = glideinFrontendLib.getFactoryEntryList(self.status_dict)
@@ -279,7 +280,7 @@ class FETestCaseMisc(FETestCaseBase):
     def test_appendRealRunning(self):
         cq_run_dict = glideinFrontendLib.getRunningCondorQ(self.condorq_dict)
         glideinFrontendLib.appendRealRunning(cq_run_dict, self.status_dict)
-        expected = ['Site_Name%s@v3_0@factory1@submit.local' % (x) for x in [1,2,2]]
+        expected = ['Site_Name%s@v3_0@factory1@submit.local' % (x) for x in [1,2,2,2,2]]
         expected.append('UNKNOWN')
 
         self.assertItemsEqual(
@@ -298,7 +299,7 @@ class FETestCaseMisc(FETestCaseBase):
 class FETestCaseCondorQ(FETestCaseBase):
     def setUp(self):
         super(FETestCaseCondorQ, self).setUp()
-        self.total_jobs = 11
+        self.total_jobs = 13
 
     @mock.patch.object(glideinFrontendLib, 'getClientCondorStatus')
     @mock.patch.object(glideinFrontendLib, 'getClientCondorStatusCredIdOnly')
@@ -351,7 +352,7 @@ class FETestCaseCondorQ(FETestCaseBase):
         condor_ids = \
             glideinFrontendLib.getRunningCondorQ(self.condorq_dict)['sched1'].fetchStored().keys()
 
-        self.assertItemsEqual(condor_ids, [(12345, 3), (12345, 4), (12345, 5), (12345, 10)])
+        self.assertItemsEqual(condor_ids, [(12345, 3), (12345, 4), (12345, 5), (12345, 10), (12345, 11), (12345, 12)])
 
 
     def test_getIdleCondorQ(self):
