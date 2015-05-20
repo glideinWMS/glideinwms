@@ -15,6 +15,7 @@ import os
 import sys
 import string
 import traceback
+from xml.dom.minidom import parse
 
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
@@ -24,13 +25,15 @@ from glideinwms.creation.lib import cgWDictFile
 from glideinwms.creation.lib import cgWConsts,cWConsts
 from glideinwms.creation.lib import cgWCreate
 from glideinwms.creation.lib import cgWParamDict
+from glideinwms.creation.lib import factXmlUtil
 
+WEB_BASE_DIR=os.path.join(STARTUP_DIR,"web_base")
 
 ################################################################################
 
-def main(params):
+def main(xml, conf_dom):
     #print params.__dict__
-    glidein_dicts_obj = cgWParamDict.glideinDicts(params)
+    glidein_dicts_obj = cgWParamDict.glideinDicts(conf_dom)
 
     try:
         glidein_dicts_obj.populate()
@@ -45,32 +48,25 @@ def main(params):
         glidein_dicts_obj.set_readonly(True)
 
         # copy the submit files
-        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.work_dir, params.src_dir)
-        cgWCreate.copy_exe(cgWConsts.LOCAL_START_WRAPPER, glidein_dicts_obj.main_dicts.work_dir, params.src_dir)
+        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.work_dir, WEB_BASE_DIR)
+        cgWCreate.copy_exe(cgWConsts.LOCAL_START_WRAPPER, glidein_dicts_obj.main_dicts.work_dir, WEB_BASE_DIR)
 
         # copy glidein_startup.sh to the stage area for cloud entries
-        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.stage_dir, params.src_dir)
+        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.stage_dir, WEB_BASE_DIR)
 
         # copy privsep helper executables
-        cgWCreate.copy_exe(cgWConsts.UPDATE_PROXY_FILE, glidein_dicts_obj.main_dicts.work_dir, params.src_dir)
-
-        # save config into file
-        cfgfile = os.path.join(glidein_dicts_obj.main_dicts.work_dir, cgWConsts.XML_CONFIG_FILE)
-        params.save_into_file(cfgfile, set_ro=True)
-        # make two copies, the second one should have a unique name, so it does not get overwritten on reconfig
-        cfgfile = cWConsts.insert_timestr(cfgfile)
-        params.save_into_file(cfgfile, set_ro=True)
+        cgWCreate.copy_exe(cgWConsts.UPDATE_PROXY_FILE, glidein_dicts_obj.main_dicts.work_dir, WEB_BASE_DIR)
 
         # create the init.d startup file
         cgWCreate.create_initd_startup(os.path.join(glidein_dicts_obj.main_dicts.work_dir, cgWConsts.INITD_STARTUP_FILE),
                                        glidein_dicts_obj.main_dicts.work_dir,
                                        os.path.realpath(os.path.join(STARTUP_DIR, '..')),
-                                       params.cfg_name)
+                                       xml)
     except:
         glidein_dicts_obj.delete_dirs()
         raise
 
-    print "Created glidein '%s'" % params.glidein_name
+    print "Created glidein '%s'" % conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')
     print "Active entries are:"
     for entry in glidein_dicts_obj.active_sub_list:
         print "  %s" % entry
@@ -101,14 +97,8 @@ if __name__ == '__main__':
         else:
             break
 
-    try:
-        params = cgWParams.GlideinParams(usage, os.path.join(STARTUP_DIR, "web_base"), argv)
-    except RuntimeError, e:
-        if debug:
-            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-            print string.join(tb, '\n')
-        print e
-        sys.exit(1)
+    xml = argv[1]
+    conf_dom = factXmlUtil.parse_config(xml)
 
     if not (writeback in ('yes', 'no')):
         print usage
@@ -117,7 +107,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     try:
-        main(params)
+        main(xml, conf_dom)
     except RuntimeError, e:
         if debug:
             tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
@@ -126,14 +116,3 @@ if __name__ == '__main__':
         print ""
         print e
         sys.exit(1)
-
-    try:
-        if writeback == 'yes':
-            params.save_into_file_wbackup(params.cfg_name)
-    except:
-        if debug:
-            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-            print string.join(tb, '\n')
-        print "Writing back config file failed"
-        sys.exit(1)
-

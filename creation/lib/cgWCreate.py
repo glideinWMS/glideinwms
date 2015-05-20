@@ -18,6 +18,7 @@ import stat
 import tarfile
 import cStringIO
 import cgWDictFile
+from glideinwms.creation.lib import factXmlUtil
 
 ##############################
 # Create condor tarball and store it into a StringIO
@@ -103,7 +104,7 @@ def create_condor_tar_fd(condor_base_dir):
 ##########################################
 # Condor submit file dictionary
 class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
-    def populate(self, exe_fname, entry_name, params, sub_params):
+    def populate(self, exe_fname, entry_name, conf_dom, entry):
         """
         Since there are only two parameters that ever were passed that didn't already exist in the params dict or the
         sub_params dict, the function signature has been greatly simplified into just those two parameters and the
@@ -114,14 +115,20 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         another parameter to the function.
         """
 
-        glidein_name = params.glidein_name
-        gridtype = sub_params.gridtype
-        gatekeeper = sub_params.gatekeeper
-        rsl = sub_params.rsl
-        auth_method = sub_params.auth_method
-        proxy_url = sub_params.proxy_url
-        client_log_base_dir = params.submit.base_client_log_dir
-        submit_attrs = sub_params.config.submit.submit_attrs
+        glidein_name = conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')
+        gridtype = entry.getAttribute(u'gridtype')
+        gatekeeper = entry.getAttribute(u'gatekeeper')
+        if entry.hasAttribute(u'rsl'):
+            rsl = entry.getAttribute(u'rsl')
+        else:
+            rsl = None
+        auth_method = entry.getAttribute(u'auth_method')
+        if entry.hasAttribute(u'proxy_url'):
+            proxy_url = entry.getAttribute(u'proxy_url')
+        else:
+            proxy_url = None
+        client_log_base_dir =  conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_client_log_dir')
+        submit_attrs = factXmlUtil.get_submit_attrs(entry)
 
         # Add in some common elements before setting up grid type specific attributes
         self.add("Universe", "grid")
