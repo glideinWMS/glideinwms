@@ -163,7 +163,12 @@ and the credentials configuration on the Frontend.
         &lt;release max_per_cycle="20" sleep="0.2"/&gt;
         &lt;remove max_per_cycle="5" sleep="0.2"/&gt;
         &lt;restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/&gt;
-        &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2"/&gt;
+        &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2"&gt;
+            &lt;submit_attrs&gt;
+                &lt;submit_attr name="+remote_queue" value='"serial"'/&gt;
+                &lt;submit_attr name="request_memory" value="2048"/&gt;
+            &lt;submit_attrs&gt;
+        &lt;/submit&gt;
     &lt;/config&gt;
     &lt;allow_frontends&gt;&lt;/allow_frontends&gt;
 
@@ -182,10 +187,6 @@ and the credentials configuration on the Frontend.
               parameter="True" publish="True" type="string" value="/osg/certificates"/&gt;
      &lt;/attrs&gt;
     &lt;files&gt;&lt;/files&gt;
-    &lt;submit_attrs&gt;
-        &lt;submit_attr name="+remote_queue" value='"serial"'/&gt;
-        &lt;submit_attr name="request_memory" value="2048"/&gt;
-    &lt;submit_attrs&gt;
     &lt;infosys_refs&gt;&lt;/infosys_refs&gt;
     &lt;monitorgroups&gt;&lt;/monitorgroups&gt;
 &lt;/entry&gt;
