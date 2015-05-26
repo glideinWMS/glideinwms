@@ -534,9 +534,6 @@ def evalParamExpr(expr_obj, frontend, glidein):
 # Return a dictionary of collectors containing interesting classads
 # Each element is a condorStatus
 #
-# If not all the jobs of the schedd has to be considered,
-# specify the appropriate constraint
-#
 def getCondorStatus(collector_names, constraint=None, format_list=None,
                     want_format_completion=True, want_glideins_only=True):
     type_constraint = '(True)'
@@ -578,13 +575,14 @@ def getCondorStatus(collector_names, constraint=None, format_list=None,
 def getIdleCondorStatus(status_dict):
     out = {}
     for collector_name in status_dict.keys():
-        #sq = condorMonitor.SubQuery(status_dict[collector_name], lambda el:(el.has_key('State') and el.has_key('Activity') and (el['State'] == "Unclaimed") and (el['Activity'] == "Idle")))
+        # Exclude partitionable slots with no free memory/cpus
         sq = condorMonitor.SubQuery(
                  status_dict[collector_name],
                  lambda el:(
                      ( (el.get('State') == 'Unclaimed') and
                        (el.get('Activity') == 'Idle') and
                        ( (el.get('PartitionableSlot') != True) or
+                         (el.get('PartitionableSlot')==True and el.get('Cpus',0)>0 and el.get('Memory', 2501) > 2500) or
                          (el.get('TotalSlots') == 1) 
                        )
                      )
@@ -603,6 +601,20 @@ def getIdleCondorStatus(status_dict):
 def getRunningCondorStatus(status_dict):
     out = {}
     for collector_name in status_dict.keys():
+        # TODO: PM
+        # Its not clear why the running status considered Unclaimed glideins
+        # This results in the counting partitionable slot against running
+        # counts. I think below is the correct query
+        
+        sq = condorMonitor.SubQuery(
+                 status_dict[collector_name],
+                 lambda el:(
+                     ( (el.get('State') == 'Claimed') and
+                       (el.get('Activity') in ('Busy', 'Retiring'))
+                     )
+                     ) )
+        """
+
         sq = condorMonitor.SubQuery(
                  status_dict[collector_name],
                  lambda el:(
@@ -615,6 +627,7 @@ def getRunningCondorStatus(status_dict):
                        (el.get('TotalSlots', 1) > 1)
                      )
                  ) )
+        """
         sq.load()
         out[collector_name] = sq
     return out
@@ -776,12 +789,15 @@ def getCondorStatusSchedds(collector_names, constraint=None, format_list=None,
     if format_list is not None:
         if want_format_completion:
             format_list = condorMonitor.complete_format_list(format_list,
-                           [('TotalRunningJobs', 'i'), ('TotalSchedulerJobsRunning', 'i'),
+                           [('TotalRunningJobs', 'i'),
+                            ('TotalSchedulerJobsRunning', 'i'),
                             ('TransferQueueNumUploading','i'),
-                            ('MaxJobsRunning','i'), ('TransferQueueMaxUploading','i')])
+                            ('MaxJobsRunning','i'),
+                            ('TransferQueueMaxUploading','i')])
 
     type_constraint = 'True'
-    return getCondorStatusConstrained(collector_names, type_constraint, constraint, format_list,
+    return getCondorStatusConstrained(collector_names, type_constraint,
+                                      constraint, format_list,
                                       subsystem_name="schedd")
 
 ############################################################
