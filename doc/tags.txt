@@ -1,3 +1,8 @@
+v3_2_10 Improved Documentation
+        Bug Fix: Frontend now correctly accounts multicore running slots
+        Bug Fix: Got rid of old style HTCondor default Memory & Disk
+          requirements in the schedd configuration
+
 v3_2_9  VO Frontend supports a master-slave HA mode
         Added a factory wrapper script to view glidein logs files
         Updated the dependency of Glideinwms to HTCondor v8.2.2
