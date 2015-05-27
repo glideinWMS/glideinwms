@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_9
+# GLIDEINWMS_VERSION v3_2_10_rc1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -76,9 +76,9 @@ d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 281b86c8a2bc919bfa1cdaedebebaf0c  ./frontend/checkFrontend.py
 16e9750cb5ad4a102e734cd38b70d707  ./frontend/glideinFrontend.py
 b04d93ffbbe5a85bbad9b868596cc70d  ./frontend/glideinFrontendConfig.py
-4b9581aebb732da692c7af0fa5363859  ./frontend/glideinFrontendElement.py
+1d9335441adb2fc5bb38f43af48a1159  ./frontend/glideinFrontendElement.py
 3de1ed0925ffdfc3550a93cb6185a9cc  ./frontend/glideinFrontendInterface.py
-981eaded4acf86b6395590252f2be2db  ./frontend/glideinFrontendLib.py
+4d029c87795f866e8c9f995300119927  ./frontend/glideinFrontendLib.py
 1754e4484e221f13578512bd1c825090  ./frontend/glideinFrontendMonitorAggregator.py
 466a10f70924210c5b2642d4b0f7cd5b  ./frontend/glideinFrontendMonitoring.py
 2a1b5c91fe810a76649e78890e15c3dc  ./frontend/glideinFrontendPidLib.py
@@ -103,7 +103,7 @@ c0bfe44cfd746c385b7c8186df032ea2  ./install/glidecondor_upgrade
 785dfb8a08831cc2983152f264233791  ./install/glideinWMS.ini
 d87d0e217589fcb7a3f5b28339ca145d  ./install/manage-glideins
 1524a3cab15abde1a4c1c50b1f3417b9  ./install/services/Certificates.py
-a32e43ef719f698f40fc00cde21dffcb  ./install/services/Condor.py
+31e8aff406784cc51a3b47e6aaca289b  ./install/services/Condor.py
 2815d4e3a344ae0c202c598c51d418f6  ./install/services/Configuration.py
 5f9df7c2e6c6978856129a5e3c140a3b  ./install/services/Factory.py
 f8d19ab77b0e90d9144164b8fa743bfa  ./install/services/Glidein.py
