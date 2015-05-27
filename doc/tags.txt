@@ -1,7 +1,10 @@
 v3_2_10 Improved Documentation
-        Bug Fix: Frontend now correctly accounts multicore running slots
+        Bug Fix: Fixed several bugs in accounting of idle and running slots
+          in case of multicore glideins
         Bug Fix: Got rid of old style HTCondor default Memory & Disk
           requirements in the schedd configuration
+        Bug Fix: DAEMON_SHUTDOWN expression will now let the Multi core glidein
+          to run for appropriate time before killing it
 
 v3_2_9  VO Frontend supports a master-slave HA mode
         Added a factory wrapper script to view glidein logs files
