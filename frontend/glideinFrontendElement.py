@@ -1292,7 +1292,14 @@ class glideinFrontendElement:
         fe_counts = {'Idle':0, 'Total':0}
         global_counts = {'Idle':0, 'Total':0}
         status_schedd_dict = {}
-        multicore_constraint = '(PartitionableSlot=!=True) || (PartitionableSlot=?=True && cpus > 0 && memory > 1024)'
+        # Minimum free memory required by CMS jobs is 2500 MB. If we look for
+        # less memory in idle MC slot, there is a possibility that we consider
+        # it as an idle resource but non of the jobs would match it.
+        # In case of other VOs that require less memory, HTCondor will auto
+        # carve out a slot and there is a chance for over provisioing by a
+        # small amount. Over provisioning is by far the worst case than
+        # under provisioing.
+        mc_idle_constraint = '(PartitionableSlot=!=True) || (PartitionableSlot=?=True && cpus > 0 && memory > 2500)'
         try:
             # Always get the credential id used to submit the glideins
             # This is essential for proper accounting info related to running
@@ -1309,7 +1316,7 @@ class glideinFrontendElement:
                 status_format_list = list(status_format_list) + list(self.x509_proxy_plugin.get_required_classad_attributes())
 
             # Consider multicore slots with free cpus/memory only
-            constraint = '(GLIDECLIENT_Name=?="%s.%s") && (%s)' % (self.frontend_name, self.group_name, multicore_constraint)
+            constraint = '(GLIDECLIENT_Name=?="%s.%s") && (%s)' % (self.frontend_name, self.group_name, mc_idle_constraint)
             # use the main collector... all adds must go there
             status_dict = glideinFrontendLib.getCondorStatus(
                               [None],
@@ -1322,7 +1329,7 @@ class glideinFrontendElement:
             # really just interest in the counts
             try:
                 # Consider multicore slots with free cpus/memory only
-                constraint = '(substr(GLIDECLIENT_Name,0,%i)=?="%s.") && (%s)' % (len(self.frontend_name)+1, self.frontend_name, multicore_constraint)
+                constraint = '(substr(GLIDECLIENT_Name,0,%i)=?="%s.") && (%s)' % (len(self.frontend_name)+1, self.frontend_name, mc_idle_constraint)
 
                 fe_status_dict = glideinFrontendLib.getCondorStatus(
                                      [None],
@@ -1342,7 +1349,7 @@ class glideinFrontendElement:
             # same for all slots
             try:
                 # Consider multicore slots with free cpus/memory only
-                constraint = multicore_constraint
+                constraint = mc_idle_constraint
                 
                 global_status_dict = glideinFrontendLib.getCondorStatus(
                                          [None],
