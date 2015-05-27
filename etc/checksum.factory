@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_9
+# GLIDEINWMS_VERSION v3_2_10_rc1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -35,7 +35,7 @@ c438d82b7967e035a5f814c582087193  ./creation/web_base/condor_config
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
 68dfdebf47aa54c20d6ab998b12b4eed  ./creation/web_base/condor_config.multi_schedd.include
 e045ab0b0412b0e990c55e42d6b8fbe4  ./creation/web_base/condor_platform_select.sh
-c5cdaa14b6afd7e9f1ef225fe797f922  ./creation/web_base/condor_startup.sh
+cd0d278be3480e5aa1126f662e82f7fe  ./creation/web_base/condor_startup.sh
 7074223dc38c0426faaed3272dfadcf6  ./creation/web_base/condor_vars.lst
 baac24b5b0cfd0f134bc895cff30c183  ./creation/web_base/condor_vars.lst.entry
 227c8e3c61c2122ee6e3d6f81b3635b7  ./creation/web_base/create_mapfile.sh
@@ -133,7 +133,7 @@ c0bfe44cfd746c385b7c8186df032ea2  ./install/glidecondor_upgrade
 785dfb8a08831cc2983152f264233791  ./install/glideinWMS.ini
 d87d0e217589fcb7a3f5b28339ca145d  ./install/manage-glideins
 1524a3cab15abde1a4c1c50b1f3417b9  ./install/services/Certificates.py
-a32e43ef719f698f40fc00cde21dffcb  ./install/services/Condor.py
+31e8aff406784cc51a3b47e6aaca289b  ./install/services/Condor.py
 2815d4e3a344ae0c202c598c51d418f6  ./install/services/Configuration.py
 5f9df7c2e6c6978856129a5e3c140a3b  ./install/services/Factory.py
 f8d19ab77b0e90d9144164b8fa743bfa  ./install/services/Glidein.py
