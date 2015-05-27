@@ -581,8 +581,8 @@ def getIdleCondorStatus(status_dict):
                  lambda el:(
                      ( (el.get('State') == 'Unclaimed') and
                        (el.get('Activity') == 'Idle') and
-                       ( (el.get('PartitionableSlot') != True) or
-                         (el.get('PartitionableSlot')==True and el.get('Cpus',0)>0 and el.get('Memory', 2501) > 2500) or
+                       ( (el.get('PartitionableSlot', False) != True) or
+                         (el.get('Cpus',0)>0 and el.get('Memory', 2501) > 2500) or
                          (el.get('TotalSlots') == 1) 
                        )
                      )
@@ -662,8 +662,8 @@ def getIdleCoresCondorStatus(status_dict):
                  lambda el:(
                      ( (el.get('State') == 'Unclaimed') and
                        (el.get('Activity') == 'Idle') and
-                       ( (el.get('PartitionableSlot') != True) or
-                         (el.get('PartitionableSlot')==True and el.get('Cpus',0)>0 and el.get('Memory', 2501) > 2500) or
+                       ( (el.get('PartitionableSlot', False) != True) or
+                         (el.get('Cpus',0)>0 and el.get('Memory', 2501) > 2500) or
                          (el.get('TotalSlots') == 1) 
                        )
                      )
