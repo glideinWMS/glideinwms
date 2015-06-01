@@ -135,7 +135,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                 
         # set up the grid specific attributes
         if gridtype == 'ec2':
-            self.populate_ec2_grid()
+            self.populate_ec2_grid(submit_attrs)
         elif gridtype == 'condor':
             # Condor-C is the same as normal grid with a few additions
             # so we first do the normal population
@@ -211,17 +211,22 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add('+TransferOutput', '""')
         self.add('x509userproxy', '$ENV(X509_USER_PROXY)')
 
-    def populate_ec2_grid(self):
+    def populate_ec2_grid(self, submit_attrs):
         self.add("ec2_ami_id", "$ENV(AMI_ID)")
         self.add("ec2_instance_type", "$ENV(INSTANCE_TYPE)")
         self.add("ec2_access_key_id", "$ENV(ACCESS_KEY_FILE)")
         self.add("ec2_secret_access_key", "$ENV(SECRET_KEY_FILE)")
         self.add("ec2_keypair_file", "$ENV(CREDENTIAL_DIR)/ssh_key_pair.$(Cluster).$(Process).pem")
-        # We do not add the entire argument list to the userdata directly since we want to be able
-        # to change the argument list without having to modify every piece of code under the sun
-        # this way only the submit_glideins function has to change (and of course glidein_startup.sh)
+        # We do not add the entire argument list to the userdata directly
+        # since we want to be able to change the argument list without
+        # having to modify every piece of code under the sun this way
+        # only the submit_glideins function has to change (and of course
+        # glidein_startup.sh)
         self.add("ec2_user_data", "$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####")
         self.add("ec2_user_data_file", "$ENV(GLIDEIN_PROXY_FNAME)")
+
+        # Support EC2 spot pricing and other ec2 options using submit attrs
+        self.populate_submit_attrs(submit_attrs)
 
     def populate_glidein_classad(self, proxy_url):
         # add in the classad attributes for the WMS collector
