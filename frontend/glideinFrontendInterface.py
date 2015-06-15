@@ -600,8 +600,8 @@ class AdvertizeParams:
                  min_nr_glideins, max_run_glideins,
                  glidein_params={}, glidein_monitors={},
                  glidein_monitors_per_cred={},
-                 glidein_params_to_encrypt=None, # params_to_encrypt needs key_obj
-                 security_name=None, # needs key_obj
+                 glidein_params_to_encrypt=None,  # params_to_encrypt needs key_obj
+                 security_name=None,  # needs key_obj
                  remove_excess_str=None):
         self.request_name = request_name
         self.glidein_name = glidein_name
@@ -654,25 +654,25 @@ def advertizeWorkFromFile(factory_pool,
 class MultiAdvertizeWork:
     def __init__(self,
                  descript_obj):        # must be of type FrontendDescript
-        self.descript_obj=descript_obj
-        self.factory_queue={}          # will have a queue x factory, each element is list of tuples (params_obj, key_obj)
-        self.global_pool=[]
-        self.global_key={}
-        self.global_params={}
-        self.factory_constraint={}
+        self.descript_obj = descript_obj
+        self.factory_queue = {}          # will have a queue x factory, each element is list of tuples (params_obj, key_obj)
+        self.global_pool = []
+        self.global_key = {}
+        self.global_params = {}
+        self.factory_constraint = {}
 
         # set a few defaults
-        self.unique_id=1
-        self.adname=None
-        self.x509_proxies_data=[]
-        
+        self.unique_id = 1
+        self.adname = None
+        self.x509_proxies_data = []
+        self.ha_mode = 'master'
 
     # add a request to the list
     def add(self,
             factory_pool,
-            request_name,glidein_name,
-            min_nr_glideins,max_run_glideins,
-            glidein_params={},glidein_monitors={},
+            request_name, glidein_name,
+            min_nr_glideins, max_run_glideins,
+            glidein_params={}, glidein_monitors={},
             glidein_monitors_per_cred={},
             key_obj=None,                     # must be of type FactoryKeys4Advertize
             glidein_params_to_encrypt=None,   # params_to_encrypt needs key_obj
@@ -682,11 +682,11 @@ class MultiAdvertizeWork:
             auth_method="Any",
             ha_mode='master'):
 
-        params_obj=AdvertizeParams(request_name,glidein_name,
-                                   min_nr_glideins,max_run_glideins,
-                                   glidein_params,glidein_monitors,
+        params_obj=AdvertizeParams(request_name, glidein_name,
+                                   min_nr_glideins, max_run_glideins,
+                                   glidein_params, glidein_monitors,
                                    glidein_monitors_per_cred,
-                                   glidein_params_to_encrypt,security_name,
+                                   glidein_params_to_encrypt, security_name,
                                    remove_excess_str)
 
         if not self.factory_queue.has_key(factory_pool):
@@ -819,7 +819,6 @@ class MultiAdvertizeWork:
                 logSupport.log.exception("Advertising globals failed for factory pool %s: " % factory_pool)
         return [] # no files left to be advertised
     
-                
     def createGlobalAdvertizeWorkFile(self, factory_pool):
             """
             Create the advertize file for globals with credentials
@@ -970,7 +969,7 @@ class MultiAdvertizeWork:
         
         descript_obj=self.descript_obj
         
-        logSupport.log.debug("In create Advertize work");
+        logSupport.log.debug("In create Advertize work")
 
         factory_trust,factory_auth=self.factory_constraint[params_obj.request_name]
 
