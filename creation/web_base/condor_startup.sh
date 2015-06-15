@@ -11,13 +11,13 @@
 
 #function to handle passing signals to the child processes
 function on_die {
-echo "Condor startup received kill signal... shutting down condor processes"
-$CONDOR_DIR/sbin/condor_master -k $PWD/condor_master2.pid
-ON_DIE=1
+    echo "Condor startup received kill signal... shutting down condor processes"
+    $CONDOR_DIR/sbin/condor_master -k $PWD/condor_master2.pid
+    ON_DIE=1
 }
 
 function ignore_signal {
-        echo "Condor startup received SIGHUP signal, ignoring..."
+    echo "Condor startup received SIGHUP signal, ignoring..."
 }
 
 metrics=""
@@ -28,7 +28,7 @@ GLIDEIN_CPUS=1
 # first of all, clean up any CONDOR variable
 condor_vars=`env |awk '/^_[Cc][Oo][Nn][Dd][Oo][Rr]_/{split($1,a,"=");print a[1]}'`
 for v in $condor_vars; do
- unset $v
+    unset $v
 done
 echo "Removed condor variables $condor_vars" 1>&2
 
