@@ -975,7 +975,8 @@ MAX_CONCURRENT_UPLOADS = 100
 MAX_CONCURRENT_DOWNLOADS = 100
 
 #--  Prevent checking on ImageSize
-APPEND_REQ_VANILLA = (Memory>=1) && (Disk>=1)
+# No need to support APPEND_REQ_VANILLA expressions any more
+#APPEND_REQ_VANILLA = (Memory>=1) && (Disk>=1)
 # New in 7.8.x
 JOB_DEFAULT_REQUESTMEMORY=1024
 JOB_DEFAULT_REQUESTDISK=1

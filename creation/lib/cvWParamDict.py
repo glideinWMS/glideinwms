@@ -84,8 +84,12 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         
         self.dicts['consts'].add('GLIDECLIENT_Start',real_start_expr)
         
-        # create GLIDEIN_Collector attribute
-        self.dicts['params'].add_extended('GLIDEIN_Collector',False,str(calc_glidein_collectors(params.collectors)))
+        # create GLIDEIN_Collector attribute 
+        self.dicts['params'].add_extended('GLIDEIN_Collector', False, str(calc_glidein_collectors(params.collectors)))
+        # create GLIDEIN_CCB attribute only if CCBs list is in config file
+        tmp_glidein_ccbs_string = str(calc_glidein_ccbs(params.ccbs))
+        if tmp_glidein_ccbs_string:
+            self.dicts['params'].add_extended('GLIDEIN_CCB', False, tmp_glidein_ccbs_string)
         populate_gridmap(params,self.dicts['gridmap'])
 
         if self.dicts['preentry_file_list'].is_placeholder(cWConsts.GRIDMAP_FILE): # gridmapfile is optional, so if not loaded, remove the placeholder
@@ -536,6 +540,7 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('CurbRunningTotal',params.config.running_glideins_total.curb)
         frontend_dict.add('MaxRunningTotalGlobal',params.config.running_glideins_total_global.max)
         frontend_dict.add('CurbRunningTotalGlobal',params.config.running_glideins_total_global.curb)
+        frontend_dict.add('HighAvailability', params.high_availability)
 
 #######################
 # Populate group descript
@@ -751,18 +756,31 @@ def calc_glidein_collectors(collectors):
             glidein_collectors.append(string.join(collector_nodes[group]['primary'], ","))
     return string.join(glidein_collectors, ";")
 
+#####################################################
+# Returns a string usable for GLIDEIN_CCB
+def calc_glidein_ccbs(collectors):
+    # All CCB collectors are equivalent
+    glidein_ccbs = []
+
+    for el in collectors:
+        cWDictFile.validate_node(el.node,allow_prange=True)
+        glidein_ccbs.append(el.node)
+    return string.join(glidein_ccbs, ",")
 
 #####################################################
 # Populate gridmap to be used by the glideins
 def populate_gridmap(params,gridmap_dict):
     collector_dns=[]
-    for el in params.collectors:
-        dn=el.DN
-        if dn is None:
-            raise RuntimeError,"DN not defined for pool collector %s"%el.node
-        if not (dn in collector_dns): #skip duplicates
-            collector_dns.append(dn)
-            gridmap_dict.add(dn,'collector%i'%len(collector_dns))
+    for coll_list in (params.collectors, params.ccbs):
+        # Add both collectors and CCB DNs (if any). Duplicates are skipped 
+        # The name is for both collector%i.
+        for el in coll_list:
+            dn=el.DN
+            if dn is None:
+                raise RuntimeError,"DN not defined for pool collector or CCB %s"%el.node
+            if not (dn in collector_dns):  #skip duplicates
+                collector_dns.append(dn)
+                gridmap_dict.add(dn,'collector%i'%len(collector_dns))
 
     # Add also the frontend DN, so it is easier to debug
     if params.security.proxy_DN is not None:
