@@ -953,7 +953,7 @@ described below ar the most often used.</P>
         <TD>
             <p>This attribute regulates advertising of validation failures to the user collector.
             <ul>
-              <li><b>NEVER</b> - The glidein will just fail, and do nothing.
+              <li><b>NEVER</b> - The glidein will just fail, and do nothing. (default)
               <li><b>ALIVEONLY</b> - The glidein will advertise a Machine ClassAd in <i>Drained</i> state and <i>Retiring</i> activity for the lifetime of the glidein script.
               <li><b>ALWAYS</b> - Similar to <b>ALIVEONLY</b>, but will also send a final ClassAd in <i>Drained</i> state and <i>Killing</i> activity just before dying.
             </ul>
