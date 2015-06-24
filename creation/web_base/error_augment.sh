@@ -166,15 +166,22 @@ function init_file() {
 # concatenate the augmented file to the list                #
 # --------------------------------------------------------- #
 function concat_file() {
-    if [ -f otr_outlist.list ]; then
-      chmod u+w otr_outlist.list
+    fpath="otr_outlist.list"
+    if [ -f "$fpath" ]; then
+        chmod u+w "$fpath"
     else
-      touch otr_outlist.list
+        base_dir="$( cd "$(dirname "$0")/.." ; pwd -P )"
+        fpath="$base_dir/otr_outlist.list"
+        if [ -f "$fpath" ]; then
+            chmod u+w "$fpath"
+        else
+            touch "$fpath"
+        fi
     fi
     # strip out any spurious items
-    cat otrx_output.xml |awk 'BEGIN{fr=0;}/<OSGTestResult/{fr=1;}{if (fr==1) print $0}/<[/]OSGTestResult>/{fr=0;}' >> otr_outlist.list
+    cat otrx_output.xml |awk 'BEGIN{fr=0;}/<OSGTestResult/{fr=1;}{if (fr==1) print $0}/<[/]OSGTestResult>/{fr=0;}' >> "$fpath"
     # make sure it is not modified by mistake by any test script
-    chmod a-w otr_outlist.list
+    chmod a-w "$fpath"
     return
 }
 
