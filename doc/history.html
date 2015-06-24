@@ -85,6 +85,38 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
+        <b>v3_2_10</b> released on June 01, 2015 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_10/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_10/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_10.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Improved Documentation
+          <li>Bug Fix: Fixed several bugs in accounting of idle and running
+          slots in case of multicore glideins
+          <li>Bug Fix: Got rid of old style HTCondor default Memory and Disk
+          requirements in the schedd configuration
+          <li>Bug Fix: DAEMON_SHUTDOWN expression will now let the Multi core
+          glidein to run for appropriate time before killing it
+        </ul>
+      </li>
+      <li>
+        <b>v3_2_9</b> released on May 08, 2015 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_9/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_9/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_9.tgz">Tarball</a>)<br>
+        <ul>
+          <li>VO Frontend supports a master-slave HA mode
+          <li>Added a factory wrapper script to view glidein logs files
+          <li>Updated the dependency of Glideinwms to HTCondor v8.2.2
+          <li>Frontend supports CCBs in addition to User Collector
+          <li>Updated documentation
+          <li>Bug Fix: glideresource classads now contain appropriate monitoring
+          information
+          <li>Bug Fix: Fixed a bug where an unhandled exception would cause a
+          frontend to shutdown
+          <li>Bug Fix: Removed obsolute defult requirement for vanilla jobs in
+          user schedd's config file
+          <li>Bug Fix: Glidein now works correctly when both grid/voms-proxy
+          commands are not available on the worker node
+          <li>Bug Fix: GlideinWMSVersion is now correctly reported in rpm
+          distribution
+        </ul>
+      </li>
+      <li>
         <b>v3_2_8</b> released on December 30, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_8/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_8/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_8.tgz">Tarball</a>)<br>
         <ul>
           <li>VO Frontend parameters are added to HTCondor config for ganglia

@@ -115,31 +115,59 @@ advertizeGCGounter = {}
 # User functions
 #
 ############################################################
-def findGlobals(factory_pool,factory_identity,
-                 additional_constraint=None): 
-    global frontendConfig
-    status_constraint='(GlideinMyType=?="%s")'%frontendConfig.factory_global
-    if not ((factory_identity is None) or (factory_identity=='*')): # identity checking can be disabled, if really wanted
+def findGlobals(pool_name, auth_identity, classad_type,
+                additional_constraint=None): 
+    """
+    Query the given pool to find the globals classad.
+    Can be used to query glidefactoryglobal and glidefrontendglobal classads.
+    """
+
+    status_constraint = '(GlideinMyType=?="%s")' % classad_type
+
+    # identity checking can be disabled, if really wanted
+    if not ((auth_identity is None) or (auth_identity=='*')):
         # filter based on AuthenticatedIdentity
-        status_constraint+=' && (AuthenticatedIdentity=?="%s")'%factory_identity
+        status_constraint += ' && (AuthenticatedIdentity=?="%s")' % auth_identity
+
     if additional_constraint is not None:
-        status_constraint="%s && (%s)"%(status_constraint,additional_constraint)
-    status=condorMonitor.CondorStatus("any",pool_name=factory_pool)
-    status.require_integrity(True) #important, especially for proxy passing
+        status_constraint = '%s && (%s)' % (status_constraint,
+                                            additional_constraint)
+
+    status = condorMonitor.CondorStatus('any', pool_name=pool_name)
+    #important, especially for proxy passing
+    status.require_integrity(True)
     status.load(status_constraint)
-    
-    data=status.fetchStored()
+    data = status.fetchStored()
+
     return format_condor_dict(data)
     
 
+def findMasterFrontendClassads(pool_name, frontend_name):
+    """
+    Query the given pool to find master frontend classads
+    """
+
+    status_constraint = '(GlideinMyType=?="%s")||(GlideinMyType=?="%s")' % ('glideclientglobal', 'glideclient')
+    frontend_constraint = '(FrontendName=?="%s")&&(FrontendHAMode=!="slave")' % frontend_name
+
+    status = condorMonitor.CondorStatus('any', pool_name=pool_name)
+    #important, especially for proxy passing
+    status.require_integrity(True)
+    status.load('(%s)&&(%s)' % (status_constraint, frontend_constraint))
+    data = status.fetchStored()
+
+    return format_condor_dict(data)
+
+
 # can throw condorExe.ExeError
 def findGlideins(factory_pool, factory_identity,
-                 signtype,
-                 additional_constraint=None):
+                 signtype, additional_constraint=None):
     global frontendConfig
 
     status_constraint = '(GlideinMyType=?="%s")' % frontendConfig.factory_id
-    if not ((factory_identity is None) or (factory_identity == '*')): # identity checking can be disabled, if really wanted
+
+    # identity checking can be disabled, if really wanted
+    if not ((factory_identity is None) or (factory_identity == '*')):
         # filter based on AuthenticatedIdentity
         status_constraint += ' && (AuthenticatedIdentity=?="%s")' % factory_identity
 
@@ -150,42 +178,51 @@ def findGlideins(factory_pool, factory_identity,
     # type and trust domain
 
     if additional_constraint is not None:
-        status_constraint = "%s && (%s)" % (status_constraint, additional_constraint)
+        status_constraint += ' && (%s)' % additional_constraint
+
     status = condorMonitor.CondorStatus("any", pool_name=factory_pool)
     status.require_integrity(True) #important, especially for proxy passing
     status.load(status_constraint)
 
-    data = status.fetchStored()    
+    data = status.fetchStored()
     return format_condor_dict(data)
 
 
-def findGlideinClientMonitoring(factory_pool, my_name,
-                                additional_constraint=None):
+def findGlideinClientMonitoring(factory_pool, factory_identity,
+                                my_name, additional_constraint=None):
     global frontendConfig
 
     status_constraint = '(GlideinMyType=?="%s")' % frontendConfig.factoryclient_id
+
+    # identity checking can be disabled, if really wanted
+    if not ((factory_identity is None) or (factory_identity == '*')):
+        # filter based on AuthenticatedIdentity
+        status_constraint += ' && (AuthenticatedIdentity=?="%s")' % factory_identity
+
     if my_name is not None:
-        status_constraint = '%s && (ReqClientName=?="%s")' % my_name
+        status_constraint += ' && (ReqClientName=?="%s")' % my_name
+
     if additional_constraint is not None:
-        status_constraint = "%s && (%s)" % (status_constraint, additional_constraint)
+        status_constraint += ' && (%s)' % additional_constraint
     status = condorMonitor.CondorStatus("any", pool_name=factory_pool)
     status.load(status_constraint)
 
     data = status.fetchStored()
     return format_condor_dict(data)
 
+
 def format_condor_dict(data):
     """
     Formats the data from the condor call.
-    """    
-    
+    """
+
     reserved_names = frontendConfig.condor_reserved_names
     for k in reserved_names:
         if data.has_key(k):
             del data[k]
-    
+
     out = {}
-    
+
     for k in data.keys():
         kel = data[k].copy()
 
@@ -430,7 +467,7 @@ class FrontendDescript:
                  my_name,frontend_name,group_name,
                  web_url, main_descript, group_descript,
                  signtype, main_sign, group_sign,
-                 x509_proxies_plugin=None):
+                 x509_proxies_plugin=None, ha_mode='master'):
         self.my_name=my_name
         self.frontend_name=frontend_name
         self.web_url=web_url
@@ -442,6 +479,7 @@ class FrontendDescript:
         self.group_name=group_name
         self.group_descript=group_descript
         self.group_sign=group_sign
+        self.ha_mode=ha_mode
 
     # Accessor method for monitoring web url
     def add_monitoring_url(self, monitoring_web_url):
@@ -454,6 +492,7 @@ class FrontendDescript:
     def get_id_attrs(self):
         return ('ClientName = "%s"'%self.my_name,
                 'FrontendName = "%s"'%self.frontend_name,
+                'FrontendHAMode = "%s"'%self.ha_mode,
                 'GroupName = "%s"'%self.group_name)
 
     def get_web_attrs(self):
@@ -561,8 +600,8 @@ class AdvertizeParams:
                  min_nr_glideins, max_run_glideins,
                  glidein_params={}, glidein_monitors={},
                  glidein_monitors_per_cred={},
-                 glidein_params_to_encrypt=None, # params_to_encrypt needs key_obj
-                 security_name=None, # needs key_obj
+                 glidein_params_to_encrypt=None,  # params_to_encrypt needs key_obj
+                 security_name=None,  # needs key_obj
                  remove_excess_str=None):
         self.request_name = request_name
         self.glidein_name = glidein_name
@@ -615,44 +654,46 @@ def advertizeWorkFromFile(factory_pool,
 class MultiAdvertizeWork:
     def __init__(self,
                  descript_obj):        # must be of type FrontendDescript
-        self.descript_obj=descript_obj
-        self.factory_queue={}          # will have a queue x factory, each element is list of tuples (params_obj, key_obj)
-        self.global_pool=[]
-        self.global_key={}
-        self.global_params={}
-        self.factory_constraint={}
+        self.descript_obj = descript_obj
+        self.factory_queue = {}          # will have a queue x factory, each element is list of tuples (params_obj, key_obj)
+        self.global_pool = []
+        self.global_key = {}
+        self.global_params = {}
+        self.factory_constraint = {}
 
         # set a few defaults
-        self.unique_id=1
-        self.adname=None
-        self.x509_proxies_data=[]
-        
+        self.unique_id = 1
+        self.adname = None
+        self.x509_proxies_data = []
+        self.ha_mode = 'master'
 
     # add a request to the list
     def add(self,
             factory_pool,
-            request_name,glidein_name,
-            min_nr_glideins,max_run_glideins,
-            glidein_params={},glidein_monitors={},
+            request_name, glidein_name,
+            min_nr_glideins, max_run_glideins,
+            glidein_params={}, glidein_monitors={},
             glidein_monitors_per_cred={},
             key_obj=None,                     # must be of type FactoryKeys4Advertize
             glidein_params_to_encrypt=None,   # params_to_encrypt needs key_obj
             security_name=None,               # needs key_obj
             remove_excess_str=None,
             trust_domain="Any",
-            auth_method="Any"):
+            auth_method="Any",
+            ha_mode='master'):
 
-        params_obj=AdvertizeParams(request_name,glidein_name,
-                                   min_nr_glideins,max_run_glideins,
-                                   glidein_params,glidein_monitors,
+        params_obj=AdvertizeParams(request_name, glidein_name,
+                                   min_nr_glideins, max_run_glideins,
+                                   glidein_params, glidein_monitors,
                                    glidein_monitors_per_cred,
-                                   glidein_params_to_encrypt,security_name,
+                                   glidein_params_to_encrypt, security_name,
                                    remove_excess_str)
 
         if not self.factory_queue.has_key(factory_pool):
             self.factory_queue[factory_pool] = []
         self.factory_queue[factory_pool].append((params_obj, key_obj))
         self.factory_constraint[params_obj.request_name]=(trust_domain, auth_method)
+        self.ha_mode = ha_mode
 
     def add_global(self,factory_pool,request_name,security_name,key_obj):
         self.global_pool.append(factory_pool)
@@ -778,7 +819,6 @@ class MultiAdvertizeWork:
                 logSupport.log.exception("Advertising globals failed for factory pool %s: " % factory_pool)
         return [] # no files left to be advertised
     
-                
     def createGlobalAdvertizeWorkFile(self, factory_pool):
             """
             Create the advertize file for globals with credentials
@@ -807,6 +847,7 @@ class MultiAdvertizeWork:
             fd.write('GlideinWMSVersion = "%s"\n'%frontendConfig.glideinwms_version)
             fd.write('Name = "%s"\n'%classad_name)
             fd.write('FrontendName = "%s"\n'%self.descript_obj.frontend_name)
+            fd.write('FrontendHAMode = "%s"\n'%self.ha_mode)
             fd.write('GroupName = "%s"\n'%self.descript_obj.group_name)
             fd.write('ClientName = "%s"\n'%self.descript_obj.my_name)
             for i in range(nr_credentials):
@@ -928,7 +969,7 @@ class MultiAdvertizeWork:
         
         descript_obj=self.descript_obj
         
-        logSupport.log.debug("In create Advertize work");
+        logSupport.log.debug("In create Advertize work")
 
         factory_trust,factory_auth=self.factory_constraint[params_obj.request_name]
 
@@ -1105,7 +1146,7 @@ def writeTypedClassadAttrToFile(fd, attr_name, attr_value):
 
 
 # Remove ClassAd from Collector
-def deadvertizeAllWork(factory_pool, my_name):
+def deadvertizeAllWork(factory_pool, my_name, ha_mode='master'):
     """
     Removes all work requests for the client in the factory.
     """
@@ -1117,7 +1158,7 @@ def deadvertizeAllWork(factory_pool, my_name):
         try:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % frontendConfig.client_id)
-            fd.write('Requirements = (ClientName == "%s") && (GlideinMyType == "%s")\n' % (my_name, frontendConfig.client_id))
+            fd.write('Requirements = (ClientName == "%s") && (GlideinMyType == "%s") && (FrontendHAMode == "%s")\n' % (my_name, frontendConfig.client_id, ha_mode))
         finally:
             fd.close()
 
@@ -1125,7 +1166,7 @@ def deadvertizeAllWork(factory_pool, my_name):
     finally:
         os.remove(tmpnam)
 
-def deadvertizeAllGlobals(factory_pool, my_name):
+def deadvertizeAllGlobals(factory_pool, my_name, ha_mode='master'):
     """
     Removes all globals classads for the client in the factory.
     """
@@ -1137,7 +1178,7 @@ def deadvertizeAllGlobals(factory_pool, my_name):
         try:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n' % frontendConfig.client_global)
-            fd.write('Requirements = (ClientName == "%s") && (GlideinMyType == "%s")\n' % (my_name, frontendConfig.client_global))
+            fd.write('Requirements = (ClientName == "%s") && (GlideinMyType == "%s") && (FrontendHAMode == "%s")\n' % (my_name, frontendConfig.client_global, ha_mode))
         finally:
             fd.close()
 
@@ -1184,7 +1225,7 @@ class ResourceClassad(classadSupport.Classad):
             advertizeGRCounter[self.adParams['Name']] = 0
         self.adParams['UpdateSequenceNumber'] = advertizeGRCounter[self.adParams['Name']]
 
-    def setFrontendDetails(self, frontend_name, group_name):
+    def setFrontendDetails(self, frontend_name, group_name, ha_mode):
         """
         Add the detailed description of the frontend.
         @type frontend_name: string
@@ -1194,6 +1235,7 @@ class ResourceClassad(classadSupport.Classad):
         """
         self.adParams['GlideFrontendName'] = "%s" % frontend_name
         self.adParams['GlideGroupName'] = "%s" % group_name
+        self.adParams['GlideFrontendHAMode'] = "%s" % ha_mode
         
     def setMatchExprs(self, match_expr, job_query_expr, factory_query_expr, start_expr):
         """
@@ -1228,8 +1270,8 @@ class ResourceClassad(classadSupport.Classad):
     def setGlideClientMonitorInfo(self, monitorInfo):
         """
         Set the GlideClientMonitor* for the resource in the classad
-        
-        @type monitorInfo: list 
+
+        @type monitorInfo: list
         @param monitorInfo: GlideClientMonitor information.
         """
 
@@ -1253,7 +1295,7 @@ class ResourceClassad(classadSupport.Classad):
             self.adParams['GlideClientMonitorGlideinsRequestMaxRun'] = monitorInfo[16]
         else:
             raise RuntimeError, 'Glide client monitoring structure changed. Resource ad may have incorrect GlideClientMonitor values'
-    
+
 
     def setEntryInfo(self, info):
         """
@@ -1280,21 +1322,22 @@ class ResourceClassad(classadSupport.Classad):
         """
         Set the GlideinFactoryMonitor* for the resource in the classad
 
-        @type info: string 
+        @type info: string
         @param info: Useful information from the glidefactoryclient classad
         """
-        
+
         # Required keys do not start with TotalClientMonitor but only
-        # start with Total. Substitute Total with GlideFactoryMonitor
-        # and put it in the classad
-        
+        # start with Total or Status or Requested. Append GlideFactoryMonitor
+        # to these keys and put them in the classad
+
         for key in info.keys():
+            ad_key = key
             if not key.startswith('TotalClientMonitor'):
-                if key.startswith('Total'):
-                    ad_key = key.replace('Total', 'GlideFactoryMonitor', 1)
+                if key.startswith('Total') or key.startswith('Status') or key.startswith('Requested'):
+                    ad_key = 'GlideFactoryMonitor' + key
                     self.adParams[ad_key] = info[key]
-    
-    
+
+
 class ResourceClassadAdvertiser(classadSupport.ClassadAdvertiser):
     """
     Class to handle the advertisement of resource classads to the user pool

@@ -6,7 +6,7 @@
 #
 # Description:
 #   This is an include file for glidein_startup.sh
-#   It has the routins to create grid and condor mapfiles
+#   It has the routines to create grid and condor mapfiles
 #
 
 config_file="$1"
@@ -37,19 +37,22 @@ function get_proxy_fname {
 # add the current DN to the list of allowed DNs
 # create a new file if none exist
 function create_gridmapfile {
-    id=`grid-proxy-info -identity`
+    proxy_cmd="grid-proxy-info"
+    id=`grid-proxy-info -identity 2>/dev/null`
     if [ $? -ne 0 ]; then
-        id=`voms-proxy-info -identity`
+        proxy_cmd="voms-proxy-info"
+        id=`voms-proxy-info -identity 2>/dev/null`
         if [ $? -ne 0 ]; then
             # "openssl x509 -noout -issuer .." works for proxys but may be a CA for certificates
             # did not find something to extract the identity, filtering manually
             cert_fname="`get_proxy_fname`"
+            proxy_cmd="openssl/$cert_fname"
             id_subject=`openssl x509 -noout -subject -in "$cert_fname" | cut -c10-`
-            if [ $? -ne 0 ]; then
+            if [ $? -ne 0 -o "x$id_subject" = "x" ]; then
                 STR="Cannot get user identity.\n"
                 STR+="Tried all grid-proxy-info, voms-proxy-info and openssl x509."
 	        STR1=`echo -e "$STR"`
-                "$error_gen" -error "create_mapfile.sh" "WN_Resource" "$STR1" "command" "grid-proxy-info"
+                "$error_gen" -error "create_mapfile.sh" "WN_Resource" "$STR1" "command" "$proxy_cmd"
                 exit 1
             fi
             # can I use bash variables? id="${id_subject%%/CN=proxy*}"
@@ -57,13 +60,14 @@ function create_gridmapfile {
             id="$id_subject"
         fi
     fi
+    echo "ID ($id) retrieved using $proxy_cmd" 1>&2
 
     idp=`echo $id |awk '{split($0,a,"/CN=proxy"); print a[1]}'`
     if [ $? -ne 0 ]; then
 	#echo "Cannot remove proxy part from user identity!" 1>&2
 	STR="Cannot remove proxy part from user identity."
 	# probably could be classified better... but short on ideas
-	"$error_gen" -error "create_mapfile.sh" "WN_Resource" "$STR" "command" "grid-proxy-info"
+	"$error_gen" -error "create_mapfile.sh" "WN_Resource" "$STR" "command" "$proxy_cmd"
 	exit 1
     fi
 

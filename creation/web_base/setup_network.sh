@@ -34,15 +34,18 @@ use_ccb=`grep '^USE_CCB ' $glidein_config | awk '{print $2}'`
 if [ "$use_ccb" == "True" -o "$use_ccb" == "TRUE" -o "$use_ccb" == "T" -o "$use_ccb" == "Yes" -o "$use_ccb" == "Y" -o "$use_ccb" == "1" ]; then
     # ok, we need to define CCB variable
 
-    collector_host=`grep '^GLIDEIN_Collector ' $glidein_config | awk '{print $2}'`
-    if [ -z "$collector_host" ]; then
-        #echo "No GLIDEIN_Collector found!" 1>&2
-        STR="No GLIDEIN_Collector found!"
-        "$error_gen" -error "setup_network.sh" "Corruption" "$STR" "attribute" "GLIDEIN_Collector"
-        exit 1
+    ccb_host=`grep '^GLIDEIN_CCB ' $glidein_config | awk '{print $2}'`
+    if [ -z "$ccb_host" ]; then
+        ccb_host=`grep '^GLIDEIN_Collector ' $glidein_config | awk '{print $2}'`
+        if [ -z "$ccb_host" ]; then
+            #echo "No GLIDEIN_Collector found!" 1>&2
+            STR="No GLIDEIN_CCB or GLIDEIN_Collector found!"
+            "$error_gen" -error "setup_network.sh" "Corruption" "$STR" "attribute" "GLIDEIN_Collector"
+            exit 1
+        fi
     fi
 
-    add_config_line CCB_ADDRESS $collector_host
+    add_config_line CCB_ADDRESS $ccb_host
     # and export it to Condor
     add_condor_vars_line CCB_ADDRESS C "-" "+" Y N "-"
     out_ccb_str="True"

@@ -11,13 +11,13 @@
 
 #function to handle passing signals to the child processes
 function on_die {
-echo "Condor startup received kill signal... shutting down condor processes"
-$CONDOR_DIR/sbin/condor_master -k $PWD/condor_master2.pid
-ON_DIE=1
+    echo "Condor startup received kill signal... shutting down condor processes"
+    $CONDOR_DIR/sbin/condor_master -k $PWD/condor_master2.pid
+    ON_DIE=1
 }
 
 function ignore_signal {
-        echo "Condor startup received SIGHUP signal, ignoring..."
+    echo "Condor startup received SIGHUP signal, ignoring..."
 }
 
 metrics=""
@@ -28,7 +28,7 @@ GLIDEIN_CPUS=1
 # first of all, clean up any CONDOR variable
 condor_vars=`env |awk '/^_[Cc][Oo][Nn][Dd][Oo][Rr]_/{split($1,a,"=");print a[1]}'`
 for v in $condor_vars; do
- unset $v
+    unset $v
 done
 echo "Removed condor variables $condor_vars" 1>&2
 
@@ -287,6 +287,9 @@ chmod a+x $condor_job_wrapper
 #let "max_job_time=$job_max_hours * 3600"
 
 now=`date +%s`
+# If not an integer reset to 0 (a string could cause errors [#7899])
+[ "$X509_EXPIRE" -eq "$X509_EXPIRE" ] 2>/dev/null || X509_EXPIRE=0
+
 #add some safety margin
 let "x509_duration=$X509_EXPIRE - $now - 300"
 
@@ -602,7 +605,7 @@ DS${I}_IDLE_TAIL_PRE82 = ((Slot${I}_TotalTimeUnclaimedIdle =!= UNDEFINED) && (GL
         (Slot${I}_TotalTimeUnclaimedIdle > GLIDEIN_Max_Tail))
 DS${I}_IDLE_TAIL = ((GLIDEIN_Max_Tail =!= UNDEFINED) && \\
         ifThenElse(\$(DS${I}_IS_HTCONDOR_NEW), \$(DS${I}_IDLE_TAIL_NEW), \$(DS${I}_IDLE_TAIL_PRE82)))
-DS${I}_IDLE_RETIRE = ((GLIDEIN_ToRetire =!= UNDEFINED) && \\
+DS${I}_IDLE_RETIRE = (\$(DS${I}_NOT_PARTITIONABLE) && (GLIDEIN_ToRetire =!= UNDEFINED) && \\
        (CurrentTime > GLIDEIN_ToRetire ))
 DS${I}_IDLE = ( (Slot${I}_Activity == "Idle") && \\
         (\$(DS${I}_IDLE_NOJOB) || \$(DS${I}_IDLE_TAIL) || \$(DS${I}_IDLE_RETIRE)) )
