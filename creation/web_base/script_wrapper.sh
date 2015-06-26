@@ -11,6 +11,18 @@
 #   Runs as startd_cron:  stdout is interpreted as classad
 # 
 # script_wrapper "$glidein_config" "$s_ffb_id" "$s_name" "$s_fname" 
+#
+# Attributes/files used:
+#  ERROR_GEN_PATH
+#  add_config_line.source
+# Attributes returned:
+#  GLIDEIN_PS_FAILED_LIST - list of scripts that failed at least once
+#  GLIDEIN_PS_FAILING_LIST - list of scripts that failed last execution
+#  GLIDEIN_PS_OK - True is no script failed its last execution (GLIDEIN_PS_FAILING_LIST is empty)
+#  GLIDEIN_PS_FAILED_LAST - name ot the last script that failed execution
+#  GLIDEIN_PS_FAILED_LAST_REASON - string describing the last failure
+#  GLIDEIN_PS_LAST (w/ error_gen) - file path of the last script
+#  prefix GLIDEIN_PS_ (w/ error_gen) - the wrapper returns the prefix used (GLIDEIN_PS_)
 
 # find the real path even if realpath is not installed
 # realpath file
@@ -33,7 +45,7 @@ error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
 
 if [ -z "$3" ]; then
     # no script passed, invoked by the initial test
-    "$error_gen" -ok  "script_wrapper.sh" "prefix" "GLIDEIN_PS_"
+    "$error_gen" -ok  "script_wrapper.sh" GLIDEIN_PS_LAST "script_wrapper.sh" "prefix" "GLIDEIN_PS_"
     exit 0
 fi
 
@@ -101,7 +113,11 @@ function failed {
     echo "-"
     error_type=Corruption
     [ -n "$2" ] && error_type="$2" 
-    "$error_gen" -error "script_wrapper.sh" error_type "$1" 
+    "$error_gen" -error "script_wrapper.sh" $error_type "$1" GLIDEIN_PS_LAST "$s_fname"
+    # cleanup
+    cd "$start_dir"
+    [ -d "$tmp_dir" ] && rm -r "$tmp_dir"
+    # exit
     [ -n "$3" ] && exit $3
     exit 1
 }
@@ -151,12 +167,14 @@ if [ $ret -ne 0 ]; then
     [ -n "$verbose" ] || $(cat otrx_output.xml | awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}' 1>&2)
     # add also the the failed/failing lists
     failed "Error running '$s_fname'"
-else
-    # Ran successfully 
-    vmessage "=== Periodic script ran OK: $s_fname ===" 
-    list_manage del $s_name GLIDEIN_PS_FAILING_LIST
-    echo "-"
-fi
+fi 
+
+# Ran successfully (failed includes exit)
+vmessage "=== Periodic script ran OK: $s_fname ===" 
+list_manage del $s_name GLIDEIN_PS_FAILING_LIST
+echo "-"
+
+"$error_gen" -ok  "script_wrapper.sh" GLIDEIN_PS_LAST "$s_fname"
 
 ### End cleanup
 cd "$start_dir"
