@@ -9,10 +9,12 @@
 #   And other support functions
 #
 
-import os,os.path,string,shutil,copy
+import os,os.path  # string
+import shutil
+import copy
 import socket
-from glideinwms.lib import hashCrypto
 import cStringIO
+from glideinwms.lib import hashCrypto
 
 ########################################
 #

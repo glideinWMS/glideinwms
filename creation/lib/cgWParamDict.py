@@ -177,6 +177,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                    'glidein_memory_setup.sh',
                                    'glidein_cpus_setup.sh',
                                    'glidein_sitewms_setup.sh',
+                                   'script_wrapper.sh',
                                    'smart_partitionable.sh']
         # Only execute scripts once
         duplicate_scripts = set(file_list_scripts).intersection(after_file_list_scripts)
