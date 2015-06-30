@@ -1288,6 +1288,7 @@ function fetch_file_base {
     ffb_real_fname="$3"
     ffb_file_type="$4"
     ffb_config_out="$5"
+    ffb_period=$6
 
     ffb_work_dir=`get_work_dir $ffb_id`
 

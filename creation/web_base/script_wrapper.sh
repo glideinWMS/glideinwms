@@ -44,7 +44,7 @@ s_fname="`robust_realpath $4`"
 error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
 
 if [ -z "$3" ]; then
-    # no script passed, invoked by the initial test
+    # no script passed, wrapper invoked by the initial test
     "$error_gen" -ok  "script_wrapper.sh" GLIDEIN_PS_LAST "script_wrapper.sh" "prefix" "GLIDEIN_PS_"
     exit 0
 fi
@@ -111,9 +111,13 @@ function failed {
     list_manage add $s_name GLIDEIN_PS_FAILED_LIST
     #TODO: should publish the lists to the schedd classad?
     echo "-"
-    error_type=Corruption
-    [ -n "$2" ] && error_type="$2" 
-    "$error_gen" -error "script_wrapper.sh" $error_type "$1" GLIDEIN_PS_LAST "$s_fname"
+    exit_code=1
+    if [ -n "$3"] && exit_code=$3
+    if [ "x$2" == "xwrapper" ]; then
+        "$error_gen" -error "script_wrapper.sh" Corruption "$1" GLIDEIN_PS_LAST "$s_fname"
+        $main_dir/error_augment.sh  -process $exit_code "$s_id/script_wrapper.sh" "$PWD" "script_wrapper.sh $glidein_config" "$START" "$END"  
+        $main_dir/error_augment.sh -concat
+    fi
     # cleanup
     cd "$start_dir"
     [ -d "$tmp_dir" ] && rm -r "$tmp_dir"
@@ -133,10 +137,10 @@ main_dir="$start_dir/main"
 
 # Check that the start directory is correct and files are there
 for i in "$glidein_config" ./add_config_line.source; do
-    [ -r "$i" ] || failed "Missing essential file: $i"
+    [ -r "$i" ] || failed "Missing essential file: $i" wrapper
 done
 for i in  "$main_dir/error_augment.sh" "$s_fname"; do
-    [ -x "$i" ] || failed "Missing essential executable: $i"
+    [ -x "$i" ] || failed "Missing essential executable: $i" wrapper
 done
 
 source ./add_config_line.source
@@ -146,7 +150,7 @@ source ./add_config_line.source
 temp_base_dir="$start_dir"
 tmp_dir="`mktemp -d --tmpdir="$temp_base_dir"`"
 if [ $? -ne 0 ]; then
-    failed "Failed to create temporary directory"
+    failed "Failed to create temporary directory" wrapper
 fi
 
 cd "$tmp_dir"
@@ -174,7 +178,7 @@ vmessage "=== Periodic script ran OK: $s_fname ==="
 list_manage del $s_name GLIDEIN_PS_FAILING_LIST
 echo "-"
 
-"$error_gen" -ok  "script_wrapper.sh" GLIDEIN_PS_LAST "$s_fname"
+#"$error_gen" -ok  "script_wrapper.sh" GLIDEIN_PS_LAST "$s_fname"
 
 ### End cleanup
 cd "$start_dir"

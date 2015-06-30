@@ -14,6 +14,7 @@ import os,os.path,shutil,string
 import cvWDictFile,cWDictFile
 import cvWConsts,cWConsts
 import cvWCreate
+from cWParamDict import is_true, add_file_unparsed
 from glideinwms.lib import x509Support
 
 ################################################
@@ -47,16 +48,20 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         
         # follow by the blacklist file
         file_name=cWConsts.BLACKLIST_FILE
-        self.dicts['preentry_file_list'].add_from_file(file_name,(file_name,"nocache","TRUE",'BLACKLIST_FILE'),os.path.join(params.src_dir,file_name))
+        self.dicts['preentry_file_list'].add_from_file(file_name,
+                                                       (file_name, "nocache", 0, "TRUE", 'BLACKLIST_FILE'),
+                                                       os.path.join(params.src_dir, file_name))
 
         # Load initial system scripts
         # These should be executed before the other scripts
         for script_name in ('cat_consts.sh',"check_blacklist.sh"):
-            self.dicts['preentry_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
+            self.dicts['preentry_file_list'].add_from_file(script_name,
+                                                           (cWConsts.insert_timestr(script_name), 'exec', 0, 'TRUE', 'FALSE'),
+                                                           os.path.join(params.src_dir, script_name))
 
         # put user files in stage
         for user_file in params.files:
-            add_file_unparsed(user_file,self.dicts)
+            add_file_unparsed(user_file,self.dicts, False)
 
         # start expr is special
         start_expr=None
@@ -226,16 +231,20 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
 
         # follow by the blacklist file
         file_name=cWConsts.BLACKLIST_FILE
-        self.dicts['preentry_file_list'].add_from_file(file_name,(file_name,"nocache","TRUE",'BLACKLIST_FILE'),os.path.join(params.src_dir,file_name))
+        self.dicts['preentry_file_list'].add_from_file(file_name,
+                                                       (file_name, "nocache", 0, "TRUE", 'BLACKLIST_FILE'),
+                                                       os.path.join(params.src_dir,file_name))
 
         # Load initial system scripts
         # These should be executed before the other scripts
         for script_name in ('cat_consts.sh',"check_blacklist.sh"):
-            self.dicts['preentry_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
+            self.dicts['preentry_file_list'].add_from_file(script_name,
+                                                           (cWConsts.insert_timestr(script_name), 'exec', 0, 'TRUE', 'FALSE'),
+                                                           os.path.join(params.src_dir,script_name))
 
         # put user files in stage
         for user_file in sub_params.files:
-            add_file_unparsed(user_file,self.dicts)
+            add_file_unparsed(user_file, self.dicts, False)
 
         # start expr is special
         start_expr=None
@@ -371,77 +380,6 @@ class frontendDicts(cvWDictFile.frontendDicts):
 # 
 ############################################################
 
-#############################################
-# Add a user file residing in the stage area
-# file as described by Params.file_defaults
-def add_file_unparsed(user_file,dicts):
-    absfname=user_file.absfname
-    if absfname is None:
-        raise RuntimeError, "Found a file element without an absname: %s"%user_file
-    
-    relfname=user_file.relfname
-    if relfname is None:
-        relfname=os.path.basename(absfname) # defualt is the final part of absfname
-    if len(relfname)<1:
-        raise RuntimeError, "Found a file element with an empty relfname: %s"%user_file
-
-    is_const=eval(user_file.const,{},{})
-    is_executable=eval(user_file.executable,{},{})
-    is_wrapper=eval(user_file.wrapper,{},{})
-    do_untar=eval(user_file.untar,{},{})
-
-    if eval(user_file.after_entry,{},{}):
-        file_list_idx='file_list'
-    else:
-        file_list_idx='preentry_file_list'
-
-    if user_file.has_key('after_group'):
-        if eval(user_file.after_group,{},{}):
-            file_list_idx='aftergroup_%s'%file_list_idx
-
-    if is_executable: # a script
-        if not is_const:
-            raise RuntimeError, "A file cannot be executable if it is not constant: %s"%user_file
-    
-        if do_untar:
-            raise RuntimeError, "A tar file cannot be executable: %s"%user_file
-
-        if is_wrapper:
-            raise RuntimeError, "A wrapper file cannot be executable: %s"%user_file
-
-        dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"exec","TRUE",'FALSE'),absfname)
-    elif is_wrapper: # a sourceable script for the wrapper
-        if not is_const:
-            raise RuntimeError, "A file cannot be a wrapper if it is not constant: %s"%user_file
-    
-        if do_untar:
-            raise RuntimeError, "A tar file cannot be a wrapper: %s"%user_file
-
-        dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"wrapper","TRUE",'FALSE'),absfname)
-    elif do_untar: # a tarball
-        if not is_const:
-            raise RuntimeError, "A file cannot be untarred if it is not constant: %s"%user_file
-
-        wnsubdir=user_file.untar_options.dir
-        if wnsubdir is None:
-            wnsubdir=string.split(relfname,'.',1)[0] # deafult is relfname up to the first .
-
-        config_out=user_file.untar_options.absdir_outattr
-        if config_out is None:
-            config_out="FALSE"
-        cond_attr=user_file.untar_options.cond_attr
-
-
-        dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"untar",cond_attr,config_out),absfname)
-        dicts['untar_cfg'].add(relfname,wnsubdir)
-    else: # not executable nor tarball => simple file
-        if is_const:
-            val='regular'
-            dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),val,'TRUE','FALSE'),absfname)
-        else:
-            val='nocache'
-            dicts[file_list_idx].add_from_file(relfname,(relfname,val,'TRUE','FALSE'),absfname) # no timestamp if it can be modified
-
 #######################
 # Register an attribute
 # attr_obj as described by Params.attr_defaults
@@ -457,7 +395,7 @@ def add_attr_unparsed_real(attr_name,params,dicts):
     if attr_obj.value is None:
         raise RuntimeError, "Attribute '%s' does not have a value: %s"%(attr_name,attr_obj)
 
-    is_parameter=eval(attr_obj.parameter,{},{})
+    is_parameter = is_true(attr_obj.parameter)
     is_expr=(attr_obj.type=="expr")
     attr_val=params.extract_attr_val(attr_obj)
     
@@ -466,8 +404,8 @@ def add_attr_unparsed_real(attr_name,params,dicts):
     else:
         dicts['consts'].add(attr_name,attr_val)
 
-    do_glidein_publish=eval(attr_obj.glidein_publish,{},{})
-    do_job_publish=eval(attr_obj.job_publish,{},{})
+    do_glidein_publish = is_true(attr_obj.glidein_publish)
+    do_job_publish = is_true(attr_obj.job_publish)
 
     if do_glidein_publish or do_job_publish:
             # need to add a line only if will be published
@@ -512,7 +450,7 @@ def populate_frontend_descript(work_dir,
 
         active_sub_list[:] # erase all
         for sub in params.groups.keys():
-            if eval(params.groups[sub].enabled,{},{}):
+            if is_true(params.groups[sub].enabled):
                 active_sub_list.append(sub)
         frontend_dict.add('Groups',string.join(active_sub_list,','))
 
@@ -742,7 +680,7 @@ def calc_glidein_collectors(collectors):
     for el in collectors:
         if not collector_nodes.has_key(el.group):
             collector_nodes[el.group] = {'primary': [], 'secondary': []}
-        if eval(el.secondary):
+        if is_true(el.secondary):
             cWDictFile.validate_node(el.node,allow_prange=True)
             collector_nodes[el.group]['secondary'].append(el.node)
         else:
@@ -800,7 +738,7 @@ def populate_main_security(client_security,params):
         dn=el.DN
         if dn is None:
             raise RuntimeError,"DN not defined for pool collector %s"%el.node
-        is_secondary=eval(el.secondary)
+        is_secondary=is_true(el.secondary)
         if is_secondary:
             continue # only consider primary collectors for the main security config
         collector_nodes.append(el.node)
