@@ -613,12 +613,18 @@ class FileDictFile(SimpleFileDictFile):
                 # since the other functions from base class know nothing about placeholders, need to force overwrite
                 allow_overwrite = True
 
+        # This will help identify calls not migrated to the new format
+        try:
+            int(val[2])  # to check if is integer. Period must be int or convertible to int
+        except (ValueError, IndexError):
+            raise RuntimeError("Values '%s' not (real_fname,cache/exec,cond_download,config_out)" % val)
+
         if len(val)==6:
             return self.add_from_str(key,val[:5],val[5],allow_overwrite)
         elif len(val)==5:
             return self.add_from_file(key,val,os.path.join(self.dir,val[0]),allow_overwrite)
         else:
-            raise RuntimeError, "Values '%s' not (real_fname,cache/exec,cond_download,config_out)"%val
+            raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,cond_download,config_out)" % val)
 
     def format_val(self,key,want_comments):
         return "%s \t%s \t%s \t%s \t%s \t%s"%(key,self.vals[key][0],self.vals[key][1],self.vals[key][2],self.vals[key][3],self.vals[key][4])
@@ -642,6 +648,9 @@ class FileDictFile(SimpleFileDictFile):
             return  # empty key
 
         if len(arr)!=6:
+            if len(arr)==5:
+                # Allow this to upgrade from previous version (parse file with no period)
+                return self.add(arr[0],[arr[1], arr[2], 0, arr[3], arr[4]])
             raise RuntimeError,"Not a valid file line (expected 6, found %i elements): '%s'"%(len(arr),line)
 
         return self.add(arr[0],arr[1:])

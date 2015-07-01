@@ -1243,16 +1243,16 @@ EOF
 #####################
 # Fetch a single file
 function fetch_file_regular {
-    fetch_file "$1" "$2" "$2" "regular" "TRUE" "FALSE"
+    fetch_file "$1" "$2" "$2" "regular" 0 "TRUE" "FALSE"
 }
 
 function fetch_file {
-    if [ $# -ne 6 ]; then
+    if [ $# -ne 7 ]; then
 	warn "Not enough arguments in fetch_file $@" 1>&2
 	glidein_exit 1
     fi
 
-    fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6"
+    fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6" "$7"
     if [ $? -ne 0 ]; then
 	glidein_exit 1
     fi
@@ -1264,8 +1264,9 @@ function fetch_file_try {
     fft_target_fname="$2"
     fft_real_fname="$3"
     fft_file_type="$4"
-    fft_config_check="$5"
-    fft_config_out="$6"
+    fft_period="$5"
+    fft_config_check="$6"
+    fft_config_out="$7"
 
     if [ "$fft_config_check" == "TRUE" ]; then
 	# TRUE is a special case
@@ -1275,7 +1276,7 @@ function fetch_file_try {
     fi
 
     if [ "$fft_get_ss" == "1" ]; then
-       fetch_file_base "$fft_id" "$fft_target_fname" "$fft_real_fname" "$fft_file_type" "$fft_config_out"
+       fetch_file_base "$fft_id" "$fft_target_fname" "$fft_real_fname" "$fft_file_type" "$fft_config_out" $fft_period
        fft_rc=$?
     fi
 

@@ -74,7 +74,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
         if is_wrapper:
             raise RuntimeError("A wrapper file cannot be an executable: %s" % user_file)
         dicts[file_list_idx].add_from_file(relfname,
-                                           (cWConsts.insert_timestr(relfname), "exec", user_file.period, "TRUE", 'FALSE'),
+                                           (cWConsts.insert_timestr(relfname), 'exec', user_file.period, 'TRUE', 'FALSE'),
                                            absfname)
 
     elif is_wrapper:  # a sourceable script for the wrapper
@@ -82,7 +82,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
             raise RuntimeError("A file cannot be a wrapper if it is not constant: %s" % user_file)
         if do_untar:
             raise RuntimeError("A tar file cannot be a wrapper: %s" % user_file)
-        dicts[file_list_idx].add_from_file(relfname, (cWConsts.insert_timestr(relfname), "wrapper", 0, "TRUE", 'FALSE'),
+        dicts[file_list_idx].add_from_file(relfname, (cWConsts.insert_timestr(relfname), 'wrapper', 0, 'TRUE', 'FALSE'),
                                            absfname)
     elif do_untar: # a tarball
         if not is_const:
@@ -98,7 +98,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
         cond_attr = user_file.untar_options.cond_attr
 
         dicts[file_list_idx].add_from_file(relfname,
-                                           (cWConsts.insert_timestr(relfname), "untar", 0, cond_attr, config_out),
+                                           (cWConsts.insert_timestr(relfname), 'untar', 0, cond_attr, config_out),
                                            absfname)
         dicts['untar_cfg'].add(relfname, wnsubdir)
 

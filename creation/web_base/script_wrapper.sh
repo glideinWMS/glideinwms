@@ -112,11 +112,11 @@ function failed {
     #TODO: should publish the lists to the schedd classad?
     echo "-"
     exit_code=1
-    if [ -n "$3"] && exit_code=$3
+    [ -n "$3" ] && exit_code=$3
     if [ "x$2" == "xwrapper" ]; then
         "$error_gen" -error "script_wrapper.sh" Corruption "$1" GLIDEIN_PS_LAST "$s_fname"
-        $main_dir/error_augment.sh  -process $exit_code "$s_id/script_wrapper.sh" "$PWD" "script_wrapper.sh $glidein_config" "$START" "$END"  
-        $main_dir/error_augment.sh -concat
+        ${main_dir}/error_augment.sh  -process $exit_code "${s_id}/script_wrapper.sh" "$PWD" "script_wrapper.sh $glidein_config" "$START" "$END"
+        ${main_dir}/error_augment.sh -concat
     fi
     # cleanup
     cd "$start_dir"
@@ -158,13 +158,13 @@ cd "$tmp_dir"
 
 ### Run the program
 
-$main_dir/error_augment.sh -init
+${main_dir}/error_augment.sh -init
 START=`date +%s`
 "$s_fname" "$glidein_config" "$s_id"
 ret=$?
 END=`date +%s`
-$main_dir/error_augment.sh  -process $ret "$s_id/`basename "$s_fname"`" "$PWD" "$s_fname $glidein_config" "$START" "$END"  #generating test result document
-$main_dir/error_augment.sh -concat
+${main_dir}/error_augment.sh  -process $ret "$s_id/`basename "$s_fname"`" "$PWD" "$s_fname $glidein_config" "$START" "$END"  #generating test result document
+${main_dir}/error_augment.sh -concat
 if [ $ret -ne 0 ]; then
     # Failed 
     vmessage "=== Validation error in $s_fname ===" 
