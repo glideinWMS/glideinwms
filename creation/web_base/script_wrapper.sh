@@ -164,7 +164,10 @@ START=`date +%s`
 ret=$?
 END=`date +%s`
 ${main_dir}/error_augment.sh  -process $ret "$s_id/`basename "$s_fname"`" "$PWD" "$s_fname $glidein_config" "$START" "$END"  #generating test result document
-${main_dir}/error_augment.sh -concat
+${main_dir}/error_augment.sh -locked-concat
+if [ $? -ne 0 ]; then 
+    vmessage "=== Error: unable to save the log file for $s_fname (lock file from other script) ==="
+fi 
 if [ $ret -ne 0 ]; then
     # Failed 
     vmessage "=== Validation error in $s_fname ===" 

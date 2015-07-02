@@ -186,14 +186,58 @@ function concat_file() {
 }
 
 # --------------------------------------------------------- #
+# locked_concat_file ()                                     #
+# concatenate the augmented file to the list                #
+# making sure that works whith concurrent invocations       #
+# --------------------------------------------------------- #
+function locked_concat_file() {
+    fpath="otr_outlist.list"
+    if [ ! -f "$fpath" ]; then
+        base_dir="$( cd "$(dirname "$0")/.." ; pwd -P )"
+        fpath="$base_dir/otr_outlist.list"
+        if [ ! -f "$fpath" ]; then
+            touch "$fpath"
+        fi
+    fi
+
+    # Wait for lock...
+    local lock_ctr=0 lock="${fpath}.lock"
+    trap "[ -f "$lock" ] && rm $lock; exit 1" SIGKILL SIGINT SIGQUIT
+    
+    until ln "${fpath}" "${lock}" 2>/dev/null
+    do sleep 1
+        [ -s "${file}" ] || return $?
+        let lock_ctr=lock_ctr+1
+        if [ $lock_ctr -gt 1200 ]; then
+            # waited 20 min, fail
+            # send message?
+            exit 2
+        fi
+    done
+
+    # set permission
+    chmod u+w "$fpath"
+    # strip out any spurious items
+    cat otrx_output.xml |awk 'BEGIN{fr=0;}/<OSGTestResult/{fr=1;}{if (fr==1) print $0}/<[/]OSGTestResult>/{fr=0;}' >> "$fpath"
+    # make sure it is not modified by mistake by any test script
+    chmod a-w "$fpath"
+ 
+    # Remove lock
+    rm -f "${lock}"
+
+    return
+}
+
+# --------------------------------------------------------- #
 # usage ()                                                  #
 # print usage                                               #
 # --------------------------------------------------------- #
 function usage(){
-    echo "Usage: -init|-process|-concat [params]"
+    echo "Usage: -init|-process|-concat|-locked-concat [params]"
     echo "       -init"
     echo "       -process errno id cwd cmdline start end"
     echo "       -concat"
+    echo "       -locked-concat"
     return
 }
 
@@ -210,6 +254,7 @@ case "$mycmd" in
     -init)    init_file ;;
     -process) process_file "$@";;
     -concat)  concat_file ;;
+    -locked-concat) locked_concat_file ;;
     *)  (warn "Unknown option $mycmd"; usage) 1>&2; exit 1
 esac
 
