@@ -566,7 +566,7 @@ class FileDictFile(SimpleFileDictFile):
     """Dictionary file for files (file list)
     It is using an ordered dictionary (key, value) from DictFile, serialized to file
     The key is the file ID 
-    The value in memory 6 components (real_fname,cache/exec,cond_download,config_out):
+    The value in memory has 6 components (real_fname,cache/exec,period,cond_download,config_out):
     1. real_fname
     2. cache/exec/... keyword identifying the file type: regular, nocache, exec, untar
     3. period period in seconds at which an executable is re-invoked (only for periodic executables, 0 otherwise)
@@ -617,7 +617,7 @@ class FileDictFile(SimpleFileDictFile):
         try:
             int(val[2])  # to check if is integer. Period must be int or convertible to int
         except (ValueError, IndexError):
-            raise RuntimeError("Values '%s' not (real_fname,cache/exec,cond_download,config_out)" % val)
+            raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,cond_download,config_out)" % val)
 
         if len(val)==6:
             return self.add_from_str(key,val[:5],val[5],allow_overwrite)
@@ -638,8 +638,8 @@ class FileDictFile(SimpleFileDictFile):
             return None
 
     def parse_val(self,line):
-        if line[0]=='#':
-            return  # ignore comments
+        if not line or line[0]=='#':
+            return  # ignore empty lines and comments
         arr=line.split(None,5)  
         #TODO: Always split in 6, should it be replaces w/o limit? or w/ 7, to allow content at the end (.add() supports it)?
         if len(arr)==0:

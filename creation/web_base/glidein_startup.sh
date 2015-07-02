@@ -1460,7 +1460,7 @@ function fetch_file_base {
             else
                 # If ran successfully and periodic, schedule to execute with schedd_cron
                 echo "=== validation OK in $ffb_outname ($ffb_period) ===" 1>&2
-                if [ $ffb_period > 0 ]; then
+                if [ $ffb_period -gt 0 ]; then
                     add_periodic_script "$main_dir/script_wrapper.sh" $ffb_period "$work_dir" "$ffb_outname" glidein_config "$ffb_id" 
                 fi
 	    fi
