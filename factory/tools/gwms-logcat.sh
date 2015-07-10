@@ -102,7 +102,7 @@ case $logoption in
   startd) LOGNAME=cat_StartdLog.py;;
   starter) LOGNAME=cat_StarterLog.py;;
   xml) LOGNAME=cat_XMLResults.py;;
-  startdhistory) LOGNAME=cat_StartdHistory.py;;
+  startdhistory) LOGNAME=cat_StartdHistoryLog.py;;
   *) echo "Unknown LOG_TYPE: $logoption"; help_msg; exit 1;;
 esac
 
