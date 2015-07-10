@@ -514,6 +514,8 @@ function automatic_work_dir {
 # Create a script that defines add_config_line
 #   and add_condor_vars_line
 # This way other depending scripts can use it
+# Scripts are executed one at the time (also in schedd_cron)
+# If this changes, these functions would have to add a locking mechanism
 function create_add_config_line {
     cat > "$1" << EOF
 
