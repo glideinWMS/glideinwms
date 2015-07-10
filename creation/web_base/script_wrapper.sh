@@ -21,7 +21,7 @@
 #  GLIDEIN_PS_FAILING_LIST - list of scripts that failed last execution
 #  GLIDEIN_PS_OK - True is no script failed its last execution (GLIDEIN_PS_FAILING_LIST is empty)
 #      At the beginning is published w/ error_genn then directly
-#  GLIDEIN_PS_FAILED_LAST - name ot the last script that failed execution
+#  GLIDEIN_PS_FAILED_LAST - name of the last script that failed execution
 #  GLIDEIN_PS_FAILED_LAST_REASON - string describing the last failure
 #  GLIDEIN_PS_FAILED_LAST_END - end time (seconds form Epoch) of the last failure
 #  GLIDEIN_PS_LAST (w/ error_gen) - file path of the last script
