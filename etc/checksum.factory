@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_10
+# GLIDEINWMS_VERSION v3_3_rc1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -17,14 +17,14 @@ e59bb78a8aba36d0d8691b5f9e4ebf4f  ./creation/lib/cWConsts.py
 3b0c8c0427403301318d075eb5163979  ./creation/lib/cWDictFile.py
 d70c079e6098d20b9cccfe8b60ee40ca  ./creation/lib/cWParams.py
 e4405e764b1e40327893d990ae6780f8  ./creation/lib/cgWConsts.py
-fd07bc069b28f7909482530eef3c160a  ./creation/lib/cgWCreate.py
+9a0316288a03dde953dd212f936aee75  ./creation/lib/cgWCreate.py
 7ad987392e6a08b7b44bb069a2eb5cf9  ./creation/lib/cgWDictFile.py
 eda9d4df5548840be7911affd376640d  ./creation/lib/cgWParamDict.py
 41eabe63c4dcbeea083cd7d0f0ef065f  ./creation/lib/cgWParams.py
 414dd08400e9050a5c7e6a64fa7a4d94  ./creation/lib/xslt.py
 2a70b65561f51461f02a6558ed67f049  ./creation/reconfig_glidein
 eb3e5e1c14b6e25a0d6903302afe5d5f  ./creation/templates/factory_initd_startup_template
-ccec55d588485ee238a38a5463373614  ./creation/web_base/advertise_failure.helper
+585e798089364f5afac493b40a721766  ./creation/web_base/advertise_failure.helper
 1a794306785cd9f0489ba1b484470af1  ./creation/web_base/cat_consts.sh
 40a2b85a853a072f65049c4efe64bc3a  ./creation/web_base/check_blacklist.sh
 569bb2a8f8edd34719d3ba2cd08c1f37  ./creation/web_base/check_proxy.sh
@@ -35,7 +35,7 @@ c438d82b7967e035a5f814c582087193  ./creation/web_base/condor_config
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
 68dfdebf47aa54c20d6ab998b12b4eed  ./creation/web_base/condor_config.multi_schedd.include
 e045ab0b0412b0e990c55e42d6b8fbe4  ./creation/web_base/condor_platform_select.sh
-cd0d278be3480e5aa1126f662e82f7fe  ./creation/web_base/condor_startup.sh
+55c737787d6e8f2dc3dc09ec8cec2a7a  ./creation/web_base/condor_startup.sh
 7074223dc38c0426faaed3272dfadcf6  ./creation/web_base/condor_vars.lst
 baac24b5b0cfd0f134bc895cff30c183  ./creation/web_base/condor_vars.lst.entry
 227c8e3c61c2122ee6e3d6f81b3635b7  ./creation/web_base/create_mapfile.sh
@@ -117,7 +117,7 @@ a8b315b8229dbe1cc978d29e116bd7de  ./factory/tools/find_matching_ids.py
 053e87efe508ba7c8d0f434818f36a4b  ./factory/tools/find_missing_ids.py
 e42da857a7614a1537bb1a5726c6f819  ./factory/tools/find_new_entries.py
 23e63f2e2b38f4aa2ce522236f6647fe  ./factory/tools/find_partial_matching_ids.py
-5f72990b2ee23bb69d2a4358ec9f4d16  ./factory/tools/gwms-logcat.sh
+db9bcfd7d47b2a5eaeace6f336ab0311  ./factory/tools/gwms-logcat.sh
 919fa9b845944420d9b57bc58fd557bb  ./factory/tools/infosys_lib.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/tools/lib/__init__.py
 e5e7085488190f286e8010de400f3c58  ./factory/tools/lib/analyze.py
