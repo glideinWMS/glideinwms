@@ -1,3 +1,10 @@
+v3_3    Support native configuration of EC2 spot prices and AZ in the entry
+        Bug Fix: Fixed a bug in gwms-logcat script
+        Bug Fix: Fixed a bug where Frontend configured in HA mode would crash
+          under a certain condition.
+        Bug Fix: Fixed a bug where ALIVEONLY reporting for
+          Glidein_Report_Failed produces incorrect invalidate classads.
+
 v3_2_10 Improved Documentation
         Bug Fix: Fixed several bugs in accounting of idle and running slots
           in case of multicore glideins
