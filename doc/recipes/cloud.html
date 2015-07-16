@@ -128,6 +128,11 @@
         &lt;remove max_per_cycle="5" sleep="0.2"/&gt;
         &lt;restrictions require_voms_proxy="False"/&gt;
         &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2"/&gt;
+        &lt;submit_attrs&gt;
+            &lt;submit_attr name="ec2_availability_zone" value="us-west-2a"/&gt;
+            &lt;submit_attr name="ec2_spot_price" value="0.03"/&gt;
+        &lt;submit_attrs&gt;
+
     &lt;/config&gt;
     &lt;allow_frontends&gt;&lt;/allow_frontends&gt;
 
