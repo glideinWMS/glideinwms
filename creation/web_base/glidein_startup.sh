@@ -514,6 +514,8 @@ function automatic_work_dir {
 # Create a script that defines add_config_line
 #   and add_condor_vars_line
 # This way other depending scripts can use it
+# Scripts are executed one at the time (also in schedd_cron)
+# If this changes, these functions would have to add a locking mechanism
 function create_add_config_line {
     cat > "$1" << EOF
 
@@ -524,23 +526,27 @@ function warn {
 ###################################
 # Add a line to the config file
 # Arg: line to add, first element is the id
-# Uses global variablr glidein_config
+# Uses global variable glidein_config
 function add_config_line {
-    rm -f \${glidein_config}.old #just in case one was there
-    mv \$glidein_config \${glidein_config}.old
+    egrep -q "^\${*}$" \$glidein_config
     if [ \$? -ne 0 ]; then
-        warn "Error renaming \$glidein_config into \${glidein_config}.old"
-        exit 1
+        rm -f \${glidein_config}.old #just in case one was there
+        mv \$glidein_config \${glidein_config}.old
+        if [ \$? -ne 0 ]; then
+            warn "Error renaming \$glidein_config into \${glidein_config}.old"
+            exit 1
+        fi
+        grep -v "^\$1 " \${glidein_config}.old > \$glidein_config
+        # NOTE that parameters are flattened, if there are spaces they are separated
+        echo "\$@" >> \$glidein_config
+        rm -f \${glidein_config}.old
     fi
-    grep -v "^\$1 " \${glidein_config}.old > \$glidein_config
-    echo "\$@" >> \$glidein_config
-    rm -f \${glidein_config}.old
 }
 
 ####################################
 # Add a line to the condor_vars file
 # Arg: line to add, first element is the id
-# Uses global variablr condor_vars_file
+# Uses global variable condor_vars_file
 function add_condor_vars_line {
     id=\$1
 
@@ -1197,18 +1203,58 @@ function get_untar_subdir {
 }
 
 #####################
+# Periodic execution support function and global variable
+add_startd_cron_counter=0
+function add_periodic_script {
+    # schedules a script for periodic execution using startd_cron
+    # parameters: wrapper full path, period, cwd, executable path (from cwd), config file path (from cwd), ID
+    # global variable: add_startd_cron_counter
+    #TODO: should it allow for veriable number of parameters?
+    local include_fname=condor_config_startd_cron_include
+    local s_wrapper="$1"
+    local s_period_sec="${2}s"
+    local s_cwd="$3"
+    local s_fname="$4"
+    local s_config="$5"
+    local s_ffb_id="$6"
+    if [ $add_startd_cron_counter -eq 0 ]; then
+        # make sure that no undesired file is there
+        rm $include_fname
+    fi
+    let add_startd_cron_counter=add_startd_cron_counter+1
+    local s_prefix=GLIDEIN_PS
+    local s_name="${s_prefix}$add_startd_cron_counter"
+    # Append the following to the startd configuration
+# Instead of Periodic and Kill wait for completion: STARTD_CRON_DATE_MODE = WaitForExit
+    cat >> $include_fname << EOF
+STARTD_CRON_JOBLIST = \$(STARTD_CRON_JOBLIST) $s_name
+STARTD_CRON_${s_name}_MODE = Periodic
+STARTD_CRON_${s_name}_KILL = True
+STARTD_CRON_${s_name}_PERIOD = $s_period_sec
+STARTD_CRON_${s_name}_PREFIX = ${s_prefix}_
+STARTD_CRON_${s_name}_EXECUTABLE = $s_wrapper
+STARTD_CRON_${s_name}_ARGS = "$s_name" "$s_fname" "$s_config" "$s_ffb_id"
+STARTD_CRON_${s_name}_CWD = "$s_cwd"
+STARTD_CRON_${s_name}_SLOTS = 1
+STARTD_CRON_${s_name}_JOB_LOAD = 0.01
+EOF
+    add_config_line "GLIDEIN_condor_config_startd_cron_include" "$include_fname"
+    add_config_line "# --- Lines starting with $s_prefix are from priodic scripts ---" 
+}
+
+#####################
 # Fetch a single file
 function fetch_file_regular {
-    fetch_file "$1" "$2" "$2" "regular" "TRUE" "FALSE"
+    fetch_file "$1" "$2" "$2" "regular" 0 "TRUE" "FALSE"
 }
 
 function fetch_file {
-    if [ $# -ne 6 ]; then
+    if [ $# -ne 7 ]; then
 	warn "Not enough arguments in fetch_file $@" 1>&2
 	glidein_exit 1
     fi
 
-    fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6"
+    fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6" "$7"
     if [ $? -ne 0 ]; then
 	glidein_exit 1
     fi
@@ -1220,8 +1266,9 @@ function fetch_file_try {
     fft_target_fname="$2"
     fft_real_fname="$3"
     fft_file_type="$4"
-    fft_config_check="$5"
-    fft_config_out="$6"
+    fft_period="$5"
+    fft_config_check="$6"
+    fft_config_out="$7"
 
     if [ "$fft_config_check" == "TRUE" ]; then
 	# TRUE is a special case
@@ -1231,7 +1278,7 @@ function fetch_file_try {
     fi
 
     if [ "$fft_get_ss" == "1" ]; then
-       fetch_file_base "$fft_id" "$fft_target_fname" "$fft_real_fname" "$fft_file_type" "$fft_config_out"
+       fetch_file_base "$fft_id" "$fft_target_fname" "$fft_real_fname" "$fft_file_type" "$fft_config_out" $fft_period
        fft_rc=$?
     fi
 
@@ -1244,6 +1291,7 @@ function fetch_file_base {
     ffb_real_fname="$3"
     ffb_file_type="$4"
     ffb_config_out="$5"
+    ffb_period=$6
 
     ffb_work_dir=`get_work_dir $ffb_id`
 
@@ -1411,6 +1459,12 @@ function fetch_file_base {
 		warn "Error running '$ffb_outname'" 1>&2
 		cat otrx_output.xml | awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}' 1>&2
 		return 1
+            else
+                # If ran successfully and periodic, schedule to execute with schedd_cron
+                echo "=== validation OK in $ffb_outname ($ffb_period) ===" 1>&2
+                if [ $ffb_period -gt 0 ]; then
+                    add_periodic_script "$main_dir/script_wrapper.sh" $ffb_period "$work_dir" "$ffb_outname" glidein_config "$ffb_id" 
+                fi
 	    fi
 	fi
     elif [ "$ffb_file_type" == "wrapper" ]; then
