@@ -1468,45 +1468,56 @@ class MonitorFileDicts:
 #########################################################
 
 #####################################################
-# Validate node string
+# Validate HTCondor endpoint (node) string
+# this can be a node, node:port, node:port-range
+# or a shared port synful string host:port?sock=some_string$ID
+# or schedd_name@host:port[?sock=some_string]
 def validate_node(nodestr,allow_prange=False):
-    narr=nodestr.split(':')
-    if len(narr)>2:
-        raise RuntimeError, "Too many : in the node name: '%s'"%nodestr
+    eparr = nodestr.split('?')
+    if len(eparr) > 2:
+        raise RuntimeError("Too many ? in the end point name: '%s'" % nodestr)
+    if len(eparr) == 2:
+        if not eparr[1].startswith("sock="):
+            raise RuntimeError("Unrecognized HTCondor sinful string: %s" % nodestr)
+        # check that ; and , are not in the endpoint ID (they are not before ?)
+        if ',' in eparr[1] or ';' in eparr[1]:
+            raise RuntimeError("HTCondor sinful string should not contain separators (,;): %s" % nodestr)
+    narr = eparr[0].split(':')
+    if len(narr) > 2:
+        raise RuntimeError("Too many : in the node name: '%s'" % nodestr)
     if len(narr)>1:
         # have ports, validate them
-        ports=narr[1]
-        parr=ports.split('-')
-        if len(parr)>2:
-            raise RuntimeError, "Too many - in the node ports: '%s'"%nodestr
-        if len(parr)>1:
+        ports = narr[1]
+        parr = ports.split('-')
+        if len(parr) > 2:
+            raise RuntimeError("Too many - in the node ports: '%s'" % nodestr)
+        if len(parr) > 1:
             if not allow_prange:
-                raise RuntimeError, "Port ranges not allowed for this node: '%s'"%nodestr
-            pmin=parr[0]
-            pmax=parr[1]
+                raise RuntimeError("Port ranges not allowed for this node: '%s'" % nodestr)
+            pmin = parr[0]
+            pmax = parr[1]
         else:
-            pmin=parr[0]
-            pmax=parr[0]
+            pmin = parr[0]
+            pmax = parr[0]
         try:
-            pmini=int(pmin)
-            pmaxi=int(pmax)
+            pmini = int(pmin)
+            pmaxi = int(pmax)
         except ValueError,e:
-            raise RuntimeError, "Node ports are not integer: '%s'"%nodestr
+            raise RuntimeError("Node ports are not integer: '%s'" % nodestr)
         if pmini>pmaxi:
-            raise RuntimeError, "Low port must be lower than high port in node port range: '%s'"%nodestr
+            raise RuntimeError("Low port must be lower than high port in node port range: '%s'" % nodestr)
 
         if pmini<1:
-            raise RuntimeError, "Ports cannot be less than 1 for node ports: '%s'"%nodestr
+            raise RuntimeError("Ports cannot be less than 1 for node ports: '%s'" % nodestr)
         if pmaxi>65535:
-            raise RuntimeError, "Ports cannot be more than 64k for node ports: '%s'"%nodestr
+            raise RuntimeError("Ports cannot be more than 64k for node ports: '%s'" % nodestr)
 
     # split needed to handle the multiple schedd naming convention
-    nodename = narr[0].split("@")[-1]  
+    nodename = narr[0].split("@")[-1]
     try:
-        socket.getaddrinfo(nodename,None)
+        socket.getaddrinfo(nodename, None)
     except:
-        raise RuntimeError, "Node name unknown to DNS: '%s'"%nodestr
+        raise RuntimeError("Node name unknown to DNS: '%s'" % nodestr)
 
     # OK, all looks good
     return
-    
