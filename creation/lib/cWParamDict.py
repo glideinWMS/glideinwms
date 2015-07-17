@@ -17,8 +17,8 @@ import string
 import cWConsts
 
 def is_true(s):
-    """Case insensitive string parsing helper. Return True for (true, t, yes, y, 1), False otherwise."""
-    return s.lower() in ['true', 'yes', 'y', 't', '1']
+    """Case insensitive string parsing helper. Return True for true (case insensitive matching), False otherwise."""
+    return s.lower() == 'true'
 
 def add_file_unparsed(user_file, dicts, is_factory):
     """Add a user file residing in the stage area
