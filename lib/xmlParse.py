@@ -176,6 +176,17 @@ def is_singular_of(mysin, myplu, always_singular_list=[]):
     return False
 
 def domel2dict(doc, use_ord_dict=False, always_singular_list=[]):
+    """Recursive function transforming XML elements in a dictionary or list.
+    If the node is unique (or it has attributes and the kids have no 'name' attribute),
+    then a dictionary with all the attributes is returned
+    If the element is singular of the parent (english word is analyzed):
+      if it has a 'name' attribute or the parent has attributes, a dictionary is added to the parent (name is the key)
+      if if has no name and the parent is empty or a list, then is added to the parent (list)
+    :param doc: document or ELEMENT_NODE
+    :param use_ord_dict: use ordinate dictionary if True
+    :param always_singular_list: these are considered unique singular even if the word is singular form of a plural
+    :return: dictionary or list with the content
+    """
     myname = doc.nodeName
     data = getXMLAttributes(doc, use_ord_dict) # first insert attributes
 

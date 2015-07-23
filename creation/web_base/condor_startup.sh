@@ -119,7 +119,7 @@ EOF
 
 for fname in `cat $wrapper_list`;
 do
-  cat "$fname" >> $condor_job_wrapper
+    cat "$fname" >> $condor_job_wrapper
 done
 
 
@@ -265,10 +265,10 @@ rm -f condor_vars.lst.tmp
 touch condor_vars.lst.tmp
 for vid in GLIDECLIENT_GROUP_CONDOR_VARS_FILE GLIDECLIENT_CONDOR_VARS_FILE ENTRY_CONDOR_VARS_FILE CONDOR_VARS_FILE
 do
- condor_vars=`grep -i "^$vid " $config_file | awk '{print $2}'`
- if [ -n "$condor_vars" ]; then
-     grep -v "^#" "$condor_vars" >> condor_vars.lst.tmp
- fi
+    condor_vars=`grep -i "^$vid " $config_file | awk '{print $2}'`
+    if [ -n "$condor_vars" ]; then
+        grep -v "^#" "$condor_vars" >> condor_vars.lst.tmp
+    fi
 done
 
 while read line
@@ -303,26 +303,26 @@ retire_spread=`grep -i "^GLIDEIN_Retire_Time_Spread " $config_file | awk '{print
 expose_x509=`grep -i "^GLIDEIN_Expose_X509 " $config_file | awk '{print $2}'`
 
 if [ -z "$expose_x509" ]; then
-	expose_x509=`grep -i "^GLIDEIN_Expose_X509=" $CONDOR_CONFIG | awk '{print $2}'`
-	if [ -z "$expose_x509" ]; then
-		expose_x509="false"
-	fi
+    expose_x509=`grep -i "^GLIDEIN_Expose_X509=" $CONDOR_CONFIG | awk '{print $2}'`
+    if [ -z "$expose_x509" ]; then
+        expose_x509="false"
+    fi
 fi
 expose_x509=`echo $expose_x509 | tr '[:upper:]' '[:lower:]'`
 
 if [ -z "$graceful_shutdown" ]; then
-	graceful_shutdown=`grep -i "^GLIDEIN_Graceful_Shutdown=" $CONDOR_CONFIG | awk -F"=" '{print $2}'`
-	if [ -z "$graceful_shutdown" ]; then
-    		echo "WARNING: graceful shutdown not defined in vars or glidein_config, using 120!" 1>&2
-		graceful_shutdown=120
-	fi
+    graceful_shutdown=`grep -i "^GLIDEIN_Graceful_Shutdown=" $CONDOR_CONFIG | awk -F"=" '{print $2}'`
+    if [ -z "$graceful_shutdown" ]; then
+        echo "WARNING: graceful shutdown not defined in vars or glidein_config, using 120!" 1>&2
+        graceful_shutdown=120
+    fi
 fi
 if [ -z "$job_maxtime" ]; then
-	job_maxtime=`grep -i "^GLIDEIN_Job_Max_Time=" $CONDOR_CONFIG | awk -F"=" '{print $2}'`
-	if [ -z "$job_maxtime" ]; then
-    		echo "WARNING: job max time not defined in vars or glidein_config, using 192600!" 1>&2
-		job_maxtime=192600
-	fi
+    job_maxtime=`grep -i "^GLIDEIN_Job_Max_Time=" $CONDOR_CONFIG | awk -F"=" '{print $2}'`
+    if [ -z "$job_maxtime" ]; then
+        echo "WARNING: job max time not defined in vars or glidein_config, using 192600!" 1>&2
+        job_maxtime=192600
+    fi
 fi
 
 # At this point, we need to define two times:
@@ -490,6 +490,14 @@ if [ "$monitor_mode" == "MULTI" ]; then
     use_multi_monitor=1
 else
     use_multi_monitor=0
+fi
+
+# get the periodic scripts configuration
+condor_config_startd_cron_include=`grep -i "^GLIDEIN_condor_config_startd_cron_include " $config_file | awk '{print $2}'`
+if [ -n "$condor_config_startd_cron_include" ]; then
+    echo "adding periodic scripts (startd_cron) configuration from: $condor_config_startd_cron_include" 1>&2
+    echo "# ---- start of startd_cron part ----" >> "$CONDOR_CONFIG"
+    cat "$condor_config_startd_cron_include" >> "$CONDOR_CONFIG"
 fi
 
 # get check_include file for testing

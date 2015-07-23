@@ -176,7 +176,7 @@ def get_common_dicts(submit_dir,stage_dir):
                   'vars':cWDictFile.VarsDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.VARS_FILE),fname_idx=cWConsts.VARS_FILE),
                   'untar_cfg':cWDictFile.StrDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.UNTAR_CFG_FILE),fname_idx=cWConsts.UNTAR_CFG_FILE),
                   'file_list':cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.FILE_LISTFILE),fname_idx=cWConsts.FILE_LISTFILE),
-                  "signature":cWDictFile.SHA1DictFile(stage_dir,cWConsts.insert_timestr(cWConsts.SIGNATURE_FILE),fname_idx=cWConsts.SIGNATURE_FILE)}
+                  'signature':cWDictFile.SHA1DictFile(stage_dir,cWConsts.insert_timestr(cWConsts.SIGNATURE_FILE),fname_idx=cWConsts.SIGNATURE_FILE)}
     refresh_description(common_dicts)
     return common_dicts
 
@@ -258,11 +258,23 @@ def refresh_description(dicts): # update in place
 def refresh_file_list(dicts,is_main, # update in place
                       files_set_readonly=True,files_reset_changed=True):
     file_dict=dicts['file_list']
-    file_dict.add(cWConsts.CONSTS_FILE,(dicts['consts'].get_fname(),"regular","TRUE","CONSTS_FILE",dicts['consts'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
-    file_dict.add(cWConsts.VARS_FILE,(dicts['vars'].get_fname(),"regular","TRUE","CONDOR_VARS_FILE",dicts['vars'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
-    file_dict.add(cWConsts.UNTAR_CFG_FILE,(dicts['untar_cfg'].get_fname(),"regular","TRUE","UNTAR_CFG_FILE",dicts['untar_cfg'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
+    file_dict.add(cWConsts.CONSTS_FILE,
+                  (dicts['consts'].get_fname(), 'regular', 0, 'TRUE', 'CONSTS_FILE',
+                   dicts['consts'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed)),
+                  allow_overwrite=True)
+    file_dict.add(cWConsts.VARS_FILE,
+                  (dicts['vars'].get_fname(), 'regular', 0, 'TRUE', 'CONDOR_VARS_FILE',
+                   dicts['vars'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed)),
+                  allow_overwrite=True)
+    file_dict.add(cWConsts.UNTAR_CFG_FILE,
+                  (dicts['untar_cfg'].get_fname(), 'regular', 0, 'TRUE', 'UNTAR_CFG_FILE',
+                   dicts['untar_cfg'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed)),
+                  allow_overwrite=True)
     if is_main and dicts.has_key('gridmap'):
-        file_dict.add(cWConsts.GRIDMAP_FILE,(dicts['gridmap'].get_fname(),"regular","TRUE","GRIDMAP",dicts['gridmap'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
+        file_dict.add(cWConsts.GRIDMAP_FILE,
+                      (dicts['gridmap'].get_fname(), 'regular', 0, 'TRUE', 'GRIDMAP',
+                       dicts['gridmap'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed)),
+                      allow_overwrite=True)
 
 # dictionaries must have been written to disk before using this
 def refresh_signature(dicts): # update in place
