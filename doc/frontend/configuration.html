@@ -224,10 +224,12 @@ Click on any piece for a more detailed description.
     <a href="#high_availability">&lt;high_availability check_interval="300" enabled="False"&gt;</a></br>
       <blockquote>
       <a href="#high_availability"><a href="#high_availability">&lt;ha_frontends&gt;</a></br>
-         <a href="#high_availability">&lt;ha_frontend frontend_name="blah"/&gt;</a></br>
-      <a href="#high_availability">&lt;ha_frontends&gt;</a></br>
+         <blockquote>
+         <a href="#high_availability">&lt;ha_frontend frontend_name="vofrontend-v2_4"/&gt;</a></br>
+         </blockquote>
+      <a href="#high_availability">&lt;/ha_frontends&gt;</a></br>
       </blockquote>
-    <a href="#high_availability">&lt;high_availability&gt;</a></br>
+    <a href="#high_availability">&lt;/high_availability&gt;</a></br>
 
 
 
@@ -897,14 +899,14 @@ and falling back to the following ones in case of errors. Daemons on the same ho
       </div>
       This setting allows you to run frontend in HA mode. Currently only 1 master, 1 slave is supported. By default, the frontend runs in master mode ie. <b>enabled="False"</b>.<br/><br/>
 
-      To configure the frontend as slave, set <b>enabled="True"</b>. Slave will check the WMS Collector for the classads from the master frontend every few second specified in the <b>check_interval</b>. The <b>frontend_name</b> setting in the example below is in the name of the master frontend ie. 'FrontendName' as it appears in the glideclient classad of the master frontend. When the slave detects that master has stopped advertising, it will take over and start advertising the requests.
+      To configure the frontend as slave, set <b>enabled="True"</b>. Slave will check the WMS Collector for the classads from the master frontend every few second specified in the <b>check_interval</b>. The <b>frontend_name</b> setting in the example below is in the name of the master frontend ie. 'FrontendName' as it appears in the glideclient classad of the master frontend or the value of <b>frontend_name</b> configuration for the master frontend. When the slave detects that master has stopped advertising, it will take over and start advertising the requests. You can use same <b>frontend_name</b> for both master and slave frontend to make it transparent to other services, however you can still distinguish which frontend is currently active by looking at the 'FrontendHAMode' in the glideclient classad.
 
       <pre>
       &lt;high_availability check_interval="300" enabled="True"&gt;
         &lt;ha_frontends&gt;
-          &lt;ha_frontend frontend_name="Production-Frontend"/&gt;
-        &lt;ha_frontends&gt;
-      &lt;high_availability/&gt;</pre>
+          &lt;ha_frontend frontend_name="vofrontend-v2_4"/&gt;
+        &lt;/ha_frontends&gt;
+      &lt;/high_availability/&gt;</pre>
 
       </a>
     </li>
