@@ -220,7 +220,21 @@ Click on any piece for a more detailed description.
        <a href="#global_config">&lt;running_glideins_total_global curb="50000" max="60000" /&gt;</a><br/>
     </blockquote>
     <a href="#global_config">&lt;/config&gt;</a><br/>
-    </blockquote>
+
+
+    <a href="#high_availability">&lt;high_availability check_interval="300" enabled="False"&gt;</a></br>
+      <blockquote>
+      <a href="#high_availability"><a href="#high_availability">&lt;ha_frontends&gt;</a></br>
+         <blockquote>
+         <a href="#high_availability">&lt;ha_frontend frontend_name="vofrontend-v2_4"/&gt;</a></br>
+         </blockquote>
+      <a href="#high_availability">&lt;/ha_frontends&gt;</a></br>
+      </blockquote>
+    <a href="#high_availability">&lt;/high_availability&gt;</a></br>
+
+
+
+</blockquote>
     <a href="#">&lt;/frontend&gt;</a><br/>
 </div>
 
@@ -880,7 +894,25 @@ and falling back to the following ones in case of errors. Daemons on the same ho
             Contrary to the User Pool Collector configuration, here only an optional port number is allowed, no <i>port range</i></font><br/>
       </blockquote>
     </li>
-     
+    <li>
+      <a name="high_availability">
+      <div class="xml">
+      &lt;frontend&gt;&lt;high_availability check_interval="<i>Check interval in sec</i>" enabled="<i>True/False</i>"/&gt;
+      </div>
+      This setting allows you to run frontend in HA mode. Currently only 1 master, 1 slave is supported. By default, the frontend runs in master mode ie. <b>enabled="False"</b>.<br/><br/>
+
+      To configure the frontend as slave, set <b>enabled="True"</b>. Slave will check the WMS Collector for the classads from the master frontend every few second specified in the <b>check_interval</b>. The <b>frontend_name</b> setting in the example below is in the name of the master frontend ie. 'FrontendName' as it appears in the glideclient classad of the master frontend or the value of <b>frontend_name</b> configuration for the master frontend. When the slave detects that master has stopped advertising, it will take over and start advertising the requests. You can use same <b>frontend_name</b> for both master and slave frontend to make it transparent to other services, however you can still distinguish which frontend is currently active by looking at the 'FrontendHAMode' in the glideclient classad.
+
+      <pre>
+      &lt;high_availability check_interval="300" enabled="True"&gt;
+        &lt;ha_frontends&gt;
+          &lt;ha_frontend frontend_name="vofrontend-v2_4"/&gt;
+        &lt;/ha_frontends&gt;
+      &lt;/high_availability/&gt;</pre>
+
+      </a>
+    </li>
+
 </UL>
 </div>
 <div class="section">
