@@ -130,7 +130,7 @@ fi
 # If $CONDORCE_COLLECTOR_HOST is set in the glidein's environment, site
 # wants to have some visibility into the glidein. Add to COLLECTOR_HOST
 if [ -n "$CONDORCE_COLLECTOR_HOST" ]; then
-    collector_host=$collector_host,$CONDORCE_COLLECTOR_HOST
+    add_config_line GLIDEIN_Site_Collector $CONDORCE_COLLECTOR_HOST
 fi
 
 add_config_line GLIDEIN_Collector $collector_host

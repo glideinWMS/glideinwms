@@ -116,7 +116,6 @@ function create_condormapfile {
     rm -f "$X509_CONDORMAP"
     touch "$X509_CONDORMAP"
     chmod go-wx "$X509_CONDORMAP"
-
     # copy with formatting the glide-mapfile into condor_mapfile
     # fileter out lines starting with the comment (#)
     grep -v "^[ ]*#"  "$X509_GRIDMAP" | while read file
@@ -134,6 +133,14 @@ function create_condormapfile {
         edn=`echo "$edn_wq" | awk '{print "\"^" substr(substr($0,3,length($0)-2),1,length($0)-4) "$\"" }'`
         
         echo "GSI $edn $uid" >> "$X509_CONDORMAP"
+        #if [ -n "$X509_SKIP_HOST_CHECK_DNS_REGEX" ]; then
+        #    X509_SKIP_HOST_CHECK_DNS_REGEX="$X509_SKIP_HOST_CHECK_DNS_REGEX\|$udn"
+        #else
+        #    X509_SKIP_HOST_CHECK_DNS_REGEX='$udn'
+        #fi
+        #echo "X509_SKIP_HOST_CHECK_DNS_REGEX=$X509_SKIP_HOST_CHECK_DNS_REGEX" 1>&2
+        echo "DEBUG udn=$udn" 1>&2
+        echo "DEBUG edn_wq=$edn_wq" 1>&2
       fi
     done
 
@@ -144,17 +151,11 @@ function create_condormapfile {
     echo "GSI (.*) anonymous" >> "$X509_CONDORMAP"
     echo "FS (.*) anonymous" >> "$X509_CONDORMAP"
 
-    # TODO: REMOVE THIS THIS export USED FOR TESTING
-    export CONDORCE_COLLECTOR_HOST="fermicloud102.fnal.gov"
-    # If $CONDORCE_COLLECTOR_HOST is set in the glidein's environment, site
-    # wants to have some visibility into the glidein. Add to COLLECTOR_HOST
-    if [ -n "$CONDORCE_COLLECTOR_HOST" ]; then
-        #collector_host=$collector_host,$CONDORCE_COLLECTOR_HOST
-        echo "CLAIMTOBE .*$CONDORCE_COLLECTOR_HOST anonymous@claimtobe" >> "$X509_CONDORMAP"
-        #echo "CLAIMTOBE $CONDORCE_COLLECTOR_HOST condorce_collector_host@claimtobe"
-    fi
-
-
+    #export X509_SKIP_HOST_CHECK_DNS_REGEX=$X509_SKIP_HOST_CHECK_DNS_REGEX
+    #X509_SKIP_HOST_CHECK_DNS_REGEX="^(/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=fermicloud173.fnal.gov|/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=People/CN=Parag Mhashilkar 209917|/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=People/CN=Parag Mhashilkar 209917)$"
+    #X509_SKIP_HOST_CHECK_DNS_REGEX="\"^[/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=People/CN=Parag Mhashilkar 209917]$\""
+    X509_SKIP_HOST_CHECK_DNS_REGEX=".*"
+    add_config_line X509_SKIP_HOST_CHECK_DNS_REGEX "$X509_SKIP_HOST_CHECK_DNS_REGEX"
 
     return 0
 }
@@ -178,6 +179,8 @@ GLIDECLIENT_GROUP_WORK_DIR=`grep -i "^GLIDECLIENT_GROUP_WORK_DIR " $config_file 
 
 X509_CERT_DIR=`grep -i "^X509_CERT_DIR " $config_file | awk '{print $2}'`
 X509_USER_PROXY=`grep -i "^X509_USER_PROXY " $config_file | awk '{print $2}'`
+
+X509_SKIP_HOST_CHECK_DNS_REGEX=""
 
 create_gridmapfile
 X509_GRIDMAP_DNS=`extract_gridmap_DNs`
