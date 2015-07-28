@@ -788,12 +788,14 @@ def getCondorStatusSchedds(collector_names, constraint=None, format_list=None,
                            want_format_completion=True):
     if format_list is not None:
         if want_format_completion:
-            format_list = condorMonitor.complete_format_list(format_list,
-                           [('TotalRunningJobs', 'i'),
-                            ('TotalSchedulerJobsRunning', 'i'),
-                            ('TransferQueueNumUploading','i'),
-                            ('MaxJobsRunning','i'),
-                            ('TransferQueueMaxUploading','i')])
+            format_list = condorMonitor.complete_format_list(
+                              format_list,
+                              [('TotalRunningJobs', 'i'),
+                               ('TotalSchedulerJobsRunning', 'i'),
+                               ('TransferQueueNumUploading','i'),
+                               ('MaxJobsRunning','i'),
+                               ('TransferQueueMaxUploading','i'),
+                               ('CurbMatchmaking','i')])
 
     type_constraint = 'True'
     return getCondorStatusConstrained(collector_names, type_constraint,

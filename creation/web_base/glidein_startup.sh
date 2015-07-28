@@ -1250,13 +1250,22 @@ function fetch_file_regular {
 
 function fetch_file {
     if [ $# -ne 7 ]; then
-	warn "Not enough arguments in fetch_file $@" 1>&2
-	glidein_exit 1
+        if [ $# -eq 6 ]; then
+            # added to maintain compatibility with old file list format
+            #TODO: remove in version 3.3
+            fetch_file_try "$1" "$2" "$3" "$4" 0 "$5" "$6"
+            if [ $? -ne 0 ]; then
+	        glidein_exit 1
+            fi
+            return 0
+        fi
+        warn "Not enough arguments in fetch_file $@" 1>&2
+        glidein_exit 1
     fi
 
     fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6" "$7"
     if [ $? -ne 0 ]; then
-	glidein_exit 1
+        glidein_exit 1
     fi
     return 0
 }
