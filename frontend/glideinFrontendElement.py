@@ -767,7 +767,7 @@ class glideinFrontendElement:
                     # Assume False if not present
                     if el.get('CurbMatchmaking', 'FALSE').upper() == 'TRUE':
                         self.blacklist_schedds.add(schedd)
-                        logSupport.log.warning("Schedd %s has CurbMatchmaking set to 'True', blacklisting" % (schedd, current_up, max_up))
+                        logSupport.log.warning("Ignoring schedd %s since CurbMatchmaking in its classad evaluated to 'True'" % (schedd))
                 except:
                     logSupport.log.exception("Unexpected exception checking schedd %s for limit" % schedd)
 
@@ -1391,8 +1391,26 @@ class glideinFrontendElement:
 
             # Finally, get also the schedd classads
             try:
-                status_schedd_dict=glideinFrontendLib.getCondorStatusSchedds(
-                              [None],None,[])
+                status_schedd_dict = glideinFrontendLib.getCondorStatusSchedds(
+                                         [None], constraint=None,
+                                         format_list=[])
+                # Also get the list of schedds that has CurbMatchMaking = True
+                # We need to query this explicitly since CurbMatchMaking 
+                # that we get from condor is a condor expression and is not
+                # an evaluated value. So we have to manually filter it out and
+                # adjust the info accordingly
+                status_curb_schedd_dict = \
+                    glideinFrontendLib.getCondorStatusSchedds(
+                        [None],
+                        constraint='CurbMatchmaking=?=True',
+                        format_list=[])
+
+                for c in status_curb_schedd_dict:
+                    c_curb_schedd_dict = status_curb_schedd_dict[c].fetchStored()
+                    for schedd in c_curb_schedd_dict:
+                        if schedd in status_schedd_dict[c].fetchStored():
+                            status_schedd_dict[c].stored_data[schedd]['CurbMatchmaking'] = 'True'
+
             except:
                 # This is not critical information, do not fail
                 pass

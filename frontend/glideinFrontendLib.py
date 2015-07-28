@@ -795,7 +795,7 @@ def getCondorStatusSchedds(collector_names, constraint=None, format_list=None,
                                ('TransferQueueNumUploading','i'),
                                ('MaxJobsRunning','i'),
                                ('TransferQueueMaxUploading','i'),
-                               ('CurbMatchmaking','s')])
+                               ('CurbMatchmaking','i')])
 
     type_constraint = 'True'
     return getCondorStatusConstrained(collector_names, type_constraint,
