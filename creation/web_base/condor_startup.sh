@@ -615,7 +615,7 @@ DS${I}_IDLE_TAIL = ((GLIDEIN_Max_Tail =!= UNDEFINED) && \\
         ifThenElse(\$(DS${I}_IS_HTCONDOR_NEW), \$(DS${I}_IDLE_TAIL_NEW), \$(DS${I}_IDLE_TAIL_PRE82)))
 DS${I}_IDLE_RETIRE = (\$(DS${I}_NOT_PARTITIONABLE) && (GLIDEIN_ToRetire =!= UNDEFINED) && \\
        (CurrentTime > GLIDEIN_ToRetire ))
-DS${I}_IDLE = ( (Slot${I}_Activity == "Idle") && \\
+DS${I}_IDLE = ( (Slot${I}_Activity == "Idle") && (Slot${I}_State =!= "Claimed") && \\
         (\$(DS${I}_IDLE_NOJOB) || \$(DS${I}_IDLE_TAIL) || \$(DS${I}_IDLE_RETIRE)) )
 
 DS${I} = (\$(DS${I}_TO_DIE) || \\
