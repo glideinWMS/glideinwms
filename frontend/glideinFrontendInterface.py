@@ -936,7 +936,10 @@ class MultiAdvertizeWork:
                             filename_arr.append(f)
                 except NoCredentialException:
                     filename_arr = [] # don't try to advertise
-                    logSupport.log.warning("No security credentials match for factory pool %s, not advertising request" % factory_pool)
+                    logSupport.log.warning("No security credentials match for factory pool %s, not advertising request;"
+                                           " if this is not intentional, check for typos frontend's credential "
+                                           "trust_domain and type, vs factory's pool trust_domain and auth_method" %
+                                           factory_pool)
                 except condorExe.ExeError:
                     filename_arr = [] # don't try to advertise
                     logSupport.log.exception("Error creating request files for factory pool %s, unable to advertise: " % factory_pool)
