@@ -723,32 +723,54 @@ class glideinFrontendElement:
                 del self.globals_dict[globalid]
 
     def identify_bad_schedds(self):
-        self.blacklist_schedds=set()
+        """
+        Identify the list of schedds that should not be considered when
+        requesting glideins for idle jobs. Schedds with one of the criteria
+
+        1. Running jobs (TotalRunningJobs + TotalSchedulerJobsRunning)
+           is greater than 95% of max number of jobs (MaxJobsRunning)
+        2. Transfer queue (TransferQueueNumUploading) is greater than 95%
+           of max allowed transfers (TransferQueueMaxUploading)
+        3. CurbMatchmaking in schedd classad is true
+        """
+
+        self.blacklist_schedds = set()
 
         for c in self.status_schedd_dict:
-            coll_status_schedd_dict=self.status_schedd_dict[c].fetchStored()
+            coll_status_schedd_dict = self.status_schedd_dict[c].fetchStored()
             for schedd in coll_status_schedd_dict:
-                el=coll_status_schedd_dict[schedd]
+                el = coll_status_schedd_dict[schedd]
                 try:
-                    # here 0 reallw means no jobs
-                    max_run=int(el['MaxJobsRunning']*0.95+0.5) # stop a bit earlier
-                    current_run=el['TotalRunningJobs']
-                    current_run+=el.get('TotalSchedulerJobsRunning',0)#older schedds may not have it
+                    # Here 0 really means no jobs
+                    # Stop a bit earlier at 95% of the limit
+                    max_run = int(el['MaxJobsRunning']*0.95+0.5)
+                    current_run = el['TotalRunningJobs']
+                    # older schedds may not have TotalSchedulerJobsRunning
+                    current_run += el.get('TotalSchedulerJobsRunning',0)
                     logSupport.log.debug("Schedd %s has %i running with max %i" % (schedd, current_run, max_run))
-                    if current_run>=max_run:
+
+                    if current_run >= max_run:
                         self.blacklist_schedds.add(schedd)
                         logSupport.log.warning("Schedd %s hit maxrun limit, blacklisting: has %i running with max %i" % (schedd, current_run, max_run))
 
-                    if 'TransferQueueMaxUploading' in el:
-                      if el['TransferQueueMaxUploading']>0: # 0 means unlimited
-                        max_up=int(el['TransferQueueMaxUploading']*0.95+0.5) # stop a bit earlier
-                        current_up=el['TransferQueueNumUploading']
+                    if el.get('TransferQueueMaxUploading', 0) > 0:
+                        # el['TransferQueueMaxUploading'] = 0 means unlimited
+                        # Stop a bit earlier at 95% of the limit
+                        max_up = int(el['TransferQueueMaxUploading']*0.95+0.5)
+                        current_up = el['TransferQueueNumUploading']
                         logSupport.log.debug("Schedd %s has %i uploading with max %i" % (schedd, current_up, max_up))
-                        if current_up>=max_up:
+                        if current_up >= max_up:
                             self.blacklist_schedds.add(schedd)
                             logSupport.log.warning("Schedd %s hit maxupload limit, blacklisting: has %i uploading with max %i" % (schedd, current_up, max_up))
+
+                    # Pre 8.3.5 schedds do not have CurbMatchmaking.
+                    # Assume False if not present
+                    if el.get('CurbMatchmaking', 'FALSE').upper() == 'TRUE':
+                        self.blacklist_schedds.add(schedd)
+                        logSupport.log.warning("Schedd %s has CurbMatchmaking set to 'True', blacklisting" % (schedd, current_up, max_up))
                 except:
                     logSupport.log.exception("Unexpected exception checking schedd %s for limit" % schedd)
+
 
     def populate_condorq_dict_types(self):
         # create a dictionary that does not contain the blacklisted schedds
