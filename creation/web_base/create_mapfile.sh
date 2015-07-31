@@ -118,7 +118,8 @@ function create_condormapfile {
     chmod go-wx "$X509_CONDORMAP"
     # copy with formatting the glide-mapfile into condor_mapfile
     # fileter out lines starting with the comment (#)
-    grep -v "^[ ]*#"  "$X509_GRIDMAP" | while read file
+    #grep -v "^[ ]*#"  "$X509_GRIDMAP" | while read file
+    while read file
     do
       if [ -n "$file" ]; then # ignore empty lines
         # split between DN and UID
@@ -133,16 +134,13 @@ function create_condormapfile {
         edn=`echo "$edn_wq" | awk '{print "\"^" substr(substr($0,3,length($0)-2),1,length($0)-4) "$\"" }'`
         
         echo "GSI $edn $uid" >> "$X509_CONDORMAP"
-        #if [ -n "$X509_SKIP_HOST_CHECK_DNS_REGEX" ]; then
-        #    X509_SKIP_HOST_CHECK_DNS_REGEX="$X509_SKIP_HOST_CHECK_DNS_REGEX\|$udn"
-        #else
-        #    X509_SKIP_HOST_CHECK_DNS_REGEX='$udn'
-        #fi
-        #echo "X509_SKIP_HOST_CHECK_DNS_REGEX=$X509_SKIP_HOST_CHECK_DNS_REGEX" 1>&2
-        echo "DEBUG udn=$udn" 1>&2
-        echo "DEBUG edn_wq=$edn_wq" 1>&2
+        if [ "$X509_SKIP_HOST_CHECK_DNS_REGEX" = "" ]; then
+            X509_SKIP_HOST_CHECK_DNS_REGEX="$edn_wq"
+        else
+            X509_SKIP_HOST_CHECK_DNS_REGEX=$X509_SKIP_HOST_CHECK_DNS_REGEX\|$edn_wq
+        fi
       fi
-    done
+    done < <(grep -v "^[ ]*#"  "$X509_GRIDMAP")
 
     # add local user
     echo "FS $id localuser" >> "$X509_CONDORMAP"
@@ -151,12 +149,13 @@ function create_condormapfile {
     echo "GSI (.*) anonymous" >> "$X509_CONDORMAP"
     echo "FS (.*) anonymous" >> "$X509_CONDORMAP"
 
-    #export X509_SKIP_HOST_CHECK_DNS_REGEX=$X509_SKIP_HOST_CHECK_DNS_REGEX
-    #X509_SKIP_HOST_CHECK_DNS_REGEX="^(/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=fermicloud173.fnal.gov|/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=People/CN=Parag Mhashilkar 209917|/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=People/CN=Parag Mhashilkar 209917)$"
-    #X509_SKIP_HOST_CHECK_DNS_REGEX="\"^[/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=People/CN=Parag Mhashilkar 209917]$\""
-    X509_SKIP_HOST_CHECK_DNS_REGEX=".*"
+    X509_SKIP_HOST_CHECK_DNS_REGEX=`echo $X509_SKIP_HOST_CHECK_DNS_REGEX | sed 's/\\\"//g'`
+    X509_SKIP_HOST_CHECK_DNS_REGEX="^(`echo \"$X509_SKIP_HOST_CHECK_DNS_REGEX\"`)$"
     add_config_line X509_SKIP_HOST_CHECK_DNS_REGEX "$X509_SKIP_HOST_CHECK_DNS_REGEX"
 
+    echo "--- condor_mapfile ---" 1>&2
+    cat $X509_CONDORMAP 1>&2
+    echo "--- ============== ---" 1>&2
     return 0
 }
 
