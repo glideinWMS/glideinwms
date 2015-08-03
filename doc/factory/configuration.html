@@ -1756,7 +1756,7 @@ together.</P>
     &lt;/glidein&gt;
     </div>
 </p>
-</div></div>
+</div>
 
 <div>
     <a name="xsltplugins"/>
@@ -1810,6 +1810,30 @@ The default behavior can be overridden by specifying the option -xslt_plugin_dir
 <b>prompt$</b> reconfig_glidein -xslt_plugin_dir &lt;xslt directory&gt; [...]
 <b>prompt$</b> reconfig_frontend -xslt_plugin_dir &lt;xslt directory&gt; [...]
 </pre>
+</div>
+
+<div>
+    <a name="sitecollector"/>
+        <h3 class="western">Glidein's Startd Advertising to Site HTCondor-CE Collector</h3>
+        <p>
+        Starting in v3.2.11, you can make glidein's HTCondor daemons advertise
+        to site's local collector. There is no Glideinwms configuration
+        that enable this and all the changes are on the site side.
+        <ol>
+            <li>
+              <b>Give glidein write access to the site collector</b><br>
+              This is done by adding glidein's DN to gridmapfile of the
+              site collector
+            </li>
+            <li>
+              <b>Set site collector info in the glidein's environment</b><br>
+              Set the following environment variable in the glidein job
+              <pre>CONDORCE_COLLECTOR_HOST=&lt;site-local HTCondorCE collector address&gt;</pre>
+            </li>
+        </ol>
+
+        </p>
+    </div>
 
 <div class="footer">
 Banner image by
@@ -1818,7 +1842,6 @@ used under Creative Commons license.<br/>
 Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glid
 einWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
 glideinWMS email support: glideinwms-support at fnal.gov
-</div>
-</div>
+</div></div>
 </body>
 </html>
