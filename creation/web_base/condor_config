@@ -8,11 +8,12 @@
 
 LOG = $(WORK_DIR)/log
 EXECUTE = $(WORK_DIR)/execute
-COLLECTOR_HOST = $(HEAD_NODE)
+COLLECTOR_HOST = $(HEAD_NODE),$(GLIDEIN_Site_Collector)
 FILESYSTEM_DOMAIN = $(HOSTNAME)
 UID_DOMAIN = $(HOSTNAME)
 
 MASTER.COLLECTOR_HOST = $(GLIDEIN_Master_Collector)
+#MASTER.COLLECTOR_HOST = $(GLIDEIN_Master_Collector),$(GLIDEIN_Site_Collector)
 
 SBIN = $(CONDOR_DIR)/sbin
 LIB=$(CONDOR_DIR)/lib
@@ -85,10 +86,19 @@ GSI_DAEMON_DIRECTORY=$(LOCAL_DIR)
 SEC_DEFAULT_AUTHENTICATION = REQUIRED
 SEC_DEFAULT_AUTHENTICATION_METHODS = GSI 
 
+
+# Allow readonly access to the site collector
+GSI_SKIP_HOST_CHECK_CERT_REGEX = $(X509_SKIP_HOST_CHECK_DNS_REGEX)
+
+STARTD.ALLOW_CLIENT = collector*/*, anonymous*/*, frontend*/*, condor/*
+
+STARTD.GSI_DAEMON_NAME =
 DENY_WRITE = anonymous@*
 DENY_ADMINISTRATOR = anonymous@*
 DENY_DAEMON = anonymous@*
 DENY_NEGOTIATOR = anonymous@*
+DENY_OWNER = anonymous@*
+DENY_CONFIG = anonymous@*
 
 LOCAL_CONFIG_FILE       = 
 

@@ -135,6 +135,13 @@ if [ -z "$collector_host" ]; then
     "$error_gen" -error "collector_setup.sh" "Corruption" "$STR" "attribute" "GLIDEIN_Collector"
     exit 1
 fi
+
+# If $CONDORCE_COLLECTOR_HOST is set in the glidein's environment, site
+# wants to have some visibility into the glidein. Add to COLLECTOR_HOST
+if [ -n "$CONDORCE_COLLECTOR_HOST" ]; then
+    add_config_line GLIDEIN_Site_Collector $CONDORCE_COLLECTOR_HOST
+fi
+
 add_config_line GLIDEIN_Collector $collector_host
 
 ccb_host="`parse_and_select_collectors GLIDEIN_CCB`"
