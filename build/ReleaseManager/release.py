@@ -10,11 +10,21 @@ import ReleaseManagerLib
 
 def usage():
     print "%s <version> <SourceDir> <ReleaseDir>" % os.path.basename(sys.argv[0])
-    print "Example: %s v2.5.3 /tmp/glideinwms /tmp/release_dir" % os.path.basename(sys.argv[0])
+    print "Example: Release Candidate rc3 for v3.2.11 (ie version v3_2_11_rc3)"
+    print "         Generate tarball: glideinWMS_v3_2_11_rc3*.tgz"
+    print "         Generate rpms   : glideinWMS-*-v3.2.11-0.4.rc3-*.rpm"
+    print "release.py --version=3_2_11 --rc=4 --source-dir=/home/parag/glideinwms --release-dir=/var/tmp/release --rpm-release=4 --rpm-version=3.2.11"
+    print ""
+    print "Example: Final Release v3.2.11"
+    print "         Generate tarball: glideinWMS_v3_2_11*.tgz"
+    print "         Generate rpms   : glideinWMS-*-v3.2.11-3-*.rpm"
+    print "release.py --version=3_2_11 --source-dir=/home/parag/glideinwms --release-dir=/var/tmp/release --rpm-release=3 --rpm-version=3.2.11"
+    print ""
+
 
 def parse_opts(argv):
-    parser = optparse.OptionParser(usage='%prog [options]',
-                                   version='v0.1',
+    parser = optparse.OptionParser(usage=usage(),
+                                   version='v0.2',
                                    conflict_handler="resolve")
     parser.add_option('--release-version',
                       dest='relVersion',
@@ -28,9 +38,28 @@ def parse_opts(argv):
                       help='directory containing the glideinwms source code')
     parser.add_option('--release-dir',
                       dest='relDir',
+                      default='/tmp/release',
                       action='store',
                       metavar='<release directory>',
                       help='directory to store release tarballs and webpages')
+    parser.add_option('--rc',
+                      dest='rc',
+                      default=None,
+                      action='store',
+                      metavar='<Release Candidate Number>',
+                      help='Release Candidate')
+    parser.add_option('--rpm-release',
+                      dest='rpmRel',
+                      default=1,
+                      action='store',
+                      metavar='<RPM Release Number>',
+                      help='RPM Release Number')
+    parser.add_option('--rpm-version',
+                      dest='rpmVer',
+                      action='store',
+                      metavar='<Product Version in RPM filename>',
+                      help='Product Version in RPM filename')
+
 
     if len(argv) < 4:
         print "ERROR: Insufficient arguments specified"
@@ -64,12 +93,15 @@ def main(argv):
     ver = options.relVersion
     srcDir = options.srcDir
     relDir = options.relDir
+    rc = options.rc
+    rpmRel = options.rpmRel
+
     print "___________________________________________________________________"
     print "Creating following glideinwms release"
-    print "Version=%s\nSourceDir=%s\nReleaseDir=%s" % (ver, srcDir, relDir)
+    print "Version=%s\nSourceDir=%s\nReleaseDir=%s\nReleaseCandidate=%s\nRPMRelease=%s" % (ver, srcDir, relDir, rc, rpmRel)
     print "___________________________________________________________________"
     print
-    rel = ReleaseManagerLib.Release(ver, srcDir, relDir)
+    rel = ReleaseManagerLib.Release(ver, srcDir, relDir, rc, rpmRel)
 
     rel.addTask(ReleaseManagerLib.TaskClean(rel))
     rel.addTask(ReleaseManagerLib.TaskSetupReleaseDir(rel))
@@ -78,6 +110,7 @@ def main(argv):
     rel.addTask(ReleaseManagerLib.TaskTar(rel))
     rel.addTask(ReleaseManagerLib.TaskFrontendTar(rel))
     rel.addTask(ReleaseManagerLib.TaskFactoryTar(rel))
+    rel.addTask(ReleaseManagerLib.TaskRPM(rel))
 
     rel.executeTasks()
     rel.printReport()

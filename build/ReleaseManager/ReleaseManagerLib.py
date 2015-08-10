@@ -5,6 +5,7 @@ import subprocess, shlex
 import popen2
 import traceback
 import string
+import shutil
 #from pylint import lint
 
 
@@ -18,12 +19,44 @@ class ExeError(RuntimeError):
 
 class Release:
 
-    def __init__(self, ver, srcDir, relDir='/tmp'):
-        self.version = ver
+    def __init__(self, ver, srcDir, relDir, rc, rpmRel):
+
+        self.version = self.createTarballVersionString(ver, rc)
         self.sourceDir = srcDir
         self.releaseDir = os.path.join(relDir, self.version)
         self.releaseWebDir = os.path.join(self.releaseDir, 'www')
         self.tasks = []
+
+        # RPM related info
+        self.rc = rc
+        self.rpmRelease = self.createRPMReleaseNVR(rpmRel, rc)
+        self.rpmVersion = self.versionToRPMVersion(ver)
+        self.rpmbuildDir = os.path.join(self.releaseDir, 'rpmbuild')
+        self.srpmFile = os.path.join(
+                            self.rpmbuildDir, 'SRPMS',
+                            'glideinwms-%s-%s.el6.src.rpm' % (self.rpmVersion,
+                                                              self.rpmRelease))
+
+
+    def createTarballVersionString(self, ver, rc):
+        ver_str = '%s' % ver
+        if rc:
+            ver_str = '%s_rc%s' % (ver, rc)
+        return ver_str
+         
+    def versionToRPMVersion(self, ver):
+        if ver.startswith('v'):
+            ver = ver[1:]
+        ver = ver.replace('_', '.')
+        return ver
+
+
+    def createRPMReleaseNVR(self, rpmRel, rc):
+        nvr = '%s' % rpmRel
+        if rc:
+            nvr = '0.%s.rc%s' % (rpmRel, rc)
+        return nvr
+        
 
     def addTask(self, task):
         self.tasks.append(task)
@@ -201,7 +234,6 @@ class TaskVersionFile(TaskRelease):
                                                        'chksum.sh'))
 
 
-
     def execute(self):
         self.checksumRelease(self.releaseChksumFile,
                              self.excludes.commonPattern)
@@ -210,6 +242,7 @@ class TaskVersionFile(TaskRelease):
         self.checksumRelease(self.factoryChksumFile,
                              self.excludes.factoryPattern)
         self.status = 'COMPLETE'
+
 
     def checksumRelease(self, chksumFile, exclude):
         excludePattern = self.checksumFilePattern + " install/templates CVS config_examples " 
@@ -221,6 +254,103 @@ class TaskVersionFile(TaskRelease):
         #print "--- %s" % chksumFile
         #print "--- %s" % cmd
         execute_cmd(cmd)
+
+
+class TaskRPM(TaskTar):
+
+    def __init__(self, rel):
+        TaskTar.__init__(self, rel)
+        self.name = 'GlideinwmsRPM'
+        self.releaseFile = os.path.join(self.release.releaseDir,
+                                        self.releaseFilename)
+        self.rpmPkgDir = os.path.join(self.release.sourceDir,
+                                      'build/packaging/rpm')
+        self.specFileTemplate = os.path.join(self.rpmPkgDir, 'glideinwms.spec')
+        self.specFile = os.path.join(self.release.rpmbuildDir, 'SPECS',
+                                     'glideinwms.spec')
+        self.rpmmacrosFile = os.path.join(os.path.expanduser('~'),
+                                          '.rpmmacros')
+        self.sourceFilenames = [
+            'chksum.sh', 'factory_startup', 'frontend_startup',
+            'frontend.xml', 'glideinWMS.xml', 'gwms-factory.conf.httpd',
+            'gwms-factory.sysconfig', 'gwms-frontend.conf.httpd',
+            'gwms-frontend.sysconfig'
+        ]
+    #   __init__
+
+
+    def createRPMBuildDirs(self):
+        # Create directories required by rpmbuild
+        rpm_dirs = ['BUILD', 'RPMS', 'SOURCES', 'SPECS', 'SRPMS']
+        for dir in rpm_dirs:
+            create_dir(os.path.join(self.release.rpmbuildDir, dir))
+
+
+    def createSpecFile(self):
+        # No error checking because we want to fail in case of errors
+
+        #shutil.copyfile(self.specFileTemplate, self.specFile)
+        fdin = open(self.specFileTemplate, 'r')
+        lines = fdin.readlines()
+        fdin.close()
+        fdout = open(self.specFile, 'w')
+
+        for line in lines:
+            line = line.replace('__GWMS_RPM_VERSION__', self.release.rpmVersion)
+            line = line.replace('__GWMS_RPM_RELEASE__', self.release.rpmRelease)
+            fdout.write(line)
+        fdout.close()
+
+
+    def stageSources(self):
+        dest_dir = os.path.join(self.release.rpmbuildDir, 'SOURCES')
+        # Copy the source tarball in place
+        shutil.copy(os.path.join(self.release.releaseDir, self.releaseFilename),
+                    os.path.join(dest_dir, 'glideinwms.tar.gz'))
+        for f in self.sourceFilenames:
+            shutil.copy(os.path.join(self.rpmPkgDir, f), dest_dir)
+
+
+    def createRPMMacros(self):
+        fd = open( self.rpmmacrosFile, 'w')
+        fd.write('%%_topdir %s\n' % self.release.rpmbuildDir)
+        fd.write('%%_tmppath %s\n' % '/tmp')
+        fd.close()
+
+
+    def buildSRPM(self):
+        cmd = 'rpmbuild --define "_source_filedigest_algorithm md5" --define "_binary_filedigest_algorithm md5" -bs %s' % self.specFile
+        execute_cmd(cmd)
+
+
+    def buildRPM(self):
+        cmd = 'mock -r epel-6-x86_64 --macro-file=%s --resultdir=%s/RPMS rebuild %s' % (self.rpmmacrosFile, self.release.rpmbuildDir, self.release.srpmFile)
+        execute_cmd(cmd)
+
+
+    def execute(self):
+        # First build the source tarball
+        #TaskTar.execute(self)
+
+        # Create rpmbuild dir structure
+        self.createRPMBuildDirs()
+
+        # Create spec file from the template
+        self.createSpecFile()
+
+        # Stage source files
+        self.stageSources()
+
+        # Create rpmmacros file
+        self.createRPMMacros()
+
+        # Create the srpm
+        self.buildSRPM()
+
+        # Create the rpm
+        self.buildRPM()
+
+        self.status = 'COMPLETE'
 
 
 class PackageExcludes:
@@ -334,7 +464,7 @@ def execute_cmd(cmd, stdin_data=None):
         else:
             raise ExeError, "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s"%(cmd,tempOut,tempErr,e)
     if (errcode != 0):
-        raise ExeError, "Error running '%s'\ncode %i:%s"%(cmd,errcode,tempErr)
+        raise ExeError, "Error running '%s'\ncode %i:%s"%(cmd,errcode,'\n'.join(tempErr))
     return tempOut
 
 """
