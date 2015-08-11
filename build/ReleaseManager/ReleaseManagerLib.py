@@ -337,7 +337,10 @@ class TaskRPM(TaskTar):
 
 
     def buildRPM(self):
-        cmd = 'mock -r epel-6-x86_64 --macro-file=%s --resultdir=%s/RPMS rebuild %s' % (self.rpmmacrosFile, self.release.rpmbuildDir, self.release.srpmFile)
+        #cmd = 'mock -r epel-6-x86_64 --macro-file=%s --resultdir=%s/RPMS rebuild %s' % (self.rpmmacrosFile, self.release.rpmbuildDir, self.release.srpmFile)
+        cmd = 'rpmbuild -bb %s' % self.specFile
+        for m in self.rpmMacros:
+            cmd = '%s --define "%s %s"' % (cmd, m, self.rpmMacros[m])
         execute_cmd(cmd)
 
 
@@ -361,7 +364,7 @@ class TaskRPM(TaskTar):
         self.buildSRPM()
 
         # Create the rpm
-        self.buildRPM()
+        #self.buildRPM()
 
         self.status = 'COMPLETE'
 
