@@ -268,7 +268,8 @@ class TaskRPM(TaskTar):
         self.specFileTemplate = os.path.join(self.rpmPkgDir, 'glideinwms.spec')
         self.specFile = os.path.join(self.release.rpmbuildDir, 'SPECS',
                                      'glideinwms.spec')
-        self.rpmmacrosFile = os.path.join(os.path.expanduser('~'),
+        #self.rpmmacrosFile = os.path.join(os.path.expanduser('~'),
+        self.rpmmacrosFile = os.path.join(os.path.dirname(self.release.rpmbuildDir),
                                           '.rpmmacros')
         self.sourceFilenames = [
             'chksum.sh', 'factory_startup', 'frontend_startup',
@@ -276,6 +277,13 @@ class TaskRPM(TaskTar):
             'gwms-factory.sysconfig', 'gwms-frontend.conf.httpd',
             'gwms-frontend.sysconfig'
         ]
+
+        self.rpmMacros = {
+            '_topdir': self.release.rpmbuildDir,
+            '_tmppath': '/tmp',
+            '_source_filedigest_algorithm': 'md5',
+            '_binary_filedigest_algorithm': 'md5',
+        }
     #   __init__
 
 
@@ -313,13 +321,18 @@ class TaskRPM(TaskTar):
 
     def createRPMMacros(self):
         fd = open( self.rpmmacrosFile, 'w')
-        fd.write('%%_topdir %s\n' % self.release.rpmbuildDir)
-        fd.write('%%_tmppath %s\n' % '/tmp')
+        #fd.write('%%_topdir %s\n' % self.release.rpmbuildDir)
+        #fd.write('%%_tmppath %s\n' % '/tmp')
+        for m in self.rpmMacros:
+            fd.write('%%%s %s\n' % (m,  self.rpmMacros[m]))
         fd.close()
 
 
     def buildSRPM(self):
-        cmd = 'rpmbuild --define "_source_filedigest_algorithm md5" --define "_binary_filedigest_algorithm md5" -bs %s' % self.specFile
+        #cmd = 'rpmbuild --define "_source_filedigest_algorithm md5" --define "_binary_filedigest_algorithm md5" -bs %s' % self.specFile
+        cmd = 'rpmbuild -bs %s' % self.specFile
+        for m in self.rpmMacros:
+            cmd = '%s --define "%s %s"' % (cmd, m, self.rpmMacros[m])
         execute_cmd(cmd)
 
 
