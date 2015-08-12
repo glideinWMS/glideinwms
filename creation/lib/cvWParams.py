@@ -197,6 +197,7 @@ class VOFrontendParams(cWParams.CommonParams):
         ccb_defaults=cWParams.commentedOrderedDict()
         ccb_defaults["node"]=(None,"nodename","CCB collector node name (for example, ccb1.my.org:9999)",None)
         ccb_defaults["DN"]=(None,"dn","CCB collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=ccb1.my.org)",None)
+        ccb_defaults["group"]=("default","string","CCB collector group name useful to group HA setup",None)
         self.defaults["ccbs"]=([],'List of CCB collectors',"Each CCB contains",ccb_defaults)
 
 

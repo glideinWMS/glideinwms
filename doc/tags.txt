@@ -1,3 +1,23 @@
+v3_2_11 VO Frontend now blacklists schedds with CurbMatchmaling=True
+        You can now over provision Multicore glideins based on their
+          IO characteristics
+        Glidein can now advertise itself to the site's local HTCondorCE
+          collector if CONDORCE_COLLECTOR_HOST is set in it's environment
+        Custom/validation scripts can now be run periodically and not
+          just at the glidein's startup
+        Improvements to the rpm packaging
+        Updated documentation
+        Bug Fix: Glideins in claimed/idle status are not shutdown by
+          DAEMON_SHUTDOWN expression
+        Bug Fix: Fixed a bug in gwms-logcat tool
+        Bug Fix: The CCB selection behaves correctly and accepts sinful
+          strings
+        Bug Fix: Fixed a bug where Frontend under certain conditions
+          would crash because of uninitialized ha_mode
+        Bug Fix: Setting GLIDEIN_Report_Failed to ALIVEONLY now creates
+          valid invalidate command
+        Bug Fix: Fixed a bug in the accounting of jobs run by a glidein
+
 v3_2_10 Improved Documentation
         Bug Fix: Fixed several bugs in accounting of idle and running slots
           in case of multicore glideins

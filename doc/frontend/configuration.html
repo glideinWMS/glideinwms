@@ -209,7 +209,7 @@ Click on any piece for a more detailed description.
     <a href="#ccbcollector">&lt;ccbs&gt;</a><br/>
     <blockquote>
         <a href="#ccbcollector">&lt;ccb DN="/DC=org/DC=doegrids/OU=Services/CN=ccb.fnal.gov" node="ccb.fnal.gov" /&gt;</a><br/>
-        <a href="#ccbcollector">&lt;ccb DN="/DC=org/DC=doegrids/OU=Services/CN=ccb2.fnal.gov" node="ccb2.fnal.gov:9620-9640" /&gt;</a><br/>
+        <a href="#ccbcollector">&lt;ccb DN="/DC=org/DC=doegrids/OU=Services/CN=ccb2.fnal.gov" node="ccb2.fnal.gov:9620-9640" group="group2" /&gt;</a><br/>
     </blockquote>
     <a href="#ccbcollector">&lt;/ccbs&gt;</a><br/>
     <a href="#global_config">&lt;config&gt;</a><br/>
@@ -869,7 +869,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     <LI><P>
         <a name="ccbcollector" />
         <div class="xml">
-        &lt;frontend&gt;&lt;ccbs&gt;&lt;ccb DN="<i>certificate DN</i>" node="<i>CCB (Collector)</i>" /&gt;
+        &lt;frontend&gt;&lt;ccbs&gt;&lt;ccb DN="<i>certificate DN</i>" node="<i>CCB (Collector)</i>" group="Group name" /&gt;
         </div>
         List of <a href="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_7Networking_includes.html#SECTION00474000000000000000">
 HTCondor Connection Brokering, or CCB,</a> servers. These are collector daemons that allow communications with HTCondor daemons behind a firewall.
@@ -880,9 +880,12 @@ will use CCBs or not.<br><br>
 Only very specific setups need to change this section.
     <br><br>
     For <b>scalability</b> purposes, multiple CCB can be listed. 
-Each HTCondor daemon will use only one CCB: it will receive a randomly shuffled version of the list of CCBs (with port ranges expanded as different entries) 
-and will start using the first one 
-and falling back to the following ones in case of errors. Daemons on the same host using a shared port daemon will share the same CCB.<br>
+Each Glidein will use only one CCB per group: it will receive a randomly shuffled list of CCBs with one entry
+        chosen at random from each distinct group (port ranges are expanded as different entries); will connect to all
+        of them to listen for requests Communications will start using the first one and fall back to the following
+        ones in case of errors. Daemons on the same host using a shared port daemon will share the same CCBs.<br>
+        NOTE that there is no correlation between these groups and the collector groups and HTCondor has no way to set
+        any affinity (for this collector use this CCB close by). When no group is specified "default" is assumed.<br>
     The configuration required for the Frontend and Glideins to communicate using CCB collectors is shown below:
       <blockquote>
          &lt;ccbs&gt;
@@ -891,6 +894,10 @@ and falling back to the following ones in case of errors. Daemons on the same ho
          &lt;ccb DN="<i>certificate DN</i>" 
                   node="CCB Collector:<b>other_port</b>"/&gt;</br>
             <font color="blue">
+            Like in User Pool Collector configuration, here an optional port number, <i>port range</i> or sinful
+            string can be used. No comma or semicolon are allowed in the node specification.</font><br/>
+      </blockquote>
+    </li>
             Contrary to the User Pool Collector configuration, here only an optional port number is allowed, no <i>port range</i></font><br/>
       </blockquote>
     </li>
@@ -908,7 +915,7 @@ and falling back to the following ones in case of errors. Daemons on the same ho
         &lt;ha_frontends&gt;
           &lt;ha_frontend frontend_name="vofrontend-v2_4"/&gt;
         &lt;/ha_frontends&gt;
-      &lt;/high_availability/&gt;</pre>
+      &lt;/high_availability&gt;</pre>
 
       </a>
     </li>

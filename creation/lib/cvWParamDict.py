@@ -694,16 +694,25 @@ def calc_glidein_collectors(collectors):
             glidein_collectors.append(string.join(collector_nodes[group]['primary'], ","))
     return string.join(glidein_collectors, ";")
 
+
 #####################################################
 # Returns a string usable for GLIDEIN_CCB
 def calc_glidein_ccbs(collectors):
-    # All CCB collectors are equivalent
+    # CCB collectors are subdivided in groups, mainly to control how many to use at the same time
+    ccb_nodes = {}
     glidein_ccbs = []
 
     for el in collectors:
+        if not ccb_nodes.has_key(el.group):
+            ccb_nodes[el.group] = []
         cWDictFile.validate_node(el.node,allow_prange=True)
-        glidein_ccbs.append(el.node)
-    return string.join(glidein_ccbs, ",")
+        ccb_nodes[el.group].append(el.node)
+
+    for group in ccb_nodes.keys():
+        glidein_ccbs.append(string.join(ccb_nodes[group], ","))
+
+    return string.join(glidein_ccbs, ";")
+
 
 #####################################################
 # Populate gridmap to be used by the glideins
