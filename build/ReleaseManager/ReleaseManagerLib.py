@@ -283,6 +283,9 @@ class TaskRPM(TaskTar):
             '_tmppath': '/tmp',
             '_source_filedigest_algorithm': 'md5',
             '_binary_filedigest_algorithm': 'md5',
+            #'global __python': '%%{__python2}',
+            #'py_byte_compile': '',
+            #%py_byte_compile %{__python2} %{buildroot}%{_datadir}/mypackage/foo
         }
     #   __init__
 
@@ -321,15 +324,12 @@ class TaskRPM(TaskTar):
 
     def createRPMMacros(self):
         fd = open( self.rpmmacrosFile, 'w')
-        #fd.write('%%_topdir %s\n' % self.release.rpmbuildDir)
-        #fd.write('%%_tmppath %s\n' % '/tmp')
         for m in self.rpmMacros:
             fd.write('%%%s %s\n' % (m,  self.rpmMacros[m]))
         fd.close()
 
 
     def buildSRPM(self):
-        #cmd = 'rpmbuild --define "_source_filedigest_algorithm md5" --define "_binary_filedigest_algorithm md5" -bs %s' % self.specFile
         cmd = 'rpmbuild -bs %s' % self.specFile
         for m in self.rpmMacros:
             cmd = '%s --define "%s %s"' % (cmd, m, self.rpmMacros[m])
@@ -337,7 +337,11 @@ class TaskRPM(TaskTar):
 
 
     def buildRPM(self):
-        #cmd = 'mock -r epel-6-x86_64 --macro-file=%s --resultdir=%s/RPMS rebuild %s' % (self.rpmmacrosFile, self.release.rpmbuildDir, self.release.srpmFile)
+        cmd = 'mock -r epel-6-x86_64 --macro-file=%s --resultdir=%s/RPMS rebuild %s' % (self.rpmmacrosFile, self.release.rpmbuildDir, self.release.srpmFile)
+        execute_cmd(cmd)
+
+
+    def buildRPMWithRPMBuild(self):
         cmd = 'rpmbuild -bb %s' % self.specFile
         for m in self.rpmMacros:
             cmd = '%s --define "%s %s"' % (cmd, m, self.rpmMacros[m])
@@ -364,7 +368,7 @@ class TaskRPM(TaskTar):
         self.buildSRPM()
 
         # Create the rpm
-        #self.buildRPM()
+        self.buildRPM()
 
         self.status = 'COMPLETE'
 
