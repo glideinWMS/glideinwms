@@ -257,7 +257,7 @@ by the VO factory clients.</P>
         <TD> Exp (Bool)</td>
 
         <TD> True </TD>
-        <TD ROWSPAN=2>
+        <TD>
             <P>Condor expression to use to specify when a user job in the glideins should be preempted. 
             If any expression is true, the glidein is preempted.  This is usually done to specify 
             custom preemption policies for user jobs.
@@ -402,10 +402,16 @@ by the VO factory clients.</P>
  	<TD> <P>Special purpose slots added to the glidein. These slots will never be available for the regular jobs.
         This string is a semicolon separated list of comma separated resource descriptions.
         Each resource description contains the name and optionally the number of resources (default is 1), the total memory reserved
-        (default is 128MB time the number of resources) and an option to say if the resource slots are <tt>partitionable</tt>tt>
+        (default is 128MB time the number of resources) and an option to say if the resource slots are <tt>partitionable</tt>
         or <tt>static</tt> (default is partitionable, unless there is only one slot).
-        E.g. ioslot,2,200,static;monitor</P>
-        <p>Jobs submission must use <tt>require_RESOURCE=N</tt> with N>0 to use these slots, e.g. require_ioslot=1</p>
+        <p>Jobs submission must use <tt>require_RESOURCE=N</tt> with <tt>N&gt;0</tt> to use these slots, e.g. require_ioslot=1</p>
+        <p>Examples:<br>
+        <ul>
+            <li><b>value="ioslot,2,200,static"</b> creates statically partitioned 2 ioslot resources with 100MB memory each.</li>
+            <li><b>value="ioslot"</b> creates 1 ioslot resource with 128MB</li>
+            <li><b>value="ioslot,2;monitor"</b> creates (1) partitionable slot with 2 ioslot resources and 256MB total memory (2) 1 monitor slot resource with 128MB memory</li>
+        </ul>
+        </p>
  	</TD>
     </TR>
     <TR>
