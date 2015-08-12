@@ -2,7 +2,6 @@
 
 import os, sys
 import subprocess, shlex
-import popen2
 import traceback
 import string
 import shutil
@@ -482,35 +481,15 @@ def execute_cmd(cmd, stdin_data=None):
             # have seen a lot of those when running very short processes
             errcode = 0
         else:
-            raise ExeError, "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s"%(cmd,tempOut,tempErr,e)
+            msg = "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s"%(cmd,tempOut,tempErr,e)
+            print msg
+            raise ExeError, msg
     if (errcode != 0):
-        raise ExeError, "Error running '%s'\ncode %i:%s"%(cmd,errcode,'\n'.join(tempErr))
+        msg = "Error running '%s'\nStdout:%s\nStderr:%s\nException Error: %s"%(cmd,tempOut,tempErr,e)
+        print msg
+        raise ExeError, msg
     return tempOut
 
-"""
-def execute_cmd1(cmd, stdin_data=None):
-    #child = subprocess.Popen(shlex.split(cmd), stdin=stdin_data)
-    child=popen2.Popen3(cmd,True)
-    if stdin_data!=None:
-        child.tochild.write(stdin_data)
-    child.tochild.close()
-    tempOut = child.fromchild.readlines()
-    child.fromchild.close()
-    tempErr = child.childerr.readlines()
-    child.childerr.close()
-    try:
-        errcode = child.wait()
-    except OSError, e:
-        if len(tempOut) != 0:
-            # if there was some output, it is probably just a problem of timing
-            # have seen a lot of those when running very short processes
-            errcode = 0
-        else:
-            raise ExeError, "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s"%(cmd,tempOut,tempErr,e)
-    if (errcode != 0):
-        raise ExeError, "Error running '%s'\ncode %i:%s"%(cmd,errcode,tempErr)
-    return tempOut
-"""
 
 def which(program):
     """
