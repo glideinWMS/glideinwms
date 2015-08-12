@@ -582,7 +582,7 @@ condor_config_resource_slots=`grep -i "^GLIDEIN_Resource_Slots " $config_file | 
 if [ -n "$condor_config_resource_slots" ]; then
     echo "adding resource slots configuration: $condor_config_resource_slots" 1>&2
     cat >> "$CONDOR_CONFIG" <<EOF
-# ---- start of resource slots part ----
+# ---- start of resource slots part ($condor_config_resource_slots) ----
 EXTRA_SLOTS_NUM = 0
 EXTRA_SLOTS_START = True
 NUM_CPUS = \$(GLIDEIN_CPUS)+\$(EXTRA_SLOTS_NUM)
@@ -597,7 +597,7 @@ NUM_CPUS = \$(GLIDEIN_CPUS)+\$(EXTRA_SLOTS_NUM)
 #NUM_SLOTS_TYPE_1 = 1
 EOF
     # resource processing
-    IFS=';' read -ra RESOURCES <<< "$condor_config_startd_cron_include"
+    IFS=';' read -ra RESOURCES <<< "$condor_config_resource_slots"
     # Leave slot type 2 for monitoring
     slott_ctr=3
     for i in "${RESOURCES[@]}"; do
@@ -630,7 +630,7 @@ EOF
 
     cat >> "$CONDOR_CONFIG" <<EOF
 # Update start expression
-START = ($(START)) && ($(EXTRA_SLOTS_START))
+START = (\$(START)) && (\$(EXTRA_SLOTS_START))
 EOF
 
 fi  # end of resource slot if
