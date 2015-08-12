@@ -1,6 +1,7 @@
 v3_2_11 VO Frontend now blacklists schedds with CurbMatchmaling=True
-        You can now over provision Multicore glideins based on their
-          IO characteristics
+        You can now over provision Multicore glidein by using 
+          GLIDEIN_Resource_Slots attribute to specify different types of
+          resources it provides. For example ioslot
         Glidein can now advertise itself to the site's local HTCondorCE
           collector if CONDORCE_COLLECTOR_HOST is set in it's environment
         Custom/validation scripts can now be run periodically and not
