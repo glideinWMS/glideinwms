@@ -407,11 +407,17 @@ by the VO factory clients.</P>
         <p>Jobs submission must use <tt>require_RESOURCE=N</tt> with <tt>N&gt;0</tt> to use these slots, e.g. require_ioslot=1</p>
         <p>Examples:<br>
         <ul>
-            <li><b>value="ioslot,2,200,static"</b> creates statically partitioned 2 ioslot resources with 100MB memory each.</li>
+            <li><b>value="ioslot,2,200,static"</b> creates 2 statically partitioned ioslot resources with 100MB memory each.</li>
             <li><b>value="ioslot"</b> creates 1 ioslot resource with 128MB</li>
-            <li><b>value="ioslot,2;monitor"</b> creates (1) partitionable slot with 2 ioslot resources and 256MB total memory (2) 1 monitor slot resource with 128MB memory</li>
+            <li><b>value="ioslot,2;monitor"</b> creates (1) 1 partitionable slot with 2 ioslot resources and 256MB total memory AND
+                (2) 1 monitor slot resource with 128MB memory</li>
         </ul>
+        NOTE: In example 3 slots with ioslot resources (1) will accept only jobs with <tt>require_ioslot=1</tt>
+        and slots with monitor resources (2) will accept only jobs with <tt>require_monitor=1</tt>.
+        Otherwise those slots will stay Idle (unavailable for regular jobs).
         </p>
+        <p>NOTE2: the monitor resource that you may define here is different form the pseudo-interactive monitoring that
+        must be controlled with GLIDEIN_Monitoring_Enabled</p>
  	</TD>
     </TR>
     <TR>
