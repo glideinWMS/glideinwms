@@ -136,7 +136,7 @@ Click on any piece for a more detailed description.
         <blockquote>
         <a href="#credentials">&lt;credentials&gt;</a><br/>
         <blockquote>
-            <a href="#credentials">&lt;credential absfname="/tmp/x509up_u" security_class="frontend" trust_domain="OSG" auth_method="grid_proxy" vm_id="123" vm_type="type1" pool_idx_len="5" pool_idx_list="2,4-6,10" /&gt;</a><br/>
+            <a href="#credentials">&lt;credential absfname="/tmp/x509up_u" security_class="frontend" trust_domain="OSG" type="grid_proxy" vm_id="123" vm_type="type1" pool_idx_len="5" pool_idx_list="2,4-6,10" /&gt;</a><br/>
         </blockquote>
         <a href="#credentials">&lt;/credentials&gt;</a><br/>
         <a href="#security">&lt;/security&gt;</a><br/>
@@ -407,7 +407,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         <a name="proxies" />
         <div class="xml">
         &lt;frontend&gt;&lt;security&gt;&lt;credentials&gt;&lt;credential
-        auth_method=&quot;<i>grid_proxy</I>&quot;
+        type=&quot;<i>grid_proxy</I>&quot;
         absfname=&quot;<I>proxyfile</I>&quot;
         [keyabsfname=&quot;<I>keyfile</I>&quot;]
         [pilotabsfname=&quot;<I>proxyfile</I>&quot;]
@@ -421,7 +421,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         </div>
     This section lists credentials used by the whole Frontend.  You can
     have multiple credentials listed here and they are used by all groups.
-    The authentication method can be one of the following:
+    The type (authentication method in the Factory's entry) can be one of the following:
     <ul>
         <li><b>grid_proxy</b>: A x509 proxy stored in the <i>absfname</i> location.</li>
         <li><b>cert_pair</b>: A x509 certificate pair with the cert in the <i>absfname</i> location and the certkey in the <i>keyabsfname</i> location.</li>
@@ -429,8 +429,8 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         <li><b>username_password</b>: A username/password combination with the username stored in a text at the <i>absfname</i> location and a password stored in a text file in the <i>keyabsfname</i> location.</li>
     </ul>
     In addition, if you have a cloud (non-grid type) entry, you may also be required to specify the identity credentials VM id and VM type.  
-    If these either of these are specified, &quot+vm_id&quot or &quot+vm_type&quot will be added to one of the authentication methods above.  For example, 
-    auth_method="cert_pair+vm_id+vm_type".
+    If these either of these are specified, &quot+vm_id&quot or &quot+vm_type&quot will be added to one of the authentication methods (types) above.  For example,
+    type="cert_pair+vm_id+vm_type".
     <br/><br/>
     Pool index length and list allows the admin to configure a list of credentials without having to list each one of them.  The files must all be identical except
     for the numbers at the end.  The index length value adds leading zeros.  For example, if you have: absfname=&quotpath/foo&quot pool_idx_len=&quot4&quot  pool_idx_list=&quot2,4-6&quot

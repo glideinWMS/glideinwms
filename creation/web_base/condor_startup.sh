@@ -515,42 +515,42 @@ if [ "$check_only" == "1" ]; then
     use_multi_monitor=0
     GLIDEIN_Monitoring_Enabled=False
 else
+    # NO check_only, run the actual glidein and accept jobs
+    if [ "$use_multi_monitor" -eq 1 ]; then
+        condor_config_multi_include="${main_stage_dir}/`grep -i '^condor_config_multi_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
+        echo "# ---- start of include part ----" >> "$CONDOR_CONFIG"
+        cat "$condor_config_multi_include" >> "$CONDOR_CONFIG"
+        if [ $? -ne 0 ]; then
+            #echo "Error appending multi_include to condor_config" 1>&2
+            STR="Error appending multi_include to condor_config"
+            "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "file" "$CONDOR_CONFIG" "infile" "$condor_config_multi_include"
+            exit 1
+        fi
+    else
+        condor_config_main_include="${main_stage_dir}/`grep -i '^condor_config_main_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
+        echo "# ---- start of include part ----" >> "$CONDOR_CONFIG"
 
-if [ "$use_multi_monitor" -eq 1 ]; then
-    condor_config_multi_include="${main_stage_dir}/`grep -i '^condor_config_multi_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
-    echo "# ---- start of include part ----" >> "$CONDOR_CONFIG"
-    cat "$condor_config_multi_include" >> "$CONDOR_CONFIG"
-    if [ $? -ne 0 ]; then
-        #echo "Error appending multi_include to condor_config" 1>&2
-        STR="Error appending multi_include to condor_config"
-        "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "file" "$CONDOR_CONFIG" "infile" "$condor_config_multi_include"
-        exit 1
-    fi
-else
-    condor_config_main_include="${main_stage_dir}/`grep -i '^condor_config_main_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
-    echo "# ---- start of include part ----" >> "$CONDOR_CONFIG"
+        # using two different configs... one for monitor and one for main
+        # don't create the monitoring configs and dirs if monitoring is disabled
+        if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
+          condor_config_monitor_include="${main_stage_dir}/`grep -i '^condor_config_monitor_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
+          condor_config_monitor=${CONDOR_CONFIG}.monitor
+          cp "$CONDOR_CONFIG" "$condor_config_monitor"
+          if [ $? -ne 0 ]; then
+            #echo "Error copying condor_config into condor_config.monitor" 1>&2
+            STR="Error copying condor_config into condor_config.monitor"
+            "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "infile" "$condor_config_monitor" "file" "$CONDOR_CONFIG"
+            exit 1
+          fi
+          cat "$condor_config_monitor_include" >> "$condor_config_monitor"
+          if [ $? -ne 0 ]; then
+            #echo "Error appending monitor_include to condor_config.monitor" 1>&2
+            STR="Error appending monitor_include to condor_config.monitor"
+            "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "infile" "$condor_config_monitor" "file" "$condor_config_monitor_include"
+            exit 1
+          fi
 
-    # using two different configs... one for monitor and one for main
-    # don't create the monitoring configs and dirs if monitoring is disabled
-    if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
-      condor_config_monitor_include="${main_stage_dir}/`grep -i '^condor_config_monitor_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
-      condor_config_monitor=${CONDOR_CONFIG}.monitor
-      cp "$CONDOR_CONFIG" "$condor_config_monitor"
-      if [ $? -ne 0 ]; then
-        #echo "Error copying condor_config into condor_config.monitor" 1>&2
-        STR="Error copying condor_config into condor_config.monitor"
-        "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "infile" "$condor_config_monitor" "file" "$CONDOR_CONFIG"
-        exit 1
-      fi
-      cat "$condor_config_monitor_include" >> "$condor_config_monitor"
-      if [ $? -ne 0 ]; then
-        #echo "Error appending monitor_include to condor_config.monitor" 1>&2
-        STR="Error appending monitor_include to condor_config.monitor"
-        "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "infile" "$condor_config_monitor" "file" "$condor_config_monitor_include"
-        exit 1
-      fi
-
-      cat >> "$condor_config_monitor" <<EOF
+          cat >> "$condor_config_monitor" <<EOF
 # use a different name for monitor
 MASTER_NAME = monitor_$$
 STARTD_NAME = monitor_$$
@@ -558,7 +558,7 @@ STARTD_NAME = monitor_$$
 # use plural names, since there may be more than one if multiple job VMs
 Monitored_Names = "glidein_$$@\$(FULL_HOSTNAME)"
 EOF
-    fi
+    fi  # end of use_multi_monitor==1
 
     # set up the slots based on the slots_layout entry parameter
     slots_layout=`grep -i "^SLOTS_LAYOUT " $config_file | awk '{print $2}'`
@@ -575,6 +575,81 @@ EOF
         echo "NUM_SLOTS_TYPE_1 = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
         num_slots_for_shutdown_expr=$GLIDEIN_CPUS
     fi
+
+
+# check for resource slots
+condor_config_resource_slots=`grep -i "^GLIDEIN_Resource_Slots " $config_file | awk '{print $2}'`
+if [ -n "$condor_config_resource_slots" ]; then
+    echo "adding resource slots configuration: $condor_config_resource_slots" 1>&2
+    cat >> "$CONDOR_CONFIG" <<EOF
+# ---- start of resource slots part ($condor_config_resource_slots) ----
+EXTRA_SLOTS_NUM = 0
+EXTRA_SLOTS_START = True
+NUM_CPUS = \$(GLIDEIN_CPUS)+\$(EXTRA_SLOTS_NUM)
+
+# Slot 1 definition done before (fixed/partitionable)
+#SLOT_TYPE_1_PARTITIONABLE = FALSE
+#SLOT_TYPE_1 = cpus=1, ioslot=0
+#NUM_SLOTS_TYPE_1 = \$(GLIDEIN_CPUS)
+#
+#SLOT_TYPE_1_PARTITIONABLE = TRUE
+#SLOT_TYPE_1 = ioslot=0
+#NUM_SLOTS_TYPE_1 = 1
+EOF
+    # resource processing: res_name[,res_num[,res_total_ram[,res_opt]]]{;res_name[,res_num[,res_total_ram[,res_opt]]]}*
+    IFS=';' read -ra RESOURCES <<< "$condor_config_resource_slots"
+    # Slot Type Counter - Leave slot type 2 for monitoring
+    slott_ctr=3
+    for i in "${RESOURCES[@]}"; do
+        IFS=',' read res_name res_num res_ram res_opt <<< "$i"
+        if [ -z "$res_name" ]; then
+            continue
+        fi
+        if [ -z "$res_num" ]; then
+            res_num=1
+        fi
+        if [ -z "$res_ram" ]; then
+            let res_ram=128*${res_num}
+        fi
+        if [[ "$res_num" -eq 1 || "x$res_opt" == "xstatic" ]]; then
+            res_opt=
+            let res_ram=${res_ram}/${res_num}
+        else
+            res_opt=partitionable
+        fi
+        cat >> "$CONDOR_CONFIG" <<EOF
+# declare static resource slots, each with 1 cpu: ${i}
+MACHINE_RESOURCE_${res_name} = ${res_num}
+EXTRA_SLOTS_NUM = \$(EXTRA_SLOTS_NUM)+\$(MACHINE_RESOURCE_${res_name})
+EOF
+        if [ "x$res_opt" == "xpartitionable" ]; then
+            cat >> "$CONDOR_CONFIG" <<EOF
+SLOT_TYPE_${slott_ctr} = cpus=\$(MACHINE_RESOURCE_${res_name}), ${res_name}=\$(MACHINE_RESOURCE_${res_name}), ram=${res_ram}
+SLOT_TYPE_${slott_ctr}_PARTITIONABLE = TRUE
+NUM_SLOTS_TYPE_${slott_ctr} = 1
+EOF
+        else
+            cat >> "$CONDOR_CONFIG" <<EOF
+SLOT_TYPE_${slott_ctr} = cpus=1, ${res_name}=1, ram=${res_ram}
+SLOT_TYPE_${slott_ctr}_PARTITIONABLE = FALSE
+NUM_SLOTS_TYPE_${slott_ctr} = \$(MACHINE_RESOURCE_${res_name})
+EOF
+        fi
+        cat >> "$CONDOR_CONFIG" <<EOF
+IS_SLOT_${res_name} = SlotTypeID==${slott_ctr}
+EXTRA_SLOTS_START = ifThenElse((SlotTypeID==${slott_ctr}), TARGET.Request${res_name}>0, (\$(EXTRA_SLOTS_START)))
+
+EOF
+        let slott_ctr+=1
+    done
+
+    cat >> "$CONDOR_CONFIG" <<EOF
+# Update start expression
+START = (\$(START)) && (\$(EXTRA_SLOTS_START))
+EOF
+
+fi  # end of resource slot if
+
 
     # Set to shutdown if total idle exceeds max idle, or if the age
     # exceeds the retire time (and is idle) or is over the max walltime (todie)
@@ -661,7 +736,7 @@ EOF
     fi
 fi
 
-fi # if mode==2
+fi # if mode==2  ### MM This is extra! something is wrong!!
 
 if [ -d log ] && [ -d execute ]; then
   echo "log and execute dirs exist" 1>&2
