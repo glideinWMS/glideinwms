@@ -596,12 +596,12 @@ NUM_CPUS = \$(GLIDEIN_CPUS)+\$(EXTRA_SLOTS_NUM)
 #SLOT_TYPE_1 = ioslot=0
 #NUM_SLOTS_TYPE_1 = 1
 EOF
-    # resource processing
+    # resource processing: res_name[,res_num[,res_total_ram[,res_opt]]]{;res_name[,res_num[,res_total_ram[,res_opt]]]}*
     IFS=';' read -ra RESOURCES <<< "$condor_config_resource_slots"
-    # Leave slot type 2 for monitoring
+    # Slot Type Counter - Leave slot type 2 for monitoring
     slott_ctr=3
     for i in "${RESOURCES[@]}"; do
-        IFS=',' read res_name res_num res_ram <<< "$i"
+        IFS=',' read res_name res_num res_ram res_opt <<< "$i"
         if [ -z "$res_name" ]; then
             continue
         fi
@@ -611,21 +611,36 @@ EOF
         if [ -z "$res_ram" ]; then
             let res_ram=128*${res_num}
         fi
+        if [[ "$res_num" -eq 1 || "x$res_opt" == "xstatic" ]]; then
+            res_opt=
+            let res_ram=${res_ram}/${res_num}
+        else
+            res_opt=partitionable
+        fi
         cat >> "$CONDOR_CONFIG" <<EOF
 # declare static resource slots, each with 1 cpu: ${i}
 MACHINE_RESOURCE_${res_name} = ${res_num}
 EXTRA_SLOTS_NUM = \$(EXTRA_SLOTS_NUM)+\$(MACHINE_RESOURCE_${res_name})
-
+EOF
+        if [ "x$res_opt" == "xpartitionable" ]; then
+            cat >> "$CONDOR_CONFIG" <<EOF
+SLOT_TYPE_${slott_ctr} = cpus=\$(MACHINE_RESOURCE_${res_name}), ${res_name}=\$(MACHINE_RESOURCE_${res_name}), ram=${res_ram}
+SLOT_TYPE_${slott_ctr}_PARTITIONABLE = TRUE
+NUM_SLOTS_TYPE_${slott_ctr} = 1
+EOF
+        else
+            cat >> "$CONDOR_CONFIG" <<EOF
 SLOT_TYPE_${slott_ctr} = cpus=1, ${res_name}=1, ram=${res_ram}
 SLOT_TYPE_${slott_ctr}_PARTITIONABLE = FALSE
 NUM_SLOTS_TYPE_${slott_ctr} = \$(MACHINE_RESOURCE_${res_name})
-
+EOF
+        fi
+        cat >> "$CONDOR_CONFIG" <<EOF
 IS_SLOT_${res_name} = SlotTypeID==${slott_ctr}
-
 EXTRA_SLOTS_START = ifThenElse((SlotTypeID==${slott_ctr}), TARGET.Request${res_name}>0, (\$(EXTRA_SLOTS_START)))
 
 EOF
-        slott_ctr+=1
+        let slott_ctr+=1
     done
 
     cat >> "$CONDOR_CONFIG" <<EOF
