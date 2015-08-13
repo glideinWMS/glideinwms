@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_3_rc2
+# GLIDEINWMS_VERSION v3_3_rc3
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -38,7 +38,7 @@ c0fa8e69f13388e51e5a5c30d3576cb7  ./creation/templates/frontend_initd_startup_te
 40a2b85a853a072f65049c4efe64bc3a  ./creation/web_base/check_blacklist.sh
 569bb2a8f8edd34719d3ba2cd08c1f37  ./creation/web_base/check_proxy.sh
 4d57eff610f9d1c62cf1770c6c42811a  ./creation/web_base/collector_setup.sh
-7113a512021c9949340467dfbc067acb  ./creation/web_base/condor_config
+f8fd73235a6b524de280106557df8e8e  ./creation/web_base/condor_config
 97ea51e2881f46c22e5919938745c299  ./creation/web_base/condor_config.check.include
 25b01eb426a9d26434264fb306a3e839  ./creation/web_base/condor_config.dedicated_starter.include
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
@@ -151,7 +151,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 281b86c8a2bc919bfa1cdaedebebaf0c  ./frontend/checkFrontend.py
 16e9750cb5ad4a102e734cd38b70d707  ./frontend/glideinFrontend.py
 b04d93ffbbe5a85bbad9b868596cc70d  ./frontend/glideinFrontendConfig.py
-0145bc85007b990f2d8bc11e69388305  ./frontend/glideinFrontendElement.py
+2b9c7f40c932f54c063adc1a9eaf731f  ./frontend/glideinFrontendElement.py
 43e24309487bf17548611d6c911e0025  ./frontend/glideinFrontendInterface.py
 8017adf3897a0a792d5ab9d938729d31  ./frontend/glideinFrontendLib.py
 1754e4484e221f13578512bd1c825090  ./frontend/glideinFrontendMonitorAggregator.py
