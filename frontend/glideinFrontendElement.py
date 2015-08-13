@@ -765,7 +765,8 @@ class glideinFrontendElement:
 
                     # Pre 8.3.5 schedds do not have CurbMatchmaking.
                     # Assume False if not present
-                    if el.get('CurbMatchmaking', 'FALSE').upper() == 'TRUE':
+                    curb_matchmaking = str(el.get('CurbMatchmaking', 'FALSE'))
+                    if curb_matchmaking.upper() == 'TRUE':
                         self.blacklist_schedds.add(schedd)
                         logSupport.log.warning("Ignoring schedd %s since CurbMatchmaking in its classad evaluated to 'True'" % (schedd))
                 except:
