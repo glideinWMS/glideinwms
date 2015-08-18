@@ -23,9 +23,10 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-            <li> <a href="../corral.html">Corral Frontend</a></li>
+                <li> <a href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
+                <li> <a href="../recipes/index.html">Recipes</a></li>
 	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
         </ul>
         <div class="search">
@@ -256,7 +257,7 @@ by the VO factory clients.</P>
         <TD> Exp (Bool)</td>
 
         <TD> True </TD>
-        <TD ROWSPAN=2>
+        <TD>
             <P>Condor expression to use to specify when a user job in the glideins should be preempted. 
             If any expression is true, the glidein is preempted.  This is usually done to specify 
             custom preemption policies for user jobs.
@@ -395,6 +396,25 @@ by the VO factory clients.</P>
  	</TD>
     </TR>
     <TR>
+        <td> <b>GLIDEIN_Resource_Slots</b> </td>
+        <TD> String </TD>
+ 	<TD> None </TD>
+ 	<TD> <P>Special purpose slots added to the glidein. These slots will never be available for the regular jobs.
+        This string is a semicolon separated list of comma separated resource descriptions.
+        Each resource description contains the name and optionally the number of resources (default is 1), the total memory reserved
+        (default is 128MB time the number of resources) and an option to say if the resource slots are <tt>partitionable</tt>
+        or <tt>static</tt> (default is partitionable, unless there is only one slot).
+        <p>Jobs submission must use <tt>require_RESOURCE=N</tt> with <tt>N&gt;0</tt> to use these slots, e.g. require_ioslot=1</p>
+        <p>Examples:<br>
+        <ul>
+            <li><b>value="ioslot,2,200,static"</b> creates statically partitioned 2 ioslot resources with 100MB memory each.</li>
+            <li><b>value="ioslot"</b> creates 1 ioslot resource with 128MB</li>
+            <li><b>value="ioslot,2;monitor"</b> creates (1) partitionable slot with 2 ioslot resources and 256MB total memory (2) 1 monitor slot resource with 128MB memory</li>
+        </ul>
+        </p>
+ 	</TD>
+    </TR>
+    <TR>
 
         <td> <b>GLEXEC_BIN</b> </td>
         <td> String </TD>
@@ -516,7 +536,7 @@ by the VO factory clients.</P>
             <P>Another security setting.</P>
             <P>If set to True, the schedd and the startd will use a low
             overhead protocol. See the <A HREF="configuration.html#security">configuration
-            page</A> or the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:SecEnableMatchPasswordAuthentication">Condor
+            page</A> or the <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_3Configuration.html#param:SecEnableMatchPasswordAuthentication">Condor
             manual</A>.</P>
         </TD>
     </TR>
@@ -552,8 +572,9 @@ by the VO factory clients.</P>
         <TD ROWSPAN=4> - </TD>
         <TD ROWSPAN=4>
             <P>Configure <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_7Networking_includes.html#SECTION00473000000000000000">GCB</A>.</P>
-            <P>GCB is needed to run glideins on worker nodes behind a
-            firewall or a NAT.</P>
+            <P>GCB was needed to run glideins on worker nodes behind a
+            firewall or a NAT in older versions of HTCondor.<BR>
+            <B>Note: Newer versions of HTCondor do not support it anymore.</B></P>
             <P>For more information, see the <A HREF="../components/condor.html#gcb">configuration page</A>.</P>
 
         </TD>
@@ -589,7 +610,20 @@ by the VO factory clients.</P>
         <TD> Bool </TD>
         <TD> False </TD>
         <TD>
-            <P>If set to True, it will enable <A HREF="http://www.cs.wisc.edu/condor/manual/v7.3/3_7Networking_includes.html#sec:CCB">CCB</A> (available since Condor v7.3.0).</P>
+            <P>If set to True, it will enable <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_7Networking_includes.html#sec:CCB">HTCondor Connection Brokering (CCB)</A>,
+            which is needed if the glideins are behind a firewall or a NAT.</P>
+        </TD>
+
+    </TR>
+    <TR>
+        <td> <b>USE_SHARED_PORT</b> </td>
+
+        <TD> Bool </TD>
+        <TD> False </TD>
+        <TD>
+            <P>If set to True, it will enable <A HREF="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_7Networking_includes.html#sec:shared-port-daemon">the shared port daemon</A>,
+               which will reduce the number of connections between the glidein and the collectors.
+               </P>
         </TD>
 
     </TR>
@@ -618,6 +652,24 @@ by the VO factory clients.</P>
         <TD>
             <P>Used in conjunction with GLIDEIN_MaxMemMBs. See GLIDEIN_MaxMemMBs for the description.</P>
         </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_Factory_Report_Failed</b> </td>
+        <td> String </TD>
+        <td> ALIVEONLY </TD>
+
+        <TD>
+            <p>This attribute regulates advertising of validation failures to the Factory collector.
+            <ul>
+              <li><b>NEVER</b> - The glidein will just fail, and do nothing.
+              <li><b>ALIVEONLY</b> - The glidein will advertise a Master ClassAd in <i>Drained</i> state and <i>Retiring</i> activity for the lifetime of the glidein script.
+              <li><b>ALWAYS</b> - Similar to <b>ALIVEONLY</b>, but will also send a final ClassAd in <i>Drained</i> state and <i>Killing</i> activity just before dying.
+            </ul>
+            <p>When advertised, the classad is flagged <i>GLIDEIN_Failed=True</i>, 
+               the error is recorded in the <i>GLIDEIN_FAILURE_REASON</i> and
+                  <i>GLIDEIN_EXIT_CODE</i> attributes, and
+               the failing script is recorded in the <i>GLIDEIN_LAST_SCRIPT</i> attribute.
+       </TD>
     </TR>
 </TABLE>
 </div>
@@ -920,7 +972,7 @@ described below ar the most often used.</P>
         <TD>
             <p>This attribute regulates advertising of validation failures to the user collector.
             <ul>
-              <li><b>NEVER</b> - The glidein will just fail, and do nothing.
+              <li><b>NEVER</b> - The glidein will just fail, and do nothing. (default)
               <li><b>ALIVEONLY</b> - The glidein will advertise a Machine ClassAd in <i>Drained</i> state and <i>Retiring</i> activity for the lifetime of the glidein script.
               <li><b>ALWAYS</b> - Similar to <b>ALIVEONLY</b>, but will also send a final ClassAd in <i>Drained</i> state and <i>Killing</i> activity just before dying.
             </ul>
@@ -1078,10 +1130,24 @@ the working directory specified by</P>
         <td> <b>TMP_DIR</b> </td>
         <TD>
             <P>Path to the directory that admin-provided scripts and user jobs can use
-            for storing temporary data. 
+            for storing temporary data.
             </P>
             <P>This variable is exported as <B>GLIDEIN_Tmp_Dir</B> both to
-            the glidein ClassAd and to the use job environment.</P>
+            the glidein ClassAd and to the user job environment.</P>
+        </TD>
+
+    </TR>
+    <TR>
+
+        <td> <b>GLIDEIN_LOCAL_TMP_DIR</b> </td>
+        <TD>
+            <P>Path to the directory on the local file system
+            for storing temporary data.<br>
+            <B>Note:</B> Only use for things that absolutely need the guarantee
+                of residing in the local file system. 
+                Prefer <b>TMP_DIR</b> above for everything else.
+            </P>
+            <P>This variable is exported to the user job environment.</P>
         </TD>
 
     </TR>
@@ -1285,9 +1351,11 @@ Once the job finishes, it will wait for Glidein_Max_Tail for another job.
 If cannot find one, it will shutdown.
 </li>
 </ul>
-Note that the idle limits are cumulative (it counds total idle time), so that
+Note that for GlideinWMS versions before 3.2.7 or for glidins using HTCondor pre 8.2, 
+the idle limits are cumulative (it counts total idle time), so that
 the total idle times in all the yellow zones above will be counted towards
-GLIDEIN_Max_Idle and GLIDEIN_Max_Tail.
+GLIDEIN_Max_Tail. Not so for GlideinWMS 3.2.7 and HTCondor 8.2 or later, 
+where Glidein_Max_Tail counts the idle time after the previous job ends, as specified above.
 </div>
 <div class="footer">
 Banner image by

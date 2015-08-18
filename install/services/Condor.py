@@ -975,9 +975,10 @@ MAX_CONCURRENT_UPLOADS = 100
 MAX_CONCURRENT_DOWNLOADS = 100
 
 #--  Prevent checking on ImageSize
-APPEND_REQ_VANILLA = (Memory>=1) && (Disk>=1)
+# No need to support APPEND_REQ_VANILLA expressions any more
+#APPEND_REQ_VANILLA = (Memory>=1) && (Disk>=1)
 # New in 7.8.x
-JOB_DEFAULT_REQUESTMEMORY=1
+JOB_DEFAULT_REQUESTMEMORY=1024
 JOB_DEFAULT_REQUESTDISK=1
 
 #--  Prevent preemption
@@ -1201,11 +1202,15 @@ COLLECTOR.USE_VOMS_ATTRIBUTES = False
 #-- allow more file descriptors (only works if Condor is started as root)
 ##COLLECTOR_MAX_FILE_DESCRIPTORS=20000
 
-############################################
+#################################################
 # We expect to have secondary collectors, so
 #-- forward ads to the main collector
 #-- (this is ignored by the main collector, since the address matches itself)
-CONDOR_VIEW_HOST = $(COLLECTOR_HOST)
+# NOTE: localhost is more efficient if all runs on the same host
+#   But if your secondary collector are on separate hosts or if you run HTCondor
+#   older than 8.2 (or 8.1.5), you must use the host name, e.g.:
+#   CONDOR_VIEW_HOST = $(COLLECTOR_HOST)  
+CONDOR_VIEW_HOST = localhost
 
 """ % { "name" : self.service_name(), 
         "port" : self.collector_port()

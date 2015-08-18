@@ -6,11 +6,15 @@
 #
 # Description:
 #   Classes needed to handle dictionary files
+#   And other support functions
 #
 
-import os,os.path,string,shutil,copy
-from glideinwms.lib import hashCrypto
+import os,os.path  # string
+import shutil
+import copy
+import socket
 import cStringIO
+from glideinwms.lib import hashCrypto
 
 ########################################
 #
@@ -65,10 +69,10 @@ class DictFile:
     def add(self,key,val,allow_overwrite=False):
         if key in self.keys:
             if self.vals[key]==val:
-                return # already exists, nothing to do
+                return  # already exists, nothing to do
 
         if self.is_readonly:
-            raise RuntimeError, "Trying to modify a readonly object!"
+            raise RuntimeError, "Trying to modify a readonly object (%s, %s)!" % (key, val)
 
         if key in self.keys:
             if not allow_overwrite:
@@ -139,7 +143,7 @@ class DictFile:
         if header is not None:
             fd.write("%s\n"%header)
         if sort_keys:
-            keys=self.keys[0:]
+            keys=self.keys[0:]  # makes a copy
             keys.sort()
         else:
             keys=self.keys
@@ -302,7 +306,7 @@ class DictFileTwoKeys(DictFile): # both key and val are keys
                 return # already exists, nothing to do
 
         if self.is_readonly:
-            raise RuntimeError, "Trying to modify a readonly object!"
+            raise RuntimeError, "Trying to modify a readonly object (%s, %s)!" % (key, val)
 
         if key in self.keys:
             old_val=self.vals[key]
@@ -384,6 +388,34 @@ class DescriptionDictFile(DictFileTwoKeys):
             raise RuntimeError,"Not a valid description line: '%s'"%line
 
         return self.add(arr[1],arr[0])
+
+# gridmap file
+class GridMapDict(DictFileTwoKeys):
+    def file_header(self,want_comments):
+        return None
+    
+    def format_val(self,key,want_comments):
+        return '"%s" %s'%(key,self.vals[key])
+
+    def parse_val(self,line):
+        if line[0]=='#':
+            return # ignore comments
+        arr=line.split()
+        if len(arr)==0:
+            return # empty line
+        if len(arr[0])==0:
+            return # empty key
+
+        if line[0:1]!='"':
+            raise RuntimeError,'Not a valid gridmap line; not starting with ": %s'%line
+
+        user=arr[-1]
+
+        if line[-len(user)-2:-len(user)-1]!='"':
+            raise RuntimeError,'Not a valid gridmap line; DN not ending with ": %s'%line
+        
+        dn=line[1:-len(user)-2]
+        return self.add(dn,user)
 
 ##################################
 
@@ -527,14 +559,25 @@ class SimpleFileDictFile(DictFile):
     def get_file_fname(self,key):
         return key
 
+
 # file list
-# This one contains (real_fname,cache/exec,cond_download,config_out)
-# cache/exec should be one of: regular, nocache, exec, untar
-# cond_download has a special value of TRUE
-# config_out has a special value of FALSE
+# used for transferred files
 class FileDictFile(SimpleFileDictFile):
+    """Dictionary file for files (file list)
+    It is using an ordered dictionary (key, value) from DictFile, serialized to file
+    The key is the file ID 
+    The value in memory has 6 components (real_fname,cache/exec,period,cond_download,config_out):
+    1. real_fname
+    2. cache/exec/... keyword identifying the file type: regular, nocache, exec, untar
+    3. period period in seconds at which an executable is re-invoked (only for periodic executables, 0 otherwise)
+    4. cond_download has a special value of TRUE
+    5. config_out has a special value of FALSE
+    6. data - It contains the data extracted from the file (real_fname)
+    On file there are the key and the first 5 components of the value (not the 6th w/ the content)
+    For placeholders, the real_name is empty (and the line starts w/ blank)
+    """
     def add_placeholder(self,key,allow_overwrite=True):
-        DictFile.add(self,key,("","","","",""),allow_overwrite)
+        DictFile.add(self,key,("","",0,"","",""),allow_overwrite)
 
     def is_placeholder(self,key):
         return (self[key][0]=="") # empty real_fname can only be a placeholder
@@ -545,49 +588,70 @@ class FileDictFile(SimpleFileDictFile):
                      allow_overwrite_placeholder=True):
         if self.has_key(key) and allow_overwrite_placeholder:
             if self.is_placeholder(key):
-                allow_overwrite=True # since the other functions know nothing about placeholders, need to force overwrite
+                # since the other functions know nothing about placeholders, need to force overwrite
+                allow_overwrite=True
         return SimpleFileDictFile.add_from_str(self,key,val,data,allow_overwrite)
 
     def add(self,key,
-            val,     # will if len(val)==5, use the last one as data, else load from val[0]
+            val,     # will if len(val)==5, use the last one as data (for placeholders), else load from val[0]
             allow_overwrite=False,
             allow_overwrite_placeholder=True):
+        """Add a file to the list
+        invokes add_from_str if the content is provided (6th component of val), add_from_file otherwise
+        :param key: file ID
+        :param val: lists of 5 or 6 components (see class definition)
+        :param allow_overwrite: if True the existing files can be replaced (default: False)
+        :param allow_overwrite_placeholder: if True, placeholder files can be replaced even if allow_overwrite
+            is False (default: True)
+        :return:
+        """
         if not (type(val) in (type(()),type([]))):
             raise RuntimeError, "Values '%s' not a list or tuple"%val
 
         if self.has_key(key) and allow_overwrite_placeholder:
             if self.is_placeholder(key):
-                allow_overwrite=True # since the other functions know nothing about placeholders, need to force overwrite
+                # since the other functions from base class know nothing about placeholders, need to force overwrite
+                allow_overwrite = True
 
-        if len(val)==5:
-            return self.add_from_str(key,val[:4],val[4],allow_overwrite)
-        elif len(val)==4:
+        # This will help identify calls not migrated to the new format
+        try:
+            int(val[2])  # to check if is integer. Period must be int or convertible to int
+        except (ValueError, IndexError):
+            raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,cond_download,config_out)" % val)
+
+        if len(val)==6:
+            return self.add_from_str(key,val[:5],val[5],allow_overwrite)
+        elif len(val)==5:
             return self.add_from_file(key,val,os.path.join(self.dir,val[0]),allow_overwrite)
         else:
-            raise RuntimeError, "Values '%s' not (real_fname,cache/exec,cond_download,config_out)"%val
+            raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,cond_download,config_out)" % val)
 
     def format_val(self,key,want_comments):
-        return "%s \t%s \t%s \t%s \t%s"%(key,self.vals[key][0],self.vals[key][1],self.vals[key][2],self.vals[key][3])
+        return "%s \t%s \t%s \t%s \t%s \t%s"%(key,self.vals[key][0],self.vals[key][1],self.vals[key][2],self.vals[key][3],self.vals[key][4])
 
     def file_header(self,want_comments):
         if want_comments:
             return (DictFile.file_header(self,want_comments)+"\n"+
-                    ("# %s \t%s \t%s \t%s \t%s\n"%('Outfile','InFile        ','Cache/exec','Condition','ConfigOut'))+
+                    ("# %s \t%s \t%s \t%s \t%s \t%s\n"%('Outfile','InFile        ','Cache/exec','Period','Condition','ConfigOut'))+
                     ("#"*78))
         else:
             return None
 
     def parse_val(self,line):
-        if line[0]=='#':
-            return # ignore comments
-        arr=line.split(None,4)
+        if not line or line[0]=='#':
+            return  # ignore empty lines and comments
+        arr=line.split(None,5)  
+        #TODO: Always split in 6, should it be replaces w/o limit? or w/ 7, to allow content at the end (.add() supports it)?
         if len(arr)==0:
-            return # empty line
+            return  # empty line
         if len(arr[0])==0:
-            return # empty key
+            return  # empty key
 
-        if len(arr)!=5:
-            raise RuntimeError,"Not a valid file line (expected 5, found %i elements): '%s'"%(len(arr),line)
+        if len(arr)!=6:
+            if len(arr)==5:
+                # Allow this to upgrade from previous version (parse file with no period)
+                return self.add(arr[0],[arr[1], arr[2], 0, arr[3], arr[4]])
+            raise RuntimeError,"Not a valid file line (expected 6, found %i elements): '%s'"%(len(arr),line)
 
         return self.add(arr[0],arr[1:])
 
@@ -1430,3 +1494,64 @@ class MonitorFileDicts:
         self.main_dicts.save(set_readonly=set_readonly)
         for sub_name in self.sub_list:
             self.sub_dicts[sub_name].save_final(set_readonly=set_readonly)
+
+#########################################################
+#
+# Common functions
+#
+#########################################################
+
+#####################################################
+# Validate HTCondor endpoint (node) string
+# this can be a node, node:port, node:port-range
+# or a shared port synful string host:port?sock=some_string$ID
+# or schedd_name@host:port[?sock=some_string]
+def validate_node(nodestr,allow_prange=False):
+    eparr = nodestr.split('?')
+    if len(eparr) > 2:
+        raise RuntimeError("Too many ? in the end point name: '%s'" % nodestr)
+    if len(eparr) == 2:
+        if not eparr[1].startswith("sock="):
+            raise RuntimeError("Unrecognized HTCondor sinful string: %s" % nodestr)
+        # check that ; and , are not in the endpoint ID (they are not before ?)
+        if ',' in eparr[1] or ';' in eparr[1]:
+            raise RuntimeError("HTCondor sinful string should not contain separators (,;): %s" % nodestr)
+    narr = eparr[0].split(':')
+    if len(narr) > 2:
+        raise RuntimeError("Too many : in the node name: '%s'" % nodestr)
+    if len(narr)>1:
+        # have ports, validate them
+        ports = narr[1]
+        parr = ports.split('-')
+        if len(parr) > 2:
+            raise RuntimeError("Too many - in the node ports: '%s'" % nodestr)
+        if len(parr) > 1:
+            if not allow_prange:
+                raise RuntimeError("Port ranges not allowed for this node: '%s'" % nodestr)
+            pmin = parr[0]
+            pmax = parr[1]
+        else:
+            pmin = parr[0]
+            pmax = parr[0]
+        try:
+            pmini = int(pmin)
+            pmaxi = int(pmax)
+        except ValueError,e:
+            raise RuntimeError("Node ports are not integer: '%s'" % nodestr)
+        if pmini>pmaxi:
+            raise RuntimeError("Low port must be lower than high port in node port range: '%s'" % nodestr)
+
+        if pmini<1:
+            raise RuntimeError("Ports cannot be less than 1 for node ports: '%s'" % nodestr)
+        if pmaxi>65535:
+            raise RuntimeError("Ports cannot be more than 64k for node ports: '%s'" % nodestr)
+
+    # split needed to handle the multiple schedd naming convention
+    nodename = narr[0].split("@")[-1]
+    try:
+        socket.getaddrinfo(nodename, None)
+    except:
+        raise RuntimeError("Node name unknown to DNS: '%s'" % nodestr)
+
+    # OK, all looks good
+    return

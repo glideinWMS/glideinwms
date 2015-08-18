@@ -529,7 +529,7 @@ def string_quote_join(arglist):
 # python module, if that one is not available
 class rrdtool_exe:
     def __init__(self):
-        self.rrd_bin = (subprocessSupport.iexe_cmd("which rrdtool")[0]).strip()
+        self.rrd_bin = (subprocessSupport.iexe_cmd("which rrdtool").split('\n')[0]).strip()
 
     def create(self,*args):
         cmdline = '%s create %s'%(self.rrd_bin,string_quote_join(args))
@@ -543,7 +543,7 @@ class rrdtool_exe:
     
     def info(self,*args):
         cmdline = '%s info %s'%(self.rrd_bin,string_quote_join(args))
-        outstr = subprocessSupport.iexe_cmd(cmdline)
+        outstr = subprocessSupport.iexe_cmd(cmdline).split('\n')
         outarr = {}
         for line in outstr:
             linearr = line.split('=')
@@ -551,8 +551,14 @@ class rrdtool_exe:
         return outarr
     
     def dump(self,*args):
+        """
+        Run rrd_tool dump
+
+        Input is usually just the file name.
+        Output is a list of lines, as returned from rrdtool.
+        """
         cmdline = '%s dump %s' % (self.rrd_bin, string_quote_join(args))
-        outstr = subprocessSupport.iexe_cmd(cmdline)
+        outstr = subprocessSupport.iexe_cmd(cmdline).split('\n')
         return outstr
     
     def restore(self,*args):

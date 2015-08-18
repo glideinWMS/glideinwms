@@ -159,6 +159,7 @@ class GlideinParams(cWParams.CommonParams):
         process_log_defaults['extension'] = ["all", "string", "name of the log extention", None]
         process_log_defaults['msg_types'] = ["INFO, WARN, ERR", "string", "types of log messages", None]
         process_log_defaults['backup_count'] = ["5", "string", "Number of backup logs to keep", None]
+        process_log_defaults['compression'] = ["", "string", "Compression for backup log files", None]
 
         log_retention_defaults = cWParams.commentedOrderedDict()
         log_retention_defaults["process_logs"] = ([], 'Dictionary of log types', "Each log corresponds to a log file", copy.deepcopy(process_log_defaults))
@@ -195,6 +196,14 @@ class GlideinParams(cWParams.CommonParams):
         self.frontend_defaults = cWParams.commentedOrderedDict()
         self.frontend_defaults["identity"] = (None, 'identity', 'Authenticated Identity', None)
         self.frontend_defaults["security_classes"] = (xmlParse.OrderedDict(), "Dictionary of security class maps", "Each mapping contains", self.frontend_sec_class_defaults)
+
+        monitoring_collector_defaults=cWParams.commentedOrderedDict()
+        monitoring_collector_defaults["node"]=(None,"nodename","Factory monitoring collector node name (for example, col1.my.org:9999)",None)
+        monitoring_collector_defaults["DN"]=(None,"dn","Factory collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=col1.my.org)",None)
+        monitoring_collector_defaults["secondary"]=("False","Bool","Secondary nodes will be used by glideins, if present",None)
+        monitoring_collector_defaults["group"]=("default","string","Collector group name useful to group HA setup",None)
+
+        self.defaults["monitoring_collectors"]=([],'List of factory monitoring collectors',"Each collector contains",monitoring_collector_defaults)
 
         security_default=cWParams.commentedOrderedDict()
         security_default["pub_key"]=("RSA","None|RSA","Type of public key system used for secure message passing",None)
@@ -297,6 +306,7 @@ class GlideinParams(cWParams.CommonParams):
                 'files':{'el_name':'file','subtypes_params':{'class':{}}},
                 'process_logs':{'el_name':'process_log','subtypes_params':{'class':{}}},
                 'monitorgroups':{'el_name':'monitorgroup','subtypes_params':{'class':{}}},
+                'monitoring_collectors':{'el_name':'monitoring_collector','subtypes_params':{'class':{}}},
                 'infosys_refs':{'el_name':'infosys_ref','subtypes_params':{'class':{}}}
             },
             'dicts_params':{

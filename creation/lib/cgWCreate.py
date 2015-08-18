@@ -48,12 +48,14 @@ def create_condor_tar_fd(condor_base_dir):
                   'libexec/condor_glexec_run',
                   'libexec/condor_glexec_update_proxy',
                   'libexec/condor_glexec_setup',
+                  'libexec/condor_shared_port',
                   'libexec/condor_ssh_to_job_sshd_setup',
                   'libexec/condor_ssh_to_job_shell_setup',
                   'libexec/condor_kflops',
                   'libexec/condor_mips',
                   'libexec/curl_plugin',
                   'libexec/data_plugin',
+                  'libexec/condor_chirp',
                               ]
 
         # for RPM installations, add libexec/condor as libexec into the
@@ -123,18 +125,26 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
         # Add in some common elements before setting up grid type specific attributes
         self.add("Universe", "grid")
-        self.add("Grid_Resource", "%s %s" % (gridtype, gatekeeper))
+        if gridtype.startswith('batch '):
+            # For BOSCO ie gridtype 'batch *', allow means to pass VO specific
+            # bosco/ssh keys
+            self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) %s" % (gridtype, gatekeeper))
+        else:
+            self.add("Grid_Resource", "%s %s" % (gridtype, gatekeeper))
         self.add("Executable", exe_fname)
                 
         # set up the grid specific attributes
         if gridtype == 'ec2':
-            self.populate_ec2_grid()
+            self.populate_ec2_grid(submit_attrs)
         elif gridtype == 'condor':
             # Condor-C is the same as normal grid with a few additions
             # so we first do the normal population
             self.populate_standard_grid(rsl, auth_method, gridtype)
             # next we add the Condor-C additions
             self.populate_condorc_grid(submit_attrs)
+        elif (gridtype.startswith('batch ')):
+            # BOSCO, aka batch *
+            self.populate_batch_grid(rsl, auth_method, gridtype, submit_attrs)
         else:
             self.populate_standard_grid(rsl, auth_method, gridtype)
 
@@ -162,7 +172,6 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             self.add("nordugrid_rsl", "$ENV(GLIDEIN_RSL)")
         else:
             pass
-            # do we want to raise an error here?  we do in v2+
 
         # Force the copy to spool to prevent caching at the CE side
         self.add("copy_to_spool", "True")
@@ -170,31 +179,54 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("Arguments", "$ENV(GLIDEIN_ARGUMENTS)")
 
         self.add("Transfer_Executable", "True")
-        self.add("transfer_Input_files", "")
         self.add("transfer_Output_files", "")
         self.add("WhenToTransferOutput ", "ON_EXIT")
 
         self.add("stream_output", "False")
         self.add("stream_error ", "False")
 
-    def populate_condorc_grid(self, submit_attrs):
-        for key in submit_attrs.keys():
-            self.add(key, submit_attrs[key]['value'])
 
+    def populate_batch_grid(self, rsl, auth_method, gridtype, submit_attrs):
+        input_files = []
+        encrypt_input_files = []
+
+        self.populate_standard_grid(rsl, auth_method, gridtype)
+
+        input_files.append('$ENV(X509_USER_PROXY)')
+        encrypt_input_files.append('$ENV(X509_USER_PROXY)')
+        self.add('environment', '"X509_USER_PROXY=$ENV(X509_USER_PROXY_BASENAME)"')
+        self.add("transfer_Input_files", ','.join(input_files))
+        self.add("encrypt_Input_files", ','.join(encrypt_input_files))
+
+        self.populate_submit_attrs(submit_attrs)
+
+
+    def populate_submit_attrs(self, submit_attrs, attr_prefix=''):
+        for key in submit_attrs.keys():
+            self.add('%s%s' % (attr_prefix, key), submit_attrs[key]['value'])
+
+
+    def populate_condorc_grid(self, submit_attrs):
+        self.populate_submit_attrs(submit_attrs)
         self.add('+TransferOutput', '""')
         self.add('x509userproxy', '$ENV(X509_USER_PROXY)')
 
-    def populate_ec2_grid(self):
+    def populate_ec2_grid(self, submit_attrs):
         self.add("ec2_ami_id", "$ENV(AMI_ID)")
         self.add("ec2_instance_type", "$ENV(INSTANCE_TYPE)")
         self.add("ec2_access_key_id", "$ENV(ACCESS_KEY_FILE)")
         self.add("ec2_secret_access_key", "$ENV(SECRET_KEY_FILE)")
         self.add("ec2_keypair_file", "$ENV(CREDENTIAL_DIR)/ssh_key_pair.$(Cluster).$(Process).pem")
-        # We do not add the entire argument list to the userdata directly since we want to be able
-        # to change the argument list without having to modify every piece of code under the sun
-        # this way only the submit_glideins function has to change (and of course glidein_startup.sh)
+        # We do not add the entire argument list to the userdata directly
+        # since we want to be able to change the argument list without
+        # having to modify every piece of code under the sun this way
+        # only the submit_glideins function has to change (and of course
+        # glidein_startup.sh)
         self.add("ec2_user_data", "$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####")
         self.add("ec2_user_data_file", "$ENV(GLIDEIN_PROXY_FNAME)")
+
+        # Support EC2 spot pricing and other ec2 options using submit attrs
+        self.populate_submit_attrs(submit_attrs)
 
     def populate_glidein_classad(self, proxy_url):
         # add in the classad attributes for the WMS collector

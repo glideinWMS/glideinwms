@@ -54,8 +54,8 @@
             <h2>Glidein Recipes</h2>
             <ul class="subcomponents">
                 <li><a href="./index.html">Overview</a></li>
-                <li> <a href="./batch.html">Batch (BOSCO)</a></li>
-                <li>Cloud Recipes</li>
+                <li>Batch (BOSCO)</li>
+                <li><a href="./cloud.html">Cloud Recipes</a></li>
                 <li class="last"> <a href="./ec2vmroll.html">EC2 VM Roll</a></li>
             </ul>
             <h3>Overview</h3>
@@ -76,9 +76,9 @@
         <div class="section">
             <h2 class="western">Description</h2>
             <p>
-                This recipe is designed to give an example on how to configure a factory and frontend to submit user jobs on Amazon EC2.
+                This recipe is designed to give an example on how to configure a factory and frontend to submit user jobs to a batch cluster via BOSCO.
             </p>
-            <table summary="Requirements for EC2 Submission" class="requirements">
+            <table summary="Requirements for Batch/BOSCO Submission" class="requirements">
                 <tbody>
                     <tr class="head">
                         <td scope="col">Requirement</td>
@@ -88,7 +88,7 @@
                         <td>A functioning glideinwms factory</td>
                         <td>
                             The factory should be completely configured and functioning for Grid submissions.  The main reason for this is to be
-                            able to be assured that the factory is running and works before we do any configuration for cloud.
+                            able to be assured that the factory is running and works before we do any configuration for BOSCO.
                         </td>
                     </tr>
                     <tr>
@@ -99,26 +99,62 @@
                         </td>
                     </tr>
                     <tr>
-                        <td><nobr>Valid, current, enabled Amazon EC2 credentials</nobr></td>
+                        <td><nobr>A valid BOSCO resource</nobr></td>
                         <td>
-                            Specifically, the AccessKey and SecretKey are needed for submission.
+                            Valid, current, enabled account to access a submit host and submit to the cluster.
+                            Specifically, you need the private and public ssh keys are needed for submission.
+                            Then you can add the resource by invoking the "bosco_cluster --add" command. This can be invoked 
+                            from any host but we suggest to do it form the Frontend so that you don't need to transfer the ssh keys.
+                            See the <a href="https://twiki.grid.iu.edu/bin/view/CampusGrids/BoscoInstall#4_3_Add_a_cluster_to_BOSCO">BOSCO manual</a> 
+                            for more information on adding a BOSCO resource.
                         </td>
                     </tr>
                 </tbody>
             </table>
+            <p>
+                The BOSCO submission from the Factory uses SSH. Before being able to do ssh in batch mode for the glidein submission you must trust the 
+keys of the BOSCO resource, the one added with "bosco_cluster --add" on the Frontend, in our example <tt>carvergrid.nersc.gov</tt>. 
+You have a couple of options depending on how you want to configure ssh:
+                 <ul>
+                      <li>Build up a global fingerprint list. Collect the keys in /etc/ssh/ssh_known_hosts (or ~/.ssh/known_hosts of the users submitting glideins). Note that you'll have to update the fingerprint list if the BOSCO recource key will change or all the glidein submisison attempts will fail
+<pre>
+ssh-keyscan -t rsa,dsa carvergrid.nersc.gov >> /etc/ssh/ssh_known_hosts
+</pre>
+                      </li>
+                      <li>Alternatively disable strict host key checking in ssh for the BOSCO resource adding these lines to /etc/ssh/ssh_config 
+(or ~/.ssh/config of the users submitting glideins). The syntax below can accept also IP numbers or wildcards (to include more hosts).
+<pre>
+Host carvergrid.nersc.gov
+    StrictHostKeyChecking no
+</pre>
+The setting above will add the key the first time and give a warning if the key changes subsequently. To avoid host key verification, and not use known_hosts 
+file you can do the following (not recommended unless on a local network). In this example the BOSCO resources have IPs 192.168.0.XXX.
+<pre>
+Host 192.168.0.*
+    StrictHostKeyChecking no
+    UserKnownHostsFile=/dev/null
+</pre>
+                      </li>
+                  </ul> 
+                 If you have access to the ssh key on the factory, it is recommended also to manually ssh to the host to see if the ssh connection works correctly.
+            </p>
+            <p> 
+                The configuration fragments below highlight the parts that differ most for a BOSCO entry: the entry configuration on the Factory 
+and the credentials configuration on the Frontend. 
+            </p>
         </div>
         <div class="section">
-            <h2 class="western">Example EC2 Factory Entry</h2>
+            <h2 class="western">Example BOSCO Factory Entry</h2>
             <pre>
-&lt;entry name="Amazon_Vandy" 
-    auth_method="key_pair+vm_id+vm_type" 
+&lt;entry name="BOSCO_TEST_carver" 
+    auth_method="key_pair" 
     enabled="True" 
-    gatekeeper="https://us-east-1.ec2.amazonaws.com"
-    gridtype="ec2" 
-    schedd_name="cms-xen6.fnal.gov" 
-    trust_domain="Cloud" 
+    gatekeeper="cmsuser@carvergrid.nersc.gov"
+    gridtype="batch pbs" 
+    schedd_name="fermicloud199.fnal.gov" 
+    trust_domain="bosco" 
     verbosity="std" 
-    work_dir="."&gt;
+    work_dir="AUTO"&gt;
 
     &lt;config&gt;
         &lt;max_jobs glideins="3" held="2" idle="1"&gt;
@@ -126,13 +162,13 @@
         &lt;/max_jobs&gt;
         &lt;release max_per_cycle="20" sleep="0.2"/&gt;
         &lt;remove max_per_cycle="5" sleep="0.2"/&gt;
-        &lt;restrictions require_voms_proxy="False"/&gt;
-        &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2"/&gt;
-        &lt;submit_attrs&gt;
-            &lt;submit_attr name="ec2_availability_zone" value="us-west-2a"/&gt;
-            &lt;submit_attr name="ec2_spot_price" value="0.03"/&gt;
-        &lt;submit_attrs&gt;
-
+        &lt;restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/&gt;
+        &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2"&gt;
+            &lt;submit_attrs&gt;
+                &lt;submit_attr name="+remote_queue" value='"serial"'/&gt;
+                &lt;submit_attr name="request_memory" value="2048"/&gt;
+            &lt;submit_attrs&gt;
+        &lt;/submit&gt;
     &lt;/config&gt;
     &lt;allow_frontends&gt;&lt;/allow_frontends&gt;
 
@@ -144,11 +180,12 @@
         &lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" 
               parameter="True" publish="True" type="string" value="NONE"/&gt;
         &lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" 
-              parameter="True" publish="True" type="string" value="Amazon_EC2"/&gt;
-        &lt;attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" 
+              parameter="True" publish="True" type="string" value="BOSCO_PBS"/&gt;
+        &lt;attr name="USE_CCB" const="False" glidein_publish="True" job_publish="False" 
               parameter="True" publish="True" type="string" value="True"/&gt;
-    &lt;/attrs&gt;
-
+        &lt;attr name="X509_CERT_DIR" const="True" glidein_publish="False" job_publish="True" 
+              parameter="True" publish="True" type="string" value="/osg/certificates"/&gt;
+     &lt;/attrs&gt;
     &lt;files&gt;&lt;/files&gt;
     &lt;infosys_refs&gt;&lt;/infosys_refs&gt;
     &lt;monitorgroups&gt;&lt;/monitorgroups&gt;
@@ -166,55 +203,49 @@
                     <tr>
                         <td>auth_method</td>
                         <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
-                        <td><nobr>"key_pair+vm_id+vm_type"</nobr></td>
+                        <td><nobr>"key_pair"</nobr></td>
                         <td>
-                            <p>The key pair in this case refers to the AccessKey and SecretKey that EC2-like cloud providers give for their
-                            REST interface.  The vm_id and vm_type correspond to EC2's AMI_ID and AMI_TYPE descriptors.  Each cloud implementation
-                            will have their own definitions for what these descriptors mean.  In this example, the actual values will be configured
-                            by the frontend.</p>
+                            <p>The key pair in this case refers to the ssh keypair installed to access the BOSCO resource (remote cluster submit host).  
+                            </p>
                             <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
                     <tr>
                         <td>gatekeeper</td>
                         <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
-                        <td><nobr>"https://us-east-1.ec2.amazonaws.com"</nobr></td>
+                        <td><nobr>"cmsuser@carvergrid.nersc.gov"</nobr></td>
                         <td>
-                            <p>The gatekeeper attribute in the cloud case is similar enough to a grid gatekeeper that there is no function
-                            difference as far as the glideinWMS factory admin is concerned.  EC2 has regional gatekeepers, so choose the 
-                            gatekeeper for the region in which you would like to run in.  In this example, the US-EAST region has bee selected.</p>
+                            <p>The gatekeeper attribute in the BOSCO case is the username and hostname used by the user to login to the cluster and submit jobs.
+                            </p>
                             <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
                     <tr>
                         <td>gridtype</td>
                         <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
-                        <td>"ec2"</td>
+                        <td>"batch pbs"</td>
                         <td>
-                            <p>To submit to EC2-like clouds, this attribute must be set to "ec2".</p>
+                            <p>It must be the keyword "batch" followed by the batch system used in the cluster (must be one supported by HTCondor/BOSCO, 
+                            e.g pbs, condor, lsf, sge.</p>
                             <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
                     <tr>
                         <td>trust_domain</td>
                         <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
-                        <td>"Cloud"</td>
+                        <td>"bosco"</td>
                         <td>
-                            <p>The trust domain can be any arbitrary value.  The only caveat is that both the factory and the frontend
-                            must be configured to use the same value.  In this example, "Cloud" is the arbitrary value.</p>
+                            <p>The trust domain can be any arbitrary value. Both the factory and the frontend must be configured to use the same value of the trust_domain.  In this example, "bosco" is the arbitrary value.</p>
                             <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
                     <tr>
                         <td>work_dir</td>
                         <td><nobr>Element attribute for &lt;entry&gt;</nobr></td>
-                        <td>"."</td>
+                        <td>"AUTO"</td>
                         <td>
-                            <p>The working directory that the pilot starts up in must be "." for this example.  The reason is that the 
-                            VM that the example is pointing to makes specific use of the scratch space Amazon provides.  This is in a 
-                            non-standard location.  For all intents and practical purposes, it will be the VOs responsibility to define
-                            the working directory on the VM and have the contextualization scripts handle the setup of where the pilot
-                            starts.</p>
+                            <p>The working directory that the pilot starts up in can be any one supported by the remote cluster or batch system.
+                            </p>
                             <p>See <a href="../factory/configuration.html#entry">Factory Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
@@ -223,8 +254,7 @@
                         <td><nobr>Element attribute for &lt;max_jobs&gt;</nobr></td>
                         <td>"3"</td>
                         <td>
-                            <p>This attribute is very important for cloud use.  Even more so when real money is being used to pay for the 
-                            computing cycles.  This is a hard limit for the number of VMs that the factory will start.  For testing purposes
+                            <p>This is a hard limit for the number of glideins that the factory will submit to the remote batch system. For testing purposes
                             this example was restricted to 3 running VMs.</p>
                             <p>See <a href="../factory/configuration.html">Factory Configuration</a> for a complete description.</p>
                         </td>
@@ -234,7 +264,7 @@
                         <td><nobr>Element attribute for &lt;max_jobs&gt;</nobr></td>
                         <td>"1"</td>
                         <td>
-                            <p>This is a limit for the number of VM requests that can be in held state.  If the number of held requests match
+                            <p>This is a limit for the number of glideins requests that can be in held state.  If the number of held requests match
                             this number, the factory will stop asking for more.  For purposes of testing, this number was set extremely low.</p>
                             <p>See <a href="../factory/configuration.html">Factory Configuration</a> for a complete description.</p>
                         </td>
@@ -244,12 +274,17 @@
                         <td><nobr>Element attribute for &lt;max_jobs&gt;</nobr></td>
                         <td>"1"</td>
                         <td>
-                            <p>This is a limit for the number of VM requests that can be in idle state.  Ordinarily, this attribute is used to 
-                            determine "pressure" at a grid site.  However, the cloud use case is different considering that most cloud 
-                            implementations do not operate on "allocations" or something similare, but are operated on a "pay-as-you-go" 
-                            principle.  Therefore, real money is exchanged for actual usage.  By setting this value to "1", we basically
-                            turn off the "pressure" and ask for as many VMs as there are jobs up to the max set by the <strong>glideins</strong>
-                            attribute.</p>
+                            <p>This is a limit for the number of glideins requests that can be in idle state.  Ordinarily, this attribute is used to determine "pressure" at a grid site.</p>
+                            <p>See <a href="../factory/configuration.html">Factory Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>submit_attr</td>
+                        <td><nobr>Element &lt;submit_attr&gt;</nobr></td>
+                        <td>-</td>
+                        <td>
+                            <p>This element is used to specify RSL equivalent info for gt2/gt5. Name and value of the submit attribute configured will be put in the glidein's JDL before submission. For example, the above configuration shows how to configure glidein submission to a specific remote queue and will result in the following line in the glidein's JDL.</p>
+                            <pre>+remote_queue = "serial"</pre>
                             <p>See <a href="../factory/configuration.html">Factory Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
@@ -257,19 +292,33 @@
             </table>
         </div>
         <div class="section">
-            <h2 class="western">Example EC2 Frontend Configuration</h2>
-            <p>This only configuration for the frontend in this example is for the credential setup.  The credential setup can be included 
+            <h2 class="western">Example BOSCO Frontend Configuration</h2>
+            <p>The frontend configuration fragment in this example is only for the credential setup.  The credential setup can be included 
             in the group credential definition or in the global credential definition.
+           <pre>
+&lt;credential absfname="/path/to/grid_proxy"
+            security_class="frontend"
+            trust_domain="OSG"
+            type="grid_proxy"/&gt;
+&lt;credential absfname="/path/to/bosco_key.rsa.pub"
+            keyabsfname="/path/to/bosco_key.rsa"
+            pilotabsfname="/path/to/grid_proxy"
+            security_class="frontend"
+            trust_domain="bosco"
+            type="key_pair"/&gt; </pre>
+<p>Note that the ssh key pair in the configuration (/path/to/bosco_key.rsa.pub, /path/to/bosco_key.rsa) must give access to the BOSCO recource, e.g. it can be the 
+one generated by "bosco_cluster --add" (after removing the passphrase), or a different key-pair that you setup. pilotabsfname is the proxy needed by the glidein to 
+authenticate back with the User pool. 
+</p>
+            <p>If you decide to use the "bosco_cluster --add" key pair you must first remove the passphrase as mentioned above. To do so as the user that ran the BOSCO 
+            command, check first that the important files exist (<tt>$HOME/.ssh/bosco_key.rsa</tt>, <tt>$HOME/.ssh/bosco_key.rsa.pub</tt>, <tt>$HOME/.bosco.pass</tt>), 
+            and then run:
             <pre>
-&lt;credential absfname="/path/to/Cloud_AccessKey"
-            keyabsfname="/path/to/Cloud_SecretKey"
-            security_class="Security Class"
-            trust_domain="Cloud"
-            type="key_pair+vm_id+vm_type"
-            vm_id="ami-7bf43812"
-            vm_type="m1.large"
-            pilotabsfname="/path/to/pilot_proxy"/&gt;
-            </pre>
+openssl rsa -in $HOME/.ssh/bosco_key.rsa -out $HOME/.ssh/bosco_key.rsa_new -passin file:$HOME/.bosco/.pass 
+chmod 600 $HOME/.ssh/bosco_key.rsa_new
+cp $HOME/.ssh/bosco_key.rsa_new /path/to/bosco_key.rsa 
+cp $HOME/.ssh/bosco_key.rsa.pub /path/to/bosco_key.rsa.pub </pre>
+            </p>
             <p> The important pieces of the credential stanza listed above are listed below:</p>
             <table summary="Important sections of the example factory entry" class="requirements">
                 <tbody>
@@ -282,27 +331,36 @@
                     <tr>
                         <td>absfname</td>
                         <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
-                        <td>"/path/to/Cloud_AccessKey"</td>
+                        <td>"/path/to/grid_proxy"</td>
                         <td>
-                            <p>This is the full path to the file containing the AccessKey for the account that will be used to submit 
-                            the VM request</p>
+                            <p>This is the full path to the file containing the grid proxy used to identify the glidein with the Frontend</p>
+                            <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>absfname</td>
+                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
+                        <td>"/path/to/bosco_key.rsa.pub"</td>
+                        <td>
+                            <p>This is the full path to the file containing the publik key installed on the BOSCO resource to allow ssh access
+                            </p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
                     <tr>
                         <td>keyabsfname</td>
                         <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
-                        <td>"/path/to/Cloud_SecretKey"</td>
+                        <td>"/path/to/bosco_key.rsa"</td>
                         <td>
-                            </p>This is the full path to the file containing the SectretKey for the account that will be used to submit 
-                            the VM request</p>
+                            <p>This is the full path to the file containing the secret key used to access  the BOSCO resource via ssh 
+                            </p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
                     <tr>
                         <td>security_class</td>
                         <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
-                        <td>"Security Class"</td>
+                        <td>"frontend"</td>
                         <td>
                             <p>This is the security class that is defined for the other credentials on this frontend</p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
@@ -311,45 +369,20 @@
                     <tr>
                         <td>trust_domain</td>
                         <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
-                        <td>"Cloud"</td>
+                        <td>"bosco"</td>
                         <td>
-                            <p>The trust domain can be any arbitrary value.  The only caveat is that both the factory and the frontend
-                            must be configured to use the same value.  In this example, "Cloud" is the arbitrary value.</p>
+                            <p>The trust domain can be any arbitrary value. Both the factory and the frontend must be configured to use the same value of the trust_domain.  In this example, "bosco" is the arbitrary value.</p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
                     <tr>
                         <td>type</td>
                         <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
-                        <td>"key_pair+vm_id+vm_type"</td>
+                        <td>"key_pair"</td>
                         <td>
-                            <p>The key pair in this case refers to the AccessKey and SecretKey that EC2-like cloud providers give for their
-                            REST interface.  The vm_id and vm_type correspond to EC2's AMI_ID and AMI_TYPE descriptors.  Each cloud implementation
-                            will have their own definitions for what these descriptors mean.  In this example, the actual values will be configured
-                            by the frontend.</p>
+                            <p>The key pair in this case refers to the public and secret keys that can be used to ssh to the BOSCO resource submit host.
+                            </p>
                             <p>This must match the value specified in the factory for the credentials to be matched properly</p>
-                            <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>vm_id</td>
-                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
-                        <td>"ami-7bf43812"</td>
-                        <td>
-                            <p>Since the <strong>&lt;type&gt;</strong> attribute contains vm_id, it must be specified here. See the specific 
-                            cloud implementation for the correct vm_id value.  In this example, a generic VM has been uploaded
-                            to Amazon EC2 and is ready for use.</p>
-                            <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>vm_type</td>
-                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
-                        <td>"m1.large"</td>
-                        <td>
-                            <p>Since the <strong>&lt;type&gt;</strong> attribute contains vm_type, it must be specified here.  See the specific 
-                            cloud implementation for the correct vm_type value.  In this example, a generic VM has been uploaded
-                            to Amazon EC2 and is ready for use.</p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
                         </td>
                     </tr>
@@ -358,7 +391,8 @@
                         <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
                         <td>"/path/to/pilot_proxy"</td>
                         <td>
-                            <p>A proxy for the pilot is required in all cases, even if proxies are not used to authenticate on the gatekeeper. 
+                            <p>This is necessary for all BOSCO entries. 
+                            A proxy for the pilot is required in all cases, even if proxies are not used to authenticate on the gatekeeper. 
                             This is because the proxy is used to establish secure communication between the pilot and the user collector.</p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
                         </td>
