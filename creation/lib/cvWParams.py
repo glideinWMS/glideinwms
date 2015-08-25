@@ -369,7 +369,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
 
         # TODO: PARAG
-        # ISSUE: Need to reconfig twice to loa module. We may not be setting
+        # ISSUE: Need to reconfig twice to load module. We may not be setting
         #        the module search path correctly
         # ISSUE: The code gets the match_attrs from config and policy
         #        and merges them together. Then it recreates the config file
@@ -680,7 +680,7 @@ def load_python_module_simple(file, search_path=[]):
     sys_path: Search path to the python module to load
     """
 
-    print '******* load_python_module %s' % file
+    print '******* load_python_module_simple %s' % file
 
     module = None
 
