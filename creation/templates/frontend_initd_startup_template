@@ -215,10 +215,12 @@ help_usage() {
         # upgrade does not make sense for RPM because the RPM upgrade will take care of it
         # it is actually needed 
         # TODO: find a way to avoid upgrade in RPMs
-        echo "Usage: $SCRIPT_NAME {start|stop|restart|status|reconfig|upgrade}"
+        echo "Usage: $SCRIPT_NAME {start|stop|restart|status|reconfig|upgrade}
+    $SCRIPT_NAME upgrade [NEW_XML_CONFIG_FILE] [{yes|no}] 
+"
     else
         echo "Usage: $SCRIPT_NAME {start|stop|restart|status|reconfig|upgrade}
-    $SCRIPT_NAME upgrade [NEW_XML_CONFIG_FILE]
+    $SCRIPT_NAME upgrade [NEW_XML_CONFIG_FILE] [{yes|no}] 
     $SCRIPT_NAME reconfig [NEW_XML_CONFIG_FILE] [-fix_rrd] [update_default_cfg] [{yes|no}] 
 "
     fi
@@ -428,9 +430,11 @@ reconfig() {
 upgrade() {
         # see reconfig for return values and logic explanation
         check_installed
+        shift  # The first parameter is "upgrade"
         if [ -f "$1" ]; then
             echo "Using frontend config file arg: $1"
             cfg_loc=$1
+            shift
         else
             echo "Using default frontend config file: $def_frontend_config"
             cfg_loc=$def_frontend_config
@@ -448,12 +452,26 @@ upgrade() {
 
         # Defaults of reconfig_frontend (f-flag, v-variable)
         # f   fix_rrd = True
-        # v   writeback = yes
+        # v   writeback = yes    (but DEFAULT_WRITEBACK is yes for tarball, no for RPMs)
         # v   update_scripts = yes
         # v   update_def_cfg = no
-        invoke_as_frontend "\"${CREATION_DIR}reconfig_frontend\" -force_name \"$frontend_name\" -writeback yes -update_scripts yes -xml \"$cfg_loc\" -fix_rrd"
+        writeback=$DEFAULT_WRITEBACK
+        for var in "$@"
+        do
+            case "$var" in
+            yes | no) writeback="$var"
+                ;;
+            *)  # shift to avoid scanning file: if [ "$cfg_loc" != "$var" ]; then
+                echo "Unknown argument passed: $var"
+                help_usage
+                exit 2
+                #fi
+                ;;
+            esac
+        done
+        invoke_as_frontend "\"${CREATION_DIR}reconfig_frontend\" -force_name \"$frontend_name\" -writeback $writeback -update_scripts yes -xml \"$cfg_loc\" -fix_rrd"
 
-        # su -s /bin/bash $FRONTEND_USER -c "reconfig_frontend -force_name \"$frontend_name\" -writeback \"yes\" -update_scripts \"yes\" -xml $frontend_config"
+        # su -s /bin/bash $FRONTEND_USER -c "reconfig_frontend -force_name \"$frontend_name\" -writeback \"$writeback\" -update_scripts \"yes\" -xml $frontend_config"
 
         reconfig_failed=$?
         popd 1>/dev/null
@@ -499,7 +517,8 @@ case $1 in
             #    help_usage
             #    exit 2
             #fi
-            upgrade $2
+            ## only one parameter: yes|no
+            upgrade "$@"
             ;;
         *)
             help_usage

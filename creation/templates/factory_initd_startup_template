@@ -212,15 +212,18 @@ invoke_as_factory() {
 help_usage() {
     if [ "$RPM_INSTALL" = "True" ]; then
         # upgrade does not make sense for RPM because the RPM upgrade will take care of it
-    #             echo $"Usage: factory_startup {reconfig xml <update_default_cfg> <writeback yes|no>}"
-        echo "Usage: $SCRIPT_NAME {start|stop|restart|status|info|reconfig|down|up|infosysdown|statusdown}
+        #             echo $"Usage: factory_startup {reconfig xml <update_default_cfg> <writeback yes|no>}"
+        #echo "Usage: $SCRIPT_NAME {start|stop|restart|status|info|reconfig|down|up|infosysdown|statusdown}
+        # upgrade should not be needed but it is (e.g. changes in the glidein_startup.sh or other files)
+        echo "Usage: $SCRIPT_NAME {start|stop|restart|status|info|reconfig|upgrade|down|up|infosysdown|statusdown}
+    $SCRIPT_NAME upgrade [NEW_XML_CONFIG_FILE]
     $SCRIPT_NAME reconfig [NEW_XML_CONFIG_FILE] [-fix_rrd] [update_default_cfg] [{yes|no}] [-comment COMMENT] [-force_delete]
-    $SCRIPT_NAME {down|up} -entry factory|entries|ENTRY_NAME [-delay DELAY] [-frontend SEC_NAME] [-security SEC_CLASS|All] [-comment COMMENT]
+    $SCRIPT_NAME {down|up} -entry factory|entries|ENTRY_NAME [-delay DELAY] [-frontend SEC_NAME|All] [-security SEC_CLASS|All] [-comment COMMENT]
     $SCRIPT_NAME infosysdown [-delay DELAY] [-frontend SEC_NAME] [-security SEC_CLASS|All] [-comment COMMENT]
     $SCRIPT_NAME statusdown -entry factory|entries|ENTRY_NAME [-delay DELAY] 
 "
     else
-        echo "Usage: $SCRIPT_NAME {start|stop|restart|status|info|reconfig|down|up|infosysdown|statusdown}
+        echo "Usage: $SCRIPT_NAME {start|stop|restart|status|info|reconfig|upgrade|down|up|infosysdown|statusdown}
     $SCRIPT_NAME upgrade [NEW_XML_CONFIG_FILE]
     $SCRIPT_NAME reconfig [NEW_XML_CONFIG_FILE] [-fix_rrd] [update_default_cfg] [{yes|no}] [-comment COMMENT] [-force_delete]
     $SCRIPT_NAME {down|up} -entry factory|entries|ENTRY_NAME [-delay DELAY] [-frontend SEC_NAME|All] [-security SEC_CLASS|All] [-comment COMMENT]
@@ -483,7 +486,7 @@ upgrade() {
         else # options used only in the tarball version (before the merge)
             extra_options=" $force_delete $fix_rrd"
         fi
-        invoke_as_factory "\"${CREATION_DIR}reconfig_glidein\" $force_name_option -writeback yes -update_scripts yes -xml \"$cfg_loc\" $extra_options" 
+        invoke_as_factory "\"${CREATION_DIR}reconfig_glidein\" $force_name_option -writeback $writeback -update_scripts yes -xml \"$cfg_loc\" $extra_options" 
         # su -s /bin/bash $FACTORY_USER -c "reconfig_glidein -update_scripts yes -xml $factory_config -writeback $writeback $fix_rrd $force_delete"
 
         reconfig_failed=$?
