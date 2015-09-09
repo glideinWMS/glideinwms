@@ -13,18 +13,11 @@
 
 import os
 import copy
-import sys
 import re
-import os.path
 import imp
-import string
 import socket
-import types  # not used
-import traceback  # not used
 from glideinwms.lib import xmlParse
-from glideinwms.lib import condorExe  # not used
 import cWParams
-import pprint
 
 
 class VOFrontendSubParams(cWParams.CommonSubParams):
@@ -39,13 +32,16 @@ class VOFrontendParams(cWParams.CommonParams):
     def init_defaults(self):
         self.init_support_defaults()
 
-        # VO scripts should start after the factory has been set completely up
+        # VO scripts should start after the factory has been set completely
         # but there could be exceptions
+
+        # Files/Validation/Custom scripts settings for frontend
         self.file_defaults["after_entry"]=("True",'Bool','Should this file be loaded after the factory entry ones?',None)
 
-        # publishing specific to frontend
+        # Publishing attr specific to frontend
         self.attr_defaults["type"]=["string","string|int|expr","What kind on data is value. (if expr, a python expression with access to frontend and glidein dictionaries)",None]
 
+        # Config section exclusive to frontend group
         group_config_defaults=cWParams.commentedOrderedDict()
         
         group_config_running_defaults=cWParams.commentedOrderedDict()
@@ -68,6 +64,7 @@ class VOFrontendParams(cWParams.CommonParams):
         group_config_vms_defaults["curb"]=['5',"nr_vms","How many idle VMs should I tollerate, before starting to curb submissions.",None]
         group_config_defaults['idle_vms_per_entry']=group_config_vms_defaults
 
+        # Global config section
         common_config_vms_total_defaults=cWParams.commentedOrderedDict()
         common_config_vms_total_defaults["max"]=['1000',"nr_jobs","How many total idle VMs should I tollerate, before stopping submitting glideins",None]
         common_config_vms_total_defaults["curb"]=['200',"nr_jobs","How many total idle VMs should I tollerate, before starting to curb submissions.",None]
@@ -81,37 +78,44 @@ class VOFrontendParams(cWParams.CommonParams):
         sub_defaults={'attrs':(xmlParse.OrderedDict(),'Dictionary of attributes',"Each attribute group contains",self.attr_defaults),
                       'files':([],'List of files',"Each file group contains",self.file_defaults)}
 
-        query_attrs_defaults=cWParams.commentedOrderedDict()
-        query_attrs_defaults['type']=('string','string|int|real|bool','Attribute type',None)
-
-        fj_match_defaults=cWParams.commentedOrderedDict()
-        fj_match_defaults["query_expr"]=['True','CondorExpr','Expression for selecting user jobs',None]
-        fj_match_defaults["match_attrs"]=(xmlParse.OrderedDict(),"Dictionary of ClassAd attributes","Each attribute contains",query_attrs_defaults)
-
+        # User Pool collectors
         collector_defaults=cWParams.commentedOrderedDict()
         collector_defaults["node"]=(None,"nodename","Factory collector node name (for example, fg2.my.org:9999)",None)
         collector_defaults["DN"]=(None,"dn","Factory collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=fg2.my.org)",None)
         collector_defaults["factory_identity"]=("factory@fake.org","authenticated_identity","What is the AuthenticatedIdentity of the factory at the WMS collector",None)
         collector_defaults["my_identity"]=("me@fake.org","authenticated_identity","What is the AuthenticatedIdentity of my proxy at the WMS collector",None)
 
-        factory_match_defaults=copy.deepcopy(fj_match_defaults)
-        factory_match_defaults["collectors"]=([],"List of factory collectors","Each collector contains",collector_defaults)
-
+        # User schedulers
         schedd_defaults=cWParams.commentedOrderedDict()
         schedd_defaults["fullname"]=(None,"name","User schedd name (for example, schedd_3@sb1.my.org)",None)
         schedd_defaults["DN"]=(None,"dn","User schedd distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=sb1.my.org)",None)
 
+        # match_attr for factory and job query_expr
+        query_attrs_defaults=cWParams.commentedOrderedDict()
+        query_attrs_defaults['type']=('string','string|int|real|bool','Attribute type',None)
+
+        # Factory and job query_expr
+        fj_match_defaults=cWParams.commentedOrderedDict()
+        fj_match_defaults["query_expr"]=['True','CondorExpr','Expression for selecting user jobs',None]
+        fj_match_defaults["match_attrs"]=(xmlParse.OrderedDict(),"Dictionary of ClassAd attributes","Each attribute contains",query_attrs_defaults)
+
+        # Factory match settings
+        factory_match_defaults=copy.deepcopy(fj_match_defaults)
+        factory_match_defaults["collectors"]=([],"List of factory collectors","Each collector contains",collector_defaults)
+
+        # Job match settings
         job_match_defaults=copy.deepcopy(fj_match_defaults)
         job_match_defaults["schedds"]=([],"List of user schedds","Each schedd contains",schedd_defaults)
 
+        # Match section. Aka VO policies.
         match_defaults=cWParams.commentedOrderedDict()
         match_defaults["factory"]=factory_match_defaults
         match_defaults["job"]=job_match_defaults
         match_defaults["match_expr"]=('True','PythonExpr', 'Python expression for matching jobs to factory entries with access to job and glidein dictionaries',None)
         match_defaults["start_expr"]=('True','CondorExpr', 'Condor expression for matching jobs to glideins at runtime',None)
-        match_defaults["policy_file"]=(None, 'PolicyFile', 'Policy file where match_expr, query_expr, start_expr and match_attr are defined',None)
+        match_defaults["policy_file"]=(None, 'PolicyFile', 'External policy file where match_expr, query_expr, start_expr and match_attr are defined',None)
 
-
+        # Credential settings
         proxy_defaults=cWParams.commentedOrderedDict()
         proxy_defaults["absfname"]=(None,"fname","x509 proxy file name (see also pool_idx_list)",None)
         proxy_defaults["keyabsfname"]=(None,"fname","for key files, file name of the key pair",None)
@@ -138,7 +142,6 @@ class VOFrontendParams(cWParams.CommonParams):
         self.group_defaults["attrs"]=sub_defaults['attrs']
         self.group_defaults["files"]=sub_defaults['files']
         self.group_defaults["security"]=copy.deepcopy(security_defaults)
-
 
         ###############################
         # Start defining the defaults
@@ -204,16 +207,15 @@ class VOFrontendParams(cWParams.CommonParams):
         ccb_defaults["group"]=("default","string","CCB collector group name useful to group HA setup",None)
         self.defaults["ccbs"]=([],'List of CCB collectors',"Each CCB contains",ccb_defaults)
 
-
-
         self.defaults["security"]=copy.deepcopy(security_defaults)
         self.defaults["security"]["classad_proxy"]=(None,"fname","File name of the proxy used for talking to the WMS collector",None)
         self.defaults["security"]["proxy_DN"]=(None,"dn","Distinguised name (subject) of the proxy (for example, /DC=org/DC=myca/OU=Services/CN=fe1.my.org)",None)
         self.defaults["security"]["sym_key"]=("aes_256_cbc","sym_algo","Type of symetric key system used for secure message passing",None)
 
         self.defaults["match"]=copy.deepcopy(match_defaults)
-        # change default match value
-        # by default we want to look only for vanilla universe jobs that are not monitoring jobs
+        # Change default match value
+        # By default we want to look only for vanilla universe jobs
+        # that are not monitoring jobs
         self.defaults["match"]["job"]["query_expr"][0]='(JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)'
 
         self.defaults["attrs"]=sub_defaults['attrs']
@@ -229,11 +231,14 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults["config"]=global_config_defaults
 
         self.defaults["groups"]=(xmlParse.OrderedDict(),"Dictionary of groups","Each group contains",self.group_defaults)
-        
-<<<<<<< HEAD
+
+        # Initialize the external policy modules data structure
+        self.match_policy_modules = {
+            'frontend': None,
+            'groups': {},
+        }
+
         # High Availability Configuration settings
-
-
         haf_defaults = cWParams.commentedOrderedDict()
         haf_defaults['frontend_name'] = (None, 'frontend_name',
                                          'Name of the frontend', None)
@@ -246,10 +251,6 @@ class VOFrontendParams(cWParams.CommonParams):
         #ha_defaults["activation_delay"]=('150', 'NR', 'How many sec to wait before slav activates after detecting that master is down', None)
         self.defaults['high_availability'] = ha_defaults
 
-
-=======
-        self.match_policy_modules = {}
->>>>>>> Work in progress. Checkpointing the work done for one of the iterations.
         return
 
     # return name of top element
@@ -345,7 +346,6 @@ class VOFrontendParams(cWParams.CommonParams):
                     # define an explicit security, so the admin is aware of it
                     pel['security_class']="group_%s"%group_name
 
-<<<<<<< HEAD
         # verify and populate HA
         if self.high_availability['enabled'].lower() == 'true':
             if (len(self.high_availability['ha_frontends']) == 1):
@@ -355,8 +355,6 @@ class VOFrontendParams(cWParams.CommonParams):
             else:
                 raise RuntimeError, 'Exactly one master ha_frontend information is needed when running this frontend in high_availability slave mode.'
 
-=======
->>>>>>> Work in progress. Checkpointing the work done for one of the iterations.
 
     # verify match data and create the attributes if needed
     def derive_match_attrs(self):
@@ -420,10 +418,12 @@ class VOFrontendParams(cWParams.CommonParams):
             match_expr="(%s) and (%s)"%(self.match.match_expr,self.groups[group_name].match.match_expr)
             policy_file = self.groups[group_name].match.policy_file
             work_dir = os.path.join(self.work_dir, 'group_%s'%group_name)
-            policy_modules = [
-                self.match_policy_modules['frontend'],
-                self.match_policy_modules['group'][group_name]
-            ]
+
+            policy_modules = []
+            if self.match_policy_modules['frontend']:
+                policy_modules.append(self.match_policy_modules['frontend'])
+            if self.match_policy_modules['groups'].get(group_name):
+                policy_modules.append(self.match_policy_modules['groups'][group_name])
             print_match_info(group_name, self.groups[group_name].match)
             self.validate_match('group %s'%group_name, match_expr,
                                 factory_attrs, job_attrs, attrs_dict,
@@ -490,7 +490,7 @@ class VOFrontendParams(cWParams.CommonParams):
         # Add module name to the Globals/Locals dict
         for module in policy_modules:
             if module:
-                env[module['name']] = module['module_obj']
+                env[module.name] = module.pyObject
 
         # Validate factory's match_attrs
         #print "VALIDATING match_attrs =======> %s" % factory_attrs
@@ -560,103 +560,50 @@ class VOFrontendParams(cWParams.CommonParams):
 
 
     def load_match_policies(self):
-        #self.match_policy_modules
-        # Load global frontend policy modules
-        self.match_policy_modules['frontend'] = load_python_module_simple(
-                                                    self.match.policy_file,
-                                                    [self.work_dir])
+        """
+        Load external match policies for frontend and groups
+        """
 
-        # Load group policy modules
-        self.match_policy_modules['group'] = {}
+        print "======= Frontend work_dir: %s" % self.work_dir
+        print "======= Frontend match: %s" % self.match
+        # Load global frontend policy module
+        if self.match.policy_file:
+            self.match_policy_modules['frontend'] = MatchPolicy(
+                                                        self.match.policy_file,
+                                                        [self.work_dir])
+
+        # Load per group policy module
+        self.match_policy_modules['groups'] = {}
         for group_name in self.groups.keys():
+            # Only load if the group is enabled
             policy_file = self.groups[group_name].match.policy_file
-            work_dir = os.path.join(self.work_dir, 'group_%s'%group_name)
-            self.match_policy_modules['group'][group_name] = \
-                load_python_module_simple(policy_file, [work_dir])
+            if self.groups[group_name].enabled and policy_file:
+                work_dir = os.path.join(self.work_dir, 'group_%s'%group_name)
+                print "======= Group %s work_dir: %s" % (group_name, work_dir)
+                self.match_policy_modules['groups'][group_name] = \
+                    MatchPolicy(policy_file, [work_dir])
 
 
     def update_match_attrs(self):
         # Load global match_attrs from externally loaded match_policies
         if self.match_policy_modules['frontend']:
-            print '**** FRONTEND: update_match_attrs_from_module'
-            module_obj = self.match_policy_modules['frontend']['module_obj']
-            if ( ('factory_match_attrs' in dir(module_obj)) and
-                 (type(module_obj.factory_match_attrs) == type({})) ): 
-                self.match.factory.match_attrs.data = match_attrs_from_module(
-                    'factory_match_attrs', module_obj,
-                    module_obj.factory_match_attrs)
-            if ( ('job_match_attrs' in dir(module_obj)) and
-                 (type(module_obj.job_match_attrs) == type({})) ): 
-                self.match.job.match_attrs.data = match_attrs_from_module(
-                    'job_match_attrs', module_obj,
-                    module_obj.job_match_attrs)
-            #update_match_attrs_from_module(
-            #    self.match_policy_modules['frontend']['module_obj'],
-            #    self.match.factory.match_attrs,
-            #    self.match.job.match_attrs)
+            print '**** FRONTEND: update_match_attrs'
+            if self.match_policy_modules['frontend'].factoryMatchAttrs:
+                self.match.factory.match_attrs.data = self.match_policy_modules['frontend'].factoryMatchAttrs
+            if self.match_policy_modules['frontend'].jobMatchAttrs:
+                self.match.job.match_attrs.data = self.match_policy_modules['frontend'].jobMatchAttrs
 
         # Load group match_attrs from externally loaded match_policies
         for group_name in self.groups.keys():
-            if self.match_policy_modules['group'][group_name]:
-                print '**** %s: update_match_attrs_from_module' % group_name
-                module_obj = self.match_policy_modules['group'][group_name]['module_obj']
-                if ( ('factory_match_attrs' in dir(module_obj)) and
-                     (type(module_obj.factory_match_attrs) == type({})) ): 
-                    self.match.factory.match_attrs.data = match_attrs_from_module(
-                        'factory_match_attrs', module_obj,
-                        module_obj.factory_match_attrs)
-                if ( ('job_match_attrs' in dir(module_obj)) and
-                     (type(module_obj.job_match_attrs) == type({})) ): 
-                    self.match.job.match_attrs.data = match_attrs_from_module(
-                        'job_match_attrs', module_obj,
-                        module_obj.job_match_attrs)
-                #update_match_attrs_from_module(
-                #    self.match_policy_modules['group'][group_name]['module_obj'],
-                #    self.groups[group_name].match.factory.match_attrs,
-                #    self.groups[group_name].match.job.match_attrs)
+            # Shorthand for easy access
+            group_module = self.match_policy_modules['groups'].get(group_name)
+            if group_module:
+                print '**** %s: update_match_attrs' % group_name
+                if group_module.factoryMatchAttrs:
+                    self.groups[group_name].match.factory.match_attrs.data = group_module.factoryMatchAttrs
+                if group_module.jobMatchAttrs:
+                    self.groups[group_name].match.job.match_attrs.data = group_module.jobMatchAttrs
 
-
-def update_match_attrs_from_module(module_obj, factory_ma, job_ma):
-    """
-    Update the match attrs from modules in place
-    """
-
-    #print "======> %s" % factory_ma.data.__class__.__name__
-    data = xmlParse.OrderedDict()
-
-    if ( ('factory_match_attrs' in dir(module_obj)) and
-         (type(module_obj.factory_match_attrs) == type({})) ): 
-        print "======> READING factory_match_attrs"
-        for k,v in module_obj.factory_match_attrs.iteritems():
-            print "(k,v) ======> %s, %s" % (k, v) 
-            #factory_ma.data[k] = xmlParse.OrderedDict(v)
-            data[k] = xmlParse.OrderedDict(v)
-    import copy
-    factory_ma.data = copy.deepcopy(data)
-    print "factory_ma.data <======> %s" % factory_ma.data
-        #factory_ma.data.update(xmlParse.OrderedDict(module_obj.factory_match_attrs))
-
-    data = xmlParse.OrderedDict()
-    if ( ('job_match_attrs' in dir(module_obj)) and
-         (type(module_obj.job_match_attrs) == type({})) ): 
-        for k,v in module_obj.job_match_attrs.iteritems():
-            #job_ma.data[k] = xmlParse.OrderedDict(v)
-            data[k] = xmlParse.OrderedDict(v)
-        #job_ma.data.update(xmlParse.OrderedDict(module_obj.job_match_attrs))
-    job_ma.data = copy.deepcopy(data)
-    print "job_ma.data <======> %s" % job_ma.data
-
-
-def match_attrs_from_module(ma_name, module_obj, ma):
-    """
-    ma is factory_match_attrs or job_match_attrs
-    """
-
-    #if (ma in dir(module_obj)) and (type(ma) == type({})): 
-    data = xmlParse.OrderedDict()
-    for k,v in ma.iteritems():
-        data[k] = xmlParse.OrderedDict(v)
-    return data
 
 ####################################################################
 # INTERNAL, do not use directly
@@ -672,42 +619,122 @@ def extract_attr_val(attr_obj):
     else:
         return int(attr_obj.value)
 
-def load_python_module_simple(file, search_path=[]):
-    """
-    Load simple python file modules. Return dict of useful info
 
-    file: Full path to the python file
-    sys_path: Search path to the python module to load
-    """
+class MatchPolicyLoadError(Exception):
 
-    print '******* load_python_module_simple %s' % file
+    def __init__(self, file='', search_path=[]):
+        self.file = file
+        self.searchPath = search_path
 
-    module = None
-
-    if (file is not None) and (file != ''):
-        module = {}
-        # Full path to the file
-        module['file'] = file
-        # Python module name as derived from the filename by dropping .py ext
-        module['name'] = get_py_module_name(file)
-        # Module search path 
-        module['search_path'] = search_path
-        module['search_path'].append(os.path.dirname(os.path.realpath(file)))
-        # First find the module
-        f, path, desc = imp.find_module(module['name'], module['search_path'])
-        # Load the module
-        module['module_obj'] = imp.load_module(module['name'], f, path, desc)
-
-    return module
+    def __str__(self):
+        err_str = ''
+        if self.file == '':
+            err_str = 'No match policy file provided'
+        else:
+            err_str = 'Failed to load policy from the file %s in the search path %s' % (self.file, self.searchPath)
+        return err_str
 
 
-def get_py_module_name(policy_file):
-    policy_fname = os.path.basename(policy_file)
-    policy_module_name = re.sub('.py$', '', policy_fname) 
-    return policy_module_name
+class MatchPolicyContentError(Exception):
+
+    def __init__(self, file, attr, expected_type, actual_type):
+        self.file = file
+        self.attr = attr
+        self.attrExpectedType = expected_type
+        self.attrType = actual_type
+
+
+    def __str__(self):
+        return '%s in policy file %s should be of type %s and not %s' %\
+            (self.attr, self.file, self.attrExpectedType, self.attrType)
+
+
+class MatchPolicy:
+
+    def __init__(self, file, search_path=[]):
+        """
+        Load match policy form the policy file
+
+        @param file: Path to the python file
+        @type file: string
+
+        @param sys_path: Search path to the python module to load
+        @type sys_path: array
+
+        @rtype: MatchPolicy Object
+        """
+
+        if (file is not None) and (file != ''):
+            self.file = file
+            self.name = self.policyFileToPyModuleName(self, self.file)
+            self.searchPath = search_path
+            self.searchPath.append(os.path.dirname(os.path.realpath(file)))
+            try:
+                # First find the module
+                f, path, desc = imp.find_module(self.name, self.searchPath)
+                # Load the module
+                self.pyObject = imp.load_module(self.name, f, path, desc)
+            except:
+                raise MatchPolicyLoadError(file=file, search_path=search_path)
+        else:
+            raise MatchPolicyLoadError()
+
+        match_attrs = self.loadMatchAttrs()
+        self.factoryMatchAttrs = match_attrs.get('factory_match_attrs')
+        self.jobMatchAttrs = match_attrs.get('job_match_attrs')
+
+
+    def policyFileToPyModuleName(self):
+        policy_fname = os.path.basename(self.file)
+        policy_module_name = re.sub('.py$', '', policy_fname) 
+        return policy_module_name
+
+
+    def loadMatchAttrs(self):
+        """
+        If given match_attr i.e. factory_match_attr or job_match_attr exits
+        load it from the pyObject
+
+        @param ma_name: factory_match_attr or job_match_attr
+        @type ma_name: string
+        """
+
+        match_attrs = {}
+        for ma_name in ('factory_match_attrs', 'job_match_attrs'):
+            if (ma_name in dir(self.pyObject)) :
+                ma_attr = getattr(self.pyObject, ma_name)
+                # Check if the match_attr is of dict type
+                # TODO: Also need to check that match_attr is of string/int/bool
+                if (type(ma_attr) == type({})):
+                    data = xmlParse.OrderedDict()
+                    for k,v in ma_attr.iteritems():
+                        data[k] = xmlParse.OrderedDict(v)
+                    match_attrs[ma_name] = data
+                else:
+                    # Raise error if match_attr is not of type dict
+                    raise  MatchPolicyContentError(self.file, ma_name,
+                                                   type(ma_attr).__name__,
+                                                   'dict')
+        return match_attrs
+
+
+    def __repr__(self):
+        return self.__str()
+
+
+    def __str__(self):
+        str = 'Policy File: %s\n' % self.file
+        str += 'Name: %s\n' % self.name
+        str += 'searchPath: %s\n' % self.searchPath
+        str += 'pyObject: %s\n' % self.pyObject
+        str += 'factoryMatchAttrs: %s\n' % self.factoryMatchAttrs
+        str += 'jobMatchAttrs: %s\n' % self.jobMatchAttrs
+        return str
 
 
 def print_match_info(group, match):
+   import pprint
+
    print '-------------------------------------------------------------------'
    print 'MATCH INFO FOR GROUP: %s' % group
    print '-------------------------------------------------------------------'

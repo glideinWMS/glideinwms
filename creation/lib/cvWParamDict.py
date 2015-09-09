@@ -154,7 +154,6 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
 
         # populate security data
         populate_main_security(self.client_security,params)
-
         
 
     def find_parent_dir(self,search_path,name):
@@ -170,17 +169,28 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         raise RuntimeError,"Unable to find %(file)s in %(dir)s path" % \
                            { "file" : name,  "dir" : search_path, }
 
-    # reuse as much of the other as possible
-    def reuse(self,other):             # other must be of the same class
+
+    def reuse(self, other):
+        """
+        Reuse as much of the other as possible
+        other must be of the same class
+
+        @type other: frontendMainDicts
+        @param other: Object to reuse
+        """
+
         if self.monitor_dir!=other.monitor_dir:
             print "WARNING: main monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
         
         return cvWDictFile.frontendMainDicts.reuse(self,other)
 
-    def save(self,set_readonly=True):
+
+    def save(self, set_readonly=True):
         cvWDictFile.frontendMainDicts.save(self,set_readonly)
         self.save_monitor()
         self.save_client_security()
+        # Create a local copy of the policy file so we are not impacted
+        # if the admin is changing the file and if it has errors
         if self.params.match['policy_file']:
             shutil.copy(self.params.match['policy_file'], self.work_dir)
 
@@ -293,16 +303,26 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         populate_group_security(self.client_security,params,sub_params)
 
 
-    # reuse as much of the other as possible
-    def reuse(self,other):             # other must be of the same class
+    def reuse(self,other):
+        """
+        Reuse as much of the other as possible
+        other must be of the same class
+
+        @type other: frontendMainDicts
+        @param other: Object to reuse
+        """
+
         if self.monitor_dir!=other.monitor_dir:
             print "WARNING: group monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
         
         return cvWDictFile.frontendGroupDicts.reuse(self,other)
 
+
     def save(self,set_readonly=True):
         cvWDictFile.frontendGroupDicts.save(self,set_readonly)
         self.save_client_security()
+        # Create a local copy of the policy file so we are not impacted
+        # if the admin is changing the file and if it has errors
         if self.params.groups[self.sub_name].match['policy_file']:
             shutil.copy(
                 self.params.groups[self.sub_name].match['policy_file'],
