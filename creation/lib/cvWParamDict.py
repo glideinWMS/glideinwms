@@ -156,6 +156,8 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         populate_main_security(self.client_security,params)
         
 
+        
+
     def find_parent_dir(self,search_path,name):
         """ Given a search path, determine if the given file exists
             somewhere in the path.

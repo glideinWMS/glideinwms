@@ -15,9 +15,13 @@ import os
 import copy
 import re
 import imp
+import os.path
+import imp
+import string
 import socket
 from glideinwms.lib import xmlParse
 import cWParams
+import pprint
 
 
 class VOFrontendSubParams(cWParams.CommonSubParams):
@@ -237,7 +241,7 @@ class VOFrontendParams(cWParams.CommonParams):
             'frontend': None,
             'groups': {},
         }
-
+        
         # High Availability Configuration settings
         haf_defaults = cWParams.commentedOrderedDict()
         haf_defaults['frontend_name'] = (None, 'frontend_name',
@@ -603,7 +607,6 @@ class VOFrontendParams(cWParams.CommonParams):
                     self.groups[group_name].match.factory.match_attrs.data = group_module.factoryMatchAttrs
                 if group_module.jobMatchAttrs:
                     self.groups[group_name].match.job.match_attrs.data = group_module.jobMatchAttrs
-
 
 ####################################################################
 # INTERNAL, do not use directly

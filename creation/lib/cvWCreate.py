@@ -24,7 +24,7 @@ class MatchPolicyLoadError(Exception):
 
     def __init__(self, policy_file=None):
         Exception.__init__(self)
-        err_str = 'Frontend match policy does not exist or is not a valid python module name'
+        err_str = 'Frontend match policy does not exist or is not a valid python module name. Error loading frontend match policy'
         if policy_file:
             err_str = "%s '%s'" % (err_str, policy_file)
         raise Exception, err_str
