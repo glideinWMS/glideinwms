@@ -17,19 +17,6 @@ import re
 from glideinwms.lib import condorExe
 from glideinwms.lib import condorSecurity
 
-class MatchPolicyLoadError(Exception):
-    """
-    Exception thrown for invalid Policy file
-    """
-
-    def __init__(self, policy_file=None):
-        Exception.__init__(self)
-        err_str = 'Frontend match policy does not exist or is not a valid python module name. Error loading frontend match policy'
-        if policy_file:
-            err_str = "%s '%s'" % (err_str, policy_file)
-        raise Exception, err_str
-
-
 #########################################
 # Create init.d compatible startup file
 def create_initd_startup(startup_fname, frontend_dir, glideinWMS_dir, cfg_name, rpm_install=''):
