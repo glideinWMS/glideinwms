@@ -1299,7 +1299,6 @@ class ResourceClassad(classadSupport.Classad):
         else:
             raise RuntimeError, 'Glide client monitoring structure changed. Resource ad may have incorrect GlideClientMonitor values'
 
-
     def setEntryInfo(self, info):
         """
         Set the useful entry specific info for the resource in the classad
@@ -1339,6 +1338,38 @@ class ResourceClassad(classadSupport.Classad):
                 if key.startswith('Total') or key.startswith('Status') or key.startswith('Requested'):
                     ad_key = 'GlideFactoryMonitor' + key
                     self.adParams[ad_key] = info[key]
+
+
+    def setCurbsAndLimits(self, this_stats, a,b,c ):
+# a = current number of glideins from USR Collector
+# b = limits from config: Per Entry, Per Group, Per Frontend, Global(altogether)
+# c = curbs  from config: Per Group, Per Frontend, Global
+        tmpprefix = "CurbLimit"
+
+        self.adParams[tmpprefix+"00-InfoJobs-TotalIdleJobsinQueue"]             = "%s" % str(this_stats[1])
+        self.adParams[tmpprefix+"01-InfoJobs-TotalIdleJobsMatchedThisEntry"]    = "%s" % str(this_stats[0])
+        self.adParams[tmpprefix+"02-InfoJobs-TotalRuningJobsMatchedThisEntry"]  = "%s" % str(this_stats[6])
+
+        self.adParams[tmpprefix+"03-InfoGlideins-TotalGlideins-Entry"]           = "%s" % str(this_stats[8])
+        self.adParams[tmpprefix+"04-InfoGlideins-TotalGlideins-Entry-Limits"]    = "%s" % str(b[6])
+        self.adParams[tmpprefix+"05-InfoGlideins-IdlingGlideins-Entry"]          = "%s" % str(this_stats[9])
+        self.adParams[tmpprefix+"06-InfoGlideins-IdlingGlideins-Entry-Limits"]   = "%s" % str(b[7])
+
+        self.adParams[tmpprefix+"07-InfoGlideins-TotalGlideins-Group"]           = "%s" % str(a[0])
+        self.adParams[tmpprefix+"08-InfoGlideins-TotalGlideins-Group-Limits"]    = "%s" % str(b[0])
+        self.adParams[tmpprefix+"09-InfoGlideins-IdlingGlideins-Group"]          = "%s" % str(a[1])
+        self.adParams[tmpprefix+"10-InfoGlideins-IdlingGlideins-Group-Limits"]   = "%s" % str(b[1])
+
+        self.adParams[tmpprefix+"11-InfoGlideins-TotalGlideins-FE"]              = "%s" % str(a[2])
+        self.adParams[tmpprefix+"12-InfoGlideins-TotalGlideins-FE-Limits"]       = "%s" % str(b[2])
+        self.adParams[tmpprefix+"13-InfoGlideins-IdlingGlideins-FE"]             = "%s" % str(a[3])
+        self.adParams[tmpprefix+"14-InfoGlideins-IdlingGlideins-FE-Limits"]      = "%s" % str(b[3])
+
+        self.adParams[tmpprefix+"15-InfoGlideins-TotalGlideins-Global"]          = "%s" % str(a[4])
+        self.adParams[tmpprefix+"16-InfoGlideins-TotalGlideins-Global-Limits"]   = "%s" % str(b[4])
+        self.adParams[tmpprefix+"17-InfoGlideins-IdlingGlideins-Global"]         = "%s" % str(a[5])
+        self.adParams[tmpprefix+"18-InfoGlideins-IdlingGlideins-Global-Limits"]  = "%s" % str(b[5])
+
 
 
 class ResourceClassadAdvertiser(classadSupport.ClassadAdvertiser):

@@ -890,6 +890,32 @@ class glideinFrontendElement:
         except RuntimeError:
             logSupport.log.exception("Populating GlideClientMonitor info in resource classad failed: ")
 
+# v3/7920 starts
+        total_glideins             = self.status_dict_types['Total']['abs']
+        total_idle_glideins        = self.status_dict_types['Idle' ]['abs']
+        fe_total_glideins          = self.fe_counts['Total']
+        fe_total_idle_glideins     = self.fe_counts['Idle']
+        global_total_glideins      = self.global_counts['Total']
+        global_total_idle_glideins = self.global_counts['Idle']
+
+        this_num_glideins_tuple =  (   total_glideins,        total_idle_glideins,
+                                    fe_total_glideins,     fe_total_idle_glideins,
+                                global_total_glideins, global_total_idle_glideins )
+
+        this_limits_tuple = ( self.total_max_glideins,         self.total_max_vms_idle,
+                              self.fe_total_max_glideins,      self.fe_total_max_vms_idle,
+                              self.global_total_max_glideins,  self.global_total_max_vms_idle,
+                              self.max_running,                self.max_vms_idle )
+
+        this_curbs_tuple = (  self.curb_vms_idle,
+                              self.total_curb_glideins,        self.total_curb_vms_idle,
+                              self.fe_total_curb_glideins,     self.fe_total_curb_vms_idle,
+                              self.global_total_curb_glideins, self.global_total_curb_vms_idle )
+
+        resource_classad.setCurbsAndLimits( this_stats_arr, this_num_glideins_tuple, this_limits_tuple, this_curbs_tuple )
+# v3/7920 ends
+
+
         return resource_classad
 
 
