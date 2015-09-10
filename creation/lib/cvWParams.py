@@ -451,10 +451,6 @@ class VOFrontendParams(cWParams.CommonParams):
             # and those from the policy_modules
             match_expr = "(%s) and (%s)" % (
                 self.match.match_expr, self.groups[group_name].match.match_expr)
-            #for pmodule in pmodules:
-            #    if 'match' in dir(pmodule.pyObject):
-            #        path = os.path.dirname(pmodule.file)
-            #        match_expr += ' and sys.path.append("%s") and __import__("%s") and (%s.match(glidein, job)' % (path, pmodule.name, pmodule.name)
 
             print_match_info(group_name, self.groups[group_name].match)
             self.validate_match('group %s'%group_name, match_expr,
@@ -600,16 +596,16 @@ class VOFrontendParams(cWParams.CommonParams):
         except Exception, e:
             raise RuntimeError, "Invalid %s match_expr '%s': %s"%(loc_str,match_str,e)
 
-        # Validate the match(glidein, job) from the policy modules
+        # Validate the match(job, glidein) from the policy modules
         try:
             for pmodule in policy_modules:
                 if 'match' in dir(pmodule.pyObject):
                     match_result = pmodule.pyObject.match(env['job'],
                                                           env['glidein'])
         except KeyError, e:
-            raise RuntimeError, "Error in %s %s.match(job, glidein): Missing attribute %s" % (loc_str, pmodule.name, e)
+            raise RuntimeError, "Error in %s policy module's %s.match(job, glidein): Missing attribute %s" % (loc_str, pmodule.name, e)
         except Exception, e:
-            raise RuntimeError, "Error in %s %s.match(job, glidein): %s" % (loc_str, pmodule.name, e)
+            raise RuntimeError, "Error in %s policy module's %s.match(job, glidein): %s" % (loc_str, pmodule.name, e)
 
         print "==========================================================="
         return
