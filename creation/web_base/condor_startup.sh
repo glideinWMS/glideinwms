@@ -500,6 +500,12 @@ if [ -n "$condor_config_startd_cron_include" ]; then
     cat "$condor_config_startd_cron_include" >> "$CONDOR_CONFIG"
 fi
 
+# HOTFIX for 10092
+# Better solution is to expand on the glidein's user defined resource
+# and provide the admin control over if this resource should go in SLOT_1 
+# or if should go in the SLOT_3
+gpus=`grep -i "^GLIDEIN_GPUS " $config_file | awk '{print $2}'`
+
 # get check_include file for testing
 if [ "$check_only" == "1" ]; then
     condor_config_check_include="${main_stage_dir}/`grep -i '^condor_config_check_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
@@ -564,7 +570,12 @@ EOF
     slots_layout=`grep -i "^SLOTS_LAYOUT " $config_file | awk '{print $2}'`
     if [ "X$slots_layout" = "Xpartitionable" ]; then
         echo "NUM_SLOTS = 1" >> "$CONDOR_CONFIG"
-        echo "SLOT_TYPE_1 = cpus=\$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
+        if [ -z "$gpus" ]; then
+            echo "SLOT_TYPE_1 = cpus=\$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
+        else
+            echo "MACHINE_RESOURCE_gpus = \$(GLIDEIN_GPUS)" >> "$CONDOR_CONFIG"
+            echo "SLOT_TYPE_1 = cpus=\$(GLIDEIN_CPUS), gpus=\$(GLIDEIN_GPUS)" >> "$CONDOR_CONFIG"
+        fi
         echo "NUM_SLOTS_TYPE_1 = 1" >> "$CONDOR_CONFIG"
         echo "SLOT_TYPE_1_PARTITIONABLE = True" >> "$CONDOR_CONFIG"
         num_slots_for_shutdown_expr=1
