@@ -31,6 +31,31 @@ class FactoryXmlConfig:
 
         self.dom = d1
 
+    # getter functions
+    def get_submit_dir(self):
+        return os.path.join(self.dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_dir'),
+            u"glidein_%s" % self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
+
+    def get_stage_dir(self):
+        return os.path.join(self.dom.getElementsByTagName(u'stage')[0].getAttribute(u'base_dir'),
+            u"glidein_%s" % self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
+
+    def get_monitor_dir(self):
+        return os.path.join(self.dom.getElementsByTagName(u'monitor')[0].getAttribute(u'base_dir'),
+            u"glidein_%s" % self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
+
+    def get_log_dir(self):
+        return os.path.join(self.dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),
+            u"glidein_%s" % self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
+
+    def get_web_url(self):
+        return os.path.join(self.dom.getElementsByTagName(u'stage')[0].getAttribute(u'web_base_url'),
+            u"glidein_%s" % self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
+
+
+    def unlink(self):
+        self.dom.unlink()
+
 #######################
 #
 # Utility functions
