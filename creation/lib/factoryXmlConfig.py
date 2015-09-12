@@ -9,6 +9,15 @@ class FactoryXmlConfig:
         self.file = file
         self.dom = None
 
+        # cached variables to minimize dom accesses for better performance
+        # these are looked up for each and every entry on reconfig
+        self.submit_dir = None
+        self.stage_dir = None
+        self.monitor_dir = None
+        self.log_dir = None
+        self.client_log_dirs = None
+        self.client_proxy_dirs = None
+
     def parse(self):
         d1 = parse(self.file)
         entry_dir_path = os.path.join(os.path.dirname(self.file), ENTRY_DIR)
@@ -40,44 +49,56 @@ class FactoryXmlConfig:
     #
     ######################
     def get_submit_dir(self):
-        return os.path.join(self.dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_dir'),
-            u"glidein_%s" % self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
+        if self.submit_dir == None:
+            self.submit_dir = os.path.join(self.dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_dir'),
+                u"glidein_%s" % self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
+        return self.submit_dir
 
     def get_stage_dir(self):
-        return os.path.join(self.dom.getElementsByTagName(u'stage')[0].getAttribute(u'base_dir'),
-            u"glidein_%s" % self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
+        if self.stage_dir == None:
+            self.stage_dir = os.path.join(self.dom.getElementsByTagName(u'stage')[0].getAttribute(u'base_dir'),
+                u"glidein_%s" % self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
+        return self.stage_dir
 
     def get_monitor_dir(self):
-        return os.path.join(self.dom.getElementsByTagName(u'monitor')[0].getAttribute(u'base_dir'),
-            u"glidein_%s" % self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
+        if self.monitor_dir == None:
+            self.monitor_dir = os.path.join(self.dom.getElementsByTagName(u'monitor')[0].getAttribute(u'base_dir'),
+                u"glidein_%s" % self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
+        return self.monitor_dir
 
     def get_log_dir(self):
-        return os.path.join(self.dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),
-            u"glidein_%s" % self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
+        if self.log_dir == None:
+            self.log_dir  = os.path.join(self.dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),
+                u"glidein_%s" % self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
+        return self.log_dir
 
     def get_web_url(self):
-        return os.path.join(self.dom.getElementsByTagName(u'stage')[0].getAttribute(u'web_base_url'),
-            u"glidein_%s" % self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
+        if self.web_url == None:
+            self.web_url = os.path.join(self.dom.getElementsByTagName(u'stage')[0].getAttribute(u'web_base_url'),
+                u"glidein_%s" % self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
+        return self.web_url
 
     def get_client_log_dirs(self):
-        cl_dict = {}
-        client_dir = self.dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_client_log_dir')
-        glidein_name = self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')
-        for sc in self.dom.getElementsByTagName(u'security_class'):
-            cl_dict[sc.getAttribute(u'username')] = os.path.join(client_dir,
-                u"user_%s" % sc.getAttribute(u'username'), u"glidein_%s" % glidein_name)
+        if self.client_log_dirs == None:
+            self.client_log_dirs = {}
+            client_dir = self.dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_client_log_dir')
+            glidein_name = self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')
+            for sc in self.dom.getElementsByTagName(u'security_class'):
+                self.client_log_dirs[sc.getAttribute(u'username')] = os.path.join(client_dir,
+                    u"user_%s" % sc.getAttribute(u'username'), u"glidein_%s" % glidein_name)
 
-        return cl_dict
+        return self.client_log_dirs
 
     def get_client_proxy_dirs(self):
-        cp_dict = {}
-        client_dir = self.dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_client_proxies_dir')
-        glidein_name = self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')
-        for sc in self.dom.getElementsByTagName(u'security_class'):
-            cp_dict[sc.getAttribute(u'username')] = os.path.join(client_dir,
-                u"user_%s" % sc.getAttribute(u'username'), u"glidein_%s" % glidein_name)
+        if self.client_proxy_dirs == None:
+            self.client_proxy_dirs = {}
+            client_dir = self.dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_client_proxies_dir')
+            glidein_name = self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')
+            for sc in self.dom.getElementsByTagName(u'security_class'):
+                self.client_proxy_dirs[sc.getAttribute(u'username')] = os.path.join(client_dir,
+                    u"user_%s" % sc.getAttribute(u'username'), u"glidein_%s" % glidein_name)
 
-        return cp_dict
+        return self.client_proxy_dirs
 
 
 #######################

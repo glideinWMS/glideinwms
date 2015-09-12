@@ -338,20 +338,20 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 ################################################
 
 class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
-    def __init__(self,conf_dom,sub_name,
+    def __init__(self,conf,sub_name,
                  summary_signature,workdir_name):
-        submit_dir = factXmlUtil.get_submit_dir(conf_dom)
-        stage_dir = factXmlUtil.get_stage_dir(conf_dom)
-        monitor_dir = factXmlUtil.get_monitor_dir(conf_dom)
-        log_dir = factXmlUtil.get_log_dir(conf_dom)
-        client_log_dirs = factXmlUtil.get_client_log_dirs(conf_dom)
-        client_proxy_dirs = factXmlUtil.get_client_proxy_dirs(conf_dom)
+        submit_dir = conf.get_submit_dir()
+        stage_dir = conf.get_stage_dir()
+        monitor_dir = conf.get_monitor_dir()
+        log_dir = conf.get_log_dir()
+        client_log_dirs = conf.get_client_log_dirs()
+        client_proxy_dirs = conf.get_client_proxy_dirs()
         cgWDictFile.glideinEntryDicts.__init__(self,submit_dir,stage_dir,sub_name,summary_signature,workdir_name,
                                                log_dir,client_log_dirs,client_proxy_dirs)
                                                
         self.monitor_dir=cgWConsts.get_entry_monitor_dir(monitor_dir,sub_name)
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
-        self.conf_dom=conf_dom
+        self.conf_dom=conf.dom
 
     def erase(self):
         cgWDictFile.glideinEntryDicts.erase(self)
@@ -467,6 +467,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
         if sub_list is None:
             sub_list = [e.getAttribute(u'name') for e in conf.dom.getElementsByTagName(u'entry')]
 
+        self.conf=conf
         self.conf_dom=conf.dom
         submit_dir = conf.get_submit_dir()
         stage_dir = conf.get_stage_dir()
@@ -547,7 +548,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
         return glideinMainDicts(self.conf_dom,self.workdir_name)
 
     def new_SubDicts(self,sub_name):
-        return glideinEntryDicts(self.conf_dom,sub_name,
+        return glideinEntryDicts(self.conf,sub_name,
                                  self.main_dicts.get_summary_signature(),self.workdir_name)
         
 ############################################################
