@@ -31,7 +31,14 @@ class FactoryXmlConfig:
 
         self.dom = d1
 
-    # getter functions
+    def unlink(self):
+        self.dom.unlink()
+
+    #######################
+    #
+    # FactoryXmlConfig getter functions
+    #
+    ######################
     def get_submit_dir(self):
         return os.path.join(self.dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_dir'),
             u"glidein_%s" % self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
@@ -52,9 +59,26 @@ class FactoryXmlConfig:
         return os.path.join(self.dom.getElementsByTagName(u'stage')[0].getAttribute(u'web_base_url'),
             u"glidein_%s" % self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
 
+    def get_client_log_dirs(self):
+        cl_dict = {}
+        client_dir = self.dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_client_log_dir')
+        glidein_name = self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')
+        for sc in self.dom.getElementsByTagName(u'security_class'):
+            cl_dict[sc.getAttribute(u'username')] = os.path.join(client_dir,
+                u"user_%s" % sc.getAttribute(u'username'), u"glidein_%s" % glidein_name)
 
-    def unlink(self):
-        self.dom.unlink()
+        return cl_dict
+
+    def get_client_proxy_dirs(self):
+        cp_dict = {}
+        client_dir = self.dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_client_proxies_dir')
+        glidein_name = self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')
+        for sc in self.dom.getElementsByTagName(u'security_class'):
+            cp_dict[sc.getAttribute(u'username')] = os.path.join(client_dir,
+                u"user_%s" % sc.getAttribute(u'username'), u"glidein_%s" % glidein_name)
+
+        return cp_dict
+
 
 #######################
 #
