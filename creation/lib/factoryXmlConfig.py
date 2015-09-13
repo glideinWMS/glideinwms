@@ -4,7 +4,7 @@ from xml.dom.minidom import parse
 ENTRY_INDENT = 6
 ENTRY_DIR = 'entries.d'
 
-class XmlElement:
+class XmlElement(object):
     def __init__(self, xml):
         self.xml = xml
 
@@ -86,8 +86,9 @@ class XmlConfigElement(XmlElement):
 class XmlEntry(XmlConfigElement):
     pass
 
-class FactoryXmlConfig:
+class FactoryXmlConfig(XmlConfigElement):
     def __init__(self, file):
+        super(FactoryXmlConfig, self).__init__(None)
         self.file = file
         self.dom = None
 
@@ -121,6 +122,7 @@ class FactoryXmlConfig:
                 d2.unlink()
 
         self.dom = d1
+        self.xml = d1.documentElement
 
     def unlink(self):
         self.dom.unlink()
@@ -130,42 +132,40 @@ class FactoryXmlConfig:
     # FactoryXmlConfig getter functions
     #
     ######################
+    def get_web_url(self):
+        return os.path.join(self.xml.getElementsByTagName(u'stage')[0].getAttribute(u'web_base_url'),
+            u"glidein_%s" % self.xml.getAttribute(u'glidein_name'))
+
     def get_submit_dir(self):
         if self.submit_dir == None:
-            self.submit_dir = os.path.join(self.dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_dir'),
-                u"glidein_%s" % self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
+            self.submit_dir = os.path.join(self.xml.getElementsByTagName(u'submit')[0].getAttribute(u'base_dir'),
+                u"glidein_%s" % self.xml.getAttribute(u'glidein_name'))
         return self.submit_dir
 
     def get_stage_dir(self):
         if self.stage_dir == None:
-            self.stage_dir = os.path.join(self.dom.getElementsByTagName(u'stage')[0].getAttribute(u'base_dir'),
-                u"glidein_%s" % self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
+            self.stage_dir = os.path.join(self.xml.getElementsByTagName(u'stage')[0].getAttribute(u'base_dir'),
+                u"glidein_%s" % self.xml.getAttribute(u'glidein_name'))
         return self.stage_dir
 
     def get_monitor_dir(self):
         if self.monitor_dir == None:
-            self.monitor_dir = os.path.join(self.dom.getElementsByTagName(u'monitor')[0].getAttribute(u'base_dir'),
-                u"glidein_%s" % self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
+            self.monitor_dir = os.path.join(self.xml.getElementsByTagName(u'monitor')[0].getAttribute(u'base_dir'),
+                u"glidein_%s" % self.xml.getAttribute(u'glidein_name'))
         return self.monitor_dir
 
     def get_log_dir(self):
         if self.log_dir == None:
-            self.log_dir  = os.path.join(self.dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),
-                u"glidein_%s" % self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
+            self.log_dir  = os.path.join(self.xml.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),
+                u"glidein_%s" % self.xml.getAttribute(u'glidein_name'))
         return self.log_dir
-
-    def get_web_url(self):
-        if self.web_url == None:
-            self.web_url = os.path.join(self.dom.getElementsByTagName(u'stage')[0].getAttribute(u'web_base_url'),
-                u"glidein_%s" % self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name'))
-        return self.web_url
 
     def get_client_log_dirs(self):
         if self.client_log_dirs == None:
             self.client_log_dirs = {}
-            client_dir = self.dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_client_log_dir')
-            glidein_name = self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')
-            for sc in self.dom.getElementsByTagName(u'security_class'):
+            client_dir = self.xml.getElementsByTagName(u'submit')[0].getAttribute(u'base_client_log_dir')
+            glidein_name = self.xml.getAttribute(u'glidein_name')
+            for sc in self.xml.getElementsByTagName(u'security_class'):
                 self.client_log_dirs[sc.getAttribute(u'username')] = os.path.join(client_dir,
                     u"user_%s" % sc.getAttribute(u'username'), u"glidein_%s" % glidein_name)
 
@@ -174,9 +174,9 @@ class FactoryXmlConfig:
     def get_client_proxy_dirs(self):
         if self.client_proxy_dirs == None:
             self.client_proxy_dirs = {}
-            client_dir = self.dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_client_proxies_dir')
-            glidein_name = self.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')
-            for sc in self.dom.getElementsByTagName(u'security_class'):
+            client_dir = self.xml.getElementsByTagName(u'submit')[0].getAttribute(u'base_client_proxies_dir')
+            glidein_name = self.xml.getAttribute(u'glidein_name')
+            for sc in self.xml.getElementsByTagName(u'security_class'):
                 self.client_proxy_dirs[sc.getAttribute(u'username')] = os.path.join(client_dir,
                     u"user_%s" % sc.getAttribute(u'username'), u"glidein_%s" % glidein_name)
 
