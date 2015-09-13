@@ -4,6 +4,88 @@ from xml.dom.minidom import parse
 ENTRY_INDENT = 6
 ENTRY_DIR = 'entries.d'
 
+class XmlElement:
+    def __init__(self, xml):
+        self.xml = xml
+
+class XmlAttrElement(XmlElement):
+    def extract_attr_val(self):
+        if (not self.xml.getAttribute(u'type') in ("string","int","expr")):
+            raise RuntimeError, "Wrong attribute type '%s', must be either 'int' or 'string'"%self.xml.getAttribute(u'type')
+
+        if self.xml.getAttribute(u'type') in ("string","expr"):
+            return str(self.xml.getAttribute(u'value'))
+        else:
+            return int(self.xml.getAttribute(u'value'))
+
+class XmlFileElement(XmlElement):
+    def to_dict(self):
+        file_dict = {}
+        if self.xml.hasAttribute(u'absfname'):
+            file_dict[u'absfname'] = self.xml.getAttribute(u'absfname')
+        else:
+            file_dict[u'absfname'] = None
+        if self.xml.hasAttribute(u'after_entry'):
+            file_dict[u'after_entry'] = self.xml.getAttribute(u'after_entry')
+        if self.xml.hasAttribute(u'const'):
+            file_dict[u'const'] = self.xml.getAttribute(u'const')
+        else:
+            file_dict[u'const'] = u'False'
+        if self.xml.hasAttribute(u'executable'):
+            file_dict[u'executable'] = self.xml.getAttribute(u'executable')
+        else:
+            file_dict[u'executable'] = u'False'
+        if self.xml.hasAttribute(u'relfname'):
+            file_dict[u'relfname'] = self.xml.getAttribute(u'relfname')
+        else:
+            file_dict[u'relfname'] = None
+        if self.xml.hasAttribute(u'untar'):
+            file_dict[u'untar'] = self.xml.getAttribute(u'untar')
+        else:
+            file_dict[u'untar'] = u'False'
+        if self.xml.hasAttribute(u'wrapper'):
+            file_dict[u'wrapper'] = self.xml.getAttribute(u'wrapper')
+        else:
+            file_dict[u'wrapper'] = u'False'
+        uopts = self.xml.getElementsByTagName(u'untar_options')
+        if len(uopts) > 0:
+            uopt_el = self.xml.getElementsByTagName(u'untar_options')[0]
+            uopt_dict = {}
+            if uopt_el.hasAttribute(u'absdir_outattr'):
+                uopt_dict[u'absdir_outattr'] = uopt_el.getAttribute(u'absdir_outattr')
+            else:
+                uopt_dict[u'absdir_outattr'] = None
+            if uopt_el.hasAttribute(u'dir'):
+                uopt_dict[u'dir'] = uopt_el.getAttribute(u'dir')
+            else:
+                uopt_dict[u'dir'] = None
+            uopt_dict[u'cond_attr'] = uopt_el.getAttribute(u'cond_attr')
+            file_dict[u'untar_options'] = uopt_dict
+
+        return file_dict
+
+class XmlConfigElement(XmlElement):
+    def get_attrs(self):
+        attrs = []
+        for n in self.xml.childNodes:
+            if n.nodeType == n.ELEMENT_NODE and n.tagName == u'attrs':
+                for attr in n.getElementsByTagName(u'attr'):
+                    attrs.append(XmlAttrElement(attr))
+                break
+        return attrs
+
+    def get_files(self):
+        files = []
+        for n in self.xml.childNodes:
+            if n.nodeType == n.ELEMENT_NODE and n.tagName == u'files':
+                for file in n.getElementsByTagName(u'file'):
+                    files.append(XmlFileElement(file))
+                break
+        return files
+
+class XmlEntry(XmlConfigElement):
+    pass
+
 class FactoryXmlConfig:
     def __init__(self, file):
         self.file = file
