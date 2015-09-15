@@ -9,6 +9,12 @@ class XmlElement(object):
         self.xml = xml
         self.children = []
 
+    def __getitem__(self, key):
+        return self.xml.getAttribute(key)
+
+    def __contains__(self, key):
+        return self.xml.hasAttribute(key)
+
     def get_child(self, tag):
         child = None
         for c in self.children:
