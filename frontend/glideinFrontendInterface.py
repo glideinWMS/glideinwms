@@ -1049,18 +1049,23 @@ class MultiAdvertizeWork:
                         glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
 
 # v3/9809 start
-                    with open(credential_el.vm_id, 'r') as credfile:
-                        result = credfile.readlines()
-                        for line in result:
-                            if   line.startswith('ID'):
-                                mesi = line.split(':')
-                                vmid = mesi[1]
-                                glidein_params_to_encrypt['VMId']=str(vmid)
+                    if "vm_id"   in credential_el.type:
+                        with open(credential_el.vm_id, 'r') as credfile:
+                            result = credfile.readlines()
+                            for line in result:
+                                if  line.startswith('ID'):
+                                    mesi = line.split(':')
+                                    vmid = mesi[1]
+                                    glidein_params_to_encrypt['VMId']=str(vmid)
 
-                            elif line.startswith('TYPE'):
-                                mesi = line.split(':')
-                                vmtp = mesi[1]
-                                glidein_params_to_encrypt['VMType']=str(vmtp)
+                    if "vm_type" in credential_el.type:
+                        with open(credential_el.vm_type, 'r') as credfile:
+                            result = credfile.readlines()
+                            for line in result:
+                                if line.startswith('TYPE'):
+                                    mesi = line.split(':')
+                                    vmtp = mesi[1]
+                                    glidein_params_to_encrypt['VMType']=str(vmtp)
 # v3/9809 end
                         
                     (req_idle,req_max_run)=credential_el.get_usage_details()
