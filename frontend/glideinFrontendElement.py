@@ -529,13 +529,15 @@ class glideinFrontendElement:
             # Compute min glideins required based on multicore jobs
             effective_idle_mc = max(prop_mc_jobs['Idle'] - count_status['Idle'], 0)
             effective_oldidle_mc = max(prop_mc_jobs['OldIdle']-count_status['Idle'], 0)
+
+            which_limits_triggered = {} # v3/7920
             glidein_min_idle = self.compute_glidein_min_idle(
                                    count_status, total_glideins,
                                    total_idle_glideins, fe_total_glideins,
                                    fe_total_idle_glideins,
                                    global_total_glideins,
                                    global_total_idle_glideins,
-                                   effective_idle_mc, effective_oldidle_mc)
+                                   effective_idle_mc, effective_oldidle_mc,  which_limits_triggered) # v3/7920
 
             glidein_max_run = self.compute_glidein_max_run(
                                   prop_mc_jobs, self.count_real[glideid])
@@ -676,7 +678,7 @@ class glideinFrontendElement:
             resource_classad = self.build_resource_classad(
                                    this_stats_arr, request_name,
                                    glidein_el, glidein_in_downtime,
-                                   factory_pool_node, my_identity)
+                                   factory_pool_node, my_identity, which_limits_triggered) # v3/7920
             resource_advertiser.addClassad(resource_classad.adParams['Name'],
                                            resource_classad)
 
@@ -890,32 +892,7 @@ class glideinFrontendElement:
         except RuntimeError:
             logSupport.log.exception("Populating GlideClientMonitor info in resource classad failed: ")
 
-# v3/7920 starts
-        total_glideins             = self.status_dict_types['Total']['abs']
-        total_idle_glideins        = self.status_dict_types['Idle' ]['abs']
-        fe_total_glideins          = self.fe_counts['Total']
-        fe_total_idle_glideins     = self.fe_counts['Idle']
-        global_total_glideins      = self.global_counts['Total']
-        global_total_idle_glideins = self.global_counts['Idle']
-
-        this_num_glideins_tuple =  (   total_glideins,        total_idle_glideins,
-                                    fe_total_glideins,     fe_total_idle_glideins,
-                                global_total_glideins, global_total_idle_glideins )
-
-        this_limits_tuple = ( self.total_max_glideins,         self.total_max_vms_idle,
-                              self.fe_total_max_glideins,      self.fe_total_max_vms_idle,
-                              self.global_total_max_glideins,  self.global_total_max_vms_idle,
-                              self.max_running,                self.max_vms_idle )
-
-        this_curbs_tuple = (  self.curb_vms_idle,
-                              self.total_curb_glideins,        self.total_curb_vms_idle,
-                              self.fe_total_curb_glideins,     self.fe_total_curb_vms_idle,
-                              self.global_total_curb_glideins, self.global_total_curb_vms_idle )
-
-        resource_classad.setCurbsAndLimits( this_stats_arr, this_num_glideins_tuple, this_limits_tuple, this_curbs_tuple )
-# v3/7920 ends
-
-
+        resource_classad.setCurbsAndLimits( which_limits_triggered ) # v3/7920
         return resource_classad
 
 
@@ -924,7 +901,7 @@ class glideinFrontendElement:
                                  fe_total_idle_glideins,
                                  global_total_glideins,
                                  global_total_idle_glideins,
-                                 effective_idle, effective_oldidle):
+                                 effective_idle, effective_oldidle, which_limits_triggered): # v3/7920
         """
         Calculate the number of idle glideins to request from the factory
         """
@@ -932,6 +909,40 @@ class glideinFrontendElement:
         if self.request_removal_wtype is not None:
             # we are requesting the removal of glideins, do not request more
             return 0
+
+# v3/7920 starts
+        if (count_status['Total']      >= self.max_running):
+            which_limits_triggered['TotalGlideinsPerEntry'] = 1
+        if (count_status['Idle']       >= self.max_vms_idle):
+            which_limits_triggered['IdleGlideinsPerEntry'] = 1
+        if (total_glideins             >= self.total_max_glideins):
+            which_limits_triggered['TotalGlideinsPerGroup'] = 1
+        if (total_idle_glideins        >= self.total_max_vms_idle):
+            which_limits_triggered['IdleGlideinsPerGroup'] = 1
+        if (fe_total_glideins          >= self.fe_total_max_glideins):
+            which_limits_triggered['TotalGlideinsPerFrontend'] = 1
+        if (fe_total_idle_glideins     >= self.fe_total_max_vms_idle):
+            which_limits_triggered['IdleGlideinsPerFrontend'] = 1
+        if (global_total_glideins      >= self.global_total_max_glideins):
+            which_limits_triggered['TotalGlideinsGlobal'] = 1
+        if (global_total_idle_glideins >= self.global_total_max_vms_idle):
+            which_limits_triggered['IdleGlideinsGlobal'] = 1
+
+        if count_status['Idle']        >= self.curb_vms_idle:
+            which_limits_triggered['CurbIdleGlideinsPerEntry'] = 1
+        if total_glideins              >= self.total_curb_glideins:
+            which_limits_triggered['CurbTotalGlideinsPerGroup'] = 1
+        if total_idle_glideins         >= self.total_curb_vms_idle:
+            which_limits_triggered['CurbIdleGlideinsPerGroup'] = 1
+        if fe_total_glideins           >= self.fe_total_curb_glideins:
+            which_limits_triggered['CurbTotalGlideinsPerFrontend'] = 1
+        if fe_total_idle_glideins      >= self.fe_total_curb_vms_idle:
+            which_limits_triggered['CurbIdleGlideinsPerFrontend'] = 1
+        if global_total_glideins       >= self.global_total_curb_glideins:
+            which_limits_triggered['CurbTotalGlideinsGlobal'] = 1
+        if global_total_idle_glideins  >= self.global_total_curb_vms_idle:
+            which_limits_triggered['CurbIdleGlideinsGlobal'] = 1
+# v3/7920 ends
 
         if ( (count_status['Total'] >= self.max_running) or
              (count_status['Idle'] >= self.max_vms_idle) or
