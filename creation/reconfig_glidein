@@ -137,7 +137,7 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
         if update_def_cfg == 'yes':
             print "...Updated default config file location to: %s" % conf.file
 
-    print "...Reconfigured glidein '%s' is complete" % conf.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')
+    print "...Reconfigured glidein '%s' is complete" % conf.xml.getAttribute(u'glidein_name')
     print "...Active entries are:"
     for entry in glidein_dicts_obj.active_sub_list:
         print "     %s"%entry
@@ -212,7 +212,7 @@ if __name__ == '__main__':
 
         args = [argv[0], transformed_xmlfile.name]
 
-        glidein_name = conf.dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')
+        glidein_name = conf.xml.getAttribute(u'glidein_name')
         if force_name is not None:
             if glidein_name != force_name:
                 raise UsageError("This is not a '%s' config file ('%s' found)" % (force_name, glidein_name))

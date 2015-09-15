@@ -7,6 +7,32 @@ ENTRY_DIR = 'entries.d'
 class XmlElement(object):
     def __init__(self, xml):
         self.xml = xml
+        self.children = []
+
+    def get_child(self, tag):
+        child = None
+        for c in self.children:
+            if c.xml.tagName == tag:
+                child = c
+                break
+        return child
+
+    def get_child_list(self, tag):
+        child = self.get_child(tag)
+        if child is None:
+            return None
+        return child.children
+
+    def find(self, tag):
+        found = []
+        self._find(tag, found)
+        return found
+
+    def _find(self, tag, found):
+        for c in self.children:
+            if c.xml.tagName == tag:
+                found.append(c)
+            c._find(tag, found)
 
 class XmlAttrElement(XmlElement):
     def extract_attr_val(self):
@@ -19,6 +45,8 @@ class XmlAttrElement(XmlElement):
             return int(self.xml.getAttribute(u'value'))
 
 class XmlFileElement(XmlElement):
+    # this function converts a file element to the expected dictionary used in
+    # cgWParamDict.add_file_unparsed()
     def to_dict(self):
         file_dict = {}
         if self.xml.hasAttribute(u'absfname'):
@@ -47,46 +75,26 @@ class XmlFileElement(XmlElement):
             file_dict[u'wrapper'] = self.xml.getAttribute(u'wrapper')
         else:
             file_dict[u'wrapper'] = u'False'
-        uopts = self.xml.getElementsByTagName(u'untar_options')
-        if len(uopts) > 0:
-            uopt_el = self.xml.getElementsByTagName(u'untar_options')[0]
+        uopts = self.get_child(u'untar_options')
+        if uopts is not None:
             uopt_dict = {}
-            if uopt_el.hasAttribute(u'absdir_outattr'):
-                uopt_dict[u'absdir_outattr'] = uopt_el.getAttribute(u'absdir_outattr')
+            if uopts.xml.hasAttribute(u'absdir_outattr'):
+                uopt_dict[u'absdir_outattr'] = uopts.xml.getAttribute(u'absdir_outattr')
             else:
                 uopt_dict[u'absdir_outattr'] = None
-            if uopt_el.hasAttribute(u'dir'):
-                uopt_dict[u'dir'] = uopt_el.getAttribute(u'dir')
+            if uopts.xml.hasAttribute(u'dir'):
+                uopt_dict[u'dir'] = uopts.xml.getAttribute(u'dir')
             else:
                 uopt_dict[u'dir'] = None
-            uopt_dict[u'cond_attr'] = uopt_el.getAttribute(u'cond_attr')
+            uopt_dict[u'cond_attr'] = uopts.xml.getAttribute(u'cond_attr')
             file_dict[u'untar_options'] = uopt_dict
 
         return file_dict
 
-class XmlConfigElement(XmlElement):
-    def get_attrs(self):
-        attrs = []
-        for n in self.xml.childNodes:
-            if n.nodeType == n.ELEMENT_NODE and n.tagName == u'attrs':
-                for attr in n.getElementsByTagName(u'attr'):
-                    attrs.append(XmlAttrElement(attr))
-                break
-        return attrs
-
-    def get_files(self):
-        files = []
-        for n in self.xml.childNodes:
-            if n.nodeType == n.ELEMENT_NODE and n.tagName == u'files':
-                for file in n.getElementsByTagName(u'file'):
-                    files.append(XmlFileElement(file))
-                break
-        return files
-
-class XmlEntry(XmlConfigElement):
+class XmlEntry(XmlElement):
     pass
 
-class FactoryXmlConfig(XmlConfigElement):
+class FactoryXmlConfig(XmlElement):
     def __init__(self, file):
         super(FactoryXmlConfig, self).__init__(None)
         self.file = file
@@ -104,25 +112,23 @@ class FactoryXmlConfig(XmlConfigElement):
     def parse(self):
         d1 = parse(self.file)
         entry_dir_path = os.path.join(os.path.dirname(self.file), ENTRY_DIR)
-        if not os.path.exists(entry_dir_path):
-            self.dom = d1
-            return
+        if os.path.exists(entry_dir_path):
+            entries = d1.getElementsByTagName(u'entry')
 
-        entries = d1.getElementsByTagName(u'entry')
+            found_entries = {}
+            for e in entries:
+                found_entries[e.getAttribute(u'name')] = e
 
-        found_entries = {}
-        for e in entries:
-            found_entries[e.getAttribute(u'name')] = e
-
-        files = sorted(os.listdir(entry_dir_path))
-        for f in files:
-            if f.endswith('.xml'):
-                d2 = parse(os.path.join(entry_dir_path, f))
-                merge_entries(d1, d2, found_entries)
-                d2.unlink()
+            files = sorted(os.listdir(entry_dir_path))
+            for f in files:
+                if f.endswith('.xml'):
+                    d2 = parse(os.path.join(entry_dir_path, f))
+                    merge_entries(d1, d2, found_entries)
+                    d2.unlink()
 
         self.dom = d1
         self.xml = d1.documentElement
+        build_tree(self)
 
     def unlink(self):
         self.dom.unlink()
@@ -133,52 +139,52 @@ class FactoryXmlConfig(XmlConfigElement):
     #
     ######################
     def get_web_url(self):
-        return os.path.join(self.xml.getElementsByTagName(u'stage')[0].getAttribute(u'web_base_url'),
+        return os.path.join(self.get_child(u'stage').xml.getAttribute(u'web_base_url'),
             u"glidein_%s" % self.xml.getAttribute(u'glidein_name'))
 
     def get_submit_dir(self):
         if self.submit_dir == None:
-            self.submit_dir = os.path.join(self.xml.getElementsByTagName(u'submit')[0].getAttribute(u'base_dir'),
+            self.submit_dir = os.path.join(self.get_child(u'submit').xml.getAttribute(u'base_dir'),
                 u"glidein_%s" % self.xml.getAttribute(u'glidein_name'))
         return self.submit_dir
 
     def get_stage_dir(self):
         if self.stage_dir == None:
-            self.stage_dir = os.path.join(self.xml.getElementsByTagName(u'stage')[0].getAttribute(u'base_dir'),
+            self.stage_dir = os.path.join(self.get_child(u'stage').xml.getAttribute(u'base_dir'),
                 u"glidein_%s" % self.xml.getAttribute(u'glidein_name'))
         return self.stage_dir
 
     def get_monitor_dir(self):
         if self.monitor_dir == None:
-            self.monitor_dir = os.path.join(self.xml.getElementsByTagName(u'monitor')[0].getAttribute(u'base_dir'),
+            self.monitor_dir = os.path.join(self.get_child(u'monitor').xml.getAttribute(u'base_dir'),
                 u"glidein_%s" % self.xml.getAttribute(u'glidein_name'))
         return self.monitor_dir
 
     def get_log_dir(self):
         if self.log_dir == None:
-            self.log_dir  = os.path.join(self.xml.getElementsByTagName(u'submit')[0].getAttribute(u'base_log_dir'),
+            self.log_dir  = os.path.join(self.get_child(u'submit').xml.getAttribute(u'base_log_dir'),
                 u"glidein_%s" % self.xml.getAttribute(u'glidein_name'))
         return self.log_dir
 
     def get_client_log_dirs(self):
         if self.client_log_dirs == None:
             self.client_log_dirs = {}
-            client_dir = self.xml.getElementsByTagName(u'submit')[0].getAttribute(u'base_client_log_dir')
+            client_dir = self.get_child(u'submit').xml.getAttribute(u'base_client_log_dir')
             glidein_name = self.xml.getAttribute(u'glidein_name')
-            for sc in self.xml.getElementsByTagName(u'security_class'):
-                self.client_log_dirs[sc.getAttribute(u'username')] = os.path.join(client_dir,
-                    u"user_%s" % sc.getAttribute(u'username'), u"glidein_%s" % glidein_name)
+            for sc in self.get_child(u'security').find(u'security_class'):
+                self.client_log_dirs[sc.xml.getAttribute(u'username')] = os.path.join(client_dir,
+                    u"user_%s" % sc.xml.getAttribute(u'username'), u"glidein_%s" % glidein_name)
 
         return self.client_log_dirs
 
     def get_client_proxy_dirs(self):
         if self.client_proxy_dirs == None:
             self.client_proxy_dirs = {}
-            client_dir = self.xml.getElementsByTagName(u'submit')[0].getAttribute(u'base_client_proxies_dir')
+            client_dir = self.get_child(u'submit').xml.getAttribute(u'base_client_proxies_dir')
             glidein_name = self.xml.getAttribute(u'glidein_name')
-            for sc in self.xml.getElementsByTagName(u'security_class'):
-                self.client_proxy_dirs[sc.getAttribute(u'username')] = os.path.join(client_dir,
-                    u"user_%s" % sc.getAttribute(u'username'), u"glidein_%s" % glidein_name)
+            for sc in self.get_child(u'security').find(u'security_class'):
+                self.client_proxy_dirs[sc.xml.getAttribute(u'username')] = os.path.join(client_dir,
+                    u"user_%s" % sc.xml.getAttribute(u'username'), u"glidein_%s" % glidein_name)
 
         return self.client_proxy_dirs
 
@@ -204,3 +210,16 @@ def merge_entries(d1, d2, found_entries):
             entries1.insertBefore(entry_clone, entries1.lastChild)
             found_entries[entry_name] = entry_clone
 
+def build_tree(element):
+    for c in element.xml.childNodes:
+        if c.nodeType == c.ELEMENT_NODE:
+            if c.tagName == u'attribute':
+                element.children.append(XmlAttrElement(c)) 
+            elif c.tagName == u'file':
+                element.children.append(XmlFileElement(c)) 
+            elif c.tagName == u'entry':
+                element.children.append(XmlEntry(c))
+            else:
+                element.children.append(XmlElement(c))
+
+            build_tree(element.children[-1])

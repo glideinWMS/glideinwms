@@ -389,48 +389,47 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         
         
         # put user files in stage
-        files_el = entry.getElementsByTagName(u'files')[0]
-        for user_file in factXmlUtil.get_files(files_el):
-            add_file_unparsed(user_file,self.dicts)
+        for user_file in entry.get_child_list(u'files'):
+            add_file_unparsed(user_file.to_dict(),self.dicts)
 
         # Add attribute for voms
 
         # put user attributes into config files
-        for attr in entry.getElementsByTagName(u'attr'):
-            add_attr_unparsed(attr,self.dicts,self.sub_name)
+        for attr in entry.get_child_list(u'attrs'):
+            add_attr_unparsed(attr.xml,self.dicts,self.sub_name)
 
         # put standard attributes into config file
         # override anything the user set
         for dtype in ('attrs','consts'):
-            self.dicts[dtype].add("GLIDEIN_Gatekeeper",entry.getAttribute(u'gatekeeper'),allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_GridType",entry.getAttribute(u'gridtype'),allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_Gatekeeper",entry.xml.getAttribute(u'gatekeeper'),allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_GridType",entry.xml.getAttribute(u'gridtype'),allow_overwrite=True)
             # MERGENOTE:
             # GLIDEIN_REQUIRE_VOMS publishes an attribute so that users without VOMS proxies
             #   can avoid sites that require VOMS proxies (using the normal Condor Requirements
             #   string. 
-            self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS",entry.getElementsByTagName(u'restrictions')[0].getAttribute(u'require_voms_proxy'),allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_REQUIRE_GLEXEC_USE",entry.getElementsByTagName(u'restrictions')[0].getAttribute(u'require_glidein_glexec_use'),allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_TrustDomain",entry.getAttribute(u'trust_domain'),allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_SupportedAuthenticationMethod",entry.getAttribute(u'auth_method'),allow_overwrite=True)
-            if entry.hasAttribute(u'rsl'):
-                self.dicts[dtype].add('GLIDEIN_GlobusRSL',entry.getAttribute(u'rsl'),allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_SlotsLayout", entry.getElementsByTagName(u'submit')[0].getAttribute(u'slots_layout'), allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS",entry.find(u'restrictions')[0].xml.getAttribute(u'require_voms_proxy'),allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_REQUIRE_GLEXEC_USE",entry.find(u'restrictions')[0].xml.getAttribute(u'require_glidein_glexec_use'),allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_TrustDomain",entry.xml.getAttribute(u'trust_domain'),allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_SupportedAuthenticationMethod",entry.xml.getAttribute(u'auth_method'),allow_overwrite=True)
+            if entry.xml.hasAttribute(u'rsl'):
+                self.dicts[dtype].add('GLIDEIN_GlobusRSL',entry.xml.getAttribute(u'rsl'),allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_SlotsLayout", entry.find(u'submit')[0].xml.getAttribute(u'slots_layout'), allow_overwrite=True)
 
 
-        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_VOMS","boolean",entry.getElementsByTagName(u'restrictions')[0].getAttribute(u'require_voms_proxy'),None,False,True,True)
-        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_GLEXEC_USE","boolean",entry.getElementsByTagName(u'restrictions')[0].getAttribute(u'require_glidein_glexec_use'),None,False,True,True)
+        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_VOMS","boolean",entry.find(u'restrictions')[0].xml.getAttribute(u'require_voms_proxy'),None,False,True,True)
+        self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_GLEXEC_USE","boolean",entry.find(u'restrictions')[0].xml.getAttribute(u'require_glidein_glexec_use'),None,False,True,True)
 
         # populate infosys
-        for infosys_ref in entry.getElementsByTagName(u'infosys_ref'):
-            self.dicts['infosys'].add_extended(infosys_ref.getAttribute(u'type'),infosys_ref.getAttribute(u'server'),infosys_ref.getAttribute(u'ref'),allow_overwrite=True)
+        for infosys_ref in entry.find(u'infosys_ref'):
+            self.dicts['infosys'].add_extended(infosys_ref.xml.getAttribute(u'type'),infosys_ref.xml.getAttribute(u'server'),infosys_ref.xml.getAttribute(u'ref'),allow_overwrite=True)
 
         # populate monitorgroups
-        for monitorgroup in entry.getElementsByTagName(u'monitorgroup'):
-            self.dicts['mongroup'].add_extended(monitorgroup.getAttribute(u'group_name'),allow_overwrite=True)
+        for monitorgroup in entry.find(u'monitorgroup'):
+            self.dicts['mongroup'].add_extended(monitorgroup.xml.getAttribute(u'group_name'),allow_overwrite=True)
 
         # populate complex files
         populate_job_descript(self.work_dir,self.dicts['job_descript'],
-                              self.sub_name,entry,schedd)
+                              self.sub_name,entry.xml,schedd)
 
         ################################################################################################################
         # This is the original function call:
@@ -445,7 +444,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         # increasing parameter list for this function, lets just pass params, sub_params, and the 2 other parameters
         # to the function and call it a day.
         ################################################################################################################
-        self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf_dom, entry)
+        self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf_dom, entry.xml)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -485,7 +484,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
         self.main_dicts.populate()
         self.active_sub_list=self.main_dicts.active_sub_list
 
-        schedds = self.conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'schedd_name').split(u',')
+        schedds = self.conf.xml.getAttribute(u'schedd_name').split(u',')
         schedd_counts = {}
         for s in schedds:
             schedd_counts[s] = 0
@@ -496,8 +495,8 @@ class glideinDicts(cgWDictFile.glideinDicts):
                 if schedd in schedd_counts:
                     schedd_counts[schedd] += 1
 
-        for entry in self.conf_dom.getElementsByTagName(u'entry'):
-            entry_name = entry.getAttribute(u'name')
+        for entry in self.conf.get_child_list(u'entries'):
+            entry_name = entry.xml.getAttribute(u'name')
             if other is not None and entry_name in other.sub_dicts and other.sub_dicts[entry_name]['job_descript']['Schedd'] in schedd_counts:
                 schedd = other.sub_dicts[entry_name]['job_descript']['Schedd']
             else:
@@ -506,7 +505,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
                 schedd_counts[schedd] += 1
             self.sub_dicts[entry_name].populate(entry, schedd)
 
-        validate_condor_tarball_attrs(self.conf_dom)
+        validate_condor_tarball_attrs(self.conf.xml)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
