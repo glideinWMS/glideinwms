@@ -104,7 +104,7 @@ def create_condor_tar_fd(condor_base_dir):
 ##########################################
 # Condor submit file dictionary
 class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
-    def populate(self, exe_fname, entry_name, conf_dom, entry):
+    def populate(self, exe_fname, entry_name, conf, entry):
         """
         Since there are only two parameters that ever were passed that didn't already exist in the params dict or the
         sub_params dict, the function signature has been greatly simplified into just those two parameters and the
@@ -115,20 +115,20 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         another parameter to the function.
         """
 
-        glidein_name = conf_dom.getElementsByTagName(u'glidein')[0].getAttribute(u'glidein_name')
-        gridtype = entry.getAttribute(u'gridtype')
-        gatekeeper = entry.getAttribute(u'gatekeeper')
-        if entry.hasAttribute(u'rsl'):
-            rsl = entry.getAttribute(u'rsl')
+        glidein_name = conf[u'glidein_name']
+        gridtype = entry[u'gridtype']
+        gatekeeper = entry[u'gatekeeper']
+        if u'rsl' in entry:
+            rsl = entry[u'rsl']
         else:
             rsl = None
-        auth_method = entry.getAttribute(u'auth_method')
-        if entry.hasAttribute(u'proxy_url'):
-            proxy_url = entry.getAttribute(u'proxy_url')
+        auth_method = entry[u'auth_method']
+        if u'proxy_url' in entry:
+            proxy_url = entry[u'proxy_url']
         else:
             proxy_url = None
-        client_log_base_dir =  conf_dom.getElementsByTagName(u'submit')[0].getAttribute(u'base_client_log_dir')
-        submit_attrs = factXmlUtil.get_submit_attrs(entry)
+        client_log_base_dir =  conf.get_child(u'submit')[u'base_client_log_dir']
+        submit_attrs = entry.get_submit_attrs()
 
         # Add in some common elements before setting up grid type specific attributes
         self.add("Universe", "grid")

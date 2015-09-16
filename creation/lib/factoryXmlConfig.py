@@ -112,6 +112,14 @@ class XmlEntry(XmlElement):
             allowed_frontends[allow_fe[u'name']] = fe_dict
         return allowed_frontends
 
+    def get_submit_attrs(self):
+        submit_attrs = {}
+        for sub_attr in self.get_child(u'config').get_child(u'submit').get_child_list(u'submit_attrs'):
+            attr_dict = {}
+            attr_dict[u'value'] = sub_attr[u'value']
+            submit_attrs[sub_attr[u'name']] = attr_dict
+        return submit_attrs
+
 class FactoryXmlConfig(XmlElement):
     def __init__(self, file):
         super(FactoryXmlConfig, self).__init__(None)

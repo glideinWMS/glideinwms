@@ -352,6 +352,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         self.monitor_dir=cgWConsts.get_entry_monitor_dir(monitor_dir,sub_name)
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.conf_dom=conf.dom
+        self.conf=conf
 
     def erase(self):
         cgWDictFile.glideinEntryDicts.erase(self)
@@ -448,7 +449,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         # increasing parameter list for this function, lets just pass params, sub_params, and the 2 other parameters
         # to the function and call it a day.
         ################################################################################################################
-        self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf_dom, entry.xml)
+        self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE, self.sub_name, self.conf, entry)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
