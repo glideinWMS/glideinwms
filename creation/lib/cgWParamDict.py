@@ -433,7 +433,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         # populate complex files
         populate_job_descript(self.work_dir,self.dicts['job_descript'],
-                              self.sub_name,entry.xml,schedd)
+                              self.sub_name,entry,schedd)
 
         ################################################################################################################
         # This is the original function call:
@@ -768,51 +768,54 @@ def populate_job_descript(work_dir, job_descript_dict,
     
     down_fname = os.path.join(work_dir, 'glideinWMS.downtimes')
 
+    config = entry.get_child(u'config')
+    max_jobs = config.get_child(u'max_jobs')
+
     job_descript_dict.add('EntryName', sub_name)
-    job_descript_dict.add('GridType', entry.getAttribute(u'gridtype'))
-    job_descript_dict.add('Gatekeeper', entry.getAttribute(u'gatekeeper'))
-    job_descript_dict.add('AuthMethod', entry.getAttribute(u'auth_method'))
-    job_descript_dict.add('TrustDomain', entry.getAttribute(u'trust_domain'))
-    if entry.hasAttribute(u'vm_id'):
-        job_descript_dict.add('EntryVMId', entry.getAttribute(u'vm_id'))
-    if entry.hasAttribute(u'vm_type'):
-        job_descript_dict.add('EntryVMType', entry.getAttribute(u'vm_type'))
-    if entry.hasAttribute(u'rsl'):
-        job_descript_dict.add('GlobusRSL', entry.getAttribute(u'rsl'))
+    job_descript_dict.add('GridType', entry[u'gridtype'])
+    job_descript_dict.add('Gatekeeper', entry[u'gatekeeper'])
+    job_descript_dict.add('AuthMethod', entry[u'auth_method'])
+    job_descript_dict.add('TrustDomain', entry[u'trust_domain'])
+    if u'vm_id' in entry:
+        job_descript_dict.add('EntryVMId', entry[u'vm_id'])
+    if u'vm_type' in entry:
+        job_descript_dict.add('EntryVMType', entry[u'vm_type'])
+    if u'rsl' in entry:
+        job_descript_dict.add('GlobusRSL', entry[u'rsl'])
     job_descript_dict.add('Schedd', schedd)
-    job_descript_dict.add('StartupDir', entry.getAttribute(u'work_dir'))
-    if entry.hasAttribute(u'proxy_url'):
-        job_descript_dict.add('ProxyURL', entry.getAttribute(u'proxy_url'))
-    job_descript_dict.add('Verbosity', entry.getAttribute(u'verbosity'))
+    job_descript_dict.add('StartupDir', entry[u'work_dir'])
+    if u'proxy_url' in entry:
+        job_descript_dict.add('ProxyURL', entry[u'proxy_url'])
+    job_descript_dict.add('Verbosity', entry[u'verbosity'])
     job_descript_dict.add('DowntimesFile', down_fname)
-    per_entry = entry.getElementsByTagName(u'per_entry')[0]
-    job_descript_dict.add('PerEntryMaxGlideins', per_entry.getAttribute(u'glideins'))
-    job_descript_dict.add('PerEntryMaxIdle', per_entry.getAttribute(u'idle'))
-    job_descript_dict.add('PerEntryMaxHeld', per_entry.getAttribute(u'held'))
-    def_per_fe = entry.getElementsByTagName(u'default_per_frontend')[0]
-    job_descript_dict.add('DefaultPerFrontendMaxGlideins', def_per_fe.getAttribute(u'glideins'))
-    job_descript_dict.add('DefaultPerFrontendMaxIdle', def_per_fe.getAttribute(u'idle'))
-    job_descript_dict.add('DefaultPerFrontendMaxHeld', def_per_fe.getAttribute(u'held'))
-    submit = entry.getElementsByTagName(u'submit')[0]
-    job_descript_dict.add('MaxSubmitRate', submit.getAttribute(u'max_per_cycle'))
-    job_descript_dict.add('SubmitCluster', submit.getAttribute(u'cluster_size'))
-    job_descript_dict.add('SubmitSlotsLayout', submit.getAttribute(u'slots_layout'))
-    job_descript_dict.add('SubmitSleep', submit.getAttribute(u'sleep'))
-    remove = entry.getElementsByTagName(u'remove')[0]
-    job_descript_dict.add('MaxRemoveRate', remove.getAttribute(u'max_per_cycle'))
-    job_descript_dict.add('RemoveSleep', remove.getAttribute(u'sleep'))
-    release = entry.getElementsByTagName(u'release')[0]
-    job_descript_dict.add('MaxReleaseRate', release.getAttribute(u'max_per_cycle'))
-    job_descript_dict.add('ReleaseSleep', release.getAttribute(u'sleep'))
-    restrictions = entry.getElementsByTagName(u'restrictions')[0]
-    job_descript_dict.add('RequireVomsProxy',restrictions.getAttribute(u'require_voms_proxy'))
-    job_descript_dict.add('RequireGlideinGlexecUse',restrictions.getAttribute(u'require_glidein_glexec_use'))
+    per_entry = max_jobs.get_child(u'per_entry')
+    job_descript_dict.add('PerEntryMaxGlideins', per_entry[u'glideins'])
+    job_descript_dict.add('PerEntryMaxIdle', per_entry[u'idle'])
+    job_descript_dict.add('PerEntryMaxHeld', per_entry[u'held'])
+    def_per_fe = max_jobs.get_child(u'default_per_frontend')
+    job_descript_dict.add('DefaultPerFrontendMaxGlideins', def_per_fe[u'glideins'])
+    job_descript_dict.add('DefaultPerFrontendMaxIdle', def_per_fe[u'idle'])
+    job_descript_dict.add('DefaultPerFrontendMaxHeld', def_per_fe[u'held'])
+    submit = config.get_child(u'submit')
+    job_descript_dict.add('MaxSubmitRate', submit[u'max_per_cycle'])
+    job_descript_dict.add('SubmitCluster', submit[u'cluster_size'])
+    job_descript_dict.add('SubmitSlotsLayout', submit[u'slots_layout'])
+    job_descript_dict.add('SubmitSleep', submit[u'sleep'])
+    remove = config.get_child(u'remove')
+    job_descript_dict.add('MaxRemoveRate', remove[u'max_per_cycle'])
+    job_descript_dict.add('RemoveSleep', remove[u'sleep'])
+    release = config.get_child(u'release')
+    job_descript_dict.add('MaxReleaseRate', release[u'max_per_cycle'])
+    job_descript_dict.add('ReleaseSleep', release[u'sleep'])
+    restrictions = config.get_child(u'restrictions')
+    job_descript_dict.add('RequireVomsProxy',restrictions[u'require_voms_proxy'])
+    job_descript_dict.add('RequireGlideinGlexecUse',restrictions[u'require_glidein_glexec_use'])
    
     # Add the frontend specific job limits to the job.descript file
     max_held_frontend = ""
     max_idle_frontend = ""
     max_glideins_frontend = ""
-    per_frontends = factXmlUtil.get_max_per_frontends(entry)
+    per_frontends = factXmlUtil.get_max_per_frontends(entry.xml)
     for frontend_name in per_frontends:
         el = per_frontends[frontend_name]
         max_held_frontend += frontend_name + ";" + el[u'held'] + ","
@@ -827,7 +830,7 @@ def populate_job_descript(work_dir, job_descript_dict,
     #  to it.
     white_mode = "Off"
     allowed_vos = ""
-    allowed_frontends = factXmlUtil.get_allowed_frontends(entry)
+    allowed_frontends = factXmlUtil.get_allowed_frontends(entry.xml)
     for X in allowed_frontends:
         white_mode = "On"
         allowed_vos = allowed_vos + X + ":" + allowed_frontends[X][u'security_class'] + ","
