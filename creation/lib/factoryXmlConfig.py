@@ -42,57 +42,57 @@ class XmlElement(object):
 
 class XmlAttrElement(XmlElement):
     def extract_attr_val(self):
-        if (not self.xml.getAttribute(u'type') in ("string","int","expr")):
-            raise RuntimeError, "Wrong attribute type '%s', must be either 'int' or 'string'"%self.xml.getAttribute(u'type')
+        if (not self[u'type'] in ("string","int","expr")):
+            raise RuntimeError, "Wrong attribute type '%s', must be either 'int' or 'string'"%self[u'type']
 
-        if self.xml.getAttribute(u'type') in ("string","expr"):
-            return str(self.xml.getAttribute(u'value'))
+        if self[u'type'] in ("string","expr"):
+            return str(self[u'value'])
         else:
-            return int(self.xml.getAttribute(u'value'))
+            return int(self[u'value'])
 
 class XmlFileElement(XmlElement):
     # this function converts a file element to the expected dictionary used in
     # cgWParamDict.add_file_unparsed()
     def to_dict(self):
         file_dict = {}
-        if self.xml.hasAttribute(u'absfname'):
-            file_dict[u'absfname'] = self.xml.getAttribute(u'absfname')
+        if u'absfname' in self:
+            file_dict[u'absfname'] = self[u'absfname']
         else:
             file_dict[u'absfname'] = None
-        if self.xml.hasAttribute(u'after_entry'):
-            file_dict[u'after_entry'] = self.xml.getAttribute(u'after_entry')
-        if self.xml.hasAttribute(u'const'):
-            file_dict[u'const'] = self.xml.getAttribute(u'const')
+        if u'after_entry' in self:
+            file_dict[u'after_entry'] = self[u'after_entry']
+        if u'const' in self:
+            file_dict[u'const'] = self[u'const']
         else:
             file_dict[u'const'] = u'False'
-        if self.xml.hasAttribute(u'executable'):
-            file_dict[u'executable'] = self.xml.getAttribute(u'executable')
+        if u'executable' in self:
+            file_dict[u'executable'] = self[u'executable']
         else:
             file_dict[u'executable'] = u'False'
-        if self.xml.hasAttribute(u'relfname'):
-            file_dict[u'relfname'] = self.xml.getAttribute(u'relfname')
+        if u'relfname' in self:
+            file_dict[u'relfname'] = self[u'relfname']
         else:
             file_dict[u'relfname'] = None
-        if self.xml.hasAttribute(u'untar'):
-            file_dict[u'untar'] = self.xml.getAttribute(u'untar')
+        if u'untar' in self:
+            file_dict[u'untar'] = self[u'untar']
         else:
             file_dict[u'untar'] = u'False'
-        if self.xml.hasAttribute(u'wrapper'):
-            file_dict[u'wrapper'] = self.xml.getAttribute(u'wrapper')
+        if u'wrapper' in self:
+            file_dict[u'wrapper'] = self[u'wrapper']
         else:
             file_dict[u'wrapper'] = u'False'
         uopts = self.get_child(u'untar_options')
         if uopts is not None:
             uopt_dict = {}
-            if uopts.xml.hasAttribute(u'absdir_outattr'):
-                uopt_dict[u'absdir_outattr'] = uopts.xml.getAttribute(u'absdir_outattr')
+            if u'absdir_outattr' in uopts:
+                uopt_dict[u'absdir_outattr'] = uopts[u'absdir_outattr']
             else:
                 uopt_dict[u'absdir_outattr'] = None
-            if uopts.xml.hasAttribute(u'dir'):
-                uopt_dict[u'dir'] = uopts.xml.getAttribute(u'dir')
+            if u'dir' in uopts:
+                uopt_dict[u'dir'] = uopts[u'dir']
             else:
                 uopt_dict[u'dir'] = None
-            uopt_dict[u'cond_attr'] = uopts.xml.getAttribute(u'cond_attr')
+            uopt_dict[u'cond_attr'] = uopts[u'cond_attr']
             file_dict[u'untar_options'] = uopt_dict
 
         return file_dict
@@ -145,52 +145,52 @@ class FactoryXmlConfig(XmlElement):
     #
     ######################
     def get_web_url(self):
-        return os.path.join(self.get_child(u'stage').xml.getAttribute(u'web_base_url'),
-            u"glidein_%s" % self.xml.getAttribute(u'glidein_name'))
+        return os.path.join(self.get_child(u'stage')[u'web_base_url'],
+            u"glidein_%s" % self[u'glidein_name'])
 
     def get_submit_dir(self):
         if self.submit_dir == None:
-            self.submit_dir = os.path.join(self.get_child(u'submit').xml.getAttribute(u'base_dir'),
-                u"glidein_%s" % self.xml.getAttribute(u'glidein_name'))
+            self.submit_dir = os.path.join(self.get_child(u'submit')[u'base_dir'],
+                u"glidein_%s" % self[u'glidein_name'])
         return self.submit_dir
 
     def get_stage_dir(self):
         if self.stage_dir == None:
-            self.stage_dir = os.path.join(self.get_child(u'stage').xml.getAttribute(u'base_dir'),
-                u"glidein_%s" % self.xml.getAttribute(u'glidein_name'))
+            self.stage_dir = os.path.join(self.get_child(u'stage')[u'base_dir'],
+                u"glidein_%s" % self[u'glidein_name'])
         return self.stage_dir
 
     def get_monitor_dir(self):
         if self.monitor_dir == None:
-            self.monitor_dir = os.path.join(self.get_child(u'monitor').xml.getAttribute(u'base_dir'),
-                u"glidein_%s" % self.xml.getAttribute(u'glidein_name'))
+            self.monitor_dir = os.path.join(self.get_child(u'monitor')[u'base_dir'],
+                u"glidein_%s" % self[u'glidein_name'])
         return self.monitor_dir
 
     def get_log_dir(self):
         if self.log_dir == None:
-            self.log_dir  = os.path.join(self.get_child(u'submit').xml.getAttribute(u'base_log_dir'),
-                u"glidein_%s" % self.xml.getAttribute(u'glidein_name'))
+            self.log_dir  = os.path.join(self.get_child(u'submit')[u'base_log_dir'],
+                u"glidein_%s" % self[u'glidein_name'])
         return self.log_dir
 
     def get_client_log_dirs(self):
         if self.client_log_dirs == None:
             self.client_log_dirs = {}
-            client_dir = self.get_child(u'submit').xml.getAttribute(u'base_client_log_dir')
-            glidein_name = self.xml.getAttribute(u'glidein_name')
+            client_dir = self.get_child(u'submit')[u'base_client_log_dir']
+            glidein_name = self[u'glidein_name']
             for sc in self.get_child(u'security').find(u'security_class'):
-                self.client_log_dirs[sc.xml.getAttribute(u'username')] = os.path.join(client_dir,
-                    u"user_%s" % sc.xml.getAttribute(u'username'), u"glidein_%s" % glidein_name)
+                self.client_log_dirs[sc[u'username']] = os.path.join(client_dir,
+                    u"user_%s" % sc[u'username'], u"glidein_%s" % glidein_name)
 
         return self.client_log_dirs
 
     def get_client_proxy_dirs(self):
         if self.client_proxy_dirs == None:
             self.client_proxy_dirs = {}
-            client_dir = self.get_child(u'submit').xml.getAttribute(u'base_client_proxies_dir')
-            glidein_name = self.xml.getAttribute(u'glidein_name')
+            client_dir = self.get_child(u'submit')[u'base_client_proxies_dir']
+            glidein_name = self[u'glidein_name']
             for sc in self.get_child(u'security').find(u'security_class'):
-                self.client_proxy_dirs[sc.xml.getAttribute(u'username')] = os.path.join(client_dir,
-                    u"user_%s" % sc.xml.getAttribute(u'username'), u"glidein_%s" % glidein_name)
+                self.client_proxy_dirs[sc[u'username']] = os.path.join(client_dir,
+                    u"user_%s" % sc[u'username'], u"glidein_%s" % glidein_name)
 
         return self.client_proxy_dirs
 
