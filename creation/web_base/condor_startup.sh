@@ -569,7 +569,7 @@ EOF
         echo "SLOT_TYPE_1_PARTITIONABLE = True" >> "$CONDOR_CONFIG"
         num_slots_for_shutdown_expr=1
     else
-        # fixed
+        # fixed slot
         echo "NUM_CPUS = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
         echo "SLOT_TYPE_1 = cpus=1" >> "$CONDOR_CONFIG"
         echo "NUM_SLOTS_TYPE_1 = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
@@ -606,41 +606,62 @@ EOF
             continue
         fi
         if [ -z "$res_num" ]; then
+            #TODO: do something special for GPUs (autodetect #)
             res_num=1
         fi
         if [ -z "$res_ram" ]; then
             let res_ram=128*${res_num}
         fi
-        if [[ "$res_num" -eq 1 || "x$res_opt" == "xstatic" ]]; then
+        if [ "x$res_opt" == "xmain" ]; then  # which is the default value? main or static?
             res_opt=
-            let res_ram=${res_ram}/${res_num}
         else
-            res_opt=partitionable
+            if [[ "$res_num" -eq 1 || "x$res_opt" == "xstatic" ]]; then
+                res_opt=static
+                let res_ram=${res_ram}/${res_num}
+            else
+                res_opt=partitionable
+            fi
         fi
         cat >> "$CONDOR_CONFIG" <<EOF
 # declare static resource slots, each with 1 cpu: ${i}
 MACHINE_RESOURCE_${res_name} = ${res_num}
+EOF
+        if [ -n "$res_opt" ]; then
+            cat >> "$CONDOR_CONFIG" <<EOF
 EXTRA_SLOTS_NUM = \$(EXTRA_SLOTS_NUM)+\$(MACHINE_RESOURCE_${res_name})
 EOF
-        if [ "x$res_opt" == "xpartitionable" ]; then
-            cat >> "$CONDOR_CONFIG" <<EOF
+            if [ "x$res_opt" == "xpartitionable" ]; then
+                cat >> "$CONDOR_CONFIG" <<EOF
 SLOT_TYPE_${slott_ctr} = cpus=\$(MACHINE_RESOURCE_${res_name}), ${res_name}=\$(MACHINE_RESOURCE_${res_name}), ram=${res_ram}
 SLOT_TYPE_${slott_ctr}_PARTITIONABLE = TRUE
 NUM_SLOTS_TYPE_${slott_ctr} = 1
 EOF
-        else
-            cat >> "$CONDOR_CONFIG" <<EOF
+            else
+                cat >> "$CONDOR_CONFIG" <<EOF
 SLOT_TYPE_${slott_ctr} = cpus=1, ${res_name}=1, ram=${res_ram}
 SLOT_TYPE_${slott_ctr}_PARTITIONABLE = FALSE
 NUM_SLOTS_TYPE_${slott_ctr} = \$(MACHINE_RESOURCE_${res_name})
 EOF
-        fi
-        cat >> "$CONDOR_CONFIG" <<EOF
+            fi
+            cat >> "$CONDOR_CONFIG" <<EOF
 IS_SLOT_${res_name} = SlotTypeID==${slott_ctr}
 EXTRA_SLOTS_START = ifThenElse((SlotTypeID==${slott_ctr}), TARGET.Request${res_name}>0, (\$(EXTRA_SLOTS_START)))
 
 EOF
-        let slott_ctr+=1
+            let slott_ctr+=1
+        else
+            if [ "X$slots_layout" = "Xpartitionable" ]; then
+                echo "SLOT_TYPE_1 = \$(SLOT_TYPE_1) ${res_name}=${res_num}" >> "$CONDOR_CONFIG"
+            else
+                # if static/fixed slots are used, the number of slots is determined by the number of CPUs
+                # this means that resources can be used only if there are enough of them (otherwise some slots will not be allocated)
+                cat >> "$CONDOR_CONFIG" <<EOF
+NUM_PER_SLOT_1_${res_name} = int(${res_num}/\$(NUM_SLOTS_TYPE_1))
+SLOT_TYPE_1 = \$(SLOT_TYPE_1) ${res_name}=\$(NUM_PER_SLOT_1_${res_name})
+EOF
+            fi
+        fi
+
     done
 
     cat >> "$CONDOR_CONFIG" <<EOF
