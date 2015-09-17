@@ -15,12 +15,8 @@ class XmlElement(object):
     def __contains__(self, key):
         return self.xml.hasAttribute(key)
 
-    def __repr__(self):
-        strs = []
-        for i in range(self.xml.attributes.length):
-            strs.append("%s: %s" % (repr(self.xml.attributes.item(i).name),repr(self.xml.attributes.item(i).value)))
-
-        return "{%s}" % ", ".join(strs)
+    def __str__(self):
+        return self.xml.toxml()
 
     def get_child(self, tag):
         child = None
@@ -48,7 +44,7 @@ class XmlElement(object):
             c._find(tag, found)
 
 class XmlAttrElement(XmlElement):
-    def extract_attr_val(self):
+    def get_val(self):
         if (not self[u'type'] in ("string","int","expr")):
             raise RuntimeError, "Wrong attribute type '%s', must be either 'int' or 'string'"%self[u'type']
 
@@ -245,7 +241,7 @@ def merge_entries(d1, d2, found_entries):
 def build_tree(element):
     for c in element.xml.childNodes:
         if c.nodeType == c.ELEMENT_NODE:
-            if c.tagName == u'attribute':
+            if c.tagName == u'attr':
                 element.children.append(XmlAttrElement(c)) 
             elif c.tagName == u'file':
                 element.children.append(XmlFileElement(c)) 
