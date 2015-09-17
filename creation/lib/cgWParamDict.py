@@ -36,13 +36,13 @@ class UnconfiguredScheddError(Exception):
 ################################################
 
 class glideinMainDicts(cgWDictFile.glideinMainDicts):
-    def __init__(self,conf_dom,workdir_name):
-        submit_dir = factXmlUtil.get_submit_dir(conf_dom)
-        stage_dir = factXmlUtil.get_stage_dir(conf_dom)
-        monitor_dir = factXmlUtil.get_monitor_dir(conf_dom)
-        log_dir = factXmlUtil.get_log_dir(conf_dom)
-        client_log_dirs = factXmlUtil.get_client_log_dirs(conf_dom)
-        client_proxy_dirs = factXmlUtil.get_client_proxy_dirs(conf_dom)
+    def __init__(self,conf,workdir_name):
+        submit_dir = conf.get_submit_dir()
+        stage_dir = conf.get_stage_dir()
+        monitor_dir = conf.get_monitor_dir()
+        log_dir = conf.get_log_dir()
+        client_log_dirs = conf.get_client_log_dirs()
+        client_proxy_dirs = conf.get_client_proxy_dirs()
         cgWDictFile.glideinMainDicts.__init__(self,submit_dir,stage_dir,workdir_name,
                                               log_dir,
                                               client_log_dirs,client_proxy_dirs)
@@ -52,7 +52,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_jslibs_dir,"monitor"))
         self.monitor_images_dir=os.path.join(self.monitor_dir,'images')
         self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_images_dir,"monitor"))
-        self.conf_dom=conf_dom
+        self.conf_dom=conf.dom
+        self.conf=conf
         self.active_sub_list=[]
         self.monitor_jslibs=[]
         self.monitor_images=[]
@@ -98,7 +99,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         #load condor tarballs
         # only one will be downloaded in the end... based on what condor_platform_select.sh decides
-        condor_tarballs = factXmlUtil.get_condor_tarballs(self.conf_dom)
+        condor_tarballs = self.conf.get_child_list(u'condor_tarballs')
         for condor_idx in range(len(condor_tarballs)):
             condor_el=condor_tarballs[condor_idx]
 
@@ -142,7 +143,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # add the factory monitoring collector parameter, if any collectors are defined
         # this is purely a factory thing
-        factory_monitoring_collector=calc_monitoring_collectors_string(factXmlUtil.get_mon_collectors(self.conf_dom))
+        factory_monitoring_collector=calc_monitoring_collectors_string(self.conf.get_child_list(u'monitoring_collectors'))
         if factory_monitoring_collector is not None:
             self.dicts['params'].add('GLIDEIN_Factory_Collector',str(factory_monitoring_collector))
         populate_gridmap(self.conf_dom,self.dicts['gridmap'])
@@ -180,9 +181,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         #
 
         # put user files in stage
-        files_el = self.conf_dom.getElementsByTagName(u'files')[-1]
-        for file in factXmlUtil.get_files(files_el):
-            add_file_unparsed(file,self.dicts)
+        for file in self.conf.get_child_list(u'files'):
+            add_file_unparsed(file.to_dict(),self.dicts)
 
         # put user attributes into config files
         attrs = self.conf_dom.getElementsByTagName(u'attrs')[0]
@@ -199,7 +199,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
 
         # populate the monitor files
-        javascriptrrd_dir = self.conf_dom.getElementsByTagName(u'monitor')[0].getAttribute(u'javascriptRRD_dir')
+        javascriptrrd_dir = self.conf.get_child(u'monitor')[u'javascriptRRD_dir']
         for mfarr in ((WEB_BASE_DIR,'factory_support.js'),
                       (javascriptrrd_dir,'javascriptrrd.wlibs.js')):
             mfdir,mfname=mfarr
@@ -351,7 +351,6 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
                                                
         self.monitor_dir=cgWConsts.get_entry_monitor_dir(monitor_dir,sub_name)
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
-        self.conf_dom=conf.dom
         self.conf=conf
 
     def erase(self):
@@ -549,7 +548,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
     ######################################
     # Redefine methods needed by parent
     def new_MainDicts(self):
-        return glideinMainDicts(self.conf_dom,self.workdir_name)
+        return glideinMainDicts(self.conf,self.workdir_name)
 
     def new_SubDicts(self,sub_name):
         return glideinEntryDicts(self.conf,sub_name,

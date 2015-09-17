@@ -15,6 +15,13 @@ class XmlElement(object):
     def __contains__(self, key):
         return self.xml.hasAttribute(key)
 
+    def __repr__(self):
+        strs = []
+        for i in range(self.xml.attributes.length):
+            strs.append("%s: %s" % (repr(self.xml.attributes.item(i).name),repr(self.xml.attributes.item(i).value)))
+
+        return "{%s}" % ", ".join(strs)
+
     def get_child(self, tag):
         child = None
         for c in self.children:
@@ -213,7 +220,6 @@ class FactoryXmlConfig(XmlElement):
                     u"user_%s" % sc[u'username'], u"glidein_%s" % glidein_name)
 
         return self.client_proxy_dirs
-
 
 #######################
 #
