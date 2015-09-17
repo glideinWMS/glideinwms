@@ -270,10 +270,10 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
     ########################################
     
     def save_pub_key(self):
-        sec_el = self.conf_dom.getElementsByTagName(u'security')[0]
-        if not sec_el.hasAttribute(u'pub_key'):
+        sec_el = self.conf[u'security']
+        if u'pub_key' not in sec_el:
             pass # nothing to do
-        elif sec_el.getAttribute(u'pub_key')=='RSA':
+        elif sec_el[u'pub_key']=='RSA':
             rsa_key_fname=os.path.join(self.work_dir,cgWConsts.RSA_KEY)
 
             if not os.path.isfile(rsa_key_fname):
@@ -285,10 +285,10 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 os.close(fd)
                 
                 key_obj=pubCrypto.RSAKey()
-                key_obj.new(int(sec_el.hasAttribute(u'key_length')))
+                key_obj.new(int(u'key_length' in sec_el))
                 key_obj.save(rsa_key_fname)            
         else:
-            raise RuntimeError,"Invalid value for security.pub_key(%s), must be either None or RSA"%sec_el.getAttribute(u'pub_key')
+            raise RuntimeError,"Invalid value for security.pub_key(%s), must be either None or RSA"%sec_el[u'pub_key']
 
     def save_monitor(self):
         for fobj in self.monitor_jslibs:
@@ -302,7 +302,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
     ###################################
     # Create the monitor config file
     def save_monitor_config(self, work_dir, glidein_dict):
-        monitor_config_file = os.path.join(factXmlUtil.get_monitor_dir(self.conf_dom), cgWConsts.MONITOR_CONFIG_FILE)
+        monitor_config_file = os.path.join(self.conf.get_monitor_dir(), cgWConsts.MONITOR_CONFIG_FILE)
         monitor_config_line = []
         
         monitor_config_fd = open(monitor_config_file,'w')
@@ -310,12 +310,12 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         monitor_config_line.append("  <entries>")
         try:
             try:
-                for entry in self.conf_dom.getElementsByTagName(u'entry'):
-                    if eval(entry.getAttribute(u'enabled'),{},{}):
-                        monitor_config_line.append("    <entry name=\"%s\">" % entry.getAttribute(u'name'))
+                for entry in self.conf.get_child_list(u'entries'):
+                    if eval(entry[u'enabled'],{},{}):
+                        monitor_config_line.append("    <entry name=\"%s\">" % entry[u'name'])
                         monitor_config_line.append("      <monitorgroups>")                
-                        for group in entry.getElementsByTagName(u'monitorgroup'):
-                            monitor_config_line.append("        <monitorgroup group_name=\"%s\">" % group.getAttribute(u'group_name'))
+                        for group in entry.get_child_list(u'monitorgroups'):
+                            monitor_config_line.append("        <monitorgroup group_name=\"%s\">" % group[u'group_name'])
                             monitor_config_line.append("        </monitorgroup>")
                         
                         monitor_config_line.append("      </monitorgroups>")
