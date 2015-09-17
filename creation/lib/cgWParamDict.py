@@ -471,7 +471,6 @@ class glideinDicts(cgWDictFile.glideinDicts):
             sub_list = [e[u'name'] for e in conf.get_child_list(u'entries')]
 
         self.conf=conf
-        self.conf_dom=conf.dom
         submit_dir = conf.get_submit_dir()
         stage_dir = conf.get_stage_dir()
         monitor_dir = conf.get_monitor_dir()
@@ -509,7 +508,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
                 schedd_counts[schedd] += 1
             self.sub_dicts[entry_name].populate(entry, schedd)
 
-        validate_condor_tarball_attrs(self.conf.xml)
+        validate_condor_tarball_attrs(self.conf)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -890,35 +889,53 @@ def copy_file(infile,outfile):
 ###############################################
 # Validate CONDOR_OS CONDOR_ARCH CONDOR_VERSION
 
-def validate_condor_tarball_attrs(conf_dom):
-    valid_tarballs = get_valid_condor_tarballs(factXmlUtil.get_condor_tarballs(conf_dom))
+def validate_condor_tarball_attrs(conf):
+    valid_tarballs = get_valid_condor_tarballs(conf.get_child_list(u'condor_tarballs'))
 
-    common_version = "default"
-    common_os = "default"
-    common_arch = "default"
+    common_version = None
+    common_os = None
+    common_arch = None
     
-    cond_attrs = factXmlUtil.get_condor_attrs(conf_dom.getElementsByTagName(u'attrs')[0])
-    if cond_attrs[0] is not None:
-        common_version = cond_attrs[0]
-    if cond_attrs[1] is not None:
-        common_os = cond_attrs[1]
-    if cond_attrs[2] is not None:
-        common_arch = cond_attrs[2]
+    for attr in conf.get_child_list(u'attrs'):
+        if attr[u'name'] == u'CONDOR_VERSION':
+            common_version = attr[u'value']
+        elif attr[u'name'] == u'CONDOR_OS':
+            common_os = attr[u'value']
+        elif attr[u'name'] == u'CONDOR_ARCH':
+            common_arch = attr[u'value']
+        if common_version is not None and common_os is not None and common_arch is not None:
+            break
+
+    if common_version is None:
+        common_version = "default"
+    if common_os is None:
+        common_os = "default"
+    if common_arch is None:
+        common_arch = "default"
 
     # Check the configuration for every entry
-    for entry in conf_dom.getElementsByTagName(u'entry'):
-        my_version = common_version
-        my_os = common_os
-        my_arch = common_arch
+    for entry in conf.get_child_list(u'entries'):
+        my_version = None
+        my_os = None
+        my_arch = None
         match_found = False        
 
-        cond_attrs = factXmlUtil.get_condor_attrs(entry.getElementsByTagName(u'attrs')[0])
-        if cond_attrs[0] is not None:
-            my_version = cond_attrs[0]
-        if cond_attrs[1] is not None:
-            my_os = cond_attrs[1]
-        if cond_attrs[2] is not None:
-            my_arch = cond_attrs[2]
+        for attr in entry.get_child_list(u'attrs'):
+            if attr[u'name'] == u'CONDOR_VERSION':
+                my_version = attr[u'value']
+            elif attr[u'name'] == u'CONDOR_OS':
+                my_os = attr[u'value']
+            elif attr[u'name'] == u'CONDOR_ARCH':
+                my_arch = attr[u'value']
+            if my_version is not None and my_os is not None and my_arch is not None:
+                break
+
+        if my_version is None:
+            my_version = common_version
+        if my_os is None:
+            my_os = common_os
+        if my_arch is None:
+            my_arch = common_arch
 
         # If either os or arch is auto, handle is carefully
         if ((my_os == "auto") and (my_arch == "auto")):
@@ -945,7 +962,7 @@ def validate_condor_tarball_attrs(conf_dom):
                 match_found = True
 
         if match_found == False:
-            raise RuntimeError, "Condor (version=%s, os=%s, arch=%s) for entry %s could not be resolved from <glidein><condor_tarballs>...</condor_tarballs></glidein> configuration." % (my_version, my_os, my_arch, entry)
+            raise RuntimeError, "Condor (version=%s, os=%s, arch=%s) for entry %s could not be resolved from <glidein><condor_tarballs>...</condor_tarballs></glidein> configuration." % (my_version, my_os, my_arch, entry[u'name'])
 
 
 
