@@ -1,3 +1,6 @@
+v3_2_11_2 Bug Fix: Fixed authentication issue introduced in v3_2_11 where a
+          glidein startd fails to send keep alive signals to v8.2.x schedds
+
 v3_2_11_1 Bug Fix: Fixed a bug introduced in v3_2_11 where file period
           interpreted as number instead of string
 
