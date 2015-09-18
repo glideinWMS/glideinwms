@@ -18,7 +18,6 @@ import cgWConsts,cWConsts
 WEB_BASE_DIR=os.path.join(os.path.dirname(__file__),"..","web_base")
 
 from glideinwms.lib import pubCrypto
-from glideinwms.creation.lib import factXmlUtil
 
 class UnconfiguredScheddError(Exception):
 
@@ -52,7 +51,6 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_jslibs_dir,"monitor"))
         self.monitor_images_dir=os.path.join(self.monitor_dir,'images')
         self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_images_dir,"monitor"))
-        self.conf_dom=conf.dom
         self.conf=conf
         self.active_sub_list=[]
         self.monitor_jslibs=[]
@@ -194,7 +192,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # populate complex files
         populate_factory_descript(self.work_dir,self.dicts['glidein'],self.active_sub_list,self.conf)
-        populate_frontend_descript(self.dicts['frontend_descript'],self.conf_dom)
+        populate_frontend_descript(self.dicts['frontend_descript'],self.conf)
 
 
         # populate the monitor files
@@ -842,24 +840,23 @@ def populate_job_descript(work_dir, job_descript_dict,
 ###################################
 # Create the frontend descript file
 def populate_frontend_descript(frontend_dict,     # will be modified
-                               conf_dom):
-    frontends = factXmlUtil.get_frontends(conf_dom)
-    for fe in frontends:
-        fe_el=frontends[fe]
+                               conf):
+    for fe_el in conf.get_child(u'security').get_child_list(u'frontends'):
+        fe_name = fe_el[u'name']
 
         ident=fe_el['identity']
         if ident is None:
-            raise RuntimeError, 'security.frontends[%s][identity] not defined, but required'%fe
+            raise RuntimeError, 'security.frontends[%s][identity] not defined, but required'%fe_name
 
         maps={}
-        for sc in fe_el['security_classes'].keys():
-            sc_el=fe_el['security_classes'][sc]
+        for sc_el in fe_el.get_child_list(u'security_classes'):
+            sc_name = sc_el[u'name']
             username=sc_el['username']
             if username is None:
-                raise RuntimeError, 'security.frontends[%s].security_classes[%s][username] not defined, but required'%(fe,sc)
-            maps[sc]=username
+                raise RuntimeError, 'security.frontends[%s].security_classes[%s][username] not defined, but required'%(fe_name,sc_name)
+            maps[sc_name]=username
         
-        frontend_dict.add(fe,{'ident':ident,'usermap':maps})
+        frontend_dict.add(fe_name,{'ident':ident,'usermap':maps})
 
 
 
