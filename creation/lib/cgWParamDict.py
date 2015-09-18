@@ -146,7 +146,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         factory_monitoring_collector=calc_monitoring_collectors_string(self.conf.get_child_list(u'monitoring_collectors'))
         if factory_monitoring_collector is not None:
             self.dicts['params'].add('GLIDEIN_Factory_Collector',str(factory_monitoring_collector))
-        populate_gridmap(self.conf_dom,self.dicts['gridmap'])
+        populate_gridmap(self.conf,self.dicts['gridmap'])
         
         file_list_scripts = ['collector_setup.sh',
                              'create_temp_mapfile.sh',
@@ -193,7 +193,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self.dicts['after_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(WEB_BASE_DIR,script_name))
 
         # populate complex files
-        populate_factory_descript(self.work_dir,self.dicts['glidein'],self.active_sub_list,self.conf_dom)
+        populate_factory_descript(self.work_dir,self.dicts['glidein'],self.active_sub_list,self.conf)
         populate_frontend_descript(self.dicts['frontend_descript'],self.conf_dom)
 
 
@@ -693,60 +693,63 @@ def add_attr_unparsed_real(attr,dicts):
 # Create the glidein descript file
 def populate_factory_descript(work_dir,
                               glidein_dict,active_sub_list,        # will be modified
-                              conf_dom):
+                              conf):
         
         down_fname=os.path.join(work_dir,'glideinWMS.downtimes')
 
-        glidein_el = conf_dom.getElementsByTagName(u'glidein')[0]
-        sec_el = conf_dom.getElementsByTagName(u'security')[0]
-        sub_el = conf_dom.getElementsByTagName(u'submit')[0]
-        mon_foot_el = conf_dom.getElementsByTagName(u'monitor_footer')[0]
-        if glidein_el.hasAttribute(u'factory_collector'):
-            glidein_dict.add('FactoryCollector',glidein_el.getAttribute(u'factory_collector'))
+        sec_el = conf.get_child(u'security')
+        sub_el = conf.get_child(u'submit')
+        mon_foot_el = conf.get_child(u'monitor_footer')
+        if u'factory_collector' in conf:
+            glidein_dict.add('FactoryCollector',conf[u'factory_collector'])
         else:
             glidein_dict.add('FactoryCollector',None)
-        glidein_dict.add('FactoryName',glidein_el.getAttribute(u'factory_name'))
-        glidein_dict.add('GlideinName',glidein_el.getAttribute(u'glidein_name'))
-        glidein_dict.add('WebURL',factXmlUtil.get_web_url(conf_dom))
-        glidein_dict.add('PubKeyType',sec_el.getAttribute(u'pub_key'))
-        glidein_dict.add('OldPubKeyGraceTime',sec_el.getAttribute(u'reuse_oldkey_onstartup_gracetime'))
-        glidein_dict.add('MonitorUpdateThreadCount',conf_dom.getElementsByTagName(u'monitor')[0].getAttribute(u'update_thread_count'))
-        glidein_dict.add('RemoveOldCredFreq', sec_el.getAttribute('remove_old_cred_freq'))
-        glidein_dict.add('RemoveOldCredAge', sec_el.getAttribute('remove_old_cred_age'))
+        glidein_dict.add('FactoryName',conf[u'factory_name'])
+        glidein_dict.add('GlideinName',conf[u'glidein_name'])
+        glidein_dict.add('WebURL',conf.get_web_url())
+        glidein_dict.add('PubKeyType',sec_el[u'pub_key'])
+        glidein_dict.add('OldPubKeyGraceTime',sec_el[u'reuse_oldkey_onstartup_gracetime'])
+        glidein_dict.add('MonitorUpdateThreadCount',conf.get_child(u'monitor')[u'update_thread_count'])
+        glidein_dict.add('RemoveOldCredFreq', sec_el[u'remove_old_cred_freq'])
+        glidein_dict.add('RemoveOldCredAge', sec_el[u'remove_old_cred_age'])
         del active_sub_list[:] # clean
 
-        for entry in conf_dom.getElementsByTagName(u'entry'):
-            if eval(entry.getAttribute(u'enabled'),{},{}):
-                active_sub_list.append(entry.getAttribute(u'name'))
+        for entry in conf.get_child_list(u'entries'):
+            if eval(entry[u'enabled'],{},{}):
+                active_sub_list.append(entry[u'name'])
 
         glidein_dict.add('Entries',string.join(active_sub_list,','))
-        glidein_dict.add('AdvertiseWithTCP',glidein_el.getAttribute(u'advertise_with_tcp'))
-        glidein_dict.add('AdvertiseWithMultiple',glidein_el.getAttribute(u'advertise_with_multiple'))
-        glidein_dict.add('LoopDelay',glidein_el.getAttribute(u'loop_delay'))
-        glidein_dict.add('AdvertiseDelay',glidein_el.getAttribute(u'advertise_delay'))
-        glidein_dict.add('RestartAttempts',glidein_el.getAttribute(u'restart_attempts'))
-        glidein_dict.add('RestartInterval',glidein_el.getAttribute(u'restart_interval'))
-        glidein_dict.add('EntryParallelWorkers',glidein_el.getAttribute(u'entry_parallel_workers'))
-        glidein_dict.add('LogDir',factXmlUtil.get_log_dir(conf_dom))
-        glidein_dict.add('ClientLogBaseDir',sub_el.getAttribute(u'base_client_log_dir'))
-        glidein_dict.add('ClientProxiesBaseDir',sub_el.getAttribute(u'base_client_proxies_dir'))
+        glidein_dict.add('AdvertiseWithTCP',conf[u'advertise_with_tcp'])
+        glidein_dict.add('AdvertiseWithMultiple',conf[u'advertise_with_multiple'])
+        glidein_dict.add('LoopDelay',conf[u'loop_delay'])
+        glidein_dict.add('AdvertiseDelay',conf[u'advertise_delay'])
+        glidein_dict.add('RestartAttempts',conf[u'restart_attempts'])
+        glidein_dict.add('RestartInterval',conf[u'restart_interval'])
+        glidein_dict.add('EntryParallelWorkers',conf[u'entry_parallel_workers'])
+        glidein_dict.add('LogDir',conf.get_log_dir())
+        glidein_dict.add('ClientLogBaseDir',sub_el[u'base_client_log_dir'])
+        glidein_dict.add('ClientProxiesBaseDir',sub_el[u'base_client_proxies_dir'])
         glidein_dict.add('DowntimesFile',down_fname)
         
-        glidein_dict.add('MonitorDisplayText',mon_foot_el.getAttribute(u'display_txt'))
-        glidein_dict.add('MonitorLink',mon_foot_el.getAttribute(u'href_link'))
+        glidein_dict.add('MonitorDisplayText',mon_foot_el[u'display_txt'])
+        glidein_dict.add('MonitorLink',mon_foot_el[u'href_link'])
         
-        monitoring_collectors=calc_primary_monitoring_collectors(factXmlUtil.get_mon_collectors(conf_dom))
+        monitoring_collectors=calc_primary_monitoring_collectors(conf.get_child_list(u'monitoring_collectors'))
         if monitoring_collectors is not None:
             glidein_dict.add('PrimaryMonitoringCollectors',str(monitoring_collectors))
 
-        log_retention = factXmlUtil.get_log_retention(conf_dom)
+        log_retention = conf.get_child(u'log_retention')
         for lel in (("job_logs",'JobLog'),("summary_logs",'SummaryLog'),("condor_logs",'CondorLog')):
             param_lname,str_lname=lel
             for tel in (("max_days",'MaxDays'),("min_days",'MinDays'),("max_mbytes",'MaxMBs')):
                 param_tname,str_tname=tel
-                glidein_dict.add('%sRetention%s'%(str_lname,str_tname),log_retention[param_lname][param_tname])
+                glidein_dict.add('%sRetention%s'%(str_lname,str_tname),log_retention.get_child(param_lname)[param_tname])
 
-        glidein_dict.add('ProcessLogs', str(log_retention['process_logs']))
+        # convert to list of dicts so that str() below gives expected results
+        proc_logs = []
+        for pl in log_retention.get_child_list(u'process_logs'):
+            proc_logs.append(dict(pl))
+        glidein_dict.add('ProcessLogs', str(proc_logs))
 
 #######################
 def populate_job_descript(work_dir, job_descript_dict, 
@@ -862,9 +865,9 @@ def populate_frontend_descript(frontend_dict,     # will be modified
 
 #####################################################
 # Populate gridmap to be used by the glideins
-def populate_gridmap(conf_dom,gridmap_dict):
+def populate_gridmap(conf,gridmap_dict):
     collector_dns=[]
-    for el in factXmlUtil.get_mon_collectors(conf_dom):
+    for el in conf.get_child_list(u'monitoring_collectors'):
         dn=el[u'DN']
         if dn is None:
             raise RuntimeError,"DN not defined for monitoring collector %s"%el[u'node']

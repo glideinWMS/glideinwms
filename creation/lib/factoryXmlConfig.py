@@ -1,10 +1,22 @@
 import os
 from xml.dom.minidom import parse
+import collections
 
 ENTRY_INDENT = 6
 ENTRY_DIR = 'entries.d'
 
-class XmlElement(object):
+class XmlElementIterator(collections.Iterator):
+    def __init__(self, attributes):
+        self.i = 0
+        self.attributes = attributes
+    def next(self):
+        if self.i >= self.attributes.length:
+            raise StopIteration
+        cur_key = self.attributes.item(self.i).name
+        self.i += 1
+        return cur_key
+
+class XmlElement(collections.Mapping):
     def __init__(self, xml):
         self.xml = xml
         self.children = []
@@ -17,6 +29,12 @@ class XmlElement(object):
 
     def __str__(self):
         return self.xml.toxml()
+
+    def __iter__(self):
+        return XmlElementIterator(self.xml.attributes)
+
+    def __len__(self):
+        return self.xml.attributes.length
 
     def get_child(self, tag):
         child = None
