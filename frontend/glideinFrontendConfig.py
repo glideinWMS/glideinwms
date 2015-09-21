@@ -238,6 +238,16 @@ class ElementMergedDescript:
 
         self.merge()
 
+        print "\n============>>>>>>>>>>>>>>>>> glideFrontendConfig.ElementMergedDescript::__init__"
+        print 'FRONTEND::JobMatchAttrs: %s' % self.frontend_data['JobMatchAttrs']
+        print 'GROUP::JobMatchAttrs: %s' % self.element_data['JobMatchAttrs']
+        print 'MERGED::JobMatchAttrs: %s' % self.merged_data['JobMatchAttrs']
+        print
+        #print 'FRONTEND::MatchPolicyModule: %s' % self.frontend_data['MatchPolicyModule']
+        #print 'GROUP::MatchPolicyModule: %s' % self.element_data['MatchPolicyModule']
+        #print 'MERGED::MatchPolicyFile: %s' % self.merged_data['MatchPolicyFile']
+        print "\n============>>>>>>>>>>>>>>>>> glideFrontendConfig.ElementMergedDescript::__init__"
+
     #################
     # Private
     def merge(self):

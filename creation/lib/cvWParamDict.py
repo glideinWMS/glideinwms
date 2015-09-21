@@ -17,6 +17,7 @@ import cvWCreate
 from cWParamDict import is_true, add_file_unparsed
 import shutil
 from glideinwms.lib import x509Support
+from cvWParams import MatchPolicy
 
 ################################################
 #
@@ -108,6 +109,9 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         # Apply multicore policy so frontend can deal with multicore
         # glideins and requests correctly
         apply_multicore_policy(self.dicts['frontend_descript'])
+
+
+        #print "========>>>>>> %s" % self.dicts['frontend_descript'].keys
 
         # populate the monitor files
         javascriptrrd_dir = params.monitor.javascriptRRD_dir
@@ -510,6 +514,21 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('MaxRunningTotalGlobal',params.config.running_glideins_total_global.max)
         frontend_dict.add('CurbRunningTotalGlobal',params.config.running_glideins_total_global.curb)
         frontend_dict.add('HighAvailability', params.high_availability)
+        if params.match.policy_file:
+            #frontend_dict.add('MatchPolicyModule', MatchPolicy(params.match.policy_file))
+            policy_module = MatchPolicy(params.match.policy_file)
+            frontend_dict.add('MatchPolicyModuleFactoryMatchAttrs', policy_module.factoryMatchAttrs)
+            frontend_dict.add('MatchPolicyModuleJobMatchAttrs', policy_module.jobMatchAttrs)
+            frontend_dict.add('MatchPolicyModuleFactoryQueryExpr', policy_module.jobQueryExpr)
+            frontend_dict.add('MatchPolicyModuleJobQueryExpr', policy_module.jobQueryExpr)
+        #else:
+        #    frontend_dict.add('MatchPolicyModule', None)
+        #foo = MatchPolicy(params.match.policy_file)
+        #print '^^^^^^^^^^ frontend_dict'
+        #print type(foo)
+        #print frontend_dict.__class__.__name__
+        #print type(frontend_dict['MatchPolicyModule'])
+        #print '^^^^^^^^^^ frontend_dict'
 
 #######################
 # Populate group descript
@@ -532,6 +551,18 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
     group_descript_dict.add('MaxRunningTotal',sub_params.config.running_glideins_total.max)
     group_descript_dict.add('CurbRunningTotal',sub_params.config.running_glideins_total.curb)
     group_descript_dict.add('MaxMatchmakers',sub_params.config.processing_workers.matchmakers)
+    if sub_params.match.policy_file:
+        #group_descript_dict.add('MatchPolicyModule', MatchPolicy(sub_params.match.policy_file))
+        policy_module = MatchPolicy(sub_params.match.policy_file)
+        group_descript_dict.add('MatchPolicyModuleFactoryMatchAttrs', policy_module.factoryMatchAttrs)
+        group_descript_dict.add('MatchPolicyModuleJobMatchAttrs', policy_module.jobMatchAttrs)
+        group_descript_dict.add('MatchPolicyModuleFactoryQueryExpr', policy_module.jobQueryExpr)
+        group_descript_dict.add('MatchPolicyModuleJobQueryExpr', policy_module.jobQueryExpr)
+    #else:
+    #    group_descript_dict.add('MatchPolicyModule', None)
+    #print '^^^^^^^^^^'
+    #print type(group_descript_dict['MatchPolicyModule'])
+    #print '^^^^^^^^^^'
     if (sub_params.attrs.has_key('GLIDEIN_Glexec_Use')):
         group_descript_dict.add('GLIDEIN_Glexec_Use',sub_params.attrs['GLIDEIN_Glexec_Use']['value'])
 
@@ -542,8 +573,6 @@ MATCH_ATTR_CONV={'string':'s','int':'i','real':'r','bool':'b'}
 
 
 def apply_group_glexec_policy(descript_dict, sub_params, params):
-
-    print '************* apply_group_glexec_policy'
 
     glidein_glexec_use = None
     query_expr = descript_dict['FactoryQueryExpr']
@@ -620,24 +649,94 @@ def get_pool_list(credential):
     return pool_idx_list_strings
     
 
-def populate_common_descript(descript_dict,        # will be modified
-                             params):
+def populate_common_descript(descript_dict, params):
+    """
+    Populate info in the common descript dict
+    descript_dict will be modified in this function
+    """
+
+    # Make it easier for use policy module info to use later in the code
+    policy_info = {
+        #'factoryQueryExpr': 'TRUE',
+        #'jobQueryExpr': 'TRUE',
+        'FactoryMatchAttrs': {},
+        'JobMatchAttrs': {},
+    }
+
+    if 'MatchPolicyModuleFactoryQueryExpr' in descript_dict:
+        policy_info['FactoryQueryExpr'] = descript_dict['MatchPolicyModuleFactoryQueryExpr']
+    if 'MatchPolicyModuleJobQueryExpr' in descript_dict:
+        policy_info['JobQueryExpr'] = descript_dict['MatchPolicyModuleJobQueryExpr']
+    if 'MatchPolicyModuleFactoryMatchAttrs' in descript_dict:
+        policy_info['FactoryMatchAttrs'] = eval(descript_dict['MatchPolicyModuleFactoryMatchAttrs'])
+    if 'MatchPolicyModuleJobMatchAttrs' in descript_dict:
+        policy_info['JobMatchAttrs'] = eval(descript_dict['MatchPolicyModuleJobMatchAttrs'])
+
+
+
+
+    print '--------->'
+    if 'FactoryMatchAttrs' in policy_info:
+        print type(policy_info['FactoryMatchAttrs'])
+    print '--------->'
+
 
     for tel in (("factory","Factory"),("job","Job")):
-        param_tname,str_tname=tel
-        ma_arr=[]
+        param_tname, str_tname = tel
+        ma_arr = []
         qry_expr = params.match[param_tname]['query_expr']
+        # Append query_expr from modules
+        if '%sQueryExpr'%str_tname in policy_info:
+            qry_expr = '(%s) && (%s)' % (qry_expr,
+                                         policy_info['%sQueryExpr'%str_tname])
 
-        descript_dict.add('%sQueryExpr'%str_tname,qry_expr)
+        descript_dict.add('%sQueryExpr'%str_tname, qry_expr)
 
-        match_attrs=params.match[param_tname]['match_attrs']
+        match_attrs = params.match[param_tname]['match_attrs']
         for attr_name in match_attrs.keys():
             attr_type=match_attrs[attr_name]['type']
-            if not (attr_type in MATCH_ATTR_CONV.keys()):
+            if not (attr_type in MATCH_ATTR_CONV):
+                raise RuntimeError, "match_attr type '%s' not one of %s"%(attr_type,MATCH_ATTR_CONV.keys())
+            ma_arr.append((str(attr_name),MATCH_ATTR_CONV[attr_type]))
+        # Append match attrs from modules
+        match_attrs = policy_info['%sMatchAttrs'%str_tname]
+        for attr_name in match_attrs.keys():
+            attr_type=match_attrs[attr_name]['type']
+            if not (attr_type in MATCH_ATTR_CONV):
                 raise RuntimeError, "match_attr type '%s' not one of %s"%(attr_type,MATCH_ATTR_CONV.keys())
             ma_arr.append((str(attr_name),MATCH_ATTR_CONV[attr_type]))
 
         descript_dict.add('%sMatchAttrs'%str_tname,repr(ma_arr))
+
+
+    print
+    print '*********** populate_common_descript **************'
+    if descript_dict.has_key('FrontendName'):
+        print '              FRONTEND'
+    else:
+        print '              GROUP'
+    print '---------------------------------------------------'
+    print 'descript_dict.keys: %s' % descript_dict.keys
+    print '---------------------------------------------------'
+    #print 'descript_dict[MatchPolicyModule]: %s' % descript_dict['MatchPolicyModule']
+    print '---------------------------------------------------'
+    print 'JobMatchAttrs: %s' % descript_dict['JobMatchAttrs']
+    print 'FactoryMatchAttrs: %s' % descript_dict['FactoryMatchAttrs']
+    print '---------------------------------------------------'
+    print 'JobQueryExpr: %s' % descript_dict['JobQueryExpr']
+    print 'FactoryQueryExpr: %s' % descript_dict['FactoryQueryExpr']
+    print '*********** populate_common_descript **************'
+
+
+
+
+
+
+
+
+
+
+
 
     if params.security.security_name is not None:
         descript_dict.add('SecurityName',params.security.security_name)

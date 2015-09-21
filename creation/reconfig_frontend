@@ -161,11 +161,11 @@ if __name__ == '__main__':
 
         args = [argv[0], transformed_xmlfile.name]
 
-        print '#'*80
-        print '#'*80
-        print 'READING NEW: %s' % xml
-        print '#'*80
-        print '#'*80
+        #print '#'*80
+        #print '#'*80
+        #print 'READING NEW: %s' % xml
+        #print '#'*80
+        #print '#'*80
         params=cvWParams.VOFrontendParams(usage, WEB_BASE_DIR, args)
         # We have read the transformed xml now. Overwrite the params.cfg_name
         # with xml
@@ -200,11 +200,11 @@ if __name__ == '__main__':
         #print old_config_file
         if os.path.exists(old_config_file):
             try:
-                print '#'*80
-                print '#'*80
-                print 'READING OLD: %s' % old_config_file
-                print '#'*80
-                print '#'*80
+                #print '#'*80
+                #print '#'*80
+                #print 'READING OLD: %s' % old_config_file
+                #print '#'*80
+                #print '#'*80
                 old_params=cvWParams.VOFrontendParams(usage,WEB_BASE_DIR,[argv[0],old_config_file])
             except RuntimeError, e:
                 raise RuntimeError,"Failed to load %s"%old_config_file

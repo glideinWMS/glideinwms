@@ -364,33 +364,13 @@ class VOFrontendParams(cWParams.CommonParams):
 
         # Load all the match policy modules upfront since we need them
         self.load_match_policies()
-        print '********* POLICY MODULES START ************'
-        print self.match_policy_modules
-        print '********* POLICY MODULES END   ************'
-        #self.update_match_attrs()
-
-
 
         # TODO: PARAG
         # ISSUE: Need to reconfig twice to load module. We may not be setting
         #        the module search path correctly
-        # ISSUE: The code gets the match_attrs from config and policy
-        #        and merges them together. Then it recreates the config file
-        #        that has all the match_attrs. Because of this, even if you
-        #        update the policy to remove a match_attr, it does not get
-        #        reflected properly. In short the match_attr once entered is
-        #        never forgotten until you remove it from the policy and
-        #        config 
-
-        # TODO: PARAG
-        # Now that policy modules are loaded, insert info from the modules into
-        # self.match.factory.match_attrs
-        # self.match.job.match_attrs
-        # self.groups[group_name].match.factory.match_attrs
-        # self.groups[group_name].match.job.match_attrs
 
 
-        #print_match_info('frontend', self.match)
+
         # TODO: Do we really need to validate frontend main section?
         # This gets validated any ways in the groups section
         policy_modules = []
@@ -452,7 +432,6 @@ class VOFrontendParams(cWParams.CommonParams):
             match_expr = "(%s) and (%s)" % (
                 self.match.match_expr, self.groups[group_name].match.match_expr)
 
-            print_match_info(group_name, self.groups[group_name].match)
             self.validate_match('group %s'%group_name, match_expr,
                                 factory_attrs, job_attrs, attrs_dict,
                                 pmodules)
@@ -558,10 +537,6 @@ class VOFrontendParams(cWParams.CommonParams):
         @type job_attrs: dict
         """
 
-        print "==========================================================="
-        print '%s: validate_match' % loc_str
-        print "==========================================================="
-
         # Globals/Locals that will be passed to the eval so that we
         # can validate the match_expr as well
 
@@ -574,7 +549,6 @@ class VOFrontendParams(cWParams.CommonParams):
         env['job'] = self.translate_match_attrs(loc_str, 'job', job_attrs)
 
         # Validate attr
-        #print "VALIDATING attr_dict =======> %s" % attr_dict
         for attr_name in attr_dict.keys():
             attr_type=attr_dict[attr_name]['type']
             if attr_type=='string':
@@ -607,7 +581,6 @@ class VOFrontendParams(cWParams.CommonParams):
         except Exception, e:
             raise RuntimeError, "Error in %s policy module's %s.match(job, glidein): %s" % (loc_str, pmodule.name, e)
 
-        print "==========================================================="
         return
 
 
@@ -625,8 +598,6 @@ class VOFrontendParams(cWParams.CommonParams):
         Load external match policies for frontend and groups
         """
 
-        #print "======= Frontend work_dir: %s" % self.work_dir
-        #print "======= Frontend match: %s" % self.match
         # Load global frontend policy module
         if self.match.policy_file:
             self.match_policy_modules['frontend'] = MatchPolicy(self.match.policy_file)
@@ -640,13 +611,11 @@ class VOFrontendParams(cWParams.CommonParams):
                 work_dir = os.path.join(self.work_dir, 'group_%s'%group_name)
                 self.match_policy_modules['groups'][group_name] = \
                     MatchPolicy(policy_file)
-                    #MatchPolicy(policy_file, [work_dir])
 
 
     def update_match_attrs(self):
         # Load global match_attrs from externally loaded match_policies
         if self.match_policy_modules['frontend']:
-            #print '**** FRONTEND: update_match_attrs'
             if self.match_policy_modules['frontend'].factoryMatchAttrs:
                 self.match.factory.match_attrs.data = self.match_policy_modules['frontend'].factoryMatchAttrs
             if self.match_policy_modules['frontend'].jobMatchAttrs:
@@ -726,21 +695,29 @@ class MatchPolicy:
         if (file is not None) and (file != ''):
             self.file = file
             self.name = self.policyFileToPyModuleName()
+            search_path.append(os.path.dirname(os.path.realpath(file)))
             self.searchPath = search_path
-            self.searchPath.append(os.path.dirname(os.path.realpath(file)))
             try:
                 # First find the module
                 f, path, desc = imp.find_module(self.name, self.searchPath)
                 # Load the module
                 self.pyObject = imp.load_module(self.name, f, path, desc)
             except:
-                raise MatchPolicyLoadError(file=file, search_path=search_path)
+                raise MatchPolicyLoadError(file=file, search_path=self.searchPath)
         else:
             raise MatchPolicyLoadError()
 
         match_attrs = self.loadMatchAttrs()
         self.factoryMatchAttrs = match_attrs.get('factory_match_attrs')
         self.jobMatchAttrs = match_attrs.get('job_match_attrs')
+
+        # Assume TRUE as default for query_expr
+        self.factoryQueryExpr = 'TRUE'
+        if 'factory_query_expr' in dir(self.pyObject):
+            self.factoryQueryExpr = self.pyObject.factory_query_expr
+        self.jobQueryExpr = 'TRUE'
+        if 'job_query_expr' in dir(self.pyObject):
+            self.jobQueryExpr = self.pyObject.job_query_expr
 
 
     def policyFileToPyModuleName(self):
@@ -758,7 +735,8 @@ class MatchPolicy:
         @type ma_name: string
         """
 
-        match_attrs = {}
+        #match_attrs = {}
+        match_attrs = {'factory_match_attrs':{} , 'job_match_attrs': {}}
         for ma_name in ('factory_match_attrs', 'job_match_attrs'):
             if (ma_name in dir(self.pyObject)) :
                 ma_attr = getattr(self.pyObject, ma_name)
