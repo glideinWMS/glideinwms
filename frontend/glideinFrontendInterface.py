@@ -1049,23 +1049,57 @@ class MultiAdvertizeWork:
 #                        glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
 
 # v3/9809 start
-                    if "vm_id"   in credential_el.type:
-                        with open(credential_el.vm_id, 'r') as credfile:
-                            result = credfile.readlines()
-                            for line in result:
-                                if  line.startswith('ID'):
-                                    mesi = line.split(':')
-                                    vmid = mesi[1]
-                                    glidein_params_to_encrypt['VMId']=vmid.rstrip('\n')
+# HK> to benefit from this new feature, admins should create a file such as /tmp/aws.txt with two lines ID:ami-xxxx and TYPE:m3.medium
+# HK> and edit /etc/gwms-frontend/frontend.xml to have 
+# HK>   vm_id="PATH:/tmp/aws.txt"
+# HK> vm_type="PATH:/tmp/aws.txt"
+# HK> or they can also use the old way 
+# HK>   vm_id="ami-xxxx"
+# HK> vm_type="m3.medium"
+                    if "vm_id" in credential_el.type:
 
-                    if "vm_type" in credential_el.type:
-                        with open(credential_el.vm_type, 'r') as credfile:
-                            result = credfile.readlines()
-                            for line in result:
-                                if line.startswith('TYPE'):
-                                    mesi = line.split(':')
-                                    vmtp = mesi[1]
-                                    glidein_params_to_encrypt['VMType']=vmtp.rstrip('\n')
+                        if str(credential_el.vm_id).startswith('PATH'):
+                            temppath=str(credential_el.vm_id).split(':')
+                            with open('/tmp/hk.log', 'a') as hkmylog:
+                                hkmylog.write("PATH = %s\n" % temppath[1] )
+
+                            with open(temppath[1], 'r') as hkcred:
+                                result = hkcred.readlines()
+                                for line in result:
+                                    if   line.startswith('ID'):
+                                        mesi = line.split(':')
+                                        hkid = mesi[1]
+                                        glidein_params_to_encrypt['VMId']=hkid.rstrip('\n')
+                                        with open('/tmp/hk.log', 'a') as hkmylog:
+                                            hkmylog.write("vm_id contents = %s\n" % str(hkid) )
+                                    elif line.startswith('TYPE'):
+                                        mesi = line.split(':')
+                                        hktp = mesi[1]
+                                        glidein_params_to_encrypt['VMType']=hktp.rstrip('\n')
+
+                        else:
+                            with open('/tmp/hk.log', 'a') as hkmylog:
+                                hkmylog.write("Old fashioned = %s\n" %str(credential_el.vm_id) )
+                            glidein_params_to_encrypt['VMId']  =str(credential_el.vm_id)
+                            glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
+
+# HK> old implementation
+#                    if "vm_id"   in credential_el.type:
+#                        with open(credential_el.vm_id, 'r') as credfile:
+#                            result = credfile.readlines()
+#                            for line in result:
+#                                if  line.startswith('ID'):
+#                                    mesi = line.split(':')
+#                                    vmid = mesi[1]
+#                                    glidein_params_to_encrypt['VMId']=vmid.rstrip('\n')
+#                    if "vm_type" in credential_el.type:
+#                        with open(credential_el.vm_type, 'r') as credfile:
+#                            result = credfile.readlines()
+#                            for line in result:
+#                                if line.startswith('TYPE'):
+#                                    mesi = line.split(':')
+#                                    vmtp = mesi[1]
+#                                    glidein_params_to_encrypt['VMType']=vmtp.rstrip('\n')
 # v3/9809 end
                         
                     (req_idle,req_max_run)=credential_el.get_usage_details()
