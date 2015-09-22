@@ -1043,10 +1043,10 @@ class MultiAdvertizeWork:
                     if credential_el.pilot_fname:
                         glidein_params_to_encrypt['GlideinProxy']=file_id_cache.file_id(credential_el, credential_el.pilot_fname)
                     
-                    if "vm_id" in credential_el.type:
-                        glidein_params_to_encrypt['VMId']=str(credential_el.vm_id)
-                    if "vm_type" in credential_el.type:
-                        glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
+#                    if "vm_id" in credential_el.type:
+#                        glidein_params_to_encrypt['VMId']=str(credential_el.vm_id)
+#                    if "vm_type" in credential_el.type:
+#                        glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
 
 # v3/9809 start
                     if "vm_id"   in credential_el.type:
@@ -1056,7 +1056,7 @@ class MultiAdvertizeWork:
                                 if  line.startswith('ID'):
                                     mesi = line.split(':')
                                     vmid = mesi[1]
-                                    glidein_params_to_encrypt['VMId']=str(vmid)
+                                    glidein_params_to_encrypt['VMId']=vmid.rstrip('\n')
 
                     if "vm_type" in credential_el.type:
                         with open(credential_el.vm_type, 'r') as credfile:
@@ -1065,7 +1065,7 @@ class MultiAdvertizeWork:
                                 if line.startswith('TYPE'):
                                     mesi = line.split(':')
                                     vmtp = mesi[1]
-                                    glidein_params_to_encrypt['VMType']=str(vmtp)
+                                    glidein_params_to_encrypt['VMType']=vmtp.rstrip('\n')
 # v3/9809 end
                         
                     (req_idle,req_max_run)=credential_el.get_usage_details()
