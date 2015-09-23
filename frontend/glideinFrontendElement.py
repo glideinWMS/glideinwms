@@ -860,7 +860,7 @@ class glideinFrontendElement:
 
     def build_resource_classad(self, this_stats_arr, request_name,
                                glidein_el, glidein_in_downtime,
-                               factory_pool_node, my_identity):
+                               factory_pool_node, my_identity, which_limits_triggered ): # v3/7920
         # Create the resource classad and populate the required information
         resource_classad = glideinFrontendInterface.ResourceClassad(
                                request_name, self.published_frontend_name)
