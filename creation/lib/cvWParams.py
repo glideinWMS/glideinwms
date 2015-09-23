@@ -121,6 +121,9 @@ class VOFrontendParams(cWParams.CommonParams):
         proxy_defaults["pool_idx_len"]=(None,"boolean","Adds leading zeros to the suffix so all filenames the same length",None)
         proxy_defaults["pool_idx_list"]=(None,"string","List of indices, can include ranges of indices",None)
         proxy_defaults["security_class"]=(None,"id","Proxies in the same security class can potentially access each other (Default: proxy_nr)",None)
+# v3/9809
+        proxy_defaults["idtype_fname"]=(None,"fname","to specify a vm id and type without reconfig",None)
+
 
         security_defaults=cWParams.commentedOrderedDict()
         security_defaults["proxy_selection_plugin"]=(None,"proxy_name","Which proxy selection plugin should I use (ProxyAll if None)",None)

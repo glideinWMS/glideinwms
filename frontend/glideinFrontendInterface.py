@@ -274,6 +274,8 @@ class Credential:
         proxy_vm_types = elementDescript.merged_data['ProxyVMTypes']
         proxy_creation_scripts = elementDescript.merged_data['ProxyCreationScripts']
         proxy_update_frequency = elementDescript.merged_data['ProxyUpdateFrequency']
+        proxy_idtypefiles=elementDescript.merged_data['ProxyIdtypeFiles'] # v3/9809 
+
         self.proxy_id = proxy_id
         self.filename = proxy_fname
         self.type = proxy_types.get(proxy_fname, "Unknown")
@@ -282,6 +284,7 @@ class Credential:
         self.update_frequency = int(proxy_update_frequency.get(proxy_fname, -1))
 
         # Following items can be None
+        self.idtype_fname = proxy_idtypefiles.get(proxy_fname) # v3/9809
         self.vm_id = proxy_vm_ids.get(proxy_fname)
         self.vm_type = proxy_vm_types.get(proxy_fname)
         self.creation_script = proxy_creation_scripts.get(proxy_fname)
@@ -1049,57 +1052,22 @@ class MultiAdvertizeWork:
 #                        glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
 
 # v3/9809 start
-# HK> to benefit from this new feature, admins should create a file such as /tmp/aws.txt with two lines ID:ami-xxxx and TYPE:m3.medium
-# HK> and edit /etc/gwms-frontend/frontend.xml to have 
-# HK>   vm_id="PATH:/tmp/aws.txt"
-# HK> vm_type="PATH:/tmp/aws.txt"
-# HK> or they can also use the old way 
-# HK>   vm_id="ami-xxxx"
-# HK> vm_type="m3.medium"
                     if "vm_id" in credential_el.type:
-
-                        if str(credential_el.vm_id).startswith('PATH'):
-                            temppath=str(credential_el.vm_id).split(':')
-                            with open('/tmp/hk.log', 'a') as hkmylog:
-                                hkmylog.write("PATH = %s\n" % temppath[1] )
-
-                            with open(temppath[1], 'r') as hkcred:
+                        if credential_el.idtype_fname: # if frontend.xml has itdype_fname in <credential>, we use it, ignoring vm_id and vm_type.
+                            with open( str(credential_el.idtype_fname) , 'r') as hkcred:
                                 result = hkcred.readlines()
                                 for line in result:
                                     if   line.startswith('ID'):
                                         mesi = line.split(':')
-                                        hkid = mesi[1]
-                                        glidein_params_to_encrypt['VMId']=hkid.rstrip('\n')
-                                        with open('/tmp/hk.log', 'a') as hkmylog:
-                                            hkmylog.write("vm_id contents = %s\n" % str(hkid) )
+                                        vmid = mesi[1]
+                                        glidein_params_to_encrypt['VMId']=vmid.rstrip('\n')
                                     elif line.startswith('TYPE'):
                                         mesi = line.split(':')
-                                        hktp = mesi[1]
-                                        glidein_params_to_encrypt['VMType']=hktp.rstrip('\n')
-
-                        else:
-                            with open('/tmp/hk.log', 'a') as hkmylog:
-                                hkmylog.write("Old fashioned = %s\n" %str(credential_el.vm_id) )
+                                        vmtp = mesi[1]
+                                        glidein_params_to_encrypt['VMType']=vmtp.rstrip('\n')
+                        else: # otherwise, we are looking for vm_id and vm_type in <credential> in frontend.xml
                             glidein_params_to_encrypt['VMId']  =str(credential_el.vm_id)
                             glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
-
-# HK> old implementation
-#                    if "vm_id"   in credential_el.type:
-#                        with open(credential_el.vm_id, 'r') as credfile:
-#                            result = credfile.readlines()
-#                            for line in result:
-#                                if  line.startswith('ID'):
-#                                    mesi = line.split(':')
-#                                    vmid = mesi[1]
-#                                    glidein_params_to_encrypt['VMId']=vmid.rstrip('\n')
-#                    if "vm_type" in credential_el.type:
-#                        with open(credential_el.vm_type, 'r') as credfile:
-#                            result = credfile.readlines()
-#                            for line in result:
-#                                if line.startswith('TYPE'):
-#                                    mesi = line.split(':')
-#                                    vmtp = mesi[1]
-#                                    glidein_params_to_encrypt['VMType']=vmtp.rstrip('\n')
 # v3/9809 end
                         
                     (req_idle,req_max_run)=credential_el.get_usage_details()
