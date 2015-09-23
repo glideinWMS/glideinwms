@@ -520,7 +520,7 @@ def populate_frontend_descript(work_dir,
             policy_module = MatchPolicy(params.match.policy_file)
             frontend_dict.add('MatchPolicyModuleFactoryMatchAttrs', policy_module.factoryMatchAttrs)
             frontend_dict.add('MatchPolicyModuleJobMatchAttrs', policy_module.jobMatchAttrs)
-            frontend_dict.add('MatchPolicyModuleFactoryQueryExpr', policy_module.jobQueryExpr)
+            frontend_dict.add('MatchPolicyModuleFactoryQueryExpr', policy_module.factoryQueryExpr)
             frontend_dict.add('MatchPolicyModuleJobQueryExpr', policy_module.jobQueryExpr)
         #else:
         #    frontend_dict.add('MatchPolicyModule', None)
