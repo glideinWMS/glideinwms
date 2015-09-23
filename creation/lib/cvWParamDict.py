@@ -516,6 +516,7 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('HighAvailability', params.high_availability)
         if params.match.policy_file:
             #frontend_dict.add('MatchPolicyModule', MatchPolicy(params.match.policy_file))
+            frontend_dict.add('MatchPolicyFile', params.match.policy_file)
             policy_module = MatchPolicy(params.match.policy_file)
             frontend_dict.add('MatchPolicyModuleFactoryMatchAttrs', policy_module.factoryMatchAttrs)
             frontend_dict.add('MatchPolicyModuleJobMatchAttrs', policy_module.jobMatchAttrs)
@@ -553,10 +554,11 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
     group_descript_dict.add('MaxMatchmakers',sub_params.config.processing_workers.matchmakers)
     if sub_params.match.policy_file:
         #group_descript_dict.add('MatchPolicyModule', MatchPolicy(sub_params.match.policy_file))
+        group_descript_dict.add('MatchPolicyFile', sub_params.match.policy_file)
         policy_module = MatchPolicy(sub_params.match.policy_file)
         group_descript_dict.add('MatchPolicyModuleFactoryMatchAttrs', policy_module.factoryMatchAttrs)
         group_descript_dict.add('MatchPolicyModuleJobMatchAttrs', policy_module.jobMatchAttrs)
-        group_descript_dict.add('MatchPolicyModuleFactoryQueryExpr', policy_module.jobQueryExpr)
+        group_descript_dict.add('MatchPolicyModuleFactoryQueryExpr', policy_module.factoryQueryExpr)
         group_descript_dict.add('MatchPolicyModuleJobQueryExpr', policy_module.jobQueryExpr)
     #else:
     #    group_descript_dict.add('MatchPolicyModule', None)
@@ -671,15 +673,6 @@ def populate_common_descript(descript_dict, params):
         policy_info['FactoryMatchAttrs'] = eval(descript_dict['MatchPolicyModuleFactoryMatchAttrs'])
     if 'MatchPolicyModuleJobMatchAttrs' in descript_dict:
         policy_info['JobMatchAttrs'] = eval(descript_dict['MatchPolicyModuleJobMatchAttrs'])
-
-
-
-
-    print '--------->'
-    if 'FactoryMatchAttrs' in policy_info:
-        print type(policy_info['FactoryMatchAttrs'])
-    print '--------->'
-
 
     for tel in (("factory","Factory"),("job","Job")):
         param_tname, str_tname = tel
