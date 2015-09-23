@@ -274,7 +274,8 @@ class Credential:
         proxy_vm_types = elementDescript.merged_data['ProxyVMTypes']
         proxy_creation_scripts = elementDescript.merged_data['ProxyCreationScripts']
         proxy_update_frequency = elementDescript.merged_data['ProxyUpdateFrequency']
-        proxy_idtypefiles=elementDescript.merged_data['ProxyIdtypeFiles'] # v3/9809 
+        proxy_vmidfiles=elementDescript.merged_data['ProxyVMIdFiles']
+        proxy_vmtypefiles=elementDescript.merged_data['ProxyVMTypeFiles']
 
         self.proxy_id = proxy_id
         self.filename = proxy_fname
@@ -284,7 +285,8 @@ class Credential:
         self.update_frequency = int(proxy_update_frequency.get(proxy_fname, -1))
 
         # Following items can be None
-        self.idtype_fname = proxy_idtypefiles.get(proxy_fname) # v3/9809
+        self.vmid_fname   = proxy_vmidfiles.get(proxy_fname)
+        self.vmtype_fname = proxy_vmtypefiles.get(proxy_fname)
         self.vm_id = proxy_vm_ids.get(proxy_fname)
         self.vm_type = proxy_vm_types.get(proxy_fname)
         self.creation_script = proxy_creation_scripts.get(proxy_fname)
@@ -1046,29 +1048,29 @@ class MultiAdvertizeWork:
                     if credential_el.pilot_fname:
                         glidein_params_to_encrypt['GlideinProxy']=file_id_cache.file_id(credential_el, credential_el.pilot_fname)
                     
-#                    if "vm_id" in credential_el.type:
-#                        glidein_params_to_encrypt['VMId']=str(credential_el.vm_id)
-#                    if "vm_type" in credential_el.type:
-#                        glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
-
-# v3/9809 start
                     if "vm_id" in credential_el.type:
-                        if credential_el.idtype_fname: # if frontend.xml has itdype_fname in <credential>, we use it, ignoring vm_id and vm_type.
-                            with open( str(credential_el.idtype_fname) , 'r') as hkcred:
+                        if credential_el.vmid_fname: # if frontend.xml has itdype_fname in <credential>, we use it, ignoring vm_id and vm_type.
+                            with open( str(credential_el.vmid_fname) , 'r') as hkcred:
                                 result = hkcred.readlines()
                                 for line in result:
                                     if   line.startswith('ID'):
                                         mesi = line.split(':')
                                         vmid = mesi[1]
                                         glidein_params_to_encrypt['VMId']=vmid.rstrip('\n')
-                                    elif line.startswith('TYPE'):
+                        else: # otherwise, we are looking for vm_id and vm_type in <credential> in frontend.xml
+                            glidein_params_to_encrypt['VMId']  =str(credential_el.vm_id)
+
+                    if "vm_type" in credential_el.type:
+                        if credential_el.vmtype_fname: # if frontend.xml has itdype_fname in <credential>, we use it, ignoring vm_id and vm_type.
+                            with open( str(credential_el.vmtype_fname) , 'r') as hkcred:
+                                result = hkcred.readlines()
+                                for line in result:
+                                    if line.startswith('TYPE'):
                                         mesi = line.split(':')
                                         vmtp = mesi[1]
                                         glidein_params_to_encrypt['VMType']=vmtp.rstrip('\n')
                         else: # otherwise, we are looking for vm_id and vm_type in <credential> in frontend.xml
-                            glidein_params_to_encrypt['VMId']  =str(credential_el.vm_id)
                             glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
-# v3/9809 end
                         
                     (req_idle,req_max_run)=credential_el.get_usage_details()
                     logSupport.log.debug("Advertizing credential %s with (%d idle, %d max run) for request %s"%(credential_el.filename, req_idle, req_max_run, params_obj.request_name))
