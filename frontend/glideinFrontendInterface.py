@@ -274,8 +274,8 @@ class Credential:
         proxy_vm_types = elementDescript.merged_data['ProxyVMTypes']
         proxy_creation_scripts = elementDescript.merged_data['ProxyCreationScripts']
         proxy_update_frequency = elementDescript.merged_data['ProxyUpdateFrequency']
-        proxy_vmidfiles=elementDescript.merged_data['ProxyVMIdFiles']
-        proxy_vmtypefiles=elementDescript.merged_data['ProxyVMTypeFiles']
+        proxy_vmid_fname=elementDescript.merged_data['ProxyVMIdFname']
+        proxy_vmtype_fname=elementDescript.merged_data['ProxyVMTypeFname']
 
         self.proxy_id = proxy_id
         self.filename = proxy_fname
@@ -285,8 +285,8 @@ class Credential:
         self.update_frequency = int(proxy_update_frequency.get(proxy_fname, -1))
 
         # Following items can be None
-        self.vmid_fname   = proxy_vmidfiles.get(proxy_fname)
-        self.vmtype_fname = proxy_vmtypefiles.get(proxy_fname)
+        self.vm_id_fname   = proxy_vmid_fname.get(proxy_fname)
+        self.vm_type_fname = proxy_vmtype_fname.get(proxy_fname)
         self.vm_id = proxy_vm_ids.get(proxy_fname)
         self.vm_type = proxy_vm_types.get(proxy_fname)
         self.creation_script = proxy_creation_scripts.get(proxy_fname)
@@ -1049,27 +1049,35 @@ class MultiAdvertizeWork:
                         glidein_params_to_encrypt['GlideinProxy']=file_id_cache.file_id(credential_el, credential_el.pilot_fname)
                     
                     if "vm_id" in credential_el.type:
-                        if credential_el.vmid_fname: # if frontend.xml has itdype_fname in <credential>, we use it, ignoring vm_id and vm_type.
-                            with open( str(credential_el.vmid_fname) , 'r') as hkcred:
-                                result = hkcred.readlines()
+                        if credential_el.vm_id_fname:
+                            with open( str(credential_el.vm_id_fname) , 'r') as vmidfile:
+                                result = vmidfile.readlines()
                                 for line in result:
-                                    if   line.startswith('ID'):
-                                        mesi = line.split(':')
-                                        vmid = mesi[1]
-                                        glidein_params_to_encrypt['VMId']=vmid.rstrip('\n')
-                        else: # otherwise, we are looking for vm_id and vm_type in <credential> in frontend.xml
+                                    if line.startswith('VM_ID'):
+                                        linestripped = line.rstrip('\n')
+                                        vmidlist = linestripped.split(':')
+                                        vmid = vmidlist[1]
+                                        if not vmid:
+                                            logSupport.log.error("Error VM_ID in %s is missing" % str(credential_el.vm_id_fname) )
+                                        else:
+                                            glidein_params_to_encrypt['VMId']=vmid.rstrip('\n')
+                        else:
                             glidein_params_to_encrypt['VMId']  =str(credential_el.vm_id)
 
                     if "vm_type" in credential_el.type:
-                        if credential_el.vmtype_fname: # if frontend.xml has itdype_fname in <credential>, we use it, ignoring vm_id and vm_type.
-                            with open( str(credential_el.vmtype_fname) , 'r') as hkcred:
-                                result = hkcred.readlines()
+                        if credential_el.vm_type_fname:
+                            with open( str(credential_el.vm_type_fname) , 'r') as vmtypefile:
+                                result = vmtypefile.readlines()
                                 for line in result:
-                                    if line.startswith('TYPE'):
-                                        mesi = line.split(':')
-                                        vmtp = mesi[1]
-                                        glidein_params_to_encrypt['VMType']=vmtp.rstrip('\n')
-                        else: # otherwise, we are looking for vm_id and vm_type in <credential> in frontend.xml
+                                    if line.startswith('VM_TYPE'):
+                                        linestripped = line.rstrip('\n')
+                                        vmtplist = linestripped.split(':')
+                                        vmtp = vmtplist[1]
+                                        if not vmtp:
+                                            logSupport.log.error("Error VM_Type in %s is missing" % str(credential_el.vm_type_fname) )
+                                        else:
+                                            glidein_params_to_encrypt['VMType']=vmtp.rstrip('\n')
+                        else:
                             glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
                         
                     (req_idle,req_max_run)=credential_el.get_usage_details()

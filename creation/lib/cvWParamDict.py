@@ -639,7 +639,7 @@ def populate_common_descript(descript_dict,        # will be modified
             'pilotabsfname':'ProxyPilotFiles',
             'vm_id':'ProxyVMIds','vm_type':'ProxyVMTypes',
             'creation_script':'ProxyCreationScripts',
-            'update_frequency':'ProxyUpdateFrequency', 'vm_id_fname':'ProxyVMIdFiles', 'vm_type_fname':'ProxyVMTypeFiles'}
+            'update_frequency':'ProxyUpdateFrequency', 'vm_id_fname':'ProxyVMIdFname', 'vm_type_fname':'ProxyVMTypeFname'}
         proxy_descript_values={}
         for attr in proxy_attrs:
             proxy_descript_values[attr]={}
