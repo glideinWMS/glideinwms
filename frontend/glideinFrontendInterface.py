@@ -965,6 +965,22 @@ class MultiAdvertizeWork:
             return [] # No files left to be advertized
 
 
+    def vm_attribute_from_file(self, filename, prefix ):
+        with open( str(filename) , 'r') as vmfile:
+            result = vmfile.readlines()
+            for line in result:
+                if line.startswith( prefix ):
+                    linestripped = line.rstrip('\n')
+                    wordlist = linestripped.split(':')
+                    word = wordlist[1]
+                    if not word:
+                        logSupport.log.error("Error %s in %s is missing" % ( prefix, str(filename) ) )
+                        raise NoCredentialException
+                    else:
+                        return word
+
+
+
     def createAdvertizeWorkFile(self, factory_pool, params_obj, key_obj=None, file_id_cache=None): 
         """
         Create the advertize file
@@ -1048,37 +1064,19 @@ class MultiAdvertizeWork:
                     if credential_el.pilot_fname:
                         glidein_params_to_encrypt['GlideinProxy']=file_id_cache.file_id(credential_el, credential_el.pilot_fname)
                     
+
                     if "vm_id" in credential_el.type:
                         if credential_el.vm_id_fname:
-                            with open( str(credential_el.vm_id_fname) , 'r') as vmidfile:
-                                result = vmidfile.readlines()
-                                for line in result:
-                                    if line.startswith('VM_ID'):
-                                        linestripped = line.rstrip('\n')
-                                        vmidlist = linestripped.split(':')
-                                        vmid = vmidlist[1]
-                                        if not vmid:
-                                            logSupport.log.error("Error VM_ID in %s is missing" % str(credential_el.vm_id_fname) )
-                                        else:
-                                            glidein_params_to_encrypt['VMId']=vmid.rstrip('\n')
+                            glidein_params_to_encrypt['VMId']=self.vm_attribute_from_file( credential_el.vm_id_fname, 'VM_ID' )
                         else:
                             glidein_params_to_encrypt['VMId']  =str(credential_el.vm_id)
 
                     if "vm_type" in credential_el.type:
                         if credential_el.vm_type_fname:
-                            with open( str(credential_el.vm_type_fname) , 'r') as vmtypefile:
-                                result = vmtypefile.readlines()
-                                for line in result:
-                                    if line.startswith('VM_TYPE'):
-                                        linestripped = line.rstrip('\n')
-                                        vmtplist = linestripped.split(':')
-                                        vmtp = vmtplist[1]
-                                        if not vmtp:
-                                            logSupport.log.error("Error VM_Type in %s is missing" % str(credential_el.vm_type_fname) )
-                                        else:
-                                            glidein_params_to_encrypt['VMType']=vmtp.rstrip('\n')
+                            glidein_params_to_encrypt['VMType']=self.vm_attribute_from_file( credential_el.vm_type_fname, 'VM_TYPE' )
                         else:
                             glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
+
                         
                     (req_idle,req_max_run)=credential_el.get_usage_details()
                     logSupport.log.debug("Advertizing credential %s with (%d idle, %d max run) for request %s"%(credential_el.filename, req_idle, req_max_run, params_obj.request_name))
