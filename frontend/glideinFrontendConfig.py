@@ -287,13 +287,23 @@ class ElementMergedDescript:
 
         for t in ('FactoryQueryExpr','JobQueryExpr'):
             self.merged_data[t]="(%s) && (%s)"%(self.frontend_data[t],self.element_data[t])
+            for data in (self.frontend_data, self.element_data):
+                if 'MatchPolicyModule%s'%t in data:
+                    self.merged_data[t] = '(%s) && (%s)' % (
+                        self.merged_data[t], data['MatchPolicyModule%s'%t])
 
         # PM: TODO: Not sure why FactoryMatchAttrs was not in the list below
         #     To get complete list of FactoryMatchAttrs you need to merge it
         for t in ('JobMatchAttrs','FactoryMatchAttrs'):
             attributes=[]
             names=[]
-            for el in eval(self.frontend_data[t])+eval(self.element_data[t]):
+            match_attrs_list = eval(self.frontend_data[t]) + eval(self.element_data[t])
+
+            for data in (self.frontend_data, self.element_data):
+                if 'MatchPolicyModule%s'%t in data:
+                    match_attrs_list += eval(data['MatchPolicyModule%s'%t])
+
+            for el in match_attrs_list:
                 el_name=el[0]
                 if not (el_name in names):
                     attributes.append(el)

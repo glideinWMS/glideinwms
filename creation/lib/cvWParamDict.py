@@ -509,14 +509,14 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('MaxRunningTotalGlobal',params.config.running_glideins_total_global.max)
         frontend_dict.add('CurbRunningTotalGlobal',params.config.running_glideins_total_global.curb)
         frontend_dict.add('HighAvailability', params.high_availability)
-        if params.match.policy_file:
+        #if params.match.policy_file:
             #frontend_dict.add('MatchPolicyModule', MatchPolicy(params.match.policy_file))
-            frontend_dict.add('MatchPolicyFile', params.match.policy_file)
-            policy_module = MatchPolicy(params.match.policy_file)
-            frontend_dict.add('MatchPolicyModuleFactoryMatchAttrs', policy_module.factoryMatchAttrs)
-            frontend_dict.add('MatchPolicyModuleJobMatchAttrs', policy_module.jobMatchAttrs)
-            frontend_dict.add('MatchPolicyModuleFactoryQueryExpr', policy_module.factoryQueryExpr)
-            frontend_dict.add('MatchPolicyModuleJobQueryExpr', policy_module.jobQueryExpr)
+        #    frontend_dict.add('MatchPolicyFile', params.match.policy_file)
+        #    policy_module = MatchPolicy(params.match.policy_file)
+        #    frontend_dict.add('MatchPolicyModuleFactoryMatchAttrs', policy_module.factoryMatchAttrs)
+        #    frontend_dict.add('MatchPolicyModuleJobMatchAttrs', policy_module.jobMatchAttrs)
+        #    frontend_dict.add('MatchPolicyModuleFactoryQueryExpr', policy_module.factoryQueryExpr)
+        #    frontend_dict.add('MatchPolicyModuleJobQueryExpr', policy_module.jobQueryExpr)
         #else:
         #    frontend_dict.add('MatchPolicyModule', None)
         #foo = MatchPolicy(params.match.policy_file)
@@ -547,14 +547,14 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
     group_descript_dict.add('MaxRunningTotal',sub_params.config.running_glideins_total.max)
     group_descript_dict.add('CurbRunningTotal',sub_params.config.running_glideins_total.curb)
     group_descript_dict.add('MaxMatchmakers',sub_params.config.processing_workers.matchmakers)
-    if sub_params.match.policy_file:
-        #group_descript_dict.add('MatchPolicyModule', MatchPolicy(sub_params.match.policy_file))
-        group_descript_dict.add('MatchPolicyFile', sub_params.match.policy_file)
-        policy_module = MatchPolicy(sub_params.match.policy_file)
-        group_descript_dict.add('MatchPolicyModuleFactoryMatchAttrs', policy_module.factoryMatchAttrs)
-        group_descript_dict.add('MatchPolicyModuleJobMatchAttrs', policy_module.jobMatchAttrs)
-        group_descript_dict.add('MatchPolicyModuleFactoryQueryExpr', policy_module.factoryQueryExpr)
-        group_descript_dict.add('MatchPolicyModuleJobQueryExpr', policy_module.jobQueryExpr)
+    #if sub_params.match.policy_file:
+    #    #group_descript_dict.add('MatchPolicyModule', MatchPolicy(sub_params.match.policy_file))
+    #    group_descript_dict.add('MatchPolicyFile', sub_params.match.policy_file)
+    #    policy_module = MatchPolicy(sub_params.match.policy_file)
+    #    group_descript_dict.add('MatchPolicyModuleFactoryMatchAttrs', policy_module.factoryMatchAttrs)
+    #    group_descript_dict.add('MatchPolicyModuleJobMatchAttrs', policy_module.jobMatchAttrs)
+    #    group_descript_dict.add('MatchPolicyModuleFactoryQueryExpr', policy_module.factoryQueryExpr)
+    #    group_descript_dict.add('MatchPolicyModuleJobQueryExpr', policy_module.jobQueryExpr)
     #else:
     #    group_descript_dict.add('MatchPolicyModule', None)
     #print '^^^^^^^^^^'
@@ -644,7 +644,19 @@ def get_pool_list(credential):
     for idx in pool_idx_list_expanded:
         pool_idx_list_strings.append(idx.zfill(pool_idx_len))
     return pool_idx_list_strings
-    
+
+
+def match_attrs_to_array(match_attrs):
+    ma_array = []
+
+    for attr_name in match_attrs.keys():
+        attr_type = match_attrs[attr_name]['type']
+        if not (attr_type in MATCH_ATTR_CONV):
+            raise RuntimeError, "match_attr type '%s' not one of %s" % (attr_type, MATCH_ATTR_CONV.keys())
+        ma_array.append((str(attr_name), MATCH_ATTR_CONV[attr_type]))
+
+    return ma_array
+
 
 def populate_common_descript(descript_dict, params):
     """
@@ -652,49 +664,34 @@ def populate_common_descript(descript_dict, params):
     descript_dict will be modified in this function
     """
 
-    # Make it easier for use policy module info to use later in the code
-    policy_info = {
-        #'factoryQueryExpr': 'TRUE',
-        #'jobQueryExpr': 'TRUE',
-        'FactoryMatchAttrs': {},
-        'JobMatchAttrs': {},
-    }
+    if params.match.policy_file:
+        policy_module = MatchPolicy(params.match.policy_file)
 
-    if 'MatchPolicyModuleFactoryQueryExpr' in descript_dict:
-        policy_info['FactoryQueryExpr'] = descript_dict['MatchPolicyModuleFactoryQueryExpr']
-    if 'MatchPolicyModuleJobQueryExpr' in descript_dict:
-        policy_info['JobQueryExpr'] = descript_dict['MatchPolicyModuleJobQueryExpr']
-    if 'MatchPolicyModuleFactoryMatchAttrs' in descript_dict:
-        policy_info['FactoryMatchAttrs'] = eval(descript_dict['MatchPolicyModuleFactoryMatchAttrs'])
-    if 'MatchPolicyModuleJobMatchAttrs' in descript_dict:
-        policy_info['JobMatchAttrs'] = eval(descript_dict['MatchPolicyModuleJobMatchAttrs'])
+        # Populate the descript_dict
+        descript_dict.add('MatchPolicyFile', params.match.policy_file)
+        descript_dict.add('MatchPolicyModuleFactoryMatchAttrs',
+                          match_attrs_to_array(policy_module.factoryMatchAttrs))
+        descript_dict.add('MatchPolicyModuleJobMatchAttrs',
+                          match_attrs_to_array(policy_module.jobMatchAttrs))
+        descript_dict.add('MatchPolicyModuleFactoryQueryExpr',
+                          policy_module.factoryQueryExpr)
+        descript_dict.add('MatchPolicyModuleJobQueryExpr',
+                          policy_module.jobQueryExpr)
 
     for tel in (("factory","Factory"),("job","Job")):
         param_tname, str_tname = tel
         ma_arr = []
         qry_expr = params.match[param_tname]['query_expr']
+
         # Append query_expr from modules
-        if '%sQueryExpr'%str_tname in policy_info:
-            qry_expr = '(%s) && (%s)' % (qry_expr,
-                                         policy_info['%sQueryExpr'%str_tname])
+        #if 'MatchPolicyModule%sQueryExpr'%str_tname in descript_dict:
+        #    qry_expr = '(%s) && (%s)' % (
+        #        qry_expr,
+        #        descript_dict['MatchPolicyModule%sQueryExpr'%str_tname])
 
         descript_dict.add('%sQueryExpr'%str_tname, qry_expr)
-
-        match_attrs = params.match[param_tname]['match_attrs']
-        for attr_name in match_attrs.keys():
-            attr_type=match_attrs[attr_name]['type']
-            if not (attr_type in MATCH_ATTR_CONV):
-                raise RuntimeError, "match_attr type '%s' not one of %s"%(attr_type,MATCH_ATTR_CONV.keys())
-            ma_arr.append((str(attr_name),MATCH_ATTR_CONV[attr_type]))
-        # Append match attrs from modules
-        match_attrs = policy_info['%sMatchAttrs'%str_tname]
-        for attr_name in match_attrs.keys():
-            attr_type=match_attrs[attr_name]['type']
-            if not (attr_type in MATCH_ATTR_CONV):
-                raise RuntimeError, "match_attr type '%s' not one of %s"%(attr_type,MATCH_ATTR_CONV.keys())
-            ma_arr.append((str(attr_name),MATCH_ATTR_CONV[attr_type]))
-
-        descript_dict.add('%sMatchAttrs'%str_tname,repr(ma_arr))
+        ma_arr = match_attrs_to_array(params.match[param_tname]['match_attrs'])
+        descript_dict.add('%sMatchAttrs'%str_tname, repr(ma_arr))
 
 
     print
