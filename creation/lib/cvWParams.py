@@ -647,22 +647,3 @@ def extract_attr_val(attr_obj):
         return str(attr_obj.value)
     else:
         return int(attr_obj.value)
-
-
-def print_match_info(group, match):
-   import pprint
-
-   print '---------------------------------------------'
-   print 'MATCH INFO FOR GROUP: %s' % group
-   print '---------------------------------------------'
-
-   pp = pprint.PrettyPrinter()
-   print 'match_expr:'
-   pp.pprint(match.match_expr)
-   print 'start_expr:'
-   pp.pprint(match.start_expr)
-   print 'match.factory.match_attrs'
-   pp.pprint(dict(match.factory.match_attrs))
-   print 'match.job.match_attrs'
-   pp.pprint(dict(match.job.match_attrs))
-   print '---------------------------------------------'

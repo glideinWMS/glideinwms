@@ -110,9 +110,6 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         # glideins and requests correctly
         apply_multicore_policy(self.dicts['frontend_descript'])
 
-
-        #print "========>>>>>> %s" % self.dicts['frontend_descript'].keys
-
         # populate the monitor files
         javascriptrrd_dir = params.monitor.javascriptRRD_dir
         for mfarr in ((params.src_dir,'frontend_support.js'),
@@ -158,10 +155,8 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
 
         # populate security data
         populate_main_security(self.client_security,params)
-        
 
         
-
     def find_parent_dir(self,search_path,name):
         """ Given a search path, determine if the given file exists
             somewhere in the path.

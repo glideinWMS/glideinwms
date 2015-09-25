@@ -79,7 +79,8 @@ class MatchPolicy:
                 # Load the module
                 self.pyObject = imp.load_module(self.name, f, path, desc)
             except:
-                raise MatchPolicyLoadError(file=file, search_path=self.searchPath)
+                raise MatchPolicyLoadError(file=file,
+                                           search_path=self.searchPath)
         else:
             raise MatchPolicyLoadError()
 
@@ -87,13 +88,18 @@ class MatchPolicy:
         self.factoryMatchAttrs = match_attrs.get('factory_match_attrs')
         self.jobMatchAttrs = match_attrs.get('job_match_attrs')
 
-        # Assume TRUE as default for query_expr
+        # Assume TRUE as default for all expressions
         self.factoryQueryExpr = 'TRUE'
         if 'factory_query_expr' in dir(self.pyObject):
             self.factoryQueryExpr = self.pyObject.factory_query_expr
+
         self.jobQueryExpr = 'TRUE'
         if 'job_query_expr' in dir(self.pyObject):
             self.jobQueryExpr = self.pyObject.job_query_expr
+
+        self.startExpr = 'TRUE'
+        if 'start_expr' in dir(self.pyObject):
+            self.startExpr = self.pyObject.start_expr
 
 
     def policyFileToPyModuleName(self):
@@ -143,24 +149,8 @@ class MatchPolicy:
             'pyObject': '%s' % self.pyObject,
             'factoryMatchAttrs': '%s' % self.factoryMatchAttrs,
             'jobMatchAttrs': '%s' % self.jobMatchAttrs,
+            'factoryQueryExpr': '%s' % self.factoryQueryExpr,
+            'jobQueryExpr': '%s' % self.jobQueryExpr,
+            'startExpr': '%s' % self.startExpr,
         }
         return '%s' % contents
-
-
-def print_match_info(group, match):
-   import pprint
-
-   print '---------------------------------------------'
-   print 'MATCH INFO FOR GROUP: %s' % group
-   print '---------------------------------------------'
-
-   pp = pprint.PrettyPrinter()
-   print 'match_expr:'
-   pp.pprint(match.match_expr)
-   print 'start_expr:'
-   pp.pprint(match.start_expr)
-   print 'match.factory.match_attrs'
-   pp.pprint(dict(match.factory.match_attrs))
-   print 'match.job.match_attrs'
-   pp.pprint(dict(match.job.match_attrs))
-   print '---------------------------------------------'
