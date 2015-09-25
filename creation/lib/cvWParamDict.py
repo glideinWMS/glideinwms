@@ -509,22 +509,6 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('MaxRunningTotalGlobal',params.config.running_glideins_total_global.max)
         frontend_dict.add('CurbRunningTotalGlobal',params.config.running_glideins_total_global.curb)
         frontend_dict.add('HighAvailability', params.high_availability)
-        #if params.match.policy_file:
-            #frontend_dict.add('MatchPolicyModule', MatchPolicy(params.match.policy_file))
-        #    frontend_dict.add('MatchPolicyFile', params.match.policy_file)
-        #    policy_module = MatchPolicy(params.match.policy_file)
-        #    frontend_dict.add('MatchPolicyModuleFactoryMatchAttrs', policy_module.factoryMatchAttrs)
-        #    frontend_dict.add('MatchPolicyModuleJobMatchAttrs', policy_module.jobMatchAttrs)
-        #    frontend_dict.add('MatchPolicyModuleFactoryQueryExpr', policy_module.factoryQueryExpr)
-        #    frontend_dict.add('MatchPolicyModuleJobQueryExpr', policy_module.jobQueryExpr)
-        #else:
-        #    frontend_dict.add('MatchPolicyModule', None)
-        #foo = MatchPolicy(params.match.policy_file)
-        #print '^^^^^^^^^^ frontend_dict'
-        #print type(foo)
-        #print frontend_dict.__class__.__name__
-        #print type(frontend_dict['MatchPolicyModule'])
-        #print '^^^^^^^^^^ frontend_dict'
 
 #######################
 # Populate group descript
@@ -547,19 +531,6 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
     group_descript_dict.add('MaxRunningTotal',sub_params.config.running_glideins_total.max)
     group_descript_dict.add('CurbRunningTotal',sub_params.config.running_glideins_total.curb)
     group_descript_dict.add('MaxMatchmakers',sub_params.config.processing_workers.matchmakers)
-    #if sub_params.match.policy_file:
-    #    #group_descript_dict.add('MatchPolicyModule', MatchPolicy(sub_params.match.policy_file))
-    #    group_descript_dict.add('MatchPolicyFile', sub_params.match.policy_file)
-    #    policy_module = MatchPolicy(sub_params.match.policy_file)
-    #    group_descript_dict.add('MatchPolicyModuleFactoryMatchAttrs', policy_module.factoryMatchAttrs)
-    #    group_descript_dict.add('MatchPolicyModuleJobMatchAttrs', policy_module.jobMatchAttrs)
-    #    group_descript_dict.add('MatchPolicyModuleFactoryQueryExpr', policy_module.factoryQueryExpr)
-    #    group_descript_dict.add('MatchPolicyModuleJobQueryExpr', policy_module.jobQueryExpr)
-    #else:
-    #    group_descript_dict.add('MatchPolicyModule', None)
-    #print '^^^^^^^^^^'
-    #print type(group_descript_dict['MatchPolicyModule'])
-    #print '^^^^^^^^^^'
     if (sub_params.attrs.has_key('GLIDEIN_Glexec_Use')):
         group_descript_dict.add('GLIDEIN_Glexec_Use',sub_params.attrs['GLIDEIN_Glexec_Use']['value'])
 

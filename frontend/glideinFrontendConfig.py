@@ -242,34 +242,6 @@ class ElementMergedDescript:
 
         self.merge()
 
-        print "\n============>>>>>>>>>>>>>>>>> glideFrontendConfig.ElementMergedDescript::__init__"
-        print 'FRONTEND::FactoryMatchAttrs: %s' % self.frontend_data['FactoryMatchAttrs']
-        print 'FRONTEND::JobMatchAttrs: %s' % self.frontend_data['JobMatchAttrs']
-        print
-        print 'GROUP::FactoryMatchAttrs: %s' % self.element_data['FactoryMatchAttrs']
-        print 'GROUP::JobMatchAttrs: %s' % self.element_data['JobMatchAttrs']
-        print
-        #print 'MERGED::FactoryMatchAttrs: %s' % self.merged_data['FactoryMatchAttrs']
-        print 'MERGED::JobQueryExpr: %s' % self.merged_data['JobQueryExpr']
-        print 'MERGED::FactoryQueryExpr: %s' % self.merged_data['FactoryQueryExpr']
-        print 'MERGED::FactoyMatchAttrs: %s' % self.merged_data['FactoryMatchAttrs']
-        print 'MERGED::JobMatchAttrs: %s' % self.merged_data['JobMatchAttrs']
-        print
-        print 'MERGED::MatchPolicyModules: %s' % self.merged_data['MatchPolicyModules']
-        print
-        print
-        print sorted(self.frontend_data.keys())
-        print
-        print sorted(self.element_data.keys())
-        print
-        print sorted(self.merged_data.keys())
-        print
-        print
-        print 'FRONTEND::MatchPolicyFile: %s' % self.frontend_data.get('MatchPolicyFile')
-        print 'GROUP::MatchPolicyFile: %s' % self.element_data.get('MatchPolicyFile')
-        #print 'MERGED::MatchPolicyFile: %s' % self.merged_data['MatchPolicyFile']
-        print "\n============>>>>>>>>>>>>>>>>> glideFrontendConfig.ElementMergedDescript::__init__"
-
     #################
     # Private
     def merge(self):

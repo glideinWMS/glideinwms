@@ -627,7 +627,6 @@ class VOFrontendParams(cWParams.CommonParams):
             # Shorthand for easy access
             group_module = self.match_policy_modules['groups'].get(group_name)
             if group_module:
-                print '**** %s: update_match_attrs' % group_name
                 if group_module.factoryMatchAttrs:
                     self.groups[group_name].match.factory.match_attrs.data = group_module.factoryMatchAttrs
                 if group_module.jobMatchAttrs:
