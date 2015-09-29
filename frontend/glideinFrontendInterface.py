@@ -999,7 +999,7 @@ class MultiAdvertizeWork:
                 logSupport.log.error("Error there is no delimiter (=). There should be just one =" )
                 raise NoCredentialException
 
-            if len(list_delimiter) >= 1:
+            if len(list_delimiter) > 1:
                 logSupport.log.error("Error multple delimiter (=) found. There should be just one =" )
                 raise NoCredentialException
 
