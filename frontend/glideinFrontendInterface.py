@@ -967,35 +967,36 @@ class MultiAdvertizeWork:
 
     def vm_attribute_from_file(self, filename, prefix):
         """
-        this method now enforces the syntax strictly which is VM_ID=ami-something or VM_TYPE=sometime
-        There should be one and only one line for VM_ID=ami-something and one line for VM_TYPE=sometime
-        the prefix should be precisely VM_ID or VM_TYPE
-        there should one and only one instance of the delimiter "=" in each of VM_ID=ami-something or VM_TYPE=sometime
-        there should be some string after the delimiter.
-        Note: this method does not check if the string that follows VM_ID is meaningful AMI or the string that follows VM_TYPE is one of AWS instance types.
+        Expected syntax: VM_ID=<ami id> or VM_TYPE=<instance type>
+
+        Note: This method does not check if the string that follows VM_ID
+              is meaningful AMI or the string that follows VM_TYPE is one
+              of AWS instance types.
         """
 
         values = []
         try:
-            vmfile = open(str(filename) , 'r')
+            vmfile = open(filename, 'r')
             for line in vmfile.readlines():
-                value_idx = line.find('=')
-                if ((line[:value_idx]).strip() == prefix) and (value_idx > 0):
-                    value = (line[value_idx+1:]).strip()
-                    if value != '':
-                        values.append(value)
+                sep_idx = line.find('=')
+                if (sep_idx > 0):
+                    key = (line[:sep_idx]).strip()
+                    if (key.upper() == prefix.upper()):
+                        value = (line[sep_idx+1:]).strip()
+                        if value != '':
+                            values.append(value)
         except:
             logSupport.log.exception('Failed to read the file %s' % (prefix, filename))
             raise NoCredentialException
-        
+
         if len(values) > 1:
-            logSupport.log.error("Error there are multipel lines that contain %s in %s. There should be just one line" % (prefix, str(filename)))
+            logSupport.log.error("Found multiple lines that contain %s in %s" % (prefix, filename))
             raise NoCredentialException
         elif len(values) == 0:
-            logSupport.log.error("Error no line that contains %s found in %s" % (prefix, str(filename)))
+            logSupport.log.error("File %s does not contain %s" % (filename, prefix))
             raise NoCredentialException
-        
-        logSupport.log.debug("The found value for %s is %s in %s." % (prefix, values[0], str(filename)))
+
+        logSupport.log.debug("Found %s = %s from file %s" % (prefix, values[0], filename))
         return values[0]
 
     def createAdvertizeWorkFile(self, factory_pool, params_obj, key_obj=None, file_id_cache=None): 
