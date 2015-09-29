@@ -965,57 +965,38 @@ class MultiAdvertizeWork:
 
             return [] # No files left to be advertized
 
-    def vm_attribute_from_file(self, filename, prefix ):
-# this method now enforces the syntax strictly which is VM_ID=ami-something or VM_TYPE=sometime
-# There should be one and only one line for VM_ID=ami-something and one line for VM_TYPE=sometime
-# the prefix should be precisely VM_ID or VM_TYPE
-# there should one and only one instance of the delimiter "=" in each of VM_ID=ami-something or VM_TYPE=sometime
-# there should be some string after the delimiter.
-# Note: this method does not check if the string that follows VM_ID is meaningful AMI or the string that follows VM_TYPE is one of AWS instance types.
-        with open( str(filename) , 'r') as vmfile:
-            entire_lines = vmfile.readlines()
+    def vm_attribute_from_file(self, filename, prefix):
+        """
+        this method now enforces the syntax strictly which is VM_ID=ami-something or VM_TYPE=sometime
+        There should be one and only one line for VM_ID=ami-something and one line for VM_TYPE=sometime
+        the prefix should be precisely VM_ID or VM_TYPE
+        there should one and only one instance of the delimiter "=" in each of VM_ID=ami-something or VM_TYPE=sometime
+        there should be some string after the delimiter.
+        Note: this method does not check if the string that follows VM_ID is meaningful AMI or the string that follows VM_TYPE is one of AWS instance types.
+        """
 
-            is_prefix_present_count=0
-            prefix_found = ''
-
-            for line in entire_lines:
-                linestripped = line.rstrip('\n')
-                if linestripped.startswith( prefix ):
-                    is_prefix_present_count+=1
-                    if is_prefix_present_count == 1:
-                        prefix_found = linestripped
-
-            if is_prefix_present_count == 0:
-                logSupport.log.error("Error no line that contains %s found in %s" % ( prefix, str(filename) ) )
-                raise NoCredentialException
-
-            if is_prefix_present_count > 1:
-                logSupport.log.error("Error there are multipel lines that contain %s in %s. There should be just one line" % ( prefix, str(filename) ) )
-                raise NoCredentialException
-
-            list_delimiter = re.findall( '=', prefix_found )
-
-            if len(list_delimiter) == 0:
-                logSupport.log.error("Error there is no delimiter (=). There should be just one =" )
-                raise NoCredentialException
-
-            if len(list_delimiter) > 1:
-                logSupport.log.error("Error multple delimiter (=) found. There should be just one =" )
-                raise NoCredentialException
-
-            wordlist = prefix_found.split('=')
-            wordkey = wordlist[0]
-            if wordkey != prefix:
-                logSupport.log.error("Error the key before delimiter = should be precisely equal to %s" % ( prefix ) )
-                raise NoCredentialException
-
-# at this point, wordlist always contains two elements where the second can be null if the user forgets to assign
-            wordvalue = wordlist[1]
-            if not wordvalue:
-                logSupport.log.error("Error the value after delimiter = should NOT be null"  )
-                raise NoCredentialException
-
-            return wordvalue
+        values = []
+        try:
+            vmfile = open(str(filename) , 'r')
+            for line in vmfile.readlines():
+                value_idx = line.find('=')
+                if ((line[:value_idx]).strip() == prefix) and (value_idx > 0):
+                    value = (line[value_idx+1:]).strip()
+                    if value != '':
+                        values.append(value)
+        except:
+            logSupport.log.exception('Failed to read the file %s' % (prefix, filename))
+            raise NoCredentialException
+        
+        if len(values) > 1:
+            logSupport.log.error("Error there are multipel lines that contain %s in %s. There should be just one line" % (prefix, str(filename)))
+            raise NoCredentialException
+        elif len(values) == 0:
+            logSupport.log.error("Error no line that contains %s found in %s" % (prefix, str(filename)))
+            raise NoCredentialException
+        
+        logSupport.log.debug("The found value for %s is %s in %s." % (prefix, values[0], str(filename)))
+        return values[0]
 
     def createAdvertizeWorkFile(self, factory_pool, params_obj, key_obj=None, file_id_cache=None): 
         """
