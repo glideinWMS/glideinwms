@@ -985,7 +985,7 @@ class MultiAdvertizeWork:
                     if value != '':
                         values.append(value)
         except:
-            logSupport.log.exception('Failed to read the file %s' % (prefix, filename))
+            logSupport.log.exception('Failed to read the file %s' % (filename))
             raise NoCredentialException
         
         if len(values) > 1:
