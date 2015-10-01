@@ -366,12 +366,6 @@ class VOFrontendParams(cWParams.CommonParams):
         # Load all the match policy modules upfront since we need them
         self.load_match_policies()
 
-        # TODO: PARAG
-        # ISSUE: Need to reconfig twice to load module. We may not be setting
-        #        the module search path correctly
-
-
-
         # TODO: Do we really need to validate frontend main section?
         # This gets validated any ways in the groups section
         policy_modules = []
