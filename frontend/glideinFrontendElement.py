@@ -90,7 +90,7 @@ class glideinFrontendElement:
         self.paramsDescript = glideinFrontendConfig.ParamsDescript(self.work_dir, self.group_name)
         self.signatureDescript = glideinFrontendConfig.GroupSignatureDescript(self.work_dir, self.group_name)
         self.attr_dict = glideinFrontendConfig.AttrsDescript(self.work_dir,self.group_name).data
-        self.history_obj = glideinFrontendConfig.HistoryFile(self.work_dir, self.group_name,
+        self.history_obj = glideinFrontendConfig.HistoryFile(self.work_dir,self.group_name,
                                                              True, # auto load
                                                              dict) # automatically initialze objects to dictionaries, if needed
         # PS: The default initialization is not to CounterWrapper, to avoid saving custom classes to disk
@@ -1480,13 +1480,14 @@ class glideinFrontendElement:
                  
         """
         out = ()
-       
+
         c,p,h,pmc = glideinFrontendLib.countMatch(
                         self.elementDescript.merged_data['MatchExprCompiledObj'],
                         self.condorq_dict_types[dt]['dict'],
                         self.glidein_dict,
                         self.attr_dict,
-                        self.condorq_match_list)
+                        self.condorq_match_list,
+                        match_policies=self.elementDescript.merged_data['MatchPolicyModules'])
         t=glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])
 
         out=(c,p,h,pmc,t)
@@ -1500,7 +1501,8 @@ class glideinFrontendElement:
                   self.condorq_dict_running,
                   self.glidein_dict,
                   self.attr_dict,
-                  self.condorq_match_list)
+                  self.condorq_match_list,
+                  match_policies=self.elementDescript.merged_data['MatchPolicyModules'])
         return out
 
     def subprocess_count_glidein(self, glidein_list):
