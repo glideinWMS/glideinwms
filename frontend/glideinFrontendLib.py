@@ -309,14 +309,17 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
                 try:
                     # Evaluate the Compiled object first.
                     # Evaluation order does not really matter.
-                    # PM: TODO: Do we need to validate if returns are bool?
                     match = eval(match_obj)
                     for policy in match_policies:
-                        if match == False:
+                        if match == True:
                             # Policies are supposed to be ANDed
-                            break
-                        else:
                             match = (match and policy.pyObject.match(job, glidein))
+                        else:
+                            if match != False:
+                                # Non boolean results should be discarded
+                                # and logged
+                                logSupport.log.warning("Match expression from policy file '%s' evaluated to non boolean result; assuming False" % policy.file)
+                            break
 
                     #if eval(match_obj):
                     if match:
