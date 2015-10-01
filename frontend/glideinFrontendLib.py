@@ -508,7 +508,6 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
                 try:
                     # Evaluate the Compiled object first.
                     # Evaluation order does not really matter.
-                    # PM: TODO: Do we need to validate if returns are bool?
                     match = ((job['RunningOn']==glide_str) and eval(match_obj))
                     for policy in match_policies:
                         if match == True:
