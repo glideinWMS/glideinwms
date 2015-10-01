@@ -321,7 +321,6 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
                                 logSupport.log.warning("Match expression from policy file '%s' evaluated to non boolean result; assuming False" % policy.file)
                             break
 
-                    #if eval(match_obj):
                     if match:
                         # the first matched... add all jobs in the cluster
                         cluster_arr=[]
@@ -512,11 +511,15 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
                     # PM: TODO: Do we need to validate if returns are bool?
                     match = ((job['RunningOn']==glide_str) and eval(match_obj))
                     for policy in match_policies:
-                        if match == False:
+                        if match == True:
                             # Policies are supposed to be ANDed
-                            break
-                        else:
                             match = (match and policy.pyObject.match(job, glidein))
+                        else:
+                            if match != False:
+                                # Non boolean results should be discarded
+                                # and logged
+                                logSupport.log.warning("Match expression from policy file '%s' evaluated to non boolean result; assuming False" % policy.file)
+                            break
 
                     if match:
                         schedd_count+=len(cq_dict_clusters_el[jh])
