@@ -1340,7 +1340,13 @@ class ResourceClassad(classadSupport.Classad):
                     self.adParams[ad_key] = info[key]
 
 # v3/7920 start
-    def setCurbsAndLimits(self, which_limits_triggered ): 
+    def setCurbsAndLimits(self, which_limits_triggered): 
+        """
+        Set descriptive messages about which limits and curbs 
+            have been triggered in deciding number of glideins to request
+        @type  which_limits_triggered: dictionary
+        @param which_limits_triggered: contain a subset of limits and curbs that have been triggered
+        """
         for k,v in which_limits_triggered.iteritems():
             if v == 1:
                 if k.startswith('Curb'):
