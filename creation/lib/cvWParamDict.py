@@ -654,12 +654,6 @@ def populate_common_descript(descript_dict, params):
         ma_arr = []
         qry_expr = params.match[param_tname]['query_expr']
 
-        # Append query_expr from modules
-        #if 'MatchPolicyModule%sQueryExpr'%str_tname in descript_dict:
-        #    qry_expr = '(%s) && (%s)' % (
-        #        qry_expr,
-        #        descript_dict['MatchPolicyModule%sQueryExpr'%str_tname])
-
         descript_dict.add('%sQueryExpr'%str_tname, qry_expr)
         ma_arr = match_attrs_to_array(params.match[param_tname]['match_attrs'])
         descript_dict.add('%sMatchAttrs'%str_tname, repr(ma_arr))

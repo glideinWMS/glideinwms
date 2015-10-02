@@ -500,11 +500,11 @@ class VOFrontendParams(cWParams.CommonParams):
 
         for attr_name in match_attrs.keys():
             attr_type = match_attrs[attr_name]['type']
-            attr_val = translations.get(attr_type)
-            if attr_val is None:
+            try:
+                translated_attrs[attr_name] =  translations[attr_type]
+            except KeyError, e:
                 raise RuntimeError, "Invalid %s %s attr type '%s'" % (
                     loc_str, match_attrs_name, attr_type)
-            translated_attrs[attr_name] = attr_val
 
         return translated_attrs
 
