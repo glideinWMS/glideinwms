@@ -1,4 +1,7 @@
 v3_3    Support native configuration of EC2 spot prices and AZ in the entry
+        Support frontend policies specified in external python file
+        Support changes to VM ID and VM Type without need to reconfig/upgrade
+          frontend service
         Bug Fix: Fixed a bug in gwms-logcat script
         Bug Fix: Fixed a bug where Frontend configured in HA mode would crash
           under a certain condition.
