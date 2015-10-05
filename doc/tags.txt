@@ -5,6 +5,9 @@ v3_3    Support native configuration of EC2 spot prices and AZ in the entry
         Bug Fix: Fixed a bug where ALIVEONLY reporting for
           Glidein_Report_Failed produces incorrect invalidate classads.
 
+v3_2_11_2 Bug Fix: Fixed authentication issue introduced in v3_2_11 where a
+          glidein startd fails to send keep alive signals to v8.2.x schedds
+
 v3_2_11_1 Bug Fix: Fixed a bug introduced in v3_2_11 where file period
           interpreted as number instead of string
 

@@ -30,7 +30,7 @@ eb3e5e1c14b6e25a0d6903302afe5d5f  ./creation/templates/factory_initd_startup_tem
 40a2b85a853a072f65049c4efe64bc3a  ./creation/web_base/check_blacklist.sh
 569bb2a8f8edd34719d3ba2cd08c1f37  ./creation/web_base/check_proxy.sh
 4d57eff610f9d1c62cf1770c6c42811a  ./creation/web_base/collector_setup.sh
-f8fd73235a6b524de280106557df8e8e  ./creation/web_base/condor_config
+722691cf062fd1c88058e33bfee16cbd  ./creation/web_base/condor_config
 97ea51e2881f46c22e5919938745c299  ./creation/web_base/condor_config.check.include
 25b01eb426a9d26434264fb306a3e839  ./creation/web_base/condor_config.dedicated_starter.include
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
