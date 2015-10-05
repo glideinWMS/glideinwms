@@ -321,7 +321,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
                                 logSupport.log.warning("Match expression from policy file '%s' evaluated to non boolean result; assuming False" % policy.file)
                             break
 
-                    if match:
+                    if match == True:
                         # the first matched... add all jobs in the cluster
                         cluster_arr=[]
                         for jid in cq_dict_clusters_el[jh]:
@@ -520,7 +520,7 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
                                 logSupport.log.warning("Match expression from policy file '%s' evaluated to non boolean result; assuming False" % policy.file)
                             break
 
-                    if match:
+                    if match == True:
                         schedd_count+=len(cq_dict_clusters_el[jh])
                         for jid in cq_dict_clusters_el[jh]:
                             job = condorq_data[jid]

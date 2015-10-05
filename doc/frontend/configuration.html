@@ -103,9 +103,9 @@ Click on any piece for a more detailed description.
         <a href="#">&lt;/process_logs &gt;</a><br/>
     </blockquote>
     <a href="#">&lt;/log_retention &gt;</a><br/>
-        <a href="#match">&lt;match match_expr="True" start_expr="True" policy_file="/path/to/python-policy-file"&gt;</a><br/>
+        <a href="#group_match">&lt;match match_expr="True" start_expr="True" policy_file="/path/to/python-policy-file"&gt;</a><br/>
         <blockquote>
-            <a href="#match">&lt;factory query_expr="True"&gt;</a><br/>
+            <a href="#group_match">&lt;factory query_expr="True"&gt;</a><br/>
             <blockquote>
                 <a href="#group_match_attr">&lt;match_attrs /&gt;</a><br/>
                 <a href="#wmscollector">&lt;collectors&gt;</a><br/>
@@ -114,10 +114,10 @@ Click on any piece for a more detailed description.
                 </blockquote>
                 <a href="#wmscollector">&lt;/collectors&gt;</a><br/>
             </blockquote>
-            <a href="#match">&lt;/factory&gt;</a><br/>
+            <a href="#group_match">&lt;/factory&gt;</a><br/>
             <a href="#job_query">&lt;job comment="" query_expr="(JobUniverse==5)&amp;&amp;(GLIDEIN_Is_Monitor =!= TRUE)&amp;&amp;(JOB_Is_Monitor =!= TRUE)"&gt;</a><br/>
             <blockquote>
-                <a href="#match">&lt;match_attrs /&gt;</a><br/>
+                <a href="#group_match">&lt;match_attrs /&gt;</a><br/>
                 <a href="#schedd">&lt;schedds&gt;</a><br/>
                 <blockquote>
                     <a href="#schedd">&lt;schedd DN="/DC=org/DC=doegrids/OU=Services/CN=userpool.fnal.gov" fullname="userpool.fnal.gov" /&gt;</a><br/>
@@ -128,7 +128,7 @@ Click on any piece for a more detailed description.
             </blockquote>
             <a href="#job_query">&lt;/job&gt;</a><br/>
         </blockquote>
-        <a href="#match">&lt;/match&gt;</a><br/>
+        <a href="#group_match">&lt;/match&gt;</a><br/>
         <br/>
         <a href="#monitor">&lt;monitor base_dir="/var/www/html/vofrontend/monitor" flot_dir="/opt/javascriptrrd-0.6.3/flot" javascriptRRD_dir="/opt/javascriptrrd-0.6.3/src/lib" jquery_dir="/opt/javascriptrrd-0.6.3/flot" /&gt;</a><br/>
         <a href="#monitor_footer">&lt;monitor_footer display_txt="Legal Disclaimer" href_link="/site/disclaimer.html"  /&gt;</a><br/><br/>
@@ -1110,6 +1110,7 @@ factory_match_attrs = {
 }
 job_match_attrs = {
         'DESIRED_Sites': {'type': 'string', 'comment': 'From policy'}
+}
         </pre>
 </p>
 </div>

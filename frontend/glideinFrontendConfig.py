@@ -5,8 +5,6 @@ import cPickle
 import copy
 import sys
 
-sys.path.append(os.path.join(sys.path[0],"../.."))
-
 from glideinwms.creation.lib.matchPolicy import MatchPolicy
 from glideinwms.lib import hashCrypto
 
