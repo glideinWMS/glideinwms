@@ -529,13 +529,15 @@ class glideinFrontendElement:
             # Compute min glideins required based on multicore jobs
             effective_idle_mc = max(prop_mc_jobs['Idle'] - count_status['Idle'], 0)
             effective_oldidle_mc = max(prop_mc_jobs['OldIdle']-count_status['Idle'], 0)
+
+            which_limits_triggered = {}
             glidein_min_idle = self.compute_glidein_min_idle(
                                    count_status, total_glideins,
                                    total_idle_glideins, fe_total_glideins,
                                    fe_total_idle_glideins,
                                    global_total_glideins,
                                    global_total_idle_glideins,
-                                   effective_idle_mc, effective_oldidle_mc)
+                                   effective_idle_mc, effective_oldidle_mc, which_limits_triggered)
 
             glidein_max_run = self.compute_glidein_max_run(
                                   prop_mc_jobs, self.count_real[glideid])
@@ -676,7 +678,7 @@ class glideinFrontendElement:
             resource_classad = self.build_resource_classad(
                                    this_stats_arr, request_name,
                                    glidein_el, glidein_in_downtime,
-                                   factory_pool_node, my_identity)
+                                   factory_pool_node, my_identity, which_limits_triggered)
             resource_advertiser.addClassad(resource_classad.adParams['Name'],
                                            resource_classad)
 
@@ -858,7 +860,7 @@ class glideinFrontendElement:
 
     def build_resource_classad(self, this_stats_arr, request_name,
                                glidein_el, glidein_in_downtime,
-                               factory_pool_node, my_identity):
+                               factory_pool_node, my_identity, which_limits_triggered):
         # Create the resource classad and populate the required information
         resource_classad = glideinFrontendInterface.ResourceClassad(
                                request_name, self.published_frontend_name)
@@ -890,6 +892,9 @@ class glideinFrontendElement:
         except RuntimeError:
             logSupport.log.exception("Populating GlideClientMonitor info in resource classad failed: ")
 
+        # simply invoke a new method in glideinFrontendInterface.py
+        resource_classad.setCurbsAndLimits(which_limits_triggered)
+
         return resource_classad
 
 
@@ -898,14 +903,50 @@ class glideinFrontendElement:
                                  fe_total_idle_glideins,
                                  global_total_glideins,
                                  global_total_idle_glideins,
-                                 effective_idle, effective_oldidle):
+                                 effective_idle, effective_oldidle, which_limits_triggered):
         """
         Calculate the number of idle glideins to request from the factory
+        New feature is, using a new argument, which_limits_triggered, 
+        mark those limits and curbs that are triggered, these will be advertized in glideresource
         """
 
         if self.request_removal_wtype is not None:
             # we are requesting the removal of glideins, do not request more
             return 0
+
+        # mark those limits and curbs that are triggered, these will be advertized in glideresource
+        if (count_status['Total']      >= self.max_running):
+            which_limits_triggered['TotalGlideinsPerEntry'] = 1
+        if (count_status['Idle']       >= self.max_vms_idle):
+            which_limits_triggered['IdleGlideinsPerEntry'] = 1
+        if (total_glideins             >= self.total_max_glideins):
+            which_limits_triggered['TotalGlideinsPerGroup'] = 1
+        if (total_idle_glideins        >= self.total_max_vms_idle):
+            which_limits_triggered['IdleGlideinsPerGroup'] = 1
+        if (fe_total_glideins          >= self.fe_total_max_glideins):
+            which_limits_triggered['TotalGlideinsPerFrontend'] = 1
+        if (fe_total_idle_glideins     >= self.fe_total_max_vms_idle):
+            which_limits_triggered['IdleGlideinsPerFrontend'] = 1
+        if (global_total_glideins      >= self.global_total_max_glideins):
+            which_limits_triggered['TotalGlideinsGlobal'] = 1
+        if (global_total_idle_glideins >= self.global_total_max_vms_idle):
+            which_limits_triggered['IdleGlideinsGlobal'] = 1
+
+        if count_status['Idle']        >= self.curb_vms_idle:
+            which_limits_triggered['CurbIdleGlideinsPerEntry'] = 1
+        if total_glideins              >= self.total_curb_glideins:
+            which_limits_triggered['CurbTotalGlideinsPerGroup'] = 1
+        if total_idle_glideins         >= self.total_curb_vms_idle:
+            which_limits_triggered['CurbIdleGlideinsPerGroup'] = 1
+        if fe_total_glideins           >= self.fe_total_curb_glideins:
+            which_limits_triggered['CurbTotalGlideinsPerFrontend'] = 1
+        if fe_total_idle_glideins      >= self.fe_total_curb_vms_idle:
+            which_limits_triggered['CurbIdleGlideinsPerFrontend'] = 1
+        if global_total_glideins       >= self.global_total_curb_glideins:
+            which_limits_triggered['CurbTotalGlideinsGlobal'] = 1
+        if global_total_idle_glideins  >= self.global_total_curb_vms_idle:
+            which_limits_triggered['CurbIdleGlideinsGlobal'] = 1
+
 
         if ( (count_status['Total'] >= self.max_running) or
              (count_status['Idle'] >= self.max_vms_idle) or
