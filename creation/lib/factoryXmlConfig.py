@@ -2,10 +2,40 @@ import os
 from xml.dom.minidom import parse
 import collections
 
+INDENT_WIDTH = 3
 ENTRY_INDENT = 6
 ENTRY_DIR = 'entries.d'
 
-class XmlElementIterator(collections.Iterator):
+XML_LIST_TAGS = set([ 
+u'attrs',
+u'allow_frontends',
+u'condor_tarballs',
+u'entries',
+u'files',
+u'frontends',
+u'infosys_refs',
+u'monitorgroups',
+u'monitoring_collectors',
+u'per_frontends',
+u'process_logs',
+u'security_classes',
+u'submit_attrs'
+])
+
+class XmlElement(object):
+    def __init__(self, doc, xml, level):
+        self.doc = doc
+        self.xml = xml
+        self.level = level
+
+    def __str__(self):
+        return self.xml.toxml()
+
+    # children should override this
+    def build_tree(self):
+        pass
+
+class XmlDictIterator(collections.Iterator):
     def __init__(self, attributes):
         self.i = 0
         self.attributes = attributes
@@ -16,52 +46,102 @@ class XmlElementIterator(collections.Iterator):
         self.i += 1
         return cur_key
 
-class XmlElement(collections.Mapping):
-    def __init__(self, xml):
-        self.xml = xml
-        self.children = []
+class XmlDict(XmlElement, collections.MutableMapping):
+    def __init__(self, doc, xml, level):
+        super(XmlDict, self).__init__(doc, xml, level)
+        self.children = {}
 
     def __getitem__(self, key):
         return self.xml.getAttribute(key)
 
+    def __setitem__(self, key, value):
+        self.xml.setAttribute(key, value)
+
+    def __delitem__(self, key):
+        self.xml.removeAttribute(key)
+
     def __contains__(self, key):
         return self.xml.hasAttribute(key)
 
-    def __str__(self):
-        return self.xml.toxml()
-
     def __iter__(self):
-        return XmlElementIterator(self.xml.attributes)
+        return XmlDictIterator(self.xml.attributes)
 
     def __len__(self):
         return self.xml.attributes.length
 
+    def has_child(self, tag):
+        return tag in self.children
+
     def get_child(self, tag):
-        child = None
-        for c in self.children:
-            if c.xml.tagName == tag:
-                child = c
-                break
-        return child
+        return self.children[tag]
 
     def get_child_list(self, tag):
-        child = self.get_child(tag)
-        if child is None:
-            return None
-        return child.children
+        return self.get_child(tag).get_children()
 
-    def find(self, tag):
-        found = []
-        self._find(tag, found)
-        return found
+    def build_tree(self):
+        for c in self.xml.childNodes:
+            if c.nodeType == c.ELEMENT_NODE:
+                if c.tagName in XML_LIST_TAGS:
+                    self.children[c.tagName] = XmlList(self.doc, c, self.level + 1)
+                else:
+                    self.children[c.tagName] = XmlDict(self.doc, c, self.level + 1)
 
-    def _find(self, tag, found):
-        for c in self.children:
-            if c.xml.tagName == tag:
-                found.append(c)
-            c._find(tag, found)
+                self.children[c.tagName].build_tree()
 
-class XmlAttrElement(XmlElement):
+    def merge_default_attrs(self, default):
+        for key in default:
+            if not key in self:
+                self[key] = default[key]
+
+    def merge_defaults(self, default):
+        self.merge_default_attrs(default)
+        for tag in default.children:
+            # xml blob completely missing from config, add it
+            if tag not in self.children:
+                # if its an xml list that is missing just create a new empty one
+                if isinstance(default.children[tag], XmlList):
+                    new_child = self.doc.createElement(tag)
+                # otherwise clone from default
+                else:
+                    new_child = self.doc.importNode(default.children[tag].xml, True)
+                # put new xml element in the top of parent
+                self.xml.insertBefore(new_child, self.xml.firstChild)
+                self.children[tag] = type(default.children[tag])(self.doc, new_child, self.level + 1)
+                self.children[tag].build_tree()
+                # insert line break in front for readability
+                line_break = self.doc.createTextNode(u'\n%*s' % (INDENT_WIDTH * (self.level + 1),' '))
+                self.xml.insertBefore(line_break, self.xml.firstChild)
+            # or continue down the tree
+            else:
+                self.children[tag].merge_defaults(default.children[tag])
+
+class XmlList(XmlElement):
+    def __init__(self, doc, xml, level):
+        super(XmlList, self).__init__(doc, xml, level)
+        self.children = []
+
+    def get_children(self):
+        return self.children
+
+    def build_tree(self):
+        for c in self.xml.childNodes:
+            if c.nodeType == c.ELEMENT_NODE:
+                if c.tagName == u'attr':
+                    self.children.append(XmlAttrElement(self.doc, c, self.level + 1)) 
+                elif c.tagName == u'file':
+                    self.children.append(XmlFileElement(self.doc, c, self.level + 1)) 
+                elif c.tagName == u'entry':
+                    self.children.append(XmlEntry(self.doc, c, self.level + 1))
+                else:
+                    self.children.append(XmlDict(self.doc, c, self.level + 1))
+
+                self.children[-1].build_tree()
+
+    def merge_defaults(self, default):
+        for child in self.children:
+            child.merge_defaults(default.children[0])
+
+class XmlAttrElement(XmlDict):
     def get_val(self):
         if (not self[u'type'] in ("string","int","expr")):
             raise RuntimeError, "Wrong attribute type '%s', must be either 'int' or 'string'"%self[u'type']
@@ -71,7 +151,7 @@ class XmlAttrElement(XmlElement):
         else:
             return int(self[u'value'])
 
-class XmlFileElement(XmlElement):
+class XmlFileElement(XmlDict):
     # this function converts a file element to the expected dictionary used in
     # cgWParamDict.add_file_unparsed()
     def to_dict(self):
@@ -118,7 +198,7 @@ class XmlFileElement(XmlElement):
 
         return file_dict
 
-class XmlEntry(XmlElement):
+class XmlEntry(XmlDict):
     def get_max_per_frontends(self):
         per_frontends = {}
         for per_fe in self.get_child(u'config').get_child(u'max_jobs').get_child_list(u'per_frontends'):
@@ -141,11 +221,10 @@ class XmlEntry(XmlElement):
             submit_attrs[sub_attr[u'name']] = attr_dict
         return submit_attrs
 
-class FactoryXmlConfig(XmlElement):
+class FactoryXmlConfig(XmlDict):
     def __init__(self, file):
-        super(FactoryXmlConfig, self).__init__(None)
+        super(FactoryXmlConfig, self).__init__(None, None, 0)
         self.file = file
-        self.dom = None
 
         # cached variables to minimize dom accesses for better performance
         # these are looked up for each and every entry on reconfig
@@ -173,12 +252,12 @@ class FactoryXmlConfig(XmlElement):
                     merge_entries(d1, d2, found_entries)
                     d2.unlink()
 
-        self.dom = d1
+        self.doc = d1
         self.xml = d1.documentElement
-        build_tree(self)
+        self.build_tree()
 
     def unlink(self):
-        self.dom.unlink()
+        self.doc.unlink()
 
     #######################
     #
@@ -218,9 +297,10 @@ class FactoryXmlConfig(XmlElement):
             self.client_log_dirs = {}
             client_dir = self.get_child(u'submit')[u'base_client_log_dir']
             glidein_name = self[u'glidein_name']
-            for sc in self.get_child(u'security').find(u'security_class'):
-                self.client_log_dirs[sc[u'username']] = os.path.join(client_dir,
-                    u"user_%s" % sc[u'username'], u"glidein_%s" % glidein_name)
+            for fe in self.get_child(u'security').get_child_list(u'frontends'):
+                for sc in fe.get_child_list(u'security_classes'):
+                    self.client_log_dirs[sc[u'username']] = os.path.join(client_dir,
+                        u"user_%s" % sc[u'username'], u"glidein_%s" % glidein_name)
 
         return self.client_log_dirs
 
@@ -229,9 +309,10 @@ class FactoryXmlConfig(XmlElement):
             self.client_proxy_dirs = {}
             client_dir = self.get_child(u'submit')[u'base_client_proxies_dir']
             glidein_name = self[u'glidein_name']
-            for sc in self.get_child(u'security').find(u'security_class'):
-                self.client_proxy_dirs[sc[u'username']] = os.path.join(client_dir,
-                    u"user_%s" % sc[u'username'], u"glidein_%s" % glidein_name)
+            for fe in self.get_child(u'security').get_child_list(u'frontends'):
+                for sc in fe.get_child_list(u'security_classes'):
+                    self.client_proxy_dirs[sc[u'username']] = os.path.join(client_dir,
+                        u"user_%s" % sc[u'username'], u"glidein_%s" % glidein_name)
 
         return self.client_proxy_dirs
 
@@ -255,17 +336,3 @@ def merge_entries(d1, d2, found_entries):
             entries1.insertBefore(line_break, entries1.lastChild)
             entries1.insertBefore(entry_clone, entries1.lastChild)
             found_entries[entry_name] = entry_clone
-
-def build_tree(element):
-    for c in element.xml.childNodes:
-        if c.nodeType == c.ELEMENT_NODE:
-            if c.tagName == u'attr':
-                element.children.append(XmlAttrElement(c)) 
-            elif c.tagName == u'file':
-                element.children.append(XmlFileElement(c)) 
-            elif c.tagName == u'entry':
-                element.children.append(XmlEntry(c))
-            else:
-                element.children.append(XmlElement(c))
-
-            build_tree(element.children[-1])
