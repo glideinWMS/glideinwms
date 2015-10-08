@@ -78,6 +78,10 @@ class XmlDict(XmlElement, collections.MutableMapping):
     def get_child_list(self, tag):
         return self.get_child(tag).get_children()
 
+    def clear_lists(self):
+        for tag in self.children:
+            self.children[tag].clear_lists()
+
     def build_tree(self):
         for c in self.xml.childNodes:
             if c.nodeType == c.ELEMENT_NODE:
@@ -101,13 +105,16 @@ class XmlDict(XmlElement, collections.MutableMapping):
                 # if its an xml list that is missing just create a new empty one
                 if isinstance(default.children[tag], XmlList):
                     new_child = self.doc.createElement(tag)
+                    self.children[tag] = type(default.children[tag])(self.doc, new_child, self.level + 1)
                 # otherwise clone from default
                 else:
                     new_child = self.doc.importNode(default.children[tag].xml, True)
+                    self.children[tag] = type(default.children[tag])(self.doc, new_child, self.level + 1)
+                    self.children[tag].build_tree()
+                    # zero out any xml lists
+                    self.children[tag].clear_lists()
                 # put new xml element in the top of parent
                 self.xml.insertBefore(new_child, self.xml.firstChild)
-                self.children[tag] = type(default.children[tag])(self.doc, new_child, self.level + 1)
-                self.children[tag].build_tree()
                 # insert line break in front for readability
                 line_break = self.doc.createTextNode(u'\n%*s' % (INDENT_WIDTH * (self.level + 1),' '))
                 self.xml.insertBefore(line_break, self.xml.firstChild)
@@ -122,6 +129,11 @@ class XmlList(XmlElement):
 
     def get_children(self):
         return self.children
+
+    def clear_lists(self):
+        while self.xml.firstChild is not None:
+            self.xml.removeChild(self.xml.firstChild).unlink()
+        self.children = []
 
     def build_tree(self):
         for c in self.xml.childNodes:
