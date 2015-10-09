@@ -260,6 +260,27 @@ function cond_print_log {
     fi
 }
 
+function find_gpus_num {
+    # use condor tools to find the available GPUs
+    if [ ! -f "$CONDOR_DIR/sbin/condor_gpu_discovery" ]; then
+        echo "WARNING: condor_gpu_discovery not found, assuming 1 GPUs" 1>&2
+        echo 1
+        return
+    else
+        tmp="`"$CONDOR_DIR"/sbin/condor_gpu_discovery | grep "^DetectedGPUs="`"
+        if [ "${tmp:13}" = 0 ]; then
+            echo "No GPUs found with condor_gpu_discovery, setting them to 0" 1>&2
+            echo 0
+            return
+        fi
+        set -- $tmp
+        echo "condor_gpu_discovery found $# GPUs: $tmp" 1>&2
+        echo $#
+    fi
+}
+
+
+
 # interpret the variables
 rm -f condor_vars.lst.tmp
 touch condor_vars.lst.tmp
@@ -583,6 +604,7 @@ if [ -n "$condor_config_resource_slots" ]; then
     echo "adding resource slots configuration: $condor_config_resource_slots" 1>&2
     cat >> "$CONDOR_CONFIG" <<EOF
 # ---- start of resource slots part ($condor_config_resource_slots) ----
+NEW_RESOURCES_LIST =
 EXTRA_SLOTS_NUM = 0
 EXTRA_SLOTS_START = True
 NUM_CPUS = \$(GLIDEIN_CPUS)+\$(EXTRA_SLOTS_NUM)
@@ -597,23 +619,35 @@ NUM_CPUS = \$(GLIDEIN_CPUS)+\$(EXTRA_SLOTS_NUM)
 #NUM_SLOTS_TYPE_1 = 1
 EOF
     # resource processing: res_name[,res_num[,res_total_ram[,res_opt]]]{;res_name[,res_num[,res_total_ram[,res_opt]]]}*
+    # res_opt: static, partitionable, main
     IFS=';' read -ra RESOURCES <<< "$condor_config_resource_slots"
     # Slot Type Counter - Leave slot type 2 for monitoring
     slott_ctr=3
+    #TODO: Handle correctly GPUs auto discovery
     for i in "${RESOURCES[@]}"; do
         IFS=',' read res_name res_num res_ram res_opt <<< "$i"
         if [ -z "$res_name" ]; then
             continue
         fi
         if [ -z "$res_num" ]; then
-            #TODO: do something special for GPUs (autodetect #)
-            res_num=1
+            #TODO: do something special for GPUs (autodetect)
+            if [ "`echo "$res_name" | tr -s '[:upper:]' '[:lower:]'`" = "gpus" ]; then
+                # GPUs auto-discovery: https://htcondor-wiki.cs.wisc.edu/index.cgi/wiki?p=HowToManageGpus
+                res_num="`find_gpus_num`"
+                AUTO_GPU=True
+            else
+                res_num=1
+            fi
         fi
         if [ -z "$res_ram" ]; then
+            # Will be ignored if res_opt=main
             let res_ram=128*${res_num}
         fi
         if [ "x$res_opt" == "xmain" ]; then  # which is the default value? main or static?
             res_opt=
+            # Resource allocated for only main slots (partitionable or static)
+            # Main slots are determined by CPUs. Let condor split the resource: if not enough some slot will have none
+            echo "SLOT_TYPE_1 = \$(SLOT_TYPE_1), ${res_name}=100%" >> "$CONDOR_CONFIG"
         else
             if [[ "$res_num" -eq 1 || "x$res_opt" == "xstatic" ]]; then
                 res_opt=static
@@ -622,11 +656,25 @@ EOF
                 res_opt=partitionable
             fi
         fi
-        cat >> "$CONDOR_CONFIG" <<EOF
-# declare static resource slots, each with 1 cpu: ${i}
+        if [ -n "$AUTO_GPU" ]; then
+            cat >> "$CONDOR_CONFIG" <<EOF
+# Declare GPUs resource, auto-discovered: ${i}
+use feature : GPUs
+GPU_DISCOVERY_EXTRA = -extra
+# Protect against no GPUs found
+if defined MACHINE_RESOURCE_${res_name}
+else
+  MACHINE_RESOURCE_${res_name} = 0
+endif
+EOF
+        else
+            cat >> "$CONDOR_CONFIG" <<EOF
+# Declare resource: ${i}
 MACHINE_RESOURCE_${res_name} = ${res_num}
 EOF
+        fi
         if [ -n "$res_opt" ]; then
+            # no main, separate static or partitionable
             cat >> "$CONDOR_CONFIG" <<EOF
 EXTRA_SLOTS_NUM = \$(EXTRA_SLOTS_NUM)+\$(MACHINE_RESOURCE_${res_name})
 EOF
@@ -646,31 +694,22 @@ EOF
             cat >> "$CONDOR_CONFIG" <<EOF
 IS_SLOT_${res_name} = SlotTypeID==${slott_ctr}
 EXTRA_SLOTS_START = ifThenElse((SlotTypeID==${slott_ctr}), TARGET.Request${res_name}>0, (\$(EXTRA_SLOTS_START)))
-
 EOF
             let slott_ctr+=1
-        else
-            if [ "X$slots_layout" = "Xpartitionable" ]; then
-                echo "SLOT_TYPE_1 = \$(SLOT_TYPE_1) ${res_name}=${res_num}" >> "$CONDOR_CONFIG"
-            else
-                # if static/fixed slots are used, the number of slots is determined by the number of CPUs
-                # this means that resources can be used only if there are enough of them (otherwise some slots will not be allocated)
-                cat >> "$CONDOR_CONFIG" <<EOF
-NUM_PER_SLOT_1_${res_name} = int(${res_num}/\$(NUM_SLOTS_TYPE_1))
-SLOT_TYPE_1 = \$(SLOT_TYPE_1) ${res_name}=\$(NUM_PER_SLOT_1_${res_name})
-EOF
-            fi
         fi
+        echo "NEW_RESOURCES_LIST = \$(NEW_RESOURCES_LIST) $res_name" >> "$CONDOR_CONFIG"
 
     done
 
     cat >> "$CONDOR_CONFIG" <<EOF
-# Update start expression
+# Update machine_resource_names and start expression
+if defined MACHINE_RESOURCE_NAMES
+  MACHINE_RESOURCE_NAMES = $\(MACHINE_RESOURCE_NAMES) \$(NEW_RESOURCES_LIST)
+endif
 START = (\$(START)) && (\$(EXTRA_SLOTS_START))
 EOF
 
 fi  # end of resource slot if
-
 
     # Set to shutdown if total idle exceeds max idle, or if the age
     # exceeds the retire time (and is idle) or is over the max walltime (todie)
