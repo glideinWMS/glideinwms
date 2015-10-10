@@ -65,11 +65,13 @@
           </files>
           <!-- infosys_refs are optional -->
           <infosys_refs>
-             <!-- infosys_ref required: type, server, ref -->
-         </infosys_refs>
+             <!-- required: type, server, ref -->
+             <infosys_ref/>
+          </infosys_refs>
           <!-- monitorgroups are optional -->
           <monitorgroups>
-             <!-- monitorgroup required: group_name -->
+             <!-- required: group_name -->
+             <monitorgroup/>
           </monitorgroups>
       </entry>
    </entries>
