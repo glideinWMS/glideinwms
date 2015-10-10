@@ -18,6 +18,9 @@ class Element(object):
     def __str__(self):
         return self.xml.toxml()
 
+    def unlink(self):
+        self.doc.unlink()
+
     # children should override this
     def build_tree(self):
         pass

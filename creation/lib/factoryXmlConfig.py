@@ -4,6 +4,7 @@ import xmlConfig
 
 ENTRY_INDENT = 6
 ENTRY_DIR = 'entries.d'
+FACTORY_DEFAULTS_XML = 'factory_defaults.xml'
 
 xmlConfig.register_list_elements([ 
 u'allow_frontends',
@@ -58,6 +59,13 @@ class Config(xmlConfig.DictElement):
         self.client_log_dirs = None
         self.client_proxy_dirs = None
 
+    def merge_defaults(self):
+        # assume FACTORY_DEFAULTS_XML is in factoryXmlConfig module directory
+        conf_def = Config(os.path.join(os.path.dirname(__file__), FACTORY_DEFAULTS_XML))
+        conf_def.parse()
+        super(Config, self).merge_defaults(conf_def)
+        conf_def.unlink()
+
     def parse(self):
         d1 = parse(self.file)
         entry_dir_path = os.path.join(os.path.dirname(self.file), ENTRY_DIR)
@@ -78,9 +86,6 @@ class Config(xmlConfig.DictElement):
         self.doc = d1
         self.xml = d1.documentElement
         self.build_tree()
-
-    def unlink(self):
-        self.doc.unlink()
 
     #######################
     #
