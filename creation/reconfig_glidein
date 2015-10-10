@@ -27,7 +27,7 @@ from glideinwms.creation.lib import cgWConsts
 from glideinwms.creation.lib import cWConsts
 from glideinwms.creation.lib import cgWCreate
 from glideinwms.creation.lib import cgWParamDict
-from glideinwms.creation.lib.factoryXmlConfig import FactoryXmlConfig
+from glideinwms.creation.lib import factoryXmlConfig
 from glideinwms.creation.lib import xslt
 from glideinwms.factory import glideFactoryMonitorAggregator
 from glideinwms.factory import glideFactoryConfig
@@ -200,8 +200,7 @@ if __name__ == '__main__':
             print usage
             sys.exit(1)
 
-    conf = FactoryXmlConfig(xml)
-    conf.parse()
+    conf = factoryXmlConfig.parse(xml)
 
     try:
         transformed_xmlfile = tempfile.NamedTemporaryFile()
