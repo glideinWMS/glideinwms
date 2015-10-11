@@ -7,7 +7,7 @@ LIST_TAGS = set([
     u'files',
 ])
 
-TAG_CLASS_MAPPINGS = {}
+TAG_CLASS_MAPPING = {}
 
 class Element(object):
     def __init__(self, doc, xml, level):
@@ -77,8 +77,8 @@ class DictElement(Element, collections.MutableMapping):
             if c.nodeType == c.ELEMENT_NODE:
                 if c.tagName in LIST_TAGS:
                     self.children[c.tagName] = ListElement(self.doc, c, self.level + 1)
-                elif c.tagName in TAG_CLASS_MAPPINGS:
-                    self.children[c.tagName] = (TAG_CLASS_MAPPINGS[c.tagName](self.doc, c, self.level + 1)) 
+                elif c.tagName in TAG_CLASS_MAPPING:
+                    self.children[c.tagName] = (TAG_CLASS_MAPPING[c.tagName](self.doc, c, self.level + 1)) 
                 else:
                     self.children[c.tagName] = DictElement(self.doc, c, self.level + 1)
 
@@ -132,8 +132,8 @@ class ListElement(Element):
             if c.nodeType == c.ELEMENT_NODE:
                 # we are assuming you wont' have a list element directly inside another list elemement
                 # so assume its either a custom mapping or a dict element
-                if c.tagName in TAG_CLASS_MAPPINGS:
-                    self.children.append(TAG_CLASS_MAPPINGS[c.tagName](self.doc, c, self.level + 1)) 
+                if c.tagName in TAG_CLASS_MAPPING:
+                    self.children.append(TAG_CLASS_MAPPING[c.tagName](self.doc, c, self.level + 1)) 
                 else:
                     self.children.append(DictElement(self.doc, c, self.level + 1))
 
@@ -153,7 +153,7 @@ class AttrElement(DictElement):
         else:
             return int(self[u'value'])
 
-TAG_CLASS_MAPPINGS.update({'attr': AttrElement})
+TAG_CLASS_MAPPING.update({'attr': AttrElement})
 
 class FileElement(DictElement):
     # this function converts a file element to the expected dictionary used in
@@ -202,7 +202,7 @@ class FileElement(DictElement):
 
         return file_dict
 
-TAG_CLASS_MAPPINGS.update({u'file': FileElement})
+TAG_CLASS_MAPPING.update({u'file': FileElement})
 
 #######################
 #
@@ -217,4 +217,4 @@ def register_list_elements(tag_list):
     LIST_TAGS.update(tag_list)
 
 def register_tag_classes(map_dict):
-    TAG_CLASS_MAPPINGS.update(map_dict)
+    TAG_CLASS_MAPPING.update(map_dict)
