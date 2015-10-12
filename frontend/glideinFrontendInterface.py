@@ -1341,21 +1341,20 @@ class ResourceClassad(classadSupport.Classad):
                     self.adParams[ad_key] = info[key]
 
 
-    def setCurbsAndLimits(self, which_limits_triggered):
+    def setCurbsAndLimits(self, limits_triggered):
         """
         Set descriptive messages about which limits and curbs
             have been triggered in deciding number of glideins to request
-        @type  which_limits_triggered: dictionary
-        @param which_limits_triggered: contain a subset of limits and curbs that have been triggered
+        @type  limits_triggered: dictionary
+        @param limits_triggered: contain a subset of limits and curbs that have been triggered
         """
-        for k,v in which_limits_triggered.iteritems():
-            if v == 1:
-                if k.startswith('Curb'):
-                    classadmessage = k + "_HasBeenTriggered_GlideinRequestsReduced"
-                else:
-                    classadmessage = k + "_HasBeenTriggered_NotRequestingMoreGlideins"
-
-                self.adParams[classadmessage] = 'Dummy'
+        for k,v in limits_triggered.iteritems():
+            if k.startswith('Curb'):
+                classadmessage = "GlideResource_Curb_"+k
+            else:
+                classadmessage = "GlideResource_Limit_"+k
+                
+            self.adParams[classadmessage] = 'CurbLimit'
 
 class ResourceClassadAdvertiser(classadSupport.ClassadAdvertiser):
     """
