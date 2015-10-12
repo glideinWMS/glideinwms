@@ -263,22 +263,26 @@ function cond_print_log {
 function find_gpus_num {
     # use condor tools to find the available GPUs
     if [ ! -f "$CONDOR_DIR/sbin/condor_gpu_discovery" ]; then
-        echo "WARNING: condor_gpu_discovery not found, assuming 1 GPUs" 1>&2
-        echo 1
-        return
-    else
-        tmp="`"$CONDOR_DIR"/sbin/condor_gpu_discovery | grep "^DetectedGPUs="`"
-        if [ "${tmp:13}" = 0 ]; then
-            echo "No GPUs found with condor_gpu_discovery, setting them to 0" 1>&2
-            echo 0
-            return
-        fi
-        set -- $tmp
-        echo "condor_gpu_discovery found $# GPUs: $tmp" 1>&2
-        echo $#
+        echo "WARNING: condor_gpu_discovery not found" 1>&2
+        return 1
     fi
+    local tmp1
+    tmp1="`"$CONDOR_DIR"/sbin/condor_gpu_discovery`"
+    local ec=$?
+    if [ $ec -ne 0 ]; then
+        echo "WARNING: condor_gpu_discovery failed (exit code: $ec)" 1>&2
+        return $ec
+    fi 
+    local tmp="`echo "$tmp1" | grep "^DetectedGPUs="`"
+    if [ "${tmp:13}" = 0 ]; then
+        echo "No GPUs found with condor_gpu_discovery, setting them to 0" 1>&2
+        echo 0
+        return
+    fi
+    set -- $tmp
+    echo "condor_gpu_discovery found $# GPUs: $tmp" 1>&2
+    echo $#
 }
-
 
 
 # interpret the variables
@@ -623,18 +627,23 @@ EOF
     IFS=';' read -ra RESOURCES <<< "$condor_config_resource_slots"
     # Slot Type Counter - Leave slot type 2 for monitoring
     slott_ctr=3
-    #TODO: Handle correctly GPUs auto discovery
     for i in "${RESOURCES[@]}"; do
         IFS=',' read res_name res_num res_ram res_opt <<< "$i"
         if [ -z "$res_name" ]; then
             continue
         fi
         if [ -z "$res_num" ]; then
-            #TODO: do something special for GPUs (autodetect)
             if [ "`echo "$res_name" | tr -s '[:upper:]' '[:lower:]'`" = "gpus" ]; then
                 # GPUs auto-discovery: https://htcondor-wiki.cs.wisc.edu/index.cgi/wiki?p=HowToManageGpus
-                res_num="`find_gpus_num`"
-                AUTO_GPU=True
+                res_num=`find_gpus_num`
+                ec=$?
+                if [ $ec -eq 0 ]; then
+                    echo "GPU autodiscovery (condor_gpu_discovery) found $res_num GPUs" 1>&2
+                    AUTO_GPU=True
+                else
+                    echo "GPU autodiscovery (condor_gpu_discovery) failed, disabling auto discovery, assuming one GPU." 1>&2
+                    res_num=1
+                fi
             else
                 res_num=1
             fi
