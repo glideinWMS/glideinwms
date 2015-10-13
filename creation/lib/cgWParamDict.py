@@ -635,9 +635,6 @@ def add_attr_unparsed(attr,dicts,description):
 def add_attr_unparsed_real(attr,dicts):
     attr_name = attr[u'name']
     
-    if not u'value' in attr or attr[u'value'] == u'None':
-        raise RuntimeError, "Attribute '%s' does not have a value: %s"%(attr_name,attr)
-    
     do_publish=eval(attr[u'publish'],{},{})
     is_parameter=eval(attr[u'parameter'],{},{})
     is_const=eval(attr[u'const'],{},{})
