@@ -411,8 +411,8 @@ by the VO factory clients.</P>
         (check the <a href=http://research.cs.wisc.edu/htcondor/manual/v8.2/3_5Policy_Configuration.html#SECTION004510000000000000000">
             HTCondor manual to learn more on how resources are split</a>)
         </p>
-        <p>Jobs submission must use <tt>require_RESOURCE=N</tt> with <tt>N&gt;0</tt> to use these slots or to use the resource in the main slot,
-            e.g. require_ioslot=1</p>
+        <p>Jobs submission must use <tt>request_RESOURCE=N</tt> with <tt>N&gt;0</tt> to use these slots or to use the resource in the main slot,
+            e.g. request_ioslot=1</p>
         <p>Examples:<br>
         <ul>
             <li><b>value="ioslot,2,200,static"</b> creates statically partitioned 2 ioslot resources with 100MB memory each.</li>
