@@ -145,13 +145,21 @@ class ListElement(Element):
 
 class AttrElement(DictElement):
     def get_val(self):
-        if (not self[u'type'] in ("string","int","expr")):
-            raise RuntimeError, "Wrong attribute type '%s', must be either 'int' or 'string'"%self[u'type']
-
         if self[u'type'] in ("string","expr"):
             return str(self[u'value'])
         else:
             return int(self[u'value'])
+
+    def validate(self):
+        if not u'name' in self:
+            raise RuntimeError, 'missing "name" attribute: %s' % self
+        if not u'value' in self:
+            raise RuntimeError, 'missing "value" attribute: %s' % self
+        if not self[u'type'] in ("string","int","expr"):
+            raise RuntimeError, 'type must be "int", "string", or "expr": %s' % self
+        for flag in (u'glidein_publish', u'job_publish', u'parameter'):
+            if self[flag] != u'True' and self[flag] != u'False':
+                raise RuntimeError, '%s must be "True" or "False": %s' % (flag, self)
 
 TAG_CLASS_MAPPING.update({'attr': AttrElement})
 
