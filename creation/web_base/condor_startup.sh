@@ -260,6 +260,66 @@ function cond_print_log {
     fi
 }
 
+
+function fix_param () {
+    # Fix a parameter list with positional and dictionary parameters
+    # 1. parameters, comma separated, parameter or name=value, positional parameters must come before all dictionary ones
+    # 2. parameter names (all), comma separated, in the correct order (no extra comma at beginning or end)
+    # return on stdout the expanded list, comma separated
+    # exit code: 0=ok 1=error (echo on stderr error conditions)
+    # e.g. fix_param 11,q4=44,q3=33 q1,q2,q3,q4   ->   11,,33,44
+
+    if [[ -z "$2" || ! "$1" == *=* ]]; then
+        echo "$1"
+        return
+    fi
+    local varnames
+    local varnames_len
+    local PARLIST
+    IFS=',' read -ra PARLIST <<< "$1"
+    varnames_len="${2//[^,]/},"
+    if [ ${#PARLIST[@]} -gt ${#varnames_len} ]; then
+        echo "Parameter list ($1) longer than possible parameters ($2). Aborting." 1>&2
+        return 1
+    fi
+    varnames=",$2,"
+    # prepare reverse index
+    for i in "${!my_array[@]}"; do
+        if [[ "${my_array[$i]}" = "${value}" ]]; then
+            echo "${i}";
+        fi
+    done
+    local dict_start=
+    local res_ctr=0
+    local r1
+    local r2
+    local RESLIST
+    declare -a RESLIST
+    for i in "${PARLIST[@]}"; do
+        if [[ "$i" == *=* ]]; then
+            dict_start=yes
+            # find name position
+            r1=${varnames%,${i%%=*},*}
+            r2=${r1//[^,]/}
+            RESLIST[${#r2}]=${i#*=}
+        else
+            if [ -n "$dict_start" ]; then
+                echo "Positional parameter after dictionary in ($1). Aborting." 1>&2
+                return 1
+            fi
+            RESLIST[res_ctr]=$i
+        fi
+        let res_ctr+=1
+    done
+    res="${RESLIST[0]}"
+    let res_ctr=${#varnames_len}-1
+    for i in $(seq 1 1 $res_ctr 2>/dev/null); do
+        res="$res,${RESLIST[$i]}"
+    done
+    echo $res
+}
+
+
 function find_gpus_num {
     # use condor tools to find the available GPUs
     if [ ! -f "$CONDOR_DIR/sbin/condor_gpu_discovery" ]; then
@@ -628,7 +688,8 @@ EOF
     # Slot Type Counter - Leave slot type 2 for monitoring
     slott_ctr=3
     for i in "${RESOURCES[@]}"; do
-        IFS=',' read res_name res_num res_ram res_opt <<< "$i"
+        resource_params="`fix_param "$i" "name,number,memory,type"`"
+        IFS=',' read res_name res_num res_ram res_opt <<< "$resource_params"
         if [ -z "$res_name" ]; then
             continue
         fi
