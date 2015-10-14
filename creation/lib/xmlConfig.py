@@ -1,3 +1,4 @@
+import os
 import collections
 
 INDENT_WIDTH = 3
@@ -84,6 +85,14 @@ class DictElement(Element, collections.MutableMapping):
 
                 self.children[c.tagName].build_tree()
 
+    def check_boolean(self, flag):
+        if self[flag] != u'True' and self[flag] != u'False':
+            raise RuntimeError, '%s must be "True" or "False": %s' % (flag, self)
+
+    def check_missing(self, attr):
+        if not attr in self:
+            raise RuntimeError, 'missing "%s" attribute: %s' % (attr,self)
+
     def merge_default_attrs(self, default):
         for key in default:
             if not key in self:
@@ -151,64 +160,37 @@ class AttrElement(DictElement):
             return int(self[u'value'])
 
     def validate(self):
-        if not u'name' in self:
-            raise RuntimeError, 'missing "name" attribute: %s' % self
-        if not u'value' in self:
-            raise RuntimeError, 'missing "value" attribute: %s' % self
-        if not self[u'type'] in ("string","int","expr"):
+        self.check_missing(u'name')
+        self.check_missing(u'value')
+        if self[u'type'] != u'string' and self[u'type'] != u'int' and self[u'type'] != u'string':
             raise RuntimeError, 'type must be "int", "string", or "expr": %s' % self
-        for flag in (u'glidein_publish', u'job_publish', u'parameter'):
-            if self[flag] != u'True' and self[flag] != u'False':
-                raise RuntimeError, '%s must be "True" or "False": %s' % (flag, self)
+        self.check_boolean(u'glidein_publish')
+        self.check_boolean(u'job_publish')
+        self.check_boolean(u'parameter')
 
 TAG_CLASS_MAPPING.update({'attr': AttrElement})
 
 class FileElement(DictElement):
-    # this function converts a file element to the expected dictionary used in
-    # cgWParamDict.add_file_unparsed()
-    def to_dict(self):
-        file_dict = {}
-        if u'absfname' in self:
-            file_dict[u'absfname'] = self[u'absfname']
-        else:
-            file_dict[u'absfname'] = None
-        if u'after_entry' in self:
-            file_dict[u'after_entry'] = self[u'after_entry']
-        if u'const' in self:
-            file_dict[u'const'] = self[u'const']
-        else:
-            file_dict[u'const'] = u'False'
-        if u'executable' in self:
-            file_dict[u'executable'] = self[u'executable']
-        else:
-            file_dict[u'executable'] = u'False'
-        if u'relfname' in self:
-            file_dict[u'relfname'] = self[u'relfname']
-        else:
-            file_dict[u'relfname'] = None
-        if u'untar' in self:
-            file_dict[u'untar'] = self[u'untar']
-        else:
-            file_dict[u'untar'] = u'False'
-        if u'wrapper' in self:
-            file_dict[u'wrapper'] = self[u'wrapper']
-        else:
-            file_dict[u'wrapper'] = u'False'
-        uopts = self.get_child(u'untar_options')
-        if uopts is not None:
-            uopt_dict = {}
-            if u'absdir_outattr' in uopts:
-                uopt_dict[u'absdir_outattr'] = uopts[u'absdir_outattr']
-            else:
-                uopt_dict[u'absdir_outattr'] = None
-            if u'dir' in uopts:
-                uopt_dict[u'dir'] = uopts[u'dir']
-            else:
-                uopt_dict[u'dir'] = None
-            uopt_dict[u'cond_attr'] = uopts[u'cond_attr']
-            file_dict[u'untar_options'] = uopt_dict
+    def validate(self):
+        self.check_missing(u'absfname')
+        if len(os.path.basename(self[u'absfname'])) < 1:
+            raise RuntimeError, 'absfname is an invalid file path: %s' % self
+        if u'relfname' in self and len(self[u'relfname']) < 1:
+            raise RuntimeError, 'relfname cannot be empty: %s' % self
 
-        return file_dict
+        self.check_boolean(u'const')
+        self.check_boolean(u'executable')
+        self.check_boolean(u'wrapper')
+        self.check_boolean(u'untar')
+
+        is_exec = eval(self[u'executable'])
+        is_wrapper = eval(self[u'wrapper'])
+        is_tar = eval(self[u'untar'])
+        if is_exec + is_wrapper + is_tar > 1:
+            raise RuntimeError, 'file must be exactly one of type "executable", "wrapper", or "untar": %s' % self
+
+        if (is_exec or is_wrapper or is_tar) and not eval(self[u'const']):
+            raise RuntimeError, 'file of type "executable", "wrapper", or "untar" requires const="True": %s' % self
 
 TAG_CLASS_MAPPING.update({u'file': FileElement})
 

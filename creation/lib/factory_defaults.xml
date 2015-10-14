@@ -58,6 +58,7 @@
              <attr const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string"/>
           </attrs>
           <files>
+             <!-- required: absfname; optional: relfname -->
              <file const="True" executable="False" wrapper="False" untar="False">
                 <!-- optional: dir, absdir_outattr -->
                 <untar_options cond_attr="TRUE"/>
@@ -80,8 +81,8 @@
       <!-- one of the following is required: tar_file, base_dir -->
       <condor_tarball arch="default" os="default" version="default"/>
    </condor_tarballs>
-   <!-- required: absfname; optional: relfname -->
    <files>
+      <!-- required: absfname; optional: relfname -->
       <!-- global file has additional after_entry field -->
       <file after_entry="False" const="True" executable="False" wrapper="False" untar="False">
          <!-- optional: dir, absdir_outattr -->

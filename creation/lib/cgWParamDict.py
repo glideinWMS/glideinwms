@@ -180,7 +180,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # put user files in stage
         for file in self.conf.get_child_list(u'files'):
-            add_file_unparsed(file.to_dict(),self.dicts)
+            add_file_unparsed(file,self.dicts)
 
         # put user attributes into config files
         for attr in self.conf.get_child_list(u'attrs'):
@@ -387,7 +387,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         
         # put user files in stage
         for user_file in entry.get_child_list(u'files'):
-            add_file_unparsed(user_file.to_dict(),self.dicts)
+            add_file_unparsed(user_file,self.dicts)
 
         # Add attribute for voms
 
@@ -561,14 +561,11 @@ class glideinDicts(cgWDictFile.glideinDicts):
 # file as described by Params.file_defaults
 def add_file_unparsed(user_file,dicts):
     absfname=user_file['absfname']
-    if absfname is None:
-        raise RuntimeError, "Found a file element without an absname: %s"%user_file
     
-    relfname=user_file['relfname']
-    if relfname is None:
+    if 'relfname' not in user_file:
         relfname=os.path.basename(absfname) # defualt is the final part of absfname
-    if len(relfname)<1:
-        raise RuntimeError, "Found a file element with an empty relfname: %s"%user_file
+    else:
+        relfname=user_file['relfname']
 
     is_const=eval(user_file['const'],{},{})
     is_executable=eval(user_file['executable'],{},{})
@@ -576,41 +573,26 @@ def add_file_unparsed(user_file,dicts):
     do_untar=eval(user_file['untar'],{},{})
 
     file_list_idx='file_list'
-    if user_file.has_key('after_entry'):
+    if 'after_entry' in user_file:
         if eval(user_file['after_entry'],{},{}):
             file_list_idx='after_file_list'
 
     if is_executable: # a script
-        if not is_const:
-            raise RuntimeError, "A file cannot be executable if it is not constant: %s"%user_file
-    
-        if do_untar:
-            raise RuntimeError, "A tar file cannot be executable: %s"%user_file
-
-        if is_wrapper:
-            raise RuntimeError, "A wrapper file cannot be executable: %s"%user_file
-
         dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"exec","TRUE",'FALSE'),absfname)
     elif is_wrapper: # a sourceable script for the wrapper
-        if not is_const:
-            raise RuntimeError, "A file cannot be a wrapper if it is not constant: %s"%user_file
-    
-        if do_untar:
-            raise RuntimeError, "A tar file cannot be a wrapper: %s"%user_file
-
         dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"wrapper","TRUE",'FALSE'),absfname)
     elif do_untar: # a tarball
-        if not is_const:
-            raise RuntimeError, "A file cannot be untarred if it is not constant: %s"%user_file
-
-        wnsubdir=user_file['untar_options']['dir']
-        if wnsubdir is None:
+        untar_opts = user_file.get_child('untar_options')
+        if u'dir' in untar_opts:
+            wnsubdir=untar_opts['dir']
+        else:
             wnsubdir=string.split(relfname,'.',1)[0] # deafult is relfname up to the first .
 
-        config_out=user_file['untar_options']['absdir_outattr']
-        if config_out is None:
+        if 'absdir_outattr' in untar_opts:
+            config_out=untar_opts['absdir_outattr']
+        else:
             config_out="FALSE"
-        cond_attr=user_file['untar_options']['cond_attr']
+        cond_attr=untar_opts['cond_attr']
 
 
         dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"untar",cond_attr,config_out),absfname)
