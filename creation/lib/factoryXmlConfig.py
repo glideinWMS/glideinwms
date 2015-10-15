@@ -107,7 +107,7 @@ class Config(xmlConfig.DictElement):
 def parse(file):
     conf = _parse(file)
     conf.merge_defaults()
-    # todo: conf.validate()
+    conf.validate_tree()
     return conf
 
 # this parse function is for internal usage

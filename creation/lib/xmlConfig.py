@@ -19,11 +19,17 @@ class Element(object):
     def __str__(self):
         return self.xml.toxml()
 
+    def first_line(self):
+        return self.xml.toxml().splitlines()[0]
+
     def unlink(self):
         self.doc.unlink()
 
     # children should override this
     def build_tree(self):
+        pass
+
+    def validate(self):
         pass
 
 class DictElementIterator(collections.Iterator):
@@ -87,11 +93,11 @@ class DictElement(Element, collections.MutableMapping):
 
     def check_boolean(self, flag):
         if self[flag] != u'True' and self[flag] != u'False':
-            raise RuntimeError, '%s must be "True" or "False": %s' % (flag, self)
+            raise RuntimeError, '%s must be "True" or "False": %s' % (flag, self.first_line())
 
     def check_missing(self, attr):
         if not attr in self:
-            raise RuntimeError, 'missing "%s" attribute: %s' % (attr,self)
+            raise RuntimeError, 'missing "%s" attribute: %s' % (attr, self.first_line())
 
     def merge_default_attrs(self, default):
         for key in default:
@@ -123,6 +129,11 @@ class DictElement(Element, collections.MutableMapping):
             else:
                 self.children[tag].merge_defaults(default.children[tag])
 
+    def validate_tree(self):
+        self.validate()
+        for tag in self.children:
+            self.children[tag].validate_tree()
+
 class ListElement(Element):
     def __init__(self, doc, xml, level):
         super(ListElement, self).__init__(doc, xml, level)
@@ -152,6 +163,10 @@ class ListElement(Element):
         for child in self.children:
             child.merge_defaults(default.children[0])
 
+    def validate_tree(self):
+        for child in self.children:
+            child.validate_tree()
+
 class AttrElement(DictElement):
     def get_val(self):
         if self[u'type'] in ("string","expr"):
@@ -163,7 +178,7 @@ class AttrElement(DictElement):
         self.check_missing(u'name')
         self.check_missing(u'value')
         if self[u'type'] != u'string' and self[u'type'] != u'int' and self[u'type'] != u'string':
-            raise RuntimeError, 'type must be "int", "string", or "expr": %s' % self
+            raise RuntimeError, 'type must be "int", "string", or "expr": %s' % self.first_line()
         self.check_boolean(u'glidein_publish')
         self.check_boolean(u'job_publish')
         self.check_boolean(u'parameter')
@@ -174,9 +189,9 @@ class FileElement(DictElement):
     def validate(self):
         self.check_missing(u'absfname')
         if len(os.path.basename(self[u'absfname'])) < 1:
-            raise RuntimeError, 'absfname is an invalid file path: %s' % self
+            raise RuntimeError, 'absfname is an invalid file path: %s' % self.first_line()
         if u'relfname' in self and len(self[u'relfname']) < 1:
-            raise RuntimeError, 'relfname cannot be empty: %s' % self
+            raise RuntimeError, 'relfname cannot be empty: %s' % self.first_line()
 
         self.check_boolean(u'const')
         self.check_boolean(u'executable')
@@ -187,10 +202,10 @@ class FileElement(DictElement):
         is_wrapper = eval(self[u'wrapper'])
         is_tar = eval(self[u'untar'])
         if is_exec + is_wrapper + is_tar > 1:
-            raise RuntimeError, 'file must be exactly one of type "executable", "wrapper", or "untar": %s' % self
+            raise RuntimeError, 'file must be exactly one of type "executable", "wrapper", or "untar": %s' % self.first_line()
 
         if (is_exec or is_wrapper or is_tar) and not eval(self[u'const']):
-            raise RuntimeError, 'file of type "executable", "wrapper", or "untar" requires const="True": %s' % self
+            raise RuntimeError, 'file of type "executable", "wrapper", or "untar" requires const="True": %s' % self.first_line()
 
 TAG_CLASS_MAPPING.update({u'file': FileElement})
 
