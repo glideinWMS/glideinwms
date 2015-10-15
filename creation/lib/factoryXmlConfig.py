@@ -50,10 +50,6 @@ class Config(xmlConfig.DictElement):
     # FactoryXmlConfig getter functions
     #
     ######################
-    def get_web_url(self):
-        return os.path.join(self.get_child(u'stage')[u'web_base_url'],
-            u"glidein_%s" % self[u'glidein_name'])
-
     def get_submit_dir(self):
         if self.submit_dir == None:
             self.submit_dir = os.path.join(self.get_child(u'submit')[u'base_dir'],

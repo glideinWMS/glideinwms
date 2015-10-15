@@ -683,7 +683,7 @@ def populate_factory_descript(work_dir,
             glidein_dict.add('FactoryCollector',None)
         glidein_dict.add('FactoryName',conf[u'factory_name'])
         glidein_dict.add('GlideinName',conf[u'glidein_name'])
-        glidein_dict.add('WebURL',conf.get_web_url())
+        glidein_dict.add('WebURL',os.path.join(conf.get_child(u'stage')[u'web_base_url'],u"glidein_%s" % conf[u'glidein_name']))
         glidein_dict.add('PubKeyType',sec_el[u'pub_key'])
         glidein_dict.add('OldPubKeyGraceTime',sec_el[u'reuse_oldkey_onstartup_gracetime'])
         glidein_dict.add('MonitorUpdateThreadCount',conf.get_child(u'monitor')[u'update_thread_count'])
