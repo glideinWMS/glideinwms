@@ -8,8 +8,6 @@
          <process_log max_days="7.0" max_mbytes="100.0" min_days="3.0" backup_count="5" ccompression="" extension="all" msg_types="INFO, WARN, ERR"/>
       </process_logs>
    </log_retention>
-   <stage base_dir="/var/lib/gwms-factory/web-area/stage" use_symlink="True" web_base_url="http://localhost/factory/stage"/>
-   <submit base_client_log_dir="/var/log/gwms-factory/client" base_client_proxies_dir="/var/lib/gwms-factory/client-proxies" base_dir="/var/lib/gwms-factory/work-dir" base_log_dir="/var/log/gwms-factory/server"/>
    <!-- hard coding rpm paths for now -->
    <monitor base_dir="/var/lib/gwms-factory/web-area/monitor" flot_dir="/usr/share/javascriptrrd/flot" javascriptRRD_dir="/usr/share/javascriptrrd/js" jquery_dir="/usr/share/javascriptrrd/flot" update_thread_count="1"/>
    <monitor_footer display_txt="" href_link=""/>
@@ -24,12 +22,15 @@
          </frontend>
       </frontends>
    </security>
+   <stage base_dir="/var/lib/gwms-factory/web-area/stage" use_symlink="True" web_base_url="http://localhost/factory/stage"/>
+   <submit base_client_log_dir="/var/log/gwms-factory/client" base_client_proxies_dir="/var/lib/gwms-factory/client-proxies" base_dir="/var/lib/gwms-factory/work-dir" base_log_dir="/var/log/gwms-factory/server"/>
    <attrs>
       <!-- required: name, value -->
       <attr const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string"/>
    </attrs>
    <entries>
-      <entry>
+      <!-- required: name, gatekeeper; optional: vm_id, vm_type, rsl, proxy_url -->
+      <entry auth_method="grid_proxy" enabled="True" gridtype="condor" trust_domain="grid" work_dir="." verbosity="std">
          <config>
             <max_jobs>
                <default_per_frontend glideins="5000" held="50" idle="100"/>
