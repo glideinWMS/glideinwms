@@ -128,7 +128,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         else:
             proxy_url = None
         client_log_base_dir =  conf.get_child(u'submit')[u'base_client_log_dir']
-        submit_attrs = entry.get_submit_attrs()
+        submit_attrs = entry.get_child(u'config').get_child(u'submit').get_child_list(u'submit_attrs')
 
         # Add in some common elements before setting up grid type specific attributes
         self.add("Universe", "grid")
@@ -209,9 +209,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
 
     def populate_submit_attrs(self, submit_attrs, attr_prefix=''):
-        for key in submit_attrs.keys():
-            self.add('%s%s' % (attr_prefix, key), submit_attrs[key]['value'])
-
+        for submit_attr in submit_attrs:
+            self.add('%s%s' % (attr_prefix, submit_attr[u'name']), submit_attr[u'value'])
 
     def populate_condorc_grid(self, submit_attrs):
         self.populate_submit_attrs(submit_attrs)

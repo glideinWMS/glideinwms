@@ -21,27 +21,7 @@ u'submit_attrs'
 ])
 
 class EntryElement(xmlConfig.DictElement):
-    def get_max_per_frontends(self):
-        per_frontends = {}
-        for per_fe in self.get_child(u'config').get_child(u'max_jobs').get_child_list(u'per_frontends'):
-            per_frontends[per_fe[u'name']] = per_fe
-        return per_frontends
-
-    def get_allowed_frontends(self):
-        allowed_frontends = {}
-        for allow_fe in self.get_child_list(u'allow_frontends'):
-            fe_dict = {}
-            fe_dict[u'security_class'] = allow_fe[u'security_class']
-            allowed_frontends[allow_fe[u'name']] = fe_dict
-        return allowed_frontends
-
-    def get_submit_attrs(self):
-        submit_attrs = {}
-        for sub_attr in self.get_child(u'config').get_child(u'submit').get_child_list(u'submit_attrs'):
-            attr_dict = {}
-            attr_dict[u'value'] = sub_attr[u'value']
-            submit_attrs[sub_attr[u'name']] = attr_dict
-        return submit_attrs
+    pass
 
 xmlConfig.register_tag_classes({u'entry': EntryElement})
 

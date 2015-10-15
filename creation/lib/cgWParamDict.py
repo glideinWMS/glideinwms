@@ -793,12 +793,11 @@ def populate_job_descript(work_dir, job_descript_dict,
     max_held_frontend = ""
     max_idle_frontend = ""
     max_glideins_frontend = ""
-    per_frontends = entry.get_max_per_frontends()
-    for frontend_name in per_frontends:
-        el = per_frontends[frontend_name]
-        max_held_frontend += frontend_name + ";" + el[u'held'] + ","
-        max_idle_frontend += frontend_name + ";" + el[u'idle'] + ","
-        max_glideins_frontend += frontend_name + ";" + el[u'glideins'] + ","
+    for per_fe in entry.get_child(u'config').get_child(u'max_jobs').get_child_list(u'per_frontends'):
+        frontend_name = per_fe[u'name']
+        max_held_frontend += frontend_name + ";" + per_fe[u'held'] + ","
+        max_idle_frontend += frontend_name + ";" + per_fe[u'idle'] + ","
+        max_glideins_frontend += frontend_name + ";" + per_fe[u'glideins'] + ","
     job_descript_dict.add("PerFrontendMaxGlideins", max_glideins_frontend[:-1])
     job_descript_dict.add("PerFrontendMaxHeld", max_held_frontend[:-1])
     job_descript_dict.add("PerFrontendMaxIdle", max_idle_frontend[:-1])
@@ -808,10 +807,11 @@ def populate_job_descript(work_dir, job_descript_dict,
     #  to it.
     white_mode = "Off"
     allowed_vos = ""
-    allowed_frontends = entry.get_allowed_frontends()
-    for X in allowed_frontends:
+    allowed_fes = entry.get_child_list(u'allow_frontends')
+    if len(allowed_fes) > 0:
         white_mode = "On"
-        allowed_vos = allowed_vos + X + ":" + allowed_frontends[X][u'security_class'] + ","
+    for allowed_fe in allowed_fes:
+        allowed_vos = allowed_vos + allowed_fe[u'name'] + ":" + allowed_fe[u'security_class'] + ","
     job_descript_dict.add("WhitelistMode", white_mode)
     job_descript_dict.add("AllowedVOs", allowed_vos[:-1])
 
