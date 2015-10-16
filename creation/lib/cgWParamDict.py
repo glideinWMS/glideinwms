@@ -282,7 +282,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 os.close(fd)
                 
                 key_obj=pubCrypto.RSAKey()
-                key_obj.new(int(u'key_length' in sec_el))
+                key_obj.new(int(sef_el[u'key_length']))
                 key_obj.save(rsa_key_fname)            
         else:
             raise RuntimeError,"Invalid value for security.pub_key(%s), must be either None or RSA"%sec_el[u'pub_key']
@@ -397,7 +397,6 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         # put standard attributes into config file
         # override anything the user set
-
         config = entry.get_child(u'config')
         restrictions = config.get_child(u'restrictions')
         submit = config.get_child(u'submit')

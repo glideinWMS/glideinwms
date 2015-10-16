@@ -20,8 +20,41 @@ u'security_classes',
 u'submit_attrs'
 ])
 
+class FactAttrElement(xmlConfig.AttrElement):
+    def validate(self):
+        super(FactAttrElement, self).validate()
+        self.check_boolean(u'const')
+        self.check_boolean(u'publish')
+
+xmlConfig.register_tag_classes({u'attr': FactAttrElement})
+
+class FactFileElement(xmlConfig.FileElement):
+    def validate(self):
+        super(FactFileElement, self).validate()
+        # only defined in factory global entries
+        if u'after_entry' in self:
+            self.check_boolean(u'after_entry')
+
+xmlConfig.register_tag_classes({u'file': FactFileElement})
+
+class CondTarElement(xmlConfig.DictElement):
+    # this will need an update when we re-implement base_dir
+    def validate(self):
+        self.check_missing(u'tar_file')
+
+xmlConfig.register_tag_classes({u'condor_tarball': CondTarElement})
+
 class EntryElement(xmlConfig.DictElement):
-    pass
+    def validate(self):
+        self.check_missing(u'name')
+        self.check_missing(u'gatekeeper')
+        self.check_boolean(u'enabled')
+        for infosys in self.get_child_list(u'infosys_refs'):
+            infosys.check_missing(u'ref')
+            infosys.check_missing(u'server')
+            infosys.check_missing(u'type')
+        for group in self.get_child_list(u'monitorgroups'):
+            group.check_missing(u'group_name')
 
 xmlConfig.register_tag_classes({u'entry': EntryElement})
 

@@ -25,11 +25,14 @@ class Element(object):
     def unlink(self):
         self.doc.unlink()
 
-    # children should override this
+    # children should override these
     def build_tree(self):
         pass
-
+    def merge_defaults(self):
+        pass
     def validate(self):
+        pass
+    def validate_tree(self):
         pass
 
 class DictElementIterator(collections.Iterator):
@@ -91,14 +94,6 @@ class DictElement(Element, collections.MutableMapping):
 
                 self.children[c.tagName].build_tree()
 
-    def check_boolean(self, flag):
-        if self[flag] != u'True' and self[flag] != u'False':
-            raise RuntimeError, '%s must be "True" or "False": %s' % (flag, self.first_line())
-
-    def check_missing(self, attr):
-        if not attr in self:
-            raise RuntimeError, 'missing "%s" attribute: %s' % (attr, self.first_line())
-
     def merge_default_attrs(self, default):
         for key in default:
             if not key in self:
@@ -128,6 +123,14 @@ class DictElement(Element, collections.MutableMapping):
             # or continue down the tree
             else:
                 self.children[tag].merge_defaults(default.children[tag])
+
+    def check_boolean(self, flag):
+        if self[flag] != u'True' and self[flag] != u'False':
+            raise RuntimeError, '%s must be "True" or "False": %s' % (flag, self.first_line())
+
+    def check_missing(self, attr):
+        if not attr in self:
+            raise RuntimeError, 'missing "%s" attribute: %s' % (attr, self.first_line())
 
     def validate_tree(self):
         self.validate()

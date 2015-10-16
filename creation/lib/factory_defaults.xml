@@ -67,7 +67,7 @@
           </files>
           <!-- infosys_refs are optional -->
           <infosys_refs>
-             <!-- required: type, server, ref -->
+             <!-- required: ref, server, type -->
              <infosys_ref/>
           </infosys_refs>
           <!-- monitorgroups are optional -->
