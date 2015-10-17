@@ -488,20 +488,31 @@ class glideinDicts(cgWDictFile.glideinDicts):
         for s in schedds:
             schedd_counts[s] = 0
 
-        if other is not None:
-            for e in other.sub_dicts:
-                schedd = other.sub_dicts[e]['job_descript']['Schedd']
-                if schedd in schedd_counts:
-                    schedd_counts[schedd] += 1
+        prev_entries = {}
 
+        # count all schedds we will reuse and keep track of the entries
+        if other is not None:
+            for entry in self.conf.get_child_list(u'entries'):
+                entry_name = entry[u'name']
+                if entry_name in other.sub_dicts:
+                    schedd = other.sub_dicts[entry_name]['job_descript']['Schedd']
+                    if schedd in schedd_counts:
+                        prev_entries[entry_name] = schedd
+                        # always reuse the old schedd but only count it against us if the entry is active
+                        if eval(entry[u'enabled']):
+                            schedd_counts[schedd] += 1
+
+        # now that we have the counts, populate with the best schedd
         for entry in self.conf.get_child_list(u'entries'):
             entry_name = entry[u'name']
-            if other is not None and entry_name in other.sub_dicts and other.sub_dicts[entry_name]['job_descript']['Schedd'] in schedd_counts:
-                schedd = other.sub_dicts[entry_name]['job_descript']['Schedd']
+            if entry_name in prev_entries:
+                schedd = prev_entries[entry_name]
             else:
-                schedd_arr = [(k, schedd_counts[k]) for k in schedd_counts]
-                schedd = sorted(schedd_arr, key=lambda x:x[1])[0][0]
-                schedd_counts[schedd] += 1
+                # pick the schedd with the lowest count
+                schedd = sorted(schedd_counts, key=schedd_counts.get)[0]
+                # only count it against us if new entry is active
+                if eval(entry[u'enabled']):
+                    schedd_counts[schedd] += 1
             self.sub_dicts[entry_name].populate(entry, schedd)
 
         validate_condor_tarball_attrs(self.conf)
