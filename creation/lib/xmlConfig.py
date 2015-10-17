@@ -180,7 +180,7 @@ class AttrElement(DictElement):
     def validate(self):
         self.check_missing(u'name')
         self.check_missing(u'value')
-        if self[u'type'] != u'string' and self[u'type'] != u'int' and self[u'type'] != u'string':
+        if self[u'type'] != u'string' and self[u'type'] != u'int' and self[u'type'] != u'expr':
             raise RuntimeError, 'type must be "int", "string", or "expr": %s' % self.first_line()
         self.check_boolean(u'glidein_publish')
         self.check_boolean(u'job_publish')

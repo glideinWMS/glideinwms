@@ -834,15 +834,10 @@ def populate_frontend_descript(frontend_dict,     # will be modified
         fe_name = fe_el[u'name']
 
         ident=fe_el['identity']
-        if ident is None:
-            raise RuntimeError, 'security.frontends[%s][identity] not defined, but required'%fe_name
-
         maps={}
         for sc_el in fe_el.get_child_list(u'security_classes'):
             sc_name = sc_el[u'name']
             username=sc_el['username']
-            if username is None:
-                raise RuntimeError, 'security.frontends[%s].security_classes[%s][username] not defined, but required'%(fe_name,sc_name)
             maps[sc_name]=username
         
         frontend_dict.add(fe_name,{'ident':ident,'usermap':maps})
@@ -855,8 +850,6 @@ def populate_gridmap(conf,gridmap_dict):
     collector_dns=[]
     for el in conf.get_child_list(u'monitoring_collectors'):
         dn=el[u'DN']
-        if dn is None:
-            raise RuntimeError,"DN not defined for monitoring collector %s"%el[u'node']
         if not (dn in collector_dns): #skip duplicates
             collector_dns.append(dn)
             gridmap_dict.add(dn,'fcollector%i'%len(collector_dns))

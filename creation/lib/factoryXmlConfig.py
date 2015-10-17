@@ -44,11 +44,24 @@ class CondTarElement(xmlConfig.DictElement):
 
 xmlConfig.register_tag_classes({u'condor_tarball': CondTarElement})
 
+class FrontendElement(xmlConfig.DictElement):
+    def validate(self):
+        self.check_missing(u'name')
+        self.check_missing(u'identity')
+        for sc in self.get_child_list(u'security_classes'):
+            sc.check_missing(u'username')
+
+xmlConfig.register_tag_classes({u'frontend': FrontendElement})
+
 class EntryElement(xmlConfig.DictElement):
     def validate(self):
         self.check_missing(u'name')
         self.check_missing(u'gatekeeper')
         self.check_boolean(u'enabled')
+        for per_fe in self.get_child(u'config').get_child(u'max_jobs').get_child_list(u'per_frontends'):
+            per_fe.check_missing(u'name')
+        for allowed_fe in self.get_child_list(u'allow_frontends'):
+            allowed_fe.check_missing(u'name')
         for infosys in self.get_child_list(u'infosys_refs'):
             infosys.check_missing(u'ref')
             infosys.check_missing(u'server')
@@ -71,6 +84,12 @@ class Config(xmlConfig.DictElement):
         self.log_dir = None
         self.client_log_dirs = None
         self.client_proxy_dirs = None
+
+    def validate(self):
+        self.check_missing(u'factory_name')
+        for mon_coll in self.get_child_list(u'monitoring_collectors'):
+            mon_coll.check_missing(u'DN')
+            mon_coll.check_missing(u'node')
 
     def merge_defaults(self):
         # assume FACTORY_DEFAULTS_XML is in factoryXmlConfig module directory
