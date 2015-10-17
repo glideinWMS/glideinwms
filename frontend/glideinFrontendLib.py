@@ -107,10 +107,24 @@ def appendRealRunning(condorq_dict, status_dict):
 
             if condorq[jid].has_key('RemoteHost'):
                 remote_host = condorq[jid]['RemoteHost']
-
+                if remote_host.startswith('slot'):
+                    rh_parts = remote_host.split('@',1)
+                else:
+                    rh_parts = []
+                
                 for collector_name in status_dict:
                     condor_status = status_dict[collector_name].fetchStored()
-                    if remote_host in condor_status:
+
+                    if rh_parts:
+                        for condor_status_name in condor_status:
+                            if condor_status_name.startswith(rh_parts[0]) and condor_status_name.endswith(rh_parts[1]):
+                                # it may be the wrong one but it is a sub-slot of the same partitionable slot and values are the same
+                                remote_host = condor_status_name
+                                found = True
+                    else:
+                        if remote_host in condor_status:
+                            found = True
+                    if found:
                         # there is currently no way to get the factory collector from
                         #   condor status so this hack grabs the hostname of the schedd
                         schedd = condor_status[remote_host]['GLIDEIN_Schedd'].split('@')
@@ -123,7 +137,6 @@ def appendRealRunning(condorq_dict, status_dict):
                             condor_status[remote_host]['GLIDEIN_Name'],
                             condor_status[remote_host]['GLIDEIN_Factory'],
                             fact_pool)
-                        found = True
                         break
 
             if not found:
