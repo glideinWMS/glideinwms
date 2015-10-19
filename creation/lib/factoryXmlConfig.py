@@ -68,6 +68,8 @@ class EntryElement(xmlConfig.DictElement):
         self.check_boolean(u'enabled')
         for per_fe in self.get_child(u'config').get_child(u'max_jobs').get_child_list(u'per_frontends'):
             per_fe.check_missing(u'name')
+        for submit_attr in self.get_child(u'config').get_child(u'submit').get_child_list(u'submit_attrs'):
+            submit_attr.check_missing(u'name')
         for allowed_fe in self.get_child_list(u'allow_frontends'):
             allowed_fe.check_missing(u'name')
         for infosys in self.get_child_list(u'infosys_refs'):
