@@ -104,6 +104,8 @@ def appendRealRunning(condorq_dict, status_dict):
 
         for jid in condorq:
             found = False
+            remote_host = ''
+            rh_parts = []
 
             if condorq[jid].has_key('RemoteHost'):
                 remote_host = condorq[jid]['RemoteHost']
@@ -140,6 +142,8 @@ def appendRealRunning(condorq_dict, status_dict):
                         break
 
             if not found:
+                #MMDB Adding temporary debug
+                open('/tmp/gwms-unmatched-debug','a').write('WARNING Remote host match not found: %s, %s\n' % (remote_host, rh_parts))
                 condorq[jid]['RunningOn'] = 'UNKNOWN'
 
 #
