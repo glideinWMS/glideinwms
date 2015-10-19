@@ -427,7 +427,7 @@ by the VO factory clients.</P>
         <p>(*) GPUs is a special resource name. If no number is specified, the glidein will invoke
             <a href="https://htcondor-wiki.cs.wisc.edu/index.cgi/wiki?p=HowToManageGpus">HTCondor's GPU discovery mechanism</a>
             and get the number from there, which could be 0 if there are no GPUs. Your job will find in the HTCondor ClassAd also
-            all the special attributes about the GPUs.</p>
+            all the special attributes about the GPUs. If no number is specified and the auto-discovery fails 0 GPUs are assumed.</p>
  	</TD>
     </TR>
     <TR>

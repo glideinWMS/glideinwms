@@ -702,8 +702,8 @@ EOF
                     echo "GPU autodiscovery (condor_gpu_discovery) found $res_num GPUs" 1>&2
                     AUTO_GPU=True
                 else
-                    echo "GPU autodiscovery (condor_gpu_discovery) failed, disabling auto discovery, assuming one GPU." 1>&2
-                    res_num=1
+                    echo "GPU autodiscovery (condor_gpu_discovery) failed, disabling auto discovery, assuming 0 GPUs." 1>&2
+                    res_num=0
                 fi
             else
                 res_num=1
