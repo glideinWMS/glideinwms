@@ -640,19 +640,10 @@ def add_attr_unparsed_real(attr,dicts):
             else:
                 dicts['params'].add(attr_name,attr_val)
         else: # only publish
-            if (not is_const):
-                raise RuntimeError, "Published attribute '%s' must be either a parameter or constant: %s"%(attr_name,attr)
-            
             dicts['attrs'].add(attr_name,attr_val)
             dicts['consts'].add(attr_name,attr_val)
     else: # do not publish, only to glidein
-        if is_parameter:
-            if is_const:
-                dicts['consts'].add(attr_name,attr_val)
-            else:
-                raise RuntimeError, "Parameter attributes '%s' must be either a published or constant: %s"%(attr_name,attr)
-        else:
-            raise RuntimeError, "Attributes '%s' must be either a published or parameters: %s"%(attr_name,attr) 
+        dicts['consts'].add(attr_name,attr_val)
 
     do_glidein_publish=eval(attr[u'glidein_publish'],{},{})
     do_job_publish=eval(attr[u'job_publish'],{},{})
