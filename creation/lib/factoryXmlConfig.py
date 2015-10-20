@@ -1,10 +1,12 @@
 import os
-from xml.dom import minidom
+import xml.sax
 import xmlConfig
 
 ENTRY_INDENT = 6
 ENTRY_DIR = 'entries.d'
 FACTORY_DEFAULTS_XML = 'factory_defaults.xml'
+
+xmlConfig.register_root(u'glidein')
 
 xmlConfig.register_list_elements([ 
 u'allow_frontends',
@@ -82,9 +84,8 @@ class EntryElement(xmlConfig.DictElement):
 xmlConfig.register_tag_classes({u'entry': EntryElement})
 
 class Config(xmlConfig.DictElement):
-    def __init__(self, doc, xml, level):
-        super(Config, self).__init__(doc, xml, level)
-        self.file = file
+    def __init__(self, name):
+        super(Config, self).__init__(name)
 
         # cached variables to minimize dom accesses for better performance
         # these are looked up for each and every entry on reconfig
@@ -100,12 +101,6 @@ class Config(xmlConfig.DictElement):
         for mon_coll in self.get_child_list(u'monitoring_collectors'):
             mon_coll.check_missing(u'DN')
             mon_coll.check_missing(u'node')
-
-    def merge_defaults(self):
-        # assume FACTORY_DEFAULTS_XML is in factoryXmlConfig module directory
-        conf_def = _parse(os.path.join(os.path.dirname(__file__), FACTORY_DEFAULTS_XML))
-        super(Config, self).merge_defaults(conf_def)
-        conf_def.unlink()
 
     #######################
     #
@@ -168,51 +163,17 @@ class Config(xmlConfig.DictElement):
 
 def parse(file):
     conf = _parse(file)
-    conf.merge_defaults()
-    conf.validate_tree()
+    # assume FACTORY_DEFAULTS_XML is in factoryXmlConfig module directory
+    conf_def = _parse(os.path.join(os.path.dirname(__file__), FACTORY_DEFAULTS_XML))
+    conf.merge_defaults(conf_def)
     return conf
 
 # this parse function is for internal usage
 # it does not merge defaults or validate
 def _parse(file):
-    d1 = minidom.parse(file)
-    entry_dir_path = os.path.join(os.path.dirname(file), ENTRY_DIR)
-    if os.path.exists(entry_dir_path):
-        entries = d1.getElementsByTagName(u'entry')
+    parser = xml.sax.make_parser()
+    handler = xmlConfig.Handler()
+    parser.setContentHandler(handler)
+    parser.parse(file)
 
-        found_entries = {}
-        for e in entries:
-            found_entries[e.getAttribute(u'name')] = e
-
-        files = sorted(os.listdir(entry_dir_path))
-        for f in files:
-            if f.endswith('.xml'):
-                d2 = minidom.parse(os.path.join(entry_dir_path, f))
-                merge_entries(d1, d2, found_entries)
-                d2.unlink()
-
-    conf = Config(d1, d1.documentElement, 0) 
-    conf.build_tree()
-
-    return conf
-
-#######################
-#
-# Internal utility functions
-#
-######################
-
-def merge_entries(d1, d2, found_entries):
-    entries1 = d1.getElementsByTagName(u'entries')[0]
-    entries2 = d2.getElementsByTagName(u'entries')[0]
-
-    for e in entries2.getElementsByTagName(u'entry'):
-        entry_name = e.getAttribute(u'name')
-        entry_clone = d1.importNode(e, True)
-        if entry_name in found_entries:
-            entries1.replaceChild(entry_clone, found_entries[entry_name])
-        else:
-            line_break = d1.createTextNode(u'\n%*s' % (ENTRY_INDENT,' '))
-            entries1.insertBefore(line_break, entries1.lastChild)
-            entries1.insertBefore(entry_clone, entries1.lastChild)
-            found_entries[entry_name] = entry_clone
+    return handler.root

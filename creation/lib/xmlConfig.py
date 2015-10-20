@@ -44,11 +44,8 @@ class Element(object):
     def __init__(self, tag):
         self.tag = tag
 
-    def __str__(self):
-        return self.xml.toxml()
-
     def first_line(self):
-        return self.xml.toxml().splitlines()[0]
+        return "%s: %s" % (self.tag, self.attrs)
 
     # children should override these
     def add_child(self):
@@ -58,8 +55,6 @@ class Element(object):
     def merge_defaults(self):
         pass
     def validate(self):
-        pass
-    def validate_tree(self):
         pass
 
 class DictElement(Element, collections.MutableMapping):
@@ -123,6 +118,8 @@ class DictElement(Element, collections.MutableMapping):
             # or continue down the tree
             else:
                 self.children[tag].merge_defaults(default.children[tag])
+        # after filling in defaults, validate the element
+        self.validate()
 
     def check_boolean(self, flag):
         if self[flag] != u'True' and self[flag] != u'False':
@@ -131,11 +128,6 @@ class DictElement(Element, collections.MutableMapping):
     def check_missing(self, attr):
         if not attr in self:
             raise RuntimeError, 'missing "%s" attribute: %s' % (attr, self.first_line())
-
-    def validate_tree(self):
-        self.validate()
-        for tag in self.children:
-            self.children[tag].validate_tree()
 
 class ListElement(Element):
     def __init__(self, tag):
@@ -154,10 +146,6 @@ class ListElement(Element):
     def merge_defaults(self, default):
         for child in self.children:
             child.merge_defaults(default.children[0])
-
-    def validate_tree(self):
-        for child in self.children:
-            child.validate_tree()
 
 class AttrElement(DictElement):
     def get_val(self):
