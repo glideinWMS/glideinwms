@@ -14,21 +14,36 @@ TAG_CLASS_MAPPING = {}
 DOCUMENT_ROOT = None
 
 class Handler(xml.sax.ContentHandler):
-    def __init__(self):
+    # leave file=None when parsing default xml to ignore xml file and line numbers
+    def __init__(self, file=None):
         self.root = None
         self.ancestry = []
+        self.file = file
 
     def startElement(self, name, attrs):
-        if name in LIST_TAGS:
-            el = ListElement(name)
-        elif name in TAG_CLASS_MAPPING:
-            el = TAG_CLASS_MAPPING[name](name)
-            for k in attrs.keys():
-                el.attrs[k] = attrs[k]
+        if self.file is None:
+            if name in LIST_TAGS:
+                el = ListElement(name)
+            elif name in TAG_CLASS_MAPPING:
+                el = TAG_CLASS_MAPPING[name](name)
+                for k in attrs.keys():
+                    el.attrs[k] = attrs[k]
+            else:
+                el = DictElement(name)
+                for k in attrs.keys():
+                    el.attrs[k] = attrs[k]
         else:
-            el = DictElement(name)
-            for k in attrs.keys():
-                el.attrs[k] = attrs[k]
+            # _locator is an undocumented feature of SAX...
+            if name in LIST_TAGS:
+                el = ListElement(name, self.file, self._locator.getLineNumber())
+            elif name in TAG_CLASS_MAPPING:
+                el = TAG_CLASS_MAPPING[name](name, self.file, self._locator.getLineNumber())
+                for k in attrs.keys():
+                    el.attrs[k] = attrs[k]
+            else:
+                el = DictElement(name, self.file, self._locator.getLineNumber())
+                for k in attrs.keys():
+                    el.attrs[k] = attrs[k]
         
         if name == DOCUMENT_ROOT:
             self.root = el
@@ -41,11 +56,10 @@ class Handler(xml.sax.ContentHandler):
         self.ancestry.pop()
 
 class Element(object):
-    def __init__(self, tag):
+    def __init__(self, tag, file="default", line_no=None):
         self.tag = tag
-
-    def first_line(self):
-        return "%s: %s" % (self.tag, self.attrs)
+        self.file = file
+        self.line_no = line_no
 
     # children should override these
     def add_child(self):
@@ -58,8 +72,8 @@ class Element(object):
         pass
 
 class DictElement(Element, collections.MutableMapping):
-    def __init__(self, tag):
-        super(DictElement, self).__init__(tag)
+    def __init__(self, tag, *args, **kwargs):
+        super(DictElement, self).__init__(tag, *args, **kwargs)
         self.attrs = {}
         self.children = {}
 
@@ -121,17 +135,20 @@ class DictElement(Element, collections.MutableMapping):
         # after filling in defaults, validate the element
         self.validate()
 
+    def err_str(self, str):
+        return '%s:%s: %s: %s' % (self.file, self.line_no, self.tag, str)
+
     def check_boolean(self, flag):
         if self[flag] != u'True' and self[flag] != u'False':
-            raise RuntimeError, '%s must be "True" or "False": %s' % (flag, self.first_line())
+            raise RuntimeError, self.err_str('%s must be "True" or "False"' % flag)
 
     def check_missing(self, attr):
         if not attr in self:
-            raise RuntimeError, 'missing "%s" attribute: %s' % (attr, self.first_line())
+            raise RuntimeError, self.err_str('missing "%s" attribute' % attr)
 
 class ListElement(Element):
-    def __init__(self, tag):
-        super(ListElement, self).__init__(tag)
+    def __init__(self, tag, *args, **kwargs):
+        super(ListElement, self).__init__(tag, *args, **kwargs)
         self.children = []
 
     def get_children(self):
@@ -158,7 +175,7 @@ class AttrElement(DictElement):
         self.check_missing(u'name')
         self.check_missing(u'value')
         if self[u'type'] != u'string' and self[u'type'] != u'int' and self[u'type'] != u'expr':
-            raise RuntimeError, 'type must be "int", "string", or "expr": %s' % self.first_line()
+            raise RuntimeError, self.err_str('type must be "int", "string", or "expr"')
         self.check_boolean(u'glidein_publish')
         self.check_boolean(u'job_publish')
         self.check_boolean(u'parameter')
@@ -169,9 +186,9 @@ class FileElement(DictElement):
     def validate(self):
         self.check_missing(u'absfname')
         if len(os.path.basename(self[u'absfname'])) < 1:
-            raise RuntimeError, 'absfname is an invalid file path: %s' % self.first_line()
+            raise RuntimeError, self.err_str('absfname is an invalid file path')
         if u'relfname' in self and len(self[u'relfname']) < 1:
-            raise RuntimeError, 'relfname cannot be empty: %s' % self.first_line()
+            raise RuntimeError, self.err_str('relfname cannot be empty')
 
         self.check_boolean(u'const')
         self.check_boolean(u'executable')
@@ -182,10 +199,10 @@ class FileElement(DictElement):
         is_wrapper = eval(self[u'wrapper'])
         is_tar = eval(self[u'untar'])
         if is_exec + is_wrapper + is_tar > 1:
-            raise RuntimeError, 'file must be exactly one of type "executable", "wrapper", or "untar": %s' % self.first_line()
+            raise RuntimeError, self.err_str('must be exactly one of type "executable", "wrapper", or "untar"')
 
         if (is_exec or is_wrapper or is_tar) and not eval(self[u'const']):
-            raise RuntimeError, 'file of type "executable", "wrapper", or "untar" requires const="True": %s' % self.first_line()
+            raise RuntimeError, self.err_str('type "executable", "wrapper", or "untar" requires const="True"')
 
 TAG_CLASS_MAPPING.update({u'file': FileElement})
 

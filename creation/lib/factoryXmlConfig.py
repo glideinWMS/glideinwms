@@ -32,9 +32,9 @@ class FactAttrElement(xmlConfig.AttrElement):
         is_param = eval(self[u'parameter'])
 
         if is_publish and (not is_const and not is_param):
-            raise RuntimeError, 'published attribute must either be "parameter" or "const": %s' % self.first_line()
+            raise RuntimeError, self.err_str('published attribute must either be "parameter" or "const"')
         if not is_publish and (not is_const or not is_param):
-            raise RuntimeError, 'unpublished attribute must be "const" "parameter": %s' % self.first_line()
+            raise RuntimeError, self.err_str('unpublished attribute must be "const" "parameter"')
 
 xmlConfig.register_tag_classes({u'attr': FactAttrElement})
 
@@ -84,8 +84,8 @@ class EntryElement(xmlConfig.DictElement):
 xmlConfig.register_tag_classes({u'entry': EntryElement})
 
 class Config(xmlConfig.DictElement):
-    def __init__(self, name):
-        super(Config, self).__init__(name)
+    def __init__(self, tag, *args, **kwargs):
+        super(Config, self).__init__(tag, *args, **kwargs)
 
         # cached variables to minimize dom accesses for better performance
         # these are looked up for each and every entry on reconfig
@@ -164,15 +164,18 @@ class Config(xmlConfig.DictElement):
 def parse(file):
     conf = _parse(file)
     # assume FACTORY_DEFAULTS_XML is in factoryXmlConfig module directory
-    conf_def = _parse(os.path.join(os.path.dirname(__file__), FACTORY_DEFAULTS_XML))
+    conf_def = _parse(os.path.join(os.path.dirname(__file__), FACTORY_DEFAULTS_XML), True)
     conf.merge_defaults(conf_def)
     return conf
 
 # this parse function is for internal usage
 # it does not merge defaults or validate
-def _parse(file):
+def _parse(file, default=False):
     parser = xml.sax.make_parser()
-    handler = xmlConfig.Handler()
+    if default:
+        handler = xmlConfig.Handler()
+    else:
+        handler = xmlConfig.Handler(file)
     parser.setContentHandler(handler)
     parser.parse(file)
 
