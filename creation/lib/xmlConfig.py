@@ -70,6 +70,8 @@ class Element(object):
         pass
     def validate(self):
         pass
+    def merge(self):
+        pass
 
 class DictElement(Element, collections.MutableMapping):
     def __init__(self, tag, *args, **kwargs):
@@ -152,11 +154,11 @@ class DictElement(Element, collections.MutableMapping):
 
     def check_boolean(self, flag):
         if self[flag] != u'True' and self[flag] != u'False':
-            raise RuntimeError, self.err_str('%s must be "True" or "False"' % flag)
+            raise RuntimeError(self.err_str('%s must be "True" or "False"' % flag))
 
     def check_missing(self, attr):
         if not attr in self:
-            raise RuntimeError, self.err_str('missing "%s" attribute' % attr)
+            raise RuntimeError(self.err_str('missing "%s" attribute' % attr))
 
 class ListElement(Element):
     def __init__(self, tag, *args, **kwargs):
@@ -227,7 +229,7 @@ class AttrElement(DictElement):
         self.check_missing(u'name')
         self.check_missing(u'value')
         if self[u'type'] != u'string' and self[u'type'] != u'int' and self[u'type'] != u'expr':
-            raise RuntimeError, self.err_str('type must be "int", "string", or "expr"')
+            raise RuntimeError(self.err_str('type must be "int", "string", or "expr"'))
         self.check_boolean(u'glidein_publish')
         self.check_boolean(u'job_publish')
         self.check_boolean(u'parameter')
@@ -238,9 +240,9 @@ class FileElement(DictElement):
     def validate(self):
         self.check_missing(u'absfname')
         if len(os.path.basename(self[u'absfname'])) < 1:
-            raise RuntimeError, self.err_str('absfname is an invalid file path')
+            raise RuntimeError(self.err_str('absfname is an invalid file path'))
         if u'relfname' in self and len(self[u'relfname']) < 1:
-            raise RuntimeError, self.err_str('relfname cannot be empty')
+            raise RuntimeError(self.err_str('relfname cannot be empty'))
 
         self.check_boolean(u'const')
         self.check_boolean(u'executable')
@@ -251,10 +253,10 @@ class FileElement(DictElement):
         is_wrapper = eval(self[u'wrapper'])
         is_tar = eval(self[u'untar'])
         if is_exec + is_wrapper + is_tar > 1:
-            raise RuntimeError, self.err_str('must be exactly one of type "executable", "wrapper", or "untar"')
+            raise RuntimeError(self.err_str('must be exactly one of type "executable", "wrapper", or "untar"'))
 
         if (is_exec or is_wrapper or is_tar) and not eval(self[u'const']):
-            raise RuntimeError, self.err_str('type "executable", "wrapper", or "untar" requires const="True"')
+            raise RuntimeError(self.err_str('type "executable", "wrapper", or "untar" requires const="True"'))
 
 TAG_CLASS_MAPPING.update({u'file': FileElement})
 

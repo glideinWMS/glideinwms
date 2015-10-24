@@ -32,9 +32,9 @@ class FactAttrElement(xmlConfig.AttrElement):
         is_param = eval(self[u'parameter'])
 
         if is_publish and (not is_const and not is_param):
-            raise RuntimeError, self.err_str('published attribute must either be "parameter" or "const"')
+            raise RuntimeError(self.err_str('published attribute must either be "parameter" or "const"'))
         if not is_publish and (not is_const or not is_param):
-            raise RuntimeError, self.err_str('unpublished attribute must be "const" "parameter"')
+            raise RuntimeError(self.err_str('unpublished attribute must be "const" "parameter"'))
 
 xmlConfig.register_tag_classes({u'attr': FactAttrElement})
 
