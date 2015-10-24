@@ -5,10 +5,10 @@ import xml.sax
 
 INDENT_WIDTH = 3
 
-LIST_TAGS = set([ 
-    u'attrs',
-    u'files',
-])
+LIST_TAGS = { 
+    u'attrs': lambda d: d[u'name'],
+    u'files': lambda d: d[u'absfname']
+}
 
 TAG_CLASS_MAPPING = {}
 DOCUMENT_ROOT = None
@@ -116,6 +116,7 @@ class DictElement(Element, collections.MutableMapping):
             if not key in self:
                 self[key] = default[key]
 
+    # this creates references into defaults rather than deep copies for efficiency
     def merge_defaults(self, default):
         self.merge_default_attrs(default)
         for tag in default.children:
@@ -124,9 +125,9 @@ class DictElement(Element, collections.MutableMapping):
                 # if its an xml list that is missing just create a new empty one
                 if isinstance(default.children[tag], ListElement):
                     self.children[tag] = type(default.children[tag])(tag)
-                # otherwise clone from default
+                # otherwise set to default
                 else:
-                    self.children[tag] = copy.deepcopy(default.children[tag])
+                    self.children[tag] = default.children[tag]
                     # zero out any xml lists
                     self.children[tag].clear_lists()
             # or continue down the tree
@@ -134,6 +135,18 @@ class DictElement(Element, collections.MutableMapping):
                 self.children[tag].merge_defaults(default.children[tag])
         # after filling in defaults, validate the element
         self.validate()
+
+    # this creates references into other rather than deep copies for efficiency
+    def merge(self, other):
+        self.attrs.update(other.attrs)
+
+        for tag in other.children:
+            # if completely missing just add it
+            if not tag in self.children:
+                self.children[tag] = other.children[tag]
+            # otherwise merge what we have
+            else:
+                self.children[tag].merge(other.children[tag])
 
     def err_str(self, str):
         return '%s:%s: %s: %s' % (self.file, self.line_no, self.tag, str)
@@ -163,6 +176,46 @@ class ListElement(Element):
     def merge_defaults(self, default):
         for child in self.children:
             child.merge_defaults(default.children[0])
+
+    def check_sort_key(self):
+        for child in self.children:
+            try:
+                LIST_TAGS[self.tag](child)
+            except KeyError as e:
+                raise RuntimeError(child.err_str('missing "%s" attribute' % e.message))
+                
+    # this creates references into other rather than deep copies for efficiency
+    def merge(self, other):
+        self.check_sort_key()
+        other.check_sort_key()
+        self.children.sort(key=LIST_TAGS[self.tag]) 
+        other.children.sort(key=LIST_TAGS[self.tag]) 
+
+        new_children = []
+        my_size = len(self.children)
+        other_size = len(other.children)
+        my_count = 0
+        other_count = 0
+        while my_count < my_size and other_count < other_size:
+            my_key = LIST_TAGS[self.tag](self.children[my_count])
+            other_key = LIST_TAGS[self.tag](other.children[other_count])
+            if my_key < other_key:
+                new_children.append(self.children[my_count])
+                my_count += 1
+            else:
+                new_children.append(other.children[other_count])
+                other_count += 1
+                if my_key == other_key:
+                    my_count += 1
+
+        while my_count < my_size:
+            new_children.append(self.children[my_count])
+            my_count += 1
+        while other_count < other_size:
+            new_children.append(other.children[other_count])
+            other_count += 1
+
+        self.children = new_children
 
 class AttrElement(DictElement):
     def get_val(self):

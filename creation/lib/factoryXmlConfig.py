@@ -8,19 +8,19 @@ FACTORY_DEFAULTS_XML = 'factory_defaults.xml'
 
 xmlConfig.register_root(u'glidein')
 
-xmlConfig.register_list_elements([ 
-u'allow_frontends',
-u'condor_tarballs',
-u'entries',
-u'frontends',
-u'infosys_refs',
-u'monitorgroups',
-u'monitoring_collectors',
-u'per_frontends',
-u'process_logs',
-u'security_classes',
-u'submit_attrs'
-])
+xmlConfig.register_list_elements({ 
+    u'allow_frontends': lambda d: d[u'name'],
+    u'condor_tarballs': lambda d: "%s,%s,%s" % (d[u'arch'], d[u'os'], d[u'version']),
+    u'entries': lambda d: d[u'name'],
+    u'frontends': lambda d: d[u'name'],
+    u'infosys_refs': lambda d: d[u'ref'],
+    u'monitorgroups': lambda d: d[u'group_name'],
+    u'monitoring_collectors': lambda d: d[u'DN'],
+    u'per_frontends': lambda d: d[u'name'],
+    u'process_logs': lambda d: d[u'extension'],
+    u'security_classes': lambda d: d[u'username'],
+    u'submit_attrs': lambda d: d[u'name']
+})
 
 class FactAttrElement(xmlConfig.AttrElement):
     def validate(self):
