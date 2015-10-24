@@ -116,7 +116,6 @@ class DictElement(Element, collections.MutableMapping):
             if not key in self:
                 self[key] = default[key]
 
-    # this creates references into defaults rather than deep copies for efficiency
     def merge_defaults(self, default):
         self.merge_default_attrs(default)
         for tag in default.children:
@@ -125,9 +124,9 @@ class DictElement(Element, collections.MutableMapping):
                 # if its an xml list that is missing just create a new empty one
                 if isinstance(default.children[tag], ListElement):
                     self.children[tag] = type(default.children[tag])(tag)
-                # otherwise set to default
+                # otherwise clone from default
                 else:
-                    self.children[tag] = default.children[tag]
+                    self.children[tag] = copy.deepcopy(default.children[tag])
                     # zero out any xml lists
                     self.children[tag].clear_lists()
             # or continue down the tree
