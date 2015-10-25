@@ -107,9 +107,11 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
             condor_el_valid_tarballs = get_valid_condor_tarballs([condor_el])
             condor_fname = cWConsts.insert_timestr(cgWConsts.CONDOR_FILE % condor_idx)
-            condor_tarfile = ""
+            condor_fd = None
 
-            condor_tarfile = condor_el['tar_file']
+            if not u'tar_file' in condor_el:
+                # Create a new tarball as usual
+                condor_fd = cgWCreate.create_condor_tar_fd(condor_el[u'base_dir'])
 
             for tar in condor_el_valid_tarballs:
                 condor_platform = "%s-%s-%s" % (tar['version'], tar['os'],
@@ -117,11 +119,21 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 cond_name = "CONDOR_PLATFORM_%s" % condor_platform
                 condor_platform_fname = cgWConsts.CONDOR_FILE % condor_platform
 
-                self.dicts['file_list'].add_from_file(
-                    condor_platform_fname, (condor_fname,
-                                            "untar", cond_name,
-                                            cgWConsts.CONDOR_ATTR),
-                    condor_el['tar_file'])
+                if condor_fd is None:
+                    # tar file exists. Just use it
+                    self.dicts['file_list'].add_from_file(
+                        condor_platform_fname, (condor_fname,
+                                                "untar", cond_name,
+                                                cgWConsts.CONDOR_ATTR),
+                        condor_el['tar_file'])
+                else:
+                    # This is addition of new tarfile
+                    # Need to rewind fd everytime
+                    condor_fd.seek(0)
+                    self.dicts['file_list'].add_from_fd(
+                        condor_platform_fname,
+                        (condor_fname,"untar",cond_name,cgWConsts.CONDOR_ATTR),
+                        condor_fd)
 
                 self.dicts['untar_cfg'].add(condor_platform_fname,
                                             cgWConsts.CONDOR_DIR)
@@ -129,6 +141,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 # But leave it disabled by default
                 self.dicts['consts'].add(cond_name, "0",
                                          allow_overwrite=False)
+            if condor_fd is not None:
+                condor_fd.close()
 
         #
         # Note:

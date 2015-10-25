@@ -46,9 +46,9 @@ class FactFileElement(xmlConfig.FileElement):
 xmlConfig.register_tag_classes({u'file': FactFileElement})
 
 class CondTarElement(xmlConfig.DictElement):
-    # this will need an update when we re-implement base_dir
     def validate(self):
-        self.check_missing(u'tar_file')
+        if not u'tar_file' in self and not u'base_dir' in self:
+            raise RuntimeError(self.err_str('must either define "tar_file" or "base_dir"'))
 
 xmlConfig.register_tag_classes({u'condor_tarball': CondTarElement})
 
