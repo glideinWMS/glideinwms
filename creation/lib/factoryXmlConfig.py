@@ -3,10 +3,8 @@ import xml.sax
 import xmlConfig
 
 ENTRY_INDENT = 6
-ENTRY_DIR = 'entries.d'
+CONFIG_DIR = 'config.d'
 FACTORY_DEFAULTS_XML = 'factory_defaults.xml'
-
-xmlConfig.register_root(u'glidein')
 
 xmlConfig.register_list_elements({ 
     u'allow_frontends': lambda d: d[u'name'],
@@ -155,6 +153,9 @@ class Config(xmlConfig.DictElement):
 
         return self.client_proxy_dirs
 
+xmlConfig.register_tag_classes({u'glidein': Config})
+xmlConfig.register_root(u'glidein')
+
 #######################
 #
 # Module functions
@@ -163,6 +164,14 @@ class Config(xmlConfig.DictElement):
 
 def parse(file):
     conf = _parse(file)
+
+    conf_dir_path = os.path.join(os.path.dirname(file), CONFIG_DIR)
+    if os.path.exists(conf_dir_path):
+        files = sorted(os.listdir(conf_dir_path))
+        for f in files:
+            if f.endswith('.xml'):
+                conf.merge(_parse(os.path.join(conf_dir_path, f)))
+
     # assume FACTORY_DEFAULTS_XML is in factoryXmlConfig module directory
     conf_def = _parse(os.path.join(os.path.dirname(__file__), FACTORY_DEFAULTS_XML), True)
     conf.merge_defaults(conf_def)

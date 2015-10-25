@@ -267,7 +267,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
     ########################################
     
     def save_pub_key(self):
-        sec_el = self.conf[u'security']
+        sec_el = self.conf.get_child(u'security')
         if u'pub_key' not in sec_el:
             pass # nothing to do
         elif sec_el[u'pub_key']=='RSA':
