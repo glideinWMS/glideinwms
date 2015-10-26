@@ -129,21 +129,21 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
 
         spd = self.params.data
         useMonitorIndexPage = True
-        if spd.has_key('frontend_monitor_index_page'):
-            useMonitorIndexPage = spd['frontend_monitor_index_page'] in ('True', 'true', '1')
+#        if spd.has_key('frontend_monitor_index_page'):
+#            useMonitorIndexPage = spd['frontend_monitor_index_page'] in ('True', 'true', '1')
             
-            if useMonitorIndexPage:
-                mfobj = cWDictFile.SimpleFile(params.src_dir + '/frontend', 'index.html')
+        if useMonitorIndexPage:
+            mfobj = cWDictFile.SimpleFile(params.src_dir + '/frontend', 'index.html')
+            mfobj.load()
+            self.monitor_htmls.append(mfobj)
+
+            for imgfil in ('frontendGroupGraphsNow.small.png',
+                           'frontendRRDBrowse.small.png',
+                           'frontendRRDGroupMatix.small.png',
+                           'frontendStatus.small.png'):
+                mfobj = cWDictFile.SimpleFile(params.src_dir + '/frontend/images', imgfil)
                 mfobj.load()
                 self.monitor_htmls.append(mfobj)
-
-                for imgfil in ('frontendGroupGraphsNow.small.png',
-                               'frontendRRDBrowse.small.png',
-                               'frontendRRDGroupMatix.small.png',
-                               'frontendStatus.small.png'):
-                    mfobj = cWDictFile.SimpleFile(params.src_dir + '/frontend/images', imgfil)
-                    mfobj.load()
-                    self.monitor_htmls.append(mfobj)
 
         # Tell condor to advertise GLIDECLIENT_ReqNode
         self.dicts['vars'].add_extended('GLIDECLIENT_ReqNode','string',None,None,False,True,False)
