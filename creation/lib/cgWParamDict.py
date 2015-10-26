@@ -57,7 +57,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.monitor_images=[]
         self.monitor_htmls=[]
 
-    def populate(self):
+    def populate(self, other=None):
         # put default files in place first       
         self.dicts['file_list'].add_placeholder('error_gen.sh',allow_overwrite=True)
         self.dicts['file_list'].add_placeholder('error_augment.sh',allow_overwrite=True)
@@ -98,6 +98,12 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         #load condor tarballs
         # only one will be downloaded in the end... based on what condor_platform_select.sh decides
         condor_tarballs = self.conf.get_child_list(u'condor_tarballs')
+        
+        if other is not None and other.main_dicts.dicts['glidein'].has_key('CondorTarballDirMap'):
+            tar_dir_map = eval(other.main_dicts.dicts['glidein']['CondorTarballDirMap'])
+        else:
+            tar_dir_map = {}
+            
         for condor_idx in range(len(condor_tarballs)):
             condor_el=condor_tarballs[condor_idx]
 
@@ -109,9 +115,17 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             condor_fname = cWConsts.insert_timestr(cgWConsts.CONDOR_FILE % condor_idx)
             condor_fd = None
 
-            if not u'tar_file' in condor_el:
+            if u'tar_file' in condor_el:
+                # Condor tarball available. Just add it to the list of tarballs
+                # with every possible condor_platform string
+                condor_tarfile = condor_el[u'tar_file']
+            # already built this tarball, just reuse it
+            elif condor_el[u'base_dir'] in tar_dir_map:
+                condor_tarfile = tar_dir_map[condor_el[u'base_dir']]
+            else:
                 # Create a new tarball as usual
                 condor_fd = cgWCreate.create_condor_tar_fd(condor_el[u'base_dir'])
+                tar_dir_map[condor_el[u'base_dir']] = os.path.join(self.dicts['file_list'].dir,condor_fname)
 
             for tar in condor_el_valid_tarballs:
                 condor_platform = "%s-%s-%s" % (tar['version'], tar['os'],
@@ -125,7 +139,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                         condor_platform_fname, (condor_fname,
                                                 "untar", cond_name,
                                                 cgWConsts.CONDOR_ATTR),
-                        condor_el['tar_file'])
+                        condor_tarfile)
                 else:
                     # This is addition of new tarfile
                     # Need to rewind fd everytime
@@ -143,6 +157,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                          allow_overwrite=False)
             if condor_fd is not None:
                 condor_fd.close()
+
+        self.dicts['glidein'].add('CondorTarballDirMap', str(tar_dir_map))
 
         #
         # Note:
@@ -494,7 +510,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
         return
 
     def populate(self,other=None): # will update params (or self.params)
-        self.main_dicts.populate()
+        self.main_dicts.populate(other)
         self.active_sub_list=self.main_dicts.active_sub_list
 
         schedds = self.conf[u'schedd_name'].split(u',')
