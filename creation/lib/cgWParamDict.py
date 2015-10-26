@@ -99,11 +99,12 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # only one will be downloaded in the end... based on what condor_platform_select.sh decides
         condor_tarballs = self.conf.get_child_list(u'condor_tarballs')
         
+        prev_tar_dir_map = {}
         if other is not None and other.main_dicts.dicts['glidein'].has_key('CondorTarballDirMap'):
-            tar_dir_map = eval(other.main_dicts.dicts['glidein']['CondorTarballDirMap'])
-        else:
-            tar_dir_map = {}
-            
+            prev_tar_dir_map = eval(other.main_dicts.dicts['glidein']['CondorTarballDirMap'])
+
+        tar_dir_map = {}
+
         for condor_idx in range(len(condor_tarballs)):
             condor_el=condor_tarballs[condor_idx]
 
@@ -120,8 +121,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 # with every possible condor_platform string
                 condor_tarfile = condor_el[u'tar_file']
             # already built this tarball, just reuse it
-            elif condor_el[u'base_dir'] in tar_dir_map:
-                condor_tarfile = tar_dir_map[condor_el[u'base_dir']]
+            elif condor_el[u'base_dir'] in prev_tar_dir_map:
+                condor_tarfile = prev_tar_dir_map[condor_el[u'base_dir']]
+                tar_dir_map[condor_el[u'base_dir']] = condor_tarfile
             else:
                 # Create a new tarball as usual
                 condor_fd = cgWCreate.create_condor_tar_fd(condor_el[u'base_dir'])
