@@ -746,7 +746,7 @@ class glideinFrontendElement:
                     max_run = int(el['MaxJobsRunning']*0.95+0.5)
                     current_run = el['TotalRunningJobs']
                     # older schedds may not have TotalSchedulerJobsRunning
-                    current_run += el.get('TotalSchedulerJobsRunning',0)
+                    #current_run += el.get('TotalSchedulerJobsRunning',0)
                     logSupport.log.debug("Schedd %s has %i running with max %i" % (schedd, current_run, max_run))
 
                     if current_run >= max_run:
