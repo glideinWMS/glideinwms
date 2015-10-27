@@ -14,6 +14,11 @@ import sys
 import cgWDictFile,cWDictFile
 import cgWCreate
 import cgWConsts,cWConsts
+#
+# see the note in add_file_unparsed def below to understand
+# why this is commented out for now
+#
+#from cWParamDict import is_true, add_file_unparsed
 
 WEB_BASE_DIR=os.path.join(os.path.dirname(__file__),"..","web_base")
 
@@ -68,9 +73,13 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.dicts['file_list'].add_placeholder(cWConsts.GRIDMAP_FILE,allow_overwrite=True) # this one must be loaded before setup_x509.sh is run
 
         #load system files
-        for file_name in ('error_gen.sh','error_augment.sh','parse_starterlog.awk', 'advertise_failure.helper',
-                          "condor_config", "condor_config.multi_schedd.include", "condor_config.dedicated_starter.include", "condor_config.check.include", "condor_config.monitor.include"):
-            self.dicts['file_list'].add_from_file(file_name,(cWConsts.insert_timestr(file_name),"regular","TRUE",'FALSE'),os.path.join(WEB_BASE_DIR,file_name))
+        for file_name in ('error_gen.sh', 'error_augment.sh', 'parse_starterlog.awk', 'advertise_failure.helper',
+                          'condor_config', 'condor_config.multi_schedd.include',
+                          'condor_config.dedicated_starter.include', 'condor_config.check.include',
+                          'condor_config.monitor.include'):
+            self.dicts['file_list'].add_from_file(file_name,
+                                                  (cWConsts.insert_timestr(file_name), 'regular', 0, 'TRUE', 'FALSE'),
+                                                  os.path.join(WEB_BASE_DIR, file_name))
         self.dicts['description'].add("condor_config","condor_config")
         self.dicts['description'].add("condor_config.multi_schedd.include","condor_config_multi_include")
         self.dicts['description'].add("condor_config.dedicated_starter.include","condor_config_main_include")
@@ -92,8 +101,10 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # Load initial system scripts
         # These should be executed before the other scripts
-        for script_name in ('setup_script.sh','cat_consts.sh','condor_platform_select.sh'):
-            self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(WEB_BASE_DIR,script_name))
+        for script_name in ('setup_script.sh', 'cat_consts.sh', 'condor_platform_select.sh'):
+            self.dicts['file_list'].add_from_file(script_name,
+                                                  (cWConsts.insert_timestr(script_name), 'exec', 0, 'TRUE', 'FALSE'),
+                                                  os.path.join(WEB_BASE_DIR, script_name))
 
         #load condor tarballs
         # only one will be downloaded in the end... based on what condor_platform_select.sh decides
@@ -138,18 +149,19 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 if condor_fd is None:
                     # tar file exists. Just use it
                     self.dicts['file_list'].add_from_file(
-                        condor_platform_fname, (condor_fname,
-                                                "untar", cond_name,
-                                                cgWConsts.CONDOR_ATTR),
-                        condor_tarfile)
+                        condor_platform_fname,
+                        (condor_fname, 'untar', 0, cond_name, cgWConsts.CONDOR_ATTR),
+                        condor_tarfile
+                    )
                 else:
                     # This is addition of new tarfile
                     # Need to rewind fd everytime
                     condor_fd.seek(0)
                     self.dicts['file_list'].add_from_fd(
                         condor_platform_fname,
-                        (condor_fname,"untar",cond_name,cgWConsts.CONDOR_ATTR),
-                        condor_fd)
+                        (condor_fname, 'untar', 0, cond_name, cgWConsts.CONDOR_ATTR),
+                        condor_fd
+                    )
 
                 self.dicts['untar_cfg'].add(condor_platform_fname,
                                             cgWConsts.CONDOR_DIR)
@@ -192,6 +204,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                    'glidein_memory_setup.sh',
                                    'glidein_cpus_setup.sh',
                                    'glidein_sitewms_setup.sh',
+                                   'script_wrapper.sh',
                                    'smart_partitionable.sh']
         # Only execute scripts once
         duplicate_scripts = set(file_list_scripts).intersection(after_file_list_scripts)
@@ -200,7 +213,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # Load more system scripts
         for script_name in file_list_scripts:
-            self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(WEB_BASE_DIR,script_name))
+            self.dicts['file_list'].add_from_file(script_name,
+                                                  (cWConsts.insert_timestr(script_name), 'exec', 0, 'TRUE', 'FALSE'),
+                                                  os.path.join(WEB_BASE_DIR, script_name))
 
         # make sure condor_startup does not get executed ahead of time under normal circumstances
         # but must be loaded early, as it also works as a reporting script in case of error
@@ -212,7 +227,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # put user files in stage
         for file in self.conf.get_child_list(u'files'):
-            add_file_unparsed(file,self.dicts)
+            add_file_unparsed(file, self.dicts, True)
 
         # put user attributes into config files
         for attr in self.conf.get_child_list(u'attrs'):
@@ -220,7 +235,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # add additional system scripts
         for script_name in after_file_list_scripts:
-            self.dicts['after_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(WEB_BASE_DIR,script_name))
+            self.dicts['after_file_list'].add_from_file(script_name,
+                                                        (cWConsts.insert_timestr(script_name), 'exec', 0, 'TRUE', 'FALSE'),
+                                                        os.path.join(WEB_BASE_DIR, script_name))
 
         # populate complex files
         populate_factory_descript(self.work_dir,self.dicts['glidein'],self.active_sub_list,self.conf)
@@ -396,8 +413,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         self.dicts['condor_jdl'].finalize(self.summary_signature['main'][0],self.summary_signature[sub_stage_dir][0],
                                           self.summary_signature['main'][1],self.summary_signature[sub_stage_dir][1])
         self.dicts['condor_jdl'].save(set_readonly=set_readonly)
-        
-    
+
     def populate(self,entry,schedd):
         # put default files in place first
         self.dicts['file_list'].add_placeholder(cWConsts.CONSTS_FILE,allow_overwrite=True)
@@ -406,12 +422,16 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         # follow by the blacklist file
         file_name=cWConsts.BLACKLIST_FILE
-        self.dicts['file_list'].add_from_file(file_name,(file_name,"nocache","TRUE",'BLACKLIST_FILE'),os.path.join(WEB_BASE_DIR,file_name))
+        self.dicts['file_list'].add_from_file(file_name,
+                                              (file_name, 'nocache', 0, 'TRUE', 'BLACKLIST_FILE'),
+                                              os.path.join(WEB_BASE_DIR, file_name))
 
         # Load initial system scripts
         # These should be executed before the other scripts
         for script_name in ('cat_consts.sh',"check_blacklist.sh"):
-            self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(WEB_BASE_DIR,script_name))
+            self.dicts['file_list'].add_from_file(script_name,
+                                                  (cWConsts.insert_timestr(script_name), 'exec', 0, 'TRUE', 'FALSE'),
+                                                  os.path.join(WEB_BASE_DIR, script_name))
 
         #load system files
         self.dicts['vars'].load(WEB_BASE_DIR,'condor_vars.lst.entry',change_self=False,set_not_changed=False)
@@ -419,7 +439,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         
         # put user files in stage
         for user_file in entry.get_child_list(u'files'):
-            add_file_unparsed(user_file,self.dicts)
+            add_file_unparsed(user_file, self.dicts, True)
 
         # Add attribute for voms
 
@@ -601,7 +621,13 @@ class glideinDicts(cgWDictFile.glideinDicts):
 #############################################
 # Add a user file residing in the stage area
 # file as described by Params.file_defaults
-def add_file_unparsed(user_file,dicts):
+#
+# !!! NOTE !!! keep using this function in factory. Until
+# FE code is updated to use new xml parsing we can't use
+# the common cWParamDict version
+# 
+# is_factory is just a dummy placeholder to make the transition easier later
+def add_file_unparsed(user_file,dicts, is_factory):
     absfname=user_file['absfname']
     
     if 'relfname' not in user_file:
@@ -609,20 +635,22 @@ def add_file_unparsed(user_file,dicts):
     else:
         relfname=user_file['relfname']
 
-    is_const=eval(user_file['const'],{},{})
-    is_executable=eval(user_file['executable'],{},{})
-    is_wrapper=eval(user_file['wrapper'],{},{})
-    do_untar=eval(user_file['untar'],{},{})
+    is_const=eval(user_file['const'])
+    is_executable=eval(user_file['executable'])
+    is_wrapper=eval(user_file['wrapper'])
+    do_untar=eval(user_file['untar'])
+
+    period_value = int(user_file['period'])
 
     file_list_idx='file_list'
     if 'after_entry' in user_file:
-        if eval(user_file['after_entry'],{},{}):
+        if eval(user_file['after_entry']):
             file_list_idx='after_file_list'
 
     if is_executable: # a script
-        dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"exec","TRUE",'FALSE'),absfname)
+        dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"exec", period_value, "TRUE",'FALSE'),absfname)
     elif is_wrapper: # a sourceable script for the wrapper
-        dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"wrapper","TRUE",'FALSE'),absfname)
+        dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"wrapper",0,"TRUE",'FALSE'),absfname)
     elif do_untar: # a tarball
         untar_opts = user_file.get_child('untar_options')
         if u'dir' in untar_opts:
@@ -637,15 +665,15 @@ def add_file_unparsed(user_file,dicts):
         cond_attr=untar_opts['cond_attr']
 
 
-        dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"untar",cond_attr,config_out),absfname)
+        dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"untar",0,cond_attr,config_out),absfname)
         dicts['untar_cfg'].add(relfname,wnsubdir)
     else: # not executable nor tarball => simple file
         if is_const:
             val='regular'
-            dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),val,'TRUE','FALSE'),absfname)
+            dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),val,0,'TRUE','FALSE'),absfname)
         else:
             val='nocache'
-            dicts[file_list_idx].add_from_file(relfname,(relfname,val,'TRUE','FALSE'),absfname) # no timestamp if it can be modified
+            dicts[file_list_idx].add_from_file(relfname,(relfname,val,0,'TRUE','FALSE'),absfname) # no timestamp if it can be modified
 
 #######################
 # Register an attribute

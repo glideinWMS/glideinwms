@@ -126,7 +126,7 @@ function updiv(x,y) {
     badjobsSignal++
   } else {
     badputOther+=joblength;
-    babjobsOther++;
+    badjobsOther++;
   }
 
   # cleanup, so it is not reused by accident

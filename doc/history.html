@@ -85,6 +85,77 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
+        <b>v3_2_11_2</b> released on September 18, 2015 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_11_2/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_11_2/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_11_2.tgz">Tarball</a>)<br>
+        <ul>
+            <li>Fix: Fixed authentication issue introduced in v3_2_11 where a
+            glidein startd fails to send keep alive signals to v8.2.x schedds
+      </ul>
+      </li>
+      <li>
+        <b>v3_2_11_1</b> released on September 02, 2015 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_11_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_11_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_11_1.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Bug Fix: Fixed a bug introduced in v3_2_11 where file period
+          interpreted as number instead of string
+      </ul>
+      </li>
+      <li>
+        <b>v3_2_11</b> released on August 20, 2015 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_11/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_11/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_11.tgz">Tarball</a>)<br>
+        <ul>
+          <li>VO Frontend now blacklists schedds with CurbMatchmaking=True
+          <li>You can now over provision Multicore glidein by using
+          GLIDEIN_Resource_Slots attribute to specify different types of
+          resources it provides. For example ioslot
+          <li>Glidein can now advertise itself to the site's local HTCondorCE
+          collector if CONDORCE_COLLECTOR_HOST is set in it's environment
+          <li>Custom/validation scripts can now be run periodically and not
+          just at the glidein's startup
+          <li>Improvements to the rpm packaging
+          <li>Updated documentation
+          <li>Bug Fix: Glideins in claimed/idle status are not shutdown by
+          DAEMON_SHUTDOWN expression
+          <li>Bug Fix: Fixed a bug in gwms-logcat tool
+          <li>Bug Fix: The CCB selection behaves correctly and accepts sinful
+          strings
+          <li>Bug Fix: Fixed a bug where Frontend under certain conditions
+          would crash because of uninitialized ha_mode
+          <li>Bug Fix: Setting GLIDEIN_Report_Failed to ALIVEONLY now creates
+          valid invalidate command
+          <li>Bug Fix: Fixed a bug in the accounting of jobs run by a glidein
+        </ul>
+      </li>
+      <li>
+        <b>v3_2_10</b> released on June 01, 2015 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_10/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_10/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_10.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Improved Documentation
+          <li>Bug Fix: Fixed several bugs in accounting of idle and running
+          slots in case of multicore glideins
+          <li>Bug Fix: Got rid of old style HTCondor default Memory and Disk
+          requirements in the schedd configuration
+          <li>Bug Fix: DAEMON_SHUTDOWN expression will now let the Multi core
+          glidein to run for appropriate time before killing it
+        </ul>
+      </li>
+      <li>
+        <b>v3_2_9</b> released on May 08, 2015 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_9/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_9/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_9.tgz">Tarball</a>)<br>
+        <ul>
+          <li>VO Frontend supports a master-slave HA mode
+          <li>Added a factory wrapper script to view glidein logs files
+          <li>Updated the dependency of Glideinwms to HTCondor v8.2.2
+          <li>Frontend supports CCBs in addition to User Collector
+          <li>Updated documentation
+          <li>Bug Fix: glideresource classads now contain appropriate monitoring
+          information
+          <li>Bug Fix: Fixed a bug where an unhandled exception would cause a
+          frontend to shutdown
+          <li>Bug Fix: Removed obsolute defult requirement for vanilla jobs in
+          user schedd's config file
+          <li>Bug Fix: Glidein now works correctly when both grid/voms-proxy
+          commands are not available on the worker node
+          <li>Bug Fix: GlideinWMSVersion is now correctly reported in rpm
+          distribution
+        </ul>
+      </li>
+      <li>
         <b>v3_2_8</b> released on December 30, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_8/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_8/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_8.tgz">Tarball</a>)<br>
         <ul>
           <li>VO Frontend parameters are added to HTCondor config for ganglia

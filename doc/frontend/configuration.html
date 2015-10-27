@@ -136,7 +136,7 @@ Click on any piece for a more detailed description.
         <blockquote>
         <a href="#credentials">&lt;credentials&gt;</a><br/>
         <blockquote>
-            <a href="#credentials">&lt;credential absfname="/tmp/x509up_u" security_class="frontend" trust_domain="OSG" auth_method="grid_proxy" vm_id="123" vm_type="type1" pool_idx_len="5" pool_idx_list="2,4-6,10" /&gt;</a><br/>
+            <a href="#credentials">&lt;credential absfname="/tmp/x509up_u" security_class="frontend" trust_domain="OSG" type="grid_proxy" vm_id="123" vm_type="type1" pool_idx_len="5" pool_idx_list="2,4-6,10" /&gt;</a><br/>
         </blockquote>
         <a href="#credentials">&lt;/credentials&gt;</a><br/>
         <a href="#security">&lt;/security&gt;</a><br/>
@@ -195,6 +195,7 @@ Click on any piece for a more detailed description.
     <a href="#files">&lt;files&gt;</a><br/>
     <blockquote>
       <a href="#files">&lt;file absfname="/opt/script/testSW.sh" after_entry="True" after_group="False" const="True" executable="True" untar="False" wrapper="False" /&gt;</a><br/>
+      <a href="#files">&lt;file absfname="/opt/script/testP.sh" after_entry="True" after_group="False" const="True" executable="True" period="1800" untar="False" wrapper="False" /&gt;</a><br/>
     </blockquote>
     <a href="#files">&lt;/files&gt;</a><br/>     
     <a href="#usercollector">&lt;collectors&gt;</a><br/>
@@ -205,6 +206,12 @@ Click on any piece for a more detailed description.
         <a href="#usercollector">&lt;collector DN="/DC=org/DC=doegrids/OU=Services/CN=usercollector2.fnal.gov" node="usercollector2.fnal.gov:9620-9919" secondary="True" group="ha" /&gt;</a><br/>
     </blockquote>
     <a href="#usercollector">&lt;/collectors&gt;</a><br/>
+    <a href="#ccbcollector">&lt;ccbs&gt;</a><br/>
+    <blockquote>
+        <a href="#ccbcollector">&lt;ccb DN="/DC=org/DC=doegrids/OU=Services/CN=ccb.fnal.gov" node="ccb.fnal.gov" /&gt;</a><br/>
+        <a href="#ccbcollector">&lt;ccb DN="/DC=org/DC=doegrids/OU=Services/CN=ccb2.fnal.gov" node="ccb2.fnal.gov:9620-9640" group="group2" /&gt;</a><br/>
+    </blockquote>
+    <a href="#ccbcollector">&lt;/ccbs&gt;</a><br/>
     <a href="#global_config">&lt;config&gt;</a><br/>
     <blockquote>
        <a href="#global_config">&lt;idle_vms_total curb="800" max="1200" /&gt;</a><br/>
@@ -213,7 +220,21 @@ Click on any piece for a more detailed description.
        <a href="#global_config">&lt;running_glideins_total_global curb="50000" max="60000" /&gt;</a><br/>
     </blockquote>
     <a href="#global_config">&lt;/config&gt;</a><br/>
-    </blockquote>
+
+
+    <a href="#high_availability">&lt;high_availability check_interval="300" enabled="False"&gt;</a></br>
+      <blockquote>
+      <a href="#high_availability"><a href="#high_availability">&lt;ha_frontends&gt;</a></br>
+         <blockquote>
+         <a href="#high_availability">&lt;ha_frontend frontend_name="vofrontend-v2_4"/&gt;</a></br>
+         </blockquote>
+      <a href="#high_availability">&lt;/ha_frontends&gt;</a></br>
+      </blockquote>
+    <a href="#high_availability">&lt;/high_availability&gt;</a></br>
+
+
+
+</blockquote>
     <a href="#">&lt;/frontend&gt;</a><br/>
 </div>
 
@@ -386,7 +407,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         <a name="proxies" />
         <div class="xml">
         &lt;frontend&gt;&lt;security&gt;&lt;credentials&gt;&lt;credential
-        auth_method=&quot;<i>grid_proxy</I>&quot;
+        type=&quot;<i>grid_proxy</I>&quot;
         absfname=&quot;<I>proxyfile</I>&quot;
         [keyabsfname=&quot;<I>keyfile</I>&quot;]
         [pilotabsfname=&quot;<I>proxyfile</I>&quot;]
@@ -400,7 +421,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         </div>
     This section lists credentials used by the whole Frontend.  You can
     have multiple credentials listed here and they are used by all groups.
-    The authentication method can be one of the following:
+    The type (authentication method in the Factory's entry) can be one of the following:
     <ul>
         <li><b>grid_proxy</b>: A x509 proxy stored in the <i>absfname</i> location.</li>
         <li><b>cert_pair</b>: A x509 certificate pair with the cert in the <i>absfname</i> location and the certkey in the <i>keyabsfname</i> location.</li>
@@ -408,8 +429,8 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         <li><b>username_password</b>: A username/password combination with the username stored in a text at the <i>absfname</i> location and a password stored in a text file in the <i>keyabsfname</i> location.</li>
     </ul>
     In addition, if you have a cloud (non-grid type) entry, you may also be required to specify the identity credentials VM id and VM type.  
-    If these either of these are specified, &quot+vm_id&quot or &quot+vm_type&quot will be added to one of the authentication methods above.  For example, 
-    auth_method="cert_pair+vm_id+vm_type".
+    If these either of these are specified, &quot+vm_id&quot or &quot+vm_type&quot will be added to one of the authentication methods (types) above.  For example,
+    type="cert_pair+vm_id+vm_type".
     <br/><br/>
     Pool index length and list allows the admin to configure a list of credentials without having to list each one of them.  The files must all be identical except
     for the numbers at the end.  The index length value adds leading zeros.  For example, if you have: absfname=&quotpath/foo&quot pool_idx_len=&quot4&quot  pool_idx_list=&quot2,4-6&quot
@@ -457,14 +478,15 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
                 absfname=&quot;<I>filepath</I>&quot;
                 relfname=&quot;<I>filename</I>&quot;
 
-                executable=&quot;<I>boolean</I>&quot; /&gt;
+                executable=&quot;<I>boolean</I>&quot;
+                after_group=&quot;<I>boolean</I>&quot;
+                period=&quot;<I>seconds(int)</I>&quot; /&gt;
                 </div>
-        The file parameters are used to specify the location
-        of additional files. The grid mapfile location must be specified.
-    This can be used to add custom scripts to the vo frontend.  
+        The file parameters are used to specify the location, the download/execution order and attributes
+        of additional files. The system (vo frontend) is already transferring some files, e.g. grid mapfile.
+    This can be used to add custom scripts to the vo frontend (either for all glideins for this frontend or only for a group).
     See <a href="#custom_code">below</a> or  the page dedicated to 
-    <a href="../factory/custom_scripts.html">writing custom scripts</a> for more
-    information.
+    <a href="../factory/custom_scripts.html">writing custom scripts</a> for more information.
         </P></li>
 
     <LI><P>
@@ -797,7 +819,7 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     <LI><P>
         <a name="usercollector" />
         <div class="xml">
-        &lt;frontend&gt;&lt;collectors&gt;&lt;collector DN="<i>certificate DN</i>" node="<i>User Pool Collector</i>" secondary="<i>True/False</i>" group="<i>Group Name</i>"&gt;
+        &lt;frontend&gt;&lt;collectors&gt;&lt;collector DN="<i>certificate DN</i>" node="<i>User Pool Collector</i>" secondary="<i>True/False</i>" group="<i>Group Name</i>"/&gt;
         </div>
         List of user pool collector(s) where condor_startd started by glideins
         should report to as an available resource.  
@@ -842,14 +864,66 @@ glideins.  Groups are used to group users with similar requirements, such as pro
             element for each secondary port.</i></font><br/>
        </ul>
       </blockquote>
-
-
     </li>
-    
+
+    <LI><P>
+        <a name="ccbcollector" />
+        <div class="xml">
+        &lt;frontend&gt;&lt;ccbs&gt;&lt;ccb DN="<i>certificate DN</i>" node="<i>CCB (Collector)</i>" group="Group name" /&gt;
+        </div>
+        List of <a href="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_7Networking_includes.html#SECTION00474000000000000000">
+HTCondor Connection Brokering, or CCB,</a> servers. These are collector daemons that allow communications with HTCondor daemons behind a firewall.
+See the  <a href="http://research.cs.wisc.edu/htcondor/manual/v8.2/3_7Networking_includes.html#SECTION00474000000000000000">HTCondor manual</a> 
+for more information on CCB. A switch in the entry section of the factory configuration determines wether the daemons started by Glideins on that entry
+will use CCBs or not.<br><br>
+<b>Normally this section is empty and the main User Pool Collector acts also as CCB if needed</b>.
+Only very specific setups need to change this section.
+    <br><br>
+    For <b>scalability</b> purposes, multiple CCB can be listed. 
+Each Glidein will use only one CCB per group: it will receive a randomly shuffled list of CCBs with one entry
+        chosen at random from each distinct group (port ranges are expanded as different entries); will connect to all
+        of them to listen for requests Communications will start using the first one and fall back to the following
+        ones in case of errors. Daemons on the same host using a shared port daemon will share the same CCBs.<br>
+        NOTE that there is no correlation between these groups and the collector groups and HTCondor has no way to set
+        any affinity (for this collector use this CCB close by). When no group is specified "default" is assumed.<br>
+    The configuration required for the Frontend and Glideins to communicate using CCB collectors is shown below:
+      <blockquote>
+         &lt;ccbs&gt;
+         &lt;ccb DN="<i>certificate DN</i>"  
+                  node="CCB Collector:<b>port</b>"/&gt;</br>
+         &lt;ccb DN="<i>certificate DN</i>" 
+                  node="CCB Collector:<b>other_port</b>"/&gt;</br>
+            <font color="blue">
+            Like in User Pool Collector configuration, here an optional port number, <i>port range</i> or sinful
+            string can be used. No comma or semicolon are allowed in the node specification.</font><br/>
+      </blockquote>
+    </li>
+            Contrary to the User Pool Collector configuration, here only an optional port number is allowed, no <i>port range</i></font><br/>
+      </blockquote>
+    </li>
+    <li>
+      <a name="high_availability">
+      <div class="xml">
+      &lt;frontend&gt;&lt;high_availability check_interval="<i>Check interval in sec</i>" enabled="<i>True/False</i>"/&gt;
+      </div>
+      This setting allows you to run frontend in HA mode. Currently only 1 master, 1 slave is supported. By default, the frontend runs in master mode ie. <b>enabled="False"</b>.<br/><br/>
+
+      To configure the frontend as slave, set <b>enabled="True"</b>. Slave will check the WMS Collector for the classads from the master frontend every few second specified in the <b>check_interval</b>. The <b>frontend_name</b> setting in the example below is in the name of the master frontend ie. 'FrontendName' as it appears in the glideclient classad of the master frontend or the value of <b>frontend_name</b> configuration for the master frontend. When the slave detects that master has stopped advertising, it will take over and start advertising the requests. You can use same <b>frontend_name</b> for both master and slave frontend to make it transparent to other services, however you can still distinguish which frontend is currently active by looking at the 'FrontendHAMode' in the glideclient classad.
+
+      <pre>
+      &lt;high_availability check_interval="300" enabled="True"&gt;
+        &lt;ha_frontends&gt;
+          &lt;ha_frontend frontend_name="vofrontend-v2_4"/&gt;
+        &lt;/ha_frontends&gt;
+      &lt;/high_availability&gt;</pre>
+
+      </a>
+    </li>
+
 </UL>
 </div>
 <div class="section">
-<h3><A NAME="custom_code"></A>Adding Custom Code/Scripts to Glidein Frontend Glideins</H3>
+<h3><A NAME="custom_code"></A>Adding Custom Code/Scripts to Glidein Frontend Glideins</h3>
     You can add custom scripts to glideins created for this Glidein Frontend by adding scripts and files to the configuration in the files section: 
         <div class="xml">
         &lt;glidein&gt;<br>
@@ -858,20 +932,22 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         &nbsp;&lt;files&gt;<br>
         &nbsp;&nbsp;&lt;file absfname="<i>script name</i>" 
         executable="True"
+        after_group="True"
         comment="<i>comment</i>"/&gt;
 
         </div>
-    <p>The script will be copied to the
-    Web-accessible area and added to the glidein's file_list, 
-    and when a glidein starts, the&nbsp;glidein
-    startup script will pull it and execute it. If any parameters are
-    needed, they can be specified using <b>&lt;attr /&gt;</b>.
+    <p>The script/file will be copied to the
+    Web-accessible area and added to one of the glidein's file lists,
+    and when a glidein starts, the glidein startup script will pull it, validate it and execute
+i   any action requested (execute, untar, just keep it, ...).
+        <tt>after_entry</tt> and <tt>after_group</tt> can be used to affect the execution order (see
+        <a href="../factory/custom_scripts.html">writing custom scripts</a>.
+    If any parameters are needed, they can be specified using <b>&lt;attr /&gt;</b>.
     </p>
 
-    <p>For more detailed information,
-    see the page dedicated to 
+    <p>For more detailed information, see the page dedicated to
     <a href="../factory/custom_scripts.html">writing custom scripts</a>.</p>
-<p>
+    <p>
     You can also create wrapper scripts or tar-balls of files, see
     <a href="../factory/configuration.html#custom_code">the factory configuration page</a> for
     syntax.  (Use groups/group tags instead of the factory's entry tag). The variable name specified by <b>absdir_outattr</b> will be prepended by either

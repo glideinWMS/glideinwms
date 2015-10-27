@@ -475,6 +475,7 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
         glide_str = "%s@%s" % (glidename[1],glidename[0].split(':')[0])
         glidein=glidein_dict[glidename]
         glidein_count=0
+        glidein_ids = set()
         for scheddIdx in range(nr_schedds):
             schedd=schedds[scheddIdx]
             cq_dict_clusters_el=cq_dict_clusters[scheddIdx]
@@ -493,6 +494,9 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
                 try:
                     if (job['RunningOn'] == glide_str) and eval(match_obj):
                         schedd_count+=len(cq_dict_clusters_el[jh])
+                        for jid in cq_dict_clusters_el[jh]:
+                            job = condorq_data[jid]
+                            glidein_ids.add(job.get('RemoteHost', "%d %s" % (scheddIdx, jid)))
                 except KeyError, e:
                     tb = traceback.format_exception(sys.exc_info()[0],
                                                     sys.exc_info()[1],
@@ -509,6 +513,8 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
             if tb_count > 0:
                 logSupport.log.debug("There were %s exceptions in countRealRunning subprocess. Most recent traceback: %s " % (tb_count, recent_tb))
             glidein_count+=schedd_count
+        logSupport.log.debug("Example running glidein ids at %s (total %d): %s" % (glidename, len(glidein_ids), ", ".join(list(glidein_ids)[:5])))
+        glidein_count = len(glidein_ids)
         out_glidein_counts[glidename]=glidein_count
     return out_glidein_counts
 
@@ -527,9 +533,6 @@ def evalParamExpr(expr_obj, frontend, glidein):
 #
 # Return a dictionary of collectors containing interesting classads
 # Each element is a condorStatus
-#
-# If not all the jobs of the schedd has to be considered,
-# specify the appropriate constraint
 #
 def getCondorStatus(collector_names, constraint=None, format_list=None,
                     want_format_completion=True, want_glideins_only=True):
@@ -572,13 +575,14 @@ def getCondorStatus(collector_names, constraint=None, format_list=None,
 def getIdleCondorStatus(status_dict):
     out = {}
     for collector_name in status_dict.keys():
-        #sq = condorMonitor.SubQuery(status_dict[collector_name], lambda el:(el.has_key('State') and el.has_key('Activity') and (el['State'] == "Unclaimed") and (el['Activity'] == "Idle")))
+        # Exclude partitionable slots with no free memory/cpus
         sq = condorMonitor.SubQuery(
                  status_dict[collector_name],
                  lambda el:(
                      ( (el.get('State') == 'Unclaimed') and
                        (el.get('Activity') == 'Idle') and
-                       ( (el.get('PartitionableSlot') != True) or
+                       ( (el.get('PartitionableSlot', False) != True) or
+                         (el.get('Cpus',0)>0 and el.get('Memory', 2501) > 2500) or
                          (el.get('TotalSlots') == 1) 
                        )
                      )
@@ -597,16 +601,33 @@ def getIdleCondorStatus(status_dict):
 def getRunningCondorStatus(status_dict):
     out = {}
     for collector_name in status_dict.keys():
+        # TODO: PM
+        # Its not clear why the running status considered Unclaimed glideins
+        # This results in the counting partitionable slot against running
+        # counts. I think below is the correct query
+        
         sq = condorMonitor.SubQuery(
                  status_dict[collector_name],
                  lambda el:(
                      ( (el.get('State') == 'Claimed') and
-                       (el.get('Activity') in ('Busy', 'Retiring')) and
-                       ( (el.get('PartitionableSlot') != True) or
-                         (el.get('TotalSlots') == 1) 
-                       )
+                       (el.get('Activity') in ('Busy', 'Retiring'))
+                     )
+                     ) )
+        """
+
+        sq = condorMonitor.SubQuery(
+                 status_dict[collector_name],
+                 lambda el:(
+                     ( (el.get('State') == 'Claimed') and
+                       (el.get('Activity') in ('Busy', 'Retiring'))
+                     ) or
+                     ( (el.get('State') == 'Unclaimed') and
+                       (el.get('Activity') == 'Idle') and
+                       (el.get('PartitionableSlot') == True) and
+                       (el.get('TotalSlots', 1) > 1)
                      )
                  ) )
+        """
         sq.load()
         out[collector_name] = sq
     return out
@@ -641,8 +662,8 @@ def getIdleCoresCondorStatus(status_dict):
                  lambda el:(
                      ( (el.get('State') == 'Unclaimed') and
                        (el.get('Activity') == 'Idle') and
-                       ( (el.get('PartitionableSlot') != True) or
-                         (el.get('PartitionableSlot')==True and el.get('Cpus',0)>0) or
+                       ( (el.get('PartitionableSlot', False) != True) or
+                         (el.get('Cpus',0)>0 and el.get('Memory', 2501) > 2500) or
                          (el.get('TotalSlots') == 1) 
                        )
                      )
@@ -767,13 +788,18 @@ def getCondorStatusSchedds(collector_names, constraint=None, format_list=None,
                            want_format_completion=True):
     if format_list is not None:
         if want_format_completion:
-            format_list = condorMonitor.complete_format_list(format_list,
-                           [('TotalRunningJobs', 'i'), ('TotalSchedulerJobsRunning', 'i'),
-                            ('TransferQueueNumUploading','i'),
-                            ('MaxJobsRunning','i'), ('TransferQueueMaxUploading','i')])
+            format_list = condorMonitor.complete_format_list(
+                              format_list,
+                              [('TotalRunningJobs', 'i'),
+                               ('TotalSchedulerJobsRunning', 'i'),
+                               ('TransferQueueNumUploading','i'),
+                               ('MaxJobsRunning','i'),
+                               ('TransferQueueMaxUploading','i'),
+                               ('CurbMatchmaking','i')])
 
     type_constraint = 'True'
-    return getCondorStatusConstrained(collector_names, type_constraint, constraint, format_list,
+    return getCondorStatusConstrained(collector_names, type_constraint,
+                                      constraint, format_list,
                                       subsystem_name="schedd")
 
 ############################################################

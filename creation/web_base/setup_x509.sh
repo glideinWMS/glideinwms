@@ -8,8 +8,14 @@
 #   This is an include file for glidein_startup.sh
 #   It has the routins to setup the X509 environment
 #
+# If you make change to this file check also check_proxy.sh that has the same get_x509_expiration
 
 glidein_config="$1"
+
+
+# for debugging: add these 2 lines and comment the ones below (until the error_gen assignment)
+#function add_config_line { echo -n "CONFIG: "; echo "$@"; }
+#error_gen="echo"
 
 # import add_config_line function
 add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
@@ -150,7 +156,7 @@ function copy_x509_proxy {
     fi    
 
     local_proxy_dir=`pwd`/ticket
-    mkdir "$local_proxy_dir"
+    mkdir -p "$local_proxy_dir"
     if [ $? -ne 0 ]; then
         STR="Failed in creating proxy dir $local_proxy_dir."
         "$error_gen" -error "setup_x509.sh" "Corruption" "$STR" "directory" "$local_proxy_dir"
@@ -181,11 +187,12 @@ function copy_x509_proxy {
 
 function openssl_get_x509_timeleft {
     # $1 cert pathname
-    if [ ! -a "$1" ]; then
+    if [ ! -r "$1" ]; then
         return 1
     fi
     cert_pathname=$1
     output=$(openssl x509 -noout -subject -dates -in $cert_pathname 2>/dev/null)
+    [ $? -eq 0 ] || return 1
 
     start_date=$(echo $output | sed 's/.*notBefore=\(.*\).*not.*/\1/g')
     end_date=$(echo $output | sed 's/.*notAfter=\(.*\)$/\1/g')
@@ -194,7 +201,11 @@ function openssl_get_x509_timeleft {
     start_epoch=$(date +%s -d "$start_date")
     end_epoch=$(date +%s -d "$end_date")
 
-    epoch_now=$(date +%s)
+    if [ "x$2" = "x" ]; then
+        epoch_now=$(date +%s)
+    else
+        epoch_now=$2
+    fi
 
     if [ "$start_epoch" -gt "$epoch_now" ]; then
         echo "Certificate for $1 is not yet valid" >&2
@@ -209,22 +220,26 @@ function openssl_get_x509_timeleft {
 
 
 # returns the expiration time of the proxy
+# return value in RETVAL
 function get_x509_expiration {
+    RETVAL=0
     now=`date +%s`
     if [ $? -ne 0 ]; then
         STR="Date not found!"
         "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "date"
         exit 1 # just to be sure
     fi
-
-    l=$(grid-proxy-info -timeleft)
+    CMD="grid-proxy-info"
+    l=$(grid-proxy-info -timeleft 2>/dev/null)
     ret=$?
     if [ $ret -ne 0 ]; then
+        CMD="voms-proxy-info"
         # using  -dont-verify-ac to avoid exit code 1 if AC signatures are not present
-        l=$(voms-proxy-info -dont-verify-ac -timeleft)
+        l=$(voms-proxy-info -dont-verify-ac -timeleft 2>/dev/null)
         ret=$?
         if [ $ret -ne 0 ]; then
-            l=$(openssl_get_x509_timeleft "$X509_USER_PROXY")
+            CMD="openssl"
+            l=$(openssl_get_x509_timeleft "$X509_USER_PROXY" $now)
             ret=$?
         fi
     fi
@@ -237,11 +252,11 @@ function get_x509_expiration {
 	    "$error_gen" -error "setup_x509.sh" "VO_Proxy" "$STR1" "proxy" "$X509_USER_PROXY"
 	    exit 1
         fi
-        echo $(/usr/bin/expr $now + $l)
+        RETVAL="$(/usr/bin/expr $now + $l)"
     else
         #echo "Could not obtain -timeleft" 1>&2
-        STR="Could not obtain -timeleft"
-        "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "grid-proxy-info"
+        STR="Could not obtain -timeleft from grid-proxy-info/voms-proxy-info/openssl"
+        "$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "$CMD"
         exit 1
     fi
 
@@ -259,7 +274,9 @@ function get_x509_expiration {
 check_x509_certs
 check_x509_tools
 copy_x509_proxy
-X509_EXPIRE=`get_x509_expiration`
+# no sub-shell, to allow to exit (all script) on error
+get_x509_expiration
+X509_EXPIRE="$RETVAL"
 
 add_config_line X509_CERT_DIR   "$X509_CERT_DIR"
 add_config_line X509_USER_PROXY "$X509_USER_PROXY"
@@ -268,3 +285,4 @@ add_config_line X509_EXPIRE  "$X509_EXPIRE"
 "$error_gen" -ok "setup_x509.sh" "proxy" "$X509_USER_PROXY" "cert_dir" "$X509_CERT_DIR"
 
 exit 0
+

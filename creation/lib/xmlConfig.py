@@ -252,11 +252,19 @@ class FileElement(DictElement):
         is_exec = eval(self[u'executable'])
         is_wrapper = eval(self[u'wrapper'])
         is_tar = eval(self[u'untar'])
+
+        try:
+            period = int(self[u'period'])
+        except ValueError:
+            raise RuntimeError(self.err_str('period must be an int'))
+
         if is_exec + is_wrapper + is_tar > 1:
             raise RuntimeError(self.err_str('must be exactly one of type "executable", "wrapper", or "untar"'))
 
         if (is_exec or is_wrapper or is_tar) and not eval(self[u'const']):
             raise RuntimeError(self.err_str('type "executable", "wrapper", or "untar" requires const="True"'))
+        if not is_exec and period > 0:
+            raise RuntimeError(self.err_str('cannot have execution period if type is not "executable"'))
 
 TAG_CLASS_MAPPING.update({u'file': FileElement})
 
