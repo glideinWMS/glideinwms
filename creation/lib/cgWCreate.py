@@ -18,7 +18,6 @@ import stat
 import tarfile
 import cStringIO
 import cgWDictFile
-from glideinwms.creation.lib import factXmlUtil
 
 ##############################
 # Create condor tarball and store it into a StringIO
