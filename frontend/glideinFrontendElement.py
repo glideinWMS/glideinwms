@@ -345,7 +345,7 @@ class glideinFrontendElement:
             # collector dealt with outside the loop
             # nothing else left
 
-        (self.status_dict,self.fe_counts,self.global_counts,self.status_schedd_dict)=pipe_out[('collector',0)]
+        (self.status_dict, self.fe_counts, self.global_counts, self.status_schedd_dict) = pipe_out[('collector',0)]
 
         # M2Crypto objects are not picklable, so do the transforamtion here
         self.populate_pubkey()
@@ -384,11 +384,11 @@ class glideinFrontendElement:
              'RunningCores':self.status_dict_types['RunningCores']['abs'],
         })
 
-        total_glideins=self.status_dict_types['Total']['abs']
-        total_running_glideins=self.status_dict_types['Running']['abs']
-        total_idle_glideins=self.status_dict_types['Idle']['abs']
-        total_failed_glideins=self.status_dict_types['Failed']['abs']
-        total_cores=self.status_dict_types['TotalCores']['abs']
+        total_glideins = self.status_dict_types['Total']['abs']
+        total_running_glideins = self.status_dict_types['Running']['abs']
+        total_idle_glideins = self.status_dict_types['Idle']['abs']
+        total_failed_glideins = self.status_dict_types['Failed']['abs']
+        total_cores = self.status_dict_types['TotalCores']['abs']
         total_running_cores = self.status_dict_types['RunningCores']['abs']
         total_idle_cores = self.status_dict_types['IdleCores']['abs']
 
@@ -401,17 +401,21 @@ class glideinFrontendElement:
         
         fe_total_glideins=self.fe_counts['Total']
         fe_total_idle_glideins=self.fe_counts['Idle']
-        logSupport.log.info("Frontend glideins found total %i limit %i curb %i; of these idle %i limit %i curb %i"%
-                            (fe_total_glideins,self.fe_total_max_glideins,self.fe_total_curb_glideins,
-                             fe_total_idle_glideins,self.fe_total_max_vms_idle,self.fe_total_curb_vms_idle)
-                            )
+        logSupport.log.info("Frontend glideins found total %i limit %i curb %i; of these idle %i limit %i curb %i" % (fe_total_glideins,
+                                      self.fe_total_max_glideins,
+                                      self.fe_total_curb_glideins,
+                                      fe_total_idle_glideins,
+                                      self.fe_total_max_vms_idle,
+                                      self.fe_total_curb_vms_idle))
         
-        global_total_glideins=self.global_counts['Total']
-        global_total_idle_glideins=self.global_counts['Idle']
-        logSupport.log.info("Overall slots found total %i limit %i curb %i; of these idle %i limit %i curb %i"%
-                            (global_total_glideins,self.global_total_max_glideins,self.global_total_curb_glideins,
-                             global_total_idle_glideins,self.global_total_max_vms_idle,self.global_total_curb_vms_idle)
-                            )
+        global_total_glideins = self.global_counts['Total']
+        global_total_idle_glideins = self.global_counts['Idle']
+        logSupport.log.info("Overall slots found total %i limit %i curb %i; of these idle %i limit %i curb %i" % (global_total_glideins,
+                                  self.global_total_max_glideins,
+                                  self.global_total_curb_glideins,
+                                  global_total_idle_glideins,
+                                  self.global_total_max_vms_idle,
+                                  self.global_total_curb_vms_idle))
 
         # Update x509 user map and give proxy plugin a chance
         # to update based on condor stats
@@ -719,32 +723,55 @@ class glideinFrontendElement:
                 del self.globals_dict[globalid]
 
     def identify_bad_schedds(self):
-        self.blacklist_schedds=set()
+        """
+        Identify the list of schedds that should not be considered when
+        requesting glideins for idle jobs. Schedds with one of the criteria
+
+        1. Running jobs (TotalRunningJobs + TotalSchedulerJobsRunning)
+           is greater than 95% of max number of jobs (MaxJobsRunning)
+        2. Transfer queue (TransferQueueNumUploading) is greater than 95%
+           of max allowed transfers (TransferQueueMaxUploading)
+        3. CurbMatchmaking in schedd classad is true
+        """
+
+        self.blacklist_schedds = set()
 
         for c in self.status_schedd_dict:
-            coll_status_schedd_dict=self.status_schedd_dict[c].fetchStored()
+            coll_status_schedd_dict = self.status_schedd_dict[c].fetchStored()
             for schedd in coll_status_schedd_dict:
-                el=coll_status_schedd_dict[schedd]
+                el = coll_status_schedd_dict[schedd]
                 try:
-                    # here 0 reallw means no jobs
-                    max_run=int(el['MaxJobsRunning']*0.95+0.5) # stop a bit earlier
-                    current_run=el['TotalRunningJobs']
-                    current_run+=el.get('TotalSchedulerJobsRunning',0)#older schedds may not have it
+                    # Here 0 really means no jobs
+                    # Stop a bit earlier at 95% of the limit
+                    max_run = int(el['MaxJobsRunning']*0.95+0.5)
+                    current_run = el['TotalRunningJobs']
+                    # older schedds may not have TotalSchedulerJobsRunning
+                    current_run += el.get('TotalSchedulerJobsRunning',0)
                     logSupport.log.debug("Schedd %s has %i running with max %i" % (schedd, current_run, max_run))
-                    if current_run>=max_run:
+
+                    if current_run >= max_run:
                         self.blacklist_schedds.add(schedd)
                         logSupport.log.warning("Schedd %s hit maxrun limit, blacklisting: has %i running with max %i" % (schedd, current_run, max_run))
 
-                    if 'TransferQueueMaxUploading' in el:
-                      if el['TransferQueueMaxUploading']>0: # 0 means unlimited
-                        max_up=int(el['TransferQueueMaxUploading']*0.95+0.5) # stop a bit earlier
-                        current_up=el['TransferQueueNumUploading']
+                    if el.get('TransferQueueMaxUploading', 0) > 0:
+                        # el['TransferQueueMaxUploading'] = 0 means unlimited
+                        # Stop a bit earlier at 95% of the limit
+                        max_up = int(el['TransferQueueMaxUploading']*0.95+0.5)
+                        current_up = el['TransferQueueNumUploading']
                         logSupport.log.debug("Schedd %s has %i uploading with max %i" % (schedd, current_up, max_up))
-                        if current_up>=max_up:
+                        if current_up >= max_up:
                             self.blacklist_schedds.add(schedd)
                             logSupport.log.warning("Schedd %s hit maxupload limit, blacklisting: has %i uploading with max %i" % (schedd, current_up, max_up))
+
+                    # Pre 8.3.5 schedds do not have CurbMatchmaking.
+                    # Assume False if not present
+                    curb_matchmaking = str(el.get('CurbMatchmaking', 'FALSE'))
+                    if curb_matchmaking.upper() == 'TRUE':
+                        self.blacklist_schedds.add(schedd)
+                        logSupport.log.warning("Ignoring schedd %s since CurbMatchmaking in its classad evaluated to 'True'" % (schedd))
                 except:
                     logSupport.log.exception("Unexpected exception checking schedd %s for limit" % schedd)
+
 
     def populate_condorq_dict_types(self):
         # create a dictionary that does not contain the blacklisted schedds
@@ -1284,10 +1311,18 @@ class glideinFrontendElement:
 
 
     def get_condor_status(self):
-        status_dict={}
+        status_dict = {}
         fe_counts = {'Idle':0, 'Total':0}
         global_counts = {'Idle':0, 'Total':0}
-        status_schedd_dict={}
+        status_schedd_dict = {}
+        # Minimum free memory required by CMS jobs is 2500 MB. If we look for
+        # less memory in idle MC slot, there is a possibility that we consider
+        # it as an idle resource but non of the jobs would match it.
+        # In case of other VOs that require less memory, HTCondor will auto
+        # carve out a slot and there is a chance for over provisioing by a
+        # small amount. Over provisioning is by far the worst case than
+        # under provisioing.
+        mc_idle_constraint = '(PartitionableSlot=!=True) || (PartitionableSlot=?=True && cpus > 0 && memory > 2500)'
         try:
             # Always get the credential id used to submit the glideins
             # This is essential for proper accounting info related to running
@@ -1301,28 +1336,30 @@ class glideinFrontendElement:
             ]
 
             if self.x509_proxy_plugin:
-                status_format_list=list(status_format_list)+list(self.x509_proxy_plugin.get_required_classad_attributes())
+                status_format_list = list(status_format_list) + list(self.x509_proxy_plugin.get_required_classad_attributes())
 
+            # Consider multicore slots with free cpus/memory only
+            constraint = '(GLIDECLIENT_Name=?="%s.%s") && (%s)' % (self.frontend_name, self.group_name, mc_idle_constraint)
             # use the main collector... all adds must go there
             status_dict = glideinFrontendLib.getCondorStatus(
                               [None],
-                              'GLIDECLIENT_Name=?="%s.%s"'%(self.frontend_name,
-                                                            self.group_name),
-                              status_format_list)
+                              constraint=constraint,
+                              format_list=status_format_list)
 
             # also get all the classads for the whole FE for counting
             # do it in the same thread, as we are hitting the same collector
-            
             # minimize the number of attributes, since we are
             # really just interest in the counts
             try:
-                fe_status_dict=glideinFrontendLib.getCondorStatus(
-                                   [None],
-                                   'substr(GLIDECLIENT_Name,0,%i)=?="%s."'%(
-                                       len(self.frontend_name)+1,
-                                       self.frontend_name),
-                                   [('State', 's'), ('Activity', 's')],
-                                   want_format_completion=False)
+                # Consider multicore slots with free cpus/memory only
+                constraint = '(substr(GLIDECLIENT_Name,0,%i)=?="%s.") && (%s)' % (len(self.frontend_name)+1, self.frontend_name, mc_idle_constraint)
+
+                fe_status_dict = glideinFrontendLib.getCondorStatus(
+                                     [None],
+                                     constraint=constraint,
+                                     format_list=[('State', 's'),
+                                                  ('Activity', 's')],
+                                     want_format_completion=False)
                 fe_counts = {
                     'Idle':glideinFrontendLib.countCondorStatus(
                         glideinFrontendLib.getIdleCondorStatus(fe_status_dict)),
@@ -1334,12 +1371,16 @@ class glideinFrontendElement:
 
             # same for all slots
             try:
-                global_status_dict=glideinFrontendLib.getCondorStatus(
-                                       [None],
-                                       constraint='True',
-                                       want_glideins_only=False,
-                                       format_list=[('State', 's'), ('Activity', 's')],
-                                       want_format_completion=False,)
+                # Consider multicore slots with free cpus/memory only
+                constraint = mc_idle_constraint
+                
+                global_status_dict = glideinFrontendLib.getCondorStatus(
+                                         [None],
+                                         constraint=constraint,
+                                         want_glideins_only=False,
+                                         format_list=[('State', 's'),
+                                                      ('Activity', 's')],
+                                         want_format_completion=False,)
                 global_counts = {
                     'Idle':glideinFrontendLib.countCondorStatus(
                         glideinFrontendLib.getIdleCondorStatus(global_status_dict)),
@@ -1351,8 +1392,26 @@ class glideinFrontendElement:
 
             # Finally, get also the schedd classads
             try:
-                status_schedd_dict=glideinFrontendLib.getCondorStatusSchedds(
-                              [None],None,[])
+                status_schedd_dict = glideinFrontendLib.getCondorStatusSchedds(
+                                         [None], constraint=None,
+                                         format_list=[])
+                # Also get the list of schedds that has CurbMatchMaking = True
+                # We need to query this explicitly since CurbMatchMaking 
+                # that we get from condor is a condor expression and is not
+                # an evaluated value. So we have to manually filter it out and
+                # adjust the info accordingly
+                status_curb_schedd_dict = \
+                    glideinFrontendLib.getCondorStatusSchedds(
+                        [None],
+                        constraint='CurbMatchmaking=?=True',
+                        format_list=[])
+
+                for c in status_curb_schedd_dict:
+                    c_curb_schedd_dict = status_curb_schedd_dict[c].fetchStored()
+                    for schedd in c_curb_schedd_dict:
+                        if schedd in status_schedd_dict[c].fetchStored():
+                            status_schedd_dict[c].stored_data[schedd]['CurbMatchmaking'] = 'True'
+
             except:
                 # This is not critical information, do not fail
                 pass
@@ -1360,7 +1419,7 @@ class glideinFrontendElement:
         except Exception, ex:
             logSupport.log.exception("Error in talking to the user pool (condor_status):")
 
-        return (status_dict,fe_counts,global_counts,status_schedd_dict)
+        return (status_dict, fe_counts, global_counts, status_schedd_dict)
 
 
     def do_match(self):

@@ -41,7 +41,7 @@
         </div>
     </div>
     <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
-<div class="content">
+    <div class="content">
     <div class="heading">
     <img align="right" width="280px" border="0px"
         src="../images/simple_diagram.png" usemap="#rightimage">
@@ -541,7 +541,7 @@ individual entry point configuration.
             <TD>
 
                 <P>If set to True, the attribute will be 
-                available in the condor_startd's classad. 
+                available in the condor_startd's classad (and the glidein condor configuration). 
                 Used only if parameter is True.</P>
             </TD>
         </TR>
@@ -1400,7 +1400,7 @@ For more information, see the <a href="design_entry.html#config">Entry Internals
         <tt>version</tt>.
         <blockquote>
         &lt;condor_tarball <font color="blue"><b>os="default,rhel5" arch="default,x86_64"</b></font>
-                           base_dir="dir" <font color="blue"><b>version="default"</font></b>/&gt;
+                           base_dir="dir" <font color="blue"><b>version="default"</b></font>/&gt;
         </blockquote>
     </li>
     <p/>
@@ -1410,21 +1410,21 @@ For more information, see the <a href="design_entry.html#config">Entry Internals
 &nbsp;&nbsp;
     &lt;attrs&gt;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;
-    &lt;attr <font color="blue"><b>name="CONDOR_ARCH"</font></b> const="True" 
+    &lt;attr <font color="blue"><b>name="CONDOR_ARCH"</b></font> const="True"
 parameter="True" 
 glidein_publish="False" 
 job_publish="False" 
 publish="False" 
 type="string" 
-<font color="blue"><b>value="<i>Arch</i>"</font></b>/&gt;<br/>
+<font color="blue"><b>value="<i>Arch</i>"</b></font>/&gt;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;
-     &lt;attr <font color="blue"><b>name="CONDOR_OS"</font></b> const="True" 
+     &lt;attr <font color="blue"><b>name="CONDOR_OS"</b></font> const="True"
 parameter="True" 
 glidein_publish="False" 
 job_publish="False" 
 publish="False" 
 type="string" 
-<font color="blue"><b>value="<i>Condor_Version</i>"</font></b>/&gt;<br/>
+<font color="blue"><b>value="<i>Condor_Version</i>"</b></font>/&gt;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;
     &lt;attr name="GLEXEC_JOB" const="True" 
 parameter="True" 
@@ -1563,17 +1563,67 @@ statistics and the names of the slots is also different.</P>
 
 <div class="section">
 
-<H3 CLASS="western">
-<A NAME="custom_code"></A><A NAME="files"></A>
-Adding custom code/files to the glideins</H3>
+<H3 CLASS="western"><A NAME="custom_code"></A><A NAME="files"></A>Adding custom files/scripts to the glideins</H3>
 <P>While provided code should cover most of the general purpose use
 cases, some administrators may have additional needs. For these
-cases, the glidein creation command adds the options listed below.</P>
+cases, the Glidein framework provides the possibility to download and process additional files.
+    Both Factory and Frontend configuration allow to specify lists of files either for all their glideins,
+    or for a specific entry (Factory), or job group (Frontend).
+    These files can be scripts (executables), regular files or tar-balls and depending on the options can be downloaded
+    at different times (see <A HREF="custom_scripts.html">the custom scripts document</A> for more detils).</P>
 <p><b>Note:</b>
 <A NAME="ref"></A>Files and subsystems will be
 downloaded before the scripts. User provided scripts
 will be executed in the specified order, and before the HTCondor
 daemons are started up.</P>
+    Here a list of the attributes of the files. Some examples follow below:
+        <table class="requirements">
+        <TR class="head">
+            <TD> <P><B>Attribute Name</B></P> </TD>
+            <TD> <P><B>Attribute Description</B></P> </TD>
+        </TR>
+        <TR>
+            <TD> <P><b>absfname</b></P></TD>
+            <TD> <P>Path of the file on the server (Factory or Frontend)</P></TD>
+        </TR>
+        <TR>
+            <TD> <P><b>executable</b></P></TD>
+            <TD> <P>True if the file is a script (executable, see example below), default is False</P></TD>
+        </TR>
+        <TR>
+            <TD> <P><b>wrapper</b></P></TD>
+            <TD> <P>True if the file is a user wrapper (see example below), default is False</P></TD>
+        </TR>
+        <TR>
+            <TD> <P><b>untar</b></P></TD>
+            <TD> <P>True if the file is a tar-ball that needs to be expanded (see example below), default is False</P></TD>
+        </TR>
+        <TR>
+            <TD> <P><b>const</b></P></TD>
+            <TD> <P>If False the file is not constant (i.e. changes may happen without a reconfiguration of the factory
+                and the file cannot be checksummed), default is True</P></TD>
+        </TR>
+        <TR>
+            <TD> <P><b>relfname</b></P></TD>
+            <TD> <P>Path to save the file, relative to the glidein main directory</P></TD>
+        </TR>
+        <TR>
+            <TD> <P><b>comment</b></P></TD>
+            <TD> <P>Arbitrary comment string</P></TD>
+        </TR>
+        <TR>
+            <TD> <P><b>after_entry</b></P></TD>
+            <TD> <P>If True, the script is executed after the entry scripts. Default is False for the Factory,
+                default is True for the Frontend. (see <A HREF="custom_scripts.html">the custom scripts document</A>
+                for more)</P></TD>
+        </TR>
+        <TR>
+            <TD> <P><b>after_group</b></P></TD>
+            <TD> <P>If True, the Frontend script is executed after the group scripts. Default is False. Not considered in the
+            Factory. (see <A HREF="custom_scripts.html">the custom scripts document</A> for more)</P></TD>
+        </TR>
+    </TABLE>
+
 <UL>
     <LI>
         <div class="xml">
@@ -1657,7 +1707,7 @@ daemons are started up.</P>
     scripts.</p>
     <UL>
         <LI><B>absfname</B>: 
-        Path to the custom tarball. 
+        Path to the custom tar-ball.
         (like &quot;/tmp/mytar_v12.5.tgz&quot;) </li>
         <LI><B>conf_sw</B>: 
         Name of a configuration switch. 
@@ -1756,7 +1806,7 @@ together.</P>
     &lt;/glidein&gt;
     </div>
 </p>
-</div></div>
+</div>
 
 <div>
     <a name="xsltplugins"/>
@@ -1810,6 +1860,30 @@ The default behavior can be overridden by specifying the option -xslt_plugin_dir
 <b>prompt$</b> reconfig_glidein -xslt_plugin_dir &lt;xslt directory&gt; [...]
 <b>prompt$</b> reconfig_frontend -xslt_plugin_dir &lt;xslt directory&gt; [...]
 </pre>
+</div>
+
+<div>
+    <a name="sitecollector"/>
+        <h3 class="western">Glidein's Startd Advertising to Site HTCondor-CE Collector</h3>
+        <p>
+        Starting in v3.2.11, you can make glidein's HTCondor daemons advertise
+        to site's local collector. There is no Glideinwms configuration
+        that enable this and all the changes are on the site side.
+        <ol>
+            <li>
+              <b>Give glidein write access to the site collector</b><br>
+              This is done by adding glidein's DN to gridmapfile of the
+              site collector
+            </li>
+            <li>
+              <b>Set site collector info in the glidein's environment</b><br>
+              Set the CONDORCE_COLLECTOR_HOST in the glidein's environment
+              <pre>CONDORCE_COLLECTOR_HOST=&lt;site-local HTCondorCE collector address&gt;</pre>
+            </li>
+        </ol>
+
+        </p>
+    </div>
 
 <div class="footer">
 Banner image by
@@ -1818,7 +1892,6 @@ used under Creative Commons license.<br/>
 Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glid
 einWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
 glideinWMS email support: glideinwms-support at fnal.gov
-</div>
-</div>
+</div></div>
 </body>
 </html>
