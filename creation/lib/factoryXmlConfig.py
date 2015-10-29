@@ -85,8 +85,7 @@ class Config(xmlConfig.DictElement):
     def __init__(self, tag, *args, **kwargs):
         super(Config, self).__init__(tag, *args, **kwargs)
 
-        # cached variables to minimize dom accesses for better performance
-        # these are looked up for each and every entry on reconfig
+        # dir paths should be set after validation in parse function
         self.submit_dir = None
         self.stage_dir = None
         self.monitor_dir = None
@@ -96,9 +95,61 @@ class Config(xmlConfig.DictElement):
 
     def validate(self):
         self.check_missing(u'factory_name')
+        self.check_boolean(u'factory_versioning')
         for mon_coll in self.get_child_list(u'monitoring_collectors'):
             mon_coll.check_missing(u'DN')
             mon_coll.check_missing(u'node')
+
+    #######################
+    #
+    # FactoryXmlConfig setter functions
+    #
+    ######################
+    def set_submit_dir(self):
+        if eval(self[u'factory_versioning']):
+            self.submit_dir = os.path.join(self.get_child(u'submit')[u'base_dir'],
+                u"glidein_%s" % self[u'glidein_name'])
+        else:
+            self.submit_dir = self.get_child(u'submit')[u'base_dir']
+
+    def set_stage_dir(self):
+        if eval(self[u'factory_versioning']):
+            self.stage_dir = os.path.join(self.get_child(u'stage')[u'base_dir'],
+                u"glidein_%s" % self[u'glidein_name'])
+        else:
+            self.stage_dir = self.get_child(u'stage')[u'base_dir']
+
+    def set_monitor_dir(self):
+        if eval(self[u'factory_versioning']):
+            self.monitor_dir = os.path.join(self.get_child(u'monitor')[u'base_dir'],
+                u"glidein_%s" % self[u'glidein_name'])
+        else:
+            self.monitor_dir = self.get_child(u'monitor')[u'base_dir']
+
+    def set_log_dir(self):
+        if eval(self[u'factory_versioning']):
+            self.log_dir  = os.path.join(self.get_child(u'submit')[u'base_log_dir'],
+                u"glidein_%s" % self[u'glidein_name'])
+        else:
+            self.log_dir  = self.get_child(u'submit')[u'base_log_dir']
+
+    def set_client_log_dirs(self):
+        self.client_log_dirs = {}
+        client_dir = self.get_child(u'submit')[u'base_client_log_dir']
+        glidein_name = self[u'glidein_name']
+        for fe in self.get_child(u'security').get_child_list(u'frontends'):
+            for sc in fe.get_child_list(u'security_classes'):
+                self.client_log_dirs[sc[u'username']] = os.path.join(client_dir,
+                    u"user_%s" % sc[u'username'], u"glidein_%s" % glidein_name)
+
+    def set_client_proxy_dirs(self):
+        self.client_proxy_dirs = {}
+        client_dir = self.get_child(u'submit')[u'base_client_proxies_dir']
+        glidein_name = self[u'glidein_name']
+        for fe in self.get_child(u'security').get_child_list(u'frontends'):
+            for sc in fe.get_child_list(u'security_classes'):
+                self.client_proxy_dirs[sc[u'username']] = os.path.join(client_dir,
+                    u"user_%s" % sc[u'username'], u"glidein_%s" % glidein_name)
 
     #######################
     #
@@ -106,51 +157,21 @@ class Config(xmlConfig.DictElement):
     #
     ######################
     def get_submit_dir(self):
-        if self.submit_dir == None:
-            self.submit_dir = os.path.join(self.get_child(u'submit')[u'base_dir'],
-                u"glidein_%s" % self[u'glidein_name'])
         return self.submit_dir
 
     def get_stage_dir(self):
-        if self.stage_dir == None:
-            self.stage_dir = os.path.join(self.get_child(u'stage')[u'base_dir'],
-                u"glidein_%s" % self[u'glidein_name'])
         return self.stage_dir
 
     def get_monitor_dir(self):
-        if self.monitor_dir == None:
-            self.monitor_dir = os.path.join(self.get_child(u'monitor')[u'base_dir'],
-                u"glidein_%s" % self[u'glidein_name'])
         return self.monitor_dir
 
     def get_log_dir(self):
-        if self.log_dir == None:
-            self.log_dir  = os.path.join(self.get_child(u'submit')[u'base_log_dir'],
-                u"glidein_%s" % self[u'glidein_name'])
         return self.log_dir
 
     def get_client_log_dirs(self):
-        if self.client_log_dirs == None:
-            self.client_log_dirs = {}
-            client_dir = self.get_child(u'submit')[u'base_client_log_dir']
-            glidein_name = self[u'glidein_name']
-            for fe in self.get_child(u'security').get_child_list(u'frontends'):
-                for sc in fe.get_child_list(u'security_classes'):
-                    self.client_log_dirs[sc[u'username']] = os.path.join(client_dir,
-                        u"user_%s" % sc[u'username'], u"glidein_%s" % glidein_name)
-
         return self.client_log_dirs
 
     def get_client_proxy_dirs(self):
-        if self.client_proxy_dirs == None:
-            self.client_proxy_dirs = {}
-            client_dir = self.get_child(u'submit')[u'base_client_proxies_dir']
-            glidein_name = self[u'glidein_name']
-            for fe in self.get_child(u'security').get_child_list(u'frontends'):
-                for sc in fe.get_child_list(u'security_classes'):
-                    self.client_proxy_dirs[sc[u'username']] = os.path.join(client_dir,
-                        u"user_%s" % sc[u'username'], u"glidein_%s" % glidein_name)
-
         return self.client_proxy_dirs
 
 xmlConfig.register_tag_classes({u'glidein': Config})
@@ -175,6 +196,15 @@ def parse(file):
     # assume FACTORY_DEFAULTS_XML is in factoryXmlConfig module directory
     conf_def = _parse(os.path.join(os.path.dirname(__file__), FACTORY_DEFAULTS_XML), True)
     conf.merge_defaults(conf_def)
+
+    # now that we are validated, set the directories
+    conf.set_submit_dir()
+    conf.set_stage_dir()
+    conf.set_monitor_dir()
+    conf.set_log_dir()
+    conf.set_client_log_dirs()
+    conf.set_client_proxy_dirs()
+
     return conf
 
 # this parse function is for internal usage
