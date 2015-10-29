@@ -33,7 +33,6 @@ from glideinwms.factory import glideFactoryMonitorAggregator
 from glideinwms.factory import glideFactoryConfig
 from glideinwms.lib import logSupport
 
-WEB_BASE_DIR=os.path.join(STARTUP_DIR,"web_base")
 force_delete=False
 fix_rrd = False
 
@@ -106,16 +105,16 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
 
     if update_scripts == 'yes':
         # copy the submit files
-        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.work_dir, WEB_BASE_DIR, True)
-        cgWCreate.copy_exe(cgWConsts.LOCAL_START_WRAPPER, glidein_dicts_obj.main_dicts.work_dir, WEB_BASE_DIR, True)
+        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.work_dir, cgWConsts.WEB_BASE_DIR, True)
+        cgWCreate.copy_exe(cgWConsts.LOCAL_START_WRAPPER, glidein_dicts_obj.main_dicts.work_dir, cgWConsts.WEB_BASE_DIR, True)
         print '...Updated the glidein_startup.sh and local_start.sh scripts'
 
         # copy glidein_startup.sh to the stage area for cloud entries
-        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.stage_dir, WEB_BASE_DIR, True)
+        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.stage_dir, cgWConsts.WEB_BASE_DIR, True)
         print "...Updated the glidein_startup.sh file in the staging area"
 
         # copy privsep helper executables
-        cgWCreate.copy_exe(cgWConsts.UPDATE_PROXY_FILE, glidein_dicts_obj.main_dicts.work_dir, WEB_BASE_DIR, True)
+        cgWCreate.copy_exe(cgWConsts.UPDATE_PROXY_FILE, glidein_dicts_obj.main_dicts.work_dir, cgWConsts.WEB_BASE_DIR, True)
 
     if update_def_cfg == 'yes' or update_scripts == 'yes':
         # recreate the init.d startup file
