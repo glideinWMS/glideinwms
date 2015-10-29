@@ -331,7 +331,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 os.close(fd)
                 
                 key_obj=pubCrypto.RSAKey()
-                key_obj.new(int(sef_el[u'key_length']))
+                key_obj.new(int(sec_el[u'key_length']))
                 key_obj.save(rsa_key_fname)            
         else:
             raise RuntimeError,"Invalid value for security.pub_key(%s), must be either None or RSA"%sec_el[u'pub_key']
