@@ -92,6 +92,7 @@ class Config(xmlConfig.DictElement):
         self.log_dir = None
         self.client_log_dirs = None
         self.client_proxy_dirs = None
+        self.web_url = None
 
     def validate(self):
         self.check_missing(u'factory_name')
@@ -151,6 +152,13 @@ class Config(xmlConfig.DictElement):
                 self.client_proxy_dirs[sc[u'username']] = os.path.join(client_dir,
                     u"user_%s" % sc[u'username'], u"glidein_%s" % glidein_name)
 
+    def set_web_url(self):
+        if eval(self[u'factory_versioning']):
+            self.web_url = os.path.join(self.get_child(u'stage')[u'web_base_url'],
+                u"glidein_%s" % self[u'glidein_name'])
+        else:
+            self.web_url = self.get_child(u'stage')[u'web_base_url']
+
     #######################
     #
     # FactoryXmlConfig getter functions
@@ -173,6 +181,9 @@ class Config(xmlConfig.DictElement):
 
     def get_client_proxy_dirs(self):
         return self.client_proxy_dirs
+
+    def get_web_url(self):
+        return self.web_url
 
 xmlConfig.register_tag_classes({u'glidein': Config})
 xmlConfig.register_root(u'glidein')
@@ -204,6 +215,7 @@ def parse(file):
     conf.set_log_dir()
     conf.set_client_log_dirs()
     conf.set_client_proxy_dirs()
+    conf.set_web_url()
 
     return conf
 
