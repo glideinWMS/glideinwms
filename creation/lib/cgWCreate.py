@@ -32,7 +32,6 @@ def create_condor_tar_fd(condor_base_dir):
         condor_opt_bins = [
             'sbin/condor_procd', 'sbin/gcb_broker_query',
             'sbin/condor_fetchlog', 'sbin/condor_advertise',
-            'sbin/condor_gpu_discovery'
                           ]
 
         condor_opt_libs = [
@@ -57,6 +56,7 @@ def create_condor_tar_fd(condor_base_dir):
                   'libexec/curl_plugin',
                   'libexec/data_plugin',
                   'libexec/condor_chirp',
+                  'libexec/condor_gpu_discovery',
                               ]
 
         # for RPM installations, add libexec/condor as libexec into the

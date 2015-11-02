@@ -322,12 +322,12 @@ function fix_param () {
 
 function find_gpus_num {
     # use condor tools to find the available GPUs
-    if [ ! -f "$CONDOR_DIR/sbin/condor_gpu_discovery" ]; then
+    if [ ! -f "$CONDOR_DIR/libexec/condor_gpu_discovery" ]; then
         echo "WARNING: condor_gpu_discovery not found" 1>&2
         return 1
     fi
     local tmp1
-    tmp1="`"$CONDOR_DIR"/sbin/condor_gpu_discovery`"
+    tmp1="`"$CONDOR_DIR"/libexec/condor_gpu_discovery`"
     local ec=$?
     if [ $ec -ne 0 ]; then
         echo "WARNING: condor_gpu_discovery failed (exit code: $ec)" 1>&2
