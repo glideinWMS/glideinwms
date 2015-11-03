@@ -1259,7 +1259,7 @@ function fetch_file {
             fi
             return 0
         fi
-        warn "Not enough arguments in fetch_file $@" 1>&2
+        warn "Not enough arguments in fetch_file ($#/$IFS): $@" 1>&2
         glidein_exit 1
     fi
 
