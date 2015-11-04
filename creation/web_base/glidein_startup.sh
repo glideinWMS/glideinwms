@@ -6,6 +6,9 @@
 # File Version: 
 #
 
+# default IFS, to protect against unusual environment, better than "unset IFS" because works with restoring old one
+IFS=$' \t\n'
+
 global_args="$@"
 
 export LANG=C
@@ -829,10 +832,10 @@ function md5wrapper {
     fi
     local executable=md5sum
     which $executable 1>/dev/null 2>&1
-    if [ $? -ne 0 ]; then
+    if [ "$?" -ne 0 ]; then
         executable=md5
         which $executable 1>/dev/null 2>&1
-        if [ $? -ne 0 ]; then
+        if [ "$?" -ne 0 ]; then
             echo "???"
             return 1
         fi
@@ -1280,23 +1283,24 @@ function fetch_file_regular {
 }
 
 function fetch_file {
-    if [ $# -ne 7 ]; then
-        if [ $# -eq 6 ]; then
+    if [ "$#" -ne 7 ]; then
+        if [ "$#" -eq 6 ]; then
             # added to maintain compatibility with old file list format
             #TODO: remove in version 3.3
             fetch_file_try "$1" "$2" "$3" "$4" 0 "$5" "$6"
-            if [ $? -ne 0 ]; then
+            if [ "$?" -ne 0 ]; then
 	        glidein_exit 1
             fi
             return 0
         fi
+        local ifs_str
         printf -v ifs_str '%q' "$IFS"
         warn "Not enough arguments in fetch_file ($#/$ifs_str): $@" 1>&2
         glidein_exit 1
     fi
 
     fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6" "$7"
-    if [ $? -ne 0 ]; then
+    if [ "$?" -ne 0 ]; then
         glidein_exit 1
     fi
     return 0
