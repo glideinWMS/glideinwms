@@ -20,8 +20,6 @@ import cgWConsts,cWConsts
 #
 #from cWParamDict import is_true, add_file_unparsed
 
-WEB_BASE_DIR=os.path.join(os.path.dirname(__file__),"..","web_base")
-
 from glideinwms.lib import pubCrypto
 
 class UnconfiguredScheddError(Exception):
@@ -79,13 +77,13 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                           'condor_config.monitor.include'):
             self.dicts['file_list'].add_from_file(file_name,
                                                   (cWConsts.insert_timestr(file_name), 'regular', 0, 'TRUE', 'FALSE'),
-                                                  os.path.join(WEB_BASE_DIR, file_name))
+                                                  os.path.join(cgWConsts.WEB_BASE_DIR, file_name))
         self.dicts['description'].add("condor_config","condor_config")
         self.dicts['description'].add("condor_config.multi_schedd.include","condor_config_multi_include")
         self.dicts['description'].add("condor_config.dedicated_starter.include","condor_config_main_include")
         self.dicts['description'].add("condor_config.monitor.include","condor_config_monitor_include")
         self.dicts['description'].add("condor_config.check.include","condor_config_check_include")
-        self.dicts['vars'].load(WEB_BASE_DIR,'condor_vars.lst',change_self=False,set_not_changed=False)
+        self.dicts['vars'].load(cgWConsts.WEB_BASE_DIR,'condor_vars.lst',change_self=False,set_not_changed=False)
 
         #
         # Note:
@@ -104,7 +102,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         for script_name in ('setup_script.sh', 'cat_consts.sh', 'condor_platform_select.sh'):
             self.dicts['file_list'].add_from_file(script_name,
                                                   (cWConsts.insert_timestr(script_name), 'exec', 0, 'TRUE', 'FALSE'),
-                                                  os.path.join(WEB_BASE_DIR, script_name))
+                                                  os.path.join(cgWConsts.WEB_BASE_DIR, script_name))
 
         #load condor tarballs
         # only one will be downloaded in the end... based on what condor_platform_select.sh decides
@@ -215,7 +213,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         for script_name in file_list_scripts:
             self.dicts['file_list'].add_from_file(script_name,
                                                   (cWConsts.insert_timestr(script_name), 'exec', 0, 'TRUE', 'FALSE'),
-                                                  os.path.join(WEB_BASE_DIR, script_name))
+                                                  os.path.join(cgWConsts.WEB_BASE_DIR, script_name))
 
         # make sure condor_startup does not get executed ahead of time under normal circumstances
         # but must be loaded early, as it also works as a reporting script in case of error
@@ -237,7 +235,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         for script_name in after_file_list_scripts:
             self.dicts['after_file_list'].add_from_file(script_name,
                                                         (cWConsts.insert_timestr(script_name), 'exec', 0, 'TRUE', 'FALSE'),
-                                                        os.path.join(WEB_BASE_DIR, script_name))
+                                                        os.path.join(cgWConsts.WEB_BASE_DIR, script_name))
 
         # populate complex files
         populate_factory_descript(self.work_dir,self.dicts['glidein'],self.active_sub_list,self.conf)
@@ -246,7 +244,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # populate the monitor files
         javascriptrrd_dir = self.conf.get_child(u'monitor')[u'javascriptRRD_dir']
-        for mfarr in ((WEB_BASE_DIR,'factory_support.js'),
+        for mfarr in ((cgWConsts.WEB_BASE_DIR,'factory_support.js'),
                       (javascriptrrd_dir,'javascriptrrd.wlibs.js')):
             mfdir,mfname=mfarr
             parent_dir = self.find_parent_dir(mfdir,mfname)
@@ -254,20 +252,20 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             mfobj.load()
             self.monitor_jslibs.append(mfobj)
 
-        for mfarr in ((WEB_BASE_DIR,'factoryRRDBrowse.html'),
-                      (WEB_BASE_DIR,'factoryRRDEntryMatrix.html'),
-                      (WEB_BASE_DIR,'factoryStatus.html'),
-                      (WEB_BASE_DIR,'factoryLogStatus.html'),
-                      (WEB_BASE_DIR,'factoryCompletedStats.html'),
-                      (WEB_BASE_DIR,'factoryStatusNow.html'),
-                      (WEB_BASE_DIR,'factoryEntryStatusNow.html')):
+        for mfarr in ((cgWConsts.WEB_BASE_DIR,'factoryRRDBrowse.html'),
+                      (cgWConsts.WEB_BASE_DIR,'factoryRRDEntryMatrix.html'),
+                      (cgWConsts.WEB_BASE_DIR,'factoryStatus.html'),
+                      (cgWConsts.WEB_BASE_DIR,'factoryLogStatus.html'),
+                      (cgWConsts.WEB_BASE_DIR,'factoryCompletedStats.html'),
+                      (cgWConsts.WEB_BASE_DIR,'factoryStatusNow.html'),
+                      (cgWConsts.WEB_BASE_DIR,'factoryEntryStatusNow.html')):
             mfdir,mfname=mfarr
             mfobj=cWDictFile.SimpleFile(mfdir,mfname)
             mfobj.load()
             self.monitor_htmls.append(mfobj)            
         
         # add the index page and its images
-        mfobj=cWDictFile.SimpleFile(WEB_BASE_DIR + '/factory/', 'index.html')
+        mfobj=cWDictFile.SimpleFile(cgWConsts.WEB_BASE_DIR + '/factory/', 'index.html')
         mfobj.load()
         self.monitor_htmls.append(mfobj)
         for imgfile in ('factoryCompletedStats.png',
@@ -277,7 +275,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                         'factoryRRDEntryMatrix.png',
                         'factoryStatus.png',
                         'factoryStatusNow.png'):
-            mfobj=cWDictFile.SimpleFile(WEB_BASE_DIR + '/factory/images/', imgfile)
+            mfobj=cWDictFile.SimpleFile(cgWConsts.WEB_BASE_DIR + '/factory/images/', imgfile)
             mfobj.load()
             self.monitor_images.append(mfobj)
 
@@ -331,7 +329,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 os.close(fd)
                 
                 key_obj=pubCrypto.RSAKey()
-                key_obj.new(int(sef_el[u'key_length']))
+                key_obj.new(int(sec_el[u'key_length']))
                 key_obj.save(rsa_key_fname)            
         else:
             raise RuntimeError,"Invalid value for security.pub_key(%s), must be either None or RSA"%sec_el[u'pub_key']
@@ -424,17 +422,17 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         file_name=cWConsts.BLACKLIST_FILE
         self.dicts['file_list'].add_from_file(file_name,
                                               (file_name, 'nocache', 0, 'TRUE', 'BLACKLIST_FILE'),
-                                              os.path.join(WEB_BASE_DIR, file_name))
+                                              os.path.join(cgWConsts.WEB_BASE_DIR, file_name))
 
         # Load initial system scripts
         # These should be executed before the other scripts
         for script_name in ('cat_consts.sh',"check_blacklist.sh"):
             self.dicts['file_list'].add_from_file(script_name,
                                                   (cWConsts.insert_timestr(script_name), 'exec', 0, 'TRUE', 'FALSE'),
-                                                  os.path.join(WEB_BASE_DIR, script_name))
+                                                  os.path.join(cgWConsts.WEB_BASE_DIR, script_name))
 
         #load system files
-        self.dicts['vars'].load(WEB_BASE_DIR,'condor_vars.lst.entry',change_self=False,set_not_changed=False)
+        self.dicts['vars'].load(cgWConsts.WEB_BASE_DIR,'condor_vars.lst.entry',change_self=False,set_not_changed=False)
         
         
         # put user files in stage
@@ -744,7 +742,7 @@ def populate_factory_descript(work_dir,
             glidein_dict.add('FactoryCollector',None)
         glidein_dict.add('FactoryName',conf[u'factory_name'])
         glidein_dict.add('GlideinName',conf[u'glidein_name'])
-        glidein_dict.add('WebURL',os.path.join(conf.get_child(u'stage')[u'web_base_url'],u"glidein_%s" % conf[u'glidein_name']))
+        glidein_dict.add('WebURL',conf.get_web_url())
         glidein_dict.add('PubKeyType',sec_el[u'pub_key'])
         glidein_dict.add('OldPubKeyGraceTime',sec_el[u'reuse_oldkey_onstartup_gracetime'])
         glidein_dict.add('MonitorUpdateThreadCount',conf.get_child(u'monitor')[u'update_thread_count'])

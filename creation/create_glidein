@@ -26,8 +26,6 @@ from glideinwms.creation.lib import cgWCreate
 from glideinwms.creation.lib import cgWParamDict
 from glideinwms.creation.lib import factoryXmlConfig
 
-WEB_BASE_DIR=os.path.join(STARTUP_DIR,"web_base")
-
 ################################################################################
 
 def main(conf):
@@ -47,14 +45,14 @@ def main(conf):
         glidein_dicts_obj.set_readonly(True)
 
         # copy the submit files
-        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.work_dir, WEB_BASE_DIR)
-        cgWCreate.copy_exe(cgWConsts.LOCAL_START_WRAPPER, glidein_dicts_obj.main_dicts.work_dir, WEB_BASE_DIR)
+        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.work_dir, cgWConsts.WEB_BASE_DIR)
+        cgWCreate.copy_exe(cgWConsts.LOCAL_START_WRAPPER, glidein_dicts_obj.main_dicts.work_dir, cgWConsts.WEB_BASE_DIR)
 
         # copy glidein_startup.sh to the stage area for cloud entries
-        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.stage_dir, WEB_BASE_DIR)
+        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.stage_dir, cgWConsts.WEB_BASE_DIR)
 
         # copy privsep helper executables
-        cgWCreate.copy_exe(cgWConsts.UPDATE_PROXY_FILE, glidein_dicts_obj.main_dicts.work_dir, WEB_BASE_DIR)
+        cgWCreate.copy_exe(cgWConsts.UPDATE_PROXY_FILE, glidein_dicts_obj.main_dicts.work_dir, cgWConsts.WEB_BASE_DIR)
 
         # create the init.d startup file
         cgWCreate.create_initd_startup(os.path.join(glidein_dicts_obj.main_dicts.work_dir, cgWConsts.INITD_STARTUP_FILE),
