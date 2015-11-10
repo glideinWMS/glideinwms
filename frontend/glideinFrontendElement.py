@@ -741,6 +741,12 @@ class glideinFrontendElement:
         for c in self.status_schedd_dict:
             coll_status_schedd_dict = self.status_schedd_dict[c].fetchStored()
             for schedd in coll_status_schedd_dict:
+                # Only consider global or group specific schedds
+                # To be on the safe side add them to blacklist_schedds
+                if schedd not in self.elementDescript.merged_data['JobSchedds']:
+                    logSupport.log.debug("Ignoring schedd %s for this group based on the configuration" % (schedd))
+                    self.blacklist_schedds.add(schedd)
+                    continue
                 el = coll_status_schedd_dict[schedd]
                 try:
                     # Here 0 really means no jobs
