@@ -539,8 +539,12 @@ class glideinFrontendElement:
                                    global_total_idle_glideins,
                                    effective_idle_mc, effective_oldidle_mc, limits_triggered)
 
+            # Compute max running glideins for this site based on
+            # idle jobs, running jobs and idle slots
             glidein_max_run = self.compute_glidein_max_run(
-                                  prop_mc_jobs, self.count_real[glideid])
+                                  prop_mc_jobs,
+                                  self.count_real[glideid],
+                                  count_status['Idle'])
 
             remove_excess_str = self.choose_remove_excess_type(
                                     count_jobs, count_status, glideid)
@@ -1012,24 +1016,48 @@ class glideinFrontendElement:
 
         return int(glidein_min_idle)
 
-    def compute_glidein_max_run(self, prop_jobs, real):
+
+    def compute_glidein_max_run(self, prop_jobs, real, idle_glideins):
+        """
+        Compute max number of running glideins for this entry
+
+        @param prop_jobs: Proportional idle multicore jobs for this entry
+        @type prop_jobs: dict
+
+        @param real: Number of jobs/glideins (?) running at given glideid
+        @type real: int
+
+        @param idle_glideins: Number of idle startds at this entry
+        @type idle_glideins: int
+
+
+        """
+
         glidein_max_run = 0
 
         if ((self.request_removal_wtype is not None) and
             (not self.request_removal_excess_only)):
-            # we are requesting the removal of all the glideins, tell GF to remove all of them
+            # We are requesting the removal of all the glideins
+            # Factory should remove all of them
             return 0
 
-        # we don't need more slots than number of jobs in the queue (unless the fraction is positive)
+        # We don't need more slots than number of jobs in the queue
+        # unless the fraction is positive
         if (prop_jobs['Idle'] + real) > 0:
-            if prop_jobs['Idle']>0:
-                glidein_max_run = int((prop_jobs['Idle'] + real) * self.fraction_running + 1)
+            if prop_jobs['Idle'] > 0:
+                # We have idle jobs in the queue. Consider idle startds
+                # at this entry when computing max_run. This makes the
+                # requests conservative when short running jobs come in
+                # frequent but smaller bursts.
+                # NOTE: We do not consider idle cores as fragmentation can
+                #       impact use negatively
+                glidein_max_run = int((max(prop_jobs['Idle'] - idle_glideins, 0) + real) * self.fraction_running + 1)
             else:
-                # no good reason for a delta when we don't need
-                # more than we have
+                # No reason for a delta when we don't need more than we have
                 glidein_max_run = int(real)
 
         return glidein_max_run
+
 
     def log_and_print_total_stats(self, total_up_stats_arr, total_down_stats_arr):
         # Log the totals
@@ -1501,7 +1529,7 @@ class glideinFrontendElement:
         logSupport.log.info("All children terminated")
 
         for dt, el in self.condorq_dict_types.iteritems():
-            # c, p, h, t returned by  subprocess_count_dt(self, dt)
+            # c, p, h, pmc, t returned by  subprocess_count_dt(self, dt)
             (el['count'], el['prop'], el['hereonly'], el['prop_mc'], el['total'])=pipe_out[dt]
 
         self.count_real = pipe_out['Real']
