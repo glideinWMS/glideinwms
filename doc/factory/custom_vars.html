@@ -407,8 +407,13 @@ by the VO factory clients.</P>
         slot (<tt>partitionable</tt>) or many dedicated slots (one per instance, <tt>static</tt>).
         The default is partitionable, unless there is only one resource instance, then is static.
         When adding resources to the <tt>main</tt> slots: the memory parameter is ignored; HTCondor splits automatically resources
-        depending on the number of CPUs and having a partitionable main slot or not,
+        depending on the number of CPUs and having a partitionable main slot or not;
+        if the number of resources is not equal (or an exact multiple) to the number of CPUs, then you must select partitionable slots
+        (<tt>slots_layout="partitionable"</tt> in the config/submit section of the entry configuration or SLOT_LAYOUT partitionable in the frontend configuration)
+        otherwise the startd may fail due to impossible configuration
+        <!--,
         e.g. when you add 3 units of a resource to a node with 8 CPUs divided statically in 8 main slots, the first 3 of them will have also your resource.
+        -->
         (check the <a href=http://research.cs.wisc.edu/htcondor/manual/v8.2/3_5Policy_Configuration.html#SECTION004510000000000000000">
             HTCondor manual to learn more on how resources are split</a>)
         </p>
@@ -427,7 +432,9 @@ by the VO factory clients.</P>
         <p>(*) GPUs is a special resource name. If no number is specified, the glidein will invoke
             <a href="https://htcondor-wiki.cs.wisc.edu/index.cgi/wiki?p=HowToManageGpus">HTCondor's GPU discovery mechanism</a>
             and get the number from there, which could be 0 if there are no GPUs. Your job will find in the HTCondor ClassAd also
-            all the special attributes about the GPUs. If no number is specified and the auto-discovery fails 0 GPUs are assumed.</p>
+            all the special attributes about the GPUs. If no number is specified and the auto-discovery fails 0 GPUs are assumed.
+            Since you don't know the number of GPUs that will be added to the main slot, the slot_layout must be partitionable.
+        </p>
  	</TD>
     </TR>
     <TR>
