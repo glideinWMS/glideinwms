@@ -743,8 +743,13 @@ EOF
 MACHINE_RESOURCE_${res_name} = ${res_num}
 EOF
         fi
+        echo "NEW_RESOURCES_LIST = \$(NEW_RESOURCES_LIST) $res_name" >> "$CONDOR_CONFIG"
         if [ -n "$res_opt" ]; then
             # no main, separate static or partitionable
+            if [ ${res_num} -eq 0 ]; then 
+                echo "# no resource $res_name, quantity is 0" >> "$CONDOR_CONFIG"
+                continue
+            fi
             cat >> "$CONDOR_CONFIG" <<EOF
 EXTRA_SLOTS_NUM = \$(EXTRA_SLOTS_NUM)+\$(MACHINE_RESOURCE_${res_name})
 EOF
@@ -763,11 +768,10 @@ EOF
             fi
             cat >> "$CONDOR_CONFIG" <<EOF
 IS_SLOT_${res_name} = SlotTypeID==${slott_ctr}
-EXTRA_SLOTS_START = ifThenElse((SlotTypeID==${slott_ctr}), TARGET.Request${res_name}>0, (\$(EXTRA_SLOTS_START)))
+EXTRA_SLOTS_START = ifThenElse((SlotTypeID==${slott_ctr}), ifThenElse(TARGET.Request${res_name}=?=undefined, False, TARGET.Request${res_name}>0), (\$(EXTRA_SLOTS_START)))
 EOF
             let slott_ctr+=1
         fi
-        echo "NEW_RESOURCES_LIST = \$(NEW_RESOURCES_LIST) $res_name" >> "$CONDOR_CONFIG"
 
     done
 
