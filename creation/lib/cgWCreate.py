@@ -170,8 +170,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             self.add("cream_attributes", "$ENV(GLIDEIN_RSL)")
         elif gridtype == 'nordugrid' and rsl:
             self.add("nordugrid_rsl", "$ENV(GLIDEIN_RSL)")
-        else:
-            pass
+        elif (gridtype == 'condor') and ('project_id' in auth_method):
+            self.add("+ProjectName", "$ENV(GLIDEIN_PROJECT_ID)")
 
         # Force the copy to spool to prevent caching at the CE side
         self.add("copy_to_spool", "True")

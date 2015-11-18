@@ -685,6 +685,7 @@ def populate_common_descript(descript_dict, params):
             'pilotabsfname':'ProxyPilotFiles',
             'vm_id':'ProxyVMIds','vm_type':'ProxyVMTypes',
             'creation_script':'ProxyCreationScripts',
+            'project_id':'ProxyProjectIds',
             'update_frequency':'ProxyUpdateFrequency', 'vm_id_fname':'ProxyVMIdFname', 'vm_type_fname':'ProxyVMTypeFname'}
         proxy_descript_values={}
         for attr in proxy_attrs:

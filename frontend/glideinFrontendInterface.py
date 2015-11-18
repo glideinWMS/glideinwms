@@ -277,6 +277,7 @@ class Credential:
         proxy_update_frequency = elementDescript.merged_data['ProxyUpdateFrequency']
         proxy_vmid_fname=elementDescript.merged_data['ProxyVMIdFname']
         proxy_vmtype_fname=elementDescript.merged_data['ProxyVMTypeFname']
+        proxy_project_id=elementDescript.merged_data['ProxyProjectIds']
 
         self.proxy_id = proxy_id
         self.filename = proxy_fname
@@ -293,6 +294,7 @@ class Credential:
         self.creation_script = proxy_creation_scripts.get(proxy_fname)
         self.key_fname = proxy_keyfiles.get(proxy_fname)
         self.pilot_fname = proxy_pilotfiles.get(proxy_fname)
+        self.project_id = proxy_project_id.get(proxy_fname)
 
         # Will be initialized when getId() is called
         self._id = None
@@ -452,6 +454,7 @@ class Credential:
             pass
         output += "vm_id = %s\n" % self.vm_id
         output += "vm_type = %s\n" % self.vm_type        
+        output += "project_id = %s\n" % self.project_id
         
         return output
 
@@ -1095,6 +1098,9 @@ class MultiAdvertizeWork:
                         else:
                             glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
 
+                    if 'project_id' in credential_el.type:
+                        if credential_el.project_id:
+                            glidein_params_to_encrypt['ProjectId']=str(credential_el.project_id)
                         
                     (req_idle,req_max_run)=credential_el.get_usage_details()
                     logSupport.log.debug("Advertizing credential %s with (%d idle, %d max run) for request %s"%(credential_el.filename, req_idle, req_max_run, params_obj.request_name))
