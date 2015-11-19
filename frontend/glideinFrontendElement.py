@@ -45,7 +45,7 @@ from glideinwms.frontend import glideinFrontendLib
 from glideinwms.frontend import glideinFrontendPidLib
 from glideinwms.frontend import glideinFrontendMonitoring
 from glideinwms.frontend import glideinFrontendPlugins
-
+from glideinwms.frontend import glideinFrontendDowntimeLib
 ###########################################################
 # Support class that mimics the 2.7 collections.Counter class
 #
@@ -541,6 +541,13 @@ class glideinFrontendElement:
 
             glidein_max_run = self.compute_glidein_max_run(
                                   prop_mc_jobs, self.count_real[glideid])
+
+            down_fd = glideinFrontendDowntimeLib.DowntimeFile( os.path.join( self.work_dir, self.elementDescript.frontend_data['DowntimesFile']  ) )
+            downflag = down_fd.checkDowntime()
+            logSupport.log.info( "downtime = %i" % downflag )
+            if downflag == True:
+                glidein_min_idle = 0
+                glidein_max_run  = 0
 
             remove_excess_str = self.choose_remove_excess_type(
                                     count_jobs, count_status, glideid)
