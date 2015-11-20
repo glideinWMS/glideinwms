@@ -1449,7 +1449,7 @@ class FrontendMonitorClassad(classadSupport.Classad):
 
         for key in idle_jobs:
             k = '%s' % key
-            self.adParams['GlideFrontendIdleJobsMatched_%s' % k.title()] = idle_jobs[key]
+            self.adParams['GlideFrontend_IdleJobs_%s' % k.title()] = idle_jobs[key]
 
 
 class FrontendMonitorClassadAdvertiser(classadSupport.ClassadAdvertiser):

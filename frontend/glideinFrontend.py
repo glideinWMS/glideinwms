@@ -183,6 +183,11 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active,
         fm_classad.setFrontendDetails(frontendDescript.data['FrontendName'],
                                       ','.join(groups),
                                       glideinFrontendLib.getHAMode(frontendDescript.data))
+        idle_jobs = {
+            'Total': stats['total']['Jobs']['Idle'],
+        }
+
+        fm_classad.setIdleJobCount(idle_jobs)
         fm_advertiser.addClassad(fm_classad.adParams['Name'], fm_classad)
 
         # Advertise glidefrontendmonitor classad to user pool
