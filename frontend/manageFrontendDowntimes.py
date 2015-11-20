@@ -180,25 +180,12 @@ def main(argv):
     # Get the command line arguments
     opt_dict = get_args(argv)
 
-#    if (os.environ.has_key("GLIDEIN_MANDATORY_COMMENTS")):
-#        if (os.environ["GLIDEIN_MANDATORY_COMMENTS"].lower() in ("on","true","1")):
-#            mandatory_comments=True
-#    if (opt_dict["cmd"] in ("check","vacuum")):
-#        mandatory_comments=False
-
     try:
         frontend_dir = opt_dict["dir"]
-#        entry_name=opt_dict["entry"]
         cmd = opt_dict["cmd"]
-#        if (mandatory_comments):
-#            comments=opt_dict["comment"]
-#            if (comments == ""):
-#                raise KeyError
     except KeyError, e:
         usage();
         print "-cmd -dir and -entry arguments are required."
-        if (mandatory_comments):
-            print "Mandatory comments are enabled.  add -comment."
         return 1;
 
     try:
