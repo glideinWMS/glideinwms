@@ -889,13 +889,14 @@ will use CCBs or not.<br><br>
 <b>Normally this section is empty and the main User Pool Collector acts also as CCB if needed</b>.
 Only very specific setups need to change this section.
     <br><br>
-    For <b>scalability</b> purposes, multiple CCB can be listed. 
+    For <b>scalability</b> purposes, multiple CCB can be listed. For <b>availability</b> purposes divide them in multiple groups.
 Each Glidein will use only one CCB per group: it will receive a randomly shuffled list of CCBs with one entry
-        chosen at random from each distinct group (port ranges are expanded as different entries); will connect to all
-        of them to listen for requests Communications will start using the first one and fall back to the following
-        ones in case of errors. Daemons on the same host using a shared port daemon will share the same CCBs.<br>
+        chosen at random from each distinct group (port ranges are expanded as different entries in the same group); 
+        will connect to all of them to listen for requests Communications and 
+        will start using the first one and fall back to the following ones in case of errors to send messages. 
+        Daemons on the same host using a shared port daemon will share the same CCBs.<br>
         NOTE that there is no correlation between these groups and the collector groups and HTCondor has no way to set
-        any affinity (for this collector use this CCB close by). When no group is specified "default" is assumed.<br>
+        any affinity (i.e. for this collector use this CCB close by). When no group is specified "default" is assumed.<br>
     The configuration required for the Frontend and Glideins to communicate using CCB collectors is shown below:
       <blockquote>
          &lt;ccbs&gt;
@@ -908,11 +909,8 @@ Each Glidein will use only one CCB per group: it will receive a randomly shuffle
             string can be used. No comma or semicolon are allowed in the node specification.</font><br/>
       </blockquote>
     </li>
-            Contrary to the User Pool Collector configuration, here only an optional port number is allowed, no <i>port range</i></font><br/>
-      </blockquote>
-    </li>
     <li>
-      <a name="high_availability">
+      <a name="high_availability" />
       <div class="xml">
       &lt;frontend&gt;&lt;high_availability check_interval="<i>Check interval in sec</i>" enabled="<i>True/False</i>"/&gt;
       </div>

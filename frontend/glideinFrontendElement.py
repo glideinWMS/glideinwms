@@ -286,7 +286,7 @@ class glideinFrontendElement:
         try:
             resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser()
             resource_advertiser.invalidateConstrainedClassads(
-                '(GlideClientName=="%s")&&(GlideFrontendHAMode=?=%s)' % (self.published_frontend_name, self.ha_mode))
+                '(GlideClientName=="%s")&&(GlideFrontendHAMode=?="%s")' % (self.published_frontend_name, self.ha_mode))
         except:
             logSupport.log.warning("Failed to deadvertise resources classads")
 
