@@ -1283,12 +1283,12 @@ function fetch_file_regular {
 }
 
 function fetch_file {
-    if [ "$#" -ne 7 ]; then
-        if [ "$#" -eq 6 ]; then
+    if [ $# -ne 7 ]; then
+        if [ $# -eq 6 ]; then
             # added to maintain compatibility with old file list format
             #TODO: remove in version 3.3
             fetch_file_try "$1" "$2" "$3" "$4" 0 "$5" "$6"
-            if [ "$?" -ne 0 ]; then
+            if [ $? -ne 0 ]; then
 	        glidein_exit 1
             fi
             return 0
@@ -1300,7 +1300,7 @@ function fetch_file {
     fi
 
     fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6" "$7"
-    if [ "$?" -ne 0 ]; then
+    if [ $? -ne 0 ]; then
         glidein_exit 1
     fi
     return 0
