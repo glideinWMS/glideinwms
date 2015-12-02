@@ -232,9 +232,8 @@ def spawn_cleanup(work_dir, frontendDescript, groups, frontend_name, ha_mode):
     try:
         set_frontend_htcondor_env(work_dir, frontendDescript)
         fm_advertiser = glideinFrontendInterface.FrontendMonitorClassadAdvertiser()
-        fm_advertiser.invalidateConstrainedClassads(
-            '(GlideFrontendName=="%s")&&(GlideFrontendHAMode=?="%s")' % (frontend_name, ha_mode))
-        const = '(GlideFrontendName=="%s")&&(GlideFrontendHAMode=?="%s")' % (frontend_name, ha_mode)
+        constraint = '(GlideFrontendName=="%s")&&(GlideFrontendHAMode=?="%s")' % (frontend_name, ha_mode)
+        fm_advertiser.invalidateConstrainedClassads(constraint)
     except:
         # Do not fail in case of errors.
         logSupport.log.warning("Failed to deadvertise glidefrontendmonitor classad")
@@ -371,12 +370,8 @@ def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
         for group in groups:
             element = glideinFrontendElement(os.getpid(), work_dir,
                                              group, "run")
-            htc_env = {
-                'CONDOR_CONFIG': frontendDescript.data['CondorConfig'],
-                'X509_USER_PROXY': frontendDescript.data['ClassAdProxy'],
-                '_CONDOR_CERTIFICATE_MAPFILE': element.elementDescript.element_data['MapFile']
-            }
-            set_env(htc_env)
+            # Set environment required to query factory collector
+            set_frontend_htcondor_env(work_dir, frontendDescript, element)
 
             for factory_pool in element.factory_pools:
                 factory_pool_node = factory_pool[0]
@@ -395,17 +390,19 @@ def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
     return False
 
 
-def set_frontend_htcondor_env(work_dir, frontendDescript):
-    # Collector DN is only in the group's mapfile. Just get one.
-    for group in frontendDescript.data['Groups'].split(','):
-        element = glideinFrontendElement(os.getpid(), work_dir, group, "run")
+def set_frontend_htcondor_env(work_dir, frontendDescript, element=None):
+    # Collector DN is only in the group's mapfile. Just get first one.
+    groups = frontendDescript.data['Groups'].split(',')
+    if groups:
+        if element is None:
+            element = glideinFrontendElement(os.getpid(), work_dir,
+                                             groups[0], "run")
         htc_env = {
             'CONDOR_CONFIG': frontendDescript.data['CondorConfig'],
             'X509_USER_PROXY': frontendDescript.data['ClassAdProxy'],
             '_CONDOR_CERTIFICATE_MAPFILE':  element.elementDescript.element_data['MapFile']
         }
         set_env(htc_env)
-        break
 
 def set_env(env):
     for var in env:
