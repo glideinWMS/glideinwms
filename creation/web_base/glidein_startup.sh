@@ -6,6 +6,9 @@
 # File Version: 
 #
 
+# default IFS, to protect against unusual environment, better than "unset IFS" because works with restoring old one
+IFS=$' \t\n'
+
 global_args="$@"
 
 export LANG=C
@@ -820,8 +823,39 @@ if [ -n "$client_repository_url" ]; then
   fi
 fi
 
+function md5wrapper {
+    # $1 - file name
+    # $2 - option (quiet)
+    local ONLY_SUM
+    if [ "x$2" = "xquiet" ]; then
+        ONLY_SUM=yes
+    fi
+    local executable=md5sum
+    which $executable 1>/dev/null 2>&1
+    if [ "$?" -ne 0 ]; then
+        executable=md5
+        which $executable 1>/dev/null 2>&1
+        if [ "$?" -ne 0 ]; then
+            echo "???"
+            return 1
+        fi
+        [ -n "$ONLY_SUM" ] && executable="md5 -q \"$1\"" || executable="md5 \"$1\""
+    else
+        [ -n "$ONLY_SUM" ] && executable="md5sum \"$1\" | cut -d ' ' -f 1" ||  executable="md5sum \"$1\""
+    fi
+    local res
+    res="`eval "$executable" 2>/dev/null`"
+    if [ $? -ne 0 ]; then
+        echo "???"
+        return 1
+    fi
+    echo "$res"  
+}
+
+
 startup_time=`date +%s`
 echo "Starting glidein_startup.sh at `date` ($startup_time)"
+echo "script_checksum   = '`md5wrapper "$0"`'"
 echo "debug_mode        = '$operation_mode'"
 echo "condorg_cluster   = '$condorg_cluster'"
 echo "condorg_subcluster= '$condorg_subcluster'"
@@ -1259,7 +1293,9 @@ function fetch_file {
             fi
             return 0
         fi
-        warn "Not enough arguments in fetch_file $@" 1>&2
+        local ifs_str
+        printf -v ifs_str '%q' "$IFS"
+        warn "Not enough arguments in fetch_file ($#/$ifs_str): $@" 1>&2
         glidein_exit 1
     fi
 

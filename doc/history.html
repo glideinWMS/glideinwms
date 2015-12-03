@@ -85,6 +85,26 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
+        <b>v3_2_12</b> released on December xx, 2015 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_12/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_12/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_12.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Various curbs and limits triggered in the frontend are now logged
+          in the glideresource classads
+        <li>Frontend is now more conservative while computing max request running
+        <li>Glideins now support advertising custom resources on the worker node
+          This can be used to advertise resources like GPUs.
+        <li>Several improvements to rpm packaging. Useful frontend tools are
+          now available in the user path.
+        <li>Bug Fix: create_frontend script now correctly populates images
+          in the monitoring pages
+        <li>Bug Fix: gwms-logcat now correctly supports multiple users
+        <li>Bug Fix: Frontend now correctly deadvertises glideresource classads
+          on shutdown
+        <li>Bug Fix: Disable collector's use of shared port to support HTCondor 8.4
+
+
+      </ul>
+      </li>
+      <li>
         <b>v3_2_11_2</b> released on September 18, 2015 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_11_2/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_11_2/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_11_2.tgz">Tarball</a>)<br>
         <ul>
             <li>Fix: Fixed authentication issue introduced in v3_2_11 where a
