@@ -84,12 +84,12 @@ function csv_shuffle {
     
     local inlist="$1"
 
-    local outlist="`echo "$inlist" | sed -r 's/(.[^,]*,)/ \1 /g' | tr " " "\n" | while IFS= read -r line
+    local outlist="`echo "$inlist," | sed -r 's/(.[^,]*,)/ \1 /g' | tr " " "\n" | while IFS= read -r line
 do
     printf "%06d %s\n" $RANDOM "$line"
 done | sort -n | cut -c8- | tr -d "\n" | sed -r 's/,+/,/g'`"
 
-    echo ${outlist}
+    echo ${outlist%,}
 }
 
 #TODO: not used, can be removed
