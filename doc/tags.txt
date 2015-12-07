@@ -11,6 +11,10 @@ v3_2_12 Various curbs and limits triggered in the frontend are now logged
           This can be used to advertise resources like GPUs.
         Several improvements to rpm packaging. Useful frontend tools are
           now available in the user path.
+        Support splitting of factory configuration into factory's
+          deloyment specific configuration and entry specific configuration.
+        Bug Fix: Fixed a bug where CCB_ADDRESS configuration for the glidein
+          was not created correclty under certain conditions
         Bug Fix: create_frontend script now correctly populates images
           in the monitoring pages
         Bug Fix: gwms-logcat now correctly supports multiple users
