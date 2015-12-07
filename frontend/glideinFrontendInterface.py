@@ -1062,7 +1062,7 @@ class MultiAdvertizeWork:
                         continue
 
                     if (params_obj.request_name in self.factory_constraint):
-                        if (credential_el.type!=factory_auth) and (factory_auth!="Any"):
+                        if (credential_el.type not in factory_auth) and (factory_auth!="Any"):
                             logSupport.log.warning("Credential %s does not match auth method %s (for %s), skipping..."%(credential_el.type,factory_auth,params_obj.request_name))
                             continue
                         if (credential_el.trust_domain!=factory_trust) and (factory_trust!="Any"):
@@ -1098,9 +1098,8 @@ class MultiAdvertizeWork:
                         else:
                             glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
 
-                    if 'project_id' in credential_el.type:
-                        if credential_el.project_id:
-                            glidein_params_to_encrypt['ProjectId']=str(credential_el.project_id)
+                    if credential_el.project_id:
+                        glidein_params_to_encrypt['ProjectId']=str(credential_el.project_id)
                         
                     (req_idle,req_max_run)=credential_el.get_usage_details()
                     logSupport.log.debug("Advertizing credential %s with (%d idle, %d max run) for request %s"%(credential_el.filename, req_idle, req_max_run, params_obj.request_name))
