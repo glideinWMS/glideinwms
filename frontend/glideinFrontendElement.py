@@ -854,7 +854,7 @@ class glideinFrontendElement:
                 'abs':glideinFrontendLib.countCondorStatus(status_dict_failed)
             },
             'TotalCores': {
-                'dict':status_dict_idlecores,
+                'dict':self.status_dict,
                 'abs':glideinFrontendLib.countCoresCondorStatus(self.status_dict)
             },
             'IdleCores': {
