@@ -784,6 +784,8 @@ fi  # end of resource slot if
     # Set to shutdown if total idle exceeds max idle, or if the age
     # exceeds the retire time (and is idle) or is over the max walltime (todie)
     echo "STARTD_SLOT_ATTRS = State, Activity, EnteredCurrentActivity, TotalTimeUnclaimedIdle, TotalTimeClaimedBusy" >> "$CONDOR_CONFIG"
+    echo "STARTD_SLOT_ATTRS = \$(STARTD_SLOT_ATTRS), SelfMonitorAge, JobStarts, ExpectedMachineGracefulDrainingCompletion" >> "$CONDOR_CONFIG"
+
     daemon_shutdown=""
     for I in `seq 1 $num_slots_for_shutdown_expr`; do
         cat >> "$CONDOR_CONFIG" <<EOF
