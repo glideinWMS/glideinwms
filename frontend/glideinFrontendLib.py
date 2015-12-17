@@ -764,9 +764,9 @@ def countCoresCondorStatus(status_dict, status='TotalCores'):
     if status == 'TotalCores':
         for collector_name in status_dict.keys():
             for glidein_name,glidein_details in status_dict[collector_name].fetchStored().iteritems():
-                if glidein_details.get('PartitionableSlot', False)
+                if glidein_details.get('PartitionableSlot', False):
                     count += glidein_details.get('TotalCpus', 0)
-                else
+                else:
                     count += glidein_details.get('Cpus', 0)
     elif status == 'IdleCores':
         for collector_name in status_dict.keys():
@@ -775,9 +775,9 @@ def countCoresCondorStatus(status_dict, status='TotalCores'):
     elif status == 'RunningCores':
         for collector_name in status_dict.keys():
             for glidein_name,glidein_details in status_dict[collector_name].fetchStored().iteritems():
-                if glidein_details.get('PartitionableSlot', False)
+                if glidein_details.get('PartitionableSlot', False):
                     count += glidein_details.get('TotalCpus', 0) - glidein_details.get('Cpus', 0)
-                else
+                else:
                     count += glidein_details.get('Cpus', 0)
     return count
 
