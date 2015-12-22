@@ -855,15 +855,15 @@ class glideinFrontendElement:
             },
             'TotalCores': {
                 'dict':status_dict_idlecores,
-                'abs':glideinFrontendLib.countCoresCondorStatus(self.status_dict)
+                'abs':glideinFrontendLib.countCoresCondorStatus(self.status_dict, 'TotalCores') 
             },
             'IdleCores': {
                 'dict':status_dict_idlecores,
-                'abs':glideinFrontendLib.countCoresCondorStatus(status_dict_idlecores)
+                'abs':glideinFrontendLib.countCoresCondorStatus(status_dict_idlecores, 'IdleCores')
             },
             'RunningCores': {
                 'dict':status_dict_runningcores,
-                'abs':glideinFrontendLib.countCoresCondorStatus(status_dict_runningcores)
+                'abs':glideinFrontendLib.countCoresCondorStatus(status_dict_runningcores, 'RunningCores')
             }
         }
 
@@ -1615,7 +1615,7 @@ class glideinFrontendElement:
                 for st in req_dict_types:
                     req_dict = req_dict_types[st]
                     if st in ('TotalCores', 'IdleCores', 'RunningCores'):
-                        count_status_multi[request_name][st]=glideinFrontendLib.countCoresCondorStatus(req_dict)
+                        count_status_multi[request_name][st]=glideinFrontendLib.countCoresCondorStatus(req_dict, st)
                     else:
                         count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(req_dict)
 
@@ -1623,7 +1623,7 @@ class glideinFrontendElement:
                         cred_id=cred.getId()
                         cred_dict = glideinFrontendLib.getClientCondorStatusCredIdOnly(req_dict,cred_id)
                         if st in ('TotalCores', 'IdleCores', 'RunningCores'):
-                            count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCoresCondorStatus(cred_dict)
+                            count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCoresCondorStatus(cred_dict, st)
                         else:
                             count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCondorStatus(cred_dict)
 
