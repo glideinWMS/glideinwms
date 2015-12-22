@@ -63,7 +63,7 @@ class Element(object):
         self.file = file
         self.line_no = line_no
 
-    # children should override these
+    # children should override these (signature should be the same)
     def add_child(self, child):
         pass
 
