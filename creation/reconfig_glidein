@@ -39,6 +39,7 @@ fix_rrd = False
 class UsageError(Exception): pass
 class ReconfigError(Exception): pass
 
+
 def logReconfig(msg):
     glideinDescript=glideFactoryConfig.GlideinDescript()
     # Set the Log directory 
@@ -63,6 +64,7 @@ def logReconfig(msg):
                 plog['compression'])
     logSupport.log = logging.getLogger("factoryadmin")
     logSupport.log.info("Reconfiguring factory: %s" % msg)
+
 
 def main(conf, update_scripts, update_def_cfg, comment=""):
     old_glidein_dicts_obj = None
@@ -199,6 +201,8 @@ if __name__ == '__main__':
             print usage
             sys.exit(1)
 
+    # conf is of type factoryXmlConfig.Config
+    # pylint: disable=maybe-no-member
     conf = factoryXmlConfig.parse(xml)
 
     try:

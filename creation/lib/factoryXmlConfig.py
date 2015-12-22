@@ -6,7 +6,7 @@ ENTRY_INDENT = 6
 CONFIG_DIR = 'config.d'
 FACTORY_DEFAULTS_XML = 'factory_defaults.xml'
 
-xmlConfig.register_list_elements({ 
+xmlConfig.register_list_elements({
     u'allow_frontends': lambda d: d[u'name'],
     u'condor_tarballs': lambda d: "%s,%s,%s" % (d[u'arch'], d[u'os'], d[u'version']),
     u'entries': lambda d: d[u'name'],
@@ -19,6 +19,7 @@ xmlConfig.register_list_elements({
     u'security_classes': lambda d: d[u'username'],
     u'submit_attrs': lambda d: d[u'name']
 })
+
 
 class FactAttrElement(xmlConfig.AttrElement):
     def validate(self):
@@ -34,7 +35,9 @@ class FactAttrElement(xmlConfig.AttrElement):
         if not is_publish and (not is_const or not is_param):
             raise RuntimeError(self.err_str('unpublished attribute must be "const" "parameter"'))
 
+
 xmlConfig.register_tag_classes({u'attr': FactAttrElement})
+
 
 class FactFileElement(xmlConfig.FileElement):
     def validate(self):
@@ -43,14 +46,18 @@ class FactFileElement(xmlConfig.FileElement):
         if u'after_entry' in self:
             self.check_boolean(u'after_entry')
 
+
 xmlConfig.register_tag_classes({u'file': FactFileElement})
+
 
 class CondTarElement(xmlConfig.DictElement):
     def validate(self):
-        if not u'tar_file' in self and not u'base_dir' in self:
+        if u'tar_file' not in self and u'base_dir' not in self:
             raise RuntimeError(self.err_str('must either define "tar_file" or "base_dir"'))
 
+
 xmlConfig.register_tag_classes({u'condor_tarball': CondTarElement})
+
 
 class FrontendElement(xmlConfig.DictElement):
     def validate(self):
@@ -59,7 +66,9 @@ class FrontendElement(xmlConfig.DictElement):
         for sc in self.get_child_list(u'security_classes'):
             sc.check_missing(u'username')
 
+
 xmlConfig.register_tag_classes({u'frontend': FrontendElement})
+
 
 class EntryElement(xmlConfig.DictElement):
     def validate(self):
@@ -79,7 +88,9 @@ class EntryElement(xmlConfig.DictElement):
         for group in self.get_child_list(u'monitorgroups'):
             group.check_missing(u'group_name')
 
+
 xmlConfig.register_tag_classes({u'entry': EntryElement})
+
 
 class Config(xmlConfig.DictElement):
     def __init__(self, tag, *args, **kwargs):
@@ -109,30 +120,30 @@ class Config(xmlConfig.DictElement):
     def set_submit_dir(self):
         if eval(self[u'factory_versioning']):
             self.submit_dir = os.path.join(self.get_child(u'submit')[u'base_dir'],
-                u"glidein_%s" % self[u'glidein_name'])
+                                           u"glidein_%s" % self[u'glidein_name'])
         else:
             self.submit_dir = self.get_child(u'submit')[u'base_dir']
 
     def set_stage_dir(self):
         if eval(self[u'factory_versioning']):
             self.stage_dir = os.path.join(self.get_child(u'stage')[u'base_dir'],
-                u"glidein_%s" % self[u'glidein_name'])
+                                          u"glidein_%s" % self[u'glidein_name'])
         else:
             self.stage_dir = self.get_child(u'stage')[u'base_dir']
 
     def set_monitor_dir(self):
         if eval(self[u'factory_versioning']):
             self.monitor_dir = os.path.join(self.get_child(u'monitor')[u'base_dir'],
-                u"glidein_%s" % self[u'glidein_name'])
+                                            u"glidein_%s" % self[u'glidein_name'])
         else:
             self.monitor_dir = self.get_child(u'monitor')[u'base_dir']
 
     def set_log_dir(self):
         if eval(self[u'factory_versioning']):
-            self.log_dir  = os.path.join(self.get_child(u'submit')[u'base_log_dir'],
-                u"glidein_%s" % self[u'glidein_name'])
+            self.log_dir = os.path.join(self.get_child(u'submit')[u'base_log_dir'],
+                                        u"glidein_%s" % self[u'glidein_name'])
         else:
-            self.log_dir  = self.get_child(u'submit')[u'base_log_dir']
+            self.log_dir = self.get_child(u'submit')[u'base_log_dir']
 
     def set_client_log_dirs(self):
         self.client_log_dirs = {}
@@ -141,7 +152,8 @@ class Config(xmlConfig.DictElement):
         for fe in self.get_child(u'security').get_child_list(u'frontends'):
             for sc in fe.get_child_list(u'security_classes'):
                 self.client_log_dirs[sc[u'username']] = os.path.join(client_dir,
-                    u"user_%s" % sc[u'username'], u"glidein_%s" % glidein_name)
+                                                                     u"user_%s" % sc[u'username'],
+                                                                     u"glidein_%s" % glidein_name)
 
     def set_client_proxy_dirs(self):
         self.client_proxy_dirs = {}
@@ -150,12 +162,13 @@ class Config(xmlConfig.DictElement):
         for fe in self.get_child(u'security').get_child_list(u'frontends'):
             for sc in fe.get_child_list(u'security_classes'):
                 self.client_proxy_dirs[sc[u'username']] = os.path.join(client_dir,
-                    u"user_%s" % sc[u'username'], u"glidein_%s" % glidein_name)
+                                                                       u"user_%s" % sc[u'username'],
+                                                                       u"glidein_%s" % glidein_name)
 
     def set_web_url(self):
         if eval(self[u'factory_versioning']):
             self.web_url = os.path.join(self.get_child(u'stage')[u'web_base_url'],
-                u"glidein_%s" % self[u'glidein_name'])
+                                        u"glidein_%s" % self[u'glidein_name'])
         else:
             self.web_url = self.get_child(u'stage')[u'web_base_url']
 
@@ -185,8 +198,10 @@ class Config(xmlConfig.DictElement):
     def get_web_url(self):
         return self.web_url
 
+
 xmlConfig.register_tag_classes({u'glidein': Config})
 xmlConfig.register_root(u'glidein')
+
 
 #######################
 #
@@ -195,6 +210,16 @@ xmlConfig.register_root(u'glidein')
 ######################
 
 def parse(file):
+    """parse a config file
+
+    The root element (glidein) is registered as type Config
+
+    :param file: file path
+    :return: the document root
+    :rtype: Config
+    """
+
+    # pylint: disable=maybe-no-member
     conf = _parse(file)
 
     conf_dir_path = os.path.join(os.path.dirname(file), CONFIG_DIR)
@@ -219,9 +244,19 @@ def parse(file):
 
     return conf
 
+
 # this parse function is for internal usage
 # it does not merge defaults or validate
 def _parse(file, default=False):
+    """
+    The root element (glidein) is registered as type Config
+
+    :param file: file path
+    :param default: if True return a default configuration (no file)
+    :return: the document root
+    :rtype: Config
+    """
+
     parser = xml.sax.make_parser()
     if default:
         handler = xmlConfig.Handler()

@@ -13,6 +13,7 @@ LIST_TAGS = {
 TAG_CLASS_MAPPING = {}
 DOCUMENT_ROOT = None
 
+
 class Handler(xml.sax.ContentHandler):
     # leave file=None when parsing default xml to ignore xml file and line numbers
     def __init__(self, file=None):
@@ -55,23 +56,29 @@ class Handler(xml.sax.ContentHandler):
     def endElement(self, name):
         self.ancestry.pop()
 
+
 class Element(object):
     def __init__(self, tag, file="default", line_no=None):
         self.tag = tag
         self.file = file
         self.line_no = line_no
 
-    # children should override these
-    def add_child(self):
+    # children should override these (signature should be the same)
+    def add_child(self, child):
         pass
+
     def clear_lists(self):
         pass
-    def merge_defaults(self):
+
+    def merge_defaults(self, default):
         pass
+
     def validate(self):
         pass
-    def merge(self):
+
+    def merge(self, other):
         pass
+
 
 class DictElement(Element, collections.MutableMapping):
     def __init__(self, tag, *args, **kwargs):
@@ -115,7 +122,7 @@ class DictElement(Element, collections.MutableMapping):
 
     def merge_default_attrs(self, default):
         for key in default:
-            if not key in self:
+            if key not in self:
                 self[key] = default[key]
 
     def merge_defaults(self, default):
@@ -143,7 +150,7 @@ class DictElement(Element, collections.MutableMapping):
 
         for tag in other.children:
             # if completely missing just add it
-            if not tag in self.children:
+            if tag not in self.children:
                 self.children[tag] = other.children[tag]
             # otherwise merge what we have
             else:
@@ -157,8 +164,9 @@ class DictElement(Element, collections.MutableMapping):
             raise RuntimeError(self.err_str('%s must be "True" or "False"' % flag))
 
     def check_missing(self, attr):
-        if not attr in self:
+        if attr not in self:
             raise RuntimeError(self.err_str('missing "%s" attribute' % attr))
+
 
 class ListElement(Element):
     def __init__(self, tag, *args, **kwargs):
@@ -218,9 +226,10 @@ class ListElement(Element):
 
         self.children = new_children
 
+
 class AttrElement(DictElement):
     def get_val(self):
-        if self[u'type'] in ("string","expr"):
+        if self[u'type'] in ("string", "expr"):
             return str(self[u'value'])
         else:
             return int(self[u'value'])
@@ -235,6 +244,7 @@ class AttrElement(DictElement):
         self.check_boolean(u'parameter')
 
 TAG_CLASS_MAPPING.update({'attr': AttrElement})
+
 
 class FileElement(DictElement):
     def validate(self):
@@ -274,6 +284,7 @@ TAG_CLASS_MAPPING.update({u'file': FileElement})
 #
 ######################
 
+
 # any modules that choose to subclass from xmlConfig should register new xml tags
 # and either flag them as being a list element, or associate with respective class type
 # as needed
@@ -281,8 +292,10 @@ def register_root(tag):
     global DOCUMENT_ROOT
     DOCUMENT_ROOT = tag
 
+
 def register_list_elements(tag_list):
     LIST_TAGS.update(tag_list)
+
 
 def register_tag_classes(map_dict):
     TAG_CLASS_MAPPING.update(map_dict)
