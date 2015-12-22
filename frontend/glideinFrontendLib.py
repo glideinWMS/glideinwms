@@ -582,7 +582,8 @@ def getIdleCondorStatus(status_dict):
                 (el.get('State') == 'Unclaimed') and
                 (el.get('Activity') == 'Idle') and
                 (
-                    (el.get('PartitionableSlot') != True) or  # None != True, no need to set default
+                    # None != True, no need to set default to False in get()
+                    (el.get('PartitionableSlot') != True) or  
                     (el.get('TotalSlots') == 1) or
                     (el.get('Cpus', 0) > 0 and el.get('Memory', 2501) > 2500)
                 )
@@ -669,7 +670,7 @@ def getFailedCondorStatus(status_dict):
 # Return a dictionary of collectors containing idle(unclaimed) cores
 # Each element is a condorStatus
 #
-# Use the output of getCondorStatus
+# Same as getIdleCondorStatus - the dictionaries with the Machines/Glideins are the same
 #
 def getIdleCoresCondorStatus(status_dict):
     return getIdleCondorStatus(status_dict)
