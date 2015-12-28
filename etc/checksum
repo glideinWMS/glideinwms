@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_12_rc2
+# GLIDEINWMS_VERSION v3_2_12_rc3
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -28,12 +28,12 @@ def02e95d6ddbf422c9b1cf0c38c113e  ./creation/lib/cgWParamDict.py
 21a570bcb3ba1f6d3fbc54c0afdd1ad1  ./creation/lib/cvWDictFile.py
 ad815516f59d794eaed43d349a86cee2  ./creation/lib/cvWParamDict.py
 e12283e27892d2dd8c10e7289b008771  ./creation/lib/cvWParams.py
-e7694a6bab09dda1388a365016ec9a54  ./creation/lib/factoryXmlConfig.py
+082cce4b50cfa5d25961157e23e3a2e2  ./creation/lib/factoryXmlConfig.py
 f9172231ba58e493d10d53e9c02c6910  ./creation/lib/factory_defaults.xml
-a698f0ce94be1307f4e5356ab862204d  ./creation/lib/xmlConfig.py
+75ff3cab47ae476a37161efcb6494ad3  ./creation/lib/xmlConfig.py
 414dd08400e9050a5c7e6a64fa7a4d94  ./creation/lib/xslt.py
 bd792b8d6a0ed1d97e2b75c77adc420d  ./creation/reconfig_frontend
-acd241c453084cb667dac0d2ecdd7b27  ./creation/reconfig_glidein
+9bdacc490bff8a4f8304e8f68ebf3467  ./creation/reconfig_glidein
 eb3e5e1c14b6e25a0d6903302afe5d5f  ./creation/templates/factory_initd_startup_template
 c0fa8e69f13388e51e5a5c30d3576cb7  ./creation/templates/frontend_initd_startup_template
 585e798089364f5afac493b40a721766  ./creation/web_base/advertise_failure.helper
@@ -47,7 +47,7 @@ dcf95354db9333a7089acecef43726f2  ./creation/web_base/collector_setup.sh
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
 68dfdebf47aa54c20d6ab998b12b4eed  ./creation/web_base/condor_config.multi_schedd.include
 e045ab0b0412b0e990c55e42d6b8fbe4  ./creation/web_base/condor_platform_select.sh
-909cfb35c14c549a126dbd37740ce8dd  ./creation/web_base/condor_startup.sh
+52d2f2c939c765d3200b184e55afc810  ./creation/web_base/condor_startup.sh
 4e369fd67e5452143b96dd7981a6e7fa  ./creation/web_base/condor_vars.lst
 baac24b5b0cfd0f134bc895cff30c183  ./creation/web_base/condor_vars.lst.entry
 4c725d703c63eea294a4943698cc99ef  ./creation/web_base/create_mapfile.sh
@@ -154,9 +154,9 @@ d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 281b86c8a2bc919bfa1cdaedebebaf0c  ./frontend/checkFrontend.py
 573dba0aeacd705bd20009caf558dfec  ./frontend/glideinFrontend.py
 b04d93ffbbe5a85bbad9b868596cc70d  ./frontend/glideinFrontendConfig.py
-3b2c5f9c67cbb50ed9e2e3c76bd5f91f  ./frontend/glideinFrontendElement.py
+b351867224a63abe57f9ca26fb779631  ./frontend/glideinFrontendElement.py
 d1c3c9affb862d9ed1db48b54aa7a736  ./frontend/glideinFrontendInterface.py
-8017adf3897a0a792d5ab9d938729d31  ./frontend/glideinFrontendLib.py
+436c7708321465b431b69ddb9bebd157  ./frontend/glideinFrontendLib.py
 1754e4484e221f13578512bd1c825090  ./frontend/glideinFrontendMonitorAggregator.py
 466a10f70924210c5b2642d4b0f7cd5b  ./frontend/glideinFrontendMonitoring.py
 2a1b5c91fe810a76649e78890e15c3dc  ./frontend/glideinFrontendPidLib.py
