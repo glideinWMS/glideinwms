@@ -15,6 +15,10 @@ v3_2_12 Various curbs and limits triggered in the frontend are now logged
         Bug Fix: Frontend now correctly deadvertises glideresource classads
           on shutdown
         Bug Fix: Disable collector's use of shared port to support HTCondor 8.4
+        Bug Fix: Counting correctly glidein and cores, specially for 
+          partitionable jobs
+        Bug Fix: Fixed bug where DaemonShutdown was failing to consider 
+          dynamicslots
 
 v3_2_11_2 Bug Fix: Fixed authentication issue introduced in v3_2_11 where a
           glidein startd fails to send keep alive signals to v8.2.x schedds
