@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_12_rc3
+# GLIDEINWMS_VERSION v3_2_12_rc4
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -23,11 +23,11 @@ dc8807c7f6eefcba68bd0aab4eab2b2b  ./creation/lib/cgWDictFile.py
 def02e95d6ddbf422c9b1cf0c38c113e  ./creation/lib/cgWParamDict.py
 41eabe63c4dcbeea083cd7d0f0ef065f  ./creation/lib/cgWParams.py
 082cce4b50cfa5d25961157e23e3a2e2  ./creation/lib/factoryXmlConfig.py
-f9172231ba58e493d10d53e9c02c6910  ./creation/lib/factory_defaults.xml
+fa0be9f0c681574b728d34c15b4c5d26  ./creation/lib/factory_defaults.xml
 75ff3cab47ae476a37161efcb6494ad3  ./creation/lib/xmlConfig.py
 414dd08400e9050a5c7e6a64fa7a4d94  ./creation/lib/xslt.py
 9bdacc490bff8a4f8304e8f68ebf3467  ./creation/reconfig_glidein
-eb3e5e1c14b6e25a0d6903302afe5d5f  ./creation/templates/factory_initd_startup_template
+16d248f9fe94e3dce4749a53ecdff454  ./creation/templates/factory_initd_startup_template
 585e798089364f5afac493b40a721766  ./creation/web_base/advertise_failure.helper
 1a794306785cd9f0489ba1b484470af1  ./creation/web_base/cat_consts.sh
 40a2b85a853a072f65049c4efe64bc3a  ./creation/web_base/check_blacklist.sh
