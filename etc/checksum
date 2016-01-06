@@ -34,8 +34,8 @@ f9172231ba58e493d10d53e9c02c6910  ./creation/lib/factory_defaults.xml
 a698f0ce94be1307f4e5356ab862204d  ./creation/lib/xmlConfig.py
 414dd08400e9050a5c7e6a64fa7a4d94  ./creation/lib/xslt.py
 bd792b8d6a0ed1d97e2b75c77adc420d  ./creation/reconfig_frontend
-acd241c453084cb667dac0d2ecdd7b27  ./creation/reconfig_glidein
-eb3e5e1c14b6e25a0d6903302afe5d5f  ./creation/templates/factory_initd_startup_template
+9bdacc490bff8a4f8304e8f68ebf3467  ./creation/reconfig_glidein
+16d248f9fe94e3dce4749a53ecdff454  ./creation/templates/factory_initd_startup_template
 c0fa8e69f13388e51e5a5c30d3576cb7  ./creation/templates/frontend_initd_startup_template
 585e798089364f5afac493b40a721766  ./creation/web_base/advertise_failure.helper
 1a794306785cd9f0489ba1b484470af1  ./creation/web_base/cat_consts.sh
@@ -48,7 +48,7 @@ dcf95354db9333a7089acecef43726f2  ./creation/web_base/collector_setup.sh
 3a37ef898165a1a6cd080809983f38ec  ./creation/web_base/condor_config.monitor.include
 68dfdebf47aa54c20d6ab998b12b4eed  ./creation/web_base/condor_config.multi_schedd.include
 e045ab0b0412b0e990c55e42d6b8fbe4  ./creation/web_base/condor_platform_select.sh
-909cfb35c14c549a126dbd37740ce8dd  ./creation/web_base/condor_startup.sh
+52d2f2c939c765d3200b184e55afc810  ./creation/web_base/condor_startup.sh
 4e369fd67e5452143b96dd7981a6e7fa  ./creation/web_base/condor_vars.lst
 baac24b5b0cfd0f134bc895cff30c183  ./creation/web_base/condor_vars.lst.entry
 4c725d703c63eea294a4943698cc99ef  ./creation/web_base/create_mapfile.sh

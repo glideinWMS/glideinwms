@@ -27,7 +27,7 @@ f9172231ba58e493d10d53e9c02c6910  ./creation/lib/factory_defaults.xml
 a698f0ce94be1307f4e5356ab862204d  ./creation/lib/xmlConfig.py
 414dd08400e9050a5c7e6a64fa7a4d94  ./creation/lib/xslt.py
 bd792b8d6a0ed1d97e2b75c77adc420d  ./creation/reconfig_frontend
-eb3e5e1c14b6e25a0d6903302afe5d5f  ./creation/templates/factory_initd_startup_template
+16d248f9fe94e3dce4749a53ecdff454  ./creation/templates/factory_initd_startup_template
 c0fa8e69f13388e51e5a5c30d3576cb7  ./creation/templates/frontend_initd_startup_template
 585e798089364f5afac493b40a721766  ./creation/web_base/advertise_failure.helper
 1a794306785cd9f0489ba1b484470af1  ./creation/web_base/cat_consts.sh

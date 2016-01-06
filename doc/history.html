@@ -96,15 +96,22 @@ Related Pages:
           <li>Several improvements to rpm packaging. Useful frontend tools are
           now available in the user path.
           <li>Support splitting of factory configuration into factory's
-          deloyment specific configuration and entry specific configuration.
+          deployment specific configuration and entry specific configuration.
+          <li>Unique idle jobs matched by the frontend is now available in
+          glideresource classads
           <li>Bug Fix: Fixed a bug where CCB_ADDRESS configuration for the
           glidein was not created correclty under certain conditions
           <li>Bug Fix: create_frontend script now correctly populates images
           in the monitoring pages
           <li>Bug Fix: gwms-logcat now correctly supports multiple users
-          <li>Bug Fix: Frontend now correctly deadvertises glideresource classads
-          on shutdown
-          <li>Bug Fix: Disable collector's use of shared port to support HTCondor 8.4
+          <li>Bug Fix: Frontend now correctly deadvertises glideresource
+          classads on shutdown
+          <li>Bug Fix: Disable collector's use of shared port to support
+          HTCondor 8.4
+          <li>Bug Fix: Counting correctly glidein and cores, specially for 
+          partitionable jobs
+          <li>Bug Fix: Fixed bug where DaemonShutdown was failing to consider 
+          dynamicslots
       </ul>
       </li>
       <li>

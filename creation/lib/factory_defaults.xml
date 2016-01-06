@@ -5,7 +5,7 @@
       <job_logs max_days="7.0" max_mbytes="100.0" min_days="2.0"/>
       <summary_logs max_days="31.0" max_mbytes="100.0" min_days="3.0"/>
       <process_logs>
-         <process_log max_days="7.0" max_mbytes="100.0" min_days="3.0" backup_count="5" ccompression="" extension="all" msg_types="INFO, WARN, ERR"/>
+         <process_log max_days="7.0" max_mbytes="100.0" min_days="3.0" backup_count="5" compression="" extension="all" msg_types="INFO, WARN, ERR"/>
       </process_logs>
    </log_retention>
    <!-- hard coding rpm paths for now -->
