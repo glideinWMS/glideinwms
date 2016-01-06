@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_3_rc5
+# GLIDEINWMS_VERSION v3_3_rc6
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -28,10 +28,10 @@ def02e95d6ddbf422c9b1cf0c38c113e  ./creation/lib/cgWParamDict.py
 21a570bcb3ba1f6d3fbc54c0afdd1ad1  ./creation/lib/cvWDictFile.py
 6b307295f0385535235b94e0abed9f70  ./creation/lib/cvWParamDict.py
 0f0bc38db9e29bc539a6c92f66c97d2b  ./creation/lib/cvWParams.py
-e7694a6bab09dda1388a365016ec9a54  ./creation/lib/factoryXmlConfig.py
-f9172231ba58e493d10d53e9c02c6910  ./creation/lib/factory_defaults.xml
+082cce4b50cfa5d25961157e23e3a2e2  ./creation/lib/factoryXmlConfig.py
+fa0be9f0c681574b728d34c15b4c5d26  ./creation/lib/factory_defaults.xml
 1cf06bb1ccb5e9bcafad8d4f4c02a0ce  ./creation/lib/matchPolicy.py
-a698f0ce94be1307f4e5356ab862204d  ./creation/lib/xmlConfig.py
+75ff3cab47ae476a37161efcb6494ad3  ./creation/lib/xmlConfig.py
 414dd08400e9050a5c7e6a64fa7a4d94  ./creation/lib/xslt.py
 bd792b8d6a0ed1d97e2b75c77adc420d  ./creation/reconfig_frontend
 9bdacc490bff8a4f8304e8f68ebf3467  ./creation/reconfig_glidein
@@ -155,9 +155,9 @@ d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 281b86c8a2bc919bfa1cdaedebebaf0c  ./frontend/checkFrontend.py
 573dba0aeacd705bd20009caf558dfec  ./frontend/glideinFrontend.py
 e49ab3a2675c6542526d001eb9f656b4  ./frontend/glideinFrontendConfig.py
-e75d5d8ab614396c26ecf73d608024a8  ./frontend/glideinFrontendElement.py
+8021da7500b36fe9dcaea5239cd71791  ./frontend/glideinFrontendElement.py
 04bb315c3636ae123f246671819951e8  ./frontend/glideinFrontendInterface.py
-0767aae3a0da47674b0158fda223b5e1  ./frontend/glideinFrontendLib.py
+a3cf5a189bc83f260e1a77a5db4fb5c9  ./frontend/glideinFrontendLib.py
 1754e4484e221f13578512bd1c825090  ./frontend/glideinFrontendMonitorAggregator.py
 466a10f70924210c5b2642d4b0f7cd5b  ./frontend/glideinFrontendMonitoring.py
 2a1b5c91fe810a76649e78890e15c3dc  ./frontend/glideinFrontendPidLib.py
