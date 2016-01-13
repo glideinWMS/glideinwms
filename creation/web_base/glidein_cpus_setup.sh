@@ -8,7 +8,7 @@
 #
 # Description:
 #   This script will determine the number of cpus on a machine if
-#   GLIDEIN_CPUS is set to 'auto'
+#   GLIDEIN_CPUS is set to 'auto' ('node') or 'slot'
 #
 
 glidein_config=$1
@@ -25,9 +25,32 @@ source $add_config_line_source
 # Use GLIDEIN_CPUS if configured by the factory
 GLIDEIN_CPUS=`grep -i "^GLIDEIN_CPUS " $glidein_config | awk '{print $2}'`
 
-# auto and 0 means the same thing - detect
+# auto, node and 0 mean the same thing - detect the hardware resources
 if (echo "${GLIDEIN_CPUS}" | grep -i "auto") >/dev/null 2>&1; then
     GLIDEIN_CPUS=0
+if (echo "${GLIDEIN_CPUS}" | grep -i "node") >/dev/null 2>&1; then
+    GLIDEIN_CPUS=0
+fi
+
+# slot and -1 mean the same thing - detect the slot resources
+if (echo "${GLIDEIN_CPUS}" | grep -i "slot") >/dev/null 2>&1; then
+    GLIDEIN_CPUS=-1
+fi
+
+
+# detect the number of cores made available to the slot 
+if [ "${GLIDEIN_CPUS}" = "-1" ]; then
+    # this works in HTCondor for now
+    if [ -r "$_CONDOR_MACHINE_AD" ]; then
+       cores=`condor_status -ads pp1 -af Cpus 2>/dev/null`
+       [ "$cores" = "" ] && cores=`egrep "^Cpus " $_CONDOR_MACHINE_AD | awk '{print $3}'`
+    fi
+    # fall back to auto (node) if unable to detect
+    if [ "$cores" = "" ]; then
+       GLIDEIN_CPUS=0
+    else
+       GLIDEIN_CPUS="$cores"
+    fi
 fi
 
 if [ "X${GLIDEIN_CPUS}" = "X" ]; then
