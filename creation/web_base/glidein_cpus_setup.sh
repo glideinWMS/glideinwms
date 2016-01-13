@@ -26,17 +26,16 @@ source $add_config_line_source
 GLIDEIN_CPUS=`grep -i "^GLIDEIN_CPUS " $glidein_config | awk '{print $2}'`
 
 # auto, node and 0 mean the same thing - detect the hardware resources
+# slot and -1 mean the same thing - detect the slot resources
 if (echo "${GLIDEIN_CPUS}" | grep -i "auto") >/dev/null 2>&1; then
     GLIDEIN_CPUS=0
-if (echo "${GLIDEIN_CPUS}" | grep -i "node") >/dev/null 2>&1; then
+elif (echo "${GLIDEIN_CPUS}" | grep -i "node") >/dev/null 2>&1; then
     GLIDEIN_CPUS=0
-fi
-
-# slot and -1 mean the same thing - detect the slot resources
-if (echo "${GLIDEIN_CPUS}" | grep -i "slot") >/dev/null 2>&1; then
+elif (echo "${GLIDEIN_CPUS}" | grep -i "slot") >/dev/null 2>&1; then
     GLIDEIN_CPUS=-1
 fi
 
+glidein_cpus_how=
 
 # detect the number of cores made available to the slot 
 if [ "${GLIDEIN_CPUS}" = "-1" ]; then
@@ -50,6 +49,7 @@ if [ "${GLIDEIN_CPUS}" = "-1" ]; then
        GLIDEIN_CPUS=0
     else
        GLIDEIN_CPUS="$cores"
+       glidein_cpus_how="(HTCondor slot cpus)"
     fi
 fi
 
@@ -65,10 +65,11 @@ elif [ "${GLIDEIN_CPUS}" = "0" ]; then
         cores=`grep processor /proc/cpuinfo  | wc -l`
     fi
     GLIDEIN_CPUS="$cores"
+    glidein_cpus_how="(host cpus)"
 fi
 
 # xxport the GLIDEIN_CPUS
-echo "`date` Setting GLIDEIN_CPUS=$GLIDEIN_CPUS"
+echo "`date` Setting GLIDEIN_CPUS=$GLIDEIN_CPUS $glidein_cpus_how"
 
 add_config_line GLIDEIN_CPUS "${GLIDEIN_CPUS}"
 add_condor_vars_line GLIDEIN_CPUS "C" "-" "+" "N" "N" "-"
