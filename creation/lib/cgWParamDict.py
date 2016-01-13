@@ -56,6 +56,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_images_dir,"monitor"))
         self.conf=conf
         self.active_sub_list=[]
+        self.disabled_sub_list=[]
         self.monitor_jslibs=[]
         self.monitor_images=[]
         self.monitor_htmls=[]
@@ -238,7 +239,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                                         os.path.join(cgWConsts.WEB_BASE_DIR, script_name))
 
         # populate complex files
-        populate_factory_descript(self.work_dir,self.dicts['glidein'],self.active_sub_list,self.conf)
+        populate_factory_descript(self.work_dir, self.dicts['glidein'],
+                                  self.active_sub_list, self.disabled_sub_list,
+                                  self.conf)
         populate_frontend_descript(self.dicts['frontend_descript'],self.conf)
 
 
@@ -727,8 +730,9 @@ def add_attr_unparsed_real(attr,dicts):
 
 ###################################
 # Create the glidein descript file
-def populate_factory_descript(work_dir,
-                              glidein_dict,active_sub_list,        # will be modified
+def populate_factory_descript(work_dir, glidein_dict,
+                              active_sub_list,        # will be modified
+                              disabled_sub_list,        # will be modified
                               conf):
         
         down_fname=os.path.join(work_dir,'glideinWMS.downtimes')
@@ -753,6 +757,8 @@ def populate_factory_descript(work_dir,
         for entry in conf.get_child_list(u'entries'):
             if eval(entry[u'enabled'],{},{}):
                 active_sub_list.append(entry[u'name'])
+            else:
+                disabled_sub_list.append(entry[u'name'])
 
         glidein_dict.add('Entries',string.join(active_sub_list,','))
         glidein_dict.add('AdvertiseWithTCP',conf[u'advertise_with_tcp'])
