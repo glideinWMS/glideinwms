@@ -257,7 +257,7 @@ by the VO factory clients.</P>
         <TD> Exp (Bool)</td>
 
         <TD> True </TD>
-        <TD ROWSPAN=2>
+        <TD>
             <P>Condor expression to use to specify when a user job in the glideins should be preempted. 
             If any expression is true, the glidein is preempted.  This is usually done to specify 
             custom preemption policies for user jobs.
@@ -393,6 +393,48 @@ by the VO factory clients.</P>
         <TD> Bool </TD>
  	<TD> True </TD>
  	<TD> <P>Ability to control whether the pseduo-interactive monitoring slot is started on the worker node.  Set to False if you do not want the monitoring slot started.</P>
+ 	</TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_Resource_Slots</b> </td>
+        <TD> String </TD>
+ 	<TD> None </TD>
+ 	<TD> <p>Special purpose resources added in separate slots or the main slot of the glidein. The separate slots will never be available for the regular jobs.
+        This string is a semicolon separated list of comma separated resource descriptions.
+        Each resource description contains the <b>name</b> (case insensitive) and optionally the <b>number</b> of resource instances (default is 1 (*), the
+        total <b>memory</b> reserved
+        (default is 128MB time the number of resources) and a <b>type</b> option to say if the resource is added to the main slot (<tt>main</tt>) or has a new dedicated
+        slot (<tt>partitionable</tt>) or many dedicated slots (one per instance, <tt>static</tt>).
+        The default is partitionable, unless there is only one resource instance, then is static.
+        When adding resources to the <tt>main</tt> slots: the memory parameter is ignored; HTCondor splits automatically resources
+        depending on the number of CPUs and having a partitionable main slot or not;
+        if the number of resources is not equal (or an exact multiple) to the number of CPUs, then you must select partitionable slots
+        (<tt>slots_layout="partitionable"</tt> in the config/submit section of the entry configuration or SLOT_LAYOUT partitionable in the frontend configuration)
+        otherwise the startd may fail due to impossible configuration
+        <!--,
+        e.g. when you add 3 units of a resource to a node with 8 CPUs divided statically in 8 main slots, the first 3 of them will have also your resource.
+        -->
+        (check the <a href=http://research.cs.wisc.edu/htcondor/manual/v8.2/3_5Policy_Configuration.html#SECTION004510000000000000000">
+            HTCondor manual to learn more on how resources are split</a>)
+        </p>
+        <p>The parameters in a resource description can be listed or specified using their name: name, number, memory, type (see the last example below).</p>
+        <p>Jobs submission must use <tt>request_RESOURCE=N</tt> with <tt>N&gt;0</tt> to use these slots or to use the resource in the main slot,
+            e.g. request_ioslot=1</p>
+        <p>Examples:<br>
+        <ul>
+            <li><b>value="ioslot,2,200,static"</b> creates statically partitioned 2 ioslot resources with 100MB memory each.</li>
+            <li><b>value="ioslot"</b> creates 1 ioslot resource with 128MB</li>
+            <li><b>value="ioslot,2;monitor;GPUs,3,,main"</b> creates (1) a partitionable slot with 2 ioslot resources and 256MB total memory (2) 1 monitor slot resource with 128MB memory
+                (3) adds 3 GPUs to the main slot/slots</li>
+            <li><b>value="GPUs,type=main"</b> discovers (*) how many GPUs are available and adds them to the main slot</li>
+        </ul>
+        </p>
+        <p>(*) GPUs is a special resource name. If no number is specified, the glidein will invoke
+            <a href="https://htcondor-wiki.cs.wisc.edu/index.cgi/wiki?p=HowToManageGpus">HTCondor's GPU discovery mechanism</a>
+            and get the number from there, which could be 0 if there are no GPUs. Your job will find in the HTCondor ClassAd also
+            all the special attributes about the GPUs. If no number is specified and the auto-discovery fails 0 GPUs are assumed.
+            Since you don't know the number of GPUs that will be added to the main slot, the slot_layout must be partitionable.
+        </p>
  	</TD>
     </TR>
     <TR>
@@ -1342,8 +1384,7 @@ where Glidein_Max_Tail counts the idle time after the previous job ends, as spec
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
-Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glid
-einWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
+Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
 glideinWMS email support: glideinwms-support at fnal.gov
 </div>
 

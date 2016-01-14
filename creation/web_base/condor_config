@@ -90,7 +90,7 @@ SEC_DEFAULT_AUTHENTICATION_METHODS = GSI
 # Allow readonly access to the site collector
 GSI_SKIP_HOST_CHECK_CERT_REGEX = $(X509_SKIP_HOST_CHECK_DNS_REGEX)
 
-STARTD.ALLOW_CLIENT = collector*/*, anonymous*/*, frontend*/*, condor/*
+STARTD.ALLOW_CLIENT = collector*/*, anonymous*/*, frontend*/*, condor*/*, submit-side@matchsession/*
 
 STARTD.GSI_DAEMON_NAME =
 DENY_WRITE = anonymous@*

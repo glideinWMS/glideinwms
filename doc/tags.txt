@@ -1,6 +1,37 @@
-v3_2_11 VO Frontend now blacklists schedds with CurbMatchmaling=True
-        You can now over provision Multicore glideins based on their
-          IO characteristics
+v3_2_12 Various curbs and limits triggered in the frontend are now logged
+          in the glideresource classads
+        Frontend is now more conservative while computing max request running
+        Glideins now support advertising custom resources on the worker node
+          This can be used to advertise resources like GPUs.
+        Several improvements to rpm packaging. Useful frontend tools are
+          now available in the user path.
+        Support splitting of factory configuration into factory's
+          deloyment specific configuration and entry specific configuration.
+        Unique idle jobs matched by the frontend is now available in
+          glideresource classads
+        Bug Fix: Fixed a bug where CCB_ADDRESS configuration for the glidein
+          was not created correclty under certain conditions
+        Bug Fix: create_frontend script now correctly populates images
+          in the monitoring pages
+        Bug Fix: gwms-logcat now correctly supports multiple users
+        Bug Fix: Frontend now correctly deadvertises glideresource classads
+          on shutdown
+        Bug Fix: Disable collector's use of shared port to support HTCondor 8.4
+        Bug Fix: Counting correctly glidein and cores, specially for 
+          partitionable jobs
+        Bug Fix: Fixed bug where DaemonShutdown was failing to consider 
+          dynamicslots
+
+v3_2_11_2 Bug Fix: Fixed authentication issue introduced in v3_2_11 where a
+          glidein startd fails to send keep alive signals to v8.2.x schedds
+
+v3_2_11_1 Bug Fix: Fixed a bug introduced in v3_2_11 where file period
+          interpreted as number instead of string
+
+v3_2_11 VO Frontend now blacklists schedds with CurbMatchmaking=True
+        You can now over provision Multicore glidein by using
+          GLIDEIN_Resource_Slots attribute to specify different types of
+          resources it provides. For example ioslot
         Glidein can now advertise itself to the site's local HTCondorCE
           collector if CONDORCE_COLLECTOR_HOST is set in it's environment
         Custom/validation scripts can now be run periodically and not

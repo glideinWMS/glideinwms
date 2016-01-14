@@ -22,7 +22,7 @@ condor_vars_file=`grep -i "^CONDOR_VARS_FILE " $glidein_config | awk '{print $2}
 add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
 source $add_config_line_source
 
-# Use GLIDEIN_MaxMemMBs if configured by the factory
+# Use GLIDEIN_CPUS if configured by the factory
 GLIDEIN_CPUS=`grep -i "^GLIDEIN_CPUS " $glidein_config | awk '{print $2}'`
 
 # auto and 0 means the same thing - detect

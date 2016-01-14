@@ -2,6 +2,8 @@
 # Cat log GWMS files using tools
 
 TOOLDIR=/usr/lib/python2.6/site-packages/glideinwms/factory/tools
+JOBLOGROOTPREFIX=/var/log/gwms-factory/client
+FEUSER=user_frontend
 JOBLOGPREFIX=/var/log/gwms-factory/client/user_frontend/glidein_gfactory_instance/entry_
 #server logs JOBLOGPREFIX=/var/log/gwms-factory/server/entry_
 # TODO: substitute with a real temp file and delete after use (or print file name)
@@ -24,6 +26,8 @@ $0 -l
   -v       verbose
   -h       print this message
   -l       list all entries (arguments are ignored)
+  -a       list only entries that were active (has at least one job) - used with '-l', ignored otherwise
+  -u USER  to use a different user (job owner) from the default frontend one
   -r       Remote running jobs. pilot_launcher.log is fetched form the VM 
   -c FNAME Factory configuration file (default: /etc/gwms-factory/glideinWMS.xml)
 EOF
@@ -40,15 +44,17 @@ function find_dirs {
       exit 1
     fi
   fi
-  if [ ! -d "${JOBLOGPREFIX%/entry_}" ]; then
+  if [ ! -d "$JOBLOGROOTPREFIX" ]; then
     #    <submit base_client_log_dir="/var/log/gwms-factory/client" base_client_proxies_
     # log_dir=$(grep -E 'submit[ '$'\t'']+base_client_log_dir' | sed 's/.*base_client_log_dir="\(.*\)".*/\1/' )
     log_dir=$(grep -E 'submit[ '$'\t'']+base_client_log_dir' "$CONFIG_FNAME" | sed 's/.*base_client_log_dir="\([^"]*\)".*/\1/' )
-    if [ ! -d "${log_dir}/user_frontend/glidein_gfactory_instance" ]; then
+    #if [ ! -d "${log_dir}/user_frontend/glidein_gfactory_instance" ]; then
+    if [ ! -d "${log_dir}" ]; then
       echo "Unable to find the factory client log directory."
       exit 1
     fi
-    JOBLOGPREFIX="${log_dir}/user_frontend/glidein_gfactory_instance/entry_"
+    JOBLOGROOTPREFIX="${log_dir}"
+    #JOBLOGPREFIX="$JOBLOGROOTPREFIX/$FEUSER/glidein_gfactory_instance/entry_"
   fi
 }
 
@@ -57,16 +63,33 @@ function get_last_log {
   echo "`find $1 -size +1 -name 'job*err' -printf '%T@ %p\n' | sort -nk1 | sed 's/^[^ ]* //' | tail -1`"
 }
 
+function list_all_entries {
+  ulist=`ls "$JOBLOGROOTPREFIX/"`
+  if [ "$ulist" = "user_frontend" ]; then
+    list_entries
+    return
+  fi
+  echo "#USERS LIST:"
+  echo "$ulist"
+  for i in $ulist; do
+    echo "#ENTRY LIST for USER: $i"
+    JOBLOGPREFIX="$JOBLOGROOTPREFIX/$i/glidein_gfactory_instance/entry_"
+    list_entries
+  done
+}
+
 function list_entries {
   elist=`ls -d $JOBLOGPREFIX*`
   for i in $elist; do
-    echo -n "`ls $i/job*err 2>/dev/null | wc -l` "
-    echo -n "(`get_last_log $i`) "
+    entry_count="`ls $i/job*err 2>/dev/null | wc -l`"
+    [ -n "$ACTIVE" ] && [ "$entry_count" -eq 0 ] && continue
+    echo -n "$entry_count"
+    echo -n " (`get_last_log $i`) "
     echo ${i#$JOBLOGPREFIX}
   done
 }
 
-while getopts "lhc:o:rv" option
+while getopts "lhc:o:u:rav" option
 do
   case "${option}"
   in
@@ -75,15 +98,23 @@ do
   l) LIST_ENTRIES=yes;;
   r) REMOTE=yes;;
   c) CONFIG_FNAME=$OPTARG;;
+  u) FEUSER=$OPTARG;;
+  a) ACTIVE=yes
   esac
 done
 
 find_dirs
+JOBLOGPREFIX="$JOBLOGROOTPREFIX/$FEUSER/glidein_gfactory_instance/entry_"
 
 if [ -n "$LIST_ENTRIES" ]; then 
-  list_entries 
+  list_all_entries 
   exit 0
 fi 
+
+if [ ! -d "${JOBLOGPREFIX%/entry_}" ]; then
+  echo "Unable to find the factory client log directory for this user (${JOBLOGPREFIX%/entry_})."
+  exit 1
+fi
 
 shift $((OPTIND-1))
 

@@ -43,6 +43,10 @@ def add_file_unparsed(user_file, dicts, is_factory):
     is_executable = is_true(user_file.executable)
     is_wrapper = is_true(user_file.wrapper)
     do_untar = is_true(user_file.untar)
+    try:
+        period_value = int(user_file.period)
+    except (AttributeError, KeyError, ValueError):
+        period_value = 0
 
     if is_factory:
         # Factory (file_list, after_file_list)
@@ -62,7 +66,7 @@ def add_file_unparsed(user_file, dicts, is_factory):
                 file_list_idx = 'aftergroup_%s' % file_list_idx
 
     # period has 0 as default (in dictionary definition). Should I still protect against it not being defined?
-    if user_file.period > 0:
+    if period_value > 0:
         if not is_executable:
             raise RuntimeError("A file cannot have an execution period if it is not executable: %s" % user_file)
 
