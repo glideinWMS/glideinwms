@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_12_rc5
+# GLIDEINWMS_VERSION v3_2_12
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -15,7 +15,7 @@ eb0a7d5a10c30507e159ae2f43280dd9  ./creation/create_condor_tarball
 ab310b31fe76ba8d37652577aaef7b20  ./creation/info_glidein
 d41d8cd98f00b204e9800998ecf8427e  ./creation/lib/__init__.py
 e59bb78a8aba36d0d8691b5f9e4ebf4f  ./creation/lib/cWConsts.py
-997875a4133b6429b969592a540367bb  ./creation/lib/cWDictFile.py
+4d28605950e07ce15e99fa4c8a790f31  ./creation/lib/cWDictFile.py
 623c22f488897986808d0887bbb8d50f  ./creation/lib/cWParamDict.py
 17682af9ea8ca0f64f3c0f4675dbdadd  ./creation/lib/cWParams.py
 4d6d2095fe03701886a325b60a3ed99a  ./creation/lib/cgWConsts.py
