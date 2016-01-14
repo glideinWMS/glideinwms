@@ -92,10 +92,12 @@ Related Pages:
           <li>Frontend is now more conservative while computing max request
           running
           <li>Glideins now support advertising custom resources on the worker
-          node This can be used to advertise resources like GPUs.
+          node This can be used to advertise resources like GPUs. GPUs can also 
+          be auto discovered and advertised
           <li>Several improvements to rpm packaging. Useful frontend tools are
-          now available in the user path.
-          <li>Support splitting of factory configuration into factory's
+          now available in the user path
+          <li>Support of version control for the factory configuration and splitting 
+          of entries configuration form the main factory configuration (entries.d)
           <li>Unique idle jobs matched by the frontend is now available in
           glideresource classads
           deloyment specific configuration and entry specific configuration.
@@ -107,11 +109,13 @@ Related Pages:
           <li>Bug Fix: Frontend now correctly deadvertises glideresource
           classads on shutdown
           <li>Bug Fix: Disable collector's use of shared port to support
-          HTCondor 8.4
+          HTCondor 8.4 (in both factory and user pool)
           <li>Bug Fix: Counting correctly glidein and cores, specially for 
-          partitionable jobs
+          partitionable slots
           <li>Bug Fix: Fixed bug where DaemonShutdown was failing to consider 
-          dynamicslots
+          dynamic slots
+          <li>Bug Fix: Fixed bug where NUM_CPUS was not set for partitionable slots
+          resulting in hardware cpu number being used instead of GLIDEIN_CPUS
       </ul>
       </li>
       <li>
