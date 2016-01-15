@@ -645,6 +645,8 @@ Monitored_Names = "glidein_$$@\$(FULL_HOSTNAME)"
 EOF
     fi  # end of use_multi_monitor==1
 
+    # Set number of CPUs (otherwise the physical number is used)
+    echo "NUM_CPUS = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
     # set up the slots based on the slots_layout entry parameter
     slots_layout=`grep -i "^SLOTS_LAYOUT " $config_file | awk '{print $2}'`
     if [ "X$slots_layout" = "Xpartitionable" ]; then
@@ -655,7 +657,6 @@ EOF
         num_slots_for_shutdown_expr=1
     else
         # fixed slot
-        echo "NUM_CPUS = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
         echo "SLOT_TYPE_1 = cpus=1" >> "$CONDOR_CONFIG"
         echo "NUM_SLOTS_TYPE_1 = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
         num_slots_for_shutdown_expr=$GLIDEIN_CPUS

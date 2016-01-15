@@ -1126,6 +1126,7 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
                  log_dir=None):             # used only if simple_work_dir=False
 
         self.active_sub_list = []
+        self.disabled_sub_list = []
         self.monitor_dir = ''
 
         fileCommonDicts.__init__(self)
