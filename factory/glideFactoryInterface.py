@@ -796,12 +796,13 @@ class MultiAdvertizeGlideinClientMonitoring:
         self.factory_collector = factory_collector
 
     def add(self, client_name, client_int_name, client_int_req,
-            client_params={}, client_monitors={}):
+            client_params={}, client_monitors={}, limits_triggered={} ): #HK7920Factory
         el = {'client_name':client_name,
             'client_int_name':client_int_name,
             'client_int_req':client_int_req,
             'client_params':client_params,
-            'client_monitors':client_monitors}
+            'client_monitors':client_monitors,
+            'limits_triggered':limits_triggered } #HK7920Factory
         self.client_data.append(el)
 
     # do the actual advertizing
@@ -873,8 +874,8 @@ class MultiAdvertizeGlideinClientMonitoring:
             createGlideinClientMonitoringFile(
                 filename, self.factory_name, self.glidein_name, self.entry_name,
                 el['client_name'], el['client_int_name'], el['client_int_req'],
-                self.glidein_attrs, el['client_params'], el['client_monitors'],
-                do_append=append)
+                self.glidein_attrs, el['client_params'], el['client_monitors'],  el['limits_triggered'],
+                do_append=append) #HK7920Factory
             # Append from here on anyways
             append = True
 
@@ -887,11 +888,11 @@ class MultiAdvertizeGlideinClientMonitoring:
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
-def createGlideinClientMonitoringFile(fname,
+def createGlideinClientMonitoringFile( fname,
                                       factory_name, glidein_name, entry_name,
                                       client_name, client_int_name, client_int_req,
-                                      glidein_attrs={}, client_params={}, client_monitors={},
-                                      do_append=False):
+                                      glidein_attrs={}, client_params={}, client_monitors={}, limits_triggered={},
+                                      do_append=False): #HK7920Factory
     global factoryConfig
     global advertizeGFCCounter
 
@@ -903,6 +904,30 @@ def createGlideinClientMonitoringFile(fname,
     fd = file(fname, open_type)
     try:
         try:
+
+#HK7920Factory start
+            ent_key = 'MaxIdle'
+            if limits_triggered.get(ent_key) is not None:
+                fd.write('Factory_Limits_%s = %s\n' % ( ent_key, limits_triggered[ent_key]) )
+            ent_key = 'MaxHeld'
+            if limits_triggered.get(ent_key) is not None:
+                fd.write('Factory_Limits_%s = %s\n' % ( ent_key, limits_triggered[ent_key]) )
+            ent_key = 'MaxGlideins'
+            if limits_triggered.get(ent_key) is not None:
+                fd.write('Factory_Limits_%s = %s\n' % ( ent_key, limits_triggered[ent_key]) )
+
+            all_frontends = limits_triggered.get('all_frontends')
+            for fe_sec_class in all_frontends:
+                splitkey = fe_sec_class.split(":")
+                key_sec_class = "_".join( splitkey )
+                fe_key = '%s_MaxIdle' % key_sec_class
+                if limits_triggered.get(fe_key) is not None:
+                   fd.write('Factory_Limits_%s = %s\n' % ( fe_key, limits_triggered[fe_key] ) )
+                fe_key = '%s_MaxTotal' % key_sec_class
+                if limits_triggered.get(fe_key) is not None:
+                   fd.write('Factory_Limits_%s = %s\n' % ( fe_key, limits_triggered[fe_key] ) )
+#HK7920Factory stop
+
             fd.write('MyType = "%s"\n' % factoryConfig.factoryclient_id)
             fd.write('GlideinMyType = "%s"\n' % factoryConfig.factoryclient_id)
             fd.write('GlideinWMSVersion = "%s"\n' % factoryConfig.glideinwms_version)
