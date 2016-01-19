@@ -174,7 +174,6 @@ class ProxyUserCardinality:
                 rtnlist.append(cred)
         return rtnlist
 
-
 #####################################################################
 #
 # Given a 'normal' credential, create sub-credentials based on the ProjectName
@@ -650,6 +649,7 @@ proxy_plugins = {'ProxyAll':ProxyAll,
                'ProxyUserCardinality':ProxyUserCardinality,
                'ProxyUserMapWRecycling':ProxyUserMapWRecycling,
                'ProxyProjectName':ProxyProjectName}
+
 
 
 
