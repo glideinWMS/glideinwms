@@ -33,8 +33,9 @@ class Release:
         self.rpmbuildDir = os.path.join(self.releaseDir, 'rpmbuild')
         self.srpmFile = os.path.join(
                             self.rpmbuildDir, 'SRPMS',
-                            'glideinwms-%s-%s.el6.src.rpm' % (self.rpmVersion,
-                                                              self.rpmRelease))
+                            'glideinwms-%s-%s.%s.src.rpm' % (self.rpmVersion,
+                                                             self.rpmRelease,
+                                                             self.getElVersion()))
 
 
     def createTarballVersionString(self, ver, rc):
@@ -42,7 +43,7 @@ class Release:
         if rc:
             ver_str = '%s_rc%s' % (ver, rc)
         return ver_str
-         
+
     def versionToRPMVersion(self, ver):
         if ver.startswith('v'):
             ver = ver[1:]
@@ -55,7 +56,32 @@ class Release:
         if rc:
             nvr = '0.%s.rc%s' % (rpmRel, rc)
         return nvr
-        
+
+
+    def getElVersion(self):
+        el_version = 'el'
+        if platform.system() == 'Linux':
+            distname, version, id = platform.linux_distribution()
+            distmap = {
+                'Fedora': 'fc',
+                'Scientific Linux': 'el',
+                'Red Hat': 'el'
+            }
+            dist = None
+            for d in distmap:
+                if distname.startswith(d):
+                    dist = distmap[d]
+                    break
+            if not dist:
+                raise Exception('Unsupported distribution: %s' % distname)
+
+            major_version = version.split('.')[0]
+            el_version += major_version
+        else:
+            raise Exception('Unsupported OS: %s' % platform.system())
+
+        return el_version
+
 
     def addTask(self, task):
         self.tasks.append(task)
