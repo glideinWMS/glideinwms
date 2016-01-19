@@ -58,7 +58,7 @@ class Entry:
         @param frontend_descript: Security mappings for frontend identities,
         security classes, and usernames for privsep
         """
-        self.limits_triggered={} #HK7920Factory
+        self.limits_triggered={}
         self.name = name
         self.startupDir = startup_dir
         self.glideinDescript = glidein_descript
@@ -471,7 +471,7 @@ class Entry:
 
         # Advertise the monitoring, use the downtime found in
         # validation of the credentials
-#HK7920Factory begin
+
         condorQ = self.queryQueuedGlideins()
         glideinTotals = glideFactoryLib.GlideinTotals( self.name, self.frontendDescript, self.jobDescript, condorQ, log=self.log)
 
@@ -488,18 +488,19 @@ class Entry:
         all_frontends = self.frontendDescript.get_all_frontend_sec_classes()
         self.limits_triggered['all_frontends'] = all_frontends
         for fe_sec_class in all_frontends:
-            splitkey = fe_sec_class.split(":")
-            key_sec_class = "_".join( splitkey )
+#            splitkey = fe_sec_class.split(":")
+#            key_sec_class = "_".join( splitkey )
 
             if glideinTotals.frontend_limits[fe_sec_class]['idle'] > glideinTotals.frontend_limits[fe_sec_class]['max_idle']:
-                fe_key = '%s_MaxIdle' % key_sec_class
+#                fe_key = '%s_MaxIdle' % key_sec_class
+                fe_key = '%s_MaxIdle' % fe_sec_class
                 self.limits_triggered[fe_key] = "MaxIdle_count_%i_limit_%i" % (glideinTotals.frontend_limits[fe_sec_class]['idle'],glideinTotals.frontend_limits[fe_sec_class]['max_idle'])
 
             total_fe_glideins = glideinTotals.frontend_limits[fe_sec_class]['idle'] + glideinTotals.frontend_limits[fe_sec_class]['held'] + glideinTotals.frontend_limits[fe_sec_class]['running']
             if total_fe_glideins > glideinTotals.frontend_limits[fe_sec_class]['max_glideins']:
-                fe_key = '%s_MaxTotal' % key_sec_class
+#                fe_key = '%s_MaxTotal' % key_sec_class
+                fe_key = '%s_MaxTotal' % fe_sec_class
                 self.limits_triggered[fe_key] = "MaxGlideins_count_%i_limit_%i" % (total_fe_glideins, glideinTotals.frontend_limits[fe_sec_class]['max_glideins'] )
-#HK7920Factory end
 
         advertizer = gfi.MultiAdvertizeGlideinClientMonitoring(
                          self.gflFactoryConfig.factory_name,
@@ -533,7 +534,7 @@ class Entry:
 
             advertizer.add( client_internals["CompleteName"],
                            client_name, client_internals["ReqName"],
-                           params, client_monitors.copy(), self.limits_triggered )  #HK7920Factory
+                           params, client_monitors.copy(), self.limits_triggered )
 
         try:
             advertizer.writeToMultiClassadFile(gfc_filename)
