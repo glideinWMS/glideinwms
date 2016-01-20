@@ -16,6 +16,7 @@ import copy
 import time
 import pickle
 import random
+import math
 import collections
 from glideinwms.lib import logSupport
 import glideinFrontendLib
@@ -111,9 +112,10 @@ class ProxyAll:
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
         rtnlist=[]
         for cred in self.cred_list:
+            logSupport.log.debug('cred.type: %s , crednetial_type: %s' % (cred.type, credential_type))
             if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type not in credential_type):
                 continue
             rtnlist.append(cred)
         if (params_obj is not None):
@@ -174,7 +176,6 @@ class ProxyUserCardinality:
                 rtnlist.append(cred)
         return rtnlist
 
-
 #####################################################################
 #
 # Given a 'normal' credential, create sub-credentials based on the ProjectName
@@ -183,6 +184,7 @@ class ProxyUserCardinality:
 class ProxyProjectName:
 
     def __init__(self, config_dir, proxy_list):
+        self.cred_list = proxy_list
         self.proxy_list = proxy_list
         self.total_jobs = 0
         self.user_project_count = {}
@@ -207,17 +209,18 @@ class ProxyProjectName:
                     continue
                 self.total_jobs += 1
                 self.project_count[job.get('ProjectName', '')] += 1
+        return
 
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
         if not params_obj:
-            return []
-
+            logSupport.log.debug("params_obj is None returning the credentials without the project_id Information")
+            return self.proxy_list
         # Determine a base credential to use; we'll copy this and alter the project ID.
         base_cred = None
         for cred in self.proxy_list:
             if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain != trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type != credential_type):
+            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type not in credential_type):
                 continue
             base_cred = cred
             break
@@ -239,6 +242,9 @@ class ProxyProjectName:
             cred_idle = int(math.ceil(job_count * params_obj.min_nr_glideins / float(self.total_jobs)))
             creds[-1].add_usage_details(cred_max, cred_idle)
         return creds
+
+
+
 
 
 ######################################################################
