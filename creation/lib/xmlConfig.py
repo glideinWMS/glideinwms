@@ -1,6 +1,14 @@
 import copy
 import os
+
 import collections
+# collections.MutableMapping is not available in Python 2.4
+try:
+    mutablemap = collections.MutableMapping
+except AttributeError:
+    import UserDict
+    mutablemap = UserDict.DictMixin
+
 import xml.sax
 
 INDENT_WIDTH = 3
@@ -80,7 +88,7 @@ class Element(object):
         pass
 
 
-class DictElement(Element, collections.MutableMapping):
+class DictElement(Element, mutablemap):
     def __init__(self, tag, *args, **kwargs):
         super(DictElement, self).__init__(tag, *args, **kwargs)
         self.attrs = {}
