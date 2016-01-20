@@ -89,7 +89,7 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
         old_entries = old_glidein_dicts_obj.main_dicts['glidein']['Entries'].split(',')
         disabled_entries = glidein_dicts_obj.main_dicts.disabled_sub_list
         for entry in old_entries:
-            if (entry not in entries) and (entry not in disabled_entries):
+            if ((entry) and (entry not in entries) and (entry not in disabled_entries)):
                 print "WARNING: entry %s is not found in new xml!" % entry
                 if not force_delete:
                     print "Aborting reconfig since this is just too scary."
