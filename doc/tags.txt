@@ -1,3 +1,6 @@
+v3_2_12_1 Bug Fix: Fixed incompatibility with python 2.4 and bad failuse when 
+          there is no entry, both introduced in v3_2_12 factory configuration
+
 v3_2_12 Various curbs and limits triggered in the frontend are now logged
           in the glideresource classads
         Frontend is now more conservative while computing max request

@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_12
+# GLIDEINWMS_VERSION v3_2_12_1_rc1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -21,7 +21,7 @@ e59bb78a8aba36d0d8691b5f9e4ebf4f  ./creation/lib/cWConsts.py
 4d6d2095fe03701886a325b60a3ed99a  ./creation/lib/cgWConsts.py
 20feb58162a9c4ae69f070ed2ec247fe  ./creation/lib/cgWCreate.py
 dc8807c7f6eefcba68bd0aab4eab2b2b  ./creation/lib/cgWDictFile.py
-4741e179560f1dfc220737402cd001eb  ./creation/lib/cgWParamDict.py
+7b98050c56b56fe998e0a3be5917896c  ./creation/lib/cgWParamDict.py
 41eabe63c4dcbeea083cd7d0f0ef065f  ./creation/lib/cgWParams.py
 172e148818f2a2bf07eb9c214cc8a4ba  ./creation/lib/cvWConsts.py
 077f753922f46a9d3d649c0eb56e8c49  ./creation/lib/cvWCreate.py
@@ -30,10 +30,10 @@ ad815516f59d794eaed43d349a86cee2  ./creation/lib/cvWParamDict.py
 e12283e27892d2dd8c10e7289b008771  ./creation/lib/cvWParams.py
 082cce4b50cfa5d25961157e23e3a2e2  ./creation/lib/factoryXmlConfig.py
 fa0be9f0c681574b728d34c15b4c5d26  ./creation/lib/factory_defaults.xml
-75ff3cab47ae476a37161efcb6494ad3  ./creation/lib/xmlConfig.py
+bb95254b7fce5bf4929974db32ef0e97  ./creation/lib/xmlConfig.py
 414dd08400e9050a5c7e6a64fa7a4d94  ./creation/lib/xslt.py
 bd792b8d6a0ed1d97e2b75c77adc420d  ./creation/reconfig_frontend
-613cab55fb9cbc424ba5424d9ac9eaa9  ./creation/reconfig_glidein
+d44c98fbe2b90f77e1b38a9d96f638d5  ./creation/reconfig_glidein
 16d248f9fe94e3dce4749a53ecdff454  ./creation/templates/factory_initd_startup_template
 c0fa8e69f13388e51e5a5c30d3576cb7  ./creation/templates/frontend_initd_startup_template
 585e798089364f5afac493b40a721766  ./creation/web_base/advertise_failure.helper
