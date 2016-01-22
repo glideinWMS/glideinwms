@@ -728,6 +728,18 @@ def add_attr_unparsed_real(attr,dicts):
             else:
                 dicts['vars'].add_extended(attr_name,attr[u'type'],None,None,False,do_glidein_publish,do_job_publish)
 
+##################################
+# Used in populate_factory_descript for compatibility with Python 2.4
+def iter_to_dict(dictObject):
+    """Traverses a iterable (DictMixin) recursively to convert to proper dict any nested classes"""
+    newDict = {}
+    try:
+        for prop,val in dictObject.iteritems():
+            newDict[prop] = iter_to_dict(val)
+        return newDict
+    except AttributeError:
+        return dictObject
+
 ###################################
 # Create the glidein descript file
 def populate_factory_descript(work_dir, glidein_dict,
@@ -790,7 +802,12 @@ def populate_factory_descript(work_dir, glidein_dict,
         # convert to list of dicts so that str() below gives expected results
         proc_logs = []
         for pl in log_retention.get_child_list(u'process_logs'):
-            proc_logs.append(dict(pl))
+            try:
+                di_pl = dict(pl)
+            except ValueError:
+                # For compatibility with Python 2.4 (DictMixin)
+                di_pl = iter_to_dict(pl)
+            proc_logs.append(di_pl)
         glidein_dict.add('ProcessLogs', str(proc_logs))
 
 #######################

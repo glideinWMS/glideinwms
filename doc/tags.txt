@@ -1,26 +1,35 @@
+v3_2_12_1 Bug Fix: Fixed incompatibility with python 2.4 and bad failure when 
+          there is no entry, both introduced in v3_2_12 factory configuration
+
 v3_2_12 Various curbs and limits triggered in the frontend are now logged
           in the glideresource classads
-        Frontend is now more conservative while computing max request running
-        Glideins now support advertising custom resources on the worker node
-          This can be used to advertise resources like GPUs.
+        Frontend is now more conservative while computing max request
+          running
+        Glideins now support advertising custom resources on the worker
+          node This can be used to advertise resources like GPUs. GPUs can also 
+          be auto discovered and advertised
         Several improvements to rpm packaging. Useful frontend tools are
-          now available in the user path.
-        Support splitting of factory configuration into factory's
-          deloyment specific configuration and entry specific configuration.
+          now available in the user path
+        Support of version control for the factory configuration and splitting 
+          of entries configuration form the main factory configuration (entries.d)
         Unique idle jobs matched by the frontend is now available in
           glideresource classads
-        Bug Fix: Fixed a bug where CCB_ADDRESS configuration for the glidein
-          was not created correclty under certain conditions
+          deloyment specific configuration and entry specific configuration.
+        Bug Fix: Fixed a bug where CCB_ADDRESS configuration for the
+          glidein was not created correclty under certain conditions
         Bug Fix: create_frontend script now correctly populates images
           in the monitoring pages
         Bug Fix: gwms-logcat now correctly supports multiple users
-        Bug Fix: Frontend now correctly deadvertises glideresource classads
-          on shutdown
-        Bug Fix: Disable collector's use of shared port to support HTCondor 8.4
+        Bug Fix: Frontend now correctly deadvertises glideresource
+          classads on shutdown
+        Bug Fix: Disable collector's use of shared port to support
+          HTCondor 8.4 (in both factory and user pool)
         Bug Fix: Counting correctly glidein and cores, specially for 
-          partitionable jobs
+          partitionable slots
         Bug Fix: Fixed bug where DaemonShutdown was failing to consider 
-          dynamicslots
+          dynamic slots
+        Bug Fix: Fixed bug where NUM_CPUS was not set for partitionable slots
+          resulting in hardware cpu number being used instead of GLIDEIN_CPUS
 
 v3_2_11_2 Bug Fix: Fixed authentication issue introduced in v3_2_11 where a
           glidein startd fails to send keep alive signals to v8.2.x schedds

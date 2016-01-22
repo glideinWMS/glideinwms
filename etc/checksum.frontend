@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_12_rc5
+# GLIDEINWMS_VERSION v3_2_12_1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 6ede96238759560e2fbd243ebf23f147  ./build/packaging/rpm/build.sh
@@ -26,7 +26,7 @@ eb0a7d5a10c30507e159ae2f43280dd9  ./creation/create_condor_tarball
 67938d01423fc74eb34ea3915b1b181d  ./creation/create_rpm_startup
 d41d8cd98f00b204e9800998ecf8427e  ./creation/lib/__init__.py
 e59bb78a8aba36d0d8691b5f9e4ebf4f  ./creation/lib/cWConsts.py
-997875a4133b6429b969592a540367bb  ./creation/lib/cWDictFile.py
+4d28605950e07ce15e99fa4c8a790f31  ./creation/lib/cWDictFile.py
 623c22f488897986808d0887bbb8d50f  ./creation/lib/cWParamDict.py
 17682af9ea8ca0f64f3c0f4675dbdadd  ./creation/lib/cWParams.py
 172e148818f2a2bf07eb9c214cc8a4ba  ./creation/lib/cvWConsts.py
@@ -36,7 +36,7 @@ ad815516f59d794eaed43d349a86cee2  ./creation/lib/cvWParamDict.py
 e12283e27892d2dd8c10e7289b008771  ./creation/lib/cvWParams.py
 082cce4b50cfa5d25961157e23e3a2e2  ./creation/lib/factoryXmlConfig.py
 fa0be9f0c681574b728d34c15b4c5d26  ./creation/lib/factory_defaults.xml
-75ff3cab47ae476a37161efcb6494ad3  ./creation/lib/xmlConfig.py
+bb95254b7fce5bf4929974db32ef0e97  ./creation/lib/xmlConfig.py
 414dd08400e9050a5c7e6a64fa7a4d94  ./creation/lib/xslt.py
 bd792b8d6a0ed1d97e2b75c77adc420d  ./creation/reconfig_frontend
 16d248f9fe94e3dce4749a53ecdff454  ./creation/templates/factory_initd_startup_template
