@@ -2,7 +2,10 @@ v3_3    Support native configuration of EC2 spot prices and AZ in the entry
         Support frontend policies specified in external python file
         Support changes to VM ID and VM Type without need to reconfig/upgrade
           frontend service
-        Includes all features and bug fixes released in v3_2_12
+        Includes all features and bug fixes released in v3_2_12_1
+
+v3_2_12_1 Bug Fix: Fixed incompatibility with python 2.4 and bad failure when 
+          there is no entry, both introduced in v3_2_12 factory configuration
 
 v3_2_12 Various curbs and limits triggered in the frontend are now logged
           in the glideresource classads
