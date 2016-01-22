@@ -693,12 +693,13 @@ def getRunningCoresCondorStatus(status_dict):
 # Use the output of getCondorStatus
 #
 def getClientCondorStatus(status_dict, frontend_name, group_name, request_name):
-    client_name = "%s.%s" % (frontend_name, group_name)
+    client_name_old = "%s@%s.%s" % (request_name, frontend_name, group_name)
+    client_name_new = "%s.%s" % (frontend_name, group_name)
     out = {}
     for collector_name in status_dict.keys():
         sq = condorMonitor.SubQuery(
                  status_dict[collector_name],
-                 lambda el:(el.has_key('GLIDECLIENT_Name') and (el['GLIDECLIENT_Name'] == client_name) and (("%s@%s@%s" % (el['GLIDEIN_Entry_Name'], el['GLIDEIN_Name'], el['GLIDEIN_Factory'])) == request_name)))
+                 lambda el:(el.has_key('GLIDECLIENT_Name') and ((el['GLIDECLIENT_Name'] == client_name_old) or ((el['GLIDECLIENT_Name'] == client_name_new) and (("%s@%s@%s" % (el['GLIDEIN_Entry_Name'], el['GLIDEIN_Name'], el['GLIDEIN_Factory'])) == request_name)))))
         sq.load()
         out[collector_name] = sq
     return out
