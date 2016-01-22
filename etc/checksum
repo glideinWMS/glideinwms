@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_3_rc7
+# GLIDEINWMS_VERSION v3_3_rc8
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -31,7 +31,7 @@ dc8807c7f6eefcba68bd0aab4eab2b2b  ./creation/lib/cgWDictFile.py
 082cce4b50cfa5d25961157e23e3a2e2  ./creation/lib/factoryXmlConfig.py
 fa0be9f0c681574b728d34c15b4c5d26  ./creation/lib/factory_defaults.xml
 1cf06bb1ccb5e9bcafad8d4f4c02a0ce  ./creation/lib/matchPolicy.py
-75ff3cab47ae476a37161efcb6494ad3  ./creation/lib/xmlConfig.py
+bb95254b7fce5bf4929974db32ef0e97  ./creation/lib/xmlConfig.py
 414dd08400e9050a5c7e6a64fa7a4d94  ./creation/lib/xslt.py
 bd792b8d6a0ed1d97e2b75c77adc420d  ./creation/reconfig_frontend
 d44c98fbe2b90f77e1b38a9d96f638d5  ./creation/reconfig_glidein
