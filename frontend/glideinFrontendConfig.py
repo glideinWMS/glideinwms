@@ -177,7 +177,7 @@ class ParamsDescript(JoinConfigFile):
         for k in self.data.keys():
             type_str,val=self.data[k]
             if type_str=='EXPR':
-                self.expr_objs[k]=compile(val,"<string>","eval")
+                self.expr_objs[k]=val #HK to address ticket 5052 compile(val,"<string>","eval")
                 self.expr_data[k]=val
             elif type_str=='CONST':
                 self.const_data[k]=val

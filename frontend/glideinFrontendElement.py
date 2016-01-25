@@ -593,7 +593,7 @@ class glideinFrontendElement:
             for k in self.paramsDescript.expr_data.keys():
                 kexpr = self.paramsDescript.expr_objs[k]
                 # convert kexpr -> kval
-                glidein_params[k] = glideinFrontendLib.evalParamExpr(kexpr, self.paramsDescript.const_data, glidein_el)
+                glidein_params[k] = kexpr #HK to address ticket 5052. glideinFrontendLib.evalParamExpr(kexpr, self.paramsDescript.const_data, glidein_el)
             # we will need this param to monitor orphaned glideins
             glidein_params['GLIDECLIENT_ReqNode'] = factory_pool_node
 
