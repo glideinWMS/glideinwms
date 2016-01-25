@@ -3,7 +3,9 @@ import os.path
 import urllib
 import cPickle
 import copy
+import sys
 
+from glideinwms.creation.lib.matchPolicy import MatchPolicy
 from glideinwms.lib import hashCrypto
 
 #
@@ -247,26 +249,50 @@ class ElementMergedDescript:
             self.merged_data[t]=self.split_list(self.frontend_data[t])+self.split_list(self.element_data[t])
             if len(self.merged_data[t])==0:
                 raise RuntimeError,"Found empty %s!"%t
+
         for t in ('FactoryCollectors',):
             self.merged_data[t]=eval(self.frontend_data[t])+eval(self.element_data[t])
             if len(self.merged_data[t])==0:
                 raise RuntimeError,"Found empty %s!"%t
+
         for t in ('FactoryQueryExpr','JobQueryExpr'):
             self.merged_data[t]="(%s) && (%s)"%(self.frontend_data[t],self.element_data[t])
-        for t in ('JobMatchAttrs',):
+            for data in (self.frontend_data, self.element_data):
+                if 'MatchPolicyModule%s'%t in data:
+                    self.merged_data[t] = '(%s) && (%s)' % (
+                        self.merged_data[t], data['MatchPolicyModule%s'%t])
+
+        # PM: TODO: Not sure why FactoryMatchAttrs was not in the list below
+        #     To get complete list of FactoryMatchAttrs you need to merge it
+        for t in ('JobMatchAttrs','FactoryMatchAttrs'):
             attributes=[]
             names=[]
-            for el in eval(self.frontend_data[t])+eval(self.element_data[t]):
+            match_attrs_list = eval(self.frontend_data[t]) + eval(self.element_data[t])
+
+            for data in (self.frontend_data, self.element_data):
+                if 'MatchPolicyModule%s'%t in data:
+                    match_attrs_list += eval(data['MatchPolicyModule%s'%t])
+
+            for el in match_attrs_list:
                 el_name=el[0]
                 if not (el_name in names):
                     attributes.append(el)
                     names.append(el_name)
             self.merged_data[t]=attributes
+
         for t in ('MatchExpr',):
             self.merged_data[t]="(%s) and (%s)"%(self.frontend_data[t],self.element_data[t])
             self.merged_data[t+'CompiledObj']=compile(self.merged_data[t],"<string>","eval")
 
-        self.merged_data['ProxySelectionPlugin']='ProxyAll' #default
+        self.merged_data['MatchPolicyModules'] = []
+        if 'MatchPolicyFile' in self.frontend_data:
+            self.merged_data['MatchPolicyModules'].append(MatchPolicy(self.frontend_data['MatchPolicyFile']))
+        if 'MatchPolicyFile' in self.element_data:
+            self.merged_data['MatchPolicyModules'].append(MatchPolicy(self.element_data['MatchPolicyFile']))
+
+        # We use default ProxySelectionPlugin
+        self.merged_data['ProxySelectionPlugin']='ProxyAll'
+
         for t in ('ProxySelectionPlugin','SecurityName'):
             for data in (self.frontend_data,self.element_data):
                 if data.has_key(t):
@@ -280,7 +306,8 @@ class ElementMergedDescript:
 
         proxy_descript_attrs=['ProxySecurityClasses','ProxyTrustDomains',
             'ProxyTypes','ProxyKeyFiles','ProxyPilotFiles','ProxyVMIds',
-            'ProxyVMTypes','ProxyCreationScripts','ProxyUpdateFrequency']
+            'ProxyVMTypes','ProxyCreationScripts','ProxyUpdateFrequency', 'ProxyVMIdFname', 'ProxyVMTypeFname',
+            'ProxyProjectIds']
 
         for attr in proxy_descript_attrs:
             proxy_descript_data={}
@@ -460,7 +487,7 @@ class HistoryFile:
             #else, just ignore
 
     def has_key(self, keyid):
-        return self.data.has_key(keyid)
+        return (keyid in self.data)
 
     def __contains__(self, keyid):
         return (keyid in self.data)
