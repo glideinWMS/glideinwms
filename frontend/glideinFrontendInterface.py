@@ -105,11 +105,14 @@ class MultiExeError(condorExe.ExeError):
 # Advertize counter for glideclient
 advertizeGCCounter = {}
 
+# Advertize counter for glideclientglobal
+advertizeGCGounter = {}
+
 # Advertize counter for glideresource
 advertizeGRCounter = {}
 
-# Advertize counter for glideclientglobal
-advertizeGCGounter = {}
+# Advertize counter for glidefrontendmonitor
+advertizeGFMCounter = {}
 
 ############################################################
 #
@@ -704,17 +707,21 @@ class MultiAdvertizeWork:
         self.factory_constraint[params_obj.request_name]=(trust_domain, auth_method)
         self.ha_mode = ha_mode
 
+
     def add_global(self,factory_pool,request_name,security_name,key_obj):
         self.global_pool.append(factory_pool)
         self.global_key[factory_pool]=key_obj
         self.global_params[factory_pool]=(request_name,security_name)
 
-    # retirn the queue depth
+
+    # return the queue depth
     def get_queue_len(self):
         count = 0
+        #for factory_pool in self.factory_queue:
         for factory_pool in self.factory_queue.keys():
             count += len(self.factory_queue[factory_pool])
         return count
+
 
     def renew_and_load_credentials(self):
             """
@@ -1281,6 +1288,7 @@ class ResourceClassad(classadSupport.Classad):
             advertizeGRCounter[self.adParams['Name']] = 0
         self.adParams['UpdateSequenceNumber'] = advertizeGRCounter[self.adParams['Name']]
 
+
     def setFrontendDetails(self, frontend_name, group_name, ha_mode):
         """
         Add the detailed description of the frontend.
@@ -1293,6 +1301,7 @@ class ResourceClassad(classadSupport.Classad):
         self.adParams['GlideGroupName'] = "%s" % group_name
         self.adParams['GlideFrontendHAMode'] = "%s" % ha_mode
         
+
     def setMatchExprs(self, match_expr, job_query_expr, factory_query_expr, start_expr):
         """
         Sets the matching expressions for the resource classad
@@ -1399,7 +1408,7 @@ class ResourceClassad(classadSupport.Classad):
         Set descriptive messages about which limits and curbs
             have been triggered in deciding number of glideins to request
         @type  limits_triggered: dictionary
-        @param limits_triggered: contain a subset of limits and curbs that have been triggered
+        @param limits_triggered: limits and curbs that have been triggered
         """
         for k,v in limits_triggered.iteritems():
             if k.startswith('Curb'):
@@ -1408,6 +1417,7 @@ class ResourceClassad(classadSupport.Classad):
                 classadmessage = "GlideResource_Limit_"+k
                 
             self.adParams[classadmessage] = 'CurbLimit'
+
 
 class ResourceClassadAdvertiser(classadSupport.ClassadAdvertiser):
     """
@@ -1433,6 +1443,94 @@ class ResourceClassadAdvertiser(classadSupport.ClassadAdvertiser):
         self.adAdvertiseCmd = 'UPDATE_AD_GENERIC'
         self.adInvalidateCmd = 'INVALIDATE_ADS_GENERIC'
         self.advertiseFilePrefix = 'gfi_ar'
+
+
+class FrontendMonitorClassad(classadSupport.Classad):
+    """
+    This class describes the resource classad. Frontend advertises the 
+    resource classad to the user pool as an UPDATE_AD_GENERIC type classad
+    """
+    
+
+    def __init__(self, frontend_ref):
+        """
+        Class Constructor
+
+        @type frontend_ref: string 
+        @param type: Name of the resource in the glideclient classad
+        """
+
+        global advertizeGFMCounter
+        
+        classadSupport.Classad.__init__(self, 'glidefrontendmonitor',
+                                        'UPDATE_AD_GENERIC',
+                                        'INVALIDATE_ADS_GENERIC')
+        
+        self.adParams['GlideinWMSVersion'] = frontendConfig.glideinwms_version
+        self.adParams['Name'] = '%s' % (frontend_ref)
+        #self.adParams['GlideFrontend_In_Downtime'] = 'False'
+        
+        if self.adParams['Name'] in advertizeGFMCounter:
+            advertizeGFMCounter[self.adParams['Name']] += 1
+        else:       
+            advertizeGFMCounter[self.adParams['Name']] = 0
+        self.adParams['UpdateSequenceNumber'] = advertizeGFMCounter[self.adParams['Name']]
+
+
+    def setFrontendDetails(self, frontend_name, groups, ha_mode):
+        """
+        Add the detailed description of the frontend.
+        @type frontend_name: string
+        @param frontend_name: A representation of the  frontend MatchExpr
+        @type group_name: string
+        @param group_name: Representation of the job query_expr
+        """
+        self.adParams['GlideFrontendName'] = "%s" % frontend_name
+        self.adParams['GlideFrontendGroups'] = "%s" % groups
+        self.adParams['GlideFrontendHAMode'] = "%s" % ha_mode
+
+
+    def setIdleJobCount(self, idle_jobs):
+        """
+        Set the idle jobs info in the classad
+
+        @type idle_jobs: dict 
+        @param idle_jobs: Dictionary of idle jobs keyed on idle duration.
+                          For example - Total for all idle jobs,
+                                        3600 for jobs idle more than 1 Hour
+        """
+
+        for key in idle_jobs:
+            k = '%s' % key
+            self.adParams['GlideFrontend_IdleJobs_%s' % k.title()] = idle_jobs[key]
+
+
+class FrontendMonitorClassadAdvertiser(classadSupport.ClassadAdvertiser):
+    """
+    Class to handle the advertisement of frontend monitor classads
+    to the user pool
+    """
+
+
+    def __init__(self, pool=None, multi_support=False):
+        """
+        Constructor
+
+        @type pool: string 
+        @param pool: Collector address
+        @type multi_support: bool 
+        @param multi_support: True if the installation support advertising multiple classads with one condor_advertise command. Defaults to False.
+        """
+
+        classadSupport.ClassadAdvertiser.__init__(self, pool=pool, 
+                                                  multi_support=multi_support,
+                                                  tcp_support=frontendConfig.advertise_use_tcp)
+        
+        self.adType = 'glidefrontendmonitor'
+        self.adAdvertiseCmd = 'UPDATE_AD_GENERIC'
+        self.adInvalidateCmd = 'INVALIDATE_ADS_GENERIC'
+        self.advertiseFilePrefix = 'gfi_afm'
+
 
 
 ############################################################
