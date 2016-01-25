@@ -8,12 +8,27 @@
 #
 
 import codecs
+import sys  # for alternate_log
 import os
 import re
 import stat
 import time
 import logging
 from logging.handlers import BaseRotatingHandler
+
+# Compressions depend on the available module
+COMPRESSION_SUPPORTED = {}
+try:
+   import gzip
+   COMPRESSION_SUPPORTED['gz'] = gzip
+except ImportError:
+   pass
+try:
+   import zipfile
+   COMPRESSION_SUPPORTED['zip'] = zipfile
+except ImportError:
+   pass
+
 
 log = None # create a place holder for a global logger, individual modules can create their own loggers if necessary
 log_dir = None
@@ -28,6 +43,14 @@ DEBUG_FORMATTER = logging.Formatter('[%(asctime)s] %(levelname)s: %(module)s:%(l
 #
 # Note:  We may need to create a custom class later if we need to handle
 #        logging with privilege separation
+
+def alternate_log(msg):
+    """
+    When an exceptions happen within the logging system (e.g. when the disk is full while rotating a 
+    log file) an alternate logging is necessary, e.g. writing to stderr
+    """
+    sys.stderr.write("%s\n" % msg)
+    
 
 class GlideinHandler(BaseRotatingHandler):
     """
@@ -49,7 +72,7 @@ class GlideinHandler(BaseRotatingHandler):
     @type backupCount: int
     @ivar backupCount: How many backups to keep
     """
-    def __init__(self, filename, maxDays=1, minDays=0, maxMBytes=10, backupCount=5):
+    def __init__(self, filename, maxDays=1, minDays=0, maxMBytes=10, backupCount=5, compression=None):
         """
         Initialize the Handler.  We assume the following:
 
@@ -72,6 +95,13 @@ class GlideinHandler(BaseRotatingHandler):
         if not os.path.exists(os.path.dirname(filename)):
             os.makedirs(os.path.dirname(filename))
 
+        self.compression = ''
+        try:
+            if compression.lower() in COMPRESSION_SUPPORTED:
+                self.compression = compression.lower()
+        except AttributeError:
+            pass
+        # bz2 compression can be implementes with encoding='bz2-codec' in BaseRotatingHandler
         mode = 'a'
         BaseRotatingHandler.__init__(self, filename, mode, encoding=None)
         self.backupCount = backupCount
@@ -83,7 +113,7 @@ class GlideinHandler(BaseRotatingHandler):
         # year, month, day, hours, and minutes.  The hours and minutes are to
         # preserve multiple rotations in a single day.
         self.suffix = "%Y-%m-%d_%H-%M"
-        self.extMatch = re.compile(r"^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}$")
+        self.extMatch = re.compile(r"^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}(\.gz|\.zip)?$")
 
         if os.path.exists(filename):
             begin_interval_time = os.stat(filename)[stat.ST_MTIME]
@@ -194,6 +224,30 @@ class GlideinHandler(BaseRotatingHandler):
 
         self.rolloverAt = newRolloverAt
 
+        # Compress the log file (if requested)
+        if self.compression == "zip":
+            if os.path.exists(dfn + ".zip"):
+                os.remove(dfn + ".zip")
+            try:
+                f_out = zipfile.ZipFile(dfn + ".zip", "w")
+                f_out.write(dfn, os.path.basename(dfn), zipfile.ZIP_DEFLATED)
+                f_out.close()
+                os.remove(dfn)
+            except IOError, e:
+                alternate_log("Log file zip compression failed: %s" % e)
+        elif self.compression == "gz":
+            if os.path.exists(dfn + ".gz"):
+                os.remove(dfn + ".gz")
+            f_in = open(dfn, "rb")
+            try:
+                f_out = gzip.open(dfn + ".gz", "wb")
+                f_out.writelines(f_in)
+                f_out.close()
+                f_in.close()
+                os.remove(dfn)
+            except IOError, e:
+                alternate_log("Log file gzip compression failed: %s" % e)
+
     def _open_new_log(self):
         """
         This function is here to bridge the gap between the old (python 2.4) way
@@ -219,7 +273,7 @@ def roll_all_logs():
     for handler in handlers:
         handler.check_and_perform_rollover()
 
-def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, minDays, maxMBytes, backupCount=5):
+def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, minDays, maxMBytes, backupCount=5, compression=None):
     """
     Adds a handler to the GlideinLogger logger referenced by logger_name.
     """
@@ -229,7 +283,7 @@ def add_processlog_handler(logger_name, log_dir, msg_types, extension, maxDays, 
     mylog = logging.getLogger(logger_name)
     mylog.setLevel(logging.DEBUG)
 
-    handler = GlideinHandler(logfile, maxDays, minDays, maxMBytes, backupCount)
+    handler = GlideinHandler(logfile, maxDays, minDays, maxMBytes, backupCount, compression)
     handler.setFormatter(DEFAULT_FORMATTER)
     handler.setLevel(logging.DEBUG)
 

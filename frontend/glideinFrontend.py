@@ -22,7 +22,6 @@ import subprocess
 import traceback
 import signal
 import time
-import string
 import logging
 
 STARTUP_DIR = sys.path[0]
@@ -32,16 +31,17 @@ from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
 from glideinwms.frontend import glideinFrontendPidLib
 from glideinwms.frontend import glideinFrontendConfig
+from glideinwms.frontend import glideinFrontendLib
 from glideinwms.frontend import glideinFrontendInterface
 from glideinwms.frontend import glideinFrontendMonitorAggregator
 from glideinwms.frontend import glideinFrontendMonitoring
+from glideinFrontendElement import glideinFrontendElement
 
 ############################################################
 # KEL remove this method and just call the monitor aggregator method directly below?  we don't use the results
 def aggregate_stats():
-    _ = glideinFrontendMonitorAggregator.aggregateStatus()
+    return glideinFrontendMonitorAggregator.aggregateStatus()
 
-    return
 
 ############################################################
 class FailureCounter:
@@ -85,7 +85,6 @@ def spawn_group(work_dir, group_name, action):
                     work_dir,
                     group_name,
                     action]
-    #logSupport.log.debug("Command list: %s" % command_list)
     child = subprocess.Popen(command_list, shell=False,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
@@ -119,9 +118,8 @@ def poll_group_process(group_name,child):
 ############################################################
 
 # return the list of (group,walltime) pairs
-def spawn_iteration(work_dir, groups, max_active,
-                    failure_dict, max_failures,
-                    action):
+def spawn_iteration(work_dir, frontendDescript, groups, max_active,
+                    failure_dict, max_failures, action):
     childs = {}
   
     for group_name in groups:
@@ -175,14 +173,33 @@ def spawn_iteration(work_dir, groups, max_active,
 
         logSupport.log.info("Aggregate monitoring data")
         # KEL - can we just call the monitor aggregator method directly?  see above
-        aggregate_stats()
-        """
-        try:
-          aggregate_stats()
-        except Exception:
-          logSupport.log.exception("Aggregate monitoring data .. ERROR")
-        """
+        stats = aggregate_stats()
+        #logSupport.log.debug(stats)
 
+        # Create the glidefrontendmonitor classad
+        fm_advertiser = glideinFrontendInterface.FrontendMonitorClassadAdvertiser(multi_support=glideinFrontendInterface.frontendConfig.advertise_use_multi)
+        fm_classad = glideinFrontendInterface.FrontendMonitorClassad(
+                         frontendDescript.data['FrontendName'])
+        fm_classad.setFrontendDetails(frontendDescript.data['FrontendName'],
+                                      ','.join(groups),
+                                      glideinFrontendLib.getHAMode(frontendDescript.data))
+        idle_jobs = {
+            'Total': stats['total']['Jobs']['Idle'],
+        }
+
+        fm_classad.setIdleJobCount(idle_jobs)
+        fm_advertiser.addClassad(fm_classad.adParams['Name'], fm_classad)
+
+        # Advertise glidefrontendmonitor classad to user pool
+        logSupport.log.info("Advertising %i glidefrontendmonitor classad to the user pool" %  len(fm_advertiser.classads))
+        try:
+            set_frontend_htcondor_env(work_dir, frontendDescript)
+            fm_advertiser.advertiseAllClassads()
+        finally:
+            # Cleanup the env
+            clean_htcondor_env()
+
+        logSupport.log.info("Done advertising")
         logSupport.log.info("Cleaning logs")
         cleanupSupport.cleaners.cleanup()
 
@@ -208,8 +225,18 @@ def spawn_iteration(work_dir, groups, max_active,
     return timings
         
 ############################################################
-def spawn_cleanup(work_dir,groups):
+def spawn_cleanup(work_dir, frontendDescript, groups, frontend_name, ha_mode):
     global STARTUP_DIR
+
+    # Invalidate glidefrontendmonitor classad
+    try:
+        set_frontend_htcondor_env(work_dir, frontendDescript)
+        fm_advertiser = glideinFrontendInterface.FrontendMonitorClassadAdvertiser()
+        constraint = '(GlideFrontendName=="%s")&&(GlideFrontendHAMode=?="%s")' % (frontend_name, ha_mode)
+        fm_advertiser.invalidateConstrainedClassads(constraint)
+    except:
+        # Do not fail in case of errors.
+        logSupport.log.warning("Failed to deadvertise glidefrontendmonitor classad")
 
     for group_name in groups:
         try:
@@ -231,58 +258,173 @@ def spawn_cleanup(work_dir,groups):
                 fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
             
-            while poll_group_process(group_name,child) is None: # None means "still alive"
+            while poll_group_process(group_name,child) is None:
+                # None means "still alive"
                 time.sleep(0.01)
         except:
             # never fail on cleanup
             pass
-        
+
+
 ############################################################
-def spawn(sleep_time,advertize_rate,work_dir,
-          frontendDescript,groups,max_parallel_workers,
-          restart_interval, restart_attempts):
+def spawn(sleep_time, advertize_rate, work_dir, frontendDescript,
+          groups, max_parallel_workers, restart_interval, restart_attempts):
 
     num_groups=len(groups)
-    try:
-        failure_dict={}
-        for group in groups:
-            failure_dict[group]=FailureCounter(group, restart_interval)
-            
-        while 1: #will exit on signal
-            start_time=time.time()
-            timings=spawn_iteration(work_dir,groups,max_parallel_workers,
-                                    failure_dict, restart_attempts, "run")
-            end_time=time.time()
-            elapsed_time=end_time-start_time
-            if elapsed_time<sleep_time:
-                real_sleep_time=sleep_time-elapsed_time
-                logSupport.log.info("Sleep %.1f sec" % real_sleep_time)
-                time.sleep(real_sleep_time)
-            else:
-                logSupport.log.info("No sleeping this loop, took %.1f sec > %.1f sec" % (elapsed_time, sleep_time))
+    # TODO: Get the ha_check_interval from the config
+    ha = glideinFrontendLib.getHASettings(frontendDescript.data)
+    ha_check_interval = glideinFrontendLib.getHACheckInterval(frontendDescript.data)
+    mode = glideinFrontendLib.getHAMode(frontendDescript.data)
+    master_frontend_name = ''
+    if mode == 'slave':
+        master_frontend_name = ha.get('ha_frontends')[0].get('frontend_name')
 
-            # order the groups by walltime
-            # longest walltime first
-            timings.sort(lambda x,y:-cmp(x[1],y[1]))
-            # recreate the groups list, with new ordering
-            groups=[el[0] for el in timings]
-            assert num_groups==len(groups), "Something went wrong, number of groups changed"
+    active = (mode == 'master')
+    hibernate = shouldHibernate(frontendDescript, work_dir, ha, mode, groups)
+
+    logSupport.log.info('Frontend started with mode = %s' % mode)
+    try:
+
+        # Service will exit on signal only.
+        # This infinite loop is for the slave to go back into hibernation
+        # once the master becomes alive.
+        # Master never loops infinitely here, but instead it does in
+        # the inner loop while(mode=='master') ...
+        while 1:
+
+            while hibernate:
+                # If I am slave enter hibernation cycle while Master is alive
+                logSupport.log.info('Master Frontend %s is online. Hibernating.' % master_frontend_name)
+                time.sleep(ha_check_interval)
+                hibernate = shouldHibernate(frontendDescript, work_dir,
+                                            ha, mode, groups)
+
+            # We broke out of hibernation cycle
+            # Either Master has disappeared or I am the Master
+            if mode == 'slave':
+                logSupport.log.info("Master frontend %s is offline. Activating slave frontend." % master_frontend_name)
+                active = True
+
+            failure_dict={}
+            for group in groups:
+                failure_dict[group]=FailureCounter(group, restart_interval)
+
+            while ((mode == 'master') or ((mode == 'slave') and active)):
+                start_time=time.time()
+                timings = spawn_iteration(work_dir, frontendDescript, groups,
+                                          max_parallel_workers, failure_dict,
+                                          restart_attempts, "run")
+                end_time=time.time()
+                elapsed_time=end_time-start_time
+                if elapsed_time<sleep_time:
+                    real_sleep_time=sleep_time-elapsed_time
+                    logSupport.log.info("Sleep %.1f sec" % real_sleep_time)
+                    time.sleep(real_sleep_time)
+                else:
+                    logSupport.log.info("No sleeping this loop, took %.1f sec > %.1f sec" % (elapsed_time, sleep_time))
+
+                # order the groups by walltime
+                # longest walltime first
+                timings.sort(lambda x,y:-cmp(x[1],y[1]))
+                # recreate the groups list, with new ordering
+                groups=[el[0] for el in timings]
+                assert num_groups==len(groups), "Something went wrong, number of groups changed"
+
+                if mode == 'slave':
+                    # If we are slave, check if master is back and if so
+                    # deadvertise my classads and hibernate
+                    hibernate = shouldHibernate(frontendDescript, work_dir,
+                                                ha, mode, groups)
+
+                    if hibernate:
+                        active = False
+                        logSupport.log.info("Master frontend %s is back online" % master_frontend_name)
+                        logSupport.log.info("Deadvertize my ads and enter hibernation cycle")
+                        spawn_cleanup(work_dir, frontendDescript, groups,
+                                      frontendDescript.data['FrontendName'],
+                                      mode)
+                    else:
+                        logSupport.log.info("Master frontend %s is still offline" % master_frontend_name)
+
+
     finally:
+        # We have been asked to terminate
         logSupport.log.info("Deadvertize my ads")
-        spawn_cleanup(work_dir,groups)
+        spawn_cleanup(work_dir, frontendDescript, groups,
+                      frontendDescript.data['FrontendName'], mode)
 
 
 ############################################################
-def spawn_removal(work_dir,
-                  frontendDescript,groups,max_parallel_workers,
-                  removal_action):
+def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
+    """
+    Check if the frontend is running in HA mode. If run in master mode never
+    hibernate. If run in slave mode, hiberate if master is active.
+
+    @rtype: bool
+    @return: True if we should hibernate else False
+    """
+
+    if mode == 'slave':
+        master_frontend_name = ha.get('ha_frontends')[0].get('frontend_name')
+
+        for group in groups:
+            element = glideinFrontendElement(os.getpid(), work_dir,
+                                             group, "run")
+            # Set environment required to query factory collector
+            set_frontend_htcondor_env(work_dir, frontendDescript, element)
+
+            for factory_pool in element.factory_pools:
+                factory_pool_node = factory_pool[0]
+
+                master_classads = glideinFrontendInterface.findMasterFrontendClassads(factory_pool_node, master_frontend_name)
+
+                if master_classads:
+                    # Found some classads in one of the collectors
+                    # Cleanup the env and return True
+                    clean_htcondor_env()
+                    return True
+
+        # Cleanup the env
+        clean_htcondor_env()
+
+    return False
+
+
+def set_frontend_htcondor_env(work_dir, frontendDescript, element=None):
+    # Collector DN is only in the group's mapfile. Just get first one.
+    groups = frontendDescript.data['Groups'].split(',')
+    if groups:
+        if element is None:
+            element = glideinFrontendElement(os.getpid(), work_dir,
+                                             groups[0], "run")
+        htc_env = {
+            'CONDOR_CONFIG': frontendDescript.data['CondorConfig'],
+            'X509_USER_PROXY': frontendDescript.data['ClassAdProxy'],
+            '_CONDOR_CERTIFICATE_MAPFILE':  element.elementDescript.element_data['MapFile']
+        }
+        set_env(htc_env)
+
+def set_env(env):
+    for var in env:
+        os.environ[var] = env[var]
+
+
+def clean_htcondor_env():
+    for v in ('CONDOR_CONFIG','_CONDOR_CERTIFICATE_MAPFILE','X509_USER_PROXY'):
+        if os.environ.get(v):
+            del os.environ[v]
+
+############################################################
+
+def spawn_removal(work_dir, frontendDescript, groups,
+                  max_parallel_workers, removal_action):
 
     failure_dict={}
     for group in groups:
         failure_dict[group]=FailureCounter(group, 3600)
-            
-    spawn_iteration(work_dir,groups,max_parallel_workers,
-                    failure_dict, 1, removal_action)
+
+    spawn_iteration(work_dir, frontendDescript, groups,
+                    max_parallel_workers, failure_dict, 1, removal_action)
 
 ############################################################
 def cleanup_environ():
@@ -316,7 +458,8 @@ def main(work_dir, action):
                                           int(float(plog['max_days'])),
                                           int(float(plog['min_days'])),
                                           int(float(plog['max_mbytes'])),
-                                          int(float(plog['backup_count'])))
+                                          int(float(plog['backup_count'])),
+                                          plog['compression'])
     logSupport.log = logging.getLogger("frontend")
     logSupport.log.info("Logging initialized")
     logSupport.log.debug("Frontend startup time: %s" % str(startup_time))
@@ -333,7 +476,7 @@ def main(work_dir, action):
         restart_interval = int(frontendDescript.data['RestartInterval'])
 
 
-        groups = string.split(frontendDescript.data['Groups'], ',')
+        groups = frontendDescript.data['Groups'].split(',')
         groups.sort()
 
         glideinFrontendMonitorAggregator.monitorAggregatorConfig.config_frontend(os.path.join(work_dir, "monitor"), groups)
@@ -363,9 +506,8 @@ def main(work_dir, action):
                       frontendDescript, groups, max_parallel_workers,
                       restart_interval, restart_attempts)
             elif action in ('removeWait','removeIdle','removeAll','removeWaitExcess','removeIdleExcess','removeAllExcess'):
-                spawn_removal(work_dir,
-                              frontendDescript, groups, max_parallel_workers,
-                              action)
+                spawn_removal(work_dir, frontendDescript, groups,
+                              max_parallel_workers, action)
             else:
                 raise ValueError, "Unknown action: %s"%action
         except KeyboardInterrupt:

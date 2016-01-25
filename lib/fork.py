@@ -142,8 +142,8 @@ def fetch_ready_fork_result_list(pipe_ids):
             out = fetch_fork_result(fd, pid)
             work_info[key] = out
         except Exception, e:
-            logSupport.log.warning("Failed to extract info from child '%s'" % key)
-            logSupport.log.exception("Failed to extract info from child '%s'" % key)
+            logSupport.log.warning("Failed to extract info from child '%s'" % str(key))
+            logSupport.log.exception("Failed to extract info from child '%s'" % str(key))
             # Record failed keys
             failed.append(key)
             failures += 1

@@ -85,7 +85,166 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
-        <b>v3_2_7</b> released on October 14, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_7/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_7/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_7.tgz">Tarball</a>)<br>
+        <b>v3_2_12_1</b> released on January 20, 2016 (<a href="http://glideinwms.fnal.gov/doc.v3_2_12_1/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_12_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_12_1.tgz">Tarball</a>)<br>
+       <ul>
+       <li>Bug Fix: Fixed incompatibility with python 2.4 and bad failure when 
+          there is no entry, both introduced in v3_2_12 factory configuration
+      </ul>
+      </li>
+      <li>
+        <b>v3_2_12</b> released on January 14, 2016 (<a href="http://glideinwms.fnal.gov/doc.v3_2_12/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_12/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_12.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Various curbs and limits triggered in the frontend are now logged
+          in the glideresource classads
+          <li>Frontend is now more conservative while computing max request
+          running
+          <li>Glideins now support advertising custom resources on the worker
+          node This can be used to advertise resources like GPUs. GPUs can also 
+          be auto discovered and advertised
+          <li>Several improvements to rpm packaging. Useful frontend tools are
+          now available in the user path
+          <li>Support of version control for the factory configuration and splitting 
+          of entries configuration form the main factory configuration (entries.d)
+          <li>Unique idle jobs matched by the frontend is now available in
+          glideresource classads
+          deloyment specific configuration and entry specific configuration.
+          <li>Bug Fix: Fixed a bug where CCB_ADDRESS configuration for the
+          glidein was not created correclty under certain conditions
+          <li>Bug Fix: create_frontend script now correctly populates images
+          in the monitoring pages
+          <li>Bug Fix: gwms-logcat now correctly supports multiple users
+          <li>Bug Fix: Frontend now correctly deadvertises glideresource
+          classads on shutdown
+          <li>Bug Fix: Disable collector's use of shared port to support
+          HTCondor 8.4 (in both factory and user pool)
+          <li>Bug Fix: Counting correctly glidein and cores, specially for 
+          partitionable slots
+          <li>Bug Fix: Fixed bug where DaemonShutdown was failing to consider 
+          dynamic slots
+          <li>Bug Fix: Fixed bug where NUM_CPUS was not set for partitionable slots
+          resulting in hardware cpu number being used instead of GLIDEIN_CPUS
+      </ul>
+      </li>
+      <li>
+        <b>v3_2_11_2</b> released on September 18, 2015 (<a href="http://glideinwms.fnal.gov/doc.v3_2_11_2/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_11_2/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_11_2.tgz">Tarball</a>)<br>
+        <ul>
+            <li>Fix: Fixed authentication issue introduced in v3_2_11 where a
+            glidein startd fails to send keep alive signals to v8.2.x schedds
+      </ul>
+      </li>
+      <li>
+        <b>v3_2_11_1</b> released on September 02, 2015 (<a href="http://glideinwms.fnal.gov/doc.v3_2_11_1/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_11_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_11_1.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Bug Fix: Fixed a bug introduced in v3_2_11 where file period
+          interpreted as number instead of string
+      </ul>
+      </li>
+      <li>
+        <b>v3_2_11</b> released on August 20, 2015 (<a href="http://glideinwms.fnal.gov/doc.v3_2_11/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_11/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_11.tgz">Tarball</a>)<br>
+        <ul>
+          <li>VO Frontend now blacklists schedds with CurbMatchmaking=True
+          <li>You can now over provision Multicore glidein by using
+          GLIDEIN_Resource_Slots attribute to specify different types of
+          resources it provides. For example ioslot
+          <li>Glidein can now advertise itself to the site's local HTCondorCE
+          collector if CONDORCE_COLLECTOR_HOST is set in it's environment
+          <li>Custom/validation scripts can now be run periodically and not
+          just at the glidein's startup
+          <li>Improvements to the rpm packaging
+          <li>Updated documentation
+          <li>Bug Fix: Glideins in claimed/idle status are not shutdown by
+          DAEMON_SHUTDOWN expression
+          <li>Bug Fix: Fixed a bug in gwms-logcat tool
+          <li>Bug Fix: The CCB selection behaves correctly and accepts sinful
+          strings
+          <li>Bug Fix: Fixed a bug where Frontend under certain conditions
+          would crash because of uninitialized ha_mode
+          <li>Bug Fix: Setting GLIDEIN_Report_Failed to ALIVEONLY now creates
+          valid invalidate command
+          <li>Bug Fix: Fixed a bug in the accounting of jobs run by a glidein
+        </ul>
+      </li>
+      <li>
+        <b>v3_2_10</b> released on June 01, 2015 (<a href="http://glideinwms.fnal.gov/doc.v3_2_10/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_10/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_10.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Improved Documentation
+          <li>Bug Fix: Fixed several bugs in accounting of idle and running
+          slots in case of multicore glideins
+          <li>Bug Fix: Got rid of old style HTCondor default Memory and Disk
+          requirements in the schedd configuration
+          <li>Bug Fix: DAEMON_SHUTDOWN expression will now let the Multi core
+          glidein to run for appropriate time before killing it
+        </ul>
+      </li>
+      <li>
+        <b>v3_2_9</b> released on May 08, 2015 (<a href="http://glideinwms.fnal.gov/doc.v3_2_9/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_9/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_9.tgz">Tarball</a>)<br>
+        <ul>
+          <li>VO Frontend supports a master-slave HA mode
+          <li>Added a factory wrapper script to view glidein logs files
+          <li>Updated the dependency of Glideinwms to HTCondor v8.2.2
+          <li>Frontend supports CCBs in addition to User Collector
+          <li>Updated documentation
+          <li>Bug Fix: glideresource classads now contain appropriate monitoring
+          information
+          <li>Bug Fix: Fixed a bug where an unhandled exception would cause a
+          frontend to shutdown
+          <li>Bug Fix: Removed obsolute defult requirement for vanilla jobs in
+          user schedd's config file
+          <li>Bug Fix: Glidein now works correctly when both grid/voms-proxy
+          commands are not available on the worker node
+          <li>Bug Fix: GlideinWMSVersion is now correctly reported in rpm
+          distribution
+        </ul>
+      </li>
+      <li>
+        <b>v3_2_8</b> released on December 30, 2014 (<a href="http://glideinwms.fnal.gov/doc.v3_2_8/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_8/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_8.tgz">Tarball</a>)<br>
+        <ul>
+          <li>VO Frontend parameters are added to HTCondor config for ganglia
+          monitoring
+          <li>CONDOR_VIEW_HOST is now set to localhost for factory collectors to
+          minimize overhead in communication between primary and secondary
+          collectors
+          <li>Added option to compress process logs in factory and frontend
+          <li>Added failed glidein statistics to frontend monitoring
+          <li>Added idle/running/total core statistics to frontend monitoring
+          <li>Added the support for HTCondor GANGLIAD monitoring 
+          (requires HTCondor 8.1 or newer). If you have HTCondor 8.0.x or earlier 
+          you must remove <t>/etc/condor/config.d/01_gwms_ganglia.config</t>,
+          otherwise your HTCondor will complain about an unsupported option
+          and crash.
+          <li>USE_CCB is now enabled by default and this information is
+          advertised in the glidefactory classads
+          <li>Improved documentation
+          <li>Bug Fix: Glideins do not mail admins when HTCondor daemon crash
+          <li>Bug Fix: Gridmanager log paths used by glidein/factory scheds are
+          now correctly expanded for different users
+          <li>Bug Fix: Factory and Frontend service start/stop exit codes now
+          confer to Linux standards
+          <li>Bug Fix: Fixed issue where work dir and vesioning in frontend
+          config would break the config in case of frontend rpms
+          <li>Bug Fix: Made improvements to the HTCondor configuration used by
+          factory rpm
+          <li>Bug Fix: There is no name collision for glideins when
+          USE_PID_NAMESPACES is enabled in site's HTCondor batch system
+          <li>Bug Fix: Factory does not leak file descriptors when HTCondor
+          commands using privilege separation fail
+        </ul>
+      </li>
+      <li>
+        <b>v3_2_7_2</b> released on November 06, 2014 (<a href="http://glideinwms.fnal.gov/doc.v3_2_7_2/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_7_2/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_7_2.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Bug Fix: Set MASTER.USE_SHARED_PORT instead of USE_SHARED_PORT to
+          avoid secondary collectors using the shared port daemon
+        </ul>
+      </li>
+      <li>
+        <b>v3_2_7_1</b> released on November 05, 2014 (<a href="http://glideinwms.fnal.gov/doc.v3_2_7_1/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_7_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_7_1.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Set USE_SHARED_PORT to get around the issue with HTCondor 8.2.3
+        </ul>
+      </li>
+      <li>
+        <b>v3_2_7</b> released on October 14, 2014 (<a href="http://glideinwms.fnal.gov/doc.v3_2_7/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_7/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_7.tgz">Tarball</a>)<br>
         <ul>
           <li>Glideins now have an option to report monitoring info to a
           different collector configured in the factory
@@ -119,7 +278,7 @@ Related Pages:
         </ul>
       </li>
       <li>
-        <b>v3_2_6</b> released on July 28, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_6/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_6/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_6.tgz">Tarball</a>)<br>
+        <b>v3_2_6</b> released on July 28, 2014 (<a href="http://glideinwms.fnal.gov/doc.v3_2_6/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_6/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_6.tgz">Tarball</a>)<br>
        <ul>
          <li>condor_chirp is now added to condor tarbar used by glidein
          <li>Added support for submitting glideins to batch sites using BOSCO.
@@ -136,13 +295,13 @@ Related Pages:
        </ul>
      </li>
       <li>
-        <b>v3_2_5_1</b> released on June 23, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_5/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_5/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_5.tgz">Tarball</a>)<br>
+        <b>v3_2_5_1</b> released on June 23, 2014 (<a href="http://glideinwms.fnal.gov/doc.v3_2_5/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_5/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_5.tgz">Tarball</a>)<br>
        <ul>
          <li>Bug Fix: Fixed an issue with the factory_startup template that affects factory reconfig/upgrade in case of RPM
        </ul>
      </li>
       <li>
-        <b>v3_2_5</b> released on May 19, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_5/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_5/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_5.tgz">Tarball</a>)<br>
+        <b>v3_2_5</b> released on May 19, 2014 (<a href="http://glideinwms.fnal.gov/doc.v3_2_5/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_5/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_5.tgz">Tarball</a>)<br>
        <ul>
          <li>Added administrative commands for frontend fetch_glidein_log,
          glidein_off and enter_frontend_env
@@ -167,7 +326,7 @@ Related Pages:
        </ul>
       </li>
       <li>
-        <b>v3_2_4</b> released on April 14, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_4/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_4/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_4.tgz">Tarball</a>)<br>
+        <b>v3_2_4</b> released on April 14, 2014 (<a href="http://glideinwms.fnal.gov/doc.v3_2_4/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_4/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_4.tgz">Tarball</a>)<br>
        <ul>
          <li>Added support for HTCondor-CE attributes in the factory
          <li>Made several performance improvements to frontend. Frontend does
@@ -193,7 +352,7 @@ Related Pages:
        </ul>
       </li>
       <li>
-        <b>v3_2_3</b> released on February 03, 2014 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_3/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_3/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_3.tgz">Tarball</a>)<br>
+        <b>v3_2_3</b> released on February 03, 2014 (<a href="http://glideinwms.fnal.gov/doc.v3_2_3/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_3/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_3.tgz">Tarball</a>)<br>
        <ul>
          <li>Glideins now have the ability to track the worker node batch slot.
          Based on the batch system at site (HTCondor, SGE, PBS, LSF, SLURM) the
@@ -221,7 +380,7 @@ Related Pages:
        </ul>
       </li>
       <li>
-        <b>v3_2_2</b> released on November 08, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_2/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_2/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_2.tgz">Tarball</a>)<br>
+        <b>v3_2_2</b> released on November 08, 2013 (<a href="http://glideinwms.fnal.gov/doc.v3_2_2/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_2/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_2.tgz">Tarball</a>)<br>
         <ul>
           <li>Bug Fix: Fix a bug where factory would crash if it fails
           to query client global classads in wms collector
@@ -230,7 +389,7 @@ Related Pages:
        </ul>
       </li>
       <li>
-        <b>v3_2_1</b> released on October 30, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2_1.tgz">Tarball</a>)<br>
+        <b>v3_2_1</b> released on October 30, 2013 (<a href="http://glideinwms.fnal.gov/doc.v3_2_1/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_1.tgz">Tarball</a>)<br>
         <ul>
           <li>v3_2_1  Added support for a plug-in architecture for config that
           lets admins manipulate frontend and factory config with ease
@@ -245,7 +404,7 @@ Related Pages:
        </ul>
       </li>
       <li>
-        <b>v3_2</b> released on October 10, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_2/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_2.tgz">Tarball</a>)<br>
+        <b>v3_2</b> released on October 10, 2013 (<a href="http://glideinwms.fnal.gov/doc.v3_2/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2.tgz">Tarball</a>)<br>
         <ul>
           <li>Added support for generation of condor tarball from condor installed        via rpm
           <li>Bug Fix: Fixed a race condition while shutting down factory
@@ -303,7 +462,7 @@ Related Pages:
     But it is a good place to look for what is going on.<br>
     <ul>
       <li>
-        <b>v3_1</b> released on August 01, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_1.tgz">Tarball</a>)<br>
+        <b>v3_1</b> released on August 01, 2013 (<a href="http://glideinwms.fnal.gov/doc.v3_1/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_1.tgz">Tarball</a>)<br>
         <ul>
           <li>Includes relevant features and bug fixes released upto v2_7
           <li>Added a new feature that enables glidein to advertise error
@@ -335,7 +494,7 @@ Related Pages:
         </ul>
       </li>
       <li>
-        <b>v3_0</b> released on April 05, 2012 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_0/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v3_0/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v3_0.tgz">Tarball</a>)<br>
+        <b>v3_0</b> released on April 05, 2012 (<a href="http://glideinwms.fnal.gov/doc.v3_0/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_0/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_0.tgz">Tarball</a>)<br>
         <ul>
           <li>Support for new API for factory - frontend communication 
           <li>Added support to the Factory for EC2 Query API submissions to the Cloud
@@ -358,7 +517,7 @@ Related Pages:
     <h3>Old Releases</h3>
      <ul>
       <li>
-        <b>v2_7_2</b> released on September 10, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7_2/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7_2/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7_2.tgz">Tarball</a>)<br>
+        <b>v2_7_2</b> released on September 10, 2013 (<a href="http://glideinwms.fnal.gov/doc.v2_7_2/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_7_2/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_7_2.tgz">Tarball</a>)<br>
         <ul>
           <li>Bug Fix: Fixed a race condition while shutting down factory
           service
@@ -378,7 +537,7 @@ Related Pages:
         </ul>
       </li>
       <li>
-        <b>v2_7_1</b> released on May 14, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7_1.tgz">Tarball</a>)<br>
+        <b>v2_7_1</b> released on May 14, 2013 (<a href="http://glideinwms.fnal.gov/doc.v2_7_1/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_7_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_7_1.tgz">Tarball</a>)<br>
         <ul>
           <li>glidecondor_addDN tool now supports adding DNs from a file
           <li>Added new tool glidecondor_createSecCol to dynamically create
@@ -395,7 +554,7 @@ Related Pages:
         </ul>
       </li>
       <li>
-        <b>v2_7</b> released on April 02, 2013 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_7/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_7.tgz">Tarball</a>)<br>
+        <b>v2_7</b> released on April 02, 2013 (<a href="http://glideinwms.fnal.gov/doc.v2_7/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_7/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_7.tgz">Tarball</a>)<br>
         <ul>
           <li>glideinwms code is now organized as python packages
           <li>Factory no longer creates long running process per entry.
@@ -444,7 +603,7 @@ Related Pages:
         </ul>
       </li>
       <li>
-        <b>v2_6_2</b> released on November 02, 2012 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_6_2/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_6_2/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_6_2.tgz">Tarball</a>)<br>
+        <b>v2_6_2</b> released on November 02, 2012 (<a href="http://glideinwms.fnal.gov/doc.v2_6_2/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_6_2/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_6_2.tgz">Tarball</a>)<br>
         <ul>
           <li>Factory now supports glidein failure modes. This information is
           propagated back to the factory.
@@ -476,7 +635,7 @@ Related Pages:
         </ul>
       </li>
       <li>
-        <b>v2_6_1</b> released on August 21, 2012 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_6_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_6_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_6_1.tgz">Tarball</a>)<br>
+        <b>v2_6_1</b> released on August 21, 2012 (<a href="http://glideinwms.fnal.gov/doc.v2_6_1/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_6_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_6_1.tgz">Tarball</a>)<br>
         <br><b>NOTE:</b> Follow special instructions on <a href="download.html">downloads page</a> if upgrading to condor 7.8.2<br><br>
         <ul>
           <li>Factory now limits the speed at which it releases held glideins. After too many unrecoverable attempts, held glideins are removed.
@@ -503,7 +662,7 @@ Related Pages:
         </ul>
       </li>
       <li>
-        <b>v2_6</b> released on July 24, 2012 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_6/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_6/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_6.tgz">Tarball</a>)<br>
+        <b>v2_6</b> released on July 24, 2012 (<a href="http://glideinwms.fnal.gov/doc.v2_6/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_6/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_6.tgz">Tarball</a>)<br>
         <ul>
           <li>Add attr_dict in the environment of the frontend match_expr
           <li>Config defined attributes are now available in match_expr
@@ -547,7 +706,7 @@ Related Pages:
         </ul>
       </li>
       <li>
-        <b>v2_5_7</b> released on April 5, 2012 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_7/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_7/install.ht
+        <b>v2_5_7</b> released on April 5, 2012 (<a href="http://glideinwms.fnal.gov/doc.v2_5_7/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_5_7/install.ht
 ml">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputin
 g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
         <ul>
@@ -558,7 +717,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
         </ul>
       </li>
       <li>
-        <b>v2_5_6</b> released on March 16, 2012 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_6/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_6/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_6.tgz">Tarball</a>)<br>
+        <b>v2_5_6</b> released on March 16, 2012 (<a href="http://glideinwms.fnal.gov/doc.v2_5_6/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_5_6/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_5_6.tgz">Tarball</a>)<br>
         <ul>
           <li>Factory supports per-frontend limits in the config
           <li>Bug Fix: Fixed a bug where frontend would not stop cleanly
@@ -566,7 +725,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
         </ul>
       </li>
       <li>
-        <b>v2_5_5</b> released on February 10, 2012 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_5/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_5/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_5.tgz">Tarball</a>)<br>
+        <b>v2_5_5</b> released on February 10, 2012 (<a href="http://glideinwms.fnal.gov/doc.v2_5_5/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_5_5/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_5_5.tgz">Tarball</a>)<br>
         <ul>
           <li>Added filtering to analyze_entries
           <li>Reduced the number of debug log messages when entry becomes inactive.
@@ -590,10 +749,10 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
         </ul>
       </li>
       <li>
-        <b>v2_5_4</b> released on December 19, 2011 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_4/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_4/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_4.tgz">Tarball</a>)<br>
+        <b>v2_5_4</b> released on December 19, 2011 (<a href="http://glideinwms.fnal.gov/doc.v2_5_4/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_5_4/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_5_4.tgz">Tarball</a>)<br>
         <ul>
           <b>NOTE:  To upgrade to this version from anything earlier than v2.5.3, please see the instructions 
-          <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_4/upgrade.html">here</a>.</b>
+          <a href="http://glideinwms.fnal.gov/doc.v2_5_4/upgrade.html">here</a>.</b>
           <li>Added support for VDT pre installed via rpm. While using
           ini-installer set vdt_location to empty and
           x509_cert_dir=/etc/grid-security/certificates
@@ -611,10 +770,10 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
         </ul>
       </li>
       <li>
-        <b>v2_5_3</b> released on November 11, 2011 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_3/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_3/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_3.tgz">Tarball</a>)<br>
+        <b>v2_5_3</b> released on November 11, 2011 (<a href="http://glideinwms.fnal.gov/doc.v2_5_3/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_5_3/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_5_3.tgz">Tarball</a>)<br>
         <ul>
           <b>NOTE:  To upgrade to this version from anything earlier than v2.5.3, please see the instructions 
-          <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_4/upgrade.html">here</a>.</b>
+          <a href="http://glideinwms.fnal.gov/doc.v2_5_4/upgrade.html">here</a>.</b>
           <li>Updated the license to reflect current Fermitools license Factory
           does a better job at respecting frontend limits Admins can add custom
           html to the monitoring pages
@@ -659,7 +818,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
         </ul>
       </li>
       <li>
-        <b>v2_5_2_1</b> released on October 07, 2011 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_2_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_2_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_2_1.tgz">Tarball</a>)<br>
+        <b>v2_5_2_1</b> released on October 07, 2011 (<a href="http://glideinwms.fnal.gov/doc.v2_5_2_1/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_5_2_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_5_2_1.tgz">Tarball</a>)<br>
         <ul>
           <li>Bug Fix: Fixed a bug creation of START expression when VOMS proxy is set be required.
           <li>Bug Fix: Revert the glidein shutdown behavior introduced in v2_5_2
@@ -667,7 +826,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
         </ul>
       </li>
       <li>
-        <b>v2_5_2</b> released on July 20, 2011 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_2/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_2/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_2.tgz">Tarball</a>)<br>
+        <b>v2_5_2</b> released on July 20, 2011 (<a href="http://glideinwms.fnal.gov/doc.v2_5_2/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_5_2/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_5_2.tgz">Tarball</a>)<br>
         <ul>
           <li>Frontend publishes glideresource classad to the pool collector. This is useful for the users to do match making for their jobs.
           <li>Useful job info like JOB_Site, JOB_GLIDEIN_Entry_Name, JOB_GLIDEIN_Name JOB_GLIDEIN_Factory, JOB_GLIDEIN_Schedd, JOB_GLIDEIN_ClusterId, JOB_GLIDEIN_ProcId, JOB_GLIDEIN_Site is now added to SUBMIT_EXPRS
@@ -693,7 +852,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
         </ul>
       </li>
       <li>
-        <b>v2_5_1</b> released on March 02, 2011 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_1.tgz">Tarball</a>)<br>
+        <b>v2_5_1</b> released on March 02, 2011 (<a href="http://glideinwms.fnal.gov/doc.v2_5_1/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_5_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_5_1.tgz">Tarball</a>)<br>
         <ul>
           <li>Factory now can remove excessive glideins. New ClassAd attribute - RemoveExcess
           <li>Frontend will request removal of glideins when no user jobs in queue
@@ -711,7 +870,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
         </ul>
       </li>
       <li>
-        <b>v2_5</b> released on January 24, 2011 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5.tgz">Tarball</a>)<br>
+        <b>v2_5</b> released on January 24, 2011 (<a href="http://glideinwms.fnal.gov/doc.v2_5/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_5/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_5.tgz">Tarball</a>)<br>
         <ul>
           <li>Installer can now install gridFTP and VOMS certs needed by CREAM
           <li>glideinWMS release is now available in 3 different tarballs, frontend only, factory only and a complete tarball.
@@ -736,7 +895,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
         </ul>
       </li>
       <li>
-        <b>v2_4_3</b> released on September 30, 2010 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_4_3/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_4_3/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_4_3.tgz">Tarball</a>)<br>
+        <b>v2_4_3</b> released on September 30, 2010 (<a href="http://glideinwms.fnal.gov/doc.v2_4_3/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_4_3/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_4_3.tgz">Tarball</a>)<br>
         <ul>
           <li>Install VOMS Certificates during the install time
           <li>Entry does not print stacktrace when it fails to submit glidein.  Instead it logs the error message appropriately.
@@ -754,14 +913,14 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
 
       </li>
       <li>
-        <b>v2_4_2</b> released on August 03, 2010 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_4_2/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_4_2/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_4_2.tgz">Tarball</a>)<br>
+        <b>v2_4_2</b> released on August 03, 2010 (<a href="http://glideinwms.fnal.gov/doc.v2_4_2/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_4_2/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_4_2.tgz">Tarball</a>)<br>
         <ul>
 
           <li>Fixed the incompatibility introduced in v2_4_1 in monitoring components.
         </ul>
       </li>
       <li>
-        <b>v2_4_1</b> released on July 27, 2010 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_4_1/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_4_1/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_4_1.tgz">Tarball</a>)<br>
+        <b>v2_4_1</b> released on July 27, 2010 (<a href="http://glideinwms.fnal.gov/doc.v2_4_1/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_4_1/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_4_1.tgz">Tarball</a>)<br>
 
         <ul>
           <li>Add a new configuration option for PREEMPT_GRACE_TIME
@@ -778,7 +937,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
 
       </li>
       <li>
-        <b>v2_4</b> released on May 04, 2010 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_4/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_4/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_4.tgz">Tarball</a>)<br>
+        <b>v2_4</b> released on May 04, 2010 (<a href="http://glideinwms.fnal.gov/doc.v2_4/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_4/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_4.tgz">Tarball</a>)<br>
         <ul>
 
           <li>Add proxy security classes to the frontend
@@ -804,19 +963,19 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
 
       </li>
       <li>
-        <b>v2_3_2</b>, released on April 06, 2010 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_3_2/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_3_2/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_3_2.tgz">Tarball</a>)<br>
+        <b>v2_3_2</b>, released on April 06, 2010 (<a href="http://glideinwms.fnal.gov/doc.v2_3_2/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_3_2/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_3_2.tgz">Tarball</a>)<br>
         <ul>
           <li>Fixed a security bug in the way certificate/proxy DN(s) are handled. <b>If you are upgrading the installation rather than full install, you should patch the condor_mapfile used by Condor daemons in your installation using the convert_condormap tool available from the glideinWMS download page.</b> For additional security, users should add new DN to the condor_mapfile only by using the glidecondor_addDN tool available in the glideinWMS/install directory.
         </ul>
       </li>
       <li>
-        <b>v2_3_1</b>, released on March 11, 2010 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_3_1/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_3_1/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_3_1.tgz">Tarball</a>)<br>
+        <b>v2_3_1</b>, released on March 11, 2010 (<a href="http://glideinwms.fnal.gov/doc.v2_3_1/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_3_1/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_3_1.tgz">Tarball</a>)<br>
         <ul>
           <li>Documentation Changes. There are no code changes since v2_3
         </ul>
 
       <li>
-        <b>v2_3</b>, released on February 02, 2010 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_3/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_3/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_3.tgz">Tarball</a>)<br>
+        <b>v2_3</b>, released on February 02, 2010 (<a href="http://glideinwms.fnal.gov/doc.v2_3/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_3/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_3.tgz">Tarball</a>)<br>
         Current development version.<br>
         Improvements list:
         <ul>
@@ -840,7 +999,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
        You will need to update all the daemons at the same time.
       </li>
       <li>
-        <b>v2_2</b>, released on November 3rd, 2009 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_2/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_2/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_2.tgz">Tarball</a>)<br>
+        <b>v2_2</b>, released on November 3rd, 2009 (<a href="http://glideinwms.fnal.gov/doc.v2_2/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_2/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_2.tgz">Tarball</a>)<br>
         Current development version.<br>
 
         Improvements list:
@@ -860,7 +1019,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
     KNOWN ISSUES: Pseudo interactive monitoring will not work with glexec. <br>
       </li>
       <li>
-        <b>v2_1</b>, released on August 24th, 2009 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_1/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_1/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_1.tgz">Tarball</a>)<br>
+        <b>v2_1</b>, released on August 24th, 2009 (<a href="http://glideinwms.fnal.gov/doc.v2_1/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_1/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_1.tgz">Tarball</a>)<br>
 
         Improvements list:
         <ul>
@@ -873,7 +1032,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
         </ul>
        </li>
       <li>
-        <b>v2_0</b>, released on Mar 5th, 2009 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_0/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_0/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_0.tgz">Tarball</a>)<br>
+        <b>v2_0</b>, released on Mar 5th, 2009 (<a href="http://glideinwms.fnal.gov/doc.v2_0/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v2_0/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v2_0.tgz">Tarball</a>)<br>
 
         Improvements list:
         <ul>
@@ -887,13 +1046,13 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
           <li>Support multiple proxies... frontend drives this via plugins.
         </ul>
       <li>
-        <b>v1_6_3</b>, released on April 06, 2010 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_6_3/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_6_3/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v1_6_3.tgz">Tarball</a>)<br>
+        <b>v1_6_3</b>, released on April 06, 2010 (<a href="http://glideinwms.fnal.gov/doc.v1_6_3/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v1_6_3/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v1_6_3.tgz">Tarball</a>)<br>
 
         <ul>
           <li>Fixed a security bug in the way certificate/proxy DN(s) are handled. <b>If you are upgrading the installation rather than full install, you should patch the condor_mapfile used by Condor daemons in your installation using the convert_condormap tool available from the glideinWMS download page.</b> For additional security, users should add new DN to the condor_mapfile only by using the glidecondor_addDN tool available in the glideinWMS/install directory.
         </ul>
        <li>
-        <b>v1_6_2</b>, released on Sep 14, 2009 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_6_2/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_6_2/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v1_6_2.tgz">Tarball</a>)<br>
+        <b>v1_6_2</b>, released on Sep 14, 2009 (<a href="http://glideinwms.fnal.gov/doc.v1_6_2/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v1_6_2/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v1_6_2.tgz">Tarball</a>)<br>
 
         Current production version.<br>
         Minor bug fixes.<br>
@@ -908,7 +1067,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
        </li>
 
        <li>
-        <b>v1_6_1</b>, released on Sep 08th, 2009 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_6_1/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_6_1/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v1_6_1.tgz">Tarball</a>)<br>
+        <b>v1_6_1</b>, released on Sep 08th, 2009 (<a href="http://glideinwms.fnal.gov/doc.v1_6_1/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v1_6_1/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v1_6_1.tgz">Tarball</a>)<br>
         Current production version.<br>
 
         Minor bug fixes.<br>
@@ -938,7 +1097,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
        </ul>
 
        <li>
-        <b>v1_6</b>, released on Mar 5th, 2009 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_6/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_6/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v1_6.tgz">Tarball</a>)<br>
+        <b>v1_6</b>, released on Mar 5th, 2009 (<a href="http://glideinwms.fnal.gov/doc.v1_6/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v1_6/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v1_6.tgz">Tarball</a>)<br>
         Current production version.<br>
         Improved scalability, improved documentation and minor bug fixes.<br>
 
@@ -961,7 +1120,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
         </ul>
 
       <li>
-        <b>v1_5_2</b>, released on Nov 6th, 2008 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_5_2/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_5_2/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v1_5_2.tgz">Tarball</a>)<br>
+        <b>v1_5_2</b>, released on Nov 6th, 2008 (<a href="http://glideinwms.fnal.gov/doc.v1_5_2/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v1_5_2/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v1_5_2.tgz">Tarball</a>)<br>
         The major new feature is a fix for VDT installation.<br>
         Most systems don't need to upgrade.
         <br>
@@ -973,7 +1132,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
           <li>Minor monitoring improvements.
         </ul>
       <li>
-        <b>v1_5_1</b>, released on Oct 28th, 2008 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_5_1/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_5_1/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v1_5_1.tgz">Tarball</a>)<br>
+        <b>v1_5_1</b>, released on Oct 28th, 2008 (<a href="http://glideinwms.fnal.gov/doc.v1_5_1/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v1_5_1/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v1_5_1.tgz">Tarball</a>)<br>
 
         This is essentially a bug fix release for v1_5.<br>
     It is safe to upgrade.<br> 
@@ -985,7 +1144,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
       <li>Fixed bug in the node blacklisting code.
         </ul>
       <li>
-        <b>v1_5</b>, released on Oct 24th, 2008 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_5/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_5/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v1_5.tgz">Tarball</a>)<br>
+        <b>v1_5</b>, released on Oct 24th, 2008 (<a href="http://glideinwms.fnal.gov/doc.v1_5/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v1_5/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v1_5.tgz">Tarball</a>)<br>
 
         Current version.<br>
         Contains several scalability features over v1_4_X.<br>
@@ -1018,7 +1177,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
     <b>Warning</b>: If upgrading from v1_4_X, the reconfig will fail due changes in the monitoring setup. 
     Manually remove want_split_terminated_graphs switch in the XML file and the reconfig will work again.
       <li>
-        <b>v1_4_4</b>, released on Sep 30th, 2008 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_4_4/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_4_4/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v1_4_4.tgz">Tarball</a>)<br>
+        <b>v1_4_4</b>, released on Sep 30th, 2008 (<a href="http://glideinwms.fnal.gov/doc.v1_4_4/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v1_4_4/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v1_4_4.tgz">Tarball</a>)<br>
         This is a bug fix and condor update release, and you are encouraged to upgrade from v1_4_3.<br>
 
         Improvements list:
@@ -1031,7 +1190,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
       <li>Better colors in graphs.
         </ul>
       <li>
-        <b>v1_4_3</b>, released on Sep 5th, 2008 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_4_3/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_4_3/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v1_4_3.tgz">Tarball</a>)<br>
+        <b>v1_4_3</b>, released on Sep 5th, 2008 (<a href="http://glideinwms.fnal.gov/doc.v1_4_3/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v1_4_3/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v1_4_3.tgz">Tarball</a>)<br>
 
         This is a scalability release, and you are encouraged to upgrade from v1_4_2.<br>
         Improvements list:
@@ -1040,7 +1199,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
               Previous releases were not really scalable to more than approximately 50 entry points. 
         </ul>
        <li>
-        <b>v1_4_2</b>, released on Aug 26th, 2008 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_4_2/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_4_2/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v1_4_2.tgz">Tarball</a>)<br>
+        <b>v1_4_2</b>, released on Aug 26th, 2008 (<a href="http://glideinwms.fnal.gov/doc.v1_4_2/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v1_4_2/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v1_4_2.tgz">Tarball</a>)<br>
 
         This is a bugfix release, and you are encouraged to upgrade from a v1_4_1.<br>
         Improvements list:
@@ -1053,7 +1212,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
     </ul>
       <li>
 
-        <b>v1_4_1</b>, released on Aug 13th, 2008 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_4_1/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_4_1/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v1_4_1.tgz">Tarball</a>)<br>
+        <b>v1_4_1</b>, released on Aug 13th, 2008 (<a href="http://glideinwms.fnal.gov/doc.v1_4_1/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v1_4_1/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v1_4_1.tgz">Tarball</a>)<br>
         It is safe to upgrade from a v1_4.<br>
         Improvements list:
         <ul>
@@ -1061,12 +1220,12 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
         <ul>
 
           <li>By default use a separate startd for montoring
-          <li>Old multi-VM mode can be enabled by <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc/manual/factory/entry.html#multi-monitor">MONITOR_MODE=MULTI</a>
+          <li>Old multi-VM mode can be enabled by <a href="http://glideinwms.fnal.gov/doc/manual/factory/entry.html#multi-monitor">MONITOR_MODE=MULTI</a>
         </ul>
       <li>Fixed factory handling held jobs
       <li>Improved installer defaults
     </ul>
-      <li><b>v1_4</b>, released on Aug 7th, 2008 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_4/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_4/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v1_4.tgz">Tarball</a>)<br>
+      <li><b>v1_4</b>, released on Aug 7th, 2008 (<a href="http://glideinwms.fnal.gov/doc.v1_4/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v1_4/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v1_4.tgz">Tarball</a>)<br>
 
         Improvements list:
         <ul>
@@ -1093,7 +1252,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
       This version contains several key changes.</b>
       <li>
 
-        <b>v1_3</b>, released on Jul 17th, 2008 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_3/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_3/install/index.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v1_3.tgz">Tarball</a>)<br>
+        <b>v1_3</b>, released on Jul 17th, 2008 (<a href="http://glideinwms.fnal.gov/doc.v1_3/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v1_3/install/index.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v1_3.tgz">Tarball</a>)<br>
         Improvements list:
         <ul>
       <li>Factory and frontend now gets sleep and advertize attr from config.
@@ -1111,7 +1270,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
         <b>WARNING: Entry points need to be recreated,
       if you used an older version.</b>
       <li>
-        <b>v1_2_3</b>, released on Jul 2nd, 2008 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_2_3/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_2_3/install/index.html">Installation instructions</a>)<br>
+        <b>v1_2_3</b>, released on Jul 2nd, 2008 (<a href="http://glideinwms.fnal.gov/doc.v1_2_3/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v1_2_3/install/index.html">Installation instructions</a>)<br>
         Improvements list:
         <ul>
           <li>Fix glexec handling in condor v7.0.2 and above.
@@ -1121,7 +1280,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
         </ul>
 
       <li>
-        <b>v1_2_2</b>, released on Jun 27th, 2008 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_2_2/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_2_2/install/index.html">Installation instructions</a>)<br>
+        <b>v1_2_2</b>, released on Jun 27th, 2008 (<a href="http://glideinwms.fnal.gov/doc.v1_2_2/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v1_2_2/install/index.html">Installation instructions</a>)<br>
         This version fixes a major installer bug and has monitoring over v1_2_1.
         It is safe to upgrade from a v1_2_1, 
         <b>however, the entry points need to be recreated</b>.<br>
@@ -1135,7 +1294,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
           <li>Better support for EGEE (by supporting $TMPDIR).
         </ul>
       <li>
-        <b>v1_2_1</b>, released on May 30th, 2008 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_2_1/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_2_1/install/index.html">Installation instructions</a>)<br>
+        <b>v1_2_1</b>, released on May 30th, 2008 (<a href="http://glideinwms.fnal.gov/doc.v1_2_1/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v1_2_1/install/index.html">Installation instructions</a>)<br>
 
         This version has essentially usability and monitoring improvements over v1_2. 
         It is safe to upgrade from a v1_2.<br>
@@ -1151,7 +1310,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
         </ul>
       <li>
 
-        <b>v1_2</b>, released on May 5th, 2008 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_2/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_2/install/index.html">Installation instructions</a>)<br>
+        <b>v1_2</b>, released on May 5th, 2008 (<a href="http://glideinwms.fnal.gov/doc.v1_2/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v1_2/install/index.html">Installation instructions</a>)<br>
         It has several improvements over v1_1, including:
         <ul>
       <li>More fine grained configuration of glideins
@@ -1161,7 +1320,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
         </ul>
 
       <li>
-        <b>v1_1</b>, released on Jan 30th, 2008 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_1/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_1/install/index.html">Installation instructions</a>)<br>
+        <b>v1_1</b>, released on Jan 30th, 2008 (<a href="http://glideinwms.fnal.gov/doc.v1_1/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v1_1/install/index.html">Installation instructions</a>)<br>
         It has several improvements over v1_0, including:
         <ul>
       <li>Entry points can now be updated by using reconfig_glidein
@@ -1175,7 +1334,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
         <b>WARNING: Security configuration has been overhauled to fix the security issues of the provious verisons.<br>
       Please reinstall (or at least reconfigure) your Condor installation.</b>
       <li>
-        <b>v1_0</b>, released on Dec 18th, 2007 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_0/manual/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v1_0/install/index.html">Installation instructions</a>)<br>
+        <b>v1_0</b>, released on Dec 18th, 2007 (<a href="http://glideinwms.fnal.gov/doc.v1_0/manual/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v1_0/install/index.html">Installation instructions</a>)<br>
         It has several improvements over v0_9, including:
         <ul>
 
@@ -1275,7 +1434,7 @@ g/Grid/WMS/glideinWMS/glideinWMS_v2_5_7.tgz">Tarball</a>)<br>
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
-Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
+Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
 glideinWMS email support: glideinwms-support at fnal.gov
 </div>
 </body>

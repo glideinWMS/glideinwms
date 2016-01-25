@@ -397,6 +397,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
          advertise_delay="5"
          restart_attempts="3" 
          restart_interval="1800"
+         factory_versioning="True"
          schedd_name="%(schedds)s">
 """ % \
 { "service_name"  : self.glidein.service_name(), 
@@ -532,6 +533,10 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     if self.glidein.use_ccb()  == "n":
       data = data + """
 %s<attr name="USE_CCB" value="False" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>"""  % (indent)
+    else:
+      # Enable by default
+      data = data + """
+%s<attr name="USE_CCB" value="True" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>"""  % (indent)
 
     # -- glexec --
     data = data + """

@@ -104,8 +104,25 @@ check_installed () {
     fi
     echo -n "The Frontend is not installed correctly"
     failure
+    echo
     exit $RET_NOT_INSTALLED
 }
+
+check_configured () {
+    # check if some files created during the configuration (upgrade/reconfig) exist
+    if [ -x "$frontend_dir/frontend_startup" ]; then
+        if [ -r "$frontend_dir/frontend.xml" ]; then
+            return 0
+        fi
+        echo -n "The Frontend is not configured correctly: try to run reconfig"
+    else
+        echo -n "The Frontend is not configured correctly: try to run upgrade"
+    fi
+    failure
+    echo
+    exit $RET_NOT_CONFIGURED
+}
+
 
 export HOME="/var/lib/gwms-frontend"
 # FRONTEND_USER is used when invoking the script as root
@@ -209,6 +226,7 @@ help_usage() {
 
 start() {
         check_installed
+        check_configured
         echo -n "Starting glideinWMS frontend $id_str: "
 
         "$FRONTEND_CHECK" "$frontend_dir"  2>/dev/null 1>&2 </dev/null 
@@ -427,7 +445,13 @@ upgrade() {
             fi
         fi
         pushd $frontend_dir 1>/dev/null
-        invoke_as_frontend "\"${CREATION_DIR}reconfig_frontend\" -force_name \"$frontend_name\" -writeback yes -update_scripts yes -xml \"$cfg_loc\""
+
+        # Defaults of reconfig_frontend (f-flag, v-variable)
+        # f   fix_rrd = True
+        # v   writeback = yes
+        # v   update_scripts = yes
+        # v   update_def_cfg = no
+        invoke_as_frontend "\"${CREATION_DIR}reconfig_frontend\" -force_name \"$frontend_name\" -writeback yes -update_scripts yes -xml \"$cfg_loc\" -fix_rrd"
 
         # su -s /bin/bash $FRONTEND_USER -c "reconfig_frontend -force_name \"$frontend_name\" -writeback \"yes\" -update_scripts \"yes\" -xml $frontend_config"
 
