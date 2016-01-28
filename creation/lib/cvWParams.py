@@ -136,7 +136,7 @@ class VOFrontendParams(cWParams.CommonParams):
         proxy_defaults["security_class"]=(None,"id","Proxies in the same security class can potentially access each other (Default: proxy_nr)",None)
         proxy_defaults["vm_id_fname"]=(None,"fname","to specify a vm id without reconfig",None)
         proxy_defaults["vm_type_fname"]=(None,"fname","to specify a vm type without reconfig",None)
-
+        proxy_defaults["project_id"] = (None,"string","OSG Project ID. Ex TG-12345", None)
 
         security_defaults=cWParams.commentedOrderedDict()
         security_defaults["proxy_selection_plugin"]=(None,"proxy_name","Which proxy selection plugin should I use (ProxyAll if None)",None)
