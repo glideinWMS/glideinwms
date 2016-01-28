@@ -170,7 +170,7 @@ def getCondorQUsers(condorq_dict):
 
 
 def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
-               condorq_match_list=None):
+               condorq_match_list=None, match_policies=[]):
     """
     Get the number of jobs that match each glideina
     
@@ -307,7 +307,21 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
                 job=condorq_data[first_jid]
 
                 try:
-                    if eval(match_obj):
+                    # Evaluate the Compiled object first.
+                    # Evaluation order does not really matter.
+                    match = eval(match_obj)
+                    for policy in match_policies:
+                        if match == True:
+                            # Policies are supposed to be ANDed
+                            match = (match and policy.pyObject.match(job, glidein))
+                        else:
+                            if match != False:
+                                # Non boolean results should be discarded
+                                # and logged
+                                logSupport.log.warning("Match expression from policy file '%s' evaluated to non boolean result; assuming False" % policy.file)
+                            break
+
+                    if match == True:
                         # the first matched... add all jobs in the cluster
                         cluster_arr=[]
                         for jid in cq_dict_clusters_el[jh]:
@@ -445,7 +459,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
 
 
 def countRealRunning(match_obj, condorq_dict, glidein_dict,
-                     attr_dict, condorq_match_list=None):
+                     attr_dict, condorq_match_list=None, match_policies=[]):
 
     out_glidein_counts={}
 
@@ -492,7 +506,21 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
                 first_jid=cq_dict_clusters_el[jh][0]
                 job=condorq_data[first_jid]
                 try:
-                    if (job['RunningOn'] == glide_str) and eval(match_obj):
+                    # Evaluate the Compiled object first.
+                    # Evaluation order does not really matter.
+                    match = ((job['RunningOn']==glide_str) and eval(match_obj))
+                    for policy in match_policies:
+                        if match == True:
+                            # Policies are supposed to be ANDed
+                            match = (match and policy.pyObject.match(job, glidein))
+                        else:
+                            if match != False:
+                                # Non boolean results should be discarded
+                                # and logged
+                                logSupport.log.warning("Match expression from policy file '%s' evaluated to non boolean result; assuming False" % policy.file)
+                            break
+
+                    if match == True:
                         schedd_count+=len(cq_dict_clusters_el[jh])
                         for jid in cq_dict_clusters_el[jh]:
                             job = condorq_data[jid]
