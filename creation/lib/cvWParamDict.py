@@ -626,13 +626,14 @@ def populate_common_descript(descript_dict,        # will be modified
         proxies = []
         proxy_attrs=['security_class','trust_domain','type',
             'keyabsfname','pilotabsfname','vm_id','vm_type',
-            'creation_script','update_frequency']
+            'creation_script','update_frequency', 'project_id']
         proxy_attr_names={'security_class':'ProxySecurityClasses',
             'trust_domain':'ProxyTrustDomains',
             'type':'ProxyTypes','keyabsfname':'ProxyKeyFiles',
             'pilotabsfname':'ProxyPilotFiles',
             'vm_id':'ProxyVMIds','vm_type':'ProxyVMTypes',
             'creation_script':'ProxyCreationScripts',
+            'project_id':'ProxyProjectIds',
             'update_frequency':'ProxyUpdateFrequency'}
         proxy_descript_values={}
         for attr in proxy_attrs:
