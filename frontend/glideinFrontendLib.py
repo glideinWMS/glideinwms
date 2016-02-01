@@ -785,6 +785,14 @@ def countCoresCondorStatus(status_dict, status='TotalCores'):
             for glidein_name, glidein_details in status_dict[collector_name].fetchStored().iteritems():
                 if glidein_details.get('PartitionableSlot', False):
                     count += glidein_details.get('TotalCpus', 0) - glidein_details.get('Cpus', 0)
+                    # MMDB troubleshoot #11521
+                    increment = glidein_details.get('TotalCpus', 0) - glidein_details.get('Cpus', 0)
+                    if increment<0:
+                        logSupport.log.debug("Negative CPU of running jobs (total:%s, remaining: %s): %s" %
+                                             (glidein_details.get('TotalCpus'),
+                                              glidein_details.get('Cpus'),
+                                              glidein_details
+                                              ))
                 else:
                     count += glidein_details.get('Cpus', 0)
     return count
