@@ -114,7 +114,7 @@ class ProxyAll:
         for cred in self.cred_list:
             if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type not in credential_type):
+            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
                 continue
             rtnlist.append(cred)
         if (params_obj is not None):
