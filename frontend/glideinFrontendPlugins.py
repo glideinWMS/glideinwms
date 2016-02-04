@@ -112,9 +112,10 @@ class ProxyAll:
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
         rtnlist=[]
         for cred in self.cred_list:
+            logSupport.log.debug('cred.type: %s , crednetial_type: %s' % (cred.type, credential_type))
             if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type != credential_type):
                 continue
             rtnlist.append(cred)
         if (params_obj is not None):
@@ -186,7 +187,7 @@ class ProxyProjectName:
         self.cred_list = proxy_list
         self.proxy_list = proxy_list
         self.total_jobs = 0
-        self.user_project_count = {}
+        self.project_count = {}
 
     # This plugin depends on the ProjectName and User attributes in the job
     def get_required_job_attributes(self):
@@ -198,7 +199,7 @@ class ProxyProjectName:
 
     def update_usermap(self, condorq_dict, condorq_dict_types,
                     status_dict, status_dict_types):
-        self.project_count = collections.defaultdict(int)
+        self.project_count = {}
         self.total_jobs = 0
         # Get both set of users and number of jobs for each user
         for schedd_name in condorq_dict.keys():
@@ -207,7 +208,11 @@ class ProxyProjectName:
                 if job['JobStatus'] != 1:
                     continue
                 self.total_jobs += 1
-                self.project_count[job.get('ProjectName', '')] += 1
+                if job.get('ProjectName', '') != '':
+                    if job.get('ProjectName') in self.project_count:
+                        self.project_count[job.get('ProjectName', '')] += 1
+                    else:
+                        self.project_count[job.get('ProjectName', '')] = 1
         return
 
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
@@ -219,7 +224,8 @@ class ProxyProjectName:
         for cred in self.proxy_list:
             if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain != trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type not in credential_type):
+            logSupport.log.debug("cred.type: %s" % cred.type)
+            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type != credential_type):
                 continue
             base_cred = cred
             break
@@ -241,7 +247,6 @@ class ProxyProjectName:
             cred_idle = int(math.ceil(job_count * params_obj.min_nr_glideins / float(self.total_jobs)))
             creds[-1].add_usage_details(cred_max, cred_idle)
         return creds
-
 
 
 
