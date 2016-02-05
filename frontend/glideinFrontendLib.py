@@ -567,6 +567,24 @@ def getCondorStatus(collector_names, constraint=None, format_list=None,
 
 
 #
+# Return a dictionary of collectors containing all vms
+# Each element is a condorStatus
+#
+# Use the output of getCondorStatus
+#
+# Done to have a copy of the data of type SubQuery
+#
+def getAllCondorStatus(status_dict):
+    out = {}
+    for collector_name in status_dict.keys():
+        # Exclude partitionable slots with no free memory/cpus
+        sq = condorMonitor.SubQuery(status_dict[collector_name], None)
+        sq.load()
+        out[collector_name] = sq
+    return out
+
+
+#
 # Return a dictionary of collectors containing idle(unclaimed) vms
 # Each element is a condorStatus
 #
@@ -646,6 +664,34 @@ def getRunningCondorStatus(status_dict):
                      )
                  ) )
         """
+        sq.load()
+        out[collector_name] = sq
+    return out
+
+
+#
+# Return a dictionary of collectors containing running(claimed) vms
+# This includes Fixed slots and Dynamic slots (no partitionable slots)
+# Each one is matched with a single job (gives number of running jobs)
+# Each element is a condorStatus
+#
+# Use the output of getCondorStatus
+#
+def getRunningJobsCondorStatus(status_dict):
+    out = {}
+    for collector_name in status_dict.keys():
+        # This counts the running slots: fixed (static/not partitionable) or dynamic
+        # It may give problems when matching with RemoteHost in the jobs
+        # since dynamic slots report the parent partitionable slot in GLIDEIN_SiteWMS_Slot
+
+        sq = condorMonitor.SubQuery(
+            status_dict[collector_name],
+            lambda el: (
+                ((el.get('State') == 'Claimed') and
+                 (el.get('Activity') in ('Busy', 'Retiring'))
+                 )
+            )
+        )
         sq.load()
         out[collector_name] = sq
     return out
@@ -767,13 +813,17 @@ def countCoresCondorStatus(status_dict, status='TotalCores'):
     :param status: one of 'TotalCores', 'IdleCores', 'RunningCores'
     :type status: str
     """
+    # MMDB troubleshoot #11521
+    logSupport.log.debug("MMDB: couting cores - %s/%s" % (status, status_dict))
     count = 0
     # Leaving the if outside the loops to improve performance
+    # The loop will skip elements where Cpus or TotalSlotCpus are not defined
     if status == 'TotalCores':
         for collector_name in status_dict.keys():
             for glidein_name, glidein_details in status_dict[collector_name].fetchStored().iteritems():
+                # TotalSlotCpus shuold always be the correct number but is not defined pre partitionable slots
                 if glidein_details.get('PartitionableSlot', False):
-                    count += glidein_details.get('TotalCpus', 0)
+                    count += glidein_details.get('TotalSlotCpus', 0)
                 else:
                     count += glidein_details.get('Cpus', 0)
     elif status == 'IdleCores':
@@ -784,24 +834,13 @@ def countCoresCondorStatus(status_dict, status='TotalCores'):
         for collector_name in status_dict.keys():
             for glidein_name, glidein_details in status_dict[collector_name].fetchStored().iteritems():
                 if glidein_details.get('PartitionableSlot', False):
-                    count += glidein_details.get('TotalCpus', 0) - glidein_details.get('Cpus', 0)
-                    # MMDB troubleshoot #11521
-                    cpus_tot = glidein_details.get('TotalCpus')
-                    cpus_slot = glidein_details.get('SlotCpus')
+                    cpus_tot_slot = glidein_details.get('TotalSlotCpus')
                     cpus_val = glidein_details.get('Cpus')
-                    if cpus_slot is None or cpus_tot is None or cpus_val is None:
-                        logSupport.log.debug("One of the CPU values is None: %s/%s/%s (tot/slot/val)" %
-                                             (cpus_tot, cpus_slot, cpus_val))
-                    if cpus_slot is None:
-                        cpus_slot = cpus_tot
-                    increment = cpus_slot - cpus_val
-                    if increment<0:
-                        logSupport.log.debug("Negative CPU of running jobs (%s/%s/%s - tot/slot/val): %s" %
-                                             (cpus_tot,
-                                              glidein_details.get('SlotCpus'),
-                                              cpus_val,
-                                              glidein_details
-                                              ))
+                    try:
+                        count += cpus_tot_slot - cpus_val
+                    except TypeError:
+                        logSupport.log.error("TotalSlotCpus value is None in %s (%s/%s tot.sl/cpu): %s" %
+                                             (glidein_name, cpus_tot_slot, cpus_val, glidein_details))
                 else:
                     count += glidein_details.get('Cpus', 0)
     return count

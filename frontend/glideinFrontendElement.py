@@ -1408,6 +1408,7 @@ class glideinFrontendElement:
                 ('Cpus', 'i'),
                 ('Memory', 'i'),
                 ('PartitionableSlot', 's'),
+                ('TotalSlotCpus', 'i'),
             ]
 
             if self.x509_proxy_plugin:
