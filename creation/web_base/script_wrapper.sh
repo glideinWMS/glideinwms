@@ -41,12 +41,6 @@ function robust_realpath {
     fi
 }
 
-if [ -z "$3" ]; then
-    # no script passed, wrapper invoked by the initial test
-    "$error_gen" -ok  "script_wrapper.sh" GLIDEIN_PS_LAST "script_wrapper.sh" GLIDEIN_PS_LAST_END "0" GLIDEIN_PS_OK "True"
-    exit 0
-fi
-
 # input parameters sanityzed
 glidein_config="`robust_realpath $1`"
 s_ffb_id="$2"
@@ -56,6 +50,12 @@ s_fname="`robust_realpath $4`"
 
 # find error reporting helper script 
 error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
+
+if [ -z "$3" ]; then
+    # no script passed, wrapper invoked by the initial test
+    "$error_gen" -ok  "script_wrapper.sh" GLIDEIN_PS_LAST "script_wrapper.sh" GLIDEIN_PS_LAST_END "0" GLIDEIN_PS_OK "True"
+    exit 0
+fi
 
 verbose=
 [ -n "$DEBUG" ] && verbose=yes
