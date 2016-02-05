@@ -567,18 +567,21 @@ def getCondorStatus(collector_names, constraint=None, format_list=None,
 
 
 #
-# Return a dictionary of collectors containing all vms
+# Return a dictionary of collectors containing all glideins (all static+partitionable slots)
 # Each element is a condorStatus
 #
 # Use the output of getCondorStatus
-#
-# Done to have a copy of the data of type SubQuery
 #
 def getAllCondorStatus(status_dict):
     out = {}
     for collector_name in status_dict.keys():
         # Exclude partitionable slots with no free memory/cpus
-        sq = condorMonitor.SubQuery(status_dict[collector_name], None)
+        sq = condorMonitor.SubQuery(
+            status_dict[collector_name],
+            lambda el: (
+                (el.get('SlotType') != 'Dynamic')
+            )
+        )
         sq.load()
         out[collector_name] = sq
     return out

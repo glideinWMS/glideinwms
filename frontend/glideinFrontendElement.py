@@ -794,8 +794,8 @@ class glideinFrontendElement:
         # use only the good schedds when considering idle
         condorq_dict_idle = glideinFrontendLib.getIdleCondorQ(good_condorq_dict)
         condorq_dict_old_idle = glideinFrontendLib.getOldCondorQ(condorq_dict_idle, 600)
-        condorq_dict_proxy=glideinFrontendLib.getIdleProxyCondorQ(condorq_dict_idle)
-        condorq_dict_voms=glideinFrontendLib.getIdleVomsCondorQ(condorq_dict_idle)
+        condorq_dict_proxy = glideinFrontendLib.getIdleProxyCondorQ(condorq_dict_idle)
+        condorq_dict_voms = glideinFrontendLib.getIdleVomsCondorQ(condorq_dict_idle)
 
         # then report how many we really had
         condorq_dict_idle_all = glideinFrontendLib.getIdleCondorQ(self.condorq_dict)
@@ -829,41 +829,41 @@ class glideinFrontendElement:
         }
 
     def populate_status_dict_types(self):
+        status_dict_all = glideinFrontendLib.getAllCondorStatus(self.status_dict)
         status_dict_idle = glideinFrontendLib.getIdleCondorStatus(self.status_dict)
         status_dict_running = glideinFrontendLib.getRunningCondorStatus(self.status_dict)
         status_dict_failed = glideinFrontendLib.getFailedCondorStatus(self.status_dict)
         status_dict_idlecores = glideinFrontendLib.getIdleCoresCondorStatus(self.status_dict)
         status_dict_runningcores = glideinFrontendLib.getRunningCoresCondorStatus(self.status_dict)
 
-
         self.status_dict_types = {
             'Total': {
-                'dict':self.status_dict,
-                'abs':glideinFrontendLib.countCondorStatus(self.status_dict)
+                'dict': status_dict_all,
+                'abs': glideinFrontendLib.countCondorStatus(status_dict_all)
             },
             'Idle': {
-                'dict':status_dict_idle,
-                'abs':glideinFrontendLib.countCondorStatus(status_dict_idle)
+                'dict': status_dict_idle,
+                'abs': glideinFrontendLib.countCondorStatus(status_dict_idle)
             },
             'Running': {
-                'dict':status_dict_running,
-                'abs':glideinFrontendLib.countCondorStatus(status_dict_running)
+                'dict': status_dict_running,
+                'abs': glideinFrontendLib.countCondorStatus(status_dict_running)
             },
             'Failed': {
-                'dict':status_dict_failed,
-                'abs':glideinFrontendLib.countCondorStatus(status_dict_failed)
+                'dict': status_dict_failed,
+                'abs': glideinFrontendLib.countCondorStatus(status_dict_failed)
             },
             'TotalCores': {
-                'dict':self.status_dict,
-                'abs':glideinFrontendLib.countCoresCondorStatus(self.status_dict, 'TotalCores')
+                'dict': status_dict_all,
+                'abs': glideinFrontendLib.countCoresCondorStatus(status_dict_all, 'TotalCores')
             },
             'IdleCores': {
-                'dict':status_dict_idlecores,
-                'abs':glideinFrontendLib.countCoresCondorStatus(status_dict_idlecores, 'IdleCores')
+                'dict': status_dict_idlecores,
+                'abs': glideinFrontendLib.countCoresCondorStatus(status_dict_idlecores, 'IdleCores')
             },
             'RunningCores': {
-                'dict':status_dict_runningcores,
-                'abs':glideinFrontendLib.countCoresCondorStatus(status_dict_runningcores, 'RunningCores')
+                'dict': status_dict_runningcores,
+                'abs': glideinFrontendLib.countCoresCondorStatus(status_dict_runningcores, 'RunningCores')
             }
         }
 
@@ -1402,20 +1402,23 @@ class glideinFrontendElement:
             # Always get the credential id used to submit the glideins
             # This is essential for proper accounting info related to running
             # glideins that have reported back to user pool
-            status_format_list=[
+            status_format_list = [
                 ('GLIDEIN_CredentialIdentifier', 's'),
                 ('TotalSlots', 'i'),
                 ('Cpus', 'i'),
                 ('Memory', 'i'),
                 ('PartitionableSlot', 's'),
+                ('SlotType', 's'),
                 ('TotalSlotCpus', 'i'),
             ]
 
             if self.x509_proxy_plugin:
-                status_format_list = list(status_format_list) + list(self.x509_proxy_plugin.get_required_classad_attributes())
+                status_format_list = list(status_format_list) + \
+                                     list(self.x509_proxy_plugin.get_required_classad_attributes())
 
             # Consider multicore slots with free cpus/memory only
-            constraint = '(GLIDECLIENT_Name=?="%s.%s") && (%s)' % (self.frontend_name, self.group_name, mc_idle_constraint)
+            constraint = '(GLIDECLIENT_Name=?="%s.%s") && (%s)' % (
+                self.frontend_name, self.group_name, mc_idle_constraint)
             # use the main collector... all adds must go there
             status_dict = glideinFrontendLib.getCondorStatus(
                               [None],
@@ -1428,7 +1431,8 @@ class glideinFrontendElement:
             # really just interest in the counts
             try:
                 # Consider multicore slots with free cpus/memory only
-                constraint = '(substr(GLIDECLIENT_Name,0,%i)=?="%s.") && (%s)' % (len(self.frontend_name)+1, self.frontend_name, mc_idle_constraint)
+                constraint = '(substr(GLIDECLIENT_Name,0,%i)=?="%s.") && (%s)' % (
+                    len(self.frontend_name)+1, self.frontend_name, mc_idle_constraint)
 
                 fe_status_dict = glideinFrontendLib.getCondorStatus(
                                      [None],
@@ -1436,10 +1440,13 @@ class glideinFrontendElement:
                                      format_list=[('State', 's'),
                                                   ('Activity', 's')],
                                      want_format_completion=False)
+                # getAllCondorStatus is used to filter out Dynamic glideins
                 fe_counts = {
-                    'Idle':glideinFrontendLib.countCondorStatus(
+                    'Idle': glideinFrontendLib.countCondorStatus(
                         glideinFrontendLib.getIdleCondorStatus(fe_status_dict)),
-                    'Total':glideinFrontendLib.countCondorStatus(fe_status_dict)}
+                    'Total': glideinFrontendLib.countCondorStatus(
+                        glideinFrontendLib.getAllCondorStatus(fe_status_dict))
+                }
                 del fe_status_dict
             except:
                 # This is not critical information, do not fail
@@ -1457,10 +1464,13 @@ class glideinFrontendElement:
                                          format_list=[('State', 's'),
                                                       ('Activity', 's')],
                                          want_format_completion=False,)
+                # getAllCondorStatus is used to filter out Dynamic glideins
                 global_counts = {
-                    'Idle':glideinFrontendLib.countCondorStatus(
+                    'Idle': glideinFrontendLib.countCondorStatus(
                         glideinFrontendLib.getIdleCondorStatus(global_status_dict)),
-                    'Total':glideinFrontendLib.countCondorStatus(global_status_dict)}
+                    'Total': glideinFrontendLib.countCondorStatus(
+                        glideinFrontendLib.getAllCondorStatus(global_status_dict))
+                }
                 del global_status_dict
             except:
                 # This is not critical information, do not fail
@@ -1604,13 +1614,13 @@ class glideinFrontendElement:
                             self.frontend_name, self.group_name, request_name)
 
                 req_dict_types = {
-                    'Total':total_req_dict,
-                    'Idle':glideinFrontendLib.getIdleCondorStatus(total_req_dict),
-                    'Running':glideinFrontendLib.getRunningCondorStatus(total_req_dict),
-                    'Failed':glideinFrontendLib.getFailedCondorStatus(total_req_dict),
-                    'TotalCores':total_req_dict,
-                    'IdleCores':glideinFrontendLib.getIdleCoresCondorStatus(total_req_dict),
-                    'RunningCores':glideinFrontendLib.getRunningCoresCondorStatus(total_req_dict),
+                    'Total': glideinFrontendLib.getAllCondorStatus(total_req_dict),
+                    'Idle': glideinFrontendLib.getIdleCondorStatus(total_req_dict),
+                    'Running': glideinFrontendLib.getRunningCondorStatus(total_req_dict),
+                    'Failed': glideinFrontendLib.getFailedCondorStatus(total_req_dict),
+                    'TotalCores': glideinFrontendLib.getAllCondorStatus(total_req_dict),
+                    'IdleCores': glideinFrontendLib.getIdleCoresCondorStatus(total_req_dict),
+                    'RunningCores': glideinFrontendLib.getRunningCoresCondorStatus(total_req_dict),
                 }
 
                 for st in req_dict_types:
