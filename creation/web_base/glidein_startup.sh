@@ -1241,9 +1241,10 @@ function get_untar_subdir {
 add_startd_cron_counter=0
 function add_periodic_script {
     # schedules a script for periodic execution using startd_cron
-    # parameters: wrapper full path, period, cwd, executable path (from cwd), config file path (from cwd), ID
+    # parameters: wrapper full path, period, cwd, executable path (from cwd),
+    # config file path (from cwd), ID
     # global variable: add_startd_cron_counter
-    #TODO: should it allow for veriable number of parameters?
+    #TODO: should it allow for variable number of parameters?
     local include_fname=condor_config_startd_cron_include
     local s_wrapper="$1"
     local s_period_sec="${2}s"
@@ -1252,14 +1253,16 @@ function add_periodic_script {
     local s_config="$5"
     local s_ffb_id="$6"
     if [ $add_startd_cron_counter -eq 0 ]; then
-        # make sure that no undesired file is there
+        # Make sure that no undesired file is there when called for first cron
         rm $include_fname
     fi
     let add_startd_cron_counter=add_startd_cron_counter+1
     local s_prefix=GLIDEIN_PS
     local s_name="${s_prefix}$add_startd_cron_counter"
+
     # Append the following to the startd configuration
-# Instead of Periodic and Kill wait for completion: STARTD_CRON_DATE_MODE = WaitForExit
+    # Instead of Periodic and Kill wait for completion:
+    # STARTD_CRON_DATE_MODE = WaitForExit
     cat >> $include_fname << EOF
 STARTD_CRON_JOBLIST = \$(STARTD_CRON_JOBLIST) $s_name
 STARTD_CRON_${s_name}_MODE = Periodic
@@ -1267,8 +1270,8 @@ STARTD_CRON_${s_name}_KILL = True
 STARTD_CRON_${s_name}_PERIOD = $s_period_sec
 STARTD_CRON_${s_name}_PREFIX = ${s_prefix}_
 STARTD_CRON_${s_name}_EXECUTABLE = $s_wrapper
-STARTD_CRON_${s_name}_ARGS = "$s_name" "$s_fname" "$s_config" "$s_ffb_id"
-STARTD_CRON_${s_name}_CWD = "$s_cwd"
+STARTD_CRON_${s_name}_ARGS = $s_config $s_ffb_id $s_name $s_fname
+STARTD_CRON_${s_name}_CWD = $s_cwd
 STARTD_CRON_${s_name}_SLOTS = 1
 STARTD_CRON_${s_name}_JOB_LOAD = 0.01
 EOF
