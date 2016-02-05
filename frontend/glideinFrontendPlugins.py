@@ -78,7 +78,7 @@ class ProxyFirst:
         for cred in self.cred_list:
             if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type not in credential_type.split("+")):
                 continue
             if (params_obj is not None):
                 cred.add_usage_details(params_obj.min_nr_glideins,params_obj.max_run_glideins)
@@ -112,10 +112,9 @@ class ProxyAll:
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
         rtnlist=[]
         for cred in self.cred_list:
-            logSupport.log.debug('cred.type: %s , crednetial_type: %s' % (cred.type, credential_type))
             if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type != credential_type):
+            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type not in credential_type.split("+")):
                 continue
             rtnlist.append(cred)
         if (params_obj is not None):
@@ -170,7 +169,7 @@ class ProxyUserCardinality:
         for cred in self.cred_list:
             if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type not in credential_type.split("+")):
                 continue
             if len(rtnlist)<nr_requested_proxies:
                 rtnlist.append(cred)
@@ -224,8 +223,7 @@ class ProxyProjectName:
         for cred in self.proxy_list:
             if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain != trust_domain):
                 continue
-            logSupport.log.debug("cred.type: %s" % cred.type)
-            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type != credential_type):
+            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type not in credential_type.split("+")):
                 continue
             base_cred = cred
             break
@@ -300,7 +298,7 @@ class ProxyUserRR:
         for cred in self.config_data['proxy_list']:
             if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type not in credential_type.split("+")):
                 continue
             rtnlist.append(cred)
             num_cred=num_cred+1
@@ -446,7 +444,7 @@ class ProxyUserMapWRecycling:
                     cred=user_map[k]['proxy']
                     if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                         continue
-                    if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+                    if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type not in credential_type.split("+")):
                         continue
                     #Someone is already using this credential
                     if (k in users):
