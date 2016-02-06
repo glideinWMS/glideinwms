@@ -557,7 +557,7 @@ def getCondorStatus(collector_names, constraint=None, format_list=None,
     # Partitionable slots are *always* idle 
     # The frontend only counts them when all the subslots have been
     # reclaimed (HTCondor sets TotalSlots == 1)
-    #type_constraint = '(PartitionableSlot =!= True || TotalSlots =?= 1)'
+    # type_constraint = '(PartitionableSlot =!= True || TotalSlots =?= 1)'
     ###########################################################################
 
     if want_glideins_only:
@@ -761,20 +761,20 @@ def getClientCondorStatus(status_dict, frontend_name, group_name, request_name):
 #
 # Use the output of getCondorStatus
 #
-
 def getClientCondorStatusCredIdOnly(status_dict, cred_id):
     out = {}
     for collector_name, collector_status in status_dict.iteritems():
         sq = condorMonitor.SubQuery(
-                 collector_status,
-                 lambda el:(
-                     el.has_key('GLIDEIN_CredentialIdentifier') and 
-                     (el['GLIDEIN_CredentialIdentifier'] == cred_id)
-                           )
-                 )
+            collector_status,
+            lambda el: (
+                el.has_key('GLIDEIN_CredentialIdentifier') and
+                (el['GLIDEIN_CredentialIdentifier'] == cred_id)
+            )
+        )
         sq.load()
         out[collector_name] = sq
     return out
+
 
 #
 # Return a dictionary of collectors containing vms at a client split by creds
@@ -782,13 +782,13 @@ def getClientCondorStatusCredIdOnly(status_dict, cred_id):
 #
 # Use the output of getCondorStatus
 #
-
 def getClientCondorStatusPerCredId(status_dict, frontend_name, group_name,
                                    request_name, cred_id):
     step1 = getClientCondorStatus(status_dict, frontend_name, group_name,
                                   request_name)
     out = getClientCondorStatusCredIdOnly(step1, cred_id)
     return out
+
 
 #
 # Return the number of vms in the dictionary
@@ -816,8 +816,7 @@ def countCoresCondorStatus(status_dict, status='TotalCores'):
     :param status: one of 'TotalCores', 'IdleCores', 'RunningCores'
     :type status: str
     """
-    # MMDB troubleshoot #11521
-    logSupport.log.debug("MMDB: couting cores - %s/%s" % (status, status_dict))
+    # DBG Troubleshoot #11521  logSupport.log.debug("DBG: couting cores - %s/%s" % (status, status_dict))
     count = 0
     # Leaving the if outside the loops to improve performance
     # The loop will skip elements where Cpus or TotalSlotCpus are not defined
@@ -854,19 +853,21 @@ def countCoresCondorStatus(status_dict, status='TotalCores'):
 # Each element in the list is (req_name, node_name)
 #
 def getFactoryEntryList(status_dict):
-    out=set()
+    out = set()
     for c in status_dict.keys():
-        coll_status_dict=status_dict[c].fetchStored()
+        coll_status_dict = status_dict[c].fetchStored()
         for n in coll_status_dict.keys():
-            el=coll_status_dict[n]
-            if not (el.has_key('GLIDEIN_Entry_Name') and el.has_key('GLIDEIN_Name') and el.has_key('GLIDEIN_Factory') and el.has_key('GLIDECLIENT_ReqNode')):
-                continue # ignore this glidein... no factory info
-            entry_str="%s@%s@%s"%(el['GLIDEIN_Entry_Name'],el['GLIDEIN_Name'],el['GLIDEIN_Factory'])
-            factory_pool=str(el['GLIDECLIENT_ReqNode'])
-            out.add((entry_str,factory_pool))
+            el = coll_status_dict[n]
+            if not (el.has_key('GLIDEIN_Entry_Name') and el.has_key('GLIDEIN_Name') and
+                        el.has_key('GLIDEIN_Factory') and el.has_key('GLIDECLIENT_ReqNode')):
+                continue  # ignore this glidein... no factory info
+            entry_str = "%s@%s@%s" % (el['GLIDEIN_Entry_Name'], el['GLIDEIN_Name'], el['GLIDEIN_Factory'])
+            factory_pool = str(el['GLIDECLIENT_ReqNode'])
+            out.add((entry_str, factory_pool))
 
     return list(out)
         
+
 #
 # Return a dictionary of collectors containing interesting classads
 # Each element is a condorStatus
@@ -881,10 +882,10 @@ def getCondorStatusSchedds(collector_names, constraint=None, format_list=None,
                               format_list,
                               [('TotalRunningJobs', 'i'),
                                ('TotalSchedulerJobsRunning', 'i'),
-                               ('TransferQueueNumUploading','i'),
-                               ('MaxJobsRunning','i'),
-                               ('TransferQueueMaxUploading','i'),
-                               ('CurbMatchmaking','i')])
+                               ('TransferQueueNumUploading', 'i'),
+                               ('MaxJobsRunning', 'i'),
+                               ('TransferQueueMaxUploading', 'i'),
+                               ('CurbMatchmaking', 'i')])
 
     type_constraint = 'True'
     return getCondorStatusConstrained(collector_names, type_constraint,
