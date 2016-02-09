@@ -604,7 +604,7 @@ def getIdleCondorStatus(status_dict):
                 (el.get('Activity') == 'Idle') and
                 (
                     # None != True, no need to set default to False in get()
-                    (el.get('PartitionableSlot') != True) or  
+                    (el.get('PartitionableSlot') != True) or
                     (el.get('TotalSlots') == 1) or
                     (el.get('Cpus', 0) > 0 and el.get('Memory', 2501) > 2500)
                 )

@@ -943,19 +943,19 @@ class glideinFrontendElement:
             limits_triggered['IdleGlideinsGlobal'] = 'count=%i, limit=%i' % (global_total_idle_glideins, self.global_total_max_vms_idle)
 
         if count_status['Idle'] >= self.curb_vms_idle:
-            limits_triggered['CurbIdleGlideinsPerEntry'] = 'count=%i, limit=%i, curbbed' % (count_status['Idle'], self.curb_vms_idle )
+            limits_triggered['CurbIdleGlideinsPerEntry'] = 'count=%i, limit=%i, curbed' % (count_status['Idle'], self.curb_vms_idle )
         if total_glideins >= self.total_curb_glideins:
-            limits_triggered['CurbTotalGlideinsPerGroup'] = 'count=%i, limit=%i, curbbed' % (total_glideins, self.total_curb_glideins)
+            limits_triggered['CurbTotalGlideinsPerGroup'] = 'count=%i, limit=%i, curbed' % (total_glideins, self.total_curb_glideins)
         if total_idle_glideins >= self.total_curb_vms_idle:
-            limits_triggered['CurbIdleGlideinsPerGroup'] = 'count=%i, limit=%i, curbbed' % (total_idle_glideins, self.total_curb_vms_idle)
+            limits_triggered['CurbIdleGlideinsPerGroup'] = 'count=%i, limit=%i, curbed' % (total_idle_glideins, self.total_curb_vms_idle)
         if fe_total_glideins >= self.fe_total_curb_glideins:
-            limits_triggered['CurbTotalGlideinsPerFrontend'] = 'count=%i, limit=%i, curbbed' % (fe_total_glideins, self.fe_total_curb_glideins)
+            limits_triggered['CurbTotalGlideinsPerFrontend'] = 'count=%i, limit=%i, curbed' % (fe_total_glideins, self.fe_total_curb_glideins)
         if fe_total_idle_glideins >= self.fe_total_curb_vms_idle:
-            limits_triggered['CurbIdleGlideinsPerFrontend'] = 'count=%i, limit=%i, curbbed' % (fe_total_idle_glideins, self.fe_total_curb_vms_idle)
+            limits_triggered['CurbIdleGlideinsPerFrontend'] = 'count=%i, limit=%i, curbed' % (fe_total_idle_glideins, self.fe_total_curb_vms_idle)
         if global_total_glideins >= self.global_total_curb_glideins:
-            limits_triggered['CurbTotalGlideinsGlobal'] = 'count=%i, limit=%i, curbbed' % (global_total_glideins, self.global_total_curb_glideins)
+            limits_triggered['CurbTotalGlideinsGlobal'] = 'count=%i, limit=%i, curbed' % (global_total_glideins, self.global_total_curb_glideins)
         if global_total_idle_glideins >= self.global_total_curb_vms_idle:
-            limits_triggered['CurbIdleGlideinsGlobal'] = 'count=%i, limit=%i, curbbed' % (global_total_idle_glideins, self.global_total_curb_vms_idle)
+            limits_triggered['CurbIdleGlideinsGlobal'] = 'count=%i, limit=%i, curbed' % (global_total_idle_glideins, self.global_total_curb_vms_idle)
 
 
         if ( (count_status['Total'] >= self.max_running) or
@@ -1386,6 +1386,8 @@ class glideinFrontendElement:
 
 
     def get_condor_status(self):
+
+        # All slots for this group
         status_dict = {}
         fe_counts = {'Idle':0, 'Total':0}
         global_counts = {'Idle':0, 'Total':0}
@@ -1397,7 +1399,7 @@ class glideinFrontendElement:
         # carve out a slot and there is a chance for over provisioing by a
         # small amount. Over provisioning is by far the worst case than
         # under provisioing.
-        mc_idle_constraint = '(PartitionableSlot=!=True) || (PartitionableSlot=?=True && cpus > 0 && memory > 2500)'
+        #mc_idle_constraint = '(PartitionableSlot=!=True) || (PartitionableSlot=?=True && cpus > 0 && memory > 2500)'
         try:
             # Always get the credential id used to submit the glideins
             # This is essential for proper accounting info related to running
@@ -1417,35 +1419,53 @@ class glideinFrontendElement:
                                      list(self.x509_proxy_plugin.get_required_classad_attributes())
 
             # Consider multicore slots with free cpus/memory only
-            constraint = '(GLIDECLIENT_Name=?="%s.%s") && (%s)' % (
-                self.frontend_name, self.group_name, mc_idle_constraint)
+            #constraint = '(GLIDECLIENT_Name=?="%s.%s") && (%s)' % (
+            #    self.frontend_name, self.group_name, mc_idle_constraint)
+
+            # Consider all slots for this group irrespective of slot type
+            constraint = '(GLIDECLIENT_Name=?="%s.%s")' % (
+                self.frontend_name, self.group_name)
+
             # use the main collector... all adds must go there
             status_dict = glideinFrontendLib.getCondorStatus(
                               [None],
                               constraint=constraint,
                               format_list=status_format_list)
 
-            # also get all the classads for the whole FE for counting
+
+
+
+            # Also get all the classads for the whole FE for counting
             # do it in the same thread, as we are hitting the same collector
             # minimize the number of attributes, since we are
             # really just interest in the counts
+            status_format_list = [
+                ('State', 's'), ('Activity', 's'), ('PartitionableSlot', 's'),
+                ('TotalSlots', 'i'), ('Cpus', 'i'), ('Memory', 'i'),
+            ]
+
             try:
-                # Consider multicore slots with free cpus/memory only
-                constraint = '(substr(GLIDECLIENT_Name,0,%i)=?="%s.") && (%s)' % (
-                    len(self.frontend_name)+1, self.frontend_name, mc_idle_constraint)
+                # PM/MM: Feb 09, 2016
+                # Do not filter unusable partitionable slots here.
+                # Filtering is done at a later stage as needed for idle
+                constraint = '(substr(GLIDECLIENT_Name,0,%i)=?="%s.")' % (
+                    len(self.frontend_name)+1, self.frontend_name)
 
                 fe_status_dict = glideinFrontendLib.getCondorStatus(
                                      [None],
                                      constraint=constraint,
-                                     format_list=[('State', 's'),
-                                                  ('Activity', 's')],
+                                     format_list=status_format_list,
                                      want_format_completion=False)
-                # getAllCondorStatus is used to filter out Dynamic glideins
+
+                # fe_counts: PM/MM: Feb 09, 2016
+                # Idle: Number of useful idle slots from this frontend
+                #       as known to the collector
+                # Total: Number of useful total slots from this frontend
+                #       as known to the collector
                 fe_counts = {
                     'Idle': glideinFrontendLib.countCondorStatus(
                         glideinFrontendLib.getIdleCondorStatus(fe_status_dict)),
-                    'Total': glideinFrontendLib.countCondorStatus(
-                        glideinFrontendLib.getAllCondorStatus(fe_status_dict))
+                    'Total': glideinFrontendLib.countCondorStatus(fe_status_dict)
                 }
                 del fe_status_dict
             except:
@@ -1454,22 +1474,23 @@ class glideinFrontendElement:
 
             # same for all slots
             try:
-                # Consider multicore slots with free cpus/memory only
-                constraint = mc_idle_constraint
-                
+                constraint = 'True'
+
                 global_status_dict = glideinFrontendLib.getCondorStatus(
                                          [None],
                                          constraint=constraint,
                                          want_glideins_only=False,
-                                         format_list=[('State', 's'),
-                                                      ('Activity', 's')],
-                                         want_format_completion=False,)
-                # getAllCondorStatus is used to filter out Dynamic glideins
+                                         format_list=status_format_list,
+                                         want_format_completion=False)
+
+                # global_counts: Is similar to fe_counts except that it
+                #                accounts for all the slots known to the
+                #                collector. i.e. includes monitoring slots,
+                #                local cluster slots, etc
                 global_counts = {
                     'Idle': glideinFrontendLib.countCondorStatus(
                         glideinFrontendLib.getIdleCondorStatus(global_status_dict)),
-                    'Total': glideinFrontendLib.countCondorStatus(
-                        glideinFrontendLib.getAllCondorStatus(global_status_dict))
+                    'Total': glideinFrontendLib.countCondorStatus(global_status_dict)
                 }
                 del global_status_dict
             except:
