@@ -1029,7 +1029,7 @@ class MultiAdvertizeWork:
                         continue
 
                     if (params_obj.request_name in self.factory_constraint):
-                        if (credential_el.type!=factory_auth) and (factory_auth!="Any"):
+                        if (credential_el.type not in factory_auth.split("+")) and (factory_auth!="Any"):
                             logSupport.log.warning("Credential %s does not match auth method %s (for %s), skipping..."%(credential_el.type,factory_auth,params_obj.request_name))
                             continue
                         if (credential_el.trust_domain!=factory_trust) and (factory_trust!="Any"):
