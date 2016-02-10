@@ -5,11 +5,15 @@
 #
 # Description:
 #   Helper script to wrap periodically executed scripts
-#   This script will allow periodic script to be similar to the other script executed at startup
+#   This script will allow periodic script to be similar to the
+#   other scripts executed at startup
 #   Adds error and output processing. Sets up the environment
-#   Contrary to the startup, there may be multiple periodic script running at the same time.
-#   Runs in temporary directory (within the glidein one), but no need to trap exit, worst case glidein will cleanup
-#   Runs as startd_cron (except first test invocation):  stdout is interpreted as classad
+#   Contrary to the startup, there may be multiple periodic scripts
+#   running at the same time.
+#   Runs in temporary directory (within the glidein one), but no
+#   need to trap exit, worst case glidein will cleanup
+#   Runs as startd_cron (except first test invocation): stdout is
+#      interpreted as classad
 # 
 # script_wrapper "$glidein_config" "$s_ffb_id" "$s_name" "$s_fname" 
 #
@@ -19,13 +23,15 @@
 # Attributes returned:
 #  GLIDEIN_PS_FAILED_LIST - list of scripts that failed at least once
 #  GLIDEIN_PS_FAILING_LIST - list of scripts that failed last execution
-#  GLIDEIN_PS_OK - True is no script failed its last execution (GLIDEIN_PS_FAILING_LIST is empty)
+#  GLIDEIN_PS_OK - True is no script failed its last execution
+#                  (GLIDEIN_PS_FAILING_LIST is empty)
 #      At the beginning is published w/ error_genn then directly
 #  GLIDEIN_PS_FAILED_LAST - name of the last script that failed execution
 #  GLIDEIN_PS_FAILED_LAST_REASON - string describing the last failure
-#  GLIDEIN_PS_FAILED_LAST_END - end time (seconds form Epoch) of the last failure
+#  GLIDEIN_PS_FAILED_LAST_END - end time (sec form Epoch) of the last failure
 #  GLIDEIN_PS_LAST (w/ error_gen) - file path of the last script
-#  GLIDEIN_PS_LAST_END (w/ error_gen) - end time of the last script execution (0 for script_wrapper.sh invoked at startup)
+#  GLIDEIN_PS_LAST_END (w/ error_gen) - end time of the last script execution
+#                   (0 for script_wrapper.sh invoked at startup)
 
 # find the real path even if realpath is not installed
 # realpath file
@@ -37,11 +43,10 @@ function robust_realpath {
 
 # input parameters sanityzed
 glidein_config="`robust_realpath $1`"
-s_id="$2"
+s_ffb_id="$2"
 # the name is used in the included functions
 s_name=$3
 s_fname="`robust_realpath $4`"
-
 
 # find error reporting helper script 
 error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
@@ -68,7 +73,8 @@ function add_config_line {
 }
 
 
-# publish to startd classad and to the glidein_config file (key must have no spaces)
+# publish to startd classad and to the glidein_config file
+# (key must have no spaces)
 # publish key value
 function publish {
     prefix=GLIDEIN_PS_
@@ -108,20 +114,20 @@ function failed {
     if [ -n "$tmp_dir" -a -d "$tmp_dir" ]; then
         rm -r "$tmp_dir"
     fi
-    publish FAILED_LAST "$s_name:$s_fname"
-    publish FAILED_LAST_REASON "$1"
+    publish FAILED_LAST "\"$s_name:$s_fname\""
+    publish FAILED_LAST_REASON "\"$1\""
     publish FAILED_LAST_END "$END"
     list_manage add $s_name GLIDEIN_PS_FAILING_LIST
     list_manage add $s_name GLIDEIN_PS_FAILED_LIST
     #TODO: should publish the lists to the schedd classad?
-    publish LAST "$s_fname" 
+    publish LAST "\"$s_fname\""
     publish LAST_END "$END"
     echo "-"
     exit_code=1
     [ -n "$3" ] && exit_code=$3
     if [ "x$2" == "xwrapper" ]; then
         "$error_gen" -error "script_wrapper.sh" Corruption "$1" GLIDEIN_PS_LAST "$s_fname" GLIDEIN_PS_LAST_END "$END"
-        ${main_dir}/error_augment.sh  -process $exit_code "${s_id}/script_wrapper.sh" "$PWD" "script_wrapper.sh $glidein_config" "$START" "$END"
+        ${main_dir}/error_augment.sh  -process $exit_code "${s_ffb_id}/script_wrapper.sh" "$PWD" "script_wrapper.sh $glidein_config" "$START" "$END"
         ${main_dir}/error_augment.sh -concat
     fi
     # cleanup
@@ -135,7 +141,7 @@ function failed {
 
 ### Script starts
 
-vmessage "Executing $s_name: $s_fname $glidein_config $s_id" 
+vmessage "Executing $s_name: $s_fname $glidein_config $s_ffb_id" 
 
 # start_dir should be the same as wrok_dir in glidein_startup.sh and GLIDEIN_WORK_DIR
 start_dir="`pwd`"
@@ -166,10 +172,10 @@ cd "$tmp_dir"
 
 ${main_dir}/error_augment.sh -init
 START=`date +%s`
-"$s_fname" "$glidein_config" "$s_id"
+"$s_fname" "$glidein_config" "$s_ffb_id"
 ret=$?
 END=`date +%s`
-${main_dir}/error_augment.sh  -process $ret "$s_id/`basename "$s_fname"`" "$PWD" "$s_fname $glidein_config" "$START" "$END"  #generating test result document
+${main_dir}/error_augment.sh  -process $ret "$s_ffb_id/`basename "$s_fname"`" "$PWD" "$s_fname $glidein_config" "$START" "$END"  #generating test result document
 ${main_dir}/error_augment.sh -locked-concat
 if [ $? -ne 0 ]; then 
     vmessage "=== Error: unable to save the log file for $s_name ($s_fname): check for orphaned lock file ==="
@@ -185,7 +191,7 @@ fi
 # Ran successfully (failed includes exit)
 vmessage "=== Periodic script ran OK: $s_fname ===" 
 list_manage del $s_name GLIDEIN_PS_FAILING_LIST
-publish LAST "$s_fname" 
+publish LAST "\"$s_fname\""
 publish LAST_END "$END"
 echo "-"
 
@@ -195,6 +201,3 @@ echo "-"
 ### End cleanup
 cd "$start_dir"
 rm -r "$tmp_dir"
-
-
-
