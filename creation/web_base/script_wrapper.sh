@@ -121,7 +121,7 @@ function failed {
     list_manage add $s_name GLIDEIN_PS_FAILED_LIST
     #TODO: should publish the lists to the schedd classad?
     publish LAST "\"$s_fname\""
-    publish LAST_END "\"$END\""
+    publish LAST_END "$END"
     echo "-"
     exit_code=1
     [ -n "$3" ] && exit_code=$3
