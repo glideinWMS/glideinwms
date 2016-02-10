@@ -14,6 +14,7 @@ GLIDEIN_Max_Tail 	I 	400 		+				N	Y	-
 GLIDEIN_Max_Walltime	I	-		+				N	Y	-
 GLIDEIN_Retire_Time 	I 	-		+				N	N	-
 GLIDEIN_Retire_Time_Spread 	I 	-	+				N	N	-
+GLIDEIN_PS_SiteWMS_WN_Draining  C   False       +   N   Y   -
 GLEXEC_JOB		C	True		+				N	Y	-
 GLIDEIN_Use_PGroups	C	False		USE_PROCESS_GROUPS		N	N	-
 UPDATE_COLLECTOR_WITH_TCP	C	True	+				N	N	-
