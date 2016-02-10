@@ -1267,8 +1267,8 @@ STARTD_CRON_${s_name}_KILL = True
 STARTD_CRON_${s_name}_PERIOD = $s_period_sec
 STARTD_CRON_${s_name}_PREFIX = ${s_prefix}_
 STARTD_CRON_${s_name}_EXECUTABLE = $s_wrapper
-STARTD_CRON_${s_name}_ARGS = "$s_name" "$s_fname" "$s_config" "$s_ffb_id"
-STARTD_CRON_${s_name}_CWD = "$s_cwd"
+STARTD_CRON_${s_name}_ARGS = $s_config $s_ffb_id $s_name $s_fname
+STARTD_CRON_${s_name}_CWD = $s_cwd
 STARTD_CRON_${s_name}_SLOTS = 1
 STARTD_CRON_${s_name}_JOB_LOAD = 0.01
 EOF
