@@ -373,7 +373,6 @@ class glideinFrontendElement:
         glideinFrontendLib.appendRealRunning(self.condorq_dict_running,
                                              self.status_dict_types['Running']['dict'])
 
-        # TODO: should IdleCores/RunningCores be commented here?
         self.stats['group'].logGlideins({
              'Total':self.status_dict_types['Total']['abs'],
              'Idle':self.status_dict_types['Idle']['abs'],
@@ -398,7 +397,7 @@ class glideinFrontendElement:
                                self.total_max_vms_idle,
                                self.total_curb_vms_idle, total_running_glideins)
                            )
-        
+
         fe_total_glideins=self.fe_counts['Total']
         fe_total_idle_glideins=self.fe_counts['Idle']
         logSupport.log.info("Frontend glideins found total %i limit %i curb %i; of these idle %i limit %i curb %i" % (fe_total_glideins,
@@ -407,7 +406,7 @@ class glideinFrontendElement:
                                       fe_total_idle_glideins,
                                       self.fe_total_max_vms_idle,
                                       self.fe_total_curb_vms_idle))
-        
+
         global_total_glideins = self.global_counts['Total']
         global_total_idle_glideins = self.global_counts['Idle']
         logSupport.log.info("Overall slots found total %i limit %i curb %i; of these idle %i limit %i curb %i" % (global_total_glideins,
@@ -829,7 +828,7 @@ class glideinFrontendElement:
         }
 
     def populate_status_dict_types(self):
-        status_dict_all = glideinFrontendLib.getAllCondorStatus(self.status_dict)
+        status_dict_non_dynamic = glideinFrontendLib.getCondorStatusNonDynamic(self.status_dict)
         status_dict_idle = glideinFrontendLib.getIdleCondorStatus(self.status_dict)
         status_dict_running = glideinFrontendLib.getRunningCondorStatus(self.status_dict)
         status_dict_failed = glideinFrontendLib.getFailedCondorStatus(self.status_dict)
@@ -838,8 +837,8 @@ class glideinFrontendElement:
 
         self.status_dict_types = {
             'Total': {
-                'dict': status_dict_all,
-                'abs': glideinFrontendLib.countCondorStatus(status_dict_all)
+                'dict': self.status_dict,
+                'abs': glideinFrontendLib.countCondorStatus(self.status_dict)
             },
             'Idle': {
                 'dict': status_dict_idle,
@@ -854,8 +853,8 @@ class glideinFrontendElement:
                 'abs': glideinFrontendLib.countCondorStatus(status_dict_failed)
             },
             'TotalCores': {
-                'dict': status_dict_all,
-                'abs': glideinFrontendLib.countCoresCondorStatus(status_dict_all, 'TotalCores')
+                'dict': status_dict_non_dynamic,
+                'abs': glideinFrontendLib.countCoresCondorStatus(status_dict_non_dynamic, 'TotalCores')
             },
             'IdleCores': {
                 'dict': status_dict_idlecores,
@@ -1191,8 +1190,14 @@ class glideinFrontendElement:
                 c = glideinFrontendLib.getClientCondorStatus(
                         self.status_dict_types[st]['dict'],
                         self.frontend_name, self.group_name,request_name)
-                self.count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
-                count_status=self.count_status_multi[request_name]
+                if st in ('TotalCores', 'IdleCores', 'RunningCores'):
+                    self.count_status_multi[request_name][st] = \
+                        glideinFrontendLib.countCoresCondorStatus(c, status=st)
+                else:
+                    self.count_status_multi[request_name][st] = \
+                        glideinFrontendLib.countCondorStatus(c)
+
+            count_status = self.count_status_multi[request_name]
 
             # ignore matching jobs
             # since we don't have the entry classad, we have no clue how to match
@@ -1392,6 +1397,7 @@ class glideinFrontendElement:
         fe_counts = {'Idle':0, 'Total':0}
         global_counts = {'Idle':0, 'Total':0}
         status_schedd_dict = {}
+
         # Minimum free memory required by CMS jobs is 2500 MB. If we look for
         # less memory in idle MC slot, there is a possibility that we consider
         # it as an idle resource but non of the jobs would match it.
@@ -1399,7 +1405,9 @@ class glideinFrontendElement:
         # carve out a slot and there is a chance for over provisioing by a
         # small amount. Over provisioning is by far the worst case than
         # under provisioing.
+
         #mc_idle_constraint = '(PartitionableSlot=!=True) || (PartitionableSlot=?=True && cpus > 0 && memory > 2500)'
+
         try:
             # Always get the credential id used to submit the glideins
             # This is essential for proper accounting info related to running
@@ -1431,9 +1439,6 @@ class glideinFrontendElement:
                               [None],
                               constraint=constraint,
                               format_list=status_format_list)
-
-
-
 
             # Also get all the classads for the whole FE for counting
             # do it in the same thread, as we are hitting the same collector
@@ -1470,9 +1475,9 @@ class glideinFrontendElement:
                 del fe_status_dict
             except:
                 # This is not critical information, do not fail
-                pass
+                logSupport.log.warning('Error computing slot stats at frontend level. Defaulting to %s' % fe_counts)
 
-            # same for all slots
+            # same for all slots in the collectors
             try:
                 constraint = 'True'
 
@@ -1495,7 +1500,7 @@ class glideinFrontendElement:
                 del global_status_dict
             except:
                 # This is not critical information, do not fail
-                pass
+                logSupport.log.warning('Error computing slot stats at global level. Defaulting to %s' % global_counts)
 
             # Finally, get also the schedd classads
             try:
@@ -1521,10 +1526,10 @@ class glideinFrontendElement:
 
             except:
                 # This is not critical information, do not fail
-                pass
+                logSupport.log.warning('Error gathering job stats from schedd. Defaulting to %s' % status_schedd_dict)
 
         except Exception, ex:
-            logSupport.log.exception("Error in talking to the user pool (condor_status):")
+            logSupport.log.exception("Error talking to the user pool (condor_status):")
 
         return (status_dict, fe_counts, global_counts, status_schedd_dict)
 
@@ -1534,9 +1539,9 @@ class glideinFrontendElement:
         to do the work in parallel. '''
 
         # IS: Heauristics of 100 glideins per fork
-        #     Based on times seem by CMS
+        #     Based on times seen by CMS
         glideins_per_fork = 100
-        
+
         glidein_list=self.glidein_dict.keys()
         # split the list in equal pieces
         # the result is a list of lists
@@ -1567,7 +1572,7 @@ class glideinFrontendElement:
         self.count_real = pipe_out['Real']
         self.count_status_multi = {}
         self.count_status_multi_per_cred = {}
-        for i in range(len(split_glidein_list)):       
+        for i in range(len(split_glidein_list)):
             tmp_count_status_multi = pipe_out[('Glidein',i)][0]
             self.count_status_multi.update(tmp_count_status_multi)
             tmp_count_status_multi_per_cred = pipe_out[('Glidein',i)][1]
@@ -1584,10 +1589,10 @@ class glideinFrontendElement:
         """
         # will make calculations in parallel,using multiple processes
         @return: Tuple of 6 elements
-                 
+
         """
         out = ()
-       
+
         c,p,h,pmc = glideinFrontendLib.countMatch(
                         self.elementDescript.merged_data['MatchExprCompiledObj'],
                         self.condorq_dict_types[dt]['dict'],
@@ -1597,7 +1602,7 @@ class glideinFrontendElement:
         t=glideinFrontendLib.countCondorQ(self.condorq_dict_types[dt]['dict'])
 
         out=(c,p,h,pmc,t)
-        
+
         return out
 
     def subprocess_count_real(self):
@@ -1613,54 +1618,54 @@ class glideinFrontendElement:
     def subprocess_count_glidein(self, glidein_list):
         # will make calculations in parallel,using multiple processes
         out = ()
-       
-        if True: # just for historical reasons, to preserve the indentation
-            count_status_multi={}
-            # PATCH TO FIX CLIENT MONITORING
-            # Count distribution per credentials
-            count_status_multi_per_cred = {}
-            for glideid in glidein_list:
-                request_name=glideid[1]
 
-                count_status_multi[request_name]={}
-                count_status_multi_per_cred[request_name] = {}
+        count_status_multi={}
+        # Count distribution per credentials
+        count_status_multi_per_cred = {}
+        for glideid in glidein_list:
+            request_name=glideid[1]
+
+            count_status_multi[request_name]={}
+            count_status_multi_per_cred[request_name] = {}
+            for cred in self.x509_proxy_plugin.cred_list:
+                count_status_multi_per_cred[request_name][cred.getId()] = {}
+
+            # It is cheaper to get Idle and Running from request-only
+            # classads then filter out requests from Idle and Running
+            # glideins
+            total_req_dict = glideinFrontendLib.getClientCondorStatus(
+                        self.status_dict_types['Total']['dict'],
+                        self.frontend_name, self.group_name, request_name)
+
+            #    'Total': glideinFrontendLib.getAllCondorStatus(total_req_dict),
+            #    'TotalCores': glideinFrontendLib.getAllCondorStatus(total_req_dict),
+            req_dict_types = {
+                'Total': total_req_dict,
+                'Idle': glideinFrontendLib.getIdleCondorStatus(total_req_dict),
+                'Running': glideinFrontendLib.getRunningCondorStatus(total_req_dict),
+                'Failed': glideinFrontendLib.getFailedCondorStatus(total_req_dict),
+                'TotalCores': glideinFrontendLib.getCondorStatusNonDynamic(total_req_dict),
+                'IdleCores': glideinFrontendLib.getIdleCoresCondorStatus(total_req_dict),
+                'RunningCores': glideinFrontendLib.getRunningCoresCondorStatus(total_req_dict),
+            }
+
+            for st in req_dict_types:
+                req_dict = req_dict_types[st]
+                if st in ('TotalCores', 'IdleCores', 'RunningCores'):
+                    count_status_multi[request_name][st]=glideinFrontendLib.countCoresCondorStatus(req_dict, st)
+                else:
+                    count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(req_dict)
+
                 for cred in self.x509_proxy_plugin.cred_list:
-                    count_status_multi_per_cred[request_name][cred.getId()] = {}
-
-                # It is cheaper to get Idle and Running from request-only
-                # classads then filter out requests from Idle and Running
-                # glideins
-                total_req_dict = glideinFrontendLib.getClientCondorStatus(
-                            self.status_dict_types['Total']['dict'],
-                            self.frontend_name, self.group_name, request_name)
-
-                req_dict_types = {
-                    'Total': glideinFrontendLib.getAllCondorStatus(total_req_dict),
-                    'Idle': glideinFrontendLib.getIdleCondorStatus(total_req_dict),
-                    'Running': glideinFrontendLib.getRunningCondorStatus(total_req_dict),
-                    'Failed': glideinFrontendLib.getFailedCondorStatus(total_req_dict),
-                    'TotalCores': glideinFrontendLib.getAllCondorStatus(total_req_dict),
-                    'IdleCores': glideinFrontendLib.getIdleCoresCondorStatus(total_req_dict),
-                    'RunningCores': glideinFrontendLib.getRunningCoresCondorStatus(total_req_dict),
-                }
-
-                for st in req_dict_types:
-                    req_dict = req_dict_types[st]
+                    cred_id=cred.getId()
+                    cred_dict = glideinFrontendLib.getClientCondorStatusCredIdOnly(req_dict,cred_id)
                     if st in ('TotalCores', 'IdleCores', 'RunningCores'):
-                        count_status_multi[request_name][st]=glideinFrontendLib.countCoresCondorStatus(req_dict, st)
+                        count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCoresCondorStatus(cred_dict, st)
                     else:
-                        count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(req_dict)
+                        count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCondorStatus(cred_dict)
 
-                    for cred in self.x509_proxy_plugin.cred_list:
-                        cred_id=cred.getId()
-                        cred_dict = glideinFrontendLib.getClientCondorStatusCredIdOnly(req_dict,cred_id)
-                        if st in ('TotalCores', 'IdleCores', 'RunningCores'):
-                            count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCoresCondorStatus(cred_dict, st)
-                        else:
-                            count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCondorStatus(cred_dict)
+        out = (count_status_multi, count_status_multi_per_cred)
 
-            out = (count_status_multi, count_status_multi_per_cred)
-        
         return out
 
 ############################################################

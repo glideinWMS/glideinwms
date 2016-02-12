@@ -566,13 +566,16 @@ def getCondorStatus(collector_names, constraint=None, format_list=None,
     return getCondorStatusConstrained(collector_names, type_constraint, constraint, format_list)
 
 
-#
-# Return a dictionary of collectors containing all glideins (all static+partitionable slots)
-# Each element is a condorStatus
-#
-# Use the output of getCondorStatus
-#
-def getAllCondorStatus(status_dict):
+
+
+def getCondorStatusNonDynamic(status_dict):
+    """
+    Return a dictionary of collectors containing static+partitionable slots
+    and exclude any dynamic slots
+
+    Each element is a condorStatus
+    Use the output of getCondorStatus
+    """
     out = {}
     for collector_name in status_dict.keys():
         # Exclude partitionable slots with no free memory/cpus
@@ -596,14 +599,25 @@ def getAllCondorStatus(status_dict):
 def getIdleCondorStatus(status_dict):
     out = {}
     for collector_name in status_dict.keys():
+
         # Exclude partitionable slots with no free memory/cpus
+        # Minmum memory required by CMS is 2500 MB
+        #
+        # 1. (el.get('PartitionableSlot') != True)
+        # Includes static slots
+        #
+        # 2. (el.get('TotalSlots') == 1)
+        # p-slots not yet partitioned
+        #
+        # 3. (el.get('Cpus', 0) > 0 and el.get('Memory', 2501) > 2500)
+        # p-slots that have enough idle resources
+
         sq = condorMonitor.SubQuery(
             status_dict[collector_name],
             lambda el: (
                 (el.get('State') == 'Unclaimed') and
                 (el.get('Activity') == 'Idle') and
                 (
-                    # None != True, no need to set default to False in get()
                     (el.get('PartitionableSlot') != True) or
                     (el.get('TotalSlots') == 1) or
                     (el.get('Cpus', 0) > 0 and el.get('Memory', 2501) > 2500)
@@ -641,32 +655,6 @@ def getRunningCondorStatus(status_dict):
                  )
             )
         )
-        """
-        # TODO: PM
-        # Its not clear why the running status considered Unclaimed glideins
-        # This results in the counting partitionable slot against running
-        # counts. I think below is the correct query
-
-                 lambda el:(
-                     ( (el.get('State') == 'Claimed') and
-                       (el.get('Activity') in ('Busy', 'Retiring'))
-                     )
-                     ) )
-
-        # Previous version
-        sq = condorMonitor.SubQuery(
-                 status_dict[collector_name],
-                 lambda el:(
-                     ( (el.get('State') == 'Claimed') and
-                       (el.get('Activity') in ('Busy', 'Retiring'))
-                     ) or
-                     ( (el.get('State') == 'Unclaimed') and
-                       (el.get('Activity') == 'Idle') and
-                       (el.get('PartitionableSlot') == True) and
-                       (el.get('TotalSlots', 1) > 1)
-                     )
-                 ) )
-        """
         sq.load()
         out[collector_name] = sq
     return out
@@ -806,7 +794,8 @@ def countCondorStatus(status_dict):
 # Use the output of getCondorStatus
 #
 def countCoresCondorStatus(status_dict, status='TotalCores'):
-    """Counts the cores in the status dictionary
+    """
+    Counts the cores in the status dictionary
 
     The counting differs depending on the status: 'TotalCores', 'IdleCores', 'RunningCores'
     The status is redundant in part but necessary to handle correctly partitionable slots which are
@@ -823,7 +812,7 @@ def countCoresCondorStatus(status_dict, status='TotalCores'):
     if status == 'TotalCores':
         for collector_name in status_dict.keys():
             for glidein_name, glidein_details in status_dict[collector_name].fetchStored().iteritems():
-                # TotalSlotCpus shuold always be the correct number but is not defined pre partitionable slots
+                # TotalSlotCpus should always be the correct number but is not defined pre partitionable slots
                 if glidein_details.get('PartitionableSlot', False):
                     count += glidein_details.get('TotalSlotCpus', 0)
                 else:
@@ -838,11 +827,7 @@ def countCoresCondorStatus(status_dict, status='TotalCores'):
                 if glidein_details.get('PartitionableSlot', False):
                     cpus_tot_slot = glidein_details.get('TotalSlotCpus')
                     cpus_val = glidein_details.get('Cpus')
-                    try:
-                        count += cpus_tot_slot - cpus_val
-                    except TypeError:
-                        logSupport.log.error("TotalSlotCpus value is None in %s (%s/%s tot.sl/cpu): %s" %
-                                             (glidein_name, cpus_tot_slot, cpus_val, glidein_details))
+                    count += cpus_tot_slot - cpus_val
                 else:
                     count += glidein_details.get('Cpus', 0)
     return count
