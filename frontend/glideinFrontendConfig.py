@@ -306,7 +306,8 @@ class ElementMergedDescript:
 
         proxy_descript_attrs=['ProxySecurityClasses','ProxyTrustDomains',
             'ProxyTypes','ProxyKeyFiles','ProxyPilotFiles','ProxyVMIds',
-            'ProxyVMTypes','ProxyCreationScripts','ProxyUpdateFrequency', 'ProxyVMIdFname', 'ProxyVMTypeFname']
+            'ProxyVMTypes','ProxyCreationScripts','ProxyUpdateFrequency',
+            'ProxyVMIdFname', 'ProxyVMTypeFname', 'ProxyProjectIds']
 
         for attr in proxy_descript_attrs:
             proxy_descript_data={}
@@ -316,7 +317,7 @@ class ElementMergedDescript:
                     for k in dprs.keys():
                         proxy_descript_data[k]=dprs[k]
             self.merged_data[attr]=proxy_descript_data
-        
+
         return
 
     def split_list(self,val):
@@ -326,11 +327,11 @@ class ElementMergedDescript:
             return []
         else:
             return string.split(val,',')
-        
+
 class GroupSignatureDescript:
     def __init__(self,base_dir,group_name):
         self.group_name=group_name
-        
+
         sd=SignatureDescript(base_dir)
         self.signature_data=sd.data
         self.signature_type=sd.signature_type

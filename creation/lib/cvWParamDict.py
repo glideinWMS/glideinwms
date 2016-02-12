@@ -678,14 +678,18 @@ def populate_common_descript(descript_dict, params):
         proxies = []
         proxy_attrs=['security_class','trust_domain','type',
             'keyabsfname','pilotabsfname','vm_id','vm_type',
-            'creation_script','update_frequency', 'vm_id_fname', 'vm_type_fname']
+            'creation_script','update_frequency',
+            'vm_id_fname', 'vm_type_fname', 'project_id']
         proxy_attr_names={'security_class':'ProxySecurityClasses',
             'trust_domain':'ProxyTrustDomains',
             'type':'ProxyTypes','keyabsfname':'ProxyKeyFiles',
             'pilotabsfname':'ProxyPilotFiles',
             'vm_id':'ProxyVMIds','vm_type':'ProxyVMTypes',
             'creation_script':'ProxyCreationScripts',
-            'update_frequency':'ProxyUpdateFrequency', 'vm_id_fname':'ProxyVMIdFname', 'vm_type_fname':'ProxyVMTypeFname'}
+            'update_frequency':'ProxyUpdateFrequency',
+            'vm_id_fname':'ProxyVMIdFname',
+            'vm_type_fname':'ProxyVMTypeFname',
+            'project_id':'ProxyProjectIds'}
         proxy_descript_values={}
         for attr in proxy_attrs:
             proxy_descript_values[attr]={}

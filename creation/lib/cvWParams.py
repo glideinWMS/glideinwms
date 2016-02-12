@@ -136,13 +136,13 @@ class VOFrontendParams(cWParams.CommonParams):
         proxy_defaults["security_class"]=(None,"id","Proxies in the same security class can potentially access each other (Default: proxy_nr)",None)
         proxy_defaults["vm_id_fname"]=(None,"fname","to specify a vm id without reconfig",None)
         proxy_defaults["vm_type_fname"]=(None,"fname","to specify a vm type without reconfig",None)
-
+        proxy_defaults["project_id"] = (None,"string","OSG Project ID. Ex TG-12345", None)
 
         security_defaults=cWParams.commentedOrderedDict()
         security_defaults["proxy_selection_plugin"]=(None,"proxy_name","Which proxy selection plugin should I use (ProxyAll if None)",None)
         security_defaults["credentials"]=([],'List of credentials',"Each proxy element contains",proxy_defaults)
         security_defaults["security_name"]=(None,"frontend_name","What name will we advertize for security purposes?",None)
-        
+
         self.group_defaults=cWParams.commentedOrderedDict()
         self.group_defaults["match"]=match_defaults
         self.group_defaults["enabled"]=("True","Bool","Is this group enabled?",None)
@@ -157,7 +157,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults['frontend_versioning'] = ('True', 'Bool', 'Should we create versioned subdirectories of the type frontend_$frontend_name?', None)
 
         self.defaults['frontend_monitor_index_page'] = ('True', 'Bool', 'Should we create an index.html in the monitoring web directory?',None)
-        
+
         work_defaults=cWParams.commentedOrderedDict()
         work_defaults["base_dir"]=("%s/frontstage"%os.environ["HOME"],"base_dir","Frontend base dir",None)
         work_defaults["base_log_dir"]=("%s/frontlogs"%os.environ["HOME"],"log_dir","Frontend base log dir",None)
