@@ -44,7 +44,6 @@ def strtxt2time( timeStr ):
 # [[[YYYY-]MM-]DD-]HH:MM[:SS]
 # or
 # unix_time
-#HK> used by major commands
 def str2time(timeStr):
     if len( timeStr.split(':',1) )  >  1:
         return strtxt2time(timeStr) # has a :, so it must be a text representation
@@ -53,7 +52,6 @@ def str2time(timeStr):
         return long(timeStr) # should be a simple number
 
 # [HHh][MMm][SS[s]]
-#HK> used by major commands
 def delay2time( delayStr ):
     hours=0
     minutes=0
@@ -79,13 +77,12 @@ def delay2time( delayStr ):
     
     return seconds+60*(minutes+60*hours)
 
-#HK> used by major commands
 def get_downtime_fd( work_dir ):
     frontendDescript    = glideinFrontendConfig.FrontendDescript( work_dir )
     fd = glideinFrontendDowntimeLib.DowntimeFile( os.path.join( work_dir, frontendDescript.data['DowntimesFile']  ) )
     return fd
 
-#HK> major commands ################################################
+# major commands ################################################
 def add( opt_dict ):
     down_fd = get_downtime_fd( opt_dict["dir"] ) # glideinFrontendDowntimeLib.DowntimeFile(  self.elementDescript.frontend_data['DowntimesFile']  )
 
@@ -137,11 +134,7 @@ def printtimes( opt_dict ):
     down_fd = get_downtime_fd( opt_dict["dir"] )
     when=delay2time( opt_dict["delay"]) + long(time.time())
     down_fd.printDowntime( check_time=when )
-#    print 'checkDowntime result is ', down_fd.checkDowntime( check_time=when )
 
-
-
-#HK> used by main
 def get_args(argv):
     opt_dict = {"comment":"",
                 "sec":"All",
@@ -153,14 +146,8 @@ def get_args(argv):
 
 
     for arg in argv:
- #       if (arg == "-factory"):
- #           opt_dict["entry"]="factory"
-
         if (len(argv)<=index+1):
             continue;
-
-#        if (argv[index+1].lower()=="all"):
-#            argv[index+1]="All";
 
         if (arg == "-cmd"):            opt_dict["cmd"]    = argv[index+1]
         if (arg == "-dir"):            opt_dict["dir"]    = argv[index+1]
