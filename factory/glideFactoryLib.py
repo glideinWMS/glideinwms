@@ -1473,6 +1473,7 @@ email_logs = False
             if 'project_id' in jobDescript.data['AuthMethod']:
                 # Append project id to the rsl
                 glidein_rsl = '%s(project=%s)' % (glidein_rsl, submit_credentials.identity_credentials['ProjectId'])
+                exe_env.append('GLIDEIN_PROJECT_ID=%s' % submit_credentials.identity_credentials['ProjectId'])
 
             exe_env.append('GLIDEIN_RSL=%s' % glidein_rsl)
 
