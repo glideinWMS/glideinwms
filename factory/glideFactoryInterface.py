@@ -904,30 +904,27 @@ def createGlideinClientMonitoringFile( fname,
     fd = file(fname, open_type)
     try:
         try:
-
-            ent_key = 'MaxIdle'
+#############################
+            ent_key = 'IdleGlideinsPerEntry'
             if limits_triggered.get(ent_key) is not None:
-                fd.write('%sStatus_Factory_Limits_%s = %s\n' % (factoryConfig.glidein_monitor_prefix,  ent_key, limits_triggered[ent_key]) )
-            ent_key = 'MaxHeld'
+                fd.write('%s_%s = %s\n' % (factoryConfig.glidein_monitor_prefix,  ent_key, limits_triggered[ent_key]) )
+            ent_key = 'HeldGlideinsPerEntry'
             if limits_triggered.get(ent_key) is not None:
-                fd.write('%sStatus_Factory_Limits_%s = %s\n' % (factoryConfig.glidein_monitor_prefix,  ent_key, limits_triggered[ent_key]) )
-            ent_key = 'MaxGlideins'
+                fd.write('%s_%s = %s\n' % (factoryConfig.glidein_monitor_prefix,  ent_key, limits_triggered[ent_key]) )
+            ent_key = 'TotalGlideinsPerEntry'
             if limits_triggered.get(ent_key) is not None:
-                fd.write('%sStatus_Factory_Limits_%s = %s\n' % (factoryConfig.glidein_monitor_prefix,  ent_key, limits_triggered[ent_key]) )
+                fd.write('%s_%s = %s\n' % (factoryConfig.glidein_monitor_prefix,  ent_key, limits_triggered[ent_key]) )
 
             all_frontends = limits_triggered.get('all_frontends')
             for fe_sec_class in all_frontends:
-#                splitkey = fe_sec_class.split(":")
-#                key_sec_class = "_".join( splitkey )
-#                fe_key = '%s_MaxIdle' % key_sec_class
-                fe_key = '%s_MaxIdle' % fe_sec_class
+                fe_key = 'IdlePerClass_%s' % fe_sec_class
                 if limits_triggered.get(fe_key) is not None:
-                   fd.write('%sStatus_Factory_Limits_%s = %s\n' % (factoryConfig.glidein_monitor_prefix,  fe_key, limits_triggered[fe_key] ) )
-#                fe_key = '%s_MaxTotal' % key_sec_class
-                fe_key = '%s_MaxTotal' % fe_sec_class
-                if limits_triggered.get(fe_key) is not None:
-                   fd.write('%sStatus_Factory_Limits_%s = %s\n' % (factoryConfig.glidein_monitor_prefix,  fe_key, limits_triggered[fe_key] ) )
+                   fd.write('%s_%s = %s\n' % (factoryConfig.glidein_monitor_prefix,  fe_key, limits_triggered[fe_key] ) )
 
+                fe_key = 'TotalPerClass_%s' % fe_sec_class
+                if limits_triggered.get(fe_key) is not None:
+                   fd.write('%s_%s = %s\n' % (factoryConfig.glidein_monitor_prefix,  fe_key, limits_triggered[fe_key] ) )
+#############################
             fd.write('MyType = "%s"\n' % factoryConfig.factoryclient_id)
             fd.write('GlideinMyType = "%s"\n' % factoryConfig.factoryclient_id)
             fd.write('GlideinWMSVersion = "%s"\n' % factoryConfig.glideinwms_version)

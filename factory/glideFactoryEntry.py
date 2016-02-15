@@ -398,7 +398,7 @@ class Entry:
             self.glideinTotals.has_entry_exceeded_max_glideins()):
             self.log.warning("Entry %s has hit the limit for total glideins, cannot submit any more" % self.name)
             can_submit_glideins = False
-            total_max_glideins = self.glideinTotals.entry_idle + self.glideinTotals.entry_running + self.glideinTotals.entry_held
+
         # Check if entry has exceeded max held
         if (can_submit_glideins and
             self.glideinTotals.has_entry_exceeded_max_held()):
@@ -472,35 +472,35 @@ class Entry:
         # Advertise the monitoring, use the downtime found in
         # validation of the credentials
 
+##########
         condorQ = self.queryQueuedGlideins()
         glideinTotals = glideFactoryLib.GlideinTotals( self.name, self.frontendDescript, self.jobDescript, condorQ, log=self.log)
 
         if glideinTotals.has_entry_exceeded_max_idle():
-            self.limits_triggered['MaxIdle']     = "MaxIdle_count_%i_limit_%i " % (glideinTotals.entry_idle, glideinTotals.entry_max_idle)
+#            self.limits_triggered['MaxIdle']     = "MaxIdle_count_%i_limit_%i " % (glideinTotals.entry_idle, glideinTotals.entry_max_idle)
+            self.limits_triggered['IdleGlideinsPerEntry']     = "count=%i,limit=%i " % (glideinTotals.entry_idle, glideinTotals.entry_max_idle)
 
         if glideinTotals.has_entry_exceeded_max_held():
-            self.limits_triggered['MaxHeld']     = "MaxHeld_count_%i_limit_%i " % (glideinTotals.entry_held, glideinTotals.entry_max_held)
+            self.limits_triggered['HeldGlideinsPerEntry']     = "count=%i,limit=%i " % (glideinTotals.entry_held, glideinTotals.entry_max_held)
 
         if glideinTotals.has_entry_exceeded_max_glideins():
             total_max_glideins = glideinTotals.entry_idle + glideinTotals.entry_running + glideinTotals.entry_held
-            self.limits_triggered['MaxGlideins'] = "MaxGlideins_count_%i_limit_%i " % (total_max_glideins,   glideinTotals.entry_max_glideins)
+            self.limits_triggered['TotalGlideinsPerEntry']    = "count=%i,limit=%i " % (total_max_glideins,   glideinTotals.entry_max_glideins)
 
         all_frontends = self.frontendDescript.get_all_frontend_sec_classes()
         self.limits_triggered['all_frontends'] = all_frontends
+
         for fe_sec_class in all_frontends:
-#            splitkey = fe_sec_class.split(":")
-#            key_sec_class = "_".join( splitkey )
 
             if glideinTotals.frontend_limits[fe_sec_class]['idle'] > glideinTotals.frontend_limits[fe_sec_class]['max_idle']:
-#                fe_key = '%s_MaxIdle' % key_sec_class
-                fe_key = '%s_MaxIdle' % fe_sec_class
-                self.limits_triggered[fe_key] = "MaxIdle_count_%i_limit_%i" % (glideinTotals.frontend_limits[fe_sec_class]['idle'],glideinTotals.frontend_limits[fe_sec_class]['max_idle'])
+                fe_key = 'IdlePerClass_%s' % fe_sec_class
+                self.limits_triggered[fe_key] = "count=%i,limit=%i" % (glideinTotals.frontend_limits[fe_sec_class]['idle'],glideinTotals.frontend_limits[fe_sec_class]['max_idle'])
 
-            total_fe_glideins = glideinTotals.frontend_limits[fe_sec_class]['idle'] + glideinTotals.frontend_limits[fe_sec_class]['held'] + glideinTotals.frontend_limits[fe_sec_class]['running']
+            total_fe_glideins    = glideinTotals.frontend_limits[fe_sec_class]['idle']+glideinTotals.frontend_limits[fe_sec_class]['held']+glideinTotals.frontend_limits[fe_sec_class]['running']
             if total_fe_glideins > glideinTotals.frontend_limits[fe_sec_class]['max_glideins']:
-#                fe_key = '%s_MaxTotal' % key_sec_class
-                fe_key = '%s_MaxTotal' % fe_sec_class
-                self.limits_triggered[fe_key] = "MaxGlideins_count_%i_limit_%i" % (total_fe_glideins, glideinTotals.frontend_limits[fe_sec_class]['max_glideins'] )
+                fe_key = 'TotalPerClass_%s' % fe_sec_class
+                self.limits_triggered[fe_key] = "count=%i,limit=%i" % (total_fe_glideins, glideinTotals.frontend_limits[fe_sec_class]['max_glideins'] )
+##########
 
         advertizer = gfi.MultiAdvertizeGlideinClientMonitoring(
                          self.gflFactoryConfig.factory_name,
