@@ -188,6 +188,16 @@ class Entry:
         write_descript(self.name, self.jobDescript, self.jobAttributes,
                        self.jobParams, self.monitorDir)
 
+        self.initcondorq = None
+
+        try:
+            self.initcondorq = glideFactoryLib.getCondorQData(self.name, None, self.scheddName, factoryConfig=self.gflFactoryConfig)
+        except Exception, e:
+            self.log.info("Schedd %s not responding, skipping"%self.scheddName)
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],  sys.exc_info()[2])
+            self.log.warning("getCondorQData failed, traceback: %s"%string.join(tb,''))
+            raise e
+
 
     def loadContext(self):
         """
@@ -360,17 +370,19 @@ class Entry:
         @return: Information about the jobs in condor_schedd
         """
 
-        try:
-            return glideFactoryLib.getCondorQData(
-                       self.name, None, self.scheddName,
-                       factoryConfig=self.gflFactoryConfig)
-        except Exception, e:
-            self.log.info("Schedd %s not responding, skipping"%self.scheddName)
-            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
-                                            sys.exc_info()[2])
-            self.log.warning("getCondorQData failed, traceback: %s"%string.join(tb,''))
-            raise e
+#HK> moved to def __init__()
+#        try:
+#            return glideFactoryLib.getCondorQData(
+#                       self.name, None, self.scheddName,
+#                       factoryConfig=self.gflFactoryConfig)
+#        except Exception, e:
+#            self.log.info("Schedd %s not responding, skipping"%self.scheddName)
+#            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+#                                            sys.exc_info()[2])
+#            self.log.warning("getCondorQData failed, traceback: %s"%string.join(tb,''))
+#            raise e
 
+        return self.initcondorq
 
     def glideinsWithinLimits(self, condorQ):
         """
@@ -473,19 +485,24 @@ class Entry:
         # validation of the credentials
 
 ##########
-        condorQ = self.queryQueuedGlideins()
-        glideinTotals = glideFactoryLib.GlideinTotals( self.name, self.frontendDescript, self.jobDescript, condorQ, log=self.log)
+        condorQ = self.initcondorq
+        if condorQ != None:
+            glideinTotals = glideFactoryLib.GlideinTotals( self.name, self.frontendDescript, self.jobDescript, condorQ, log=self.log)
+        else:
+# HK> the following two lines are not desirable solution, def __init__()  must have succeeded in getting condorq data
+# HK> so, I should eventually comment out these two and depend on the exception handling in __init__()
+            condorQ = self.queryQueuedGlideins()
+            glideinTotals = glideFactoryLib.GlideinTotals( self.name, self.frontendDescript, self.jobDescript, condorQ, log=self.log)
 
         if glideinTotals.has_entry_exceeded_max_idle():
-#            self.limits_triggered['MaxIdle']     = "MaxIdle_count_%i_limit_%i " % (glideinTotals.entry_idle, glideinTotals.entry_max_idle)
-            self.limits_triggered['IdleGlideinsPerEntry']     = "count=%i,limit=%i " % (glideinTotals.entry_idle, glideinTotals.entry_max_idle)
+            self.limits_triggered['IdleGlideinsPerEntry']     = "count=%i, limit=%i " % (glideinTotals.entry_idle, glideinTotals.entry_max_idle)
 
         if glideinTotals.has_entry_exceeded_max_held():
-            self.limits_triggered['HeldGlideinsPerEntry']     = "count=%i,limit=%i " % (glideinTotals.entry_held, glideinTotals.entry_max_held)
+            self.limits_triggered['HeldGlideinsPerEntry']     = "count=%i, limit=%i " % (glideinTotals.entry_held, glideinTotals.entry_max_held)
 
         if glideinTotals.has_entry_exceeded_max_glideins():
             total_max_glideins = glideinTotals.entry_idle + glideinTotals.entry_running + glideinTotals.entry_held
-            self.limits_triggered['TotalGlideinsPerEntry']    = "count=%i,limit=%i " % (total_max_glideins,   glideinTotals.entry_max_glideins)
+            self.limits_triggered['TotalGlideinsPerEntry']    = "count=%i, limit=%i " % (total_max_glideins,   glideinTotals.entry_max_glideins)
 
         all_frontends = self.frontendDescript.get_all_frontend_sec_classes()
         self.limits_triggered['all_frontends'] = all_frontends
@@ -494,12 +511,12 @@ class Entry:
 
             if glideinTotals.frontend_limits[fe_sec_class]['idle'] > glideinTotals.frontend_limits[fe_sec_class]['max_idle']:
                 fe_key = 'IdlePerClass_%s' % fe_sec_class
-                self.limits_triggered[fe_key] = "count=%i,limit=%i" % (glideinTotals.frontend_limits[fe_sec_class]['idle'],glideinTotals.frontend_limits[fe_sec_class]['max_idle'])
+                self.limits_triggered[fe_key] = "count=%i, limit=%i" % (glideinTotals.frontend_limits[fe_sec_class]['idle'],glideinTotals.frontend_limits[fe_sec_class]['max_idle'])
 
             total_fe_glideins    = glideinTotals.frontend_limits[fe_sec_class]['idle']+glideinTotals.frontend_limits[fe_sec_class]['held']+glideinTotals.frontend_limits[fe_sec_class]['running']
             if total_fe_glideins > glideinTotals.frontend_limits[fe_sec_class]['max_glideins']:
                 fe_key = 'TotalPerClass_%s' % fe_sec_class
-                self.limits_triggered[fe_key] = "count=%i,limit=%i" % (total_fe_glideins, glideinTotals.frontend_limits[fe_sec_class]['max_glideins'] )
+                self.limits_triggered[fe_key] = "count=%i, limit=%i" % (total_fe_glideins, glideinTotals.frontend_limits[fe_sec_class]['max_glideins'] )
 ##########
 
         advertizer = gfi.MultiAdvertizeGlideinClientMonitoring(
