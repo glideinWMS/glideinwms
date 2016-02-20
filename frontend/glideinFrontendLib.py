@@ -99,6 +99,14 @@ def getRunningCondorQ(condorq_dict):
     return out
 
 def appendRealRunning(condorq_dict, status_dict):
+    """Adds provenance information from condor_status to the condor_q dictionary
+    The name of static or pslots is the value of RemoteHost
+    NOTE: HTC 8.5 may change RemoteHost to be the DynamicSlot name
+
+    :param condorq_dict: adding 'RunningOn' to each job
+    :param status_dict: running jobs from condor_status
+    :return:
+    """
     for schedd_name in condorq_dict:
         condorq = condorq_dict[schedd_name].fetchStored()
 
@@ -786,6 +794,28 @@ def countCondorStatus(status_dict):
     count = 0
     for collector_name in status_dict.keys():
         count += len(status_dict[collector_name].fetchStored())
+    return count
+
+
+#
+# Return the number of glideins in the dictionary
+#
+def countGlideinsCondorStatus(status_dict):
+    """Return the number of glideins in the dictionary
+
+    :param status_dict: the output of getCondorStatus
+    :return: number of glideins in the dictionary (integer)
+
+    A Glidein is an execution of the glidein_startup.sh script
+     - may be different from job submitted by the factory (for multinode jobs - future)
+     - is different from a slot (or schedd or vm)
+    It defines GLIDEIN_MASTER_NAME which is the part after '@' in the slot name
+    Sets form different collectors are assumed disjunct
+    """
+    count = 0
+    for collector_name in status_dict:
+        slots_dict = status_dict[collector_name].fetchStored()
+        count += len(set([i.split('@', 1)[1] for i in slots_dict.keys()]))
     return count
 
 
