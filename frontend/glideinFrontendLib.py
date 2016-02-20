@@ -609,16 +609,16 @@ def getIdleCondorStatus(status_dict):
     for collector_name in status_dict.keys():
 
         # Exclude partitionable slots with no free memory/cpus
-        # Minmum memory required by CMS is 2500 MB
+        # Minimum memory required by CMS is 2500 MB
         #
         # 1. (el.get('PartitionableSlot') != True)
-        # Includes static slots
+        # Includes static slots irrespective of the free cpu/mem
         #
         # 2. (el.get('TotalSlots') == 1)
         # p-slots not yet partitioned
         #
         # 3. (el.get('Cpus', 0) > 0 and el.get('Memory', 2501) > 2500)
-        # p-slots that have enough idle resources
+        # p-slots that have enough idle resources.
 
         sq = condorMonitor.SubQuery(
             status_dict[collector_name],
@@ -646,23 +646,44 @@ def getIdleCondorStatus(status_dict):
 def getRunningCondorStatus(status_dict):
     out = {}
     for collector_name in status_dict.keys():
-        # TODO: MM - to be discussed within the team
-        # Removing dynamic slots, counting the Partitionable slot as 1, 
-        # considered running if there are some Dynamic slots (TotalSlots>1)
-        # Partitionable slots are always Unclaimed, Idle (redundant)
+       # Consider following slots
+       # 1. Static - running slots
+       # 2. Dynamic slots (They are always running)
+       # 3. p-slot with one or more dynamic slots
+       #    We get them here so we can use them easily in appendRealRunning()
 
         sq = condorMonitor.SubQuery(
-            status_dict[collector_name],
-            lambda el: (
-                ((el.get('State') == 'Claimed') and
-                 (el.get('Activity') in ('Busy', 'Retiring')) and
-                 (el.get('SlotType') != 'Dynamic')
-                 ) or
-                ((el.get('PartitionableSlot') == True) and
-                 (el.get('TotalSlots', 1) > 1)
+                 status_dict[collector_name],
+                 lambda el:(
+                     ( (el.get('State') == 'Claimed') and
+                       (el.get('Activity') in ('Busy', 'Retiring'))
+                     ) or
+                     ( (el.get('PartitionableSlot') == True) and
+                       (el.get('TotalSlots', 1) > 1) )
                  )
-            )
-        )
+        sq.load()
+        out[collector_name] = sq
+    return out
+
+
+#
+# Return a dictionary of collectors containing running(claimed) vms
+# Each element is a condorStatus
+#
+# Use the output of getCondorStatus
+#
+def getRunningPSlotCondorStatus(status_dict):
+    out = {}
+    for collector_name in status_dict.keys():
+        # Get p-slot where there is atleast one dynamic slot
+        sq = condorMonitor.SubQuery(
+                 status_dict[collector_name],
+                 lambda el:(
+                     (el.get('PartitionableSlot') == True) and
+                     (el.get('TotalSlots', 1) > 1)
+                 )
+             )
+
         sq.load()
         out[collector_name] = sq
     return out
@@ -823,43 +844,71 @@ def countGlideinsCondorStatus(status_dict):
 # Return the number of cores in the dictionary
 # Use the output of getCondorStatus
 #
-def countCoresCondorStatus(status_dict, status='TotalCores'):
+def countCoresCondorStatus(status_dict):
+    count = 0
+    for collector_name in status_dict.keys():
+        for glidein_name,glidein_details in status_dict[collector_name].fetchStored().iteritems():
+            count += glidein_details.get('Cpus', 0)
+        
+    return count
+#
+# Return the number of cores in the dictionary
+# Use the output of getCondorStatus
+#
+def countTotalCoresCondorStatus(status_dict):
     """
     Counts the cores in the status dictionary
-
-    The counting differs depending on the status: 'TotalCores', 'IdleCores', 'RunningCores'
-    The status is redundant in part but necessary to handle correctly partitionable slots which are
+    The status is redundant in part but necessary to handle
+    correctly partitionable slots which are
     1 glidein but may have some running cores and some idle cores
-
-    :param status_dict: a dictionary with the Machines to count
-    :param status: one of 'TotalCores', 'IdleCores', 'RunningCores'
-    :type status: str
+    @param status_dict: a dictionary with the Machines to count
+    @type status_dict: str
     """
-    # DBG Troubleshoot #11521  logSupport.log.debug("DBG: couting cores - %s/%s" % (status, status_dict))
     count = 0
-    # Leaving the if outside the loops to improve performance
     # The loop will skip elements where Cpus or TotalSlotCpus are not defined
-    if status == 'TotalCores':
-        for collector_name in status_dict.keys():
-            for glidein_name, glidein_details in status_dict[collector_name].fetchStored().iteritems():
-                # TotalSlotCpus should always be the correct number but is not defined pre partitionable slots
-                if glidein_details.get('PartitionableSlot', False):
-                    count += glidein_details.get('TotalSlotCpus', 0)
-                else:
-                    count += glidein_details.get('Cpus', 0)
-    elif status == 'IdleCores':
-        for collector_name in status_dict.keys():
-            for glidein_name, glidein_details in status_dict[collector_name].fetchStored().iteritems():
+    for collector_name in status_dict:
+        for glidein_name, glidein_details in status_dict[collector_name].fetchStored().iteritems():
+            # TotalSlotCpus should always be the correct number but
+            # is not defined pre partitionable slots
+            if glidein_details.get('PartitionableSlot', False):
+                count += glidein_details.get('TotalSlotCpus', 0)
+            else:
                 count += glidein_details.get('Cpus', 0)
-    elif status == 'RunningCores':
-        for collector_name in status_dict.keys():
-            for glidein_name, glidein_details in status_dict[collector_name].fetchStored().iteritems():
-                if glidein_details.get('PartitionableSlot', False):
-                    cpus_tot_slot = glidein_details.get('TotalSlotCpus')
-                    cpus_val = glidein_details.get('Cpus')
-                    count += cpus_tot_slot - cpus_val
-                else:
-                    count += glidein_details.get('Cpus', 0)
+    return count
+
+
+def countIdleCoresCondorStatus(status_dict):
+    """
+    Counts the cores in the status dictionary
+    The status is redundant in part but necessary to handle
+    correctly partitionable slots which are
+    1 glidein but may have some running cores and some idle cores
+    @param status_dict: a dictionary with the Machines to count
+    @type status_dict: str
+    """
+    count = 0
+    # The loop will skip elements where Cpus or TotalSlotCpus are not defined
+    for collector_name in status_dict:
+        for glidein_name, glidein_details in status_dict[collector_name].fetchStored().iteritems():
+            count += glidein_details.get('Cpus', 0)
+    return count
+
+
+def countRunningCoresCondorStatus(status_dict):
+    """
+    Counts the cores in the status dictionary
+    The status is redundant in part but necessary to handle
+    correctly partitionable slots which are
+    1 glidein but may have some running cores and some idle cores
+    @param status_dict: a dictionary with the Machines to count
+    @type status_dict: str
+    """
+    count = 0
+    # The loop will skip elements where Cpus or TotalSlotCpus are not defined
+    for collector_name in status_dict:
+        for glidein_name, glidein_details in status_dict[collector_name].fetchStored().iteritems():
+            if not glidein_details.get('PartitionableSlot', False):
+                count += glidein_details.get('Cpus', 0)
     return count
 
 

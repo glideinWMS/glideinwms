@@ -828,13 +828,23 @@ class glideinFrontendElement:
         }
 
     def populate_status_dict_types(self):
+        # dict with static + pslot
         status_dict_non_dynamic = glideinFrontendLib.getCondorStatusNonDynamic(self.status_dict)
-        status_dict_idle = glideinFrontendLib.getIdleCondorStatus(self.status_dict)
-        status_dict_running = glideinFrontendLib.getRunningCondorStatus(self.status_dict)
-        status_dict_failed = glideinFrontendLib.getFailedCondorStatus(self.status_dict)
-        status_dict_idlecores = glideinFrontendLib.getIdleCoresCondorStatus(self.status_dict)
-        status_dict_runningcores = glideinFrontendLib.getRunningCoresCondorStatus(self.status_dict)
 
+        # dict with idle static + idle pslot
+        status_dict_idle = glideinFrontendLib.getIdleCondorStatus(self.status_dict)
+
+        # dict with static + dynamic + pslot_with_dyanmic_slot
+        status_dict_running = glideinFrontendLib.getRunningCondorStatus(self.status_dict)
+
+        # dict with pslot_with_dyanmic_slot
+        status_dict_running_pslot = glideinFrontendLib.getRunningPSlotCondorStatus(self.status_dict)
+
+        # dict with failed slots
+        status_dict_failed = glideinFrontendLib.getFailedCondorStatus(self.status_dict)
+
+        # Dict of dict containing sub-dicts and counts for slots in
+        # different states
         self.status_dict_types = {
             'Total': {
                 'dict': self.status_dict,
@@ -844,9 +854,15 @@ class glideinFrontendElement:
                 'dict': status_dict_idle,
                 'abs': glideinFrontendLib.countCondorStatus(status_dict_idle)
             },
+            # For Running, consider static + dynamic + pslot_with_dyanmic_slot
+            # We do this so comparison with the job classad's RemoteHost
+            # can be easily done with the p-slot at the later stage in
+            # appendRealRunning(condor_q_dict, status_dict)
+            # However, while counting we exclude the p-slots that have
+            # one or more dynamic slots
             'Running': {
                 'dict': status_dict_running,
-                'abs': glideinFrontendLib.countCondorStatus(status_dict_running)
+                'abs': glideinFrontendLib.countCondorStatus(status_dict_running) - glideinFrontendLib.countCondorStatus(status_dict_running_pslot)
             },
             'Failed': {
                 'dict': status_dict_failed,
@@ -854,15 +870,15 @@ class glideinFrontendElement:
             },
             'TotalCores': {
                 'dict': status_dict_non_dynamic,
-                'abs': glideinFrontendLib.countCoresCondorStatus(status_dict_non_dynamic, 'TotalCores')
+                'abs': glideinFrontendLib.countTotalCoresCondorStatus(status_dict_non_dynamic)
             },
             'IdleCores': {
-                'dict': status_dict_idlecores,
-                'abs': glideinFrontendLib.countCoresCondorStatus(status_dict_idlecores, 'IdleCores')
+                'dict': status_dict_idle,
+                'abs': glideinFrontendLib.countIdleCoresCondorStatus(status_dict_idlecores)
             },
             'RunningCores': {
-                'dict': status_dict_runningcores,
-                'abs': glideinFrontendLib.countCoresCondorStatus(status_dict_runningcores, 'RunningCores')
+                'dict': status_dict_running,
+                'abs': glideinFrontendLib.countRunningCoresCondorStatus(status_dict_runningcores)
             }
         }
 
@@ -1190,6 +1206,10 @@ class glideinFrontendElement:
                 c = glideinFrontendLib.getClientCondorStatus(
                         self.status_dict_types[st]['dict'],
                         self.frontend_name, self.group_name,request_name)
+                # PM: TODO: Need to fix the Running part?
+                #     We changed the dicts being passed and the running dict
+                #     has pslot corresponding to the dynamic slots.
+                #     while counting we want to exclude these pslots
                 if st in ('TotalCores', 'IdleCores', 'RunningCores'):
                     self.count_status_multi[request_name][st] = \
                         glideinFrontendLib.countCoresCondorStatus(c, status=st)
