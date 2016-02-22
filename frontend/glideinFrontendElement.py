@@ -200,7 +200,8 @@ class glideinFrontendElement:
                 logSupport.log.info("Received signal...exit")
                 rc = 1
             except:
-                logSupport.log.exception("Unhandled exception, dying: ")
+                tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1], sys.exc_info()[2])
+                logSupport.log.exception("Unhandled exception, dying: %s" % tb)
                 rc = 2
         finally:
             pid_obj.relinquish()
@@ -447,7 +448,6 @@ class glideinFrontendElement:
 
         # extract only the attribute names from format list
         self.condorq_match_list = [f[0] for f in self.elementDescript.merged_data['JobMatchAttrs']]
-
 
         self.do_match()
 
