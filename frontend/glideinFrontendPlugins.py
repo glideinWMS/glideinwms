@@ -12,9 +12,12 @@
 #
 
 import os
+import copy
 import time
 import pickle
 import random
+import math
+import collections
 from glideinwms.lib import logSupport
 import glideinFrontendLib
 import glideinFrontendInterface
@@ -75,7 +78,7 @@ class ProxyFirst:
         for cred in self.cred_list:
             if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type not in credential_type.split("+")):
                 continue
             if (params_obj is not None):
                 cred.add_usage_details(params_obj.min_nr_glideins,params_obj.max_run_glideins)
@@ -111,7 +114,7 @@ class ProxyAll:
         for cred in self.cred_list:
             if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type not in credential_type.split("+")):
                 continue
             rtnlist.append(cred)
         if (params_obj is not None):
@@ -166,11 +169,86 @@ class ProxyUserCardinality:
         for cred in self.cred_list:
             if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type not in credential_type.split("+")):
                 continue
             if len(rtnlist)<nr_requested_proxies:
                 rtnlist.append(cred)
         return rtnlist
+
+#####################################################################
+#
+# Given a 'normal' credential, create sub-credentials based on the ProjectName
+# attribute of jobs
+#
+class ProxyProjectName:
+
+    def __init__(self, config_dir, proxy_list):
+        self.cred_list = proxy_list
+        self.proxy_list = proxy_list
+        self.total_jobs = 0
+        self.project_count = {}
+
+    # This plugin depends on the ProjectName and User attributes in the job
+    def get_required_job_attributes(self):
+        return (('ProjectName', 's'), )
+
+    # what glidein attributes are used by this plugin
+    def get_required_classad_attributes(self):
+        return []
+
+    def update_usermap(self, condorq_dict, condorq_dict_types,
+                    status_dict, status_dict_types):
+        self.project_count = {}
+        self.total_jobs = 0
+        # Get both set of users and number of jobs for each user
+        for schedd_name in condorq_dict.keys():
+            condorq_data = condorq_dict[schedd_name].fetchStored()
+            for job in condorq_data.values():
+                if job['JobStatus'] != 1:
+                    continue
+                self.total_jobs += 1
+                if job.get('ProjectName', '') != '':
+                    if job.get('ProjectName') in self.project_count:
+                        self.project_count[job.get('ProjectName', '')] += 1
+                    else:
+                        self.project_count[job.get('ProjectName', '')] = 1
+        return
+
+    def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
+        if not params_obj:
+            logSupport.log.debug("params_obj is None returning the credentials without the project_id Information")
+            return self.proxy_list
+        # Determine a base credential to use; we'll copy this and alter the project ID.
+        base_cred = None
+        for cred in self.proxy_list:
+            if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain != trust_domain):
+                continue
+            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type not in credential_type.split("+")):
+                continue
+            base_cred = cred
+            break
+        if not base_cred:
+            return []
+
+        # Duplicate the base credential; one per project in use.
+        # Assign load proportional to the number of jobs.
+        creds = []
+        for project, job_count in self.project_count.items():
+            if not project:
+                creds.append(base_cred)
+            else:
+                cred_copy = copy.deepcopy(base_cred)
+                cred_copy.project_id = project
+                creds.append(cred_copy)
+
+            cred_max = int(math.ceil(job_count * params_obj.max_run_glideins / float(self.total_jobs)))
+            cred_idle = int(math.ceil(job_count * params_obj.min_nr_glideins / float(self.total_jobs)))
+            creds[-1].add_usage_details(cred_max, cred_idle)
+        return creds
+
+
+
+
 
 ######################################################################
 #
@@ -220,7 +298,7 @@ class ProxyUserRR:
         for cred in self.config_data['proxy_list']:
             if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type not in credential_type.split("+")):
                 continue
             rtnlist.append(cred)
             num_cred=num_cred+1
@@ -366,7 +444,7 @@ class ProxyUserMapWRecycling:
                     cred=user_map[k]['proxy']
                     if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                         continue
-                    if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+                    if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type not in credential_type.split("+")):
                         continue
                     #Someone is already using this credential
                     if (k in users):
@@ -579,7 +657,8 @@ proxy_plugins = {'ProxyAll':ProxyAll,
                'ProxyUserRR':ProxyUserRR,
                'ProxyFirst':ProxyFirst,
                'ProxyUserCardinality':ProxyUserCardinality,
-               'ProxyUserMapWRecycling':ProxyUserMapWRecycling}
+               'ProxyUserMapWRecycling':ProxyUserMapWRecycling,
+               'ProxyProjectName':ProxyProjectName}
 
 
 
