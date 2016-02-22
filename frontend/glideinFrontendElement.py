@@ -874,11 +874,11 @@ class glideinFrontendElement:
             },
             'IdleCores': {
                 'dict': status_dict_idle,
-                'abs': glideinFrontendLib.countIdleCoresCondorStatus(status_dict_idlecores)
+                'abs': glideinFrontendLib.countIdleCoresCondorStatus(status_dict_idle)
             },
             'RunningCores': {
                 'dict': status_dict_running,
-                'abs': glideinFrontendLib.countRunningCoresCondorStatus(status_dict_runningcores)
+                'abs': glideinFrontendLib.countRunningCoresCondorStatus(status_dict_running)
             }
         }
 
