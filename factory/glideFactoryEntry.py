@@ -402,6 +402,32 @@ class Entry:
             self.glideinTotals.has_entry_exceeded_max_held()):
             self.log.warning("Entry %s has hit the limit for held glideins, cannot submit any more" % self.name)
             can_submit_glideins = False
+
+        # set limits_triggered here so that it can be getStated and setStated later
+        glideinTotals = self.glideinTotals
+        if glideinTotals.has_entry_exceeded_max_idle():
+            self.limits_triggered['IdleGlideinsPerEntry']  = 'count=%i, limit=%i'% (glideinTotals.entry_idle, glideinTotals.entry_max_idle)
+
+        if glideinTotals.has_entry_exceeded_max_held():
+            self.limits_triggered['HeldGlideinsPerEntry']  = 'count=%i, limit=%i' % (glideinTotals.entry_held, glideinTotals.entry_max_held)
+
+        if glideinTotals.has_entry_exceeded_max_glideins():
+            total_max_glideins = glideinTotals.entry_idle + glideinTotals.entry_running + glideinTotals.entry_held
+            self.limits_triggered['TotalGlideinsPerEntry'] = 'count=%i, limit=%i' % (total_max_glideins,   glideinTotals.entry_max_glideins)
+
+        all_frontends = self.frontendDescript.get_all_frontend_sec_classes()
+        self.limits_triggered['all_frontends'] = all_frontends
+
+        for fe_sec_class in all_frontends:
+            if glideinTotals.frontend_limits[fe_sec_class]['idle'] > glideinTotals.frontend_limits[fe_sec_class]['max_idle']:
+                fe_key = 'IdlePerClass_%s' % fe_sec_class
+                self.limits_triggered[fe_key] = 'count=%i, limit=%i' % (glideinTotals.frontend_limits[fe_sec_class]['idle'],glideinTotals.frontend_limits[fe_sec_class]['max_idle'])
+
+            total_fe_glideins    = glideinTotals.frontend_limits[fe_sec_class]['idle']+glideinTotals.frontend_limits[fe_sec_class]['held']+glideinTotals.frontend_limits[fe_sec_class]['running']
+            if total_fe_glideins > glideinTotals.frontend_limits[fe_sec_class]['max_glideins']:
+                fe_key = 'TotalPerClass_%s' % fe_sec_class
+                self.limits_triggered[fe_key] = 'count=%i, limit=%i' % (total_fe_glideins, glideinTotals.frontend_limits[fe_sec_class]['max_glideins'] )
+
         return can_submit_glideins
 
 
@@ -469,36 +495,6 @@ class Entry:
 
         # Advertise the monitoring, use the downtime found in
         # validation of the credentials
-
-        # HK self.glideinTotals is set in def find_and_perform_work() and 
-        # def forked_check_and_perform_work() and def compile_pickle_data() of glideFactoryEntryGroup.py 
-        glideinTotals = self.glideinTotals
-        # HK we have to check if this self.glideinTotals has a value because it is set to a value only when a work has been done to this entry
-        if glideinTotals != None:
-
-            if glideinTotals.has_entry_exceeded_max_idle():
-                self.limits_triggered['IdleGlideinsPerEntry']     = "count=%i, limit=%i " % (glideinTotals.entry_idle, glideinTotals.entry_max_idle)
-
-            if glideinTotals.has_entry_exceeded_max_held():
-                self.limits_triggered['HeldGlideinsPerEntry']     = "count=%i, limit=%i " % (glideinTotals.entry_held, glideinTotals.entry_max_held)
-
-            if glideinTotals.has_entry_exceeded_max_glideins():
-                total_max_glideins = glideinTotals.entry_idle + glideinTotals.entry_running + glideinTotals.entry_held
-                self.limits_triggered['TotalGlideinsPerEntry']    = "count=%i, limit=%i " % (total_max_glideins,   glideinTotals.entry_max_glideins)
-
-            all_frontends = self.frontendDescript.get_all_frontend_sec_classes()
-            self.limits_triggered['all_frontends'] = all_frontends
-
-            for fe_sec_class in all_frontends:
-
-                if glideinTotals.frontend_limits[fe_sec_class]['idle'] > glideinTotals.frontend_limits[fe_sec_class]['max_idle']:
-                    fe_key = 'IdlePerClass_%s' % fe_sec_class
-                    self.limits_triggered[fe_key] = "count=%i, limit=%i" % (glideinTotals.frontend_limits[fe_sec_class]['idle'],glideinTotals.frontend_limits[fe_sec_class]['max_idle'])
-
-                total_fe_glideins    = glideinTotals.frontend_limits[fe_sec_class]['idle']+glideinTotals.frontend_limits[fe_sec_class]['held']+glideinTotals.frontend_limits[fe_sec_class]['running']
-                if total_fe_glideins > glideinTotals.frontend_limits[fe_sec_class]['max_glideins']:
-                    fe_key = 'TotalPerClass_%s' % fe_sec_class
-                    self.limits_triggered[fe_key] = "count=%i, limit=%i" % (total_fe_glideins, glideinTotals.frontend_limits[fe_sec_class]['max_glideins'] )
 
         advertizer = gfi.MultiAdvertizeGlideinClientMonitoring(
                          self.gflFactoryConfig.factory_name,
@@ -716,6 +712,7 @@ class Entry:
         state = {
             'client_internals': self.gflFactoryConfig.client_internals,
             'glidein_totals': self.glideinTotals,
+            'limits_triggered': self.limits_triggered,
             'client_stats': self.gflFactoryConfig.client_stats,
             'qc_stats': self.gflFactoryConfig.qc_stats,
             'rrd_stats': self.gflFactoryConfig.rrd_stats,
@@ -763,6 +760,7 @@ class Entry:
         self.gflFactoryConfig.client_internals = state.get('client_internals')
 
         self.glideinTotals = state.get('glidein_totals')
+        self.limits_triggered = state.get('limits_triggered')
 
         self.gflFactoryConfig.log_stats = state['log_stats']
         if self.gflFactoryConfig.log_stats:
