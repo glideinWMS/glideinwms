@@ -574,8 +574,6 @@ def getCondorStatus(collector_names, constraint=None, format_list=None,
     return getCondorStatusConstrained(collector_names, type_constraint, constraint, format_list)
 
 
-
-
 def getCondorStatusNonDynamic(status_dict):
     """
     Return a dictionary of collectors containing static+partitionable slots
@@ -637,43 +635,44 @@ def getIdleCondorStatus(status_dict):
     return out
 
 
-#
-# Return a dictionary of collectors containing running(claimed) vms
-# Each element is a condorStatus
-#
-# Use the output of getCondorStatus
-#
 def getRunningCondorStatus(status_dict):
+    """Return a dictionary of collectors containing running(claimed) slots
+    Each element is a condorStatus
+
+    :param status_dict: output of getCondorStatus
+    :return: dictionary of collectors containing running(claimed) slots
+    """
     out = {}
-    for collector_name in status_dict.keys():
-       # Consider following slots
-       # 1. Static - running slots
-       # 2. Dynamic slots (They are always running)
-       # 3. p-slot with one or more dynamic slots
-       #    We get them here so we can use them easily in appendRealRunning()
+    for collector_name in status_dict:
+        # Consider following slots
+        # 1. Static - running slots
+        # 2. Dynamic slots (They are always running)
+        # 3. p-slot with one or more dynamic slots
+        #    We get them here so we can use them easily in appendRealRunning()
 
         sq = condorMonitor.SubQuery(
-                 status_dict[collector_name],
-                 lambda el:(
-                     ( (el.get('State') == 'Claimed') and
-                       (el.get('Activity') in ('Busy', 'Retiring'))
-                     ) or
-                     ( (el.get('PartitionableSlot') == True) and
-                       (el.get('TotalSlots', 1) > 1) )
-                 )
+                status_dict[collector_name],
+                lambda el: (
+                    ((el.get('State') == 'Claimed') and
+                     (el.get('Activity') in ('Busy', 'Retiring'))
+                    ) or
+                    ((el.get('PartitionableSlot') == True) and
+                     (el.get('TotalSlots', 1) > 1)
+                    )
+                )
         )
         sq.load()
         out[collector_name] = sq
     return out
 
 
-#
-# Return a dictionary of collectors containing running(claimed) vms
-# Each element is a condorStatus
-#
-# Use the output of getCondorStatus
-#
 def getRunningPSlotCondorStatus(status_dict):
+    """Return a dictionary of collectors containing running(claimed) partitionable slots
+    Each element is a condorStatus
+
+    :param status_dict: output of getCondorStatus
+    :return: collectors containing running(claimed) partitionable slots
+    """
     out = {}
     for collector_name in status_dict.keys():
         # Get p-slot where there is atleast one dynamic slot
@@ -690,15 +689,15 @@ def getRunningPSlotCondorStatus(status_dict):
     return out
 
 
-#
-# Return a dictionary of collectors containing running(claimed) vms
-# This includes Fixed slots and Dynamic slots (no partitionable slots)
-# Each one is matched with a single job (gives number of running jobs)
-# Each element is a condorStatus
-#
-# Use the output of getCondorStatus
-#
 def getRunningJobsCondorStatus(status_dict):
+    """Return a dictionary of collectors containing running(claimed) slots
+    This includes Fixed slots and Dynamic slots (no partitionable slots)
+    Each one is matched with a single job (gives number of running jobs)
+    Each element is a condorStatus
+
+    :param status_dict: output of getCondorStatus
+    :return: dictionary of collectors containing running(claimed) slots
+    """
     out = {}
     for collector_name in status_dict.keys():
         # This counts the running slots: fixed (static/not partitionable) or dynamic
@@ -848,7 +847,7 @@ def countGlideinsCondorStatus(status_dict):
 def countCoresCondorStatus(status_dict):
     count = 0
     for collector_name in status_dict.keys():
-        for glidein_name,glidein_details in status_dict[collector_name].fetchStored().iteritems():
+        for glidein_name, glidein_details in status_dict[collector_name].fetchStored().iteritems():
             count += glidein_details.get('Cpus', 0)
         
     return count
@@ -976,7 +975,7 @@ def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format
         if schedd == '':
             logSupport.log.warning("Skipping empty schedd name")
             continue
-        full_constraint = type_constraint[0:] #make copy
+        full_constraint = type_constraint[0:]  # make copy
         if constraint is not None:
             full_constraint = "(%s) && (%s)" % (full_constraint, constraint)
 
@@ -997,6 +996,7 @@ def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format
             
     return out_condorq_dict
 
+
 #
 # Return a dictionary of collectors containing classads of a certain kind 
 # Each element is a condorStatus
@@ -1007,7 +1007,7 @@ def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format
 def getCondorStatusConstrained(collector_names, type_constraint, constraint=None, format_list=None, subsystem_name=None):
     out_status_dict = {}
     for collector in collector_names:
-        full_constraint = type_constraint[0:] #make copy
+        full_constraint = type_constraint[0:]  # make copy
         if constraint is not None:
             full_constraint = "(%s) && (%s)" % (full_constraint, constraint)
 
@@ -1028,6 +1028,7 @@ def getCondorStatusConstrained(collector_names, type_constraint, constraint=None
             out_status_dict[collector] = status
             
     return out_status_dict
+
 
 #############################################
 #
