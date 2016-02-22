@@ -661,6 +661,7 @@ def getRunningCondorStatus(status_dict):
                      ( (el.get('PartitionableSlot') == True) and
                        (el.get('TotalSlots', 1) > 1) )
                  )
+        )
         sq.load()
         out[collector_name] = sq
     return out
