@@ -1212,7 +1212,7 @@ class glideinFrontendElement:
                 #     while counting we want to exclude these pslots
                 if st in ('TotalCores', 'IdleCores', 'RunningCores'):
                     self.count_status_multi[request_name][st] = \
-                        glideinFrontendLib.countCoresCondorStatus(c, status=st)
+                        glideinFrontendLib.countCoresCondorStatus(c)
                 else:
                     self.count_status_multi[request_name][st] = \
                         glideinFrontendLib.countCondorStatus(c)
@@ -1672,7 +1672,12 @@ class glideinFrontendElement:
             for st in req_dict_types:
                 req_dict = req_dict_types[st]
                 if st in ('TotalCores', 'IdleCores', 'RunningCores'):
-                    count_status_multi[request_name][st]=glideinFrontendLib.countCoresCondorStatus(req_dict, st)
+                    # PM: TODO: Need to fix the Running part?
+                    #     We changed the dicts being passed and running dict
+                    #     has pslot corresponding to the dynamic slots.
+                    #     while counting we want to exclude these pslots
+
+                    count_status_multi[request_name][st]=glideinFrontendLib.countCoresCondorStatus(req_dict)
                 else:
                     count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(req_dict)
 
@@ -1680,7 +1685,12 @@ class glideinFrontendElement:
                     cred_id=cred.getId()
                     cred_dict = glideinFrontendLib.getClientCondorStatusCredIdOnly(req_dict,cred_id)
                     if st in ('TotalCores', 'IdleCores', 'RunningCores'):
-                        count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCoresCondorStatus(cred_dict, st)
+                        # PM: TODO: Need to fix the Running part?
+                        #     We changed dicts being passed and running dict
+                        #     has pslot corresponding to the dynamic slots.
+                        #     while counting we want to exclude these pslots
+
+                        count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCoresCondorStatus(cred_dict)
                     else:
                         count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCondorStatus(cred_dict)
 
