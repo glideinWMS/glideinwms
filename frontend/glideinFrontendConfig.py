@@ -178,9 +178,10 @@ class ParamsDescript(JoinConfigFile):
             type_str,val=self.data[k]
             if type_str=='EXPR':
                 try:
-                    self.expr_objs[k]=compile(val,"<string>","eval")
+                    self.expr_objs[k] = compile(val,"<string>","eval")
                 except SyntaxError:
-                    print "There is an error in the attribute, don't need to crash"
+                    self.expr_objs[k] = '""'
+                    raise RuntimeError, "Syntax error in parameter %s" % k
                 self.expr_data[k]=val
             elif type_str=='CONST':
                 self.const_data[k]=val
