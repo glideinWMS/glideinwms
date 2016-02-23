@@ -819,6 +819,21 @@ def countCondorStatus(status_dict):
 
 
 #
+# Return the number of running slots in the dictionary
+# Use the output of getCondorStatus
+#
+def countRunningCondorStatus(status_dict):
+    count = 0
+    # Running sstatus dict has p-slot corresponding to the dynamic slots
+    # The loop will skip elements where slot is p-slot
+    for collector_name in status_dict:
+        for glidein_name, glidein_details in status_dict[collector_name].fetchStored().iteritems():
+            if not glidein_details.get('PartitionableSlot', False):
+                count += 1
+    return count
+
+
+#
 # Return the number of glideins in the dictionary
 #
 def countGlideinsCondorStatus(status_dict):
@@ -841,16 +856,20 @@ def countGlideinsCondorStatus(status_dict):
 
 
 #
-# Return the number of cores in the dictionary
+# Return the number of cores in the dictionary based on the status_type
 # Use the output of getCondorStatus
 #
-def countCoresCondorStatus(status_dict):
+def countCoresCondorStatus(status_dict, state='TotalCores'):
     count = 0
-    for collector_name in status_dict.keys():
-        for glidein_name, glidein_details in status_dict[collector_name].fetchStored().iteritems():
-            count += glidein_details.get('Cpus', 0)
-        
+    if state == 'TotalCores':
+        count = countTotalCoresCondorStatus(status_dict)
+    elif state == 'IdleCores':
+        count = countIdleCoresCondorStatus(status_dict)
+    elif state == 'RunningCores':
+        count = countRunningCoresCondorStatus(status_dict)
     return count
+
+
 #
 # Return the number of cores in the dictionary
 # Use the output of getCondorStatus

@@ -1189,8 +1189,8 @@ class glideinFrontendElement:
         return remove_excess_str
 
     def count_factory_entries_without_classads(self, total_down_stats_arr):
-        # Find out the Factory entries that are running, but for which
-        # Factory ClassAds don't exist
+        # Find out the slots/cores for factory entries that are in various
+        # states, but for which Factory ClassAds don't exist
         #
         factory_entry_list=glideinFrontendLib.getFactoryEntryList(self.status_dict)
         processed_glideid_str_set=frozenset(self.processed_glideid_strs)
@@ -1206,13 +1206,15 @@ class glideinFrontendElement:
                 c = glideinFrontendLib.getClientCondorStatus(
                         self.status_dict_types[st]['dict'],
                         self.frontend_name, self.group_name,request_name)
-                # PM: TODO: Need to fix the Running part?
-                #     We changed the dicts being passed and the running dict
-                #     has pslot corresponding to the dynamic slots.
-                #     while counting we want to exclude these pslots
                 if st in ('TotalCores', 'IdleCores', 'RunningCores'):
                     self.count_status_multi[request_name][st] = \
-                        glideinFrontendLib.countCoresCondorStatus(c)
+                        glideinFrontendLib.countCoresCondorStatus(c, st)
+                elif st == 'Running':
+                    # Running counts are computed differently because of
+                    # the dict composition. Dict also has p-slots
+                    # corresponding to the dynamic slots
+                    self.count_status_multi[request_name][st] = \
+                        glideinFrontendLib.countRunningCondorStatus(c)
                 else:
                     self.count_status_multi[request_name][st] = \
                         glideinFrontendLib.countCondorStatus(c)
@@ -1657,8 +1659,6 @@ class glideinFrontendElement:
                         self.status_dict_types['Total']['dict'],
                         self.frontend_name, self.group_name, request_name)
 
-            #    'Total': glideinFrontendLib.getAllCondorStatus(total_req_dict),
-            #    'TotalCores': glideinFrontendLib.getAllCondorStatus(total_req_dict),
             req_dict_types = {
                 'Total': total_req_dict,
                 'Idle': glideinFrontendLib.getIdleCondorStatus(total_req_dict),
@@ -1672,25 +1672,27 @@ class glideinFrontendElement:
             for st in req_dict_types:
                 req_dict = req_dict_types[st]
                 if st in ('TotalCores', 'IdleCores', 'RunningCores'):
-                    # PM: TODO: Need to fix the Running part?
-                    #     We changed the dicts being passed and running dict
-                    #     has pslot corresponding to the dynamic slots.
-                    #     while counting we want to exclude these pslots
-
-                    count_status_multi[request_name][st]=glideinFrontendLib.countCoresCondorStatus(req_dict)
+                    count_status_multi[request_name][st]=glideinFrontendLib.countCoresCondorStatus(req_dict, st)
+                elif st == 'Running':
+                    # Running counts are computed differently because of
+                    # the dict composition. Dict also has p-slots
+                    # corresponding to the dynamic slots
+                    count_status_multi[request_name][st] = \
+                        glideinFrontendLib.countRunningCondorStatus(req_dict)
                 else:
                     count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(req_dict)
 
                 for cred in self.x509_proxy_plugin.cred_list:
                     cred_id=cred.getId()
                     cred_dict = glideinFrontendLib.getClientCondorStatusCredIdOnly(req_dict,cred_id)
-                    if st in ('TotalCores', 'IdleCores', 'RunningCores'):
-                        # PM: TODO: Need to fix the Running part?
-                        #     We changed dicts being passed and running dict
-                        #     has pslot corresponding to the dynamic slots.
-                        #     while counting we want to exclude these pslots
 
-                        count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCoresCondorStatus(cred_dict)
+                    if st in ('TotalCores', 'IdleCores', 'RunningCores'):
+                        count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCoresCondorStatus(cred_dict, st)
+                    elif st == 'Running':
+                        # Running counts are computed differently because of
+                        # the dict composition. Dict also has p-slots
+                        # corresponding to the dynamic slots
+                        count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countRunningCondorStatus(cred_dict)
                     else:
                         count_status_multi_per_cred[request_name][cred_id][st] = glideinFrontendLib.countCondorStatus(cred_dict)
 
