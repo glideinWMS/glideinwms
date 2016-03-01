@@ -423,10 +423,10 @@ class Entry:
                 fe_key = 'IdlePerClass_%s' % fe_sec_class
                 self.limits_triggered[fe_key] = 'count=%i, limit=%i' % (glideinTotals.frontend_limits[fe_sec_class]['idle'],glideinTotals.frontend_limits[fe_sec_class]['max_idle'])
 
-            total_fe_glideins    = glideinTotals.frontend_limits[fe_sec_class]['idle']+glideinTotals.frontend_limits[fe_sec_class]['held']+glideinTotals.frontend_limits[fe_sec_class]['running']
-            if total_fe_glideins > glideinTotals.frontend_limits[fe_sec_class]['max_glideins']:
+            total_sec_class_glideins = glideinTotals.frontend_limits[fe_sec_class]['idle']+glideinTotals.frontend_limits[fe_sec_class]['held']+glideinTotals.frontend_limits[fe_sec_class]['running']
+            if total_sec_class_glideins > glideinTotals.frontend_limits[fe_sec_class]['max_glideins']:
                 fe_key = 'TotalPerClass_%s' % fe_sec_class
-                self.limits_triggered[fe_key] = 'count=%i, limit=%i' % (total_fe_glideins, glideinTotals.frontend_limits[fe_sec_class]['max_glideins'] )
+                self.limits_triggered[fe_key] = 'count=%i, limit=%i' % (total_sec_class_glideins, glideinTotals.frontend_limits[fe_sec_class]['max_glideins'] )
 
         return can_submit_glideins
 
@@ -526,9 +526,10 @@ class Entry:
                 if p in params.keys():
                     params[p] = fparams[p]
 
-            advertizer.add( client_internals["CompleteName"],
+            advertizer.add(client_internals["CompleteName"],
                            client_name, client_internals["ReqName"],
-                           params, client_monitors.copy(), self.limits_triggered )
+                           params, client_monitors.copy(),
+                           self.limits_triggered)
 
         try:
             advertizer.writeToMultiClassadFile(gfc_filename)
