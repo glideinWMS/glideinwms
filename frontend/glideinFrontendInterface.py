@@ -1363,7 +1363,7 @@ class ResourceClassad(classadSupport.Classad):
             else:
                 classadmessage = "GlideResource_Limit_"+k
                 
-            self.adParams[classadmessage] = 'CurbLimit'
+            self.adParams[classadmessage] = v
 
 
 class ResourceClassadAdvertiser(classadSupport.ClassadAdvertiser):
