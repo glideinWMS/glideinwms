@@ -498,8 +498,9 @@ class glideinFrontendElement:
 
             count_jobs={}   # straight match
             prop_jobs={}    # proportional subset for this entry
-            prop_mc_jobs={} # proportional subset for this entry for multicore
-            hereonly_jobs={} # can only run on this site
+            # proportional subset of jobs for this entry scaled also for multicore (requested cores/available cores)
+            prop_mc_jobs={}  
+            hereonly_jobs={}  # can only run on this site
             for dt in condorq_dict_types.keys():
                 count_jobs[dt] = condorq_dict_types[dt]['count'][glideid]
                 prop_jobs[dt] = condorq_dict_types[dt]['prop'][glideid]
