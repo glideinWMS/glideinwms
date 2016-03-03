@@ -1269,6 +1269,9 @@ def releaseGlideins(schedd_name, jid_list, log=logSupport.log,
 
     is_not_first = 0
     for jid in jid_list:
+        if len(released_jids) > factoryConfig.max_releases:
+            break # limit reached, stop
+
         if is_not_first:
             is_not_first = 1
             time.sleep(factoryConfig.release_sleep)
@@ -1278,8 +1281,6 @@ def releaseGlideins(schedd_name, jid_list, log=logSupport.log,
         except condorExe.ExeError, e:
             log.warning("releaseGlidein(%s,%li.%li): %s" % (schedd_name, jid[0], jid[1], e))
 
-        if len(released_jids) >= factoryConfig.max_releases:
-            break # limit reached, stop
     log.info("Released %i glideins on %s: %s" % (len(released_jids), schedd_name, released_jids))
 
 
@@ -1472,6 +1473,7 @@ email_logs = False
             if 'project_id' in jobDescript.data['AuthMethod']:
                 # Append project id to the rsl
                 glidein_rsl = '%s(project=%s)' % (glidein_rsl, submit_credentials.identity_credentials['ProjectId'])
+                exe_env.append('GLIDEIN_PROJECT_ID=%s' % submit_credentials.identity_credentials['ProjectId'])
 
             exe_env.append('GLIDEIN_RSL=%s' % glidein_rsl)
 

@@ -177,7 +177,11 @@ class ParamsDescript(JoinConfigFile):
         for k in self.data.keys():
             type_str,val=self.data[k]
             if type_str=='EXPR':
-                self.expr_objs[k]=compile(val,"<string>","eval")
+                try:
+                    self.expr_objs[k] = compile(val,"<string>","eval")
+                except SyntaxError:
+                    self.expr_objs[k] = '""'
+                    raise RuntimeError, "Syntax error in parameter %s" % k
                 self.expr_data[k]=val
             elif type_str=='CONST':
                 self.const_data[k]=val
@@ -280,7 +284,8 @@ class ElementMergedDescript:
 
         proxy_descript_attrs=['ProxySecurityClasses','ProxyTrustDomains',
             'ProxyTypes','ProxyKeyFiles','ProxyPilotFiles','ProxyVMIds',
-            'ProxyVMTypes','ProxyCreationScripts','ProxyUpdateFrequency']
+            'ProxyVMTypes','ProxyCreationScripts','ProxyUpdateFrequency',
+            'ProxyProjectIds']
 
         for attr in proxy_descript_attrs:
             proxy_descript_data={}
