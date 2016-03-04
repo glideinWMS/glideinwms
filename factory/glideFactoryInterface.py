@@ -74,6 +74,9 @@ class FactoryConfig:
         # String to prefix for the monitoring
         self.glidein_monitor_prefix = "GlideinMonitor"
 
+        # String to prefix for the configured limits
+        self.glidein_config_prefix = "GlideinConfig"
+
         # String to prefix for the requests
         self.client_req_prefix = "Req"
 
@@ -503,7 +506,7 @@ class EntryClassad(classadSupport.Classad):
     def __init__(self, factory_name, glidein_name, entry_name,
                  trust_domain, auth_method, supported_signtypes,
                  pub_key_obj=None, glidein_attrs={}, glidein_params={},
-                 glidein_monitors={}):
+                 glidein_monitors={}, glidein_config_limits={}):
         """
         Class Constructor
 
@@ -547,7 +550,8 @@ class EntryClassad(classadSupport.Classad):
         # write out both the attributes, params and monitors
         for (prefix,data) in ((factoryConfig.glidein_attr_prefix,glidein_attrs),
                               (factoryConfig.glidein_param_prefix,glidein_params),
-                              (factoryConfig.glidein_monitor_prefix,glidein_monitors)):
+                              (factoryConfig.glidein_monitor_prefix,glidein_monitors),
+                              (factoryConfig.glidein_config_prefix,glidein_config_limits)):
             for attr in data.keys():
                 el=data[attr]
                 if type(el)==type(1):
