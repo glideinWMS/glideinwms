@@ -60,6 +60,9 @@ class FrontendConfig:
         # String to prefix for the monitors
         self.glidein_monitor_prefix = "GlideinMonitor"
 
+        # String to prefix for the configured limits
+        self.glidein_config_prefix = "GlideinConfig"
+
         # String to prefix for the requests
         self.client_req_prefix = "Req"
 
@@ -1332,7 +1335,12 @@ class ResourceClassad(classadSupport.Classad):
         available_attrs = set(info.keys())
         publish_attrs = available_attrs - eliminate_attrs
         for attr in publish_attrs:
-            self.adParams[attr] = info[attr]
+            ad_key = attr
+            if attr.startswith(frontendConfig.glidein_config_prefix):
+                # Condvert GlideinConfig -> GlideFactoryConfig
+                ad_key = attr.replace(frontendConfig.glidein_config_prefix,
+                                      'GlideFactoryConfig', 1)
+            self.adParams[ad_key] = info[attr]
 
     
     def setGlideFactoryMonitorInfo(self, info):

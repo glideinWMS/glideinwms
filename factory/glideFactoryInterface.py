@@ -75,7 +75,7 @@ class FactoryConfig:
         self.glidein_monitor_prefix = "GlideinMonitor"
 
         # String to prefix for the configured limits
-        self.glidein_config_prefix = "GlideFactoryConfig"
+        self.glidein_config_prefix = "GlideinConfig"
 
         # String to prefix for the requests
         self.client_req_prefix = "Req"
