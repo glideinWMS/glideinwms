@@ -390,7 +390,8 @@ def add_attr_unparsed_real(attr_name,params,dicts):
         raise RuntimeError, "Attribute '%s' does not have a value: %s"%(attr_name,attr_obj)
 
     is_parameter = is_true(attr_obj.parameter)
-    is_expr=(attr_obj.type=="expr")
+    # attr_obj.type=="expr" is now used for HTCondor expression
+    is_expr = False
     attr_val=params.extract_attr_val(attr_obj)
     
     if is_parameter:

@@ -429,7 +429,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                     logSupport.log.exception("Error occurred processing the globals classads: ")
 
 
-            logSupport.log.info("Checking EntryGroups %s" % group)
+            logSupport.log.info("Checking EntryGroups %s" % childs.keys())
             for group in childs:
                 entry_names = string.join(entry_groups[group], ':')
                 child = childs[group]
