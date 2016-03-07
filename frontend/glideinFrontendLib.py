@@ -504,7 +504,7 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
                         schedd_count+=len(cq_dict_clusters_el[jh])
                         for jid in cq_dict_clusters_el[jh]:
                             job = condorq_data[jid]
-                            glidein_ids.add(job.get('RemoteHost', "%d %s" % (scheddIdx, jid)))
+                            glidein_ids.add("%d %s" % (scheddIdx, jid))
                 except KeyError, e:
                     tb = traceback.format_exception(sys.exc_info()[0],
                                                     sys.exc_info()[1],
@@ -519,11 +519,11 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
             if missing_keys:
                 logSupport.log.debug("Failed to evaluate resource match in countRealRunning. Possibly match_expr has errors and trying to reference job or site attribute(s) '%s' in an inappropriate way." % (','.join(missing_keys)))
             if tb_count > 0:
-                logSupport.log.debug("There were %s exceptions in countRealRunning subprocess. Most recent traceback: %s " % (tb_count, recent_tb))
-            glidein_count+=schedd_count
-        logSupport.log.debug("Example running glidein ids at %s (total %d): %s" % (glidename, len(glidein_ids), ", ".join(list(glidein_ids)[:5])))
-        glidein_count = len(glidein_ids)
-        out_glidein_counts[glidename]=glidein_count
+                logSupport.log.debug("There were %s exceptions in countRealRunning subprocess. Most recent traceback: %s" % (tb_count, recent_tb))
+            glidein_count += schedd_count
+        logSupport.log.debug("Example running glidein ids at %s (total %d, cluster matches: %d): %s" %
+                             (glidename, len(glidein_ids), glidein_count, ", ".join(list(glidein_ids)[:5])))
+        out_glidein_counts[glidename] = len(glidein_ids)
     return out_glidein_counts
 
 #
