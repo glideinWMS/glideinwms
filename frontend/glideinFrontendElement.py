@@ -133,6 +133,10 @@ class glideinFrontendElement:
         self.request_removal_excess_only = False
         self.ha_mode = glideinFrontendLib.getHAMode(self.elementDescript.frontend_data)
 
+        # Initializing some monitoring variables
+        self.count_real_jobs = {}
+        self.count_real_glideins = {}
+
 
     def configure(self):
         ''' Do some initial configuration of the element. '''
@@ -544,7 +548,7 @@ class glideinFrontendElement:
             # idle jobs, running jobs and idle slots
             glidein_max_run = self.compute_glidein_max_run(
                                   prop_mc_jobs,
-                                  self.count_real[glideid],
+                                  self.count_real_glideins[glideid],
                                   count_status['Idle'])
 
             remove_excess_str = self.choose_remove_excess_type(
@@ -553,7 +557,7 @@ class glideinFrontendElement:
             this_stats_arr = (prop_jobs['Idle'], count_jobs['Idle'],
                               effective_idle, prop_jobs['OldIdle'],
                               hereonly_jobs['Idle'], count_jobs['Running'],
-                              self.count_real[glideid], self.max_running,
+                              self.count_real_jobs[glideid], self.max_running,
                               count_status['Total'],
                               count_status['Idle'],
                               count_status['Running'],
@@ -566,7 +570,7 @@ class glideinFrontendElement:
             self.stats['group'].logMatchedJobs(
                 glideid_str, prop_jobs['Idle'], effective_idle,
                 prop_jobs['OldIdle'], count_jobs['Running'],
-                self.count_real[glideid])
+                self.count_real_jobs[glideid])
 
             self.stats['group'].logMatchedGlideins(
                 glideid_str, count_status['Total'], count_status['Idle'],
@@ -605,7 +609,7 @@ class glideinFrontendElement:
             glidein_monitors_per_cred = {}
             for t in count_jobs:
                 glidein_monitors[t] = count_jobs[t]
-            glidein_monitors['RunningHere'] = self.count_real[glideid]
+            glidein_monitors['RunningHere'] = self.count_real_jobs[glideid]
 
             for t in count_status:
                 glidein_monitors['Glideins%s' % t] = count_status[t]
@@ -1603,7 +1607,7 @@ class glideinFrontendElement:
             # c, p, h, pmc, t returned by  subprocess_count_dt(self, dt)
             (el['count'], el['prop'], el['hereonly'], el['prop_mc'], el['total'])=pipe_out[dt]
 
-        self.count_real = pipe_out['Real']
+        (self.count_real_jobs, self.count_real_glideins) = pipe_out['Real']
         self.count_status_multi = {}
         self.count_status_multi_per_cred = {}
         for i in range(len(split_glidein_list)):

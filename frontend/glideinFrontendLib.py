@@ -454,11 +454,25 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
 
 def countRealRunning(match_obj, condorq_dict, glidein_dict,
                      attr_dict, condorq_match_list=None):
+    """
+    Counts all the running jobs on an entry
+    :param match_obj: selection for the jobs
+    :param condorq_dict: result of condor_q, keyed by schedd name
+    :param glidein_dict: glideins, keyed by entry (glidename)
+    :param attr_dict: entry attributes, NOT USED
+    :param condorq_match_list: match attributes used for clustering
+    :return: Tuple with the job counts (used for stats) and glidein counts (used for glidein_max_run)
+      Both are dictionaries keyed by glidename (entry)
+    """
 
+    out_job_counts={}
     out_glidein_counts={}
 
     if condorq_match_list is not None:
         condorq_match_list=condorq_match_list+['RunningOn']
+    # add an else branch in case the initial list is None? Probably should never happen
+    # else:
+    #     condorq_match_list = ['RunningOn']
 
     schedds=condorq_dict.keys()
     nr_schedds=len(schedds)
@@ -482,14 +496,24 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
         # split by : to remove port number if there
         glide_str = "%s@%s" % (glidename[1],glidename[0].split(':')[0])
         glidein=glidein_dict[glidename]
-        glidein_count=0
+        glidein_count = 0
+        # Sets are necessary to remove duplicates
+        # job_ids counts all the jobs running on the current entry (Running here stats)
+        #   job_ID+schedd_ID identifies a job, set() is used to merge jobs matched by multiple auto-clusters
+        # glidein_ids counts the glideins: multiple jobs could run on the same glidein, RemoteHost
+        #   (without the initial slotN@ part) identifies the glidein
+        #   i.e. multiple jobs with same RemoteHost run on the same slot, removing slotN@ gives all the slots
+        #        running on the same glidein
+        #   The slot part will change in HTCondor 8.5, where dynamic slots will have their name instead of the
+        #   pslot name but removing slotN_N@ will still identify the glidein (so this code is robust to the change)
+        job_ids = set()
         glidein_ids = set()
         for scheddIdx in range(nr_schedds):
-            schedd=schedds[scheddIdx]
-            cq_dict_clusters_el=cq_dict_clusters[scheddIdx]
-            condorq=condorq_dict[schedd]
-            condorq_data=condorq.fetchStored()
-            schedd_count=0
+            schedd = schedds[scheddIdx]
+            cq_dict_clusters_el = cq_dict_clusters[scheddIdx]
+            condorq = condorq_dict[schedd]
+            condorq_data = condorq.fetchStored()
+            schedd_count = 0
 
             missing_keys = set()
             tb_count = 0
@@ -504,7 +528,14 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
                         schedd_count+=len(cq_dict_clusters_el[jh])
                         for jid in cq_dict_clusters_el[jh]:
                             job = condorq_data[jid]
-                            glidein_ids.add("%d %s" % (scheddIdx, jid))
+                            job_ids.add("%d %s" % (scheddIdx, jid))
+                            # slotN@ is not part of the glidein ID
+                            try:
+                                glidein_id = job['RemoteHost'].split('@', 1)[1]
+                            except (KeyError, IndexError):
+                                # RemoteHost is missing or has a different format
+                                glidein_id = "%d %s" % (scheddIdx, jid)
+                            glidein_ids.add(glidein_id)
                 except KeyError, e:
                     tb = traceback.format_exception(sys.exc_info()[0],
                                                     sys.exc_info()[1],
@@ -521,10 +552,11 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
             if tb_count > 0:
                 logSupport.log.debug("There were %s exceptions in countRealRunning subprocess. Most recent traceback: %s" % (tb_count, recent_tb))
             glidein_count += schedd_count
-        logSupport.log.debug("Example running glidein ids at %s (total %d, cluster matches: %d): %s" %
-                             (glidename, len(glidein_ids), glidein_count, ", ".join(list(glidein_ids)[:5])))
+        logSupport.log.debug("Example running glidein ids at %s (total glideins: %d, total jobs %d, cluster matches: %d): %s" %
+                             (glidename, len(glidein_ids), len(job_ids), glidein_count, ", ".join(list(glidein_ids)[:5])))
+        out_job_counts[glidename] = len(job_ids)
         out_glidein_counts[glidename] = len(glidein_ids)
-    return out_glidein_counts
+    return out_job_counts, out_glidein_counts
 
 #
 # Convert frontend param expression in a value
