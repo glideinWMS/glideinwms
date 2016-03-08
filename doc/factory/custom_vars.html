@@ -240,7 +240,7 @@ by the VO factory clients.</P>
         <TD> Exp (Bool)</td>
 
         <TD> True </TD>
-        <TD ROWSPAN=2>
+        <TD>
             <P>Condor expression to use to specify when a user job in the glideins should be held. 
             If any expression is true, the glidein is held.  This is usually done to specify "bad"
             jobs, such as those that claim too much memory.
@@ -251,18 +251,18 @@ by the VO factory clients.</P>
         <td> <b>GLIDEIN_Entry_PREEMPT</b> </td>
         <TD> Exp (Bool)</td>
         <TD>True </TD>
+        <TD ROWSPAN=2>
+            <P>Condor expression to use to specify when a user job in the glideins should be preempted. 
+            If any expression is true, the glidein is preempted.  This is usually done to specify 
+            custom preemption policies for user jobs.
+        </TD>
+
     </TR>
     <TR>
         <td> <b>GLIDEIN_PREEMPT</b> </td>
         <TD> Exp (Bool)</td>
 
         <TD> True </TD>
-        <TD>
-            <P>Condor expression to use to specify when a user job in the glideins should be preempted. 
-            If any expression is true, the glidein is preempted.  This is usually done to specify 
-            custom preemption policies for user jobs.
-        </TD>
-
     </TR>
 
     <TR>
