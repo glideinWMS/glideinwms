@@ -21,9 +21,9 @@ $0 -r [options] LOG_TYPE JOB_ID
 $0 -l
   LOG_TYPE HTCondor log to extract from the job logfile: 
            all (all logs), master, startd, starter, startdhistory, xml
-  LOGFILE  Job log file
+  LOGFILE  Job log file (stderr from a glidein)
   ENTRY    Entry name
-  JOB_ID   HTCondor job id. By default picks the last job with a valid log file
+  JOB_ID   HTCondor job (glidein) id. By default picks the last job with a valid log file
   -v       verbose
   -h       print this message
   -l       list all entries (arguments are ignored)
