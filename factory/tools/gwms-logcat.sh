@@ -31,7 +31,7 @@ $0 -l
   -u USER  to use a different user (job owner) from the default frontend one
   -r       Remote running jobs. pilot_launcher.log is fetched form the VM 
   -c FNAME Factory configuration file (default: /etc/gwms-factory/glideinWMS.xml)
-  -f URL   Forward the information (to a fodler: file:///path/ via copy or a URL http:// via post)
+  -f URL   Forward the information (to a folder: file:///path/ via copy or a URL http:// via post)
 EOF
 }
 
