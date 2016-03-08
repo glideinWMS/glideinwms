@@ -674,6 +674,7 @@ class MultiAdvertizeWork:
         self.adname = None
         self.x509_proxies_data = []
         self.ha_mode = 'master'
+        self.glidein_config_limits = {}
 
     # add a request to the list
     def add(self,
@@ -1103,8 +1104,12 @@ class MultiAdvertizeWork:
                 fd.write('WebMonitoringURL = "%s"\n'%descript_obj.monitoring_web_url)
                          
                 # write out both the params 
-                for (prefix, data) in ((frontendConfig.glidein_param_prefix, params_obj.glidein_params),
-                                       (frontendConfig.encrypted_param_prefix, encrypted_params)):
+                classad_info_tuples = (
+                    (frontendConfig.glidein_param_prefix, params_obj.glidein_params),
+                    (frontendConfig.encrypted_param_prefix, encrypted_params),
+                    (frontendConfig.glidein_config_prefix, self.glidein_config_limits)
+                )
+                for (prefix, data) in classad_info_tuples:
                     for attr in data.keys():
                         writeTypedClassadAttrToFile(fd,
                                                     '%s%s' % (prefix, attr),
@@ -1128,7 +1133,6 @@ class MultiAdvertizeWork:
                     writeTypedClassadAttrToFile(fd,
                                                 '%s%s' % (prefix, attr_name),
                                                 attr_value)
-                    
 
                 # Update Sequence number information
                 if advertizeGCCounter.has_key(classad_name):
@@ -1150,6 +1154,14 @@ class MultiAdvertizeWork:
         return cred_filename_arr
 
 
+    def set_glidein_config_limits(self, limits_data):
+        """
+        Set various limits and curbs configured in the frontend config
+        into the glideresource classad
+        """
+
+        self.glidein_config_limits = limits_data
+       
 
 def writeTypedClassadAttrToFile(fd, attr_name, attr_value):
     """
@@ -1257,7 +1269,8 @@ class ResourceClassad(classadSupport.Classad):
         self.adParams['GlideFrontendHAMode'] = "%s" % ha_mode
         
 
-    def setMatchExprs(self, match_expr, job_query_expr, factory_query_expr, start_expr):
+    def setMatchExprs(self, match_expr, job_query_expr,
+                      factory_query_expr, start_expr):
         """
         Sets the matching expressions for the resource classad
         Thus, it would be possible to find out why a job
@@ -1347,7 +1360,7 @@ class ResourceClassad(classadSupport.Classad):
         """
         Set the GlideinFactoryMonitor* for the resource in the classad
 
-        @type info: string
+        @type info: dict
         @param info: Useful information from the glidefactoryclient classad
         """
 
@@ -1355,12 +1368,24 @@ class ResourceClassad(classadSupport.Classad):
         # start with Total or Status or Requested. Append GlideFactoryMonitor
         # to these keys and put them in the classad
 
-        for key in info.keys():
+        for key in info:
             ad_key = key
             if not key.startswith('TotalClientMonitor'):
                 if key.startswith('Total') or key.startswith('Status') or key.startswith('Requested'):
                     ad_key = 'GlideFactoryMonitor' + key
                     self.adParams[ad_key] = info[key]
+
+
+    def setGlideClientConfigLimits(self, info):
+        """
+        Set the GlideClientConfig* for the resource in the classad
+
+        @type info: dict
+        @param info: Useful config information
+        """
+
+        for key in info:
+            self.adParams['GlideClientConfig%s' % key] = info[key]
 
 
     def setCurbsAndLimits(self, limits_triggered):
