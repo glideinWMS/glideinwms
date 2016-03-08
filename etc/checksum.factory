@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_13_rc1
+# GLIDEINWMS_VERSION v3_2_13_rc2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -122,7 +122,7 @@ a8b315b8229dbe1cc978d29e116bd7de  ./factory/tools/find_matching_ids.py
 053e87efe508ba7c8d0f434818f36a4b  ./factory/tools/find_missing_ids.py
 e42da857a7614a1537bb1a5726c6f819  ./factory/tools/find_new_entries.py
 23e63f2e2b38f4aa2ce522236f6647fe  ./factory/tools/find_partial_matching_ids.py
-1fd2542ed45bcae52d438f990ccc5509  ./factory/tools/gwms-logcat.sh
+a682e4507bfa9d314dab4eee24e2427b  ./factory/tools/gwms-logcat.sh
 919fa9b845944420d9b57bc58fd557bb  ./factory/tools/infosys_lib.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/tools/lib/__init__.py
 e5e7085488190f286e8010de400f3c58  ./factory/tools/lib/analyze.py
