@@ -1748,7 +1748,7 @@ def log_and_sum_factory_line(factory, is_down, factory_stat_arr, old_factory_sta
     else:
         down_str = "Up  "
 
-    logSupport.log.info(("%s(%s %s %s %s) %s(%s %s) | %s %s %s %s | %s %s %s | %s %s " % tuple(form_arr)) + ("%s %s" % (down_str, factory)))
+    logSupport.log.info(("%s(%s %s %s %s) %s(%s %s) | %s %s %s %s | %s %s %s | %s %s | " % tuple(form_arr)) + ("%s %s" % (down_str, factory)))
 
     new_arr = []
     for i in range(len(factory_stat_arr)):
@@ -1759,8 +1759,8 @@ def init_factory_stats_arr():
     return [0] * 17
 
 def log_factory_header():
-    logSupport.log.info("            Jobs in schedd queues                 |           Slots         |       Cores       |    Request   ")
-    logSupport.log.info("Idle (match  eff   old  uniq )  Run ( here  max ) | Total  Idle   Run  Fail | Total  Idle   Run | Idle MaxRun Down Factory")
+    logSupport.log.info("            Jobs in schedd queues                 |           Slots         |       Cores       | Glidein Req | Factory/Entry Information")
+    logSupport.log.info("Idle (match  eff   old  uniq )  Run ( here  max ) | Total  Idle   Run  Fail | Total  Idle   Run | Idle MaxRun | State Factory")
 
 ######################
 # expand $$(attribute)
