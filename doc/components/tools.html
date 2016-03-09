@@ -65,6 +65,9 @@
 <div class="jump">
 <u>Jump to:</u>
 <ol>
+        <li><a href="#gwms_logcat">
+                Inspect glideins output and HTCondor logs<br/>
+                (gwms-logcat.sh)</a>
         <li><a href="#glidecondor_addDN">
                 Add a DN to the Condor mapfile<br/>
                 (glidecondor_addDN)</a>
@@ -87,6 +90,53 @@ Related Links: <br/>
         <LI><A HREF="./custom_vars.html">Custom Variables</A></li>
 </ul>
 -->
+</div>
+
+<!-- -------------------------------------------------------- -->
+<br>
+<hr width="90%"/>
+<div class="section">
+<a name="gwms_logcat"/><h4><b>gwms-logcat.sh</b></h4>
+<p>Provides information about glideins and their HTCondor log files:
+easily locate stdout and stderr, print a startd log file form the Glidein 
+execution. See below for how to use it.
+</P>
+
+<blockquote>
+   gwms-logcat.sh -h
+<pre>
+./factory/tools/gwms-logcat.sh [options] LOG_TYPE LOGFILE
+./factory/tools/gwms-logcat.sh [options] LOG_TYPE ENTRY [JOB_ID]
+./factory/tools/gwms-logcat.sh -f URL [options] LOG_TYPE
+./factory/tools/gwms-logcat.sh -r [options] LOG_TYPE JOB_ID
+./factory/tools/gwms-logcat.sh -l
+  LOG_TYPE HTCondor log to extract from the job logfile:
+           all (all logs), master, startd, starter, startdhistory, xml
+  LOGFILE  Job log file (stderr from a glidein)
+  ENTRY    Entry name
+  JOB_ID   HTCondor job (glidein) id. By default picks the last job with a valid log file
+  -v       verbose
+  -h       print this message
+  -l       list all entries (arguments are ignored)
+  -a       list only entries that were active (has at least one job) - used with '-l', ignored otherwise
+  -u USER  to use a different user (job owner) from the default frontend one
+  -r       Remote running jobs. pilot_launcher.log is fetched form the VM
+  -c FNAME Factory configuration file (default: /etc/gwms-factory/glideinWMS.xml)
+  -f URL   Forward the information (to a fodler: file:///path/ via copy or a URL http:// via post)
+</pre>
+</blockquote>
+<p>gwms-logcat.sh can be used interactively to examin the HTCondor log files or the XML file produced by the 
+Glideins and stored at the Factory.
+</p>
+<p>Files from a Glidein running on the cloud and spinning a VM are not transferred back to the factory but
+you can explore them if the VM is still running using the remote option (<tt>-r</tt>) which fetches pilot_launcher.log
+from the VM.
+</p>
+<p>The option <tt>-f</tt> is forwarding the information in batch mode: it is processing all the desired log files to the destination directory or URL. It is also saving a checkpoint file to avoid reprocessing multiple times the same files. Ideally can be run periodically, e.g. as cron job. 
+</p>
+<blockquote>
+   gwms-logcat.sh -f /var/www/html/glidein-logs/ startd
+</blockquote>
 </div>
 
 <!-- -------------------------------------------------------- -->
