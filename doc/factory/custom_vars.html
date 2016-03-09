@@ -1309,6 +1309,24 @@ startup scripts.</P>
             directory under which all user jobs will be started.</P>
         </TD>
     </TR>
+    <TR>
+        <td> <b>GLIDEIN_PS_SiteWMS_WN_Draining</b> </td>
+        <TD> Bool </TD>
+
+        <TD>
+            <P>The variable controls wether or not the glidein should accept new jobs.
+            As part of the <A HREF="https://twiki.cern.ch/twiki/bin/view/LCG/MachineJobFeatures">
+            WLCG Machine / Job Features Task Force</A> Site admins have the possibility
+            to put worker nodes to "drain mode". In particular if the JOBFEATURES
+            environment variable is set and it points to a local directory containing a file
+            named <tt>shutdowntime_job</tt>, or <tt>$JOBFEATURES/shutdowntime_job</tt> is a
+            valid URL (it is possible to wget it), then the glidein will stop
+            accepting jobs (see <A HREF="https://twiki.cern.ch/twiki/bin/view/LCG/WMTEGEnvironmentVariables">
+            here</A>).
+            The <tt>GLIDEIN_PS_SiteWMS_WN_Draining</tt> variable
+            is periodically updated by means of the STARTD_CRON condor feature.
+        </TD>
+    </TR>
 </TABLE>
 </div>
 <div class="section">
