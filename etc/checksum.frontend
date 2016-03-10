@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_12_1
+# GLIDEINWMS_VERSION v3_2_13
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 6ede96238759560e2fbd243ebf23f147  ./build/packaging/rpm/build.sh
@@ -32,8 +32,8 @@ e59bb78a8aba36d0d8691b5f9e4ebf4f  ./creation/lib/cWConsts.py
 172e148818f2a2bf07eb9c214cc8a4ba  ./creation/lib/cvWConsts.py
 077f753922f46a9d3d649c0eb56e8c49  ./creation/lib/cvWCreate.py
 21a570bcb3ba1f6d3fbc54c0afdd1ad1  ./creation/lib/cvWDictFile.py
-ad815516f59d794eaed43d349a86cee2  ./creation/lib/cvWParamDict.py
-e12283e27892d2dd8c10e7289b008771  ./creation/lib/cvWParams.py
+e6c1cd1546b71c1c09291ce3ee4e89c1  ./creation/lib/cvWParamDict.py
+88238ef4f5a4a888241679ad1afc2e21  ./creation/lib/cvWParams.py
 082cce4b50cfa5d25961157e23e3a2e2  ./creation/lib/factoryXmlConfig.py
 fa0be9f0c681574b728d34c15b4c5d26  ./creation/lib/factory_defaults.xml
 bb95254b7fce5bf4929974db32ef0e97  ./creation/lib/xmlConfig.py
@@ -75,33 +75,32 @@ d837fdb994350b2fa4c85f2dcc3b2ccc  ./creation/web_base/frontend/index.html
 ccccd33208c019a1b2f026b00ed2f72f  ./creation/web_base/frontendStatus.html
 ce9fbcaae6a9a2e4b61eb38cb7dfac87  ./creation/web_base/frontendStatusNow.html
 a93d03608501cdd471c413b681b05f8e  ./creation/web_base/frontend_support.js
-21ae0eff52f421280cf5b5556fc3f1fc  ./creation/web_base/glidein_cpus_setup.sh
+dbad9c5fe5b9924436789283d4d53609  ./creation/web_base/glidein_cpus_setup.sh
 c048847d2338b10b8c31c12be4633fea  ./creation/web_base/glidein_memory_setup.sh
 9c5707b728923b90c8f56ac201f6c686  ./creation/web_base/glidein_sitewms_setup.sh
 1f3bbb3416afab773e58aab138e4ccd3  ./creation/web_base/java_setup.sh
 014c3eaf1abf62ff0f599579658e6a10  ./creation/web_base/nodes.blacklist
 a340f047603d7ebd365c40a037154bdd  ./creation/web_base/parse_starterlog.awk
-d6b46a73283cac1c99c688c9705df81f  ./creation/web_base/script_wrapper.sh
+5c5c6803071dc976ce2b5b380ce16a3a  ./creation/web_base/script_wrapper.sh
 bff4caa021014ea19e202317ef7e506d  ./creation/web_base/setup_network.sh
 e0ba6891e61382c17e0aa7ea0a13c688  ./creation/web_base/setup_script.sh
 53383450eb59e7501d296cb1fee279b3  ./creation/web_base/smart_partitionable.sh
 832265338319a401e981faa9e38b4b19  ./creation/web_base/update_proxy.py
 e107903b65620ba873c88d631a28652a  ./factory/glideFactoryConfig.py
-ae4938bf593da9b3bebb07b98d47a546  ./factory/glideFactoryCredentials.py
+0fd744efd698fbc2f1895437073585fe  ./factory/glideFactoryCredentials.py
 8cf0aa1f4181e259f7f8f5300041df88  ./factory/glideFactoryInterface.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 281b86c8a2bc919bfa1cdaedebebaf0c  ./frontend/checkFrontend.py
 573dba0aeacd705bd20009caf558dfec  ./frontend/glideinFrontend.py
-b04d93ffbbe5a85bbad9b868596cc70d  ./frontend/glideinFrontendConfig.py
-b351867224a63abe57f9ca26fb779631  ./frontend/glideinFrontendElement.py
-d1c3c9affb862d9ed1db48b54aa7a736  ./frontend/glideinFrontendInterface.py
-436c7708321465b431b69ddb9bebd157  ./frontend/glideinFrontendLib.py
+40101ba171978e5e44c485ba088be7ec  ./frontend/glideinFrontendConfig.py
+ec6397c0547fa8c65757b929c25701e7  ./frontend/glideinFrontendElement.py
+7c167f7a02e328a6375dafa2b73b6db0  ./frontend/glideinFrontendInterface.py
+f8084df8f00340dc17bf55426d493561  ./frontend/glideinFrontendLib.py
 1754e4484e221f13578512bd1c825090  ./frontend/glideinFrontendMonitorAggregator.py
 466a10f70924210c5b2642d4b0f7cd5b  ./frontend/glideinFrontendMonitoring.py
 2a1b5c91fe810a76649e78890e15c3dc  ./frontend/glideinFrontendPidLib.py
-70f5c9ab47d36448d2cbc1978d660ba9  ./frontend/glideinFrontendPlugins.py
-16e9750cb5ad4a102e734cd38b70d707  ./frontend/glideinFrontend.py
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
+2fd1a7fe0c473583bb71de5f8b0b89e3  ./frontend/glideinFrontendPlugins.py
 0fe2d57c2c6ba21c42bfd6541881feb7  ./frontend/stopFrontend.py
 c65ab9f9ad169145a2bd5017b0c5da22  ./frontend/tools/convert_frontend_2to3.sh
 8468711dac6ffe8f326e5aaf25a64156  ./frontend/tools/convert_frontend_2to3.xslt

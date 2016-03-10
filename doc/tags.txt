@@ -1,3 +1,26 @@
+v3_2_13	Support XSEDE ProjectId as a credential in frontend
+	Glidein jobs can now auto detect cpus based on the sites WMS
+	Frontend configuration settings idle_glideins_per_entry,
+	  running_glideins_per_entry, running_glideins_total and
+	  running_glideins_total_global now consider slots (startd classads)
+	  reported in the User collector
+        gwms-logcat.sh tool can now forward logs to a folder or http/https url
+	Bug Fix: Factory will not release any glideins is max_per_cycle
+	  in release section of config is set to 0
+	Bug Fix: Frontend now accepts an attr with type="expr" as a condor
+	  expression
+	Bug Fix: Fixed several issues in the accounting of multi core
+	  glideins
+	Bug FIx: Counting of idle, running and total jobs in case of multi
+	  core glideins is done correctly
+	Bug Fix: Frontend will now correctly request enough glideins at
+	  sites that support multi core glideins
+	Bug Fix: Frontend group limits are now correctly applied based on
+	  on the slots rather than glidein (condorg) jobs
+	Bug Fix: Fix accounting bug where number of running cores would
+	  log a negative count in case of multi core glideins
+	Bug Fix: Fixed several issues with the cron type scripts
+
 v3_2_12_1 Bug Fix: Fixed incompatibility with python 2.4 and bad failure when 
           there is no entry, both introduced in v3_2_12 factory configuration
 

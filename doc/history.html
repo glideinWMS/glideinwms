@@ -85,9 +85,36 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
+        <b>v3_2_13</b> released on March 09, 2016 (<a href="http://glideinwms.fnal.gov/doc.v3_2_13/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_13/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_13.tgz">Tarball</a>)<br>
+      <ul>
+        <li>Support XSEDE ProjectId as a credential in frontend
+        <li>Glidein jobs can now auto detect cpus based on the sites WMS
+        <li>Frontend configuration settings idle_glideins_per_entry, 
+          running_glideins_per_entry, running_glideins_total and
+          running_glideins_total_global now consider slots (startd classads)
+          reported in the User collector
+        <li>gwms-logcat.sh tool can now forward logs to a folder or http/https url
+        <li>Bug Fix: Factory will not release any glideins is max_per_cycle
+          in release section of config is set to 0
+        <li>Bug Fix: Frontend now accepts an attr with type="expr" as a condor
+          expression 
+        <li>Bug Fix: Fixed several issues in the accounting of multi core
+          glideins
+        <li>Bug FIx: Counting of idle, running and total jobs in case of multi
+          core glideins is done correctly
+        <li>Bug Fix: Frontend will now correctly request enough glideins at
+          sites that support multi core glideins
+        <li>Bug Fix: Frontend group limits are now correctly applied based on 
+          on the slots rather than glidein (condorg) jobs
+        <li>Bug Fix: Fix accounting bug where number of running cores would 
+          log a negative count in case of multi core glideins
+        <li>Bug Fix: Fixed several issues with the cron type scripts
+      </ul>
+      </li>
+      <li>
         <b>v3_2_12_1</b> released on January 20, 2016 (<a href="http://glideinwms.fnal.gov/doc.v3_2_12_1/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_12_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_12_1.tgz">Tarball</a>)<br>
-       <ul>
-       <li>Bug Fix: Fixed incompatibility with python 2.4 and bad failure when 
+      <ul>
+        <li>Bug Fix: Fixed incompatibility with python 2.4 and bad failure when 
           there is no entry, both introduced in v3_2_12 factory configuration
       </ul>
       </li>

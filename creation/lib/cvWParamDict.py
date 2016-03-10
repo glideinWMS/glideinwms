@@ -390,7 +390,8 @@ def add_attr_unparsed_real(attr_name,params,dicts):
         raise RuntimeError, "Attribute '%s' does not have a value: %s"%(attr_name,attr_obj)
 
     is_parameter = is_true(attr_obj.parameter)
-    is_expr=(attr_obj.type=="expr")
+    # attr_obj.type=="expr" is now used for HTCondor expression
+    is_expr = False
     attr_val=params.extract_attr_val(attr_obj)
     
     if is_parameter:
@@ -552,7 +553,7 @@ def apply_multicore_policy(descript_dict):
     fact_ma = eval(descript_dict['FactoryMatchAttrs']) + [('GLIDEIN_CPUS', 's')]
     descript_dict.add('FactoryMatchAttrs', repr(fact_ma), allow_overwrite=True)
 
-    # Add RequestCpus to the list of attrs queried in glidefactory classad
+    # Add RequestCpus to the list of attrs queried in jobs classad
     job_ma = eval(descript_dict['JobMatchAttrs']) + [('RequestCpus', 'i')]
     descript_dict.add('JobMatchAttrs', repr(job_ma), allow_overwrite=True)
 
@@ -626,13 +627,14 @@ def populate_common_descript(descript_dict,        # will be modified
         proxies = []
         proxy_attrs=['security_class','trust_domain','type',
             'keyabsfname','pilotabsfname','vm_id','vm_type',
-            'creation_script','update_frequency']
+            'creation_script','update_frequency', 'project_id']
         proxy_attr_names={'security_class':'ProxySecurityClasses',
             'trust_domain':'ProxyTrustDomains',
             'type':'ProxyTypes','keyabsfname':'ProxyKeyFiles',
             'pilotabsfname':'ProxyPilotFiles',
             'vm_id':'ProxyVMIds','vm_type':'ProxyVMTypes',
             'creation_script':'ProxyCreationScripts',
+            'project_id':'ProxyProjectIds',
             'update_frequency':'ProxyUpdateFrequency'}
         proxy_descript_values={}
         for attr in proxy_attrs:
