@@ -22,9 +22,9 @@ fi
 
 echo "SETTING UP VIRTUAL ENVIRONMENT ..."
 # Get latest virtualenv package that works with python 2.6
-wget $VIRTUALENV_URL
-tar xzf $VIRTUALENV_TARBALL
-if [ ! -d venv ] ; then
+curl -o $WORKSPACE/$VIRTUALENV_TARBALL $VIRTUALENV_URL
+tar xzf $WORKSPACE/$VIRTUALENV_TARBALL
+if [ ! -d $VENV ] ; then
    #virtualenv --python=python2.6 --always-copy $VENV
    $WORKSPACE/virtualenv-12.0.7/virtualenv.py $VENV
 fi
