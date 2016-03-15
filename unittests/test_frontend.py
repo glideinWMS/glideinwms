@@ -22,6 +22,7 @@ import inspect
 import re
 import sys
 import StringIO
+import xmlrunner
 
 # todo
 #def countMatch
@@ -400,4 +401,4 @@ class FETestCaseCondorQ(FETestCaseBase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output='test-frontend-reports'))
