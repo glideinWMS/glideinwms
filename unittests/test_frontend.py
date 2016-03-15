@@ -156,19 +156,30 @@ class FETestCaseCount(FETestCaseBase):
 
         match_obj = compile('True', "<string>", "eval")
         actual = glideinFrontendLib.countRealRunning(match_obj, cq_run_dict, self.glidein_dict, {})
-        expected = {self.glidein_dict_k1: 1, self.glidein_dict_k2: 4, self.glidein_dict_k3: 0}
+        expected = (
+            {self.glidein_dict_k1: 1, self.glidein_dict_k2: 4, self.glidein_dict_k3: 0},
+            {self.glidein_dict_k1: 1, self.glidein_dict_k2: 3, self.glidein_dict_k3: 0})
         self.assertEqual(expected, actual)
 
         match_obj = compile('False', "<string>", "eval")
         actual = glideinFrontendLib.countRealRunning(match_obj, cq_run_dict, self.glidein_dict, {})
-        expected = {self.glidein_dict_k1: 0, self.glidein_dict_k2: 0, self.glidein_dict_k3: 0}
+        expected = (
+            {self.glidein_dict_k1: 0, self.glidein_dict_k2: 0, self.glidein_dict_k3: 0},
+            {self.glidein_dict_k1: 0, self.glidein_dict_k2: 0, self.glidein_dict_k3: 0})
         self.assertEqual(expected, actual)
 
         match_expr = 'glidein["attrs"].get("GLIDEIN_Site") in job.get("DESIRED_Sites", [])'
         match_obj = compile(match_expr, "<string>", "eval")
         actual = glideinFrontendLib.countRealRunning(match_obj, cq_run_dict, self.glidein_dict, {})
-        expected = {self.glidein_dict_k1: 1, self.glidein_dict_k2: 1, self.glidein_dict_k3: 0}
+        expected = (
+            {self.glidein_dict_k1: 1, self.glidein_dict_k2: 1, self.glidein_dict_k3: 0},
+            {self.glidein_dict_k1: 1, self.glidein_dict_k2: 1, self.glidein_dict_k3: 0})
         self.assertEqual(expected, actual)
+
+
+
+
+
 
     def test_countRealRunning_missingKey(self):
         cq_run_dict = glideinFrontendLib.getRunningCondorQ(self.condorq_dict)
