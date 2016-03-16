@@ -188,7 +188,7 @@ class FETestCaseCount(FETestCaseBase):
         with mock.patch.object(glideinwms.frontend.glideinFrontendLib.logSupport.log, 'debug') as m_debug:
             match_obj = compile('glidein["attrs"]["FOO"] == 3', "<string>", "eval")
             actual = glideinFrontendLib.countRealRunning(match_obj, cq_run_dict, self.glidein_dict, {})
-            m_debug.assert_called_with(
+            m_debug.assert_any_call(
                 "Failed to evaluate resource match in countRealRunning. Possibly match_expr has "
                 "errors and trying to reference job or site attribute(s) ''FOO'' in an inappropriate way.")
 
