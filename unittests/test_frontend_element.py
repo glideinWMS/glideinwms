@@ -18,6 +18,7 @@ import inspect
 import re
 import sys
 import StringIO
+import xmlrunner
 
 class FEElementTestCase(unittest.TestCase):
     def setUp(self):
@@ -78,7 +79,6 @@ class FEElementTestCase(unittest.TestCase):
             self.gfe = glideinFrontendElement.glideinFrontendElement(1, '', 'group1', '')
             self.gfe.elementDescript = self.elementDescript
 
-
         create_glideinFrontendElement()
 
     def test_get_condor_q(self):
@@ -91,14 +91,12 @@ class FEElementTestCase(unittest.TestCase):
         self.assertItemsEqual(cq['schedd1'].fetchStored().keys(), [(12345, x) for x in xrange(0, 13)])
 
     def test_compute_glidein_max_run(self):
-        self.assertEqual(self.gfe.compute_glidein_max_run({'Idle': 412}, 971), 1591)
-        self.assertEqual(self.gfe.compute_glidein_max_run({'Idle': 100}, 100), 230)
-        self.assertEqual(self.gfe.compute_glidein_max_run({'Idle': 100}, 0), 115)
-        self.assertEqual(self.gfe.compute_glidein_max_run({'Idle': 0}, 0), 0)
-        self.assertEqual(self.gfe.compute_glidein_max_run({'Idle': 0}, 100), 100)
+        self.assertEqual(self.gfe.compute_glidein_max_run({'Idle': 412}, 971, 0), 1591)
+        self.assertEqual(self.gfe.compute_glidein_max_run({'Idle': 100}, 100, 0), 230)
+        self.assertEqual(self.gfe.compute_glidein_max_run({'Idle': 100}, 0, 0), 115)
+        self.assertEqual(self.gfe.compute_glidein_max_run({'Idle': 0}, 0, 0), 0)
+        self.assertEqual(self.gfe.compute_glidein_max_run({'Idle': 0}, 100, 100), 100)
 
 
 if __name__ == '__main__':
-    unittest.main()
-    
-
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output='test-frontend-reports'))
