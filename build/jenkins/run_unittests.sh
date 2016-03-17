@@ -26,7 +26,8 @@ curl -o $WORKSPACE/$VIRTUALENV_TARBALL $VIRTUALENV_URL
 tar xzf $WORKSPACE/$VIRTUALENV_TARBALL
 if [ ! -d $VENV ] ; then
    #virtualenv --python=python2.6 --always-copy $VENV
-   $WORKSPACE/virtualenv-12.0.7/virtualenv.py $VENV
+   $WORKSPACE/virtualenv-12.0.7/virtualenv.py --system-site-packages $VENV
+   #$WORKSPACE/virtualenv-12.0.7/virtualenv.py $VENV
 fi
 
 source $VENV/bin/activate
@@ -48,6 +49,7 @@ for package in $pip_packages; do
     fi
     echo "Installing $package ... $status"
 done
+pip install M2Crypto==0.20.2
 
 ## Need this because some strange control sequences when using default TERM=xterm
 export TERM="linux"
@@ -64,7 +66,7 @@ export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/tools/lib
 cd $GLIDEINWMS_SRC/unittests
 files="test_frontend.py test_frontend_element.py"
 files="test_frontend.py"
-#files="test_frontend_element.py"
+files="test_frontend_element.py"
 
 for file in $files ; do
     ./$file || log_nonzero_rc "$file" $?
