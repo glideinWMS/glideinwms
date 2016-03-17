@@ -494,7 +494,7 @@ class rrdSupport(BaseRRDSupport):
     def __init__(self):
         try:
             rrd_obj = rrdtool
-        except ImportError:
+        except NameError:
             try:
                 rrd_obj = rrdtool_exe()
             except:
