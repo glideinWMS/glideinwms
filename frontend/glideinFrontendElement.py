@@ -137,6 +137,9 @@ class glideinFrontendElement:
         self.count_real_jobs = {}
         self.count_real_glideins = {}
 
+        self.glidein_config_limits = {}
+        self.set_glidein_config_limits()
+
 
     def configure(self):
         ''' Do some initial configuration of the element. '''
@@ -187,6 +190,36 @@ class glideinFrontendElement:
         os.environ['CONDOR_CONFIG'] = self.elementDescript.frontend_data['CondorConfig']
         os.environ['_CONDOR_CERTIFICATE_MAPFILE'] = self.elementDescript.element_data['MapFile']
         os.environ['X509_USER_PROXY'] = self.elementDescript.frontend_data['ClassAdProxy']
+
+
+    def set_glidein_config_limits(self):
+        """
+        Set various limits and curbs configured in the frontend config
+        """
+
+        fe_data_keys = (
+            'MaxRunningTotal', 'CurbRunningTotal',
+            'MaxIdleVMsTotal', 'CurbIdleVMsTotal',
+            'MaxRunningTotalGlobal', 'CurbRunningTotalGlobal',
+            'MaxIdleVMsTotalGlobal', 'CurbIdleVMsTotalGlobal',
+        )
+
+        el_data_keys = (
+            'MaxRunningPerEntry', 'MaxIdlePerEntry', 'ReserveIdlePerEntry',
+            'MaxIdleVMsPerEntry', 'CurbIdleVMsPerEntry',
+            'MaxRunningTotal', 'CurbRunningTotal',
+            'MaxIdleVMsTotal', 'CurbIdleVMsTotal',
+        )
+
+        # Add frontend global config info
+        for key in fe_data_keys:
+            ad_key = 'Frontend%s' % (key)
+            self.glidein_config_limits[ad_key] = int(self.elementDescript.frontend_data[key])
+
+        # Add frontend group config info
+        for key in el_data_keys:
+            ad_key = 'Group%s' % (key)
+            self.glidein_config_limits[ad_key] = int(self.elementDescript.element_data[key])
 
 
     def main(self):
@@ -473,6 +506,9 @@ class glideinFrontendElement:
                               globals_el['attrs']['PubKeyObj'])
                 advertizer.add_global(globals_el['attrs']['FactoryPoolNode'],
                                       globalid, self.security_name, key_obj)
+
+        # Add glidein config limits to the glideclient classads
+        advertizer.set_glidein_config_limits(self.glidein_config_limits)
 
         glideid_list = condorq_dict_types['Idle']['count'].keys()
         # TODO: PM Following shows up in branch_v2plus. Which is correct?
@@ -902,6 +938,7 @@ class glideinFrontendElement:
                                             self.ha_mode)
         resource_classad.setInDownTime(glidein_in_downtime)
         resource_classad.setEntryInfo(glidein_el['attrs'])
+        resource_classad.setGlideClientConfigLimits(self.glidein_config_limits)
         try:
             key = (
                 factory_pool_node,
