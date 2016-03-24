@@ -10,8 +10,10 @@
 
 import os
 import time
+import string
 import logSupport
 import condorManager
+
 
 ###############################################################################
 # Generic Classad Structure
@@ -26,8 +28,8 @@ class Classad(object):
         """
         Constructor
 
-        @type type: string 
-        @param type: Type of the classad
+        @type adType: string
+        @param adType: Type of the classad
         @type advertiseCmd: string 
         @param advertiseCmd: Condor update-command to advertise this classad 
         @type invalidateCmd: string 
@@ -49,6 +51,45 @@ class Classad(object):
         self.adParams['GlideinMyType'] = self.adType
         self.adParams['GlideinWMSVersion'] = 'UNKNOWN'
 
+    def update(self, params_dict, prefix=""):
+        """Update or Add ClassAd attributes
+
+        :param params_dict: new attributes
+        :param prefix: prefix used for the attribute names (Default: "")
+        :return:
+        """
+        for k, v in params_dict.items():
+            if type(v)==type(1):
+                # don't quote ints
+                self.adParams['%s%s' % (prefix,k)] = v
+            else:
+                escaped_v=string.replace(str(v),'\n','\\n')
+                self.adParams['%s%s' % (prefix,k)] = "%s" % escaped_v
+
+    def writeToFile(self, filename, append=True):
+        """Write a ClassAd to file, adding a blank line if in append mode to separate the ClassAd
+
+        :param filename: file to write to
+        :param append: write mode if False, append if True (Default)
+        :return:
+        """
+        o_flag = "a"
+        if not append:
+            o_flag = "w"
+
+        try:
+            fd = file(filename, o_flag)
+        except:
+            raise
+
+        try:
+            if append:
+                # Write empty line when in append mode to be considered a separate classad
+                # (one or more empty lines separate multiple classads on the same file)
+                fd.write('\n')
+            fd.write("%s" % self)
+        finally:
+            fd.close()
 
     def __str__(self):
         """
