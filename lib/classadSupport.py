@@ -69,6 +69,9 @@ class Classad(object):
     def writeToFile(self, filename, append=True):
         """Write a ClassAd to file, adding a blank line if in append mode to separate the ClassAd
 
+        There can be no empty line at the beginning of the file:
+        https://htcondor-wiki.cs.wisc.edu/index.cgi/tktview?tn=5147
+
         :param filename: file to write to
         :param append: write mode if False, append if True (Default)
         :return:
@@ -78,18 +81,19 @@ class Classad(object):
             o_flag = "w"
 
         try:
-            fd = file(filename, o_flag)
+            f = open(filename, o_flag)
         except:
             raise
 
         try:
-            if append:
+            if append and f.tell() > 0:
                 # Write empty line when in append mode to be considered a separate classad
+                # Skip at the beginning of the file (HTCondor bug #5147)
                 # (one or more empty lines separate multiple classads on the same file)
-                fd.write('\n')
-            fd.write("%s" % self)
+                f.write('\n')
+            f.write("%s" % self)
         finally:
-            fd.close()
+            f.close()
 
     def __str__(self):
         """

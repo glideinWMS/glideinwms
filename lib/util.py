@@ -28,7 +28,7 @@ _FLAG_FIRST = object()
 
 # From http://stackoverflow.com/questions/6027558/flatten-nested-python-dictionaries-compressing-keys
 # Much faster than my first version
-def flattenDict(d, join=add, lift=lambda x:x):
+def flattenDict(d, join=add, lift=lambda x: x):
     """Flexible flattening of a dictionary
 
     :param d: dictionary to flatten
@@ -47,7 +47,7 @@ def flattenDict(d, join=add, lift=lambda x:x):
             }
         }
     }
-    from pprint import pprint as pp
+    >>> from pprint import pprint as pp
 
     >>> pp(dict( flattenDict(testData, lift=lambda x:(x,)) ))
     {('a',): 1,
@@ -67,13 +67,15 @@ def flattenDict(d, join=add, lift=lambda x:x):
      111: 3461911260025554326}
     """
     results = []
+
     def visit(subdict, results, partialKey):
-        for k,v in subdict.items():
-            newKey = lift(k) if partialKey==_FLAG_FIRST else join(partialKey,lift(k))
-            if isinstance(v,Mapping):
+        for k, v in subdict.items():
+            newKey = lift(k) if partialKey == _FLAG_FIRST else join(partialKey, lift(k))
+            if isinstance(v, Mapping):
                 visit(v, results, newKey)
             else:
-                results.append((newKey,v))
+                results.append((newKey, v))
+
     visit(d, results, _FLAG_FIRST)
     return results
 
@@ -93,9 +95,8 @@ def dict_to_flat(in_dict, prefix="", suffix="", sep=""):
     :param sep: separator between keys (Default: "")
     :return: flattened dictionary
     """
-    out_dict = {}
     if sep:
-        out_list = flattenDict(in_dict, join=lambda a,b:a+sep+b)
+        out_list = flattenDict(in_dict, join=lambda a, b: a+sep+b)
     else:
         out_list = flattenDict(in_dict)
     if prefix or suffix:
@@ -113,20 +114,15 @@ def dict_to_flat_slow(in_dict, prefix="", suffix=""):
     :param in_dict: input dictionary
     :param prefix: prefix for the keys (Default "")
     :param suffix: suffix for the keys (Default "")
-    :param default: default value passed to get (Default: None)
     :return: flattened dictionary
     """
     out_dict = {}
-    #print "called with: %s" % in_dict
     for k, v in in_dict.items():
         if isinstance(v, dict):
-            #print "is dict, recurse: %s" % v
-            #v1 = dict_to_flat(v)
             for k2, v2 in dict_to_flat(v).items():
                 out_dict["%s%s%s%s" % (prefix, k, k2, suffix)] = v2
         else:
             out_dict["%s%s%s" % (prefix, k, suffix)] = v
-    #print "end v (%s), returning %s" % (v, out_dict)
     return out_dict
 
 
@@ -156,9 +152,9 @@ def dict_normalize(in_dict, keys=None, prefix="", suffix="", default=None):
 # replace(source, destination)
 try:
     # Python 3.3+ provides os.replace which is guaranteed atomic and overwrites existing files
-    replace = os.replace
+    replace = os.replace  # pylint: disable=no-member
 except AttributeError:
-    # os.rename is atomic in POSIX systems (not on Windows)
+    # os.rename is atomic in POSIX systems (e.g. not on Windows or some non local file systems)
     # This post covers at length the problem, including a working solution on Windows
     # http://stupidpythonideas.blogspot.com/2014/07/getting-atomic-writes-right.html
     replace = os.rename
@@ -205,6 +201,9 @@ def file_tmp2final(fname, tmp_fname=None, bck_fname=None, do_backup=True):
 # overlapping writes (inconsistent version)
 # A locking mechanism may be necessary if we want to avoid missing a version (do one write at the time and do not
 # loose any previous write)
+# TODO: currently many temporary files are in the work-dir and owned by only one process, which means that a locally
+# unique name is sufficient. If this changes or if wor-dir is not on a local (POSIX) file system, temporary files
+# may have to be moved to a shared place (/tmp) and handled more properly
 def file_get_tmp():
     pass
 

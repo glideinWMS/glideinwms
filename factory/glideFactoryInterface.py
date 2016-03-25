@@ -137,9 +137,9 @@ class MultiExeError(condorExe.ExeError):
         str_arr = []
         for e in arr:
             str_arr.append('%s' % e)
-        
+
         error_str = '\\n'.join(str_arr)
-        
+
         condorExe.ExeError.__init__(self, error_str)
 
 ############################################################
@@ -251,7 +251,7 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
 
     for k in data:
         kel = data[k]
-        el = {"requests":{}, "web":{}, "params":{}, 
+        el = {"requests":{}, "web":{}, "params":{},
               "params_decrypted":{}, "monitor":{}, "internals":{}}
 
         for (key,prefix) in (("requests",factoryConfig.client_req_prefix),
@@ -382,10 +382,10 @@ def findWork(factory_name, glidein_name, entry_name,
     @return: dictionary, each key is the name of a frontend.  Each value has a 'requests' and a 'params' key.  Both refer to classAd dictionaries.
         
     """
-    
+
     global factoryConfig
     logSupport.log.debug("Querying collector for requests")
-    
+
     if factory_collector==DEFAULT_VAL:
         factory_collector=factoryConfig.factory_collector
 
@@ -396,7 +396,7 @@ def findWork(factory_name, glidein_name, entry_name,
 
     if additional_constraints is not None:
         status_constraint = "((%s)&&(%s))" % (status_constraint, additional_constraints)
-    
+
     status = condorMonitor.CondorStatus(subsystem_name="any", pool_name=factory_collector)
     status.require_integrity(True) #important, this dictates what gets submitted
     status.glidein_name = glidein_name
@@ -412,7 +412,7 @@ def findWork(factory_name, glidein_name, entry_name,
         except:
             # could be a race condition
             pass
-    
+
     fd=open(lock_fname,"r+")
     try:
         fcntl.flock(fd,fcntl.LOCK_EX)
@@ -464,7 +464,7 @@ def findWork(factory_name, glidein_name, entry_name,
             if enc_identity != kel['AuthenticatedIdentity']:
                 logSupport.log.warning("Client %s provided invalid ReqEncIdentity(%s!=%s). Skipping for security reasons." % (k, enc_identity, kel['AuthenticatedIdentity']))
                 continue # uh oh... either the client is misconfigured, or someone is trying to cheat
-            
+
 
         invalid_classad = False
         for (key, prefix) in (("params_decrypted", factoryConfig.encrypted_param_prefix),):
@@ -488,7 +488,7 @@ def findWork(factory_name, glidein_name, entry_name,
         for attr in kel.keys():
             if attr in ("ClientName", "FrontendName", "GroupName", "ReqName", "LastHeardFrom", "ReqPubKeyID", "AuthenticatedIdentity"):
                 el["internals"][attr] = kel[attr]
-        
+
         out[k] = el
 
     return out
@@ -586,7 +586,7 @@ def NOT_USED_advertizeGlidein(factory_name, glidein_name, entry_name, trust_doma
                      auth_method, supported_signtypes, pub_key_obj,
                      glidein_attrs={}, glidein_params={}, glidein_monitors={},
                      factory_collector=DEFAULT_VAL):
-    
+
     """
     Creates the glidefactory classad and advertises.
     
@@ -674,17 +674,13 @@ class FactoryGlobalClassad(classadSupport.Classad):
     """
 
     def __init__(self, factory_name, glidein_name, supported_signtypes,
-                 pub_key_obj, glidein_attrs={}, glidein_params={},
-                 glidein_monitors={}, glidein_stats={}):
+                 pub_key_obj, glidein_stats={}):
         """Class Constructor
 
         :param factory_name: Name of the factory
         :param glidein_name: Name of the resource in the glidefactoryglobal classad?
         :param supported_signtypes: suppported sign types, i.e. sha1
         :param pub_key_obj: GlideinKey - for the frontend to use in encryption
-        :param glidein_attrs: glidein attrs to be published, not be overwritten by Frontends
-        :param glidein_params: params to be published, can be overwritten by Frontends
-        :param glidein_monitors: monitor attrs to be published
         :param glidein_stats: aggregated Factory statistics to be published
         :return:
         """
@@ -707,27 +703,13 @@ class FactoryGlobalClassad(classadSupport.Classad):
         self.adParams['GlideinWMSVersion'] = factoryConfig.glideinwms_version
         self.adParams['PubKeyID'] = "%s" % pub_key_obj.get_pub_key_id()
         self.adParams['PubKeyType'] = "%s" % pub_key_obj.get_pub_key_type()
-        self.adParams['PubKeyValue'] = "%s" % string.replace(pub_key_obj.get_pub_key_value(),'\n','\\n')
-
-        # write out both the attributes, params and monitors
-        for (prefix,data) in ((factoryConfig.glidein_attr_prefix,glidein_attrs),
-                              (factoryConfig.glidein_param_prefix,glidein_params),
-                              (factoryConfig.glidein_monitor_prefix,glidein_monitors)):
-            for attr in data.keys():
-                el=data[attr]
-                if type(el)==type(1):
-                    # don't quote ints
-                    self.adParams['%s%s' % (prefix,attr)] = el
-                else:
-                    escaped_el=string.replace(str(el),'\n','\\n')
-                    self.adParams['%s%s' % (prefix,attr)] = "%s" % escaped_el
+        self.adParams['PubKeyValue'] = "%s" % string.replace(pub_key_obj.get_pub_key_value(), '\n', '\\n')
 
         # write job completion statistics
         if glidein_stats:
             prefix = factoryConfig.glidein_monitor_prefix
             for k, v in glidein_stats.items():
                 self.adParams['%s%s' % (prefix, k)] = v
-
 
 
 def advertizeGlobal(factory_name, glidein_name, supported_signtypes,
@@ -771,7 +753,7 @@ def advertizeGlobal(factory_name, glidein_name, supported_signtypes,
 
 def advertizeGlobal_old(factory_name, glidein_name, supported_signtypes,
                     pub_key_obj, factory_collector=DEFAULT_VAL):
-    
+
     """
     Creates the glidefactoryglobal classad and advertises.
     
@@ -788,7 +770,7 @@ def advertizeGlobal_old(factory_name, glidein_name, supported_signtypes,
     
     @todo add factory downtime?
     """
-    
+
     global factoryConfig
     global advertizeGlobalCounter
 
@@ -812,9 +794,9 @@ def advertizeGlobal_old(factory_name, glidein_name, supported_signtypes,
             advertizeGlobalCounter += 1
         finally:
             fd.close()
-            
+
         exe_condor_advertise(tmpnam, "UPDATE_MASTER_AD", factory_collector=factory_collector)
-               
+
     finally:
         os.remove(tmpnam)
 
@@ -837,7 +819,7 @@ def deadvertizeGlidein(factory_name, glidein_name, entry_name, factory_collector
     finally:
         os.remove(tmpnam)
 
-        
+
 def deadvertizeGlobal(factory_name, glidein_name, factory_collector=DEFAULT_VAL):
     """
     Removes the glidefactoryglobal classad advertising the factory globals from the WMS Collector.
@@ -921,7 +903,6 @@ class MultiAdvertizeGlideinClientMonitoring:
             self.do_advertize_iterate()
         self.client_data = []
 
-        
     # INTERNAL
     def do_advertize_iterate(self):
         error_arr = []
@@ -941,8 +922,8 @@ class MultiAdvertizeGlideinClientMonitoring:
                 error_arr.append(e)
 
         if len(error_arr) > 0:
-            raise MultiExeError, error_arr
-        
+            raise MultiExeError(error_arr)
+
     def do_advertize_multi(self):
         tmpnam = classadSupport.generate_classad_filename(prefix='gfi_adm_gfc')
 
@@ -953,7 +934,7 @@ class MultiAdvertizeGlideinClientMonitoring:
                 el['client_name'], el['client_int_name'], el['client_int_req'],
                 self.glidein_attrs, el['client_params'], el['client_monitors'],
                 do_append=ap)
-            ap = True # Append from here on
+            ap = True  # Append from here on
 
         if ap:
             error_arr = []
@@ -966,7 +947,7 @@ class MultiAdvertizeGlideinClientMonitoring:
                 error_arr.append(e)
 
             if len(error_arr) > 0:
-                raise MultiExeError, error_arr
+                raise MultiExeError(error_arr)
 
     def writeToMultiClassadFile(self, filename=None, append=True):
         # filename: Name of the file to write classads to
@@ -1007,7 +988,7 @@ def createGlideinClientMonitoringFile(fname,
         open_type = "a"
     else:
         open_type = "w"
-        
+
     fd = file(fname, open_type)
     try:
         try:
@@ -1032,14 +1013,14 @@ def createGlideinClientMonitoringFile(fname,
             fd.write('ReqEntryName = "%s"\n' % entry_name)
             fd.write('ReqClientName = "%s"\n' % client_int_name)
             fd.write('ReqClientReqName = "%s"\n' % client_int_req)
-            #fd.write('DaemonStartTime = %li\n'%start_time)
+            # fd.write('DaemonStartTime = %li\n'%start_time)
             advertizeGFCCounter[client_name] = advertizeGFCCounter.get(client_name, -1) + 1
-            fd.write('UpdateSequenceNumber = %i\n'%advertizeGFCCounter[client_name])            
+            fd.write('UpdateSequenceNumber = %i\n'%advertizeGFCCounter[client_name])
 
             # write out both the attributes, params and monitors
             for (prefix, data) in ((factoryConfig.glidein_attr_prefix, glidein_attrs),
-                                  (factoryConfig.glidein_param_prefix, client_params),
-                                  (factoryConfig.glidein_monitor_prefix, client_monitors)):
+                                   (factoryConfig.glidein_param_prefix, client_params),
+                                   (factoryConfig.glidein_monitor_prefix, client_monitors)):
                 for attr in data.keys():
                     el = data[attr]
                     if type(el) == type(1):
@@ -1057,6 +1038,7 @@ def createGlideinClientMonitoringFile(fname,
         os.remove(fname)
         raise
 
+
 # Given a file, advertize
 # Can throw a CondorExe/ExeError exception
 def advertizeGlideinClientMonitoringFromFile(fname, remove_file=True,
@@ -1073,6 +1055,7 @@ def advertizeGlideinClientMonitoringFromFile(fname, remove_file=True,
     else:
         logSupport.log.warning("glidefactoryclient classad file %s does not exist. Check if frontends are allowed to submit to entry" % fname)
 
+
 def advertizeGlideinFromFile(fname, remove_file=True, is_multi=False, factory_collector=DEFAULT_VAL):
     if os.path.exists(fname):
         try:
@@ -1086,9 +1069,9 @@ def advertizeGlideinFromFile(fname, remove_file=True, is_multi=False, factory_co
     else:
         logSupport.log.warning("glidefactory classad file %s does not exist. Check if you have atleast one entry enabled" % fname)
 
-
 # End INTERNAL
 ###########################################
+
 
 # remove classads from Collector
 def deadvertizeAllGlideinClientMonitoring(factory_name, glidein_name, entry_name, factory_collector=DEFAULT_VAL):
@@ -1127,7 +1110,8 @@ def deadvertizeFactoryClientMonitoring(factory_name, glidein_name, factory_colle
         exe_condor_advertise(tmpnam, "INVALIDATE_LICENSE_ADS", factory_collector=factory_collector)
     finally:
         os.remove(tmpnam)
-    
+
+
 ############################################################
 #
 # I N T E R N A L - Do not use
@@ -1140,29 +1124,27 @@ def exe_condor_advertise(fname, command,
                          is_multi=False, factory_collector=None):
     global factoryConfig
 
-    if factory_collector==DEFAULT_VAL:
-        factory_collector=factoryConfig.factory_collector
+    if factory_collector == DEFAULT_VAL:
+        factory_collector = factoryConfig.factory_collector
 
-    lock_fname=os.path.join(factoryConfig.lock_dir,"gfi_advertize.lock")
-    if not os.path.exists(lock_fname): #create a lock file if needed
+    lock_fname = os.path.join(factoryConfig.lock_dir, "gfi_advertize.lock")
+    if not os.path.exists(lock_fname):  # create a lock file if needed
         try:
-            fd=open(lock_fname,"w")
+            fd = open(lock_fname,"w")
             fd.close()
         except:
             # could be a race condition
             pass
-    
-    fd=open(lock_fname,"r+")
+
+    fd = open(lock_fname, "r+")
     try:
-        fcntl.flock(fd,fcntl.LOCK_EX)
+        fcntl.flock(fd, fcntl.LOCK_EX)
         try:
             ret = condorManager.condorAdvertise(fname, command, factoryConfig.advertise_use_tcp,
                                                 is_multi, factory_collector)
         finally:
-            fcntl.flock(fd,fcntl.LOCK_UN)
+            fcntl.flock(fd, fcntl.LOCK_UN)
     finally:
         fd.close()
 
     return ret
-    
-
