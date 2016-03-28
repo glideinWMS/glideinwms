@@ -64,10 +64,11 @@ export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/tools
 export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/tools/lib
 
 cd $GLIDEINWMS_SRC/unittests
-files="test_frontend.py test_frontend_element.py"
 files="test_frontend.py"
 files="test_frontend_element.py"
+files="test_frontend.py test_frontend_element.py"
 
-for file in $files ; do
+for file in $@ ; do
+    echo "TESTING ==========> $file"
     ./$file || log_nonzero_rc "$file" $?
 done
