@@ -49,7 +49,7 @@ for package in $pip_packages; do
     fi
     echo "Installing $package ... $status"
 done
-pip install M2Crypto==0.20.2
+#pip install M2Crypto==0.20.2
 
 ## Need this because some strange control sequences when using default TERM=xterm
 export TERM="linux"
