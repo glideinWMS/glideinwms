@@ -37,9 +37,6 @@ advertizeGFCCounter = {}
 # Advertize counter for glidefactoryglobal classad
 advertizeGlobalCounter = 0
 
-# TODO: to remove - NOT_USED except NOT_USED_advertizeGlidein
-advertizeGlideinCounter = 0
-
 
 ############################################################
 #
@@ -650,7 +647,7 @@ def advertizeGlobal(factory_name, glidein_name, supported_signtypes,
     tmpnam = classadSupport.generate_classad_filename(prefix='gfi_ad_gfg')
 
     gfg_classad = FactoryGlobalClassad(factory_name, glidein_name, supported_signtypes,
-                                       pub_key_obj, stats_dict)
+                                       pub_key_obj)
 
     try:
         gfg_classad.writeToFile(tmpnam, append=False)
