@@ -476,11 +476,10 @@ def findWork(factory_name, glidein_name, entry_name,
                             el[key][attr[plen:]] = sym_key_obj.decrypt_hex(kel[attr])
                         except:
                             invalid_classad = True
-                            break # I don't understand it -> invalid
+                            break  # I don't understand it -> invalid
         if invalid_classad:
             logSupport.log.warning("At least one of the encrypted parameters for client %s cannot be decoded. Skipping for security reasons." % k)
-            continue # need to go this way as I may have problems in an inner loop
-
+            continue  # need to go this way as I may have problems in an inner loop
 
         for attr in kel.keys():
             if attr in ("ClientName", "FrontendName", "GroupName", "ReqName", "LastHeardFrom", "ReqPubKeyID", "AuthenticatedIdentity"):
@@ -517,8 +516,12 @@ class EntryClassad(classadSupport.Classad):
         :param glidein_attrs: glidein attrs to be published, not be overwritten by Frontends
         :param glidein_params: params to be published, can be overwritten by Frontends
         :param glidein_monitors: monitor attrs to be published
-        :param glidein_stats: aggregated Factory statistics to be published
+        :param glidein_stats: aggregated Entry(entry) and Factory(total) statistics to be published
         :return:
+
+        glidein_attrs is a dictionary of values to publish like {"Arch":"INTEL","MinDisk":200000}
+        similar for glidein_params and glidein_monitor_monitors
+
         """
         # TODO: rename glidein_ to entry_ (entry_monitors)?
 
@@ -543,7 +546,7 @@ class EntryClassad(classadSupport.Classad):
         if pub_key_obj is not None:
             self.adParams['PubKeyID'] = "%s" % pub_key_obj.get_pub_key_id()
             self.adParams['PubKeyType'] = "%s" % pub_key_obj.get_pub_key_type()
-            self.adParams['PubKeyValue'] = "%s" % string.replace(pub_key_obj.get_pub_key_value(),'\n','\\n')
+            self.adParams['PubKeyValue'] = "%s" % string.replace(pub_key_obj.get_pub_key_value(), '\n', '\\n')
         if 'grid_proxy' in auth_method:
             self.adParams['GlideinAllowx509_Proxy'] = '%s' % True
             self.adParams['GlideinRequirex509_Proxy'] = '%s' % True
@@ -554,108 +557,25 @@ class EntryClassad(classadSupport.Classad):
             self.adParams['GlideinRequireGlideinProxy'] = '%s' % True
 
         # write out both the attributes, params and monitors
-        for (prefix,data) in ((factoryConfig.glidein_attr_prefix,glidein_attrs),
-                              (factoryConfig.glidein_param_prefix,glidein_params),
-                              (factoryConfig.glidein_monitor_prefix,glidein_monitors)):
+        for (prefix, data) in ((factoryConfig.glidein_attr_prefix, glidein_attrs),
+                               (factoryConfig.glidein_param_prefix, glidein_params),
+                               (factoryConfig.glidein_monitor_prefix, glidein_monitors)):
             for attr in data.keys():
-                el=data[attr]
-                if type(el)==type(1):
+                el = data[attr]
+                if type(el) == type(1):
                     # don't quote ints
-                    self.adParams['%s%s' % (prefix,attr)] = el
+                    self.adParams['%s%s' % (prefix, attr)] = el
                 else:
-                    escaped_el=string.replace(str(el),'\n','\\n')
-                    self.adParams['%s%s' % (prefix,attr)] = "%s" % escaped_el
+                    escaped_el = string.replace(str(el), '\n', '\\n')
+                    self.adParams['%s%s' % (prefix, attr)] = "%s" % escaped_el
 
         # write job completion statistics
         if glidein_stats:
             prefix = factoryConfig.glidein_monitor_prefix
-            for k, v in glidein_stats.items():
+            for k, v in glidein_stats['entry'].items():
                 self.adParams['%s%s' % (prefix, k)] = v
-
-
-# TODO: remove advertizeGlidein which is not used anymore
-# glidein_attrs is a dictionary of values to publish
-#  like {"Arch":"INTEL","MinDisk":200000}
-# similar for glidein_params and glidein_monitor_monitors
-def NOT_USED_advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain,
-                     auth_method, supported_signtypes, pub_key_obj,
-                     glidein_attrs={}, glidein_params={}, glidein_monitors={},
-                     factory_collector=DEFAULT_VAL):
-
-    """
-    Creates the glidefactory classad and advertises.
-    
-    @type factory_name: string
-    @param factory_name: the name of the factory
-    @type glidein_name: string
-    @param glidein_name: name of the glidein
-    @type entry_name: string
-    @param entry_name: name of the entry
-    @type trust_domain: string
-    @param trust_domain: trust domain for this entry
-    @type auth_method: string
-    @param auth_method: the authentication methods this entry supports in glidein submission, i.e. grid_proxy
-    @type supported_signtypes: string
-    @param supported_signtypes: suppported sign types, i.e. sha1
-    @type glidein_attrs: dict 
-    @param glidein_attrs: glidein attrs to be published, not be overwritten by Frontends
-    @type glidein_params: dict 
-    @param glidein_params: params to be published, can be overwritten by Frontends
-    @type glidein_monitors: dict 
-    @param glidein_monitors: monitor attrs to be published
-    @type pub_key_obj: GlideinKey
-    @param pub_key_obj: for the frontend to use in encryption
-    @type factory_collector: string or None
-    @param factory_collector: the collector to query, special value 'default' will get it from the global config
-    """
-    global factoryConfig, advertizeGlideinCounter
-
-    tmpnam = classadSupport.generate_classad_filename(prefix='gfi_ad_gf')
-    fd = file(tmpnam, "w")
-    try:
-        try:
-            fd.write('MyType = "%s"\n' % factoryConfig.factory_id)
-            fd.write('GlideinMyType = "%s"\n' % factoryConfig.factory_id)
-            fd.write('GlideinWMSVersion = "%s"\n' % factoryConfig.glideinwms_version)
-            fd.write('Name = "%s@%s@%s"\n' % (entry_name, glidein_name, factory_name))
-            fd.write('FactoryName = "%s"\n' % factory_name)
-            fd.write('GlideinName = "%s"\n' % glidein_name)
-            fd.write('EntryName = "%s"\n' % entry_name)
-            fd.write('%s = "%s"\n' % (factoryConfig.factory_signtype_id, string.join(supported_signtypes, ',')))
-            # Must have a key to communicate
-            fd.write('PubKeyID = "%s"\n' % pub_key_obj.get_pub_key_id())
-            fd.write('PubKeyType = "%s"\n' % pub_key_obj.get_pub_key_type())
-            fd.write('PubKeyValue = "%s"\n' % string.replace(pub_key_obj.get_pub_key_value(), '\n', '\\n'))
-            if 'grid_proxy' in auth_method:
-                fd.write('GlideinAllowx509_Proxy = %s\n' % True)
-                fd.write('GlideinRequirex509_Proxy = %s\n' % True)
-                fd.write('GlideinRequireGlideinProxy = %s\n' % False)
-            else:
-                fd.write('GlideinAllowx509_Proxy = %s\n' % False)
-                fd.write('GlideinRequirex509_Proxy = %s\n' % False)
-                fd.write('GlideinRequireGlideinProxy = %s\n' % True)
-            fd.write('DaemonStartTime = %li\n' % start_time)
-            fd.write('UpdateSequenceNumber = %i\n' % advertizeGlideinCounter)
-            advertizeGlideinCounter += 1
-
-            # write out both the attributes, params and monitors
-            for (prefix, data) in ((factoryConfig.glidein_attr_prefix, glidein_attrs),
-                                  (factoryConfig.glidein_param_prefix, glidein_params),
-                                  (factoryConfig.glidein_monitor_prefix, glidein_monitors)):
-                for attr in data.keys():
-                    el = data[attr]
-                    if type(el) == type(1):
-                        # don't quote ints
-                        fd.write('%s%s = %s\n' % (prefix, attr, el))
-                    else:
-                        escaped_el = string.replace(string.replace(str(el), '"', '\\"'), '\n', '\\n')
-                        fd.write('%s%s = "%s"\n' % (prefix, attr, escaped_el))
-        finally:
-            fd.close()
-
-        exe_condor_advertise(tmpnam, "UPDATE_MASTER_AD", factory_collector=factory_collector)
-    finally:
-        os.remove(tmpnam)
+            for k, v in glidein_stats['total'].items():
+                self.adParams['%s%s' % (prefix, k)] = v
 
 
 ###############################################################################
@@ -669,14 +589,13 @@ class FactoryGlobalClassad(classadSupport.Classad):
     """
 
     def __init__(self, factory_name, glidein_name, supported_signtypes,
-                 pub_key_obj, glidein_stats={}):
+                 pub_key_obj):
         """Class Constructor
 
         :param factory_name: Name of the factory
         :param glidein_name: Name of the resource in the glidefactoryglobal classad?
         :param supported_signtypes: suppported sign types, i.e. sha1
         :param pub_key_obj: GlideinKey - for the frontend to use in encryption
-        :param glidein_stats: aggregated Factory statistics to be published
         :return:
         """
 
@@ -699,12 +618,6 @@ class FactoryGlobalClassad(classadSupport.Classad):
         self.adParams['PubKeyID'] = "%s" % pub_key_obj.get_pub_key_id()
         self.adParams['PubKeyType'] = "%s" % pub_key_obj.get_pub_key_type()
         self.adParams['PubKeyValue'] = "%s" % string.replace(pub_key_obj.get_pub_key_value(), '\n', '\\n')
-
-        # write job completion statistics
-        if glidein_stats:
-            prefix = factoryConfig.glidein_monitor_prefix
-            for k, v in glidein_stats.items():
-                self.adParams['%s%s' % (prefix, k)] = v
 
 
 def advertizeGlobal(factory_name, glidein_name, supported_signtypes,

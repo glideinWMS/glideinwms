@@ -534,10 +534,6 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             logSupport.log.info("Aggregate monitoring data")
             stats = aggregate_stats(factory_downtimes.checkDowntime())
             save_stats(stats, os.path.join(startup_dir, glideFactoryConfig.factoryConfig.aggregated_stats_file))
-            stats_dict = util.dict_normalize(stats['LogSummary']['total']['CompletedCounts']['JobsNr'],
-                                             glideFactoryMonitoring.getAllJobRanges(),
-                                             'CompletedJobsPerFactory',
-                                             default=0)
 
             # Advertise the global classad with the factory keys and Factory statistics
             try:
@@ -546,8 +542,8 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                     glideinDescript.data['FactoryName'],
                     glideinDescript.data['GlideinName'],
                     glideFactoryLib.factoryConfig.supported_signtypes,
-                    glideinDescript.data['PubKeyObj'],
-                    stats_dict)
+                    glideinDescript.data['PubKeyObj']
+                    )
             except Exception, e:
                 logSupport.log.exception("Error advertising global classads: %s" % e)
 
