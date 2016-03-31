@@ -522,10 +522,16 @@ class Entry:
                 self.jobAttributes.data['GlideinMonitorTotal%s%s' % (w, a)] = current_qc_total[w][a]
 
         stats = load_stats(os.path.join(self.startupDir, glideFactoryConfig.factoryConfig.aggregated_stats_file))
-        stats_dict = util.dict_normalize(stats['LogSummary']['entries'][self.name]['total']['CompletedCounts']['JobsNr'],
-                                         glideFactoryMonitoring.getAllJobRanges(),
-                                         'CompletedJobsPerEntry',
-                                         default=0)
+        stats_dict = {}
+        stats_dict['entry'] = util.dict_normalize(stats['LogSummary']['entries'][self.name]['total']['CompletedCounts']['JobsNr'],
+                                                  glideFactoryMonitoring.getAllJobRanges(),
+                                                  'CompletedJobsPerEntry',
+                                                  default=0)
+        stats_dict['total'] = util.dict_normalize(stats['LogSummary']['total']['CompletedCounts']['JobsNr'],
+                                                  glideFactoryMonitoring.getAllJobRanges(),
+                                                  'CompletedJobsPerFactory',
+                                                  default=0)
+
 
         # Make copy of job attributes so can override the validation
         # downtime setting with the true setting of the entry
