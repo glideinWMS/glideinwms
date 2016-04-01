@@ -907,14 +907,14 @@ def createGlideinClientMonitoringFile(fname,
             limits = ('IdleGlideinsPerEntry', 'HeldGlideinsPerEntry', 'TotalGlideinsPerEntry')
             for limit in limits:
                 if limit in limits_triggered:
-                    fd.write('%sStatus_GlideResource_Limit_%s = "%s"\n' % (factoryConfig.glidein_monitor_prefix, limit, limits_triggered[limit]))
+                    fd.write('%sStatus_GlideFactoryLimit%s = "%s"\n' % (factoryConfig.glidein_monitor_prefix, limit, limits_triggered[limit]))
 
             all_frontends = limits_triggered.get('all_frontends')
             for fe_sec_class in all_frontends:
                 sec_class_limits = ('IdlePerClass_%s'%fe_sec_class, 'TotalPerClass_%s'%fe_sec_class)
                 for limit in sec_class_limits:
                     if limit in limits_triggered:
-                        fd.write('%sStatus_GlideResource_Limit_%s = "%s"\n' % (factoryConfig.glidein_monitor_prefix, limit, limits_triggered[limit]))
+                        fd.write('%sStatus_GlideFactoryLimit%s = "%s"\n' % (factoryConfig.glidein_monitor_prefix, limit, limits_triggered[limit]))
             fd.write('MyType = "%s"\n' % factoryConfig.factoryclient_id)
             fd.write('GlideinMyType = "%s"\n' % factoryConfig.factoryclient_id)
             fd.write('GlideinWMSVersion = "%s"\n' % factoryConfig.glideinwms_version)

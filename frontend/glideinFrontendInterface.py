@@ -1364,9 +1364,9 @@ class ResourceClassad(classadSupport.Classad):
         """
         for k,v in limits_triggered.iteritems():
             if k.startswith('Curb'):
-                classadmessage = "GlideResource_Curb_"+k
+                classadmessage = "GlideClientCurb"+k
             else:
-                classadmessage = "GlideResource_Limit_"+k
+                classadmessage = "GlideClientLimit"+k
                 
             self.adParams[classadmessage] = v
 
