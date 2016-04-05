@@ -901,8 +901,11 @@ class glideinFrontendElement:
                                             self.group_name,
                                             self.ha_mode)
         resource_classad.setInDownTime(glidein_in_downtime)
+        # From glidefactory classad
         resource_classad.setEntryInfo(glidein_el['attrs'])
+        resource_classad.setEntryMonitorInfo(glidein_el['monitor'])
         try:
+            # From glidefactorylient classad
             key = (
                 factory_pool_node,
                 resource_classad.adParams['Name'],
@@ -1263,6 +1266,7 @@ class glideinFrontendElement:
         return total_down_stats_arr
 
     def query_globals(self,factory_pool):
+        # Query glidefactoryglobal ClassAd
         globals_dict = {}
         try:
                 # Note: M2Crypto key objects are not pickle-able,
@@ -1319,6 +1323,7 @@ class glideinFrontendElement:
 
 
     def query_factoryclients(self, factory_pool):
+        # Query glidefactoryclient ClassAd
         try:
             factoryclients = {}
             factory_constraint = expand_DD(
@@ -1360,6 +1365,7 @@ class glideinFrontendElement:
 
 
     def query_entries(self, factory_pool):
+        # Query glidefactory ClassAd
         try:
             glidein_dict = {}
             factory_constraint=expand_DD(self.elementDescript.merged_data['FactoryQueryExpr'],self.attr_dict)

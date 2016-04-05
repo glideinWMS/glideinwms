@@ -1335,11 +1335,29 @@ class ResourceClassad(classadSupport.Classad):
             self.adParams[attr] = info[attr]
 
     
+    def setEntryMonitorInfo(self, info):
+        """
+        Set the useful entry specific monitoring info for the resource in the classad
+        Monitoring info from the glidefactory classad (e.g. CompletedJobs )
+
+        @type info: dict
+        @param info: Useful monitoring info from the glidefactory classad
+        """
+
+        # Monitoring Prefixes are considering format_condor_dict that strips "GlideinMonitor"
+        publish_prefix = ['CompletedJobs']
+        for k in info:
+            for i in publish_prefix:
+                if k.startswith(i):
+                    self.adParams['GlideFactoryMonitor'+k] = info[k]
+                    break
+
+
     def setGlideFactoryMonitorInfo(self, info):
         """
         Set the GlideinFactoryMonitor* for the resource in the classad
 
-        @type info: string
+        @type info: dict
         @param info: Useful information from the glidefactoryclient classad
         """
 
