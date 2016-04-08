@@ -387,9 +387,10 @@ def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
                     # Failed to talk
                     if not factory_pool_node:
                         factory_pool_node = ''
-                    msg = "Failed to talk to factory_pool %s to get the status of Master frontend %s: " % (factory_pool_node, master_frontend_name)
-                    logSupport.log.exception(msg)
+                    msg = "Failed to talk to the factory_pool %s to get the status of Master frontend %s" % (factory_pool_node, master_frontend_name)
                     logSupport.log.warn(msg)
+                    msg = "Exception talking to the factory_pool %s to get the status of Master frontend %s: " % (factory_pool_node, master_frontend_name)
+                    logSupport.log.exception(msg )
 
         # Cleanup the env
         clean_htcondor_env()
