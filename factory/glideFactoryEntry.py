@@ -409,6 +409,57 @@ class Entry:
         return can_submit_glideins
 
 
+    def getGlideinConfiguredLimits(self):
+        """
+        Extract the required info to write to classads
+        """
+
+        configured_limits = {}
+
+        # Create list of attributes upfrontend and iterate over them.
+        limits = (
+            # DefaultPerFrontend limits
+            'DefaultPerFrontendMaxIdle', 'DefaultPerFrontendMaxHeld',
+            'DefaultPerFrontendMaxGlideins',
+            # PerFrontend limits
+            'PerFrontendMaxIdle', 'PerFrontendMaxHeld',
+            'PerFrontendMaxGlideins',
+            # PerEntry limits
+            'PerEntryMaxIdle', 'PerEntryMaxHeld',
+            'PerEntryMaxGlideins',
+        )
+
+        for limit in limits:
+            if limit.startswith('PerFrontend'):
+                # PerFrontend limit has value that cannot be converted to int
+                # without further processing.
+                # 'Frontend-master:frontend;100,Frontend-master:foo;100'
+                # Add the string values for PerFrontend limits along with
+                # processed values
+                configured_limits[limit] = self.jobDescript.data[limit].replace(';', '=')
+
+                # NOTE: (Parag: March 04, 2016)
+                # Rest of the code is disabled for now. Assumption is that
+                # the external monitoring components can do the processing
+                # so we dont have to. If required we can just easily enable
+                # the code if required.
+                #for fe_sec in self.jobDescript.data[limit].split(','):
+                #    try:
+                #        tokens = fe_sec.split(';')
+                #        k = '%s_%s' % (limit, tokens[0].replace(':', '__'))
+                #        configured_limits[k] = int(tokens[1])
+                #    except:
+                #        logSupport.log.warning('Error extracting %s for %s from %s' % (limit, fe_sec, self.jobDescript.data[limit]))
+            else:
+                try:
+                    # Default and per entry limits are numeric 
+                    configured_limits[limit] = int(self.jobDescript.data[limit])
+                except:
+                    logSupport.log.warning('%s (value=%s) is not an int' % (limit, self.jobDescript.data[limit]))
+
+        return configured_limits
+
+
     def writeClassadsToFile(self, downtime_flag, gf_filename,
                             gfc_filename, append=True):
         """
@@ -460,7 +511,8 @@ class Entry:
                          self.gflFactoryConfig.supported_signtypes,
                          pub_key_obj=pub_key_obj, glidein_attrs=myJobAttributes,
                          glidein_params=self.jobParams.data.copy(),
-                         glidein_monitors=glidein_monitors.copy())
+                         glidein_monitors=glidein_monitors.copy(),
+                         glidein_config_limits=self.getGlideinConfiguredLimits())
         try:
             gf_classad.writeToFile(gf_filename, append=append)
         except:

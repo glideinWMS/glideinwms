@@ -374,18 +374,33 @@ def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
             set_frontend_htcondor_env(work_dir, frontendDescript, element)
 
             for factory_pool in element.factory_pools:
-                factory_pool_node = factory_pool[0]
+                try:
+                    factory_pool_node = factory_pool[0]
+                    master_classads = glideinFrontendInterface.findMasterFrontendClassads(factory_pool_node, master_frontend_name)
 
-                master_classads = glideinFrontendInterface.findMasterFrontendClassads(factory_pool_node, master_frontend_name)
-
-                if master_classads:
-                    # Found some classads in one of the collectors
-                    # Cleanup the env and return True
-                    clean_htcondor_env()
-                    return True
+                    if master_classads:
+                        # Found some classads in one of the collectors
+                        # Cleanup the env and return True
+                        clean_htcondor_env()
+                        return True
+                except RuntimeError:
+                    # Failed to talk
+                    if not factory_pool_node:
+                        factory_pool_node = ''
+                    msg = "Failed to talk to the factory_pool %s to get the status of Master frontend %s" % (factory_pool_node, master_frontend_name)
+                    logSupport.log.warn(msg)
+                    msg = "Exception talking to the factory_pool %s to get the status of Master frontend %s: " % (factory_pool_node, master_frontend_name)
+                    logSupport.log.exception(msg )
 
         # Cleanup the env
         clean_htcondor_env()
+
+        # NOTE:
+        # If we got this far with no errors then we could not find
+        # active master frontend. We should not hibernate as slave
+        # However, if there were errors checking with factory pool
+        # then the master frontend could be down so its safe to wake
+        # up and start advertising.
 
     return False
 
