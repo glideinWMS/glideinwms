@@ -413,7 +413,7 @@ class Entry:
         """
         Extract the required info to write to classads
         """
-        
+
         configured_limits = {}
 
         # Create list of attributes upfrontend and iterate over them.
@@ -430,14 +430,13 @@ class Entry:
         )
 
         for limit in limits:
-            key = '%s' % (limit)
             if limit.startswith('PerFrontend'):
                 # PerFrontend limit has value that cannot be converted to int
                 # without further processing.
                 # 'Frontend-master:frontend;100,Frontend-master:foo;100'
                 # Add the string values for PerFrontend limits along with
                 # processed values
-                configured_limits[key] = self.jobDescript.data[limit].replace(';', '=')
+                configured_limits[limit] = self.jobDescript.data[limit].replace(';', '=')
 
                 # NOTE: (Parag: March 04, 2016)
                 # Rest of the code is disabled for now. Assumption is that
@@ -445,17 +444,16 @@ class Entry:
                 # so we dont have to. If required we can just easily enable
                 # the code if required.
                 #for fe_sec in self.jobDescript.data[limit].split(','):
-                #    k = key
                 #    try:
                 #        tokens = fe_sec.split(';')
-                #        k = '%s_%s' % (key, tokens[0].replace(':', '__'))
+                #        k = '%s_%s' % (limit, tokens[0].replace(':', '__'))
                 #        configured_limits[k] = int(tokens[1])
                 #    except:
                 #        logSupport.log.warning('Error extracting %s for %s from %s' % (limit, fe_sec, self.jobDescript.data[limit]))
             else:
                 try:
                     # Default and per entry limits are numeric 
-                    configured_limits[key] = int(self.jobDescript.data[limit])
+                    configured_limits[limit] = int(self.jobDescript.data[limit])
                 except:
                     logSupport.log.warning('%s (value=%s) is not an int' % (limit, self.jobDescript.data[limit]))
 
