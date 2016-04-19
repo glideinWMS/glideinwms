@@ -1,7 +1,7 @@
 #!/bin/bash
 # Cat log GWMS files using tools
 
-TOOLDIR=/usr/lib/python2.6/site-packages/glideinwms/factory/tools
+TOOLDIR="`python -c 'import glideinwms; print glideinwms.__path__[0]'`/factory/tools"
 JOBLOGROOTPREFIX=/var/log/gwms-factory/client
 FEUSER=user_frontend
 JOBLOGPREFIX=/var/log/gwms-factory/client/user_frontend/glidein_gfactory_instance/entry_
@@ -38,8 +38,15 @@ EOF
 function find_dirs {
   if [ ! -f "$TOOLDIR/cat_logs.py" ]; then 
     TOOLDIR="$(dirname "$(readlink -f $0)")"
+    # The following should not be needed (import should catch all system paths), but kept here to be fool proof
     if [ ! -f "$TOOLDIR/cat_logs.py" ]; then 
-      TOOLDIR=/usr/lib/python2.4/site-packages/glideinwms/factory/tools
+      TOOLDIR=/usr/lib/python2.6/site-packages/glideinwms/factory/tools
+      if [ ! -f "$TOOLDIR/cat_logs.py" ]; then 
+        TOOLDIR=/usr/lib/python2.4/site-packages/glideinwms/factory/tools
+        if [ ! -f "$TOOLDIR/cat_logs.py" ]; then 
+          TOOLDIR=/usr/lib/python2.7/site-packages/glideinwms/factory/tools
+        fi
+      fi
     fi
     if [ ! -f "$TOOLDIR/cat_logs.py" ]; then 
       echo "Unable to find the directory with the factory tools."
