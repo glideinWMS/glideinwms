@@ -1578,14 +1578,14 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
     subCode = jobInfo.get('HoldReasonSubCode')
     holdreason = jobInfo.get('HoldReason')
     # Based on HoldReasonCode and HoldReasonSubCode check if the job is recoverable
-    if (code is not None) and (subcode is not None):
+    if (code is not None) and (subCode is not None):
         if ( (code in unrecoverableCodes) and 
              (subCode in unrecoverableCodes[code]) ):
             unrecoverable = True
         # As of HTCondor 8.4.4 in case of glideins submitted to AWS and CondorCE
         # have the HoldReasonCode = HoldReasonSubCode = 0 but HoldReason is
         # populated correctly 
-        elif (code == 0) and (subcode == 0) and (holdreason is not None):
+        elif (code == 0) and (subCode == 0) and (holdreason is not None):
             for rs in unrecoverable_reason_str:
                 if holdreason.find(rs) != -1:
                     # unrecoverable substring match
