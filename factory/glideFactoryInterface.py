@@ -494,7 +494,7 @@ def findWork(factory_name, glidein_name, entry_name,
 class EntryClassad(classadSupport.Classad):
     """
     This class describes the glidefactory classad. Factory advertises the
-    glidefactory classad to the user pool as an UPDATE_MASTER_AD type classad
+    glidefactory classad to the user pool as an UPDATE_ADS_GENERIC type classad
     """
 
     def __init__(self, factory_name, glidein_name, entry_name,
@@ -525,8 +525,8 @@ class EntryClassad(classadSupport.Classad):
         global factoryConfig, advertizeGFCounter
 
         classadSupport.Classad.__init__(self, factoryConfig.factory_id,
-                                        'UPDATE_MASTER_AD',
-                                        'INVALIDATE_MASTER_ADS')
+                                        'UPDATE_ADS_GENERIC',
+                                        'INVALIDATE_ADS_GENERIC')
 
         # Short hand for easy access
         classad_name = "%s@%s@%s" % (entry_name, glidein_name, factory_name)
@@ -582,7 +582,10 @@ class EntryClassad(classadSupport.Classad):
 class FactoryGlobalClassad(classadSupport.Classad):
     """
     This class describes the glidefactoryglobal classad. Factory advertises the
-    glidefactoryglobal classad to the user pool as an UPDATE_MASTER_AD type classad
+    glidefactoryglobal classad to the user pool as an UPDATE_ADS_GENERIC type classad
+
+    glidefactory and glidefactoryglobal classads must be of the same type because they may be
+    invalidated together (with a single command)
     """
 
     def __init__(self, factory_name, glidein_name, supported_signtypes,
@@ -599,8 +602,8 @@ class FactoryGlobalClassad(classadSupport.Classad):
         global factoryConfig, advertizeGlobalCounter
 
         classadSupport.Classad.__init__(self, factoryConfig.factory_global,
-                                        'UPDATE_MASTER_AD',
-                                        'INVALIDATE_MASTER_ADS')
+                                        'UPDATE_ADS_GENERIC',
+                                        'INVALIDATE_ADS_GENERIC')
 
         # Short hand for easy access
         classad_name = "%s@%s" % (glidein_name, factory_name)
@@ -646,7 +649,7 @@ def advertizeGlobal(factory_name, glidein_name, supported_signtypes,
 
     try:
         gfg_classad.writeToFile(tmpnam, append=False)
-        exe_condor_advertise(tmpnam, "UPDATE_MASTER_AD", factory_collector=factory_collector)
+        exe_condor_advertise(tmpnam, gfg_classad.adAdvertiseCmd, factory_collector=factory_collector)
     finally:
         # Unable to write classad
         try:
@@ -654,56 +657,6 @@ def advertizeGlobal(factory_name, glidein_name, supported_signtypes,
         except:
             # Do the possible to remove the file if there
             pass
-
-
-def advertizeGlobal_old(factory_name, glidein_name, supported_signtypes,
-                    pub_key_obj, factory_collector=DEFAULT_VAL):
-
-    """
-    Creates the glidefactoryglobal classad and advertises.
-    
-    @type factory_name: string
-    @param factory_name: the name of the factory
-    @type glidein_name: string
-    @param glidein_name: name of the glidein
-    @type supported_signtypes: string
-    @param supported_signtypes: suppported sign types, i.e. sha1
-    @type pub_key_obj: GlideinKey
-    @param pub_key_obj: for the frontend to use in encryption
-    @type factory_collector: string or None
-    @param factory_collector: the collector to query, special value 'default' will get it from the global config
-    
-    @todo add factory downtime?
-    """
-
-    global factoryConfig
-    global advertizeGlobalCounter
-
-    tmpnam = classadSupport.generate_classad_filename(prefix='gfi_ad_gfg')
-    fd = file(tmpnam, "w")
-
-    try:
-        try:
-            fd.write('MyType = "%s"\n' % factoryConfig.factory_global)
-            fd.write('GlideinMyType = "%s"\n' % factoryConfig.factory_global)
-            fd.write('GlideinWMSVersion = "%s"\n' % factoryConfig.glideinwms_version)
-            fd.write('Name = "%s@%s"\n' % (glidein_name, factory_name))
-            fd.write('FactoryName = "%s"\n' % factory_name)
-            fd.write('GlideinName = "%s"\n' % glidein_name)
-            fd.write('%s = "%s"\n' % (factoryConfig.factory_signtype_id, string.join(supported_signtypes, ',')))
-            fd.write('PubKeyID = "%s"\n' % pub_key_obj.get_pub_key_id())
-            fd.write('PubKeyType = "%s"\n' % pub_key_obj.get_pub_key_type())
-            fd.write('PubKeyValue = "%s"\n' % string.replace(pub_key_obj.get_pub_key_value(), '\n', '\\n'))
-            fd.write('DaemonStartTime = %li\n' % start_time)
-            fd.write('UpdateSequenceNumber = %i\n' % advertizeGlobalCounter)
-            advertizeGlobalCounter += 1
-        finally:
-            fd.close()
-
-        exe_condor_advertise(tmpnam, "UPDATE_MASTER_AD", factory_collector=factory_collector)
-
-    finally:
-        os.remove(tmpnam)
 
 
 def deadvertizeGlidein(factory_name, glidein_name, entry_name, factory_collector=DEFAULT_VAL):
@@ -720,7 +673,7 @@ def deadvertizeGlidein(factory_name, glidein_name, entry_name, factory_collector
         finally:
             fd.close()
 
-        exe_condor_advertise(tmpnam, "INVALIDATE_MASTER_ADS", factory_collector=factory_collector)
+        exe_condor_advertise(tmpnam, "INVALIDATE_ADS_GENERIC", factory_collector=factory_collector)
     finally:
         os.remove(tmpnam)
 
@@ -739,7 +692,7 @@ def deadvertizeGlobal(factory_name, glidein_name, factory_collector=DEFAULT_VAL)
         finally:
             fd.close()
 
-        exe_condor_advertise(tmpnam, "INVALIDATE_MASTER_ADS", factory_collector=factory_collector)
+        exe_condor_advertise(tmpnam, "INVALIDATE_ADS_GENERIC", factory_collector=factory_collector)
     finally:
         os.remove(tmpnam)
 
@@ -757,7 +710,7 @@ def deadvertizeFactory(factory_name, glidein_name, factory_collector=DEFAULT_VAL
         finally:
             fd.close()
 
-        exe_condor_advertise(tmpnam, "INVALIDATE_MASTER_ADS", factory_collector=factory_collector)
+        exe_condor_advertise(tmpnam, "INVALIDATE_ADS_GENERIC", factory_collector=factory_collector)
     finally:
         os.remove(tmpnam)
 
@@ -953,7 +906,7 @@ def advertizeGlideinFromFile(fname, remove_file=True, is_multi=False, factory_co
     if os.path.exists(fname):
         try:
             logSupport.log.info("Advertising glidefactory classads")
-            exe_condor_advertise(fname, "UPDATE_MASTER_AD", is_multi=is_multi, factory_collector=factory_collector)
+            exe_condor_advertise(fname, "UPDATE_ADS_GENERIC", is_multi=is_multi, factory_collector=factory_collector)
         except:
             logSupport.log.warning("Advertising glidefactory classads failed")
             logSupport.log.exception("Advertising glidefactory classads failed: ")
