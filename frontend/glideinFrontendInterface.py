@@ -1366,12 +1366,10 @@ class ResourceClassad(classadSupport.Classad):
         """
 
         # Monitoring Prefixes are considering format_condor_dict that strips "GlideinMonitor"
-        publish_prefix = ['CompletedJobs']
         for k in info:
-            for i in publish_prefix:
-                if k.startswith(i):
-                    self.adParams['GlideFactoryMonitor'+k] = info[k]
-                    break
+            if k.startswith('CompletedJobs'):
+                self.adParams['GlideFactoryMonitor'+k] = info[k]
+                break
 
 
     def setGlideFactoryMonitorInfo(self, info):

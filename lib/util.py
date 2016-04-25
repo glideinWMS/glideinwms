@@ -14,7 +14,8 @@
 
 import os
 import shutil
-
+import cPickle as pickle
+import tempfile
 
 #################################
 # Dictionary functions
@@ -160,6 +161,61 @@ except AttributeError:
     replace = os.rename
 
 
+def file_pickle_dump(fname, content, tmp_type='PID', mask_exceptions=None):
+    """Serialize and save content
+
+    To avoid inconsistent content
+    @param fname: file storing the serialized content
+    @param content: content to serialize
+    @param tmp_type: tmp file type as defined in file_get_tmp (Default: PID, .$PID.tmp suffix)
+    @param mask_exceptions: callback function and arguments to use if an exception happens (Default: None)
+      The callback function can access the exception via sys.exc_info()
+      If a function is not provided, the exception is re-risen
+      if provided it is called using mask_exceptions[0](*mask_exceptions[1:])
+    @return: True if the saving was successful, False or an exception otherwise
+    """
+    tmp_fname = file_get_tmp(fname, tmp_type)
+    try:
+        with open(tmp_fname, "w") as pfile:
+            pickle.dump(content, pfile, 2)
+    except:
+        if mask_exceptions and hasattr(mask_exceptions[0], '__call__'):
+            # protect and report
+            mask_exceptions[0](*mask_exceptions[1:])
+            return False
+        else:
+            raise
+    else:
+        file_tmp2final(fname, tmp_fname)
+        return True
+
+
+def file_pickle_load(fname, mask_exceptions=None, default=None):
+    """Load a serialized dictionary
+
+    @param fname: name of the file with the serialized data
+    @param mask_exceptions: callback function and arguments to use if an exception happens (Default: None)
+      The callback function can access the exception via sys.exc_info()
+      If a function is not provided, the exception is re-risen
+      if provided it is called using mask_exceptions[0](*mask_exceptions[1:])
+    @param default: value returned if the unpickling fails (Default: None)
+    @return: python objects (e.g. data dictionary)
+    """
+    data = default
+    try:
+        with open(fname, 'r') as fo:
+            data = pickle.load(fo)
+    except:
+        if mask_exceptions and hasattr(mask_exceptions[0], '__call__'):
+            # protect and report
+            mask_exceptions[0](*mask_exceptions[1:])
+        else:
+            raise
+    return data
+
+
+
+
 # One writer, avoid partial write due to code, OS or file system problems
 # from factory/glideFactoryMonitoring
 #     KEL this exact method is also in glideinFrontendMonitoring.py
@@ -204,8 +260,31 @@ def file_tmp2final(fname, tmp_fname=None, bck_fname=None, do_backup=True):
 # TODO: currently many temporary files are in the work-dir and owned by only one process, which means that a locally
 # unique name is sufficient. If this changes or if wor-dir is not on a local (POSIX) file system, temporary files
 # may have to be moved to a shared place (/tmp) and handled more properly
-def file_get_tmp():
-    pass
+def file_get_tmp(fname=None, tmp_type=False):
+    """Get the name of a temporary file
+    Depending on the option chosen this may be unsafe:
+    .tmp suffix is OK only if no one else will use this file
+    .$PID.tmp is OK if no multithreading is used and there are no safety concerns (name easy to guess, attacks prone)
+    tempfile from tempfile.mkstemp() that guarantees uniqueness and safety
+
+    @param fname: original file name
+    @param tmp_type: type of temporary file name (Default: None):
+       - None (or anything False) - '.tmp' suffix added to the file name (unsafe, may be conflicts if )
+       - PID - '.$PID.tmp' suffix added to the file name
+       - REAL (or anything else) - real tempfile (unique and safe, using tempfile.mkstemp())
+    @return: tamporary file name
+    """
+    if not tmp_type:
+        return fname + ".tmp"
+    elif tmp_type == "PID":
+        return "%s.%s.tmp" % (fname, os.getpid())
+    else:
+        f_dir = os.path.dirname(fname)
+        f_name = os.path.basename(fname)
+        tmp_file, tmp_fname = tempfile.mkstemp(suffix='tmp', prefix=f_name, dir=f_dir)
+        # file is open, reopening it is OK
+        return tmp_fname
+
 
 
 # in classadSupport

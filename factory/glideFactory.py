@@ -28,7 +28,6 @@ import copy
 import logging
 import math
 # from datetime import datetime
-import cPickle as pickle
 
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../../"))
@@ -86,33 +85,8 @@ def save_stats(stats, fname):
     :param fname: name of the file with the serialized data
     :return:
     """
-    fo = open(fname + ".tmp", "w")
-    try:
-        pickle.dump(stats, fo, 2)
-    except:
-        # protect and report
-        logSupport.log.exception("Saving of aggregated statistics failed: ")
-    finally:
-        fo.close()
-    util.file_tmp2final(fname)
-
-
-def load_stats(fname):
-    """Load serialized aggregated Factory statistics
-
-    :param fname: name of the file with the serialized data
-    :return: dictionary with aggregated Factory statistics
-    """
-    stats = {}
-    try:
-        fo = open(fname, 'r')
-        stats = pickle.load(fo)
-    except:
-        # protect and report
-        logSupport.log.exception("Reading of aggregated statistics failed: ")
-    finally:
-        fo.close()
-    return stats
+    util.file_pickle_dump(fname, stats,
+                          mask_exceptions=(logSupport.log.exception, "Saving of aggregated statistics failed: "))
 
 
 # Added by C.W. Murphy to make descript.xml
