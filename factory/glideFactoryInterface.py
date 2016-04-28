@@ -800,12 +800,13 @@ class MultiAdvertizeGlideinClientMonitoring:
         self.factory_collector = factory_collector
 
     def add(self, client_name, client_int_name, client_int_req,
-            client_params={}, client_monitors={}):
+            client_params={}, client_monitors={}, limits_triggered={}):
         el = {'client_name':client_name,
             'client_int_name':client_int_name,
             'client_int_req':client_int_req,
             'client_params':client_params,
-            'client_monitors':client_monitors}
+            'client_monitors':client_monitors,
+            'limits_triggered':limits_triggered}
         self.client_data.append(el)
 
     # do the actual advertizing
@@ -878,7 +879,7 @@ class MultiAdvertizeGlideinClientMonitoring:
                 filename, self.factory_name, self.glidein_name, self.entry_name,
                 el['client_name'], el['client_int_name'], el['client_int_req'],
                 self.glidein_attrs, el['client_params'], el['client_monitors'],
-                do_append=append)
+                el['limits_triggered'], do_append=append)
             # Append from here on anyways
             append = True
 
@@ -894,7 +895,7 @@ class MultiAdvertizeGlideinClientMonitoring:
 def createGlideinClientMonitoringFile(fname,
                                       factory_name, glidein_name, entry_name,
                                       client_name, client_int_name, client_int_req,
-                                      glidein_attrs={}, client_params={}, client_monitors={},
+                                      glidein_attrs={}, client_params={}, client_monitors={}, limits_triggered={},
                                       do_append=False):
     global factoryConfig
     global advertizeGFCCounter
@@ -907,6 +908,17 @@ def createGlideinClientMonitoringFile(fname,
     fd = file(fname, open_type)
     try:
         try:
+            limits = ('IdleGlideinsPerEntry', 'HeldGlideinsPerEntry', 'TotalGlideinsPerEntry')
+            for limit in limits:
+                if limit in limits_triggered:
+                    fd.write('%sStatus_GlideFactoryLimit%s = "%s"\n' % (factoryConfig.glidein_monitor_prefix, limit, limits_triggered[limit]))
+
+            all_frontends = limits_triggered.get('all_frontends')
+            for fe_sec_class in all_frontends:
+                sec_class_limits = ('IdlePerClass_%s'%fe_sec_class, 'TotalPerClass_%s'%fe_sec_class)
+                for limit in sec_class_limits:
+                    if limit in limits_triggered:
+                        fd.write('%sStatus_GlideFactoryLimit%s = "%s"\n' % (factoryConfig.glidein_monitor_prefix, limit, limits_triggered[limit]))
             fd.write('MyType = "%s"\n' % factoryConfig.factoryclient_id)
             fd.write('GlideinMyType = "%s"\n' % factoryConfig.factoryclient_id)
             fd.write('GlideinWMSVersion = "%s"\n' % factoryConfig.glideinwms_version)
