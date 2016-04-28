@@ -1562,7 +1562,6 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
     if factoryConfig is None:
         factoryConfig = globals()['factoryConfig']
 
-
     unrecoverable = False
     # Dictionary of {HeldReasonCode: HeldReasonSubCode}
     unrecoverableCodes = {2: [ 0, 2, 4, 5, 7, 8, 9, 10, 14, 17,
