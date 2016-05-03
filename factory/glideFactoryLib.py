@@ -179,12 +179,16 @@ def getCondorQData(entry_name, client_name, schedd_name, factoryConfig=None):
          factoryConfig.glidein_schedd_attribute, factoryConfig.glidein_name,
          factoryConfig.entry_schedd_attribute, entry_name, client_constraint,
          factoryConfig.credential_id_schedd_attribute)
-    q_glidein_format_list = [("JobStatus", "i"), ("GridJobStatus", "s"), ("ServerTime", "i"), ("EnteredCurrentStatus", "i"),
-                             (factoryConfig.credential_id_schedd_attribute, "s"), ("HoldReasonCode", "i"), ("HoldReasonSubCode", "i"),
-                           ("NumSystemHolds","i"),
-                             (factoryConfig.frontend_name_attribute, "s"),
-                             (factoryConfig.client_schedd_attribute, "s"),
-                             (factoryConfig.credential_secclass_schedd_attribute, "s")]
+    q_glidein_format_list = [
+        ("JobStatus", "i"), ("GridJobStatus", "s"), ("ServerTime", "i"),
+        ("EnteredCurrentStatus", "i"),
+        (factoryConfig.credential_id_schedd_attribute, "s"),
+        ("HoldReasonCode", "i"), ("HoldReasonSubCode", "i"),
+        ("HoldReason","s"), ("NumSystemHolds","i"),
+        (factoryConfig.frontend_name_attribute, "s"),
+        (factoryConfig.client_schedd_attribute, "s"),
+        (factoryConfig.credential_secclass_schedd_attribute, "s")
+    ]
 
     q = condorMonitor.CondorQ(schedd_name)
     q.factory_name = factoryConfig.factory_name
@@ -1568,21 +1572,37 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
                                22, 27, 28, 31, 37, 47, 48,
                                72, 76, 81, 86, 87,
                                121, 122 ]}
-
-    if jobInfo.has_key('HoldReasonCode') and jobInfo.has_key('HoldReasonSubCode'):
-        code = jobInfo['HoldReasonCode']
-        subCode = jobInfo['HoldReasonSubCode']
+    unrecoverable_reason_str = ['Failed to authenticate with any method']
+    
+    code = jobInfo.get('HoldReasonCode')
+    subCode = jobInfo.get('HoldReasonSubCode')
+    holdreason = jobInfo.get('HoldReason')
+    # Based on HoldReasonCode and HoldReasonSubCode check if the job is recoverable
+    if (code is not None) and (subCode is not None):
         if ( (code in unrecoverableCodes) and 
              (subCode in unrecoverableCodes[code]) ):
             unrecoverable = True
+        # As of HTCondor 8.4.4 in case of glideins submitted to AWS and CondorCE
+        # have the HoldReasonCode = HoldReasonSubCode = 0 but HoldReason is
+        # populated correctly 
+        elif (code == 0) and (subCode == 0) and (holdreason is not None):
+            for rs in unrecoverable_reason_str:
+                if holdreason.find(rs) != -1:
+                    # unrecoverable substring match
+                    unrecoverable = True
+                    break
 
-    num_holds=1
-    if jobInfo.has_key('JobStatus') and jobInfo.has_key('NumSystemHolds'):
-        if jobInfo['JobStatus']==5:
-            num_holds=jobInfo['NumSystemHolds']
-
-    if num_holds>factoryConfig.max_release_count:
-        unrecoverable = True
+    # Following check with NumSystemHolds should only apply to recoverable jobs
+    # If we have determined that job is unrecoverable, skip these checks
+    if not unrecoverable:
+        num_holds=1
+        job_status = jobInfo.get('JobStatus')
+        num_system_holds = jobInfo.get('NumSystemHolds')
+        if (job_status is not None) and (num_system_holds is not None):
+            if job_status == 5:
+                num_holds = num_system_holds
+        if num_holds>factoryConfig.max_release_count:
+            unrecoverable = True
 
     return unrecoverable
 
