@@ -58,7 +58,7 @@ class Entry:
         @param frontend_descript: Security mappings for frontend identities,
         security classes, and usernames for privsep
         """
-
+        self.limits_triggered={}
         self.name = name
         self.startupDir = startup_dir
         self.glideinDescript = glidein_descript
@@ -187,7 +187,6 @@ class Entry:
         # Create entry specific descript files
         write_descript(self.name, self.jobDescript, self.jobAttributes,
                        self.jobParams, self.monitorDir)
-
 
     def loadContext(self):
         """
@@ -371,7 +370,6 @@ class Entry:
             self.log.warning("getCondorQData failed, traceback: %s"%string.join(tb,''))
             raise e
 
-
     def glideinsWithinLimits(self, condorQ):
         """
         Check the condorQ info and see we are within limits & init entry limits
@@ -393,7 +391,6 @@ class Entry:
         if self.glideinTotals.has_entry_exceeded_max_idle():
             self.log.warning("Entry %s has hit the limit for idle glideins, cannot submit any more" % self.name)
             can_submit_glideins = False
-
         # Check if entry has exceeded max glideins
         if (can_submit_glideins and
             self.glideinTotals.has_entry_exceeded_max_glideins()):
@@ -405,6 +402,31 @@ class Entry:
             self.glideinTotals.has_entry_exceeded_max_held()):
             self.log.warning("Entry %s has hit the limit for held glideins, cannot submit any more" % self.name)
             can_submit_glideins = False
+
+        # set limits_triggered here so that it can be getStated and setStated later
+        glideinTotals = self.glideinTotals
+        if glideinTotals.has_entry_exceeded_max_idle():
+            self.limits_triggered['IdleGlideinsPerEntry']  = 'count=%i, limit=%i'% (glideinTotals.entry_idle, glideinTotals.entry_max_idle)
+
+        if glideinTotals.has_entry_exceeded_max_held():
+            self.limits_triggered['HeldGlideinsPerEntry']  = 'count=%i, limit=%i' % (glideinTotals.entry_held, glideinTotals.entry_max_held)
+
+        if glideinTotals.has_entry_exceeded_max_glideins():
+            total_max_glideins = glideinTotals.entry_idle + glideinTotals.entry_running + glideinTotals.entry_held
+            self.limits_triggered['TotalGlideinsPerEntry'] = 'count=%i, limit=%i' % (total_max_glideins,   glideinTotals.entry_max_glideins)
+
+        all_frontends = self.frontendDescript.get_all_frontend_sec_classes()
+        self.limits_triggered['all_frontends'] = all_frontends
+
+        for fe_sec_class in all_frontends:
+            if glideinTotals.frontend_limits[fe_sec_class]['idle'] > glideinTotals.frontend_limits[fe_sec_class]['max_idle']:
+                fe_key = 'IdlePerClass_%s' % fe_sec_class
+                self.limits_triggered[fe_key] = 'count=%i, limit=%i' % (glideinTotals.frontend_limits[fe_sec_class]['idle'],glideinTotals.frontend_limits[fe_sec_class]['max_idle'])
+
+            total_sec_class_glideins = glideinTotals.frontend_limits[fe_sec_class]['idle']+glideinTotals.frontend_limits[fe_sec_class]['held']+glideinTotals.frontend_limits[fe_sec_class]['running']
+            if total_sec_class_glideins > glideinTotals.frontend_limits[fe_sec_class]['max_glideins']:
+                fe_key = 'TotalPerClass_%s' % fe_sec_class
+                self.limits_triggered[fe_key] = 'count=%i, limit=%i' % (total_sec_class_glideins, glideinTotals.frontend_limits[fe_sec_class]['max_glideins'] )
 
         return can_submit_glideins
 
@@ -558,7 +580,8 @@ class Entry:
 
             advertizer.add(client_internals["CompleteName"],
                            client_name, client_internals["ReqName"],
-                           params, client_monitors.copy())
+                           params, client_monitors.copy(),
+                           self.limits_triggered)
 
         try:
             advertizer.writeToMultiClassadFile(gfc_filename)
@@ -742,6 +765,7 @@ class Entry:
         state = {
             'client_internals': self.gflFactoryConfig.client_internals,
             'glidein_totals': self.glideinTotals,
+            'limits_triggered': self.limits_triggered,
             'client_stats': self.gflFactoryConfig.client_stats,
             'qc_stats': self.gflFactoryConfig.qc_stats,
             'rrd_stats': self.gflFactoryConfig.rrd_stats,
@@ -789,6 +813,7 @@ class Entry:
         self.gflFactoryConfig.client_internals = state.get('client_internals')
 
         self.glideinTotals = state.get('glidein_totals')
+        self.limits_triggered = state.get('limits_triggered')
 
         self.gflFactoryConfig.log_stats = state['log_stats']
         if self.gflFactoryConfig.log_stats:

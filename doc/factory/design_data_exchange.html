@@ -191,6 +191,44 @@ publish glideresource class-ads to the User Pool Collector. Such a class-ad will
 <p>Picture below shows a glideresource classad<br>
 <img src="../images/frontend_publish_resource.png" name="graphics5c" align="BOTTOM" border="0"></p>
 </p>
+
+
+<h4><a name="limits_triggered"></a>New limits and curbs on  number of glideins triggered appear in glideresource class-ad:</h4>
+<ol>
+<li> To advertize Frontend limits/curbs</li>
+<p>
+Frontend adds the following attributes in glideresource classad about Frontend limits/curbs
+These new attributes in glideresource all start with the prefix "GlideClientLimit" to indicate that this attribute provides information about limit triggered.
+examples>
+If TotalGlideinsPerEntry on Frontend side is triggered, you will see in glideresource classad
+GlideClientLimitTotalGlideinsPerEntry = "count=11, limit=10"
+It basically says that "the limit is 10 and the actual count was 11, so the code had to do something about this"
+</p>
+
+<li> To advertize Factory limits, </li>
+<p>
+Factory adds the following attributes in glidefactoryclient classad
+These new attributes in glidefactoryclient all start with 2 prefixes
+GlideinMonitorStatus_GlideFactoryLimit
+GlideinMonitorStatus is prepended by Factory code for this attribute to be picked by Frontend code to become attribute of glideresource classad.
+The second prefix GlideFactoryLimit indicates that this attribute provides information about limit triggered.
+
+examples found in glidefactoryclient>
+If TotalGlideinsPerEntry limit is triggered on Factory side, you will see
+GlideinMonitorStatus_GlideFactoryLimitTotalGlideinsPerEntry = "count=11, limit=10"
+It basically says that "the limit is 10 and the actual count was 11, so the code had to do something about this"
+
+Frontend code looks at glidefactoryclient and picks up attributes that start with
+GlideinMonitorStatus
+and convert them to start with
+GlideFactoryMonitorStatus
+
+examples found in glideresource>
+Again, If TotalGlideinsPerEntry limit is triggered on Factory side, you will see
+GlideFactoryMonitorStatus_GlideFactoryLimitTotalGlideinsPerEntry = "count=11, limit=10"
+</p>
+</ol>
+
 </div>
 </body>
 </html>
