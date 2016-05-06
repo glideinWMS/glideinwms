@@ -552,7 +552,7 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
             if tb_count > 0:
                 logSupport.log.debug("There were %s exceptions in countRealRunning subprocess. Most recent traceback: %s" % (tb_count, recent_tb))
             glidein_count += schedd_count
-        logSupport.log.debug("Example running glidein ids at %s (total glideins: %d, total jobs %d, cluster matches: %d): %s" %
+        logSupport.log.debug("Running glidein ids at %s (total glideins: %d, total jobs %d, cluster matches: %d): %s" %
                              (glidename, len(glidein_ids), len(job_ids), glidein_count, ", ".join(list(glidein_ids)[:5])))
         out_job_counts[glidename] = len(job_ids)
         out_glidein_counts[glidename] = len(glidein_ids)
