@@ -497,7 +497,7 @@ def findWork(factory_name, glidein_name, entry_name,
 class EntryClassad(classadSupport.Classad):
     """
     This class describes the glidefactory classad. Factory advertises the
-    glidefactory classad to the user pool as an UPDATE_ADS_GENERIC type classad
+    glidefactory classad to the user pool as an UPDATE_AD_GENERIC type classad
     """
 
     def __init__(self, factory_name, glidein_name, entry_name,
@@ -529,7 +529,7 @@ class EntryClassad(classadSupport.Classad):
         global factoryConfig, advertizeGFCounter
 
         classadSupport.Classad.__init__(self, factoryConfig.factory_id,
-                                        'UPDATE_ADS_GENERIC',
+                                        'UPDATE_AD_GENERIC',
                                         'INVALIDATE_ADS_GENERIC')
 
         # Short hand for easy access
@@ -587,7 +587,7 @@ class EntryClassad(classadSupport.Classad):
 class FactoryGlobalClassad(classadSupport.Classad):
     """
     This class describes the glidefactoryglobal classad. Factory advertises the
-    glidefactoryglobal classad to the user pool as an UPDATE_ADS_GENERIC type classad
+    glidefactoryglobal classad to the user pool as an UPDATE_AD_GENERIC type classad
 
     glidefactory and glidefactoryglobal classads must be of the same type because they may be
     invalidated together (with a single command)
@@ -607,7 +607,7 @@ class FactoryGlobalClassad(classadSupport.Classad):
         global factoryConfig, advertizeGlobalCounter
 
         classadSupport.Classad.__init__(self, factoryConfig.factory_global,
-                                        'UPDATE_ADS_GENERIC',
+                                        'UPDATE_AD_GENERIC',
                                         'INVALIDATE_ADS_GENERIC')
 
         # Short hand for easy access
@@ -923,7 +923,7 @@ def advertizeGlideinFromFile(fname, remove_file=True, is_multi=False, factory_co
     if os.path.exists(fname):
         try:
             logSupport.log.info("Advertising glidefactory classads")
-            exe_condor_advertise(fname, "UPDATE_ADS_GENERIC", is_multi=is_multi, factory_collector=factory_collector)
+            exe_condor_advertise(fname, "UPDATE_AD_GENERIC", is_multi=is_multi, factory_collector=factory_collector)
         except:
             logSupport.log.warning("Advertising glidefactory classads failed")
             logSupport.log.exception("Advertising glidefactory classads failed: ")
