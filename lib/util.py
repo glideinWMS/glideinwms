@@ -199,6 +199,7 @@ class ExpiredFileException(Exception):
 def file_pickle_load(fname, mask_exceptions=None, default=None, expiration=-1, remove_expired=False, last_time={}):
     """Load a serialized dictionary
 
+    This implementation does not use file locking, it relies on the atomicity of file movement/replacement and deletion
     @param fname: name of the file with the serialized data
     @param mask_exceptions: callback function and arguments to use if an exception happens (Default: None)
       The callback function can access the exception via sys.exc_info()
@@ -209,6 +210,11 @@ def file_pickle_load(fname, mask_exceptions=None, default=None, expiration=-1, r
       -1 file never expires
       0  file always expires after reading
     @param remove_expired: remove expired file (Default: False)
+      NOTE: if you remove the obsolete file from the reader you may run into a race condition with undesired effects:
+      1. the reader detects the obsolete file, 2. the writer writes a new version, 3. the reader deletes the new version
+      This can happen only in cycles where there is an obsolete data file to start with, so the number of data files
+      lost because of this is smaller than the occurrences of obsoleted files. When the expiration time is much bigger
+      than the loop time of the writer this is generally acceptable.
     @param last_time: last time a file has been used, persistent to keep history (Default: {}, first time called)
     @return: python objects (e.g. data dictionary)
     """
