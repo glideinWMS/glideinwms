@@ -1369,7 +1369,6 @@ class ResourceClassad(classadSupport.Classad):
         for k in info:
             if k.startswith('CompletedJobs'):
                 self.adParams['GlideFactoryMonitor'+k] = info[k]
-                break
 
 
     def setGlideFactoryMonitorInfo(self, info):
