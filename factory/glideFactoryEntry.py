@@ -525,7 +525,8 @@ class Entry:
                                                    glideFactoryConfig.factoryConfig.aggregated_stats_file),
                                       mask_exceptions=(
                                           logSupport.log.exception, "Reading of aggregated statistics failed: "),
-                                      default={})
+                                      default={},
+                                      expiration=3600)
 
         stats_dict = {}
         try:
