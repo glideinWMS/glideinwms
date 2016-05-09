@@ -16,6 +16,8 @@ import os
 import shutil
 import cPickle as pickle
 import tempfile
+import time
+
 
 #################################
 # Dictionary functions
@@ -190,7 +192,11 @@ def file_pickle_dump(fname, content, tmp_type='PID', mask_exceptions=None):
         return True
 
 
-def file_pickle_load(fname, mask_exceptions=None, default=None):
+class ExpiredFileException(Exception):
+    pass
+
+
+def file_pickle_load(fname, mask_exceptions=None, default=None, expiration=-1, remove_expired=False, last_time={}):
     """Load a serialized dictionary
 
     @param fname: name of the file with the serialized data
@@ -199,12 +205,47 @@ def file_pickle_load(fname, mask_exceptions=None, default=None):
       If a function is not provided, the exception is re-risen
       if provided it is called using mask_exceptions[0](*mask_exceptions[1:])
     @param default: value returned if the unpickling fails (Default: None)
+    @param expiration: input file expiration in seconds (Default: -1)
+      -1 file never expires
+      0  file always expires after reading
+    @param remove_expired: remove expired file (Default: False)
+    @param last_time: last time a file has been used, persistent to keep history (Default: {}, first time called)
     @return: python objects (e.g. data dictionary)
     """
     data = default
     try:
         with open(fname, 'r') as fo:
+            if expiration >= 0:
+                # check date of file and time
+                fname_time = os.path.getmtime(fname)
+                current_time = time.time()
+                if expiration > 0:
+                    if fname_time < current_time - expiration:
+                        # if expired raise ExpiredFile (w/ timestamp)
+                        raise ExpiredFileException("File %s expired, older then %s seconds (file time: %s)" %
+                                                   (fname, expiration, fname_time))
+                else:
+                    try:
+                        if fname_time <= last_time[fname]:
+                            # expired
+                            raise ExpiredFileException("File %s already used at %s" % (fname, last_time[fname]))
+                    except KeyError:
+                        pass
+                    last_time[fname] = fname_time
             data = pickle.load(fo)
+    except ExpiredFileException:
+        if remove_expired:
+            # There may be a race removing a file updated in the mean time but
+            # the file produced at the next iteration will be used
+            try:
+                os.remove(fname)
+            except:
+                pass
+        if mask_exceptions and hasattr(mask_exceptions[0], '__call__'):
+            # protect and report
+            mask_exceptions[0](*mask_exceptions[1:])
+        else:
+            raise
     except:
         if mask_exceptions and hasattr(mask_exceptions[0], '__call__'):
             # protect and report
