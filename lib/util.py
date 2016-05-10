@@ -163,6 +163,44 @@ except AttributeError:
     replace = os.rename
 
 
+class ExpiredFileException(Exception):
+    """The file is too old to be used
+    """
+    pass
+
+
+# Avoiding print_function that may be in the built-in
+def print_funct(*args, **kwargs):
+    """Print function that can be used as mask exception (the print statement cannot be passed as parameter)
+
+    :param args: list of what to print, converted into string and separated by 'sep'
+    :param kwargs: keywords, valid keywords: 'sep' separator, default is space
+    :return: None
+    """
+    sep = ' '
+    try:
+        sep = kwargs['sep']
+    except KeyError:
+        pass
+    print sep.join([str(i) for i in args])
+
+
+def conditional_raise(mask_exceptions):
+    """Auxiliary function to handle conditional raising
+
+    :param mask_exceptions: callback function and arguments to use if an exception happens (Default: None)
+      The callback function can access the exception via sys.exc_info()
+      If a function is not provided, the exception is re-risen
+      if provided it is called using mask_exceptions[0](*mask_exceptions[1:])
+    :return: None
+    """
+    if mask_exceptions and hasattr(mask_exceptions[0], '__call__'):
+        # protect and report
+        mask_exceptions[0](*mask_exceptions[1:])
+        return
+    raise
+
+
 def file_pickle_dump(fname, content, tmp_type='PID', mask_exceptions=None):
     """Serialize and save content
 
@@ -181,19 +219,11 @@ def file_pickle_dump(fname, content, tmp_type='PID', mask_exceptions=None):
         with open(tmp_fname, "w") as pfile:
             pickle.dump(content, pfile, 2)
     except:
-        if mask_exceptions and hasattr(mask_exceptions[0], '__call__'):
-            # protect and report
-            mask_exceptions[0](*mask_exceptions[1:])
-            return False
-        else:
-            raise
+        conditional_raise(mask_exceptions)
+        return False
     else:
-        file_tmp2final(fname, tmp_fname)
+        file_tmp2final(fname, tmp_fname, mask_exceptions=mask_exceptions)
         return True
-
-
-class ExpiredFileException(Exception):
-    pass
 
 
 def file_pickle_load(fname, mask_exceptions=None, default=None, expiration=-1, remove_expired=False, last_time={}):
@@ -247,29 +277,18 @@ def file_pickle_load(fname, mask_exceptions=None, default=None, expiration=-1, r
                 os.remove(fname)
             except:
                 pass
-        if mask_exceptions and hasattr(mask_exceptions[0], '__call__'):
-            # protect and report
-            mask_exceptions[0](*mask_exceptions[1:])
-        else:
-            raise
+        conditional_raise(mask_exceptions)
     except:
-        if mask_exceptions and hasattr(mask_exceptions[0], '__call__'):
-            # protect and report
-            mask_exceptions[0](*mask_exceptions[1:])
-        else:
-            raise
+        conditional_raise(mask_exceptions)
     return data
-
-
 
 
 # One writer, avoid partial write due to code, OS or file system problems
 # from factory/glideFactoryMonitoring
 #     KEL this exact method is also in glideinFrontendMonitoring.py
 # TODO: replace all definitions with this one
-# TODO: raise exception instead of just printout
 
-def file_tmp2final(fname, tmp_fname=None, bck_fname=None, do_backup=True):
+def file_tmp2final(fname, tmp_fname=None, bck_fname=None, do_backup=True, mask_exceptions=None):
     """ Complete an atomic write by moving a file new version to its destination.
 
     If do_backup is True it removes the previous backup and copies the file to bak_fname.
@@ -279,6 +298,10 @@ def file_tmp2final(fname, tmp_fname=None, bck_fname=None, do_backup=True):
     :param tmp_fname: name of the temporary file with the new version of the content (Default: <fname>.tmp)
     :param bck_fname: name of a backup of the old version (Default: <fname>~)
     :param do_backup: do a backup of the old version only if True (Default: True)
+    :param mask_exceptions: callback function and arguments to use if an exception happens (Default: None)
+      The callback function can access the exception via sys.exc_info()
+      If a function is not provided, the exception is re-risen
+      if provided it is called using mask_exceptions[0](*mask_exceptions[1:])
     :return: False if the move caused an exception. True otherwise
     """
     if tmp_fname is None:
@@ -295,7 +318,8 @@ def file_tmp2final(fname, tmp_fname=None, bck_fname=None, do_backup=True):
     try:
         replace(tmp_fname, fname)
     except:
-        print "Failed renaming %s into %s" % (tmp_fname, fname)
+        #print "Failed renaming %s into %s" % (tmp_fname, fname)
+        conditional_raise(mask_exceptions)
         return False
     return True
 

@@ -47,7 +47,6 @@ class MonitoringConfig:
 
         self.monitor_dir = "monitor/"
 
-
         self.log_dir = "log/"
         self.logCleanupObj = None
 
@@ -63,8 +62,6 @@ class MonitoringConfig:
                       int(max_days * 24 * 3600), int(min_days * 24 * 3600),
                       long(max_mbs * (1024.0 * 1024.0)))
         cleanupSupport.cleaners.add_cleaner(cleaner)
-
-
 
     def logCompleted(self,client_name,entered_dict):
         """
@@ -126,7 +123,7 @@ class MonitoringConfig:
         finally:
             fd.close()
 
-        util.file_tmp2final(fname)
+        util.file_tmp2final(fname, mask_exceptions=(self.log.error, "Failed rename/write into %s" % fname))
         return
 
     def establish_dir(self, relative_dname):
