@@ -9,7 +9,7 @@
 #   This is a collection of utilities functions for file handling and other
 #
 # Author:
-#   Marco Mambelli (collecting functions in other modules and hardening them)
+#   Marco Mambelli (some functions are from other modules and hardened)
 #
 
 import os
@@ -318,7 +318,7 @@ def file_tmp2final(fname, tmp_fname=None, bck_fname=None, do_backup=True, mask_e
     try:
         replace(tmp_fname, fname)
     except:
-        #print "Failed renaming %s into %s" % (tmp_fname, fname)
+        # print "Failed renaming %s into %s" % (tmp_fname, fname)
         conditional_raise(mask_exceptions)
         return False
     return True
@@ -331,7 +331,7 @@ def file_tmp2final(fname, tmp_fname=None, bck_fname=None, do_backup=True, mask_e
 # TODO: currently many temporary files are in the work-dir and owned by only one process, which means that a locally
 # unique name is sufficient. If this changes or if wor-dir is not on a local (POSIX) file system, temporary files
 # may have to be moved to a shared place (/tmp) and handled more properly
-def file_get_tmp(fname=None, tmp_type=False):
+def file_get_tmp(fname=None, tmp_type=None):
     """Get the name of a temporary file
     Depending on the option chosen this may be unsafe:
     .tmp suffix is OK only if no one else will use this file
@@ -355,7 +355,6 @@ def file_get_tmp(fname=None, tmp_type=False):
         tmp_file, tmp_fname = tempfile.mkstemp(suffix='tmp', prefix=f_name, dir=f_dir)
         # file is open, reopening it is OK
         return tmp_fname
-
 
 
 # in classadSupport
