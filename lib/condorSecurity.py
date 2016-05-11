@@ -163,7 +163,7 @@ class SecEnvRequest:
 
 ########################################################################
 #
-# Security protocol handhake classes
+# Security protocol handshake classes
 # This are the most basic features users may want to change
 #
 ########################################################################

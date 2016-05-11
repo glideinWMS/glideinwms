@@ -25,7 +25,7 @@ USE_HTCONDOR_PYTHON_BINDINGS = False
 try:
     # NOTE:
     # import htcondor tries to look for CONDOR_CONFIG in the usual search path
-    # If it cannot be found, it will print annoying error message which 
+    # If it cannot be found, it will print annoying error message which
     # neither goes to stdout nor stderr. It was not clear how to mask this
     # message so we may have to live with it till then
     # In case of non default locations of CONDOR_CONFIG, frontend will always
@@ -37,6 +37,8 @@ try:
     import classad
     USE_HTCONDOR_PYTHON_BINDINGS = True
 except:
+    #TODO Maybe we should print a message here? Even though I don't know if
+    #logSupport has been initialized. But I'd try to put it log.debug
     pass
 
 #
@@ -58,11 +60,10 @@ class NoneScheddCache:
     Used as base class below, too
     """
 
-
     def getScheddId(self, schedd_name, pool_name):
         """
         Given the schedd name and pool name, return a tuple (ScheddId, dict)
- 
+
         @param schedd_name: Name of the schedd
         @type schedd_name: string
 
@@ -72,7 +73,6 @@ class NoneScheddCache:
         @return: tuple (schedd string, LOCAL_DIR)
         """
         return (self.iGetCmdScheddStr(schedd_name), {})
-
 
     def iGetCmdScheddStr(self, schedd_name):
         if schedd_name is None:
@@ -114,7 +114,7 @@ class LocalScheddCache(NoneScheddCache):
         """
         Given the schedd name and pool name, get a tuple containing
         (ScheddId, dict)
- 
+
         @param schedd_name: Name of the schedd
         @type schedd_name: string
 
@@ -281,7 +281,7 @@ class CondorQuery(StoredQuery):
     """
     Fully implemented class that executes condor commands
     """
- 
+
     def __init__(self, exe_name, resource_str, group_attribute,
                  pool_name=None, security_obj=None, env={}):
         self.exe_name=exe_name
@@ -370,7 +370,6 @@ class CondorQuery(StoredQuery):
         else:
             return self.fetch_using_exe(constraint=constraint,
                                         format_list=format_list)
-    
 
     def fetch_using_exe(self, constraint=None, format_list=None):
         """
