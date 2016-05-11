@@ -37,6 +37,7 @@ advertizeGFCCounter = {}
 # Advertize counter for glidefactoryglobal classad
 advertizeGlobalCounter = 0
 
+# TODO: to remove - NOT_USED except NOT_USED_advertizeGlidein
 advertizeGlideinCounter = 0
 
 
@@ -506,17 +507,26 @@ class EntryClassad(classadSupport.Classad):
     def __init__(self, factory_name, glidein_name, entry_name,
                  trust_domain, auth_method, supported_signtypes,
                  pub_key_obj=None, glidein_attrs={}, glidein_params={},
-                 glidein_monitors={}, glidein_config_limits={}):
-        """
-        Class Constructor
+                 glidein_monitors={}, glidein_stats={}, glidein_config_limits={}):
+        """Class Constructor
 
-        @type factory_ref: string
-        @param factory_ref: Name of the resource in the glidefactory classad
-        @type frontend_ref: string
-        @param type: Name of the resource in the glideclient classad
+        :param factory_name: Name of the factory
+        :param glidein_name: Name of the resource in the glideclient classad?
+        :param entry_name: Name of the resource in the glidefactory classad
+        :param trust_domain: trust domain for this entry
+        :param auth_method: the authentication methods this entry supports in glidein submission, i.e. grid_proxy
+        :param supported_signtypes: suppported sign types, i.e. sha1
+        :param pub_key_obj: GlideinKey - for the frontend to use in encryption
+        :param glidein_attrs: glidein attrs to be published, not be overwritten by Frontends
+        :param glidein_params: params to be published, can be overwritten by Frontends
+        :param glidein_monitors: monitor attrs to be published
+        :param glidein_stats: aggregated Factory statistics to be published
+        :param glidein_config_limits: Factory configuration limits to be published
+        :return:
         """
+        # TODO: rename glidein_ to entry_ (entry_monitors)?
 
-        global factoryConfig, advertizeGlideinCounter, advertizeGFCounter
+        global factoryConfig, advertizeGFCounter
 
         classadSupport.Classad.__init__(self, factoryConfig.factory_id,
                                         'UPDATE_MASTER_AD',
@@ -561,38 +571,24 @@ class EntryClassad(classadSupport.Classad):
                     escaped_el=string.replace(str(el),'\n','\\n')
                     self.adParams['%s%s' % (prefix,attr)] = "%s" % escaped_el
 
-
-    def writeToFile(self, filename, append=True):
-        o_flag = "a"
-        if not append:
-            o_flag = "w"
-
-        try:
-            fd = file(filename, o_flag)
-        except:
-            raise
-
-        try:
-            fd.write("%s" % self)
-            if append:
-                # Write empty line when in append mode so next classad can be
-                # written directly after this one
-                fd.write('\n')
-        finally:
-            fd.close()
+        # write job completion statistics
+        if glidein_stats:
+            prefix = factoryConfig.glidein_monitor_prefix
+            for k, v in glidein_stats.items():
+                self.adParams['%s%s' % (prefix, k)] = v
 
 
-
+# TODO: remove advertizeGlidein which is not used anymore
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
-def advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain,
+def NOT_USED_advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain,
                      auth_method, supported_signtypes, pub_key_obj,
                      glidein_attrs={}, glidein_params={}, glidein_monitors={},
                      factory_collector=DEFAULT_VAL):
     
     """
-    Creates the glideclient classad and advertises.
+    Creates the glidefactory classad and advertises.
     
     @type factory_name: string
     @param factory_name: the name of the factory
@@ -666,7 +662,114 @@ def advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain,
     finally:
         os.remove(tmpnam)
 
+
+###############################################################################
+# Code to advertise glidefactoryglobal classads to the WMS Pool
+###############################################################################
+
+class FactoryGlobalClassad(classadSupport.Classad):
+    """
+    This class describes the glidefactoryglobal classad. Factory advertises the
+    glidefactoryglobal classad to the user pool as an UPDATE_MASTER_AD type classad
+    """
+
+    def __init__(self, factory_name, glidein_name, supported_signtypes,
+                 pub_key_obj, glidein_attrs={}, glidein_params={},
+                 glidein_monitors={}, glidein_stats={}):
+        """Class Constructor
+
+        :param factory_name: Name of the factory
+        :param glidein_name: Name of the resource in the glidefactoryglobal classad?
+        :param supported_signtypes: suppported sign types, i.e. sha1
+        :param pub_key_obj: GlideinKey - for the frontend to use in encryption
+        :param glidein_attrs: glidein attrs to be published, not be overwritten by Frontends
+        :param glidein_params: params to be published, can be overwritten by Frontends
+        :param glidein_monitors: monitor attrs to be published
+        :param glidein_stats: aggregated Factory statistics to be published
+        :return:
+        """
+
+        global factoryConfig, advertizeGlobalCounter
+
+        classadSupport.Classad.__init__(self, factoryConfig.factory_global,
+                                        'UPDATE_MASTER_AD',
+                                        'INVALIDATE_MASTER_ADS')
+
+        # Short hand for easy access
+        classad_name = "%s@%s" % (glidein_name, factory_name)
+        self.adParams['Name'] = classad_name
+        self.adParams['FactoryName'] = "%s" % factory_name
+        self.adParams['GlideinName'] = "%s" % glidein_name
+        self.adParams[factoryConfig.factory_signtype_id] = "%s" % string.join(supported_signtypes, ',')
+        self.adParams['DaemonStartTime'] = int(start_time)
+        self.adParams['UpdateSequenceNumber'] = advertizeGlobalCounter
+        advertizeGlobalCounter += 1
+        self.adParams['GlideinWMSVersion'] = factoryConfig.glideinwms_version
+        self.adParams['PubKeyID'] = "%s" % pub_key_obj.get_pub_key_id()
+        self.adParams['PubKeyType'] = "%s" % pub_key_obj.get_pub_key_type()
+        self.adParams['PubKeyValue'] = "%s" % string.replace(pub_key_obj.get_pub_key_value(),'\n','\\n')
+
+        # write out both the attributes, params and monitors
+        for (prefix,data) in ((factoryConfig.glidein_attr_prefix,glidein_attrs),
+                              (factoryConfig.glidein_param_prefix,glidein_params),
+                              (factoryConfig.glidein_monitor_prefix,glidein_monitors)):
+            for attr in data.keys():
+                el=data[attr]
+                if type(el)==type(1):
+                    # don't quote ints
+                    self.adParams['%s%s' % (prefix,attr)] = el
+                else:
+                    escaped_el=string.replace(str(el),'\n','\\n')
+                    self.adParams['%s%s' % (prefix,attr)] = "%s" % escaped_el
+
+        # write job completion statistics
+        if glidein_stats:
+            prefix = factoryConfig.glidein_monitor_prefix
+            for k, v in glidein_stats.items():
+                self.adParams['%s%s' % (prefix, k)] = v
+
+
+
 def advertizeGlobal(factory_name, glidein_name, supported_signtypes,
+                    pub_key_obj, stats_dict={}, factory_collector=DEFAULT_VAL):
+
+    """
+    Creates the glidefactoryglobal classad and advertises.
+
+    @type factory_name: string
+    @param factory_name: the name of the factory
+    @type glidein_name: string
+    @param glidein_name: name of the glidein
+    @type supported_signtypes: string
+    @param supported_signtypes: suppported sign types, i.e. sha1
+    @type pub_key_obj: GlideinKey
+    @param pub_key_obj: for the frontend to use in encryption
+    @type stats_dict: dict
+    @param stats_dict: completed jobs statistics
+    @type factory_collector: string or None
+    @param factory_collector: the collector to query, special value 'default' will get it from the global config
+
+    @todo add factory downtime?
+    """
+
+    tmpnam = classadSupport.generate_classad_filename(prefix='gfi_ad_gfg')
+
+    gfg_classad = FactoryGlobalClassad(factory_name, glidein_name, supported_signtypes,
+                                       pub_key_obj, stats_dict)
+
+    try:
+        gfg_classad.writeToFile(tmpnam, append=False)
+        exe_condor_advertise(tmpnam, "UPDATE_MASTER_AD", factory_collector=factory_collector)
+    finally:
+        # Unable to write classad
+        try:
+            os.remove(tmpnam)
+        except:
+            # Do the possible to remove the file if there
+            pass
+
+
+def advertizeGlobal_old(factory_name, glidein_name, supported_signtypes,
                     pub_key_obj, factory_collector=DEFAULT_VAL):
     
     """
@@ -770,7 +873,7 @@ def deadvertizeFactory(factory_name, glidein_name, factory_collector=DEFAULT_VAL
         exe_condor_advertise(tmpnam, "INVALIDATE_MASTER_ADS", factory_collector=factory_collector)
     finally:
         os.remove(tmpnam)
-    
+
 
 ############################################################
 

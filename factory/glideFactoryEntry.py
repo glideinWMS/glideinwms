@@ -27,12 +27,14 @@ sys.path.append(os.path.join(sys.path[0],"../../"))
 from glideinwms.factory import glideFactoryPidLib
 from glideinwms.factory import glideFactoryConfig
 from glideinwms.factory import glideFactoryLib
+from glideinwms.factory.glideFactory import load_stats
 from glideinwms.factory import glideFactoryMonitoring
 from glideinwms.factory import glideFactoryInterface as gfi
 from glideinwms.factory import glideFactoryLogParser
 from glideinwms.factory import glideFactoryDowntimeLib
 from glideinwms.factory import glideFactoryCredentials
 from glideinwms.lib import logSupport
+from glideinwms.lib import util
 from glideinwms.lib import classadSupport
 from glideinwms.lib import glideinWMSVersion
 from glideinwms.lib import cleanupSupport
@@ -392,14 +394,12 @@ class Entry:
             self.log.warning("Entry %s has hit the limit for idle glideins, cannot submit any more" % self.name)
             can_submit_glideins = False
         # Check if entry has exceeded max glideins
-        if (can_submit_glideins and
-            self.glideinTotals.has_entry_exceeded_max_glideins()):
+        if can_submit_glideins and self.glideinTotals.has_entry_exceeded_max_glideins():
             self.log.warning("Entry %s has hit the limit for total glideins, cannot submit any more" % self.name)
             can_submit_glideins = False
 
         # Check if entry has exceeded max held
-        if (can_submit_glideins and
-            self.glideinTotals.has_entry_exceeded_max_held()):
+        if can_submit_glideins and self.glideinTotals.has_entry_exceeded_max_held():
             self.log.warning("Entry %s has hit the limit for held glideins, cannot submit any more" % self.name)
             can_submit_glideins = False
 
@@ -518,28 +518,34 @@ class Entry:
         glidein_monitors = {}
         for w in current_qc_total:
             for a in current_qc_total[w]:
-                glidein_monitors['Total%s%s'%(w,a)]=current_qc_total[w][a]
+                glidein_monitors['Total%s%s'%(w,a)] = current_qc_total[w][a]
                 self.jobAttributes.data['GlideinMonitorTotal%s%s' % (w, a)] = current_qc_total[w][a]
+
+        stats = load_stats(os.path.join(self.startupDir, glideFactoryConfig.factoryConfig.aggregated_stats_file))
+        stats_dict = util.dict_normalize(stats['LogSummary']['entries'][self.name]['total']['CompletedCounts']['JobsNr'],
+                                         glideFactoryMonitoring.getAllJobRanges(),
+                                         'CompletedJobsPerEntry',
+                                         default=0)
 
         # Make copy of job attributes so can override the validation
         # downtime setting with the true setting of the entry
         # (not from validation)
         myJobAttributes = self.jobAttributes.data.copy()
         myJobAttributes['GLIDEIN_In_Downtime'] = (downtime_flag or self.isInDowntime())
-        gf_classad = gfi.EntryClassad(
-                         self.gflFactoryConfig.factory_name,
-                         self.gflFactoryConfig.glidein_name,
-                         self.name, trust_domain, auth_method,
-                         self.gflFactoryConfig.supported_signtypes,
-                         pub_key_obj=pub_key_obj, glidein_attrs=myJobAttributes,
-                         glidein_params=self.jobParams.data.copy(),
-                         glidein_monitors=glidein_monitors.copy(),
-                         glidein_config_limits=self.getGlideinConfiguredLimits())
+        gf_classad = gfi.EntryClassad(self.gflFactoryConfig.factory_name,
+                                      self.gflFactoryConfig.glidein_name,
+                                      self.name, trust_domain, auth_method,
+                                      self.gflFactoryConfig.supported_signtypes,
+                                      pub_key_obj=pub_key_obj, glidein_attrs=myJobAttributes,
+                                      glidein_params=self.jobParams.data.copy(),
+                                      glidein_monitors=glidein_monitors.copy(),
+                                      glidein_stats=stats_dict,
+                                      glidein_config_limits=self.getGlideinConfiguredLimits())
         try:
             gf_classad.writeToFile(gf_filename, append=append)
         except:
             self.log.warning("Error writing classad to file %s" % gf_filename)
-            self.log.exception("Error writing classad to file %s: " % (gf_filename))
+            self.log.exception("Error writing classad to file %s: " % gf_filename)
 
         ########################################################################
         # Logic to generate glidefactoryclient classads file
@@ -560,12 +566,12 @@ class Entry:
                 self.log.warning("Client '%s' has stats, but no classad! Ignoring." % client_name)
                 continue
             client_internals = self.gflFactoryConfig.client_internals[client_name]
-            client_monitors={}
+            client_monitors = {}
             for w in client_qc_data:
                 for a in client_qc_data[w]:
                     # report only numbers
-                    if type(client_qc_data[w][a])==type(1):
-                        client_monitors['%s%s'%(w,a)] = client_qc_data[w][a]
+                    if type(client_qc_data[w][a]) == type(1):
+                        client_monitors['%s%s' % (w, a)] = client_qc_data[w][a]
 
             try:
                 fparams = current_qc_data[client_name]['Requested']['Parameters']
