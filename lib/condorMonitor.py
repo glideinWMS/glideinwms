@@ -394,7 +394,7 @@ class CondorQuery(StoredQuery):
                 return self.fetch_using_exe(constraint=constraint,
                                             format_list=format_list)
         except Exception as ex:
-            err_str = 'Error executing htcondor query: %s' % ex
+            err_str = 'Error executing htcondor query with constraint %s and format_list %s: %s' % (ex, constraint, format_list)
             raise QueryError(err_str), None, sys.exc_info()[2]
 
 
@@ -588,7 +588,7 @@ class CondorStatus(CondorQuery):
         except Exception as ex:
             p = 'default'
             if self.pool_name is not None:
-                s = self.pool_name
+                p = self.pool_name
             err_str = 'Error querying pool %s using python bindings: %s' % (p, ex)
             raise PBError(err_str), None, sys.exc_info()[2]
         finally:
