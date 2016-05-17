@@ -532,7 +532,10 @@ class CondorQ(CondorQuery):
             s = 'default'
             if self.schedd_name is not None:
                 s = self.schedd_name
-            err_str = 'Error querying schedd %s using python bindings: %s' % (s, ex)
+            p = 'default'
+            if self.pool_name is not None:
+                p = self.pool_name
+            err_str = 'Error querying schedd %s in pool %s using python bindings: %s' % (s, p, ex)
             raise PBError(err_str), None, sys.exc_info()[2]
         finally:
             self.security_obj.restore_state()
