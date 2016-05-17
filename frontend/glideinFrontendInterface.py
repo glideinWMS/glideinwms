@@ -86,7 +86,10 @@ frontendConfig = FrontendConfig()
 # Helps handle partial failures
 
 class MultiExeError(condorExe.ExeError):
-    def __init__(self, arr): # arr is a list of ExeError exceptions
+    def __init__(self, arr):
+        """
+        arr is a list of ExeError exceptions
+        """
         self.arr = arr
 
         # First approximation of implementation, can be improved
@@ -165,7 +168,7 @@ def findMasterFrontendClassads(pool_name, frontend_name):
     return format_condor_dict(data)
 
 
-# can throw condorExe.ExeError
+# can throw condorMonitor.QueryError
 def findGlideins(factory_pool, factory_identity,
                  signtype, additional_constraint=None):
     global frontendConfig

@@ -19,6 +19,7 @@ import os
 import string
 import copy
 import socket
+import traceback
 import xml.parsers.expat
 
 USE_HTCONDOR_PYTHON_BINDINGS = False
@@ -49,6 +50,27 @@ except:
 def set_path(new_condor_bin_path):
     global condor_bin_path
     condor_bin_path = new_condor_bin_path
+
+
+#
+# Exceptions
+#
+
+class QueryError(RuntimeError):
+    """
+    Thrown when there are exceptions using htcondor python bindings or commands
+    """
+    def __init__(self, err_str):
+        RuntimeError.__init__(self, err_str)
+
+
+class PBError(RuntimeError):
+    """
+    Thrown when there are exceptions using htcondor python bindings
+    """
+    def __init__(self, err_str):
+        RuntimeError.__init__(self, err_str)
+
 
 #
 # Caching classes
@@ -364,12 +386,17 @@ class CondorQuery(StoredQuery):
         """
         Return the results obtained using HTCondor commands or python bindings
         """
-        if USE_HTCONDOR_PYTHON_BINDINGS:
-            return self.fetch_using_bindings(constraint=constraint,
-                                             format_list=format_list)
-        else:
-            return self.fetch_using_exe(constraint=constraint,
-                                        format_list=format_list)
+        try:
+            if USE_HTCONDOR_PYTHON_BINDINGS:
+                return self.fetch_using_bindings(constraint=constraint,
+                                                 format_list=format_list)
+            else:
+                return self.fetch_using_exe(constraint=constraint,
+                                            format_list=format_list)
+        except Exception as ex:
+            err_str = 'Error executing htcondor query: %s' % ex
+            raise QueryError(err_str), None, sys.exc_info()[2]
+
 
     def fetch_using_exe(self, constraint=None, format_list=None):
         """
@@ -501,6 +528,12 @@ class CondorQ(CondorQuery):
                 schedd = htcondor.Schedd(schedd_ad)
             results = schedd.query(constraint, attrs) 
             results_dict = list2dict(results, self.group_attribute)
+        except Exception as ex:
+            s = 'default'
+            if self.schedd_name is not None:
+                s = self.schedd_name
+            err_str = 'Error querying schedd %s using python bindings: %s' % (s, ex)
+            raise PBError(err_str), None, sys.exc_info()[2]
         finally:
             self.security_obj.restore_state()
 
@@ -552,6 +585,12 @@ class CondorStatus(CondorQuery):
 
             results = collector.query(adtype, constraint, attrs) 
             results_dict = list2dict(results, self.group_attribute)
+        except Exception as ex:
+            p = 'default'
+            if self.pool_name is not None:
+                s = self.pool_name
+            err_str = 'Error querying pool %s using python bindings: %s' % (p, ex)
+            raise PBError(err_str), None, sys.exc_info()[2]
         finally:
             self.security_obj.restore_state()
 
