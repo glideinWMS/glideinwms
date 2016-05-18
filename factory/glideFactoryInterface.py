@@ -127,7 +127,10 @@ DEFAULT_VAL = "default"
 # Helps handle partial failures
 
 class MultiExeError(condorExe.ExeError):
-    def __init__(self, arr): # arr is a list of ExeError exceptions
+    def __init__(self, arr):
+        """
+        arr is a list of ExeError exceptions
+        """
         self.arr = arr
 
         # First approximation of implementation, can be improved
