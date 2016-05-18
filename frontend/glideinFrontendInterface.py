@@ -87,7 +87,10 @@ frontendConfig = FrontendConfig()
 # Helps handle partial failures
 
 class MultiExeError(condorExe.ExeError):
-    def __init__(self, arr): # arr is a list of ExeError exceptions
+    def __init__(self, arr):
+        """
+        arr is a list of ExeError exceptions
+        """
         self.arr = arr
 
         # First approximation of implementation, can be improved
@@ -166,7 +169,7 @@ def findMasterFrontendClassads(pool_name, frontend_name):
     return format_condor_dict(data)
 
 
-# can throw condorExe.ExeError
+# can throw condorMonitor.QueryError
 def findGlideins(factory_pool, factory_identity,
                  signtype, additional_constraint=None):
     global frontendConfig
@@ -1404,6 +1407,21 @@ class ResourceClassad(classadSupport.Classad):
             self.adParams[ad_key] = info[attr]
 
     
+    def setEntryMonitorInfo(self, info):
+        """
+        Set the useful entry specific monitoring info for the resource in the classad
+        Monitoring info from the glidefactory classad (e.g. CompletedJobs )
+
+        @type info: dict
+        @param info: Useful monitoring info from the glidefactory classad
+        """
+
+        # Monitoring Prefixes are considering format_condor_dict that strips "GlideinMonitor"
+        for k in info:
+            if k.startswith('CompletedJobs'):
+                self.adParams['GlideFactoryMonitor'+k] = info[k]
+
+
     def setGlideFactoryMonitorInfo(self, info):
         """
         Set the GlideinFactoryMonitor* for the resource in the classad

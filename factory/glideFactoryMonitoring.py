@@ -22,6 +22,7 @@ from glideinwms.lib import rrdSupport
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
 from glideinwms.factory import glideFactoryLib
+from glideinwms.lib import util
 
 # list of rrd files that each site has
 rrd_list = ('Status_Attributes.rrd', 'Log_Completed.rrd', 'Log_Completed_Stats.rrd', 'Log_Completed_WasteTime.rrd', 'Log_Counts.rrd')
@@ -46,7 +47,6 @@ class MonitoringConfig:
 
         self.monitor_dir = "monitor/"
 
-
         self.log_dir = "log/"
         self.logCleanupObj = None
 
@@ -62,8 +62,6 @@ class MonitoringConfig:
                       int(max_days * 24 * 3600), int(min_days * 24 * 3600),
                       long(max_mbs * (1024.0 * 1024.0)))
         cleanupSupport.cleaners.add_cleaner(cleaner)
-
-
 
     def logCompleted(self,client_name,entered_dict):
         """
@@ -125,7 +123,7 @@ class MonitoringConfig:
         finally:
             fd.close()
 
-        tmp2final(fname)
+        util.file_tmp2final(fname, mask_exceptions=(self.log.error, "Failed rename/write into %s" % fname))
         return
 
     def establish_dir(self, relative_dname):
@@ -1346,7 +1344,7 @@ class Descript2XML:
         finally:
             f.close()
 
-        tmp2final(fname)
+        util.file_tmp2final(fname)
         return
 
 
@@ -1436,25 +1434,25 @@ def get_completed_stats_xml_desc():
 
 
 ##################################################
-def tmp2final(fname):
-    """
-    KEL this exact method is also in glideinFrontendMonitoring.py
-    """
-    try:
-        os.remove(fname + "~")
-    except:
-        pass
-
-    try:
-        os.rename(fname, fname + "~")
-    except:
-        pass
-
-    try:
-        os.rename(fname + ".tmp", fname)
-    except:
-        print "Failed renaming %s.tmp into %s" % (fname, fname)
-    return
+# def tmp2final(fname):
+#     """
+#     KEL this exact method is also in glideinFrontendMonitoring.py
+#     """
+#     try:
+#         os.remove(fname + "~")
+#     except:
+#         pass
+#
+#     try:
+#         os.rename(fname, fname + "~")
+#     except:
+#         pass
+#
+#     try:
+#         os.rename(fname + ".tmp", fname)
+#     except:
+#         print "Failed renaming %s.tmp into %s" % (fname, fname)
+#     return
 
 
 ##################################################

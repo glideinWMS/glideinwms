@@ -19,8 +19,7 @@ import math
 import sys
 import traceback
 
-from glideinwms.lib import condorMonitor,condorExe
-from glideinwms.lib import logSupport
+from glideinwms.lib import condorMonitor, logSupport
 
 #############################################################################################
 
@@ -580,7 +579,7 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
             if tb_count > 0:
                 logSupport.log.debug("There were %s exceptions in countRealRunning subprocess. Most recent traceback: %s" % (tb_count, recent_tb))
             glidein_count += schedd_count
-        logSupport.log.debug("Example running glidein ids at %s (total glideins: %d, total jobs %d, cluster matches: %d): %s" %
+        logSupport.log.debug("Running glidein ids at %s (total glideins: %d, total jobs %d, cluster matches: %d): %s" %
                              (glidename, len(glidein_ids), len(job_ids), glidein_count, ", ".join(list(glidein_ids)[:5])))
         out_job_counts[glidename] = len(job_ids)
         out_glidein_counts[glidename] = len(glidein_ids)
@@ -1061,17 +1060,17 @@ def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format
         try:
             condorq = condorMonitor.CondorQ(schedd)
             condorq.load(full_constraint, format_list)
-        except condorExe.ExeError:
-            logSupport.log.exception("Condor Error.  Failed to talk to schedd: ")
-            continue # if schedd not found it is equivalent to no jobs in the queue        
+            if len(condorq.fetchStored()) > 0:
+                out_condorq_dict[schedd] = condorq
+        except condorMonitor.QueryError:
+            logSupport.log.exception("Condor Error. Failed to talk to schedd: ")
+            # If schedd not found it is equivalent to no jobs in the queue
+            continue
         except RuntimeError:
-            logSupport.log.exception("Runtime Error.  Failed to talk to schedd: ")
+            logSupport.log.exception("Runtime Error. Failed to talk to schedd: ")
             continue
         except Exception:
-            logSupport.log.exception("Unknown Exception.  Failed to talk to schedd: ")
-
-        if len(condorq.fetchStored()) > 0:
-            out_condorq_dict[schedd] = condorq
+            logSupport.log.exception("Unknown Exception. Failed to talk to schedd: ")
             
     return out_condorq_dict
 
@@ -1083,7 +1082,8 @@ def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format
 # If not all the jobs of the schedd has to be considered,
 # specify the appropriate additional constraint
 #
-def getCondorStatusConstrained(collector_names, type_constraint, constraint=None, format_list=None, subsystem_name=None):
+def getCondorStatusConstrained(collector_names, type_constraint, constraint=None,
+                               format_list=None, subsystem_name=None):
     out_status_dict = {}
     for collector in collector_names:
         full_constraint = type_constraint[0:]  # make copy
@@ -1091,18 +1091,24 @@ def getCondorStatusConstrained(collector_names, type_constraint, constraint=None
             full_constraint = "(%s) && (%s)" % (full_constraint, constraint)
 
         try:
-            status = condorMonitor.CondorStatus(subsystem_name=subsystem_name, pool_name=collector)
+            status = condorMonitor.CondorStatus(subsystem_name=subsystem_name,
+                                                pool_name=collector)
             status.load(full_constraint, format_list)
-        except condorExe.ExeError:
+        except condorMonitor.QueryError:
             if collector is not None:
-                logSupport.log.exception("Condor Error. Failed to talk to collector %s: " % collector)
+                msg = "Condor Error. Failed to talk to collector %s: " % collector
             else:
-                logSupport.log.exception("Condor Error. Failed to talk to collector: ")
-            continue # if collector not found it is equivalent to no classads      
+                msg = "Condor Error. Failed to talk to collector: "
+            logSupport.log.exception(msg)
+            # If collector not found it is equivalent to no classads
+            continue
         except RuntimeError:
             logSupport.log.exception("Runtime error. Failed to talk to collector: ")
             continue
-        
+        except Exception:
+            logSupport.log.exception("Unknown error. Failed to talk to collector: ")
+            continue
+
         if len(status.fetchStored()) > 0:
             out_status_dict[collector] = status
             
