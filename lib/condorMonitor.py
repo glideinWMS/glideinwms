@@ -13,14 +13,14 @@
 #   Igor Sfiligoi (Aug 30th 2006)
 #
 
-import condorExe
-import condorSecurity
 import os
+import sys
 import string
 import copy
 import socket
-import traceback
 import xml.parsers.expat
+import condorExe
+import condorSecurity
 
 USE_HTCONDOR_PYTHON_BINDINGS = False
 try:
@@ -394,7 +394,7 @@ class CondorQuery(StoredQuery):
                 return self.fetch_using_exe(constraint=constraint,
                                             format_list=format_list)
         except Exception as ex:
-            err_str = 'Error executing htcondor query with constraint %s and format_list %s: %s' % (ex, constraint, format_list)
+            err_str = 'Error executing htcondor query with constraint %s and format_list %s: %s' % (constraint, format_list, ex)
             raise QueryError(err_str), None, sys.exc_info()[2]
 
 
