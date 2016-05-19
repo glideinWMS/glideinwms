@@ -566,47 +566,48 @@ class FileDictFile(SimpleFileDictFile):
     """Dictionary file for files (file list)
     It is using an ordered dictionary (key, value) from DictFile, serialized to file
     The key is the file ID 
-    The value in memory has 6 components (real_fname,cache/exec,period,cond_download,config_out):
+    The value in memory has 7 components (real_fname,cache/exec,period,prefix,cond_download,config_out, data):
     1. real_fname
     2. cache/exec/... keyword identifying the file type: regular, nocache, exec, untar
     3. period period in seconds at which an executable is re-invoked (only for periodic executables, 0 otherwise)
-    4. cond_download has a special value of TRUE
-    5. config_out has a special value of FALSE
-    6. data - It contains the data extracted from the file (real_fname)
-    On file there are the key and the first 5 components of the value (not the 6th w/ the content)
+    4. prefix startd_cron variables prefix (default is GLIDEIN_PS_)
+    5. cond_download has a special value of TRUE
+    6. config_out has a special value of FALSE
+    7. data - It contains the data extracted from the file (real_fname)
+    On file there are the key and the first 6 components of the value (not the 7th w/ the content)
     For placeholders, the real_name is empty (and the line starts w/ blank)
     """
     def add_placeholder(self,key,allow_overwrite=True):
-        DictFile.add(self,key,("","",0,"","",""),allow_overwrite)
+        DictFile.add(self, key, ("","",0,"","","",""), allow_overwrite)
 
-    def is_placeholder(self,key):
-        return (self[key][0]=="") # empty real_fname can only be a placeholder
+    def is_placeholder(self, key):
+        return (self[key][0] == "")  # empty real_fname can only be a placeholder
 
-    def add_from_str(self,key,val,
+    def add_from_str(self, key, val,
                      data,
                      allow_overwrite=False,
                      allow_overwrite_placeholder=True):
         if self.has_key(key) and allow_overwrite_placeholder:
             if self.is_placeholder(key):
                 # since the other functions know nothing about placeholders, need to force overwrite
-                allow_overwrite=True
-        return SimpleFileDictFile.add_from_str(self,key,val,data,allow_overwrite)
+                allow_overwrite = True
+        return SimpleFileDictFile.add_from_str(self, key, val, data, allow_overwrite)
 
-    def add(self,key,
+    def add(self, key,
             val,     # will if len(val)==5, use the last one as data (for placeholders), else load from val[0]
             allow_overwrite=False,
             allow_overwrite_placeholder=True):
         """Add a file to the list
         invokes add_from_str if the content is provided (6th component of val), add_from_file otherwise
         :param key: file ID
-        :param val: lists of 5 or 6 components (see class definition)
+        :param val: lists of 6 or 7 components (see class definition)
         :param allow_overwrite: if True the existing files can be replaced (default: False)
         :param allow_overwrite_placeholder: if True, placeholder files can be replaced even if allow_overwrite
             is False (default: True)
         :return:
         """
-        if not (type(val) in (type(()),type([]))):
-            raise RuntimeError, "Values '%s' not a list or tuple"%val
+        if not (type(val) in (type(()), type([]))):
+            raise RuntimeError("Values '%s' not a list or tuple" % val)
 
         if self.has_key(key) and allow_overwrite_placeholder:
             if self.is_placeholder(key):
@@ -619,41 +620,42 @@ class FileDictFile(SimpleFileDictFile):
         except (ValueError, IndexError):
             raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,cond_download,config_out)" % val)
 
-        if len(val)==6:
-            return self.add_from_str(key,val[:5],val[5],allow_overwrite)
-        elif len(val)==5:
-            return self.add_from_file(key,val,os.path.join(self.dir,val[0]),allow_overwrite)
+        if len(val) == 6:
+            return self.add_from_str(key, val[:5], val[5], allow_overwrite)
+        elif len(val) == 5:
+            return self.add_from_file(key, val, os.path.join(self.dir,val[0]), allow_overwrite)
         else:
             raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,cond_download,config_out)" % val)
 
-    def format_val(self,key,want_comments):
-        return "%s \t%s \t%s \t%s \t%s \t%s"%(key,self.vals[key][0],self.vals[key][1],self.vals[key][2],self.vals[key][3],self.vals[key][4])
+    def format_val(self, key, want_comments):
+        return "%s \t%s \t%s \t%s \t%s \t%s \t%s" % (key, self.vals[key][0], self.vals[key][1], self.vals[key][2],
+                                                     self.vals[key][3], self.vals[key][4], self.vals[key][5])
 
-    def file_header(self,want_comments):
+    def file_header(self, want_comments):
         if want_comments:
-            return (DictFile.file_header(self,want_comments)+"\n"+
-                    ("# %s \t%s \t%s \t%s \t%s \t%s\n"%('Outfile','InFile        ','Cache/exec','Period','Condition','ConfigOut'))+
-                    ("#"*78))
+            return (DictFile.file_header(self, want_comments) + "\n" +
+                    ("# %s \t%s \t%s \t%s \t%s \t%s \t%s\n" % ('Outfile','InFile        ','Cache/exec','Period','Prefix','Condition','ConfigOut'))+
+                    ("#"*89))
         else:
             return None
 
     def parse_val(self,line):
-        if not line or line[0]=='#':
+        if not line or line[0] == '#':
             return  # ignore empty lines and comments
-        arr=line.split(None,5)  
-        #TODO: Always split in 6, should it be replaces w/o limit? or w/ 7, to allow content at the end (.add() supports it)?
-        if len(arr)==0:
+        arr=line.split(None, 6)
+        #TODO: Always split in 7, should it be replaces w/o limit? or w/ 8, to allow content at the end (.add() supports it)?
+        if len(arr) == 0:
             return  # empty line
-        if len(arr[0])==0:
+        if len(arr[0]) == 0:
             return  # empty key
 
-        if len(arr)!=6:
-            if len(arr)==5:
+        if len(arr) != 7:
+            if len(arr) == 6:
                 # Allow this to upgrade from previous version (parse file with no period)
-                return self.add(arr[0],[arr[1], arr[2], 0, arr[3], arr[4]])
-            raise RuntimeError,"Not a valid file line (expected 6, found %i elements): '%s'"%(len(arr),line)
+                return self.add(arr[0], [arr[1], arr[2], arr[3], "GLIDEIN_PS_", arr[4], arr[5]])
+            raise RuntimeError("Not a valid file line (expected 7, found %i elements): '%s'" % (len(arr), line))
 
-        return self.add(arr[0],arr[1:])
+        return self.add(arr[0], arr[1:])
 
     def get_file_fname(self,key):
         return self.vals[key][0]
