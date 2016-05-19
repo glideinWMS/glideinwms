@@ -47,6 +47,15 @@ s_ffb_id="$2"
 # the name is used in the included functions
 s_name=$3
 s_fname="`robust_realpath $4`"
+# This is the prefix used for the startd_cron. This wrapper uses GLIDEIN_PS_ for the lines added to config
+# and adds GLIDEIN_PS_ if the startd_cron has no prefix (s_prefix==NOPREFIX)
+s_prefix="$5"
+
+if [ "x${s_prefix}" = "xNOPREFIX" ]; then
+    add_prefix=YES
+else
+    add_prefix=
+fi
 
 # find error reporting helper script 
 error_gen=`grep '^ERROR_GEN_PATH ' $glidein_config | awk '{print $2}'`
@@ -78,7 +87,11 @@ function add_config_line {
 # publish key value
 function publish {
     prefix=GLIDEIN_PS_
-    echo "$1 = ${*:2}"
+    if [ -z "$add_prefix" ]; then
+        echo "$1 = ${*:2}"
+    else
+        echo "${prefix}$1 = ${*:2}"
+    fi
     add_config_line "${prefix}$*"
 }
 
@@ -139,7 +152,7 @@ function failed {
 }
 
 
-### Script starts
+### Script wrapper starts
 
 vmessage "Executing $s_name: $s_fname $glidein_config $s_ffb_id" 
 
@@ -168,7 +181,7 @@ fi
 cd "$tmp_dir"
 
 
-### Run the program
+### Run the program (user script)
 
 ${main_dir}/error_augment.sh -init
 START=`date +%s`

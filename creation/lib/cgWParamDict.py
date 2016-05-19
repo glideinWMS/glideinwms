@@ -647,6 +647,8 @@ def add_file_unparsed(user_file,dicts, is_factory):
     is_wrapper=eval(user_file['wrapper'])
     do_untar=eval(user_file['untar'])
 
+    prefix = user_file['prefix']
+
     period_value = int(user_file['period'])
 
     file_list_idx='file_list'
@@ -655,9 +657,13 @@ def add_file_unparsed(user_file,dicts, is_factory):
             file_list_idx='after_file_list'
 
     if is_executable: # a script
-        dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"exec", period_value, "TRUE",'FALSE'),absfname)
+        dicts[file_list_idx].add_from_file(relfname,
+                                           (cWConsts.insert_timestr(relfname), "exec", period_value, prefix, "TRUE", 'FALSE'),
+                                           absfname)
     elif is_wrapper: # a sourceable script for the wrapper
-        dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"wrapper",0,"TRUE",'FALSE'),absfname)
+        dicts[file_list_idx].add_from_file(relfname,
+                                           (cWConsts.insert_timestr(relfname), "wrapper", 0, "", "TRUE",'FALSE'),
+                                           absfname)
     elif do_untar: # a tarball
         untar_opts = user_file.get_child('untar_options')
         if u'dir' in untar_opts:
