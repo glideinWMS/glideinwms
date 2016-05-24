@@ -29,6 +29,7 @@ class FactoryConfig:
         self.job_params_file = "params.cfg"
         self.frontend_descript_file = "frontend.descript"
         self.signatures_file = "signatures.sha1"
+        self.aggregated_stats_file = "aggregated_stats_dict.data"
 
 # global configuration of the module
 factoryConfig=FactoryConfig()

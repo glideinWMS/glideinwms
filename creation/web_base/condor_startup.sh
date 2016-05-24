@@ -558,7 +558,7 @@ STARTD_NAME = glidein_${glidein_startup_pid}_${random_name_str}
 #This can be used for locating the proper PID for monitoring
 GLIDEIN_PARENT_PID = $$
 
-START = $START_JOBS
+START = $START_JOBS && (GLIDEIN_PS_SiteWMS_WN_Draining =?= False)
 
 EOF
 ####################################
