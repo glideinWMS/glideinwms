@@ -26,17 +26,20 @@ class Release:
         self.releaseDir = os.path.join(relDir, self.version)
         self.releaseWebDir = os.path.join(self.releaseDir, 'www')
         self.tasks = []
-
-        # RPM related info
         self.rc = rc
-        self.rpmRelease = self.createRPMReleaseNVR(rpmRel, rc)
-        self.rpmVersion = self.versionToRPMVersion(ver)
-        self.rpmbuildDir = os.path.join(self.releaseDir, 'rpmbuild')
-        self.srpmFile = os.path.join(
-                            self.rpmbuildDir, 'SRPMS',
-                            'glideinwms-%s-%s.%s.src.rpm' % (self.rpmVersion,
-                                                             self.rpmRelease,
-                                                             self.getElVersion()))
+        self.buildRPMs = False
+        try:
+            # RPM related info
+            self.rpmRelease = self.createRPMReleaseNVR(rpmRel, rc)
+            self.rpmVersion = self.versionToRPMVersion(ver)
+            self.rpmbuildDir = os.path.join(self.releaseDir, 'rpmbuild')
+            self.srpmFile = os.path.join(
+                self.rpmbuildDir, 'SRPMS',
+                'glideinwms-%s-%s.%s.src.rpm' % (self.rpmVersion,
+                self.rpmRelease, self.getElVersion()))
+            self.buildRPMs = True
+        except:
+            print 'RPMs will not be build for this platform'
 
 
     def createTarballVersionString(self, ver, rc):
@@ -44,6 +47,7 @@ class Release:
         if rc:
             ver_str = '%s_rc%s' % (ver, rc)
         return ver_str
+
 
     def versionToRPMVersion(self, ver):
         if ver.startswith('v'):
@@ -252,9 +256,6 @@ class TaskVersionFile(TaskRelease):
                                      os.path.join(self.release.sourceDir,
                                                   'etc/checksum.factory'))
         self.excludes =  PackageExcludes()
-        self.excludes.commonPattern.append('unittests')
-        self.excludes.factoryPattern.append('unittests')
-        self.excludes.frontendPattern.append('unittests')
         self.checksumFilePattern = 'etc/checksum*'
         self.chksumBin = os.path.normpath(os.path.join(sys.path[0],
                                                        'chksum.sh'))
@@ -375,28 +376,25 @@ class TaskRPM(TaskTar):
 
 
     def execute(self):
-        # First build the source tarball
-        #TaskTar.execute(self)
+        if self.release.buildRPMs == False:
+            self.status = 'SKIPPED'
+        else:
+            # First build the source tarball
+            #TaskTar.execute(self)
 
-        # Create rpmbuild dir structure
-        self.createRPMBuildDirs()
-
-        # Create spec file from the template
-        self.createSpecFile()
-
-        # Stage source files
-        self.stageSources()
-
-        # Create rpmmacros file
-        self.createRPMMacros()
-
-        # Create the srpm
-        self.buildSRPM()
-
-        # Create the rpm
-        self.buildRPM()
-
-        self.status = 'COMPLETE'
+            # Create rpmbuild dir structure
+            self.createRPMBuildDirs()
+            # Create spec file from the template
+            self.createSpecFile()
+            # Stage source files
+            self.stageSources()
+            # Create rpmmacros file
+            self.createRPMMacros()
+            # Create the srpm
+            self.buildSRPM()
+            # Create the rpm
+            self.buildRPM()
+            self.status = 'COMPLETE'
 
 
 class PackageExcludes:
@@ -408,6 +406,8 @@ class PackageExcludes:
             '.git',
             '.gitattributes',
             '.DS_Store',
+            'unittests',
+            'build',
             #'install/glideinWMS.ini',
             #'install/manage-glideins',
             #'install/services',
@@ -421,6 +421,8 @@ class PackageExcludes:
             '.DS_Store',
             'poolwatcher',
             'frontend',
+            'unittests',
+            'build',
             #'install/glideinWMS.ini',
             #'install/manage-glideins',
             #'install/services',
@@ -440,6 +442,8 @@ class PackageExcludes:
             '.gitattributes',
             '.DS_Store',
             'poolwatcher',
+            'unittests',
+            'build',
             #'install/glideinWMS.ini',
             #'install/manage-glideins',
             #'install/services',
