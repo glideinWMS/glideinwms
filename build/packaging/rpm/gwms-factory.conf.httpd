@@ -3,8 +3,15 @@
 
 Alias /factory /var/lib/gwms-factory/web-area
 <Directory /var/lib/gwms-factory/web-area>
-    Order allow,deny
-    Allow from all
+    <IfModule mod_authz_core.c>
+        # Apache 2.4 
+        Require all granted
+    </IfModule> 
+    <IfModule !mod_authz_core.c> 
+        # Apache 2.2
+        Order allow,deny
+        Allow from all
+    </IfModule> 
     Options -Indexes
 </Directory>
 
