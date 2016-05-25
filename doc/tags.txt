@@ -1,3 +1,27 @@
+v3_2_14	Various curbs and limits triggered in the factory are now logged
+          in the glidefactory and glidefactoryclient classads
+	Added initial support for python that comes with EL7
+	Monitoring stats from factory completed logs are now advertised in
+	  the glideresource classads
+	Glideins can now shutdown themselves if the worker node is marked for
+	  draining
+	Condor classad fetching is now done by using python bindings by
+	  default. Until now this was done using condor_q and condor_status
+	  commands
+	Various limits configred in the factory and frontend are now
+	  advertised in the respective classads
+	Updated documentation
+	Bug Fix: Factory will not release glideins sent to Condor CE if they
+	  are held with authentication/authorization issues
+	Bug Fix: Proxies used by the glidein now if delegated have their
+	  lifetime as long as the original proxy
+	Bug Fix: Fixed issue where RRD processing was incorrectly throwing
+	  ImportError instead of NameError
+	Bug Fix: Frontend policies now correctly work if classad attributes
+	  like RequestCpus are classad expressions
+	Bug Fix: Fixed an issue where a slave frontend in HA mode would
+	  crash if the WMS collector was down
+
 v3_2_13	Support XSEDE ProjectId as a credential in frontend
 	Glidein jobs can now auto detect cpus based on the sites WMS
 	Frontend configuration settings idle_glideins_per_entry,
