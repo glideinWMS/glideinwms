@@ -14,6 +14,17 @@ from glideinwms.frontend import glideinFrontendConfig
 
 def usage():
     print "Usage:"
+    print "  manageFrontendDowntimes.py -dir frontend_dir -cmd [command] [options]"
+    print "where command is one of:"
+    print "  add           - Add a scheduled downtime period"
+    print "  down          - Put the factory down now(+delay)"
+    print "  up            - Get the factory back up now(+delay)"
+    print "  check         - Report if the factory is in downtime now(+delay)"
+    print "Other options:"
+    print "  -start [[[YYYY-]MM-]DD-]HH:MM[:SS] (start time for adding a downtime)"
+    print "  -end [[[YYYY-]MM-]DD-]HH:MM[:SS]   (end time for adding a downtime)"
+    print "  -delay [HHh][MMm][SS[s]]           (delay a downtime for down, up, and check cmds)"
+
 
 # [[[YYYY-]MM-]DD-]HH:MM[:SS]
 def strtxt2time( timeStr ):
@@ -41,6 +52,7 @@ def strtxt2time( timeStr ):
     outtime = time.mktime(  (year, month, day, hours, minutes, seconds, 0, 0, -1)  )
     return outtime # this is epoch format
 
+
 # [[[YYYY-]MM-]DD-]HH:MM[:SS]
 # or
 # unix_time
@@ -50,6 +62,7 @@ def str2time(timeStr):
     else:
         print timeStr
         return long(timeStr) # should be a simple number
+
 
 # [HHh][MMm][SS[s]]
 def delay2time( delayStr ):
@@ -77,21 +90,26 @@ def delay2time( delayStr ):
     
     return seconds+60*(minutes+60*hours)
 
+
 def get_downtime_fd( work_dir ):
     frontendDescript    = glideinFrontendConfig.FrontendDescript( work_dir )
     fd = glideinFrontendDowntimeLib.DowntimeFile( os.path.join( work_dir, frontendDescript.data['DowntimesFile']  ) )
     return fd
 
-# major commands ################################################
+
+# major commands
 def add( opt_dict ):
-    down_fd = get_downtime_fd( opt_dict["dir"] ) # glideinFrontendDowntimeLib.DowntimeFile(  self.elementDescript.frontend_data['DowntimesFile']  )
+    # glideinFrontendDowntimeLib.DowntimeFile(  self.elementDescript.frontend_data['DowntimesFile']  )
+    down_fd = get_downtime_fd( opt_dict["dir"] ) 
 
     start_time = str2time( opt_dict["start"] )
     end_time   = str2time( opt_dict["end"]   )
     down_fd.addPeriod( start_time=start_time, end_time=end_time )
     return 0
 
-def down( opt_dict ): # HK> calls checkDowntime(with delayed_start_time ) first and then startDowntime(with delayed_start_time and end_time)
+
+# this calls checkDowntime(with delayed_start_time ) first and then startDowntime(with delayed_start_time and end_time)
+def down( opt_dict ): 
     down_fd = get_downtime_fd(opt_dict["dir"])
 
     when = delay2time( opt_dict["delay"] )
@@ -99,7 +117,8 @@ def down( opt_dict ): # HK> calls checkDowntime(with delayed_start_time ) first 
     if (opt_dict["start"] == "None"):
         when += long(time.time())
     else:
-        when += str2time(opt_dict["start"]); # HK> delay applies only to the start time
+        # delay applies only to the start time
+        when += str2time(opt_dict["start"])
 
     if (opt_dict["end"] == "None"):
         end_time=None
@@ -107,13 +126,16 @@ def down( opt_dict ): # HK> calls checkDowntime(with delayed_start_time ) first 
         end_time = str2time(opt_dict["end"])
 
     if not down_fd.checkDowntime( check_time=when ):
-        return down_fd.startDowntime( start_time=when, end_time=end_time) #only add a new line if not in downtime at that time
+        # only add a new line if not in downtime at that time
+        return down_fd.startDowntime( start_time=when, end_time=end_time) 
     else:
         print "Entry is already down. "
 
     return 0
 
-def up( opt_dict ): # HK> calls endDowntime( with end_time only )
+
+# calls endDowntime( with end_time only )
+def up( opt_dict ): 
     down_fd = get_downtime_fd(opt_dict["dir"])
 
     when = delay2time( opt_dict["delay"] )
@@ -121,7 +143,8 @@ def up( opt_dict ): # HK> calls endDowntime( with end_time only )
     if (opt_dict["end"]=="None"):
         when += long(time.time())
     else:
-        when += str2time(opt_dict["end"]); # HK> delay applies only to the end time
+        # delay applies only to the end time
+        when += str2time(opt_dict["end"])
 
     rtn = down_fd.endDowntime(  end_time=when )
     if (rtn>0):
@@ -130,10 +153,12 @@ def up( opt_dict ): # HK> calls endDowntime( with end_time only )
         print "Entry is not in downtime."
         return 1
 
+
 def printtimes( opt_dict ):
     down_fd = get_downtime_fd( opt_dict["dir"] )
     when=delay2time( opt_dict["delay"]) + long(time.time())
     down_fd.printDowntime( check_time=when )
+
 
 def get_args(argv):
     opt_dict = {"comment":"",
@@ -144,19 +169,23 @@ def get_args(argv):
                 "frontend":"All"}
     index=0
 
-
     for arg in argv:
         if (len(argv)<=index+1):
-            continue;
+            continue
 
-        if (arg == "-cmd"):            opt_dict["cmd"]    = argv[index+1]
-        if (arg == "-dir"):            opt_dict["dir"]    = argv[index+1]
-        if (arg == "-start"):          opt_dict["start"]  = argv[index+1]
-        if (arg == "-end"):            opt_dict["end"]    = argv[index+1]
-        if (arg == "-delay"):          opt_dict["delay"]  = argv[index+1]
+        if (arg == "-cmd"):            
+            opt_dict["cmd"] = argv[index+1]
+        if (arg == "-dir"):            
+            opt_dict["dir"] = argv[index+1]
+        if (arg == "-start"):          
+            opt_dict["start"] = argv[index+1]
+        if (arg == "-end"):            
+            opt_dict["end"] = argv[index+1]
+        if (arg == "-delay"):          
+            opt_dict["delay"] = argv[index+1]
 
         index=index+1
-    return opt_dict;
+    return opt_dict
 
 
 def main(argv):
@@ -171,15 +200,15 @@ def main(argv):
         frontend_dir = opt_dict["dir"]
         cmd = opt_dict["cmd"]
     except KeyError, e:
-        usage();
+        usage()
         print "-cmd -dir and -entry arguments are required."
-        return 1;
+        return 1
 
     try:
         os.chdir(frontend_dir)
     except OSError, e:
         usage()
-        print "Failed to locate factory %s"%frontend_dir
+        print "Failed to locate factory %s" % frontend_dir
         print "%s"%e
         return 1
 
