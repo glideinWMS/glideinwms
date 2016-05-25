@@ -6,6 +6,9 @@
 # File Version: 
 #
 
+# default IFS, to protect against unusual environment, better than "unset IFS" because works with restoring old one
+IFS=$' \t\n'
+
 global_args="$@"
 
 export LANG=C
@@ -820,8 +823,39 @@ if [ -n "$client_repository_url" ]; then
   fi
 fi
 
+function md5wrapper {
+    # $1 - file name
+    # $2 - option (quiet)
+    local ONLY_SUM
+    if [ "x$2" = "xquiet" ]; then
+        ONLY_SUM=yes
+    fi
+    local executable=md5sum
+    which $executable 1>/dev/null 2>&1
+    if [ "$?" -ne 0 ]; then
+        executable=md5
+        which $executable 1>/dev/null 2>&1
+        if [ "$?" -ne 0 ]; then
+            echo "???"
+            return 1
+        fi
+        [ -n "$ONLY_SUM" ] && executable="md5 -q \"$1\"" || executable="md5 \"$1\""
+    else
+        [ -n "$ONLY_SUM" ] && executable="md5sum \"$1\" | cut -d ' ' -f 1" ||  executable="md5sum \"$1\""
+    fi
+    local res
+    res="`eval "$executable" 2>/dev/null`"
+    if [ $? -ne 0 ]; then
+        echo "???"
+        return 1
+    fi
+    echo "$res"  
+}
+
+
 startup_time=`date +%s`
 echo "Starting glidein_startup.sh at `date` ($startup_time)"
+echo "script_checksum   = '`md5wrapper "$0"`'"
 echo "debug_mode        = '$operation_mode'"
 echo "condorg_cluster   = '$condorg_cluster'"
 echo "condorg_subcluster= '$condorg_subcluster'"
@@ -1207,9 +1241,10 @@ function get_untar_subdir {
 add_startd_cron_counter=0
 function add_periodic_script {
     # schedules a script for periodic execution using startd_cron
-    # parameters: wrapper full path, period, cwd, executable path (from cwd), config file path (from cwd), ID
+    # parameters: wrapper full path, period, cwd, executable path (from cwd),
+    # config file path (from cwd), ID
     # global variable: add_startd_cron_counter
-    #TODO: should it allow for veriable number of parameters?
+    #TODO: should it allow for variable number of parameters?
     local include_fname=condor_config_startd_cron_include
     local s_wrapper="$1"
     local s_period_sec="${2}s"
@@ -1218,14 +1253,16 @@ function add_periodic_script {
     local s_config="$5"
     local s_ffb_id="$6"
     if [ $add_startd_cron_counter -eq 0 ]; then
-        # make sure that no undesired file is there
+        # Make sure that no undesired file is there when called for first cron
         rm $include_fname
     fi
     let add_startd_cron_counter=add_startd_cron_counter+1
     local s_prefix=GLIDEIN_PS
     local s_name="${s_prefix}$add_startd_cron_counter"
+
     # Append the following to the startd configuration
-# Instead of Periodic and Kill wait for completion: STARTD_CRON_DATE_MODE = WaitForExit
+    # Instead of Periodic and Kill wait for completion:
+    # STARTD_CRON_DATE_MODE = WaitForExit
     cat >> $include_fname << EOF
 STARTD_CRON_JOBLIST = \$(STARTD_CRON_JOBLIST) $s_name
 STARTD_CRON_${s_name}_MODE = Periodic
@@ -1233,8 +1270,8 @@ STARTD_CRON_${s_name}_KILL = True
 STARTD_CRON_${s_name}_PERIOD = $s_period_sec
 STARTD_CRON_${s_name}_PREFIX = ${s_prefix}_
 STARTD_CRON_${s_name}_EXECUTABLE = $s_wrapper
-STARTD_CRON_${s_name}_ARGS = "$s_name" "$s_fname" "$s_config" "$s_ffb_id"
-STARTD_CRON_${s_name}_CWD = "$s_cwd"
+STARTD_CRON_${s_name}_ARGS = $s_config $s_ffb_id $s_name $s_fname
+STARTD_CRON_${s_name}_CWD = $s_cwd
 STARTD_CRON_${s_name}_SLOTS = 1
 STARTD_CRON_${s_name}_JOB_LOAD = 0.01
 EOF
@@ -1259,7 +1296,9 @@ function fetch_file {
             fi
             return 0
         fi
-        warn "Not enough arguments in fetch_file $@" 1>&2
+        local ifs_str
+        printf -v ifs_str '%q' "$IFS"
+        warn "Not enough arguments in fetch_file ($#/$ifs_str): $@" 1>&2
         glidein_exit 1
     fi
 

@@ -20,14 +20,14 @@ import sys
 import fcntl
 import resource
 import subprocess
-import traceback
+# import traceback
 import signal
 import time
 import string
 import copy
 import logging
 import math
-from datetime import datetime
+# from datetime import datetime
 
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../../"))
@@ -35,6 +35,7 @@ sys.path.append(os.path.join(STARTUP_DIR,"../../"))
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
 from glideinwms.lib import glideinWMSVersion
+from glideinwms.lib import util
 from glideinwms.factory import glideFactoryPidLib
 from glideinwms.factory import glideFactoryConfig
 from glideinwms.factory import glideFactoryLib
@@ -44,6 +45,7 @@ from glideinwms.factory import glideFactoryMonitoring
 from glideinwms.factory import glideFactoryDowntimeLib
 from glideinwms.factory import glideFactoryCredentials
 
+
 ############################################################
 def aggregate_stats(in_downtime):
     """
@@ -51,27 +53,41 @@ def aggregate_stats(in_downtime):
 
     @type in_downtime: boolean
     @param in_downtime: Entry downtime information
+    :return stats dictionary
     """
-
+    stats = {}
     try:
         _ = glideFactoryMonitorAggregator.aggregateStatus(in_downtime)
     except:
         # protect and report
         logSupport.log.exception("aggregateStatus failed: ")
-
     try:
-        _ = glideFactoryMonitorAggregator.aggregateLogSummary()
+        stats['LogSummary'] = glideFactoryMonitorAggregator.aggregateLogSummary()
     except:
         # protect and report
         logSupport.log.exception("aggregateLogStatus failed: ")
-
     try:
         _ = glideFactoryMonitorAggregator.aggregateRRDStats(log=logSupport.log)
     except:
         # protect and report
         logSupport.log.exception("aggregateRRDStats failed: ")
+    return stats
 
-    return
+
+def save_stats(stats, fname):
+    """ Serialize and save aggregated statistics so that each component (Factory and Entries)
+    can retrieve and use it to log and advertise
+
+    stats is a dictionary pickled in binary format
+    stats['LogSummary'] - log summary aggregated info
+
+    :param stats: aggregated Factory statistics
+    :param fname: name of the file with the serialized data
+    :return:
+    """
+    util.file_pickle_dump(fname, stats,
+                          mask_exceptions=(logSupport.log.exception, "Saving of aggregated statistics failed: "))
+
 
 # Added by C.W. Murphy to make descript.xml
 def write_descript(glideinDescript, frontendDescript, monitor_dir):
@@ -429,7 +445,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                     logSupport.log.exception("Error occurred processing the globals classads: ")
 
 
-            logSupport.log.info("Checking EntryGroups %s" % group)
+            logSupport.log.info("Checking EntryGroups %s" % childs.keys())
             for group in childs:
                 entry_names = string.join(entry_groups[group], ':')
                 child = childs[group]
@@ -446,7 +462,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                     if len(tempErr) != 0:
                         logSupport.log.warning("EntryGroup %s STDERR: %s" % (group, tempErr))
                 except IOError:
-                    pass # ignore
+                    pass  # ignore
 
                 # look for exited child
                 if child.poll():
@@ -486,28 +502,30 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                                    childs[group].stderr.fileno()):
                             fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                             fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
-                        logSupport.log.warning("EntryGroup startup/restart times: %s" % childs_uptime)
+                        logSupport.log.warning("EntryGroup startup/restart times: %s" % (childs_uptime,))
 
             # Aggregate Monitoring data periodically
             logSupport.log.info("Aggregate monitoring data")
-            aggregate_stats(factory_downtimes.checkDowntime())
+            stats = aggregate_stats(factory_downtimes.checkDowntime())
+            save_stats(stats, os.path.join(startup_dir, glideFactoryConfig.factoryConfig.aggregated_stats_file))
 
-            # Advertise the global classad with the factory keys
+            # Advertise the global classad with the factory keys and Factory statistics
             try:
                 # KEL TODO need to add factory downtime?
                 glideFactoryInterface.advertizeGlobal(
                     glideinDescript.data['FactoryName'],
                     glideinDescript.data['GlideinName'],
                     glideFactoryLib.factoryConfig.supported_signtypes,
-                    glideinDescript.data['PubKeyObj'])
+                    glideinDescript.data['PubKeyObj']
+                    )
             except Exception, e:
-                logSupport.log.exception("Error advertizing global classads: ")
+                logSupport.log.exception("Error advertising global classads: %s" % e)
 
             cleanupSupport.cleaners.cleanup()
 
             iteration_etime = time.time()
             iteration_sleep_time = sleep_time - (iteration_etime - iteration_stime)
-            if (iteration_sleep_time < 0):
+            if iteration_sleep_time < 0:
                 iteration_sleep_time = 0
             logSupport.log.info("Sleep %s secs" % iteration_sleep_time)
             time.sleep(iteration_sleep_time)

@@ -179,12 +179,16 @@ def getCondorQData(entry_name, client_name, schedd_name, factoryConfig=None):
          factoryConfig.glidein_schedd_attribute, factoryConfig.glidein_name,
          factoryConfig.entry_schedd_attribute, entry_name, client_constraint,
          factoryConfig.credential_id_schedd_attribute)
-    q_glidein_format_list = [("JobStatus", "i"), ("GridJobStatus", "s"), ("ServerTime", "i"), ("EnteredCurrentStatus", "i"),
-                             (factoryConfig.credential_id_schedd_attribute, "s"), ("HoldReasonCode", "i"), ("HoldReasonSubCode", "i"),
-                           ("NumSystemHolds","i"),
-                             (factoryConfig.frontend_name_attribute, "s"),
-                             (factoryConfig.client_schedd_attribute, "s"),
-                             (factoryConfig.credential_secclass_schedd_attribute, "s")]
+    q_glidein_format_list = [
+        ("JobStatus", "i"), ("GridJobStatus", "s"), ("ServerTime", "i"),
+        ("EnteredCurrentStatus", "i"),
+        (factoryConfig.credential_id_schedd_attribute, "s"),
+        ("HoldReasonCode", "i"), ("HoldReasonSubCode", "i"),
+        ("HoldReason","s"), ("NumSystemHolds","i"),
+        (factoryConfig.frontend_name_attribute, "s"),
+        (factoryConfig.client_schedd_attribute, "s"),
+        (factoryConfig.credential_secclass_schedd_attribute, "s")
+    ]
 
     q = condorMonitor.CondorQ(schedd_name)
     q.factory_name = factoryConfig.factory_name
@@ -1269,6 +1273,9 @@ def releaseGlideins(schedd_name, jid_list, log=logSupport.log,
 
     is_not_first = 0
     for jid in jid_list:
+        if len(released_jids) > factoryConfig.max_releases:
+            break # limit reached, stop
+
         if is_not_first:
             is_not_first = 1
             time.sleep(factoryConfig.release_sleep)
@@ -1278,8 +1285,6 @@ def releaseGlideins(schedd_name, jid_list, log=logSupport.log,
         except condorExe.ExeError, e:
             log.warning("releaseGlidein(%s,%li.%li): %s" % (schedd_name, jid[0], jid[1], e))
 
-        if len(released_jids) >= factoryConfig.max_releases:
-            break # limit reached, stop
     log.info("Released %i glideins on %s: %s" % (len(released_jids), schedd_name, released_jids))
 
 
@@ -1472,6 +1477,7 @@ email_logs = False
             if 'project_id' in jobDescript.data['AuthMethod']:
                 # Append project id to the rsl
                 glidein_rsl = '%s(project=%s)' % (glidein_rsl, submit_credentials.identity_credentials['ProjectId'])
+                exe_env.append('GLIDEIN_PROJECT_ID=%s' % submit_credentials.identity_credentials['ProjectId'])
 
             exe_env.append('GLIDEIN_RSL=%s' % glidein_rsl)
 
@@ -1560,28 +1566,43 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
     if factoryConfig is None:
         factoryConfig = globals()['factoryConfig']
 
-
     unrecoverable = False
     # Dictionary of {HeldReasonCode: HeldReasonSubCode}
     unrecoverableCodes = {2: [ 0, 2, 4, 5, 7, 8, 9, 10, 14, 17,
                                22, 27, 28, 31, 37, 47, 48,
                                72, 76, 81, 86, 87,
                                121, 122 ]}
-
-    if jobInfo.has_key('HoldReasonCode') and jobInfo.has_key('HoldReasonSubCode'):
-        code = jobInfo['HoldReasonCode']
-        subCode = jobInfo['HoldReasonSubCode']
+    unrecoverable_reason_str = ['Failed to authenticate with any method']
+    
+    code = jobInfo.get('HoldReasonCode')
+    subCode = jobInfo.get('HoldReasonSubCode')
+    holdreason = jobInfo.get('HoldReason')
+    # Based on HoldReasonCode and HoldReasonSubCode check if the job is recoverable
+    if (code is not None) and (subCode is not None):
         if ( (code in unrecoverableCodes) and 
              (subCode in unrecoverableCodes[code]) ):
             unrecoverable = True
+        # As of HTCondor 8.4.4 in case of glideins submitted to AWS and CondorCE
+        # have the HoldReasonCode = HoldReasonSubCode = 0 but HoldReason is
+        # populated correctly 
+        elif (code == 0) and (subCode == 0) and (holdreason is not None):
+            for rs in unrecoverable_reason_str:
+                if holdreason.find(rs) != -1:
+                    # unrecoverable substring match
+                    unrecoverable = True
+                    break
 
-    num_holds=1
-    if jobInfo.has_key('JobStatus') and jobInfo.has_key('NumSystemHolds'):
-        if jobInfo['JobStatus']==5:
-            num_holds=jobInfo['NumSystemHolds']
-
-    if num_holds>factoryConfig.max_release_count:
-        unrecoverable = True
+    # Following check with NumSystemHolds should only apply to recoverable jobs
+    # If we have determined that job is unrecoverable, skip these checks
+    if not unrecoverable:
+        num_holds=1
+        job_status = jobInfo.get('JobStatus')
+        num_system_holds = jobInfo.get('NumSystemHolds')
+        if (job_status is not None) and (num_system_holds is not None):
+            if job_status == 5:
+                num_holds = num_system_holds
+        if num_holds>factoryConfig.max_release_count:
+            unrecoverable = True
 
     return unrecoverable
 
