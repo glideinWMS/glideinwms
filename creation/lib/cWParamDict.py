@@ -15,10 +15,13 @@
 import os.path
 import string
 import cWConsts
+import cWDictFile
+
 
 def is_true(s):
     """Case insensitive string parsing helper. Return True for true (case insensitive matching), False otherwise."""
     return s.lower() == 'true'
+
 
 def add_file_unparsed(user_file, dicts, is_factory):
     """Add a user file residing in the stage area
@@ -78,7 +81,8 @@ def add_file_unparsed(user_file, dicts, is_factory):
         if is_wrapper:
             raise RuntimeError("A wrapper file cannot be an executable: %s" % user_file)
         dicts[file_list_idx].add_from_file(relfname,
-                                           (cWConsts.insert_timestr(relfname), 'exec', user_file.period, 'TRUE', 'FALSE'),
+                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), 'exec',
+                                                                                  user_file.period, user_file.prefix),
                                            absfname)
 
     elif is_wrapper:  # a sourceable script for the wrapper
@@ -86,9 +90,10 @@ def add_file_unparsed(user_file, dicts, is_factory):
             raise RuntimeError("A file cannot be a wrapper if it is not constant: %s" % user_file)
         if do_untar:
             raise RuntimeError("A tar file cannot be a wrapper: %s" % user_file)
-        dicts[file_list_idx].add_from_file(relfname, (cWConsts.insert_timestr(relfname), 'wrapper', 0, 'TRUE', 'FALSE'),
+        dicts[file_list_idx].add_from_file(relfname,
+                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), 'wrapper'),
                                            absfname)
-    elif do_untar: # a tarball
+    elif do_untar:  # a tarball
         if not is_const:
             raise RuntimeError("A file cannot be untarred if it is not constant: %s" % user_file)
 
@@ -102,16 +107,20 @@ def add_file_unparsed(user_file, dicts, is_factory):
         cond_attr = user_file.untar_options.cond_attr
 
         dicts[file_list_idx].add_from_file(relfname,
-                                           (cWConsts.insert_timestr(relfname), 'untar', 0, cond_attr, config_out),
+                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname),
+                                                                                  'untar',
+                                                                                  cond_download=cond_attr,
+                                                                                  config_out=config_out),
                                            absfname)
         dicts['untar_cfg'].add(relfname, wnsubdir)
 
     else:  # not executable nor tarball => simple file
         if is_const:
             val = 'regular'
-            dicts[file_list_idx].add_from_file(relfname, (cWConsts.insert_timestr(relfname), val, 0, 'TRUE', 'FALSE'),
+            dicts[file_list_idx].add_from_file(relfname,
+                                               cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), val),
                                                absfname)
         else:
             val = 'nocache'
-            dicts[file_list_idx].add_from_file(relfname, (relfname, val, 0, 'TRUE', 'FALSE'),
+            dicts[file_list_idx].add_from_file(relfname, cWDictFile.FileDictFile.make_val_tuple(relfname, val),
                                                absfname)  # no timestamp in the name if it can be modified

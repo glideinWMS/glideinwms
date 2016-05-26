@@ -11,7 +11,7 @@
 
 import os,os.path,shutil,string
 import sys
-import cgWDictFile,cWDictFile
+import cgWDictFile, cWDictFile
 import cgWCreate
 import cgWConsts,cWConsts
 #
@@ -77,7 +77,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                           'condor_config.dedicated_starter.include', 'condor_config.check.include',
                           'condor_config.monitor.include'):
             self.dicts['file_list'].add_from_file(file_name,
-                                                  (cWConsts.insert_timestr(file_name), 'regular', 0, 'TRUE', 'FALSE'),
+                                                  cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(file_name), 'regular'),
                                                   os.path.join(cgWConsts.WEB_BASE_DIR, file_name))
         self.dicts['description'].add("condor_config","condor_config")
         self.dicts['description'].add("condor_config.multi_schedd.include","condor_config_multi_include")
@@ -102,7 +102,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # These should be executed before the other scripts
         for script_name in ('setup_script.sh', 'cat_consts.sh', 'condor_platform_select.sh'):
             self.dicts['file_list'].add_from_file(script_name,
-                                                  (cWConsts.insert_timestr(script_name), 'exec', 0, 'TRUE', 'FALSE'),
+                                                  cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
                                                   os.path.join(cgWConsts.WEB_BASE_DIR, script_name))
 
         #load condor tarballs
@@ -149,16 +149,20 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                     # tar file exists. Just use it
                     self.dicts['file_list'].add_from_file(
                         condor_platform_fname,
-                        (condor_fname, 'untar', 0, cond_name, cgWConsts.CONDOR_ATTR),
+                        cWDictFile.FileDictFile.make_val_tuple(condor_fname, 'untar',
+                                                               cond_download=cond_name,
+                                                               config_out=cgWConsts.CONDOR_ATTR),
                         condor_tarfile
                     )
                 else:
                     # This is addition of new tarfile
-                    # Need to rewind fd everytime
+                    # Need to rewind fd every time
                     condor_fd.seek(0)
                     self.dicts['file_list'].add_from_fd(
                         condor_platform_fname,
-                        (condor_fname, 'untar', 0, cond_name, cgWConsts.CONDOR_ATTR),
+                        cWDictFile.FileDictFile.make_val_tuple(condor_fname, 'untar',
+                                                               cond_download=cond_name,
+                                                               config_out=cgWConsts.CONDOR_ATTR),
                         condor_fd
                     )
 
@@ -213,14 +217,14 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # Load more system scripts
         for script_name in file_list_scripts:
             self.dicts['file_list'].add_from_file(script_name,
-                                                  (cWConsts.insert_timestr(script_name), 'exec', 0, 'TRUE', 'FALSE'),
+                                                  cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
                                                   os.path.join(cgWConsts.WEB_BASE_DIR, script_name))
 
         # Add the drainer script
         drain_script = "check_wn_drainstate.sh"
         self.dicts['file_list'].add_from_file(drain_script,
-                                              (cWConsts.insert_timestr(drain_script), 'exec', 60, 'TRUE',
-                                              'FALSE'), os.path.join(cgWConsts.WEB_BASE_DIR, drain_script))
+                                              cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(drain_script), 'exec', 60),
+                                              os.path.join(cgWConsts.WEB_BASE_DIR, drain_script))
 
         # make sure condor_startup does not get executed ahead of time under normal circumstances
         # but must be loaded early, as it also works as a reporting script in case of error
@@ -241,7 +245,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # add additional system scripts
         for script_name in after_file_list_scripts:
             self.dicts['after_file_list'].add_from_file(script_name,
-                                                        (cWConsts.insert_timestr(script_name), 'exec', 0, 'TRUE', 'FALSE'),
+                                                        cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
                                                         os.path.join(cgWConsts.WEB_BASE_DIR, script_name))
 
         # populate complex files
@@ -430,14 +434,14 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         # follow by the blacklist file
         file_name=cWConsts.BLACKLIST_FILE
         self.dicts['file_list'].add_from_file(file_name,
-                                              (file_name, 'nocache', 0, 'TRUE', 'BLACKLIST_FILE'),
+                                              cWDictFile.FileDictFile.make_val_tuple(file_name, 'nocache', config_out='BLACKLIST_FILE'),
                                               os.path.join(cgWConsts.WEB_BASE_DIR, file_name))
 
         # Load initial system scripts
         # These should be executed before the other scripts
         for script_name in ('cat_consts.sh',"check_blacklist.sh"):
             self.dicts['file_list'].add_from_file(script_name,
-                                                  (cWConsts.insert_timestr(script_name), 'exec', 0, 'TRUE', 'FALSE'),
+                                                  cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
                                                   os.path.join(cgWConsts.WEB_BASE_DIR, script_name))
 
         #load system files
@@ -656,37 +660,45 @@ def add_file_unparsed(user_file,dicts, is_factory):
         if eval(user_file['after_entry']):
             file_list_idx='after_file_list'
 
-    if is_executable: # a script
+    if is_executable:  # a script
         dicts[file_list_idx].add_from_file(relfname,
-                                           (cWConsts.insert_timestr(relfname), "exec", period_value, prefix, "TRUE", 'FALSE'),
+                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), 'exec', period_value, prefix),
                                            absfname)
-    elif is_wrapper: # a sourceable script for the wrapper
+    elif is_wrapper:  # a sourceable script for the wrapper
         dicts[file_list_idx].add_from_file(relfname,
-                                           (cWConsts.insert_timestr(relfname), "wrapper", 0, "", "TRUE",'FALSE'),
+                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), 'wrapper'),
                                            absfname)
-    elif do_untar: # a tarball
+    elif do_untar:  # a tarball
         untar_opts = user_file.get_child('untar_options')
         if u'dir' in untar_opts:
-            wnsubdir=untar_opts['dir']
+            wnsubdir = untar_opts['dir']
         else:
-            wnsubdir=string.split(relfname,'.',1)[0] # deafult is relfname up to the first .
+            wnsubdir = string.split(relfname, '.', 1)[0]  # deafult is relfname up to the first .
 
         if 'absdir_outattr' in untar_opts:
-            config_out=untar_opts['absdir_outattr']
+            config_out = untar_opts['absdir_outattr']
         else:
-            config_out="FALSE"
-        cond_attr=untar_opts['cond_attr']
+            config_out = 'FALSE'
+        cond_attr = untar_opts['cond_attr']
 
-
-        dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"untar",0,cond_attr,config_out),absfname)
-        dicts['untar_cfg'].add(relfname,wnsubdir)
-    else: # not executable nor tarball => simple file
+        dicts[file_list_idx].add_from_file(relfname,
+                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname),
+                                                                                  'untar',
+                                                                                  cond_download=cond_attr,
+                                                                                  config_out=config_out),
+                                           absfname)
+        dicts['untar_cfg'].add(relfname, wnsubdir)
+    else:  # not executable nor tarball => simple file
         if is_const:
-            val='regular'
-            dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),val,0,'TRUE','FALSE'),absfname)
+            val = 'regular'
+            dicts[file_list_idx].add_from_file(relfname,
+                                               cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(relfname), val),
+                                               absfname)
         else:
-            val='nocache'
-            dicts[file_list_idx].add_from_file(relfname,(relfname,val,0,'TRUE','FALSE'),absfname) # no timestamp if it can be modified
+            val = 'nocache'
+            dicts[file_list_idx].add_from_file(relfname,
+                                               cWDictFile.FileDictFile.make_val_tuple(relfname, val),
+                                               absfname)  # no timestamp if it can be modified
 
 #######################
 # Register an attribute
