@@ -667,7 +667,23 @@ class FileDictFile(SimpleFileDictFile):
         DictFile.add(self, key, self.PLACEHOLDER_VALUE, allow_overwrite)
 
     def is_placeholder(self, key):
-        return (self[key][0] == "")  # empty real_fname can only be a placeholder
+        return self[key][0] == ""  # empty real_fname can only be a placeholder
+
+    @staticmethod
+    def make_val_tuple(file_name, file_type, period=0, prefix='GLIDEIN_PS_', cond_download='TRUE', config_out='FALSE'):
+        """Make a tuple with the DATA_LENGTH-1 attributes in the correct order using the defaults
+
+        :param file_name: name of the file (aka real_fname)
+        :param file_type: type of the file (regular, nocache, exec, untar)
+        :param period: period for periodic executables (ignored otherwise, default: 0)
+        :param prefix: prefix for periodic executables (ignored otherwise, default: GLIDEIN_PS_)
+        :param cond_download: conditional download (default: 'TRUE')
+        :param config_out: config out (default: 'FALSE')
+        :return: tuple with the DATA_LENGTH-1 attributes
+        See class definition for more information about the attributes
+        """
+        # TODO: should it do some value checking? valid constant, int, ...
+        return file_name, file_type, period, prefix, cond_download, config_out  # python constructs the tuple
 
     @staticmethod
     def val_to_file_name(val):
