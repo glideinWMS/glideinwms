@@ -216,6 +216,12 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                                   (cWConsts.insert_timestr(script_name), 'exec', 0, 'TRUE', 'FALSE'),
                                                   os.path.join(cgWConsts.WEB_BASE_DIR, script_name))
 
+        # Add the drainer script
+        drain_script = "check_wn_drainstate.sh"
+        self.dicts['file_list'].add_from_file(drain_script,
+                                              (cWConsts.insert_timestr(drain_script), 'exec', 60, 'TRUE',
+                                              'FALSE'), os.path.join(cgWConsts.WEB_BASE_DIR, drain_script))
+
         # make sure condor_startup does not get executed ahead of time under normal circumstances
         # but must be loaded early, as it also works as a reporting script in case of error
         self.dicts['description'].add(cgWConsts.CONDOR_STARTUP_FILE,"last_script")

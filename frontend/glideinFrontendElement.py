@@ -45,7 +45,7 @@ from glideinwms.frontend import glideinFrontendLib
 from glideinwms.frontend import glideinFrontendPidLib
 from glideinwms.frontend import glideinFrontendMonitoring
 from glideinwms.frontend import glideinFrontendPlugins
-
+from glideinwms.frontend import glideinFrontendDowntimeLib
 ###########################################################
 # Support class that mimics the 2.7 collections.Counter class
 #
@@ -587,6 +587,13 @@ class glideinFrontendElement:
                                   self.count_real_glideins[glideid],
                                   count_status['Idle'])
 
+            down_fd = glideinFrontendDowntimeLib.DowntimeFile( os.path.join( self.work_dir, self.elementDescript.frontend_data['DowntimesFile']  ) )
+            downflag = down_fd.checkDowntime()
+            logSupport.log.info( "downtime = %i" % downflag )
+            if downflag == True:
+                glidein_min_idle = 0
+                glidein_max_run  = 0
+
             remove_excess_str = self.choose_remove_excess_type(
                                     count_jobs, count_status, glideid)
 
@@ -937,9 +944,12 @@ class glideinFrontendElement:
                                             self.group_name,
                                             self.ha_mode)
         resource_classad.setInDownTime(glidein_in_downtime)
+        # From glidefactory classad
         resource_classad.setEntryInfo(glidein_el['attrs'])
+        resource_classad.setEntryMonitorInfo(glidein_el['monitor'])
         resource_classad.setGlideClientConfigLimits(self.glidein_config_limits)
         try:
+            # From glidefactorylient classad
             key = (
                 factory_pool_node,
                 resource_classad.adParams['Name'],
@@ -1300,6 +1310,7 @@ class glideinFrontendElement:
         return total_down_stats_arr
 
     def query_globals(self,factory_pool):
+        # Query glidefactoryglobal ClassAd
         globals_dict = {}
         try:
                 # Note: M2Crypto key objects are not pickle-able,
@@ -1356,6 +1367,7 @@ class glideinFrontendElement:
 
 
     def query_factoryclients(self, factory_pool):
+        # Query glidefactoryclient ClassAd
         try:
             factoryclients = {}
             factory_constraint = expand_DD(
@@ -1397,6 +1409,7 @@ class glideinFrontendElement:
 
 
     def query_entries(self, factory_pool):
+        # Query glidefactory ClassAd
         try:
             glidein_dict = {}
             factory_constraint=expand_DD(self.elementDescript.merged_data['FactoryQueryExpr'],self.attr_dict)
