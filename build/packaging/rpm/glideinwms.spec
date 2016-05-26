@@ -788,7 +788,7 @@ rm -rf $RPM_BUILD_ROOT
 * Tue Dec 30 2014 Parag Mhashilkar <parag@fnal.gov> - 3.2.8-1
 - Glideinwms v3.2.8 release
 
-* Wed Nov 6 2014 Parag Mhashilkar <parag@fnal.gov> - 3.2.7.2-1
+* Thu Nov 6 2014 Parag Mhashilkar <parag@fnal.gov> - 3.2.7.2-1
 - Glideinwms v3.2.7.2 release
 - Sets MASTER.USE_SHARED_PORT in schedd's config to support HTCondor v8.2.3
 
@@ -819,7 +819,7 @@ rm -rf $RPM_BUILD_ROOT
 - Fix the ownership of startup.log file for frontend in post script
 - Changed the javascriptrrd dependency to be 1.1.0+ for frontend as well
 
-* Mon Apr 16 2014 Parag Mhashilkar <parag@fnal.gov> - 3.2.4-2
+* Wed Apr 16 2014 Parag Mhashilkar <parag@fnal.gov> - 3.2.4-2
 - Changed the javascriptrrd dependency to be 1.1.0+
 
 * Mon Apr 14 2014 Parag Mhashilkar <parag@fnal.gov> - 3.2.4-1
@@ -853,7 +853,7 @@ rm -rf $RPM_BUILD_ROOT
 - Removed libs directory from the vofrontend-standalone and added glideinwms-libs as its dependency.
 - Added 11_gwms_secondary_collectors to respective condor rpms and glidecondor_addSecCol to the tools rpm
 
-* Fri Apr 29 2013 Parag Mhashilkar <parag@fnal.gov> - 2.7.0-0.4
+* Mon Apr 29 2013 Parag Mhashilkar <parag@fnal.gov> - 2.7.0-0.4
 - Added missing glideinwms/__init__ to the glideinwms-libs.
 
 * Fri Apr 26 2013 Parag Mhashilkar <parag@fnal.gov> - 2.7.0-0.3
@@ -878,7 +878,7 @@ rm -rf $RPM_BUILD_ROOT
 * Thu Nov 8 2012 Doug Strain <dstrain@fnal.gov> - 2.6.2-2
 - Improvements recommended by Igor to modularize glideinwms
 
-* Wed Nov 2 2012 Doug Strain <dstrain@fnal.gov> - 2.6.2-1
+* Fri Nov 2 2012 Doug Strain <dstrain@fnal.gov> - 2.6.2-1
 - Glideinwms 2.6.2 Release
 
 * Thu Sep 20 2012 Doug Strain <dstrain@fnal.gov> - 2.6.1-2
@@ -959,7 +959,7 @@ rm -rf $RPM_BUILD_ROOT
 * Wed Aug 31 2011 Burt Holzman <burt@fnal.gov> - 2.5.2-2
 - Fixed file location for frontend_support.js
 
-* Wed Aug 13 2011 Burt Holzman <burt@fnal.gov> - 2.5.2-1
+* Sat Aug 13 2011 Burt Holzman <burt@fnal.gov> - 2.5.2-1
 - Update to glideinWMS 2.5.2
 
 * Tue Aug 02 2011 Derek Weitzel <dweitzel@cse.unl.edu> - 2.5.1-13
@@ -977,18 +977,18 @@ rm -rf $RPM_BUILD_ROOT
 - Include glideinWMS 2.5.1
 - Made all the directories independent of the frontend name
 
-* Mon Mar 10 2011 Derek Weitzel  2.5.0-11
+* Thu Mar 10 2011 Derek Weitzel  2.5.0-11
 - Changed the frontend.xml to correct the web stage directory
 
-* Mon Mar 10 2011 Derek Weitzel  2.5.0-9
+* Thu Mar 10 2011 Derek Weitzel  2.5.0-9
 - Made the work, stage, monitor, and log directory independent of the frontend name.
 - Frontend name is now generated at install time
 
-* Mon Feb 13 2011 Derek Weitzel  2.5.0-6
+* Sun Feb 13 2011 Derek Weitzel  2.5.0-6
 - Made rpm noarch
 - Replaced python site-packages more auto-detectable
 
-* Mon Feb 09 2011 Derek Weitzel  2.5.0-5
+* Wed Feb 09 2011 Derek Weitzel  2.5.0-5
 - Added the tools to bin directory
 
 * Mon Jan 24 2011 Derek Weitzel  2.5.0-4
