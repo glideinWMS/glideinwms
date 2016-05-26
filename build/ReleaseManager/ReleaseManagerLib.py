@@ -77,8 +77,10 @@ class Release:
                 if distname.startswith(d):
                     dist = distmap[d]
                     break
-            if not dist:
+            if dist is None:
                 raise Exception('Unsupported distribution: %s' % distname)
+            else:
+                el_version = dist
 
             major_version = version.split('.')[0]
             el_version += major_version
