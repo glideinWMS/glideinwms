@@ -13,6 +13,8 @@ v3_2_14	Various curbs and limits triggered in the factory are now logged
 	Updated documentation
 	Bug Fix: Factory will not release glideins sent to Condor CE if they
 	  are held with authentication/authorization issues
+	Bug Fix: Factory will not release glideins sent to AWS in case of
+	  certain types of HoldReason
 	Bug Fix: Proxies used by the glidein now if delegated have their
 	  lifetime as long as the original proxy
 	Bug Fix: Fixed issue where RRD processing was incorrectly throwing
