@@ -732,9 +732,13 @@ class FileDictFile(SimpleFileDictFile):
             raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
 
         if len(val) == self.DATA_LENGTH:
-            #return self.add_from_str(key, val[:5], val[5], allow_overwrite)
+            # Alt: return self.add_from_str(key, val[:self.DATA_LENGTH-1], val[self.DATA_LENGTH-1], allow_overwrite)
             return DictFile.add(self, key, tuple(val), allow_overwrite)
         elif len(val) == self.DATA_LENGTH-1:
+            # Added a safety check that the last element is an attribute and not the value
+            # Maybe check also string length or possible values?
+            if '\n' in val[-1]:
+                raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
             return self.add_from_file(key, val, os.path.join(self.dir, self.val_to_file_name(val)), allow_overwrite)
         else:
             raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
