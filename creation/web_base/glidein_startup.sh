@@ -891,6 +891,9 @@ if [ -n "$client_repository_url" ]; then
     fi
 fi
 echo
+echo "JOBFEATURES variable points to $JOBFEATURES"
+echo "MACHINEFEATURES variable points to $MACHINEFEATURES"
+echo
 echo "Running on `uname -n`"
 echo "System: `uname -a`"
 if [ -e '/etc/redhat-release' ]; then
@@ -1742,6 +1745,13 @@ echo
 if [ $ret -ne 0 ]; then
     warn "Error running '$last_script'" 1>&2
 fi
+
+#Things like periodic scripts might put messages here if they want them printed in the logfile
+echo "=== Exit messages left by periodic scripts ==="
+cat exit_message
+echo
+pwd
+
 
 #########################
 # clean up after I finish
