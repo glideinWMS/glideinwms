@@ -85,6 +85,39 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
+        <b>v3_2_14</b> released on June xx, 2016 (<a href="http://glideinwms.fnal.gov/doc.v3_2_14/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_14/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_14.tgz">Tarball</a>)<br>
+      <ul>
+	<li>Various curbs and limits triggered in the factory are now logged
+        in the glidefactory and glidefactoryclient classads
+        <li>Added initial support for python that comes with EL7
+        <li>Monitoring stats from factory completed logs are now advertised in
+        the glideresource classads
+        <li>Glideins can now shutdown themselves if the worker node is marked
+	for draining
+        <li>Condor classad fetching is now done by using python bindings by
+        default. Until now this was done using condor_q and condor_status
+        commands
+        <li>Various limits configred in the factory and frontend are now
+        advertised in the respective classads
+        <li>Updated documentation
+        <li>Bug Fix: Factory will not release glideins sent to Condor CE if they
+        are held with authentication/authorization issues
+        <li>Bug Fix: Factory will not release glideins sent to AWS in case of 
+        certain types of HoldReason 
+        <li>Bug Fix: Proxies used by the glidein now if delegated have their
+        lifetime as long as the original proxy
+        <li>Bug Fix: Fixed issue where RRD processing was incorrectly throwing
+        ImportError instead of NameError
+        <li>Bug Fix: Frontend policies now correctly work if classad attributes
+        like RequestCpus are classad expressions
+        <li>Bug Fix: Fixed an issue where a slave frontend in HA mode would
+        crash if the WMS collector was down
+      </ul>
+
+
+
+
+      <li>
         <b>v3_2_13</b> released on March 09, 2016 (<a href="http://glideinwms.fnal.gov/doc.v3_2_13/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_13/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_13.tgz">Tarball</a>)<br>
       <ul>
         <li>Support XSEDE ProjectId as a credential in frontend
