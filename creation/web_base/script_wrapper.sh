@@ -144,7 +144,7 @@ function failed {
 vmessage "Executing $s_name: $s_fname $glidein_config $s_ffb_id" 
 
 # start_dir should be the same as wrok_dir in glidein_startup.sh and GLIDEIN_WORK_DIR
-start_dir="`pwd`"
+export start_dir="`pwd`"
 main_dir="$start_dir/main"
 
 # Check that the start directory is correct and files are there

@@ -49,9 +49,20 @@ function fileOrURLExists {
 J=$(fileOrURLExists shutdowntime_job "$JOBFEATURES")
 M=$(fileOrURLExists shutdowntime "$MACHINEFEATURES")
 
+EXIT_MESSAGE_FILE=$start_dir/exit_message
+DRAINING=drain_state_file
 if [ "$J" == true ] || [ "$M" == true ] ; then
     echo SiteWMS_WN_Draining = True
+    if [ ! -f $EXIT_MESSAGE_FILE ] ; then
+        echo "Stopping accepting jobs since site admins are going to shut down the node. Time is `date`" >> $EXIT_MESSAGE_FILE
+        touch $EXIT_MESSAGE_FILE
+    fi
 else
+    if [ -f $EXIT_MESSAGE_FILE ] ; then
+        echo "Aborting shutdown of pilot. New jobs will be accepted. Time is `date`" >> $EXIT_MESSAGE_FILE
+        #shutdown can be aborted. Do not print in the logs
+        rm $EXIT_MESSAGE_FILE
+    fi
     echo SiteWMS_WN_Draining = False
 fi
 

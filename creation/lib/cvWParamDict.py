@@ -456,7 +456,8 @@ def add_attr_unparsed_real(attr_name,params,dicts):
 def populate_frontend_descript(work_dir,
                                frontend_dict,active_sub_list,        # will be modified
                                params):
-        
+
+        frontend_dict.add('DowntimesFile',params.downtimes_file)
         frontend_dict.add('FrontendName',params.frontend_name)
         frontend_dict.add('WebURL',params.web_url)
         if hasattr(params,"monitoring_web_url") and (params.monitoring_web_url is not None):

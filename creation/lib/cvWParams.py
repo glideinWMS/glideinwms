@@ -153,6 +153,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
         ###############################
         # Start defining the defaults
+        self.defaults["downtimes_file"]=('frontenddowntime', 'string', 'Frontend Downtime File', None)
         self.defaults["frontend_name"]=(socket.gethostname(),'ID', 'VO Frontend name',None)
         self.defaults['frontend_versioning'] = ('True', 'Bool', 'Should we create versioned subdirectories of the type frontend_$frontend_name?', None)
 

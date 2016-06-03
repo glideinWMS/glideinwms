@@ -1743,6 +1743,12 @@ if [ $ret -ne 0 ]; then
     warn "Error running '$last_script'" 1>&2
 fi
 
+#Things like periodic scripts might put messages here if they want them printed in the logfile
+echo "=== Exit messages left by periodic scripts ===" 1>&2
+cat exit_message 1>&2
+echo 1>&2
+
+
 #########################
 # clean up after I finish
 glidein_exit $ret
