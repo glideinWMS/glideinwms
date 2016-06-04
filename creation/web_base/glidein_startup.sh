@@ -844,7 +844,8 @@ function md5wrapper {
         [ -n "$ONLY_SUM" ] && executable="md5sum \"$1\" | cut -d ' ' -f 1" ||  executable="md5sum \"$1\""
     fi
     local res
-    res="`eval "$executable" 2>/dev/null`"
+    # Flagged by some checkers but OK
+    res="$(eval "$executable" 2>/dev/null)"
     if [ $? -ne 0 ]; then
         echo "???"
         return 1
@@ -1252,7 +1253,7 @@ function add_periodic_script {
     local s_fname="$4"
     local s_config="$5"
     local s_ffb_id="$6"
-    local s_cc_prefix=$7"
+    local s_cc_prefix="$7"
     if [ $add_startd_cron_counter -eq 0 ]; then
         # Make sure that no undesired file is there when called for first cron
         rm $include_fname
@@ -1276,7 +1277,7 @@ STARTD_CRON_${s_name}_SLOTS = 1
 STARTD_CRON_${s_name}_JOB_LOAD = 0.01
 EOF
     # NOPREFIX is a keyword for not setting the prefix for all condor attributes
-    [ "xNOPREFIX" != "x${$s_cc_prefix}" ] && echo "STARTD_CRON_${s_name}_PREFIX = ${$s_cc_prefix}" >> $include_fname
+    [ "xNOPREFIX" != "x${s_cc_prefix}" ] && echo "STARTD_CRON_${s_name}_PREFIX = ${s_cc_prefix}" >> $include_fname
     add_config_line "GLIDEIN_condor_config_startd_cron_include" "$include_fname"
     add_config_line "# --- Lines starting with $s_cc_prefix are from priodic scripts ---"
 }
