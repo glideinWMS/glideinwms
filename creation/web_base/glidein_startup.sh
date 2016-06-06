@@ -891,9 +891,6 @@ if [ -n "$client_repository_url" ]; then
     fi
 fi
 echo
-echo "JOBFEATURES variable points to $JOBFEATURES"
-echo "MACHINEFEATURES variable points to $MACHINEFEATURES"
-echo
 echo "Running on `uname -n`"
 echo "System: `uname -a`"
 if [ -e '/etc/redhat-release' ]; then
@@ -1747,10 +1744,9 @@ if [ $ret -ne 0 ]; then
 fi
 
 #Things like periodic scripts might put messages here if they want them printed in the logfile
-echo "=== Exit messages left by periodic scripts ==="
-cat exit_message
-echo
-pwd
+echo "=== Exit messages left by periodic scripts ===" 1>&2
+cat exit_message 1>&2
+echo 1>&2
 
 
 #########################

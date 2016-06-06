@@ -4,7 +4,7 @@ v3_2_14	Various curbs and limits triggered in the factory are now logged
 	Monitoring stats from factory completed logs are now advertised in
 	  the glideresource classads
 	Glideins can now shutdown themselves if the worker node is marked for
-	  draining
+	  draining with appropriate messages logged in the glideins output
 	Condor classad fetching is now done by using python bindings by
 	  default. Until now this was done using condor_q and condor_status
 	  commands
