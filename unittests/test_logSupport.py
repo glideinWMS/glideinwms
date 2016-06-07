@@ -32,7 +32,6 @@ class TestLogSupport(unittest.TestCase):
 
 
     def tearDown(self):
-        return
         shutil.rmtree(self.log_base_dir)
 
 
