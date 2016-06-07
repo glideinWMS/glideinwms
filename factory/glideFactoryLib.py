@@ -1572,7 +1572,8 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
                                22, 27, 28, 31, 37, 47, 48,
                                72, 76, 81, 86, 87,
                                121, 122 ]}
-    unrecoverable_reason_str = ['Failed to authenticate with any method']
+    # adding 3 more reasons that were observed that have zeros for both HoldReasonCode/SubCode
+    unrecoverable_reason_str = ['Failed to authenticate with any method', 'Job cancel did not succeed after 3 tries', 'The spot instance request ID does not exist', 'Request limit exceeded']
     
     code = jobInfo.get('HoldReasonCode')
     subCode = jobInfo.get('HoldReasonSubCode')
