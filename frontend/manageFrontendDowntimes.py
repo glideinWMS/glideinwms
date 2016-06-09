@@ -129,7 +129,7 @@ def down( opt_dict ):
         # only add a new line if not in downtime at that time
         return down_fd.startDowntime( start_time=when, end_time=end_time) 
     else:
-        print "Entry is already down. "
+        print "Frontend is already down. "
 
     return 0
 
