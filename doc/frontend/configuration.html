@@ -91,7 +91,7 @@ Below is an example frontend configuration xml file.
 Click on any piece for a more detailed description.
 
 <div class="config">
-    <a href="#frontend">&lt;frontend advertise_delay="5" frontend_name="vofrontend-v2_4" loop_delay="60"&gt;</a><br/>
+    <a href="#frontend">&lt;frontend downtimes_file="frontenddowntime" advertise_delay="5" frontend_name="vofrontend-v2_4" loop_delay="60"&gt;</a><br/>
     <blockquote>
     <a href="#">&lt;log_retention &gt;</a><br/>
     <blockquote>
@@ -257,6 +257,7 @@ be defined:</P>
         <a name="frontend" />
         <div class="xml">
         &lt;frontend frontend_name=&quot;<I>your name</I>&quot;
+        downtimes_file=&quot;<I>a file name</I>&quot;
         advertise_delay=&quot;<I>seconds</I>&quot;
         loop_delay=&quot;<I>nr</I>&quot; &gt;
 	advertise_with_tcp=&quot;<I>True|False</I>&quot; 
@@ -264,7 +265,8 @@ be defined:</P>
         </div>
     The frontend_name is a combination of the Frontend
     and instance names specified during installation. It is used to
-    create Glidein Frontend instance directory and files. The delay
+    create Glidein Frontend instance directory and files.  The downtimes_file is a name of the internal file used by downtime feature,
+    any legitimate file name that indicates the purpose will be sufficient. The delay
     parameters define how active the Glidein Frontend should be. 
 Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassAds to the Factory, and advertise_with_multiple can enable the condor_advertise -multiple option present in HTCondor 7.5.4 and up. 
     </P></li>
