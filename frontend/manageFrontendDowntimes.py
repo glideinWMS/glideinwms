@@ -201,7 +201,7 @@ def main(argv):
         cmd = opt_dict["cmd"]
     except KeyError, e:
         usage()
-        print "-cmd -dir and -entry arguments are required."
+        print "-cmd -dir argument is required."
         return 1
 
     try:
