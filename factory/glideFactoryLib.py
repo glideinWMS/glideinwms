@@ -800,7 +800,7 @@ def sanitizeGlideins(condorq, log=logSupport.log, factoryConfig=None):
         log.warning("Found %i unrecoverable held glideins" % len(unrecoverable_held_list))
         removeGlideins(condorq.schedd_name, unrecoverable_held_list,
                        force=False, log=log, factoryConfig=factoryConfig)
-#HKTemp
+
     # Check if there are held glideins that are not recoverable AND held for more than 20 minutes
     unrecoverable_held_forcex_list = extractUnrecoverableHeldForceX(condorq)
     if len(unrecoverable_held_forcex_list) > 0:
@@ -991,39 +991,13 @@ def extractUnrecoverableHeldSimple(q, factoryConfig=None):
     qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and isGlideinUnrecoverable(el, factoryConfig=factoryConfig)))
     qheld_list = qheld.keys()
     return qheld_list
-#HKTemp
+
 def extractUnrecoverableHeldForceX(q, factoryConfig=None):
     #  Held==5 and glideins are not recoverable AND been held for more than 20 minutes
     qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and isGlideinUnrecoverable(el, factoryConfig=factoryConfig) 
                                      and isGlideinHeldTwentyMins(el, factoryConfig=factoryConfig)))
     qheld_list = qheld.keys()
     return qheld_list
-
-#HKTemp
-def isGlideinHeldTwentyMins(jobInfo, factoryConfig=None):
-    """
-    This function looks at the glidein job's information and returns if the
-    CondorG job is held for more than 20 minutes
-
-    This is useful to remove Unrecoverable glidein (CondorG job) with forcex option.
-
-    @type jobInfo: dictionary
-    @param jobInfo: Dictionary containing glidein job's classad information
-
-    @rtype: bool
-    @return: True if job is held more than 20 minutes, False if otherwise.
-    """
-    if factoryConfig is None:
-        factoryConfig = globals()['factoryConfig']
-
-    greater_than_twenty_minutes = False
-    current_time = time.time()
-    past_time    = jobInfo.get('EnteredCurrentStatus')
-    timelapsed = (current_time - past_time)
-    if timelapsed > 1200: # 20 minutes
-        greater_than_twenty_minutes = True
-
-    return greater_than_twenty_minutes
 
 def extractRecoverableHeldSimple(q, factoryConfig=None):
     #  Held==5 and glideins are recoverable
@@ -1279,27 +1253,24 @@ def removeGlideins(schedd_name, jid_list, force=False, log=logSupport.log,
             is_not_first = 1
             time.sleep(factoryConfig.remove_sleep)
 
-        try:
-#HKTemp for unknown reason, this 2 lines prevent the next thread (if force == True) from running
+# for unknown reason, this 2 lines prevent the next thread (if force == True) from running
 #            condorManager.condorRemoveOne("%li.%li" % (jid[0], jid[1]), schedd_name)
 #            removed_jids.append(jid)
-
-            # Force the removal if requested
-            if force == True:
-                try:
-                    log.info("Forcing the removal of glideins in X state")
-                    condorManager.condorRemoveOne("%li.%li" % (jid[0], jid[1]), schedd_name, do_forcex=True)
-                except condorExe.ExeError, e:
-                    log.warning("Forcing the removal of glideins in %s.%s state failed" % (jid[0], jid[1]))
-#HKTemp new
-            else:
+# So, I am proposing to change the order of execution, i.e. let's see if force==True first, and then regular remove
+        # Force the removal if requested
+        if force == True:
+            try:
+                log.info("Forcing the removal of glideins in X state")
+                condorManager.condorRemoveOne("%li.%li" % (jid[0], jid[1]), schedd_name, do_forcex=True)
+            except condorExe.ExeError, e:
+                log.warning("Forcing the removal of glideins in %s.%s state failed" % (jid[0], jid[1]))
+        else:
+            try:
                 condorManager.condorRemoveOne("%li.%li" % (jid[0], jid[1]), schedd_name)
                 removed_jids.append(jid)
-
-        except condorExe.ExeError, e:
-            # silently ignore errors, and try next one
-            log.warning("removeGlidein(%s,%li.%li): %s" % (schedd_name, jid[0], jid[1], e))
-
+            except condorExe.ExeError, e:
+                # silently ignore errors, and try next one
+                log.warning("removeGlidein(%s,%li.%li): %s" % (schedd_name, jid[0], jid[1], e))
 
     log.info("Removed %i glideins on %s: %s" % (len(removed_jids), schedd_name, removed_jids))
 
@@ -1619,8 +1590,9 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
                                72, 76, 81, 86, 87,
                                121, 122 ]}
     # adding 3 more reasons that were observed that have zeros for both HoldReasonCode/SubCode
-    unrecoverable_reason_str = ['Failed to authenticate with any method', 'Job cancel did not succeed after 3 tries', 'The spot instance request ID does not exist', 'Request limit exceeded', 'You are not authorized to perform this operation']
-    
+    unrecoverable_reason_str = ['Failed to authenticate with any method', 'Job cancel did not succeed after 3 tries', 'The spot instance request ID does not exist', 'Request limit exceeded']
+# a new addition can be 'You are not authorized to perform this operation'
+
     code = jobInfo.get('HoldReasonCode')
     subCode = jobInfo.get('HoldReasonSubCode')
     holdreason = jobInfo.get('HoldReason')
@@ -1632,11 +1604,6 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
         # As of HTCondor 8.4.4 in case of glideins submitted to AWS and CondorCE
         # have the HoldReasonCode = HoldReasonSubCode = 0 but HoldReason is
         # populated correctly 
-        #HK I believe the following code already covers a scenario where condor_rm fails to 
-        # remove either running, idle or held jobs and the job is put to held
-        # if we alleviate if holdreason.find(rs) != -1: condition
-        # or if we find out all possible unrecoverable reasons, we can put the new strings in unrecoverable_reason_str which is not easy..
-        # Maybe, we can deter the decision for now until we can find what string is assigned to HoldReason.
         elif (code == 0) and (subCode == 0) and (holdreason is not None):
             for rs in unrecoverable_reason_str:
                 if holdreason.find(rs) != -1:
@@ -1657,6 +1624,33 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
             unrecoverable = True
 
     return unrecoverable
+
+
+def isGlideinHeldTwentyMins(jobInfo, factoryConfig=None):
+    """
+    This function looks at the glidein job's information and returns if the
+    CondorG job is held for more than 20 minutes
+
+    This is useful to remove Unrecoverable glidein (CondorG job) with forcex option.
+
+    @type jobInfo: dictionary
+    @param jobInfo: Dictionary containing glidein job's classad information
+
+    @rtype: bool
+    @return: True if job is held more than 20 minutes, False if otherwise.
+    """
+    if factoryConfig is None:
+        factoryConfig = globals()['factoryConfig']
+
+    greater_than_twenty_minutes = False
+    current_time = time.time()
+    past_time    = jobInfo.get('EnteredCurrentStatus')
+    timelapsed = (current_time - past_time)
+    if timelapsed > 1200: # 20 minutes
+        greater_than_twenty_minutes = True
+
+    return greater_than_twenty_minutes
+
 ############################################################
 # only allow simple strings
 def is_str_safe(s):
