@@ -4,8 +4,9 @@ import sys
 import shutil
 import tempfile
 import tarfile
-import unittest
+import unittest2 as unittest
 import time
+import xmlrunner
 
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
@@ -88,8 +89,5 @@ class TestDowntimes(unittest.TestCase):
 
   
 
-def main():
-    return runTest(TestDowntimes)
-
 if __name__ == '__main__':
-    sys.exit(main())
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output='unittests-reports'))

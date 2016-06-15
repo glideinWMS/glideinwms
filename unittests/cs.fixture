@@ -1,0 +1,934 @@
+<?xml version="1.0"?>
+<!DOCTYPE classads SYSTEM "classads.dtd">
+<classads>
+<c>
+    <a n="SLOTS_LAYOUT"><s>fixed</s></a>
+    <a n="MyAddress"><s>&lt;10.1.101.1:53807?CCBID=128.142.187.77:9877#21233%20131.225.191.126:10052#195696&amp;noUDP&gt;</s></a>
+    <a n="GLIDEIN_Job_Max_Time"><i>133200</i></a>
+    <a n="GLIDEIN_Glexec_Use"><s>NEVER</s></a>
+    <a n="GLIDEIN_REQUIRE_VOMS"><b v="f"/></a>
+    <a n="ClockDay"><i>4</i></a>
+    <a n="USE_CCB"><s>True</s></a>
+    <a n="GLIDEIN_Description_Entry_File"><s>description.db5a4q.cfg</s></a>
+    <a n="Arch"><s>X86_64</s></a>
+    <a n="CONDOR_VERSION"><s>8.0.4</s></a>
+    <a n="Site_Req_Explicit_Auth"><s>False</s></a>
+    <a n="GLEXEC_STARTER"><b v="f"/></a>
+    <a n="GLIDEIN_Gatekeeper"><s>alcyone-cms.grid.helsinki.fi</s></a>
+    <a n="GLIDEIN_Schedd"><s>schedd_glideins1@submit.local</s></a>
+    <a n="UpdateSequenceNumber"><i>156</i></a>
+    <a n="GLIDEIN_COLLECTOR_NAME"><s>vocms97.cern.ch:9877,cmssrv119.fnal.gov:10052</s></a>
+    <a n="Name"><s>glidein_1@cmswn001.local</s></a>
+    <a n="GLIDECLIENT_ReqNode"><s>frontend1.local</s></a>
+    <a n="IS_MONITOR_VM"><b v="f"/></a>
+    <a n="slot1_TotalTimeClaimedBusy"><i>42326</i></a>
+    <a n="CurrentTime"><e>time()</e></a>
+    <a n="GLIDEIN_SiteWMS_Queue"><s>Unknown</s></a>
+    <a n="GLIDEIN_ResourceName"><s>FI_HIP_T2</s></a>
+    <a n="RemoteOwner"><s>cmsdataops@cmssrv98.fnal.gov</s></a>
+    <a n="GLIDEIN_PARENT_PID"><i>335</i></a>
+    <a n="HardwareAddress"><s>78:e7:d1:23:9b:48</s></a>
+    <a n="GLIDEIN_ProcId"><i>0</i></a>
+    <a n="MyType"><s>Machine</s></a>
+    <a n="GLIDEIN_Signature"><s>0283f108659b80cf9f8731a9371ac78627dc83f9</s></a>
+    <a n="TotalTimeUnclaimedIdle"><i>309</i></a>
+    <a n="TotalMemory"><i>2500</i></a>
+    <a n="GLIDECLIENT_Name"><s>frontend_v3.maingroup</s></a>
+    <a n="SlotID"><i>1</i></a>
+    <a n="GLIDEIN_ClusterId"><i>1756653</i></a>
+    <a n="GLIDEIN_REQUIRED_OS"><s>rhel6</s></a>
+    <a n="GLIDEIN_SiteWMS"><s>SLURM</s></a>
+    <a n="GLIDEIN_Max_Idle"><i>1200</i></a>
+    <a n="DetectedMemory"><i>24015</i></a>
+    <a n="GLIDECLIENT_Group"><s>main</s></a>
+    <a n="RemoteUser"><s>cmsdataops@cmssrv98.fnal.gov</s></a>
+    <a n="GLIDEIN_Graceful_Shutdown"><i>120</i></a>
+    <a n="GLIDEIN_SiteWMS_JobId"><s>1924637</s></a>
+    <a n="slot1_Activity"><s>Busy</s></a>
+    <a n="ExecutableSize"><i>5</i></a>
+    <a n="Machine"><s>alg01-eth.local</s></a>
+    <a n="TotalVirtualMemory"><i>65536424</i></a>
+    <a n="DetectedCpus"><i>12</i></a>
+    <a n="DaemonShutdown"><e>( DynamicSlot isnt true ) &amp;&amp; ( ( ( ( GLIDEIN_ToDie isnt undefined ) &amp;&amp; ( CurrentTime &gt; GLIDEIN_ToDie ) ) || ( ( ( Slot1_Activity == "Idle" ) &amp;&amp; ( ( ( Slot1_TotalTimeUnclaimedIdle isnt undefined ) &amp;&amp; ( GLIDEIN_Max_Idle isnt undefined ) &amp;&amp; ( Slot1_TotalTimeUnclaimedIdle &gt; GLIDEIN_Max_Idle ) ) || ( ( GLIDEIN_ToRetire isnt undefined ) &amp;&amp; ( CurrentTime &gt; GLIDEIN_ToRetire ) ) || ( ( Slot1_TotalTimeUnclaimedIdle isnt undefined ) &amp;&amp; ( Slot1_TotalTimeClaimedBusy isnt undefined ) &amp;&amp; ( GLIDEIN_Max_Tail isnt undefined ) &amp;&amp; ( Slot1_TotalTimeUnclaimedIdle &gt; GLIDEIN_Max_Tail ) ) ) ) &amp;&amp; ( ( PartitionableSlot isnt true ) || ( TotalSlots is 1 ) ) ) ) )</e></a>
+    <a n="GlobalJobId"><s>cmssrv98.fnal.gov#102383.0#1409216271</s></a>
+    <a n="AuthenticatedIdentity"><s>_condor@vocms97.cern.ch</s></a>
+    <a n="GLIDEIN_Max_Walltime"><i>171000</i></a>
+    <a n="GLIDEIN_ToRetire"><i>1409248892</i></a>
+    <a n="JobUniverse"><i>5</i></a>
+    <a n="TimeToLive"><i>2147483647</i></a>
+    <a n="SubnetMask"><s>255.255.0.0</s></a>
+    <a n="GLIDEIN_GlobusRSL"><s>(queue=gridcms)(runtimeenvironment=ENV/GLITE)</s></a>
+    <a n="slot1_EnteredCurrentActivity"><i>1409217107</i></a>
+    <a n="GLEXEC_JOB"><b v="f"/></a>
+    <a n="SlotTypeID"><i>1</i></a>
+    <a n="slot1_State"><s>Claimed</s></a>
+    <a n="ClientMachine"><s>cmssrv98.fnal.gov</s></a>
+    <a n="JobId"><s>102383.0</s></a>
+    <a n="GLIDEIN_Max_Tail"><i>400</i></a>
+    <a n="SlotType"><s>Static</s></a>
+    <a n="GLIDEIN_Expose_Grid_Env"><s>True</s></a>
+    <a n="GLIDEIN_Req_MUPJ_gLExec"><s>False</s></a>
+    <a n="GLIDEIN_REQUIRE_GLEXEC_USE"><b v="f"/></a>
+    <a n="GLIDEIN_GridType"><s>nordugrid</s></a>
+    <a n="Activity"><s>Busy</s></a>
+    <a n="MaxJobRetirementTime"><e>ifthenelse(( ( ( false ) || ( false ) || ( false ) || ( false ) ) ) isnt true,10000000 * ( ( ( ( ( false ) || ( false ) || ( false ) || ( false ) ) || ( ( false ) || ( false ) || ( false ) || ( false ) ) ) ) isnt true ),0)</e></a>
+    <a n="CondorVersion"><s>$CondorVersion: 8.0.4 Oct 19 2013 BuildID: 189770 $</s></a>
+    <a n="TotalSlots"><i>1</i></a>
+    <a n="MyCurrentTime"><i>1409259433</i></a>
+    <a n="GLIDEIN_X509_GRIDMAP_DNS"><s>/DC=ch/DC=cern/OU=computers/CN=vocms97.cern.ch,/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=cmssrv119.fnal.gov,/DC=ch/DC=cern/OU=computers/CN=vocms157.cern.ch,/DC=ch/DC=cern/OU=computers/CN=cmspilotjob/vocms157.cern.ch</s></a>
+    <a n="GLIDEIN_CMSSite"><s>T2_FI_HIP</s></a>
+    <a n="USES_MONITOR_STARTD"><b v="t"/></a>
+    <a n="GLIDEIN_Entry_Name"><s>Site_Name1</s></a>
+    <a n="GLIDEIN_SiteWMS_Slot"><s>Unknown</s></a>
+    <a n="TotalSlotCpus"><i>1</i></a>
+    <a n="MonitorSelfCPUUsage"><r>2.913500000000000E-02</r></a>
+    <a n="GLIDEIN_Monitoring_Enabled"><s>False</s></a>
+    <a n="IS_GLIDEIN"><b v="t"/></a>
+    <a n="GLIDECLIENT_Signature"><s>62111a9eb3015bf9a5de87345c709a19e0380c80</s></a>
+    <a n="GLIDECLIENT_Group_Signature"><s>5d209bed5ba8b6eaf89d2cd74439db8c9a10acf2</s></a>
+    <a n="MonitorSelfSecuritySessions"><i>6</i></a>
+    <a n="JobStart"><i>1409217107</i></a>
+    <a n="GLIDEIN_Tmp_Dir"><s>/tmp/slurm-1924637//glide_37aiij/tmp</s></a>
+    <a n="TargetType"><s>Job</s></a>
+    <a n="TotalCpus"><i>1</i></a>
+    <a n="TotalVirtualMachines"><i>1</i></a>
+    <a n="ClockMin"><i>1437</i></a>
+    <a n="MonitorSelfResidentSetSize"><i>8612</i></a>
+    <a n="Requirements"><e>( START ) &amp;&amp; ( IsValidCheckpointPlatform )</e></a>
+    <a n="slot1_TotalTimeUnclaimedIdle"><i>309</i></a>
+    <a n="GLIDEIN_Factory"><s>factory1</s></a>
+    <a n="TotalJobRunTime"><i>42326</i></a>
+    <a n="CheckpointPlatform"><s>LINUX X86_64 2.6.x normal N/A ssse3 sse4_1 sse4_2</s></a>
+    <a n="VirtualMemory"><i>65536424</i></a>
+    <a n="GLIDEIN_Name"><s>v3_0</s></a>
+    <a n="StartdIpAddr"><s>&lt;10.1.101.1:53807?CCBID=128.142.187.77:9877#21233%20131.225.191.126:10052#195696&amp;noUDP&gt;</s></a>
+    <a n="MonitorSelfTime"><i>1409259250</i></a>
+    <a n="MachineResources"><s>cpus memory disk swap</s></a>
+    <a n="RemoteNegotiatingGroup"><s>&lt;none&gt;</s></a>
+    <a n="GLIDEIN_CredentialIdentifier"><s>792718</s></a>
+    <a n="CondorPlatform"><s>$CondorPlatform: x86_64_RedHat6 $</s></a>
+    <a n="GLIDEIN_MaxMemMBs"><i>2500</i></a>
+    <a n="TotalClaimRunTime"><i>42326</i></a>
+    <a n="RetirementTimeRemaining"><i>9957674</i></a>
+    <a n="GLIDEIN_ToDie"><i>1409382092</i></a>
+    <a n="SlotWeight"><e>Cpus</e></a>
+    <a n="State"><s>Claimed</s></a>
+    <a n="START"><e>( ( true ) &amp;&amp; ( true ) &amp;&amp; ( true ) &amp;&amp; ( ( ( stringListMember(GLIDEIN_CMSSite,DESIRED_Sites,",") is true ) || ( ( stringListsIntersect(GLIDEIN_SEs,DESIRED_SEs,",") is true ) ) ) &amp;&amp; ( ( GLIDEIN_Is_HTPC is true ) is ( DESIRES_HTPC is true ) ) &amp;&amp; ( ( REQUIRED_OS is undefined ) || ( REQUIRED_OS is "any" ) || ( ( REQUIRED_OS is "rhel5" ) &amp;&amp; ( ( GLIDEIN_REQUIRED_OS is "rhel6" ) || ( GLIDEIN_REQUIRED_OS is "any" ) ) ) || ( stringListMember(GLIDEIN_REQUIRED_OS,REQUIRED_OS,",") is true ) ) &amp;&amp; ( RequestMemory &lt;= GLIDEIN_MaxMemMBs ) ) ) &amp;&amp; ( ( ( GLIDEIN_ToRetire is undefined ) || ( CurrentTime &lt; GLIDEIN_ToRetire ) ) )</e></a>
+    <a n="MachineMaxVacateTime"><i>600</i></a>
+    <a n="GSI_DELEGATION_KEYBITS"><i>1024</i></a>
+    <a n="MASTER_GCB_RECONNECT_TIMEOUT"><i>1200</i></a>
+    <a n="Cpus"><i>1</i></a>
+    <a n="GLIDEIN_Site"><s>HIP</s></a>
+    <a n="GLIDEIN_Entry_Signature"><s>d26584bb54e0ce489311bf6a5765548e91ee5888</s></a>
+    <a n="TotalSlotMemory"><i>2500</i></a>
+    <a n="GLIDEIN_Description_File"><s>description.e7aib9.cfg</s></a>
+    <a n="GLIDEIN_MASTER_NAME"><s>glidein_23450@alg01-eth.local</s></a>
+    <a n="GLIDEIN_SEs"><s>madhatter.csc.fi</s></a>
+    <a n="EnteredCurrentState"><i>1409217106</i></a>
+    <a n="EnteredCurrentActivity"><i>1409217107</i></a>
+    <a n="DaemonStartTime"><i>1409216768</i></a>
+    <a n="Memory"><i>2500</i></a>
+    <a n="VirtualMachineID"><i>1</i></a>
+    <a n="TotalTimeClaimedIdle"><i>1</i></a>
+    <a n="NextFetchWorkDelay"><i>-1</i></a>
+    <a n="NiceUser"><b v="f"/></a>
+    <a n="NumPids"><i>2</i></a>
+    <a n="PREEMPT_GRACE_TIME"><e>10000000 * ( ( ( ( ( false ) || ( false ) || ( false ) || ( false ) ) || ( ( false ) || ( false ) || ( false ) || ( false ) ) ) ) isnt true )</e></a>
+    <a n="TotalTimeClaimedBusy"><i>42326</i></a>
+</c>
+
+<c>
+    <a n="SLOTS_LAYOUT"><s>fixed</s></a>
+    <a n="MyAddress"><s>&lt;10.1.101.2:48535?CCBID=128.142.187.77:9927#23932%20131.225.191.126:9927#85244&amp;noUDP&gt;</s></a>
+    <a n="GLIDEIN_Job_Max_Time"><i>133200</i></a>
+    <a n="GLIDEIN_Glexec_Use"><s>NEVER</s></a>
+    <a n="GLIDEIN_REQUIRE_VOMS"><b v="f"/></a>
+    <a n="ClockDay"><i>4</i></a>
+    <a n="USE_CCB"><s>True</s></a>
+    <a n="GLIDEIN_Description_Entry_File"><s>description.dafdhs.cfg</s></a>
+    <a n="Arch"><s>X86_64</s></a>
+    <a n="CONDOR_VERSION"><s>8.0.4</s></a>
+    <a n="Site_Req_Explicit_Auth"><s>False</s></a>
+    <a n="GLEXEC_STARTER"><b v="f"/></a>
+    <a n="GLIDEIN_Gatekeeper"><s>alcyone-cms.grid.helsinki.fi</s></a>
+    <a n="GLIDEIN_Schedd"><s>schedd_glideins2@submit.local</s></a>
+    <a n="UpdateSequenceNumber"><i>13</i></a>
+    <a n="GLIDEIN_COLLECTOR_NAME"><s>vocms97.cern.ch:9927,cmssrv119.fnal.gov:9927</s></a>
+    <a n="Name"><s>glidein_2@cmswn002.local</s></a>
+    <a n="GLIDECLIENT_ReqNode"><s>frontend2.local</s></a>
+    <a n="IS_MONITOR_VM"><b v="f"/></a>
+    <a n="slot1_TotalTimeClaimedBusy"><i>3756</i></a>
+    <a n="CurrentTime"><e>time()</e></a>
+    <a n="GLIDEIN_SiteWMS_Queue"><s>Unknown</s></a>
+    <a n="GLIDEIN_ResourceName"><s>FI_HIP_T2</s></a>
+    <a n="RemoteOwner"><s>_condor@vocms228.cern.ch</s></a>
+    <a n="GLIDEIN_PARENT_PID"><i>17761</i></a>
+    <a n="HardwareAddress"><s>78:e7:d1:21:02:20</s></a>
+    <a n="GLIDEIN_ProcId"><i>0</i></a>
+    <a n="MyType"><s>Machine</s></a>
+    <a n="GLIDEIN_Signature"><s>fe70b1e3a822505294ec200e50e91616c07b7c1b</s></a>
+    <a n="TotalTimeUnclaimedIdle"><i>69</i></a>
+    <a n="TotalMemory"><i>2500</i></a>
+    <a n="GLIDECLIENT_Name"><s>CMS-CERN.main</s></a>
+    <a n="SlotID"><i>1</i></a>
+    <a n="GLIDEIN_ClusterId"><i>2295348</i></a>
+    <a n="GLIDEIN_REQUIRED_OS"><s>rhel6</s></a>
+    <a n="GLIDEIN_SiteWMS"><s>SLURM</s></a>
+    <a n="GLIDEIN_Max_Idle"><i>1200</i></a>
+    <a n="DetectedMemory"><i>24015</i></a>
+    <a n="GLIDECLIENT_Group"><s>main</s></a>
+    <a n="RemoteUser"><s>_condor@vocms228.cern.ch</s></a>
+    <a n="GLIDEIN_Graceful_Shutdown"><i>120</i></a>
+    <a n="GLIDEIN_SiteWMS_JobId"><s>1925174</s></a>
+    <a n="slot1_Activity"><s>Busy</s></a>
+    <a n="ExecutableSize"><i>25</i></a>
+    <a n="Machine"><s>alg02-eth.local</s></a>
+    <a n="TotalVirtualMemory"><i>65504200</i></a>
+    <a n="DetectedCpus"><i>12</i></a>
+    <a n="DaemonShutdown"><e>( DynamicSlot isnt true ) &amp;&amp; ( ( ( ( GLIDEIN_ToDie isnt undefined ) &amp;&amp; ( CurrentTime &gt; GLIDEIN_ToDie ) ) || ( ( ( Slot1_Activity == "Idle" ) &amp;&amp; ( ( ( Slot1_TotalTimeUnclaimedIdle isnt undefined ) &amp;&amp; ( GLIDEIN_Max_Idle isnt undefined ) &amp;&amp; ( Slot1_TotalTimeUnclaimedIdle &gt; GLIDEIN_Max_Idle ) ) || ( ( GLIDEIN_ToRetire isnt undefined ) &amp;&amp; ( CurrentTime &gt; GLIDEIN_ToRetire ) ) || ( ( Slot1_TotalTimeUnclaimedIdle isnt undefined ) &amp;&amp; ( Slot1_TotalTimeClaimedBusy isnt undefined ) &amp;&amp; ( GLIDEIN_Max_Tail isnt undefined ) &amp;&amp; ( Slot1_TotalTimeUnclaimedIdle &gt; GLIDEIN_Max_Tail ) ) ) ) &amp;&amp; ( ( PartitionableSlot isnt true ) || ( TotalSlots is 1 ) ) ) ) )</e></a>
+    <a n="GlobalJobId"><s>_condor@vocms228.cern.ch#451186.17#1409254409</s></a>
+    <a n="AuthenticatedIdentity"><s>_condor@vocms97.cern.ch</s></a>
+    <a n="GLIDEIN_Max_Walltime"><i>171000</i></a>
+    <a n="GLIDEIN_ToRetire"><i>1409292619</i></a>
+    <a n="JobUniverse"><i>5</i></a>
+    <a n="TimeToLive"><i>2147483647</i></a>
+    <a n="SubnetMask"><s>255.255.0.0</s></a>
+    <a n="GLIDEIN_GlobusRSL"><s>(queue=gridcms)(runtimeenvironment=ENV/GLITE)</s></a>
+    <a n="slot1_EnteredCurrentActivity"><i>1409255675</i></a>
+    <a n="GLEXEC_JOB"><b v="f"/></a>
+    <a n="SlotTypeID"><i>1</i></a>
+    <a n="slot1_State"><s>Claimed</s></a>
+    <a n="ClientMachine"><s>vocms228.cern.ch</s></a>
+    <a n="JobId"><s>451186.17</s></a>
+    <a n="GLIDEIN_Max_Tail"><i>400</i></a>
+    <a n="SlotType"><s>Static</s></a>
+    <a n="GLIDEIN_Expose_Grid_Env"><s>True</s></a>
+    <a n="GLIDEIN_Req_MUPJ_gLExec"><s>False</s></a>
+    <a n="GLIDEIN_REQUIRE_GLEXEC_USE"><b v="f"/></a>
+    <a n="GLIDEIN_GridType"><s>nordugrid</s></a>
+    <a n="Activity"><s>Busy</s></a>
+    <a n="MaxJobRetirementTime"><e>ifthenelse(( ( ( false ) || ( false ) || ( false ) || ( false ) ) ) isnt true,10000000 * ( ( ( ( ( false ) || ( false ) || ( false ) || ( false ) ) || ( ( false ) || ( false ) || ( false ) || ( false ) ) ) ) isnt true ),0)</e></a>
+    <a n="CondorVersion"><s>$CondorVersion: 8.0.4 Oct 19 2013 BuildID: 189770 $</s></a>
+    <a n="TotalSlots"><i>1</i></a>
+    <a n="MyCurrentTime"><i>1409259431</i></a>
+    <a n="GLIDEIN_X509_GRIDMAP_DNS"><s>/DC=ch/DC=cern/OU=computers/CN=vocms97.cern.ch,/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=cmssrv119.fnal.gov,/DC=ch/DC=cern/OU=computers/CN=vocms157.cern.ch,/DC=ch/DC=cern/OU=computers/CN=cmspilotjob/vocms157.cern.ch</s></a>
+    <a n="GLIDEIN_CMSSite"><s>T2_FI_HIP</s></a>
+    <a n="USES_MONITOR_STARTD"><b v="t"/></a>
+    <a n="GLIDEIN_Entry_Name"><s>Site_Name2</s></a>
+    <a n="GLIDEIN_SiteWMS_Slot"><s>Unknown</s></a>
+    <a n="TotalSlotCpus"><i>1</i></a>
+    <a n="MonitorSelfCPUUsage"><r>2.502100000000000E-02</r></a>
+    <a n="GLIDEIN_Monitoring_Enabled"><s>False</s></a>
+    <a n="IS_GLIDEIN"><b v="t"/></a>
+    <a n="GLIDECLIENT_Signature"><s>62111a9eb3015bf9a5de87345c709a19e0380c80</s></a>
+    <a n="GLIDECLIENT_Group_Signature"><s>5d209bed5ba8b6eaf89d2cd74439db8c9a10acf2</s></a>
+    <a n="MonitorSelfSecuritySessions"><i>8</i></a>
+    <a n="JobStart"><i>1409255675</i></a>
+    <a n="GLIDEIN_Tmp_Dir"><s>/tmp/slurm-1925174//glide_qlGJJi/tmp</s></a>
+    <a n="TargetType"><s>Job</s></a>
+    <a n="TotalCpus"><i>1</i></a>
+    <a n="TotalVirtualMachines"><i>1</i></a>
+    <a n="ClockMin"><i>1437</i></a>
+    <a n="MonitorSelfResidentSetSize"><i>8604</i></a>
+    <a n="Requirements"><e>( START ) &amp;&amp; ( IsValidCheckpointPlatform )</e></a>
+    <a n="slot1_TotalTimeUnclaimedIdle"><i>69</i></a>
+    <a n="GLIDEIN_Factory"><s>factory1</s></a>
+    <a n="TotalJobRunTime"><i>3756</i></a>
+    <a n="CheckpointPlatform"><s>LINUX X86_64 2.6.x normal N/A ssse3 sse4_1 sse4_2</s></a>
+    <a n="VirtualMemory"><i>65504200</i></a>
+    <a n="GLIDEIN_Name"><s>v3_0</s></a>
+    <a n="StartdIpAddr"><s>&lt;10.1.101.2:48535?CCBID=128.142.187.77:9927#23932%20131.225.191.126:9927#85244&amp;noUDP&gt;</s></a>
+    <a n="MonitorSelfTime"><i>1409259417</i></a>
+    <a n="MachineResources"><s>cpus memory disk swap</s></a>
+    <a n="RemoteNegotiatingGroup"><s>&lt;none&gt;</s></a>
+    <a n="GLIDEIN_CredentialIdentifier"><s>792718</s></a>
+    <a n="CondorPlatform"><s>$CondorPlatform: x86_64_RedHat6 $</s></a>
+    <a n="GLIDEIN_MaxMemMBs"><i>2500</i></a>
+    <a n="TotalClaimRunTime"><i>3756</i></a>
+    <a n="RetirementTimeRemaining"><i>9996244</i></a>
+    <a n="GLIDEIN_ToDie"><i>1409425819</i></a>
+    <a n="SlotWeight"><e>Cpus</e></a>
+    <a n="State"><s>Claimed</s></a>
+    <a n="START"><e>( ( true ) &amp;&amp; ( true ) &amp;&amp; ( true ) &amp;&amp; ( ( ( stringListMember(GLIDEIN_CMSSite,DESIRED_Sites,",") is true ) || ( ( stringListsIntersect(GLIDEIN_SEs,DESIRED_SEs,",") is true ) ) ) &amp;&amp; ( ( GLIDEIN_Is_HTPC is true ) is ( DESIRES_HTPC is true ) ) &amp;&amp; ( ( REQUIRED_OS is undefined ) || ( REQUIRED_OS is "any" ) || ( ( REQUIRED_OS is "rhel5" ) &amp;&amp; ( ( GLIDEIN_REQUIRED_OS is "rhel6" ) || ( GLIDEIN_REQUIRED_OS is "any" ) ) ) || ( stringListMember(GLIDEIN_REQUIRED_OS,REQUIRED_OS,",") is true ) ) &amp;&amp; ( RequestMemory &lt;= GLIDEIN_MaxMemMBs ) ) ) &amp;&amp; ( ( ( GLIDEIN_ToRetire is undefined ) || ( CurrentTime &lt; GLIDEIN_ToRetire ) ) )</e></a>
+    <a n="MachineMaxVacateTime"><i>600</i></a>
+    <a n="GSI_DELEGATION_KEYBITS"><i>1024</i></a>
+    <a n="MASTER_GCB_RECONNECT_TIMEOUT"><i>1200</i></a>
+    <a n="Cpus"><i>1</i></a>
+    <a n="GLIDEIN_Site"><s>HIP</s></a>
+    <a n="GLIDEIN_Entry_Signature"><s>35872d84eead3785556637d4d66b7a5f987e3962</s></a>
+    <a n="TotalSlotMemory"><i>2500</i></a>
+    <a n="GLIDEIN_Description_File"><s>description.e7uaai.cfg</s></a>
+    <a n="GLIDEIN_MASTER_NAME"><s>glidein_13239@alg02-eth.local</s></a>
+    <a n="GLIDEIN_SEs"><s>madhatter.csc.fi</s></a>
+    <a n="EnteredCurrentState"><i>1409255674</i></a>
+    <a n="EnteredCurrentActivity"><i>1409255675</i></a>
+    <a n="DaemonStartTime"><i>1409255575</i></a>
+    <a n="Memory"><i>2500</i></a>
+    <a n="VirtualMachineID"><i>1</i></a>
+    <a n="TotalTimeClaimedIdle"><i>1</i></a>
+    <a n="NextFetchWorkDelay"><i>-1</i></a>
+    <a n="NiceUser"><b v="f"/></a>
+    <a n="NumPids"><i>5</i></a>
+    <a n="PREEMPT_GRACE_TIME"><e>10000000 * ( ( ( ( ( false ) || ( false ) || ( false ) || ( false ) ) || ( ( false ) || ( false ) || ( false ) || ( false ) ) ) ) isnt true )</e></a>
+    <a n="TotalTimeClaimedBusy"><i>3756</i></a>
+</c>
+
+<c>
+    <a n="SLOTS_LAYOUT"><s>fixed</s></a>
+    <a n="MyAddress"><s>&lt;10.1.101.2:55684?CCBID=128.142.187.77:9706#22133%20131.225.191.126:10319#2021433&amp;noUDP&gt;</s></a>
+    <a n="GLIDEIN_Job_Max_Time"><i>133200</i></a>
+    <a n="GLIDEIN_Glexec_Use"><s>NEVER</s></a>
+    <a n="GLIDEIN_REQUIRE_VOMS"><b v="f"/></a>
+    <a n="ClockDay"><i>4</i></a>
+    <a n="USE_CCB"><s>True</s></a>
+    <a n="GLIDEIN_Description_Entry_File"><s>description.db5a4q.cfg</s></a>
+    <a n="Arch"><s>X86_64</s></a>
+    <a n="CONDOR_VERSION"><s>8.0.4</s></a>
+    <a n="Site_Req_Explicit_Auth"><s>False</s></a>
+    <a n="GLEXEC_STARTER"><b v="f"/></a>
+    <a n="GLIDEIN_Gatekeeper"><s>alcyone-cms.grid.helsinki.fi</s></a>
+    <a n="GLIDEIN_Schedd"><s>schedd_glideins3@submit.local</s></a>
+    <a n="UpdateSequenceNumber"><i>13</i></a>
+    <a n="GLIDEIN_COLLECTOR_NAME"><s>vocms97.cern.ch:9706,cmssrv119.fnal.gov:10319</s></a>
+    <a n="Name"><s>glidein_3@cmswn003.local</s></a>
+    <a n="GLIDECLIENT_ReqNode"><s>frontend3.local</s></a>
+    <a n="IS_MONITOR_VM"><b v="f"/></a>
+    <a n="slot1_TotalTimeClaimedBusy"><i>3759</i></a>
+    <a n="CurrentTime"><e>time()</e></a>
+    <a n="GLIDEIN_SiteWMS_Queue"><s>Unknown</s></a>
+    <a n="GLIDEIN_ResourceName"><s>FI_HIP_T2</s></a>
+    <a n="RemoteOwner"><s>_condor@vocms228.cern.ch</s></a>
+    <a n="GLIDEIN_PARENT_PID"><i>22854</i></a>
+    <a n="HardwareAddress"><s>78:e7:d1:21:02:20</s></a>
+    <a n="GLIDEIN_ProcId"><i>0</i></a>
+    <a n="MyType"><s>Machine</s></a>
+    <a n="GLIDEIN_Signature"><s>0283f108659b80cf9f8731a9371ac78627dc83f9</s></a>
+    <a n="TotalTimeUnclaimedIdle"><i>52</i></a>
+    <a n="TotalMemory"><i>2500</i></a>
+    <a n="GLIDECLIENT_Name"><s>CMS-CERN.main</s></a>
+    <a n="SlotID"><i>1</i></a>
+    <a n="GLIDEIN_ClusterId"><i>1757705</i></a>
+    <a n="GLIDEIN_REQUIRED_OS"><s>rhel6</s></a>
+    <a n="GLIDEIN_SiteWMS"><s>SLURM</s></a>
+    <a n="GLIDEIN_Max_Idle"><i>1200</i></a>
+    <a n="DetectedMemory"><i>24015</i></a>
+    <a n="GLIDECLIENT_Group"><s>main</s></a>
+    <a n="RemoteUser"><s>_condor@vocms228.cern.ch</s></a>
+    <a n="GLIDEIN_Graceful_Shutdown"><i>120</i></a>
+    <a n="GLIDEIN_SiteWMS_JobId"><s>1925175</s></a>
+    <a n="slot1_Activity"><s>Busy</s></a>
+    <a n="ExecutableSize"><i>25</i></a>
+    <a n="Machine"><s>alg02-eth.local</s></a>
+    <a n="TotalVirtualMemory"><i>65504200</i></a>
+    <a n="DetectedCpus"><i>12</i></a>
+    <a n="DaemonShutdown"><e>( DynamicSlot isnt true ) &amp;&amp; ( ( ( ( GLIDEIN_ToDie isnt undefined ) &amp;&amp; ( CurrentTime &gt; GLIDEIN_ToDie ) ) || ( ( ( Slot1_Activity == "Idle" ) &amp;&amp; ( ( ( Slot1_TotalTimeUnclaimedIdle isnt undefined ) &amp;&amp; ( GLIDEIN_Max_Idle isnt undefined ) &amp;&amp; ( Slot1_TotalTimeUnclaimedIdle &gt; GLIDEIN_Max_Idle ) ) || ( ( GLIDEIN_ToRetire isnt undefined ) &amp;&amp; ( CurrentTime &gt; GLIDEIN_ToRetire ) ) || ( ( Slot1_TotalTimeUnclaimedIdle isnt undefined ) &amp;&amp; ( Slot1_TotalTimeClaimedBusy isnt undefined ) &amp;&amp; ( GLIDEIN_Max_Tail isnt undefined ) &amp;&amp; ( Slot1_TotalTimeUnclaimedIdle &gt; GLIDEIN_Max_Tail ) ) ) ) &amp;&amp; ( ( PartitionableSlot isnt true ) || ( TotalSlots is 1 ) ) ) ) )</e></a>
+    <a n="GlobalJobId"><s>_condor@vocms228.cern.ch#451186.6#1409254409</s></a>
+    <a n="AuthenticatedIdentity"><s>_condor@vocms97.cern.ch</s></a>
+    <a n="GLIDEIN_Max_Walltime"><i>171000</i></a>
+    <a n="GLIDEIN_ToRetire"><i>1409292613</i></a>
+    <a n="JobUniverse"><i>5</i></a>
+    <a n="TimeToLive"><i>2147483647</i></a>
+    <a n="SubnetMask"><s>255.255.0.0</s></a>
+    <a n="GLIDEIN_GlobusRSL"><s>(queue=gridcms)(runtimeenvironment=ENV/GLITE)</s></a>
+    <a n="slot1_EnteredCurrentActivity"><i>1409255675</i></a>
+    <a n="GLEXEC_JOB"><b v="f"/></a>
+    <a n="SlotTypeID"><i>1</i></a>
+    <a n="slot1_State"><s>Claimed</s></a>
+    <a n="ClientMachine"><s>vocms228.cern.ch</s></a>
+    <a n="JobId"><s>451186.6</s></a>
+    <a n="GLIDEIN_Max_Tail"><i>400</i></a>
+    <a n="SlotType"><s>Static</s></a>
+    <a n="GLIDEIN_Expose_Grid_Env"><s>True</s></a>
+    <a n="GLIDEIN_Req_MUPJ_gLExec"><s>False</s></a>
+    <a n="GLIDEIN_REQUIRE_GLEXEC_USE"><b v="f"/></a>
+    <a n="GLIDEIN_GridType"><s>nordugrid</s></a>
+    <a n="Activity"><s>Busy</s></a>
+    <a n="MaxJobRetirementTime"><e>ifthenelse(( ( ( false ) || ( false ) || ( false ) || ( false ) ) ) isnt true,10000000 * ( ( ( ( ( false ) || ( false ) || ( false ) || ( false ) ) || ( ( false ) || ( false ) || ( false ) || ( false ) ) ) ) isnt true ),0)</e></a>
+    <a n="CondorVersion"><s>$CondorVersion: 8.0.4 Oct 19 2013 BuildID: 189770 $</s></a>
+    <a n="TotalSlots"><i>1</i></a>
+    <a n="MyCurrentTime"><i>1409259438</i></a>
+    <a n="GLIDEIN_X509_GRIDMAP_DNS"><s>/DC=ch/DC=cern/OU=computers/CN=vocms97.cern.ch,/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=cmssrv119.fnal.gov,/DC=ch/DC=cern/OU=computers/CN=vocms157.cern.ch,/DC=ch/DC=cern/OU=computers/CN=cmspilotjob/vocms157.cern.ch</s></a>
+    <a n="GLIDEIN_CMSSite"><s>T2_FI_HIP</s></a>
+    <a n="USES_MONITOR_STARTD"><b v="t"/></a>
+    <a n="GLIDEIN_Entry_Name"><s>Site_Name3</s></a>
+    <a n="GLIDEIN_SiteWMS_Slot"><s>Unknown</s></a>
+    <a n="TotalSlotCpus"><i>1</i></a>
+    <a n="MonitorSelfCPUUsage"><r>2.501900000000000E-02</r></a>
+    <a n="GLIDEIN_Monitoring_Enabled"><s>False</s></a>
+    <a n="IS_GLIDEIN"><b v="t"/></a>
+    <a n="GLIDECLIENT_Signature"><s>62111a9eb3015bf9a5de87345c709a19e0380c80</s></a>
+    <a n="GLIDECLIENT_Group_Signature"><s>5d209bed5ba8b6eaf89d2cd74439db8c9a10acf2</s></a>
+    <a n="MonitorSelfSecuritySessions"><i>8</i></a>
+    <a n="JobStart"><i>1409255675</i></a>
+    <a n="GLIDEIN_Tmp_Dir"><s>/tmp/slurm-1925175//glide_okGUAY/tmp</s></a>
+    <a n="TargetType"><s>Job</s></a>
+    <a n="TotalCpus"><i>1</i></a>
+    <a n="TotalVirtualMachines"><i>1</i></a>
+    <a n="ClockMin"><i>1437</i></a>
+    <a n="MonitorSelfResidentSetSize"><i>8592</i></a>
+    <a n="Requirements"><e>( START ) &amp;&amp; ( IsValidCheckpointPlatform )</e></a>
+    <a n="slot1_TotalTimeUnclaimedIdle"><i>52</i></a>
+    <a n="GLIDEIN_Factory"><s>factory1</s></a>
+    <a n="TotalJobRunTime"><i>3763</i></a>
+    <a n="CheckpointPlatform"><s>LINUX X86_64 2.6.x normal N/A ssse3 sse4_1 sse4_2</s></a>
+    <a n="VirtualMemory"><i>65504200</i></a>
+    <a n="GLIDEIN_Name"><s>v3_0</s></a>
+    <a n="StartdIpAddr"><s>&lt;10.1.101.2:55684?CCBID=128.142.187.77:9706#22133%20131.225.191.126:10319#2021433&amp;noUDP&gt;</s></a>
+    <a n="MonitorSelfTime"><i>1409259435</i></a>
+    <a n="MachineResources"><s>cpus memory disk swap</s></a>
+    <a n="RemoteNegotiatingGroup"><s>&lt;none&gt;</s></a>
+    <a n="GLIDEIN_CredentialIdentifier"><s>792718</s></a>
+    <a n="CondorPlatform"><s>$CondorPlatform: x86_64_RedHat6 $</s></a>
+    <a n="GLIDEIN_MaxMemMBs"><i>2500</i></a>
+    <a n="TotalClaimRunTime"><i>3763</i></a>
+    <a n="RetirementTimeRemaining"><i>9996237</i></a>
+    <a n="GLIDEIN_ToDie"><i>1409425813</i></a>
+    <a n="SlotWeight"><e>Cpus</e></a>
+    <a n="State"><s>Claimed</s></a>
+    <a n="START"><e>( ( true ) &amp;&amp; ( true ) &amp;&amp; ( true ) &amp;&amp; ( ( ( stringListMember(GLIDEIN_CMSSite,DESIRED_Sites,",") is true ) || ( ( stringListsIntersect(GLIDEIN_SEs,DESIRED_SEs,",") is true ) ) ) &amp;&amp; ( ( GLIDEIN_Is_HTPC is true ) is ( DESIRES_HTPC is true ) ) &amp;&amp; ( ( REQUIRED_OS is undefined ) || ( REQUIRED_OS is "any" ) || ( ( REQUIRED_OS is "rhel5" ) &amp;&amp; ( ( GLIDEIN_REQUIRED_OS is "rhel6" ) || ( GLIDEIN_REQUIRED_OS is "any" ) ) ) || ( stringListMember(GLIDEIN_REQUIRED_OS,REQUIRED_OS,",") is true ) ) &amp;&amp; ( RequestMemory &lt;= GLIDEIN_MaxMemMBs ) ) ) &amp;&amp; ( ( ( GLIDEIN_ToRetire is undefined ) || ( CurrentTime &lt; GLIDEIN_ToRetire ) ) )</e></a>
+    <a n="MachineMaxVacateTime"><i>600</i></a>
+    <a n="GSI_DELEGATION_KEYBITS"><i>1024</i></a>
+    <a n="MASTER_GCB_RECONNECT_TIMEOUT"><i>1200</i></a>
+    <a n="Cpus"><i>1</i></a>
+    <a n="GLIDEIN_Site"><s>HIP</s></a>
+    <a n="GLIDEIN_Entry_Signature"><s>d26584bb54e0ce489311bf6a5765548e91ee5888</s></a>
+    <a n="TotalSlotMemory"><i>2500</i></a>
+    <a n="GLIDEIN_Description_File"><s>description.e7aib9.cfg</s></a>
+    <a n="GLIDEIN_MASTER_NAME"><s>glidein_18614@alg02-eth.local</s></a>
+    <a n="GLIDEIN_SEs"><s>madhatter.csc.fi</s></a>
+    <a n="EnteredCurrentState"><i>1409255674</i></a>
+    <a n="EnteredCurrentActivity"><i>1409255675</i></a>
+    <a n="DaemonStartTime"><i>1409255593</i></a>
+    <a n="Memory"><i>2500</i></a>
+    <a n="VirtualMachineID"><i>1</i></a>
+    <a n="TotalTimeClaimedIdle"><i>1</i></a>
+    <a n="NextFetchWorkDelay"><i>-1</i></a>
+    <a n="NiceUser"><b v="f"/></a>
+    <a n="NumPids"><i>5</i></a>
+    <a n="PREEMPT_GRACE_TIME"><e>10000000 * ( ( ( ( ( false ) || ( false ) || ( false ) || ( false ) ) || ( ( false ) || ( false ) || ( false ) || ( false ) ) ) ) isnt true )</e></a>
+    <a n="TotalTimeClaimedBusy"><i>3763</i></a>
+</c>
+
+<c>
+    <a n="SLOTS_LAYOUT"><s>fixed</s></a>
+    <a n="MyAddress"><s>&lt;10.1.101.8:37399?CCBID=128.142.187.77:9922#21509%20131.225.191.126:10302#2011072&amp;noUDP&gt;</s></a>
+    <a n="GLIDEIN_Job_Max_Time"><i>133200</i></a>
+    <a n="GLIDEIN_Glexec_Use"><s>NEVER</s></a>
+    <a n="GLIDEIN_REQUIRE_VOMS"><b v="f"/></a>
+    <a n="ClockDay"><i>5</i></a>
+    <a n="USE_CCB"><s>True</s></a>
+    <a n="GLIDEIN_Description_Entry_File"><s>description.dafdhs.cfg</s></a>
+    <a n="Arch"><s>X86_64</s></a>
+    <a n="CONDOR_VERSION"><s>8.0.4</s></a>
+    <a n="Site_Req_Explicit_Auth"><s>False</s></a>
+    <a n="GLEXEC_STARTER"><b v="f"/></a>
+    <a n="GLIDEIN_Gatekeeper"><s>alcyone-cms.grid.helsinki.fi</s></a>
+    <a n="GLIDEIN_Schedd"><s>schedd_glideins4@submit.local</s></a>
+    <a n="UpdateSequenceNumber"><i>51</i></a>
+    <a n="GLIDEIN_COLLECTOR_NAME"><s>vocms97.cern.ch:9922,cmssrv119.fnal.gov:10302</s></a>
+    <a n="Name"><s>glidein_4@cmswn004.local</s></a>
+    <a n="GLIDECLIENT_ReqNode"><s>frontend4.local</s></a>
+    <a n="IS_MONITOR_VM"><b v="f"/></a>
+    <a n="slot1_TotalTimeClaimedBusy"><i>12645</i></a>
+    <a n="CurrentTime"><e>time()</e></a>
+    <a n="GLIDEIN_SiteWMS_Queue"><s>Unknown</s></a>
+    <a n="GLIDEIN_ResourceName"><s>FI_HIP_T2</s></a>
+    <a n="GLIDEIN_PARENT_PID"><i>15512</i></a>
+    <a n="HardwareAddress"><s>78:e7:d1:22:07:a0</s></a>
+    <a n="GLIDEIN_ProcId"><i>5</i></a>
+    <a n="MyType"><s>Machine</s></a>
+    <a n="GLIDEIN_Signature"><s>fe70b1e3a822505294ec200e50e91616c07b7c1b</s></a>
+    <a n="TotalTimeUnclaimedIdle"><i>370</i></a>
+    <a n="TotalMemory"><i>2500</i></a>
+    <a n="GLIDECLIENT_Name"><s>CMS-CERN.main</s></a>
+    <a n="SlotID"><i>1</i></a>
+    <a n="GLIDEIN_ClusterId"><i>2294757</i></a>
+    <a n="GLIDEIN_REQUIRED_OS"><s>rhel6</s></a>
+    <a n="GLIDEIN_SiteWMS"><s>SLURM</s></a>
+    <a n="GLIDEIN_Max_Idle"><i>1200</i></a>
+    <a n="DetectedMemory"><i>24015</i></a>
+    <a n="GLIDECLIENT_Group"><s>main</s></a>
+    <a n="GLIDEIN_Graceful_Shutdown"><i>120</i></a>
+    <a n="GLIDEIN_SiteWMS_JobId"><s>1924979</s></a>
+    <a n="slot1_Activity"><s>Idle</s></a>
+    <a n="Machine"><s>alg08-eth.local</s></a>
+    <a n="TotalVirtualMemory"><i>65533984</i></a>
+    <a n="DetectedCpus"><i>12</i></a>
+    <a n="DaemonShutdown"><e>( DynamicSlot isnt true ) &amp;&amp; ( ( ( ( GLIDEIN_ToDie isnt undefined ) &amp;&amp; ( CurrentTime &gt; GLIDEIN_ToDie ) ) || ( ( ( Slot1_Activity == "Idle" ) &amp;&amp; ( ( ( Slot1_TotalTimeUnclaimedIdle isnt undefined ) &amp;&amp; ( GLIDEIN_Max_Idle isnt undefined ) &amp;&amp; ( Slot1_TotalTimeUnclaimedIdle &gt; GLIDEIN_Max_Idle ) ) || ( ( GLIDEIN_ToRetire isnt undefined ) &amp;&amp; ( CurrentTime &gt; GLIDEIN_ToRetire ) ) || ( ( Slot1_TotalTimeUnclaimedIdle isnt undefined ) &amp;&amp; ( Slot1_TotalTimeClaimedBusy isnt undefined ) &amp;&amp; ( GLIDEIN_Max_Tail isnt undefined ) &amp;&amp; ( Slot1_TotalTimeUnclaimedIdle &gt; GLIDEIN_Max_Tail ) ) ) ) &amp;&amp; ( ( PartitionableSlot isnt true ) || ( TotalSlots is 1 ) ) ) ) )</e></a>
+    <a n="AuthenticatedIdentity"><s>_condor@vocms97.cern.ch</s></a>
+    <a n="GLIDEIN_Max_Walltime"><i>171000</i></a>
+    <a n="GLIDEIN_ToRetire"><i>1409284693</i></a>
+    <a n="TimeToLive"><i>2147483647</i></a>
+    <a n="SubnetMask"><s>255.255.0.0</s></a>
+    <a n="GLIDEIN_GlobusRSL"><s>(queue=gridcms)(runtimeenvironment=ENV/GLITE)</s></a>
+    <a n="slot1_EnteredCurrentActivity"><i>1409260788</i></a>
+    <a n="GLEXEC_JOB"><b v="f"/></a>
+    <a n="SlotTypeID"><i>1</i></a>
+    <a n="slot1_State"><s>Unclaimed</s></a>
+    <a n="GLIDEIN_Max_Tail"><i>400</i></a>
+    <a n="SlotType"><s>Static</s></a>
+    <a n="GLIDEIN_Expose_Grid_Env"><s>True</s></a>
+    <a n="GLIDEIN_Req_MUPJ_gLExec"><s>False</s></a>
+    <a n="GLIDEIN_REQUIRE_GLEXEC_USE"><b v="f"/></a>
+    <a n="GLIDEIN_GridType"><s>nordugrid</s></a>
+    <a n="Activity"><s>Idle</s></a>
+    <a n="MaxJobRetirementTime"><e>ifthenelse(( ( ( false ) || ( false ) || ( false ) || ( false ) ) ) isnt true,10000000 * ( ( ( ( ( false ) || ( false ) || ( false ) || ( false ) ) || ( ( false ) || ( false ) || ( false ) || ( false ) ) ) ) isnt true ),0)</e></a>
+    <a n="CondorVersion"><s>$CondorVersion: 8.0.4 Oct 19 2013 BuildID: 189770 $</s></a>
+    <a n="TotalSlots"><i>1</i></a>
+    <a n="MyCurrentTime"><i>1409260792</i></a>
+    <a n="GLIDEIN_X509_GRIDMAP_DNS"><s>/DC=ch/DC=cern/OU=computers/CN=vocms97.cern.ch,/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=cmssrv119.fnal.gov,/DC=ch/DC=cern/OU=computers/CN=vocms157.cern.ch,/DC=ch/DC=cern/OU=computers/CN=cmspilotjob/vocms157.cern.ch</s></a>
+    <a n="GLIDEIN_CMSSite"><s>T2_FI_HIP</s></a>
+    <a n="USES_MONITOR_STARTD"><b v="t"/></a>
+    <a n="GLIDEIN_Entry_Name"><s>Site_Name4</s></a>
+    <a n="GLIDEIN_SiteWMS_Slot"><s>Unknown</s></a>
+    <a n="TotalSlotCpus"><i>1</i></a>
+    <a n="MonitorSelfCPUUsage"><r>3.339200000000000E-02</r></a>
+    <a n="GLIDEIN_Monitoring_Enabled"><s>False</s></a>
+    <a n="IS_GLIDEIN"><b v="t"/></a>
+    <a n="GLIDECLIENT_Signature"><s>62111a9eb3015bf9a5de87345c709a19e0380c80</s></a>
+    <a n="GLIDECLIENT_Group_Signature"><s>5d209bed5ba8b6eaf89d2cd74439db8c9a10acf2</s></a>
+    <a n="MonitorSelfSecuritySessions"><i>8</i></a>
+    <a n="GLIDEIN_Tmp_Dir"><s>/tmp/slurm-1924979//glide_DtFLq8/tmp</s></a>
+    <a n="TargetType"><s>Job</s></a>
+    <a n="TotalCpus"><i>1</i></a>
+    <a n="TotalVirtualMachines"><i>1</i></a>
+    <a n="ClockMin"><i>19</i></a>
+    <a n="MonitorSelfResidentSetSize"><i>8596</i></a>
+    <a n="Requirements"><e>( START ) &amp;&amp; ( IsValidCheckpointPlatform )</e></a>
+    <a n="slot1_TotalTimeUnclaimedIdle"><i>370</i></a>
+    <a n="GLIDEIN_Factory"><s>factory1</s></a>
+    <a n="CheckpointPlatform"><s>LINUX X86_64 2.6.x normal N/A ssse3 sse4_1 sse4_2</s></a>
+    <a n="VirtualMemory"><i>65533984</i></a>
+    <a n="GLIDEIN_Name"><s>v3_0</s></a>
+    <a n="StartdIpAddr"><s>&lt;10.1.101.8:37399?CCBID=128.142.187.77:9922#21509%20131.225.191.126:10302#2011072&amp;noUDP&gt;</s></a>
+    <a n="MonitorSelfTime"><i>1409260708</i></a>
+    <a n="MachineResources"><s>cpus memory disk swap</s></a>
+    <a n="GLIDEIN_CredentialIdentifier"><s>792718</s></a>
+    <a n="CondorPlatform"><s>$CondorPlatform: x86_64_RedHat6 $</s></a>
+    <a n="GLIDEIN_MaxMemMBs"><i>2500</i></a>
+    <a n="RetirementTimeRemaining"><i>0</i></a>
+    <a n="GLIDEIN_ToDie"><i>1409417893</i></a>
+    <a n="SlotWeight"><e>Cpus</e></a>
+    <a n="State"><s>Unclaimed</s></a>
+    <a n="START"><e>( ( true ) &amp;&amp; ( true ) &amp;&amp; ( true ) &amp;&amp; ( ( ( stringListMember(GLIDEIN_CMSSite,DESIRED_Sites,",") is true ) || ( ( stringListsIntersect(GLIDEIN_SEs,DESIRED_SEs,",") is true ) ) ) &amp;&amp; ( ( GLIDEIN_Is_HTPC is true ) is ( DESIRES_HTPC is true ) ) &amp;&amp; ( ( REQUIRED_OS is undefined ) || ( REQUIRED_OS is "any" ) || ( ( REQUIRED_OS is "rhel5" ) &amp;&amp; ( ( GLIDEIN_REQUIRED_OS is "rhel6" ) || ( GLIDEIN_REQUIRED_OS is "any" ) ) ) || ( stringListMember(GLIDEIN_REQUIRED_OS,REQUIRED_OS,",") is true ) ) &amp;&amp; ( RequestMemory &lt;= GLIDEIN_MaxMemMBs ) ) ) &amp;&amp; ( ( ( GLIDEIN_ToRetire is undefined ) || ( CurrentTime &lt; GLIDEIN_ToRetire ) ) )</e></a>
+    <a n="MachineMaxVacateTime"><i>600</i></a>
+    <a n="GSI_DELEGATION_KEYBITS"><i>1024</i></a>
+    <a n="MASTER_GCB_RECONNECT_TIMEOUT"><i>1200</i></a>
+    <a n="Cpus"><i>1</i></a>
+    <a n="GLIDEIN_Site"><s>HIP</s></a>
+    <a n="GLIDEIN_Entry_Signature"><s>35872d84eead3785556637d4d66b7a5f987e3962</s></a>
+    <a n="TotalSlotMemory"><i>2500</i></a>
+    <a n="GLIDEIN_Description_File"><s>description.e7uaai.cfg</s></a>
+    <a n="GLIDEIN_MASTER_NAME"><s>glidein_11140@alg08-eth.local</s></a>
+    <a n="GLIDEIN_SEs"><s>madhatter.csc.fi</s></a>
+    <a n="EnteredCurrentState"><i>1409260788</i></a>
+    <a n="EnteredCurrentActivity"><i>1409260788</i></a>
+    <a n="DaemonStartTime"><i>1409247746</i></a>
+    <a n="VirtualMachineID"><i>1</i></a>
+    <a n="Memory"><i>2500</i></a>
+    <a n="TotalTimeClaimedIdle"><i>1</i></a>
+    <a n="NextFetchWorkDelay"><i>-1</i></a>
+    <a n="NumPids"><i>0</i></a>
+    <a n="PREEMPT_GRACE_TIME"><e>10000000 * ( ( ( ( ( false ) || ( false ) || ( false ) || ( false ) ) || ( ( false ) || ( false ) || ( false ) || ( false ) ) ) ) isnt true )</e></a>
+    <a n="TotalTimeClaimedBusy"><i>12645</i></a>
+</c>
+
+<c>
+    <a n="SLOTS_LAYOUT"><s>fixed</s></a>
+    <a n="MyAddress"><s>&lt;10.1.101.8:37399?CCBID=128.142.187.77:9922#21509%20131.225.191.126:10302#2011072&amp;noUDP&gt;</s></a>
+    <a n="GLIDEIN_Job_Max_Time"><i>133200</i></a>
+    <a n="GLIDEIN_Glexec_Use"><s>NEVER</s></a>
+    <a n="GLIDEIN_REQUIRE_VOMS"><b v="f"/></a>
+    <a n="ClockDay"><i>5</i></a>
+    <a n="USE_CCB"><s>True</s></a>
+    <a n="GLIDEIN_Description_Entry_File"><s>description.dafdhs.cfg</s></a>
+    <a n="Arch"><s>X86_64</s></a>
+    <a n="CONDOR_VERSION"><s>8.0.4</s></a>
+    <a n="Site_Req_Explicit_Auth"><s>False</s></a>
+    <a n="GLEXEC_STARTER"><b v="f"/></a>
+    <a n="GLIDEIN_Gatekeeper"><s>alcyone-cms.grid.helsinki.fi</s></a>
+    <a n="GLIDEIN_Schedd"><s>schedd_glideins4@submit.local</s></a>
+    <a n="UpdateSequenceNumber"><i>51</i></a>
+    <a n="GLIDEIN_COLLECTOR_NAME"><s>vocms97.cern.ch:9922,cmssrv119.fnal.gov:10302</s></a>
+    <a n="Name"><s>glidein_5@cmswn005.local</s></a>
+    <a n="GLIDECLIENT_ReqNode"><s>frontend1.local</s></a>
+    <a n="IS_MONITOR_VM"><b v="f"/></a>
+    <a n="slot1_TotalTimeClaimedBusy"><i>12645</i></a>
+    <a n="CurrentTime"><e>time()</e></a>
+    <a n="GLIDEIN_SiteWMS_Queue"><s>Unknown</s></a>
+    <a n="GLIDEIN_ResourceName"><s>FI_HIP_T2</s></a>
+    <a n="GLIDEIN_PARENT_PID"><i>15512</i></a>
+    <a n="HardwareAddress"><s>78:e7:d1:22:07:a0</s></a>
+    <a n="GLIDEIN_ProcId"><i>5</i></a>
+    <a n="MyType"><s>Machine</s></a>
+    <a n="GLIDEIN_Signature"><s>fe70b1e3a822505294ec200e50e91616c07b7c1b</s></a>
+    <a n="TotalTimeUnclaimedIdle"><i>370</i></a>
+    <a n="TotalMemory"><i>2500</i></a>
+    <a n="GLIDECLIENT_Name"><s>CMS-CERN.main</s></a>
+    <a n="SlotID"><i>1</i></a>
+    <a n="GLIDEIN_ClusterId"><i>2294757</i></a>
+    <a n="GLIDEIN_REQUIRED_OS"><s>rhel6</s></a>
+    <a n="GLIDEIN_SiteWMS"><s>SLURM</s></a>
+    <a n="GLIDEIN_Max_Idle"><i>1200</i></a>
+    <a n="DetectedMemory"><i>24015</i></a>
+    <a n="GLIDECLIENT_Group"><s>main</s></a>
+    <a n="GLIDEIN_Graceful_Shutdown"><i>120</i></a>
+    <a n="GLIDEIN_SiteWMS_JobId"><s>1924979</s></a>
+    <a n="Activity"><s>Busy</s></a>
+    <a n="slot1_Activity"><s>Idle</s></a>
+    <a n="Machine"><s>alg08-eth.local</s></a>
+    <a n="TotalVirtualMemory"><i>65533984</i></a>
+    <a n="DetectedCpus"><i>12</i></a>
+    <a n="DaemonShutdown"><e>( DynamicSlot isnt true ) &amp;&amp; ( ( ( ( GLIDEIN_ToDie isnt undefined ) &amp;&amp; ( CurrentTime &gt; GLIDEIN_ToDie ) ) || ( ( ( Slot1_Activity == "Idle" ) &amp;&amp; ( ( ( Slot1_TotalTimeUnclaimedIdle isnt undefined ) &amp;&amp; ( GLIDEIN_Max_Idle isnt undefined ) &amp;&amp; ( Slot1_TotalTimeUnclaimedIdle &gt; GLIDEIN_Max_Idle ) ) || ( ( GLIDEIN_ToRetire isnt undefined ) &amp;&amp; ( CurrentTime &gt; GLIDEIN_ToRetire ) ) || ( ( Slot1_TotalTimeUnclaimedIdle isnt undefined ) &amp;&amp; ( Slot1_TotalTimeClaimedBusy isnt undefined ) &amp;&amp; ( GLIDEIN_Max_Tail isnt undefined ) &amp;&amp; ( Slot1_TotalTimeUnclaimedIdle &gt; GLIDEIN_Max_Tail ) ) ) ) &amp;&amp; ( ( PartitionableSlot isnt true ) || ( TotalSlots is 1 ) ) ) ) )</e></a>
+    <a n="AuthenticatedIdentity"><s>_condor@vocms97.cern.ch</s></a>
+    <a n="GLIDEIN_Max_Walltime"><i>171000</i></a>
+    <a n="GLIDEIN_ToRetire"><i>1409284693</i></a>
+    <a n="TimeToLive"><i>2147483647</i></a>
+    <a n="SubnetMask"><s>255.255.0.0</s></a>
+    <a n="GLIDEIN_GlobusRSL"><s>(queue=gridcms)(runtimeenvironment=ENV/GLITE)</s></a>
+    <a n="slot1_EnteredCurrentActivity"><i>1409260788</i></a>
+    <a n="GLEXEC_JOB"><b v="f"/></a>
+    <a n="SlotTypeID"><i>1</i></a>
+    <a n="slot1_State"><s>Unclaimed</s></a>
+    <a n="GLIDEIN_Max_Tail"><i>400</i></a>
+    <a n="SlotType"><s>Static</s></a>
+    <a n="GLIDEIN_Expose_Grid_Env"><s>True</s></a>
+    <a n="GLIDEIN_Req_MUPJ_gLExec"><s>False</s></a>
+    <a n="GLIDEIN_REQUIRE_GLEXEC_USE"><b v="f"/></a>
+    <a n="GLIDEIN_GridType"><s>nordugrid</s></a>
+    <a n="MaxJobRetirementTime"><e>ifthenelse(( ( ( false ) || ( false ) || ( false ) || ( false ) ) ) isnt true,10000000 * ( ( ( ( ( false ) || ( false ) || ( false ) || ( false ) ) || ( ( false ) || ( false ) || ( false ) || ( false ) ) ) ) isnt true ),0)</e></a>
+    <a n="CondorVersion"><s>$CondorVersion: 8.0.4 Oct 19 2013 BuildID: 189770 $</s></a>
+    <a n="TotalSlots"><i>1</i></a>
+    <a n="MyCurrentTime"><i>1409260792</i></a>
+    <a n="GLIDEIN_X509_GRIDMAP_DNS"><s>/DC=ch/DC=cern/OU=computers/CN=vocms97.cern.ch,/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=cmssrv119.fnal.gov,/DC=ch/DC=cern/OU=computers/CN=vocms157.cern.ch,/DC=ch/DC=cern/OU=computers/CN=cmspilotjob/vocms157.cern.ch</s></a>
+    <a n="GLIDEIN_CMSSite"><s>T2_FI_HIP</s></a>
+    <a n="USES_MONITOR_STARTD"><b v="t"/></a>
+    <a n="GLIDEIN_Entry_Name"><s>Site_Name2</s></a>
+    <a n="GLIDEIN_SiteWMS_Slot"><s>Unknown</s></a>
+    <a n="TotalSlotCpus"><i>1</i></a>
+    <a n="MonitorSelfCPUUsage"><r>3.339200000000000E-02</r></a>
+    <a n="GLIDEIN_Monitoring_Enabled"><s>False</s></a>
+    <a n="IS_GLIDEIN"><b v="t"/></a>
+    <a n="GLIDECLIENT_Signature"><s>62111a9eb3015bf9a5de87345c709a19e0380c80</s></a>
+    <a n="GLIDECLIENT_Group_Signature"><s>5d209bed5ba8b6eaf89d2cd74439db8c9a10acf2</s></a>
+    <a n="MonitorSelfSecuritySessions"><i>8</i></a>
+    <a n="GLIDEIN_Tmp_Dir"><s>/tmp/slurm-1924979//glide_DtFLq8/tmp</s></a>
+    <a n="TargetType"><s>Job</s></a>
+    <a n="TotalCpus"><i>1</i></a>
+    <a n="TotalVirtualMachines"><i>1</i></a>
+    <a n="ClockMin"><i>19</i></a>
+    <a n="MonitorSelfResidentSetSize"><i>8596</i></a>
+    <a n="Requirements"><e>( START ) &amp;&amp; ( IsValidCheckpointPlatform )</e></a>
+    <a n="slot1_TotalTimeUnclaimedIdle"><i>370</i></a>
+    <a n="GLIDEIN_Factory"><s>factory1</s></a>
+    <a n="CheckpointPlatform"><s>LINUX X86_64 2.6.x normal N/A ssse3 sse4_1 sse4_2</s></a>
+    <a n="VirtualMemory"><i>65533984</i></a>
+    <a n="GLIDEIN_Name"><s>v3_0</s></a>
+    <a n="StartdIpAddr"><s>&lt;10.1.101.8:37399?CCBID=128.142.187.77:9922#21509%20131.225.191.126:10302#2011072&amp;noUDP&gt;</s></a>
+    <a n="MonitorSelfTime"><i>1409260708</i></a>
+    <a n="MachineResources"><s>cpus memory disk swap</s></a>
+    <a n="GLIDEIN_CredentialIdentifier"><s>792718</s></a>
+    <a n="CondorPlatform"><s>$CondorPlatform: x86_64_RedHat6 $</s></a>
+    <a n="GLIDEIN_MaxMemMBs"><i>2500</i></a>
+    <a n="RetirementTimeRemaining"><i>0</i></a>
+    <a n="GLIDEIN_ToDie"><i>1409417893</i></a>
+    <a n="SlotWeight"><e>Cpus</e></a>
+    <a n="State"><s>Claimed</s></a>
+    <a n="START"><e>( ( true ) &amp;&amp; ( true ) &amp;&amp; ( true ) &amp;&amp; ( ( ( stringListMember(GLIDEIN_CMSSite,DESIRED_Sites,",") is true ) || ( ( stringListsIntersect(GLIDEIN_SEs,DESIRED_SEs,",") is true ) ) ) &amp;&amp; ( ( GLIDEIN_Is_HTPC is true ) is ( DESIRES_HTPC is true ) ) &amp;&amp; ( ( REQUIRED_OS is undefined ) || ( REQUIRED_OS is "any" ) || ( ( REQUIRED_OS is "rhel5" ) &amp;&amp; ( ( GLIDEIN_REQUIRED_OS is "rhel6" ) || ( GLIDEIN_REQUIRED_OS is "any" ) ) ) || ( stringListMember(GLIDEIN_REQUIRED_OS,REQUIRED_OS,",") is true ) ) &amp;&amp; ( RequestMemory &lt;= GLIDEIN_MaxMemMBs ) ) ) &amp;&amp; ( ( ( GLIDEIN_ToRetire is undefined ) || ( CurrentTime &lt; GLIDEIN_ToRetire ) ) )</e></a>
+    <a n="MachineMaxVacateTime"><i>600</i></a>
+    <a n="GSI_DELEGATION_KEYBITS"><i>1024</i></a>
+    <a n="MASTER_GCB_RECONNECT_TIMEOUT"><i>1200</i></a>
+    <a n="Cpus"><i>1</i></a>
+    <a n="GLIDEIN_Site"><s>HIP</s></a>
+    <a n="GLIDEIN_Entry_Signature"><s>35872d84eead3785556637d4d66b7a5f987e3962</s></a>
+    <a n="TotalSlotMemory"><i>2500</i></a>
+    <a n="GLIDEIN_Description_File"><s>description.e7uaai.cfg</s></a>
+    <a n="GLIDEIN_MASTER_NAME"><s>glidein_11140@alg08-eth.local</s></a>
+    <a n="GLIDEIN_SEs"><s>madhatter.csc.fi</s></a>
+    <a n="EnteredCurrentState"><i>1409260788</i></a>
+    <a n="EnteredCurrentActivity"><i>1409260788</i></a>
+    <a n="DaemonStartTime"><i>1409247746</i></a>
+    <a n="VirtualMachineID"><i>1</i></a>
+    <a n="Memory"><i>2500</i></a>
+    <a n="TotalTimeClaimedIdle"><i>1</i></a>
+    <a n="NextFetchWorkDelay"><i>-1</i></a>
+    <a n="NumPids"><i>0</i></a>
+    <a n="PREEMPT_GRACE_TIME"><e>10000000 * ( ( ( ( ( false ) || ( false ) || ( false ) || ( false ) ) || ( ( false ) || ( false ) || ( false ) || ( false ) ) ) ) isnt true )</e></a>
+    <a n="TotalTimeClaimedBusy"><i>12645</i></a>
+</c>
+
+
+<c>
+    <a n="SLOTS_LAYOUT"><s>fixed</s></a>
+    <a n="MyAddress"><s>&lt;10.1.101.2:48535?CCBID=128.142.187.77:9927#23932%20131.225.191.126:9927#85244&amp;noUDP&gt;</s></a>
+    <a n="GLIDEIN_Job_Max_Time"><i>133200</i></a>
+    <a n="GLIDEIN_Glexec_Use"><s>NEVER</s></a>
+    <a n="GLIDEIN_REQUIRE_VOMS"><b v="f"/></a>
+    <a n="ClockDay"><i>4</i></a>
+    <a n="USE_CCB"><s>True</s></a>
+    <a n="GLIDEIN_Description_Entry_File"><s>description.dafdhs.cfg</s></a>
+    <a n="Arch"><s>X86_64</s></a>
+    <a n="CONDOR_VERSION"><s>8.0.4</s></a>
+    <a n="Site_Req_Explicit_Auth"><s>False</s></a>
+    <a n="GLEXEC_STARTER"><b v="f"/></a>
+    <a n="GLIDEIN_Gatekeeper"><s>alcyone-cms.grid.helsinki.fi</s></a>
+    <a n="GLIDEIN_Schedd"><s>schedd_glideins2@submit.local</s></a>
+    <a n="UpdateSequenceNumber"><i>13</i></a>
+    <a n="GLIDEIN_COLLECTOR_NAME"><s>vocms97.cern.ch:9927,cmssrv119.fnal.gov:9927</s></a>
+    <a n="Name"><s>glidein_1@cmswn006.local</s></a>
+    <a n="GLIDECLIENT_ReqNode"><s>frontend2.local</s></a>
+    <a n="IS_MONITOR_VM"><b v="f"/></a>
+    <a n="slot1_TotalTimeClaimedBusy"><i>3756</i></a>
+    <a n="CurrentTime"><e>time()</e></a>
+    <a n="GLIDEIN_SiteWMS_Queue"><s>Unknown</s></a>
+    <a n="GLIDEIN_ResourceName"><s>FI_HIP_T2</s></a>
+    <a n="RemoteOwner"><s>_condor@vocms228.cern.ch</s></a>
+    <a n="GLIDEIN_PARENT_PID"><i>17761</i></a>
+    <a n="HardwareAddress"><s>78:e7:d1:21:02:20</s></a>
+    <a n="GLIDEIN_ProcId"><i>0</i></a>
+    <a n="MyType"><s>Machine</s></a>
+    <a n="GLIDEIN_Signature"><s>fe70b1e3a822505294ec200e50e91616c07b7c1b</s></a>
+    <a n="TotalTimeUnclaimedIdle"><i>69</i></a>
+    <a n="TotalMemory"><i>2500</i></a>
+    <a n="GLIDECLIENT_Name"><s>CMS-CERN.main</s></a>
+    <a n="SlotID"><i>1</i></a>
+    <a n="GLIDEIN_ClusterId"><i>2295348</i></a>
+    <a n="GLIDEIN_REQUIRED_OS"><s>rhel6</s></a>
+    <a n="GLIDEIN_SiteWMS"><s>SLURM</s></a>
+    <a n="GLIDEIN_Max_Idle"><i>1200</i></a>
+    <a n="DetectedMemory"><i>24015</i></a>
+    <a n="GLIDECLIENT_Group"><s>main</s></a>
+    <a n="RemoteUser"><s>_condor@vocms228.cern.ch</s></a>
+    <a n="GLIDEIN_Graceful_Shutdown"><i>120</i></a>
+    <a n="GLIDEIN_SiteWMS_JobId"><s>1925174</s></a>
+    <a n="slot1_Activity"><s>Busy</s></a>
+    <a n="ExecutableSize"><i>25</i></a>
+    <a n="Machine"><s>alg02-eth.local</s></a>
+    <a n="TotalVirtualMemory"><i>65504200</i></a>
+    <a n="DetectedCpus"><i>12</i></a>
+    <a n="DaemonShutdown"><e>( DynamicSlot isnt true ) &amp;&amp; ( ( ( ( GLIDEIN_ToDie isnt undefined ) &amp;&amp; ( CurrentTime &gt; GLIDEIN_ToDie ) ) || ( ( ( Slot1_Activity == "Idle" ) &amp;&amp; ( ( ( Slot1_TotalTimeUnclaimedIdle isnt undefined ) &amp;&amp; ( GLIDEIN_Max_Idle isnt undefined ) &amp;&amp; ( Slot1_TotalTimeUnclaimedIdle &gt; GLIDEIN_Max_Idle ) ) || ( ( GLIDEIN_ToRetire isnt undefined ) &amp;&amp; ( CurrentTime &gt; GLIDEIN_ToRetire ) ) || ( ( Slot1_TotalTimeUnclaimedIdle isnt undefined ) &amp;&amp; ( Slot1_TotalTimeClaimedBusy isnt undefined ) &amp;&amp; ( GLIDEIN_Max_Tail isnt undefined ) &amp;&amp; ( Slot1_TotalTimeUnclaimedIdle &gt; GLIDEIN_Max_Tail ) ) ) ) &amp;&amp; ( ( PartitionableSlot isnt true ) || ( TotalSlots is 1 ) ) ) ) )</e></a>
+    <a n="GlobalJobId"><s>_condor@vocms228.cern.ch#451186.17#1409254409</s></a>
+    <a n="AuthenticatedIdentity"><s>_condor@vocms97.cern.ch</s></a>
+    <a n="GLIDEIN_Max_Walltime"><i>171000</i></a>
+    <a n="GLIDEIN_ToRetire"><i>1409292619</i></a>
+    <a n="JobUniverse"><i>5</i></a>
+    <a n="TimeToLive"><i>2147483647</i></a>
+    <a n="SubnetMask"><s>255.255.0.0</s></a>
+    <a n="GLIDEIN_GlobusRSL"><s>(queue=gridcms)(runtimeenvironment=ENV/GLITE)</s></a>
+    <a n="slot1_EnteredCurrentActivity"><i>1409255675</i></a>
+    <a n="GLEXEC_JOB"><b v="f"/></a>
+    <a n="SlotTypeID"><i>1</i></a>
+    <a n="slot1_State"><s>Claimed</s></a>
+    <a n="ClientMachine"><s>vocms228.cern.ch</s></a>
+    <a n="JobId"><s>451186.17</s></a>
+    <a n="GLIDEIN_Max_Tail"><i>400</i></a>
+    <a n="SlotType"><s>Static</s></a>
+    <a n="GLIDEIN_Expose_Grid_Env"><s>True</s></a>
+    <a n="GLIDEIN_Req_MUPJ_gLExec"><s>False</s></a>
+    <a n="GLIDEIN_REQUIRE_GLEXEC_USE"><b v="f"/></a>
+    <a n="GLIDEIN_GridType"><s>nordugrid</s></a>
+    <a n="Activity"><s>Busy</s></a>
+    <a n="MaxJobRetirementTime"><e>ifthenelse(( ( ( false ) || ( false ) || ( false ) || ( false ) ) ) isnt true,10000000 * ( ( ( ( ( false ) || ( false ) || ( false ) || ( false ) ) || ( ( false ) || ( false ) || ( false ) || ( false ) ) ) ) isnt true ),0)</e></a>
+    <a n="CondorVersion"><s>$CondorVersion: 8.0.4 Oct 19 2013 BuildID: 189770 $</s></a>
+    <a n="TotalSlots"><i>1</i></a>
+    <a n="MyCurrentTime"><i>1409259431</i></a>
+    <a n="GLIDEIN_X509_GRIDMAP_DNS"><s>/DC=ch/DC=cern/OU=computers/CN=vocms97.cern.ch,/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=cmssrv119.fnal.gov,/DC=ch/DC=cern/OU=computers/CN=vocms157.cern.ch,/DC=ch/DC=cern/OU=computers/CN=cmspilotjob/vocms157.cern.ch</s></a>
+    <a n="GLIDEIN_CMSSite"><s>T2_FI_HIP</s></a>
+    <a n="USES_MONITOR_STARTD"><b v="t"/></a>
+    <a n="GLIDEIN_Entry_Name"><s>Site_Name2</s></a>
+    <a n="GLIDEIN_SiteWMS_Slot"><s>Unknown</s></a>
+    <a n="TotalSlotCpus"><i>1</i></a>
+    <a n="MonitorSelfCPUUsage"><r>2.502100000000000E-02</r></a>
+    <a n="GLIDEIN_Monitoring_Enabled"><s>False</s></a>
+    <a n="IS_GLIDEIN"><b v="t"/></a>
+    <a n="GLIDECLIENT_Signature"><s>62111a9eb3015bf9a5de87345c709a19e0380c80</s></a>
+    <a n="GLIDECLIENT_Group_Signature"><s>5d209bed5ba8b6eaf89d2cd74439db8c9a10acf2</s></a>
+    <a n="MonitorSelfSecuritySessions"><i>8</i></a>
+    <a n="JobStart"><i>1409255675</i></a>
+    <a n="GLIDEIN_Tmp_Dir"><s>/tmp/slurm-1925174//glide_qlGJJi/tmp</s></a>
+    <a n="TargetType"><s>Job</s></a>
+    <a n="TotalCpus"><i>1</i></a>
+    <a n="TotalVirtualMachines"><i>1</i></a>
+    <a n="ClockMin"><i>1437</i></a>
+    <a n="MonitorSelfResidentSetSize"><i>8604</i></a>
+    <a n="Requirements"><e>( START ) &amp;&amp; ( IsValidCheckpointPlatform )</e></a>
+    <a n="slot1_TotalTimeUnclaimedIdle"><i>69</i></a>
+    <a n="GLIDEIN_Factory"><s>factory1</s></a>
+    <a n="TotalJobRunTime"><i>3756</i></a>
+    <a n="CheckpointPlatform"><s>LINUX X86_64 2.6.x normal N/A ssse3 sse4_1 sse4_2</s></a>
+    <a n="VirtualMemory"><i>65504200</i></a>
+    <a n="GLIDEIN_Name"><s>v3_0</s></a>
+    <a n="StartdIpAddr"><s>&lt;10.1.101.2:48535?CCBID=128.142.187.77:9927#23932%20131.225.191.126:9927#85244&amp;noUDP&gt;</s></a>
+    <a n="MonitorSelfTime"><i>1409259417</i></a>
+    <a n="MachineResources"><s>cpus memory disk swap</s></a>
+    <a n="RemoteNegotiatingGroup"><s>&lt;none&gt;</s></a>
+    <a n="GLIDEIN_CredentialIdentifier"><s>792718</s></a>
+    <a n="CondorPlatform"><s>$CondorPlatform: x86_64_RedHat6 $</s></a>
+    <a n="GLIDEIN_MaxMemMBs"><i>2500</i></a>
+    <a n="TotalClaimRunTime"><i>3756</i></a>
+    <a n="RetirementTimeRemaining"><i>9996244</i></a>
+    <a n="GLIDEIN_ToDie"><i>1409425819</i></a>
+    <a n="SlotWeight"><e>Cpus</e></a>
+    <a n="State"><s>Claimed</s></a>
+    <a n="START"><e>( ( true ) &amp;&amp; ( true ) &amp;&amp; ( true ) &amp;&amp; ( ( ( stringListMember(GLIDEIN_CMSSite,DESIRED_Sites,",") is true ) || ( ( stringListsIntersect(GLIDEIN_SEs,DESIRED_SEs,",") is true ) ) ) &amp;&amp; ( ( GLIDEIN_Is_HTPC is true ) is ( DESIRES_HTPC is true ) ) &amp;&amp; ( ( REQUIRED_OS is undefined ) || ( REQUIRED_OS is "any" ) || ( ( REQUIRED_OS is "rhel5" ) &amp;&amp; ( ( GLIDEIN_REQUIRED_OS is "rhel6" ) || ( GLIDEIN_REQUIRED_OS is "any" ) ) ) || ( stringListMember(GLIDEIN_REQUIRED_OS,REQUIRED_OS,",") is true ) ) &amp;&amp; ( RequestMemory &lt;= GLIDEIN_MaxMemMBs ) ) ) &amp;&amp; ( ( ( GLIDEIN_ToRetire is undefined ) || ( CurrentTime &lt; GLIDEIN_ToRetire ) ) )</e></a>
+    <a n="MachineMaxVacateTime"><i>600</i></a>
+    <a n="GSI_DELEGATION_KEYBITS"><i>1024</i></a>
+    <a n="MASTER_GCB_RECONNECT_TIMEOUT"><i>1200</i></a>
+    <a n="Cpus"><i>1</i></a>
+    <a n="GLIDEIN_Site"><s>HIP</s></a>
+    <a n="GLIDEIN_Entry_Signature"><s>35872d84eead3785556637d4d66b7a5f987e3962</s></a>
+    <a n="TotalSlotMemory"><i>2500</i></a>
+    <a n="GLIDEIN_Description_File"><s>description.e7uaai.cfg</s></a>
+    <a n="GLIDEIN_MASTER_NAME"><s>glidein_13239@alg02-eth.local</s></a>
+    <a n="GLIDEIN_SEs"><s>madhatter.csc.fi</s></a>
+    <a n="EnteredCurrentState"><i>1409255674</i></a>
+    <a n="EnteredCurrentActivity"><i>1409255675</i></a>
+    <a n="DaemonStartTime"><i>1409255575</i></a>
+    <a n="Memory"><i>2500</i></a>
+    <a n="VirtualMachineID"><i>1</i></a>
+    <a n="TotalTimeClaimedIdle"><i>1</i></a>
+    <a n="NextFetchWorkDelay"><i>-1</i></a>
+    <a n="NiceUser"><b v="f"/></a>
+    <a n="NumPids"><i>5</i></a>
+    <a n="PREEMPT_GRACE_TIME"><e>10000000 * ( ( ( ( ( false ) || ( false ) || ( false ) || ( false ) ) || ( ( false ) || ( false ) || ( false ) || ( false ) ) ) ) isnt true )</e></a>
+    <a n="TotalTimeClaimedBusy"><i>3756</i></a>
+</c>
+
+<c>
+    <a n="SLOTS_LAYOUT"><s>fixed</s></a>
+    <a n="MyAddress"><s>&lt;10.1.101.2:48535?CCBID=128.142.187.77:9927#23932%20131.225.191.126:9927#85244&amp;noUDP&gt;</s></a>
+    <a n="GLIDEIN_Job_Max_Time"><i>133200</i></a>
+    <a n="GLIDEIN_Glexec_Use"><s>NEVER</s></a>
+    <a n="GLIDEIN_REQUIRE_VOMS"><b v="f"/></a>
+    <a n="ClockDay"><i>4</i></a>
+    <a n="USE_CCB"><s>True</s></a>
+    <a n="GLIDEIN_Description_Entry_File"><s>description.dafdhs.cfg</s></a>
+    <a n="Arch"><s>X86_64</s></a>
+    <a n="CONDOR_VERSION"><s>8.0.4</s></a>
+    <a n="Site_Req_Explicit_Auth"><s>False</s></a>
+    <a n="GLEXEC_STARTER"><b v="f"/></a>
+    <a n="GLIDEIN_Gatekeeper"><s>alcyone-cms.grid.helsinki.fi</s></a>
+    <a n="GLIDEIN_Schedd"><s>schedd_glideins2@submit.local</s></a>
+    <a n="UpdateSequenceNumber"><i>13</i></a>
+    <a n="GLIDEIN_COLLECTOR_NAME"><s>vocms97.cern.ch:9927,cmssrv119.fnal.gov:9927</s></a>
+    <a n="Name"><s>glidein_1@cmswn006.local</s></a>
+    <a n="GLIDECLIENT_ReqNode"><s>frontend2.local</s></a>
+    <a n="IS_MONITOR_VM"><b v="f"/></a>
+    <a n="slot1_TotalTimeClaimedBusy"><i>3756</i></a>
+    <a n="CurrentTime"><e>time()</e></a>
+    <a n="GLIDEIN_SiteWMS_Queue"><s>Unknown</s></a>
+    <a n="GLIDEIN_ResourceName"><s>FI_HIP_T2</s></a>
+    <a n="RemoteOwner"><s>_condor@vocms228.cern.ch</s></a>
+    <a n="GLIDEIN_PARENT_PID"><i>17761</i></a>
+    <a n="HardwareAddress"><s>78:e7:d1:21:02:20</s></a>
+    <a n="GLIDEIN_ProcId"><i>0</i></a>
+    <a n="MyType"><s>Machine</s></a>
+    <a n="GLIDEIN_Signature"><s>fe70b1e3a822505294ec200e50e91616c07b7c1b</s></a>
+    <a n="TotalTimeUnclaimedIdle"><i>69</i></a>
+    <a n="TotalMemory"><i>2500</i></a>
+    <a n="GLIDECLIENT_Name"><s>CMS-CERN.main</s></a>
+    <a n="SlotID"><i>1</i></a>
+    <a n="GLIDEIN_ClusterId"><i>2295348</i></a>
+    <a n="GLIDEIN_REQUIRED_OS"><s>rhel6</s></a>
+    <a n="GLIDEIN_SiteWMS"><s>SLURM</s></a>
+    <a n="GLIDEIN_Max_Idle"><i>1200</i></a>
+    <a n="DetectedMemory"><i>24015</i></a>
+    <a n="GLIDECLIENT_Group"><s>main</s></a>
+    <a n="RemoteUser"><s>_condor@vocms228.cern.ch</s></a>
+    <a n="GLIDEIN_Graceful_Shutdown"><i>120</i></a>
+    <a n="GLIDEIN_SiteWMS_JobId"><s>1925174</s></a>
+    <a n="slot1_Activity"><s>Busy</s></a>
+    <a n="ExecutableSize"><i>25</i></a>
+    <a n="Machine"><s>alg02-eth.local</s></a>
+    <a n="TotalVirtualMemory"><i>65504200</i></a>
+    <a n="DetectedCpus"><i>12</i></a>
+    <a n="DaemonShutdown"><e>( DynamicSlot isnt true ) &amp;&amp; ( ( ( ( GLIDEIN_ToDie isnt undefined ) &amp;&amp; ( CurrentTime &gt; GLIDEIN_ToDie ) ) || ( ( ( Slot1_Activity == "Idle" ) &amp;&amp; ( ( ( Slot1_TotalTimeUnclaimedIdle isnt undefined ) &amp;&amp; ( GLIDEIN_Max_Idle isnt undefined ) &amp;&amp; ( Slot1_TotalTimeUnclaimedIdle &gt; GLIDEIN_Max_Idle ) ) || ( ( GLIDEIN_ToRetire isnt undefined ) &amp;&amp; ( CurrentTime &gt; GLIDEIN_ToRetire ) ) || ( ( Slot1_TotalTimeUnclaimedIdle isnt undefined ) &amp;&amp; ( Slot1_TotalTimeClaimedBusy isnt undefined ) &amp;&amp; ( GLIDEIN_Max_Tail isnt undefined ) &amp;&amp; ( Slot1_TotalTimeUnclaimedIdle &gt; GLIDEIN_Max_Tail ) ) ) ) &amp;&amp; ( ( PartitionableSlot isnt true ) || ( TotalSlots is 1 ) ) ) ) )</e></a>
+    <a n="GlobalJobId"><s>_condor@vocms228.cern.ch#451186.17#1409254409</s></a>
+    <a n="AuthenticatedIdentity"><s>_condor@vocms97.cern.ch</s></a>
+    <a n="GLIDEIN_Max_Walltime"><i>171000</i></a>
+    <a n="GLIDEIN_ToRetire"><i>1409292619</i></a>
+    <a n="JobUniverse"><i>5</i></a>
+    <a n="TimeToLive"><i>2147483647</i></a>
+    <a n="SubnetMask"><s>255.255.0.0</s></a>
+    <a n="GLIDEIN_GlobusRSL"><s>(queue=gridcms)(runtimeenvironment=ENV/GLITE)</s></a>
+    <a n="slot1_EnteredCurrentActivity"><i>1409255675</i></a>
+    <a n="GLEXEC_JOB"><b v="f"/></a>
+    <a n="SlotTypeID"><i>1</i></a>
+    <a n="slot1_State"><s>Claimed</s></a>
+    <a n="ClientMachine"><s>vocms228.cern.ch</s></a>
+    <a n="JobId"><s>451186.17</s></a>
+    <a n="GLIDEIN_Max_Tail"><i>400</i></a>
+    <a n="SlotType"><s>Static</s></a>
+    <a n="GLIDEIN_Expose_Grid_Env"><s>True</s></a>
+    <a n="GLIDEIN_Req_MUPJ_gLExec"><s>False</s></a>
+    <a n="GLIDEIN_REQUIRE_GLEXEC_USE"><b v="f"/></a>
+    <a n="GLIDEIN_GridType"><s>nordugrid</s></a>
+    <a n="Activity"><s>Busy</s></a>
+    <a n="MaxJobRetirementTime"><e>ifthenelse(( ( ( false ) || ( false ) || ( false ) || ( false ) ) ) isnt true,10000000 * ( ( ( ( ( false ) || ( false ) || ( false ) || ( false ) ) || ( ( false ) || ( false ) || ( false ) || ( false ) ) ) ) isnt true ),0)</e></a>
+    <a n="CondorVersion"><s>$CondorVersion: 8.0.4 Oct 19 2013 BuildID: 189770 $</s></a>
+    <a n="TotalSlots"><i>1</i></a>
+    <a n="MyCurrentTime"><i>1409259431</i></a>
+    <a n="GLIDEIN_X509_GRIDMAP_DNS"><s>/DC=ch/DC=cern/OU=computers/CN=vocms97.cern.ch,/DC=com/DC=DigiCert-Grid/O=Open Science Grid/OU=Services/CN=cmssrv119.fnal.gov,/DC=ch/DC=cern/OU=computers/CN=vocms157.cern.ch,/DC=ch/DC=cern/OU=computers/CN=cmspilotjob/vocms157.cern.ch</s></a>
+    <a n="GLIDEIN_CMSSite"><s>T2_FI_HIP</s></a>
+    <a n="USES_MONITOR_STARTD"><b v="t"/></a>
+    <a n="GLIDEIN_Entry_Name"><s>Site_Name2</s></a>
+    <a n="GLIDEIN_SiteWMS_Slot"><s>Unknown</s></a>
+    <a n="TotalSlotCpus"><i>1</i></a>
+    <a n="MonitorSelfCPUUsage"><r>2.502100000000000E-02</r></a>
+    <a n="GLIDEIN_Monitoring_Enabled"><s>False</s></a>
+    <a n="IS_GLIDEIN"><b v="t"/></a>
+    <a n="GLIDECLIENT_Signature"><s>62111a9eb3015bf9a5de87345c709a19e0380c80</s></a>
+    <a n="GLIDECLIENT_Group_Signature"><s>5d209bed5ba8b6eaf89d2cd74439db8c9a10acf2</s></a>
+    <a n="MonitorSelfSecuritySessions"><i>8</i></a>
+    <a n="JobStart"><i>1409255675</i></a>
+    <a n="GLIDEIN_Tmp_Dir"><s>/tmp/slurm-1925174//glide_qlGJJi/tmp</s></a>
+    <a n="TargetType"><s>Job</s></a>
+    <a n="TotalCpus"><i>1</i></a>
+    <a n="TotalVirtualMachines"><i>1</i></a>
+    <a n="ClockMin"><i>1437</i></a>
+    <a n="MonitorSelfResidentSetSize"><i>8604</i></a>
+    <a n="Requirements"><e>( START ) &amp;&amp; ( IsValidCheckpointPlatform )</e></a>
+    <a n="slot1_TotalTimeUnclaimedIdle"><i>69</i></a>
+    <a n="GLIDEIN_Factory"><s>factory1</s></a>
+    <a n="TotalJobRunTime"><i>3756</i></a>
+    <a n="CheckpointPlatform"><s>LINUX X86_64 2.6.x normal N/A ssse3 sse4_1 sse4_2</s></a>
+    <a n="VirtualMemory"><i>65504200</i></a>
+    <a n="GLIDEIN_Name"><s>v3_0</s></a>
+    <a n="StartdIpAddr"><s>&lt;10.1.101.2:48535?CCBID=128.142.187.77:9927#23932%20131.225.191.126:9927#85244&amp;noUDP&gt;</s></a>
+    <a n="MonitorSelfTime"><i>1409259417</i></a>
+    <a n="MachineResources"><s>cpus memory disk swap</s></a>
+    <a n="RemoteNegotiatingGroup"><s>&lt;none&gt;</s></a>
+    <a n="GLIDEIN_CredentialIdentifier"><s>792718</s></a>
+    <a n="CondorPlatform"><s>$CondorPlatform: x86_64_RedHat6 $</s></a>
+    <a n="GLIDEIN_MaxMemMBs"><i>2500</i></a>
+    <a n="TotalClaimRunTime"><i>3756</i></a>
+    <a n="RetirementTimeRemaining"><i>9996244</i></a>
+    <a n="GLIDEIN_ToDie"><i>1409425819</i></a>
+    <a n="SlotWeight"><e>Cpus</e></a>
+    <a n="State"><s>Claimed</s></a>
+    <a n="START"><e>( ( true ) &amp;&amp; ( true ) &amp;&amp; ( true ) &amp;&amp; ( ( ( stringListMember(GLIDEIN_CMSSite,DESIRED_Sites,",") is true ) || ( ( stringListsIntersect(GLIDEIN_SEs,DESIRED_SEs,",") is true ) ) ) &amp;&amp; ( ( GLIDEIN_Is_HTPC is true ) is ( DESIRES_HTPC is true ) ) &amp;&amp; ( ( REQUIRED_OS is undefined ) || ( REQUIRED_OS is "any" ) || ( ( REQUIRED_OS is "rhel5" ) &amp;&amp; ( ( GLIDEIN_REQUIRED_OS is "rhel6" ) || ( GLIDEIN_REQUIRED_OS is "any" ) ) ) || ( stringListMember(GLIDEIN_REQUIRED_OS,REQUIRED_OS,",") is true ) ) &amp;&amp; ( RequestMemory &lt;= GLIDEIN_MaxMemMBs ) ) ) &amp;&amp; ( ( ( GLIDEIN_ToRetire is undefined ) || ( CurrentTime &lt; GLIDEIN_ToRetire ) ) )</e></a>
+    <a n="MachineMaxVacateTime"><i>600</i></a>
+    <a n="GSI_DELEGATION_KEYBITS"><i>1024</i></a>
+    <a n="MASTER_GCB_RECONNECT_TIMEOUT"><i>1200</i></a>
+    <a n="Cpus"><i>1</i></a>
+    <a n="GLIDEIN_Site"><s>HIP</s></a>
+    <a n="GLIDEIN_Entry_Signature"><s>35872d84eead3785556637d4d66b7a5f987e3962</s></a>
+    <a n="TotalSlotMemory"><i>2500</i></a>
+    <a n="GLIDEIN_Description_File"><s>description.e7uaai.cfg</s></a>
+    <a n="GLIDEIN_MASTER_NAME"><s>glidein_13239@alg02-eth.local</s></a>
+    <a n="GLIDEIN_SEs"><s>madhatter.csc.fi</s></a>
+    <a n="EnteredCurrentState"><i>1409255674</i></a>
+    <a n="EnteredCurrentActivity"><i>1409255675</i></a>
+    <a n="DaemonStartTime"><i>1409255575</i></a>
+    <a n="Memory"><i>2500</i></a>
+    <a n="VirtualMachineID"><i>1</i></a>
+    <a n="TotalTimeClaimedIdle"><i>1</i></a>
+    <a n="NextFetchWorkDelay"><i>-1</i></a>
+    <a n="NiceUser"><b v="f"/></a>
+    <a n="NumPids"><i>5</i></a>
+    <a n="PREEMPT_GRACE_TIME"><e>10000000 * ( ( ( ( ( false ) || ( false ) || ( false ) || ( false ) ) || ( ( false ) || ( false ) || ( false ) || ( false ) ) ) ) isnt true )</e></a>
+    <a n="TotalTimeClaimedBusy"><i>3756</i></a>
+</c>
+
+
+</classads>
