@@ -104,6 +104,7 @@ class glideinFrontendElement:
         self.security_name = self.elementDescript.merged_data['SecurityName']
         self.factory_pools = self.elementDescript.merged_data['FactoryCollectors']
 
+        self.reserve_running = int(self.elementDescript.element_data['ReserveRunningPerEntry'])
         self.max_running = int(self.elementDescript.element_data['MaxRunningPerEntry'])
         self.fraction_running = float(self.elementDescript.element_data['FracRunningPerEntry'])
         self.max_idle = int(self.elementDescript.element_data['MaxIdlePerEntry'])
@@ -991,11 +992,9 @@ class glideinFrontendElement:
         Identify the limits and curbs triggered for advertizing the info
         glideresource classad
         """
-
         if self.request_removal_wtype is not None:
             # we are requesting the removal of glideins, do not request more
             return 0
-
         if ( (count_status['Total'] >= self.max_running) or
              (count_status['Idle'] >= self.max_vms_idle) or
              (total_glideins >= self.total_max_glideins) or
@@ -1062,11 +1061,11 @@ class glideinFrontendElement:
                 glidein_min_idle/=2 # above global treshold, reduce further
                 limits_triggered['CurbIdleGlideinsGlobal'] = 'count=%i, curb=%i' % (global_total_idle_glideins, self.global_total_curb_vms_idle)
 
-            if glidein_min_idle<1:
-                glidein_min_idle=1
+            if glidein_min_idle<self.reserve_idle:
+                glidein_min_idle=self.reserve_idle
         else:
-            # no idle, make sure the glideins know it
-            glidein_min_idle = 0
+            # no idle, lets's ask for reserve idle
+            glidein_min_idle = self.reserve_idle
 
         return int(glidein_min_idle)
 
@@ -1133,6 +1132,10 @@ class glideinFrontendElement:
             else:
                 # No reason for a delta when we don't need more than we have
                 glidein_max_run = int(real)
+
+        # if reserve_running is > 0 then we want to keep some running glideins for this group
+        if glidein_max_run < self.reserve_running:
+            glidein_max_run = self.reserve_running
 
         return glidein_max_run
 
