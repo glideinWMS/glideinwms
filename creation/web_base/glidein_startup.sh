@@ -1287,6 +1287,15 @@ function fetch_file_regular {
 
 function fetch_file {
     if [ $# -ne 7 ]; then
+        if [ $# -ge 8 ]; then
+            # be compatible with new formats with more parameters
+            echo "Ignoring extra parameters ($# instead of 7)" 1>&2
+            fetch_file_try "$1" "$2" "$3" "$4" "$5" "$7" "$8"
+            if [ $? -ne 0 ]; then
+                glidein_exit 1
+            fi
+            return 0
+        fi
         if [ $# -eq 6 ]; then
             # added to maintain compatibility with old file list format
             #TODO: remove in version 3.3
