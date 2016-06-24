@@ -3,6 +3,9 @@
 process_branch() {
     local git_branch=$1
 
+    echo "===================================================================="
+    echo "GIT BRANCH: $git_branch"
+    echo "===================================================================="
     # Initialize logs
     echo -n > $PYLINT_LOG
     echo -n > $PEP8_LOG
