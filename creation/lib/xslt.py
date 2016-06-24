@@ -1,6 +1,8 @@
-from distutils.spawn import find_executable
 import os
 import subprocess
+# pylint: disable=no-name-in-module
+from distutils.spawn import find_executable
+# pylint: enable=no-name-in-module
 
 def xslt_xml(old_xmlfile, xslt_plugin_dir):
     ''' Take an XML file, transform it via any XSLT in the
