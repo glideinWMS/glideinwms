@@ -106,9 +106,19 @@ thead {
 }
 th {
     background-color: #00ccff;
+    padding: 8px;
 }
 tr, td {
     padding: 5px;
+    text-align: center;
+}
+tr.failed, td.failed {
+    background-color: #ff0000;
+    border: 0px solid black;
+}
+tr.passed, td.passed {
+    background-color: #00ff00;
+    border: 0px solid black;
 }
 </style>
 
@@ -126,11 +136,11 @@ init_results_logging() {
 <table>
   <thead>
     <tr>
-      <td>GIT BRANCH</td>
-      <td>FILES CHECKED</td>
-      <td>FILES WITH ERRORS</td>
-      <td>TOTAL ERRORS</td>
-      <td>PEP8 ERRORS</td>
+      <th>GIT BRANCH</th>
+      <th>FILES CHECKED</th>
+      <th>FILES WITH ERRORS</th>
+      <th>TOTAL ERRORS</th>
+      <th>PEP8 ERRORS</th>
     </tr>
   </thead>
   <tbody>
@@ -142,15 +152,25 @@ TABLE_START
 log_branch_results() {
     local mail_file=$1
     local branch_results=$2
+    unset GIT_BRANCH
+    unset GIT_CHECKOUT
+    unset FILES_CHECKED_COUNT
+    unset PYLINT_ERROR_FILES_COUNT
+    unset PYLINT_ERROR_COUNT
+    unset PEP8_ERROR_COUNT
     source $branch_results
 
+    class=$GIT_CHECKOUT
+    if [ "$class" = "PASSED" ]; then
+        [ ${PYLINT_ERROR_COUNT:-1} -gt 0 ] && class="FAILED"
+    fi
     cat >> $mail_file << TABLE_ROW
-<tr>
-    <td>$GIT_BRANCH</td>
-    <td>$FILES_CHECKED_COUNT</td>
-    <td>$PYLINT_ERROR_FILES_COUNT</td>
-    <td>$PYLINT_ERROR_COUNT</td>
-    <td>$PEP8_ERROR_COUNT</td>
+<tr class='$class'>
+    <th>$GIT_BRANCH</th>
+    <td class='$class'>${FILES_CHECKED_COUNT:-NA}</td>
+    <td class='$class'>${PYLINT_ERROR_FILES_COUNT:-NA}</td>
+    <td class='$class'>${PYLINT_ERROR_COUNT:-NA}</td>
+    <td class='$class'>${PEP8_ERROR_COUNT:-NA}</td>
 </tr>
 TABLE_ROW
 }
