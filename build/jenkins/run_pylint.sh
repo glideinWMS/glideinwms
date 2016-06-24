@@ -1,29 +1,32 @@
 #!/bin/sh
 
 process_branch() {
-    local git_branch=$1
+    local pylint_log=$1
+    local pep8_log=$2
+    local results=$3
+    local git_branch=$4
 
     echo "===================================================================="
     echo "GIT BRANCH: $git_branch"
     echo "===================================================================="
     # Initialize logs
-    echo -n > $PYLINT_LOG
-    echo -n > $PEP8_LOG
-    echo -n > $RESULTS
+    echo -n > $pylint_log
+    echo -n > $pep8_log
+    echo -n > $results
 
-    echo "GIT_BRANCH=\"$git_branch\"" >> $RESULTS
+    echo "GIT_BRANCH=\"$git_branch\"" >> $results
     if [ -n "$git_branch" ]; then
         cd $GLIDEINWMS_SRC
         git checkout $git_branch
         cd $WORKSPACE
         if [ $? -ne 0 ]; then
             log_nonzero_rc "pep8" $?
-            echo "GIT_CHECKOUT=\"FAILED\"" >> $RESULTS
+            echo "GIT_CHECKOUT=\"FAILED\"" >> $results
             exit 1
         fi
     fi
     # Consider success if no git checkout was done
-    echo "GIT_CHECKOUT=\"PASSED\"" >> $RESULTS
+    echo "GIT_CHECKOUT=\"PASSED\"" >> $results
 
     # pylint related variables
     PYLINT_RCFILE=/dev/null
@@ -55,8 +58,8 @@ process_branch() {
 
     # get list of python scripts without .py extension
     scripts=`find glideinwms -path glideinwms/.git -prune -o -exec file {} \; -a -type f | grep -i python | grep -vi '\.py' | cut -d: -f1 | grep -v "\.html$"`
-    pylint $PYLINT_OPTIONS -e F0401 ${scripts}  >> $PYLINT_LOG || log_nonzero_rc "pylint" $?
-    pep8 $PEP8_OPTIONS ${scripts} >> $PEP8_LOG || log_nonzero_rc "pep8" $?
+    pylint $PYLINT_OPTIONS -e F0401 ${scripts}  >> $pylint_log || log_nonzero_rc "pylint" $?
+    pep8 $PEP8_OPTIONS ${scripts} >> $pep8_log || log_nonzero_rc "pep8" $?
 
     currdir=`pwd`
     files_checked=`echo $scripts`
@@ -68,18 +71,18 @@ process_branch() {
         for file in *.py
         do
           files_checked="$files_checked $file"
-          pylint $PYLINT_OPTIONS $file >> $PYLINT_LOG || log_nonzero_rc "pylint" $?
-          pep8 $PEP8_OPTIONS $file >> $PEP8_LOG || log_nonzero_rc "pep8" $?
+          pylint $PYLINT_OPTIONS $file >> $pylint_log || log_nonzero_rc "pylint" $?
+          pep8 $PEP8_OPTIONS $file >> $pep8_log || log_nonzero_rc "pep8" $?
         done
         cd $currdir
     done
-    echo "FILES_CHECKED=\"$files_checked\"" >> $RESULTS
-    echo "FILES_CHECKED_COUNT=`echo $files_checked | wc -w`" >> $RESULTS
-    echo "PYLINT_ERROR_FILES_COUNT=`grep '^\*\*\*\*\*\*' $PYLINT_LOG | wc -l`" >> $RESULTS
-    echo "PYLINT_ERROR_COUNT=`grep '^E:' $PYLINT_LOG | wc -l`" >> $RESULTS
-    echo "PEP8_ERROR_COUNT=`cat $PEP8_LOG | wc -l`" >> $RESULTS
+    echo "FILES_CHECKED=\"$files_checked\"" >> $results
+    echo "FILES_CHECKED_COUNT=`echo $files_checked | wc -w`" >> $results
+    echo "PYLINT_ERROR_FILES_COUNT=`grep '^\*\*\*\*\*\*' $pylint_log | wc -l`" >> $results
+    echo "PYLINT_ERROR_COUNT=`grep '^E:' $pylint_log | wc -l`" >> $results
+    echo "PEP8_ERROR_COUNT=`cat $pep8_log | wc -l`" >> $results
     echo "----------------"
-    cat $RESULTS
+    cat $results
     echo "----------------"
 }
 
@@ -181,7 +184,7 @@ init_results_mail $RESULTS_MAIL
 init_results_logging $RESULTS_MAIL
 
 if [ $# -eq 0 ]; then
-    process_branch $gb
+    process_branch $PYLINT_LOG $PEP8_LOG $RESULTS $gb
     log_branch_results $RESULTS_MAIL $RESULTS
 fi
 
@@ -189,12 +192,12 @@ for gb in `echo $git_branches | sed -e 's/,/ /g'`
 do
 
     if [ -n "$gb" ]; then
-        PYLINT_LOG="$PYLINT_LOG.$gb"
-        PEP8_LOG="$PEP8_LOG.$gb"
-        RESULTS="$RESULTS.$gb"
+        pylint_log="$PYLINT_LOG.$gb"
+        pep8_log="$PEP8_LOG.$gb"
+        results="$RESULTS.$gb"
     fi
     process_branch $gb
-    log_branch_results $RESULTS_MAIL $RESULTS
+    log_branch_results $RESULTS_MAIL $results
 done
 
 finalize_results_logging $RESULTS_MAIL
