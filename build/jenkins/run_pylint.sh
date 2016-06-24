@@ -196,7 +196,7 @@ do
         pep8_log="$PEP8_LOG.$gb"
         results="$RESULTS.$gb"
     fi
-    process_branch $gb
+    process_branch $pylint_log $pep8_log $results $gb
     log_branch_results $RESULTS_MAIL $results
 done
 
