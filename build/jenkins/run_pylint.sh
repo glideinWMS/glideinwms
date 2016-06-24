@@ -18,11 +18,12 @@ process_branch() {
     if [ -n "$git_branch" ]; then
         cd $GLIDEINWMS_SRC
         git checkout $git_branch
+        checkout_rc=$?
         cd $WORKSPACE
-        if [ $? -ne 0 ]; then
+        if [ $checkout_rc -ne 0 ]; then
             log_nonzero_rc "pep8" $?
             echo "GIT_CHECKOUT=\"FAILED\"" >> $results
-            exit 1
+            return
         fi
     fi
     # Consider success if no git checkout was done
