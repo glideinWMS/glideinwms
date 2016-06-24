@@ -75,9 +75,11 @@ print_python_info() {
         bo="<b>"
         bc="</b>"
     fi
-    echo "${bo}PYTHON INFO:${bc} `which python`$br"
-    echo "${bo}PYLINT INFO:${bc} `pylint --version`$br"
-    echo "${bo}PEP8 INFO:${bc} `pep8 --version`$br"
+    echo "${bo}HOSTNAME:${bc} `hostname -f`$br"
+    echo "${bo}LINUX DISTRO:${bc} `lsb_release -d`$br"
+    echo "${bo}PYTHON:${bc} `which python`$br"
+    echo "${bo}PYLINT:${bc} `pylint --version`$br"
+    echo "${bo}PEP8:${bc} `pep8 --version`$br"
 }
 
 
