@@ -1,6 +1,6 @@
 #!/bin/sh
 
-function log_nonzero_rc {
+log_nonzero_rc() {
     echo "`date` ERROR: $1 failed with non zero exit code ($2)" 1>&2
 }
 
@@ -66,10 +66,32 @@ setup_python_venv() {
     export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/frontend
     export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/tools
     export PYTHONPATH=${PYTHONPATH}:${GLIDEINWMS_SRC}/tools/lib
+}
 
-    echo "====================================================="
-    echo "Using python: `which python`"
-    pylint --version
-    echo "====================================================="
 
+print_python_info() {
+    if [ $# -ne 0 ]; then
+        br="<br/>"
+        bo="<b>"
+        bc="</b>"
+    fi
+    echo "${bo}HOSTNAME:${bc} `hostname -f`$br"
+    echo "${bo}LINUX DISTRO:${bc} `lsb_release -d`$br"
+    echo "${bo}PYTHON:${bc} `which python`$br"
+    echo "${bo}PYLINT:${bc} `pylint --version`$br"
+    echo "${bo}PEP8:${bc} `pep8 --version`$br"
+}
+
+
+mail_results() {
+    local contents=$1
+    local subject=$2
+    echo "From: gwms-builds@donot-reply.com;
+To: parag@fnal.gov;
+Subject: $subject;
+Content-Type: text/html;
+MIME-VERSION: 1.0;
+;
+`cat $contents`
+" | sendmail -t
 }
