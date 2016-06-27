@@ -211,8 +211,8 @@ fi
 
 for gb in `echo $git_branches | sed -e 's/,/ /g'`
 do
-
     if [ -n "$gb" ]; then
+        gb=`echo $gb | sed -e 's|/|_|g'`
         pylint_log="$PYLINT_LOG.$gb"
         pep8_log="$PEP8_LOG.$gb"
         results="$RESULTS.$gb"
