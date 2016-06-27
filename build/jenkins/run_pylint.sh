@@ -19,9 +19,10 @@ process_branch() {
         cd $GLIDEINWMS_SRC
         git checkout $git_branch
         checkout_rc=$?
+        git pull
         cd $WORKSPACE
         if [ $checkout_rc -ne 0 ]; then
-            log_nonzero_rc "pep8" $?
+            log_nonzero_rc "git checkout" $?
             echo "GIT_CHECKOUT=\"FAILED\"" >> $results
             return
         fi
@@ -212,10 +213,10 @@ fi
 for gb in `echo $git_branches | sed -e 's/,/ /g'`
 do
     if [ -n "$gb" ]; then
-        gb=`echo $gb | sed -e 's|/|_|g'`
-        pylint_log="$PYLINT_LOG.$gb"
-        pep8_log="$PEP8_LOG.$gb"
-        results="$RESULTS.$gb"
+        gb_escape=`echo $gb | sed -e 's|/|_|g'`
+        pylint_log="$PYLINT_LOG.$gb_escape"
+        pep8_log="$PEP8_LOG.$gb_escape"
+        results="$RESULTS.$gb_escape"
     fi
     process_branch $pylint_log $pep8_log $results $gb
     log_branch_results $RESULTS_MAIL $results
