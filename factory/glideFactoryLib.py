@@ -793,6 +793,15 @@ def sanitizeGlideins(condorq, log=logSupport.log, factoryConfig=None):
         removeGlideins(condorq.schedd_name, runstale_list,
                        log=log, factoryConfig=factoryConfig)
 
+    # Check if there are held glideins that are not recoverable AND held for more than 20 minutes
+    unrecoverable_held_forcex_list = extractUnrecoverableHeldForceX(condorq)
+    if len(unrecoverable_held_forcex_list) > 0:
+        glideins_sanitized = 1
+        log.warning("Found %i unrecoverable held glideins that have been held for over 20 minutes" 
+                    % len(unrecoverable_held_forcex_list))
+        removeGlideins(condorq.schedd_name, unrecoverable_held_forcex_list,
+                       force=True, log=log, factoryConfig=factoryConfig)
+
     # Check if there are held glideins that are not recoverable
     unrecoverable_held_list = extractUnrecoverableHeldSimple(condorq)
     if len(unrecoverable_held_list) > 0:
@@ -800,14 +809,6 @@ def sanitizeGlideins(condorq, log=logSupport.log, factoryConfig=None):
         log.warning("Found %i unrecoverable held glideins" % len(unrecoverable_held_list))
         removeGlideins(condorq.schedd_name, unrecoverable_held_list,
                        force=False, log=log, factoryConfig=factoryConfig)
-
-    # Check if there are held glideins that are not recoverable AND held for more than 20 minutes
-    unrecoverable_held_forcex_list = extractUnrecoverableHeldForceX(condorq)
-    if len(unrecoverable_held_forcex_list) > 0:
-        glideins_sanitized = 1
-        log.warning("Found %i unrecoverable held glideins that have been held for over 20 minutes" % len(unrecoverable_held_forcex_list))
-        removeGlideins(condorq.schedd_name, unrecoverable_held_forcex_list,
-                       force=True, log=log, factoryConfig=factoryConfig)
 
     # Check if there are held glideins
     held_list = extractRecoverableHeldSimple(condorq,
@@ -1253,24 +1254,22 @@ def removeGlideins(schedd_name, jid_list, force=False, log=logSupport.log,
             is_not_first = 1
             time.sleep(factoryConfig.remove_sleep)
 
-# for unknown reason, this 2 lines prevent the next thread (if force == True) from running
-#            condorManager.condorRemoveOne("%li.%li" % (jid[0], jid[1]), schedd_name)
-#            removed_jids.append(jid)
-# So, I am proposing to change the order of execution, i.e. let's see if force==True first, and then regular remove
-        # Force the removal if requested
-        if force == True:
-            try:
-                log.info("Forcing the removal of glideins in X state")
-                condorManager.condorRemoveOne("%li.%li" % (jid[0], jid[1]), schedd_name, do_forcex=True)
-            except condorExe.ExeError, e:
-                log.warning("Forcing the removal of glideins in %s.%s state failed" % (jid[0], jid[1]))
-        else:
-            try:
-                condorManager.condorRemoveOne("%li.%li" % (jid[0], jid[1]), schedd_name)
-                removed_jids.append(jid)
-            except condorExe.ExeError, e:
-                # silently ignore errors, and try next one
-                log.warning("removeGlidein(%s,%li.%li): %s" % (schedd_name, jid[0], jid[1], e))
+        try:
+            # this will put a job in X state so that the next condor_rm --forcex below should work
+            condorManager.condorRemoveOne("%li.%li" % (jid[0], jid[1]), schedd_name)
+            removed_jids.append(jid)
+
+            # Force the removal if requested
+            if force == True:
+                try:
+                    log.info("Forcing the removal of glideins in X state")
+                    condorManager.condorRemoveOne("%li.%li" % (jid[0], jid[1]), schedd_name, do_forcex=True)
+                except condorExe.ExeError, e:
+                    log.warning("Forcing the removal of glideins in %s.%s state failed" % (jid[0], jid[1]))
+
+        except condorExe.ExeError, e:
+            # silently ignore errors, and try next one
+            log.warning("removeGlidein(%s,%li.%li): %s" % (schedd_name, jid[0], jid[1], e))
 
     log.info("Removed %i glideins on %s: %s" % (len(removed_jids), schedd_name, removed_jids))
 
@@ -1643,10 +1642,9 @@ def isGlideinHeldTwentyMins(jobInfo, factoryConfig=None):
         factoryConfig = globals()['factoryConfig']
 
     greater_than_twenty_minutes = False
-    current_time = time.time()
-    past_time    = jobInfo.get('EnteredCurrentStatus')
-    timelapsed = (current_time - past_time)
-    if timelapsed > 1200: # 20 minutes
+    nsysholds  = jobInfo.get('NumSystemHolds')
+    log.info("Unrecoverble Held for NumSystemHolds = %d minutes" % nsysholds )
+    if nsysholds > 19:
         greater_than_twenty_minutes = True
 
     return greater_than_twenty_minutes
