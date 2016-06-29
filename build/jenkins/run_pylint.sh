@@ -196,10 +196,18 @@ export GLIDEINWMS_SRC=$WORKSPACE/glideinwms
 source $GLIDEINWMS_SRC/build/jenkins/utils.sh
 setup_python_venv $WORKSPACE
 
-PYLINT_LOG=$WORKSPACE/pylint.log
-PEP8_LOG=$WORKSPACE/pep8.log
-RESULTS=$WORKSPACE/results.log
-RESULTS_MAIL=$WORKSPACE/mail.results
+# Jenkins will reuse the workspace on the slave node if it is available
+# There is no reason for not using it, but we need to make sure we keep
+# logs for same build together to make it easier to attach to the email
+# notifications or for violations. $BUILD_NUMBER is only available when
+# running this script from the jenkins environment
+LOG_DIR=$WORKSPACE/$BUILD_NUMBER
+[ -d $LOG_DIR ] || mkdir -p $LOG_DIR
+
+PYLINT_LOG=$LOG_DIR/pylint.log
+PEP8_LOG=$LOG_DIR/pep8.log
+RESULTS=$LOG_DIR/results.log
+RESULTS_MAIL=$LOG_DIR/mail.results
 
 
 init_results_mail $RESULTS_MAIL
