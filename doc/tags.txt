@@ -1,8 +1,9 @@
-v3_3    Support native configuration of EC2 spot prices and AZ in the entry
+v3_3    Includes all features and bug fixes released in v3_2_14_1
+        Support native configuration of EC2 spot prices and AZ in the entry
         Support frontend policies specified in external python file
         Support changes to VM ID and VM Type without need to reconfig/upgrade
           frontend service
-        Includes all features and bug fixes released in v3_2_13
+        Bug Fix: Factory forgets pilots using RFC proxy on proxy renewals 
 
 v3_2_14_1 Added support for python in EL7
 	Updated glidein_startup.sh to make it compatible with factory changes

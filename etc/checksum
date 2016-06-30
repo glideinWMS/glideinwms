@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_3_rc9
+# GLIDEINWMS_VERSION v3_3_rc10
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -26,13 +26,13 @@ dc8807c7f6eefcba68bd0aab4eab2b2b  ./creation/lib/cgWDictFile.py
 172e148818f2a2bf07eb9c214cc8a4ba  ./creation/lib/cvWConsts.py
 077f753922f46a9d3d649c0eb56e8c49  ./creation/lib/cvWCreate.py
 21a570bcb3ba1f6d3fbc54c0afdd1ad1  ./creation/lib/cvWDictFile.py
-63e6dcab295167ef4890cc6fb5b64d78  ./creation/lib/cvWParamDict.py
-034e99d48956bf577cfbc8d72d7b4d7d  ./creation/lib/cvWParams.py
+f8c698d19dd4a12df2f694262aff612f  ./creation/lib/cvWParamDict.py
+9d5e19375e71302b15c2c205ff6383d1  ./creation/lib/cvWParams.py
 082cce4b50cfa5d25961157e23e3a2e2  ./creation/lib/factoryXmlConfig.py
 fa0be9f0c681574b728d34c15b4c5d26  ./creation/lib/factory_defaults.xml
 1cf06bb1ccb5e9bcafad8d4f4c02a0ce  ./creation/lib/matchPolicy.py
 bb95254b7fce5bf4929974db32ef0e97  ./creation/lib/xmlConfig.py
-414dd08400e9050a5c7e6a64fa7a4d94  ./creation/lib/xslt.py
+4b519007ebf0fe956a19758213950679  ./creation/lib/xslt.py
 bd792b8d6a0ed1d97e2b75c77adc420d  ./creation/reconfig_frontend
 d44c98fbe2b90f77e1b38a9d96f638d5  ./creation/reconfig_glidein
 16d248f9fe94e3dce4749a53ecdff454  ./creation/templates/factory_initd_startup_template
@@ -151,11 +151,12 @@ c3a1c5b5b6bfd7f4ee399b2da67fc66c  ./factory/tools/lib/gWftArgsHelper.py
 0bebcfc9e26f62064fd084233e347e76  ./factory/tools/proxy_info
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 281b86c8a2bc919bfa1cdaedebebaf0c  ./frontend/checkFrontend.py
-573dba0aeacd705bd20009caf558dfec  ./frontend/glideinFrontend.py
+0f7088add353cbaf4886cce9ccebcc42  ./frontend/glideinFrontend.py
 9c74512e75eefe584395e260042ae3db  ./frontend/glideinFrontendConfig.py
-39981b5e17e49896ec93185f1c43c6aa  ./frontend/glideinFrontendElement.py
-c841ee016207d8f71b4290a4714ea6be  ./frontend/glideinFrontendInterface.py
-8b30acb451ec2c2cc6299b683b42d42c  ./frontend/glideinFrontendLib.py
+a5d67ff1645932a8f81a9eed37027f50  ./frontend/glideinFrontendDowntimeLib.py
+559206a0a0f090e2c252abbcf1009818  ./frontend/glideinFrontendElement.py
+8566dea4557c116cc1aadde1190f6295  ./frontend/glideinFrontendInterface.py
+ab617270ea49d0c10686b9a59efd9059  ./frontend/glideinFrontendLib.py
 1754e4484e221f13578512bd1c825090  ./frontend/glideinFrontendMonitorAggregator.py
 466a10f70924210c5b2642d4b0f7cd5b  ./frontend/glideinFrontendMonitoring.py
 2a1b5c91fe810a76649e78890e15c3dc  ./frontend/glideinFrontendPidLib.py
