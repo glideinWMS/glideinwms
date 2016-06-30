@@ -1642,7 +1642,7 @@ def isGlideinHeldTwentyMins(jobInfo, factoryConfig=None):
 
     greater_than_twenty_minutes = False
     nsysholds  = jobInfo.get('NumSystemHolds')
-    log.info("Unrecoverble Held for NumSystemHolds = %d minutes" % nsysholds )
+#    log.info("Unrecoverble Held for NumSystemHolds = %d minutes" % nsysholds )
     if nsysholds > 19:
         greater_than_twenty_minutes = True
 
