@@ -989,14 +989,15 @@ def extractStaleSimple(q, factoryConfig=None):
 def extractUnrecoverableHeldSimple(q, factoryConfig=None):
     #  Held==5 and glideins are not recoverable
     #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
-    qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and isGlideinUnrecoverable(el, factoryConfig=factoryConfig)))
+    qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and isGlideinUnrecoverable(el, factoryConfig=factoryConfig)
+                                     and not isGlideinHeldTwentyIterations(el, factoryConfig=factoryConfig)))
     qheld_list = qheld.keys()
     return qheld_list
 
 def extractUnrecoverableHeldForceX(q, factoryConfig=None):
     #  Held==5 and glideins are not recoverable AND been held for more than 20 minutes
     qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and isGlideinUnrecoverable(el, factoryConfig=factoryConfig) 
-                                     and isGlideinHeldTwentyMins(el, factoryConfig=factoryConfig)))
+                                     and isGlideinHeldTwentyIterations(el, factoryConfig=factoryConfig)))
     qheld_list = qheld.keys()
     return qheld_list
 
@@ -1624,10 +1625,10 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
     return unrecoverable
 
 
-def isGlideinHeldTwentyMins(jobInfo, factoryConfig=None):
+def isGlideinHeldTwentyIterations(jobInfo, factoryConfig=None):
     """
     This function looks at the glidein job's information and returns if the
-    CondorG job is held for more than 20 minutes
+    CondorG job is held for more than 20 iterations
 
     This is useful to remove Unrecoverable glidein (CondorG job) with forcex option.
 
@@ -1640,13 +1641,12 @@ def isGlideinHeldTwentyMins(jobInfo, factoryConfig=None):
     if factoryConfig is None:
         factoryConfig = globals()['factoryConfig']
 
-    greater_than_twenty_minutes = False
+    greater_than_twenty_iterations = False
     nsysholds  = jobInfo.get('NumSystemHolds')
-#    log.info("Unrecoverble Held for NumSystemHolds = %d minutes" % nsysholds )
     if nsysholds > 19:
-        greater_than_twenty_minutes = True
+        greater_than_twenty_iterations = True
 
-    return greater_than_twenty_minutes
+    return greater_than_twenty_iterations
 
 ############################################################
 # only allow simple strings
