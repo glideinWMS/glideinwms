@@ -150,7 +150,7 @@ def up( opt_dict ):
     if (rtn>0):
         return 0
     else:
-        print "Entry is not in downtime."
+        print "Frontend is not in downtime."
         return 1
 
 
