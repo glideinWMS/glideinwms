@@ -15,7 +15,7 @@ test_time_rotate:
   max_days: 0.001
   min_days: 0.00001
   max_mbytes: 10.0
-  sleep: 10 # number of seconds to sleep between log statements
+  sleep: 1 # number of seconds to sleep between log statements
 
 test_backup_count:
   log_name: backupCount
@@ -24,9 +24,9 @@ test_backup_count:
   max_days: 1
   min_days: 0
   max_mbytes: 1
-  backup_count: 5
+  backup_count: 10
 
-test_compress:
+test_compression:
   log_name: compress
   msg_types: INFO,DEBUG,ERR,WARN
   extension: count

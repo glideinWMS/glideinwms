@@ -4,7 +4,8 @@ import sys
 import shutil
 import tempfile
 import tarfile
-import unittest
+import unittest2 as unittest
+import xmlrunner
 
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
@@ -24,6 +25,7 @@ class fakeObj:
         self.max_run_glideins=30
 
 class fakeDescript:
+
     def __init__(self):
         self.merged_data={}
         self.merged_data['ProxySecurityClasses']={}
@@ -33,6 +35,11 @@ class fakeDescript:
         self.merged_data['ProxyPilotFiles']={}
         self.merged_data['ProxyVMIds']={}
         self.merged_data['ProxyVMTypes']={}
+        self.merged_data['ProxyProjectIds']={}
+        self.merged_data['ProxyCreationScripts']={}
+        self.merged_data['ProxyUpdateFrequency']={}
+
+
     def addproxy(self,name):
         self.merged_data['ProxySecurityClasses'][name]="frontend"
         self.merged_data['ProxyTrustDomains'][name]="OSG"
@@ -157,8 +164,5 @@ class TestPlugins(unittest.TestCase):
         self.killCredlist(self.credlist)
 
 
-def main():
-    return runTest(TestPlugins)
-
 if __name__ == '__main__':
-    sys.exit(main())
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output='unittests-reports'))

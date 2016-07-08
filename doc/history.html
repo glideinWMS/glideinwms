@@ -84,6 +84,17 @@ Related Pages:
 <a name="stable"></a>
     <h3>Stable Series</h3>
     <ul>
+
+      <li>
+        <b>v3_2_14_1</b> released on June 17, 2016 (<a href="http://glideinwms.fnal.gov/doc.v3_2_14_1/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_14_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_14_1.tgz">Tarball</a>)<br>
+      <ul>
+	<li>Added support for python in EL7
+        <li>Updated glidein_startup.sh to make it compatible with factory changes
+        coming in v3_2_15
+        <li>Bug Fix: Updated condor_config files used by the Schedd to work with
+        different versions of HTCondor including 8.4.7
+      </ul>
+      </li>
       <li>
         <b>v3_2_14</b> released on June 03, 2016 (<a href="http://glideinwms.fnal.gov/doc.v3_2_14/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_14/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_14.tgz">Tarball</a>)<br>
       <ul>
@@ -112,12 +123,9 @@ Related Pages:
         like RequestCpus are classad expressions
         <li>Bug Fix: Fixed an issue where a slave frontend in HA mode would
         crash if the WMS collector was down
-      </ul>
-
-
-
-
-      <li>
+     </ul>
+     </li>
+     <li>
         <b>v3_2_13</b> released on March 09, 2016 (<a href="http://glideinwms.fnal.gov/doc.v3_2_13/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_13/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_13.tgz">Tarball</a>)<br>
       <ul>
         <li>Support XSEDE ProjectId as a credential in frontend

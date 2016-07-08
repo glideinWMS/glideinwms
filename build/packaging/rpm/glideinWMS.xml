@@ -1,0 +1,65 @@
+<glidein advertise_delay="5" advertise_with_multiple="False" advertise_with_tcp="False" factory_name="gfactory_service" glidein_name="gfactory_instance" loop_delay="60" restart_attempts="3" restart_interval="1800" schedd_name="FACTORY_HOSTNAME,schedd_glideins3@FACTORY_HOSTNAME,schedd_glideins5@FACTORY_HOSTNAME,schedd_glideins2@FACTORY_HOSTNAME,schedd_glideins4@FACTORY_HOSTNAME" factory_versioning="False">
+   <log_retention>
+      <condor_logs max_days="14.0" max_mbytes="100.0" min_days="3.0"/>
+      <job_logs max_days="7.0" max_mbytes="100.0" min_days="3.0"/>
+      <summary_logs max_days="31.0" max_mbytes="100.0" min_days="3.0"/>
+      <process_logs>
+		<process_log extension="info" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="INFO"/>
+		<process_log extension="err" max_days="7.0" max_mbytes="100.0" min_days="3.0" msg_types="DEBUG,ERR,WARN,EXCEPTION"/>
+      </process_logs>
+   </log_retention>
+   <monitor base_dir="/var/lib/gwms-factory/web-area/monitor" flot_dir="/usr/share/javascriptrrd/flot" javascriptRRD_dir="/usr/share/javascriptrrd/js" jquery_dir="/usr/share/javascriptrrd/flot"/>
+   <monitor_footer display_txt="" href_link=""/>
+   <security key_length="2048" pub_key="RSA" remove_old_cred_age="30" remove_old_cred_freq="24" reuse_oldkey_onstartup_gracetime="900">
+      <frontends>
+         <frontend name="vofrontend_service" identity="vofrontend_service@FACTORY_HOSTNAME">
+            <security_classes>
+               <security_class name="frontend" username="frontend"/>
+            </security_classes>
+         </frontend>
+      </frontends>
+   </security>
+   <stage base_dir="/var/lib/gwms-factory/web-area/stage" use_symlink="True" web_base_url="http://FACTORY_HOSTNAME/factory/stage"/>
+   <submit base_client_log_dir="/var/log/gwms-factory/client" base_client_proxies_dir="/var/lib/gwms-factory/client-proxies" base_dir="/var/lib/gwms-factory/work-dir" base_log_dir="/var/log/gwms-factory/server"/>
+   <attrs>
+      <attr name="CONDOR_VERSION" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="default"/>
+      <attr name="GLEXEC_JOB" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="True"/>
+      <attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="True"/>
+      <attr name="USE_MATCH_AUTH" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="True"/>
+   </attrs>
+   <entries>
+      <entry name="TEST_ENTRY" enabled="False" gatekeeper="gatekeeper.domain.tld/jobmanager-condor" gridtype="gt2" rsl="(queue=default)(jobtype=single)" schedd_name="schedd_glideins2@FACTORY_HOSTNAME" verbosity="std" work_dir="OSG">
+         <config>
+            <max_jobs>
+                <per_entry held="1000" idle="4000" glideins="10000"/>
+                <default_per_frontend held="100" idle="400" glideins="5000"/>
+                <per_frontends>
+                </per_frontends>
+            </max_jobs>
+            <release max_per_cycle="20" sleep="0.2"/>
+            <remove max_per_cycle="5" sleep="0.2"/>
+            <restrictions require_voms_proxy="False"/>
+            <submit cluster_size="10" max_per_cycle="100" sleep="0.2"/>
+         </config>
+         <allow_frontends>
+         </allow_frontends>
+         <attrs>
+            <attr name="CONDOR_ARCH" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="default"/>
+            <attr name="CONDOR_OS" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="default"/>
+            <attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="OSG"/>
+            <attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="ITB_GRATIA_TEST"/>
+         </attrs>
+         <files>
+         </files>
+         <infosys_refs>
+         </infosys_refs>
+         <monitorgroups>
+         </monitorgroups>
+      </entry>
+   </entries>
+   <condor_tarballs>
+      <condor_tarball arch="default" base_dir="/usr" os="default" version="default"/>
+   </condor_tarballs>
+   <files>
+   </files>
+</glidein>

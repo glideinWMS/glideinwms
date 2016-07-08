@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_14
+# GLIDEINWMS_VERSION v3_2_14_1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -87,7 +87,7 @@ c1527cf661115760242852c0421921bd  ./creation/web_base/gcb_setup.sh
 dbad9c5fe5b9924436789283d4d53609  ./creation/web_base/glidein_cpus_setup.sh
 c048847d2338b10b8c31c12be4633fea  ./creation/web_base/glidein_memory_setup.sh
 9c5707b728923b90c8f56ac201f6c686  ./creation/web_base/glidein_sitewms_setup.sh
-c87c4c4c75094d1b24aaf7385bf5ea87  ./creation/web_base/glidein_startup.sh
+5d9fcbfd657a8e7899934b5035f5b1a9  ./creation/web_base/glidein_startup.sh
 1f3bbb3416afab773e58aab138e4ccd3  ./creation/web_base/java_setup.sh
 78d344f14e5e2144227c564f2d90401e  ./creation/web_base/local_start.sh
 014c3eaf1abf62ff0f599579658e6a10  ./creation/web_base/nodes.blacklist
@@ -115,9 +115,6 @@ f24501720aea1eb06f5ad79a13587a05  ./factory/glideFactoryMonitorAggregator.py
 c5358cc494d4999e0158be1a40181239  ./factory/glideFactoryPidLib.py
 0b5e3511038a0b24703d832bf045cdeb  ./factory/manageFactoryDowntimes.py
 3983823350ba257c1be32a432fbf8084  ./factory/stopFactory.py
-82840e649f960fa7bc17ec51d339f9f5  ./factory/test_advertize.py
-d1a1ecb75fd8fcecdd8198874149aa98  ./factory/test_cm.py
-caee86395105358fffe7be142cfca3dd  ./factory/test_gfi.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/tools/__init__.py
 2282b8bd62ebd46762161d70e29cf89e  ./factory/tools/analyze_entries
 158584a1104e85541238fb486a6badb5  ./factory/tools/analyze_frontends
@@ -143,7 +140,7 @@ a8b315b8229dbe1cc978d29e116bd7de  ./factory/tools/find_matching_ids.py
 053e87efe508ba7c8d0f434818f36a4b  ./factory/tools/find_missing_ids.py
 e42da857a7614a1537bb1a5726c6f819  ./factory/tools/find_new_entries.py
 23e63f2e2b38f4aa2ce522236f6647fe  ./factory/tools/find_partial_matching_ids.py
-a682e4507bfa9d314dab4eee24e2427b  ./factory/tools/gwms-logcat.sh
+d0161898801a5c80b38ed84b71e9fdd2  ./factory/tools/gwms-logcat.sh
 919fa9b845944420d9b57bc58fd557bb  ./factory/tools/infosys_lib.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/tools/lib/__init__.py
 e5e7085488190f286e8010de400f3c58  ./factory/tools/lib/analyze.py
