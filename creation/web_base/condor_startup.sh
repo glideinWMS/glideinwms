@@ -560,6 +560,9 @@ GLIDEIN_PARENT_PID = $$
 
 START = $START_JOBS && (GLIDEIN_PS_SiteWMS_WN_Draining =?= False)
 
+#blah
+PREEMPT_GRACE_TIME = ifthenelse( (GLIDEIN_PS_SiteWMS_WN_Preempt =?= True), 1200, $PREEMPT_GRACE_TIME)
+
 EOF
 ####################################
 if [ $? -ne 0 ]; then
