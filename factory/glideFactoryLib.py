@@ -793,11 +793,11 @@ def sanitizeGlideins(condorq, log=logSupport.log, factoryConfig=None):
         removeGlideins(condorq.schedd_name, runstale_list,
                        log=log, factoryConfig=factoryConfig)
 
-    # Check if there are held glideins that are not recoverable AND held for more than 20 minutes
+    # Check if there are held glideins that are not recoverable AND held for more than 20 iterations
     unrecoverable_held_forcex_list = extractUnrecoverableHeldForceX(condorq)
     if len(unrecoverable_held_forcex_list) > 0:
         glideins_sanitized = 1
-        log.warning("Found %i unrecoverable held glideins that have been held for over 20 minutes" 
+        log.warning("Found %i unrecoverable held glideins that have been held for over 20 iterations" 
                     % len(unrecoverable_held_forcex_list))
         removeGlideins(condorq.schedd_name, unrecoverable_held_forcex_list,
                        force=True, log=log, factoryConfig=factoryConfig)
@@ -996,7 +996,7 @@ def extractUnrecoverableHeldSimple(q, factoryConfig=None):
     return qheld_list
 
 def extractUnrecoverableHeldForceX(q, factoryConfig=None):
-    #  Held==5 and glideins are not recoverable AND been held for more than 20 minutes
+    #  Held==5 and glideins are not recoverable AND been held for more than 20 iterations
     qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and isGlideinUnrecoverable(el, factoryConfig=factoryConfig) 
                                      and isGlideinHeldNTimes(el, factoryConfig=factoryConfig, n=20)))
     qheld_list = qheld.keys()
