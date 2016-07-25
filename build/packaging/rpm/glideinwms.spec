@@ -459,6 +459,10 @@ if [ ! -e %{frontend_dir}/monitor ]; then
     ln -s %{web_dir}/monitor %{frontend_dir}/monitor
 fi
 
+# Protecting from failure in case it is not running/installed
+/sbin/service httpd reload > /dev/null 2>&1 || :
+
+
 %post factory
 
 fqdn_hostname=`hostname -f`
@@ -471,6 +475,10 @@ if [ "$1" = "1" ] ; then
         ln -s %{_localstatedir}/log/gwms-factory %{factory_dir}/log
     fi
 fi
+
+# Protecting from failure in case it is not running/installed
+/sbin/service httpd reload > /dev/null 2>&1 || :
+
 
 %pre vofrontend-standalone
 # Add the "frontend" user and group if they do not exist
@@ -525,6 +533,16 @@ if [ "$1" = "0" ]; then
     rm -f %{factory_dir}/log
     rm -f %{factory_dir}/monitor
 fi
+
+
+%postun vofrontend-standalone
+# Protecting from failure in case it is not running/installed
+/sbin/service httpd reload > /dev/null 2>&1 || :
+
+%postun factory
+# Protecting from failure in case it is not running/installed
+/sbin/service httpd reload > /dev/null 2>&1 || :
+
 
 %clean
 rm -rf $RPM_BUILD_ROOT
