@@ -277,7 +277,9 @@ class ElementMergedDescript:
                     self.merged_data[t]=data[t]
 
         proxies=[]
-        for data in (self.frontend_data,self.element_data):
+        # switching the order, so that the group credential will 
+        # be chosen before the global credential when ProxyFirst is used.
+        for data in (self.element_data,self.frontend_data):
             if data.has_key('Proxies'):
                 proxies+=eval(data['Proxies'])
         self.merged_data['Proxies']=proxies
