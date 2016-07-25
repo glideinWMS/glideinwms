@@ -437,6 +437,14 @@ install -d $RPM_BUILD_ROOT%{factory_web_base}/../creation/templates
 install -m 0644 creation/templates/factory_initd_startup_template $RPM_BUILD_ROOT%{factory_web_base}/../creation/templates/
 install -m 0644 creation/templates/frontend_initd_startup_template $RPM_BUILD_ROOT%{web_base}/../creation/templates/
 
+%post usercollector
+/sbin/service condor condrestart > /dev/null 2>&1 || true
+
+
+%post userschedd
+/sbin/service condor condrestart > /dev/null 2>&1 || true
+
+
 %post vofrontend-standalone
 # $1 = 1 - Installation
 # $1 = 2 - Upgrade
@@ -460,7 +468,7 @@ if [ ! -e %{frontend_dir}/monitor ]; then
 fi
 
 # Protecting from failure in case it is not running/installed
-/sbin/service httpd reload > /dev/null 2>&1 || :
+/sbin/service httpd reload > /dev/null 2>&1 || true
 
 
 %post factory
@@ -477,7 +485,8 @@ if [ "$1" = "1" ] ; then
 fi
 
 # Protecting from failure in case it is not running/installed
-/sbin/service httpd reload > /dev/null 2>&1 || :
+/sbin/service httpd reload > /dev/null 2>&1 || true
+/sbin/service condor condrestart > /dev/null 2>&1 || true
 
 
 %pre vofrontend-standalone
@@ -537,11 +546,12 @@ fi
 
 %postun vofrontend-standalone
 # Protecting from failure in case it is not running/installed
-/sbin/service httpd reload > /dev/null 2>&1 || :
+/sbin/service httpd reload > /dev/null 2>&1 || true
 
 %postun factory
 # Protecting from failure in case it is not running/installed
-/sbin/service httpd reload > /dev/null 2>&1 || :
+/sbin/service httpd reload > /dev/null 2>&1 || true
+/sbin/service condor condrestart > /dev/null 2>&1 || true
 
 
 %clean
