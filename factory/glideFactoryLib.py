@@ -807,7 +807,9 @@ def sanitizeGlideins(condorq, log=logSupport.log, factoryConfig=None):
     if len(unrecoverable_held_list) > 0:
         glideins_sanitized = 1
         log.warning("Found %i unrecoverable held glideins" % len(unrecoverable_held_list))
-        removeGlideins(condorq.schedd_name, unrecoverable_held_list,
+        unrecoverable_held_list_minus_forcex = list( set(unrecoverable_held_list) - set(unrecoverable_held_forcex_list) )
+        log.warning("But removing only %i (unrecoverable held - unrecoverable held forcex)" % len(unrecoverable_held_list_minus_forcex))
+        removeGlideins(condorq.schedd_name, unrecoverable_held_list_minus_forcex,
                        force=False, log=log, factoryConfig=factoryConfig)
 
     # Check if there are held glideins
@@ -989,15 +991,14 @@ def extractStaleSimple(q, factoryConfig=None):
 def extractUnrecoverableHeldSimple(q, factoryConfig=None):
     #  Held==5 and glideins are not recoverable
     #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
-    qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and isGlideinUnrecoverable(el, factoryConfig=factoryConfig)
-                                     and not isGlideinHeldTwentyIterations(el, factoryConfig=factoryConfig)))
+    qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and isGlideinUnrecoverable(el, factoryConfig=factoryConfig)))
     qheld_list = qheld.keys()
     return qheld_list
 
 def extractUnrecoverableHeldForceX(q, factoryConfig=None):
     #  Held==5 and glideins are not recoverable AND been held for more than 20 minutes
     qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and isGlideinUnrecoverable(el, factoryConfig=factoryConfig) 
-                                     and isGlideinHeldTwentyIterations(el, factoryConfig=factoryConfig)))
+                                     and isGlideinHeldNTimes(el, factoryConfig=factoryConfig, n=20)))
     qheld_list = qheld.keys()
     return qheld_list
 
@@ -1625,10 +1626,10 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
     return unrecoverable
 
 
-def isGlideinHeldTwentyIterations(jobInfo, factoryConfig=None):
+def isGlideinHeldNTimes(jobInfo, factoryConfig=None, n=20):
     """
     This function looks at the glidein job's information and returns if the
-    CondorG job is held for more than 20 iterations
+    CondorG job is held for more than N(defaults to 20) iterations
 
     This is useful to remove Unrecoverable glidein (CondorG job) with forcex option.
 
@@ -1636,17 +1637,17 @@ def isGlideinHeldTwentyIterations(jobInfo, factoryConfig=None):
     @param jobInfo: Dictionary containing glidein job's classad information
 
     @rtype: bool
-    @return: True if job is held more than 20 minutes, False if otherwise.
+    @return: True if job is held more than N(defaults to 20) iterations, False if otherwise.
     """
     if factoryConfig is None:
         factoryConfig = globals()['factoryConfig']
 
-    greater_than_twenty_iterations = False
+    greater_than_n_iterations = False
     nsysholds  = jobInfo.get('NumSystemHolds')
-    if nsysholds > 19:
-        greater_than_twenty_iterations = True
+    if nsysholds > n:
+        greater_than_n_iterations = True
 
-    return greater_than_twenty_iterations
+    return greater_than_n_iterations
 
 ############################################################
 # only allow simple strings
