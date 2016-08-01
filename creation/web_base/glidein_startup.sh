@@ -1283,26 +1283,22 @@ EOF
 
 #####################
 # Fetch a single file
+#
+# Check cWDictFile/FileDictFile for the number and type of parameters (has to be consistent)
 function fetch_file_regular {
     fetch_file "$1" "$2" "$2" "regular" 0 "GLIDEIN_PS_" "TRUE" "FALSE"
 }
 
 function fetch_file {
-    if [ $# -ne 8 ]; then
-        if [ $# -ge 9 ]; then
-            # be compatible with new formats with more parameters
-            echo "Ignoring extra parameters ($# instead of 8)" 1>&2
-            fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8"
-            if [ $? -ne 0 ]; then
-                glidein_exit 1
-            fi
-            return 0
-        fi
+    if [ $# -gt 8 ]; then
+        # For compatibility w/ future versions (add new parameters at the end)
+        echo "More then 8 arguments, considering the first 8 ($#/$ifs_str): $@" 1>&2
+    elif [ $# -ne 8 ]; then
         if [ $# -eq 7 ]; then
-            # added to maintain compatibility with old file list format
-            # period (par 5) added in 3.2.10 - assuming all factories upgraded
-            # prefix (par 6) added in #12705, 3.2.14?
             #TODO: remove in version 3.3
+            # For compatibility with past versions (old file list formats)
+            # 3.2.13 and older: prefix (par 6) added in #12705, 3.2.14?
+            # 3.2.10 and older: period (par 5) added:  fetch_file_try "$1" "$2" "$3" "$4" 0 "GLIDEIN_PS_" "$5" "$6"
             fetch_file_try "$1" "$2" "$3" "$4" "$5" "GLIDEIN_PS_" "$6" "$7"
             if [ $? -ne 0 ]; then
 	        glidein_exit 1
@@ -1320,7 +1316,7 @@ function fetch_file {
         fi
         local ifs_str
         printf -v ifs_str '%q' "$IFS"
-        warn "Not enough arguments in fetch_file ($#/$ifs_str): $@" 1>&2
+        warn "Not enough arguments in fetch_file, 8 expected ($#/$ifs_str): $@" 1>&2
         glidein_exit 1
     fi
 
@@ -1348,6 +1344,7 @@ function fetch_file_try {
 	    fft_get_ss=`grep -i "^$fft_config_check " glidein_config | awk '{print $2}'`
     fi
 
+    # TODO: what if fft_get_ss is not 1? nothing? fft_rc is not set but is returned
     if [ "$fft_get_ss" == "1" ]; then
        fetch_file_base "$fft_id" "$fft_target_fname" "$fft_real_fname" "$fft_file_type" "$fft_config_out" $fft_period "$fft_cc_prefix"
        fft_rc=$?
@@ -1729,7 +1726,7 @@ do
   while read file
     do
     if [ "${file:0:1}" != "#" ]; then
-	fetch_file "$gs_id" $file
+      fetch_file "$gs_id" $file
     fi
   done < "${gs_id_work_dir}/${gs_file_list}"
 
