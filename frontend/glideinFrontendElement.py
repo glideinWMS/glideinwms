@@ -3,7 +3,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -104,7 +104,7 @@ class glideinFrontendElement:
         self.security_name = self.elementDescript.merged_data['SecurityName']
         self.factory_pools = self.elementDescript.merged_data['FactoryCollectors']
 
-        self.reserve_running = int(self.elementDescript.element_data['ReserveRunningPerEntry'])
+        self.min_running = int(self.elementDescript.element_data['MinRunningPerEntry'])
         self.max_running = int(self.elementDescript.element_data['MaxRunningPerEntry'])
         self.fraction_running = float(self.elementDescript.element_data['FracRunningPerEntry'])
         self.max_idle = int(self.elementDescript.element_data['MaxIdlePerEntry'])
@@ -540,7 +540,7 @@ class glideinFrontendElement:
             count_jobs={}   # straight match
             prop_jobs={}    # proportional subset for this entry
             # proportional subset of jobs for this entry scaled also for multicore (requested cores/available cores)
-            prop_mc_jobs={}  
+            prop_mc_jobs={}
             hereonly_jobs={}  # can only run on this site
             for dt in condorq_dict_types.keys():
                 count_jobs[dt] = condorq_dict_types[dt]['count'][glideid]
@@ -566,6 +566,10 @@ class glideinFrontendElement:
             # if there are idle slots, subtract them, they should match soon
             effective_idle = max(prop_jobs['Idle'] - count_status['Idle'], 0)
             effective_oldidle = max(prop_jobs['OldIdle']-count_status['Idle'], 0)
+
+            #Adjust the number of idle jobs in case the minimum running parameter is set
+            if prop_mc_jobs['Idle'] < self.min_running:
+                prop_mc_jobs['Idle'] = self.min_running
 
             # Compute min glideins required based on multicore jobs
             effective_idle_mc = max(prop_mc_jobs['Idle'] - count_status['Idle'], 0)
@@ -707,7 +711,7 @@ class glideinFrontendElement:
                     globals_el = self.globals_dict[globalid]
                     if (globals_el['attrs'].has_key('PubKeyObj') and globals_el['attrs'].has_key('PubKeyID')):
                         key_obj = key_builder.get_key_obj(my_identity, globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
-                    break            
+                    break
 
             trust_domain = glidein_el['attrs'].get('GLIDEIN_TrustDomain','Grid')
             auth_method = glidein_el['attrs'].get('GLIDEIN_SupportedAuthenticationMethod', 'grid_proxy')
@@ -849,7 +853,7 @@ class glideinFrontendElement:
 
         # then report how many we really had
         condorq_dict_idle_all = glideinFrontendLib.getIdleCondorQ(self.condorq_dict)
-        
+
         self.condorq_dict_running = glideinFrontendLib.getRunningCondorQ(self.condorq_dict)
 
         self.condorq_dict_types = {
@@ -1061,11 +1065,10 @@ class glideinFrontendElement:
                 glidein_min_idle/=2 # above global treshold, reduce further
                 limits_triggered['CurbIdleGlideinsGlobal'] = 'count=%i, curb=%i' % (global_total_idle_glideins, self.global_total_curb_vms_idle)
 
-            if glidein_min_idle<self.reserve_idle:
-                glidein_min_idle=self.reserve_idle
+            if glidein_min_idle<1:
+                glidein_min_idle=1
         else:
-            # no idle, lets's ask for reserve idle
-            glidein_min_idle = self.reserve_idle
+            glidein_min_idle = 0
 
         return int(glidein_min_idle)
 
@@ -1096,7 +1099,6 @@ class glideinFrontendElement:
             limits_triggered['IdleGlideinsGlobal'] = 'count=%i, limit=%i' % (global_total_idle_glideins, self.global_total_max_vms_idle)
 
 
-    def compute_glidein_max_run(self, prop_jobs, real, idle_glideins):
         """
         Compute max number of running glideins for this entry
 
@@ -1132,10 +1134,6 @@ class glideinFrontendElement:
             else:
                 # No reason for a delta when we don't need more than we have
                 glidein_max_run = int(real)
-
-        # if reserve_running is > 0 then we want to keep some running glideins for this group
-        if glidein_max_run < self.reserve_running:
-            glidein_max_run = self.reserve_running
 
         return glidein_max_run
 
@@ -1599,7 +1597,7 @@ class glideinFrontendElement:
                                          [None], constraint=None,
                                          format_list=[])
                 # Also get the list of schedds that has CurbMatchMaking = True
-                # We need to query this explicitly since CurbMatchMaking 
+                # We need to query this explicitly since CurbMatchMaking
                 # that we get from condor is a condor expression and is not
                 # an evaluated value. So we have to manually filter it out and
                 # adjust the info accordingly
@@ -1850,6 +1848,6 @@ if __name__ == '__main__':
     rc = gfe.main()
 
     # explicitly exit with 0
-    # this allows for reliable checking 
+    # this allows for reliable checking
     sys.exit(rc)
-    
+
