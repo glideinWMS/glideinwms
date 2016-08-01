@@ -1328,6 +1328,22 @@ startup scripts.</P>
             is periodically updated by means of the STARTD_CRON condor feature.
         </TD>
     </TR>
+    <TR>
+        <td> <b>SiteWMS_WN_Preempt</b> </td>
+        <TD> Bool </TD>
+
+        <TD>
+            <P>The variable controls wether or not the glidein should preempt jobs.
+            This is still part of the <A HREF="https://twiki.cern.ch/twiki/bin/view/LCG/MachineJobFeatures">
+            WLCG Machine / Job Features Task Force</A> (see above).
+            The variable will become true if the shutdown time value contained in the file pointed by the
+            JOBFEATURES (or MACHINEFEATURES) variable contains a timestamp (unix epoch time) that is
+            less than 30 minutes in the future. If so <tt>PREEMPT_GRACE_TIME</tt> will be set to 20 minutes and
+            the job will be preempted after that time if it does not exit.
+            The <tt>GLIDEIN_PS_SiteWMS_WN_Preempt</tt> variable
+            is periodically updated by means of the STARTD_CRON condor feature.
+        </TD>
+    </TR>
 </TABLE>
 </div>
 <div class="section">

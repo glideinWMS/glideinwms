@@ -83,6 +83,7 @@ GLIDEIN_LOCAL_TMP_DIR   C       -               +                               
 TMP_DIR			S	-		GLIDEIN_Tmp_Dir			Y	Y	@
 PUBLISH_OBITUARIES      C       False           +                               N       N       -
 GLIDEIN_PS_SiteWMS_WN_Draining  C   False       +   N   Y   -
+GLIDEIN_PS_SiteWMS_WN_Preempt C   False       +   N   Y   -
 
 # Entry specific User modifiable variables
 GLIDEIN_Site		S	$GLIDEIN_Entry_Name	+			N	Y	@
