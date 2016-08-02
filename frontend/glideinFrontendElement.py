@@ -206,7 +206,7 @@ class glideinFrontendElement:
         )
 
         el_data_keys = (
-            'MaxRunningPerEntry', 'MaxIdlePerEntry', 'ReserveIdlePerEntry',
+            'MaxRunningPerEntry', 'MinRunningPerEntry', 'MaxIdlePerEntry', 'ReserveIdlePerEntry',
             'MaxIdleVMsPerEntry', 'CurbIdleVMsPerEntry',
             'MaxRunningTotal', 'CurbRunningTotal',
             'MaxIdleVMsTotal', 'CurbIdleVMsTotal',
