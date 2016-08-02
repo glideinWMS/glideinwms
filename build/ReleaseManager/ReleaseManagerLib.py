@@ -33,10 +33,11 @@ class Release:
             self.rpmRelease = self.createRPMReleaseNVR(rpmRel, rc)
             self.rpmVersion = self.versionToRPMVersion(ver)
             self.rpmbuildDir = os.path.join(self.releaseDir, 'rpmbuild')
+            self.rpmOSVersion = self.getElVersion()
             self.srpmFile = os.path.join(
                 self.rpmbuildDir, 'SRPMS',
-                'glideinwms-%s-%s.%s.src.rpm' % (self.rpmVersion,
-                self.rpmRelease, self.getElVersion()))
+                'glideinwms-%s-%s.%s%s.src.rpm' % (self.rpmVersion,
+                self.rpmRelease, self.rpmOSVersion[0], self.rpmOSVersion[1]))
             self.buildRPMs = True
         except:
             print 'RPMs will not be build for this platform'
@@ -64,30 +65,28 @@ class Release:
 
 
     def getElVersion(self):
-        el_version = 'el'
-        if platform.system() == 'Linux':
-            distname, version, id = platform.linux_distribution()
-            distmap = {
-                'Fedora': 'fc',
-                'Scientific Linux': 'el',
-                'Red Hat': 'el'
-            }
-            dist = None
-            for d in distmap:
-                if distname.startswith(d):
-                    dist = distmap[d]
-                    break
-            if dist is None:
-                raise Exception('Unsupported distribution: %s' % distname)
-            else:
-                el_version = dist
-
-            major_version = version.split('.')[0]
-            el_version += major_version
-        else:
+        if platform.system() != 'Linux':
             raise Exception('Unsupported OS: %s' % platform.system())
 
-        return el_version
+        el_string = 'el'
+        distname, version, id = platform.linux_distribution()
+        distmap = {
+            'Fedora': 'fc',
+            'Scientific Linux': 'el',
+            'Red Hat': 'el'
+        }
+        dist = None
+        for d in distmap:
+            if distname.startswith(d):
+                dist = distmap[d]
+                break
+        if dist is None:
+            raise Exception('Unsupported distribution: %s' % distname)
+        else:
+            el_string = dist
+        major_version = version.split('.')[0]
+
+        return (el_string, major_version)
 
 
     def addTask(self, task):
@@ -366,7 +365,9 @@ class TaskRPM(TaskTar):
 
 
     def buildRPM(self):
-        cmd = 'mock -r epel-6-x86_64 --macro-file=%s --resultdir=%s/RPMS rebuild %s' % (self.rpmmacrosFile, self.release.rpmbuildDir, self.release.srpmFile)
+        cmd = 'mock -r epel-%s-x86_64 --macro-file=%s -i python' % (self.release.rpmOSVersion[1], self.rpmmacrosFile)
+        execute_cmd(cmd)
+        cmd = 'mock --no-clean -r epel-%s-x86_64 --macro-file=%s --resultdir=%s/RPMS rebuild %s' % (self.release.rpmOSVersion[1], self.rpmmacrosFile, self.release.rpmbuildDir, self.release.srpmFile)
         execute_cmd(cmd)
 
 

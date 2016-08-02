@@ -28,6 +28,7 @@ from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorManager
 from glideinwms.lib import classadSupport
 from glideinwms.lib import logSupport
+from glideinwms.lib import x509Support
 
 ############################################################
 #
@@ -396,8 +397,7 @@ class Credential:
 
     def file_id(self,filename,ignoredn=False):
         if (("grid_proxy" in self.type) and not ignoredn):
-            dn_list = condorExe.iexe_cmd("openssl x509 -subject -in %s -noout" % (filename))
-            dn = dn_list[0]
+            dn = x509Support.extract_DN(filename)
             hash_str=filename+dn
         else:
             hash_str=filename
