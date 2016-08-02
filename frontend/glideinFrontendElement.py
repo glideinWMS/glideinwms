@@ -1099,6 +1099,7 @@ class glideinFrontendElement:
             limits_triggered['IdleGlideinsGlobal'] = 'count=%i, limit=%i' % (global_total_idle_glideins, self.global_total_max_vms_idle)
 
 
+    def compute_glidein_max_run(self, prop_jobs, real, idle_glideins):
         """
         Compute max number of running glideins for this entry
 
