@@ -216,8 +216,8 @@ install of wmscollector + wms factory
 %build
 cp %{SOURCE7} .
 chmod 700 chksum.sh
-./chksum.sh v%{version}-%{release}.osg etc/checksum.frontend "CVS config_examples doc .git .gitattributes poolwatcher factory/check* factory/glideFactory* factory/test* factory/manage* factory/stop* factory/tools creation/create_glidein creation/reconfig_glidein creation/info_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh creation/web_base/glexec_setup.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests"
-./chksum.sh v%{version}-%{release}.osg etc/checksum.factory "CVS config_examples doc .git .gitattributes poolwatcher frontend/* creation/reconfig_glidein creation/clone_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh creation/web_base/glexec_setup.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests"
+./chksum.sh v%{version}-%{release}.osg etc/checksum.frontend "CVS config_examples doc .git .gitattributes poolwatcher factory/check* factory/glideFactory* factory/test* factory/manage* factory/stop* factory/tools creation/create_glidein creation/reconfig_glidein creation/info_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh creation/web_base/glexec_setup.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build"
+./chksum.sh v%{version}-%{release}.osg etc/checksum.factory "CVS config_examples doc .git .gitattributes poolwatcher frontend/* creation/reconfig_glidein creation/clone_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh creation/web_base/glexec_setup.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build"
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -248,6 +248,7 @@ install -d $RPM_BUILD_ROOT%{_sbindir}
 install -m 0500 frontend/checkFrontend.py $RPM_BUILD_ROOT%{_sbindir}/checkFrontend
 install -m 0500 frontend/glideinFrontendElement.py $RPM_BUILD_ROOT%{_sbindir}/glideinFrontendElement.py
 install -m 0500 frontend/glideinFrontend.py $RPM_BUILD_ROOT%{_sbindir}/glideinFrontend
+install -m 0500 frontend/manageFrontendDowntimes.py $RPM_BUILD_ROOT%{_sbindir}/
 install -m 0500 frontend/stopFrontend.py $RPM_BUILD_ROOT%{_sbindir}/stopFrontend
 install -m 0500 creation/reconfig_frontend $RPM_BUILD_ROOT%{_sbindir}/reconfig_frontend
 
@@ -436,6 +437,14 @@ install -d $RPM_BUILD_ROOT%{factory_web_base}/../creation/templates
 install -m 0644 creation/templates/factory_initd_startup_template $RPM_BUILD_ROOT%{factory_web_base}/../creation/templates/
 install -m 0644 creation/templates/frontend_initd_startup_template $RPM_BUILD_ROOT%{web_base}/../creation/templates/
 
+%post usercollector
+/sbin/service condor condrestart > /dev/null 2>&1 || true
+
+
+%post userschedd
+/sbin/service condor condrestart > /dev/null 2>&1 || true
+
+
 %post vofrontend-standalone
 # $1 = 1 - Installation
 # $1 = 2 - Upgrade
@@ -458,6 +467,10 @@ if [ ! -e %{frontend_dir}/monitor ]; then
     ln -s %{web_dir}/monitor %{frontend_dir}/monitor
 fi
 
+# Protecting from failure in case it is not running/installed
+/sbin/service httpd reload > /dev/null 2>&1 || true
+
+
 %post factory
 
 fqdn_hostname=`hostname -f`
@@ -470,6 +483,11 @@ if [ "$1" = "1" ] ; then
         ln -s %{_localstatedir}/log/gwms-factory %{factory_dir}/log
     fi
 fi
+
+# Protecting from failure in case it is not running/installed
+/sbin/service httpd reload > /dev/null 2>&1 || true
+/sbin/service condor condrestart > /dev/null 2>&1 || true
+
 
 %pre vofrontend-standalone
 # Add the "frontend" user and group if they do not exist
@@ -524,6 +542,17 @@ if [ "$1" = "0" ]; then
     rm -f %{factory_dir}/log
     rm -f %{factory_dir}/monitor
 fi
+
+
+%postun vofrontend-standalone
+# Protecting from failure in case it is not running/installed
+/sbin/service httpd reload > /dev/null 2>&1 || true
+
+%postun factory
+# Protecting from failure in case it is not running/installed
+/sbin/service httpd reload > /dev/null 2>&1 || true
+/sbin/service condor condrestart > /dev/null 2>&1 || true
+
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -675,6 +704,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_sbindir}/glideinFrontend
 %attr(755,root,root) %{_sbindir}/glideinFrontendElement.py*
 %attr(755,root,root) %{_sbindir}/reconfig_frontend
+%attr(755,root,root) %{_sbindir}/manageFrontendDowntimes.py
 %attr(755,root,root) %{_sbindir}/stopFrontend
 %attr(-, frontend, frontend) %dir %{_localstatedir}/lib/gwms-frontend
 %attr(-, frontend, frontend) %{web_dir}
@@ -745,8 +775,27 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/config.d/03_gwms_local.config
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
-
 %changelog
+* Fri Jun 17 2016 Parag Mhashilkar <parag@fnal.gov> - 3.2.14.1-1
+- Glideinwms v3.2.14.1
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_2_14_1/history.html
+- Release candidates: 3.2.14.1-0.1.rc1
+
+* Fri Jun 03 2016 Parag Mhashilkar <parag@fnal.gov> - 3.2.14-1
+- Glideinwms v3.2.14
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_2_14/history.html
+- Release candidates: 3.2.14-0.1.rc1 to 3.2.14-0.2.rc2
+
+* Wed Mar 09 2016 Parag Mhashilkar <parag@fnal.gov> - 3.2.13-1
+- Glideinwms v3.2.13 (see release notes for details)
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_2_13/history.html
+- Release candidates: 3.2.13-0.1.rc1 to 3.2.13-0.2.rc2
+
+* Thu Jan 21 2016 Marco Mambelli <marcom@fnal.gov> - 3.2.12.1-1
+- Glideinwms v3.2.12.1 release (see notes for featires and bug fixes)
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_2_12_1/history.html
+- Release candidates: 3.2.12.1-0.1.rc1
+
 * Thu Jan 14 2016 Marco Mambelli <marcom@fnal.gov> - 3.2.12-1
 - Glideinwms v3.2.12 release (see notes for featires and bug fixes)
 - Fixed python 2.4 compatibility

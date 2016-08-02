@@ -894,15 +894,18 @@ def list2dict(list_data, attr_name):
         dict_el = {}
         for a in list_el:
             if not (a in attr_list):
-                dict_el[a] = list_el[a]
                 try:
-                    if ((USE_HTCONDOR_PYTHON_BINDINGS == True) and
-                        (list_el[a].__class__.__name__ == 'ExprTree')):
-                        # Try to evaluate the condor expr and use its value
-                        # If cannot be evaluated, keep the expr as is
-                        a_value = list_el[a].eval()
-                        if a_value != classad.Value.Undefined:
-                            dict_el[a] = a_value
+                    if (USE_HTCONDOR_PYTHON_BINDINGS == True):
+                        if (list_el[a].__class__.__name__ == 'ExprTree'):
+                            # Try to evaluate the condor expr and use its value
+                            # If cannot be evaluated, keep the expr as is
+                            a_value = list_el[a].eval()
+                            if a_value != classad.Value.Undefined:
+                                dict_el[a] = a_value
+                        elif list_el[a] != classad.Value.Undefined:
+                            dict_el[a] = list_el[a]
+                    else:
+                        dict_el[a] = list_el[a]
                 except:
                     # Do not fail
                     pass
