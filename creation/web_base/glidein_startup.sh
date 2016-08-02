@@ -844,7 +844,8 @@ function md5wrapper {
         [ -n "$ONLY_SUM" ] && executable="md5sum \"$1\" | cut -d ' ' -f 1" ||  executable="md5sum \"$1\""
     fi
     local res
-    res="`eval "$executable" 2>/dev/null`"
+    # Flagged by some checkers but OK
+    res="$(eval "$executable" 2>/dev/null)"
     if [ $? -ne 0 ]; then
         echo "???"
         return 1
@@ -1252,13 +1253,14 @@ function add_periodic_script {
     local s_fname="$4"
     local s_config="$5"
     local s_ffb_id="$6"
+    local s_cc_prefix="$7"
     if [ $add_startd_cron_counter -eq 0 ]; then
         # Make sure that no undesired file is there when called for first cron
         rm $include_fname
     fi
     let add_startd_cron_counter=add_startd_cron_counter+1
-    local s_prefix=GLIDEIN_PS
-    local s_name="${s_prefix}$add_startd_cron_counter"
+    local name_prefix=GLIDEIN_PS_
+    local s_name="${name_prefix}$add_startd_cron_counter"
 
     # Append the following to the startd configuration
     # Instead of Periodic and Kill wait for completion:
@@ -1268,50 +1270,58 @@ STARTD_CRON_JOBLIST = \$(STARTD_CRON_JOBLIST) $s_name
 STARTD_CRON_${s_name}_MODE = Periodic
 STARTD_CRON_${s_name}_KILL = True
 STARTD_CRON_${s_name}_PERIOD = $s_period_sec
-STARTD_CRON_${s_name}_PREFIX = ${s_prefix}_
 STARTD_CRON_${s_name}_EXECUTABLE = $s_wrapper
-STARTD_CRON_${s_name}_ARGS = $s_config $s_ffb_id $s_name $s_fname
+STARTD_CRON_${s_name}_ARGS = $s_config $s_ffb_id $s_name $s_fname $s_cc_prefix
 STARTD_CRON_${s_name}_CWD = $s_cwd
 STARTD_CRON_${s_name}_SLOTS = 1
 STARTD_CRON_${s_name}_JOB_LOAD = 0.01
 EOF
+    # NOPREFIX is a keyword for not setting the prefix for all condor attributes
+    [ "xNOPREFIX" != "x${s_cc_prefix}" ] && echo "STARTD_CRON_${s_name}_PREFIX = ${s_cc_prefix}" >> $include_fname
     add_config_line "GLIDEIN_condor_config_startd_cron_include" "$include_fname"
-    add_config_line "# --- Lines starting with $s_prefix are from priodic scripts ---" 
+    add_config_line "# --- Lines starting with $s_cc_prefix are from priodic scripts ---"
 }
 
 #####################
 # Fetch a single file
+#
+# Check cWDictFile/FileDictFile for the number and type of parameters (has to be consistent)
 function fetch_file_regular {
-    fetch_file "$1" "$2" "$2" "regular" 0 "TRUE" "FALSE"
+    fetch_file "$1" "$2" "$2" "regular" 0 "GLIDEIN_PS_" "TRUE" "FALSE"
 }
 
 function fetch_file {
-    if [ $# -ne 7 ]; then
-        if [ $# -ge 8 ]; then
-            # be compatible with new formats with more parameters
-            echo "Ignoring extra parameters ($# instead of 7)" 1>&2
-            fetch_file_try "$1" "$2" "$3" "$4" "$5" "$7" "$8"
-            if [ $? -ne 0 ]; then
-                glidein_exit 1
-            fi
-            return 0
-        fi
-        if [ $# -eq 6 ]; then
-            # added to maintain compatibility with old file list format
+    if [ $# -gt 8 ]; then
+        # For compatibility w/ future versions (add new parameters at the end)
+        echo "More then 8 arguments, considering the first 8 ($#/$ifs_str): $@" 1>&2
+    elif [ $# -ne 8 ]; then
+        if [ $# -eq 7 ]; then
             #TODO: remove in version 3.3
-            fetch_file_try "$1" "$2" "$3" "$4" 0 "$5" "$6"
+            # For compatibility with past versions (old file list formats)
+            # 3.2.13 and older: prefix (par 6) added in #12705, 3.2.14?
+            # 3.2.10 and older: period (par 5) added:  fetch_file_try "$1" "$2" "$3" "$4" 0 "GLIDEIN_PS_" "$5" "$6"
+            fetch_file_try "$1" "$2" "$3" "$4" "$5" "GLIDEIN_PS_" "$6" "$7"
             if [ $? -ne 0 ]; then
 	        glidein_exit 1
             fi
             return 0
         fi
+        if [ $# -eq 6 ]; then
+            # added to maintain compatibility with older (3.2.10) file list format
+            #TODO: remove in version 3.3
+            fetch_file_try "$1" "$2" "$3" "$4" 0 "GLIDEIN_PS_" "$5" "$6"
+            if [ $? -ne 0 ]; then
+                glidein_exit 1
+            fi
+            return 0
+        fi
         local ifs_str
         printf -v ifs_str '%q' "$IFS"
-        warn "Not enough arguments in fetch_file ($#/$ifs_str): $@" 1>&2
+        warn "Not enough arguments in fetch_file, 8 expected ($#/$ifs_str): $@" 1>&2
         glidein_exit 1
     fi
 
-    fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6" "$7"
+    fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8"
     if [ $? -ne 0 ]; then
         glidein_exit 1
     fi
@@ -1324,18 +1334,20 @@ function fetch_file_try {
     fft_real_fname="$3"
     fft_file_type="$4"
     fft_period="$5"
-    fft_config_check="$6"
-    fft_config_out="$7"
+    fft_cc_prefix="$6"
+    fft_config_check="$7"
+    fft_config_out="$8"
 
     if [ "$fft_config_check" == "TRUE" ]; then
-	# TRUE is a special case
-	fft_get_ss=1
+	    # TRUE is a special case
+	    fft_get_ss=1
     else
-	fft_get_ss=`grep -i "^$fft_config_check " glidein_config | awk '{print $2}'`
+	    fft_get_ss=`grep -i "^$fft_config_check " glidein_config | awk '{print $2}'`
     fi
 
+    # TODO: what if fft_get_ss is not 1? nothing? fft_rc is not set but is returned
     if [ "$fft_get_ss" == "1" ]; then
-       fetch_file_base "$fft_id" "$fft_target_fname" "$fft_real_fname" "$fft_file_type" "$fft_config_out" $fft_period
+       fetch_file_base "$fft_id" "$fft_target_fname" "$fft_real_fname" "$fft_file_type" "$fft_config_out" $fft_period "$fft_cc_prefix"
        fft_rc=$?
     fi
 
@@ -1349,6 +1361,8 @@ function fetch_file_base {
     ffb_file_type="$4"
     ffb_config_out="$5"
     ffb_period=$6
+    # condor cron prefix, used only for periodic executables
+    ffb_cc_prefix="$7"
 
     ffb_work_dir=`get_work_dir $ffb_id`
 
@@ -1481,87 +1495,86 @@ function fetch_file_base {
 
     # rename it to the correct final name, if needed
     if [ "$ffb_tmp_outname" != "$ffb_outname" ]; then
-      mv "$ffb_tmp_outname" "$ffb_outname"
-      if [ $? -ne 0 ]; then
-	  warn "Failed to rename $ffb_tmp_outname into $ffb_outname" 1>&2
-	  return 1
-      fi
+        mv "$ffb_tmp_outname" "$ffb_outname"
+        if [ $? -ne 0 ]; then
+            warn "Failed to rename $ffb_tmp_outname into $ffb_outname" 1>&2
+            return 1
+        fi
     fi
 
     # if executable, execute
     if [ "$ffb_file_type" == "exec" ]; then
-	chmod u+x "$ffb_outname"
-	if [ $? -ne 0 ]; then
-	    warn "Error making '$ffb_outname' executable" 1>&2
-	    return 1
-	fi
-	if [ "$ffb_id" == "main" -a "$ffb_target_fname" == "$last_script" ]; then # last_script global for simplicity
-	    echo "Skipping last script $last_script" 1>&2
-	else
+        chmod u+x "$ffb_outname"
+        if [ $? -ne 0 ]; then
+            warn "Error making '$ffb_outname' executable" 1>&2
+            return 1
+        fi
+        if [ "$ffb_id" == "main" -a "$ffb_target_fname" == "$last_script" ]; then # last_script global for simplicity
+            echo "Skipping last script $last_script" 1>&2
+        else
             echo "Executing $ffb_outname"
-	    # have to do it here, as this will be run before any other script
+            # have to do it here, as this will be run before any other script
             chmod u+rx $main_dir/error_augment.sh
 
-	    # the XML file will be overwritten now, and hopefully not an error situation
+            # the XML file will be overwritten now, and hopefully not an error situation
             have_dummy_otrx=0
-	    $main_dir/error_augment.sh -init
+            $main_dir/error_augment.sh -init
             START=`date +%s`
-	    "$ffb_outname" glidein_config "$ffb_id"
-	    ret=$?
+            "$ffb_outname" glidein_config "$ffb_id"
+            ret=$?
             END=`date +%s`
             $main_dir/error_augment.sh  -process $ret "$ffb_id/$ffb_target_fname" "$PWD" "$ffb_outname glidein_config" "$START" "$END" #generating test result document
-	    $main_dir/error_augment.sh -concat
-	    if [ $ret -ne 0 ]; then
+	        $main_dir/error_augment.sh -concat
+            if [ $ret -ne 0 ]; then
                 echo "=== Validation error in $ffb_outname ===" 1>&2
-		warn "Error running '$ffb_outname'" 1>&2
-		cat otrx_output.xml | awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}' 1>&2
-		return 1
+                warn "Error running '$ffb_outname'" 1>&2
+                cat otrx_output.xml | awk 'BEGIN{fr=0;}/<[/]detail>/{fr=0;}{if (fr==1) print $0}/<detail>/{fr=1;}' 1>&2
+                return 1
             else
                 # If ran successfully and periodic, schedule to execute with schedd_cron
                 echo "=== validation OK in $ffb_outname ($ffb_period) ===" 1>&2
                 if [ $ffb_period -gt 0 ]; then
-                    add_periodic_script "$main_dir/script_wrapper.sh" $ffb_period "$work_dir" "$ffb_outname" glidein_config "$ffb_id" 
+                    add_periodic_script "$main_dir/script_wrapper.sh" $ffb_period "$work_dir" "$ffb_outname" glidein_config "$ffb_id" "$ffb_cc_prefix"
                 fi
-	    fi
-	fi
+	        fi
+        fi
     elif [ "$ffb_file_type" == "wrapper" ]; then
-	echo "$ffb_outname" >> "$wrapper_list"
+        echo "$ffb_outname" >> "$wrapper_list"
     elif [ "$ffb_file_type" == "untar" ]; then
-	ffb_short_untar_dir=`get_untar_subdir "$ffb_id" "$ffb_target_fname"`
-	ffb_untar_dir="${ffb_work_dir}/${ffb_short_untar_dir}"
-	START=`date +%s`
-	(mkdir "$ffb_untar_dir" && cd "$ffb_untar_dir" && tar -xmzf "$ffb_outname") 1>&2
-	ret=$?
-	if [ $ret -ne 0 ]; then
-	    $main_dir/error_augment.sh -init
-	    $main_dir/error_gen.sh -error "tar" "Corruption" "Error untarring '$ffb_outname'" "file" "$ffb_outname" "source_type" "$cfs_id"
-	    $main_dir/error_augment.sh  -process $cfs_rc "tar" "$PWD" "mkdir $ffb_untar_dir && cd $ffb_untar_dir && tar -xmzf $ffb_outname" "$START" "`date +%s`"
-	    $main_dir/error_augment.sh -concat
-	    warn "Error untarring '$ffb_outname'" 1>&2
-	    return 1
-	fi
+        ffb_short_untar_dir=`get_untar_subdir "$ffb_id" "$ffb_target_fname"`
+        ffb_untar_dir="${ffb_work_dir}/${ffb_short_untar_dir}"
+        START=`date +%s`
+        (mkdir "$ffb_untar_dir" && cd "$ffb_untar_dir" && tar -xmzf "$ffb_outname") 1>&2
+        ret=$?
+        if [ $ret -ne 0 ]; then
+            $main_dir/error_augment.sh -init
+            $main_dir/error_gen.sh -error "tar" "Corruption" "Error untarring '$ffb_outname'" "file" "$ffb_outname" "source_type" "$cfs_id"
+            $main_dir/error_augment.sh  -process $cfs_rc "tar" "$PWD" "mkdir $ffb_untar_dir && cd $ffb_untar_dir && tar -xmzf $ffb_outname" "$START" "`date +%s`"
+            $main_dir/error_augment.sh -concat
+            warn "Error untarring '$ffb_outname'" 1>&2
+            return 1
+        fi
     fi
 
     if [ "$ffb_config_out" != "FALSE" ]; then
-	ffb_prefix=`get_prefix $ffb_id`
-	if [ "$ffb_file_type" == "untar" ]; then
-	    # when untaring the original file is less interesting than the untar dir
-	    add_config_line "${ffb_prefix}${ffb_config_out}" "$ffb_untar_dir"
-	    if [ $? -ne 0 ]; then
-		glidein_exit 1
-	    fi
-	else
-	    add_config_line "${ffb_prefix}${ffb_config_out}" "$ffb_outname"
-	    if [ $? -ne 0 ]; then
-		glidein_exit 1
-	    fi
-	fi
-
+        ffb_prefix=`get_prefix $ffb_id`
+        if [ "$ffb_file_type" == "untar" ]; then
+            # when untaring the original file is less interesting than the untar dir
+            add_config_line "${ffb_prefix}${ffb_config_out}" "$ffb_untar_dir"
+            if [ $? -ne 0 ]; then
+                glidein_exit 1
+            fi
+        else
+            add_config_line "${ffb_prefix}${ffb_config_out}" "$ffb_outname"
+            if [ $? -ne 0 ]; then
+                glidein_exit 1
+            fi
+        fi
     fi
 
     if [ "$have_dummy_otrx" -eq 1 ]; then
         # noone should really look at this file, but just to avoid confusion
-	echo "<?xml version=\"1.0\"?>
+        echo "<?xml version=\"1.0\"?>
 <OSGTestResult id=\"fetch_file_base\" version=\"4.3.1\">
   <operatingenvironment>
     <env name=\"cwd\">$PWD</env>
@@ -1714,7 +1727,7 @@ do
   while read file
     do
     if [ "${file:0:1}" != "#" ]; then
-	fetch_file "$gs_id" $file
+      fetch_file "$gs_id" $file
     fi
   done < "${gs_id_work_dir}/${gs_file_list}"
 
