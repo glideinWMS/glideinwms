@@ -13,6 +13,8 @@ v3_2_15	Factory will now automatically remove unrecoverable glidein jobs
 	  customizable
 	If the glidein detects that a worker node is marked for draining and
 	  if it is approaching the drain time, it will now kill the user job
+	Frontend can be configured to request idle glideins at all times
+	  irrespective of the jobs in the queue
 	Bug Fix: Fixed a bug in the frontend downtime command in the script
 	   /etc/init.d/gwms-frontend
 	Bug Fix: Frontend now correctly considers group credentials before

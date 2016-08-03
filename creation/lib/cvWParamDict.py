@@ -519,6 +519,7 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
     group_descript_dict.add('MapFileWPilots',os.path.join(work_dir,cvWConsts.GROUP_WPILOTS_MAP_FILE))
 
     group_descript_dict.add('MaxRunningPerEntry',sub_params.config.running_glideins_per_entry.max)
+    group_descript_dict.add('MinRunningPerEntry',sub_params.config.running_glideins_per_entry.min)
     group_descript_dict.add('FracRunningPerEntry',sub_params.config.running_glideins_per_entry.relative_to_queue)
     group_descript_dict.add('MaxIdlePerEntry',sub_params.config.idle_glideins_per_entry.max)
     group_descript_dict.add('ReserveIdlePerEntry',sub_params.config.idle_glideins_per_entry.reserve)

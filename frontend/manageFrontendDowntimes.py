@@ -129,7 +129,7 @@ def down( opt_dict ):
         # only add a new line if not in downtime at that time
         return down_fd.startDowntime( start_time=when, end_time=end_time) 
     else:
-        print "Entry is already down. "
+        print "Frontend is already down. "
 
     return 0
 
@@ -150,7 +150,7 @@ def up( opt_dict ):
     if (rtn>0):
         return 0
     else:
-        print "Entry is not in downtime."
+        print "Frontend is not in downtime."
         return 1
 
 
@@ -201,7 +201,7 @@ def main(argv):
         cmd = opt_dict["cmd"]
     except KeyError, e:
         usage()
-        print "-cmd -dir and -entry arguments are required."
+        print "-cmd -dir argument is required."
         return 1
 
     try:

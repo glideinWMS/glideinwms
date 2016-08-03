@@ -82,6 +82,7 @@ if [ "$RPM_INSTALL" = "True" ]; then
     FRONTEND_START=${BIN_DIR}glideinFrontend
     FRONTEND_STOP=${BIN_DIR}stopFrontend
     FRONTEND_CHECK=${BIN_DIR}checkFrontend
+    FRONTEND_DOWNTIMES="${BIN_DIR}manageFrontendDowntimes.py"
     # Overriding variables values for RPM installation
     frontend_dir=/var/lib/gwms-frontend/vofrontend
     glideinWMS_dir=$frontend_dir
@@ -95,6 +96,7 @@ else
     FRONTEND_START=${BIN_DIR}glideinFrontend.py
     FRONTEND_STOP=${BIN_DIR}stopFrontend.py
     FRONTEND_CHECK=${BIN_DIR}checkFrontend.py
+    FRONTEND_DOWNTIMES="${BIN_DIR}manageFrontendDowntimes.py"
 fi
 
 check_installed () {
