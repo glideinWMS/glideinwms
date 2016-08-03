@@ -28,6 +28,7 @@ from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorManager
 from glideinwms.lib import classadSupport
 from glideinwms.lib import logSupport
+from glideinwms.lib import x509Support
 
 ############################################################
 #
@@ -60,6 +61,9 @@ class FrontendConfig:
         # String to prefix for the monitors
         self.glidein_monitor_prefix = "GlideinMonitor"
 
+        # String to prefix for the configured limits
+        self.glidein_config_prefix = "GlideinConfig"
+
         # String to prefix for the requests
         self.client_req_prefix = "Req"
 
@@ -83,7 +87,10 @@ frontendConfig = FrontendConfig()
 # Helps handle partial failures
 
 class MultiExeError(condorExe.ExeError):
-    def __init__(self, arr): # arr is a list of ExeError exceptions
+    def __init__(self, arr):
+        """
+        arr is a list of ExeError exceptions
+        """
         self.arr = arr
 
         # First approximation of implementation, can be improved
@@ -104,11 +111,14 @@ class MultiExeError(condorExe.ExeError):
 # Advertize counter for glideclient
 advertizeGCCounter = {}
 
+# Advertize counter for glideclientglobal
+advertizeGCGounter = {}
+
 # Advertize counter for glideresource
 advertizeGRCounter = {}
 
-# Advertize counter for glideclientglobal
-advertizeGCGounter = {}
+# Advertize counter for glidefrontendmonitor
+advertizeGFMCounter = {}
 
 ############################################################
 #
@@ -159,7 +169,7 @@ def findMasterFrontendClassads(pool_name, frontend_name):
     return format_condor_dict(data)
 
 
-# can throw condorExe.ExeError
+# can throw condorMonitor.QueryError
 def findGlideins(factory_pool, factory_identity,
                  signtype, additional_constraint=None):
     global frontendConfig
@@ -274,6 +284,7 @@ class Credential:
         proxy_vm_types = elementDescript.merged_data['ProxyVMTypes']
         proxy_creation_scripts = elementDescript.merged_data['ProxyCreationScripts']
         proxy_update_frequency = elementDescript.merged_data['ProxyUpdateFrequency']
+        proxy_project_id=elementDescript.merged_data['ProxyProjectIds']
         self.proxy_id = proxy_id
         self.filename = proxy_fname
         self.type = proxy_types.get(proxy_fname, "Unknown")
@@ -287,7 +298,7 @@ class Credential:
         self.creation_script = proxy_creation_scripts.get(proxy_fname)
         self.key_fname = proxy_keyfiles.get(proxy_fname)
         self.pilot_fname = proxy_pilotfiles.get(proxy_fname)
-
+        self.project_id = proxy_project_id.get(proxy_fname)
         # Will be initialized when getId() is called
         self._id = None
 
@@ -386,8 +397,7 @@ class Credential:
 
     def file_id(self,filename,ignoredn=False):
         if (("grid_proxy" in self.type) and not ignoredn):
-            dn_list = condorExe.iexe_cmd("openssl x509 -subject -in %s -noout" % (filename))
-            dn = dn_list[0]
+            dn = x509Support.extract_DN(filename)
             hash_str=filename+dn
         else:
             hash_str=filename
@@ -445,7 +455,8 @@ class Credential:
         except:
             pass
         output += "vm_id = %s\n" % self.vm_id
-        output += "vm_type = %s\n" % self.vm_type        
+        output += "vm_type = %s\n" % self.vm_type
+        output += "project_id = %s\n" % self.project_id
         
         return output
 
@@ -666,6 +677,7 @@ class MultiAdvertizeWork:
         self.adname = None
         self.x509_proxies_data = []
         self.ha_mode = 'master'
+        self.glidein_config_limits = {}
 
     # add a request to the list
     def add(self,
@@ -695,17 +707,21 @@ class MultiAdvertizeWork:
         self.factory_constraint[params_obj.request_name]=(trust_domain, auth_method)
         self.ha_mode = ha_mode
 
+
     def add_global(self,factory_pool,request_name,security_name,key_obj):
         self.global_pool.append(factory_pool)
         self.global_key[factory_pool]=key_obj
         self.global_params[factory_pool]=(request_name,security_name)
 
-    # retirn the queue depth
+
+    # return the queue depth
     def get_queue_len(self):
         count = 0
+        #for factory_pool in self.factory_queue:
         for factory_pool in self.factory_queue.keys():
             count += len(self.factory_queue[factory_pool])
         return count
+
 
     def renew_and_load_credentials(self):
             """
@@ -1020,7 +1036,7 @@ class MultiAdvertizeWork:
                         continue
 
                     if (params_obj.request_name in self.factory_constraint):
-                        if (credential_el.type!=factory_auth) and (factory_auth!="Any"):
+                        if (credential_el.type not in factory_auth.split("+")) and (factory_auth!="Any"):
                             logSupport.log.warning("Credential %s does not match auth method %s (for %s), skipping..."%(credential_el.type,factory_auth,params_obj.request_name))
                             continue
                         if (credential_el.trust_domain!=factory_trust) and (factory_trust!="Any"):
@@ -1047,6 +1063,9 @@ class MultiAdvertizeWork:
                         glidein_params_to_encrypt['VMId']=str(credential_el.vm_id)
                     if "vm_type" in credential_el.type:
                         glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
+                        
+                    if credential_el.project_id:
+                        glidein_params_to_encrypt['ProjectId']=str(credential_el.project_id)
                         
                     (req_idle,req_max_run)=credential_el.get_usage_details()
                     logSupport.log.debug("Advertizing credential %s with (%d idle, %d max run) for request %s"%(credential_el.filename, req_idle, req_max_run, params_obj.request_name))
@@ -1088,8 +1107,12 @@ class MultiAdvertizeWork:
                 fd.write('WebMonitoringURL = "%s"\n'%descript_obj.monitoring_web_url)
                          
                 # write out both the params 
-                for (prefix, data) in ((frontendConfig.glidein_param_prefix, params_obj.glidein_params),
-                                       (frontendConfig.encrypted_param_prefix, encrypted_params)):
+                classad_info_tuples = (
+                    (frontendConfig.glidein_param_prefix, params_obj.glidein_params),
+                    (frontendConfig.encrypted_param_prefix, encrypted_params),
+                    (frontendConfig.glidein_config_prefix, self.glidein_config_limits)
+                )
+                for (prefix, data) in classad_info_tuples:
                     for attr in data.keys():
                         writeTypedClassadAttrToFile(fd,
                                                     '%s%s' % (prefix, attr),
@@ -1113,7 +1136,6 @@ class MultiAdvertizeWork:
                     writeTypedClassadAttrToFile(fd,
                                                 '%s%s' % (prefix, attr_name),
                                                 attr_value)
-                    
 
                 # Update Sequence number information
                 if advertizeGCCounter.has_key(classad_name):
@@ -1135,6 +1157,14 @@ class MultiAdvertizeWork:
         return cred_filename_arr
 
 
+    def set_glidein_config_limits(self, limits_data):
+        """
+        Set various limits and curbs configured in the frontend config
+        into the glideresource classad
+        """
+
+        self.glidein_config_limits = limits_data
+       
 
 def writeTypedClassadAttrToFile(fd, attr_name, attr_value):
     """
@@ -1228,6 +1258,7 @@ class ResourceClassad(classadSupport.Classad):
             advertizeGRCounter[self.adParams['Name']] = 0
         self.adParams['UpdateSequenceNumber'] = advertizeGRCounter[self.adParams['Name']]
 
+
     def setFrontendDetails(self, frontend_name, group_name, ha_mode):
         """
         Add the detailed description of the frontend.
@@ -1240,7 +1271,9 @@ class ResourceClassad(classadSupport.Classad):
         self.adParams['GlideGroupName'] = "%s" % group_name
         self.adParams['GlideFrontendHAMode'] = "%s" % ha_mode
         
-    def setMatchExprs(self, match_expr, job_query_expr, factory_query_expr, start_expr):
+
+    def setMatchExprs(self, match_expr, job_query_expr,
+                      factory_query_expr, start_expr):
         """
         Sets the matching expressions for the resource classad
         Thus, it would be possible to find out why a job
@@ -1318,14 +1351,34 @@ class ResourceClassad(classadSupport.Classad):
         available_attrs = set(info.keys())
         publish_attrs = available_attrs - eliminate_attrs
         for attr in publish_attrs:
-            self.adParams[attr] = info[attr]
+            ad_key = attr
+            if attr.startswith(frontendConfig.glidein_config_prefix):
+                # Condvert GlideinConfig -> GlideFactoryConfig
+                ad_key = attr.replace(frontendConfig.glidein_config_prefix,
+                                      'GlideFactoryConfig', 1)
+            self.adParams[ad_key] = info[attr]
 
     
+    def setEntryMonitorInfo(self, info):
+        """
+        Set the useful entry specific monitoring info for the resource in the classad
+        Monitoring info from the glidefactory classad (e.g. CompletedJobs )
+
+        @type info: dict
+        @param info: Useful monitoring info from the glidefactory classad
+        """
+
+        # Monitoring Prefixes are considering format_condor_dict that strips "GlideinMonitor"
+        for k in info:
+            if k.startswith('CompletedJobs'):
+                self.adParams['GlideFactoryMonitor'+k] = info[k]
+
+
     def setGlideFactoryMonitorInfo(self, info):
         """
         Set the GlideinFactoryMonitor* for the resource in the classad
 
-        @type info: string
+        @type info: dict
         @param info: Useful information from the glidefactoryclient classad
         """
 
@@ -1333,12 +1386,40 @@ class ResourceClassad(classadSupport.Classad):
         # start with Total or Status or Requested. Append GlideFactoryMonitor
         # to these keys and put them in the classad
 
-        for key in info.keys():
+        for key in info:
             ad_key = key
             if not key.startswith('TotalClientMonitor'):
                 if key.startswith('Total') or key.startswith('Status') or key.startswith('Requested'):
                     ad_key = 'GlideFactoryMonitor' + key
                     self.adParams[ad_key] = info[key]
+
+
+    def setGlideClientConfigLimits(self, info):
+        """
+        Set the GlideClientConfig* for the resource in the classad
+
+        @type info: dict
+        @param info: Useful config information
+        """
+
+        for key in info:
+            self.adParams['GlideClientConfig%s' % key] = info[key]
+
+
+    def setCurbsAndLimits(self, limits_triggered):
+        """
+        Set descriptive messages about which limits and curbs
+            have been triggered in deciding number of glideins to request
+        @type  limits_triggered: dictionary
+        @param limits_triggered: limits and curbs that have been triggered
+        """
+        for k,v in limits_triggered.iteritems():
+            if k.startswith('Curb'):
+                classadmessage = "GlideClientCurb"+k
+            else:
+                classadmessage = "GlideClientLimit"+k
+                
+            self.adParams[classadmessage] = v
 
 
 class ResourceClassadAdvertiser(classadSupport.ClassadAdvertiser):
@@ -1365,6 +1446,94 @@ class ResourceClassadAdvertiser(classadSupport.ClassadAdvertiser):
         self.adAdvertiseCmd = 'UPDATE_AD_GENERIC'
         self.adInvalidateCmd = 'INVALIDATE_ADS_GENERIC'
         self.advertiseFilePrefix = 'gfi_ar'
+
+
+class FrontendMonitorClassad(classadSupport.Classad):
+    """
+    This class describes the resource classad. Frontend advertises the 
+    resource classad to the user pool as an UPDATE_AD_GENERIC type classad
+    """
+    
+
+    def __init__(self, frontend_ref):
+        """
+        Class Constructor
+
+        @type frontend_ref: string 
+        @param type: Name of the resource in the glideclient classad
+        """
+
+        global advertizeGFMCounter
+        
+        classadSupport.Classad.__init__(self, 'glidefrontendmonitor',
+                                        'UPDATE_AD_GENERIC',
+                                        'INVALIDATE_ADS_GENERIC')
+        
+        self.adParams['GlideinWMSVersion'] = frontendConfig.glideinwms_version
+        self.adParams['Name'] = '%s' % (frontend_ref)
+        #self.adParams['GlideFrontend_In_Downtime'] = 'False'
+        
+        if self.adParams['Name'] in advertizeGFMCounter:
+            advertizeGFMCounter[self.adParams['Name']] += 1
+        else:       
+            advertizeGFMCounter[self.adParams['Name']] = 0
+        self.adParams['UpdateSequenceNumber'] = advertizeGFMCounter[self.adParams['Name']]
+
+
+    def setFrontendDetails(self, frontend_name, groups, ha_mode):
+        """
+        Add the detailed description of the frontend.
+        @type frontend_name: string
+        @param frontend_name: A representation of the  frontend MatchExpr
+        @type group_name: string
+        @param group_name: Representation of the job query_expr
+        """
+        self.adParams['GlideFrontendName'] = "%s" % frontend_name
+        self.adParams['GlideFrontendGroups'] = "%s" % groups
+        self.adParams['GlideFrontendHAMode'] = "%s" % ha_mode
+
+
+    def setIdleJobCount(self, idle_jobs):
+        """
+        Set the idle jobs info in the classad
+
+        @type idle_jobs: dict 
+        @param idle_jobs: Dictionary of idle jobs keyed on idle duration.
+                          For example - Total for all idle jobs,
+                                        3600 for jobs idle more than 1 Hour
+        """
+
+        for key in idle_jobs:
+            k = '%s' % key
+            self.adParams['GlideFrontend_IdleJobs_%s' % k.title()] = idle_jobs[key]
+
+
+class FrontendMonitorClassadAdvertiser(classadSupport.ClassadAdvertiser):
+    """
+    Class to handle the advertisement of frontend monitor classads
+    to the user pool
+    """
+
+
+    def __init__(self, pool=None, multi_support=False):
+        """
+        Constructor
+
+        @type pool: string 
+        @param pool: Collector address
+        @type multi_support: bool 
+        @param multi_support: True if the installation support advertising multiple classads with one condor_advertise command. Defaults to False.
+        """
+
+        classadSupport.ClassadAdvertiser.__init__(self, pool=pool, 
+                                                  multi_support=multi_support,
+                                                  tcp_support=frontendConfig.advertise_use_tcp)
+        
+        self.adType = 'glidefrontendmonitor'
+        self.adAdvertiseCmd = 'UPDATE_AD_GENERIC'
+        self.adInvalidateCmd = 'INVALIDATE_ADS_GENERIC'
+        self.advertiseFilePrefix = 'gfi_afm'
+
 
 
 ############################################################

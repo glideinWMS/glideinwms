@@ -121,6 +121,14 @@ should write it <A HREF="#glidein_config">the glidein configuration
 file</A>. If the values need to be published by the condor_startd or
 visible by the user jobs, the <A HREF="#condor_vars">condor vars</A> file should also be
 modified.</P>
+
+    <P>NOTE that periodic scripts provide an additional output mechanism: since they run via
+        <a href="http://research.cs.wisc.edu/htcondor/manual/latest/4_4Hooks.html#sec:daemon-classad-hooks">HTCondor startd_cron</a>
+        and the output is not masked, anything sent to standard output is added by HTCondor to the machine classad after
+        adding a prefix (see the <A HREF="#periodic">periodic scripts section below</A>).
+        If you want to be more compatible though we recommend to use the <A HREF="#glidein_config">the glidein configuration file</A>
+        and the <A HREF="#condor_vars">condor vars</A> file to specify if the variable needs to be published to the startd.
+    </P>
 <P>The script must return with exit code 0 if successful; a non-zero
 return value on the first invocation will stop the execution of the glidein with a validation
 error. A non-zero return value on following invocations of periodic scripts will notify the startd setting
@@ -313,7 +321,7 @@ E.g. if you claim the script succeeded, you must also exit with a 0 exit code.</
 <p>Scripts by default have period=0 and are invoked only once. The Factory/Frontend administrator can specify
     an integer number of seconds to make a script periodic.
     Periodic scripts are invoked a first time at the beginning, according to their order, like all other scripts,
-    then they are invoked using the <a href="http://research.cs.wisc.edu/htcondor/manual/latest/4_4Hooks.html#SECTION00543000000000000000">
+    then they are invoked using the <a href="http://research.cs.wisc.edu/htcondor/manual/latest/4_4Hooks.html#sec:daemon-classad-hooks">
     HTCondor damon ClassAd hook mechanism</a> (aka schedd_cron) and a wrapper script that allows them to maintain the same API.
 </p>
     <p>The Periodic scripts wrapper defines some additional variables in glidein_config and in the schedd ClassAds:</p>
@@ -331,6 +339,19 @@ E.g. if you claim the script succeeded, you must also exit with a 0 exit code.</
     </ul>
     <p>All these attributes can be used in the startd (e.g. start or shutdown expressions:
         <tt>start_expr="GLIDEIN_PS_OK =!= FALSE"</tt>) or in other scripts.</p>
+    <p>Periodic scripts run via
+        <a href="http://research.cs.wisc.edu/htcondor/manual/latest/4_4Hooks.html#sec:daemon-classad-hooks">HTCondor startd_cron</a>,
+        the output is not masked, so anything sent to standard output is added by HTCondor to the machine ClassAd. To protect form
+        clashes a prefix is added (via STARTD_CRON_<JobName>_PREFIX in HTCondor). By default the prefix is GLIDEIN_PS_ but you can
+            change that by setting "prefix" in the file section of the frontend or factory configuration.
+            The special value "NOPREFIX" unsets the automatic prefix allowing
+            to set the variables as you output them. Be aware that you may overwrite system variables with unpleasant effects.
+        If you want to be more compatible we recommend to use the <A HREF="#glidein_config">the glidein configuration file</A>
+        and the <A HREF="#condor_vars">condor vars</A> file to specify if the variable needs to be published to the startd.
+        See below for more.
+    </p>
+
+
     </div>
 
 <div class="section">
@@ -520,8 +541,7 @@ exit 0
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br/>
-Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glid
-einWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
+Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
 glideinWMS email support: glideinwms-support at fnal.gov
 </div>
 

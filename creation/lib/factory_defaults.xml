@@ -1,0 +1,98 @@
+<!-- required: factory_name; optional: factory_collector-->
+<glidein advertise_delay="5" advertise_with_multiple="True" advertise_with_tcp="True" entry_parallel_workers="0" factory_versioning="False" glidein_name="gfactory_instance" loop_delay="60" restart_attempts="3" restart_interval="1800" schedd_name="schedd_glideins1@localhost">
+   <log_retention>
+      <condor_logs max_days="14.0" max_mbytes="100.0" min_days="3.0"/>
+      <job_logs max_days="7.0" max_mbytes="100.0" min_days="2.0"/>
+      <summary_logs max_days="31.0" max_mbytes="100.0" min_days="3.0"/>
+      <process_logs>
+         <process_log max_days="7.0" max_mbytes="100.0" min_days="3.0" backup_count="5" compression="" extension="all" msg_types="INFO, WARN, ERR"/>
+      </process_logs>
+   </log_retention>
+   <!-- hard coding rpm paths for now -->
+   <monitor base_dir="/var/lib/gwms-factory/web-area/monitor" flot_dir="/usr/share/javascriptrrd/flot" javascriptRRD_dir="/usr/share/javascriptrrd/js" jquery_dir="/usr/share/javascriptrrd/flot" update_thread_count="1"/>
+   <monitor_footer display_txt="" href_link=""/>
+   <security key_length="2048" pub_key="RSA" remove_old_cred_age="30" remove_old_cred_freq="24" reuse_oldkey_onstartup_gracetime="900">
+      <frontends>
+         <!-- required: name, identity -->
+         <frontend>
+            <security_classes>
+               <!-- required: username -->
+               <security_class name="frontend"/>
+            </security_classes>
+         </frontend>
+      </frontends>
+   </security>
+   <stage base_dir="/var/lib/gwms-factory/web-area/stage" use_symlink="True" web_base_url="http://localhost/factory/stage"/>
+   <submit base_client_log_dir="/var/log/gwms-factory/client" base_client_proxies_dir="/var/lib/gwms-factory/client-proxies" base_dir="/var/lib/gwms-factory/work-dir" base_log_dir="/var/log/gwms-factory/server"/>
+   <attrs>
+      <!-- required: name, value -->
+      <attr const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string"/>
+   </attrs>
+   <entries>
+      <!-- required: name, gatekeeper; optional: vm_id, vm_type, rsl, proxy_url -->
+      <entry auth_method="grid_proxy" enabled="True" gridtype="condor" trust_domain="grid" work_dir="." verbosity="std">
+         <config>
+            <max_jobs>
+               <default_per_frontend glideins="5000" held="50" idle="100"/>
+               <per_entry glideins="10000" held="1000" idle="2000"/>
+               <per_frontends>
+                  <!-- required: name -->
+                  <per_frontend glideins="5000" held="50" idle="100"/>
+               </per_frontends>
+            </max_jobs>
+            <release max_per_cycle="20" sleep="0.2"/>
+            <remove max_per_cycle="5" sleep="0.2"/>
+            <restrictions require_glidein_glexec_use="False" require_voms_proxy="False"/>
+            <submit cluster_size="10" max_per_cycle="100" sleep="0.2" slots_layout="fixed">
+               <submit_attrs>
+                  <!-- required: name -->
+                  <submit_attr value="All"/>
+               </submit_attrs>
+            </submit>
+         </config>
+         <allow_frontends>
+            <!-- required: name -->
+            <allow_frontend security_class="All"/>
+         </allow_frontends>
+          <attrs>
+             <!-- required: name, value -->
+             <attr const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string"/>
+          </attrs>
+          <files>
+             <!-- required: absfname; optional: relfname -->
+             <file const="True" executable="False" period="0" prefix="GLIDEIN_PS_" wrapper="False" untar="False">
+                <!-- optional: dir, absdir_outattr -->
+                <untar_options cond_attr="TRUE"/>
+             </file>
+          </files>
+          <!-- infosys_refs are optional -->
+          <infosys_refs>
+             <!-- required: ref, server, type -->
+             <infosys_ref/>
+          </infosys_refs>
+          <!-- monitorgroups are optional -->
+          <monitorgroups>
+             <!-- required: group_name -->
+             <monitorgroup/>
+          </monitorgroups>
+      </entry>
+   </entries>
+   <!-- at least one tarball is required -->
+   <condor_tarballs>
+      <!-- one of the following is required: tar_file, base_dir -->
+      <condor_tarball arch="default" os="default" version="default"/>
+   </condor_tarballs>
+   <files>
+      <!-- required: absfname; optional: relfname -->
+      <!-- global file has additional after_entry field -->
+      <file after_entry="False" const="True" executable="False" period="0" prefix="GLIDEIN_PS_" wrapper="False" untar="False">
+         <!-- optional: dir, absdir_outattr -->
+         <untar_options cond_attr="TRUE"/>
+      </file>
+   </files>
+   <!-- monitoring collectors are optional -->
+   <monitoring_collectors>
+      <!-- required: DN, node -->
+      <monitoring_collector group="default" secondary="False"/>
+   </monitoring_collectors>
+</glidein>

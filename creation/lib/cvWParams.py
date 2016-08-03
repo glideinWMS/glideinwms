@@ -47,6 +47,7 @@ class VOFrontendParams(cWParams.CommonParams):
         
         group_config_running_defaults=cWParams.commentedOrderedDict()
         group_config_running_defaults["max"]=['10000',"nr_jobs","What is the max number of running glideins I want to get to",None]
+        group_config_running_defaults["min"]=['0',"nr_jobs","Min number of running glideins with an empty/small queue.",None]
         group_config_running_defaults["relative_to_queue"]=['1.15',"fraction","Max relative to number of matching jobs in the queue.",None]
         group_config_defaults['running_glideins_per_entry']=group_config_running_defaults
 
@@ -121,6 +122,7 @@ class VOFrontendParams(cWParams.CommonParams):
         proxy_defaults["pool_idx_len"]=(None,"boolean","Adds leading zeros to the suffix so all filenames the same length",None)
         proxy_defaults["pool_idx_list"]=(None,"string","List of indices, can include ranges of indices",None)
         proxy_defaults["security_class"]=(None,"id","Proxies in the same security class can potentially access each other (Default: proxy_nr)",None)
+        proxy_defaults["project_id"] = (None,"string","OSG Project ID. Ex TG-12345", None)
 
         security_defaults=cWParams.commentedOrderedDict()
         security_defaults["proxy_selection_plugin"]=(None,"proxy_name","Which proxy selection plugin should I use (ProxyAll if None)",None)
@@ -138,6 +140,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
         ###############################
         # Start defining the defaults
+        self.defaults["downtimes_file"]=('frontenddowntime', 'string', 'Frontend Downtime File', None)
         self.defaults["frontend_name"]=(socket.gethostname(),'ID', 'VO Frontend name',None)
         self.defaults['frontend_versioning'] = ('True', 'Bool', 'Should we create versioned subdirectories of the type frontend_$frontend_name?', None)
 

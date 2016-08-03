@@ -397,6 +397,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
          advertise_delay="5"
          restart_attempts="3" 
          restart_interval="1800"
+         factory_versioning="True"
          schedd_name="%(schedds)s">
 """ % \
 { "service_name"  : self.glidein.service_name(), 

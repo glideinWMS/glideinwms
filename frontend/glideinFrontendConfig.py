@@ -177,7 +177,11 @@ class ParamsDescript(JoinConfigFile):
         for k in self.data.keys():
             type_str,val=self.data[k]
             if type_str=='EXPR':
-                self.expr_objs[k]=compile(val,"<string>","eval")
+                try:
+                    self.expr_objs[k] = compile(val,"<string>","eval")
+                except SyntaxError:
+                    self.expr_objs[k] = '""'
+                    raise RuntimeError, "Syntax error in parameter %s" % k
                 self.expr_data[k]=val
             elif type_str=='CONST':
                 self.const_data[k]=val
@@ -273,14 +277,17 @@ class ElementMergedDescript:
                     self.merged_data[t]=data[t]
 
         proxies=[]
-        for data in (self.frontend_data,self.element_data):
+        # switching the order, so that the group credential will 
+        # be chosen before the global credential when ProxyFirst is used.
+        for data in (self.element_data,self.frontend_data):
             if data.has_key('Proxies'):
                 proxies+=eval(data['Proxies'])
         self.merged_data['Proxies']=proxies
 
         proxy_descript_attrs=['ProxySecurityClasses','ProxyTrustDomains',
             'ProxyTypes','ProxyKeyFiles','ProxyPilotFiles','ProxyVMIds',
-            'ProxyVMTypes','ProxyCreationScripts','ProxyUpdateFrequency']
+            'ProxyVMTypes','ProxyCreationScripts','ProxyUpdateFrequency',
+            'ProxyProjectIds']
 
         for attr in proxy_descript_attrs:
             proxy_descript_data={}

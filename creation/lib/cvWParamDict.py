@@ -47,16 +47,17 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         self.dicts['preentry_file_list'].add_placeholder(cWConsts.GRIDMAP_FILE,allow_overwrite=True) # this one must be loaded before factory runs setup_x509.sh
         
         # follow by the blacklist file
-        file_name=cWConsts.BLACKLIST_FILE
+        file_name = cWConsts.BLACKLIST_FILE
         self.dicts['preentry_file_list'].add_from_file(file_name,
-                                                       (file_name, "nocache", 0, "TRUE", 'BLACKLIST_FILE'),
+                                                       cWDictFile.FileDictFile.make_val_tuple(file_name, "nocache",
+                                                                                              config_out='BLACKLIST_FILE'),
                                                        os.path.join(params.src_dir, file_name))
 
         # Load initial system scripts
         # These should be executed before the other scripts
         for script_name in ('cat_consts.sh', 'check_blacklist.sh'):
             self.dicts['preentry_file_list'].add_from_file(script_name,
-                                                           (cWConsts.insert_timestr(script_name), 'exec', 0, 'TRUE', 'FALSE'),
+                                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
                                                            os.path.join(params.src_dir, script_name))
 
         # put user files in stage
@@ -127,23 +128,17 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
             mfobj.load()
             self.monitor_htmls.append(mfobj)
 
-        spd = self.params.data
-        useMonitorIndexPage = True
-        if spd.has_key('frontend_monitor_index_page'):
-            useMonitorIndexPage = spd['frontend_monitor_index_page'] in ('True', 'true', '1')
-            
-            if useMonitorIndexPage:
-                mfobj = cWDictFile.SimpleFile(params.src_dir + '/frontend', 'index.html')
-                mfobj.load()
-                self.monitor_htmls.append(mfobj)
+        mfobj = cWDictFile.SimpleFile(params.src_dir + '/frontend', 'index.html')
+        mfobj.load()
+        self.monitor_htmls.append(mfobj)
 
-                for imgfil in ('frontendGroupGraphsNow.small.png',
-                               'frontendRRDBrowse.small.png',
-                               'frontendRRDGroupMatix.small.png',
-                               'frontendStatus.small.png'):
-                    mfobj = cWDictFile.SimpleFile(params.src_dir + '/frontend/images', imgfil)
-                    mfobj.load()
-                    self.monitor_htmls.append(mfobj)
+        for imgfil in ('frontendGroupGraphsNow.small.png',
+                       'frontendRRDBrowse.small.png',
+                       'frontendRRDGroupMatix.small.png',
+                       'frontendStatus.small.png'):
+            mfobj = cWDictFile.SimpleFile(params.src_dir + '/frontend/images', imgfil)
+            mfobj.load()
+            self.monitor_htmls.append(mfobj)
 
         # Tell condor to advertise GLIDECLIENT_ReqNode
         self.dicts['vars'].add_extended('GLIDECLIENT_ReqNode','string',None,None,False,True,False)
@@ -225,22 +220,23 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         sub_params=params.groups[self.sub_name]
 
         # put default files in place first
-        self.dicts['preentry_file_list'].add_placeholder(cWConsts.CONSTS_FILE,allow_overwrite=True)
-        self.dicts['preentry_file_list'].add_placeholder(cWConsts.VARS_FILE,allow_overwrite=True)
-        self.dicts['preentry_file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE,allow_overwrite=True) # this one must be loaded before any tarball
+        self.dicts['preentry_file_list'].add_placeholder(cWConsts.CONSTS_FILE, allow_overwrite=True)
+        self.dicts['preentry_file_list'].add_placeholder(cWConsts.VARS_FILE, allow_overwrite=True)
+        self.dicts['preentry_file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE, allow_overwrite=True)  # this one must be loaded before any tarball
 
         # follow by the blacklist file
-        file_name=cWConsts.BLACKLIST_FILE
+        file_name = cWConsts.BLACKLIST_FILE
         self.dicts['preentry_file_list'].add_from_file(file_name,
-                                                       (file_name, "nocache", 0, "TRUE", 'BLACKLIST_FILE'),
-                                                       os.path.join(params.src_dir,file_name))
+                                                       cWDictFile.FileDictFile.make_val_tuple(file_name, "nocache",
+                                                                                              config_out='BLACKLIST_FILE'),
+                                                       os.path.join(params.src_dir, file_name))
 
         # Load initial system scripts
         # These should be executed before the other scripts
-        for script_name in ('cat_consts.sh',"check_blacklist.sh"):
+        for script_name in ('cat_consts.sh', "check_blacklist.sh"):
             self.dicts['preentry_file_list'].add_from_file(script_name,
-                                                           (cWConsts.insert_timestr(script_name), 'exec', 0, 'TRUE', 'FALSE'),
-                                                           os.path.join(params.src_dir,script_name))
+                                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
+                                                           os.path.join(params.src_dir, script_name))
 
         # put user files in stage
         for user_file in sub_params.files:
@@ -396,7 +392,8 @@ def add_attr_unparsed_real(attr_name,params,dicts):
         raise RuntimeError, "Attribute '%s' does not have a value: %s"%(attr_name,attr_obj)
 
     is_parameter = is_true(attr_obj.parameter)
-    is_expr=(attr_obj.type=="expr")
+    # attr_obj.type=="expr" is now used for HTCondor expression
+    is_expr = False
     attr_val=params.extract_attr_val(attr_obj)
     
     if is_parameter:
@@ -431,7 +428,8 @@ def add_attr_unparsed_real(attr_name,params,dicts):
 def populate_frontend_descript(work_dir,
                                frontend_dict,active_sub_list,        # will be modified
                                params):
-        
+
+        frontend_dict.add('DowntimesFile',params.downtimes_file)
         frontend_dict.add('FrontendName',params.frontend_name)
         frontend_dict.add('WebURL',params.web_url)
         if hasattr(params,"monitoring_web_url") and (params.monitoring_web_url is not None):
@@ -491,6 +489,7 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
     group_descript_dict.add('MapFileWPilots',os.path.join(work_dir,cvWConsts.GROUP_WPILOTS_MAP_FILE))
 
     group_descript_dict.add('MaxRunningPerEntry',sub_params.config.running_glideins_per_entry.max)
+    group_descript_dict.add('MinRunningPerEntry',sub_params.config.running_glideins_per_entry.min)
     group_descript_dict.add('FracRunningPerEntry',sub_params.config.running_glideins_per_entry.relative_to_queue)
     group_descript_dict.add('MaxIdlePerEntry',sub_params.config.idle_glideins_per_entry.max)
     group_descript_dict.add('ReserveIdlePerEntry',sub_params.config.idle_glideins_per_entry.reserve)
@@ -558,7 +557,7 @@ def apply_multicore_policy(descript_dict):
     fact_ma = eval(descript_dict['FactoryMatchAttrs']) + [('GLIDEIN_CPUS', 's')]
     descript_dict.add('FactoryMatchAttrs', repr(fact_ma), allow_overwrite=True)
 
-    # Add RequestCpus to the list of attrs queried in glidefactory classad
+    # Add RequestCpus to the list of attrs queried in jobs classad
     job_ma = eval(descript_dict['JobMatchAttrs']) + [('RequestCpus', 'i')]
     descript_dict.add('JobMatchAttrs', repr(job_ma), allow_overwrite=True)
 
@@ -632,13 +631,14 @@ def populate_common_descript(descript_dict,        # will be modified
         proxies = []
         proxy_attrs=['security_class','trust_domain','type',
             'keyabsfname','pilotabsfname','vm_id','vm_type',
-            'creation_script','update_frequency']
+            'creation_script','update_frequency', 'project_id']
         proxy_attr_names={'security_class':'ProxySecurityClasses',
             'trust_domain':'ProxyTrustDomains',
             'type':'ProxyTypes','keyabsfname':'ProxyKeyFiles',
             'pilotabsfname':'ProxyPilotFiles',
             'vm_id':'ProxyVMIds','vm_type':'ProxyVMTypes',
             'creation_script':'ProxyCreationScripts',
+            'project_id':'ProxyProjectIds',
             'update_frequency':'ProxyUpdateFrequency'}
         proxy_descript_values={}
         for attr in proxy_attrs:

@@ -266,7 +266,7 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
     @raise CredentialError: if the credentials in params don't match what is defined for the auth method
     """
     
-    if 'grid_proxy' in auth_method:
+    if 'grid_proxy' in auth_method.split('+'):
         if params.has_key('x509_proxy_0'):
             # v2+ protocol
             if params.has_key('SubmitProxy') or params.has_key('GlideinProxy') or \

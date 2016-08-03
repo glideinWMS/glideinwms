@@ -1,0 +1,41 @@
+# File: frontend.descript
+#
+FrontendName 	frontend
+WebURL 	http://frontend/vofrontend/stage
+MonitoringWebURL 	http://frontend/vofrontend/monitor
+ClassAdProxy 	/tmp/host_proxy
+SymKeyType 	aes_256_cbc
+Groups 	group1
+LoopDelay 	15
+AdvertiseDelay 	5
+GroupParallelWorkers 	2
+RestartAttempts 	3
+RestartInterval 	1800
+AdvertiseWithTCP 	True
+AdvertiseWithMultiple 	True
+MonitorDisplayText 	
+MonitorLink 	
+CondorConfig 	/var/lib/gwms-frontend/vofrontend/frontend.condor_config
+LogDir 	/var/log/gwms-frontend
+ProcessLogs 	[{'comment': None, 'extension': 'all', u'min_days': u'3.0', u'msg_types': u'ALL', u'max_days': u'7.0', u'max_mbytes': u'100.0', 'backup_count': '5'}, {'comment': None, 'extension': 'all', u'min_days': u'3.0', u'msg_types': u'INFO,ERR,WARN', u'max_days': u'7.0', u'max_mbytes': u'100.0', 'backup_count': '5'}, {'comment': None, 'extension': 'all', u'min_days': u'3.0', u'msg_types': u'DEBUG', u'max_days': u'7.0', u'max_mbytes': u'100.0', 'backup_count': '5'}]
+MaxIdleVMsTotal 	1000
+CurbIdleVMsTotal 	200
+MaxIdleVMsTotalGlobal 	1000
+CurbIdleVMsTotalGlobal 	200
+MaxRunningTotal 	100000
+CurbRunningTotal 	90000
+MaxRunningTotalGlobal 	100000
+CurbRunningTotalGlobal 	90000
+FactoryQueryExpr 	True
+FactoryMatchAttrs 	[('GLIDEIN_CPUS', 's')]
+JobQueryExpr 	(JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)
+JobMatchAttrs 	[('RequestCpus', 'i')]
+SecurityName 	frontend
+FactoryCollectors 	[(u'192.168.60.2', u'gfactory@vagrant-factory', u'frontend@vagrant-factory')]
+JobSchedds 	frontend,schedd_jobs2@frontend
+ProxySelectionPlugin 	ProxyAll
+Proxies 	[u'/tmp/vo_proxy']
+ProxySecurityClasses 	{u'/tmp/vo_proxy': u'frontend'}
+ProxyTrustDomains 	{u'/tmp/vo_proxy': u'OSG'}
+ProxyTypes 	{u'/tmp/vo_proxy': u'grid_proxy'}
+MatchExpr 	(True) and (getGlideinCpusNum(glidein) >= int(job.get("RequestCpus", 1)))

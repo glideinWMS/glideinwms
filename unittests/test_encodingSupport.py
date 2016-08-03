@@ -3,7 +3,8 @@ import os
 import sys
 import shutil
 import tempfile
-import unittest
+import unittest2 as unittest
+import xmlrunner
 
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
@@ -113,8 +114,7 @@ class TestEncodingSupport(unittest.TestCase):
         self.assertRaises(encodingSupport.EncodingTypeError,
                           encodingSupport.decode_data, *args, **kwds)
 
-def main():
-    return runTest(TestEncodingSupport)
 
 if __name__ == '__main__':
-    sys.exit(main())
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output='unittests-reports'))
+
