@@ -569,6 +569,7 @@ class glideinFrontendElement:
 
             #Adjust the number of idle jobs in case the minimum running parameter is set
             if prop_mc_jobs['Idle'] < self.min_running:
+                logSupport.log.info("Entry %s: Adjusting idle cores to %s since the 'min' attribute of 'running_glideins_per_entry' is set" % (glideid[1], self.min_running))
                 prop_mc_jobs['Idle'] = self.min_running
 
             # Compute min glideins required based on multicore jobs
