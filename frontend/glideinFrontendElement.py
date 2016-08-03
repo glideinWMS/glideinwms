@@ -1069,6 +1069,7 @@ class glideinFrontendElement:
             if glidein_min_idle<1:
                 glidein_min_idle=1
         else:
+            # no idle, make sure the glideins know it
             glidein_min_idle = 0
 
         return int(glidein_min_idle)
