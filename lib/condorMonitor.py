@@ -22,6 +22,8 @@ import xml.parsers.expat
 import condorExe
 import condorSecurity
 
+from glideinwms.lib import logSupport
+
 USE_HTCONDOR_PYTHON_BINDINGS = False
 try:
     # NOTE:
@@ -902,7 +904,9 @@ def list2dict(list_data, attr_name):
                             a_value = list_el[a].eval()
                             if a_value != classad.Value.Undefined:
                                 dict_el[a] = a_value
-                        elif list_el[a] != classad.Value.Undefined:
+                        else:
+                            # No need for Undefined check to see if
+                            # attribute exists in the fetched classad
                             dict_el[a] = list_el[a]
                     else:
                         dict_el[a] = list_el[a]
