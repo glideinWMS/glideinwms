@@ -896,15 +896,15 @@ def list2dict(list_data, attr_name):
             if not (a in attr_list):
                 try:
                     if (USE_HTCONDOR_PYTHON_BINDINGS == True):
+                        a_value = list_el[a].eval()
                         if (list_el[a].__class__.__name__ == 'ExprTree'):
                             # Try to evaluate the condor expr and use its value
                             # If cannot be evaluated, keep the expr as is
-                            a_value = list_el[a].eval()
                             if '%s'%a_value != 'Undefined':
                                 # Cannot use classad.Value.Undefined for
                                 # for comparison as it gets cast to int
                                 dict_el[a] = a_value
-                        else:
+                        elif '%s'%a_value != 'Undefined':
                             # No need for Undefined check to see if
                             # attribute exists in the fetched classad
                             dict_el[a] = list_el[a]
