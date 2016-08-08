@@ -146,7 +146,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         if gridtype == 'ec2':
             self.populate_ec2_grid()
         if gridtype == 'gce':
-            self.populate_gce_grid()
+            self.populate_gce_grid(submit_attrs)
         elif gridtype == 'condor':
             # Condor-C is the same as normal grid with a few additions
             # so we first do the normal population
@@ -223,14 +223,15 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add('x509userproxy', '$ENV(X509_USER_PROXY)')
 
 
-    def populate_gce_grid(self):
+    def populate_gce_grid(self, submit_attrs):
         self.add("gce_image", "$ENV(IMAGE_ID)")
         self.add("gce_machine_type", "$ENV(INSTANCE_TYPE)")
-        self.add("+gce_project_name", "$ENV(GCE_PROJECT_NAME)")
-        self.add("+gce_availability_zone", "$ENV(AVAILABILITY_ZONE)")
+        #self.add("+gce_project_name", "$ENV(GCE_PROJECT_NAME)")
+        #self.add("+gce_availability_zone", "$ENV(AVAILABILITY_ZONE)")
         self.add("gce_auth_file", "$ENV(GCE_AUTH_FILE)")
-        self.add("gce_metadata", "$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####")
-        self.add("gce_metadata_file", "$ENV(GLIDEIN_PROXY_FNAME)")
+        self.add("gce_metadata", "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####")
+        #self.add("gce_metadata_file", "$ENV(GLIDEIN_PROXY_FNAME)")
+        self.populate_submit_attrs(submit_attrs)
 
 
     def populate_ec2_grid(self):
