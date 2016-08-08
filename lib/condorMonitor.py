@@ -906,7 +906,7 @@ def list2dict(list_data, attr_name):
                                 # Cannot use classad.Value.Undefined for
                                 # for comparison as it gets cast to int
                                 dict_el[a] = a_value
-                        else:
+                        elif str(list_el[a]) != 'Undefined':
                             # No need for Undefined check to see if
                             # attribute exists in the fetched classad
                             dict_el[a] = list_el[a]
