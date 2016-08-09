@@ -47,6 +47,7 @@ class VOFrontendParams(cWParams.CommonParams):
         
         group_config_running_defaults=cWParams.commentedOrderedDict()
         group_config_running_defaults["max"]=['10000',"nr_jobs","What is the max number of running glideins I want to get to",None]
+        group_config_running_defaults["min"]=['0',"nr_jobs","Min number of running glideins with an empty/small queue.",None]
         group_config_running_defaults["relative_to_queue"]=['1.15',"fraction","Max relative to number of matching jobs in the queue.",None]
         group_config_defaults['running_glideins_per_entry']=group_config_running_defaults
 

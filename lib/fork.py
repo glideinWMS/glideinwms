@@ -45,6 +45,9 @@ def fork_in_bg(function, *args):
         try:
             out = function(*args)
             os.write(w, cPickle.dumps(out))
+        except:
+            logSupport.log.warning("Forked process '%s' failed" % str(function))
+            logSupport.log.exception("Forked process '%s' failed" % str(function))
         finally:
             os.close(w)
             # Exit, immediately. Don't want any cleanup, since I was created
@@ -105,8 +108,8 @@ def fetch_fork_result_list(pipe_ids):
             out[key] = fetch_fork_result(pipe_ids[key]['r'],
                                          pipe_ids[key]['pid'])
         except Exception, e:
-            logSupport.log.warning("Failed to extract info from child '%s'" % key)
-            logSupport.log.exception("Failed to extract info from child '%s'" % key)
+            logSupport.log.warning("Failed to extract info from child '%s'" % str(key))
+            logSupport.log.exception("Failed to extract info from child '%s'" % str(key))
             # Record failed keys
             failed.append(key)
             failures += 1

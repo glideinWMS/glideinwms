@@ -47,16 +47,17 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         self.dicts['preentry_file_list'].add_placeholder(cWConsts.GRIDMAP_FILE,allow_overwrite=True) # this one must be loaded before factory runs setup_x509.sh
         
         # follow by the blacklist file
-        file_name=cWConsts.BLACKLIST_FILE
+        file_name = cWConsts.BLACKLIST_FILE
         self.dicts['preentry_file_list'].add_from_file(file_name,
-                                                       (file_name, "nocache", 0, "TRUE", 'BLACKLIST_FILE'),
+                                                       cWDictFile.FileDictFile.make_val_tuple(file_name, "nocache",
+                                                                                              config_out='BLACKLIST_FILE'),
                                                        os.path.join(params.src_dir, file_name))
 
         # Load initial system scripts
         # These should be executed before the other scripts
         for script_name in ('cat_consts.sh', 'check_blacklist.sh'):
             self.dicts['preentry_file_list'].add_from_file(script_name,
-                                                           (cWConsts.insert_timestr(script_name), 'exec', 0, 'TRUE', 'FALSE'),
+                                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
                                                            os.path.join(params.src_dir, script_name))
 
         # put user files in stage
@@ -219,22 +220,23 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         sub_params=params.groups[self.sub_name]
 
         # put default files in place first
-        self.dicts['preentry_file_list'].add_placeholder(cWConsts.CONSTS_FILE,allow_overwrite=True)
-        self.dicts['preentry_file_list'].add_placeholder(cWConsts.VARS_FILE,allow_overwrite=True)
-        self.dicts['preentry_file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE,allow_overwrite=True) # this one must be loaded before any tarball
+        self.dicts['preentry_file_list'].add_placeholder(cWConsts.CONSTS_FILE, allow_overwrite=True)
+        self.dicts['preentry_file_list'].add_placeholder(cWConsts.VARS_FILE, allow_overwrite=True)
+        self.dicts['preentry_file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE, allow_overwrite=True)  # this one must be loaded before any tarball
 
         # follow by the blacklist file
-        file_name=cWConsts.BLACKLIST_FILE
+        file_name = cWConsts.BLACKLIST_FILE
         self.dicts['preentry_file_list'].add_from_file(file_name,
-                                                       (file_name, "nocache", 0, "TRUE", 'BLACKLIST_FILE'),
-                                                       os.path.join(params.src_dir,file_name))
+                                                       cWDictFile.FileDictFile.make_val_tuple(file_name, "nocache",
+                                                                                              config_out='BLACKLIST_FILE'),
+                                                       os.path.join(params.src_dir, file_name))
 
         # Load initial system scripts
         # These should be executed before the other scripts
-        for script_name in ('cat_consts.sh',"check_blacklist.sh"):
+        for script_name in ('cat_consts.sh', "check_blacklist.sh"):
             self.dicts['preentry_file_list'].add_from_file(script_name,
-                                                           (cWConsts.insert_timestr(script_name), 'exec', 0, 'TRUE', 'FALSE'),
-                                                           os.path.join(params.src_dir,script_name))
+                                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
+                                                           os.path.join(params.src_dir, script_name))
 
         # put user files in stage
         for user_file in sub_params.files:
@@ -487,6 +489,7 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
     group_descript_dict.add('MapFileWPilots',os.path.join(work_dir,cvWConsts.GROUP_WPILOTS_MAP_FILE))
 
     group_descript_dict.add('MaxRunningPerEntry',sub_params.config.running_glideins_per_entry.max)
+    group_descript_dict.add('MinRunningPerEntry',sub_params.config.running_glideins_per_entry.min)
     group_descript_dict.add('FracRunningPerEntry',sub_params.config.running_glideins_per_entry.relative_to_queue)
     group_descript_dict.add('MaxIdlePerEntry',sub_params.config.idle_glideins_per_entry.max)
     group_descript_dict.add('ReserveIdlePerEntry',sub_params.config.idle_glideins_per_entry.reserve)

@@ -1,3 +1,24 @@
+v3_2_15	Factory will now automatically remove unrecoverable glidein jobs
+	  with forcex if they are held for 20 times or more
+	Several X509 related attributes from the matching job are now
+	  also available in the glidein's startd's classad
+	Prefix for attributes created by the periodic scripts is now
+	  customizable
+	If the glidein detects that a worker node is marked for draining and
+	  if it is approaching the drain time, it will now kill the user job
+	Frontend can be configured to request idle glideins at all times
+	  irrespective of the jobs in the queue
+	Bug Fix: Fixed a bug in the frontend downtime command in the script
+	   /etc/init.d/gwms-frontend
+	Bug Fix: Frontend now correctly considers group credentials before
+	  frontend's global credential
+	Bug Fix: Installing and upgraindg GlideinWMS rpms now correctly
+	  trigger httpd and htcondor reload commands in case of EL7
+	Bug Fix: Fixed a bug where frontend would crash with pickling error
+	  while using htcondor-python bindings
+	Bug Fix: Factory now correctly remembers pilots submitted using
+	  RFC proxy
+
 v3_2_14_1 Added support for python in EL7
 	Updated glidein_startup.sh to make it compatible with factory changes
 	  coming in v3_2_15

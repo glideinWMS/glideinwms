@@ -86,6 +86,31 @@ Related Pages:
     <ul>
 
       <li>
+        <b>v3_2_15</b> released on August xx, 2016 (<a href="http://glideinwms.fnal.gov/doc.v3_2_15/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_15/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_15.tgz">Tarball</a>)<br>
+      <ul>
+        <li>Factory will now automatically remove unrecoverable glidein jobs
+        with forcex if they are held for 20 times or more
+        <li>Several X509 related attributes from the matching job are now
+        also available in the glidein's startd's classad
+        <li>Prefix for attributes created by the periodic scripts is now
+        customizable
+        <li>If the glidein detects that a worker node is marked for draining and
+        if it is approaching the drain time, it will now kill the user job
+        <li>Frontend can be configured to request idle glideins at all times
+        irrespective of the jobs in the queue
+        <li>Bug Fix: Fixed a bug in the frontend downtime command in the script
+        /etc/init.d/gwms-frontend
+        <li>Bug Fix: Frontend now correctly considers group credentials before
+        frontend's global credential
+        <li>Bug Fix: Installing and upgraindg GlideinWMS rpms now correctly
+        trigger httpd and htcondor reload commands in case of EL7
+        <li>Bug Fix: Fixed a bug where frontend would crash with pickling error
+        while using htcondor-python bindings
+        <li>Bug Fix: Factory now correctly remembers pilots submitted using
+        RFC proxy
+      </ul>
+      </li>
+      <li>
         <b>v3_2_14_1</b> released on June 17, 2016 (<a href="http://glideinwms.fnal.gov/doc.v3_2_14_1/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_14_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_14_1.tgz">Tarball</a>)<br>
       <ul>
 	<li>Added support for python in EL7
