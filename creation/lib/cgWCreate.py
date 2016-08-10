@@ -230,7 +230,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         #self.add("+gce_availability_zone", "$ENV(AVAILABILITY_ZONE)")
         self.add("gce_auth_file", "$ENV(GCE_AUTH_FILE)")
         self.add("gce_metadata", "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####")
-        #self.add("gce_metadata_file", "$ENV(GLIDEIN_PROXY_FNAME)")
+        self.add("gce_metadata_file", "$ENV(GLIDEIN_PROXY_FNAME)")
         self.populate_submit_attrs(submit_attrs)
 
 
