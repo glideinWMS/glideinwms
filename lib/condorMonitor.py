@@ -22,8 +22,6 @@ import xml.parsers.expat
 import condorExe
 import condorSecurity
 
-from glideinwms.lib import logSupport
-
 USE_HTCONDOR_PYTHON_BINDINGS = False
 try:
     # NOTE:

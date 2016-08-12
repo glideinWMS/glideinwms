@@ -548,7 +548,6 @@ def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
     
     # Count glideins for this request credential by status
     qc_status = getQStatus(condorq)
-    #logSupport.log.debug(condorq)
 
     # Held==JobStatus(5)
     q_held_glideins = 0
