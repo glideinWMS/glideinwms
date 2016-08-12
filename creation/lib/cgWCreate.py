@@ -245,7 +245,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # having to modify every piece of code under the sun
         # This way only the submit_glideins function has to change
         # (and of course glidein_startup.sh)
-        self.add("ec2_user_data", "$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####")
+        self.add("ec2_user_data", "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####")
         self.add("ec2_user_data_file", "$ENV(GLIDEIN_PROXY_FNAME)")
 
 
