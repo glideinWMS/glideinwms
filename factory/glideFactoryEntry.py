@@ -1179,7 +1179,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         proxy_id = decrypted_params.get('GlideinProxy')
 
         if proxy_id:
-            if grid_type == 'ec2':
+            if grid_type in ('ec2', 'gce'):
                 # the GlideinProxy must be compressed for usage within user data
                 # so we specify the compressed version of the credential
                 credential_name = "%s_%s_compressed" % (client_int_name, proxy_id)
@@ -1193,15 +1193,12 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
             entry.log.warning("Glidein proxy cannot be found for client %s, skipping request" % client_int_name)
             return return_dict
 
-
-
-
         # VM id and type are required for cloud sites.
         # Either frontend or factory should provide it
         vm_id = None
         vm_type = None
 
-        if grid_type == 'ec2':
+        if grid_type in ('ec2', 'gce'):
             # vm_id and vm_type are only applicable to EC2/Clouds
 
             if 'vm_id' in auth_method:

@@ -109,7 +109,7 @@ def main():
         update_credential(fname, credential_data)
         if fname_compressed:
             compressed_credential = compress_credential(credential_data)
-            update_credential(fname_compressed, compressed_credential)
+            update_credential(fname_compressed, 'glidein_credentials=%s'%compressed_credential)
     except ProxyEnvironmentError, ex:
         sys.stderr.write(str(ex))
         update_code = 2

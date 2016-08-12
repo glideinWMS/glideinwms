@@ -596,7 +596,6 @@ class glideinFrontendElement:
 
             down_fd = glideinFrontendDowntimeLib.DowntimeFile( os.path.join( self.work_dir, self.elementDescript.frontend_data['DowntimesFile']  ) )
             downflag = down_fd.checkDowntime()
-            logSupport.log.info( "downtime = %i" % downflag )
             if downflag == True:
                 glidein_min_idle = 0
                 glidein_max_run  = 0
