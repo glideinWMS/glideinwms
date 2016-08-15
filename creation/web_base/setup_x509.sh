@@ -87,7 +87,7 @@ function check_x509_tools {
     missing_commands=0
     # verify grid-proxy-info exists
     command -v grid-proxy-info >& /dev/null
-    if [ $? -eq 1 ]; then
+    if [ $? -eq 127 ]; then
 	STR="grid-proxy-init command not found in path!"
 	echo $STR >&2
         #"$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "grid-proxy-init"
@@ -95,7 +95,7 @@ function check_x509_tools {
     fi
     # verify voms-proxy-info exists
     command -v voms-proxy-info >& /dev/null
-    if [ $? -eq 1 ]; then
+    if [ $? -eq 127 ]; then
 	STR="voms-proxy-init command not found in path!"
 	echo $STR >&2
 	#"$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "voms-proxy-init"
@@ -103,7 +103,7 @@ function check_x509_tools {
     fi
     # verify openssl  exists
     command -v openssl >& /dev/null
-    if [ $? -eq 1 ]; then
+    if [ $? -eq 127 ]; then
 	STR="openssl command not found in path!"
 	echo $STR >&2
 	#"$error_gen" -error "setup_x509.sh" "WN_Resource" "$STR" "command" "voms-proxy-init"
