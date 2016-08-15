@@ -629,24 +629,27 @@ def populate_common_descript(descript_dict,        # will be modified
 
     if len(params.security.credentials) > 0:
         proxies = []
-        proxy_attrs=['security_class','trust_domain','type',
-            'keyabsfname','pilotabsfname','vm_id','vm_type',
-            'creation_script','update_frequency', 'project_id']
-        proxy_attr_names={'security_class':'ProxySecurityClasses',
+        proxy_attr_names = {
+            'security_class':'ProxySecurityClasses',
             'trust_domain':'ProxyTrustDomains',
-            'type':'ProxyTypes','keyabsfname':'ProxyKeyFiles',
+            'type':'ProxyTypes',
+            'keyabsfname':'ProxyKeyFiles',
             'pilotabsfname':'ProxyPilotFiles',
-            'vm_id':'ProxyVMIds','vm_type':'ProxyVMTypes',
+            'vm_id':'ProxyVMIds',
+            'vm_type':'ProxyVMTypes',
             'creation_script':'ProxyCreationScripts',
             'project_id':'ProxyProjectIds',
             'update_frequency':'ProxyUpdateFrequency'}
+        proxy_attrs = proxy_attr_names.keys()
         proxy_descript_values={}
         for attr in proxy_attrs:
             proxy_descript_values[attr]={}
         proxy_trust_domains = {}
+        #print params.security.credentials
         for pel in params.security.credentials:
+            validate_credential_type(pel['type'])
             if pel['absfname'] is None:
-                raise RuntimeError, "All proxies need a absfname!"
+                raise RuntimeError, "All credentials need a absfname!"
             if (pel['pool_idx_len'] is None) and (pel['pool_idx_list'] is None):
                 # only one
                 proxies.append(pel['absfname'])
@@ -671,6 +674,15 @@ def populate_common_descript(descript_dict,        # will be modified
     descript_dict.add('MatchExpr', match_expr)
 
 
+def validate_credential_type(cred_type):
+    mutually_exclusive = [
+        ('key_pair', 'auth_file'),
+        ('cert_pair', 'auth_file'),
+    ]
+    types_set = set(cred_type.split('+'))
+    for m_e in mutually_exclusive:
+        if set(m_e).issubset(types_set):
+            raise RuntimeError, "Credential type '%s' has mutually exclusive components %s" % (cred_type, m_e)
 #####################################################
 # Returns a string usable for GLIDEIN_Collector
 def calc_glidein_collectors(collectors):

@@ -1421,12 +1421,15 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
 
                 exe_env.append('IMAGE_ID=%s' % submit_credentials.identity_credentials["VMId"])
                 exe_env.append('INSTANCE_TYPE=%s' % submit_credentials.identity_credentials["VMType"])
-                exe_env.append('ACCESS_KEY_FILE=%s' % submit_credentials.security_credentials["PublicKey"])
-                exe_env.append('SECRET_KEY_FILE=%s' % submit_credentials.security_credentials["PrivateKey"])
-                exe_env.append('CREDENTIAL_DIR=%s' % os.path.dirname(submit_credentials.security_credentials["PublicKey"]))
-                if grid_type == "gce":
-                    exe_env.append('GCE_AUTH_FILE=%s' % submit_credentials.security_credentials["PrivateKey"])
+                if grid_type == "ec2":
+                    exe_env.append('ACCESS_KEY_FILE=%s' % submit_credentials.security_credentials["PublicKey"])
+                    exe_env.append('SECRET_KEY_FILE=%s' % submit_credentials.security_credentials["PrivateKey"])
+                    exe_env.append('CREDENTIAL_DIR=%s' % os.path.dirname(submit_credentials.security_credentials["PublicKey"]))
+                elif grid_type == "gce":
+                    exe_env.append('GCE_AUTH_FILE=%s' % submit_credentials.security_credentials["AuthFile"])
                     exe_env.append('GRID_RESOURCE_OPTIONS=%s' % '$(gce_project_name) $(gce_availability_zone)')
+                    exe_env.append('CREDENTIAL_DIR=%s' % os.path.dirname(submit_credentials.security_credentials["AuthFile"]))
+
                 try:
                     vm_max_lifetime = str(params["VM_MAX_LIFETIME"])
                 except:

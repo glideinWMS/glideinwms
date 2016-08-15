@@ -276,15 +276,17 @@ class Credential:
         self.advertize=False
 
         proxy_security_classes=elementDescript.merged_data['ProxySecurityClasses']
-        proxy_trust_domains=elementDescript.merged_data['ProxyTrustDomains']
-        proxy_types=elementDescript.merged_data['ProxyTypes']
-        proxy_keyfiles=elementDescript.merged_data['ProxyKeyFiles']
-        proxy_pilotfiles=elementDescript.merged_data['ProxyPilotFiles']
+        proxy_trust_domains = elementDescript.merged_data['ProxyTrustDomains']
+        proxy_types = elementDescript.merged_data['ProxyTypes']
+        proxy_keyfiles = elementDescript.merged_data['ProxyKeyFiles']
+        proxy_pilotfiles = elementDescript.merged_data['ProxyPilotFiles']
         proxy_vm_ids = elementDescript.merged_data['ProxyVMIds']
         proxy_vm_types = elementDescript.merged_data['ProxyVMTypes']
         proxy_creation_scripts = elementDescript.merged_data['ProxyCreationScripts']
         proxy_update_frequency = elementDescript.merged_data['ProxyUpdateFrequency']
-        proxy_project_id=elementDescript.merged_data['ProxyProjectIds']
+        proxy_project_id = elementDescript.merged_data['ProxyProjectIds']
+        #proxy_auth_file = elementDescript.merged_data['ProxyAuthFiles']
+
         self.proxy_id = proxy_id
         self.filename = proxy_fname
         self.type = proxy_types.get(proxy_fname, "Unknown")
@@ -299,6 +301,8 @@ class Credential:
         self.key_fname = proxy_keyfiles.get(proxy_fname)
         self.pilot_fname = proxy_pilotfiles.get(proxy_fname)
         self.project_id = proxy_project_id.get(proxy_fname)
+        #self.auth_file = proxy_auth_file.get(proxy_fname)
+
         # Will be initialized when getId() is called
         self._id = None
 
@@ -1055,7 +1059,8 @@ class MultiAdvertizeWork:
                         if (credential_el.trust_domain!=factory_trust) and (factory_trust!="Any"):
                             logSupport.log.warning("Credential %s does not match %s (for %s) domain, skipping..."%(credential_el.trust_domain,factory_trust,params_obj.request_name))
                             continue
-                    # Convert the sec class to a string so the Factory can interpret the value correctly
+                    # Convert the sec class to a string so the Factory can
+                    # interpret the value correctly
                     glidein_params_to_encrypt['SecurityClass']=str(credential_el.security_class)
                     classad_name=credential_el.file_id(credential_el.filename,ignoredn=True)+"_"+classad_name
                     if "username_password"in credential_el.type:
@@ -1069,20 +1074,23 @@ class MultiAdvertizeWork:
                     if "key_pair" in credential_el.type:
                         glidein_params_to_encrypt['PublicKey']=file_id_cache.file_id(credential_el, credential_el.filename)
                         glidein_params_to_encrypt['PrivateKey']=file_id_cache.file_id(credential_el, credential_el.key_fname)
-                    if credential_el.pilot_fname:
-                        glidein_params_to_encrypt['GlideinProxy']=file_id_cache.file_id(credential_el, credential_el.pilot_fname)
-                    
+                    if "auth_file" in credential_el.type:
+                        glidein_params_to_encrypt['AuthFile']=file_id_cache.file_id(credential_el, credential_el.filename)
                     if "vm_id" in credential_el.type:
                         glidein_params_to_encrypt['VMId']=str(credential_el.vm_id)
                     if "vm_type" in credential_el.type:
                         glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
-                        
+
+                    # Process additional information of the credential
+                    if credential_el.pilot_fname:
+                        glidein_params_to_encrypt['GlideinProxy']=file_id_cache.file_id(credential_el, credential_el.pilot_fname)
+
                     if credential_el.project_id:
                         glidein_params_to_encrypt['ProjectId']=str(credential_el.project_id)
-                        
+
                     (req_idle,req_max_run)=credential_el.get_usage_details()
                     logSupport.log.debug("Advertizing credential %s with (%d idle, %d max run) for request %s"%(credential_el.filename, req_idle, req_max_run, params_obj.request_name))
-                
+
                     glidein_monitors_this_cred = params_obj.glidein_monitors_per_cred.get(credential_el.getId(), {})
 
                 if (frontendConfig.advertise_use_multi==True):
