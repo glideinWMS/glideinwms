@@ -184,28 +184,28 @@ class DictFile:
              erase_first=True,        # if True, delete old content first
              set_not_changed=True):   # if True, set self.changed to False
         if dir is None:
-            dir=self.dir
+            dir = self.dir
         if fname is None:
-            fname=self.fname
+            fname = self.fname
 
-        filepath=os.path.join(dir,fname)
+        filepath = os.path.join(dir, fname)
         try:
-            fd=open(filepath,"r")
-        except IOError,e:
-            print "Error opening %s: %s"%(filepath,e)
+            fd = open(filepath, "r")
+        except IOError, e:
+            print "Error opening %s: %s" % (filepath, e)
             print "Assuming blank, and re-creating..."
             return
         try:
             try:
-                self.load_from_fd(fd,erase_first,set_not_changed)
+                self.load_from_fd(fd, erase_first, set_not_changed)
             except RuntimeError, e:
-                raise RuntimeError, "File %s: %s"%(filepath,str(e))
+                raise RuntimeError("File %s: %s" % (filepath, str(e)))
         finally:
             fd.close()
 
         if change_self:
-            self.dir=dir
-            self.fname=fname
+            self.dir = dir
+            self.fname = fname
 
         return
 
@@ -215,81 +215,82 @@ class DictFile:
         if erase_first:
             self.erase()
 
-        lines=fd.readlines()
+        lines = fd.readlines()
 
-        idx=0
+        idx = 0
         for line in lines:
-            idx+=1
-            if line[-1]=='\n':
+            idx += 1
+            if line[-1] == '\n':
                 # strip newline
-                line=line[:-1]
+                line = line[:-1]
             try:
                 self.parse_val(line)
             except RuntimeError, e:
-                raise RuntimeError, "Line %i: %s"%(idx,str(e))
+                raise RuntimeError("Line %i: %s" % (idx,str(e)))
 
         if set_not_changed:
-            self.changed=False # the memory copy is now same as the one on disk
+            self.changed = False  # the memory copy is now same as the one on disk
         return
 
     def load_from_str(self, data,
                       erase_first=True,        # if True, delete old content first
                       set_not_changed=True):   # if True, set self.changed to False
-        fd=cStringIO.StringIO()
+        fd = cStringIO.StringIO()
         fd.write(data)
         fd.seek(0)
         try:
-            self.load_from_fd(fd,erase_first,set_not_changed)
+            self.load_from_fd(fd, erase_first, set_not_changed)
         except RuntimeError, e:
-            raise RuntimeError, "Memory buffer: %s"%(str(e))
+            raise RuntimeError("Memory buffer: %s" % (str(e)))
         fd.close()
         return
 
-    def is_equal(self,other,         # other must be of the same class
-                 compare_dir=False,compare_fname=False,
-                 compare_keys=None): # if None, use order_matters
-        if compare_dir and (self.dir!=other.dir):
+    def is_equal(self, other,         # other must be of the same class
+                 compare_dir=False, compare_fname=False,
+                 compare_keys=None):  # if None, use order_matters
+        if compare_dir and (self.dir != other.dir):
             return False
-        if compare_fname and (self.fname!=other.fname):
+        if compare_fname and (self.fname != other.fname):
             return False
         if compare_keys is None:
-            compare_keys=self.order_matters
-        if compare_keys and (self.keys!=other.keys):
+            compare_keys = self.order_matters
+        if compare_keys and (self.keys != other.keys):
             return False
-        res=(self.save_into_str(sort_keys=None,set_readonly=False,reset_changed=False,want_comments=False)==other.save_into_str(sort_keys=None,set_readonly=False,reset_changed=False,want_comments=False))
+        res = (self.save_into_str(sort_keys=None, set_readonly=False, reset_changed=False, want_comments=False) ==
+               other.save_into_str(sort_keys=None, set_readonly=False, reset_changed=False, want_comments=False))
         return res
 
     # PRIVATE
-    def is_compatible(self,old_val,new_val):
-        return True # everything is compatible
+    def is_compatible(self, old_val, new_val):
+        return True  # everything is compatible
 
-    def file_header(self,want_comments):
+    def file_header(self, want_comments):
         if want_comments:
-            return "# File: %s\n#"%self.fname
+            return "# File: %s\n#" % self.fname
         else:
             return None
 
-    def file_footer(self,want_comments):
-        return None # no footer
+    def file_footer(self, want_comments):
+        return None  # no footer
 
-    def format_val(self,key,want_comments):
-        return "%s \t%s"%(key,self.vals[key])
+    def format_val(self, key, want_comments):
+        return "%s \t%s" % (key, self.vals[key])
 
-    def parse_val(self,line):
-        if line[0]=='#':
-            return # ignore comments
-        arr=line.split(None,1)
-        if len(arr)==0:
-            return # empty line
-        if len(arr[0])==0:
-            return # empty key
+    def parse_val(self, line):
+        if line[0] == '#':
+            return  # ignore comments
+        arr = line.split(None, 1)
+        if len(arr) == 0:
+            return  # empty line
+        if len(arr[0]) == 0:
+            return  # empty key
 
-        key=arr[0]
-        if len(arr)==1:
-            val=''
+        key = arr[0]
+        if len(arr) == 1:
+            val = ''
         else:
-            val=arr[1]
-        return self.add(key,val)
+            val = arr[1]
+        return self.add(key, val)
 
 
 class DictFileTwoKeys(DictFile):
@@ -352,10 +353,10 @@ class DictFileTwoKeys(DictFile):
             del self.vals2[old_val]
         else:
             self.keys.append(key)
-        self.vals[key]=val
+        self.vals[key] = val
 
         if val in self.keys2:
-            old_key=self.vals2[val]
+            old_key = self.vals2[val]
             if not allow_overwrite:
                 raise RuntimeError("Value '%s' already exists" % val)
             elif not self.is_compatible2(old_key, key):
@@ -557,7 +558,7 @@ class SimpleFileDictFile(DictFile):
         :return:
         """
         # make it generic for use by children
-        if not (type(val) in (type(()),type([]))):
+        if not (type(val) in (type(()), type([]))):
             DictFile.add(self, key, (val, data), allow_overwrite)
         else:
             DictFile.add(self, key, tuple(val)+(data,), allow_overwrite)
@@ -754,7 +755,7 @@ class FileDictFile(SimpleFileDictFile):
         if want_comments:
             return (DictFile.file_header(self, want_comments) + "\n" +
                     ("# %s \t%s \t%s \t%s \t%s \t%s \t%s\n" %
-                     ('Outfile','InFile        ','Cache/exec','Period','Prefix','Condition','ConfigOut')) +
+                     ('Outfile', 'InFile        ', 'Cache/exec', 'Period', 'Prefix', 'Condition', 'ConfigOut')) +
                     ("#"*89))
         else:
             return None
@@ -784,7 +785,7 @@ class FileDictFile(SimpleFileDictFile):
                 return self.add(arr[0], [arr[1], arr[2], arr[3], "GLIDEIN_PS_", arr[4], arr[5]])
             elif len(arr) == self.DATA_LENGTH-2:
                 # For upgrade from 3.2.10 or earlier
-                return self.add(arr[0], [arr[1], arr[2], 0, "GLIDEIN_PS_", arr[4], arr[5]])
+                return self.add(arr[0], [arr[1], arr[2], 0, "GLIDEIN_PS_", arr[3], arr[4]])
             raise RuntimeError("Not a valid file line (expected %i, found %i elements): '%s'" %
                                (self.DATA_LENGTH, len(arr), line))
 

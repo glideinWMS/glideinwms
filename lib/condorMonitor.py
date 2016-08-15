@@ -900,9 +900,13 @@ def list2dict(list_data, attr_name):
                             # Try to evaluate the condor expr and use its value
                             # If cannot be evaluated, keep the expr as is
                             a_value = list_el[a].eval()
-                            if a_value != classad.Value.Undefined:
+                            if '%s'%a_value != 'Undefined':
+                                # Cannot use classad.Value.Undefined for
+                                # for comparison as it gets cast to int
                                 dict_el[a] = a_value
-                        elif list_el[a] != classad.Value.Undefined:
+                        elif str(list_el[a]) != 'Undefined':
+                            # No need for Undefined check to see if
+                            # attribute exists in the fetched classad
                             dict_el[a] = list_el[a]
                     else:
                         dict_el[a] = list_el[a]
