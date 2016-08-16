@@ -1277,14 +1277,6 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                 entry.log.warning("Credential %s for the auth file is not safe for client %s, skipping request" % (auth_file_id, client_int_name))
                 return return_dict
 
-            private_key_id = decrypted_params.get('PrivateKey')
-            if ( (private_key_id) and
-                 (not submit_credentials.add_security_credential(
-                          'PrivateKey',
-                          '%s_%s' % (client_int_name, private_key_id))) ):
-                entry.log.warning("Credential %s for the private key is not safe for client %s, skipping request" % (private_key_id, client_int_name))
-                return return_dict
-
         elif 'username_password' in auth_method:
             username_id = decrypted_params.get('Username')
             submit_credentials.id = username_id
