@@ -1199,7 +1199,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         vm_type = None
 
         if grid_type in ('ec2', 'gce'):
-            # vm_id and vm_type are only applicable to EC2/Clouds
+            # vm_id and vm_type are only applicable to Clouds
 
             if 'vm_id' in auth_method:
                 # First check if the Frontend supplied it
@@ -1232,7 +1232,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         submit_credentials.add_identity_credential('VMId', vm_id)
         submit_credentials.add_identity_credential('VMType', vm_type)
 
-        if 'cert_pair' in auth_method :
+        if 'cert_pair' in auth_method:
             public_cert_id = decrypted_params.get('PublicCert')
             submit_credentials.id = public_cert_id
             if ((public_cert_id) and
@@ -1267,6 +1267,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                           '%s_%s' % (client_int_name, private_key_id))) ):
                 entry.log.warning("Credential %s for the private key is not safe for client %s, skipping request" % (private_key_id, client_int_name))
                 return return_dict
+
         elif 'auth_file' in auth_method:
             auth_file_id = decrypted_params.get('AuthFile')
             submit_credentials.id = auth_file_id
