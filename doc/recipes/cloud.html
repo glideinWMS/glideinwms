@@ -76,7 +76,7 @@
         <div class="section">
             <h2 class="western">Description</h2>
             <p>
-                This recipe is designed to give an example on how to configure a factory and frontend to submit user jobs on Amazon EC2.
+                This recipe is designed to give an example on how to configure a factory and frontend to submit user jobs and for running in cloud resources like, Amazon EC2, OpenStack, OpenNebula, Google Cloud.
             </p>
             <table summary="Requirements for EC2 Submission" class="requirements">
                 <tbody>
@@ -108,7 +108,7 @@
             </table>
         </div>
         <div class="section">
-            <h2 class="western">Example EC2 Factory Entry</h2>
+            <h2 class="western">Example Factory Entry: Amazon EC2</h2>
             <pre>
 &lt;entry name="Amazon_Vandy" 
     auth_method="key_pair+vm_id+vm_type" 
@@ -154,6 +154,52 @@
     &lt;monitorgroups&gt;&lt;/monitorgroups&gt;
 &lt;/entry&gt;
             </pre>
+
+
+
+            <h2 class="western">Example Factory Entry: Google Cloud</h2>
+            <pre>
+&lt;entry name="Google_Entry" 
+    auth_method="auth_file+vm_id+vm_type" 
+    enabled="True" 
+    gatekeeper="https://www.googleapis.com/compute/v1"
+    gridtype="gce" 
+    schedd_name="cms-xen6.fnal.gov" 
+    trust_domain="Google_Cloud" 
+    verbosity="std" 
+    work_dir="."&gt;
+
+    &lt;config&gt;
+        &lt;max_jobs glideins="3" held="2" idle="1"&gt;
+            &lt;max_job_frontends&gt;&lt;/max_job_frontends&gt;
+        &lt;/max_jobs&gt;
+        &lt;release max_per_cycle="20" sleep="0.2"/&gt;
+        &lt;remove max_per_cycle="5" sleep="0.2"/&gt;
+        &lt;restrictions require_voms_proxy="False"/&gt;
+        &lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2"/&gt;
+    &lt;/config&gt;
+    &lt;allow_frontends&gt;&lt;/allow_frontends&gt;
+
+    &lt;attrs&gt;
+        &lt;attr name="CONDOR_ARCH" const="True" glidein_publish="False" job_publish="False"
+              parameter="True" publish="False" type="string" value="default"/&gt;
+        &lt;attr name="CONDOR_OS" const="True" glidein_publish="False"  job_publish="False" 
+              parameter="True" publish="False" type="string" value="default"/&gt;
+        &lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" 
+              parameter="True" publish="True" type="string" value="NONE"/&gt;
+        &lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" 
+              parameter="True" publish="True" type="string" value="Amazon_EC2"/&gt;
+        &lt;attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" 
+              parameter="True" publish="True" type="string" value="True"/&gt;
+    &lt;/attrs&gt;
+
+    &lt;files&gt;&lt;/files&gt;
+    &lt;infosys_refs&gt;&lt;/infosys_refs&gt;
+    &lt;monitorgroups&gt;&lt;/monitorgroups&gt;
+&lt;/entry&gt;
+            </pre>
+
+
             <p> The important pieces of the entry stanza listed above are listed below:</p>
             <table summary="Important sections of the example factory entry" class="requirements">
                 <tbody>
@@ -257,7 +303,7 @@
             </table>
         </div>
         <div class="section">
-            <h2 class="western">Example EC2 Frontend Configuration</h2>
+            <h2 class="western">Example Frontend Configuration: Amazon EC2</h2>
             <p>This only configuration for the frontend in this example is for the credential setup.  The credential setup can be included 
             in the group credential definition or in the global credential definition.
             <pre>
@@ -268,6 +314,16 @@
             type="key_pair+vm_id+vm_type"
             vm_id="ami-7bf43812"
             vm_type="m1.large"
+            pilotabsfname="/path/to/pilot_proxy"/&gt;
+            </pre>
+            <h2 class="western">Example Frontend Configuration: Google Cloud</h2>
+            <pre>
+&lt;credential authfileabsfname="/path/to/Auth_File"
+            security_class="Security Class"
+            trust_domain="Google_Cloud"
+            type="auth_file+vm_id+vm_type"
+            vm_id="projects/centos-cloud/global/images/centos-6-v20160803"
+            vm_type="projects/fermilab-poc/zones/us-central1-a/machineTypes/n1-standard-1"
             pilotabsfname="/path/to/pilot_proxy"/&gt;
             </pre>
             <p> The important pieces of the credential stanza listed above are listed below:</p>
@@ -296,6 +352,15 @@
                         <td>
                             </p>This is the full path to the file containing the SectretKey for the account that will be used to submit 
                             the VM request</p>
+                            <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>authfileabsfname</td>
+                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
+                        <td>"/path/to/Auth_File"</td>
+                        <td>
+                            </p>This is the full path to the file containing relevant credentials (in a single file, example, Google's Auth File) for the account that will be used to submit the VM request</p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
                         </td>
                     </tr>

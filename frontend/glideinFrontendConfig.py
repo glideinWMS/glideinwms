@@ -307,8 +307,8 @@ class ElementMergedDescript:
         # be chosen before the global credential when ProxyFirst is used.
         for data in (self.element_data,self.frontend_data):
             if data.has_key('Proxies'):
-                proxies+=eval(data['Proxies'])
-        self.merged_data['Proxies']=proxies
+                proxies += eval(data['Proxies'])
+        self.merged_data['Proxies'] = proxies
 
         proxy_descript_attrs=['ProxySecurityClasses','ProxyTrustDomains',
             'ProxyTypes','ProxyKeyFiles','ProxyPilotFiles','ProxyVMIds',

@@ -78,7 +78,7 @@ class ProxyFirst:
         for cred in self.cred_list:
             if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.supports_auth_method(credential_type)):
+            if (credential_type is not None) and (hasattr(cred,'type')) and (not cred.supports_auth_method(credential_type)):
                 continue
             if (params_obj is not None):
                 cred.add_usage_details(params_obj.min_nr_glideins,params_obj.max_run_glideins)
