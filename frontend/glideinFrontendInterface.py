@@ -285,9 +285,14 @@ class Credential:
         proxy_creation_scripts = elementDescript.merged_data['ProxyCreationScripts']
         proxy_update_frequency = elementDescript.merged_data['ProxyUpdateFrequency']
         proxy_project_id = elementDescript.merged_data['ProxyProjectIds']
-        #proxy_auth_file = elementDescript.merged_data['ProxyAuthFiles']
 
         self.proxy_id = proxy_id
+        # self.filename (absfname) always contains component of credential
+        # used to submit glidein and based on the type contains following:
+        # grid_proxy: x509 proxy (also used by pilot to talk to User collector 
+        # key_pair: public/access key
+        # cert_pair: public cert
+        # auth_file: auth file used
         self.filename = proxy_fname
         self.type = proxy_types.get(proxy_fname, "Unknown")
         self.security_class = proxy_security_classes.get(proxy_fname, proxy_id)
@@ -301,7 +306,6 @@ class Credential:
         self.key_fname = proxy_keyfiles.get(proxy_fname)
         self.pilot_fname = proxy_pilotfiles.get(proxy_fname)
         self.project_id = proxy_project_id.get(proxy_fname)
-        #self.auth_file = proxy_auth_file.get(proxy_fname)
 
         # Will be initialized when getId() is called
         self._id = None
