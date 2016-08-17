@@ -12,12 +12,14 @@ v3_2_15	Factory will now automatically remove unrecoverable glidein jobs
 	   /etc/init.d/gwms-frontend
 	Bug Fix: Frontend now correctly considers group credentials before
 	  frontend's global credential
-	Bug Fix: Installing and upgraindg GlideinWMS rpms now correctly
+	Bug Fix: Installing and upgrading GlideinWMS rpms now correctly
 	  trigger httpd and htcondor reload commands in case of EL7
 	Bug Fix: Fixed a bug where frontend would crash with pickling error
 	  while using htcondor-python bindings
 	Bug Fix: Factory now correctly remembers pilots submitted using
 	  RFC proxy
+	Bug Fix: Fixed a bug where running reconfig or upgrade command on
+	  a frontend service would crash
 
 v3_2_14_1 Added support for python in EL7
 	Updated glidein_startup.sh to make it compatible with factory changes
