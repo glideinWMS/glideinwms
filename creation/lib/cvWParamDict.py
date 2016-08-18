@@ -675,14 +675,12 @@ def populate_common_descript(descript_dict,        # will be modified
 
 
 def validate_credential_type(cred_type):
-    mutually_exclusive = [
-        ('key_pair', 'auth_file'),
-        ('cert_pair', 'auth_file'),
-    ]
+    mutually_exclusive = set(['grid_proxy', 'cert_pair', 'key_pair', 'auth_file'])
     types_set = set(cred_type.split('+'))
-    for m_e in mutually_exclusive:
-        if set(m_e).issubset(types_set):
-            raise RuntimeError, "Credential type '%s' has mutually exclusive components %s" % (cred_type, m_e)
+    common_types = mutually_exclusive.intersection(types_set)
+
+    if len(common_types) > 1:
+        raise RuntimeError, "Credential type '%s' has mutually exclusive components %s" % (cred_type, list(common_types))
 #####################################################
 # Returns a string usable for GLIDEIN_Collector
 def calc_glidein_collectors(collectors):

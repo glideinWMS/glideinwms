@@ -72,7 +72,7 @@ class SubmitCredentials:
     def __repr__(self):
         output = "SubmitCredentials"
         #output += "username = ", self.username
-        output += "security class = %s" % str(self.security_class)
+        output += " security class = %s" % str(self.security_class)
         output += " id = %s" % self.id
         output += " cedential dir = %s" % self.cred_dir
         output += " security credentials: "
