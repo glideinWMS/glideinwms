@@ -26,38 +26,39 @@ def create_condor_tar_fd(condor_base_dir):
         # List of required files
         condor_bins = [
             'sbin/condor_master', 'sbin/condor_startd', 'sbin/condor_starter'
-                      ]
+        ]
 
         # List of optional files, included if found in condor distro
         condor_opt_bins = [
-            'sbin/condor_procd', 'sbin/gcb_broker_query',
-            'sbin/condor_fetchlog', 'sbin/condor_advertise',
-                          ]
+            'sbin/condor_procd', 'sbin/condor_fetchlog', 'sbin/condor_advertise'
+        ]
 
         condor_opt_libs = [
             'lib/condor_ssh_to_job_sshd_config_template',
-            'lib/CondorJavaInfo.class', 'lib/CondorJavaWrapper.class',
+            'lib/CondorJavaInfo.class',
+            'lib/CondorJavaWrapper.class',
             'lib/scimark2lib.jar',
-                          ]
+            'lib/condor',
+        ]
         condor_opt_libexecs = [
-                  'libexec/glexec_starter_setup.sh',
-                  'libexec/condor_glexec_wrapper',
-                  'libexec/condor_glexec_cleanup', 
-                  'libexec/condor_glexec_job_wrapper',
-                  'libexec/condor_glexec_kill',
-                  'libexec/condor_glexec_run',
-                  'libexec/condor_glexec_update_proxy',
-                  'libexec/condor_glexec_setup',
-                  'libexec/condor_shared_port',
-                  'libexec/condor_ssh_to_job_sshd_setup',
-                  'libexec/condor_ssh_to_job_shell_setup',
-                  'libexec/condor_kflops',
-                  'libexec/condor_mips',
-                  'libexec/curl_plugin',
-                  'libexec/data_plugin',
-                  'libexec/condor_chirp',
-                  'libexec/condor_gpu_discovery',
-                              ]
+            'libexec/glexec_starter_setup.sh',
+            'libexec/condor_glexec_wrapper',
+            'libexec/condor_glexec_cleanup',
+            'libexec/condor_glexec_job_wrapper',
+            'libexec/condor_glexec_kill',
+            'libexec/condor_glexec_run',
+            'libexec/condor_glexec_update_proxy',
+            'libexec/condor_glexec_setup',
+            'libexec/condor_shared_port',
+            'libexec/condor_ssh_to_job_sshd_setup',
+            'libexec/condor_ssh_to_job_shell_setup',
+            'libexec/condor_kflops',
+            'libexec/condor_mips',
+            'libexec/curl_plugin',
+            'libexec/data_plugin',
+            'libexec/condor_chirp',
+            'libexec/condor_gpu_discovery',
+        ]
 
         # for RPM installations, add libexec/condor as libexec into the
         # tarball instead
@@ -79,18 +80,18 @@ def create_condor_tar_fd(condor_base_dir):
                 raise RuntimeError, "Cannot find %s"%os.path.join(condor_base_dir,f)
 
         # Get the list of dlls required
-        dlls = get_condor_dlls(condor_base_dir, 
-                               condor_opt_bins + condor_opt_libexecs)
+        dlls = get_condor_dlls(
+            condor_base_dir,
+            condor_bins + condor_opt_bins + condor_opt_libexecs)
 
-        # check if optional files and their libs exist, if they do, include
+        # Get list of all the files & directories that exist
         for f in (condor_opt_bins+condor_opt_libs+condor_opt_libexecs+dlls):
-            if os.path.isfile(os.path.join(condor_base_dir,f)):
+            if os.path.exists(os.path.join(condor_base_dir,f)):
                 condor_bins.append(f)
 
-
         # tar
-        fd=cStringIO.StringIO()
-        tf=tarfile.open("dummy.tgz",'w:gz',fd)
+        fd = cStringIO.StringIO()
+        tf = tarfile.open("dummy.tgz",'w:gz',fd)
         for f in condor_bins:
             tf.add(os.path.join(condor_base_dir,f), condor_bins_map.get(f, f))
         tf.close()
