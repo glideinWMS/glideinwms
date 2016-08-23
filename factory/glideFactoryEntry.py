@@ -1112,7 +1112,8 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         # Cannot use proxy for submission but entry is not in downtime
         # since other proxies may map to valid security classes
         entry.log.warning("Security class %s is currently in a downtime window for entry: %s. Ignoring request." % (credential_security_class, entry.name))
-        return return_dict
+        in_downtime = True
+#        return return_dict
 
     # Deny Frontend from requesting glideins if the whitelist
     # does not have its security class (or "All" for everyone)
