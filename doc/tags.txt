@@ -4,6 +4,10 @@ v3_3    Includes all features and bug fixes released in v3_2_15
         Support frontend policies specified in external python file
         Support changes to VM ID and VM Type without need to reconfig/upgrade
           frontend service
+        Bug Fix: Multiple credential (eg: vm_id+vm_type) definitions now work
+	  correctly
+        Bug Fix: create_condor_tarball now also includes required globus libraries
+	  from lib/condor that HTCondor loads at runtime
 
 v3_2_15	Factory will now automatically remove unrecoverable glidein jobs
 	  with forcex if they are held for 20 times or more
