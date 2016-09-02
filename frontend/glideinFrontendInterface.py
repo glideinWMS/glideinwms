@@ -435,6 +435,16 @@ class Credential:
             self.create()
 
 
+    def supports_auth_method(self, auth_method):
+        """
+        Check if this credential has all the necessary info to support
+        auth_method for a given factory entry
+        """
+        type_set = set(self.type.split('+'))
+        am_set = set(auth_method.split('+'))
+        return am_set.issubset(type_set)
+
+
     def __str__(self):
         output = ""
         output += "id = %s\n" % self.getId()
@@ -1002,7 +1012,10 @@ class MultiAdvertizeWork:
         # get_credentials will augment the needed credentials with the requests
         # A little weird, but that's how it works right now
         # The credential objects are also persistent, so this will be a subset of self.x509_proxies_data
-        credentials_with_requests = descript_obj.x509_proxies_plugin.get_credentials(params_obj=params_obj,credential_type=factory_auth,trust_domain=factory_trust)
+        credentials_with_requests = \
+            descript_obj.x509_proxies_plugin.get_credentials(
+                params_obj=params_obj, credential_type=factory_auth,
+                trust_domain=factory_trust)
         nr_credentials = len(credentials_with_requests)
         if nr_credentials == 0:
             raise NoCredentialException
@@ -1036,7 +1049,7 @@ class MultiAdvertizeWork:
                         continue
 
                     if (params_obj.request_name in self.factory_constraint):
-                        if (credential_el.type not in factory_auth.split("+")) and (factory_auth!="Any"):
+                        if (factory_auth != "Any") and (not credential_el.supports_auth_method(factory_auth)):
                             logSupport.log.warning("Credential %s does not match auth method %s (for %s), skipping..."%(credential_el.type,factory_auth,params_obj.request_name))
                             continue
                         if (credential_el.trust_domain!=factory_trust) and (factory_trust!="Any"):

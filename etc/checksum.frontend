@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_15_rc1
+# GLIDEINWMS_VERSION v3_2_15
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 ec981b2612dbb38db1558bdb7ab303a7  ./LICENSE.txt
@@ -13,7 +13,7 @@ eb0a7d5a10c30507e159ae2f43280dd9  ./creation/create_condor_tarball
 67938d01423fc74eb34ea3915b1b181d  ./creation/create_rpm_startup
 d41d8cd98f00b204e9800998ecf8427e  ./creation/lib/__init__.py
 e59bb78a8aba36d0d8691b5f9e4ebf4f  ./creation/lib/cWConsts.py
-17954ad083e6359983b54fd32d6100f6  ./creation/lib/cWDictFile.py
+00a16d197bee55353ecdee24f8e02b74  ./creation/lib/cWDictFile.py
 5e9d00c20ab8dc460fa0164122019983  ./creation/lib/cWParamDict.py
 cfae390250aa141cbb5b6ffcc34432ff  ./creation/lib/cWParams.py
 172e148818f2a2bf07eb9c214cc8a4ba  ./creation/lib/cvWConsts.py
@@ -132,7 +132,7 @@ db3a6019e81123ab02788204c5170716  ./lib/cleanupSupport.py
 52ad3ab400626ad6d46b53aa92df7337  ./lib/condorExe.py
 62ace95abeb9172364f64f05acb75f2e  ./lib/condorLogParser.py
 f9f296bc30e68cb314dfba0415c97b26  ./lib/condorManager.py
-099f9408db538a7d6756bcc2741b28fb  ./lib/condorMonitor.py
+fb1a8b98655b4d575a4781ccae6e7bd0  ./lib/condorMonitor.py
 89772f9af06bd4627edeb0b6ca1e0b7d  ./lib/condorPrivsep.py
 d52be01219762a0e0cffc3348f960f38  ./lib/condorSecurity.py
 85810235f5f90736e8d2899acd2a2cc9  ./lib/encodingSupport.py
