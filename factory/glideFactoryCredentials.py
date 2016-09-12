@@ -71,16 +71,16 @@ class SubmitCredentials:
 
     def __repr__(self):
         output = "SubmitCredentials"
-        output += "username = ", self.username
-        output += "security class = ", self.security_class
-        output += "id = ", self.id
-        output += "cedential dir = ", self.cred_dir
+        output += "username = %s; " % self.username
+        output += "security class = %s; " % self.security_class
+        output += "id = %s; " % self.id
+        output += "cedential dir = %s; " % self.cred_dir
         output += "security credentials: "
         for sc in self.security_credentials.keys():
-            output += "    %s : %s" % (sc, self.security_credentials[sc])
+            output += "    %s : %s; " % (sc, self.security_credentials[sc])
         output += "identity credentials: "
         for ic in self.identity_credentials.keys():
-            output += "    %s : %s" % (ic, self.identity_credentials[ic])
+            output += "    %s : %s; " % (ic, self.identity_credentials[ic])
         return output
 
 def update_credential_file(username, client_id, credential_data, request_clientname):
