@@ -580,7 +580,7 @@ def get_pool_list(credential):
         else:
             pool_idx_list_expanded.append(idx.strip())
 
-    pool_idx_list_strings=[]
+    pool_idx_list_strings = []
     for idx in pool_idx_list_expanded:
         pool_idx_list_strings.append(idx.zfill(pool_idx_len))
     return pool_idx_list_strings
@@ -589,79 +589,79 @@ def get_pool_list(credential):
 def populate_common_descript(descript_dict,        # will be modified
                              params):
 
-    for tel in (("factory","Factory"),("job","Job")):
-        param_tname,str_tname=tel
-        ma_arr=[]
+    for tel in (("factory", "Factory"), ("job", "Job")):
+        param_tname, str_tname = tel
+        ma_arr = []
         qry_expr = params.match[param_tname]['query_expr']
 
-        descript_dict.add('%sQueryExpr'%str_tname,qry_expr)
+        descript_dict.add('%sQueryExpr' % str_tname, qry_expr)
 
-        match_attrs=params.match[param_tname]['match_attrs']
+        match_attrs = params.match[param_tname]['match_attrs']
         for attr_name in match_attrs.keys():
-            attr_type=match_attrs[attr_name]['type']
+            attr_type = match_attrs[attr_name]['type']
             if not (attr_type in MATCH_ATTR_CONV.keys()):
-                raise RuntimeError, "match_attr type '%s' not one of %s"%(attr_type,MATCH_ATTR_CONV.keys())
-            ma_arr.append((str(attr_name),MATCH_ATTR_CONV[attr_type]))
+                raise RuntimeError("match_attr type '%s' not one of %s" % (attr_type, MATCH_ATTR_CONV.keys()))
+            ma_arr.append((str(attr_name), MATCH_ATTR_CONV[attr_type]))
 
-        descript_dict.add('%sMatchAttrs'%str_tname,repr(ma_arr))
+        descript_dict.add('%sMatchAttrs' % str_tname, repr(ma_arr))
 
     if params.security.security_name is not None:
-        descript_dict.add('SecurityName',params.security.security_name)
+        descript_dict.add('SecurityName', params.security.security_name)
 
-    collectors=[]
+    collectors = []
     for el in params.match.factory.collectors:
-        if el['factory_identity'][-9:]=='@fake.org':
-            raise RuntimeError, "factory_identity for %s not set! (i.e. it is fake)"%el['node']
-        if el['my_identity'][-9:]=='@fake.org':
-            raise RuntimeError, "my_identity for %s not set! (i.e. it is fake)"%el['node']
+        if el['factory_identity'][-9:] == '@fake.org':
+            raise RuntimeError("factory_identity for %s not set! (i.e. it is fake)" % el['node'])
+        if el['my_identity'][-9:] == '@fake.org':
+            raise RuntimeError("my_identity for %s not set! (i.e. it is fake)" % el['node'])
         cWDictFile.validate_node(el['node'])
-        collectors.append((el['node'],el['factory_identity'],el['my_identity']))
-    descript_dict.add('FactoryCollectors',repr(collectors))
+        collectors.append((el['node'], el['factory_identity'], el['my_identity']))
+    descript_dict.add('FactoryCollectors', repr(collectors))
 
-    schedds=[]
+    schedds = []
     for el in params.match.job.schedds:
         cWDictFile.validate_node(el['fullname'])
         schedds.append(el['fullname'])
-    descript_dict.add('JobSchedds',string.join(schedds,','))
+    descript_dict.add('JobSchedds', string.join(schedds, ','))
 
     if params.security.proxy_selection_plugin is not None:
-        descript_dict.add('ProxySelectionPlugin',params.security.proxy_selection_plugin)
+        descript_dict.add('ProxySelectionPlugin', params.security.proxy_selection_plugin)
 
     if len(params.security.credentials) > 0:
         proxies = []
-        proxy_attrs=['security_class','trust_domain','type',
-            'keyabsfname','pilotabsfname','remote_username','vm_id','vm_type',
-            'creation_script','update_frequency', 'project_id']
-        proxy_attr_names={'security_class':'ProxySecurityClasses',
-            'trust_domain':'ProxyTrustDomains',
-            'type':'ProxyTypes','keyabsfname':'ProxyKeyFiles',
-            'pilotabsfname':'ProxyPilotFiles',
-            'remote_username':'ProxyRemoteUsernames',
-            'vm_id':'ProxyVMIds','vm_type':'ProxyVMTypes',
-            'creation_script':'ProxyCreationScripts',
-            'project_id':'ProxyProjectIds',
-            'update_frequency':'ProxyUpdateFrequency'}
-        proxy_descript_values={}
+        proxy_attrs=['security_class', 'trust_domain', 'type',
+                     'keyabsfname', 'pilotabsfname', 'remote_username', 'vm_id', 'vm_type',
+                     'creation_script', 'update_frequency', 'project_id']
+        proxy_attr_names={'security_class': 'ProxySecurityClasses',
+                          'trust_domain': 'ProxyTrustDomains',
+                          'type': 'ProxyTypes', 'keyabsfname': 'ProxyKeyFiles',
+                          'pilotabsfname': 'ProxyPilotFiles',
+                          'remote_username': 'ProxyRemoteUsernames',
+                          'vm_id':'ProxyVMIds', 'vm_type':'ProxyVMTypes',
+                          'creation_script': 'ProxyCreationScripts',
+                          'project_id': 'ProxyProjectIds',
+                          'update_frequency': 'ProxyUpdateFrequency'}
+        proxy_descript_values = {}
         for attr in proxy_attrs:
-            proxy_descript_values[attr]={}
+            proxy_descript_values[attr] = {}
         proxy_trust_domains = {}
         for pel in params.security.credentials:
             if pel['absfname'] is None:
-                raise RuntimeError, "All proxies need a absfname!"
+                raise RuntimeError("All proxies need a absfname!")
             if (pel['pool_idx_len'] is None) and (pel['pool_idx_list'] is None):
                 # only one
                 proxies.append(pel['absfname'])
                 for attr in proxy_attrs:
                     if pel[attr] is not None:
-                        proxy_descript_values[attr][pel['absfname']]=pel[attr]
-            else: #pool
+                        proxy_descript_values[attr][pel['absfname']] = pel[attr]
+            else:  # pool
                 pool_idx_list_expanded_strings = get_pool_list(pel)
                 for idx in pool_idx_list_expanded_strings:
                     absfname = "%s%s" % (pel['absfname'], idx)
                     proxies.append(absfname)
                     for attr in proxy_attrs:
                         if pel[attr] is not None:
-                            proxy_descript_values[attr][pel['absfname']]=pel[attr]
+                            proxy_descript_values[attr][pel['absfname']] = pel[attr]
 
         descript_dict.add('Proxies', repr(proxies))
         for attr in proxy_attrs:
@@ -682,7 +682,7 @@ def calc_glidein_collectors(collectors):
         if not collector_nodes.has_key(el.group):
             collector_nodes[el.group] = {'primary': [], 'secondary': []}
         if is_true(el.secondary):
-            cWDictFile.validate_node(el.node,allow_prange=True)
+            cWDictFile.validate_node(el.node, allow_prange=True)
             collector_nodes[el.group]['secondary'].append(el.node)
         else:
             cWDictFile.validate_node(el.node)

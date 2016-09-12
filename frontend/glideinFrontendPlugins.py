@@ -110,7 +110,7 @@ class ProxyAll:
 
     # get the proxies, given the condor_q and condor_status data
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
-        rtnlist=[]
+        rtnlist = []
         for cred in self.cred_list:
             if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
@@ -118,7 +118,7 @@ class ProxyAll:
                 continue
             rtnlist.append(cred)
         if (params_obj is not None):
-            rtnlist=fair_assign(rtnlist,params_obj)
+            rtnlist = fair_assign(rtnlist,params_obj)
         return rtnlist
 
 ##########################################################
@@ -576,6 +576,7 @@ class ProxyUserMapWRecycling:
 
         return
 
+
 ###############################################
 # INTERNAL to proxy_plugins, don't use directly
 
@@ -591,16 +592,18 @@ def list2ilist(lst):
         out.append((cred.proxy_id, cred.filename))
     return out
 
+
 def createCredentialList(elementDescript):
     """ Creates a list of Credentials for a proxy plugin """
-    credential_list=[]
-    num=0
+    credential_list = []
+    num = 0
     for proxy in elementDescript.merged_data['Proxies']:
-        credential_list.append(glideinFrontendInterface.Credential(num,proxy,elementDescript))
-        num=num+1
+        credential_list.append(glideinFrontendInterface.Credential(num, proxy, elementDescript))
+        num += 1
     return credential_list
 
-def fair_split(i,n,p):
+
+def fair_split(i, n, p):
     """
     Split n requests amongst p proxies 
     Returns how many requests go to the i-th proxy
@@ -610,16 +613,19 @@ def fair_split(i,n,p):
     p1=int(p)
     return int((n1*i1)/p1)-int((n1*(i1-1))/p1)
 
+
 def random_split(n,p):
-    random_arr=map(lambda i: fair_split(i,n,p) ,range(p))
+    random_arr = map(lambda i: fair_split(i, n, p), range(p))
     random.shuffle(random_arr)
     return random_arr
 
+
 def print_list(cred_list):
     for c in cred_list:
-        logSupport.log.debug("Cred: %s %d %d" % (c.filename,c.req_idle,c.req_max_run))
+        logSupport.log.debug("Cred: %s %d %d" % (c.filename, c.req_idle, c.req_max_run))
 
-def fair_assign(cred_list,params_obj):
+
+def fair_assign(cred_list, params_obj):
     """
     Assigns requests to each credentials in cred_list
     max run will remain constant between iterations

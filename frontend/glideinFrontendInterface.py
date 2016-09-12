@@ -259,7 +259,8 @@ def format_condor_dict(data):
 
     return out
 
-############################################
+
+## ###########################################
 
 # TODO: PM
 # At some point we should change this class to watch for credential file 
@@ -271,21 +272,21 @@ def format_condor_dict(data):
 
 class Credential:
     def __init__(self, proxy_id, proxy_fname, elementDescript):
-        self.req_idle=0
-        self.req_max_run=0
-        self.advertize=False
+        self.req_idle = 0
+        self.req_max_run = 0
+        self.advertize = False
 
-        proxy_security_classes=elementDescript.merged_data['ProxySecurityClasses']
-        proxy_trust_domains=elementDescript.merged_data['ProxyTrustDomains']
-        proxy_types=elementDescript.merged_data['ProxyTypes']
-        proxy_keyfiles=elementDescript.merged_data['ProxyKeyFiles']
-        proxy_pilotfiles=elementDescript.merged_data['ProxyPilotFiles']
+        proxy_security_classes = elementDescript.merged_data['ProxySecurityClasses']
+        proxy_trust_domains = elementDescript.merged_data['ProxyTrustDomains']
+        proxy_types = elementDescript.merged_data['ProxyTypes']
+        proxy_keyfiles = elementDescript.merged_data['ProxyKeyFiles']
+        proxy_pilotfiles = elementDescript.merged_data['ProxyPilotFiles']
         proxy_vm_ids = elementDescript.merged_data['ProxyVMIds']
         proxy_vm_types = elementDescript.merged_data['ProxyVMTypes']
         proxy_creation_scripts = elementDescript.merged_data['ProxyCreationScripts']
         proxy_update_frequency = elementDescript.merged_data['ProxyUpdateFrequency']
         proxy_remote_username = elementDescript.merged_data['ProxyRemoteUsernames']
-        proxy_project_id=elementDescript.merged_data['ProxyProjectIds']
+        proxy_project_id = elementDescript.merged_data['ProxyProjectIds']
         self.proxy_id = proxy_id
         self.filename = proxy_fname
         self.type = proxy_types.get(proxy_fname, "Unknown")
@@ -400,9 +401,9 @@ class Credential:
     def file_id(self,filename,ignoredn=False):
         if (("grid_proxy" in self.type) and not ignoredn):
             dn = x509Support.extract_DN(filename)
-            hash_str=filename+dn
+            hash_str = filename+dn
         else:
-            hash_str=filename
+            hash_str = filename
         #logSupport.log.debug("Using hash_str=%s (%d)"%(hash_str,abs(hash(hash_str))%1000000))
         return str(abs(hash(hash_str))%1000000)
 
@@ -417,10 +418,10 @@ class Credential:
             return 0
 
         if ("grid_proxy" in self.type) or ("cert_pair" in self.type):
-            time_list=condorExe.iexe_cmd("openssl x509 -in %s -noout -enddate" % self.filename)
+            time_list = condorExe.iexe_cmd("openssl x509 -in %s -noout -enddate" % self.filename)
             if "notAfter=" in time_list[0]:
-                time_str=time_list[0].split("=")[1].strip()
-                timeleft=calendar.timegm(time.strptime(time_str,"%b %d %H:%M:%S %Y %Z"))-int(time.time())
+                time_str = time_list[0].split("=")[1].strip()
+                timeleft = calendar.timegm(time.strptime(time_str,"%b %d %H:%M:%S %Y %Z"))-int(time.time())
             return timeleft
         else:
             return -1
