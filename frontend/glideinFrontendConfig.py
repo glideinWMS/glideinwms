@@ -285,9 +285,9 @@ class ElementMergedDescript:
         self.merged_data['Proxies']=proxies
 
         proxy_descript_attrs=['ProxySecurityClasses','ProxyTrustDomains',
-            'ProxyTypes','ProxyKeyFiles','ProxyPilotFiles','ProxyVMIds',
-            'ProxyVMTypes','ProxyCreationScripts','ProxyUpdateFrequency',
-            'ProxyProjectIds']
+                              'ProxyTypes','ProxyKeyFiles','ProxyPilotFiles','ProxyVMIds',
+                              'ProxyVMTypes','ProxyCreationScripts','ProxyUpdateFrequency',
+                              'ProxyRemoteUsernames', 'ProxyProjectIds']
 
         for attr in proxy_descript_attrs:
             proxy_descript_data={}

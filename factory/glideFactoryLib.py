@@ -1306,6 +1306,14 @@ def releaseGlideins(schedd_name, jid_list, log=logSupport.log,
     log.info("Released %i glideins on %s: %s" % (len(released_jids), schedd_name, released_jids))
 
 
+def in_submit_environment(entry_name, exe_env):
+    upper_name = "%s=" % entry_name.upper()
+    for i in exe_env:
+        if i.startswith(upper_name):
+            return True
+    return False
+
+
 def get_submit_environment(entry_name, client_name, submit_credentials,
                            client_web, params, log=logSupport.log,
                            factoryConfig=None):
@@ -1400,6 +1408,15 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
 
         if grid_type.startswith('batch '):
             log.debug("submit_credentials.security_credentials: %s" % str(submit_credentials.security_credentials))
+            # TODO: username, should this be only for batch or all key pair + username/password?
+            try:
+                # is always there and not empty for batch (is optional w/ Key pair or Username/password
+                # otherways could not be there (KeyError), be empty (AttributeError), bad format (IndexError)
+                remote_username = submit_credentials.identity_credentials["RemoteUsername"]
+                if remote_username:
+                    exe_env.append('GLIDEIN_REMOTE_USERNAME=%s' % remote_username)
+            except KeyError:
+                pass
             exe_env.append('GRID_RESOURCE_OPTIONS=--rgahp-key %s --rgahp-nopass' % submit_credentials.security_credentials["PrivateKey"])
             exe_env.append('X509_USER_PROXY=%s' % submit_credentials.security_credentials["GlideinProxy"])
             exe_env.append('X509_USER_PROXY_BASENAME=%s' % os.path.basename(submit_credentials.security_credentials["GlideinProxy"]))

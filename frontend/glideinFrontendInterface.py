@@ -284,6 +284,7 @@ class Credential:
         proxy_vm_types = elementDescript.merged_data['ProxyVMTypes']
         proxy_creation_scripts = elementDescript.merged_data['ProxyCreationScripts']
         proxy_update_frequency = elementDescript.merged_data['ProxyUpdateFrequency']
+        proxy_remote_username = elementDescript.merged_data['ProxyRemoteUsernames']
         proxy_project_id=elementDescript.merged_data['ProxyProjectIds']
         self.proxy_id = proxy_id
         self.filename = proxy_fname
@@ -298,6 +299,7 @@ class Credential:
         self.creation_script = proxy_creation_scripts.get(proxy_fname)
         self.key_fname = proxy_keyfiles.get(proxy_fname)
         self.pilot_fname = proxy_pilotfiles.get(proxy_fname)
+        self.remote_username = proxy_remote_username.get(proxy_fname)
         self.project_id = proxy_project_id.get(proxy_fname)
         # Will be initialized when getId() is called
         self._id = None
@@ -1077,6 +1079,8 @@ class MultiAdvertizeWork:
                     if "vm_type" in credential_el.type:
                         glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
                         
+                    if credential_el.remote_username:
+                        glidein_params_to_encrypt['RemoteUsername'] = str(credential_el.remote_username)
                     if credential_el.project_id:
                         glidein_params_to_encrypt['ProjectId']=str(credential_el.project_id)
                         
