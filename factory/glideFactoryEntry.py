@@ -65,6 +65,8 @@ class Entry:
         self.glideinDescript = glidein_descript
         self.frontendDescript = frontend_descript
 
+        self.signatures = glideFactoryConfig.SignatureFile()
+
         self.jobDescript = glideFactoryConfig.JobDescript(name)
         self.jobAttributes = glideFactoryConfig.JobAttributes(name)
         self.jobParams = glideFactoryConfig.JobParams(name)
@@ -521,12 +523,13 @@ class Entry:
                 self.jobAttributes.data['GlideinMonitorTotal%s%s' % (w, a)] = current_qc_total[w][a]
 
         # Load serialized aggregated Factory statistics
-        stats = util.file_pickle_load(os.path.join(self.startupDir,
-                                                   glideFactoryConfig.factoryConfig.aggregated_stats_file),
-                                      mask_exceptions=(
-                                          logSupport.log.exception, "Reading of aggregated statistics failed: "),
-                                      default={},
-                                      expiration=3600)
+        stats = util.file_pickle_load(
+            os.path.join(
+                self.startupDir,
+                glideFactoryConfig.factoryConfig.aggregated_stats_file),
+            mask_exceptions=(logSupport.log.exception, "Reading of aggregated statistics failed: "),
+            default={},
+            expiration=3600)
 
         stats_dict = {}
         try:
@@ -543,6 +546,17 @@ class Entry:
             # If there is an error all stats may be corrupted, do not publish
             stats_dict = {}
 
+        glidein_web_attrs = {
+            #'GLIDEIN_StartupDir': self.jobDescript.data["StartupDir"],
+            #'GLIDEIN_Verbosity': self.jobDescript.data["Verbosity"],
+            'URL': self.glideinDescript.data["WebURL"],
+            'SignType': 'sha1',
+            'DescriptFile': self.signatures.data["main_descript"],
+            'DescriptSign': self.signatures.data["main_sign"],
+            'EntryDescriptFile': self.signatures.data["entry_%s_descript" % self.name],
+            'EntryDescriptSign': self.signatures.data["entry_%s_sign" % self.name]
+        }
+
         # Make copy of job attributes so can override the validation
         # downtime setting with the true setting of the entry
         # (not from validation)
@@ -552,10 +566,12 @@ class Entry:
                                       self.gflFactoryConfig.glidein_name,
                                       self.name, trust_domain, auth_method,
                                       self.gflFactoryConfig.supported_signtypes,
-                                      pub_key_obj=pub_key_obj, glidein_attrs=myJobAttributes,
+                                      pub_key_obj=pub_key_obj,
+                                      glidein_attrs=myJobAttributes,
                                       glidein_params=self.jobParams.data.copy(),
                                       glidein_monitors=glidein_monitors.copy(),
                                       glidein_stats=stats_dict,
+                                      glidein_web_attrs=glidein_web_attrs,
                                       glidein_config_limits=self.getGlideinConfiguredLimits())
         try:
             gf_classad.writeToFile(gf_filename, append=append)
