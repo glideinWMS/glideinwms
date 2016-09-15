@@ -8,9 +8,13 @@
 #
 
 import sys
+import os
+import stat
 import argparse
-import htcondor
+import logging
 import itertools
+import pprint
+import htcondor
 
 GLIDEIN_PARAM_PREFIX = 'GlideinParam'
 SCRIPT_TEMPLATE = """#!/bin/sh
@@ -61,7 +65,16 @@ def escape_param(param_str):
     return out_str
 
 
+def log_debug(msg, header=''):
+    if header:
+        logging.debug('=' * (len(header) + 2))
+        logging.debug(' %s ' % header)
+        logging.debug('=' * (len(header) + 2))
+    logging.debug(pprint.pformat(msg))
+
+
 def parse_opts(argv):
+
     parser = argparse.ArgumentParser(
         description='Generate glidein_startup command',
         formatter_class=argparse.RawTextHelpFormatter)
@@ -84,10 +97,6 @@ def parse_opts(argv):
         help='Frontend group info: ClientName in the glideinclient classad')
 
     parser.add_argument(
-        '--glidein-proxy', type=str, action='store', dest='glidein_proxy',
-        help='X509 proxy used by glidein to talk to User Collector')
-
-    parser.add_argument(
         '--override-args', type=str, action='store', dest='override_args',
         help='Override the args obtained from the factory/frontend')
 
@@ -96,12 +105,22 @@ def parse_opts(argv):
         default='glidein_startup.sh',
         help='Full path to glidein_startup.sh to use')
 
+    parser.add_argument(
+        '--debug', action='store_true', dest='debug',
+        default=False,
+        help='Enable debug logging')
+
     options = parser.parse_args()
 
-    if ((options.req_name is None) or (options.client_name is None) or 
-        (options.glidein_proxy is None)):
-        print 'Missing one or more required options: --client-name, --req-name, --glidein-proxy'
+    if ((options.req_name is None) or (options.client_name is None)): 
+        logging.error('Missing one or more required options: --client-name, --req-name')
         sys.exit(1)
+
+    # Initialize logging
+    if options.debug:
+        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
+    else:
+        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
     return options
 
@@ -128,7 +147,7 @@ def main(argv):
     for collector_host in wms_collector:
         collector = htcondor.Collector(collector_host)
         ads_gc = collector.query(htcondor.AdTypes.Master, constraint_gc)
-        
+
         if ads_gc:
             # If a given client name has mutliple credentials, there will be
             # multiple classads matching the criteria.
@@ -136,6 +155,7 @@ def main(argv):
             # the user as an option so just take first classad and ignore
             # all the other classads
             ad_gc = ads_gc[0]
+            log_debug(ad_gc, header='glideclient classad')
 
             #entry_info = options.req_name.split('@')
             #if len(entry_info) != 3:
@@ -147,19 +167,20 @@ def main(argv):
             ads_gf = collector.query(htcondor.AdTypes.Any, constraint_gf)
             if len(ads_gf) == 0:
                 # Did not find glidefactory classad. Cannot use this one.
-                print 'WARN: Found glideclient for ClientName=%s classad but no entry classad with Name=%s not found in WMS Collector %s, ignoring' % (client_name, req_name, collector_host)
+                logging.warn('Found glideclient for ClientName=%s classad but corresponding entry classad with Name=%s not found in WMS Collector %s, ignoring' % (client_name, req_name, collector_host))
                 continue
 
             ad_gf = ads_gf[0]
+            log_debug(ad_gf, header='glidefactory classad')
 
             glidein_startup_args['-factory'] = ad_gf.get('FactoryName')
             glidein_startup_args['-name'] = ad_gf.get('GlideinName')
             glidein_startup_args['-entry'] = ad_gf.get('EntryName')
             glidein_startup_args['-clientname'] = ad_gc.get('FrontendName')
             glidein_startup_args['-clientgroup'] = ad_gc.get('GroupName')
-            glidein_startup_args['-proxy'] = options.glidein_proxy
+            glidein_startup_args['-proxy'] = ad_gf.get('GLIDEIN_ProxyURL')
             glidein_startup_args['-web'] = ad_gf.get('WebURL')
-            glidein_startup_args['-dir'] = 'UNAVAILABLE'
+            glidein_startup_args['-dir'] = ad_gf.get('GLIDEIN_WorkDir')
             glidein_startup_args['-sign'] = ad_gf.get('WebDescriptSign')
             glidein_startup_args['-signtype'] = ad_gf.get('WebSignType')
             glidein_startup_args['-signentry'] = ad_gf.get('WebEntryDescriptSign')
@@ -177,17 +198,18 @@ def main(argv):
             glidein_startup_args['-clientdescript'] = ad_gc.get('WebDescriptFile')
             glidein_startup_args['-clientdescriptgroup'] = ad_gc.get('WebGroupDescriptFile')
             glidein_startup_args['-slotslayout'] = ad_gf.get('GLIDEIN_SlotsLayout')
-            glidein_startup_args['-v'] = 'std'
+            glidein_startup_args['-v'] = ad_gf.get('GLIDEIN_Verbosity')
             # Default para to add
             glidein_startup_args['-param_GLIDEIN_Client'] = ad_gc.get('ClientName')
 
             # Now extract all the params that are advertised in the ads
+            # params from glideclient classad should override params from
+            # the glidefactory classad
             for ad in (ad_gf, ad_gc):
-                args = params2args(ad)
-                glidein_startup_args.update(args)
+                glidein_startup_args.update(params2args(ad))
 
     if not glidein_startup_args:
-        print 'ERROR: Could not find entry and/or client matching your criteria'
+        logging.error('Could not find entry and/or client matching your criteria')
         sys.exit(1)
 
     # Override args
@@ -198,13 +220,13 @@ def main(argv):
         param_prefix = '-%s' % GLIDEIN_PARAM_PREFIX
         for o_a in o_args:
             if not o_a.startswith('-'):
-                print 'Positioning error of %s in --override-args' % o_a
+                logging.error('Positioning error for "%s" in --override-args' % o_a)
                 sys.exit(1)
             elif ((not o_a.startswith(param_prefix)) and
                   (o_a in glidein_startup_args)):
                 glidein_startup_args[o_a] = o_args[o_a]
             else:
-                print 'Unrecognized option %s in --override-args' % o_a
+                logging.error('Unrecognized option "%s" in --override-args' % o_a)
                 sys.exit(1)
 
         # Override params
@@ -213,18 +235,21 @@ def main(argv):
 
     command = options.glidein_startup
     for arg in glidein_startup_args:
-        if glidein_startup_args[arg] is not None:
+        if not (glidein_startup_args[arg] in (None, '')):
             command = '%s %s %s' % (command, arg, glidein_startup_args[arg])
 
     if options.cmd_out_file:
-        with open(options.cmd_out_file, 'w') as out:
-            out.write(SCRIPT_TEMPLATE % command)
+        try:
+            with open(options.cmd_out_file, 'w') as out:
+                out.write(SCRIPT_TEMPLATE % command)
+                os.fchmod(out.fileno(),
+                          stat.S_IRWXU|stat.S_IRWXG|stat.S_IROTH|stat.S_IXOTH)
+        except Exception, e:
+            logging.error('Unable to create cmd file %s' % options.cmd_out_file)
+            logging.error(e)
     else:
+        log_debug(glidein_startup_args, header='Arguments')
         print command 
-
-        #import pprint
-        #pp = pprint.PrettyPrinter()
-        #pp.pprint(glidein_startup_args)
 ################################################################################
 # Main
 ################################################################################
