@@ -14,11 +14,11 @@
 import os
 import copy
 import time
-import pickle
 import random
 import math
 import collections
 from glideinwms.lib import logSupport
+from glideinwms.lib import util
 import glideinFrontendLib
 import glideinFrontendInterface
 
@@ -313,52 +313,34 @@ class ProxyUserRR:
     # INTERNAL
     #############################
 
-    # load from self.config_fname into self.config_data
-    # if the file does not exist, create a new config_data
     def load(self):
+        """load from self.config_fname into self.config_data
+        if the file does not exist, create a new config_data
+        """
         if not os.path.isfile(self.config_fname):
             nr_proxies = len(self.proxy_list)
             self.config_data = {'users_set': set(),
                                 'proxy_list': self.proxy_list}
         else:
-            fd = open(self.config_fname, "r")
-            try:
-                self.config_data = pickle.load(fd)
-            finally:
-                fd.close()
-
+            self.config_data = util.file_pickle_load(self.config_fname)
             for p in self.proxy_list:
-                found=False
+                found = False
                 for c in self.config_data['proxy_list']:
-                    if p.filename==c.filename:
-                        found=True
+                    if p.filename == c.filename:
+                        found = True
                 if not found:
                     self.config_data['proxy_list'].append(p)
-
         return
 
-    # save self.config_data into self.config_fname
     def save(self):
-        # fist save in a tmpfile
-        tmpname = "%s~" % self.config_fname
-        try:
-            os.unlink(tmpname)
-        except:
-            pass # just trying
-        fd = open(tmpname, "w")
-        try:
-            pickle.dump(self.config_data, fd, 0) # use ASCII version of protocol
-        finally:
-            fd.close()
-
-        # then atomicly move it in place
-        os.rename(tmpname, self.config_fname)
-
+        """save self.config_data into self.config_fname"""
+        # tmp file name is now *.PID.tmp instead of *~
+        util.file_pickle_dump(self.config_fname, self.config_data, protocol=0)  # use ASCII version of protocol
         return
 
     # shuffle a number of proxies from the internal data
     def shuffle_proxies(self, nr):
-        list=self.config_data['proxy_list']
+        list = self.config_data['proxy_list']
         for t in range(nr):
             list.append(list.pop(0))
         return
@@ -525,11 +507,7 @@ class ProxyUserMapWRecycling:
             self.config_data['user_map'] = user_map
         else:
             # load cache
-            fd = open(self.config_fname, "r")
-            try:
-                self.config_data = pickle.load(fd)
-            finally:
-                fd.close()
+            self.config_data = util.file_pickle_load(self.config_fname)
 
             # if proxies changed, remove old ones and insert the new ones
             cached_proxies = set() # here we will store the list of proxies in the cache
@@ -557,24 +535,12 @@ class ProxyUserMapWRecycling:
                     self.add_proxy(user_map,proxy) 
         return
 
-    # save self.config_data into self.config_fname
     def save(self):
-        # fist save in a tmpfile
-        tmpname = "%s~" % self.config_fname
-        try:
-            os.unlink(tmpname)
-        except:
-            pass # just trying
-        fd = open(tmpname, "w")
-        try:
-            pickle.dump(self.config_data, fd, 0) # use ASCII version of protocol
-        finally:
-            fd.close()
-
-        # then atomicly move it in place
-        os.rename(tmpname, self.config_fname)
-
+        """save self.config_data into self.config_fname"""
+        # tmp file name is now *.PID.tmp instead of *~
+        util.file_pickle_dump(self.config_fname, self.config_data, protocol=0)  # use ASCII version of protocol
         return
+
 
 ###############################################
 # INTERNAL to proxy_plugins, don't use directly
