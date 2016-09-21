@@ -469,6 +469,7 @@ class Credential:
             pass
         output += "vm_id = %s\n" % self.vm_id
         output += "vm_type = %s\n" % self.vm_type
+        output += "remote_username = %s\n" % self.remote_username
         output += "project_id = %s\n" % self.project_id
         
         return output
@@ -1059,45 +1060,45 @@ class MultiAdvertizeWork:
                             logSupport.log.warning("Credential %s does not match %s (for %s) domain, skipping..."%(credential_el.trust_domain,factory_trust,params_obj.request_name))
                             continue
                     # Convert the sec class to a string so the Factory can interpret the value correctly
-                    glidein_params_to_encrypt['SecurityClass']=str(credential_el.security_class)
-                    classad_name=credential_el.file_id(credential_el.filename,ignoredn=True)+"_"+classad_name
+                    glidein_params_to_encrypt['SecurityClass'] = str(credential_el.security_class)
+                    classad_name = credential_el.file_id(credential_el.filename, ignoredn=True) + "_"+classad_name
                     if "username_password"in credential_el.type:
-                        glidein_params_to_encrypt['Username']=file_id_cache.file_id(credential_el, credential_el.filename)
-                        glidein_params_to_encrypt['Password']=file_id_cache.file_id(credential_el, credential_el.key_fname)
+                        glidein_params_to_encrypt['Username'] = file_id_cache.file_id(credential_el, credential_el.filename)
+                        glidein_params_to_encrypt['Password'] = file_id_cache.file_id(credential_el, credential_el.key_fname)
                     if "grid_proxy" in credential_el.type:
-                        glidein_params_to_encrypt['SubmitProxy']=file_id_cache.file_id(credential_el, credential_el.filename)
+                        glidein_params_to_encrypt['SubmitProxy'] = file_id_cache.file_id(credential_el, credential_el.filename)
                     if "cert_pair" in credential_el.type:
-                        glidein_params_to_encrypt['PublicCert']=file_id_cache.file_id(credential_el, credential_el.filename)
-                        glidein_params_to_encrypt['PrivateCert']=file_id_cache.file_id(credential_el, credential_el.key_fname)
+                        glidein_params_to_encrypt['PublicCert'] = file_id_cache.file_id(credential_el, credential_el.filename)
+                        glidein_params_to_encrypt['PrivateCert'] = file_id_cache.file_id(credential_el, credential_el.key_fname)
                     if "key_pair" in credential_el.type:
-                        glidein_params_to_encrypt['PublicKey']=file_id_cache.file_id(credential_el, credential_el.filename)
-                        glidein_params_to_encrypt['PrivateKey']=file_id_cache.file_id(credential_el, credential_el.key_fname)
+                        glidein_params_to_encrypt['PublicKey'] = file_id_cache.file_id(credential_el, credential_el.filename)
+                        glidein_params_to_encrypt['PrivateKey'] = file_id_cache.file_id(credential_el, credential_el.key_fname)
                     if credential_el.pilot_fname:
-                        glidein_params_to_encrypt['GlideinProxy']=file_id_cache.file_id(credential_el, credential_el.pilot_fname)
+                        glidein_params_to_encrypt['GlideinProxy'] = file_id_cache.file_id(credential_el, credential_el.pilot_fname)
                     
                     if "vm_id" in credential_el.type:
-                        glidein_params_to_encrypt['VMId']=str(credential_el.vm_id)
+                        glidein_params_to_encrypt['VMId'] = str(credential_el.vm_id)
                     if "vm_type" in credential_el.type:
-                        glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
+                        glidein_params_to_encrypt['VMType'] = str(credential_el.vm_type)
                         
-                    if credential_el.remote_username:
+                    if credential_el.remote_username:  # MMDB or "username" in credential_el.type
                         glidein_params_to_encrypt['RemoteUsername'] = str(credential_el.remote_username)
                     if credential_el.project_id:
-                        glidein_params_to_encrypt['ProjectId']=str(credential_el.project_id)
+                        glidein_params_to_encrypt['ProjectId'] = str(credential_el.project_id)
                         
                     (req_idle,req_max_run)=credential_el.get_usage_details()
                     logSupport.log.debug("Advertizing credential %s with (%d idle, %d max run) for request %s"%(credential_el.filename, req_idle, req_max_run, params_obj.request_name))
                 
                     glidein_monitors_this_cred = params_obj.glidein_monitors_per_cred.get(credential_el.getId(), {})
 
-                if (frontendConfig.advertise_use_multi==True):
-                    fname=self.adname
+                if (frontendConfig.advertise_use_multi is True):
+                    fname = self.adname
                     cred_filename_arr.append(fname)
                 else:
-                    fname=self.adname+"_"+str(self.unique_id)
-                    self.unique_id=self.unique_id+1
+                    fname = self.adname + "_" + str(self.unique_id)
+                    self.unique_id += 1
                     cred_filename_arr.append(fname)
-                logSupport.log.debug("Writing %s"%fname)
+                logSupport.log.debug("Writing %s" % fname)
                 fd = file(fname, "a")
             
                 fd.write('MyType = "%s"\n'%frontendConfig.client_id)

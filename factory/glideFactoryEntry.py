@@ -1268,6 +1268,9 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
             # PublicKey can have RemoteUsername
             remote_username = decrypted_params.get('RemoteUsername')
             if not remote_username:
+                if 'username' in auth_method:
+                    entry.log.warning("Client '%s' did not specify a remote username in the request, this is required by entry %s, skipping request." % (client_int_name, entry.name))
+                    return return_dict
                 # default remote_username from entry (if present)
                 gatekeeper_list = entry.jobDescript.data['Gatekeeper'].split('@')
                 if len(gatekeeper_list) == 2:
