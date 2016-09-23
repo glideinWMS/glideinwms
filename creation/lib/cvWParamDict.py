@@ -629,25 +629,35 @@ def populate_common_descript(descript_dict,        # will be modified
 
     if len(params.security.credentials) > 0:
         proxies = []
-        proxy_attrs=['security_class', 'trust_domain', 'type',
-                     'keyabsfname', 'pilotabsfname', 'remote_username', 'vm_id', 'vm_type',
-                     'creation_script', 'update_frequency', 'project_id']
-        proxy_attr_names={'security_class': 'ProxySecurityClasses',
-                          'trust_domain': 'ProxyTrustDomains',
-                          'type': 'ProxyTypes', 'keyabsfname': 'ProxyKeyFiles',
-                          'pilotabsfname': 'ProxyPilotFiles',
-                          'remote_username': 'ProxyRemoteUsernames',
-                          'vm_id':'ProxyVMIds', 'vm_type':'ProxyVMTypes',
-                          'creation_script': 'ProxyCreationScripts',
-                          'project_id': 'ProxyProjectIds',
-                          'update_frequency': 'ProxyUpdateFrequency'}
+        proxy_attrs = ['security_class', 'trust_domain', 'type',
+                       'keyabsfname', 'pilotabsfname', 'remote_username', 'vm_id', 'vm_type',
+                       'creation_script', 'update_frequency', 'project_id']
+        proxy_attr_names = {'security_class': 'ProxySecurityClasses',
+                            'trust_domain': 'ProxyTrustDomains',
+                            'type': 'ProxyTypes', 'keyabsfname': 'ProxyKeyFiles',
+                            'pilotabsfname': 'ProxyPilotFiles',
+                            'remote_username': 'ProxyRemoteUsernames',
+                            'vm_id': 'ProxyVMIds', 'vm_type': 'ProxyVMTypes',
+                            'creation_script': 'ProxyCreationScripts',
+                            'project_id': 'ProxyProjectIds',
+                            'update_frequency': 'ProxyUpdateFrequency'}
+        # translation of attributes that can be added to the base type (name in list -> attribute name)
+        proxy_attr_type_list = {'vm_id': 'vm_id',
+                                'vm_type': 'vm_type',
+                                'username': 'remote_username',
+                                'project_id': 'project_id'}
         proxy_descript_values = {}
         for attr in proxy_attrs:
             proxy_descript_values[attr] = {}
-        proxy_trust_domains = {}
+        proxy_trust_domains = {}  # TODO: not used, remove
         for pel in params.security.credentials:
             if pel['absfname'] is None:
                 raise RuntimeError("All proxies need a absfname!")
+            for i in pel['type'].split('+'):
+                attr = proxy_attr_type_list.get(i)
+                if attr and pel[attr] is None:
+                    raise RuntimeError("Required attribute '%s' ('%s') missing in credential type '%s'" %
+                                       (attr, i, pel['type']))
             if (pel['pool_idx_len'] is None) and (pel['pool_idx_list'] is None):
                 # only one
                 proxies.append(pel['absfname'])
