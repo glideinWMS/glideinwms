@@ -159,7 +159,7 @@ elif [ "${GLIDEIN_CPUS}" = "0" ]; then
     glidein_cpus_how="(host cpus)"
 fi
 
-# xxport the GLIDEIN_CPUS
+# export the GLIDEIN_CPUS
 echo "`date` Setting GLIDEIN_CPUS=$GLIDEIN_CPUS $glidein_cpus_how"
 
 add_config_line GLIDEIN_CPUS "${GLIDEIN_CPUS}"
