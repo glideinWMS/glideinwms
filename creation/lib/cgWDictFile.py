@@ -176,13 +176,13 @@ def get_common_dicts(submit_dir,stage_dir):
                   'vars':cWDictFile.VarsDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.VARS_FILE),fname_idx=cWConsts.VARS_FILE),
                   'untar_cfg':cWDictFile.StrDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.UNTAR_CFG_FILE),fname_idx=cWConsts.UNTAR_CFG_FILE),
                   'file_list':cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.FILE_LISTFILE),fname_idx=cWConsts.FILE_LISTFILE),
-                  'signature':cWDictFile.SHA1DictFile(stage_dir,cWConsts.insert_timestr(cWConsts.SIGNATURE_FILE),fname_idx=cWConsts.SIGNATURE_FILE)}
+                  'signature':cWDictFile.SHA256DictFile(stage_dir,cWConsts.insert_timestr(cWConsts.SIGNATURE_FILE),fname_idx=cWConsts.SIGNATURE_FILE)}
     refresh_description(common_dicts)
     return common_dicts
 
 def get_main_dicts(submit_dir,stage_dir):
     main_dicts=get_common_dicts(submit_dir,stage_dir)
-    main_dicts['summary_signature']=cWDictFile.SummarySHA1DictFile(submit_dir,cWConsts.SUMMARY_SIGNATURE_FILE)
+    main_dicts['summary_signature']=cWDictFile.SummarySHA256DictFile(submit_dir,cWConsts.SUMMARY_SIGNATURE_FILE)
     main_dicts['glidein']=cWDictFile.StrDictFile(submit_dir,cgWConsts.GLIDEIN_FILE)
     main_dicts['frontend_descript']=cWDictFile.ReprDictFile(submit_dir,cgWConsts.FRONTEND_DESCRIPT_FILE)
     main_dicts['gridmap']=cWDictFile.GridMapDict(stage_dir,cWConsts.insert_timestr(cWConsts.GRIDMAP_FILE))
