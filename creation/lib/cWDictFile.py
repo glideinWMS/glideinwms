@@ -14,6 +14,7 @@ import shutil
 import copy
 import socket
 import cStringIO
+import cWConsts
 from glideinwms.lib import hashCrypto
 
 
@@ -459,64 +460,147 @@ class GridMapDict(DictFileTwoKeys):
 
 ##################################
 # signatures
-class SHA1DictFile(DictFile):
-    def add_from_file(self,filepath,allow_overwrite=False,
-                      key=None): # if key==None, use basefname
-        sha1=hashCrypto.extract_sha1(filepath)
-        if key is None:
-            key=os.path.basename(filepath)
-        self.add(key,sha1,allow_overwrite)
+class SHADictFile(DictFile):
 
-    def format_val(self,key,want_comments):
-        return "%s  %s"%(self.vals[key],key)
+    hash_algo_supported = ('sha1', 'sha256')
+
+    def __init__(self, hash_algo, dir, fname, sort_keys=False,
+                 order_matters=False, fname_idx=None):
+        if hash_algo not in self.hash_algo_supported:
+            raise RuntimeError, "hash_algo %s not in supported list %s" % (hash_algo, self.hash_algo_supported)
+        self.hash_algo = hash_algo
+        DictFile.__init__(self, dir, fname, sort_keys=sort_keys,
+                          order_matters=order_matters, fname_idx=fname_idx)
+
+
+    def add_from_file(self, filepath, allow_overwrite=False, key=None):
+        """
+        if key==None, use basefname
+        """
+        encoded_data = hashCrypto.extract_hash(self.hash_algo, filepath)
+
+        if key is None:
+            key = os.path.basename(filepath)
+        self.add(key, encoded_data, allow_overwrite)
+
+
+    def format_val(self, key, want_comments):
+        return "%s  %s" % (self.vals[key], key)
+
 
     def parse_val(self,line):
-        if line[0]=='#':
+        if line[0] == '#':
             return # ignore comments
-        arr=line.split(None,1)
-        if len(arr)==0:
+        arr = line.split(None, 1)
+        if len(arr) == 0:
             return # empty line
-        if len(arr)!=2:
-            raise RuntimeError,"Not a valid SHA1 line: '%s'"%line
+        if len(arr) != 2:
+            raise RuntimeError, "Not a valid %s line: '%s'" % (self.hash_algo, line)
 
-        return self.add(arr[1],arr[0])
+        return self.add(arr[1], arr[0])
 
 
-# summary signatures
-# values are (sha1,fname2)
-class SummarySHA1DictFile(DictFile):
-    def add(self,key,val,allow_overwrite=False):
-        if not (type(val) in (type(()),type([]))):
-            raise RuntimeError, "Values '%s' not a list or tuple"%val
-        if len(val)!=2:
-            raise RuntimeError, "Values '%s' not (sha1,fname)"%val
-        return DictFile.add(self,key,val,allow_overwrite)
+class SHA1DictFile(SHADictFile):
+    def __init__(self, dir, fname, sort_keys=False,
+                 order_matters=False, fname_idx=None):
+        SHADictFile.__init__(self, 'sha1', dir, fname, sort_keys=sort_keys,
+                             order_matters=order_matters, fname_idx=fname_idx)
 
-    def add_from_file(self,filepath,
-                      fname2=None, # if fname2==None, use basefname
-                      allow_overwrite=False,
-                      key=None):   # if key==None, use basefname
-        sha1=hashCrypto.extract_sha1(filepath)
+
+class SHA256DictFile(SHADictFile):
+    def __init__(self, dir, fname, sort_keys=False,
+                 order_matters=False, fname_idx=None):
+        SHADictFile.__init__(self, 'sha256', dir, fname, sort_keys=sort_keys,
+                             order_matters=order_matters, fname_idx=fname_idx)
+
+
+class SummarySHADictFile(DictFile):
+    """
+    Summary signatures
+    Values are (sha1, fname2) or (sha256, fname2)
+    """
+
+    hash_algo_supported = ('sha1', 'sha256')
+
+    def __init__(self, hash_algo, dir, fname, sort_keys=False,
+                 order_matters=False, fname_idx=None):
+        if hash_algo not in self.hash_algo_supported:
+            raise RuntimeError, "hash_algo %s not in supported list %s" % (hash_algo, self.hash_algo_supported)
+        self.hash_algo = hash_algo
+        DictFile.__init__(self, dir, fname, sort_keys=sort_keys,
+                          order_matters=order_matters, fname_idx=fname_idx)
+
+
+    def load(self, dir=None, fname=None, change_self=True,
+             erase_first=True, set_not_changed=True):
+        summary_file = os.path.join(self.dir, self.fname)
+        summary_file_old = os.path.join(self.dir, cWConsts.SUMMARY_SIGNATURE_FILE_OLD)
+        if not os.path.isfile(summary_file):
+            # If sha256 file does not exist, create a copy of sha1 equivlent
+            if os.path.isfile(summary_file_old):
+                shutil.copy(summary_file_old, summary_file)
+
+        DictFile.load(self, dir=dir, fname=fname, change_self=change_self,
+                      erase_first=erase_first, set_not_changed=set_not_changed)
+
+
+    def add(self, key, val, allow_overwrite=False):
+        if not (type(val) in (type(()), type([]))):
+            raise RuntimeError, "Values '%s' not a list or tuple" % val
+        if len(val) != 2:
+            raise RuntimeError, "Values '%s' not (%s, fname)" % (val, self.hash_algo)
+        return DictFile.add(self, key, val, allow_overwrite)
+
+
+    def add_from_file(self, filepath, fname2=None,
+                      allow_overwrite=False, key=None):
+        """
+        if fname2==None, use basefname
+        if key==None, use basefname
+        """
+        encoded_data = hashCrypto.extract_hash(self.hash_algo, filepath)
         if key is None:
-            key=os.path.basename(filepath)
+            key = os.path.basename(filepath)
         if fname2 is None:
-            fname2=os.path.basename(filepath)
-        DictFile.add(self,key,(sha1,fname2),allow_overwrite)
+            fname2 = os.path.basename(filepath)
+        DictFile.add(self, key, (encoded_data, fname2), allow_overwrite)
 
-    def format_val(self,key,want_comments):
-        return "%s  %s  %s"%(self.vals[key][0],self.vals[key][1],key)
 
-    def parse_val(self,line):
-        if line[0]=='#':
+    def format_val(self, key, want_comments):
+        return "%s  %s  %s" % (self.vals[key][0], self.vals[key][1], key)
+
+
+    def parse_val(self, line):
+        if line[0] == '#':
             return # ignore comments
-        arr=line.split(None,2)
-        if len(arr)==0:
+        arr = line.split(None, 2)
+        if len(arr) == 0:
             return # empty line
-        if len(arr)!=3:
-            raise RuntimeError,"Not a valid summary signature line (expected 4, found %i elements): '%s'"%(len(arr),line)
+        if len(arr) != 3:
+            raise RuntimeError, "Not a valid summary signature line (expected 4, found %i elements): '%s'" % (len(arr), line)
 
-        key=arr[2]
-        return self.add(key,(arr[0],arr[1]))
+        key = arr[2]
+        return self.add(key, (arr[0], arr[1]))
+
+
+class SummarySHA1DictFile(SummarySHADictFile):
+
+    def __init__(self, dir, fname, sort_keys=False,
+                 order_matters=False, fname_idx=None):
+        SummarySHADictFile.__init__(self, 'sha1', dir, fname,
+                                    sort_keys=sort_keys,
+                                    order_matters=order_matters,
+                                    fname_idx=fname_idx)
+
+
+class SummarySHA256DictFile(SummarySHADictFile):
+
+    def __init__(self, dir, fname, sort_keys=False,
+                 order_matters=False, fname_idx=None):
+        SummarySHADictFile.__init__(self, 'sha256', dir, fname,
+                                    sort_keys=sort_keys,
+                                    order_matters=order_matters,
+                                    fname_idx=fname_idx)
 
 
 class SimpleFileDictFile(DictFile):

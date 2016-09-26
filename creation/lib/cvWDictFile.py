@@ -84,7 +84,7 @@ def get_common_dicts(work_dir,stage_dir,
                   'untar_cfg':cWDictFile.StrDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.UNTAR_CFG_FILE),fname_idx=cWConsts.UNTAR_CFG_FILE),
                   'file_list':cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.FILE_LISTFILE),fname_idx=cWConsts.FILE_LISTFILE),
                   'preentry_file_list':cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cvWConsts.PREENTRY_FILE_LISTFILE),fname_idx=cvWConsts.PREENTRY_FILE_LISTFILE),
-                  "signature":cWDictFile.SHA1DictFile(stage_dir,cWConsts.insert_timestr(cWConsts.SIGNATURE_FILE),fname_idx=cWConsts.SIGNATURE_FILE)}
+                  "signature":cWDictFile.SHA256DictFile(stage_dir,cWConsts.insert_timestr(cWConsts.SIGNATURE_FILE),fname_idx=cWConsts.SIGNATURE_FILE)}
     if not simple_work_dir:
         common_dicts['params']=ParamsDictFile(work_dir,cvWConsts.PARAMS_FILE)
         common_dicts['attrs']=cWDictFile.ReprDictFile(work_dir,cvWConsts.ATTRS_FILE)
@@ -94,7 +94,7 @@ def get_common_dicts(work_dir,stage_dir,
 
 def get_main_dicts(work_dir,stage_dir,simple_work_dir,assume_groups):
     main_dicts=get_common_dicts(work_dir,stage_dir,simple_work_dir)
-    main_dicts['summary_signature']=cWDictFile.SummarySHA1DictFile(work_dir,cWConsts.SUMMARY_SIGNATURE_FILE)
+    main_dicts['summary_signature']=cWDictFile.SummarySHA256DictFile(work_dir,cWConsts.SUMMARY_SIGNATURE_FILE)
     main_dicts['frontend_descript']=cWDictFile.StrDictFile(work_dir,cvWConsts.FRONTEND_DESCRIPT_FILE)
     main_dicts['gridmap']=cWDictFile.GridMapDict(stage_dir,cWConsts.insert_timestr(cWConsts.GRIDMAP_FILE))
     if assume_groups:

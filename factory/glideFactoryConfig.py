@@ -28,7 +28,8 @@ class FactoryConfig:
         self.job_attrs_file = "attributes.cfg"
         self.job_params_file = "params.cfg"
         self.frontend_descript_file = "frontend.descript"
-        self.signatures_file = "signatures.sha1"
+        self.signature_type = "sha256"
+        self.signatures_file = "signatures.%s" % self.signature_type
         self.aggregated_stats_file = "aggregated_stats_dict.data"
 
 # global configuration of the module
@@ -357,7 +358,7 @@ class FrontendDescript(ConfigFile):
             
 
 # Signatures File
-## File: signatures.sha1
+## File: signatures.x
 ##
 #6e3565a9a0f39e0641d7e3e777b8f22d7ebc8b0f  description.a92arS.cfg  entry_AmazonEC2
 #51b01a3c38589a41fb7a44936e12b31fe506ec7b  description.a92aqM.cfg  main
@@ -367,10 +368,12 @@ class SignatureFile(ConfigFile):
         ConfigFile.__init__(self, factoryConfig.signatures_file, lambda s:s) # values are in python format
 
     def load(self, fname, convert_function):
-        """ Load the signatures.sha1 file into the class as a dictionary.  The
-        convert_function is completely ignored here.  The line format is different
-        from all the other class in that there are three values with the key being
-        the last value.  The internal dictionary has the following structure:
+        """
+        Load the signatures.x file into the class as a dictionary.  The
+        convert_function is completely ignored here. The line format is
+        different from all the other class in that there are three values with
+        the key being the last value.  The internal dictionary has the
+        following structure:
             where:
                 line[0] is the sign for the line
                 line[1] is the descript file for the line
@@ -379,8 +382,8 @@ class SignatureFile(ConfigFile):
             for each line:
                 line[2]_sign = line[0]
                 line[2]_descript = line[1]
-
         """
+
         self.data = {}
         fd = open(fname,"r")
         try:

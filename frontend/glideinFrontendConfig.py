@@ -31,8 +31,8 @@ class FrontendConfig:
         self.group_descript_file = "group.descript"
         self.params_descript_file = "params.cfg"
         self.attrs_descript_file = "attrs.cfg"
-        self.signature_descript_file = "signatures.sha1"
-        self.signature_type = "sha1"
+        self.signature_type = "sha256"
+        self.signature_descript_file = "signatures.%s" % self.signature_type
         self.history_file = "history.pk"
 
 # global configuration of the module
@@ -120,7 +120,7 @@ class ConfigFile:
     
     def __str__(self):
         output = '\n'
-        for key in self.data.keys():
+        for key in self.data:
             output += '%s = %s, (%s)\n' % (key, str(self.data[key]), type(self.data[key]))
         return output
 
@@ -144,7 +144,7 @@ class JoinConfigFile(ConfigFile):
         if group_validate is not None:
             self.group_hash_value=group_obj.hash_value
         #merge by overriding whatever is found in the subdir
-        for k in group_obj.data.keys():
+        for k in group_obj.data:
             self.data[k]=group_obj.data[k]
 
 ############################################################
@@ -174,7 +174,7 @@ class ParamsDescript(JoinConfigFile):
         self.const_data={}
         self.expr_data={} # original string
         self.expr_objs={}  # compiled object
-        for k in self.data.keys():
+        for k in self.data:
             type_str,val=self.data[k]
             if type_str=='EXPR':
                 try:
@@ -273,14 +273,14 @@ class ElementMergedDescript:
         self.merged_data['ProxySelectionPlugin']='ProxyAll' #default
         for t in ('ProxySelectionPlugin','SecurityName'):
             for data in (self.frontend_data,self.element_data):
-                if data.has_key(t):
+                if (t in data):
                     self.merged_data[t]=data[t]
 
         proxies=[]
         # switching the order, so that the group credential will 
         # be chosen before the global credential when ProxyFirst is used.
         for data in (self.element_data,self.frontend_data):
-            if data.has_key('Proxies'):
+            if ('Proxies' in data):
                 proxies+=eval(data['Proxies'])
         self.merged_data['Proxies']=proxies
 
@@ -292,7 +292,7 @@ class ElementMergedDescript:
         for attr in proxy_descript_attrs:
             proxy_descript_data={}
             for data in (self.frontend_data,self.element_data):
-                if data.has_key(attr):
+                if (attr in data):
                     dprs=eval(data[attr])
                     for k in dprs.keys():
                         proxy_descript_data[k]=dprs[k]
@@ -341,7 +341,7 @@ class StageFiles:
                           (self.validate_algo,self.signature_descript.data[fname]))
 
     def get_file_list(self,list_type): # example list_type == 'preentry_file_list'
-        if not self.stage_descript.data.has_key(list_type):
+        if not (list_type in self.stage_descript.data):
             raise KeyError,"Unknown list type '%s'; valid typtes are %s"%(list_type,self.stage_descript.data.keys())
 
         list_fname=self.stage_descript.data[list_type]
@@ -382,7 +382,7 @@ class MergeStageFiles:
         main_consts=self.main_stage.get_constants()
         group_consts=self.group_stage.get_constants()
         # group constants override the main ones
-        for k in group_consts.data.keys():
+        for k in group_consts.data:
             main_consts.data[k]=group_consts.data[k]
         main_consts.group_name=self.group_name
         main_consts.group_hash_value=group_consts.hash_value
@@ -393,7 +393,7 @@ class MergeStageFiles:
         main_cv=self.main_stage.get_condor_vars()
         group_cv=self.group_stage.get_condor_vars()
         # group condor_vars override the main ones
-        for k in group_cv.data.keys():
+        for k in group_cv.data:
             main_cv.data[k]=group_cv.data[k]
         main_cv.group_name=self.group_name
         main_cv.group_hash_value=group_cv.hash_value
@@ -467,7 +467,7 @@ class HistoryFile:
             #else, just ignore
 
     def has_key(self, keyid):
-        return self.data.has_key(keyid)
+        return (keyid in self.data)
 
     def __contains__(self, keyid):
         return (keyid in self.data)

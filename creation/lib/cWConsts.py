@@ -29,29 +29,33 @@ TIMESTR=get_timestr()
 
 # insert timestr just before the last .
 def insert_timestr(str):
-    arr=string.split(str,'.')
-    if len(arr)==1:
-      arr.append(TIMESTR)
+    arr = string.split(str, '.')
+    if len(arr) == 1:
+        arr.append(TIMESTR)
     else:  
-      arr.insert(-1,TIMESTR)
-    return string.join(arr,'.')
+        arr.insert(-1, TIMESTR)
+    return string.join(arr, '.')
     
 # these two are in the work dir, so they can be changed
-SUMMARY_SIGNATURE_FILE="signatures.sha1"
+#SUMMARY_SIGNATURE_FILE = "signatures.sha1"
+SUMMARY_SIGNATURE_FILE_OLD = "signatures.sha1"
+SUMMARY_SIGNATURE_FILE = "signatures.sha256"
 
 # these are in the stage dir, so they need to be renamed if changed
-DESCRIPTION_FILE="description.cfg"
+DESCRIPTION_FILE = "description.cfg"
 
-VARS_FILE="condor_vars.lst"
-CONSTS_FILE="constants.cfg"
-UNTAR_CFG_FILE="untar.cfg"
+VARS_FILE = "condor_vars.lst"
+CONSTS_FILE = "constants.cfg"
+UNTAR_CFG_FILE = "untar.cfg"
 
-FILE_LISTFILE="file_list.lst"
-SIGNATURE_FILE="signature.sha1"
+FILE_LISTFILE = "file_list.lst"
+#SIGNATURE_FILE = "signature.sha1"
+#SIGNATURE_FILE_OLD = "signature.sha1"
+SIGNATURE_FILE = "signature.sha256"
 
-BLACKLIST_FILE="nodes.blacklist"
+BLACKLIST_FILE = "nodes.blacklist"
 
-GRIDMAP_FILE='grid-mapfile'
+GRIDMAP_FILE = 'grid-mapfile'
 
 
 

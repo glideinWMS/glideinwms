@@ -149,7 +149,8 @@ class MultiExeError(condorExe.ExeError):
 ############################################################
 
 def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
-                  pub_key_obj=None, additional_constraints=None, factory_collector=DEFAULT_VAL):
+                  pub_key_obj=None, additional_constraints=None,
+                  factory_collector=DEFAULT_VAL):
     """
     Find request classAds that have my (factory, glidein name, entries) and
     create the dictionary of dictionary of work request information.
@@ -165,7 +166,7 @@ def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
     @param entry_names: list of factory entry names
 
     @type supported_signtypes: list
-    @param supported_signtypes: only support one kind of signtype, 'sha1', default is None
+    @param supported_signtypes: Supported signtype, 'sha1', default is None
 
     @type pub_key_obj: string
     @param pub_key_obj: only support 'RSA', defaults to None
@@ -370,7 +371,7 @@ def findWork(factory_name, glidein_name, entry_name,
     @type entry_name: string
     @param entry_name: name of the factory entry
     @type supported_signtypes: list
-    @param supported_signtypes: only support one kind of signtype, 'sha1', default is None
+    @param supported_signtypes: Supported signtype, 'sha1', default is None
     @type pub_key_obj: string
     @param pub_key_obj: only support 'RSA'
     @type additional_constraints: string

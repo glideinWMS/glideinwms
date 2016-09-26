@@ -99,7 +99,7 @@ class FactoryConfig:
         self.log_stats = None
         self.rrd_stats = None
 
-        self.supported_signtypes = ['sha1']
+        self.supported_signtypes = ['sha1', 'sha256']
 
         # who am I
         self.factory_name = None
@@ -1147,7 +1147,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
     # get the username
     username = submit_credentials.username
 
-    # Need information from glidein.descript, job.descript, and signatures.sha1
+    # Need information from glidein.descript, job.descript, and signatures.shax
     jobDescript = glideFactoryConfig.JobDescript(entry_name)
     schedd = jobDescript.data["Schedd"]
 
@@ -1367,7 +1367,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
 
         # Security Params (signatures.sha1)
         # sign_type has always been hardcoded... we can change in the future if need be
-        sign_type = "sha1"
+        sign_type = glideFactoryConfig.factoryConfig.signatures_type
         exe_env.append('SIGN_TYPE=%s' % sign_type)
 
         main_descript = signatures.data["main_descript"]
