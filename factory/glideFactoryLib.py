@@ -1367,7 +1367,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
 
         # Security Params (signatures.sha1)
         # sign_type has always been hardcoded... we can change in the future if need be
-        sign_type = glideFactoryConfig.factoryConfig.signatures_type
+        sign_type = glideFactoryConfig.factoryConfig.signature_type
         exe_env.append('SIGN_TYPE=%s' % sign_type)
 
         main_descript = signatures.data["main_descript"]
