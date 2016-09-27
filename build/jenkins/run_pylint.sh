@@ -105,11 +105,11 @@ init_results_logging() {
 <table style="$HTML_TABLE">
   <thead style="$HTML_THEAD">
     <tr style="$HTML_TR">
-      <th style="$HTML_TH">GIT BRANCH</th>
-      <th style="$HTML_TH">FILES CHECKED</th>
-      <th style="$HTML_TH">FILES WITH ERRORS</th>
-      <th style="$HTML_TH">TOTAL ERRORS</th>
-      <th style="$HTML_TH">PEP8 ERRORS</th>
+      <th style="$HTML_THEAD_TH">GIT BRANCH</th>
+      <th style="$HTML_THEAD_TH">FILES CHECKED</th>
+      <th style="$HTML_THEAD_TH">FILES WITH ERRORS</th>
+      <th style="$HTML_THEAD_TH">TOTAL ERRORS</th>
+      <th style="$HTML_THEAD_TH">PEP8 ERRORS</th>
     </tr>
   </thead>
   <tbody>
@@ -170,16 +170,17 @@ TABLE_END
 # HTML inline CSS
 HTML_TABLE="border: 1px solid black;border-collapse: collapse;"
 HTML_THEAD="font-weight: bold;border: 0px solid black;background-color: #ffcc00;"
+HTML_THEAD_TH="border: 0px solid black;border-collapse: collapse;font-weight: bold;background-color: #ffb300;padding: 8px;"
 
 HTML_TH="border: 0px solid black;border-collapse: collapse;font-weight: bold;background-color: #00ccff;padding: 8px;"
-
 HTML_TR="padding: 5px;text-align: center;"
 HTML_TD="border: 1px solid black;border-collapse: collapse;padding: 5px;text-align: center;"
+
 HTML_TR_PASSED="padding: 5px;text-align: center;"
-HTML_TD_PASSED="border: 1px solid black;border-collapse: collapse;padding: 5px;text-align: center;"
+HTML_TD_PASSED="border: 0px solid black;border-collapse: collapse;background-color: #ff0000;padding: 5px;text-align: center;"
 
 HTML_TR_FAILED="padding: 5px;text-align: center;"
-HTML_TD_FAILED="border: 1px solid black;border-collapse: collapse;padding: 5px;text-align: center;"
+HTML_TD_FAILED="border: 0px solid black;border-collapse: collapse;background-color: #00ff00;padding: 5px;text-align: center;"
 
 
 
