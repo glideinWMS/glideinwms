@@ -92,7 +92,13 @@ process_branch() {
 init_results_mail () {
     local mail_file=$1
     echo -n > $mail_file
-    cat > $mail_file << EOF
+}
+
+init_results_logging() {
+    local mail_file=$1
+    cat >> $mail_file << TABLE_START
+<body>
+
 <style>
 table, th, td {
     border: 1px solid black;
@@ -122,14 +128,6 @@ tr.passed, td.passed {
     border: 0px solid black;
 }
 </style>
-
-EOF
-}
-
-init_results_logging() {
-    local mail_file=$1
-    cat >> $mail_file << TABLE_START
-<body>
 
   <p>
 `print_python_info $mail_file`
