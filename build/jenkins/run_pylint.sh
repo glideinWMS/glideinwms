@@ -177,10 +177,10 @@ HTML_TR="padding: 5px;text-align: center;"
 HTML_TD="border: 1px solid black;border-collapse: collapse;padding: 5px;text-align: center;"
 
 HTML_TR_PASSED="padding: 5px;text-align: center;"
-HTML_TD_PASSED="border: 0px solid black;border-collapse: collapse;background-color: #ff0000;padding: 5px;text-align: center;"
+HTML_TD_PASSED="border: 0px solid black;border-collapse: collapse;background-color: #00ff00;padding: 5px;text-align: center;"
 
 HTML_TR_FAILED="padding: 5px;text-align: center;"
-HTML_TD_FAILED="border: 0px solid black;border-collapse: collapse;background-color: #00ff00;padding: 5px;text-align: center;"
+HTML_TD_FAILED="border: 0px solid black;border-collapse: collapse;background-color: #ff0000;padding: 5px;text-align: center;"
 
 
 
