@@ -14,7 +14,7 @@
 #
 
 import os
-import sys
+# import sys
 import time
 import string
 import re
@@ -33,8 +33,8 @@ from glideinwms.lib import x509Support
 from glideinwms.factory import glideFactoryConfig
 
 
-
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
+
 
 ############################################################
 #
@@ -53,9 +53,9 @@ class FactoryConfig:
         self.entry_schedd_attribute = "GlideinEntryName"
         self.client_schedd_attribute = "GlideinClient"
         self.frontend_name_attribute = "GlideinFrontendName"
-        #self.x509id_schedd_attribute = "GlideinX509Identifier"
+        # self.x509id_schedd_attribute = "GlideinX509Identifier"
         self.credential_id_schedd_attribute = "GlideinCredentialIdentifier"
-        #self.x509secclass_schedd_attribute = "GlideinX509SecurityClass"
+        # self.x509secclass_schedd_attribute = "GlideinX509SecurityClass"
         self.credential_secclass_schedd_attribute = "GlideinSecurityClass"
 
         self.factory_startd_attribute = "GLIDEIN_Factory"
@@ -70,16 +70,16 @@ class FactoryConfig:
         self.count_env = 'GLIDEIN_COUNT'
 
         # Stale value settings, in seconds
-        self.stale_maxage = { 1:7 * 24 * 3600, # 1 week for idle
-                            2:31 * 24 * 3600, # 1 month for running
-                           - 1:2 * 3600}         # 2 hours for unclaimed (using special value -1 for this)
+        self.stale_maxage = {1: 7 * 24 * 3600,      # 1 week for idle
+                             2: 31 * 24 * 3600,     # 1 month for running
+                             - 1: 2 * 3600}         # 2 hours for unclaimed (using special value -1 for this)
 
         # Sleep times between commands
         self.submit_sleep = 0.2
         self.remove_sleep = 0.2
         self.release_sleep = 0.2
         
-        self.slots_layout = "fixed"
+        self.slots_layout = "partitionable"
 
         # Max commands per cycle
         self.max_submits = 100
@@ -94,8 +94,8 @@ class FactoryConfig:
         # monitoring objects
         # create them for the logging to occur
         self.client_internals = None
-        self.client_stats = None # this one is indexed by client name
-        self.qc_stats = None     # this one is indexed by security class
+        self.client_stats = None  # this one is indexed by client name
+        self.qc_stats = None      # this one is indexed by security class
         self.log_stats = None
         self.rrd_stats = None
 
@@ -143,13 +143,13 @@ class FactoryConfig:
 # global configuration of the module
 factoryConfig = FactoryConfig()
 
+
 ############################################################
-#
 def secClass2Name(client_security_name, proxy_security_class):
     return "%s_%s" % (client_security_name, proxy_security_class)
 
 ############################################################
-#
+
 
 ############################################################
 #

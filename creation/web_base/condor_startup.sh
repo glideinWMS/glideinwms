@@ -722,6 +722,8 @@ EOF
             # Resource allocated for only main slots (partitionable or static)
             # Main slots are determined by CPUs. Let condor split the resource: if not enough some slot will have none
             echo "SLOT_TYPE_1 = \$(SLOT_TYPE_1), ${res_name}=100%" >> "$CONDOR_CONFIG"
+            # Decided not to add type "mainextra" with resources added to main slot and CPUs incrementated
+            # It can be obtained with more control by detting GLIDEIN_CPUS
         else
             if [[ "$res_num" -eq 1 || "x$res_opt" == "xstatic" ]]; then
                 res_opt=static
