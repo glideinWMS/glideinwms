@@ -23,7 +23,9 @@ import stat
 import re
 import mmap
 import time
-import cPickle
+
+import util
+
 
 # -------------- Single Log classes ------------------------
 
@@ -37,12 +39,12 @@ class cachedLogClass:
      loadFromLog, merge and isActive.
     init method to be used by real constructors
     """
-    def clInit(self,logname,cache_dir,cache_ext):
-        self.logname=logname
+    def clInit(self, logname, cache_dir, cache_ext):
+        self.logname = logname
         if cache_dir is None:
-            self.cachename=logname+cache_ext
+            self.cachename = logname + cache_ext
         else:
-            self.cachename=os.path.join(cache_dir,os.path.basename(logname)+cache_ext)
+            self.cachename = os.path.join(cache_dir, os.path.basename(logname)+cache_ext)
 
     def has_changed(self):
         """
@@ -53,13 +55,13 @@ class cachedLogClass:
             fstat = os.lstat(self.logname)
             logtime = fstat[stat.ST_MTIME]
         else:
-            return False # does not exist, so it could not change
+            return False  # does not exist, so it could not change
         
         if os.path.isfile(self.cachename):
             fstat = os.lstat(self.cachename)
             cachetime = fstat[stat.ST_MTIME]
         else:
-            return True # no cache, so it has changed for sure
+            return True  # no cache, so it has changed for sure
         
         # both exist -> check if log file is newer
         return (logtime > cachetime)
@@ -76,7 +78,7 @@ class cachedLogClass:
             # cache is newer, just load the cache
             return self.loadCache()
 
-        while 1: #could need more than one loop if the log file is changing
+        while 1:  # could need more than one loop if the log file is changing
             fstat = os.lstat(self.logname)
             start_logtime = fstat[stat.ST_MTIME]
             del fstat
@@ -85,16 +87,15 @@ class cachedLogClass:
             try:
                 self.saveCache()
             except IOError:
-                return # silently ignore, this was a load in the end
+                return  # silently ignore, this was a load in the end
             # the log may have changed -> check
             fstat = os.lstat(self.logname)
             logtime = fstat[stat.ST_MTIME]
             del fstat
             if logtime <= start_logtime:
-                return # OK, not changed, can exit
+                return  # OK, not changed, can exit
         
-        return # should never reach this point
-
+        return  # should never reach this point
         
     def loadCache(self):
         self.data = loadCache(self.cachename)
@@ -1297,6 +1298,7 @@ def parseSubmitLogFastTimings(fname,year=None):
         
     return jobs
 
+
 ################################
 #  Cache handling functions
 ################################
@@ -1308,17 +1310,14 @@ def loadCache(fname):
     @param fname: Filename to load
     @return: data retrieved from file
     """
-
     try:
-        fd=open(fname,"r")
-        data=cPickle.load(fd)
-        fd.close()
+        data = util.file_pickle_load(fname)
     except Exception:
         raise RuntimeError("Could not read %s" % fname)
-
     return data
 
-def saveCache(fname,data):
+
+def saveCache(fname, data):
     """
     Creates a temporary file to store data in, then moves the file into 
     the correct place.  Uses pickle to store data.
@@ -1326,15 +1325,5 @@ def saveCache(fname,data):
     @param fname: Filename to write to.
     @param data: data to store in pickle format
     """
-    tmpname=fname+(".tmp_%i"%os.getpid())
-    fd=open(tmpname,"w")
-    cPickle.dump(data,fd)
-    fd.close()
-
-    try:
-        os.remove(fname)
-    except:
-        pass # may not exist
-    os.rename(tmpname, fname)
-        
+    util.file_pickle_dump(fname, data)
     return

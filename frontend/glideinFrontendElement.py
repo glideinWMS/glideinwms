@@ -26,7 +26,6 @@ import traceback
 import time
 import string
 import logging
-import cPickle
 import re
 
 sys.path.append(os.path.join(sys.path[0],"../.."))
