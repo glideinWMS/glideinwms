@@ -120,7 +120,7 @@ fi
 
 if [ "$condor_arch" == "auto" ]; then
     condor_arch=`uname -m`
-    if [ "$condor_arch" -eq "x86_64" ]; then
+    if [ "$condor_arch" == "x86_64" ]; then
     condor_arch="x86_64,x86"
     elif [ "$condor_arch" == "i386" -o "$condor_arch" == "i486" -o "$condor_arch" == "i586" -o "$condor_arch" == "i686" ]; then
     condor_arch="x86"
