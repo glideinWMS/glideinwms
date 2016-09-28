@@ -26,7 +26,6 @@ import traceback
 import time
 import string
 import logging
-import cPickle
 import re
 
 sys.path.append(os.path.join(sys.path[0],"../.."))
@@ -813,7 +812,8 @@ class glideinFrontendElement:
                     max_run = int(el['MaxJobsRunning']*0.95+0.5)
                     current_run = el['TotalRunningJobs']
                     # older schedds may not have TotalSchedulerJobsRunning
-                    current_run += el.get('TotalSchedulerJobsRunning',0)
+                    # commented out based on redmine ticket #8849
+                    #current_run += el.get('TotalSchedulerJobsRunning',0)
                     logSupport.log.debug("Schedd %s has %i running with max %i" % (schedd, current_run, max_run))
 
                     if current_run >= max_run:

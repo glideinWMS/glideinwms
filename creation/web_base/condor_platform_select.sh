@@ -28,27 +28,82 @@ if [ -z "$condor_os" ]; then
     condor_os="default"
 fi
 
+function findversion_redhat {
+  # content of /etc/redhat-release
+  #Scientific Linux release 6.2 (Carbon)
+  #Red Hat Enterprise Linux Server release 5.8 (Tikanga)
+  #Scientific Linux SL release 5.5 (Boron)
+  #CentOS release 4.2 (Final)
+  #
+  #Do we support FC:Fedora Core release 11 ... ?
+  #
+  # should I check that it is SL/RHEL/CentOS ? 
+  # no 
+  grep -q 'release 7.' /etc/redhat-release && condor_os='linux-rhel7' && return
+  grep -q 'release 6.' /etc/redhat-release && condor_os='linux-rhel6' && return
+  grep -q 'release 5.' /etc/redhat-release && condor_os='linux-rhel5' && return
+}
+
+function findversion_debian {
+  #cat /etc/*release
+  #DISTRIB_ID=Ubuntu
+  #DISTRIB_RELEASE=11.10
+  #DISTRIB_CODENAME=oneiric
+  #DISTRIB_DESCRIPTION="Ubuntu 11.10"
+  #
+  #user@bellatrix:~$ lsb_release
+  #No LSB modules are available.
+  #
+  #user@bellatrix:~$ lsb_release -a  
+  #No LSB modules are available.
+  #
+  #Distributor ID:    Ubuntu
+  #Description:    Ubuntu 11.10
+  #Release:    11.10
+  #Codename:    oneiric       
+
+  dist_id_line="`grep "DISTRIB_ID" /etc/lsb-release`"
+  dist_rel_line="`grep "DISTRIB_RELEASE" `"
+  if [[ $dist_id_line == *"Debian"* ]]; then
+    [ ${dist_rel_line:16:2} = "7\." ] && condor_os='linux-debian7' && return
+    [ ${dist_rel_line:16:2} = "8\." ] && condor_os='linux-debian8' && return
+  elif [[ $dist_id_line == *"Ubuntu"* ]]; then
+    [ ${dist_rel_line:16:2} = "12\." ] && condor_os='linux-ubuntu12' && return
+    [ ${dist_rel_line:16:2} = "14\." ] && condor_os='linux-ubuntu14' && return
+  fi
+}
+
+
+
 if [ "$condor_os" == "auto" ]; then
     if [ -f "/etc/redhat-release" ]; then 
-	# rhel, now determine the version
-	strings /lib/libc.so.6  |grep -q GLIBC_2.4
-	if [ $? -ne 0 ]; then
-	    # pre-RHEL5
-	    condor_os='linux-rhel3'
-	else
-	    # I am not aware of anything newer right now
-	    condor_os='linux-rhel5'
-	fi
-    elif [ -f "/etc/debian_version" ]; then 
-	# debian, now determine the version
-	grep -q '^5' /etc/debian_version
-	if [ $? -ne 0 ]; then
-	    # pre-Debian 5
-	    condor_os='linux-debian40'
-	else
-	    # I am not aware of anything newer right now
-	    condor_os='linux-debian50'
-	fi
+    # rhel, now determine the version
+        # default RHEL
+        condor_os='linux-rhel6'
+        findversion_redhat
+	#strings /lib/libc.so.6  |grep -q GLIBC_2.4
+	#if [ $? -ne 0 ]; then
+	#    # pre-RHEL5
+	#    condor_os='linux-rhel3'
+	#else
+	#    # I am not aware of anything newer right now
+	#    condor_os='linux-rhel5'
+	#fi
+    elif [ -f "/etc/lsb-release" ]; then 
+    # debian/ubuntu, now determine the version
+        # default debian
+        condor_os='linux-debian8'
+        findversion_debian
+#    elif [ -f "/etc/debian_version" ]; then 
+#    # debian, now determine the version
+#    grep -q '^5' /etc/debian_version
+#    if [ $? -ne 0 ]; then
+#        # pre-Debian 5
+#	     condor_os='linux-debian40'
+#	     else
+#	         # I am not aware of anything newer right now
+#		     condor_os='linux-debian50'
+#		     fi
 
     else 
         #echo "Not a RHEL not Debian compatible system. Autodetect not supported"  1>&2
@@ -65,10 +120,10 @@ fi
 
 if [ "$condor_arch" == "auto" ]; then
     condor_arch=`uname -m`
-    if [ "$condor_arch" -eq "x86_64" ]; then
-	condor_arch="x86_64,x86"
+    if [ "$condor_arch" == "x86_64" ]; then
+    condor_arch="x86_64,x86"
     elif [ "$condor_arch" == "i386" -o "$condor_arch" == "i486" -o "$condor_arch" == "i586" -o "$condor_arch" == "i686" ]; then
-	condor_arch="x86"
+    condor_arch="x86"
     else
         #echo "Not a x86 compatible system. Autodetect not supported"  1>&2
         STR="Not a x86 compatible system. Autodetect not supported"
@@ -127,4 +182,3 @@ add_config_line "$condor_platform_id" "1"
 "$error_gen" -ok "condor_platform_select.sh" "Condor_platform" "${version_el}-${os_el}-${arch_el}"
 
 exit 0
-
