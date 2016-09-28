@@ -1201,6 +1201,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         # Either frontend or factory should provide it
         vm_id = None
         vm_type = None
+        remote_username = None
 
         if grid_type == 'ec2':
             # vm_id and vm_type are only applicable to EC2/Clouds
@@ -1264,6 +1265,23 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                 entry.log.warning("Credential %s for the public key is not safe for client %s, skipping request" % (public_key_id, client_int_name))
                 return return_dict
 
+            # Entry Gatekeeper is [<user_name>@]hostname[:port]
+            # PublicKey can have RemoteUsername
+            remote_username = decrypted_params.get('RemoteUsername')
+            if not remote_username:
+                if 'username' in auth_method:
+                    entry.log.warning("Client '%s' did not specify a remote username in the request, this is required by entry %s, skipping request." % (client_int_name, entry.name))
+                    return return_dict
+                # default remote_username from entry (if present)
+                gatekeeper_list = entry.jobDescript.data['Gatekeeper'].split('@')
+                if len(gatekeeper_list) == 2:
+                    remote_username = gatekeeper_list[0].strip()
+                else:
+                    entry.log.warning(
+                        "Client '%s' did not specify a Username in Key %s and the entry %s does not provide a default username in the gatekeeper string, skipping request" %
+                        (client_int_name, public_key_id, entry.name))
+                    return return_dict
+
             private_key_id = decrypted_params.get('PrivateKey')
             if ( (private_key_id) and
                  (not submit_credentials.add_security_credential(
@@ -1293,6 +1311,9 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         else:
             logSupport.log.warning("Factory entry %s has invalid authentication method. Skipping request for client %s." % (entry.name, client_int_name))
             return return_dict
+
+        submit_credentials.add_identity_credential('RemoteUsername', remote_username)
+
 
     # Set the downtime status so the frontend-specific
     # downtime is advertised in glidefactoryclient ads
