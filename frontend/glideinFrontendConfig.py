@@ -212,20 +212,22 @@ class SignatureDescript(ConfigFile):
             raise RuntimeError, "Invalid line (expected 3 elements, found %i)"%len(larr)
         self.data[larr[2]]=(larr[0],larr[1])
 
+
 # this one is the generic hash descript file
 class BaseSignatureDescript(ConfigFile):
-    def __init__(self,config_dir,signature_fname,signature_type,validate=None):
-        ConfigFile.__init__(self,config_dir,signature_fname,
-                            None, # Not used, redefining split_func
+    def __init__(self, config_dir, signature_fname, signature_type, validate=None):
+        ConfigFile.__init__(self, config_dir, signature_fname,
+                            None,  # Not used, redefining split_func
                             validate)
-        self.signature_type=signature_type
+        self.signature_type = signature_type
 
-    def split_func(self,line,convert_function):
-        larr=string.split(line,None,1)
-        if len(larr)!=2:
-            raise RuntimeError, "Invalid line (expected 2 elements, found %i)"%len(larr)
-        lval=larr[1]
-        self.data[lval]=larr[0]
+    def split_func(self, line, convert_function):
+        larr = string.split(line, None, 1)
+        if len(larr) != 2:
+            raise RuntimeError("Invalid line (expected 2 elements, found %i)" % len(larr))
+        lval = larr[1]
+        self.data[lval] = larr[0]
+
 
 ############################################################
 #
@@ -236,10 +238,10 @@ class BaseSignatureDescript(ConfigFile):
 # not everything is merged
 # the old element can still be accessed
 class ElementMergedDescript:
-    def __init__(self,base_dir,group_name):
-        self.frontend_data=FrontendDescript(base_dir).data
-        if not (group_name in string.split(self.frontend_data['Groups'],',')):
-            raise RuntimeError, "Group '%s' not supported: %s"%(group_name,self.frontend_data['Groups'])
+    def __init__(self,base_dir, group_name):
+        self.frontend_data = FrontendDescript(base_dir).data
+        if not (group_name in string.split(self.frontend_data['Groups'], ',')):
+            raise RuntimeError("Group '%s' not supported: %s" % (group_name, self.frontend_data['Groups']))
         
         self.element_data=ElementDescript(base_dir,group_name).data
         self.group_name=group_name
@@ -249,46 +251,46 @@ class ElementMergedDescript:
     #################
     # Private
     def merge(self):
-        self.merged_data={}
+        self.merged_data = {}
 
         for t in ('JobSchedds',):
-            self.merged_data[t]=self.split_list(self.frontend_data[t])+self.split_list(self.element_data[t])
-            if len(self.merged_data[t])==0:
-                raise RuntimeError,"Found empty %s!"%t
+            self.merged_data[t] = self.split_list(self.frontend_data[t])+self.split_list(self.element_data[t])
+            if len(self.merged_data[t]) == 0:
+                raise RuntimeError("Found empty %s!" % t)
 
         for t in ('FactoryCollectors',):
-            self.merged_data[t]=eval(self.frontend_data[t])+eval(self.element_data[t])
-            if len(self.merged_data[t])==0:
-                raise RuntimeError,"Found empty %s!"%t
+            self.merged_data[t] = eval(self.frontend_data[t]) + eval(self.element_data[t])
+            if len(self.merged_data[t]) == 0:
+                raise RuntimeError("Found empty %s!" % t)
 
-        for t in ('FactoryQueryExpr','JobQueryExpr'):
-            self.merged_data[t]="(%s) && (%s)"%(self.frontend_data[t],self.element_data[t])
+        for t in ('FactoryQueryExpr', 'JobQueryExpr'):
+            self.merged_data[t] = "(%s) && (%s)" % (self.frontend_data[t], self.element_data[t])
             for data in (self.frontend_data, self.element_data):
-                if 'MatchPolicyModule%s'%t in data:
+                if 'MatchPolicyModule%s' % t in data:
                     self.merged_data[t] = '(%s) && (%s)' % (
-                        self.merged_data[t], data['MatchPolicyModule%s'%t])
+                        self.merged_data[t], data['MatchPolicyModule%s' % t])
 
         # PM: TODO: Not sure why FactoryMatchAttrs was not in the list below
         #     To get complete list of FactoryMatchAttrs you need to merge it
-        for t in ('JobMatchAttrs','FactoryMatchAttrs'):
-            attributes=[]
-            names=[]
+        for t in ('JobMatchAttrs', 'FactoryMatchAttrs'):
+            attributes = []
+            names = []
             match_attrs_list = eval(self.frontend_data[t]) + eval(self.element_data[t])
 
             for data in (self.frontend_data, self.element_data):
-                if 'MatchPolicyModule%s'%t in data:
-                    match_attrs_list += eval(data['MatchPolicyModule%s'%t])
+                if 'MatchPolicyModule%s' % t in data:
+                    match_attrs_list += eval(data['MatchPolicyModule%s' % t])
 
             for el in match_attrs_list:
-                el_name=el[0]
+                el_name = el[0]
                 if not (el_name in names):
                     attributes.append(el)
                     names.append(el_name)
-            self.merged_data[t]=attributes
+            self.merged_data[t] = attributes
 
         for t in ('MatchExpr',):
-            self.merged_data[t]="(%s) and (%s)"%(self.frontend_data[t],self.element_data[t])
-            self.merged_data[t+'CompiledObj']=compile(self.merged_data[t],"<string>","eval")
+            self.merged_data[t] = "(%s) and (%s)" % (self.frontend_data[t], self.element_data[t])
+            self.merged_data[t+'CompiledObj'] = compile(self.merged_data[t], "<string>", "eval")
 
         self.merged_data['MatchPolicyModules'] = []
         if 'MatchPolicyFile' in self.frontend_data:
@@ -297,44 +299,46 @@ class ElementMergedDescript:
             self.merged_data['MatchPolicyModules'].append(MatchPolicy(self.element_data['MatchPolicyFile']))
 
         # We use default ProxySelectionPlugin
-        self.merged_data['ProxySelectionPlugin']='ProxyAll'
+        self.merged_data['ProxySelectionPlugin'] = 'ProxyAll'
 
-        for t in ('ProxySelectionPlugin','SecurityName'):
-            for data in (self.frontend_data,self.element_data):
+        for t in ('ProxySelectionPlugin', 'SecurityName'):
+            for data in (self.frontend_data, self.element_data):
                 if data.has_key(t):
-                    self.merged_data[t]=data[t]
+                    self.merged_data[t] = data[t]
 
-        proxies=[]
+        proxies = []
         # switching the order, so that the group credential will 
         # be chosen before the global credential when ProxyFirst is used.
-        for data in (self.element_data,self.frontend_data):
+        for data in (self.element_data, self.frontend_data):
             if data.has_key('Proxies'):
                 proxies += eval(data['Proxies'])
         self.merged_data['Proxies'] = proxies
 
-        proxy_descript_attrs=['ProxySecurityClasses','ProxyTrustDomains',
-            'ProxyTypes','ProxyKeyFiles','ProxyPilotFiles','ProxyVMIds',
-            'ProxyVMTypes','ProxyCreationScripts','ProxyUpdateFrequency',
-            'ProxyVMIdFname', 'ProxyVMTypeFname', 'ProxyProjectIds']
+        proxy_descript_attrs=['ProxySecurityClasses', 'ProxyTrustDomains',
+                              'ProxyTypes', 'ProxyKeyFiles', 'ProxyPilotFiles', 'ProxyVMIds',
+                              'ProxyVMTypes', 'ProxyCreationScripts', 'ProxyUpdateFrequency',
+                              'ProxyVMIdFname', 'ProxyVMTypeFname',
+                              'ProxyRemoteUsernames', 'ProxyProjectIds']
 
         for attr in proxy_descript_attrs:
-            proxy_descript_data={}
-            for data in (self.frontend_data,self.element_data):
+            proxy_descript_data = {}
+            for data in (self.frontend_data, self.element_data):
                 if data.has_key(attr):
-                    dprs=eval(data[attr])
+                    dprs = eval(data[attr])
                     for k in dprs.keys():
-                        proxy_descript_data[k]=dprs[k]
-            self.merged_data[attr]=proxy_descript_data
+                        proxy_descript_data[k] = dprs[k]
+            self.merged_data[attr] = proxy_descript_data
 
         return
 
-    def split_list(self,val):
-        if val=='None':
+    def split_list(self, val):
+        if val == 'None':
             return []
-        elif val=='':
+        elif val == '':
             return []
         else:
-            return string.split(val,',')
+            return string.split(val, ',')
+
 
 class GroupSignatureDescript:
     def __init__(self,base_dir,group_name):

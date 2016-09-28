@@ -130,6 +130,7 @@ class VOFrontendParams(cWParams.CommonParams):
         proxy_defaults["trust_domain"]=("OSG","grid_type","Trust Domain",None)
         proxy_defaults["creation_script"]=(None,"command","Script to re-create credential",None)
         proxy_defaults["update_frequency"]=(None,"int","Update proxy when there is this much time left",None)
+        proxy_defaults["remote_username"]=(None,"username","User name at the remote resource",None)
         proxy_defaults["vm_id"]=(None,"vm_id","VM Id",None)
         proxy_defaults["vm_type"]=(None,"vm_type","VM Type",None)
         proxy_defaults["pool_idx_len"]=(None,"boolean","Adds leading zeros to the suffix so all filenames the same length",None)
@@ -140,8 +141,8 @@ class VOFrontendParams(cWParams.CommonParams):
         proxy_defaults["project_id"] = (None,"string","OSG Project ID. Ex TG-12345", None)
 
         security_defaults=cWParams.commentedOrderedDict()
-        security_defaults["proxy_selection_plugin"]=(None,"proxy_name","Which proxy selection plugin should I use (ProxyAll if None)",None)
-        security_defaults["credentials"]=([],'List of credentials',"Each proxy element contains",proxy_defaults)
+        security_defaults["proxy_selection_plugin"]=(None,"proxy_name","Which credentials selection plugin should I use (ProxyAll if None)",None)
+        security_defaults["credentials"]=([],'List of credentials',"Each credential element contains",proxy_defaults)
         security_defaults["security_name"]=(None,"frontend_name","What name will we advertize for security purposes?",None)
 
         self.group_defaults=cWParams.commentedOrderedDict()

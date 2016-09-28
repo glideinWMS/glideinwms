@@ -415,6 +415,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         [pilotabsfname=&quot;<I>proxyfile</I>&quot;]
         security_class=&quot;<I>frontend</I>&quot;
         trust_domain=&quot;<I>id</I>&quot;
+        [remote_username=&quot;<I>username</I>&quot;]
         [vm_id=&quot;<I>id</I>&quot;]
         [vm_type=&quot;<I>type</I>&quot;]
         [pool_idx_len=&quot;<I>5</I>&quot;]
@@ -451,6 +452,10 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
     For instance, Amazon key pairs can be used to connect to cloud resources,
     but an actual x509 proxy will be needed for the glidein on the cloud 
     to connect to the HTCondor user pool.
+    <br/><br/>
+        The attribute <i>remote_username</i> is an optional attribute used with key pair authentication method.
+        If specified it replaces the user name specified in the factory entry using the USERNAME@HOST:PORT string of the <i>gatekeeper</i> attribute.
+        The username has to be specified in at least one of these two places.
     </P></li>
     <LI><P>
         <a name="stage" />

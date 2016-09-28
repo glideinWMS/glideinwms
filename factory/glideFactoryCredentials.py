@@ -22,21 +22,24 @@ from glideinwms.lib import logSupport
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
+
 # defining new exception so that we can catch only the credential errors here
 # and let the "real" errors propagate up
-class CredentialError(Exception): pass
+class CredentialError(Exception):
+    pass
+
 
 class SubmitCredentials:
     """
     Data class containing all information needed to submit a glidein.
     """
     def __init__(self, username, security_class):
-        self.username = username # are we using privsep or not
-        self.security_class = security_class # Seems redundant info
-        self.id = None # id used for tracking the submit credentials
+        self.username = username  # are we using privsep or not
+        self.security_class = security_class  # Seems redundant info
+        self.id = None  # id used for tracking the submit credentials
         self.cred_dir = ''  # location of credentials
-        self.security_credentials = {} # dict of credentials
-        self.identity_credentials = {} # identity information passed by frontend
+        self.security_credentials = {}  # dict of credentials
+        self.identity_credentials = {}  # identity information passed by frontend
 
     def add_security_credential(self, cred_type, filename):
         """
@@ -71,17 +74,18 @@ class SubmitCredentials:
 
     def __repr__(self):
         output = "SubmitCredentials"
-        #output += "username = ", self.username
-        output += " security class = %s" % str(self.security_class)
-        output += " id = %s" % self.id
-        output += " cedential dir = %s" % self.cred_dir
-        output += " security credentials: "
-        for sc in self.security_credentials.keys():
-            output += "    %s : %s" % (sc, self.security_credentials[sc])
-        output += " identity credentials: "
-        for ic in self.identity_credentials.keys():
-            output += "    %s : %s" % (ic, self.identity_credentials[ic])
+        output += "username = %s; " % self.username
+        output += "security class = %s; " % str(self.security_class)
+        output += "id = %s; " % self.id
+        output += "cedential dir = %s; " % self.cred_dir
+        output += "security credentials: "
+        for sck, scv in self.security_credentials.iteritems():
+            output += "    %s : %s; " % (sck, scv)
+        output += "identity credentials: "
+        for ick, icv in self.identity_credentials.iteritems():
+            output += "    %s : %s; " % (ick, icv)
         return output
+
 
 def update_credential_file(username, client_id, credential_data, request_clientname):
     """
@@ -109,11 +113,15 @@ def update_credential_file(username, client_id, credential_data, request_clientn
                 update_credential_env.append('%s=%s' % (var, os.environ[var]))
 
         try:
-            condorPrivsep.execute(username, glideFactoryLib.factoryConfig.submit_dir, os.path.join(glideFactoryLib.factoryConfig.submit_dir, 'update_proxy.py'), ['update_proxy.py'], update_credential_env)
+            condorPrivsep.execute(username, glideFactoryLib.factoryConfig.submit_dir,
+                                  os.path.join(glideFactoryLib.factoryConfig.submit_dir, 'update_proxy.py'),
+                                  ['update_proxy.py'], update_credential_env)
         except condorPrivsep.ExeError, e:
-            raise RuntimeError, "Failed to update credential %s in %s (user %s): %s" % (client_id, proxy_dir, username, e)
+            raise RuntimeError("Failed to update credential %s in %s (user %s): %s" %
+                               (client_id, proxy_dir, username, e))
         except:
-            raise RuntimeError, "Failed to update credential %s in %s (user %s): Unknown privsep error" % (client_id, proxy_dir, username)
+            raise RuntimeError("Failed to update credential %s in %s (user %s): Unknown privsep error" %
+                               (client_id, proxy_dir, username))
     else:
         msg = "no privsep, updating directly"
         logSupport.log.debug(msg)
@@ -124,7 +132,7 @@ def update_credential_file(username, client_id, credential_data, request_clientn
 
     return fname, fname_compressed
 
-#
+
 # Comment by Igor:
 # This functionality should really be in glideFactoryInterface module
 # Making a minimal patch now to get the desired functionality
@@ -175,6 +183,7 @@ def process_global(classad, glidein_descript, frontend_descript):
         error_str = "Error occurred processing the globals classads. \nTraceback: \n%s" % tb
         raise CredentialError(error_str)
 
+
 def get_key_obj(pub_key_obj, classad):
     """
     Gets the symmetric key object from the request classad
@@ -195,6 +204,7 @@ def get_key_obj(pub_key_obj, classad):
     else:
         error_str = "Classad does not contain a key.  We cannot decrypt."
         raise CredentialError(error_str)
+
 
 def validate_frontend(classad, frontend_descript, pub_key_obj):
     """
@@ -345,6 +355,7 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
     # No invalid credentials found
     return 
 
+
 def compress_credential(credential_data):
     cfile = cStringIO.StringIO()
     f = gzip.GzipFile(fileobj=cfile, mode='wb')
@@ -352,17 +363,18 @@ def compress_credential(credential_data):
     f.close()
     return base64.b64encode(cfile.getvalue())
 
+
 def safe_update(fname, credential_data):
     if not os.path.isfile(fname):
         # new file, create
-        fd = os.open(fname, os.O_CREAT|os.O_WRONLY, 0600)
+        fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0600)
         try:
             os.write(fd, credential_data)
         finally:
             os.close(fd)
     else:
         # old file exists, check if same content
-        fl = open(fname,'r')
+        fl = open(fname, 'r')
         try:
             old_data = fl.read()
         finally:
@@ -372,10 +384,11 @@ def safe_update(fname, credential_data):
         if not (credential_data == old_data):
             # proxy changed, neeed to update
             # remove any previous backup file, if it exists
-            if os.path.isfile(fname + ".old"): os.remove(fname + ".old")
+            if os.path.isfile(fname + ".old"):
+                os.remove(fname + ".old")
 
             # create new file
-            fd = os.open(fname + ".new", os.O_CREAT|os.O_WRONLY, 0600)
+            fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0600)
             try:
                 os.write(fd, credential_data)
             finally:
@@ -385,6 +398,6 @@ def safe_update(fname, credential_data):
             try:
                 os.rename(fname, fname + ".old")
             except:
-                pass # just protect
+                pass  # just protect
 
             os.rename(fname + ".new", fname)

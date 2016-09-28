@@ -260,7 +260,8 @@ def format_condor_dict(data):
 
     return out
 
-############################################
+
+## ###########################################
 
 # TODO: PM
 # At some point we should change this class to watch for credential file 
@@ -272,11 +273,11 @@ def format_condor_dict(data):
 
 class Credential:
     def __init__(self, proxy_id, proxy_fname, elementDescript):
-        self.req_idle=0
-        self.req_max_run=0
-        self.advertize=False
+        self.req_idle = 0
+        self.req_max_run = 0
+        self.advertize = False
 
-        proxy_security_classes=elementDescript.merged_data['ProxySecurityClasses']
+        proxy_security_classes = elementDescript.merged_data['ProxySecurityClasses']
         proxy_trust_domains = elementDescript.merged_data['ProxyTrustDomains']
         proxy_types = elementDescript.merged_data['ProxyTypes']
         proxy_keyfiles = elementDescript.merged_data['ProxyKeyFiles']
@@ -287,9 +288,8 @@ class Credential:
         proxy_update_frequency = elementDescript.merged_data['ProxyUpdateFrequency']
         proxy_vmid_fname = elementDescript.merged_data['ProxyVMIdFname']
         proxy_vmtype_fname = elementDescript.merged_data['ProxyVMTypeFname']
-
+        proxy_remote_username = elementDescript.merged_data['ProxyRemoteUsernames']
         proxy_project_id = elementDescript.merged_data['ProxyProjectIds']
-
         self.proxy_id = proxy_id
         # self.filename (absfname) always contains component of credential
         # used to submit glidein and based on the type contains following:
@@ -311,6 +311,7 @@ class Credential:
         self.creation_script = proxy_creation_scripts.get(proxy_fname)
         self.key_fname = proxy_keyfiles.get(proxy_fname)
         self.pilot_fname = proxy_pilotfiles.get(proxy_fname)
+        self.remote_username = proxy_remote_username.get(proxy_fname)
         self.project_id = proxy_project_id.get(proxy_fname)
 
         # Will be initialized when getId() is called
@@ -412,9 +413,9 @@ class Credential:
     def file_id(self,filename,ignoredn=False):
         if (("grid_proxy" in self.type) and not ignoredn):
             dn = x509Support.extract_DN(filename)
-            hash_str=filename+dn
+            hash_str = filename+dn
         else:
-            hash_str=filename
+            hash_str = filename
         #logSupport.log.debug("Using hash_str=%s (%d)"%(hash_str,abs(hash(hash_str))%1000000))
         return str(abs(hash(hash_str))%1000000)
 
@@ -429,10 +430,10 @@ class Credential:
             return 0
 
         if ("grid_proxy" in self.type) or ("cert_pair" in self.type):
-            time_list=condorExe.iexe_cmd("openssl x509 -in %s -noout -enddate" % self.filename)
+            time_list = condorExe.iexe_cmd("openssl x509 -in %s -noout -enddate" % self.filename)
             if "notAfter=" in time_list[0]:
-                time_str=time_list[0].split("=")[1].strip()
-                timeleft=calendar.timegm(time.strptime(time_str,"%b %d %H:%M:%S %Y %Z"))-int(time.time())
+                time_str = time_list[0].split("=")[1].strip()
+                timeleft = calendar.timegm(time.strptime(time_str,"%b %d %H:%M:%S %Y %Z"))-int(time.time())
             return timeleft
         else:
             return -1
@@ -480,6 +481,7 @@ class Credential:
             pass
         output += "vm_id = %s\n" % self.vm_id
         output += "vm_type = %s\n" % self.vm_type
+        output += "remote_username = %s\n" % self.remote_username
         output += "project_id = %s\n" % self.project_id
         
         return output
@@ -1102,56 +1104,57 @@ class MultiAdvertizeWork:
                         if (credential_el.trust_domain!=factory_trust) and (factory_trust!="Any"):
                             logSupport.log.warning("Credential %s does not match %s (for %s) domain, skipping..."%(credential_el.trust_domain,factory_trust,params_obj.request_name))
                             continue
-                    # Convert the sec class to a string so the Factory can
-                    # interpret the value correctly
-                    glidein_params_to_encrypt['SecurityClass']=str(credential_el.security_class)
-                    classad_name=credential_el.file_id(credential_el.filename,ignoredn=True)+"_"+classad_name
+                    # Convert the sec class to a string so the Factory can interpret the value correctly
+                    glidein_params_to_encrypt['SecurityClass'] = str(credential_el.security_class)
+                    classad_name = credential_el.file_id(credential_el.filename, ignoredn=True) + "_" + classad_name
                     if "username_password"in credential_el.type:
-                        glidein_params_to_encrypt['Username']=file_id_cache.file_id(credential_el, credential_el.filename)
-                        glidein_params_to_encrypt['Password']=file_id_cache.file_id(credential_el, credential_el.key_fname)
+                        glidein_params_to_encrypt['Username'] = file_id_cache.file_id(credential_el, credential_el.filename)
+                        glidein_params_to_encrypt['Password'] = file_id_cache.file_id(credential_el, credential_el.key_fname)
                     if "grid_proxy" in credential_el.type:
-                        glidein_params_to_encrypt['SubmitProxy']=file_id_cache.file_id(credential_el, credential_el.filename)
+                        glidein_params_to_encrypt['SubmitProxy'] = file_id_cache.file_id(credential_el, credential_el.filename)
                     if "cert_pair" in credential_el.type:
-                        glidein_params_to_encrypt['PublicCert']=file_id_cache.file_id(credential_el, credential_el.filename)
-                        glidein_params_to_encrypt['PrivateCert']=file_id_cache.file_id(credential_el, credential_el.key_fname)
+                        glidein_params_to_encrypt['PublicCert'] = file_id_cache.file_id(credential_el, credential_el.filename)
+                        glidein_params_to_encrypt['PrivateCert'] = file_id_cache.file_id(credential_el, credential_el.key_fname)
                     if "key_pair" in credential_el.type:
-                        glidein_params_to_encrypt['PublicKey']=file_id_cache.file_id(credential_el, credential_el.filename)
-                        glidein_params_to_encrypt['PrivateKey']=file_id_cache.file_id(credential_el, credential_el.key_fname)
+                        glidein_params_to_encrypt['PublicKey'] = file_id_cache.file_id(credential_el, credential_el.filename)
+                        glidein_params_to_encrypt['PrivateKey'] = file_id_cache.file_id(credential_el, credential_el.key_fname)
                     if "auth_file" in credential_el.type:
-                        glidein_params_to_encrypt['AuthFile']=file_id_cache.file_id(credential_el, credential_el.filename)
+                        glidein_params_to_encrypt['AuthFile'] = file_id_cache.file_id(credential_el, credential_el.filename)
                     if "vm_id" in credential_el.type:
                         if credential_el.vm_id_fname:
-                            glidein_params_to_encrypt['VMId']=self.vm_attribute_from_file(credential_el.vm_id_fname, 'VM_ID')
+                            glidein_params_to_encrypt['VMId'] = self.vm_attribute_from_file(credential_el.vm_id_fname, 'VM_ID')
                         else:
-                            glidein_params_to_encrypt['VMId']=str(credential_el.vm_id)
+                            glidein_params_to_encrypt['VMId'] = str(credential_el.vm_id)
                     if "vm_type" in credential_el.type:
                         if credential_el.vm_type_fname:
-                            glidein_params_to_encrypt['VMType']=self.vm_attribute_from_file( credential_el.vm_type_fname, 'VM_TYPE' )
+                            glidein_params_to_encrypt['VMType'] = self.vm_attribute_from_file(credential_el.vm_type_fname, 'VM_TYPE')
                         else:
-                            glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
-
-                        glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
+                            glidein_params_to_encrypt['VMType'] = str(credential_el.vm_type)
+                        # removing this, was here by mistake? glidein_params_to_encrypt['VMType']=str(credential_el.vm_type)
 
                     # Process additional information of the credential
                     if credential_el.pilot_fname:
-                        glidein_params_to_encrypt['GlideinProxy']=file_id_cache.file_id(credential_el, credential_el.pilot_fname)
+                        glidein_params_to_encrypt['GlideinProxy'] = file_id_cache.file_id(credential_el, credential_el.pilot_fname)
 
+                    if credential_el.remote_username:  # MM: or "username" in credential_el.type
+                        glidein_params_to_encrypt['RemoteUsername'] = str(credential_el.remote_username)
                     if credential_el.project_id:
                         glidein_params_to_encrypt['ProjectId']=str(credential_el.project_id)
 
-                    (req_idle,req_max_run)=credential_el.get_usage_details()
-                    logSupport.log.debug("Advertizing credential %s with (%d idle, %d max run) for request %s"%(credential_el.filename, req_idle, req_max_run, params_obj.request_name))
+                    (req_idle, req_max_run) = credential_el.get_usage_details()
+                    logSupport.log.debug("Advertizing credential %s with (%d idle, %d max run) for request %s" %
+                                         (credential_el.filename, req_idle, req_max_run, params_obj.request_name))
 
                     glidein_monitors_this_cred = params_obj.glidein_monitors_per_cred.get(credential_el.getId(), {})
 
-                if (frontendConfig.advertise_use_multi==True):
-                    fname=self.adname
+                if frontendConfig.advertise_use_multi is True:
+                    fname = self.adname
                     cred_filename_arr.append(fname)
                 else:
-                    fname=self.adname+"_"+str(self.unique_id)
-                    self.unique_id=self.unique_id+1
+                    fname = self.adname + "_" + str(self.unique_id)
+                    self.unique_id += 1
                     cred_filename_arr.append(fname)
-                logSupport.log.debug("Writing %s"%fname)
+                logSupport.log.debug("Writing %s" % fname)
                 fd = file(fname, "a")
             
                 fd.write('MyType = "%s"\n'%frontendConfig.client_id)

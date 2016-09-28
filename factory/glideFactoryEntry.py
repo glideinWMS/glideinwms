@@ -1113,7 +1113,12 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         # Cannot use proxy for submission but entry is not in downtime
         # since other proxies may map to valid security classes
         entry.log.warning("Security class %s is currently in a downtime window for entry: %s. Ignoring request." % (credential_security_class, entry.name))
-        return return_dict
+        # this below change is based on redmine ticket 3110.
+        # even though we do not return here, setting in_downtime=True (for entry downtime)
+        # will make sure no new glideins will be submitted in the same way that 
+        # the code does for the factory downtime
+        in_downtime = True
+#        return return_dict
 
     # Deny Frontend from requesting glideins if the whitelist
     # does not have its security class (or "All" for everyone)
@@ -1198,6 +1203,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         # Either frontend or factory should provide it
         vm_id = None
         vm_type = None
+        remote_username = None
 
         if grid_type in ('ec2', 'gce'):
             # vm_id and vm_type are only applicable to Clouds
@@ -1261,6 +1267,23 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                 entry.log.warning("Credential %s for the public key is not safe for client %s, skipping request" % (public_key_id, client_int_name))
                 return return_dict
 
+            # Entry Gatekeeper is [<user_name>@]hostname[:port]
+            # PublicKey can have RemoteUsername
+            remote_username = decrypted_params.get('RemoteUsername')
+            if not remote_username:
+                if 'username' in auth_method:
+                    entry.log.warning("Client '%s' did not specify a remote username in the request, this is required by entry %s, skipping request." % (client_int_name, entry.name))
+                    return return_dict
+                # default remote_username from entry (if present)
+                gatekeeper_list = entry.jobDescript.data['Gatekeeper'].split('@')
+                if len(gatekeeper_list) == 2:
+                    remote_username = gatekeeper_list[0].strip()
+                else:
+                    entry.log.warning(
+                        "Client '%s' did not specify a Username in Key %s and the entry %s does not provide a default username in the gatekeeper string, skipping request" %
+                        (client_int_name, public_key_id, entry.name))
+                    return return_dict
+
             private_key_id = decrypted_params.get('PrivateKey')
             if ( (private_key_id) and
                  (not submit_credentials.add_security_credential(
@@ -1300,6 +1323,9 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         else:
             logSupport.log.warning("Factory entry %s has invalid authentication method. Skipping request for client %s." % (entry.name, client_int_name))
             return return_dict
+
+        submit_credentials.add_identity_credential('RemoteUsername', remote_username)
+
 
     # Set the downtime status so the frontend-specific
     # downtime is advertised in glidefactoryclient ads

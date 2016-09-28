@@ -476,7 +476,7 @@ def populate_frontend_descript(work_dir,
         
         frontend_dict.add('SymKeyType',params.security.sym_key)
 
-        active_sub_list[:] # erase all
+        active_sub_list[:]  # erase all
         for sub in params.groups.keys():
             if is_true(params.groups[sub].enabled):
                 active_sub_list.append(sub)
@@ -610,7 +610,7 @@ def get_pool_list(credential):
         else:
             pool_idx_list_expanded.append(idx.strip())
 
-    pool_idx_list_strings=[]
+    pool_idx_list_strings = []
     for idx in pool_idx_list_expanded:
         pool_idx_list_strings.append(idx.zfill(pool_idx_len))
     return pool_idx_list_strings
@@ -622,7 +622,7 @@ def match_attrs_to_array(match_attrs):
     for attr_name in match_attrs.keys():
         attr_type = match_attrs[attr_name]['type']
         if not (attr_type in MATCH_ATTR_CONV):
-            raise RuntimeError, "match_attr type '%s' not one of %s" % (attr_type, MATCH_ATTR_CONV.keys())
+            raise RuntimeError("match_attr type '%s' not one of %s" % (attr_type, MATCH_ATTR_CONV.keys()))
         ma_array.append((str(attr_name), MATCH_ATTR_CONV[attr_type]))
 
     return ma_array
@@ -648,76 +648,84 @@ def populate_common_descript(descript_dict, params):
         descript_dict.add('MatchPolicyModuleJobQueryExpr',
                           policy_module.jobQueryExpr)
 
-    for tel in (("factory","Factory"),("job","Job")):
+    for tel in (("factory", "Factory"), ("job", "Job")):
         param_tname, str_tname = tel
-        ma_arr = []
         qry_expr = params.match[param_tname]['query_expr']
-
-        descript_dict.add('%sQueryExpr'%str_tname, qry_expr)
+        descript_dict.add('%sQueryExpr' % str_tname, qry_expr)
         ma_arr = match_attrs_to_array(params.match[param_tname]['match_attrs'])
-        descript_dict.add('%sMatchAttrs'%str_tname, repr(ma_arr))
+        descript_dict.add('%sMatchAttrs' % str_tname, repr(ma_arr))
 
     if params.security.security_name is not None:
-        descript_dict.add('SecurityName',params.security.security_name)
+        descript_dict.add('SecurityName', params.security.security_name)
 
-    collectors=[]
+    collectors = []
     for el in params.match.factory.collectors:
-        if el['factory_identity'][-9:]=='@fake.org':
-            raise RuntimeError, "factory_identity for %s not set! (i.e. it is fake)"%el['node']
-        if el['my_identity'][-9:]=='@fake.org':
-            raise RuntimeError, "my_identity for %s not set! (i.e. it is fake)"%el['node']
+        if el['factory_identity'][-9:] == '@fake.org':
+            raise RuntimeError("factory_identity for %s not set! (i.e. it is fake)" % el['node'])
+        if el['my_identity'][-9:] == '@fake.org':
+            raise RuntimeError("my_identity for %s not set! (i.e. it is fake)" % el['node'])
         cWDictFile.validate_node(el['node'])
-        collectors.append((el['node'],el['factory_identity'],el['my_identity']))
-    descript_dict.add('FactoryCollectors',repr(collectors))
+        collectors.append((el['node'], el['factory_identity'], el['my_identity']))
+    descript_dict.add('FactoryCollectors', repr(collectors))
 
-    schedds=[]
+    schedds = []
     for el in params.match.job.schedds:
         cWDictFile.validate_node(el['fullname'])
         schedds.append(el['fullname'])
-    descript_dict.add('JobSchedds',string.join(schedds,','))
+    descript_dict.add('JobSchedds', string.join(schedds, ','))
 
     if params.security.proxy_selection_plugin is not None:
-        descript_dict.add('ProxySelectionPlugin',params.security.proxy_selection_plugin)
+        descript_dict.add('ProxySelectionPlugin', params.security.proxy_selection_plugin)
 
     if len(params.security.credentials) > 0:
         proxies = []
-        proxy_attr_names = {
-            'security_class':'ProxySecurityClasses',
-            'trust_domain':'ProxyTrustDomains',
-            'type':'ProxyTypes',
-            'keyabsfname':'ProxyKeyFiles',
-            'pilotabsfname':'ProxyPilotFiles',
-            'vm_id':'ProxyVMIds',
-            'vm_type':'ProxyVMTypes',
-            'creation_script':'ProxyCreationScripts',
-            'update_frequency':'ProxyUpdateFrequency',
-            'vm_id_fname':'ProxyVMIdFname',
-            'vm_type_fname':'ProxyVMTypeFname',
-            'project_id':'ProxyProjectIds'}
+        proxy_attr_names = {'security_class': 'ProxySecurityClasses',
+                            'trust_domain': 'ProxyTrustDomains',
+                            'type': 'ProxyTypes',
+                            'keyabsfname': 'ProxyKeyFiles',
+                            'pilotabsfname': 'ProxyPilotFiles',
+                            'remote_username': 'ProxyRemoteUsernames',
+                            'vm_id': 'ProxyVMIds',
+                            'vm_type': 'ProxyVMTypes',
+                            'creation_script': 'ProxyCreationScripts',
+                            'project_id': 'ProxyProjectIds',
+                            'update_frequency': 'ProxyUpdateFrequency'}
+        # translation of attributes that can be added to the base type (name in list -> attribute name)
+        proxy_attr_type_list = {'vm_id': 'vm_id',
+                                'vm_type': 'vm_type',
+                                'username': 'remote_username',
+                                'project_id': 'project_id'}
+
+        # TODO: this list is used in for loops, replace with "for i in proxy_attr_names"
         proxy_attrs = proxy_attr_names.keys()
-        proxy_descript_values={}
+        proxy_descript_values = {}
         for attr in proxy_attrs:
-            proxy_descript_values[attr]={}
-        proxy_trust_domains = {}
-        #print params.security.credentials
+            proxy_descript_values[attr] = {}
+        proxy_trust_domains = {}  # TODO: not used, remove
+        # print params.security.credentials
         for pel in params.security.credentials:
             validate_credential_type(pel['type'])
             if pel['absfname'] is None:
-                raise RuntimeError, "All credentials need a absfname!"
+                raise RuntimeError("All credentials need a absfname!")
+            for i in pel['type'].split('+'):
+                attr = proxy_attr_type_list.get(i)
+                if attr and pel[attr] is None:
+                    raise RuntimeError("Required attribute '%s' ('%s') missing in credential type '%s'" %
+                                       (attr, i, pel['type']))
             if (pel['pool_idx_len'] is None) and (pel['pool_idx_list'] is None):
                 # only one
                 proxies.append(pel['absfname'])
                 for attr in proxy_attrs:
                     if pel[attr] is not None:
-                        proxy_descript_values[attr][pel['absfname']]=pel[attr]
-            else: #pool
+                        proxy_descript_values[attr][pel['absfname']] = pel[attr]
+            else:  # pool
                 pool_idx_list_expanded_strings = get_pool_list(pel)
                 for idx in pool_idx_list_expanded_strings:
                     absfname = "%s%s" % (pel['absfname'], idx)
                     proxies.append(absfname)
                     for attr in proxy_attrs:
                         if pel[attr] is not None:
-                            proxy_descript_values[attr][pel['absfname']]=pel[attr]
+                            proxy_descript_values[attr][pel['absfname']] = pel[attr]
 
         descript_dict.add('Proxies', repr(proxies))
         for attr in proxy_attrs:
@@ -735,7 +743,9 @@ def validate_credential_type(cred_type):
     common_types = mutually_exclusive.intersection(types_set)
 
     if len(common_types) > 1:
-        raise RuntimeError, "Credential type '%s' has mutually exclusive components %s" % (cred_type, list(common_types))
+        raise RuntimeError("Credential type '%s' has mutually exclusive components %s" % (cred_type, list(common_types)))
+
+
 #####################################################
 # Returns a string usable for GLIDEIN_Collector
 def calc_glidein_collectors(collectors):
@@ -746,7 +756,7 @@ def calc_glidein_collectors(collectors):
         if not collector_nodes.has_key(el.group):
             collector_nodes[el.group] = {'primary': [], 'secondary': []}
         if is_true(el.secondary):
-            cWDictFile.validate_node(el.node,allow_prange=True)
+            cWDictFile.validate_node(el.node, allow_prange=True)
             collector_nodes[el.group]['secondary'].append(el.node)
         else:
             cWDictFile.validate_node(el.node)

@@ -409,7 +409,7 @@ by the VO factory clients.</P>
         When adding resources to the <tt>main</tt> slots: the memory parameter is ignored; HTCondor splits automatically resources
         depending on the number of CPUs and having a partitionable main slot or not;
         if the number of resources is not equal (or an exact multiple) to the number of CPUs, then you must select partitionable slots
-        (<tt>slots_layout="partitionable"</tt> in the config/submit section of the entry configuration or SLOT_LAYOUT partitionable in the frontend configuration)
+        (<tt>slots_layout="partitionable"</tt> in the config/submit section of the entry configuration or SLOTS_LAYOUT partitionable in the frontend configuration)
         otherwise the startd may fail due to impossible configuration
         <!--,
         e.g. when you add 3 units of a resource to a node with 8 CPUs divided statically in 8 main slots, the first 3 of them will have also your resource.

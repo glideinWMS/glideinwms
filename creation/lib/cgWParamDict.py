@@ -197,6 +197,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                              'create_temp_mapfile.sh',
                              'setup_x509.sh',
                              cgWConsts.CONDOR_STARTUP_FILE]
+        # The order in the following list is important
         after_file_list_scripts = ['check_proxy.sh',
                                    'create_mapfile.sh',
                                    'validate_node.sh',
@@ -205,7 +206,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                    'glexec_setup.sh',
                                    'java_setup.sh',
                                    'glidein_memory_setup.sh',
-                                   'glidein_cpus_setup.sh',
+                                   'glidein_cpus_setup.sh',  # glidein_cpus_setup.sh must be before smart_partitionable.sh
                                    'glidein_sitewms_setup.sh',
                                    'script_wrapper.sh',
                                    'smart_partitionable.sh']
