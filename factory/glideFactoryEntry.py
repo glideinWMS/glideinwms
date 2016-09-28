@@ -682,7 +682,7 @@ class Entry:
 
     def getLogStatsOldStatsData(self):
         """
-        Returns the gflFactoryConfig.log_stats.old_stats_data that can pickled
+        Returns the gflFactoryConfig.log_stats.old_stats_data that can be pickled
 
         @rtype: glideFactoryMonitoring.condorLogSummary
         @return: condorLogSummary from previous iteration
@@ -693,8 +693,7 @@ class Entry:
 
     def getLogStatsCurrentStatsData(self):
         """
-        Returns the gflFactoryConfig.log_stats.current_stats_data that can
-        pickled
+        Returns the gflFactoryConfig.log_stats.current_stats_data that can be pickled
 
         @rtype: glideFactoryMonitoring.condorLogSummary
         @return: condorLogSummary from current iteration
@@ -705,7 +704,7 @@ class Entry:
 
     def getLogStatsData(self, stats_data):
         """
-        Returns the stats_data(stats_data[frontend][user].data) that can pickled
+        Returns the stats_data(stats_data[frontend][user].data) that can be pickled
 
         @rtype: dict
         @return: Relevant stats data to pickle
@@ -775,7 +774,7 @@ class Entry:
         Compile a dictionary containt useful state information
 
         @rtype: dict
-        @return: Useful state information that can pickled and restored
+        @return: Useful state information that can be pickled and restored
         """
 
         # Set logger to None else we can't pickle file objects
@@ -873,7 +872,8 @@ class Entry:
         #sys.stdout = self.log.debug_log
         dump_obj(self)
         sys.stdout = stdout
-# class Entry
+# end class Entry
+
 
 def dump_obj(obj):
     import types
@@ -885,6 +885,7 @@ def dump_obj(obj):
         else:
             dump_obj(obj.__dict__[key])
     print "======= END: %s ======" % obj
+
 
 ###############################################################################
 
@@ -1381,7 +1382,6 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                         entry.gflFactoryConfig.client_schedd_attribute,
                         entry.gflFactoryConfig.credential_secclass_schedd_attribute,
                         entry.gflFactoryConfig.credential_id_schedd_attribute)
-
 
     # Map the identity to a frontend:sec_class for tracking totals
     frontend_name = "%s:%s" % \

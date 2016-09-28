@@ -5,6 +5,7 @@ import cPickle
 import copy
 
 from glideinwms.lib import hashCrypto
+from glideinwms.lib import util
 
 #
 # Project:
@@ -15,6 +16,7 @@ from glideinwms.lib import hashCrypto
 # Description:
 #   Frontend config related classes
 #
+
 
 ############################################################
 #
@@ -36,7 +38,7 @@ class FrontendConfig:
         self.history_file = "history.pk"
 
 # global configuration of the module
-frontendConfig=FrontendConfig()
+frontendConfig = FrontendConfig()
 
 
 ############################################################
@@ -44,8 +46,8 @@ frontendConfig=FrontendConfig()
 # Helper function
 #
 ############################################################
-def get_group_dir(base_dir,group_name):
-    return os.path.join(base_dir,"group_"+group_name)
+def get_group_dir(base_dir, group_name):
+    return os.path.join(base_dir, "group_"+group_name)
 
 
 ############################################################
@@ -400,6 +402,7 @@ class MergeStageFiles:
 
         return main_cv
 
+
 ############################################################
 #
 # The FrontendGroups may want to preserve some state between
@@ -413,7 +416,7 @@ class MergeStageFiles:
 ############################################################
 
 class HistoryFile:
-    def __init__(self, base_dir, group_name, load_on_init = True,
+    def __init__(self, base_dir, group_name, load_on_init=True,
                  default_factory=None):
         """
         The default_factory semantics is the same as the one in collections.defaultdict
@@ -430,13 +433,10 @@ class HistoryFile:
         if load_on_init:
             self.load()
 
-    def load(self, raise_on_error = False):
+    def load(self, raise_on_error=False):
         try:
-            fd = open(self.fname,'r')
-            try:
-                data = cPickle.load(fd)
-            finally:
-                fd.close()
+            # using it only for convenience (expiration, ... not used)
+            data = util.file_pickle_load(self.fname)
         except:
             if raise_on_error:
                 raise
@@ -446,25 +446,22 @@ class HistoryFile:
 
         if type(data) != type({}):
             if raise_on_error:
-                raise TypeError, "History object not a dictionary: %s" % str(type(data))
+                raise TypeError("History object not a dictionary: %s" % str(type(data)))
             else:
                 # default to empty history on error
                 data = {}
 
         self.data = data
 
-    def save(self, raise_on_error = False):
+    def save(self, raise_on_error=False):
+        # There is no concurrency, so does not need to be done atomically
+        # Anyway we want to avoid to write an empty file on top of a saved state because of an exception
         try:
-            # there is no concurrency, so does not need to be done atomically
-            fd = open(self.fname, 'w')
-            try:
-                cPickle.dump(self.data, fd, cPickle.HIGHEST_PROTOCOL)
-            finally:
-                fd.close()
+            util.file_pickle_dump(self.fname, self.data)
         except:
             if raise_on_error:
                 raise
-            #else, just ignore
+            # else, just ignore
 
     def has_key(self, keyid):
         return self.data.has_key(keyid)
@@ -475,9 +472,9 @@ class HistoryFile:
     def __getitem__(self, keyid):
         try:
             return self.data[keyid]
-        except KeyError,e:
+        except KeyError, e:
             if self.default_factory is None:
-                raise # no default initialization, just fail
+                raise  # no default initialization, just fail
             # i have the initialization function, use it
             self.data[keyid] = self.default_factory()
             return self.data[keyid]
