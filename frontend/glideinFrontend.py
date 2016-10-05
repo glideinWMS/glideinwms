@@ -365,7 +365,7 @@ def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
     """
 
     if mode == 'slave':
-        master_frontend_name = ha.get('ha_frontends')[0].get('frontend_name')
+        master_frontend_name = str(ha.get('ha_frontends')[0].get('frontend_name'))
 
         for group in groups:
             element = glideinFrontendElement(os.getpid(), work_dir,
