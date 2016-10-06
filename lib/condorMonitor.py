@@ -27,13 +27,14 @@ try:
     # NOTE:
     # import htcondor tries to look for CONDOR_CONFIG in the usual search path
     # If it cannot be found, it will print annoying error message which
-    # neither goes to stdout nor stderr. It was not clear how to mask this
-    # message so we may have to live with it till then
+    # neither goes to stdout nor stderr. To mask this error, set CONDOR_CONFIG
+    # to /dev/null
     # In case of non default locations of CONDOR_CONFIG, frontend will always
     # set the CONDOR_CONFIG appropriately before every command. Since import
     # happens before frontend can do anything, htcondor module is initialized
     # without the knowledge of CONDOR_CONFIG. This mandates that we do a
     # htcondor.reload_config() everytime to use the bindings.
+    os.env['CONDOR_CONFIG'] = os.env.get('CONDOR_CONFIG', '/dev/null')
     import htcondor
     import classad
     USE_HTCONDOR_PYTHON_BINDINGS = True
