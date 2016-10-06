@@ -1039,10 +1039,10 @@ def getCondorQConstrained(schedd_names, type_constraint, constraint=None, format
             # If schedd not found it is equivalent to no jobs in the queue
             continue
         except RuntimeError:
-            logSupport.log.exception("Runtime Error. Failed to talk to schedd: ")
+            logSupport.log.exception("Runtime Error. Failed to talk to schedd %s" % schedd)
             continue
         except Exception:
-            logSupport.log.exception("Unknown Exception. Failed to talk to schedd: ")
+            logSupport.log.exception("Unknown Exception. Failed to talk to schedd %s" % schedd)
             
     return out_condorq_dict
 
