@@ -27,6 +27,7 @@ import logging
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 
+from glideinwms.lib import condorExe
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
 from glideinwms.frontend import glideinFrontendPidLib
@@ -180,9 +181,9 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active,
         fm_advertiser = glideinFrontendInterface.FrontendMonitorClassadAdvertiser(multi_support=glideinFrontendInterface.frontendConfig.advertise_use_multi)
         fm_classad = glideinFrontendInterface.FrontendMonitorClassad(
                          frontendDescript.data['FrontendName'])
-        fm_classad.setFrontendDetails(frontendDescript.data['FrontendName'],
-                                      ','.join(groups),
-                                      glideinFrontendLib.getHAMode(frontendDescript.data))
+        fm_classad.setFrontendDetails(
+            frontendDescript.data['FrontendName'], ','.join(groups),
+            glideinFrontendLib.getHAMode(frontendDescript.data))
         idle_jobs = {
             'Total': stats['total']['Jobs']['Idle'],
         }
@@ -191,15 +192,20 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active,
         fm_advertiser.addClassad(fm_classad.adParams['Name'], fm_classad)
 
         # Advertise glidefrontendmonitor classad to user pool
-        logSupport.log.info("Advertising %i glidefrontendmonitor classad to the user pool" %  len(fm_advertiser.classads))
+        logSupport.log.info("Advertising %i %s classad(s) to the user pool" % (len(fm_advertiser.classads), fm_advertiser.adType))
         try:
             set_frontend_htcondor_env(work_dir, frontendDescript)
             fm_advertiser.advertiseAllClassads()
+            logSupport.log.info("Done advertising %s classad(s)to the user pool"% fm_advertiser.adType)
+        except condorExe.ExeError:
+            logSupport.log.error("Exception occurred trying to advertise %s classad(s) to the user pool" % fm_advertiser.adType)
+        except:
+            # Rethrow any other exception including stop signal
+            raise
         finally:
             # Cleanup the env
             clean_htcondor_env()
 
-        logSupport.log.info("Done advertising")
         logSupport.log.info("Cleaning logs")
         cleanupSupport.cleaners.cleanup()
 
