@@ -26,7 +26,6 @@ import traceback
 import time
 import string
 import logging
-import cPickle
 import re
 
 sys.path.append(os.path.join(sys.path[0],"../.."))
@@ -46,6 +45,8 @@ from glideinwms.frontend import glideinFrontendPidLib
 from glideinwms.frontend import glideinFrontendMonitoring
 from glideinwms.frontend import glideinFrontendPlugins
 from glideinwms.frontend import glideinFrontendDowntimeLib
+
+
 ###########################################################
 # Support class that mimics the 2.7 collections.Counter class
 #
@@ -89,14 +90,14 @@ class glideinFrontendElement:
         self.elementDescript = glideinFrontendConfig.ElementMergedDescript(self.work_dir, self.group_name)
         self.paramsDescript = glideinFrontendConfig.ParamsDescript(self.work_dir, self.group_name)
         self.signatureDescript = glideinFrontendConfig.GroupSignatureDescript(self.work_dir, self.group_name)
-        self.attr_dict = glideinFrontendConfig.AttrsDescript(self.work_dir,self.group_name).data
+        self.attr_dict = glideinFrontendConfig.AttrsDescript(self.work_dir, self.group_name).data
         self.history_obj = glideinFrontendConfig.HistoryFile(self.work_dir, self.group_name,
-                                                             True, # auto load
-                                                             dict) # automatically initialze objects to dictionaries, if needed
+                                                             True,  # auto load
+                                                             dict)  # automatically initialze objects to dictionaries, if needed
         # PS: The default initialization is not to CounterWrapper, to avoid saving custom classes to disk
         self.startup_time = time.time()
 
-        #self.sleep_time = int(self.elementDescript.frontend_data['LoopDelay'])
+        # self.sleep_time = int(self.elementDescript.frontend_data['LoopDelay'])
         self.frontend_name = self.elementDescript.frontend_data['FrontendName']
         self.web_url = self.elementDescript.frontend_data['WebURL']
         self.monitoring_web_url = self.elementDescript.frontend_data['MonitoringWebURL']
@@ -111,16 +112,16 @@ class glideinFrontendElement:
         self.reserve_idle = int(self.elementDescript.element_data['ReserveIdlePerEntry'])
         self.max_vms_idle = int(self.elementDescript.element_data['MaxIdleVMsPerEntry'])
         self.curb_vms_idle = int(self.elementDescript.element_data['CurbIdleVMsPerEntry'])
-        self.total_max_glideins=int(self.elementDescript.element_data['MaxRunningTotal'])
-        self.total_curb_glideins=int(self.elementDescript.element_data['CurbRunningTotal'])
+        self.total_max_glideins = int(self.elementDescript.element_data['MaxRunningTotal'])
+        self.total_curb_glideins = int(self.elementDescript.element_data['CurbRunningTotal'])
         self.total_max_vms_idle = int(self.elementDescript.element_data['MaxIdleVMsTotal'])
         self.total_curb_vms_idle = int(self.elementDescript.element_data['CurbIdleVMsTotal'])
-        self.fe_total_max_glideins=int(self.elementDescript.frontend_data['MaxRunningTotal'])
-        self.fe_total_curb_glideins=int(self.elementDescript.frontend_data['CurbRunningTotal'])
+        self.fe_total_max_glideins = int(self.elementDescript.frontend_data['MaxRunningTotal'])
+        self.fe_total_curb_glideins = int(self.elementDescript.frontend_data['CurbRunningTotal'])
         self.fe_total_max_vms_idle = int(self.elementDescript.frontend_data['MaxIdleVMsTotal'])
         self.fe_total_curb_vms_idle = int(self.elementDescript.frontend_data['CurbIdleVMsTotal'])
-        self.global_total_max_glideins=int(self.elementDescript.frontend_data['MaxRunningTotalGlobal'])
-        self.global_total_curb_glideins=int(self.elementDescript.frontend_data['CurbRunningTotalGlobal'])
+        self.global_total_max_glideins = int(self.elementDescript.frontend_data['MaxRunningTotalGlobal'])
+        self.global_total_curb_glideins = int(self.elementDescript.frontend_data['CurbRunningTotalGlobal'])
         self.global_total_max_vms_idle = int(self.elementDescript.frontend_data['MaxIdleVMsTotalGlobal'])
         self.global_total_curb_vms_idle = int(self.elementDescript.frontend_data['CurbIdleVMsTotalGlobal'])
 
@@ -143,7 +144,7 @@ class glideinFrontendElement:
 
 
     def configure(self):
-        ''' Do some initial configuration of the element. '''
+        """Do some initial configuration of the element."""
         group_dir = glideinFrontendConfig.get_group_dir(self.work_dir, self.group_name)
 
         # the log dir is shared between the frontend main and the groups, so use a subdir
@@ -165,9 +166,9 @@ class glideinFrontendElement:
         logSupport.log = logging.getLogger(self.group_name)
 
         # We will be starting often, so reduce the clutter
-        #logSupport.log.info("Logging initialized")
+        # logSupport.log.info("Logging initialized")
 
-        glideinFrontendMonitoring.monitoringConfig.monitor_dir =glideinFrontendConfig.get_group_dir(os.path.join(self.work_dir, "monitor"), self.group_name)
+        glideinFrontendMonitoring.monitoringConfig.monitor_dir = glideinFrontendConfig.get_group_dir(os.path.join(self.work_dir, "monitor"), self.group_name)
         glideinFrontendInterface.frontendConfig.advertise_use_tcp = (self.elementDescript.frontend_data['AdvertiseWithTCP'] in ('True', '1'))
         glideinFrontendInterface.frontendConfig.advertise_use_multi = (self.elementDescript.frontend_data['AdvertiseWithMultiple'] in ('True', '1'))
 
@@ -232,7 +233,7 @@ class glideinFrontendElement:
         pid_obj.register(self.parent_pid)
         try:
             try:
-                #logSupport.log.info("Starting up")
+                # logSupport.log.info("Starting up")
                 rc = self.iterate()
             except KeyboardInterrupt:
                 logSupport.log.info("Received signal...exit")
@@ -260,7 +261,7 @@ class glideinFrontendElement:
             self.published_frontend_name = '%s.XPVO_%s' % (self.frontend_name,
                                                            self.group_name)
 
-        if self.action=="run":
+        if self.action == "run":
             logSupport.log.info("Iteration at %s" % time.ctime())
 
             done_something = self.iterate_one()
@@ -271,7 +272,7 @@ class glideinFrontendElement:
             try:
                 write_stats(self.stats)
             except KeyboardInterrupt:
-                raise # this is an exit signal, pass through
+                raise  # this is an exit signal, pass through
             except:
                 # never fail for stats reasons!
                 logSupport.log.exception("Exception occurred writing stats: " )
@@ -595,7 +596,6 @@ class glideinFrontendElement:
 
             down_fd = glideinFrontendDowntimeLib.DowntimeFile( os.path.join( self.work_dir, self.elementDescript.frontend_data['DowntimesFile']  ) )
             downflag = down_fd.checkDowntime()
-            logSupport.log.info( "downtime = %i" % downflag )
             if downflag == True:
                 glidein_min_idle = 0
                 glidein_max_run  = 0
@@ -813,7 +813,8 @@ class glideinFrontendElement:
                     max_run = int(el['MaxJobsRunning']*0.95+0.5)
                     current_run = el['TotalRunningJobs']
                     # older schedds may not have TotalSchedulerJobsRunning
-                    current_run += el.get('TotalSchedulerJobsRunning',0)
+                    # commented out based on redmine ticket #8849
+                    #current_run += el.get('TotalSchedulerJobsRunning',0)
                     logSupport.log.debug("Schedd %s has %i running with max %i" % (schedd, current_run, max_run))
 
                     if current_run >= max_run:
