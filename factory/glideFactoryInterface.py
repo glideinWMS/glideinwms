@@ -80,6 +80,7 @@ class FactoryConfig:
 
         # String to prefix for the web passing
         self.client_web_prefix = "Web"
+        self.glidein_web_prefix = "Web"
 
         # The name of the signtype
         self.factory_signtype_id = "SupportedSignTypes"
@@ -506,7 +507,8 @@ class EntryClassad(classadSupport.Classad):
     def __init__(self, factory_name, glidein_name, entry_name,
                  trust_domain, auth_method, supported_signtypes,
                  pub_key_obj=None, glidein_attrs={}, glidein_params={},
-                 glidein_monitors={}, glidein_stats={}, glidein_config_limits={}):
+                 glidein_monitors={}, glidein_stats={}, glidein_web_attrs={},
+                 glidein_config_limits={}):
         """Class Constructor
 
         :param factory_name: Name of the factory
@@ -564,6 +566,7 @@ class EntryClassad(classadSupport.Classad):
         for (prefix, data) in ((factoryConfig.glidein_attr_prefix, glidein_attrs),
                                (factoryConfig.glidein_param_prefix, glidein_params),
                                (factoryConfig.glidein_monitor_prefix, glidein_monitors),
+                               (factoryConfig.glidein_web_prefix, glidein_web_attrs),
                                (factoryConfig.glidein_config_prefix, glidein_config_limits)):
             for attr in data.keys():
                 el = data[attr]
