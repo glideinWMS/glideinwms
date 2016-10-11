@@ -197,6 +197,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                              'create_temp_mapfile.sh',
                              'setup_x509.sh',
                              cgWConsts.CONDOR_STARTUP_FILE]
+        # The order in the following list is important
         after_file_list_scripts = ['check_proxy.sh',
                                    'create_mapfile.sh',
                                    'validate_node.sh',
@@ -205,7 +206,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                    'glexec_setup.sh',
                                    'java_setup.sh',
                                    'glidein_memory_setup.sh',
-                                   'glidein_cpus_setup.sh',
+                                   'glidein_cpus_setup.sh',  # glidein_cpus_setup.sh must be before smart_partitionable.sh
                                    'glidein_sitewms_setup.sh',
                                    'script_wrapper.sh',
                                    'smart_partitionable.sh']
@@ -467,9 +468,9 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             self.dicts[dtype].add("GLIDEIN_Gatekeeper",entry[u'gatekeeper'],allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_GridType",entry[u'gridtype'],allow_overwrite=True)
             # MERGENOTE:
-            # GLIDEIN_REQUIRE_VOMS publishes an attribute so that users without VOMS proxies
-            #   can avoid sites that require VOMS proxies (using the normal Condor Requirements
-            #   string. 
+            # GLIDEIN_REQUIRE_VOMS publishes an attribute so that users
+            # without VOMS proxies can avoid sites that require VOMS proxies
+            # using the normal Condor Requirements string. 
             self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS",restrictions[u'require_voms_proxy'],allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_REQUIRE_GLEXEC_USE",restrictions[u'require_glidein_glexec_use'],allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_TrustDomain",entry[u'trust_domain'],allow_overwrite=True)
@@ -477,6 +478,10 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             if u'rsl' in entry:
                 self.dicts[dtype].add('GLIDEIN_GlobusRSL',entry[u'rsl'],allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_SlotsLayout", submit[u'slots_layout'], allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_WorkDir", entry[u'work_dir'], allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_Verbosity", entry[u'verbosity'], allow_overwrite=True)
+            if u'proxy_url' in entry:
+                self.dicts[dtype].add("GLIDEIN_ProxyURL", entry[u'proxy_url'], allow_overwrite=True)
 
 
         self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_VOMS","boolean",restrictions[u'require_voms_proxy'],None,False,True,True)

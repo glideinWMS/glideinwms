@@ -201,7 +201,7 @@ def conditional_raise(mask_exceptions):
     raise
 
 
-def file_pickle_dump(fname, content, tmp_type='PID', mask_exceptions=None):
+def file_pickle_dump(fname, content, tmp_type='PID', mask_exceptions=None, protocol=pickle.HIGHEST_PROTOCOL):
     """Serialize and save content
 
     To avoid inconsistent content
@@ -212,12 +212,13 @@ def file_pickle_dump(fname, content, tmp_type='PID', mask_exceptions=None):
       The callback function can access the exception via sys.exc_info()
       If a function is not provided, the exception is re-risen
       if provided it is called using mask_exceptions[0](*mask_exceptions[1:])
+    @param protocol: Pickle protocol to be used (Default: pickle.HIGHEST_PROTOCOL, 2)
     @return: True if the saving was successful, False or an exception otherwise
     """
     tmp_fname = file_get_tmp(fname, tmp_type)
     try:
         with open(tmp_fname, "w") as pfile:
-            pickle.dump(content, pfile, 2)
+            pickle.dump(content, pfile, protocol)
     except:
         conditional_raise(mask_exceptions)
         return False

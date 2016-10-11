@@ -19,12 +19,14 @@ import select
 from pidSupport import register_sighandler, unregister_sighandler, termsignal
 import logSupport
 
+
 class ForkResultError(RuntimeError):
     def __init__(self, nr_errors, good_results, failed=[]):
         RuntimeError.__init__(self, "Found %i errors" % nr_errors)
         self.nr_errors = nr_errors
         self.good_results = good_results
         self.failed = failed
+
 
 ################################################
 # Low level fork and collect functions
@@ -59,6 +61,7 @@ def fork_in_bg(function, *args):
 
     return {'r': r, 'pid': pid}
 
+
 ###############################
 def fetch_fork_result(r, pid):
     """
@@ -77,15 +80,16 @@ def fetch_fork_result(r, pid):
     try:
         rin = ""
         s = os.read(r, 1024*1024)
-        while (s != ""): # "" means EOF
+        while (s != ""):  # "" means EOF
             rin += s
-            s = os.read(r,1024*1024)
+            s = os.read(r, 1024*1024)
     finally:
         os.close(r)
         os.waitpid(pid, 0)
 
     out = cPickle.loads(rin)
     return out
+
 
 def fetch_fork_result_list(pipe_ids):
     """
@@ -118,6 +122,7 @@ def fetch_fork_result_list(pipe_ids):
         raise ForkResultError(failures, out, failed=failed)
 
     return out
+
 
 def fetch_ready_fork_result_list(pipe_ids):
     """
@@ -156,6 +161,7 @@ def fetch_ready_fork_result_list(pipe_ids):
 
     return work_info
 
+
 def wait_for_pids(pid_list):
     """
     Wait for all pids to finish.
@@ -173,6 +179,7 @@ def wait_for_pids(pid_list):
           os.close(r)
           os.waitpid(pid,0)
          
+
 ################################################
 # Fork Class
 
