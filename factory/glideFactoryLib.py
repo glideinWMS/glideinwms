@@ -1125,10 +1125,7 @@ def escapeParam(param_str):
     global escape_table
     out_str = ""
     for c in param_str:
-        if escape_table.has_key(c):
-            out_str = out_str + escape_table[c]
-        else:
-            out_str = out_str + c
+        out_str = out_str + escape_table.get(c, c)
     return out_str
 
 
