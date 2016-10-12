@@ -2,7 +2,7 @@
 
 function getValueFromFileOrURL {
     # The function takes as an argument a filename and a variable name
-    # The variable containsthe url or the directory location of the file,
+    # The variable contains the url or the directory location of the file,
     # so $1 can be shutdowntime_job
     # and $2 /path/to/jobfeature/dir
     # The function returns the value found in the file (by cat-ing it), or false
@@ -19,11 +19,14 @@ function getValueFromFileOrURL {
             echo $ADDRESS | grep -E '^https?' > /dev/null
             if [ $? -eq 0 ]; then
                 #use quiet mode and redirect file to a temporary one
-                wget -qO- $ADDRESS > tmp_MJF
+                TMPFILE=tmp_$(uuidgen)
+                wget -qO- $ADDRESS > $TMPFILE
                 if [ $? -eq 0 ]; then
-                    cat tmp_MJF
+                    cat $TMPFILE
+                    rm $TMPFILE
                     return
                 fi
+                rm $TMPFILE
             fi
         fi
     fi

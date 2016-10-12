@@ -28,7 +28,7 @@
 #
 
 LIBLOCATION=$(dirname $0)
-source "$LIBLOCATION/mjf_lib.sh"
+source "$LIBLOCATION/glidein_lib.sh"
 
 function isNumberOrFalse {
     # the function verifies that the argument (i.e.: $1) is a number, and exts otherwise

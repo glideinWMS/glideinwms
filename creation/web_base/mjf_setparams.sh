@@ -2,7 +2,7 @@
 # https://github.com/HEP-SF/documents/blob/master/HSF-TN/2016-02/HSF-TN-2016-02.pdf
 
 LIBLOCATION=$(dirname $0)
-source "$LIBLOCATION/mjf_lib.sh"
+source "$LIBLOCATION/glidein_lib.sh"
 
 TOTAL_CPU=$(getValueFromFileOrURL total_cpu "$MACHINEFEATURES")
 HS06=$(getValueFromFileOrURL hs06 "$MACHINEFEATURES")
