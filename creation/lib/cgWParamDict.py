@@ -75,7 +75,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         for file_name in ('error_gen.sh', 'error_augment.sh', 'parse_starterlog.awk', 'advertise_failure.helper',
                           'condor_config', 'condor_config.multi_schedd.include',
                           'condor_config.dedicated_starter.include', 'condor_config.check.include',
-                          'condor_config.monitor.include', 'mjf_lib.sh'):
+                          'condor_config.monitor.include', 'glidein_lib.sh'):
             self.dicts['file_list'].add_from_file(file_name,
                                                   cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(file_name), 'regular'),
                                                   os.path.join(cgWConsts.WEB_BASE_DIR, file_name))
