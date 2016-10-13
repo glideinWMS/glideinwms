@@ -118,8 +118,9 @@ def appendRealRunning(condorq_dict, status_dict):
                 for collector_name in status_dict:
                     condor_status = status_dict[collector_name].fetchStored()
                     if remote_host in condor_status:
-                        # there is currently no way to get the factory collector from
-                        #   condor status so this hack grabs the hostname of the schedd
+                        # there is currently no way to get the factory
+                        # collector from condor status so this hack grabs
+                        # the hostname of the schedd
                         schedd = condor_status[remote_host]['GLIDEIN_Schedd'].split('@')
 
                         # split by : to remove port number if there
