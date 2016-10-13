@@ -86,6 +86,33 @@ Related Pages:
     <ul>
 
       <li>
+        <b>v3_2_16</b> released on October xx, 2016 (<a href="http://glideinwms.fnal.gov/doc.v3_2_16/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_16/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_16.tgz">Tarball</a>)<br>
+      <ul>
+	<li>Information about job and machine features are now available in
+	glidein startd's classad
+        <li>New tool manual_glidein_startup now lets you manually start a
+	glidein for a given factory entry and frontend group
+        <li>BOSCO entries can now accept credentials provided from the frontend
+        <li>Bug Fix: Glidein is now correctly auto detect RHEL6 and RHEL7
+        <li>Bug Fix: Dagman and Schedd universe jobs are not counted against
+        max jobs running
+        <li>Bug Fix: An entry in downtime will now show up in the glidein status
+        <li>Bug Fix: Added condor-python rpm as a dependency
+        <li>Bug Fix: Complex credentials (vm_id+vm_type) are now correctly
+        interpreted
+        <li>Bug Fix: Frontend is now more resilent to transient errors
+        communicating with the HTCondor daemons
+        <li>Bug Fix: Slave frontend now correctly looks up the master frontend
+        when using condor-python bindings
+        <li>Bug Fix: create_condor_tarball now correctly includes required
+	globus libraries from lib/condor that are loaded by HTCondor at runtime
+        <li>Bug Fix: Frontend now correctly calculates the ReqMaxGlideins for
+        single core glidein entries
+        <li>Bug Fix: Numerical data in glideclient classad is not quoted to
+        preserve the data type
+      </ul>
+
+      <li>
         <b>v3_2_15</b> released on August 17, 2016 (<a href="http://glideinwms.fnal.gov/doc.v3_2_15/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_15/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_15.tgz">Tarball</a>)<br>
       <ul>
         <li>Factory will now automatically remove unrecoverable glidein jobs
