@@ -118,8 +118,9 @@ def appendRealRunning(condorq_dict, status_dict):
                 for collector_name in status_dict:
                     condor_status = status_dict[collector_name].fetchStored()
                     if remote_host in condor_status:
-                        # there is currently no way to get the factory collector from
-                        #   condor status so this hack grabs the hostname of the schedd
+                        # there is currently no way to get the factory
+                        # collector from condor status so this hack grabs
+                        # the hostname of the schedd
                         schedd = condor_status[remote_host]['GLIDEIN_Schedd'].split('@')
 
                         # split by : to remove port number if there
@@ -478,37 +479,37 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
       Both are dictionaries keyed by glidename (entry)
     """
 
-    out_job_counts={}
-    out_glidein_counts={}
+    out_job_counts = {}
+    out_glidein_counts = {}
 
     if condorq_match_list is not None:
-        condorq_match_list=condorq_match_list+['RunningOn']
+        condorq_match_list = condorq_match_list + ['RunningOn']
     # add an else branch in case the initial list is None? Probably should never happen
     # else:
     #     condorq_match_list = ['RunningOn']
 
-    schedds=condorq_dict.keys()
-    nr_schedds=len(schedds)
+    schedds = condorq_dict.keys()
+    nr_schedds = len(schedds)
 
     # dict of job clusters
     # group together those that have the same attributes
-    cq_dict_clusters={}
+    cq_dict_clusters = {}
     for scheddIdx in range(nr_schedds):
-        schedd=schedds[scheddIdx]
-        cq_dict_clusters[scheddIdx]={}
-        cq_dict_clusters_el=cq_dict_clusters[scheddIdx]
-        condorq=condorq_dict[schedd]
-        condorq_data=condorq.fetchStored()
+        schedd = schedds[scheddIdx]
+        cq_dict_clusters[scheddIdx] = {}
+        cq_dict_clusters_el = cq_dict_clusters[scheddIdx]
+        condorq = condorq_dict[schedd]
+        condorq_data = condorq.fetchStored()
         for jid in condorq_data.keys():
-            jh=hashJob(condorq_data[jid],condorq_match_list)
+            jh = hashJob(condorq_data[jid],condorq_match_list)
             if not cq_dict_clusters_el.has_key(jh):
-                cq_dict_clusters_el[jh]=[]
+                cq_dict_clusters_el[jh] = []
             cq_dict_clusters_el[jh].append(jid)
 
     for glidename in glidein_dict:
         # split by : to remove port number if there
         glide_str = "%s@%s" % (glidename[1],glidename[0].split(':')[0])
-        glidein=glidein_dict[glidename]
+        glidein = glidein_dict[glidename]
         glidein_count = 0
         # Sets are necessary to remove duplicates
         # job_ids counts all the jobs running on the current entry (Running here stats)
@@ -534,8 +535,8 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
 
             for jh in cq_dict_clusters_el.keys():
                 # get the first job... they are all the same
-                first_jid=cq_dict_clusters_el[jh][0]
-                job=condorq_data[first_jid]
+                first_jid = cq_dict_clusters_el[jh][0]
+                job = condorq_data[first_jid]
                 try:
                     # Evaluate the Compiled object first.
                     # Evaluation order does not really matter.
@@ -556,11 +557,25 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
                         for jid in cq_dict_clusters_el[jh]:
                             job = condorq_data[jid]
                             job_ids.add("%d %s" % (scheddIdx, jid))
-                            # slotN@ is not part of the glidein ID
+                            # glidein ID is just glidein_XXXXX_XXXXX@fqdn
+                            # RemoteHost has following valid formats
+                            #
+                            # Static slots
+                            # ------------
+                            # 1 core: glidein_XXXXX_XXXXX@fqdn
+                            # N core: slotN@glidein_XXXXX_XXXXX@fqdn
+                            #
+                            # Dynamic slots
+                            # -------------
+                            # N core: slotN_M@glidein_XXXXX_XXXXX@fqdn
                             try:
-                                glidein_id = job['RemoteHost'].split('@', 1)[1]
+                                token = job['RemoteHost'].split('@')
+                                glidein_id = '%s@%s' % (token[-2], token[-1])
                             except (KeyError, IndexError):
-                                # RemoteHost is missing or has a different format
+                                # If RemoteHost is missing or has a different
+                                # format just identify it with the uniq jobid
+                                # for accounting purposes. Here we assume that
+                                # the job is running in a glidein with 1 slot
                                 glidein_id = "%d %s" % (scheddIdx, jid)
                             glidein_ids.add(glidein_id)
                 except KeyError, e:

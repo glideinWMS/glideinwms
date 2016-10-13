@@ -1174,8 +1174,7 @@ class MultiAdvertizeWork:
                     fd.write(string.join(key_obj.get_key_attrs(),'\n')+"\n")
                     for attr in glidein_params_to_encrypt.keys():
                         encrypted_params[attr]=key_obj.encrypt_hex(glidein_params_to_encrypt[attr])
-                    
-
+                   
                 fd.write('ReqIdleGlideins = %i\n'%req_idle)
                 fd.write('ReqMaxGlideins = %i\n'%req_max_run)
                 fd.write('ReqRemoveExcess = "%s"\n'%params_obj.remove_excess_str)
@@ -1245,8 +1244,8 @@ def writeTypedClassadAttrToFile(fd, attr_name, attr_value):
     """
     Given the FD, type check the value and write the info the classad file
     """
-    if type(attr_value) == type(1):
-        # don't quote ints
+    if isinstance(attr_value, (int, long, float)):
+        # don't quote numeric values
         fd.write('%s = %s\n' % (attr_name, attr_value))
     else:
         escaped_value = string.replace(string.replace(str(attr_value), '"', '\\"'), '\n', '\\n')

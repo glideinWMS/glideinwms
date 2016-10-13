@@ -9,6 +9,29 @@ v3_3    Includes all features and bug fixes released in v3_2_15
         Bug Fix: create_condor_tarball now also includes required globus libraries
 	  from lib/condor that HTCondor loads at runtime
 
+v3_2_16	Information about job and machine features are now available in glidein
+	  startd's classad
+	New tool manual_glidein_startup now lets you manually start a glidein
+	  for a given factory entry and frontend group
+	BOSCO entries can now accept credentials provided from the frontend
+	Bug Fix: Glidein is now correctly auto detect RHEL6 and RHEL7
+	Bug Fix: Dagman and Schedd universe jobs are not counted against
+	  max jobs running
+	Bug Fix: An entry in downtime will now show up in the glidein status
+	Bug Fix: Added condor-python rpm as a dependency
+	Bug Fix: Complex credentials (vm_id+vm_type) are now correctly
+	  interpreted
+	Bug Fix: Frontend is now more resilent to transient errors
+	  communicating with the HTCondor daemons
+	Bug Fix: Slave frontend now correctly looks up the master frontend
+	  when using condor-python bindings
+	Bug Fix: create_condor_tarball now correctly includes required globus
+	  libraries from lib/condor that are loaded by HTCondor at runtime
+	Bug Fix: Frontend now correctly calculates the ReqMaxGlideins for
+	  single core glidein entries
+	Bug Fix: Numerical data in glideclient classad is not quoted to
+	  preserve the data type
+
 v3_2_15	Factory will now automatically remove unrecoverable glidein jobs
 	  with forcex if they are held for 20 times or more
 	Several X509 related attributes from the matching job are now
