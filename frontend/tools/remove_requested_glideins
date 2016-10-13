@@ -25,7 +25,10 @@ import time
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
 from glideinwms.frontend import glideinFrontendPidLib
-FRONTEND_DIR=os.path.dirname( glideinFrontendPidLib.__file__ )
+
+from glideinwms.frontend import glideinFrontend
+FRONTEND_DIR = os.path.dirname( glideinFrontend.__file__ )
+
 def parse_args(argv):
     argparser=optparse.OptionParser()
     argparser.add_option("-d","--work-dir", dest="work_dir",
@@ -78,8 +81,6 @@ def main(argv):
     if options.excess_only:
         action+="Excess"
     command_list = [sys.executable,
-#                    os.path.join(STARTUP_DIR,
-#                                 "../glideinFrontend.py"),
                     os.path.join(FRONTEND_DIR, "glideinFrontend.py"),
                     options.work_dir,
                     action]
