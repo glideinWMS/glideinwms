@@ -575,14 +575,18 @@ class glideinFrontendElement:
 
             # Compute min glideins required based on multicore jobs
             effective_idle_mc = max(prop_mc_jobs['Idle'] - count_status['Idle'], 0)
-            effective_oldidle_mc = max(prop_mc_jobs['OldIdle']-count_status['Idle'], 0)
+            effective_oldidle_mc = max(prop_mc_jobs['OldIdle'] - count_status['Idle'], 0)
 
             limits_triggered = {}
 
-            down_fd = glideinFrontendDowntimeLib.DowntimeFile(os.path.join(self.work_dir, self.elementDescript.frontend_data['DowntimesFile']))
+            down_fd = glideinFrontendDowntimeLib.DowntimeFile(
+                os.path.join(
+                    self.work_dir,
+                    self.elementDescript.frontend_data['DowntimesFile']))
             downflag = down_fd.checkDowntime()
-            # If frontend or entry are in downtime, both min glideins required max running are 0
-            if downflag is True or glidein_in_downtime is True:
+            # If frontend or entry are in downtime
+            # both min glideins required max running are 0
+            if downflag or glidein_in_downtime:
                 glidein_min_idle = 0
                 glidein_max_run = 0
             else:
