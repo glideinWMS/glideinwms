@@ -566,7 +566,7 @@ class glideinFrontendElement:
             # effective idle is how much more we need
             # if there are idle slots, subtract them, they should match soon
             effective_idle = max(prop_jobs['Idle'] - count_status['Idle'], 0)
-            effective_oldidle = max(prop_jobs['OldIdle']-count_status['Idle'], 0)
+            effective_oldidle = max(prop_jobs['OldIdle'] - count_status['Idle'], 0)
 
             # Adjust the number of idle jobs in case the minimum running parameter is set
             if prop_mc_jobs['Idle'] < self.min_running:
@@ -578,27 +578,29 @@ class glideinFrontendElement:
             effective_oldidle_mc = max(prop_mc_jobs['OldIdle']-count_status['Idle'], 0)
 
             limits_triggered = {}
-            glidein_min_idle = self.compute_glidein_min_idle(
-                                   count_status, total_glideins,
-                                   total_idle_glideins, fe_total_glideins,
-                                   fe_total_idle_glideins,
-                                   global_total_glideins,
-                                   global_total_idle_glideins,
-                                   effective_idle_mc, effective_oldidle_mc,
-                                   limits_triggered)
-
-            # Compute max running glideins for this site based on
-            # idle jobs, running jobs and idle slots
-            glidein_max_run = self.compute_glidein_max_run(
-                                  prop_mc_jobs,
-                                  self.count_real_glideins[glideid],
-                                  count_status['Idle'])
 
             down_fd = glideinFrontendDowntimeLib.DowntimeFile(os.path.join(self.work_dir, self.elementDescript.frontend_data['DowntimesFile']))
             downflag = down_fd.checkDowntime()
-            if downflag is True:
+            # If frontend or entry are in downtime, both min glideins required max running are 0
+            if downflag is True or glidein_in_downtime is True:
                 glidein_min_idle = 0
                 glidein_max_run = 0
+            else:
+                glidein_min_idle = self.compute_glidein_min_idle(
+                    count_status, total_glideins,
+                    total_idle_glideins, fe_total_glideins,
+                    fe_total_idle_glideins,
+                    global_total_glideins,
+                    global_total_idle_glideins,
+                    effective_idle_mc, effective_oldidle_mc,
+                    limits_triggered)
+
+                # Compute max running glideins for this site based on
+                # idle jobs, running jobs and idle slots
+                glidein_max_run = self.compute_glidein_max_run(
+                    prop_mc_jobs,
+                    self.count_real_glideins[glideid],
+                    count_status['Idle'])
 
             remove_excess_str = self.choose_remove_excess_type(
                                     count_jobs, count_status, glideid)
