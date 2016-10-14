@@ -522,15 +522,15 @@ class glideinFrontendElement:
         self.processed_glideid_strs=[]
 
         log_factory_header()
-        total_up_stats_arr=init_factory_stats_arr()
-        total_down_stats_arr=init_factory_stats_arr()
+        total_up_stats_arr = init_factory_stats_arr()
+        total_down_stats_arr = init_factory_stats_arr()
 
         for glideid in glideid_list:
             if glideid == (None, None, None):
-                continue # This is the special "Unmatched" entry
+                continue  # This is the special "Unmatched" entry
             factory_pool_node = glideid[0]
             request_name = glideid[1]
-            my_identity = str(glideid[2]) # get rid of unicode
+            my_identity = str(glideid[2])  # get rid of unicode
             glideid_str = "%s@%s" % (request_name, factory_pool_node)
             self.processed_glideid_strs.append(glideid_str)
 
@@ -538,18 +538,18 @@ class glideinFrontendElement:
             glidein_in_downtime = \
                 glidein_el['attrs'].get('GLIDEIN_In_Downtime') == 'True'
 
-            count_jobs={}   # straight match
-            prop_jobs={}    # proportional subset for this entry
+            count_jobs = {}   # straight match
+            prop_jobs = {}    # proportional subset for this entry
             # proportional subset of jobs for this entry scaled also for multicore (requested cores/available cores)
-            prop_mc_jobs={}
-            hereonly_jobs={}  # can only run on this site
+            prop_mc_jobs = {}
+            hereonly_jobs = {}  # can only run on this site
             for dt in condorq_dict_types.keys():
                 count_jobs[dt] = condorq_dict_types[dt]['count'][glideid]
                 prop_jobs[dt] = condorq_dict_types[dt]['prop'][glideid]
                 prop_mc_jobs[dt] = condorq_dict_types[dt]['prop_mc'][glideid]
                 hereonly_jobs[dt] = condorq_dict_types[dt]['hereonly'][glideid]
 
-            count_status=self.count_status_multi[request_name]
+            count_status = self.count_status_multi[request_name]
             count_status_per_cred = self.count_status_multi_per_cred[request_name]
 
             # If the glidein requires a voms proxy, only match voms idle jobs
@@ -568,7 +568,7 @@ class glideinFrontendElement:
             effective_idle = max(prop_jobs['Idle'] - count_status['Idle'], 0)
             effective_oldidle = max(prop_jobs['OldIdle']-count_status['Idle'], 0)
 
-            #Adjust the number of idle jobs in case the minimum running parameter is set
+            # Adjust the number of idle jobs in case the minimum running parameter is set
             if prop_mc_jobs['Idle'] < self.min_running:
                 logSupport.log.info("Entry %s: Adjusting idle cores to %s since the 'min' attribute of 'running_glideins_per_entry' is set" % (glideid[1], self.min_running))
                 prop_mc_jobs['Idle'] = self.min_running
@@ -594,11 +594,11 @@ class glideinFrontendElement:
                                   self.count_real_glideins[glideid],
                                   count_status['Idle'])
 
-            down_fd = glideinFrontendDowntimeLib.DowntimeFile( os.path.join( self.work_dir, self.elementDescript.frontend_data['DowntimesFile']  ) )
+            down_fd = glideinFrontendDowntimeLib.DowntimeFile(os.path.join(self.work_dir, self.elementDescript.frontend_data['DowntimesFile']))
             downflag = down_fd.checkDowntime()
-            if downflag == True:
+            if downflag is True:
                 glidein_min_idle = 0
-                glidein_max_run  = 0
+                glidein_max_run = 0
 
             remove_excess_str = self.choose_remove_excess_type(
                                     count_jobs, count_status, glideid)
@@ -631,7 +631,6 @@ class glideinFrontendElement:
                                              ('PubKeyValue', 'PubKeyObj'))
 
             self.stats['group'].logFactDown(glideid_str, glidein_in_downtime)
-
 
             if glidein_in_downtime:
                 total_down_stats_arr = log_and_sum_factory_line(
@@ -699,11 +698,11 @@ class glideinFrontendElement:
                         if (creds_with_running - scaled) == 1:
                             # This is the last one. Assign remaining running
 
-                            glidein_monitors_per_cred[cred.getId()]['ScaledRunning']  = tr - (tr//creds_with_running)*scaled
+                            glidein_monitors_per_cred[cred.getId()]['ScaledRunning'] = tr - (tr//creds_with_running)*scaled
                             scaled += 1
                             break
                         else:
-                            glidein_monitors_per_cred[cred.getId()]['ScaledRunning']  = tr//creds_with_running
+                            glidein_monitors_per_cred[cred.getId()]['ScaledRunning'] = tr//creds_with_running
                             scaled += 1
 
             key_obj = None
@@ -714,7 +713,7 @@ class glideinFrontendElement:
                         key_obj = key_builder.get_key_obj(my_identity, globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
                     break
 
-            trust_domain = glidein_el['attrs'].get('GLIDEIN_TrustDomain','Grid')
+            trust_domain = glidein_el['attrs'].get('GLIDEIN_TrustDomain', 'Grid')
             auth_method = glidein_el['attrs'].get('GLIDEIN_SupportedAuthenticationMethod', 'grid_proxy')
 
             # Only advertize if there is a valid key for encryption
@@ -731,7 +730,7 @@ class glideinFrontendElement:
                                trust_domain=trust_domain,
                                auth_method=auth_method, ha_mode=self.ha_mode)
             else:
-                logSupport.log.warning("Cannot advertise requests for %s because no factory %s key was found"% (request_name, factory_pool_node))
+                logSupport.log.warning("Cannot advertise requests for %s because no factory %s key was found" % (request_name, factory_pool_node))
 
             resource_classad = self.build_resource_classad(
                                    this_stats_arr, request_name,
@@ -764,7 +763,7 @@ class glideinFrontendElement:
         del ad_file_id_cache
 
         # Advertise glideresource classads
-        logSupport.log.info("Advertising %i glideresource classads to the user pool" %  len(resource_advertiser.classads))
+        logSupport.log.info("Advertising %i glideresource classads to the user pool" % len(resource_advertiser.classads))
         pids.append(fork_in_bg(resource_advertiser.advertiseAllClassads))
 
         wait_for_pids(pids)
@@ -1118,8 +1117,7 @@ class glideinFrontendElement:
 
         glidein_max_run = 0
 
-        if ((self.request_removal_wtype is not None) and
-            (not self.request_removal_excess_only)):
+        if (self.request_removal_wtype is not None) and (not self.request_removal_excess_only):
             # We are requesting the removal of all the glideins
             # Factory should remove all of them
             return 0
@@ -1144,17 +1142,17 @@ class glideinFrontendElement:
 
     def log_and_print_total_stats(self, total_up_stats_arr, total_down_stats_arr):
         # Log the totals
-        for el in (('MatchedUp',total_up_stats_arr, True),('MatchedDown',total_down_stats_arr, False)):
-            el_str,el_stats_arr,el_updown=el
+        for el in (('MatchedUp', total_up_stats_arr, True), ('MatchedDown', total_down_stats_arr, False)):
+            el_str, el_stats_arr, el_updown = el
             self.stats['group'].logMatchedJobs(
-                el_str, el_stats_arr[0],el_stats_arr[2], el_stats_arr[3],
+                el_str, el_stats_arr[0], el_stats_arr[2], el_stats_arr[3],
                 el_stats_arr[5], el_stats_arr[6])
 
             self.stats['group'].logMatchedGlideins(
                 el_str, el_stats_arr[8], el_stats_arr[9], el_stats_arr[10],
                 el_stats_arr[11], el_stats_arr[12], el_stats_arr[13],
                 el_stats_arr[14])
-            self.stats['group'].logFactAttrs(el_str, [], ()) # for completeness
+            self.stats['group'].logFactAttrs(el_str, [], ())  # for completeness
             self.stats['group'].logFactDown(el_str, el_updown)
             self.stats['group'].logFactReq(
                 el_str, el_stats_arr[15], el_stats_arr[16], {})
@@ -1176,7 +1174,7 @@ class glideinFrontendElement:
             unmatched_running, 0)
 
         # Nothing running
-        self.stats['group'].logMatchedGlideins('Unmatched', 0,0,0,0,0,0,0)
+        self.stats['group'].logMatchedGlideins('Unmatched', 0, 0, 0, 0, 0, 0, 0)
         # just for completeness
         self.stats['group'].logFactAttrs('Unmatched', [], ())
         self.stats['group'].logFactDown('Unmatched', True)
@@ -1193,9 +1191,9 @@ class glideinFrontendElement:
         log_and_sum_factory_line('Unmatched', True, this_stats_arr, total_down_stats_arr)
 
     def choose_remove_excess_type(self, count_jobs, count_status, glideid):
-        ''' Decides what kind of excess glideins to remove:
+        """ Decides what kind of excess glideins to remove:
             "ALL", "IDLE", "WAIT", or "NO"
-        '''
+        """
         if self.request_removal_wtype is not None:
             # we are requesting the removal of glideins, and we have the explicit code to use
             return self.request_removal_wtype
