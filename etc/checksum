@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_16_rc1
+# GLIDEINWMS_VERSION v3_2_16_rc2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cbd269c098e4d61d909595fc90c7cefd  ./LICENSE.txt
@@ -155,7 +155,7 @@ d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 4287f3a4fe497481c5a72d568e75f92b  ./frontend/glideinFrontend.py
 9a7e8a7777be08753dac3799ef216034  ./frontend/glideinFrontendConfig.py
 a5d67ff1645932a8f81a9eed37027f50  ./frontend/glideinFrontendDowntimeLib.py
-99dc04b19377845057d81d0aa69a6e8b  ./frontend/glideinFrontendElement.py
+e1917ce893c3d1889f6da211d39e6edc  ./frontend/glideinFrontendElement.py
 86dae72ecb85a54ea5a1d0dd3f4c2397  ./frontend/glideinFrontendInterface.py
 ff0aa4f8c14d23377450ff27f169a3a9  ./frontend/glideinFrontendLib.py
 1754e4484e221f13578512bd1c825090  ./frontend/glideinFrontendMonitorAggregator.py

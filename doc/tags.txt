@@ -20,6 +20,8 @@ v3_2_16	Information about job and machine features are now available in glidein
 	  single core glidein entries
 	Bug Fix: Numerical data in glideclient classad is not quoted to
 	  preserve the data type
+	Bug Fix: Frontend will not request any glideins at entry that is
+          in downtime
 
 v3_2_15	Factory will now automatically remove unrecoverable glidein jobs
 	  with forcex if they are held for 20 times or more
