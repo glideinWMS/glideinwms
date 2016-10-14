@@ -75,7 +75,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         for file_name in ('error_gen.sh', 'error_augment.sh', 'parse_starterlog.awk', 'advertise_failure.helper',
                           'condor_config', 'condor_config.multi_schedd.include',
                           'condor_config.dedicated_starter.include', 'condor_config.check.include',
-                          'condor_config.monitor.include'):
+                          'condor_config.monitor.include', 'glidein_lib.sh'):
             self.dicts['file_list'].add_from_file(file_name,
                                                   cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(file_name), 'regular'),
                                                   os.path.join(cgWConsts.WEB_BASE_DIR, file_name))
@@ -209,7 +209,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                    'glidein_cpus_setup.sh',  # glidein_cpus_setup.sh must be before smart_partitionable.sh
                                    'glidein_sitewms_setup.sh',
                                    'script_wrapper.sh',
-                                   'smart_partitionable.sh']
+                                   'smart_partitionable.sh',
+                                   'mjf_setparams.sh']
         # Only execute scripts once
         duplicate_scripts = set(file_list_scripts).intersection(after_file_list_scripts)
         if duplicate_scripts:
