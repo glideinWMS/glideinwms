@@ -709,7 +709,7 @@ function params2file {
 ################
 # Parse arguments
 set_debug=1
-sleep_time=1199
+sleep_time=11
 if [ "$operation_mode" == "nodebug" ]; then
  set_debug=0
 elif [ "$operation_mode" == "fast" ]; then
