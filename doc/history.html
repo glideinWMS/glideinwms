@@ -86,132 +86,139 @@ Related Pages:
     <ul>
 
       <li>
-        <b>v3_2_16</b> released on October xx, 2016 (<a href="http://glideinwms.fnal.gov/doc.v3_2_16/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_16/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_16.tgz">Tarball</a>)<br>
-      <ul>
-	<li>Information about job and machine features are now available in
-	glidein startd's classad
-        <li>New tool manual_glidein_startup now lets you manually start a
-	glidein for a given factory entry and frontend group
-        <li>BOSCO entries can now accept credentials provided from the frontend
-        <li>Bug Fix: Glidein is now correctly auto detect RHEL6 and RHEL7
-        <li>Bug Fix: Dagman and Schedd universe jobs are not counted against
-        max jobs running
-        <li>Bug Fix: An entry in downtime will now show up in the glidein status
-        <li>Bug Fix: Added condor-python rpm as a dependency
-        <li>Bug Fix: Complex credentials (vm_id+vm_type) are now correctly
-        interpreted
-        <li>Bug Fix: Frontend is now more resilent to transient errors
-        communicating with the HTCondor daemons
-        <li>Bug Fix: Slave frontend now correctly looks up the master frontend
-        when using condor-python bindings
-        <li>Bug Fix: create_condor_tarball now correctly includes required
-	globus libraries from lib/condor that are loaded by HTCondor at runtime
-        <li>Bug Fix: Frontend now correctly calculates the ReqMaxGlideins for
-        single core glidein entries
-        <li>Bug Fix: Numerical data in glideclient classad is not quoted to
-        preserve the data type
-      </ul>
+        <b>v3_2_16</b> released on October 18, 2016 (<a href="http://glideinwms.fnal.gov/doc.v3_2_16/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_16/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_16.tgz">Tarball</a>)<br>
+        <ul>
+	  <li>Information about job and machine features are now available in
+	  glidein startd's classad
+          <li>New tool manual_glidein_startup now lets you manually start a
+	  glidein for a given factory entry and frontend group
+          <li>BOSCO entries can now accept credentials provided from the
+          frontend
+          <li>Bug Fix: Glidein is now correctly auto detect RHEL6 and RHEL7
+          <li>Bug Fix: Dagman and Schedd universe jobs are not counted against
+          max jobs running
+          <li>Bug Fix: An entry in downtime will now show up in the glidein
+          status
+          <li>Bug Fix: Added condor-python rpm as a dependency
+          <li>Bug Fix: Complex credentials (vm_id+vm_type) are now correctly
+          interpreted
+          <li>Bug Fix: Frontend is now more resilent to transient errors
+          communicating with the HTCondor daemons
+          <li>Bug Fix: Slave frontend now correctly looks up the master frontend
+          when using condor-python bindings
+          <li>Bug Fix: create_condor_tarball now correctly includes required
+	  globus libraries from lib/condor that are loaded by HTCondor at
+          runtime
+          <li>Bug Fix: Frontend now correctly calculates the ReqMaxGlideins for
+          single core glidein entries
+          <li>Bug Fix: Numerical data in glideclient classad is not quoted to
+          preserve the data type
+	  <li>Bug Fix: Frontend will not request any glideins at entry that is
+          in downtime
+        </ul>
 
       <li>
         <b>v3_2_15</b> released on August 17, 2016 (<a href="http://glideinwms.fnal.gov/doc.v3_2_15/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_15/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_15.tgz">Tarball</a>)<br>
-      <ul>
-        <li>Factory will now automatically remove unrecoverable glidein jobs
-        with forcex if they are held for 20 times or more
-        <li>Several X509 related attributes from the matching job are now
-        also available in the glidein's startd's classad
-        <li>Prefix for attributes created by the periodic scripts is now
-        customizable
-        <li>If the glidein detects that a worker node is marked for draining and
-        if it is approaching the drain time, it will now kill the user job
-        <li>Frontend can be configured to request idle glideins at all times
-        irrespective of the jobs in the queue
-        <li>Bug Fix: Fixed a bug in the frontend downtime command in the script
-        /etc/init.d/gwms-frontend
-        <li>Bug Fix: Frontend now correctly considers group credentials before
-        frontend's global credential
-        <li>Bug Fix: Installing and upgrading GlideinWMS rpms now correctly
-        trigger httpd and htcondor reload commands in case of EL7
-        <li>Bug Fix: Fixed a bug where frontend would crash with pickling error
-        while using htcondor-python bindings
-        <li>Bug Fix: Factory now correctly remembers pilots submitted using
-        RFC proxy
-        <li>Bug Fix: Fixed a bug where running reconfig or upgrade command on
-        a frontend service would crash
-      </ul>
+        <ul>
+          <li>Factory will now automatically remove unrecoverable glidein jobs
+          with forcex if they are held for 20 times or more
+          <li>Several X509 related attributes from the matching job are now
+          also available in the glidein's startd's classad
+          <li>Prefix for attributes created by the periodic scripts is now
+          customizable
+          <li>If the glidein detects that a worker node is marked for draining
+          and if it is approaching the drain time, it will now kill the user job
+          <li>Frontend can be configured to request idle glideins at all times
+          irrespective of the jobs in the queue
+          <li>Bug Fix: Fixed a bug in the frontend downtime command in the
+          script /etc/init.d/gwms-frontend
+          <li>Bug Fix: Frontend now correctly considers group credentials before
+          frontend's global credential
+          <li>Bug Fix: Installing and upgrading GlideinWMS rpms now correctly
+          trigger httpd and htcondor reload commands in case of EL7
+          <li>Bug Fix: Fixed a bug where frontend would crash with pickling
+          error while using htcondor-python bindings
+          <li>Bug Fix: Factory now correctly remembers pilots submitted using
+          RFC proxy
+          <li>Bug Fix: Fixed a bug where running reconfig or upgrade command on
+          a frontend service would crash
+        </ul>
       </li>
       <li>
         <b>v3_2_14_1</b> released on June 17, 2016 (<a href="http://glideinwms.fnal.gov/doc.v3_2_14_1/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_14_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_14_1.tgz">Tarball</a>)<br>
-      <ul>
-	<li>Added support for python in EL7
-        <li>Updated glidein_startup.sh to make it compatible with factory changes
-        coming in v3_2_15
-        <li>Bug Fix: Updated condor_config files used by the Schedd to work with
-        different versions of HTCondor including 8.4.7
-      </ul>
+        <ul>
+          <li>Added support for python in EL7
+          <li>Updated glidein_startup.sh to make it compatible with factory
+          changes coming in v3_2_15
+          <li>Bug Fix: Updated condor_config files used by the Schedd to work
+          with different versions of HTCondor including 8.4.7
+        </ul>
       </li>
       <li>
         <b>v3_2_14</b> released on June 03, 2016 (<a href="http://glideinwms.fnal.gov/doc.v3_2_14/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_14/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_14.tgz">Tarball</a>)<br>
-      <ul>
-	<li>Various curbs and limits triggered in the factory are now logged
-        in the glidefactory and glidefactoryclient classads
-        <li>Added initial support for python that comes with EL7
-        <li>Monitoring stats from factory completed logs are now advertised in
-        the glideresource classads
-        <li>Glideins can now shutdown themselves if the worker node is marked
-	for draining with appropriate messages logged in the glideins output
-        <li>Condor classad fetching is now done by using python bindings by
-        default. Until now this was done using condor_q and condor_status
-        commands
-        <li>Various limits configred in the factory and frontend are now
-        advertised in the respective classads
-        <li>Updated documentation
-        <li>Bug Fix: Factory will not release glideins sent to Condor CE if they
-        are held with authentication/authorization issues
-        <li>Bug Fix: Factory will not release glideins sent to AWS in case of 
-        certain types of HoldReason 
-        <li>Bug Fix: Proxies used by the glidein now if delegated have their
-        lifetime as long as the original proxy
-        <li>Bug Fix: Fixed issue where RRD processing was incorrectly throwing
-        ImportError instead of NameError
-        <li>Bug Fix: Frontend policies now correctly work if classad attributes
-        like RequestCpus are classad expressions
-        <li>Bug Fix: Fixed an issue where a slave frontend in HA mode would
-        crash if the WMS collector was down
-     </ul>
-     </li>
-     <li>
+        <ul>
+ 	  <li>Various curbs and limits triggered in the factory are now logged
+	  in the glidefactory and glidefactoryclient classads
+	  <li>Added initial support for python that comes with EL7
+	  <li>Monitoring stats from factory completed logs are now advertised in
+	  the glideresource classads
+	  <li>Glideins can now shutdown themselves if the worker node is marked
+	  for draining with appropriate messages logged in the glideins output
+	  <li>Condor classad fetching is now done by using python bindings by
+	  default. Until now this was done using condor_q and condor_status
+	  commands
+	  <li>Various limits configred in the factory and frontend are now
+	  advertised in the respective classads
+	  <li>Updated documentation
+	  <li>Bug Fix: Factory will not release glideins sent to Condor CE if
+          they are held with authentication/authorization issues
+	  <li>Bug Fix: Factory will not release glideins sent to AWS in case of 
+	  certain types of HoldReason 
+	  <li>Bug Fix: Proxies used by the glidein now if delegated have their
+	  lifetime as long as the original proxy
+	  <li>Bug Fix: Fixed issue where RRD processing was incorrectly throwing
+	  ImportError instead of NameError
+	  <li>Bug Fix: Frontend policies now correctly work if classad
+          attributes like RequestCpus are classad expressions
+	  <li>Bug Fix: Fixed an issue where a slave frontend in HA mode would
+	  crash if the WMS collector was down
+        </ul>
+      </li>
+      <li>
         <b>v3_2_13</b> released on March 09, 2016 (<a href="http://glideinwms.fnal.gov/doc.v3_2_13/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_13/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_13.tgz">Tarball</a>)<br>
-      <ul>
-        <li>Support XSEDE ProjectId as a credential in frontend
-        <li>Glidein jobs can now auto detect cpus based on the sites WMS
-        <li>Frontend configuration settings idle_glideins_per_entry, 
+        <ul>
+          <li>Support XSEDE ProjectId as a credential in frontend
+          <li>Glidein jobs can now auto detect cpus based on the sites WMS
+          <li>Frontend configuration settings idle_glideins_per_entry, 
           running_glideins_per_entry, running_glideins_total and
           running_glideins_total_global now consider slots (startd classads)
           reported in the User collector
-        <li>gwms-logcat.sh tool can now forward logs to a folder or http/https url
-        <li>Bug Fix: Factory will not release any glideins is max_per_cycle
+          <li>gwms-logcat.sh tool can now forward logs to a folder or
+          http/https url
+          <li>Bug Fix: Factory will not release any glideins is max_per_cycle
           in release section of config is set to 0
-        <li>Bug Fix: Frontend now accepts an attr with type="expr" as a condor
+          <li>Bug Fix: Frontend now accepts an attr with type="expr" as a condor
           expression 
-        <li>Bug Fix: Fixed several issues in the accounting of multi core
+          <li>Bug Fix: Fixed several issues in the accounting of multi core
           glideins
-        <li>Bug FIx: Counting of idle, running and total jobs in case of multi
+          <li>Bug FIx: Counting of idle, running and total jobs in case of multi
           core glideins is done correctly
-        <li>Bug Fix: Frontend will now correctly request enough glideins at
+          <li>Bug Fix: Frontend will now correctly request enough glideins at
           sites that support multi core glideins
-        <li>Bug Fix: Frontend group limits are now correctly applied based on 
+          <li>Bug Fix: Frontend group limits are now correctly applied based on 
           on the slots rather than glidein (condorg) jobs
-        <li>Bug Fix: Fix accounting bug where number of running cores would 
+          <li>Bug Fix: Fix accounting bug where number of running cores would 
           log a negative count in case of multi core glideins
-        <li>Bug Fix: Fixed several issues with the cron type scripts
-      </ul>
+          <li>Bug Fix: Fixed several issues with the cron type scripts
+        </ul>
       </li>
       <li>
         <b>v3_2_12_1</b> released on January 20, 2016 (<a href="http://glideinwms.fnal.gov/doc.v3_2_12_1/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_12_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_12_1.tgz">Tarball</a>)<br>
-      <ul>
-        <li>Bug Fix: Fixed incompatibility with python 2.4 and bad failure when 
-          there is no entry, both introduced in v3_2_12 factory configuration
-      </ul>
+        <ul>
+          <li>Bug Fix: Fixed incompatibility with python 2.4 and bad failure
+          when there is no entry, both introduced in v3_2_12 factory
+          configuration
+        </ul>
       </li>
       <li>
         <b>v3_2_12</b> released on January 14, 2016 (<a href="http://glideinwms.fnal.gov/doc.v3_2_12/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_12/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_12.tgz">Tarball</a>)<br>
@@ -225,8 +232,9 @@ Related Pages:
           be auto discovered and advertised
           <li>Several improvements to rpm packaging. Useful frontend tools are
           now available in the user path
-          <li>Support of version control for the factory configuration and splitting 
-          of entries configuration form the main factory configuration (entries.d)
+          <li>Support of version control for the factory configuration and
+          splitting of entries configuration form the main factory
+          configuration (entries.d)
           <li>Unique idle jobs matched by the frontend is now available in
           glideresource classads
           deloyment specific configuration and entry specific configuration.
@@ -243,23 +251,24 @@ Related Pages:
           partitionable slots
           <li>Bug Fix: Fixed bug where DaemonShutdown was failing to consider 
           dynamic slots
-          <li>Bug Fix: Fixed bug where NUM_CPUS was not set for partitionable slots
-          resulting in hardware cpu number being used instead of GLIDEIN_CPUS
-      </ul>
+          <li>Bug Fix: Fixed bug where NUM_CPUS was not set for partitionable
+          slots resulting in hardware cpu number being used instead of
+          GLIDEIN_CPUS
+        </ul>
       </li>
       <li>
         <b>v3_2_11_2</b> released on September 18, 2015 (<a href="http://glideinwms.fnal.gov/doc.v3_2_11_2/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_11_2/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_11_2.tgz">Tarball</a>)<br>
         <ul>
-            <li>Fix: Fixed authentication issue introduced in v3_2_11 where a
-            glidein startd fails to send keep alive signals to v8.2.x schedds
-      </ul>
+          <li>Fix: Fixed authentication issue introduced in v3_2_11 where a
+          glidein startd fails to send keep alive signals to v8.2.x schedds
+        </ul>
       </li>
       <li>
         <b>v3_2_11_1</b> released on September 02, 2015 (<a href="http://glideinwms.fnal.gov/doc.v3_2_11_1/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_11_1/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_11_1.tgz">Tarball</a>)<br>
         <ul>
           <li>Bug Fix: Fixed a bug introduced in v3_2_11 where file period
           interpreted as number instead of string
-      </ul>
+        </ul>
       </li>
       <li>
         <b>v3_2_11</b> released on August 20, 2015 (<a href="http://glideinwms.fnal.gov/doc.v3_2_11/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_11/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_11.tgz">Tarball</a>)<br>
