@@ -5,7 +5,7 @@ function getValueFromFileOrURL {
     # The variable contains the url or the directory location of the file,
     # so $1 can be shutdowntime_job
     # and $2 /path/to/jobfeature/dir
-    # The function returns the value found in the file (by cat-ing it), or "Unknown"
+    # The function returns the value found in the file (by cat-ing it), or Unknown
     # if the file does not exist or $2 is empty
     FILENAME="$1"
     VARNAME="$2"
@@ -30,5 +30,5 @@ function getValueFromFileOrURL {
             fi
         fi
     fi
-    echo '"Unknown"'
+    echo 'Unknown'
 }

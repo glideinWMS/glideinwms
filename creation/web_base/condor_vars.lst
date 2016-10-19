@@ -84,21 +84,21 @@ TMP_DIR			S	-		GLIDEIN_Tmp_Dir			Y	Y	@
 PUBLISH_OBITUARIES      C       False           +                               N       N       -
 GLIDEIN_PS_SiteWMS_WN_Draining  C   False       +   N   Y   -
 GLIDEIN_PS_SiteWMS_WN_Preempt C   False       +   N   Y   -
-MJF_MACHINE_TOTAL_CPU S   "Unknown"       +   N   Y   -
-MJF_MACHINE_HS06 S   "Unknown"       +   N   Y   -
-MJF_MACHINE_SHUTDOWNTIME S   "Unknown"       +   N   Y   -
-MJF_MACHINE_GRACE_SECS S   "Unknown"       +   N   Y   -
-MJF_JOB_ALLOCATED_CPU S   "Unknown"       +   N   Y   -
-MJF_JOB_HS06_JOB S   "Unknown"       +   N   Y   -
-MJF_JOB_SHUTDOWNTIME_JOB S   "Unknown"       +   N   Y   -
-MJF_JOB_GRACE_SECS_JOB S   "Unknown"       +   N   Y   -
-MJF_JOB_JOBSTART_SECS S   "Unknown"       +   N   Y   -
-MJF_JOB_JOB_ID S   "Unknown"       +   N   Y   -
-MJF_JOB_WALL_LIMIT_SECS S   "Unknown"       +   N   Y   -
-MJF_JOB_CPU_LIMIT_SECS S   "Unknown"       +   N   Y   -
-MJF_JOB_MAX_RSS_BYTES S   "Unknown"       +   N   Y   -
-MJF_JOB_MAX_SWAP_BYTES S   "Unknown"       +   N   Y   -
-MJF_JOB_SCRATCH_LIMIT_BYTES S   "Unknown"       +   N   Y   -
+MJF_MACHINE_TOTAL_CPU S   Unknown       +   N   Y   -
+MJF_MACHINE_HS06 S   Unknown       +   N   Y   -
+MJF_MACHINE_SHUTDOWNTIME S   Unknown       +   N   Y   -
+MJF_MACHINE_GRACE_SECS S   Unknown       +   N   Y   -
+MJF_JOB_ALLOCATED_CPU S   Unknown       +   N   Y   -
+MJF_JOB_HS06_JOB S   Unknown       +   N   Y   -
+MJF_JOB_SHUTDOWNTIME_JOB S   Unknown       +   N   Y   -
+MJF_JOB_GRACE_SECS_JOB S   Unknown       +   N   Y   -
+MJF_JOB_JOBSTART_SECS S   Unknown       +   N   Y   -
+MJF_JOB_JOB_ID S   Unknown       +   N   Y   -
+MJF_JOB_WALL_LIMIT_SECS S   Unknown       +   N   Y   -
+MJF_JOB_CPU_LIMIT_SECS S   Unknown       +   N   Y   -
+MJF_JOB_MAX_RSS_BYTES S   Unknown       +   N   Y   -
+MJF_JOB_MAX_SWAP_BYTES S   Unknown       +   N   Y   -
+MJF_JOB_SCRATCH_LIMIT_BYTES S   Unknown       +   N   Y   -
 
 # Entry specific User modifiable variables
 GLIDEIN_Site		S	$GLIDEIN_Entry_Name	+			N	Y	@

@@ -33,7 +33,7 @@ source "$LIBLOCATION/glidein_lib.sh"
 function isNumberOrFalse {
     # the function verifies that the argument (i.e.: $1) is a number, and exts otherwise
     # printing a message to stderr
-    echo $1 | grep -Eq '(^\-?[0-9]+$)|(^"Unknown"$)'
+    echo $1 | grep -Eq '(^\-?[0-9]+$)|(^Unknown$)'
     if [ $? -eq 1 ]; then
         echo "JOBFEATURES ($JOBFEATURES) or MACHINEFEATURES ($MACHINEFEATURES) variable found, but shutdown file NOT containing a number (contains '$1' instead)" >&2
         exit 1
@@ -46,7 +46,7 @@ M=$(getValueFromFileOrURL shutdowntime "$MACHINEFEATURES")
 isNumberOrFalse $M
 
 EXIT_MESSAGE_FILE=$start_dir/exit_message
-if [ "$J" != '"Unknown"' ] || [ "$M" != '"Unknown"' ] ; then
+if [ "$J" != 'Unknown' ] || [ "$M" != 'Unknown' ] ; then
     echo "SiteWMS_WN_Draining = True"
     if [ ! -f $EXIT_MESSAGE_FILE ] ; then
         echo "Stopping accepting jobs since site admins are going to shut down the node. Time is `date`" >> $EXIT_MESSAGE_FILE
