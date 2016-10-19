@@ -52,7 +52,7 @@ if [ "$J" != 'Unknown' ] || [ "$M" != 'Unknown' ] ; then
         echo "Stopping accepting jobs since site admins are going to shut down the node. Time is `date`" >> $EXIT_MESSAGE_FILE
     fi
     CURR_TIME=$(date +%s)
-    if ( [ "$J" != false ] && [ $((J - CURR_TIME)) -lt 1800 ] ) || ( [ "$M" != false ] && [ $((M - CURR_TIME)) -lt 1800 ] ); then
+    if ( [ "$J" != 'Unknown' ] && [ $((J - CURR_TIME)) -lt 1800 ] ) || ( [ "$M" != 'Unknown' ] && [ $((M - CURR_TIME)) -lt 1800 ] ); then
         echo "Preempting user job since less then 1800 seconds are left before machine shutdown. Time is `date`" >> $EXIT_MESSAGE_FILE
         echo "SiteWMS_WN_Preempt = True"
     fi

@@ -224,7 +224,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # Add the drainer script
         drain_script = "check_wn_drainstate.sh"
         self.dicts['file_list'].add_from_file(drain_script,
-                                              cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(drain_script), 'exec', 60),
+                                              cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(drain_script), 'exec', 60, 'NOPREFIX'),
                                               os.path.join(cgWConsts.WEB_BASE_DIR, drain_script))
 
         #Add the MJF script
