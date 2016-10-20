@@ -285,7 +285,8 @@ stop() {
         return $RETVAL
     fi
 
-    "$FACTORY_STOP" -f "$factory_dir" 2>/dev/null 1>&2 </dev/null
+#    "$FACTORY_STOP" -f "$factory_dir" 2>/dev/null 1>&2 </dev/null
+    daemon --user $FACTORY_USER --force "${FACTORY_STOP} -f $factory_dir   2>/dev/null 1>&2 </dev/null"
     MYRETVAL=$?
 
     if [ $MYRETVAL -ne 0 ]; then
