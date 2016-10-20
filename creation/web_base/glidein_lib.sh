@@ -30,5 +30,5 @@ function getValueFromFileOrURL {
             fi
         fi
     fi
-    echo 'Unknown'
+    echo '"Unknown"'
 }
