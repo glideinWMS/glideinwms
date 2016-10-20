@@ -65,6 +65,8 @@ class Entry:
         self.glideinDescript = glidein_descript
         self.frontendDescript = frontend_descript
 
+        self.signatures = glideFactoryConfig.SignatureFile()
+
         self.jobDescript = glideFactoryConfig.JobDescript(name)
         self.jobAttributes = glideFactoryConfig.JobAttributes(name)
         self.jobParams = glideFactoryConfig.JobParams(name)
@@ -521,12 +523,13 @@ class Entry:
                 self.jobAttributes.data['GlideinMonitorTotal%s%s' % (w, a)] = current_qc_total[w][a]
 
         # Load serialized aggregated Factory statistics
-        stats = util.file_pickle_load(os.path.join(self.startupDir,
-                                                   glideFactoryConfig.factoryConfig.aggregated_stats_file),
-                                      mask_exceptions=(
-                                          logSupport.log.exception, "Reading of aggregated statistics failed: "),
-                                      default={},
-                                      expiration=3600)
+        stats = util.file_pickle_load(
+            os.path.join(
+                self.startupDir,
+                glideFactoryConfig.factoryConfig.aggregated_stats_file),
+            mask_exceptions=(logSupport.log.exception, "Reading of aggregated statistics failed: "),
+            default={},
+            expiration=3600)
 
         stats_dict = {}
         try:
@@ -543,6 +546,17 @@ class Entry:
             # If there is an error all stats may be corrupted, do not publish
             stats_dict = {}
 
+        glidein_web_attrs = {
+            #'GLIDEIN_StartupDir': self.jobDescript.data["StartupDir"],
+            #'GLIDEIN_Verbosity': self.jobDescript.data["Verbosity"],
+            'URL': self.glideinDescript.data["WebURL"],
+            'SignType': 'sha1',
+            'DescriptFile': self.signatures.data["main_descript"],
+            'DescriptSign': self.signatures.data["main_sign"],
+            'EntryDescriptFile': self.signatures.data["entry_%s_descript" % self.name],
+            'EntryDescriptSign': self.signatures.data["entry_%s_sign" % self.name]
+        }
+
         # Make copy of job attributes so can override the validation
         # downtime setting with the true setting of the entry
         # (not from validation)
@@ -552,10 +566,12 @@ class Entry:
                                       self.gflFactoryConfig.glidein_name,
                                       self.name, trust_domain, auth_method,
                                       self.gflFactoryConfig.supported_signtypes,
-                                      pub_key_obj=pub_key_obj, glidein_attrs=myJobAttributes,
+                                      pub_key_obj=pub_key_obj,
+                                      glidein_attrs=myJobAttributes,
                                       glidein_params=self.jobParams.data.copy(),
                                       glidein_monitors=glidein_monitors.copy(),
                                       glidein_stats=stats_dict,
+                                      glidein_web_attrs=glidein_web_attrs,
                                       glidein_config_limits=self.getGlideinConfiguredLimits())
         try:
             gf_classad.writeToFile(gf_filename, append=append)
@@ -682,7 +698,7 @@ class Entry:
 
     def getLogStatsOldStatsData(self):
         """
-        Returns the gflFactoryConfig.log_stats.old_stats_data that can pickled
+        Returns the gflFactoryConfig.log_stats.old_stats_data that can be pickled
 
         @rtype: glideFactoryMonitoring.condorLogSummary
         @return: condorLogSummary from previous iteration
@@ -693,8 +709,7 @@ class Entry:
 
     def getLogStatsCurrentStatsData(self):
         """
-        Returns the gflFactoryConfig.log_stats.current_stats_data that can
-        pickled
+        Returns the gflFactoryConfig.log_stats.current_stats_data that can be pickled
 
         @rtype: glideFactoryMonitoring.condorLogSummary
         @return: condorLogSummary from current iteration
@@ -705,7 +720,7 @@ class Entry:
 
     def getLogStatsData(self, stats_data):
         """
-        Returns the stats_data(stats_data[frontend][user].data) that can pickled
+        Returns the stats_data(stats_data[frontend][user].data) that can be pickled
 
         @rtype: dict
         @return: Relevant stats data to pickle
@@ -775,7 +790,7 @@ class Entry:
         Compile a dictionary containt useful state information
 
         @rtype: dict
-        @return: Useful state information that can pickled and restored
+        @return: Useful state information that can be pickled and restored
         """
 
         # Set logger to None else we can't pickle file objects
@@ -873,7 +888,8 @@ class Entry:
         #sys.stdout = self.log.debug_log
         dump_obj(self)
         sys.stdout = stdout
-# class Entry
+# end class Entry
+
 
 def dump_obj(obj):
     import types
@@ -885,6 +901,7 @@ def dump_obj(obj):
         else:
             dump_obj(obj.__dict__[key])
     print "======= END: %s ======" % obj
+
 
 ###############################################################################
 
@@ -1112,7 +1129,12 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         # Cannot use proxy for submission but entry is not in downtime
         # since other proxies may map to valid security classes
         entry.log.warning("Security class %s is currently in a downtime window for entry: %s. Ignoring request." % (credential_security_class, entry.name))
-        return return_dict
+        # this below change is based on redmine ticket 3110.
+        # even though we do not return here, setting in_downtime=True (for entry downtime)
+        # will make sure no new glideins will be submitted in the same way that 
+        # the code does for the factory downtime
+        in_downtime = True
+#        return return_dict
 
     # Deny Frontend from requesting glideins if the whitelist
     # does not have its security class (or "All" for everyone)
@@ -1200,6 +1222,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         # Either frontend or factory should provide it
         vm_id = None
         vm_type = None
+        remote_username = None
 
         if grid_type == 'ec2':
             # vm_id and vm_type are only applicable to EC2/Clouds
@@ -1263,6 +1286,23 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                 entry.log.warning("Credential %s for the public key is not safe for client %s, skipping request" % (public_key_id, client_int_name))
                 return return_dict
 
+            # Entry Gatekeeper is [<user_name>@]hostname[:port]
+            # PublicKey can have RemoteUsername
+            remote_username = decrypted_params.get('RemoteUsername')
+            if not remote_username:
+                if 'username' in auth_method:
+                    entry.log.warning("Client '%s' did not specify a remote username in the request, this is required by entry %s, skipping request." % (client_int_name, entry.name))
+                    return return_dict
+                # default remote_username from entry (if present)
+                gatekeeper_list = entry.jobDescript.data['Gatekeeper'].split('@')
+                if len(gatekeeper_list) == 2:
+                    remote_username = gatekeeper_list[0].strip()
+                else:
+                    entry.log.warning(
+                        "Client '%s' did not specify a Username in Key %s and the entry %s does not provide a default username in the gatekeeper string, skipping request" %
+                        (client_int_name, public_key_id, entry.name))
+                    return return_dict
+
             private_key_id = decrypted_params.get('PrivateKey')
             if ( (private_key_id) and
                  (not submit_credentials.add_security_credential(
@@ -1292,6 +1332,9 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         else:
             logSupport.log.warning("Factory entry %s has invalid authentication method. Skipping request for client %s." % (entry.name, client_int_name))
             return return_dict
+
+        submit_credentials.add_identity_credential('RemoteUsername', remote_username)
+
 
     # Set the downtime status so the frontend-specific
     # downtime is advertised in glidefactoryclient ads
@@ -1381,7 +1424,6 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                         entry.gflFactoryConfig.client_schedd_attribute,
                         entry.gflFactoryConfig.credential_secclass_schedd_attribute,
                         entry.gflFactoryConfig.credential_id_schedd_attribute)
-
 
     # Map the identity to a frontend:sec_class for tracking totals
     frontend_name = "%s:%s" % \

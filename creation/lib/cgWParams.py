@@ -90,7 +90,7 @@ class GlideinParams(cWParams.CommonParams):
 
         entry_config_defaults['submit'] = copy.deepcopy(entry_config_queue_defaults)
         entry_config_defaults['submit']['cluster_size'] = ['10', "nr", "Max number of jobs submitted in a single transaction.", None]
-        entry_config_defaults['submit']['slots_layout'] = ['fixed', "string", "The way multiple slots should be setup.", None]
+        entry_config_defaults['submit']['slots_layout'] = ['partitionable', "string", "The way multiple slots should be setup.", None]
 
 
         self.submit_attrs = cWParams.commentedOrderedDict()

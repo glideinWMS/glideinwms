@@ -26,7 +26,6 @@ import traceback
 import time
 import string
 import logging
-import cPickle
 import re
 
 sys.path.append(os.path.join(sys.path[0],"../.."))
@@ -46,6 +45,8 @@ from glideinwms.frontend import glideinFrontendPidLib
 from glideinwms.frontend import glideinFrontendMonitoring
 from glideinwms.frontend import glideinFrontendPlugins
 from glideinwms.frontend import glideinFrontendDowntimeLib
+
+
 ###########################################################
 # Support class that mimics the 2.7 collections.Counter class
 #
@@ -89,14 +90,14 @@ class glideinFrontendElement:
         self.elementDescript = glideinFrontendConfig.ElementMergedDescript(self.work_dir, self.group_name)
         self.paramsDescript = glideinFrontendConfig.ParamsDescript(self.work_dir, self.group_name)
         self.signatureDescript = glideinFrontendConfig.GroupSignatureDescript(self.work_dir, self.group_name)
-        self.attr_dict = glideinFrontendConfig.AttrsDescript(self.work_dir,self.group_name).data
+        self.attr_dict = glideinFrontendConfig.AttrsDescript(self.work_dir, self.group_name).data
         self.history_obj = glideinFrontendConfig.HistoryFile(self.work_dir, self.group_name,
-                                                             True, # auto load
-                                                             dict) # automatically initialze objects to dictionaries, if needed
+                                                             True,  # auto load
+                                                             dict)  # automatically initialze objects to dictionaries, if needed
         # PS: The default initialization is not to CounterWrapper, to avoid saving custom classes to disk
         self.startup_time = time.time()
 
-        #self.sleep_time = int(self.elementDescript.frontend_data['LoopDelay'])
+        # self.sleep_time = int(self.elementDescript.frontend_data['LoopDelay'])
         self.frontend_name = self.elementDescript.frontend_data['FrontendName']
         self.web_url = self.elementDescript.frontend_data['WebURL']
         self.monitoring_web_url = self.elementDescript.frontend_data['MonitoringWebURL']
@@ -111,16 +112,16 @@ class glideinFrontendElement:
         self.reserve_idle = int(self.elementDescript.element_data['ReserveIdlePerEntry'])
         self.max_vms_idle = int(self.elementDescript.element_data['MaxIdleVMsPerEntry'])
         self.curb_vms_idle = int(self.elementDescript.element_data['CurbIdleVMsPerEntry'])
-        self.total_max_glideins=int(self.elementDescript.element_data['MaxRunningTotal'])
-        self.total_curb_glideins=int(self.elementDescript.element_data['CurbRunningTotal'])
+        self.total_max_glideins = int(self.elementDescript.element_data['MaxRunningTotal'])
+        self.total_curb_glideins = int(self.elementDescript.element_data['CurbRunningTotal'])
         self.total_max_vms_idle = int(self.elementDescript.element_data['MaxIdleVMsTotal'])
         self.total_curb_vms_idle = int(self.elementDescript.element_data['CurbIdleVMsTotal'])
-        self.fe_total_max_glideins=int(self.elementDescript.frontend_data['MaxRunningTotal'])
-        self.fe_total_curb_glideins=int(self.elementDescript.frontend_data['CurbRunningTotal'])
+        self.fe_total_max_glideins = int(self.elementDescript.frontend_data['MaxRunningTotal'])
+        self.fe_total_curb_glideins = int(self.elementDescript.frontend_data['CurbRunningTotal'])
         self.fe_total_max_vms_idle = int(self.elementDescript.frontend_data['MaxIdleVMsTotal'])
         self.fe_total_curb_vms_idle = int(self.elementDescript.frontend_data['CurbIdleVMsTotal'])
-        self.global_total_max_glideins=int(self.elementDescript.frontend_data['MaxRunningTotalGlobal'])
-        self.global_total_curb_glideins=int(self.elementDescript.frontend_data['CurbRunningTotalGlobal'])
+        self.global_total_max_glideins = int(self.elementDescript.frontend_data['MaxRunningTotalGlobal'])
+        self.global_total_curb_glideins = int(self.elementDescript.frontend_data['CurbRunningTotalGlobal'])
         self.global_total_max_vms_idle = int(self.elementDescript.frontend_data['MaxIdleVMsTotalGlobal'])
         self.global_total_curb_vms_idle = int(self.elementDescript.frontend_data['CurbIdleVMsTotalGlobal'])
 
@@ -143,7 +144,7 @@ class glideinFrontendElement:
 
 
     def configure(self):
-        ''' Do some initial configuration of the element. '''
+        """Do some initial configuration of the element."""
         group_dir = glideinFrontendConfig.get_group_dir(self.work_dir, self.group_name)
 
         # the log dir is shared between the frontend main and the groups, so use a subdir
@@ -165,9 +166,9 @@ class glideinFrontendElement:
         logSupport.log = logging.getLogger(self.group_name)
 
         # We will be starting often, so reduce the clutter
-        #logSupport.log.info("Logging initialized")
+        # logSupport.log.info("Logging initialized")
 
-        glideinFrontendMonitoring.monitoringConfig.monitor_dir =glideinFrontendConfig.get_group_dir(os.path.join(self.work_dir, "monitor"), self.group_name)
+        glideinFrontendMonitoring.monitoringConfig.monitor_dir = glideinFrontendConfig.get_group_dir(os.path.join(self.work_dir, "monitor"), self.group_name)
         glideinFrontendInterface.frontendConfig.advertise_use_tcp = (self.elementDescript.frontend_data['AdvertiseWithTCP'] in ('True', '1'))
         glideinFrontendInterface.frontendConfig.advertise_use_multi = (self.elementDescript.frontend_data['AdvertiseWithMultiple'] in ('True', '1'))
 
@@ -232,7 +233,7 @@ class glideinFrontendElement:
         pid_obj.register(self.parent_pid)
         try:
             try:
-                #logSupport.log.info("Starting up")
+                # logSupport.log.info("Starting up")
                 rc = self.iterate()
             except KeyboardInterrupt:
                 logSupport.log.info("Received signal...exit")
@@ -260,7 +261,7 @@ class glideinFrontendElement:
             self.published_frontend_name = '%s.XPVO_%s' % (self.frontend_name,
                                                            self.group_name)
 
-        if self.action=="run":
+        if self.action == "run":
             logSupport.log.info("Iteration at %s" % time.ctime())
 
             done_something = self.iterate_one()
@@ -271,7 +272,7 @@ class glideinFrontendElement:
             try:
                 write_stats(self.stats)
             except KeyboardInterrupt:
-                raise # this is an exit signal, pass through
+                raise  # this is an exit signal, pass through
             except:
                 # never fail for stats reasons!
                 logSupport.log.exception("Exception occurred writing stats: " )
@@ -521,15 +522,15 @@ class glideinFrontendElement:
         self.processed_glideid_strs=[]
 
         log_factory_header()
-        total_up_stats_arr=init_factory_stats_arr()
-        total_down_stats_arr=init_factory_stats_arr()
+        total_up_stats_arr = init_factory_stats_arr()
+        total_down_stats_arr = init_factory_stats_arr()
 
         for glideid in glideid_list:
             if glideid == (None, None, None):
-                continue # This is the special "Unmatched" entry
+                continue  # This is the special "Unmatched" entry
             factory_pool_node = glideid[0]
             request_name = glideid[1]
-            my_identity = str(glideid[2]) # get rid of unicode
+            my_identity = str(glideid[2])  # get rid of unicode
             glideid_str = "%s@%s" % (request_name, factory_pool_node)
             self.processed_glideid_strs.append(glideid_str)
 
@@ -537,18 +538,18 @@ class glideinFrontendElement:
             glidein_in_downtime = \
                 glidein_el['attrs'].get('GLIDEIN_In_Downtime') == 'True'
 
-            count_jobs={}   # straight match
-            prop_jobs={}    # proportional subset for this entry
+            count_jobs = {}   # straight match
+            prop_jobs = {}    # proportional subset for this entry
             # proportional subset of jobs for this entry scaled also for multicore (requested cores/available cores)
-            prop_mc_jobs={}
-            hereonly_jobs={}  # can only run on this site
+            prop_mc_jobs = {}
+            hereonly_jobs = {}  # can only run on this site
             for dt in condorq_dict_types.keys():
                 count_jobs[dt] = condorq_dict_types[dt]['count'][glideid]
                 prop_jobs[dt] = condorq_dict_types[dt]['prop'][glideid]
                 prop_mc_jobs[dt] = condorq_dict_types[dt]['prop_mc'][glideid]
                 hereonly_jobs[dt] = condorq_dict_types[dt]['hereonly'][glideid]
 
-            count_status=self.count_status_multi[request_name]
+            count_status = self.count_status_multi[request_name]
             count_status_per_cred = self.count_status_multi_per_cred[request_name]
 
             # If the glidein requires a voms proxy, only match voms idle jobs
@@ -565,40 +566,45 @@ class glideinFrontendElement:
             # effective idle is how much more we need
             # if there are idle slots, subtract them, they should match soon
             effective_idle = max(prop_jobs['Idle'] - count_status['Idle'], 0)
-            effective_oldidle = max(prop_jobs['OldIdle']-count_status['Idle'], 0)
+            effective_oldidle = max(prop_jobs['OldIdle'] - count_status['Idle'], 0)
 
-            #Adjust the number of idle jobs in case the minimum running parameter is set
+            # Adjust the number of idle jobs in case the minimum running parameter is set
             if prop_mc_jobs['Idle'] < self.min_running:
                 logSupport.log.info("Entry %s: Adjusting idle cores to %s since the 'min' attribute of 'running_glideins_per_entry' is set" % (glideid[1], self.min_running))
                 prop_mc_jobs['Idle'] = self.min_running
 
             # Compute min glideins required based on multicore jobs
             effective_idle_mc = max(prop_mc_jobs['Idle'] - count_status['Idle'], 0)
-            effective_oldidle_mc = max(prop_mc_jobs['OldIdle']-count_status['Idle'], 0)
+            effective_oldidle_mc = max(prop_mc_jobs['OldIdle'] - count_status['Idle'], 0)
 
             limits_triggered = {}
-            glidein_min_idle = self.compute_glidein_min_idle(
-                                   count_status, total_glideins,
-                                   total_idle_glideins, fe_total_glideins,
-                                   fe_total_idle_glideins,
-                                   global_total_glideins,
-                                   global_total_idle_glideins,
-                                   effective_idle_mc, effective_oldidle_mc,
-                                   limits_triggered)
 
-            # Compute max running glideins for this site based on
-            # idle jobs, running jobs and idle slots
-            glidein_max_run = self.compute_glidein_max_run(
-                                  prop_mc_jobs,
-                                  self.count_real_glideins[glideid],
-                                  count_status['Idle'])
-
-            down_fd = glideinFrontendDowntimeLib.DowntimeFile( os.path.join( self.work_dir, self.elementDescript.frontend_data['DowntimesFile']  ) )
+            down_fd = glideinFrontendDowntimeLib.DowntimeFile(
+                os.path.join(
+                    self.work_dir,
+                    self.elementDescript.frontend_data['DowntimesFile']))
             downflag = down_fd.checkDowntime()
-            logSupport.log.info( "downtime = %i" % downflag )
-            if downflag == True:
+            # If frontend or entry are in downtime
+            # both min glideins required max running are 0
+            if downflag or glidein_in_downtime:
                 glidein_min_idle = 0
-                glidein_max_run  = 0
+                glidein_max_run = 0
+            else:
+                glidein_min_idle = self.compute_glidein_min_idle(
+                    count_status, total_glideins,
+                    total_idle_glideins, fe_total_glideins,
+                    fe_total_idle_glideins,
+                    global_total_glideins,
+                    global_total_idle_glideins,
+                    effective_idle_mc, effective_oldidle_mc,
+                    limits_triggered)
+
+                # Compute max running glideins for this site based on
+                # idle jobs, running jobs and idle slots
+                glidein_max_run = self.compute_glidein_max_run(
+                    prop_mc_jobs,
+                    self.count_real_glideins[glideid],
+                    count_status['Idle'])
 
             remove_excess_str = self.choose_remove_excess_type(
                                     count_jobs, count_status, glideid)
@@ -631,7 +637,6 @@ class glideinFrontendElement:
                                              ('PubKeyValue', 'PubKeyObj'))
 
             self.stats['group'].logFactDown(glideid_str, glidein_in_downtime)
-
 
             if glidein_in_downtime:
                 total_down_stats_arr = log_and_sum_factory_line(
@@ -699,11 +704,11 @@ class glideinFrontendElement:
                         if (creds_with_running - scaled) == 1:
                             # This is the last one. Assign remaining running
 
-                            glidein_monitors_per_cred[cred.getId()]['ScaledRunning']  = tr - (tr//creds_with_running)*scaled
+                            glidein_monitors_per_cred[cred.getId()]['ScaledRunning'] = tr - (tr//creds_with_running)*scaled
                             scaled += 1
                             break
                         else:
-                            glidein_monitors_per_cred[cred.getId()]['ScaledRunning']  = tr//creds_with_running
+                            glidein_monitors_per_cred[cred.getId()]['ScaledRunning'] = tr//creds_with_running
                             scaled += 1
 
             key_obj = None
@@ -714,7 +719,7 @@ class glideinFrontendElement:
                         key_obj = key_builder.get_key_obj(my_identity, globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
                     break
 
-            trust_domain = glidein_el['attrs'].get('GLIDEIN_TrustDomain','Grid')
+            trust_domain = glidein_el['attrs'].get('GLIDEIN_TrustDomain', 'Grid')
             auth_method = glidein_el['attrs'].get('GLIDEIN_SupportedAuthenticationMethod', 'grid_proxy')
 
             # Only advertize if there is a valid key for encryption
@@ -731,7 +736,7 @@ class glideinFrontendElement:
                                trust_domain=trust_domain,
                                auth_method=auth_method, ha_mode=self.ha_mode)
             else:
-                logSupport.log.warning("Cannot advertise requests for %s because no factory %s key was found"% (request_name, factory_pool_node))
+                logSupport.log.warning("Cannot advertise requests for %s because no factory %s key was found" % (request_name, factory_pool_node))
 
             resource_classad = self.build_resource_classad(
                                    this_stats_arr, request_name,
@@ -764,7 +769,7 @@ class glideinFrontendElement:
         del ad_file_id_cache
 
         # Advertise glideresource classads
-        logSupport.log.info("Advertising %i glideresource classads to the user pool" %  len(resource_advertiser.classads))
+        logSupport.log.info("Advertising %i glideresource classads to the user pool" % len(resource_advertiser.classads))
         pids.append(fork_in_bg(resource_advertiser.advertiseAllClassads))
 
         wait_for_pids(pids)
@@ -813,7 +818,8 @@ class glideinFrontendElement:
                     max_run = int(el['MaxJobsRunning']*0.95+0.5)
                     current_run = el['TotalRunningJobs']
                     # older schedds may not have TotalSchedulerJobsRunning
-                    current_run += el.get('TotalSchedulerJobsRunning',0)
+                    # commented out based on redmine ticket #8849
+                    #current_run += el.get('TotalSchedulerJobsRunning',0)
                     logSupport.log.debug("Schedd %s has %i running with max %i" % (schedd, current_run, max_run))
 
                     if current_run >= max_run:
@@ -1117,8 +1123,7 @@ class glideinFrontendElement:
 
         glidein_max_run = 0
 
-        if ((self.request_removal_wtype is not None) and
-            (not self.request_removal_excess_only)):
+        if (self.request_removal_wtype is not None) and (not self.request_removal_excess_only):
             # We are requesting the removal of all the glideins
             # Factory should remove all of them
             return 0
@@ -1143,17 +1148,17 @@ class glideinFrontendElement:
 
     def log_and_print_total_stats(self, total_up_stats_arr, total_down_stats_arr):
         # Log the totals
-        for el in (('MatchedUp',total_up_stats_arr, True),('MatchedDown',total_down_stats_arr, False)):
-            el_str,el_stats_arr,el_updown=el
+        for el in (('MatchedUp', total_up_stats_arr, True), ('MatchedDown', total_down_stats_arr, False)):
+            el_str, el_stats_arr, el_updown = el
             self.stats['group'].logMatchedJobs(
-                el_str, el_stats_arr[0],el_stats_arr[2], el_stats_arr[3],
+                el_str, el_stats_arr[0], el_stats_arr[2], el_stats_arr[3],
                 el_stats_arr[5], el_stats_arr[6])
 
             self.stats['group'].logMatchedGlideins(
                 el_str, el_stats_arr[8], el_stats_arr[9], el_stats_arr[10],
                 el_stats_arr[11], el_stats_arr[12], el_stats_arr[13],
                 el_stats_arr[14])
-            self.stats['group'].logFactAttrs(el_str, [], ()) # for completeness
+            self.stats['group'].logFactAttrs(el_str, [], ())  # for completeness
             self.stats['group'].logFactDown(el_str, el_updown)
             self.stats['group'].logFactReq(
                 el_str, el_stats_arr[15], el_stats_arr[16], {})
@@ -1175,7 +1180,7 @@ class glideinFrontendElement:
             unmatched_running, 0)
 
         # Nothing running
-        self.stats['group'].logMatchedGlideins('Unmatched', 0,0,0,0,0,0,0)
+        self.stats['group'].logMatchedGlideins('Unmatched', 0, 0, 0, 0, 0, 0, 0)
         # just for completeness
         self.stats['group'].logFactAttrs('Unmatched', [], ())
         self.stats['group'].logFactDown('Unmatched', True)
@@ -1192,9 +1197,9 @@ class glideinFrontendElement:
         log_and_sum_factory_line('Unmatched', True, this_stats_arr, total_down_stats_arr)
 
     def choose_remove_excess_type(self, count_jobs, count_status, glideid):
-        ''' Decides what kind of excess glideins to remove:
+        """ Decides what kind of excess glideins to remove:
             "ALL", "IDLE", "WAIT", or "NO"
-        '''
+        """
         if self.request_removal_wtype is not None:
             # we are requesting the removal of glideins, and we have the explicit code to use
             return self.request_removal_wtype

@@ -35,6 +35,7 @@ class fakeDescript:
         self.merged_data['ProxyPilotFiles']={}
         self.merged_data['ProxyVMIds']={}
         self.merged_data['ProxyVMTypes']={}
+        self.merged_data['ProxyRemoteUsernames']={}
         self.merged_data['ProxyProjectIds']={}
         self.merged_data['ProxyCreationScripts']={}
         self.merged_data['ProxyUpdateFrequency']={}
