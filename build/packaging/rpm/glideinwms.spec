@@ -130,6 +130,7 @@ This is a package for a glideinwms submit host.
 %package libs
 Summary:        The glideinWMS common libraries.
 Group:          System Environment/Daemons
+Requires: condor-python
 Requires: python-rrdtool
 Requires: python-ldap
 Requires: m2crypto

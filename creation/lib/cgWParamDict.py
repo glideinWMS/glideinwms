@@ -75,7 +75,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         for file_name in ('error_gen.sh', 'error_augment.sh', 'parse_starterlog.awk', 'advertise_failure.helper',
                           'condor_config', 'condor_config.multi_schedd.include',
                           'condor_config.dedicated_starter.include', 'condor_config.check.include',
-                          'condor_config.monitor.include'):
+                          'condor_config.monitor.include', 'glidein_lib.sh'):
             self.dicts['file_list'].add_from_file(file_name,
                                                   cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(file_name), 'regular'),
                                                   os.path.join(cgWConsts.WEB_BASE_DIR, file_name))
@@ -209,7 +209,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                    'glidein_cpus_setup.sh',  # glidein_cpus_setup.sh must be before smart_partitionable.sh
                                    'glidein_sitewms_setup.sh',
                                    'script_wrapper.sh',
-                                   'smart_partitionable.sh']
+                                   'smart_partitionable.sh',
+                                   'mjf_setparams.sh']
         # Only execute scripts once
         duplicate_scripts = set(file_list_scripts).intersection(after_file_list_scripts)
         if duplicate_scripts:
@@ -468,9 +469,9 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             self.dicts[dtype].add("GLIDEIN_Gatekeeper",entry[u'gatekeeper'],allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_GridType",entry[u'gridtype'],allow_overwrite=True)
             # MERGENOTE:
-            # GLIDEIN_REQUIRE_VOMS publishes an attribute so that users without VOMS proxies
-            #   can avoid sites that require VOMS proxies (using the normal Condor Requirements
-            #   string. 
+            # GLIDEIN_REQUIRE_VOMS publishes an attribute so that users
+            # without VOMS proxies can avoid sites that require VOMS proxies
+            # using the normal Condor Requirements string. 
             self.dicts[dtype].add("GLIDEIN_REQUIRE_VOMS",restrictions[u'require_voms_proxy'],allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_REQUIRE_GLEXEC_USE",restrictions[u'require_glidein_glexec_use'],allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_TrustDomain",entry[u'trust_domain'],allow_overwrite=True)
@@ -478,6 +479,10 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             if u'rsl' in entry:
                 self.dicts[dtype].add('GLIDEIN_GlobusRSL',entry[u'rsl'],allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_SlotsLayout", submit[u'slots_layout'], allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_WorkDir", entry[u'work_dir'], allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_Verbosity", entry[u'verbosity'], allow_overwrite=True)
+            if u'proxy_url' in entry:
+                self.dicts[dtype].add("GLIDEIN_ProxyURL", entry[u'proxy_url'], allow_overwrite=True)
 
 
         self.dicts['vars'].add_extended("GLIDEIN_REQUIRE_VOMS","boolean",restrictions[u'require_voms_proxy'],None,False,True,True)

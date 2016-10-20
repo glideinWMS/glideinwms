@@ -586,7 +586,6 @@ def main(startup_dir):
     @type startup_dir: String
     @param startup_dir: Path to glideinsubmit directory
     """
-
     # Force integrity checks on all condor operations
     glideFactoryLib.set_condor_integrity_checks()
 

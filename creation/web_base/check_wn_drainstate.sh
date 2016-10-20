@@ -27,35 +27,8 @@
 #   https://twiki.cern.ch/twiki/bin/view/LCG/WMTEGEnvironmentVariables
 #
 
-function getValueFromFileOrURL {
-    # The function takes as an argument a filename and a variable name
-    # The variable containsthe url or the directory location of the file,
-    # so $1 can be shutdowntime_job
-    # and $2 /path/to/jobfeature/dir
-    # The function returns the value found in the file (by cat-ing it), or false
-    # if the file does not exist or $2 is empty
-    FILENAME="$1"
-    VARNAME="$2"
-    if [ -n "$VARNAME" ]; then
-        if [ -f "$VARNAME/$FILENAME" ]; then
-            cat "$VARNAME/$FILENAME"
-            return
-        else
-            #check if shutdowntime job is a URL and wget it
-            ADDRESS="$VARNAME/$FILENAME"
-            echo $ADDRESS | grep -E '^https?' > /dev/null
-            if [ $? -eq 0 ]; then
-                #use quiet mode and redirect file to a temporary one
-                wget -qO- $ADDRESS > tmp_MJF
-                if [ $? -eq 0 ]; then
-                    cat tmp_MJF
-                    return
-                fi
-            fi
-        fi
-    fi
-    echo false
-}
+LIBLOCATION=$(dirname $0)
+source "$LIBLOCATION/glidein_lib.sh"
 
 function isNumberOrFalse {
     # the function verifies that the argument (i.e.: $1) is a number, and exts otherwise
