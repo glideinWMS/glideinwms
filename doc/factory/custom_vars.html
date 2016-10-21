@@ -403,10 +403,11 @@ by the VO factory clients.</P>
         This string is a semicolon separated list of comma separated resource descriptions.
         Each resource description contains the <b>name</b> (case insensitive) and optionally the <b>number</b> of resource instances (default is 1 (*), the
         total <b>memory</b> reserved
-        (default is 128MB time the number of resources) and a <b>type</b> option to say if the resource is added to the main slot (<tt>main</tt>) or has a new dedicated
+        (default is 128MB time the number of resources), a <b>type</b> option to say if the resource is added to the main slot (<tt>main</tt>) or has a new dedicated
         slot (<tt>partitionable</tt>) or many dedicated slots (one per instance, <tt>static</tt>).
-        The default is partitionable, unless there is only one resource instance, then is static.
-        When adding resources to the <tt>main</tt> slots: the memory parameter is ignored; HTCondor splits automatically resources
+        The default is partitionable, unless there is only one resource instance, then is static, and the <b>disk</b> reserved
+        (default is <tt>auto</tt>, where HTCondor splits evenly).
+        When adding resources to the <tt>main</tt> slots: the memory and disk parameters are ignored; HTCondor splits automatically resources
         depending on the number of CPUs and having a partitionable main slot or not;
         if the number of resources is not equal (or an exact multiple) to the number of CPUs, then you must select partitionable slots
         (<tt>slots_layout="partitionable"</tt> in the config/submit section of the entry configuration or SLOTS_LAYOUT partitionable in the frontend configuration)
@@ -417,14 +418,18 @@ by the VO factory clients.</P>
         (check the <a href=http://research.cs.wisc.edu/htcondor/manual/v8.2/3_5Policy_Configuration.html#SECTION004510000000000000000">
             HTCondor manual to learn more on how resources are split</a>)
         </p>
-        <p>The parameters in a resource description can be listed or specified using their name: name, number, memory, type (see the last example below).</p>
+        <p>The parameters in a resource description can be listed or specified using their name: name, number, memory, type, disk (see the last example below).</p>
+        <p>Characters may be appended to a numerical value of memory and disk to indicate percentage (%) or units. K or KB indicates KiB, $2^{10}$ numbers of bytes.
+            M or MB indicates MiB, $2^{20}$ numbers of bytes. G or GB indicates GiB, $2^{30}$ numbers of bytes.
+            T or TB indicates TiB, $2^{40}$ numbers of bytes. auto lets HTCondor do the splitting.
+            Check the <a href="http://research.cs.wisc.edu/htcondor/manual/v8.4/3_5Policy_Configuration.html#SECTION004511200000000000000">HTCondor manual</a> for more about resource splitting.</p>
         <p>Jobs submission must use <tt>request_RESOURCE=N</tt> with <tt>N&gt;0</tt> to use these slots or to use the resource in the main slot,
             e.g. request_ioslot=1</p>
         <p>Examples:<br>
         <ul>
             <li><b>value="ioslot,2,200,static"</b> creates statically partitioned 2 ioslot resources with 100MB memory each.</li>
             <li><b>value="ioslot"</b> creates 1 ioslot resource with 128MB</li>
-            <li><b>value="ioslot,2;monitor;GPUs,3,,main"</b> creates (1) a partitionable slot with 2 ioslot resources and 256MB total memory (2) 1 monitor slot resource with 128MB memory
+            <li><b>value="ioslot,2,disk=1GB;monitor;GPUs,3,,main"</b> creates (1) a partitionable slot with 2 ioslot resources, 256MB total memory and 1GB total disk (2) 1 monitor slot resource with 128MB memory
                 (3) adds 3 GPUs to the main slot/slots</li>
             <li><b>value="GPUs,type=main"</b> discovers (*) how many GPUs are available and adds them to the main slot</li>
         </ul>
