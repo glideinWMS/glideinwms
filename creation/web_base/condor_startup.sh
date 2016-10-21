@@ -323,12 +323,26 @@ function fix_param () {
 function unit_division {
     # Divide the number and preserve the unit (integer division)
     # 1 dividend (integer w/ unit), 2 divisor (integer)
-    local number_only=${1%%[!0-9]*}
+    # Dividend can be a fraction w/o units: .N (N is divided by the divisor), N/M (M is multiplied by the divisor)
+    local number_only
     local res_num
-    if [ -n "$number_only" ]; then
-        let res_num=$number_only/$2
+    if [[ "$1" =~ ^\.[0-9]+$ ]]; then
+        let res_num=${1:1}/$2
+        res=".$res_num"
+    elif [[ "$1" =~ ^[0-9]+\/[0-9]+$ ]]; then
+        number_only=${1#*/}
+        let res_num=$number_only*$2
+        res="${1%/*}/$res_num"
+    else
+        number_only=${1%%[!0-9]*}
+        if [ -n "$number_only" ]; then
+            local number_only=${1%%[!0-9]*}
+            let res_num=$number_only/$2
+        else
+            echo "Invalid format for $1. Skipping division by $2, returning $1." 1>&2
+        fi
+        res="$res_num${1:${#number_only}}"
     fi
-    res="$res_num${1:${#number_only}}"
     echo $res
 }
 

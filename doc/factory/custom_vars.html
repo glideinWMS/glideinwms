@@ -419,9 +419,11 @@ by the VO factory clients.</P>
             HTCondor manual to learn more on how resources are split</a>)
         </p>
         <p>The parameters in a resource description can be listed or specified using their name: name, number, memory, type, disk (see the last example below).</p>
-        <p>Characters may be appended to a numerical value of memory and disk to indicate percentage (%) or units. K or KB indicates KiB, $2^{10}$ numbers of bytes.
+        <p>Characters may be appended to a numerical value of memory to indicate percentage (%) or units. K or KB indicates KiB, $2^{10}$ numbers of bytes.
             M or MB indicates MiB, $2^{20}$ numbers of bytes. G or GB indicates GiB, $2^{30}$ numbers of bytes.
-            T or TB indicates TiB, $2^{40}$ numbers of bytes. auto lets HTCondor do the splitting.
+            T or TB indicates TiB, $2^{40}$ numbers of bytes.
+            Disk space must be a fraction or percentage: 1/4, 25%.
+            auto lets HTCondor do the splitting.
             Check the <a href="http://research.cs.wisc.edu/htcondor/manual/v8.4/3_5Policy_Configuration.html#SECTION004511200000000000000">HTCondor manual</a> for more about resource splitting.</p>
         <p>Jobs submission must use <tt>request_RESOURCE=N</tt> with <tt>N&gt;0</tt> to use these slots or to use the resource in the main slot,
             e.g. request_ioslot=1</p>
