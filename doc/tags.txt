@@ -1,3 +1,5 @@
+v3_3_1  Includes all features and bug fixes released in v3_2_16
+
 v3_3    Includes all features and bug fixes released in v3_2_15
         Support Google Compute Engine CE. Requires glidein cloud vm rpms v2+
         Support native configuration of EC2 spot prices and AZ in the entry

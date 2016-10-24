@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_3
+# GLIDEINWMS_VERSION v3_3_1_rc1
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cbd269c098e4d61d909595fc90c7cefd  ./LICENSE.txt
@@ -19,10 +19,10 @@ edf64337206eb58100e7361f27cf9814  ./creation/lib/cWParams.py
 172e148818f2a2bf07eb9c214cc8a4ba  ./creation/lib/cvWConsts.py
 077f753922f46a9d3d649c0eb56e8c49  ./creation/lib/cvWCreate.py
 575ec01f8791fefafee1adf856d566a0  ./creation/lib/cvWDictFile.py
-8b04a0a2fa0408c703d2b0f154849974  ./creation/lib/cvWParamDict.py
-32abc2b47895e1a5a72aa0d80e1ba73f  ./creation/lib/cvWParams.py
+cf2dd981eac7b582cc13a6c0526c7996  ./creation/lib/cvWParamDict.py
+e661ca9bb44bca8d56c6b713e1272923  ./creation/lib/cvWParams.py
 082cce4b50cfa5d25961157e23e3a2e2  ./creation/lib/factoryXmlConfig.py
-154d1a1835db2be7279881e0f8cac7e8  ./creation/lib/factory_defaults.xml
+4568045f698285b5aa73a36f321c9477  ./creation/lib/factory_defaults.xml
 1cf06bb1ccb5e9bcafad8d4f4c02a0ce  ./creation/lib/matchPolicy.py
 bb95254b7fce5bf4929974db32ef0e97  ./creation/lib/xmlConfig.py
 4b519007ebf0fe956a19758213950679  ./creation/lib/xslt.py
@@ -75,24 +75,24 @@ a340f047603d7ebd365c40a037154bdd  ./creation/web_base/parse_starterlog.awk
 5764f289207bcd2d4cc1edf69ebd3c95  ./creation/web_base/script_wrapper.sh
 bff4caa021014ea19e202317ef7e506d  ./creation/web_base/setup_network.sh
 e0ba6891e61382c17e0aa7ea0a13c688  ./creation/web_base/setup_script.sh
-53383450eb59e7501d296cb1fee279b3  ./creation/web_base/smart_partitionable.sh
+d2fc559e444aa1bf126cdc14a2b1a7e4  ./creation/web_base/smart_partitionable.sh
 a02a6f1041bb4cece7ddb70c918773d0  ./creation/web_base/update_proxy.py
 d41d8cd98f00b204e9800998ecf8427e  ./factory/__init__.py
 0b99f70c3b88fe34de1b55e8f347ede6  ./factory/glideFactoryConfig.py
-28255e02887bccd6105fdbb209beab28  ./factory/glideFactoryCredentials.py
-fa51df08cc410f55f735a406b519ff36  ./factory/glideFactoryInterface.py
+e85086fcc1ab3f9399b20735c6342a12  ./factory/glideFactoryCredentials.py
+2fc9c471ebda60ef26be078310ffddc5  ./factory/glideFactoryInterface.py
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/__init__.py
 281b86c8a2bc919bfa1cdaedebebaf0c  ./frontend/checkFrontend.py
-0f7088add353cbaf4886cce9ccebcc42  ./frontend/glideinFrontend.py
-ea25001b937a623b0a280db210079728  ./frontend/glideinFrontendConfig.py
+4287f3a4fe497481c5a72d568e75f92b  ./frontend/glideinFrontend.py
+bb8d2d103073c7da8156154138e403db  ./frontend/glideinFrontendConfig.py
 a5d67ff1645932a8f81a9eed37027f50  ./frontend/glideinFrontendDowntimeLib.py
-1d0648ebc2ccb8abcb3c9b81873eaaaf  ./frontend/glideinFrontendElement.py
-4c925c197198c009f9f6ce824ac082b7  ./frontend/glideinFrontendInterface.py
-ab617270ea49d0c10686b9a59efd9059  ./frontend/glideinFrontendLib.py
+c38456c34c56ff0622e49c424360f8c3  ./frontend/glideinFrontendElement.py
+8f4ba02edf1ae705777d57cdd6ef1425  ./frontend/glideinFrontendInterface.py
+217d8b621ad37b629946cbcdd2037d40  ./frontend/glideinFrontendLib.py
 1754e4484e221f13578512bd1c825090  ./frontend/glideinFrontendMonitorAggregator.py
 466a10f70924210c5b2642d4b0f7cd5b  ./frontend/glideinFrontendMonitoring.py
 2a1b5c91fe810a76649e78890e15c3dc  ./frontend/glideinFrontendPidLib.py
-d387b74552994d02db0e380ea8d40eca  ./frontend/glideinFrontendPlugins.py
+4028bf85555b0f3bffa80dc2ccb6f330  ./frontend/glideinFrontendPlugins.py
 336fd3776aacac77d1493413e5249fe3  ./frontend/manageFrontendDowntimes.py
 0fe2d57c2c6ba21c42bfd6541881feb7  ./frontend/stopFrontend.py
 d41d8cd98f00b204e9800998ecf8427e  ./frontend/tools/__init__.py
