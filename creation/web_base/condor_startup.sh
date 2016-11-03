@@ -320,6 +320,33 @@ function fix_param () {
 }
 
 
+function unit_division {
+    # Divide the number and preserve the unit (integer division)
+    # 1 dividend (integer w/ unit), 2 divisor (integer)
+    # Dividend can be a fraction w/o units: .N (N is divided by the divisor), N/M (M is multiplied by the divisor)
+    local number_only
+    local res_num
+    if [[ "$1" =~ ^\.[0-9]+$ ]]; then
+        let res_num=${1:1}/$2
+        res=".$res_num"
+    elif [[ "$1" =~ ^[0-9]+\/[0-9]+$ ]]; then
+        number_only=${1#*/}
+        let res_num=$number_only*$2
+        res="${1%/*}/$res_num"
+    else
+        number_only=${1%%[!0-9]*}
+        if [ -n "$number_only" ]; then
+            local number_only=${1%%[!0-9]*}
+            let res_num=$number_only/$2
+        else
+            echo "Invalid format for $1. Skipping division by $2, returning $1." 1>&2
+        fi
+        res="$res_num${1:${#number_only}}"
+    fi
+    echo $res
+}
+
+
 function find_gpus_num {
     # use condor tools to find the available GPUs
     if [ ! -f "$CONDOR_DIR/libexec/condor_gpu_discovery" ]; then
@@ -692,8 +719,8 @@ EOF
     # Slot Type Counter - Leave slot type 2 for monitoring
     slott_ctr=3
     for i in "${RESOURCES[@]}"; do
-        resource_params="`fix_param "$i" "name,number,memory,type"`"
-        IFS=',' read res_name res_num res_ram res_opt <<< "$resource_params"
+        resource_params="`fix_param "$i" "name,number,memory,type,disk"`"
+        IFS=',' read res_name res_num res_ram res_opt res_disk <<< "$resource_params"
         if [ -z "$res_name" ]; then
             continue
         fi
@@ -722,15 +749,25 @@ EOF
             # Resource allocated for only main slots (partitionable or static)
             # Main slots are determined by CPUs. Let condor split the resource: if not enough some slot will have none
             echo "SLOT_TYPE_1 = \$(SLOT_TYPE_1), ${res_name}=100%" >> "$CONDOR_CONFIG"
-            # Decided not to add type "mainextra" with resources added to main slot and CPUs incrementated
-            # It can be obtained with more control by detting GLIDEIN_CPUS
+            # Decided not to add type "mainextra" with resources added to main slot and CPUs incremented
+            # It can be obtained with more control by setting GLIDEIN_CPUS
         else
             if [[ "$res_num" -eq 1 || "x$res_opt" == "xstatic" ]]; then
                 res_opt=static
-                let res_ram=${res_ram}/${res_num}
+                res_ram="`unit_division "${res_ram}" ${res_num}`"
+                if [ -n "$res_disk" ]; then
+                    res_disk="`unit_division "${res_disk}" ${res_num}`"
+                fi
             else
                 res_opt=partitionable
             fi
+        fi
+        
+        if [ -z "$res_disk" ]; then
+            # Set default here. What to do if disk is not given? Empty string lets HTCondor handle it
+            res_disk_specification=''
+        else
+            res_disk_specification=", disk=${res_disk}"
         fi
         if [ -n "$AUTO_GPU" ]; then
             cat >> "$CONDOR_CONFIG" <<EOF
@@ -756,13 +793,13 @@ EXTRA_SLOTS_NUM = \$(EXTRA_SLOTS_NUM)+\$(MACHINE_RESOURCE_${res_name})
 EOF
             if [ "x$res_opt" == "xpartitionable" ]; then
                 cat >> "$CONDOR_CONFIG" <<EOF
-SLOT_TYPE_${slott_ctr} = cpus=\$(MACHINE_RESOURCE_${res_name}), ${res_name}=\$(MACHINE_RESOURCE_${res_name}), ram=${res_ram}
+SLOT_TYPE_${slott_ctr} = cpus=\$(MACHINE_RESOURCE_${res_name}), ${res_name}=\$(MACHINE_RESOURCE_${res_name}), ram=${res_ram}${res_disk_specification}
 SLOT_TYPE_${slott_ctr}_PARTITIONABLE = TRUE
 NUM_SLOTS_TYPE_${slott_ctr} = 1
 EOF
             else
                 cat >> "$CONDOR_CONFIG" <<EOF
-SLOT_TYPE_${slott_ctr} = cpus=1, ${res_name}=1, ram=${res_ram}
+SLOT_TYPE_${slott_ctr} = cpus=1, ${res_name}=1, ram=${res_ram}${res_disk_specification}
 SLOT_TYPE_${slott_ctr}_PARTITIONABLE = FALSE
 NUM_SLOTS_TYPE_${slott_ctr} = \$(MACHINE_RESOURCE_${res_name})
 EOF
