@@ -209,8 +209,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                                    'glidein_cpus_setup.sh',  # glidein_cpus_setup.sh must be before smart_partitionable.sh
                                    'glidein_sitewms_setup.sh',
                                    'script_wrapper.sh',
-                                   'smart_partitionable.sh',
-                                   'mjf_setparams.sh']
+                                   'smart_partitionable.sh',]
         # Only execute scripts once
         duplicate_scripts = set(file_list_scripts).intersection(after_file_list_scripts)
         if duplicate_scripts:
@@ -225,8 +224,14 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # Add the drainer script
         drain_script = "check_wn_drainstate.sh"
         self.dicts['file_list'].add_from_file(drain_script,
-                                              cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(drain_script), 'exec', 60),
+                                              cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(drain_script), 'exec', 60, 'NOPREFIX'),
                                               os.path.join(cgWConsts.WEB_BASE_DIR, drain_script))
+
+        #Add the MJF script
+        mjf_script = "mjf_setparams.sh"
+        self.dicts['file_list'].add_from_file(mjf_script,
+                                              cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(mjf_script), 'exec', 60, 'MJF_'),
+                                              os.path.join(cgWConsts.WEB_BASE_DIR, mjf_script))
 
         # make sure condor_startup does not get executed ahead of time under normal circumstances
         # but must be loaded early, as it also works as a reporting script in case of error

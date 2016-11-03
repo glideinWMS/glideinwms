@@ -558,10 +558,10 @@ STARTD_NAME = glidein_${glidein_startup_pid}_${random_name_str}
 #This can be used for locating the proper PID for monitoring
 GLIDEIN_PARENT_PID = $$
 
-START = $START_JOBS && (GLIDEIN_PS_SiteWMS_WN_Draining =?= False)
+START = $START_JOBS && (SiteWMS_WN_Draining =?= False)
 
 #Use the default grace time unless the job has to be preempted. In that case set the value to 20 minutes.
-PREEMPT_GRACE_TIME = ifthenelse( (GLIDEIN_PS_SiteWMS_WN_Preempt =?= True), 1200, $PREEMPT_GRACE_TIME)
+PREEMPT_GRACE_TIME = ifthenelse( (SiteWMS_WN_Preempt =?= True), 1200, $PREEMPT_GRACE_TIME)
 
 EOF
 ####################################

@@ -82,23 +82,8 @@ X509_SKIP_HOST_CHECK_DNS_REGEX	C	-	+				Y	N	-
 GLIDEIN_LOCAL_TMP_DIR   C       -               +                               Y       N       @
 TMP_DIR			S	-		GLIDEIN_Tmp_Dir			Y	Y	@
 PUBLISH_OBITUARIES      C       False           +                               N       N       -
-GLIDEIN_PS_SiteWMS_WN_Draining  C   False       +   N   Y   -
-GLIDEIN_PS_SiteWMS_WN_Preempt C   False       +   N   Y   -
-MJF_MACHINE_TOTAL_CPU C   False       +   N   Y   -
-MJF_MACHINE_HS06 C   False       +   N   Y   -
-MJF_MACHINE_SHUTDOWNTIME C   False       +   N   Y   -
-MJF_MACHINE_GRACE_SECS C   False       +   N   Y   -
-MJF_JOB_ALLOCATED_CPU C   False       +   N   Y   -
-MJF_JOB_HS06_JOB C   False       +   N   Y   -
-MJF_JOB_SHUTDOWNTIME_JOB C   False       +   N   Y   -
-MJF_JOB_GRACE_SECS_JOB C   False       +   N   Y   -
-MJF_JOB_JOBSTART_SECS C   False       +   N   Y   -
-MJF_JOB_JOB_ID C   False       +   N   Y   -
-MJF_JOB_WALL_LIMIT_SECS C   False       +   N   Y   -
-MJF_JOB_CPU_LIMIT_SECS C   False       +   N   Y   -
-MJF_JOB_MAX_RSS_BYTES C   False       +   N   Y   -
-MJF_JOB_MAX_SWAP_BYTES C   False       +   N   Y   -
-MJF_JOB_SCRATCH_LIMIT_BYTES C   False       +   N   Y   -
+SiteWMS_WN_Draining  C   False       +   N   Y   -
+SiteWMS_WN_Preempt C   False       +   N   Y   -
 
 # Entry specific User modifiable variables
 GLIDEIN_Site		S	$GLIDEIN_Entry_Name	+			N	Y	@

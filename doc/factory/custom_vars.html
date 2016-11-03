@@ -1310,7 +1310,7 @@ startup scripts.</P>
         </TD>
     </TR>
     <TR>
-        <td> <b>GLIDEIN_PS_SiteWMS_WN_Draining</b> </td>
+        <td> <b>SiteWMS_WN_Draining</b> </td>
         <TD> Bool </TD>
 
         <TD>
@@ -1321,10 +1321,10 @@ startup scripts.</P>
             environment variable is set and it points to a local directory containing a file
             named <tt>shutdowntime_job</tt> (<tt>shutdowntime</tt>), or <tt>$JOBFEATURES/shutdowntime_job</tt>
             (<tt>$MACHINEFEATURES/shutdowntime</tt>) is a valid URL (it is possible to wget it), then the
-            glidein will stop accepting jobs
+            glidein will stop accepting jobs.
             (see <A HREF="https://twiki.cern.ch/twiki/bin/view/LCG/WMTEGEnvironmentVariables">
             here</A>).
-            The <tt>GLIDEIN_PS_SiteWMS_WN_Draining</tt> variable
+            The <tt>SiteWMS_WN_Draining</tt> variable
             is periodically updated by means of the STARTD_CRON condor feature.
         </TD>
     </TR>
@@ -1340,7 +1340,7 @@ startup scripts.</P>
             JOBFEATURES (or MACHINEFEATURES) variable contains a timestamp (unix epoch time) that is
             less than 30 minutes in the future. If so <tt>PREEMPT_GRACE_TIME</tt> will be set to 20 minutes and
             the job will be preempted after that time if it does not exit.
-            The <tt>GLIDEIN_PS_SiteWMS_WN_Preempt</tt> variable
+            The <tt>SiteWMS_WN_Preempt</tt> variable
             is periodically updated by means of the STARTD_CRON condor feature.
         </TD>
     </TR>

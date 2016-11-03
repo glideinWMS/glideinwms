@@ -54,7 +54,8 @@ class FEElementTestCase(unittest.TestCase):
             'JobQueryExpr': 'True', 'MaxIdleVMsTotal': '1000', 'FactoryMatchAttrs': '[]', 'MaxIdlePerEntry': '100',
             'FracRunningPerEntry': '1.15', 'FactoryQueryExpr': 'True', 'MatchExpr': 'True', 'CurbIdleVMsTotal': '200',
             'GroupName': 'group1', 'MaxMatchmakers': '3',
-            'MapFileWPilots': '/var/lib/gwms-frontend/vofrontend/group_main/group_wpilots.mapfile', 'CurbIdleVMsPerEntry': '5'}
+            'MapFileWPilots': '/var/lib/gwms-frontend/vofrontend/group_main/group_wpilots.mapfile', 'CurbIdleVMsPerEntry': '5',
+            'MinRunningPerEntry': 0 }
 
         with mock.patch.object(glideinFrontendConfig, 'SignatureDescript') as m_signatureDescript:
             m_signatureDescript.return_value = signatureDescript
