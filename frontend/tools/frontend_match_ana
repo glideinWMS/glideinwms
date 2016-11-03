@@ -148,10 +148,9 @@ def do_work(elementDescript,paramsDescript,signatureDescript,job_filter):
                 print "%s vs %s"%(t, glidename[1])
                 print "job:     %s"%job
                 glideattr={}
-                if elementDescript.merged_data.get('FactoryMatchAttrs') is not None:
-                    for a in elementDescript.merged_data['FactoryMatchAttrs']:
-                        if glidein["attrs"].has_key(a[0]):
-                            glideattr[a[0]]=glidein["attrs"][a[0]]
+                for a in elementDescript.merged_data.get('FactoryMatchAttrs', []):
+                    if glidein["attrs"].has_key(a[0]):
+                        glideattr[a[0]]=glidein["attrs"][a[0]]
                 print "glidein: %s"%glideattr
                 print "="
 
