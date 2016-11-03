@@ -762,9 +762,10 @@ EOF
                 res_opt=partitionable
             fi
         fi
+        
         if [ -z "$res_disk" ]; then
-            # What to do if disk is not given. Split evenly? Let HTCondor handle?
-            res_disk_specification=
+            # Set default here. What to do if disk is not given? Empty string lets HTCondor handle it
+            res_disk_specification=''
         else
             res_disk_specification=", disk=${res_disk}"
         fi
