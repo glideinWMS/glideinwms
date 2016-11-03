@@ -99,7 +99,7 @@ class FactoryConfig:
         self.log_stats = None
         self.rrd_stats = None
 
-        self.supported_signtypes = ['sha1']
+        self.supported_signtypes = ['sha1', 'sha256']
 
         # who am I
         self.factory_name = None
