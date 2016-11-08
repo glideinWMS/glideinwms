@@ -92,38 +92,6 @@ process_branch() {
 init_results_mail () {
     local mail_file=$1
     echo -n > $mail_file
-    cat > $mail_file << EOF
-<style>
-table, th, td {
-    border: 1px solid black;
-    border-collapse: collapse;
-}
-thead, th {
-    font-weight: bold;
-    border: 0px solid black;
-}
-thead {
-    background-color: #ffcc00;
-}
-th {
-    background-color: #00ccff;
-    padding: 8px;
-}
-tr, td {
-    padding: 5px;
-    text-align: center;
-}
-tr.failed, td.failed {
-    background-color: #ff0000;
-    border: 0px solid black;
-}
-tr.passed, td.passed {
-    background-color: #00ff00;
-    border: 0px solid black;
-}
-</style>
-
-EOF
 }
 
 init_results_logging() {
@@ -134,14 +102,14 @@ init_results_logging() {
   <p>
 `print_python_info $mail_file`
   </p>
-<table>
-  <thead>
-    <tr>
-      <th>GIT BRANCH</th>
-      <th>FILES CHECKED</th>
-      <th>FILES WITH ERRORS</th>
-      <th>TOTAL ERRORS</th>
-      <th>PEP8 ERRORS</th>
+<table style="$HTML_TABLE">
+  <thead style="$HTML_THEAD">
+    <tr style="$HTML_TR">
+      <th style="$HTML_THEAD_TH">GIT BRANCH</th>
+      <th style="$HTML_THEAD_TH">FILES CHECKED</th>
+      <th style="$HTML_THEAD_TH">FILES WITH ERRORS</th>
+      <th style="$HTML_THEAD_TH">TOTAL ERRORS</th>
+      <th style="$HTML_THEAD_TH">PEP8 ERRORS</th>
     </tr>
   </thead>
   <tbody>
@@ -165,15 +133,27 @@ log_branch_results() {
     if [ "$class" = "PASSED" ]; then
         [ ${PYLINT_ERROR_COUNT:-1} -gt 0 ] && class="FAILED"
     fi
-    cat >> $mail_file << TABLE_ROW
-<tr class='$class'>
-    <th>$GIT_BRANCH</th>
-    <td class='$class'>${FILES_CHECKED_COUNT:-NA}</td>
-    <td class='$class'>${PYLINT_ERROR_FILES_COUNT:-NA}</td>
-    <td class='$class'>${PYLINT_ERROR_COUNT:-NA}</td>
-    <td class='$class'>${PEP8_ERROR_COUNT:-NA}</td>
+    if [ "$class" = "PASSED" ]; then
+        cat >> $mail_file << TABLE_ROW_PASSED
+<tr style="$HTML_TR">
+    <th style="$HTML_TH">$GIT_BRANCH</th>
+    <td style="$HTML_TD_PASSED">${FILES_CHECKED_COUNT:-NA}</td>
+    <td style="$HTML_TD_PASSED">${PYLINT_ERROR_FILES_COUNT:-NA}</td>
+    <td style="$HTML_TD_PASSED">${PYLINT_ERROR_COUNT:-NA}</td>
+    <td style="$HTML_TD_PASSED">${PEP8_ERROR_COUNT:-NA}</td>
 </tr>
-TABLE_ROW
+TABLE_ROW_PASSED
+    else
+        cat >> $mail_file << TABLE_ROW_FAILED
+<tr style="$HTML_TR">
+    <th style="$HTML_TH">$GIT_BRANCH</th>
+    <td style="$HTML_TD_FAILED">${FILES_CHECKED_COUNT:-NA}</td>
+    <td style="$HTML_TD_FAILED">${PYLINT_ERROR_FILES_COUNT:-NA}</td>
+    <td style="$HTML_TD_FAILED">${PYLINT_ERROR_COUNT:-NA}</td>
+    <td style="$HTML_TD_FAILED">${PEP8_ERROR_COUNT:-NA}</td>
+</tr>
+TABLE_ROW_FAILED
+    fi
 }
 
 
@@ -185,6 +165,24 @@ finalize_results_logging() {
 </body>
 TABLE_END
 }
+
+###############################################################################
+# HTML inline CSS
+HTML_TABLE="border: 1px solid black;border-collapse: collapse;"
+HTML_THEAD="font-weight: bold;border: 0px solid black;background-color: #ffcc00;"
+HTML_THEAD_TH="border: 0px solid black;border-collapse: collapse;font-weight: bold;background-color: #ffb300;padding: 8px;"
+
+HTML_TH="border: 0px solid black;border-collapse: collapse;font-weight: bold;background-color: #00ccff;padding: 8px;"
+HTML_TR="padding: 5px;text-align: center;"
+HTML_TD="border: 1px solid black;border-collapse: collapse;padding: 5px;text-align: center;"
+
+HTML_TR_PASSED="padding: 5px;text-align: center;"
+HTML_TD_PASSED="border: 0px solid black;border-collapse: collapse;background-color: #00ff00;padding: 5px;text-align: center;"
+
+HTML_TR_FAILED="padding: 5px;text-align: center;"
+HTML_TD_FAILED="border: 0px solid black;border-collapse: collapse;background-color: #ff0000;padding: 5px;text-align: center;"
+
+
 
 ###############################################################################
 
