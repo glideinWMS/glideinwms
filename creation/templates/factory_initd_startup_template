@@ -253,7 +253,7 @@ start() {
     fi
 
     #invoke_as_factory "nice -2 \"${FACTORY_START}\" \"$factory_dir\" 2>/dev/null 1>&2 </dev/null &"
-    daemon --user $FACTORY_USER --pidfile="/tmp/dummy.pid" -2 "${FACTORY_START} $factory_dir 2>/dev/null 1>&2 </dev/null &"
+    daemon --user $FACTORY_USER --pidfile="$factory_dir/lock/glideinWMS.lock" -2 "${FACTORY_START} $factory_dir 2>/dev/null 1>&2 </dev/null &"
 
     for i in {1..15}; do  # Use seq if a variable is needed: $(seq 1 $END)
         # Returns 0 if running
@@ -285,8 +285,7 @@ stop() {
         return $RETVAL
     fi
 
-#    "$FACTORY_STOP" -f "$factory_dir" 2>/dev/null 1>&2 </dev/null
-    daemon --user $FACTORY_USER --force "${FACTORY_STOP} -f $factory_dir   2>/dev/null 1>&2 </dev/null"
+    invoke_as_factory "\"$FACTORY_STOP\" -f \"$factory_dir\" 2>/dev/null 1>&2 </dev/null"
     MYRETVAL=$?
 
     if [ $MYRETVAL -ne 0 ]; then

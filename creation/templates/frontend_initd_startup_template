@@ -251,10 +251,7 @@ start() {
             return $RETVAL
         fi
 
-        #invoke_as_frontend "nice -2 \"${FRONTEND_START}\" \"$frontend_dir\" 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
-	# below, without --pidfile to daemon(), we are getting meaninless warning message
-        # /usr/bin/dirname: extra operand `&.pid'   .... any better solution?
-        daemon --user $FRONTEND_USER --pidfile="/tmp/dummy.pid" -2 "${FRONTEND_START} $frontend_dir 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
+	daemon --user $FRONTEND_USER --pidfile="$frontend_dir/lock/frontend.lock" -2 "${FRONTEND_START} $frontend_dir 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
 
         for i in {1..15}; do  # Use seq if a variable is needed: $(seq 1 $END)
             # Returns 0 if running, 1 if not
@@ -285,8 +282,7 @@ stop() {
             return $RETVAL
         fi
 
-        #invoke_as_frontend "\"${FRONTEND_STOP}\" -f \"$frontend_dir\" 2>/dev/null 1>&2 </dev/null"
-	daemon --user $FRONTEND_USER --force "${FRONTEND_STOP} -f $frontend_dir 2>/dev/null 1>&2 </dev/null"
+        invoke_as_frontend "\"${FRONTEND_STOP}\" -f \"$frontend_dir\" 2>/dev/null 1>&2 </dev/null"
         MYRETVAL=$?
 
         if [ $MYRETVAL -ne 0 ]; then
