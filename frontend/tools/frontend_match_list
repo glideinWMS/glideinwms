@@ -28,8 +28,10 @@ from glideinwms.frontend import glideinFrontendConfig
 from glideinwms.frontend import glideinFrontendInterface
 from glideinwms.frontend import glideinFrontendLib
 # /var/lib/gwms-frontend/vofrontend/frontend.descript has hardcoded line
-# MatchExpr (True) and (getGlideinCpusNum(glidein) >= int(job.get("RequestCpus", 1)))
-# and this script fails to find getGlideinCpusNum() unless we import it from glideinFrontendLib explicitly
+# MatchExpr (True) and (getGlideinCpusNum(glidein) >= 
+# int(job.get("RequestCpus", 1)))
+# and this script fails to find getGlideinCpusNum() unless we import it 
+# from glideinFrontendLib explicitly
 from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
 
 ############################################################

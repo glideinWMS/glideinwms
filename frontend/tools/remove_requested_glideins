@@ -27,7 +27,7 @@ sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
 from glideinwms.frontend import glideinFrontendPidLib
 
 from glideinwms.frontend import glideinFrontend
-FRONTEND_DIR = os.path.dirname( glideinFrontend.__file__ )
+FRONTEND_DIR = os.path.dirname(glideinFrontend.__file__)
 
 def parse_args(argv):
     argparser=optparse.OptionParser()
