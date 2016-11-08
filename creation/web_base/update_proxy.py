@@ -27,6 +27,7 @@ import gzip
 import cStringIO
 import traceback
 import base64
+import shutil
 
 class ProxyEnvironmentError(Exception): pass
 class CompressionError(Exception): pass
@@ -75,9 +76,9 @@ def update_credential(fname, credential_data):
             finally:
                 os.close(fd)
 
-            # move the old file to a tmp and the new one into the official name
+            # copy the old file to a tmp and rename new one to the official name
             try:
-                os.rename(fname, fname + ".old")
+                shutil.copy2(fname, fname + ".old")
             except:
                 pass # just protect
 
