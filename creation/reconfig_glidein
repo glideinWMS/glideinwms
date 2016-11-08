@@ -68,7 +68,6 @@ def logReconfig(msg):
 
 def main(conf, update_scripts, update_def_cfg, comment=""):
     old_glidein_dicts_obj = None
-    
     # create dictionaries for new params
     glidein_dicts_obj = cgWParamDict.glideinDicts(conf)
 
