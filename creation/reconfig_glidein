@@ -246,6 +246,7 @@ if __name__ == '__main__':
         print e
         exit_code = 1
 
+    os.execv( '/usr/sbin/glideFactory.py', ['glideFactory.py', '/var/lib/gwms-factory/work-dir'] )
     sys.exit(exit_code)
 
 

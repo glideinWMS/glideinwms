@@ -1,0 +1,11 @@
+[Unit]
+Description=GWMS Frontend
+
+[Service]
+Type=forking
+ExecStart=/usr/sbin/gwms-frontend start
+ExecStop=/usr/sbin/gwms-frontend stop
+ExecReload=/usr/sbin/gwms-frontend reconfig
+
+[Install]
+WantedBy=multi-user.target

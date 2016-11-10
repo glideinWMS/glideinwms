@@ -220,4 +220,4 @@ if __name__ == '__main__':
         print "Writing back config file failed"
         sys.exit(1)
         
-
+    os.execv( '/usr/sbin/glideinFrontend', ['glideinFrontend', '/var/lib/gwms-frontend/vofrontend'] )
