@@ -5,7 +5,7 @@ Description=GWMS Factory
 Type=forking
 ExecStart=/usr/sbin/gwms-factory start
 ExecStop=/usr/sbin/gwms-factory stop
-ExecReload=/usr/sbin/gwms-factory reconfig
+ExecReload=/usr/sbin/gwms_factory_livereconfig
 
 [Install]
 WantedBy=multi-user.target

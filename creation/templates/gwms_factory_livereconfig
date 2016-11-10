@@ -1,0 +1,6 @@
+from glideinwms.factory import glideFactoryPidLib
+work_dir = '/var/lib/gwms-factory/work-dir'
+pid_obj = glideFactoryPidLib.FactoryPidSupport(work_dir)
+pid_obj.load_registered()
+print pid_obj.pid_fname
+print pid_obj.mypid
