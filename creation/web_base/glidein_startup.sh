@@ -3,8 +3,8 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
-#
+# File Version:  was 4.3.1
+GLIDEIN_RESULT_VERSION=4.3.1
 
 # default IFS, to protect against unusual environment, better than "unset IFS" because works with restoring old one
 IFS=$' \t\n'
@@ -107,6 +107,8 @@ else
     slots_layout="partitionable"
 fi
 
+# Functions python_b64uuencode, base64_b64uuencode, b64uuencode, print_file_limited are from glidein_lib.sh
+# copied here not to have to source the file
 function python_b64uuencode {
     echo "begin-base64 644 -"
     python -c 'import binascii,sys;fd=sys.stdin;buf=fd.read();size=len(buf);idx=0
@@ -139,13 +141,66 @@ function b64uuencode {
     fi
 }
 
+function print_file_limited {
+    # Echo to stderr the file passed (or portion of it), compressed and uuencoded
+    # $1 = fname - descriptive name for the output stream
+    # $2 = flength - length in MB to keep (0 no limit (default), +n n MB from the end, -n n MB from the head)
+    # $3 = fpath - this may include multiple files (but they are put together in the same stream)
+    local fname=$1
+    local lim_num
+    local lim_cmd=""
+    if [ $2 -ne 0 ]; then
+        # tail works also w/ negative numbers, head requires positive ones
+        let lim_num=$2*1024*-1024
+        if [ $2 -gt 0 ]; then
+            lim_cmd="tail -c $lim_num"
+        else
+            lim_cmd="head -c $lim_num"
+        fi
+    fi
+    shift 2
+    # Use ls to allow fpath to include wild cards
+    files_to_zip="`ls -1 $@ 2>/dev/null`"
+    if [ "$files_to_zip" != "" ]; then
+        echo "$fname" 1>&2
+        if [ -z "$lim_cmd" ]; then
+            echo "======== gzip | uuencode =============" 1>&2
+            gzip --stdout $files_to_zip | b64uuencode 1>&2
+        else
+            echo "======== $lim_cmd | gzip | uuencode =============" 1>&2
+            cat $files_to_zip | $lim_cmd | gzip --stdout | b64uuencode 1>&2
+        fi
+        echo
+    fi
+}
+
+function print_tail {
+  exit_code=$1
+  final_result_simple="$2"
+  final_result_long="$3"
+
+  glidein_end_time=`date +%s`
+  let total_time=$glidein_end_time-$startup_time
+  echo "=== Glidein ending `date` ($glidein_end_time) with code ${exit_code} after $total_time ==="
+
+  echo ""
+  echo "=== XML description of glidein activity ==="
+  echo  "${final_result_simple}" | grep -v "<cmd>"
+  echo "=== End XML description of glidein activity ==="
+
+  echo "" 1>&2
+  echo "=== Encoded XML description of glidein activity ===" 1>&2
+  echo "${final_result_long}" | gzip --stdout - | b64uuencode 1>&2
+  echo "=== End encoded XML description of glidein activity ===" 1>&2
+}
+
 function construct_xml {
   result="$1"
 
   glidein_end_time=`date +%s`
 
   echo "<?xml version=\"1.0\"?>
-<OSGTestResult id=\"glidein_startup.sh\" version=\"4.3.1\">
+<OSGTestResult id=\"glidein_startup.sh\" version=\"$GLIDEIN_RESULT_VERSION\">
   <operatingenvironment>
     <env name=\"cwd\">$start_dir</env>
   </operatingenvironment>
@@ -272,25 +327,6 @@ function simplexml2longxml {
   echo "${final_result_simple}" | awk 'BEGIN{fr=0;}{if (fr==1) print $0}/<operatingenvironment>/{fr=1;}'
 }
 
-function print_tail {
-  exit_code=$1
-  final_result_simple="$2"
-  final_result_long="$3"
-
-  glidein_end_time=`date +%s`
-  let total_time=$glidein_end_time-$startup_time
-  echo "=== Glidein ending `date` ($glidein_end_time) with code ${exit_code} after $total_time ==="
- 
-  echo ""
-  echo "=== XML description of glidein activity ==="
-  echo  "${final_result_simple}" | grep -v "<cmd>"
-  echo "=== End XML description of glidein activity ==="
-
-  echo "" 1>&2
-  echo "=== Encoded XML description of glidein activity ===" 1>&2
-  echo "${final_result_long}" | gzip --stdout - | b64uuencode 1>&2
-  echo "=== End encoded XML description of glidein activity ===" 1>&2
-}
 
 ####################################
 # Cleaup, print out message and exit
@@ -1520,11 +1556,21 @@ function fetch_file_base {
             have_dummy_otrx=0
             $main_dir/error_augment.sh -init
             START=`date +%s`
-            "$ffb_outname" glidein_config "$ffb_id"
-            ret=$?
+
+            unique_fname="gwms_ffb_$ffb_outname"
+            unique_fpath="glidein_startup_ffb"
+            # was: "$ffb_outname" glidein_config "$ffb_id"
+            ( ( ( ("$ffb_outname" glidein_config "$ffb_id" ; echo >"$unique_fpath"_exit_code.txt $?) | tee "$unique_fpath"_stdout.txt) 3>&1 1>&2 2>&3\
+               | tee "$unique_fpath"_stderr.txt) 3>&1 1>&2 2>&3)
+            ret="`cat "$unique_fpath"_exit_code.txt`"
             END=`date +%s`
             $main_dir/error_augment.sh  -process $ret "$ffb_id/$ffb_target_fname" "$PWD" "$ffb_outname glidein_config" "$START" "$END" #generating test result document
 	        $main_dir/error_augment.sh -concat
+	        # Process stdout and stderr, default limit is 2MB (before compression)
+            file_include_limit=`grep '^GLIDEIN_File_Include_Limit ' $glidein_config | awk '{print $2}'`
+            [ -z "$file_include_limit" ] && file_include_limit=2
+            print_file_limited "$unique_fname"_stdout.txt $file_include_limit "$unique_fpath"_stdout.txt
+            print_file_limited "$unique_fname"_stderr.txt $file_include_limit "$unique_fpath"_stderr.txt
             if [ $ret -ne 0 ]; then
                 echo "=== Validation error in $ffb_outname ===" 1>&2
                 warn "Error running '$ffb_outname'" 1>&2
@@ -1765,7 +1811,8 @@ if [ $ret -ne 0 ]; then
     warn "Error running '$last_script'" 1>&2
 fi
 
-#Things like periodic scripts might put messages here if they want them printed in the logfile
+#TODO: MMDB move in glidein_exit
+# Things like periodic scripts might put messages here if they want them printed in the logfile
 echo "=== Exit messages left by periodic scripts ===" 1>&2
 cat exit_message 1>&2
 echo 1>&2

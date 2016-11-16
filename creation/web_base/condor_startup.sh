@@ -211,53 +211,17 @@ function set_var {
     return 0
 }
 
-function python_b64uuencode {
-    echo "begin-base64 644 -"
-    python -c 'import binascii,sys;fd=sys.stdin;buf=fd.read();size=len(buf);idx=0
-while size>57:
- print binascii.b2a_base64(buf[idx:idx+57]),;
- idx+=57;
- size-=57;
-print binascii.b2a_base64(buf[idx:]),'
-    echo "===="
-}
 
-function base64_b64uuencode {
-    echo "begin-base64 644 -"
-    base64 -
-    echo "===="
-}
-
-# not all WNs have all the tools installed
-function b64uuencode {
-    which uuencode >/dev/null 2>&1
-    if [ $? -eq 0 ]; then
-    uuencode -m -
-    else
-    which base64 >/dev/null 2>&1
-    if [ $? -eq 0 ]; then
-        base64_b64uuencode
-    else
-        python_b64uuencode
-    fi
-    fi
-}
+# import b64uuencode functions
+#
+LIBLOCATION=$(dirname $0)
+source "$LIBLOCATION/glidein_lib.sh"
 
 function cond_print_log {
     # $1 = fname
     # $2 = fpath
-
-    logname=$1
-    shift
-    # Use ls to allow fpath to include wild cards
-    files_to_zip="`ls -1 $@ 2>/dev/null`"
-    
-    if [ "$files_to_zip" != "" ]; then
-        echo "$logname" 1>&2
-        echo "======== gzip | uuencode =============" 1>&2
-        gzip --stdout $files_to_zip | b64uuencode 1>&2
-        echo
-    fi
+    # Use the second parameter to limit the amount pasted
+    print_file_limited $1 0 $2
 }
 
 

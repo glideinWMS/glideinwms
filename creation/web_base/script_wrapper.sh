@@ -15,7 +15,13 @@
 #   Runs as startd_cron (except first test invocation): stdout is
 #      interpreted as classad
 # 
-# script_wrapper "$glidein_config" "$s_ffb_id" "$s_name" "$s_fname" 
+# script_wrapper "$glidein_config" "$s_ffb_id" "$s_name" "$s_fname" "$s_prefix"
+#
+#  $1 glidein_config - glidein configuration file
+#  $2 s_ffb_id - glidein configuration file
+#  $3 s_name - name, used in the included functions
+#  $4 s_fname - full path of the script to run
+#  $5 s_prefix - prefix used for the startd_cron
 #
 # Attributes/files used:
 #  ERROR_GEN_PATH
@@ -96,7 +102,7 @@ function publish {
 }
 
 
-# Manage failure listst in glidein_config (GLIDEIN_PS_FAILED_LIST/GLIDEIN_PS_FAILING_LIST) and connected ads
+# Manage failure lists in glidein_config (GLIDEIN_PS_FAILED_LIST/GLIDEIN_PS_FAILING_LIST) and connected ads
 # list_manage add|del name list_name 
 function list_manage {
     # invoked locally, trust 3 parameters
@@ -151,6 +157,11 @@ function failed {
     exit 1
 }
 
+# import b64uuencode and print_file_limited functions
+#
+LIBLOCATION=$(dirname $0)
+source "$LIBLOCATION/glidein_lib.sh"
+
 
 ### Script wrapper starts
 
@@ -185,14 +196,25 @@ cd "$tmp_dir"
 
 ${main_dir}/error_augment.sh -init
 START=`date +%s`
-"$s_fname" "$glidein_config" "$s_ffb_id"
-ret=$?
+unique_fname="gwms_`basename "$s_fname"`_${START}"
+unique_fpath="$tmp_dir/$unique_fname"
+# was: "$s_fname" "$glidein_config" "$s_ffb_id"
+( ( ( ("$s_fname" "$glidein_config" "$s_ffb_id" ; echo >"$unique_fpath"_exit_code.txt $?) | tee "$unique_fpath"_stdout.txt) 3>&1 1>&2 2>&3\
+   | tee "$unique_fpath"_stderr.txt) 3>&1 1>&2 2>&3)
+ret="`cat "$unique_fpath"_exit_code.txt`"
 END=`date +%s`
 ${main_dir}/error_augment.sh  -process $ret "$s_ffb_id/`basename "$s_fname"`" "$PWD" "$s_fname $glidein_config" "$START" "$END"  #generating test result document
 ${main_dir}/error_augment.sh -locked-concat
 if [ $? -ne 0 ]; then 
     vmessage "=== Error: unable to save the log file for $s_name ($s_fname): check for orphaned lock file ==="
-fi 
+fi
+
+# Process stdout and stderr, default limit is 2MB (before compression)
+file_include_limit=`grep '^GLIDEIN_File_Include_Limit ' $glidein_config | awk '{print $2}'`
+[ -z "$file_include_limit" ] && file_include_limit=2
+print_file_limited "$unique_fname"_stdout.txt $file_include_limit "$unique_fpath"_stdout.txt
+print_file_limited "$unique_fname"_stderr.txt $file_include_limit "$unique_fpath"_stderr.txt
+
 if [ $ret -ne 0 ]; then
     # Failed 
     vmessage "=== Validation error in $s_fname ===" 

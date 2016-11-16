@@ -1,7 +1,7 @@
-# VarName		Type	Default		CondorName			Req.	Export 	UserJobEnvName
-#                       S=Quote - = No Default	+ = VarName				Condor	- = Do not export
-#												+ = Use VarName
-#												@ = Use CondorName
+# VarName      Type     Default         CondorName    Required  Export_to_Condor  UserJobEnvName
+#              S=Quote  - = No Default  + = VarName   Y         Y                 - = Do not export
+#              C                                      N         N                 + = Use VarName
+#              I                                                                  @ = Use CondorName
 #################################################################################################################
 
 # User modifiable variables
@@ -14,6 +14,7 @@ GLIDEIN_Max_Tail 	I 	400 		+				N	Y	-
 GLIDEIN_Max_Walltime	I	-		+				N	Y	-
 GLIDEIN_Retire_Time 	I 	-		+				N	N	-
 GLIDEIN_Retire_Time_Spread 	I 	-	+				N	N	-
+GLIDEIN_File_Include_Limit 	I 	2	+				N	N	-
 GLEXEC_JOB		C	True		+				N	Y	-
 GLIDEIN_Use_PGroups	C	False		USE_PROCESS_GROUPS		N	N	-
 UPDATE_COLLECTOR_WITH_TCP	C	True	+				N	N	-
