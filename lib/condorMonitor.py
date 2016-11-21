@@ -432,9 +432,9 @@ class CondorQuery(StoredQuery):
             self.security_obj.enforce_requests()
 
             if full_xml:
-                xml_data = condorExe.exe_cmd(self.exe_name,"%s -xml %s %s"%(self.resource_str,self.pool_str,constraint_str),env=self.env);
+                xml_data = condorExe.exe_cmd(self.exe_name,"%s -xml %s %s"%(self.resource_str,self.pool_str,constraint_str),env=self.env)
             else:
-                xml_data = condorExe.exe_cmd(self.exe_name,"%s %s -xml %s %s"%(self.resource_str,format_str,self.pool_str,constraint_str),env=self.env);
+                xml_data = condorExe.exe_cmd(self.exe_name,"%s %s -xml %s %s"%(self.resource_str,format_str,self.pool_str,constraint_str),env=self.env)
 
         finally:
             # restore old security context

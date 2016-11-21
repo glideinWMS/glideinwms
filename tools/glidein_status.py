@@ -68,9 +68,9 @@ def ltotal_cmp(x,y): # Total last
     # Total always last
     if x=='Total':
        if y=='Total':
-           return 0;
+           return 0
        else:
-           return 1;
+           return 1
     elif y=='Total':
         return -1
 
@@ -81,9 +81,9 @@ def entry_cmp(x,y):
     # Total always last
     if x=='Total':
        if y=='Total':
-           return 0;
+           return 0
        else:
-           return 1;
+           return 1
     elif y=='Total':
         return -1
 
@@ -107,32 +107,32 @@ def entry_cmp(x,y):
 def get_opts():
     parser = argparse.ArgumentParser(description='Equivalent to condor_status but with glidein specific info')
     parser.add_argument('-gatekeeper', '--gatekeeper', dest='want_gk',
-                      help='Print out the glidein gatekeeper',
-                      action='store_true', default=False)
+                        help='Print out the glidein gatekeeper',
+                        action='store_true', default=False)
     parser.add_argument('-glidecluster', '--glidecluster', dest='want_gc',
-                      help='Print out the glidein cluster',
-                      action='store_true', default=False)
+                        help='Print out the glidein cluster',
+                        action='store_true', default=False)
     parser.add_argument('-glexec', '--glexec', dest='want_glexec',
-                      help='Print out if glexec is used',
-                      action='store_true', default=False)
+                        help='Print out if glexec is used',
+                        action='store_true', default=False)
     parser.add_argument('-withmonitor', '--with-monitor', dest='want_monitor',
-                      help='Print out the monitoring VMs',
-                      action='store_true', default=False)
+                        help='Print out the monitoring VMs',
+                        action='store_true', default=False)
     parser.add_argument('-bench', '--bench', dest='want_bench',
-                      help='Print out benchmarking numbers',
-                      action='store_true', default=False)
+                        help='Print out benchmarking numbers',
+                        action='store_true', default=False)
     parser.add_argument('-total', '--total', dest='total_only',
-                      help='Print out totals only (skip details)',
-                      action='store_true', default=False)
+                        help='Print out totals only (skip details)',
+                        action='store_true', default=False)
     parser.add_argument('-site', '--site', dest='summarize_site',
-                      help='Summarize by site (default by entry name)',
-                      action='store_true', default=False)
+                        help='Summarize by site (default by entry name)',
+                        action='store_true', default=False)
     parser.add_argument('-pool', '--pool', dest='pool_name',
-                      help='Same as -pool in condor_status',
-                      default=None)
+                        help='Same as -pool in condor_status',
+                        default=None)
     parser.add_argument('-constraint', '--constraint', dest='constraint',
-                      help='Same as -constraint in condor_status',
-                      default=None)
+                        help='Same as -constraint in condor_status',
+                        default=None)
 
     args = parser.parse_args()
     return args
@@ -273,7 +273,7 @@ def main():
             sum_str=cel['GLIDEIN_Site']
         else:
             sum_str="%s@%s@%s"%(cel['GLIDEIN_Entry_Name'],cel['GLIDEIN_Name'],cel['GLIDEIN_Factory'])
-        if not counts.has_key(sum_str):
+        if sum_str not in counts:
             counts[sum_str]={}
             for c in counts_header:
                 counts[sum_str][c]=0
