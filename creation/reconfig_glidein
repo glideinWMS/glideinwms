@@ -83,7 +83,7 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
         sys.exit(1)
 
     # merge them together
-    if not old_glidein_dicts_obj is None:
+    if old_glidein_dicts_obj is not None:
         entries = set(glidein_dicts_obj.main_dicts['glidein']['Entries'].split(','))
         old_entries = old_glidein_dicts_obj.main_dicts['glidein']['Entries'].split(',')
         disabled_entries = glidein_dicts_obj.main_dicts.disabled_sub_list

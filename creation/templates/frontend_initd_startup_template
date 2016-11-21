@@ -51,6 +51,7 @@ RET_NOT_RUNNING=7
 
 
 [ -f /etc/sysconfig/gwms-frontend ] && . /etc/sysconfig/gwms-frontend
+. /etc/rc.d/init.d/functions
 
 # Variables substituted during the file creation (by cvWCreate.py)        
 frontend_dir=%(frontend_dir)s
@@ -250,7 +251,8 @@ start() {
             return $RETVAL
         fi
 
-        invoke_as_frontend "nice -2 \"${FRONTEND_START}\" \"$frontend_dir\" 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
+	daemon --user $FRONTEND_USER --pidfile="$frontend_dir/lock/frontend.lock" -2 "${FRONTEND_START} $frontend_dir 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
+
         for i in {1..15}; do  # Use seq if a variable is needed: $(seq 1 $END)
             # Returns 0 if running, 1 if not
             "${FRONTEND_CHECK}" "$frontend_dir" >/dev/null 2>&1 </dev/null
