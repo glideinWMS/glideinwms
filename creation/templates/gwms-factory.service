@@ -5,7 +5,7 @@ Description=GWMS Factory
 Type=forking
 ExecStart=/usr/sbin/gwms-factory start
 ExecStop=/usr/sbin/gwms-factory stop
-ExecReload=/usr/sbin/gwms_factory_livereconfig
+ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]
 WantedBy=multi-user.target

@@ -5,7 +5,7 @@ Description=GWMS Frontend
 Type=forking
 ExecStart=/usr/sbin/gwms-frontend start
 ExecStop=/usr/sbin/gwms-frontend stop
-ExecReload=/usr/sbin/gwms_frontend_livereconfig
+ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]
 WantedBy=multi-user.target

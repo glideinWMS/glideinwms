@@ -1,6 +1,0 @@
-from glideinwms.frontend import glideinFrontendPidLib
-work_dir = '/var/lib/gwms-frontend/vofrontend'
-pid_obj = glideinFrontendPidLib.FrontendPidSupport(work_dir)
-pid_obj.load_registered()
-print pid_obj.pid_fname
-print pid_obj.mypid

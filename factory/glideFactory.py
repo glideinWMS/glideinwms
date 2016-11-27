@@ -728,7 +728,7 @@ def main(startup_dir):
             # begins from the beginning, it will not error out which will happen 
             # if the lock file is not empty
             pid_obj.relinquish()
-            os.execv( '/usr/sbin/reconfig_glidein', ['reconfig_glidein', '-update_scripts', 'no', '-xml', '/etc/gwms-factory/glideinWMS.xml'] )
+            os.execv( '/usr/sbin/reconfig_glidein', ['reconfig_glidein', '-update_scripts', 'no', '-sl7reload', '-xml', '/etc/gwms-factory/glideinWMS.xml'] )
         except:
             logSupport.log.exception("Exception occurred spawning the factory: ")
     finally:

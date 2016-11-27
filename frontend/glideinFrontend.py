@@ -556,7 +556,8 @@ def main(work_dir, action):
             frontend_name = get_frontend_name()
             logSupport.log.info("Received SIGHUP, reload config uid = %d and fname = %s" %(os.getuid(), frontend_name) )
             pid_obj.relinquish()
-            os.execv( '/usr/sbin/reconfig_frontend', ['reconfig_frontend', '-force_name', frontend_name, '-update_def_cfg', 'no', '-xml', '/etc/gwms-frontend/frontend.xml'] )
+#            os.execv( '/usr/sbin/reconfig_frontend', ['reconfig_frontend', '-force_name', frontend_name, '-update_def_cfg', 'no', '-xml', '/etc/gwms-frontend/frontend.xml'] )
+            os.execv( '/usr/sbin/reconfig_frontend', ['reconfig_frontend', '-sl7reload', '-xml', '/etc/gwms-frontend/frontend.xml'] )
         except:
             logSupport.log.exception("Exception occurred trying to spawn: ")
     finally:
