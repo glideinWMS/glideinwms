@@ -38,7 +38,6 @@ from glideinwms.creation.lib import xslt
 from glideinwms.frontend import glideinFrontendMonitorAggregator
 
 ################################################################################
-
 def print2( message ):
     print message
     syslog.syslog( message )

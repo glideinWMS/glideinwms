@@ -388,13 +388,8 @@ reconfig() {
         if [ $notrun -eq 0 ]; then
             echo "the GlidinWMS Frontend is running."
             echo "You should use reconfig only when Frontend is not running"
-            echo "Please stop it first, this script errors out here"
+            echo "Please stop it first using systemctl command, this script errors out here"
             exit 1
-#            stop
-#            if [ $RETVAL -ne 0 ] && [ $RETVAL -ne 2 ]; then
-#                echo "Failed to stop the GlidinWMS Frontend. Please check."
-#                exit $RETVAL
-#            fi
         fi
         pushd $frontend_dir 1>/dev/null
 
@@ -429,7 +424,7 @@ upgrade() {
         if [ $notrun -eq 0 ]; then
             echo "the GlidinWMS Frontend is running."
             echo "You should use upgrade only when Frontend is not running"
-            echo "Please stop it first, this script errors out here"
+            echo "Please stop it first using systemctl command, this script errors out here"
             exit 1
         fi
         pushd $frontend_dir 1>/dev/null

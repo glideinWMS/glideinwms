@@ -462,25 +462,6 @@ def cleanup_environ():
             del os.environ[val]
 
 ############################################################
-# this function is used when reconfig_frontend is called
-# /etc/init.d/gwms-frontend uses grep,sed,awk combination to 
-# achieve the same goal
-def get_frontend_name():
-    frontendname = ''
-    rawstr = ''
-    with open('/etc/gwms-frontend/frontend.xml', 'r') as f:
-        rawstr = f.read()
-
-    PO = re.compile('^<frontend(.*)>')
-    MO = re.search( PO, rawstr )
-    MOG = MO.group(1)
-    for x in MOG.split():
-        if x.startswith('frontend_name'):
-            y = x.split('=')
-            frontendname = y[1].rstrip('"').lstrip('"')
-    return frontendname
-
-############################################################
 def main(work_dir, action):
     startup_time=time.time()
 
@@ -553,10 +534,8 @@ def main(work_dir, action):
         except KeyboardInterrupt:
             logSupport.log.info("Received signal...exit")
         except HUPException:
-            frontend_name = get_frontend_name()
-            logSupport.log.info("Received SIGHUP, reload config uid = %d and fname = %s" %(os.getuid(), frontend_name) )
+            logSupport.log.info("Received SIGHUP, reload config")
             pid_obj.relinquish()
-#            os.execv( '/usr/sbin/reconfig_frontend', ['reconfig_frontend', '-force_name', frontend_name, '-update_def_cfg', 'no', '-xml', '/etc/gwms-frontend/frontend.xml'] )
             os.execv( '/usr/sbin/reconfig_frontend', ['reconfig_frontend', '-sl7reload', '-xml', '/etc/gwms-frontend/frontend.xml'] )
         except:
             logSupport.log.exception("Exception occurred trying to spawn: ")
