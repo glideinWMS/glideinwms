@@ -1,5 +1,5 @@
 [Unit]
-Description=GWMS Frontend
+Description=GWMS Frontend Service
 
 [Service]
 Type=forking

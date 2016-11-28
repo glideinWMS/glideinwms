@@ -23,7 +23,6 @@ import traceback
 import signal
 import time
 import logging
-import re
 
 STARTUP_DIR = sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../.."))
@@ -460,7 +459,6 @@ def cleanup_environ():
             # remove any X509 environment variables
             # don't want any surprises
             del os.environ[val]
-
 ############################################################
 def main(work_dir, action):
     startup_time=time.time()
@@ -556,7 +554,6 @@ def termsignal(signr, frame):
 
 def hupsignal(signr, frame):
     raise HUPException, "Received signal %s" % signr
-
 
 if __name__ == '__main__':
     signal.signal(signal.SIGTERM, termsignal)

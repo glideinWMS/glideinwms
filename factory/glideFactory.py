@@ -45,9 +45,6 @@ from glideinwms.factory import glideFactoryMonitoring
 from glideinwms.factory import glideFactoryDowntimeLib
 from glideinwms.factory import glideFactoryCredentials
 
-class HUPException(Exception):
-    pass
-
 ############################################################
 def aggregate_stats(in_downtime):
     """
@@ -739,6 +736,8 @@ def main(startup_dir):
 # S T A R T U P
 #
 ############################################################
+class HUPException(Exception):
+    pass
 
 def termsignal(signr, frame):
     raise KeyboardInterrupt, "Received signal %s" % signr
