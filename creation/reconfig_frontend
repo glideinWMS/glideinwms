@@ -44,7 +44,7 @@ def print2( message ):
 
 def main(params, old_params, update_scripts, update_def_cfg):
     # load old files
-    if not old_params is None:
+    if old_params is not None:
         old_frontend_dicts_obj=cvWParamDict.frontendDicts(old_params)
         old_frontend_dicts_obj.load()
 
@@ -56,7 +56,7 @@ def main(params, old_params, update_scripts, update_def_cfg):
         frontend_dicts_obj.create_dirs(fail_if_exists=False)
 
     # merge them together
-    if not old_params is None:
+    if old_params is not None:
         frontend_dicts_obj.reuse(old_frontend_dicts_obj)
 
     # write to disk

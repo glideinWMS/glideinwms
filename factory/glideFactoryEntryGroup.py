@@ -442,7 +442,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
     """
 
     is_first=1
-    count=0;
+    count=0
 
     # Record the starttime so we know when to disable the use of old pub key
     starttime = time.time()

@@ -10,9 +10,9 @@ process_branch() {
     echo "GIT BRANCH: $git_branch"
     echo "===================================================================="
     # Initialize logs
-    echo -n > $pylint_log
-    echo -n > $pep8_log
-    echo -n > $results
+    > $pylint_log
+    > $pep8_log
+    > $results
 
     echo "GIT_BRANCH=\"$git_branch\"" >> $results
     if [ -n "$git_branch" ]; then
@@ -79,10 +79,10 @@ process_branch() {
         cd $currdir
     done
     echo "FILES_CHECKED=\"$files_checked\"" >> $results
-    echo "FILES_CHECKED_COUNT=`echo $files_checked | wc -w`" >> $results
-    echo "PYLINT_ERROR_FILES_COUNT=`grep '^\*\*\*\*\*\*' $pylint_log | wc -l`" >> $results
-    echo "PYLINT_ERROR_COUNT=`grep '^E:' $pylint_log | wc -l`" >> $results
-    echo "PEP8_ERROR_COUNT=`cat $pep8_log | wc -l`" >> $results
+    echo "FILES_CHECKED_COUNT=`echo $files_checked | wc -w | tr -d " "`" >> $results
+    echo "PYLINT_ERROR_FILES_COUNT=`grep '^\*\*\*\*\*\*' $pylint_log | wc -l | tr -d " "`" >> $results
+    echo "PYLINT_ERROR_COUNT=`grep '^E:' $pylint_log | wc -l | tr -d " "`" >> $results
+    echo "PEP8_ERROR_COUNT=`cat $pep8_log | wc -l | tr -d " "`" >> $results
     echo "----------------"
     cat $results
     echo "----------------"
