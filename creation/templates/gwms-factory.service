@@ -1,5 +1,7 @@
 [Unit]
 Description=GWMS Factory Service
+Requires=condor.service
+After=condor.service
 
 [Service]
 Type=forking
