@@ -101,8 +101,8 @@ STARTD.ALLOW_CLIENT = collector*/*, anonymous*/*, frontend*/*, condor*/*, submit
 STARTD.GSI_DAEMON_NAME =
 DENY_WRITE = anonymous@*
 DENY_ADMINISTRATOR = anonymous@*
-	DENY_DAEMON = anonymous@*
-	DENY_NEGOTIATOR = anonymous@*
+DENY_DAEMON = anonymous@*
+DENY_NEGOTIATOR = anonymous@*
 DENY_OWNER = anonymous@*
 DENY_CONFIG = anonymous@*
 
