@@ -349,7 +349,7 @@ reconfig() {
 
     "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null
     notrun=$?
-    if [ $notrun -eq 0 ]; then
+    if [ $notrun -eq 1 ]; then
 
 	if [ -f "$1" ]; then
             echo "Using factory config file arg: $1"
@@ -438,7 +438,7 @@ upgrade() {
 
     "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null
     notrun=$?
-    if [ $notrun -eq 0 ]; then
+    if [ $notrun -eq 1 ]; then
 
         if [ -f "$1" ]; then
            echo "Using factory config file arg: $1"
