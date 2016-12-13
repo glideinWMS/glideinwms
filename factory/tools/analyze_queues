@@ -359,7 +359,7 @@ IdleDiff (Idle - RequestedIdle):    %s
        analyze.printline(period_data[period]['StatusStageOut'],status_total,period),
 
        analyze.printline(period_data[period]['StatusRunning']-period_data[period]['ClientGlideTotal'],period_data[period]['StatusRunning'],period),
-       analyze.printline(period_data[period]['StatusIdle']-period_data[period]['ReqIdle'],1,period)));
+       analyze.printline(period_data[period]['StatusIdle']-period_data[period]['ReqIdle'],1,period)))
 
 
 ################################################################################

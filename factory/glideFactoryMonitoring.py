@@ -741,7 +741,7 @@ class condorLogSummary:
         for enle_jobrange in getAllJobRanges():
             count_jobnrs[enle_jobrange] = 0 # make sure all are initialized
 
-        count_jobs_duration = {};
+        count_jobs_duration = {}
         for enle_jobs_duration_range in getAllTimeRanges():
             count_jobs_duration[enle_jobs_duration_range] = 0 # make sure all are intialized
 

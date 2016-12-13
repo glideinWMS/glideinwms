@@ -55,7 +55,7 @@ def main(params,bdii_data,bdii_srv,
     entry=params.data['entries'][newname]
     entry['gridtype']=gridtype
     entry['gatekeeper']=gatekeeper
-    if not rsl is None:
+    if rsl is not None:
         entry['rsl']=rsl
     elif entry.has_key('rsl'):
         del entry['rsl']
