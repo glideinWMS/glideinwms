@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 #
 # Project:
@@ -17,6 +18,7 @@
 
 import os
 import sys
+import json
 import fcntl
 import resource
 import subprocess
@@ -36,6 +38,7 @@ from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
 from glideinwms.lib import glideinWMSVersion
 from glideinwms.lib import util
+from glideinwms.lib.condorMonitor import CondorQEdit, QueryError
 from glideinwms.factory import glideFactoryPidLib
 from glideinwms.factory import glideFactoryConfig
 from glideinwms.factory import glideFactoryLib
@@ -72,6 +75,24 @@ def aggregate_stats(in_downtime):
         # protect and report
         logSupport.log.exception("aggregateRRDStats failed: ")
     return stats
+
+
+def update_classads(logSupp):
+    """ Loads the aggregate job summary pickle files, and then
+    quedit the finished jobs adding a new classad called MONITOR_INFO with the monitor information.
+
+    :param logSupp: for logging in case of error
+    :return:
+    """
+    jobinfo = glideFactoryMonitorAggregator.aggregateJobsSummary()
+    for cnames, joblist in jobinfo.iteritems():
+        schedd_name = cnames[0]
+        pool_name = cnames[1]
+        try:
+            qe = CondorQEdit(pool_name=pool_name, schedd_name=schedd_name)
+            qe.executeAll(joblist=joblist.keys(), attributes=['MONITOR_INFO']*len(joblist), values=map(json.dumps, joblist.values()))
+        except QueryError as qe:
+            logSupp.log.error("Impossible to update monitoring classads: %s" % qe)
 
 
 def save_stats(stats, fname):
@@ -342,6 +363,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                             startup_dir,
                             entry_names,
                             str(group)]
+
             childs[group] = subprocess.Popen(command_list, shell=False,
                                              stdout=subprocess.PIPE,
                                              stderr=subprocess.PIPE,
@@ -508,6 +530,11 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             logSupport.log.info("Aggregate monitoring data")
             stats = aggregate_stats(factory_downtimes.checkDowntime())
             save_stats(stats, os.path.join(startup_dir, glideFactoryConfig.factoryConfig.aggregated_stats_file))
+
+            # Aggregate job data periodically
+            logSupport.log.info("Starting updating job classads")
+            stats = update_classads(logSupport)
+            logSupport.log.info("Finishing updating job classads")
 
             # Advertise the global classad with the factory keys and Factory statistics
             try:
@@ -707,7 +734,7 @@ def main(startup_dir):
         pid_obj.register()
     except glideFactoryPidLib.pidSupport.AlreadyRunning, err:
         pid_obj.load_registered()
-        logSupport.log.exception("Failed starting Factory. Instance with pid %s is aready running. Exception during pid registration: %s" % 
+        logSupport.log.exception("Failed starting Factory. Instance with pid %s is aready running. Exception during pid registration: %s" %
                                  (pid_obj.mypid , err))
         raise
     try:
@@ -735,7 +762,6 @@ if __name__ == '__main__':
         os.setpgid(0, 0)
     signal.signal(signal.SIGTERM, termsignal)
     signal.signal(signal.SIGQUIT, termsignal)
-
     try:
         main(sys.argv[1])
     except KeyboardInterrupt, e:

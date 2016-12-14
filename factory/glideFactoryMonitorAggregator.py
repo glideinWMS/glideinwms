@@ -15,6 +15,7 @@
 import copy
 import time
 import string
+import pickle
 import os.path
 import tempfile
 import shutil
@@ -44,6 +45,7 @@ class MonitorAggregatorConfig:
         # name of the status files
         self.status_relname="schedd_status.xml"
         self.logsummary_relname="log_summary.xml"
+        self.jobsummary_relname="job_summary.pkl"
 
     def config_factory(self,monitor_dir,entries, log):
         self.monitor_dir=monitor_dir
@@ -113,7 +115,7 @@ def verifyHelper(filename,dict, fix_rrd=False):
         for line in outstr:
             os.write(f,"%s\n"%line)
         os.close(f)
-        #Move file to backup location 
+        #Move file to backup location
         shutil.move(filename,filename+backup_str)
         rrdSupport.addDataStore(tempfilename,tempfilename2,missing)
         outstr=dump_obj.restore(tempfilename2,restoredfilename)
@@ -133,12 +135,12 @@ def verifyRRD(fix_rrd=False):
     global monitorAggregatorConfig
     dir=monitorAggregatorConfig.monitor_dir
     total_dir=os.path.join(dir,"total")
-   
+
     status_dict={}
     completed_stats_dict={}
     completed_waste_dict={}
     counts_dict={}
- 
+
     # initialize the RRD dictionaries to match the current schema for verification
     for tp in status_attributes.keys():
         if tp in type_strings.keys():
@@ -283,7 +285,7 @@ def aggregateStatus(in_downtime):
                 else:
                     nr_feentries[fe]+=1
                 for w in entry_data['frontends'][fe].keys():
-                    if not status_fe['frontends'][fe].has_key(w):                    
+                    if not status_fe['frontends'][fe].has_key(w):
                         status_fe['frontends'][fe][w]={}
                     tela=status_fe['frontends'][fe][w]
                     ela=entry_data['frontends'][fe][w]
@@ -309,11 +311,11 @@ def aggregateStatus(in_downtime):
                                     tela[a]=int(ela[a])
                             except:
                                 pass #not an int, not Downtime, so do nothing
-                                        
+
                         # if any attribute from prev. frontends are not in the current one, remove from total
                         for a in tela.keys():
                             if not ela.has_key(a):
-                                del tela[a]        
+                                del tela[a]
 
 
     for w in global_total.keys():
@@ -332,7 +334,7 @@ def aggregateStatus(in_downtime):
             for a in tel.keys():
                 if a in avgEntries and nr_feentries.has_key(fe):
                     tel[a]=tel[a]/nr_feentries[fe] # divide per fe
-            
+
 
     xml_downtime = xmlFormat.dict2string({}, dict_name = 'downtime', el_name = '', params = {'status':str(in_downtime)}, leading_tab = xmlFormat.DEFAULT_TAB)
 
@@ -400,9 +402,40 @@ def aggregateStatus(in_downtime):
     return status
 
 ######################################################################################
+def aggregateJobsSummary():
+    """ Loads the job summary pickle files for each entry, aggregates them per schedd/collector pair, and return them.
+    :return: A dictionary containing the needed information that looks like:
+        {
+            ('schedd_name','collector_name') : {
+                '2994.000': {'condor_duration': 1328, 'glideing_duration': 1334, 'condor_started': 1, 'numjobs': 0, 'cduration': 1328},
+                '2997.000': {'condor_duration': 1328, 'glideing_duration': 1334, 'condor_started': 1, 'numjobs': 0, 'cduration': 1328},
+                ...
+            },
+            ('schedd_name','collector_name') : {
+                '2003.000': {'condor_duration': 1328, 'glideing_duration': 1334, 'condor_started': 1, 'numjobs': 0, 'cduration': 1328},
+                '206.000': {'condor_duration': 1328, 'glideing_duration': 1334, 'condor_started': 1, 'numjobs': 0, 'cduration': 1328},
+                ...
+            }
+        }
+    """
+    jobinfo = {}
+    for entry in monitorAggregatorConfig.entries:
+        # load entry log summary file
+        status_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_'+entry),
+                                    monitorAggregatorConfig.jobsummary_relname)
+        if os.path.isfile(status_fname):
+            with open(status_fname) as fd:
+                entry_joblist =  pickle.load(fd)
+            schedd_name = entry_joblist.get('schedd_name', None)
+            pool_name = entry_joblist.get('collector_name', None)
+            jobinfo.setdefault((schedd_name, pool_name), {}).update(entry_joblist['joblist'])
+    return jobinfo
+
+
+######################################################################################
 def aggregateLogSummary():
     """
-    Create an aggregate of log summary files, write it in an aggregate log 
+    Create an aggregate of log summary files, write it in an aggregate log
     summary file and in the end return the values
     """
 
@@ -454,7 +487,7 @@ def aggregateLogSummary():
                                               'CondorLasted': 0}
 
     fe_total = copy.deepcopy(global_total)  # same as above but for frontend totals
-    
+
     #
     status = {'entries': {}, 'total': global_total}
     status_fe = {'frontends': {}}  # analogous to above but for frontend totals
@@ -465,6 +498,7 @@ def aggregateLogSummary():
         # load entry log summary file
         status_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_'+entry),
                                     monitorAggregatorConfig.logsummary_relname)
+
         try:
             entry_data = xmlParse.xmlfile2dict(status_fname, always_singular_list=['Fraction', 'TimeRange', 'Range'])
         except IOError:
@@ -534,7 +568,7 @@ def aggregateLogSummary():
                 global_total['CompletedCounts']['JobsNr'][t] += int(entry_data['total']['CompletedCounts']['JobsNr'][t]['val'])
 
             status['entries'][entry]['total'] = local_total
-        
+
         # update frontends
         for fe in out_data:
             # compare each to the list of fe's accumulated so far
@@ -574,7 +608,7 @@ def aggregateLogSummary():
 
     # Write rrds
     writeLogSummaryRRDs("total", status["total"])
-    
+
     # Frontend total rrds across all factories
     for fe in status_fe['frontends']:
         writeLogSummaryRRDs("total/%s" % ("frontend_"+fe), status_fe['frontends'][fe])
@@ -617,7 +651,7 @@ def writeLogSummaryRRDs(fe_dir,status_el):
             exited=-status_el['Exited'][s]
             val_dict_counts["Exited%s"%s]=exited
             val_dict_counts_desc["Exited%s"%s]={'ds_type':'ABSOLUTE'}
-            
+
         entered=status_el['Entered'][s]
         val_dict_counts["Entered%s"%s]=entered
         val_dict_counts_desc["Entered%s"%s]={'ds_type':'ABSOLUTE'}
@@ -746,14 +780,14 @@ def aggregateRRDStats(log=logSupport.log):
                                     missing_client_data = True
                                     # well, some may be just missing.. can happen
                                     #log.debug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s][%s]" %(entry,'frontends',client,'periods',res,data_set))
-        
+
         # We still need to determine what is causing these missing data in case it is a real issue
         # but using this flags will at least reduce the number of messages in the logs (see commented out messages above)
         if missing_total_data:
             log.debug("aggregate_data, missing total data from file %s" % rrd_site(rrd))
         if missing_client_data:
             log.debug("aggregate_data, missing client data from file %s" % rrd_site(rrd))
-            
+
 
         # write an aggregate XML file
 
