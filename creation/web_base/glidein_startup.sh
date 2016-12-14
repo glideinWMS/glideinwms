@@ -1141,21 +1141,6 @@ if [ $? -ne 0 ]; then
 fi
 params2file $params
 
-###################################
-# Find out what kind of wget I have
-
-wget_nocache_flag=""
-wget --help |grep -q "\-\-no-cache "
-if [ $? -eq 0 ]; then
-  wget_nocache_flag="--no-cache"
-else
-  wget --help |grep -q "\-\-cache="
-  if [ $? -eq 0 ]; then
-    wget_nocache_flag="--cache=off"
-  else
-    warn "Unknown kind of wget, cannot disable caching" 1>&2
-  fi
-fi
 
 ############################################
 # get the proper descript file based on id
@@ -1347,11 +1332,153 @@ function fetch_file_try {
 
     # TODO: what if fft_get_ss is not 1? nothing? fft_rc is not set but is returned
     if [ "$fft_get_ss" == "1" ]; then
-       fetch_file_base "$fft_id" "$fft_target_fname" "$fft_real_fname" "$fft_file_type" "$fft_config_out" $fft_period "$fft_cc_prefix"
+       fetch_file_base "$fft_id" "$fft_target_fname" "$fft_real_fname" "$fft_file_type" "$fft_config_out" "$fft_period" "$fft_cc_prefix"
        fft_rc=$?
     fi
 
     return $fft_rc
+}
+
+function perform_wget {
+    wget_args=("$@")
+    arg_len=${#wget_args[@]}
+    ffb_url="${wget_args[0]}"
+    ffb_repository=$(dirname "$ffb_url")
+    ffb_real_fname=$(basename "$ffb_url")
+    proxy_url="None"
+    for ((i=0; i<arg_len; i++));
+    do
+        if [ "${wget_args[$i]}" == "--output-document" ]; then
+            ffb_tmp_outname=${wget_args[$i+1]}
+        fi
+        if [ "${wget_args[$i]}" == "--proxy" ]; then
+            proxy_url=${wget_args[$i+1]}
+        fi
+    done
+    START=$(date +%s)
+    if [ "$proxy_url" != "None" ]; then
+        wget_args=(${wget_args[@]:0:$arg_len-2})
+        wget_cmd=$(echo "env http_proxy=${proxy_url} wget ${wget_args[@]}"| sed 's/"/\\\"/g')
+        wget_resp=$(env http_proxy="$proxy_url" wget "${wget_args[@]}" 2>&1)
+        wget_retval=$?
+    else
+        wget_cmd=$(echo "wget ${wget_args[@]}"| sed 's/"/\\\"/g')
+        wget_resp=$(wget "${wget_args[@]}" 2>&1)
+        wget_retval=$?
+    fi    
+
+    if [ $wget_retval -ne 0 ]; then
+        wget_version=$(wget --version 2>&1 | head -1)
+        warn "$wget_cmd failed. version:$wget_version  exit code $wget_retval stderr: $wget_resp " 
+	    # cannot use error_*.sh helper functions
+	    # may not have been loaded yet, and wget fails often
+        echo "<OSGTestResult id=\"perform_wget\" version=\"4.3.1\">
+  <operatingenvironment>
+    <env name=\"cwd\">$PWD</env>
+    <env name=\"uname\">$(uname -a)</env>
+    <env name=\"release\">$(cat /etc/system-release)</env>
+    <env name=\"wget_version\">$wget_version</env>
+  </operatingenvironment>
+  <test>
+    <cmd>$wget_cmd</cmd>
+    <tStart>$(date --date=@${START} +%Y-%m-%dT%H:%M:%S%:z)</tStart>
+    <tEnd>$(date +%Y-%m-%dT%H:%M:%S%:z)</tEnd>
+  </test>
+  <result>
+    <status>ERROR</status>
+    <metric name=\"failure\" ts=\"$(date --date=@${START} +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">Network</metric>
+    <metric name=\"URL\" ts=\"$(date --date=@${START} +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_url}</metric>
+    <metric name=\"http_proxy\" ts=\"$(date --date=@${START} +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">$proxy_url</metric>
+    <metric name=\"source_type\" ts=\"$(date --date=@${START} +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_id}</metric>
+  </result>
+  <detail>
+  Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'.  $wget_resp
+  </detail>
+</OSGTestResult>" > otrb_output.xml
+	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'." 
+
+	    if [ -f otr_outlist.list ]; then
+		    chmod u+w otr_outlist.list
+	    else
+		    touch otr_outlist.list
+	    fi
+	    cat otrb_output.xml >> otr_outlist.list
+	    echo "<?xml version=\"1.0\"?>" > otrx_output.xml
+        cat otrb_output.xml >> otrx_output.xml
+	    rm -f otrb_output.xml
+	    chmod a-w otr_outlist.list
+	fi 
+    return $wget_retval
+}
+
+function perform_curl {
+    curl_args=("$@")
+    arg_len=${#curl_args[@]}
+    ffb_url="${curl_args[0]}"
+    ffb_repository=$(dirname "$ffb_url")
+    ffb_real_fname=$(basename "$ffb_url")
+    for ((i=0; i<arg_len; i++));
+    do
+        if [ "${curl_args[$i]}" == "--output" ]; then
+            ffb_tmp_outname=${curl_args[$i+1]}
+        fi
+        if [ "${curl_args[$i]}" == "--proxy" ]; then
+            proxy_url=${curl_args[$i+1]}
+        fi
+    done
+
+    START=$(date +%s)
+    curl_cmd=$(echo "curl ${curl_args[@]}" | sed 's/"/\\\"/g')
+    curl_resp=$(curl "${curl_args[@]}" 2>&1)
+    curl_retval=$?
+    if [ $curl_retval -eq 0 ] && [ ! -e "${ffb_tmp_outname}" ] ; then
+        touch "${ffb_tmp_outname}"
+    fi
+
+
+
+    if [ $curl_retval -ne 0 ]; then
+        curl_version=$(curl --version 2>&1 | head -1)
+        warn "$curl_cmd failed. version:$curl_version  exit code $curl_retval stderr: $curl_resp " 
+	    # cannot use error_*.sh helper functions
+	    # may not have been loaded yet, and wget fails often
+        echo "<OSGTestResult id=\"perform_curl\" version=\"4.3.1\">
+  <operatingenvironment>
+    <env name=\"cwd\">$PWD</env>
+    <env name=\"uname\">$(uname -a)</env>
+    <env name=\"release\">$(cat /etc/system-release)</env>
+    <env name=\"curl_version\">$curl_version</env>
+  </operatingenvironment>
+  <test>
+    <cmd>${curl_cmd}</cmd>
+    <tStart>$(date --date=@${START} +%Y-%m-%dT%H:%M:%S%:z)</tStart>
+    <tEnd>$(date +%Y-%m-%dT%H:%M:%S%:z)</tEnd>
+  </test>
+  <result>
+    <status>ERROR</status>
+    <metric name=\"failure\" ts=\"$(date --date=@${START} +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">Network</metric>
+    <metric name=\"URL\" ts=\"$(date --date=@${START} +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_url}</metric>
+    <metric name=\"http_proxy\" ts=\"$(date --date=@${START} +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">$proxy_url</metric>
+    <metric name=\"source_type\" ts=\"$(date --date=@${START} +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">${ffb_id}</metric>
+  </result>
+  <detail>
+  Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'.  ${curl_resp}
+  </detail>
+</OSGTestResult>" > otrb_output.xml
+	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'." 
+
+	    if [ -f otr_outlist.list ]; then
+		    chmod u+w otr_outlist.list
+	    else
+		    touch otr_outlist.list
+	    fi
+	    cat otrb_output.xml >> otr_outlist.list
+	    echo "<?xml version=\"1.0\"?>" > otrx_output.xml
+        cat otrb_output.xml >> otrx_output.xml
+	    rm -f otrb_output.xml
+	    chmod a-w otr_outlist.list
+	fi 
+    return $curl_retval
 }
 
 function fetch_file_base {
@@ -1364,20 +1491,17 @@ function fetch_file_base {
     # condor cron prefix, used only for periodic executables
     ffb_cc_prefix="$7"
 
-    ffb_work_dir=`get_work_dir $ffb_id`
+    ffb_work_dir=$(get_work_dir "$ffb_id")
 
-    ffb_repository=`get_repository_url $ffb_id`
+    ffb_repository=$(get_repository_url "$ffb_id")
 
     ffb_tmp_outname="$ffb_work_dir/$ffb_real_fname"
     ffb_outname="$ffb_work_dir/$ffb_target_fname"
+    #these don't appear to be used anywhere
     ffb_desc_fname="$ffb_work_dir/$fname"
     ffb_signature="$ffb_work_dir/signature.sha1"
 
 
-    ffb_nocache_str=""
-    if [ "$ffb_file_type" == "nocache" ]; then
-          ffb_nocache_str="$wget_nocache_flag"
-    fi
 
     # Create a dummy default in case something goes wrong
     # cannot use error_*.sh helper functions
@@ -1390,114 +1514,88 @@ function fetch_file_base {
   </operatingenvironment>
   <test>
     <cmd>Unknown</cmd>
-    <tStart>`date +%Y-%m-%dT%H:%M:%S%:z`</tStart>
-    <tEnd>`date +%Y-%m-%dT%H:%M:%S%:z`</tEnd>
+    <tStart>$(date +%Y-%m-%dT%H:%M:%S%:z)</tStart>
+    <tEnd>$(date +%Y-%m-%dT%H:%M:%S%:z)</tEnd>
   </test>
   <result>
     <status>ERROR</status>
-    <metric name=\"failure\" ts=\"`date +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Unknown</metric>
-    <metric name=\"source_type\" ts=\"`date +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_id</metric>
+    <metric name=\"failure\" ts=\"$(date +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">Unknown</metric>
+    <metric name=\"source_type\" ts=\"$(date +%Y-%m-%dT%H:%M:%S%:z)\" uri=\"local\">$ffb_id</metric>
   </result>
   <detail>
      An unknown error occured.
   </detail>
 </OSGTestResult>" > otrx_output.xml
+    user_agent="glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name"
+    ffb_url="$ffb_repository/$ffb_real_fname"
+    curl_version=$(curl --version | head -1 )
+    wget_version=$(wget --version | head -1 )
+    #old wget command: 
+    #wget --user-agent="wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name" "$ffb_nocache_str" -q  -O "$ffb_tmp_outname" "$ffb_repository/$ffb_real_fname"
+    #equivalent to: 
+    #wget ${ffb_url} --user-agent=${user_agent} -q  -O "${ffb_tmp_outname}" "${ffb_nocache_str}"
+    #with env http_proxy=$proxy_url set if proxy_url != "None"
+    #
+    #construct curl equivalent so we can try either
 
-    # download file
-    if [ "$proxy_url" == "None" ]; then # no Squid defined, use the defaults
-	START=`date +%s`
-	wget --user-agent="wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name" $ffb_nocache_str -q  -O "$ffb_tmp_outname" "$ffb_repository/$ffb_real_fname"
-	if [ $? -ne 0 ]; then
-	    # cannot use error_*.sh helper functions
-	    # may not have been loaded yet, and wget fails often
-	    echo "<OSGTestResult id=\"wget\" version=\"4.3.1\">
-  <operatingenvironment>
-    <env name=\"cwd\">$PWD</env>
-  </operatingenvironment>
-  <test>
-    <cmd>wget --user-agent=\"wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name\" $ffb_nocache_str -q  -O \"$ffb_tmp_outname\" \"$ffb_repository/$ffb_real_fname\"</cmd>
-    <tStart>`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`</tStart>
-    <tEnd>`date +%Y-%m-%dT%H:%M:%S%:z`</tEnd>
-  </test>
-  <result>
-    <status>ERROR</status>
-    <metric name=\"failure\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Network</metric>
-    <metric name=\"URL\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_repository/$ffb_real_fname</metric>
-    <metric name=\"source_type\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_id</metric>
-  </result>
-  <detail>
-     Failed to load file '$ffb_real_fname' from '$ffb_repository'.
-  </detail>
-</OSGTestResult>" > otrb_output.xml
-	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'." 1>&2
+    wget_args=("${ffb_url}" "--user-agent" "wget/${user_agent}"  "--quiet"  "--output-document" "${ffb_tmp_outname}" )
+    curl_args=("${ffb_url}" "--user-agent" "curl/${user_agent}" "--silent"  "--show-error" "--output" "${ffb_tmp_outname}")
 
-	    if [ -f otr_outlist.list ]; then
-		chmod u+w otr_outlist.list
-	    else
-		touch otr_outlist.list
-	    fi
-	    cat otrb_output.xml >> otr_outlist.list
-	    echo "<?xml version=\"1.0\"?>
-`cat otrb_output.xml`">otrx_output.xml
-	    rm -f otrb_output.xml
-	    chmod a-w otr_outlist.list
-	    return 1
-	fi
-    else  # I have a Squid
-	START=`date +%s`
-	env http_proxy=$proxy_url wget --user-agent="wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name" $ffb_nocache_str -q  -O "$ffb_tmp_outname" "$ffb_repository/$ffb_real_fname" 
-	if [ $? -ne 0 ]; then
-	    # if Squid fails exit, because real jobs can try to use it too
-	    # cannot use error_*.sh helper functions
-	    # may not have been loaded yet, and wget fails often
-	    echo "<OSGTestResult id=\"wget\" version=\"4.3.1\">
-  <operatingenvironment>
-    <env name=\"cwd\">$PWD</env>
-  </operatingenvironment>
-  <test>
-    <cmd>env http_proxy=$proxy_url wget --user-agent=\"wget/glidein/$glidein_entry/$condorg_schedd/$condorg_cluster.$condorg_subcluster/$client_name\" $ffb_nocache_str -q  -O \"$ffb_tmp_outname\" \"$ffb_repository/$ffb_real_fname\"</cmd>
-    <tStart>`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`</tStart>
-    <tEnd>`date +%Y-%m-%dT%H:%M:%S%:z`</tEnd>
-  </test>
-  <result>
-    <status>ERROR</status>
-    <metric name=\"failure\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">Network</metric>
-    <metric name=\"URL\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_repository/$ffb_real_fname</metric>
-    <metric name=\"http_proxy\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$proxy_url</metric>
-    <metric name=\"source_type\" ts=\"`date --date=@$START +%Y-%m-%dT%H:%M:%S%:z`\" uri=\"local\">$ffb_id</metric>
-  </result>
-  <detail>
-    Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'.
-  </detail>
-</OSGTestResult>" > otrb_output.xml
-	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository' using proxy '$proxy_url'." 1>&2
-
-	    if [ -f otr_outlist.list ]; then
-		chmod u+w otr_outlist.list
-	    else
-		touch otr_outlist.list
-	    fi
-	    cat otrb_output.xml >> otr_outlist.list
-	    echo "<?xml version=\"1.0\"?>
-`cat otrb_output.xml`">otrx_output.xml
-	    rm -f otrb_output.xml
-	    chmod a-w otr_outlist.list
-	    return 1
-	fi
+    if [ "$ffb_file_type" == "nocache" ]; then
+        if [ "$curl_version" != "" ]; then
+            curl_args+=("--header")
+            curl_args+=("Cache-Control:")
+            curl_args+=("no-cache")
+        fi
+        if [ "$wget_version" != "" ]; then
+            if wget --help | grep -q "\-\-no-cache "; then
+                wget_args+=("--no-cache")
+            elif wget --help |grep -q "\-\-cache="; then
+                wget_args+=("--cache=off")
+            else
+                warn "wget $wget_version cannot disable caching" 
+            fi
+         fi    
     fi
 
+    if [ "$proxy_url" != "None" ];then
+        if [ "$curl_version" != "" ]; then
+            curl_args+=("--proxy")
+            curl_args+=("$proxy_url")
+        fi
+        if [ "$wget_version" != "" ]; then
+            #these two arguments have to be last as coded, put any future
+            #wget args earlier in wget_args array
+            wget_args+=("--proxy")
+            wget_args+=("$proxy_url")
+        fi
+    fi
+
+    fetch_completed=1
+    if [ $fetch_completed -ne 0 ] && [ "$wget_version" != "" ]; then
+        perform_wget "${wget_args[@]}"
+        fetch_completed=$?
+    fi
+    if [ $fetch_completed -ne 0 ] && [ "$curl_version" != "" ]; then
+        perform_curl "${curl_args[@]}"
+        fetch_completed=$?
+    fi
+
+    if [ $fetch_completed -ne 0 ]; then
+        return $fetch_completed
+    fi
     # check signature
     check_file_signature "$ffb_id" "$ffb_real_fname"
     if [ $? -ne 0 ]; then
-	# error already displayed inside the function
-	return 1
+	    # error already displayed inside the function
+	    return 1
     fi
 
     # rename it to the correct final name, if needed
     if [ "$ffb_tmp_outname" != "$ffb_outname" ]; then
         mv "$ffb_tmp_outname" "$ffb_outname"
         if [ $? -ne 0 ]; then
-            warn "Failed to rename $ffb_tmp_outname into $ffb_outname" 1>&2
+            warn "Failed to rename $ffb_tmp_outname into $ffb_outname" 
             return 1
         fi
     fi
@@ -1519,10 +1617,10 @@ function fetch_file_base {
             # the XML file will be overwritten now, and hopefully not an error situation
             have_dummy_otrx=0
             $main_dir/error_augment.sh -init
-            START=`date +%s`
+            START=$(date +%s)
             "$ffb_outname" glidein_config "$ffb_id"
             ret=$?
-            END=`date +%s`
+            END=$(date +%s)
             $main_dir/error_augment.sh  -process $ret "$ffb_id/$ffb_target_fname" "$PWD" "$ffb_outname glidein_config" "$START" "$END" #generating test result document
 	        $main_dir/error_augment.sh -concat
             if [ $ret -ne 0 ]; then
@@ -1710,10 +1808,10 @@ do
   gs_file_list_line=`grep "^$gs_file_list_id " "${gs_id_work_dir}/$gs_id_descript_file"`
   if [ $? -ne 0 ]; then
       if [ -z "$client_repository_group_url" ]; then
-	  if [ "${gs_file_list_id:0:11}" == "aftergroup_" ]; then
-	      # afterfile_.. files optional when no client_repository_group
-	      continue
-	  fi
+	      if [ "${gs_file_list_id:0:11}" == "aftergroup_" ]; then
+	          # afterfile_.. files optional when no client_repository_group
+	          continue
+	      fi
       fi
       warn "No '$gs_file_list_id' in description file ${gs_id_work_dir}/${gs_id_descript_file}." 1>&2
       glidein_exit 1
