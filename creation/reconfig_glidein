@@ -10,7 +10,7 @@
 #  This program updates a glidein factory directory structure
 #  based on a configuration file
 #
-import syslog
+
 import os
 import sys
 import logging
@@ -39,9 +39,6 @@ fix_rrd = False
 class UsageError(Exception): pass
 class ReconfigError(Exception): pass
 
-def print2( message ):
-    print message
-    syslog.syslog( message )
 
 def logReconfig(msg):
     glideinDescript=glideFactoryConfig.GlideinDescript()
@@ -82,7 +79,7 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
     try:
         glidein_dicts_obj.populate(old_glidein_dicts_obj)
     except cgWParamDict.UnconfiguredScheddError, e:
-        print2(e.err_str)
+        print e.err_str
         sys.exit(1)
 
     # merge them together
@@ -92,10 +89,10 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
         disabled_entries = glidein_dicts_obj.main_dicts.disabled_sub_list
         for entry in old_entries:
             if ((entry) and (entry not in entries) and (entry not in disabled_entries)):
-                print2("WARNING: entry %s is not found in new xml!" % entry)
+                print "WARNING: entry %s is not found in new xml!" % entry
                 if not force_delete:
-                    print2("Aborting reconfig since this is just too scary.")
-                    print2("Enable -force_delete if you really want to delete it.")
+                    print "Aborting reconfig since this is just too scary."
+                    print "Enable -force_delete if you really want to delete it."
                     sys.exit(1)
         
         glidein_dicts_obj.reuse(old_glidein_dicts_obj)
@@ -111,11 +108,11 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
         # copy the submit files
         cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.work_dir, cgWConsts.WEB_BASE_DIR, True)
         cgWCreate.copy_exe(cgWConsts.LOCAL_START_WRAPPER, glidein_dicts_obj.main_dicts.work_dir, cgWConsts.WEB_BASE_DIR, True)
-        print2('...Updated the glidein_startup.sh and local_start.sh scripts')
+        print '...Updated the glidein_startup.sh and local_start.sh scripts'
 
         # copy glidein_startup.sh to the stage area for cloud entries
         cgWCreate.copy_exe(cgWConsts.STARTUP_FILE, glidein_dicts_obj.main_dicts.stage_dir, cgWConsts.WEB_BASE_DIR, True)
-        print2("...Updated the glidein_startup.sh file in the staging area")
+        print "...Updated the glidein_startup.sh file in the staging area"
 
         # copy privsep helper executables
         cgWCreate.copy_exe(cgWConsts.UPDATE_PROXY_FILE, glidein_dicts_obj.main_dicts.work_dir, cgWConsts.WEB_BASE_DIR, True)
@@ -134,22 +131,22 @@ def main(conf, update_scripts, update_def_cfg, comment=""):
                                        factory_dir,
                                        os.path.realpath(os.path.join(STARTUP_DIR, '..')),
                                        conf.file)
-        print2("...Updated the factory_startup script")
+        print "...Updated the factory_startup script"
 
         if update_def_cfg == 'yes':
-            print2("...Updated default config file location to: %s" % conf.file)
+            print "...Updated default config file location to: %s" % conf.file
 
-    print2("...Reconfigured glidein '%s' is complete" % conf[u'glidein_name'])
-    print2("...Active entries are:")
+    print "...Reconfigured glidein '%s' is complete" % conf[u'glidein_name']
+    print "...Active entries are:"
     for entry in glidein_dicts_obj.active_sub_list:
-        print2("     %s"%entry)
-    print2("...Verifying rrd schema")
+        print "     %s"%entry
+    print "...Verifying rrd schema"
     if not glideFactoryMonitorAggregator.verifyRRD(fix_rrd):
         if not fix_rrd:
-            print2("Run with -fix_rrd option to update errors")
-            print2("WARNING: back up your existing rrds before auto-fixing rrds")
+            print "Run with -fix_rrd option to update errors"
+            print "WARNING: back up your existing rrds before auto-fixing rrds"
         sys.exit(1)
-    print2("...Submit files are in %s"%glidein_dicts_obj.main_dicts.work_dir)
+    print "...Submit files are in %s"%glidein_dicts_obj.main_dicts.work_dir
     if comment:
         logReconfig("Reconfig successful with options update_def_cfg='%s' update_scripts='%s' comment='%s'" % (update_def_cfg, update_scripts, comment))
 
@@ -165,7 +162,7 @@ if __name__ == '__main__':
     argv = sys.argv
 
     if len(argv) == 1:
-        print2(usage)
+        print usage
         sys.exit(1)
 
     if os.geteuid() == 0:
@@ -174,7 +171,6 @@ if __name__ == '__main__':
     force_name = None
     writeback = 'no'
     update_scripts = 'no'
-    sl7reload = False
     xml = ''
     comment=''
     update_def_cfg = 'no'
@@ -184,8 +180,6 @@ if __name__ == '__main__':
     for i in range(len(argv)):
         if argv[i] == '-fix_rrd':
             fix_rrd = True
-        if argv[i] == '-sl7reload':
-            sl7reload = True
         if argv[i] == '-comment':
             comment = "("+argv[i + 1]+")"
         if argv[i] == '-force_name':
@@ -203,7 +197,7 @@ if __name__ == '__main__':
         if argv[i] == '-update_def_cfg':
             update_def_cfg = argv[i + 1]
         if argv[i] == '-help':
-            print2(usage)
+            print usage
             sys.exit(1)
 
     # conf is of type factoryXmlConfig.Config
@@ -239,22 +233,18 @@ if __name__ == '__main__':
             raise ReconfigError(str(e))
 
     except ReconfigError, re:
-        print2(re)
+        print re
         exit_code = 1
 
     except UsageError, ue:
-        print2(usage)
+        print usage
         print ""
-        print2(ue)
+        print ue
         exit_code = 1
 
     except RuntimeError, e:
-        print2(e)
+        print e
         exit_code = 1
-
-    if sl7reload:
-        print2("switching back to the main glideFactory process")
-        os.execv( '/usr/sbin/glideFactory.py', ['glideFactory.py', '/var/lib/gwms-factory/work-dir'] )
 
     sys.exit(exit_code)
 

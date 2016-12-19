@@ -459,6 +459,8 @@ def cleanup_environ():
             # remove any X509 environment variables
             # don't want any surprises
             del os.environ[val]
+
+
 ############################################################
 def main(work_dir, action):
     startup_time=time.time()
@@ -531,10 +533,6 @@ def main(work_dir, action):
                 raise ValueError, "Unknown action: %s"%action
         except KeyboardInterrupt:
             logSupport.log.info("Received signal...exit")
-        except HUPException:
-            logSupport.log.info("Received SIGHUP, reload config")
-            pid_obj.relinquish()
-            os.execv( '/usr/sbin/reconfig_frontend', ['reconfig_frontend', '-sl7reload', '-xml', '/etc/gwms-frontend/frontend.xml'] )
         except:
             logSupport.log.exception("Exception occurred trying to spawn: ")
     finally:
@@ -546,19 +544,12 @@ def main(work_dir, action):
 #
 ############################################################
 
-class HUPException(Exception):
-    pass
-
 def termsignal(signr, frame):
     raise KeyboardInterrupt, "Received signal %s" % signr
-
-def hupsignal(signr, frame):
-    raise HUPException, "Received signal %s" % signr
 
 if __name__ == '__main__':
     signal.signal(signal.SIGTERM, termsignal)
     signal.signal(signal.SIGQUIT, termsignal)
-    signal.signal(signal.SIGHUP,  hupsignal)
 
     if len(sys.argv)==2:
         action = "run"
