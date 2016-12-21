@@ -10,7 +10,6 @@
 #  This program updates a frontend directory structure
 #  based on a configuration file
 #
-
 import os
 import copy
 import subprocess
@@ -36,8 +35,19 @@ from glideinwms.creation.lib import cvWCreate
 from glideinwms.creation.lib import cvWParamDict
 from glideinwms.creation.lib import xslt
 from glideinwms.frontend import glideinFrontendMonitorAggregator
-
+from glideinwms.frontend import glideinFrontendLib
+FRONTEND_DIR = os.path.dirname(glideinFrontendLib.__file__)
 ################################################################################
+
+try: # necessary because systemd is not on rhel6
+  from systemd import journal
+  def print2( message ):
+    print message
+    journal.send( message )
+
+except ImportError:
+  def print2( message ):
+    print message
 
 def main(params, old_params, update_scripts, update_def_cfg):
     # load old files
@@ -74,35 +84,35 @@ def main(params, old_params, update_scripts, update_def_cfg):
                                        frontend_dir,
                                        os.path.realpath(os.path.join(STARTUP_DIR,'..')),
                                        params.cfg_name)
-        print "...Updated the frontend_startup script"
-        
+        print2("...Updated the frontend_startup script")
         if update_def_cfg == 'yes':
-            print "...Updated default config file location to: %s" % params.cfg_name
+            print2("...Updated default config file location to: %s" % params.cfg_name)
 
     cfgfile=os.path.join(frontend_dicts_obj.main_dicts.work_dir,cvWConsts.XML_CONFIG_FILE)
     
     # save config into file (with backup, since the old one already exists)
     # This is the current working version of the frontend in the frontend instance dir
     params.save_into_file_wbackup(cfgfile,set_ro=True)
-    print "...Saved the current config file into the working dir"
+    print2("...Saved the current config file into the working dir")
 
     # make backup copy that does not get overwritten on further reconfig
     # This file is has a hash on the extension and is located in the frontend instance dir
     cfgfile=cWConsts.insert_timestr(cfgfile)
     params.save_into_file(cfgfile,set_ro=True)
-    print "...Saved the backup config file into the working dir"
+    print2("...Saved the backup config file into the working dir")
 
-    print "...Reconfigured frontend '%s'"%params.frontend_name
-    print "...Active groups are:"
+    print2("...Reconfigured frontend '%s'"%params.frontend_name)
+    print2("...Active groups are:")
     for entry in frontend_dicts_obj.active_sub_list:
-        print "     %s"%entry
-    print "...Verifying rrd schema"
+        print2("     %s"%entry)
+    print2("...Verifying rrd schema")
+
     if not glideinFrontendMonitorAggregator.verifyRRD(fix_rrd):
         if not fix_rrd:
-            print "Run with -fix_rrd option to update errors"
-            print "WARNING: back up your existing rrds before auto-fixing rrds"
+            print2("Run with -fix_rrd option to update errors")
+            print2("WARNING: back up your existing rrds before auto-fixing rrds")
         sys.exit(1)
-    print "...Work files are in %s"%frontend_dicts_obj.main_dicts.work_dir
+    print2("...Work files are in %s"%frontend_dicts_obj.main_dicts.work_dir)
 
 ############################################################
 #
@@ -115,16 +125,17 @@ if __name__ == '__main__':
     argv = sys.argv
 
     if len(argv) == 1:
-        print usage
+        print2(usage)
         sys.exit(1)
 
     if os.geteuid() == 0:
-        print "NOTE: Executing reconfig_frontend as user 'root' is not allowed. Use the frontend user instead. For rpm based installations, use the 'service gwms-frontend <start|stop|reconfig|...>' command to perform gwms-frontend operations"
+        print2("NOTE: Executing reconfig_frontend as user 'root' is not allowed. Use the frontend user instead. For rpm based installations, use the 'service gwms-frontend <start|stop|reconfig|...>' command to perform gwms-frontend operations")
 
     force_name = None
     writeback = 'no'
     update_scripts = 'no'
     update_def_cfg = 'no'
+    sighupreload = False
     xml = ''
 
     xslt_plugin_dir = os.environ.get('GWMS_XSLT_PLUGIN_DIR', None)
@@ -132,6 +143,8 @@ if __name__ == '__main__':
     for i in range(len(argv)):
         if argv[i] == '-fix_rrd':
             fix_rrd = True
+        if argv[i] == '-sighupreload':
+            sighupreload = True
         if argv[i] == '-force_name':
             force_name = argv[i+1]
         if argv[i] == '-writeback':
@@ -145,7 +158,7 @@ if __name__ == '__main__':
         if argv[i] == '-update_def_cfg':
             update_def_cfg = argv[i + 1]
         if argv[i] == '-help':
-            print usage
+            print2(usage)
             sys.exit(1)
 
     if xml == '':
@@ -167,26 +180,26 @@ if __name__ == '__main__':
         params.cfg_name = xml
 
     except RuntimeError,e:
-        print e
+        print2(e)
         sys.exit(1)
 
     if force_name is not None:
         if params.frontend_name!=force_name:
-            print usage
+            print2(usage)
             print ""
-            print "This is not a '%s' config file ('%s' found)"%(force_name,params.frontend_name)
+            print2("This is not a '%s' config file ('%s' found)"%(force_name,params.frontend_name))
             sys.exit(1)
         
     if not (writeback in ('yes','no')):
-        print usage
+        print2(usage)
         print ""
-        print "-writeback must be yes or no, found '%s'"%writeback
+        print2("-writeback must be yes or no, found '%s'"%writeback)
         sys.exit(1)
 
     if not (update_def_cfg in ('yes', 'no')):
-        print usage
+        print2(usage)
         print ""
-        print "-update_def_cfg must be yes or no, found '%s'" % update_def_cfg
+        print2("-update_def_cfg must be yes or no, found '%s'" % update_def_cfg)
         sys.exit(1)  
                    
     try:
@@ -199,25 +212,28 @@ if __name__ == '__main__':
             except RuntimeError, e:
                 raise RuntimeError,"Failed to load %s"%old_config_file
         else:
-            print "Warning: Cannot find %s"%old_config_file
-            print "If this is the first reconfig, you can ignore this message."
+            print2("Warning: Cannot find %s"%old_config_file)
+            print2("If this is the first reconfig, you can ignore this message.")
+
             old_params=None
             
         main(params, old_params, update_scripts, update_def_cfg)
         
     except RuntimeError, e:
-        print usage
+        print2(usage)
         print ""
-        print e
+        print2(e)
         sys.exit(1)
 
     try:
         if writeback=='yes':
             # Only writeback the config in the .cfg directly if explicitly asked to
             params.save_into_file_wbackup(params.cfg_name)
-            print "...Overriding the frontend config file in %s to the current configuration " % params.cfg_name
+            print2("...Overriding the frontend config file in %s to the current configuration " % params.cfg_name)
     except:
-        print "Writing back config file failed"
+        print2("Writing back config file failed")
         sys.exit(1)
-        
 
+    if sighupreload:
+        print2("switching back to the main glideinFrontend process")
+        os.execv( os.path.join(FRONTEND_DIR, "glideinFrontend.py"), ['glideinFrontend', '/var/lib/gwms-frontend/vofrontend'] )
