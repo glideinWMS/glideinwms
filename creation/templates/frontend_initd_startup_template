@@ -251,7 +251,11 @@ start() {
             return $RETVAL
         fi
 
-	daemon --user $FRONTEND_USER --pidfile="$frontend_dir/lock/frontend.lock" -2 "${FRONTEND_START} $frontend_dir 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
+	if [ "$RPM_INSTALL" = "True" ]; then
+	    daemon --user $FRONTEND_USER --pidfile="$frontend_dir/lock/frontend.lock" -2 "${FRONTEND_START} $frontend_dir 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
+	else
+	    invoke_as_frontend "nice -2 \"${FRONTEND_START}\" \"$frontend_dir\" 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
+	fi
 
         for i in {1..15}; do  # Use seq if a variable is needed: $(seq 1 $END)
             # Returns 0 if running, 1 if not
