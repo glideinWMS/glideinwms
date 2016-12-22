@@ -297,11 +297,11 @@ rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/info_glidein
 #rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/reconfig_glidein
 # these 2 sl7 init templates are only needed by create_rpm_startup above, 
 # after that, we dont package these, so deleting them here
-rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/factory_initd_startup_template_sl7
-rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/frontend_initd_startup_template_sl7
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/factory_initd_startup_template_sl7
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template_sl7
 # these 2 are installed in /usr/sbin and /usr/sbin/gwms-x.service will be packaged, not these, so deleting these too.
-rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/gwms-factory.service
-rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/gwms-frontend.service
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/gwms-factory.service
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/gwms-frontend.service
 
 %if %{?rhel}%{!?rhel:0} == 7
 # create /usr/lib/systemd/system directory 
