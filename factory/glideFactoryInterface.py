@@ -150,7 +150,8 @@ class MultiExeError(condorExe.ExeError):
 ############################################################
 
 def findGroupWork(factory_name, glidein_name, entry_names, supported_signtypes,
-                  pub_key_obj=None, additional_constraints=None, factory_collector=DEFAULT_VAL):
+                  pub_key_obj=None, additional_constraints=None,
+                  factory_collector=DEFAULT_VAL):
     """
     Find request classAds that have my (factory, glidein name, entries) and
     create the dictionary of dictionary of work request information.
@@ -347,19 +348,11 @@ def workGroupByEntries(work):
     return grouped_work
 
 
-
-
-
-
-
-
 # TODO: PM: findWork is still needed by tools/wmsXMLView. Modify wmsXMLView
 # its still being used before removing the function below
 
-def findWork(factory_name, glidein_name, entry_name,
-             supported_signtypes,
-             pub_key_obj=None,
-             additional_constraints=None,
+def findWork(factory_name, glidein_name, entry_name, supported_signtypes,
+             pub_key_obj=None, additional_constraints=None,
              factory_collector=DEFAULT_VAL):
     """
     Find request classAds that have my (factory, glidein name, entry name) and create the dictionary of work request information.
@@ -381,7 +374,6 @@ def findWork(factory_name, glidein_name, entry_name,
     @param factory_collector: the collector to query, special value 'default' will get it from the global config
 
     @return: dictionary, each key is the name of a frontend.  Each value has a 'requests' and a 'params' key.  Both refer to classAd dictionaries.
-        
     """
 
     global factoryConfig
@@ -655,12 +647,13 @@ def advertizeGlobal(factory_name, glidein_name, supported_signtypes,
 
     tmpnam = classadSupport.generate_classad_filename(prefix='gfi_ad_gfg')
 
-    gfg_classad = FactoryGlobalClassad(factory_name, glidein_name, supported_signtypes,
-                                       pub_key_obj)
+    gfg_classad = FactoryGlobalClassad(factory_name, glidein_name,
+                                       supported_signtypes, pub_key_obj)
 
     try:
         gfg_classad.writeToFile(tmpnam, append=False)
-        exe_condor_advertise(tmpnam, gfg_classad.adAdvertiseCmd, factory_collector=factory_collector)
+        exe_condor_advertise(tmpnam, gfg_classad.adAdvertiseCmd,
+                             factory_collector=factory_collector)
     finally:
         # Unable to write classad
         try:
