@@ -710,7 +710,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/glideinwms/creation/lib/xmlConfig.pyc
 %{python_sitelib}/glideinwms/creation/lib/xmlConfig.pyo
 %{python_sitelib}/glideinwms/creation/templates/factory_initd_startup_template
-%{python_sitelib}/glideinwms/creation/templates/reconfig_glidein
+%{python_sitelib}/glideinwms/creation/reconfig_glidein
 %{python_sitelib}/glideinwms/factory
 %if %{?rhel}%{!?rhel:0} == 7
 %{_sbindir}/gwms-factory
@@ -760,7 +760,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/glideinwms/creation/lib/cvWParams.pyc
 %{python_sitelib}/glideinwms/creation/lib/cvWParams.pyo
 %{python_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template
-%{python_sitelib}/glideinwms/creation/templates/reconfig_frontend
+%{python_sitelib}/glideinwms/creation/reconfig_frontend
 %if %{?rhel}%{!?rhel:0} == 7
 %{_sbindir}/gwms-frontend
 %{_libdir}/systemd/system/gwms-frontend.service
