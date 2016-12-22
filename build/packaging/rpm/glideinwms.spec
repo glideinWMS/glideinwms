@@ -49,8 +49,6 @@ Source8:        gwms-frontend.sysconfig
 Source9:        gwms-factory.sysconfig
 Source11:       creation/templates/frontend_startup_sl7
 Source12:       creation/templates/factory_startup_sl7
-Source13:       creation/templates/gwms-frontend.service
-Source14:       creation/templates/gwms-factory.service
 %description
 This is a package for the glidein workload management system.
 GlideinWMS provides a simple way to access the Grid and Cloud
@@ -308,8 +306,8 @@ install -d $RPM_BUILD_ROOT/%{_libdir}
 install -d $RPM_BUILD_ROOT/%{_libdir}/systemd
 install -d $RPM_BUILD_ROOT/%{_libdir}/systemd/system
 # place /usr/lib/systemd/system/gwms-frontend.service and /usr/lib/systemd/system/gwms-factory.service
-install -m 0755 %{SOURCE13} $RPM_BUILD_ROOT/%{_libdir}/systemd/system/
-install -m 0755 %{SOURCE14} $RPM_BUILD_ROOT/%{_libdir}/systemd/system/
+install -m 0755 creation/templates/gwms-frontend.service $RPM_BUILD_ROOT/%{_libdir}/systemd/system/
+install -m 0755 creation/templates/gwms-factory.service $RPM_BUILD_ROOT/%{_libdir}/systemd/system/
 # place /usr/sbin/gwms-frontend and /usr/sbin/gwms-factory
 install -d $RPM_BUILD_ROOT/%{_sbindir}
 install -m 0755 %{SOURCE11} $RPM_BUILD_ROOT/%{_sbindir}/gwms-frontend
