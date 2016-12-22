@@ -29,6 +29,8 @@ from glideinwms.lib import condorManager
 from glideinwms.lib import classadSupport
 from glideinwms.lib import logSupport
 from glideinwms.lib import x509Support
+from glideinwms.lib import glideinWMSVersion
+
 
 ############################################################
 #
@@ -50,6 +52,12 @@ class FrontendConfig:
 
         #Default the glideinWMS version string
         self.glideinwms_version = "glideinWMS UNKNOWN"
+        try:
+            glideinwms_dir = os.path.dirname(os.path.dirname(sys.argv[0]))
+            self.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(glideinwms_dir, 'checksum.frontend').version()
+        except:
+            logSupport.log.exception("Exception occurred while trying to retrieve the glideinwms version: ")
+
 
         # String to prefix for the attributes
         self.glidein_attr_prefix = ""
@@ -64,12 +72,14 @@ class FrontendConfig:
         # String to prefix for the configured limits
         self.glidein_config_prefix = "GlideinConfig"
 
+        # String to prefix for the performance metrics
+        self.glidein_perfmetric_prefix = "GlideinPerfMetric"
+
         # String to prefix for the requests
         self.client_req_prefix = "Req"
 
         # The name of the signtype
         self.factory_signtype_id = "SupportedSignTypes"
-
 
         # Should we use TCP for condor_advertise?
         self.advertise_use_tcp = False
@@ -77,7 +87,6 @@ class FrontendConfig:
         self.advertise_use_multi = False
 
         self.condor_reserved_names = ("MyType", "TargetType", "GlideinMyType", "MyAddress", 'UpdatesHistory', 'UpdatesTotal', 'UpdatesLost', 'UpdatesSequenced', 'UpdateSequenceNumber', 'DaemonStartTime')
-
 
 # global configuration of the module
 frontendConfig = FrontendConfig()
@@ -125,6 +134,7 @@ advertizeGFMCounter = {}
 # User functions
 #
 ############################################################
+
 def findGlobals(pool_name, auth_identity, classad_type,
                 additional_constraint=None): 
     """
@@ -1468,8 +1478,8 @@ class ResourceClassadAdvertiser(classadSupport.ClassadAdvertiser):
 
 class FrontendMonitorClassad(classadSupport.Classad):
     """
-    This class describes the resource classad. Frontend advertises the 
-    resource classad to the user pool as an UPDATE_AD_GENERIC type classad
+    This class describes the frontend monitor classad. Frontend advertises the
+    monitor classad to the user pool as an UPDATE_AD_GENERIC type classad
     """
     
 
@@ -1526,6 +1536,19 @@ class FrontendMonitorClassad(classadSupport.Classad):
             self.adParams['GlideFrontend_IdleJobs_%s' % k.title()] = idle_jobs[key]
 
 
+    def setPerfMetrics(self, perf_metrics):
+        """
+        Set the performance metrics info for frontend or group in the classad
+
+        @type perf_metrics: servicePerformance.PerfMetric
+        @param perf_metrics: PerfMetric object for frontend or group
+        """
+        for event in perf_metrics.metric:
+            attr_name = '%s_%s_%s' % (frontendConfig.glidein_perfmetric_prefix,
+                                      perf_metrics.name, event)
+            self.adParams[attr_name] = perf_metrics.event_lifetime(event)
+
+
 class FrontendMonitorClassadAdvertiser(classadSupport.ClassadAdvertiser):
     """
     Class to handle the advertisement of frontend monitor classads
@@ -1551,7 +1574,6 @@ class FrontendMonitorClassadAdvertiser(classadSupport.ClassadAdvertiser):
         self.adAdvertiseCmd = 'UPDATE_AD_GENERIC'
         self.adInvalidateCmd = 'INVALIDATE_ADS_GENERIC'
         self.advertiseFilePrefix = 'gfi_afm'
-
 
 
 ############################################################

@@ -34,6 +34,7 @@ from glideinwms.lib import symCrypto,pubCrypto
 from glideinwms.lib import glideinWMSVersion
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
+from glideinwms.lib import servicePerformance
 from glideinwms.lib.fork import fork_in_bg, wait_for_pids
 from glideinwms.lib.fork import ForkManager
 from glideinwms.lib.pidSupport import register_sighandler
@@ -87,14 +88,23 @@ class glideinFrontendElement:
         self.group_name = group_name
         self.action = action
 
-        self.elementDescript = glideinFrontendConfig.ElementMergedDescript(self.work_dir, self.group_name)
-        self.paramsDescript = glideinFrontendConfig.ParamsDescript(self.work_dir, self.group_name)
-        self.signatureDescript = glideinFrontendConfig.GroupSignatureDescript(self.work_dir, self.group_name)
-        self.attr_dict = glideinFrontendConfig.AttrsDescript(self.work_dir, self.group_name).data
-        self.history_obj = glideinFrontendConfig.HistoryFile(self.work_dir, self.group_name,
-                                                             True,  # auto load
-                                                             dict)  # automatically initialze objects to dictionaries, if needed
-        # PS: The default initialization is not to CounterWrapper, to avoid saving custom classes to disk
+        self.elementDescript = glideinFrontendConfig.ElementMergedDescript(
+            self.work_dir, self.group_name)
+        self.paramsDescript = glideinFrontendConfig.ParamsDescript(
+            self.work_dir, self.group_name)
+        self.signatureDescript = glideinFrontendConfig.GroupSignatureDescript(
+            self.work_dir, self.group_name)
+        self.attr_dict = glideinFrontendConfig.AttrsDescript(
+            self.work_dir, self.group_name).data
+
+        # Automatically initialze history object data to dictionaries
+        # PS: The default initialization is not to CounterWrapper, to avoid
+        # saving custom classes to disk
+        self.history_obj = glideinFrontendConfig.HistoryFile(
+            self.work_dir, self.group_name, True, dict)
+        # Reset the perf_metrics info
+        self.history_obj['perf_metrics'] = {}
+
         self.startup_time = time.time()
 
         # self.sleep_time = int(self.elementDescript.frontend_data['LoopDelay'])
@@ -171,12 +181,6 @@ class glideinFrontendElement:
         glideinFrontendMonitoring.monitoringConfig.monitor_dir = glideinFrontendConfig.get_group_dir(os.path.join(self.work_dir, "monitor"), self.group_name)
         glideinFrontendInterface.frontendConfig.advertise_use_tcp = (self.elementDescript.frontend_data['AdvertiseWithTCP'] in ('True', '1'))
         glideinFrontendInterface.frontendConfig.advertise_use_multi = (self.elementDescript.frontend_data['AdvertiseWithMultiple'] in ('True', '1'))
-
-        try:
-            glideinwms_dir = os.path.dirname(os.path.dirname(sys.argv[0]))
-            glideinFrontendInterface.frontendConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(glideinwms_dir, 'checksum.frontend').version()
-        except:
-            logSupport.log.exception("Exception occurred while trying to retrieve the glideinwms version: ")
 
         if self.elementDescript.merged_data['Proxies']:
             proxy_plugins = glideinFrontendPlugins.proxy_plugins
@@ -265,17 +269,24 @@ class glideinFrontendElement:
             logSupport.log.info("Iteration at %s" % time.ctime())
 
             done_something = self.iterate_one()
-            self.history_obj.save()
             logSupport.log.info("iterate_one status: %s" % str(done_something))
 
             logSupport.log.info("Writing stats")
             try:
+                servicePerformance.startPerfMetricEvent(
+                    self.group_name, 'write_monitoring_stats')
                 write_stats(self.stats)
+                servicePerformance.endPerfMetricEvent(
+                    self.group_name, 'write_monitoring_stats')
             except KeyboardInterrupt:
                 raise  # this is an exit signal, pass through
             except:
                 # never fail for stats reasons!
                 logSupport.log.exception("Exception occurred writing stats: " )
+            finally:
+                # Save the history_obj last even in case of exceptions
+                self.history_obj['perf_metrics'] = servicePerformance.getPerfMetric(self.group_name)
+                self.history_obj.save()
 
             # do it just before the sleep
             cleanupSupport.cleaners.cleanup()
@@ -354,7 +365,11 @@ class glideinFrontendElement:
 
         logSupport.log.debug("%i child query processes started"%len(forkm_obj))
         try:
+            servicePerformance.startPerfMetricEvent(
+                self.group_name, 'condor_queries')
             pipe_out=forkm_obj.fork_and_collect()
+            servicePerformance.endPerfMetricEvent(
+                self.group_name, 'condor_queries')
         except RuntimeError, e:
             # expect all errors logged already
             logSupport.log.info("Missing schedd, factory entry, and/or current glidein state information. " \
@@ -368,7 +383,7 @@ class glideinFrontendElement:
         self.factoryclients_dict = {}
         self.condorq_dict = {}
 
-        for pkel in pipe_out.keys():
+        for pkel in pipe_out:
             ptype,idx=pkel
             if ptype=='factory':
                 pglobals_dict, pglidein_dict, pfactoryclients_dict = pipe_out[pkel]
@@ -488,7 +503,9 @@ class glideinFrontendElement:
         # extract only the attribute names from format list
         self.condorq_match_list = [f[0] for f in self.elementDescript.merged_data['JobMatchAttrs']]
 
+        servicePerformance.startPerfMetricEvent(self.group_name, 'matchmaking')
         self.do_match()
+        servicePerformance.endPerfMetricEvent(self.group_name, 'matchmaking')
 
         logSupport.log.info("Total matching idle %i (old %i) running %i limit %i" % (
             condorq_dict_types['Idle']['total'],
@@ -759,6 +776,9 @@ class glideinFrontendElement:
         advertizer.renew_and_load_credentials()
 
         ad_factnames=advertizer.get_advertize_factory_list()
+        servicePerformance.startPerfMetricEvent(
+            self.group_name, 'advertize_classads')
+
         for ad_factname in ad_factnames:
                 logSupport.log.info("Advertising global and singular requests for factory %s" % ad_factname)
                 adname=advertizer.initialize_advertize_batch()+"_"+ad_factname # they will run in parallel, make sure they don't collide
@@ -774,6 +794,8 @@ class glideinFrontendElement:
 
         wait_for_pids(pids)
         logSupport.log.info("Done advertising")
+        servicePerformance.endPerfMetricEvent(
+            self.group_name, 'advertize_classads')
         return
 
     def populate_pubkey(self):
@@ -1321,53 +1343,54 @@ class glideinFrontendElement:
     def query_globals(self,factory_pool):
         # Query glidefactoryglobal ClassAd
         globals_dict = {}
+
         try:
-                # Note: M2Crypto key objects are not pickle-able,
-                # so we will have to do that in the parent later on
-                factory_pool_node = factory_pool[0]
-                my_identity_at_factory_pool = factory_pool[2]
-                try:
-                    factory_globals_dict = glideinFrontendInterface.findGlobals(
-                        factory_pool_node, None,
-                        glideinFrontendInterface.frontendConfig.factory_global)
-                except RuntimeError:
-                    # Failed to talk or likely result is empty
-                    # Maybe the next factory will have something
-                    if not factory_pool_node:
-                        logSupport.log.exception("Failed to talk to factory_pool %s for global info: " % factory_pool_node)
-                    else:
-                        logSupport.log.exception("Failed to talk to factory_pool for global info: " )
-                    factory_globals_dict = {}
+            # Note: M2Crypto key objects are not pickle-able,
+            # so we will have to do that in the parent later on
+            factory_pool_node = factory_pool[0]
+            my_identity_at_factory_pool = factory_pool[2]
+            try:
+                factory_globals_dict = glideinFrontendInterface.findGlobals(
+                    factory_pool_node, None,
+                    glideinFrontendInterface.frontendConfig.factory_global)
+            except RuntimeError:
+                # Failed to talk or likely result is empty
+                # Maybe the next factory will have something
+                if not factory_pool_node:
+                    logSupport.log.exception("Failed to talk to factory_pool %s for global info: " % factory_pool_node)
+                else:
+                    logSupport.log.exception("Failed to talk to factory_pool for global info: " )
+                factory_globals_dict = {}
 
-                for globalid in factory_globals_dict:
-                    globals_el = factory_globals_dict[globalid]
-                    if not globals_el['attrs'].has_key('PubKeyType'):
-                        # no pub key at all, nothing to do
-                        pass
-                    elif globals_el['attrs']['PubKeyType'] == 'RSA':
-                        # only trust RSA for now
-                        try:
-                            # The parent really needs just the M2Ctype object,
-                            # but that is not picklable, so it will have to
-                            # do it ourself
-                            globals_el['attrs']['PubKeyValue'] = str(re.sub(r"\\+n", r"\n", globals_el['attrs']['PubKeyValue']))
-                            globals_el['attrs']['FactoryPoolNode'] = factory_pool_node
-                            globals_el['attrs']['FactoryPoolId'] = my_identity_at_factory_pool
+            for globalid in factory_globals_dict:
+                globals_el = factory_globals_dict[globalid]
+                if not globals_el['attrs'].has_key('PubKeyType'):
+                    # no pub key at all, nothing to do
+                    pass
+                elif globals_el['attrs']['PubKeyType'] == 'RSA':
+                    # only trust RSA for now
+                    try:
+                        # The parent really needs just the M2Ctype object,
+                        # but that is not picklable, so it will have to
+                        # do it ourself
+                        globals_el['attrs']['PubKeyValue'] = str(re.sub(r"\\+n", r"\n", globals_el['attrs']['PubKeyValue']))
+                        globals_el['attrs']['FactoryPoolNode'] = factory_pool_node
+                        globals_el['attrs']['FactoryPoolId'] = my_identity_at_factory_pool
 
-                            # KEL: OK to put here?
-                            # Do we want all globals even if there is no key?
-                            # May resolve other issues with checking later on
-                            globals_dict[globalid] = globals_el
-                        except:
-                            # if no valid key, just notify...
-                            # if key needed, will handle the error later on
-                            logSupport.log.warning("Factory Globals '%s': invalid RSA key" % globalid)
-                            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1], sys.exc_info()[2])
-                            logSupport.log.debug("Factory Globals '%s': invalid RSA key traceback: %s\n" % (globalid, str(tb)))
-                    else:
-                        # don't know what to do with this key, notify the admin
+                        # KEL: OK to put here?
+                        # Do we want all globals even if there is no key?
+                        # May resolve other issues with checking later on
+                        globals_dict[globalid] = globals_el
+                    except:
+                        # if no valid key, just notify...
                         # if key needed, will handle the error later on
-                        logSupport.log.info("Factory Globals '%s': unsupported pub key type '%s'" % (globalid, globals_el['attrs']['PubKeyType']))
+                        logSupport.log.warning("Factory Globals '%s': invalid RSA key" % globalid)
+                        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1], sys.exc_info()[2])
+                        logSupport.log.debug("Factory Globals '%s': invalid RSA key traceback: %s\n" % (globalid, str(tb)))
+                else:
+                    # don't know what to do with this key, notify the admin
+                    # if key needed, will handle the error later on
+                    logSupport.log.info("Factory Globals '%s': unsupported pub key type '%s'" % (globalid, globals_el['attrs']['PubKeyType']))
 
         except Exception:
             logSupport.log.exception("Error in talking to the factory pool:")
@@ -1377,6 +1400,7 @@ class glideinFrontendElement:
 
     def query_factoryclients(self, factory_pool):
         # Query glidefactoryclient ClassAd
+
         try:
             factoryclients = {}
             factory_constraint = expand_DD(
@@ -1852,10 +1876,10 @@ if __name__ == '__main__':
         action = "run"
     else:
         action = sys.argv[4]
-    gfe = glideinFrontendElement(int(sys.argv[1]), sys.argv[2], sys.argv[3], action)
+    gfe = glideinFrontendElement(int(sys.argv[1]), sys.argv[2],
+                                 sys.argv[3], action)
     rc = gfe.main()
 
     # explicitly exit with 0
     # this allows for reliable checking
     sys.exit(rc)
-

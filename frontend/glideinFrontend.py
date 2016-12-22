@@ -30,6 +30,7 @@ sys.path.append(os.path.join(STARTUP_DIR,"../.."))
 from glideinwms.lib import condorExe
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
+from glideinwms.lib import servicePerformance
 from glideinwms.frontend import glideinFrontendPidLib
 from glideinwms.frontend import glideinFrontendConfig
 from glideinwms.frontend import glideinFrontendLib
@@ -47,10 +48,10 @@ def aggregate_stats():
 ############################################################
 class FailureCounter:
     def __init__(self, my_name, max_lifetime):
-        self.my_name=my_name
-        self.max_lifetime=max_lifetime
+        self.my_name = my_name
+        self.max_lifetime = max_lifetime
         
-        self.failure_times=[]
+        self.failure_times = []
 
     def add_failure(self, when=None):
         if when is None:
@@ -70,9 +71,9 @@ class FailureCounter:
 
     # clean out any old records
     def clean_old(self):
-        min_time=time.time()-self.max_lifetime
-        while (len(self.failure_times)>0 and
-               (self.failure_times[0]<min_time)): # I am assuming they are ordered
+        min_time = time.time() - self.max_lifetime
+        while (self.failure_times and (self.failure_times[0] < min_time)):
+            # Assuming they are ordered
             self.failure_times.pop(0)
         
 ############################################################
@@ -99,17 +100,17 @@ def spawn_group(work_dir, group_name, action):
     return child
 
 ############################################################
-def poll_group_process(group_name,child):
+def poll_group_process(group_name, child):
     # empty stdout and stderr
     try:
         tempOut = child.stdout.read()
-        if len(tempOut)!=0:
+        if len(tempOut) != 0:
             logSupport.log.info("[%s]: %s" % (group_name, tempOut))
     except IOError:
         pass # ignore
     try:
         tempErr = child.stderr.read()
-        if len(tempErr)!=0:
+        if len(tempErr) != 0:
             logSupport.log.warning("[%s]: %s" % (group_name, tempErr))
     except IOError:
         pass # ignore
@@ -124,57 +125,65 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active,
     childs = {}
   
     for group_name in groups:
-        childs[group_name] = {'state':'queued'}
+        childs[group_name] = {'state': 'queued'}
 
     active_groups = 0
     groups_tofinish = len(groups)
 
 
-    max_num_failures=0
+    max_num_failures = 0
     logSupport.log.info("Starting iteration")
     try:
-        while groups_tofinish>0:
+        while groups_tofinish > 0:
             done_something = False
             # check if any group finished by now
             for group_name in groups:
-                if childs[group_name]['state']=='spawned':
-                    group_rc = poll_group_process(group_name, childs[group_name]['data'])
+                if childs[group_name]['state'] == 'spawned':
+                    group_rc = poll_group_process(group_name,
+                                                  childs[group_name]['data'])
                     if not (group_rc is None): # None means "still alive"
-                        if group_rc==0:
+                        if group_rc == 0:
                             childs[group_name]['state'] = 'finished'
                         else:
                             childs[group_name]['state'] = 'failed'
                             failure_dict[group_name].add_failure()
-                            num_failures=failure_dict[group_name].count_failures()
-                            max_num_failures=max(max_num_failures, num_failures)
+                            num_failures = failure_dict[group_name].count_failures()
+                            max_num_failures = max(max_num_failures,
+                                                   num_failures)
                             logSupport.log.warning("Group %s terminated with exit code %i (%i recent failure)" % (group_name, group_rc, num_failures))
-                        childs[group_name]['end_time']=time.time()
-                        active_groups-=1
-                        groups_tofinish-=1
+                        childs[group_name]['end_time'] = time.time()
+                        servicePerformance.endPerfMetricEvent(
+                            'frontend', 'group_%s_iteration'%group_name)
+                        active_groups -= 1
+                        groups_tofinish -= 1
                         done_something = True
 
             # see if I can spawn more
             for group_name in groups:
-                if active_groups<max_active: # can spawn more
-                    if childs[group_name]['state']=='queued':
+                if active_groups < max_active: # can spawn more
+                    if childs[group_name]['state'] == 'queued':
                         childs[group_name]['data'] = spawn_group(work_dir, group_name, action)
                         childs[group_name]['state'] = 'spawned'
-                        childs[group_name]['start_time']=time.time()
-                        active_groups+=1
+                        childs[group_name]['start_time'] = time.time()
+                        servicePerformance.startPerfMetricEvent(
+                            'frontend', 'group_%s_iteration'%group_name)
+                        active_groups += 1
                         done_something = True
                 else:
                     break
 
             if done_something:
-                logSupport.log.info("Active groups = %i, Groups to finish = %i"%(active_groups,groups_tofinish))
-            if groups_tofinish>0:
+                logSupport.log.info("Active groups = %i, Groups to finish = %i" % (active_groups, groups_tofinish))
+            if groups_tofinish > 0:
                 time.sleep(0.01)
     
         logSupport.log.info("All groups finished")
 
         logSupport.log.info("Aggregate monitoring data")
         # KEL - can we just call the monitor aggregator method directly?  see above
+        servicePerformance.startPerfMetricEvent('frontend', 'aggregate_stats')
         stats = aggregate_stats()
+        servicePerformance.endPerfMetricEvent('frontend', 'aggregate_stats')
         #logSupport.log.debug(stats)
 
         # Create the glidefrontendmonitor classad
@@ -189,6 +198,21 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active,
         }
 
         fm_classad.setIdleJobCount(idle_jobs)
+        fm_classad.setPerfMetrics(servicePerformance.getPerfMetric('frontend'))
+        # Gather performance stats from history file of each group
+        for group_name in groups:
+            gname = 'group_%s' % group_name
+            try:
+                history_obj = glideinFrontendConfig.HistoryFile(
+                    work_dir, group_name, True, dict)
+                pfm = servicePerformance.getPerfMetric(gname)
+                pfm.metric = history_obj['perf_metrics'].metric
+
+                fm_classad.setPerfMetrics(
+                    servicePerformance.getPerfMetric(gname))
+            except:
+                pass # Do not fail for non-critical actions
+
         fm_advertiser.addClassad(fm_classad.adParams['Name'], fm_classad)
 
         # Advertise glidefrontendmonitor classad to user pool
@@ -196,7 +220,7 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active,
         try:
             set_frontend_htcondor_env(work_dir, frontendDescript)
             fm_advertiser.advertiseAllClassads()
-            logSupport.log.info("Done advertising %s classad(s)to the user pool"% fm_advertiser.adType)
+            logSupport.log.info("Done advertising %s classad(s) to the user pool" % fm_advertiser.adType)
         except condorExe.ExeError:
             logSupport.log.error("Exception occurred trying to advertise %s classad(s) to the user pool" % fm_advertiser.adType)
         except:
@@ -209,25 +233,27 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active,
         logSupport.log.info("Cleaning logs")
         cleanupSupport.cleaners.cleanup()
 
-        if max_num_failures>max_failures:
+        if max_num_failures > max_failures:
             logSupport.log.info("Too many group failures, aborting")
             logSupport.log.debug("Failed %i times (limit %i), aborting"%(max_num_failures,max_failures))
             raise RuntimeError, "Too many group failures, aborting" 
     finally:
         # cleanup at exit
         # if anything goes wrong, hardkill the rest
-        for group_name in childs.keys():
+        for group_name in childs:
             if childs[group_name]['state']=='spawned':
                 logSupport.log.info("Hard killing group %s" % group_name)
+                servicePerformance.endPerfMetricEvent(
+                    'frontend', 'group_%s_iteration'%group_name)
                 try:
-                    os.kill(childs[group_name]['data'].pid,signal.SIGKILL)
+                    os.kill(childs[group_name]['data'].pid, signal.SIGKILL)
                 except OSError:
                     pass # ignore failed kills of non-existent processes
 
     # at this point, all groups should have been run
-    timings=[]
+    timings = []
     for group_name in groups:
-        timings.append((group_name,childs[group_name]['end_time']-childs[group_name]['start_time']))
+        timings.append((group_name, childs[group_name]['end_time']-childs[group_name]['start_time']))
     return timings
         
 ############################################################
@@ -276,7 +302,8 @@ def spawn_cleanup(work_dir, frontendDescript, groups, frontend_name, ha_mode):
 def spawn(sleep_time, advertize_rate, work_dir, frontendDescript,
           groups, max_parallel_workers, restart_interval, restart_attempts):
 
-    num_groups=len(groups)
+    num_groups = len(groups)
+
     # TODO: Get the ha_check_interval from the config
     ha = glideinFrontendLib.getHASettings(frontendDescript.data)
     ha_check_interval = glideinFrontendLib.getHACheckInterval(frontendDescript.data)
@@ -311,19 +338,21 @@ def spawn(sleep_time, advertize_rate, work_dir, frontendDescript,
                 logSupport.log.info("Master frontend %s is offline. Activating slave frontend." % master_frontend_name)
                 active = True
 
-            failure_dict={}
+            failure_dict = {} 
             for group in groups:
-                failure_dict[group]=FailureCounter(group, restart_interval)
+                failure_dict[group] = FailureCounter(group, restart_interval)
 
             while ((mode == 'master') or ((mode == 'slave') and active)):
-                start_time=time.time()
+                servicePerformance.startPerfMetricEvent('frontend', 'iteration')
+                start_time = time.time()
                 timings = spawn_iteration(work_dir, frontendDescript, groups,
                                           max_parallel_workers, failure_dict,
                                           restart_attempts, "run")
-                end_time=time.time()
-                elapsed_time=end_time-start_time
-                if elapsed_time<sleep_time:
-                    real_sleep_time=sleep_time-elapsed_time
+                servicePerformance.endPerfMetricEvent('frontend', 'iteration')
+                end_time = time.time()
+                elapsed_time = servicePerformance.getPerfMetricEventLifetime('frontend', 'iteration')
+                if elapsed_time < sleep_time:
+                    real_sleep_time = sleep_time - elapsed_time
                     logSupport.log.info("Sleep %.1f sec" % real_sleep_time)
                     time.sleep(real_sleep_time)
                 else:
@@ -333,8 +362,8 @@ def spawn(sleep_time, advertize_rate, work_dir, frontendDescript,
                 # longest walltime first
                 timings.sort(lambda x,y:-cmp(x[1],y[1]))
                 # recreate the groups list, with new ordering
-                groups=[el[0] for el in timings]
-                assert num_groups==len(groups), "Something went wrong, number of groups changed"
+                groups = [el[0] for el in timings]
+                assert num_groups == len(groups), "Something went wrong, number of groups changed"
 
                 if mode == 'slave':
                     # If we are slave, check if master is back and if so
@@ -370,6 +399,7 @@ def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
     @return: True if we should hibernate else False
     """
 
+    servicePerformance.startPerfMetricEvent('frontend', 'ha_check')
     if mode == 'slave':
         master_frontend_name = str(ha.get('ha_frontends')[0].get('frontend_name'))
 
@@ -388,6 +418,8 @@ def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
                         # Found some classads in one of the collectors
                         # Cleanup the env and return True
                         clean_htcondor_env()
+                        servicePerformance.endPerfMetricEvent(
+                            'frontend', 'ha_check')
                         return True
                 except RuntimeError:
                     # Failed to talk
@@ -408,6 +440,7 @@ def shouldHibernate(frontendDescript, work_dir, ha, mode, groups):
         # then the master frontend could be down so its safe to wake
         # up and start advertising.
 
+    servicePerformance.endPerfMetricEvent('frontend', 'ha_check')
     return False
 
 
@@ -463,13 +496,14 @@ def cleanup_environ():
 
 ############################################################
 def main(work_dir, action):
-    startup_time=time.time()
+    startup_time = time.time()
 
     glideinFrontendConfig.frontendConfig.frontend_descript_file = os.path.join(work_dir, glideinFrontendConfig.frontendConfig.frontend_descript_file)
     frontendDescript = glideinFrontendConfig.FrontendDescript(work_dir)
 
     # the log dir is shared between the frontend main and the groups, so use a subdir
-    logSupport.log_dir = os.path.join(frontendDescript.data['LogDir'], "frontend")
+    logSupport.log_dir = os.path.join(frontendDescript.data['LogDir'],
+                                      "frontend")
 
     # Configure frontend process logging
     process_logs = eval(frontendDescript.data['ProcessLogs']) 
@@ -505,7 +539,8 @@ def main(work_dir, action):
         logSupport.log.exception("Exception occurred configuring monitoring: ")
         raise
 
-    glideinFrontendMonitoring.write_frontend_descript_xml(frontendDescript, os.path.join(work_dir, 'monitor/'))
+    glideinFrontendMonitoring.write_frontend_descript_xml(
+        frontendDescript, os.path.join(work_dir, 'monitor/'))
     
     logSupport.log.info("Enabled groups: %s" % groups)
 
@@ -517,12 +552,12 @@ def main(work_dir, action):
         pid_obj.register(action)
     except  glideinFrontendPidLib.pidSupport.AlreadyRunning, err:
         pid_obj.load_registered()
-        logSupport.log.exception("Failed starting Frontend with action %s. Instance with pid %s is aready running for action %s. Exception during pid registration: %s" % 
-                                 (action, pid_obj.mypid , str(pid_obj.action_type), err))
+        logSupport.log.exception("Failed starting Frontend with action %s. Instance with pid %s is aready running for action %s. Exception during pid registration: %s" % (action, pid_obj.mypid , str(pid_obj.action_type), err))
         raise
+
     try:
         try:
-            if action=="run":
+            if action == "run":
                 spawn(sleep_time, advertize_rate, work_dir,
                       frontendDescript, groups, max_parallel_workers,
                       restart_interval, restart_attempts)
@@ -530,7 +565,7 @@ def main(work_dir, action):
                 spawn_removal(work_dir, frontendDescript, groups,
                               max_parallel_workers, action)
             else:
-                raise ValueError, "Unknown action: %s"%action
+                raise ValueError, "Unknown action: %s" % action
         except KeyboardInterrupt:
             logSupport.log.info("Received signal...exit")
         except:
@@ -551,7 +586,7 @@ if __name__ == '__main__':
     signal.signal(signal.SIGTERM, termsignal)
     signal.signal(signal.SIGQUIT, termsignal)
 
-    if len(sys.argv)==2:
+    if len(sys.argv) == 2:
         action = "run"
     else:
         action = sys.argv[2]
