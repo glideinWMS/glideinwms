@@ -24,7 +24,7 @@
 %define factory_web_base %{_localstatedir}/lib/gwms-factory/web-base
 %define factory_dir %{_localstatedir}/lib/gwms-factory/work-dir
 %define condor_dir %{_localstatedir}/lib/gwms-factory/condor
-
+%define usrlibdir %{_prefix}/lib
 
 Name:       glideinwms
 Version:    %{version}
@@ -305,12 +305,12 @@ rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/gwms-fronte
 
 %if %{?rhel}%{!?rhel:0} == 7
 # create /usr/lib/systemd/system directory 
-install -d $RPM_BUILD_ROOT/%{_libdir}
-install -d $RPM_BUILD_ROOT/%{_libdir}/systemd
-install -d $RPM_BUILD_ROOT/%{_libdir}/systemd/system
+install -d $RPM_BUILD_ROOT/%{usrlibdir}
+install -d $RPM_BUILD_ROOT/%{usrlibdir}/systemd
+install -d $RPM_BUILD_ROOT/%{usrlibdir}/systemd/system
 # place /usr/lib/systemd/system/gwms-frontend.service and /usr/lib/systemd/system/gwms-factory.service
-install -m 0755 creation/templates/gwms-frontend.service $RPM_BUILD_ROOT/%{_libdir}/systemd/system/
-install -m 0755 creation/templates/gwms-factory.service $RPM_BUILD_ROOT/%{_libdir}/systemd/system/
+install -m 0755 creation/templates/gwms-frontend.service $RPM_BUILD_ROOT/%{usrlibdir}/systemd/system/
+install -m 0755 creation/templates/gwms-factory.service $RPM_BUILD_ROOT/%{usrlibdir}/systemd/system/
 # place /usr/sbin/gwms-frontend and /usr/sbin/gwms-factory
 install -d $RPM_BUILD_ROOT/%{_sbindir}
 install -m 0755 %{SOURCE11} $RPM_BUILD_ROOT/%{_sbindir}/gwms-frontend
@@ -714,7 +714,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/glideinwms/factory
 %if %{?rhel}%{!?rhel:0} == 7
 %{_sbindir}/gwms-factory
-%{_libdir}/systemd/system/gwms-factory.service
+%{usrlibdir}/systemd/system/gwms-factory.service
 %else
 %{_initrddir}/gwms-factory
 %endif
@@ -763,7 +763,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/glideinwms/creation/reconfig_frontend
 %if %{?rhel}%{!?rhel:0} == 7
 %{_sbindir}/gwms-frontend
-%{_libdir}/systemd/system/gwms-frontend.service
+%{usrlibdir}/systemd/system/gwms-frontend.service
 %else
 %{_initrddir}/gwms-frontend
 %endif
