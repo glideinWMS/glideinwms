@@ -295,12 +295,15 @@ rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/info_glidein
 # for sl7 sighup to work, we need reconfig_frontend and reconfig_glidein under this directory
 #rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/reconfig_frontend
 #rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/reconfig_glidein
+# these 2 sl7 init templates are only needed by create_rpm_startup above, 
+# after that, we dont package these, so deleting them here
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/factory_initd_startup_template_sl7
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/frontend_initd_startup_template_sl7
+# these 2 are installed in /usr/sbin and /usr/sbin/gwms-x.service will be packaged, not these, so deleting these too.
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/gwms-factory.service
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/gwms-frontend.service
 
-# Install the init.d
-install -d  $RPM_BUILD_ROOT/%{_initrddir}
-install -m 0755 %{SOURCE1} $RPM_BUILD_ROOT/%{_initrddir}/gwms-frontend
-install -m 0755 %{SOURCE6} $RPM_BUILD_ROOT/%{_initrddir}/gwms-factory
-
+%if %{?rhel}%{!?rhel:0} == 7
 # create /usr/lib/systemd/system directory 
 install -d $RPM_BUILD_ROOT/%{_libdir}
 install -d $RPM_BUILD_ROOT/%{_libdir}/systemd
@@ -312,6 +315,12 @@ install -m 0755 creation/templates/gwms-factory.service $RPM_BUILD_ROOT/%{_libdi
 install -d $RPM_BUILD_ROOT/%{_sbindir}
 install -m 0755 %{SOURCE11} $RPM_BUILD_ROOT/%{_sbindir}/gwms-frontend
 install -m 0755 %{SOURCE12} $RPM_BUILD_ROOT/%{_sbindir}/gwms-factory
+%else
+# Install the init.d
+install -d  $RPM_BUILD_ROOT/%{_initrddir}
+install -m 0755 %{SOURCE1} $RPM_BUILD_ROOT/%{_initrddir}/gwms-frontend
+install -m 0755 %{SOURCE6} $RPM_BUILD_ROOT/%{_initrddir}/gwms-factory
+%endif
 
 # Install the web directory
 install -d $RPM_BUILD_ROOT%{frontend_dir}
@@ -701,6 +710,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/glideinwms/creation/lib/xmlConfig.pyc
 %{python_sitelib}/glideinwms/creation/lib/xmlConfig.pyo
 %{python_sitelib}/glideinwms/creation/templates/factory_initd_startup_template
+%{python_sitelib}/glideinwms/creation/templates/reconfig_glidein
 %{python_sitelib}/glideinwms/factory
 %if %{?rhel}%{!?rhel:0} == 7
 %{_sbindir}/gwms-factory
@@ -750,6 +760,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/glideinwms/creation/lib/cvWParams.pyc
 %{python_sitelib}/glideinwms/creation/lib/cvWParams.pyo
 %{python_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template
+%{python_sitelib}/glideinwms/creation/templates/reconfig_frontend
 %if %{?rhel}%{!?rhel:0} == 7
 %{_sbindir}/gwms-frontend
 %{_libdir}/systemd/system/gwms-frontend.service
