@@ -131,10 +131,10 @@ function detect_slot_cpus {
     return 1
 }
 
-# default is slot CPUs (was 1)
+# default is 1 (was slot CPUs, -1, in 3.2.16)
 if [ "X${GLIDEIN_CPUS}" = "X" ]; then
-    echo "`date` GLIDEIN_CPUS not set in $glidein_config. Setting to default of -1 (slot)."
-    GLIDEIN_CPUS="-1"
+    echo "`date` GLIDEIN_CPUS not set in $glidein_config. Setting to default of 1."
+    GLIDEIN_CPUS="1"
 fi
 
 # detect the number of cores made available to the slot
