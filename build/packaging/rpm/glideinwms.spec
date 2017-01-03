@@ -24,7 +24,7 @@
 %define factory_web_base %{_localstatedir}/lib/gwms-factory/web-base
 %define factory_dir %{_localstatedir}/lib/gwms-factory/work-dir
 %define condor_dir %{_localstatedir}/lib/gwms-factory/condor
-
+%define systemddir %{_prefix}/lib/systemd/system
 
 Name:       glideinwms
 Version:    %{version}
@@ -47,7 +47,8 @@ Source6:        creation/templates/factory_startup
 Source7:        chksum.sh
 Source8:        gwms-frontend.sysconfig
 Source9:        gwms-factory.sysconfig
-
+Source11:       creation/templates/frontend_startup_sl7
+Source12:       creation/templates/factory_startup_sl7
 %description
 This is a package for the glidein workload management system.
 GlideinWMS provides a simple way to access the Grid and Cloud
@@ -241,29 +242,29 @@ sed -i "s/STARTUP_DIR =.*/STARTUP_DIR=\"\/var\/lib\/gwms-factory\/web-base\"/" c
 sed -i "s/STARTUP_DIR =.*/STARTUP_DIR=\"\/var\/lib\/gwms-factory\/web-base\"/" creation/clone_glidein
 
 #Create the RPM startup files (init.d) from the templates
-creation/create_rpm_startup . %{SOURCE1} %{SOURCE6}
+creation/create_rpm_startup . frontend_initd_startup_template factory_initd_startup_template %{SOURCE1} %{SOURCE6}
+creation/create_rpm_startup . frontend_initd_startup_template_sl7 factory_initd_startup_template_sl7 %{SOURCE11} %{SOURCE12}
 
 # install the executables
 install -d $RPM_BUILD_ROOT%{_sbindir}
 # Find all the executables in the frontend directory
 install -m 0500 frontend/checkFrontend.py $RPM_BUILD_ROOT%{_sbindir}/checkFrontend
 install -m 0500 frontend/glideinFrontendElement.py $RPM_BUILD_ROOT%{_sbindir}/glideinFrontendElement.py
-install -m 0500 frontend/glideinFrontend.py $RPM_BUILD_ROOT%{_sbindir}/glideinFrontend
 install -m 0500 frontend/manageFrontendDowntimes.py $RPM_BUILD_ROOT%{_sbindir}/
 install -m 0500 frontend/stopFrontend.py $RPM_BUILD_ROOT%{_sbindir}/stopFrontend
+install -m 0500 frontend/glideinFrontend.py $RPM_BUILD_ROOT%{_sbindir}/glideinFrontend
 install -m 0500 creation/reconfig_frontend $RPM_BUILD_ROOT%{_sbindir}/reconfig_frontend
 
 #install the factory executables
 install -m 0500 factory/checkFactory.py $RPM_BUILD_ROOT%{_sbindir}/
-install -m 0500 factory/glideFactory.py $RPM_BUILD_ROOT%{_sbindir}/
 install -m 0500 factory/glideFactoryEntry.py $RPM_BUILD_ROOT%{_sbindir}/
 install -m 0500 factory/glideFactoryEntryGroup.py $RPM_BUILD_ROOT%{_sbindir}/
 install -m 0500 factory/manageFactoryDowntimes.py $RPM_BUILD_ROOT%{_sbindir}/
 install -m 0500 factory/stopFactory.py $RPM_BUILD_ROOT%{_sbindir}/
-install -m 0500 creation/reconfig_glidein $RPM_BUILD_ROOT%{_sbindir}/
 install -m 0500 creation/clone_glidein $RPM_BUILD_ROOT%{_sbindir}/
 install -m 0500 creation/info_glidein $RPM_BUILD_ROOT%{_sbindir}/
-
+install -m 0500 factory/glideFactory.py $RPM_BUILD_ROOT%{_sbindir}/
+install -m 0500 creation/reconfig_glidein $RPM_BUILD_ROOT%{_sbindir}/
 
 # install the library parts
 install -d $RPM_BUILD_ROOT%{python_sitelib}
@@ -291,13 +292,33 @@ rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/create_condor_tarball
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/create_frontend
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/create_glidein
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/info_glidein
-rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/reconfig_frontend
-rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/reconfig_glidein
+# for sl7 sighup to work, we need reconfig_frontend and reconfig_glidein under this directory
+#rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/reconfig_frontend
+#rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/reconfig_glidein
+# these 2 sl7 init templates are only needed by create_rpm_startup above, 
+# after that, we dont package these, so deleting them here
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/factory_initd_startup_template_sl7
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template_sl7
+# these 2 are installed in /usr/sbin and /usr/sbin/gwms-x.service will be packaged, not these, so deleting these too.
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/gwms-factory.service
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/gwms-frontend.service
 
+%if %{?rhel}%{!?rhel:0} == 7
+# create /usr/lib/systemd/system directory 
+install -d $RPM_BUILD_ROOT/%{systemddir}
+# place /usr/lib/systemd/system/gwms-frontend.service and /usr/lib/systemd/system/gwms-factory.service
+install -m 0755 creation/templates/gwms-frontend.service $RPM_BUILD_ROOT/%{systemddir}/
+install -m 0755 creation/templates/gwms-factory.service $RPM_BUILD_ROOT/%{systemddir}/
+# place /usr/sbin/gwms-frontend and /usr/sbin/gwms-factory
+install -d $RPM_BUILD_ROOT/%{_sbindir}
+install -m 0755 %{SOURCE11} $RPM_BUILD_ROOT/%{_sbindir}/gwms-frontend
+install -m 0755 %{SOURCE12} $RPM_BUILD_ROOT/%{_sbindir}/gwms-factory
+%else
 # Install the init.d
 install -d  $RPM_BUILD_ROOT/%{_initrddir}
 install -m 0755 %{SOURCE1} $RPM_BUILD_ROOT/%{_initrddir}/gwms-frontend
 install -m 0755 %{SOURCE6} $RPM_BUILD_ROOT/%{_initrddir}/gwms-factory
+%endif
 
 # Install the web directory
 install -d $RPM_BUILD_ROOT%{frontend_dir}
@@ -435,6 +456,8 @@ install -d $RPM_BUILD_ROOT%{web_base}/../creation
 install -d $RPM_BUILD_ROOT%{web_base}/../creation/templates
 install -d $RPM_BUILD_ROOT%{factory_web_base}/../creation
 install -d $RPM_BUILD_ROOT%{factory_web_base}/../creation/templates
+
+# we don't need sl7 versions in the following directory, they are only needed in RPM.
 install -m 0644 creation/templates/factory_initd_startup_template $RPM_BUILD_ROOT%{factory_web_base}/../creation/templates/
 install -m 0644 creation/templates/frontend_initd_startup_template $RPM_BUILD_ROOT%{web_base}/../creation/templates/
 
@@ -685,8 +708,14 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/glideinwms/creation/lib/xmlConfig.pyc
 %{python_sitelib}/glideinwms/creation/lib/xmlConfig.pyo
 %{python_sitelib}/glideinwms/creation/templates/factory_initd_startup_template
+%{python_sitelib}/glideinwms/creation/reconfig_glidein
 %{python_sitelib}/glideinwms/factory
+%if %{?rhel}%{!?rhel:0} == 7
+%{_sbindir}/gwms-factory
+%{systemddir}/gwms-factory.service
+%else
 %{_initrddir}/gwms-factory
+%endif
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-factory.conf
 %attr(-, gfactory, gfactory) %dir %{_sysconfdir}/gwms-factory
 %attr(-, gfactory, gfactory) %config(noreplace) %{_sysconfdir}/gwms-factory/glideinWMS.xml
@@ -729,7 +758,13 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/glideinwms/creation/lib/cvWParams.pyc
 %{python_sitelib}/glideinwms/creation/lib/cvWParams.pyo
 %{python_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template
+%{python_sitelib}/glideinwms/creation/reconfig_frontend
+%if %{?rhel}%{!?rhel:0} == 7
+%{_sbindir}/gwms-frontend
+%{systemddir}/gwms-frontend.service
+%else
 %{_initrddir}/gwms-frontend
+%endif
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-frontend.conf
 %attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend
 %attr(-, frontend, frontend) %config(noreplace) %{_sysconfdir}/gwms-frontend/frontend.xml

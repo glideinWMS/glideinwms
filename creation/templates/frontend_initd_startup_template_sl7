@@ -1,0 +1,528 @@
+#!/bin/bash
+# condor   This is the glideinWMS frontend startup script
+# chkconfig: 35 90 30
+# description: Starts and stops a glideinWMS frontend
+
+# Emulate function library.
+success() {
+	echo -en "\\033[60G[\033[32mOK\033[0m]"
+	return 0
+}
+
+failure() {
+	echo -en "\\033[60G[\033[31mFAILED\033[0m]"
+	return 1
+}
+
+# LSB Exit codes for status:
+#0	program is running or service is OK
+#1	program is dead and /var/run pid file exists
+#2	program is dead and /var/lock lock file exists
+#3	program is not running
+#4	program or service status is unknown
+#5-99	reserved for future LSB use
+#100-149	reserved for distribution use
+#150-199	reserved for application use
+#200-254	reserved
+# LSB Exit codes for non status:
+#1	generic or unspecified error (current practice)
+#2	invalid or excess argument(s)
+#3	unimplemented feature (for example, "reload")
+#4	user had insufficient privilege
+#5	program is not installed
+#6	program is not configured
+#7	program is not running
+#8-99	reserved for future LSB use
+#100-149	reserved for distribution use
+#150-199	reserved for application use
+#200-254	reserved
+RET_OK=0
+RET_ERROR=1
+RET_STATUS_DEADWPIDFILE=1
+RET_STATUS_DEADWLOCK=2
+RET_STATUS_NOT_RUNNING=3
+RET_STATUS_UNKNOWN=4
+RET_BAD_SYNTAX=2
+RET_NOT_IMPLEMENTED=3
+RET_NO_PRIVILEGE=4
+RET_NOT_INSTALLED=5
+RET_NOT_CONFIGURED=6
+RET_NOT_RUNNING=7
+
+
+[ -f /etc/sysconfig/gwms-frontend ] && . /etc/sysconfig/gwms-frontend
+. /etc/rc.d/init.d/functions
+
+# Variables substituted during the file creation (by cvWCreate.py)        
+frontend_dir=%(frontend_dir)s
+glideinWMS_dir=%(glideinWMS_dir)s
+def_frontend_config=%(default_cfg_fpath)s
+RPM_INSTALL=%(rpm_install)s
+
+# RPM_INSTALL can be {''|'False'|'True'}
+# RPM only if RPM_INSTALL = True 
+# '' enables autodetection: RPM installation only if this file path is /etc/init.d/gwms-frontend
+SCRIPT_NAME="`readlink -f $0`"
+#alt: SCRIPT_NAME="$(cd "$(dirname "$0")" 2>/dev/null && pwd)/$(basename "$0")"
+if [ -z "$RPM_INSTALL" ]; then
+    if [ "$SCRIPT_NAME" = "/etc/init.d/gwms-frontend" ]; then
+        RPM_INSTALL=True
+    else
+        RPM_INSTALL=False
+    fi
+fi
+SCRIPT_NAME="`basename $0`"
+
+
+if [ "$RPM_INSTALL" = "True" ]; then
+    # RPM installation (defaults and binaries)
+    LOG_FILE_STARTUP=/var/log/gwms-frontend/frontend/startup.log
+    DEFAULT_WRITEBACK=no
+    BIN_DIR=/usr/sbin/
+    CREATION_DIR=
+    FRONTEND_START=${BIN_DIR}glideinFrontend
+    FRONTEND_STOP=${BIN_DIR}stopFrontend
+    FRONTEND_CHECK=${BIN_DIR}checkFrontend
+    FRONTEND_DOWNTIMES="${BIN_DIR}manageFrontendDowntimes.py"
+    # Overriding variables values for RPM installation
+    frontend_dir=/var/lib/gwms-frontend/vofrontend
+    glideinWMS_dir=$frontend_dir
+    def_frontend_config=/etc/gwms-frontend/frontend.xml
+else
+    # TAR installation  (defaults and binaries)
+    LOG_FILE_STARTUP=/dev/null
+    DEFAULT_WRITEBACK=yes
+    BIN_DIR="$glideinWMS_dir/frontend/"
+    CREATION_DIR="$glideinWMS_dir/creation/"
+    FRONTEND_START=${BIN_DIR}glideinFrontend.py
+    FRONTEND_STOP=${BIN_DIR}stopFrontend.py
+    FRONTEND_CHECK=${BIN_DIR}checkFrontend.py
+    FRONTEND_DOWNTIMES="${BIN_DIR}manageFrontendDowntimes.py"
+fi
+
+check_installed () {
+    # check to see if the program is installed (look for FRONTEND_START and FRONTEND_CHECK)
+    if [ -x "$FRONTEND_START" -a -x "$FRONTEND_CHECK" ]; then
+        return 0
+    fi
+    echo -n "The Frontend is not installed correctly"
+    failure
+    echo
+    exit $RET_NOT_INSTALLED
+}
+
+check_configured () {
+    # check if some files created during the configuration (upgrade/reconfig) exist
+    if [ -x "$frontend_dir/frontend_startup" ]; then
+        if [ -r "$frontend_dir/frontend.xml" ]; then
+            return 0
+        fi
+        echo -n "The Frontend is not configured correctly: try to run reconfig"
+    else
+        echo -n "The Frontend is not configured correctly: try to run upgrade"
+    fi
+    failure
+    echo
+    exit $RET_NOT_CONFIGURED
+}
+
+
+export HOME="/var/lib/gwms-frontend"
+# FRONTEND_USER is used when invoking the script as root
+FRONTEND_USER=frontend
+
+if [ -s ${def_frontend_config} ]
+then
+    frontend_name=`grep "^<frontend" $def_frontend_config  | sed 's/ /\n/g' | grep ^frontend_name | awk 'BEGIN { FS = "\""} ; { print $2
+ }'`
+fi
+
+if [ -z ${frontend_name} ] && [ -d ${frontend_dir} ]
+then
+    frontend_name=`awk '/^FrontendName /{print $2}' $frontend_dir/frontend.descript 2>/dev/null`
+fi
+
+if [ -z ${frontend_name} ]
+then
+    echo 'Cannot determine frontend name!'
+    failure
+    exit 1
+fi
+id_str="$frontend_name"
+
+
+get_user() {
+    # logname returns the original user efater a "su" instead I need the current one
+    if [ ! -z "$USER" ]; then
+        echo $USER
+    else
+        # whoami is the current user, logname the original
+        whoami 
+    fi
+}
+
+# Check that frontend user is the owner of the config file
+THIS_USER=`get_user`
+THIS_ID=`id -u $THIS_USER`
+# should check actually the config file in the working directory
+# Double percent %% needed for template substitution
+FILE_OWNER=`stat -c%%u "$def_frontend_config"`
+if [ $THIS_ID -eq 0 ]; then
+    if [ `id -u $FRONTEND_USER` -ne $FILE_OWNER ]; then
+        echo "The Frontend user ($FRONTEND_USER) must own the configuration file ($def_frontend_config).
+Use the correct user or edit FRONTEND_USER in $0"
+        failure
+        exit $RET_NO_PRIVILEGE
+    fi
+else
+    if [ $THIS_ID -ne $FILE_OWNER ]; then
+        echo "The user invoking this script ($THIS_ID) must be root or own the configuration file ($def_frontend_config)"
+        failure
+        exit $RET_NO_PRIVILEGE
+    fi
+fi
+
+# -s /bin/sh necessary because frontend could have /bin/nologin as default
+# BSD system: SU_COMMAND="eval sudo -u "
+SU_COMMAND="/bin/su -s /bin/sh"
+if [ -x "/sbin/runuser" ]; then
+    # For SELinux we need to use 'runuser' not 'su'
+    SU_COMMAND="/sbin/runuser -s /bin/sh"      # /sbin/runuser
+fi
+
+invoke_as_frontend() {
+    # parameters are a string with the command to invoke
+    # e.g. "ls -al \"$directory\""
+    local user_to_use=$FRONTEND_USER
+    local user_id=$(id -u $(get_user))
+    if [ $user_id -eq 0 ]; then
+        # It's root, change user
+        $SU_COMMAND $user_to_use -c "$@"
+        #with daemon: daemon --user=$user_to_use "$@" &>/dev/null &
+        return $?
+    elif [ $user_id = $FILE_OWNER ]; then
+        # It's the owner, invoke directly, both su and runuser would ask for password
+        eval "$@"
+        #with daemon: daemon "$@" &>/dev/null &
+        return $?
+    else
+        # someone else, raise error
+        echo "ERROR: you must be the owner of ${def_frontend_config}."
+        #return 4
+        exit $RET_NO_PRIVILEGE
+    fi
+}
+
+help_usage() {
+    if [ "$RPM_INSTALL" = "True" ]; then
+        # upgrade does not make sense for RPM because the RPM upgrade will take care of it
+        # it is actually needed 
+        # TODO: find a way to avoid upgrade in RPMs
+        echo "Usage: $SCRIPT_NAME {start|stop|restart|status|reconfig|upgrade}"
+    else
+        echo "Usage: $SCRIPT_NAME {start|stop|restart|status|reconfig|upgrade}
+    $SCRIPT_NAME upgrade [NEW_XML_CONFIG_FILE]
+    $SCRIPT_NAME reconfig [NEW_XML_CONFIG_FILE] [-fix_rrd] [update_default_cfg] [{yes|no}] 
+"
+    fi
+}
+
+start() {
+        check_installed
+        check_configured
+        echo -n "Starting glideinWMS frontend $id_str: "
+
+        "$FRONTEND_CHECK" "$frontend_dir"  2>/dev/null 1>&2 </dev/null 
+        MYRETVAL=$?
+        if [ $MYRETVAL -eq 0 ]; then
+            # already running, so nothing to be done
+            echo -n "Already running "
+            success
+            RETVAL=$?
+            echo
+            return $RETVAL
+        fi
+        if [ $MYRETVAL -eq 2 ]; then
+            # conflicting type running, cannot start
+            echo -n "Maintenance processes detected, cannot start "
+            failure
+            RETVAL=$?
+            echo
+            return $RETVAL
+        fi
+
+	daemon --user $FRONTEND_USER --pidfile="$frontend_dir/lock/frontend.lock" -2 "${FRONTEND_START} $frontend_dir 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
+
+        for i in {1..15}; do  # Use seq if a variable is needed: $(seq 1 $END)
+            # Returns 0 if running, 1 if not
+            "${FRONTEND_CHECK}" "$frontend_dir" >/dev/null 2>&1 </dev/null
+            if [ $? -eq 0 ]; then
+                RETVAL=0
+                break
+            fi
+            sleep 1
+        done
+        "$FRONTEND_CHECK" "$frontend_dir"  2>/dev/null 1>&2 </dev/null && success || failure
+        RETVAL=$?
+        echo
+}
+
+stop() {
+        check_installed
+        echo -n "Shutting down glideinWMS frontend $id_str: "
+
+        "$FRONTEND_CHECK" "$frontend_dir"  2>/dev/null 1>&2 </dev/null 
+        MYRETVAL=$?
+        if [ $MYRETVAL -ne 0 ]; then
+            # not running, so nothing to be done
+            echo -n "Not running. "
+            success
+            RETVAL=$?
+            echo
+            return $RETVAL
+        fi
+
+        invoke_as_frontend "\"${FRONTEND_STOP}\" -f \"$frontend_dir\" 2>/dev/null 1>&2 </dev/null"
+        MYRETVAL=$?
+
+        if [ $MYRETVAL -ne 0 ]; then
+            echo -n "Invocation failed "
+            failure
+            RETVAL=$?
+            echo
+            return $RETVAL
+        fi         
+
+        # check that it has actually stopped
+        # can take some time
+        for i in {1..30}; do  # Use seq if a variable is needed: $(seq 1 $END)
+            # Returns 0 if running, 1 if not
+            "${FRONTEND_CHECK}" "$frontend_dir" >/dev/null 2>&1 </dev/null
+            if [ $? -ne 0 ]; then
+                RETVAL=0
+                break
+            fi
+            sleep 1
+        done
+        
+        "${FRONTEND_CHECK}" "$frontend_dir"  2>/dev/null 1>&2 </dev/null && failure || success
+        RETVAL=$?
+        echo
+}
+
+restart() {
+        stop
+        if [ $RETVAL -ne 0 ]; then
+            # Waiting 60 sec for the shutdown to complete
+            echo "Waiting for the GlideinWMS Frontend to shutdown" 2>&1
+            for i in {1..60}; do  # Use seq if a variable is needed: $(seq 1 $END)
+                # Returns 0 if running
+                "${FRONTEND_CHECK}" "$frontend_dir" >/dev/null 2>&1 </dev/null
+                if [ $? -ne 0 ]; then
+                    RETVAL=0
+                    break
+                fi
+                sleep 1
+                echo -n "."
+            done
+            echo
+            if [ $RETVAL -ne 0 ]; then
+                echo "Failed to stop the GlideinWMS Frontend. Please check."
+                exit $RETVAL
+            else
+                echo "Shutdown complete"
+            fi
+        fi
+        start
+}
+
+reconfig() {
+        # All parameters are passed ($@)
+        # The config file must be the first after reconfig (if any)
+        # RETVAL contains the exit code
+        #  0 all OK
+        #  6 bad or missing configuration (even if running w/ old configuration)
+        #  1 generic error (also start failed) 
+        check_installed
+        shift
+
+        "${FRONTEND_CHECK}" "$frontend_dir" >/dev/null 2>&1 </dev/null
+        notrun=$? # 1 = not running
+        if [ $notrun -eq 1 ]; then
+            # If the Frontend not running, we can use the original code from reconfig() 
+            # which allows the users to use the options
+            if [ -f "$1" ]; then
+		echo "Using Frontend config file arg: $1"
+		cfg_loc=$1
+		shift           
+            else
+		echo "Using default Frontend config file: $def_frontend_config"
+		cfg_loc=$def_frontend_config
+            fi
+            # Set defaults and check if parameters
+            update_def_cfg="no"
+            writeback=$DEFAULT_WRITEBACK
+            fix_rrd=""
+            for var in "$@"
+            do
+		case "$var" in
+		    yes | no) writeback="$var"
+			;;
+		    update_default_cfg) update_def_cfg="yes"
+			if [ "$RPM_INSTALL" = "True" ]; then
+			    echo "update_def_cfg is not a valid option for RPM installations"
+			    help_usage
+			    exit 2
+			fi
+			;;
+		    "-fix_rrd") fix_rrd="-fix_rrd"
+			;;
+		    *)  # shift to avoid scanning file: if [ "$cfg_loc" != "$var" ]; then
+			echo "Unknown argument passed: $var"
+			help_usage
+			exit 2
+			;;
+		esac
+            done
+
+            if [ -n "$GLIDEIN_WRITEBACK" ]; then
+		writeback="$GLIDEIN_WRITEBACK"
+            fi
+
+            pushd $frontend_dir 1>/dev/null
+        # Defaults of reconfig_frontend (f-flag, v-variable)
+        # f   fix_rrd = False
+        # v   writeback = 'no'
+        # v   update_scripts = 'no'
+        # v   update_def_cfg = 'no'
+            invoke_as_frontend "\"${CREATION_DIR}reconfig_frontend\" -force_name \"$frontend_name\" -writeback $writeback -xml \"$cfg_loc\" -update_def_cfg \"$update_def_cfg\" $fix_rrd"
+
+            reconfig_failed=$?
+            popd 1>/dev/null
+            echo -n "Reconfiguring the frontend"
+            test $reconfig_failed -eq 0 && success || failure
+            # To return the correct exit code (RET_NOT_CONFIGURED instead of 1)
+            [ $? -eq 0 ] && RETVAL=0 || RETVAL=$RET_NOT_CONFIGURED
+            echo
+
+	else
+	    # Frontend running, we can proceed
+            argno="$#"
+            argnoint=$(( argno + 0 ))
+
+            if [ $argnoint -eq 0 ]; then
+		echo 'no argument: I have to run kill -1 with the frontend PID'
+		killpid=`awk '/PID/ {print $2}' $frontend_dir/lock/frontend.lock`
+		kill -1 $killpid
+            else
+		echo 'If Frontend running and at the same time if you want to use arguments, '
+		echo 'you have to stop Frontend first manually'
+		return 1
+            fi
+        fi
+        return 0
+}
+
+upgrade() {
+        # see reconfig for return values and logic explanation
+        check_installed
+
+        "${FRONTEND_CHECK}" "$frontend_dir" >/dev/null 2>&1 </dev/null
+        notrun=$?
+        if [ $notrun -eq 1 ]; then   # 1 = not running
+            # If the Frontend not running, we can use the original code from reconfig() 
+            # which allows the users to use the options
+            if [ -f "$1" ]; then
+		echo "Using frontend config file arg: $1"
+		cfg_loc=$1
+            else
+		echo "Using default frontend config file: $def_frontend_config"
+		cfg_loc=$def_frontend_config
+            fi
+
+            pushd $frontend_dir 1>/dev/null
+
+        # Defaults of reconfig_frontend (f-flag, v-variable)
+        # f   fix_rrd = True
+        # v   writeback = yes
+        # v   update_scripts = yes
+        # v   update_def_cfg = no
+            invoke_as_frontend "\"${CREATION_DIR}reconfig_frontend\" -force_name \"$frontend_name\" -writeback yes -update_scripts yes -xml \"$cfg_loc\" -fix_rrd"
+
+            reconfig_failed=$?
+            popd 1>/dev/null
+            echo -n "Upgrading the frontend"
+            test $reconfig_failed -eq 0 && success || failure
+            [ $? -eq 0 ] && RETVAL=0 || RETVAL=$RET_NOT_CONFIGURED
+            echo
+
+	else
+            # Frontend running, we can proceed
+            argno="$#"
+            argnoint=$(( argno + 0 ))
+            if [ $argnoint -eq 0 ]; then
+		killpid=`awk '/PID/ {print $2}' $frontend_dir/lock/frontend.lock`
+		kill -1 $killpid
+            else
+		echo 'If Frontend running and at the same time if you want to use arguments, '
+		echo 'you have to stop Frontend first manually'
+		return 1
+            fi
+        fi
+        return 0
+}
+
+downtime() {
+    if   [ "$1" == "down" ]; then
+        echo -n "Setting downtime..."
+    elif [ "$1" == "up" ]; then
+        echo -n "Removing downtime..."
+    fi
+
+    "$FRONTEND_DOWNTIMES" -cmd $1 -dir "$frontend_dir"     "$@"   </dev/null && success || failure
+    RETVAL=$?
+    echo
+}
+
+case $1 in
+        start)
+            start
+            ;;
+        stop)
+            stop
+            ;;
+        restart)
+            restart
+            ;;
+        status)
+            "$FRONTEND_CHECK" "$frontend_dir"
+            RETVAL=$?
+            #TODO: Should it print something?
+            ;;
+        force-reload|reconfig)
+            reconfig "$@"
+            ;;
+        upgrade)
+            #if [ "$RPM_INSTALL" = "True" ]; then
+            #    echo "upgrade is not a valid action for RPM installations"
+            #    help_usage
+            #    exit 2
+            #fi
+            upgrade $2
+            ;;
+        down)
+            downtime down "$@"
+            ;;
+         up)
+            downtime up   "$@"
+            ;;
+    statusdown)
+        "$FRONTEND_DOWNTIMES" -cmd check -dir "$frontend_dir" "$@"
+        RETVAL=$?
+        ;;
+        *)
+            help_usage
+            exit $RET_NOT_IMPLEMENTED
+esac
+
+exit $RETVAL

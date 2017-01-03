@@ -531,7 +531,7 @@ function warn {
 # Arg: line to add, first element is the id
 # Uses global variable glidein_config
 function add_config_line {
-    egrep -q "^\${*}$" \$glidein_config
+    grep -q "^\${*}$" \$glidein_config
     if [ \$? -ne 0 ]; then
         rm -f \${glidein_config}.old #just in case one was there
         mv \$glidein_config \${glidein_config}.old

@@ -1,0 +1,13 @@
+[Unit]
+Description=GWMS Factory Service
+Requires=condor.service
+After=condor.service
+
+[Service]
+Type=forking
+ExecStart=/usr/sbin/gwms-factory start
+ExecStop=/usr/sbin/gwms-factory stop
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target
