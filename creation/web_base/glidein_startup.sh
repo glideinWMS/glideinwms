@@ -549,7 +549,7 @@ function add_config_line {
 ##################################################
 # Add a line to the config file using a lock file
 # Replacs add_config_line in script_wrapper where multiple instances run in parallel
-# Uses FD 200, fails after a timeout of 100 sec
+# Uses FD 200, fails after a timeout of 300 sec
 function add_config_line_safe {
     grep -q "^\${*}$" \$glidein_config
     if [ \$? -ne 0 ]; then
