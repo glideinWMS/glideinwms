@@ -409,7 +409,7 @@ function glidein_exit {
 
       for ((t=`date +%s`; $t<$dl;t=`date +%s`))
       do
-	if [ -e "${main_work_dir}/$last_script" ] && [ "$do_report" == "1" ] ; then
+	if [ -e "${main_work_dir}/$last_script" ] && [ "$do_report" = "1" ] ; then
 	    # if the file exists, we should be able to talk to the collectors
 	    # notify that things went badly and we are waiting
             if [ "$factory_report_failed" != "NEVER" ]; then
@@ -435,11 +435,11 @@ function glidein_exit {
 	sleep $ds
       done
 
-      if [ -e "${main_work_dir}/$last_script" ] && [ "$do_report" == "1" ]; then
+      if [ -e "${main_work_dir}/$last_script" ] && [ "$do_report" = "1" ]; then
 	  # notify that things went badly and we are going away
           if [ "$factory_report_failed" != "NEVER" ]; then
               add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "Factory"
-              if [ "$factory_report_failed" == "ALIVEONLY" ]; then
+              if [ "$factory_report_failed" = "ALIVEONLY" ]; then
                   add_config_line "GLIDEIN_ADVERTISE_TYPE" "INVALIDATE"
               else
                   add_config_line "GLIDEIN_ADVERTISE_TYPE" "Killing"
@@ -450,7 +450,7 @@ function glidein_exit {
           fi
           if [ "$report_failed" != "NEVER" ]; then
               add_config_line "GLIDEIN_ADVERTISE_DESTINATION" "VO"
-              if [ "$report_failed" == "ALIVEONLY" ]; then
+              if [ "$report_failed" = "ALIVEONLY" ]; then
                   add_config_line "GLIDEIN_ADVERTISE_TYPE" "INVALIDATE"
               else
                   add_config_line "GLIDEIN_ADVERTISE_TYPE" "Killing"
@@ -497,7 +497,7 @@ function automatic_work_dir {
         # make sure there is enough available diskspace
         #cd $d
         free=`df -kP $d | awk '{if (NR==2) print $4}'`
-        if [ "x$free" == "x" -o $free -lt $disk_required ]; then
+        if [ "x$free" = "x" -o $free -lt $disk_required ]; then
             echo "  Workdir: not enough disk space available in $d" 1>&2
             continue
         fi
@@ -574,16 +574,16 @@ function create_get_id_selectors {
 # Get entry/client/group work dir
 # Arg: type (main/entry/client/client_group)
 function get_work_dir {
-    if [ "\$1" == "main" ]; then
+    if [ "\$1" = "main" ]; then
         grep "^GLIDEIN_WORK_DIR " \${glidein_config} | awk '{print \$2}'
         return \$?
-    elif [ "\$1" == "entry" ]; then
+    elif [ "\$1" = "entry" ]; then
         grep "^GLIDEIN_ENTRY_WORK_DIR " \${glidein_config} | awk '{print \$2}'
         return \$?
-    elif [ "\$1" == "client" ]; then
+    elif [ "\$1" = "client" ]; then
         grep "^GLIDECLIENT_WORK_DIR " \${glidein_config} | awk '{print \$2}'
         return \$?
-    elif [ "\$1" == "client_group" ]; then
+    elif [ "\$1" = "client_group" ]; then
         grep "^GLIDECLIENT_GROUP_WORK_DIR " \${glidein_config} | awk '{print \$2}'
         return \$?
     fi
@@ -595,16 +595,16 @@ function get_work_dir {
 # Get entry/client/group description file name
 # Arg: type (main/entry/client/client_group)
 function get_descript_file {
-    if [ "\$1" == "main" ]; then
+    if [ "\$1" = "main" ]; then
         grep "^DESCRIPTION_FILE " \${glidein_config} | awk '{print \$2}'
         return \$?
-    elif [ "\$1" == "entry" ]; then
+    elif [ "\$1" = "entry" ]; then
         grep "^DESCRIPTION_ENTRY_FILE " \${glidein_config} | awk '{print \$2}'
         return \$?
-    elif [ "\$1" == "client" ]; then
+    elif [ "\$1" = "client" ]; then
         grep "^GLIDECLIENT_DESCRIPTION_FILE " \${glidein_config} | awk '{print \$2}'
         return \$?
-    elif [ "\$1" == "client_group" ]; then
+    elif [ "\$1" = "client_group" ]; then
         grep "^GLIDECLIENT_DESCRIPTION_GROUP_FILE " \${glidein_config} | awk '{print \$2}'
         return \$?
     fi
@@ -616,16 +616,16 @@ function get_descript_file {
 # Get entry/client/group signature
 # Arg: type (main/entry/client/client_group)
 function get_signature {
-    if [ "\$1" == "main" ]; then
+    if [ "\$1" = "main" ]; then
         grep "^GLIDEIN_Signature " \${glidein_config} | awk '{print \$2}'
         return \$?
-    elif [ "\$1" == "entry" ]; then
+    elif [ "\$1" = "entry" ]; then
         grep "^GLIDEIN_Entry_Signature " \${glidein_config} | awk '{print \$2}'
         return \$?
-    elif [ "\$1" == "client" ]; then
+    elif [ "\$1" = "client" ]; then
         grep "^GLIDECLIENT_Signature " \${glidein_config} | awk '{print \$2}'
         return \$?
-    elif [ "\$1" == "client_group" ]; then
+    elif [ "\$1" = "client_group" ]; then
         grep "^GLIDECLIENT_Group_Signature " \${glidein_config} | awk '{print \$2}'
         return \$?
     fi
@@ -637,13 +637,13 @@ function get_signature {
 # Get entry/client/group prefix
 # Arg: type (main/entry/client/client_group)
 function get_prefix {
-    if [ "\$1" == "main" ]; then
+    if [ "\$1" = "main" ]; then
         echo ""
-    elif [ "\$1" == "entry" ]; then
+    elif [ "\$1" = "entry" ]; then
         echo "ENTRY_"
-    elif [ "\$1" == "client" ]; then
+    elif [ "\$1" = "client" ]; then
         echo "GLIDECLIENT_"
-    elif [ "\$1" == "client_group" ]; then
+    elif [ "\$1" = "client_group" ]; then
         echo "GLIDECLIENT_GROUP_"
     else
         echo "[get_prefix] Invalid id: \$1" 1>&2
@@ -710,12 +710,12 @@ function params2file {
 # Parse arguments
 set_debug=1
 sleep_time=1199
-if [ "$operation_mode" == "nodebug" ]; then
+if [ "$operation_mode" = "nodebug" ]; then
  set_debug=0
-elif [ "$operation_mode" == "fast" ]; then
+elif [ "$operation_mode" = "fast" ]; then
  sleep_time=150
  set_debug=1
-elif [ "$operation_mode" == "check" ]; then
+elif [ "$operation_mode" = "check" ]; then
  sleep_time=150
  set_debug=2
 fi
@@ -752,7 +752,7 @@ if [ -z "$proxy_url" ]; then
   proxy_url="None"
 fi
 
-if [ "$proxy_url" == "OSG" ]; then
+if [ "$proxy_url" = "OSG" ]; then
   if [ -z "$OSG_SQUID_LOCATION" ]; then
      # if OSG does not define a Squid, then don't use any
      proxy_url="None"
@@ -776,7 +776,7 @@ if [ -z "$sign_type" ]; then
     sign_type="sha1"
 fi
 
-if [ "$sign_type" == "sha1" ]; then
+if [ "$sign_type" = "sha1" ]; then
     sign_sha1="$sign_id"
     sign_entry_sha1="$sign_entry_id"
 else
@@ -790,7 +790,7 @@ if [ -n "$client_repository_url" ]; then
       client_sign_type="sha1"
   fi
 
-  if [ "$client_sign_type" == "sha1" ]; then
+  if [ "$client_sign_type" = "sha1" ]; then
     client_sign_sha1="$client_sign_id"
   else
     warn "Unsupported clientsigntype $client_sign_type found." 1>&2
@@ -814,7 +814,7 @@ if [ -n "$client_repository_url" ]; then
 	  usage
       fi
 
-      if [ "$client_sign_type" == "sha1" ]; then
+      if [ "$client_sign_type" = "sha1" ]; then
 	  client_sign_group_sha1="$client_sign_group_id"
       else
 	  warn "Unsupported clientsigntype $client_sign_type found." 1>&2
@@ -965,17 +965,17 @@ function set_proxy_fullpath {
 
 ########################################
 # prepare and move to the work directory
-if [ "$work_dir" == "Condor" ]; then
+if [ "$work_dir" = "Condor" ]; then
     work_dir="$_CONDOR_SCRATCH_DIR"
-elif [ "$work_dir" == "CONDOR" ]; then
+elif [ "$work_dir" = "CONDOR" ]; then
     work_dir="$_CONDOR_SCRATCH_DIR"
-elif [ "$work_dir" == "OSG" ]; then
+elif [ "$work_dir" = "OSG" ]; then
     work_dir="$OSG_WN_TMP"
-elif [ "$work_dir" == "TMPDIR" ]; then
+elif [ "$work_dir" = "TMPDIR" ]; then
     work_dir="$TMPDIR"
-elif [ "$work_dir" == "AUTO" ]; then
+elif [ "$work_dir" = "AUTO" ]; then
     automatic_work_dir
-elif [ "$work_dir" == "." ]; then
+elif [ "$work_dir" = "." ]; then
     work_dir=`pwd`
 elif [ -z "$work_dir" ]; then
     work_dir=`pwd`
@@ -1146,13 +1146,13 @@ params2file $params
 # get the proper descript file based on id
 # Arg: type (main/entry/client/client_group)
 function get_repository_url {
-    if [ "$1" == "main" ]; then
+    if [ "$1" = "main" ]; then
 	echo $repository_url
-    elif [ "$1" == "entry" ]; then
+    elif [ "$1" = "entry" ]; then
 	echo $repository_entry_url
-    elif [ "$1" == "client" ]; then
+    elif [ "$1" = "client" ]; then
 	echo $client_repository_url
-    elif [ "$1" == "client_group" ]; then
+    elif [ "$1" = "client_group" ]; then
 	echo $client_repository_group_url
     else
 	echo "[get_repository_url] Invalid id: $1" 1>&2
@@ -1323,7 +1323,7 @@ function fetch_file_try {
     fft_config_check="$7"
     fft_config_out="$8"
 
-    if [ "$fft_config_check" == "TRUE" ]; then
+    if [ "$fft_config_check" = "TRUE" ]; then
 	    # TRUE is a special case
 	    fft_get_ss=1
     else
@@ -1331,7 +1331,7 @@ function fetch_file_try {
     fi
 
     # TODO: what if fft_get_ss is not 1? nothing? fft_rc is not set but is returned
-    if [ "$fft_get_ss" == "1" ]; then
+    if [ "$fft_get_ss" = "1" ]; then
        fetch_file_base "$fft_id" "$fft_target_fname" "$fft_real_fname" "$fft_file_type" "$fft_config_out" "$fft_period" "$fft_cc_prefix"
        fft_rc=$?
     fi
@@ -1348,10 +1348,10 @@ function perform_wget {
     proxy_url="None"
     for ((i=0; i<arg_len; i++));
     do
-        if [ "${wget_args[$i]}" == "--output-document" ]; then
+        if [ "${wget_args[$i]}" = "--output-document" ]; then
             ffb_tmp_outname=${wget_args[$i+1]}
         fi
-        if [ "${wget_args[$i]}" == "--proxy" ]; then
+        if [ "${wget_args[$i]}" = "--proxy" ]; then
             proxy_url=${wget_args[$i+1]}
         fi
     done
@@ -1419,10 +1419,10 @@ function perform_curl {
     ffb_real_fname=$(basename "$ffb_url")
     for ((i=0; i<arg_len; i++));
     do
-        if [ "${curl_args[$i]}" == "--output" ]; then
+        if [ "${curl_args[$i]}" = "--output" ]; then
             ffb_tmp_outname=${curl_args[$i+1]}
         fi
-        if [ "${curl_args[$i]}" == "--proxy" ]; then
+        if [ "${curl_args[$i]}" = "--proxy" ]; then
             proxy_url=${curl_args[$i+1]}
         fi
     done
@@ -1541,7 +1541,7 @@ function fetch_file_base {
     wget_args=("${ffb_url}" "--user-agent" "wget/${user_agent}"  "--quiet"  "--output-document" "${ffb_tmp_outname}" )
     curl_args=("${ffb_url}" "--user-agent" "curl/${user_agent}" "--silent"  "--show-error" "--output" "${ffb_tmp_outname}")
 
-    if [ "$ffb_file_type" == "nocache" ]; then
+    if [ "$ffb_file_type" = "nocache" ]; then
         if [ "$curl_version" != "" ]; then
             curl_args+=("--header")
             curl_args+=("Cache-Control:")
@@ -1601,13 +1601,13 @@ function fetch_file_base {
     fi
 
     # if executable, execute
-    if [ "$ffb_file_type" == "exec" ]; then
+    if [ "$ffb_file_type" = "exec" ]; then
         chmod u+x "$ffb_outname"
         if [ $? -ne 0 ]; then
             warn "Error making '$ffb_outname' executable" 1>&2
             return 1
         fi
-        if [ "$ffb_id" == "main" -a "$ffb_target_fname" == "$last_script" ]; then # last_script global for simplicity
+        if [ "$ffb_id" = "main" -a "$ffb_target_fname" = "$last_script" ]; then # last_script global for simplicity
             echo "Skipping last script $last_script" 1>&2
         else
             echo "Executing $ffb_outname"
@@ -1636,9 +1636,9 @@ function fetch_file_base {
                 fi
 	        fi
         fi
-    elif [ "$ffb_file_type" == "wrapper" ]; then
+    elif [ "$ffb_file_type" = "wrapper" ]; then
         echo "$ffb_outname" >> "$wrapper_list"
-    elif [ "$ffb_file_type" == "untar" ]; then
+    elif [ "$ffb_file_type" = "untar" ]; then
         ffb_short_untar_dir=`get_untar_subdir "$ffb_id" "$ffb_target_fname"`
         ffb_untar_dir="${ffb_work_dir}/${ffb_short_untar_dir}"
         START=`date +%s`
@@ -1656,7 +1656,7 @@ function fetch_file_base {
 
     if [ "$ffb_config_out" != "FALSE" ]; then
         ffb_prefix=`get_prefix $ffb_id`
-        if [ "$ffb_file_type" == "untar" ]; then
+        if [ "$ffb_file_type" = "untar" ]; then
             # when untaring the original file is less interesting than the untar dir
             add_config_line "${ffb_prefix}${ffb_config_out}" "$ffb_untar_dir"
             if [ $? -ne 0 ]; then
@@ -1701,13 +1701,13 @@ check_signature=0
 for gs_id in main entry client client_group
 do
   if [ -z "$client_repository_url" ]; then
-      if [ "$gs_id" == "client" ]; then
+      if [ "$gs_id" = "client" ]; then
 	  # no client file when no cilent_repository
 	  continue
       fi
   fi
   if [ -z "$client_repository_group_url" ]; then
-      if [ "$gs_id" == "client_group" ]; then
+      if [ "$gs_id" = "client_group" ]; then
 	      # no client group file when no cilent_repository_group
 	  continue
       fi
@@ -1748,13 +1748,13 @@ check_signature=1
 for gs_id in main entry client client_group
 do
   if [ -z "$client_repository_url" ]; then
-      if [ "$gs_id" == "client" ]; then
+      if [ "$gs_id" = "client" ]; then
 	  # no client file when no cilent_repository
 	  continue
       fi
   fi
   if [ -z "$client_repository_group_url" ]; then
-      if [ "$gs_id" == "client_group" ]; then
+      if [ "$gs_id" = "client_group" ]; then
 	      # no client group file when no cilent_repository_group
 	  continue
       fi
@@ -1787,13 +1787,13 @@ do
   gs_id=`echo $gs_file_id |awk '{print $1}'`
 
   if [ -z "$client_repository_url" ]; then
-      if [ "$gs_id" == "client" ]; then
+      if [ "$gs_id" = "client" ]; then
 	  # no client file when no client_repository
 	  continue
       fi
   fi
   if [ -z "$client_repository_group_url" ]; then
-      if [ "$gs_id" == "client_group" ]; then
+      if [ "$gs_id" = "client_group" ]; then
 	      # no client group file when no client_repository_group
 	  continue
       fi
@@ -1808,7 +1808,7 @@ do
   gs_file_list_line=`grep "^$gs_file_list_id " "${gs_id_work_dir}/$gs_id_descript_file"`
   if [ $? -ne 0 ]; then
       if [ -z "$client_repository_group_url" ]; then
-	      if [ "${gs_file_list_id:0:11}" == "aftergroup_" ]; then
+	      if [ "${gs_file_list_id:0:11}" = "aftergroup_" ]; then
 	          # afterfile_.. files optional when no client_repository_group
 	          continue
 	      fi
