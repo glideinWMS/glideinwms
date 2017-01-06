@@ -1171,8 +1171,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
             nr_to_submit = (nr_glideins - nr_submitted)
             if nr_to_submit > factoryConfig.max_cluster_size:
                 nr_to_submit = factoryConfig.max_cluster_size
-            exe_env =  [x for x in exe_env if 'GLIDEIN_COUNT' not in str(x)]
-            exe_env =  [x for x in exe_env if 'GLIDEIN_FRONTEND_NAME' not in str(x)]
+
             exe_env.append('GLIDEIN_COUNT=%s' % nr_to_submit)
             exe_env.append('GLIDEIN_FRONTEND_NAME=%s' % frontend_name)
 
