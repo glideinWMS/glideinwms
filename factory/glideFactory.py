@@ -533,7 +533,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
 
             # Aggregate job data periodically
             logSupport.log.info("Starting updating job classads")
-            stats = update_classads(logSupport)
+            update_classads(logSupport)
             logSupport.log.info("Finishing updating job classads")
 
             # Advertise the global classad with the factory keys and Factory statistics
