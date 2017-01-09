@@ -423,12 +423,14 @@ def aggregateJobsSummary():
         # load entry log summary file
         status_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_'+entry),
                                     monitorAggregatorConfig.jobsummary_relname)
-        if os.path.isfile(status_fname):
+        try:
             with open(status_fname) as fd:
                 entry_joblist =  pickle.load(fd)
-            schedd_name = entry_joblist.get('schedd_name', None)
-            pool_name = entry_joblist.get('collector_name', None)
-            jobinfo.setdefault((schedd_name, pool_name), {}).update(entry_joblist['joblist'])
+        except IOError:
+            continue
+        schedd_name = entry_joblist.get('schedd_name', None)
+        pool_name = entry_joblist.get('collector_name', None)
+        jobinfo.setdefault((schedd_name, pool_name), {}).update(entry_joblist['joblist'])
     return jobinfo
 
 
