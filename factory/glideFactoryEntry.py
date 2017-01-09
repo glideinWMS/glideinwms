@@ -211,7 +211,7 @@ class Entry:
         # This will be a comma-delimited list of pairs
         # vofrontendname:security_class,vofrontend:sec_class, ...
         self.frontendWhitelist = self.jobDescript.data['WhitelistMode']
-        self.securityList = {};
+        self.securityList = {}
         if (self.frontendWhitelist == "On"):
             allowed_vos = ''
             if self.jobDescript.has_key('AllowedVOs'):
@@ -220,9 +220,9 @@ class Entry:
             for entry in frontend_allow_list:
                 entry_part = entry.split(":");
                 if (entry_part[0] in self.securityList):
-                    self.securityList[entry_part[0]].append(entry_part[1]);
+                    self.securityList[entry_part[0]].append(entry_part[1])
                 else:
-                    self.securityList[entry_part[0]] = [entry_part[1]];
+                    self.securityList[entry_part[0]] = [entry_part[1]]
         #self.allowedProxySource = self.glideinDescript.data['AllowedJobProxySource'].split(',')
 
 

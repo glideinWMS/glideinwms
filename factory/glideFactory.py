@@ -45,7 +45,7 @@ from glideinwms.factory import glideFactoryMonitoring
 from glideinwms.factory import glideFactoryDowntimeLib
 from glideinwms.factory import glideFactoryCredentials
 
-
+FACTORY_DIR = os.path.dirname(glideFactoryLib.__file__)
 ############################################################
 def aggregate_stats(in_downtime):
     """
@@ -716,6 +716,17 @@ def main(startup_dir):
                   frontendDescript, entries, restart_attempts, restart_interval)
         except KeyboardInterrupt, e:
             raise e
+        except HUPException, e:
+            # inside spawn(), outermost try will catch HUPException, 
+            # then the code within the finally will run
+            # which will terminate glideFactoryEntryGroup children processes
+            # and then the following 3 lines will be executed.
+            logSupport.log.info("Received SIGHUP, reload config uid = %d" % os.getuid() )
+            # must empty the lock file so that when the thread returns from reconfig_glidein and 
+            # begins from the beginning, it will not error out which will happen 
+            # if the lock file is not empty
+            pid_obj.relinquish()
+            os.execv( os.path.join(FACTORY_DIR, "../creation/reconfig_glidein"), ['reconfig_glidein', '-update_scripts', 'no', '-sighupreload', '-xml', '/etc/gwms-factory/glideinWMS.xml'] )
         except:
             logSupport.log.exception("Exception occurred spawning the factory: ")
     finally:
@@ -726,15 +737,21 @@ def main(startup_dir):
 # S T A R T U P
 #
 ############################################################
+class HUPException(Exception):
+    pass
 
 def termsignal(signr, frame):
     raise KeyboardInterrupt, "Received signal %s" % signr
+
+def hupsignal(signr, frame):
+    raise HUPException, "Received signal %s" % signr
 
 if __name__ == '__main__':
     if os.getsid(os.getpid()) != os.getpgrp():
         os.setpgid(0, 0)
     signal.signal(signal.SIGTERM, termsignal)
     signal.signal(signal.SIGQUIT, termsignal)
+    signal.signal(signal.SIGHUP,  hupsignal)
 
     try:
         main(sys.argv[1])

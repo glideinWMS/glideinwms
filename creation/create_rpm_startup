@@ -43,7 +43,7 @@ def get_template(template_name, glideinWMS_dir):
     return template_str
 
 
-def main(gwms_src_root_dir, sfile_frontend, sfile_factory):
+def main(gwms_src_root_dir, template_frontend, template_factory, sfile_frontend, sfile_factory):
     # Recreate the init.d startup files
 
     # Remove startup file if already exists
@@ -52,7 +52,7 @@ def main(gwms_src_root_dir, sfile_frontend, sfile_factory):
             os.remove(os.path.join(gwms_src_root_dir, startup_fname))
 
     # Frontend
-    create_initd_startup(gwms_src_root_dir, 'frontend_initd_startup_template',
+    create_initd_startup(gwms_src_root_dir, template_frontend,
                          sfile_frontend,
                          '/var/lib/gwms-frontend/vofrontend',
                          '/var/lib/gwms-frontend/vofrontend',
@@ -61,7 +61,7 @@ def main(gwms_src_root_dir, sfile_frontend, sfile_factory):
     print "...Updated the frontend startup script"
 
     # Factory
-    create_initd_startup(gwms_src_root_dir, 'factory_initd_startup_template',
+    create_initd_startup(gwms_src_root_dir, template_factory,
                          sfile_factory,
                          '/var/lib/gwms-factory/work-dir',
                          '/var/lib/gwms-factory/work-dir',
@@ -74,9 +74,9 @@ def main(gwms_src_root_dir, sfile_frontend, sfile_factory):
 if __name__ == '__main__':
     usage = "create_rpm_startup GWMS_DIR FRONTEND_STARTUP FACTORY_STARTUP"
     argv=sys.argv[1:]
-    if len(argv)==3 and not argv[0] in ['-h', '--help', '-help']:
+    if len(argv)==5 and not argv[0] in ['-h', '--help', '-help']:
         if os.path.isdir(argv[0]):
-            main(argv[0], argv[1], argv[2])    
+            main(argv[0], argv[1], argv[2], argv[3], argv[4])
             sys.exit(0)
     print usage
     sys.exit(1)

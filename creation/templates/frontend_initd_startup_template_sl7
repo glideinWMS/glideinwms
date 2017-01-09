@@ -251,11 +251,7 @@ start() {
             return $RETVAL
         fi
 
-	if [ "$RPM_INSTALL" = "True" ]; then
-	    daemon --user $FRONTEND_USER --pidfile="$frontend_dir/lock/frontend.lock" -2 "${FRONTEND_START} $frontend_dir 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
-	else
-	    invoke_as_frontend "nice -2 \"${FRONTEND_START}\" \"$frontend_dir\" 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
-	fi
+	daemon --user $FRONTEND_USER --pidfile="$frontend_dir/lock/frontend.lock" -2 "${FRONTEND_START} $frontend_dir 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
 
         for i in {1..15}; do  # Use seq if a variable is needed: $(seq 1 $END)
             # Returns 0 if running, 1 if not
@@ -349,137 +345,131 @@ reconfig() {
         #  1 generic error (also start failed) 
         check_installed
         shift
-        if [ -f "$1" ]; then
-            echo "Using Frontend config file arg: $1"
-            cfg_loc=$1
-            shift           
-        else
-            echo "Using default Frontend config file: $def_frontend_config"
-            cfg_loc=$def_frontend_config
-        fi
-        # Set defaults and check if parameters
-        update_def_cfg="no"
-        writeback=$DEFAULT_WRITEBACK
-        fix_rrd=""
-        for var in "$@"
-        do
-            case "$var" in
-            yes | no) writeback="$var"
-                ;;
-            update_default_cfg) update_def_cfg="yes"
-                if [ "$RPM_INSTALL" = "True" ]; then
-                    echo "update_def_cfg is not a valid option for RPM installations"
-                    help_usage
-                    exit 2
-                fi
-                ;;
-            "-fix_rrd") fix_rrd="-fix_rrd"
-                ;;
-            *)  # shift to avoid scanning file: if [ "$cfg_loc" != "$var" ]; then
-                echo "Unknown argument passed: $var"
-                help_usage
-                exit 2
-                #fi
-                ;;
-            esac
-        done
-        if [ -n "$GLIDEIN_WRITEBACK" ]; then
-            writeback="$GLIDEIN_WRITEBACK"
-        fi
 
         "${FRONTEND_CHECK}" "$frontend_dir" >/dev/null 2>&1 </dev/null
-        notrun=$?
-        if [ $notrun -eq 0 ]; then
-            stop
-            if [ $RETVAL -ne 0 ] && [ $RETVAL -ne 2 ]; then
-                echo "Failed to stop the GlidinWMS Frontend. Please check."
-                exit $RETVAL
+        notrun=$? # 1 = not running
+        if [ $notrun -eq 1 ]; then
+            # If the Frontend not running, we can use the original code from reconfig() 
+            # which allows the users to use the options
+            if [ -f "$1" ]; then
+		echo "Using Frontend config file arg: $1"
+		cfg_loc=$1
+		shift           
+            else
+		echo "Using default Frontend config file: $def_frontend_config"
+		cfg_loc=$def_frontend_config
             fi
-        fi
-        pushd $frontend_dir 1>/dev/null
+            # Set defaults and check if parameters
+            update_def_cfg="no"
+            writeback=$DEFAULT_WRITEBACK
+            fix_rrd=""
+            for var in "$@"
+            do
+		case "$var" in
+		    yes | no) writeback="$var"
+			;;
+		    update_default_cfg) update_def_cfg="yes"
+			if [ "$RPM_INSTALL" = "True" ]; then
+			    echo "update_def_cfg is not a valid option for RPM installations"
+			    help_usage
+			    exit 2
+			fi
+			;;
+		    "-fix_rrd") fix_rrd="-fix_rrd"
+			;;
+		    *)  # shift to avoid scanning file: if [ "$cfg_loc" != "$var" ]; then
+			echo "Unknown argument passed: $var"
+			help_usage
+			exit 2
+			;;
+		esac
+            done
 
+            if [ -n "$GLIDEIN_WRITEBACK" ]; then
+		writeback="$GLIDEIN_WRITEBACK"
+            fi
+
+            pushd $frontend_dir 1>/dev/null
         # Defaults of reconfig_frontend (f-flag, v-variable)
         # f   fix_rrd = False
         # v   writeback = 'no'
         # v   update_scripts = 'no'
         # v   update_def_cfg = 'no'
-        invoke_as_frontend "\"${CREATION_DIR}reconfig_frontend\" -force_name \"$frontend_name\" -writeback $writeback -xml \"$cfg_loc\" -update_def_cfg \"$update_def_cfg\" $fix_rrd"
+            invoke_as_frontend "\"${CREATION_DIR}reconfig_frontend\" -force_name \"$frontend_name\" -writeback $writeback -xml \"$cfg_loc\" -update_def_cfg \"$update_def_cfg\" $fix_rrd"
 
-        #su -s /bin/bash $FRONTEND_USER -c "reconfig_frontend -force_name \"$frontend_name\" -update_scripts \"no\" -xml $frontend_config"
+            reconfig_failed=$?
+            popd 1>/dev/null
+            echo -n "Reconfiguring the frontend"
+            test $reconfig_failed -eq 0 && success || failure
+            # To return the correct exit code (RET_NOT_CONFIGURED instead of 1)
+            [ $? -eq 0 ] && RETVAL=0 || RETVAL=$RET_NOT_CONFIGURED
+            echo
 
-        reconfig_failed=$?
-        popd 1>/dev/null
-        echo -n "Reconfiguring the frontend"
-        test $reconfig_failed -eq 0 && success || failure
-        # To return the correct exit code (RET_NOT_CONFIGURED instead of 1)
-        [ $? -eq 0 ] && RETVAL=0 || RETVAL=$RET_NOT_CONFIGURED
-        echo
-        if [ $notrun -eq 0 ]; then
-            if [ $reconfig_failed -ne 0 ];then
-                echo ".. starting Frontend with old configuration file"
-            fi
-            start
-            # At the end RETVAL needs to be set to the value to return
-            # start is changing the value of RETVAL (0-succeded, !0-failed)
-            # reconfig_failed is the reconfiguration result: 0-succeded, !0-failed
-            #  If start failed, then RETVAL=1 (generic error)
-            #  If start succeeded but reconfig failed RETVAL=6 (RET_NOT_CONFIGURED: bad or missing configuration)
-            #  If start succeded and reconfig succeded, then return 0
-            if [ $RETVAL -eq 0 ]; then
-                [ $reconfig_failed -eq 0 ] && RETVAL=0 || RETVAL=$RET_NOT_CONFIGURED
+	else
+	    # Frontend running, we can proceed
+            argno="$#"
+            argnoint=$(( argno + 0 ))
+
+            if [ $argnoint -eq 0 ]; then
+		echo 'no argument: I have to run kill -1 with the frontend PID'
+		killpid=`awk '/PID/ {print $2}' $frontend_dir/lock/frontend.lock`
+		kill -1 $killpid
             else
-                RETVAL=1
+		echo 'If Frontend running and at the same time if you want to use arguments, '
+		echo 'you have to stop Frontend first manually'
+		return 1
             fi
         fi
+        return 0
 }
-        
+
 upgrade() {
         # see reconfig for return values and logic explanation
         check_installed
-        if [ -f "$1" ]; then
-            echo "Using frontend config file arg: $1"
-            cfg_loc=$1
-        else
-            echo "Using default frontend config file: $def_frontend_config"
-            cfg_loc=$def_frontend_config
-        fi
-        "$FRONTEND_CHECK" "$frontend_dir" >/dev/null 2>&1 </dev/null
+
+        "${FRONTEND_CHECK}" "$frontend_dir" >/dev/null 2>&1 </dev/null
         notrun=$?
-        if [ $notrun -eq 0 ]; then
-            stop
-            if [ $RETVAL -ne 0 ] && [ $RETVAL -ne 2 ]; then
-                echo "Failed to stop the GlidinWMS Frontend. Please check."
-                exit $RETVAL
+        if [ $notrun -eq 1 ]; then   # 1 = not running
+            # If the Frontend not running, we can use the original code from reconfig() 
+            # which allows the users to use the options
+            if [ -f "$1" ]; then
+		echo "Using frontend config file arg: $1"
+		cfg_loc=$1
+            else
+		echo "Using default frontend config file: $def_frontend_config"
+		cfg_loc=$def_frontend_config
             fi
-        fi
-        pushd $frontend_dir 1>/dev/null
+
+            pushd $frontend_dir 1>/dev/null
 
         # Defaults of reconfig_frontend (f-flag, v-variable)
         # f   fix_rrd = True
         # v   writeback = yes
         # v   update_scripts = yes
         # v   update_def_cfg = no
-        invoke_as_frontend "\"${CREATION_DIR}reconfig_frontend\" -force_name \"$frontend_name\" -writeback yes -update_scripts yes -xml \"$cfg_loc\" -fix_rrd"
+            invoke_as_frontend "\"${CREATION_DIR}reconfig_frontend\" -force_name \"$frontend_name\" -writeback yes -update_scripts yes -xml \"$cfg_loc\" -fix_rrd"
 
-        # su -s /bin/bash $FRONTEND_USER -c "reconfig_frontend -force_name \"$frontend_name\" -writeback \"yes\" -update_scripts \"yes\" -xml $frontend_config"
+            reconfig_failed=$?
+            popd 1>/dev/null
+            echo -n "Upgrading the frontend"
+            test $reconfig_failed -eq 0 && success || failure
+            [ $? -eq 0 ] && RETVAL=0 || RETVAL=$RET_NOT_CONFIGURED
+            echo
 
-        reconfig_failed=$?
-        popd 1>/dev/null
-        echo -n "Upgrading the frontend"
-        test $reconfig_failed -eq 0 && success || failure
-        [ $? -eq 0 ] && RETVAL=0 || RETVAL=$RET_NOT_CONFIGURED
-        echo
-        if [ $notrun -eq 0 ]; then
-            if [ $reconfig_failed -ne 0 ];then
-                echo ".. starting Frontend with old configuration file"
-            fi
-            start
-            if [ $RETVAL -eq 0 ]; then
-                [ $reconfig_failed -eq 0 ] && RETVAL=0 || RETVAL=$RET_NOT_CONFIGURED
+	else
+            # Frontend running, we can proceed
+            argno="$#"
+            argnoint=$(( argno + 0 ))
+            if [ $argnoint -eq 0 ]; then
+		killpid=`awk '/PID/ {print $2}' $frontend_dir/lock/frontend.lock`
+		kill -1 $killpid
             else
-                RETVAL=1
+		echo 'If Frontend running and at the same time if you want to use arguments, '
+		echo 'you have to stop Frontend first manually'
+		return 1
             fi
         fi
+        return 0
 }
 
 downtime() {
