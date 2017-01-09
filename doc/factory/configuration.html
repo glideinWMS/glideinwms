@@ -72,6 +72,7 @@
         <li><a href="#private_net">Private Networks</a> </li>
         <li><a href="#security">Security</a> </li>
         <li><a href="#tcp">TCP Updates</a> </li>
+        <li><a href="#custom_code">Adding custom files/scripts to the glideins</a> </li>
         <li><a href="#multicol">Multiple Collectors</a> </li>
         <li><a href="#tarballs">Multiple HTCondor Tarballs</a> </li>
         <li><a href="#xsltplugins">XSLT Plugins to extend configuration</a> </li>
@@ -589,6 +590,22 @@ individual entry point configuration.
     attributes can be found on the 
     <A HREF="custom_vars.html"> dedicated configuration variables page </A>. 
     </P>
+    </LI>
+    <LI>
+        <a name="custom_code_summary" />
+        <div class="xml">
+        &lt;glidein&gt;&lt;files&gt;&lt;file 
+        absfname=&quot;<I>script name</I>&quot;
+        executable=&quot;<I>True</I>&quot;
+        period=&quot;period in seconds&quot;
+        prefix=&quot;cron prefix&quot; 
+        after_entry=&quot;True&quot; 
+        comment=&quot;<I>comment</I>&quot; /&gt;
+        </div>
+
+    <p>Custom files configuration is discussed in the <A HREF="#custom_code">Adding custom files/scripts to the glideins</A> paragraph in the advanced section below.</p>
+    <p>Custom files, how to write and use them, are discussed in the <A HREF="custom_scripts.html">custom scripts page</A>.</p>
+    </LI> 
 </UL>
 <P><BR>The other arguments are for advanced admins only, and are
 explained in a <A HREF="#advanced">dedicated section</A>.</P>
