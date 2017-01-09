@@ -811,6 +811,7 @@ def populate_factory_descript(work_dir, glidein_dict,
         glidein_dict.add('AdvertiseWithTCP',conf[u'advertise_with_tcp'])
         glidein_dict.add('AdvertiseWithMultiple',conf[u'advertise_with_multiple'])
         glidein_dict.add('LoopDelay',conf[u'loop_delay'])
+        glidein_dict.add('AdvertizePilotAccounting',conf[u'advertize_pilot_accounting'])
         glidein_dict.add('AdvertiseDelay',conf[u'advertise_delay'])
         glidein_dict.add('RestartAttempts',conf[u'restart_attempts'])
         glidein_dict.add('RestartInterval',conf[u'restart_interval'])

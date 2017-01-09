@@ -532,9 +532,10 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             save_stats(stats, os.path.join(startup_dir, glideFactoryConfig.factoryConfig.aggregated_stats_file))
 
             # Aggregate job data periodically
-            logSupport.log.info("Starting updating job classads")
-            update_classads(logSupport)
-            logSupport.log.info("Finishing updating job classads")
+            if glideinDescript.data.get('AdvertizePilotAccounting', False):
+                logSupport.log.info("Starting updating job classads")
+                update_classads(logSupport)
+                logSupport.log.info("Finishing updating job classads")
 
             # Advertise the global classad with the factory keys and Factory statistics
             try:
@@ -618,7 +619,6 @@ def main(startup_dir):
 
     glideFactoryInterface.factoryConfig.lock_dir = os.path.join(startup_dir,
                                                                 "lock")
-
     glideFactoryConfig.factoryConfig.glidein_descript_file = \
         os.path.join(startup_dir,
                      glideFactoryConfig.factoryConfig.glidein_descript_file)
