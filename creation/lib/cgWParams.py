@@ -174,7 +174,6 @@ class GlideinParams(cWParams.CommonParams):
         self.defaults["log_retention"] = log_retention_defaults
 
         self.defaults['loop_delay'] = ('60', 'seconds', 'Number of seconds between iterations', None)
-        self.defaults['advertise_pilot_accounting'] = ('False', 'Bool', 'Should qedit pilots to add monitoring accounting info when they complete', None)
         self.defaults['advertise_delay'] = ('5', 'NR', 'Advertize evert NR loops', None)
         self.defaults['restart_attempts'] = ('3', 'NR', 'Max allowed NR restarts every restart_interval before shutting down', None)
         self.defaults['restart_interval'] = ('1800', 'NR', 'Time interval NR sec which allow max restart attempts', None)
