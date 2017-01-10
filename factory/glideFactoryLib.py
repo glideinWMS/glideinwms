@@ -1152,7 +1152,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
     submitted_jids = []
 
     try:
-        exe_env = get_submit_environment(entry_name, client_name,
+        entry_env = get_submit_environment(entry_name, client_name,
                                          submit_credentials, client_web,
                                          params, log=log,
                                          factoryConfig=factoryConfig)
@@ -1165,16 +1165,15 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
     try:
         nr_submitted = 0
         while (nr_submitted < nr_glideins):
+            sub_env = []
             if nr_submitted != 0:
                 time.sleep(factoryConfig.submit_sleep)
 
             nr_to_submit = (nr_glideins - nr_submitted)
             if nr_to_submit > factoryConfig.max_cluster_size:
                 nr_to_submit = factoryConfig.max_cluster_size
-            exe_env =  [x for x in exe_env if 'GLIDEIN_COUNT' not in str(x)]
-            exe_env =  [x for x in exe_env if 'GLIDEIN_FRONTEND_NAME' not in str(x)]
-            exe_env.append('GLIDEIN_COUNT=%s' % nr_to_submit)
-            exe_env.append('GLIDEIN_FRONTEND_NAME=%s' % frontend_name)
+            sub_env.append('GLIDEIN_COUNT=%s' % nr_to_submit)
+            sub_env.append('GLIDEIN_FRONTEND_NAME=%s' % frontend_name)
 
             # check to see if the username for the proxy is 
             # same as the factory username
@@ -1185,8 +1184,9 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
                     if ((var in ('PATH', 'LD_LIBRARY_PATH', 'X509_CERT_DIR')) or
                         (var[:8] == '_CONDOR_') or (var[:7] == 'CONDOR_')):
                         if var in os.environ:
-                            exe_env.append('%s=%s' % (var, os.environ[var]))
+                            sub_env.append('%s=%s' % (var, os.environ[var]))
                 try:
+                    exe_env = entry_env + sub_env
                     args = ["condor_submit", "-name",
                             schedd, "entry_%s/job.condor" % entry_name]
                     submit_out = condorPrivsep.condor_execute(
@@ -1207,6 +1207,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
             else:
                 # Do not use privsep
                 try:
+                    exe_env = entry_env + sub_env
                     submit_out = condorExe.iexe_cmd("condor_submit -name %s entry_%s/job.condor" % (schedd, entry_name),
                                                     child_env=env_list2dict(exe_env))
                 except condorExe.ExeError,e:
