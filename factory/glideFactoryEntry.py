@@ -684,9 +684,9 @@ class Entry:
         self.gflFactoryConfig.log_stats.write_file(monitoringConfig=self.monitoringConfig)
         self.log.info("log_stats written")
 
-        self.log.info("Writing job info for %s" % self.name)
+        self.log.info("Writing glidein job info for %s" % self.name)
         self.gflFactoryConfig.log_stats.write_job_info(scheddName=self.scheddName, collectorName=self.gfiFactoryConfig.factory_collector)
-        self.log.info("job info written")
+        self.log.info("glidein job info written")
 
         self.gflFactoryConfig.qc_stats.finalizeClientMonitor()
         self.log.info("Writing qc_stats for %s" % self.name)

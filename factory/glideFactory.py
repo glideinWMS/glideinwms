@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 #
 # Project:
@@ -77,11 +76,10 @@ def aggregate_stats(in_downtime):
     return stats
 
 
-def update_classads(logSupp):
+def update_classads():
     """ Loads the aggregate job summary pickle files, and then
     quedit the finished jobs adding a new classad called MONITOR_INFO with the monitor information.
 
-    :param logSupp: for logging in case of error
     :return:
     """
     jobinfo = glideFactoryMonitorAggregator.aggregateJobsSummary()
@@ -90,9 +88,11 @@ def update_classads(logSupp):
         pool_name = cnames[1]
         try:
             qe = CondorQEdit(pool_name=pool_name, schedd_name=schedd_name)
-            qe.executeAll(joblist=joblist.keys(), attributes=['MONITOR_INFO']*len(joblist), values=map(json.dumps, joblist.values()))
+            qe.executeAll(joblist=joblist.keys(),
+                          attributes=['MONITOR_INFO']*len(joblist),
+                          values=map(json.dumps, joblist.values()))
         except QueryError as qe:
-            logSupp.log.error("Impossible to update monitoring classads: %s" % qe)
+            logSupport.log.error("Failed to add monitoring info to the glidein job classads: %s" % qe)
 
 
 def save_stats(stats, fname):
@@ -534,7 +534,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             # Aggregate job data periodically
             if glideinDescript.data.get('AdvertisePilotAccounting', False):
                 logSupport.log.info("Starting updating job classads")
-                update_classads(logSupport)
+                update_classads()
                 logSupport.log.info("Finishing updating job classads")
 
             # Advertise the global classad with the factory keys and Factory statistics
