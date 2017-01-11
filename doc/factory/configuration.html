@@ -322,6 +322,12 @@ individual entry point configuration.
     </div>
         <b>Optional</b> Defines if the factory should use -multiple to advertise its classads (requires HTCondor 7.5.4+).  
     </li>
+    <LI>
+    <div class="xml">
+        &lt;glidein advertize_pilot_accounting=&quot;<I>True|False</I>&quot; &gt;
+    </div>
+        <b>Optional</b> Defines if the factory should condor_qedit pilot jobs after they finishes to add accounting information. A classad MONITOR_INFO will be added and jobs will be left in the Complete state for 12 hours.
+    </li>
     </ul>
     </li>
     <LI>

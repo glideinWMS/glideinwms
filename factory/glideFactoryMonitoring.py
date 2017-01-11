@@ -16,6 +16,7 @@ import os
 import time
 import copy
 import math
+import pickle
 from glideinwms.lib import xmlFormat
 from glideinwms.lib import timeConversion
 from glideinwms.lib import rrdSupport
@@ -68,9 +69,9 @@ class MonitoringConfig:
         This function takes all newly completed glideins and
         logs them in logs/entry_Name/completed_jobs_date.log in an
         XML-like format.
-    
+
         @type client_name: String
-        @param client_name: the name of the frontend client 
+        @param client_name: the name of the frontend client
         @type entered_dict: Dictionary of dictionaries
         @param entered_dict: This is the dictionary of all jobs that have "Entered" the "Completed" states.  It is indexed by job_id.  Each data is an info dictionary containing the keys: username, jobs_duration (subkeys:total,goodput,terminated), wastemill (subkeys:validation,idle,nosuccess,badput) , duration, condor_started, condor_duration, jobsnr
         """
@@ -110,7 +111,7 @@ class MonitoringConfig:
             fd.close()
 
     def write_file(self, relative_fname, output_str):
-        """ 
+        """
         Writes out a string to a file
         @param relative_fname: The relative path name to write out
         @param str: the string to write to the file
@@ -444,7 +445,7 @@ class condorQStats:
         if monitoringConfig is None:
             monitoringConfig = globals()['monitoringConfig']
 
-        if ( (self.files_updated is not None) and 
+        if ( (self.files_updated is not None) and
              ((self.updated - self.files_updated) < 5) ):
             # files updated recently, no need to redo it
             return
@@ -606,7 +607,7 @@ class condorLogSummary:
 
         This stats_diff will be a dictionary with two entries for each
         status: "Entered" and "Exited" denoting which job ids have recently
-        changed status, ie. 
+        changed status, ie.
         stats_diff[frontend][username:client_int_name]["Completed"]["Entered"]
         """
         for client_name in self.current_stats_data.keys():
@@ -746,7 +747,7 @@ class condorLogSummary:
             count_jobs_duration[enle_jobs_duration_range] = 0 # make sure all are intialized
 
         count_total=getLogCompletedDefaults()
-        
+
         count_waste_mill={'validation':{},
                           'idle':{},
                           'nosuccess':{}, #i.e. everything but jobs terminating with 0
@@ -967,7 +968,7 @@ class condorLogSummary:
         if monitoringConfig is None:
             monitoringConfig = globals()['monitoringConfig']
 
-        if ( (self.files_updated is not None) and 
+        if ( (self.files_updated is not None) and
              ((self.updated - self.files_updated) < 5) ):
             # files updated recently, no need to redo it
             return
@@ -1076,6 +1077,50 @@ class condorLogSummary:
 
         self.files_updated = self.updated
         return
+
+
+    def write_job_info(self, scheddName, collectorName):
+        """ The method itereates over the stats_diff dictionary looking for
+        completed jobs and then fills out a dictionary that contains the
+        monitoring information needed for this job. Those info looks like:
+
+        {
+            'schedd_name': 'name',
+            'collector_name': 'name',
+            'joblist' : {
+                '2994.000': {'condor_duration': 1328, 'glidein_duration': 1334, 'condor_started': 1, 'numjobs': 0,
+                '2997.000': {'condor_duration': 1328, 'glidein_duration': 1334, 'condor_started': 1, 'numjobs': 0
+                ...
+            }
+        }
+
+        :param scheddName: The schedd name to update the job
+        :param collectorName: The collector name to update the job
+        """
+        jobinfo = {
+            'schedd_name' : scheddName,
+            'collector_name' : collectorName,
+            'joblist' : {},
+        }
+        for sec_name, sndata in self.stats_diff.iteritems():
+            for frname, frdata in sndata.iteritems():
+                for state, jobs in frdata.iteritems():
+                    if state == 'Completed':
+                        for job in jobs['Entered']:
+                            jobid = job[0]
+                            jobstats = job[4]
+                            #This is the dictionary that is going to be written out as a monitoring classad
+                            jobinfo['joblist'][jobid] = {
+                                'glidein_duration' : jobstats['glidein_duration'],
+                                'condor_duration' : jobstats['condor_duration'],
+                                'condor_started' : jobstats['condor_started'],
+                                'numjobs' : jobstats.get('stats', {}).get('Total', {}).get('jobsnr', 'unknown'),
+                            }
+
+        #cannot use monitorAggregatorConfig.jobsummary_relname, looks like a circular import
+        monitoringConfig.write_file("job_summary.pkl", pickle.dumps(jobinfo))
+
+
 
 
 ###############################################################################
@@ -1212,7 +1257,7 @@ class FactoryStatusData:
 
         # create a string containing the total data
         total_xml_str = self.tab + '<total>\n'
-        get_data_total = self.getData(self.total) 
+        get_data_total = self.getData(self.total)
         try:
             total_data = self.data[rrd][self.total]
             total_xml_str += (xmlFormat.dict2string(total_data, dict_name='periods', el_name='period', subtypes_params={"class":{}}, indent_tab=self.tab, leading_tab=2 * self.tab) + "\n")
@@ -1355,8 +1400,8 @@ def getAllJobTypes():
         return ('validation','idle', 'badput', 'nosuccess')
 
 def getLogCompletedDefaults():
-        return {'Glideins':0, 'Lasted':0, 'FailedNr':0, 
-            'JobsNr':0, 'JobsLasted':0, 'JobsTerminated':0, 
+        return {'Glideins':0, 'Lasted':0, 'FailedNr':0,
+            'JobsNr':0, 'JobsLasted':0, 'JobsTerminated':0,
             'JobsGoodput':0, 'CondorLasted':0}
 
 def getTimeRange(absval):
