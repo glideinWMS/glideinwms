@@ -407,13 +407,13 @@ def aggregateJobsSummary():
     :return: A dictionary containing the needed information that looks like:
         {
             ('schedd_name','collector_name') : {
-                '2994.000': {'condor_duration': 1328, 'glideing_duration': 1334, 'condor_started': 1, 'numjobs': 0},
-                '2997.000': {'condor_duration': 1328, 'glideing_duration': 1334, 'condor_started': 1, 'numjobs': 0},
+                '2994.000': {'condor_duration': 1328, 'glidein_duration': 1334, 'condor_started': 1, 'numjobs': 0},
+                '2997.000': {'condor_duration': 1328, 'glidein_duration': 1334, 'condor_started': 1, 'numjobs': 0},
                 ...
             },
             ('schedd_name','collector_name') : {
-                '2003.000': {'condor_duration': 1328, 'glideing_duration': 1334, 'condor_started': 1, 'numjobs': 0},
-                '206.000': {'condor_duration': 1328, 'glideing_duration': 1334, 'condor_started': 1, 'numjobs': 0},
+                '2003.000': {'condor_duration': 1328, 'glidein_duration': 1334, 'condor_started': 1, 'numjobs': 0},
+                '206.000': {'condor_duration': 1328, 'glidein_duration': 1334, 'condor_started': 1, 'numjobs': 0},
                 ...
             }
         }

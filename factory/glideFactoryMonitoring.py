@@ -1088,8 +1088,8 @@ class condorLogSummary:
             'schedd_name': 'name',
             'collector_name': 'name',
             'joblist' : {
-                '2994.000': {'condor_duration': 1328, 'glideing_duration': 1334, 'condor_started': 1, 'numjobs': 0,
-                '2997.000': {'condor_duration': 1328, 'glideing_duration': 1334, 'condor_started': 1, 'numjobs': 0
+                '2994.000': {'condor_duration': 1328, 'glidein_duration': 1334, 'condor_started': 1, 'numjobs': 0,
+                '2997.000': {'condor_duration': 1328, 'glidein_duration': 1334, 'condor_started': 1, 'numjobs': 0
                 ...
             }
         }
@@ -1111,7 +1111,7 @@ class condorLogSummary:
                             jobstats = job[4]
                             #This is the dictionary that is going to be written out as a monitoring classad
                             jobinfo['joblist'][jobid] = {
-                                'glideing_duration' : jobstats['glidein_duration'],
+                                'glidein_duration' : jobstats['glidein_duration'],
                                 'condor_duration' : jobstats['condor_duration'],
                                 'condor_started' : jobstats['condor_started'],
                                 'numjobs' : jobstats.get('stats', {}).get('Total', {}).get('jobsnr', 'unknown'),
