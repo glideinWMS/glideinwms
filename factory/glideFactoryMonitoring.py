@@ -1114,7 +1114,6 @@ class condorLogSummary:
                                 'glideing_duration' : jobstats['glidein_duration'],
                                 'condor_duration' : jobstats['condor_duration'],
                                 'condor_started' : jobstats['condor_started'],
-                                'cduration' : jobstats['condor_duration'],
                                 'numjobs' : jobstats.get('stats', {}).get('Total', {}).get('jobsnr', 'unknown'),
                             }
 
