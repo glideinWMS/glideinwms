@@ -232,14 +232,14 @@ function base64_b64uuencode {
 function b64uuencode {
     which uuencode >/dev/null 2>&1
     if [ $? -eq 0 ]; then
-    uuencode -m -
+        uuencode -m -
     else
-    which base64 >/dev/null 2>&1
-    if [ $? -eq 0 ]; then
-        base64_b64uuencode
-    else
-        python_b64uuencode
-    fi
+        which base64 >/dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            base64_b64uuencode
+        else
+            python_b64uuencode
+        fi
     fi
 }
 
@@ -647,24 +647,24 @@ else
         # using two different configs... one for monitor and one for main
         # don't create the monitoring configs and dirs if monitoring is disabled
         if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
-          condor_config_monitor_include="${main_stage_dir}/`grep -i '^condor_config_monitor_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
-          condor_config_monitor=${CONDOR_CONFIG}.monitor
-          cp "$CONDOR_CONFIG" "$condor_config_monitor"
-          if [ $? -ne 0 ]; then
-            #echo "Error copying condor_config into condor_config.monitor" 1>&2
-            STR="Error copying condor_config into condor_config.monitor"
-            "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "infile" "$condor_config_monitor" "file" "$CONDOR_CONFIG"
-            exit 1
-          fi
-          cat "$condor_config_monitor_include" >> "$condor_config_monitor"
-          if [ $? -ne 0 ]; then
-            #echo "Error appending monitor_include to condor_config.monitor" 1>&2
-            STR="Error appending monitor_include to condor_config.monitor"
-            "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "infile" "$condor_config_monitor" "file" "$condor_config_monitor_include"
-            exit 1
-          fi
+            condor_config_monitor_include="${main_stage_dir}/`grep -i '^condor_config_monitor_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
+            condor_config_monitor=${CONDOR_CONFIG}.monitor
+            cp "$CONDOR_CONFIG" "$condor_config_monitor"
+            if [ $? -ne 0 ]; then
+                #echo "Error copying condor_config into condor_config.monitor" 1>&2
+                STR="Error copying condor_config into condor_config.monitor"
+                "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "infile" "$condor_config_monitor" "file" "$CONDOR_CONFIG"
+                exit 1
+            fi
+            cat "$condor_config_monitor_include" >> "$condor_config_monitor"
+            if [ $? -ne 0 ]; then
+                #echo "Error appending monitor_include to condor_config.monitor" 1>&2
+                STR="Error appending monitor_include to condor_config.monitor"
+                "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "infile" "$condor_config_monitor" "file" "$condor_config_monitor_include"
+                exit 1
+            fi
 
-          cat >> "$condor_config_monitor" <<EOF
+            cat >> "$condor_config_monitor" <<EOF
 # use a different name for monitor
 MASTER_NAME = monitor_$$
 STARTD_NAME = monitor_$$
@@ -672,31 +672,31 @@ STARTD_NAME = monitor_$$
 # use plural names, since there may be more than one if multiple job VMs
 Monitored_Names = "glidein_$$@\$(FULL_HOSTNAME)"
 EOF
-    fi  # end of use_multi_monitor==1
+        fi  # end of [ "$GLIDEIN_Monitoring_Enabled" == "True" ], still in else from use_multi_monitor==1
 
-    # Set number of CPUs (otherwise the physical number is used)
-    echo "NUM_CPUS = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
-    # set up the slots based on the slots_layout entry parameter
-    slots_layout=`grep -i "^SLOTS_LAYOUT " $config_file | awk '{print $2}'`
-    if [ "X$slots_layout" = "Xpartitionable" ]; then
-        echo "NUM_SLOTS = 1" >> "$CONDOR_CONFIG"
-        echo "SLOT_TYPE_1 = cpus=\$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
-        echo "NUM_SLOTS_TYPE_1 = 1" >> "$CONDOR_CONFIG"
-        echo "SLOT_TYPE_1_PARTITIONABLE = True" >> "$CONDOR_CONFIG"
-        num_slots_for_shutdown_expr=1
-    else
-        # fixed slot
-        echo "SLOT_TYPE_1 = cpus=1" >> "$CONDOR_CONFIG"
-        echo "NUM_SLOTS_TYPE_1 = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
-        num_slots_for_shutdown_expr=$GLIDEIN_CPUS
-    fi
+        # Set number of CPUs (otherwise the physical number is used)
+        echo "NUM_CPUS = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
+        # set up the slots based on the slots_layout entry parameter
+        slots_layout=`grep -i "^SLOTS_LAYOUT " $config_file | awk '{print $2}'`
+        if [ "X$slots_layout" = "Xpartitionable" ]; then
+            echo "NUM_SLOTS = 1" >> "$CONDOR_CONFIG"
+            echo "SLOT_TYPE_1 = cpus=\$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
+            echo "NUM_SLOTS_TYPE_1 = 1" >> "$CONDOR_CONFIG"
+            echo "SLOT_TYPE_1_PARTITIONABLE = True" >> "$CONDOR_CONFIG"
+            num_slots_for_shutdown_expr=1
+        else
+            # fixed slot
+            echo "SLOT_TYPE_1 = cpus=1" >> "$CONDOR_CONFIG"
+            echo "NUM_SLOTS_TYPE_1 = \$(GLIDEIN_CPUS)" >> "$CONDOR_CONFIG"
+            num_slots_for_shutdown_expr=$GLIDEIN_CPUS
+        fi
 
 
-    # check for resource slots
-    condor_config_resource_slots=`grep -i "^GLIDEIN_Resource_Slots " $config_file | awk '{print $2}'`
-    if [ -n "$condor_config_resource_slots" ]; then
-      echo "adding resource slots configuration: $condor_config_resource_slots" 1>&2
-      cat >> "$CONDOR_CONFIG" <<EOF
+        # check for resource slots
+        condor_config_resource_slots=`grep -i "^GLIDEIN_Resource_Slots " $config_file | awk '{print $2}'`
+        if [ -n "$condor_config_resource_slots" ]; then
+            echo "adding resource slots configuration: $condor_config_resource_slots" 1>&2
+            cat >> "$CONDOR_CONFIG" <<EOF
 # ---- start of resource slots part ($condor_config_resource_slots) ----
 NEW_RESOURCES_LIST =
 EXTRA_SLOTS_NUM = 0
@@ -712,63 +712,63 @@ NUM_CPUS = \$(GLIDEIN_CPUS)+\$(EXTRA_SLOTS_NUM)
 #SLOT_TYPE_1 = ioslot=0
 #NUM_SLOTS_TYPE_1 = 1
 EOF
-      # resource processing: res_name[,res_num[,res_total_ram[,res_opt]]]{;res_name[,res_num[,res_total_ram[,res_opt]]]}*
-      # res_opt: static, partitionable, main
-      IFS=';' read -ra RESOURCES <<< "$condor_config_resource_slots"
-      # Slot Type Counter - Leave slot type 2 for monitoring
-      slott_ctr=3
-      for i in "${RESOURCES[@]}"; do
-        resource_params="`fix_param "$i" "name,number,memory,type,disk"`"
-        IFS=',' read res_name res_num res_ram res_opt res_disk <<< "$resource_params"
-        if [ -z "$res_name" ]; then
-            continue
-        fi
-        if [ -z "$res_num" ]; then
-            if [ "`echo "$res_name" | tr -s '[:upper:]' '[:lower:]'`" = "gpus" ]; then
-                # GPUs auto-discovery: https://htcondor-wiki.cs.wisc.edu/index.cgi/wiki?p=HowToManageGpus
-                res_num=`find_gpus_num`
-                ec=$?
-                if [ $ec -eq 0 ]; then
-                    echo "GPU autodiscovery (condor_gpu_discovery) found $res_num GPUs" 1>&2
-                    AUTO_GPU=True
+            # resource processing: res_name[,res_num[,res_total_ram[,res_opt]]]{;res_name[,res_num[,res_total_ram[,res_opt]]]}*
+            # res_opt: static, partitionable, main
+            IFS=';' read -ra RESOURCES <<< "$condor_config_resource_slots"
+            # Slot Type Counter - Leave slot type 2 for monitoring
+            slott_ctr=3
+            for i in "${RESOURCES[@]}"; do
+                resource_params="`fix_param "$i" "name,number,memory,type,disk"`"
+                IFS=',' read res_name res_num res_ram res_opt res_disk <<< "$resource_params"
+                if [ -z "$res_name" ]; then
+                    continue
+                fi
+                if [ -z "$res_num" ]; then
+                    if [ "`echo "$res_name" | tr -s '[:upper:]' '[:lower:]'`" = "gpus" ]; then
+                        # GPUs auto-discovery: https://htcondor-wiki.cs.wisc.edu/index.cgi/wiki?p=HowToManageGpus
+                        res_num=`find_gpus_num`
+                        ec=$?
+                        if [ $ec -eq 0 ]; then
+                            echo "GPU autodiscovery (condor_gpu_discovery) found $res_num GPUs" 1>&2
+                            AUTO_GPU=True
+                        else
+                            echo "GPU autodiscovery (condor_gpu_discovery) failed, disabling auto discovery, assuming 0 GPUs." 1>&2
+                            res_num=0
+                        fi
+                    else
+                        res_num=1
+                    fi
+                fi
+                if [ -z "$res_ram" ]; then
+                    # Will be ignored if res_opt=main
+                    let res_ram=128*${res_num}
+                fi
+                if [ "x$res_opt" == "xmain" ]; then  # which is the default value? main or static?
+                    res_opt=
+                    # Resource allocated for only main slots (partitionable or static)
+                    # Main slots are determined by CPUs. Let condor split the resource: if not enough some slot will have none
+                    echo "SLOT_TYPE_1 = \$(SLOT_TYPE_1), ${res_name}=100%" >> "$CONDOR_CONFIG"
+                    # Decided not to add type "mainextra" with resources added to main slot and CPUs incremented
+                    # It can be obtained with more control by setting GLIDEIN_CPUS
                 else
-                    echo "GPU autodiscovery (condor_gpu_discovery) failed, disabling auto discovery, assuming 0 GPUs." 1>&2
-                    res_num=0
+                    if [[ "$res_num" -eq 1 || "x$res_opt" == "xstatic" ]]; then
+                        res_opt=static
+                        res_ram="`unit_division "${res_ram}" ${res_num}`"
+                        if [ -n "$res_disk" ]; then
+                            res_disk="`unit_division "${res_disk}" ${res_num}`"
+                        fi
+                    else
+                        res_opt=partitionable
+                    fi
                 fi
-            else
-                res_num=1
-            fi
-        fi
-        if [ -z "$res_ram" ]; then
-            # Will be ignored if res_opt=main
-            let res_ram=128*${res_num}
-        fi
-        if [ "x$res_opt" == "xmain" ]; then  # which is the default value? main or static?
-            res_opt=
-            # Resource allocated for only main slots (partitionable or static)
-            # Main slots are determined by CPUs. Let condor split the resource: if not enough some slot will have none
-            echo "SLOT_TYPE_1 = \$(SLOT_TYPE_1), ${res_name}=100%" >> "$CONDOR_CONFIG"
-            # Decided not to add type "mainextra" with resources added to main slot and CPUs incremented
-            # It can be obtained with more control by setting GLIDEIN_CPUS
-        else
-            if [[ "$res_num" -eq 1 || "x$res_opt" == "xstatic" ]]; then
-                res_opt=static
-                res_ram="`unit_division "${res_ram}" ${res_num}`"
-                if [ -n "$res_disk" ]; then
-                    res_disk="`unit_division "${res_disk}" ${res_num}`"
+                if [ -z "$res_disk" ]; then
+                    # Set default here. What to do if disk is not given? Empty string lets HTCondor handle it
+                    res_disk_specification=''
+                else
+                    res_disk_specification=", disk=${res_disk}"
                 fi
-            else
-                res_opt=partitionable
-            fi
-        fi
-        if [ -z "$res_disk" ]; then
-            # Set default here. What to do if disk is not given? Empty string lets HTCondor handle it
-            res_disk_specification=''
-        else
-            res_disk_specification=", disk=${res_disk}"
-        fi
-        if [ -n "$AUTO_GPU" ]; then
-            cat >> "$CONDOR_CONFIG" <<EOF
+                if [ -n "$AUTO_GPU" ]; then
+                    cat >> "$CONDOR_CONFIG" <<EOF
 # Declare GPUs resource, auto-discovered: ${i}
 use feature : GPUs
 GPU_DISCOVERY_EXTRA = -extra
@@ -778,41 +778,41 @@ else
   MACHINE_RESOURCE_${res_name} = 0
 endif
 EOF
-        else
-            cat >> "$CONDOR_CONFIG" <<EOF
+                else
+                    cat >> "$CONDOR_CONFIG" <<EOF
 # Declare resource: ${i}
 MACHINE_RESOURCE_${res_name} = ${res_num}
 EOF
-        fi
-        if [ -n "$res_opt" ]; then
-            # no main, separate static or partitionable
-            cat >> "$CONDOR_CONFIG" <<EOF
+                fi
+                if [ -n "$res_opt" ]; then
+                    # no main, separate static or partitionable
+                    cat >> "$CONDOR_CONFIG" <<EOF
 EXTRA_SLOTS_NUM = \$(EXTRA_SLOTS_NUM)+\$(MACHINE_RESOURCE_${res_name})
 EOF
-            if [ "x$res_opt" == "xpartitionable" ]; then
-                cat >> "$CONDOR_CONFIG" <<EOF
+                    if [ "x$res_opt" == "xpartitionable" ]; then
+                        cat >> "$CONDOR_CONFIG" <<EOF
 SLOT_TYPE_${slott_ctr} = cpus=\$(MACHINE_RESOURCE_${res_name}), ${res_name}=\$(MACHINE_RESOURCE_${res_name}), ram=${res_ram}${res_disk_specification}
 SLOT_TYPE_${slott_ctr}_PARTITIONABLE = TRUE
 NUM_SLOTS_TYPE_${slott_ctr} = 1
 EOF
-            else
-                cat >> "$CONDOR_CONFIG" <<EOF
+                    else
+                        cat >> "$CONDOR_CONFIG" <<EOF
 SLOT_TYPE_${slott_ctr} = cpus=1, ${res_name}=1, ram=${res_ram}${res_disk_specification}
 SLOT_TYPE_${slott_ctr}_PARTITIONABLE = FALSE
 NUM_SLOTS_TYPE_${slott_ctr} = \$(MACHINE_RESOURCE_${res_name})
 EOF
-            fi
-            cat >> "$CONDOR_CONFIG" <<EOF
+                    fi
+                    cat >> "$CONDOR_CONFIG" <<EOF
 IS_SLOT_${res_name} = SlotTypeID==${slott_ctr}
 EXTRA_SLOTS_START = ifThenElse((SlotTypeID==${slott_ctr}), TARGET.Request${res_name}>0, (\$(EXTRA_SLOTS_START)))
 EOF
-            let slott_ctr+=1
-        fi
-        echo "NEW_RESOURCES_LIST = \$(NEW_RESOURCES_LIST) $res_name" >> "$CONDOR_CONFIG"
+                    let slott_ctr+=1
+                fi
+                echo "NEW_RESOURCES_LIST = \$(NEW_RESOURCES_LIST) $res_name" >> "$CONDOR_CONFIG"
 
-      done
+            done
 
-      cat >> "$CONDOR_CONFIG" <<EOF
+            cat >> "$CONDOR_CONFIG" <<EOF
 # Update machine_resource_names and start expression
 if defined MACHINE_RESOURCE_NAMES
   MACHINE_RESOURCE_NAMES = $\(MACHINE_RESOURCE_NAMES) \$(NEW_RESOURCES_LIST)
@@ -820,15 +820,15 @@ endif
 START = (\$(START)) && (\$(EXTRA_SLOTS_START))
 EOF
 
-    fi  # end of resource slot if
+        fi  # end of resource slot if
 
-    # Set to shutdown if total idle exceeds max idle, or if the age
-    # exceeds the retire time (and is idle) or is over the max walltime (todie)
-    echo "STARTD_SLOT_ATTRS = State, Activity, TotalTimeUnclaimedIdle, TotalTimeClaimedBusy" >> "$CONDOR_CONFIG"
-    echo "STARTD_SLOT_ATTRS = \$(STARTD_SLOT_ATTRS), SelfMonitorAge, JobStarts, ExpectedMachineGracefulDrainingCompletion" >> "$CONDOR_CONFIG"
-    daemon_shutdown=""
-    for I in `seq 1 $num_slots_for_shutdown_expr`; do
-        cat >> "$CONDOR_CONFIG" <<EOF
+        # Set to shutdown if total idle exceeds max idle, or if the age
+        # exceeds the retire time (and is idle) or is over the max walltime (todie)
+        echo "STARTD_SLOT_ATTRS = State, Activity, TotalTimeUnclaimedIdle, TotalTimeClaimedBusy" >> "$CONDOR_CONFIG"
+        echo "STARTD_SLOT_ATTRS = \$(STARTD_SLOT_ATTRS), SelfMonitorAge, JobStarts, ExpectedMachineGracefulDrainingCompletion" >> "$CONDOR_CONFIG"
+        daemon_shutdown=""
+        for I in `seq 1 $num_slots_for_shutdown_expr`; do
+            cat >> "$CONDOR_CONFIG" <<EOF
 
 DS${I}_TO_DIE = ((GLIDEIN_ToDie =!= UNDEFINED) && (CurrentTime > GLIDEIN_ToDie))
 
@@ -872,45 +872,43 @@ DS${I} = (\$(DS${I}_TO_DIE) || \\
 DS${I} = (DynamicSlot =!= True) && (\$(DS${I}))
 
 EOF
-        if [ "X$daemon_shutdown" != "X" ]; then
-            daemon_shutdown="$daemon_shutdown &&"
+            if [ "X$daemon_shutdown" != "X" ]; then
+                daemon_shutdown="$daemon_shutdown &&"
+            fi
+            daemon_shutdown="$daemon_shutdown \$(DS${I})"
+        done
+        echo "STARTD.DAEMON_SHUTDOWN = $daemon_shutdown" >> "$CONDOR_CONFIG"
+
+        cat $condor_config_main_include >> "$CONDOR_CONFIG"
+        if [ $? -ne 0 ]; then
+            #echo "Error appending main_include to condor_config" 1>&2
+            STR="Error appending main_include to condor_config"
+            "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "file" "$CONDOR_CONFIG" "infile" "$condor_config_main_include"
+            exit 1
         fi
-        daemon_shutdown="$daemon_shutdown \$(DS${I})"
-    done
-    echo "STARTD.DAEMON_SHUTDOWN = $daemon_shutdown" >> "$CONDOR_CONFIG"
 
-    cat $condor_config_main_include >> "$CONDOR_CONFIG"
-    if [ $? -ne 0 ]; then
-        #echo "Error appending main_include to condor_config" 1>&2
-        STR="Error appending main_include to condor_config"
-        "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "file" "$CONDOR_CONFIG" "infile" "$condor_config_main_include"
-        exit 1
-    fi
-
-    if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
-      cat >> "$CONDOR_CONFIG" <<EOF
+        if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
+            cat >> "$CONDOR_CONFIG" <<EOF
 
 Monitoring_Name = "monitor_$$@\$(FULL_HOSTNAME)"
 EOF
 
-      # also needs to create "monitor" dir for log and execute dirs
-      if [ -d monitor ] && [ -d monitor/log ] && [ -d monitor/execute ]; then
-        echo "Monitoring dirs exist" 1>&2
-      else
-        mkdir monitor monitor/log monitor/execute 
-        if [ $? -ne 0 ]; then
-          #echo "Error creating monitor dirs" 1>&2
-          STR="Error creating monitor dirs"
-          "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "directory" "$PWD/monitor_monitor/log_monitor/execute"
-          exit 1
+            # also needs to create "monitor" dir for log and execute dirs
+            if [ -d monitor ] && [ -d monitor/log ] && [ -d monitor/execute ]; then
+                echo "Monitoring dirs exist" 1>&2
+            else
+                mkdir monitor monitor/log monitor/execute 
+                if [ $? -ne 0 ]; then
+                    #echo "Error creating monitor dirs" 1>&2
+                    STR="Error creating monitor dirs"
+                    "$error_gen" -error "condor_startup.sh" "WN_Resource" "$STR" "directory" "$PWD/monitor_monitor/log_monitor/execute"
+                    exit 1
+                fi
+            fi
         fi
-      fi
-    fi
+    fi  # end else of [ "$use_multi_monitor" -eq 1 ]
 fi  # end else of "get check_include file for testing" [ "$check_only" == "1" ]
 
-# This fi seems not to match any if statement, removing it
-# it seems it happened in the change from 2.7.2 and 3.2
-#fi  # if mode==2
 
 if [ -d log ] && [ -d execute ]; then
   echo "log and execute dirs exist" 1>&2
@@ -1040,42 +1038,42 @@ metrics+=" CondorDuration $elapsed_time"
 ##    'timeout' amount of time has been reached.
 if [ "$check_only" -eq 1 ]; then
 
-  HOST=`uname -n`
+    HOST=`uname -n`
 
-  # debug statement
-  # echo "CONDOR_CONFIG ENV VAR= `env | grep CONDOR_CONFIG | awk '{split($0,a,"="); print a[2]}'`" 1>&2
-  #echo "running condor_fetchlog with the following:" 1>&2
-  #echo "\t$CONDOR_DIR/sbin/condor_fetchlog -startd $STARTD_NAME@$HOST STARTD" 1>&2
+    # debug statement
+    # echo "CONDOR_CONFIG ENV VAR= `env | grep CONDOR_CONFIG | awk '{split($0,a,"="); print a[2]}'`" 1>&2
+    #echo "running condor_fetchlog with the following:" 1>&2
+    #echo "\t$CONDOR_DIR/sbin/condor_fetchlog -startd $STARTD_NAME@$HOST STARTD" 1>&2
 
-  fetch_sleeptime=30      # can be dynamically set
-  fetch_timeout=500       # can be dynamically set
-  fetch_curTime=0
-  fetch_exit_code=1
-  let fetch_attemptsLeft="$fetch_timeout / $fetch_sleeptime"
-  while [ "$fetch_curTime" -lt "$fetch_timeout" ]; do
-    sleep $fetch_sleeptime
+    fetch_sleeptime=30      # can be dynamically set
+    fetch_timeout=500       # can be dynamically set
+    fetch_curTime=0
+    fetch_exit_code=1
+    let fetch_attemptsLeft="$fetch_timeout / $fetch_sleeptime"
+    while [ "$fetch_curTime" -lt "$fetch_timeout" ]; do
+        sleep $fetch_sleeptime
 
-    # grab user proxy so we can authenticate ourselves to run condor_fetchlog
-    PROXY_FILE=`grep -i "^X509_USER_PROXY " $config_file | awk '{print $2}'`
+        # grab user proxy so we can authenticate ourselves to run condor_fetchlog
+        PROXY_FILE=`grep -i "^X509_USER_PROXY " $config_file | awk '{print $2}'`
 
-    let "fetch_curTime  += $fetch_sleeptime" 
-	  FETCH_RESULTS=`X509_USER_PROXY=$PROXY_FILE $CONDOR_DIR/sbin/condor_fetchlog -startd $STARTD_NAME@$HOST STARTD`
-    fetch_exit_code=$?
-    if [ $fetch_exit_code -eq 0 ]; then
-      break
-    fi
-    echo "fetch exit code=$fetch_exit_code" 1>&2
-    echo "fetch failed in this iteration...will try $fetch_attemptsLeft more times."  >&2
-    let "fetch_attemptsLeft -= 1"
-  done
+        let "fetch_curTime  += $fetch_sleeptime" 
+        FETCH_RESULTS=`X509_USER_PROXY=$PROXY_FILE $CONDOR_DIR/sbin/condor_fetchlog -startd $STARTD_NAME@$HOST STARTD`
+        fetch_exit_code=$?
+        if [ $fetch_exit_code -eq 0 ]; then
+            break
+        fi
+        echo "fetch exit code=$fetch_exit_code" 1>&2
+        echo "fetch failed in this iteration...will try $fetch_attemptsLeft more times."  >&2
+        let "fetch_attemptsLeft -= 1"
+    done
 
-  if [ $fetch_exit_code -ne 0 ]; then
-    echo "Able to talk to startd? FALSE" 1>&1 1>&2
+    if [ $fetch_exit_code -ne 0 ]; then
+        echo "Able to talk to startd? FALSE" 1>&1 1>&2
         echo "Failed to talk to startd $STARTD_NAME on host $HOST" >&2
-    echo "Reason for failing: Condor_fetchlog took too long to talk to host" >&2
-    echo "time spent trying to fetch : $fetch_curTime" >&2
+        echo "Reason for failing: Condor_fetchlog took too long to talk to host" >&2
+        echo "time spent trying to fetch : $fetch_curTime" >&2
     else
-    echo "Able to talk to startd? TRUE" 1>&1 1>&2
+        echo "Able to talk to startd? TRUE" 1>&1 1>&2
         echo "Successfully talked to startd $STARTD_NAME on host $HOST" >&2
         echo "Fetch Results from condor_fetchlog: $FETCH_RESULTS" >&2
     fi
@@ -1089,7 +1087,7 @@ fi
 log_dir='log'
 
 echo "Total jobs/goodZ jobs/goodNZ jobs/badSignal jobs/badOther jobs below are normalized to 1 Core"
-echo ===   Stats of main   ===
+echo "===   Stats of main   ==="
 if [ -f "${main_starter_log}" ]; then
     echo "===NewFile===" > separator_log.txt
     listtoparse="separator_log.txt"
@@ -1098,14 +1096,14 @@ if [ -f "${main_starter_log}" ]; then
     do
         listtoparse="$listtoparse $slotlog separator_log.txt"
     done
-  parsed_out=`cat $listtoparse | awk -v parallelism=${GLIDEIN_CPUS} -f "${main_stage_dir}/parse_starterlog.awk"`
-  echo "$parsed_out"
+    parsed_out=`cat $listtoparse | awk -v parallelism=${GLIDEIN_CPUS} -f "${main_stage_dir}/parse_starterlog.awk"`
+    echo "$parsed_out"
 
-  parsed_metrics=`echo "$parsed_out" | awk 'BEGIN{p=0;}/^Total /{if (p==1) {if ($2=="jobs") {t="Total";n=$3;m=$5;} else {t=$2;n=$4;m=$7;} print t "JobsNr " n " " t "JobsTime " m;}}/^====/{p=1;}'`
-  # use echo to strip newlines
-  metrics+=`echo " " $parsed_metrics`
+    parsed_metrics=`echo "$parsed_out" | awk 'BEGIN{p=0;}/^Total /{if (p==1) {if ($2=="jobs") {t="Total";n=$3;m=$5;} else {t=$2;n=$4;m=$7;} print t "JobsNr " n " " t "JobsTime " m;}}/^====/{p=1;}'`
+    # use echo to strip newlines
+    metrics+=`echo " " $parsed_metrics`
 fi
-echo === End Stats of main ===
+echo "=== End Stats of main ==="
 
 if [ 1 -eq 1 ]; then
     ls -l log 1>&2
@@ -1121,13 +1119,13 @@ if [ 1 -eq 1 ]; then
     done
 
     if [ "$use_multi_monitor" -ne 1 ]; then
-      if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
-        cond_print_log MasterLog.monitor monitor/log/MasterLog
-        cond_print_log StartdLog.monitor monitor/log/StartdLog
-        cond_print_log StarterLog.monitor ${monitor_starter_log}
-      fi
+        if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
+            cond_print_log MasterLog.monitor monitor/log/MasterLog
+            cond_print_log StartdLog.monitor monitor/log/StartdLog
+            cond_print_log StarterLog.monitor ${monitor_starter_log}
+        fi
     else
-      cond_print_log StarterLog.monitor ${monitor_starter_log}
+        cond_print_log StarterLog.monitor ${monitor_starter_log}
     fi
 
     cond_print_log StartdHistoryLog log/StartdHistoryLog
@@ -1137,34 +1135,34 @@ fi
 if [ "$use_multi_monitor" -ne 1 ]; then
     # terminate monitoring startd
     if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
-      # use the appropriate configuration file
-      tmp_condor_config=$CONDOR_CONFIG
-      export CONDOR_CONFIG=$condor_config_monitor
+        # use the appropriate configuration file
+        tmp_condor_config=$CONDOR_CONFIG
+        export CONDOR_CONFIG=$condor_config_monitor
 
-      monitor_start_time=`date +%s`
-      echo "Terminating monitoring condor at `date` (`date +%s`)" 1>&2
+        monitor_start_time=`date +%s`
+        echo "Terminating monitoring condor at `date` (`date +%s`)" 1>&2
 
         #### KILL CONDOR ####
-      $CONDOR_DIR/sbin/condor_master -k $PWD/monitor/condor_master.pid
+        $CONDOR_DIR/sbin/condor_master -k $PWD/monitor/condor_master.pid
         ####
 
-      ret=$?
-      if [ "$ret" -ne 0 ]; then
+        ret=$?
+        if [ "$ret" -ne 0 ]; then
             echo 'Failed to terminate monitoring condor... still going ahead' 1>&2
-      fi
+        fi
 
-      # clean back
-      export CONDOR_CONFIG=$tmp_condor_config
+        # clean back
+        export CONDOR_CONFIG=$tmp_condor_config
     fi
 fi
 
 if [ "$ON_DIE" -eq 1 ]; then
 	
-	#If we are explicitly killed, do not wait required time
-	echo "Explicitly killed, exiting with return code 0 instead of $condor_ret";
+    #If we are explicitly killed, do not wait required time
+    echo "Explicitly killed, exiting with return code 0 instead of $condor_ret";
 	
-	condor_ret=0
-	metrics+=" CondorKilled True"
+    condor_ret=0
+    metrics+=" CondorKilled True"
 else
     metrics+=" CondorKilled False"
 fi
