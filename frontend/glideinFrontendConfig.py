@@ -419,11 +419,13 @@ class HistoryFile:
     def __init__(self, base_dir, group_name, load_on_init=True,
                  default_factory=None):
         """
-        The default_factory semantics is the same as the one in collections.defaultdict
+        The default_factory semantics is the same as the one in
+        collections.defaultdict
         """
         self.base_dir = base_dir
         self.group_name = group_name
-        self.fname = os.path.join(get_group_dir(base_dir, group_name), frontendConfig.history_file)
+        self.fname = os.path.join(get_group_dir(base_dir, group_name),
+                                  frontendConfig.history_file)
         self.default_factory = default_factory
 
         # cannot use collections.defaultdict directly
@@ -455,7 +457,8 @@ class HistoryFile:
 
     def save(self, raise_on_error=False):
         # There is no concurrency, so does not need to be done atomically
-        # Anyway we want to avoid to write an empty file on top of a saved state because of an exception
+        # Anyway we want to avoid to write an empty file on top of a
+        # saved state because of an exception
         try:
             util.file_pickle_dump(self.fname, self.data)
         except:
@@ -464,7 +467,7 @@ class HistoryFile:
             # else, just ignore
 
     def has_key(self, keyid):
-        return self.data.has_key(keyid)
+        return (keyid in self.data)
 
     def __contains__(self, keyid):
         return (keyid in self.data)

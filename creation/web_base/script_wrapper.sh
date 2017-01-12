@@ -77,7 +77,7 @@ function vmessage {
 
 
 # temporary function until the correct one is sourced
-function add_config_line {
+function add_config_line_safe {
     echo "$@" >> $glidein_config
 }
 
@@ -92,7 +92,7 @@ function publish {
     else
         echo "${prefix}$1 = ${*:2}"
     fi
-    add_config_line "${prefix}$*"
+    add_config_line_safe "${prefix}$*"
 }
 
 
@@ -103,10 +103,10 @@ function list_manage {
     tmp_list=",`grep -i "^$3 " $glidein_config | awk '{print $2}'`,"
     if [[ "$1" == "del" && "$tmp_list" == *,$2,* ]]; then
         tmp_list="${tmp_list/,$2,/,}"
-        add_config_line "$3" "`[[ "$tmp_list" =~ ,*([^,]|[^,].*[^,]),* ]]; echo -n "${BASH_REMATCH[1]}"`"
+        add_config_line_safe "$3" "`[[ "$tmp_list" =~ ,*([^,]|[^,].*[^,]),* ]]; echo -n "${BASH_REMATCH[1]}"`"
     elif [[ "$1" == "add" && ! "$tmp_list," == *,$2,* ]]; then
         tmp_list="$tmp_list,$2"
-        add_config_line "$3" "`[[ "$tmp_list" =~ ,*([^,]|[^,].*[^,]),* ]]; echo -n "${BASH_REMATCH[1]}"`"
+        add_config_line_safe "$3" "`[[ "$tmp_list" =~ ,*([^,]|[^,].*[^,]),* ]]; echo -n "${BASH_REMATCH[1]}"`"
     fi
     if [ "$3" == GLIDEIN_PS_FAILING_LIST ]; then
         # publish test status

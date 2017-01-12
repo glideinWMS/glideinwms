@@ -475,7 +475,7 @@ class Entry:
                 #        logSupport.log.warning('Error extracting %s for %s from %s' % (limit, fe_sec, self.jobDescript.data[limit]))
             else:
                 try:
-                    # Default and per entry limits are numeric 
+                    # Default and per entry limits are numeric
                     configured_limits[limit] = int(self.jobDescript.data[limit])
                 except:
                     logSupport.log.warning('%s (value=%s) is not an int' % (limit, self.jobDescript.data[limit]))
@@ -683,6 +683,10 @@ class Entry:
         self.log.info("Writing log_stats for %s" % self.name)
         self.gflFactoryConfig.log_stats.write_file(monitoringConfig=self.monitoringConfig)
         self.log.info("log_stats written")
+
+        self.log.info("Writing glidein job info for %s" % self.name)
+        self.gflFactoryConfig.log_stats.write_job_info(scheddName=self.scheddName, collectorName=self.gfiFactoryConfig.factory_collector)
+        self.log.info("glidein job info written")
 
         self.gflFactoryConfig.qc_stats.finalizeClientMonitor()
         self.log.info("Writing qc_stats for %s" % self.name)
@@ -1131,7 +1135,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         entry.log.warning("Security class %s is currently in a downtime window for entry: %s. Ignoring request." % (credential_security_class, entry.name))
         # this below change is based on redmine ticket 3110.
         # even though we do not return here, setting in_downtime=True (for entry downtime)
-        # will make sure no new glideins will be submitted in the same way that 
+        # will make sure no new glideins will be submitted in the same way that
         # the code does for the factory downtime
         in_downtime = True
 #        return return_dict
@@ -1433,7 +1437,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     # do one iteration for the credential set (maps to a single security class)
     #entry.gflFactoryConfig.client_internals[client_int_name] = \
     #    {"CompleteName":client_name, "ReqName":client_int_req}
-    
+
     done_something = perform_work_v3(entry, entry_condorQ, client_name,
                                      client_int_name, client_security_name,
                                      submit_credentials, remove_excess,

@@ -2,7 +2,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This module implements classes to query the condor daemons
@@ -201,9 +201,9 @@ class LocalScheddCache(NoneScheddCache):
 
 # default global object
 local_schedd_cache=LocalScheddCache()
-      
-      
-def condorq_attrs(q_constraint, attribute_list):  
+
+
+def condorq_attrs(q_constraint, attribute_list):
     """
     Retrieves a list of a single item from the all the factory queues.
     """
@@ -212,8 +212,8 @@ def condorq_attrs(q_constraint, attribute_list):
         attr_str += " -attr %s" % attr
 
     xml_data = condorExe.exe_cmd("condor_q","-g -l %s -xml -constraint '%s'" % (attr_str, q_constraint))
-    
-    
+
+
     classads_xml = []
     tmp_list = []
     for line in xml_data:
@@ -223,14 +223,14 @@ def condorq_attrs(q_constraint, attribute_list):
                 classads_xml.append(tmp_list)
             tmp_list = []
         tmp_list.append(line)
-    
+
     q_proxy_list = []
     for ad_xml in classads_xml:
         cred_list = xml2list(ad_xml)
-        q_proxy_list.extend(cred_list) 
-                            
+        q_proxy_list.extend(cred_list)
+
     return q_proxy_list
-    
+
 #
 # Condor monitoring classes
 #
@@ -275,7 +275,7 @@ class StoredQuery(AbstractQuery):
     Virtual class that implements fetchStored
     """
     stored_data = {}
-    
+
 
     def fetchStored(self, constraint_func=None):
         """
@@ -287,6 +287,58 @@ class StoredQuery(AbstractQuery):
         @return: Same as fetch(), but limited to constraint_func(el)==True
         """
         return applyConstraint(self.stored_data, constraint_func)
+
+
+class CondorQEdit:
+    """
+    Fully implemented class that executes condorq_edit commands. Only provides a method to do bulk
+    updates of jobs using transaction-based API and the condor python bindings. Cannot be used without
+    python bindings
+    """
+
+    def __init__(self, pool_name=None, schedd_name=None):
+        """ Raises QueryError in case python bindings are not available
+        """
+        self.pool_name=pool_name
+        self.schedd_name=schedd_name
+        if not USE_HTCONDOR_PYTHON_BINDINGS:
+            raise QueryError("QEdit class only implemented with python bindings")
+
+    def executeAll(self, joblist=None, attributes=None, values=None):
+        """ Given equal sized lists of job ids, attributes and values,
+            executes in one large transaction a single qedit for each job.
+        """
+        joblist = joblist or []
+        attributes = attributes or []
+        values = values or []
+        if not (len(joblist) == len(attributes) == len(values)):
+            raise QueryError("Arguments to QEdit.executeAll should have the same length")
+        try:
+            htcondor.reload_config()
+            if self.pool_name:
+                collector = htcondor.Collector(str(self.pool_name))
+            else:
+                collector = htcondor.Collector()
+
+            if self.schedd_name:
+                schedd_ad = collector.locate(htcondor.DaemonTypes.Schedd,
+                                             self.schedd_name)
+                schedd = htcondor.Schedd(schedd_ad)
+            else:
+                schedd = htcondor.Schedd()
+            with schedd.transaction() as _:
+                for jobid, attr, val in zip(joblist, attributes, values):
+                    schedd.edit([jobid], attr, classad.quote(val))
+        except Exception as ex:
+            s = 'default'
+            if self.schedd_name is not None:
+                s = self.schedd_name
+            p = 'default'
+            if self.pool_name is not None:
+                p = self.pool_name
+            err_str = 'Error querying schedd %s in pool %s using python bindings: %s' % (s, p, ex)
+            raise QueryError(err_str)
+
 
 #
 # format_list is a list of
@@ -526,7 +578,7 @@ class CondorQ(CondorQuery):
                 schedd_ad = collector.locate(htcondor.DaemonTypes.Schedd,
                                              self.schedd_name)
                 schedd = htcondor.Schedd(schedd_ad)
-            results = schedd.query(constraint, attrs) 
+            results = schedd.query(constraint, attrs)
             results_dict = list2dict(results, self.group_attribute)
         except Exception as ex:
             s = 'default'
@@ -586,7 +638,7 @@ class CondorStatus(CondorQuery):
             else:
                 collector = htcondor.Collector()
 
-            results = collector.query(adtype, constraint, attrs) 
+            results = collector.query(adtype, constraint, attrs)
             results_dict = list2dict(results, self.group_attribute)
         except Exception as ex:
             p = 'default'
@@ -791,7 +843,7 @@ def xml2list_start_element(name, attrs):
         pass # top element, nothing to do
     else:
         raise TypeError, "Unsupported type: %s" % name
-        
+
 def xml2list_end_element(name):
     global xml2list_data, xml2list_inclassad, xml2list_inattr, xml2list_intype
     if name == "c":
@@ -808,7 +860,7 @@ def xml2list_end_element(name):
         pass # top element, nothing to do
     else:
         raise TypeError, "Unexpected type: %s" % name
-    
+
 def xml2list_char_data(data):
     global xml2list_data, xml2list_inclassad, xml2list_inattr, xml2list_intype
     if xml2list_inattr is None:
@@ -839,7 +891,7 @@ def xml2list(xml_data):
     xml2list_inclassad = None
     xml2list_inattr = None
     xml2list_intype = None
-    
+
     p = xml.parsers.expat.ParserCreate()
     p.StartElementHandler = xml2list_start_element
     p.EndElementHandler = xml2list_end_element
@@ -860,7 +912,7 @@ def xml2list(xml_data):
         except:
             raise RuntimeError, "Failed to parse XML data, generic error"
     # else no xml, so return an empty list
-    
+
     return xml2list_data
 
 def list2dict(list_data, attr_name):
@@ -873,7 +925,7 @@ def list2dict(list_data, attr_name):
         attr_list = attr_name
     else:
         attr_list = [attr_name]
-    
+
     dict_data = {}
     for list_el in list_data:
         if type(attr_name) in (type([]), type((1, 2))):
@@ -951,7 +1003,7 @@ def doGroup(indata, group_key_func, group_data_func):
     outdata = {}
     for k in gdata:
         outdata[k] = group_data_func(gdata[k])
-        
+
     return outdata
 
 #
@@ -993,7 +1045,7 @@ def fetch2count(data, hash_func):
         else:
             count_el = 1
         cel[hid] = count_el
-            
+
     return count
 
 #
@@ -1035,7 +1087,7 @@ def fetch2list(data, hash_func):
         else:
             list_el = [k]
         lel[hid] = list_el
-        
+
     return return_list
 
 #
@@ -1081,7 +1133,7 @@ def resource_str_to_py_adtype(resource_str):
             '-startd': htcondor.AdTypes.Startd,
             '-submitter': htcondor.AdTypes.Submitter
         }
-        # Default to startd ads, even if resource_str is empty 
+        # Default to startd ads, even if resource_str is empty
         adtype = adtypes.get(resource_str, htcondor.AdTypes.Startd)
     return adtype
 
@@ -1120,7 +1172,7 @@ class SummarizeMulti:
     # see Count for description
     def count(self, constraint=None, hash_func=None):
         out = {}
-        
+
         for c in self.counts:
             data = c.count(constraint, hash_func)
             addDict(out, data)
@@ -1130,7 +1182,7 @@ class SummarizeMulti:
     # see Count for description
     def countStored(self, constraint_func=None, hash_func=None):
         out = {}
-        
+
         for c in self.counts:
             data = c.countStored(constraint_func, hash_func)
             addDict(out, data)
