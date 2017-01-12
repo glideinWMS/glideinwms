@@ -546,6 +546,23 @@ function add_config_line {
     fi
 }
 
+##################################################
+# Add a line to the config file using a lock file
+# Replacs add_config_line in script_wrapper where multiple instances run in parallel
+# Uses FD 200, fails after a timeout of 300 sec
+function add_config_line_safe {
+    grep -q "^\${*}$" \$glidein_config
+    if [ \$? -ne 0 ]; then
+        # when fd is closed the lock is released, no need to trap and remove the file
+        (
+        flock -w 300 -e 200 || (warn "Error acquiring lock for glidein_config"; exit 1)
+        add_config_line "\$@"
+        ) 200>\${glidein_config}.lock
+    fi
+}
+
+
+
 ####################################
 # Add a line to the condor_vars file
 # Arg: line to add, first element is the id

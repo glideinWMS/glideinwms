@@ -11,6 +11,27 @@ v3_3    Includes all features and bug fixes released in v3_2_15
         Bug Fix: create_condor_tarball now also includes required globus libraries
 	  from lib/condor that HTCondor loads at runtime
 
+v3_2_17 Glideins fallback to curl if transferring files from the 
+	  factory/frontend staging area fails using wget
+	Bug Fix: Factory not correctly consider the cluster size when
+	  doing multiple submissions during same cycle
+	Added support for systemctl init scripts for RHEL6 and RHEL7
+	Factory and Frontend service init scripts now use daemon functions
+	Added ability to request disk space for special resource slots
+	Updated jQuery in monitoring webpages to version 1.12
+	Updated Documentation
+	Pilot accounting information from jobs is now available in the
+	  glidein job's classad on the factory side
+	Frontend service performance stats are now advertised in the
+	  glidefrontendmonitor classad
+	Bug Fix: Fixed race condition where periodic scripts in glidein
+	  would corrupt a glidein_config
+	Bug Fix: Fixed an issue where some START_EXPR were incorrectly
+	  ignored
+	Bug Fix: When not configured GLIDEIN_CPUS default back to 1
+	  rather than trying to auto detect available cores
+	Bug Fix: Glideins will not use UTMP be default
+	
 v3_2_16	Information about job and machine features are now available in glidein
 	  startd's classad
 	New tool manual_glidein_startup now lets you manually start a glidein
