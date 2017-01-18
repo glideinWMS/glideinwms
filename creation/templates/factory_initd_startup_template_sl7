@@ -51,9 +51,6 @@ RET_NOT_RUNNING=7
 
 
 [ -f /etc/sysconfig/gwms-factory ] && . /etc/sysconfig/gwms-factory
-if [ "$RPM_INSTALL" = "True" ]; then
-    . /etc/rc.d/init.d/functions
-fi
 
 # Variables substituted during the file creation (by cgWCreate.py)        
 factory_dir=%(factory_dir)s
@@ -77,6 +74,7 @@ SCRIPT_NAME="`basename $0`"
 
 
 if [ "$RPM_INSTALL" = "True" ]; then
+    . /etc/rc.d/init.d/functions
     # RPM installation (defaults and binaries)
     LOG_FILE_STARTUP=/dev/null
     DEFAULT_WRITEBACK=no
