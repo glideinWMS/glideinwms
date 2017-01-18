@@ -51,7 +51,6 @@ RET_NOT_RUNNING=7
 
 
 [ -f /etc/sysconfig/gwms-frontend ] && . /etc/sysconfig/gwms-frontend
-. /etc/rc.d/init.d/functions
 
 # Variables substituted during the file creation (by cvWCreate.py)        
 frontend_dir=%(frontend_dir)s
@@ -75,6 +74,7 @@ SCRIPT_NAME="`basename $0`"
 
 
 if [ "$RPM_INSTALL" = "True" ]; then
+    . /etc/rc.d/init.d/functions
     # RPM installation (defaults and binaries)
     LOG_FILE_STARTUP=/var/log/gwms-frontend/frontend/startup.log
     DEFAULT_WRITEBACK=no
