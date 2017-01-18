@@ -237,9 +237,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # but must be loaded early, as it also works as a reporting script in case of error
         self.dicts['description'].add(cgWConsts.CONDOR_STARTUP_FILE,"last_script")
 
-        #
-        # At this point in the glideins, condor_advertize should be able to talk to the FE collector
-        #
+        # At this point in the glideins, condor_advertise should be able to
+        # talk to the FE collector
 
         # put user files in stage
         for file in self.conf.get_child_list(u'files'):
@@ -811,6 +810,7 @@ def populate_factory_descript(work_dir, glidein_dict,
         glidein_dict.add('AdvertiseWithTCP',conf[u'advertise_with_tcp'])
         glidein_dict.add('AdvertiseWithMultiple',conf[u'advertise_with_multiple'])
         glidein_dict.add('LoopDelay',conf[u'loop_delay'])
+        glidein_dict.add('AdvertisePilotAccounting',conf[u'advertise_pilot_accounting'])
         glidein_dict.add('AdvertiseDelay',conf[u'advertise_delay'])
         glidein_dict.add('RestartAttempts',conf[u'restart_attempts'])
         glidein_dict.add('RestartInterval',conf[u'restart_interval'])

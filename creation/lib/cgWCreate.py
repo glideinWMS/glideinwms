@@ -144,7 +144,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         else:
             self.add("Grid_Resource", "%s %s" % (gridtype, gatekeeper))
         self.add("Executable", exe_fname)
-                
+
         # set up the grid specific attributes
         if gridtype == 'ec2':
             self.populate_ec2_grid()
@@ -161,6 +161,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             self.populate_standard_grid(rsl, auth_method, gridtype)
 
         self.populate_glidein_classad(proxy_url)
+
+        #Leave jobs in the condor queue for 12 hours if they are completed.
+        self.add("LeaveJobInQueue", "(time() - (EnteredCurrentStatus > 12*60*60))")
 
         # Notification and Owner are the same no matter what grid type
         self.add("Notification", "Never")
@@ -256,7 +259,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         because the code is so obtuse, if I remove the function, I may create unintended effects.
         """
         pass
-       
+
 #########################################
 # Create init.d compatible startup file
 def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name, rpm_install=''):
@@ -266,8 +269,8 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name, r
     template = get_template("factory_initd_startup_template", glideinWMS_dir)
     fd = open(startup_fname,"w")
     try:
-        template = template % {"factory_dir": factory_dir, 
-                               "glideinWMS_dir": glideinWMS_dir, 
+        template = template % {"factory_dir": factory_dir,
+                               "glideinWMS_dir": glideinWMS_dir,
                                "default_cfg_fpath": cfg_name,
                                "rpm_install": rpm_install}
         fd.write(template)
@@ -366,7 +369,7 @@ def get_condor_dlls(condor_dir, files=[], libdirs=['lib', 'lib/condor']):
     @type libdirs: list
     @param libdirs: List of dirs relative to condor_dir that contain libs
 
-    @return: List containing linked libraries required by all the files. 
+    @return: List containing linked libraries required by all the files.
              Paths a relative to the condor_dir
     @rtype: list
     """

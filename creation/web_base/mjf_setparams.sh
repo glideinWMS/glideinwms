@@ -11,7 +11,7 @@ GRACE_SECS=$(getValueFromFileOrURL grace_secs "$MACHINEFEATURES")
 
 ALLOCATED_CPU=$(getValueFromFileOrURL allocated_cpu "$JOBFEATURES")
 HS06_JOB=$(getValueFromFileOrURL hs06_job "$JOBFEATURES")
-SHUTDOWNTIME_JOB=$(getValueFromFileOrURL shutdowntime_job "$MACHINEFEATURES")
+SHUTDOWNTIME_JOB=$(getValueFromFileOrURL shutdowntime_job "$JOBFEATURES")
 GRACE_SECS_JOB=$(getValueFromFileOrURL grace_secs_job "$JOBFEATURES")
 JOBSTART_SECS=$(getValueFromFileOrURL jobstart_secs "$JOBFEATURES")
 JOB_ID=$(getValueFromFileOrURL job_id "$JOBFEATURES")

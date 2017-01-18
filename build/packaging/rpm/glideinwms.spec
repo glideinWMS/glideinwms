@@ -49,9 +49,10 @@ Source8:        gwms-frontend.sysconfig
 Source9:        gwms-factory.sysconfig
 Source11:       creation/templates/frontend_startup_sl7
 Source12:       creation/templates/factory_startup_sl7
+
 %description
 This is a package for the glidein workload management system.
-GlideinWMS provides a simple way to access the Grid and Cloud
+GlideinWMS provides a simple way to access the Grid, Cloud and HPC
 resources through a dynamic condor pool of grid-submitted resources.
 
 
@@ -66,7 +67,7 @@ Requires: glideinwms-usercollector = %{version}-%{release}
 Obsoletes:      glideinwms-vofrontend-condor < 2.6.2-2
 %description vofrontend
 The purpose of the glideinWMS is to provide a simple way to
-access the Grid and Cloud resources. GlideinWMS is a Glidein Based
+access the Grid, Cloud and HPC resources. GlideinWMS is a Glidein Based
 WMS (Workload Management System) that works on top of Condor.
 For those familiar with the Condor system, it is used for
 scheduling and job control. This package is for a one-node
@@ -99,7 +100,7 @@ Requires(post): /usr/sbin/useradd
 Requires(post): /sbin/chkconfig
 %description vofrontend-standalone
 The purpose of the glideinWMS is to provide a simple way
-to access the Grid and Cloud resources. GlideinWMS is a Glidein
+to access the Grid, Cloud and HPC resources. GlideinWMS is a Glidein
 Based WMS (Workload Management System) that works on top of
 Condor. For those familiar with the Condor system, it is used
 for scheduling and job control.
@@ -193,7 +194,7 @@ Requires(post): /usr/sbin/useradd
 Requires(post): /sbin/chkconfig
 %description factory
 The purpose of the glideinWMS is to provide a simple way
-to access the Grid and Cloud resources. GlideinWMS is a Glidein
+to access the Grid, Cloud and HPC resources. GlideinWMS is a Glidein
 Based WMS (Workload Management System) that works on top of
 HTCondor. For those familiar with the Condor system, it is used
 for scheduling and job control.
@@ -364,7 +365,7 @@ install -d $RPM_BUILD_ROOT%{frontend_dir}/group_main
 install -d $RPM_BUILD_ROOT%{frontend_dir}/group_main/lock
 
 install -m 644 creation/web_base/frontendRRDBrowse.html $RPM_BUILD_ROOT%{web_dir}/monitor/frontendRRDBrowse.html
-install -m 644 creation/web_base/frontendRRDGroupMatrix.html $RPM_BUILD_ROOT%{web_dir}/monitor/frontendRRDGroupMatrix.html 
+install -m 644 creation/web_base/frontendRRDGroupMatrix.html $RPM_BUILD_ROOT%{web_dir}/monitor/frontendRRDGroupMatrix.html
 install -m 644 creation/web_base/frontendStatus.html $RPM_BUILD_ROOT%{web_dir}/monitor/frontendStatus.html
 install -m 644 creation/web_base/frontend/index.html $RPM_BUILD_ROOT%{web_dir}/monitor/
 install -m 644 creation/web_base/factory/index.html $RPM_BUILD_ROOT%{factory_web_dir}/monitor/
@@ -460,6 +461,7 @@ install -d $RPM_BUILD_ROOT%{factory_web_base}/../creation/templates
 # we don't need sl7 versions in the following directory, they are only needed in RPM.
 install -m 0644 creation/templates/factory_initd_startup_template $RPM_BUILD_ROOT%{factory_web_base}/../creation/templates/
 install -m 0644 creation/templates/frontend_initd_startup_template $RPM_BUILD_ROOT%{web_base}/../creation/templates/
+
 
 %post usercollector
 /sbin/service condor condrestart > /dev/null 2>&1 || true
@@ -812,6 +814,16 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
+* Fri Oct 21 2016 Parag Mhashilkar <parag@fnal.gov> - 3.2.16-1
+- Glideinwms v3.2.16
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_2_16/history.html
+- Release candidates: 3.2.16-0.1.rc1 to 3.2.16-0.2.rc2
+
+* Wed Aug 17 2016 Parag Mhashilkar <parag@fnal.gov> - 3.2.15-1
+- Glideinwms v3.2.15
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_2_15/history.html
+- Release candidates: 3.2.15-0.1.rc1 to 3.2.15-0.4.rc4
+
 * Fri Jun 17 2016 Parag Mhashilkar <parag@fnal.gov> - 3.2.14.1-1
 - Glideinwms v3.2.14.1
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_2_14_1/history.html
@@ -1058,7 +1070,7 @@ rm -rf $RPM_BUILD_ROOT
 - Change condor config file name to 00_frontend.config
 - Separated definition of collectors into 01_collectors.config
 
-* Fri Mar 11 2011 Burt Holzman 	 2.5.1-1
+* Fri Mar 11 2011 Burt Holzman   2.5.1-1
 - Include glideinWMS 2.5.1
 - Made all the directories independent of the frontend name
 
