@@ -1,9 +1,27 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_17_rc1
+# GLIDEINWMS_VERSION v3_2_17_rc2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cbd269c098e4d61d909595fc90c7cefd  ./LICENSE.txt
 fffc4b1932dc8e722997ac14344b065b  ./__init__.py
+ee6c422dec17ec564e1b582a0299ebac  ./build/ReleaseManager/ReleaseManagerLib.py
+f8ab8c818c270e45a31c257c519e3a43  ./build/ReleaseManager/chksum.sh
+30be22db890a0917e836440e0cc54e63  ./build/ReleaseManager/osg-release.sh
+55e6662c62566380d9a19c7cffd85528  ./build/ReleaseManager/release.py
+7852d680770c748a4c44dfb410bba8b0  ./build/jenkins/run_pylint.sh
+6b898dc79e2e78441d37389eef93ce96  ./build/jenkins/utils.sh
+0d3cb8ad73989679bdfe5bc42e767e4f  ./build/packaging/rpm/chksum.sh
+f8818d3e461e81346451c51f631eaa74  ./build/packaging/rpm/factory_startup
+f8818d3e461e81346451c51f631eaa74  ./build/packaging/rpm/factory_startup_sl7
+58b8b22028ddbff07cd97d7c210d2136  ./build/packaging/rpm/frontend.xml
+80a43f3f31c526ecbdaf7afb8133a4d3  ./build/packaging/rpm/frontend_startup
+80a43f3f31c526ecbdaf7afb8133a4d3  ./build/packaging/rpm/frontend_startup_sl7
+6f6a87f8fca324f1bf3e8bb7e2486aef  ./build/packaging/rpm/glideinWMS.xml
+b2db9ef240bca1fad27e228b5129acaf  ./build/packaging/rpm/glideinwms.spec
+6d717a6475b79a3ee00bc21624a68111  ./build/packaging/rpm/gwms-factory.conf.httpd
+47b19f1af9e59ff604293195f8dad724  ./build/packaging/rpm/gwms-factory.sysconfig
+3e148febde1a7e1a53269e2838d18771  ./build/packaging/rpm/gwms-frontend.conf.httpd
+bbd067f2758a28faae3bf7b92dba9dfb  ./build/packaging/rpm/gwms-frontend.sysconfig
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
 d41d8cd98f00b204e9800998ecf8427e  ./creation/__init__.py
 c48c3d8c75f0b597c5512b515d5034ac  ./creation/add_entry
@@ -26,10 +44,10 @@ ded82d4945bc67350821f79e9a28732c  ./creation/lib/cvWParamDict.py
 bb95254b7fce5bf4929974db32ef0e97  ./creation/lib/xmlConfig.py
 4b519007ebf0fe956a19758213950679  ./creation/lib/xslt.py
 a7805693672a2f1a5324e90cc558391b  ./creation/reconfig_frontend
-4d80607d1da1af8b921f494bf0f1f0ef  ./creation/templates/factory_initd_startup_template
-8f22d4819fb7474e23e47521cc6a8d00  ./creation/templates/factory_initd_startup_template_sl7
-b414a79cfc833b76ed84b5868b29b907  ./creation/templates/frontend_initd_startup_template
-b0992f57859d3032537b6cc4b6cf6e9c  ./creation/templates/frontend_initd_startup_template_sl7
+dc92acd040fb0b1d52078cd2f478dd42  ./creation/templates/factory_initd_startup_template
+887183891a5a98e7519dabb17239d5c8  ./creation/templates/factory_initd_startup_template_sl7
+441a0c4d1fafbd522ca2bcd483bae366  ./creation/templates/frontend_initd_startup_template
+fd9a4761dfceb344e63d8f94a50d3c21  ./creation/templates/frontend_initd_startup_template_sl7
 8ea485431c7ae6d39e7d51243a011150  ./creation/templates/gwms-factory.service
 0945e267c13f7208cf800ca91d31ee44  ./creation/templates/gwms-frontend.service
 585e798089364f5afac493b40a721766  ./creation/web_base/advertise_failure.helper
