@@ -531,7 +531,7 @@ function warn {
 # Arg: line to add, first element is the id
 # Uses global variable glidein_config
 function add_config_line {
-    egrep -q "^\${*}$" \$glidein_config
+    grep -q "^\${*}$" \$glidein_config
     if [ \$? -ne 0 ]; then
         rm -f \${glidein_config}.old #just in case one was there
         mv \$glidein_config \${glidein_config}.old
@@ -545,6 +545,23 @@ function add_config_line {
         rm -f \${glidein_config}.old
     fi
 }
+
+##################################################
+# Add a line to the config file using a lock file
+# Replacs add_config_line in script_wrapper where multiple instances run in parallel
+# Uses FD 200, fails after a timeout of 300 sec
+function add_config_line_safe {
+    grep -q "^\${*}$" \$glidein_config
+    if [ \$? -ne 0 ]; then
+        # when fd is closed the lock is released, no need to trap and remove the file
+        (
+        flock -w 300 -e 200 || (warn "Error acquiring lock for glidein_config"; exit 1)
+        add_config_line "\$@"
+        ) 200>\${glidein_config}.lock
+    fi
+}
+
+
 
 ####################################
 # Add a line to the condor_vars file
@@ -1544,8 +1561,7 @@ function fetch_file_base {
     if [ "$ffb_file_type" = "nocache" ]; then
         if [ "$curl_version" != "" ]; then
             curl_args+=("--header")
-            curl_args+=("Cache-Control:")
-            curl_args+=("no-cache")
+            curl_args+=("'Cache-Control: no-cache'")
         fi
         if [ "$wget_version" != "" ]; then
             if wget --help | grep -q "\-\-no-cache "; then
