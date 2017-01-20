@@ -1162,6 +1162,14 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
         log.exception(msg)
         raise RuntimeError, msg
 
+    if username != MY_USERNAME:
+        # Use privsep
+        # need to push all the relevant env variables through
+        for var in os.environ:
+            if ((var in ('PATH', 'LD_LIBRARY_PATH', 'X509_CERT_DIR')) or
+                (var[:8] == '_CONDOR_') or (var[:7] == 'CONDOR_')):
+                if var in os.environ:
+                    entry_env.append('%s=%s' % (var, os.environ[var]))
     try:
         nr_submitted = 0
         while (nr_submitted < nr_glideins):
@@ -1174,19 +1182,13 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
                 nr_to_submit = factoryConfig.max_cluster_size
             sub_env.append('GLIDEIN_COUNT=%s' % nr_to_submit)
             sub_env.append('GLIDEIN_FRONTEND_NAME=%s' % frontend_name)
+            exe_env = entry_env + sub_env
 
             # check to see if the username for the proxy is 
             # same as the factory username
             if username != MY_USERNAME:
                 # Use privsep
-                # need to push all the relevant env variables through
-                for var in os.environ:
-                    if ((var in ('PATH', 'LD_LIBRARY_PATH', 'X509_CERT_DIR')) or
-                        (var[:8] == '_CONDOR_') or (var[:7] == 'CONDOR_')):
-                        if var in os.environ:
-                            sub_env.append('%s=%s' % (var, os.environ[var]))
                 try:
-                    exe_env = entry_env + sub_env
                     args = ["condor_submit", "-name",
                             schedd, "entry_%s/job.condor" % entry_name]
                     submit_out = condorPrivsep.condor_execute(
@@ -1207,7 +1209,6 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
             else:
                 # Do not use privsep
                 try:
-                    exe_env = entry_env + sub_env
                     submit_out = condorExe.iexe_cmd("condor_submit -name %s entry_%s/job.condor" % (schedd, entry_name),
                                                     child_env=env_list2dict(exe_env))
                 except condorExe.ExeError,e:
