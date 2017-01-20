@@ -1561,8 +1561,7 @@ function fetch_file_base {
     if [ "$ffb_file_type" = "nocache" ]; then
         if [ "$curl_version" != "" ]; then
             curl_args+=("--header")
-            curl_args+=("Cache-Control:")
-            curl_args+=("no-cache")
+            curl_args+=("'Cache-Control: no-cache'")
         fi
         if [ "$wget_version" != "" ]; then
             if wget --help | grep -q "\-\-no-cache "; then
