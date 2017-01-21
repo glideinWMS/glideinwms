@@ -163,7 +163,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.populate_glidein_classad(proxy_url)
 
         #Leave jobs in the condor queue for 12 hours if they are completed.
-        self.add("LeaveJobInQueue", "(time() - (EnteredCurrentStatus > 12*60*60))")
+        if conf['advertize_pilot_accounting'] == 'True':
+            self.add("LeaveJobInQueue", "((time() - EnteredCurrentStatus) > 12*60*60)")
 
         # Notification and Owner are the same no matter what grid type
         self.add("Notification", "Never")
