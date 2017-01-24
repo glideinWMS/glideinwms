@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_2_17_rc2
+# GLIDEINWMS_VERSION v3_2_17_rc3
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cbd269c098e4d61d909595fc90c7cefd  ./LICENSE.txt
@@ -37,7 +37,7 @@ e59bb78a8aba36d0d8691b5f9e4ebf4f  ./creation/lib/cWConsts.py
 5e9d00c20ab8dc460fa0164122019983  ./creation/lib/cWParamDict.py
 cfae390250aa141cbb5b6ffcc34432ff  ./creation/lib/cWParams.py
 4d6d2095fe03701886a325b60a3ed99a  ./creation/lib/cgWConsts.py
-a677ba931f4007295e93a2139b300031  ./creation/lib/cgWCreate.py
+b1b81bcc290938d58789635abb50cc27  ./creation/lib/cgWCreate.py
 3ebdfc3288f824541d253f6ae8caa8b8  ./creation/lib/cgWDictFile.py
 203841b8791c4a90376f8b4bfa060054  ./creation/lib/cgWParamDict.py
 1a67275f40722c90e15418e72c37927b  ./creation/lib/cgWParams.py
@@ -110,7 +110,7 @@ c1527cf661115760242852c0421921bd  ./creation/web_base/gcb_setup.sh
 7e13c3998328075c812969cc2fa69dc6  ./creation/web_base/glidein_lib.sh
 c048847d2338b10b8c31c12be4633fea  ./creation/web_base/glidein_memory_setup.sh
 9c5707b728923b90c8f56ac201f6c686  ./creation/web_base/glidein_sitewms_setup.sh
-e1c409d3d47e149984c2d33507a6f2f4  ./creation/web_base/glidein_startup.sh
+9778b2d88eb12da5f99a9ffd33f5e552  ./creation/web_base/glidein_startup.sh
 1f3bbb3416afab773e58aab138e4ccd3  ./creation/web_base/java_setup.sh
 78d344f14e5e2144227c564f2d90401e  ./creation/web_base/local_start.sh
 0daab146ae1e7d750f0f77c28b3f5efe  ./creation/web_base/mjf_setparams.sh
