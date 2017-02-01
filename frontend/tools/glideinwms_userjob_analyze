@@ -1,0 +1,552 @@
+#!/usr/bin/env python
+#
+# Project:
+#   glideinWMS
+#
+# Description:
+#   This tool analyzes why user jobs are not running. This is monolythic
+#
+# Arguments:
+#   $1 = Frontend's working directory
+#
+# Author:
+#   Parag Mhashilkar
+
+import sys
+import os
+import re
+import optparse
+import pprint
+
+pp = pprint.PrettyPrinter()
+
+STARTUP_DIR = sys.path[0]
+#sys.path.append(os.path.join(STARTUP_DIR,"../.."))
+sys.path.append(os.path.join(STARTUP_DIR,"/opt"))
+
+from glideinwms.lib import condorMonitor
+from glideinwms.frontend.glideinFrontendConfig import frontendConfig
+from glideinwms.frontend.glideinFrontendConfig import FrontendDescript
+from glideinwms.frontend.glideinFrontendConfig import AttrsDescript
+from glideinwms.frontend.glideinFrontendConfig import ElementMergedDescript
+from glideinwms.frontend.glideinFrontendConfig import ParamsDescript
+from glideinwms.frontend.glideinFrontendConfig import GroupSignatureDescript
+from glideinwms.frontend.glideinFrontendInterface import findGlideins
+from glideinwms.frontend.glideinFrontendInterface import findGlideinClientMonitoring
+from glideinwms.frontend.glideinFrontendLib import getCondorQ
+from glideinwms.frontend.glideinFrontendLib import countMatch
+
+############### GLOBAL/DEFAULT to get rid of
+#pool = "fermicloud030.fnal.gov"
+#schedd = "fermicloud030.fnal.gov"
+###########################################
+DEBUG_FLAG = False
+
+
+# 0xxx: Global issues and nothing will work
+# 1xxx: Native codes related to jobs, condor directly
+# 2xxx: Codes related to frontend 
+# 3xxx: Codes related to factory
+
+STATE_CODE = {
+    '0000': {
+        'description': 'Frontend service is not running.',
+        'suggestion' : 'Check frontend service logs. Start the Frontend service if not running.'
+    },
+    '0001': {
+        'description': 'Frontend service is not advertising.',
+        'suggestion' : 'Check frontend service logs. Start the Frontend service if its crashed.'
+    },
+    '0002': {
+        'description': 'Frontend policy (<factory query_expr="...">) discarded all the entries (i.e. glidefactory classads) where frontend can send provisioning requests.',
+        'suggestion' : 'Check the Frontend policy configuration.'
+    },
+    '0003': {
+        'description': 'No glidefactoryclient classads were found in the WMSCollector. All factories are either down or none are configured to service your provisioning requests.',
+        'suggestion' : 'Check that factories are running (i.e. glidefactory classads are present in WMSCollector). If they are running, check the security configuration in frontend and factory. None of the factories maybe authenticating you.'
+    },
+    '1000': {
+        'description': 'Job not found in the queue.',
+        'suggestion' : 'Check the jobid provided to analyze.'
+    },
+    '1001': {
+        'description': 'Job status other than idle.',
+        'suggestion' : 'Use condor_q <job id> to get more info.'
+    },
+    '1002': {
+        'description': 'Job status is running.',
+        'suggestion' : 'Job is already running and there is nothing to do.'
+    },
+    '2000': {
+        'description': 'Frontend policy should provision glidein for this job.',
+        'suggestion' : 'The job should run at one of the sites.'
+    },
+    '2001': {
+        'description': 'Frontend policy (<job query_expr="...">) ignores this job from provisioning request.',
+        'suggestion' : 'Update the HTCondor JDF to match Frontend policy or modify the Frontend policy.'
+    },
+    '2002': {
+        'description': 'Frontend policy (<job query_expr="...">) will consider this job for provisioning request. However, Frontend policy (<factory query_expr="...">) discarded all the entries (i.e. glidefactory classads) and could not find any entries where frontend can send provisioning requests.',
+        'suggestion' : 'Check the Frontend policy configuration and update the HTCondor JDF to match Frontend policy or modify the Frontend policy.'
+    },
+}
+
+
+class StateMachine:
+    pass
+
+
+def print_code_response(code, suggestion=None):
+    print STATE_CODE[code]['description']
+    if suggestion:
+        # We have custom suggestion
+        print 'SUGGESTION: %s' % suggestion
+    else:
+        # Print default sugestion
+        print 'SUGGESTION: %s' % STATE_CODE[code]['suggestion']
+
+def print_analysis_response(code):
+    if type(code) == type ({}):
+        for c,s in code.iteritems():
+            print_code_response(c, s)
+            print
+    else:
+        print_code_response(code)
+
+def print_report(report):
+    print "=" * 80
+    for jid,analysis in report.iteritems():
+        print
+        if jid == 'global':
+            if analysis:
+                jid_header = 'GLOBAL PROBLEM'
+                print jid_header
+                print "-" * (len(jid_header))
+                if analysis:
+                    print_analysis_response(analysis)
+            continue
+        else:
+            jid_header = 'JOBID: %s' % jid
+            print jid_header
+            print "-" * (len(jid_header))
+            if not analysis:
+                # Job not picked up by the frontend policy
+                print STATE_CODE['1000']['description']
+                print
+                print 'SUGGESTION: %s' % STATE_CODE['1000']['suggestion']
+            else:
+                print_analysis_response(analysis)
+
+def analyze(jobids, matched_jobs, entries, glideclient_monitors):
+    """
+    Analyze each job based on our knowledge of the system
+    """
+
+    # What we inferred from analysis so far. Each entry has codes
+    analysis = dict((jid, {}) for jid in jobids)
+    
+    analysis['global'] = {}
+
+    #print jobids
+    #print analysis
+    #print glideclient_monitors.keys()
+
+    if not entries:
+        # There are no entries to request glideins
+        analysis['global']['0002'] = None
+    if not glideclient_monitors:
+        # There are entries but factory is not responding with clientmonitors
+        analysis['global']['0003'] = None
+        
+    for jid,job in matched_jobs.iteritems():
+        if job['JobId'] in jobids:
+            if not job['MatchedGlideins']:
+                # No matching glideins found
+                analysis[job['JobId']]['2002'] = None
+                continue
+            matched_glideins = []
+            for m in job['MatchedGlideins']:
+                matched_glideins.append(job['MatchedGlideins'][m]['FactoryEntryName'])
+            analysis[job['JobId']]['2000'] = 'Job can run on following entries: %s.' % ','.join(matched_glideins)
+
+    #print analysis
+    return analysis
+
+
+def parse_opts(argv):
+    parser = optparse.OptionParser(usage='%prog [options]',
+                                   version='v0.1',
+                                   conflict_handler="resolve")
+
+    parser.add_option('--work-dir',
+                      dest='workDir',
+                      type='string',
+                      action='store',
+                      default='/var/lib/gwms-frontend/work-dir',
+                      metavar='<Frontend working directory>',
+                      help='Working directory of the Frontend')
+
+    parser.add_option('--jobid',
+                      dest='jobid',
+                      type='string',
+                      action='store',
+                      metavar='<Pattern matching User Jobs>',
+                      help='Pattern matching User Jobs Id')
+
+    parser.add_option('--debug',
+                      dest='debug',
+                      action='store_true',
+                      default=False,
+                      metavar='<Print debugging info>',
+                      help='Print debugging info')
+
+    #TODO: Support --constraint to figure out jobs to analyze
+    #parser.add_option('--constraint',
+    #                  dest='constraint',
+    #                  type='string',
+    #                  action='store',
+    #                  default=None,
+    #                  metavar='<Constraints for condor_q>',
+    #                  help='Constraints for condor_q')
+
+    if len(argv) < 2:
+        print "ERROR: Insufficient arguments specified"
+        parser.print_help()
+        sys.exit(1)
+
+    options, remainder = parser.parse_args(argv)
+    global DEBUG_FLAG
+    DEBUG_FLAG = options.debug
+    return (options, remainder)
+
+
+def print_opts(options):
+    print options
+
+
+def print_section(obj, header=''):
+    print "="*70
+    print header
+    print "-"*70
+    pp.pprint(obj)
+    print "_"*70
+
+def print_debug(obj, header=''):
+    if DEBUG_FLAG:
+        print_section(obj, header=header)
+    
+
+def get_job_details(jobid=None, constraint=None):
+    if not (jobid or constraint):
+        print "No jobs to analyze. Exiting"
+        sys.exit(1)
+
+    final_constraint = jobid2constraint(jobid)
+    if constraint:
+        final_constraint = '(%s) || (%s)' % (constraint, jobid_constraint)
+    final_constraint = '(JobStatus==1) && (%s)' % (final_constraint)
+
+    print final_constraint
+    condorq = condorMonitor.CondorQ(schedd_name=schedd, pool_name=pool)
+    return condorq.fetch(constraint=final_constraint)
+    
+
+def jobid2constraint(jobid):
+    """
+    Convert jobid array into constraint
+    """
+
+    constraint = ''
+    if jobid:
+        for id in jobid:
+            clusterid = id.split('.')[0]
+            my_constraint = "(ClusterId==%s)" % clusterid
+            try:
+                procid = id.split('.')[1]
+                my_constraint = "(%s && (ProcId==%s))" % (my_constraint, procid)
+            except:
+                # ProcId not specified. Look all jobs in this Cluster
+                pass
+            if constraint:
+                constraint = "%s || %s" % (constraint, my_constraint)
+            else:
+                constraint = my_constraint
+    
+    return constraint
+
+
+
+def find_matching_glideins(elementDescript, signatureDescript):
+    """
+    Given the element description, i.e. the group info, find the
+    glidefactory classads selected by this group.
+
+    returns the dictionary of glideins keyed on following tuple:
+    (factory_pool, glidein_name, frontend_identity)
+    """
+
+    glidein_dict = {}
+
+    # glidefactory classads this frontend group will look at
+    # based on the Factory query expression in the frontend config
+    factory_constraint = elementDescript.merged_data['FactoryQueryExpr']
+    factory_pools = elementDescript.merged_data['FactoryCollectors']
+
+    for factory_pool in factory_pools:
+        factory_pool_node = factory_pool[0]
+        factory_identity = factory_pool[1]
+        my_identity_at_factory_pool = factory_pool[2]
+        factory_glidein_dict={}
+
+        try:
+            factory_glidein_dict = findGlideins(
+                                       factory_pool_node,
+                                       factory_identity,
+                                       signatureDescript.signature_type,
+                                       factory_constraint)
+        except RuntimeError, e:
+            if factory_pool_node:
+                print "Failed to talk to factory_pool %s: %s" % \
+                          (factory_pool_node, e)
+            else:
+                print "Failed to talk to factory_pool: %s" % e
+
+        for glidename in factory_glidein_dict:
+            glidein_dict[(factory_pool_node, glidename, my_identity_at_factory_pool)] = factory_glidein_dict[glidename]
+
+    return glidein_dict
+
+
+def find_matching_jobs(elementDescript):
+    """
+    Functionality of finding jobs in match_jobs2glideins should extracted
+    and put in here
+    """
+    condorq_format_list = elementDescript.merged_data['JobMatchAttrs']
+    return getCondorQ(elementDescript.merged_data['JobSchedds'],
+                      elementDescript.merged_data['JobQueryExpr'],
+                      condorq_format_list)
+
+
+
+def match_jobs2glideins(frontend, group, elementDescript, paramsDescript,
+                        signatureDescript, attrsDescript, jobid, glidein_dict):
+
+    # STEP 1:
+    # ======
+    # Look for all the valid entries/glideins that this frontend can
+    # request glideins from.
+
+    # Dictionary of glideins that are valid and can serve requests
+
+    # Create a filter that match the given jobids
+    job_filter = "(" + ")|(".join(jobid) + ")"
+    print_debug(job_filter, "JOB FILTER")
+    job_filter_compiled_obj = re.compile(job_filter)
+
+
+    # STEP 2:
+    # ======
+    # Look for all the jobs that will be picked up by this group.
+
+    match_expr = elementDescript.merged_data['MatchExpr']
+    match_expr_obj = elementDescript.merged_data['MatchExprCompiledObj']
+
+    print_debug(elementDescript.merged_data, 'FACTORY MATCH ATTRS FOUND')
+    
+    condorq_dict = find_matching_jobs(elementDescript)
+    print_debug(condorq_dict.keys(), 'SCHEDDS')
+
+
+    # STEP 3:
+    # ======
+    # - Given all the jobs in the queue this group will look at, find the
+    #   jobs user is interested in analyzing
+    # - Apply the match expression to find out entries glideins will be
+    #   requested for each of these jobs  
+
+    matched_jobs = {}
+    for schedd in condorq_dict:
+        condorq = condorq_dict[schedd]
+        condorq_data = condorq.fetchStored()
+        print_debug(condorq_dict[schedd].stored_data, "CONDORQ DATA: %s" % schedd)
+
+        # Check each job at a time for matches
+        for jid in condorq_data:
+            job = condorq_data[jid]
+            jid_full = "%s#%i.%i" % (schedd, jid[0], jid[1])
+
+            # Streamlined version of condorq_dict that will contain info
+            # about this job only
+            job_condorq_dict = {}
+
+            if job_filter_compiled_obj.search(jid_full):
+                # Matching Job found. Now look for entries where glideins
+                # can be requested for
+
+                print "===== MATCHING JOBID: %s =====" % jid_full
+                jid_analysis = {
+                    'ScheddName': schedd,
+                    'JobId': '%i.%i' % (jid[0], jid[1])
+                }
+                matched_jobs[jid_full] = dict(jid_analysis.items() + job.items())
+    
+                matched_jobs[jid_full]['MatchedGlideins'] = {}
+
+
+                matched_glideins = {}
+                # Create a temporary condorq structure for this job
+                job_condorq_dict[schedd] = condorMonitor.CondorQ(schedd)
+                job_condorq_dict[schedd].stored_data[jid] = condorq_dict[schedd].stored_data[jid]
+                print_debug(job_condorq_dict[schedd].stored_data, "THIS JOB job_condorq_dict")
+                print 
+
+
+                matched_glideins = countMatch(match_expr_obj,
+                                              job_condorq_dict,
+                                              glidein_dict, attrsDescript.data)
+                #print_debug(glidein_match_count, 'MATCHED GLIDEINS')
+                for entry in matched_glideins:
+                    print_debug(entry)
+                    for match in entry:
+                        if (entry[match] > 0) and (match != (None, None, None)):
+                            # Found where glideins will be requested
+                            print_debug(match, 'MATCHED %s' % entry[match])
+                            match_info = {
+                                'FactoryPool': match[0],
+                                'FrontendName': frontend,
+                                'FrontendGroup': group,
+                                'FactoryName': match[1].split('@')[-1],
+                                'EntryName':  match[1].split('@')[0],
+                                'FactoryEntryName': match[1],
+                            }
+                            matched_glidein_fullname = '%s@%s.%s' % (match[1],
+                                                                   frontend,
+                                                                   group)
+                            matched_jobs[jid_full]['MatchedGlideins'][matched_glidein_fullname] = match_info
+                            #matched_jobs[jid_full]['MatchedGlideins'][match[1]] = match_info
+    return matched_jobs
+
+
+def execute_group_policies(jobids, options):
+    """
+    For the jobs provided by the user, find all the glideins that match
+    the criteria
+    """
+
+    matched_jobs = {}
+    glidein_dict = {}
+    frontendDescript = FrontendDescript(options.workDir)
+    fgroups = frontendDescript.data['Groups'].split(',')
+    
+    for group in fgroups:
+        print_debug(group, "ANALYZING FRONTEND GROUP: %s" % group)
+        elementDescript = ElementMergedDescript(options.workDir, group)
+        paramsDescript = ParamsDescript(options.workDir, group)
+        signatureDescript = GroupSignatureDescript(options.workDir, group)
+        attrsDescript = AttrsDescript(options.workDir, group)
+
+        glidein_dict.update(find_matching_glideins(elementDescript, signatureDescript))
+        print_debug(glidein_dict.keys(),  'GLIDEFACTORY CLASSADS FOUND')
+    
+        matched_jobs.update(match_jobs2glideins(
+                                frontendDescript.data['FrontendName'], group,
+                                elementDescript, paramsDescript,
+                                signatureDescript, attrsDescript,
+                                jobids, glidein_dict))
+    return (matched_jobs, glidein_dict)
+
+
+def get_group_glideclient_monitor(frontend, group, elementDescript):
+    """
+    Find glideclient monitors (glidefactoryclient classads) for this group
+    in this frontend
+    """
+
+    glideclient_monitor = {}
+
+    factory_pools = elementDescript.merged_data['FactoryCollectors']
+    for factory_pool in factory_pools:
+        factory_pool_node = factory_pool[0]
+        factory_identity = factory_pool[1]
+        my_identity_at_factory_pool = factory_pool[2]
+        monitoring_dict={}
+        try:
+            client_name = '%s.%s' % (frontend, group)
+            monitoring_dict = findGlideinClientMonitoring(factory_pool_node,
+                                                          client_name)
+            for monitor in monitoring_dict:
+                monitor_fullname = '%s@%s' % (monitoring_dict[monitor]['attrs']['ReqGlidein'], monitoring_dict[monitor]['attrs']['ReqClientName'])
+                glideclient_monitor[monitor_fullname] = monitoring_dict[monitor]
+        except RuntimeError, e:
+            if factory_pool_node:
+                print "Failed to talk to factory_pool %s: %s" % \
+                          (factory_pool_node, e)
+            else:
+                print "Failed to talk to factory_pool: %s" % e
+
+    return glideclient_monitor
+
+
+def get_glideclient_monitor(options):
+    """
+    Find glideclient monitors (glidefactoryclient classads) for all groups
+    in this frontend
+    """
+
+    glideclient_monitor = {}
+    frontendDescript = FrontendDescript(options.workDir)
+    fgroups = frontendDescript.data['Groups'].split(',')
+    #print_section(frontendDescript.data, "DESCRIPT")
+    for group in fgroups:
+        elementDescript = ElementMergedDescript(options.workDir, group)
+        glideclient_monitor.update(get_group_glideclient_monitor(
+                                       frontendDescript.data['FrontendName'],
+                                       group, elementDescript))
+
+    return glideclient_monitor
+
+
+def get_jobs_with_status(jobs, status):
+    jids = []
+    for jid,job in jobs.iteritems():
+        if job['JobStatus'] == status:
+            jids.append(jid)
+    return jids
+
+
+def get_jobs_running(jobs):
+    return get_jobs_with_status(jobs, 2)
+
+
+def main(options):
+    """
+    Main function
+    """
+
+    # Array of job ids to analyze
+    jobids = options.jobid.split(',')
+
+    print_section(jobids, "PROVIDED JOBS TO ANALYZE")
+    #print "Using frontend configuration: %s" % frontend_config
+    
+    frontendConfig.frontend_descript_file = os.path.join(options.workDir, frontendConfig.frontend_descript_file)
+
+    # Find the jobs that match the given criteria and entries where glideins
+    # can be requested
+    matched_jobs, entries = execute_group_policies(jobids, options)
+
+    print_section(matched_jobs, 'JOBS SERVICED BY FRONTEND POLICY')
+
+    # Find the glideclient monitors (glidefactoryclient classads)
+    glideclient_monitor = get_glideclient_monitor(options)
+
+    report = analyze(jobids, matched_jobs, entries, glideclient_monitor)
+
+    print_report(report)
+
+if __name__ == '__main__':
+    options, remainder = parse_opts(sys.argv)
+    #print_opts(options)
+
+    sys.exit(main(options))
