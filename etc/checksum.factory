@@ -14,7 +14,7 @@ f8ab8c818c270e45a31c257c519e3a43  ./build/ReleaseManager/chksum.sh
 f8818d3e461e81346451c51f631eaa74  ./build/packaging/rpm/factory_startup
 f8818d3e461e81346451c51f631eaa74  ./build/packaging/rpm/factory_startup_sl7
 6f6a87f8fca324f1bf3e8bb7e2486aef  ./build/packaging/rpm/glideinWMS.xml
-b2db9ef240bca1fad27e228b5129acaf  ./build/packaging/rpm/glideinwms.spec
+fdcfcbc1ba80853f97c5b23372fb6a8f  ./build/packaging/rpm/glideinwms.spec
 6d717a6475b79a3ee00bc21624a68111  ./build/packaging/rpm/gwms-factory.conf.httpd
 47b19f1af9e59ff604293195f8dad724  ./build/packaging/rpm/gwms-factory.sysconfig
 bb583bf02b5f51b34e7be2efb3ddf43d  ./config/mailinglist.cfg
