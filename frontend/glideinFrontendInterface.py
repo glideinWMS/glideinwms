@@ -467,7 +467,7 @@ class Credential:
         """
         type_set = set(self.type.split('+'))
         am_set = set(auth_method.split('+'))
-        return am_set.issubset(type_set)
+        return type_set.issubset(am_set)
 
 
     def __str__(self):
