@@ -236,18 +236,18 @@ def print_debug(obj, header=''):
         print_section(obj, header=header)
     
 
-def get_job_details(jobid=None, constraint=None):
+def get_job_details(jobid=None, constraint=None, schedd_name=None, pool_name=None):
     if not (jobid or constraint):
         print "No jobs to analyze. Exiting"
         sys.exit(1)
 
     final_constraint = jobid2constraint(jobid)
     if constraint:
-        final_constraint = '(%s) || (%s)' % (constraint, jobid_constraint)
+        final_constraint = '(%s) || (%s)' % (constraint, final_constraint)
     final_constraint = '(JobStatus==1) && (%s)' % (final_constraint)
 
     print final_constraint
-    condorq = condorMonitor.CondorQ(schedd_name=schedd, pool_name=pool)
+    condorq = condorMonitor.CondorQ(schedd_name=schedd_name, pool_name=pool_name)
     return condorq.fetch(constraint=final_constraint)
     
 
@@ -474,7 +474,7 @@ def get_group_glideclient_monitor(frontend, group, elementDescript):
         try:
             client_name = '%s.%s' % (frontend, group)
             monitoring_dict = findGlideinClientMonitoring(factory_pool_node,
-                                                          client_name)
+                                                          client_name, None)
             for monitor in monitoring_dict:
                 monitor_fullname = '%s@%s' % (monitoring_dict[monitor]['attrs']['ReqGlidein'], monitoring_dict[monitor]['attrs']['ReqClientName'])
                 glideclient_monitor[monitor_fullname] = monitoring_dict[monitor]
