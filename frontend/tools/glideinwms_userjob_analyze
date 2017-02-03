@@ -106,7 +106,7 @@ def print_code_response(code, suggestion=None):
         print 'SUGGESTION: %s' % STATE_CODE[code]['suggestion']
 
 def print_analysis_response(code):
-    if type(code) == type ({}):
+    if isinstance(code dict):
         for c,s in code.iteritems():
             print_code_response(c, s)
             print
@@ -236,7 +236,8 @@ def print_debug(obj, header=''):
         print_section(obj, header=header)
     
 
-def get_job_details(jobid=None, constraint=None, schedd_name=None, pool_name=None):
+def get_job_details(jobid=None, constraint=None, schedd_name=None,
+                    pool_name=None):
     if not (jobid or constraint):
         print "No jobs to analyze. Exiting"
         sys.exit(1)
@@ -247,7 +248,8 @@ def get_job_details(jobid=None, constraint=None, schedd_name=None, pool_name=Non
     final_constraint = '(JobStatus==1) && (%s)' % (final_constraint)
 
     print final_constraint
-    condorq = condorMonitor.CondorQ(schedd_name=schedd_name, pool_name=pool_name)
+    condorq = condorMonitor.CondorQ(schedd_name=schedd_name,
+                                    pool_name=pool_name)
     return condorq.fetch(constraint=final_constraint)
     
 
@@ -271,9 +273,8 @@ def jobid2constraint(jobid):
                 constraint = "%s || %s" % (constraint, my_constraint)
             else:
                 constraint = my_constraint
-    
-    return constraint
 
+    return constraint
 
 
 def find_matching_glideins(elementDescript, signatureDescript):
@@ -296,7 +297,7 @@ def find_matching_glideins(elementDescript, signatureDescript):
         factory_pool_node = factory_pool[0]
         factory_identity = factory_pool[1]
         my_identity_at_factory_pool = factory_pool[2]
-        factory_glidein_dict={}
+        factory_glidein_dict = {}
 
         try:
             factory_glidein_dict = findGlideins(
@@ -399,9 +400,6 @@ def match_jobs2glideins(frontend, group, elementDescript, paramsDescript,
                 job_condorq_dict[schedd] = condorMonitor.CondorQ(schedd)
                 job_condorq_dict[schedd].stored_data[jid] = condorq_dict[schedd].stored_data[jid]
                 print_debug(job_condorq_dict[schedd].stored_data, "THIS JOB job_condorq_dict")
-                print 
-
-
                 matched_glideins = countMatch(match_expr_obj,
                                               job_condorq_dict,
                                               glidein_dict, attrsDescript.data)
@@ -530,7 +528,8 @@ def main(options):
     print_section(jobids, "PROVIDED JOBS TO ANALYZE")
     #print "Using frontend configuration: %s" % frontend_config
     
-    frontendConfig.frontend_descript_file = os.path.join(options.workDir, frontendConfig.frontend_descript_file)
+    frontendConfig.frontend_descript_file = os.path.join(options.workDir,
+        frontendConfig.frontend_descript_file)
 
     # Find the jobs that match the given criteria and entries where glideins
     # can be requested
