@@ -26,6 +26,15 @@
 %define condor_dir %{_localstatedir}/lib/gwms-factory/condor
 %define systemddir %{_prefix}/lib/systemd/system
 
+%define initsl6fron_inp frontend_initd_startup_template
+%define initsl6fact_inp factory_initd_startup_template
+%define initsl6fron_out creation/templates/frontend_startup
+%define initsl6fact_out creation/templates/factory_startup
+%define initsl7fron_inp frontend_initd_startup_template_sl7
+%define initsl7fact_inp factory_initd_startup_template_sl7
+%define initsl7fron_out creation/templates/frontend_startup_sl7
+%define initsl7fact_out creation/templates/factory_startup_sl7
+
 Name:       glideinwms
 Version:    %{version}
 Release:    %{release}%{?dist}
@@ -38,17 +47,17 @@ BuildArch:  noarch
 
 
 Source:         glideinwms.tar.gz
-Source1:        creation/templates/frontend_startup
+#Source1:        creation/templates/frontend_startup
 Source2:        %{frontend_xml}
 Source3:        gwms-frontend.conf.httpd
 Source4:        %{factory_xml}
 Source5:        gwms-factory.conf.httpd
-Source6:        creation/templates/factory_startup
+#Source6:        creation/templates/factory_startup
 Source7:        chksum.sh
 Source8:        gwms-frontend.sysconfig
 Source9:        gwms-factory.sysconfig
-Source11:       creation/templates/frontend_startup_sl7
-Source12:       creation/templates/factory_startup_sl7
+#Source11:       creation/templates/frontend_startup_sl7
+#Source12:       creation/templates/factory_startup_sl7
 
 %description
 This is a package for the glidein workload management system.
@@ -243,8 +252,11 @@ sed -i "s/STARTUP_DIR =.*/STARTUP_DIR=\"\/var\/lib\/gwms-factory\/web-base\"/" c
 sed -i "s/STARTUP_DIR =.*/STARTUP_DIR=\"\/var\/lib\/gwms-factory\/web-base\"/" creation/clone_glidein
 
 #Create the RPM startup files (init.d) from the templates
-creation/create_rpm_startup . frontend_initd_startup_template factory_initd_startup_template %{SOURCE1} %{SOURCE6}
-creation/create_rpm_startup . frontend_initd_startup_template_sl7 factory_initd_startup_template_sl7 %{SOURCE11} %{SOURCE12}
+#creation/create_rpm_startup . frontend_initd_startup_template factory_initd_startup_template %{SOURCE1} %{SOURCE6}
+#creation/create_rpm_startup . frontend_initd_startup_template_sl7 factory_initd_startup_template_sl7 %{SOURCE11} %{SOURCE12}
+creation/create_rpm_startup . %{initsl6fron_inp} %{initsl6fact_inp} %{initsl6fron_out} %{initsl6fact_out}
+creation/create_rpm_startup . %{initsl7fron_inp} %{initsl7fact_inp} %{initsl7fron_out} %{initsl7fact_out}
+
 
 # install the executables
 install -d $RPM_BUILD_ROOT%{_sbindir}
@@ -312,13 +324,13 @@ install -m 0644 creation/templates/gwms-frontend.service $RPM_BUILD_ROOT/%{syste
 install -m 0644 creation/templates/gwms-factory.service $RPM_BUILD_ROOT/%{systemddir}/
 # place /usr/sbin/gwms-frontend and /usr/sbin/gwms-factory
 install -d $RPM_BUILD_ROOT/%{_sbindir}
-install -m 0755 %{SOURCE11} $RPM_BUILD_ROOT/%{_sbindir}/gwms-frontend
-install -m 0755 %{SOURCE12} $RPM_BUILD_ROOT/%{_sbindir}/gwms-factory
+install -m 0755 %{initsl7fron_out} $RPM_BUILD_ROOT/%{_sbindir}/gwms-frontend
+install -m 0755 %{initsl7fact_out} $RPM_BUILD_ROOT/%{_sbindir}/gwms-factory
 %else
 # Install the init.d
 install -d  $RPM_BUILD_ROOT/%{_initrddir}
-install -m 0755 %{SOURCE1} $RPM_BUILD_ROOT/%{_initrddir}/gwms-frontend
-install -m 0755 %{SOURCE6} $RPM_BUILD_ROOT/%{_initrddir}/gwms-factory
+install -m 0755 %{initsl6fron_out} $RPM_BUILD_ROOT/%{_initrddir}/gwms-frontend
+install -m 0755 %{initsl6fact_out} $RPM_BUILD_ROOT/%{_initrddir}/gwms-factory
 %endif
 
 # Install the web directory
