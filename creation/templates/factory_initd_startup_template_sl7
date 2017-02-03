@@ -423,11 +423,12 @@ reconfig() {
         argnoint=$(( argno + 0 ))
 
         if [ $argnoint -eq 0 ]; then
+            echo 'Factory is running, so this reconfig command is processed without restarting the service'
 	    killpid=`awk '/PID/ {print $2}' $factory_dir/lock/glideinWMS.lock`
 	    kill -1 $killpid
         else
-	    echo 'If Factory running and at the same time if you want to use arguments, '
-	    echo 'you have to stop Factory first manually'
+	    echo 'Abort. Factory is currently running and at the same time you want to use arguments, '
+	    echo 'you have to stop Factory first manually.'
 	    return 1
         fi
     fi
@@ -489,18 +490,12 @@ upgrade() {
         echo
 
     else
-	# Factory running, we can proceed
-        argno="$#"
-        argnoint=$(( argno + 0 ))
-
-        if [ $argnoint -eq 0 ]; then
-	    killpid=`awk '/PID/ {print $2}' $factory_dir/lock/glideinWMS.lock`
-	    kill -1 $killpid
-        else
-	    echo 'If Factory running and at the same time if you want to use arguments, '
-	    echo 'you have to stop Factory first manually'
-	    return 1
-        fi
+	echo 'This upgrade command can not be processed because the Factory is running: This script exits here.'
+        echo 'Instead, you have to execute the following commands manually'
+        echo 'systemctl stop gwms-factory.service'
+        echo '/usr/sbin/gwms-factory upgrade (with some arguments if you want)'
+	echo 'systemctl start gwms-factory.service'
+        return 1
     fi
     return 0
 }

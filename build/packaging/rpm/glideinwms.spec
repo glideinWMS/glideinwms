@@ -308,8 +308,8 @@ rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/gwms-fronte
 # create /usr/lib/systemd/system directory 
 install -d $RPM_BUILD_ROOT/%{systemddir}
 # place /usr/lib/systemd/system/gwms-frontend.service and /usr/lib/systemd/system/gwms-factory.service
-install -m 0755 creation/templates/gwms-frontend.service $RPM_BUILD_ROOT/%{systemddir}/
-install -m 0755 creation/templates/gwms-factory.service $RPM_BUILD_ROOT/%{systemddir}/
+install -m 0644 creation/templates/gwms-frontend.service $RPM_BUILD_ROOT/%{systemddir}/
+install -m 0644 creation/templates/gwms-factory.service $RPM_BUILD_ROOT/%{systemddir}/
 # place /usr/sbin/gwms-frontend and /usr/sbin/gwms-factory
 install -d $RPM_BUILD_ROOT/%{_sbindir}
 install -m 0755 %{SOURCE11} $RPM_BUILD_ROOT/%{_sbindir}/gwms-frontend
