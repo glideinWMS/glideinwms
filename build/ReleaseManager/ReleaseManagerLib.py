@@ -300,8 +300,7 @@ class TaskRPM(TaskTar):
         self.rpmmacrosFile = os.path.join(os.path.dirname(self.release.rpmbuildDir),
                                           '.rpmmacros')
         self.sourceFilenames = [
-#            'chksum.sh', 'factory_startup', 'frontend_startup', 'factory_startup_sl7', 'frontend_startup_sl7',
-            'chksum.sh',
+            'chksum.sh', 'factory_startup', 'frontend_startup', 'factory_startup_sl7', 'frontend_startup_sl7',
             'frontend.xml', 'glideinWMS.xml', 'gwms-factory.conf.httpd',
             'gwms-factory.sysconfig', 'gwms-frontend.conf.httpd',
             'gwms-frontend.sysconfig'
