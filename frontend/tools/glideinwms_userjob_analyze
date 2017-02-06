@@ -106,7 +106,7 @@ def print_code_response(code, suggestion=None):
         print 'SUGGESTION: %s' % STATE_CODE[code]['suggestion']
 
 def print_analysis_response(code):
-    if isinstance(code dict):
+    if isinstance(code, dict):
         for c,s in code.iteritems():
             print_code_response(c, s)
             print
