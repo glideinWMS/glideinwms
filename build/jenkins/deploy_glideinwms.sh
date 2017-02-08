@@ -143,7 +143,7 @@ EOF
 
 function configure_fact() {
     mkdir -p $ENTRIES_CONFIG_DIR
-    cp $AUTO_INSTALL_SRC_DIR/configs/entries.d/Dev_Sites.xml $ENTRIES_CONFIG_DIR
+    cp $AUTO_INSTALL_SRC_DIR/Dev_Sites.xml $ENTRIES_CONFIG_DIR
 
     /sbin/service gwms-factory upgrade
 }
@@ -218,7 +218,7 @@ function configure_vofe() {
         -e "s|__WMSCOLLECTOR_DN__|$wms_collector_dn|g" \
         -e "s|__VOCOLLECTOR_DN__|$vo_collector_dn|g" \
         -e "s|__VOFE_DN__|$vofe_dn|g" \
-        $AUTO_INSTALL_SRC_DIR/configs/frontend-template-rpm.xml > /etc/gwms-frontend/frontend.xml
+        $AUTO_INSTALL_SRC_DIR/frontend-template-rpm.xml > /etc/gwms-frontend/frontend.xml
 
     if [ "$vofe_proxy" = "" ]; then
         grid-proxy-init -valid 48:0 -cert /etc/grid-security/hostcert.pem -key /etc/grid-security/hostkey.pem -out /tmp/frontend_proxy
@@ -441,13 +441,17 @@ epel_release_rpm="http://dl.fedoraproject.org/pub/epel/epel-release-latest-$el.n
 # Some constants
 fact_vm_name="fact-el$el-$tag-test"
 vofe_vm_name="vofe-el$el-$tag-test"
-SSH="ssh fermicloudui.fnal.gov"
+#for some reason this one is kicking me out so had to change to fcluigp* name
+#SSH="ssh fermicloudui.fnal.gov"
+SSH="ssh fcluigpvm02.fnal.gov"
+
 ENTRIES_CONFIG_DIR=/etc/gwms-factory/config.d
 HTTPD_CONF=/etc/httpd/conf/httpd.conf
 PRIVSEP_CONF=/etc/condor/privsep_config
 # TODO: Remove the dependence on ~parag
 #       Currently it has several config and installation files
-AUTO_INSTALL_SRC_DIR="~parag/grid-data/glideinwms-autoinstaller"
+AUTO_INSTALL_SRC_BASE="/tmp"
+AUTO_INSTALL_SRC_DIR="$AUTO_INSTALL_SRC_BASE/deploy_config"
 TS=`date +%s`
 
 
@@ -539,7 +543,10 @@ vofe_install_script="/tmp/vofe_install.$TS.sh"
 create_fact_install_script $fact_install_script
 create_vofe_install_script $vofe_install_script
 
+deploy_config_dir=`dirname $0`/deploy_config
+
 echo "-------------------------- Factory Deployment Starting ------------------------"
+scp -rC $deploy_config_dir root@$fact_fqdn:$AUTO_INSTALL_SRC_BASE
 # Remotely run factory installation scripts
 scp $fact_install_script root@$fact_fqdn:/tmp/fact_install.sh
 #[ "$condor_tarball" != "" ] && scp $condor_tarball root@$fact_fqdn:/tmp/$condor_tarball
@@ -569,6 +576,7 @@ vofe_install_status="fail"
 
 echo "-------------------------- Frontend Deployment Starting -----------------------"
 # Stage necessart files and remotely run frontend installation script
+scp -rC $deploy_config_dir root@$vofe_fqdn:$AUTO_INSTALL_SRC_BASE
 scp $vofe_install_script root@$vofe_fqdn:/tmp/vofe_install.sh
 [ "$vofe_proxy" != "" ] && scp $vofe_proxy root@$vofe_fqdn:/tmp/frontend_proxy
 [ "$jobs_proxy" != "" ] && scp $jobs_proxy root@$vofe_fqdn:/tmp/grid_proxy

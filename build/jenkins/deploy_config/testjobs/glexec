@@ -1,0 +1,8 @@
+FACTORY		FRONTEND		RESULT
+REQUIRE BIN	Glexec_Use	ENTRY_SEL GLEXEC_USED	OK/NOK
+===============================================================================
+False	OSG	"OPTIONAL"	OK		Yes	PASS
+False	NONE	"REQUIRED"	NONE		-	PASS
+False	OSG	"REQUIRED"	OK		Yes	PASS	
+True	NONE	"NEVER"		NONE		-	PASS
+True	OSG	"OPTIONAL"	
