@@ -441,7 +441,7 @@ epel_release_rpm="http://dl.fedoraproject.org/pub/epel/epel-release-latest-$el.n
 # Some constants
 fact_vm_name="fact-el$el-$tag-test"
 vofe_vm_name="vofe-el$el-$tag-test"
-#for some reason this one is kicking me out so had to change to fcluigp* name
+#for some reason this one is kicking me out so had to change to fcluigpvm02
 #SSH="ssh fermicloudui.fnal.gov"
 SSH="ssh fcluigpvm02.fnal.gov"
 
