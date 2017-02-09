@@ -253,6 +253,7 @@ start() {
     fi
 
     if [ "$RPM_INSTALL" = "True" ]; then
+        # forcing daemon to continue, the factory will check the pidfile
         daemon --user $FACTORY_USER --force --pidfile="$factory_dir/lock/glideinWMS.lock" -2 "${FACTORY_START} $factory_dir 2>/dev/null 1>&2 </dev/null &"
     else
         invoke_as_factory "nice -2 \"${FACTORY_START}\" \"$factory_dir\" 2>/dev/null 1>&2 </dev/null &"
