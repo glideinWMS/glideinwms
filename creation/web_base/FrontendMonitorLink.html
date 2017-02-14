@@ -1,0 +1,37 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<!--
+  javascriptrrd/src/lib/rrdJFlot.html
+  Original repository: http://javascriptrrd.sourceforge.net/
+-->
+
+<html>
+  
+  <head>
+    <title id="brtitle">Frontend Monitoring Link</title>
+  </head>
+
+  <body>
+    <a href="http://hepcloud-devfac.fnal.gov/factory/monitor/index.html" id="hklink" target="_blank">Click to go to Frontend Monitoring Page</a>
+
+    <script type="text/javascript">
+
+      var rawFile = new XMLHttpRequest();
+      rawFile.open("GET", "./frontendmonitorlink.txt", false);
+      rawFile.onreadystatechange = function ()
+      {
+        if(rawFile.readyState === 4)
+        {
+           if(rawFile.status === 200 || rawFile.status == 0)
+            {
+                var allText = rawFile.responseText;
+                document.getElementById("hklink").href = allText;
+            }
+        }
+      }
+      rawFile.send(null);
+
+    </script>
+  </body>
+
+</html>

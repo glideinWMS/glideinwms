@@ -549,6 +549,29 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             except Exception, e:
                 logSupport.log.exception("Error advertising global classads: %s" % e)
 
+# new code to propagate frontend 
+            hkstatus = condorMonitor.CondorStatus(subsystem_name="any")
+            hkconstraint='(MyType=="glideclient")'
+            hkformat_list=[ ('WebMonitoringURL','s'), ('WebURL','s') ]
+            hkdata = hkstatus.fetch( constraint=hkconstraint, format_list=hkformat_list )
+
+            hkcondor = hkdata.keys()
+            hkelement = hkdata[hkcondor[0]]
+            hkurl = hkelement['WebMonitoringURL'].encode('utf-8')
+            hkpath = "/var/lib/gwms-factory/web-area/monitor/frontendmonitorlink.txt"
+            logSupport.log.info("hkRATM = %s" % hkurl )
+
+            if not os.path.exists( hkpath ):
+                with open(hkpath, 'w') as hkf:
+                    hkf.write( hkurl )
+            else:
+                with open(hkpath, 'r') as hkf:
+                    existingurl = hkf.read()
+                    if existingurl == hkurl:
+                        logSupport.log.info("existing url, nothing will be done = %s" % existingurl )
+                    elif existingurl == '':
+                        os.remove( hkpath )
+# end
             cleanupSupport.cleaners.cleanup()
 
             iteration_etime = time.time()
