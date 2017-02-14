@@ -550,27 +550,27 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                 logSupport.log.exception("Error advertising global classads: %s" % e)
 
 # new code to propagate frontend 
-            hkstatus = condorMonitor.CondorStatus(subsystem_name="any")
-            hkconstraint='(MyType=="glideclient")'
-            hkformat_list=[ ('WebMonitoringURL','s'), ('WebURL','s') ]
-            hkdata = hkstatus.fetch( constraint=hkconstraint, format_list=hkformat_list )
+                
+            fronmonstatus = condorMonitor.CondorStatus(subsystem_name="any")
+            fronmonconstraint='(MyType=="glideclient")'
+            fronmonformat_list=[ ('WebMonitoringURL','s'), ('WebURL','s') ]
+            fronmondata = fronmonstatus.fetch( constraint=fronmonconstraint, format_list=fronmonformat_list )
 
-            hkcondor = hkdata.keys()
-            hkelement = hkdata[hkcondor[0]]
-            hkurl = hkelement['WebMonitoringURL'].encode('utf-8')
-            hkpath = "/var/lib/gwms-factory/web-area/monitor/frontendmonitorlink.txt"
-            logSupport.log.info("hkRATM = %s" % hkurl )
+            fronmoncondor = fronmondata.keys()
+            fronmonelement = fronmondata[fronmoncondor[0]]
+            fronmonurl = fronmonelement['WebMonitoringURL'].encode('utf-8')
+            fronmonpath = "/var/lib/gwms-factory/web-area/monitor/frontendmonitorlink.txt"
 
-            if not os.path.exists( hkpath ):
-                with open(hkpath, 'w') as hkf:
-                    hkf.write( hkurl )
+            if not os.path.exists( fronmonpath ):
+                with open(fronmonpath, 'w') as fronmonf:
+                    fronmonf.write( fronmonurl )
             else:
-                with open(hkpath, 'r') as hkf:
-                    existingurl = hkf.read()
-                    if existingurl == hkurl:
+                with open(fronmonpath, 'r') as fronmonf:
+                    existingurl = fronmonf.read()
+                    if existingurl == fronmonurl:
                         logSupport.log.info("existing url, nothing will be done = %s" % existingurl )
                     elif existingurl == '':
-                        os.remove( hkpath )
+                        os.remove( fronmonpath )
 # end
             cleanupSupport.cleaners.cleanup()
 
