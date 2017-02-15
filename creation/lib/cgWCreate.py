@@ -139,9 +139,13 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             # bosco/ssh keys
             # was: self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) %s" % (gridtype, gatekeeper))
             # gatekeeper is [name@]host[:port]. Keep only the host part and replace name with username form env
-            # This retuens always the host:port part: gatekeeper.split('@')[-1]
-            self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) $ENV(GLIDEIN_REMOTE_USERNAME)@%s" %
-                     (gridtype, gatekeeper.split('@')[-1]))
+            # This returns always the host:port part: gatekeeper.split('@')[-1]
+            if u'bosco_dir' in entry:
+                bosco_dir = "--rgahp-glite ~/%s/glite" % entry[u'bosco_dir']
+            else:
+                bosco_dir = ''
+            self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) %s $ENV(GLIDEIN_REMOTE_USERNAME)@%s" %
+                     (gridtype, bosco_dir, gatekeeper.split('@')[-1]))
         elif gridtype == "gce":
             self.add("Grid_Resource", "%s %s $ENV(GRID_RESOURCE_OPTIONS)" % (gridtype, gatekeeper))
         else:
