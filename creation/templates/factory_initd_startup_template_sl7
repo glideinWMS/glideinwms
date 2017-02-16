@@ -423,12 +423,12 @@ reconfig() {
         argnoint=$(( argno + 0 ))
 
         if [ $argnoint -eq 0 ]; then
-            echo 'Factory is running, so this reconfig command is processed without restarting the service'
+            echo 'Factory is running. Invoking reconfig command without stopping the service'
 	    killpid=`awk '/PID/ {print $2}' $factory_dir/lock/glideinWMS.lock`
 	    kill -1 $killpid
         else
-	    echo 'Abort. Factory is currently running and at the same time you want to use arguments, '
-	    echo 'you have to stop Factory first manually.'
+	    echo 'Aborting. As Factory is currently running, you can only reload the configuration (default reconfig).'
+	    echo 'You have to stop the service manually, invoke reconfig with arguments and then start the service again.'
 	    return 1
         fi
     fi
@@ -490,11 +490,8 @@ upgrade() {
         echo
 
     else
-	echo 'This upgrade command can not be processed because the Factory is running: This script exits here.'
-        echo 'Instead, you have to execute the following commands manually'
-        echo 'systemctl stop gwms-factory.service'
-        echo '/usr/sbin/gwms-factory upgrade (with some arguments if you want)'
-	echo 'systemctl start gwms-factory.service'
+	echo 'Aborting. upgrade can not be processed because the Factory is running.'
+        echo 'You have to stop the service manually, invoke upgrade (with arguments if any) and then start the service again.'
         return 1
     fi
     return 0

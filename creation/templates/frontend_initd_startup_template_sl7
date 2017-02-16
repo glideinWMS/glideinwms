@@ -415,12 +415,12 @@ reconfig() {
             argnoint=$(( argno + 0 ))
 
             if [ $argnoint -eq 0 ]; then
-                echo 'Frontend is running, so this reconfig command is processed without restarting the service'
+                echo 'Frontend is running. Invoking reconfig without stopping the service'
 		killpid=`awk '/PID/ {print $2}' $frontend_dir/lock/frontend.lock`
 		kill -1 $killpid
             else
-		echo 'Abort. Frontend is currently running and at the same time you want to use arguments, '
-		echo 'you have to stop Frontend first manually.'
+                echo 'Aborting. As Frontend is currently running, you can only reload the configuration (default reconfig).'
+                echo 'You have to stop the service manually, invoke reconfig with arguments and then start the service again.'
 		return 1
             fi
         fi
@@ -461,11 +461,8 @@ upgrade() {
             echo
 
 	else
-            echo 'This upgrade command can not be processed because Frontend is running: This script exits here.'
-            echo 'Instead you have to execute the following commands manually:'
-            echo 'systemctl stop gwms-frontend.service'
-            echo '/usr/sbin/gwms-frontend upgrade (with some arguments if you want)'
-            echo 'systemctl start gwms-frontend.service'
+            echo 'Aborting. upgrade can not be processed because the Frontend is running.'
+            echo 'You have to stop the service manually, invoke upgrade (with arguments if any) and then start the service again.'
             return 1
         fi
         return 0
