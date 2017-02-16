@@ -252,7 +252,8 @@ start() {
         fi
 
 	if [ "$RPM_INSTALL" = "True" ]; then
-            daemon --user $FRONTEND_USER --pidfile="$frontend_dir/lock/frontend.lock" -2 "${FRONTEND_START} $frontend_dir 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
+            # forcing daemon to continue, the frontend will check the pidfile
+            daemon --user $FRONTEND_USER --force --pidfile="$frontend_dir/lock/frontend.lock" -2 "${FRONTEND_START} $frontend_dir 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
 	else
             invoke_as_frontend "nice -2 \"${FRONTEND_START}\" \"$frontend_dir\" 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
 	fi
