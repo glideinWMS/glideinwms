@@ -60,9 +60,12 @@ function stop_logging() {
         return 1
     fi
     exec 1>&3 3>&- 2>&4 4>&-
+    echo "waiting for \$logpid"
     wait \$logpid
     rm -f \$logpipe
     unset logpid
+    echo stop_logging exiting now
+    exit 0
 }
 
 function patch_httpd_config() {
@@ -442,6 +445,7 @@ epel_release_rpm="http://dl.fedoraproject.org/pub/epel/epel-release-latest-$el.n
 fact_vm_name="fact-el$el-$tag-test"
 vofe_vm_name="vofe-el$el-$tag-test"
 SSH="ssh fermicloudui.fnal.gov"
+SSH="ssh fcluigpvm01.fnal.gov"
 ENTRIES_CONFIG_DIR=/etc/gwms-factory/config.d
 HTTPD_CONF=/etc/httpd/conf/httpd.conf
 PRIVSEP_CONF=/etc/condor/privsep_config
