@@ -1281,6 +1281,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                 return return_dict
 
         elif 'key_pair' in auth_method:
+            # Used by AWS & BOSCO so handle accordingly
             public_key_id = decrypted_params.get('PublicKey')
             submit_credentials.id = public_key_id
             if ( (public_key_id) and
@@ -1290,22 +1291,30 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                 entry.log.warning("Credential %s for the public key is not safe for client %s, skipping request" % (public_key_id, client_int_name))
                 return return_dict
 
-            # Entry Gatekeeper is [<user_name>@]hostname[:port]
-            # PublicKey can have RemoteUsername
-            remote_username = decrypted_params.get('RemoteUsername')
-            if not remote_username:
-                if 'username' in auth_method:
-                    entry.log.warning("Client '%s' did not specify a remote username in the request, this is required by entry %s, skipping request." % (client_int_name, entry.name))
-                    return return_dict
-                # default remote_username from entry (if present)
-                gatekeeper_list = entry.jobDescript.data['Gatekeeper'].split('@')
-                if len(gatekeeper_list) == 2:
-                    remote_username = gatekeeper_list[0].strip()
-                else:
-                    entry.log.warning(
-                        "Client '%s' did not specify a Username in Key %s and the entry %s does not provide a default username in the gatekeeper string, skipping request" %
-                        (client_int_name, public_key_id, entry.name))
-                    return return_dict
+            if grid_type == 'ec2':
+                # AWS usecase. Added empty if block for clarity
+                pass
+            else:
+                # BOSCO Use case
+                # Entry Gatekeeper is [<user_name>@]hostname[:port]
+                # PublicKey can have RemoteUsername
+                # Can we just put this else block with if grid_type.startswith('batch '):
+                # and remove if clause? Check with Marco Mambelli
+                remote_username = decrypted_params.get('RemoteUsername')
+                if not remote_username:
+                    if 'username' in auth_method:
+                        entry.log.warning("Client '%s' did not specify a remote username in the request, this is required by entry %s, skipping request." % (client_int_name, entry.name))
+                        return return_dict
+                    # default remote_username from entry (if present)
+                    gatekeeper_list = entry.jobDescript.data['Gatekeeper'].split('@')
+                    if len(gatekeeper_list) == 2:
+                        remote_username = gatekeeper_list[0].strip()
+                    else:
+                        entry.log.warning(
+                            "Client '%s' did not specify a Username in Key %s and the entry %s does not provide a default username in the gatekeeper string, skipping request" %
+                            (client_int_name, public_key_id, entry.name))
+                        return return_dict
+                submit_credentials.add_identity_credential('RemoteUsername', remote_username)
 
             private_key_id = decrypted_params.get('PrivateKey')
             if ( (private_key_id) and
@@ -1337,7 +1346,6 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
             logSupport.log.warning("Factory entry %s has invalid authentication method. Skipping request for client %s." % (entry.name, client_int_name))
             return return_dict
 
-        submit_credentials.add_identity_credential('RemoteUsername', remote_username)
 
 
     # Set the downtime status so the frontend-specific
