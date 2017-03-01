@@ -1,3 +1,12 @@
+v3_2_18 Bug Fix: ProjectId is missing double quotes
+        Bug Fix: Stdout messages from startup script in SL7 are confusing
+        Bug Fix: Service definition file for SL7 is marked executable 
+          and it should not
+        Bug Fix: Upgrade not working when frontend/factory are running
+        Bug Fix: Use of daemon function to start process does not play well 
+          with non empty pid files
+
+
 v3_2_17 Glideins fallback to curl if transferring files from the 
 	  factory/frontend staging area fails using wget
 	Bug Fix: Factory not correctly consider the cluster size when
