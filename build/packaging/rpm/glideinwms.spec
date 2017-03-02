@@ -432,6 +432,7 @@ for file in factory/tools/[!_]*; do
    fi
 done
 cp creation/create_condor_tarball $RPM_BUILD_ROOT%{_bindir}
+cp creation/propagate_frontend_monitoring_cron $RPM_BUILD_ROOT%{_localstatedir}/spool/cron/
 
 # Install only few frontend tools
 cp frontend/tools/enter_frontend_env $RPM_BUILD_ROOT%{_bindir}/enter_frontend_env
@@ -652,6 +653,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/gwms-logcat.sh
 %attr(755,root,root) %{_bindir}/infosys_lib
 %attr(755,root,root) %{_bindir}/manual_glidein_submit
+%attr(755,root,root) %{_bindir}/propagate_frontend_monitoring
 %attr(755,root,root) %{_bindir}/proxy_info
 %attr(755,root,root) %{_sbindir}/checkFactory.py
 %attr(755,root,root) %{_sbindir}/stopFactory.py
@@ -679,6 +681,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_sbindir}/clone_glidein
 %attr(-, root, root) %dir %{_localstatedir}/lib/gwms-factory
 %attr(-, root, root) %{_localstatedir}/lib/gwms-factory/client-proxies
+%attr(600,root,root) %{_localstatedir}/spool/cron/propagate_frontend_monitoring_cron
 %attr(-, gfactory, gfactory) %{factory_web_dir}
 %attr(-, gfactory, gfactory) %{factory_web_base}
 %attr(-, gfactory, gfactory) %{factory_web_base}/../creation
