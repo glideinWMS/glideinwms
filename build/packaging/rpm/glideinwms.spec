@@ -321,6 +321,9 @@ install -m 0755 %{SOURCE1} $RPM_BUILD_ROOT/%{_initrddir}/gwms-frontend
 install -m 0755 %{SOURCE6} $RPM_BUILD_ROOT/%{_initrddir}/gwms-factory
 %endif
 
+# install the /var/spool/cron directory
+install -d $RPM_BUILD_ROOT%{_localstatedir}/spool/cron/
+
 # Install the web directory
 install -d $RPM_BUILD_ROOT%{frontend_dir}
 install -d $RPM_BUILD_ROOT%{web_base}
