@@ -303,6 +303,8 @@ rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/frontend_in
 # these 2 are installed in /usr/sbin and /usr/sbin/gwms-x.service will be packaged, not these, so deleting these too.
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/gwms-factory.service
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/gwms-frontend.service
+# need to delete creation/propagate_frontend_monitoring_cron
+rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/propagate_frontend_monitoring_cron
 
 %if %{?rhel}%{!?rhel:0} == 7
 # create /usr/lib/systemd/system directory 
