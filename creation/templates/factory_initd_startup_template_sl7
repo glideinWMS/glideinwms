@@ -477,9 +477,11 @@ upgrade() {
         if [ "$RPM_INSTALL" = "True" ]; then
             extra_options=
         else # options used only in the tarball version (before the merge)
-            extra_options=" $force_delete $fix_rrd"
+             # now fix_rrd is used all the time just like frontend upgrade()
+#            extra_options=" $force_delete $fix_rrd"
+            extra_options=" $force_delete"
         fi
-        invoke_as_factory "\"${CREATION_DIR}reconfig_glidein\" $force_name_option -writeback yes -update_scripts yes -xml \"$cfg_loc\" $extra_options" 
+        invoke_as_factory "\"${CREATION_DIR}reconfig_glidein\" $force_name_option -writeback yes -update_scripts yes -xml \"$cfg_loc\" -fix_rrd $extra_options" 
 
         reconfig_failed=$?
         popd 1>/dev/null
