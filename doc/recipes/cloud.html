@@ -314,6 +314,8 @@
             type="key_pair+vm_id+vm_type"
             vm_id="ami-7bf43812"
             vm_type="m1.large"
+            vm_id_fname="/path/to/a new text file (/tmp/aws.txt)"
+            vm_type_fname="/path/to/a new text file (/tmp/aws.txt)"
             pilotabsfname="/path/to/pilot_proxy"/&gt;
             </pre>
             <h2 class="western">Example Frontend Configuration: Google Cloud</h2>
@@ -407,6 +409,36 @@
                             cloud implementation for the correct vm_type value.  In this example, a generic VM has been uploaded
                             to Amazon EC2 and is ready for use.</p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>vm_id_fname</td>
+                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
+                        <td>"/path/to/a new text file" <br> Example: "/tmp/aws.txt"</td>
+                        <td>
+                          <strong>New attribute</strong>
+                            <p>This will let us not have to do reconfig the Frontend every time we change the vm_id.
+                              vm_id can be omitted if vm_id_fname is used.
+                              If vm_id and vm_id_fname are both found in the configuration, vm_id_fname will be used.
+                              In either case, <strong>&lt;type&gt;</strong> attribute should still contain vm_id.
+                              Put a line that looks like VM_ID=ami-7bf43812 in /tmp/aws.txt
+                              See the specific cloud implementation for the correct VM_ID value.</p>
+                            <strong>Note: both vm_id_fname and vm_type_fname can use the same text file.</strong>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>vm_type_fname</td>
+                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
+                        <td>"/path/to/a new text file" <br> Example: "/tmp/aws.txt"</td>
+                        <td>
+                          <strong>New attribute</strong>
+                            <p>This will let us not have to do reconfig the Frontend every time we change the vm_id.
+                              vm_type can be omitted if vm_type_fname is used.
+                              If vm_type and vm_type_fname are both found in the configuration, vm_type_fname will be used.
+                              In either case, <strong>&lt;type&gt;</strong> attribute should still contain vm_type.
+                              Put a line that looks like VM_TYPE=c3.large in /tmp/aws.txt
+                              See the specific cloud implementation for the correct VM_TYPE value.</p>
+                            <strong>Note: both vm_id_fname and vm_type_fname can use the same text file.</strong>
                         </td>
                     </tr>
                     <tr>
