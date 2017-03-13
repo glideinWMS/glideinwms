@@ -1314,7 +1314,6 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                             "Client '%s' did not specify a Username in Key %s and the entry %s does not provide a default username in the gatekeeper string, skipping request" %
                             (client_int_name, public_key_id, entry.name))
                         return return_dict
-                submit_credentials.add_identity_credential('RemoteUsername', remote_username)
 
             private_key_id = decrypted_params.get('PrivateKey')
             if ( (private_key_id) and
@@ -1346,6 +1345,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
             logSupport.log.warning("Factory entry %s has invalid authentication method. Skipping request for client %s." % (entry.name, client_int_name))
             return return_dict
 
+        submit_credentials.add_identity_credential('RemoteUsername', remote_username)
 
 
     # Set the downtime status so the frontend-specific
