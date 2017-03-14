@@ -1,0 +1,5 @@
+<glidein>
+   <condor_tarballs>
+      <condor_tarball arch="default" base_dir="/var/lib/gwms-factory/condor/__CONDOR_DIR__" os="rhel__RH_MAJOR__" version="default"/>
+   </condor_tarballs>
+</glidein>

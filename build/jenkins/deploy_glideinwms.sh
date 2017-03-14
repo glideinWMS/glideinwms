@@ -85,7 +85,7 @@ function install_rpms() {
 function install_osg() {
     yum clean all
     install_rpms $epel_release_rpm
-    install_rpms yum_priorities
+    install_rpms $yum_rpm
     install_rpms $osg_release_rpm
     install_rpms fetch-crl osg-ca-certs httpd
 
@@ -144,9 +144,18 @@ EOF
 function configure_fact() {
     mkdir -p $ENTRIES_CONFIG_DIR
     cp $AUTO_INSTALL_SRC_DIR/Dev_Sites.xml $ENTRIES_CONFIG_DIR
-
+    test -f /var/lib/gwms-factory/condor/$base_condor_tarball  && cd /var/lib/gwms-factory/condor/ && tar xvzf $base_condor_tarball && sed -e s/__CONDOR_DIR__/$condor_dir/ -e s/__RH_MAJOR__/${el}/ $AUTO_INSTALL_SRC_DIR/Condor_Tarballs.xml > $ENTRIES_CONFIG_DIR/Condor_Tarballs.xml
+    if [ -d $AUTO_INSTALL_SRC_DIR/patch/factory ]; then
+        cd $AUTO_INSTALL_SRC_DIR/patch/factory
+        for SRC in \$(find . -type f); do
+            TGT=\$(echo \$SRC | sed -e 's/^\.//')
+            echo patching \$SRC to \$TGT
+            cp \$SRC \$TGT
+        done
+    fi
     /sbin/service gwms-factory upgrade
 }
+
 
 function verify_factory() {
     entries_enabled=\`grep "<entry " $ENTRIES_CONFIG_DIR/*.xml | grep "enabled=\\"True\\"" | wc -l\`
@@ -226,6 +235,14 @@ function configure_vofe() {
     chown frontend:frontend /tmp/frontend_proxy
     cp /tmp/frontend_proxy /tmp/vo_proxy
     chown frontend:frontend /tmp/vo_proxy
+    if [ -d $AUTO_INSTALL_SRC_DIR/patch/frontend ]; then
+       cd $AUTO_INSTALL_SRC_DIR/patch/frontend
+       for SRC in \$(find . -type f); do
+           TGT=\$(echo \$SRC | sed -e 's/^\.//')
+           echo copying \$SRC to \$TGT
+           cp \$SRC \$TGT
+       done
+    fi
 
     /sbin/service gwms-frontend upgrade
 }
@@ -262,17 +279,19 @@ verify_vofe
 echo "==================================="
 echo "FRONTEND VERIFICATION: \$vofe_status"
 
-stop_logging
+#stop_logging
 
 # TODO: Need to automate job submission and testing
 #       Currently it hangs and this is not well tested
 #start_logging $JOBS_LOG
 #if [ "\$vofe_status" = "SUCCESS" ]; then
-#    echo "Setting up testuser ..."
-#    setup_testuser
-#    submit_testjobs
+
+    echo "Setting up testuser ..."
+    setup_testuser
+    submit_testjobs
+
 #fi
-#stop_logging
+stop_logging
 EOF
 
 }
@@ -377,7 +396,7 @@ function help() {
     echo "--monitor        Launch monitoring scripts in xterm"
     echo "--frontend-proxy Frontend proxy to use. Proxy from host DN is used by default"
     echo "--jobs-proxy     Proxy used to submit jobs. Proxy from host DN is used by default"
-    #echo "--condor-tarball Location of condor Tarball"
+    echo "--condor-tarball Location of condor Tarball"
     echo "--help           Print this help message"
 }
 
@@ -432,8 +451,12 @@ while [[ $# -gt 0 ]] ; do
 done
 enable_repo="--enablerepo=$osg_repo"
 
+yum_rpm=yum_priorities
+[ "$el" = "7" ] && yum_rpm=yum-plugin-priorities
+
 vm_template="CLI_DynamicIP_SLF${el}_HOME"
 [ "$el" = "7" ] && vm_template="SLF${el}V_DynIP_Home"
+
 osg_release_rpm="http://repo.grid.iu.edu/osg/$osg_version/osg-$osg_version-el$el-release-latest.rpm"
 epel_release_rpm="http://dl.fedoraproject.org/pub/epel/epel-release-latest-$el.noarch.rpm"
 
@@ -441,9 +464,12 @@ epel_release_rpm="http://dl.fedoraproject.org/pub/epel/epel-release-latest-$el.n
 # Some constants
 fact_vm_name="fact-el$el-$tag-test"
 vofe_vm_name="vofe-el$el-$tag-test"
-#for some reason this one is kicking me out so had to change to fcluigpvm02
-#SSH="ssh fermicloudui.fnal.gov"
-SSH="ssh fcluigpvm02.fnal.gov"
+#for some reason this one is kicking me out, so do this...
+SSH="ssh fermicloudui.fnal.gov"
+$SSH exit 0
+if [ $? -ne 0 ]; then
+    SSH="ssh fcluigpvm02.fnal.gov"
+fi
 
 ENTRIES_CONFIG_DIR=/etc/gwms-factory/config.d
 HTTPD_CONF=/etc/httpd/conf/httpd.conf
@@ -499,6 +525,8 @@ else
     esac
 fi
 
+test -f "$condor_tarball"  && base_condor_tarball=`basename $condor_tarball` && condor_dir=`echo $base_condor_tarball | sed s/.tar.gz//`
+
 FACT_LOG=/tmp/fact_install.log
 VOFE_LOG=/tmp/vofe_install.log
 JOBS_LOG=/tmp/jobs_install.log
@@ -540,6 +568,7 @@ echo
 fact_install_script="/tmp/fact_install.$TS.sh"
 vofe_install_script="/tmp/vofe_install.$TS.sh"
 
+
 create_fact_install_script $fact_install_script
 create_vofe_install_script $vofe_install_script
 
@@ -549,7 +578,7 @@ echo "-------------------------- Factory Deployment Starting -------------------
 scp -rC $deploy_config_dir root@$fact_fqdn:$AUTO_INSTALL_SRC_BASE
 # Remotely run factory installation scripts
 scp $fact_install_script root@$fact_fqdn:/tmp/fact_install.sh
-#[ "$condor_tarball" != "" ] && scp $condor_tarball root@$fact_fqdn:/tmp/$condor_tarball
+test -f "$condor_tarball"  && ssh root@$fact_fqdn 'mkdir -p /var/lib/gwms-factory/condor/' && scp $condor_tarball root@$fact_fqdn:/var/lib/gwms-factory/condor/
 ssh root@$fact_fqdn /tmp/fact_install.sh
 
 fact_install_status="fail"
