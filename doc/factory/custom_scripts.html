@@ -413,6 +413,10 @@ Order:
 <P>The Glidein Factory configuration allows an administrator to
 specify the files/scripts mentioned in points 2, 4 and 5. <BR>
     <tt>after_entry</tt> and <tt>after_group</tt> allow to set the belonging to one group pr the other.<br>
+     <tt>after_group</tt> can be used only for files in the general section of the Frontend configuration 
+(will result in an "Unknown parameter" error inside a group or in the Factory configuration).  
+<tt>after_entry</tt> can be used in the Frontend configuration or in the general section of the Factory 
+configuration (not inside an entry). <br>
     Within a group the files/scripts are loaded/executed in the order in which they are
 specified in the configuration file.</P>
 
