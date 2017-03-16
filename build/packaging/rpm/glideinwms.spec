@@ -293,24 +293,19 @@ rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/create_condor_tarball
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/create_frontend
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/create_glidein
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/info_glidein
-# for sl7 sighup to work, we need reconfig_frontend and reconfig_glidein under this directory
-#rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/reconfig_frontend
-#rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/reconfig_glidein
-# these 2 sl7 init templates are only needed by create_rpm_startup above, 
+# For sl7 sighup to work, we need reconfig_frontend and reconfig_glidein
+# under this directory
+# Following 4 sl7 templates are only needed by create_rpm_startup above, 
 # after that, we dont package these, so deleting them here
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/factory_initd_startup_template_sl7
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template_sl7
-# these 2 are installed in /usr/sbin and /usr/sbin/gwms-x.service will be packaged, not these, so deleting these too.
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/gwms-factory.service
 rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/gwms-frontend.service
 
 %if %{?rhel}%{!?rhel:0} == 7
-# create /usr/lib/systemd/system directory 
 install -d $RPM_BUILD_ROOT/%{systemddir}
-# place /usr/lib/systemd/system/gwms-frontend.service and /usr/lib/systemd/system/gwms-factory.service
 install -m 0644 creation/templates/gwms-frontend.service $RPM_BUILD_ROOT/%{systemddir}/
 install -m 0644 creation/templates/gwms-factory.service $RPM_BUILD_ROOT/%{systemddir}/
-# place /usr/sbin/gwms-frontend and /usr/sbin/gwms-factory
 install -d $RPM_BUILD_ROOT/%{_sbindir}
 install -m 0755 %{SOURCE11} $RPM_BUILD_ROOT/%{_sbindir}/gwms-frontend
 install -m 0755 %{SOURCE12} $RPM_BUILD_ROOT/%{_sbindir}/gwms-factory
@@ -759,6 +754,9 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/glideinwms/creation/lib/cvWParams.py
 %{python_sitelib}/glideinwms/creation/lib/cvWParams.pyc
 %{python_sitelib}/glideinwms/creation/lib/cvWParams.pyo
+%{python_sitelib}/glideinwms/creation/lib/matchPolicy.py
+%{python_sitelib}/glideinwms/creation/lib/matchPolicy.pyc
+%{python_sitelib}/glideinwms/creation/lib/matchPolicy.pyo
 %{python_sitelib}/glideinwms/creation/templates/frontend_initd_startup_template
 %{python_sitelib}/glideinwms/creation/reconfig_frontend
 %if %{?rhel}%{!?rhel:0} == 7
@@ -860,6 +858,7 @@ rm -rf $RPM_BUILD_ROOT
 - Added glideinwms-common-tools as a dependency to glideinwms-userschedd
 - Tools from glideinwms-vofrontend-standalone are now in path (bindir)
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_2_12/history.html
+- Release candidates: 3.2.12-0.1.rc1 to 3.2.12-0.5.rc5
 
 * Thu Oct 08 2015 Matyas Selmeci <matyas@cs.wisc.edu> - 3.2.11.2-4
 - Don't put collectors behind shared port (needed for HTCondor 8.4.0) (SOFTWARE-2015)
@@ -891,9 +890,11 @@ rm -rf $RPM_BUILD_ROOT
 * Fri May 08 2015 Parag Mhashilkar <parag@fnal.gov> - 3.2.9-1
 - Glideinwms v3.2.9 release
 - Release Notes: http://glideinwms.fnal.gov/doc.prd/history.html
+- Release candidates: 3.2.9-0.1.rc1 to 3.2.9-0.2.rc2
 
 * Tue Dec 30 2014 Parag Mhashilkar <parag@fnal.gov> - 3.2.8-1
 - Glideinwms v3.2.8 release
+- Release candidates: 3.2.8-0.1.rc1 to 3.2.8-0.2.rc2
 
 * Thu Nov 6 2014 Parag Mhashilkar <parag@fnal.gov> - 3.2.7.2-1
 - Glideinwms v3.2.7.2 release
@@ -906,11 +907,11 @@ rm -rf $RPM_BUILD_ROOT
 - Glideinwms v3.2.7 release
 - Disabled secondary schedd in the frontend configuration
 - Added python-ldap as dependency to glideinwms-libs and glideinwms-factory
+- Release candidates: 3.2.7-0.1.rc1 to 3.2.7-0.2.rc2
 
 * Fri Jul 25 2014 Parag Mhashilkar <parag@fnal.gov> - 3.2.6-1
 - Glideinwms v3.2.6 release
-- Reverted group name in default dir ownership but we now explicitly make gfactory and fronend users part of the gfactory and frontend group respectively
-- Removed the group name in the default dir ownership for factory and frontend
+- Release candidates: 3.2.6-0.1.rc1 to 3.2.6-0.2.rc3
 
 * Wed Jun 25 2014 Parag Mhashilkar <parag@fnal.gov> - 3.2.5.1-2
 - Added GOC factory info in the factory config template
@@ -920,6 +921,7 @@ rm -rf $RPM_BUILD_ROOT
 
 * Mon May 19 2014 Parag Mhashilkar <parag@fnal.gov> - 3.2.5-1
 - Glideinwms v3.2.5 release
+- Release candidates: 3.2.5-0.1.rc1 to 3.2.5-0.2.rc3
 - Change the default trust_domain in frontend.xml from OSG to grid
 
 * Mon Apr 28 2014 Parag Mhashilkar <parag@fnal.gov> - 3.2.4-3
@@ -937,8 +939,10 @@ rm -rf $RPM_BUILD_ROOT
 - Glideinwms v3.2.3 release
 - Final release does not include support for HTCondor CE rsl
 - Support for HTCondor CE rsl and improvements to Frontend
+- Bug fixes to factory log cleanup
 - New features and bug fixes
 - Added clone_glidein tool
+- Release candidates: 3.2.3-0.1.rc1 to 3.2.5-0.2.rc3
 
 * Mon Oct 28 2013 Parag Mhashilkar <parag@fnal.gov> - 3.2.1-0.1.rc2
 - Added gwms-frontend and gwms-factory files in /etc/sysconfig in the respective rpms
