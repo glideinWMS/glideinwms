@@ -308,8 +308,8 @@ rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/gwms-fronte
 # create /usr/lib/systemd/system directory 
 install -d $RPM_BUILD_ROOT/%{systemddir}
 # place /usr/lib/systemd/system/gwms-frontend.service and /usr/lib/systemd/system/gwms-factory.service
-install -m 0755 creation/templates/gwms-frontend.service $RPM_BUILD_ROOT/%{systemddir}/
-install -m 0755 creation/templates/gwms-factory.service $RPM_BUILD_ROOT/%{systemddir}/
+install -m 0644 creation/templates/gwms-frontend.service $RPM_BUILD_ROOT/%{systemddir}/
+install -m 0644 creation/templates/gwms-factory.service $RPM_BUILD_ROOT/%{systemddir}/
 # place /usr/sbin/gwms-frontend and /usr/sbin/gwms-factory
 install -d $RPM_BUILD_ROOT/%{_sbindir}
 install -m 0755 %{SOURCE11} $RPM_BUILD_ROOT/%{_sbindir}/gwms-frontend
@@ -814,6 +814,11 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
+* Tue Feb 28 2017 Marco Mambelli <marcom@fnal.gov> - 3.2.18-1
+- Glideinwms v3.2.18
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_2_18/history.html
+- Release candidates: 3.2.18-0.1.rc1
+
 * Wed Jan 25 2017 Marco Mambelli <marcom@fnal.gov> - 3.2.17-1
 - Glideinwms v3.2.17
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_2_17/history.html

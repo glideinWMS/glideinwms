@@ -314,6 +314,8 @@
             type="key_pair+vm_id+vm_type"
             vm_id="ami-7bf43812"
             vm_type="m1.large"
+            vm_id_fname="/path/to/file_with_vm_id"
+            vm_type_fname="/path/to/file_with_vm_type"
             pilotabsfname="/path/to/pilot_proxy"/&gt;
             </pre>
             <h2 class="western">Example Frontend Configuration: Google Cloud</h2>
@@ -407,6 +409,39 @@
                             cloud implementation for the correct vm_type value.  In this example, a generic VM has been uploaded
                             to Amazon EC2 and is ready for use.</p>
                             <p>See <a href="../frontend/configuration.html#proxies">Frontend Configuration</a> for a complete description.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>vm_id_fname</td>
+                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
+                        <td>"/path/to/file_with_vm_id"</td>
+                        <td>
+                            <p>Alternate means to provide the vm_id.
+                            If vm_id_fname is configured, updated vm_id from
+                            the file is used without a need to reconfigure
+                            the frontend service. If vm_id and vm_id_fname are
+                            both found in the configuration, vm_id_fname will be
+                            used.
+                            vm_id_fname should contain a line in following format
+                            <pre>VM_ID=ami-7bf43812</pre>
+                            </p>
+                            <strong>Note: both vm_id_fname and vm_type_fname can use the same text file.</strong>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>vm_type_fname</td>
+                        <td><nobr>Element attribute for &lt;credential&gt;</nobr></td>
+                        <td>"/path/to/vm_type_fname"</td>
+                        <td>
+                            <p>Alternate means to provide the vm_type.
+                            If vm_type_fname is configured, updated vm_type from
+                            the file is used without a need to reconfigure
+                            the frontend service. If vm_type and vm_type_fname are
+                            both found in the configuration, vm_type_fname will be
+                            used.
+                            vm_type_fname should contain a line in following format
+                            <pre>VM_TYPE=c3.large</pre>
+                            <strong>Note: both vm_id_fname and vm_type_fname can use the same text file.</strong>
                         </td>
                     </tr>
                     <tr>
