@@ -78,7 +78,7 @@ vofrontend install (userschedd, submit, vofrontend).
 Summary:        The VOFrontend for glideinWMS submission host
 Group:          System Environment/Daemons
 Requires: httpd
-Requires: condor >= 8.2.3
+Requires: condor >= 8.4.0
 Requires: python-rrdtool
 Requires: m2crypto
 Requires: javascriptrrd >= 1.1.0

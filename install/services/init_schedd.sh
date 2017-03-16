@@ -74,7 +74,7 @@ function validate_all {
     logit "Validating schedd: $schedd"
     for a  in $attrs
     do
-      attr=SCHEDD.$schedd.$a
+      attr=$schedd.$a
       validate_attrs $attr
     done
   done
@@ -90,7 +90,7 @@ function create_all {
     logit "Processing schedd: $schedd"
     for a  in $attrs
     do
-      attr=SCHEDD.$schedd.$a
+      attr=$schedd.$a
       validate_attrs $attr
       create_dirs $attr
     done
