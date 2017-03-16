@@ -304,8 +304,8 @@ rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/gwms-fronte
 
 %if %{?rhel}%{!?rhel:0} == 7
 install -d $RPM_BUILD_ROOT/%{systemddir}
-install -m 0644 creation/templates/gwms-frontend.service $RPM_BUILD_ROOT/%{systemddir}/
-install -m 0644 creation/templates/gwms-factory.service $RPM_BUILD_ROOT/%{systemddir}/
+install -m 0755 creation/templates/gwms-frontend.service $RPM_BUILD_ROOT/%{systemddir}/
+install -m 0755 creation/templates/gwms-factory.service $RPM_BUILD_ROOT/%{systemddir}/
 install -d $RPM_BUILD_ROOT/%{_sbindir}
 install -m 0755 %{SOURCE11} $RPM_BUILD_ROOT/%{_sbindir}/gwms-frontend
 install -m 0755 %{SOURCE12} $RPM_BUILD_ROOT/%{_sbindir}/gwms-factory
