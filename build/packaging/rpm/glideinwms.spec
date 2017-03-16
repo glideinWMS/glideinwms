@@ -26,15 +26,15 @@
 %define condor_dir %{_localstatedir}/lib/gwms-factory/condor
 %define systemddir %{_prefix}/lib/systemd/system
 
-Name:       glideinwms
-Version:    %{version}
-Release:    %{release}%{?dist}
-Summary:    The glidein Workload Management System (glideinWMS)
-Group:      System Environment/Daemons
-License:    Fermitools Software Legal Information (Modified BSD License)
-URL:        http://glideinwms.fnal.gov
-BuildRoot:  %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-BuildArch:  noarch
+Name:           glideinwms
+Version:        %{version}
+Release:        %{release}%{?dist}
+Summary:        The glidein Workload Management System (glideinWMS)
+Group:          System Environment/Daemons
+License:        Fermitools Software Legal Information (Modified BSD License)
+URL:            http://glideinwms.fnal.gov
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+BuildArch:      noarch
 
 
 Source:         glideinwms.tar.gz
@@ -220,7 +220,7 @@ install of wmscollector + wms factory
 cp %{SOURCE7} .
 chmod 700 chksum.sh
 ./chksum.sh v%{version}-%{release}.osg etc/checksum.frontend "CVS config_examples doc .git .gitattributes poolwatcher factory/check* factory/glideFactory* factory/test* factory/manage* factory/stop* factory/tools creation/create_glidein creation/reconfig_glidein creation/info_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh creation/web_base/glexec_setup.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build"
-./chksum.sh v%{version}-%{release}.osg etc/checksum.factory "CVS config_examples doc .git .gitattributes poolwatcher frontend/* creation/reconfig_glidein creation/clone_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh creation/web_base/glexec_setup.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build"
+./chksum.sh v%{version}-%{release}.osg etc/checksum.factory "CVS config_examples doc .git .gitattributes poolwatcher frontend/* creation/reconfig_glidein creation/clone_glidein creation/lib/cgW* creation/web_base/factory*html creation/web_base/collector_setup.sh creation/web_base/condor_platform_select.sh creation/web_base/condor_startup.sh creation/web_base/create_mapfile.sh creation/web_base/gcb_setup.sh creation/web_base/glexec_setup.sh creation/web_base/glidein_startup.sh creation/web_base/job_submit.sh creation/web_base/local_start.sh creation/web_base/setup_x509.sh creation/web_base/update_proxy.py creation/web_base/validate_node.sh chksum.sh etc/checksum* unittests build creation/lib/matchPolicy*"
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -421,9 +421,9 @@ for file in tools/[!_]*.py; do
 done
 for file in factory/tools/[!_]*; do
    if [ -f "$file" ]; then
-       newname=`echo $file | sed -e 's/\(.*\)\.py/\1/'`
-       newname=`echo $newname | sed -e 's/.*\/\(.*\)/\1/'`
-       cp $file $RPM_BUILD_ROOT%{_bindir}/$newname
+      newname=`echo $file | sed -e 's/\(.*\)\.py/\1/'`
+      newname=`echo $newname | sed -e 's/.*\/\(.*\)/\1/'`
+      cp $file $RPM_BUILD_ROOT%{_bindir}/$newname
    fi
 done
 cp creation/create_condor_tarball $RPM_BUILD_ROOT%{_bindir}
@@ -812,6 +812,10 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/condor/certs/condor_mapfile
 
 %changelog
+* Thu Mar 16 2017 Parag Mhashilkar <parag@fnal.gov> - 3.3.2-0.1.rc1
+- Glideinwms v3.3.2 rc1
+- Release Notes: http://glideinwms.fnal.gov/doc.v3_3_2/history.html
+
 * Tue Feb 28 2017 Marco Mambelli <marcom@fnal.gov> - 3.2.18-1
 - Glideinwms v3.2.18
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_2_18/history.html
@@ -822,10 +826,18 @@ rm -rf $RPM_BUILD_ROOT
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_2_17/history.html
 - Release candidates: 3.2.17-0.1.rc1 to 3.2.17-0.3.rc3
 
+* Tue Oct 25 2016 Parag Mhashilkar <parag@fnal.gov> - 3.3.1-1
+- Glideinwms v3.3.1
+- Release Notes: http://glideinwms.fnal.gov/doc.dev/history.html
+
 * Fri Oct 21 2016 Parag Mhashilkar <parag@fnal.gov> - 3.2.16-1
 - Glideinwms v3.2.16
 - Release Notes: http://glideinwms.fnal.gov/doc.v3_2_16/history.html
 - Release candidates: 3.2.16-0.1.rc1 to 3.2.16-0.2.rc2
+
+* Tue Aug 30 2016 Parag Mhashilkar <parag@fnal.gov> - 3.3-1
+- Glideinwms v3.3 release candidates (rc1-rc11)
+- Release Notes: http://glideinwms.fnal.gov/doc.dev/history.html
 
 * Wed Aug 17 2016 Parag Mhashilkar <parag@fnal.gov> - 3.2.15-1
 - Glideinwms v3.2.15
@@ -1084,7 +1096,7 @@ rm -rf $RPM_BUILD_ROOT
 - Change condor config file name to 00_frontend.config
 - Separated definition of collectors into 01_collectors.config
 
-* Fri Mar 11 2011 Burt Holzman   2.5.1-1
+* Fri Mar 11 2011 Burt Holzman  2.5.1-1
 - Include glideinWMS 2.5.1
 - Made all the directories independent of the frontend name
 
