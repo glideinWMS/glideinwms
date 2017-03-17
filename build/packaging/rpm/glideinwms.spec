@@ -304,8 +304,8 @@ rm -f $RPM_BUILD_ROOT%{python_sitelib}/glideinwms/creation/templates/gwms-fronte
 
 %if %{?rhel}%{!?rhel:0} == 7
 install -d $RPM_BUILD_ROOT/%{systemddir}
-install -m 0755 creation/templates/gwms-frontend.service $RPM_BUILD_ROOT/%{systemddir}/
-install -m 0755 creation/templates/gwms-factory.service $RPM_BUILD_ROOT/%{systemddir}/
+install -m 0644 creation/templates/gwms-frontend.service $RPM_BUILD_ROOT/%{systemddir}/
+install -m 0644 creation/templates/gwms-factory.service $RPM_BUILD_ROOT/%{systemddir}/
 install -d $RPM_BUILD_ROOT/%{_sbindir}
 install -m 0755 %{SOURCE11} $RPM_BUILD_ROOT/%{_sbindir}/gwms-frontend
 install -m 0755 %{SOURCE12} $RPM_BUILD_ROOT/%{_sbindir}/gwms-factory
@@ -421,9 +421,9 @@ for file in tools/[!_]*.py; do
 done
 for file in factory/tools/[!_]*; do
    if [ -f "$file" ]; then
-      newname=`echo $file | sed -e 's/\(.*\)\.py/\1/'`
-      newname=`echo $newname | sed -e 's/.*\/\(.*\)/\1/'`
-      cp $file $RPM_BUILD_ROOT%{_bindir}/$newname
+       newname=`echo $file | sed -e 's/\(.*\)\.py/\1/'`
+       newname=`echo $newname | sed -e 's/.*\/\(.*\)/\1/'`
+       cp $file $RPM_BUILD_ROOT%{_bindir}/$newname
    fi
 done
 cp creation/create_condor_tarball $RPM_BUILD_ROOT%{_bindir}
@@ -923,6 +923,8 @@ rm -rf $RPM_BUILD_ROOT
 
 * Fri Jul 25 2014 Parag Mhashilkar <parag@fnal.gov> - 3.2.6-1
 - Glideinwms v3.2.6 release
+- Reverted group name in default dir ownership but we now explicitly make gfactory and fronend users part of the gfactory and frontend group respectively
+- Removed the group name in the default dir ownership for factory and frontend
 - Release candidates: 3.2.6-0.1.rc1 to 3.2.6-0.2.rc3
 
 * Wed Jun 25 2014 Parag Mhashilkar <parag@fnal.gov> - 3.2.5.1-2
@@ -933,8 +935,8 @@ rm -rf $RPM_BUILD_ROOT
 
 * Mon May 19 2014 Parag Mhashilkar <parag@fnal.gov> - 3.2.5-1
 - Glideinwms v3.2.5 release
-- Release candidates: 3.2.5-0.1.rc1 to 3.2.5-0.2.rc3
 - Change the default trust_domain in frontend.xml from OSG to grid
+- Release candidates: 3.2.5-0.1.rc1 to 3.2.5-0.2.rc3
 
 * Mon Apr 28 2014 Parag Mhashilkar <parag@fnal.gov> - 3.2.4-3
 - Fix the ownership of startup.log file for frontend in post script
