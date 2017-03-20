@@ -132,6 +132,8 @@ glidein_variables=""
 # job_env = environment to pass to the job
 # Make sure we do not leak LD_LIBRARY_PATH to the job incorrectly
 job_env="LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+test -d /usr/lib64 && test "$job_env" == "/usr/lib"  && job_env=${job_env}:/usr/lib64
+
 
 
 #
@@ -936,6 +938,7 @@ fi
 
 #Set the LD_LIBRARY_PATH so condor uses dynamically linked libraries correctly
 export LD_LIBRARY_PATH=$CONDOR_DIR/lib:$CONDOR_DIR/lib/condor:$LD_LIBRARY_PATH
+test -d "$CONDOR_DIR/lib64" && export LD_LIBRARY_PATH=$CONDOR_DIR/lib64:$LD_LIBRARY_PATH
 
 #
 # The config is complete at this point
