@@ -1,5 +1,5 @@
 ###################################################################
-# GLIDEINWMS_VERSION v3_3_2_rc1
+# GLIDEINWMS_VERSION v3_3_2_rc2
 ###################################################################
 1d1fef40252f91ba8ef88b0473321fb6  ./ACKNOWLEDGMENTS.txt
 cbd269c098e4d61d909595fc90c7cefd  ./LICENSE.txt
@@ -17,7 +17,7 @@ f8818d3e461e81346451c51f631eaa74  ./build/packaging/rpm/factory_startup_sl7
 80a43f3f31c526ecbdaf7afb8133a4d3  ./build/packaging/rpm/frontend_startup
 80a43f3f31c526ecbdaf7afb8133a4d3  ./build/packaging/rpm/frontend_startup_sl7
 6f6a87f8fca324f1bf3e8bb7e2486aef  ./build/packaging/rpm/glideinWMS.xml
-8b6361e29484f249c0bac2ecce27b02c  ./build/packaging/rpm/glideinwms.spec
+f0b9fb2a954ee4db112ccf856ffd8927  ./build/packaging/rpm/glideinwms.spec
 6d717a6475b79a3ee00bc21624a68111  ./build/packaging/rpm/gwms-factory.conf.httpd
 47b19f1af9e59ff604293195f8dad724  ./build/packaging/rpm/gwms-factory.sysconfig
 3e148febde1a7e1a53269e2838d18771  ./build/packaging/rpm/gwms-frontend.conf.httpd
@@ -136,7 +136,7 @@ c0bfe44cfd746c385b7c8186df032ea2  ./install/glidecondor_upgrade
 785dfb8a08831cc2983152f264233791  ./install/glideinWMS.ini
 a6994296bf7d4899905dc459536e2cb8  ./install/manage-glideins
 1524a3cab15abde1a4c1c50b1f3417b9  ./install/services/Certificates.py
-31e8aff406784cc51a3b47e6aaca289b  ./install/services/Condor.py
+e08740b5ab9d4f082729e3e0a166fabb  ./install/services/Condor.py
 2815d4e3a344ae0c202c598c51d418f6  ./install/services/Configuration.py
 0ebfbb3e2d05c2bcf06930c53a3f17ad  ./install/services/Factory.py
 f8d19ab77b0e90d9144164b8fa743bfa  ./install/services/Glidein.py
@@ -150,7 +150,7 @@ d22bafb4d668637dcfcab1ec1298d542  ./install/services/VOFrontend.py
 0dc8b19b568e997f03d5ca8487efb5c4  ./install/services/WMSCollector.py
 b56403417b299dfca2fff645ad7f3461  ./install/services/__init__.py
 bebd1bb07fa101fec830cff93e159e6b  ./install/services/common.py
-e11d30b85bc8ee174418de14c2210257  ./install/services/init_schedd.sh
+ba6025891fdbadea4c4c641ac7da4729  ./install/services/init_schedd.sh
 d41d8cd98f00b204e9800998ecf8427e  ./lib/__init__.py
 db56dcb66f0a0733ffc72be3e863afd1  ./lib/classadSupport.py
 db3a6019e81123ab02788204c5170716  ./lib/cleanupSupport.py
