@@ -1,3 +1,10 @@
+v3_3_2  Allow multiple remote directories for BOSCO submissions
+        Bug fix: Submit attributes in entry configuration are now transmitted to AWS VM
+        Documented vm_id_fname and vm_type_fname
+        Includes all features and bug fixes released in v3_2_18
+        Includes some important features and bug fixes planned for v3_2_19
+          (Change from SUBSYS.LOCALNAME.* to LOCALNAME.*, fix of AWS submission)
+
 v3_3_1  Includes all features and bug fixes released in v3_2_16
 
 v3_3    Includes all features and bug fixes released in v3_2_15
