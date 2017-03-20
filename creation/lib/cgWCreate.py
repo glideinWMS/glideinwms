@@ -261,6 +261,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         # (and of course glidein_startup.sh)
         self.add("ec2_user_data", "glideinwms_metadata=$ENV(USER_DATA)#### -cluster $(Cluster) -subcluster $(Process)####")
         self.add("ec2_user_data_file", "$ENV(GLIDEIN_PROXY_FNAME)")
+        self.populate_submit_attrs(submit_attrs)
 
 
     def populate_glidein_classad(self, proxy_url):
