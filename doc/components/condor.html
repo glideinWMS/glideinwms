@@ -186,19 +186,19 @@ Effective with Condor 7.7.5+, the JOB_QUEUE_LOG attribute is required.
 <b><u>For the WMS Collector:</u></b><br/>
 SCHEDDGLIDEINS<b><font color="red">2</font></b> = $(SCHEDD)<br/>
 SCHEDDGLIDEINS<b><font color="red">2</font></b>_ARGS  = -local-name scheddglideins<b><font color="red">2</font></b><br/>
-SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_NAME   = schedd_glideins<b><font color="red">2</font></b><br/>
-SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_LOG    = $(LOG)/SchedLog.$(SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_NAME)<br/>
-SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR     = $(LOCAL_DIR)/$(SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_NAME)<br/>
-SCHEDDGLIDEINS<b><font color="red">2</font></b>.EXECUTE       = $(SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR)/execute<br/>
-SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCK          = $(SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR)/lock<br/>
-SCHEDDGLIDEINS<b><font color="red">2</font></b>.PROCD_ADDRESS = $(SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR)/procd_pipe<br/>
-SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL         = $(SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR)/spool<br/>
-SCHEDDGLIDEINS<b><font color="red">2</font></b>.JOB_QUEUE_LOG         = $(SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/job_queue.log  <b>## Note: Required with Condor 7.7.5+</b><br/>
-SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_ADDRESS_FILE   = $(SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/.schedd_address<br/>
-SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_DAEMON_AD_FILE = $(SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/.schedd_classad<br/>
-SCHEDDGLIDEINS<b><font color="red">2</font></b>_SPOOL_DIR_STRING = "$(SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)"<br/>
-SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_EXPRS = SPOOLL_DIR_STRING<br/>
-<font color="green"><b>SCHEDDGLIDEINS<b><font color="red">2</font></b>_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridManagerLog.$(SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_NAME).$(USERNAME)"</font></b><br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_NAME   = schedd_glideins<b><font color="red">2</font></b><br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_LOG    = $(LOG)/SchedLog.$(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_NAME)<br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR     = $(LOCAL_DIR)/$(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_NAME)<br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.EXECUTE       = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR)/execute<br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCK          = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR)/lock<br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.PROCD_ADDRESS = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR)/procd_pipe<br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL         = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.LOCAL_DIR)/spool<br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.JOB_QUEUE_LOG         = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/job_queue.log  <b>## Note: Required with Condor 7.7.5+</b><br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_ADDRESS_FILE   = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/.schedd_address<br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)/.schedd_classad<br/>
+SCHEDDGLIDEINS<b><font color="red">2</font></b>_SPOOL_DIR_STRING = "$(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SPOOL)"<br/>
+SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_EXPRS = SPOOLL_DIR_STRING<br/>
+<font color="green"><b>SCHEDDGLIDEINS<b><font color="red">2</font></b>_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridManagerLog.$(SCHEDD.SCHEDDGLIDEINS<b><font color="red">2</font></b>.SCHEDD_NAME).$(USERNAME)"</font></b><br/>
 DAEMON_LIST = $(DAEMON_LIST), SCHEDDGLIDEINS<b><font color="red">2</font></b><br/>
 DC_DAEMON_LIST = + SCHEDDGLIDEINS<b><font color="red">2</font></b><br/>
 </p>
@@ -206,18 +206,18 @@ DC_DAEMON_LIST = + SCHEDDGLIDEINS<b><font color="red">2</font></b><br/>
 <b><u>For the User Submit host:</u></b><br/>
 SCHEDDJOBS<b><font color="red">2</font></b> = $(SCHEDD)<br/>
 SCHEDDJOBS<b><font color="red">2</font></b>_ARGS  = -local-name scheddglideins<b><font color="red">2</font></b><br/>
-SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_NAME   = schedd_glideins<b><font color="red">2</font></b><br/>
-SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_LOG    = $(LOG)/SchedLog.$(SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_NAME)<br/>
-SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR     = $(LOCAL_DIR)/$(SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_NAME)<br/>
-SCHEDDJOBS<b><font color="red">2</font></b>.EXECUTE       = $(SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR)/execute<br/>
-SCHEDDJOBS<b><font color="red">2</font></b>.LOCK          = $(SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR)/lock<br/>
-SCHEDDJOBS<b><font color="red">2</font></b>.PROCD_ADDRESS = $(SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR)/procd_pipe<br/>
-SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL         = $(SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR)/spool<br/>
-SCHEDDJOBS<b><font color="red">2</font></b>.JOB_QUEUE_LOG         = $(SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/job_queue.log  <b>## Note: Required with Condor 7.7.5+</b><br/>
-SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_ADDRESS_FILE   = $(SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/.schedd_address<br/>
-SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_DAEMON_AD_FILE = $(SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/.schedd_classad<br/>
-SCHEDDJOBS<b><font color="red">2</font></b>_SPOOL_DIR_STRING = "$(SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)"<br/>
-SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_EXPRS = SPOOL_DIR_STRING<br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_NAME   = schedd_glideins<b><font color="red">2</font></b><br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_LOG    = $(LOG)/SchedLog.$(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_NAME)<br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR     = $(LOCAL_DIR)/$(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_NAME)<br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.EXECUTE       = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR)/execute<br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCK          = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR)/lock<br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.PROCD_ADDRESS = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR)/procd_pipe<br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL         = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.LOCAL_DIR)/spool<br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.JOB_QUEUE_LOG         = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/job_queue.log  <b>## Note: Required with Condor 7.7.5+</b><br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_ADDRESS_FILE   = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/.schedd_address<br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)/.schedd_classad<br/>
+SCHEDDJOBS<b><font color="red">2</font></b>_SPOOL_DIR_STRING = "$(SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SPOOL)"<br/>
+SCHEDD.SCHEDDJOBS<b><font color="red">2</font></b>.SCHEDD_EXPRS = SPOOL_DIR_STRING<br/>
 DAEMON_LIST = $(DAEMON_LIST), SCHEDDJOBS<b><font color="red">2</font></b><br/>
 DC_DAEMON_LIST = + SCHEDDJOBS<b><font color="red">2</font></b><br/>
 </p>
@@ -241,13 +241,13 @@ existance and ownership.  If they do not exist, they will be created.
 (sample output)<br/>
 Validating schedd: SCHEDDJOBS2<br/>
 Processing schedd: SCHEDDJOBS2<br/>
-  SCHEDDJOBS2.LOCAL_DIR: /opt/glidecondor/condor_local/schedd_jobs2 <br/>
+  SCHEDD.SCHEDDJOBS2.LOCAL_DIR: /opt/glidecondor/condor_local/schedd_jobs2 <br/>
   ... created<br/>
-  SCHEDDJOBS2.EXECUTE: /opt/glidecondor/condor_local/schedd_jobs2/execute <br/>
+  SCHEDD.SCHEDDJOBS2.EXECUTE: /opt/glidecondor/condor_local/schedd_jobs2/execute <br/>
   ... created<br/>
-  SCHEDDJOBS2.SPOOL: /opt/glidecondor/condor_local/schedd_jobs2/spool <br/>
+  SCHEDD.SCHEDDJOBS2.SPOOL: /opt/glidecondor/condor_local/schedd_jobs2/spool <br/>
   ... created<br/>
-  SCHEDDJOBS2.LOCK: /opt/glidecondor/condor_local/schedd_jobs2/lock <br/>
+  SCHEDD.SCHEDDJOBS2.LOCK: /opt/glidecondor/condor_local/schedd_jobs2/lock <br/>
   ... created<br/>
 
 
