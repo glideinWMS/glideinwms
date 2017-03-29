@@ -1172,8 +1172,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
                     entry_env.append('%s=%s' % (var, os.environ[var]))
                 except KeyError:
                     msg = """KeyError: '%s' not found in execution envrionment!!""" % (var)
-                    log.error(msg)
-                    log.exception(msg)
+                    log.warning(msg)
     try:
         nr_submitted = 0
         while (nr_submitted < nr_glideins):
