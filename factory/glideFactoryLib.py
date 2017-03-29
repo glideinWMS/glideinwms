@@ -1168,8 +1168,12 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
         for var in os.environ:
             if ((var in ('PATH', 'LD_LIBRARY_PATH', 'X509_CERT_DIR')) or
                 (var[:8] == '_CONDOR_') or (var[:7] == 'CONDOR_')):
-                if var in os.environ:
+                try:
                     entry_env.append('%s=%s' % (var, os.environ[var]))
+                except KeyError:
+                    msg = """KeyError: '%s' not found in execution envrionment!!""" % (var)
+                    log.error(msg)
+                    log.exception(msg)
     try:
         nr_submitted = 0
         while (nr_submitted < nr_glideins):
