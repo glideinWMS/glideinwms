@@ -1707,6 +1707,8 @@ function fetch_file_base {
    return 0
 }
 
+echo "Downloading files from Factory and Frontend"
+
 #####################################
 # Fetch descript and signature files
 
