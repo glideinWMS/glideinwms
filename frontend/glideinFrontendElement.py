@@ -413,6 +413,7 @@ class glideinFrontendElement:
             {'Total':condorq_dict_abs,
              'Idle':condorq_dict_types['Idle']['abs'],
              'OldIdle':condorq_dict_types['OldIdle']['abs'],
+             'Idle_3600':condorq_dict_types['Idle_3600']['abs'],
              'Running':condorq_dict_types['Running']['abs']})
 
         logSupport.log.info("Jobs found total %i idle %i (good %i, old %i, grid %i, voms %i) running %i" % (condorq_dict_abs,
@@ -422,7 +423,7 @@ class glideinFrontendElement:
                    condorq_dict_types['ProxyIdle']['abs'],
                    condorq_dict_types['VomsIdle']['abs'],
                    condorq_dict_types['Running']['abs']))
-
+        logSupport.log.info("Idle_3600 jobs:%i"%condorq_dict_types['Idle_3600']['abs'])
         self.populate_status_dict_types()
         glideinFrontendLib.appendRealRunning(self.condorq_dict_running,
                                              self.status_dict_types['Running']['dict'])
@@ -876,6 +877,7 @@ class glideinFrontendElement:
         # use only the good schedds when considering idle
         condorq_dict_idle = glideinFrontendLib.getIdleCondorQ(good_condorq_dict)
         condorq_dict_old_idle = glideinFrontendLib.getOldCondorQ(condorq_dict_idle, 600)
+        condorq_dict_idle_3600 = glideinFrontendLib.getOldCondorQ(condorq_dict_idle, 3600)
         condorq_dict_proxy = glideinFrontendLib.getIdleProxyCondorQ(condorq_dict_idle)
         condorq_dict_voms = glideinFrontendLib.getIdleVomsCondorQ(condorq_dict_idle)
 
@@ -896,6 +898,10 @@ class glideinFrontendElement:
             'OldIdle': {
                 'dict':condorq_dict_old_idle,
                 'abs':glideinFrontendLib.countCondorQ(condorq_dict_old_idle)
+            },
+            'Idle_3600': {
+                'dict':condorq_dict_idle_3600,
+                'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle_3600)
             },
             'VomsIdle': {
                 'dict':condorq_dict_voms,

@@ -65,7 +65,7 @@ monitorAggregatorConfig=MonitorAggregatorConfig()
 # when trying to read from a field with name longer than 20 chars.
 # Truncate the names for following to be in limits to avoid above issue.
 frontend_status_attributes = {
-    'Jobs':("Idle","OldIdle","Running","Total"),
+    'Jobs':("Idle","OldIdle","Running","Total","Idle_3600"),
     'Glideins':("Idle","Running","Total"),
     'MatchedJobs':("Idle","EffIdle","OldIdle","Running","RunningHere"),
     'MatchedGlideins':("Total","Idle","Running","Failed"),
