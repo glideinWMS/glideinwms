@@ -1207,20 +1207,29 @@ def hashJob(condorq_el, condorq_match_list=None):
     return tuple(out)
 
 
-def getGlideinCpusNum(glidein):
-   """
-   Given the glidein data structure, get the GLIDEIN_CPUS configured.
-   If GLIDEIN_CPUS is not configured or is set to auto, ASSUME it to be 1
-   """
+def getGlideinCpusNum(glidein, estimate_cpus=True):
+    """
+    Given the glidein data structure, get the GLIDEIN_CPUS configured.
+    If estimate_cpus is false translate keywords to numerical equivalent, otherwise estimate CPUs
+    If GLIDEIN_CPUS is not configured or is set to auto/slot/-1 or node/0, ASSUME it to be 1
+    In the future there should be better guesses
+    """
+    # TODO: better estimation of cpus available on resources (e.g. average of obtained ones)
    
-   glidein_cpus = 1
-   cpus = str(glidein['attrs'].get('GLIDEIN_CPUS', 1))
-   if cpus.upper() == 'AUTO':
-       glidein_cpus = 1
-   else:
-       glidein_cpus = int(cpus)
-
-   return glidein_cpus
+    cpus = str(glidein['attrs'].get('GLIDEIN_CPUS', 1))
+    try:
+        glidein_cpus = int(cpus)
+        return max(glidein_cpus, 1)
+    except ValueError:
+        if estimate_cpus:
+            return 1
+        else:
+            cpus_upper = cpus.upper()
+            if cpus_upper == 'AUTO' or cpus_upper == 'SLOT':
+                return -1
+            if cpus_upper == 'NODE':
+                return 0
+            raise ValueError
 
 
 def getHAMode(frontend_data):
