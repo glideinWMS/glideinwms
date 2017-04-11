@@ -46,6 +46,8 @@ from glideinwms.factory import glideFactoryMonitorAggregator
 from glideinwms.factory import glideFactoryMonitoring
 from glideinwms.factory import glideFactoryDowntimeLib
 from glideinwms.factory import glideFactoryCredentials
+from glideinwms.lib import condorMonitor
+from sets import Set
 
 FACTORY_DIR = os.path.dirname(glideFactoryLib.__file__)
 ############################################################
