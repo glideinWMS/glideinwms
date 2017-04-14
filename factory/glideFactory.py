@@ -344,10 +344,32 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
 
     group_size = long(math.ceil(float(len(entries))/entry_process_count))
     entry_groups = entry_grouper(group_size, entries)
-    def _set_rlimit(lim = 16384):
-        (soft, hard) = resource.getrlimit(resource.RLIMIT_NOFILE)
-        if (soft > lim) or (hard > lim):
-            resource.setrlimit(resource.RLIMIT_NOFILE, [lim, lim])
+
+    def _set_rlimit(soft_l=None, hard_l=None):
+        #set new hard and soft open file limits
+        #if setting limits fails or no input parameters use inherited limits
+        #from parent process 
+        #nb 1.  it is possible to raise limits 
+        #up to [hard_l,hard_l] but once lowered they cannot be raised
+        #nb 2. it may be better just to omit calling this function at
+        #all from subprocess - in which case it inherits limits from
+        #parent process
+
+        lim =  resource.getrlimit(resource.RLIMIT_NOFILE)
+        if soft_l or hard_l:
+            if not hard_l:
+                hard_l = soft_l
+            if not soft_l:
+                soft_l=hard_l
+            try:    
+                new_lim = [soft_l,hard_l]
+                resource.setrlimit(resource.RLIMIT_NOFILE, new_lim)
+            except:
+                resource.setrlimit(resource.RLIMIT_NOFILE, lim)
+        else:
+            resource.setrlimit(resource.RLIMIT_NOFILE, lim)
+
+
 
     try:
         for group in range(len(entry_groups)):
