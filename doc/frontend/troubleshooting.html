@@ -436,11 +436,51 @@ code 1:Error: communication error<br/>
     </p>
 </div>
 
+<div>
+<h2><a name="Glidein Tools">Glidein Tools</a></h2>
+This section describe tools available to manually operate glideins
+
+<h3>manual_glidein_startup</h3>
+This tool queries the factory and frontend classads in the wms collector and generates glidein_startup.sh command along with arguments. This is useful from a VO or a site perceptive for debugging purposes to manually launch a glidein and have the HTCondor Startd report to the VO collector.
+
+Although all the required information is derieved from the factory and frontend classads, user still needs to set the X509_USER_PROXY environment variable. glidein_startup.sh uses this proxy for the condor daemons to talk to the VO collector. 
+
+<pre>
+<b>[prompt]$ manual_glidein_startup --help</b>
+usage: manual_glidein_startup [-h] [--wms-collector WMS_COLLECTOR]
+                              [--req-name REQ_NAME]
+                              [--client-name CLIENT_NAME]
+                              [--glidein-startup GLIDEIN_STARTUP]
+                              [--override-args OVERRIDE_ARGS]
+                              [--cmd-out-file CMD_OUT_FILE] [--debug]
+
+Generate glidein_startup command
+
+Example:
+manual_glidein_startup --wms-collector=fermicloud145.fnal.gov:8618 --client-name=Frontend-master-v1_0.main --req-name=TEST_SITE_2@v1_0@GlideinFactory-master --cmd-out-file=/tmp/glidein_startup_wrapper --override-args="-proxy http://httpproxy.mydomain -v fast"
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --wms-collector WMS_COLLECTOR
+                        COLLECTOR_HOST for WMS Collector(s) in CSV format (default: gfactory-1.t2.ucsd.edu,glidein.grid.iu.edu)
+  --req-name REQ_NAME   Factory entry info: ReqName in the glideclient classad
+  --client-name CLIENT_NAME
+                        Frontend group info: ClientName in the glideinclient classad
+  --glidein-startup GLIDEIN_STARTUP
+                        Full path to glidein_startup.sh to use
+  --override-args OVERRIDE_ARGS
+                        Override args to glidein_startup.sh
+  --cmd-out-file CMD_OUT_FILE
+                        File where glidein_startup.sh command is created
+  --debug               Enable debug logging
+</pre>
+</div>
+
 <div class="footer">
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br>
-Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glid%0AeinWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
+Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
 glideinWMS email support: glideinwms-support at fnal.gov
 </div>
 

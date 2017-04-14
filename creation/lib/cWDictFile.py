@@ -9,10 +9,13 @@
 #   And other support functions
 #
 
-import os,os.path,string,shutil,copy
+import os,os.path  # string
+import shutil
+import copy
 import socket
-from glideinwms.lib import hashCrypto
 import cStringIO
+from glideinwms.lib import hashCrypto
+
 
 ########################################
 #
@@ -21,6 +24,11 @@ import cStringIO
 ########################################
 
 class DictFile:
+    """Dictionaries serialized in files, one line per item
+
+    Comments start w/ '#' at the beginning of the line
+    Empty lines are nor tolerated by the parser in the glidein (bash)
+    """
     def __init__(self,dir,fname,sort_keys=False,order_matters=False,
                  fname_idx=None):      # if none, use fname
         self.dir=dir
@@ -63,26 +71,26 @@ class DictFile:
     def set_readonly(self,readonly=True):
         self.is_readonly=readonly
 
-
-    def add(self,key,val,allow_overwrite=False):
+    def add(self, key, val, allow_overwrite=False):
         if key in self.keys:
-            if self.vals[key]==val:
-                return # already exists, nothing to do
+            if self.vals[key] == val:
+                return  # already exists, nothing to do
 
         if self.is_readonly:
-            raise RuntimeError, "Trying to modify a readonly object (%s, %s)!" % (key, val)
+            raise RuntimeError("Trying to modify a readonly object (%s, %s)!" % (key, val))
 
         if key in self.keys:
             if not allow_overwrite:
-                raise RuntimeError, "Key '%s' already exists"%key
+                raise RuntimeError("Key '%s' already exists" % key)
             elif not self.is_compatible(self.vals[key],val):
-                raise RuntimeError, "Key '%s': Value %s not compatible with old value %s"%(key,val,self.vals[key])
-            if self.vals[key]==val:
-                return # nothing to do
+                raise RuntimeError("Key '%s': Value %s not compatible with old value %s" % (key, val, self.vals[key]))
+            # Already exists, covered above
+            # if self.vals[key]==val:
+            #     return # nothing to do
         else:
             self.keys.append(key)
-        self.vals[key]=val
-        self.changed=True
+        self.vals[key] = val
+        self.changed = True
 
     def remove(self,key,fail_if_missing=False):
         if not (key in self.keys):
@@ -100,7 +108,7 @@ class DictFile:
              save_only_if_changed=True,
              want_comments=True):
         if save_only_if_changed and (not self.changed):
-            return # no change -> don't save
+            return  # no change -> don't save
 
         if dir is None:
             dir=self.dir
@@ -141,7 +149,7 @@ class DictFile:
         if header is not None:
             fd.write("%s\n"%header)
         if sort_keys:
-            keys=self.keys[0:]
+            keys=self.keys[0:]  # makes a copy
             keys.sort()
         else:
             keys=self.keys
@@ -173,28 +181,28 @@ class DictFile:
              erase_first=True,        # if True, delete old content first
              set_not_changed=True):   # if True, set self.changed to False
         if dir is None:
-            dir=self.dir
+            dir = self.dir
         if fname is None:
-            fname=self.fname
+            fname = self.fname
 
-        filepath=os.path.join(dir,fname)
+        filepath = os.path.join(dir, fname)
         try:
-            fd=open(filepath,"r")
-        except IOError,e:
-            print "Error opening %s: %s"%(filepath,e)
+            fd = open(filepath, "r")
+        except IOError, e:
+            print "Error opening %s: %s" % (filepath, e)
             print "Assuming blank, and re-creating..."
             return
         try:
             try:
-                self.load_from_fd(fd,erase_first,set_not_changed)
+                self.load_from_fd(fd, erase_first, set_not_changed)
             except RuntimeError, e:
-                raise RuntimeError, "File %s: %s"%(filepath,str(e))
+                raise RuntimeError("File %s: %s" % (filepath, str(e)))
         finally:
             fd.close()
 
         if change_self:
-            self.dir=dir
-            self.fname=fname
+            self.dir = dir
+            self.fname = fname
 
         return
 
@@ -204,171 +212,203 @@ class DictFile:
         if erase_first:
             self.erase()
 
-        lines=fd.readlines()
+        lines = fd.readlines()
 
-        idx=0
+        idx = 0
         for line in lines:
-            idx+=1
-            if line[-1]=='\n':
+            idx += 1
+            if line[-1] == '\n':
                 # strip newline
-                line=line[:-1]
+                line = line[:-1]
             try:
                 self.parse_val(line)
             except RuntimeError, e:
-                raise RuntimeError, "Line %i: %s"%(idx,str(e))
+                raise RuntimeError("Line %i: %s" % (idx,str(e)))
 
         if set_not_changed:
-            self.changed=False # the memory copy is now same as the one on disk
+            self.changed = False  # the memory copy is now same as the one on disk
         return
 
     def load_from_str(self, data,
                       erase_first=True,        # if True, delete old content first
                       set_not_changed=True):   # if True, set self.changed to False
-        fd=cStringIO.StringIO()
+        fd = cStringIO.StringIO()
         fd.write(data)
         fd.seek(0)
         try:
-            self.load_from_fd(fd,erase_first,set_not_changed)
+            self.load_from_fd(fd, erase_first, set_not_changed)
         except RuntimeError, e:
-            raise RuntimeError, "Memory buffer: %s"%(str(e))
+            raise RuntimeError("Memory buffer: %s" % (str(e)))
         fd.close()
         return
 
-    def is_equal(self,other,         # other must be of the same class
-                 compare_dir=False,compare_fname=False,
-                 compare_keys=None): # if None, use order_matters
-        if compare_dir and (self.dir!=other.dir):
+    def is_equal(self, other,         # other must be of the same class
+                 compare_dir=False, compare_fname=False,
+                 compare_keys=None):  # if None, use order_matters
+        if compare_dir and (self.dir != other.dir):
             return False
-        if compare_fname and (self.fname!=other.fname):
+        if compare_fname and (self.fname != other.fname):
             return False
         if compare_keys is None:
-            compare_keys=self.order_matters
-        if compare_keys and (self.keys!=other.keys):
+            compare_keys = self.order_matters
+        if compare_keys and (self.keys != other.keys):
             return False
-        res=(self.save_into_str(sort_keys=None,set_readonly=False,reset_changed=False,want_comments=False)==other.save_into_str(sort_keys=None,set_readonly=False,reset_changed=False,want_comments=False))
+        res = (self.save_into_str(sort_keys=None, set_readonly=False, reset_changed=False, want_comments=False) ==
+               other.save_into_str(sort_keys=None, set_readonly=False, reset_changed=False, want_comments=False))
         return res
 
     # PRIVATE
-    def is_compatible(self,old_val,new_val):
-        return True # everything is compatible
+    def is_compatible(self, old_val, new_val):
+        return True  # everything is compatible
 
-    def file_header(self,want_comments):
+    def file_header(self, want_comments):
         if want_comments:
-            return "# File: %s\n#"%self.fname
+            return "# File: %s\n#" % self.fname
         else:
             return None
 
-    def file_footer(self,want_comments):
-        return None # no footer
+    def file_footer(self, want_comments):
+        return None  # no footer
 
-    def format_val(self,key,want_comments):
-        return "%s \t%s"%(key,self.vals[key])
+    def format_val(self, key, want_comments):
+        return "%s \t%s" % (key, self.vals[key])
 
-    def parse_val(self,line):
-        if line[0]=='#':
-            return # ignore comments
-        arr=line.split(None,1)
-        if len(arr)==0:
-            return # empty line
-        if len(arr[0])==0:
-            return # empty key
+    def parse_val(self, line):
+        if line[0] == '#':
+            return  # ignore comments
+        arr = line.split(None, 1)
+        if len(arr) == 0:
+            return  # empty line
+        if len(arr[0]) == 0:
+            return  # empty key
 
-        key=arr[0]
-        if len(arr)==1:
-            val=''
+        key = arr[0]
+        if len(arr) == 1:
+            val = ''
         else:
-            val=arr[1]
-        return self.add(key,val)
+            val = arr[1]
+        return self.add(key, val)
 
-class DictFileTwoKeys(DictFile): # both key and val are keys
-    def __init__(self,dir,fname,sort_keys=False,order_matters=False,
-                 fname_idx=None):      # if none, use fname
-        DictFile.__init__(self,dir,fname,sort_keys,order_matters,fname_idx)
-        self.keys2=[]
-        self.vals2={}
 
-    def has_key2(self,key):
+class DictFileTwoKeys(DictFile):
+    """DictFile double keyed: both key and val are keys
+    """
+    def __init__(self, dir, fname, sort_keys=False, order_matters=False,
+                 fname_idx=None):
+        """constructor
+
+        :param dir: directory
+        :param fname: file name
+        :param sort_keys: should the keys be sorted? (Default: False)
+        :param order_matters: order is important (Default: False)
+        :param fname_idx: fname ID, use fname if None (Default: None)
+        :return:
+        """
+        DictFile.__init__(self, dir, fname, sort_keys, order_matters, fname_idx)
+        self.keys2 = []
+        self.vals2 = {}
+
+    def has_key2(self, key):
+        """Check reverse dictionary keys
+
+        :param key: reverse key (value)
+        :return: reverse key in value list
+        """
         return key in self.keys2
 
-    def get_val2(self,key):
+    def get_val2(self, key):
+        """Retrieve value associated with reverse key
+
+        :param key: reverse key (value)
+        :return: value associated with reverse key (key)
+        """
         return self.vals2[key]
 
     def erase(self):
         DictFile.erase(self)
-        self.keys2=[]
-        self.vals2={}
+        self.keys2 = []
+        self.vals2 = {}
 
-    def add(self,key,val,allow_overwrite=False):
+    def add(self, key, val, allow_overwrite=False):
         if key in self.keys:
-            if self.vals[key]==val:
-                return # already exists, nothing to do
+            if self.vals[key] == val:
+                return  # already exists, nothing to do
 
         if self.is_readonly:
-            raise RuntimeError, "Trying to modify a readonly object (%s, %s)!" % (key, val)
+            raise RuntimeError("Trying to modify a readonly object (%s, %s)!" % (key, val))
 
         if key in self.keys:
-            old_val=self.vals[key]
+            old_val = self.vals[key]
             if not allow_overwrite:
-                raise RuntimeError, "Key '%s' already exists"%key
-            elif not self.is_compatible(old_val,val):
-                raise RuntimeError, "Key '%s': Value %s not compatible with old value %s"%(key,val,old_val)
-            if old_val==val:
-                return # nothing to be changed
-            # the second key changed, need to delete the old one
+                raise RuntimeError("Key '%s' already exists" % key)
+            elif not self.is_compatible(old_val, val):
+                raise RuntimeError("Key '%s': Value %s not compatible with old value %s" % (key, val, old_val))
+            # if old_val == val:   # no need to check again, would have hit the check above
+            #    return  # nothing to be changed
+            # the second key (value) changed, need to delete the old one
             self.keys2.remove(old_val)
             del self.vals2[old_val]
         else:
             self.keys.append(key)
-        self.vals[key]=val
+        self.vals[key] = val
 
         if val in self.keys2:
-            old_key=self.vals2[val]
+            old_key = self.vals2[val]
             if not allow_overwrite:
-                raise RuntimeError, "Value '%s' already exists"%val
-            elif not self.is_compatible2(old_key,key):
-                raise RuntimeError, "Value '%s': Key %s not compatible with old key %s"%(val,key,old_key)
-            #if old_key==key: # no need to change again, would have hit the check above
+                raise RuntimeError("Value '%s' already exists" % val)
+            elif not self.is_compatible2(old_key, key):
+                raise RuntimeError("Value '%s': Key %s not compatible with old key %s" % (val, key, old_key))
+            # if old_key==key: # no need to check again, would have hit the check above
             #    return # nothing to be changed
             # the first key changed, need to delete the old one
             self.keys.remove(old_key)
             del self.vals[old_key]
         else:
             self.keys2.append(val)
-        self.vals2[val]=key
-        self.changed=True
+        self.vals2[val] = key
+        self.changed = True
 
-    def remove(self,key,fail_if_missing=False):
-        if not (key in self.keys):
-            if not fail_if_missing:
-                raise RuntimeError, "Key '%s' does not exist"%key
+    def remove(self, key, fail_if_missing=False):
+        if key not in self.keys:
+            if fail_if_missing:
+                raise RuntimeError("Key '%s' does not exist" % key)
             else:
-                return # nothing to do
+                return  # nothing to do
 
-        val=self.vals[key]
+        val = self.vals[key]
 
         self.keys.remove(key)
         del self.vals[key]
         self.keys2.remove(val)
         del self.vals2[val]
-        self.changed=True
+        self.changed = True
 
-    def is_equal(self,other,         # other must be of the same class
-                 compare_dir=False,compare_fname=False,
-                 compare_keys=None): # if None, use order_matters
-        if compare_dir and (self.dir!=other.dir):
+    def is_equal(self, other,
+                 compare_dir=False, compare_fname=False,
+                 compare_keys=None):
+        """Compare two DictFileDoubleKey objects (and optionally their file)
+
+        :param other: other dictionary, object of the same class
+        :param compare_dir: if True compare also the file directory (Default: False)
+        :param compare_fname: if True compare also the file name (Default: False)
+        :param compare_keys: if True compare also the keys lists. If None, use order_matters (Default: False)
+        :return:
+        """
+        if compare_dir and (self.dir != other.dir):
             return False
-        if compare_fname and (self.fname!=other.fname):
+        if compare_fname and (self.fname != other.fname):
             return False
         if compare_keys is None:
-            compare_keys=self.order_matters
-        if compare_keys and ((self.keys!=other.keys) or (self.keys2!=other.keys2)):
+            compare_keys = self.order_matters
+        if compare_keys and ((self.keys != other.keys) or (self.keys2 != other.keys2)):
             return False
-        res=(self.save_into_str(sort_keys=None,set_readonly=False,reset_changed=False,want_comments=False)==other.save_into_str(sort_keys=None,set_readonly=False,reset_changed=False,want_comments=False))
+        res = (self.save_into_str(sort_keys=None, set_readonly=False, reset_changed=False, want_comments=False) ==
+               other.save_into_str(sort_keys=None, set_readonly=False, reset_changed=False, want_comments=False))
         return res
 
     # PRIVATE
-    def is_compatible2(self,old_val2,new_val2):
-        return True # everything is compatible
+    def is_compatible2(self, old_val2, new_val2):
+        return True  # everything is compatible
 
 
 # descriptions
@@ -386,6 +426,7 @@ class DescriptionDictFile(DictFileTwoKeys):
             raise RuntimeError,"Not a valid description line: '%s'"%line
 
         return self.add(arr[1],arr[0])
+
 
 # gridmap file
 class GridMapDict(DictFileTwoKeys):
@@ -415,8 +456,8 @@ class GridMapDict(DictFileTwoKeys):
         dn=line[1:-len(user)-2]
         return self.add(dn,user)
 
-##################################
 
+##################################
 # signatures
 class SHA1DictFile(DictFile):
     def add_from_file(self,filepath,allow_overwrite=False,
@@ -439,6 +480,7 @@ class SHA1DictFile(DictFile):
             raise RuntimeError,"Not a valid SHA1 line: '%s'"%line
 
         return self.add(arr[1],arr[0])
+
 
 # summary signatures
 # values are (sha1,fname2)
@@ -476,184 +518,318 @@ class SummarySHA1DictFile(DictFile):
         key=arr[2]
         return self.add(key,(arr[0],arr[1]))
 
-# file list
-# also hold the content of the file as the last entry in vals
+
 class SimpleFileDictFile(DictFile):
+    """Dictionary of files that holds also the content of the file as the last element in the values. Value is a tuple.
+
+    The dictionary is serialized using a file (dictionary file), one item per line.
+    Each item is a file, identified by a file name, with an optional attribute (value) and the file content.
+    File names are key. All files are in the same directory of the dictionary (self.dir).
+    The values are a tuple and the last item is the file content.
+    Only the file name and the first element of the value are saved in the dictionary file (serialized dictionary).
+    SimpleFileDictFile is used for file lists.
+    """
     def get_immutable_files(self):
-        return self.keys # keys are files, and all are immutable in this implementation
+        return self.keys  # keys are files, and all are immutable in this implementation
 
-    def add(self,key, # key is filename in this case
-            val,allow_overwrite=False):
-        return self.add_from_file(key,val,os.path.join(self.dir,key),allow_overwrite)
+    def get_file_fname(self, key):
+        return key
 
-    def add_from_str(self,key,val,
-                    data,
-                    allow_overwrite=False):
+    def add(self, key, val, allow_overwrite=False):
+        """Add an entry to the dictionary, e.g. a file to the list
+
+        :param key: file name (dictionary key)
+        :param val: parameters (not the file content), usually file attributes
+        :param allow_overwrite: (Default: False)
+        :return:
+        """
+        return self.add_from_file(key, val, os.path.join(self.dir, self.get_file_fname(key)), allow_overwrite)
+
+    def add_from_str(self, key, val, data, allow_overwrite=False):
+        """Add an entry to the dictionary, parameters and content are both available
+
+        :param key: file name (key)
+        :param val: parameters (not the file content), usually file attributes
+        :param data: string with the file content added to the dictionary
+        :param allow_overwrite:
+        :return:
+        """
         # make it generic for use by children
-        if not (type(val) in (type(()),type([]))):
-            DictFile.add(self,key,(val,data),allow_overwrite)
+        if not (type(val) in (type(()), type([]))):
+            DictFile.add(self, key, (val, data), allow_overwrite)
         else:
-            DictFile.add(self,key,tuple(val)+(data,),allow_overwrite)
+            DictFile.add(self, key, tuple(val)+(data,), allow_overwrite)
 
-    def add_from_fd(self,key,val,
-                    fd, # open file object that has a read() method
-                    allow_overwrite=False):
-        data=fd.read()
-        self.add_from_str(key,val,data,allow_overwrite)
+    def add_from_fd(self, key, val, fd, allow_overwrite=False):
+        """Add an entry to the dictionary using a file object - has a read() method that provides the content
 
-    def add_from_file(self,key,val,
-                      filepath,
-                      allow_overwrite=False):
+        :param key: file name (key)
+        :param val: parameters (not the file content), usually file attributes
+        :param fd: file object - has a read() method
+        :param allow_overwrite:
+        :return:
+        """
+        data = fd.read()
+        self.add_from_str(key, val, data, allow_overwrite)
+
+    def add_from_file(self, key, val, filepath, allow_overwrite=False):
+        """add data from a file
+
+        :param key: file name (key)
+        :param val: parameters (not the file content), usually file attributes
+        :param filepath: full path of the file (
+        :param allow_overwrite:
+        :return:
+        """
         try:
-            fd=open(filepath,"r")
-        except IOError,e:
-            raise RuntimeError,"Could not open file %s"%filepath
-        try:
-            self.add_from_fd(key,val,fd,allow_overwrite)
-        finally:
-            fd.close()
+            with open(filepath, "r") as fd:
+                self.add_from_fd(key, val, fd, allow_overwrite)
+        except IOError, e:
+            raise RuntimeError("Could not open file %s" % filepath)
 
-    def format_val(self,key,want_comments):
+    def format_val(self, key, want_comments):
+        """Print lines: only the file name (key) the first item of the value tuple if not None
+
+        :param key: file name (dictionary key)
+        :param want_comments:
+        :return:
+        """
         if self.vals[key][0] is not None:
-            return "%s \t%s"%(key,self.vals[key][0])
+            return "%s \t%s" % (key, self.vals[key][0])
         else:
             return key
 
-    def parse_val(self,line):
-        if line[0]=='#':
-            return # ignore comments
-        arr=line.split(None,1)
-        if len(arr)==0:
-            return # empty line
-        if len(arr[0])==0:
-            return # empty key
+    def parse_val(self, line):
+        """Parse line and add value and content to the dictionary
 
-        key=arr[0]
-        if len(arr)==1:
-            val=None
+        Skip comments (start with #) or empty lines and do nothing, otherwise add to the dictionary:
+        First item is the file name (key), the rest are the parameter, data is read form the file (file name)
+        :param line: line to be parsed
+        :return: None
+        """
+        if line[0] == '#':
+            return  # ignore comments
+        arr = line.split(None, 1)
+        if len(arr) == 0:
+            return  # empty line
+        if len(arr[0]) == 0:
+            return  # empty key - this can never happen
+
+        key = arr[0]
+        if len(arr) == 1:
+            val = None
         else:
-            val=arr[1]
-        return self.add(key,val)
+            val = arr[1]
+        return self.add(key, val)
 
-    def save_files(self,allow_overwrite=False):
+    def save_files(self, allow_overwrite=False):
         for key in self.keys:
-            fname=self.get_file_fname(key)
-            fdata=self.vals[key][-1]
-            filepath=os.path.join(self.dir,fname)
+            fname = self.get_file_fname(key)
+            if not fname:
+                raise RuntimeError("File name not defined for key %s" % key)
+            fdata = self.vals[key][-1]
+            filepath = os.path.join(self.dir, fname)
             if (not allow_overwrite) and os.path.exists(filepath):
-                raise RuntimeError,"File %s already exists"%filepath
+                raise RuntimeError("File %s already exists" % filepath)
             try:
-                fd=open(filepath,"w")
-            except IOError,e:
-                raise RuntimeError,"Could not create file %s"%filepath
-            try:
-                try:
-                    fd.write(fdata)
-                except IOError,e:
-                    raise RuntimeError,"Error writing into file %s"%filepath
-            finally:
-                fd.close()
+                with open(filepath, "w") as fd:
+                    try:
+                        fd.write(fdata)
+                    except IOError, e:
+                        raise RuntimeError("Error writing into file %s" % filepath)
+            except IOError, e:
+                raise RuntimeError("Could not create file %s" % filepath)
 
-    def get_file_fname(self,key):
-        return key
 
-# file list
-# This one contains (real_fname,cache/exec,cond_download,config_out)
-# cache/exec should be one of: regular, nocache, exec, untar
-# cond_download has a special value of TRUE
-# config_out has a special value of FALSE
 class FileDictFile(SimpleFileDictFile):
-    def add_placeholder(self,key,allow_overwrite=True):
-        DictFile.add(self,key,("","","","",""),allow_overwrite)
+    """Dictionary file for files (file list). Used for list of transferred files.
 
-    def is_placeholder(self,key):
-        return (self[key][0]=="") # empty real_fname can only be a placeholder
+    It is using a dictionary (key, value) from DictFile, serialized to file.
+    The key is the file ID
+    The value (line) on file has DATA_LENGTH (7) components: the key and the first DATA_LENGTH-1 attributes below.
+    The value in memory has DATA_LENGTH components (real_fname,cache/exec,period,prefix,cond_download,config_out, data),
+    the key is used as key for the dictionary and the data (file content) is added reading the file.
+    Here the attributes stored as tuple in the dictionary value:
+    1. real_fname, i.e file name
+    2. cache/exec/... keyword identifying the file type: regular, nocache, exec, untar
+    3. period period in seconds at which an executable is re-invoked (only for periodic executables, 0 otherwise)
+    4. prefix startd_cron variables prefix (default is GLIDEIN_PS_)
+    5. cond_download has a special value of TRUE
+    6. config_out has a special value of FALSE
+    7. data - String containing the data extracted from the file (real_fname) (not in the serialized dictionary)
+    For placeholders, the real_name is empty (and the tuple starts w/ an empty string). Placeholders cannot be
+     serialized (saved into file). Empty strings would cause error when parsed back.
+    """
+    DATA_LENGTH = 7  # Length of value (attributes + data)
+    PLACEHOLDER_VALUE = ("", "", 0, "", "", "", "")  # The tuple should be DATA_LENGTH long and have the correct values
 
-    def add_from_str(self,key,val,
+    def add_placeholder(self, key, allow_overwrite=True):
+        # using DictFile, no file content (FileDictFile or SimpleFileDictFile)
+        DictFile.add(self, key, self.PLACEHOLDER_VALUE, allow_overwrite)
+
+    def is_placeholder(self, key):
+        return self[key][0] == ""  # empty real_fname can only be a placeholder
+
+    @staticmethod
+    def make_val_tuple(file_name, file_type, period=0, prefix='GLIDEIN_PS_', cond_download='TRUE', config_out='FALSE'):
+        """Make a tuple with the DATA_LENGTH-1 attributes in the correct order using the defaults
+
+        :param file_name: name of the file (aka real_fname)
+        :param file_type: type of the file (regular, nocache, exec, untar)
+        :param period: period for periodic executables (ignored otherwise, default: 0)
+        :param prefix: prefix for periodic executables (ignored otherwise, default: GLIDEIN_PS_)
+        :param cond_download: conditional download (default: 'TRUE')
+        :param config_out: config out (default: 'FALSE')
+        :return: tuple with the DATA_LENGTH-1 attributes
+        See class definition for more information about the attributes
+        """
+        # TODO: should it do some value checking? valid constant, int, ...
+        return file_name, file_type, period, prefix, cond_download, config_out  # python constructs the tuple
+
+    @staticmethod
+    def val_to_file_name(val):
+        return val[0]
+
+    def get_file_fname(self, key):
+        return self.val_to_file_name(self.vals[key])
+
+    def add_from_str(self, key, val,
                      data,
                      allow_overwrite=False,
                      allow_overwrite_placeholder=True):
+
         if self.has_key(key) and allow_overwrite_placeholder:
             if self.is_placeholder(key):
-                allow_overwrite=True # since the other functions know nothing about placeholders, need to force overwrite
-        return SimpleFileDictFile.add_from_str(self,key,val,data,allow_overwrite)
+                # since the other functions know nothing about placeholders, need to force overwrite
+                allow_overwrite = True
+        return SimpleFileDictFile.add_from_str(self, key, val, data, allow_overwrite)
 
-    def add(self,key,
-            val,     # will if len(val)==5, use the last one as data, else load from val[0]
+    def add(self, key,
+            val,     # will if len(val)==5, use the last one as data (for placeholders), else load from val[0]
             allow_overwrite=False,
             allow_overwrite_placeholder=True):
-        if not (type(val) in (type(()),type([]))):
-            raise RuntimeError, "Values '%s' not a list or tuple"%val
+        """Add a file to the list
+        invokes add_from_str if the content is provided (6th component of val), add_from_file otherwise
+        :param key: file ID
+        :param val: lists of 6 or 7 components (see class definition)
+        :param allow_overwrite: if True the existing files can be replaced (default: False)
+        :param allow_overwrite_placeholder: if True, placeholder files can be replaced even if allow_overwrite
+            is False (default: True)
+        :return:
+        """
+        if not (type(val) in (type(()), type([]))):
+            raise RuntimeError("Values '%s' not a list or tuple" % val)
 
         if self.has_key(key) and allow_overwrite_placeholder:
             if self.is_placeholder(key):
-                allow_overwrite=True # since the other functions know nothing about placeholders, need to force overwrite
+                # since the other functions from base class know nothing about placeholders, need to force overwrite
+                allow_overwrite = True
 
-        if len(val)==5:
-            return self.add_from_str(key,val[:4],val[4],allow_overwrite)
-        elif len(val)==4:
-            return self.add_from_file(key,val,os.path.join(self.dir,val[0]),allow_overwrite)
+        # This will help identify calls not migrated to the new format
+        # TODO: check parameters!!
+        try:
+            int(val[2])  # to check if is integer. Period must be int or convertible to int
+        except (ValueError, IndexError):
+            raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
+
+        if len(val) == self.DATA_LENGTH:
+            # Alt: return self.add_from_str(key, val[:self.DATA_LENGTH-1], val[self.DATA_LENGTH-1], allow_overwrite)
+            return DictFile.add(self, key, tuple(val), allow_overwrite)
+        elif len(val) == self.DATA_LENGTH-1:
+            # Added a safety check that the last element is an attribute and not the value
+            # Maybe check also string length or possible values?
+            if '\n' in val[-1]:
+                raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
+            return self.add_from_file(key, val, os.path.join(self.dir, self.val_to_file_name(val)), allow_overwrite)
         else:
-            raise RuntimeError, "Values '%s' not (real_fname,cache/exec,cond_download,config_out)"%val
+            raise RuntimeError("Values '%s' not (real_fname,cache/exec,period,prefix,cond_download,config_out)" % val)
 
-    def format_val(self,key,want_comments):
-        return "%s \t%s \t%s \t%s \t%s"%(key,self.vals[key][0],self.vals[key][1],self.vals[key][2],self.vals[key][3])
+    def format_val(self, key, want_comments):
+        return "%s \t%s \t%s \t%s \t%s \t%s \t%s" % (key, self.vals[key][0], self.vals[key][1], self.vals[key][2],
+                                                     self.vals[key][3], self.vals[key][4], self.vals[key][5])
 
-    def file_header(self,want_comments):
+    def file_header(self, want_comments):
         if want_comments:
-            return (DictFile.file_header(self,want_comments)+"\n"+
-                    ("# %s \t%s \t%s \t%s \t%s\n"%('Outfile','InFile        ','Cache/exec','Condition','ConfigOut'))+
-                    ("#"*78))
+            return (DictFile.file_header(self, want_comments) + "\n" +
+                    ("# %s \t%s \t%s \t%s \t%s \t%s \t%s\n" %
+                     ('Outfile', 'InFile        ', 'Cache/exec', 'Period', 'Prefix', 'Condition', 'ConfigOut')) +
+                    ("#"*89))
         else:
             return None
 
-    def parse_val(self,line):
-        if line[0]=='#':
-            return # ignore comments
-        arr=line.split(None,4)
-        if len(arr)==0:
-            return # empty line
-        if len(arr[0])==0:
-            return # empty key
+    def parse_val(self, line):
+        """Parse a line of serialized FileDictFile files and add it to the dictionary
 
-        if len(arr)!=5:
-            raise RuntimeError,"Not a valid file line (expected 5, found %i elements): '%s'"%(len(arr),line)
+        Each line is a tab separated tuple w/ the key and the attributes describing the entry (see class description )
+        :param line: string with the line content
+        :return: tuple with DATA_LENGTH-1 values
+        """
+        if not line or line[0] == '#':
+            return  # ignore empty lines and comments
+        arr = line.split(None, self.DATA_LENGTH-1)  # split already eliminates multiple spaces (no need for strip)
+        if len(arr) == 0:
+            return  # empty line (only separators)
+        if len(arr[0]) == 0:
+            return  # empty key
 
-        return self.add(arr[0],arr[1:])
+        if len(arr) != self.DATA_LENGTH:
+            # compatibility w/ old formats
+            # 3.2.13 (no prefix): key, fname, type, period, cond_download, config_out
+            # 3.2.10 (no period, prefix): key, fname, type, cond_download, config_out
+            # TODO: remove in 3.3 or after a few version (will break upgrade)
+            if len(arr) == self.DATA_LENGTH-1:
+                # For upgrade from 3.2.13 to 3.2.11
+                return self.add(arr[0], [arr[1], arr[2], arr[3], "GLIDEIN_PS_", arr[4], arr[5]])
+            elif len(arr) == self.DATA_LENGTH-2:
+                # For upgrade from 3.2.10 or earlier
+                return self.add(arr[0], [arr[1], arr[2], 0, "GLIDEIN_PS_", arr[3], arr[4]])
+            raise RuntimeError("Not a valid file line (expected %i, found %i elements): '%s'" %
+                               (self.DATA_LENGTH, len(arr), line))
 
-    def get_file_fname(self,key):
-        return self.vals[key][0]
+        return self.add(arr[0], arr[1:])
 
     def get_immutable_files(self):
-        mkeys=[]
+        mkeys = []
         for k in self.keys:
-            val=self.vals[k][1]
-            if (val!="nocache"):
-                mkeys.append(self.vals[k][0]) # file name is not the key, but the first entry
+            val = self.vals[k][1]
+            if val != "nocache":
+                mkeys.append(self.vals[k][0])  # file name is not the key, but the first entry
 
         return mkeys
 
-    def reuse(self,other,
-              compare_dir=False,compare_fname=False,
+    def reuse(self, other,
+              compare_dir=False, compare_fname=False,
               compare_files_fname=False):
-        if compare_dir and (self.dir!=other.dir):
-            return # nothing to do, different dirs
-        if compare_fname and (self.fname!=other.fname):
-            return # nothing to do, different fnames
+        """Reuse the entry value (and file) if an item in the "other" dictionary shares the same attributes and content
+
+        :param other: other dictionary
+        :param compare_dir: reuse only if the serialized dictionary is in the same directory (Default: False)
+        :param compare_fname: reuse only if the serialized dictionary has the same name (Default: False)
+        :param compare_files_fname: reuse only if the item file name is the same (Default: False)
+        :return: None
+        """
+        if compare_dir and (self.dir != other.dir):
+            return  # nothing to do, different dirs
+        if compare_fname and (self.fname != other.fname):
+            return  # nothing to do, different fnames
 
         for k in self.keys:
             if k in other.keys:
                 # the other has the same key, check if they are the same
                 if compare_files_fname:
-                    is_equal=(self.vals[k]==other.vals[k])
-                else: # ignore file name (first element)
-                    is_equal=(self.vals[k][1:]==other.vals[k][1:])
+                    # The value is already the same, why deepcopy?
+                    # The item are the same but not the nested ones?
+                    # could return - no need for deepcopy
+                    is_equal = (self.vals[k] == other.vals[k])
+                else:  # ignore file name (first element)
+                    is_equal = (self.vals[k][1:] == other.vals[k][1:])
 
                 if is_equal:
-                    self.vals[k]=copy.deepcopy(other.vals[k])
+                    self.vals[k] = copy.deepcopy(other.vals[k])
                 # else they are different and there is nothing to be done
 
         return
+
 
 # will convert values into python format before writing them out
 #   given that it does not call any parent methods, implement an interface first
@@ -1086,6 +1262,7 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
                  log_dir=None):             # used only if simple_work_dir=False
 
         self.active_sub_list = []
+        self.disabled_sub_list = []
         self.monitor_dir = ''
 
         fileCommonDicts.__init__(self)
@@ -1468,45 +1645,56 @@ class MonitorFileDicts:
 #########################################################
 
 #####################################################
-# Validate node string
+# Validate HTCondor endpoint (node) string
+# this can be a node, node:port, node:port-range
+# or a shared port synful string host:port?sock=some_string$ID
+# or schedd_name@host:port[?sock=some_string]
 def validate_node(nodestr,allow_prange=False):
-    narr=nodestr.split(':')
-    if len(narr)>2:
-        raise RuntimeError, "Too many : in the node name: '%s'"%nodestr
+    eparr = nodestr.split('?')
+    if len(eparr) > 2:
+        raise RuntimeError("Too many ? in the end point name: '%s'" % nodestr)
+    if len(eparr) == 2:
+        if not eparr[1].startswith("sock="):
+            raise RuntimeError("Unrecognized HTCondor sinful string: %s" % nodestr)
+        # check that ; and , are not in the endpoint ID (they are not before ?)
+        if ',' in eparr[1] or ';' in eparr[1]:
+            raise RuntimeError("HTCondor sinful string should not contain separators (,;): %s" % nodestr)
+    narr = eparr[0].split(':')
+    if len(narr) > 2:
+        raise RuntimeError("Too many : in the node name: '%s'" % nodestr)
     if len(narr)>1:
         # have ports, validate them
-        ports=narr[1]
-        parr=ports.split('-')
-        if len(parr)>2:
-            raise RuntimeError, "Too many - in the node ports: '%s'"%nodestr
-        if len(parr)>1:
+        ports = narr[1]
+        parr = ports.split('-')
+        if len(parr) > 2:
+            raise RuntimeError("Too many - in the node ports: '%s'" % nodestr)
+        if len(parr) > 1:
             if not allow_prange:
-                raise RuntimeError, "Port ranges not allowed for this node: '%s'"%nodestr
-            pmin=parr[0]
-            pmax=parr[1]
+                raise RuntimeError("Port ranges not allowed for this node: '%s'" % nodestr)
+            pmin = parr[0]
+            pmax = parr[1]
         else:
-            pmin=parr[0]
-            pmax=parr[0]
+            pmin = parr[0]
+            pmax = parr[0]
         try:
-            pmini=int(pmin)
-            pmaxi=int(pmax)
+            pmini = int(pmin)
+            pmaxi = int(pmax)
         except ValueError,e:
-            raise RuntimeError, "Node ports are not integer: '%s'"%nodestr
+            raise RuntimeError("Node ports are not integer: '%s'" % nodestr)
         if pmini>pmaxi:
-            raise RuntimeError, "Low port must be lower than high port in node port range: '%s'"%nodestr
+            raise RuntimeError("Low port must be lower than high port in node port range: '%s'" % nodestr)
 
         if pmini<1:
-            raise RuntimeError, "Ports cannot be less than 1 for node ports: '%s'"%nodestr
+            raise RuntimeError("Ports cannot be less than 1 for node ports: '%s'" % nodestr)
         if pmaxi>65535:
-            raise RuntimeError, "Ports cannot be more than 64k for node ports: '%s'"%nodestr
+            raise RuntimeError("Ports cannot be more than 64k for node ports: '%s'" % nodestr)
 
     # split needed to handle the multiple schedd naming convention
-    nodename = narr[0].split("@")[-1]  
+    nodename = narr[0].split("@")[-1]
     try:
-        socket.getaddrinfo(nodename,None)
+        socket.getaddrinfo(nodename, None)
     except:
-        raise RuntimeError, "Node name unknown to DNS: '%s'"%nodestr
+        raise RuntimeError("Node name unknown to DNS: '%s'" % nodestr)
 
     # OK, all looks good
     return
-    

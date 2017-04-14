@@ -152,7 +152,7 @@ def printDowntime(fname,entry="Any",check_time=None):
         if check_time is None:
             check_time=long(time.time())
         time_list=read(fname)
-        downtime_keys={};
+        downtime_keys={}
         for time_tuple in time_list:
             if check_time<time_tuple[0]:
                 continue # check_time before start
@@ -168,15 +168,15 @@ def printDowntime(fname,entry="Any",check_time=None):
                     downtime_keys[e]+=","+downtime_keys["All"]
         if entry=="Any":
             for e in downtime_keys:
-                print "%-30s Down\t%s"%(e,downtime_keys[e]);
+                print "%-30s Down\t%s"%(e,downtime_keys[e])
         else:
             if entry in downtime_keys:
-                print "%-30s Down\t%s"%(entry,downtime_keys[entry]);
+                print "%-30s Down\t%s"%(entry,downtime_keys[entry])
             else:
                 if ("All" in downtime_keys) and (entry!="factory"):
-                    print "%-30s Down\t%s"%(entry,downtime_keys["All"]);
+                    print "%-30s Down\t%s"%(entry,downtime_keys["All"])
                 else:
-                    print "%-30s Up  \tAll:All"%(entry);
+                    print "%-30s Up  \tAll:All"%(entry)
 
 
 
@@ -214,8 +214,8 @@ def addPeriod(fname,start_time,end_time,entry="All",frontend="All",security_clas
         if (not exists) and (not create_if_empty):
             raise IOError, "[Errno 2] No such file or directory: '%s'"%fname
        
-        comment=comment.replace("\n", " ");
-        comment=comment.replace("\r", " ");
+        comment=comment.replace("\n", " ")
+        comment=comment.replace("\r", " ")
         fd=open(fname,'a+')
         try:
             fcntl.flock(fd,fcntl.LOCK_EX)
@@ -227,7 +227,7 @@ def addPeriod(fname,start_time,end_time,entry="All",frontend="All",security_clas
                 fd.write("%-30s %-30s %-20s %-30s %-20s # %s\n"%(timeConversion.getISO8601_Local(start_time),"None",entry,frontend,security_class,comment))
         finally:
             fd.close()
-        return 0;
+        return 0
 
 # if cut_time==None or 0, use current time
 # if cut time<0, use current_time-abs(cut_time)
@@ -306,8 +306,8 @@ def purgeOldPeriods(fname,cut_time=None, raise_on_error=False):
 # end a downtime (not a scheduled one)
 # if end_time==None, use current time
 def endDowntime(fname,end_time=None,entry="All",frontend="All",security_class="All",comment=""):
-        comment=comment.replace("\r", " ");
-        comment=comment.replace("\n", " ");
+        comment=comment.replace("\r", " ")
+        comment=comment.replace("\n", " ")
         if end_time is None:
             end_time=long(time.time())
     
@@ -360,17 +360,17 @@ def endDowntime(fname,end_time=None,entry="All",frontend="All",security_class="A
                     # open period -> close
                     outlines.append("%-30s %-30s"%(arr[0],timeConversion.getISO8601_Local(end_time)))
                     if (len(arr)>2):
-                        sep=" ";
+                        sep=" "
                         t=2
                         for param in arr[2:]:
                             if t<5:
-                                outlines.append("%s%-20s" % (sep,param));
+                                outlines.append("%s%-20s" % (sep,param))
                             else:
-                                outlines.append("%s%s" % (sep,param));
+                                outlines.append("%s%s" % (sep,param))
                             t=t+1
                     if (comment!=""):
-                        outlines.append("; %s" % (comment));
-                    outlines.append("\n");
+                        outlines.append("; %s" % (comment))
+                    outlines.append("\n")
                     closed_nr+=1
                 else:
                     # closed just pass on

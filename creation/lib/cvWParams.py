@@ -13,14 +13,14 @@
 
 import os
 import copy
-import sys
-import os.path
-import string
+import sys  # not used
+import os.path  # not needed (os is sufficient)
+import string  # not used
 import socket
-import types
-import traceback
+import types  # not used
+import traceback  # not used
 from glideinwms.lib import xmlParse
-from glideinwms.lib import condorExe
+from glideinwms.lib import condorExe  # not used
 import cWParams
 
 
@@ -47,6 +47,7 @@ class VOFrontendParams(cWParams.CommonParams):
         
         group_config_running_defaults=cWParams.commentedOrderedDict()
         group_config_running_defaults["max"]=['10000',"nr_jobs","What is the max number of running glideins I want to get to",None]
+        group_config_running_defaults["min"]=['0',"nr_jobs","Min number of running glideins with an empty/small queue.",None]
         group_config_running_defaults["relative_to_queue"]=['1.15',"fraction","Max relative to number of matching jobs in the queue.",None]
         group_config_defaults['running_glideins_per_entry']=group_config_running_defaults
 
@@ -116,15 +117,17 @@ class VOFrontendParams(cWParams.CommonParams):
         proxy_defaults["trust_domain"]=("OSG","grid_type","Trust Domain",None)
         proxy_defaults["creation_script"]=(None,"command","Script to re-create credential",None)
         proxy_defaults["update_frequency"]=(None,"int","Update proxy when there is this much time left",None)
+        proxy_defaults["remote_username"]=(None,"username","User name at the remote resource",None)
         proxy_defaults["vm_id"]=(None,"vm_id","VM Id",None)
         proxy_defaults["vm_type"]=(None,"vm_type","VM Type",None)
         proxy_defaults["pool_idx_len"]=(None,"boolean","Adds leading zeros to the suffix so all filenames the same length",None)
         proxy_defaults["pool_idx_list"]=(None,"string","List of indices, can include ranges of indices",None)
         proxy_defaults["security_class"]=(None,"id","Proxies in the same security class can potentially access each other (Default: proxy_nr)",None)
+        proxy_defaults["project_id"] = (None,"string","OSG Project ID. Ex TG-12345", None)
 
         security_defaults=cWParams.commentedOrderedDict()
-        security_defaults["proxy_selection_plugin"]=(None,"proxy_name","Which proxy selection plugin should I use (ProxyAll if None)",None)
-        security_defaults["credentials"]=([],'List of credentials',"Each proxy element contains",proxy_defaults)
+        security_defaults["proxy_selection_plugin"]=(None,"proxy_name","Which credentials selection plugin should I use (ProxyAll if None)",None)
+        security_defaults["credentials"]=([],'List of credentials',"Each credential element contains",proxy_defaults)
         security_defaults["security_name"]=(None,"frontend_name","What name will we advertize for security purposes?",None)
         
         self.group_defaults=cWParams.commentedOrderedDict()
@@ -138,6 +141,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
         ###############################
         # Start defining the defaults
+        self.defaults["downtimes_file"]=('frontenddowntime', 'string', 'Frontend Downtime File', None)
         self.defaults["frontend_name"]=(socket.gethostname(),'ID', 'VO Frontend name',None)
         self.defaults['frontend_versioning'] = ('True', 'Bool', 'Should we create versioned subdirectories of the type frontend_$frontend_name?', None)
 
@@ -188,11 +192,19 @@ class VOFrontendParams(cWParams.CommonParams):
         
         pool_collector_defaults=cWParams.commentedOrderedDict()
         pool_collector_defaults["node"]=(None,"nodename","Pool collector node name (for example, col1.my.org:9999)",None)
-        pool_collector_defaults["DN"]=(None,"dn","Factory collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=col1.my.org)",None)
+        pool_collector_defaults["DN"]=(None,"dn","Pool collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=col1.my.org)",None)
         pool_collector_defaults["secondary"]=("False","Bool","Secondary nodes will be used by glideins, if present",None)
         pool_collector_defaults["group"]=("default","string","Collector group name useful to group HA setup",None)
 
         self.defaults["collectors"]=([],'List of pool collectors',"Each proxy collector contains",pool_collector_defaults)
+
+        ccb_defaults=cWParams.commentedOrderedDict()
+        ccb_defaults["node"]=(None,"nodename","CCB collector node name (for example, ccb1.my.org:9999)",None)
+        ccb_defaults["DN"]=(None,"dn","CCB collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=ccb1.my.org)",None)
+        ccb_defaults["group"]=("default","string","CCB collector group name useful to group HA setup",None)
+        self.defaults["ccbs"]=([],'List of CCB collectors',"Each CCB contains",ccb_defaults)
+
+
 
         self.defaults["security"]=copy.deepcopy(security_defaults)
         self.defaults["security"]["classad_proxy"]=(None,"fname","File name of the proxy used for talking to the WMS collector",None)
@@ -218,6 +230,22 @@ class VOFrontendParams(cWParams.CommonParams):
 
         self.defaults["groups"]=(xmlParse.OrderedDict(),"Dictionary of groups","Each group contains",self.group_defaults)
         
+        # High Availability Configuration settings
+
+
+        haf_defaults = cWParams.commentedOrderedDict()
+        haf_defaults['frontend_name'] = (None, 'frontend_name',
+                                         'Name of the frontend', None)
+
+        ha_defaults = cWParams.commentedOrderedDict()
+        ha_defaults['ha_frontends'] = ([], 'List of frontends in  HA mode',
+                                       'Each element contains', haf_defaults)
+        ha_defaults["enabled"]=('False', 'Bool', 'Enable HA?', None)
+        ha_defaults["check_interval"]=('300', 'NR', 'How frequently should slav check if the master is down', None)
+        #ha_defaults["activation_delay"]=('150', 'NR', 'How many sec to wait before slav activates after detecting that master is down', None)
+        self.defaults['high_availability'] = ha_defaults
+
+
         return
 
     # return name of top element
@@ -269,6 +297,17 @@ class VOFrontendParams(cWParams.CommonParams):
             raise RuntimeError, "Attribute GLIDEIN_Collector cannot be defined by the user"
 
         ####################
+        has_ccb=self.attrs.has_key('GLIDEIN_CCB')
+        if not has_collector:
+            # collector not defined at global level, must be defined in every group
+            has_ccb=True
+            for  group_name in self.groups.keys():
+                has_ccb&=self.groups[group_name].attrs.has_key('GLIDEIN_CCB')
+
+        if has_ccb:
+            raise RuntimeError, "Attribute GLIDEIN_CCB cannot be defined by the user"
+
+        ####################
         if self.security.proxy_DN is None:
             raise RuntimeError, "security.proxy_DN not defined"
 
@@ -301,6 +340,16 @@ class VOFrontendParams(cWParams.CommonParams):
                 if pel['security_class'] is None:
                     # define an explicit security, so the admin is aware of it
                     pel['security_class']="group_%s"%group_name
+
+        # verify and populate HA
+        if self.high_availability['enabled'].lower() == 'true':
+            if (len(self.high_availability['ha_frontends']) == 1):
+                haf = self.high_availability['ha_frontends'][0]
+                if not haf['frontend_name']:
+                    raise RuntimeError, 'High availability is enabled but the configuration is missing frontend_name of the master ha_frontend.'
+            else:
+                raise RuntimeError, 'Exactly one master ha_frontend information is needed when running this frontend in high_availability slave mode.'
+
 
     # verify match data and create the attributes if needed
     def derive_match_attrs(self):
@@ -336,7 +385,9 @@ class VOFrontendParams(cWParams.CommonParams):
         return {'lists_params':{'files':{'el_name':'file','subtypes_params':{'class':{}}},
                                 'process_logs':{'el_name':'process_log','subtypes_params':{'class':{}}},
                                 'collectors':{'el_name':'collector','subtypes_params':{'class':{}}},
+                                'ccbs':{'el_name':'ccb','subtypes_params':{'class':{}}},
                                 'schedds':{'el_name':'schedd','subtypes_params':{'class':{}}},
+                                'ha_frontends':{'el_name':'ha_frontend','subtypes_params':{'class':{}}},
                                 'credentials':{'el_name':'credential','subtypes_params':{'class':{}}}},
                 'dicts_params':{'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},
                                 'groups':{'el_name':'group','subtypes_params':{'class':{}}},

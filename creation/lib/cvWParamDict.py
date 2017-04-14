@@ -14,6 +14,7 @@ import os,os.path,shutil,string
 import cvWDictFile,cWDictFile
 import cvWConsts,cWConsts
 import cvWCreate
+from cWParamDict import is_true, add_file_unparsed
 from glideinwms.lib import x509Support
 
 ################################################
@@ -46,17 +47,22 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         self.dicts['preentry_file_list'].add_placeholder(cWConsts.GRIDMAP_FILE,allow_overwrite=True) # this one must be loaded before factory runs setup_x509.sh
         
         # follow by the blacklist file
-        file_name=cWConsts.BLACKLIST_FILE
-        self.dicts['preentry_file_list'].add_from_file(file_name,(file_name,"nocache","TRUE",'BLACKLIST_FILE'),os.path.join(params.src_dir,file_name))
+        file_name = cWConsts.BLACKLIST_FILE
+        self.dicts['preentry_file_list'].add_from_file(file_name,
+                                                       cWDictFile.FileDictFile.make_val_tuple(file_name, "nocache",
+                                                                                              config_out='BLACKLIST_FILE'),
+                                                       os.path.join(params.src_dir, file_name))
 
         # Load initial system scripts
         # These should be executed before the other scripts
-        for script_name in ('cat_consts.sh',"check_blacklist.sh"):
-            self.dicts['preentry_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
+        for script_name in ('cat_consts.sh', 'check_blacklist.sh'):
+            self.dicts['preentry_file_list'].add_from_file(script_name,
+                                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
+                                                           os.path.join(params.src_dir, script_name))
 
         # put user files in stage
         for user_file in params.files:
-            add_file_unparsed(user_file,self.dicts)
+            add_file_unparsed(user_file,self.dicts, False)
 
         # start expr is special
         start_expr=None
@@ -84,8 +90,12 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         
         self.dicts['consts'].add('GLIDECLIENT_Start',real_start_expr)
         
-        # create GLIDEIN_Collector attribute
-        self.dicts['params'].add_extended('GLIDEIN_Collector',False,str(calc_glidein_collectors(params.collectors)))
+        # create GLIDEIN_Collector attribute 
+        self.dicts['params'].add_extended('GLIDEIN_Collector', False, str(calc_glidein_collectors(params.collectors)))
+        # create GLIDEIN_CCB attribute only if CCBs list is in config file
+        tmp_glidein_ccbs_string = str(calc_glidein_ccbs(params.ccbs))
+        if tmp_glidein_ccbs_string:
+            self.dicts['params'].add_extended('GLIDEIN_CCB', False, tmp_glidein_ccbs_string)
         populate_gridmap(params,self.dicts['gridmap'])
 
         if self.dicts['preentry_file_list'].is_placeholder(cWConsts.GRIDMAP_FILE): # gridmapfile is optional, so if not loaded, remove the placeholder
@@ -118,23 +128,17 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
             mfobj.load()
             self.monitor_htmls.append(mfobj)
 
-        spd = self.params.data
-        useMonitorIndexPage = True
-        if spd.has_key('frontend_monitor_index_page'):
-            useMonitorIndexPage = spd['frontend_monitor_index_page'] in ('True', 'true', '1')
-            
-            if useMonitorIndexPage:
-                mfobj = cWDictFile.SimpleFile(params.src_dir + '/frontend', 'index.html')
-                mfobj.load()
-                self.monitor_htmls.append(mfobj)
+        mfobj = cWDictFile.SimpleFile(params.src_dir + '/frontend', 'index.html')
+        mfobj.load()
+        self.monitor_htmls.append(mfobj)
 
-                for imgfil in ('frontendGroupGraphsNow.small.png',
-                               'frontendRRDBrowse.small.png',
-                               'frontendRRDGroupMatix.small.png',
-                               'frontendStatus.small.png'):
-                    mfobj = cWDictFile.SimpleFile(params.src_dir + '/frontend/images', imgfil)
-                    mfobj.load()
-                    self.monitor_htmls.append(mfobj)
+        for imgfil in ('frontendGroupGraphsNow.small.png',
+                       'frontendRRDBrowse.small.png',
+                       'frontendRRDGroupMatix.small.png',
+                       'frontendStatus.small.png'):
+            mfobj = cWDictFile.SimpleFile(params.src_dir + '/frontend/images', imgfil)
+            mfobj.load()
+            self.monitor_htmls.append(mfobj)
 
         # Tell condor to advertise GLIDECLIENT_ReqNode
         self.dicts['vars'].add_extended('GLIDECLIENT_ReqNode','string',None,None,False,True,False)
@@ -216,22 +220,27 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         sub_params=params.groups[self.sub_name]
 
         # put default files in place first
-        self.dicts['preentry_file_list'].add_placeholder(cWConsts.CONSTS_FILE,allow_overwrite=True)
-        self.dicts['preentry_file_list'].add_placeholder(cWConsts.VARS_FILE,allow_overwrite=True)
-        self.dicts['preentry_file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE,allow_overwrite=True) # this one must be loaded before any tarball
+        self.dicts['preentry_file_list'].add_placeholder(cWConsts.CONSTS_FILE, allow_overwrite=True)
+        self.dicts['preentry_file_list'].add_placeholder(cWConsts.VARS_FILE, allow_overwrite=True)
+        self.dicts['preentry_file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE, allow_overwrite=True)  # this one must be loaded before any tarball
 
         # follow by the blacklist file
-        file_name=cWConsts.BLACKLIST_FILE
-        self.dicts['preentry_file_list'].add_from_file(file_name,(file_name,"nocache","TRUE",'BLACKLIST_FILE'),os.path.join(params.src_dir,file_name))
+        file_name = cWConsts.BLACKLIST_FILE
+        self.dicts['preentry_file_list'].add_from_file(file_name,
+                                                       cWDictFile.FileDictFile.make_val_tuple(file_name, "nocache",
+                                                                                              config_out='BLACKLIST_FILE'),
+                                                       os.path.join(params.src_dir, file_name))
 
         # Load initial system scripts
         # These should be executed before the other scripts
-        for script_name in ('cat_consts.sh',"check_blacklist.sh"):
-            self.dicts['preentry_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
+        for script_name in ('cat_consts.sh', "check_blacklist.sh"):
+            self.dicts['preentry_file_list'].add_from_file(script_name,
+                                                           cWDictFile.FileDictFile.make_val_tuple(cWConsts.insert_timestr(script_name), 'exec'),
+                                                           os.path.join(params.src_dir, script_name))
 
         # put user files in stage
         for user_file in sub_params.files:
-            add_file_unparsed(user_file,self.dicts)
+            add_file_unparsed(user_file, self.dicts, False)
 
         # start expr is special
         start_expr=None
@@ -367,77 +376,6 @@ class frontendDicts(cvWDictFile.frontendDicts):
 # 
 ############################################################
 
-#############################################
-# Add a user file residing in the stage area
-# file as described by Params.file_defaults
-def add_file_unparsed(user_file,dicts):
-    absfname=user_file.absfname
-    if absfname is None:
-        raise RuntimeError, "Found a file element without an absname: %s"%user_file
-    
-    relfname=user_file.relfname
-    if relfname is None:
-        relfname=os.path.basename(absfname) # defualt is the final part of absfname
-    if len(relfname)<1:
-        raise RuntimeError, "Found a file element with an empty relfname: %s"%user_file
-
-    is_const=eval(user_file.const,{},{})
-    is_executable=eval(user_file.executable,{},{})
-    is_wrapper=eval(user_file.wrapper,{},{})
-    do_untar=eval(user_file.untar,{},{})
-
-    if eval(user_file.after_entry,{},{}):
-        file_list_idx='file_list'
-    else:
-        file_list_idx='preentry_file_list'
-
-    if user_file.has_key('after_group'):
-        if eval(user_file.after_group,{},{}):
-            file_list_idx='aftergroup_%s'%file_list_idx
-
-    if is_executable: # a script
-        if not is_const:
-            raise RuntimeError, "A file cannot be executable if it is not constant: %s"%user_file
-    
-        if do_untar:
-            raise RuntimeError, "A tar file cannot be executable: %s"%user_file
-
-        if is_wrapper:
-            raise RuntimeError, "A wrapper file cannot be executable: %s"%user_file
-
-        dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"exec","TRUE",'FALSE'),absfname)
-    elif is_wrapper: # a sourceable script for the wrapper
-        if not is_const:
-            raise RuntimeError, "A file cannot be a wrapper if it is not constant: %s"%user_file
-    
-        if do_untar:
-            raise RuntimeError, "A tar file cannot be a wrapper: %s"%user_file
-
-        dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"wrapper","TRUE",'FALSE'),absfname)
-    elif do_untar: # a tarball
-        if not is_const:
-            raise RuntimeError, "A file cannot be untarred if it is not constant: %s"%user_file
-
-        wnsubdir=user_file.untar_options.dir
-        if wnsubdir is None:
-            wnsubdir=string.split(relfname,'.',1)[0] # deafult is relfname up to the first .
-
-        config_out=user_file.untar_options.absdir_outattr
-        if config_out is None:
-            config_out="FALSE"
-        cond_attr=user_file.untar_options.cond_attr
-
-
-        dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"untar",cond_attr,config_out),absfname)
-        dicts['untar_cfg'].add(relfname,wnsubdir)
-    else: # not executable nor tarball => simple file
-        if is_const:
-            val='regular'
-            dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),val,'TRUE','FALSE'),absfname)
-        else:
-            val='nocache'
-            dicts[file_list_idx].add_from_file(relfname,(relfname,val,'TRUE','FALSE'),absfname) # no timestamp if it can be modified
-
 #######################
 # Register an attribute
 # attr_obj as described by Params.attr_defaults
@@ -453,8 +391,9 @@ def add_attr_unparsed_real(attr_name,params,dicts):
     if attr_obj.value is None:
         raise RuntimeError, "Attribute '%s' does not have a value: %s"%(attr_name,attr_obj)
 
-    is_parameter=eval(attr_obj.parameter,{},{})
-    is_expr=(attr_obj.type=="expr")
+    is_parameter = is_true(attr_obj.parameter)
+    # attr_obj.type=="expr" is now used for HTCondor expression
+    is_expr = False
     attr_val=params.extract_attr_val(attr_obj)
     
     if is_parameter:
@@ -462,8 +401,8 @@ def add_attr_unparsed_real(attr_name,params,dicts):
     else:
         dicts['consts'].add(attr_name,attr_val)
 
-    do_glidein_publish=eval(attr_obj.glidein_publish,{},{})
-    do_job_publish=eval(attr_obj.job_publish,{},{})
+    do_glidein_publish = is_true(attr_obj.glidein_publish)
+    do_job_publish = is_true(attr_obj.job_publish)
 
     if do_glidein_publish or do_job_publish:
             # need to add a line only if will be published
@@ -489,7 +428,8 @@ def add_attr_unparsed_real(attr_name,params,dicts):
 def populate_frontend_descript(work_dir,
                                frontend_dict,active_sub_list,        # will be modified
                                params):
-        
+
+        frontend_dict.add('DowntimesFile',params.downtimes_file)
         frontend_dict.add('FrontendName',params.frontend_name)
         frontend_dict.add('WebURL',params.web_url)
         if hasattr(params,"monitoring_web_url") and (params.monitoring_web_url is not None):
@@ -508,7 +448,7 @@ def populate_frontend_descript(work_dir,
 
         active_sub_list[:] # erase all
         for sub in params.groups.keys():
-            if eval(params.groups[sub].enabled,{},{}):
+            if is_true(params.groups[sub].enabled):
                 active_sub_list.append(sub)
         frontend_dict.add('Groups',string.join(active_sub_list,','))
 
@@ -536,6 +476,7 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('CurbRunningTotal',params.config.running_glideins_total.curb)
         frontend_dict.add('MaxRunningTotalGlobal',params.config.running_glideins_total_global.max)
         frontend_dict.add('CurbRunningTotalGlobal',params.config.running_glideins_total_global.curb)
+        frontend_dict.add('HighAvailability', params.high_availability)
 
 #######################
 # Populate group descript
@@ -548,6 +489,7 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
     group_descript_dict.add('MapFileWPilots',os.path.join(work_dir,cvWConsts.GROUP_WPILOTS_MAP_FILE))
 
     group_descript_dict.add('MaxRunningPerEntry',sub_params.config.running_glideins_per_entry.max)
+    group_descript_dict.add('MinRunningPerEntry',sub_params.config.running_glideins_per_entry.min)
     group_descript_dict.add('FracRunningPerEntry',sub_params.config.running_glideins_per_entry.relative_to_queue)
     group_descript_dict.add('MaxIdlePerEntry',sub_params.config.idle_glideins_per_entry.max)
     group_descript_dict.add('ReserveIdlePerEntry',sub_params.config.idle_glideins_per_entry.reserve)
@@ -615,7 +557,7 @@ def apply_multicore_policy(descript_dict):
     fact_ma = eval(descript_dict['FactoryMatchAttrs']) + [('GLIDEIN_CPUS', 's')]
     descript_dict.add('FactoryMatchAttrs', repr(fact_ma), allow_overwrite=True)
 
-    # Add RequestCpus to the list of attrs queried in glidefactory classad
+    # Add RequestCpus to the list of attrs queried in jobs classad
     job_ma = eval(descript_dict['JobMatchAttrs']) + [('RequestCpus', 'i')]
     descript_dict.add('JobMatchAttrs', repr(job_ma), allow_overwrite=True)
 
@@ -638,7 +580,7 @@ def get_pool_list(credential):
         else:
             pool_idx_list_expanded.append(idx.strip())
 
-    pool_idx_list_strings=[]
+    pool_idx_list_strings = []
     for idx in pool_idx_list_expanded:
         pool_idx_list_strings.append(idx.zfill(pool_idx_len))
     return pool_idx_list_strings
@@ -647,77 +589,89 @@ def get_pool_list(credential):
 def populate_common_descript(descript_dict,        # will be modified
                              params):
 
-    for tel in (("factory","Factory"),("job","Job")):
-        param_tname,str_tname=tel
-        ma_arr=[]
+    for tel in (("factory", "Factory"), ("job", "Job")):
+        param_tname, str_tname = tel
+        ma_arr = []
         qry_expr = params.match[param_tname]['query_expr']
 
-        descript_dict.add('%sQueryExpr'%str_tname,qry_expr)
+        descript_dict.add('%sQueryExpr' % str_tname, qry_expr)
 
-        match_attrs=params.match[param_tname]['match_attrs']
+        match_attrs = params.match[param_tname]['match_attrs']
         for attr_name in match_attrs.keys():
-            attr_type=match_attrs[attr_name]['type']
+            attr_type = match_attrs[attr_name]['type']
             if not (attr_type in MATCH_ATTR_CONV.keys()):
-                raise RuntimeError, "match_attr type '%s' not one of %s"%(attr_type,MATCH_ATTR_CONV.keys())
-            ma_arr.append((str(attr_name),MATCH_ATTR_CONV[attr_type]))
+                raise RuntimeError("match_attr type '%s' not one of %s" % (attr_type, MATCH_ATTR_CONV.keys()))
+            ma_arr.append((str(attr_name), MATCH_ATTR_CONV[attr_type]))
 
-        descript_dict.add('%sMatchAttrs'%str_tname,repr(ma_arr))
+        descript_dict.add('%sMatchAttrs' % str_tname, repr(ma_arr))
 
     if params.security.security_name is not None:
-        descript_dict.add('SecurityName',params.security.security_name)
+        descript_dict.add('SecurityName', params.security.security_name)
 
-    collectors=[]
+    collectors = []
     for el in params.match.factory.collectors:
-        if el['factory_identity'][-9:]=='@fake.org':
-            raise RuntimeError, "factory_identity for %s not set! (i.e. it is fake)"%el['node']
-        if el['my_identity'][-9:]=='@fake.org':
-            raise RuntimeError, "my_identity for %s not set! (i.e. it is fake)"%el['node']
+        if el['factory_identity'][-9:] == '@fake.org':
+            raise RuntimeError("factory_identity for %s not set! (i.e. it is fake)" % el['node'])
+        if el['my_identity'][-9:] == '@fake.org':
+            raise RuntimeError("my_identity for %s not set! (i.e. it is fake)" % el['node'])
         cWDictFile.validate_node(el['node'])
-        collectors.append((el['node'],el['factory_identity'],el['my_identity']))
-    descript_dict.add('FactoryCollectors',repr(collectors))
+        collectors.append((el['node'], el['factory_identity'], el['my_identity']))
+    descript_dict.add('FactoryCollectors', repr(collectors))
 
-    schedds=[]
+    schedds = []
     for el in params.match.job.schedds:
         cWDictFile.validate_node(el['fullname'])
         schedds.append(el['fullname'])
-    descript_dict.add('JobSchedds',string.join(schedds,','))
+    descript_dict.add('JobSchedds', string.join(schedds, ','))
 
     if params.security.proxy_selection_plugin is not None:
-        descript_dict.add('ProxySelectionPlugin',params.security.proxy_selection_plugin)
+        descript_dict.add('ProxySelectionPlugin', params.security.proxy_selection_plugin)
 
     if len(params.security.credentials) > 0:
         proxies = []
-        proxy_attrs=['security_class','trust_domain','type',
-            'keyabsfname','pilotabsfname','vm_id','vm_type',
-            'creation_script','update_frequency']
-        proxy_attr_names={'security_class':'ProxySecurityClasses',
-            'trust_domain':'ProxyTrustDomains',
-            'type':'ProxyTypes','keyabsfname':'ProxyKeyFiles',
-            'pilotabsfname':'ProxyPilotFiles',
-            'vm_id':'ProxyVMIds','vm_type':'ProxyVMTypes',
-            'creation_script':'ProxyCreationScripts',
-            'update_frequency':'ProxyUpdateFrequency'}
-        proxy_descript_values={}
+        proxy_attrs = ['security_class', 'trust_domain', 'type',
+                       'keyabsfname', 'pilotabsfname', 'remote_username', 'vm_id', 'vm_type',
+                       'creation_script', 'update_frequency', 'project_id']
+        proxy_attr_names = {'security_class': 'ProxySecurityClasses',
+                            'trust_domain': 'ProxyTrustDomains',
+                            'type': 'ProxyTypes', 'keyabsfname': 'ProxyKeyFiles',
+                            'pilotabsfname': 'ProxyPilotFiles',
+                            'remote_username': 'ProxyRemoteUsernames',
+                            'vm_id': 'ProxyVMIds', 'vm_type': 'ProxyVMTypes',
+                            'creation_script': 'ProxyCreationScripts',
+                            'project_id': 'ProxyProjectIds',
+                            'update_frequency': 'ProxyUpdateFrequency'}
+        # translation of attributes that can be added to the base type (name in list -> attribute name)
+        proxy_attr_type_list = {'vm_id': 'vm_id',
+                                'vm_type': 'vm_type',
+                                'username': 'remote_username',
+                                'project_id': 'project_id'}
+        proxy_descript_values = {}
         for attr in proxy_attrs:
-            proxy_descript_values[attr]={}
-        proxy_trust_domains = {}
+            proxy_descript_values[attr] = {}
+        proxy_trust_domains = {}  # TODO: not used, remove
         for pel in params.security.credentials:
             if pel['absfname'] is None:
-                raise RuntimeError, "All proxies need a absfname!"
+                raise RuntimeError("All proxies need a absfname!")
+            for i in pel['type'].split('+'):
+                attr = proxy_attr_type_list.get(i)
+                if attr and pel[attr] is None:
+                    raise RuntimeError("Required attribute '%s' ('%s') missing in credential type '%s'" %
+                                       (attr, i, pel['type']))
             if (pel['pool_idx_len'] is None) and (pel['pool_idx_list'] is None):
                 # only one
                 proxies.append(pel['absfname'])
                 for attr in proxy_attrs:
                     if pel[attr] is not None:
-                        proxy_descript_values[attr][pel['absfname']]=pel[attr]
-            else: #pool
+                        proxy_descript_values[attr][pel['absfname']] = pel[attr]
+            else:  # pool
                 pool_idx_list_expanded_strings = get_pool_list(pel)
                 for idx in pool_idx_list_expanded_strings:
                     absfname = "%s%s" % (pel['absfname'], idx)
                     proxies.append(absfname)
                     for attr in proxy_attrs:
                         if pel[attr] is not None:
-                            proxy_descript_values[attr][pel['absfname']]=pel[attr]
+                            proxy_descript_values[attr][pel['absfname']] = pel[attr]
 
         descript_dict.add('Proxies', repr(proxies))
         for attr in proxy_attrs:
@@ -737,8 +691,8 @@ def calc_glidein_collectors(collectors):
     for el in collectors:
         if not collector_nodes.has_key(el.group):
             collector_nodes[el.group] = {'primary': [], 'secondary': []}
-        if eval(el.secondary):
-            cWDictFile.validate_node(el.node,allow_prange=True)
+        if is_true(el.secondary):
+            cWDictFile.validate_node(el.node, allow_prange=True)
             collector_nodes[el.group]['secondary'].append(el.node)
         else:
             cWDictFile.validate_node(el.node)
@@ -753,16 +707,38 @@ def calc_glidein_collectors(collectors):
 
 
 #####################################################
+# Returns a string usable for GLIDEIN_CCB
+def calc_glidein_ccbs(collectors):
+    # CCB collectors are subdivided in groups, mainly to control how many to use at the same time
+    ccb_nodes = {}
+    glidein_ccbs = []
+
+    for el in collectors:
+        if not ccb_nodes.has_key(el.group):
+            ccb_nodes[el.group] = []
+        cWDictFile.validate_node(el.node,allow_prange=True)
+        ccb_nodes[el.group].append(el.node)
+
+    for group in ccb_nodes.keys():
+        glidein_ccbs.append(string.join(ccb_nodes[group], ","))
+
+    return string.join(glidein_ccbs, ";")
+
+
+#####################################################
 # Populate gridmap to be used by the glideins
 def populate_gridmap(params,gridmap_dict):
     collector_dns=[]
-    for el in params.collectors:
-        dn=el.DN
-        if dn is None:
-            raise RuntimeError,"DN not defined for pool collector %s"%el.node
-        if not (dn in collector_dns): #skip duplicates
-            collector_dns.append(dn)
-            gridmap_dict.add(dn,'collector%i'%len(collector_dns))
+    for coll_list in (params.collectors, params.ccbs):
+        # Add both collectors and CCB DNs (if any). Duplicates are skipped 
+        # The name is for both collector%i.
+        for el in coll_list:
+            dn=el.DN
+            if dn is None:
+                raise RuntimeError,"DN not defined for pool collector or CCB %s"%el.node
+            if not (dn in collector_dns):  #skip duplicates
+                collector_dns.append(dn)
+                gridmap_dict.add(dn,'collector%i'%len(collector_dns))
 
     # Add also the frontend DN, so it is easier to debug
     if params.security.proxy_DN is not None:
@@ -782,7 +758,7 @@ def populate_main_security(client_security,params):
         dn=el.DN
         if dn is None:
             raise RuntimeError,"DN not defined for pool collector %s"%el.node
-        is_secondary=eval(el.secondary)
+        is_secondary=is_true(el.secondary)
         if is_secondary:
             continue # only consider primary collectors for the main security config
         collector_nodes.append(el.node)

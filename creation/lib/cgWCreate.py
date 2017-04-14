@@ -26,37 +26,39 @@ def create_condor_tar_fd(condor_base_dir):
         # List of required files
         condor_bins = [
             'sbin/condor_master', 'sbin/condor_startd', 'sbin/condor_starter'
-                      ]
+        ]
 
         # List of optional files, included if found in condor distro
         condor_opt_bins = [
-            'sbin/condor_procd', 'sbin/gcb_broker_query',
-            'sbin/condor_fetchlog', 'sbin/condor_advertise'
-                          ]
+            'sbin/condor_procd', 'sbin/condor_fetchlog', 'sbin/condor_advertise'
+        ]
 
         condor_opt_libs = [
             'lib/condor_ssh_to_job_sshd_config_template',
-            'lib/CondorJavaInfo.class', 'lib/CondorJavaWrapper.class',
+            'lib/CondorJavaInfo.class',
+            'lib/CondorJavaWrapper.class',
             'lib/scimark2lib.jar',
-                          ]
+            'lib/condor',
+        ]
         condor_opt_libexecs = [
-                  'libexec/glexec_starter_setup.sh',
-                  'libexec/condor_glexec_wrapper',
-                  'libexec/condor_glexec_cleanup', 
-                  'libexec/condor_glexec_job_wrapper',
-                  'libexec/condor_glexec_kill',
-                  'libexec/condor_glexec_run',
-                  'libexec/condor_glexec_update_proxy',
-                  'libexec/condor_glexec_setup',
-                  'libexec/condor_shared_port',
-                  'libexec/condor_ssh_to_job_sshd_setup',
-                  'libexec/condor_ssh_to_job_shell_setup',
-                  'libexec/condor_kflops',
-                  'libexec/condor_mips',
-                  'libexec/curl_plugin',
-                  'libexec/data_plugin',
-                  'libexec/condor_chirp',
-                              ]
+            'libexec/glexec_starter_setup.sh',
+            'libexec/condor_glexec_wrapper',
+            'libexec/condor_glexec_cleanup',
+            'libexec/condor_glexec_job_wrapper',
+            'libexec/condor_glexec_kill',
+            'libexec/condor_glexec_run',
+            'libexec/condor_glexec_update_proxy',
+            'libexec/condor_glexec_setup',
+            'libexec/condor_shared_port',
+            'libexec/condor_ssh_to_job_sshd_setup',
+            'libexec/condor_ssh_to_job_shell_setup',
+            'libexec/condor_kflops',
+            'libexec/condor_mips',
+            'libexec/curl_plugin',
+            'libexec/data_plugin',
+            'libexec/condor_chirp',
+            'libexec/condor_gpu_discovery',
+        ]
 
         # for RPM installations, add libexec/condor as libexec into the
         # tarball instead
@@ -78,18 +80,18 @@ def create_condor_tar_fd(condor_base_dir):
                 raise RuntimeError, "Cannot find %s"%os.path.join(condor_base_dir,f)
 
         # Get the list of dlls required
-        dlls = get_condor_dlls(condor_base_dir, 
-                               condor_opt_bins + condor_opt_libexecs)
+        dlls = get_condor_dlls(
+            condor_base_dir,
+            condor_bins + condor_opt_bins + condor_opt_libexecs)
 
-        # check if optional files and their libs exist, if they do, include
+        # Get list of all the files & directories that exist
         for f in (condor_opt_bins+condor_opt_libs+condor_opt_libexecs+dlls):
-            if os.path.isfile(os.path.join(condor_base_dir,f)):
+            if os.path.exists(os.path.join(condor_base_dir,f)):
                 condor_bins.append(f)
 
-
         # tar
-        fd=cStringIO.StringIO()
-        tf=tarfile.open("dummy.tgz",'w:gz',fd)
+        fd = cStringIO.StringIO()
+        tf = tarfile.open("dummy.tgz",'w:gz',fd)
         for f in condor_bins:
             tf.add(os.path.join(condor_base_dir,f), condor_bins_map.get(f, f))
         tf.close()
@@ -103,7 +105,7 @@ def create_condor_tar_fd(condor_base_dir):
 ##########################################
 # Condor submit file dictionary
 class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
-    def populate(self, exe_fname, entry_name, params, sub_params):
+    def populate(self, exe_fname, entry_name, conf, entry):
         """
         Since there are only two parameters that ever were passed that didn't already exist in the params dict or the
         sub_params dict, the function signature has been greatly simplified into just those two parameters and the
@@ -114,25 +116,35 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         another parameter to the function.
         """
 
-        glidein_name = params.glidein_name
-        gridtype = sub_params.gridtype
-        gatekeeper = sub_params.gatekeeper
-        rsl = sub_params.rsl
-        auth_method = sub_params.auth_method
-        proxy_url = sub_params.proxy_url
-        client_log_base_dir = params.submit.base_client_log_dir
-        submit_attrs = sub_params.config.submit.submit_attrs
+        glidein_name = conf[u'glidein_name']
+        gridtype = entry[u'gridtype']
+        gatekeeper = entry[u'gatekeeper']
+        if u'rsl' in entry:
+            rsl = entry[u'rsl']
+        else:
+            rsl = None
+        auth_method = entry[u'auth_method']
+        if u'proxy_url' in entry:
+            proxy_url = entry[u'proxy_url']
+        else:
+            proxy_url = None
+        client_log_base_dir =  conf.get_child(u'submit')[u'base_client_log_dir']
+        submit_attrs = entry.get_child(u'config').get_child(u'submit').get_child_list(u'submit_attrs')
 
         # Add in some common elements before setting up grid type specific attributes
         self.add("Universe", "grid")
         if gridtype.startswith('batch '):
             # For BOSCO ie gridtype 'batch *', allow means to pass VO specific
             # bosco/ssh keys
-            self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) %s" % (gridtype, gatekeeper))
+            # was: self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) %s" % (gridtype, gatekeeper))
+            # gatekeeper is [name@]host[:port]. Keep only the host part and replace name with username form env
+            # This retuens always the host:port part: gatekeeper.split('@')[-1]
+            self.add("Grid_Resource", "%s $ENV(GRID_RESOURCE_OPTIONS) $ENV(GLIDEIN_REMOTE_USERNAME)@%s" %
+                     (gridtype, gatekeeper.split('@')[-1]))
         else:
             self.add("Grid_Resource", "%s %s" % (gridtype, gatekeeper))
         self.add("Executable", exe_fname)
-                
+
         # set up the grid specific attributes
         if gridtype == 'ec2':
             self.populate_ec2_grid()
@@ -149,6 +161,10 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             self.populate_standard_grid(rsl, auth_method, gridtype)
 
         self.populate_glidein_classad(proxy_url)
+
+        #Leave jobs in the condor queue for 12 hours if they are completed.
+        if conf['advertise_pilot_accounting'] == 'True':
+            self.add("LeaveJobInQueue", "((time() - EnteredCurrentStatus) < 12*60*60)")
 
         # Notification and Owner are the same no matter what grid type
         self.add("Notification", "Never")
@@ -170,8 +186,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             self.add("cream_attributes", "$ENV(GLIDEIN_RSL)")
         elif gridtype == 'nordugrid' and rsl:
             self.add("nordugrid_rsl", "$ENV(GLIDEIN_RSL)")
-        else:
-            pass
+        elif (gridtype == 'condor') and ('project_id' in auth_method):
+            self.add("+ProjectName", '"$ENV(GLIDEIN_PROJECT_ID)"')
 
         # Force the copy to spool to prevent caching at the CE side
         self.add("copy_to_spool", "True")
@@ -202,9 +218,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
 
     def populate_submit_attrs(self, submit_attrs, attr_prefix=''):
-        for key in submit_attrs.keys():
-            self.add('%s%s' % (attr_prefix, key), submit_attrs[key]['value'])
-
+        for submit_attr in submit_attrs:
+            self.add('%s%s' % (attr_prefix, submit_attr[u'name']), submit_attr[u'value'])
 
     def populate_condorc_grid(self, submit_attrs):
         self.populate_submit_attrs(submit_attrs)
@@ -245,7 +260,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         because the code is so obtuse, if I remove the function, I may create unintended effects.
         """
         pass
-       
+
 #########################################
 # Create init.d compatible startup file
 def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name, rpm_install=''):
@@ -255,8 +270,8 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name, r
     template = get_template("factory_initd_startup_template", glideinWMS_dir)
     fd = open(startup_fname,"w")
     try:
-        template = template % {"factory_dir": factory_dir, 
-                               "glideinWMS_dir": glideinWMS_dir, 
+        template = template % {"factory_dir": factory_dir,
+                               "glideinWMS_dir": glideinWMS_dir,
                                "default_cfg_fpath": cfg_name,
                                "rpm_install": rpm_install}
         fd.write(template)
@@ -355,7 +370,7 @@ def get_condor_dlls(condor_dir, files=[], libdirs=['lib', 'lib/condor']):
     @type libdirs: list
     @param libdirs: List of dirs relative to condor_dir that contain libs
 
-    @return: List containing linked libraries required by all the files. 
+    @return: List containing linked libraries required by all the files.
              Paths a relative to the condor_dir
     @rtype: list
     """

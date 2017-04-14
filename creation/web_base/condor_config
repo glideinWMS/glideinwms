@@ -8,11 +8,12 @@
 
 LOG = $(WORK_DIR)/log
 EXECUTE = $(WORK_DIR)/execute
-COLLECTOR_HOST = $(HEAD_NODE)
+COLLECTOR_HOST = $(HEAD_NODE),$(GLIDEIN_Site_Collector)
 FILESYSTEM_DOMAIN = $(HOSTNAME)
 UID_DOMAIN = $(HOSTNAME)
 
 MASTER.COLLECTOR_HOST = $(GLIDEIN_Master_Collector)
+#MASTER.COLLECTOR_HOST = $(GLIDEIN_Master_Collector),$(GLIDEIN_Site_Collector)
 
 SBIN = $(CONDOR_DIR)/sbin
 LIB=$(CONDOR_DIR)/lib
@@ -63,6 +64,12 @@ IS_GLIDEIN = True
 MASTER_ATTRS = IS_GLIDEIN, GLIDEIN_ToRetire, GLIDEIN_ToDie, GLIDEIN_Expire, DaemonStopTime, $(GLIDEIN_VARIABLES)
 STARTD_ATTRS = GLIDEIN_COLLECTOR_NAME,GLIDEIN_MASTER_NAME, IS_GLIDEIN, GLIDEIN_ToRetire, GLIDEIN_ToDie, GLIDEIN_Expire, START, DaemonStopTime, GLIDEIN_PARENT_PID, LSB_RELEASE, LSB_DISTRIBUTOR_ID, LSB_DESCRIPTION, $(GLIDEIN_VARIABLES)
 
+# This will create the following new attributes to Machine ClassAd and fetch the values from the corresponding attributes of Job ClassAd
+STARTD_JOB_ATTRS = $(STARTD_JOB_ATTRS),x509userproxysubject,x509UserProxyFQAN,x509UserProxyVOName,x509UserProxyEmail,x509UserProxyExpiration
+
+# This disables /dev/utmp use that is unreliable (gwms #14707)
+STARTD_HAS_BAD_UTMP = True
+
 # effectively disable checking of new binaries
 MASTER_CHECK_NEW_EXEC_INTERVAL = 3600000
 
@@ -85,16 +92,25 @@ GSI_DAEMON_DIRECTORY=$(LOCAL_DIR)
 SEC_DEFAULT_AUTHENTICATION = REQUIRED
 SEC_DEFAULT_AUTHENTICATION_METHODS = GSI 
 
+
+# Allow readonly access to the site collector
+GSI_SKIP_HOST_CHECK_CERT_REGEX = $(X509_SKIP_HOST_CHECK_DNS_REGEX)
+
+STARTD.ALLOW_CLIENT = collector*/*, anonymous*/*, frontend*/*, condor*/*, submit-side@matchsession/*
+
+STARTD.GSI_DAEMON_NAME =
 DENY_WRITE = anonymous@*
 DENY_ADMINISTRATOR = anonymous@*
 DENY_DAEMON = anonymous@*
 DENY_NEGOTIATOR = anonymous@*
+DENY_OWNER = anonymous@*
+DENY_CONFIG = anonymous@*
 
 LOCAL_CONFIG_FILE       = 
 
 GLIDEIN_START_CONDITION = ($(GLIDEIN_Start)) && ($(GLIDEIN_Entry_Start)) && ($(GLIDECLIENT_Start)) && ($(GLIDECLIENT_Group_Start))
 GLIDEIN_HOLD_CONDITION = ($(GLIDEIN_Hold)) || ($(GLIDEIN_Entry_Hold)) || ($(GLIDECLIENT_Hold)) || ($(GLIDECLIENT_Group_Hold))
-GLIDEIN_PREEMPT_CONDITION = ($(GLIDEIN_PREEMPT)) || ($(GLIDEIN_Entry_PREEMPT)) || ($(GLIDECLIENT_PREEMPT)) || ($(GLIDECLIENT_Group_PREEMPT))
+GLIDEIN_PREEMPT_CONDITION = ($(GLIDEIN_PREEMPT)) || ($(GLIDEIN_Entry_PREEMPT)) || ($(GLIDECLIENT_PREEMPT)) || ($(GLIDECLIENT_Group_PREEMPT)) || (SiteWMS_WN_Preempt =?= True)
 
 RANK = ($(GLIDEIN_Rank)) + ($(GLIDEIN_Entry_Rank)) + ($(GLIDECLIENT_Rank)) + ($(GLIDECLIENT_Group_Rank))
 

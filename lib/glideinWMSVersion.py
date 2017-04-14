@@ -38,13 +38,23 @@ class GlideinWMSDistro:
         def __init__(self, dir, chksumFile='checksum'):
             self.versionIdentifier = 'GLIDEINWMS_VERSION'
             self.type="TARBALL"
-            self.distroChksumFile = os.path.join(dir,'etc',chksumFile)
+            self.distroChksumFile = os.path.join(dir, 'etc', chksumFile)
+
+            # If the default location does not exist, try RPM location
             if not os.path.exists(self.distroChksumFile):
-                # If the default location does not exist, try RPM location
-                self.distroChksumFile = os.path.join('/usr/lib/python2.4/site-packages',chksumFile)
+                rpm_workdir = ''
+                if chksumFile.endswith('.factory'):
+                    rpm_workdir = '/var/lib/gwms-factory/work-dir/'
+                elif chksumFile.endswith('.frontend'):
+                    rpm_workdir = '/var/lib/gwms-frontend/vofrontend/'
+                else:
+                    rpm_workdir = 'UNKNOWN'
+
+                self.distroChksumFile = os.path.join(rpm_workdir, chksumFile)
                 self.type="RPM"
                 if not os.path.exists(self.distroChksumFile):
                     self.type="UNKNOWN"
+
             try:
                 self.createVersionString(dir)
             except:
@@ -83,7 +93,12 @@ class GlideinWMSDistro:
                             fd = open(os.path.join(dir,file), 'r')
                         else:
                             # In the RPM, all files are in site-packages
-                            fd = open(os.path.join(dir,os.path.basename(file)), 'r')
+                            rpm_dir = os.path.dirname(
+                                          os.path.dirname(
+                                              sys.modules[__name__].__file__))
+                            fd = open(os.path.join(rpm_dir,
+                                                   os.path.dirname(file),
+                                                   os.path.basename(file)), 'r')
                         chksum = md5(fd.read()).hexdigest()
                         if (chksum != distroFileHash[file]):
                             modifiedFiles.append(file)

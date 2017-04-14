@@ -3,14 +3,14 @@ import os
 import sys
 import shutil
 import tempfile
-import unittest
+import unittest2 as unittest
+import xmlrunner
 
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
 from unittest_utils import runTest
 from unittest_utils import FakeLogger
 from unittest_utils import create_temp_file
-
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
 
@@ -111,8 +111,6 @@ class TestCleanupSupport(unittest.TestCase):
                          "The cleaner deleted %s files that should not have been deleted." % \
                          str(self.num_noncleanup_files_wanted - num_cleanup_files_left))
 
-def main():
-    return runTest(TestCleanupSupport)
 
 if __name__ == '__main__':
-    sys.exit(main())
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output='unittests-reports'))

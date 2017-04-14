@@ -74,6 +74,7 @@ SCRIPT_NAME="`basename $0`"
 
 
 if [ "$RPM_INSTALL" = "True" ]; then
+    . /etc/rc.d/init.d/functions
     # RPM installation (defaults and binaries)
     LOG_FILE_STARTUP=/dev/null
     DEFAULT_WRITEBACK=no
@@ -115,7 +116,7 @@ check_installed () {
 check_configured () {
     # check if some files created during the configuration (upgrade/reconfig) exist
     if [ -x "$factory_dir/update_proxy.py" ]; then
-        if [ -r "$factory_dir/glideinWMS.xml" ]; then
+        if [ -r "$factory_dir/glidein.descript" ]; then
             return 0
         fi
         echo -n "The Factory is not configured correctly: try to run reconfig"
@@ -251,7 +252,13 @@ start() {
         return $RETVAL
     fi
 
-    invoke_as_factory "nice -2 \"${FACTORY_START}\" \"$factory_dir\" 2>/dev/null 1>&2 </dev/null &"
+    if [ "$RPM_INSTALL" = "True" ]; then
+        # forcing daemon to continue, the factory will check the pidfile
+        daemon --user $FACTORY_USER --force --pidfile="$factory_dir/lock/glideinWMS.lock" -2 "${FACTORY_START} $factory_dir 2>/dev/null 1>&2 </dev/null &"
+    else
+        invoke_as_factory "nice -2 \"${FACTORY_START}\" \"$factory_dir\" 2>/dev/null 1>&2 </dev/null &"
+    fi
+
     for i in {1..15}; do  # Use seq if a variable is needed: $(seq 1 $END)
         # Returns 0 if running
         "$FACTORY_CHECK" "$factory_dir" >/dev/null 2>&1 </dev/null
@@ -282,7 +289,7 @@ stop() {
         return $RETVAL
     fi
 
-    "$FACTORY_STOP" -f "$factory_dir" 2>/dev/null 1>&2 </dev/null
+    invoke_as_factory "\"$FACTORY_STOP\" -f \"$factory_dir\" 2>/dev/null 1>&2 </dev/null"
     MYRETVAL=$?
 
     if [ $MYRETVAL -ne 0 ]; then

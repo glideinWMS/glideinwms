@@ -12,10 +12,13 @@
 #
 
 import os
+import copy
 import time
-import pickle
 import random
+import math
+import collections
 from glideinwms.lib import logSupport
+from glideinwms.lib import util
 import glideinFrontendLib
 import glideinFrontendInterface
 
@@ -75,7 +78,7 @@ class ProxyFirst:
         for cred in self.cred_list:
             if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+            if (credential_type is not None) and (hasattr(cred,'type')) and (not cred.supports_auth_method(credential_type)):
                 continue
             if (params_obj is not None):
                 cred.add_usage_details(params_obj.min_nr_glideins,params_obj.max_run_glideins)
@@ -107,15 +110,15 @@ class ProxyAll:
 
     # get the proxies, given the condor_q and condor_status data
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
-        rtnlist=[]
+        rtnlist = []
         for cred in self.cred_list:
             if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+            if (credential_type is not None) and (hasattr(cred,'type')) and (not cred.supports_auth_method(credential_type)):
                 continue
             rtnlist.append(cred)
         if (params_obj is not None):
-            rtnlist=fair_assign(rtnlist,params_obj)
+            rtnlist = fair_assign(rtnlist,params_obj)
         return rtnlist
 
 ##########################################################
@@ -166,11 +169,86 @@ class ProxyUserCardinality:
         for cred in self.cred_list:
             if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+            if (credential_type is not None) and (hasattr(cred,'type')) and (not cred.supports_auth_method(credential_type)):
                 continue
             if len(rtnlist)<nr_requested_proxies:
                 rtnlist.append(cred)
         return rtnlist
+
+#####################################################################
+#
+# Given a 'normal' credential, create sub-credentials based on the ProjectName
+# attribute of jobs
+#
+class ProxyProjectName:
+
+    def __init__(self, config_dir, proxy_list):
+        self.cred_list = proxy_list
+        self.proxy_list = proxy_list
+        self.total_jobs = 0
+        self.project_count = {}
+
+    # This plugin depends on the ProjectName and User attributes in the job
+    def get_required_job_attributes(self):
+        return (('ProjectName', 's'), )
+
+    # what glidein attributes are used by this plugin
+    def get_required_classad_attributes(self):
+        return []
+
+    def update_usermap(self, condorq_dict, condorq_dict_types,
+                    status_dict, status_dict_types):
+        self.project_count = {}
+        self.total_jobs = 0
+        # Get both set of users and number of jobs for each user
+        for schedd_name in condorq_dict.keys():
+            condorq_data = condorq_dict[schedd_name].fetchStored()
+            for job in condorq_data.values():
+                if job['JobStatus'] != 1:
+                    continue
+                self.total_jobs += 1
+                if job.get('ProjectName', '') != '':
+                    if job.get('ProjectName') in self.project_count:
+                        self.project_count[job.get('ProjectName', '')] += 1
+                    else:
+                        self.project_count[job.get('ProjectName', '')] = 1
+        return
+
+    def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
+        if not params_obj:
+            logSupport.log.debug("params_obj is None returning the credentials without the project_id Information")
+            return self.proxy_list
+        # Determine a base credential to use; we'll copy this and alter the project ID.
+        base_cred = None
+        for cred in self.proxy_list:
+            if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain != trust_domain):
+                continue
+            if (credential_type is not None) and (hasattr(cred,'type')) and (not cred.supports_auth_method(credential_type)):
+                continue
+            base_cred = cred
+            break
+        if not base_cred:
+            return []
+
+        # Duplicate the base credential; one per project in use.
+        # Assign load proportional to the number of jobs.
+        creds = []
+        for project, job_count in self.project_count.items():
+            if not project:
+                creds.append(base_cred)
+            else:
+                cred_copy = copy.deepcopy(base_cred)
+                cred_copy.project_id = project
+                creds.append(cred_copy)
+
+            cred_max = int(math.ceil(job_count * params_obj.max_run_glideins / float(self.total_jobs)))
+            cred_idle = int(math.ceil(job_count * params_obj.min_nr_glideins / float(self.total_jobs)))
+            creds[-1].add_usage_details(cred_max, cred_idle)
+        return creds
+
+
+
+
 
 ######################################################################
 #
@@ -220,7 +298,7 @@ class ProxyUserRR:
         for cred in self.config_data['proxy_list']:
             if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+            if (credential_type is not None) and (hasattr(cred,'type')) and (not cred.supports_auth_method(credential_type)):
                 continue
             rtnlist.append(cred)
             num_cred=num_cred+1
@@ -235,52 +313,34 @@ class ProxyUserRR:
     # INTERNAL
     #############################
 
-    # load from self.config_fname into self.config_data
-    # if the file does not exist, create a new config_data
     def load(self):
+        """load from self.config_fname into self.config_data
+        if the file does not exist, create a new config_data
+        """
         if not os.path.isfile(self.config_fname):
             nr_proxies = len(self.proxy_list)
             self.config_data = {'users_set': set(),
                                 'proxy_list': self.proxy_list}
         else:
-            fd = open(self.config_fname, "r")
-            try:
-                self.config_data = pickle.load(fd)
-            finally:
-                fd.close()
-
+            self.config_data = util.file_pickle_load(self.config_fname)
             for p in self.proxy_list:
-                found=False
+                found = False
                 for c in self.config_data['proxy_list']:
-                    if p.filename==c.filename:
-                        found=True
+                    if p.filename == c.filename:
+                        found = True
                 if not found:
                     self.config_data['proxy_list'].append(p)
-
         return
 
-    # save self.config_data into self.config_fname
     def save(self):
-        # fist save in a tmpfile
-        tmpname = "%s~" % self.config_fname
-        try:
-            os.unlink(tmpname)
-        except:
-            pass # just trying
-        fd = open(tmpname, "w")
-        try:
-            pickle.dump(self.config_data, fd, 0) # use ASCII version of protocol
-        finally:
-            fd.close()
-
-        # then atomicly move it in place
-        os.rename(tmpname, self.config_fname)
-
+        """save self.config_data into self.config_fname"""
+        # tmp file name is now *.PID.tmp instead of *~
+        util.file_pickle_dump(self.config_fname, self.config_data, protocol=0)  # use ASCII version of protocol
         return
 
     # shuffle a number of proxies from the internal data
     def shuffle_proxies(self, nr):
-        list=self.config_data['proxy_list']
+        list = self.config_data['proxy_list']
         for t in range(nr):
             list.append(list.pop(0))
         return
@@ -366,7 +426,7 @@ class ProxyUserMapWRecycling:
                     cred=user_map[k]['proxy']
                     if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
                         continue
-                    if (credential_type is not None) and (hasattr(cred,'type')) and (cred.type!=credential_type):
+                    if (credential_type is not None) and (hasattr(cred,'type')) and (not cred.supports_auth_method(credential_type)):
                         continue
                     #Someone is already using this credential
                     if (k in users):
@@ -447,11 +507,7 @@ class ProxyUserMapWRecycling:
             self.config_data['user_map'] = user_map
         else:
             # load cache
-            fd = open(self.config_fname, "r")
-            try:
-                self.config_data = pickle.load(fd)
-            finally:
-                fd.close()
+            self.config_data = util.file_pickle_load(self.config_fname)
 
             # if proxies changed, remove old ones and insert the new ones
             cached_proxies = set() # here we will store the list of proxies in the cache
@@ -479,24 +535,12 @@ class ProxyUserMapWRecycling:
                     self.add_proxy(user_map,proxy) 
         return
 
-    # save self.config_data into self.config_fname
     def save(self):
-        # fist save in a tmpfile
-        tmpname = "%s~" % self.config_fname
-        try:
-            os.unlink(tmpname)
-        except:
-            pass # just trying
-        fd = open(tmpname, "w")
-        try:
-            pickle.dump(self.config_data, fd, 0) # use ASCII version of protocol
-        finally:
-            fd.close()
-
-        # then atomicly move it in place
-        os.rename(tmpname, self.config_fname)
-
+        """save self.config_data into self.config_fname"""
+        # tmp file name is now *.PID.tmp instead of *~
+        util.file_pickle_dump(self.config_fname, self.config_data, protocol=0)  # use ASCII version of protocol
         return
+
 
 ###############################################
 # INTERNAL to proxy_plugins, don't use directly
@@ -513,16 +557,18 @@ def list2ilist(lst):
         out.append((cred.proxy_id, cred.filename))
     return out
 
+
 def createCredentialList(elementDescript):
     """ Creates a list of Credentials for a proxy plugin """
-    credential_list=[]
-    num=0
+    credential_list = []
+    num = 0
     for proxy in elementDescript.merged_data['Proxies']:
-        credential_list.append(glideinFrontendInterface.Credential(num,proxy,elementDescript))
-        num=num+1
+        credential_list.append(glideinFrontendInterface.Credential(num, proxy, elementDescript))
+        num += 1
     return credential_list
 
-def fair_split(i,n,p):
+
+def fair_split(i, n, p):
     """
     Split n requests amongst p proxies 
     Returns how many requests go to the i-th proxy
@@ -532,16 +578,19 @@ def fair_split(i,n,p):
     p1=int(p)
     return int((n1*i1)/p1)-int((n1*(i1-1))/p1)
 
+
 def random_split(n,p):
-    random_arr=map(lambda i: fair_split(i,n,p) ,range(p))
+    random_arr = map(lambda i: fair_split(i, n, p), range(p))
     random.shuffle(random_arr)
     return random_arr
 
+
 def print_list(cred_list):
     for c in cred_list:
-        logSupport.log.debug("Cred: %s %d %d" % (c.filename,c.req_idle,c.req_max_run))
+        logSupport.log.debug("Cred: %s %d %d" % (c.filename, c.req_idle, c.req_max_run))
 
-def fair_assign(cred_list,params_obj):
+
+def fair_assign(cred_list, params_obj):
     """
     Assigns requests to each credentials in cred_list
     max run will remain constant between iterations
@@ -569,7 +618,6 @@ def fair_assign(cred_list,params_obj):
     return cred_list
 
 
-
 ###################################################################
 
 # Being plugins, users are not expected to directly reference the classes
@@ -579,7 +627,5 @@ proxy_plugins = {'ProxyAll':ProxyAll,
                'ProxyUserRR':ProxyUserRR,
                'ProxyFirst':ProxyFirst,
                'ProxyUserCardinality':ProxyUserCardinality,
-               'ProxyUserMapWRecycling':ProxyUserMapWRecycling}
-
-
-
+               'ProxyUserMapWRecycling':ProxyUserMapWRecycling,
+               'ProxyProjectName':ProxyProjectName}

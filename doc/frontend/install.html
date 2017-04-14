@@ -663,13 +663,52 @@ Indicates if an OSG/VDT client should be installed if it is not already present 
 	It is also recommended that you disable any groups that will not be used.  Never remove them from the config file.</p>
 
 
+        <h3>6.3 Downtime handling</h3>
+        <p>The glidein frontend supports the dynamic handling of downtimes.</p>
+        <p>You(frontend admins) should add the following attribute for the frontend tag in frontend.xml manually:
+	  <blockquote>
+           &lt;frontend downtimes_file="frontenddowntime"
+	  </blockquote>
+        </p>
+        <p>Downtimes are handled with </p>
+    <blockquote>
+    service gwms-frontend up|down|statusdown [-delay &lt;delay&gt;]
+    </blockquote>
+
+    <p>More advanced configuration can be done with the following script:</p>
+    <blockquote>
+      /usr/sbin/manageFrontendDowntimes.py
+        <b>-dir /var/lib/gwms-frontend/vofrontend</b> 
+        <b>-cmd</b> [command] [options]
+    </blockquote>
+
+    <p>You must specify the command to run. The valid commands are:</p>
+    <ul>
+        <li> add           - Add a scheduled downtime period
+        <li> down          - Put the frontend down now(+delay)
+        <li> up            - Get the frontend back up now(+delay)
+        <li> check         - Report if the frontend is in downtime now(+delay)
+    </ul>
+    <p>Additional options that can be given based on the command above are:</p>
+    <ul>
+        <li> -start [[[YYYY-]MM-]DD-]HH:MM[:SS] (start time for adding a downtime)
+        <li> -end [[[YYYY-]MM-]DD-]HH:MM[:SS]   (end time for adding a downtime)
+        <li> -delay [HHh][MMm][SS[s]]            (delay a downtime for down, up, and check cmds)
+    </ul>
+    <p> This script can allow you to have more control over managing downtimes. </p>
+    <p>
+        Please note that the date format is currently very specific.
+        You need to specify dates in the format "YYYY-MM-DD-HH:MM:SS",
+        such as "2011-11-28:23:01:00."
+    </p>
+
 
     </div>
 <div class="footer">
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
 used under Creative Commons license.<br>
-Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glid%0AeinWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
+Original Home URL: <a href="http://glideinwms.fnal.gov">http://glideinwms.fnal.gov</a>.
 glideinWMS email support: glideinwms-support at fnal.gov
 </div>
 </div>

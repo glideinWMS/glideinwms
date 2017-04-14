@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import os
 import sys
-import unittest
+import unittest2 as unittest
+import xmlrunner
 
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
@@ -93,8 +94,6 @@ class TestCondorExe(unittest.TestCase):
         for script in self.abnormal_exit_scripts:
             self.failUnlessRaises(ExeError, exe_cmd_sbin, script, self.dummy_args)
 
-def main():
-    return runTest(TestCondorExe)
 
 if __name__ == '__main__':
-    sys.exit(main())
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output='unittests-reports'))

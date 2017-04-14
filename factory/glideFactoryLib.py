@@ -14,7 +14,7 @@
 #
 
 import os
-import sys
+# import sys
 import time
 import string
 import re
@@ -33,8 +33,8 @@ from glideinwms.lib import x509Support
 from glideinwms.factory import glideFactoryConfig
 
 
-
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
+
 
 ############################################################
 #
@@ -53,9 +53,9 @@ class FactoryConfig:
         self.entry_schedd_attribute = "GlideinEntryName"
         self.client_schedd_attribute = "GlideinClient"
         self.frontend_name_attribute = "GlideinFrontendName"
-        #self.x509id_schedd_attribute = "GlideinX509Identifier"
+        # self.x509id_schedd_attribute = "GlideinX509Identifier"
         self.credential_id_schedd_attribute = "GlideinCredentialIdentifier"
-        #self.x509secclass_schedd_attribute = "GlideinX509SecurityClass"
+        # self.x509secclass_schedd_attribute = "GlideinX509SecurityClass"
         self.credential_secclass_schedd_attribute = "GlideinSecurityClass"
 
         self.factory_startd_attribute = "GLIDEIN_Factory"
@@ -70,16 +70,16 @@ class FactoryConfig:
         self.count_env = 'GLIDEIN_COUNT'
 
         # Stale value settings, in seconds
-        self.stale_maxage = { 1:7 * 24 * 3600, # 1 week for idle
-                            2:31 * 24 * 3600, # 1 month for running
-                           - 1:2 * 3600}         # 2 hours for unclaimed (using special value -1 for this)
+        self.stale_maxage = {1: 7 * 24 * 3600,      # 1 week for idle
+                             2: 31 * 24 * 3600,     # 1 month for running
+                             - 1: 2 * 3600}         # 2 hours for unclaimed (using special value -1 for this)
 
         # Sleep times between commands
         self.submit_sleep = 0.2
         self.remove_sleep = 0.2
         self.release_sleep = 0.2
         
-        self.slots_layout = "fixed"
+        self.slots_layout = "partitionable"
 
         # Max commands per cycle
         self.max_submits = 100
@@ -94,12 +94,12 @@ class FactoryConfig:
         # monitoring objects
         # create them for the logging to occur
         self.client_internals = None
-        self.client_stats = None # this one is indexed by client name
-        self.qc_stats = None     # this one is indexed by security class
+        self.client_stats = None  # this one is indexed by client name
+        self.qc_stats = None      # this one is indexed by security class
         self.log_stats = None
         self.rrd_stats = None
 
-        self.supported_signtypes = ['sha1']
+        self.supported_signtypes = ['sha1', 'sha256']
 
         # who am I
         self.factory_name = None
@@ -143,13 +143,13 @@ class FactoryConfig:
 # global configuration of the module
 factoryConfig = FactoryConfig()
 
+
 ############################################################
-#
 def secClass2Name(client_security_name, proxy_security_class):
     return "%s_%s" % (client_security_name, proxy_security_class)
 
 ############################################################
-#
+
 
 ############################################################
 #
@@ -179,12 +179,16 @@ def getCondorQData(entry_name, client_name, schedd_name, factoryConfig=None):
          factoryConfig.glidein_schedd_attribute, factoryConfig.glidein_name,
          factoryConfig.entry_schedd_attribute, entry_name, client_constraint,
          factoryConfig.credential_id_schedd_attribute)
-    q_glidein_format_list = [("JobStatus", "i"), ("GridJobStatus", "s"), ("ServerTime", "i"), ("EnteredCurrentStatus", "i"),
-                             (factoryConfig.credential_id_schedd_attribute, "s"), ("HoldReasonCode", "i"), ("HoldReasonSubCode", "i"),
-                           ("NumSystemHolds","i"),
-                             (factoryConfig.frontend_name_attribute, "s"),
-                             (factoryConfig.client_schedd_attribute, "s"),
-                             (factoryConfig.credential_secclass_schedd_attribute, "s")]
+    q_glidein_format_list = [
+        ("JobStatus", "i"), ("GridJobStatus", "s"), ("ServerTime", "i"),
+        ("EnteredCurrentStatus", "i"),
+        (factoryConfig.credential_id_schedd_attribute, "s"),
+        ("HoldReasonCode", "i"), ("HoldReasonSubCode", "i"),
+        ("HoldReason","s"), ("NumSystemHolds","i"),
+        (factoryConfig.frontend_name_attribute, "s"),
+        (factoryConfig.client_schedd_attribute, "s"),
+        (factoryConfig.credential_secclass_schedd_attribute, "s")
+    ]
 
     q = condorMonitor.CondorQ(schedd_name)
     q.factory_name = factoryConfig.factory_name
@@ -789,12 +793,23 @@ def sanitizeGlideins(condorq, log=logSupport.log, factoryConfig=None):
         removeGlideins(condorq.schedd_name, runstale_list,
                        log=log, factoryConfig=factoryConfig)
 
+    # Check if there are held glideins that are not recoverable AND held for more than 20 iterations
+    unrecoverable_held_forcex_list = extractUnrecoverableHeldForceX(condorq)
+    if len(unrecoverable_held_forcex_list) > 0:
+        glideins_sanitized = 1
+        log.warning("Found %i unrecoverable held glideins that have been held for over 20 iterations" 
+                    % len(unrecoverable_held_forcex_list))
+        removeGlideins(condorq.schedd_name, unrecoverable_held_forcex_list,
+                       force=True, log=log, factoryConfig=factoryConfig)
+
     # Check if there are held glideins that are not recoverable
     unrecoverable_held_list = extractUnrecoverableHeldSimple(condorq)
     if len(unrecoverable_held_list) > 0:
         glideins_sanitized = 1
         log.warning("Found %i unrecoverable held glideins" % len(unrecoverable_held_list))
-        removeGlideins(condorq.schedd_name, unrecoverable_held_list,
+        unrecoverable_held_list_minus_forcex = list( set(unrecoverable_held_list) - set(unrecoverable_held_forcex_list) )
+        log.warning("But removing only %i (unrecoverable held - unrecoverable held forcex)" % len(unrecoverable_held_list_minus_forcex))
+        removeGlideins(condorq.schedd_name, unrecoverable_held_list_minus_forcex,
                        force=False, log=log, factoryConfig=factoryConfig)
 
     # Check if there are held glideins
@@ -980,6 +995,13 @@ def extractUnrecoverableHeldSimple(q, factoryConfig=None):
     qheld_list = qheld.keys()
     return qheld_list
 
+def extractUnrecoverableHeldForceX(q, factoryConfig=None):
+    #  Held==5 and glideins are not recoverable AND been held for more than 20 iterations
+    qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and isGlideinUnrecoverable(el, factoryConfig=factoryConfig) 
+                                     and isGlideinHeldNTimes(el, factoryConfig=factoryConfig, n=20)))
+    qheld_list = qheld.keys()
+    return qheld_list
+
 def extractRecoverableHeldSimple(q, factoryConfig=None):
     #  Held==5 and glideins are recoverable
     #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
@@ -1103,10 +1125,7 @@ def escapeParam(param_str):
     global escape_table
     out_str = ""
     for c in param_str:
-        if escape_table.has_key(c):
-            out_str = out_str + escape_table[c]
-        else:
-            out_str = out_str + c
+        out_str = out_str + escape_table.get(c, c)
     return out_str
 
 
@@ -1133,7 +1152,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
     submitted_jids = []
 
     try:
-        exe_env = get_submit_environment(entry_name, client_name,
+        entry_env = get_submit_environment(entry_name, client_name,
                                          submit_credentials, client_web,
                                          params, log=log,
                                          factoryConfig=factoryConfig)
@@ -1143,29 +1162,35 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
         log.exception(msg)
         raise RuntimeError, msg
 
+    if username != MY_USERNAME:
+        # Use privsep
+        # need to push all the relevant env variables through
+        for var in os.environ:
+            if ((var in ('PATH', 'LD_LIBRARY_PATH', 'X509_CERT_DIR')) or
+                (var[:8] == '_CONDOR_') or (var[:7] == 'CONDOR_')):
+                try:
+                    entry_env.append('%s=%s' % (var, os.environ[var]))
+                except KeyError:
+                    msg = """KeyError: '%s' not found in execution envrionment!!""" % (var)
+                    log.warning(msg)
     try:
         nr_submitted = 0
         while (nr_submitted < nr_glideins):
+            sub_env = []
             if nr_submitted != 0:
                 time.sleep(factoryConfig.submit_sleep)
 
             nr_to_submit = (nr_glideins - nr_submitted)
             if nr_to_submit > factoryConfig.max_cluster_size:
                 nr_to_submit = factoryConfig.max_cluster_size
-
-            exe_env.append('GLIDEIN_COUNT=%s' % nr_to_submit)
-            exe_env.append('GLIDEIN_FRONTEND_NAME=%s' % frontend_name)
+            sub_env.append('GLIDEIN_COUNT=%s' % nr_to_submit)
+            sub_env.append('GLIDEIN_FRONTEND_NAME=%s' % frontend_name)
+            exe_env = entry_env + sub_env
 
             # check to see if the username for the proxy is 
             # same as the factory username
             if username != MY_USERNAME:
                 # Use privsep
-                # need to push all the relevant env variables through
-                for var in os.environ:
-                    if ((var in ('PATH', 'LD_LIBRARY_PATH', 'X509_CERT_DIR')) or
-                        (var[:8] == '_CONDOR_') or (var[:7] == 'CONDOR_')):
-                        if var in os.environ:
-                            exe_env.append('%s=%s' % (var, os.environ[var]))
                 try:
                     args = ["condor_submit", "-name",
                             schedd, "entry_%s/job.condor" % entry_name]
@@ -1235,6 +1260,7 @@ def removeGlideins(schedd_name, jid_list, force=False, log=logSupport.log,
             time.sleep(factoryConfig.remove_sleep)
 
         try:
+            # this will put a job in X state so that the next condor_rm --forcex below should work
             condorManager.condorRemoveOne("%li.%li" % (jid[0], jid[1]), schedd_name)
             removed_jids.append(jid)
 
@@ -1249,7 +1275,6 @@ def removeGlideins(schedd_name, jid_list, force=False, log=logSupport.log,
         except condorExe.ExeError, e:
             # silently ignore errors, and try next one
             log.warning("removeGlidein(%s,%li.%li): %s" % (schedd_name, jid[0], jid[1], e))
-
 
     log.info("Removed %i glideins on %s: %s" % (len(removed_jids), schedd_name, removed_jids))
 
@@ -1269,6 +1294,9 @@ def releaseGlideins(schedd_name, jid_list, log=logSupport.log,
 
     is_not_first = 0
     for jid in jid_list:
+        if len(released_jids) > factoryConfig.max_releases:
+            break # limit reached, stop
+
         if is_not_first:
             is_not_first = 1
             time.sleep(factoryConfig.release_sleep)
@@ -1278,9 +1306,15 @@ def releaseGlideins(schedd_name, jid_list, log=logSupport.log,
         except condorExe.ExeError, e:
             log.warning("releaseGlidein(%s,%li.%li): %s" % (schedd_name, jid[0], jid[1], e))
 
-        if len(released_jids) >= factoryConfig.max_releases:
-            break # limit reached, stop
     log.info("Released %i glideins on %s: %s" % (len(released_jids), schedd_name, released_jids))
+
+
+def in_submit_environment(entry_name, exe_env):
+    upper_name = "%s=" % entry_name.upper()
+    for i in exe_env:
+        if i.startswith(upper_name):
+            return True
+    return False
 
 
 def get_submit_environment(entry_name, client_name, submit_credentials,
@@ -1302,6 +1336,10 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
             params_str = " ".join(client_web.get_glidein_args())
         # add all the params to the argument string
         for k, v in params.iteritems():
+            # Remove the null parameters and warn
+            if not str(v).strip():
+                log.warning('Skipping empty job parameter (%s)' % k)
+                continue
             params_str += " -param_%s %s" % (k, escapeParam(str(v)))
 
         exe_env = ['GLIDEIN_ENTRY_NAME=%s' % entry_name]
@@ -1373,6 +1411,15 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
 
         if grid_type.startswith('batch '):
             log.debug("submit_credentials.security_credentials: %s" % str(submit_credentials.security_credentials))
+            # TODO: username, should this be only for batch or all key pair + username/password?
+            try:
+                # is always there and not empty for batch (is optional w/ Key pair or Username/password
+                # otherways could not be there (KeyError), be empty (AttributeError), bad format (IndexError)
+                remote_username = submit_credentials.identity_credentials["RemoteUsername"]
+                if remote_username:
+                    exe_env.append('GLIDEIN_REMOTE_USERNAME=%s' % remote_username)
+            except KeyError:
+                pass
             exe_env.append('GRID_RESOURCE_OPTIONS=--rgahp-key %s --rgahp-nopass' % submit_credentials.security_credentials["PrivateKey"])
             exe_env.append('X509_USER_PROXY=%s' % submit_credentials.security_credentials["GlideinProxy"])
             exe_env.append('X509_USER_PROXY_BASENAME=%s' % os.path.basename(submit_credentials.security_credentials["GlideinProxy"]))
@@ -1468,6 +1515,7 @@ email_logs = False
             if 'project_id' in jobDescript.data['AuthMethod']:
                 # Append project id to the rsl
                 glidein_rsl = '%s(project=%s)' % (glidein_rsl, submit_credentials.identity_credentials['ProjectId'])
+                exe_env.append('GLIDEIN_PROJECT_ID=%s' % submit_credentials.identity_credentials['ProjectId'])
 
             exe_env.append('GLIDEIN_RSL=%s' % glidein_rsl)
 
@@ -1556,30 +1604,70 @@ def isGlideinUnrecoverable(jobInfo, factoryConfig=None):
     if factoryConfig is None:
         factoryConfig = globals()['factoryConfig']
 
-
     unrecoverable = False
     # Dictionary of {HeldReasonCode: HeldReasonSubCode}
     unrecoverableCodes = {2: [ 0, 2, 4, 5, 7, 8, 9, 10, 14, 17,
                                22, 27, 28, 31, 37, 47, 48,
                                72, 76, 81, 86, 87,
                                121, 122 ]}
+    # adding 3 more reasons that were observed that have zeros for both HoldReasonCode/SubCode
+    unrecoverable_reason_str = ['Failed to authenticate with any method', 'Job cancel did not succeed after 3 tries', 'The spot instance request ID does not exist', 'Request limit exceeded']
 
-    if jobInfo.has_key('HoldReasonCode') and jobInfo.has_key('HoldReasonSubCode'):
-        code = jobInfo['HoldReasonCode']
-        subCode = jobInfo['HoldReasonSubCode']
+    code = jobInfo.get('HoldReasonCode')
+    subCode = jobInfo.get('HoldReasonSubCode')
+    holdreason = jobInfo.get('HoldReason')
+    # Based on HoldReasonCode and HoldReasonSubCode check if the job is recoverable
+    if (code is not None) and (subCode is not None):
         if ( (code in unrecoverableCodes) and 
              (subCode in unrecoverableCodes[code]) ):
             unrecoverable = True
+        # As of HTCondor 8.4.4 in case of glideins submitted to AWS and CondorCE
+        # have the HoldReasonCode = HoldReasonSubCode = 0 but HoldReason is
+        # populated correctly 
+        elif (code == 0) and (subCode == 0) and (holdreason is not None):
+            for rs in unrecoverable_reason_str:
+                if holdreason.find(rs) != -1:
+                    # unrecoverable substring match
+                    unrecoverable = True
+                    break
 
-    num_holds=1
-    if jobInfo.has_key('JobStatus') and jobInfo.has_key('NumSystemHolds'):
-        if jobInfo['JobStatus']==5:
-            num_holds=jobInfo['NumSystemHolds']
-
-    if num_holds>factoryConfig.max_release_count:
-        unrecoverable = True
+    # Following check with NumSystemHolds should only apply to recoverable jobs
+    # If we have determined that job is unrecoverable, skip these checks
+    if not unrecoverable:
+        num_holds=1
+        job_status = jobInfo.get('JobStatus')
+        num_system_holds = jobInfo.get('NumSystemHolds')
+        if (job_status is not None) and (num_system_holds is not None):
+            if job_status == 5:
+                num_holds = num_system_holds
+        if num_holds>factoryConfig.max_release_count:
+            unrecoverable = True
 
     return unrecoverable
+
+
+def isGlideinHeldNTimes(jobInfo, factoryConfig=None, n=20):
+    """
+    This function looks at the glidein job's information and returns if the
+    CondorG job is held for more than N(defaults to 20) iterations
+
+    This is useful to remove Unrecoverable glidein (CondorG job) with forcex option.
+
+    @type jobInfo: dictionary
+    @param jobInfo: Dictionary containing glidein job's classad information
+
+    @rtype: bool
+    @return: True if job is held more than N(defaults to 20) iterations, False if otherwise.
+    """
+    if factoryConfig is None:
+        factoryConfig = globals()['factoryConfig']
+
+    greater_than_n_iterations = False
+    nsysholds  = jobInfo.get('NumSystemHolds')
+    if nsysholds > n:
+        greater_than_n_iterations = True
+
+    return greater_than_n_iterations
 
 ############################################################
 # only allow simple strings

@@ -74,6 +74,7 @@ SCRIPT_NAME="`basename $0`"
 
 
 if [ "$RPM_INSTALL" = "True" ]; then
+    . /etc/rc.d/init.d/functions
     # RPM installation (defaults and binaries)
     LOG_FILE_STARTUP=/var/log/gwms-frontend/frontend/startup.log
     DEFAULT_WRITEBACK=no
@@ -82,6 +83,7 @@ if [ "$RPM_INSTALL" = "True" ]; then
     FRONTEND_START=${BIN_DIR}glideinFrontend
     FRONTEND_STOP=${BIN_DIR}stopFrontend
     FRONTEND_CHECK=${BIN_DIR}checkFrontend
+    FRONTEND_DOWNTIMES="${BIN_DIR}manageFrontendDowntimes.py"
     # Overriding variables values for RPM installation
     frontend_dir=/var/lib/gwms-frontend/vofrontend
     glideinWMS_dir=$frontend_dir
@@ -95,6 +97,7 @@ else
     FRONTEND_START=${BIN_DIR}glideinFrontend.py
     FRONTEND_STOP=${BIN_DIR}stopFrontend.py
     FRONTEND_CHECK=${BIN_DIR}checkFrontend.py
+    FRONTEND_DOWNTIMES="${BIN_DIR}manageFrontendDowntimes.py"
 fi
 
 check_installed () {
@@ -248,7 +251,13 @@ start() {
             return $RETVAL
         fi
 
-        invoke_as_frontend "nice -2 \"${FRONTEND_START}\" \"$frontend_dir\" 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
+	if [ "$RPM_INSTALL" = "True" ]; then
+            # forcing daemon to continue, the frontend will check the pidfile
+            daemon --user $FRONTEND_USER --force --pidfile="$frontend_dir/lock/frontend.lock" -2 "${FRONTEND_START} $frontend_dir 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
+	else
+            invoke_as_frontend "nice -2 \"${FRONTEND_START}\" \"$frontend_dir\" 2>$LOG_FILE_STARTUP 1>&2 </dev/null &"
+	fi
+
         for i in {1..15}; do  # Use seq if a variable is needed: $(seq 1 $END)
             # Returns 0 if running, 1 if not
             "${FRONTEND_CHECK}" "$frontend_dir" >/dev/null 2>&1 </dev/null
@@ -474,6 +483,17 @@ upgrade() {
         fi
 }
 
+downtime() {
+    if   [ "$1" == "down" ]; then
+        echo -n "Setting downtime..."
+    elif [ "$1" == "up" ]; then
+        echo -n "Removing downtime..."
+    fi
+
+    "$FRONTEND_DOWNTIMES" -cmd $1 -dir "$frontend_dir"     "$@"   </dev/null && success || failure
+    RETVAL=$?
+    echo
+}
 
 case $1 in
         start)
@@ -501,6 +521,16 @@ case $1 in
             #fi
             upgrade $2
             ;;
+        down)
+            downtime down "$@"
+            ;;
+         up)
+            downtime up   "$@"
+            ;;
+    statusdown)
+        "$FRONTEND_DOWNTIMES" -cmd check -dir "$frontend_dir" "$@"
+        RETVAL=$?
+        ;;
         *)
             help_usage
             exit $RET_NOT_IMPLEMENTED

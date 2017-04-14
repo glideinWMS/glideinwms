@@ -5,6 +5,7 @@ import cPickle
 import copy
 
 from glideinwms.lib import hashCrypto
+from glideinwms.lib import util
 
 #
 # Project:
@@ -15,6 +16,7 @@ from glideinwms.lib import hashCrypto
 # Description:
 #   Frontend config related classes
 #
+
 
 ############################################################
 #
@@ -36,7 +38,7 @@ class FrontendConfig:
         self.history_file = "history.pk"
 
 # global configuration of the module
-frontendConfig=FrontendConfig()
+frontendConfig = FrontendConfig()
 
 
 ############################################################
@@ -44,8 +46,8 @@ frontendConfig=FrontendConfig()
 # Helper function
 #
 ############################################################
-def get_group_dir(base_dir,group_name):
-    return os.path.join(base_dir,"group_"+group_name)
+def get_group_dir(base_dir, group_name):
+    return os.path.join(base_dir, "group_"+group_name)
 
 
 ############################################################
@@ -177,7 +179,11 @@ class ParamsDescript(JoinConfigFile):
         for k in self.data.keys():
             type_str,val=self.data[k]
             if type_str=='EXPR':
-                self.expr_objs[k]=compile(val,"<string>","eval")
+                try:
+                    self.expr_objs[k] = compile(val,"<string>","eval")
+                except SyntaxError:
+                    self.expr_objs[k] = '""'
+                    raise RuntimeError, "Syntax error in parameter %s" % k
                 self.expr_data[k]=val
             elif type_str=='CONST':
                 self.const_data[k]=val
@@ -273,14 +279,17 @@ class ElementMergedDescript:
                     self.merged_data[t]=data[t]
 
         proxies=[]
-        for data in (self.frontend_data,self.element_data):
+        # switching the order, so that the group credential will 
+        # be chosen before the global credential when ProxyFirst is used.
+        for data in (self.element_data,self.frontend_data):
             if data.has_key('Proxies'):
                 proxies+=eval(data['Proxies'])
         self.merged_data['Proxies']=proxies
 
         proxy_descript_attrs=['ProxySecurityClasses','ProxyTrustDomains',
-            'ProxyTypes','ProxyKeyFiles','ProxyPilotFiles','ProxyVMIds',
-            'ProxyVMTypes','ProxyCreationScripts','ProxyUpdateFrequency']
+                              'ProxyTypes','ProxyKeyFiles','ProxyPilotFiles','ProxyVMIds',
+                              'ProxyVMTypes','ProxyCreationScripts','ProxyUpdateFrequency',
+                              'ProxyRemoteUsernames', 'ProxyProjectIds']
 
         for attr in proxy_descript_attrs:
             proxy_descript_data={}
@@ -393,6 +402,7 @@ class MergeStageFiles:
 
         return main_cv
 
+
 ############################################################
 #
 # The FrontendGroups may want to preserve some state between
@@ -406,14 +416,16 @@ class MergeStageFiles:
 ############################################################
 
 class HistoryFile:
-    def __init__(self, base_dir, group_name, load_on_init = True,
+    def __init__(self, base_dir, group_name, load_on_init=True,
                  default_factory=None):
         """
-        The default_factory semantics is the same as the one in collections.defaultdict
+        The default_factory semantics is the same as the one in
+        collections.defaultdict
         """
         self.base_dir = base_dir
         self.group_name = group_name
-        self.fname = os.path.join(get_group_dir(base_dir, group_name), frontendConfig.history_file)
+        self.fname = os.path.join(get_group_dir(base_dir, group_name),
+                                  frontendConfig.history_file)
         self.default_factory = default_factory
 
         # cannot use collections.defaultdict directly
@@ -423,13 +435,10 @@ class HistoryFile:
         if load_on_init:
             self.load()
 
-    def load(self, raise_on_error = False):
+    def load(self, raise_on_error=False):
         try:
-            fd = open(self.fname,'r')
-            try:
-                data = cPickle.load(fd)
-            finally:
-                fd.close()
+            # using it only for convenience (expiration, ... not used)
+            data = util.file_pickle_load(self.fname)
         except:
             if raise_on_error:
                 raise
@@ -439,28 +448,26 @@ class HistoryFile:
 
         if type(data) != type({}):
             if raise_on_error:
-                raise TypeError, "History object not a dictionary: %s" % str(type(data))
+                raise TypeError("History object not a dictionary: %s" % str(type(data)))
             else:
                 # default to empty history on error
                 data = {}
 
         self.data = data
 
-    def save(self, raise_on_error = False):
+    def save(self, raise_on_error=False):
+        # There is no concurrency, so does not need to be done atomically
+        # Anyway we want to avoid to write an empty file on top of a
+        # saved state because of an exception
         try:
-            # there is no concurrency, so does not need to be done atomically
-            fd = open(self.fname, 'w')
-            try:
-                cPickle.dump(self.data, fd, cPickle.HIGHEST_PROTOCOL)
-            finally:
-                fd.close()
+            util.file_pickle_dump(self.fname, self.data)
         except:
             if raise_on_error:
                 raise
-            #else, just ignore
+            # else, just ignore
 
     def has_key(self, keyid):
-        return self.data.has_key(keyid)
+        return (keyid in self.data)
 
     def __contains__(self, keyid):
         return (keyid in self.data)
@@ -468,9 +475,9 @@ class HistoryFile:
     def __getitem__(self, keyid):
         try:
             return self.data[keyid]
-        except KeyError,e:
+        except KeyError, e:
             if self.default_factory is None:
-                raise # no default initialization, just fail
+                raise  # no default initialization, just fail
             # i have the initialization function, use it
             self.data[keyid] = self.default_factory()
             return self.data[keyid]

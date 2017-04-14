@@ -160,41 +160,64 @@ def load_group_dicts(group_dicts,                   # update in place
     # all others are keyed in the description
     load_common_dicts(group_dicts,group_dicts['description'])
 
+
 ############################################################
 #
 # Functions that create data out of the existing dictionary
 #
 ############################################################
 
-def refresh_description(dicts): # update in place
-    description_dict=dicts['description']
-    description_dict.add(dicts['signature'].get_fname(),"signature",allow_overwrite=True)
-    for k in ('preentry_file_list','file_list','aftergroup_preentry_file_list','aftergroup_file_list'):
+def refresh_description(dicts):  # update in place
+    description_dict = dicts['description']
+    description_dict.add(dicts['signature'].get_fname(), "signature", allow_overwrite=True)
+    for k in ('preentry_file_list', 'file_list', 'aftergroup_preentry_file_list', 'aftergroup_file_list'):
         if dicts.has_key(k):
-            description_dict.add(dicts[k].get_fname(),k,allow_overwrite=True)
+            description_dict.add(dicts[k].get_fname(), k, allow_overwrite=True)
 
-def refresh_file_list(dicts,is_main, # update in place
-                      files_set_readonly=True,files_reset_changed=True):
-    file_dict=dicts['preentry_file_list']
-    file_dict.add(cWConsts.CONSTS_FILE,(dicts['consts'].get_fname(),"regular","TRUE","CONSTS_FILE",dicts['consts'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
-    file_dict.add(cWConsts.VARS_FILE,(dicts['vars'].get_fname(),"regular","TRUE","CONDOR_VARS_FILE",dicts['vars'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
-    file_dict.add(cWConsts.UNTAR_CFG_FILE,(dicts['untar_cfg'].get_fname(),"regular","TRUE","UNTAR_CFG_FILE",dicts['untar_cfg'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
+
+def refresh_file_list(dicts, is_main,  # update in place
+                      files_set_readonly=True, files_reset_changed=True):
+    file_dict = dicts['preentry_file_list']
+    file_dict.add_from_str(
+            cWConsts.CONSTS_FILE,
+            cWDictFile.FileDictFile.make_val_tuple(dicts['consts'].get_fname(), 'regular', config_out='CONSTS_FILE'),
+            dicts['consts'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
+            allow_overwrite=True
+    )
+    file_dict.add_from_str(
+            cWConsts.VARS_FILE,
+            cWDictFile.FileDictFile.make_val_tuple(dicts['vars'].get_fname(), 'regular', config_out='CONDOR_VARS_FILE'),
+            dicts['vars'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
+            allow_overwrite=True
+    )
+    file_dict.add_from_str(
+            cWConsts.UNTAR_CFG_FILE,
+            cWDictFile.FileDictFile.make_val_tuple(dicts['untar_cfg'].get_fname(), 'regular', config_out='UNTAR_CFG_FILE'),
+            dicts['untar_cfg'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
+            allow_overwrite=True
+    )
     if is_main:
-        file_dict.add(cWConsts.GRIDMAP_FILE,(dicts['gridmap'].get_fname(),"regular","TRUE","GRIDMAP",dicts['gridmap'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
+        file_dict.add_from_str(
+                cWConsts.GRIDMAP_FILE,
+                cWDictFile.FileDictFile.make_val_tuple(dicts['gridmap'].get_fname(), 'regular', config_out='GRIDMAP'),
+                dicts['gridmap'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
+                allow_overwrite=True
+        )
+
 
 # dictionaries must have been written to disk before using this
-def refresh_signature(dicts): # update in place
-    signature_dict=dicts['signature']
+def refresh_signature(dicts):  # update in place
+    signature_dict = dicts['signature']
     for k in ('consts','vars','untar_cfg','gridmap','preentry_file_list','file_list','aftergroup_preentry_file_list','aftergroup_file_list','description'):
         if dicts.has_key(k):
             signature_dict.add_from_file(dicts[k].get_filepath(),allow_overwrite=True)
     # add signatures of all the files linked in the lists
-    for k in ('preentry_file_list','file_list','aftergroup_preentry_file_list','aftergroup_file_list'):
+    for k in ('preentry_file_list', 'file_list', 'aftergroup_preentry_file_list', 'aftergroup_file_list'):
         if dicts.has_key(k):
-            filedict=dicts[k]
+            filedict = dicts[k]
             for fname in filedict.get_immutable_files():
-                signature_dict.add_from_file(os.path.join(filedict.dir,fname),allow_overwrite=True)
-    
+                signature_dict.add_from_file(os.path.join(filedict.dir, fname), allow_overwrite=True)
+
 
 ################################################
 #

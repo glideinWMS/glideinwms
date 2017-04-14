@@ -4,7 +4,8 @@ import sys
 import shutil
 import tempfile
 import tarfile
-import unittest
+import unittest2 as unittest
+import xmlrunner
 
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
@@ -111,8 +112,6 @@ class TestTarSupport(unittest.TestCase):
             self.assertTrue(f in self.strings.keys(), "a file was found that doesn't exist in the keys for the strings files")
             self.assertTrue(file_contents == self.strings[f], "a file was found that doesn't exist in the keys for the strings files")
 
-def main():
-    return runTest(TestTarSupport)
 
 if __name__ == '__main__':
-    sys.exit(main())
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output='unittests-reports'))

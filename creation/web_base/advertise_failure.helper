@@ -131,19 +131,23 @@ EOF
 else # if [ "${act_type}" == "INVALIDATE" ]
   if [ "$destination" = "VO" ]; then
     # Deadvertise
+    # Brian suggested to send the name instead of the query - more efficient
+    #MyType = "Query"
+    #TargetType = "Machine"
+    #Requirements =  Name == "${slot_name}@${host_name}"
     cat >  ${startd_classad_fname} << EOF
-MyType = "Query"
-TargetType = "Machine"
-Requirements =  Name == "${slot_name}@${host_name}"
+Name = "${slot_name}@${host_name}"
 EOF
 
     ${condor_advertise} -tcp INVALIDATE_STARTD_ADS ${startd_classad_fname}
     rc=$?
   else
+    # Brian suggested to send the name instead of the query - more efficient
+    #MyType = "Query"
+    #TargetType = "DaemonMaster"
+    #Requirements =  Name == "${slot_name}@${host_name}"
     cat >  ${factory_classad_fname} << EOF
-MyType = "Query"
-TargetType = "DaemonMaster"
-Requirements =  Name == "${slot_name}@${host_name}"
+Name = "${slot_name}@${host_name}"
 EOF
 
     # condor_advertise -pool does not seem to work, so use the environment instead

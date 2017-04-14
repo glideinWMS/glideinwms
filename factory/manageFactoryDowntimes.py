@@ -93,23 +93,23 @@ def str2time(timeStr):
 
 # Create an array for each value in the frontend descript file
 def get_security_classes(factory_dir):
-    sec_array=[];
+    sec_array=[]
     frontendDescript=glideFactoryConfig.ConfigFile(factory_dir+"/frontend.descript",lambda s:s)
     for fe in frontendDescript.data.keys():
         for sec_class in frontendDescript.data[fe]['usermap']:
-            sec_array.append(sec_class);
-    return sec_array;
+            sec_array.append(sec_class)
+    return sec_array
 
 # Create an array for each frontend in the frontend descript file
 def get_frontends(factory_dir):
     frontendDescript=glideFactoryConfig.ConfigFile(factory_dir+"/frontend.descript",lambda s:s)
-    return frontendDescript.data.keys();
+    return frontendDescript.data.keys()
 
 # Create an array for each entry in the glidein descript file
 def get_entries(factory_dir):
     glideinDescript=glideFactoryConfig.GlideinDescript()
     #glideinDescript=glideFactoryConfig.ConfigFile(factory_dir+"/glidein.descript",lambda s:s)
-    return string.split(glideinDescript.data['Entries'],',');
+    return string.split(glideinDescript.data['Entries'],',')
 #
 #
 def get_downtime_fd(entry_name,cmdname):
@@ -175,7 +175,7 @@ def down(entry_name,opt_dict):
     if (opt_dict["start"]=="None"):
         when+=long(time.time())
     else:
-        when+=str2time(opt_dict["start"]);
+        when+=str2time(opt_dict["start"])
     if (opt_dict["end"]=="None"):
         end_time=None
     else:
@@ -198,7 +198,7 @@ def up(entry_name,opt_dict):
     if (opt_dict["end"]=="None"):
         when+=long(time.time())
     else:
-        when+=str2time(opt_dict["end"]);
+        when+=str2time(opt_dict["end"])
     # commenting this check out since we could be in a downtime
     # for certain security_classes/frontend, but if we specify
     # -cmd up and -security All, etc, it should clear out all downtimes
@@ -383,10 +383,10 @@ def get_args(argv):
         if (arg == "-factory"):
             opt_dict["entry"]="factory"
         if (len(argv)<=index+1):
-            continue;
+            continue
         #Change lowercase all to All so checks for "All" work
         if (argv[index+1].lower()=="all"):
-            argv[index+1]="All";
+            argv[index+1]="All"
         if (arg == "-cmd"):
             opt_dict["cmd"]=argv[index+1]
         if (arg == "-dir"):
@@ -408,7 +408,7 @@ def get_args(argv):
         if (arg == "-frontend"):
             opt_dict["frontend"]=argv[index+1]
         index=index+1
-    return opt_dict;
+    return opt_dict
 
 def main(argv):
     if len(argv)<3:
@@ -433,22 +433,22 @@ def main(argv):
             if (comments == ""):
                 raise KeyError
     except KeyError, e:
-        usage();
+        usage()
         print "-cmd -dir and -entry arguments are required."
         if (mandatory_comments):
             print "Mandatory comments are enabled.  add -comment."
-        return 1;
+        return 1
     if (opt_dict["sec"]!="All"):
         if (not (opt_dict["sec"] in get_security_classes(factory_dir))):
-            print "Invalid security class";
-            print "Valid security classes are: ";
+            print "Invalid security class"
+            print "Valid security classes are: "
             for sec_class in get_security_classes(factory_dir):
                 print sec_class
             return 1
     if (opt_dict["frontend"]!="All"):
         if (not (opt_dict["frontend"] in get_frontends(factory_dir))):
-            print "Invalid frontend identity:";
-            print "Valid frontends are: ";
+            print "Invalid frontend identity:"
+            print "Valid frontends are: "
             for fe in get_frontends(factory_dir):
                 print fe
             return 1
@@ -463,13 +463,13 @@ def main(argv):
 
     #Verify Entry is an actual entry
     if (opt_dict["entry"].lower()=="entries"):
-        opt_dict["entries"]="true";
-        opt_dict["entry"]="All";
-        entry_name="All";
+        opt_dict["entries"]="true"
+        opt_dict["entry"]="All"
+        entry_name="All"
     if ((opt_dict["entry"]!="All")and(opt_dict["entry"]!="factory")):
         if (not (opt_dict["entry"] in get_entries(factory_dir))):
-            print "Invalid entry name";
-            print "Valid entries are:";
+            print "Invalid entry name"
+            print "Valid entries are:"
             for entry in get_entries(factory_dir):
                 print entry
             return 1

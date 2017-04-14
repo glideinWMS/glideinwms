@@ -337,6 +337,9 @@ class CommonParams(Params):
         self.file_defaults["executable"]=("False",'Bool','Is this an executable that needs to be run in the glidein?',None)
         self.file_defaults["wrapper"]=("False",'Bool','Is this a wrapper script that needs to be sourced in the glidein job wrapper?',None)
         self.file_defaults["untar"]=("False",'Bool','Do I need to untar it? ',None)
+        self.file_defaults["period"]=(0,'int','Re-run the executable every "period" seconds if > 0.',None)
+        self.file_defaults["prefix"]=("GLIDEIN_PS_",'string','Prefix used for periodic jobs (STARTD_CRON).',None)
+        # to add check scripts around jobs: self.file_defaults["job_wrap"]=("no","pre|post|no",'Run the executable before (pre) or after (post) each job.',None)
 
         untar_defaults=commentedOrderedDict()
         untar_defaults["cond_attr"]=("TRUE","attrname","If not the special value TRUE, the attribute name used at runtime to determine if the file should be untarred or not.",None)

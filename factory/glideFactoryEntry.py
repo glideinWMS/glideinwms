@@ -33,6 +33,7 @@ from glideinwms.factory import glideFactoryLogParser
 from glideinwms.factory import glideFactoryDowntimeLib
 from glideinwms.factory import glideFactoryCredentials
 from glideinwms.lib import logSupport
+from glideinwms.lib import util
 from glideinwms.lib import classadSupport
 from glideinwms.lib import glideinWMSVersion
 from glideinwms.lib import cleanupSupport
@@ -58,11 +59,13 @@ class Entry:
         @param frontend_descript: Security mappings for frontend identities,
         security classes, and usernames for privsep
         """
-
+        self.limits_triggered={}
         self.name = name
         self.startupDir = startup_dir
         self.glideinDescript = glidein_descript
         self.frontendDescript = frontend_descript
+
+        self.signatures = glideFactoryConfig.SignatureFile()
 
         self.jobDescript = glideFactoryConfig.JobDescript(name)
         self.jobAttributes = glideFactoryConfig.JobAttributes(name)
@@ -188,7 +191,6 @@ class Entry:
         write_descript(self.name, self.jobDescript, self.jobAttributes,
                        self.jobParams, self.monitorDir)
 
-
     def loadContext(self):
         """
         Load context for this entry object so monitoring and logs are
@@ -209,7 +211,7 @@ class Entry:
         # This will be a comma-delimited list of pairs
         # vofrontendname:security_class,vofrontend:sec_class, ...
         self.frontendWhitelist = self.jobDescript.data['WhitelistMode']
-        self.securityList = {};
+        self.securityList = {}
         if (self.frontendWhitelist == "On"):
             allowed_vos = ''
             if self.jobDescript.has_key('AllowedVOs'):
@@ -218,9 +220,9 @@ class Entry:
             for entry in frontend_allow_list:
                 entry_part = entry.split(":");
                 if (entry_part[0] in self.securityList):
-                    self.securityList[entry_part[0]].append(entry_part[1]);
+                    self.securityList[entry_part[0]].append(entry_part[1])
                 else:
-                    self.securityList[entry_part[0]] = [entry_part[1]];
+                    self.securityList[entry_part[0]] = [entry_part[1]]
         #self.allowedProxySource = self.glideinDescript.data['AllowedJobProxySource'].split(',')
 
 
@@ -371,7 +373,6 @@ class Entry:
             self.log.warning("getCondorQData failed, traceback: %s"%string.join(tb,''))
             raise e
 
-
     def glideinsWithinLimits(self, condorQ):
         """
         Check the condorQ info and see we are within limits & init entry limits
@@ -393,20 +394,93 @@ class Entry:
         if self.glideinTotals.has_entry_exceeded_max_idle():
             self.log.warning("Entry %s has hit the limit for idle glideins, cannot submit any more" % self.name)
             can_submit_glideins = False
-
         # Check if entry has exceeded max glideins
-        if (can_submit_glideins and
-            self.glideinTotals.has_entry_exceeded_max_glideins()):
+        if can_submit_glideins and self.glideinTotals.has_entry_exceeded_max_glideins():
             self.log.warning("Entry %s has hit the limit for total glideins, cannot submit any more" % self.name)
             can_submit_glideins = False
 
         # Check if entry has exceeded max held
-        if (can_submit_glideins and
-            self.glideinTotals.has_entry_exceeded_max_held()):
+        if can_submit_glideins and self.glideinTotals.has_entry_exceeded_max_held():
             self.log.warning("Entry %s has hit the limit for held glideins, cannot submit any more" % self.name)
             can_submit_glideins = False
 
+        # set limits_triggered here so that it can be getStated and setStated later
+        glideinTotals = self.glideinTotals
+        if glideinTotals.has_entry_exceeded_max_idle():
+            self.limits_triggered['IdleGlideinsPerEntry']  = 'count=%i, limit=%i'% (glideinTotals.entry_idle, glideinTotals.entry_max_idle)
+
+        if glideinTotals.has_entry_exceeded_max_held():
+            self.limits_triggered['HeldGlideinsPerEntry']  = 'count=%i, limit=%i' % (glideinTotals.entry_held, glideinTotals.entry_max_held)
+
+        if glideinTotals.has_entry_exceeded_max_glideins():
+            total_max_glideins = glideinTotals.entry_idle + glideinTotals.entry_running + glideinTotals.entry_held
+            self.limits_triggered['TotalGlideinsPerEntry'] = 'count=%i, limit=%i' % (total_max_glideins,   glideinTotals.entry_max_glideins)
+
+        all_frontends = self.frontendDescript.get_all_frontend_sec_classes()
+        self.limits_triggered['all_frontends'] = all_frontends
+
+        for fe_sec_class in all_frontends:
+            if glideinTotals.frontend_limits[fe_sec_class]['idle'] > glideinTotals.frontend_limits[fe_sec_class]['max_idle']:
+                fe_key = 'IdlePerClass_%s' % fe_sec_class
+                self.limits_triggered[fe_key] = 'count=%i, limit=%i' % (glideinTotals.frontend_limits[fe_sec_class]['idle'],glideinTotals.frontend_limits[fe_sec_class]['max_idle'])
+
+            total_sec_class_glideins = glideinTotals.frontend_limits[fe_sec_class]['idle']+glideinTotals.frontend_limits[fe_sec_class]['held']+glideinTotals.frontend_limits[fe_sec_class]['running']
+            if total_sec_class_glideins > glideinTotals.frontend_limits[fe_sec_class]['max_glideins']:
+                fe_key = 'TotalPerClass_%s' % fe_sec_class
+                self.limits_triggered[fe_key] = 'count=%i, limit=%i' % (total_sec_class_glideins, glideinTotals.frontend_limits[fe_sec_class]['max_glideins'] )
+
         return can_submit_glideins
+
+
+    def getGlideinConfiguredLimits(self):
+        """
+        Extract the required info to write to classads
+        """
+
+        configured_limits = {}
+
+        # Create list of attributes upfrontend and iterate over them.
+        limits = (
+            # DefaultPerFrontend limits
+            'DefaultPerFrontendMaxIdle', 'DefaultPerFrontendMaxHeld',
+            'DefaultPerFrontendMaxGlideins',
+            # PerFrontend limits
+            'PerFrontendMaxIdle', 'PerFrontendMaxHeld',
+            'PerFrontendMaxGlideins',
+            # PerEntry limits
+            'PerEntryMaxIdle', 'PerEntryMaxHeld',
+            'PerEntryMaxGlideins',
+        )
+
+        for limit in limits:
+            if limit.startswith('PerFrontend'):
+                # PerFrontend limit has value that cannot be converted to int
+                # without further processing.
+                # 'Frontend-master:frontend;100,Frontend-master:foo;100'
+                # Add the string values for PerFrontend limits along with
+                # processed values
+                configured_limits[limit] = self.jobDescript.data[limit].replace(';', '=')
+
+                # NOTE: (Parag: March 04, 2016)
+                # Rest of the code is disabled for now. Assumption is that
+                # the external monitoring components can do the processing
+                # so we dont have to. If required we can just easily enable
+                # the code if required.
+                #for fe_sec in self.jobDescript.data[limit].split(','):
+                #    try:
+                #        tokens = fe_sec.split(';')
+                #        k = '%s_%s' % (limit, tokens[0].replace(':', '__'))
+                #        configured_limits[k] = int(tokens[1])
+                #    except:
+                #        logSupport.log.warning('Error extracting %s for %s from %s' % (limit, fe_sec, self.jobDescript.data[limit]))
+            else:
+                try:
+                    # Default and per entry limits are numeric
+                    configured_limits[limit] = int(self.jobDescript.data[limit])
+                except:
+                    logSupport.log.warning('%s (value=%s) is not an int' % (limit, self.jobDescript.data[limit]))
+
+        return configured_limits
 
 
     def writeClassadsToFile(self, downtime_flag, gf_filename,
@@ -445,27 +519,65 @@ class Entry:
         glidein_monitors = {}
         for w in current_qc_total:
             for a in current_qc_total[w]:
-                glidein_monitors['Total%s%s'%(w,a)]=current_qc_total[w][a]
+                glidein_monitors['Total%s%s'%(w,a)] = current_qc_total[w][a]
                 self.jobAttributes.data['GlideinMonitorTotal%s%s' % (w, a)] = current_qc_total[w][a]
+
+        # Load serialized aggregated Factory statistics
+        stats = util.file_pickle_load(
+            os.path.join(
+                self.startupDir,
+                glideFactoryConfig.factoryConfig.aggregated_stats_file),
+            mask_exceptions=(logSupport.log.exception, "Reading of aggregated statistics failed: "),
+            default={},
+            expiration=3600)
+
+        stats_dict = {}
+        try:
+            stats_dict['entry'] = util.dict_normalize(stats['LogSummary']['entries'][self.name]['total']['CompletedCounts']['JobsNr'],
+                                                      glideFactoryMonitoring.getAllJobRanges(),
+                                                      'CompletedJobsPerEntry',
+                                                      default=0)
+            stats_dict['total'] = util.dict_normalize(stats['LogSummary']['total']['CompletedCounts']['JobsNr'],
+                                                      glideFactoryMonitoring.getAllJobRanges(),
+                                                      'CompletedJobsPerFactory',
+                                                      default=0)
+        except (KeyError, TypeError):
+            # dict_normalize() already handles partial availability
+            # If there is an error all stats may be corrupted, do not publish
+            stats_dict = {}
+
+        glidein_web_attrs = {
+            #'GLIDEIN_StartupDir': self.jobDescript.data["StartupDir"],
+            #'GLIDEIN_Verbosity': self.jobDescript.data["Verbosity"],
+            'URL': self.glideinDescript.data["WebURL"],
+            'SignType': 'sha1',
+            'DescriptFile': self.signatures.data["main_descript"],
+            'DescriptSign': self.signatures.data["main_sign"],
+            'EntryDescriptFile': self.signatures.data["entry_%s_descript" % self.name],
+            'EntryDescriptSign': self.signatures.data["entry_%s_sign" % self.name]
+        }
 
         # Make copy of job attributes so can override the validation
         # downtime setting with the true setting of the entry
         # (not from validation)
         myJobAttributes = self.jobAttributes.data.copy()
         myJobAttributes['GLIDEIN_In_Downtime'] = (downtime_flag or self.isInDowntime())
-        gf_classad = gfi.EntryClassad(
-                         self.gflFactoryConfig.factory_name,
-                         self.gflFactoryConfig.glidein_name,
-                         self.name, trust_domain, auth_method,
-                         self.gflFactoryConfig.supported_signtypes,
-                         pub_key_obj=pub_key_obj, glidein_attrs=myJobAttributes,
-                         glidein_params=self.jobParams.data.copy(),
-                         glidein_monitors=glidein_monitors.copy())
+        gf_classad = gfi.EntryClassad(self.gflFactoryConfig.factory_name,
+                                      self.gflFactoryConfig.glidein_name,
+                                      self.name, trust_domain, auth_method,
+                                      self.gflFactoryConfig.supported_signtypes,
+                                      pub_key_obj=pub_key_obj,
+                                      glidein_attrs=myJobAttributes,
+                                      glidein_params=self.jobParams.data.copy(),
+                                      glidein_monitors=glidein_monitors.copy(),
+                                      glidein_stats=stats_dict,
+                                      glidein_web_attrs=glidein_web_attrs,
+                                      glidein_config_limits=self.getGlideinConfiguredLimits())
         try:
             gf_classad.writeToFile(gf_filename, append=append)
         except:
             self.log.warning("Error writing classad to file %s" % gf_filename)
-            self.log.exception("Error writing classad to file %s: " % (gf_filename))
+            self.log.exception("Error writing classad to file %s: " % gf_filename)
 
         ########################################################################
         # Logic to generate glidefactoryclient classads file
@@ -486,12 +598,12 @@ class Entry:
                 self.log.warning("Client '%s' has stats, but no classad! Ignoring." % client_name)
                 continue
             client_internals = self.gflFactoryConfig.client_internals[client_name]
-            client_monitors={}
+            client_monitors = {}
             for w in client_qc_data:
                 for a in client_qc_data[w]:
                     # report only numbers
-                    if type(client_qc_data[w][a])==type(1):
-                        client_monitors['%s%s'%(w,a)] = client_qc_data[w][a]
+                    if type(client_qc_data[w][a]) == type(1):
+                        client_monitors['%s%s' % (w, a)] = client_qc_data[w][a]
 
             try:
                 fparams = current_qc_data[client_name]['Requested']['Parameters']
@@ -506,7 +618,8 @@ class Entry:
 
             advertizer.add(client_internals["CompleteName"],
                            client_name, client_internals["ReqName"],
-                           params, client_monitors.copy())
+                           params, client_monitors.copy(),
+                           self.limits_triggered)
 
         try:
             advertizer.writeToMultiClassadFile(gfc_filename)
@@ -571,6 +684,10 @@ class Entry:
         self.gflFactoryConfig.log_stats.write_file(monitoringConfig=self.monitoringConfig)
         self.log.info("log_stats written")
 
+        self.log.info("Writing glidein job info for %s" % self.name)
+        self.gflFactoryConfig.log_stats.write_job_info(scheddName=self.scheddName, collectorName=self.gfiFactoryConfig.factory_collector)
+        self.log.info("glidein job info written")
+
         self.gflFactoryConfig.qc_stats.finalizeClientMonitor()
         self.log.info("Writing qc_stats for %s" % self.name)
         self.gflFactoryConfig.qc_stats.write_file(monitoringConfig=self.monitoringConfig)
@@ -585,7 +702,7 @@ class Entry:
 
     def getLogStatsOldStatsData(self):
         """
-        Returns the gflFactoryConfig.log_stats.old_stats_data that can pickled
+        Returns the gflFactoryConfig.log_stats.old_stats_data that can be pickled
 
         @rtype: glideFactoryMonitoring.condorLogSummary
         @return: condorLogSummary from previous iteration
@@ -596,8 +713,7 @@ class Entry:
 
     def getLogStatsCurrentStatsData(self):
         """
-        Returns the gflFactoryConfig.log_stats.current_stats_data that can
-        pickled
+        Returns the gflFactoryConfig.log_stats.current_stats_data that can be pickled
 
         @rtype: glideFactoryMonitoring.condorLogSummary
         @return: condorLogSummary from current iteration
@@ -608,7 +724,7 @@ class Entry:
 
     def getLogStatsData(self, stats_data):
         """
-        Returns the stats_data(stats_data[frontend][user].data) that can pickled
+        Returns the stats_data(stats_data[frontend][user].data) that can be pickled
 
         @rtype: dict
         @return: Relevant stats data to pickle
@@ -678,7 +794,7 @@ class Entry:
         Compile a dictionary containt useful state information
 
         @rtype: dict
-        @return: Useful state information that can pickled and restored
+        @return: Useful state information that can be pickled and restored
         """
 
         # Set logger to None else we can't pickle file objects
@@ -690,6 +806,7 @@ class Entry:
         state = {
             'client_internals': self.gflFactoryConfig.client_internals,
             'glidein_totals': self.glideinTotals,
+            'limits_triggered': self.limits_triggered,
             'client_stats': self.gflFactoryConfig.client_stats,
             'qc_stats': self.gflFactoryConfig.qc_stats,
             'rrd_stats': self.gflFactoryConfig.rrd_stats,
@@ -737,6 +854,7 @@ class Entry:
         self.gflFactoryConfig.client_internals = state.get('client_internals')
 
         self.glideinTotals = state.get('glidein_totals')
+        self.limits_triggered = state.get('limits_triggered')
 
         self.gflFactoryConfig.log_stats = state['log_stats']
         if self.gflFactoryConfig.log_stats:
@@ -774,7 +892,8 @@ class Entry:
         #sys.stdout = self.log.debug_log
         dump_obj(self)
         sys.stdout = stdout
-# class Entry
+# end class Entry
+
 
 def dump_obj(obj):
     import types
@@ -786,6 +905,7 @@ def dump_obj(obj):
         else:
             dump_obj(obj.__dict__[key])
     print "======= END: %s ======" % obj
+
 
 ###############################################################################
 
@@ -1013,7 +1133,12 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         # Cannot use proxy for submission but entry is not in downtime
         # since other proxies may map to valid security classes
         entry.log.warning("Security class %s is currently in a downtime window for entry: %s. Ignoring request." % (credential_security_class, entry.name))
-        return return_dict
+        # this below change is based on redmine ticket 3110.
+        # even though we do not return here, setting in_downtime=True (for entry downtime)
+        # will make sure no new glideins will be submitted in the same way that
+        # the code does for the factory downtime
+        in_downtime = True
+#        return return_dict
 
     # Deny Frontend from requesting glideins if the whitelist
     # does not have its security class (or "All" for everyone)
@@ -1101,6 +1226,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         # Either frontend or factory should provide it
         vm_id = None
         vm_type = None
+        remote_username = None
 
         if grid_type == 'ec2':
             # vm_id and vm_type are only applicable to EC2/Clouds
@@ -1155,6 +1281,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                 return return_dict
 
         elif 'key_pair' in auth_method:
+            # Used by AWS & BOSCO so handle accordingly
             public_key_id = decrypted_params.get('PublicKey')
             submit_credentials.id = public_key_id
             if ( (public_key_id) and
@@ -1163,6 +1290,30 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                           '%s_%s' % (client_int_name, public_key_id))) ):
                 entry.log.warning("Credential %s for the public key is not safe for client %s, skipping request" % (public_key_id, client_int_name))
                 return return_dict
+
+            if grid_type == 'ec2':
+                # AWS usecase. Added empty if block for clarity
+                pass
+            else:
+                # BOSCO Use case
+                # Entry Gatekeeper is [<user_name>@]hostname[:port]
+                # PublicKey can have RemoteUsername
+                # Can we just put this else block with if grid_type.startswith('batch '):
+                # and remove if clause? Check with Marco Mambelli
+                remote_username = decrypted_params.get('RemoteUsername')
+                if not remote_username:
+                    if 'username' in auth_method:
+                        entry.log.warning("Client '%s' did not specify a remote username in the request, this is required by entry %s, skipping request." % (client_int_name, entry.name))
+                        return return_dict
+                    # default remote_username from entry (if present)
+                    gatekeeper_list = entry.jobDescript.data['Gatekeeper'].split('@')
+                    if len(gatekeeper_list) == 2:
+                        remote_username = gatekeeper_list[0].strip()
+                    else:
+                        entry.log.warning(
+                            "Client '%s' did not specify a Username in Key %s and the entry %s does not provide a default username in the gatekeeper string, skipping request" %
+                            (client_int_name, public_key_id, entry.name))
+                        return return_dict
 
             private_key_id = decrypted_params.get('PrivateKey')
             if ( (private_key_id) and
@@ -1193,6 +1344,9 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
         else:
             logSupport.log.warning("Factory entry %s has invalid authentication method. Skipping request for client %s." % (entry.name, client_int_name))
             return return_dict
+
+        submit_credentials.add_identity_credential('RemoteUsername', remote_username)
+
 
     # Set the downtime status so the frontend-specific
     # downtime is advertised in glidefactoryclient ads
@@ -1283,7 +1437,6 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                         entry.gflFactoryConfig.credential_secclass_schedd_attribute,
                         entry.gflFactoryConfig.credential_id_schedd_attribute)
 
-
     # Map the identity to a frontend:sec_class for tracking totals
     frontend_name = "%s:%s" % \
         (entry.frontendDescript.get_frontend_name(client_expected_identity),
@@ -1292,7 +1445,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     # do one iteration for the credential set (maps to a single security class)
     #entry.gflFactoryConfig.client_internals[client_int_name] = \
     #    {"CompleteName":client_name, "ReqName":client_int_req}
-    
+
     done_something = perform_work_v3(entry, entry_condorQ, client_name,
                                      client_int_name, client_security_name,
                                      submit_credentials, remove_excess,

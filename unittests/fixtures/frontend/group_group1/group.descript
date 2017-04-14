@@ -1,0 +1,25 @@
+# File: group.descript
+#
+GroupName 	main
+MapFile 	/var/lib/gwms-frontend/vofrontend/group_main/group.mapfile
+MapFileWPilots 	/var/lib/gwms-frontend/vofrontend/group_main/group_wpilots.mapfile
+MaxRunningPerEntry 	10000
+MinRunningPerEntry 	0
+FracRunningPerEntry 	1.15
+MaxIdlePerEntry 	100
+ReserveIdlePerEntry 	5
+MaxIdleVMsPerEntry 	100
+CurbIdleVMsPerEntry 	5
+MaxIdleVMsTotal 	1000
+CurbIdleVMsTotal 	200
+MaxRunningTotal 	100000
+CurbRunningTotal 	90000
+MaxMatchmakers 	3
+FactoryQueryExpr 	True
+FactoryMatchAttrs 	[]
+JobQueryExpr 	True
+JobMatchAttrs 	[]
+FactoryCollectors 	[]
+JobSchedds 	
+MatchExpr 	True
+GLIDEIN_Glexec_Use 	OPTIONAL

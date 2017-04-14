@@ -104,16 +104,16 @@ class-ad contains
     </li><li>the (optional) public key algorithm, ID and value, together with the
         supported symmetric algorithms, that the frontend can use
             to push back encrypted values.
-    </li><li>Plus a list of monitoring values (like how many glideins are
-    already in the queues, etc.) 
-
+    </li><li>list of monitoring values (like how many glideins are in the queues, etc)
+    </li><li>limits configured in the factory
 </li></ul>
 <p>Look at the picture below for a generic description.<br><br><img src="../images/factory_publish.png" name="graphics3" align="BOTTOM" border="0"><br><br>Please
 notice that the glidein attributes can be completely arbitrary; the
-only predefined attributes are the glidein and factory name, plus the
+only predefined attributes are the glidein and factory name, and the
 convention that anything that starts with <font face="monospace"><b>GlideinParam</b></font>
-is a parameter and anything that starts with <font face="monospace"><b>GlideinMonitor</b></font>
-is a monitoring attribute.<br><br>Once the&nbsp;factory starts
+is a parameter; anything that starts with <font face="monospace"><b>GlideinMonitor</b></font>
+is a monitoring attribute; anything that starts with <font face="monospace"><b>GlideinConfig</b></font> is a limit configured in the factory.<br><br>
+Once the&nbsp;factory starts
 serving frontends, it will publish also another ClassAd for every
 frontend served. This ClassAd contains only monitoring information,
 and is not used by the glideinWMS itself.<br>Find below a graphical
@@ -137,8 +137,8 @@ published. Such a class-ad will contain
       </li><li>the encrypted identity, and
       </li><li>the encrypted parameters.
     </li></ul>
-    </li><li>Plus a list of monitoring values (like how many jobs are
-    currently running, etc.) 
+    </li><li>list of monitoring values (like how many jobs are currently running, etc)
+    </li><li>limits configured in the frontend
 </li></ul>
 
 <p>If encryption is used, the the encrypted identity must must match the AuthenticatedIdentity attribute inserted by the HTCondor collector <b>(needs HTCondor version 7.3.1 or later)</b></p>
@@ -160,9 +160,6 @@ published. Such a class-ad will contain
           The factory uses it for frontend whitelisting.
           If present, it is always encrypted.</li> 
 </ul>
-<p>The picture below shows this in a graphics format.<br>
-
-   <img src="../images/frontend_publish_params.png" name="graphics5b" align="BOTTOM" border="0"></p>
 <p>In the current implementation, the only glidein rate setting parameters
 supported are <font face="monospace"><b>ReqIdleGlideins</b></font>,
 that tells the factory how many idle glideins to keep in the queue at
@@ -194,6 +191,44 @@ publish glideresource class-ads to the User Pool Collector. Such a class-ad will
 <p>Picture below shows a glideresource classad<br>
 <img src="../images/frontend_publish_resource.png" name="graphics5c" align="BOTTOM" border="0"></p>
 </p>
+
+
+<h4><a name="limits_triggered"></a>New limits and curbs on  number of glideins triggered appear in glideresource class-ad:</h4>
+<ol>
+<li> To advertize Frontend limits/curbs</li>
+<p>
+Frontend adds the following attributes in glideresource classad about Frontend limits/curbs
+These new attributes in glideresource all start with the prefix "GlideClientLimit" to indicate that this attribute provides information about limit triggered.
+examples>
+If TotalGlideinsPerEntry on Frontend side is triggered, you will see in glideresource classad
+GlideClientLimitTotalGlideinsPerEntry = "count=11, limit=10"
+It basically says that "the limit is 10 and the actual count was 11, so the code had to do something about this"
+</p>
+
+<li> To advertize Factory limits, </li>
+<p>
+Factory adds the following attributes in glidefactoryclient classad
+These new attributes in glidefactoryclient all start with 2 prefixes
+GlideinMonitorStatus_GlideFactoryLimit
+GlideinMonitorStatus is prepended by Factory code for this attribute to be picked by Frontend code to become attribute of glideresource classad.
+The second prefix GlideFactoryLimit indicates that this attribute provides information about limit triggered.
+
+examples found in glidefactoryclient>
+If TotalGlideinsPerEntry limit is triggered on Factory side, you will see
+GlideinMonitorStatus_GlideFactoryLimitTotalGlideinsPerEntry = "count=11, limit=10"
+It basically says that "the limit is 10 and the actual count was 11, so the code had to do something about this"
+
+Frontend code looks at glidefactoryclient and picks up attributes that start with
+GlideinMonitorStatus
+and convert them to start with
+GlideFactoryMonitorStatus
+
+examples found in glideresource>
+Again, If TotalGlideinsPerEntry limit is triggered on Factory side, you will see
+GlideFactoryMonitorStatus_GlideFactoryLimitTotalGlideinsPerEntry = "count=11, limit=10"
+</p>
+</ol>
+
 </div>
 </body>
 </html>

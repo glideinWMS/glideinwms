@@ -71,6 +71,14 @@ def exe_cmd_sbin(condor_exe,args,stdin_data=None,env={}):
 # P R I V A T E, do not use
 #
 ############################################################
+def generate_bash_script(cmd, environment):
+    script = ['script to reproduce failure:']
+    script.append('-'*20 + ' begin script ' + '-'*20)
+    script.append('#!/bin/bash')
+    script += ['%s=%s' % (k,v) for k, v in environment.iteritems()]
+    script.append(cmd)
+    script.append('-'*20 + '  end script  ' + '-'*20)
+    return '\n'.join(script)
 
 # can throw ExeError
 def iexe_cmd(cmd, stdin_data=None, child_env=None):
@@ -90,7 +98,13 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
         stdoutdata = subprocessSupport.iexe_cmd(cmd, stdin_data=stdin_data,
                                                 child_env=child_env)
     except Exception, ex:
-        raise ExeError, "Unexpected Error running '%s'. Details: %s" % (cmd, ex)
+        msg = "Unexpected Error running '%s'. Details: %s. Stdout: %s" % (cmd, ex, stdoutdata)
+        try:
+            logSupport.log.debug(msg)
+            logSupport.log.debug(generate_bash_script(cmd, os.environ))
+        except:
+            pass
+        raise ExeError, msg
 
     return stdoutdata.splitlines()
 

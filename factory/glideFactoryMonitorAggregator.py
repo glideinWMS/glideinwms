@@ -15,6 +15,7 @@
 import copy
 import time
 import string
+import pickle
 import os.path
 import tempfile
 import shutil
@@ -44,6 +45,7 @@ class MonitorAggregatorConfig:
         # name of the status files
         self.status_relname="schedd_status.xml"
         self.logsummary_relname="log_summary.xml"
+        self.jobsummary_relname="job_summary.pkl"
 
     def config_factory(self,monitor_dir,entries, log):
         self.monitor_dir=monitor_dir
@@ -113,7 +115,7 @@ def verifyHelper(filename,dict, fix_rrd=False):
         for line in outstr:
             os.write(f,"%s\n"%line)
         os.close(f)
-        #Move file to backup location 
+        #Move file to backup location
         shutil.move(filename,filename+backup_str)
         rrdSupport.addDataStore(tempfilename,tempfilename2,missing)
         outstr=dump_obj.restore(tempfilename2,restoredfilename)
@@ -133,12 +135,12 @@ def verifyRRD(fix_rrd=False):
     global monitorAggregatorConfig
     dir=monitorAggregatorConfig.monitor_dir
     total_dir=os.path.join(dir,"total")
-   
+
     status_dict={}
     completed_stats_dict={}
     completed_waste_dict={}
     counts_dict={}
- 
+
     # initialize the RRD dictionaries to match the current schema for verification
     for tp in status_attributes.keys():
         if tp in type_strings.keys():
@@ -283,7 +285,7 @@ def aggregateStatus(in_downtime):
                 else:
                     nr_feentries[fe]+=1
                 for w in entry_data['frontends'][fe].keys():
-                    if not status_fe['frontends'][fe].has_key(w):                    
+                    if not status_fe['frontends'][fe].has_key(w):
                         status_fe['frontends'][fe][w]={}
                     tela=status_fe['frontends'][fe][w]
                     ela=entry_data['frontends'][fe][w]
@@ -309,11 +311,11 @@ def aggregateStatus(in_downtime):
                                     tela[a]=int(ela[a])
                             except:
                                 pass #not an int, not Downtime, so do nothing
-                                        
+
                         # if any attribute from prev. frontends are not in the current one, remove from total
                         for a in tela.keys():
                             if not ela.has_key(a):
-                                del tela[a]        
+                                del tela[a]
 
 
     for w in global_total.keys():
@@ -332,7 +334,7 @@ def aggregateStatus(in_downtime):
             for a in tel.keys():
                 if a in avgEntries and nr_feentries.has_key(fe):
                     tel[a]=tel[a]/nr_feentries[fe] # divide per fe
-            
+
 
     xml_downtime = xmlFormat.dict2string({}, dict_name = 'downtime', el_name = '', params = {'status':str(in_downtime)}, leading_tab = xmlFormat.DEFAULT_TAB)
 
@@ -400,175 +402,221 @@ def aggregateStatus(in_downtime):
     return status
 
 ######################################################################################
+def aggregateJobsSummary():
+    """ Loads the job summary pickle files for each entry, aggregates them per schedd/collector pair, and return them.
+    :return: A dictionary containing the needed information that looks like:
+        {
+            ('schedd_name','collector_name') : {
+                '2994.000': {'condor_duration': 1328, 'glidein_duration': 1334, 'condor_started': 1, 'numjobs': 0},
+                '2997.000': {'condor_duration': 1328, 'glidein_duration': 1334, 'condor_started': 1, 'numjobs': 0},
+                ...
+            },
+            ('schedd_name','collector_name') : {
+                '2003.000': {'condor_duration': 1328, 'glidein_duration': 1334, 'condor_started': 1, 'numjobs': 0},
+                '206.000': {'condor_duration': 1328, 'glidein_duration': 1334, 'condor_started': 1, 'numjobs': 0},
+                ...
+            }
+        }
+    """
+    jobinfo = {}
+    for entry in monitorAggregatorConfig.entries:
+        # load entry log summary file
+        status_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_'+entry),
+                                    monitorAggregatorConfig.jobsummary_relname)
+        try:
+            with open(status_fname) as fd:
+                entry_joblist =  pickle.load(fd)
+        except IOError:
+            continue
+        schedd_name = entry_joblist.get('schedd_name', None)
+        pool_name = entry_joblist.get('collector_name', None)
+        jobinfo.setdefault((schedd_name, pool_name), {}).update(entry_joblist['joblist'])
+    return jobinfo
+
+
+######################################################################################
 def aggregateLogSummary():
     """
-    Create an aggregate of log summary files, write it in an aggregate log 
+    Create an aggregate of log summary files, write it in an aggregate log
     summary file and in the end return the values
     """
 
     global monitorAggregatorConfig
 
     # initialize global counters
-    global_total={'Current':{},'Entered':{},'Exited':{},'CompletedCounts':{'Sum':{},'Waste':{},'WasteTime':{},'Lasted':{},'JobsNr':{},'JobsDuration':{}}}
+    global_total = {'Current': {}, 'Entered': {}, 'Exited': {},
+                    'CompletedCounts': {'Sum': {}, 'Waste': {}, 'WasteTime': {}, 'Lasted': {}, 'JobsNr': {}, 'JobsDuration': {}}
+                    }
 
-    for s in ('Wait','Idle','Running','Held'):
-        for k in ['Current','Entered','Exited']:
-            global_total[k][s]=0
+    for s in ('Wait', 'Idle', 'Running', 'Held'):
+        for k in ['Current', 'Entered', 'Exited']:
+            global_total[k][s] = 0
 
-    for s in ('Completed','Removed'):
+    for s in ('Completed', 'Removed'):
         for k in ['Entered']:
-            global_total[k][s]=0
+            global_total[k][s] = 0
 
     for k in glideFactoryMonitoring.getAllJobTypes():
-        for w in ("Waste","WasteTime"):
-            el={}
+        for w in ('Waste', 'WasteTime'):
+            el = {}
             for t in glideFactoryMonitoring.getAllMillRanges():
-                el[t]=0
-            global_total['CompletedCounts'][w][k]=el
+                el[t] = 0
+            global_total['CompletedCounts'][w][k] = el
 
-    el={}
+    el = {}
     for t in glideFactoryMonitoring.getAllTimeRanges():
-        el[t]=0
-    global_total['CompletedCounts']['Lasted']=el
+        el[t] = 0
+    global_total['CompletedCounts']['Lasted'] = el
 
-    el={}
+    el = {}
     for t in glideFactoryMonitoring.getAllJobRanges():
-        el[t]=0
-    global_total['CompletedCounts']['JobsNr']=el
+        el[t] = 0
+    global_total['CompletedCounts']['JobsNr'] = el
 
-    el={}
+    el = {}
     # KEL - why is the same el used twice (see above)
     for t in glideFactoryMonitoring.getAllTimeRanges():
-        el[t]=0
-    global_total['CompletedCounts']['JobsDuration']=el
+        el[t] = 0
+    global_total['CompletedCounts']['JobsDuration'] = el
 
-    global_total['CompletedCounts']['Sum']={'Glideins':0,
-                                            'Lasted':0,
-                                            'FailedNr':0,
-                                            'JobsNr':0,
-                                            'JobsLasted':0,
-                                            'JobsGoodput':0,
-                                            'JobsTerminated':0,
-                                            'CondorLasted':0}
+    global_total['CompletedCounts']['Sum'] = {'Glideins': 0,
+                                              'Lasted': 0,
+                                              'FailedNr': 0,
+                                              'JobsNr': 0,
+                                              'JobsLasted': 0,
+                                              'JobsGoodput': 0,
+                                              'JobsTerminated': 0,
+                                              'CondorLasted': 0}
 
-    fe_total=copy.deepcopy(global_total) # same as above but for frontend totals
-    
+    fe_total = copy.deepcopy(global_total)  # same as above but for frontend totals
+
     #
-    status={'entries':{},'total':global_total}
-    status_fe={'frontends':{}} #analogous to above but for frontend totals
+    status = {'entries': {}, 'total': global_total}
+    status_fe = {'frontends': {}}  # analogous to above but for frontend totals
 
-    nr_entries=0
-    nr_feentries={} #dictionary for nr entries per fe
+    nr_entries = 0
+    nr_feentries = {}  # dictionary for nr entries per fe
     for entry in monitorAggregatorConfig.entries:
         # load entry log summary file
-        status_fname=os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir,'entry_'+entry),
-                                  monitorAggregatorConfig.logsummary_relname)
+        status_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_'+entry),
+                                    monitorAggregatorConfig.logsummary_relname)
+
         try:
-            entry_data=xmlParse.xmlfile2dict(status_fname,always_singular_list=['Fraction','TimeRange','Range'])
+            entry_data = xmlParse.xmlfile2dict(status_fname, always_singular_list=['Fraction', 'TimeRange', 'Range'])
         except IOError:
-            continue # file not found, ignore
+            continue  # file not found, ignore
 
         # update entry
-        out_data={}
+        out_data = {}
         for frontend in entry_data['frontends'].keys():
-            fe_el=entry_data['frontends'][frontend]
-            out_fe_el={}
-            for k in ['Current','Entered','Exited']:
-                out_fe_el[k]={}
+            fe_el = entry_data['frontends'][frontend]
+            out_fe_el = {}
+            for k in ['Current', 'Entered', 'Exited']:
+                out_fe_el[k] = {}
                 for s in fe_el[k].keys():
-                    out_fe_el[k][s]=int(fe_el[k][s])
-            out_fe_el['CompletedCounts']={'Waste':{},'WasteTime':{},'Lasted':{},'JobsNr':{},'JobsDuration':{},'Sum':{}}
+                    out_fe_el[k][s] = int(fe_el[k][s])
+            out_fe_el['CompletedCounts'] = {'Waste': {}, 'WasteTime': {}, 'Lasted': {}, 'JobsNr': {},
+                                            'JobsDuration': {}, 'Sum': {}}
             for tkey in fe_el['CompletedCounts']['Sum'].keys():
-                out_fe_el['CompletedCounts']['Sum'][tkey]=int(fe_el['CompletedCounts']['Sum'][tkey])
+                out_fe_el['CompletedCounts']['Sum'][tkey] = int(fe_el['CompletedCounts']['Sum'][tkey])
             for k in glideFactoryMonitoring.getAllJobTypes():
-                for w in ("Waste","WasteTime"):
-                    out_fe_el['CompletedCounts'][w][k]={}
+                for w in ("Waste", "WasteTime"):
+                    out_fe_el['CompletedCounts'][w][k] = {}
                     for t in glideFactoryMonitoring.getAllMillRanges():
-                        out_fe_el['CompletedCounts'][w][k][t]=int(fe_el['CompletedCounts'][w][k][t]['val'])
+                        out_fe_el['CompletedCounts'][w][k][t] = int(fe_el['CompletedCounts'][w][k][t]['val'])
             for t in glideFactoryMonitoring.getAllTimeRanges():
-                out_fe_el['CompletedCounts']['Lasted'][t]=int(fe_el['CompletedCounts']['Lasted'][t]['val'])
-            out_fe_el['CompletedCounts']['JobsDuration']={}
+                out_fe_el['CompletedCounts']['Lasted'][t] = int(fe_el['CompletedCounts']['Lasted'][t]['val'])
+            out_fe_el['CompletedCounts']['JobsDuration'] = {}
             for t in glideFactoryMonitoring.getAllTimeRanges():
-                out_fe_el['CompletedCounts']['JobsDuration'][t]=int(fe_el['CompletedCounts']['JobsDuration'][t]['val'])
+                out_fe_el['CompletedCounts']['JobsDuration'][t] = int(fe_el['CompletedCounts']['JobsDuration'][t]['val'])
             for t in glideFactoryMonitoring.getAllJobRanges():
-                out_fe_el['CompletedCounts']['JobsNr'][t]=int(fe_el['CompletedCounts']['JobsNr'][t]['val'])
-            out_data[frontend]=out_fe_el
+                out_fe_el['CompletedCounts']['JobsNr'][t] = int(fe_el['CompletedCounts']['JobsNr'][t]['val'])
+            out_data[frontend] = out_fe_el
 
-        status['entries'][entry]={'frontends':out_data}
+        status['entries'][entry] = {'frontends': out_data}
 
         # update total
         if entry_data.has_key('total'):
-            nr_entries+=1
-            local_total={}
+            nr_entries += 1
+            local_total = {}
 
-            for k in ['Current','Entered','Exited']:
-                local_total[k]={}
+            for k in ['Current', 'Entered', 'Exited']:
+                local_total[k] = {}
                 for s in global_total[k].keys():
-                    local_total[k][s]=int(entry_data['total'][k][s])
-                    global_total[k][s]+=int(entry_data['total'][k][s])
-            local_total['CompletedCounts']={'Sum':{},'Waste':{},'WasteTime':{},'Lasted':{},'JobsNr':{},'JobsDuration':{}}
+                    local_total[k][s] = int(entry_data['total'][k][s])
+                    global_total[k][s] += int(entry_data['total'][k][s])
+            local_total['CompletedCounts'] = {'Sum': {}, 'Waste': {}, 'WasteTime': {},
+                                              'Lasted': {}, 'JobsNr': {}, 'JobsDuration': {}}
             for tkey in entry_data['total']['CompletedCounts']['Sum'].keys():
-                local_total['CompletedCounts']['Sum'][tkey]=int(entry_data['total']['CompletedCounts']['Sum'][tkey])
-                global_total['CompletedCounts']['Sum'][tkey]+=int(entry_data['total']['CompletedCounts']['Sum'][tkey])
+                local_total['CompletedCounts']['Sum'][tkey] = int(entry_data['total']['CompletedCounts']['Sum'][tkey])
+                global_total['CompletedCounts']['Sum'][tkey] += int(entry_data['total']['CompletedCounts']['Sum'][tkey])
             for k in glideFactoryMonitoring.getAllJobTypes():
-                for w in ("Waste","WasteTime"):
-                    local_total['CompletedCounts'][w][k]={}
+                for w in ('Waste', 'WasteTime'):
+                    local_total['CompletedCounts'][w][k] = {}
                     for t in glideFactoryMonitoring.getAllMillRanges():
-                        local_total['CompletedCounts'][w][k][t]=int(entry_data['total']['CompletedCounts'][w][k][t]['val'])
-                        global_total['CompletedCounts'][w][k][t]+=int(entry_data['total']['CompletedCounts'][w][k][t]['val'])
+                        local_total['CompletedCounts'][w][k][t] = int(entry_data['total']['CompletedCounts'][w][k][t]['val'])
+                        global_total['CompletedCounts'][w][k][t] += int(entry_data['total']['CompletedCounts'][w][k][t]['val'])
 
             for t in glideFactoryMonitoring.getAllTimeRanges():
-                local_total['CompletedCounts']['Lasted'][t]=int(entry_data['total']['CompletedCounts']['Lasted'][t]['val'])
-                global_total['CompletedCounts']['Lasted'][t]+=int(entry_data['total']['CompletedCounts']['Lasted'][t]['val'])
-            local_total['CompletedCounts']['JobsDuration']={}
+                local_total['CompletedCounts']['Lasted'][t] = int(entry_data['total']['CompletedCounts']['Lasted'][t]['val'])
+                global_total['CompletedCounts']['Lasted'][t] += int(entry_data['total']['CompletedCounts']['Lasted'][t]['val'])
+            local_total['CompletedCounts']['JobsDuration'] = {}
             for t in glideFactoryMonitoring.getAllTimeRanges():
-                local_total['CompletedCounts']['JobsDuration'][t]=int(entry_data['total']['CompletedCounts']['JobsDuration'][t]['val'])
-                global_total['CompletedCounts']['JobsDuration'][t]+=int(entry_data['total']['CompletedCounts']['JobsDuration'][t]['val'])
+                local_total['CompletedCounts']['JobsDuration'][t] = int(entry_data['total']['CompletedCounts']['JobsDuration'][t]['val'])
+                global_total['CompletedCounts']['JobsDuration'][t] += int(entry_data['total']['CompletedCounts']['JobsDuration'][t]['val'])
 
             for t in glideFactoryMonitoring.getAllJobRanges():
-                local_total['CompletedCounts']['JobsNr'][t]=int(entry_data['total']['CompletedCounts']['JobsNr'][t]['val'])
-                global_total['CompletedCounts']['JobsNr'][t]+=int(entry_data['total']['CompletedCounts']['JobsNr'][t]['val'])
+                local_total['CompletedCounts']['JobsNr'][t] = int(entry_data['total']['CompletedCounts']['JobsNr'][t]['val'])
+                global_total['CompletedCounts']['JobsNr'][t] += int(entry_data['total']['CompletedCounts']['JobsNr'][t]['val'])
 
-            status['entries'][entry]['total']=local_total
-        
+            status['entries'][entry]['total'] = local_total
+
         # update frontends
         for fe in out_data:
-            #compare each to the list of fe's accumulated so far
+            # compare each to the list of fe's accumulated so far
             if not (fe in status_fe['frontends']):
-                status_fe['frontends'][fe]={}
+                status_fe['frontends'][fe] = {}
             if not (fe in nr_feentries):
-                nr_feentries[fe]=1 #already found one
+                nr_feentries[fe] = 1  # already found one
             else:
-                nr_feentries[fe]+=1
+                nr_feentries[fe] += 1
 
             # sum them up
-            sumDictInt(out_data[fe],status_fe['frontends'][fe])
+            sumDictInt(out_data[fe], status_fe['frontends'][fe])
 
     # Write xml files
     # To do - Igor: Consider adding status_fe to the XML file
-    updated=time.time()
-    xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
-             '<glideFactoryLogSummary>\n'+
-             xmlFormat.time2xml(updated,"updated", indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
-             xmlFormat.dict2string(status["entries"],dict_name="entries",el_name="entry",
-                                   subtypes_params={"class":{"dicts_params":{"frontends":{"el_name":"frontend",
-                                                                                          "subtypes_params":{"class":{'subclass_params':{'CompletedCounts':glideFactoryMonitoring.get_completed_stats_xml_desc()}}}}},
-                                                             "subclass_params":{"total":{"subclass_params":{'CompletedCounts':glideFactoryMonitoring.get_completed_stats_xml_desc()}}}
-                                                             }
-                                                    },
-                                   leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
-             xmlFormat.class2string(status["total"],inst_name="total",subclass_params={'CompletedCounts':glideFactoryMonitoring.get_completed_stats_xml_desc()},leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
-             "</glideFactoryLogSummary>\n")
-    glideFactoryMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.logsummary_relname,xml_str)
+    updated = time.time()
+    xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
+               '<glideFactoryLogSummary>\n' +
+               xmlFormat.time2xml(updated, "updated", indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB) +
+               '\n' +
+               xmlFormat.dict2string(status["entries"], dict_name="entries", el_name="entry",
+                        subtypes_params={"class": {"dicts_params": {"frontends": {
+                                    "el_name": "frontend",
+                                    "subtypes_params": {"class": {'subclass_params': {'CompletedCounts': glideFactoryMonitoring.get_completed_stats_xml_desc()}}}}
+                                },
+                                "subclass_params": {"total": {"subclass_params": {'CompletedCounts': glideFactoryMonitoring.get_completed_stats_xml_desc()}}}
+                        }
+                        },
+                        leading_tab=xmlFormat.DEFAULT_TAB) +
+               '\n' +
+               xmlFormat.class2string(status["total"], inst_name="total",
+                                      subclass_params={'CompletedCounts': glideFactoryMonitoring.get_completed_stats_xml_desc()},
+                                      leading_tab=xmlFormat.DEFAULT_TAB) +
+               '\n' +
+               "</glideFactoryLogSummary>\n")
+    glideFactoryMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.logsummary_relname, xml_str)
 
     # Write rrds
-    writeLogSummaryRRDs("total",status["total"])
-    
+    writeLogSummaryRRDs("total", status["total"])
+
     # Frontend total rrds across all factories
     for fe in status_fe['frontends']:
-        writeLogSummaryRRDs("total/%s"%("frontend_"+fe),status_fe['frontends'][fe])
+        writeLogSummaryRRDs("total/%s" % ("frontend_"+fe), status_fe['frontends'][fe])
 
     return status
+
 
 def sumDictInt(indict,outdict):
     for orgi in indict:
@@ -605,7 +653,7 @@ def writeLogSummaryRRDs(fe_dir,status_el):
             exited=-status_el['Exited'][s]
             val_dict_counts["Exited%s"%s]=exited
             val_dict_counts_desc["Exited%s"%s]={'ds_type':'ABSOLUTE'}
-            
+
         entered=status_el['Entered'][s]
         val_dict_counts["Entered%s"%s]=entered
         val_dict_counts_desc["Entered%s"%s]={'ds_type':'ABSOLUTE'}
@@ -734,14 +782,14 @@ def aggregateRRDStats(log=logSupport.log):
                                     missing_client_data = True
                                     # well, some may be just missing.. can happen
                                     #log.debug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s][%s]" %(entry,'frontends',client,'periods',res,data_set))
-        
+
         # We still need to determine what is causing these missing data in case it is a real issue
         # but using this flags will at least reduce the number of messages in the logs (see commented out messages above)
         if missing_total_data:
             log.debug("aggregate_data, missing total data from file %s" % rrd_site(rrd))
         if missing_client_data:
             log.debug("aggregate_data, missing client data from file %s" % rrd_site(rrd))
-            
+
 
         # write an aggregate XML file
 
