@@ -50,15 +50,41 @@ function detect_cpus_htcondor {
     return 0
 }
 
-# Alt. to verify, using PBS_NODEFILE
+# Alt. to verify, using PBS_NODEFILE (incomplete, multinode jobs!)
 # http://stackoverflow.com/questions/17804614/determine-total-cpu-count-after-qsub-within-pbs-script
 # NP=$(wc -l $PBS_NODEFILE | awk '{print $1}')
 # 
 # https://wiki.hpcc.msu.edu/display/hpccdocs/Advanced+Scripting+Using+PBS+Environment+Variables
 # PBS_NUM_PPN
+#
+# Use the bigger number (and flag a warning if are different) between:
+#  PBS_NUM_PPN
+#  the occurences of the host in PBS_NODEFILE
+#  and PBS_NP if PBS_NUM_NODES=1
+# This will compensate for misconfiguration and is OK to be optimistic
+
 function detect_cpus_pbs {
     cores=$PBS_NUM_PPN
+    different_values=no
+    if [ "$PBS_NUM_NODES" = "1" -a -n "$PBS_NP" ]; then
+        if [ "$cores" = "" ]; then
+            cores=$PBS_NP
+        else
+            [ "$PBS_NP" -gt "$cores" ] && cores=$PBS_NP
+            [ "$PBS_NP" -ne "$cores" ] && different_values=yes
+        fi
+    fi
+    if [ -r "$PBS_NODEFILE" ]; then
+        cores_file=$(grep "$(hostname -s)" $PBS_NODEFILE | wc -l | awk '{print $1}')
+        if [ "$cores" = "" ]; then
+            cores=$cores_file
+        else
+            [ "$cores_file" -gt "$cores" ] && cores=$PBS_NP
+            [ "$cores_file" -ne "$cores" ] && different_values=yes
+        fi
+    fi
     [ "$cores" = "" ] && return 1
+    [ $different_values = yes ] && echo "glidein_cpu_setup.sh: WARNING Different core counts in PBS (PBS_NUM_NODES:$PBS_NUM_NODES, PBS_NP:$PBS_NP, PBS_NODEFILE:$cores_file)"
     return 0
 }
 
