@@ -7,20 +7,7 @@ from glideinwms.frontend.glideinFrontendLib import getGlideinCpusNum
 from pprint import pprint
 from hkutils import FrontendConfig, format_condor_dict
 
-
-#JobStatus in job ClassAds
-# 0 Unexpanded     U
-# 1 Idle           I
-# 2 Running        R
-# 3 Removed        X
-# 4 Completed      C
-# 5 Held           H
-# 6 Submission_err E
-
-# JobCA has Owner = "hyunwoo"
-# JobCA has User = "hyunwoo@POOLCollector"
-
-
+from collections import defaultdict
 # to do
 # my-Frontend = the Fronend that scans the Scedulers that I can submit my jobs to
 # First, I might need to know whether the my-Frontend works fine..
@@ -29,35 +16,29 @@ from hkutils import FrontendConfig, format_condor_dict
 def hkfind():
 # Most importantly, I need to know the URL of the POOL Scheduler
     factory_collector = 'hepcloud-devfac.fnal.gov'
-    pool_collector = 'hepcloud-devfe.fnal.gov'
-    pool_scheduler = "hepcloud-devfe.fnal.gov"
+    pool_collector    = 'hepcloud-devfe.fnal.gov'
+    pool_scheduler    = "hepcloud-devfe.fnal.gov"
 # query parameters
     username = "hyunwoo"
     group_name = 'main'
     frontend_name = 'hepcloud-devfe-fnal-gov_OSG_gWMSFrontend'
-    frontendgroup = frontend_name + '.' + group_name
-    print 'frontgroup ', frontendgroup
-
+    frontendgroup = frontend_name + '.' + group_name  # print 'frontgroup ', frontendgroup
 
 # build constraint for jobs
     userurl = username + "@" + pool_scheduler
 
-    idlejob_query = '(JobStatus==1) && (Owner=="%s") && (User=="%s")' % (username, userurl)
-#    hkformatlist = [ ('RequestCpus', 'i') ]
-
+    idlejob_query = '(JobStatus==1) && (Owner=="%s") && (User=="%s")' % (username, userurl) # hkformatlist = [ ('RequestCpus', 'i') ]
     condorq = condorMonitor.CondorQ( pool_scheduler )
-    condorq.load( idlejob_query )
-    condorq_data = condorq.fetchStored()
-    print 'number of idle jobs is ', len( condorq_data )
-#    pprint( condorq_data )
+#    condorq.load( idlejob_query )
+#    condorq_data = condorq.fetchStored()
+#    print 'number of idle jobs is ', len( condorq_data ) #    pprint( condorq_data )
 
 
 # at this point, I need to know if there are matching glideins
 # first, get the matching expressions from the glideresource
 
 # build constraint for glideresource
-    glires_constraint  = '(GlideinMyType=?="%s")' % "glideresource"
-#    additional_constraint = '&& (ReqClientName=?="%s")' % frontendgroup
+    glires_constraint  = '(GlideinMyType=?="%s")' % "glideresource" # additional_constraint = '&& (ReqClientName=?="%s")' % frontendgroup
     additional_constraint = '&& (True)'
     glires_constraint += additional_constraint
 
@@ -65,41 +46,45 @@ def hkfind():
     glires_status.require_integrity(True)
 
     glires_status.load( glires_constraint )
-    glires_data = glires_status.fetchStored()
-#    pprint( pool_data )
-
-#    for x in pool_data:
-#        print pool_data[x]['GlideClientMatchingGlideinCondorExpr']
-#        print pool_data[x]['GlideClientConstraintJobCondorExpr']
-#        print pool_data[x]['GlideClientMatchingInternalPythonExpr']
-#        print pool_data[x]['GlideClientConstraintFactoryCondorExpr']
-#        print 'xxxxxxxxxxxxxxxxx'
-
-#the match express: GlideClientMatchingGlideinCondorExpr  ="((True) and (getGlideinCpusNum(glidein) >= int(job.get(\"RequestCpus\", 1)))) and (True)"
-#job query express: GlideClientConstraintJobCondorExpr    ="((JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)) && (True)"
-#factory query exp: GlideClientMatchingInternalPythonExpr ="(True) && (((stringListMember(\"OSG\", GLIDEIN_Supported_VOs))))"
-#start expression:  GlideClientConstraintFactoryCondorExpr="True"
-
-    keys = glires_data.keys()
-    print 'glideresource key = ', keys
-    match_expression = glires_data[ keys[0] ][ 'GlideClientMatchingGlideinCondorExpr'  ]
-    job_query_exp    = glires_data[ keys[0] ][ 'GlideClientConstraintJobCondorExpr'    ]
-    fac_query_exp    = glires_data[ keys[0] ][ 'GlideClientMatchingInternalPythonExpr' ]
-
-    print 'match exp = ', match_expression
-    print 'job query = ', job_query_exp
-    print 'fac query = ', fac_query_exp
-
-# build constraint for jobs
-    print 'jobs==============='
-    job_query_exp += '&& (%s)' % idlejob_query
-    condorq.load( job_query_exp )
-    condorq_data = condorq.fetchStored()
-    job = condorq_data[ condorq_data.keys()[0] ]
+    glires_data = glires_status.fetchStored() # print( type(glires_data ) )  # answer is dict
 
 
+# here glires_data is a dictionary of all glideresource
 
-# build constraint for glidefactoryclient
+    dict_glires_jobs = defaultdict(list)
+    for gridx in glires_data:
+        print( "glideresource idx = %s"% gridx)
+        match_expression = glires_data[ gridx ][ 'GlideClientMatchingGlideinCondorExpr'  ]
+        job_query_exp    = glires_data[ gridx ][ 'GlideClientConstraintJobCondorExpr'    ]
+        fac_query_exp    = glires_data[ gridx ][ 'GlideClientMatchingInternalPythonExpr' ]
+
+        print 'match exp = ', match_expression
+        print 'job query = ', job_query_exp
+        print 'fac query = ', fac_query_exp
+
+# build constraint to query jobs that match job_query_exp # ( (JobUniverse==5) && (GLIDEIN_Is_Monitor =!= TRUE) && (JOB_Is_Monitor =!= TRUE) )
+        job_query_exp += '&& (%s)' % idlejob_query
+        condorq.load( job_query_exp )
+        condorq_data = condorq.fetchStored()
+#        job = condorq_data[ condorq_data.keys()[0] ]
+
+        print 'jobs matching the query expression %s ===============' % job_query_exp
+        print 'number of matched jobs is ', len( condorq_data )
+
+#        pprint( condorq_data )
+        for jobidx in condorq_data:
+            dict_glires_jobs[    gridx ].append( jobidx )
+
+
+# reverting dict_glires_jobs to dict_jobs_glires
+    pprint( dict_glires_jobs )
+    dict_jobs_glires = defaultdict(list)
+    for tmpidx in dict_glires_jobs:
+        for tmpidy in dict_glires_jobs[tmpidx]:
+            dict_jobs_glires[ tmpidy ].append( tmpidx )
+    pprint( dict_jobs_glires )
+
+
     glifac_constraint  = '(GlideinMyType=?="%s")' % "glidefactory"
 #    additional_constraint = '&& (ReqClientName=?="%s")' % frontendgroup
 #    flient_constraint += additional_constraint
@@ -113,16 +98,93 @@ def hkfind():
 #    pprint( format_condor_dict(flient_data ))
     formatted_glifac_data = format_condor_dict( glifac_data )
 
-    print 'printing the match expression'
+#    pprint( formatted_glifac_data )
 
-    for idx in formatted_glifac_data.keys():
-        glidein = formatted_glifac_data[ idx ]
-#        print 'eval:', eval( match_expression  )
-        if eval( match_expression  ):
-            print 'there is at least one glidein resource, i.e. glidefactory CA'
-            print 'Now, I need to see if there are Machines that were created from these'
-            print 'Also, I need to query the Factory Scheduler if there are glideins in the Entry Schedulers'
 
+# HK> now glidefactoryclient 
+
+    glifacli_constraint  = '(GlideinMyType=?="%s")' % "glidefactoryclient"
+    glifacli_status = condorMonitor.CondorStatus( "any", pool_name=factory_collector )
+    glifacli_status.require_integrity(True)
+
+    glifacli_status.load( glifacli_constraint )
+    glifacli_data = glifacli_status.fetchStored()
+#    pprint( glifacli_data )
+
+
+# HK> end glidefactoryclient 
+
+# debugging purpose only
+    for jobidx in dict_jobs_glires:
+        print( jobidx )
+
+        # this job is needed when doing eval( match_expression )
+        job = condorq_data[ jobidx ]
+#        pprint( job )
+        # print( 'job type =', type( job ) ) # dict
+
+
+        list_of_glideresources = dict_jobs_glires[ jobidx ]
+
+        # looping over the names of glideresource class-ads
+        for gridx in list_of_glideresources:
+            match_expression = glires_data[gridx][ 'GlideClientMatchingGlideinCondorExpr' ]
+            gfname           = glires_data[gridx][ 'GlideFactoryName' ]
+            print( gfname )
+            print( match_expression )
+            associated_gf = formatted_glifac_data[ gfname ]
+            glidein = associated_gf
+#            pprint( associated_gf['attrs'])
+
+            if eval( match_expression  ):
+                print( 'job id %s and glidefactory id %s are matching.'%( job.get('GlobalJobId'), gfname )    )
+
+                print( ' associated gatekeeper from glidefactoryclient = %s ' % glifacli_data[ gridx ][ 'GLIDEIN_Gatekeeper'  ] )
+                print( ' associated minimum from glidefactoryclient = %d ' % glifacli_data[ gridx ][ 'GlideinMonitorRequestedIdle' ] )
+                print( ' associated maximum from glidefactoryclient = %d ' % glifacli_data[ gridx ][ 'GlideinMonitorRequestedMaxGlideins' ] )
+
+
+                # HK> summary comment: with this info, I can identify associated glideclient and glidefactoryclient classads
+                # HK> from these 2 glideclient and glidefactoryclient classads, I can get how many
+#HK> now, I can query the Entry Scheduler to get the number of glideins 
+# or from glidefactoryclient
+#GlideFactoryMonitor TotalStatusHeld = 0
+#GlideFactoryMonitor TotalStatusIdle = 0
+#GlideFactoryMonitor TotalStatusIdleOther = 0
+#GlideFactoryMonitor TotalStatusPending = 0
+#GlideFactoryMonitor TotalStatusRunning = 1
+#GlideFactoryMonitor TotalStatusStageIn = 0
+#GlideFactoryMonitor TotalStatusStageOut = 0
+#GlideFactoryMonitor TotalStatusWait = 0
+
+# querying schedd_name = "schedd_glideins4@hepcloud-devfac.fnal.gov" directly might not make sense
+# because factory code internally can extract this schedd information from job.descript files
+# but traceglidein.py does not have access to this internal job.descript
+# so, conclusion is, I should rely on 
+# or from glidefactoryclient
+#GlideFactoryMonitor TotalStatusHeld = 0
+#GlideFactoryMonitor TotalStatusIdle = 0
+#GlideFactoryMonitor TotalStatusIdleOther = 0
+#GlideFactoryMonitor TotalStatusPending = 0
+#GlideFactoryMonitor TotalStatusRunning = 1
+#GlideFactoryMonitor TotalStatusStageIn = 0
+#GlideFactoryMonitor TotalStatusStageOut = 0
+#GlideFactoryMonitor TotalStatusWait = 0
+
+
+#                schedd_name = "schedd_glideins4@hepcloud-devfac.fnal.gov"
+#                q = condorMonitor.CondorQ(  schedd_name, pool_name=factory_collector  )
+#                q.factory_name = "gfactory_service"
+#                q.glidein_name = "gfactory_instance"
+#                q.entry_name = "MMEntry"
+#                q.client_name = "hepcloud-devfe-fnal-gov_OSG_gWMSFrontend.main"
+#                q.load()
+#    #    q.load(q_glidein_constraint, q_glidein_format_list)
+#                tempdata = q.fetchStored()
+#                pprint( tempdata )
+
+          
+    sys.exit(0)
 
 #from glidefactoryclient
 #ReqClientName = "hepcloud-devfe-fnal-gov_OSG_gWMSFrontend.main"
@@ -131,17 +193,6 @@ def hkfind():
 #ReqEntryName = "MMEntry"
 #ReqFactoryName = "gfactory_service"
 #ReqGlideinName = "gfactory_instance"
-
-    schedd_name = "schedd_glideins4@hepcloud-devfac.fnal.gov"
-    q = condorMonitor.CondorQ(  schedd_name, pool_name=factory_collector  )
-    q.factory_name = "gfactory_service"
-    q.glidein_name = "gfactory_instance"
-    q.entry_name = "MMEntry"
-    q.client_name = "hepcloud-devfe-fnal-gov_OSG_gWMSFrontend.main"
-    q.load()
-#    q.load(q_glidein_constraint, q_glidein_format_list)
-    tempdata = q.fetchStored()
-    pprint( tempdata )
 
     sys.exit(0)
 
