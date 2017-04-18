@@ -715,7 +715,7 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-factory.conf
 %attr(-, gfactory, gfactory) %dir %{_sysconfdir}/gwms-factory
-%attr(-, gfactory, gfactory) %config(noreplace) %{_sysconfdir}/gwms-factory/glideinWMS.xml
+%attr(-, gfactory, gfactory) %config(noreplace) %verify(not md5 size mtime) %{_sysconfdir}/gwms-factory/glideinWMS.xml
 %config(noreplace) %{_sysconfdir}/sysconfig/gwms-factory
 
 %files vofrontend-standalone
@@ -767,7 +767,7 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-frontend.conf
 %attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend
-%attr(-, frontend, frontend) %config(noreplace) %{_sysconfdir}/gwms-frontend/frontend.xml
+%attr(-, frontend, frontend) %config(noreplace) %verify(not md5 size mtime) %{_sysconfdir}/gwms-frontend/frontend.xml
 %config(noreplace) %{_sysconfdir}/sysconfig/gwms-frontend
 %attr(-, frontend, frontend) %{web_base}/../creation
 
