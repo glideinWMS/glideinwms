@@ -1076,18 +1076,18 @@ RESERVED_SWAP = 0
       self.condor_config_data[type] +=  """
 %(upper_name)s       = $(SCHEDD)
 %(upper_name)s_ARGS  = -local-name %(lower_name)s
-SCHEDD.%(upper_name)s.SCHEDD_NAME   = %(name)s
-SCHEDD.%(upper_name)s.SCHEDD_LOG    = $(LOG)/SchedLog.$(SCHEDD.%(upper_name)s.SCHEDD_NAME)
-SCHEDD.%(upper_name)s.LOCAL_DIR     = %(schedd_dir)s/$(SCHEDD.%(upper_name)s.SCHEDD_NAME)
-SCHEDD.%(upper_name)s.EXECUTE       = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/execute
-SCHEDD.%(upper_name)s.LOCK          = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/lock
-SCHEDD.%(upper_name)s.PROCD_ADDRESS = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/procd_pipe
-SCHEDD.%(upper_name)s.SPOOL         = $(SCHEDD.%(upper_name)s.LOCAL_DIR)/spool
-SCHEDD.%(upper_name)s.JOB_QUEUE_LOG         = $(SCHEDD.%(upper_name)s.SPOOL)/job_queue.log
-SCHEDD.%(upper_name)s.SCHEDD_ADDRESS_FILE   = $(SCHEDD.%(upper_name)s.SPOOL)/.schedd_address
-SCHEDD.%(upper_name)s.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.%(upper_name)s.SPOOL)/.schedd_classad 
-%(upper_name)s_SPOOL_DIR_STRING     = "$(SCHEDD.%(upper_name)s.SPOOL)"
-SCHEDD.%(upper_name)s.SCHEDD_EXPRS  = SPOOL_DIR_STRING
+%(upper_name)s.SCHEDD_NAME   = %(name)s
+%(upper_name)s.SCHEDD_LOG    = $(LOG)/SchedLog.$(%(upper_name)s.SCHEDD_NAME)
+%(upper_name)s.LOCAL_DIR     = %(schedd_dir)s/$(%(upper_name)s.SCHEDD_NAME)
+%(upper_name)s.EXECUTE       = $(%(upper_name)s.LOCAL_DIR)/execute
+%(upper_name)s.LOCK          = $(%(upper_name)s.LOCAL_DIR)/lock
+%(upper_name)s.PROCD_ADDRESS = $(%(upper_name)s.LOCAL_DIR)/procd_pipe
+%(upper_name)s.SPOOL         = $(%(upper_name)s.LOCAL_DIR)/spool
+%(upper_name)s.JOB_QUEUE_LOG         = $(%(upper_name)s.SPOOL)/job_queue.log
+%(upper_name)s.SCHEDD_ADDRESS_FILE   = $(%(upper_name)s.SPOOL)/.schedd_address
+%(upper_name)s.SCHEDD_DAEMON_AD_FILE = $(%(upper_name)s.SPOOL)/.schedd_classad
+%(upper_name)s_SPOOL_DIR_STRING     = "$(%(upper_name)s.SPOOL)"
+%(upper_name)s.SCHEDD_EXPRS  = SPOOL_DIR_STRING
 """ % \
       { "name"       : name,
         "upper_name" : local_name.upper(),
@@ -1096,7 +1096,7 @@ SCHEDD.%(upper_name)s.SCHEDD_EXPRS  = SPOOL_DIR_STRING
 
       if self.use_gridmanager:
         self.condor_config_data[type] +=  """
-%(upper_name)s_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridManagerLog.$(SCHEDD.%(upper_name)s.SCHEDD_NAME).$(USERNAME)" """ % { "upper_name" : local_name.upper(),}
+%(upper_name)s_ENVIRONMENT = "_CONDOR_GRIDMANAGER_LOG=$(LOG)/GridManagerLog.$(%(upper_name)s.SCHEDD_NAME).$(USERNAME)" """ % { "upper_name" : local_name.upper(),}
 
 
       self.condor_config_data[type] +=  """
