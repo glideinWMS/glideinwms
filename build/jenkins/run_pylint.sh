@@ -230,4 +230,5 @@ done
 
 finalize_results_logging $RESULTS_MAIL
 
+
 #mail_results $RESULTS_MAIL "Pylint/PEP8 Validation Results"
