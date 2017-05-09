@@ -39,8 +39,8 @@ if [ "${GLIDEIN_MaxMemMBs}" = "" ]; then
         glidein_cpus=`grep -i "^GLIDEIN_CPUS " $glidein_config | awk '{print $2}'`
 
         if [ "$glidein_cpus" != "" ]; then
-            # GLIDEIN_CPUS is set. Let HTCondor handle the memory.
-            # Also handles GLIDEIN_CPUS=0, ie estimate the available cpus.
+            # GLIDEIN_CPUS is set. Set Max to all the free. Let HTCondor handle the memory.
+            # Also handles GLIDEIN_CPUS=0/-1, ie estimate the available cpus (auto/node/slot).
             echo "`date` Estimate: memory=$mem GLIDEIN_CPUS=$glidein_cpus mem/core controlled by HTCondor"
             GLIDEIN_MaxMemMBs=$mem
         else
