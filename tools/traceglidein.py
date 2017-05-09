@@ -10,58 +10,12 @@ from tgutils import FrontendConfig, format_condor_dict
 from collections import defaultdict
 import argparse
 
-# to do
-# my-Frontend = the Fronend that scans the Scedulers that I can submit my jobs to
-# First, I might need to know whether the my-Frontend works fine..
-
-
-
-This tool must or can provide the following information:
-1. how many resources(Entry) are available in Frontend: glideresource
-- glideresource is a result of matching a group and an Entry : performed by FE
-
-2. FE counts the number of idle jobs from all registered schedulers:
-   - only those idle jobs that are matching a given Entry by using match_expr
-   - match_expr comes from /usr/lib/python2.6/site-packages/glideinwms/creation/lib/cvWParamDict.py
-     and also match_expr in /etc/gwms-frontend/frontend.xml
-   And then finally sends a request of glideins to Factory via glideclient CA.
-Show the number of glidein requests from a given glideresource to glidefactory(Entry) via glideclient that is associated with this glideresource
-Show any limits and curbs triggered reported or recorded in glideresource
-=> From this information(number of requested glideins) , we can guess if there is any communication problem between Frontend and Factory
-=> or zero requested glideins might be due to limits triggered.
-
-
-3. Query USRCollector for Machine ClassAds
-Show the number of glideins(running glidein_startup.sh) where the actual user job is running  (Working glidein is a running glidein_startup.sh)
-(* note that glidein_startup.sh is not running if it is in the queue of Entry scheduler, and it is not until glidein_startup.sh is actually running a grid or cloud side
-  that Machine classAd is created in USRCollector..very important..)
-Show the number of glideins(running glidein_startup.sh) where the actual user job is NOT running (Idling glidein is a running glidein_startup.sh)
-
-an idling glidein_startup.sh is a queued glidein_startup.sh
-a running glidein_startup.sh is either working glidein(Machine CA) or idling glidein(Machine CA).
-
-
-4. Inquire the Entry(glidefactoryclient) for the number of glidein_startup.sh submitted to the attached Entry-Scheduler.
-Show the number of glidein_startup.sh submitted
-Show the number of glidein_startup.sh running
-
-5. Does the Entry properly submit a number of glidein_startup.sh to its Entry-Scheduler?
-Look at glidefactoryclient for any curbs and limits triggered for the number of glidein_startup.sh
-How can we probe Entry-Scheduler? Is the grid or cloud resource down?
-Is there any Machine ClassAd (working glidein or idling glidein) ? this might provide an information on whether the grid or cloud resource is down or working..
-
-6. Now, in the USRCollector, does Job and Machine match properly?
-What is the number of Idle Jobs?
-What is the number of Idling-glideins(running glidein_startup.sh)?
-
-we can use OpenSSL to verify x509-certificate of the user
-we can use AWS API to verify AWSAccessKey of the user
-
-
-
-# main( hkargs.poolsched, hkargs.poolcollt, hkargs.factcollt, hkargs.username )
 def main(arg_poolsched, arg_poolcollt, arg_factcollt, arg_username):
-# Most importantly, I need to know the URL of the POOL Scheduler
+
+    print("TG Main starts ")
+    print(" ")
+    print(" ")
+
     factory_collector = arg_factcollt
     pool_collector = arg_poolcollt
     pool_scheduler = arg_poolsched
@@ -73,7 +27,6 @@ def main(arg_poolsched, arg_poolcollt, arg_factcollt, arg_username):
     poolCollector.require_integrity(True)
     gwmsCollector.require_integrity(True)
 
-
 #    group_name = 'main'
 #    frontend_name = 'hepcloud-devfe-fnal-gov_OSG_gWMSFrontend'
 #    frontendgroup = frontend_name + '.' + group_name
@@ -83,35 +36,36 @@ def main(arg_poolsched, arg_poolcollt, arg_factcollt, arg_username):
 
 # TG:
 # TG:
-# TG:
-
 # TG: note that there are two types of idle jobs
 # TG: type 1: idle jobs that match JobStatus==1 Owner== && User==
 # TG: type 2: idle jobs that match JobStatus==1 Owner== && User==  AND also satisfy job_query_expr of glideresource CA
-# TG:
-# TG:
-# TG:
-# TG:
-# TG:
-# TG:
-# TG:
     idlejob_query = '(JobStatus==1) && (Owner=="%s") && (User=="%s")' % (username, userurl) # hkformatlist = [ ('RequestCpus', 'i') ]
-    poolScheduler.load( idlejob_query )
+    poolScheduler.load(idlejob_query)
     idleJobList = poolScheduler.fetchStored()
+
+    print("TG Number of Idle jobs queued in the USR-Scheduler %s is %d " % (pool_scheduler, len(idleJobList)))
+    print(" ")
 
 # at this point, I need to know if there are matching glideins
 # first, get the matching expressions from the glideresource
+
+    print("TG starts with the USRCollector %s" % pool_collector)
+    print(" ")
+    print(" ")
+
+#    sys.exit(0)
 
 ####################################################################################################################
 ####################################################################################################################
 # build constraint for glideresource
     glires_constraint  = '(GlideinMyType=?="%s")' % "glideresource" # additional_constraint = '&& (ReqClientName=?="%s")' % frontendgroup
-    poolCollector.load( glires_constraint )
+    poolCollector.load(glires_constraint)
     glires_data = poolCollector.fetchStored() # print( type(glires_data ) )  # answer is dict
 #   glires_data is a dictionary of all glideresource
 # looks like condorMonitor.CondorStatus( "any", pool_name=).fetchStored() returns a dictionary with the Names as the keys.
 
-
+    print("TG Number of glideresource CAs from USR-Collector %s is %d " % (pool_collector, len(glires_data)))
+    print(" ")
 
 # TG: the fact that a list of glideresource classads exist, means that
 # TG: there are matches between factory query_expr in Frontend and glidefactory CA
@@ -119,19 +73,18 @@ def main(arg_poolsched, arg_poolcollt, arg_factcollt, arg_username):
 # TG: and reduced to a list of glideresource CAs that accept the current idle job by using job query_expr
 # TG: and for each combination of Job and Glidein(Factory Entry), we see if match_expr is satisfied
 # TG: which means that glideclient CA will have actual requests for glideins
-    dict_glires_jobs = defaultdict( list )
-    dict_jobs_glires = defaultdict( list )
-    for gridx in glires_data:   #        print( "glideresource idx = %s" % gridx )
+    dict_glires_jobs = defaultdict(list)
+    dict_jobs_glires = defaultdict(list)
+    for gridx in glires_data:   #        print("glideresource idx = %s" % gridx)
 # following 2 not used within this loop.
-#        match_expression = glires_data[ gridx ][ 'GlideClientMatchingGlideinCondorExpr'  ]
-#        fac_query_exp    = glires_data[ gridx ][ 'GlideClientMatchingInternalPythonExpr' ]
-        job_query_exp    = glires_data[ gridx ][ 'GlideClientConstraintJobCondorExpr'    ]
+#        match_expression = glires_data[gridx]['GlideClientMatchingGlideinCondorExpr']
+#        fac_query_exp    = glires_data[gridx]['GlideClientMatchingInternalPythonExpr']
+        job_query_exp = glires_data[gridx]['GlideClientConstraintJobCondorExpr']
 # build constraint to query jobs that match job_query_exp # ( (JobUniverse==5) && (GLIDEIN_Is_Monitor =!= TRUE) && (JOB_Is_Monitor =!= TRUE) )
         job_query_exp_and_idle = job_query_exp + '&& (%s)' % idlejob_query
-        poolScheduler.load( job_query_exp_and_idle )
-        condorq_data = poolScheduler.fetchStored()  #        job = condorq_data[ condorq_data.keys()[0] ]
-        print 'number of matched jobs is ', len( condorq_data )
-
+        poolScheduler.load(job_query_exp_and_idle)
+        condorq_data = poolScheduler.fetchStored()  # job = condorq_data[ condorq_data.keys()[0] ]
+#        print 'number of matched jobs is ', len( condorq_data )
         for jobidx in condorq_data:
             dict_glires_jobs[gridx].append(jobidx)
 
@@ -139,7 +92,7 @@ def main(arg_poolsched, arg_poolcollt, arg_factcollt, arg_username):
 # { u'MMEntry@gfactory_instance@gfactory_service@hepcloud-devfe-fnal-gov_OSG_gWMSFrontend.main': [(142, 0), (141, 0)] }
 
 # converting dict_glires_jobs to dict_jobs_glires
-    for tmpidx     in dict_glires_jobs:
+    for tmpidx in dict_glires_jobs:
         for tmpidy in dict_glires_jobs[tmpidx]:
             dict_jobs_glires[tmpidy].append(tmpidx)
 #    pprint( dict_jobs_glires )
@@ -158,28 +111,37 @@ def main(arg_poolsched, arg_poolcollt, arg_factcollt, arg_username):
     print( "  " )
     print( "  " )
     print( "major loop starts =========================================" )
-    for jobidx in dict_jobs_glires:
+
+    for jobidx in idleJobList:
+
+        print( "  " )
+        print( "  " )
+
+
+        if jobidx not in dict_jobs_glires:
+            print("TG-Diagnosis: job ID %s.%s does not satisfy job query_expr of any group" % jobidx)
+            pass
+
         # this job is needed when doing eval( match_expression )
         job = idleJobList[jobidx]
 
         print("Now, for a given Job, we loop over the associated glideresource classads  =========================================" )
         list_of_glideresources = dict_jobs_glires[jobidx]
-
-        if list_of_glideresources is None:
-            print("TG-Diagnosis: job ID %s.%s does not satisfy job query_expr of any group" % jobidx)
+        print("TG-Diagnosis: job ID (%s.%s) can go to %d glideresources" % (jobidx[0],jobidx[1], len(list_of_glideresources)))
 
         # looping over the names of glideresource class-ads
+        print( "    looping over associated glideresource classads" )
         for gridx in list_of_glideresources:
-            print("the glideresource classAd ID = %s" % gridx)
+            print( "  " )
+
+            print("    the glideresource classAd ID = %s" % gridx)
 # gridx = Name = MMEntry@gfactory_instance@gfactory_service@hepcloud-devfe-fnal-gov_OSG_gWMSFrontend.main
 
             match_expression = glires_data[gridx]['GlideClientMatchingGlideinCondorExpr']
             fac_query_exp = glires_data[gridx]['GlideClientMatchingInternalPythonExpr']
             gfname = glires_data[gridx]['GlideFactoryName']
-            print("glidefactory name = %s" % gfname)
-            print("glidefactory name = %s" % fac_query_exp)
+            print("    Entry %s is already coupled with this resource via fac_query_exp" % (gfname))
 # TG: 
-# original 
 # TG: For a given Job, if this Job can belong to multiple groups, there can be multiple glideresource that match this Job
 # TG: which means duplicate glidefactoy CAs will be displayed here..
             glifac_constraint  = '(GlideinMyType=?="glidefactory") && %s' % fac_query_exp
@@ -188,22 +150,25 @@ def main(arg_poolsched, arg_poolcollt, arg_factcollt, arg_username):
             formatted_glifac_data = format_condor_dict(glifac_data)
             glidein = formatted_glifac_data[ gfname ] # this is the associated glidefactory
 
+            print("    TG: Now let's see if this Job %s can request some glideins to this Entry %s" % (jobidx[0], gfname))
+
             if eval(match_expression):
 # TG: the fact that this job and this glidefactory are matched means that the request of glideins can be sent to this Entry...
 # TG: So, the whole idea is that after the matching is verified, we can look at glidefactoryclient to acquire other meaningful information
-                print('job id %s and glidefactory id %s are matching.' % (job.get('GlobalJobId'), gfname))
+                print('=> job id %s and glidefactory id %s are matching.' % (job.get('GlobalJobId'), gfname))
+
 # TG: Remember that the Name of glideresource and the Name of glideFactoryClient are the same but the Name of glideClient is a bit different
+
 # TG: in case of multiple group-matching, there can be multiple glidefactoryclient classads with the same gridx.
 # TG: so, it would be better to use glires_data
-                print(' associated gatekeeper from glidefactoryclient = %s' % glires_data[gridx]['GLIDEIN_Gatekeeper'])
 #                print(' associated minimum from glidefactoryclient = %d ' % glifacli_data[gridx]['GlideinMonitorRequestedIdle'])
 #                print(' associated maximum from glidefactoryclient = %d ' % glifacli_data[gridx]['GlideinMonitorRequestedMaxGlideins'])
-                print(' associated minimum from glidefactoryclient = %d' % glires_data[gridx]['GlideFactoryMonitorTotalRequestedIdle'])
-                print(' associated maximum from glidefactoryclient = %d' % glires_data[gridx]['GlideFactoryMonitorTotalRequestedMaxGlideins'])
+                print('=>associated minimum from glidefactoryclient = %d' % glires_data[gridx]['GlideFactoryMonitorTotalRequestedIdle'])
+                print('=>associated maximum from glidefactoryclient = %d' % glires_data[gridx]['GlideFactoryMonitorTotalRequestedMaxGlideins'])
 
 # the following two information is originally available from glidefactory client but also available in glideresource
-                print(' Running glide_startup from Entry Scheduler = %d' % glires_data[gridx]['GlideFactoryMonitorStatusRunning'])
-                print(' Running glide_startup from Entry Scheduler = %d' % glires_data[gridx]['GlideFactoryMonitorStatusIdle'])
+               
+                print("TG: If number of glidein requests in glideclient is not ok, someting might be wrong, let's see if any limits are triggered")
 
 ## limits triggered for this Frontend and Factory
 #[root@hepcloud-devfe gwms_4989]# condor_status -any -l -constraint '(MyType=?="glideresource")' | sort | grep GlideClientLimit
@@ -220,61 +185,93 @@ def main(arg_poolsched, arg_poolcollt, arg_factcollt, arg_username):
 #GlideClientLimit  IdleGlideinsPerFrontend
 #GlideClientLimit TotalGlideinsGlobal
 #GlideClientLimit  IdleGlideinsGlobal
-                if False:
+                if True:
                     try:
-                        print(' Limits triggered = %s' % glires_data[gridx]['GlideClientLimitTotalGlideinsPerEntry'])
+                        print('  %s  Limits triggered = %s' % ('GlideClientLimitTotalGlideinsPerEntry', glires_data[gridx]['GlideClientLimitTotalGlideinsPerEntry']))
                     except:
-                        print(' Limits triggered not avaliable = %s' % 'GlideClientLimitTotalGlideinsPerEntry')
+                        pass
+                        #print(' Limits triggered not avaliable = %s' % 'GlideClientLimitTotalGlideinsPerEntry')
                     try:
-                        print(' Limits triggered = %s' % glires_data[gridx]['GlideClientLimitIdleGlideinsPerEntry'])
+                        print('  %s   Limits triggered = %s' % ('GlideClientLimitIdleGlideinsPerEntry', glires_data[gridx]['GlideClientLimitIdleGlideinsPerEntry']))
                     except:
-                        print(' Limits triggered not avaliable = %s' % 'GlideClientLimitIdleGlideinsPerEntry')
+                        pass
+                        #print(' Limits triggered not avaliable = %s' % 'GlideClientLimitIdleGlideinsPerEntry')
                     try:
-                        print(' Limits triggered = %s' % glires_data[gridx]['GlideClientLimitTotalGlideinsPerGroup'])
+                        print('  %s   Limits triggered = %s' % ('GlideClientLimitTotalGlideinsPerGroup', glires_data[gridx]['GlideClientLimitTotalGlideinsPerGroup']))
                     except:
-                        print(' Limits triggered not avaliable = %s' % 'GlideClientLimitTotalGlideinsPerGroup')
+                        pass
+                        #print(' Limits triggered not avaliable = %s' % 'GlideClientLimitTotalGlideinsPerGroup')
                     try:
-                        print(' Limits triggered = %s' % glires_data[gridx]['GlideClientLimitIdleGlideinsPerGroup'])
+                        print('  %s   Limits triggered = %s' % ('GlideClientLimitIdleGlideinsPerGroup', glires_data[gridx]['GlideClientLimitIdleGlideinsPerGroup']))
                     except:
-                        print(' Limits triggered not avaliable = %s' % 'GlideClientLimitIdleGlideinsPerGroup')
+                        pass
+                        #print(' Limits triggered not avaliable = %s' % 'GlideClientLimitIdleGlideinsPerGroup')
                     try:
-                        print(' Limits triggered = %s' % glires_data[gridx]['GlideClientLimitTotalGlideinsPerFrontend'])
+                        print('  %s   Limits triggered = %s' % ('GlideClientLimitTotalGlideinsPerFrontend', glires_data[gridx]['GlideClientLimitTotalGlideinsPerFrontend']))
                     except:
-                        print(' Limits triggered not avaliable = %s' % 'GlideClientLimitTotalGlideinsPerFrontend')
+                        pass
+                        #print(' Limits triggered not avaliable = %s' % 'GlideClientLimitTotalGlideinsPerFrontend')
                     try:
-                        print(' Limits triggered = %s' % glires_data[gridx]['GlideClientLimitIdleGlideinsPerFrontend'])
+                        print('  %s   Limits triggered = %s' % ('GlideClientLimitIdleGlideinsPerFrontend', glires_data[gridx]['GlideClientLimitIdleGlideinsPerFrontend']))
                     except:
-                        print(' Limits triggered not avaliable = %s' % 'GlideClientLimitIdleGlideinsPerFrontend')
+                        pass
+                        #print(' Limits triggered not avaliable = %s' % 'GlideClientLimitIdleGlideinsPerFrontend')
                     try:
-                        print(' Limits triggered = %s' % glires_data[gridx]['GlideClientLimitTotalGlideinsGlobal'])
+                        print('  %s   Limits triggered = %s' % ('GlideClientLimitTotalGlideinsGlobal', glires_data[gridx]['GlideClientLimitTotalGlideinsGlobal']))
                     except:
-                        print(' Limits triggered not avaliable = %s' % 'GlideClientLimitTotalGlideinsGlobal')
+                        pass
+                        #print(' Limits triggered not avaliable = %s' % 'GlideClientLimitTotalGlideinsGlobal')
                     try:
-                        print(' Limits triggered = %s' % glires_data[gridx]['GlideClientLimitIdleGlideinsGlobal'])
+                        print('  %s   Limits triggered = %s' % ('GlideClientLimitIdleGlideinsGlobal', glires_data[gridx]['GlideClientLimitIdleGlideinsGlobal']))
                     except:
-                        print(' Limits triggered not avaliable = %s' % 'GlideClientLimitIdleGlideinsGlobal')
+                        pass
+                        #print(' Limits triggered not avaliable = %s' % 'GlideClientLimitIdleGlideinsGlobal')
 ########################## next comes the Factory limits
 # GlideinMonitor Status_GlideFactoryLimit IdleGlideinsPerEntry
 # GlideinMonitor Status_GlideFactoryLimit HeldGlideinsPerEntry
 # GlideinMonitor Status_GlideFactoryLimit TotalGlideinsPerEntry
 # GlideinMonitor Status_GlideFactoryLimit IdlePerClass_fe_sec_class
 # GlideinMonitor Status_GlideFactoryLimit TotalPerClass_fe_sec_class
-                    try:
-                        print('Limits triggered = %s' % glifacli_data[gridx]['GlideinMonitorStatus_GlideFactoryLimitIdleGlideinsPerEntry'])
-                    except:
-                        print('Limits triggered not avaliable = %s' % 'GlideinMonitorStatus_GlideFactoryLimitIdleGlideinsPerEntry')
-                    try:
-                        print('Limits triggered = %s' % glifacli_data[gridx]['GlideinMonitorStatus_GlideFactoryLimitHeldGlideinsPerEntry'])
-                    except:
-                        print('Limits triggered not avaliable = %s' % 'GlideinMonitorStatus_GlideFactoryLimitHeldGlideinsPerEntry')
-                    try:
-                        print('Limits triggered = %s' % glifacli_data[gridx]['GlideinMonitorStatus_GlideFactoryLimitTotalGlideinsPerEntry'])
-                    except:
-                        print( ' Limits triggered not avaliable = %s' % 'GlideinMonitorStatus_GlideFactoryLimitTotalGlideinsPerEntry' )
 
 
+                print( "  " )
+                print( "    TG: Does this Entry have any problem submitting glidein_startup to %s?" %glires_data[gridx]['GLIDEIN_Gatekeeper'])
+                print('     =>Running glidein_startup from Entry Scheduler = %d' % glires_data[gridx]['GlideFactoryMonitorStatusRunning'])
+                print('     =>Queued  glidein_startup from Entry Scheduler = %d' % glires_data[gridx]['GlideFactoryMonitorStatusIdle'])
+                print( "    same information but from glide factory client" )
+                print('     queued glidein_startup from glidefactoryclient = %d ' % glifacli_data[gridx]['GlideinMonitorTotalStatusIdle'])
+                print('     running glidein_startup from glidefactoryclient = %d ' % glifacli_data[gridx]['GlideinMonitorTotalStatusRunning'])
+
+
+                print( "    Number of glideins, working-glideins and idling-glideins" )
+                print('     idling-glideins from glidefactoryclient = %d ' % glifacli_data[gridx]['GlideinMonitorTotalClientMonitorGlideIdle'])
+                print('     working-glideins from glidefactoryclient = %d ' % glifacli_data[gridx]['GlideinMonitorTotalClientMonitorGlideRunning'])
+                print('     total from glidefactoryclient = %d ' % glifacli_data[gridx]['GlideinMonitorTotalClientMonitorGlideTotal'])
+
+
+                print( "    TG: Low look at Factory limits")
+                if True:
+                    try:
+                        print('  %s Limits triggered = %s' % ('GlideinMonitorStatus_GlideFactoryLimitIdleGlideinsPerEntry', glifacli_data[gridx]['GlideinMonitorStatus_GlideFactoryLimitIdleGlideinsPerEntry']))
+                    except:
+                        pass
+                        #print('Limits triggered not avaliable = %s' % 'GlideinMonitorStatus_GlideFactoryLimitIdleGlideinsPerEntry')
+                    try:
+                        print('  %s Limits triggered = %s' % ('GlideinMonitorStatus_GlideFactoryLimitHeldGlideinsPerEntry', glifacli_data[gridx]['GlideinMonitorStatus_GlideFactoryLimitHeldGlideinsPerEntry']))
+                    except:
+                        pass
+                        #print('Limits triggered not avaliable = %s' % 'GlideinMonitorStatus_GlideFactoryLimitHeldGlideinsPerEntry')
+                    try:
+                        print('  %s Limits triggered = %s' % ('GlideinMonitorStatus_GlideFactoryLimitTotalGlideinsPerEntry', glifacli_data[gridx]['GlideinMonitorStatus_GlideFactoryLimitTotalGlideinsPerEntry']))
+                    except:
+                        pass
+                        #print( ' Limits triggered not avaliable = %s' % 'GlideinMonitorStatus_GlideFactoryLimitTotalGlideinsPerEntry' )
+
+                print( "    Number of Jobs from USRScheduler, how useful is this information?" )
+                print('     JobsIdle from glidefactoryclient = %d ' % glifacli_data[gridx]['GlideinMonitorTotalClientMonitorJobsIdle'])
+                print('     JobsRunning from glidefactoryclient = %d ' % glifacli_data[gridx]['GlideinMonitorTotalClientMonitorJobsRunning'])
 ################################################################################################
-            print( " another loop, this loop shold be inside the loop over glideresource  ")
+            print( "    Now probing other Jobs from other Frontends contributing to the same Entry")
 
 # first extract the information from the Entry about the same Frontend 
 # how many glidein_startup.sh have been submitted from this Entry to the EntryScheduler
@@ -297,22 +294,22 @@ def main(arg_poolsched, arg_poolcollt, arg_factcollt, arg_username):
 
             for tmpx in glifacli_data:
 #                pprint( glifacli_data[tmpx] )
-                print(glifacli_data[tmpx]['ReqClientName'])
-                print(glires_data[gridx]['GlideClientName'])
+#                print(glifacli_data[tmpx]['ReqClientName'])
+#                print(glires_data[gridx]['GlideClientName'])
 
                 if (glifacli_data[tmpx]['ReqGlidein'] == glires_data[gridx]['GlideFactoryName']) and (glifacli_data[tmpx]['ReqClientName'] != glires_data[gridx]['GlideClientName']):
                     print("jobs submitted to the Factory Scheduler from this Entry for the other Client")
-                    print(glifacli_data[tmpx]['GlideinMonitorTotalStatusIdle'])
-                    print(glifacli_data[tmpx]['GlideinMonitorTotalStatusRunning'])
+                    print(   "=>Running glidein_startup %d"%glifacli_data[tmpx]['GlideinMonitorTotalStatusIdle'])
+                    print(   "=>Queued  glidein_startup %d"%glifacli_data[tmpx]['GlideinMonitorTotalStatusRunning'])
 
-                    print("Glideins Idle or Running associated with this Entry for the other Client")
-                    print(glifacli_data[tmpx]['GlideinMonitorTotalClientMonitorGlideIdle'])
-                    print(glifacli_data[tmpx]['GlideinMonitorTotalClientMonitorGlideRunning'])
-                    print(glifacli_data[tmpx]['GlideinMonitorTotalClientMonitorGlideTotal'])
+                    print("   working-glideins or idling-glideins associated with this Entry for the other Client")
+                    print(   "=>idling-glideins = %d"%glifacli_data[tmpx]['GlideinMonitorTotalClientMonitorGlideIdle'])
+                    print(   "=>working-glideins= %d"%glifacli_data[tmpx]['GlideinMonitorTotalClientMonitorGlideRunning'])
+                    print(   "=>Total = %d"%glifacli_data[tmpx]['GlideinMonitorTotalClientMonitorGlideTotal'])
 
                     print("Query result from USR Scheduler associated with this Entry for the other Client")
-                    print(glifacli_data[tmpx]['GlideinMonitorTotalClientMonitorJobsIdle'])
-                    print(glifacli_data[tmpx]['GlideinMonitorTotalClientMonitorJobsRunning'])
+                    print(   "=>JobsIdle = %d"%glifacli_data[tmpx]['GlideinMonitorTotalClientMonitorJobsIdle'])
+                    print(   "=>JobsRunning = %d"%glifacli_data[tmpx]['GlideinMonitorTotalClientMonitorJobsRunning'])
 
 
 
