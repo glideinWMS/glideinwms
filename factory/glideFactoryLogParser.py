@@ -399,7 +399,6 @@ def extractLogData(fname):
                                 count_re=ELD_RC_CONDOR_SLOT_CONTENT_COUNT.search(slot_buf,count_re.end()+1)
                                 #end while count_re
 
-
                         slot_re=ELD_RC_CONDOR_SLOT.search(buf,buf_idx)
                         # end while slot_re
 
