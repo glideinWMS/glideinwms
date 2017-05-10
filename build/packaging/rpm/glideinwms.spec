@@ -78,7 +78,7 @@ vofrontend install (userschedd, submit, vofrontend).
 Summary:        The VOFrontend for glideinWMS submission host
 Group:          System Environment/Daemons
 Requires: httpd
-Requires: condor >= 8.4.0
+Requires: condor >= 8.2.3
 Requires: python-rrdtool
 Requires: m2crypto
 Requires: javascriptrrd >= 1.1.0
@@ -375,11 +375,13 @@ cp -arp creation/web_base/frontend/images $RPM_BUILD_ROOT%{web_dir}/monitor/
 # Install the frontend config dir
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend
+install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/plugin.d
 install -m 0644 %{SOURCE2} $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-frontend/frontend.xml
 install -m 0644 %{SOURCE8} $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/gwms-frontend
 
 # Install the factory config dir
 install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-factory
+install -d $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-factory/plugin.d
 install -m 0644 %{SOURCE4} $RPM_BUILD_ROOT/%{_sysconfdir}/gwms-factory/glideinWMS.xml
 install -m 0644 %{SOURCE9} $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/gwms-factory
 
@@ -720,6 +722,7 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-factory.conf
 %attr(-, gfactory, gfactory) %dir %{_sysconfdir}/gwms-factory
+%attr(-, gfactory, gfactory) %dir %{_sysconfdir}/gwms-factory/plugin.d
 %attr(-, gfactory, gfactory) %config(noreplace) %{_sysconfdir}/gwms-factory/glideinWMS.xml
 %config(noreplace) %{_sysconfdir}/sysconfig/gwms-factory
 
@@ -769,6 +772,7 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/gwms-frontend.conf
 %attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend
+%attr(-, frontend, frontend) %dir %{_sysconfdir}/gwms-frontend/plugin.d
 %attr(-, frontend, frontend) %config(noreplace) %{_sysconfdir}/gwms-frontend/frontend.xml
 %config(noreplace) %{_sysconfdir}/sysconfig/gwms-frontend
 %attr(-, frontend, frontend) %{web_base}/../creation
