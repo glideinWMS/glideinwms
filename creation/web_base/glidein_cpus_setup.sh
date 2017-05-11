@@ -66,7 +66,7 @@ function detect_cpus_htcondor {
 function detect_cpus_pbs {
     cores=$PBS_NUM_PPN
     different_values=no
-    if [ "$PBS_NUM_NODES" = "1" -a -n "$PBS_NP" ]; then
+    if [ "$PBS_NUM_NODES" = "1" ] && [ -n "$PBS_NP" ]; then
         if [ "$cores" = "" ]; then
             cores=$PBS_NP
         else
@@ -75,11 +75,11 @@ function detect_cpus_pbs {
         fi
     fi
     if [ -r "$PBS_NODEFILE" ]; then
-        cores_file=$(grep "$(hostname -s)" $PBS_NODEFILE | wc -l | awk '{print $1}')
+        cores_file=$(grep -c "$(hostname -s)" "$PBS_NODEFILE")
         if [ "$cores" = "" ]; then
             cores=$cores_file
         else
-            [ "$cores_file" -gt "$cores" ] && cores=$PBS_NP
+            [ "$cores_file" -gt "$cores" ] && cores=$cores_file
             [ "$cores_file" -ne "$cores" ] && different_values=yes
         fi
     fi
