@@ -356,7 +356,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
         #parent process
 
         lim =  resource.getrlimit(resource.RLIMIT_NOFILE)
-        if soft_l or hard_l:
+        if soft_l is not None or hard_l is not None:
             if not hard_l:
                 hard_l = soft_l
             if not soft_l:
@@ -366,8 +366,6 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                 resource.setrlimit(resource.RLIMIT_NOFILE, new_lim)
             except:
                 resource.setrlimit(resource.RLIMIT_NOFILE, lim)
-        else:
-            resource.setrlimit(resource.RLIMIT_NOFILE, lim)
 
 
 
