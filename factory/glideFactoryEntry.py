@@ -1358,6 +1358,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     #
 
     remove_excess = work['requests'].get('RemoveExcess', 'NO')
+    idle_lifetime = work['requests'].get('IdleLifetime', 0)
 
     if 'IdleGlideins' not in work['requests']:
         # Malformed, if no IdleGlideins
@@ -1449,7 +1450,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
     done_something = perform_work_v3(entry, entry_condorQ, client_name,
                                      client_int_name, client_security_name,
                                      submit_credentials, remove_excess,
-                                     idle_glideins, max_glideins,
+                                     idle_glideins, max_glideins, idle_lifetime,
                                      credential_username, entry.glideinTotals,
                                      frontend_name, client_web, params)
 
@@ -1731,7 +1732,7 @@ def unit_work_v2(entry, work, client_name, client_int_name, client_int_req,
 
 def perform_work_v3(entry, condorQ, client_name, client_int_name,
                     client_security_name, submit_credentials, remove_excess,
-                    idle_glideins, max_glideins, credential_username,
+                    idle_glideins, max_glideins, idle_lifetime, credential_username,
                     glidein_totals, frontend_name, client_web, params):
 
     # find out the users it is using
@@ -1761,7 +1762,7 @@ def perform_work_v3(entry, condorQ, client_name, client_int_name,
     entry.log.info("Using v3+ protocol and credential %s" % submit_credentials.id)
     nr_submitted = glideFactoryLib.keepIdleGlideins(
                        condorQ, client_int_name, idle_glideins,
-                       max_glideins, remove_excess, submit_credentials,
+                       max_glideins, idle_lifetime, remove_excess, submit_credentials,
                        glidein_totals, frontend_name, client_web, params,
                        log=entry.log, factoryConfig=entry.gflFactoryConfig)
 
@@ -1878,6 +1879,7 @@ def perform_work_v2(entry, condorQ, client_name, client_int_name,
         nr_submitted += glideFactoryLib.keepIdleGlideins(
                             condorQ, client_int_name,
                             idle_glideins_pproxy, max_glideins_pproxy,
+                            0, #this is idle_lifetime. Is perform_work_v2 deprecated? Putting a 0 for the moment
                             remove_excess, submit_credentials,
                             glidein_totals, frontend_name,
                             client_web, params, log=entry.log,

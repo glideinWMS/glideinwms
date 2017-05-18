@@ -166,6 +166,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         if conf['advertise_pilot_accounting'] == 'True':
             self.add("LeaveJobInQueue", "((time() - EnteredCurrentStatus) < 12*60*60)")
 
+        self.add("periodic_remove", "JobStatus==1 && isInteger($ENV(IDLE_LIFETIME)) && $ENV(IDLE_LIFETIME)>0 && (time() - EnteredCurrentStatus)>$ENV(IDLE_LIFETIME)")
+
         # Notification and Owner are the same no matter what grid type
         self.add("Notification", "Never")
         self.add("+Owner", "undefined")
