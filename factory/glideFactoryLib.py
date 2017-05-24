@@ -1378,7 +1378,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
         exe_env.append('GLIDEIN_NAME=%s' % glidein_name)
         exe_env.append('FACTORY_NAME=%s' % factory_name)
         exe_env.append('WEB_URL=%s' % web_url)
-        exe_env.append('IDLE_LIFETIME=%s' % idle_lifetime)
+        exe_env.append('GLIDEIN_IDLE_LIFETIME=%s' % idle_lifetime)
 
         # Security Params (signatures.sha1)
         # sign_type has always been hardcoded... we can change in the future if need be
