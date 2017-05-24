@@ -193,12 +193,12 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active,
         fm_classad.setFrontendDetails(
             frontendDescript.data['FrontendName'], ','.join(groups),
             glideinFrontendLib.getHAMode(frontendDescript.data))
-        idle_jobs = {
-            'Total': stats['total']['Jobs']['Idle'],
-            '600': stats['total']['Jobs']['OldIdle'],
-        }
         try:
-            idle_jobs['3600'] = stats['total']['Jobs']['Idle_3600']
+            idle_jobs = {
+                'Total': stats['total']['Jobs']['Idle'],
+                '600': stats['total']['Jobs']['OldIdle'],
+                '3600': stats['total']['Jobs']['Idle_3600'],
+            }
         except:
             logSupport.log.warn("setting idle_jobs['3600'] Failed, reconfig the frontend with -fix_rrd ")
 
