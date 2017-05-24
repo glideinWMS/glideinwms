@@ -986,6 +986,7 @@ if [ "$use_multi_monitor" -ne 1 ]; then
       monitor_starter_log='monitor/log/StarterLog'
     fi
       main_starter_log='log/StarterLog'
+      main_condor_log='log/StartdLog'
 else
     main_starter_log='log/StarterLog.vm2'
     monitor_starter_log='log/StarterLog.vm1'
@@ -1104,6 +1105,11 @@ if [ -f "${main_starter_log}" ]; then
     metrics+=`echo " " $parsed_metrics`
 fi
 echo "=== End Stats of main ==="
+
+if [ -f "${main_condor_log}" ]; then
+    numactivations=`grep "Got activate_claim" "${main_condor_log}" 2>/dev/null | wc -l`
+    echo "Total number of activations/claims: $numactivations"
+fi
 
 if [ 1 -eq 1 ]; then
     ls -l log 1>&2
