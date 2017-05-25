@@ -421,7 +421,7 @@ class glideinFrontendElement:
                    condorq_dict_types['IdleAll']['abs'],
                    condorq_dict_types['Idle']['abs'],
                    condorq_dict_types['OldIdle']['abs'],
-                   condorq_dict_types['3600_Idle']['abs'],
+                   condorq_dict_types['Idle_3600']['abs'],
                    condorq_dict_types['ProxyIdle']['abs'],
                    condorq_dict_types['VomsIdle']['abs'],
                    condorq_dict_types['Running']['abs']))
