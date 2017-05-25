@@ -413,16 +413,18 @@ class glideinFrontendElement:
             {'Total':condorq_dict_abs,
              'Idle':condorq_dict_types['Idle']['abs'],
              'OldIdle':condorq_dict_types['OldIdle']['abs'],
+             'Idle_3600':condorq_dict_types['Idle_3600']['abs'],
              'Running':condorq_dict_types['Running']['abs']})
 
-        logSupport.log.info("Jobs found total %i idle %i (good %i, old %i, grid %i, voms %i) running %i" % (condorq_dict_abs,
+        logSupport.log.info("Jobs found total %i idle %i (good %i, old(10min %i, 60min %i),  grid %i, voms %i) running %i" %\
+                   (condorq_dict_abs,
                    condorq_dict_types['IdleAll']['abs'],
                    condorq_dict_types['Idle']['abs'],
                    condorq_dict_types['OldIdle']['abs'],
+                   condorq_dict_types['Idle_3600']['abs'],
                    condorq_dict_types['ProxyIdle']['abs'],
                    condorq_dict_types['VomsIdle']['abs'],
                    condorq_dict_types['Running']['abs']))
-
         self.populate_status_dict_types()
         glideinFrontendLib.appendRealRunning(self.condorq_dict_running,
                                              self.status_dict_types['Running']['dict'])
@@ -506,9 +508,10 @@ class glideinFrontendElement:
         self.do_match()
         servicePerformance.endPerfMetricEvent(self.group_name, 'matchmaking')
 
-        logSupport.log.info("Total matching idle %i (old %i) running %i limit %i" % (
+        logSupport.log.info("Total matching idle %i (old 10min %i 60min %i) running %i limit %i" % (
             condorq_dict_types['Idle']['total'],
             condorq_dict_types['OldIdle']['total'],
+            condorq_dict_types['Idle_3600']['total'],
             self.condorq_dict_types['Running']['total'],
             self.max_running))
 
@@ -875,7 +878,8 @@ class glideinFrontendElement:
                 del good_condorq_dict[k]
         # use only the good schedds when considering idle
         condorq_dict_idle = glideinFrontendLib.getIdleCondorQ(good_condorq_dict)
-        condorq_dict_old_idle = glideinFrontendLib.getOldCondorQ(condorq_dict_idle, 600)
+        condorq_dict_idle_600 = glideinFrontendLib.getOldCondorQ(condorq_dict_idle, 600)
+        condorq_dict_idle_3600 = glideinFrontendLib.getOldCondorQ(condorq_dict_idle, 3600)
         condorq_dict_proxy = glideinFrontendLib.getIdleProxyCondorQ(condorq_dict_idle)
         condorq_dict_voms = glideinFrontendLib.getIdleVomsCondorQ(condorq_dict_idle)
 
@@ -893,9 +897,15 @@ class glideinFrontendElement:
                 'dict':condorq_dict_idle,
                 'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle)
             },
+            #idle 600s or more
             'OldIdle': {
-                'dict':condorq_dict_old_idle,
-                'abs':glideinFrontendLib.countCondorQ(condorq_dict_old_idle)
+                'dict':condorq_dict_idle_600,
+                'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle_600)
+            },
+            #idle 3600s or more
+            'Idle_3600': {
+                'dict':condorq_dict_idle_3600,
+                'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle_3600)
             },
             'VomsIdle': {
                 'dict':condorq_dict_voms,
