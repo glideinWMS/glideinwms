@@ -1,6 +1,8 @@
 #!/bin/bash
 ########################################################################
 #  This script is used to create the necessary directories for schedds.
+#  The config file must be queried for the correct schedd, e.g.:
+#  condor_config_val  -host $(hostname -s) -subsystem SCHEDD -local-name SCHEDDGLIDEINS2 SCHEDDGLIDEINS2.SCHEDD_LOG
 ########################################################################
 function logit {
   echo "$1"
@@ -38,17 +40,19 @@ variable to the valid uid.gid pair that should be used by Condor."
 }
 #-------------------------
 function validate_attrs {
-  local name=$1
-  local dir=$($CONFIG_VAL  $name 2>/dev/null)
+  local s_name=$1
+  local att_name=$2
+  local dir=$($CONFIG_VAL -subsystem SCHEDD -local-name $s_name $att_name 2>/dev/null)
   if [ -z "$dir" ];then
-    logerr "Undefined Condor attribute: $name"
+    logerr "Undefined Condor attribute (SCHEDD/$s_name): $att_name"
   fi
 }
 #-------------------------
 function create_dirs {
-  local name=$1
-  local dir=$($CONFIG_VAL $name)
-  logit "  $name: $dir "
+  local s_name=$1
+  local att_name=$2
+  local dir=$($CONFIG_VAL -subsystem SCHEDD -local-name $s_name $att_name)
+  logit "  $att_name: $dir "
   if [  -d "$dir" ];then
     logit "  ... already exists"
   else  
@@ -74,8 +78,8 @@ function validate_all {
     logit "Validating schedd: $schedd"
     for a  in $attrs
     do
-      attr=SCHEDD.$schedd.$a
-      validate_attrs $attr
+      attr=$schedd.$a
+      validate_attrs $schedd $attr
     done
   done
 }
@@ -90,9 +94,9 @@ function create_all {
     logit "Processing schedd: $schedd"
     for a  in $attrs
     do
-      attr=SCHEDD.$schedd.$a
-      validate_attrs $attr
-      create_dirs $attr
+      attr=$schedd.$a
+      validate_attrs $schedd $attr
+      create_dirs $schedd $attr
     done
   done
 }
