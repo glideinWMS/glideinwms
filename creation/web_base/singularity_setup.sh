@@ -188,8 +188,6 @@ elif [ "$singularity_bin" == "auto" ]; then
 fi
 
 # but first test it does exist and is executable
-SINGULARITY
-singularity
 
 if [ -f "$singularity_bin" ]; then
     if [ -x "$singularity_bin" ]; then
