@@ -16,7 +16,8 @@
 # Part of the glideinWMS package
 #
 
-import sys, os
+import sys
+import os
 import subprocess
 # not used: import string, copy
 
