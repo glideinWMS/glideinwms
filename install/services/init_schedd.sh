@@ -1,6 +1,7 @@
 #!/bin/bash
-########################################################################
-#  This script is used to create the necessary directories for schedds.
+#################################################################################
+#  This script is used to create the necessary directories for secondary schedds.
+#  The directories of the primary schedd (LOCAL_DIR, LOG) are assumed to exist already
 #  The config file must be queried for the correct schedd, e.g.:
 #  condor_config_val  -host $(hostname -s) -subsystem SCHEDD -local-name SCHEDDGLIDEINS2 SCHEDDGLIDEINS2.SCHEDD_LOG
 ########################################################################
@@ -106,8 +107,11 @@ PGM=$(basename $0)
 
 validate
 
+# List of secondary schedds
 schedds="$($CONFIG_VAL  DC_DAEMON_LIST)"
-attrs="LOCAL_DIR EXECUTE SPOOL LOCK"
+# LOCAL_DIR is for the main condor/schedd, LOCAL_DIR_ALT is for secondary schedds
+# LOG not included since it is common
+attrs="LOCAL_DIR_ALT LOG EXECUTE SPOOL LOCK"
 #attrs=" EXECUTE SPOOL LOCK"
 
 validate_all

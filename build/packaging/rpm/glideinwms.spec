@@ -409,7 +409,8 @@ install -m 0644 install/templates/01_gwms_metrics.config $RPM_BUILD_ROOT%{_sysco
 install -m 0644 install/templates/condor_mapfile $RPM_BUILD_ROOT%{_sysconfdir}/condor/certs/
 install -m 0644 install/templates/privsep_config $RPM_BUILD_ROOT%{_sysconfdir}/condor/
 
-#Install condor schedd dirs
+# Install condor schedd dirs
+# This should be consistent with 02_gwms_factory_schedds.config and 02_gwms_schedds.config
 for schedd in "schedd_glideins2" "schedd_glideins3" "schedd_glideins4" "schedd_glideins5" "schedd_jobs2"; do
 	install -d $RPM_BUILD_ROOT/var/lib/condor/$schedd
 	install -d $RPM_BUILD_ROOT/var/lib/condor/$schedd/execute
