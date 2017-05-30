@@ -1,3 +1,6 @@
+v3_2_19 Added ...
+        Bug Fix: 
+
 v3_2_18 Bug Fix: ProjectId is missing double quotes
         Bug Fix: Stdout messages from startup script in SL7 are confusing
         Bug Fix: Service definition file for SL7 is marked executable 
