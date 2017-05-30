@@ -119,6 +119,7 @@ class glideinFrontendElement:
         self.fraction_running = float(self.elementDescript.element_data['FracRunningPerEntry'])
         self.max_idle = int(self.elementDescript.element_data['MaxIdlePerEntry'])
         self.reserve_idle = int(self.elementDescript.element_data['ReserveIdlePerEntry'])
+        self.idle_lifetime = int(self.elementDescript.element_data['IdleLifetime'])
         self.max_vms_idle = int(self.elementDescript.element_data['MaxIdleVMsPerEntry'])
         self.curb_vms_idle = int(self.elementDescript.element_data['CurbIdleVMsPerEntry'])
         self.total_max_glideins = int(self.elementDescript.element_data['MaxRunningTotal'])
@@ -215,7 +216,6 @@ class glideinFrontendElement:
             'MaxRunningTotal', 'CurbRunningTotal',
             'MaxIdleVMsTotal', 'CurbIdleVMsTotal',
         )
-
         # Add frontend global config info
         for key in fe_data_keys:
             ad_key = 'Frontend%s' % (key)
@@ -746,6 +746,7 @@ class glideinFrontendElement:
                 advertizer.add(factory_pool_node,
                                request_name, request_name,
                                glidein_min_idle, glidein_max_run,
+                               self.idle_lifetime,
                                glidein_params=glidein_params,
                                glidein_monitors=glidein_monitors,
                                glidein_monitors_per_cred=glidein_monitors_per_cred,

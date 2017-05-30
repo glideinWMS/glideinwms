@@ -668,6 +668,8 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     aggressive the provisioning requests should be.<br>
      The number specified in <b>max</b> is the highest number of idle/pending 
      glideins that the resource associated with any factory entry will ever see.
+     <li>The next element, <b>idle_glideins_lifetime</b>, determins how many seconds glideins will stay in the idle
+         state in the factory queue before they are automatically removed (through a periodic_remove expression)
      <li>The next two are used to throttle the requests, if the provisioned glideins (counted as number of slots) 
          are not matched to the user jobs, either due to a mismatch in policy or system overload.<br>
          <b>idle_vms_per_entry</b> throttles based on a per factory entry basis (e.g. Grid site), <br>while

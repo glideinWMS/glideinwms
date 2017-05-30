@@ -320,7 +320,7 @@ def find_and_perform_work(factory_in_downtime, glideinDescript,
             (my_entries[entry]).setState(post_work_info[entry])
 
         else:
-            logSupport.log.debug("No work found for entry %s from anyt frontends" % entry)
+            logSupport.log.debug("No work found for entry %s from any frontends" % entry)
 
     if work_info_read_err:
         logSupport.log.debug("Unable to process response from one or more children for check_and_perform_work. One or more forked processes may have failed and may not have client_stats updated")

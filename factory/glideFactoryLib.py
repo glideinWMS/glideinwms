@@ -490,7 +490,7 @@ class ClientWeb:
 
 
 def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
-                     req_max_glideins, remove_excess, submit_credentials,
+                     req_max_glideins, idle_lifetime, remove_excess, submit_credentials,
                      glidein_totals, frontend_name, client_web, params,
                      log=logSupport.log, factoryConfig=None):
     """
@@ -617,7 +617,7 @@ def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
 
     try:
         log.debug("Submitting %i glideins" % add_glideins)
-        submitGlideins(condorq.entry_name, client_int_name, add_glideins,
+        submitGlideins(condorq.entry_name, client_int_name, add_glideins, idle_lifetime,
                        frontend_name, submit_credentials, client_web, params,
                        log=log, factoryConfig=factoryConfig)
         glidein_totals.add_idle_glideins(add_glideins, frontend_name)
@@ -870,7 +870,10 @@ def logWorkRequest(client_int_name, client_security_name, proxy_security_class,
 
     client_log_name = secClass2Name(client_security_name, proxy_security_class)
 
-    log.info("Client %s (secid: %s) requesting %i glideins, max running %i, remove excess '%s'" % (client_int_name, client_log_name, req_idle, req_max_run, remove_excess))
+    idle_lifetime = work_el['requests'].get('IdleLifetime', 0)
+
+    log.info("Client %s (secid: %s) requesting %i glideins, max running %i, idle lifetime %s, remove excess '%s'" %
+             (client_int_name, client_log_name, req_idle, req_max_run, idle_lifetime, remove_excess))
     log.info("  Params: %s" % work_el['params'])
     # cannot log decrypted ones... they are most likely sensitive
     log.info("  Decrypted Param Names: %s" % work_el['params_decrypted'].keys())
@@ -1130,7 +1133,7 @@ def escapeParam(param_str):
 
 
 # submit N new glideins
-def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
+def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend_name,
                    submit_credentials, client_web, params, log=logSupport.log,
                    factoryConfig=None):
 
@@ -1154,7 +1157,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
     try:
         entry_env = get_submit_environment(entry_name, client_name,
                                          submit_credentials, client_web,
-                                         params, log=log,
+                                         params, idle_lifetime, log=log,
                                          factoryConfig=factoryConfig)
     except:
         msg = "Failed to setup execution environment."
@@ -1318,7 +1321,7 @@ def in_submit_environment(entry_name, exe_env):
 
 
 def get_submit_environment(entry_name, client_name, submit_credentials,
-                           client_web, params, log=logSupport.log,
+                           client_web, params, idle_lifetime, log=logSupport.log,
                            factoryConfig=None):
 
     if factoryConfig is None:
@@ -1375,6 +1378,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
         exe_env.append('GLIDEIN_NAME=%s' % glidein_name)
         exe_env.append('FACTORY_NAME=%s' % factory_name)
         exe_env.append('WEB_URL=%s' % web_url)
+        exe_env.append('GLIDEIN_IDLE_LIFETIME=%s' % idle_lifetime)
 
         # Security Params (signatures.sha1)
         # sign_type has always been hardcoded... we can change in the future if need be
