@@ -42,6 +42,7 @@ except:
     #logSupport has been initialized. But I'd try to put it log.debug
     pass
 
+
 #
 # Configuration
 #
@@ -120,17 +121,14 @@ class LocalScheddCache(NoneScheddCache):
         self.my_ips = socket.gethostbyname_ex(socket.gethostname())[2]
         try:
             self.my_ips += socket.gethostbyname_ex('localhost')[2]
-        except socket.gaierror,e:
-            pass # localhost not defined, ignore
-
+        except socket.gaierror, e:
+            pass  # localhost not defined, ignore
 
     def enable(self):
         self.enabled = True
 
-
     def disable(self):
         self.enabled = False
-
 
     def getScheddId(self, schedd_name, pool_name):
         """
@@ -145,12 +143,12 @@ class LocalScheddCache(NoneScheddCache):
 
         @return: tuple (schedd string, env)
         """
-        if schedd_name is None: # special case, do not cache
-            return ("",{})
+        if schedd_name is None:  # special case, do not cache
+            return ("", {})
 
         if self.enabled:
-            k=(schedd_name,pool_name)
-            if not k in self.cache: # not in cache, discover it
+            k = (schedd_name, pool_name)
+            if k not in self.cache:  # not in cache, discover it
                 env = self.iGetEnv(schedd_name, pool_name)
                 if env is None:
                     self.cache[k] = (self.iGetCmdScheddStr(schedd_name), {})
@@ -176,7 +174,7 @@ class LocalScheddCache(NoneScheddCache):
         if not data.has_key(schedd_name):
             raise RuntimeError, "Schedd '%s' not found"%schedd_name
 
-        el=data[schedd_name]
+        el = data[schedd_name]
         if 'SPOOL_DIR_STRING' not in el and 'LOCAL_DIR_STRING' not in el:
             # not advertising, cannot use disk optimization
             return None
@@ -184,14 +182,15 @@ class LocalScheddCache(NoneScheddCache):
             # This should never happen
             raise RuntimeError, "Schedd '%s' is not advertising ScheddIpAddr"%schedd_name
 
-        schedd_ip=el['ScheddIpAddr'][1:].split(':')[0]
-        if schedd_ip in self.my_ips: #seems local, go for the dir
+        schedd_ip = el['ScheddIpAddr'][1:].split(':')[0]
+        if schedd_ip in self.my_ips:  # seems local, go for the dir
             l=el.get('SPOOL_DIR_STRING', el.get('LOCAL_DIR_STRING'))
-            if os.path.isdir(l): # making sure the directory exists
+            if os.path.isdir(l):  # making sure the directory exists
                 if 'SPOOL_DIR_STRING' in el:
                     return {'_CONDOR_SPOOL': '%s' %l }
-                else: # LOCAL_DIR_STRING
-                    return {'_CONDOR_SPOOL': '%s/spool' %l }
+                else:  # LOCAL_DIR_STRING, assuming spool is LOCAL_DIR_STRING/spool
+                    if os.path.isdir('%s/spool' %l):
+                        return {'_CONDOR_SPOOL': '%s/spool' %l }
             else:
                 # dir does not exist, not relevant, revert to standard behaviour
                 return None
@@ -200,7 +199,7 @@ class LocalScheddCache(NoneScheddCache):
             return None
 
 # default global object
-local_schedd_cache=LocalScheddCache()
+local_schedd_cache = LocalScheddCache()
 
 
 def condorq_attrs(q_constraint, attribute_list):
@@ -211,8 +210,7 @@ def condorq_attrs(q_constraint, attribute_list):
     for attr in attribute_list:
         attr_str += " -attr %s" % attr
 
-    xml_data = condorExe.exe_cmd("condor_q","-g -l %s -xml -constraint '%s'" % (attr_str, q_constraint))
-
+    xml_data = condorExe.exe_cmd("condor_q", "-g -l %s -xml -constraint '%s'" % (attr_str, q_constraint))
 
     classads_xml = []
     tmp_list = []
@@ -230,6 +228,7 @@ def condorq_attrs(q_constraint, attribute_list):
         q_proxy_list.extend(cred_list)
 
     return q_proxy_list
+
 
 #
 # Condor monitoring classes
@@ -250,13 +249,11 @@ class AbstractQuery:
         """
         raise NotImplementedError, "Fetch not implemented"
 
-
     def load(self, constraint=None, format_list=None):
         """
         Fetch the data and store it in self.stored_data
         """
         raise NotImplementedError, "Load not implemented"
-
 
     def fetchStored(self, constraint_func=None):
         """
@@ -275,7 +272,6 @@ class StoredQuery(AbstractQuery):
     Virtual class that implements fetchStored
     """
     stored_data = {}
-
 
     def fetchStored(self, constraint_func=None):
         """
@@ -375,22 +371,18 @@ class CondorQuery(StoredQuery):
         else:
             self.security_obj=condorSecurity.ProtoRequest()
 
-
     def require_integrity(self, requested_integrity):
         """
         Set client integerity settings to use for condor commands
         """
-
         if requested_integrity is None:
-            condor_val=None
+            condor_val = None
         elif requested_integrity:
-            condor_val="REQUIRED"
+            condor_val = "REQUIRED"
         else:
             # Not required, set OPTIONAL if the other side requires it
             condor_val='OPTIONAL'
-
         self.security_obj.set('CLIENT', 'INTEGRITY', condor_val)
-
 
     def get_requested_integrity(self):
         """
@@ -398,28 +390,23 @@ class CondorQuery(StoredQuery):
 
         @return: None->None; REQUIRED->True; OPTIONAL->False
         """
-
         condor_val = self.security_obj.get('CLIENT', 'INTEGRITY')
         if condor_val is None:
             return None
-        return (condor_val=='REQUIRED')
-
+        return (condor_val == 'REQUIRED')
 
     def require_encryption(self, requested_encryption):
         """
         Set client encryption settings to use for condor commands
         """
-
         if requested_encryption is None:
-            condor_val=None
+            condor_val = None
         elif requested_encryption:
-            condor_val="REQUIRED"
+            condor_val = "REQUIRED"
         else:
             # Not required, set OPTIONAL if the other side requires it
-            condor_val='OPTIONAL'
-
+            condor_val = 'OPTIONAL'
         self.security_obj.set('CLIENT', 'ENCRYPTION', condor_val)
-
 
     def get_requested_encryption(self):
         """
@@ -431,8 +418,7 @@ class CondorQuery(StoredQuery):
         condor_val = self.security_obj.get('CLIENT', 'ENCRYPTION')
         if condor_val is None:
             return None
-        return (condor_val=='REQUIRED')
-
+        return (condor_val == 'REQUIRED')
 
     def fetch(self, constraint=None, format_list=None):
         """
@@ -449,7 +435,6 @@ class CondorQuery(StoredQuery):
             err_str = 'Error executing htcondor query with constraint %s and format_list %s: %s' % (constraint, format_list, ex)
             raise QueryError(err_str), None, sys.exc_info()[2]
 
-
     def fetch_using_exe(self, constraint=None, format_list=None):
         """
         Return the results obtained from executing the HTCondor query command
@@ -465,18 +450,18 @@ class CondorQuery(StoredQuery):
         """
 
         if constraint is None:
-            constraint_str=""
+            constraint_str = ""
         else:
-            constraint_str="-constraint '%s'"%constraint
+            constraint_str = "-constraint '%s'"%constraint
 
         full_xml=(format_list is None)
         if format_list is not None:
-            format_arr=[]
+            format_arr = []
             for format_el in format_list:
-                attr_name,attr_type=format_el
-                attr_format={'s':'%s','i':'%i','r':'%f','b':'%i'}[attr_type]
-                format_arr.append('-format "%s" "%s"'%(attr_format,attr_name))
-            format_str=string.join(format_arr," ")
+                attr_name, attr_type = format_el
+                attr_format = {'s': '%s', 'i': '%i', 'r': '%f', 'b': '%i'}[attr_type]
+                format_arr.append('-format "%s" "%s"' % (attr_format, attr_name))
+            format_str = string.join(format_arr, " ")
 
         # set environment for security settings
         self.security_obj.save_state()
@@ -484,10 +469,11 @@ class CondorQuery(StoredQuery):
             self.security_obj.enforce_requests()
 
             if full_xml:
-                xml_data = condorExe.exe_cmd(self.exe_name,"%s -xml %s %s"%(self.resource_str,self.pool_str,constraint_str),env=self.env)
+                xml_data = condorExe.exe_cmd(self.exe_name, "%s -xml %s %s" %
+                                             (self.resource_str, self.pool_str, constraint_str), env=self.env)
             else:
-                xml_data = condorExe.exe_cmd(self.exe_name,"%s %s -xml %s %s"%(self.resource_str,format_str,self.pool_str,constraint_str),env=self.env)
-
+                xml_data = condorExe.exe_cmd(self.exe_name, "%s %s -xml %s %s" %
+                                             (self.resource_str, format_str, self.pool_str, constraint_str), env=self.env)
         finally:
             # restore old security context
             self.security_obj.restore_state()
@@ -497,20 +483,17 @@ class CondorQuery(StoredQuery):
         dict_data = list2dict(list_data, self.group_attribute)
         return dict_data
 
-
     def fetch_using_bindings(self, constraint=None, format_list=None):
         """
         Fetch the results using htcondor-python bindings
         """
         raise NotImplementedError, "fetch_using_bindings() not implemented"
 
-
     def load(self, constraint=None, format_list=None):
         """
         Fetch the results and cache it in self.stored_data
         """
         self.stored_data = self.fetch(constraint, format_list)
-
 
     def __repr__(self):
         output = "%s:\n" % self.__class__.__name__
@@ -541,9 +524,8 @@ class CondorQ(CondorQuery):
         schedd_str, env = schedd_lookup_cache.getScheddId(schedd_name,
                                                           pool_name)
         CondorQuery.__init__(self, "condor_q", schedd_str,
-                             ["ClusterId","ProcId"],
+                             ["ClusterId", "ProcId"],
                              pool_name, security_obj, env)
-
 
     def fetch(self, constraint=None, format_list=None):
         if format_list is not None:
@@ -553,13 +535,12 @@ class CondorQ(CondorQuery):
         return CondorQuery.fetch(self, constraint=constraint,
                                  format_list=format_list)
 
-
     def fetch_using_bindings(self, constraint=None, format_list=None):
         """
         Fetch the results using htcondor-python bindings
         """
 
-        results_dict = {}
+        results_dict = {}  # defined here in case of exception
         constraint = bindings_friendly_constraint(constraint)
         attrs = bindings_friendly_attrs(format_list)
 
@@ -602,34 +583,29 @@ class CondorStatus(CondorQuery):
 
     def __init__(self, subsystem_name=None, pool_name=None, security_obj=None):
         if subsystem_name is None:
-            subsystem_str=""
+            subsystem_str = ""
         else:
             subsystem_str = "-%s" % subsystem_name
-
         CondorQuery.__init__(self, "condor_status", subsystem_str,
                              "Name", pool_name, security_obj, {})
-
 
     def fetch(self, constraint=None, format_list=None):
         if format_list is not None:
             # If format_list, make sure Name is present
-            format_list = complete_format_list(format_list, [("Name",'s')])
+            format_list = complete_format_list(format_list, [("Name", 's')])
         return CondorQuery.fetch(self, constraint=constraint,
                                  format_list=format_list)
-
 
     def fetch_using_bindings(self, constraint=None, format_list=None):
         """
         Fetch the results using htcondor-python bindings
         """
-
-        results_dict = {}
+        results_dict = {}  # defined here in case of exception
         constraint = bindings_friendly_constraint(constraint)
         attrs = bindings_friendly_attrs(format_list)
 
         adtype = resource_str_to_py_adtype(self.resource_str)
         self.security_obj.save_state()
-
         try:
             self.security_obj.enforce_requests()
             htcondor.reload_config()
@@ -665,11 +641,9 @@ class BaseSubQuery(StoredQuery):
         self.query = query
         self.subquery_func = subquery_func
 
-
     def fetch(self, constraint=None):
         indata = self.query.fetch(constraint)
         return self.subquery_func(self, indata)
-
 
     #
     # NOTE: You need to call load on the SubQuery object to use fetchStored
@@ -687,16 +661,15 @@ class SubQuery(BaseSubQuery):
 
     def __init__(self, query, constraint_func=None):
         BaseSubQuery.__init__(self, query,
-                              lambda d:applyConstraint(d, constraint_func))
-
+                              lambda d: applyConstraint(d, constraint_func))
 
     def __repr__(self):
         output = "%s:\n" % self.__class__.__name__
-        #output += "client_name = %s\n" % str(self.client_name)
-        #output += "entry_name = %s\n" % str(self.entry_name)
-        #output += "factory_name = %s\n" % str(self.factory_name)
-        #output += "glidein_name = %s\n" % str(self.glidein_name)
-        #output += "schedd_name = %s\n" % str(self.schedd_name)
+        # output += "client_name = %s\n" % str(self.client_name)
+        # output += "entry_name = %s\n" % str(self.entry_name)
+        # output += "factory_name = %s\n" % str(self.factory_name)
+        # output += "glidein_name = %s\n" % str(self.glidein_name)
+        # output += "schedd_name = %s\n" % str(self.schedd_name)
         output += "stored_data = %s" % str(self.stored_data)
         return output
 
@@ -716,7 +689,7 @@ class Group(BaseSubQuery):
                           Returns: a summary classad dictionary
         """
         BaseSubQuery.__init__(
-            self, query, lambda d:doGroup(d, group_key_func, group_data_func))
+            self, query, lambda d: doGroup(d, group_key_func, group_data_func))
 
 
 class Summarize:
@@ -729,7 +702,7 @@ class Summarize:
     #                Returns: hash value
     #                          if None, will not be counted
     #                          if a list, all elements will be used
-    def __init__(self, query, hash_func=lambda x:1):
+    def __init__(self, query, hash_func=lambda x: 1):
         self.query = query
         self.hash_func = hash_func
 
@@ -757,7 +730,7 @@ class Summarize:
 
     # Use data pre-stored in query
     # Same output as list
-    def listStored(self, constraint_func=None,hash_func=None):
+    def listStored(self, constraint_func=None, hash_func=None):
         data = self.query.fetchStored(constraint_func)
         return fetch2list(data, self.getHash(hash_func))
 
@@ -788,6 +761,7 @@ def complete_format_list(in_format_list, req_format_els):
         if not found:
             out_format_list.append(req_format_el)
     return out_format_list
+
 
 #
 # Convert Condor XML to list
