@@ -86,7 +86,6 @@ Requires: globus-common-progs
 Requires: globus-gram-client-tools
 Requires: globus-gsi-cert-utils-progs
 Requires: gsi-openssh-clients
-Requires: osg-cert-scripts
 Requires: osg-system-profiler
 Requires: osg-version
 Requires: osg-wn-client
