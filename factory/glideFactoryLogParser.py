@@ -2,7 +2,7 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
+# File Version:
 #
 # Description:
 #   This module implements classes to track
@@ -46,7 +46,7 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
     """
     Class logSummaryTimingsOut logs timing and status of a job.
     It declares a job complete only after the output file has been received
-    The format is slightly different than the one of logSummaryTimings; 
+    The format is slightly different than the one of logSummaryTimings;
     we add the dirname in the job id
     When a output file is found, it adds a 4th parameter to the completed jobs
     See extractLogData below for more details
@@ -63,7 +63,7 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
 
     def loadFromLog(self):
         """
-        This class inherits from cachedLogClass.  So, load() will 
+        This class inherits from cachedLogClass.  So, load() will
         first check the cached files.  If changed, it will call this function.
         This uses the condorLogParser to load the log, then does
         some post-processing to check the job.NUMBER.out files
@@ -108,7 +108,7 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
                     new_waitout.append(el)
                 else:
                     new_completed.append(el)
-                
+
         self.data['CompletedNoOut']=new_waitout
         self.data['Completed']=new_completed
 
@@ -149,9 +149,9 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
             return outdata
         else:
             outdata={}
-            
+
             keys={} # keys will contain the merge of the two lists
-            
+
             for s in (self.data.keys()+other.keys()):
                 keys[s]=None
 
@@ -208,7 +208,7 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
         and other and puts it into data[status]['Entered'|'Exited']
         Completed jobs are augmented with data from the log
 
-        @return: data[status]['Entered'|'Exited'] - list of jobs 
+        @return: data[status]['Entered'|'Exited'] - list of jobs
         """
         outdata=self.diff_raw(other)
         if outdata.has_key("Completed"):
@@ -222,7 +222,7 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
                     fdata=extractLogData(job_fullname)
                 except:
                     fdata=copy.deepcopy(EMPTY_LOG_DATA) # just protect
-                    
+
                 entered[i]=(sel_e[:-1]+(fdata,sel_e[-1]))
         return outdata
 
@@ -259,7 +259,7 @@ class dirSummarySimple:
     # diff self data with other info
     def diff(self,other):
         dummyobj = self.mkTempLogObj()
-        return  dummyobj.diff(other.data) 
+        return  dummyobj.diff(other.data)
 
     # merge other into myself
     def merge(self,other):
@@ -313,6 +313,7 @@ ELD_RC_CONDOR_START=re.compile("=== Condor starting.*===")
 ELD_RC_CONDOR_END=re.compile("=== Condor ended.*after (?P<secs>[0-9]+) ===")
 ELD_RC_CONDOR_SLOT=re.compile("=== Stats of (?P<slot>\S+) ===(?P<content>.*)=== End Stats of (?P<slot2>\S+) ===",re.M|re.DOTALL)
 ELD_RC_CONDOR_SLOT_CONTENT_COUNT=re.compile("Total(?P<name>.*)jobs (?P<jobsnr>[0-9]+) .*utilization (?P<secs>[0-9]+)")
+ELD_RC_CONDOR_SLOT_ACTIVATIONS_COUNT=re.compile("Total number of activations/claims: (?P<nr>[0-9]+)")
 ELD_RC_GLIDEIN_END=re.compile("=== Glidein ending .* with code (?P<code>[0-9]+) after (?P<secs>[0-9]+) ===")
 
 KNOWN_SLOT_STATS=['Total','goodZ','goodNZ','badSignal','badOther']
@@ -328,7 +329,7 @@ def extractLogData(fname):
     @return: a dictionary with keys:
         - glidein_duration - integer, how long did the glidein run
         - validation_duration - integer, how long before starting condor
-        - condor_started - Boolean, did condor even start 
+        - condor_started - Boolean, did condor even start
           (if false, no further entries)
         - condor_duration - integer, how long did Condor run
         - stats - dictionary of stats (as in KNOWN_SLOT_STATS), each having
@@ -358,7 +359,7 @@ def extractLogData(fname):
                     validation_duration=None
                 # KEL unused variable - do we need to use this?
                 bux_idx=validate_re.end()+1
-            
+
             start_re=ELD_RC_CONDOR_START.search(buf,buf_idx)
             if start_re is not None:
                 condor_starting=1
@@ -390,17 +391,27 @@ def extractLogData(fname):
                                     secs=int(count_re.group('secs'))
                                 except:
                                     jobsnr=None
-                                    
+
                                 if jobsnr is not None: #check I had no errors in integer conversion
                                     if not slot_stats.has_key(count_name):
                                         slot_stats[count_name]={'jobsnr':jobsnr,'secs':secs}
 
                                 count_re=ELD_RC_CONDOR_SLOT_CONTENT_COUNT.search(slot_buf,count_re.end()+1)
                                 #end while count_re
-                            
+
                         slot_re=ELD_RC_CONDOR_SLOT.search(buf,buf_idx)
                         # end while slot_re
-                    
+
+            activations_re=ELD_RC_CONDOR_SLOT_ACTIVATIONS_COUNT.search(buf,buf_idx)
+            if activations_re is not None:
+                try:
+                    num_activations=int(activations_re.group("nr"))
+                except:
+                    num_activations=None
+                bux_idx=activations_re.end()+1
+            else:
+                num_activations=None
+
             glidein_end_re=ELD_RC_GLIDEIN_END.search(buf,buf_idx)
             if glidein_end_re is not None:
                 try:
@@ -411,7 +422,7 @@ def extractLogData(fname):
                 bux_idx=glidein_end_re.end()+1
             else:
                 glidein_duration=None
-                
+
         finally:
             buf.close()
     finally:
@@ -422,10 +433,14 @@ def extractLogData(fname):
         out['validation_duration']=validation_duration
     #else:
     #   out['validation_duration']=1
+
     if glidein_duration is not None:
         out['glidein_duration']=glidein_duration
     #else:
     #   out['glidein_duration']=2
+
+    if num_activations is not None:
+        out["activations_claims"] = num_activations
     if condor_starting:
         if condor_duration is not None:
             out['condor_duration']=condor_duration

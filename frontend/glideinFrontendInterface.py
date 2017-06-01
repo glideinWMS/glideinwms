@@ -645,6 +645,7 @@ class AdvertizeParams:
     def __init__(self,
                  request_name, glidein_name,
                  min_nr_glideins, max_run_glideins,
+                 idle_lifetime=0,
                  glidein_params={}, glidein_monitors={},
                  glidein_monitors_per_cred={},
                  glidein_params_to_encrypt=None,  # params_to_encrypt needs key_obj
@@ -654,6 +655,7 @@ class AdvertizeParams:
         self.glidein_name = glidein_name
         self.min_nr_glideins = min_nr_glideins
         self.max_run_glideins = max_run_glideins
+        self.idle_lifetime = idle_lifetime
         if remove_excess_str is None:
             remove_excess_str = "NO"
         elif not (remove_excess_str in ("NO", "WAIT", "IDLE", "ALL", "UNREG")):
@@ -671,6 +673,7 @@ class AdvertizeParams:
         output += "glidein_name = %s\n" % self.glidein_name
         output += "min_nr_glideins = %s\n" % self.min_nr_glideins
         output += "max_run_glideins = %s\n" % self.max_run_glideins
+        output += "idle_lifetime = %s\n" % self.idle_lifetime
         output += "remove_excess_str = %s\n" % self.remove_excess_str
         output += "glidein_params = %s\n" % self.glidein_params
         output += "glidein_monitors = %s\n" % self.glidein_monitors
@@ -720,6 +723,7 @@ class MultiAdvertizeWork:
             factory_pool,
             request_name, glidein_name,
             min_nr_glideins, max_run_glideins,
+            idle_lifetime=0,
             glidein_params={}, glidein_monitors={},
             glidein_monitors_per_cred={},
             key_obj=None,                     # must be of type FactoryKeys4Advertize
@@ -732,6 +736,7 @@ class MultiAdvertizeWork:
 
         params_obj=AdvertizeParams(request_name, glidein_name,
                                    min_nr_glideins, max_run_glideins,
+                                   idle_lifetime,
                                    glidein_params, glidein_monitors,
                                    glidein_monitors_per_cred,
                                    glidein_params_to_encrypt, security_name,
@@ -1188,6 +1193,7 @@ class MultiAdvertizeWork:
                 fd.write('ReqIdleGlideins = %i\n'%req_idle)
                 fd.write('ReqMaxGlideins = %i\n'%req_max_run)
                 fd.write('ReqRemoveExcess = "%s"\n'%params_obj.remove_excess_str)
+                fd.write('ReqIdleLifetime = "%s"\n'%params_obj.idle_lifetime)
                 fd.write('WebMonitoringURL = "%s"\n'%descript_obj.monitoring_web_url)
                          
                 # write out both the params 

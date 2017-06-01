@@ -84,7 +84,24 @@ Related Pages:
 <a name="stable"></a>
     <h3>Stable Series</h3>
     <ul>
-
+      <li>
+        <b>v3_2_19</b> released on May 30, 2017 (<a href="http://glideinwms.fnal.gov/doc.v3_2_19/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_19/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_19.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Added counters for Idle jobs older than X hours
+          <li>Enabling GWMS_XSLT_PLUGIN_DIR by default for glideinwms-vofrontend-standalone rpm</li>
+          <li>Linked Frontend monitoring from Factory monitoring</li>
+          <li>Improved glideins scale down by adding a timeout, GLIDEIN_IDLE_LIFETIME</li>
+          <li>Log number of activation/claims per glidein</li>
+          <li>Several documentation improvements, including reconfig and upgrade operations in SL7 RPM installation</li>
+          <li>Bug Fix: reduced the number of file descriptors used per Entry in the Factory
+          <li>Bug Fix: Factory entries submitting glideins even after hitting the limit
+          <li>Bug Fix: Errors with HTCondor 8.5/6 upgrade: SUBSYS.LOCALNAME.* warning triggered by GWMS htcondor configuration, Glidein sent unintentionally to multiple schedds on the Factory
+          <li>Bug Fix: Clarified attribute types and fixed globbing behavior
+          <li>Bug Fix: RPM verification fails when config files are changed
+          <li>Bug Fix: GLIDEIN_CPU settings "node" and "slot" supported also in Frontend, better documented and improved to compensate for PBS misconfiguration
+          <li>Bug Fix: Fixed submission to AWS which uses key_pair as auth_method
+       </ul>
+      </li>
       <li>
         <b>v3_2_18</b> released on February 28, 2017 (<a href="http://glideinwms.fnal.gov/doc.v3_2_18/index.html">Manual</a>,<a href="http://glideinwms.fnal.gov/doc.v3_2_18/install.html">Installation instructions</a>,<a href="http://glideinwms.fnal.gov/glideinWMS_v3_2_18.tgz">Tarball</a>)<br>
         <ul>

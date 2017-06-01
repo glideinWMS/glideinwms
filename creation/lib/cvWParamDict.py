@@ -523,6 +523,7 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
     group_descript_dict.add('FracRunningPerEntry',sub_params.config.running_glideins_per_entry.relative_to_queue)
     group_descript_dict.add('MaxIdlePerEntry',sub_params.config.idle_glideins_per_entry.max)
     group_descript_dict.add('ReserveIdlePerEntry',sub_params.config.idle_glideins_per_entry.reserve)
+    group_descript_dict.add('IdleLifetime',sub_params.config.idle_glideins_lifetime.max)
     group_descript_dict.add('MaxIdleVMsPerEntry',sub_params.config.idle_vms_per_entry.max)
     group_descript_dict.add('CurbIdleVMsPerEntry',sub_params.config.idle_vms_per_entry.curb)
     group_descript_dict.add('MaxIdleVMsTotal',sub_params.config.idle_vms_total.max)

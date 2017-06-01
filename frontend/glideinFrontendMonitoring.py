@@ -114,7 +114,7 @@ class groupStats:
 
         self.files_updated=None
         self.attributes = {
-            'Jobs':("Idle","OldIdle","Running","Total"),
+            'Jobs':("Idle","OldIdle","Running","Total","Idle_3600"),
             'Glideins':("Idle","Running","Total"),
             'MatchedJobs':("Idle","EffIdle","OldIdle","Running","RunningHere"),
             #'MatchedGlideins':("Total","Idle","Running","Failed","TotalCores","IdleCores","RunningCores"),

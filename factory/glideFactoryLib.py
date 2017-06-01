@@ -490,7 +490,7 @@ class ClientWeb:
 
 
 def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
-                     req_max_glideins, remove_excess, submit_credentials,
+                     req_max_glideins, idle_lifetime, remove_excess, submit_credentials,
                      glidein_totals, frontend_name, client_web, params,
                      log=logSupport.log, factoryConfig=None):
     """
@@ -617,7 +617,7 @@ def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
 
     try:
         log.debug("Submitting %i glideins" % add_glideins)
-        submitGlideins(condorq.entry_name, client_int_name, add_glideins,
+        submitGlideins(condorq.entry_name, client_int_name, add_glideins, idle_lifetime,
                        frontend_name, submit_credentials, client_web, params,
                        log=log, factoryConfig=factoryConfig)
         glidein_totals.add_idle_glideins(add_glideins, frontend_name)
@@ -870,7 +870,10 @@ def logWorkRequest(client_int_name, client_security_name, proxy_security_class,
 
     client_log_name = secClass2Name(client_security_name, proxy_security_class)
 
-    log.info("Client %s (secid: %s) requesting %i glideins, max running %i, remove excess '%s'" % (client_int_name, client_log_name, req_idle, req_max_run, remove_excess))
+    idle_lifetime = work_el['requests'].get('IdleLifetime', 0)
+
+    log.info("Client %s (secid: %s) requesting %i glideins, max running %i, idle lifetime %s, remove excess '%s'" %
+             (client_int_name, client_log_name, req_idle, req_max_run, idle_lifetime, remove_excess))
     log.info("  Params: %s" % work_el['params'])
     # Do not log decrypted values ... they are most likely sensitive
     # Just log the keys for debugging purposes
@@ -1131,7 +1134,7 @@ def escapeParam(param_str):
 
 
 # submit N new glideins
-def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
+def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend_name,
                    submit_credentials, client_web, params, log=logSupport.log,
                    factoryConfig=None):
 
@@ -1155,7 +1158,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
     try:
         entry_env = get_submit_environment(entry_name, client_name,
                                          submit_credentials, client_web,
-                                         params, log=log,
+                                         params, idle_lifetime, log=log,
                                          factoryConfig=factoryConfig)
     except:
         msg = "Failed to setup execution environment."
@@ -1163,6 +1166,17 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
         log.exception(msg)
         raise RuntimeError, msg
 
+    if username != MY_USERNAME:
+        # Use privsep
+        # need to push all the relevant env variables through
+        for var in os.environ:
+            if ((var in ('PATH', 'LD_LIBRARY_PATH', 'X509_CERT_DIR')) or
+                (var[:8] == '_CONDOR_') or (var[:7] == 'CONDOR_')):
+                try:
+                    entry_env.append('%s=%s' % (var, os.environ[var]))
+                except KeyError:
+                    msg = """KeyError: '%s' not found in execution envrionment!!""" % (var)
+                    log.warning(msg)
     try:
         nr_submitted = 0
         while (nr_submitted < nr_glideins):
@@ -1175,19 +1189,13 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
                 nr_to_submit = factoryConfig.max_cluster_size
             sub_env.append('GLIDEIN_COUNT=%s' % nr_to_submit)
             sub_env.append('GLIDEIN_FRONTEND_NAME=%s' % frontend_name)
+            exe_env = entry_env + sub_env
 
             # check to see if the username for the proxy is 
             # same as the factory username
             if username != MY_USERNAME:
                 # Use privsep
-                # need to push all the relevant env variables through
-                for var in os.environ:
-                    if ((var in ('PATH', 'LD_LIBRARY_PATH', 'X509_CERT_DIR')) or
-                        (var[:8] == '_CONDOR_') or (var[:7] == 'CONDOR_')):
-                        if var in os.environ:
-                            sub_env.append('%s=%s' % (var, os.environ[var]))
                 try:
-                    exe_env = entry_env + sub_env
                     args = ["condor_submit", "-name",
                             schedd, "entry_%s/job.condor" % entry_name]
                     submit_out = condorPrivsep.condor_execute(
@@ -1208,7 +1216,6 @@ def submitGlideins(entry_name, client_name, nr_glideins, frontend_name,
             else:
                 # Do not use privsep
                 try:
-                    exe_env = entry_env + sub_env
                     submit_out = condorExe.iexe_cmd("condor_submit -name %s entry_%s/job.condor" % (schedd, entry_name),
                                                     child_env=env_list2dict(exe_env))
                 except condorExe.ExeError,e:
@@ -1315,7 +1322,7 @@ def in_submit_environment(entry_name, exe_env):
 
 
 def get_submit_environment(entry_name, client_name, submit_credentials,
-                           client_web, params, log=logSupport.log,
+                           client_web, params, idle_lifetime, log=logSupport.log,
                            factoryConfig=None):
 
     if factoryConfig is None:
@@ -1372,6 +1379,7 @@ def get_submit_environment(entry_name, client_name, submit_credentials,
         exe_env.append('GLIDEIN_NAME=%s' % glidein_name)
         exe_env.append('FACTORY_NAME=%s' % factory_name)
         exe_env.append('GLIDEIN_WEB_URL=%s' % web_url)
+        exe_env.append('GLIDEIN_IDLE_LIFETIME=%s' % idle_lifetime)
 
         # Security Params (signatures.sha1)
         # sign_type has always been hardcoded... we can change in the future if need be

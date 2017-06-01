@@ -548,7 +548,7 @@ function add_config_line {
 
 ##################################################
 # Add a line to the config file using a lock file
-# Replacs add_config_line in script_wrapper where multiple instances run in parallel
+# Replace add_config_line in script_wrapper where multiple instances run in parallel
 # Uses FD 200, fails after a timeout of 300 sec
 function add_config_line_safe {
     grep -q "^\${*}$" \$glidein_config
@@ -1706,6 +1706,8 @@ function fetch_file_base {
 
    return 0
 }
+
+echo "Downloading files from Factory and Frontend"
 
 #####################################
 # Fetch descript and signature files

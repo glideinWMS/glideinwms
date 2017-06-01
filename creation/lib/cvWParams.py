@@ -65,6 +65,10 @@ class VOFrontendParams(cWParams.CommonParams):
         group_config_idle_defaults["reserve"]=['5',"nr_jobs","How much to overcommit.",None]
         group_config_defaults['idle_glideins_per_entry']=group_config_idle_defaults
 
+        group_config_lifetime_defaults=cWParams.commentedOrderedDict()
+        group_config_lifetime_defaults["max"]=['0',"NR","How long idle glideins are kept in the factory queue (seconds)",None]
+        group_config_defaults['idle_glideins_lifetime']=group_config_lifetime_defaults
+
         group_config_vms_defaults=cWParams.commentedOrderedDict()
         group_config_vms_defaults["max"]=['100',"nr_vms","How many idle VMs should I tollerate, before stopping submitting glideins",None]
         group_config_vms_defaults["curb"]=['5',"nr_vms","How many idle VMs should I tollerate, before starting to curb submissions.",None]
