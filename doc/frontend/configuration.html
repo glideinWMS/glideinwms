@@ -682,7 +682,9 @@ glideins.  Groups are used to group users with similar requirements, such as pro
          <b>running_glideins_per_entry</b> will throttle the provisioning requests based on per factory entry basis, <br>while
          <b>running_glideins_total</b> throttles based on number of all the glideins provisioned by this group.
          The <b>min</b> attribute of <b>running_glideins_per_entry</b> is the minimum number of glidens that are kept running
-         for each entry associated to the group (even if there are no jobs idle).
+         for each entry associated to the group (even if there are no jobs idle). Keep in mind that if you use this <b>min</b>
+         attribute and you also set idle_glideins_lifetime, then you might have old idle glideins removed and immeditely
+         resubmitted.
       </ul>
     </P></li>
 
