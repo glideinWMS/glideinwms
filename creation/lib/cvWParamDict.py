@@ -570,7 +570,11 @@ def apply_group_singularity_policy(descript_dict, sub_params, params):
             match_expr = '(%s) and (glidein["attrs"].get("SINGULARITY_BIN", "NONE") != "NONE")' % match_expr
             ma_arr.append(('SINGULARITY_BIN', 's'))
         elif (glidein_singularity_use == 'NEVER'):
-            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_REQUIRE_SINGULARITY_USE", "False") == "False")' % match_expr
+            match_expr = '(%s) and (glidein["attrs"].get("GLIDEIN_SINGULARITY_REQUIRE", "False") == "False")' % match_expr
+        elif (glidein_singularity_use == 'OPTIONAL'): #HK this part is temporary solution
+            match_expr = '(%s) and (glidein["attrs"].get("SINGULARITY_BIN", "NONE") != "NONE")' % match_expr
+            query_expr = '(%s) && (SINGULARITY_BIN=!=UNDEFINED) && (SINGULARITY_BIN=!="NONE")' % query_expr
+            ma_arr.append(('SINGULARITY_BIN', 's'))
 
         if ma_arr:
             match_attrs = eval(descript_dict['FactoryMatchAttrs']) + ma_arr
