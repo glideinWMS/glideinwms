@@ -70,12 +70,33 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
 
     export LMOD_BETA=$(getPropBool $_CONDOR_JOB_AD LMOD_BETA)
 
+    export CVMFS_REPOS_LIST=$(getPropStr $_CONDOR_JOB_AD CVMFSReposList)
+    echo "HK Warning: CVMFS Repos List = $CVMFS_REPOS_LIST" 1>&2
+    export OSG_SINGULARITY_AUTOLOAD=1
 
     #############################################################################
     #
     #  Singularity
     #
     if [ "x$HAS_SINGULARITY" = "x1" -a "x$OSG_SINGULARITY_AUTOLOAD" = "x1" -a "x$OSG_SINGULARITY_PATH" != "x" ]; then
+
+        holdfd=3
+	exitcondition=false
+        if [ "x$CVMFS_REPOS_LIST" != "x" ]; then
+            for x in $(echo $CVMFS_REPOS_LIST | sed 's/,/ /g'); do
+                if ls "/cvmfs/$x" > /dev/null 2>&1; then
+                    echo "/cvmfs/$x exists and available"
+                    eval "exec $holdfd</cvmfs/$x"
+                    let "holdfd=holdfd+1"
+                else
+                    echo "/cvmfs/$x NOT available"
+                    exitcondition=true
+                fi
+            done
+
+	    tempoutput=`lsof | grep cvmfs | grep -v cvmfs2`
+            echo $tempoutput
+        fi
 
         # If  image is not provided, load the default one
         # Custom URIs: http://singularity.lbl.gov/user-guide#supported-uris
@@ -96,7 +117,7 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
         # for /cvmfs based directory images, expand the path without symlinks so that
         # the job can stay within the same image for the full duration
         if echo "$OSG_SINGULARITY_IMAGE" | grep /cvmfs >/dev/null 2>&1; then
-            if (cd $OSG_SINGULARITY_IMAGE)               >/dev/null 2>&1; then
+            if (cd $OSG_SINGULARITY_IMAGE) >/dev/null 2>&1; then
                 NEW_IMAGE_PATH=`(cd $OSG_SINGULARITY_IMAGE && pwd -P) 2>/dev/null`
                 if [ "x$NEW_IMAGE_PATH" != "x" ]; then
                     OSG_SINGULARITY_IMAGE="$NEW_IMAGE_PATH"
@@ -108,6 +129,7 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
 	#HK> This is not a solution. We only use this fake-solution because we are not sure of how to fetch SingularityImage attribute
 	#HK> in the validation script and also because it is to late to exit in the wrapper script
         if [ "x$OSG_SINGULARITY_IMAGE" != "x" ]; then
+	    echo "Debug: user image name = $OSG_SINGULARITY_IMAGE" 1>&2
 	    if ! echo "$OSG_SINGULARITY_IMAGE" | grep /cvmfs >/dev/null 2>&1; then
 		export OSG_SINGULARITY_IMAGE="$OSG_SINGULARITY_IMAGE_DEFAULT"
 	    fi
@@ -143,8 +165,12 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
             CMD="$CMD $VAR"
         done
 
-        export SINGULARITY_REEXEC=1
-        exec $OSG_SINGULARITY_PATH exec $OSG_SINGULARITY_EXTRA_OPTS \
+        if $exitcondition; then
+            sleep 10m
+            exit 1
+        else
+            export SINGULARITY_REEXEC=1
+            exec $OSG_SINGULARITY_PATH exec $OSG_SINGULARITY_EXTRA_OPTS \
                                    --home $PWD:/srv \
                                    --pwd /srv \
                                    --scratch /var/tmp \
@@ -152,6 +178,7 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
                                    --containall \
                                    "$OSG_SINGULARITY_IMAGE" \
                                    /srv/.osgvo-user-job-wrapper.sh $CMD
+	fi
     fi
 
 else
