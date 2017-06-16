@@ -31,7 +31,7 @@ function advertise {
     fi
 }
 
-if [ "x$OSG_SINGULARITY_REEXEC" = "x" ]; then
+if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
     info "This is a setup script for the OSG-FLOCK frontend."
     info "In case of problems, contact Mats Rynge (rynge@isi.edu)"
     info "Running in directory $PWD"
@@ -82,7 +82,7 @@ function no_use_singularity_config {
     exit 0
 }
 
-if [ "x$OSG_SINGULARITY_REEXEC" = "x" ]; then
+if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
 
     singularity_bin=`grep '^SINGULARITY_BIN ' $glidein_config | awk '{print $2}'`
     if [ -z "$singularity_bin" ]; then
@@ -157,101 +157,15 @@ if [ "x$OSG_SINGULARITY_REEXEC" = "x" ]; then
             ;;
     esac
 
-
 fi
-###########################################################
-# We have two env variables which can be added to in this
-# script to provide an expression for the START expression
-# and a general warnings string which gets published in the
-# ad. These are env variables until the end.
-export GLIDEIN_VALIDATION_EXPR="True"
-export GLIDEIN_VALIDATION_WARNINGS=""
 
-###########################################################
-# attributes below this line
 
-##################
-# cvmfs filesystem availability this has to come before singularity checks
-
-if [ "x$OSG_SINGULARITY_REEXEC" = "x" ]; then
-    info "Checking for CVMFS availability and attributes..."
-#HK> important question:  Do we need all these repositores??
-    for FS in \
-       ams.cern.ch \
-       atlas.cern.ch \
-       cms.cern.ch \
-       icecube.opensciencegrid.org \
-       oasis.opensciencegrid.org \
-       singularity.opensciencegrid.org \
-       snoplus.egi.eu \
-       spt.opensciencegrid.org \
-       stash.osgstorage.org \
-       veritas.opensciencegrid.org \
-       xenon.opensciencegrid.org \
-    ; do
-        FS_CONV=`echo "$FS" | sed 's/\./_/g'`
-        FS_ATTR="HAS_CVMFS_$FS_CONV"
-        RESULT="False"
-        if [ -e /cvmfs/$FS/. ]; then
-            RESULT="True"
-            # add the revision
-            REV_ATTR="CVMFS_${FS_CONV}_REVISION"
-            REV_VAL=`/usr/bin/attr -q -g revision /cvmfs/$FS/. 2>/dev/null`
-
-            # stash.osgstorage.org needs extra checks
-            if [ "x$FS" = "xstash.osgstorage.org" ]; then
-                if ! cat /cvmfs/stash.osgstorage.org/user/bbockelm/public/testfile >/dev/null 2>&1; then
-                    REV_VAL=""
-                fi
-                if ! cat /cvmfs/stash.osgstorage.org/user/eharstad/public/blast_database/nt.fa.nsq >/dev/null 2>&1; then
-                    REV_VAL=""
-                fi
-            fi
-            
-            # veritas.opensciencegrid.org
-            if [ "x$FS" = "xveritas.opensciencegrid.org" ]; then
-                if ! cat /cvmfs/veritas.opensciencegrid.org/py2-v1/setup.sh >/dev/null 2>&1; then
-                    REV_VAL=""
-                fi
-            fi
-
-            # now we are ready to advertise
-            if [ "x$REV_VAL" != "x" ]; then
-                # make sure it is an integer
-                if [ "$REV_VAL" -eq "$REV_VAL" ] 2>/dev/null; then
-                    advertise $FS_ATTR "$RESULT" "C"
-                    advertise $REV_ATTR "$REV_VAL" "I"
-                fi
-            else
-                # unable to determine revision - this is common on sites which re-export CVMFS
-                # via for example NFS locally. Advertise availability.
-                advertise $FS_ATTR "$RESULT" "C"
-            fi
-        fi
-    done
-
-    # if it looks like we have CVMFS, make sure the START expression knows that
-    if [ -e /cvmfs ]; then
-        export GLIDEIN_VALIDATION_EXPR="HAS_CVMFS_oasis_opensciencegrid_org && HAS_CVMFS_singularity_opensciencegrid_org && HAS_CVMFS_stash_osgstorage_org"
-    fi
-
-    # update timestamp?
-    TS_ATTR="CVMFS_oasis_opensciencegrid_org_TIMESTAMP"
-    TS_VAL=`(cat /cvmfs/oasis.opensciencegrid.org/osg/update.details  | egrep '^Update unix time:' | sed 's/.*: //') 2>/dev/null`
-    if [ "x$TS_VAL" != "x" ]; then
-        # make sure it is an integer
-        if [ "$TS_VAL" -eq "$TS_VAL" ] 2>/dev/null; then
-            advertise $TS_ATTR "$TS_VAL" "I"
-        fi
-    fi
-
-fi # OSG_SINGULARITY_REEXEC
 
 ##################
 # singularity
 # advertise availability and version
 
-if [ "x$OSG_SINGULARITY_REEXEC" = "x" ]; then
+if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
     info "Checking for singularity..."
 
     # some known singularity locations
@@ -264,30 +178,30 @@ if [ "x$OSG_SINGULARITY_REEXEC" = "x" ]; then
     done
 
     HAS_SINGULARITY="False"
-    export OSG_SINGULARITY_VERSION=`singularity --version 2>/dev/null`
-    if [ "x$OSG_SINGULARITY_VERSION" != "x" ]; then
+    export GWMS_SINGULARITY_VERSION=`singularity --version 2>/dev/null`
+    if [ "x$GWMS_SINGULARITY_VERSION" != "x" ]; then
         HAS_SINGULARITY="True"
-        export OSG_SINGULARITY_PATH=`which singularity`
+        export GWMS_SINGULARITY_PATH=`which singularity`
     else
         # some sites requires us to do a module load first - not sure if we always want to do that
-        export OSG_SINGULARITY_VERSION=`module load singularity >/dev/null 2>&1; singularity --version 2>/dev/null`
-        if [ "x$OSG_SINGULARITY_VERSION" != "x" ]; then
+        export GWMS_SINGULARITY_VERSION=`module load singularity >/dev/null 2>&1; singularity --version 2>/dev/null`
+        if [ "x$GWMS_SINGULARITY_VERSION" != "x" ]; then
             HAS_SINGULARITY="True"
-            export OSG_SINGULARITY_PATH=`module load singularity >/dev/null 2>&1; which singularity`
+            export GWMS_SINGULARITY_PATH=`module load singularity >/dev/null 2>&1; which singularity`
         else
             info "Unable to find singularity in PATH=$PATH"
         fi
     fi
     if [ "x$HAS_SINGULARITY" = "xTrue" ]; then
-        info "Singularity binary appears present and claims to be version $OSG_SINGULARITY_VERSION"
+        info "Singularity binary appears present and claims to be version $GWMS_SINGULARITY_VERSION"
     fi
 
     # default image for this glidein
-    export OSG_SINGULARITY_IMAGE_DEFAULT="/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo:el6"
+    export GWMS_SINGULARITY_IMAGE_DEFAULT="/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo:el6"
 
     # for now, we will only advertise singularity on nodes which can access cvmfs
-    if [ ! -e "$OSG_SINGULARITY_IMAGE_DEFAULT" ]; then
-        info "Default singularity image, $OSG_SINGULARITY_IMAGE_DEFAULT, does not appear to exist"
+    if [ ! -e "$GWMS_SINGULARITY_IMAGE_DEFAULT" ]; then
+        info "Default singularity image, $GWMS_SINGULARITY_IMAGE_DEFAULT, does not appear to exist"
         HAS_SINGULARITY="False"
     fi
 
@@ -296,19 +210,19 @@ if [ "x$OSG_SINGULARITY_REEXEC" = "x" ]; then
     # in the execing, like:
     # ERROR  : Could not identify basedir for home directory path: /
     if [ "x$HAS_SINGULARITY" = "xTrue" ]; then
-        info "$OSG_SINGULARITY_PATH exec --home $PWD:/srv --bind /cvmfs --pwd /srv --scratch /var/tmp --scratch /tmp --containall $OSG_SINGULARITY_IMAGE_DEFAULT echo Hello World | grep Hello World"
-        if ! ($OSG_SINGULARITY_PATH exec --home $PWD:/srv \
+        info "$GWMS_SINGULARITY_PATH exec --home $PWD:/srv --bind /cvmfs --pwd /srv --scratch /var/tmp --scratch /tmp --containall $GWMS_SINGULARITY_IMAGE_DEFAULT echo Hello World | grep Hello World"
+        if ! ($GWMS_SINGULARITY_PATH exec --home $PWD:/srv \
                                          --bind /cvmfs \
                                          --pwd /srv \
                                          --scratch /var/tmp \
                                          --scratch /tmp \
                                          --containall \
-                                         "$OSG_SINGULARITY_IMAGE_DEFAULT" \
+                                         "$GWMS_SINGULARITY_IMAGE_DEFAULT" \
                                          echo "Hello World" \
                                          | grep "Hello World") 1>&2 \
         ; then
             # singularity simple exec failed - we are done
-            info "Simple singularity exec inside $OSG_SINGULARITY_IMAGE_DEFAULT failed."
+            info "Simple singularity exec inside $GWMS_SINGULARITY_IMAGE_DEFAULT failed."
             HAS_SINGULARITY="False"
         fi
     fi
@@ -336,15 +250,15 @@ if [ "x$OSG_SINGULARITY_REEXEC" = "x" ]; then
         done
 
         # let "inside" script know we are re-execing
-        export OSG_SINGULARITY_REEXEC=1
-        info "$OSG_SINGULARITY_PATH exec --home $SING_OUTSIDE_BASE_DIR:/srv --bind /cvmfs --pwd /srv --scratch /var/tmp --scratch /tmp --containall $OSG_SINGULARITY_IMAGE_DEFAULT $CMD"
-        if $OSG_SINGULARITY_PATH exec --home $SING_OUTSIDE_BASE_DIR:/srv \
+        export GWMS_SINGULARITY_REEXEC=1
+        info "$GWMS_SINGULARITY_PATH exec --home $SING_OUTSIDE_BASE_DIR:/srv --bind /cvmfs --pwd /srv --scratch /var/tmp --scratch /tmp --containall $GWMS_SINGULARITY_IMAGE_DEFAULT $CMD"
+        if $GWMS_SINGULARITY_PATH exec --home $SING_OUTSIDE_BASE_DIR:/srv \
                                       --bind /cvmfs \
                                       --pwd /srv \
                                       --scratch /var/tmp \
                                       --scratch /tmp \
                                       --containall \
-                                      "$OSG_SINGULARITY_IMAGE_DEFAULT" \
+                                      "$GWMS_SINGULARITY_IMAGE_DEFAULT" \
                                       $CMD \
         ; then
             # singularity worked - exit here as the rest script ran inside the container
@@ -381,9 +295,9 @@ else
 #HK> moved from hkhere above..
     # delay the advertisement until here to make sure singularity actually works
     advertise HAS_SINGULARITY "True" "C"
-    advertise OSG_SINGULARITY_VERSION "$OSG_SINGULARITY_VERSION" "S"
-    advertise OSG_SINGULARITY_PATH "$OSG_SINGULARITY_PATH" "S"
-    advertise OSG_SINGULARITY_IMAGE_DEFAULT "$OSG_SINGULARITY_IMAGE_DEFAULT" "S"
+    advertise GWMS_SINGULARITY_VERSION "$GWMS_SINGULARITY_VERSION" "S"
+    advertise GWMS_SINGULARITY_PATH "$GWMS_SINGULARITY_PATH" "S"
+    advertise GWMS_SINGULARITY_IMAGE_DEFAULT "$GWMS_SINGULARITY_IMAGE_DEFAULT" "S"
 
 fi
 

@@ -50,17 +50,17 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
     # explicity
 
     export HAS_SINGULARITY=$(getPropBool $_CONDOR_MACHINE_AD HAS_SINGULARITY)
-    export OSG_SINGULARITY_PATH=$(getPropStr $_CONDOR_MACHINE_AD OSG_SINGULARITY_PATH)
-    export OSG_SINGULARITY_IMAGE_DEFAULT=$(getPropStr $_CONDOR_MACHINE_AD OSG_SINGULARITY_IMAGE_DEFAULT)
-    export OSG_SINGULARITY_IMAGE=$(getPropStr $_CONDOR_JOB_AD SingularityImage)
-    export OSG_SINGULARITY_AUTOLOAD=$(getPropStr $_CONDOR_JOB_AD SingularityAutoLoad)
-    if [ "x$OSG_SINGULARITY_AUTOLOAD" = "x" ]; then
-        # default for autoload is true
-        export OSG_SINGULARITY_AUTOLOAD=1
-    else
-        export OSG_SINGULARITY_AUTOLOAD=$(getPropBool $_CONDOR_JOB_AD SingularityAutoLoad)
-    fi
-    export OSG_SINGULARITY_BIND_CVMFS=$(getPropBool $_CONDOR_JOB_AD SingularityBindCVMFS)
+    export GWMS_SINGULARITY_PATH=$(getPropStr $_CONDOR_MACHINE_AD GWMS_SINGULARITY_PATH)
+    export GWMS_SINGULARITY_IMAGE_DEFAULT=$(getPropStr $_CONDOR_MACHINE_AD GWMS_SINGULARITY_IMAGE_DEFAULT)
+    export GWMS_SINGULARITY_IMAGE=$(getPropStr $_CONDOR_JOB_AD SingularityImage)
+#    export GWMS_SINGULARITY_AUTOLOAD=$(getPropStr $_CONDOR_JOB_AD SingularityAutoLoad)
+#    if [ "x$GWMS_SINGULARITY_AUTOLOAD" = "x" ]; then
+#        # default for autoload is true
+#        export GWMS_SINGULARITY_AUTOLOAD=1
+#    else
+#        export GWMS_SINGULARITY_AUTOLOAD=$(getPropBool $_CONDOR_JOB_AD SingularityAutoLoad)
+#    fi
+    export GWMS_SINGULARITY_BIND_CVMFS=$(getPropBool $_CONDOR_JOB_AD SingularityBindCVMFS)
 
     export STASHCACHE=$(getPropBool $_CONDOR_JOB_AD WantsStashCache)
 
@@ -71,76 +71,79 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
     export LMOD_BETA=$(getPropBool $_CONDOR_JOB_AD LMOD_BETA)
 
     export CVMFS_REPOS_LIST=$(getPropStr $_CONDOR_JOB_AD CVMFSReposList)
-    echo "HK Warning: CVMFS Repos List = $CVMFS_REPOS_LIST" 1>&2
-    export OSG_SINGULARITY_AUTOLOAD=1
+    echo "Debug: CVMFS Repos List = $CVMFS_REPOS_LIST" 1>&2
+    export GWMS_SINGULARITY_AUTOLOAD=1
 
     #############################################################################
     #
     #  Singularity
     #
-    if [ "x$HAS_SINGULARITY" = "x1" -a "x$OSG_SINGULARITY_AUTOLOAD" = "x1" -a "x$OSG_SINGULARITY_PATH" != "x" ]; then
+    if [ "x$HAS_SINGULARITY" = "x1" -a "x$GWMS_SINGULARITY_AUTOLOAD" = "x1" -a "x$GWMS_SINGULARITY_PATH" != "x" ]; then
 
         holdfd=3
 	exitcondition=false
         if [ "x$CVMFS_REPOS_LIST" != "x" ]; then
             for x in $(echo $CVMFS_REPOS_LIST | sed 's/,/ /g'); do
-                if ls "/cvmfs/$x" > /dev/null 2>&1; then
+#                if ls "/cvmfs/$x" > /dev/null 2>&1; then
+#                    echo "/cvmfs/$x exists and available"
+#                    eval "exec $holdfd</cvmfs/$x"
+#                    let "holdfd=holdfd+1"
+                if eval "exec $holdfd</cvmfs/$x"; then
                     echo "/cvmfs/$x exists and available"
-                    eval "exec $holdfd</cvmfs/$x"
                     let "holdfd=holdfd+1"
                 else
                     echo "/cvmfs/$x NOT available"
                     exitcondition=true
                 fi
             done
-
-	    tempoutput=`lsof | grep cvmfs | grep -v cvmfs2`
-            echo $tempoutput
+#	    tempoutput=`lsof | grep cvmfs | grep -v cvmfs2`
+#            echo $tempoutput
         fi
 
         # If  image is not provided, load the default one
         # Custom URIs: http://singularity.lbl.gov/user-guide#supported-uris
-        if [ "x$OSG_SINGULARITY_IMAGE" = "x" ]; then
+        if [ "x$GWMS_SINGULARITY_IMAGE" = "x" ]; then
             # Default
-            export OSG_SINGULARITY_IMAGE="$OSG_SINGULARITY_IMAGE_DEFAULT"
-            export OSG_SINGULARITY_BIND_CVMFS=1
+            export GWMS_SINGULARITY_IMAGE="$GWMS_SINGULARITY_IMAGE_DEFAULT"
+            export GWMS_SINGULARITY_BIND_CVMFS=1
 
             # also some extra debugging and make sure CVMFS has not fallen over
-            if ! ls -l "$OSG_SINGULARITY_IMAGE/" >/dev/null; then
-                echo "warning: unable to access $OSG_SINGULARITY_IMAGE" 1>&2
-                echo "$OSG_SITE_NAME" `hostname -f` 1>&2
+            if ! ls -l "$GWMS_SINGULARITY_IMAGE/" >/dev/null; then
+                echo "warning: unable to access $GWMS_SINGULARITY_IMAGE" 1>&2
+                echo "$SITE_NAME" `hostname -f` 1>&2
                 touch ../../.stop-glidein.stamp >/dev/null 2>&1
                 sleep 10m
             fi
+#	fi
+	#HK> For now, we only allow singularity images from /cvmfs area because we don't know how to deal with otherwise situation
+	#HK> This is not a solution. We only use this fake-solution because we are not sure of how to fetch SingularityImage attribute
+	#HK> in the validation script and also because it is to late to exit in the wrapper script
+	else # if [ "x$GWMS_SINGULARITY_IMAGE" != "x" ]; then
+	    echo "Debug: user image name = $GWMS_SINGULARITY_IMAGE" 1>&2
+	    if ! echo "$GWMS_SINGULARITY_IMAGE" | grep ^"/cvmfs" >/dev/null 2>&1; then
+		export GWMS_SINGULARITY_IMAGE="$GWMS_SINGULARITY_IMAGE_DEFAULT"
+	    fi
         fi
+
+
 
         # for /cvmfs based directory images, expand the path without symlinks so that
         # the job can stay within the same image for the full duration
-        if echo "$OSG_SINGULARITY_IMAGE" | grep /cvmfs >/dev/null 2>&1; then
-            if (cd $OSG_SINGULARITY_IMAGE) >/dev/null 2>&1; then
-                NEW_IMAGE_PATH=`(cd $OSG_SINGULARITY_IMAGE && pwd -P) 2>/dev/null`
+        if echo "$GWMS_SINGULARITY_IMAGE" | grep /cvmfs >/dev/null 2>&1; then
+            if (cd $GWMS_SINGULARITY_IMAGE) >/dev/null 2>&1; then
+                NEW_IMAGE_PATH=`(cd $GWMS_SINGULARITY_IMAGE && pwd -P) 2>/dev/null`
                 if [ "x$NEW_IMAGE_PATH" != "x" ]; then
-                    OSG_SINGULARITY_IMAGE="$NEW_IMAGE_PATH"
+                    GWMS_SINGULARITY_IMAGE="$NEW_IMAGE_PATH"
                 fi
             fi
         fi
 
-	#HK> For now, we only allow singularity images from /cvmfs area because we don't know how to deal with otherwise situation
-	#HK> This is not a solution. We only use this fake-solution because we are not sure of how to fetch SingularityImage attribute
-	#HK> in the validation script and also because it is to late to exit in the wrapper script
-        if [ "x$OSG_SINGULARITY_IMAGE" != "x" ]; then
-	    echo "Debug: user image name = $OSG_SINGULARITY_IMAGE" 1>&2
-	    if ! echo "$OSG_SINGULARITY_IMAGE" | grep /cvmfs >/dev/null 2>&1; then
-		export OSG_SINGULARITY_IMAGE="$OSG_SINGULARITY_IMAGE_DEFAULT"
-	    fi
-        fi
-	
 
-        OSG_SINGULARITY_EXTRA_OPTS=""
+        GWMS_SINGULARITY_EXTRA_OPTS=""
    
         # cvmfs access inside container (default, but optional)
-        if [ "x$OSG_SINGULARITY_BIND_CVMFS" = "x1" ]; then
-            OSG_SINGULARITY_EXTRA_OPTS="$OSG_SINGULARITY_EXTRA_OPTS --bind /cvmfs"
+        if [ "x$GWMS_SINGULARITY_BIND_CVMFS" = "x1" ]; then
+            GWMS_SINGULARITY_EXTRA_OPTS="$GWMS_SINGULARITY_EXTRA_OPTS --bind /cvmfs"
         fi
 
         # We want to bind $PWD to /srv within the container - however, in order
@@ -151,9 +154,9 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
         # Remember what the outside pwd dir is so that we can rewrite env vars
         # pointing to omewhere inside that dir (for example, X509_USER_PROXY)
         if [ "x$_CONDOR_JOB_IWD" != "x" ]; then
-            export OSG_SINGULARITY_OUTSIDE_PWD="$_CONDOR_JOB_IWD"
+            export GWMS_SINGULARITY_OUTSIDE_PWD="$_CONDOR_JOB_IWD"
         else
-            export OSG_SINGULARITY_OUTSIDE_PWD="$PWD"
+            export GWMS_SINGULARITY_OUTSIDE_PWD="$PWD"
         fi
 
         # build a new command line, with updated paths
@@ -170,13 +173,13 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
             exit 1
         else
             export SINGULARITY_REEXEC=1
-            exec $OSG_SINGULARITY_PATH exec $OSG_SINGULARITY_EXTRA_OPTS \
+            exec $GWMS_SINGULARITY_PATH exec $GWMS_SINGULARITY_EXTRA_OPTS \
                                    --home $PWD:/srv \
                                    --pwd /srv \
                                    --scratch /var/tmp \
                                    --scratch /tmp \
                                    --containall \
-                                   "$OSG_SINGULARITY_IMAGE" \
+                                   "$GWMS_SINGULARITY_IMAGE" \
                                    /srv/.osgvo-user-job-wrapper.sh $CMD
 	fi
     fi
@@ -188,9 +191,10 @@ else
     unset X509_CERT_DIR
     for key in X509_USER_PROXY X509_USER_CERT _CONDOR_MACHINE_AD _CONDOR_JOB_AD \
                _CONDOR_SCRATCH_DIR _CONDOR_CHIRP_CONFIG _CONDOR_JOB_IWD \
-               OSG_WN_TMP ; do
+#               OSG_WN_TMP ; do
+               ; do
         eval val="\$$key"
-        val=`echo "$val" | sed -E "s;$OSG_SINGULARITY_OUTSIDE_PWD(.*);/srv\1;"`
+        val=`echo "$val" | sed -E "s;$GWMS_SINGULARITY_OUTSIDE_PWD(.*);/srv\1;"`
         eval $key=$val
     done
 
@@ -204,11 +208,11 @@ else
             fi
         fi
     done
-
-    # override some OSG specific variables
-    if [ "x$OSG_WN_TMP" != "x" ]; then
-        export OSG_WN_TMP=/tmp
-    fi
+#HK> osg specific
+#    # override some OSG specific variables
+#    if [ "x$OSG_WN_TMP" != "x" ]; then
+#        export OSG_WN_TMP=/tmp
+#    fi
 
     # Some java programs have seen problems with the timezone in our containers.
     # If not already set, provide a default TZ
@@ -240,13 +244,13 @@ elif [ -e /cvmfs/oasis.opensciencegrid.org/osg/sw/module-init.sh ]; then
     . /cvmfs/oasis.opensciencegrid.org/osg/sw/module-init.sh
 fi
 
-
+#HK> osg specific
 # fix discrepancy for Squid proxy URLs
-if [ "x$GLIDEIN_Proxy_URL" = "x" -o "$GLIDEIN_Proxy_URL" = "None" ]; then
-    if [ "x$OSG_SQUID_LOCATION" != "x" -a "$OSG_SQUID_LOCATION" != "None" ]; then
-        export GLIDEIN_Proxy_URL="$OSG_SQUID_LOCATION"
-    fi
-fi
+#if [ "x$GLIDEIN_Proxy_URL" = "x" -o "$GLIDEIN_Proxy_URL" = "None" ]; then
+#    if [ "x$OSG_SQUID_LOCATION" != "x" -a "$OSG_SQUID_LOCATION" != "None" ]; then
+#        export GLIDEIN_Proxy_URL="$OSG_SQUID_LOCATION"
+#    fi
+#fi
 
 
 #############################################################################
