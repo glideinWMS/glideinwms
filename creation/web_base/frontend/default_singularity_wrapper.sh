@@ -296,6 +296,8 @@ rm -f .osgvo-user-job-wrapper.sh >/dev/null 2>&1 || true
 #
 #  Run the real job
 #
+#HK> If GLIDEIN_Singularity_Use=OPTIONAL and SINGULARITY_BIN=NONE, setup script sets HAS_SINGULARITY=False
+#HK> and this wrapper script directly executes the user script. I tested it.
 exec "$@"
 error=$?
 echo "Failed to exec($error): $@" > $_CONDOR_WRAPPER_ERROR_FILE

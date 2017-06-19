@@ -553,6 +553,43 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         factory to submit jobs to sites that have GLEXEC configured.
         </P></li>
         <LI><P>
+        <a name="attr_singularity" />
+            <div class="xml">
+            &lt;attr name=&quot;GLIDEIN_Singularity_Use&quot; &gt;
+            </div>
+        This determines whether or not you want to mandate
+        the use of Singularity. Possible values are 
+            NEVER (do not use Singularity) or
+            OPTIONAL (use Singularity if the site is configured with it) 
+            or REQUIRED (Always use Singularity). 
+        If REQUIRED or NEVER is used, the default wrapper script that we provide should be used, in other words
+&lt;file absfname=&quot;<I>/var/lib/gwms-frontend/web-base/frontend/default_singularity_wrapper.sh</I>&quot; wrapper=&quot;True&quot;/&gt;
+        should be added in &lt;files&gt;.
+	    <br>
+        If you want to use your own wrapper script for singularity, you must first understand 
+        <I>/var/lib/gwms-frontend/web-base/factory/default_singularity_setup.sh</I> (that is loaded in Factory)
+        and make your custom script compatible with this setup script.
+        Mandating the use of Singularity also enforces the
+        factory to submit jobs to sites that have Singularity configured.
+	<br>
+        Users can specify the following 2 lines in their job submit file
+	<ul>
+	  <li> If their jobs need a list of repositories, they must specify the list between double quotes, separated by commas, for example,
+	    <br>
+          +CVMFSReposList = &quot;cms.cern.ch,atlas.cern.ch&quot;.
+	    <br>
+	    If any of these cvmfs repositories is not availale, the user jobs will error out.
+          </li>
+	  <li> If they want their own singularity image, put the image file in <I>/cvmfs/singularity.opensciencegrid.org/</I>
+	    <br>
+          and use +SingularityImage = &quot;/cvmfs/singularity.opensciencegrid.org/&lt;path name to the image&gt;&quot;.
+	    <br>
+	    If users use this feature and if the singularity image is not in /cvmfs repository, the user job will error out.
+          </li>
+	</ul>
+        </P></li>
+
+        <LI><P>
         <a name="attr_client_rank" />
             <div class="xml">
             &lt;attr name=&quot;GLIDECLIENT_Rank&quot; &gt;
