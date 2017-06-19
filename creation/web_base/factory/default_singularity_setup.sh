@@ -115,34 +115,24 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
 		"$error_gen" -error "singularity_setup.sh" "VO_Config" "$STR" "attribute" "GLIDEIN_Singularity_Use"
 		exit 1
             fi
-            no_use_singularity_config #HK> exitting. No need to worry about wrapper, because FE did not specify because didn't want to use SING
+            no_use_singularity_config
             ;;
-	OPTIONAL) #HK> In this OPTIONAL case, FE will have to specify the wrapper script, this is problematic
+	OPTIONAL) #HK> Even in OPTIONAL case, FE will have to specify the wrapper script
             if [ "$require_singularity" == "True" ]; then
-		#HK> FE is flexible about SING. 
-	        #HK> In this case, whether Entry enforces SING(GLIDEIN_SINGULARITY_REQUIRE=True) or not is important
-		#HK> Now, sing binary must exist as Entry enforces SING..
 		if [ "$singularity_bin" == "NONE" ]; then
                     STR="Factory requires glidein to use singularity but singularity_bin is NONE."
-            "$error_gen" -error "singularity_setup.sh" "VO_Config" "$STR" "attribute" "SINGULARITY_BIN" "attribute" "GLIDEIN_Singularity_Use"
+		    "$error_gen" -error "singularity_setup.sh" "VO_Config" "$STR" "attribute" "SINGULARITY_BIN" "attribute" "GLIDEIN_Singularity_Use"
                     exit 1
 		fi
             else
-		#HK> FE is flexible about SING. Entry is also flexible about SING(GLIDEIN_SINGULARITY_REQUIRE is not True)
-		#HK> In that case, even if sing-executable does not exist, we can proceed
-		#HK> important!!, this can be handled in cvWParamDict.py
 		if [ "$singularity_bin" == "NONE" ]; then
                     echo "`date` VO has set the use singularity to OPTIONAL but site is not configured with singularity"
-# HK                    no_use_singularity_config # HK problematic: Here, we need a way to not use the wrapper script that FE specified in <files>
-		    #HK> for now, until I find a solution, exit with 1, not zero so this glidein
-		    exit 1 #HK> this is redundant because I already put a temporary solution in cvWParamDict.py for OPTIONAL
+		    advertise HAS_SINGULARITY "False" "C"		    
+		    exit 0
 		fi
-		#HK> FE optional, singularity binay exists. And it's ok as far as Entry does not enforce SINGULARITY
             fi
             ;;
 	REQUIRED)
-	    #HK> FE must use SING. Don't need to check if Entry requires SING or not, as far as sing executable exists
-	    #HK> Entry: GLIDEIN_SINGULARITY_REQUIRE=True is meaning. GLIDEIN_SINGULARITY_REQUIRE=False does not mean anything..
             if [ "$singularity_bin" == "NONE" ]; then
 		STR="VO mandates the use of singularity but the site is not configured with singularity information"
 		"$error_gen" -error "singularity_setup.sh" "VO_Config" "$STR" "attribute" "SINGULARITY_BIN" "attribute" "GLIDEIN_Singularity_Use"

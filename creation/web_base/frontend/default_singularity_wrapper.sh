@@ -53,13 +53,7 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
     export GWMS_SINGULARITY_PATH=$(getPropStr $_CONDOR_MACHINE_AD GWMS_SINGULARITY_PATH)
     export GWMS_SINGULARITY_IMAGE_DEFAULT=$(getPropStr $_CONDOR_MACHINE_AD GWMS_SINGULARITY_IMAGE_DEFAULT)
     export GWMS_SINGULARITY_IMAGE=$(getPropStr $_CONDOR_JOB_AD SingularityImage)
-#    export GWMS_SINGULARITY_AUTOLOAD=$(getPropStr $_CONDOR_JOB_AD SingularityAutoLoad)
-#    if [ "x$GWMS_SINGULARITY_AUTOLOAD" = "x" ]; then
-#        # default for autoload is true
-#        export GWMS_SINGULARITY_AUTOLOAD=1
-#    else
-#        export GWMS_SINGULARITY_AUTOLOAD=$(getPropBool $_CONDOR_JOB_AD SingularityAutoLoad)
-#    fi
+
     export GWMS_SINGULARITY_BIND_CVMFS=$(getPropBool $_CONDOR_JOB_AD SingularityBindCVMFS)
 
     export STASHCACHE=$(getPropBool $_CONDOR_JOB_AD WantsStashCache)
@@ -81,23 +75,17 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
     if [ "x$HAS_SINGULARITY" = "x1" -a "x$GWMS_SINGULARITY_AUTOLOAD" = "x1" -a "x$GWMS_SINGULARITY_PATH" != "x" ]; then
 
         holdfd=3
-	exitcondition=false
         if [ "x$CVMFS_REPOS_LIST" != "x" ]; then
             for x in $(echo $CVMFS_REPOS_LIST | sed 's/,/ /g'); do
-#                if ls "/cvmfs/$x" > /dev/null 2>&1; then
-#                    echo "/cvmfs/$x exists and available"
-#                    eval "exec $holdfd</cvmfs/$x"
-#                    let "holdfd=holdfd+1"
                 if eval "exec $holdfd</cvmfs/$x"; then
                     echo "/cvmfs/$x exists and available"
                     let "holdfd=holdfd+1"
                 else
                     echo "/cvmfs/$x NOT available"
-                    exitcondition=true
+		    sleep 10m
+		    exit 1
                 fi
             done
-#	    tempoutput=`lsof | grep cvmfs | grep -v cvmfs2`
-#            echo $tempoutput
         fi
 
         # If  image is not provided, load the default one
@@ -114,14 +102,12 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
                 touch ../../.stop-glidein.stamp >/dev/null 2>&1
                 sleep 10m
             fi
-#	fi
-	#HK> For now, we only allow singularity images from /cvmfs area because we don't know how to deal with otherwise situation
-	#HK> This is not a solution. We only use this fake-solution because we are not sure of how to fetch SingularityImage attribute
-	#HK> in the validation script and also because it is to late to exit in the wrapper script
 	else # if [ "x$GWMS_SINGULARITY_IMAGE" != "x" ]; then
 	    echo "Debug: user image name = $GWMS_SINGULARITY_IMAGE" 1>&2
 	    if ! echo "$GWMS_SINGULARITY_IMAGE" | grep ^"/cvmfs" >/dev/null 2>&1; then
-		export GWMS_SINGULARITY_IMAGE="$GWMS_SINGULARITY_IMAGE_DEFAULT"
+		echo "warning: $GWMS_SINGULARITY_IMAGE is not in /cvmfs area" 1>&2
+		exit 1
+		#export GWMS_SINGULARITY_IMAGE="$GWMS_SINGULARITY_IMAGE_DEFAULT"
 	    fi
         fi
 
@@ -168,12 +154,8 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
             CMD="$CMD $VAR"
         done
 
-        if $exitcondition; then
-            sleep 10m
-            exit 1
-        else
-            export SINGULARITY_REEXEC=1
-            exec $GWMS_SINGULARITY_PATH exec $GWMS_SINGULARITY_EXTRA_OPTS \
+        export SINGULARITY_REEXEC=1
+        exec $GWMS_SINGULARITY_PATH exec $GWMS_SINGULARITY_EXTRA_OPTS \
                                    --home $PWD:/srv \
                                    --pwd /srv \
                                    --scratch /var/tmp \
@@ -181,7 +163,6 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
                                    --containall \
                                    "$GWMS_SINGULARITY_IMAGE" \
                                    /srv/.osgvo-user-job-wrapper.sh $CMD
-	fi
     fi
 
 else
@@ -190,9 +171,8 @@ else
     unset TEMP
     unset X509_CERT_DIR
     for key in X509_USER_PROXY X509_USER_CERT _CONDOR_MACHINE_AD _CONDOR_JOB_AD \
-               _CONDOR_SCRATCH_DIR _CONDOR_CHIRP_CONFIG _CONDOR_JOB_IWD \
+               _CONDOR_SCRATCH_DIR _CONDOR_CHIRP_CONFIG _CONDOR_JOB_IWD ; do
 #               OSG_WN_TMP ; do
-               ; do
         eval val="\$$key"
         val=`echo "$val" | sed -E "s;$GWMS_SINGULARITY_OUTSIDE_PWD(.*);/srv\1;"`
         eval $key=$val
