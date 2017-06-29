@@ -116,7 +116,7 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
     try:
         stdoutdata = subprocessSupport.iexe_cmd(cmd, stdin_data=stdin_data,
                                                 child_env=child_env)
-    except Exception, ex:
+    except Exception as ex:
         msg = "Unexpected Error running '%s'. Details: %s. Stdout: %s" % (cmd, ex, stdoutdata)
         try:
             logSupport.log.debug(msg)
@@ -137,17 +137,17 @@ def init1():
     # try using condor commands to find it out
     try:
         condor_bin_path=iexe_cmd("condor_config_val BIN")[0].strip() # remove trailing newline
-    except ExeError,e:
+    except ExeError as e:
         # try to find the RELEASE_DIR, and append bin
         try:
             release_path=iexe_cmd("condor_config_val RELEASE_DIR")
             condor_bin_path=os.path.join(release_path[0].strip(),"bin")
-        except ExeError,e:
+        except ExeError as e:
             # try condor_q in the path
             try:
                 condorq_bin_path=iexe_cmd("which condor_q")
                 condor_bin_path=os.path.dirname(condorq_bin_path[0].strip())
-            except ExeError,e:
+            except ExeError as e:
                 # look for condor_config in /etc
                 if os.environ.has_key("CONDOR_CONFIG"):
                     condor_config=os.environ["CONDOR_CONFIG"]
@@ -158,12 +158,12 @@ def init1():
                     # BIN = <path>
                     bin_def=iexe_cmd('grep "^ *BIN" %s'%condor_config)
                     condor_bin_path=string.split(bin_def[0].strip())[2]
-                except ExeError, e:
+                except ExeError as e:
                     try:
                         # RELEASE_DIR = <path>
                         release_def=iexe_cmd('grep "^ *RELEASE_DIR" %s'%condor_config)
                         condor_bin_path=os.path.join(string.split(release_def[0].strip())[2],"bin")
-                    except ExeError, e:
+                    except ExeError as e:
                         pass # don't know what else to try
 
 #
@@ -175,17 +175,17 @@ def init2():
     # try using condor commands to find it out
     try:
         condor_sbin_path=iexe_cmd("condor_config_val SBIN")[0].strip() # remove trailing newline
-    except ExeError,e:
+    except ExeError as e:
         # try to find the RELEASE_DIR, and append bin
         try:
             release_path=iexe_cmd("condor_config_val RELEASE_DIR")
             condor_sbin_path=os.path.join(release_path[0].strip(),"sbin")
-        except ExeError,e:
+        except ExeError as e:
             # try condor_q in the path
             try:
                 condora_sbin_path=iexe_cmd("which condor_advertise")
                 condor_sbin_path=os.path.dirname(condora_sbin_path[0].strip())
-            except ExeError,e:
+            except ExeError as e:
                 # look for condor_config in /etc
                 if os.environ.has_key("CONDOR_CONFIG"):
                     condor_config=os.environ["CONDOR_CONFIG"]
@@ -196,12 +196,12 @@ def init2():
                     # BIN = <path>
                     bin_def=iexe_cmd('grep "^ *SBIN" %s'%condor_config)
                     condor_sbin_path=string.split(bin_def[0].strip())[2]
-                except ExeError, e:
+                except ExeError as e:
                     try:
                         # RELEASE_DIR = <path>
                         release_def=iexe_cmd('grep "^ *RELEASE_DIR" %s'%condor_config)
                         condor_sbin_path=os.path.join(string.split(release_def[0].strip())[2],"sbin")
-                    except ExeError, e:
+                    except ExeError as e:
                         pass # don't know what else to try
 
 def init():

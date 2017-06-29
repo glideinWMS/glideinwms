@@ -199,14 +199,14 @@ def main(argv):
     try:
         frontend_dir = opt_dict["dir"]
         cmd = opt_dict["cmd"]
-    except KeyError, e:
+    except KeyError as e:
         usage()
         print "-cmd -dir argument is required."
         return 1
 
     try:
         os.chdir(frontend_dir)
-    except OSError, e:
+    except OSError as e:
         usage()
         print "Failed to locate factory %s" % frontend_dir
         print "%s"%e

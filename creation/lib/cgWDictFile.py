@@ -453,7 +453,7 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
             # keep it simple, if possible
             try:
                 os.mkdir(self.dir)
-            except OSError,e:
+            except OSError as e:
                 raise RuntimeError,"Failed to create %s dir: %s"%(self.dir_name,e)
         elif self.privsep_mkdir:
             try:
@@ -461,7 +461,7 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
                 condorPrivsep.mkdir(base_dir,os.path.basename(self.dir),self.user)
                 # with condor 7.9.4 a permissions change is required
                 condorPrivsep.execute(self.user,base_dir,'/bin/chmod',['chmod','0755',self.dir],stdout_fname=None)
-            except condorPrivsep.ExeError, e:
+            except condorPrivsep.ExeError as e:
                 raise RuntimeError,"Failed to create %s dir (user %s): %s"%(self.dir_name,self.user,e)
             except:
                 raise RuntimeError,"Failed to create %s dir (user %s): Unknown privsep error"%(self.dir_name,self.user)
@@ -472,7 +472,7 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
                 condorPrivsep.execute(self.user,base_dir,'/bin/mkdir',['mkdir',self.dir],stdout_fname=None)
                 # with condor 7.9.4 a permissions change is required
                 condorPrivsep.execute(self.user,base_dir,'/bin/chmod',['chmod','0755',self.dir],stdout_fname=None)
-            except condorPrivsep.ExeError, e:
+            except condorPrivsep.ExeError as e:
                 raise RuntimeError,"Failed to create %s dir (user %s): %s"%(self.dir_name,self.user,e)
             except:
                 raise RuntimeError,"Failed to create %s dir (user %s): Unknown privsep error"%(self.dir_name,self.user)
@@ -490,7 +490,7 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
             try:
                 # use privsep rmtree, as requested
                 condorPrivsep.rmtree(base_dir,os.path.basename(self.dir))
-            except condorPrivsep.ExeError, e:
+            except condorPrivsep.ExeError as e:
                 raise RuntimeError,"Failed to remove %s dir (user %s): %s"%(self.dir_name,self.user,e)
             except:
                 raise RuntimeError,"Failed to remove %s dir (user %s): Unknown privsep error"%(self.dir_name,self.user)
@@ -499,7 +499,7 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
                 # use the execute command
                 # do not use the rmtree one, as we do not need root privileges
                 condorPrivsep.execute(self.user,base_dir,'/bin/rm',['rm','-fr',self.dir],stdout_fname=None)
-            except condorPrivsep.ExeError, e:
+            except condorPrivsep.ExeError as e:
                 raise RuntimeError,"Failed to remove %s dir (user %s): %s"%(self.dir_name,self.user,e)
             except:
                 raise RuntimeError,"Failed to remove %s dir (user %s): Unknown privsep error"%(self.dir_name,self.user)
@@ -524,7 +524,7 @@ class chmodClientDirSupport(clientDirSupport):
             # keep it simple, if possible
             try:
                 os.mkdir(self.dir,self.chmod)
-            except OSError,e:
+            except OSError as e:
                 raise RuntimeError,"Failed to create %s dir: %s"%(self.dir_name,e)
         else:
             try:
@@ -533,7 +533,7 @@ class chmodClientDirSupport(clientDirSupport):
                 condorPrivsep.execute(self.user,base_dir,'/bin/mkdir',['mkdir',self.dir],stdout_fname=None)
                 # with condor 7.9.4 a permissions change is required
                 condorPrivsep.execute(self.user,base_dir,'/bin/chmod',['chmod',"0%o"%self.chmod,self.dir],stdout_fname=None)
-            except condorPrivsep.ExeError, e:
+            except condorPrivsep.ExeError as e:
                 raise RuntimeError,"Failed to create %s dir (user %s): %s"%(self.dir_name,self.user,e)
             except:
                 raise RuntimeError,"Failed to create %s dir (user %s): Unknown privsep error"%(self.dir_name,self.user)

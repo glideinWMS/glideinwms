@@ -308,7 +308,7 @@ class ForkManager:
                  try:
                      # logSupport.log.debug("Checking finished workers")
                      post_work_info_subset = fetch_ready_fork_result_list(pipe_ids)
-                 except ForkResultError, e:
+                 except ForkResultError as e:
                      # Collect the partial result
                      post_work_info_subset = e.good_results
                      # Expect all errors logged already, just count
@@ -344,7 +344,7 @@ class ForkManager:
             try:
                 # logSupport.log.debug("Checking finished workers")
                 post_work_info_subset = fetch_ready_fork_result_list(pipe_ids)
-            except ForkResultError, e:
+            except ForkResultError as e:
                 # Collect the partial result
                 post_work_info_subset = e.good_results
                 # Expect all errors logged already, just count
@@ -362,7 +362,7 @@ class ForkManager:
             if len(post_work_info_subset)>0:
                  if log_progress:
                       logSupport.log.info("Active forks = %i, Forks to finish = %i"%(max_forks-forks_remaining,functions_remaining))
-         #end while
+         # end while
           
          if nr_errors>0:
               raise ForkResultError(nr_errors, post_work_info)

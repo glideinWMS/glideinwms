@@ -187,7 +187,7 @@ class Params:
             
             # create derived values
             self.derive()
-        except RuntimeError, e:
+        except RuntimeError as e:
             raise RuntimeError,"Unexpected error occurred loading the configuration file.\n\n%s" % e
         pass
 
@@ -225,9 +225,9 @@ class Params:
             fname=sys.stdin
         try:
             self.data=xmlParse.xmlfile2dict(fname,use_ord_dict=True)
-        except xml.parsers.expat.ExpatError, e:
+        except xml.parsers.expat.ExpatError as e:
             raise RuntimeError, "XML error parsing config file: %s"%e
-        except IOError, e:
+        except IOError as e:
             raise RuntimeError, "Config file error: %s"%e
         self.subparams=self.get_subparams_class()(self.data)
         return

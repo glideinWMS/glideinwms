@@ -393,7 +393,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
                 for line in monitor_config_line:
                     monitor_config_fd.write(line + "\n")
-            except IOError,e:
+            except IOError as e:
                 raise RuntimeError,"Error writing into file %s"%monitor_config_file
         finally:
             monitor_config_fd.close()
@@ -739,7 +739,7 @@ def add_file_unparsed(user_file,dicts, is_factory):
 def add_attr_unparsed(attr,dicts,description):
     try:
         add_attr_unparsed_real(attr,dicts)
-    except RuntimeError,e:
+    except RuntimeError as e:
         raise RuntimeError, "Error parsing attr %s[%s]: %s"%(description,attr[u'name'],str(e))
 
 def add_attr_unparsed_real(attr,dicts):
@@ -993,7 +993,7 @@ def populate_gridmap(conf,gridmap_dict):
 def copy_file(infile,outfile):
     try:
         shutil.copy2(infile,outfile)
-    except IOError, e:
+    except IOError as e:
         raise RuntimeError, "Error copying %s in %s: %s"%(infile,outfile,e)
 
 

@@ -97,7 +97,7 @@ def create_condor_tar_fd(condor_base_dir):
         tf.close()
         # rewind the file to the beginning
         fd.seek(0)
-    except RuntimeError, e:
+    except RuntimeError as e:
         raise RuntimeError, "Error creating condor tgz: %s"%e
     return fd
 
@@ -291,7 +291,7 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name, r
 def copy_file(infile,outfile):
     try:
         shutil.copy2(infile,outfile)
-    except IOError, e:
+    except IOError as e:
         raise RuntimeError, "Error copying %s in %s: %s"%(infile,outfile,e)
 
 #####################################

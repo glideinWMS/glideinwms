@@ -413,7 +413,7 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
 
         try:
             condorPrivsep.execute(username, factoryConfig.submit_dir, os.path.join(factoryConfig.submit_dir, 'update_proxy.py'), ['update_proxy.py'], update_proxy_env)
-        except condorPrivsep.ExeError, e:
+        except condorPrivsep.ExeError as e:
             raise RuntimeError, "Failed to update proxy %s in %s (user %s): %s" % (client_id, proxy_dir, username, e)
         except:
             raise RuntimeError, "Failed to update proxy %s in %s (user %s): Unknown privsep error" % (client_id, proxy_dir, username)
@@ -635,7 +635,7 @@ def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
                        log=log, factoryConfig=factoryConfig)
         glidein_totals.add_idle_glideins(add_glideins, frontend_name)
         return add_glideins # exit, some submitted
-    except RuntimeError, e:
+    except RuntimeError as e:
         log.warning("%s" % e)
         return 0 # something is wrong... assume 0 and exit
     except:
@@ -1270,6 +1270,44 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
             exe_env = entry_env + sub_env
 
             submit_out = executeSubmit(log, factoryConfig, username, schedd, exe_env, submit_file)
+            # FROM: Initial fixes from lib2to3.fixes.fix_except
+            # # check to see if the username for the proxy is
+            # # same as the factory username
+            # if username != MY_USERNAME:
+            #     # Use privsep
+            #     try:
+            #         args = ["condor_submit", "-name",
+            #                 schedd, "entry_%s/job.condor" % entry_name]
+            #         submit_out = condorPrivsep.condor_execute(
+            #                          username, factoryConfig.submit_dir,
+            #                          "condor_submit", args, env=exe_env)
+            #         log.debug(str(submit_out))
+            #     except condorPrivsep.ExeError as e:
+            #         submit_out = []
+            #         msg = "condor_submit failed (user %s): %s" % (username,
+            #                                                       str(e))
+            #         log.error(msg)
+            #         raise RuntimeError, msg
+            #     except:
+            #         submit_out = []
+            #         msg = "condor_submit failed (user %s): Unknown privsep error" % username
+            #         log.error(msg)
+            #         raise RuntimeError, msg
+            # else:
+            #     # Do not use privsep
+            #     try:
+            #         submit_out = condorExe.iexe_cmd("condor_submit -name %s entry_%s/job.condor" % (schedd, entry_name),
+            #                                         child_env=env_list2dict(exe_env))
+            #     except condorExe.ExeError as e:
+            #         submit_out=[]
+            #         msg = "condor_submit failed: %s" % str(e)
+            #         log.error(msg)
+            #         raise RuntimeError, msg
+            #     except Exception as e:
+            #         submit_out=[]
+            #         msg = "condor_submit failed: Unknown error: %s" % str(e)
+            #         log.error(msg)
+            #         raise RuntimeError, msg
 
             cluster,count=extractJobId(submit_out)
             for j in range(count):
@@ -1316,10 +1354,10 @@ def removeGlideins(schedd_name, jid_list, force=False, log=logSupport.log,
                 try:
                     log.info("Forcing the removal of glideins in X state")
                     condorManager.condorRemoveOne("%li.%li" % (jid[0], jid[1]), schedd_name, do_forcex=True)
-                except condorExe.ExeError, e:
+                except condorExe.ExeError as e:
                     log.warning("Forcing the removal of glideins in %s.%s state failed" % (jid[0], jid[1]))
 
-        except condorExe.ExeError, e:
+        except condorExe.ExeError as e:
             # silently ignore errors, and try next one
             log.warning("removeGlidein(%s,%li.%li): %s" % (schedd_name, jid[0], jid[1], e))
 
@@ -1350,7 +1388,7 @@ def releaseGlideins(schedd_name, jid_list, log=logSupport.log,
         try:
             condorManager.condorReleaseOne("%li.%li" % (jid[0], jid[1]), schedd_name)
             released_jids.append(jid)
-        except condorExe.ExeError, e:
+        except condorExe.ExeError as e:
             log.warning("releaseGlidein(%s,%li.%li): %s" % (schedd_name, jid[0], jid[1], e))
 
     log.info("Released %i glideins on %s: %s" % (len(released_jids), schedd_name, released_jids))
@@ -1568,7 +1606,7 @@ email_logs = False
             exe_env.append('GLIDEIN_RSL=%s' % glidein_rsl)
 
         return exe_env
-    except Exception, e:
+    except Exception as e:
         msg = "Error setting up submission environment: %s" % str(e)
         log.debug(msg)
         log.exception(msg)

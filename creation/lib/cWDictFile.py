@@ -122,7 +122,7 @@ class DictFile:
         filepath=os.path.join(dir,fname)
         try:
             fd=open(filepath,"w")
-        except IOError,e:
+        except IOError as e:
             raise RuntimeError, "Error creating %s: %s"%(filepath,e)
         try:
             self.save_into_fd(fd,sort_keys,set_readonly,reset_changed,want_comments)
@@ -188,14 +188,14 @@ class DictFile:
         filepath = os.path.join(dir, fname)
         try:
             fd = open(filepath, "r")
-        except IOError, e:
+        except IOError as e:
             print "Error opening %s: %s" % (filepath, e)
             print "Assuming blank, and re-creating..."
             return
         try:
             try:
                 self.load_from_fd(fd, erase_first, set_not_changed)
-            except RuntimeError, e:
+            except RuntimeError as e:
                 raise RuntimeError("File %s: %s" % (filepath, str(e)))
         finally:
             fd.close()
@@ -222,7 +222,7 @@ class DictFile:
                 line = line[:-1]
             try:
                 self.parse_val(line)
-            except RuntimeError, e:
+            except RuntimeError as e:
                 raise RuntimeError("Line %i: %s" % (idx,str(e)))
 
         if set_not_changed:
@@ -237,7 +237,7 @@ class DictFile:
         fd.seek(0)
         try:
             self.load_from_fd(fd, erase_first, set_not_changed)
-        except RuntimeError, e:
+        except RuntimeError as e:
             raise RuntimeError("Memory buffer: %s" % (str(e)))
         fd.close()
         return
@@ -584,7 +584,7 @@ class SimpleFileDictFile(DictFile):
         try:
             with open(filepath, "r") as fd:
                 self.add_from_fd(key, val, fd, allow_overwrite)
-        except IOError, e:
+        except IOError as e:
             raise RuntimeError("Could not open file %s" % filepath)
 
     def format_val(self, key, want_comments):
@@ -635,9 +635,9 @@ class SimpleFileDictFile(DictFile):
                 with open(filepath, "w") as fd:
                     try:
                         fd.write(fdata)
-                    except IOError, e:
+                    except IOError as e:
                         raise RuntimeError("Error writing into file %s" % filepath)
-            except IOError, e:
+            except IOError as e:
                 raise RuntimeError("Could not create file %s" % filepath)
 
 
@@ -1043,7 +1043,7 @@ class ExeFile(SimpleFile):
         filepath=os.path.join(dir,fname)
         try:
             fd=open(filepath,"w")
-        except IOError,e:
+        except IOError as e:
             raise RuntimeError, "Error creating %s: %s"%(filepath,e)
         try:
             self.save_into_fd(fd,sort_keys,set_readonly,reset_changed,want_comments)
@@ -1079,7 +1079,7 @@ class simpleDirSupport(dirSupport):
 
         try:
             os.mkdir(self.dir)
-        except OSError,e:
+        except OSError as e:
             raise RuntimeError,"Failed to create %s dir: %s"%(self.dir_name,e)
         return True
 
@@ -1100,7 +1100,7 @@ class chmodDirSupport(simpleDirSupport):
 
         try:
             os.mkdir(self.dir,self.chmod)
-        except OSError,e:
+        except OSError as e:
             raise RuntimeError,"Failed to create %s dir: %s"%(self.dir_name,e)
         return True
 
@@ -1119,7 +1119,7 @@ class symlinkSupport(dirSupport):
 
         try:
             os.symlink(self.target_dir,self.symlink)
-        except OSError,e:
+        except OSError as e:
             raise RuntimeError,"Failed to create %s symlink: %s"%(self.dir_name,e)
         return True
 
@@ -1684,7 +1684,7 @@ def validate_node(nodestr,allow_prange=False):
         try:
             pmini = int(pmin)
             pmaxi = int(pmax)
-        except ValueError,e:
+        except ValueError as e:
             raise RuntimeError("Node ports are not integer: '%s'" % nodestr)
         if pmini>pmaxi:
             raise RuntimeError("Low port must be lower than high port in node port range: '%s'" % nodestr)

@@ -54,7 +54,7 @@ class TestCondorExe(unittest.TestCase):
             for script in self.normal_exit_scripts:
                 cmd = os.path.join(condorExe.condor_bin_path, script)
                 output = iexe_cmd(cmd)
-        except Exception, e:
+        except Exception as e:
             self.fail("Exception Occurred: %s" % str(e))
 
         # Execution should exit with an exception.  If no exception, then fail
@@ -71,7 +71,7 @@ class TestCondorExe(unittest.TestCase):
         try:
             for script in self.normal_exit_scripts:
                 output = exe_cmd(script, self.dummy_args)
-        except Exception, e:
+        except Exception as e:
             self.fail("Exception Occurred: %s" % str(e))
 
         # Execution should exit with an exception.  If no exception, then fail
@@ -87,7 +87,7 @@ class TestCondorExe(unittest.TestCase):
         try:
             for script in self.normal_exit_scripts:
                 output = exe_cmd_sbin(script, self.dummy_args)
-        except Exception, e:
+        except Exception as e:
             self.fail("Exception Occurred: %s" % str(e))
 
         # Execution should exit with an exception.  If no exception, then fail

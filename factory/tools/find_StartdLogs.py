@@ -49,7 +49,7 @@ def parse_args():
 def main():
     try:
         glideinDescript=parse_args()
-    except ValueError, e:
+    except ValueError as e:
         sys.stderr.write("%s\n\n%s\n"%(e,USAGE))
         sys.exit(1)
     entries=glideinDescript.data['Entries'].split(',')

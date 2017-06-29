@@ -35,7 +35,7 @@ def check_args():
 def main():
     try:
         check_args()
-    except ArgumentError, ae:
+    except ArgumentError as ae:
         print sys.stderr, ae
         usage()
 
@@ -80,9 +80,9 @@ def main():
         # call the submit
         submitGlideins(entry_name, client_name, nr_glideins, frontend_name, credentials, client_web, params)
 
-    except IniError, ie:
+    except IniError as ie:
         print sys.stderr, "ini file error make this message better"
-    except Exception, ex:
+    except Exception as ex:
         print sys.stderr, "general error make this message better"
 
 if __name__ == "__main__":

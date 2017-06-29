@@ -93,7 +93,7 @@ class MonitoringConfig:
             #print "Updating RRD "+fname
             try:
                 self.rrd_obj.update_rrd_multi(fname,time,val_dict)
-            except Exception,e:
+            except Exception as e:
                 logSupport.log.error("Failed to update %s" % fname)
                 #logSupport.log.exception(traceback.format_exc())
         return

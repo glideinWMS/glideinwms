@@ -475,7 +475,7 @@ class HistoryFile:
     def __getitem__(self, keyid):
         try:
             return self.data[keyid]
-        except KeyError, e:
+        except KeyError as e:
             if self.default_factory is None:
                 raise  # no default initialization, just fail
             # i have the initialization function, use it

@@ -44,7 +44,7 @@ class Cleanup:
                 if return_pid:
                     logSupport.log.debug("Collected cleanup PID %s" % pid)
                     self.cleanup_pids.remove(pid)
-            except OSError, e:
+            except OSError as e:
                 self.cleanup_pids.remove(pid)
                 logSupport.log.warning("Received error %s while waiting for PID %s" %
                                        (e.strerror, pid))

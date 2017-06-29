@@ -203,7 +203,7 @@ def main(argv):
   except EOFError:
     common.logit("\n... looks like you aborted this script... bye.");
     return 1
-  except ConfigurationError, e:
+  except ConfigurationError as e:
     print;print "ConfigurationError ERROR(should not get these): %s"%e;return 1
   except common.WMSerror:
     print;return 1

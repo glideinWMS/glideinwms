@@ -387,7 +387,7 @@ You can only use the '--configure/--validate' options for this type.
       tar_dir = "%s/tar" % (self.condor_location())
       if not os.path.isdir(tar_dir):
         os.makedirs(tar_dir)
-    except Exception,e:
+    except Exception as e:
       common.logerr("Condor installation failed. Cannot make %s directory: %s" % (tar_dir,e))
     
     try:
@@ -421,7 +421,7 @@ You can only use the '--configure/--validate' options for this type.
         if os.getuid() == 0:
             cmdline += " --owner=%s" % (self.username())
         common.run_script(cmdline)
-    except Exception,e:
+    except Exception as e:
         #shutil.rmtree(self.condor_location())
         common.logerr("Condor installation failed - %s" % (e))
     
@@ -564,7 +564,7 @@ You can only use the '--configure/--validate' options for this type.
                 fd.getmember(self.condor_first_dir + "condor_configure")
             except:
                 common.logerr("Condor tarball (%s) missing %s" % (tarball, self.condor_first_dir + "condor_configure"))
-        except Exception,e:
+        except Exception as e:
             common.logerr("Condor tarball file is corrupted: %s" % (tarball))
     finally:
       fd.close()
@@ -1280,11 +1280,11 @@ def main(argv):
     condor = Condor(inifile,section,options)
     #condor.install_condor()
     condor.__validate_tarball__("/usr/local/tarballs/" + argv[1])
-  except ConfigurationError, e:
+  except ConfigurationError as e:
     print "ERROR: %s" % e;return 1
-  except common.WMSerror, e:
+  except common.WMSerror as e:
     print "WMSError";return 1
-  except Exception, e:
+  except Exception as e:
     print traceback.print_exc()
   return 0
 

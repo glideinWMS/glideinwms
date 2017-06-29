@@ -169,7 +169,7 @@ class MonitoringConfig:
             #print "Updating RRD "+fname
             try:
                 self.rrd_obj.update_rrd_multi(fname, time, val_dict)
-            except Exception, e: #@UnusedVariable
+            except Exception as e: #@UnusedVariable
                 self.log.exception("Failed to update %s: " % fname)
         return
 
@@ -210,7 +210,7 @@ class MonitoringConfig:
             #print "Updating RRD "+fname
             try:
                 self.rrd_obj.update_rrd_multi(fname, time, val_dict)
-            except Exception, e: #@UnusedVariable
+            except Exception as e: #@UnusedVariable
                 self.log.exception("Failed to update %s: " % fname)
         return
 

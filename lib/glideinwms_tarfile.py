@@ -1555,7 +1555,7 @@ class TarFile(object):
                 self.chown(tarinfo, dirpath)
                 self.utime(tarinfo, dirpath)
                 self.chmod(tarinfo, dirpath)
-            except ExtractError, e:
+            except ExtractError as e:
                 if self.errorlevel > 1:
                     raise
                 else:
@@ -1580,7 +1580,7 @@ class TarFile(object):
 
         try:
             self._extract_member(tarinfo, os.path.join(path, tarinfo.name))
-        except EnvironmentError, e:
+        except EnvironmentError as e:
             if self.errorlevel > 0:
                 raise
             else:
@@ -1588,7 +1588,7 @@ class TarFile(object):
                     self._dbg(1, "tarfile: %s" % e.strerror)
                 else:
                     self._dbg(1, "tarfile: %s %r" % (e.strerror, e.filename))
-        except ExtractError, e:
+        except ExtractError as e:
             if self.errorlevel > 1:
                 raise
             else:
@@ -1688,7 +1688,7 @@ class TarFile(object):
             # Use a safe mode for the directory, the real mode is set
             # later in _extract_member().
             os.mkdir(targetpath, 0700)
-        except EnvironmentError, e:
+        except EnvironmentError as e:
             if e.errno != errno.EEXIST:
                 raise
 
@@ -1752,11 +1752,11 @@ class TarFile(object):
 
             try:
                 self._extract_member(self.getmember(linkpath), targetpath)
-            except (EnvironmentError, KeyError), e:
+            except (EnvironmentError, KeyError) as e:
                 linkpath = os.path.normpath(linkpath)
                 try:
                     shutil.copy2(linkpath, targetpath)
-                except EnvironmentError, e:
+                except EnvironmentError as e:
                     raise IOError("link could not be created")
 
     def chown(self, tarinfo, targetpath):
@@ -1784,7 +1784,7 @@ class TarFile(object):
                 else:
                     if sys.platform != "os2emx":
                         os.chown(targetpath, u, g)
-            except EnvironmentError, e:
+            except EnvironmentError as e:
                 raise ExtractError("could not change owner")
 
     def chmod(self, tarinfo, targetpath):
@@ -1793,7 +1793,7 @@ class TarFile(object):
         if hasattr(os, 'chmod'):
             try:
                 os.chmod(targetpath, tarinfo.mode)
-            except EnvironmentError, e:
+            except EnvironmentError as e:
                 raise ExtractError("could not change mode")
 
     def utime(self, tarinfo, targetpath):
@@ -1807,7 +1807,7 @@ class TarFile(object):
             return
         try:
             os.utime(targetpath, (tarinfo.mtime, tarinfo.mtime))
-        except EnvironmentError, e:
+        except EnvironmentError as e:
             raise ExtractError("could not change modification time")
 
     #--------------------------------------------------------------------------
@@ -1840,7 +1840,7 @@ class TarFile(object):
 
                 tarinfo = self.proc_member(tarinfo)
 
-            except ValueError, e:
+            except ValueError as e:
                 if self.ignore_zeros:
                     self._dbg(2, "0x%X: empty or invalid block: %s" %
                               (self.offset, e))

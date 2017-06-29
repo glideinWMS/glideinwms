@@ -33,7 +33,7 @@ class Configuration:
       real_fp = open(self.inifile, 'r')
       string_fp = StringIO.StringIO(real_fp.read())
       self.cp.readfp(string_fp,self.inifile)
-    except Exception, e:
+    except Exception as e:
       common.logerr("%s" % e)
 
     #-- additional check for syntax errors --
@@ -140,7 +140,7 @@ class Configuration:
     if self.has_option(section,option):
       try:
         value = self.cp.get(section,option)
-      except Exception,e:
+      except Exception as e:
         common.logerr("ini file error: %s" % e.__str__())
       #-- cannot let paths end in a '/' --
       while len(value) > 0 and value[len(value)-1] == "/":
@@ -343,12 +343,12 @@ def main(opts=None):
         run_unit_tests(opts[0])
       else:
         raise UsageError("Invalid command line option")
-  except ConfigurationError, e:
+  except ConfigurationError as e:
     print;print "Configuration ERROR: %s" % e;return 1
-  except UsageError, e:
+  except UsageError as e:
     usage(opts[0])
     print "Usage ERROR: %s" % e;return 1
-  except Exception, e:
+  except Exception as e:
     print;print "Exception ERROR: %s - %s" % (show_line(),e);return 1
   return 0
 

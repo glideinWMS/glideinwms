@@ -128,7 +128,7 @@ those in your frontend_users attribute of the WMSCollector ini file:
     user_valid = True
     try:
       self.factory_groups = self.get_groups(self.factory_user)
-    except Exception,e:
+    except Exception as e:
       user_valid = False
       common.logit("ERROR: Factory user (%s) account not created" % self.factory_user)
     #--- frontends user check ---
@@ -152,7 +152,7 @@ those in your frontend_users attribute of the WMSCollector ini file:
   def get_groups(self,user):
     try:
       groups = grp.getgrgid(pwd.getpwnam(user)[3])[0]
-    except Exception,e:
+    except Exception as e:
       raise
     return groups
 
@@ -220,7 +220,7 @@ def main(argv):
     #privsep = PrivilegeSeparation("/home/weigand/condor-wms",factory,[frontend,]) 
     #privsep.update()
     #privsep.validate_after_condor_install()
-  except KeyboardInterrupt, e:
+  except KeyboardInterrupt as e:
     common.logit("\n... looks like you aborted this script... bye.")
     return 1
   except EOFError:

@@ -66,7 +66,7 @@ class CounterWrapper:
     def __getitem__(self, keyid):
         try:
             return self.dict_el[keyid]
-        except KeyError,e:
+        except KeyError as e:
             self.dict_el[keyid] = 0
             return self.dict_el[keyid]
 
@@ -374,7 +374,7 @@ class glideinFrontendElement:
             pipe_out=forkm_obj.fork_and_collect()
             servicePerformance.endPerfMetricEvent(
                 self.group_name, 'condor_queries')
-        except RuntimeError, e:
+        except RuntimeError as e:
             # expect all errors logged already
             logSupport.log.info("Missing schedd, factory entry, and/or current glidein state information. " \
                                 "Unable to calculate required glideins, terminating loop.")
@@ -1510,7 +1510,7 @@ class glideinFrontendElement:
                     break
                 glidein_dict[(factory_pool_node, glidename, my_identity_at_factory_pool)] = factory_glidein_dict[glidename]
 
-        except Exception, ex:
+        except Exception as ex:
             logSupport.log.exception("Error in talking to the factory pool:")
 
         return glidein_dict
@@ -1684,7 +1684,7 @@ class glideinFrontendElement:
                 # This is not critical information, do not fail
                 logSupport.log.warning('Error gathering job stats from schedd. Defaulting to %s' % status_schedd_dict)
 
-        except Exception, ex:
+        except Exception as ex:
             logSupport.log.exception("Error talking to the user pool (condor_status):")
 
         return (status_dict, fe_counts, global_counts, status_schedd_dict)
