@@ -28,7 +28,7 @@ def exe_cmd(argv_func,argv=sys.argv):
         glideinMonitor.monitor(args['jid'],args['schedd_name'],args['pool_name'],
                                args['timeout'],
                                createCmdMonitorFile,argv_func(args['argv']))
-    except RuntimeError,e:
+    except RuntimeError as e:
         print e
         sys.exit(1)
 
@@ -44,7 +44,7 @@ def exe_cmd_simple(argv_func,argv=sys.argv):
         glideinMonitor.monitor(args['jid'],args['schedd_name'],args['pool_name'],
                                args['timeout'],
                                createCmdMonitorFileSimple,argv_func(args['argv']))
-    except RuntimeError,e:
+    except RuntimeError as e:
         print e
         sys.exit(1)
 
@@ -60,7 +60,7 @@ def exe_cmd_script(argv_func,argv=sys.argv):
         glideinMonitor.monitor(args['jid'],args['schedd_name'],args['pool_name'],
                                args['timeout'],
                                createCmdMonitorFileScript,argv_func(args['argv']))
-    except RuntimeError,e:
+    except RuntimeError as e:
         print e
         sys.exit(1)
 

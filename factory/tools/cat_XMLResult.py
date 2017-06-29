@@ -49,7 +49,7 @@ def main(args):
         try:
             fname=args[0]
             out=gWftLogParser.get_XMLResult(fname)
-        except OSError,e:
+        except OSError as e:
             sys.stderr.write("Error reading file: %s\n"%e)
             sys.exit(1)
         except:
@@ -89,7 +89,7 @@ def main(args):
                 if x[-1]=="  ":
                     x=x[:-1]
                 xmls.append(string.join(x,"\n"))
-            except OSError,e:
+            except OSError as e:
                 # just warn
                 sys.stderr.write("Error reading file: %s\n"%e)
             except:

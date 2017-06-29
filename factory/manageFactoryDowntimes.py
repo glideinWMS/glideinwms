@@ -432,7 +432,7 @@ def main(argv):
             comments=opt_dict["comment"]
             if (comments == ""):
                 raise KeyError
-    except KeyError, e:
+    except KeyError as e:
         usage()
         print "-cmd -dir and -entry arguments are required."
         if (mandatory_comments):
@@ -455,7 +455,7 @@ def main(argv):
 
     try:
         os.chdir(factory_dir)
-    except OSError, e:
+    except OSError as e:
         usage()
         print "Failed to locate factory %s"%factory_dir
         print "%s"%e

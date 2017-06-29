@@ -37,7 +37,7 @@ def get_element_pids(work_dir, frontend_pid):
     for group in groups:
         try:
             element_pid, element_ppid = glideinFrontendPidLib.get_element_pid(work_dir, group)
-        except RuntimeError, e:
+        except RuntimeError as e:
             print e
             continue # report error and go to next group
         if element_ppid != frontend_pid:
@@ -53,7 +53,7 @@ def main(work_dir, force=False):
     # get the pids
     try:
         frontend_pid = glideinFrontendPidLib.get_frontend_pid(work_dir)
-    except RuntimeError, e:
+    except RuntimeError as e:
         print e
         if str(e) == "Frontend not running":
             # Workaround to distinguish when the frontend is not running

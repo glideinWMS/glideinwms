@@ -63,7 +63,7 @@ def main(startup_dir,force=True):
     # get the pids
     try:
         factory_pid=glideFactoryPidLib.get_factory_pid(startup_dir)
-    except RuntimeError, e:
+    except RuntimeError as e:
         print e
         if str(e) == "Factory not running":
             # Workaround to distinguish when the factory is not running

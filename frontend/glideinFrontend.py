@@ -553,7 +553,7 @@ def main(work_dir, action):
     # start
     try:
         pid_obj.register(action)
-    except  glideinFrontendPidLib.pidSupport.AlreadyRunning, err:
+    except  glideinFrontendPidLib.pidSupport.AlreadyRunning as err:
         pid_obj.load_registered()
         logSupport.log.exception("Failed starting Frontend with action %s. Instance with pid %s is aready running for action %s. Exception during pid registration: %s" % (action, pid_obj.mypid , str(pid_obj.action_type), err))
         raise

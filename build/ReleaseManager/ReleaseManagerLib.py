@@ -488,7 +488,8 @@ class PackageExcludes:
 def create_dir(dir, mode=0755, errorIfExists=False):
     try:
         os.makedirs(dir, mode=0755)
-    except OSError as (errno, stderror):
+    except OSError as xxx_todo_changeme:
+        (errno, stderror) = xxx_todo_changeme.args
         if (errno == 17) and (errorIfExists == False):
             print 'Dir already exists reusing %s' % dir
         else:
@@ -509,7 +510,7 @@ def execute_cmd(cmd, stdin_data=None):
     #child.childerr.close()
     try:
         errcode = child.wait()
-    except OSError, e:
+    except OSError as e:
         if len(tempOut) != 0:
             # if there was some output, it is probably just a problem of timing
             # have seen a lot of those when running very short processes

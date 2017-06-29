@@ -134,7 +134,7 @@ def query_bdii(bdii_source, vo_name=''):
 
             ceList[bdii_dn] = ceEntry
         
-        except KeyError, e:
+        except KeyError as e:
             # Bad BDII entry for a site.. Keep going
             continue
 
@@ -194,7 +194,7 @@ def siteType(ceList, Bdii):
            if siteGridType.has_key(site):
                ceType[ce] = siteGridType[site]
 
-       except KeyError, e:
+       except KeyError as e:
            #print 'KeyError in %s' % ce, e
            continue
 

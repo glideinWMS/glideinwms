@@ -382,7 +382,7 @@ class frontendDicts(cvWDictFile.frontendDicts):
 def add_attr_unparsed(attr_name,params,dicts,description):
     try:
         add_attr_unparsed_real(attr_name,params,dicts)
-    except RuntimeError,e:
+    except RuntimeError as e:
         raise RuntimeError, "Error parsing attr %s[%s]: %s"%(description,attr_name,str(e))
 
 def add_attr_unparsed_real(attr_name,params,dicts):

@@ -10,7 +10,7 @@ def load_ini(ini_path):
     # check to see if the file exists and is a valid ini file 
     try:
         cp.read(ini_path)
-    except Exception, ex:
+    except Exception as ex:
         raise IniError("Invalid ini file specified.\nInternal Error: %s" % ex)
 
     return cp

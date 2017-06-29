@@ -252,7 +252,7 @@ files and directories can be created correctly""" % self.username())
         if os.path.isdir("%s/%s" % (parent_dir,base_dir)): 
           try:
             condorPrivsep.rmtree(parent_dir,base_dir)
-          except Exception,e:
+          except Exception as e:
             common.logerr("""Encountered a problem in executing condor_root_switchboard 
 to remove this client's sub-directories:
   %(dir)s
@@ -777,7 +777,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     try: 
       if len(filter) > 0:
         obj=compile(filter,"<string>","eval")
-    except Exception, e:
+    except Exception as e:
       common.logerr("Syntax error in filters")
     return obj
 
@@ -788,7 +788,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     try:
       if eval(filter_obj,site):
         return True
-    except Exception, e:
+    except Exception as e:
       common.logerr("Problem applying filters -  %s" % e)
     return False
 
@@ -874,7 +874,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     try:
       condor_obj.load(constraint=constraint)
       condor_data=condor_obj.fetchStored()
-    except Exception,e: 
+    except Exception as e: 
       common.logerr(e)
     del condor_obj
     return condor_data
@@ -939,7 +939,7 @@ def main(argv):
   except EOFError:
     common.logit("\n... looks like you aborted this script... bye.");
     return 1
-  except ConfigurationError, e:
+  except ConfigurationError as e:
     print;print "ConfigurationError ERROR(should not get these): %s"%e;return 1
   except common.WMSerror:
     print;return 1

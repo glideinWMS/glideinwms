@@ -366,7 +366,7 @@ class Entry:
             return glideFactoryLib.getCondorQData(
                        self.name, None, self.scheddName,
                        factoryConfig=self.gflFactoryConfig)
-        except Exception, e:
+        except Exception as e:
             self.log.info("Schedd %s not responding, skipping"%self.scheddName)
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
@@ -1079,7 +1079,7 @@ def check_and_perform_work(factory_in_downtime, entry, work):
             #glideFactoryLib.factoryConfig.rrd_stats.getData("%s_%s" % sec_el)
             entry.gflFactoryConfig.rrd_stats.getData(
                 "%s_%s" % sec_el, monitoringConfig=entry.monitoringConfig)
-        except glideFactoryLib.condorExe.ExeError,e:
+        except glideFactoryLib.condorExe.ExeError as e:
             # Never fail for monitoring. Just log
             entry.log.exception("get_RRD_data failed with condor error: ")
         except:
@@ -1367,20 +1367,20 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
 
     try:
         idle_glideins = int(work['requests']['IdleGlideins'])
-    except ValueError, e:
+    except ValueError as e:
         entry.log.warning("Client %s provided an invalid ReqIdleGlideins: '%s' not a number. Skipping request" % (client_int_name, work['requests']['IdleGlideins']))
         return return_dict
 
     if 'MaxGlideins' in work['requests']:
         try:
             max_glideins = int(work['requests']['MaxGlideins'])
-        except ValueError, e:
+        except ValueError as e:
             entry.log.warning("Client %s provided an invalid ReqMaxGlideins: '%s' not a number. Skipping request." % (client_int_name, work['requests']['MaxGlideins']))
             return return_dict
     else:
         try:
             max_glideins = int(work['requests']['MaxRunningGlideins'])
-        except ValueError, e:
+        except ValueError as e:
             entry.log.warning("Client %s provided an invalid ReqMaxRunningGlideins: '%s' not a number. Skipping request" % (client_int_name, work['requests']['MaxRunningGlideins']))
             return return_dict
 
@@ -1591,7 +1591,7 @@ def unit_work_v2(entry, work, client_name, client_int_name, client_int_req,
                                    "%s_%s" % (client_name, x509_proxy_identifier),
                                    x509_proxy,
                                    factoryConfig=entry.gflFactoryConfig)
-        except RuntimeError,e:
+        except RuntimeError as e:
             entry.log.warning("Failed to update x509_proxy_%i using username %s for client %s, skipping request" % (i, x509_proxy_username, client_int_name))
             continue
         except:
@@ -1626,20 +1626,20 @@ def unit_work_v2(entry, work, client_name, client_int_name, client_int_req,
 
     try:
         idle_glideins = int(work['requests']['IdleGlideins'])
-    except ValueError, e:
+    except ValueError as e:
         entry.log.warning("Client %s provided an invalid ReqIdleGlideins: '%s' not a number. Skipping request" % (client_int_name, work['requests']['IdleGlideins']))
         return return_dict
 
     if 'MaxGlideins' in work['requests']:
         try:
             max_glideins = int(work['requests']['MaxGlideins'])
-        except ValueError, e:
+        except ValueError as e:
             entry.log.warning("Client %s provided an invalid ReqMaxGlideins: '%s' not a number. Skipping request." % (client_int_name, work['requests']['MaxGlideins']))
             return return_dict
     else:
         try:
             max_glideins = int(work['requests']['MaxRunningGlideins'])
-        except ValueError, e:
+        except ValueError as e:
             entry.log.warning("Client %s provided an invalid ReqMaxRunningGlideins: '%s' not a number. Skipping request" % (client_int_name, work['requests']['MaxRunningGlideins']))
             return return_dict
 
@@ -1748,7 +1748,7 @@ def perform_work_v3(entry, condorQ, client_name, client_int_name,
     # should not need privsep for reading logs
     try: # the logParser class will throw an exception if the input file is bad
         log_stats[credential_username + ":" + client_int_name].load()
-    except Exception, e:
+    except Exception as e:
         entry.log.exception(e)
 
     glideFactoryLib.logStats(condorQ, client_int_name,

@@ -329,14 +329,14 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
                         first_t=(first_jid[0]*procid_mul+first_jid[1])*nr_schedds+scheddIdx
                         all_jobs_clusters[first_t]=cluster_arr
                         sjobs_arr+=[first_t]
-                except KeyError, e:
+                except KeyError as e:
                     tb = traceback.format_exception(sys.exc_info()[0],
                                                     sys.exc_info()[1],
                                                     sys.exc_info()[2])
                     key = ((tb[-1].split(':'))[1]).strip()
                     missing_keys.add(key)
 
-                except Exception, e:
+                except Exception as e:
                     tb_count = tb_count + 1
                     recent_tb = traceback.format_exception(sys.exc_info()[0],
                                                            sys.exc_info()[1],
@@ -550,13 +550,13 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
                                 # the job is running in a glidein with 1 slot
                                 glidein_id = "%d %s" % (scheddIdx, jid)
                             glidein_ids.add(glidein_id)
-                except KeyError, e:
+                except KeyError as e:
                     tb = traceback.format_exception(sys.exc_info()[0],
                                                     sys.exc_info()[1],
                                                     sys.exc_info()[2])
                     key = ((tb[-1].split(':'))[1]).strip()
                     missing_keys.add(key)
-                except Exception, e:
+                except Exception as e:
                     tb_count = tb_count + 1
                     recent_tb = traceback.format_exception(sys.exc_info()[0],
                                                            sys.exc_info()[1],

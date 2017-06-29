@@ -46,7 +46,7 @@ class LDAPQuery:
         try:
             bdii_data = ldap_obj.search_s(self.base, ldap.SCOPE_SUBTREE,
                                           filter_str)
-        except ldap.FILTER_ERROR, e:
+        except ldap.FILTER_ERROR as e:
             raise ValueError, "LDAP filter error for '%s': %s" % (filter_str, e)
         del ldap_obj
 
@@ -216,7 +216,7 @@ class BdiiLdap:
                    if result_type == ldap.RES_SEARCH_ENTRY:
                        result_set.append(result_data)
 
-       except ldap.LDAPError, error_message:
+       except ldap.LDAPError as error_message:
            print error_message
            raise
 

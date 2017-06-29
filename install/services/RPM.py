@@ -239,7 +239,7 @@ def main(argv):
     #vo.get_usercollector()
     #print vo.config_collectors_data()
     #vo.configure_gsi_security()
-  except KeyboardInterrupt, e:
+  except KeyboardInterrupt as e:
     common.logit("\n... looks like you aborted this script... bye.")
     return 1
   except EOFError:

@@ -41,7 +41,7 @@ def write_file(mode,perm,filename,data,SILENT=False):
   try:
     try:    
       fd.write(data)
-    except Exception,e:
+    except Exception as e:
       logerr("Problem writing %s: %s" % (filename,e))
   finally:
     fd.close()
@@ -88,7 +88,7 @@ this node.  Not something you really want to do""")
   cmd = "rm -rf %s/*" % dirname
   try:
     stdout = glideinwms.lib.subprocessSupport.iexe_cmd(cmd,useShell=True)
-  except glideinwms.lib.subprocessSupport.CalledProcessError, e:
+  except glideinwms.lib.subprocessSupport.CalledProcessError as e:
     logerr("""Problem deleting files in %s
 %s""" % (dirname,e))
   logit("Files in %s  deleted" % dirname)
@@ -153,7 +153,7 @@ def run_script(script):
   logit("... running: %s" % script)
   try:
     stdout = glideinwms.lib.subprocessSupport.iexe_cmd(script,useShell=True)
-  except glideinwms.lib.subprocessSupport.CalledProcessError, e:
+  except glideinwms.lib.subprocessSupport.CalledProcessError as e:
     logerr("""Script failed with non-zero return code
 %s """ % e )
 
@@ -203,7 +203,7 @@ def module_exists(module_name):
   cmd = "python -c 'import %s' >/dev/null 2>&1" % module_name
   try:
     glideinwms.lib.subprocessSupport.iexe_cmd(cmd, useShell=True)
-  except glideinwms.lib.subprocessSupport.CalledProcessError, e:
+  except glideinwms.lib.subprocessSupport.CalledProcessError as e:
     return False
   return True
 
@@ -405,7 +405,7 @@ def wget_is_valid(location):
   cmd = "wget --quiet --spider %s" % location
   try:
     glideinwms.lib.subprocessSupport.iexe_cmd(cmd,useShell=True)
-  except glideinwms.lib.subprocessSupport.CalledProcessError, e:
+  except glideinwms.lib.subprocessSupport.CalledProcessError as e:
     return False
   return True
 
@@ -473,7 +473,7 @@ if __name__ == '__main__':
     os.rmdir(os.path.dirname(testdir))
     print "... PASSED"
 
-  except Exception,e:
+  except Exception as e:
     print "FAILED test"
     print e
     sys.exit(1)

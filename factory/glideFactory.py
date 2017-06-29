@@ -595,7 +595,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                     glideFactoryLib.factoryConfig.supported_signtypes,
                     glideinDescript.data['PubKeyObj']
                     )
-            except Exception, e:
+            except Exception as e:
                 logSupport.log.exception("Error advertising global classads: %s" % e)
 
             cleanupSupport.cleaners.cleanup()
@@ -781,7 +781,7 @@ def main(startup_dir):
     # start
     try:
         pid_obj.register()
-    except glideFactoryPidLib.pidSupport.AlreadyRunning, err:
+    except glideFactoryPidLib.pidSupport.AlreadyRunning as err:
         pid_obj.load_registered()
         logSupport.log.exception("Failed starting Factory. Instance with pid %s is aready running. Exception during pid registration: %s" %
                                  (pid_obj.mypid , err))
@@ -790,9 +790,9 @@ def main(startup_dir):
         try:
             spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                   frontendDescript, entries, restart_attempts, restart_interval)
-        except KeyboardInterrupt, e:
+        except KeyboardInterrupt as e:
             raise e
-        except HUPException, e:
+        except HUPException as e:
             # inside spawn(), outermost try will catch HUPException, 
             # then the code within the finally will run
             # which will terminate glideFactoryEntryGroup children processes
@@ -831,5 +831,5 @@ if __name__ == '__main__':
 
     try:
         main(sys.argv[1])
-    except KeyboardInterrupt, e:
+    except KeyboardInterrupt as e:
         logSupport.log.info("Terminating: %s" % e)

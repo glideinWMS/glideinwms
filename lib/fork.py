@@ -111,7 +111,7 @@ def fetch_fork_result_list(pipe_ids):
             # Collect the results
             out[key] = fetch_fork_result(pipe_ids[key]['r'],
                                          pipe_ids[key]['pid'])
-        except Exception, e:
+        except Exception as e:
             logSupport.log.warning("Failed to extract info from child '%s'" % str(key))
             logSupport.log.exception("Failed to extract info from child '%s'" % str(key))
             # Record failed keys
@@ -149,7 +149,7 @@ def fetch_ready_fork_result_list(pipe_ids):
             pid = pipe_ids[key]['pid']
             out = fetch_fork_result(fd, pid)
             work_info[key] = out
-        except Exception, e:
+        except Exception as e:
             logSupport.log.warning("Failed to extract info from child '%s'" % str(key))
             logSupport.log.exception("Failed to extract info from child '%s'" % str(key))
             # Record failed keys
@@ -239,7 +239,7 @@ class ForkManager:
                  try:
                      # logSupport.log.debug("Checking finished workers")
                      post_work_info_subset = fetch_ready_fork_result_list(pipe_ids)
-                 except ForkResultError, e:
+                 except ForkResultError as e:
                      # Collect the partial result
                      post_work_info_subset = e.good_results
                      # Expect all errors logged already, just count
@@ -274,7 +274,7 @@ class ForkManager:
             try:
                 # logSupport.log.debug("Checking finished workers")
                 post_work_info_subset = fetch_ready_fork_result_list(pipe_ids)
-            except ForkResultError, e:
+            except ForkResultError as e:
                 # Collect the partial result
                 post_work_info_subset = e.good_results
                 # Expect all errors logged already, just count

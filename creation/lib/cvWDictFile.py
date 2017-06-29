@@ -123,7 +123,7 @@ def load_common_dicts(dicts,           # update in place
     if dicts.has_key('attrs'):
         try:
             dicts['attrs'].load()
-        except RuntimeError,e:
+        except RuntimeError as e:
             # to allow for a smooth upgrade path from 2.5.5-, make this file optional
             # in the future, we should remove this try...except block
             dicts['attrs'].erase()

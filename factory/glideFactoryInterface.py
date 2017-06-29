@@ -780,7 +780,7 @@ class MultiAdvertizeGlideinClientMonitoring:
                 advertizeGlideinClientMonitoringFromFile(tmpnam,
                                                          remove_file=True,
                                                          factory_collector=self.factory_collector)
-            except condorExe.ExeError, e:
+            except condorExe.ExeError as e:
                 error_arr.append(e)
 
         if len(error_arr) > 0:
@@ -805,7 +805,7 @@ class MultiAdvertizeGlideinClientMonitoring:
                                                          remove_file=True,
                                                          is_multi=True,
                                                          factory_collector=self.factory_collector)
-            except condorExe.ExeError, e:
+            except condorExe.ExeError as e:
                 error_arr.append(e)
 
             if len(error_arr) > 0:

@@ -268,7 +268,7 @@ def aggregateStatus():
                                   monitorAggregatorConfig.status_relname)
         try:
             group_data=xmlParse.xmlfile2dict(status_fname)
-        except xmlParse.CorruptXML, e:
+        except xmlParse.CorruptXML as e:
             logSupport.log.error("Corrupt XML in %s; deleting (it will be recreated)." % (status_fname))
             os.unlink(status_fname)
             continue
@@ -280,7 +280,7 @@ def aggregateStatus():
         for fos in ('factories','states'):
             try:
                 status['groups'][group][fos]=group_data[fos]
-            except KeyError, e:
+            except KeyError as e:
                 # first time after upgrade factories may not be defined
                 status['groups'][group][fos]={}
 

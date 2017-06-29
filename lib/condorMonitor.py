@@ -121,7 +121,7 @@ class LocalScheddCache(NoneScheddCache):
         self.my_ips = socket.gethostbyname_ex(socket.gethostname())[2]
         try:
             self.my_ips += socket.gethostbyname_ex('localhost')[2]
-        except socket.gaierror, e:
+        except socket.gaierror as e:
             pass  # localhost not defined, ignore
 
     def enable(self):
@@ -881,7 +881,7 @@ def xml2list(xml_data):
     if found_xml >= 0:
         try:
             p.Parse(string.join(xml_data[found_xml:]), 1)
-        except TypeError, e:
+        except TypeError as e:
             raise RuntimeError, "Failed to parse XML data, TypeError: %s" % e
         except:
             raise RuntimeError, "Failed to parse XML data, generic error"

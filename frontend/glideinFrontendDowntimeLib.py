@@ -58,7 +58,7 @@ def read(fname, raise_on_error=False):
                 lines = fd.readlines()
             finally:
                 fd.close()
-        except IOError, e:
+        except IOError as e:
             if raise_on_error:
                 raise
             else:
@@ -87,7 +87,7 @@ def read(fname, raise_on_error=False):
 
             try:
                 start_time = timeConversion.extractISO8601_Local( arr[0] )
-            except ValueError,e:
+            except ValueError as e:
                 if raise_on_error:
                     raise ValueError( "%s:%i: 1st element: %s"%( fname, lnr, e ) )
                 else:
@@ -98,7 +98,7 @@ def read(fname, raise_on_error=False):
                     end_time=None
                 else:
                     end_time = timeConversion.extractISO8601_Local(arr[1])
-            except ValueError,e:
+            except ValueError as e:
                 if raise_on_error:
                     raise ValueError( "%s:%i: 2nd element: %s"%(fname,lnr,e) )
                 else:
