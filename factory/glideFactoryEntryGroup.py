@@ -111,7 +111,7 @@ def check_parent(parent_pid, glideinDescript, my_entries):
         except:
             logSupport.log.warning("Failed to deadvertize monitoring for entry '%s'" % entry.name)
 
-    raise KeyboardInterrupt, "Parent died. Quiting."
+    raise KeyboardInterrupt("Parent died. Quiting.")
 
 
 ############################################################
@@ -665,7 +665,7 @@ def main(parent_pid, sleep_time, advertize_rate,
         if not (entry in string.split(glidein_entries, ',')):
             msg = "Entry '%s' not configured: %s" % (entry, glidein_entries)
             logSupport.log.warning(msg)
-            raise RuntimeError, msg
+            raise RuntimeError(msg)
 
         # Create entry objects
         my_entries[entry] = glideFactoryEntry.Entry(entry, startup_dir,

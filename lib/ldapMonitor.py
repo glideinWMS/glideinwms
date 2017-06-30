@@ -48,14 +48,14 @@ class LDAPQuery:
             bdii_data = ldap_obj.search_s(self.base, ldap.SCOPE_SUBTREE,
                                           filter_str)
         except ldap.FILTER_ERROR as e:
-            raise ValueError, "LDAP filter error for '%s': %s" % (filter_str, e)
+            raise ValueError("LDAP filter error for '%s': %s" % (filter_str, e))
         del ldap_obj
 
         out_data = {}
         for elarr in bdii_data:
             el1, el2 = elarr
             if el1 in out_data:
-                raise RuntimeError, "Dublicate element found: " + el1
+                raise RuntimeError("Dublicate element found: " + el1)
             out_data[el1] = el2
             
         del bdii_data
@@ -84,7 +84,7 @@ class BDIICEQuery(LDAPQuery):
     def filterStatus(self, usable=True):
         old_data = self.stored_data
         if old_data is None:
-            raise RuntimeError, "No data loaded"
+            raise RuntimeError("No data loaded")
         new_data = {}
         for k in old_data.keys():
             if (old_data[k]['GlueCEStateStatus'][0] == 'Production') == usable:

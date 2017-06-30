@@ -32,11 +32,11 @@ class ParamsDictFile(cWDictFile.DictFile):
 
     def add(self,key,val,allow_overwrite=0):
         if not (type(val) in (type(()), type([]))):
-            raise RuntimeError, "Values '%s' not a list or tuple"%val
+            raise RuntimeError("Values '%s' not a list or tuple"%val)
         if len(val)!=2:
-            raise RuntimeError, "Values '%s' not (Type,Val)"%str(val)
+            raise RuntimeError("Values '%s' not (Type,Val)"%str(val))
         if not (val[0] in ('EXPR', 'CONST')):
-            raise RuntimeError, "Invalid var type '%s', should be either EXPR or CONST val: %s"%(val[0], str(val))
+            raise RuntimeError("Invalid var type '%s', should be either EXPR or CONST val: %s"%(val[0], str(val)))
 
         return cWDictFile.DictFile.add(self, key, val, allow_overwrite)
 
@@ -64,7 +64,7 @@ class ParamsDictFile(cWDictFile.DictFile):
         if len(arr)==0:
             return # empty line
         if len(arr)!=3:
-            raise RuntimeError, "Not a valid var line (expected 3, found %i elements): '%s'"%(len(arr), line)
+            raise RuntimeError("Not a valid var line (expected 3, found %i elements): '%s'"%(len(arr), line))
 
         key=arr[0]
         return self.add(key, (arr[1], eval(arr[2])))

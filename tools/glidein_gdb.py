@@ -28,7 +28,7 @@ from glideinwms.tools.lib import glideinCmd
 
 def argv_gdb(argv):
     if len(argv)==0:
-        raise RuntimeError, "Missing PID"
+        raise RuntimeError("Missing PID")
     pid=argv[0]
     
     # parse args to get the command
@@ -37,7 +37,7 @@ def argv_gdb(argv):
         if argv[1]=="where":
             gdb_cmd="where"
         else:
-            raise RuntimeError, "Unexpected command %s found!\nOnly where supported."%argv[1]
+            raise RuntimeError("Unexpected command %s found!\nOnly where supported."%argv[1])
 
     # select the lines
     gdbcommand="gdb.command"

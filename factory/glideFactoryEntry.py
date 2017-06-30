@@ -1926,7 +1926,7 @@ def write_descript(entry_name, entryDescript, entryAttributes, entryParams, moni
 ############################################################
 
 def termsignal(signr, frame):
-    raise KeyboardInterrupt, "Received signal %s"%signr
+    raise KeyboardInterrupt("Received signal %s"%signr)
 
 if __name__ == '__main__':
     signal.signal(signal.SIGTERM, termsignal)

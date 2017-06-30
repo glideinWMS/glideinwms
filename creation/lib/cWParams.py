@@ -64,7 +64,7 @@ class SubParams:
         for k in self.data.keys():
             if k not in base:
                 # element not in base, report
-                raise RuntimeError, "Unknown parameter %s.%s"%(path_text, k)
+                raise RuntimeError("Unknown parameter %s.%s"%(path_text, k))
             else:
                 # verify subelements, if any
                 defel=base[k]
@@ -88,7 +88,7 @@ class SubParams:
 
                         mylist=self[k]
                         if not isinstance(mylist, list):
-                            raise RuntimeError, "Parameter %s.%s not a list: %s %s"%(path_text, k, type(mylist), mylist)
+                            raise RuntimeError("Parameter %s.%s not a list: %s %s"%(path_text, k, type(mylist), mylist))
                         for data_el in mylist:
                             data_el.validate(subdef, "%s.*.%s"%(path_text, k))
                     else:
@@ -172,10 +172,10 @@ class Params:
 
         try:
             if len(argv)<2:
-                raise RuntimeError, "Missing config file"
+                raise RuntimeError("Missing config file")
 
             if argv[1]=="-help":
-                raise RuntimeError, "\nA config file will contain:\n%s\n\nThe config file will be in XML format."%self.get_description("  ")
+                raise RuntimeError("\nA config file will contain:\n%s\n\nThe config file will be in XML format."%self.get_description("  "))
                 
             self.cfg_name=os.path.abspath(argv[1])
             self.load_file(self.cfg_name)
@@ -190,7 +190,7 @@ class Params:
             # create derived values
             self.derive()
         except RuntimeError as e:
-            raise RuntimeError, "Unexpected error occurred loading the configuration file.\n\n%s" % e
+            raise RuntimeError("Unexpected error occurred loading the configuration file.\n\n%s" % e)
         pass
 
     def derive(self):
@@ -228,9 +228,9 @@ class Params:
         try:
             self.data=xmlParse.xmlfile2dict(fname, use_ord_dict=True)
         except xml.parsers.expat.ExpatError as e:
-            raise RuntimeError, "XML error parsing config file: %s"%e
+            raise RuntimeError("XML error parsing config file: %s"%e)
         except IOError as e:
-            raise RuntimeError, "Config file error: %s"%e
+            raise RuntimeError("Config file error: %s"%e)
         self.subparams=self.get_subparams_class()(self.data)
         return
 
@@ -306,7 +306,7 @@ class commentedOrderedDict(xmlParse.OrderedDict):
 # return attribute value in the proper python format
 def extract_attr_val(attr_obj):
     if (not attr_obj.type in ("string", "int", "expr")):
-        raise RuntimeError, "Wrong attribute type '%s', must be either 'int' or 'string'"%attr_obj.type
+        raise RuntimeError("Wrong attribute type '%s', must be either 'int' or 'string'"%attr_obj.type)
 
     if attr_obj.type in ("string", "expr"):
         return str(attr_obj.value)

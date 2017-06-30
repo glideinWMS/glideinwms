@@ -112,9 +112,9 @@ def update_credential_file(username, client_id, credential_data, request_clientn
         try:
             condorPrivsep.execute(username, glideFactoryLib.factoryConfig.submit_dir, os.path.join(glideFactoryLib.factoryConfig.submit_dir, 'update_proxy.py'), ['update_proxy.py'], update_credential_env)
         except condorPrivsep.ExeError as e:
-            raise RuntimeError, "Failed to update credential %s in %s (user %s): %s" % (client_id, proxy_dir, username, e)
+            raise RuntimeError("Failed to update credential %s in %s (user %s): %s" % (client_id, proxy_dir, username, e))
         except:
-            raise RuntimeError, "Failed to update credential %s in %s (user %s): Unknown privsep error" % (client_id, proxy_dir, username)
+            raise RuntimeError("Failed to update credential %s in %s (user %s): Unknown privsep error" % (client_id, proxy_dir, username))
     else:
         msg = "no privsep, updating directly"
         logSupport.log.debug(msg)

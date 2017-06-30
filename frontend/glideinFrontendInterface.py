@@ -647,7 +647,7 @@ class AdvertizeParams:
         if remove_excess_str is None:
             remove_excess_str = "NO"
         elif not (remove_excess_str in ("NO", "WAIT", "IDLE", "ALL", "UNREG")):
-            raise RuntimeError, 'Invalid remove_excess_str(%s), valid values are "NO","WAIT","IDLE","ALL","UNREG"' % remove_excess_str
+            raise RuntimeError('Invalid remove_excess_str(%s), valid values are "NO","WAIT","IDLE","ALL","UNREG"' % remove_excess_str)
         self.remove_excess_str = remove_excess_str
         self.glidein_params = glidein_params
         self.glidein_monitors = glidein_monitors
@@ -1364,7 +1364,7 @@ class ResourceClassad(classadSupport.Classad):
             self.adParams['GlideClientMonitorGlideinsRequestIdle'] = monitorInfo[15]
             self.adParams['GlideClientMonitorGlideinsRequestMaxRun'] = monitorInfo[16]
         else:
-            raise RuntimeError, 'Glide client monitoring structure changed. Resource ad may have incorrect GlideClientMonitor values'
+            raise RuntimeError('Glide client monitoring structure changed. Resource ad may have incorrect GlideClientMonitor values')
 
 
     def setEntryInfo(self, info):

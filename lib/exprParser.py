@@ -69,7 +69,7 @@ def unparse(obj,raise_on_unknown=False):
             return "(%s) %s (%s)"%(unparse(obj.expr, raise_on_unknown), op[0], unparse(op[1], raise_on_unknown))
         else:
             if raise_on_unknown:
-                raise ValueError, "len(Compare.ops)!=1"
+                raise ValueError("len(Compare.ops)!=1")
             else:
                 return "<unknown op>"
     elif isinstance(obj, Add):
@@ -105,9 +105,9 @@ def unparse(obj,raise_on_unknown=False):
         else:
             if raise_on_unknown:
                 if obj.star_args is not None:
-                    raise ValueError, "CallFunc.star_args is not None"
+                    raise ValueError("CallFunc.star_args is not None")
                 else:
-                    raise ValueError, "CallFunc.dstar_args is not None"
+                    raise ValueError("CallFunc.dstar_args is not None")
             else:
                 return "%s(%s,<unknown args>)"%(unparse(obj.node, raise_on_unknown), string.join(args, ','))
     elif isinstance(obj, Getattr):
@@ -118,9 +118,9 @@ def unparse(obj,raise_on_unknown=False):
         else:
             if raise_on_unknown:
                 if obj.flags!='OP_APPLY':
-                    raise ValueError, "Subscript.flags!='OP_APPLY'"
+                    raise ValueError("Subscript.flags!='OP_APPLY'")
                 else:
-                    raise ValueError, "len(Subscript.subs)!=1"
+                    raise ValueError("len(Subscript.subs)!=1")
             else:
                 return "<unknown subsc>"
     elif isinstance(obj, Slice):
@@ -134,7 +134,7 @@ def unparse(obj,raise_on_unknown=False):
             return "%s[%s:%s]"%(unparse(obj.expr, raise_on_unknown), l, u)
         else:
             if raise_on_unknown:
-                raise ValueError, "Slice.flags!='OP_APPLY'"
+                raise ValueError("Slice.flags!='OP_APPLY'")
             else:
                 return "<unknown slice>"
     elif isinstance(obj, Lambda):
@@ -153,11 +153,11 @@ def unparse(obj,raise_on_unknown=False):
             return "lambda %s:%s"%(string.join(astrs, ","), unparse(obj.code, raise_on_unknown))
         else:
             if raise_on_unknown:
-                raise ValueError, "Lambda.flags!=0"
+                raise ValueError("Lambda.flags!=0")
             else:
                 return "<unknown lambda>"
     else:
         if raise_on_unknown:
-            raise TypeError, "Unsupported instance type: %s"%repr(obj)
+            raise TypeError("Unsupported instance type: %s"%repr(obj))
         else:
             return "<unknown>"

@@ -50,7 +50,7 @@ class PidSupport:
                  pid = None,            # if none, will default to os.getpid()
                  started_time = None):  # if none, use time.time()
         if self.fd is not None:
-            raise RuntimeError, "Cannot register two pids in the same object!"
+            raise RuntimeError("Cannot register two pids in the same object!")
 
         if pid is None:
             pid = os.getpid()
@@ -72,7 +72,7 @@ class PidSupport:
             self.lock_in_place = True
         except IOError:
             fd.close()
-            raise AlreadyRunning, "Another process already running. Unable to acquire lock %s" % self.pid_fname
+            raise AlreadyRunning("Another process already running. Unable to acquire lock %s" % self.pid_fname)
         fd.seek(0)
         fd.truncate()
         fd.write(self.format_pid_file_content())
@@ -144,16 +144,16 @@ class PidSupport:
     def parse_pid_file_content(self, lines):
         self.mypid = None
         if len(lines) < 2:
-            raise RuntimeError, "Corrupted lock file: too short"
+            raise RuntimeError("Corrupted lock file: too short")
 
         pidarr = lines[0].split()
         if (len(pidarr) !=2) or (pidarr[0] != 'PID:'):
-            raise RuntimeError, "Corrupted lock file: no PID"
+            raise RuntimeError("Corrupted lock file: no PID")
 
         try:
             pid = long(pidarr[1])
         except:
-            raise RuntimeError, "Corrupted lock file: invalid PID"
+            raise RuntimeError("Corrupted lock file: invalid PID")
         
         self.mypid = pid
         return
@@ -174,7 +174,7 @@ class PidWParentSupport(PidSupport):
                  pid = None,            # if none, will default to os.getpid()
                  started_time = None):  # if none, use time.time()
         if self.fd is not None:
-            raise RuntimeError, "Cannot register two pids in the same object!"
+            raise RuntimeError("Cannot register two pids in the same object!")
 
         self.parent_pid = parent_pid
         PidSupport.register(self, pid, started_time)
@@ -196,32 +196,32 @@ class PidWParentSupport(PidSupport):
         self.parent_pid = None
         
         if len(lines) < 3:
-            raise RuntimeError, "Corrupted lock file: too short"
+            raise RuntimeError("Corrupted lock file: too short")
 
         pidarr = lines[0].split()
         if (len(pidarr) != 2) or (pidarr[0] != 'PID:'):
-            raise RuntimeError, "Corrupted lock file: no PID"
+            raise RuntimeError("Corrupted lock file: no PID")
 
         try:
             pid = long(pidarr[1])
         except:
-            raise RuntimeError, "Corrupted lock file: invalid PID"
+            raise RuntimeError("Corrupted lock file: invalid PID")
         
         pidarr = lines[1].split(':')
         if (len(pidarr) != 2) or (pidarr[0] != 'Parent PID'):
-            raise RuntimeError, "Corrupted lock file: no Parent PID"
+            raise RuntimeError("Corrupted lock file: no Parent PID")
 
         try:
             parent_pid = long(pidarr[1])
         except:
-            raise RuntimeError, "Corrupted lock file: invalid Parent PID"
+            raise RuntimeError("Corrupted lock file: invalid Parent PID")
         
         self.mypid = pid
         self.parent_pid = parent_pid
         return
 
 def termsignal(signr, frame):
-    raise KeyboardInterrupt, "Received signal %s"%signr
+    raise KeyboardInterrupt("Received signal %s"%signr)
 
 def register_sighandler():
     signal.signal(signal.SIGTERM, termsignal)

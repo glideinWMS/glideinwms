@@ -215,7 +215,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # Only execute scripts once
         duplicate_scripts = set(file_list_scripts).intersection(after_file_list_scripts)
         if duplicate_scripts:
-            raise RuntimeError, "Duplicates found in the list of files to execute '%s'" % ','.join(duplicate_scripts)
+            raise RuntimeError("Duplicates found in the list of files to execute '%s'" % ','.join(duplicate_scripts))
 
         # Load more system scripts
         for script_name in file_list_scripts:
@@ -313,8 +313,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             for file_name in files:
                 if file_name == name:
                     return root
-        raise RuntimeError, "Unable to find %(file)s in %(dir)s path" % \
-                           { "file": name,  "dir": search_path, } 
+        raise RuntimeError("Unable to find %(file)s in %(dir)s path" % \
+                           { "file": name,  "dir": search_path, }) 
 
     # reuse as much of the other as possible
     def reuse(self, other):             # other must be of the same class
@@ -353,7 +353,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 key_obj.new(int(sec_el[u'key_length']))
                 key_obj.save(rsa_key_fname)            
         else:
-            raise RuntimeError, "Invalid value for security.pub_key(%s), must be either None or RSA"%sec_el[u'pub_key']
+            raise RuntimeError("Invalid value for security.pub_key(%s), must be either None or RSA"%sec_el[u'pub_key'])
 
     def save_monitor(self):
         for fobj in self.monitor_jslibs:
@@ -392,7 +392,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 for line in monitor_config_line:
                     monitor_config_fd.write(line + "\n")
             except IOError as e:
-                raise RuntimeError, "Error writing into file %s"%monitor_config_file
+                raise RuntimeError("Error writing into file %s"%monitor_config_file)
         finally:
             monitor_config_fd.close()
     
@@ -718,7 +718,7 @@ def add_attr_unparsed(attr, dicts, description):
     try:
         add_attr_unparsed_real(attr, dicts)
     except RuntimeError as e:
-        raise RuntimeError, "Error parsing attr %s[%s]: %s"%(description, attr[u'name'], str(e))
+        raise RuntimeError("Error parsing attr %s[%s]: %s"%(description, attr[u'name'], str(e)))
 
 def add_attr_unparsed_real(attr, dicts):
     attr_name = attr[u'name']
@@ -753,13 +753,13 @@ def add_attr_unparsed_real(attr, dicts):
                 if (((attr[u'type']=="int") and (attr_var_type!='I')) or
                     ((attr[u'type']=="expr") and (attr_var_type=='I')) or
                     ((attr[u'type']=="string") and (attr_var_type=='I'))):
-                    raise RuntimeError, "Types not compatible (%s,%s)"%(attr[u'type'], attr_var_type)
+                    raise RuntimeError("Types not compatible (%s,%s)"%(attr[u'type'], attr_var_type))
                 attr_var_export=attr_var_el[4]
                 if do_glidein_publish and (attr_var_export=='N'):
-                    raise RuntimeError, "Cannot force glidein publishing"
+                    raise RuntimeError("Cannot force glidein publishing")
                 attr_var_job_publish=attr_var_el[5]
                 if do_job_publish and (attr_var_job_publish=='-'):
-                    raise RuntimeError, "Cannot force job publishing"
+                    raise RuntimeError("Cannot force job publishing")
             else:
                 dicts['vars'].add_extended(attr_name, attr[u'type'], None, None, False, do_glidein_publish, do_job_publish)
 
@@ -972,7 +972,7 @@ def copy_file(infile, outfile):
     try:
         shutil.copy2(infile, outfile)
     except IOError as e:
-        raise RuntimeError, "Error copying %s in %s: %s"%(infile, outfile, e)
+        raise RuntimeError("Error copying %s in %s: %s"%(infile, outfile, e))
  
 
 ###############################################
@@ -1051,7 +1051,7 @@ def validate_condor_tarball_attrs(conf):
                 match_found = True
 
         if match_found == False:
-            raise RuntimeError, "Condor (version=%s, os=%s, arch=%s) for entry %s could not be resolved from <glidein><condor_tarballs>...</condor_tarballs></glidein> configuration." % (my_version, my_os, my_arch, entry[u'name'])
+            raise RuntimeError("Condor (version=%s, os=%s, arch=%s) for entry %s could not be resolved from <glidein><condor_tarballs>...</condor_tarballs></glidein> configuration." % (my_version, my_os, my_arch, entry[u'name']))
 
 
 
@@ -1144,7 +1144,7 @@ def calc_primary_monitoring_collectors(collectors):
             cWDictFile.validate_node(el[u'node'])
             # we only expect one per group
             if el[u'group'] in collector_nodes:
-                raise RuntimeError, "Duplicate primary monitoring collector found for group %s"%el[u'group']
+                raise RuntimeError("Duplicate primary monitoring collector found for group %s"%el[u'group'])
             collector_nodes[el[u'group']]=el[u'node']
     
     if len(collector_nodes)==0:

@@ -39,7 +39,7 @@ class DictFile:
         self.fname_idx=fname_idx
 
         if sort_keys and order_matters:
-            raise RuntimeError, "Cannot preserve the order and sort the keys"
+            raise RuntimeError("Cannot preserve the order and sort the keys")
         self.sort_keys=sort_keys
         self.order_matters=order_matters
 
@@ -99,7 +99,7 @@ class DictFile:
     def remove(self,key,fail_if_missing=False):
         if not (key in self.keys):
             if not fail_if_missing:
-                raise RuntimeError, "Key '%s' does not exist"%key
+                raise RuntimeError("Key '%s' does not exist"%key)
             else:
                 return # nothing to do
 
@@ -127,7 +127,7 @@ class DictFile:
         try:
             fd=open(filepath, "w")
         except IOError as e:
-            raise RuntimeError, "Error creating %s: %s"%(filepath, e)
+            raise RuntimeError("Error creating %s: %s"%(filepath, e))
         try:
             self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         finally:
@@ -426,7 +426,7 @@ class DescriptionDictFile(DictFileTwoKeys):
         if len(arr)==0:
             return # empty line
         if len(arr)!=2:
-            raise RuntimeError, "Not a valid description line: '%s'"%line
+            raise RuntimeError("Not a valid description line: '%s'"%line)
 
         return self.add(arr[1], arr[0])
 
@@ -449,12 +449,12 @@ class GridMapDict(DictFileTwoKeys):
             return # empty key
 
         if line[0:1]!='"':
-            raise RuntimeError, 'Not a valid gridmap line; not starting with ": %s'%line
+            raise RuntimeError('Not a valid gridmap line; not starting with ": %s'%line)
 
         user=arr[-1]
 
         if line[-len(user)-2:-len(user)-1]!='"':
-            raise RuntimeError, 'Not a valid gridmap line; DN not ending with ": %s'%line
+            raise RuntimeError('Not a valid gridmap line; DN not ending with ": %s'%line)
         
         dn=line[1:-len(user)-2]
         return self.add(dn, user)
@@ -480,7 +480,7 @@ class SHA1DictFile(DictFile):
         if len(arr)==0:
             return # empty line
         if len(arr)!=2:
-            raise RuntimeError, "Not a valid SHA1 line: '%s'"%line
+            raise RuntimeError("Not a valid SHA1 line: '%s'"%line)
 
         return self.add(arr[1], arr[0])
 
@@ -490,9 +490,9 @@ class SHA1DictFile(DictFile):
 class SummarySHA1DictFile(DictFile):
     def add(self,key,val,allow_overwrite=False):
         if not (type(val) in (type(()), type([]))):
-            raise RuntimeError, "Values '%s' not a list or tuple"%val
+            raise RuntimeError("Values '%s' not a list or tuple"%val)
         if len(val)!=2:
-            raise RuntimeError, "Values '%s' not (sha1,fname)"%val
+            raise RuntimeError("Values '%s' not (sha1,fname)"%val)
         return DictFile.add(self, key, val, allow_overwrite)
 
     def add_from_file(self,filepath,
@@ -516,7 +516,7 @@ class SummarySHA1DictFile(DictFile):
         if len(arr)==0:
             return # empty line
         if len(arr)!=3:
-            raise RuntimeError, "Not a valid summary signature line (expected 4, found %i elements): '%s'"%(len(arr), line)
+            raise RuntimeError("Not a valid summary signature line (expected 4, found %i elements): '%s'"%(len(arr), line))
 
         key=arr[2]
         return self.add(key, (arr[0], arr[1]))
@@ -860,7 +860,7 @@ class ReprDictFileInterface:
     def interface_fake_init(self):
         self.vals={}
         self.add=lambda x, y:True
-        raise NotImplementedError, "This function must never be called"
+        raise NotImplementedError("This function must never be called")
 
 #   this one actually has the full semantics
 class ReprDictFile(ReprDictFileInterface, DictFile):
@@ -914,14 +914,14 @@ class VarsDictFile(DictFile):
 
     def add(self,key,val,allow_overwrite=0):
         if not (type(val) in (type(()), type([]))):
-            raise RuntimeError, "Values '%s' not a list or tuple"%val
+            raise RuntimeError("Values '%s' not a list or tuple"%val)
         if len(val)!=6:
-            raise RuntimeError, "Values '%s' not (Type,Default,CondorName,Required,Export,UserName)"%str(val)
+            raise RuntimeError("Values '%s' not (Type,Default,CondorName,Required,Export,UserName)"%str(val))
         if not (val[0] in ('C', 'S', 'I')):
-            raise RuntimeError, "Invalid var type '%s', should be either C, S or I in val: %s"%(val[1], str(val))
+            raise RuntimeError("Invalid var type '%s', should be either C, S or I in val: %s"%(val[1], str(val)))
         for i, t in ((3, "Required"), (4, "Export")):
             if not (val[i] in ('Y', 'N')):
-                raise RuntimeError, "Invalid var %s '%s', should be either Y or N in val: %s"%(t, val[i], str(val))
+                raise RuntimeError("Invalid var %s '%s', should be either Y or N in val: %s"%(t, val[i], str(val)))
 
         return DictFile.add(self, key, val, allow_overwrite)
 
@@ -977,7 +977,7 @@ class VarsDictFile(DictFile):
         if len(arr)==0:
             return # empty line
         if len(arr)!=7:
-            raise RuntimeError, "Not a valid var line (expected 7, found %i elements): '%s'"%(len(arr), line)
+            raise RuntimeError("Not a valid var line (expected 7, found %i elements): '%s'"%(len(arr), line))
 
         key=arr[0]
         return self.add(key, arr[1:])
@@ -989,7 +989,7 @@ class VarsDictFile(DictFile):
 class SimpleFile(DictFile):
     def add(self,key,val,allow_overwrite=False):
         if key!='content':
-            raise RuntimeError, "Invalid key '%s'!='content'"%key
+            raise RuntimeError("Invalid key '%s'!='content'"%key)
         return DictFile.add(self, key, val, allow_overwrite)
 
     def file_header(self, want_comments):
@@ -999,7 +999,7 @@ class SimpleFile(DictFile):
         if key=='content':
             return self.vals[key]
         else:
-            raise RuntimeError, "Invalid key '%s'!='content'"%key
+            raise RuntimeError("Invalid key '%s'!='content'"%key)
 
     def load_from_fd(self, fd,
                      erase_first=True,        # if True, delete old content first
@@ -1020,7 +1020,7 @@ class SimpleFile(DictFile):
         return
 
     def parse_val(self, line):
-        raise RuntimeError, "Not defined in SimpleFile"
+        raise RuntimeError("Not defined in SimpleFile")
 
 
 # This class holds the content of the whole file in the single val
@@ -1047,7 +1047,7 @@ class ExeFile(SimpleFile):
         try:
             fd=open(filepath, "w")
         except IOError as e:
-            raise RuntimeError, "Error creating %s: %s"%(filepath, e)
+            raise RuntimeError("Error creating %s: %s"%(filepath, e))
         try:
             self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         finally:
@@ -1062,10 +1062,10 @@ class ExeFile(SimpleFile):
 class dirSupport:
     # returns a bool: True if the dir was created, false else
     def create_dir(self,fail_if_exists=True):
-        raise RuntimeError, "Undefined"
+        raise RuntimeError("Undefined")
 
     def delete_dir(self):
-        raise RuntimeError, "Undefined"
+        raise RuntimeError("Undefined")
 
 
 class simpleDirSupport(dirSupport):
@@ -1076,14 +1076,14 @@ class simpleDirSupport(dirSupport):
     def create_dir(self,fail_if_exists=True):
         if os.path.isdir(self.dir):
             if fail_if_exists:
-                raise RuntimeError, "Cannot create %s dir %s, already exists."%(self.dir_name, self.dir)
+                raise RuntimeError("Cannot create %s dir %s, already exists."%(self.dir_name, self.dir))
             else:
                 return False # already exists, nothing to do
 
         try:
             os.mkdir(self.dir)
         except OSError as e:
-            raise RuntimeError, "Failed to create %s dir: %s"%(self.dir_name, e)
+            raise RuntimeError("Failed to create %s dir: %s"%(self.dir_name, e))
         return True
 
     def delete_dir(self):
@@ -1097,14 +1097,14 @@ class chmodDirSupport(simpleDirSupport):
     def create_dir(self,fail_if_exists=True):
         if os.path.isdir(self.dir):
             if fail_if_exists:
-                raise RuntimeError, "Cannot create %s dir %s, already exists."%(self.dir_name, self.dir)
+                raise RuntimeError("Cannot create %s dir %s, already exists."%(self.dir_name, self.dir))
             else:
                 return False # already exists, nothing to do
 
         try:
             os.mkdir(self.dir, self.chmod)
         except OSError as e:
-            raise RuntimeError, "Failed to create %s dir: %s"%(self.dir_name, e)
+            raise RuntimeError("Failed to create %s dir: %s"%(self.dir_name, e))
         return True
 
 class symlinkSupport(dirSupport):
@@ -1116,14 +1116,14 @@ class symlinkSupport(dirSupport):
     def create_dir(self,fail_if_exists=True):
         if os.path.islink(self.symlink):
             if fail_if_exists:
-                raise RuntimeError, "Cannot create %s symlink %s, already exists."%(self.dir_name, self.symlink)
+                raise RuntimeError("Cannot create %s symlink %s, already exists."%(self.dir_name, self.symlink))
             else:
                 return False # already exists, nothing to do
 
         try:
             os.symlink(self.target_dir, self.symlink)
         except OSError as e:
-            raise RuntimeError, "Failed to create %s symlink: %s"%(self.dir_name, e)
+            raise RuntimeError("Failed to create %s symlink: %s"%(self.dir_name, e))
         return True
 
     def delete_dir(self):
@@ -1303,15 +1303,15 @@ class fileMainDicts(fileCommonDicts, dirsSupport):
         self.dicts=self.get_main_dicts()
 
     def populate(self, params=None):
-        raise NotImplementedError, "populate() not implemented in child!"
+        raise NotImplementedError("populate() not implemented in child!")
 
     # child must overwrite this
     def load(self):
-        raise RuntimeError, "Undefined"
+        raise RuntimeError("Undefined")
 
     # child must overwrite this
     def save(self,set_readonly=True):
-        raise RuntimeError, "Undefined"
+        raise RuntimeError("Undefined")
 
     def is_equal(self,other,             # other must be of the same class
                  compare_work_dir=False,compare_stage_dir=False,
@@ -1328,9 +1328,9 @@ class fileMainDicts(fileCommonDicts, dirsSupport):
     # reuse as much of the other as possible
     def reuse(self, other):             # other must be of the same class
         if self.work_dir!=other.work_dir:
-            raise RuntimeError, "Cannot change main %s base_dir! '%s'!='%s'"%(self.workdir_name, self.work_dir, other.work_dir)
+            raise RuntimeError("Cannot change main %s base_dir! '%s'!='%s'"%(self.workdir_name, self.work_dir, other.work_dir))
         if self.stage_dir!=other.stage_dir:
-            raise RuntimeError, "Cannot change main stage base_dir! '%s'!='%s'"%(self.stage_dir, other.stage_dir)
+            raise RuntimeError("Cannot change main stage base_dir! '%s'!='%s'"%(self.stage_dir, other.stage_dir))
         return # nothing else to be done in this
 
     ####################
@@ -1343,7 +1343,7 @@ class fileMainDicts(fileCommonDicts, dirsSupport):
 
     # Child must overwrite this
     def get_main_dicts(self):
-        raise RuntimeError, "Undefined"
+        raise RuntimeError("Undefined")
 
 ################################################
 #
@@ -1410,9 +1410,9 @@ class fileSubDicts(fileCommonDicts, dirsSupport):
     # reuse as much of the other as possible
     def reuse(self, other):             # other must be of the same class
         if self.work_dir!=other.work_dir:
-            raise RuntimeError, "Cannot change sub %s base_dir! '%s'!='%s'"%(self.workdir_name, self.work_dir, other.work_dir)
+            raise RuntimeError("Cannot change sub %s base_dir! '%s'!='%s'"%(self.workdir_name, self.work_dir, other.work_dir))
         if self.stage_dir!=other.stage_dir:
-            raise RuntimeError, "Cannot change sub stage base_dir! '%s'!='%s'"%(self.stage_dir, other.stage_dir)
+            raise RuntimeError("Cannot change sub stage base_dir! '%s'!='%s'"%(self.stage_dir, other.stage_dir))
 
         return # nothing more to be done here
 
@@ -1435,11 +1435,11 @@ class fileSubDicts(fileCommonDicts, dirsSupport):
 
     # Child must overwrite this
     def get_sub_dicts(self):
-        raise RuntimeError, "Undefined"
+        raise RuntimeError("Undefined")
 
     # Child must overwrite this
     def reuse_nocheck(self, other):
-        raise RuntimeError, "Undefined"
+        raise RuntimeError("Undefined")
 
 ################################################
 #
@@ -1543,9 +1543,9 @@ class fileDicts:
     # reuse as much of the other as possible
     def reuse(self, other):             # other must be of the same class
         if self.work_dir!=other.work_dir:
-            raise RuntimeError, "Cannot change %s base_dir! '%s'!='%s'"%(self.workdir_name, self.work_dir, other.work_dir)
+            raise RuntimeError("Cannot change %s base_dir! '%s'!='%s'"%(self.workdir_name, self.work_dir, other.work_dir))
         if self.stage_dir!=other.stage_dir:
-            raise RuntimeError, "Cannot change stage base_dir! '%s'!='%s'"%(self.stage_dir, other.stage_dir)
+            raise RuntimeError("Cannot change stage base_dir! '%s'!='%s'"%(self.stage_dir, other.stage_dir))
 
         # compare main dictionaires
         self.main_dicts.create_dirs(fail_if_exists=False)
@@ -1576,7 +1576,7 @@ class fileDicts:
 
     # this should be redefined by the child
     def get_sub_name_from_sub_stage_dir(self, sign_key):
-        raise RuntimeError, "Undefined"
+        raise RuntimeError("Undefined")
 
 
 class MonitorFileDicts:
@@ -1595,13 +1595,13 @@ class MonitorFileDicts:
         return
 
     def new_MainDicts(self):
-        raise NotImplementedError, "new_MainDicts() not implemented in child!"
+        raise NotImplementedError("new_MainDicts() not implemented in child!")
 
     def new_SubDicts(self, sub_name):
-        raise NotImplementedError, "new_SubDicts() not implemented in child!"
+        raise NotImplementedError("new_SubDicts() not implemented in child!")
 
     def get_sub_name_from_sub_stage_dir(self, sign_key):
-        raise NotImplementedError, "get_sub_name_from_sub_stage_dir() not implemented in child!"
+        raise NotImplementedError("get_sub_name_from_sub_stage_dir() not implemented in child!")
 
 
 

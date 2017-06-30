@@ -148,7 +148,7 @@ class GlideinKey:
             self.pub_key_id = md5(string.join((self.pub_key_type, self.pub_rsa_key.get()))).hexdigest()
             self.sym_class=symCrypto.AutoSymKey
         else:
-            raise RuntimeError, 'Invalid pub key type value(%s), only RSA supported'%self.pub_key_type
+            raise RuntimeError('Invalid pub key type value(%s), only RSA supported'%self.pub_key_type)
 
     def get_pub_key_type(self):
         return self.pub_key_type[0:]
@@ -157,7 +157,7 @@ class GlideinKey:
         if self.pub_key_type=='RSA':
             return self.pub_rsa_key.get()
         else:
-            raise RuntimeError, 'Invalid pub key type value(%s), only RSA supported'%self.pub_key_type
+            raise RuntimeError('Invalid pub key type value(%s), only RSA supported'%self.pub_key_type)
 
     def get_pub_key_id(self):
         return self.pub_key_id[0:]
@@ -169,7 +169,7 @@ class GlideinKey:
             sym_key_code=self.rsa_key.decrypt_hex(enc_sym_key)
             return self.sym_class(sym_key_code)
         else:
-            raise RuntimeError, 'Invalid pub key type value(%s), only RSA supported'%self.pub_key_type
+            raise RuntimeError('Invalid pub key type value(%s), only RSA supported'%self.pub_key_type)
 
 class GlideinDescript(ConfigFile):
     def __init__(self):

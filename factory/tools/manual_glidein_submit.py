@@ -29,9 +29,9 @@ Usage: manual_glidein_submit <ini_file>
 
 def check_args():
     if len(sys.argv) > 1:
-        raise ArgumentError, "Too many arguments!"
+        raise ArgumentError("Too many arguments!")
     if len(sys.argv) < 1:
-        raise ArgumentError, "You must specify an ini file!"
+        raise ArgumentError("You must specify an ini file!")
 
 def main():
     try:

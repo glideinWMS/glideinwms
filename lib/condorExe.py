@@ -49,7 +49,7 @@ def exe_cmd(condor_exe,args,stdin_data=None,env={}):
     global condor_bin_path
 
     if condor_bin_path is None:
-        raise UnconfigError, "condor_bin_path is undefined!"
+        raise UnconfigError("condor_bin_path is undefined!")
     condor_exe_path=os.path.join(condor_bin_path, condor_exe)
 
     cmd="%s %s" % (condor_exe_path, args)
@@ -60,7 +60,7 @@ def exe_cmd_sbin(condor_exe,args,stdin_data=None,env={}):
     global condor_sbin_path
 
     if condor_sbin_path is None:
-        raise UnconfigError, "condor_sbin_path is undefined!"
+        raise UnconfigError("condor_sbin_path is undefined!")
     condor_exe_path=os.path.join(condor_sbin_path, condor_exe)
 
     cmd="%s %s" % (condor_exe_path, args)
@@ -105,7 +105,7 @@ def iexe_cmd(cmd, stdin_data=None, child_env=None):
             logSupport.log.debug(generate_bash_script(cmd, os.environ))
         except:
             pass
-        raise ExeError, msg
+        raise ExeError(msg)
 
     return stdoutdata.splitlines()
 

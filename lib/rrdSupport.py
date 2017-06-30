@@ -431,7 +431,7 @@ class BaseRRDSupport:
         if CF in ('AVERAGE', 'MIN', 'MAX', 'LAST'):
             consolFunc = str(CF)
         else:
-            raise RuntimeError, "Invalid consolidation function %s"%CF
+            raise RuntimeError("Invalid consolidation function %s"%CF)
         args = [str(filename), consolFunc]
         if resolution is not None:
             args.append('-r')

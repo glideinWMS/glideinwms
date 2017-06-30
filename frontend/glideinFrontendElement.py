@@ -1814,7 +1814,7 @@ def check_parent(parent_pid):
         return # parent still exists, we are fine
 
     logSupport.log.warning("Parent died, exit.")
-    raise KeyboardInterrupt, "Parent died"
+    raise KeyboardInterrupt("Parent died")
 
 ############################################################
 def write_stats(stats):
@@ -1864,7 +1864,7 @@ def expand_DD(qstr, attr_dict):
             break # no more substitutions to do
         attr_name=m.group('attrname')
         if attr_name not in attr_dict:
-            raise KeyError, "Missing attribute %s"%attr_name
+            raise KeyError("Missing attribute %s"%attr_name)
         attr_val=attr_dict[attr_name]
         if isinstance(attr_val, int):
             attr_str=str(attr_val)
