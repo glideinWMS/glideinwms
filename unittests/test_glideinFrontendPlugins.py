@@ -10,10 +10,10 @@ import xmlrunner
 
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
-from .unittest_utils import runTest
-from .unittest_utils import create_temp_file
-from .unittest_utils import create_random_string
-from .unittest_utils import FakeLogger
+from glideinwms.unittests.unittest_utils import runTest
+from glideinwms.unittests.unittest_utils import create_temp_file
+from glideinwms.unittests.unittest_utils import create_random_string
+from glideinwms.unittests.unittest_utils import FakeLogger
 
 from glideinwms.lib import condorMonitor
 from glideinwms.lib import logSupport
