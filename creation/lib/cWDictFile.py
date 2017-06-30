@@ -51,6 +51,9 @@ class DictFile:
     def has_key(self,key):
         return key in self.keys
 
+    def __contains__(self, key):
+        return key in self.keys
+
     def __getitem__(self,key):
         return self.vals[key]
 
@@ -1239,6 +1242,9 @@ class fileCommonDicts:
         return self.dicts.keys()
 
     def has_key(self,key):
+        return key in self.dicts
+
+    def __contains__(self, key):
         return key in self.dicts
 
     def __getitem__(self,key):

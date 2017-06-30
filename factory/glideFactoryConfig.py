@@ -75,6 +75,9 @@ class ConfigFile:
 
     def has_key(self, key_name):
         return key_name in self.data
+
+    def __contains__(self, key_name):
+        return key_name in self.data
     
     def __str__(self):
         output = '\n'

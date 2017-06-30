@@ -46,6 +46,8 @@ class SubParams:
         return self.data.keys()
     def has_key(self,name):
         return name in self.data
+    def __contains__(self, name):
+        return name in self.data
     def __getitem__(self,name):
         return self.get_el(name)    
     def __repr__(self):
