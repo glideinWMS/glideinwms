@@ -609,7 +609,7 @@ def aggregateLogSummary():
 def sumDictInt(indict,outdict):
     for orgi in indict:
         i=str(orgi) # RRDs don't like unicode, so make sure we use strings
-        if isinstance(indict[i], type(1)):
+        if isinstance(indict[i], int):
             if not (i in outdict):
                 outdict[i]=0
             outdict[i]+=indict[i]

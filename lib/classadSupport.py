@@ -59,7 +59,7 @@ class Classad(object):
         :return:
         """
         for k, v in params_dict.items():
-            if isinstance(v, type(1)):
+            if isinstance(v, int):
                 # don't quote ints
                 self.adParams['%s%s' % (prefix,k)] = v
             else:
