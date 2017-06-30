@@ -573,7 +573,7 @@ class clientLogDirSupport(clientDirSupport):
 
 class clientProxiesDirSupport(chmodClientDirSupport):
     def __init__(self,user,proxies_dir,proxiesdir_name="clientproxies"):
-        chmodClientDirSupport.__init__(self,user,proxies_dir,0700,proxiesdir_name)
+        chmodClientDirSupport.__init__(self,user,proxies_dir,0o700,proxiesdir_name)
 
 ################################################
 #

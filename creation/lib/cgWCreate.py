@@ -303,7 +303,7 @@ def copy_exe(filename, work_dir, org_dir, overwrite=False):
         # Remove file if already exists
         os.remove(os.path.join(work_dir, filename))
     copy_file(os.path.join(org_dir, filename), work_dir)
-    os.chmod(os.path.join(work_dir, filename), 0555)
+    os.chmod(os.path.join(work_dir, filename), 0o555)
 
 def get_template(template_name, glideinWMS_dir):
     template_fd = open("%s/creation/templates/%s" % (glideinWMS_dir, template_name), "r")

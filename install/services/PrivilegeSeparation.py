@@ -171,14 +171,14 @@ those in your frontend_users attribute of the WMSCollector ini file:
     common.logit("... creating condor config file: %s" % (self.config_file))
     if not os.path.isdir(os.path.dirname(self.config_file)):
       os.mkdir(os.path.dirname(self.config_file))
-    common.write_file("w",0644,self.config_file,self.config_data())
+    common.write_file("w",0o644,self.config_file,self.config_data())
     #-- setuid on swtichboard ---
     common.logit("... changing permissions on %s to %s" % (self.switchboard_bin,"04755"))
-    os.chmod(self.switchboard_bin,04755)
+    os.chmod(self.switchboard_bin,0o4755)
     #-- create factory directories ---
     #-- factory dirs done in Factory install --
     # self.factory.create_factory_dirs(self.factory.username(),0755)
-    self.create_factory_client_dirs('root',0755)
+    self.create_factory_client_dirs('root',0o755)
     common.logit("--- End of updates for Privilege Separation.--- ")
 
   #--------------------------------

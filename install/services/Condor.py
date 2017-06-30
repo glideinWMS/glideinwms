@@ -317,7 +317,7 @@ If no specific entries are needed, an empty list should be returned.
   def __validate_condor_location__(self):
     common.logit("... validating condor_location: %s" % self.condor_location())
     if self.install_type() == "tarball":
-      common.make_directory(self.condor_location(),self.username(),0755)
+      common.make_directory(self.condor_location(),self.username(),0o755)
 
   #--------------------------------
   def validate_condor_installation(self):
@@ -579,11 +579,11 @@ You can only use the '--configure/--validate' options for this type.
     filename = self.condor_mapfile()
     common.logit("... creating Condor mapfile")
     common.logit("    %s" % filename)
-    common.make_directory(os.path.dirname(filename),pwd.getpwuid(os.getuid())[0],0755)
+    common.make_directory(os.path.dirname(filename),pwd.getpwuid(os.getuid())[0],0o755)
     mapfile_entries += """GSI (.*) anonymous
 FS (.*) \\1
 """ 
-    common.write_file("w",0644,filename,mapfile_entries,SILENT=True)
+    common.write_file("w",0o644,filename,mapfile_entries,SILENT=True)
     common.logit("\nCondor mapfile entries:")
     common.logit("%s" % mapfile_entries)
 
@@ -615,18 +615,18 @@ FS (.*) \\1
 LOCAL_CONFIG_FILE = 
 LOCAL_CONFIG_DIR  = %s
 """ % (self.local_config_dir())
-    common.write_file("a",0644,self.condor_config(),cfg_data,SILENT=False)
+    common.write_file("a",0o644,self.condor_config(),cfg_data,SILENT=False)
     stdout = glideinwms.lib.subprocessSupport.iexe_cmd("tail -5 %s" % self.condor_config())
     common.logit(stdout)
 
     common.logit("\nCreating GWMS condor_config files in:")
     common.logit("%s" % self.local_config_dir())
-    common.make_directory(self.local_config_dir(),self.username(),0755)
+    common.make_directory(self.local_config_dir(),self.username(),0o755)
     types =  sorted(self.condor_config_data.keys())
     for type in types:
       filename = "%s/%s.config" % (self.local_config_dir(),type)
       common.logit("    %s" % os.path.basename(filename))
-      common.write_file("w",0644,filename,self.condor_config_data[type],SILENT=True)
+      common.write_file("w",0o644,filename,self.condor_config_data[type],SILENT=True)
     self.__create_secondary_schedd_dirs__()
 
   #--------------------------------
@@ -641,7 +641,7 @@ LOCAL_CONFIG_DIR  = %s
     common.logit("Creating startup /etc/init.d script")
     common.logit("   %s" % self.initd_script())
     data = self.__initd_script__()
-    common.write_file("w",0755,self.initd_script(),data,SILENT=True)
+    common.write_file("w",0o755,self.initd_script(),data,SILENT=True)
 
   #----------------------------------
   def __initd_script__(self):

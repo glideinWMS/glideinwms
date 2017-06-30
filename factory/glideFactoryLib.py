@@ -410,7 +410,7 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
         # do it natively when you can
         if not os.path.isfile(fname):
             # new file, create
-            fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0600)
+            fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0o600)
             try:
                 os.write(fd, proxy_data)
             finally:
@@ -438,7 +438,7 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
             pass # just protect
 
         # create new file
-        fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0600)
+        fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0o600)
         try:
             os.write(fd, proxy_data)
         finally:

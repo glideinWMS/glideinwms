@@ -225,7 +225,7 @@ class VOFrontend(Condor):
          { "config_dir" : self.config_dir(),
            "group"      : self.group_name(),
            "time"       : common.time_suffix(),}
-    common.write_file("w",0644,filename,self.get_match_criteria())
+    common.write_file("w",0o644,filename,self.get_match_criteria())
 
   #--------------------------------
   def install(self):
@@ -479,7 +479,7 @@ option: %(option_dn)s
   #---------------------------------
   def validate_logs_dir(self):
     common.logit("... validating logs_dir: %s" % self.logs_dir())
-    common.make_directory(self.logs_dir(),self.username(),0755)
+    common.make_directory(self.logs_dir(),self.username(),0o755)
 
   #---------------------------------
   def get_config_data(self):
@@ -543,8 +543,8 @@ The following DNs are in your grid_mapfile:"""
   def create_config(self,config_xml):
     common.logit("\nCreating configuration files")
     common.logit("   %s" % self.config_file())
-    common.make_directory(self.config_dir(),self.username(),0755)
-    common.write_file("w",0644,self.config_file(),config_xml,SILENT=True)
+    common.make_directory(self.config_dir(),self.username(),0o755)
+    common.write_file("w",0o644,self.config_file(),config_xml,SILENT=True)
 
   #-----------------------
   def stop(self):
@@ -579,7 +579,7 @@ The following DNs are in your grid_mapfile:"""
 export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 """ % { "condor_location" : self.condor_location(),
         "install_location" : self.glideinwms_location(),}
-    common.write_file("w",0644,self.env_script(),data)
+    common.write_file("w",0o644,self.env_script(),data)
     common.logit("VO frontend env script created: %s" % self.env_script() )
 
 

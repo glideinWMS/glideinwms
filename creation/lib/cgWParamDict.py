@@ -344,7 +344,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
                 # touch the file with correct flags first
                 # I have no way to do it in  RSAKey class
-                fd=os.open(rsa_key_fname,os.O_CREAT,0600)
+                fd=os.open(rsa_key_fname,os.O_CREAT,0o600)
                 os.close(fd)
                 
                 key_obj=pubCrypto.RSAKey()

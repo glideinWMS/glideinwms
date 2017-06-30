@@ -225,7 +225,7 @@ def validate_email(email):
 def validate_install_location(dir):
   logit("... validating install_location: %s" % dir)
   install_user = pwd.getpwuid(os.getuid())[0]
-  make_directory(dir,install_user,0755)
+  make_directory(dir,install_user,0o755)
 
 #--------------------------------
 def ask_yn(question):
@@ -454,7 +454,7 @@ if __name__ == '__main__':
   try:
     print "Testing make_directory"
     owner = pwd.getpwuid(os.getuid())[0]
-    perm = 0755
+    perm = 0o755
     testdir = "/opt/testdir/testdir1/testdir2/testdir3"
     print "... %s" % testdir
     make_directory(testdir,owner,perm=True)
