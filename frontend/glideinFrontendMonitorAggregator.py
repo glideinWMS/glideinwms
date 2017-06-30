@@ -226,7 +226,7 @@ def write_one_rrd(name,updated,data,fact=0):
         for a in tp_el.keys():
             if a in attributes_tp:
                 a_el=int(tp_el[a])
-                if not isinstance(a_el, type({})): # ignore subdictionaries
+                if not isinstance(a_el, dict): # ignore subdictionaries
                     val_dict["%s%s"%(tp_str,a)]=a_el
                 
     glideinFrontendMonitoring.monitoringConfig.establish_dir("%s"%name)

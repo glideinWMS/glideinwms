@@ -78,14 +78,14 @@ class SubParams:
                         data_el=self[k]
                         for data_subkey in data_el.keys():
                             data_el[data_subkey].validate(subdef,"%s.%s.%s"%(path_text,k,data_subkey))
-                    elif isinstance(defvalue, type([])):
+                    elif isinstance(defvalue, list):
                         # list of elements
                         if isinstance(self.data[k],xmlParse.OrderedDict):
                             if len(self.data[k].keys())==0:
                                 self.data[k]=[]  #XML does not know if an empty list is a dictionary or not.. fix this
 
                         mylist=self[k]
-                        if not isinstance(mylist, type([])):
+                        if not isinstance(mylist, list):
                             raise RuntimeError, "Parameter %s.%s not a list: %s %s"%(path_text,k,type(mylist),mylist)
                         for data_el in mylist:
                             data_el.validate(subdef,"%s.*.%s"%(path_text,k))
@@ -117,7 +117,7 @@ class SubParams:
                         data_el=self[k]
                         for data_subkey in data_el.keys():
                             data_el[data_subkey].use_defaults(subdef)
-                elif isinstance(defvalue, type([])):
+                elif isinstance(defvalue, list):
                     # list of elements
                     if k not in self.data:
                         self.data[k]=[] # no elements yet, set and empty list
@@ -140,7 +140,7 @@ class SubParams:
         el=self.data[name]
         if isinstance(el,xmlParse.OrderedDict):
             return self.__class__(el)
-        elif isinstance(el, type([])):
+        elif isinstance(el, list):
             outlst=[]
             for k in el:
                 if isinstance(k,xmlParse.OrderedDict):
