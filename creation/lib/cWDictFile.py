@@ -1392,11 +1392,11 @@ class fileSubDicts(fileCommonDicts, dirsSupport):
 
     # child must overwrite this
     def load(self):
-        raise "Undefined"
+        raise ValueError("Undefined")
 
     # child must overwrite this
     def save(self,set_readonly=True):
-        raise "Undefined"
+        raise ValueError("Undefined")
 
     # child can overwrite this
     def save_final(self,set_readonly=True):
