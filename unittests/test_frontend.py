@@ -249,7 +249,7 @@ class FETestCaseCondorStatus(FETestCaseBase):
 
     def test_getFactoryEntryList(self):
         entries = glideinFrontendLib.getFactoryEntryList(self.status_dict)
-        expected = [('Site_Name%s@v3_0@factory1' % (x), 'frontend%s.local' % x) for x in xrange(1,5)]
+        expected = [('Site_Name%s@v3_0@factory1' % (x), 'frontend%s.local' % x) for x in xrange(1, 5)]
         expected.append(('Site_Name2@v3_0@factory1', 'frontend1.local'))
         self.assertItemsEqual(
             entries,
@@ -262,7 +262,7 @@ class FETestCaseCondorStatus(FETestCaseBase):
             m_exe_cmd.return_value = f.readlines()
             condorStatus = glideinFrontendLib.getCondorStatusSchedds(['coll1'])
             self.assertItemsEqual(condorStatus['coll1'].stored_data.keys(),
-                                  ['schedd%s.local' % x for x in xrange(1,4)])
+                                  ['schedd%s.local' % x for x in xrange(1, 4)])
 
 class FETestCaseMisc(FETestCaseBase):
     def test_uniqueSets(self):
@@ -292,7 +292,7 @@ class FETestCaseMisc(FETestCaseBase):
     def test_appendRealRunning(self):
         cq_run_dict = glideinFrontendLib.getRunningCondorQ(self.condorq_dict)
         glideinFrontendLib.appendRealRunning(cq_run_dict, self.status_dict)
-        expected = ['Site_Name%s@v3_0@factory1@submit.local' % (x) for x in [1,2,2,2,2]]
+        expected = ['Site_Name%s@v3_0@factory1@submit.local' % (x) for x in [1, 2, 2, 2, 2]]
         expected.append('UNKNOWN')
 
         self.assertItemsEqual(
@@ -340,7 +340,7 @@ class FETestCaseCondorQ(FETestCaseBase):
         m_getCondorQConstrained.assert_called_with(schedd_names, '(JobStatus=?=5)', None, None)
 
         constraint = '(JobStatus=?=1)||(JobStatus=?=2)'
-        format_list = list((('x509UserProxyFirstFQAN','s'),))
+        format_list = list((('x509UserProxyFirstFQAN', 's'),))
         glideinFrontendLib.getCondorQ(schedd_names, 'True', format_list)
         m_getCondorQConstrained.assert_called_with(
             schedd_names,
@@ -371,7 +371,7 @@ class FETestCaseCondorQ(FETestCaseBase):
         condor_ids = \
             glideinFrontendLib.getIdleCondorQ(self.condorq_dict)['sched1'].fetchStored().keys()
 
-        self.assertItemsEqual(condor_ids, [(12345, 0), (12345, 1), (12345,2), (12345, 6), (12345, 7), (12345, 8), (12345, 9)])
+        self.assertItemsEqual(condor_ids, [(12345, 0), (12345, 1), (12345, 2), (12345, 6), (12345, 7), (12345, 8), (12345, 9)])
 
     def test_getIdleVomsCondorQ(self):
         condor_ids = \

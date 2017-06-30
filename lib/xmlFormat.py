@@ -147,7 +147,7 @@ def class2head(inst, inst_name, params, dicts_params, lists_params, tree_params,
             elif attr in dicts_params.keys():
                 dict_attrs.append(attr)
             else:
-                raise RuntimeError,"No params for list attr %s (%s)" % (attr, debug_str)
+                raise RuntimeError, "No params for list attr %s (%s)" % (attr, debug_str)
         elif isinstance(el, dict):
             if attr in dicts_params.keys():
                 #print "%s is dict" % attr

@@ -36,36 +36,36 @@ INITD_STARTUP_FILE="frontend_startup"
 #
 ###################################################
 
-def get_group_work_dir(work_dir,group_name):
-    group_work_dir=os.path.join(work_dir,"group_"+group_name)
+def get_group_work_dir(work_dir, group_name):
+    group_work_dir=os.path.join(work_dir, "group_"+group_name)
     return group_work_dir
 
 def get_group_name_from_group_work_dir(group_work_dir):
-    group_name_arr=os.path.basename(group_work_dir).split('_',1)
+    group_name_arr=os.path.basename(group_work_dir).split('_', 1)
     if group_name_arr[0]!='group':
         raise ValueError('%s not a group_work_dir'%group_work_dir)
     return group_name_arr[1]
 
-def get_group_log_dir(log_dir,group_name):
-    group_log_dir=os.path.join(log_dir,"group_"+group_name)
+def get_group_log_dir(log_dir, group_name):
+    group_log_dir=os.path.join(log_dir, "group_"+group_name)
     return group_log_dir
 
-def get_group_stage_dir(stage_dir,group_name):
-    group_stage_dir=os.path.join(stage_dir,"group_"+group_name)
+def get_group_stage_dir(stage_dir, group_name):
+    group_stage_dir=os.path.join(stage_dir, "group_"+group_name)
     return group_stage_dir
 
 def get_group_name_from_group_stage_dir(group_stage_dir):
-    group_name_arr=os.path.basename(group_stage_dir).split('_',1)
+    group_name_arr=os.path.basename(group_stage_dir).split('_', 1)
     if group_name_arr[0]!='group':
         raise ValueError('%s not a group_stage_dir'%group_stage_dir)
     return group_name_arr[1]
 
-def get_group_monitor_dir(monitor_dir,group_name):
-    group_monitor_dir=os.path.join(monitor_dir,"group_"+group_name)
+def get_group_monitor_dir(monitor_dir, group_name):
+    group_monitor_dir=os.path.join(monitor_dir, "group_"+group_name)
     return group_monitor_dir
 
 def get_group_name_from_group_monitor_dir(group_monitor_dir):
-    group_name_arr=os.path.basename(group_monitor_dir).split('_',1)
+    group_name_arr=os.path.basename(group_monitor_dir).split('_', 1)
     if group_name_arr[0]!='group':
         raise ValueError('%s not a group_monitor_dir'%group_monitor_dir)
     return group_name_arr[1]

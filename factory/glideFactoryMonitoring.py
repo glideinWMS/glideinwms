@@ -59,12 +59,12 @@ class MonitoringConfig:
     def config_log(self, log_dir, max_days, min_days, max_mbs):
         self.log_dir = log_dir
         cleaner = cleanupSupport.PrivsepDirCleanupWSpace(
-                      None , log_dir, "(completed_jobs_.*\.log)",
+                      None, log_dir, "(completed_jobs_.*\.log)",
                       int(max_days * 24 * 3600), int(min_days * 24 * 3600),
                       long(max_mbs * (1024.0 * 1024.0)))
         cleanupSupport.cleaners.add_cleaner(cleaner)
 
-    def logCompleted(self,client_name,entered_dict):
+    def logCompleted(self, client_name, entered_dict):
         """
         This function takes all newly completed glideins and
         logs them in logs/entry_Name/completed_jobs_date.log in an
@@ -116,7 +116,7 @@ class MonitoringConfig:
         @param relative_fname: The relative path name to write out
         @param str: the string to write to the file
         """
-        fname=os.path.join(self.monitor_dir,relative_fname)
+        fname=os.path.join(self.monitor_dir, relative_fname)
         #print "Writing "+fname
         fd = open(fname + ".tmp", "w")
         try:
@@ -1096,9 +1096,9 @@ class condorLogSummary:
         :param collectorName: The collector name to update the job
         """
         jobinfo = {
-            'schedd_name' : scheddName,
-            'collector_name' : collectorName,
-            'joblist' : {},
+            'schedd_name': scheddName,
+            'collector_name': collectorName,
+            'joblist': {},
         }
         for _sec_name, sndata in self.stats_diff.iteritems():
             for _frname, frdata in sndata.iteritems():
@@ -1111,11 +1111,11 @@ class condorLogSummary:
                             jobinfo['joblist'][jobid] = {
                                 #activation_claims is a new key in 3.2.19. Using "get" For backward compatiobility,
                                 #but it can be removed in future versions
-                                'activation_claims' : jobstats.get('activations_claims', 'unknown'),
-                                'glidein_duration' : jobstats['glidein_duration'],
-                                'condor_duration' : jobstats['condor_duration'],
-                                'condor_started' : jobstats['condor_started'],
-                                'numjobs' : jobstats.get('stats', {}).get('Total', {}).get('jobsnr', 'unknown'),
+                                'activation_claims': jobstats.get('activations_claims', 'unknown'),
+                                'glidein_duration': jobstats['glidein_duration'],
+                                'condor_duration': jobstats['condor_duration'],
+                                'condor_started': jobstats['condor_started'],
+                                'numjobs': jobstats.get('stats', {}).get('Total', {}).get('jobsnr', 'unknown'),
                             }
 
         #cannot use monitorAggregatorConfig.jobsummary_relname, looks like a circular import
@@ -1398,7 +1398,7 @@ class Descript2XML:
 
 ##################################################
 def getAllJobTypes():
-        return ('validation','idle', 'badput', 'nosuccess')
+        return ('validation', 'idle', 'badput', 'nosuccess')
 
 def getLogCompletedDefaults():
         return {'Glideins':0, 'Lasted':0, 'FailedNr':0,

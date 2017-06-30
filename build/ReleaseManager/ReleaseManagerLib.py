@@ -13,8 +13,8 @@ import platform
 
 class ExeError(RuntimeError):
 
-    def __init__(self,str):
-        RuntimeError.__init__(self,str)
+    def __init__(self, str):
+        RuntimeError.__init__(self, str)
 
 
 class Release:
@@ -516,11 +516,11 @@ def execute_cmd(cmd, stdin_data=None):
             # have seen a lot of those when running very short processes
             errcode = 0
         else:
-            msg = "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s"%(cmd,tempOut,tempErr,e)
+            msg = "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s"%(cmd, tempOut, tempErr, e)
             print msg
             raise ExeError, msg
     if (errcode != 0):
-        msg = "Error running '%s'\nStdout:%s\nStderr:%s\nException Error: %s"%(cmd,tempOut,tempErr,errcode)
+        msg = "Error running '%s'\nStdout:%s\nStderr:%s\nException Error: %s"%(cmd, tempOut, tempErr, errcode)
         print msg
         raise ExeError, msg
     return tempOut

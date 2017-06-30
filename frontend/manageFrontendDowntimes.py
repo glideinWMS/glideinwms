@@ -2,7 +2,7 @@
 
 import os.path
 import os
-import time,string
+import time, string
 import sys
 import re
 
@@ -57,7 +57,7 @@ def strtxt2time( timeStr ):
 # or
 # unix_time
 def str2time(timeStr):
-    if len( timeStr.split(':',1) )  >  1:
+    if len( timeStr.split(':', 1) )  >  1:
         return strtxt2time(timeStr) # has a :, so it must be a text representation
     else:
         print timeStr
@@ -71,13 +71,13 @@ def delay2time( delayStr ):
     seconds=0
 
 # getting hours
-    harr=delayStr.split('h',1)
+    harr=delayStr.split('h', 1)
     if len(harr)==2:
         hours=long(harr[0])
         delayStr=harr[1]
 
 # getting minutes
-    marr=delayStr.split('m',1)
+    marr=delayStr.split('m', 1)
     if len(marr)==2:
         minutes=long(marr[0])
         delayStr=marr[1]

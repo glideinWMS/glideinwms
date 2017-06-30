@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import traceback
-import sys,os,os.path,string,time
-import stat,re
+import sys, os, os.path, string, time
+import stat, re
 import xml.sax.saxutils
 import optparse
 #-------------------------
@@ -69,11 +69,11 @@ usercollector_options = [
 ]
 
 valid_options = { 
-"VOFrontend"    : frontend_options,
-"UserCollector" : usercollector_options,
-"WMSCollector"  : wmscollector_options,
-"Factory"       : factory_options,
-"Submit"        : submit_options,
+"VOFrontend": frontend_options,
+"UserCollector": usercollector_options,
+"WMSCollector": wmscollector_options,
+"Factory": factory_options,
+"Submit": submit_options,
 }
 
 
@@ -86,7 +86,7 @@ class RPM(VOFrontend):
     self.ini_section = "VOFrontend"
     if optionsDict != None:
       valid_options = optionsDict 
-    VOFrontend.__init__(self,self.inifile,valid_options)
+    VOFrontend.__init__(self, self.inifile, valid_options)
     self.schedd_name_suffix = "jobs"
     self.daemon_list = "COLLECTOR, NEGOTIATOR, SCHEDD" 
 ##    #-- instances of other services ---
@@ -104,7 +104,7 @@ class RPM(VOFrontend):
   def get_condor(self):
     if self.condor == None:
       #self.condor = Condor.Condor(self.inifile,self.ini_section,valid_options["UserCollector"])
-      self.condor = Condor.Condor(self.inifile,"UserCollector",valid_options["UserCollector"])
+      self.condor = Condor.Condor(self.inifile, "UserCollector", valid_options["UserCollector"])
 
   #########################################################
   #--------------------------------
@@ -115,7 +115,7 @@ class RPM(VOFrontend):
     return "%s/frontend.xml" % (self.config_dir())
   #--------------------------------
   def frontend_name(self):
-    return "%s_OSG_gWMSFrontend" % (self.hostname().replace(".","-"))
+    return "%s_OSG_gWMSFrontend" % (self.hostname().replace(".", "-"))
   #--------------------------------
   def install(self):
      common.logerr("There is no '--install' for the OSG RPM Frontend")
@@ -175,7 +175,7 @@ class RPM(VOFrontend):
       cnt = cnt + 1
       comment  = "glidein_pilot_%d" % cnt
       
-      users.append([comment,dn,comment])
+      users.append([comment, dn, comment])
     return users
 
   #--------------------------------
@@ -186,15 +186,15 @@ class RPM(VOFrontend):
       cnt = cnt + 1
       comment  = "glidein_pilot_%d" % cnt
       
-      users.append([comment,dn,comment])
-    users.append(["WMSCollector",self.wms.x509_gsi_dn(),"wmscollector"])
+      users.append([comment, dn, comment])
+    users.append(["WMSCollector", self.wms.x509_gsi_dn(), "wmscollector"])
     return users
 
 #---------------------------
 def show_line():
     x = traceback.extract_tb(sys.exc_info()[2])
     z = x[len(x)-1]
-    return "%s line %s" % (z[2],z[1])
+    return "%s line %s" % (z[2], z[1])
 
 #---------------------------
 def validate_args(args):

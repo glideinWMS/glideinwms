@@ -22,7 +22,7 @@ import shutil
 
 from glideinwms.lib import logSupport
 from glideinwms.lib import timeConversion
-from glideinwms.lib import xmlParse,xmlFormat
+from glideinwms.lib import xmlParse, xmlFormat
 from glideinwms.lib import rrdSupport
 
 from glideinwms.frontend import glideinFrontendMonitoring
@@ -44,7 +44,7 @@ class MonitorAggregatorConfig:
         # name of the status files
         self.status_relname="frontend_status.xml"
 
-    def config_frontend(self,monitor_dir,groups):
+    def config_frontend(self, monitor_dir, groups):
         self.monitor_dir=monitor_dir
         self.groups=groups
         glideinFrontendMonitoring.monitoringConfig.monitor_dir=monitor_dir
@@ -65,13 +65,13 @@ monitorAggregatorConfig=MonitorAggregatorConfig()
 # when trying to read from a field with name longer than 20 chars.
 # Truncate the names for following to be in limits to avoid above issue.
 frontend_status_attributes = {
-    'Jobs':("Idle","OldIdle","Running","Total","Idle_3600"),
-    'Glideins':("Idle","Running","Total"),
-    'MatchedJobs':("Idle","EffIdle","OldIdle","Running","RunningHere"),
-    'MatchedGlideins':("Total","Idle","Running","Failed"),
+    'Jobs':("Idle", "OldIdle", "Running", "Total", "Idle_3600"),
+    'Glideins':("Idle", "Running", "Total"),
+    'MatchedJobs':("Idle", "EffIdle", "OldIdle", "Running", "RunningHere"),
+    'MatchedGlideins':("Total", "Idle", "Running", "Failed"),
     #'MatchedGlideins':("Total","Idle","Running","Failed","TCores","ICores","RCores"),
-    'MatchedCores':("Total","Idle","Running"),
-    'Requested':("Idle","MaxRun")
+    'MatchedCores':("Total", "Idle", "Running"),
+    'Requested':("Idle", "MaxRun")
 }
 
 frontend_total_type_strings = {
@@ -109,22 +109,22 @@ def verifyHelper(filename,dict, fix_rrd=False):
         print "WARNING: %s missing, will be created on restart" % (filename)
         return
     rrd_obj=rrdSupport.rrdSupport()
-    (missing,extra)=rrd_obj.verify_rrd(filename,dict)
+    (missing, extra)=rrd_obj.verify_rrd(filename, dict)
     for attr in extra:
-        print "ERROR: %s has extra attribute %s" % (filename,attr)
+        print "ERROR: %s has extra attribute %s" % (filename, attr)
         if fix_rrd:
             print "ERROR: fix_rrd cannot fix extra attributes"
     if not fix_rrd:
         for attr in missing:
-            print "ERROR: %s missing attribute %s" % (filename,attr)
+            print "ERROR: %s missing attribute %s" % (filename, attr)
         if len(missing) > 0:
             rrd_problems_found=True
     if fix_rrd and (len(missing) > 0):
-        (f,tempfilename)=tempfile.mkstemp()
-        (out,tempfilename2)=tempfile.mkstemp()
-        (restored,restoredfilename)=tempfile.mkstemp()
+        (f, tempfilename)=tempfile.mkstemp()
+        (out, tempfilename2)=tempfile.mkstemp()
+        (restored, restoredfilename)=tempfile.mkstemp()
         backup_str=str(int(time.time()))+".backup"
-        print "Fixing %s... (backed up to %s)" % (filename,filename+backup_str)
+        print "Fixing %s... (backed up to %s)" % (filename, filename+backup_str)
         os.close(out)
         os.close(restored)
         os.unlink(restoredfilename)
@@ -132,14 +132,14 @@ def verifyHelper(filename,dict, fix_rrd=False):
         dump_obj=rrdSupport.rrdtool_exe()
         outstr=dump_obj.dump(filename)
         for line in outstr:
-            os.write(f,"%s\n"%line)
+            os.write(f, "%s\n"%line)
         os.close(f)
-        rrdSupport.addDataStore(tempfilename,tempfilename2,missing)
+        rrdSupport.addDataStore(tempfilename, tempfilename2, missing)
         os.unlink(filename)
-        outstr=dump_obj.restore(tempfilename2,restoredfilename)
+        outstr=dump_obj.restore(tempfilename2, restoredfilename)
         os.unlink(tempfilename)
         os.unlink(tempfilename2)
-        shutil.move(restoredfilename,filename)
+        shutil.move(restoredfilename, filename)
     if len(extra) > 0:
         rrd_problems_found=True
 
@@ -152,7 +152,7 @@ def verifyRRD(fix_rrd=False):
     global rrd_problems_found
     global monitorAggregatorConfig
     dir=monitorAggregatorConfig.monitor_dir
-    total_dir=os.path.join(dir,"total")
+    total_dir=os.path.join(dir, "total")
 
     status_dict={}
     status_total_dict={}
@@ -161,33 +161,33 @@ def verifyRRD(fix_rrd=False):
             tp_str=frontend_total_type_strings[tp]
             attributes_tp=frontend_status_attributes[tp]
             for a in attributes_tp:
-                status_total_dict["%s%s"%(tp_str,a)]=None
+                status_total_dict["%s%s"%(tp_str, a)]=None
         if tp in frontend_job_type_strings.keys():
             tp_str=frontend_job_type_strings[tp]
             attributes_tp=frontend_status_attributes[tp]
             for a in attributes_tp:
-                status_dict["%s%s"%(tp_str,a)]=None
+                status_dict["%s%s"%(tp_str, a)]=None
 
     if not os.path.isdir(dir):
         print "WARNING: monitor/ directory does not exist, skipping rrd verification."
         return True
     for filename in os.listdir(dir):
         if (filename[:6]=="group_") or (filename=="total"):
-            current_dir=os.path.join(dir,filename)
+            current_dir=os.path.join(dir, filename)
             if filename=="total":
                 verifyHelper(os.path.join(current_dir,
-                    "Status_Attributes.rrd"),status_total_dict, fix_rrd)
+                    "Status_Attributes.rrd"), status_total_dict, fix_rrd)
             for dirname in os.listdir(current_dir):
-                current_subdir=os.path.join(current_dir,dirname)
+                current_subdir=os.path.join(current_dir, dirname)
                 if dirname[:6]=="state_":
                     verifyHelper(os.path.join(current_subdir,
-                        "Status_Attributes.rrd"),status_dict, fix_rrd)
+                        "Status_Attributes.rrd"), status_dict, fix_rrd)
                 if dirname[:8]=="factory_":
                     verifyHelper(os.path.join(current_subdir,
-                        "Status_Attributes.rrd"),status_dict, fix_rrd)
+                        "Status_Attributes.rrd"), status_dict, fix_rrd)
                 if dirname=="total":
                     verifyHelper(os.path.join(current_subdir,
-                        "Status_Attributes.rrd"),status_total_dict, fix_rrd)
+                        "Status_Attributes.rrd"), status_total_dict, fix_rrd)
     return not rrd_problems_found
 
 
@@ -209,7 +209,7 @@ def write_one_rrd(name,updated,data,fact=0):
             tp_str=type_strings[tp]
             attributes_tp=frontend_status_attributes[tp]
             for a in attributes_tp:
-                val_dict["%s%s"%(tp_str,a)]=None
+                val_dict["%s%s"%(tp_str, a)]=None
 
     for tp in data.keys():
         # type - status or requested
@@ -227,11 +227,11 @@ def write_one_rrd(name,updated,data,fact=0):
             if a in attributes_tp:
                 a_el=int(tp_el[a])
                 if not isinstance(a_el, dict): # ignore subdictionaries
-                    val_dict["%s%s"%(tp_str,a)]=a_el
+                    val_dict["%s%s"%(tp_str, a)]=a_el
                 
     glideinFrontendMonitoring.monitoringConfig.establish_dir("%s"%name)
     glideinFrontendMonitoring.monitoringConfig.write_rrd_multi("%s"%name,
-                                                               "GAUGE",updated,val_dict)
+                                                               "GAUGE", updated, val_dict)
 
 ##############################################################################
 # create an aggregate of status files, write it in an aggregate status file
@@ -248,23 +248,23 @@ def aggregateStatus():
         'Requested':'Req'
     }
     global_total = {
-        'Jobs':None,
-        'Glideins':None,
-        'MatchedJobs':None,
-        'Requested':None,
-        'MatchedGlideins':None,
-        'MatchedCores':None,
+        'Jobs': None,
+        'Glideins': None,
+        'MatchedJobs': None,
+        'Requested': None,
+        'MatchedGlideins': None,
+        'MatchedCores': None,
     }
     status={'groups':{},'total':global_total}
     global_fact_totals={}
 
-    for fos in ('factories','states'):
+    for fos in ('factories', 'states'):
         global_fact_totals[fos]={}
     
     nr_groups=0
     for group in monitorAggregatorConfig.groups:
         # load group status file
-        status_fname=os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir,'group_'+group),
+        status_fname=os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'group_'+group),
                                   monitorAggregatorConfig.status_relname)
         try:
             group_data=xmlParse.xmlfile2dict(status_fname)
@@ -277,7 +277,7 @@ def aggregateStatus():
 
         # update group
         status['groups'][group]={}
-        for fos in ('factories','states'):
+        for fos in ('factories', 'states'):
             try:
                 status['groups'][group][fos]=group_data[fos]
             except KeyError as e:
@@ -285,7 +285,7 @@ def aggregateStatus():
                 status['groups'][group][fos]={}
 
         this_group=status['groups'][group]
-        for fos in ('factories','states'):
+        for fos in ('factories', 'states'):
           for fact in this_group[fos].keys():
             this_fact=this_group[fos][fact]
             if not fact in global_fact_totals[fos].keys():
@@ -356,8 +356,8 @@ def aggregateStatus():
     updated=time.time()
     xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
              '<VOFrontendStats>\n'+
-             xmlFormat.time2xml(updated, "updated", indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
-             xmlFormat.dict2string(status["groups"],dict_name="groups",el_name="group",
+             xmlFormat.time2xml(updated, "updated", indent_tab=xmlFormat.DEFAULT_TAB, leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+             xmlFormat.dict2string(status["groups"], dict_name="groups", el_name="group",
                                    subtypes_params={"class":{"dicts_params":{"factories":{"el_name":"factory",
                                                                                           "subtypes_params":{"class":{"subclass_params":{"Requested":{"dicts_params":{"Parameters":{"el_name":"Parameter",
                                                                                                                                                                                     "subtypes_params":{"class":{}}}}}}}}},
@@ -366,35 +366,35 @@ def aggregateStatus():
                                                                                                                                                                                     "subtypes_params":{"class":{}}}}}}}}}
                                                                              }}},
                                    leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
-             xmlFormat.class2string(status["total"],inst_name="total",leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+             xmlFormat.class2string(status["total"], inst_name="total", leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
 
-             xmlFormat.dict2string(global_fact_totals['factories'],dict_name="factories",el_name="factory",
+             xmlFormat.dict2string(global_fact_totals['factories'], dict_name="factories", el_name="factory",
                                    subtypes_params={"class":{"subclass_params":{"Requested":{"dicts_params":{"Parameters":{"el_name":"Parameter",
 
        "subtypes_params":{"class":{}}}}}}}},
                                    leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
-             xmlFormat.dict2string(global_fact_totals['states'],dict_name="states",el_name="state",
+             xmlFormat.dict2string(global_fact_totals['states'], dict_name="states", el_name="state",
                                    subtypes_params={"class":{"subclass_params":{"Requested":{"dicts_params":{"Parameters":{"el_name":"Parameter",
 
        "subtypes_params":{"class":{}}}}}}}},
                                    leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              "</VOFrontendStats>\n")
 
-    glideinFrontendMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.status_relname,xml_str)
+    glideinFrontendMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.status_relname, xml_str)
                 
     # Write rrds
 
     glideinFrontendMonitoring.monitoringConfig.establish_dir("total")
-    write_one_rrd("total/Status_Attributes",updated,global_total,0)
+    write_one_rrd("total/Status_Attributes", updated, global_total, 0)
 
     for fact in global_fact_totals['factories'].keys():
         fe_dir="total/factory_%s"%glideinFrontendMonitoring.sanitize(fact)
         glideinFrontendMonitoring.monitoringConfig.establish_dir(fe_dir)
-        write_one_rrd("%s/Status_Attributes"%fe_dir,updated,global_fact_totals['factories'][fact],1)
+        write_one_rrd("%s/Status_Attributes"%fe_dir, updated, global_fact_totals['factories'][fact], 1)
     for fact in global_fact_totals['states'].keys():
         fe_dir="total/state_%s"%glideinFrontendMonitoring.sanitize(fact)
         glideinFrontendMonitoring.monitoringConfig.establish_dir(fe_dir)
-        write_one_rrd("%s/Status_Attributes"%fe_dir,updated,global_fact_totals['states'][fact],1)
+        write_one_rrd("%s/Status_Attributes"%fe_dir, updated, global_fact_totals['states'][fact], 1)
 
     return status
 

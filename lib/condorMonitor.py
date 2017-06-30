@@ -168,9 +168,9 @@ class LocalScheddCache(NoneScheddCache):
     def iGetEnv(self, schedd_name, pool_name):
         cs = CondorStatus('schedd', pool_name)
         data = cs.fetch(constraint='Name=?="%s"'%schedd_name,
-                        format_list=[('ScheddIpAddr','s'),
-                                     ('SPOOL_DIR_STRING','s'),
-                                     ('LOCAL_DIR_STRING','s')])
+                        format_list=[('ScheddIpAddr', 's'),
+                                     ('SPOOL_DIR_STRING', 's'),
+                                     ('LOCAL_DIR_STRING', 's')])
         if schedd_name not in data:
             raise RuntimeError, "Schedd '%s' not found"%schedd_name
 
@@ -1140,7 +1140,7 @@ class SummarizeMulti:
     def __init__(self, queries, hash_func=lambda x:1):
         self.counts = []
         for query in queries:
-            self.counts.append(self.count(query,hash_func))
+            self.counts.append(self.count(query, hash_func))
         self.hash_func=hash_func
 
     # see Count for description
@@ -1172,7 +1172,7 @@ class CondorQLite(CondorQuery):
         if schedd_lookup_cache is None:
             schedd_lookup_cache=NoneScheddCache()
 
-        schedd_str,env=schedd_lookup_cache.getScheddId(schedd_name, pool_name)
+        schedd_str, env=schedd_lookup_cache.getScheddId(schedd_name, pool_name)
 
         CondorQuery.__init__(self, "condor_q", schedd_str, "ClusterId",
                              pool_name, security_obj, env)

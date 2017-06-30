@@ -14,7 +14,7 @@
 import os.path
 import sys
 STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
+sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
 from glideinwms.factory.tools.lib import gWftLogParser
 
 USAGE="Usage: cat_StartdLog.py [-monitor] <logname>"
@@ -28,7 +28,7 @@ def main():
         condor_log_id="StartdLog"
         
     try:
-        print gWftLogParser.get_CondorLog(fname,condor_log_id)
+        print gWftLogParser.get_CondorLog(fname, condor_log_id)
     except:
         sys.stderr.write("%s\n"%USAGE)
         sys.exit(1)

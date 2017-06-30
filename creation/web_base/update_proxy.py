@@ -54,7 +54,7 @@ def update_credential(fname, credential_data):
             os.close(fd)
     else:
         # old file exists, check if same content
-        fl = open(fname,'r')
+        fl = open(fname, 'r')
         try:
             old_data = fl.read()
         finally:

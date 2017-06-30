@@ -76,12 +76,12 @@ class ProxyFirst:
     # get the proxies, given the condor_q and condor_status data
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
         for cred in self.cred_list:
-            if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
+            if (trust_domain is not None) and (hasattr(cred, 'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (not cred.supports_auth_method(credential_type)):
+            if (credential_type is not None) and (hasattr(cred, 'type')) and (not cred.supports_auth_method(credential_type)):
                 continue
             if (params_obj is not None):
-                cred.add_usage_details(params_obj.min_nr_glideins,params_obj.max_run_glideins)
+                cred.add_usage_details(params_obj.min_nr_glideins, params_obj.max_run_glideins)
             return [cred]
         return []
 
@@ -112,13 +112,13 @@ class ProxyAll:
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
         rtnlist = []
         for cred in self.cred_list:
-            if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
+            if (trust_domain is not None) and (hasattr(cred, 'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (not cred.supports_auth_method(credential_type)):
+            if (credential_type is not None) and (hasattr(cred, 'type')) and (not cred.supports_auth_method(credential_type)):
                 continue
             rtnlist.append(cred)
         if (params_obj is not None):
-            rtnlist = fair_assign(rtnlist,params_obj)
+            rtnlist = fair_assign(rtnlist, params_obj)
         return rtnlist
 
 ##########################################################
@@ -150,9 +150,9 @@ class ProxyUserCardinality:
 
     # get the proxies, given the condor_q and condor_status data
     def get_credentials(self, params_obj=None, credential_type=None, trust_domain=None):
-        rtnlist=self.get_proxies_from_cardinality(len(self.users_set),credential_type,trust_domain)
+        rtnlist=self.get_proxies_from_cardinality(len(self.users_set), credential_type, trust_domain)
         if (params_obj is not None):
-            rtnlist=fair_assign(rtnlist,params_obj)
+            rtnlist=fair_assign(rtnlist, params_obj)
 
         #Uncomment to print out assigned proxy allocations
         #print_list(rtnlist)
@@ -167,9 +167,9 @@ class ProxyUserCardinality:
     def get_proxies_from_cardinality(self, nr_requested_proxies,credential_type=None, trust_domain=None):
         rtnlist=[]
         for cred in self.cred_list:
-            if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
+            if (trust_domain is not None) and (hasattr(cred, 'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (not cred.supports_auth_method(credential_type)):
+            if (credential_type is not None) and (hasattr(cred, 'type')) and (not cred.supports_auth_method(credential_type)):
                 continue
             if len(rtnlist)<nr_requested_proxies:
                 rtnlist.append(cred)
@@ -221,9 +221,9 @@ class ProxyProjectName:
         # Determine a base credential to use; we'll copy this and alter the project ID.
         base_cred = None
         for cred in self.proxy_list:
-            if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain != trust_domain):
+            if (trust_domain is not None) and (hasattr(cred, 'trust_domain')) and (cred.trust_domain != trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (not cred.supports_auth_method(credential_type)):
+            if (credential_type is not None) and (hasattr(cred, 'type')) and (not cred.supports_auth_method(credential_type)):
                 continue
             base_cred = cred
             break
@@ -296,9 +296,9 @@ class ProxyUserRR:
         rtnlist=[]
         num_cred=0
         for cred in self.config_data['proxy_list']:
-            if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
+            if (trust_domain is not None) and (hasattr(cred, 'trust_domain')) and (cred.trust_domain!=trust_domain):
                 continue
-            if (credential_type is not None) and (hasattr(cred,'type')) and (not cred.supports_auth_method(credential_type)):
+            if (credential_type is not None) and (hasattr(cred, 'type')) and (not cred.supports_auth_method(credential_type)):
                 continue
             rtnlist.append(cred)
             num_cred=num_cred+1
@@ -306,7 +306,7 @@ class ProxyUserRR:
                 break
                 
         if (params_obj is not None):
-            rtnlist=fair_assign(rtnlist,params_obj)
+            rtnlist=fair_assign(rtnlist, params_obj)
         return rtnlist
 
     #############################
@@ -424,9 +424,9 @@ class ProxyUserMapWRecycling:
                 new_key=""
                 for k in keys:
                     cred=user_map[k]['proxy']
-                    if (trust_domain is not None) and (hasattr(cred,'trust_domain')) and (cred.trust_domain!=trust_domain):
+                    if (trust_domain is not None) and (hasattr(cred, 'trust_domain')) and (cred.trust_domain!=trust_domain):
                         continue
-                    if (credential_type is not None) and (hasattr(cred,'type')) and (not cred.supports_auth_method(credential_type)):
+                    if (credential_type is not None) and (hasattr(cred, 'type')) and (not cred.supports_auth_method(credential_type)):
                         continue
                     #Someone is already using this credential
                     if (k in users):
@@ -460,7 +460,7 @@ class ProxyUserMapWRecycling:
                     this_max=1
                 if (this_idle<=0):
                     this_idle=1
-                cel['proxy'].add_usage_details(this_idle,this_max)
+                cel['proxy'].add_usage_details(this_idle, this_max)
             out_proxies.append(cel['proxy'])
             # save that you have indeed seen the user 
             cel['last_seen'] = time.time()
@@ -479,7 +479,7 @@ class ProxyUserMapWRecycling:
     #############################
     # INTERNAL
     #############################
-    def add_proxy(self,user_map,proxy):
+    def add_proxy(self, user_map, proxy):
         type=proxy.type
         trust=proxy.trust_domain
         if (type not in user_map):
@@ -503,7 +503,7 @@ class ProxyUserMapWRecycling:
             nr_proxies = len(self.proxy_list)
             for i in range(nr_proxies):
                 # use numbers for keys, so we are sure will not match to any user string
-                self.add_proxy(user_map,self.proxy_list[i]) 
+                self.add_proxy(user_map, self.proxy_list[i]) 
             self.config_data['user_map'] = user_map
         else:
             # load cache
@@ -532,7 +532,7 @@ class ProxyUserMapWRecycling:
                             del user_map[type][trust_domain][k]
             for proxy in self.proxy_list:
                 if proxy.filename not in cached_proxies:
-                    self.add_proxy(user_map,proxy) 
+                    self.add_proxy(user_map, proxy) 
         return
 
     def save(self):
@@ -579,7 +579,7 @@ def fair_split(i, n, p):
     return int((n1*i1)/p1)-int((n1*(i1-1))/p1)
 
 
-def random_split(n,p):
+def random_split(n, p):
     random_arr = map(lambda i: fair_split(i, n, p), range(p))
     random.shuffle(random_arr)
     return random_arr
@@ -606,14 +606,14 @@ def fair_assign(cred_list, params_obj):
     total_idle=params_obj.min_nr_glideins
     total_max=params_obj.max_run_glideins
     num_cred=len(cred_list)
-    random_arr=random_split(total_idle,num_cred)
+    random_arr=random_split(total_idle, num_cred)
     for cred in cred_list:
         this_idle=random_arr[i-1]
-        this_max=fair_split(i,total_max,num_cred)
+        this_max=fair_split(i, total_max, num_cred)
         # Never send more idle than max running
         if this_idle>this_max:
             this_idle=this_max
-        cred.add_usage_details(this_idle,this_max)
+        cred.add_usage_details(this_idle, this_max)
         i=i+1
     return cred_list
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import traceback
-import sys,os,os.path,string,time
+import sys, os, os.path, string, time
 import optparse
 
 import common
@@ -15,11 +15,11 @@ import VDTClient
 
 class Glidein(Configuration):
 
-  def __init__(self,inifile,ini_section,ini_options):
+  def __init__(self, inifile, ini_section, ini_options):
     self.ini_section = ini_section
     self.inifile     = inifile
-    Configuration.__init__(self,self.inifile)
-    self.validate_section(self.ini_section,ini_options)
+    Configuration.__init__(self, self.inifile)
+    self.validate_section(self.ini_section, ini_options)
 
     self.vdt = None
 
@@ -30,58 +30,58 @@ class Glidein(Configuration):
   #---------------------
   def get_vdt(self):
     if self.vdt == None:
-      self.vdt = VDTClient.VDTClient(self.ini_section,self.inifile)
+      self.vdt = VDTClient.VDTClient(self.ini_section, self.inifile)
   #---------------------
   def vdt_location(self):
     self.get_vdt()
     return self.vdt.vdt_location()
   #---------------------
   def glideinwms_location(self):
-    return self.option_value(self.ini_section,"glideinwms_location")
+    return self.option_value(self.ini_section, "glideinwms_location")
   #---------------------
   def install_vdt_client(self):
-    return self.option_value(self.ini_section,"install_vdt_client")
+    return self.option_value(self.ini_section, "install_vdt_client")
   #---------------------
   def install_location(self):
-    return self.option_value(self.ini_section,"install_location")
+    return self.option_value(self.ini_section, "install_location")
   #---------------------
   def username(self):
-    return self.option_value(self.ini_section,"username")
+    return self.option_value(self.ini_section, "username")
   #---------------------
   def service_name(self):
-    return self.option_value(self.ini_section,"service_name")
+    return self.option_value(self.ini_section, "service_name")
   #---------------------
   def instance_name(self):
-    return self.option_value(self.ini_section,"instance_name")
+    return self.option_value(self.ini_section, "instance_name")
   #---------------------
   def service_dir(self):
-    return "%s/glidein_%s" % (self.install_location(),self.instance_name())
+    return "%s/glidein_%s" % (self.install_location(), self.instance_name())
   #---------------------
   def hostname(self):
-    return self.option_value(self.ini_section,"hostname")
+    return self.option_value(self.ini_section, "hostname")
   #---------------------
   def x509_gsi_dn(self):
-    return self.option_value(self.ini_section,"x509_gsi_dn")
+    return self.option_value(self.ini_section, "x509_gsi_dn")
   #---------------------
   def use_glexec(self):
-    return self.option_value(self.ini_section,"use_glexec")
+    return self.option_value(self.ini_section, "use_glexec")
   #---------------------
   def use_ccb(self):
-    return self.option_value(self.ini_section,"use_ccb")
+    return self.option_value(self.ini_section, "use_ccb")
   #---------------------
   def ress_host(self):
-    return self.option_value(self.ini_section,"ress_host")
+    return self.option_value(self.ini_section, "ress_host")
   #---------------------
   def bdii_host(self):
-    return self.option_value(self.ini_section,"bdii_host")
+    return self.option_value(self.ini_section, "bdii_host")
   #---------------------
   def entry_vos(self):
-    return self.option_value(self.ini_section,"entry_vos")
+    return self.option_value(self.ini_section, "entry_vos")
   #---------------------
   def ress_vo_constraint(self):
     constraint = '(GlueCEInfoContactString=!=UNDEFINED)'
     if len(self.entry_vos()) > 0:
-      vos = string.split(self.entry_vos(),",")
+      vos = string.split(self.entry_vos(), ",")
       if len(vos) > 0:
         constraint = constraint + '&&('
         constraint = constraint + 'StringlistMember("VO:%s",GlueCEAccessControlBaseRule)' % vos[0].strip(' ')
@@ -93,7 +93,7 @@ class Glidein(Configuration):
   def bdii_vo_constraint(self):
     constraint = None 
     if len(self.entry_vos()) > 0:
-      vos = string.split(self.entry_vos(),",")
+      vos = string.split(self.entry_vos(), ",")
       constraint = '(|(GlueCEAccessControlBaseRule=VO:%s)' % vos[0]
       if len(vos) > 0:
         for vo in vos[1:]:
@@ -102,17 +102,17 @@ class Glidein(Configuration):
     return constraint
   #---------------------
   def entry_filters(self):
-    return self.option_value(self.ini_section,"entry_filters")
+    return self.option_value(self.ini_section, "entry_filters")
   #---------------------
   def web_location(self):
-    return self.option_value(self.ini_section,"web_location")
+    return self.option_value(self.ini_section, "web_location")
   #---------------------
   def web_url(self):
-    return self.option_value(self.ini_section,"web_url")
+    return self.option_value(self.ini_section, "web_url")
   #---------------------
   def javascriptrrd_location(self):
     default = "/usr/share/javascriptrrd"
-    location = self.option_value(self.ini_section,"javascriptrrd_location")
+    location = self.option_value(self.ini_section, "javascriptrrd_location")
     if len(location) == 0:
       location = default
     return location
@@ -129,10 +129,10 @@ class Glidein(Configuration):
   def validate_web_location(self):
     dir = self.web_location()
     common.logit("... validating web_location: %s" % dir)
-    common.make_directory(dir,self.username(),0o755)
-    for sdir_name in ("stage","monitor"):
-      sdir_fullpath=os.path.join(self.web_location(),sdir_name)
-      common.make_directory(sdir_fullpath,self.username(),0o755)
+    common.make_directory(dir, self.username(), 0o755)
+    for sdir_name in ("stage", "monitor"):
+      sdir_fullpath=os.path.join(self.web_location(), sdir_name)
+      common.make_directory(sdir_fullpath, self.username(), 0o755)
 
 
   #---------------------
@@ -144,7 +144,7 @@ class Glidein(Configuration):
     self.verify_python_module("M2Crypto")
 
   #-----------------------
-  def verify_python_module(self,module):
+  def verify_python_module(self, module):
     msg = "... validating %s: " % module
     if common.module_exists(module):
       msg += "available"
@@ -154,14 +154,14 @@ class Glidein(Configuration):
       common.logerr("This python module is required and not available.")
 
   #-----------------------
-  def set_javascriptrrd_dir(self,filename):
+  def set_javascriptrrd_dir(self, filename):
     msg =  "... validating javascriptrrd_location for %s: " % filename
     fullpath = common.find_fullpath(self.javascriptrrd_location(), filename)
     if fullpath == None:
       common.logit(msg)
       common.logerr("""%s not found in %s path
 Did you install the correct javascriptrrd rpm?
-""" % (filename,self.javascriptrrd_location()))
+""" % (filename, self.javascriptrrd_location()))
     dir = os.path.dirname(fullpath)
     msg +="available"
     common.logit(msg)
@@ -171,7 +171,7 @@ Did you install the correct javascriptrrd rpm?
 def show_line():
     x = traceback.extract_tb(sys.exc_info()[2])
     z = x[len(x)-1]
-    return "%s line %s" % (z[2],z[1])
+    return "%s line %s" % (z[2], z[1])
 #---------------------------
 def validate_args(args):
     usage = """Usage: %prog --ini ini_file
@@ -196,7 +196,7 @@ def main(argv):
   try:
     options = validate_args(argv)
     valid_options = ["javascriptrrd_location", ]
-    glidein = Glidein(options.inifile,"Factory",valid_options)
+    glidein = Glidein(options.inifile, "Factory", valid_options)
   except KeyboardInterrupt:
     common.logit("\n... looks like you aborted this script... bye.");
     return 1

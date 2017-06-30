@@ -23,12 +23,12 @@ def km(z):
    t = z*1.0e-9
    if x>=1000:
       if x>=1000 and x<1000000:
-         return "%s%.1fK" % (neg,w)
+         return "%s%.1fK" % (neg, w)
       if x>=1000000 and x<1000000000:
-         return "%s%.1fM" % (neg,v)
+         return "%s%.1fM" % (neg, v)
       if x>=1000000000:
-         return "%s%.1fG" % (neg,t)
-   else: return "%s%.1f" % (neg,z)
+         return "%s%.1fG" % (neg, t)
+   else: return "%s%.1f" % (neg, z)
 
 # prints a dictionary with \n and \t 
 #    between elements for ease of debugging.
@@ -36,12 +36,12 @@ def km(z):
 def debug_print_dict(data):
    for period, p in data.iteritems():
       print period
-      for frontend,f in p.iteritems():
-         print "\t",frontend
-         for entry,e in f.iteritems():
+      for frontend, f in p.iteritems():
+         print "\t", frontend
+         for entry, e in f.iteritems():
             print "\t\t", entry
             for element, value in e.iteritems():
-               print "\t\t\t", element,":", value
+               print "\t\t\t", element, ":", value
    return
 
 #Prints a line formatted the following way:
@@ -49,7 +49,7 @@ def debug_print_dict(data):
 # "1.2K (.34 hours - .17 slots - %XX of total)" 
 # Set div = 1 to omit percentage of total
  
-def printline(x,div,period):
+def printline(x, div, period):
    if div==1:
       sp = ""
    else:

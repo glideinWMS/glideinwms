@@ -27,7 +27,7 @@ import copy
 #
 # All info is in the state attribute
 class EnvState:
-    def __init__(self,filter):
+    def __init__(self, filter):
         # filter is a list of Condor variables to save
         self.filter=filter
         self.load()
@@ -68,14 +68,14 @@ def convert_sec_filter(sec_filter):
         filter=[]
         for context in sec_filter.keys():
             for feature in sec_filter[context]:
-                condor_key="SEC_%s_%s"%(context,feature)
+                condor_key="SEC_%s_%s"%(context, feature)
                 filter.append(condor_key)
         return filter
 
 class SecEnvState(EnvState):
-    def __init__(self,sec_filter):
+    def __init__(self, sec_filter):
         # sec_filter is a dictionary of [contex]=[feature list]
-        EnvState.__init__(self,convert_sec_filter(sec_filter))
+        EnvState.__init__(self, convert_sec_filter(sec_filter))
         self.sec_filter=sec_filter
 
 ###############################################################
@@ -93,14 +93,14 @@ class SecEnvRequest:
         if requests is not None:
             for context in requests.keys():
                 for feature in requests[context].keys():
-                    self.set(context,feature,requests[context][feature])
+                    self.set(context, feature, requests[context][feature])
 
         self.saved_state=None
 
 
     ##############################################
     # Methods for accessig the requests
-    def set(self,context,feature,value): # if value is None, remove the request
+    def set(self, context, feature, value): # if value is None, remove the request
         if value is not None:
             if context not in self.requests:
                 self.requests[context]={}
@@ -111,7 +111,7 @@ class SecEnvRequest:
                 if len(self.requests[context].keys())==0:
                     del self.requests[context]
     
-    def get(self,context,feature):
+    def get(self, context, feature):
         if context in self.requests:
             if feature in self.requests[context]:
                 return self.requests[context][feature]
@@ -128,7 +128,7 @@ class SecEnvRequest:
 
     def save_state(self):
         if self.has_saved_state():
-            raise RuntimeError,"There is already a saved state! Restore that first."
+            raise RuntimeError, "There is already a saved state! Restore that first."
         filter={}
         for c in self.requests.keys():
             filter[c]=self.requests[c].keys()
@@ -150,7 +150,7 @@ class SecEnvRequest:
     def enforce_requests(self):
         for context in self.requests.keys():
             for feature in self.requests[context].keys():
-                condor_key="SEC_%s_%s"%(context,feature)
+                condor_key="SEC_%s_%s"%(context, feature)
                 env_key="_CONDOR_%s"%condor_key
                 val=self.requests[context][feature]
                 if val!=UNSET_VALUE:
@@ -169,15 +169,15 @@ class SecEnvRequest:
 ########################################################################
 
 CONDOR_CONTEXT_LIST=('DEFAULT',
-                     'ADMINISTRATOR','NEGOTIATOR','CLIENT','OWNER',
-                     'READ','WRITE','DAEMON','CONFIG',
-                     'ADVERTISE_MASTER','ADVERTISE_STARTD','ADVERTISE_SCHEDD')
+                     'ADMINISTRATOR', 'NEGOTIATOR', 'CLIENT', 'OWNER',
+                     'READ', 'WRITE', 'DAEMON', 'CONFIG',
+                     'ADVERTISE_MASTER', 'ADVERTISE_STARTD', 'ADVERTISE_SCHEDD')
 
 CONDOR_PROTO_FEATURE_LIST=('AUTHENTICATION',
-                           'INTEGRITY','ENCRYPTION',
+                           'INTEGRITY', 'ENCRYPTION',
                            'NEGOTIATION')
 
-CONDOR_PROTO_VALUE_LIST=('NEVER','OPTIONAL','PREFERRED','REQUIRED')
+CONDOR_PROTO_VALUE_LIST=('NEVER', 'OPTIONAL', 'PREFERRED', 'REQUIRED')
 
 ########################################
 class EnvProtoState(SecEnvState):
@@ -186,10 +186,10 @@ class EnvProtoState(SecEnvState):
             # validate filter
             for c in filter.keys():
                 if not (c in CONDOR_CONTEXT_LIST):
-                    raise ValueError, "Invalid contex '%s'. Must be one of %s"%(c,CONDOR_CONTEXT_LIST)
+                    raise ValueError, "Invalid contex '%s'. Must be one of %s"%(c, CONDOR_CONTEXT_LIST)
                 for f in filter[c]:
                     if not (f in CONDOR_PROTO_FEATURE_LIST):
-                        raise ValueError, "Invalid feature '%s'. Must be one of %s"%(f,CONDOR_PROTO_FEATURE_LIST)
+                        raise ValueError, "Invalid feature '%s'. Must be one of %s"%(f, CONDOR_PROTO_FEATURE_LIST)
         else:
             # do not filter anything out... add all
             filter={}
@@ -199,28 +199,28 @@ class EnvProtoState(SecEnvState):
                     cfilter.append(f)
                 filter[c]=cfilter
         
-        SecEnvState.__init__(self,filter)
+        SecEnvState.__init__(self, filter)
 
 #########################################
 # Same as SecEnvRequest, but check that
 # the context and feature are related
 # to the Condor protocol handling
 class ProtoRequest(SecEnvRequest):
-    def set(self,context,feature,value): # if value is None, remove the request
+    def set(self, context, feature, value): # if value is None, remove the request
         if not (context in CONDOR_CONTEXT_LIST):
             raise ValueError, "Invalid security context '%s'."%context
         if not (feature in CONDOR_PROTO_FEATURE_LIST):
             raise ValueError, "Invalid authentication feature '%s'."%feature
         if not (value in (CONDOR_PROTO_VALUE_LIST+(UNSET_VALUE,))):
             raise ValueError, "Invalid value type '%s'."%value
-        SecEnvRequest.set(self,context,feature,value)
+        SecEnvRequest.set(self, context, feature, value)
 
-    def get(self,context,feature):
+    def get(self, context, feature):
         if not (context in CONDOR_CONTEXT_LIST):
             raise ValueError, "Invalid security context '%s'."%context
         if not (feature in CONDOR_PROTO_FEATURE_LIST):
             raise ValueError, "Invalid authentication feature '%s'."%feature
-        return SecEnvRequest.get(self,context,feature)
+        return SecEnvRequest.get(self, context, feature)
 
 ########################################################################
 #
@@ -246,11 +246,11 @@ class GSIRequest(ProtoRequest):
                 proto_requests[context]={}
             if 'AUTHENTICATION' in proto_requests[context]:
                 if not ('GSI' in proto_requests[context]['AUTHENTICATION'].split(',')):
-                    raise ValueError,"Must specify GSI as one of the options"
+                    raise ValueError, "Must specify GSI as one of the options"
             else:
                 proto_requests[context]['AUTHENTICATION']=auth_str
         
-        ProtoRequest.__init__(self,proto_requests)
+        ProtoRequest.__init__(self, proto_requests)
         self.allow_fs=allow_fs
 
         if x509_proxy is None:
@@ -266,7 +266,7 @@ class GSIRequest(ProtoRequest):
     ##############################################
     def save_state(self):
         if self.has_saved_state():
-            raise RuntimeError,"There is already a saved state! Restore that first."
+            raise RuntimeError, "There is already a saved state! Restore that first."
 
         if 'X509_USER_PROXY' in os.environ:
             self.x509_proxy_saved_state=os.environ['X509_USER_PROXY']

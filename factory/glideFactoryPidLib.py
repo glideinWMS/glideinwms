@@ -19,9 +19,9 @@ from glideinwms.lib import pidSupport
 ############################################################
 
 class FactoryPidSupport(pidSupport.PidSupport):
-    def __init__(self,startup_dir):
-        lock_file=os.path.join(startup_dir,"lock/glideinWMS.lock")
-        pidSupport.PidSupport.__init__(self,lock_file)
+    def __init__(self, startup_dir):
+        lock_file=os.path.join(startup_dir, "lock/glideinWMS.lock")
+        pidSupport.PidSupport.__init__(self, lock_file)
 
 #raise an exception if not running
 def get_factory_pid(startup_dir):
@@ -36,13 +36,13 @@ def get_factory_pid(startup_dir):
 ############################################################
 
 class EntryPidSupport(pidSupport.PidWParentSupport):
-    def __init__(self,startup_dir,entry_name):
-        lock_file=os.path.join(startup_dir,"%s/entry_%s/lock/factory.lock"%(startup_dir,entry_name))
-        pidSupport.PidWParentSupport.__init__(self,lock_file)
+    def __init__(self, startup_dir, entry_name):
+        lock_file=os.path.join(startup_dir, "%s/entry_%s/lock/factory.lock"%(startup_dir, entry_name))
+        pidSupport.PidWParentSupport.__init__(self, lock_file)
 
 #raise an exception if not running
-def get_entry_pid(startup_dir,entry_name):
-    pid_obj=EntryPidSupport(startup_dir,entry_name)
+def get_entry_pid(startup_dir, entry_name):
+    pid_obj=EntryPidSupport(startup_dir, entry_name)
     pid_obj.load_registered()
     if not pid_obj.lock_in_place:
         raise RuntimeError, "Entry not running"
@@ -50,7 +50,7 @@ def get_entry_pid(startup_dir,entry_name):
         raise RuntimeError, "Entry process not found"
     if pid_obj.parent_pid is None:
         raise RuntimeError, "Entry has no parent???"
-    return (pid_obj.mypid,pid_obj.parent_pid)
+    return (pid_obj.mypid, pid_obj.parent_pid)
 
 ############################################################
 

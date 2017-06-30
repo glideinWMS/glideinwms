@@ -76,8 +76,8 @@ def create_condor_tar_fd(condor_base_dir):
         if not os.path.isdir(condor_base_dir):
             raise RuntimeError, "%s is not a directory"%condor_base_dir
         for f in condor_bins:
-            if not os.path.isfile(os.path.join(condor_base_dir,f)):
-                raise RuntimeError, "Cannot find %s"%os.path.join(condor_base_dir,f)
+            if not os.path.isfile(os.path.join(condor_base_dir, f)):
+                raise RuntimeError, "Cannot find %s"%os.path.join(condor_base_dir, f)
 
         # Get the list of dlls required
         dlls = get_condor_dlls(
@@ -86,14 +86,14 @@ def create_condor_tar_fd(condor_base_dir):
 
         # Get list of all the files & directories that exist
         for f in (condor_opt_bins+condor_opt_libs+condor_opt_libexecs+dlls):
-            if os.path.exists(os.path.join(condor_base_dir,f)):
+            if os.path.exists(os.path.join(condor_base_dir, f)):
                 condor_bins.append(f)
 
         # tar
         fd = cStringIO.StringIO()
-        tf = tarfile.open("dummy.tgz",'w:gz',fd)
+        tf = tarfile.open("dummy.tgz", 'w:gz', fd)
         for f in condor_bins:
-            tf.add(os.path.join(condor_base_dir,f), condor_bins_map.get(f, f))
+            tf.add(os.path.join(condor_base_dir, f), condor_bins_map.get(f, f))
         tf.close()
         # rewind the file to the beginning
         fd.seek(0)
@@ -247,7 +247,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add('+GlideinEntryName', '"$ENV(GLIDEIN_ENTRY_NAME)"')
         self.add('+GlideinClient', '"$ENV(GLIDEIN_CLIENT)"')
         self.add('+GlideinFrontendName', '"$ENV(GLIDEIN_FRONTEND_NAME)"')
-        self.add('+GlideinCredentialIdentifier','"$ENV(GLIDEIN_CREDENTIAL_ID)"')
+        self.add('+GlideinCredentialIdentifier', '"$ENV(GLIDEIN_CREDENTIAL_ID)"')
         self.add('+GlideinSecurityClass', '"$ENV(GLIDEIN_SEC_CLASS)"')
         self.add('+GlideinWebBase', '"$ENV(WEB_URL)"')
         self.add('+GlideinLogNr', '"$ENV(GLIDEIN_LOGNR)"')
@@ -270,7 +270,7 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name, r
     Creates the factory startup script from the template.
     """
     template = get_template("factory_initd_startup_template", glideinWMS_dir)
-    fd = open(startup_fname,"w")
+    fd = open(startup_fname, "w")
     try:
         template = template % {"factory_dir": factory_dir,
                                "glideinWMS_dir": glideinWMS_dir,
@@ -287,11 +287,11 @@ def create_initd_startup(startup_fname, factory_dir, glideinWMS_dir, cfg_name, r
 #####################
 # INTERNAL
 # Simply copy a file
-def copy_file(infile,outfile):
+def copy_file(infile, outfile):
     try:
-        shutil.copy2(infile,outfile)
+        shutil.copy2(infile, outfile)
     except IOError as e:
-        raise RuntimeError, "Error copying %s in %s: %s"%(infile,outfile,e)
+        raise RuntimeError, "Error copying %s in %s: %s"%(infile, outfile, e)
 
 #####################################
 # Copy an executable between two dirs

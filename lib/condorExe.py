@@ -32,7 +32,7 @@ class ExeError(RuntimeError):
 
 # Set path to condor binaries, if needed
 def set_path(new_condor_bin_path,new_condor_sbin_path=None):
-    global condor_bin_path,condor_sbin_path
+    global condor_bin_path, condor_sbin_path
     condor_bin_path=new_condor_bin_path
     if new_condor_sbin_path is not None:
         condor_sbin_path=new_condor_sbin_path
@@ -49,22 +49,22 @@ def exe_cmd(condor_exe,args,stdin_data=None,env={}):
 
     if condor_bin_path is None:
         raise UnconfigError, "condor_bin_path is undefined!"
-    condor_exe_path=os.path.join(condor_bin_path,condor_exe)
+    condor_exe_path=os.path.join(condor_bin_path, condor_exe)
 
-    cmd="%s %s" % (condor_exe_path,args)
+    cmd="%s %s" % (condor_exe_path, args)
 
-    return iexe_cmd(cmd,stdin_data,env)
+    return iexe_cmd(cmd, stdin_data, env)
 
 def exe_cmd_sbin(condor_exe,args,stdin_data=None,env={}):
     global condor_sbin_path
 
     if condor_sbin_path is None:
         raise UnconfigError, "condor_sbin_path is undefined!"
-    condor_exe_path=os.path.join(condor_sbin_path,condor_exe)
+    condor_exe_path=os.path.join(condor_sbin_path, condor_exe)
 
-    cmd="%s %s" % (condor_exe_path,args)
+    cmd="%s %s" % (condor_exe_path, args)
 
-    return iexe_cmd(cmd,stdin_data,env)
+    return iexe_cmd(cmd, stdin_data, env)
 
 ############################################################
 #
@@ -75,7 +75,7 @@ def generate_bash_script(cmd, environment):
     script = ['script to reproduce failure:']
     script.append('-'*20 + ' begin script ' + '-'*20)
     script.append('#!/bin/bash')
-    script += ['%s=%s' % (k,v) for k, v in environment.iteritems()]
+    script += ['%s=%s' % (k, v) for k, v in environment.iteritems()]
     script.append(cmd)
     script.append('-'*20 + '  end script  ' + '-'*20)
     return '\n'.join(script)
@@ -122,7 +122,7 @@ def init1():
         # try to find the RELEASE_DIR, and append bin
         try:
             release_path=iexe_cmd("condor_config_val RELEASE_DIR")
-            condor_bin_path=os.path.join(release_path[0].strip(),"bin")
+            condor_bin_path=os.path.join(release_path[0].strip(), "bin")
         except ExeError as e:
             # try condor_q in the path
             try:
@@ -143,7 +143,7 @@ def init1():
                     try:
                         # RELEASE_DIR = <path>
                         release_def=iexe_cmd('grep "^ *RELEASE_DIR" %s'%condor_config)
-                        condor_bin_path=os.path.join(string.split(release_def[0].strip())[2],"bin")
+                        condor_bin_path=os.path.join(string.split(release_def[0].strip())[2], "bin")
                     except ExeError as e:
                         pass # don't know what else to try
 
@@ -160,7 +160,7 @@ def init2():
         # try to find the RELEASE_DIR, and append bin
         try:
             release_path=iexe_cmd("condor_config_val RELEASE_DIR")
-            condor_sbin_path=os.path.join(release_path[0].strip(),"sbin")
+            condor_sbin_path=os.path.join(release_path[0].strip(), "sbin")
         except ExeError as e:
             # try condor_q in the path
             try:
@@ -181,7 +181,7 @@ def init2():
                     try:
                         # RELEASE_DIR = <path>
                         release_def=iexe_cmd('grep "^ *RELEASE_DIR" %s'%condor_config)
-                        condor_sbin_path=os.path.join(string.split(release_def[0].strip())[2],"sbin")
+                        condor_sbin_path=os.path.join(string.split(release_def[0].strip())[2], "sbin")
                     except ExeError as e:
                         pass # don't know what else to try
 

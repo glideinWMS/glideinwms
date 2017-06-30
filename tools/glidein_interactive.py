@@ -18,8 +18,8 @@
 #  Fermitools
 #
 
-import sys,os.path
-sys.path.append(os.path.join(sys.path[0],"../.."))
+import sys, os.path
+sys.path.append(os.path.join(sys.path[0], "../.."))
 
 from glideinwms.tools.lib import glideinCmd
 
