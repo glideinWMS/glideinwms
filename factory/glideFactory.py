@@ -432,7 +432,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                 cleanupSupport.cred_cleaners.add_cleaner(cred_cleaner)
 
         iteration_basetime = time.time()
-        while 1:
+        while True:
             # retrieves WebMonitoringURL from glideclient classAd
             iteration_timecheck  = time.time()
             iteration_timediff = iteration_timecheck - iteration_basetime
@@ -766,8 +766,7 @@ def main(startup_dir):
     except:
         logSupport.log.exception("Non critical Factory error. Exception occurred while trying to retrieve the glideinwms version: ")
 
-    entries = glideinDescript.data['Entries'].split(',')
-    entries.sort()
+    entries = sorted(glideinDescript.data['Entries'].split(','))
 
     glideFactoryMonitorAggregator.monitorAggregatorConfig.config_factory(
         os.path.join(startup_dir, "monitor"), entries,

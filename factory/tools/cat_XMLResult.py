@@ -26,7 +26,7 @@ def main(args):
     raw_out=False
     force_multi=False
 
-    while 1:
+    while True:
         if (len(args)<1):
             sys.stderr.write("Missing logname.\n")
             sys.stderr.write("%s\n"%USAGE)

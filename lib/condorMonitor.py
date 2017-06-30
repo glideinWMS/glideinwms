@@ -1006,7 +1006,7 @@ def fetch2count(data, hash_func):
         cel = count
 
         # check if it is a list
-        if (type(hid) == type([])):
+        if (isinstance(hid, type([]))):
             # have to create structure inside count
             for h in hid[:-1]:
                 if h not in cel:
@@ -1048,7 +1048,7 @@ def fetch2list(data, hash_func):
         lel = return_list
 
         # check if it is a list
-        if (type(hid) == type([])):
+        if (isinstance(hid, type([]))):
             # have to create structure inside list
             for h in hid[:-1]:
                 if h not in lel:
@@ -1075,7 +1075,7 @@ def addDict(base_dict, new_dict):
             # nothing there?, just copy
             base_dict[k] = new_el
         else:
-            if type(new_el) == type({}):
+            if isinstance(new_el, type({})):
                 #another dictionary, recourse
                 addDict(base_dict[k], new_el)
             else:

@@ -285,8 +285,7 @@ class VOFrontend(Condor):
 
     #--- See if we can remove them --- 
     common.logit("""The following directories must be empty for the install to succeed: """)
-    types = dirs.keys()
-    types.sort()
+    types = sorted(dirs.keys())
     for type in types:
       common.logit("""  %(type)s: %(dir)s""" % \
                         { "type" : type, "dir" : dirs[type] })
@@ -496,7 +495,7 @@ option: %(option_dn)s
     time.sleep(2)
     common.logit("\nCollecting  grid_mapfile data. More questions.")
     time.sleep(2)
-    while 1:
+    while True:
       dns = {}
       dns[self.glidein.service_name()]      = self.glidein.x509_gsi_dn()
       dns[self.UserCollector_service_name()] = self.UserCollectorDN()
@@ -510,7 +509,7 @@ the DNs that this glidein will connect to.
 
 Please insert all such DNs, together with a user nickname.
 An empty DN entry means you are done.  """
-      while 1:
+      while True:
         print
         a_dn =raw_input("DN (leave empty when finished): ")
         if a_dn == "":
@@ -658,7 +657,7 @@ or you have not defined any schedds on the submit host.""")
 
   #------------------------------------
   def select_schedds_to_monitor(self,default_schedds):
-    while 1:
+    while True:
       common.logit("\nThe following schedds have been found:")
       for i in range(len(default_schedds)):
         common.logit(" [%i] %s"%(i+1,default_schedds[i]))
@@ -669,7 +668,7 @@ or you have not defined any schedds on the submit host.""")
       print "Select the schedd indexes you want to monitor"
       print "Use a , separated list to monitor more than one"
 
-      while 1:
+      while True:
         problem = False
         schedds=[]
         idxes = raw_input("Please select: ")
@@ -1035,7 +1034,7 @@ please verify and correct if needed.
 
     for attr_re in regex:
       idx = 0
-      while 1:
+      while True:
         attr_obj = attr_re.search(self.match_string(),idx)
         if attr_obj == None:
           break # not found
@@ -1056,7 +1055,7 @@ please verify and correct if needed.
 
     for attr_re in regex:
       idx=0
-      while 1:
+      while True:
         attr_obj = attr_re.search(self.match_string(),idx)
         if attr_obj == None:
           break # not found

@@ -446,7 +446,7 @@ class HistoryFile:
                 # default to empty history on error
                 data = {}
 
-        if type(data) != type({}):
+        if not isinstance(data, type({})):
             if raise_on_error:
                 raise TypeError("History object not a dictionary: %s" % str(type(data)))
             else:

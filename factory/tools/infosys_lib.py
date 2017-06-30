@@ -138,8 +138,7 @@ def query_bdii(bdii_source, vo_name=''):
             # Bad BDII entry for a site.. Keep going
             continue
 
-    ceListKeys = ceList.keys()
-    ceListKeys.sort()
+    ceListKeys = sorted(ceList.keys())
     ceType = siteType(ceListKeys, Bdii)
 
     # Update work dir and glexec bin according to site type

@@ -78,7 +78,7 @@ class cachedLogClass:
             # cache is newer, just load the cache
             return self.loadCache()
 
-        while 1:  # could need more than one loop if the log file is changing
+        while True:  # could need more than one loop if the log file is changing
             fstat = os.lstat(self.logname)
             start_logtime = fstat[stat.ST_MTIME]
             del fstat

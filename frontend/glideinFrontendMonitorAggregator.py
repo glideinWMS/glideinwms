@@ -226,7 +226,7 @@ def write_one_rrd(name,updated,data,fact=0):
         for a in tp_el.keys():
             if a in attributes_tp:
                 a_el=int(tp_el[a])
-                if type(a_el)!=type({}): # ignore subdictionaries
+                if not isinstance(a_el, type({})): # ignore subdictionaries
                     val_dict["%s%s"%(tp_str,a)]=a_el
                 
     glideinFrontendMonitoring.monitoringConfig.establish_dir("%s"%name)
@@ -306,7 +306,7 @@ def aggregateStatus():
                     if attribute in this_fact.keys():
                         for type_attribute in this_fact[attribute].keys():
                             this_type_attribute=this_fact[attribute][type_attribute]
-                            if type(this_type_attribute)==type(global_fact_totals[fos]):
+                            if isinstance(this_type_attribute, type(global_fact_totals[fos])):
                                 # dict, do nothing
                                 pass
                             else:

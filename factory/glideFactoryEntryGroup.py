@@ -454,7 +454,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript,
 
     factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
 
-    while 1:
+    while True:
 
         # Check if parent is still active. If not cleanup and die.
         check_parent(parent_pid, glideinDescript, my_entries)

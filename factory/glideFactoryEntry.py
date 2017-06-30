@@ -602,7 +602,7 @@ class Entry:
             for w in client_qc_data:
                 for a in client_qc_data[w]:
                     # report only numbers
-                    if type(client_qc_data[w][a]) == type(1):
+                    if isinstance(client_qc_data[w][a], type(1)):
                         client_monitors['%s%s' % (w, a)] = client_qc_data[w][a]
 
             try:
@@ -900,7 +900,7 @@ def dump_obj(obj):
     print obj.__dict__
     print "======= START: %s ======" % obj
     for key in obj.__dict__:
-        if type(obj.__dict__[key]) is not types.InstanceType:
+        if not isinstance(obj.__dict__[key], types.InstanceType):
             print "%s = %s" % (key, obj.__dict__[key])
         else:
             dump_obj(obj.__dict__[key])
@@ -1674,9 +1674,8 @@ def unit_work_v2(entry, work, client_name, client_int_name, client_int_req,
         entry.log.warning("Malformed classad for client %s, missing web parameters, skipping request." % client_name)
         return return_dict
 
-    x509_proxy_security_classes = x509_proxies.fnames.keys()
+    x509_proxy_security_classes = sorted(x509_proxies.fnames.keys())
     # Sort to have consistent logging
-    x509_proxy_security_classes.sort()
     for x509_proxy_security_class in x509_proxy_security_classes:
         # split the request proportionally between them
 

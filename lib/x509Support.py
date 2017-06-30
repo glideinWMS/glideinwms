@@ -15,7 +15,7 @@ def extract_DN(fname):
     finally:
         fd.close()
 
-    while 1:
+    while True:
         try:
             data_idx = data.rindex('-----BEGIN CERTIFICATE-----')
             old_data = data[:data_idx]

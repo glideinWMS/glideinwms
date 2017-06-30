@@ -208,7 +208,7 @@ class BdiiLdap:
 
        try:
            result_id = l.search(base, scope, filter, attribute)
-           while 1:
+           while True:
                result_type, result_data = l.result(result_id, timeout)
                if (result_data == []):
                    break

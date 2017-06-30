@@ -80,8 +80,7 @@ class MonitoringConfig:
                     min_val='U'
                 if max_val is None:
                     max_val='U'
-                ds_names=val_dict.keys()
-                ds_names.sort()
+                ds_names=sorted(val_dict.keys())
 
                 ds_arr=[]
                 for ds_name in ds_names:
@@ -371,7 +370,7 @@ class groupStats:
             for a in fe_el_tp.keys():
                 if a in attributes_tp:
                     a_el=fe_el_tp[a]
-                    if type(a_el)!=type({}): # ignore subdictionaries
+                    if not isinstance(a_el, type({})): # ignore subdictionaries
                         val_dict["%s%s"%(tp_str,a)]=a_el
 
         monitoringConfig.establish_dir("%s"%name)
@@ -600,7 +599,7 @@ class factoryStats:
                 for a in fe_el_tp.keys():
                     if a in attributes_tp:
                         a_el=fe_el_tp[a]
-                        if type(a_el)!=type({}): # ignore subdictionaries
+                        if not isinstance(a_el, type({})): # ignore subdictionaries
                             val_dict["%s%s"%(tp_str,a)]=a_el
                 
             monitoringConfig.write_rrd_multi("%s/Status_Attributes"%fe_dir,

@@ -531,11 +531,10 @@ class glideinFrontendElement:
         # Add glidein config limits to the glideclient classads
         advertizer.set_glidein_config_limits(self.glidein_config_limits)
 
-        glideid_list = condorq_dict_types['Idle']['count'].keys()
+        glideid_list = sorted(condorq_dict_types['Idle']['count'].keys())
         # TODO: PM Following shows up in branch_v2plus. Which is correct?
         # glideid_list=glidein_dict.keys()
         # sort for the sake of monitoring
-        glideid_list.sort()
 
         # we will need this for faster lookup later
         self.processed_glideid_strs=[]
@@ -1859,7 +1858,7 @@ def log_factory_header():
 # expand $$(attribute)
 def expand_DD(qstr,attr_dict):
     robj=re.compile("\$\$\((?P<attrname>[^\)]*)\)")
-    while 1:
+    while True:
         m=robj.search(qstr)
         if m is None:
             break # no more substitutions to do
@@ -1867,7 +1866,7 @@ def expand_DD(qstr,attr_dict):
         if attr_name not in attr_dict:
             raise KeyError, "Missing attribute %s"%attr_name
         attr_val=attr_dict[attr_name]
-        if type(attr_val)==type(1):
+        if isinstance(attr_val, type(1)):
             attr_str=str(attr_val)
         else: # assume it is a string for all other purposes... quote and escape existing quotes
             attr_str='"%s"'%attr_val.replace('"','\\"')

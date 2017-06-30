@@ -622,8 +622,7 @@ LOCAL_CONFIG_DIR  = %s
     common.logit("\nCreating GWMS condor_config files in:")
     common.logit("%s" % self.local_config_dir())
     common.make_directory(self.local_config_dir(),self.username(),0755)
-    types =  self.condor_config_data.keys()
-    types.sort()
+    types =  sorted(self.condor_config_data.keys())
     for type in types:
       filename = "%s/%s.config" % (self.local_config_dir(),type)
       common.logit("    %s" % os.path.basename(filename))
