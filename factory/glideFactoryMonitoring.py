@@ -198,7 +198,7 @@ class MonitoringConfig:
                 ds_arr = []
                 for ds_name in ds_names:
                     ds_desc = {'ds_type':'GAUGE', 'min':'U', 'max':'U'}
-                    if ds_desc_dict.has_key(ds_name):
+                    if ds_name in ds_desc_dict:
                         for k in ds_desc_dict[ds_name].keys():
                             ds_desc[k] = ds_desc_dict[ds_name][k]
 
@@ -244,13 +244,13 @@ class condorQStats:
         """
         qc_status is a dictionary of condor_status:nr_jobs
         """
-        if self.data.has_key(client_name):
+        if client_name in self.data:
             t_el = self.data[client_name]
         else:
             t_el = {}
             self.data[client_name] = t_el
 
-        if t_el.has_key('Status'):
+        if 'Status' in t_el:
             el = t_el['Status']
         else:
             el = {}
@@ -261,9 +261,9 @@ class condorQStats:
         for p in status_pairs:
             nr, status = p
             # TODO: rewrite w/ if in ... else (after m31)
-            if not el.has_key(status):
+            if status not in el:
                 el[status] = 0
-            if qc_status.has_key(nr):
+            if nr in qc_status:
                 el[status] += qc_status[nr]
         # Listing pairs counting the cores (expected_cores). Avoid duplicates with the list above
         status_pairs = ((2, "RunningCores"),)
@@ -289,14 +289,14 @@ class condorQStats:
         Request contains only that (no real cores info)
         It is eveluated using GLIDEIN_CPUS
         """
-        if self.data.has_key(client_name):
+        if client_name in self.data:
             t_el = self.data[client_name]
         else:
             t_el = {}
             t_el['Downtime'] = {'status':self.downtime}
             self.data[client_name] = t_el
 
-        if t_el.has_key('Requested'):
+        if 'Requested' in t_el:
             el = t_el['Requested']
         else:
             el = {}
@@ -304,9 +304,9 @@ class condorQStats:
 
         for reqpair in (('IdleGlideins', 'Idle'), ('MaxGlideins', 'MaxGlideins')):
             org, new = reqpair
-            if not el.has_key(new):
+            if new not in el:
                 el[new] = 0
-            if requests.has_key(org):
+            if org in requests:
                 el[new] += requests[org]
         for reqpair in (('IdleGlideins', 'IdleCores'), ('MaxGlideins', 'MaxCores')):
             org, new = reqpair
@@ -342,13 +342,13 @@ class condorQStats:
         updates go in self.data (self.data[client_name]['ClientMonitor'])
         """
 
-        if self.data.has_key(client_name):
+        if client_name in self.data:
             t_el = self.data[client_name]
         else:
             t_el = {}
             self.data[client_name] = t_el
 
-        if t_el.has_key('ClientMonitor'):
+        if 'ClientMonitor' in t_el:
             el = t_el['ClientMonitor']
         else:
             el = {}
@@ -358,20 +358,20 @@ class condorQStats:
                      ('GlideinsIdle', 'GlideIdle'), ('GlideinsRunning', 'GlideRunning'), ('GlideinsTotal', 'GlideTotal'),
                      ('GlideinsIdleCores', 'CoresIdle'), ('GlideinsRunningCores', 'CoresRunning'), ('GlideinsTotalCores', 'CoresTotal')):
             ck, ek = karr
-            if not el.has_key(ek):
+            if ek not in el:
                 el[ek] = 0
-            if client_monitor.has_key(ck):
+            if ck in client_monitor:
                 el[ek] += (client_monitor[ck] * fraction)
             elif ck == 'RunningHere':
                 # for compatibility, if RunningHere not defined, use min between Running and GlideinsRunning
-                if (client_monitor.has_key('Running') and client_monitor.has_key('GlideinsRunning')):
+                if ('Running' in client_monitor and 'GlideinsRunning' in client_monitor):
                     el[ek] += (min(client_monitor['Running'], client_monitor['GlideinsRunning']) * fraction)
 
-        if not el.has_key('InfoAge'):
+        if 'InfoAge' not in el:
             el['InfoAge'] = 0
             el['InfoAgeAvgCounter'] = 0  # used for totals since we need an avg in totals, not absnum
 
-        if client_internals.has_key('LastHeardFrom'):
+        if 'LastHeardFrom' in client_internals:
             el['InfoAge'] += (int(time.time() - long(client_internals['LastHeardFrom'])) * fraction)
             el['InfoAgeAvgCounter'] += fraction
 
@@ -383,7 +383,7 @@ class condorQStats:
         # convert all ClinetMonitor numbers in integers
         # needed due to fraction calculations
         for client_name in self.data.keys():
-            if self.data[client_name].has_key('ClientMonitor'):
+            if 'ClientMonitor' in self.data[client_name]:
                 el = self.data[client_name]['ClientMonitor']
                 for k in el.keys():
                     el[k] = int(round(el[k]))
@@ -414,7 +414,7 @@ class condorQStats:
         for f in self.data.keys():
             fe = self.data[f]
             for w in fe.keys():
-                if total.has_key(w): # ignore eventual not supported classes
+                if w in total: # ignore eventual not supported classes
                     el = fe[w]
                     tel = total[w]
 
@@ -429,12 +429,12 @@ class condorQStats:
                         # successive, sum
                         for a in el.keys():
                             if type(el[a]) == type(1): # consider only numbers
-                                if tel.has_key(a):
+                                if a in tel:
                                     tel[a] += el[a]
                             # if other frontends did't have this attribute, ignore
                         # if any attribute from prev. frontends are not in the current one, remove from total
                         for a in tel.keys():
-                            if not el.has_key(a):
+                            if a not in el:
                                 del tel[a]
                             elif type(el[a]) != type(1):
                                 del tel[a]
@@ -619,11 +619,11 @@ class condorLogSummary:
         @param stats: Dictionary keyed by "username:client_int_name"
         client_int_name is needed for frontends with multiple groups
         """
-        if not self.current_stats_data.has_key(client_name):
+        if client_name not in self.current_stats_data:
             self.current_stats_data[client_name] = {}
 
         for username in stats.keys():
-            if not self.current_stats_data[client_name].has_key(username):
+            if username not in self.current_stats_data[client_name]:
                 self.current_stats_data[client_name][username] = stats[username].get_simple()
             else:
                 self.current_stats_data[client_name][username].merge(stats[username])
@@ -644,10 +644,10 @@ class condorLogSummary:
         """
         for client_name in self.current_stats_data.keys():
             self.stats_diff[client_name]={}
-            if self.old_stats_data.has_key(client_name):
+            if client_name in self.old_stats_data:
                 stats=self.current_stats_data[client_name]
                 for username in stats.keys():
-                    if self.old_stats_data[client_name].has_key(username):
+                    if username in self.old_stats_data[client_name]:
                         self.stats_diff[client_name][username]=stats[username].diff(self.old_stats_data[client_name][username])
 
     def get_stats_data_summary(self):
@@ -699,9 +699,9 @@ class condorLogSummary:
             enle_glidein_duration = enle_difftime # best guess
             if enle_stats is not None:
                 enle_condor_started = enle_stats['condor_started']
-                if enle_stats.has_key('glidein_duration'):
+                if 'glidein_duration' in enle_stats:
                     enle_glidein_duration = enle_stats['glidein_duration']
-                if enle_stats.has_key('username'):
+                if 'username' in enle_stats:
                     username = enle_stats['username']
             if not enle_condor_started:
                 # 100% waste_mill
@@ -733,7 +733,7 @@ class condorLogSummary:
                                      'nosuccess':0, #no jobs run, no failures
                                      'badput':1000}
                 else:
-                    if enle_stats.has_key('validation_duration'):
+                    if 'validation_duration' in enle_stats:
                         enle_validation_duration = enle_stats['validation_duration']
                     else:
                         enle_validation_duration = enle_difftime - enle_condor_duration
@@ -973,7 +973,7 @@ class condorLogSummary:
         out_total = {'Current':{}, 'Entered':{}, 'Exited':{}}
         for k in diff_total.keys():
             out_total['Entered'][k] = len(diff_total[k]['Entered'])
-            if stats_total.has_key(k):
+            if k in stats_total:
                 out_total['Current'][k] = len(stats_total[k])
                 # if no current, also exited does not have sense (terminal state)
                 out_total['Exited'][k] = len(diff_total[k]['Exited'])

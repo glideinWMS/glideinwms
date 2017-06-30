@@ -141,7 +141,7 @@ those in your frontend_users attribute of the WMSCollector ini file:
         user_valid = False
         common.logit("ERROR: for frontend(%s), user (%s) account not created" % (service_name,user))
         continue
-      if not self.frontend_groups.has_key(group):
+      if group not in self.frontend_groups:
         self.frontend_groups[group] = []
       # multiple users may share  the same group, so group them together
       self.frontend_groups[group].append(user)

@@ -158,7 +158,7 @@ def printDowntime(fname,entry="Any",check_time=None):
                 continue # check_time before start
             if (time_tuple[1] is not None)and (check_time>time_tuple[1]):
                 continue
-            if (downtime_keys.has_key(time_tuple[2])):
+            if (time_tuple[2] in downtime_keys):
                 downtime_keys[time_tuple[2]]+=","+time_tuple[3]+":"+time_tuple[4]
             else:
                 downtime_keys[time_tuple[2]]=time_tuple[3]+":"+time_tuple[4]

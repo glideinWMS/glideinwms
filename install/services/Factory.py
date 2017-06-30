@@ -751,7 +751,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
       cluster_id = "ress_%s"%site_name
 
       count = 1
-      if cluster_count.has_key(cluster_id):
+      if cluster_id in cluster_count:
         count = cluster_count[cluster_id] + 1
       cluster_count[cluster_id] = count
 

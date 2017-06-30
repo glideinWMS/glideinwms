@@ -282,8 +282,8 @@ def getQProxSecClass(condorq, client_name, proxy_security_class,
     entry_condorQ = condorMonitor.SubQuery(
         condorq,
         lambda d: (
-            d.has_key(csa_str) and (d[csa_str] == client_name) and
-            d.has_key(xsa_str) and (d[xsa_str] == proxy_security_class)
+            csa_str in d and (d[csa_str] == client_name) and
+            xsa_str in d and (d[xsa_str] == proxy_security_class)
         )
     )
     entry_condorQ.schedd_name = condorq.schedd_name
@@ -408,7 +408,7 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
         # all args go through the environment, so they are protected
         update_proxy_env = ['HEXDATA=%s' % binascii.b2a_hex(proxy_data), 'FNAME=%s' % fname]
         for var in ('PATH', 'LD_LIBRARY_PATH', 'PYTHON_PATH'):
-            if os.environ.has_key(var):
+            if var in os.environ:
                 update_proxy_env.append('%s=%s' % (var, os.environ[var]))
 
         try:
@@ -565,14 +565,14 @@ def keepIdleGlideins(client_condorq, client_int_name, req_min_idle,
 
     # Held==JobStatus(5)
     q_held_glideins = 0
-    if qc_status.has_key(5):
+    if 5 in qc_status:
         q_held_glideins = qc_status[5]
     # Idle==Jobstatus(1)
     sum_idle_count(qc_status)
     q_idle_glideins = qc_status[1]
     # Running==Jobstatus(2)
     q_running_glideins = 0
-    if qc_status.has_key(2):
+    if 2 in qc_status:
         q_running_glideins = qc_status[2]
 
     # Determine how many more idle glideins we need in requested idle (we may already have some)
@@ -877,7 +877,7 @@ def logWorkRequest(client_int_name, client_security_name, proxy_security_class,
     if factoryConfig is None:
         factoryConfig = globals()['factoryConfig']
 
-    if work_el['requests'].has_key('RemoveExcess'):
+    if 'RemoveExcess' in work_el['requests']:
         remove_excess = work_el['requests']['RemoveExcess']
     else:
         remove_excess = 'NO'
@@ -933,7 +933,7 @@ def hash_status(el):
     job_status = el["JobStatus"]
     if job_status == 1:
         # idle jobs, look of GridJobStatus
-        if el.has_key("GridJobStatus"):
+        if "GridJobStatus" in el:
             grid_status = str(el["GridJobStatus"]).upper()
             if grid_status in ("PENDING", "INLRMS: Q", "PREPARED", "SUBMITTING", "IDLE", "SUSPENDED", "REGISTERED", "INLRMS:Q"):
                 return 1002
@@ -945,7 +945,7 @@ def hash_status(el):
             return 1001
     elif job_status == 2:
         # count only real running, all others become Other
-        if el.has_key("GridJobStatus"):
+        if "GridJobStatus" in el:
             grid_status = str(el["GridJobStatus"]).upper()
             if grid_status in ("ACTIVE", "REALLY-RUNNING", "INLRMS: R", "RUNNING", "INLRMS:R"):
                 return 2
@@ -973,7 +973,7 @@ def hash_statusStale(el):
     global factoryConfig
     age = el["ServerTime"] - el["EnteredCurrentStatus"]
     jstatus = el["JobStatus"]
-    if factoryConfig.stale_maxage.has_key(jstatus):
+    if jstatus in factoryConfig.stale_maxage:
         return [jstatus, age > factoryConfig.stale_maxage[jstatus]]
     else:
         return [jstatus, 0] # others are not stale
@@ -1595,7 +1595,7 @@ email_logs = False
 
             # RSL is definitely not for cloud entries
             glidein_rsl = ""
-            if jobDescript.data.has_key('GlobusRSL'):
+            if 'GlobusRSL' in jobDescript.data:
                 glidein_rsl = jobDescript.data['GlobusRSL']
 
             if 'project_id' in jobDescript.data['AuthMethod']:
@@ -1630,7 +1630,7 @@ def isGlideinWithinHeldLimits(jobInfo, factoryConfig=None):
         factoryConfig = globals()['factoryConfig']
 
     # some basic sanity checks to start
-    if not jobInfo.has_key('JobStatus'):
+    if 'JobStatus' not in jobInfo:
         return True
     if jobInfo['JobStatus']!=5:
         return True
@@ -1639,13 +1639,13 @@ def isGlideinWithinHeldLimits(jobInfo, factoryConfig=None):
     within_limits=True
 
     num_holds=1
-    if jobInfo.has_key('NumSystemHolds'):
+    if 'NumSystemHolds' in jobInfo:
         num_holds=jobInfo['NumSystemHolds']
 
     if num_holds>factoryConfig.max_release_count:
         within_limits=False
 
-    if jobInfo.has_key('ServerTime') and jobInfo.has_key('EnteredCurrentStatus'):
+    if 'ServerTime' in jobInfo and 'EnteredCurrentStatus' in jobInfo:
         held_period=jobInfo['ServerTime']-jobInfo['EnteredCurrentStatus']
         if held_period<(num_holds*factoryConfig.min_release_time):
             # slower for repeat offenders
@@ -1790,12 +1790,12 @@ class GlideinTotals:
         self.entry_running = 0
         self.entry_held = 0
         self.entry_idle = 0
-        if qc_status.has_key(2):  # Running==Jobstatus(2)
+        if 2 in qc_status:  # Running==Jobstatus(2)
             self.entry_running = qc_status[2]
-        if qc_status.has_key(5):  # Held==JobStatus(5)
+        if 5 in qc_status:  # Held==JobStatus(5)
             self.entry_held = qc_status[5]
         sum_idle_count(qc_status)
-        if qc_status.has_key(1):  # Idle==Jobstatus(1)
+        if 1 in qc_status:  # Idle==Jobstatus(1)
             self.entry_idle = qc_status[1]
 
         all_frontends = frontendDescript.get_all_frontend_sec_classes()
@@ -1842,12 +1842,12 @@ class GlideinTotals:
             fe_running = 0
             fe_held = 0
             fe_idle = 0
-            if qc_status.has_key(2):  # Running==Jobstatus(2)
+            if 2 in qc_status:  # Running==Jobstatus(2)
                 fe_running = qc_status[2]
-            if qc_status.has_key(5):  # Held==JobStatus(5)
+            if 5 in qc_status:  # Held==JobStatus(5)
                 fe_held = qc_status[5]
             sum_idle_count(qc_status)
-            if qc_status.has_key(1):  # Idle==Jobstatus(1)
+            if 1 in qc_status:  # Idle==Jobstatus(1)
                 fe_idle = qc_status[1]
 
             self.frontend_limits[fe_sec_class]['running'] = fe_running

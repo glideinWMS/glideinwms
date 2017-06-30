@@ -358,7 +358,7 @@ class FETestCaseCondorQ(FETestCaseBase):
         glideinFrontendLib.getOldCondorQ(condorq_dict, min_age)
         self.assertEqual(m_SubQuery.call_args[0][0], 42)
         self.assertTrue(compareLambdas(m_SubQuery.call_args[0][1],
-                                       lambda el:(el.has_key('ServerTime') and el.has_key('EnteredCurrentStatus') and ((el['ServerTime'] - el['EnteredCurrentStatus']) >= min_age))))
+                                       lambda el:('ServerTime' in el and 'EnteredCurrentStatus' in el and ((el['ServerTime'] - el['EnteredCurrentStatus']) >= min_age))))
 
         # this just checks that the lambda is evaluating the min_age variable, not dereferencing it!
 

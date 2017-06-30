@@ -235,13 +235,13 @@ def aggregateStatus(in_downtime):
         status['entries'][entry]={'downtime':entry_data['downtime'], 'frontends':entry_data['frontends']}
 
         # update total
-        if entry_data.has_key('total'):
+        if 'total' in entry_data:
             nr_entries+=1
             status['entries'][entry]['total']=entry_data['total']
 
             for w in global_total.keys():
                 tel=global_total[w]
-                if not entry_data['total'].has_key(w):
+                if w not in entry_data['total']:
                     continue
                 el=entry_data['total'][w]
                 if tel is None:
@@ -253,27 +253,27 @@ def aggregateStatus(in_downtime):
                 else:
                     # successive, sum
                     for a in el.keys():
-                        if tel.has_key(a):
+                        if a in tel:
                             tel[a]+=int(el[a])
 
                         # if any attribute from prev. frontends are not in the current one, remove from total
                         for a in tel.keys():
-                            if not el.has_key(a):
+                            if a not in el:
                                 del tel[a]
 
         # update frontends
-        if entry_data.has_key('frontends'):
+        if 'frontends' in entry_data:
             #loop on fe's in this entry
             for fe in entry_data['frontends'].keys():
                 #compare each to the list of fe's accumulated so far
-                if not status_fe['frontends'].has_key(fe):
+                if fe not in status_fe['frontends']:
                     status_fe['frontends'][fe]={}
-                if not nr_feentries.has_key(fe):
+                if fe not in nr_feentries:
                     nr_feentries[fe]=1 #already found one
                 else:
                     nr_feentries[fe]+=1
                 for w in entry_data['frontends'][fe].keys():
-                    if not status_fe['frontends'][fe].has_key(w):
+                    if w not in status_fe['frontends'][fe]:
                         status_fe['frontends'][fe][w]={}
                     tela=status_fe['frontends'][fe][w]
                     ela=entry_data['frontends'][fe][w]
@@ -283,7 +283,7 @@ def aggregateStatus(in_downtime):
                         # 'a' is sub-field, such as 'GlideIdle' or 'status'
                         if w=='Downtime' and a=='status':
                             ela_val=(ela[a]!='False') # Check if 'True' or 'False' but default to True if neither
-                            if tela.has_key(a):
+                            if a in tela:
                                 try:
                                     tela[a]=tela[a] and ela_val
                                 except:
@@ -293,7 +293,7 @@ def aggregateStatus(in_downtime):
                         else:
                             try:
                                 #if there already, sum
-                                if tela.has_key(a):
+                                if a in tela:
                                     tela[a]+=int(ela[a])
                                 else:
                                     tela[a]=int(ela[a])
@@ -302,7 +302,7 @@ def aggregateStatus(in_downtime):
 
                         # if any attribute from prev. frontends are not in the current one, remove from total
                         for a in tela.keys():
-                            if not ela.has_key(a):
+                            if a not in ela:
                                 del tela[a]
 
 
@@ -320,7 +320,7 @@ def aggregateStatus(in_downtime):
         for w in status_fe['frontends'][fe].keys():
             tel=status_fe['frontends'][fe][w]
             for a in tel.keys():
-                if a in avgEntries and nr_feentries.has_key(fe):
+                if a in avgEntries and fe in nr_feentries:
                     tel[a]=tel[a]/nr_feentries[fe] # divide per fe
 
 
@@ -524,7 +524,7 @@ def aggregateLogSummary():
         status['entries'][entry] = {'frontends': out_data}
 
         # update total
-        if entry_data.has_key('total'):
+        if 'total' in entry_data:
             nr_entries += 1
             local_total = {}
 
@@ -765,7 +765,7 @@ def aggregateRRDStats(log=logSupport.log):
                                 #log.debug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s]"%(entry,client,'periods',res,data_set))
 
                         else:
-                            if stats[entry]['frontends'].has_key(client):
+                            if client in stats[entry]['frontends']:
                                 # not all the entries have all the frontends
                                 try:
                                     aggregate_output[client][res][data_set] += float(stats[entry]['frontends'][client]['periods'][res][data_set])

@@ -70,7 +70,7 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
         to see if the job has finished and to extract some data.
         """
         condorLogParser.logSummaryTimings.loadFromLog(self)
-        if not self.data.has_key('Completed'):
+        if 'Completed' not in self.data:
             return # nothing else to fo
         org_completed=self.data['Completed']
         new_completed=[]
@@ -157,12 +157,12 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
 
             for s in keys.keys():
                 sel=[]
-                if self.data.has_key(s):
+                if s in self.data:
                     for sel_e in self.data[s]:
                         sel.append(sel_e[0])
 
                 oel=[]
-                if other.has_key(s):
+                if s in other:
                     for oel_e in other[s]:
                         oel.append(oel_e[0])
 
@@ -177,14 +177,14 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
 
                 entered_set=sset.difference(oset)
                 entered=[]
-                if self.data.has_key(s):
+                if s in self.data:
                     for sel_e in self.data[s]:
                         if sel_e[0] in entered_set:
                             entered.append(sel_e)
 
                 exited_set=oset.difference(sset)
                 exited=[]
-                if other.has_key(s):
+                if s in other:
                     for oel_e in other[s]:
                         if oel_e[0] in exited_set:
                             exited.append(oel_e)
@@ -211,7 +211,7 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
         @return: data[status]['Entered'|'Exited'] - list of jobs
         """
         outdata=self.diff_raw(other)
-        if outdata.has_key("Completed"):
+        if "Completed" in outdata:
             outdata_s=outdata["Completed"]
             entered=outdata_s['Entered']
             for i in range(len(entered)):
@@ -393,7 +393,7 @@ def extractLogData(fname):
                                     jobsnr=None
 
                                 if jobsnr is not None: #check I had no errors in integer conversion
-                                    if not slot_stats.has_key(count_name):
+                                    if count_name not in slot_stats:
                                         slot_stats[count_name]={'jobsnr':jobsnr,'secs':secs}
 
                                 count_re=ELD_RC_CONDOR_SLOT_CONTENT_COUNT.search(slot_buf,count_re.end()+1)

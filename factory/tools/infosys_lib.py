@@ -144,7 +144,7 @@ def query_bdii(bdii_source, vo_name=''):
 
     # Update work dir and glexec bin according to site type
     for ce in ceListKeys:
-        if ceType.has_key(ce):
+        if ce in ceType:
             ceList[ce]['site_type'] = ceType[ce]
             if ceType[ce] == 'OSG':
                 ceList[ce]['work_dir'] = 'OSG'
@@ -177,7 +177,7 @@ def siteType(ceList, Bdii):
            item = x[0][1]
            site = item['GlueSiteUniqueID'][0]
            siteDescr = item['GlueSiteDescription'][0]
-           if item.has_key('GlueSiteOtherInfo'):
+           if 'GlueSiteOtherInfo' in item:
                siteInfo = item['GlueSiteOtherInfo']
            gridType = parseGridType(siteDescr, siteInfo)
 
@@ -191,7 +191,7 @@ def siteType(ceList, Bdii):
            cluster = Bdii.ce_to_cluster_map[ce]
            site = Bdii.cluster_to_site_map[cluster]
 
-           if siteGridType.has_key(site):
+           if site in siteGridType:
                ceType[ce] = siteGridType[site]
 
        except KeyError as e:
@@ -401,7 +401,7 @@ def parse_entries(config_dom, skip_missing_ref_id=True, skip_disabled=True):
         entry['gridtype'] = entry_element.attributes['gridtype'].value.encode('utf-8')
         entry['work_dir'] = entry_element.attributes['work_dir'].value.encode('utf-8')
                 
-        if entry_element.attributes.has_key('rsl'):
+        if 'rsl' in entry_element.attributes:
             entry['rsl'] = entry_element.attributes["rsl"].value.encode('utf-8')
         else:
             entry['rsl'] = ""

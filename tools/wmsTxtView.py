@@ -88,14 +88,14 @@ for glidein in glideins:
         raise RuntimeError, "Unknwon type '%s'"%txt_type
     
         
-    if txt_data.has_key(key):
+    if key in txt_data:
         key_el=txt_data[key]
     else:
         key_el={'RequestedIdle':0,'Idle':0,'Running':0,'MaxGlideins':0}
         txt_data[key]=key_el
 
-    if glidein_el.has_key('monitor'):
-        if glidein_el['monitor'].has_key('TotalRequestedIdle'):
+    if 'monitor' in glidein_el:
+        if 'TotalRequestedIdle' in glidein_el['monitor']:
             key_el['RequestedIdle']+=glidein_el['monitor']['TotalRequestedIdle']
             key_el['Idle']+=glidein_el['monitor']['TotalStatusIdle']
             key_el['Running']+=glidein_el['monitor']['TotalStatusRunning']

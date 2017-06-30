@@ -390,9 +390,9 @@ class ProxyUserMapWRecycling:
                         rtnlist.append(total_user_map[type][trust_domain][k]['proxy'])
             return rtnlist
         else:
-            if (not total_user_map.has_key(credential_type)):
+            if (credential_type not in total_user_map):
                 return []
-            if (not total_user_map[credential_type].has_key(trust_domain)):
+            if (trust_domain not in total_user_map[credential_type]):
                 return []
             user_map=total_user_map[credential_type][trust_domain]
 
@@ -401,7 +401,7 @@ class ProxyUserMapWRecycling:
             # find an appropriate credential
             # skip all that do not match auth method or trust_domain
                 
-            if not user_map.has_key(user):
+            if user not in user_map:
                 keys = user_map.keys()
                 found=False
                 new_key=""
@@ -465,9 +465,9 @@ class ProxyUserMapWRecycling:
     def add_proxy(self,user_map,proxy):
         type=proxy.type
         trust=proxy.trust_domain
-        if (not user_map.has_key(type)):
+        if (type not in user_map):
             user_map[type]={}
-        if (not user_map[type].has_key(trust)):
+        if (trust not in user_map[type]):
             user_map[type][trust]={}
         idx=self.config_data['first_free_index']
         user_map[type][trust][idx] = {'proxy':proxy,

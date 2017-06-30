@@ -216,7 +216,7 @@ def load_common_dicts(dicts,           # update in place
     dicts['consts'].load(fname=file_el[cWConsts.CONSTS_FILE][0])
     dicts['vars'].load(fname=file_el[cWConsts.VARS_FILE][0])
     dicts['untar_cfg'].load(fname=file_el[cWConsts.UNTAR_CFG_FILE][0])
-    if dicts.has_key('gridmap') and file_el.has_key(cWConsts.GRIDMAP_FILE):
+    if 'gridmap' in dicts and cWConsts.GRIDMAP_FILE in file_el:
         dicts['gridmap'].load(fname=file_el[cWConsts.GRIDMAP_FILE][0])
 
 def load_main_dicts(main_dicts): # update in place
@@ -253,7 +253,7 @@ def refresh_description(dicts): # update in place
     description_dict=dicts['description']
     description_dict.add(dicts['signature'].get_fname(),"signature",allow_overwrite=True)
     for k in ('file_list','after_file_list'):
-        if dicts.has_key(k):
+        if k in dicts:
             description_dict.add(dicts[k].get_fname(),k,allow_overwrite=True)
 
 
@@ -278,7 +278,7 @@ def refresh_file_list(dicts, is_main, # update in place
             dicts['untar_cfg'].save_into_str(set_readonly=files_set_readonly, reset_changed=files_reset_changed),
             allow_overwrite=True
     )
-    if is_main and dicts.has_key('gridmap'):
+    if is_main and 'gridmap' in dicts:
         file_dict.add_from_str(
                 cWConsts.GRIDMAP_FILE,
                 cWDictFile.FileDictFile.make_val_tuple(dicts['gridmap'].get_fname(), 'regular', config_out='GRIDMAP'),
@@ -291,11 +291,11 @@ def refresh_file_list(dicts, is_main, # update in place
 def refresh_signature(dicts):  # update in place
     signature_dict = dicts['signature']
     for k in ('consts', 'vars', 'untar_cfg', 'gridmap', 'file_list', 'after_file_list', 'description'):
-        if dicts.has_key(k):
+        if k in dicts:
             signature_dict.add_from_file(dicts[k].get_filepath(), allow_overwrite=True)
     # add signatures of all the files linked in the lists
     for k in ('file_list', 'after_file_list'):
-        if dicts.has_key(k):
+        if k in dicts:
             filedict = dicts[k]
             for fname in filedict.get_immutable_files():
                 signature_dict.add_from_file(os.path.join(filedict.dir, fname), allow_overwrite=True)
@@ -322,11 +322,11 @@ def save_common_dicts(dicts,     # will update in place, too
     refresh_file_list(dicts,is_main)
     # save files in the file lists
     for k in ('file_list','after_file_list'):
-        if dicts.has_key(k):
+        if k in dicts:
             dicts[k].save_files(allow_overwrite=True)
     # then save the lists
     for k in ('file_list','after_file_list'):
-        if dicts.has_key(k):
+        if k in dicts:
             dicts[k].save(set_readonly=set_readonly)
     # calc and save the signatues
     refresh_signature(dicts)
@@ -385,7 +385,7 @@ def reuse_common_dicts(dicts, other_dicts,is_main,all_reused):
     refresh_file_list(dicts,is_main)
     # check file-based dictionaries
     for k in ('file_list','after_file_list'):
-        if dicts.has_key(k):
+        if k in dicts:
             all_reused=reuse_file_dict(dicts,other_dicts,k) and all_reused
 
     if all_reused:

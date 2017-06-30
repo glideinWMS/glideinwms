@@ -45,7 +45,7 @@ class SubParams:
     def keys(self):
         return self.data.keys()
     def has_key(self,name):
-        return self.data.has_key(name)
+        return name in self.data
     def __getitem__(self,name):
         return self.get_el(name)    
     def __repr__(self):
@@ -60,7 +60,7 @@ class SubParams:
     # validate input against bae template (i.e. the defaults)
     def validate(self,base,path_text):
         for k in self.data.keys():
-            if not base.has_key(k):
+            if k not in base:
                 # element not in base, report
                 raise RuntimeError, "Unknown parameter %s.%s"%(path_text,k)
             else:
@@ -99,7 +99,7 @@ class SubParams:
             defel=defaults[k]
             if isinstance(defel,xmlParse.OrderedDict):
                 # subdictionary
-                if not self.data.has_key(k):
+                if k not in self.data:
                     self.data[k]=xmlParse.OrderedDict() # first create empty, if does not exist
 
                 # then, set defaults on all elements of subdictionary
@@ -110,7 +110,7 @@ class SubParams:
 
                 if isinstance(defvalue,xmlParse.OrderedDict):
                     # dictionary el elements
-                    if not self.data.has_key(k):
+                    if k not in self.data:
                         self.data[k]=xmlParse.OrderedDict() # no elements yet, set and empty dictionary
                     else:
                         # need to set defaults on all elements in the dictionary
@@ -119,7 +119,7 @@ class SubParams:
                             data_el[data_subkey].use_defaults(subdef)
                 elif type(defvalue)==type([]):
                     # list of elements
-                    if not self.data.has_key(k):
+                    if k not in self.data:
                         self.data[k]=[] # no elements yet, set and empty list
                     else:
                         # need to set defaults on all elements in the list
@@ -127,7 +127,7 @@ class SubParams:
                             data_el.use_defaults(subdef)
                 else:
                     # a simple value
-                    if not self.data.has_key(k):
+                    if k not in self.data:
                         self.data[k]=copy.deepcopy(defvalue)
                     # else nothing to do, already set
 

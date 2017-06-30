@@ -85,18 +85,18 @@ def monitor(jid,schedd_name,pool_name,
     condor_status=getMonitorVMStatus(pool_name,monitorVM)
     validateMonitorVMStatus(condor_status,monitorVM)
 
-    if condor_status.has_key('GLEXEC_STARTER'):
+    if 'GLEXEC_STARTER' in condor_status:
         glexec_starter=condor_status['GLEXEC_STARTER']
     else:
         glexec_starter=False #if not defined, assume no gLExec for old way
 
-    if condor_status.has_key('GLEXEC_JOB'):
+    if 'GLEXEC_JOB' in condor_status:
         glexec_job=condor_status['GLEXEC_JOB']
     else:
         glexec_job=False #if not defined, assume no gLExec for new way
 
     if glexec_starter or glexec_job:
-        if not os.environ.has_key('X509_USER_PROXY'):
+        if 'X509_USER_PROXY' not in os.environ:
             raise RuntimeError, "Job running on a gLExec enabled resource; X509_USER_PROXY must be defined"
         x509_file=os.environ['X509_USER_PROXY']
     else:
@@ -139,9 +139,9 @@ def getRemoteVM(pool_name,schedd_name,constraint):
     if len(data.keys())>1:
         raise RuntimeError, "Can handle only one job at a time"
     el=data.values()[0]
-    if (not el.has_key('JobStatus')) or (el['JobStatus']!=2):
+    if ('JobStatus' not in el) or (el['JobStatus']!=2):
         raise RuntimeError, "Job not running"
-    if not el.has_key('RemoteHost'):
+    if 'RemoteHost' not in el:
         raise RuntimeError, "Job still starting"
     
     return el['RemoteHost']
@@ -149,16 +149,16 @@ def getRemoteVM(pool_name,schedd_name,constraint):
 def getMonitorVM(pool_name,jobVM):
     cs=condorMonitor.CondorStatus(pool_name=pool_name)
     data=cs.fetch(constraint='(Name=="%s")'%jobVM,format_list=[('IS_MONITOR_VM','b'),('HAS_MONITOR_VM','b'),('Monitoring_Name','s')])
-    if not data.has_key(jobVM):
+    if jobVM not in data:
         raise RuntimeError, "Job claims it runs on %s, but cannot find it!"%jobVM
     job_data=data[jobVM]
-    if (not job_data.has_key('HAS_MONITOR_VM')) or (not job_data.has_key('IS_MONITOR_VM')):
+    if ('HAS_MONITOR_VM' not in job_data) or ('IS_MONITOR_VM' not in job_data):
         raise RuntimeError, "Slot %s does not support monitoring!"%jobVM
     if not (job_data['HAS_MONITOR_VM']==True):
         raise RuntimeError, "Slot %s does not support monitoring! HAS_MONITOR_VM not True."%jobVM
     if not (job_data['IS_MONITOR_VM']==False):
         raise RuntimeError, "Slot %s is a monitoring slot itself! Cannot monitor."%jobVM
-    if not job_data.has_key('Monitoring_Name'):
+    if 'Monitoring_Name' not in job_data:
         raise RuntimeError, "Slot %s does not publish the monitoring slot!"%jobVM
 
     return job_data['Monitoring_Name']
@@ -167,13 +167,13 @@ def getMonitorVMStatus(pool_name,monitorVM):
     cs=condorMonitor.CondorStatus(pool_name=pool_name)
     data=cs.fetch(constraint='(Name=="%s")'%monitorVM,
                   format_list=[('IS_MONITOR_VM','b'),('HAS_MONITOR_VM','b'),('State','s'),('Activity','s'),('vm2_State','s'),('vm2_Activity','s'),('GLEXEC_STARTER','b'),('USES_MONITOR_STARTD','b'),('GLEXEC_JOB','b')])
-    if not data.has_key(monitorVM):
+    if monitorVM not in data:
         raise RuntimeError, "Monitor slot %s does not exist!"%monitorVM
 
     return data[monitorVM]
 
 def validateMonitorVMStatus(condor_status,monitorVM):
-    if ((not condor_status.has_key('HAS_MONITOR_VM')) or
+    if (('HAS_MONITOR_VM' not in condor_status) or
         (condor_status['HAS_MONITOR_VM']!=True)):
         raise RuntimeError, "Monitor slot %s does not allow monitoring"%monitorVM
     if not (condor_status['IS_MONITOR_VM']==True):
@@ -186,7 +186,7 @@ def validateMonitorVMStatus(condor_status,monitorVM):
     if condor_status['Activity']=='Retiring':
         raise RuntimeError, "Job cannot be monitored anymore"
 
-    if condor_status.has_key('vm2_State'):
+    if 'vm2_State' in condor_status:
         # only if has vm2_State are cross VM states checked
         if condor_status['vm2_State']!='Claimed':
             raise RuntimeError, "Job cannot be yet monitored"

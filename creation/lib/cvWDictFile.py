@@ -118,9 +118,9 @@ def get_group_dicts(group_work_dir,group_stage_dir,group_name,simple_work_dir):
 def load_common_dicts(dicts,           # update in place
                       description_el):
     # first work dir ones (mutable)
-    if dicts.has_key('params'):
+    if 'params' in dicts:
         dicts['params'].load()
-    if dicts.has_key('attrs'):
+    if 'attrs' in dicts:
         try:
             dicts['attrs'].load()
         except RuntimeError as e:
@@ -136,7 +136,7 @@ def load_common_dicts(dicts,           # update in place
     dicts['consts'].load(fname=file_el[cWConsts.CONSTS_FILE][0])
     dicts['vars'].load(fname=file_el[cWConsts.VARS_FILE][0])
     dicts['untar_cfg'].load(fname=file_el[cWConsts.UNTAR_CFG_FILE][0])
-    if dicts.has_key('gridmap'):
+    if 'gridmap' in dicts:
         dicts['gridmap'].load(fname=file_el[cWConsts.GRIDMAP_FILE][0])
 
 def load_main_dicts(main_dicts): # update in place
@@ -146,7 +146,7 @@ def load_main_dicts(main_dicts): # update in place
     # load the description
     main_dicts['description'].load(fname=main_dicts['summary_signature']['main'][1])
     # all others are keyed in the description
-    if main_dicts.has_key('aftergroup_file_list'):
+    if 'aftergroup_file_list' in main_dicts:
         main_dicts['aftergroup_file_list'].load(fname=main_dicts['description'].vals2['aftergroup_file_list'])
         # no need for another test, always paired
         main_dicts['aftergroup_preentry_file_list'].load(fname=main_dicts['description'].vals2['aftergroup_preentry_file_list'])
@@ -171,7 +171,7 @@ def refresh_description(dicts):  # update in place
     description_dict = dicts['description']
     description_dict.add(dicts['signature'].get_fname(), "signature", allow_overwrite=True)
     for k in ('preentry_file_list', 'file_list', 'aftergroup_preentry_file_list', 'aftergroup_file_list'):
-        if dicts.has_key(k):
+        if k in dicts:
             description_dict.add(dicts[k].get_fname(), k, allow_overwrite=True)
 
 
@@ -209,11 +209,11 @@ def refresh_file_list(dicts, is_main,  # update in place
 def refresh_signature(dicts):  # update in place
     signature_dict = dicts['signature']
     for k in ('consts','vars','untar_cfg','gridmap','preentry_file_list','file_list','aftergroup_preentry_file_list','aftergroup_file_list','description'):
-        if dicts.has_key(k):
+        if k in dicts:
             signature_dict.add_from_file(dicts[k].get_filepath(),allow_overwrite=True)
     # add signatures of all the files linked in the lists
     for k in ('preentry_file_list', 'file_list', 'aftergroup_preentry_file_list', 'aftergroup_file_list'):
-        if dicts.has_key(k):
+        if k in dicts:
             filedict = dicts[k]
             for fname in filedict.get_immutable_files():
                 signature_dict.add_from_file(os.path.join(filedict.dir, fname), allow_overwrite=True)
@@ -240,20 +240,20 @@ def save_common_dicts(dicts,     # will update in place, too
     refresh_file_list(dicts,is_main)
     # save files in the file lists
     for k in ('preentry_file_list','file_list','aftergroup_preentry_file_list','aftergroup_file_list'):
-        if dicts.has_key(k):
+        if k in dicts:
             dicts[k].save_files(allow_overwrite=True)
     # then save the lists
     for k in ('preentry_file_list','file_list','aftergroup_preentry_file_list','aftergroup_file_list'):
-        if dicts.has_key(k):
+        if k in dicts:
             dicts[k].save(set_readonly=set_readonly)
     # calc and save the signatues
     refresh_signature(dicts)
     dicts['signature'].save(set_readonly=set_readonly)
 
     #finally save the mutable one(s)
-    if dicts.has_key('params'):
+    if 'params' in dicts:
         dicts['params'].save(set_readonly=set_readonly)
-    if dicts.has_key('attrs'):
+    if 'attrs' in dicts:
         dicts['attrs'].save(set_readonly=set_readonly)
 
 # must be invoked after all the groups have been saved
@@ -297,13 +297,13 @@ def reuse_common_dicts(dicts, other_dicts,is_main,all_reused):
     # save the immutable ones
     # check simple dictionaries
     for k in ('consts','untar_cfg','vars','gridmap'):
-        if dicts.has_key(k):
+        if k in dicts:
             all_reused=reuse_simple_dict(dicts,other_dicts,k) and all_reused
     # since the file names may have changed, refresh the file_list    
     refresh_file_list(dicts,is_main)
     # check file-based dictionaries
     for k in ('preentry_file_list','file_list','aftergroup_preentry_file_list','aftergroup_file_list'):
-        if dicts.has_key(k):
+        if k in dicts:
             all_reused=reuse_file_dict(dicts,other_dicts,k) and all_reused
 
     if all_reused:
@@ -316,7 +316,7 @@ def reuse_common_dicts(dicts, other_dicts,is_main,all_reused):
             
     # check the mutable ones
     for k in ('params','attrs'):
-        if dicts.has_key(k):
+        if k in dicts:
             reuse_simple_dict(dicts,other_dicts,k)
 
     return all_reused

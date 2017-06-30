@@ -78,7 +78,7 @@ def getIdleProxyCondorQ(condorq_dict):
 def getIdleCondorQ(condorq_dict):
     out = {}
     for schedd_name in condorq_dict.keys():
-        sq = condorMonitor.SubQuery(condorq_dict[schedd_name], lambda el:(el.has_key('JobStatus') and (el['JobStatus'] == 1)))
+        sq = condorMonitor.SubQuery(condorq_dict[schedd_name], lambda el:('JobStatus' in el and (el['JobStatus'] == 1)))
         sq.load()
         out[schedd_name] = sq
     return out
@@ -92,7 +92,7 @@ def getIdleCondorQ(condorq_dict):
 def getRunningCondorQ(condorq_dict):
     out = {}
     for schedd_name in condorq_dict.keys():
-        sq = condorMonitor.SubQuery(condorq_dict[schedd_name], lambda el:(el.has_key('JobStatus') and (el['JobStatus'] == 2)))
+        sq = condorMonitor.SubQuery(condorq_dict[schedd_name], lambda el:('JobStatus' in el and (el['JobStatus'] == 2)))
         sq.load()
         out[schedd_name] = sq
     return out
@@ -112,7 +112,7 @@ def appendRealRunning(condorq_dict, status_dict):
         for jid in condorq:
             found = False
 
-            if condorq[jid].has_key('RemoteHost'):
+            if 'RemoteHost' in condorq[jid]:
                 remote_host = condorq[jid]['RemoteHost']
 
                 for collector_name in status_dict:
@@ -146,7 +146,7 @@ def appendRealRunning(condorq_dict, status_dict):
 def getOldCondorQ(condorq_dict, min_age):
     out = {}
     for schedd_name in condorq_dict.keys():
-        sq = condorMonitor.SubQuery(condorq_dict[schedd_name], lambda el:(el.has_key('ServerTime') and el.has_key('EnteredCurrentStatus') and ((el['ServerTime'] - el['EnteredCurrentStatus']) >= min_age)))
+        sq = condorMonitor.SubQuery(condorq_dict[schedd_name], lambda el:('ServerTime' in el and 'EnteredCurrentStatus' in el and ((el['ServerTime'] - el['EnteredCurrentStatus']) >= min_age)))
         sq.load()
         out[schedd_name] = sq
     return out
@@ -260,7 +260,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
             #  be considered equivalent and part of the same
             #  cluster for matching purposes
             jh=hashJob(condorq_data[jid],condorq_match_list)
-            if not cq_dict_clusters_el.has_key(jh):
+            if jh not in cq_dict_clusters_el:
                 cq_dict_clusters_el[jh]=[]
             # Add the job to the correct cluster according to the
             #   linearization scheme above
@@ -488,7 +488,7 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
         condorq_data = condorq.fetchStored()
         for jid in condorq_data.keys():
             jh = hashJob(condorq_data[jid],condorq_match_list)
-            if not cq_dict_clusters_el.has_key(jh):
+            if jh not in cq_dict_clusters_el:
                 cq_dict_clusters_el[jh] = []
             cq_dict_clusters_el[jh].append(jid)
 
@@ -818,7 +818,7 @@ def getClientCondorStatus(status_dict, frontend_name, group_name, request_name):
     for collector_name in status_dict.keys():
         sq = condorMonitor.SubQuery(
                  status_dict[collector_name],
-                 lambda el:(el.has_key('GLIDECLIENT_Name') and ((el['GLIDECLIENT_Name'] == client_name_old) or ((el['GLIDECLIENT_Name'] == client_name_new) and (("%s@%s@%s" % (el['GLIDEIN_Entry_Name'], el['GLIDEIN_Name'], el['GLIDEIN_Factory'])) == request_name)))))
+                 lambda el:('GLIDECLIENT_Name' in el and ((el['GLIDECLIENT_Name'] == client_name_old) or ((el['GLIDECLIENT_Name'] == client_name_new) and (("%s@%s@%s" % (el['GLIDEIN_Entry_Name'], el['GLIDEIN_Name'], el['GLIDEIN_Factory'])) == request_name)))))
         sq.load()
         out[collector_name] = sq
     return out
@@ -837,7 +837,7 @@ def getClientCondorStatusCredIdOnly(status_dict, cred_id):
         sq = condorMonitor.SubQuery(
             collector_status,
             lambda el: (
-                el.has_key('GLIDEIN_CredentialIdentifier') and
+                'GLIDEIN_CredentialIdentifier' in el and
                 (el['GLIDEIN_CredentialIdentifier'] == cred_id)
             )
         )
@@ -994,8 +994,8 @@ def getFactoryEntryList(status_dict):
         coll_status_dict = status_dict[c].fetchStored()
         for n in coll_status_dict.keys():
             el = coll_status_dict[n]
-            if not (el.has_key('GLIDEIN_Entry_Name') and el.has_key('GLIDEIN_Name') and
-                        el.has_key('GLIDEIN_Factory') and el.has_key('GLIDECLIENT_ReqNode')):
+            if not ('GLIDEIN_Entry_Name' in el and 'GLIDEIN_Name' in el and
+                        'GLIDEIN_Factory' in el and 'GLIDECLIENT_ReqNode' in el):
                 continue  # ignore this glidein... no factory info
             entry_str = "%s@%s@%s" % (el['GLIDEIN_Entry_Name'], el['GLIDEIN_Name'], el['GLIDEIN_Factory'])
             factory_pool = str(el['GLIDECLIENT_ReqNode'])

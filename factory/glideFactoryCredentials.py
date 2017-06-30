@@ -105,7 +105,7 @@ def update_credential_file(username, client_id, credential_data, request_clientn
                                  'FNAME=%s' % fname,
                                  'FNAME_COMPRESSED=%s' % fname_compressed]
         for var in ('PATH', 'LD_LIBRARY_PATH', 'PYTHON_PATH'):
-            if os.environ.has_key(var):
+            if var in os.environ:
                 update_credential_env.append('%s=%s' % (var, os.environ[var]))
 
         try:
@@ -184,7 +184,7 @@ def get_key_obj(pub_key_obj, classad):
     @type classad: dictionary
     @param classad: a dictionary representation of the classad
     """
-    if classad.has_key('ReqEncKeyCode'):
+    if 'ReqEncKeyCode' in classad:
         try:
             sym_key_obj = pub_key_obj.extract_sym_key(classad['ReqEncKeyCode'])
             return sym_key_obj
@@ -267,23 +267,23 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
     """
     
     if 'grid_proxy' in auth_method.split('+'):
-        if params.has_key('x509_proxy_0'):
+        if 'x509_proxy_0' in params:
             # v2+ protocol
-            if params.has_key('SubmitProxy') or params.has_key('GlideinProxy') or \
-                            params.has_key('PublicCert') or params.has_key('PrivateCert') or \
-                            params.has_key('PublicKey') and params.has_key('PrivateKey') or \
-                            params.has_key('Username') or params.has_key('Password') or \
-                            params.has_key('VMId') or params.has_key('VMType'):
+            if 'SubmitProxy' in params or 'GlideinProxy' in params or \
+                            'PublicCert' in params or 'PrivateCert' in params or \
+                            'PublicKey' in params and 'PrivateKey' in params or \
+                            'Username' in params or 'Password' in params or \
+                            'VMId' in params or 'VMType' in params:
                 raise CredentialError("Request from client %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
                 
-        elif params.has_key('SubmitProxy'):
+        elif 'SubmitProxy' in params:
             # v3+ protocol
-            if params.has_key('GlideinProxy') or \
-                            params.has_key('PublicCert') or params.has_key('PrivateCert') or \
-                            params.has_key('PublicKey') and params.has_key('PrivateKey') or \
-                            params.has_key('Username') or params.has_key('Password') or \
-                            params.has_key('VMId') or params.has_key('VMType') or \
-                            params.has_key('x509_proxy_0'):
+            if 'GlideinProxy' in params or \
+                            'PublicCert' in params or 'PrivateCert' in params or \
+                            'PublicKey' in params and 'PrivateKey' in params or \
+                            'Username' in params or 'Password' in params or \
+                            'VMId' in params or 'VMType' in params or \
+                            'x509_proxy_0' in params:
                 raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
                            
         else:
@@ -294,46 +294,46 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
         # Only v3+ protocol supports non grid entries
         
         # Verify that the glidein proxy was provided for the non-proxy auth methods
-        if not params.has_key('GlideinProxy'):
+        if 'GlideinProxy' not in params:
             raise CredentialError("Glidein proxy cannot be found for client %s, skipping request" % client_int_name)
         
         if 'cert_pair' in auth_method :
             # Validate both the public and private certs were passed
-            if not (params.has_key('PublicCert') and params.has_key('PrivateCert')): 
+            if not ('PublicCert' in params and 'PrivateCert' in params): 
                 # cert pair is required, cannot service request
                 raise CredentialError("Client '%s' did not specify the certificate pair in the request, this is required by entry %s, skipping "%(client_int_name, entry_name))
             
             # Verify no other credentials were passed
-            if params.has_key('SubmitProxy') or \
-                    params.has_key('PublicKey') or params.has_key('PrivateKey') or \
-                    params.has_key('Username') or params.has_key('Password') or \
-                    params.has_key('x509_proxy_0'): # x509_proxy_0 is v2+ protocol
+            if 'SubmitProxy' in params or \
+                    'PublicKey' in params or 'PrivateKey' in params or \
+                    'Username' in params or 'Password' in params or \
+                    'x509_proxy_0' in params: # x509_proxy_0 is v2+ protocol
                 raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
                         
         elif 'key_pair' in auth_method:
             # Validate both the public and private keys were passed
-            if not (params.has_key('PublicKey') and params.has_key('PrivateKey')):  
+            if not ('PublicKey' in params and 'PrivateKey' in params):  
                 # key pair is required, cannot service request
                 raise CredentialError("Client '%s' did not specify the key pair in the request, this is required by entry %s, skipping "%(client_int_name, entry_name))
             
             # Verify no other credentials were passed
-            if params.has_key('SubmitProxy') or \
-                    params.has_key('PublicCert') or params.has_key('PrivateCert') or \
-                    params.has_key('Username') or params.has_key('Password') or \
-                    params.has_key('x509_proxy_0'): # x509_proxy_0 is v2+ protocol
+            if 'SubmitProxy' in params or \
+                    'PublicCert' in params or 'PrivateCert' in params or \
+                    'Username' in params or 'Password' in params or \
+                    'x509_proxy_0' in params: # x509_proxy_0 is v2+ protocol
                 raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
                     
         elif 'username_password' in auth_method:
             # Validate both the public and private keys were passed
-            if not (params.has_key('Username') and params.has_key('Password')):                        
+            if not ('Username' in params and 'Password' in params):                        
                 # username and password is required, cannot service request
                 raise CredentialError("Client '%s' did not specify the username and password in the request, this is required by entry %s, skipping "%(client_int_name, entry_name))
                         
             # Verify no other credentials were passed
-            if params.has_key('SubmitProxy') or \
-                    params.has_key('PublicCert') or params.has_key('PrivateCert') or \
-                    params.has_key('PublicKey') or params.has_key('PrivateKey') or \
-                    params.has_key('x509_proxy_0'): # x509_proxy_0 is v2+ protocol
+            if 'SubmitProxy' in params or \
+                    'PublicCert' in params or 'PrivateCert' in params or \
+                    'PublicKey' in params or 'PrivateKey' in params or \
+                    'x509_proxy_0' in params: # x509_proxy_0 is v2+ protocol
                 raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))  
     
         else:

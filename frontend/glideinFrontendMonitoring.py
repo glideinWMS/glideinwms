@@ -130,7 +130,7 @@ class groupStats:
         self.data['totals']['Jobs']=el
 
         for k in self.attributes['Jobs']:
-            if jobs_data.has_key(k):
+            if k in jobs_data:
                 el[k]=int(jobs_data[k])
         self.updated=time.time()
 
@@ -139,7 +139,7 @@ class groupStats:
         self.data['totals']['Glideins']=el
 
         for k in self.attributes['Glideins']:
-            if slots_data.has_key(k):
+            if k in slots_data:
                 el[k]=int(slots_data[k])
         self.updated=time.time()
 
@@ -239,7 +239,7 @@ class groupStats:
         for f in self.data['factories'].keys():
             fa=self.data['factories'][f]
             for w in fa.keys():
-                if total.has_key(w): # ignore eventual not supported classes
+                if w in total: # ignore eventual not supported classes
                     el=fa[w]
                     tel=total[w]
 
@@ -254,12 +254,12 @@ class groupStats:
                         # successive, sum 
                         for a in el.keys():
                             if type(el[a]) in numtypes: # consider only numbers
-                                if tel.has_key(a):
+                                if a in tel:
                                     tel[a]+=el[a]
                             # if other frontends did't have this attribute, ignore
                         # if any attribute from prev. frontends are not in the current one, remove from total
                         for a in tel.keys():
-                            if not el.has_key(a):
+                            if a not in el:
                                 del tel[a]
                             elif not (type(el[a]) in numtypes):
                                 del tel[a]
@@ -393,7 +393,7 @@ class factoryStats:
 
 
     def logJobs(self,client_name,qc_status):
-        if self.data.has_key(client_name):
+        if client_name in self.data:
             t_el=self.data[client_name]
         else:
             t_el={}
@@ -405,7 +405,7 @@ class factoryStats:
         status_pairs=((1,"Idle"), (2,"Running"), (5,"Held"), (1001,"Wait"),(1002,"Pending"),(1010,"StageIn"),(1100,"IdleOther"),(4010,"StageOut"))
         for p in status_pairs:
             nr, status=p
-            if qc_status.has_key(nr):
+            if nr in qc_status:
                 el[status]=int(qc_status[nr])
             else:
                 el[status]=0
@@ -420,7 +420,7 @@ class factoryStats:
           'IdleGlideins'
           'MaxRunningGlideins'
         """
-        if self.data.has_key(client_name):
+        if client_name in self.data:
             t_el=self.data[client_name]
         else:
             t_el={}
@@ -429,9 +429,9 @@ class factoryStats:
         el={}
         t_el['Requested']=el
 
-        if requests.has_key('IdleGlideins'):
+        if 'IdleGlideins' in requests:
             el['Idle']=int(requests['IdleGlideins'])
-        if requests.has_key('MaxRunningGlideins'):
+        if 'MaxRunningGlideins' in requests:
             el['MaxRun']=int(requests['MaxRunningGlideins'])
 
         el['Parameters']=copy.deepcopy(params)
@@ -451,7 +451,7 @@ class factoryStats:
           'GlideinsTotal'
           'LastHeardFrom'
         """
-        if self.data.has_key(client_name):
+        if client_name in self.data:
             t_el=self.data[client_name]
         else:
             t_el={}
@@ -462,10 +462,10 @@ class factoryStats:
 
         for karr in (('Idle','JobsIdle'),('Running','JobsRunning'),('GlideinsIdle','GlideIdle'),('GlideinsRunning','GlideRunning'),('GlideinsTotal','GlideTotal')):
             ck,ek=karr
-            if client_monitor.has_key(ck):
+            if ck in client_monitor:
                 el[ek]=int(client_monitor[ck])
 
-        if client_internals.has_key('LastHeardFrom'):
+        if 'LastHeardFrom' in client_internals:
             el['InfoAge']=int(time.time()-long(client_internals['LastHeardFrom']))
             el['InfoAgeAvgCounter']=1 # used for totals since we need an avg in totals, not absnum 
 
@@ -497,7 +497,7 @@ class factoryStats:
         for f in self.data.keys():
             fe=self.data[f]
             for w in fe.keys():
-                if total.has_key(w): # ignore eventual not supported classes
+                if w in total: # ignore eventual not supported classes
                     el=fe[w]
                     tel=total[w]
 
@@ -512,12 +512,12 @@ class factoryStats:
                         # successive, sum 
                         for a in el.keys():
                             if type(el[a]) in numtypes: # consider only numbers
-                                if tel.has_key(a):
+                                if a in tel:
                                     tel[a]+=el[a]
                             # if other frontends did't have this attribute, ignore
                         # if any attribute from prev. frontends are not in the current one, remove from total
                         for a in tel.keys():
-                            if not el.has_key(a):
+                            if a not in el:
                                 del tel[a]
                             elif not (type(el[a]) in numtypes):
                                 del tel[a]

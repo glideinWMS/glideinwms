@@ -626,7 +626,7 @@ def tree2string(tree, tree_name, child_element, indent_tab=DEFAULT_TAB,
         line = line + (' %s="%s"' % (key, tree[key]))
 
     nr_childs = 0
-    if tree.has_key(child_element):
+    if child_element in tree:
         nr_childs = len(tree[child_element])
 
     if nr_childs > 0:
@@ -654,7 +654,7 @@ def tree2file(fd, tree, tree_name, child_element, indent_tab=DEFAULT_TAB,
         line = line + (' %s="%s"' % (key, tree[key]))
 
     nr_childs = 0
-    if tree.has_key(child_element):
+    if child_element in tree:
         nr_childs = len(tree[child_element])
 
     if nr_childs > 0:

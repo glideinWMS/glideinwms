@@ -437,7 +437,7 @@ def findWork(factory_name, glidein_name, entry_name, supported_signtypes,
                 if attr[:plen] == prefix:
                     el[key][attr[plen:]] = kel[attr]
         if pub_key_obj is not None:
-            if kel.has_key('ReqPubKeyID'):
+            if 'ReqPubKeyID' in kel:
                 try:
                     sym_key_obj = pub_key_obj.extract_sym_key(kel['ReqEncKeyCode'])
                 except:

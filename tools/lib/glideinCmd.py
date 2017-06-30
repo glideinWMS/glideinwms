@@ -97,7 +97,7 @@ def argv2cmd(argv):
 # changes to the work dir and executes the command
 def createCmdMonitorFile(monitor_file_name,monitor_control_relname,
                          argv,condor_status,monitorVM):
-    if condor_status.has_key('GLEXEC_STARTER'):
+    if 'GLEXEC_STARTER' in condor_status:
         glexec_starter=condor_status['GLEXEC_STARTER']
     else:
         glexec_starter=False #if not defined, assume no gLExec
@@ -109,7 +109,7 @@ def createCmdMonitorFile(monitor_file_name,monitor_control_relname,
         script_lines.append("outdir=`ls -dlt ../../../starter* | tail -1 | awk '{print $9}'`")
         script_lines.append("(cd $outdir/execute/dir*; if [ $? -eq 0 ]; then %s; else echo Internal error; fi)"%argv2cmd(argv))
     else:
-        if condor_status.has_key('USES_MONITOR_STARTD'):
+        if 'USES_MONITOR_STARTD' in condor_status:
             monitor_startd=condor_status['USES_MONITOR_STARTD']
         else:
             monitor_startd=False #if not defined, assume the old operation mode (no monitor startd)
