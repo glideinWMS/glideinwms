@@ -214,8 +214,7 @@ files and directories can be created correctly""" % self.username())
 
     #--- See if we can remove them ---
     common.logit("""The following directories must be empty for the install to succeed: """)
-    types = dirs.keys()
-    types.sort()
+    types = sorted(dirs.keys())
     for type in types:
       common.logit("""  %(type)s: %(dir)s""" % \
                         { "type" : type, "dir" : dirs[type] })
@@ -556,8 +555,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     data = """\
 %(indent1)s<entries>""" % { "indent1" : common.indent(1), }
 
-    sorted_entry_names =self.config_entries_list.keys()
-    sorted_entry_names.sort()
+    sorted_entry_names =sorted(self.config_entries_list.keys())
     for entry_name in sorted_entry_names:
       entry_el=self.config_entries_list[entry_name]
       if entry_el['rsl']!="":
@@ -629,7 +627,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
     os.environ["CONDOR_CONFIG"] = self.wms.condor_config()
     common.logit("Using %s" % (os.environ["CONDOR_CONFIG"])) 
     self.config_entries_list = {}  # config files entries elements
-    while 1:
+    while True:
       yn = common.ask_yn("Do you want to fetch entries from RESS")
       if yn == 'y':
         ress_data     = self.get_ress_data()
@@ -646,8 +644,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 
   #----------------------------
   def ask_user(self,ress_entries):
-    ress_keys=ress_entries.keys()
-    ress_keys.sort()
+    ress_keys=sorted(ress_entries.keys())
 
     print "Found %i additional entries" % len(ress_keys)
     if len(ress_keys) == 0:
@@ -665,7 +662,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 
     print "Select the indexes you want to include"
     print "Use a , separated list to include more than one"
-    while 1:
+    while True:
       idxes = raw_input("Please select: ")
       idx_arr = idxes.split(',')
       problems = 0
@@ -818,7 +815,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
   #----------------------
   def additional_entry_points(self):
     print "Please list all additional glidein entry points,"
-    while 1:
+    while True:
       print
       entry_name = raw_input("Entry name (leave empty when finished): ").strip()
       if entry_name == "":

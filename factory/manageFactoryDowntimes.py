@@ -218,8 +218,7 @@ def up(entry_name,opt_dict):
 def printtimes(entry_or_id,opt_dict):
     config_els=get_downtime_fd_dict(entry_or_id,opt_dict["dir"],opt_dict)
     when=delay2time(opt_dict["delay"])+long(time.time())
-    entry_keys=config_els.keys()
-    entry_keys.sort()
+    entry_keys=sorted(config_els.keys())
     for entry in entry_keys:
         down_fd=config_els[entry]
         down_fd.printDowntime(entry=entry, check_time=when)
@@ -233,8 +232,7 @@ def check(entry_or_id,opt_dict):
     sec_name=opt_dict["sec"]
     when+=long(time.time())
 
-    entry_keys=config_els.keys()
-    entry_keys.sort()
+    entry_keys=sorted(config_els.keys())
     for entry in entry_keys:
         down_fd=config_els[entry]
         in_downtime=down_fd.checkDowntime(entry=entry, security_class=sec_name, check_time=when)
@@ -248,8 +246,7 @@ def check(entry_or_id,opt_dict):
 def vacuum(entry_or_id,opt_dict):
     config_els=get_downtime_fd_dict(entry_or_id,opt_dict["dir"],opt_dict)
 
-    entry_keys=config_els.keys()
-    entry_keys.sort()
+    entry_keys=sorted(config_els.keys())
     for entry in entry_keys:
         down_fd=config_els[entry]
         down_fd.purgeOldPeriods()
@@ -362,8 +359,7 @@ def infosys_based(entry_name,opt_dict,infosys_types):
                     raise RuntimeError, "Unknown infosys type '%s'"%infosys_type # should never get here
 
     # Use the info to put the 
-    entry_keys=config_els.keys()
-    entry_keys.sort()
+    entry_keys=sorted(config_els.keys())
     for entry in entry_keys:
         if entry in production_entries:
             print "%s up"%entry

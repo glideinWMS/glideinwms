@@ -75,7 +75,7 @@ def xml_quoteattr(el):
         val = xml.sax.saxutils.quoteattr(el)
     elif type(el) in (types.BooleanType,):
         val = '"%s"' % el
-    elif type(el) is types.FloatType:
+    elif isinstance(el, types.FloatType):
         val = '"%.12g"' % el
     else:
         val = '"%i"' % el
@@ -106,8 +106,7 @@ def class2head(inst, inst_name, params, dicts_params, lists_params, tree_params,
     text_attrs = []
     head_arr = []
     head_arr.append(leading_tab + ('<%s' % inst_name))
-    params_keys = params.keys()
-    params_keys.sort()
+    params_keys = sorted(params.keys())
     for attr in params_keys:
         el = params[attr]
         if el is None:
@@ -122,10 +121,9 @@ def class2head(inst, inst_name, params, dicts_params, lists_params, tree_params,
             raise RuntimeError, "Param attr %s is not a simple type (%s)" % (attr, debug_str)
         
 
-    if type(inst) == types.DictType:
+    if isinstance(inst, types.DictType):
         #dictionaries can be use like classes
-        keys = inst.keys()
-        keys.sort()
+        keys = sorted(inst.keys())
     else:
         keys = dir(inst)
     for attr in keys:
@@ -150,7 +148,7 @@ def class2head(inst, inst_name, params, dicts_params, lists_params, tree_params,
                 dict_attrs.append(attr)
             else:
                 raise RuntimeError,"No params for list attr %s (%s)" % (attr, debug_str)
-        elif type(el) is types.DictType:
+        elif isinstance(el, types.DictType):
             if attr in dicts_params.keys():
                 #print "%s is dict" % attr
                 dict_attrs.append(attr)
@@ -163,7 +161,7 @@ def class2head(inst, inst_name, params, dicts_params, lists_params, tree_params,
             else:
                 #print "%s is class" % attr
                 inst_attrs.append(attr)
-        elif type(el) is types.InstanceType:
+        elif isinstance(el, types.InstanceType):
             inst_attrs.append(attr)
         else:
             raise RuntimeError, "Unsupported type (%s) for attr %s (%s)" % (type(el), attr, debug_str)
@@ -295,8 +293,7 @@ def dict2string(dict_data, dict_name, el_name, dict_attr_name="name",
 
     head_arr = []
     head_arr.append(leading_tab + ('<%s' % dict_name))
-    params_keys = params.keys()
-    params_keys.sort()
+    params_keys = sorted(params.keys())
     for attr in params_keys:
         el = params[attr]
         if el is None:
@@ -313,9 +310,8 @@ def dict2string(dict_data, dict_name, el_name, dict_attr_name="name",
     res_arr.append(head_str)
     #print head_str
 
-    if type(dict_data) == types.DictType:
-        keys = dict_data.keys()
-        keys.sort()
+    if isinstance(dict_data, types.DictType):
+        keys = sorted(dict_data.keys())
     else:
         keys = range(len(dict_data)) # allow lists to be used as dictionaries  
     
@@ -327,13 +323,13 @@ def dict2string(dict_data, dict_name, el_name, dict_attr_name="name",
                     continue # ignore nones
             val = xml_quoteattr(el)
             res_arr.append(leading_tab + indent_tab + ('<%s %s="%s" %s=%s/>' % (el_name, dict_attr_name, idx, el_attr_name, val)))
-        elif type(el) is types.InstanceType:
+        elif isinstance(el, types.InstanceType):
             if "class" in subtypes_params.keys():
                 c = complete_class_params(subtypes_params["class"])
                 res_arr.append(class2string(el, el_name, {dict_attr_name:idx}, c["subclass_params"], c["dicts_params"], c["lists_params"], c["tree_params"], c["text_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s[%s]." % (dict_name, idx))))
             else:
                 raise RuntimeError, "No params for class (at idx %s) (%s)" % (idx, debug_str)
-        elif type(el) is types.DictType:
+        elif isinstance(el, types.DictType):
             #print (idx,subtypes_params.keys())
             if "dict" in subtypes_params.keys():
                 sp = complete_dict_params(subtypes_params["dict"])
@@ -372,8 +368,7 @@ def dict2file(fd, dict_data, dict_name, el_name, dict_attr_name="name",
 
     head_arr = []
     head_arr.append(leading_tab + ('<%s' % dict_name))
-    params_keys = params.keys()
-    params_keys.sort()
+    params_keys = sorted(params.keys())
     for attr in params_keys:
         el = params[attr]
         if el is None:
@@ -390,9 +385,8 @@ def dict2file(fd, dict_data, dict_name, el_name, dict_attr_name="name",
     fd.write(head_str)
     #print head_str
 
-    if type(dict_data) == types.DictType:
-        keys = dict_data.keys()
-        keys.sort()
+    if isinstance(dict_data, types.DictType):
+        keys = sorted(dict_data.keys())
     else:
         keys = range(len(dict_data)) # allow lists to be used as dictionaries
     
@@ -406,13 +400,13 @@ def dict2file(fd, dict_data, dict_name, el_name, dict_attr_name="name",
                     continue # ignore nones
             val = xml_quoteattr(el)
             fd.write(leading_tab + indent_tab + ('<%s %s="%s" %s=%s/>\n' % (el_name, dict_attr_name, idx, el_attr_name, val)))
-        elif type(el) is types.InstanceType:
+        elif isinstance(el, types.InstanceType):
             if "class" in subtypes_params.keys():
                 c = complete_class_params(subtypes_params["class"])
                 class2file(fd, el, el_name, {dict_attr_name:idx}, c["subclass_params"], c["dicts_params"], c["lists_params"], c["tree_params"], c["text_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s[%s]." % (dict_name, idx)))
             else:
                 raise RuntimeError, "No params for class (at idx %s) (%s)" % (idx, debug_str)
-        elif type(el) is types.DictType:
+        elif isinstance(el, types.DictType):
             #print (idx,subtypes_params.keys())
             if "dict" in subtypes_params.keys():
                 sp = complete_dict_params(subtypes_params["dict"])
@@ -464,8 +458,7 @@ def list2string(list_data, list_name, el_name, el_attr_name=None,
 
     head_arr = []
     head_arr.append(leading_tab + ('<%s' % list_name))
-    params_keys = params.keys()
-    params_keys.sort()
+    params_keys = sorted(params.keys())
     for attr in params_keys:
         el = params[attr]
         if el is None:
@@ -483,9 +476,8 @@ def list2string(list_data, list_name, el_name, el_attr_name=None,
 
     #print head_str
     
-    if type(list_data) == types.DictType:
-        els = list_data.keys() # Use only the keys of the dictionary
-        els.sort()
+    if isinstance(list_data, types.DictType):
+        els = sorted(list_data.keys()) # Use only the keys of the dictionary
     else:
         els = list_data
 
@@ -497,13 +489,13 @@ def list2string(list_data, list_name, el_name, el_attr_name=None,
                     continue # ignore nones
             val = xml_quoteattr(el)
             res_arr.append(leading_tab + indent_tab + ('<%s %s=%s/>' % (el_name, el_attr_name, val)))
-        elif type(el) is types.InstanceType:
+        elif isinstance(el, types.InstanceType):
             if "class" in subtypes_params.keys():
                 c = complete_class_params(subtypes_params["class"])
                 res_arr.append(class2string(el, el_name, {}, c["subclass_params"], c["dicts_params"], c["lists_params"], c["tree_params"], c["text_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s." % list_name)))
             else:
                 raise RuntimeError, "No params for class in list (%s)" % debug_str
-        elif type(el) is types.DictType:
+        elif isinstance(el, types.DictType):
             if "dict" in subtypes_params.keys():
                 sp = complete_dict_params(subtypes_params["dict"])
                 res_arr.append(dict2string(el, el_name, sp["el_name"], sp["dict_attr_name"], sp["el_attr_name"], {}, sp["subtypes_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s." % list_name)))
@@ -542,8 +534,7 @@ def list2file(fd, list_data, list_name, el_name, el_attr_name=None,
 
     head_arr = []
     head_arr.append(leading_tab + ('<%s' % list_name))
-    params_keys = params.keys()
-    params_keys.sort()
+    params_keys = sorted(params.keys())
     for attr in params_keys:
         el = params[attr]
         if el is None:
@@ -561,9 +552,8 @@ def list2file(fd, list_data, list_name, el_name, el_attr_name=None,
 
     #print head_str
     
-    if type(list_data) == types.DictType:
-        els = list_data.keys() # Use only the keys of the dictionary
-        els.sort()
+    if isinstance(list_data, types.DictType):
+        els = sorted(list_data.keys()) # Use only the keys of the dictionary
     else:
         els = list_data
 
@@ -575,13 +565,13 @@ def list2file(fd, list_data, list_name, el_name, el_attr_name=None,
                     continue # ignore nones
             val = xml_quoteattr(el)
             fd.write(leading_tab + indent_tab + ('<%s %s=%s/>\n' % (el_name, el_attr_name, val)))
-        elif type(el) is types.InstanceType:
+        elif isinstance(el, types.InstanceType):
             if "class" in subtypes_params.keys():
                 c = complete_class_params(subtypes_params["class"])
                 class2file(fd, el, el_name, {}, c["subclass_params"], c["dicts_params"], c["lists_params"], c["tree_params"], c["text_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s." % list_name))
             else:
                 raise RuntimeError, "No params for class in list (%s)" % debug_str
-        elif type(el) is types.DictType:
+        elif isinstance(el, types.DictType):
             if "dict" in subtypes_params.keys():
                 sp = complete_dict_params(subtypes_params["dict"])
                 dict2file(fd, el, el_name, sp["el_name"], sp["dict_attr_name"], sp["el_attr_name"], {}, sp["subtypes_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s." % list_name))
@@ -618,8 +608,7 @@ def tree2string(tree, tree_name, child_element, indent_tab=DEFAULT_TAB,
                 leading_tab="", debug_str=""):
     res = []
     line = leading_tab + '<'+tree_name
-    tree_keys = tree.keys()
-    tree_keys.sort()
+    tree_keys = sorted(tree.keys())
     for key in tree_keys:
         if key == child_element:
             continue # do it later
@@ -646,8 +635,7 @@ def tree2string(tree, tree_name, child_element, indent_tab=DEFAULT_TAB,
 def tree2file(fd, tree, tree_name, child_element, indent_tab=DEFAULT_TAB,
               leading_tab="", debug_str=""):
     line = leading_tab+'<'+tree_name
-    tree_keys = tree.keys()
-    tree_keys.sort()
+    tree_keys = sorted(tree.keys())
     for key in tree_keys:
         if key == child_element:
             continue # do it later

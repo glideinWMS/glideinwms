@@ -156,8 +156,7 @@ class MonitoringConfig:
                     min_val = 'U'
                 if max_val is None:
                     max_val = 'U'
-                ds_names = val_dict.keys()
-                ds_names.sort()
+                ds_names = sorted(val_dict.keys())
 
                 ds_arr = []
                 for ds_name in ds_names:
@@ -191,9 +190,8 @@ class MonitoringConfig:
             # print "Writing RRD "+fname
 
             if not os.path.isfile(fname):
-                # print "Create RRD "+fname
-                ds_names = val_dict.keys()
-                ds_names.sort()
+                #print "Create RRD "+fname
+                ds_names = sorted(val_dict.keys())
 
                 ds_arr = []
                 for ds_name in ds_names:
@@ -423,12 +421,12 @@ class condorQStats:
                         total[w] = {}
                         tel = total[w]
                         for a in el.keys():
-                            if type(el[a]) == type(1): # copy only numbers
+                            if isinstance(el[a], type(1)): # copy only numbers
                                 tel[a] = el[a]
                     else:
                         # successive, sum
                         for a in el.keys():
-                            if type(el[a]) == type(1): # consider only numbers
+                            if isinstance(el[a], type(1)): # consider only numbers
                                 if a in tel:
                                     tel[a] += el[a]
                             # if other frontends did't have this attribute, ignore
@@ -436,7 +434,7 @@ class condorQStats:
                         for a in tel.keys():
                             if a not in el:
                                 del tel[a]
-                            elif type(el[a]) != type(1):
+                            elif not isinstance(el[a], type(1)):
                                 del tel[a]
 
         for w in total.keys():
@@ -527,7 +525,7 @@ class condorQStats:
                 for a in fe_el_tp.keys():
                     if a in attributes_tp:
                         a_el = fe_el_tp[a]
-                        if type(a_el) != type({}): # ignore subdictionaries
+                        if not isinstance(a_el, type({})): # ignore subdictionaries
                             val_dict["%s%s" % (tp_str, a)] = a_el
 
             monitoringConfig.write_rrd_multi("%s/Status_Attributes" % fe_dir,

@@ -609,7 +609,7 @@ def aggregateLogSummary():
 def sumDictInt(indict,outdict):
     for orgi in indict:
         i=str(orgi) # RRDs don't like unicode, so make sure we use strings
-        if type(indict[i])==type(1):
+        if isinstance(indict[i], type(1)):
             if not (i in outdict):
                 outdict[i]=0
             outdict[i]+=indict[i]
@@ -798,8 +798,7 @@ def aggregateRRDStats(log=logSupport.log):
 
             entry_str += (3 * tab + '<frontends>\n')
             try:
-                entry_frontends = stats[entry]['frontends'].keys()
-                entry_frontends.sort()
+                entry_frontends = sorted(stats[entry]['frontends'].keys())
                 for frontend in entry_frontends:
                     entry_str += (4 * tab + '<frontend name=\"' +
                                   frontend + '\">\n')

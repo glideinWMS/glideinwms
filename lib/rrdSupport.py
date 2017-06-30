@@ -159,8 +159,7 @@ class BaseRRDSupport:
             return # nothing to do in this case
 
         args = [str(rrdfname)]
-        ds_names = val_dict.keys()
-        ds_names.sort()
+        ds_names = sorted(val_dict.keys())
 
         ds_names_real = []
         ds_vals = []

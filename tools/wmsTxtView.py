@@ -102,8 +102,7 @@ for glidein in glideins:
             key_el['MaxGlideins']+=glidein_el['monitor']['TotalRequestedMaxGlideins']
 
 #print data
-txt_keys=txt_data.keys()
-txt_keys.sort()
+txt_keys=sorted(txt_data.keys())
 
 print '%s ReqIdle  Idle   Running  MaxGlideins'%string.ljust('Entry',48)
 print '================================================-=======-=======-=======-======='

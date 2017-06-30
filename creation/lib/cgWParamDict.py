@@ -639,8 +639,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
         for key in unsorted_dict.keys():
             d[i] = (key,unsorted_dict[key])
             i = i + 1
-        temp_list = [ (x[1][1], x[0]) for x in d.items() ]
-        temp_list.sort()
+        temp_list = sorted([ (x[1][1], x[0]) for x in d.items() ])
         sortedList = []
         for (tmp, key) in temp_list:
             sortedList.append(d[key][0])

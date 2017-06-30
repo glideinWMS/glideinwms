@@ -120,14 +120,12 @@ class Configuration:
 
   #----------------
   def sections(self):
-    sections = list(self.cp.sections())
-    sections.sort()
+    sections = sorted(self.cp.sections())
     return sections
 
   #----------------
   def options(self,section):
-    options = self.cp.options(section)
-    options.sort()
+    options = sorted(self.cp.options(section))
     return options
 
   #----------------

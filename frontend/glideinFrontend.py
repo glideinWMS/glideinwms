@@ -329,7 +329,7 @@ def spawn(sleep_time, advertize_rate, work_dir, frontendDescript,
         # once the master becomes alive.
         # Master never loops infinitely here, but instead it does in
         # the inner loop while(mode=='master') ...
-        while 1:
+        while True:
 
             while hibernate:
                 # If I am slave enter hibernation cycle while Master is alive
@@ -535,8 +535,7 @@ def main(work_dir, action):
         restart_interval = int(frontendDescript.data['RestartInterval'])
 
 
-        groups = frontendDescript.data['Groups'].split(',')
-        groups.sort()
+        groups = sorted(frontendDescript.data['Groups'].split(','))
 
         glideinFrontendMonitorAggregator.monitorAggregatorConfig.config_frontend(os.path.join(work_dir, "monitor"), groups)
     except:

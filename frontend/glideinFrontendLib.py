@@ -1200,8 +1200,7 @@ def uniqueSets(in_sets):
 
 def hashJob(condorq_el, condorq_match_list=None):
     out=[]
-    keys=condorq_el.keys()
-    keys.sort()
+    keys=sorted(condorq_el.keys())
     if condorq_match_list is not None:
         # whitelist... keep only the ones listed
         allkeys=keys

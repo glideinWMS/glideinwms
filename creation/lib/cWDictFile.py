@@ -149,8 +149,7 @@ class DictFile:
         if header is not None:
             fd.write("%s\n"%header)
         if sort_keys:
-            keys=self.keys[0:]  # makes a copy
-            keys.sort()
+            keys=sorted(self.keys[0:])  # makes a copy
         else:
             keys=self.keys
         for k in keys:
