@@ -140,7 +140,7 @@ class UserCollector(Condor):
   #--------------------------------
   def verify_no_conflicts(self):
     self.get_wmscollector()
-    if self.hostname() <> self.wmscollector.hostname():
+    if self.hostname() != self.wmscollector.hostname():
       return  # -- no problem, on separate hosts --
     if self.collector_port() == self.wmscollector.collector_port():
       common.logerr("""The WMS and User collector are being installed on the same node. 

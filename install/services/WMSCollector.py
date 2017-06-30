@@ -148,7 +148,7 @@ class WMSCollector(Condor):
     self.__create_condor_mapfile__(self.condor_mapfile_users())
     self.__create_condor_config__()
     self.__create_initd_script__()
-    if self.privsep <> None:
+    if self.privsep != None:
       self.privsep.update()
     common.logit("Configuration complete")
 
@@ -180,7 +180,7 @@ the PrivilegeSeparation class has not been instantiated""")
   #--------------------------------
   def verify_no_conflicts(self):
     self.get_usercollector()
-    if self.hostname() <> self.usercollector.hostname():
+    if self.hostname() != self.usercollector.hostname():
       return  # -- no problem, on separate nodes --
     if self.collector_port() == self.usercollector.collector_port():
       common.logerr("""The WMS and User collector are being installed on the same node. 

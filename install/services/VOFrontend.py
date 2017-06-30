@@ -440,7 +440,7 @@ glidein_proxy_dns option.  These are not populated.
 %(reinstall)s.""" % \
           { "reinstall"      : reinstall_msg, })
     proxies = self.glidein_proxy_files().split(" ")
-    if len(self.glidein_proxy_dns()) <> len(proxies):
+    if len(self.glidein_proxy_dns()) != len(proxies):
       common.logerr("""The number of glidein_proxy_files (%(proxy)s) must match the number of glidein_proxy_dns (%(dns)s).
 %(reinstall)s.""" % \
           { "proxy" : len(proxies),
@@ -457,7 +457,7 @@ glidein_proxy_dns option.  These are not populated.
               "option_dn"  : proxy_dns[cnt],
               "proxy"      : proxy, })
       dn_in_file = common.get_gsi_dn("proxy",proxy,self.username())
-      if dn_in_file <> proxy_dns[cnt]:
+      if dn_in_file != proxy_dns[cnt]:
         common.logerr("""The DN in glidein_proxy_dns is incorrect.
 option: %(option_dn)s
   file: %(dn_in_file)s
@@ -898,7 +898,7 @@ please verify and correct if needed.
 }
 
     #--- secondary collectors -- 
-    if self.usercollector.secondary_collectors() <> 0:
+    if self.usercollector.secondary_collectors() != 0:
       first_port = self.usercollector.secondary_collector_ports()[0] 
       last_port  = self.usercollector.secondary_collector_ports()[int(self.usercollector.secondary_collectors()) - 1]
       port_range = "%s-%s" % (first_port,last_port)
