@@ -129,10 +129,10 @@ class Glidein(Configuration):
   def validate_web_location(self):
     dir = self.web_location()
     common.logit("... validating web_location: %s" % dir)
-    common.make_directory(dir,self.username(),0755)
+    common.make_directory(dir,self.username(),0o755)
     for sdir_name in ("stage","monitor"):
       sdir_fullpath=os.path.join(self.web_location(),sdir_name)
-      common.make_directory(sdir_fullpath,self.username(),0755)
+      common.make_directory(sdir_fullpath,self.username(),0o755)
 
 
   #---------------------

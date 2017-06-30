@@ -79,7 +79,7 @@ class VDT(Configuration):
     self.install_pacman()
     common.logit("... validating vdt_location: %s" % self.vdt_location())
     common.check_for_value("vdt_location",self.vdt_location())
-    common.make_directory(self.vdt_location(),self.username(),0755)
+    common.make_directory(self.vdt_location(),self.username(),0o755)
     #-- install vdt packages ---
     self.messagesDict["packages"] = packages
     common.logit("... installing VDT packages")
@@ -114,7 +114,7 @@ pacman_location  is incorrect.  Please verify.""")
     %(pacman_urlfile)s
 ... please verify.""" %  self.messagesDict)
     time.sleep(2)
-    common.make_directory(self.pacman_parent(),self.username(),0755)
+    common.make_directory(self.pacman_parent(),self.username(),0o755)
     common.run_script("cd %(pacman_parent)s && wget %(pacman_urlfile)s && tar --no-same-owner -xzf %(pacman_tarball)s && rm -f  %(pacman_tarball)s" % self.messagesDict)
     if not self.pacman_is_installed():
       common.logerr("Pacman install failed. No setup.sh file exists in: %(pacman_location)s" % self.messagesDict)

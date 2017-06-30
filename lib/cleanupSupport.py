@@ -136,7 +136,7 @@ class DirCleanupWSpace(DirCleanup):
 
     def cleanup(self):
         count_removes = 0
-        count_removes_bytes = 0L
+        count_removes_bytes = 0
 
         min_treshold_time = time.time() - self.minlife
         treshold_time = time.time() - self.maxlife
@@ -147,7 +147,7 @@ class DirCleanupWSpace(DirCleanup):
         fpaths.sort(lambda i, j:cmp(files_wstats[i][stat.ST_MTIME], files_wstats[j][stat.ST_MTIME]))
 
         # first calc the amount of space currently used
-        used_space = 0L
+        used_space = 0
         for fpath in fpaths:
             fstat = files_wstats[fpath]
             fsize = fstat[stat.ST_SIZE]

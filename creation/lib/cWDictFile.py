@@ -135,7 +135,7 @@ class DictFile:
         # can write to the config file is the factory or frontend user.  If
         # either of those user accounts is compromised, then there are much
         # bigger problems than a simple exec security hole.
-        os.chmod(filepath, 0644)
+        os.chmod(filepath, 0o644)
 
         return
 
@@ -1048,7 +1048,7 @@ class ExeFile(SimpleFile):
             self.save_into_fd(fd,sort_keys,set_readonly,reset_changed,want_comments)
         finally:
             fd.close()
-        os.chmod(filepath,0755)
+        os.chmod(filepath,0o755)
 
         return
 

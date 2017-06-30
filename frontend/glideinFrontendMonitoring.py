@@ -233,7 +233,7 @@ class groupStats:
             'MatchedGlideins':None,
             'MatchedCores':None,
         }
-        numtypes=(type(1),type(1L),type(1.0))
+        numtypes=(type(1),type(1),type(1.0))
 
         for f in self.data['factories'].keys():
             fa=self.data['factories'][f]
@@ -491,7 +491,7 @@ class factoryStats:
 
     def get_total(self):
         total={'Status':None,'Requested':None,'ClientMonitor':None}
-        numtypes=(type(1),type(1L),type(1.0))
+        numtypes=(type(1),type(1),type(1.0))
 
         for f in self.data.keys():
             fe=self.data[f]

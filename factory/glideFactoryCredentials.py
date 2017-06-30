@@ -353,7 +353,7 @@ def compress_credential(credential_data):
 def safe_update(fname, credential_data):
     if not os.path.isfile(fname):
         # new file, create
-        fd = os.open(fname, os.O_CREAT|os.O_WRONLY, 0600)
+        fd = os.open(fname, os.O_CREAT|os.O_WRONLY, 0o600)
         try:
             os.write(fd, credential_data)
         finally:
@@ -373,7 +373,7 @@ def safe_update(fname, credential_data):
             if os.path.isfile(fname + ".old"): os.remove(fname + ".old")
 
             # create new file
-            fd = os.open(fname + ".new", os.O_CREAT|os.O_WRONLY, 0600)
+            fd = os.open(fname + ".new", os.O_CREAT|os.O_WRONLY, 0o600)
             try:
                 os.write(fd, credential_data)
             finally:

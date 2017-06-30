@@ -139,7 +139,7 @@ class Factory(Condor):
     """
     self.get_config_entries_data()
     filename = "%s/new_entries.%s" % (self.config_dir(),common.time_suffix())
-    common.write_file("w",0644,filename,self.config_entries_data())
+    common.write_file("w",0o644,filename,self.config_entries_data())
 
   #-----------------------
   def validate(self):
@@ -318,7 +318,7 @@ the ini file for the %(type)s attribute.  Be careful now.
   #---------------------------------
   def validate_logs_dir(self):
     common.logit("... validating logs_dir: %s" % self.logs_dir())
-    common.make_directory(self.logs_dir(),self.username(),0755)
+    common.make_directory(self.logs_dir(),self.username(),0o755)
 
   #---------------------------------
   def validate_client_log_dir(self):
@@ -330,7 +330,7 @@ the ini file for the %(type)s attribute.  Be careful now.
 created by the WMS Collector installation or you did not start the service 
 or you changed the ini file and did not reinstall that service.""")
     else:
-      common.make_directory(self.client_log_dir(),self.username(),0755)
+      common.make_directory(self.client_log_dir(),self.username(),0o755)
 
   #---------------------------------
   def validate_client_proxy_dir(self):
@@ -342,7 +342,7 @@ or you changed the ini file and did not reinstall that service.""")
 created by the WMS Collector installation or you did not start the service 
 or you changed the ini file and did not reinstall that service.""")
     else:
-      common.make_directory(self.client_proxy_dir(),self.username(),0755)
+      common.make_directory(self.client_proxy_dir(),self.username(),0o755)
 
   #-----------------------
   def create_env_script(self):
@@ -357,7 +357,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 """ % { "x509_cert_dir"   : self.wms.x509_cert_dir(), 
         "condor_location" : self.wms.condor_location(),
         "install_location" : self.glideinwms_location(),}
-    common.write_file("w",0644,self.env_script(),data)
+    common.write_file("w",0o644,self.env_script(),data)
     common.logit("%s\n" % data)
 
 
@@ -384,8 +384,8 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
   def create_config(self):
     config_xml = self.config_data()
     common.logit("\nCreating configuration file: %s" % self.config_file())
-    common.make_directory(self.config_dir(),self.username(),0755)
-    common.write_file("w",0644,self.config_file(),config_xml)
+    common.make_directory(self.config_dir(),self.username(),0o755)
+    common.write_file("w",0o644,self.config_file(),config_xml)
 
   #-------------------------
   def config_data(self):
