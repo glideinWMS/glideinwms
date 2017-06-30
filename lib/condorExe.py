@@ -130,7 +130,7 @@ def init1():
                 condor_bin_path=os.path.dirname(condorq_bin_path[0].strip())
             except ExeError as e:
                 # look for condor_config in /etc
-                if os.environ.has_key("CONDOR_CONFIG"):
+                if "CONDOR_CONFIG" in os.environ:
                     condor_config=os.environ["CONDOR_CONFIG"]
                 else:
                     condor_config="/etc/condor/condor_config"
@@ -168,7 +168,7 @@ def init2():
                 condor_sbin_path=os.path.dirname(condora_sbin_path[0].strip())
             except ExeError as e:
                 # look for condor_config in /etc
-                if os.environ.has_key("CONDOR_CONFIG"):
+                if "CONDOR_CONFIG" in os.environ:
                     condor_config=os.environ["CONDOR_CONFIG"]
                 else:
                     condor_config="/etc/condor/condor_config"

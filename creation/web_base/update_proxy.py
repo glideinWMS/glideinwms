@@ -87,16 +87,16 @@ def update_credential(fname, credential_data):
 def get_env():
     # Extract data from environment
     # Arguments not used
-    if not os.environ.has_key('HEXDATA'):
+    if 'HEXDATA' not in os.environ:
         raise ProxyEnvironmentError('HEXDATA env variable not defined.')
 
-    if not os.environ.has_key('FNAME'):
+    if 'FNAME' not in os.environ:
         raise ProxyEnvironmentError('FNAME env variable not defined.')
 
     credential_data = binascii.a2b_hex(os.environ['HEXDATA'])
     fname = os.environ['FNAME']
 
-    if os.environ.has_key('FNAME_COMPRESSED'):
+    if 'FNAME_COMPRESSED' in os.environ:
         fname_compressed = os.environ['FNAME_COMPRESSED']
     else:
         fname_compressed = None

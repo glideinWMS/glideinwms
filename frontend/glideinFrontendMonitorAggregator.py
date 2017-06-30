@@ -317,13 +317,13 @@ def aggregateStatus():
         #nr_groups+=1
         #status['groups'][group]={}
 
-        if group_data.has_key('total'):
+        if 'total' in group_data:
             nr_groups += 1
             status['groups'][group]['total'] = group_data['total']
 
             for w in global_total.keys():
                 tel = global_total[w]
-                if not group_data['total'].has_key(w):
+                if w not in group_data['total']:
                     continue
                 #status['groups'][group][w]=group_data[w]
                 el = group_data['total'][w]
@@ -336,12 +336,12 @@ def aggregateStatus():
                 else:                
                     # successive, sum 
                     for a in el.keys():
-                        if tel.has_key(a):
+                        if a in tel:
                             tel[a] += int(el[a])
                               
                     # if any attribute from prev. factories are not in the current one, remove from total
                     for a in tel.keys():
-                        if not el.has_key(a):
+                        if a not in el:
                             del tel[a]
 
 

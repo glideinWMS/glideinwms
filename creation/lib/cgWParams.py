@@ -257,7 +257,7 @@ class GlideinParams(cWParams.CommonParams):
             raise RuntimeError, '"default" is a reserved keyword, cannot be used as factory_collector'
 
         factoryVersioning = False
-        if self.data.has_key('factory_versioning') and \
+        if 'factory_versioning' in self.data and \
                self.data['factory_versioning'].lower() == 'true':
             factoryVersioning = True
 

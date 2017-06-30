@@ -74,7 +74,7 @@ class ConfigFile:
             fd.close()
 
     def has_key(self, key_name):
-        return self.data.has_key(key_name)
+        return key_name in self.data
     
     def __str__(self):
         output = '\n'
@@ -297,7 +297,7 @@ class FrontendDescript(ConfigFile):
 
         @return identity
         """
-        if self.data.has_key(frontend):
+        if frontend in self.data:
             fe = self.data[frontend]
             return fe['ident']
         else:
@@ -314,9 +314,9 @@ class FrontendDescript(ConfigFile):
 
         @return: security name
         """
-        if self.data.has_key(frontend):
+        if frontend in self.data:
             fe = self.data[frontend]['usermap']
-            if fe.has_key(sec_class):
+            if sec_class in fe:
                 return fe[sec_class]
 
         return None

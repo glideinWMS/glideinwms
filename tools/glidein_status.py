@@ -245,7 +245,7 @@ def main():
 
         cel={} # this will have all the needed attributes (??? if nothing else)
         for a in attrs:
-            if el.has_key(a):
+            if a in el:
                 cel[a]=el[a]
             else:
                 cel[a]='???'
@@ -255,14 +255,14 @@ def main():
         state=cel['State']
         activity=cel['Activity']
 
-        if el.has_key('KFlops'):
+        if 'KFlops' in el:
             gflops=(el['KFlops']*1.e-6)
             mflops_str="%i"%(el['KFlops']/1000)
         else:
             mflops=0.0
             mflops_str="???"
 
-        if el.has_key('Mips'):
+        if 'Mips' in el:
             gips=el['Mips']*1.e-3
             mips_str=el['Mips']
         else:
@@ -304,9 +304,9 @@ def main():
                 print_arr+=(cel['GLIDEIN_Schedd'],"%i.%i"%(cel['GLIDEIN_ClusterId'],cel['GLIDEIN_ProcId']))
             if want_glexec:
                 glexec_str='None'
-                if el.has_key('GLEXEC_JOB') and el['GLEXEC_JOB']:
+                if 'GLEXEC_JOB' in el and el['GLEXEC_JOB']:
                     glexec_str='Job'
-                elif el.has_key('GLEXEC_STARTER') and el['GLEXEC_STARTER']:
+                elif 'GLEXEC_STARTER' in el and el['GLEXEC_STARTER']:
                     glexec_str='Starter'
                 print_arr+=(glexec_str,)
             if want_bench:

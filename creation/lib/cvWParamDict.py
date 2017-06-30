@@ -406,7 +406,7 @@ def add_attr_unparsed_real(attr_name,params,dicts):
 
     if do_glidein_publish or do_job_publish:
             # need to add a line only if will be published
-            if dicts['vars'].has_key(attr_name):
+            if attr_name in dicts['vars']:
                 # already in the var file, check if compatible
                 attr_var_el=dicts['vars'][attr_name]
                 attr_var_type=attr_var_el[0]
@@ -501,7 +501,7 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
     group_descript_dict.add('MaxRunningTotal',sub_params.config.running_glideins_total.max)
     group_descript_dict.add('CurbRunningTotal',sub_params.config.running_glideins_total.curb)
     group_descript_dict.add('MaxMatchmakers',sub_params.config.processing_workers.matchmakers)
-    if (sub_params.attrs.has_key('GLIDEIN_Glexec_Use')):
+    if ('GLIDEIN_Glexec_Use' in sub_params.attrs):
         group_descript_dict.add('GLIDEIN_Glexec_Use',sub_params.attrs['GLIDEIN_Glexec_Use']['value'])
 
 
@@ -519,9 +519,9 @@ def apply_group_glexec_policy(descript_dict, sub_params, params):
     match_attrs = None
 
     # Consider GLIDEIN_Glexec_Use from Group level, else global
-    if sub_params.attrs.has_key('GLIDEIN_Glexec_Use'):
+    if 'GLIDEIN_Glexec_Use' in sub_params.attrs:
         glidein_glexec_use = sub_params.attrs['GLIDEIN_Glexec_Use']['value']
-    elif params.attrs.has_key('GLIDEIN_Glexec_Use'):
+    elif 'GLIDEIN_Glexec_Use' in params.attrs:
         glidein_glexec_use = params.attrs['GLIDEIN_Glexec_Use']['value']
 
     if (glidein_glexec_use):
@@ -690,7 +690,7 @@ def calc_glidein_collectors(collectors):
     glidein_collectors = []
 
     for el in collectors:
-        if not collector_nodes.has_key(el.group):
+        if el.group not in collector_nodes:
             collector_nodes[el.group] = {'primary': [], 'secondary': []}
         if is_true(el.secondary):
             cWDictFile.validate_node(el.node, allow_prange=True)
@@ -715,7 +715,7 @@ def calc_glidein_ccbs(collectors):
     glidein_ccbs = []
 
     for el in collectors:
-        if not ccb_nodes.has_key(el.group):
+        if el.group not in ccb_nodes:
             ccb_nodes[el.group] = []
         cWDictFile.validate_node(el.node,allow_prange=True)
         ccb_nodes[el.group].append(el.node)

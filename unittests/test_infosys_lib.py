@@ -71,7 +71,7 @@ class TestInfosysLib(unittest.TestCase):
         # Condor path and config location
         # These will be set correctly as long as the test is run in the same environment
         # as what is needed to run the factory/wms collector
-        if not os.environ.has_key("CONDOR_CONFIG"):
+        if "CONDOR_CONFIG" not in os.environ:
             condor_config="/etc/condor/condor_config"
             
         condorExe.init()

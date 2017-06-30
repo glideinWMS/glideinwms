@@ -53,7 +53,7 @@ class EnvState:
         saved_state={}
         for condor_key in filter:
             env_key="_CONDOR_%s"%condor_key
-            if os.environ.has_key(env_key):
+            if env_key in os.environ:
                 saved_state[condor_key]=os.environ[env_key]
             else:
                 saved_state[condor_key]=None # unlike requests, we want to remember there was nothing
@@ -102,18 +102,18 @@ class SecEnvRequest:
     # Methods for accessig the requests
     def set(self,context,feature,value): # if value is None, remove the request
         if value is not None:
-            if not self.requests.has_key(context):
+            if context not in self.requests:
                 self.requests[context]={}
             self.requests[context][feature]=value
-        elif self.requests.has_key(context):
-            if self.requests[context].has_key(feature):
+        elif context in self.requests:
+            if feature in self.requests[context]:
                 del self.requests[context][feature]
                 if len(self.requests[context].keys())==0:
                     del self.requests[context]
     
     def get(self,context,feature):
-        if self.requests.has_key(context):
-            if self.requests[context].has_key(feature):
+        if context in self.requests:
+            if feature in self.requests[context]:
                 return self.requests[context][feature]
             else:
                 return None
@@ -157,7 +157,7 @@ class SecEnvRequest:
                     os.environ[env_key]=val
                 else:
                     # unset -> make sure it is not in the env after the call
-                    if os.environ.has_key(env_key):
+                    if env_key in os.environ:
                         del os.environ[env_key]
         return
 
@@ -242,9 +242,9 @@ class GSIRequest(ProtoRequest):
         else:
             proto_request={}
         for context in CONDOR_CONTEXT_LIST:
-            if not proto_requests.has_key(context):
+            if context not in proto_requests:
                 proto_requests[context]={}
-            if proto_requests[context].has_key('AUTHENTICATION'):
+            if 'AUTHENTICATION' in proto_requests[context]:
                 if not ('GSI' in proto_requests[context]['AUTHENTICATION'].split(',')):
                     raise ValueError,"Must specify GSI as one of the options"
             else:
@@ -254,7 +254,7 @@ class GSIRequest(ProtoRequest):
         self.allow_fs=allow_fs
 
         if x509_proxy is None:
-            if not os.environ.has_key('X509_USER_PROXY'):
+            if 'X509_USER_PROXY' not in os.environ:
                 raise RuntimeError, "x509_proxy not provided and env(X509_USER_PROXY) undefined"
             x509_proxy=os.environ['X509_USER_PROXY']
 
@@ -268,7 +268,7 @@ class GSIRequest(ProtoRequest):
         if self.has_saved_state():
             raise RuntimeError,"There is already a saved state! Restore that first."
 
-        if os.environ.has_key('X509_USER_PROXY'):
+        if 'X509_USER_PROXY' in os.environ:
             self.x509_proxy_saved_state=os.environ['X509_USER_PROXY']
         else:
             self.x509_proxy_saved_state=None # unlike requests, we want to remember there was nothing

@@ -53,7 +53,7 @@ class LDAPQuery:
         out_data = {}
         for elarr in bdii_data:
             el1, el2 = elarr
-            if out_data.has_key(el1):
+            if el1 in out_data:
                 raise RuntimeError, "Dublicate element found: " + el1
             out_data[el1] = el2
             

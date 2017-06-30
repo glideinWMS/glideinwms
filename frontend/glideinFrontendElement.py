@@ -58,7 +58,7 @@ class CounterWrapper:
         self.dict_el = dict_el
 
     def has_key(self, keyid):
-        return self.dict_el.has_key(keyid)
+        return keyid in self.dict_el
 
     def __contains__(self, keyid):
         return (keyid in self.dict_el)
@@ -254,7 +254,7 @@ class glideinFrontendElement:
     def iterate(self):
         self.stats = {'group' : glideinFrontendMonitoring.groupStats()}
 
-        if not self.elementDescript.frontend_data.has_key('X509Proxy'):
+        if 'X509Proxy' not in self.elementDescript.frontend_data:
             self.published_frontend_name = '%s.%s' % (self.frontend_name,
                                                       self.group_name)
         else:
@@ -520,7 +520,7 @@ class glideinFrontendElement:
 
         # Add globals
         for globalid, globals_el in self.globals_dict.iteritems():
-            if globals_el['attrs'].has_key('PubKeyObj'):
+            if 'PubKeyObj' in globals_el['attrs']:
                 key_obj = key_builder.get_key_obj(
                               globals_el['attrs']['FactoryPoolId'],
                               globals_el['attrs']['PubKeyID'],
@@ -734,7 +734,7 @@ class glideinFrontendElement:
             for globalid in self.globals_dict:
                 if glideid[1].endswith(globalid):
                     globals_el = self.globals_dict[globalid]
-                    if (globals_el['attrs'].has_key('PubKeyObj') and globals_el['attrs'].has_key('PubKeyID')):
+                    if ('PubKeyObj' in globals_el['attrs'] and 'PubKeyID' in globals_el['attrs']):
                         key_obj = key_builder.get_key_obj(my_identity, globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
                     break
 
@@ -1374,7 +1374,7 @@ class glideinFrontendElement:
 
             for globalid in factory_globals_dict:
                 globals_el = factory_globals_dict[globalid]
-                if not globals_el['attrs'].has_key('PubKeyType'):
+                if 'PubKeyType' not in globals_el['attrs']:
                     # no pub key at all, nothing to do
                     pass
                 elif globals_el['attrs']['PubKeyType'] == 'RSA':
@@ -1864,7 +1864,7 @@ def expand_DD(qstr,attr_dict):
         if m is None:
             break # no more substitutions to do
         attr_name=m.group('attrname')
-        if not attr_dict.has_key(attr_name):
+        if attr_name not in attr_dict:
             raise KeyError, "Missing attribute %s"%attr_name
         attr_val=attr_dict[attr_name]
         if type(attr_val)==type(1):

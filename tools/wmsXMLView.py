@@ -146,7 +146,7 @@ for glidein in glideins:
         clients_obj[client]['client_monitor']=clients_obj[client]['monitor']
         del clients_obj[client]['monitor']
         # add factory monitor
-        if clientsmon_obj.has_key(client):
+        if client in clientsmon_obj:
             clients_obj[client]['factory_monitor']=clientsmon_obj[client]['monitor']
 
         for pd_key in clients_obj[client]["params_decrypted"].keys():

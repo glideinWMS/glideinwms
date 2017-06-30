@@ -186,12 +186,12 @@ class logSummary(cachedLogClass):
                 keys[s] = None
 
             for s in keys.keys():
-                if self.data.has_key(s):
+                if s in self.data:
                     sel = self.data[s]
                 else:
                     sel = []
                     
-                if other.has_key(s):
+                if s in other:
                     oel = other[s]
                 else:
                     oel = []
@@ -234,7 +234,7 @@ class logCompleted(cachedLogClass):
         for s in status.keys():
             counts[s] = len(status[s])
         tmpdata['counts'] = counts
-        if status.has_key("Completed"):
+        if "Completed" in status:
             tmpdata['completed_jobs'] = status['Completed']
         else:
             tmpdata['completed_jobs'] = []
@@ -304,12 +304,12 @@ class logCompleted(cachedLogClass):
                 keys[s] = None
 
             for s in keys.keys():
-                if self.data['counts'].has_key(s):
+                if s in self.data['counts']:
                     sct = self.data['counts'][s]
                 else:
                     sct = 0
                     
-                if other['counts'].has_key(s):
+                if s in other['counts']:
                     oct = other['counts'][s]
                 else:
                     oct = 0
@@ -392,12 +392,12 @@ class logCounts(cachedLogClass):
                 keys[s] = None
 
             for s in keys.keys():
-                if self.data.has_key(s):
+                if s in self.data:
                     sel = self.data[s]
                 else:
                     sel = 0
                     
-                if other.has_key(s):
+                if s in other:
                     oel = other[s]
                 else:
                     oel = 0
@@ -475,12 +475,12 @@ class logSummaryTimings(cachedLogClass):
 
             for s in keys.keys():
                 sel = []
-                if self.data.has_key(s):
+                if s in self.data:
                     for sel_e in self.data[s]:
                         sel.append(sel_e[0])
 
                 oel = []
-                if other.has_key(s):
+                if s in other:
                     for oel_e in other[s]:
                         oel.append(oel_e[0])
 
@@ -496,14 +496,14 @@ class logSummaryTimings(cachedLogClass):
 
                 entered_set = sset.difference(oset)
                 entered = []
-                if self.data.has_key(s):
+                if s in self.data:
                     for sel_e in self.data[s]:
                         if sel_e[0] in entered_set:
                             entered.append(sel_e)
 
                 exited_set = oset.difference(sset)
                 exited = []
-                if other.has_key(s):
+                if s in other:
                     for oel_e in other[s]:
                         if oel_e[0] in exited_set:
                             exited.append(oel_e)
@@ -888,7 +888,7 @@ def parseSubmitLogFastRaw(fname):
         jobid = buf[idx:i1-4]
         idx = i1 + 1
 
-        if jobs.has_key(jobid):
+        if jobid in jobs:
             jobs[jobid] = get_new_status(jobs[jobid], status)
         else:
             jobs[jobid] = status
@@ -949,7 +949,7 @@ def parseSubmitLogFastRawTimings(fname):
             first_time = line_time
         last_time = line_time
             
-        if jobs.has_key(jobid):
+        if jobid in jobs:
             if status == '001':
                 running_time = line_time
             else:
@@ -1005,7 +1005,7 @@ def parseSubmitLogFastRawCallback(fname, callback):
         line_time = buf[idx:idx+14]
         idx += 16
 
-        if jobs.has_key(jobid):
+        if jobid in jobs:
             old_status=jobs[jobid]
             new_status = get_new_status(old_status, status)
             if new_status != old_status:

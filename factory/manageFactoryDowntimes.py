@@ -132,7 +132,7 @@ def get_downtime_fd_dict(entry_or_id,cmdname,opt_dict):
         entries=string.split(glideinDescript.data['Entries'],',')
         for entry in entries:
             out_fds[entry]=get_downtime_fd(entry,cmdname)
-        if (entry_or_id=='All') and (not opt_dict.has_key("entries")):
+        if (entry_or_id=='All') and ("entries" not in opt_dict):
             out_fds['factory']=get_downtime_fd('factory',cmdname)
     else:
         out_fds[entry_or_id]=get_downtime_fd(entry_or_id,cmdname)
@@ -340,10 +340,10 @@ def infosys_based(entry_name,opt_dict,infosys_types):
             infosys_type=infosys_fd[k][0]
             server=infosys_fd[k][1]
             ref=infosys_fd[k][2]
-            if not infosys_data.has_key(infosys_type):
+            if infosys_type not in infosys_data:
                 infosys_data[infosys_type]={}
             infosys_data_type=infosys_data[infosys_type]
-            if not infosys_data_type.has_key(server):
+            if server not in infosys_data_type:
                 infosys_data_type[server]=[]
             infosys_data_type[server].append({'ref':ref,'entry_name':entry})
 
@@ -418,7 +418,7 @@ def main(argv):
     # Get the command line arguments
     opt_dict=get_args(argv)
     mandatory_comments=False
-    if (os.environ.has_key("GLIDEIN_MANDATORY_COMMENTS")):
+    if ("GLIDEIN_MANDATORY_COMMENTS" in os.environ):
         if (os.environ["GLIDEIN_MANDATORY_COMMENTS"].lower() in ("on","true","1")):
             mandatory_comments=True
     if (opt_dict["cmd"] in ("check","vacuum")):

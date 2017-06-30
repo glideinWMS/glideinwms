@@ -171,7 +171,7 @@ class LocalScheddCache(NoneScheddCache):
                         format_list=[('ScheddIpAddr','s'),
                                      ('SPOOL_DIR_STRING','s'),
                                      ('LOCAL_DIR_STRING','s')])
-        if not data.has_key(schedd_name):
+        if schedd_name not in data:
             raise RuntimeError, "Schedd '%s' not found"%schedd_name
 
         el = data[schedd_name]
@@ -803,7 +803,7 @@ def xml2list_start_element(name, attrs):
         xml2list_intype = "r"
     elif name == "b":
         xml2list_intype = "b"
-        if attrs.has_key('v'):
+        if 'v' in attrs:
             xml2list_inattr["val"] = (attrs["v"] in ('T', 't', '1'))
         else:
             # extended syntax... value in text area
@@ -1009,12 +1009,12 @@ def fetch2count(data, hash_func):
         if (type(hid) == type([])):
             # have to create structure inside count
             for h in hid[:-1]:
-                if not cel.has_key(h):
+                if h not in cel:
                     cel[h] = {}
                 cel = cel[h]
             hid = hid[-1]
 
-        if cel.has_key(hid):
+        if hid in cel:
             count_el = cel[hid] + 1
         else:
             count_el = 1
@@ -1051,12 +1051,12 @@ def fetch2list(data, hash_func):
         if (type(hid) == type([])):
             # have to create structure inside list
             for h in hid[:-1]:
-                if not lel.has_key(h):
+                if h not in lel:
                     lel[h] = {}
                 lel = lel[h]
             hid = hid[-1]
 
-        if lel.has_key(hid):
+        if hid in lel:
             list_el = lel[hid].append[k]
         else:
             list_el = [k]
@@ -1071,7 +1071,7 @@ def fetch2list(data, hash_func):
 def addDict(base_dict, new_dict):
     for k in new_dict.keys():
         new_el = new_dict[k]
-        if not base_dict.has_key(k):
+        if k not in base_dict:
             # nothing there?, just copy
             base_dict[k] = new_el
         else:

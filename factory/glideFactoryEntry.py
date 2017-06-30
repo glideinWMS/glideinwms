@@ -214,7 +214,7 @@ class Entry:
         self.securityList = {}
         if (self.frontendWhitelist == "On"):
             allowed_vos = ''
-            if self.jobDescript.has_key('AllowedVOs'):
+            if 'AllowedVOs' in self.jobDescript:
                 allowed_vos = self.jobDescript.data['AllowedVOs']
             frontend_allow_list = allowed_vos.split(',')
             for entry in frontend_allow_list:
@@ -921,7 +921,7 @@ class X509Proxies:
 
     # Return None, if cannot convert
     def get_username(self, x509_proxy_security_class):
-        if not self.usernames.has_key(x509_proxy_security_class):
+        if x509_proxy_security_class not in self.usernames:
             # lookup only the first time
             x509_proxy_username=self.frontendDescript.get_username(self.client_security_name,x509_proxy_security_class)
             if x509_proxy_username is None:
@@ -931,7 +931,7 @@ class X509Proxies:
         return self.usernames[x509_proxy_security_class][:]
 
     def add_fname(self,x509_proxy_security_class,x509_proxy_identifier,x509_proxy_fname):
-        if not self.fnames.has_key(x509_proxy_security_class):
+        if x509_proxy_security_class not in self.fnames:
             self.fnames[x509_proxy_security_class]={}
         self.fnames[x509_proxy_security_class][x509_proxy_identifier]=x509_proxy_fname
         self.count_fnames+=1
@@ -1169,7 +1169,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
 
         # Check if project id is required
         if 'project_id' in auth_method:
-            if decrypted_params.has_key('ProjectId'):
+            if 'ProjectId' in decrypted_params:
                 submit_credentials.add_identity_credential('ProjectId', decrypted_params['ProjectId'])
             else:
                 # ProjectId is required, cannot service request
@@ -1239,7 +1239,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                     return return_dict
             else:
                 # Validate factory provided vm id exists
-                if entry.jobDescript.data.has_key('EntryVMId'):
+                if 'EntryVMId' in entry.jobDescript.data:
                     vm_id = entry.jobDescript.data['EntryVMId']
                 else:
                     entry.log.warning("Entry does not specify a VM Id, this is required by entry %s, skipping request." % entry.name)
@@ -1253,7 +1253,7 @@ def unit_work_v3(entry, work, client_name, client_int_name, client_int_req,
                     return return_dict
             else:
                 # Validate factory provided vm type exists
-                if entry.jobDescript.data.has_key('EntryVMType'):
+                if 'EntryVMType' in entry.jobDescript.data:
                     vm_type = entry.jobDescript.data['EntryVMType']
                 else:
                     entry.log.warning("Entry does not specify a VM Type, this is required by entry %s, skipping request." %  entry.name)

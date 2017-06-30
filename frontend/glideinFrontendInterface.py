@@ -238,7 +238,7 @@ def format_condor_dict(data):
 
     reserved_names = frontendConfig.condor_reserved_names
     for k in reserved_names:
-        if data.has_key(k):
+        if k in data:
             del data[k]
 
     out = {}
@@ -250,7 +250,7 @@ def format_condor_dict(data):
 
         # first remove reserved anmes
         for attr in reserved_names:
-            if kel.has_key(attr):
+            if attr in kel:
                 del kel[attr]
 
         # then move the parameters and monitoring
@@ -588,12 +588,12 @@ class Key4AdvertizeBuilder:
                                         factory_pub_key_id, factory_pub_key,
                                           glidein_symKey)
             # but I can use it for others
-            if not self.keys_cache.has_key(cache_id):
+            if cache_id not in self.keys_cache:
                 now = time.time()
                 self.keys_cache[cache_id] = [key_obj, now, now]
             return key_obj
         else:
-            if self.keys_cache.has_key(cache_id):
+            if cache_id in self.keys_cache:
                 self.keys_cache[cache_id][2] = time.time()
                 return  self.keys_cache[cache_id][0]
             else:
@@ -730,7 +730,7 @@ class MultiAdvertizeWork:
                                    glidein_params_to_encrypt, security_name,
                                    remove_excess_str)
 
-        if not self.factory_queue.has_key(factory_pool):
+        if factory_pool not in self.factory_queue:
             self.factory_queue[factory_pool] = []
         self.factory_queue[factory_pool].append((params_obj, key_obj))
         self.factory_constraint[params_obj.request_name]=(trust_domain, auth_method)
@@ -916,7 +916,7 @@ class MultiAdvertizeWork:
                     fd.write('%s%s = "%s"\n' % (frontendConfig.encrypted_param_prefix, attr, escaped_el))
 
             # Update Sequence number information
-            if advertizeGCGounter.has_key(classad_name):
+            if classad_name in advertizeGCGounter:
                 advertizeGCGounter[classad_name] += 1
             else:
                 advertizeGCGounter[classad_name] = 0
@@ -1172,7 +1172,7 @@ class MultiAdvertizeWork:
                                                 attr_value)
 
                 # Update Sequence number information
-                if advertizeGCCounter.has_key(classad_name):
+                if classad_name in advertizeGCCounter:
                     advertizeGCCounter[classad_name] += 1
                 else:
                     advertizeGCCounter[classad_name] = 0
@@ -1286,7 +1286,7 @@ class ResourceClassad(classadSupport.Classad):
         self.adParams['Name'] = "%s@%s" % (factory_ref, frontend_ref)
         self.adParams['GLIDEIN_In_Downtime'] = 'False'
         
-        if advertizeGRCounter.has_key(self.adParams['Name']):
+        if self.adParams['Name'] in advertizeGRCounter:
             advertizeGRCounter[self.adParams['Name']] += 1
         else:       
             advertizeGRCounter[self.adParams['Name']] = 0

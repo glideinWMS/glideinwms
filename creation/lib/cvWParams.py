@@ -273,7 +273,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.validate_names()
 
         frontendVersioning = False
-        if self.data.has_key('frontend_versioning') and \
+        if 'frontend_versioning' in self.data and \
                self.data['frontend_versioning'].lower() == 'true':
             frontendVersioning = True
         self.stage_dir=self.buildDir(frontendVersioning, self.stage.base_dir)
@@ -290,23 +290,23 @@ class VOFrontendParams(cWParams.CommonParams):
         self.derive_match_attrs()
 
         ####################
-        has_collector=self.attrs.has_key('GLIDEIN_Collector')
+        has_collector='GLIDEIN_Collector' in self.attrs
         if not has_collector:
             # collector not defined at global level, must be defined in every group
             has_collector=True
             for  group_name in self.groups.keys():
-                has_collector&=self.groups[group_name].attrs.has_key('GLIDEIN_Collector')
+                has_collector&='GLIDEIN_Collector' in self.groups[group_name].attrs
 
         if has_collector:
             raise RuntimeError, "Attribute GLIDEIN_Collector cannot be defined by the user"
 
         ####################
-        has_ccb=self.attrs.has_key('GLIDEIN_CCB')
+        has_ccb='GLIDEIN_CCB' in self.attrs
         if not has_collector:
             # collector not defined at global level, must be defined in every group
             has_ccb=True
             for  group_name in self.groups.keys():
-                has_ccb&=self.groups[group_name].attrs.has_key('GLIDEIN_CCB')
+                has_ccb&='GLIDEIN_CCB' in self.groups[group_name].attrs
 
         if has_ccb:
             raise RuntimeError, "Attribute GLIDEIN_CCB cannot be defined by the user"

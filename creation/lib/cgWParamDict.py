@@ -110,7 +110,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         condor_tarballs = self.conf.get_child_list(u'condor_tarballs')
         
         prev_tar_dir_map = {}
-        if other is not None and other.main_dicts.dicts['glidein'].has_key('CondorTarballDirMap'):
+        if other is not None and 'CondorTarballDirMap' in other.main_dicts.dicts['glidein']:
             prev_tar_dir_map = eval(other.main_dicts.dicts['glidein']['CondorTarballDirMap'])
 
         tar_dir_map = {}
@@ -745,7 +745,7 @@ def add_attr_unparsed_real(attr,dicts):
 
     if do_glidein_publish or do_job_publish:
             # need to add a line only if will be published
-            if dicts['vars'].has_key(attr_name):
+            if attr_name in dicts['vars']:
                 # already in the var file, check if compatible
                 attr_var_el=dicts['vars'][attr_name]
                 attr_var_type=attr_var_el[0]
@@ -1112,7 +1112,7 @@ def calc_monitoring_collectors_string(collectors):
     monitoring_collectors = []
 
     for el in collectors:
-        if not collector_nodes.has_key(el[u'group']):
+        if el[u'group'] not in collector_nodes:
             collector_nodes[el[u'group']] = {'primary': [], 'secondary': []}
         if eval(el[u'secondary']):
             cWDictFile.validate_node(el[u'node'],allow_prange=True)
@@ -1142,7 +1142,7 @@ def calc_primary_monitoring_collectors(collectors):
             # only consider the primary collectors
             cWDictFile.validate_node(el[u'node'])
             # we only expect one per group
-            if collector_nodes.has_key(el[u'group']):
+            if el[u'group'] in collector_nodes:
                 raise RuntimeError, "Duplicate primary monitoring collector found for group %s"%el[u'group']
             collector_nodes[el[u'group']]=el[u'node']
     

@@ -275,14 +275,14 @@ class ElementMergedDescript:
         self.merged_data['ProxySelectionPlugin']='ProxyAll' #default
         for t in ('ProxySelectionPlugin','SecurityName'):
             for data in (self.frontend_data,self.element_data):
-                if data.has_key(t):
+                if t in data:
                     self.merged_data[t]=data[t]
 
         proxies=[]
         # switching the order, so that the group credential will 
         # be chosen before the global credential when ProxyFirst is used.
         for data in (self.element_data,self.frontend_data):
-            if data.has_key('Proxies'):
+            if 'Proxies' in data:
                 proxies+=eval(data['Proxies'])
         self.merged_data['Proxies']=proxies
 
@@ -294,7 +294,7 @@ class ElementMergedDescript:
         for attr in proxy_descript_attrs:
             proxy_descript_data={}
             for data in (self.frontend_data,self.element_data):
-                if data.has_key(attr):
+                if attr in data:
                     dprs=eval(data[attr])
                     for k in dprs.keys():
                         proxy_descript_data[k]=dprs[k]
@@ -343,7 +343,7 @@ class StageFiles:
                           (self.validate_algo,self.signature_descript.data[fname]))
 
     def get_file_list(self,list_type): # example list_type == 'preentry_file_list'
-        if not self.stage_descript.data.has_key(list_type):
+        if list_type not in self.stage_descript.data:
             raise KeyError,"Unknown list type '%s'; valid typtes are %s"%(list_type,self.stage_descript.data.keys())
 
         list_fname=self.stage_descript.data[list_type]

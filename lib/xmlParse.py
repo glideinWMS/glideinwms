@@ -198,7 +198,7 @@ def domel2dict(doc, use_ord_dict=False, always_singular_list=[]):
         eldata = domel2dict(el, use_ord_dict, always_singular_list)
         if is_singular_of(tag, myname, always_singular_list): 
             # subelements, like "param" - "params"
-            if eldata.has_key("name"):
+            if "name" in eldata:
                 data[eldata['name']] = eldata
                 del eldata['name']
             elif ((data == {}) or              # first element, will define everything

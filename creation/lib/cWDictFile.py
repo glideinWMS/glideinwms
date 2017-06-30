@@ -698,7 +698,7 @@ class FileDictFile(SimpleFileDictFile):
                      allow_overwrite=False,
                      allow_overwrite_placeholder=True):
 
-        if self.has_key(key) and allow_overwrite_placeholder:
+        if key in self and allow_overwrite_placeholder:
             if self.is_placeholder(key):
                 # since the other functions know nothing about placeholders, need to force overwrite
                 allow_overwrite = True
@@ -720,7 +720,7 @@ class FileDictFile(SimpleFileDictFile):
         if not (type(val) in (type(()), type([]))):
             raise RuntimeError("Values '%s' not a list or tuple" % val)
 
-        if self.has_key(key) and allow_overwrite_placeholder:
+        if key in self and allow_overwrite_placeholder:
             if self.is_placeholder(key):
                 # since the other functions from base class know nothing about placeholders, need to force overwrite
                 allow_overwrite = True
@@ -883,7 +883,7 @@ class StrWWorkTypeDictFile(StrDictFile):
 
     def remove(self,key,fail_if_missing=False):
         StrDictFile.remove(self,key,fail_if_missing)
-        if self.typed_vals.has_key(key):
+        if key in self.typed_vals:
             del self.typed_vals[key]
         
     def get_typed_val(self,key):
@@ -1239,7 +1239,7 @@ class fileCommonDicts:
         return self.dicts.keys()
 
     def has_key(self,key):
-        return self.dicts.has_key(key)
+        return key in self.dicts
 
     def __getitem__(self,key):
         return self.dicts[key]
