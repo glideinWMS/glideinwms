@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import os
 import sys
 import ConfigParser
@@ -24,7 +25,7 @@ Usage: manual_glidein_submit <ini_file>
   ini_file: (REQUIRED) This file contains all the required information for a 
             glidein to be submitted and run on a remote site.
 """
-    print sys.stderr, msg
+    print(sys.stderr, msg)
 
 def check_args():
     if len(sys.argv) > 1:
@@ -36,7 +37,7 @@ def main():
     try:
         check_args()
     except ArgumentError as ae:
-        print sys.stderr, ae
+        print(sys.stderr, ae)
         usage()
 
     try:
@@ -81,9 +82,9 @@ def main():
         submitGlideins(entry_name, client_name, nr_glideins, frontend_name, credentials, client_web, params)
 
     except IniError as ie:
-        print sys.stderr, "ini file error make this message better"
+        print(sys.stderr, "ini file error make this message better")
     except Exception as ex:
-        print sys.stderr, "general error make this message better"
+        print(sys.stderr, "general error make this message better")
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -13,6 +13,7 @@
 #        If -forcemulti is present, make it a ResultSet even if only one file present
 #
 
+from __future__ import print_function
 import os.path
 import string
 import sys
@@ -33,7 +34,7 @@ def main(args):
             sys.exit(1)        
 
         if (args[0]=="-h"):
-            print USAGE
+            print(USAGE)
             sys.exit(0)
         elif (args[0]=="-raw"):
             raw_out=True
@@ -64,7 +65,7 @@ def main(args):
             if l[:15]=="<OSGTestResult ":
                 # insert file name
                 l=l[:15]+('logname="%s" '%fname)+l[15:]
-            print l
+            print(l)
     else:
         # multiple files, combine in a set
         xmls=[]

@@ -1,3 +1,4 @@
+from __future__ import print_function
 ########################
 # Library for analyze_entries,
 #   analyze_queues and analyze_frontends.
@@ -35,13 +36,13 @@ def km(z):
 
 def debug_print_dict(data):
    for period, p in data.iteritems():
-      print period
+      print(period)
       for frontend, f in p.iteritems():
-         print "\t", frontend
+         print("\t", frontend)
          for entry, e in f.iteritems():
-            print "\t\t", entry
+            print("\t\t", entry)
             for element, value in e.iteritems():
-               print "\t\t\t", element, ":", value
+               print("\t\t\t", element, ":", value)
    return
 
 #Prints a line formatted the following way:

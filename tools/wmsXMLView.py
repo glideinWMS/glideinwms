@@ -16,6 +16,7 @@
 #   Igor Sfiligoi (May 9th 2007)
 #
 
+from __future__ import print_function
 import string
 import os.path
 import sys
@@ -58,8 +59,8 @@ while (i<alen):
         i=i+1
         key_obj=glideFactoryConfig.GlideinKey('RSA', sys.argv[i])
     elif ael=='-help':
-        print "Usage:"
-        print "wmsXMLView.py [-pool <node>[:<port>]] [-factory <factory>] [-frontend <frontend>] [-condor-stats 0|1] [-internals 0|1] [-rsa_key <fname>] [-help]"
+        print("Usage:")
+        print("wmsXMLView.py [-pool <node>[:<port>]] [-factory <factory>] [-frontend <frontend>] [-condor-stats 0|1] [-internals 0|1] [-rsa_key <fname>] [-help]")
         sys.exit(1)
     else:
         raise RuntimeError, "Unknown option '%s', try -help"%ael
@@ -156,6 +157,6 @@ for glidein in glideins:
 
 #print data
 sub_dict={'clients':{'dict_name':'clients','el_name':'client','subtypes_params':{'class':{}}}}
-print xmlFormat.dict2string(glideins_obj, 'glideinWMS', 'factory',
-                            subtypes_params={'class':{'dicts_params':sub_dict}})
+print(xmlFormat.dict2string(glideins_obj, 'glideinWMS', 'factory',
+                            subtypes_params={'class':{'dicts_params':sub_dict}}))
 

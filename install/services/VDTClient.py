@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import absolute_import
+from __future__ import print_function
 import sys, os, os.path, string, time, glob
 #---------------------
 from . import common
@@ -63,7 +64,7 @@ def main(argv):
     inifile = "/home/weigand/glidein/glideinWMS/install/weigand.ini"
     client = VDTClient("WMSCollector", inifile)
     client.install()
-    print "Client exists: ", client.client_exists()
+    print("Client exists: ", client.client_exists())
   except common.WMSerror:
     return 1
   except KeyboardInterrupt:

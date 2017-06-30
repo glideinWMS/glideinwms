@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import M2Crypto
 
@@ -21,7 +22,7 @@ def extract_DN(fname):
             old_data = data[:data_idx]
             data = data[data_idx:]
         except ValueError:
-            print "%s not a valid certificate file" % fname
+            print("%s not a valid certificate file" % fname)
             sys.exit(3)
 
         m = M2Crypto.X509.load_cert_string(data)

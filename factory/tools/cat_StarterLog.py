@@ -11,6 +11,7 @@
 # Usage: cat_StarterLog.py logname
 #
 
+from __future__ import print_function
 import os.path
 import sys
 STARTUP_DIR=sys.path[0]
@@ -39,8 +40,8 @@ def main():
         matches = gWftLogParser.get_StarterSlotNames(fname)
         if len(matches):
             logs = ', '.join(matches)
-            print "StarterLogs available for slots: %s" % logs.replace('StarterLog.', '')
-        print gWftLogParser.get_CondorLog(fname, condor_log_id)
+            print("StarterLogs available for slots: %s" % logs.replace('StarterLog.', ''))
+        print(gWftLogParser.get_CondorLog(fname, condor_log_id))
     except:
         sys.stderr.write("%s\n"%USAGE)
         sys.exit(1)

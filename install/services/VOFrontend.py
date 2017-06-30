@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import absolute_import
+from __future__ import print_function
 import traceback
 import sys
 import os
@@ -501,7 +502,7 @@ option: %(option_dn)s
       dns[self.glidein.service_name()]      = self.glidein.x509_gsi_dn()
       dns[self.UserCollector_service_name()] = self.UserCollectorDN()
       dns[self.Submit_service_name()]        = self.SubmitDN()
-      print """
+      print("""
 The frontend proxy, user pool collector and submit host DNs are required in
 your grid_mapfile.
 
@@ -509,28 +510,28 @@ If there are other DNs needed in the glidein grid_mapfile, please add all
 the DNs that this glidein will connect to.
 
 Please insert all such DNs, together with a user nickname.
-An empty DN entry means you are done.  """
+An empty DN entry means you are done.  """)
       while True:
-        print
+        print()
         a_dn =raw_input("DN (leave empty when finished): ")
         if a_dn == "":
           break # done
         a_uid = raw_input("nickname: ")
         if a_uid == "":
-          print "... you need a nickname. Try Again"
+          print("... you need a nickname. Try Again")
           continue
         if a_uid.find(" ") >= 0:
-          print "WARNING: Nickname cannot contain spaces ('%s'), please reinsert the DN with a different nickname." % a_uid
+          print("WARNING: Nickname cannot contain spaces ('%s'), please reinsert the DN with a different nickname." % a_uid)
           continue
         if a_uid in dns.keys():
-          print "WARNING: Cannot reuse '%s', please reinsert the DN with a different nickname." % a_uid
+          print("WARNING: Cannot reuse '%s', please reinsert the DN with a different nickname." % a_uid)
           continue
         dns[a_uid] = a_dn
 
-      print """
-The following DNs are in your grid_mapfile:"""
+      print("""
+The following DNs are in your grid_mapfile:""")
       for a_uid in dns.keys():
-        print '"%s" %s' % (dns[a_uid], a_uid)
+        print('"%s" %s' % (dns[a_uid], a_uid))
       yn = "n"
       yn = raw_input("Do you want to proceed or try again? (y/n) [%s]: " % yn)
       if yn == "y":
@@ -666,8 +667,8 @@ or you have not defined any schedds on the submit host.""")
       if yn == "y":
         schedds = default_schedds
         break
-      print "Select the schedd indexes you want to monitor"
-      print "Use a , separated list to monitor more than one"
+      print("Select the schedd indexes you want to monitor")
+      print("Use a , separated list to monitor more than one")
 
       while True:
         problem = False
@@ -702,11 +703,11 @@ or you have not defined any schedds on the submit host.""")
   def get_match_criteria(self):
     """ Determine the job constraints/matching criteria for submitting jobs."""
   #-- factory attributes ----
-    print """
+    print("""
 What glidein/factory attributres are you using in the match expression?
 I have computed my best estimate for your match string,
 please verify and correct if needed.
-"""
+""")
     default_factory_attributes = string.join(self.extract_factory_attrs(), ',')
     factory_attributes = raw_input("Factory attributes: [%s] "%default_factory_attributes)
     if factory_attributes == "":
@@ -717,11 +718,11 @@ please verify and correct if needed.
         factory_attributes = string.split(factory_attributes, ',')
 
     #--- job_attributes --
-    print """
+    print("""
 What job attributes are you using in the match expression?
 I have computed my best estimate for your match string,
 please verify and correct if needed.
-"""
+""")
     default_job_attributes = string.join(self.extract_job_attrs(), ',')
     job_attributes = raw_input("Job attributes: [%s] " % default_job_attributes)
     if job_attributes == "":
@@ -1085,14 +1086,14 @@ please verify and correct if needed.
   #-------------------------
   def create_template(self):
     global valid_options
-    print "; ------------------------------------------"
-    print "; %s minimal ini options template" % self.ini_section
+    print("; ------------------------------------------")
+    print("; %s minimal ini options template" % self.ini_section)
     for section in valid_options.keys():
-      print "; ------------------------------------------"
-      print "[%s]" % section
+      print("; ------------------------------------------")
+      print("[%s]" % section)
       for option in valid_options[section]:
-        print "%-25s =" % option
-      print
+        print("%-25s =" % option)
+      print()
 
 ### END OF CLASS ###
 
@@ -1109,7 +1110,7 @@ def validate_args(args):
 This will install a VO Frontend service for glideinWMS using the ini file
 specified.
 """
-    print usage
+    print(usage)
     parser = optparse.OptionParser(usage)
     parser.add_option("-i", "--ini", dest="inifile",
                       help="ini file defining your configuration")

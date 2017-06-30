@@ -19,6 +19,7 @@ Options:
 
 """
 from __future__ import absolute_import
+from __future__ import print_function
 
 import os
 import sys
@@ -53,12 +54,12 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv, "hx:s:t:v:d:", ["help"])
     except getopt.GetoptError:
-        print "Unrecognized or incomplete input arguments."
-        print USAGE
+        print("Unrecognized or incomplete input arguments.")
+        print(USAGE)
         sys.exit(2)
     for opt, arg in opts:
         if opt in ("-h", "--help"):
-            print USAGE
+            print(USAGE)
             sys.exit()
         else:
             if opt == '-x':
@@ -72,8 +73,8 @@ def main(argv):
             elif opt == '-d':
                 skip_disabled = arg
             else:
-                print "Unrecognized input arguments."
-                print USAGE
+                print("Unrecognized input arguments.")
+                print(USAGE)
                 sys.exit(2)
                
     # Validate args
@@ -86,13 +87,13 @@ def main(argv):
     if source == '' or source_type == '':
         err_msg += "Source and source type must be defined.\n" 
     if err_msg:
-        print err_msg
-        print USAGE
+        print(err_msg)
+        print(USAGE)
         sys.exit(2)
 
     if skip_disabled.lower() != 'yes' and skip_disabled.lower() != 'no':
-        print "Skip disabled argument must be 'yes' or 'no'."
-        print USAGE
+        print("Skip disabled argument must be 'yes' or 'no'.")
+        print(USAGE)
         sys.exit(2)  
     if skip_disabled == 'yes':
         skip_disabled = True
@@ -118,7 +119,7 @@ def main(argv):
             config_dom = minidom.parse(config_xml)
             schedds = infosys_lib.parse_factory_schedds(config_dom)
         except: 
-            print "Error parsing the config file '%s' for the schedds, exiting the tool." % config_xml
+            print("Error parsing the config file '%s' for the schedds, exiting the tool." % config_xml)
             sys.exit(2)    
             
         for entry in new_entries:
@@ -129,7 +130,7 @@ def main(argv):
         output = "No new entries were found.\n"  
 
     # Output results
-    print output
+    print(output)
     
     
 def find_new_entries_in_infosys(config_xml, source, source_type, skip_disabled, vo_name=''):
@@ -142,7 +143,7 @@ def find_new_entries_in_infosys(config_xml, source, source_type, skip_disabled, 
         config_entries = infosys_lib.parse_entries(config_dom, skip_missing_ref_id=True, skip_disabled=skip_disabled)
         
     except: 
-        print "Error parsing the config file '%s' for entries, exiting the tool." % config_xml
+        print("Error parsing the config file '%s' for entries, exiting the tool." % config_xml)
         sys.exit(2)    
         
     # Query the given info system

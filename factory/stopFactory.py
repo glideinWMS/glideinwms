@@ -15,6 +15,7 @@
 #   Igor Sfiligoi May 6th 2008
 #
 
+from __future__ import print_function
 import signal
 import sys
 import os
@@ -64,7 +65,7 @@ def main(startup_dir,force=True):
     try:
         factory_pid=glideFactoryPidLib.get_factory_pid(startup_dir)
     except RuntimeError as e:
-        print e
+        print(e)
         if str(e) == "Factory not running":
             # Workaround to distinguish when the factory is not running
             # string must be the same as in glideFactoryPidLib
@@ -84,14 +85,14 @@ def main(startup_dir,force=True):
         return 0
 
     if not force:
-        print "Factory did not die within the timeout"
+        print("Factory did not die within the timeout")
         return 1
 
     # retry soft kill the factory... should exit now (5s timeout)
     if (kill_and_check_pgid(factory_pgid, retries=30, signr=signal.SIGTERM) == 0):
         return 0
 
-    print "Factory or children still alive... sending hard kill"
+    print("Factory or children still alive... sending hard kill")
 
     try:
         os.killpg(factory_pgid, signal.SIGKILL)
@@ -107,14 +108,14 @@ USAGE_STRING = """Usage: stopFactory [-f|-force] submit_dir
 """
 if __name__ == '__main__':
     if len(sys.argv)<2:
-        print USAGE_STRING
+        print(USAGE_STRING)
         sys.exit(1)
 
     if len(sys.argv)>2:
         if sys.argv[1]=='-force' or sys.argv[1]=='-f':
             sys.exit(main(sys.argv[2], True))
         else:
-            print USAGE_STRING
+            print(USAGE_STRING)
             sys.exit(1)
     else:
         sys.exit(main(sys.argv[1]))

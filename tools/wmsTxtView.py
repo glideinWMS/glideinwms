@@ -16,6 +16,7 @@
 #   Igor Sfiligoi (May 9th 2007)
 #
 
+from __future__ import print_function
 import string
 import os.path
 import sys
@@ -44,8 +45,8 @@ while (i<alen):
     elif ael in ('Entries', 'Sites', 'Gatekeepers'):
         txt_type=ael
     elif ael=='-help':
-        print "Usage:"
-        print "wmsTxtView.py [-pool <node>[:<port>]] [-factory <factory>] [Entries|Sites|Gatekeepers] [-help]"
+        print("Usage:")
+        print("wmsTxtView.py [-pool <node>[:<port>]] [-factory <factory>] [Entries|Sites|Gatekeepers] [-help]")
         sys.exit(1)
     else:
         raise RuntimeError, "Unknown option '%s', try -help"%ael
@@ -104,10 +105,10 @@ for glidein in glideins:
 #print data
 txt_keys=sorted(txt_data.keys())
 
-print '%s ReqIdle  Idle   Running  MaxGlideins'%string.ljust('Entry', 48)
-print '================================================-=======-=======-=======-======='
+print('%s ReqIdle  Idle   Running  MaxGlideins'%string.ljust('Entry', 48))
+print('================================================-=======-=======-=======-=======')
 for key in txt_keys:
     key_el=txt_data[key]
-    print "%s %7i %7i %7i %7i"%(string.ljust(key, 48), key_el['RequestedIdle'], key_el['Idle'], key_el['Running'], key_el['MaxGlideins'])
+    print("%s %7i %7i %7i %7i"%(string.ljust(key, 48), key_el['RequestedIdle'], key_el['Idle'], key_el['Running'], key_el['MaxGlideins']))
 
 

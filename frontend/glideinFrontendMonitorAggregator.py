@@ -1,3 +1,4 @@
+from __future__ import print_function
 #
 # Project:
 #   glideinWMS
@@ -106,17 +107,17 @@ def verifyHelper(filename,dict, fix_rrd=False):
     """
     global rrd_problems_found
     if not os.path.exists(filename):
-        print "WARNING: %s missing, will be created on restart" % (filename)
+        print("WARNING: %s missing, will be created on restart" % (filename))
         return
     rrd_obj=rrdSupport.rrdSupport()
     (missing, extra)=rrd_obj.verify_rrd(filename, dict)
     for attr in extra:
-        print "ERROR: %s has extra attribute %s" % (filename, attr)
+        print("ERROR: %s has extra attribute %s" % (filename, attr))
         if fix_rrd:
-            print "ERROR: fix_rrd cannot fix extra attributes"
+            print("ERROR: fix_rrd cannot fix extra attributes")
     if not fix_rrd:
         for attr in missing:
-            print "ERROR: %s missing attribute %s" % (filename, attr)
+            print("ERROR: %s missing attribute %s" % (filename, attr))
         if len(missing) > 0:
             rrd_problems_found=True
     if fix_rrd and (len(missing) > 0):
@@ -124,7 +125,7 @@ def verifyHelper(filename,dict, fix_rrd=False):
         (out, tempfilename2)=tempfile.mkstemp()
         (restored, restoredfilename)=tempfile.mkstemp()
         backup_str=str(int(time.time()))+".backup"
-        print "Fixing %s... (backed up to %s)" % (filename, filename+backup_str)
+        print("Fixing %s... (backed up to %s)" % (filename, filename+backup_str))
         os.close(out)
         os.close(restored)
         os.unlink(restoredfilename)
@@ -171,7 +172,7 @@ def verifyRRD(fix_rrd=False):
                 status_dict["%s%s" % (tp_str, a)] = None
 
     if not os.path.isdir(mon_dir):
-        print "WARNING: monitor/ directory does not exist, skipping rrd verification."
+        print("WARNING: monitor/ directory does not exist, skipping rrd verification.")
         return True
     for dir_name, sdir_name, f_list in os.walk(mon_dir):
         for file_name in f_list:

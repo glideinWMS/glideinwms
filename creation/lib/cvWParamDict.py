@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import print_function
 #
 # Project:
 #   glideinWMS
@@ -167,7 +168,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
     # reuse as much of the other as possible
     def reuse(self, other):             # other must be of the same class
         if self.monitor_dir!=other.monitor_dir:
-            print "WARNING: main monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir, other.monitor_dir)
+            print("WARNING: main monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir, other.monitor_dir))
         
         return cvWDictFile.frontendMainDicts.reuse(self, other)
 
@@ -292,7 +293,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
     # reuse as much of the other as possible
     def reuse(self, other):             # other must be of the same class
         if self.monitor_dir!=other.monitor_dir:
-            print "WARNING: group monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir, other.monitor_dir)
+            print("WARNING: group monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir, other.monitor_dir))
         
         return cvWDictFile.frontendGroupDicts.reuse(self, other)
 
@@ -354,7 +355,7 @@ class frontendDicts(cvWDictFile.frontendDicts):
     # reuse as much of the other as possible
     def reuse(self, other):             # other must be of the same class
         if self.monitor_dir!=other.monitor_dir:
-            print "WARNING: monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir, other.monitor_dir)
+            print("WARNING: monitor base_dir has changed, stats may be lost: '%s'!='%s'"%(self.monitor_dir, other.monitor_dir))
         
         return cvWDictFile.frontendDicts.reuse(self, other)
 

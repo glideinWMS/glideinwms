@@ -1,3 +1,4 @@
+from __future__ import print_function
 #
 # Project:
 #   glideinWMS
@@ -191,8 +192,8 @@ class DictFile:
         try:
             fd = open(filepath, "r")
         except IOError as e:
-            print "Error opening %s: %s" % (filepath, e)
-            print "Assuming blank, and re-creating..."
+            print("Error opening %s: %s" % (filepath, e))
+            print("Assuming blank, and re-creating...")
             return
         try:
             try:

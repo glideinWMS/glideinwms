@@ -1,3 +1,4 @@
+from __future__ import print_function
 #
 # Project:
 #   glideinWMS
@@ -628,7 +629,7 @@ def tmp2final(fname):
     try:
         os.rename(fname+".tmp", fname)
     except:
-        print "Failed renaming %s.tmp into %s"%(fname, fname)
+        print("Failed renaming %s.tmp into %s"%(fname, fname))
         logSupport.log.error("Failed renaming %s.tmp into %s" % (fname, fname))
     return
 

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #
 # Project:
 #   glideinWMS
@@ -148,7 +149,7 @@ class SearchBDII:
                     dict[key]=self.bdiiData[key]
                     found=True
             if found==False:
-                print "\n No entry found for search term \""+self.searchStr+"\" .\n"
+                print("\n No entry found for search term \""+self.searchStr+"\" .\n")
             self.bdiiData.clear()
             self.bdiiData=dict
         
@@ -169,14 +170,14 @@ class SearchBDII:
                 for key in self.bdiiData.keys():
                     outFile.write("\n%s\n%s\n\n"%(key, self.bdiiData[key]))
             except:
-                print "Error opening or closing specified file."
+                print("Error opening or closing specified file.")
         else:
             for key in self.bdiiData.keys():
-                print "\n"
-                print key
-                print "\n"
-                print self.bdiiData[key]
-                print "\n\n"
+                print("\n")
+                print(key)
+                print("\n")
+                print(self.bdiiData[key])
+                print("\n\n")
 
 class BdiiLdap:
    def __init__(self, bdii="uscmsbd2.fnal.gov"):
@@ -189,7 +190,7 @@ class BdiiLdap:
    def runldapquery(self, filter, attribute):
        bdii = self.bdii
        if self.DEBUG:
-           print "runldapquery ["+bdii+"]", filter, attribute
+           print("runldapquery ["+bdii+"]", filter, attribute)
        attribute = attribute.split(' ')
        filter = filter.strip()
        filter = filter.lstrip("'").rstrip("'")
@@ -217,7 +218,7 @@ class BdiiLdap:
                        result_set.append(result_data)
 
        except ldap.LDAPError as error_message:
-           print error_message
+           print(error_message)
            raise
 
        return result_set
@@ -285,7 +286,7 @@ class BdiiLdap:
            self.map_source['ceList'] = 'ALL'
        self.map_source['bdii'] = self.bdii
 
-       if (self.DEBUG): print 40*'*', 'exit generateMaps', 40*'*'
+       if (self.DEBUG): print(40*'*', 'exit generateMaps', 40*'*')
 
    def buildOrQuery(self, gluekey, list):
        """

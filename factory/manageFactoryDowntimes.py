@@ -11,6 +11,7 @@
 #  as well as handle unexpected downtimes
 #
 
+from __future__ import print_function
 import os.path
 import os
 import time, string
@@ -29,27 +30,27 @@ from glideinwms.factory import glideFactoryConfig
 from glideinwms.factory import glideFactoryDowntimeLib
 
 def usage():
-    print "Usage:"
-    print "  manageFactoryDowntimes.py -dir factory_dir -entry ['all'|'factory'|'entries'|entry_name] -cmd [command] [options]"
-    print "where command is one of:"
-    print "  add           - Add a scheduled downtime period"
-    print "  down          - Put the factory down now(+delay)" 
-    print "  up            - Get the factory back up now(+delay)"
-    print "  ress          - Set the up/down based on RESS status"
-    print "  bdii          - Set the up/down based on bdii status"
-    print "  ress+bdii     - Set the up/down based both on RESS and bdii status"
-    print "  check         - Report if the factory is in downtime now(+delay)"
-    print "  vacuum        - Remove all expired downtime info"
-    print "Other options:"
-    print "  -start [[[YYYY-]MM-]DD-]HH:MM[:SS] (start time for adding a downtime)"
-    print "  -end [[[YYYY-]MM-]DD-]HH:MM[:SS]   (end time for adding a downtime)"
-    print "  -delay [HHh][MMm][SS[s]]           (delay a downtime for down, up, and check cmds)"
-    print "  -ISinfo 'CEStatus'        (attribute used in ress/bdii for creating downtimes)"
-    print "  -security SECURITY_CLASS  (restricts a downtime to users of that security class)"
-    print "                            (If not specified, the downtime is for all users.)"
-    print "  -frontend SECURITY_NAME   (Limits a downtime to one frontend)"
-    print "  -comment \"Comment here\"   (user comment for the downtime. Not used by WMS.)"
-    print
+    print("Usage:")
+    print("  manageFactoryDowntimes.py -dir factory_dir -entry ['all'|'factory'|'entries'|entry_name] -cmd [command] [options]")
+    print("where command is one of:")
+    print("  add           - Add a scheduled downtime period")
+    print("  down          - Put the factory down now(+delay)") 
+    print("  up            - Get the factory back up now(+delay)")
+    print("  ress          - Set the up/down based on RESS status")
+    print("  bdii          - Set the up/down based on bdii status")
+    print("  ress+bdii     - Set the up/down based both on RESS and bdii status")
+    print("  check         - Report if the factory is in downtime now(+delay)")
+    print("  vacuum        - Remove all expired downtime info")
+    print("Other options:")
+    print("  -start [[[YYYY-]MM-]DD-]HH:MM[:SS] (start time for adding a downtime)")
+    print("  -end [[[YYYY-]MM-]DD-]HH:MM[:SS]   (end time for adding a downtime)")
+    print("  -delay [HHh][MMm][SS[s]]           (delay a downtime for down, up, and check cmds)")
+    print("  -ISinfo 'CEStatus'        (attribute used in ress/bdii for creating downtimes)")
+    print("  -security SECURITY_CLASS  (restricts a downtime to users of that security class)")
+    print("                            (If not specified, the downtime is for all users.)")
+    print("  -frontend SECURITY_NAME   (Limits a downtime to one frontend)")
+    print("  -comment \"Comment here\"   (user comment for the downtime. Not used by WMS.)")
+    print()
 
 # [[[YYYY-]MM-]DD-]HH:MM[:SS]
 def strtxt2time(timeStr):
@@ -87,7 +88,7 @@ def str2time(timeStr):
         # has a :, so it must be a text representation
         return strtxt2time(timeStr)
     else:
-        print timeStr
+        print(timeStr)
         # should be a simple number
         return long(timeStr)
 
@@ -186,7 +187,7 @@ def down(entry_name, opt_dict):
         #only add a new line if not in downtime at that time
         return down_fd.startDowntime(start_time=when, end_time=end_time, frontend=frontend, security_class=sec_name, entry=entry_name, comment=opt_dict["comment"])
     else:
-        print "Entry is already down. (%s)" % down_fd.downtime_comment
+        print("Entry is already down. (%s)" % down_fd.downtime_comment)
     return 0
 
 def up(entry_name, opt_dict):
@@ -208,7 +209,7 @@ def up(entry_name, opt_dict):
     if (rtn>0):
         return 0
     else:
-        print "Entry is not in downtime."
+        print("Entry is not in downtime.")
         return 1
 
 # This function replaces "check", which does not take into account
@@ -237,9 +238,9 @@ def check(entry_or_id, opt_dict):
         down_fd=config_els[entry]
         in_downtime=down_fd.checkDowntime(entry=entry, security_class=sec_name, check_time=when)
         if in_downtime:
-            print "%s\tDown"%entry
+            print("%s\tDown"%entry)
         else:
-            print "%s\tUp"%entry
+            print("%s\tUp"%entry)
 
     return 0
 
@@ -362,10 +363,10 @@ def infosys_based(entry_name, opt_dict, infosys_types):
     entry_keys=sorted(config_els.keys())
     for entry in entry_keys:
         if entry in production_entries:
-            print "%s up"%entry
+            print("%s up"%entry)
             up(entry, ['up'])
         else:
-            print "%s down"%entry
+            print("%s down"%entry)
             down(entry, ['down']) 
     
     return 0
@@ -430,31 +431,31 @@ def main(argv):
                 raise KeyError
     except KeyError as e:
         usage()
-        print "-cmd -dir and -entry arguments are required."
+        print("-cmd -dir and -entry arguments are required.")
         if (mandatory_comments):
-            print "Mandatory comments are enabled.  add -comment."
+            print("Mandatory comments are enabled.  add -comment.")
         return 1
     if (opt_dict["sec"]!="All"):
         if (not (opt_dict["sec"] in get_security_classes(factory_dir))):
-            print "Invalid security class"
-            print "Valid security classes are: "
+            print("Invalid security class")
+            print("Valid security classes are: ")
             for sec_class in get_security_classes(factory_dir):
-                print sec_class
+                print(sec_class)
             return 1
     if (opt_dict["frontend"]!="All"):
         if (not (opt_dict["frontend"] in get_frontends(factory_dir))):
-            print "Invalid frontend identity:"
-            print "Valid frontends are: "
+            print("Invalid frontend identity:")
+            print("Valid frontends are: ")
             for fe in get_frontends(factory_dir):
-                print fe
+                print(fe)
             return 1
 
     try:
         os.chdir(factory_dir)
     except OSError as e:
         usage()
-        print "Failed to locate factory %s"%factory_dir
-        print "%s"%e
+        print("Failed to locate factory %s"%factory_dir)
+        print("%s"%e)
         return 1
 
     #Verify Entry is an actual entry
@@ -464,10 +465,10 @@ def main(argv):
         entry_name="All"
     if ((opt_dict["entry"]!="All")and(opt_dict["entry"]!="factory")):
         if (not (opt_dict["entry"] in get_entries(factory_dir))):
-            print "Invalid entry name"
-            print "Valid entries are:"
+            print("Invalid entry name")
+            print("Valid entries are:")
             for entry in get_entries(factory_dir):
-                print entry
+                print(entry)
             return 1
 
 
@@ -489,7 +490,7 @@ def main(argv):
         return vacuum(entry_name, opt_dict)
     else:
         usage()
-        print "Invalid command %s"%cmd
+        print("Invalid command %s"%cmd)
         return 1
     
 if __name__ == '__main__':

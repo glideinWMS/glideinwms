@@ -12,6 +12,7 @@ Options:
 
 """
 from __future__ import absolute_import
+from __future__ import print_function
 
 import os
 import sys
@@ -42,12 +43,12 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv, "hx:d:", ["help"])
     except getopt.GetoptError:
-        print "Unrecognized or incomplete input arguments."
-        print USAGE
+        print("Unrecognized or incomplete input arguments.")
+        print(USAGE)
         sys.exit(2)
     for opt, arg in opts:
         if opt in ("-h", "--help"):
-            print USAGE
+            print(USAGE)
             sys.exit()
         else:
             if opt == '-x':
@@ -55,23 +56,23 @@ def main(argv):
             elif opt == '-d':
                 skip_disabled = arg
             else:
-                print "Unrecognized input arguments. "
-                print USAGE
+                print("Unrecognized input arguments. ")
+                print(USAGE)
                 sys.exit(2)
             
     # Validate arg exists
     if config_xml == '':
-        print "No configuration file was provided. "
-        print USAGE
+        print("No configuration file was provided. ")
+        print(USAGE)
         sys.exit(2)
     else: 
         if not os.path.isfile(config_xml):
-            print "Config file '%s' does not exist." % config_xml
+            print("Config file '%s' does not exist." % config_xml)
             sys.exit(2)
 
     if skip_disabled.lower() != 'yes' and skip_disabled.lower() != 'no':
-        print "Skip disabled argument must be 'yes' or 'no'."
-        print USAGE
+        print("Skip disabled argument must be 'yes' or 'no'.")
+        print(USAGE)
         sys.exit(2)
     
     if skip_disabled == 'yes':
@@ -97,7 +98,7 @@ def main(argv):
         output += infosys_lib.format_entry_pair_output(partial_tg)
     
     # Output results
-    print output
+    print(output)
     
     
 def find_entries_with_partial_id_match(config_xml, skip_disabled):
@@ -123,7 +124,7 @@ def find_entries_with_partial_id_match(config_xml, skip_disabled):
             os.environ["CONDOR_CONFIG"] = condor_path + "/etc/condor_config"
             condorExe.set_path(condor_path + "/bin", condor_path + "/sbin")
     except: 
-        print "Error parsing the the config file '%s', exiting the tool." % config_xml
+        print("Error parsing the the config file '%s', exiting the tool." % config_xml)
         sys.exit(2) 
 
     # Retrieve info systems entries 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import sys
 import os.path
 import string
@@ -17,7 +18,7 @@ class WMSerror(Exception):
   pass 
 #--------------------------
 def logit(message):
-   print message
+   print(message)
 #--------------------------
 def logerr(message):
    logit("ERROR: %s" % message)
@@ -447,23 +448,23 @@ def start_service(glidein_src, service, inifile):
 
 #######################################
 if __name__ == '__main__':
-  print "Starting some tests"
+  print("Starting some tests")
   #ans = ask_continue("kldsjfklj")
   #print ans
   #sys.exit(0)
   try:
-    print "Testing make_directory"
+    print("Testing make_directory")
     owner = pwd.getpwuid(os.getuid())[0]
     perm = 0o755
     testdir = "/opt/testdir/testdir1/testdir2/testdir3"
-    print "... %s" % testdir
+    print("... %s" % testdir)
     make_directory(testdir, owner, perm=True)
     if not os.path.isdir(testdir):
-      print "FAILED"
-    print "PASSED"
+      print("FAILED")
+    print("PASSED")
     os.rmdir(testdir)
 
-    print "Testing make_backup"
+    print("Testing make_backup")
     make_directory(testdir, owner, perm)
     filename = "%s/%s" % (testdir, __file__)
     shutil.copy(__file__, filename)
@@ -471,13 +472,13 @@ if __name__ == '__main__':
     glideinwms.lib.subprocessSupport.iexe_cmd("rm -f %s*" % filename, useShell=True)
     os.rmdir(testdir)
     os.rmdir(os.path.dirname(testdir))
-    print "... PASSED"
+    print("... PASSED")
 
   except Exception as e:
-    print "FAILED test"
-    print e
+    print("FAILED test")
+    print(e)
     sys.exit(1)
-  print "PASSED all tests"
+  print("PASSED all tests")
   sys.exit(0)
 
 

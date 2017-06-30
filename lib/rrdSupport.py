@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import print_function
 #
 # Project:
 #   glideinWMS
@@ -356,7 +357,7 @@ class BaseRRDSupport:
             finally:
                 lck.close()
         except:
-            print "Failed graph: %s" % str(args)
+            print("Failed graph: %s" % str(args))
 
         return args
 

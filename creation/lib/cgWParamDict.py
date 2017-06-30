@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import print_function
 # Project:
 #   glideinWMS
 #
@@ -320,12 +321,11 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
     # reuse as much of the other as possible
     def reuse(self, other):             # other must be of the same class
-        if self.monitor_dir!=other.monitor_dir:
-            print "WARNING: main monitor base_dir has changed, stats may be lost: '%s'!='%s'" % (self.monitor_dir, other.monitor_dir)
-
+        if self.monitor_dir != other.monitor_dir:
+            print("WARNING: main monitor base_dir has changed, stats may be lost: '%s'!='%s'" % (self.monitor_dir, other.monitor_dir))
         return cgWDictFile.glideinMainDicts.reuse(self, other)
 
-    def save(self,set_readonly=True):
+    def save(self, set_readonly=True):
         cgWDictFile.glideinMainDicts.save(self, set_readonly)
         self.save_pub_key()
         self.save_monitor()
@@ -546,9 +546,8 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
     # reuse as much of the other as possible
     def reuse(self, other):             # other must be of the same class
-        if self.monitor_dir!=other.monitor_dir:
-            print "WARNING: entry monitor base_dir has changed, stats may be lost: '%s'!='%s'" % (self.monitor_dir, other.monitor_dir)
-
+        if self.monitor_dir != other.monitor_dir:
+            print("WARNING: entry monitor base_dir has changed, stats may be lost: '%s'!='%s'" % (self.monitor_dir, other.monitor_dir))
         return cgWDictFile.glideinEntryDicts.reuse(self, other)
 
 
@@ -618,9 +617,8 @@ class glideinDicts(cgWDictFile.glideinDicts):
 
     # reuse as much of the other as possible
     def reuse(self, other):             # other must be of the same class
-        if self.monitor_dir!=other.monitor_dir:
-            print "WARNING: monitor base_dir has changed, stats may be lost: '%s'!='%s'" % (self.monitor_dir, other.monitor_dir)
-
+        if self.monitor_dir != other.monitor_dir:
+            print("WARNING: monitor base_dir has changed, stats may be lost: '%s'!='%s'" % (self.monitor_dir, other.monitor_dir))
         return cgWDictFile.glideinDicts.reuse(self, other)
 
     ###########
@@ -647,7 +645,6 @@ class glideinDicts(cgWDictFile.glideinDicts):
         for (tmp, key) in temp_list:
             sortedList.append(d[key][0])
         return sortedList
-
 
     ######################################
     # Redefine methods needed by parent

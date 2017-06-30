@@ -14,6 +14,7 @@
 #
 
 #import wxWidgets
+from __future__ import print_function
 import wx
 import wx.grid
 
@@ -639,7 +640,7 @@ class GlideFrame(wx.Frame):
 
 
 
-        print "Changes Applied..."
+        print("Changes Applied...")
         
         cfg.save_into_file_wbackup(self.targetFile)
         
@@ -653,12 +654,12 @@ class GlideFrame(wx.Frame):
         wx.MessageBox("Changes Applied.", "", wx.OK, self);
         
     def apply_attributes(self, event): 
-        print "Event handler `apply_attributes' not implemented"
+        print("Event handler `apply_attributes' not implemented")
         event.Skip()
     
 
     def attr_select(self, event):
-        print event.GetData()
+        print(event.GetData())
 
 
 class ConfigMain(wx.App):
