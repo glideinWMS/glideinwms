@@ -1,5 +1,6 @@
+from __future__ import absolute_import
 import os
-import glideinwms_tarfile
+from . import glideinwms_tarfile
 import cStringIO
 
 class FileDoesNotExist(Exception):

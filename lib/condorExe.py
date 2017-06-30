@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -13,9 +14,9 @@
 
 
 import os
-import logSupport
+from . import logSupport
 import subprocess
-import subprocessSupport
+from . import subprocessSupport
 import string
 
 class UnconfigError(RuntimeError):

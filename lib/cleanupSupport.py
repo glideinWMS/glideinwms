@@ -1,11 +1,12 @@
+from __future__ import absolute_import
 import os
 import stat
 import time
 import re
 import pwd
-import logSupport
-import condorPrivsep
-from pidSupport import register_sighandler, unregister_sighandler
+from . import logSupport
+from . import condorPrivsep
+from .pidSupport import register_sighandler, unregister_sighandler
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 

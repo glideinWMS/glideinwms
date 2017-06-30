@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
 import traceback
 import sys
 import os
@@ -13,15 +14,15 @@ import optparse
 #-------------------------
 import glideinwms.lib.subprocessSupport
 import glideinwms.lib.xmlFormat
-import common
-import WMSCollector
-import Factory
-import Submit
-import UserCollector
-import Glidein
-from Condor import Condor
-from Configuration import Configuration
-from Configuration import ConfigurationError
+from . import common
+from . import WMSCollector
+from . import Factory
+from . import Submit
+from . import UserCollector
+from . import Glidein
+from .Condor import Condor
+from .Configuration import Configuration
+from .Configuration import ConfigurationError
 #-------------------------
 #os.environ["PYTHONPATH"] = ""
 

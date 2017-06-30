@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -10,8 +11,8 @@
 #
 
 import os, os.path, shutil, string, copy
-import cvWConsts, cWConsts
-import cWDictFile
+from . import cvWConsts, cWConsts
+from . import cWDictFile
 
 
 class ParamsDictFile(cWDictFile.DictFile):

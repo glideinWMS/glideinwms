@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
 import traceback
 import sys, os, pwd, string, time
 import xml.sax.saxutils
@@ -9,13 +10,13 @@ from glideinwms.lib import condorMonitor
 from glideinwms.lib import condorExe
 from glideinwms.lib import condorPrivsep
 
-import common
-import WMSCollector
-import VOFrontend
-from Condor import Condor
-from Glidein import Glidein
-from Configuration import Configuration
-from Configuration import ConfigurationError
+from . import common
+from . import WMSCollector
+from . import VOFrontend
+from .Condor import Condor
+from .Glidein import Glidein
+from .Configuration import Configuration
+from .Configuration import ConfigurationError
 
 #STARTUP_DIR=sys.path[0]
 #sys.path.append(os.path.join(STARTUP_DIR,"../lib"))

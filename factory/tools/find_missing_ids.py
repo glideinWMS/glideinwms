@@ -11,13 +11,14 @@ Options:
      -h, --help  show this help
 
 """
+from __future__ import absolute_import
 
 import os
 import sys
 import getopt 
 import datetime
 from xml.dom import minidom
-import infosys_lib 
+from . import infosys_lib 
 
 USAGE = "Usage: python config_update_tool.py [options]\n" \
         "Options: \n" \

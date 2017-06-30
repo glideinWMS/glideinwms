@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
 import traceback
 import sys, os, os.path, string, time
 import pwd, grp
 import stat
 import optparse
 
-import common
-import WMSCollector
-import Factory
-import VOFrontend
+from . import common
+from . import WMSCollector
+from . import Factory
+from . import VOFrontend
 #os.environ["PYTHONPATH"] = "."
 #-------------------------
 

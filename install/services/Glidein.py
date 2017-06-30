@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
 import traceback
 import sys, os, os.path, string, time
 import optparse
 
-import common
-from Configuration import ConfigurationError
-from Configuration import Configuration
-from Configuration import ConfigurationError
-import VDTClient
+from . import common
+from .Configuration import ConfigurationError
+from .Configuration import Configuration
+from .Configuration import ConfigurationError
+from . import VDTClient
 
 #STARTUP_DIR=sys.path[0]
 #sys.path.append(os.path.join(STARTUP_DIR,"../lib"))

@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
 import traceback
 import sys, os, os.path, string, time
 import stat
 import re
 import optparse
 #-------------------------
-import common
-from Condor import Condor  
-import WMSCollector
-import VOFrontend
-import Factory
-import Submit
-from Configuration import ConfigurationError
+from . import common
+from .Condor import Condor  
+from . import WMSCollector
+from . import VOFrontend
+from . import Factory
+from . import Submit
+from .Configuration import ConfigurationError
 #-------------------------
 #os.environ["PYTHONPATH"] = ""
 

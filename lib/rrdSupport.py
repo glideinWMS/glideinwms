@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -20,7 +21,7 @@ except:
     pass
 import subprocess
 import shlex
-import subprocessSupport
+from . import subprocessSupport
 
 class BaseRRDSupport:
     #############################################################

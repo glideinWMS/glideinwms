@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -16,8 +17,8 @@ import cPickle
 import os
 import time
 import select
-from pidSupport import register_sighandler, unregister_sighandler, termsignal
-import logSupport
+from .pidSupport import register_sighandler, unregister_sighandler, termsignal
+from . import logSupport
 
 
 class ForkResultError(RuntimeError):

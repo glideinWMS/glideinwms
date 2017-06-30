@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -12,7 +13,7 @@
 #
 
 import sys, string, os, stat
-import glideinMonitor
+from . import glideinMonitor
 
 
 # Try to execute the pseudo interactive command

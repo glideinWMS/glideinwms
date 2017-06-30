@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -24,7 +25,7 @@ import re
 import mmap
 import time
 
-import util
+from . import util
 
 
 # -------------- Single Log classes ------------------------
