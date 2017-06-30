@@ -202,7 +202,7 @@ def domel2dict(doc, use_ord_dict=False, always_singular_list=[]):
                 data[eldata['name']] = eldata
                 del eldata['name']
             elif ((data == {}) or              # first element, will define everything
-                  (isinstance(data, type([])))):   # already a list
+                  (isinstance(data, list))):   # already a list
                 # most probably one wants a list in this case
                 if data == {}:
                     data = []

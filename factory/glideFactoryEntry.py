@@ -602,7 +602,7 @@ class Entry:
             for w in client_qc_data:
                 for a in client_qc_data[w]:
                     # report only numbers
-                    if isinstance(client_qc_data[w][a], type(1)):
+                    if isinstance(client_qc_data[w][a], int):
                         client_monitors['%s%s' % (w, a)] = client_qc_data[w][a]
 
             try:

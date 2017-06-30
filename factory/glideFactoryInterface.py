@@ -562,7 +562,7 @@ class EntryClassad(classadSupport.Classad):
                                (factoryConfig.glidein_config_prefix, glidein_config_limits)):
             for attr in data.keys():
                 el = data[attr]
-                if isinstance(el, type(1)):
+                if isinstance(el, int):
                     # don't quote ints
                     self.adParams['%s%s' % (prefix, attr)] = el
                 else:
@@ -885,7 +885,7 @@ def createGlideinClientMonitoringFile(fname,
                                    (factoryConfig.glidein_monitor_prefix, client_monitors)):
                 for attr in data.keys():
                     el = data[attr]
-                    if isinstance(el, type(1)):
+                    if isinstance(el, int):
                         # don't quote ints
                         fd.write('%s%s = %s\n' % (prefix, attr, el))
                     else:

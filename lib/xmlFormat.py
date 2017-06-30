@@ -75,7 +75,7 @@ def xml_quoteattr(el):
         val = xml.sax.saxutils.quoteattr(el)
     elif type(el) in (types.BooleanType,):
         val = '"%s"' % el
-    elif isinstance(el, types.FloatType):
+    elif isinstance(el, float):
         val = '"%.12g"' % el
     else:
         val = '"%i"' % el
@@ -121,7 +121,7 @@ def class2head(inst, inst_name, params, dicts_params, lists_params, tree_params,
             raise RuntimeError, "Param attr %s is not a simple type (%s)" % (attr, debug_str)
         
 
-    if isinstance(inst, types.DictType):
+    if isinstance(inst, dict):
         #dictionaries can be use like classes
         keys = sorted(inst.keys())
     else:
@@ -148,7 +148,7 @@ def class2head(inst, inst_name, params, dicts_params, lists_params, tree_params,
                 dict_attrs.append(attr)
             else:
                 raise RuntimeError,"No params for list attr %s (%s)" % (attr, debug_str)
-        elif isinstance(el, types.DictType):
+        elif isinstance(el, dict):
             if attr in dicts_params.keys():
                 #print "%s is dict" % attr
                 dict_attrs.append(attr)
@@ -329,7 +329,7 @@ def dict2string(dict_data, dict_name, el_name, dict_attr_name="name",
                 res_arr.append(class2string(el, el_name, {dict_attr_name:idx}, c["subclass_params"], c["dicts_params"], c["lists_params"], c["tree_params"], c["text_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s[%s]." % (dict_name, idx))))
             else:
                 raise RuntimeError, "No params for class (at idx %s) (%s)" % (idx, debug_str)
-        elif isinstance(el, types.DictType):
+        elif isinstance(el, dict):
             #print (idx,subtypes_params.keys())
             if "dict" in subtypes_params.keys():
                 sp = complete_dict_params(subtypes_params["dict"])
@@ -406,7 +406,7 @@ def dict2file(fd, dict_data, dict_name, el_name, dict_attr_name="name",
                 class2file(fd, el, el_name, {dict_attr_name:idx}, c["subclass_params"], c["dicts_params"], c["lists_params"], c["tree_params"], c["text_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s[%s]." % (dict_name, idx)))
             else:
                 raise RuntimeError, "No params for class (at idx %s) (%s)" % (idx, debug_str)
-        elif isinstance(el, types.DictType):
+        elif isinstance(el, dict):
             #print (idx,subtypes_params.keys())
             if "dict" in subtypes_params.keys():
                 sp = complete_dict_params(subtypes_params["dict"])
@@ -495,7 +495,7 @@ def list2string(list_data, list_name, el_name, el_attr_name=None,
                 res_arr.append(class2string(el, el_name, {}, c["subclass_params"], c["dicts_params"], c["lists_params"], c["tree_params"], c["text_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s." % list_name)))
             else:
                 raise RuntimeError, "No params for class in list (%s)" % debug_str
-        elif isinstance(el, types.DictType):
+        elif isinstance(el, dict):
             if "dict" in subtypes_params.keys():
                 sp = complete_dict_params(subtypes_params["dict"])
                 res_arr.append(dict2string(el, el_name, sp["el_name"], sp["dict_attr_name"], sp["el_attr_name"], {}, sp["subtypes_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s." % list_name)))
@@ -571,7 +571,7 @@ def list2file(fd, list_data, list_name, el_name, el_attr_name=None,
                 class2file(fd, el, el_name, {}, c["subclass_params"], c["dicts_params"], c["lists_params"], c["tree_params"], c["text_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s." % list_name))
             else:
                 raise RuntimeError, "No params for class in list (%s)" % debug_str
-        elif isinstance(el, types.DictType):
+        elif isinstance(el, dict):
             if "dict" in subtypes_params.keys():
                 sp = complete_dict_params(subtypes_params["dict"])
                 dict2file(fd, el, el_name, sp["el_name"], sp["dict_attr_name"], sp["el_attr_name"], {}, sp["subtypes_params"], indent_tab, leading_tab+indent_tab, debug_str+("%s." % list_name))
