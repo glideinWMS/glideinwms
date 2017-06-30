@@ -1101,7 +1101,7 @@ class TarFile(object):
 
         if self._mode == "r":
             self.firstmember = None
-            self.firstmember = self.next()
+            self.firstmember = next(self)
 
         if self._mode == "a":
             # Move to the end of the archive,
@@ -1109,7 +1109,7 @@ class TarFile(object):
             self.firstmember = None
             while True:
                 try:
-                    tarinfo = self.next()
+                    tarinfo = next(self)
                 except ReadError:
                     self.fileobj.seek(0)
                     break
@@ -2017,7 +2017,7 @@ class TarFile(object):
            members.
         """
         while True:
-            tarinfo = self.next()
+            tarinfo = next(self)
             if tarinfo is None:
                 break
         self._loaded = True
@@ -2070,7 +2070,7 @@ class TarIter:
         # happen that getmembers() is called during iteration,
         # which will cause TarIter to stop prematurely.
         if not self.tarfile._loaded:
-            tarinfo = self.tarfile.next()
+            tarinfo = next(self.tarfile)
             if not tarinfo:
                 self.tarfile._loaded = True
                 raise StopIteration
