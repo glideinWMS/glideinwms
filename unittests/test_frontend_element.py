@@ -10,7 +10,7 @@ import glideinwms.frontend.glideinFrontendLib as glideinFrontendLib
 import glideinwms.frontend.glideinFrontendConfig as glideinFrontendConfig
 import glideinwms.frontend.glideinFrontendElement as glideinFrontendElement
 
-from .unittest_utils import FakeLogger
+from glideinwms.unittests.unittest_utils import FakeLogger
 
 import mock
 import unittest2 as unittest

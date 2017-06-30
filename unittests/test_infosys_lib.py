@@ -5,7 +5,7 @@ Unit tests for the infosys_lib module.
 """
 from __future__ import absolute_import
 
-from . import unittest_utils
+from glideinwms.unittests import unittest_utils
 
 import os
 import sys

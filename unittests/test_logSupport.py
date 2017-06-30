@@ -14,8 +14,8 @@ import xmlrunner
 import yaml
 # pylint: enable=E0611,F0401
 
-from .unittest_utils import runTest
-from .unittest_utils import create_random_string
+from glideinwms.unittests.unittest_utils import runTest
+from glideinwms.unittests.unittest_utils import create_random_string
 from glideinwms.lib import logSupport
 
 
