@@ -145,7 +145,7 @@ class Factory(Condor):
   def validate(self):
     if self.not_validated:
       common.logit( "Verifying Factory options")
-      if os.getuid() <> pwd.getpwnam(self.username())[2]:
+      if os.getuid() != pwd.getpwnam(self.username())[2]:
         common.logerr("""You need to install this as the Factory unix acct (%s) so
 files and directories can be created correctly""" % self.username())
       self.install_vdtclient()

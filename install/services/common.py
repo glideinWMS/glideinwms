@@ -57,7 +57,7 @@ def make_directory(dirname,owner,perm):
   logit("... creating directory: %s" % dirname)
   dirs = [dirname,]  # directories we need to create
   dir = dirname
-  while dir <> "/":
+  while dir != "/":
     parent_dir = os.path.dirname(dir)
     if os.path.isdir(parent_dir):
       break
@@ -249,7 +249,7 @@ def ask_continue(question):
 #--------------------------------
 def validate_hostname(node,additional_msg=""):
   logit("... validating hostname: %s" % node)
-  if node <> socket.getfqdn():
+  if node != socket.getfqdn():
     logerr("""The hostname option (%(hostname)s) shows a different host. 
       This is %(thishost)s.
       %(msg)s """ % { "hostname" : node,
@@ -268,7 +268,7 @@ def validate_user(user):
 def validate_installer_user(user):
   logit("... validating installer_user: %s" % user)
   install_user = pwd.getpwuid(os.getuid())[0]
-  if user <> install_user:
+  if user != install_user:
     logerr("You are installing as user(%s).\n       The ini file says it should be user(%s)." % (install_user,user))
 
 #--------------------------------
@@ -287,7 +287,7 @@ not found or has wrong permissions/ownership.""" % \
   #-- check dn ---
   logit("... validating x509_gsi_dn: %s" % dn_to_validate)
   dn_in_file = get_gsi_dn("proxy",proxy,install_user)
-  if dn_in_file <> dn_to_validate:
+  if dn_in_file != dn_to_validate:
     logerr("""The DN of the x509_proxy option does not match the x509_gsi_dn 
 option value in your ini file:
   x509_gsi_dn: %(dn_to_validate)s
@@ -317,7 +317,7 @@ not found or has wrong permissions/ownership.""" % \
   #-- check dn ---
   logit("... validating x509_gsi_dn: %s" % dn_to_validate)
   dn_in_file = get_gsi_dn("cert",cert)
-  if dn_in_file <> dn_to_validate:
+  if dn_in_file != dn_to_validate:
     logerr("""The DN of the x509_cert option does not match the x509_gsi_dn 
 option value in your ini file:
   x509_gsi_dn: %(dn_to_validate)s
@@ -352,7 +352,7 @@ Or you could be trying to perform this as the wrong user.
 
   if not os.path.isfile(filename):
     logerr("%s '%s' not found" % (type,filename))
-  if os.stat(filename).st_uid <> pwd.getpwnam(install_user)[2]:
+  if os.stat(filename).st_uid != pwd.getpwnam(install_user)[2]:
     logerr("""The %(type)s specified (%(filename)s)
 has to be owned by user %(user)s  
 Or you could be  trying to perform this as the wrong user.

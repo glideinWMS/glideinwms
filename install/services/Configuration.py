@@ -90,7 +90,7 @@ class Configuration:
           duplicates.append(section)
           continue
         sections[section] = True
-    if (len(duplicates) <> 0 ):
+    if (len(duplicates) != 0 ):
       common.logerr("Duplicate sections in %s - %s" % (self.inifile,duplicates))
 
   #----------------

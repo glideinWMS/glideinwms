@@ -53,16 +53,16 @@ full path to client files: """)
     dirs = [ self.factory.client_log_dir(), self.factory.client_proxy_dir(), ]
     for dir in dirs:
       common.logit("client directory: %s" % dir)
-      while dir <> "/":
+      while dir != "/":
         common.logit("   validating %s" % dir)
         if not os.path.exists(dir):
           dir = os.path.dirname(dir)
           continue
         if not os.path.isdir(dir):
           common.logerr("This is not a directory: %s" % dir)
-        if os.stat(dir)[4] <> 0:
+        if os.stat(dir)[4] != 0:
           common.logerr("Group is not root: %s" % dir)
-        if os.stat(dir)[5] <> 0:
+        if os.stat(dir)[5] != 0:
           common.logerr("Owner is not root: %s" % dir)
         if not common.has_permissions(dir,"USR",["R","W","X",]):
           common.logerr("Incorrect 'owner' permissions: %s" % dir)
@@ -114,7 +114,7 @@ QUEUE_SUPER_USERS = $(QUEUE_SUPER_USERS), %s
       frontend_inis.append(obj.service_name())
     service_names.sort() 
     frontend_inis.sort()
-    if service_names <> frontend_inis:
+    if service_names != frontend_inis:
       msg = """The service_names of VOFrontends in your ini file do not match 
 those in your frontend_users attribute of the WMSCollector ini file:  
   frontend_users = %s 

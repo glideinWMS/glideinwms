@@ -355,7 +355,7 @@ If no specific entries are needed, an empty list should be returned.
         if services are collocated.
     """
     common.logit("... checking Condor version")
-    if self.condor_version <> None:
+    if self.condor_version != None:
       common.logit("    Condor version: %s" % self.condor_version)
       return   # we already have it
     version_script = "%s/%s" % (self.condor_location(),"bin/condor_version")
