@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import print_function
 #
 # Project:
 #   glideinWMS
@@ -30,7 +31,7 @@ def exe_cmd(argv_func,argv=sys.argv):
                                args['timeout'],
                                createCmdMonitorFile, argv_func(args['argv']))
     except RuntimeError as e:
-        print e
+        print(e)
         sys.exit(1)
 
 # Try to execute the pseudo interactive command
@@ -46,7 +47,7 @@ def exe_cmd_simple(argv_func,argv=sys.argv):
                                args['timeout'],
                                createCmdMonitorFileSimple, argv_func(args['argv']))
     except RuntimeError as e:
-        print e
+        print(e)
         sys.exit(1)
 
 # Try to execute the pseudo interactive command
@@ -62,7 +63,7 @@ def exe_cmd_script(argv_func,argv=sys.argv):
                                args['timeout'],
                                createCmdMonitorFileScript, argv_func(args['argv']))
     except RuntimeError as e:
-        print e
+        print(e)
         sys.exit(1)
 
 ######################################

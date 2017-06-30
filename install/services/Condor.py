@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import os
 import os.path
@@ -1273,7 +1274,7 @@ DAEMON_LIST = $(DAEMON_LIST), COLLECTOR%(nbr)i
 
 def main(argv):
   try:
-    print argv
+    print(argv)
     inifile = "/home/weigand/glidein-ini/glidein-all-xen21-doug.ini"
     section = "WMSCollector"
     options = {}
@@ -1281,11 +1282,11 @@ def main(argv):
     #condor.install_condor()
     condor.__validate_tarball__("/usr/local/tarballs/" + argv[1])
   except ConfigurationError as e:
-    print "ERROR: %s" % e;return 1
+    print("ERROR: %s" % e);return 1
   except common.WMSerror as e:
-    print "WMSError";return 1
+    print("WMSError");return 1
   except Exception as e:
-    print traceback.print_exc()
+    print(traceback.print_exc())
   return 0
 
 

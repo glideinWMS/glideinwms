@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import absolute_import
+from __future__ import print_function
 import traceback
 import sys, os, os.path, string, time
 import optparse
@@ -180,7 +181,7 @@ def validate_args(args):
 This will install a Factory service for glideinWMS using the ini file
 specified.
 """
-    print usage
+    print(usage)
     parser = optparse.OptionParser(usage)
     parser.add_option("-i", "--ini", dest="inifile",
                       help="ini file defining your configuration")
@@ -205,9 +206,9 @@ def main(argv):
     common.logit("\n... looks like you aborted this script... bye.");
     return 1
   except ConfigurationError as e:
-    print;print "ConfigurationError ERROR(should not get these): %s"%e;return 1
+    print();print("ConfigurationError ERROR(should not get these): %s"%e);return 1
   except common.WMSerror:
-    print;return 1
+    print();return 1
   return 0
 
 #--------------------------

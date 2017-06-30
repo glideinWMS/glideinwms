@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import subprocess
 # pylint: disable=no-name-in-module
@@ -15,7 +16,7 @@ def xslt_xml(old_xmlfile, xslt_plugin_dir):
     try:
         plugins = [os.path.join(xslt_plugin_dir, f) for f in os.listdir(xslt_plugin_dir)]
     except OSError as e:
-        print "Error opening %s directory: %s" % (xslt_plugin_dir, e.strerror)
+        print("Error opening %s directory: %s" % (xslt_plugin_dir, e.strerror))
         return old_xml_fd.read()
 
     plugins.sort()

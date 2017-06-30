@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import absolute_import
+from __future__ import print_function
 import traceback
 import sys, os, os.path, string, time
 import stat
@@ -165,14 +166,14 @@ If present, are you really installing both services on the same node.
   #-------------------------
   def create_template(self):
     global valid_options
-    print "; ------------------------------------------"
-    print "; UserCollector minimal ini options template"
+    print("; ------------------------------------------")
+    print("; UserCollector minimal ini options template")
     for section in valid_options.keys():
-      print "; ------------------------------------------"
-      print "[%s]" % section
+      print("; ------------------------------------------")
+      print("[%s]" % section)
       for option in valid_options[section]:
-        print "%-25s =" % option
-      print 
+        print("%-25s =" % option)
+      print() 
 
 #--- END OF CLASS ---
 ###########################################
@@ -189,7 +190,7 @@ def validate_args(args):
 This will install a User collector service for glideinWMS using the ini file
 specified.
 """
-    print usage
+    print(usage)
     parser = optparse.OptionParser(usage)
     parser.add_option("-i", "--ini", dest="inifile",
                       help="ini file defining your configuration")

@@ -12,6 +12,7 @@
 #   Igor Sfiligoi
 #
 
+from __future__ import print_function
 import time
 import sys
 import os.path
@@ -29,19 +30,19 @@ data = {}
 
 ################################################################################
 def help():
-    print "glidein_status.py [-help] [-gatekeeper] [-glidecluster] [-glexec] [-withmonitor] [-bench] [-total] [-site] [-pool name] [-constraint name]"
-    print
-    print "Options:"
-    print " -gatekeeper   : Print out the glidein gatekeeper"
-    print " -glidecluster : Print out the glidein cluster nr"
-    print " -glexec       : Print out if glexec is used"
-    print " -withmonitor  : Print out the monitoring VMs, too"
-    print " -bench        : Print out the benchmarking numbers, too"
-    print " -total        : Print out only the totals (skip details)"
-    print " -site         : Summarize by site (default by entry name)"
-    print " -pool         : Same as -pool in condor_status"
-    print " -constraint   : Same as -constraint in condor_status"
-    print
+    print("glidein_status.py [-help] [-gatekeeper] [-glidecluster] [-glexec] [-withmonitor] [-bench] [-total] [-site] [-pool name] [-constraint name]")
+    print()
+    print("Options:")
+    print(" -gatekeeper   : Print out the glidein gatekeeper")
+    print(" -glidecluster : Print out the glidein cluster nr")
+    print(" -glexec       : Print out if glexec is used")
+    print(" -withmonitor  : Print out the monitoring VMs, too")
+    print(" -bench        : Print out the benchmarking numbers, too")
+    print(" -total        : Print out only the totals (skip details)")
+    print(" -site         : Summarize by site (default by entry name)")
+    print(" -pool         : Same as -pool in condor_status")
+    print(" -constraint   : Same as -constraint in condor_status")
+    print()
 
 
 def machine_cmp(x, y):
@@ -232,9 +233,9 @@ def main():
     header+=('State', 'Activity', 'ActvtyTime')
 
     if not total_only:
-        print
-        print print_mask%header
-        print
+        print()
+        print(print_mask%header)
+        print()
 
     counts={'Total':{}}
     for c in counts_header:
@@ -313,14 +314,14 @@ def main():
                 print_arr+=(mflops_str, mips_str)
             print_arr+=(state, activity, cel['EnteredCurrentActivity'])
 
-            print print_mask%print_arr
+            print(print_mask%print_arr)
 
-    print
+    print()
 
     count_print_mask="%39s"
     for c in counts_header:
         count_print_mask+=" %%%is"%len(c)
-    print count_print_mask%(('',)+counts_header)
+    print(count_print_mask%(('',)+counts_header))
 
     ckeys=counts.keys()
 
@@ -331,21 +332,21 @@ def main():
         ckeys.sort(entry_cmp)
 
     if len(ckeys)>1:
-        print # put a space before the entry names
+        print() # put a space before the entry names
 
     count_print_val = None
     for t in ckeys:
         if t=='Total':
-            print # put an empty line before Total
+            print() # put an empty line before Total
             count_print_val=[t]
         else:
             count_print_val = ['']
         for c in counts_header:
             count_print_val.append(int(counts[t][c]))
 
-        print count_print_mask%tuple(count_print_val)
+        print(count_print_mask%tuple(count_print_val))
 
-    print
+    print()
 
 
 if __name__ == '__main__':

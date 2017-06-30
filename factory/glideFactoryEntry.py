@@ -9,6 +9,7 @@
 #   Entry class
 #
 
+from __future__ import print_function
 import signal
 import os
 import os.path
@@ -897,14 +898,14 @@ class Entry:
 
 def dump_obj(obj):
     import types
-    print obj.__dict__
-    print "======= START: %s ======" % obj
+    print(obj.__dict__)
+    print("======= START: %s ======" % obj)
     for key in obj.__dict__:
         if not isinstance(obj.__dict__[key], types.InstanceType):
-            print "%s = %s" % (key, obj.__dict__[key])
+            print("%s = %s" % (key, obj.__dict__[key]))
         else:
             dump_obj(obj.__dict__[key])
-    print "======= END: %s ======" % obj
+    print("======= END: %s ======" % obj)
 
 
 ###############################################################################

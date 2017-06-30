@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import absolute_import
+from __future__ import print_function
 import traceback
 import sys, os, os.path, string, time
 import pwd, grp
@@ -228,7 +229,7 @@ def main(argv):
     common.logit("\n... looks like you aborted this script... bye.");
     return 1
   except common.WMSerror:
-    print;return 1
+    print();return 1
   return 0
 
 

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #
 # Project:
 #   glideinWMS
@@ -168,15 +169,15 @@ def printDowntime(fname,entry="Any",check_time=None):
                     downtime_keys[e]+=","+downtime_keys["All"]
         if entry=="Any":
             for e in downtime_keys:
-                print "%-30s Down\t%s"%(e, downtime_keys[e])
+                print("%-30s Down\t%s"%(e, downtime_keys[e]))
         else:
             if entry in downtime_keys:
-                print "%-30s Down\t%s"%(entry, downtime_keys[entry])
+                print("%-30s Down\t%s"%(entry, downtime_keys[entry]))
             else:
                 if ("All" in downtime_keys) and (entry!="factory"):
-                    print "%-30s Down\t%s"%(entry, downtime_keys["All"])
+                    print("%-30s Down\t%s"%(entry, downtime_keys["All"]))
                 else:
-                    print "%-30s Up  \tAll:All"%(entry)
+                    print("%-30s Up  \tAll:All"%(entry))
 
 
 

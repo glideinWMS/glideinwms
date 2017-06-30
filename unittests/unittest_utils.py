@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import os
 import sys
 import tempfile
@@ -92,7 +93,7 @@ class FakeLogger:
         @param msg: A message string.
         @param args: Arguments which should be evaluated into the message.
         """
-        print >> sys.stderr, str(msg) % args
+        print(str(msg) % args, file=sys.stderr)
 
     def info(self, msg, *args):
         """
@@ -100,7 +101,7 @@ class FakeLogger:
         
         @see: debug
         """
-        print >> sys.stderr, str(msg) % args
+        print(str(msg) % args, file=sys.stderr)
 
     def warning(self, msg, *args):
         """
@@ -108,7 +109,7 @@ class FakeLogger:
 
         @see: debug
         """
-        print >> sys.stderr, str(msg) % args
+        print(str(msg) % args, file=sys.stderr)
 
     def error(self, msg, *args):
         """
@@ -116,7 +117,7 @@ class FakeLogger:
 
         @see: debug
         """
-        print >> sys.stderr, str(msg) % args
+        print(str(msg) % args, file=sys.stderr)
 
     def exception(self, msg, *args):
         """
@@ -124,7 +125,7 @@ class FakeLogger:
 
         @see: debug
         """
-        print >> sys.stderr, str(msg) % args
+        print(str(msg) % args, file=sys.stderr)
 
 def create_temp_file(file_suffix='', file_prefix='tmp', file_dir='/tmp',
                      text_access=True, write_path_to_file=True):

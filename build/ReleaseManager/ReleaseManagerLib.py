@@ -1,5 +1,6 @@
 #!/usr/bin/python -B
 
+from __future__ import print_function
 import os, sys
 import subprocess, shlex
 import traceback
@@ -40,7 +41,7 @@ class Release:
                 self.rpmRelease, self.rpmOSVersion[0], self.rpmOSVersion[1]))
             self.buildRPMs = True
         except:
-            print 'RPMs will not be build for this platform'
+            print('RPMs will not be build for this platform')
 
 
     def createTarballVersionString(self, ver, rc):
@@ -100,17 +101,17 @@ class Release:
     def executeTasks(self):
         for i in range(0, len(self.tasks)):
             task = self.tasks[i]
-            print "************* Executing %s *************" % (self.tasks[i]).name
+            print("************* Executing %s *************" % (self.tasks[i]).name)
             task.execute()
-            print "************* %s Status %s *************" % ((self.tasks[i]).name, (self.tasks[i]).status)
+            print("************* %s Status %s *************" % ((self.tasks[i]).name, (self.tasks[i]).status))
 
     def printReport(self):
-        print 35*"_"
-        print "TASK" + 20*" " + "STATUS"
-        print 35*"_"
+        print(35*"_")
+        print("TASK" + 20*" " + "STATUS")
+        print(35*"_")
         for i in range(0, len(self.tasks)):
-            print "%-23s %s" % ((self.tasks[i]).name, (self.tasks[i]).status)
-        print 35*"_"
+            print("%-23s %s" % ((self.tasks[i]).name, (self.tasks[i]).status))
+        print(35*"_")
 
 
 class TaskRelease:
@@ -183,8 +184,8 @@ class TaskPylint(TaskRelease):
     def pylint1(self):
         #print self.fileList
         for file in self.fileList:
-            print "Running pylint on %s" % file
-            print self.pylintArgs + [file]
+            print("Running pylint on %s" % file)
+            print(self.pylintArgs + [file])
             lint.Run(self.pylintArgs + [file])
 
 
@@ -215,7 +216,7 @@ class TaskTar(TaskRelease):
                                     self.release.version)
         cmd = 'rm -rf %s; mkdir -p %s; cp -r %s %s/glideinwms; cd %s; %s %s -czf %s/%s glideinwms' % \
               (src_dir, src_dir, self.release.sourceDir, src_dir, src_dir, self.tarExe, exclude, self.release.releaseDir, self.releaseFilename)
-        print "%s" % cmd
+        print("%s" % cmd)
         execute_cmd(cmd)
         self.status = 'COMPLETE'
     #   execute
@@ -491,7 +492,7 @@ def create_dir(dir, mode=0o755, errorIfExists=False):
     except OSError as xxx_todo_changeme:
         (errno, stderror) = xxx_todo_changeme.args
         if (errno == 17) and (errorIfExists == False):
-            print 'Dir already exists reusing %s' % dir
+            print('Dir already exists reusing %s' % dir)
         else:
             raise
     except Exception:
@@ -517,11 +518,11 @@ def execute_cmd(cmd, stdin_data=None):
             errcode = 0
         else:
             msg = "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s"%(cmd, tempOut, tempErr, e)
-            print msg
+            print(msg)
             raise ExeError, msg
     if (errcode != 0):
         msg = "Error running '%s'\nStdout:%s\nStderr:%s\nException Error: %s"%(cmd, tempOut, tempErr, errcode)
-        print msg
+        print(msg)
         raise ExeError, msg
     return tempOut
 

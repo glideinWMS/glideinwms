@@ -29,6 +29,7 @@
 #
 """Read from and write to tar format archives.
 """
+from __future__ import print_function
 
 __version__ = "$Revision: 70530 $"
 # $Source$
@@ -1427,25 +1428,25 @@ class TarFile(object):
 
         for tarinfo in self:
             if verbose:
-                print filemode(tarinfo.mode),
-                print "%s/%s" % (tarinfo.uname or tarinfo.uid,
-                                 tarinfo.gname or tarinfo.gid),
+                print(filemode(tarinfo.mode), end=' ')
+                print("%s/%s" % (tarinfo.uname or tarinfo.uid,
+                                 tarinfo.gname or tarinfo.gid), end=' ')
                 if tarinfo.ischr() or tarinfo.isblk():
-                    print "%10s" % ("%d,%d" \
-                                    % (tarinfo.devmajor, tarinfo.devminor)),
+                    print("%10s" % ("%d,%d" \
+                                    % (tarinfo.devmajor, tarinfo.devminor)), end=' ')
                 else:
-                    print "%10d" % tarinfo.size,
-                print "%d-%02d-%02d %02d:%02d:%02d" \
-                      % time.localtime(tarinfo.mtime)[:6],
+                    print("%10d" % tarinfo.size, end=' ')
+                print("%d-%02d-%02d %02d:%02d:%02d" \
+                      % time.localtime(tarinfo.mtime)[:6], end=' ')
 
-            print tarinfo.name,
+            print(tarinfo.name, end=' ')
 
             if verbose:
                 if tarinfo.issym():
-                    print "->", tarinfo.linkname,
+                    print("->", tarinfo.linkname, end=' ')
                 if tarinfo.islnk():
-                    print "link to", tarinfo.linkname,
-            print
+                    print("link to", tarinfo.linkname, end=' ')
+            print()
 
     def add(self, name, arcname=None, recursive=True):
         """Add the file `name' to the archive. `name' may be any type of file
@@ -2043,7 +2044,7 @@ class TarFile(object):
         """Write debugging output to sys.stderr.
         """
         if level <= self.debug:
-            print >> sys.stderr, msg
+            print(msg, file=sys.stderr)
 # class TarFile
 
 class TarIter:

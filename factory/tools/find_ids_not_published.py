@@ -10,6 +10,7 @@ Options:
      -h, --help  show this help
 
 """
+from __future__ import print_function
 
 import os
 import sys
@@ -41,12 +42,12 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv, "hx:d:", ["help"])
     except getopt.GetoptError:
-        print "Unrecognized options or incorrect input."
-        print USAGE
+        print("Unrecognized options or incorrect input.")
+        print(USAGE)
         sys.exit(2)
     for opt, arg in opts:
         if opt in ("-h", "--help"):
-            print USAGE
+            print(USAGE)
             sys.exit()
         else:
             if opt == '-x':
@@ -54,23 +55,23 @@ def main(argv):
             elif opt == '-d':
                 skip_disabled = arg
             else:
-                print "Unrecognized options or incorrect input."
-                print USAGE
+                print("Unrecognized options or incorrect input.")
+                print(USAGE)
                 sys.exit(2)
             
     # Validate arg exists
     if config_xml == '':
-        print "No configuration file was provided."
-        print USAGE
+        print("No configuration file was provided.")
+        print(USAGE)
         sys.exit(2)
     else: 
         if not os.path.isfile(config_xml):
-            print "Config file '%s' does not exist." % config_xml
+            print("Config file '%s' does not exist." % config_xml)
             sys.exit(2)
 
     if skip_disabled.lower() != 'yes' and skip_disabled.lower() != 'no':
-        print "Skip disabled argument must be 'yes' or 'no'."
-        print USAGE
+        print("Skip disabled argument must be 'yes' or 'no'.")
+        print(USAGE)
         sys.exit(2)
     
     if skip_disabled == 'yes':
@@ -124,7 +125,7 @@ def main(argv):
             output += "\n"            
             
     # Output results
-    print output
+    print(output)
     
     
 def find_entries_with_ids_not_published(config_xml, skip_disabled):
@@ -150,7 +151,7 @@ def find_entries_with_ids_not_published(config_xml, skip_disabled):
             os.environ["CONDOR_CONFIG"] = condor_path + "/etc/condor_config"
             condorExe.set_path(condor_path + "/bin", condor_path + "/sbin")
     except: 
-        print "Error parsing the the config file '%s', exiting the tool." % config_xml
+        print("Error parsing the the config file '%s', exiting the tool." % config_xml)
         sys.exit(2) 
 
     # Retrieve info systems entries 
@@ -181,7 +182,7 @@ def find_entries_id_not_found(infosys_entries, config_entries, source_type):
     Returns a list of entries in config the that have an ref id that was not found in the infosys.
     """
     id_not_found_entries = []
-    print source_type
+    print(source_type)
     
     for entry_name in config_entries.keys():
         entry_c = config_entries[entry_name]

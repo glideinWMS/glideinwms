@@ -1,3 +1,4 @@
+from __future__ import print_function
 import time
 import fcntl
 import os.path
@@ -243,4 +244,4 @@ def printDowntime( fname, check_time=None ):
                 continue
             if (time_tuple[1] is not None) and (check_time>time_tuple[1]):
                 continue
-            print "%-30s Down"%("Frontend")
+            print("%-30s Down"%("Frontend"))

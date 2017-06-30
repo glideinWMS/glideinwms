@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from __future__ import absolute_import
+from __future__ import print_function
 #!/usr/bin/python
 
 from . import common
@@ -172,7 +173,7 @@ class UsageError(Exception):
 #---------------------
 def compare_ini_files (file_1, file_2, no_local_settings):
   try:
-    print "Comparing ini files: %s / %s" % (file_1, file_2)
+    print("Comparing ini files: %s / %s" % (file_1, file_2))
     ini_1 = Configuration(file_1)
     ini_2 = Configuration(file_2)
     rtn = 0
@@ -180,20 +181,20 @@ def compare_ini_files (file_1, file_2, no_local_settings):
     if ( no_local_settings ):
       ini_1.delete_section("Local Settings")
       ini_2.delete_section("Local Settings")
-    print "... Checking section information:"
+    print("... Checking section information:")
     if ( ini_1.sections() == ini_2.sections() ):
-      print "... sections are identical"
+      print("... sections are identical")
     else:
-      print "... WARNING: section information differs"
+      print("... WARNING: section information differs")
       compare_sections(ini_1, ini_2)
       compare_sections(ini_2, ini_1)
       rtn = 1
-    print
-    print "... Checking section/object information:"
+    print()
+    print("... Checking section/object information:")
     if ( ini_1.section_options() ==  ini_2.section_options() ):
-      print "... all section/objects are identical"
+      print("... all section/objects are identical")
     else:
-      print "... WARNING: section/object information differs"
+      print("... WARNING: section/object information differs")
       compare_options(ini_1, ini_2)
       compare_options(ini_2, ini_1)
       rtn = 1
@@ -203,37 +204,37 @@ def compare_ini_files (file_1, file_2, no_local_settings):
 
 #--------------------------------
 def compare_sections(ini1, ini2):
-  print """
+  print("""
 ... Sections     in %s 
-       NOT FOUND in %s""" % (ini1.filename(), ini2.filename())
+       NOT FOUND in %s""" % (ini1.filename(), ini2.filename()))
   for section in ini1.sections(): 
     if ( ini2.has_section(section) ):
       continue
     else:
-      print "    %s" % (section)
+      print("    %s" % (section))
 
 #--------------------------------
 def compare_options(ini1, ini2):
-  print """
+  print("""
 ... Section/objects in %s 
-          NOT FOUND in %s""" % (ini1.filename(), ini2.filename())
+          NOT FOUND in %s""" % (ini1.filename(), ini2.filename()))
   for section in ini1.sections():
     for option in ini1.options(section): 
       ## if (section == "SE CHANGEME"):
       ##   if (option == "enable"):
       ##     print section,option
       if ( ini2.has_option(section, option) == False):
-        print "    %-20s/%s" % (section, option)
+        print("    %-20s/%s" % (section, option))
  
 #--------------------------------
 def usage(pgm):
-  print
-  print "Usage: " + pgm + " --compare file1 file2"
-  print "       " + pgm + " --show-options file"
-  print "       " + pgm + " --show-values file"
-  print "       " + pgm + " --validate file"
-  print "       " + pgm + " --help | -h "
-  print """
+  print()
+  print("Usage: " + pgm + " --compare file1 file2")
+  print("       " + pgm + " --show-options file")
+  print("       " + pgm + " --show-values file")
+  print("       " + pgm + " --validate file")
+  print("       " + pgm + " --help | -h ")
+  print("""
    compare .......... Shows the differences between the 
                       section/objects (not values) of the 2 ini files
                         returns 0 if identical
@@ -245,7 +246,7 @@ def usage(pgm):
    Full path to the files must be specified unless this is executed
    in the directory in which they reside.
 
-"""
+""")
 
 #----------------------------------
 def run_unit_tests(pgm):
@@ -287,20 +288,20 @@ def run_unit_tests(pgm):
       n = n + 1
       args = tests[test]
       expected_rtn = args[0]
-      print "-----------------------------------------------------------------"
-      print "-- Test %d: %s" % (n, test)
-      print "--   ", args[1:]
-      print "--    Expected return code: %s" % expected_rtn
+      print("-----------------------------------------------------------------")
+      print("-- Test %d: %s" % (n, test))
+      print("--   ", args[1:])
+      print("--    Expected return code: %s" % expected_rtn)
       rtn = main(args[1:])
-      print "-- Return code: %s" % rtn
+      print("-- Return code: %s" % rtn)
       if ( rtn == expected_rtn ):
-        print "-- Test %d: %s - SUCCESSFUL" % (n, test)
-        print "-----------------------------------------------------------------"
+        print("-- Test %d: %s - SUCCESSFUL" % (n, test))
+        print("-----------------------------------------------------------------")
       else:
         raise ConfigurationError("-- Test %d: %s - FAILED" % (n, test))
   except:
     raise 
-  print "**********## All %d tests passed ***************" % n
+  print("**********## All %d tests passed ***************" % n)
 
 #--------------------
 def validate_args(opts, expected_args):
@@ -331,26 +332,26 @@ def main(opts=None):
       elif (opt == "--show-options") or (opt == "-show-options"):
         validate_args(opts, 3)
         ini = Configuration(opts[2])
-        print ini.section_options()
+        print(ini.section_options())
       elif (opt == "--show-values") or (opt == "-show-values"):
         validate_args(opts, 3)
         ini = Configuration(opts[2])
-        print ini
+        print(ini)
         validate_args(opts, 3)
       elif (opt == "--validate") or (opt == "-validate"):
         ini = Configuration(opts[2])
-        print "... configuration ini file has no syntax errors"
+        print("... configuration ini file has no syntax errors")
       elif (opt == "--test") or (opt == "-test"):
         run_unit_tests(opts[0])
       else:
         raise UsageError("Invalid command line option")
   except ConfigurationError as e:
-    print;print "Configuration ERROR: %s" % e;return 1
+    print();print("Configuration ERROR: %s" % e);return 1
   except UsageError as e:
     usage(opts[0])
-    print "Usage ERROR: %s" % e;return 1
+    print("Usage ERROR: %s" % e);return 1
   except Exception as e:
-    print;print "Exception ERROR: %s - %s" % (show_line(), e);return 1
+    print();print("Exception ERROR: %s - %s" % (show_line(), e));return 1
   return 0
 
 #--------------------------

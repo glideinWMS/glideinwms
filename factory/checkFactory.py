@@ -15,6 +15,7 @@
 #   Igor Sfiligoi Jul 9th 2008
 #
 
+from __future__ import print_function
 import sys, os.path
 sys.path.append(os.path.join(sys.path[0], "../.."))
 from glideinwms.factory import glideFactoryPidLib
@@ -23,9 +24,9 @@ try:
     startup_dir=sys.argv[1]
     factory_pid=glideFactoryPidLib.get_factory_pid(startup_dir)
 except:
-    print "Not running"
+    print("Not running")
     sys.exit(1)
 
-print "Running"
+print("Running")
 sys.exit(0)
 

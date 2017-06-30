@@ -11,6 +11,7 @@
 # Usage: find_logs.py <factory> YY/MM/DD [hh:mm:ss]
 #
 
+from __future__ import print_function
 import sys
 import os
 import os.path
@@ -56,7 +57,7 @@ def main():
 
     log_list=gWftLogParser.get_glidein_logs(glideinDescript.factory_dir, entries, glideinDescript.date_arr, glideinDescript.time_arr, "err")
     for fname in log_list:
-        print fname
+        print(fname)
         
 
 

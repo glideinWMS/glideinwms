@@ -4,6 +4,7 @@
 Library for the information system comparisons.
 
 """
+from __future__ import print_function
 
 import os
 import sys
@@ -332,7 +333,7 @@ def query_teragrid():
         try:
             resource_xml = urllib2.urlopen('http://info.teragrid.org/web-apps/xml/ctss-services-v1/ResourceID/' + resource_id)
         except:
-            print "Skipping bad resource id %s" % resource_id
+            print("Skipping bad resource id %s" % resource_id)
             continue
         
         config_dom = minidom.parse(resource_xml)

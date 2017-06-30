@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import absolute_import
+from __future__ import print_function
 import traceback
 import sys, os, pwd, string, time
 import xml.sax.saxutils
@@ -647,7 +648,7 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
   def ask_user(self, ress_entries):
     ress_keys=sorted(ress_entries.keys())
 
-    print "Found %i additional entries" % len(ress_keys)
+    print("Found %i additional entries" % len(ress_keys))
     if len(ress_keys) == 0:
       return
     yn = common.ask_yn("Do you want to use them all")
@@ -657,19 +658,19 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
             self.config_entries_list[key] = ress_entries[key]
         return
 
-    print "This is the list of entries found in RESS:"
+    print("This is the list of entries found in RESS:")
     for key in ress_keys:
-        print "[%s] %s(%s)"%(string.ljust(key, 20), ress_entries[key]['gatekeeper'], ress_entries[key]['rsl'])
+        print("[%s] %s(%s)"%(string.ljust(key, 20), ress_entries[key]['gatekeeper'], ress_entries[key]['rsl']))
 
-    print "Select the indexes you want to include"
-    print "Use a , separated list to include more than one"
+    print("Select the indexes you want to include")
+    print("Use a , separated list to include more than one")
     while True:
       idxes = raw_input("Please select: ")
       idx_arr = idxes.split(',')
       problems = 0
       for idx in idx_arr:
         if not (idx in ress_keys):
-          print "'%s' is not a valid index!" % idx
+          print("'%s' is not a valid index!" % idx)
           problems=1
           break
       if problems:
@@ -815,21 +816,21 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
 
   #----------------------
   def additional_entry_points(self):
-    print "Please list all additional glidein entry points,"
+    print("Please list all additional glidein entry points,")
     while True:
-      print
+      print()
       entry_name = raw_input("Entry name (leave empty when finished): ").strip()
       if entry_name == "":
         if len(self.config_entries_list.keys()) < 1:
-          print "You must insert at least one entry point"
+          print("You must insert at least one entry point")
           continue
         break
       if entry_name in self.config_entries_list.keys():
-        print "You already inserted '%s'!" % entry_name
+        print("You already inserted '%s'!" % entry_name)
         continue
       gatekeeper_name = raw_input("Gatekeeper for '%s': " % entry_name).strip()
       if gatekeeper_name == "":
-        print "Gatekeeper cannot be empty!"
+        print("Gatekeeper cannot be empty!")
         continue
       rsl_name = raw_input("RSL for '%s': " % entry_name).strip() # can be empty
       work_dir = raw_input("Work dir for '%s': [.] " % entry_name).strip()
@@ -880,14 +881,14 @@ export PYTHONPATH=$PYTHONPATH:%(install_location)s/..
   #-------------------------
   def create_template(self):
     global valid_options
-    print "; ------------------------------------------"
-    print "; Factory minimal ini options template"
+    print("; ------------------------------------------")
+    print("; Factory minimal ini options template")
     for section in valid_options.keys():
-      print "; ------------------------------------------"
-      print "[%s]" % section
+      print("; ------------------------------------------")
+      print("[%s]" % section)
       for option in valid_options[section]:
-        print "%-25s =" % option
-      print 
+        print("%-25s =" % option)
+      print() 
 
 ### END OF CLASS ###
 
@@ -904,7 +905,7 @@ def validate_args(args):
 This will install a Factory service for glideinWMS using the ini file
 specified.
 """
-    print usage
+    print(usage)
     parser = optparse.OptionParser(usage)
     parser.add_option("-i", "--ini", dest="inifile",
                       help="ini file defining your configuration")
@@ -938,9 +939,9 @@ def main(argv):
     common.logit("\n... looks like you aborted this script... bye.");
     return 1
   except ConfigurationError as e:
-    print;print "ConfigurationError ERROR(should not get these): %s"%e;return 1
+    print();print("ConfigurationError ERROR(should not get these): %s"%e);return 1
   except common.WMSerror:
-    print;return 1
+    print();return 1
   return 0
 
 #-------------------------

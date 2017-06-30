@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import absolute_import
+from __future__ import print_function
 import traceback
 import sys, os, os.path, string, time
 import stat
@@ -205,14 +206,14 @@ If present, are you really installing both services on the same node.
   #-------------------------
   def create_template(self):
     global valid_options
-    print "; ------------------------------------------"
-    print "; %s minimal ini options template" % self.ini_section
+    print("; ------------------------------------------")
+    print("; %s minimal ini options template" % self.ini_section)
     for section in valid_options.keys():
-      print "; ------------------------------------------"
-      print "[%s]" % section
+      print("; ------------------------------------------")
+      print("[%s]" % section)
       for option in valid_options[section]:
-        print "%-25s =" % option
-      print
+        print("%-25s =" % option)
+      print()
 
 #### end of class ####
 

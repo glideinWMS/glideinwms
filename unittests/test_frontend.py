@@ -7,6 +7,7 @@
 #   [for rrdtool: pip install git+https://github.com/holzman/python-rrdtool]
 
 from __future__ import absolute_import
+from __future__ import print_function
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatus
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatusCredIdOnly
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatusPerCredId
@@ -52,8 +53,8 @@ def compareLambdas(func1, func2):
     strip_line_number(code2)
 
     if code1 != code2:
-        print ''.join(code1)
-        print ''.join(code2)
+        print(''.join(code1))
+        print(''.join(code2))
 #        pass
     return code1 == code2
 
