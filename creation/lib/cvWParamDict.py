@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -11,10 +12,10 @@
 #
 
 import os, os.path, shutil, string
-import cvWDictFile, cWDictFile
-import cvWConsts, cWConsts
-import cvWCreate
-from cWParamDict import is_true, add_file_unparsed
+from . import cvWDictFile, cWDictFile
+from . import cvWConsts, cWConsts
+from . import cvWCreate
+from .cWParamDict import is_true, add_file_unparsed
 from glideinwms.lib import x509Support
 
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatus
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatusCredIdOnly
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatusPerCredId
@@ -9,7 +10,7 @@ import glideinwms.frontend.glideinFrontendLib as glideinFrontendLib
 import glideinwms.frontend.glideinFrontendConfig as glideinFrontendConfig
 import glideinwms.frontend.glideinFrontendElement as glideinFrontendElement
 
-from unittest_utils import FakeLogger
+from .unittest_utils import FakeLogger
 
 import mock
 import unittest2 as unittest

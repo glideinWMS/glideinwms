@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 # Project:
 #   glideinWMS
 #
@@ -12,9 +13,9 @@
 import os, os.path, shutil, string
 import sys
 import glob
-import cgWDictFile, cWDictFile
-import cgWCreate
-import cgWConsts, cWConsts
+from . import cgWDictFile, cWDictFile
+from . import cgWCreate
+from . import cgWConsts, cWConsts
 #
 # see the note in add_file_unparsed def below to understand
 # why this is commented out for now

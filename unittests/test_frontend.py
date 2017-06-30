@@ -6,6 +6,7 @@
 # (just once): pip install mock unittest2 coverage
 #   [for rrdtool: pip install git+https://github.com/holzman/python-rrdtool]
 
+from __future__ import absolute_import
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatus
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatusCredIdOnly
 from glideinwms.frontend.glideinFrontendLib import getClientCondorStatusPerCredId
@@ -13,7 +14,7 @@ import glideinwms.lib.condorExe
 import glideinwms.lib.condorMonitor as condorMonitor
 import glideinwms.frontend.glideinFrontendLib as glideinFrontendLib
 
-from unittest_utils import FakeLogger
+from .unittest_utils import FakeLogger
 
 import mock
 import unittest2 as unittest

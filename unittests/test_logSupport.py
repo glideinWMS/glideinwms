@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
 import logging
 import os
 import shutil
@@ -13,8 +14,8 @@ import xmlrunner
 import yaml
 # pylint: enable=E0611,F0401
 
-from unittest_utils import runTest
-from unittest_utils import create_random_string
+from .unittest_utils import runTest
+from .unittest_utils import create_random_string
 from glideinwms.lib import logSupport
 
 

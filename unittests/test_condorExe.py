@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import absolute_import
 import os
 import sys
 import unittest2 as unittest
@@ -6,7 +7,7 @@ import xmlrunner
 
 # unittest_utils will handle putting the appropriate directories on the python
 # path for us.
-from unittest_utils import runTest
+from .unittest_utils import runTest
 
 from glideinwms.lib import condorExe
 from glideinwms.lib.condorExe import iexe_cmd

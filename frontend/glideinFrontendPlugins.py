@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -19,8 +20,8 @@ import math
 import collections
 from glideinwms.lib import logSupport
 from glideinwms.lib import util
-import glideinFrontendLib
-import glideinFrontendInterface
+from . import glideinFrontendLib
+from . import glideinFrontendInterface
 
 
 ################################################################################

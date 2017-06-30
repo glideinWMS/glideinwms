@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -11,8 +12,8 @@
 import os
 import time
 import string
-import logSupport
-import condorManager
+from . import logSupport
+from . import condorManager
 
 
 ###############################################################################

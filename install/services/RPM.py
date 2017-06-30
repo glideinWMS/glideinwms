@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
 import traceback
 import sys, os, os.path, string, time
 import stat, re
@@ -7,9 +8,9 @@ import xml.sax.saxutils
 import optparse
 #-------------------------
 from glideinwms.lib import xmlFormat
-import common
-import Condor
-from VOFrontend import VOFrontend
+from . import common
+from . import Condor
+from .VOFrontend import VOFrontend
 #-------------------------
 #os.environ["PYTHONPATH"] = ""
 

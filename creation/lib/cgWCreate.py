@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -17,7 +18,7 @@ import subprocess
 import stat
 import tarfile
 import cStringIO
-import cgWDictFile
+from . import cgWDictFile
 
 ##############################
 # Create condor tarball and store it into a StringIO

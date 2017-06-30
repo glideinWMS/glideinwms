@@ -3,6 +3,7 @@ Created on Jun 21, 2011
 
 @author: tiradani
 """
+from __future__ import absolute_import
 import os
 import re
 import sys
@@ -13,8 +14,8 @@ import gzip
 import cStringIO
 import base64
 
-import glideFactoryLib
-import glideFactoryInterface
+from . import glideFactoryLib
+from . import glideFactoryInterface
 from glideinwms.lib import condorPrivsep
 from glideinwms.lib import condorMonitor
 

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -21,7 +22,7 @@ import types
 import traceback
 from glideinwms.lib import xmlParse
 from glideinwms.lib import condorExe
-import cWParams
+from . import cWParams
 
 
 ######################################################

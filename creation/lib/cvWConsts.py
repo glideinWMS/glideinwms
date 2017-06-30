@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -11,7 +12,7 @@
 #
 
 import os.path
-import cWConsts
+from . import cWConsts
 
 AFTERGROUP_FILE_LISTFILE="aftergroup_%s"%cWConsts.FILE_LISTFILE
 PREENTRY_FILE_LISTFILE="preentry_%s"%cWConsts.FILE_LISTFILE

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -10,8 +11,8 @@
 #
 
 import os, os.path, string, copy
-import cgWConsts, cWConsts
-import cWDictFile
+from . import cgWConsts, cWConsts
+from . import cWDictFile
 import pwd
 import shutil
 from glideinwms.lib import condorPrivsep

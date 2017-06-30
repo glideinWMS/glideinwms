@@ -1,6 +1,9 @@
 #!/usr/bin/python
 
-import common
+from __future__ import absolute_import
+#!/usr/bin/python
+
+from . import common
 #-----
 import re
 import os

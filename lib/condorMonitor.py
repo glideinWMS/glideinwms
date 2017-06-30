@@ -1,4 +1,4 @@
-
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -20,8 +20,8 @@ import string
 import copy
 import socket
 import xml.parsers.expat
-import condorExe
-import condorSecurity
+from . import condorExe
+from . import condorSecurity
 
 USE_HTCONDOR_PYTHON_BINDINGS = False
 try:

@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
 import sys, os, os.path, string, time, glob
 #---------------------
-import common
+from . import common
 import glideinwms.lib.subprocessSupport
-from VDT import VDT
+from .VDT import VDT
 
 
 class VDTClient(VDT):

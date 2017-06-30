@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -14,8 +15,8 @@
 
 import os.path
 import string
-import cWConsts
-import cWDictFile
+from . import cWConsts
+from . import cWDictFile
 
 
 def is_true(s):

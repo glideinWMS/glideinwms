@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -21,7 +22,7 @@ import types  # not used
 import traceback  # not used
 from glideinwms.lib import xmlParse
 from glideinwms.lib import condorExe  # not used
-import cWParams
+from . import cWParams
 
 
 class VOFrontendSubParams(cWParams.CommonSubParams):

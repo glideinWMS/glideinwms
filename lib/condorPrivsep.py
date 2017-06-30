@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -14,10 +15,10 @@
 import os
 import os.path
 import sys
-import condorExe
-from condorExe import UnconfigError
-from condorExe import ExeError
-import logSupport
+from . import condorExe
+from .condorExe import UnconfigError
+from .condorExe import ExeError
+from . import logSupport
 
 # All the functions below can throw either ExeError or UnconfigError exceptions
 def mkdir(base_dir, subdir, target_user):

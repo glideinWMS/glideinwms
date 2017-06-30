@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
 import sys
 import os
 import os.path
@@ -13,11 +14,11 @@ import stat
 import traceback
 #---------------------
 import glideinwms.lib.subprocessSupport
-import common
-import Certificates  
-import VDTClient
-from Configuration import Configuration
-from Configuration import ConfigurationError
+from . import common
+from . import Certificates  
+from . import VDTClient
+from .Configuration import Configuration
+from .Configuration import ConfigurationError
 
 class Condor(Configuration):
 

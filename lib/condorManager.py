@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #
 # Project:
 #   glideinWMS
@@ -13,8 +14,8 @@
 
 import re
 import string
-import condorMonitor
-import condorExe
+from . import condorMonitor
+from . import condorExe
 
 ##############################################
 # Helper functions

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 #---------------------
+from __future__ import absolute_import
 import sys
 import os
 import os.path
@@ -10,8 +11,8 @@ import glob
 import pwd
 
 import glideinwms.lib.subprocessSupport
-import common
-from VDT import VDT
+from . import common
+from .VDT import VDT
 
 #STARTUP_DIR=sys.path[0]
 #sys.path.append(os.path.join(STARTUP_DIR,"../lib"))

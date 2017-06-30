@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
 import traceback
 import sys, os, os.path, string, time
 import stat
 import re
 import optparse
 
-import common
-import VOFrontend
-import Factory
-import UserCollector
-import Certificates  
-from Condor import Condor
-from Configuration import ConfigurationError
+from . import common
+from . import VOFrontend
+from . import Factory
+from . import UserCollector
+from . import Certificates  
+from .Condor import Condor
+from .Configuration import ConfigurationError
 #-------------------------
 #os.environ["PYTHONPATH"] = ""
 
@@ -96,7 +97,7 @@ class WMSCollector(Condor):
   #--------------------------------
   def get_privsep(self):
     if self.privilege_separation() == "y":
-      import PrivilegeSeparation
+      from . import PrivilegeSeparation
       self.privsep = PrivilegeSeparation.PrivilegeSeparation(self.condor_location(), self.factory, [self.frontend,], self.frontend_users())
   #--------------------------------
   def frontend_users(self):
