@@ -12,7 +12,7 @@ from glideinwms.lib import timeConversion
 # if end_time is None, the downtime does not have a set expiration
 #  (i.e. it runs forever)
 class DowntimeFile:
-    def __init__(self,fname):
+    def __init__(self, fname):
         self.fname=fname
 
     # if check_time==None, use current time
@@ -36,7 +36,7 @@ class DowntimeFile:
 
 
     def printDowntime(self, check_time=None):
-        return printDowntime(self.fname,check_time)
+        return printDowntime(self.fname, check_time)
 
     # return a list of downtime periods (utimes) a value of None idicates "forever" for example: [(1215339200,1215439170),(1215439271,None)]
     def read(self, raise_on_error=False):
@@ -52,7 +52,7 @@ class DowntimeFile:
 # for example: [(1215339200,1215439170),(1215439271,None)]
 def read(fname, raise_on_error=False):
         try:
-            fd = open(fname,'r')
+            fd = open(fname, 'r')
             try:
                 fcntl.flock( fd, fcntl.LOCK_SH | fcntl.LOCK_NB )
                 lines = fd.readlines()
@@ -100,7 +100,7 @@ def read(fname, raise_on_error=False):
                     end_time = timeConversion.extractISO8601_Local(arr[1])
             except ValueError as e:
                 if raise_on_error:
-                    raise ValueError( "%s:%i: 2nd element: %s"%(fname,lnr,e) )
+                    raise ValueError( "%s:%i: 2nd element: %s"%(fname, lnr, e) )
                 else:
                     continue #ignore errors
 
@@ -135,12 +135,12 @@ def addPeriod( fname, start_time, end_time,  create_if_empty=True):
         if (not exists) and (not create_if_empty):
             raise IOError( "[Errno 2] No such file or directory: '%s'"%fname )
        
-        fd = open(fname,'a+')
+        fd = open(fname, 'a+')
         try:
-            fcntl.flock(fd,fcntl.LOCK_EX | fcntl.LOCK_NB )
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB )
 
             if not exists: # new file, create header
-                fd.write("#%-29s %-30s\n"%("Start","End"))
+                fd.write("#%-29s %-30s\n"%("Start", "End"))
 
             if end_time is not None:
                 fd.write("%-30s %-20s\n" % ( timeConversion.getISO8601_Local(start_time), timeConversion.getISO8601_Local(end_time) ))
@@ -160,7 +160,7 @@ def endDowntime( fname, end_time=None ):
             end_time = long(time.time())
     
         try:
-            fd = open(fname,'r+')
+            fd = open(fname, 'r+')
         except IOError:
             return 0 # no file -> nothing to end
 

@@ -5,8 +5,8 @@ import sys
 import ConfigParser
 
 STARTUP_DIR = sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,".."))
-sys.path.append(os.path.join(STARTUP_DIR,"../../lib"))
+sys.path.append(os.path.join(STARTUP_DIR, ".."))
+sys.path.append(os.path.join(STARTUP_DIR, "../../lib"))
 
 from glideinwms.factory.glideFactoryCredentials import SubmitCredentials
 from glideinwms.factory.glideFactoryLib import submitGlideins

@@ -10,7 +10,7 @@ import os
 import os.path
 import shutil
 
-from glideinwms.lib import pubCrypto,symCrypto
+from glideinwms.lib import pubCrypto, symCrypto
 
 ############################################################
 #
@@ -51,11 +51,11 @@ factoryConfig=FactoryConfig()
 class ConfigFile:
     def __init__(self,config_file,convert_function=repr):
         self.config_file=config_file
-        self.load(config_file,convert_function)
+        self.load(config_file, convert_function)
 
-    def load(self,fname,convert_function):
+    def load(self, fname, convert_function):
         self.data={}
-        fd=open(fname,"r")
+        fd=open(fname, "r")
         try:
             lines=fd.readlines()
             for line in lines:
@@ -63,13 +63,13 @@ class ConfigFile:
                     continue # comment
                 if len(string.strip(line))==0:
                     continue # empty line
-                larr=string.split(line,None,1)
+                larr=string.split(line, None, 1)
                 lname=larr[0]
                 if len(larr)==1:
                     lval=""
                 else:
                     lval=larr[1][:-1] #strip newline
-                exec("self.data['%s']=%s"%(lname,convert_function(lval)))
+                exec("self.data['%s']=%s"%(lname, convert_function(lval)))
         finally:
             fd.close()
 
@@ -88,7 +88,7 @@ class ConfigFile:
 # load from the entry subdir
 class EntryConfigFile(ConfigFile):
     def __init__(self,entry_name,config_file,convert_function=repr):
-        ConfigFile.__init__(self,os.path.join("entry_"+entry_name,config_file),convert_function)
+        ConfigFile.__init__(self, os.path.join("entry_"+entry_name, config_file), convert_function)
         self.entry_name=entry_name
         self.config_file_short=config_file
 
@@ -96,9 +96,9 @@ class EntryConfigFile(ConfigFile):
 # and join the results
 class JoinConfigFile(ConfigFile):
     def __init__(self,entry_name,config_file,convert_function=repr):
-        ConfigFile.__init__(self,config_file,convert_function)
+        ConfigFile.__init__(self, config_file, convert_function)
         self.entry_name=entry_name
-        entry_obj=EntryConfigFile(entry_name,config_file,convert_function)
+        entry_obj=EntryConfigFile(entry_name, config_file, convert_function)
         #merge by overriding whatever is found in the subdir
         for k in entry_obj.data.keys():
             self.data[k]=entry_obj.data[k]
@@ -112,7 +112,7 @@ class JoinConfigFile(ConfigFile):
 class GlideinKey:
     def __init__(self,pub_key_type,key_fname=None,recreate=False):
         self.pub_key_type=pub_key_type
-        self.load(key_fname,recreate)
+        self.load(key_fname, recreate)
 
     def load(self,key_fname=None,recreate=False):
         """
@@ -145,7 +145,7 @@ class GlideinKey:
                 self.rsa_key.save(key_fname)
 
             self.pub_rsa_key=self.rsa_key.PubRSAKey()
-            self.pub_key_id = md5(string.join((self.pub_key_type,self.pub_rsa_key.get()))).hexdigest()
+            self.pub_key_id = md5(string.join((self.pub_key_type, self.pub_rsa_key.get()))).hexdigest()
             self.sym_class=symCrypto.AutoSymKey
         else:
             raise RuntimeError, 'Invalid pub key type value(%s), only RSA supported'%self.pub_key_type
@@ -164,7 +164,7 @@ class GlideinKey:
 
     # extracts the symkey from encrypted fronted attribute
     # returns a SymKey child object
-    def extract_sym_key(self,enc_sym_key):
+    def extract_sym_key(self, enc_sym_key):
         if self.pub_key_type=='RSA':
             sym_key_code=self.rsa_key.decrypt_hex(enc_sym_key)
             return self.sym_class(sym_key_code)
@@ -174,7 +174,7 @@ class GlideinKey:
 class GlideinDescript(ConfigFile):
     def __init__(self):
         global factoryConfig
-        ConfigFile.__init__(self,factoryConfig.glidein_descript_file,
+        ConfigFile.__init__(self, factoryConfig.glidein_descript_file,
                             repr) # convert everything in strings
         if ((not ('FactoryCollector' in self.data)) or
             (self.data['FactoryCollector']=='None')):
@@ -259,21 +259,21 @@ class GlideinDescript(ConfigFile):
         return
 
 class JobDescript(EntryConfigFile):
-    def __init__(self,entry_name):
+    def __init__(self, entry_name):
         global factoryConfig
-        EntryConfigFile.__init__(self,entry_name,factoryConfig.job_descript_file,
+        EntryConfigFile.__init__(self, entry_name, factoryConfig.job_descript_file,
                                  repr) # convert everything in strings
 
 class JobAttributes(JoinConfigFile):
-    def __init__(self,entry_name):
+    def __init__(self, entry_name):
         global factoryConfig
-        JoinConfigFile.__init__(self,entry_name,factoryConfig.job_attrs_file,
+        JoinConfigFile.__init__(self, entry_name, factoryConfig.job_attrs_file,
                                 lambda s:s) # values are in python format
 
 class JobParams(JoinConfigFile):
-    def __init__(self,entry_name):
+    def __init__(self, entry_name):
         global factoryConfig
-        JoinConfigFile.__init__(self,entry_name,factoryConfig.job_params_file,
+        JoinConfigFile.__init__(self, entry_name, factoryConfig.job_params_file,
                                 lambda s:s) # values are in python format
 
 
@@ -385,7 +385,7 @@ class SignatureFile(ConfigFile):
 
         """
         self.data = {}
-        fd = open(fname,"r")
+        fd = open(fname, "r")
         try:
             lines = fd.readlines()
             for line in lines:

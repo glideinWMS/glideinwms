@@ -19,7 +19,7 @@
 import string
 import os.path
 import sys
-sys.path.append(os.path.join(sys.path[0],"../.."))
+sys.path.append(os.path.join(sys.path[0], "../.."))
 
 #import glideFactoryInterface
 from glideinwms.frontend import glideinFrontendInterface
@@ -41,14 +41,14 @@ while (i<alen):
     elif ael=='-factory':
         i=i+1
         factory_name=sys.argv[i]
-    elif ael in ('Entries','Sites','Gatekeepers'):
+    elif ael in ('Entries', 'Sites', 'Gatekeepers'):
         txt_type=ael
     elif ael=='-help':
         print "Usage:"
         print "wmsTxtView.py [-pool <node>[:<port>]] [-factory <factory>] [Entries|Sites|Gatekeepers] [-help]"
         sys.exit(1)
     else:
-        raise RuntimeError,"Unknown option '%s', try -help"%ael
+        raise RuntimeError, "Unknown option '%s', try -help"%ael
     i=i+1
 
 # get data
@@ -59,13 +59,13 @@ if factory_name is not None:
         # just the generic factory name
         factory_constraints='FactoryName=?="%s"'%factory_name
     elif len(farr)==2:
-        factory_constraints='(FactoryName=?="%s")&&(GlideinName=?="%s")'%(farr[1],farr[0])
+        factory_constraints='(FactoryName=?="%s")&&(GlideinName=?="%s")'%(farr[1], farr[0])
     elif len(farr)==3:
-        factory_constraints='(FactoryName=?="%s")&&(GlideinName=?="%s")&&(EntryName=?="%s")'%(farr[2],farr[1],farr[0])
+        factory_constraints='(FactoryName=?="%s")&&(GlideinName=?="%s")&&(EntryName=?="%s")'%(farr[2], farr[1], farr[0])
     else:
         raise RuntimeError, "Invalid factory name; more than 2 @'s found"
 
-glideins_obj=glideinFrontendInterface.findGlideins(pool_name,None,None,factory_constraints)
+glideins_obj=glideinFrontendInterface.findGlideins(pool_name, None, None, factory_constraints)
 
 # Get a dictionary of
 #  RequestedIdle
@@ -104,10 +104,10 @@ for glidein in glideins:
 #print data
 txt_keys=sorted(txt_data.keys())
 
-print '%s ReqIdle  Idle   Running  MaxGlideins'%string.ljust('Entry',48)
+print '%s ReqIdle  Idle   Running  MaxGlideins'%string.ljust('Entry', 48)
 print '================================================-=======-=======-=======-======='
 for key in txt_keys:
     key_el=txt_data[key]
-    print "%s %7i %7i %7i %7i"%(string.ljust(key,48),key_el['RequestedIdle'],key_el['Idle'],key_el['Running'],key_el['MaxGlideins'])
+    print "%s %7i %7i %7i %7i"%(string.ljust(key, 48), key_el['RequestedIdle'], key_el['Idle'], key_el['Running'], key_el['MaxGlideins'])
 
 

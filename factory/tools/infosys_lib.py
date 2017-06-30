@@ -248,8 +248,8 @@ def query_ress(ress_source, vo=''):
 
     # Get RESS info
     condor_obj = condorMonitor.CondorStatus(pool_name=ress_source)
-    format_list=[('GlueCEInfoContactString','s'),('GlueCEName','s'),('GlueSiteName','s'),('GlueCEInfoJobManager','s'),('GlueCEUniqueID','s'),('GlueCEPolicyMaxObtainableWallClockTime','i'),('GlueCEStateStatus','s')]
-    condor_data = condor_obj.fetch(constraint=ress_constraint,format_list=format_list)
+    format_list=[('GlueCEInfoContactString', 's'), ('GlueCEName', 's'), ('GlueSiteName', 's'), ('GlueCEInfoJobManager', 's'), ('GlueCEUniqueID', 's'), ('GlueCEPolicyMaxObtainableWallClockTime', 'i'), ('GlueCEStateStatus', 's')]
+    condor_data = condor_obj.fetch(constraint=ress_constraint, format_list=format_list)
     
     ress_entries = {}
     

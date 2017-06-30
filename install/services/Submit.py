@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import traceback
-import sys,os,os.path,string,time
+import sys, os, os.path, string, time
 import re
 import stat
 import optparse
@@ -46,11 +46,11 @@ frontend_options = [ "hostname",
 wmscollector_options = [] 
 factory_options = [] 
 
-valid_options = { "Submit"        : submit_options,
-                  "UserCollector" : usercollector_options,
-                  "VOFrontend"    : frontend_options,
-                  "WMSCollector"  : wmscollector_options,
-                  "Factory"       : factory_options,
+valid_options = { "Submit": submit_options,
+                  "UserCollector": usercollector_options,
+                  "VOFrontend": frontend_options,
+                  "WMSCollector": wmscollector_options,
+                  "Factory": factory_options,
 }
 
 class Submit(Condor):
@@ -63,7 +63,7 @@ class Submit(Condor):
       return
     if optionsDict != None:
       valid_options = optionsDict
-    Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
+    Condor.__init__(self, self.inifile, self.ini_section, valid_options[self.ini_section])
     self.userjob_classads_required = True
     self.schedd_name_suffix = "jobs"
     self.daemon_list = "SCHEDD"
@@ -76,11 +76,11 @@ class Submit(Condor):
   #--------------------------------
   def get_frontend(self):
     if self.frontend == None:
-      self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options)
+      self.frontend = VOFrontend.VOFrontend(self.inifile, valid_options)
   #--------------------------------
   def get_usercollector(self):
     if self.usercollector == None:
-      self.usercollector = UserCollector.UserCollector(self.inifile,valid_options)
+      self.usercollector = UserCollector.UserCollector(self.inifile, valid_options)
  
   #--------------------------------
   def install(self):
@@ -92,7 +92,7 @@ class Submit(Condor):
     self.configure()
     common.logit ("======== %s install complete ==========" % self.ini_section)
     if "usercollector" not in self.colocated_services:
-      common.start_service(self.glideinwms_location(),self.ini_section,self.inifile) 
+      common.start_service(self.glideinwms_location(), self.ini_section, self.inifile) 
     else:
       self.stop_condor()
       self.start_condor()
@@ -192,7 +192,7 @@ Do you want to continue.""" % { "services" : self.colocated_services,
 def show_line():
     x = traceback.extract_tb(sys.exc_info()[2])
     z = x[len(x)-1]
-    return "%s line %s" % (z[2],z[1])
+    return "%s line %s" % (z[2], z[1])
 
 #---------------------------
 def validate_args(args):

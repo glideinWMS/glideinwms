@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import traceback
-import sys,os,os.path,string,time
+import sys, os, os.path, string, time
 import stat
 import re
 import optparse
@@ -50,11 +50,11 @@ usercollector_options = [ "hostname",
 
 submit_options = []
 
-valid_options = { "WMSCollector"  : wmscollector_options,
-                  "Factory"       : factory_options,
-                  "UserCollector" : usercollector_options,
-                  "Submit"        : submit_options,
-                  "VOFrontend"    : frontend_options,
+valid_options = { "WMSCollector": wmscollector_options,
+                  "Factory": factory_options,
+                  "UserCollector": usercollector_options,
+                  "Submit": submit_options,
+                  "VOFrontend": frontend_options,
 }
 
 
@@ -70,7 +70,7 @@ class WMSCollector(Condor):
       return
     if optionsDict != None:
       valid_options = optionsDict
-    Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
+    Condor.__init__(self, self.inifile, self.ini_section, valid_options[self.ini_section])
     self.not_validated = True
     self.use_gridmanager = True
     self.schedd_name_suffix = "glideins"
@@ -84,27 +84,27 @@ class WMSCollector(Condor):
   #--------------------------------
   def get_frontend(self):
     if self.frontend == None:
-      self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options)
+      self.frontend = VOFrontend.VOFrontend(self.inifile, valid_options)
   #--------------------------------
   def get_factory(self):
     if self.factory == None:
-      self.factory = Factory.Factory(self.inifile,valid_options)
+      self.factory = Factory.Factory(self.inifile, valid_options)
   #--------------------------------
   def get_usercollector(self):
     if self.usercollector == None:
-      self.usercollector = UserCollector.UserCollector(self.inifile,valid_options)
+      self.usercollector = UserCollector.UserCollector(self.inifile, valid_options)
   #--------------------------------
   def get_privsep(self):
     if self.privilege_separation() == "y":
       import PrivilegeSeparation
-      self.privsep = PrivilegeSeparation.PrivilegeSeparation(self.condor_location(),self.factory,[self.frontend,],self.frontend_users())
+      self.privsep = PrivilegeSeparation.PrivilegeSeparation(self.condor_location(), self.factory, [self.frontend,], self.frontend_users())
   #--------------------------------
   def frontend_users(self):
     mydict = {}
     if self.privilege_separation() == "y":
       #-- need to convert a string to a dictionary --
-      s = self.option_value(self.ini_section,"frontend_users")
-      t = s.replace(" ","").split(",")
+      s = self.option_value(self.ini_section, "frontend_users")
+      t = s.replace(" ", "").split(",")
       for a in t:
         b = a.split(":")
         if len(b) == 2:
@@ -125,7 +125,7 @@ class WMSCollector(Condor):
     self.__install_condor__()
     self.configure()
     common.logit("======== %s install complete ==========" % self.ini_section)
-    common.start_service(self.glideinwms_location(),self.ini_section,self.inifile) 
+    common.start_service(self.glideinwms_location(), self.ini_section, self.inifile) 
 
   #-----------------------------
   def validate(self):
@@ -155,15 +155,15 @@ class WMSCollector(Condor):
   #--------------------------------
   def condor_mapfile_users(self):
     users = []
-    users.append([self.frontend.service_name(),self.frontend.x509_gsi_dn(),self.frontend.service_name()])
-    users.append(["WMS Collector",self.x509_gsi_dn(), self.username()])
+    users.append([self.frontend.service_name(), self.frontend.x509_gsi_dn(), self.frontend.service_name()])
+    users.append(["WMS Collector", self.x509_gsi_dn(), self.username()])
     return users
 
   #--------------------------------
   def condor_config_daemon_users(self):
     users = []
-    users.append(["VOFrontend",self.frontend.x509_gsi_dn(),self.frontend.service_name()])
-    users.append(["WMSCollector",self.x509_gsi_dn(), self.username()])
+    users.append(["VOFrontend", self.frontend.x509_gsi_dn(), self.frontend.service_name()])
+    users.append(["WMSCollector", self.x509_gsi_dn(), self.username()])
     return users
 
   #-----------------------------
@@ -188,7 +188,7 @@ They both are trying to use the same port: %(port)s.
 If not already specified, you may need to specifiy a 'collector_port' option 
 in your ini file for either the WMSCollector or UserCollector sections, or both.
 If present, are you really installing both services on the same node.
-""" %  { "port" : self.collector_port(),})
+""" %  { "port": self.collector_port(),})
 
     if int(self.collector_port()) in self.usercollector.secondary_collector_ports():
       common.logerr("""The WMS collector and User collector are being installed on the same node. 
@@ -198,8 +198,8 @@ User Collector ports that will be assigned:
 If not already specified, you may need to specifiy a 'collector_port' option
 in your ini file for either the WMSCollector or UserCollector sections, or both.
 If present, are you really installing both services on the same node.
-""" % { "wms_port"        : self.collector_port(),
-        "secondary_ports" : self.usercollector.secondary_collector_ports(), })
+""" % { "wms_port": self.collector_port(),
+        "secondary_ports": self.usercollector.secondary_collector_ports(), })
 
   #-------------------------
   def create_template(self):
@@ -219,7 +219,7 @@ If present, are you really installing both services on the same node.
 def show_line():
     x = traceback.extract_tb(sys.exc_info()[2])
     z = x[len(x)-1]
-    return "%s line %s" % (z[2],z[1])
+    return "%s line %s" % (z[2], z[1])
 
 #---------------------------
 def validate_args(args):

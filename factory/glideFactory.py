@@ -31,7 +31,7 @@ import math
 # from datetime import datetime
 
 STARTUP_DIR = sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../../"))
+sys.path.append(os.path.join(STARTUP_DIR, "../../"))
 
 from glideinwms.lib import logSupport
 from glideinwms.lib import cleanupSupport
@@ -173,7 +173,7 @@ def entry_grouper(size, entries):
         return list
 
     if len(entries) <= size:
-        list.insert(0,entries)
+        list.insert(0, entries)
     else:
         for group in range(len(entries)/size):
             list.insert(group, entries[group*size:(group+1)*size])
@@ -364,7 +364,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
             if not soft_l:
                 soft_l=hard_l
             try:    
-                new_lim = [soft_l,hard_l]
+                new_lim = [soft_l, hard_l]
                 resource.setrlimit(resource.RLIMIT_NOFILE, new_lim)
             except:
                 resource.setrlimit(resource.RLIMIT_NOFILE, lim)
@@ -440,7 +440,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                 iteration_basetime = time.time() # reset the start time
                 fronmonpath = os.path.join(startup_dir, "monitor", "frontendmonitorlink.txt")
                 fronmonconstraint = '(MyType=="glideclient")'
-                fronmonformat_list = [('WebMonitoringURL','s'), ('FrontendName','s')]
+                fronmonformat_list = [('WebMonitoringURL', 's'), ('FrontendName', 's')]
                 fronmonstatus = condorMonitor.CondorStatus(subsystem_name="any")
                 fronmondata = fronmonstatus.fetch(constraint=fronmonconstraint, format_list=fronmonformat_list)
                 fronmon_list_names = fronmondata.keys()
@@ -452,7 +452,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                         fronmonelement = fronmondata[frontend_entry]
                         fronmonurl = fronmonelement['WebMonitoringURL'].encode('utf-8')
                         fronmonfrt = fronmonelement['FrontendName'].encode('utf-8')
-                        if (fronmonfrt,fronmonurl) not in urlset:
+                        if (fronmonfrt, fronmonurl) not in urlset:
                             urlset.add((fronmonfrt, fronmonurl))
                             with open(fronmonpath, 'w') as fronmonf:
                                 fronmonf.write("%s, %s"%(fronmonfrt, fronmonurl))
@@ -722,7 +722,7 @@ def main(startup_dir):
         logSupport.log.error(log_msg)
         sys.exit(1)
 
-    write_descript(glideinDescript,frontendDescript,os.path.join(startup_dir, 'monitor/'))
+    write_descript(glideinDescript, frontendDescript, os.path.join(startup_dir, 'monitor/'))
 
     try:
         os.chdir(startup_dir)
@@ -782,7 +782,7 @@ def main(startup_dir):
     except glideFactoryPidLib.pidSupport.AlreadyRunning as err:
         pid_obj.load_registered()
         logSupport.log.exception("Failed starting Factory. Instance with pid %s is aready running. Exception during pid registration: %s" %
-                                 (pid_obj.mypid , err))
+                                 (pid_obj.mypid, err))
         raise
     try:
         try:

@@ -186,7 +186,7 @@ def getCondorQData(entry_name, client_name, schedd_name, factoryConfig=None):
         ("EnteredCurrentStatus", "i"), ("GlideinEntrySubmitFile", "s"),
         (factoryConfig.credential_id_schedd_attribute, "s"),
         ("HoldReasonCode", "i"), ("HoldReasonSubCode", "i"),
-        ("HoldReason","s"), ("NumSystemHolds","i"),
+        ("HoldReason", "s"), ("NumSystemHolds", "i"),
         (factoryConfig.frontend_name_attribute, "s"),
         (factoryConfig.client_schedd_attribute, "s"),
         (factoryConfig.credential_secclass_schedd_attribute, "s")
@@ -372,8 +372,8 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
     dn=""
     voms=""
     try:
-        (f,tempfilename)=tempfile.mkstemp()
-        os.write(f,proxy_data)
+        (f, tempfilename)=tempfile.mkstemp()
+        os.write(f, proxy_data)
         os.close(f)
     except:
         logSupport.log.error("Unable to create tempfile %s!" % tempfilename)
@@ -1108,7 +1108,7 @@ def extractJobId(submit_out):
     for line in submit_out:
         found = extractJobId_recmp.search(line.strip())
         if found:
-            return (long(found.group("cluster")),int(found.group("count")))
+            return (long(found.group("cluster")), int(found.group("count")))
     raise condorExe.ExeError, "Could not find cluster info!"
 
 escape_table = {'.':'.dot,',
@@ -1309,7 +1309,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
             #         log.error(msg)
             #         raise RuntimeError, msg
 
-            cluster,count=extractJobId(submit_out)
+            cluster, count=extractJobId(submit_out)
             for j in range(count):
                 submitted_jids.append((cluster, j))
             nr_submitted += count

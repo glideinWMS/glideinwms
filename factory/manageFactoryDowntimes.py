@@ -13,12 +13,12 @@
 
 import os.path
 import os
-import time,string
+import time, string
 import sys
 import re
 
 STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../../"))
+sys.path.append(os.path.join(STARTUP_DIR, "../../"))
 
 from glideinwms.lib import ldapMonitor
 from glideinwms.lib import condorMonitor
@@ -83,7 +83,7 @@ def strtxt2time(timeStr):
 def str2time(timeStr):
     #if (timeStr is None) or (timeStr=="None") or (timeStr==""):
     #    return time.localtime(time.time())
-    if len(timeStr.split(':',1))>1:
+    if len(timeStr.split(':', 1))>1:
         # has a :, so it must be a text representation
         return strtxt2time(timeStr)
     else:
@@ -94,7 +94,7 @@ def str2time(timeStr):
 # Create an array for each value in the frontend descript file
 def get_security_classes(factory_dir):
     sec_array=[]
-    frontendDescript=glideFactoryConfig.ConfigFile(factory_dir+"/frontend.descript",lambda s:s)
+    frontendDescript=glideFactoryConfig.ConfigFile(factory_dir+"/frontend.descript", lambda s:s)
     for fe in frontendDescript.data.keys():
         for sec_class in frontendDescript.data[fe]['usermap']:
             sec_array.append(sec_class)
@@ -102,17 +102,17 @@ def get_security_classes(factory_dir):
 
 # Create an array for each frontend in the frontend descript file
 def get_frontends(factory_dir):
-    frontendDescript=glideFactoryConfig.ConfigFile(factory_dir+"/frontend.descript",lambda s:s)
+    frontendDescript=glideFactoryConfig.ConfigFile(factory_dir+"/frontend.descript", lambda s:s)
     return frontendDescript.data.keys()
 
 # Create an array for each entry in the glidein descript file
 def get_entries(factory_dir):
     glideinDescript=glideFactoryConfig.GlideinDescript()
     #glideinDescript=glideFactoryConfig.ConfigFile(factory_dir+"/glidein.descript",lambda s:s)
-    return string.split(glideinDescript.data['Entries'],',')
+    return string.split(glideinDescript.data['Entries'], ',')
 #
 #
-def get_downtime_fd(entry_name,cmdname):
+def get_downtime_fd(entry_name, cmdname):
     try:
         # New style has config all in the factory file
         #if entry_name=='factory':
@@ -125,27 +125,27 @@ def get_downtime_fd(entry_name,cmdname):
     fd=glideFactoryDowntimeLib.DowntimeFile(config.data['DowntimesFile'])
     return fd
 
-def get_downtime_fd_dict(entry_or_id,cmdname,opt_dict):
+def get_downtime_fd_dict(entry_or_id, cmdname, opt_dict):
     out_fds={}
-    if entry_or_id in ('entries','All'):
+    if entry_or_id in ('entries', 'All'):
         glideinDescript=glideFactoryConfig.GlideinDescript()
-        entries=string.split(glideinDescript.data['Entries'],',')
+        entries=string.split(glideinDescript.data['Entries'], ',')
         for entry in entries:
-            out_fds[entry]=get_downtime_fd(entry,cmdname)
+            out_fds[entry]=get_downtime_fd(entry, cmdname)
         if (entry_or_id=='All') and ("entries" not in opt_dict):
-            out_fds['factory']=get_downtime_fd('factory',cmdname)
+            out_fds['factory']=get_downtime_fd('factory', cmdname)
     else:
-        out_fds[entry_or_id]=get_downtime_fd(entry_or_id,cmdname)
+        out_fds[entry_or_id]=get_downtime_fd(entry_or_id, cmdname)
 
     return out_fds
 
-def add(entry_name,opt_dict):
-    down_fd=get_downtime_fd(entry_name,opt_dict["dir"])
+def add(entry_name, opt_dict):
+    down_fd=get_downtime_fd(entry_name, opt_dict["dir"])
     start_time=str2time(opt_dict["start"])
     end_time=str2time(opt_dict["end"])
     sec_name=opt_dict["sec"]
     frontend=opt_dict["frontend"]
-    down_fd.addPeriod(start_time=start_time,end_time=end_time,entry=entry_name,frontend=frontend,security_class=sec_name,comment=opt_dict["comment"])
+    down_fd.addPeriod(start_time=start_time, end_time=end_time, entry=entry_name, frontend=frontend, security_class=sec_name, comment=opt_dict["comment"])
     return 0
 
 # [HHh][MMm][SS[s]]
@@ -153,11 +153,11 @@ def delay2time(delayStr):
     hours=0
     minutes=0
     seconds=0
-    harr=delayStr.split('h',1)
+    harr=delayStr.split('h', 1)
     if len(harr)==2:
         hours=long(harr[0])
         delayStr=harr[1]
-    marr=delayStr.split('m',1)
+    marr=delayStr.split('m', 1)
     if len(marr)==2:
         minutes=long(marr[0])
         delayStr=marr[1]
@@ -169,8 +169,8 @@ def delay2time(delayStr):
     return seconds+60*(minutes+60*hours)
 
 
-def down(entry_name,opt_dict):
-    down_fd=get_downtime_fd(entry_name,opt_dict["dir"])
+def down(entry_name, opt_dict):
+    down_fd=get_downtime_fd(entry_name, opt_dict["dir"])
     when=delay2time(opt_dict["delay"])
     if (opt_dict["start"]=="None"):
         when+=long(time.time())
@@ -184,13 +184,13 @@ def down(entry_name,opt_dict):
     sec_name=opt_dict["sec"]
     if not down_fd.checkDowntime(entry=entry_name, frontend=frontend, security_class=sec_name, check_time=when): 
         #only add a new line if not in downtime at that time
-        return down_fd.startDowntime(start_time=when,end_time=end_time,frontend=frontend,security_class=sec_name,entry=entry_name,comment=opt_dict["comment"])
+        return down_fd.startDowntime(start_time=when, end_time=end_time, frontend=frontend, security_class=sec_name, entry=entry_name, comment=opt_dict["comment"])
     else:
         print "Entry is already down. (%s)" % down_fd.downtime_comment
     return 0
 
-def up(entry_name,opt_dict):
-    down_fd=get_downtime_fd(entry_name,opt_dict["dir"])
+def up(entry_name, opt_dict):
+    down_fd=get_downtime_fd(entry_name, opt_dict["dir"])
     when=delay2time(opt_dict["delay"])
     sec_name=opt_dict["sec"]
     frontend=opt_dict["frontend"]
@@ -204,7 +204,7 @@ def up(entry_name,opt_dict):
     # -cmd up and -security All, etc, it should clear out all downtimes
     #if (down_fd.checkDowntime(entry=entry_name, frontend=frontend, security_class=sec_name, check_time=when)or (sec_name=="All")): 
 
-    rtn=down_fd.endDowntime(end_time=when,entry=entry_name,frontend=frontend,security_class=sec_name,comment=comment)
+    rtn=down_fd.endDowntime(end_time=when, entry=entry_name, frontend=frontend, security_class=sec_name, comment=comment)
     if (rtn>0):
         return 0
     else:
@@ -215,8 +215,8 @@ def up(entry_name,opt_dict):
 # security classes.  This function will read the downtimes file
 # and parse it to determine whether the downtime is relevant to the 
 # security class
-def printtimes(entry_or_id,opt_dict):
-    config_els=get_downtime_fd_dict(entry_or_id,opt_dict["dir"],opt_dict)
+def printtimes(entry_or_id, opt_dict):
+    config_els=get_downtime_fd_dict(entry_or_id, opt_dict["dir"], opt_dict)
     when=delay2time(opt_dict["delay"])+long(time.time())
     entry_keys=sorted(config_els.keys())
     for entry in entry_keys:
@@ -226,8 +226,8 @@ def printtimes(entry_or_id,opt_dict):
 # This function is now deprecated, replaced by printtimes
 # as it does not take into account that an entry can be down for
 # only some security classes.
-def check(entry_or_id,opt_dict):
-    config_els=get_downtime_fd_dict(entry_or_id,opt_dict["dir"],opt_dict)
+def check(entry_or_id, opt_dict):
+    config_els=get_downtime_fd_dict(entry_or_id, opt_dict["dir"], opt_dict)
     when=delay2time(opt_dict["delay"])
     sec_name=opt_dict["sec"]
     when+=long(time.time())
@@ -243,8 +243,8 @@ def check(entry_or_id,opt_dict):
 
     return 0
 
-def vacuum(entry_or_id,opt_dict):
-    config_els=get_downtime_fd_dict(entry_or_id,opt_dict["dir"],opt_dict)
+def vacuum(entry_or_id, opt_dict):
+    config_els=get_downtime_fd_dict(entry_or_id, opt_dict["dir"], opt_dict)
 
     entry_keys=sorted(config_els.keys())
     for entry in entry_keys:
@@ -253,12 +253,12 @@ def vacuum(entry_or_id,opt_dict):
 
     return 0
 
-def get_production_ress_entries(server,ref_dict_list):
+def get_production_ress_entries(server, ref_dict_list):
 
     production_entries=[]
 
     condor_obj=condorMonitor.CondorStatus(pool_name=server)
-    condor_obj.load(constraint='(GlueCEInfoContactString=!=UNDEFINED)&&(GlueCEStateStatus=?="Production")',format_list=[])
+    condor_obj.load(constraint='(GlueCEInfoContactString=!=UNDEFINED)&&(GlueCEStateStatus=?="Production")', format_list=[])
     condor_refs=condor_obj.fetchStored().keys()
     #del condor_obj
 
@@ -269,7 +269,7 @@ def get_production_ress_entries(server,ref_dict_list):
     
     return production_entries
 
-def get_production_bdii_entries(server,ref_dict_list):
+def get_production_bdii_entries(server, ref_dict_list):
 
     production_entries=[]
 
@@ -286,16 +286,16 @@ def get_production_bdii_entries(server,ref_dict_list):
     
     return production_entries
 
-def infosys_based(entry_name,opt_dict,infosys_types):
+def infosys_based(entry_name, opt_dict, infosys_types):
     # find out which entries I need to look at
     # gather downtime fds for them
     config_els={}
     if entry_name=='factory':
         return 0 # nothing to do... the whole factory cannot be controlled by infosys
-    elif entry_name in ('entries','all'):
+    elif entry_name in ('entries', 'all'):
         # all==entries in this case, since there is nothing to do for the factory
         glideinDescript=glideFactoryConfig.GlideinDescript()
-        entries=string.split(glideinDescript.data['Entries'],',')
+        entries=string.split(glideinDescript.data['Entries'], ',')
         for entry in entries:
             config_els[entry]={}
     else:
@@ -304,7 +304,7 @@ def infosys_based(entry_name,opt_dict,infosys_types):
     # load the infosys info
 
     for entry in config_els.keys():
-        infosys_fd=cgWDictFile.InfoSysDictFile(cgWConsts.get_entry_submit_dir('.',entry),cgWConsts.INFOSYS_FILE)
+        infosys_fd=cgWDictFile.InfoSysDictFile(cgWConsts.get_entry_submit_dir('.', entry), cgWConsts.INFOSYS_FILE)
         infosys_fd.load()
 
         if len(infosys_fd.keys)==0:
@@ -352,9 +352,9 @@ def infosys_based(entry_name,opt_dict,infosys_types):
             for server in infosys_data_type.keys():
                 infosys_data_server=infosys_data_type[server]
                 if infosys_type=="RESS":
-                    production_entries+=get_production_ress_entries(server,infosys_data_server)
+                    production_entries+=get_production_ress_entries(server, infosys_data_server)
                 elif infosys_type=="BDII":
-                    production_entries+=get_production_bdii_entries(server,infosys_data_server)
+                    production_entries+=get_production_bdii_entries(server, infosys_data_server)
                 else:
                     raise RuntimeError, "Unknown infosys type '%s'"%infosys_type # should never get here
 
@@ -363,10 +363,10 @@ def infosys_based(entry_name,opt_dict,infosys_types):
     for entry in entry_keys:
         if entry in production_entries:
             print "%s up"%entry
-            up(entry,['up'])
+            up(entry, ['up'])
         else:
             print "%s down"%entry
-            down(entry,['down']) 
+            down(entry, ['down']) 
     
     return 0
 
@@ -415,9 +415,9 @@ def main(argv):
     opt_dict=get_args(argv)
     mandatory_comments=False
     if ("GLIDEIN_MANDATORY_COMMENTS" in os.environ):
-        if (os.environ["GLIDEIN_MANDATORY_COMMENTS"].lower() in ("on","true","1")):
+        if (os.environ["GLIDEIN_MANDATORY_COMMENTS"].lower() in ("on", "true", "1")):
             mandatory_comments=True
-    if (opt_dict["cmd"] in ("check","vacuum")):
+    if (opt_dict["cmd"] in ("check", "vacuum")):
         mandatory_comments=False
 
     try:
@@ -472,21 +472,21 @@ def main(argv):
 
 
     if cmd=='add':
-        return add(entry_name,opt_dict)
+        return add(entry_name, opt_dict)
     elif cmd=='down':
-        return down(entry_name,opt_dict)
+        return down(entry_name, opt_dict)
     elif cmd=='up':
-        return up(entry_name,opt_dict)
+        return up(entry_name, opt_dict)
     elif cmd=='check':
-        return printtimes(entry_name,opt_dict)
+        return printtimes(entry_name, opt_dict)
     elif cmd=='ress':
-        return infosys_based(entry_name,opt_dict,['RESS'])
+        return infosys_based(entry_name, opt_dict, ['RESS'])
     elif cmd=='bdii':
-        return infosys_based(entry_name,opt_dict,['BDII'])
+        return infosys_based(entry_name, opt_dict, ['BDII'])
     elif cmd=='ress+bdii':
-        return infosys_based(entry_name,opt_dict,['RESS','BDII'])
+        return infosys_based(entry_name, opt_dict, ['RESS', 'BDII'])
     elif cmd=='vacuum':
-        return vacuum(entry_name,opt_dict)
+        return vacuum(entry_name, opt_dict)
     else:
         usage()
         print "Invalid command %s"%cmd

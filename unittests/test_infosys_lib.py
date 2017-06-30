@@ -573,7 +573,7 @@ class TestInfosysLib(unittest.TestCase):
                     "Infosys gatekeeper : node2.fnal.gov/jobmanager-condor\n" \
                     "Infosys rsl : (queue=default)\n" \
                     "Infosys gridtype : cream\n\n"
-        self.assertEqual(output,expected)
+        self.assertEqual(output, expected)
 
 
 def main():

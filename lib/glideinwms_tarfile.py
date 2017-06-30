@@ -885,7 +885,7 @@ class TarInfo(object):
         self.offset_data = 0    # the file's data starts here
 
     def __repr__(self):
-        return "<%s %r at %#x>" % (self.__class__.__name__,self.name,id(self))
+        return "<%s %r at %#x>" % (self.__class__.__name__, self.name, id(self))
 
     @classmethod
     def frombuf(cls, buf):

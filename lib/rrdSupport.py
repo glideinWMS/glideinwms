@@ -137,7 +137,7 @@ class BaseRRDSupport:
 
         lck = self.get_disk_lock(rrdfname)
         try:
-            self.rrd_obj.update(str(rrdfname),'%li:%s'%(time,val))
+            self.rrd_obj.update(str(rrdfname), '%li:%s'%(time, val))
         finally:
             lck.close()
 
@@ -429,7 +429,7 @@ class BaseRRDSupport:
         if CF in ('AVERAGE', 'MIN', 'MAX', 'LAST'):
             consolFunc = str(CF)
         else:
-            raise RuntimeError,"Invalid consolidation function %s"%CF
+            raise RuntimeError, "Invalid consolidation function %s"%CF
         args = [str(filename), consolFunc]
         if resolution is not None:
             args.append('-r')
@@ -474,7 +474,7 @@ class BaseRRDSupport:
         for t in rrd_dict.keys():
             if t not in expected_dict.keys():
                 extra.append(t)
-        return (missing,extra)
+        return (missing, extra)
 
 # This class uses the rrdtool module for rrd_obj
 class ModuleRRDSupport(BaseRRDSupport):
@@ -531,17 +531,17 @@ class rrdtool_exe:
         self.rrd_bin = (subprocessSupport.iexe_cmd("which rrdtool").split('\n')[0]).strip()
 
     def create(self,*args):
-        cmdline = '%s create %s'%(self.rrd_bin,string_quote_join(args))
+        cmdline = '%s create %s'%(self.rrd_bin, string_quote_join(args))
         outstr = subprocessSupport.iexe_cmd(cmdline)
         return
 
     def update(self,*args):
-        cmdline = '%s update %s'%(self.rrd_bin,string_quote_join(args))
+        cmdline = '%s update %s'%(self.rrd_bin, string_quote_join(args))
         outstr = subprocessSupport.iexe_cmd(cmdline)
         return
     
     def info(self,*args):
-        cmdline = '%s info %s'%(self.rrd_bin,string_quote_join(args))
+        cmdline = '%s info %s'%(self.rrd_bin, string_quote_join(args))
         outstr = subprocessSupport.iexe_cmd(cmdline).split('\n')
         outarr = {}
         for line in outstr:
@@ -561,7 +561,7 @@ class rrdtool_exe:
         return outstr
     
     def restore(self,*args):
-        cmdline = '%s restore %s'%(self.rrd_bin,string_quote_join(args))
+        cmdline = '%s restore %s'%(self.rrd_bin, string_quote_join(args))
         outstr = subprocessSupport.iexe_cmd(cmdline)
         return
 
@@ -579,8 +579,8 @@ def addDataStore(filenamein, filenameout, attrlist):
     @param filenameout: filename path of output xml with datastores added
     @param attrlist: array of datastores to add
     """
-    f=open(filenamein,"r")
-    out=open(filenameout,"w")
+    f=open(filenamein, "r")
+    out=open(filenameout, "w")
     parse=False
     writenDS=False
     for line in f:

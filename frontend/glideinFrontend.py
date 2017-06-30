@@ -25,7 +25,7 @@ import time
 import logging
 
 STARTUP_DIR = sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../.."))
+sys.path.append(os.path.join(STARTUP_DIR, "../.."))
 
 from glideinwms.lib import condorExe
 from glideinwms.lib import logSupport
@@ -241,7 +241,7 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active,
 
         if max_num_failures > max_failures:
             logSupport.log.info("Too many group failures, aborting")
-            logSupport.log.debug("Failed %i times (limit %i), aborting"%(max_num_failures,max_failures))
+            logSupport.log.debug("Failed %i times (limit %i), aborting"%(max_num_failures, max_failures))
             raise RuntimeError, "Too many group failures, aborting" 
     finally:
         # cleanup at exit
@@ -296,7 +296,7 @@ def spawn_cleanup(work_dir, frontendDescript, groups, frontend_name, ha_mode):
                 fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
-            while poll_group_process(group_name,child) is None:
+            while poll_group_process(group_name, child) is None:
                 # None means "still alive"
                 time.sleep(0.01)
         except:
@@ -366,7 +366,7 @@ def spawn(sleep_time, advertize_rate, work_dir, frontendDescript,
 
                 # order the groups by walltime
                 # longest walltime first
-                timings.sort(lambda x,y:-cmp(x[1],y[1]))
+                timings.sort(lambda x, y:-cmp(x[1], y[1]))
                 # recreate the groups list, with new ordering
                 groups = [el[0] for el in timings]
                 assert num_groups == len(groups), "Something went wrong, number of groups changed"
@@ -470,7 +470,7 @@ def set_env(env):
 
 
 def clean_htcondor_env():
-    for v in ('CONDOR_CONFIG','_CONDOR_CERTIFICATE_MAPFILE','X509_USER_PROXY'):
+    for v in ('CONDOR_CONFIG', '_CONDOR_CERTIFICATE_MAPFILE', 'X509_USER_PROXY'):
         if os.environ.get(v):
             del os.environ[v]
 
@@ -555,7 +555,7 @@ def main(work_dir, action):
         pid_obj.register(action)
     except  glideinFrontendPidLib.pidSupport.AlreadyRunning as err:
         pid_obj.load_registered()
-        logSupport.log.exception("Failed starting Frontend with action %s. Instance with pid %s is aready running for action %s. Exception during pid registration: %s" % (action, pid_obj.mypid , str(pid_obj.action_type), err))
+        logSupport.log.exception("Failed starting Frontend with action %s. Instance with pid %s is aready running for action %s. Exception during pid registration: %s" % (action, pid_obj.mypid, str(pid_obj.action_type), err))
         raise
 
     try:
@@ -564,7 +564,7 @@ def main(work_dir, action):
                 spawn(sleep_time, advertize_rate, work_dir,
                       frontendDescript, groups, max_parallel_workers,
                       restart_interval, restart_attempts)
-            elif action in ('removeWait','removeIdle','removeAll','removeWaitExcess','removeIdleExcess','removeAllExcess'):
+            elif action in ('removeWait', 'removeIdle', 'removeAll', 'removeWaitExcess', 'removeIdleExcess', 'removeAllExcess'):
                 spawn_removal(work_dir, frontendDescript, groups,
                               max_parallel_workers, action)
             else:

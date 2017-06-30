@@ -73,17 +73,17 @@ def monitor(jid,schedd_name,pool_name,
             stdout_fd=sys.stdout,
             stderr_fd=sys.stderr):
     try:
-        jid_cluster,jid_proc=string.split(jid,".",1)
+        jid_cluster, jid_proc=string.split(jid, ".", 1)
     except:
         raise RuntimeError, 'Invalid JID %s, expected Cluster.Proc'%jid
     
-    constraint="(ClusterId=?=%s) && (ProcId=?=%s)"%(jid_cluster,jid_proc)
+    constraint="(ClusterId=?=%s) && (ProcId=?=%s)"%(jid_cluster, jid_proc)
 
-    remoteVM=getRemoteVM(pool_name,schedd_name,constraint)
-    monitorVM=getMonitorVM(pool_name,remoteVM)
+    remoteVM=getRemoteVM(pool_name, schedd_name, constraint)
+    monitorVM=getMonitorVM(pool_name, remoteVM)
 
-    condor_status=getMonitorVMStatus(pool_name,monitorVM)
-    validateMonitorVMStatus(condor_status,monitorVM)
+    condor_status=getMonitorVMStatus(pool_name, monitorVM)
+    validateMonitorVMStatus(condor_status, monitorVM)
 
     if 'GLEXEC_STARTER' in condor_status:
         glexec_starter=condor_status['GLEXEC_STARTER']
@@ -105,23 +105,23 @@ def monitor(jid,schedd_name,pool_name,
 
     tmpdir=tempfile.mkdtemp(prefix="glidein_intmon_")
     try:
-        sname=os.path.join(tmpdir,"mon.submit")
-        mfname=os.path.join(tmpdir,"mon.sh")
-        mfout=os.path.join(tmpdir,"mon.out")
-        mferr=os.path.join(tmpdir,"mon.err")
-        mlog=os.path.join(tmpdir,"mon.log")
+        sname=os.path.join(tmpdir, "mon.submit")
+        mfname=os.path.join(tmpdir, "mon.sh")
+        mfout=os.path.join(tmpdir, "mon.out")
+        mferr=os.path.join(tmpdir, "mon.err")
+        mlog=os.path.join(tmpdir, "mon.log")
         mc_relname="mon.done"
-        mcname=os.path.join(tmpdir,mc_relname)
-        createMonitorFile(mfname,mc_relname,argv,condor_status,monitorVM)
-        createSubmitFile(tmpdir,sname,mlog,mfname,mfout,mferr,
-                         monitorVM,timeout,x509_file)
-        jid=condorManager.condorSubmitOne(sname,schedd_name,pool_name)
+        mcname=os.path.join(tmpdir, mc_relname)
+        createMonitorFile(mfname, mc_relname, argv, condor_status, monitorVM)
+        createSubmitFile(tmpdir, sname, mlog, mfname, mfout, mferr,
+                         monitorVM, timeout, x509_file)
+        jid=condorManager.condorSubmitOne(sname, schedd_name, pool_name)
         try:
-            checkFile(mcname,schedd_name,pool_name,timeout,reschedule_freq=10)
-            printFile(mfout,stdout_fd)
-            printFile(mferr,stderr_fd)
+            checkFile(mcname, schedd_name, pool_name, timeout, reschedule_freq=10)
+            printFile(mfout, stdout_fd)
+            printFile(mferr, stderr_fd)
         except:
-            condorManager.condorRemoveOne(jid,schedd_name,pool_name)
+            condorManager.condorRemoveOne(jid, schedd_name, pool_name)
             raise
     finally:
         shutil.rmtree(tmpdir)
@@ -131,8 +131,8 @@ def monitor(jid,schedd_name,pool_name,
 
 
 
-def getRemoteVM(pool_name,schedd_name,constraint):
-    cq=condorMonitor.CondorQ(schedd_name=schedd_name,pool_name=pool_name)
+def getRemoteVM(pool_name, schedd_name, constraint):
+    cq=condorMonitor.CondorQ(schedd_name=schedd_name, pool_name=pool_name)
     data=cq.fetch(constraint)
     if len(data.keys())==0:
         raise RuntimeError, "Job not found"
@@ -146,9 +146,9 @@ def getRemoteVM(pool_name,schedd_name,constraint):
     
     return el['RemoteHost']
 
-def getMonitorVM(pool_name,jobVM):
+def getMonitorVM(pool_name, jobVM):
     cs=condorMonitor.CondorStatus(pool_name=pool_name)
-    data=cs.fetch(constraint='(Name=="%s")'%jobVM,format_list=[('IS_MONITOR_VM','b'),('HAS_MONITOR_VM','b'),('Monitoring_Name','s')])
+    data=cs.fetch(constraint='(Name=="%s")'%jobVM, format_list=[('IS_MONITOR_VM', 'b'), ('HAS_MONITOR_VM', 'b'), ('Monitoring_Name', 's')])
     if jobVM not in data:
         raise RuntimeError, "Job claims it runs on %s, but cannot find it!"%jobVM
     job_data=data[jobVM]
@@ -163,16 +163,16 @@ def getMonitorVM(pool_name,jobVM):
 
     return job_data['Monitoring_Name']
 
-def getMonitorVMStatus(pool_name,monitorVM):
+def getMonitorVMStatus(pool_name, monitorVM):
     cs=condorMonitor.CondorStatus(pool_name=pool_name)
     data=cs.fetch(constraint='(Name=="%s")'%monitorVM,
-                  format_list=[('IS_MONITOR_VM','b'),('HAS_MONITOR_VM','b'),('State','s'),('Activity','s'),('vm2_State','s'),('vm2_Activity','s'),('GLEXEC_STARTER','b'),('USES_MONITOR_STARTD','b'),('GLEXEC_JOB','b')])
+                  format_list=[('IS_MONITOR_VM', 'b'), ('HAS_MONITOR_VM', 'b'), ('State', 's'), ('Activity', 's'), ('vm2_State', 's'), ('vm2_Activity', 's'), ('GLEXEC_STARTER', 'b'), ('USES_MONITOR_STARTD', 'b'), ('GLEXEC_JOB', 'b')])
     if monitorVM not in data:
         raise RuntimeError, "Monitor slot %s does not exist!"%monitorVM
 
     return data[monitorVM]
 
-def validateMonitorVMStatus(condor_status,monitorVM):
+def validateMonitorVMStatus(condor_status, monitorVM):
     if (('HAS_MONITOR_VM' not in condor_status) or
         (condor_status['HAS_MONITOR_VM']!=True)):
         raise RuntimeError, "Monitor slot %s does not allow monitoring"%monitorVM
@@ -198,7 +198,7 @@ def validateMonitorVMStatus(condor_status,monitorVM):
 def createSubmitFile(work_dir,sfile,mlog,
                      mfname,mfout,mferr,
                      monitorVM,timeout,x509_file=None):
-    fd=open(sfile,"w")
+    fd=open(sfile, "w")
     try:
         fd.write("universe=vanilla\n")
         fd.write("executable=%s\n"%mfname)
@@ -219,20 +219,20 @@ def createSubmitFile(work_dir,sfile,mlog,
     finally:
         fd.close()
 
-def checkFile(fname,schedd_name,pool_name,
-              timeout,reschedule_freq):
+def checkFile(fname, schedd_name, pool_name,
+              timeout, reschedule_freq):
     deadline=time.time()+timeout
     last_reschedule=time.time()
     while (time.time()<deadline):
         if (time.time()-last_reschedule)>=reschedule_freq:
-            condorManager.condorReschedule(schedd_name,pool_name)
+            condorManager.condorReschedule(schedd_name, pool_name)
             last_reschedule=time.time()
         time.sleep(1)
         if os.path.exists(fname):
             return True
     raise RuntimeError, "Command did not reply within timeout (%ss)"%timeout
 
-def printFile(fname,outfd):
+def printFile(fname, outfd):
     fd=open(fname)
     try:
         data=fd.read()

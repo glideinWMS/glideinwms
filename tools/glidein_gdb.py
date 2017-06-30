@@ -21,8 +21,8 @@
 #  Fermitools
 #
 
-import sys,os.path
-sys.path.append(os.path.join(sys.path[0],"../.."))
+import sys, os.path
+sys.path.append(os.path.join(sys.path[0], "../.."))
 
 from glideinwms.tools.lib import glideinCmd
 
@@ -48,7 +48,7 @@ def argv_gdb(argv):
     script_lines.append(gdb_cmd)
     script_lines.append('quit')
     script_lines.append('EOF')
-    script_lines.append('gdb -command %s /proc/%s/exe %s'%(gdbcommand,pid,pid)) 
+    script_lines.append('gdb -command %s /proc/%s/exe %s'%(gdbcommand, pid, pid)) 
     script_lines.append('rm -f %s'%gdbcommand)
 
     return script_lines

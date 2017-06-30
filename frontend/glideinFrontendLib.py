@@ -31,7 +31,7 @@ from glideinwms.lib import condorMonitor, logSupport
 # specify the appropriate constraint
 #
 def getCondorQ(schedd_names, constraint=None, format_list=None,
-               want_format_completion=True, job_status_filter=(1,2)):
+               want_format_completion=True, job_status_filter=(1, 2)):
     if format_list is not None:
         if want_format_completion:
             format_list = condorMonitor.complete_format_list(
@@ -46,14 +46,14 @@ def getCondorQ(schedd_names, constraint=None, format_list=None,
         js_arr=[]
         for n in job_status_filter:
             js_arr.append('(JobStatus=?=%i)'%n)
-        js_constraint=string.join(js_arr,'||')
+        js_constraint=string.join(js_arr, '||')
 
     return getCondorQConstrained(schedd_names, js_constraint, constraint, format_list)
 
 def getIdleVomsCondorQ(condorq_dict):
     out={}
     for schedd_name in condorq_dict.keys():
-        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:((el.get('JobStatus')==1) and ('x509UserProxyFirstFQAN' in el)))
+        sq=condorMonitor.SubQuery(condorq_dict[schedd_name], lambda el:((el.get('JobStatus')==1) and ('x509UserProxyFirstFQAN' in el)))
         sq.load()
         out[schedd_name]=sq
     return out
@@ -61,7 +61,7 @@ def getIdleVomsCondorQ(condorq_dict):
 def getIdleProxyCondorQ(condorq_dict):
     out={}
     for schedd_name in condorq_dict.keys():
-        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:((el.get('JobStatus')==1) and ('x509userproxy' in el)))
+        sq=condorMonitor.SubQuery(condorq_dict[schedd_name], lambda el:((el.get('JobStatus')==1) and ('x509userproxy' in el)))
         sq.load()
         out[schedd_name]=sq
     return out
@@ -259,7 +259,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
             # Jobs that hash to the same value should
             #  be considered equivalent and part of the same
             #  cluster for matching purposes
-            jh=hashJob(condorq_data[jid],condorq_match_list)
+            jh=hashJob(condorq_data[jid], condorq_match_list)
             if jh not in cq_dict_clusters_el:
                 cq_dict_clusters_el[jh]=[]
             # Add the job to the correct cluster according to the
@@ -369,7 +369,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
     # outvals_cl contains the new list of unique sets each element is a
     # tuple: (set of glideins with the same jobs, set of jobs)
     # jrange_cl contains the set of all the job clusters
-    (outvals_cl,jrange_cl) = uniqueSets(list_of_all_jobs)
+    (outvals_cl, jrange_cl) = uniqueSets(list_of_all_jobs)
     del list_of_all_jobs
 
     # Convert from clusters back to jobs
@@ -382,7 +382,7 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
         for ct in tuple[1]:
             cluster_arr=all_jobs_clusters[ct]
             jobs_arr+=cluster_arr
-        outvals.append((tuple[0],set(jobs_arr)))
+        outvals.append((tuple[0], set(jobs_arr)))
     jobs_arr=[]
     for ct in jrange_cl:
         cluster_arr=all_jobs_clusters[ct]
@@ -443,11 +443,11 @@ def countMatch(match_obj, condorq_dict, glidein_dict, attr_dict,
 
         final_unique[site]=unique_to_site[site_index]
 
-    out_glidein_counts[(None,None,None)]=count_unmatched
-    out_cpu_counts[(None,None,None)]=count_unmatched
-    final_out_counts[(None,None,None)]=count_unmatched
-    final_out_cpu_counts[(None,None,None)]=count_unmatched
-    final_unique[(None,None,None)]=count_unmatched
+    out_glidein_counts[(None, None, None)]=count_unmatched
+    out_cpu_counts[(None, None, None)]=count_unmatched
+    final_out_counts[(None, None, None)]=count_unmatched
+    final_out_cpu_counts[(None, None, None)]=count_unmatched
+    final_unique[(None, None, None)]=count_unmatched
     return (out_glidein_counts, final_out_counts,
             final_unique, final_out_cpu_counts)
 
@@ -487,14 +487,14 @@ def countRealRunning(match_obj, condorq_dict, glidein_dict,
         condorq = condorq_dict[schedd]
         condorq_data = condorq.fetchStored()
         for jid in condorq_data.keys():
-            jh = hashJob(condorq_data[jid],condorq_match_list)
+            jh = hashJob(condorq_data[jid], condorq_match_list)
             if jh not in cq_dict_clusters_el:
                 cq_dict_clusters_el[jh] = []
             cq_dict_clusters_el[jh].append(jid)
 
     for glidename in glidein_dict:
         # split by : to remove port number if there
-        glide_str = "%s@%s" % (glidename[1],glidename[0].split(':')[0])
+        glide_str = "%s@%s" % (glidename[1], glidename[0].split(':')[0])
         glidein = glidein_dict[glidename]
         glidein_count = 0
         # Sets are necessary to remove duplicates
@@ -603,10 +603,10 @@ def getCondorStatus(collector_names, constraint=None, format_list=None,
             format_list = condorMonitor.complete_format_list(
                 format_list,
                 [('State', 's'), ('Activity', 's'),
-                 ('EnteredCurrentState', 'i'),('EnteredCurrentActivity', 'i'),
+                 ('EnteredCurrentState', 'i'), ('EnteredCurrentActivity', 'i'),
                  ('LastHeardFrom', 'i'), ('GLIDEIN_Factory', 's'),
                  ('GLIDEIN_Name', 's'), ('GLIDEIN_Entry_Name', 's'),
-                 ('GLIDECLIENT_Name', 's'), ('GLIDECLIENT_ReqNode','s'),
+                 ('GLIDECLIENT_Name', 's'), ('GLIDECLIENT_ReqNode', 's'),
                  ('GLIDEIN_Schedd', 's')])
 
     ###########################################################################
@@ -1209,7 +1209,7 @@ def hashJob(condorq_el, condorq_match_list=None):
             if k in condorq_match_list:
                 keys.append(k)
     for k in keys:
-        out.append((k,condorq_el[k]))
+        out.append((k, condorq_el[k]))
     return tuple(out)
 
 

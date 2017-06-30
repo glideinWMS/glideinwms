@@ -14,7 +14,7 @@ class CalledProcessError(Exception):
         self.cmd = cmd
         self.output = output
     def __str__(self):
-        return "Command '%s' returned non-zero exit status %s: %s" % (self.cmd, self.returncode,self.output)
+        return "Command '%s' returned non-zero exit status %s: %s" % (self.cmd, self.returncode, self.output)
 
 
 def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None):

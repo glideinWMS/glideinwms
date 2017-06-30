@@ -79,8 +79,8 @@ class GlideinParams(cWParams.CommonParams):
 
 
         entry_config_restrictions_defaults=cWParams.commentedOrderedDict()
-        entry_config_restrictions_defaults["require_voms_proxy"]=("False","Bool","Whether this entry point requires a voms proxy",None)
-        entry_config_restrictions_defaults["require_glidein_glexec_use"]=("False","Bool","Whether this entry requires glidein to use glexec",None)
+        entry_config_restrictions_defaults["require_voms_proxy"]=("False", "Bool", "Whether this entry point requires a voms proxy", None)
+        entry_config_restrictions_defaults["require_glidein_glexec_use"]=("False", "Bool", "Whether this entry requires glidein to use glexec", None)
         entry_config_defaults['restrictions']=entry_config_restrictions_defaults
 
 
@@ -187,7 +187,7 @@ class GlideinParams(cWParams.CommonParams):
 
         self.monitor_defaults["base_dir"] = ("/var/www/html/glidefactory/monitor", "base_dir", "Monitoring base dir", None)
         # Default for rrd update threads
-        self.monitor_defaults["update_thread_count"]=(os.sysconf('SC_NPROCESSORS_ONLN'),"update_thread_count","Number of rrd update threads. Defaults to cpu count.",None)
+        self.monitor_defaults["update_thread_count"]=(os.sysconf('SC_NPROCESSORS_ONLN'), "update_thread_count", "Number of rrd update threads. Defaults to cpu count.", None)
         self.defaults["monitor"] = self.monitor_defaults
 
         self.frontend_sec_class_defaults = cWParams.commentedOrderedDict()
@@ -198,20 +198,20 @@ class GlideinParams(cWParams.CommonParams):
         self.frontend_defaults["security_classes"] = (xmlParse.OrderedDict(), "Dictionary of security class maps", "Each mapping contains", self.frontend_sec_class_defaults)
 
         monitoring_collector_defaults=cWParams.commentedOrderedDict()
-        monitoring_collector_defaults["node"]=(None,"nodename","Factory monitoring collector node name (for example, col1.my.org:9999)",None)
-        monitoring_collector_defaults["DN"]=(None,"dn","Factory collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=col1.my.org)",None)
-        monitoring_collector_defaults["secondary"]=("False","Bool","Secondary nodes will be used by glideins, if present",None)
-        monitoring_collector_defaults["group"]=("default","string","Collector group name useful to group HA setup",None)
+        monitoring_collector_defaults["node"]=(None, "nodename", "Factory monitoring collector node name (for example, col1.my.org:9999)", None)
+        monitoring_collector_defaults["DN"]=(None, "dn", "Factory collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=col1.my.org)", None)
+        monitoring_collector_defaults["secondary"]=("False", "Bool", "Secondary nodes will be used by glideins, if present", None)
+        monitoring_collector_defaults["group"]=("default", "string", "Collector group name useful to group HA setup", None)
 
-        self.defaults["monitoring_collectors"]=([],'List of factory monitoring collectors',"Each collector contains",monitoring_collector_defaults)
+        self.defaults["monitoring_collectors"]=([], 'List of factory monitoring collectors', "Each collector contains", monitoring_collector_defaults)
 
         security_default=cWParams.commentedOrderedDict()
-        security_default["pub_key"]=("RSA","None|RSA","Type of public key system used for secure message passing",None)
-        security_default["reuse_oldkey_onstartup_gracetime"]=("900","seconds","Time in sec old key can be used to decrypt requests from frontend",None)
+        security_default["pub_key"]=("RSA", "None|RSA", "Type of public key system used for secure message passing", None)
+        security_default["reuse_oldkey_onstartup_gracetime"]=("900", "seconds", "Time in sec old key can be used to decrypt requests from frontend", None)
         security_default["remove_old_cred_freq"] = ("24", "hours", "Frequency in hrs for cleaning unused credentials", None)
         security_default["remove_old_cred_age"] = ("30", "days", "Credentials older than this should be removed", None)
-        security_default["key_length"]=("2048","bits","Key length in bits",None)
-        security_default["frontends"]=(xmlParse.OrderedDict(),"Dictionary of frontend","Each frontend contains",self.frontend_defaults)
+        security_default["key_length"]=("2048", "bits", "Key length in bits", None)
+        security_default["frontends"]=(xmlParse.OrderedDict(), "Dictionary of frontend", "Each frontend contains", self.frontend_defaults)
 
         self.defaults["security"] = security_default
 
@@ -277,8 +277,8 @@ class GlideinParams(cWParams.CommonParams):
 
             for scname in self.security.frontends[fename].security_classes.keys():
                 username=self.security.frontends[fename].security_classes[scname].username
-                self.client_log_dirs[username]=self.buildDir(True, os.path.join(self.submit.base_client_log_dir,"user_%s"%username))
-                self.client_proxies_dirs[username]=self.buildDir(True, os.path.join(self.submit.base_client_proxies_dir,"user_%s"%username))
+                self.client_log_dirs[username]=self.buildDir(True, os.path.join(self.submit.base_client_log_dir, "user_%s"%username))
+                self.client_proxies_dirs[username]=self.buildDir(True, os.path.join(self.submit.base_client_proxies_dir, "user_%s"%username))
 
         if not cWParams.is_valid_name(self.factory_name):
             raise RuntimeError, "Invalid factory name '%s'"%self.factory_name
@@ -296,7 +296,7 @@ class GlideinParams(cWParams.CommonParams):
             attr_names=self.entries[entry_name].attrs.keys()
             for attr_name in attr_names:
                 if not cWParams.is_valid_name(attr_name):
-                    raise RuntimeError, "Invalid entry '%s' attribute name '%s'."%(entry_name,attr_name)
+                    raise RuntimeError, "Invalid entry '%s' attribute name '%s'."%(entry_name, attr_name)
 
     # return xml formatting
     def get_xml_format(self):
@@ -310,13 +310,13 @@ class GlideinParams(cWParams.CommonParams):
                 'infosys_refs':{'el_name':'infosys_ref','subtypes_params':{'class':{}}}
             },
             'dicts_params':{
-                'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},
-                'per_frontends':{'el_name':'per_frontend','subtypes_params':{'class':{}}},
-                'entries':{'el_name':'entry','subtypes_params':{'class':{}}},
-                'allow_frontends':{'el_name':'allow_frontend','subtypes_params':{'class':{}}},
-                'frontends':{'el_name':'frontend','subtypes_params':{'class':{}}},
-                'security_classes':{'el_name':'security_class','subtypes_params':{'class':{}}},
-                'submit_attrs':{'el_name':'submit_attr','subtypes_params':{'class':{}}},
+                'attrs': {'el_name':'attr','subtypes_params':{'class':{}}},
+                'per_frontends': {'el_name':'per_frontend','subtypes_params':{'class':{}}},
+                'entries': {'el_name':'entry','subtypes_params':{'class':{}}},
+                'allow_frontends': {'el_name':'allow_frontend','subtypes_params':{'class':{}}},
+                'frontends': {'el_name':'frontend','subtypes_params':{'class':{}}},
+                'security_classes': {'el_name':'security_class','subtypes_params':{'class':{}}},
+                'submit_attrs': {'el_name':'submit_attr','subtypes_params':{'class':{}}},
             }
         }
 

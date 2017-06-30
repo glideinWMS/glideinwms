@@ -17,7 +17,7 @@ import os.path
 import string
 import sys
 STARTUP_DIR=sys.path[0]
-sys.path.append(os.path.join(STARTUP_DIR,"../../.."))
+sys.path.append(os.path.join(STARTUP_DIR, "../../.."))
 from glideinwms.factory.tools.lib import gWftLogParser
 
 USAGE="Usage: cat_XMLResult.py -h|[-raw] [-forcemulti] <logname>+"
@@ -57,7 +57,7 @@ def main(args):
             sys.stderr.write("%s\n"%USAGE)
             sys.exit(1)
 
-        for l in string.split(out,"\n"):
+        for l in string.split(out, "\n"):
             if raw_out and (l[:2]=="<?"):
                 #skip comments for raw output
                 continue
@@ -78,7 +78,7 @@ def main(args):
                     continue
 
                 x=[]
-                for l in string.split(rawx,"\n"):
+                for l in string.split(rawx, "\n"):
                     if l[:2]=="<?":
                         #skip comments
                         continue
@@ -88,7 +88,7 @@ def main(args):
                     x.append("  "+l);
                 if x[-1]=="  ":
                     x=x[:-1]
-                xmls.append(string.join(x,"\n"))
+                xmls.append(string.join(x, "\n"))
             except OSError as e:
                 # just warn
                 sys.stderr.write("Error reading file: %s\n"%e)

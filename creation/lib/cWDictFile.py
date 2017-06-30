@@ -9,7 +9,7 @@
 #   And other support functions
 #
 
-import os,os.path  # string
+import os, os.path  # string
 import shutil
 import copy
 import socket
@@ -38,7 +38,7 @@ class DictFile:
         self.fname_idx=fname_idx
 
         if sort_keys and order_matters:
-            raise RuntimeError,"Cannot preserve the order and sort the keys"
+            raise RuntimeError, "Cannot preserve the order and sort the keys"
         self.sort_keys=sort_keys
         self.order_matters=order_matters
 
@@ -48,13 +48,13 @@ class DictFile:
         self.keys=[]
         self.vals={}
 
-    def has_key(self,key):
+    def has_key(self, key):
         return key in self.keys
 
     def __contains__(self, key):
         return key in self.keys
 
-    def __getitem__(self,key):
+    def __getitem__(self, key):
         return self.vals[key]
 
     def get_fname(self):
@@ -64,7 +64,7 @@ class DictFile:
         return self.dir
 
     def get_filepath(self):
-        return os.path.join(self.dir,self.fname)
+        return os.path.join(self.dir, self.fname)
 
     def erase(self):
         self.keys=[]
@@ -85,7 +85,7 @@ class DictFile:
         if key in self.keys:
             if not allow_overwrite:
                 raise RuntimeError("Key '%s' already exists" % key)
-            elif not self.is_compatible(self.vals[key],val):
+            elif not self.is_compatible(self.vals[key], val):
                 raise RuntimeError("Key '%s': Value %s not compatible with old value %s" % (key, val, self.vals[key]))
             # Already exists, covered above
             # if self.vals[key]==val:
@@ -122,13 +122,13 @@ class DictFile:
 
         if not os.path.exists(dir):
             os.makedirs(dir)
-        filepath=os.path.join(dir,fname)
+        filepath=os.path.join(dir, fname)
         try:
-            fd=open(filepath,"w")
+            fd=open(filepath, "w")
         except IOError as e:
-            raise RuntimeError, "Error creating %s: %s"%(filepath,e)
+            raise RuntimeError, "Error creating %s: %s"%(filepath, e)
         try:
-            self.save_into_fd(fd,sort_keys,set_readonly,reset_changed,want_comments)
+            self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         finally:
             fd.close()
 
@@ -156,7 +156,7 @@ class DictFile:
         else:
             keys=self.keys
         for k in keys:
-            fd.write("%s\n"%self.format_val(k,want_comments))
+            fd.write("%s\n"%self.format_val(k, want_comments))
         footer=self.file_footer(want_comments)
         if footer is not None:
             fd.write("%s\n"%footer)
@@ -172,7 +172,7 @@ class DictFile:
                       sort_keys=None,set_readonly=True,reset_changed=True,
                       want_comments=True):
         fd=cStringIO.StringIO()
-        self.save_into_fd(fd,sort_keys,set_readonly,reset_changed,want_comments)
+        self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         fd.seek(0)
         data=fd.read()
         fd.close()
@@ -225,7 +225,7 @@ class DictFile:
             try:
                 self.parse_val(line)
             except RuntimeError as e:
-                raise RuntimeError("Line %i: %s" % (idx,str(e)))
+                raise RuntimeError("Line %i: %s" % (idx, str(e)))
 
         if set_not_changed:
             self.changed = False  # the memory copy is now same as the one on disk
@@ -415,30 +415,30 @@ class DictFileTwoKeys(DictFile):
 
 # descriptions
 class DescriptionDictFile(DictFileTwoKeys):
-    def format_val(self,key,want_comments):
-        return "%s \t%s"%(self.vals[key],key)
+    def format_val(self, key, want_comments):
+        return "%s \t%s"%(self.vals[key], key)
 
-    def parse_val(self,line):
+    def parse_val(self, line):
         if line[0]=='#':
             return # ignore comments
-        arr=line.split(None,1)
+        arr=line.split(None, 1)
         if len(arr)==0:
             return # empty line
         if len(arr)!=2:
-            raise RuntimeError,"Not a valid description line: '%s'"%line
+            raise RuntimeError, "Not a valid description line: '%s'"%line
 
-        return self.add(arr[1],arr[0])
+        return self.add(arr[1], arr[0])
 
 
 # gridmap file
 class GridMapDict(DictFileTwoKeys):
-    def file_header(self,want_comments):
+    def file_header(self, want_comments):
         return None
 
-    def format_val(self,key,want_comments):
-        return '"%s" %s'%(key,self.vals[key])
+    def format_val(self, key, want_comments):
+        return '"%s" %s' % (key, self.vals[key])
 
-    def parse_val(self,line):
+    def parse_val(self, line):
         if line[0]=='#':
             return # ignore comments
         arr=line.split()
@@ -448,15 +448,15 @@ class GridMapDict(DictFileTwoKeys):
             return # empty key
 
         if line[0:1]!='"':
-            raise RuntimeError,'Not a valid gridmap line; not starting with ": %s'%line
+            raise RuntimeError, 'Not a valid gridmap line; not starting with ": %s'%line
 
         user=arr[-1]
 
         if line[-len(user)-2:-len(user)-1]!='"':
-            raise RuntimeError,'Not a valid gridmap line; DN not ending with ": %s'%line
+            raise RuntimeError, 'Not a valid gridmap line; DN not ending with ": %s' % line
 
         dn=line[1:-len(user)-2]
-        return self.add(dn,user)
+        return self.add(dn, user)
 
 
 ##################################
@@ -467,32 +467,32 @@ class SHA1DictFile(DictFile):
         sha1=hashCrypto.extract_sha1(filepath)
         if key is None:
             key=os.path.basename(filepath)
-        self.add(key,sha1,allow_overwrite)
+        self.add(key, sha1, allow_overwrite)
 
-    def format_val(self,key,want_comments):
-        return "%s  %s"%(self.vals[key],key)
+    def format_val(self, key, want_comments):
+        return "%s  %s"%(self.vals[key], key)
 
-    def parse_val(self,line):
+    def parse_val(self, line):
         if line[0]=='#':
             return # ignore comments
-        arr=line.split(None,1)
+        arr=line.split(None, 1)
         if len(arr)==0:
             return # empty line
         if len(arr)!=2:
-            raise RuntimeError,"Not a valid SHA1 line: '%s'"%line
+            raise RuntimeError, "Not a valid SHA1 line: '%s'"%line
 
-        return self.add(arr[1],arr[0])
+        return self.add(arr[1], arr[0])
 
 
 # summary signatures
 # values are (sha1,fname2)
 class SummarySHA1DictFile(DictFile):
     def add(self,key,val,allow_overwrite=False):
-        if not (type(val) in (type(()),type([]))):
+        if not (type(val) in (type(()), type([]))):
             raise RuntimeError, "Values '%s' not a list or tuple"%val
         if len(val)!=2:
             raise RuntimeError, "Values '%s' not (sha1,fname)"%val
-        return DictFile.add(self,key,val,allow_overwrite)
+        return DictFile.add(self, key, val, allow_overwrite)
 
     def add_from_file(self,filepath,
                       fname2=None, # if fname2==None, use basefname
@@ -503,22 +503,22 @@ class SummarySHA1DictFile(DictFile):
             key=os.path.basename(filepath)
         if fname2 is None:
             fname2=os.path.basename(filepath)
-        DictFile.add(self,key,(sha1,fname2),allow_overwrite)
+        DictFile.add(self, key, (sha1, fname2), allow_overwrite)
 
-    def format_val(self,key,want_comments):
-        return "%s  %s  %s"%(self.vals[key][0],self.vals[key][1],key)
+    def format_val(self, key, want_comments):
+        return "%s  %s  %s"%(self.vals[key][0], self.vals[key][1], key)
 
-    def parse_val(self,line):
+    def parse_val(self, line):
         if line[0]=='#':
             return # ignore comments
-        arr=line.split(None,2)
+        arr=line.split(None, 2)
         if len(arr)==0:
             return # empty line
         if len(arr)!=3:
-            raise RuntimeError,"Not a valid summary signature line (expected 4, found %i elements): '%s'"%(len(arr),line)
+            raise RuntimeError, "Not a valid summary signature line (expected 4, found %i elements): '%s'"%(len(arr), line)
 
         key=arr[2]
-        return self.add(key,(arr[0],arr[1]))
+        return self.add(key, (arr[0], arr[1]))
 
 
 class SimpleFileDictFile(DictFile):
@@ -836,13 +836,13 @@ class FileDictFile(SimpleFileDictFile):
 # will convert values into python format before writing them out
 #   given that it does not call any parent methods, implement an interface first
 class ReprDictFileInterface:
-    def format_val(self,key,want_comments):
-        return "%s \t%s"%(key,repr(self.vals[key]))
+    def format_val(self, key, want_comments):
+        return "%s \t%s"%(key, repr(self.vals[key]))
 
-    def parse_val(self,line):
+    def parse_val(self, line):
         if line[0]=='#':
             return # ignore comments
-        arr=line.split(None,1)
+        arr=line.split(None, 1)
         if len(arr)==0:
             return # empty line
         if len(arr[0])==0:
@@ -853,22 +853,22 @@ class ReprDictFileInterface:
             val=''
         else:
             val=arr[1]
-        return self.add(key,eval(val))
+        return self.add(key, eval(val))
 
     # fake init to make pylint happy
     def interface_fake_init(self):
         self.vals={}
-        self.add=lambda x,y:True
+        self.add=lambda x, y:True
         raise NotImplementedError, "This function must never be called"
 
 #   this one actually has the full semantics
-class ReprDictFile(ReprDictFileInterface,DictFile):
+class ReprDictFile(ReprDictFileInterface, DictFile):
     pass
 
 # will hold only strings
 class StrDictFile(DictFile):
     def add(self,key,val,allow_overwrite=False):
-        DictFile.add(self,key,str(val),allow_overwrite)
+        DictFile.add(self, key, str(val), allow_overwrite)
 
 # will save only strings
 # while populating, it may hold other types
@@ -876,7 +876,7 @@ class StrDictFile(DictFile):
 class StrWWorkTypeDictFile(StrDictFile):
     def __init__(self,dir,fname,sort_keys=False,order_matters=False,
                  fname_idx=None):      # if none, use fname
-        StrDictFile.__init__(self,dir,fname,sort_keys,order_matters,fname_idx)
+        StrDictFile.__init__(self, dir, fname, sort_keys, order_matters, fname_idx)
         self.typed_vals={}
 
     def erase(self):
@@ -884,25 +884,25 @@ class StrWWorkTypeDictFile(StrDictFile):
         self.typed_vals={}
 
     def remove(self,key,fail_if_missing=False):
-        StrDictFile.remove(self,key,fail_if_missing)
+        StrDictFile.remove(self, key, fail_if_missing)
         if key in self.typed_vals:
             del self.typed_vals[key]
 
-    def get_typed_val(self,key):
+    def get_typed_val(self, key):
         return self.typed_vals[key]
 
     def add(self,key,val,allow_overwrite=False):
-        StrDictFile.add(self,key,val,allow_overwrite)
+        StrDictFile.add(self, key, val, allow_overwrite)
         self.typed_vals[key]=val
 
 # values are (Type,Default,CondorName,Required,Export,UserName)
 class VarsDictFile(DictFile):
-    def is_compatible(self,old_val,new_val):
+    def is_compatible(self, old_val, new_val):
         return ((old_val[0]==new_val[0]) and (old_val[4]==new_val[4]))# at least the type and the export must be preserved
 
-    def file_header(self,want_comments):
+    def file_header(self, want_comments):
         if want_comments:
-            return (DictFile.file_header(self,want_comments)+"\n"+
+            return (DictFile.file_header(self, want_comments)+"\n"+
                     "# VarName               Type    Default         CondorName                     Req.     Export  UserName           \n"+
                     "#                       S=Quote - = No Default  + = VarName                             Condor   - = Do not export \n"+
                     "#                                                                                                + = Use VarName   \n"+
@@ -912,17 +912,17 @@ class VarsDictFile(DictFile):
             return None
 
     def add(self,key,val,allow_overwrite=0):
-        if not (type(val) in (type(()),type([]))):
+        if not (type(val) in (type(()), type([]))):
             raise RuntimeError, "Values '%s' not a list or tuple"%val
         if len(val)!=6:
             raise RuntimeError, "Values '%s' not (Type,Default,CondorName,Required,Export,UserName)"%str(val)
-        if not (val[0] in ('C','S','I')):
-            raise RuntimeError,"Invalid var type '%s', should be either C, S or I in val: %s"%(val[1],str(val))
-        for i,t in ((3,"Required"),(4,"Export")):
-            if not (val[i] in ('Y','N')):
-                raise RuntimeError,"Invalid var %s '%s', should be either Y or N in val: %s"%(t,val[i],str(val))
+        if not (val[0] in ('C', 'S', 'I')):
+            raise RuntimeError, "Invalid var type '%s', should be either C, S or I in val: %s"%(val[1], str(val))
+        for i, t in ((3, "Required"), (4, "Export")):
+            if not (val[i] in ('Y', 'N')):
+                raise RuntimeError, "Invalid var %s '%s', should be either Y or N in val: %s"%(t, val[i], str(val))
 
-        return DictFile.add(self,key,val,allow_overwrite)
+        return DictFile.add(self, key, val, allow_overwrite)
 
     def add_extended(self,key,
                      type,
@@ -961,25 +961,25 @@ class VarsDictFile(DictFile):
         elif user_name==True:
             user_name='+'
 
-        self.add(key,(type_str,val_default,condor_name,req_str,export_condor_str,user_name),allow_overwrite)
+        self.add(key, (type_str, val_default, condor_name, req_str, export_condor_str, user_name), allow_overwrite)
 
-    def format_val(self,key,want_comments):
-        return "%s \t%s \t%s \t\t%s \t%s \t%s \t%s"%(key,self.vals[key][0],self.vals[key][1],self.vals[key][2],self.vals[key][3],self.vals[key][4],self.vals[key][5])
+    def format_val(self, key, want_comments):
+        return "%s \t%s \t%s \t\t%s \t%s \t%s \t%s"%(key, self.vals[key][0], self.vals[key][1], self.vals[key][2], self.vals[key][3], self.vals[key][4], self.vals[key][5])
 
 
-    def parse_val(self,line):
+    def parse_val(self, line):
         if len(line)==0:
             return #ignore emoty lines
         if line[0]=='#':
             return # ignore comments
-        arr=line.split(None,6)
+        arr=line.split(None, 6)
         if len(arr)==0:
             return # empty line
         if len(arr)!=7:
-            raise RuntimeError,"Not a valid var line (expected 7, found %i elements): '%s'"%(len(arr),line)
+            raise RuntimeError, "Not a valid var line (expected 7, found %i elements): '%s'"%(len(arr), line)
 
         key=arr[0]
-        return self.add(key,arr[1:])
+        return self.add(key, arr[1:])
 
 
 # This class holds the content of the whole file in the single val
@@ -988,17 +988,17 @@ class VarsDictFile(DictFile):
 class SimpleFile(DictFile):
     def add(self,key,val,allow_overwrite=False):
         if key!='content':
-            raise RuntimeError,"Invalid key '%s'!='content'"%key
-        return DictFile.add(self,key,val,allow_overwrite)
+            raise RuntimeError, "Invalid key '%s'!='content'"%key
+        return DictFile.add(self, key, val, allow_overwrite)
 
-    def file_header(self,want_comments):
+    def file_header(self, want_comments):
         return None # no comment, anytime
 
-    def format_val(self,key,want_comments):
+    def format_val(self, key, want_comments):
         if key=='content':
             return self.vals[key]
         else:
-            raise RuntimeError,"Invalid key '%s'!='content'"%key
+            raise RuntimeError, "Invalid key '%s'!='content'"%key
 
     def load_from_fd(self, fd,
                      erase_first=True,        # if True, delete old content first
@@ -1012,14 +1012,14 @@ class SimpleFile(DictFile):
         if data[-1:]=='\n':
             data=data[:-1]
 
-        self.add('content',data)
+        self.add('content', data)
 
         if set_not_changed:
-            self.changed=False # the memory copy is now same as the one on disk
+            self.changed = False  # the memory copy is now same as the one on disk
         return
 
-    def parse_val(self,line):
-        raise RuntimeError,"Not defined in SimpleFile"
+    def parse_val(self, line):
+        raise RuntimeError, "Not defined in SimpleFile"
 
 
 # This class holds the content of the whole file in the single val
@@ -1042,16 +1042,16 @@ class ExeFile(SimpleFile):
             sort_keys=self.sort_keys
 
 
-        filepath=os.path.join(dir,fname)
+        filepath=os.path.join(dir, fname)
         try:
-            fd=open(filepath,"w")
+            fd=open(filepath, "w")
         except IOError as e:
-            raise RuntimeError, "Error creating %s: %s"%(filepath,e)
+            raise RuntimeError, "Error creating %s: %s"%(filepath, e)
         try:
-            self.save_into_fd(fd,sort_keys,set_readonly,reset_changed,want_comments)
+            self.save_into_fd(fd, sort_keys, set_readonly, reset_changed, want_comments)
         finally:
             fd.close()
-        os.chmod(filepath,0o755)
+        os.chmod(filepath, 0o755)
 
         return
 
@@ -1068,46 +1068,46 @@ class dirSupport:
 
 
 class simpleDirSupport(dirSupport):
-    def __init__(self,dir,dir_name):
+    def __init__(self, dir, dir_name):
         self.dir=dir
         self.dir_name=dir_name
 
     def create_dir(self,fail_if_exists=True):
         if os.path.isdir(self.dir):
             if fail_if_exists:
-                raise RuntimeError,"Cannot create %s dir %s, already exists."%(self.dir_name,self.dir)
+                raise RuntimeError, "Cannot create %s dir %s, already exists."%(self.dir_name, self.dir)
             else:
                 return False # already exists, nothing to do
 
         try:
             os.mkdir(self.dir)
         except OSError as e:
-            raise RuntimeError,"Failed to create %s dir: %s"%(self.dir_name,e)
+            raise RuntimeError, "Failed to create %s dir: %s"%(self.dir_name, e)
         return True
 
     def delete_dir(self):
         shutil.rmtree(self.dir)
 
 class chmodDirSupport(simpleDirSupport):
-    def __init__(self,dir,chmod,dir_name):
-        simpleDirSupport.__init__(self,dir,dir_name)
+    def __init__(self, dir, chmod, dir_name):
+        simpleDirSupport.__init__(self, dir, dir_name)
         self.chmod=chmod
 
     def create_dir(self,fail_if_exists=True):
         if os.path.isdir(self.dir):
             if fail_if_exists:
-                raise RuntimeError,"Cannot create %s dir %s, already exists."%(self.dir_name,self.dir)
+                raise RuntimeError, "Cannot create %s dir %s, already exists."%(self.dir_name, self.dir)
             else:
                 return False # already exists, nothing to do
 
         try:
-            os.mkdir(self.dir,self.chmod)
+            os.mkdir(self.dir, self.chmod)
         except OSError as e:
-            raise RuntimeError,"Failed to create %s dir: %s"%(self.dir_name,e)
+            raise RuntimeError, "Failed to create %s dir: %s"%(self.dir_name, e)
         return True
 
 class symlinkSupport(dirSupport):
-    def __init__(self,target_dir,symlink,dir_name):
+    def __init__(self, target_dir, symlink, dir_name):
         self.target_dir=target_dir
         self.symlink=symlink
         self.dir_name=dir_name
@@ -1115,14 +1115,14 @@ class symlinkSupport(dirSupport):
     def create_dir(self,fail_if_exists=True):
         if os.path.islink(self.symlink):
             if fail_if_exists:
-                raise RuntimeError,"Cannot create %s symlink %s, already exists."%(self.dir_name,self.symlink)
+                raise RuntimeError, "Cannot create %s symlink %s, already exists."%(self.dir_name, self.symlink)
             else:
                 return False # already exists, nothing to do
 
         try:
-            os.symlink(self.target_dir,self.symlink)
+            os.symlink(self.target_dir, self.symlink)
         except OSError as e:
-            raise RuntimeError,"Failed to create %s symlink: %s"%(self.dir_name,e)
+            raise RuntimeError, "Failed to create %s symlink: %s"%(self.dir_name, e)
         return True
 
     def delete_dir(self):
@@ -1134,7 +1134,7 @@ class dirsSupport:
         self.dir_list=[]
 
     # dir obj must support create_dir and delete_dir
-    def add_dir_obj(self,dir_obj):
+    def add_dir_obj(self, dir_obj):
         self.dir_list.append(dir_obj)
 
     def create_dirs(self,fail_if_exists=True):
@@ -1161,14 +1161,14 @@ class dirsSupport:
             self.dir_list[i].delete_dir()
 
 # multiple simple dirs
-class multiSimpleDirSupport(dirSupport,dirsSupport):
-    def __init__(self,list_of_dirs,dir_name):
+class multiSimpleDirSupport(dirSupport, dirsSupport):
+    def __init__(self, list_of_dirs, dir_name):
         dirsSupport.__init__(self)
         self.list_of_dirs=list_of_dirs
         self.dir_name=dir_name
 
         for dir in list_of_dirs:
-            self.add_dir_obj(simpleDirSupport(dir,self.dir_name))
+            self.add_dir_obj(simpleDirSupport(dir, self.dir_name))
 
     def create_dir(self,fail_if_exists=True):
         return self.create_dirs(fail_if_exists)
@@ -1179,9 +1179,9 @@ class multiSimpleDirSupport(dirSupport,dirsSupport):
 ###########################################
 
 class workDirSupport(multiSimpleDirSupport):
-    def __init__(self,work_dir,workdir_name):
+    def __init__(self, work_dir, workdir_name):
         multiSimpleDirSupport.__init__(self,
-                                       (work_dir,os.path.join(work_dir,'lock')),
+                                       (work_dir, os.path.join(work_dir, 'lock')),
                                        workdir_name)
 
 # similar to workDirSupport but without lock subdir
@@ -1190,24 +1190,24 @@ class simpleWorkDirSupport(simpleDirSupport):
 
 class logDirSupport(simpleDirSupport):
     def __init__(self,log_dir,dir_name='log'):
-        simpleDirSupport.__init__(self,log_dir,dir_name)
+        simpleDirSupport.__init__(self, log_dir, dir_name)
 
 class logSymlinkSupport(symlinkSupport):
     def __init__(self,log_dir,work_dir,symlink_subdir='log',dir_name='log'):
-        symlinkSupport.__init__(self,log_dir,os.path.join(work_dir,symlink_subdir),dir_name)
+        symlinkSupport.__init__(self, log_dir, os.path.join(work_dir, symlink_subdir), dir_name)
 
 class stageDirSupport(simpleDirSupport):
     def __init__(self,stage_dir,dir_name='stage'):
-        simpleDirSupport.__init__(self,stage_dir,dir_name)
+        simpleDirSupport.__init__(self, stage_dir, dir_name)
 
-class monitorDirSupport(dirSupport,dirsSupport):
+class monitorDirSupport(dirSupport, dirsSupport):
     def __init__(self,monitor_dir,dir_name="monitor"):
         dirsSupport.__init__(self)
 
         self.dir_name=dir_name
         self.monitor_dir=monitor_dir
-        self.add_dir_obj(simpleDirSupport(self.monitor_dir,self.dir_name))
-        self.add_dir_obj(simpleDirSupport(os.path.join(self.monitor_dir,'lock'),self.dir_name))
+        self.add_dir_obj(simpleDirSupport(self.monitor_dir, self.dir_name))
+        self.add_dir_obj(simpleDirSupport(os.path.join(self.monitor_dir, 'lock'), self.dir_name))
 
     def create_dir(self,fail_if_exists=True):
         return self.create_dirs(fail_if_exists)
@@ -1217,12 +1217,12 @@ class monitorDirSupport(dirSupport,dirsSupport):
 
 class monitorWLinkDirSupport(monitorDirSupport):
     def __init__(self,monitor_dir,work_dir,work_subdir="monitor",monitordir_name="monitor"):
-        monitorDirSupport.__init__(self,monitor_dir,monitordir_name)
+        monitorDirSupport.__init__(self, monitor_dir, monitordir_name)
 
         self.work_dir=work_dir
-        self.monitor_symlink=os.path.join(self.work_dir,work_subdir)
+        self.monitor_symlink=os.path.join(self.work_dir, work_subdir)
 
-        self.add_dir_obj(symlinkSupport(self.monitor_dir,self.monitor_symlink,self.dir_name))
+        self.add_dir_obj(symlinkSupport(self.monitor_dir, self.monitor_symlink, self.dir_name))
 
 ################################################
 #
@@ -1240,13 +1240,13 @@ class fileCommonDicts:
     def keys(self):
         return self.dicts.keys()
 
-    def has_key(self,key):
+    def has_key(self, key):
         return key in self.dicts
 
     def __contains__(self, key):
         return key in self.dicts
 
-    def __getitem__(self,key):
+    def __getitem__(self, key):
         return self.dicts[key]
 
     def set_readonly(self,readonly=True):
@@ -1264,7 +1264,7 @@ class fileCommonDicts:
 #
 ################################################
 
-class fileMainDicts(fileCommonDicts,dirsSupport):
+class fileMainDicts(fileCommonDicts, dirsSupport):
     def __init__(self,
                  work_dir,stage_dir,
                  workdir_name,
@@ -1285,13 +1285,13 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
         self.simple_work_dir=simple_work_dir
         if simple_work_dir:
             self.log_dir=None
-            self.add_dir_obj(simpleWorkDirSupport(self.work_dir,self.workdir_name))
+            self.add_dir_obj(simpleWorkDirSupport(self.work_dir, self.workdir_name))
         else:
             self.log_dir=log_dir
-            self.add_dir_obj(workDirSupport(self.work_dir,self.workdir_name))
+            self.add_dir_obj(workDirSupport(self.work_dir, self.workdir_name))
             self.add_dir_obj(logDirSupport(self.log_dir))
             # make it easier to find; create a symlink in work
-            self.add_dir_obj(logSymlinkSupport(self.log_dir,self.work_dir))
+            self.add_dir_obj(logSymlinkSupport(self.log_dir, self.work_dir))
 
             # in order to keep things clean, put daemon process logs into a separate dir
             self.add_dir_obj(logDirSupport(self.get_daemon_log_dir(log_dir)))
@@ -1325,16 +1325,16 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
         if compare_stage_dir and (self.stage_dir!=other.stage_dir):
             return False
         for k in self.dicts.keys():
-            if not self.dicts[k].is_equal(other.dicts[k],compare_dir=False,compare_fname=compare_fnames):
+            if not self.dicts[k].is_equal(other.dicts[k], compare_dir=False, compare_fname=compare_fnames):
                 return False
         return True
 
     # reuse as much of the other as possible
-    def reuse(self,other):             # other must be of the same class
+    def reuse(self, other):             # other must be of the same class
         if self.work_dir!=other.work_dir:
-            raise RuntimeError,"Cannot change main %s base_dir! '%s'!='%s'"%(self.workdir_name,self.work_dir,other.work_dir)
+            raise RuntimeError, "Cannot change main %s base_dir! '%s'!='%s'"%(self.workdir_name, self.work_dir, other.work_dir)
         if self.stage_dir!=other.stage_dir:
-            raise RuntimeError,"Cannot change main stage base_dir! '%s'!='%s'"%(self.stage_dir,other.stage_dir)
+            raise RuntimeError, "Cannot change main stage base_dir! '%s'!='%s'"%(self.stage_dir, other.stage_dir)
         return # nothing else to be done in this
 
     ####################
@@ -1342,8 +1342,8 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
     ####################
 
     # Child should overwrite this
-    def get_daemon_log_dir(self,base_dir):
-        return os.path.join(base_dir,"main")
+    def get_daemon_log_dir(self, base_dir):
+        return os.path.join(base_dir, "main")
 
     # Child must overwrite this
     def get_main_dicts(self):
@@ -1355,7 +1355,7 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
 #
 ################################################
 
-class fileSubDicts(fileCommonDicts,dirsSupport):
+class fileSubDicts(fileCommonDicts, dirsSupport):
     def __init__(self,base_work_dir,base_stage_dir,sub_name,
                  summary_signature,workdir_name,
                  simple_work_dir=False,           # if True, do not create the lib and lock work_dir subdirs
@@ -1375,10 +1375,10 @@ class fileSubDicts(fileCommonDicts,dirsSupport):
         self.simple_work_dir=simple_work_dir
         if simple_work_dir:
             self.log_dir=None
-            self.add_dir_obj(simpleWorkDirSupport(self.work_dir,self.workdir_name))
+            self.add_dir_obj(simpleWorkDirSupport(self.work_dir, self.workdir_name))
         else:
             self.log_dir=self.get_sub_log_dir(base_log_dir)
-            self.add_dir_obj(workDirSupport(self.work_dir,self.workdir_name))
+            self.add_dir_obj(workDirSupport(self.work_dir, self.workdir_name))
             self.add_dir_obj(logDirSupport(self.log_dir))
 
         self.add_dir_obj(stageDirSupport(self.stage_dir))
@@ -1407,16 +1407,16 @@ class fileSubDicts(fileCommonDicts,dirsSupport):
         if compare_sub_name and (self.sub_name!=other.sub_name):
             return False
         for k in self.dicts.keys():
-            if not self.dicts[k].is_equal(other.dicts[k],compare_dir=False,compare_fname=compare_fnames):
+            if not self.dicts[k].is_equal(other.dicts[k], compare_dir=False, compare_fname=compare_fnames):
                 return False
         return True
 
     # reuse as much of the other as possible
-    def reuse(self,other):             # other must be of the same class
+    def reuse(self, other):             # other must be of the same class
         if self.work_dir!=other.work_dir:
-            raise RuntimeError,"Cannot change sub %s base_dir! '%s'!='%s'"%(self.workdir_name,self.work_dir,other.work_dir)
+            raise RuntimeError, "Cannot change sub %s base_dir! '%s'!='%s'"%(self.workdir_name, self.work_dir, other.work_dir)
         if self.stage_dir!=other.stage_dir:
-            raise RuntimeError,"Cannot change sub stage base_dir! '%s'!='%s'"%(self.stage_dir,other.stage_dir)
+            raise RuntimeError, "Cannot change sub stage base_dir! '%s'!='%s'"%(self.stage_dir, other.stage_dir)
 
         return # nothing more to be done here
 
@@ -1426,15 +1426,15 @@ class fileSubDicts(fileCommonDicts,dirsSupport):
     ####################
 
     # Child should overwrite this
-    def get_sub_work_dir(self,base_dir):
+    def get_sub_work_dir(self, base_dir):
         return base_dir+"/sub_"+self.sub_name
 
     # Child should overwrite this
-    def get_sub_log_dir(self,base_dir):
+    def get_sub_log_dir(self, base_dir):
         return base_dir+"/sub_"+self.sub_name
 
     # Child should overwrite this
-    def get_sub_stage_dir(self,base_dir):
+    def get_sub_stage_dir(self, base_dir):
         return base_dir+"/sub_"+self.sub_name
 
     # Child must overwrite this
@@ -1442,7 +1442,7 @@ class fileSubDicts(fileCommonDicts,dirsSupport):
         raise RuntimeError, "Undefined"
 
     # Child must overwrite this
-    def reuse_nocheck(self,other):
+    def reuse_nocheck(self, other):
         raise RuntimeError, "Undefined"
 
 ################################################
@@ -1526,7 +1526,7 @@ class fileDicts:
             return False
         if compare_stage_dir and (self.stage_dir!=other.stage_dir):
             return False
-        if not self.main_dicts.is_equal(other.main_dicts,compare_work_dir=False,compare_stage_dir=False,compare_fnames=compare_fnames):
+        if not self.main_dicts.is_equal(other.main_dicts, compare_work_dir=False, compare_stage_dir=False, compare_fnames=compare_fnames):
             return False
         my_subs=self.sub_list[:]
         other_subs=other.sub_list[:]
@@ -1539,17 +1539,17 @@ class fileDicts:
             return False
 
         for k in my_subs:
-            if not self.sub_dicts[k].is_equal(other.sub_dicts[k],compare_sub_name=False,
+            if not self.sub_dicts[k].is_equal(other.sub_dicts[k], compare_sub_name=False,
                                               compare_fname=compare_fnames):
                 return False
         return True
 
     # reuse as much of the other as possible
-    def reuse(self,other):             # other must be of the same class
+    def reuse(self, other):             # other must be of the same class
         if self.work_dir!=other.work_dir:
-            raise RuntimeError,"Cannot change %s base_dir! '%s'!='%s'"%(self.workdir_name,self.work_dir,other.work_dir)
+            raise RuntimeError, "Cannot change %s base_dir! '%s'!='%s'"%(self.workdir_name, self.work_dir, other.work_dir)
         if self.stage_dir!=other.stage_dir:
-            raise RuntimeError,"Cannot change stage base_dir! '%s'!='%s'"%(self.stage_dir,other.stage_dir)
+            raise RuntimeError, "Cannot change stage base_dir! '%s'!='%s'"%(self.stage_dir, other.stage_dir)
 
         # compare main dictionaires
         self.main_dicts.create_dirs(fail_if_exists=False)
@@ -1571,15 +1571,15 @@ class fileDicts:
     # this should be redefined by the child
     # and return a child of fileMainDicts
     def new_MainDicts(self):
-        return fileMainDicts(self.work_dir,self.stage_dir,self.workdir_name,self.simple_work_dir,self.log_dir)
+        return fileMainDicts(self.work_dir, self.stage_dir, self.workdir_name, self.simple_work_dir, self.log_dir)
 
     # this should be redefined by the child
     # and return a child of fileSubDicts
-    def new_SubDicts(self,sub_name):
-        return fileSubDicts(self.work_dir,self.stage_dir,sub_name,self.main_dicts.get_summary_signature(),self.workdir_name,self.simple_work_dir,self.log_dir)
+    def new_SubDicts(self, sub_name):
+        return fileSubDicts(self.work_dir, self.stage_dir, sub_name, self.main_dicts.get_summary_signature(), self.workdir_name, self.simple_work_dir, self.log_dir)
 
     # this should be redefined by the child
-    def get_sub_name_from_sub_stage_dir(self,sign_key):
+    def get_sub_name_from_sub_stage_dir(self, sign_key):
         raise RuntimeError, "Undefined"
 
 

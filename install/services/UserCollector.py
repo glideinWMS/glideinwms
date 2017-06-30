@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import traceback
-import sys,os,os.path,string,time
+import sys, os, os.path, string, time
 import stat
 import re
 import optparse
@@ -46,10 +46,10 @@ frontend_options = [ "hostname",
 "glidein_proxy_dns",
 ]
 
-valid_options = { "UserCollector" : usercollector_options,
-                  "WMSCollector"  : wmscollector_options,
-                  "Submit"        : submit_options,
-                  "VOFrontend"    : frontend_options,
+valid_options = { "UserCollector": usercollector_options,
+                  "WMSCollector": wmscollector_options,
+                  "Submit": submit_options,
+                  "VOFrontend": frontend_options,
 }
 
 
@@ -64,7 +64,7 @@ class UserCollector(Condor):
       return
     if optionsDict != None:
       valid_options = optionsDict
-    Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
+    Condor.__init__(self, self.inifile, self.ini_section, valid_options[self.ini_section])
     #self.certificates = self.option_value(self.ini_section,"certificates")
     self.daemon_list = "COLLECTOR, NEGOTIATOR"
     self.colocated_services = []
@@ -78,15 +78,15 @@ class UserCollector(Condor):
   #--------------------------------
   def get_wmscollector(self):
     if self.wmscollector == None:
-      self.wmscollector = WMSCollector.WMSCollector(self.inifile,valid_options)
+      self.wmscollector = WMSCollector.WMSCollector(self.inifile, valid_options)
   #--------------------------------
   def get_submit(self):
     if self.submit == None:
-      self.submit = Submit.Submit(self.inifile,valid_options)
+      self.submit = Submit.Submit(self.inifile, valid_options)
   #--------------------------------
   def get_frontend(self):
     if self.frontend == None:
-      self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options)
+      self.frontend = VOFrontend.VOFrontend(self.inifile, valid_options)
  
   #--------------------------------
   def install(self):
@@ -96,7 +96,7 @@ class UserCollector(Condor):
     self.__install_condor__()
     self.configure()
     common.logit ("======== %s install complete ==========" % self.ini_section)
-    common.start_service(self.glideinwms_location(),self.ini_section,self.inifile)
+    common.start_service(self.glideinwms_location(), self.ini_section, self.inifile)
 
   #-----------------------------
   def validate(self):
@@ -124,7 +124,7 @@ class UserCollector(Condor):
   def condor_mapfile_users(self):
     users = []
     users.append(["Submit",      self.submit.x509_gsi_dn(),   self.submit.service_name()])
-    users.append(["VOFrontend",self.frontend.x509_gsi_dn(), self.frontend.service_name()])
+    users.append(["VOFrontend", self.frontend.x509_gsi_dn(), self.frontend.service_name()])
     #-- frontend pilot proxies ---
     for user in self.frontend.pilot_proxy_users():
       users.append(user)
@@ -134,7 +134,7 @@ class UserCollector(Condor):
   def condor_config_daemon_users(self): 
     users = []
     users.append(["Submit",      self.submit.x509_gsi_dn(),  self.submit.service_name()])
-    users.append(["VOFrontend",self.frontend.x509_gsi_dn(),self.frontend.service_name()]) 
+    users.append(["VOFrontend", self.frontend.x509_gsi_dn(), self.frontend.service_name()]) 
     return users
 
   #--------------------------------
@@ -148,7 +148,7 @@ They both are trying to use the same port: %(port)s.
 If not already specified, you may need to specifiy a 'collector_port' option 
 in your ini file for either the WMSCollector or UserCollector sections, or both.
 If present, are you really installing both services on the same node.
-""" %  { "port" : self.collector_port(),})
+""" %  { "port": self.collector_port(),})
 
     if int(self.wmscollector.collector_port()) in self.secondary_collector_ports():
       common.logerr("""The WMS and User collector are being installed on the same node. 
@@ -158,8 +158,8 @@ User Collector ports that will be assigned:
 If not already specified, you may need to specifiy a 'collector_port' option 
 in your ini file for either the WMSCollector or UserCollector sections, or both.
 If present, are you really installing both services on the same node.
-""" % { "wms_port"        : self.wmscollector.collector_port(),
-        "secondary_ports" : self.secondary_collector_ports(), })
+""" % { "wms_port": self.wmscollector.collector_port(),
+        "secondary_ports": self.secondary_collector_ports(), })
 
   #-------------------------
   def create_template(self):
@@ -179,7 +179,7 @@ If present, are you really installing both services on the same node.
 def show_line():
     x = traceback.extract_tb(sys.exc_info()[2])
     z = x[len(x)-1]
-    return "%s line %s" % (z[2],z[1])
+    return "%s line %s" % (z[2], z[1])
 
 #---------------------------
 def validate_args(args):

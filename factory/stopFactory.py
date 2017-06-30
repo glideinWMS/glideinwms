@@ -24,7 +24,7 @@ import string
 import time
 import subprocess
 
-sys.path.append(os.path.join(sys.path[0],"../../"))
+sys.path.append(os.path.join(sys.path[0], "../../"))
 from glideinwms.factory import glideFactoryPidLib
 from glideinwms.factory import glideFactoryConfig
 
@@ -112,7 +112,7 @@ if __name__ == '__main__':
 
     if len(sys.argv)>2:
         if sys.argv[1]=='-force' or sys.argv[1]=='-f':
-            sys.exit(main(sys.argv[2],True))
+            sys.exit(main(sys.argv[2], True))
         else:
             print USAGE_STRING
             sys.exit(1)

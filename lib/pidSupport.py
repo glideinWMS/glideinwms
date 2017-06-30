@@ -220,7 +220,7 @@ class PidWParentSupport(PidSupport):
         self.parent_pid = parent_pid
         return
 
-def termsignal(signr,frame):
+def termsignal(signr, frame):
     raise KeyboardInterrupt, "Received signal %s"%signr
 
 def register_sighandler():

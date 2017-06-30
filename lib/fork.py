@@ -247,7 +247,7 @@ def wait_for_pids(pid_list):
         finally:
             os.close(r)
             os.waitpid(pid, 0)
-         
+
 
 ################################################
 # Fork Class
@@ -297,7 +297,7 @@ class ForkManager:
              if (forks_remaining == 0):
                   if log_progress:
                        # log here, since we will have to wait
-                       logSupport.log.info("Active forks = %i, Forks to finish = %i"%(max_forks,functions_remaining))
+                       logSupport.log.info("Active forks = %i, Forks to finish = %i"%(max_forks, functions_remaining))
              while (forks_remaining == 0):
                  failed_keys = []
                  # Give some time for the processes to finish the work
@@ -332,7 +332,7 @@ class ForkManager:
          #end for
 
          if log_progress:
-              logSupport.log.info("Active forks = %i, Forks to finish = %i"%(max_forks-forks_remaining,functions_remaining))
+              logSupport.log.info("Active forks = %i, Forks to finish = %i"%(max_forks-forks_remaining, functions_remaining))
          
          # now we just have to wait for all to finish
          while (functions_remaining>0):
@@ -361,8 +361,9 @@ class ForkManager:
 
             if len(post_work_info_subset)>0:
                  if log_progress:
-                      logSupport.log.info("Active forks = %i, Forks to finish = %i"%(max_forks-forks_remaining,functions_remaining))
+                      logSupport.log.info("Active forks = %i, Forks to finish = %i" % (max_forks-forks_remaining, functions_remaining))
          # end while
+
           
          if nr_errors>0:
               raise ForkResultError(nr_errors, post_work_info)

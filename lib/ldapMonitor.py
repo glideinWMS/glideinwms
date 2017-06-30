@@ -17,8 +17,8 @@ import re
 
 class LDAPQuery:
     def __init__(self,
-                 ldap_url,ldap_port, # where to find LDAP server
-                 base,filter_str):   # what to read
+                 ldap_url, ldap_port, # where to find LDAP server
+                 base, filter_str):   # what to read
         self.ldap_url = ldap_url
         self.ldap_port = ldap_port
         self.base = base
@@ -69,8 +69,8 @@ class BDIICEQuery(LDAPQuery):
             
         filter_str = "&(GlueCEInfoContactString=*)%s" % additional_filter_str
 
-        LDAPQuery.__init__(self,bdii_url,bdii_port,
-                           base_string,filter_str)
+        LDAPQuery.__init__(self, bdii_url, bdii_port,
+                           base_string, filter_str)
 
     def fetch(self, additional_filter_str=None):
         out_data = LDAPQuery.fetch(self, additional_filter_str)
@@ -127,9 +127,9 @@ class SearchBDII:
         if self.ldapSearchStr:
             selectionStr=selectionStr+self.ldapSearchStr
         if self.port:
-            bdii_obj=BDIICEQuery(self.bdiiUrl,bdii_port=int(self.port),additional_filter_str=selectionStr,base_string=baseStr)
+            bdii_obj=BDIICEQuery(self.bdiiUrl, bdii_port=int(self.port), additional_filter_str=selectionStr, base_string=baseStr)
         else:    
-            bdii_obj=BDIICEQuery(self.bdiiUrl,additional_filter_str=selectionStr,base_string=baseStr)
+            bdii_obj=BDIICEQuery(self.bdiiUrl, additional_filter_str=selectionStr, base_string=baseStr)
         bdii_obj.load()
         self.bdiiData=bdii_obj.fetchStored()
         del bdii_obj
@@ -165,9 +165,9 @@ class SearchBDII:
         """
         if file:
             try:
-                outFile=open(file,'w')
+                outFile=open(file, 'w')
                 for key in self.bdiiData.keys():
-                    outFile.write("\n%s\n%s\n\n"%(key,self.bdiiData[key]))
+                    outFile.write("\n%s\n%s\n\n"%(key, self.bdiiData[key]))
             except:
                 print "Error opening or closing specified file."
         else:

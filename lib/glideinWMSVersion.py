@@ -90,7 +90,7 @@ class GlideinWMSDistro:
                     fd = None
                     try:
                         if (self.type != "RPM"):
-                            fd = open(os.path.join(dir,file), 'r')
+                            fd = open(os.path.join(dir, file), 'r')
                         else:
                             # In the RPM, all files are in site-packages
                             rpm_dir = os.path.dirname(
