@@ -414,9 +414,9 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data,
         try:
             condorPrivsep.execute(username, factoryConfig.submit_dir, os.path.join(factoryConfig.submit_dir, 'update_proxy.py'), ['update_proxy.py'], update_proxy_env)
         except condorPrivsep.ExeError as e:
-            raise RuntimeError, "Failed to update proxy %s in %s (user %s): %s" % (client_id, proxy_dir, username, e)
+            raise RuntimeError("Failed to update proxy %s in %s (user %s): %s" % (client_id, proxy_dir, username, e))
         except:
-            raise RuntimeError, "Failed to update proxy %s in %s (user %s): Unknown privsep error" % (client_id, proxy_dir, username)
+            raise RuntimeError("Failed to update proxy %s in %s (user %s): Unknown privsep error" % (client_id, proxy_dir, username))
         return fname
     else:
         # do it natively when you can
@@ -481,7 +481,7 @@ class ClientWeb:
             factoryConfig = globals()['factoryConfig']
 
         if client_signtype not in factoryConfig.supported_signtypes:
-            raise ValueError, "Signtype '%s' not supported!" % client_signtype
+            raise ValueError("Signtype '%s' not supported!" % client_signtype)
 
         self.url = client_web_url
         self.signtype = client_signtype
@@ -1109,7 +1109,7 @@ def extractJobId(submit_out):
         found = extractJobId_recmp.search(line.strip())
         if found:
             return (long(found.group("cluster")), int(found.group("count")))
-    raise condorExe.ExeError, "Could not find cluster info!"
+    raise condorExe.ExeError("Could not find cluster info!")
 
 escape_table = {'.':'.dot,',
                 ',':'.comma,',
@@ -1152,7 +1152,7 @@ def escapeParam(param_str):
 def executeSubmit(log, factoryConfig, username, schedd, exe_env, submitFile):
 # check to see if the username for the proxy is
 # same as the factory username
-    if username != MY_USERNAME: # Use privsep
+    if username != MY_USERNAME:  # Use privsep
         try:
             args = ["condor_submit", "-name", schedd, submitFile]
             submit_out = condorPrivsep.condor_execute(
@@ -1164,13 +1164,13 @@ def executeSubmit(log, factoryConfig, username, schedd, exe_env, submitFile):
             msg = "condor_submit failed (user %s): %s" % (username,
                 str(e))
             log.error(msg)
-            raise RuntimeError, msg
+            raise RuntimeError(msg)
         except:
             submit_out = []
             msg = "condor_submit failed (user %s): Unknown privsep error" % username
             log.error(msg)
-            raise RuntimeError, msg
-    else:
+            raise RuntimeError(msg)
+    else:  # Do not use privsep
         try:
             submit_out = condorExe.iexe_cmd("condor_submit -name %s %s" % (schedd, submitFile),
                 child_env=env_list2dict(exe_env))
@@ -1178,12 +1178,12 @@ def executeSubmit(log, factoryConfig, username, schedd, exe_env, submitFile):
             submit_out = []
             msg = "condor_submit failed: %s" % str(e)
             log.error(msg)
-            raise RuntimeError, msg
+            raise RuntimeError(msg)
         except Exception as e:
             submit_out = []
             msg = "condor_submit failed: Unknown error: %s" % str(e)
             log.error(msg)
-            raise RuntimeError, msg # Do not use privsep
+            raise RuntimeError(msg)
     return submit_out
 
 
@@ -1235,7 +1235,7 @@ def submitGlideins(entry_name, client_name, nr_glideins, idle_lifetime, frontend
         msg = "Failed to setup execution environment."
         log.error(msg)
         log.exception(msg)
-        raise RuntimeError, msg
+        raise RuntimeError(msg)
 
     if username != MY_USERNAME:
         # Use privsep

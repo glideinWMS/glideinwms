@@ -63,7 +63,7 @@ while (i<alen):
         print("wmsXMLView.py [-pool <node>[:<port>]] [-factory <factory>] [-frontend <frontend>] [-condor-stats 0|1] [-internals 0|1] [-rsa_key <fname>] [-help]")
         sys.exit(1)
     else:
-        raise RuntimeError, "Unknown option '%s', try -help"%ael
+        raise RuntimeError("Unknown option '%s', try -help"%ael)
     i=i+1
 
 # get data
@@ -78,7 +78,7 @@ if factory_name is not None:
     elif len(farr)==3:
         factory_constraints='(FactoryName=?="%s")&&(GlideinName=?="%s")&&(EntryName=?="%s")'%(farr[2], farr[1], farr[0])
     else:
-        raise RuntimeError, "Invalid factory name; more than 2 @'s found"
+        raise RuntimeError("Invalid factory name; more than 2 @'s found")
 
 glideins_obj=glideinFrontendInterface.findGlideins(pool_name, None, None, factory_constraints)
 
@@ -93,7 +93,7 @@ if factory_name is not None:
     elif len(farr)==3:
         factoryclient_constraints='(ReqFactoryName=?="%s")&&(ReqGlideinName=?="%s")&&(ReqEntryName=?="%s")'%(farr[2], farr[1], farr[0])
     else:
-        raise RuntimeError, "Invalid factory name; more than 2 @'s found"
+        raise RuntimeError("Invalid factory name; more than 2 @'s found")
 
 
 clientsmon_obj=glideinFrontendInterface.findGlideinClientMonitoring(pool_name, None, factoryclient_constraints)
@@ -126,7 +126,7 @@ for glidein in glideins:
         elif len(farr)==2:
             frontend_constraints='(FrontendName=?="%s")&&(GroupName=?="%s")'%(farr[0], farr[1])
         else:
-            raise RuntimeError, "Invalid frontend name; more than one dot found"
+            raise RuntimeError("Invalid frontend name; more than one dot found")
 
     clients_obj=glideFactoryInterface.findWork(factory_name, glidein_name, entry_name, None, key_obj, additional_constraints=frontend_constraints)
     glidein_el['clients']=clients_obj

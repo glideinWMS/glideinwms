@@ -544,7 +544,7 @@ def spawn(sleep_time, advertize_rate, startup_dir, glideinDescript,
                     if is_crashing_often(childs_uptime[group],
                                          restart_interval, restart_attempts):
                         del childs[group]
-                        raise RuntimeError, "EntryGroup '%s' has been crashing too often, quit the whole factory:\n%s\n%s" % (group, tempOut, tempErr)
+                        raise RuntimeError("EntryGroup '%s' has been crashing too often, quit the whole factory:\n%s\n%s" % (group, tempOut, tempErr))
                     else:
                         # Restart the entry setting its restart time
                         logSupport.log.warning("Restarting EntryGroup %s." % (group))
@@ -806,6 +806,7 @@ def main(startup_dir):
     finally:
         pid_obj.relinquish()
 
+
 ############################################################
 #
 # S T A R T U P
@@ -814,12 +815,15 @@ def main(startup_dir):
 class HUPException(Exception):
     pass
 
+
 def termsignal(signr, frame):
-    raise KeyboardInterrupt, "Received signal %s" % signr
+    raise KeyboardInterrupt("Received signal %s" % signr)
+
 
 def hupsignal(signr, frame):
     signal.signal( signal.SIGHUP,  signal.SIG_IGN )
-    raise HUPException, "Received signal %s" % signr
+    raise HUPException("Received signal %s" % signr)
+
 
 if __name__ == '__main__':
     if os.getsid(os.getpid()) != os.getpgrp():

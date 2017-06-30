@@ -25,7 +25,7 @@ from glideinwms.tools.lib import glideinCmd
 
 def argv_interactive(argv):
     if len(argv)<1:
-        raise RuntimeError, "Please specify the command to run"
+        raise RuntimeError("Please specify the command to run")
     return argv
 
 glideinCmd.exe_cmd(argv_interactive)

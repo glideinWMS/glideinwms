@@ -382,7 +382,7 @@ def parse_entries(config_dom, skip_missing_ref_id=True, skip_disabled=True):
     entry_elements = config_dom.getElementsByTagName('entry')
     
     if len(entry_elements) == 0:
-        raise KeyError, "Error, no entries listed in configuration file."
+        raise KeyError("Error, no entries listed in configuration file.")
     
     for entry_element in entry_elements:
         

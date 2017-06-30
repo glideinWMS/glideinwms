@@ -75,10 +75,10 @@ def create_condor_tar_fd(condor_base_dir):
 
         # check that dir and files exist
         if not os.path.isdir(condor_base_dir):
-            raise RuntimeError, "%s is not a directory"%condor_base_dir
+            raise RuntimeError("%s is not a directory"%condor_base_dir)
         for f in condor_bins:
             if not os.path.isfile(os.path.join(condor_base_dir, f)):
-                raise RuntimeError, "Cannot find %s"%os.path.join(condor_base_dir, f)
+                raise RuntimeError("Cannot find %s"%os.path.join(condor_base_dir, f))
 
         # Get the list of dlls required
         dlls = get_condor_dlls(
@@ -99,7 +99,7 @@ def create_condor_tar_fd(condor_base_dir):
         # rewind the file to the beginning
         fd.seek(0)
     except RuntimeError as e:
-        raise RuntimeError, "Error creating condor tgz: %s"%e
+        raise RuntimeError("Error creating condor tgz: %s"%e)
     return fd
 
 
@@ -293,7 +293,7 @@ def copy_file(infile, outfile):
     try:
         shutil.copy2(infile, outfile)
     except IOError as e:
-        raise RuntimeError, "Error copying %s in %s: %s"%(infile, outfile, e)
+        raise RuntimeError("Error copying %s in %s: %s"%(infile, outfile, e))
 
 #####################################
 # Copy an executable between two dirs

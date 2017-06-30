@@ -243,7 +243,7 @@ def spawn_iteration(work_dir, frontendDescript, groups, max_active,
         if max_num_failures > max_failures:
             logSupport.log.info("Too many group failures, aborting")
             logSupport.log.debug("Failed %i times (limit %i), aborting"%(max_num_failures, max_failures))
-            raise RuntimeError, "Too many group failures, aborting" 
+            raise RuntimeError("Too many group failures, aborting") 
     finally:
         # cleanup at exit
         # if anything goes wrong, hardkill the rest
@@ -569,7 +569,7 @@ def main(work_dir, action):
                 spawn_removal(work_dir, frontendDescript, groups,
                               max_parallel_workers, action)
             else:
-                raise ValueError, "Unknown action: %s" % action
+                raise ValueError("Unknown action: %s" % action)
         except KeyboardInterrupt:
             logSupport.log.info("Received signal...exit")
         except HUPException:
@@ -581,6 +581,7 @@ def main(work_dir, action):
     finally:
         pid_obj.relinquish()
 
+
 ############################################################
 #
 # S T A R T U P
@@ -590,12 +591,15 @@ def main(work_dir, action):
 class HUPException(Exception):
     pass
 
+
 def termsignal(signr, frame):
-    raise KeyboardInterrupt, "Received signal %s" % signr
+    raise KeyboardInterrupt("Received signal %s" % signr)
+
 
 def hupsignal(signr, frame):
     signal.signal( signal.SIGHUP,  signal.SIG_IGN )
-    raise HUPException, "Received signal %s" % signr
+    raise HUPException("Received signal %s" % signr)
+
 
 if __name__ == '__main__':
     signal.signal(signal.SIGTERM, termsignal)

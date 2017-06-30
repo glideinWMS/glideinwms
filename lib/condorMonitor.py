@@ -173,7 +173,7 @@ class LocalScheddCache(NoneScheddCache):
                                      ('SPOOL_DIR_STRING', 's'),
                                      ('LOCAL_DIR_STRING', 's')])
         if schedd_name not in data:
-            raise RuntimeError, "Schedd '%s' not found"%schedd_name
+            raise RuntimeError("Schedd '%s' not found"%schedd_name)
 
         el = data[schedd_name]
         if 'SPOOL_DIR_STRING' not in el and 'LOCAL_DIR_STRING' not in el:
@@ -181,7 +181,7 @@ class LocalScheddCache(NoneScheddCache):
             return None
         if 'ScheddIpAddr' not in el:
             # This should never happen
-            raise RuntimeError, "Schedd '%s' is not advertising ScheddIpAddr"%schedd_name
+            raise RuntimeError("Schedd '%s' is not advertising ScheddIpAddr"%schedd_name)
 
         schedd_ip = el['ScheddIpAddr'][1:].split(':')[0]
         if schedd_ip in self.my_ips:  # seems local, go for the dir
@@ -248,13 +248,13 @@ class AbstractQuery:
         @rtype: dict
         @return: Dict containing classad attributes and values
         """
-        raise NotImplementedError, "Fetch not implemented"
+        raise NotImplementedError("Fetch not implemented")
 
     def load(self, constraint=None, format_list=None):
         """
         Fetch the data and store it in self.stored_data
         """
-        raise NotImplementedError, "Load not implemented"
+        raise NotImplementedError("Load not implemented")
 
     def fetchStored(self, constraint_func=None):
         """
@@ -265,7 +265,7 @@ class AbstractQuery:
         @rtype: dict
         @return: Same as fetch(), but limited to constraint_func(el)==True
         """
-        raise NotImplementedError, "fetchStored not implemented"
+        raise NotImplementedError("fetchStored not implemented")
 
 
 class StoredQuery(AbstractQuery):
@@ -373,7 +373,7 @@ class CondorQuery(StoredQuery):
 
         if security_obj is not None:
             if security_obj.has_saved_state():
-                raise RuntimeError, "Cannot use a security object which has saved state."
+                raise RuntimeError("Cannot use a security object which has saved state.")
             self.security_obj=copy.deepcopy(security_obj)
         else:
             self.security_obj=condorSecurity.ProtoRequest()
@@ -494,7 +494,7 @@ class CondorQuery(StoredQuery):
         """
         Fetch the results using htcondor-python bindings
         """
-        raise NotImplementedError, "fetch_using_bindings() not implemented"
+        raise NotImplementedError("fetch_using_bindings() not implemented")
 
     def load(self, constraint=None, format_list=None):
         """
@@ -823,7 +823,7 @@ def xml2list_start_element(name, attrs):
     elif name == "classads":
         pass # top element, nothing to do
     else:
-        raise TypeError, "Unsupported type: %s" % name
+        raise TypeError("Unsupported type: %s" % name)
 
 def xml2list_end_element(name):
     global xml2list_data, xml2list_inclassad, xml2list_inattr, xml2list_intype
@@ -840,7 +840,7 @@ def xml2list_end_element(name):
     elif name == "classads":
         pass # top element, nothing to do
     else:
-        raise TypeError, "Unexpected type: %s" % name
+        raise TypeError("Unexpected type: %s" % name)
 
 def xml2list_char_data(data):
     global xml2list_data, xml2list_inclassad, xml2list_inattr, xml2list_intype
@@ -889,9 +889,9 @@ def xml2list(xml_data):
         try:
             p.Parse(string.join(xml_data[found_xml:]), 1)
         except TypeError as e:
-            raise RuntimeError, "Failed to parse XML data, TypeError: %s" % e
+            raise RuntimeError("Failed to parse XML data, TypeError: %s" % e)
         except:
-            raise RuntimeError, "Failed to parse XML data, generic error"
+            raise RuntimeError("Failed to parse XML data, generic error")
     # else no xml, so return an empty list
 
     return xml2list_data

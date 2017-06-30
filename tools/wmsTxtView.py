@@ -49,7 +49,7 @@ while (i<alen):
         print("wmsTxtView.py [-pool <node>[:<port>]] [-factory <factory>] [Entries|Sites|Gatekeepers] [-help]")
         sys.exit(1)
     else:
-        raise RuntimeError, "Unknown option '%s', try -help"%ael
+        raise RuntimeError("Unknown option '%s', try -help"%ael)
     i=i+1
 
 # get data
@@ -64,7 +64,7 @@ if factory_name is not None:
     elif len(farr)==3:
         factory_constraints='(FactoryName=?="%s")&&(GlideinName=?="%s")&&(EntryName=?="%s")'%(farr[2], farr[1], farr[0])
     else:
-        raise RuntimeError, "Invalid factory name; more than 2 @'s found"
+        raise RuntimeError("Invalid factory name; more than 2 @'s found")
 
 glideins_obj=glideinFrontendInterface.findGlideins(pool_name, None, None, factory_constraints)
 
@@ -86,7 +86,7 @@ for glidein in glideins:
     elif txt_type=='Gatekeepers':
         key=glidein_el['attrs']['GLIDEIN_Gatekeeper']
     else:
-        raise RuntimeError, "Unknwon type '%s'"%txt_type
+        raise RuntimeError("Unknwon type '%s'"%txt_type)
     
         
     if key in txt_data:

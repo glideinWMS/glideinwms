@@ -66,9 +66,9 @@ def get_frontend_pid(startup_dir):
     pid_obj = FrontendPidSupport(startup_dir)
     pid_obj.load_registered()
     if not pid_obj.lock_in_place:
-        raise RuntimeError, "Frontend not running"
+        raise RuntimeError("Frontend not running")
     if pid_obj.mypid is None:
-        raise RuntimeError, "Could not determine the pid"
+        raise RuntimeError("Could not determine the pid")
     return pid_obj.mypid
 
 #raise an exception if not running
@@ -76,7 +76,7 @@ def get_frontend_action_type(startup_dir):
     pid_obj = FrontendPidSupport(startup_dir)
     pid_obj.load_registered()
     if not pid_obj.lock_in_place:
-        raise RuntimeError, "Frontend not running"
+        raise RuntimeError("Frontend not running")
     return pid_obj.action_type
 
 ############################################################
@@ -91,8 +91,8 @@ def get_element_pid(startup_dir, group_name):
     pid_obj = ElementPidSupport(startup_dir, group_name)
     pid_obj.load_registered()
     if pid_obj.mypid is None:
-        raise RuntimeError, "Group element not running"
+        raise RuntimeError("Group element not running")
     if pid_obj.parent_pid is None:
-        raise RuntimeError, "Group element has no parent???"
+        raise RuntimeError("Group element has no parent???")
     return (pid_obj.mypid, pid_obj.parent_pid)
 

@@ -306,7 +306,7 @@ class VOFrontendParams(cWParams.CommonParams):
                 has_collector&='GLIDEIN_Collector' in self.groups[group_name].attrs
 
         if has_collector:
-            raise RuntimeError, "Attribute GLIDEIN_Collector cannot be defined by the user"
+            raise RuntimeError("Attribute GLIDEIN_Collector cannot be defined by the user")
 
         ####################
         has_ccb='GLIDEIN_CCB' in self.attrs
@@ -317,14 +317,14 @@ class VOFrontendParams(cWParams.CommonParams):
                 has_ccb&='GLIDEIN_CCB' in self.groups[group_name].attrs
 
         if has_ccb:
-            raise RuntimeError, "Attribute GLIDEIN_CCB cannot be defined by the user"
+            raise RuntimeError("Attribute GLIDEIN_CCB cannot be defined by the user")
 
         ####################
         if self.security.proxy_DN is None:
-            raise RuntimeError, "security.proxy_DN not defined"
+            raise RuntimeError("security.proxy_DN not defined")
 
         if len(self.collectors)==0:
-            raise RuntimeError, "At least one pool collector is needed"
+            raise RuntimeError("At least one pool collector is needed")
 
         ####################
         has_security_name=(self.security.security_name is not None)
@@ -358,9 +358,9 @@ class VOFrontendParams(cWParams.CommonParams):
             if (len(self.high_availability['ha_frontends']) == 1):
                 haf = self.high_availability['ha_frontends'][0]
                 if not haf['frontend_name']:
-                    raise RuntimeError, 'High availability is enabled but the configuration is missing frontend_name of the master ha_frontend.'
+                    raise RuntimeError('High availability is enabled but the configuration is missing frontend_name of the master ha_frontend.')
             else:
-                raise RuntimeError, 'Exactly one master ha_frontend information is needed when running this frontend in high_availability slave mode.'
+                raise RuntimeError('Exactly one master ha_frontend information is needed when running this frontend in high_availability slave mode.')
 
 
     # verify match data and create the attributes if needed
@@ -408,34 +408,34 @@ class VOFrontendParams(cWParams.CommonParams):
     def validate_names(self):
         # glidein name does not have a reasonable default
         if self.frontend_name is None:
-            raise RuntimeError, "Missing frontend name"
+            raise RuntimeError("Missing frontend name")
         if self.frontend_name.find(' ')!=-1:
-            raise RuntimeError, "Invalid frontend name '%s', contains a space."%self.frontend_name
+            raise RuntimeError("Invalid frontend name '%s', contains a space."%self.frontend_name)
         if not cWParams.is_valid_name(self.frontend_name):
-            raise RuntimeError, "Invalid frontend name '%s', contains invalid characters."%self.frontend_name
+            raise RuntimeError("Invalid frontend name '%s', contains invalid characters."%self.frontend_name)
         if self.frontend_name.find('.')!=-1:
-            raise RuntimeError, "Invalid frontend name '%s', contains a point."%self.frontend_name
+            raise RuntimeError("Invalid frontend name '%s', contains a point."%self.frontend_name)
 
         group_names=self.groups.keys()
         for group_name in group_names:
             if group_name.find(' ')!=-1:
-                raise RuntimeError, "Invalid group name '%s', contains a space."%group_name
+                raise RuntimeError("Invalid group name '%s', contains a space."%group_name)
             if not cWParams.is_valid_name(group_name):
-                raise RuntimeError, "Invalid group name '%s', contains invalid characters."%group_name
+                raise RuntimeError("Invalid group name '%s', contains invalid characters."%group_name)
             if group_name[:4]=='XPVO':
-                raise RuntimeError, "Invalid group name '%s', starts with reserved sequence 'XPVO'."%group_name
+                raise RuntimeError("Invalid group name '%s', starts with reserved sequence 'XPVO'."%group_name)
             if group_name.find('.')!=-1:
-                raise RuntimeError, "Invalid group name '%s', contains a point."%group_name
+                raise RuntimeError("Invalid group name '%s', contains a point."%group_name)
 
         attr_names=self.attrs.keys()
         for attr_name in attr_names:
             if not cWParams.is_valid_name(attr_name):
-                raise RuntimeError, "Invalid global attribute name '%s'."%attr_name
+                raise RuntimeError("Invalid global attribute name '%s'."%attr_name)
         for group_name in group_names:
             attr_names=self.groups[group_name].attrs.keys()
             for attr_name in attr_names:
                 if not cWParams.is_valid_name(attr_name):
-                    raise RuntimeError, "Invalid group '%s' attribute name '%s'."%(group_name, attr_name)
+                    raise RuntimeError("Invalid group '%s' attribute name '%s'."%(group_name, attr_name))
         return
 
     def validate_match(self, loc_str,
@@ -452,7 +452,7 @@ class VOFrontendParams(cWParams.CommonParams):
             elif attr_type=='real':
                 attr_val=1.0
             else:
-                raise RuntimeError, "Invalid %s factory attr type '%s'"%(loc_str, attr_type)
+                raise RuntimeError("Invalid %s factory attr type '%s'"%(loc_str, attr_type))
             env['glidein']['attrs'][attr_name]=attr_val
         for attr_name in job_attrs.keys():
             attr_type=job_attrs[attr_name]['type']
@@ -465,7 +465,7 @@ class VOFrontendParams(cWParams.CommonParams):
             elif attr_type=='real':
                 attr_val=1.0
             else:
-                raise RuntimeError, "Invalid %s job attr type '%s'"%(loc_str, attr_type)
+                raise RuntimeError("Invalid %s job attr type '%s'"%(loc_str, attr_type))
             env['job'][attr_name]=attr_val
         for attr_name in attr_dict.keys():
             attr_type=attr_dict[attr_name]['type']
@@ -476,15 +476,15 @@ class VOFrontendParams(cWParams.CommonParams):
             elif attr_type=='expr':
                 attr_val='a'
             else:
-                raise RuntimeError, "Invalid %s attr type '%s'"%(loc_str, attr_type)
+                raise RuntimeError("Invalid %s attr type '%s'"%(loc_str, attr_type))
             env['attr_dict'][attr_name]=attr_val
         try:
             match_obj=compile(match_str, "<string>", "eval")
             eval(match_obj, env)
         except KeyError as e:
-            raise RuntimeError, "Invalid %s match_expr '%s': Missing attribute %s"%(loc_str, match_str, e)
+            raise RuntimeError("Invalid %s match_expr '%s': Missing attribute %s"%(loc_str, match_str, e))
         except Exception as e:
-            raise RuntimeError, "Invalid %s match_expr '%s': %s"%(loc_str, match_str, e)
+            raise RuntimeError("Invalid %s match_expr '%s': %s"%(loc_str, match_str, e))
             
         return
 
@@ -503,7 +503,7 @@ class VOFrontendParams(cWParams.CommonParams):
 # return attribute value in the proper python format
 def extract_attr_val(attr_obj):
     if (not attr_obj.type in ("string", "int", "expr")):
-        raise RuntimeError, "Wrong attribute type '%s', must be either 'int', 'string' or 'expr'"%attr_obj.type
+        raise RuntimeError("Wrong attribute type '%s', must be either 'int', 'string' or 'expr'"%attr_obj.type)
     
     if attr_obj.type in ("string", "expr"):
         return str(attr_obj.value)

@@ -250,12 +250,12 @@ class GlideinParams(cWParams.CommonParams):
     def derive(self):
         # glidein name does not have a reasonable default
         if self.glidein_name is None:
-            raise RuntimeError, "Missing glidein name"
+            raise RuntimeError("Missing glidein name")
         if not cWParams.is_valid_name(self.glidein_name):
-            raise RuntimeError, "Invalid glidein name '%s'"%self.glidein_name
+            raise RuntimeError("Invalid glidein name '%s'"%self.glidein_name)
 
         if self.factory_collector=="default":
-            raise RuntimeError, '"default" is a reserved keyword, cannot be used as factory_collector'
+            raise RuntimeError('"default" is a reserved keyword, cannot be used as factory_collector')
 
         factoryVersioning = False
         if 'factory_versioning' in self.data and \
@@ -272,9 +272,9 @@ class GlideinParams(cWParams.CommonParams):
         self.client_proxies_dirs={}
         for fename in self.security.frontends.keys():
             if not cWParams.is_valid_name(fename):
-                raise RuntimeError, "Invalid frontend name '%s'"%fename
+                raise RuntimeError("Invalid frontend name '%s'"%fename)
             if ' ' in self.security.frontends[fename].identity:
-                raise RuntimeError, "Invalid frontend identity '%s'"%self.security.frontends[fename].identity
+                raise RuntimeError("Invalid frontend identity '%s'"%self.security.frontends[fename].identity)
 
             for scname in self.security.frontends[fename].security_classes.keys():
                 username=self.security.frontends[fename].security_classes[scname].username
@@ -282,22 +282,22 @@ class GlideinParams(cWParams.CommonParams):
                 self.client_proxies_dirs[username]=self.buildDir(True, os.path.join(self.submit.base_client_proxies_dir, "user_%s"%username))
 
         if not cWParams.is_valid_name(self.factory_name):
-            raise RuntimeError, "Invalid factory name '%s'"%self.factory_name
+            raise RuntimeError("Invalid factory name '%s'"%self.factory_name)
 
         entry_names=self.entries.keys()
         for entry_name in entry_names:
             if not cWParams.is_valid_name(entry_name):
-                raise RuntimeError, "Invalid entry name '%s'"%entry_name
+                raise RuntimeError("Invalid entry name '%s'"%entry_name)
 
         attr_names=self.attrs.keys()
         for attr_name in attr_names:
             if not cWParams.is_valid_name(attr_name):
-                raise RuntimeError, "Invalid global attribute name '%s'."%attr_name
+                raise RuntimeError("Invalid global attribute name '%s'."%attr_name)
         for entry_name in entry_names:
             attr_names=self.entries[entry_name].attrs.keys()
             for attr_name in attr_names:
                 if not cWParams.is_valid_name(attr_name):
-                    raise RuntimeError, "Invalid entry '%s' attribute name '%s'."%(entry_name, attr_name)
+                    raise RuntimeError("Invalid entry '%s' attribute name '%s'."%(entry_name, attr_name))
 
     # return xml formatting
     def get_xml_format(self):

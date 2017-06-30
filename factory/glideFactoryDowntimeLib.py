@@ -102,14 +102,14 @@ def read(fname, raise_on_error=False):
             # Start End Entry Security_Class Comment
             if len(arr)<2:
                 if raise_on_error:
-                    raise ValueError, "%s:%i: Expected pair, got '%s'"%(fname, lnr, line)
+                    raise ValueError("%s:%i: Expected pair, got '%s'"%(fname, lnr, line))
                 else:
                     continue # ignore malformed lines
             try:
                 start_time=timeConversion.extractISO8601_Local(arr[0])
             except ValueError as e:
                 if raise_on_error:
-                    raise ValueError, "%s:%i: 1st element: %s"%(fname, lnr, e)
+                    raise ValueError("%s:%i: 1st element: %s"%(fname, lnr, e))
                 else:
                     continue #ignore errors
 
@@ -120,7 +120,7 @@ def read(fname, raise_on_error=False):
                     end_time=timeConversion.extractISO8601_Local(arr[1])
             except ValueError as e:
                 if raise_on_error:
-                    raise ValueError, "%s:%i: 2nd element: %s"%(fname, lnr, e)
+                    raise ValueError("%s:%i: 2nd element: %s"%(fname, lnr, e))
                 else:
                     continue #ignore errors
 
@@ -213,7 +213,7 @@ def checkDowntime(fname,entry="Any",frontend="Any",security_class="Any",check_ti
 def addPeriod(fname,start_time,end_time,entry="All",frontend="All",security_class="All",comment="",create_if_empty=True):
         exists=os.path.isfile(fname)
         if (not exists) and (not create_if_empty):
-            raise IOError, "[Errno 2] No such file or directory: '%s'"%fname
+            raise IOError("[Errno 2] No such file or directory: '%s'"%fname)
        
         comment=comment.replace("\n", " ")
         comment=comment.replace("\r", " ")
@@ -266,7 +266,7 @@ def purgeOldPeriods(fname,cut_time=None, raise_on_error=False):
                 arr=line.split()
                 if len(arr)<2:
                     if raise_on_error:
-                        raise ValueError, "%s:%i: Expected pair, got '%s'"%(fname, lnr, line)
+                        raise ValueError("%s:%i: Expected pair, got '%s'"%(fname, lnr, line))
                     else:
                         outlines.append(long_line)
                         continue # pass on malformed lines
@@ -278,7 +278,7 @@ def purgeOldPeriods(fname,cut_time=None, raise_on_error=False):
                         end_time=timeConversion.extractISO8601_Local(arr[1])
                 except ValueError as e:
                     if raise_on_error:
-                        raise ValueError, "%s:%i: 2nd element: %s"%(fname, lnr, e)
+                        raise ValueError("%s:%i: 2nd element: %s"%(fname, lnr, e))
                     else:
                         outlines.append(long_line)
                         continue #unknown, pass on

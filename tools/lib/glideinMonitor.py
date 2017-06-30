@@ -60,7 +60,7 @@ def parseArgs(argv):
         i=i+1
 
     if jid is None:
-        raise RuntimeError, 'JID not found'
+        raise RuntimeError('JID not found')
     outdict['jid']=jid
     outdict['argv']=argv[i:]
     return outdict
@@ -75,7 +75,7 @@ def monitor(jid,schedd_name,pool_name,
     try:
         jid_cluster, jid_proc=string.split(jid, ".", 1)
     except:
-        raise RuntimeError, 'Invalid JID %s, expected Cluster.Proc'%jid
+        raise RuntimeError('Invalid JID %s, expected Cluster.Proc'%jid)
     
     constraint="(ClusterId=?=%s) && (ProcId=?=%s)"%(jid_cluster, jid_proc)
 
@@ -97,7 +97,7 @@ def monitor(jid,schedd_name,pool_name,
 
     if glexec_starter or glexec_job:
         if 'X509_USER_PROXY' not in os.environ:
-            raise RuntimeError, "Job running on a gLExec enabled resource; X509_USER_PROXY must be defined"
+            raise RuntimeError("Job running on a gLExec enabled resource; X509_USER_PROXY must be defined")
         x509_file=os.environ['X509_USER_PROXY']
     else:
         x509_file=None
@@ -135,14 +135,14 @@ def getRemoteVM(pool_name, schedd_name, constraint):
     cq=condorMonitor.CondorQ(schedd_name=schedd_name, pool_name=pool_name)
     data=cq.fetch(constraint)
     if len(data.keys())==0:
-        raise RuntimeError, "Job not found"
+        raise RuntimeError("Job not found")
     if len(data.keys())>1:
-        raise RuntimeError, "Can handle only one job at a time"
+        raise RuntimeError("Can handle only one job at a time")
     el=data.values()[0]
     if ('JobStatus' not in el) or (el['JobStatus']!=2):
-        raise RuntimeError, "Job not running"
+        raise RuntimeError("Job not running")
     if 'RemoteHost' not in el:
-        raise RuntimeError, "Job still starting"
+        raise RuntimeError("Job still starting")
     
     return el['RemoteHost']
 
@@ -150,16 +150,16 @@ def getMonitorVM(pool_name, jobVM):
     cs=condorMonitor.CondorStatus(pool_name=pool_name)
     data=cs.fetch(constraint='(Name=="%s")'%jobVM, format_list=[('IS_MONITOR_VM', 'b'), ('HAS_MONITOR_VM', 'b'), ('Monitoring_Name', 's')])
     if jobVM not in data:
-        raise RuntimeError, "Job claims it runs on %s, but cannot find it!"%jobVM
+        raise RuntimeError("Job claims it runs on %s, but cannot find it!"%jobVM)
     job_data=data[jobVM]
     if ('HAS_MONITOR_VM' not in job_data) or ('IS_MONITOR_VM' not in job_data):
-        raise RuntimeError, "Slot %s does not support monitoring!"%jobVM
+        raise RuntimeError("Slot %s does not support monitoring!"%jobVM)
     if not (job_data['HAS_MONITOR_VM']==True):
-        raise RuntimeError, "Slot %s does not support monitoring! HAS_MONITOR_VM not True."%jobVM
+        raise RuntimeError("Slot %s does not support monitoring! HAS_MONITOR_VM not True."%jobVM)
     if not (job_data['IS_MONITOR_VM']==False):
-        raise RuntimeError, "Slot %s is a monitoring slot itself! Cannot monitor."%jobVM
+        raise RuntimeError("Slot %s is a monitoring slot itself! Cannot monitor."%jobVM)
     if 'Monitoring_Name' not in job_data:
-        raise RuntimeError, "Slot %s does not publish the monitoring slot!"%jobVM
+        raise RuntimeError("Slot %s does not publish the monitoring slot!"%jobVM)
 
     return job_data['Monitoring_Name']
 
@@ -168,30 +168,30 @@ def getMonitorVMStatus(pool_name, monitorVM):
     data=cs.fetch(constraint='(Name=="%s")'%monitorVM,
                   format_list=[('IS_MONITOR_VM', 'b'), ('HAS_MONITOR_VM', 'b'), ('State', 's'), ('Activity', 's'), ('vm2_State', 's'), ('vm2_Activity', 's'), ('GLEXEC_STARTER', 'b'), ('USES_MONITOR_STARTD', 'b'), ('GLEXEC_JOB', 'b')])
     if monitorVM not in data:
-        raise RuntimeError, "Monitor slot %s does not exist!"%monitorVM
+        raise RuntimeError("Monitor slot %s does not exist!"%monitorVM)
 
     return data[monitorVM]
 
 def validateMonitorVMStatus(condor_status, monitorVM):
     if (('HAS_MONITOR_VM' not in condor_status) or
         (condor_status['HAS_MONITOR_VM']!=True)):
-        raise RuntimeError, "Monitor slot %s does not allow monitoring"%monitorVM
+        raise RuntimeError("Monitor slot %s does not allow monitoring"%monitorVM)
     if not (condor_status['IS_MONITOR_VM']==True):
-        raise RuntimeError, "Slot %s is not a monitoring slot!"%monitorVM
+        raise RuntimeError("Slot %s is not a monitoring slot!"%monitorVM)
 
     # Since we will be queueing anyhow, do not check if it is ready right now 
     #if condor_status['State']=='Claimed':
     #    raise RuntimeError, "Job cannot be monitored right now"
 
     if condor_status['Activity']=='Retiring':
-        raise RuntimeError, "Job cannot be monitored anymore"
+        raise RuntimeError("Job cannot be monitored anymore")
 
     if 'vm2_State' in condor_status:
         # only if has vm2_State are cross VM states checked
         if condor_status['vm2_State']!='Claimed':
-            raise RuntimeError, "Job cannot be yet monitored"
+            raise RuntimeError("Job cannot be yet monitored")
         if condor_status['vm2_Activity']=='Retiring':
-            raise RuntimeError, "Job cannot be monitored anymore"
+            raise RuntimeError("Job cannot be monitored anymore")
 
     return
 
@@ -230,7 +230,7 @@ def checkFile(fname, schedd_name, pool_name,
         time.sleep(1)
         if os.path.exists(fname):
             return True
-    raise RuntimeError, "Command did not reply within timeout (%ss)"%timeout
+    raise RuntimeError("Command did not reply within timeout (%ss)"%timeout)
 
 def printFile(fname, outfd):
     fd=open(fname)

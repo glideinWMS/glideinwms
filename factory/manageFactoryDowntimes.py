@@ -121,7 +121,7 @@ def get_downtime_fd(entry_name, cmdname):
         #else:
         #    config=glideFactoryConfig.JobDescript(entry_name)
     except IOError:
-        raise RuntimeError, "Failed to load config for %s"%entry_name
+        raise RuntimeError("Failed to load config for %s"%entry_name)
 
     fd=glideFactoryDowntimeLib.DowntimeFile(config.data['DowntimesFile'])
     return fd
@@ -357,7 +357,7 @@ def infosys_based(entry_name, opt_dict, infosys_types):
                 elif infosys_type=="BDII":
                     production_entries+=get_production_bdii_entries(server, infosys_data_server)
                 else:
-                    raise RuntimeError, "Unknown infosys type '%s'"%infosys_type # should never get here
+                    raise RuntimeError("Unknown infosys type '%s'"%infosys_type) # should never get here
 
     # Use the info to put the 
     entry_keys=sorted(config_els.keys())

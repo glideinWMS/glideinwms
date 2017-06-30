@@ -59,14 +59,14 @@ class FEConfig:
     # INTERNAL
     def validate_options(self):
         if self.options.work_dir is None:
-            raise ValueError, "FE work dir not specified (neither -d nor FE_WORK_DIR used), aborting"
+            raise ValueError("FE work dir not specified (neither -d nor FE_WORK_DIR used), aborting")
         if not os.path.isfile(os.path.join(self.options.work_dir, "frontend.descript")):
-            raise ValueError, "%s is not a valid FE work dir"%self.options.work_dir
+            raise ValueError("%s is not a valid FE work dir"%self.options.work_dir)
 
         if self.options.group_name is None:
-            raise ValueError, "FE group name not specified (neither -g nor FE_GROUP_NAME used), aborting"
+            raise ValueError("FE group name not specified (neither -g nor FE_GROUP_NAME used), aborting")
         if not os.path.isfile(os.path.join(self.options.work_dir, "group_%s/group.descript"%self.options.group_name)):
-            raise ValueError, "%s is not a valid FE group name (no valid group_%s subdir found)"%(self.options.group_name, self.options.group_name)
+            raise ValueError("%s is not a valid FE group name (no valid group_%s subdir found)"%(self.options.group_name, self.options.group_name))
 
 
     

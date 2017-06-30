@@ -169,7 +169,7 @@ def condor_execute(target_user, init_dir, condor_exe, args, env=None, stdin_fnam
 
     """
     if condorExe.condor_bin_path is None:
-        raise UnconfigError, "condor_bin_path is undefined!"
+        raise UnconfigError("condor_bin_path is undefined!")
 
     condor_exe_path = os.path.join(condorExe.condor_bin_path, condor_exe)
 

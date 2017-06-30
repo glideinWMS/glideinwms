@@ -88,7 +88,7 @@ class ConfigFile:
             vhash=hashCrypto.get_hash(validate[0], data)
             self.hash_value=vhash
             if (validate[1] is not None) and (vhash!=validate[1]):
-                raise IOError, "Failed validation of '%s'. Hash %s computed to '%s', expected '%s'"%(fname, validate[0], vhash, validate[1])
+                raise IOError("Failed validation of '%s'. Hash %s computed to '%s', expected '%s'"%(fname, validate[0], vhash, validate[1]))
 
     def load(self,fname,convert_function,
              validate=None): # if defined, must be (hash_algo,value)
@@ -183,12 +183,12 @@ class ParamsDescript(JoinConfigFile):
                     self.expr_objs[k] = compile(val, "<string>", "eval")
                 except SyntaxError:
                     self.expr_objs[k] = '""'
-                    raise RuntimeError, "Syntax error in parameter %s" % k
+                    raise RuntimeError("Syntax error in parameter %s" % k)
                 self.expr_data[k]=val
             elif type_str=='CONST':
                 self.const_data[k]=val
             else:
-                raise RuntimeError, "Unknown parameter type '%s' for '%s'!"%(type_str, k)
+                raise RuntimeError("Unknown parameter type '%s' for '%s'!"%(type_str, k))
 
 class AttrsDescript(JoinConfigFile):
     def __init__(self, base_dir, group_name):
@@ -207,7 +207,7 @@ class SignatureDescript(ConfigFile):
     def split_func(self, line, convert_function):
         larr=string.split(line, None)
         if len(larr)!=3:
-            raise RuntimeError, "Invalid line (expected 3 elements, found %i)"%len(larr)
+            raise RuntimeError("Invalid line (expected 3 elements, found %i)"%len(larr))
         self.data[larr[2]]=(larr[0], larr[1])
 
 # this one is the generic hash descript file
@@ -221,7 +221,7 @@ class BaseSignatureDescript(ConfigFile):
     def split_func(self, line, convert_function):
         larr=string.split(line, None, 1)
         if len(larr)!=2:
-            raise RuntimeError, "Invalid line (expected 2 elements, found %i)"%len(larr)
+            raise RuntimeError("Invalid line (expected 2 elements, found %i)"%len(larr))
         lval=larr[1]
         self.data[lval]=larr[0]
 
@@ -237,7 +237,7 @@ class ElementMergedDescript:
     def __init__(self, base_dir, group_name):
         self.frontend_data=FrontendDescript(base_dir).data
         if not (group_name in string.split(self.frontend_data['Groups'], ',')):
-            raise RuntimeError, "Group '%s' not supported: %s"%(group_name, self.frontend_data['Groups'])
+            raise RuntimeError("Group '%s' not supported: %s"%(group_name, self.frontend_data['Groups']))
         
         self.element_data=ElementDescript(base_dir, group_name).data
         self.group_name=group_name
@@ -252,11 +252,11 @@ class ElementMergedDescript:
         for t in ('JobSchedds',):
             self.merged_data[t]=self.split_list(self.frontend_data[t])+self.split_list(self.element_data[t])
             if len(self.merged_data[t])==0:
-                raise RuntimeError, "Found empty %s!"%t
+                raise RuntimeError("Found empty %s!"%t)
         for t in ('FactoryCollectors',):
             self.merged_data[t]=eval(self.frontend_data[t])+eval(self.element_data[t])
             if len(self.merged_data[t])==0:
-                raise RuntimeError, "Found empty %s!"%t
+                raise RuntimeError("Found empty %s!"%t)
         for t in ('FactoryQueryExpr', 'JobQueryExpr'):
             self.merged_data[t]="(%s) && (%s)"%(self.frontend_data[t], self.element_data[t])
         for t in ('JobMatchAttrs',):
@@ -336,7 +336,7 @@ class StageFiles:
         self.signature_descript=BaseSignatureDescript(base_URL, self.stage_descript.data['signature'], validate_algo, (validate_algo, signature_hash))
         
         if self.stage_descript.hash_value!=self.signature_descript.data[descript_fname]:
-            raise IOError, "Descript file %s signature invalid, expected'%s' got '%s'"%(descript_fname, self.signature_descript.data[descript_fname], self.stage_descript.hash_value)
+            raise IOError("Descript file %s signature invalid, expected'%s' got '%s'"%(descript_fname, self.signature_descript.data[descript_fname], self.stage_descript.hash_value))
 
     def get_stage_file(self, fname, repr):
         return ConfigFile(self.base_URL, fname, repr,
@@ -344,7 +344,7 @@ class StageFiles:
 
     def get_file_list(self, list_type): # example list_type == 'preentry_file_list'
         if list_type not in self.stage_descript.data:
-            raise KeyError, "Unknown list type '%s'; valid typtes are %s"%(list_type, self.stage_descript.data.keys())
+            raise KeyError("Unknown list type '%s'; valid typtes are %s"%(list_type, self.stage_descript.data.keys()))
 
         list_fname=self.stage_descript.data[list_type]
         return self.get_stage_file(self.stage_descript.data[list_type],

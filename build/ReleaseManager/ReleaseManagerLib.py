@@ -520,11 +520,11 @@ def execute_cmd(cmd, stdin_data=None):
         else:
             msg = "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s"%(cmd, tempOut, tempErr, e)
             print(msg)
-            raise ExeError, msg
+            raise ExeError(msg)
     if (errcode != 0):
         msg = "Error running '%s'\nStdout:%s\nStderr:%s\nException Error: %s"%(cmd, tempOut, tempErr, errcode)
         print(msg)
-        raise ExeError, msg
+        raise ExeError(msg)
     return tempOut
 
 

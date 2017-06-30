@@ -240,7 +240,7 @@ class ClassadAdvertiser:
             finally:
                 os.remove(fname)
         else:
-            raise RuntimeError, 'Failed advertising %s classads' % self.adType
+            raise RuntimeError('Failed advertising %s classads' % self.adType)
 
 
     def advertiseClassads(self, ads=None):

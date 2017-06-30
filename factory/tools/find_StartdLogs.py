@@ -28,14 +28,14 @@ USAGE="Usage: find_StartdLogs.py <factory> YY/MM/DD [hh:mm:ss]"
 # factory_dir, date_arr and time_arr
 def parse_args():
     if len(sys.argv)<3:
-        raise ValueError, "Not enough arguments!"
+        raise ValueError("Not enough arguments!")
 
     factory_dir=sys.argv[1]
     try:
         glideFactoryConfig.factoryConfig.glidein_descript_file=os.path.join(factory_dir, glideFactoryConfig.factoryConfig.glidein_descript_file)
         glideinDescript=glideFactoryConfig.GlideinDescript()
     except:
-        raise ValueError, "%s is not a factory!"%factory_dir
+        raise ValueError("%s is not a factory!"%factory_dir)
 
     glideinDescript.factory_dir=factory_dir
     glideinDescript.date_arr=gWftArgsHelper.parse_date(sys.argv[2])

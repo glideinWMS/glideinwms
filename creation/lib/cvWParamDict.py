@@ -162,8 +162,8 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
             for filename in files:
                 if filename == name:
                     return root
-        raise RuntimeError, "Unable to find %(file)s in %(dir)s path" % \
-                           { "file": name,  "dir": search_path, }
+        raise RuntimeError("Unable to find %(file)s in %(dir)s path" % \
+                           { "file": name,  "dir": search_path, })
 
     # reuse as much of the other as possible
     def reuse(self, other):             # other must be of the same class
@@ -389,13 +389,13 @@ def add_attr_unparsed(attr_name, params, dicts, description):
     try:
         add_attr_unparsed_real(attr_name, params, dicts)
     except RuntimeError as e:
-        raise RuntimeError, "Error parsing attr %s[%s]: %s"%(description, attr_name, str(e))
+        raise RuntimeError("Error parsing attr %s[%s]: %s"%(description, attr_name, str(e)))
 
 def add_attr_unparsed_real(attr_name, params, dicts):
     attr_obj=params.attrs[attr_name]
     
     if attr_obj.value is None:
-        raise RuntimeError, "Attribute '%s' does not have a value: %s"%(attr_name, attr_obj)
+        raise RuntimeError("Attribute '%s' does not have a value: %s"%(attr_name, attr_obj))
 
     is_parameter = is_true(attr_obj.parameter)
     # attr_obj.type=="expr" is now used for HTCondor expression
@@ -419,13 +419,13 @@ def add_attr_unparsed_real(attr_name, params, dicts):
                 if (((attr_obj.type=="int") and (attr_var_type!='I')) or
                     ((attr_obj.type=="expr") and (attr_var_type=='I')) or
                     ((attr_obj.type=="string") and (attr_var_type=='I'))):
-                    raise RuntimeError, "Types not compatible (%s,%s)"%(attr_obj.type, attr_var_type)
+                    raise RuntimeError("Types not compatible (%s,%s)"%(attr_obj.type, attr_var_type))
                 attr_var_export=attr_var_el[4]
                 if do_glidein_publish and (attr_var_export=='N'):
-                    raise RuntimeError, "Cannot force glidein publishing"
+                    raise RuntimeError("Cannot force glidein publishing")
                 attr_var_job_publish=attr_var_el[5]
                 if do_job_publish and (attr_var_job_publish=='-'):
-                    raise RuntimeError, "Cannot force job publishing"
+                    raise RuntimeError("Cannot force job publishing")
             else:
                 dicts['vars'].add_extended(attr_name, attr_obj.type, None, None, False, do_glidein_publish, do_job_publish)
 
@@ -444,10 +444,10 @@ def populate_frontend_descript(work_dir,
             frontend_dict.add('MonitoringWebURL', params.web_url.replace("stage", "monitor"))
 
         if params.security.classad_proxy is None:
-            raise RuntimeError, "Missing security.classad_proxy"
+            raise RuntimeError("Missing security.classad_proxy")
         params.subparams.data['security']['classad_proxy']=os.path.abspath(params.security.classad_proxy)
         if not os.path.isfile(params.security.classad_proxy):
-            raise RuntimeError, "security.classad_proxy(%s) is not a file"%params.security.classad_proxy
+            raise RuntimeError("security.classad_proxy(%s) is not a file"%params.security.classad_proxy)
         frontend_dict.add('ClassAdProxy', params.security.classad_proxy)
         
         frontend_dict.add('SymKeyType', params.security.sym_key)
@@ -779,7 +779,7 @@ def populate_gridmap(params, gridmap_dict):
         for el in coll_list:
             dn=el.DN
             if dn is None:
-                raise RuntimeError, "DN not defined for pool collector or CCB %s"%el.node
+                raise RuntimeError("DN not defined for pool collector or CCB %s"%el.node)
             if not (dn in collector_dns):  #skip duplicates
                 collector_dns.append(dn)
                 gridmap_dict.add(dn, 'collector%i'%len(collector_dns))
@@ -793,7 +793,7 @@ def populate_gridmap(params, gridmap_dict):
 # Populate security values
 def populate_main_security(client_security, params):
     if params.security.proxy_DN is None:
-        raise RuntimeError, "DN not defined for classad_proxy"    
+        raise RuntimeError("DN not defined for classad_proxy")    
     client_security['proxy_DN']=params.security.proxy_DN
     
     collector_dns=[]
@@ -801,14 +801,14 @@ def populate_main_security(client_security, params):
     for el in params.collectors:
         dn=el.DN
         if dn is None:
-            raise RuntimeError, "DN not defined for pool collector %s"%el.node
+            raise RuntimeError("DN not defined for pool collector %s"%el.node)
         is_secondary=is_true(el.secondary)
         if is_secondary:
             continue # only consider primary collectors for the main security config
         collector_nodes.append(el.node)
         collector_dns.append(dn)
     if len(collector_nodes)==0:
-        raise RuntimeError, "Need at least one non-secondary pool collector"
+        raise RuntimeError("Need at least one non-secondary pool collector")
     client_security['collector_nodes']=collector_nodes
     client_security['collector_DNs']=collector_dns
 
@@ -818,7 +818,7 @@ def populate_group_security(client_security, params, sub_params):
       for el in collectors:
         dn=el.DN
         if dn is None:
-            raise RuntimeError, "DN not defined for factory %s"%el.node
+            raise RuntimeError("DN not defined for factory %s"%el.node)
         # don't worry about conflict... there is nothing wrong if the DN is listed twice
         factory_dns.append(dn)
     client_security['factory_DNs']=factory_dns
@@ -828,7 +828,7 @@ def populate_group_security(client_security, params, sub_params):
       for el in schedds:
         dn=el.DN
         if dn is None:
-            raise RuntimeError, "DN not defined for schedd %s"%el.fullname
+            raise RuntimeError("DN not defined for schedd %s"%el.fullname)
         # don't worry about conflict... there is nothing wrong if the DN is listed twice
         schedd_dns.append(dn)
     client_security['schedd_DNs']=schedd_dns

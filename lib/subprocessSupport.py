@@ -76,7 +76,7 @@ def iexe_cmd(cmd, useShell=False, stdin_data=None, child_env=None):
 
     except OSError as e:
         err_str = "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError:%s"
-        raise RuntimeError, err_str % (cmd, stdoutdata, stderrdata, e)
+        raise RuntimeError(err_str % (cmd, stdoutdata, stderrdata, e))
     if exitStatus:
         raise CalledProcessError(exitStatus, cmd, output="".join(stderrdata))
     return stdoutdata
