@@ -488,9 +488,8 @@ class PackageExcludes:
 def create_dir(dir, mode=0755, errorIfExists=False):
     try:
         os.makedirs(dir, mode=0755)
-    except OSError as xxx_todo_changeme:
-        (errno, stderror) = xxx_todo_changeme.args
-        if (errno == 17) and (errorIfExists == False):
+    except OSError as e:
+        if (e.errno == 17) and (errorIfExists == False):
             print 'Dir already exists reusing %s' % dir
         else:
             raise
