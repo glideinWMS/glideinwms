@@ -165,7 +165,7 @@ function verify_factory() {
     return 0
 }
 
-
+uname -a
 install_rpms $enable_repo glideinwms-factory condor-python
 
 patch_privsep_config
@@ -256,7 +256,7 @@ function verify_vofe() {
 }
 
 function submit_testjobs() {
-    runuser -c "cd ~/testjobs; condor_submit ~/testjobs/testjob.glexec.jdf" testuser
+    runuser -c "cd ~/testjobs; mkdir -p mkdir joboutput;  condor_submit ~/testjobs/testjob.glexec.jdf" testuser
 }
 
 install_rpms $enable_repo glideinwms-vofrontend condor-python
@@ -486,6 +486,10 @@ vofe_vmid=`launch_vm $vofe_vm_name $vm_template`
 
 fact_fqdn=`vm_hostname $fact_vmid`
 vofe_fqdn=`vm_hostname $vofe_vmid`
+
+touch /tmp/installed.nodes
+echo $fact_vm_name $fact_fqdn >> /tmp/installed.nodes
+echo $vofe_vm_name $vofe_fqdn >> /tmp/installed.nodes
 
 fact_fqdn_status="down"
 is_vm_up $fact_fqdn
