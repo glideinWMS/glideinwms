@@ -49,31 +49,37 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
     # Seems like arrays do not survive the singularity transformation, so set them
     # explicity
 
+# from the default_singularity_setup.sh
     export HAS_SINGULARITY=$(getPropBool $_CONDOR_MACHINE_AD HAS_SINGULARITY)
     export GWMS_SINGULARITY_PATH=$(getPropStr $_CONDOR_MACHINE_AD GWMS_SINGULARITY_PATH)
     export GWMS_SINGULARITY_IMAGE_DEFAULT=$(getPropStr $_CONDOR_MACHINE_AD GWMS_SINGULARITY_IMAGE_DEFAULT)
+
+## from Job ClassAd
     export GWMS_SINGULARITY_IMAGE=$(getPropStr $_CONDOR_JOB_AD SingularityImage)
-
-    export GWMS_SINGULARITY_BIND_CVMFS=$(getPropBool $_CONDOR_JOB_AD SingularityBindCVMFS)
-
-    export STASHCACHE=$(getPropBool $_CONDOR_JOB_AD WantsStashCache)
-
-    export POSIXSTASHCACHE=$(getPropBool $_CONDOR_JOB_AD WantsPosixStashCache)
-
-    export LoadModules=$(getPropStr $_CONDOR_JOB_AD LoadModules)
-
-    export LMOD_BETA=$(getPropBool $_CONDOR_JOB_AD LMOD_BETA)
-
+#HK> I think I need to enable GWMS_SINGULARITY_BIND_CVMFS always
+#    export GWMS_SINGULARITY_BIND_CVMFS=$(getPropBool $_CONDOR_JOB_AD SingularityBindCVMFS)
+    export GWMS_SINGULARITY_BIND_CVMFS=1
     export CVMFS_REPOS_LIST=$(getPropStr $_CONDOR_JOB_AD CVMFSReposList)
     echo "Debug: CVMFS Repos List = $CVMFS_REPOS_LIST" 1>&2
     export GWMS_SINGULARITY_AUTOLOAD=1
+    #HK> we do not allow users to set SingularityAutoLoad
+    #export OSG_SINGULARITY_AUTOLOAD=$(getPropStr $_CONDOR_JOB_AD SingularityAutoLoad)
+
+## from Job ClassAd
+    export STASHCACHE=$(getPropBool $_CONDOR_JOB_AD WantsStashCache)
+    export POSIXSTASHCACHE=$(getPropBool $_CONDOR_JOB_AD WantsPosixStashCache)
+    export LoadModules=$(getPropStr $_CONDOR_JOB_AD LoadModules)
+    export LMOD_BETA=$(getPropBool $_CONDOR_JOB_AD LMOD_BETA)
+
 
     #############################################################################
     #
     #  Singularity
     #
-    if [ "x$HAS_SINGULARITY" = "x1" -a "x$GWMS_SINGULARITY_AUTOLOAD" = "x1" -a "x$GWMS_SINGULARITY_PATH" != "x" ]; then
+#    if [ "x$HAS_SINGULARITY" = "x1" -a "x$GWMS_SINGULARITY_AUTOLOAD" = "x1" -a "x$GWMS_SINGULARITY_PATH" != "x" ]; then
+    if [ "x$HAS_SINGULARITY" = "x1" -a "x$GWMS_SINGULARITY_PATH" != "x" ]; then
 
+# We make sure that every cvmfs repository that users specify in CVMFSReposList is available, otherwise this script exits with 1
         holdfd=3
         if [ "x$CVMFS_REPOS_LIST" != "x" ]; then
             for x in $(echo $CVMFS_REPOS_LIST | sed 's/,/ /g'); do
@@ -102,12 +108,11 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
                 touch ../../.stop-glidein.stamp >/dev/null 2>&1
                 sleep 10m
             fi
-	else # if [ "x$GWMS_SINGULARITY_IMAGE" != "x" ]; then
+	else ## i.e. if [ "x$GWMS_SINGULARITY_IMAGE" != "x" ]; then
 	    echo "Debug: user image name = $GWMS_SINGULARITY_IMAGE" 1>&2
 	    if ! echo "$GWMS_SINGULARITY_IMAGE" | grep ^"/cvmfs" >/dev/null 2>&1; then
 		echo "warning: $GWMS_SINGULARITY_IMAGE is not in /cvmfs area" 1>&2
 		exit 1
-		#export GWMS_SINGULARITY_IMAGE="$GWMS_SINGULARITY_IMAGE_DEFAULT"
 	    fi
         fi
 
@@ -218,10 +223,10 @@ fi
 if [ "x$LMOD_BETA" = "x1" ]; then
     # used for testing the new el6/el7 modules 
     if [ -e /cvmfs/oasis.opensciencegrid.org/osg/sw/module-beta-init.sh ]; then
-        . /cvmfs/oasis.opensciencegrid.org/osg/sw/module-beta-init.sh
+          . /cvmfs/oasis.opensciencegrid.org/osg/sw/module-beta-init.sh
     fi
 elif [ -e /cvmfs/oasis.opensciencegrid.org/osg/sw/module-init.sh ]; then
-    . /cvmfs/oasis.opensciencegrid.org/osg/sw/module-init.sh
+        . /cvmfs/oasis.opensciencegrid.org/osg/sw/module-init.sh
 fi
 
 #HK> osg specific

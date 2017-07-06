@@ -115,7 +115,11 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
 		"$error_gen" -error "singularity_setup.sh" "VO_Config" "$STR" "attribute" "GLIDEIN_Singularity_Use"
 		exit 1
             fi
-            no_use_singularity_config
+	    #HK> no_use_singularity_config alone might not be sufficient. If Group mistakenly use default_singularity_wrapper.sh with GLIDEIN_Glexec_Use=NEVER
+	    #HK> we need to set    advertise HAS_SINGULARITY "False" "C"
+#            no_use_singularity_config
+	    advertise HAS_SINGULARITY "False" "C"
+	    exit 0
             ;;
 	OPTIONAL) #HK> Even in OPTIONAL case, FE will have to specify the wrapper script
             if [ "$require_singularity" == "True" ]; then
@@ -127,7 +131,7 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
             else
 		if [ "$singularity_bin" == "NONE" ]; then
                     echo "`date` VO has set the use singularity to OPTIONAL but site is not configured with singularity"
-		    advertise HAS_SINGULARITY "False" "C"		    
+		    advertise HAS_SINGULARITY "False" "C"
 		    exit 0
 		fi
             fi
@@ -159,7 +163,7 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
     info "Checking for singularity..."
 
     # some known singularity locations
-    for LOCATION in /usr/bin; do
+    for LOCATION in /usr/bin $singularity_bin; do
         if [ -e "$LOCATION" ]; then
             info " ... prepending $LOCATION to PATH"
             export PATH="$LOCATION:$PATH"
@@ -285,10 +289,10 @@ else
 #HK> moved from hkhere above..
     # delay the advertisement until here to make sure singularity actually works
     advertise HAS_SINGULARITY "True" "C"
-    advertise GWMS_SINGULARITY_VERSION "$GWMS_SINGULARITY_VERSION" "S"
     advertise GWMS_SINGULARITY_PATH "$GWMS_SINGULARITY_PATH" "S"
     advertise GWMS_SINGULARITY_IMAGE_DEFAULT "$GWMS_SINGULARITY_IMAGE_DEFAULT" "S"
-
+#HK> not used anywhere, thus no need to advertize to default_singularity_wrapper.sh
+#    advertise GWMS_SINGULARITY_VERSION "$GWMS_SINGULARITY_VERSION" "S"
 fi
 
 ##################
