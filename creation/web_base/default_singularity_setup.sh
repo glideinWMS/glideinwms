@@ -93,7 +93,11 @@ if [ "x$GWMS_SINGULARITY_REEXEC" = "x" ]; then
     use_singularity=`grep '^GLIDEIN_Singularity_Use ' $glidein_config | awk '{print $2}'`
     if [ -z "$use_singularity" ]; then
 	echo "`date` GLIDEIN_Singularity_Use not configured. Defaulting it to OPTIONAL"
-	use_singularity="OPTIONAL"
+#	use_singularity="OPTIONAL"
+#HK> if Grouip does not set GLIDEIN_Singularity_Use but forgets to delete default_singularity_wrapper.sh in frontend.xml
+#HK> the user job will run inside singularity with use_singularity="OPTIONAL" and when matched to a Entry with SINGULARITY_BIN set..
+#HK> So, I am modifying as follows..
+	use_singularity="NEVER"
     fi
 
 # Does entry require glidein to use singularity?
