@@ -108,8 +108,14 @@ if [ "x$SINGULARITY_REEXEC" = "x" ]; then
                 touch ../../.stop-glidein.stamp >/dev/null 2>&1
                 sleep 10m
             fi
-	else ## i.e. if [ "x$GWMS_SINGULARITY_IMAGE" != "x" ]; then
+	else ## i.e. if [ "x$GWMS_SINGULARITY_IMAGE" != "x" ]
 	    echo "Debug: user image name = $GWMS_SINGULARITY_IMAGE" 1>&2
+# HK> new code, must make sure the user own image is available
+	    if [ ! -e "$GWMS_SINGULARITY_IMAGE" ]; then
+		echo "Error: $GWMS_SINGULARITY_IMAGE is not found" 1>&2
+		exit 1
+	    fi
+# HK> existing check
 	    if ! echo "$GWMS_SINGULARITY_IMAGE" | grep ^"/cvmfs" >/dev/null 2>&1; then
 		echo "warning: $GWMS_SINGULARITY_IMAGE is not in /cvmfs area" 1>&2
 		exit 1
