@@ -205,11 +205,9 @@ class Params:
         xml_format=self.get_xml_format()
         xmlFormat.DEFAULT_LISTS_PARAMS=xml_format['lists_params']
         xmlFormat.DEFAULT_DICTS_PARAMS=xml_format['dicts_params']
-        # hack needed to make xmlFormat to properly do the formating
-        old_DictType=dict
-        dict=type(xmlParse.OrderedDict())
-        out=xmlFormat.class2string(self.data, self.get_top_element())
-        dict=old_DictType
+        # hack needed to make xmlFormat to properly do the formating, using override_dictionary_type
+        dict_override=type(xmlParse.OrderedDict())
+        out=xmlFormat.class2string(self.data, self.get_top_element(), override_dictionary_type=dict_override)
         xmlFormat.DEFAULT_IGNORE_NONES=old_default_ignore_nones
         xmlFormat.DEFAULT_LISTS_PARAMS=old_default_lists_params
         xmlFormat.DEFAULT_DICTS_PARAMS=old_default_dicts_params
