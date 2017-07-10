@@ -38,7 +38,7 @@ from glideinwms.frontend import glideinFrontendLib
 from glideinwms.frontend import glideinFrontendInterface
 from glideinwms.frontend import glideinFrontendMonitorAggregator
 from glideinwms.frontend import glideinFrontendMonitoring
-from .glideinFrontendElement import glideinFrontendElement
+from glideinwms.frontend import glideinFrontendElement
 FRONTEND_DIR = os.path.dirname(glideinFrontendLib.__file__)
 ############################################################
 # KEL remove this method and just call the monitor aggregator method directly below?  we don't use the results
