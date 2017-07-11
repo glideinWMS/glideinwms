@@ -185,7 +185,7 @@ def class2head(inst, inst_name, params, dicts_params, lists_params, tree_params,
 def class2string(inst, inst_name, params={}, subclass_params={},
                  dicts_params=None, lists_params=None, tree_params=None,
                  text_params=None, indent_tab=DEFAULT_TAB, leading_tab="",
-                 debug_str="", DEFAULT_OVERRIDE_DICT_type=None):
+                 debug_str="", override_dictionary_type=None):
     # return a pair (new_subclass_params,new_dict2list_params)
     def get_subclass_param(subclass_params, attr):
         if attr in subclass_params.keys():
@@ -202,8 +202,8 @@ def class2string(inst, inst_name, params={}, subclass_params={},
         tree_params = DEFAULT_TREE_PARAMS
     if text_params is None:
         text_params = DEFAULT_TEXT_PARAMS
-    if DEFAULT_OVERRIDE_DICT_type != None:
-        DEFAULT_OVERRIDE_DICT.update({'TypeDict': DEFAULT_OVERRIDE_DICT_type})
+    if override_dictionary_type != None:
+        DEFAULT_OVERRIDE_DICT.update({'TypeDict': override_dictionary_type})
 
     head_str, is_complete, inst_attrs, dict_attrs, list_attrs, tree_attrs, text_attrs = class2head(inst, inst_name, params, dicts_params, lists_params, tree_params, text_params, leading_tab, debug_str)
     if is_complete:
