@@ -355,3 +355,6 @@ fi
 ##################
 info "All done - time to do some real work!"
 
+"$error_gen" -ok "singularity_setup.sh"  "use_singularity" "True" 
+
+exit 0
