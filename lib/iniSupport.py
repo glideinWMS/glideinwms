@@ -1,7 +1,6 @@
 from __future__ import print_function
 import re
 import sys
-import types
 import ConfigParser
 
 class IniError(Exception): pass
@@ -110,7 +109,7 @@ def cp_getList(cp, section, option, default, throw_exception=False):
     """
     try:
         results = cp_get(cp, section, option, default, throw_exception=throw_exception)
-        if isinstance(results, types.StringType):
+        if isinstance(results, bytes):
             results = split_re.split(results)
         return results
     except:
