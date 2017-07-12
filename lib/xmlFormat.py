@@ -69,12 +69,12 @@ DEFAULT_OVERRIDE_DICT = {'TypeDict': dict}
 #
 ##########################################################
 
-SIMPLE_TYPES = (int, float, bool) + (str,)
+SIMPLE_TYPES = (int, float, bool) + (str,unicode)
 
 def xml_quoteattr(el):
     if el is None:
         val = '"None"'
-    elif type(el) in (str,):
+    elif type(el) in (str,unicode):
         val = xml.sax.saxutils.quoteattr(el)
     elif isinstance(el, bool):
         val = '"%s"' % el
@@ -137,7 +137,7 @@ def class2head(inst, inst_name, params, dicts_params, lists_params, tree_params,
                 continue
             else:
                 head_arr.append(' %s="None"' % attr)
-        elif type(el) in (str,):
+        elif type(el) in (str,unicode):
             if attr in text_params:
                 text_attrs.append(attr)
             else:
