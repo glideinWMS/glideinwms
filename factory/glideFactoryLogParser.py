@@ -355,7 +355,7 @@ def extractLogData(fname):
             if validate_re is not None:
                 try:
                     validation_duration=int(validate_re.group('secs'))
-                except:
+                except (IndexError, ValueError):
                     validation_duration=None
                 # KEL unused variable - do we need to use this?
                 bux_idx=validate_re.end()+1
@@ -368,7 +368,7 @@ def extractLogData(fname):
                 if end_re is not None:
                     try:
                         condor_duration=int(end_re.group('secs'))
-                    except:
+                    except (IndexError,ValueError):
                         condor_duration=None
                     buf_idx=end_re.end()+1
                     slot_re=ELD_RC_CONDOR_SLOT.search(buf,buf_idx)
@@ -389,7 +389,7 @@ def extractLogData(fname):
                                 try:
                                     jobsnr=int(count_re.group('jobsnr'))
                                     secs=int(count_re.group('secs'))
-                                except:
+                                except (IndexError,ValueError):
                                     jobsnr=None
 
                                 if jobsnr is not None: #check I had no errors in integer conversion
@@ -406,7 +406,7 @@ def extractLogData(fname):
             if activations_re is not None:
                 try:
                     num_activations=int(activations_re.group("nr"))
-                except:
+                except (IndexError,ValueError):
                     num_activations=None
                 bux_idx=activations_re.end()+1
             else:
@@ -416,7 +416,7 @@ def extractLogData(fname):
             if glidein_end_re is not None:
                 try:
                     glidein_duration=int(glidein_end_re.group('secs'))
-                except:
+                except (IndexError,ValueError):
                     glidein_duration=None
                 # KEL - unused variable - do we need to use this?
                 bux_idx=glidein_end_re.end()+1
