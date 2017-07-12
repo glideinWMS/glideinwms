@@ -1,6 +1,7 @@
 from __future__ import print_function
 import re
 import sys
+import types
 import ConfigParser
 
 class IniError(Exception): pass
