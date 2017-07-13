@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from past.builtins import cmp
 import os
 import stat
 import time

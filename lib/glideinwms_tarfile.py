@@ -31,6 +31,7 @@
 """
 from __future__ import print_function
 
+from past.builtins import cmp
 __version__ = "$Revision: 70530 $"
 # $Source$
 

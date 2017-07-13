@@ -13,6 +13,7 @@
 #
 
 from __future__ import print_function
+from past.builtins import cmp
 import time
 import sys
 import os.path
