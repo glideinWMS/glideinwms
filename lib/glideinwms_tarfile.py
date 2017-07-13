@@ -2149,7 +2149,7 @@ class TarFileCompat:
                 m.file_size = m.size
                 m.date_time = time.gmtime(m.mtime)[:6]
     def namelist(self):
-        return map(lambda m: m.name, self.infolist())
+        return [m.name for m in self.infolist()]
     def infolist(self):
         return [m for m in self.tarfile.getmembers() if m.type in REGULAR_TYPES]
     def printdir(self):

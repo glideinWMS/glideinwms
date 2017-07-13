@@ -72,7 +72,7 @@ def runAllTests():
         return False
 
     test_modules = [f[:-3] for f in os.listdir(unittest_dir) if is_test(f)]
-    modules = map(__import__, test_modules)
+    modules = list(map(__import__, test_modules))
     for test in modules:
         test.main()
 

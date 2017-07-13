@@ -92,7 +92,7 @@ def update_classads():
             qe = CondorQEdit(pool_name=pool_name, schedd_name=schedd_name)
             qe.executeAll(joblist=list(joblist.keys()),
                           attributes=['MONITOR_INFO']*len(joblist),
-                          values=map(json.dumps, list(joblist.values())))
+                          values=list(map(json.dumps, list(joblist.values()))))
         except QueryError as qe:
             logSupport.log.error("Failed to add monitoring info to the glidein job classads: %s" % qe)
 

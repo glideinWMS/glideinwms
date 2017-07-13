@@ -581,7 +581,7 @@ def fair_split(i, n, p):
 
 
 def random_split(n, p):
-    random_arr = map(lambda i: fair_split(i, n, p), range(p))
+    random_arr = [fair_split(i, n, p) for i in range(p)]
     random.shuffle(random_arr)
     return random_arr
 

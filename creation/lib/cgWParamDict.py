@@ -1098,7 +1098,7 @@ def itertools_product(*args, **kwds):
     itertools.product() from Python 2.6
     """
 
-    pools = map(tuple, args) * kwds.get('repeat', 1)
+    pools = list(map(tuple, args)) * kwds.get('repeat', 1)
     result = [[]]
     for pool in pools:
         result = [x+[y] for x in result for y in pool]

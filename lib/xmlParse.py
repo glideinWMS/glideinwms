@@ -71,7 +71,7 @@ class OrderedDict(UserDict):
                 self._keys.append(key)
 
     def values(self):
-        return map(self.get, self._keys)
+        return list(map(self.get, self._keys))
     
 
 # convert a XML file into a dictionary
